@@ -1,0 +1,27 @@
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090908;color:#f4ead7;font-family:Georgia,serif}
+button{font:inherit;color:inherit}
+#stageWrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#090908}
+#stage{position:relative;width:1920px;height:1080px;transform-origin:center center;overflow:hidden;background:#111}
+.scene{position:absolute;inset:0;display:none;background-repeat:no-repeat;background-size:1920px 1080px;background-position:0 0}
+.scene.active{display:block}
+#intro{background-image:url("../assets/zones/intro/background.png")}
+#ember{background-image:url("../assets/zones/ember/background.png")}
+.scene::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 62%,rgba(0,0,0,.2))}
+#sharkanRoot{position:absolute;z-index:35;width:0;height:0;pointer-events:none}
+#sharkanSprite{position:absolute;width:185px;height:185px;max-width:none;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.48));user-select:none;-webkit-user-drag:none}
+#sharkanRoot.jump{animation:jumpRoot .56s ease-in-out}
+@keyframes jumpRoot{0%,100%{transform:translateY(0)}46%{transform:translateY(-54px)}66%{transform:translateY(-47px)}}
+#groundShadow{position:absolute;z-index:29;width:72px;height:20px;border-radius:50%;background:rgba(0,0,0,.18);filter:blur(4px);transform:translate(-50%,-50%);pointer-events:none}
+#groundShadow.jump{animation:shadowHop .56s ease-in-out}
+@keyframes shadowHop{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.9}50%{transform:translate(-50%,-50%) scale(.65);opacity:.45}}
+.npc{position:absolute;z-index:20;transform:translate(-50%,-74%);background-color:transparent;border:0;background-size:contain;background-repeat:no-repeat;background-position:center bottom;cursor:pointer;filter:drop-shadow(0 10px 9px rgba(0,0,0,.48))}
+#otter{width:118px;height:150px;background-image:url("../assets/characters/npcs/professor/professor_otter.png");left:980px;top:528px}
+#emberNpc{width:138px;height:176px;background-image:url("../assets/characters/npcs/primal-keepers/ember/ember_keeper.png");left:1390px;top:465px}
+.glow{animation:glow 1.8s infinite ease-in-out}
+@keyframes glow{50%{filter:drop-shadow(0 0 18px rgba(255,160,80,.7))}}
+.lockedPath{position:absolute;z-index:18;width:48px;height:48px;border-radius:50%;background:#181511dd;border:1px solid #8a744d;display:flex;align-items:center;justify-content:center;font-size:22px}
+#emberGate{position:absolute;left:242px;top:726px;width:120px;height:120px;transform:translate(-50%,-50%);z-index:16;cursor:pointer;border-radius:50%}
+#emberGate::after{content:"";position:absolute;inset:18px;border-radius:50%;box-shadow:0 0 28px 10px #ff6b2c66;animation:glowGate 1.5s infinite alternate}
+@keyframes glowGate{to{box-shadow:0 0 42px 17px #ff6b2c99}}
+#backGate{position:absolute;left:190px;top:165px;width:150px;height:120px;z-index:16;cursor:pointer}

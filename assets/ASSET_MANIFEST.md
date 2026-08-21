@@ -1,11 +1,19 @@
-# HAJJEN v5 asset manifest
+# HAJJEN asset manifest
 
-The modular v5 code expects the following image files. Keep these filenames exactly so assets can be replaced without editing game logic.
+The modular game code expects the following image files. Keep these filenames exactly so assets can be replaced without editing game logic.
 
 ## Zones
 
 - `assets/zones/intro/background.png`
 - `assets/zones/ember/background.png`
+- `assets/zones/growth/growth_zone.png`
+
+## Portals
+
+- `assets/portals/ember/ember_portal.png`
+- `assets/portals/growth/growth_portal.png`
+
+The Ember and Growth portals remain hidden in the Introduction Zone until Sharkan finishes the first Professor Morrow dialogue.
 
 ## NPCs
 
@@ -17,6 +25,7 @@ The modular v5 code expects the following image files. Keep these filenames exac
 - `assets/characters/sharkan/walk/up/sharkan_walk_up_01.png`
 - `assets/characters/sharkan/walk/left/sharkan_walk_left_01.png`
 - `assets/characters/sharkan/walk/right/sharkan_walk_right_01.png`
+- `assets/characters/sharkan/idle/down/sharkan_idle_down.png`
 
 ## Sharkan experimental DOWN cycle
 
@@ -25,4 +34,4 @@ The modular v5 code expects the following image files. Keep these filenames exac
 - `assets/characters/sharkan/walk/down/sharkan_walk_down_03.png`
 - `assets/characters/sharkan/walk/down/sharkan_walk_down_04.png`
 
-These are the image assets extracted from the previous single-file v5 prototype. Once the files are in these paths, `index.html` and the modular JavaScript/CSS build can use them directly.
+Character animation work is intentionally secondary for now; gameplay and zone progression take priority.

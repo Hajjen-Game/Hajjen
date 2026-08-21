@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HAJJEN</title>
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/ui.css">
+  <link rel="stylesheet" href="css/spellbook.css">
+</head>
+<body>
+  <div id="stageWrap">
+    <main id="stage" aria-label="HAJJEN game">
+      <section id="intro" class="scene active" aria-label="The Crossroads">
+        <button id="otter" class="npc glow" aria-label="Professor Morrow"></button>
+        <div id="emberGate" aria-label="Path to Ember"></div>
+        <div class="lockedPath" style="left:555px;top:315px">💧</div>
+        <div class="lockedPath" style="left:1000px;top:150px">✧</div>
+        <div class="lockedPath" style="left:1650px;top:285px">🌪</div>
+        <div class="lockedPath" style="left:1455px;top:720px">🌱</div>
+        <div class="lockedPath" style="left:835px;top:960px">◆</div>
+      </section>
+      <section id="ember" class="scene" aria-label="Ember Hollow">
+        <button id="emberNpc" class="npc glow" aria-label="Ember Keeper"></button>
+        <div id="backGate" aria-label="Return to The Crossroads"></div>
+      </section>
+      <div id="groundShadow"></div>
+      <div id="sharkanRoot"><img id="sharkanSprite" alt="Sharkan"></div>
+      <div id="anchorDot"></div>
+      <div id="hud">
+        <div class="top">
+          <div class="badge"><div id="zoneName" class="zone">The Crossroads</div><div id="zoneSub" class="sub">Introduction Zone</div></div>
+          <div class="controls"><button id="invBtn" class="btn">Backpack [I]</button><button id="bookBtn" class="btn">Spellbook [B]</button></div>
+        </div>
+        <div id="hint">WASD to walk · SPACE to hop · F2 toggles foot-anchor debug</div>
+        <div id="toast"></div>
+      </div>
+      <div id="debug"></div>
+      <section id="dialogue" aria-live="polite">
+        <div id="portrait" class="portrait"></div>
+        <div class="speech"><div id="speaker" class="speaker"></div><p id="line"></p><button id="next" class="next">Continue</button></div>
+      </section>
+      <section id="inventory" class="panel" aria-label="Sharkan's Backpack">
+        <div class="head"><h2>Sharkan's Backpack</h2><button class="btn close">Close [I]</button></div>
+        <div class="body"><div id="inventoryGrid" class="inventoryGrid"></div></div>
+      </section>
+      <section id="spellbook" class="panel" aria-label="Spellbook">
+        <div class="head"><h2>Spellbook</h2><button class="btn close">Close [B]</button></div>
+        <div class="body"><p class="spellbookIntro">During the introduction you will receive one object from each of the six primal forces. Later, ingredients can be placed here and mixed into spells.</p><div id="spellSlots"></div><div class="tags spellbookNote">Spell mixing remains locked during this prototype until Sharkan has learned the primal forces.</div></div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

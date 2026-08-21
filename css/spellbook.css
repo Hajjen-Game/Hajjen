@@ -1,0 +1,4 @@
+#spellSlots{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.slot{height:145px;border:1px dashed #756143;border-radius:12px;background:#171411;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font:15px Arial,sans-serif}
+.spellbookIntro{font-size:18px}
+.spellbookNote{margin-top:16px}

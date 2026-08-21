@@ -3,66 +3,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>HAJJEN</title>
-  <link rel="stylesheet" href="css/game.css">
-  <link rel="stylesheet" href="css/ui.css">
+  <meta name="theme-color" content="#222820">
+  <title>HAJJEN 2D v0.1</title>
+  <link rel="stylesheet" href="css/game-2d.css">
   <link rel="stylesheet" href="css/spellbook.css">
 </head>
 <body>
-  <div id="stageWrap">
-    <main id="stage" aria-label="HAJJEN game">
-      <section id="intro" class="scene active" aria-label="The Crossroads">
-        <button id="otter" class="npc glow" aria-label="Professor Morrow"></button>
+  <main id="gameShell" aria-label="HAJJEN 2D v0.1">
+    <canvas id="gameCanvas" aria-label="The Crossroads exploration world"></canvas>
 
-        <div id="emberPortal" class="portal portal--ember" aria-label="Portal to Ember Hollow"></div>
-        <div id="growthPortal" class="portal portal--growth" aria-label="Portal to Growth Grove"></div>
-
-        <div class="lockedPath" style="left:555px;top:315px">💧</div>
-        <div class="lockedPath" style="left:1000px;top:150px">✧</div>
-        <div class="lockedPath" style="left:1650px;top:285px">🌪</div>
-        <div class="lockedPath" style="left:835px;top:960px">◆</div>
-      </section>
-
-      <section id="ember" class="scene" aria-label="Ember Hollow">
-        <button id="emberNpc" class="npc glow" aria-label="Ember Keeper"></button>
-        <div id="emberReturnPortal" class="portal portal--ember portal--return unlocked" aria-label="Return to The Crossroads"></div>
-      </section>
-
-      <section id="growth" class="scene" aria-label="Growth Grove">
-        <div id="growthReturnPortal" class="portal portal--growth portal--return unlocked" aria-label="Return to The Crossroads"></div>
-      </section>
-
-      <div id="groundShadow"></div>
-      <div id="sharkanRoot"><img id="sharkanSprite" alt="Sharkan"></div>
-      <div id="anchorDot"></div>
-
-      <div id="hud">
-        <div class="top">
-          <div class="badge"><div id="zoneName" class="zone">The Crossroads</div><div id="zoneSub" class="sub">Introduction Zone</div></div>
-          <div class="controls"><button id="invBtn" class="btn">Backpack [I]</button><button id="bookBtn" class="btn">Spellbook [B]</button></div>
+    <div id="hud2d">
+      <div class="hudTop">
+        <div class="badge2d"><strong>The Crossroads</strong><span>HAJJEN 2D v0.1 · seamless world prototype</span></div>
+        <div class="controls2d">
+          <button id="invBtn">Backpack [I]</button>
+          <button id="bookBtn">Spellbook [B]</button>
         </div>
-        <div id="hint">WASD to walk · SPACE to hop · F2 toggles foot-anchor debug</div>
-        <div id="toast"></div>
       </div>
+      <div id="hint" class="hint2d"></div>
+    </div>
 
-      <div id="debug"></div>
+    <div id="debugPanel" hidden></div>
 
-      <section id="dialogue" aria-live="polite">
-        <div id="portrait" class="portrait"></div>
-        <div class="speech"><div id="speaker" class="speaker"></div><p id="line"></p><button id="next" class="next">Continue</button></div>
-      </section>
+    <section id="inventory" class="panel" aria-label="Sharkan's Backpack">
+      <div class="head"><h2>Sharkan's Backpack</h2><button class="btn close">Close [I]</button></div>
+      <div class="body"><div id="inventoryGrid" class="inventoryGrid"></div></div>
+    </section>
 
-      <section id="inventory" class="panel" aria-label="Sharkan's Backpack">
-        <div class="head"><h2>Sharkan's Backpack</h2><button class="btn close">Close [I]</button></div>
-        <div class="body"><div id="inventoryGrid" class="inventoryGrid"></div></div>
-      </section>
-
-      <section id="spellbook" class="panel" aria-label="Spellbook">
-        <div class="head"><h2>Spellbook</h2><button class="btn close">Close [B]</button></div>
-        <div class="body"><p class="spellbookIntro">During the introduction you will receive one object from each of the six primal forces. Later, ingredients can be placed here and mixed into spells.</p><div id="spellSlots"></div><div class="tags spellbookNote">Spell mixing remains locked during this prototype until Sharkan has learned the primal forces.</div></div>
-      </section>
-    </main>
-  </div>
-  <script type="module" src="js/main.js"></script>
+    <section id="spellbook" class="panel" aria-label="Spellbook">
+      <div class="head"><h2>Spellbook</h2><button class="btn close">Close [B]</button></div>
+      <div class="body">
+        <p class="spellbookIntro">The Spellbook system is preserved while the new seamless 2D overworld foundation is established.</p>
+        <div id="spellSlots"></div>
+        <div class="tags spellbookNote">Spell experimentation will be expanded after the world foundation is validated.</div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="js/2d/main.js"></script>
 </body>
 </html>

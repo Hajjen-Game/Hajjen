@@ -30,66 +30,40 @@ const terrainImages = Object.fromEntries(Object.entries(TERRAIN_FILES).map(([key
   return [key, image];
 }));
 
-// The corner names describe their position in the original rounded-square master:
-// top-left = RIGHT + BOTTOM, top-right = LEFT + BOTTOM,
-// bottom-left = TOP + RIGHT, bottom-right = TOP + LEFT.
+// Corner connectivity established from the supplied production assets:
+// cornerBottomLeft  = TOP + RIGHT
+// cornerTopLeft     = RIGHT + BOTTOM
+// cornerTopRight    = BOTTOM + LEFT
+// cornerBottomRight = LEFT + TOP
 const terrainLayout = new Map();
 const tileKey = (col, row) => `${col},${row}`;
 const setTerrain = (col, row, type) => terrainLayout.set(tileKey(col, row), type);
 
-// A continuous straight run always uses one single supplied variant.
-// This prevents top/bottom or left/right straight variants from touching each
-// other inside the same run, where their subtle artwork differences are visible.
-function addHorizontal(row, fromCol, toCol, type) {
-  const start = Math.min(fromCol, toCol);
-  const end = Math.max(fromCol, toCol);
-  for (let col = start; col <= end; col++) setTerrain(col, row, type);
+// Compact temporary path-compatibility map centered around the existing spawn.
+// Every corner direction is tested twice: once with horizontalTop + verticalLeft,
+// once with horizontalBottom + verticalRight. Independent examples are separated
+// by grass, so incompatible straight variants never touch each other directly.
+function addCornerTest(col, row, cornerType, horizontalType, verticalType, horizontalSide, verticalSide) {
+  setTerrain(col, row, cornerType);
+  setTerrain(col + (horizontalSide === "right" ? 1 : -1), row, horizontalType);
+  setTerrain(col, row + (verticalSide === "bottom" ? 1 : -1), verticalType);
 }
 
-function addVertical(col, fromRow, toRow, type) {
-  const start = Math.min(fromRow, toRow);
-  const end = Math.max(fromRow, toRow);
-  for (let row = start; row <= end; row++) setTerrain(col, row, type);
-}
+// TOP -> RIGHT
+addCornerTest(11, 15, "cornerBottomLeft", "horizontalTop",    "verticalLeft",  "right", "top");
+addCornerTest(15, 15, "cornerBottomLeft", "horizontalBottom", "verticalRight", "right", "top");
 
-// One continuous top-to-bottom test route with long straight runs and all four
-// supplied corner orientations. Different variants are tested on separate runs,
-// never alternated directly beside each other.
-addVertical(6, 0, 4, "verticalLeft");
-setTerrain(6, 5, "cornerBottomLeft");       // TOP -> RIGHT
-addHorizontal(5, 7, 19, "horizontalTop");
-setTerrain(20, 5, "cornerTopRight");        // LEFT -> BOTTOM
-addVertical(20, 6, 10, "verticalRight");
-setTerrain(20, 11, "cornerBottomRight");    // TOP -> LEFT
-addHorizontal(11, 11, 19, "horizontalBottom");
-setTerrain(10, 11, "cornerTopLeft");        // RIGHT -> BOTTOM
-addVertical(10, 12, 16, "verticalLeft");
-setTerrain(10, 17, "cornerBottomLeft");     // TOP -> RIGHT
-addHorizontal(17, 11, 22, "horizontalTop");
-setTerrain(23, 17, "cornerTopRight");       // LEFT -> BOTTOM
-addVertical(23, 18, 22, "verticalRight");
-setTerrain(23, 23, "cornerBottomRight");    // TOP -> LEFT
-addHorizontal(23, 15, 22, "horizontalBottom");
-setTerrain(14, 23, "cornerTopLeft");        // RIGHT -> BOTTOM
-addVertical(14, 24, 27, "verticalLeft");
+// RIGHT -> BOTTOM
+addCornerTest(19, 15, "cornerTopLeft", "horizontalTop",    "verticalLeft",  "right", "bottom");
+addCornerTest(11, 19, "cornerTopLeft", "horizontalBottom", "verticalRight", "right", "bottom");
 
-// TEMPORARY TERRAIN-SEAM DIAGNOSTIC AREA.
-// It is deliberately centered around the existing player spawn so both versions
-// can be inspected immediately without changing camera, player, gameplay or world data.
-// Left side: grass_center.png drawn normally.
-// Right side: the same PNG using only source rect (3,3,122,122), stretched to 128x128.
-const DIAGNOSTIC = {
-  minCol: 8,
-  maxCol: 20,
-  minRow: 14,
-  maxRow: 21,
-  splitCol: 14
-};
+// BOTTOM -> LEFT
+addCornerTest(15, 19, "cornerTopRight", "horizontalTop",    "verticalLeft",  "left", "bottom");
+addCornerTest(19, 19, "cornerTopRight", "horizontalBottom", "verticalRight", "left", "bottom");
 
-function isDiagnosticTile(col, row) {
-  return col >= DIAGNOSTIC.minCol && col <= DIAGNOSTIC.maxCol &&
-         row >= DIAGNOSTIC.minRow && row <= DIAGNOSTIC.maxRow;
-}
+// LEFT -> TOP
+addCornerTest(11, 23, "cornerBottomRight", "horizontalTop",    "verticalLeft",  "left", "top");
+addCornerTest(15, 23, "cornerBottomRight", "horizontalBottom", "verticalRight", "left", "top");
 
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
@@ -108,29 +82,21 @@ function drawTerrain(ctx, camera, w, h) {
   const minRow = Math.max(0, Math.floor(worldTop / TILE_SIZE));
   const maxRow = Math.min(Math.ceil(WORLD.height / TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / TILE_SIZE));
 
-  // Snap the camera-derived screen origin ONCE, then derive every tile from the
-  // exact 128px grid. Adjacent screen positions are therefore always exactly
-  // 128 pixels apart and can never accumulate independent rounding differences.
+  // Snap once per frame; every tile is then derived from the exact 128px grid.
   const screenOriginX = Math.round(-camera.x + w / 2);
   const screenOriginY = Math.round(-camera.y + h / 2);
 
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
-      const diagnosticTile = isDiagnosticTile(col, row);
-      const type = diagnosticTile ? "grass" : (terrainLayout.get(tileKey(col, row)) || "grass");
+      const type = terrainLayout.get(tileKey(col, row)) || "grass";
       const image = terrainImages[type];
       const sx = screenOriginX + col * TILE_SIZE;
       const sy = screenOriginY + row * TILE_SIZE;
 
       if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
-        if (diagnosticTile && col >= DIAGNOSTIC.splitCol) {
-          // Diagnostic B: exclude exactly the outermost 3 source pixels on every side.
-          // The PNG itself remains untouched; only the canvas source rectangle changes.
-          ctx.drawImage(image, 3, 3, 122, 122, sx, sy, TILE_SIZE, TILE_SIZE);
-        } else {
-          // Normal renderer / Diagnostic A.
-          ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE);
-        }
+        // Preferred terrain setting: crop exactly 2 source pixels from every edge
+        // (124x124 source) and draw back into the unchanged 128x128 world tile.
+        ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
       } else {
         ctx.fillStyle = palette.grass;
         ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);

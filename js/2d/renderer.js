@@ -20,7 +20,24 @@ const TERRAIN_FILES = {
   cornerTopLeft: "path_corner_top_left.png",
   cornerTopRight: "path_corner_top_right.png",
   cornerBottomLeft: "path_corner_bottom_left.png",
-  cornerBottomRight: "path_corner_bottom_right.png"
+  cornerBottomRight: "path_corner_bottom_right.png",
+
+  sparseGrass: "ground_sparse_grass_01.png",
+  flowers01: "ground_flowers_01.png",
+  flowers02: "ground_flowers_02.png",
+  leafClusters: "ground_leaf_clusters_01.png",
+  smallStones: "ground_small_stones_01.png",
+  smallStonesFlowers: "ground_small_stones_flowers_01.png",
+  smallBranches: "ground_small_branches_01.png",
+  densePlants: "ground_dense_plants_01.png",
+  pinkBush: "ground_pink_bush_01.png",
+  orangeBush: "ground_orange_bush_01.png",
+  purpleBush: "ground_purple_bush_01.png",
+  pinkPurpleBushes: "ground_pink_purple_bushes_01.png",
+  pinkBushStones: "ground_pink_bush_stones_01.png",
+  orangeBushBranches: "ground_orange_bush_branches_01.png",
+  purpleBushFlowers: "ground_purple_bush_flowers_01.png",
+  mixedBushes: "ground_mixed_bushes_01.png"
 };
 
 const terrainImages = Object.fromEntries(Object.entries(TERRAIN_FILES).map(([key, file]) => {
@@ -65,6 +82,84 @@ addCornerTest(19, 19, "cornerTopRight", "horizontalBottom", "verticalRight", "le
 addCornerTest(11, 23, "cornerBottomRight", "horizontalTop",    "verticalLeft",  "left", "top");
 addCornerTest(15, 23, "cornerBottomRight", "horizontalBottom", "verticalRight", "left", "top");
 
+// Weighted, deterministic ground variation set. Common detail tiles dominate,
+// colorful bushes are deliberately less frequent, and the two mixed bush tiles
+// are rare. The arrangement is generated once from tile coordinates and is stable.
+const GROUND_VARIANTS = [
+  { type: "sparseGrass", weight: 8 },
+  { type: "flowers01", weight: 8 },
+  { type: "flowers02", weight: 8 },
+  { type: "leafClusters", weight: 8 },
+  { type: "smallStones", weight: 8 },
+  { type: "smallStonesFlowers", weight: 8 },
+  { type: "smallBranches", weight: 8 },
+  { type: "densePlants", weight: 8 },
+
+  { type: "pinkBush", weight: 3 },
+  { type: "orangeBush", weight: 3 },
+  { type: "purpleBush", weight: 3 },
+  { type: "pinkBushStones", weight: 3 },
+  { type: "orangeBushBranches", weight: 3 },
+  { type: "purpleBushFlowers", weight: 3 },
+
+  { type: "pinkPurpleBushes", weight: 1 },
+  { type: "mixedBushes", weight: 1 }
+];
+
+const weightedGroundPool = GROUND_VARIANTS.flatMap(({ type, weight }) => Array(weight).fill(type));
+const groundLayout = new Map();
+
+function groundHash(col, row, salt = 0) {
+  let h = (Math.imul(col + 1, 374761393) ^ Math.imul(row + 1, 668265263) ^ Math.imul(salt + 1, 2246822519)) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+function buildGroundLayout() {
+  const cols = Math.ceil(WORLD.width / TILE_SIZE);
+  const rows = Math.ceil(WORLD.height / TILE_SIZE);
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const key = tileKey(col, row);
+      if (terrainLayout.has(key)) continue;
+
+      const left = groundLayout.get(tileKey(col - 1, row));
+      const up = groundLayout.get(tileKey(col, row - 1));
+      let chosen = weightedGroundPool[groundHash(col, row) % weightedGroundPool.length];
+
+      // Avoid obvious direct repetition. Rehash with deterministic salt until the
+      // candidate differs from its already-created left/up neighbours.
+      for (let salt = 1; salt <= 12 && (chosen === left || chosen === up); salt++) {
+        chosen = weightedGroundPool[groundHash(col, row, salt) % weightedGroundPool.length];
+      }
+
+      groundLayout.set(key, chosen);
+    }
+  }
+
+  // Production-test guarantee: every one of the 16 uploaded variants must be
+  // represented somewhere in the fixed test world. Only fill a missing variant;
+  // normal weighted placement remains untouched when it is already present.
+  const present = new Set(groundLayout.values());
+  const missing = GROUND_VARIANTS.map(v => v.type).filter(type => !present.has(type));
+  if (missing.length) {
+    const candidates = [];
+    for (let row = 2; row < rows - 2; row++) {
+      for (let col = 2; col < cols - 2; col++) {
+        const key = tileKey(col, row);
+        if (!terrainLayout.has(key)) candidates.push(key);
+      }
+    }
+    missing.forEach((type, index) => {
+      const key = candidates[(index * 47 + 23) % candidates.length];
+      groundLayout.set(key, type);
+    });
+  }
+}
+
+buildGroundLayout();
+
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
   return { l: camera.x - w/2 - m, r: camera.x + w/2 + m, t: camera.y - h/2 - m, b: camera.y + h/2 + m };
@@ -88,14 +183,17 @@ function drawTerrain(ctx, camera, w, h) {
 
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
-      const type = terrainLayout.get(tileKey(col, row)) || "grass";
+      const key = tileKey(col, row);
+      // Path geometry remains locked: a path tile always overrides the walkable
+      // decorative ground selected for that grid cell.
+      const type = terrainLayout.get(key) || groundLayout.get(key) || "sparseGrass";
       const image = terrainImages[type];
       const sx = screenOriginX + col * TILE_SIZE;
       const sy = screenOriginY + row * TILE_SIZE;
 
       if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
-        // Preferred terrain setting: crop exactly 2 source pixels from every edge
-        // (124x124 source) and draw back into the unchanged 128x128 world tile.
+        // Locked terrain setting: crop exactly 2 source pixels from every edge
+        // (124x124 source) and draw into the unchanged 128x128 world tile.
         ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
       } else {
         ctx.fillStyle = palette.grass;

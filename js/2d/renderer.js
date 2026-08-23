@@ -11,6 +11,7 @@ const palette = {
 
 const TILE_SIZE = 128;
 const TERRAIN_ROOT = "assets/zones/intro/terrain/standard/";
+const GROUND_ASSET_VERSION = "color-corrected-v2";
 const TERRAIN_FILES = {
   grass: "grass_center.png",
   horizontalTop: "path_horizontal_top.png",
@@ -40,10 +41,18 @@ const TERRAIN_FILES = {
   mixedBushes: "ground_mixed_bushes_01.png"
 };
 
+const GROUND_TYPES = new Set([
+  "sparseGrass", "flowers01", "flowers02", "leafClusters",
+  "smallStones", "smallStonesFlowers", "smallBranches", "densePlants",
+  "pinkBush", "orangeBush", "purpleBush", "pinkPurpleBushes",
+  "pinkBushStones", "orangeBushBranches", "purpleBushFlowers", "mixedBushes"
+]);
+
 const terrainImages = Object.fromEntries(Object.entries(TERRAIN_FILES).map(([key, file]) => {
   const image = new Image();
   image.decoding = "async";
-  image.src = TERRAIN_ROOT + file;
+  const cacheBust = GROUND_TYPES.has(key) ? `?v=${GROUND_ASSET_VERSION}` : "";
+  image.src = TERRAIN_ROOT + file + cacheBust;
   return [key, image];
 }));
 
@@ -82,9 +91,6 @@ addCornerTest(19, 19, "cornerTopRight", "horizontalBottom", "verticalRight", "le
 addCornerTest(11, 23, "cornerBottomRight", "horizontalTop",    "verticalLeft",  "left", "top");
 addCornerTest(15, 23, "cornerBottomRight", "horizontalBottom", "verticalRight", "left", "top");
 
-// Weighted, deterministic ground variation set. Common detail tiles dominate,
-// colorful bushes are deliberately less frequent, and the two mixed bush tiles
-// are rare. The arrangement is generated once from tile coordinates and is stable.
 const GROUND_VARIANTS = [
   { type: "sparseGrass", weight: 8 },
   { type: "flowers01", weight: 8 },
@@ -94,14 +100,12 @@ const GROUND_VARIANTS = [
   { type: "smallStonesFlowers", weight: 8 },
   { type: "smallBranches", weight: 8 },
   { type: "densePlants", weight: 8 },
-
   { type: "pinkBush", weight: 3 },
   { type: "orangeBush", weight: 3 },
   { type: "purpleBush", weight: 3 },
   { type: "pinkBushStones", weight: 3 },
   { type: "orangeBushBranches", weight: 3 },
   { type: "purpleBushFlowers", weight: 3 },
-
   { type: "pinkPurpleBushes", weight: 1 },
   { type: "mixedBushes", weight: 1 }
 ];
@@ -118,87 +122,60 @@ function groundHash(col, row, salt = 0) {
 function buildGroundLayout() {
   const cols = Math.ceil(WORLD.width / TILE_SIZE);
   const rows = Math.ceil(WORLD.height / TILE_SIZE);
-
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const key = tileKey(col, row);
       if (terrainLayout.has(key)) continue;
-
       const left = groundLayout.get(tileKey(col - 1, row));
       const up = groundLayout.get(tileKey(col, row - 1));
       let chosen = weightedGroundPool[groundHash(col, row) % weightedGroundPool.length];
-
-      // Avoid obvious direct repetition. Rehash with deterministic salt until the
-      // candidate differs from its already-created left/up neighbours.
       for (let salt = 1; salt <= 12 && (chosen === left || chosen === up); salt++) {
         chosen = weightedGroundPool[groundHash(col, row, salt) % weightedGroundPool.length];
       }
-
       groundLayout.set(key, chosen);
     }
   }
-
-  // Production-test guarantee: every one of the 16 uploaded variants must be
-  // represented somewhere in the fixed test world. Only fill a missing variant;
-  // normal weighted placement remains untouched when it is already present.
   const present = new Set(groundLayout.values());
   const missing = GROUND_VARIANTS.map(v => v.type).filter(type => !present.has(type));
   if (missing.length) {
     const candidates = [];
-    for (let row = 2; row < rows - 2; row++) {
-      for (let col = 2; col < cols - 2; col++) {
-        const key = tileKey(col, row);
-        if (!terrainLayout.has(key)) candidates.push(key);
-      }
+    for (let row = 2; row < rows - 2; row++) for (let col = 2; col < cols - 2; col++) {
+      const key = tileKey(col, row);
+      if (!terrainLayout.has(key)) candidates.push(key);
     }
-    missing.forEach((type, index) => {
-      const key = candidates[(index * 47 + 23) % candidates.length];
-      groundLayout.set(key, type);
-    });
+    missing.forEach((type, index) => groundLayout.set(candidates[(index * 47 + 23) % candidates.length], type));
   }
 }
-
 buildGroundLayout();
 
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
   return { l: camera.x - w/2 - m, r: camera.x + w/2 + m, t: camera.y - h/2 - m, b: camera.y + h/2 + m };
 }
-
 function inView(o, b) { return o.x > b.l && o.x < b.r && o.y > b.t && o.y < b.b; }
 
 function drawTerrain(ctx, camera, w, h) {
   ctx.imageSmoothingEnabled = false;
-
   const worldLeft = camera.x - w / 2;
   const worldTop = camera.y - h / 2;
   const minCol = Math.max(0, Math.floor(worldLeft / TILE_SIZE));
   const maxCol = Math.min(Math.ceil(WORLD.width / TILE_SIZE) - 1, Math.floor((camera.x + w / 2) / TILE_SIZE));
   const minRow = Math.max(0, Math.floor(worldTop / TILE_SIZE));
   const maxRow = Math.min(Math.ceil(WORLD.height / TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / TILE_SIZE));
-
-  // Snap once per frame; every tile is then derived from the exact 128px grid.
   const screenOriginX = Math.round(-camera.x + w / 2);
   const screenOriginY = Math.round(-camera.y + h / 2);
 
-  for (let row = minRow; row <= maxRow; row++) {
-    for (let col = minCol; col <= maxCol; col++) {
-      const key = tileKey(col, row);
-      // Path geometry remains locked: a path tile always overrides the walkable
-      // decorative ground selected for that grid cell.
-      const type = terrainLayout.get(key) || groundLayout.get(key) || "sparseGrass";
-      const image = terrainImages[type];
-      const sx = screenOriginX + col * TILE_SIZE;
-      const sy = screenOriginY + row * TILE_SIZE;
-
-      if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
-        // Locked terrain setting: crop exactly 2 source pixels from every edge
-        // (124x124 source) and draw into the unchanged 128x128 world tile.
-        ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
-      } else {
-        ctx.fillStyle = palette.grass;
-        ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
-      }
+  for (let row = minRow; row <= maxRow; row++) for (let col = minCol; col <= maxCol; col++) {
+    const key = tileKey(col, row);
+    const type = terrainLayout.get(key) || groundLayout.get(key) || "sparseGrass";
+    const image = terrainImages[type];
+    const sx = screenOriginX + col * TILE_SIZE;
+    const sy = screenOriginY + row * TILE_SIZE;
+    if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
+      ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
+    } else {
+      ctx.fillStyle = palette.grass;
+      ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
     }
   }
 }
@@ -227,20 +204,18 @@ function drawSharkan(ctx, player, camera, w, h) {
   ctx.save(); ctx.translate(x,y);
   ctx.fillStyle="rgba(55,62,55,.22)";ctx.beginPath();ctx.ellipse(0,5,30,12,0,0,Math.PI*2);ctx.fill();
   const horizontal = player.dir==="left"||player.dir==="right";
-  ctx.fillStyle=palette.shark;
-  ctx.beginPath();
+  ctx.fillStyle=palette.shark; ctx.beginPath();
   if(horizontal){ const s=player.dir==="right"?1:-1;ctx.moveTo(-42*s,-28);ctx.lineTo(34*s,-34);ctx.lineTo(48*s,-4);ctx.lineTo(30*s,18);ctx.lineTo(-40*s,12);ctx.lineTo(-55*s,-6);ctx.closePath(); }
   else { const s=player.dir==="down"?1:-1;ctx.moveTo(-35,-72*s);ctx.lineTo(35,-72*s);ctx.lineTo(43,-15*s);ctx.lineTo(28,16*s);ctx.lineTo(-28,16*s);ctx.lineTo(-43,-15*s);ctx.closePath(); }
   ctx.fill();
   ctx.fillStyle=palette.cream;ctx.fillRect(-25,-22,50,34);ctx.fillStyle=palette.vest;ctx.fillRect(-31,-10,16,40);ctx.fillRect(15,-10,16,40);ctx.fillStyle=palette.shorts;ctx.fillRect(-25,24,50,25);
-  ctx.fillStyle=palette.cream; for(let i=-2;i<=2;i++){ctx.fillRect(i*11-2,-48+(Math.abs(i)%2)*6,5,5);} 
+  ctx.fillStyle=palette.cream; for(let i=-2;i<=2;i++)ctx.fillRect(i*11-2,-48+(Math.abs(i)%2)*6,5,5);
   ctx.restore();
 }
 
 export function renderFrame(ctx, camera, player, width, height, debug=false) {
   ctx.clearRect(0,0,width,height);
   drawTerrain(ctx,camera,width,height);
-
   const b=visibleBounds(camera,width,height); const visible=[];
   const minCX=Math.max(0,Math.floor(b.l/WORLD.chunkSize)), maxCX=Math.floor(b.r/WORLD.chunkSize);
   const minCY=Math.max(0,Math.floor(b.t/WORLD.chunkSize)), maxCY=Math.floor(b.b/WORLD.chunkSize);

@@ -1,13 +1,78 @@
 import { WORLD, VIEW, PLAYER } from "./config.js";
-import { PATHS, buildChunks } from "./world-data.js";
+import { buildChunks } from "./world-data.js";
 import { collisionShape } from "./collision.js";
 
 const chunks = buildChunks();
 const palette = {
-  grass: "#8fa77f", grass2: "#9cb38a", grass3: "#829b73", dirt: "#c4a77f", dirt2: "#b79570",
+  grass: "#8fa77f",
   green: "#718d69", pink: "#c98691", orange: "#c98a61", purple: "#887899", trunk: "#755d4e",
   rock: "#8f9188", rockHi: "#a4a59b", cream: "#e6dbc4", shark: "#567487", sharkDark: "#405d6f", vest: "#768069", shorts: "#6d5140"
 };
+
+const TILE_SIZE = 128;
+const TERRAIN_ROOT = "assets/zones/intro/terrain/standard/";
+const TERRAIN_FILES = {
+  grass: "grass_center.png",
+  horizontalTop: "path_horizontal_top.png",
+  horizontalBottom: "path_horizontal_bottom.png",
+  verticalLeft: "path_vertical_left.png",
+  verticalRight: "path_vertical_right.png",
+  cornerTopLeft: "path_corner_top_left.png",
+  cornerTopRight: "path_corner_top_right.png",
+  cornerBottomLeft: "path_corner_bottom_left.png",
+  cornerBottomRight: "path_corner_bottom_right.png"
+};
+
+const terrainImages = Object.fromEntries(Object.entries(TERRAIN_FILES).map(([key, file]) => {
+  const image = new Image();
+  image.decoding = "async";
+  image.src = TERRAIN_ROOT + file;
+  return [key, image];
+}));
+
+// The corner names describe their position in the original rounded-square master:
+// top-left = RIGHT + BOTTOM, top-right = LEFT + BOTTOM,
+// bottom-left = TOP + RIGHT, bottom-right = TOP + LEFT.
+// The test route below deliberately repeats all four corner connections in a
+// larger modular path instead of reproducing the original 3x3 loop.
+const terrainLayout = new Map();
+const tileKey = (col, row) => `${col},${row}`;
+const setTerrain = (col, row, type) => terrainLayout.set(tileKey(col, row), type);
+
+function addHorizontal(row, fromCol, toCol) {
+  const start = Math.min(fromCol, toCol);
+  const end = Math.max(fromCol, toCol);
+  for (let col = start; col <= end; col++) {
+    setTerrain(col, row, (col + row) % 2 ? "horizontalTop" : "horizontalBottom");
+  }
+}
+
+function addVertical(col, fromRow, toRow) {
+  const start = Math.min(fromRow, toRow);
+  const end = Math.max(fromRow, toRow);
+  for (let row = start; row <= end; row++) {
+    setTerrain(col, row, (col + row) % 2 ? "verticalLeft" : "verticalRight");
+  }
+}
+
+// One continuous top-to-bottom test route with multiple straight runs and turns.
+addVertical(6, 0, 4);
+setTerrain(6, 5, "cornerBottomLeft");       // TOP -> RIGHT
+addHorizontal(5, 7, 19);
+setTerrain(20, 5, "cornerTopRight");        // LEFT -> BOTTOM
+addVertical(20, 6, 10);
+setTerrain(20, 11, "cornerBottomRight");    // TOP -> LEFT
+addHorizontal(11, 11, 19);
+setTerrain(10, 11, "cornerTopLeft");        // RIGHT -> BOTTOM
+addVertical(10, 12, 16);
+setTerrain(10, 17, "cornerBottomLeft");     // TOP -> RIGHT
+addHorizontal(17, 11, 22);
+setTerrain(23, 17, "cornerTopRight");       // LEFT -> BOTTOM
+addVertical(23, 18, 22);
+setTerrain(23, 23, "cornerBottomRight");    // TOP -> LEFT
+addHorizontal(23, 15, 22);
+setTerrain(14, 23, "cornerTopLeft");        // RIGHT -> BOTTOM
+addVertical(14, 24, 27);
 
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
@@ -16,29 +81,28 @@ function visibleBounds(camera, w, h) {
 
 function inView(o, b) { return o.x > b.l && o.x < b.r && o.y > b.t && o.y < b.b; }
 
-function drawGround(ctx, camera, w, h) {
-  ctx.fillStyle = palette.grass;
-  ctx.fillRect(0, 0, w, h);
-  const tile = 96;
-  const startX = Math.floor((camera.x-w/2)/tile)*tile;
-  const startY = Math.floor((camera.y-h/2)/tile)*tile;
-  for(let y=startY;y<camera.y+h/2+tile;y+=tile){
-    for(let x=startX;x<camera.x+w/2+tile;x+=tile){
-      const sx = Math.round(x-camera.x+w/2), sy = Math.round(y-camera.y+h/2);
-      const n = ((x/tile*17 + y/tile*31)|0) % 3;
-      ctx.fillStyle = n===0 ? palette.grass2 : n===1 ? palette.grass3 : palette.grass;
-      ctx.beginPath(); ctx.moveTo(sx,sy+18); ctx.lineTo(sx+48,sy); ctx.lineTo(sx+96,sy+24); ctx.lineTo(sx+78,sy+70); ctx.lineTo(sx+24,sy+88); ctx.closePath(); ctx.fill();
-    }
-  }
-}
+function drawTerrain(ctx, camera, w, h) {
+  const worldLeft = camera.x - w / 2;
+  const worldTop = camera.y - h / 2;
+  const minCol = Math.max(0, Math.floor(worldLeft / TILE_SIZE));
+  const maxCol = Math.min(Math.ceil(WORLD.width / TILE_SIZE) - 1, Math.floor((camera.x + w / 2) / TILE_SIZE));
+  const minRow = Math.max(0, Math.floor(worldTop / TILE_SIZE));
+  const maxRow = Math.min(Math.ceil(WORLD.height / TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / TILE_SIZE));
 
-function drawPaths(ctx, camera, w, h) {
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
-  for (const p of PATHS) {
-    ctx.beginPath();
-    p.points.forEach(([x,y],i)=>{ const sx=Math.round(x-camera.x+w/2), sy=Math.round(y-camera.y+h/2); i?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy); });
-    ctx.strokeStyle = palette.dirt2; ctx.lineWidth = p.width + 18; ctx.stroke();
-    ctx.strokeStyle = palette.dirt; ctx.lineWidth = p.width; ctx.stroke();
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const type = terrainLayout.get(tileKey(col, row)) || "grass";
+      const image = terrainImages[type];
+      const sx = Math.round(col * TILE_SIZE - camera.x + w / 2);
+      const sy = Math.round(row * TILE_SIZE - camera.y + h / 2);
+
+      if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
+        ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE);
+      } else {
+        ctx.fillStyle = palette.grass;
+        ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+      }
+    }
   }
 }
 
@@ -77,7 +141,9 @@ function drawSharkan(ctx, player, camera, w, h) {
 }
 
 export function renderFrame(ctx, camera, player, width, height, debug=false) {
-  ctx.clearRect(0,0,width,height); drawGround(ctx,camera,width,height); drawPaths(ctx,camera,width,height);
+  ctx.clearRect(0,0,width,height);
+  drawTerrain(ctx,camera,width,height);
+
   const b=visibleBounds(camera,width,height); const visible=[];
   const minCX=Math.max(0,Math.floor(b.l/WORLD.chunkSize)), maxCX=Math.floor(b.r/WORLD.chunkSize);
   const minCY=Math.max(0,Math.floor(b.t/WORLD.chunkSize)), maxCY=Math.floor(b.b/WORLD.chunkSize);

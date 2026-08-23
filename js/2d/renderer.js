@@ -73,6 +73,24 @@ addHorizontal(23, 15, 22, "horizontalBottom");
 setTerrain(14, 23, "cornerTopLeft");        // RIGHT -> BOTTOM
 addVertical(14, 24, 27, "verticalLeft");
 
+// TEMPORARY TERRAIN-SEAM DIAGNOSTIC AREA.
+// It is deliberately centered around the existing player spawn so both versions
+// can be inspected immediately without changing camera, player, gameplay or world data.
+// Left side: grass_center.png drawn normally.
+// Right side: the same PNG using only source rect (2,2,124,124), stretched to 128x128.
+const DIAGNOSTIC = {
+  minCol: 8,
+  maxCol: 20,
+  minRow: 14,
+  maxRow: 21,
+  splitCol: 14
+};
+
+function isDiagnosticTile(col, row) {
+  return col >= DIAGNOSTIC.minCol && col <= DIAGNOSTIC.maxCol &&
+         row >= DIAGNOSTIC.minRow && row <= DIAGNOSTIC.maxRow;
+}
+
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
   return { l: camera.x - w/2 - m, r: camera.x + w/2 + m, t: camera.y - h/2 - m, b: camera.y + h/2 + m };
@@ -98,13 +116,21 @@ function drawTerrain(ctx, camera, w, h) {
 
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
-      const type = terrainLayout.get(tileKey(col, row)) || "grass";
+      const diagnosticTile = isDiagnosticTile(col, row);
+      const type = diagnosticTile ? "grass" : (terrainLayout.get(tileKey(col, row)) || "grass");
       const image = terrainImages[type];
       const sx = screenOriginX + col * TILE_SIZE;
       const sy = screenOriginY + row * TILE_SIZE;
 
       if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
-        ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE);
+        if (diagnosticTile && col >= DIAGNOSTIC.splitCol) {
+          // Diagnostic B: exclude exactly the outermost 2 source pixels on every side.
+          // The PNG itself remains untouched; only the canvas source rectangle changes.
+          ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
+        } else {
+          // Normal renderer / Diagnostic A.
+          ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE);
+        }
       } else {
         ctx.fillStyle = palette.grass;
         ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);

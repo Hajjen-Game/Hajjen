@@ -86,5 +86,14 @@
       "column": 4,
       "file": "ground_mixed_bushes_01.png"
     }
-  ]
+  ],
+  "color_match": {
+    "reference": "HAJJEN Standard Terrain Path Master \u2014 center grass tile",
+    "method": "offline grass-family palette match",
+    "tile_size": [
+      128,
+      128
+    ],
+    "props_preserved": true
+  }
 }

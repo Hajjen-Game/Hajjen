@@ -33,46 +33,45 @@ const terrainImages = Object.fromEntries(Object.entries(TERRAIN_FILES).map(([key
 // The corner names describe their position in the original rounded-square master:
 // top-left = RIGHT + BOTTOM, top-right = LEFT + BOTTOM,
 // bottom-left = TOP + RIGHT, bottom-right = TOP + LEFT.
-// The test route below deliberately repeats all four corner connections in a
-// larger modular path instead of reproducing the original 3x3 loop.
 const terrainLayout = new Map();
 const tileKey = (col, row) => `${col},${row}`;
 const setTerrain = (col, row, type) => terrainLayout.set(tileKey(col, row), type);
 
-function addHorizontal(row, fromCol, toCol) {
+// A continuous straight run always uses one single supplied variant.
+// This prevents top/bottom or left/right straight variants from touching each
+// other inside the same run, where their subtle artwork differences are visible.
+function addHorizontal(row, fromCol, toCol, type) {
   const start = Math.min(fromCol, toCol);
   const end = Math.max(fromCol, toCol);
-  for (let col = start; col <= end; col++) {
-    setTerrain(col, row, (col + row) % 2 ? "horizontalTop" : "horizontalBottom");
-  }
+  for (let col = start; col <= end; col++) setTerrain(col, row, type);
 }
 
-function addVertical(col, fromRow, toRow) {
+function addVertical(col, fromRow, toRow, type) {
   const start = Math.min(fromRow, toRow);
   const end = Math.max(fromRow, toRow);
-  for (let row = start; row <= end; row++) {
-    setTerrain(col, row, (col + row) % 2 ? "verticalLeft" : "verticalRight");
-  }
+  for (let row = start; row <= end; row++) setTerrain(col, row, type);
 }
 
-// One continuous top-to-bottom test route with multiple straight runs and turns.
-addVertical(6, 0, 4);
+// One continuous top-to-bottom test route with long straight runs and all four
+// supplied corner orientations. Different variants are tested on separate runs,
+// never alternated directly beside each other.
+addVertical(6, 0, 4, "verticalLeft");
 setTerrain(6, 5, "cornerBottomLeft");       // TOP -> RIGHT
-addHorizontal(5, 7, 19);
+addHorizontal(5, 7, 19, "horizontalTop");
 setTerrain(20, 5, "cornerTopRight");        // LEFT -> BOTTOM
-addVertical(20, 6, 10);
+addVertical(20, 6, 10, "verticalRight");
 setTerrain(20, 11, "cornerBottomRight");    // TOP -> LEFT
-addHorizontal(11, 11, 19);
+addHorizontal(11, 11, 19, "horizontalBottom");
 setTerrain(10, 11, "cornerTopLeft");        // RIGHT -> BOTTOM
-addVertical(10, 12, 16);
+addVertical(10, 12, 16, "verticalLeft");
 setTerrain(10, 17, "cornerBottomLeft");     // TOP -> RIGHT
-addHorizontal(17, 11, 22);
+addHorizontal(17, 11, 22, "horizontalTop");
 setTerrain(23, 17, "cornerTopRight");       // LEFT -> BOTTOM
-addVertical(23, 18, 22);
+addVertical(23, 18, 22, "verticalRight");
 setTerrain(23, 23, "cornerBottomRight");    // TOP -> LEFT
-addHorizontal(23, 15, 22);
+addHorizontal(23, 15, 22, "horizontalBottom");
 setTerrain(14, 23, "cornerTopLeft");        // RIGHT -> BOTTOM
-addVertical(14, 24, 27);
+addVertical(14, 24, 27, "verticalLeft");
 
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
@@ -82,6 +81,8 @@ function visibleBounds(camera, w, h) {
 function inView(o, b) { return o.x > b.l && o.x < b.r && o.y > b.t && o.y < b.b; }
 
 function drawTerrain(ctx, camera, w, h) {
+  ctx.imageSmoothingEnabled = false;
+
   const worldLeft = camera.x - w / 2;
   const worldTop = camera.y - h / 2;
   const minCol = Math.max(0, Math.floor(worldLeft / TILE_SIZE));
@@ -89,12 +90,18 @@ function drawTerrain(ctx, camera, w, h) {
   const minRow = Math.max(0, Math.floor(worldTop / TILE_SIZE));
   const maxRow = Math.min(Math.ceil(WORLD.height / TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / TILE_SIZE));
 
+  // Snap the camera-derived screen origin ONCE, then derive every tile from the
+  // exact 128px grid. Adjacent screen positions are therefore always exactly
+  // 128 pixels apart and can never accumulate independent rounding differences.
+  const screenOriginX = Math.round(-camera.x + w / 2);
+  const screenOriginY = Math.round(-camera.y + h / 2);
+
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
       const type = terrainLayout.get(tileKey(col, row)) || "grass";
       const image = terrainImages[type];
-      const sx = Math.round(col * TILE_SIZE - camera.x + w / 2);
-      const sy = Math.round(row * TILE_SIZE - camera.y + h / 2);
+      const sx = screenOriginX + col * TILE_SIZE;
+      const sy = screenOriginY + row * TILE_SIZE;
 
       if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
         ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE);

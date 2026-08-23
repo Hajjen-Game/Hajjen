@@ -77,7 +77,7 @@ addVertical(14, 24, 27, "verticalLeft");
 // It is deliberately centered around the existing player spawn so both versions
 // can be inspected immediately without changing camera, player, gameplay or world data.
 // Left side: grass_center.png drawn normally.
-// Right side: the same PNG using only source rect (2,2,124,124), stretched to 128x128.
+// Right side: the same PNG using only source rect (3,3,122,122), stretched to 128x128.
 const DIAGNOSTIC = {
   minCol: 8,
   maxCol: 20,
@@ -124,9 +124,9 @@ function drawTerrain(ctx, camera, w, h) {
 
       if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
         if (diagnosticTile && col >= DIAGNOSTIC.splitCol) {
-          // Diagnostic B: exclude exactly the outermost 2 source pixels on every side.
+          // Diagnostic B: exclude exactly the outermost 3 source pixels on every side.
           // The PNG itself remains untouched; only the canvas source rectangle changes.
-          ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(image, 3, 3, 122, 122, sx, sy, TILE_SIZE, TILE_SIZE);
         } else {
           // Normal renderer / Diagnostic A.
           ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE);

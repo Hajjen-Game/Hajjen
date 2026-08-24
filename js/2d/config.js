@@ -1,6 +1,6 @@
 export const WORLD = {
-  width: 3584,
-  height: 3584,
+  width: 2560,
+  height: 2048,
   chunkSize: 600,
   background: "#8fa77f"
 };
@@ -14,7 +14,7 @@ export const VIEW = {
 
 export const PLAYER = {
   speed: 250,
-  spawn: { x: 1856, y: 2240 },
+  spawn: { x: 1088, y: 960 },
   radiusX: 24,
   radiusY: 15,
   drawWidth: 98,

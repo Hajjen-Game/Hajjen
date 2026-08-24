@@ -1,45 +1,64 @@
 import { WORLD } from "./config.js";
 
-const path = (points, width = 112) => ({ points, width });
 const obj = (type, x, y, variant = 0, options = {}) => ({ type, x, y, variant, ...options });
 
 export const REGIONS = [
   { id: "central", name: "The Crossroads", x: 0, y: 0, w: WORLD.width, h: WORLD.height, palette: "central" }
 ];
 
-export const PATHS = [
-  path([[1800, 1900],[1800, 1500],[1670, 1250],[1400, 1040],[1100, 920],[760, 900]], 132),
-  path([[1800, 1700],[2090, 1510],[2350, 1280],[2720, 1080],[3070, 1030]], 124),
-  path([[1740, 1980],[1450, 2180],[1180, 2470],[1040, 2820]], 116),
-  path([[1860, 1980],[2150, 2200],[2440, 2470],[2660, 2820]], 118),
-  path([[760, 900],[540, 720],[390, 470]], 96),
-  path([[3070, 1030],[3260, 810],[3320, 560]], 96)
-];
-
+// Deliberate, compact composition for the Standard Terrain gameplay-style proof of concept.
+// Terrain baked into the 256x256 ground tiles remains fully walkable; only these separate
+// world objects participate in the existing collision/depth system.
 const OBJECTS = [
-  obj("tree", 1540, 1550, 0), obj("tree", 2050, 1570, 1), obj("tree", 1410, 1320, 2),
-  obj("tree", 2210, 1320, 3), obj("tree", 1240, 1120, 1), obj("tree", 2460, 1120, 2),
-  obj("tree", 980, 770, 3), obj("tree", 2840, 900, 0), obj("tree", 1260, 2360, 2),
-  obj("tree", 2350, 2350, 1), obj("tree", 1050, 2730, 3), obj("tree", 2700, 2690, 0),
-  obj("rock", 1620, 1780, 0), obj("rock", 1970, 1830, 1), obj("rock", 1490, 2110, 2),
-  obj("rock", 2220, 2140, 0), obj("rock", 885, 1010, 1), obj("rock", 2920, 1130, 2),
-  obj("bush", 1500, 1450, 2), obj("bush", 2140, 1460, 3), obj("bush", 1360, 2240, 1),
-  obj("bush", 2480, 2260, 0), obj("branch", 1730, 1320, 0), obj("branch", 2010, 2250, 1)
+  // North-west grove framing the approach to the path.
+  obj("tree", 620, 430, 0),
+  obj("tree", 760, 360, 1),
+  obj("tree", 890, 470, 3),
+  obj("rock", 700, 570, 1),
+  obj("bush", 820, 560, 2),
+  obj("flower", 930, 585, 1, { decorative: true }),
+
+  // Quiet meadow west of the main route.
+  obj("rock", 470, 940, 0),
+  obj("rock", 540, 1010, 2),
+  obj("flower", 610, 900, 0, { decorative: true }),
+  obj("flower", 655, 990, 3, { decorative: true }),
+  obj("branch", 720, 1080, 0),
+
+  // Trees hugging the upper bend without blocking the path itself.
+  obj("tree", 1040, 700, 2),
+  obj("tree", 1240, 690, 0),
+  obj("tree", 1515, 705, 1),
+  obj("bush", 1420, 780, 3),
+  obj("rock", 1590, 840, 1),
+
+  // East-side denser pocket around the second turn.
+  obj("tree", 1840, 760, 3),
+  obj("tree", 1960, 900, 2),
+  obj("tree", 1870, 1080, 0),
+  obj("rock", 1740, 1010, 2),
+  obj("bush", 1810, 1180, 1),
+  obj("flower", 1940, 1170, 2, { decorative: true }),
+
+  // South meadow and final approach.
+  obj("tree", 1480, 1440, 1),
+  obj("tree", 1270, 1540, 3),
+  obj("tree", 980, 1600, 0),
+  obj("rock", 1370, 1375, 0),
+  obj("rock", 1120, 1450, 2),
+  obj("branch", 920, 1390, 1),
+  obj("bush", 760, 1490, 2),
+  obj("flower", 670, 1370, 0, { decorative: true }),
+  obj("flower", 790, 1325, 1, { decorative: true }),
+
+  // A few edge anchors so the area feels bounded without forming a wall.
+  obj("tree", 340, 620, 2),
+  obj("tree", 2240, 570, 1),
+  obj("tree", 2230, 1420, 3),
+  obj("tree", 430, 1640, 0),
+  obj("rock", 2150, 1260, 1),
+  obj("rock", 520, 1320, 2)
 ];
-
-function seeded(seed) {
-  let s = seed >>> 0;
-  return () => ((s = Math.imul(1664525, s) + 1013904223 >>> 0) / 4294967296);
-}
-
-const rand = seeded(1729);
-for (let i = 0; i < 135; i++) {
-  const x = 240 + rand() * (WORLD.width - 480);
-  const y = 240 + rand() * (WORLD.height - 480);
-  const r = rand();
-  const type = r < .48 ? "flower" : r < .72 ? "bush" : r < .9 ? "rock" : "tree";
-  OBJECTS.push(obj(type, x, y, Math.floor(rand() * 4), { decorative: type === "flower" }));
-}
 
 export const WORLD_OBJECTS = OBJECTS;
 

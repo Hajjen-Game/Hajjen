@@ -9,11 +9,11 @@ const palette = {
   rock: "#8f9188", rockHi: "#a4a59b", cream: "#e6dbc4", shark: "#567487", sharkDark: "#405d6f", vest: "#768069", shorts: "#6d5140"
 };
 
-const TILE_SIZE = 128;
+const PATH_TILE_SIZE = 128;
+const GROUND_TILE_SIZE = 256;
 const TERRAIN_ROOT = "assets/zones/intro/terrain/standard/";
-const GROUND_ASSET_VERSION = "color-corrected-v2";
-const TERRAIN_FILES = {
-  grass: "grass_center.png",
+
+const PATH_FILES = {
   horizontalTop: "path_horizontal_top.png",
   horizontalBottom: "path_horizontal_bottom.png",
   verticalLeft: "path_vertical_left.png",
@@ -21,161 +21,166 @@ const TERRAIN_FILES = {
   cornerTopLeft: "path_corner_top_left.png",
   cornerTopRight: "path_corner_top_right.png",
   cornerBottomLeft: "path_corner_bottom_left.png",
-  cornerBottomRight: "path_corner_bottom_right.png",
-
-  sparseGrass: "ground_sparse_grass_01.png",
-  flowers01: "ground_flowers_01.png",
-  flowers02: "ground_flowers_02.png",
-  leafClusters: "ground_leaf_clusters_01.png",
-  smallStones: "ground_small_stones_01.png",
-  smallStonesFlowers: "ground_small_stones_flowers_01.png",
-  smallBranches: "ground_small_branches_01.png",
-  densePlants: "ground_dense_plants_01.png",
-  pinkBush: "ground_pink_bush_01.png",
-  orangeBush: "ground_orange_bush_01.png",
-  purpleBush: "ground_purple_bush_01.png",
-  pinkPurpleBushes: "ground_pink_purple_bushes_01.png",
-  pinkBushStones: "ground_pink_bush_stones_01.png",
-  orangeBushBranches: "ground_orange_bush_branches_01.png",
-  purpleBushFlowers: "ground_purple_bush_flowers_01.png",
-  mixedBushes: "ground_mixed_bushes_01.png"
+  cornerBottomRight: "path_corner_bottom_right.png"
 };
 
-const GROUND_TYPES = new Set([
-  "sparseGrass", "flowers01", "flowers02", "leafClusters",
-  "smallStones", "smallStonesFlowers", "smallBranches", "densePlants",
-  "pinkBush", "orangeBush", "purpleBush", "pinkPurpleBushes",
-  "pinkBushStones", "orangeBushBranches", "purpleBushFlowers", "mixedBushes"
-]);
+const GROUND_FILES = {
+  sparseGrass: "normal_256_sparse_grass_01.png",
+  flowersFerns: "normal_256_flowers_ferns_01.png",
+  stonesPlants: "normal_256_stones_plants_01.png",
+  flowersLeaves: "normal_256_flowers_leaves_01.png",
+  greenBush: "normal_256_green_bush_01.png",
+  stonesFlowers: "normal_256_stones_flowers_01.png",
+  pinkBush: "normal_256_pink_bush_01.png",
+  orangePurpleBushes: "normal_256_orange_purple_bushes_01.png",
+  floweringGreenBush: "normal_256_flowering_green_bush_01.png"
+};
 
-const terrainImages = Object.fromEntries(Object.entries(TERRAIN_FILES).map(([key, file]) => {
-  const image = new Image();
-  image.decoding = "async";
-  const cacheBust = GROUND_TYPES.has(key) ? `?v=${GROUND_ASSET_VERSION}` : "";
-  image.src = TERRAIN_ROOT + file + cacheBust;
-  return [key, image];
-}));
+function loadImages(files) {
+  return Object.fromEntries(Object.entries(files).map(([key, file]) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = TERRAIN_ROOT + file;
+    return [key, image];
+  }));
+}
 
-// Corner connectivity established from the supplied production assets:
-// cornerBottomLeft  = TOP + RIGHT
-// cornerTopLeft     = RIGHT + BOTTOM
-// cornerTopRight    = BOTTOM + LEFT
-// cornerBottomRight = LEFT + TOP
+const pathImages = loadImages(PATH_FILES);
+const groundImages = loadImages(GROUND_FILES);
+
+// Path connectivity and placement are intentionally unchanged from the validated
+// compact compatibility layout. The path system remains a strict 128x128 layer.
 const terrainLayout = new Map();
-const tileKey = (col, row) => `${col},${row}`;
-const setTerrain = (col, row, type) => terrainLayout.set(tileKey(col, row), type);
+const pathKey = (col, row) => `${col},${row}`;
+const setTerrain = (col, row, type) => terrainLayout.set(pathKey(col, row), type);
 
-// Compact temporary path-compatibility map centered around the existing spawn.
-// Every corner direction is tested twice: once with horizontalTop + verticalLeft,
-// once with horizontalBottom + verticalRight. Independent examples are separated
-// by grass, so incompatible straight variants never touch each other directly.
 function addCornerTest(col, row, cornerType, horizontalType, verticalType, horizontalSide, verticalSide) {
   setTerrain(col, row, cornerType);
   setTerrain(col + (horizontalSide === "right" ? 1 : -1), row, horizontalType);
   setTerrain(col, row + (verticalSide === "bottom" ? 1 : -1), verticalType);
 }
 
-// TOP -> RIGHT
 addCornerTest(11, 15, "cornerBottomLeft", "horizontalTop",    "verticalLeft",  "right", "top");
 addCornerTest(15, 15, "cornerBottomLeft", "horizontalBottom", "verticalRight", "right", "top");
-
-// RIGHT -> BOTTOM
 addCornerTest(19, 15, "cornerTopLeft", "horizontalTop",    "verticalLeft",  "right", "bottom");
 addCornerTest(11, 19, "cornerTopLeft", "horizontalBottom", "verticalRight", "right", "bottom");
-
-// BOTTOM -> LEFT
 addCornerTest(15, 19, "cornerTopRight", "horizontalTop",    "verticalLeft",  "left", "bottom");
 addCornerTest(19, 19, "cornerTopRight", "horizontalBottom", "verticalRight", "left", "bottom");
-
-// LEFT -> TOP
 addCornerTest(11, 23, "cornerBottomRight", "horizontalTop",    "verticalLeft",  "left", "top");
 addCornerTest(15, 23, "cornerBottomRight", "horizontalBottom", "verticalRight", "left", "top");
 
+// Deterministic 256x256 ground distribution. Quiet tiles dominate, colorful bush
+// tiles are deliberately uncommon/rare so they work as landmarks rather than noise.
 const GROUND_VARIANTS = [
   { type: "sparseGrass", weight: 8 },
-  { type: "flowers01", weight: 8 },
-  { type: "flowers02", weight: 8 },
-  { type: "leafClusters", weight: 8 },
-  { type: "smallStones", weight: 8 },
-  { type: "smallStonesFlowers", weight: 8 },
-  { type: "smallBranches", weight: 8 },
-  { type: "densePlants", weight: 8 },
-  { type: "pinkBush", weight: 3 },
-  { type: "orangeBush", weight: 3 },
-  { type: "purpleBush", weight: 3 },
-  { type: "pinkBushStones", weight: 3 },
-  { type: "orangeBushBranches", weight: 3 },
-  { type: "purpleBushFlowers", weight: 3 },
-  { type: "pinkPurpleBushes", weight: 1 },
-  { type: "mixedBushes", weight: 1 }
+  { type: "flowersFerns", weight: 7 },
+  { type: "stonesPlants", weight: 7 },
+  { type: "flowersLeaves", weight: 6 },
+  { type: "stonesFlowers", weight: 5 },
+  { type: "greenBush", weight: 3 },
+  { type: "pinkBush", weight: 2 },
+  { type: "floweringGreenBush", weight: 2 },
+  { type: "orangePurpleBushes", weight: 1 }
 ];
 
 const weightedGroundPool = GROUND_VARIANTS.flatMap(({ type, weight }) => Array(weight).fill(type));
 const groundLayout = new Map();
+const groundKey = (col, row) => `${col},${row}`;
 
 function groundHash(col, row, salt = 0) {
-  let h = (Math.imul(col + 1, 374761393) ^ Math.imul(row + 1, 668265263) ^ Math.imul(salt + 1, 2246822519)) >>> 0;
+  let h = (Math.imul(col + 3, 374761393) ^ Math.imul(row + 7, 668265263) ^ Math.imul(salt + 1, 2246822519)) >>> 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
   return (h ^ (h >>> 16)) >>> 0;
 }
 
 function buildGroundLayout() {
-  const cols = Math.ceil(WORLD.width / TILE_SIZE);
-  const rows = Math.ceil(WORLD.height / TILE_SIZE);
+  const cols = Math.ceil(WORLD.width / GROUND_TILE_SIZE);
+  const rows = Math.ceil(WORLD.height / GROUND_TILE_SIZE);
+
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const key = tileKey(col, row);
-      if (terrainLayout.has(key)) continue;
-      const left = groundLayout.get(tileKey(col - 1, row));
-      const up = groundLayout.get(tileKey(col, row - 1));
+      const left = groundLayout.get(groundKey(col - 1, row));
+      const up = groundLayout.get(groundKey(col, row - 1));
       let chosen = weightedGroundPool[groundHash(col, row) % weightedGroundPool.length];
+
       for (let salt = 1; salt <= 12 && (chosen === left || chosen === up); salt++) {
         chosen = weightedGroundPool[groundHash(col, row, salt) % weightedGroundPool.length];
       }
-      groundLayout.set(key, chosen);
+      groundLayout.set(groundKey(col, row), chosen);
     }
   }
+
+  // Ensure every approved 256 tile appears somewhere in this visual proof of concept.
   const present = new Set(groundLayout.values());
   const missing = GROUND_VARIANTS.map(v => v.type).filter(type => !present.has(type));
-  if (missing.length) {
-    const candidates = [];
-    for (let row = 2; row < rows - 2; row++) for (let col = 2; col < cols - 2; col++) {
-      const key = tileKey(col, row);
-      if (!terrainLayout.has(key)) candidates.push(key);
-    }
-    missing.forEach((type, index) => groundLayout.set(candidates[(index * 47 + 23) % candidates.length], type));
-  }
+  missing.forEach((type, index) => {
+    const col = 2 + (index * 3) % Math.max(1, cols - 4);
+    const row = 2 + (index * 5) % Math.max(1, rows - 4);
+    groundLayout.set(groundKey(col, row), type);
+  });
 }
+
 buildGroundLayout();
 
 function visibleBounds(camera, w, h) {
   const m = VIEW.cullMargin;
   return { l: camera.x - w/2 - m, r: camera.x + w/2 + m, t: camera.y - h/2 - m, b: camera.y + h/2 + m };
 }
+
 function inView(o, b) { return o.x > b.l && o.x < b.r && o.y > b.t && o.y < b.b; }
 
-function drawTerrain(ctx, camera, w, h) {
+function drawGround(ctx, camera, w, h) {
   ctx.imageSmoothingEnabled = false;
   const worldLeft = camera.x - w / 2;
   const worldTop = camera.y - h / 2;
-  const minCol = Math.max(0, Math.floor(worldLeft / TILE_SIZE));
-  const maxCol = Math.min(Math.ceil(WORLD.width / TILE_SIZE) - 1, Math.floor((camera.x + w / 2) / TILE_SIZE));
-  const minRow = Math.max(0, Math.floor(worldTop / TILE_SIZE));
-  const maxRow = Math.min(Math.ceil(WORLD.height / TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / TILE_SIZE));
+  const minCol = Math.max(0, Math.floor(worldLeft / GROUND_TILE_SIZE));
+  const maxCol = Math.min(Math.ceil(WORLD.width / GROUND_TILE_SIZE) - 1, Math.floor((camera.x + w / 2) / GROUND_TILE_SIZE));
+  const minRow = Math.max(0, Math.floor(worldTop / GROUND_TILE_SIZE));
+  const maxRow = Math.min(Math.ceil(WORLD.height / GROUND_TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / GROUND_TILE_SIZE));
   const screenOriginX = Math.round(-camera.x + w / 2);
   const screenOriginY = Math.round(-camera.y + h / 2);
 
-  for (let row = minRow; row <= maxRow; row++) for (let col = minCol; col <= maxCol; col++) {
-    const key = tileKey(col, row);
-    const type = terrainLayout.get(key) || groundLayout.get(key) || "sparseGrass";
-    const image = terrainImages[type];
-    const sx = screenOriginX + col * TILE_SIZE;
-    const sy = screenOriginY + row * TILE_SIZE;
-    if (image.complete && image.naturalWidth === TILE_SIZE && image.naturalHeight === TILE_SIZE) {
-      ctx.drawImage(image, 2, 2, 124, 124, sx, sy, TILE_SIZE, TILE_SIZE);
-    } else {
-      ctx.fillStyle = palette.grass;
-      ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const type = groundLayout.get(groundKey(col, row)) || "sparseGrass";
+      const image = groundImages[type];
+      const sx = screenOriginX + col * GROUND_TILE_SIZE;
+      const sy = screenOriginY + row * GROUND_TILE_SIZE;
+
+      if (image.complete && image.naturalWidth === GROUND_TILE_SIZE && image.naturalHeight === GROUND_TILE_SIZE) {
+        // 256 terrain is evaluated exactly as supplied: full 256x256 source -> 256x256 world tile.
+        ctx.drawImage(image, sx, sy, GROUND_TILE_SIZE, GROUND_TILE_SIZE);
+      } else {
+        ctx.fillStyle = palette.grass;
+        ctx.fillRect(sx, sy, GROUND_TILE_SIZE, GROUND_TILE_SIZE);
+      }
+    }
+  }
+}
+
+function drawPaths(ctx, camera, w, h) {
+  ctx.imageSmoothingEnabled = false;
+  const worldLeft = camera.x - w / 2;
+  const worldTop = camera.y - h / 2;
+  const minCol = Math.max(0, Math.floor(worldLeft / PATH_TILE_SIZE));
+  const maxCol = Math.min(Math.ceil(WORLD.width / PATH_TILE_SIZE) - 1, Math.floor((camera.x + w / 2) / PATH_TILE_SIZE));
+  const minRow = Math.max(0, Math.floor(worldTop / PATH_TILE_SIZE));
+  const maxRow = Math.min(Math.ceil(WORLD.height / PATH_TILE_SIZE) - 1, Math.floor((camera.y + h / 2) / PATH_TILE_SIZE));
+  const screenOriginX = Math.round(-camera.x + w / 2);
+  const screenOriginY = Math.round(-camera.y + h / 2);
+
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const type = terrainLayout.get(pathKey(col, row));
+      if (!type) continue;
+      const image = pathImages[type];
+      const sx = screenOriginX + col * PATH_TILE_SIZE;
+      const sy = screenOriginY + row * PATH_TILE_SIZE;
+
+      if (image.complete && image.naturalWidth === PATH_TILE_SIZE && image.naturalHeight === PATH_TILE_SIZE) {
+        // Locked path treatment: 2px source crop, 124x124 -> unchanged 128x128 destination.
+        ctx.drawImage(image, 2, 2, 124, 124, sx, sy, PATH_TILE_SIZE, PATH_TILE_SIZE);
+      }
     }
   }
 }
@@ -204,18 +209,21 @@ function drawSharkan(ctx, player, camera, w, h) {
   ctx.save(); ctx.translate(x,y);
   ctx.fillStyle="rgba(55,62,55,.22)";ctx.beginPath();ctx.ellipse(0,5,30,12,0,0,Math.PI*2);ctx.fill();
   const horizontal = player.dir==="left"||player.dir==="right";
-  ctx.fillStyle=palette.shark; ctx.beginPath();
+  ctx.fillStyle=palette.shark;
+  ctx.beginPath();
   if(horizontal){ const s=player.dir==="right"?1:-1;ctx.moveTo(-42*s,-28);ctx.lineTo(34*s,-34);ctx.lineTo(48*s,-4);ctx.lineTo(30*s,18);ctx.lineTo(-40*s,12);ctx.lineTo(-55*s,-6);ctx.closePath(); }
   else { const s=player.dir==="down"?1:-1;ctx.moveTo(-35,-72*s);ctx.lineTo(35,-72*s);ctx.lineTo(43,-15*s);ctx.lineTo(28,16*s);ctx.lineTo(-28,16*s);ctx.lineTo(-43,-15*s);ctx.closePath(); }
   ctx.fill();
   ctx.fillStyle=palette.cream;ctx.fillRect(-25,-22,50,34);ctx.fillStyle=palette.vest;ctx.fillRect(-31,-10,16,40);ctx.fillRect(15,-10,16,40);ctx.fillStyle=palette.shorts;ctx.fillRect(-25,24,50,25);
-  ctx.fillStyle=palette.cream; for(let i=-2;i<=2;i++)ctx.fillRect(i*11-2,-48+(Math.abs(i)%2)*6,5,5);
+  ctx.fillStyle=palette.cream; for(let i=-2;i<=2;i++){ctx.fillRect(i*11-2,-48+(Math.abs(i)%2)*6,5,5);} 
   ctx.restore();
 }
 
 export function renderFrame(ctx, camera, player, width, height, debug=false) {
   ctx.clearRect(0,0,width,height);
-  drawTerrain(ctx,camera,width,height);
+  drawGround(ctx,camera,width,height);
+  drawPaths(ctx,camera,width,height);
+
   const b=visibleBounds(camera,width,height); const visible=[];
   const minCX=Math.max(0,Math.floor(b.l/WORLD.chunkSize)), maxCX=Math.floor(b.r/WORLD.chunkSize);
   const minCY=Math.max(0,Math.floor(b.t/WORLD.chunkSize)), maxCY=Math.floor(b.b/WORLD.chunkSize);

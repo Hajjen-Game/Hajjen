@@ -48,38 +48,39 @@ function loadImages(files) {
 const pathImages = loadImages(PATH_FILES);
 const groundImages = loadImages(GROUND_FILES);
 
-// Path connectivity and placement are intentionally unchanged from the validated
-// compact compatibility layout. The path system remains a strict 128x128 layer.
 const terrainLayout = new Map();
 const pathKey = (col, row) => `${col},${row}`;
 const setTerrain = (col, row, type) => terrainLayout.set(pathKey(col, row), type);
 
-function addCornerTest(col, row, cornerType, horizontalType, verticalType, horizontalSide, verticalSide) {
-  setTerrain(col, row, cornerType);
-  setTerrain(col + (horizontalSide === "right" ? 1 : -1), row, horizontalType);
-  setTerrain(col, row + (verticalSide === "bottom" ? 1 : -1), verticalType);
+function addHorizontal(row, fromCol, toCol, type) {
+  for (let col = Math.min(fromCol, toCol); col <= Math.max(fromCol, toCol); col++) setTerrain(col, row, type);
 }
 
-addCornerTest(11, 15, "cornerBottomLeft", "horizontalTop",    "verticalLeft",  "right", "top");
-addCornerTest(15, 15, "cornerBottomLeft", "horizontalBottom", "verticalRight", "right", "top");
-addCornerTest(19, 15, "cornerTopLeft", "horizontalTop",    "verticalLeft",  "right", "bottom");
-addCornerTest(11, 19, "cornerTopLeft", "horizontalBottom", "verticalRight", "right", "bottom");
-addCornerTest(15, 19, "cornerTopRight", "horizontalTop",    "verticalLeft",  "left", "bottom");
-addCornerTest(19, 19, "cornerTopRight", "horizontalBottom", "verticalRight", "left", "bottom");
-addCornerTest(11, 23, "cornerBottomRight", "horizontalTop",    "verticalLeft",  "left", "top");
-addCornerTest(15, 23, "cornerBottomRight", "horizontalBottom", "verticalRight", "left", "top");
+function addVertical(col, fromRow, toRow, type) {
+  for (let row = Math.min(fromRow, toRow); row <= Math.max(fromRow, toRow); row++) setTerrain(col, row, type);
+}
 
-// Deterministic 256x256 ground distribution. Quiet tiles dominate, colorful bush
-// tiles are deliberately uncommon/rare so they work as landmarks rather than noise.
+// Compact gameplay-style route using only the already validated path pieces.
+// Geometry, sockets, 128x128 scale and the no-mixed-straight-variant rule remain locked.
+addVertical(7, 3, 6, "verticalLeft");
+setTerrain(7, 7, "cornerBottomLeft");       // TOP -> RIGHT
+addHorizontal(7, 8, 12, "horizontalTop");
+setTerrain(13, 7, "cornerTopRight");        // LEFT -> BOTTOM
+addVertical(13, 8, 10, "verticalRight");
+setTerrain(13, 11, "cornerBottomRight");    // TOP -> LEFT
+addHorizontal(11, 9, 12, "horizontalBottom");
+setTerrain(8, 11, "cornerTopLeft");         // RIGHT -> BOTTOM
+addVertical(8, 12, 14, "verticalLeft");
+
 const GROUND_VARIANTS = [
-  { type: "sparseGrass", weight: 8 },
-  { type: "flowersFerns", weight: 7 },
-  { type: "stonesPlants", weight: 7 },
-  { type: "flowersLeaves", weight: 6 },
-  { type: "stonesFlowers", weight: 5 },
+  { type: "sparseGrass", weight: 9 },
+  { type: "flowersFerns", weight: 8 },
+  { type: "stonesPlants", weight: 8 },
+  { type: "flowersLeaves", weight: 7 },
+  { type: "stonesFlowers", weight: 6 },
   { type: "greenBush", weight: 3 },
+  { type: "floweringGreenBush", weight: 3 },
   { type: "pinkBush", weight: 2 },
-  { type: "floweringGreenBush", weight: 2 },
   { type: "orangePurpleBushes", weight: 1 }
 ];
 
@@ -110,12 +111,12 @@ function buildGroundLayout() {
     }
   }
 
-  // Ensure every approved 256 tile appears somewhere in this visual proof of concept.
+  // Keep all nine production tiles represented inside this compact test area.
   const present = new Set(groundLayout.values());
   const missing = GROUND_VARIANTS.map(v => v.type).filter(type => !present.has(type));
   missing.forEach((type, index) => {
-    const col = 2 + (index * 3) % Math.max(1, cols - 4);
-    const row = 2 + (index * 5) % Math.max(1, rows - 4);
+    const col = 1 + (index * 3) % Math.max(1, cols - 2);
+    const row = 1 + (index * 5) % Math.max(1, rows - 2);
     groundLayout.set(groundKey(col, row), type);
   });
 }
@@ -148,7 +149,7 @@ function drawGround(ctx, camera, w, h) {
       const sy = screenOriginY + row * GROUND_TILE_SIZE;
 
       if (image.complete && image.naturalWidth === GROUND_TILE_SIZE && image.naturalHeight === GROUND_TILE_SIZE) {
-        // 256 terrain is evaluated exactly as supplied: full 256x256 source -> 256x256 world tile.
+        // New 256 terrain is intentionally evaluated un-cropped: full source -> full destination.
         ctx.drawImage(image, sx, sy, GROUND_TILE_SIZE, GROUND_TILE_SIZE);
       } else {
         ctx.fillStyle = palette.grass;
@@ -178,7 +179,7 @@ function drawPaths(ctx, camera, w, h) {
       const sy = screenOriginY + row * PATH_TILE_SIZE;
 
       if (image.complete && image.naturalWidth === PATH_TILE_SIZE && image.naturalHeight === PATH_TILE_SIZE) {
-        // Locked path treatment: 2px source crop, 124x124 -> unchanged 128x128 destination.
+        // LOCKED path treatment: 2px crop, 124x124 source -> unchanged 128x128 destination.
         ctx.drawImage(image, 2, 2, 124, 124, sx, sy, PATH_TILE_SIZE, PATH_TILE_SIZE);
       }
     }
@@ -186,20 +187,20 @@ function drawPaths(ctx, camera, w, h) {
 }
 
 function drawObject(ctx, o, camera, w, h) {
-  const x=Math.round(o.x-camera.x+w/2), y=Math.round(o.y-camera.y+h/2);
-  const accent=[palette.green,palette.pink,palette.orange,palette.purple][o.variant%4];
-  if(o.type==="tree"){
+  const x = Math.round(o.x - camera.x + w/2), y = Math.round(o.y - camera.y + h/2);
+  const accent = [palette.green,palette.pink,palette.orange,palette.purple][o.variant%4];
+  if (o.type === "tree") {
     ctx.fillStyle=palette.trunk; ctx.fillRect(x-12,y-42,24,46);
     ctx.fillStyle=accent; ctx.beginPath(); ctx.moveTo(x,y-116); ctx.lineTo(x-58,y-78); ctx.lineTo(x-46,y-28); ctx.lineTo(x,y-46); ctx.lineTo(x+52,y-28); ctx.lineTo(x+62,y-78); ctx.closePath(); ctx.fill();
     ctx.fillStyle="rgba(255,255,255,.10)"; ctx.beginPath(); ctx.moveTo(x-5,y-108);ctx.lineTo(x-45,y-78);ctx.lineTo(x-6,y-67);ctx.closePath();ctx.fill();
-  } else if(o.type==="bush"){
+  } else if (o.type === "bush") {
     ctx.fillStyle=accent; ctx.beginPath(); ctx.moveTo(x-34,y);ctx.lineTo(x-26,y-28);ctx.lineTo(x,y-40);ctx.lineTo(x+34,y-8);ctx.lineTo(x+20,y+12);ctx.lineTo(x-18,y+14);ctx.closePath();ctx.fill();
-  } else if(o.type==="rock"){
+  } else if (o.type === "rock") {
     ctx.fillStyle=palette.rock;ctx.beginPath();ctx.moveTo(x-30,y+9);ctx.lineTo(x-20,y-22);ctx.lineTo(x+9,y-32);ctx.lineTo(x+34,y-4);ctx.lineTo(x+19,y+18);ctx.lineTo(x-19,y+20);ctx.closePath();ctx.fill();
     ctx.fillStyle=palette.rockHi;ctx.beginPath();ctx.moveTo(x-19,y-20);ctx.lineTo(x+8,y-30);ctx.lineTo(x+3,y-7);ctx.lineTo(x-15,y-4);ctx.closePath();ctx.fill();
-  } else if(o.type==="flower"){
+  } else if (o.type === "flower") {
     ctx.fillStyle=accent;ctx.fillRect(x-2,y-10,4,12);ctx.fillRect(x-8,y-15,7,7);ctx.fillRect(x+2,y-17,7,7);ctx.fillRect(x-3,y-22,7,7);
-  } else if(o.type==="branch"){
+  } else if (o.type === "branch") {
     ctx.strokeStyle=palette.trunk;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x-28,y+5);ctx.lineTo(x+30,y-5);ctx.stroke();
   }
 }
@@ -208,14 +209,13 @@ function drawSharkan(ctx, player, camera, w, h) {
   const x=Math.round(player.x-camera.x+w/2), y=Math.round(player.y-camera.y+h/2);
   ctx.save(); ctx.translate(x,y);
   ctx.fillStyle="rgba(55,62,55,.22)";ctx.beginPath();ctx.ellipse(0,5,30,12,0,0,Math.PI*2);ctx.fill();
-  const horizontal = player.dir==="left"||player.dir==="right";
-  ctx.fillStyle=palette.shark;
-  ctx.beginPath();
+  const horizontal = player.dir === "left" || player.dir === "right";
+  ctx.fillStyle=palette.shark; ctx.beginPath();
   if(horizontal){ const s=player.dir==="right"?1:-1;ctx.moveTo(-42*s,-28);ctx.lineTo(34*s,-34);ctx.lineTo(48*s,-4);ctx.lineTo(30*s,18);ctx.lineTo(-40*s,12);ctx.lineTo(-55*s,-6);ctx.closePath(); }
   else { const s=player.dir==="down"?1:-1;ctx.moveTo(-35,-72*s);ctx.lineTo(35,-72*s);ctx.lineTo(43,-15*s);ctx.lineTo(28,16*s);ctx.lineTo(-28,16*s);ctx.lineTo(-43,-15*s);ctx.closePath(); }
   ctx.fill();
   ctx.fillStyle=palette.cream;ctx.fillRect(-25,-22,50,34);ctx.fillStyle=palette.vest;ctx.fillRect(-31,-10,16,40);ctx.fillRect(15,-10,16,40);ctx.fillStyle=palette.shorts;ctx.fillRect(-25,24,50,25);
-  ctx.fillStyle=palette.cream; for(let i=-2;i<=2;i++){ctx.fillRect(i*11-2,-48+(Math.abs(i)%2)*6,5,5);} 
+  ctx.fillStyle=palette.cream; for(let i=-2;i<=2;i++) ctx.fillRect(i*11-2,-48+(Math.abs(i)%2)*6,5,5);
   ctx.restore();
 }
 
@@ -229,10 +229,14 @@ export function renderFrame(ctx, camera, player, width, height, debug=false) {
   const minCY=Math.max(0,Math.floor(b.t/WORLD.chunkSize)), maxCY=Math.floor(b.b/WORLD.chunkSize);
   for(let cy=minCY;cy<=maxCY;cy++) for(let cx=minCX;cx<=maxCX;cx++) for(const o of chunks.get(`${cx},${cy}`)||[]) if(inView(o,b)) visible.push(o);
   visible.push({type:"player",x:player.x,y:player.y}); visible.sort((a,b)=>a.y-b.y);
-  for(const o of visible) o.type==="player"?drawSharkan(ctx,player,camera,width,height):drawObject(ctx,o,camera,width,height);
+  for(const o of visible) o.type==="player" ? drawSharkan(ctx,player,camera,width,height) : drawObject(ctx,o,camera,width,height);
+
   if(debug){
-    ctx.strokeStyle="#2b2b2b";ctx.lineWidth=2;const px=Math.round(player.x-camera.x+width/2),py=Math.round(player.y-camera.y+height/2);ctx.beginPath();ctx.ellipse(px,py,PLAYER.radiusX,PLAYER.radiusY,0,0,Math.PI*2);ctx.stroke();
-    ctx.strokeStyle="rgba(80,50,80,.45)"; for(const o of visible){const s=collisionShape(o);if(!s)continue;const x=Math.round(o.x-camera.x+width/2),y=Math.round(o.y-camera.y+height/2);ctx.beginPath();ctx.ellipse(x,y,s.rx,s.ry,0,0,Math.PI*2);ctx.stroke();}
+    ctx.strokeStyle="#2b2b2b";ctx.lineWidth=2;
+    const px=Math.round(player.x-camera.x+width/2),py=Math.round(player.y-camera.y+height/2);
+    ctx.beginPath();ctx.ellipse(px,py,PLAYER.radiusX,PLAYER.radiusY,0,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle="rgba(80,50,80,.45)";
+    for(const o of visible){const s=collisionShape(o);if(!s)continue;const x=Math.round(o.x-camera.x+width/2),y=Math.round(o.y-camera.y+height/2);ctx.beginPath();ctx.ellipse(x,y,s.rx,s.ry,0,0,Math.PI*2);ctx.stroke();}
   }
   return visible.length;
 }

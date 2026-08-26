@@ -1,45 +1,118 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="sv">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#222820">
-  <meta name="hajjen-build" content="2d-v0.1-playable-standard-terrain-v1-20260824">
-  <title>HAJJEN 2D v0.1</title>
-  <link rel="stylesheet" href="css/game-2d.css?v=20260821-1723">
-  <link rel="stylesheet" href="css/spellbook.css?v=20260821-1723">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="hajjen-build" content="v4-board-prototype-0.1" />
+<title>HAJJEN V4 – Funktionsprototyp</title>
+<link rel="stylesheet" href="css/v4.css" />
 </head>
 <body>
-  <main id="gameShell" aria-label="HAJJEN 2D v0.1">
-    <canvas id="gameCanvas" aria-label="The Crossroads exploration world"></canvas>
+<div class="app">
+  <div class="title">HAJJEN V4 – FUNKTIONSPROTOTYP</div>
 
-    <div id="hud2d">
-      <div class="hudTop">
-        <div class="badge2d"><strong>The Crossroads</strong><span>HAJJEN 2D v0.1 · seamless world prototype</span></div>
-        <div class="controls2d">
-          <button id="invBtn">Backpack [I]</button>
-          <button id="bookBtn">Spellbook [B]</button>
-        </div>
+  <section class="panel goal">
+    <h2>MÅL</h2>
+    <div class="body">
+      <div class="goal-main">Awaken the Verdant Boss</div>
+      <div id="goalShrines">Shrines: 0 / 2</div>
+      <div id="goalGuardians">Guardians: 0 / 2</div>
+      <div id="goalBoss">Boss Shrine: LOCKED</div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="board-label">10×10 BRÄDE / ZON</div>
+    <div class="board-wrap">
+      <div id="board" class="board" aria-label="10x10 board"></div>
+      <div id="player" class="player" title="Sharkan">S</div>
+    </div>
+  </main>
+
+  <aside class="rightcol">
+    <section class="panel status">
+      <h2>SHARKAN / HP / DANGER</h2>
+      <div class="status-row">
+        <div>HP</div>
+        <div class="bar"><div id="hpFill" class="fill"></div></div>
+        <div id="hpText">100%</div>
       </div>
-      <div id="hint" class="hint2d"></div>
+      <div class="status-row">
+        <div>DANGER</div>
+        <div id="dangerSegments" class="danger-segments">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div id="dangerText">CALM</div>
+      </div>
+    </section>
+
+    <section class="panel tileinfo">
+      <h2>TILE INFO / BOSS INFO</h2>
+      <h3 id="tileTitle">NORMAL TILE</h3>
+      <div id="tileSub" class="sub">Verdant Brook</div>
+      <p id="tileDesc">Ingen specialeffekt.</p>
+      <p id="tileExtra"></p>
+    </section>
+  </aside>
+
+  <section class="bottom">
+    <div class="system-buttons">
+      <button data-modal="Spellbook">SPELLBOOK</button>
+      <button data-modal="Backpack">BACKPACK</button>
+      <button data-modal="Talents">TALENTS</button>
     </div>
 
-    <div id="debugPanel" hidden></div>
+    <div class="dice-area">
+      <div class="diebox">
+        <div class="label">STEG-TÄRNING</div>
+        <div id="moveDie" class="die-result">–</div>
+        <div class="die-sub">1–6</div>
+        <button id="rerollMove" class="reroll" disabled>REROLL</button>
+      </div>
 
-    <section id="inventory" class="panel" aria-label="Sharkan's Backpack">
-      <div class="head"><h2>Sharkan's Backpack</h2><button class="btn close">Close [I]</button></div>
-      <div class="body"><div id="inventoryGrid" class="inventoryGrid"></div></div>
-    </section>
+      <div class="rollbox">
+        <button id="rollBtn">KASTA<br>TÄRNINGARNA</button>
+      </div>
 
-    <section id="spellbook" class="panel" aria-label="Spellbook">
-      <div class="head"><h2>Spellbook</h2><button class="btn close">Close [B]</button></div>
-      <div class="body">
-        <p class="spellbookIntro">The Spellbook system is preserved while the new seamless 2D overworld foundation is established.</p>
-        <div id="spellSlots"></div>
-        <div class="tags spellbookNote">Spell experimentation will be expanded after the world foundation is validated.</div>
+      <div class="diebox">
+        <div class="label">RIKTNINGS-TÄRNING</div>
+        <div id="directionDie" class="die-result">–</div>
+        <div id="directionSub" class="die-sub">↑ ↓ ← →<br>CHOOSE / WILD</div>
+        <div id="directionChoice" class="direction-choice">
+          <button data-dir="N">↑</button>
+          <button data-dir="E">→</button>
+          <button data-dir="S">↓</button>
+          <button data-dir="W">←</button>
+        </div>
+        <button id="rerollDirection" class="reroll" disabled>REROLL</button>
+      </div>
+    </div>
+
+    <section class="panel combat">
+      <h2>SPELLS / ACTIONS</h2>
+      <div class="slots">
+        <button class="slot" data-action="Spell 1">SPELL 1</button>
+        <button class="slot" data-action="Spell 2">SPELL 2</button>
+        <button class="slot" data-action="Spell 3">SPELL 3</button>
+        <div class="divider"></div>
+        <button class="slot" data-action="Action 1">ACTION 1</button>
+        <button class="slot" data-action="Action 2">ACTION 2</button>
       </div>
     </section>
-  </main>
-  <script type="module" src="js/2d/main.js?v=playable-standard-terrain-v1-20260824"></script>
+
+    <div id="logline" class="logline">Kasta tärningarna för att börja.</div>
+  </section>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-card">
+    <h2 id="modalTitle">SYSTEM</h2>
+    <p id="modalText"></p>
+    <button id="closeModal">STÄNG</button>
+  </div>
+</div>
+
+<script type="module" src="js/v4/game.js"></script>
 </body>
 </html>

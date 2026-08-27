@@ -4,14 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#ffffff" />
-<meta name="hajjen-build" content="v4-board-prototype-0.2.1" />
-<title>HAJJEN V4 – Prototype 0.2.1</title>
+<meta name="hajjen-build" content="v4-board-prototype-0.3" />
+<title>HAJJEN V4 – Prototype 0.3</title>
 <link rel="stylesheet" href="css/v4.css" />
 </head>
 <body>
 <div class="app">
   <div class="titlebar">
-    <div class="title">HAJJEN V4 – PROTOTYPE 0.2.1: CARD COMBINATIONS</div>
+    <div class="title">HAJJEN V4 – PROTOTYPE 0.3: CARDS, INGREDIENTS & COMBAT</div>
     <button id="helpBtn" class="help-btn">HELP</button>
   </div>
 
@@ -28,15 +28,13 @@
 
     <section class="panel deck-panel">
       <h2>KORTLEK</h2>
-      <div class="deck-stack" aria-hidden="true">
-        <div></div><div></div><div></div>
-      </div>
+      <div class="deck-stack" aria-hidden="true"><div></div><div></div><div></div></div>
       <div class="deck-counts">
         <span>M <strong>5</strong></span>
         <span>E <strong>5</strong></span>
         <span>T <strong>5</strong></span>
       </div>
-      <div class="deck-note">0.2 testpool</div>
+      <div class="deck-note">0.3 testpool</div>
     </section>
   </aside>
 
@@ -58,9 +56,7 @@
       </div>
       <div class="status-row danger-row">
         <div>DANGER</div>
-        <div id="dangerSegments" class="danger-segments">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
+        <div id="dangerSegments" class="danger-segments"><span></span><span></span><span></span><span></span><span></span></div>
         <div id="dangerText">0/20</div>
       </div>
       <div id="dangerState" class="danger-state">CALM</div>
@@ -78,16 +74,10 @@
   <section class="bottom">
     <div class="hand-system">
       <section class="panel hand-panel">
-        <div class="hand-header">
-          <h2>HAND</h2>
-          <span id="handSummary">3M / 2E / 2T</span>
-        </div>
+        <div class="hand-header"><h2>HAND</h2><span id="handSummary">3M / 2E / 2T</span></div>
 
         <div class="active-manipulations">
-          <div class="active-manipulation-header">
-            <span>ACTIVE MANIPULATION</span>
-            <span id="activeManipSummary">0 / 2</span>
-          </div>
+          <div class="active-manipulation-header"><span>ACTIVE MANIPULATION</span><span id="activeManipSummary">0 / 2</span></div>
           <div id="activeManipulations" class="active-manipulation-slots" aria-label="Active manipulation cards">
             <div class="active-manipulation-slot empty">EMPTY</div>
             <div class="active-manipulation-slot empty">EMPTY</div>
@@ -116,34 +106,27 @@
         <div class="die-sub">1–6</div>
         <button id="rerollMove" class="reroll" disabled>REROLL</button>
       </div>
-
-      <div class="rollbox">
-        <button id="rollBtn" disabled>KASTA<br>TÄRNINGARNA</button>
-      </div>
-
+      <div class="rollbox"><button id="rollBtn" disabled>KASTA<br>TÄRNINGARNA</button></div>
       <div class="diebox">
         <div class="label">RIKTNINGS-TÄRNING</div>
         <div id="directionDie" class="die-result">–</div>
         <div id="directionSub" class="die-sub">↑ ↓ ← →<br>CHOOSE / WILD</div>
         <div id="directionChoice" class="direction-choice">
-          <button data-dir="N">↑</button>
-          <button data-dir="E">→</button>
-          <button data-dir="S">↓</button>
-          <button data-dir="W">←</button>
+          <button data-dir="N">↑</button><button data-dir="E">→</button><button data-dir="S">↓</button><button data-dir="W">←</button>
         </div>
         <button id="rerollDirection" class="reroll" disabled>REROLL</button>
       </div>
     </div>
 
-    <section class="panel combat">
+    <section class="panel combat loadout-panel">
       <h2>SPELLS / ACTIONS</h2>
       <div class="slots">
-        <button class="slot" data-action="Spell 1">SPELL 1</button>
-        <button class="slot" data-action="Spell 2">SPELL 2</button>
-        <button class="slot" data-action="Spell 3">SPELL 3</button>
+        <button class="slot equipped" id="spellSlot1"><span>EMBER BOLT</span><small>18 direct damage</small></button>
+        <button class="slot empty-slot" id="spellSlot2">EMPTY</button>
+        <button class="slot empty-slot" id="spellSlot3">EMPTY</button>
         <div class="divider"></div>
-        <button class="slot" data-action="Action 1">ACTION 1</button>
-        <button class="slot" data-action="Action 2">ACTION 2</button>
+        <button class="slot equipped" id="actionSlot1"><span>HEALING POTION</span><small>+25 HP instantly</small></button>
+        <button class="slot empty-slot" id="actionSlot2">EMPTY</button>
       </div>
     </section>
 
@@ -152,11 +135,7 @@
 </div>
 
 <div id="modal" class="modal">
-  <div class="modal-card">
-    <h2 id="modalTitle">SYSTEM</h2>
-    <div id="modalText"></div>
-    <button id="closeModal">STÄNG</button>
-  </div>
+  <div class="modal-card"><h2 id="modalTitle">SYSTEM</h2><div id="modalText"></div><button id="closeModal">STÄNG</button></div>
 </div>
 
 <div id="cardModal" class="modal">
@@ -165,10 +144,7 @@
     <h2 id="cardTitle">CARD</h2>
     <p id="cardDesc"></p>
     <div id="cardTiming" class="card-timing"></div>
-    <div class="modal-actions">
-      <button id="playCardBtn">PLAY CARD</button>
-      <button id="closeCardModal">CLOSE</button>
-    </div>
+    <div class="modal-actions"><button id="playCardBtn">PLAY CARD</button><button id="closeCardModal">CLOSE</button></div>
   </div>
 </div>
 
@@ -178,6 +154,37 @@
     <p id="choiceText"></p>
     <div id="choiceOptions" class="choice-options"></div>
     <div id="choiceHint" class="choice-hint"></div>
+    <div class="choice-actions"><button id="confirmChoiceBtn" class="confirm-choice" hidden disabled>CONFIRM</button></div>
+  </div>
+</div>
+
+<div id="combatPrepModal" class="modal locked-modal">
+  <div class="modal-card combat-prep-card">
+    <div class="eyebrow">ENCOUNTER</div>
+    <h2 id="combatPrepTitle">PREPARE FOR COMBAT</h2>
+    <p id="combatPrepText"></p>
+    <div class="prep-section"><h3>SPELLS</h3><div id="prepSpells" class="prep-options"></div></div>
+    <div class="prep-section"><h3>POTIONS / ACTIONS</h3><div id="prepPotions" class="prep-options"></div></div>
+    <div class="prep-section"><h3>TACTICAL CARD — MAX 1</h3><div id="prepTactical" class="prep-options"></div></div>
+    <div id="prepHint" class="choice-hint">Välj minst en spell.</div>
+    <div class="modal-actions"><button id="startCombatBtn" disabled>START COMBAT</button></div>
+  </div>
+</div>
+
+<div id="combatModal" class="modal locked-modal">
+  <div class="modal-card combat-card">
+    <div class="combat-heading"><div><div class="eyebrow">TURN-BASED COMBAT</div><h2 id="combatEnemyName">ENEMY</h2></div><div id="combatTurn">TURN 1</div></div>
+    <div class="combat-bars">
+      <div><strong>ENEMY HP</strong><div class="bar"><div id="enemyHpFill" class="fill"></div></div><span id="enemyHpText">0/0</span></div>
+      <div><strong>SHARKAN HP</strong><div class="bar"><div id="combatPlayerHpFill" class="fill"></div></div><span id="combatPlayerHpText">100%</span></div>
+    </div>
+    <div id="combatTacticalInfo" class="combat-tactical"></div>
+    <div id="combatLog" class="combat-log">Combat begins.</div>
+    <div class="combat-actions-row">
+      <button id="combatSpellBtn">EMBER BOLT<br><small>18 damage</small></button>
+      <button id="combatPotionBtn">HEALING POTION<br><small>+25 HP</small></button>
+      <button id="combatFleeBtn">FLEE</button>
+    </div>
   </div>
 </div>
 

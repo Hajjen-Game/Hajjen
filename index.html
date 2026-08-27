@@ -4,14 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#ffffff" />
-<meta name="hajjen-build" content="v4-board-prototype-0.3" />
-<title>HAJJEN V4 – Prototype 0.3</title>
+<meta name="hajjen-build" content="v4-board-prototype-0.4" />
+<title>HAJJEN V4 – Prototype 0.4</title>
 <link rel="stylesheet" href="css/v4.css" />
 </head>
 <body>
 <div class="app">
   <div class="titlebar">
-    <div class="title">HAJJEN V4 – PROTOTYPE 0.3: CARDS, INGREDIENTS & COMBAT</div>
+    <div class="title">HAJJEN V4 – PROTOTYPE 0.4: TURN FLOW & LOADOUT</div>
     <button id="helpBtn" class="help-btn">HELP</button>
   </div>
 
@@ -34,7 +34,8 @@
         <span>E <strong>5</strong></span>
         <span>T <strong>5</strong></span>
       </div>
-      <div class="deck-note">0.3 testpool</div>
+      <div id="drawCountdown" class="deck-draw">Card draw starts when the zone begins.</div>
+      <div class="deck-note">0.4 testpool</div>
     </section>
   </aside>
 
@@ -121,12 +122,12 @@
     <section class="panel combat loadout-panel">
       <h2>SPELLS / ACTIONS</h2>
       <div class="slots">
-        <button class="slot equipped" id="spellSlot1"><span>EMBER BOLT</span><small>18 direct damage</small></button>
-        <button class="slot empty-slot" id="spellSlot2">EMPTY</button>
-        <button class="slot empty-slot" id="spellSlot3">EMPTY</button>
+        <button class="slot equipped" id="spellSlot1" data-spell-slot="0"><span>EMBER BOLT</span><small>18 direct damage</small></button>
+        <button class="slot empty-slot" id="spellSlot2" data-spell-slot="1">EMPTY</button>
+        <button class="slot empty-slot" id="spellSlot3" data-spell-slot="2">EMPTY</button>
         <div class="divider"></div>
-        <button class="slot equipped" id="actionSlot1"><span>HEALING POTION</span><small>+25 HP instantly</small></button>
-        <button class="slot empty-slot" id="actionSlot2">EMPTY</button>
+        <button class="slot equipped" id="actionSlot1" data-action-slot="0"><span>HEALING POTION</span><small>+25 HP instantly</small></button>
+        <button class="slot empty-slot" id="actionSlot2" data-action-slot="1">EMPTY</button>
       </div>
     </section>
 
@@ -135,7 +136,11 @@
 </div>
 
 <div id="modal" class="modal">
-  <div class="modal-card"><h2 id="modalTitle">SYSTEM</h2><div id="modalText"></div><button id="closeModal">STÄNG</button></div>
+  <div class="modal-card">
+    <h2 id="modalTitle">SYSTEM</h2>
+    <div id="modalText"></div>
+    <div class="modal-actions"><button id="closeModal">STÄNG</button></div>
+  </div>
 </div>
 
 <div id="cardModal" class="modal">
@@ -163,10 +168,16 @@
     <div class="eyebrow">ENCOUNTER</div>
     <h2 id="combatPrepTitle">PREPARE FOR COMBAT</h2>
     <p id="combatPrepText"></p>
-    <div class="prep-section"><h3>SPELLS</h3><div id="prepSpells" class="prep-options"></div></div>
-    <div class="prep-section"><h3>POTIONS / ACTIONS</h3><div id="prepPotions" class="prep-options"></div></div>
+    <div class="prep-section">
+      <div class="prep-heading"><h3>SPELL LOADOUT</h3><button id="changeSpellsBtn" class="small-btn">CHANGE</button></div>
+      <div id="prepSpells" class="prep-options"></div>
+    </div>
+    <div class="prep-section">
+      <div class="prep-heading"><h3>POTIONS / ACTIONS</h3><button id="changeActionsBtn" class="small-btn">CHANGE</button></div>
+      <div id="prepPotions" class="prep-options"></div>
+    </div>
     <div class="prep-section"><h3>TACTICAL CARD — MAX 1</h3><div id="prepTactical" class="prep-options"></div></div>
-    <div id="prepHint" class="choice-hint">Välj minst en spell.</div>
+    <div id="prepHint" class="choice-hint">Current loadout is carried into combat.</div>
     <div class="modal-actions"><button id="startCombatBtn" disabled>START COMBAT</button></div>
   </div>
 </div>
@@ -181,8 +192,8 @@
     <div id="combatTacticalInfo" class="combat-tactical"></div>
     <div id="combatLog" class="combat-log">Combat begins.</div>
     <div class="combat-actions-row">
-      <button id="combatSpellBtn">EMBER BOLT<br><small>18 damage</small></button>
-      <button id="combatPotionBtn">HEALING POTION<br><small>+25 HP</small></button>
+      <button id="combatSpellBtn">SPELL</button>
+      <button id="combatPotionBtn">ACTION</button>
       <button id="combatFleeBtn">FLEE</button>
     </div>
   </div>

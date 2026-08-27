@@ -1,6 +1,6 @@
 /* HAJJEN V4 Prototype 0.5 additions */
 .die-sub{min-height:24px}
-#directionSub{font-size:18px;font-weight:900;letter-spacing:6px;line-height:1.2}
+#directionSub{font-size:16px;font-weight:900;line-height:1.2}
 
 .tile.movement-preview{
   background:#ededed;

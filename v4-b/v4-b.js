@@ -142,13 +142,13 @@
 
   function renderStatus(){
     $('hpText').textContent=`${state.hp} / ${state.maxHp}`;$('hpFill').style.width=`${(state.hp/state.maxHp)*100}%`;
-    const next=xpTarget();const base=state.level===1?0:state.level===2?30:state.level===3?70:120;const pct=Math.max(0,Math.min(100,((state.xp-base)/(next-base))*100));
-    $('xpText').textContent=state.level>=4?`${state.xp} XP · MAX`:`${state.xp-base} / ${next-base}`;$('xpFill').style.width=`${state.level>=4?100:pct}%`;$('levelText').textContent=state.level;
+    const next=xpTarget();const base=state.level===1?0:state.level===2?30:state.level===3?70:120;const pct=state.level>=4?100:Math.max(0,Math.min(100,((state.xp-base)/(next-base))*100));
+    $('xpText').textContent=state.level>=4?`${state.xp} XP · MAX`:`${state.xp-base} / ${next-base}`;$('xpFill').style.width=`${pct}%`;$('levelText').textContent=state.level;
     $('dangerText').textContent=`${state.danger} / 20`;$('dangerFill').style.width=`${state.danger*5}%`;
     const tier=dangerTier();$('dangerState').className=`danger-state ${tier}`;$('dangerState').textContent=tier.toUpperCase();
     const info={calm:['CALM','Low spawn pressure.'],uneasy:['UNEASY','Mobs can begin spawning as you move.'],dangerous:['DANGEROUS','More spawns, +20% enemy power, adjacent aggro.'],hostile:['HOSTILE','Heavy spawn pressure, +35% enemy power, back-to-back reinforcements.'],critical:['CRITICAL','Maximum pressure, +50% enemy power, frequent reinforcements.']}[tier];
     $('dangerRule').innerHTML=`<strong>${info[0]}</strong><span>${info[1]}</span>`;
-    $('stepsText').textContent=state.steps;$('killsText').textContent=state.mobKills+$('eliteQuest').dataset.fake*0;
+    $('stepsText').textContent=state.steps;$('killsText').textContent=state.mobKills;
     $('clockText').textContent=state.steadySteps?`${state.steadySteps} protected`:`${state.nextAmbient} step${state.nextAmbient===1?'':'s'}`;$('scalingText').textContent=`${Math.round(enemyScale()*100)}%`;
   }
 
@@ -171,7 +171,7 @@
   }
 
   function castSpell(spell){
-    const c=state.combat;if(!c)return;let dmg=spellDamage(spell);c.hp-=dmg;let extra='';
+    const c=state.combat;if(!c)return;const dmg=spellDamage(spell);c.hp-=dmg;let extra='';
     if(spell.force==='Growth'){const heal=Math.min(6,state.maxHp-state.hp);state.hp+=heal;if(heal)extra=` +${heal} HP.`;}
     if(spell.force==='Stone')c.guard=4;if(spell.force==='Flow')c.guard=2;
     $('combatMessage').textContent=`${spell.name} deals ${dmg}.${extra}`;log(`${spell.name} hit ${c.entity.title} for ${dmg}.`,'combat');
@@ -217,7 +217,7 @@
   function findSpawnSpot(adjacent=false){
     const candidates=[];
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(entities.has(key(r,c))||r===state.row&&c===state.col)continue;const d=Math.max(Math.abs(r-state.row),Math.abs(c-state.col));
+      if(entities.has(key(r,c))||(r===state.row&&c===state.col))continue;const d=Math.max(Math.abs(r-state.row),Math.abs(c-state.col));
       if(adjacent?d===1:d>=2&&d<=5)candidates.push({r,c});
     }
     return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;

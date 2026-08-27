@@ -4,23 +4,41 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#ffffff" />
-<meta name="hajjen-build" content="v4-board-prototype-0.1" />
-<title>HAJJEN V4 – Funktionsprototyp</title>
+<meta name="hajjen-build" content="v4-board-prototype-0.2" />
+<title>HAJJEN V4 – Prototype 0.2</title>
 <link rel="stylesheet" href="css/v4.css" />
 </head>
 <body>
 <div class="app">
-  <div class="title">HAJJEN V4 – FUNKTIONSPROTOTYP</div>
+  <div class="titlebar">
+    <div class="title">HAJJEN V4 – PROTOTYPE 0.2: CARDS & INGREDIENTS</div>
+    <button id="helpBtn" class="help-btn">HELP</button>
+  </div>
 
-  <section class="panel goal">
-    <h2>MÅL</h2>
-    <div class="body">
-      <div class="goal-main">Awaken the Verdant Boss</div>
-      <div id="goalShrines">Shrines: 0 / 2</div>
-      <div id="goalGuardians">Guardians: 0 / 2</div>
-      <div id="goalBoss">Boss Shrine: LOCKED</div>
-    </div>
-  </section>
+  <aside class="leftcol">
+    <section class="panel goal">
+      <h2>MÅL</h2>
+      <div class="body">
+        <div class="goal-main">Awaken the Verdant Boss</div>
+        <div id="goalShrines">Shrines: 0 / 2</div>
+        <div id="goalGuardians">Guardians: 0 / 2</div>
+        <div id="goalBoss">Boss Shrine: LOCKED</div>
+      </div>
+    </section>
+
+    <section class="panel deck-panel">
+      <h2>KORTLEK</h2>
+      <div class="deck-stack" aria-hidden="true">
+        <div></div><div></div><div></div>
+      </div>
+      <div class="deck-counts">
+        <span>M <strong>5</strong></span>
+        <span>E <strong>5</strong></span>
+        <span>T <strong>5</strong></span>
+      </div>
+      <div class="deck-note">0.2 testpool</div>
+    </section>
+  </aside>
 
   <main class="main">
     <div class="board-label">10×10 BRÄDE / ZON</div>
@@ -38,29 +56,45 @@
         <div class="bar"><div id="hpFill" class="fill"></div></div>
         <div id="hpText">100%</div>
       </div>
-      <div class="status-row">
+      <div class="status-row danger-row">
         <div>DANGER</div>
         <div id="dangerSegments" class="danger-segments">
           <span></span><span></span><span></span><span></span><span></span>
         </div>
-        <div id="dangerText">CALM</div>
+        <div id="dangerText">0/20</div>
       </div>
+      <div id="dangerState" class="danger-state">CALM</div>
     </section>
 
     <section class="panel tileinfo">
       <h2>TILE INFO / BOSS INFO</h2>
       <h3 id="tileTitle">NORMAL TILE</h3>
       <div id="tileSub" class="sub">Verdant Brook</div>
-      <p id="tileDesc">Ingen specialeffekt.</p>
+      <p id="tileDesc">Ingen automatisk effekt.</p>
       <p id="tileExtra"></p>
     </section>
   </aside>
 
   <section class="bottom">
-    <div class="system-buttons">
-      <button data-modal="Spellbook">SPELLBOOK</button>
-      <button data-modal="Backpack">BACKPACK</button>
-      <button data-modal="Talents">TALENTS</button>
+    <div class="hand-system">
+      <section class="panel hand-panel">
+        <div class="hand-header">
+          <h2>HAND</h2>
+          <span id="handSummary">3M / 2E / 2T</span>
+        </div>
+        <div id="hand" class="hand" aria-label="Card hand"></div>
+        <div id="mulliganControls" class="mulligan-controls">
+          <span id="mulliganText">Välj 0–3 kort att byta.</span>
+          <button id="redrawBtn" disabled>REDRAW 0</button>
+          <button id="startZoneBtn">START ZONE</button>
+        </div>
+      </section>
+
+      <div class="system-buttons">
+        <button data-modal="Spellbook">SPELLBOOK</button>
+        <button data-modal="Backpack">BACKPACK</button>
+        <button data-modal="Talents">TALENTS</button>
+      </div>
     </div>
 
     <div class="dice-area">
@@ -72,7 +106,7 @@
       </div>
 
       <div class="rollbox">
-        <button id="rollBtn">KASTA<br>TÄRNINGARNA</button>
+        <button id="rollBtn" disabled>KASTA<br>TÄRNINGARNA</button>
       </div>
 
       <div class="diebox">
@@ -101,15 +135,37 @@
       </div>
     </section>
 
-    <div id="logline" class="logline">Kasta tärningarna för att börja.</div>
+    <div id="logline" class="logline">Byt upp till tre startkort eller starta zonen direkt.</div>
   </section>
 </div>
 
 <div id="modal" class="modal">
   <div class="modal-card">
     <h2 id="modalTitle">SYSTEM</h2>
-    <p id="modalText"></p>
+    <div id="modalText"></div>
     <button id="closeModal">STÄNG</button>
+  </div>
+</div>
+
+<div id="cardModal" class="modal">
+  <div class="modal-card card-detail">
+    <div id="cardCategory" class="card-category"></div>
+    <h2 id="cardTitle">CARD</h2>
+    <p id="cardDesc"></p>
+    <div id="cardTiming" class="card-timing"></div>
+    <div class="modal-actions">
+      <button id="playCardBtn">PLAY CARD</button>
+      <button id="closeCardModal">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<div id="choiceModal" class="modal locked-modal">
+  <div class="modal-card choice-card">
+    <h2 id="choiceTitle">CHOOSE</h2>
+    <p id="choiceText"></p>
+    <div id="choiceOptions" class="choice-options"></div>
+    <div id="choiceHint" class="choice-hint"></div>
   </div>
 </div>
 

@@ -1,6 +1,8 @@
 (() => {
   const N=10;
+  const MAX_ACTIVE_MANIPULATIONS=2;
   const $=id=>document.getElementById(id);
+
   const board=$('board');
   const player=$('player');
   const rollBtn=$('rollBtn');
@@ -29,6 +31,8 @@
 
   const handEl=$('hand');
   const handSummary=$('handSummary');
+  const activeManipulationsEl=$('activeManipulations');
+  const activeManipSummary=$('activeManipSummary');
   const mulliganControls=$('mulliganControls');
   const mulliganText=$('mulliganText');
   const redrawBtn=$('redrawBtn');
@@ -45,6 +49,8 @@
   let selectedCardIndex=null;
   let lootRevealBonus=0;
   let lootPickBonus=0;
+  let activeManipulations=[];
+
   const completed=new Set();
   const mulliganSelection=new Set();
   const ingredients=[];
@@ -68,7 +74,7 @@
     Manipulation:[
       {id:'m-keen-eye',category:'Manipulation',name:'Keen Eye',timing:'Exploration',desc:'Your next Ingredient Tile reveals 4 choices instead of 3.',effect:'keenEye'},
       {id:'m-double-harvest',category:'Manipulation',name:'Double Harvest',timing:'Exploration',desc:'On your next Ingredient Tile, choose 2 ingredients instead of 1.',effect:'doubleHarvest'},
-      {id:'m-long-reach',category:'Manipulation',name:'Long Reach',timing:'Empty Tile',desc:'From an empty tile, collect from an Ingredient Tile directly adjacent to Sharkan.',effect:'longReach'},
+      {id:'m-long-reach',category:'Manipulation',name:'Long Reach',timing:'Empty Tile',desc:'From an empty tile, collect from an Ingredient Tile in one of the 8 surrounding tiles.',effect:'longReach'},
       {id:'m-calm-waters',category:'Manipulation',name:'Calm Waters',timing:'Between Rolls',desc:'Reduce Danger by 2.',effect:'calmWaters'},
       {id:'m-measured-step',category:'Manipulation',name:'Measured Step',timing:'After Roll',desc:'Increase the current Movement Die by 1, up to 6.',effect:'measuredStep'}
     ],
@@ -92,7 +98,7 @@
   let hand=[];
 
   // Sparse functional tiles. Ingredient Tiles are intentionally reusable in 0.2 so the choice system is easy to test.
-  const special = new Map([
+  const special=new Map([
     ['0,1',{type:'shrine',mark:'S',title:'ANCIENT SHRINE',sub:'Verdant Brook',desc:'Land here to activate the shrine.'}],
     ['6,7',{type:'shrine',mark:'S',title:'ANCIENT SHRINE',sub:'Verdant Brook',desc:'Land here to activate the shrine.'}],
     ['2,5',{type:'guardian',mark:'G',title:'GUARDIAN',sub:'Wild Encounter',desc:'Land here to defeat a guardian (prototype).'}],
@@ -142,7 +148,8 @@
       for(let c=0;c<N;c++){
         const t=document.createElement('div');
         t.className='tile';
-        t.dataset.r=r;t.dataset.c=c;
+        t.dataset.r=r;
+        t.dataset.c=c;
         const s=special.get(`${r},${c}`);
         if(s){
           t.classList.add('special',s.type);
@@ -186,6 +193,24 @@
     return 'CALM';
   }
 
+  function renderActiveManipulations(){
+    if(!activeManipulationsEl||!activeManipSummary) return;
+    activeManipulationsEl.innerHTML='';
+    for(let i=0;i<MAX_ACTIVE_MANIPULATIONS;i++){
+      const active=activeManipulations[i];
+      const slot=document.createElement('div');
+      if(active){
+        slot.className='active-manipulation-slot';
+        slot.innerHTML=`<span class="active-name">${active.name}</span><span class="active-state">${active.state}</span>`;
+      }else{
+        slot.className='active-manipulation-slot empty';
+        slot.textContent='EMPTY';
+      }
+      activeManipulationsEl.appendChild(slot);
+    }
+    activeManipSummary.textContent=`${activeManipulations.length} / ${MAX_ACTIVE_MANIPULATIONS}`;
+  }
+
   function updateStatus(){
     hp=Math.max(0,Math.min(100,hp));
     danger=Math.max(0,Math.min(20,danger));
@@ -200,6 +225,7 @@
     bossUnlocked=shrines>=2&&guardians>=2;
     goalBoss.textContent=`Boss Shrine: ${bossUnlocked?'UNLOCKED':'LOCKED'}`;
     renderHand();
+    renderActiveManipulations();
   }
 
   function renderHand(){
@@ -220,6 +246,16 @@
     const counts={Manipulation:0,Enhancement:0,Tactical:0};
     hand.filter(Boolean).forEach(c=>counts[c.category]++);
     handSummary.textContent=`${counts.Manipulation}/3 M · ${counts.Enhancement}/2 E · ${counts.Tactical}/2 T`;
+  }
+
+  function armManipulation(card,state,scope='ingredient'){
+    activeManipulations.push({id:card.id,effect:card.effect,name:card.name,state,scope});
+    renderActiveManipulations();
+  }
+
+  function clearIngredientManipulations(){
+    activeManipulations=activeManipulations.filter(x=>x.scope!=='ingredient');
+    renderActiveManipulations();
   }
 
   handEl.addEventListener('click',e=>{
@@ -304,8 +340,11 @@
 
   function resetAfterTurn(){
     rolled=false;
-    moveValue=null;dirValue=null;chosenDir=null;
-    moveDieEl.textContent='–';dirDieEl.textContent='–';
+    moveValue=null;
+    dirValue=null;
+    chosenDir=null;
+    moveDieEl.textContent='–';
+    dirDieEl.textContent='–';
     dirSub.innerHTML='↑ ↓ ← →<br>CHOOSE / WILD';
     dirChoice.classList.remove('show');
     rollBtn.innerHTML='KASTA<br>TÄRNINGARNA';
@@ -321,7 +360,8 @@
     rerollDirection.disabled=true;
     dirChoice.classList.remove('show');
     for(const [r,c] of path){
-      row=r;col=c;
+      row=r;
+      col=c;
       playerPos();
       await new Promise(res=>setTimeout(res,170));
     }
@@ -376,8 +416,11 @@
     const options=randomIngredients(revealCount);
     const chosen=await ingredientChoice(options,pickCount);
     chosen.forEach(ing=>ingredients.push({...ing,enhancements:[]}));
+
     lootRevealBonus=0;
     lootPickBonus=0;
+    clearIngredientManipulations();
+
     const names=chosen.map(x=>x.name).join(' + ');
     logline.textContent=`Ingredient ${source==='adjacent'?'collected with Long Reach':'collected'}: ${names}.`;
   }
@@ -390,7 +433,7 @@
       logline.textContent=`Sharkan landade på ${String.fromCharCode(65+row)}${col+1}. Ingen automatisk effekt.`;
       if(!emptyTutorialShown){
         emptyTutorialShown=true;
-        showInfo('EMPTY TILE',`<p>Tomma rutor har ingen automatisk effekt.</p><p>Du kan spela ett kort som är giltigt från den positionen, till exempel <strong>Long Reach</strong> om en Ingredient Tile ligger direkt intill. Om du inte vill eller kan göra något slår du bara tärningarna igen.</p><p>Danger ökar fortfarande när turen avslutas. Informationen finns senare under HELP.</p>`);
+        showInfo('EMPTY TILE',`<p>Tomma rutor har ingen automatisk effekt.</p><p>Du kan spela ett kort som är giltigt från den positionen, till exempel <strong>Long Reach</strong> om en Ingredient Tile ligger i någon av de åtta rutorna runt Sharkan. Om du inte vill eller kan göra något slår du bara tärningarna igen.</p><p>Danger ökar fortfarande när turen avslutas. Informationen finns senare under HELP.</p>`);
       }
       return;
     }
@@ -403,10 +446,18 @@
       hp-=10;
       logline.textContent='Hazard: -10% HP.';
     }else if(s.type==='shrine'){
-      if(!completed.has(key)){shrines++;completed.add(key);markCompleted(row,col)}
+      if(!completed.has(key)){
+        shrines++;
+        completed.add(key);
+        markCompleted(row,col);
+      }
       logline.textContent='Shrine aktiverad.';
     }else if(s.type==='guardian'){
-      if(!completed.has(key)){guardians++;completed.add(key);markCompleted(row,col)}
+      if(!completed.has(key)){
+        guardians++;
+        completed.add(key);
+        markCompleted(row,col);
+      }
       logline.textContent='Guardian besegrad (0.2 placeholder).';
     }else if(s.type==='boss'){
       logline.textContent=bossUnlocked?'BOSS TILE NÅDD – Rootmaw kan utmanas!':'Boss Shrine är låst. Slutför målen först.';
@@ -423,9 +474,15 @@
 
   rollBtn.addEventListener('click',()=>{
     if(moving||phase!=='play') return;
-    if(!rolled){rollBoth();return}
+    if(!rolled){
+      rollBoth();
+      return;
+    }
     const d=getEffectiveDir();
-    if(!d){logline.textContent='Välj riktning först.';return}
+    if(!d){
+      logline.textContent='Välj riktning först.';
+      return;
+    }
     const vectors={N:[-1,0],E:[0,1],S:[1,0],W:[0,-1]};
     const opposite={N:'S',S:'N',E:'W',W:'E'};
     let tr=row,tc=col,dir=d,path=[];
@@ -435,9 +492,12 @@
       if(nr<0||nr>=N||nc<0||nc>=N){
         dir=opposite[dir];
         [dr,dc]=vectors[dir];
-        nr=tr+dr;nc=tc+dc;
+        nr=tr+dr;
+        nc=tc+dc;
       }
-      tr=nr;tc=nc;path.push([tr,tc]);
+      tr=nr;
+      tc=nc;
+      path.push([tr,tc]);
     }
     animatePath(path);
   });
@@ -466,25 +526,56 @@
     logline.textContent=`Vald riktning: ${chosenDir}.`;
   });
 
-  function currentTileIsEmpty(){return !special.has(`${row},${col}`)}
+  function currentTileIsEmpty(){
+    return !special.has(`${row},${col}`);
+  }
+
   function adjacentIngredientTiles(){
-    return [[row-1,col],[row+1,col],[row,col-1],[row,col+1]].filter(([r,c])=>r>=0&&r<N&&c>=0&&c<N&&special.get(`${r},${c}`)?.type==='ingredient');
+    const result=[];
+    for(let dr=-1;dr<=1;dr++){
+      for(let dc=-1;dc<=1;dc++){
+        if(dr===0&&dc===0) continue;
+        const r=row+dr;
+        const c=col+dc;
+        if(r>=0&&r<N&&c>=0&&c<N&&special.get(`${r},${c}`)?.type==='ingredient') result.push([r,c]);
+      }
+    }
+    return result;
+  }
+
+  function hasActiveEffect(effect){
+    return activeManipulations.some(x=>x.effect===effect);
+  }
+
+  function hasFreeActiveManipulationSlot(){
+    return activeManipulations.length<MAX_ACTIVE_MANIPULATIONS;
   }
 
   function canPlayCard(card){
     if(!card||phase!=='play'||moving) return {ok:false,reason:'Card cannot be used now.'};
-    if(card.effect==='keenEye'||card.effect==='doubleHarvest') return {ok:true};
+
+    if(card.effect==='keenEye'||card.effect==='doubleHarvest'){
+      if(hasActiveEffect(card.effect)) return {ok:false,reason:`${card.name} is already active.`};
+      if(!hasFreeActiveManipulationSlot()) return {ok:false,reason:'Maximum 2 Manipulation Cards can be active at once.'};
+      return {ok:true};
+    }
+
     if(card.effect==='calmWaters') return danger>0?{ok:true}:{ok:false,reason:'Danger is already 0.'};
     if(card.effect==='measuredStep') return rolled&&moveValue<6?{ok:true}:{ok:false,reason:'Use after rolling when Movement Die is below 6.'};
+
     if(card.effect==='longReach'){
       if(rolled) return {ok:false,reason:'Use between rolls while standing on an empty tile.'};
       if(!currentTileIsEmpty()) return {ok:false,reason:'Long Reach requires an empty tile.'};
-      return adjacentIngredientTiles().length?{ok:true}:{ok:false,reason:'No Ingredient Tile is directly adjacent.'};
+      if(!adjacentIngredientTiles().length) return {ok:false,reason:'No Ingredient Tile is in the 8 surrounding tiles.'};
+      if(!hasFreeActiveManipulationSlot()) return {ok:false,reason:'Maximum 2 Manipulation Cards can be combined at once.'};
+      return {ok:true};
     }
+
     if(card.effect==='enhance'){
       const eligible=ingredients.filter(i=>!card.force||i.force===card.force);
       return eligible.length?{ok:true}:{ok:false,reason:card.force?`You need a collected ${card.force} ingredient.`:'You need a collected ingredient.'};
     }
+
     if(card.effect==='combat') return {ok:false,reason:'Tactical Cards are shown in 0.2, but combat is not implemented yet.'};
     return {ok:false,reason:'Not implemented.'};
   }
@@ -540,14 +631,14 @@
     return new Promise(resolve=>{
       const choiceModal=$('choiceModal');
       $('choiceTitle').textContent='LONG REACH';
-      $('choiceText').textContent='Choose an adjacent Ingredient Tile.';
+      $('choiceText').textContent='Choose a surrounding Ingredient Tile.';
       const container=$('choiceOptions');
       container.innerHTML='';
-      $('choiceHint').textContent='This does not move Sharkan.';
+      $('choiceHint').textContent='This does not move Sharkan. Diagonal tiles count.';
       list.forEach(([r,c])=>{
         const btn=document.createElement('button');
         btn.className='choice-option';
-        btn.innerHTML=`<span class="force">ADJACENT TILE</span><span class="ingredient-name">${String.fromCharCode(65+r)}${c+1}</span><span class="ingredient-effect">Collect as if you landed here.</span>`;
+        btn.innerHTML=`<span class="force">SURROUNDING TILE</span><span class="ingredient-name">${String.fromCharCode(65+r)}${c+1}</span><span class="ingredient-effect">Collect as if you landed here.</span>`;
         btn.addEventListener('click',()=>{
           choiceModal.classList.remove('show');
           resolve([r,c]);
@@ -567,12 +658,14 @@
 
     if(card.effect==='keenEye'){
       lootRevealBonus=1;
+      armManipulation(card,'NEXT INGREDIENT');
       consumeSelectedCard();
-      logline.textContent='Keen Eye armed: next Ingredient Tile reveals 4 choices.';
+      logline.textContent='Keen Eye active: next Ingredient Tile reveals 4 choices.';
     }else if(card.effect==='doubleHarvest'){
       lootPickBonus=1;
+      armManipulation(card,'NEXT INGREDIENT');
       consumeSelectedCard();
-      logline.textContent='Double Harvest armed: choose 2 on the next Ingredient Tile.';
+      logline.textContent='Double Harvest active: choose 2 on the next Ingredient Tile.';
     }else if(card.effect==='calmWaters'){
       danger=Math.max(0,danger-2);
       consumeSelectedCard();
@@ -584,9 +677,10 @@
       consumeSelectedCard();
       logline.textContent='Measured Step: Movement Die +1.';
     }else if(card.effect==='longReach'){
+      armManipulation(card,'RESOLVING');
+      consumeSelectedCard();
       const targets=adjacentIngredientTiles();
       if(targets.length>1) await chooseAdjacentTile(targets);
-      consumeSelectedCard();
       await resolveIngredientTile('adjacent');
       updateStatus();
     }else if(card.effect==='enhance'){
@@ -599,24 +693,38 @@
     }
   });
 
-  $('closeCardModal').onclick=()=>{cardModal.classList.remove('show');selectedCardIndex=null};
-  cardModal.addEventListener('click',e=>{if(e.target===cardModal){cardModal.classList.remove('show');selectedCardIndex=null}});
+  $('closeCardModal').onclick=()=>{
+    cardModal.classList.remove('show');
+    selectedCardIndex=null;
+  };
+  cardModal.addEventListener('click',e=>{
+    if(e.target===cardModal){
+      cardModal.classList.remove('show');
+      selectedCardIndex=null;
+    }
+  });
 
   const modal=$('modal');
   const modalTitle=$('modalTitle');
   const modalText=$('modalText');
+
   function showInfo(title,html){
     modalTitle.textContent=title;
     modalText.innerHTML=html;
     modal.classList.add('show');
   }
+
   $('closeModal').onclick=()=>modal.classList.remove('show');
-  modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show')});
+  modal.addEventListener('click',e=>{
+    if(e.target===modal) modal.classList.remove('show');
+  });
 
   $('helpBtn').addEventListener('click',()=>showInfo('HAJJEN V4 — HELP',`
     <p><strong>Movement:</strong> roll Movement + Direction. Edge collisions bounce and remaining steps continue in the opposite direction.</p>
     <p><strong>Cards:</strong> fixed hand structure is 3 Manipulation / 2 Enhancement / 2 Tactical. Used cards leave their category slot empty.</p>
+    <p><strong>Active Manipulation:</strong> up to 2 delayed/combined Manipulation Cards can be active at once. Their effects are shown above the hand until they resolve.</p>
     <p><strong>Ingredient Tiles:</strong> reveal 3 ingredients and choose 1. Manipulation Cards can change the number revealed or chosen.</p>
+    <p><strong>Long Reach:</strong> from an empty tile, an Ingredient Tile in any of the 8 surrounding squares can be collected without moving Sharkan.</p>
     <p><strong>Empty Tiles:</strong> no automatic action window. Play a valid card if useful, otherwise roll again.</p>
     <p><strong>Danger:</strong> +1 after each completed movement turn. Manipulation Cards may reduce it. Spells and spell creation do not affect Danger.</p>
     <p><strong>0.2:</strong> Tactical Cards are visible but combat is still a placeholder.</p>`));

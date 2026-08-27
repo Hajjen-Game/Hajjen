@@ -4,14 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#ffffff" />
-<meta name="hajjen-build" content="v4-board-prototype-0.2" />
-<title>HAJJEN V4 – Prototype 0.2</title>
+<meta name="hajjen-build" content="v4-board-prototype-0.2.1" />
+<title>HAJJEN V4 – Prototype 0.2.1</title>
 <link rel="stylesheet" href="css/v4.css" />
 </head>
 <body>
 <div class="app">
   <div class="titlebar">
-    <div class="title">HAJJEN V4 – PROTOTYPE 0.2: CARDS & INGREDIENTS</div>
+    <div class="title">HAJJEN V4 – PROTOTYPE 0.2.1: CARD COMBINATIONS</div>
     <button id="helpBtn" class="help-btn">HELP</button>
   </div>
 
@@ -82,6 +82,18 @@
           <h2>HAND</h2>
           <span id="handSummary">3M / 2E / 2T</span>
         </div>
+
+        <div class="active-manipulations">
+          <div class="active-manipulation-header">
+            <span>ACTIVE MANIPULATION</span>
+            <span id="activeManipSummary">0 / 2</span>
+          </div>
+          <div id="activeManipulations" class="active-manipulation-slots" aria-label="Active manipulation cards">
+            <div class="active-manipulation-slot empty">EMPTY</div>
+            <div class="active-manipulation-slot empty">EMPTY</div>
+          </div>
+        </div>
+
         <div id="hand" class="hand" aria-label="Card hand"></div>
         <div id="mulliganControls" class="mulligan-controls">
           <span id="mulliganText">Välj 0–3 kort att byta.</span>

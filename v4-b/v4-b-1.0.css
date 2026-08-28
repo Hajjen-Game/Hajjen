@@ -1,0 +1,7 @@
+.deck-row.two-decks{grid-template-columns:repeat(2,minmax(0,1fr))}
+.deck-pile.enchantment{border-top-color:#785878}
+.special.portal{background:#e7f0ff!important;box-shadow:inset 0 0 0 3px rgba(47,111,178,.65)}
+.special.portal::after{color:#24598e}
+.combat-spells button.cooling,.combat-spells button:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.2)}
+.quest.intro-quest{border-left:4px solid #2f6fb2}
+@media(max-width:700px){.deck-row.two-decks{grid-template-columns:1fr 1fr}}

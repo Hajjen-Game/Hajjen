@@ -4,8 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="theme-color" content="#f7f7f4"/>
-  <meta name="hajjen-build" content="v4-b-zone2-camera-test-0.7"/>
-  <title>HAJJEN V4-B – Zone 2 Camera Test</title>
+  <meta name="hajjen-build" content="v4-b-zone2-camera-test-0.8"/>
+  <title>HAJJEN V4-B – Zone 2 Horizontal Camera Test</title>
   <link rel="stylesheet" href="zone2-test.css"/>
 </head>
 <body>
@@ -15,15 +15,15 @@
         <div class="eyebrow">TEMPORARY CAMERA PROTOTYPE</div>
         <h1>HAJJEN V4-B — ZONE 2</h1>
       </div>
-      <div class="build">V4-B 0.7 · ZONE 2 CAMERA TEST</div>
+      <div class="build">V4-B 0.8 · ZONE 2 HORIZONTAL CAMERA</div>
     </header>
 
     <aside class="side left-side">
       <section class="panel">
         <h2>ZONE 2 TEST</h2>
-        <p><strong>World:</strong> 15 × 20 tiles</p>
+        <p><strong>World:</strong> 25 × 10 tiles</p>
         <p><strong>Viewport:</strong> 15 × 10 tiles</p>
-        <p>Det här testet innehåller inga mobs, items, Danger eller quests. Endast movement + scrolling camera.</p>
+        <p>Det här testet innehåller inga mobs, items, Danger eller quests. Endast movement + horisontell scrolling camera.</p>
       </section>
       <section class="panel">
         <h2>CONTROLS</h2>
@@ -36,10 +36,10 @@
     <main class="main">
       <div class="board-topline">
         <span>ZONE 2 — EMPTY CAMERA TEST</span>
-        <span>WORLD MOVES · HUD STAYS FIXED</span>
+        <span>WORLD MOVES SIDEWAYS · HUD STAYS FIXED</span>
       </div>
       <div id="viewport" class="viewport" aria-label="Zone 2 15 by 10 viewport">
-        <div id="world" class="world" aria-label="Zone 2 15 by 20 world">
+        <div id="world" class="world" aria-label="Zone 2 25 by 10 world">
           <div id="player" class="player" aria-label="Sharkan">S</div>
         </div>
       </div>
@@ -48,16 +48,16 @@
     <aside class="side right-side">
       <section class="panel camera-panel">
         <h2>CAMERA</h2>
-        <div class="metric"><span>Player row</span><strong id="playerRow">2 / 20</strong></div>
-        <div class="metric"><span>Player column</span><strong id="playerCol">8 / 15</strong></div>
-        <div class="metric"><span>Visible rows</span><strong id="visibleRows">1–10</strong></div>
-        <div class="metric"><span>Camera offset</span><strong id="cameraOffset">0 rows</strong></div>
+        <div class="metric"><span>Player row</span><strong id="playerRow">5 / 10</strong></div>
+        <div class="metric"><span>Player column</span><strong id="playerCol">2 / 25</strong></div>
+        <div class="metric"><span>Visible columns</span><strong id="visibleCols">1–15</strong></div>
+        <div class="metric"><span>Camera offset</span><strong id="cameraOffset">0 columns</strong></div>
       </section>
       <section class="panel">
         <h2>WHAT TO TEST</h2>
-        <p>Gå nedåt. Kameran ska börja följa Sharkan när han lämnar den övre delen.</p>
-        <p>Nära botten ska kameran sluta scrolla och låsa mot världens nederkant.</p>
-        <p>Gå tillbaka uppåt för att testa samma sak åt andra hållet.</p>
+        <p>Gå åt höger. Kameran ska börja följa Sharkan när han lämnar den vänstra delen.</p>
+        <p>Nära högerkanten ska kameran sluta scrolla och låsa mot världens högra kant.</p>
+        <p>Gå tillbaka åt vänster för att testa samma sak åt andra hållet.</p>
       </section>
     </aside>
 

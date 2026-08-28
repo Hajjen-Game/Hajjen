@@ -50,7 +50,7 @@
   add(8,8,{type:'mob',mark:'☠',title:'MARSH PROWLER',baseHp:46,baseAttack:10,xp:11});
   add(4,9,{type:'elite',mark:'⚔',title:'VERDANT GUARDIAN',baseHp:112,baseAttack:15,xp:24});
   add(7,12,{type:'elite',mark:'⚔',title:'MARSH GUARDIAN',baseHp:118,baseAttack:16,xp:26});
-  add(4,14,{type:'boss',mark:'♛',title:'ROOTMAW',baseHp:190,baseAttack:19,xp:50});
+  add(4,14,{type:'boss',mark:'♛',title:'ROOTMAW',baseHp:180,baseAttack:19,xp:50});
 
   const manipulationCards=$('manipulationCards');
   const cardDefs=[

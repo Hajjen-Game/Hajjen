@@ -1,0 +1,71 @@
+/* V4-B 0.5 HUD polish only. Gameplay values and rules are untouched. */
+
+.app{grid-template-columns:260px minmax(700px,1fr) 360px}
+
+/* Compact Danger: show current state + short meaning + the two live values that matter. */
+.status .danger-expanded{margin-top:8px;padding-top:8px}
+.danger-expanded-title,.danger-expanded .thresholds,.danger-expanded .panel-note{display:none!important}
+.danger-expanded .danger-rule{border:0;background:transparent;text-align:left;margin:0 0 7px;padding:0}
+.danger-expanded .danger-rule strong{display:none}
+.danger-expanded .danger-rule span{display:block;margin:0;font-size:10px;line-height:1.35;font-weight:800;color:#4d4d4d}
+.danger-expanded .pressure-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+.danger-expanded .pressure-grid>div:nth-child(1),.danger-expanded .pressure-grid>div:nth-child(2){display:none!important}
+.danger-expanded .pressure-grid>div{padding:7px 6px!important;border:1px solid #bbb;background:#fafafa}
+.danger-expanded .pressure-grid span{font-size:8px!important;line-height:1.15;color:#666}
+.danger-expanded .pressure-grid strong{font-size:12px!important;margin-top:3px}
+
+/* Deck stacks move into the left rail under Quests. */
+.deck-sidebar-panel{padding:9px 10px 10px}
+.deck-sidebar-panel h2{margin-bottom:8px}
+.deck-sidebar-panel .deck-row{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+.deck-sidebar-panel .deck-pile{min-height:94px;padding:13px 78px 10px 12px;border-width:2px;border-radius:6px;display:flex;flex-direction:column;justify-content:center}
+.deck-sidebar-panel .deck-pile strong,.deck-sidebar-panel .deck-pile span{max-width:none}
+.deck-sidebar-panel .deck-pile strong{font-size:11px;line-height:1.1}
+.deck-sidebar-panel .deck-pile span{font-size:9px;line-height:1.25;margin-top:6px}
+.deck-sidebar-panel .deck-pile::before,.deck-sidebar-panel .deck-pile::after{right:14px;top:11px;width:49px;height:66px;border-width:1.5px;border-radius:5px;background:#fff}
+.deck-sidebar-panel .deck-pile::before{transform:translate(-7px,6px);opacity:.45}
+.deck-sidebar-panel .deck-pile::after{content:'';transform:translate(-3px,3px);opacity:.82}
+.deck-sidebar-panel .deck-pile.locked{opacity:.64;filter:none}
+.deck-sidebar-panel .deck-lock{position:absolute;right:20px;top:31px;z-index:4;width:34px;height:34px;border:2px solid currentColor;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1}
+
+/* Bring the 7-slot hand language back from the dice prototype. */
+.bottom{grid-template-columns:minmax(700px,1.35fr) minmax(620px,1.2fr) 210px}
+.cards-hud{gap:0}
+.cards-hud .manipulation-panel{padding:8px 9px 9px}
+.cards-hud .manipulation-panel h2{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;margin:0 0 7px;font-size:12px}
+.cards-hud .hand-slot-count{font-size:9px;font-weight:900;color:#666;letter-spacing:.35px}
+.cards-hud .mini-cards{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important}
+.cards-hud .mini-card,.cards-hud .hand-empty-slot{height:132px;min-height:132px;border:1.5px solid var(--blue);border-top-width:5px;border-radius:4px;background:var(--blue-soft);padding:6px 5px;position:relative;overflow:hidden;display:flex;flex-direction:column;text-align:left}
+.cards-hud .mini-card .card-cat{font-size:7px;font-weight:900;letter-spacing:.25px;color:var(--blue);margin-bottom:5px}
+.cards-hud .mini-card strong{font-size:10px;line-height:1.08;overflow-wrap:anywhere;margin:0 0 5px}
+.cards-hud .mini-card>span{font-size:8px;line-height:1.22;flex:1;margin:0;color:#444;overflow:hidden}
+.cards-hud .mini-card button{width:100%;margin:5px 0 0;padding:4px 2px;border-width:1.5px;font-size:8px;line-height:1.1;font-weight:900;min-height:28px}
+.cards-hud .mini-card button:disabled{opacity:.48}
+.cards-hud .hand-empty-slot{border-color:#777;border-style:dashed;border-top-width:1.5px;background:#fafafa;opacity:.36;align-items:center;justify-content:center;color:#666;font-size:8px;font-weight:900;letter-spacing:.55px}
+.cards-hud .hand-empty-slot::before{content:'EMPTY';}
+
+@media(max-width:1500px){
+  .app{grid-template-columns:230px minmax(620px,1fr) 320px}
+  .bottom{grid-template-columns:minmax(620px,1.3fr) minmax(520px,1.05fr) 180px}
+  .cards-hud .mini-card,.cards-hud .hand-empty-slot{height:128px;min-height:128px}
+}
+
+@media(max-width:1180px){
+  .bottom{grid-template-columns:1fr 1fr}
+  .cards-hud{grid-column:1/-1}
+  .utility-hud{grid-column:1/-1}
+  .cards-hud .mini-cards{grid-template-columns:repeat(7,minmax(76px,1fr))!important;overflow-x:auto;padding-bottom:2px}
+}
+
+@media(max-width:1000px){
+  .deck-sidebar-panel .deck-row{grid-template-columns:repeat(3,1fr)!important}
+  .deck-sidebar-panel .deck-pile{min-height:86px;padding-right:64px}
+  .deck-sidebar-panel .deck-pile::before,.deck-sidebar-panel .deck-pile::after{width:40px;height:55px}
+  .deck-sidebar-panel .deck-lock{right:16px;top:28px;width:30px;height:30px;font-size:15px}
+}
+
+@media(max-width:620px){
+  .deck-sidebar-panel .deck-row{grid-template-columns:1fr!important}
+  .cards-hud .mini-cards{grid-template-columns:repeat(7,90px)!important}
+  .cards-hud .mini-card,.cards-hud .hand-empty-slot{height:140px;min-height:140px}
+}

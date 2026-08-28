@@ -5,6 +5,7 @@
   const AMBIENT_STEPS=3;
   const LEVEL_THRESHOLDS={2:30,3:70,4:120,5:180,6:250,7:330,8:420,9:520,10:630};
   const forceSpell={Growth:{name:'Thorn Bloom',damage:24,cooldown:1},Ember:{name:'Cinder Burst',damage:32,cooldown:2},Flow:{name:'Tide Lash',damage:26,cooldown:1},Stone:{name:'Stone Breaker',damage:29,cooldown:2},Gale:{name:'Razor Gust',damage:23,cooldown:1},Aether:{name:'Rift Pulse',damage:35,cooldown:3}};
+  const modifierBonus=force=>({Growth:2,Ember:5,Flow:3,Stone:4,Gale:4,Aether:5}[force]||2);
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const key=(r,c)=>`${r},${c}`;
   const $=id=>document.getElementById(id);
@@ -24,7 +25,12 @@
     spawnBlock:0,steadySteps:0,quietHarvest:false,spawnTimers:[],spawnSerial:0,
     spellIngredients:[],potionIngredients:[],introComplete:false,enchantmentUsed:false
   };
-  state.spells=state.spells.map(s=>{if(s.fallback)return {...s,damage:20,cooldown:0};const base=forceSpell[s.force];return base?{...s,damage:base.damage,cooldown:base.cooldown}:s;});
+  state.spells=state.spells.map(s=>{
+    if(s.fallback)return {...s,damage:20,cooldown:0};
+    const base=forceSpell[s.force];if(!base)return s;
+    const bakedBonus=s.ingredientBonus??Math.max(0,(s.damage??base.damage)-base.damage);
+    return {...s,damage:base.damage+bakedBonus,ingredientBonus:bakedBonus,cooldown:base.cooldown};
+  });
   state.maxHp=Math.max(state.maxHp,100+(state.level-1)*15);state.hp=Math.min(state.hp,state.maxHp);
 
   const root=document.getElementById('campaignRoot');
@@ -124,7 +130,7 @@
   function usePotion(inCombat=false){
     if(state.potion<1||state.hp>=state.maxHp||state.gameOver)return;if(inCombat&&!state.combat)return;if(!inCombat&&state.combat)return;
     const heal=Math.min(30,state.maxHp-state.hp);state.potion--;state.hp+=heal;toast(`+${heal} HP`,'reward');log(`Healing Potion restored ${heal} HP.`,'reward');
-    if(inCombat){const c=state.combat;$('combatMessage').textContent=`Healing Potion restores ${heal} HP.`;state.hp=Math.max(0,state.hp-c.attack);$('combatMessage').textContent+=` ${c.entity.title} hits back for ${c.attack}.`;log(`${c.entity.title} attacked for ${c.attack}.`,'danger');renderCombat();renderStatus();if(state.hp<=0)defeat();return;}
+    if(inCombat){$('combatMessage').textContent=`Healing Potion restores ${heal} HP. Choose a spell.`;renderCombat();renderStatus();return;}
     renderAll();
   }
   function winCombat(){const e=state.combat.entity;e.completed=true;$('combatModal').classList.remove('show');state.combat=null;if(e.type==='mob'){state.mobKills++;changeDanger(2,'mob defeated');}if(e.type==='elite'){state.eliteKills++;changeDanger(2,'elite defeated');}if(e.type==='boss')state.bossKilled=true;gainXp(e.xp||0);toast(`${e.title} DEFEATED`,'reward');log(`${e.title} defeated.`,'reward');updateQuests();if(e.type==='boss'){clearZone();return;}renderAll();}
@@ -142,7 +148,7 @@
   function clearZone(){state.zoneCleared=true;state.danger=0;[...entities.entries()].forEach(([k,e])=>{if(['mob','elite','boss'].includes(e.type))entities.delete(k);});add(cfg.bossPos.row,cfg.bossPos.col,{type:'portal',mark:'➜',title:cfg.next?'NEXT ZONE PORTAL':'CAMPAIGN EXIT'});saveCampaign();renderAll();toast(`${cfg.name} CLEARED`,'reward');log('Zone cleared. All enemy pressure is gone; explore freely before leaving.','reward');}
 
   function renderSpells(){const grid=$('spellGrid');grid.innerHTML='';state.spells.forEach(s=>{const d=document.createElement('div');d.className='spell';d.innerHTML=`<strong>${s.name}</strong><span>${s.force} · ${spellDamage(s)} damage · CD ${cooldown(s)}${s.fallback?' · FALLBACK':''}</span><span>${s.enchantmentName||'No extra effect.'}</span>`;grid.appendChild(d);});$('spellResources').textContent=`Spell ingredients: ${state.spellIngredients.length?state.spellIngredients.map(i=>`${i.name} (${i.force})`).join(' · '):'None'}`;$('craftSpellBtn').disabled=state.spellIngredients.length<2||state.spells.filter(s=>!s.fallback).length>=3||state.gameOver;}
-  function craftSpell(){if(state.spellIngredients.length<2||state.spells.filter(s=>!s.fallback).length>=3)return;const first=state.spellIngredients.shift(),second=state.spellIngredients.shift(),base=forceSpell[first.force];state.spells.push({id:`crafted-${Date.now()}`,name:base.name,force:first.force,damage:base.damage,cooldown:base.cooldown});toast(`${base.name.toUpperCase()} CREATED`,'reward');log(`${base.name} created from ${first.name} + ${second.name}. Cooldown ${base.cooldown}.`,'reward');renderAll();}
+  function craftSpell(){if(state.spellIngredients.length<2||state.spells.filter(s=>!s.fallback).length>=3)return;const first=state.spellIngredients.shift(),second=state.spellIngredients.shift(),base=forceSpell[first.force],bonus=modifierBonus(second.force);state.spells.push({id:`crafted-${Date.now()}`,name:base.name,force:first.force,damage:base.damage+bonus,ingredientBonus:bonus,cooldown:base.cooldown});toast(`${base.name.toUpperCase()} CREATED`,'reward');log(`${base.name} created from ${first.name} + ${second.name}. Cooldown ${base.cooldown}.`,'reward');renderAll();}
   $('craftSpellBtn').addEventListener('click',craftSpell);
   $('usePotionBtn').addEventListener('click',()=>usePotion(false));
 

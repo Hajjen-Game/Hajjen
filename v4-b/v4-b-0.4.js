@@ -248,7 +248,7 @@
     const cells=[];
     for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
       if(!dr&&!dc)continue;const r=state.row+dr,c=state.col+dc;if(r<0||r>=ROWS||c<0||c>=COLS)continue;
-      const occupant=entities.get(key(r,c));if(!occupant||occupant.completed)cells.push({r,c});
+      if(!entities.has(key(r,c)))cells.push({r,c});
     }
     return cells;
   }
@@ -262,7 +262,7 @@
       for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){
         const nr=cur.r+dr,nc=cur.c+dc,nk=key(nr,nc);if(nr<0||nr>=ROWS||nc<0||nc>=COLS||prev.has(nk))continue;
         if(nr===state.row&&nc===state.col)continue;
-        const occ=entities.get(nk);if(occ&&occ!==entity&&!occ.completed)continue;
+        const occ=entities.get(nk);if(occ&&occ!==entity)continue;
         prev.set(nk,key(cur.r,cur.c));q.push({r:nr,c:nc});if(targetSet.has(nk)){found={r:nr,c:nc};break;}
       }
     }

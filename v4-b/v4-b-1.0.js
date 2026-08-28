@@ -30,6 +30,7 @@
     Gale:{name:'Razor Gust',damage:23,cooldown:1},
     Aether:{name:'Rift Pulse',damage:35,cooldown:3}
   };
+  function modifierBonus(force){return {Growth:2,Ember:5,Flow:3,Stone:4,Gale:4,Aether:5}[force]||2;}
 
   state.spells=[{id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true}];
 
@@ -195,7 +196,7 @@
     if(state.potion<1||state.hp>=state.maxHp||state.gameOver)return;
     if(inCombat&&!state.combat)return;if(!inCombat&&state.combat)return;
     const heal=Math.min(30,state.maxHp-state.hp);state.hp+=heal;state.potion--;log(`Healing Potion restored ${heal} HP.`,'reward');toast(`+${heal} HP`,'reward');
-    if(inCombat){const c=state.combat;$('combatMessage').textContent=`Healing Potion restores ${heal} HP.`;state.hp=Math.max(0,state.hp-c.attack);$('combatMessage').textContent+=` ${c.entity.title} hits back for ${c.attack}.`;log(`${c.entity.title} attacked for ${c.attack}.`,'combat');renderCombat();renderStatus();if(state.hp<=0)finishDefeat();return;}
+    if(inCombat){$('combatMessage').textContent=`Healing Potion restores ${heal} HP. Choose a spell.`;renderCombat();renderStatus();return;}
     renderAll();
   }
 
@@ -256,11 +257,11 @@
   function renderCraft(){
     const wrap=$('craftChoices');wrap.innerHTML='';state.ingredients.forEach((ing,i)=>{const b=document.createElement('button');b.className='craft-choice'+(state.craftSelection.includes(i)?' selected':'');b.innerHTML=`<strong>${ing.name}</strong><span>${ing.force}</span>`;b.addEventListener('click',()=>{const p=state.craftSelection.indexOf(i);if(p>=0)state.craftSelection.splice(p,1);else if(state.craftSelection.length<2)state.craftSelection.push(i);renderCraft();});wrap.appendChild(b);});
     const chosen=state.craftSelection.map(i=>state.ingredients[i]),confirm=$('confirmCraftBtn');confirm.disabled=chosen.length!==2;
-    if(chosen.length===2){const first=forceSpell[chosen[0].force];$('craftPreview').textContent=`${first.name} · ${chosen[0].force} · ${first.damage} base damage · Cooldown ${first.cooldown}.`;}else $('craftPreview').textContent=`Choose 2 ingredients (${chosen.length}/2). The first determines the Primal Force; both are consumed.`;
+    if(chosen.length===2){const first=forceSpell[chosen[0].force],bonus=modifierBonus(chosen[1].force);$('craftPreview').textContent=`${first.name} · ${chosen[0].force} · ${first.damage+bonus} base damage · Cooldown ${first.cooldown}.`;}else $('craftPreview').textContent=`Choose 2 ingredients (${chosen.length}/2). The first determines the Primal Force; both are consumed.`;
   }
   function confirmCraft(){
-    if(state.craftSelection.length!==2)return;const indexes=[...state.craftSelection].sort((a,b)=>b-a),first=state.ingredients[state.craftSelection[0]],second=state.ingredients[state.craftSelection[1]],base=forceSpell[first.force];
-    state.spells.push({id:`crafted-${Date.now()}`,name:base.name,force:first.force,damage:base.damage,cooldown:base.cooldown});indexes.forEach(i=>state.ingredients.splice(i,1));state.craftSelection=[];state.spellQuestCompleted=true;craftModal.classList.remove('show');log(`Created ${base.name} from ${first.name} + ${second.name}.`,'reward');toast(`${base.name.toUpperCase()} CREATED`,'reward');renderAll();
+    if(state.craftSelection.length!==2)return;const indexes=[...state.craftSelection].sort((a,b)=>b-a),first=state.ingredients[state.craftSelection[0]],second=state.ingredients[state.craftSelection[1]],base=forceSpell[first.force],bonus=modifierBonus(second.force);
+    state.spells.push({id:`crafted-${Date.now()}`,name:base.name,force:first.force,damage:base.damage+bonus,ingredientBonus:bonus,cooldown:base.cooldown});indexes.forEach(i=>state.ingredients.splice(i,1));state.craftSelection=[];state.spellQuestCompleted=true;craftModal.classList.remove('show');log(`Created ${base.name} from ${first.name} + ${second.name}.`,'reward');toast(`${base.name.toUpperCase()} CREATED`,'reward');renderAll();
   }
   $('craftBtn').addEventListener('click',openCraft);$('confirmCraftBtn').addEventListener('click',confirmCraft);$('cancelCraftBtn').addEventListener('click',()=>craftModal.classList.remove('show'));
 

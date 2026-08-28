@@ -1,0 +1,19 @@
+/* V4-B 0.6 — Primal Spring presentation only. */
+:root{--spring:#3f8f82;--spring-soft:#e5f4f0}
+
+.spring-color{color:var(--spring)}
+.tile.spring{
+  color:var(--spring);
+  --tile-overlay:linear-gradient(rgba(218,241,235,.60),rgba(218,241,235,.60));
+  background-color:#78a99d;
+}
+.tile.spring::after{
+  border-color:var(--spring);
+  background:rgba(239,249,246,.94);
+  box-shadow:0 0 0 2px rgba(255,255,255,.42),0 0 11px rgba(63,143,130,.18);
+}
+.tile.spring.completed{
+  --tile-overlay:linear-gradient(rgba(222,229,224,.58),rgba(222,229,224,.58));
+  color:#74847e;
+}
+.tile.spring.completed::after{box-shadow:none}

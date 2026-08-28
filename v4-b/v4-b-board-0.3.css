@@ -1,0 +1,59 @@
+:root{--board-sage-light:#9CAF88;--board-sage-dark:#819171;--board-grid:rgba(48,60,47,.42);--board-grid-strong:rgba(39,49,39,.62)}
+
+/* V4-B 0.3 — board visual test only. No gameplay values are changed here. */
+.board{
+  background:var(--board-sage-dark);
+  border-left-color:var(--board-grid-strong);
+  border-top-color:var(--board-grid-strong);
+  box-shadow:0 0 0 1px rgba(38,48,38,.16),0 8px 22px rgba(51,65,48,.08);
+}
+
+.tile{
+  --tile-texture:url('assets/sage_grass_tile_light.png');
+  --tile-overlay:linear-gradient(rgba(255,255,255,.035),rgba(255,255,255,.035));
+  background-color:var(--board-sage-light);
+  background-image:var(--tile-overlay),var(--tile-texture)!important;
+  background-size:100% 100%,118% 118%;
+  background-position:center,center;
+  background-repeat:no-repeat;
+  border-right-color:var(--board-grid);
+  border-bottom-color:var(--board-grid);
+}
+
+/* 15 columns is odd, so simple index parity produces a true checker pattern row-to-row. */
+.tile:nth-child(even){
+  --tile-texture:url('assets/sage_grass_tile_dark.png');
+  background-color:var(--board-sage-dark);
+}
+
+/* Small crop offsets stop the generated texture from feeling mechanically repeated. */
+.tile:nth-child(3n){background-position:center,46% 54%}
+.tile:nth-child(5n){background-position:center,54% 47%}
+.tile:nth-child(7n){background-position:center,50% 56%}
+
+/* Movement stays readable without replacing the grass texture with a flat blue tile. */
+.tile.reachable{
+  --tile-overlay:linear-gradient(rgba(216,233,244,.28),rgba(216,233,244,.28));
+  box-shadow:inset 0 0 0 1px rgba(47,111,178,.38);
+}
+.tile.reachable:hover{box-shadow:inset 0 0 0 3px var(--blue),0 0 0 1px rgba(255,255,255,.55)}
+.tile.current{box-shadow:inset 0 0 0 3px var(--blue),0 0 0 1px rgba(255,255,255,.5)}
+
+/* Special tiles keep their category color, but the board texture remains visible underneath. */
+.tile.ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f}
+.tile.mob{--tile-overlay:linear-gradient(rgba(249,224,220,.58),rgba(249,224,220,.58));background-color:#ad786d}
+.tile.elite{--tile-overlay:linear-gradient(rgba(241,211,207,.62),rgba(241,211,207,.62));background-color:#99685f}
+.tile.shrine{--tile-overlay:linear-gradient(rgba(248,239,198,.55),rgba(248,239,198,.55));background-color:#b1a36d}
+.tile.boss{--tile-overlay:linear-gradient(rgba(229,216,240,.62),rgba(229,216,240,.62));background-color:#8f7c9d}
+
+.tile::after{
+  background:rgba(248,249,242,.9);
+  box-shadow:0 1px 0 rgba(255,255,255,.7);
+}
+
+/* Keep the board calmer than the old white/black wireframe when it eventually scrolls. */
+.board-wrap{background:#8fa07d}
+
+@media(max-width:560px){
+  .tile{background-size:100% 100%,125% 125%}
+}

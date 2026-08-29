@@ -7,17 +7,33 @@
   let gameMap=null;
   let allowedSpawnStep=-1;
   let blockedSpawnStep=-1;
+  let lastMaterializedSpawnStep=-1;
+  let activeSpawnedCombat=null;
   let suppressedSpawnToasts=0;
   const spawnDecisionQueue=[];
   const suppressedSpawnLogs=new Set();
 
   const state=()=>window.HAJJEN_V4B_STATE||null;
   const isGameEntity=value=>value&&Number.isInteger(value.r)&&Number.isInteger(value.c)&&['ingredient','spring','mob','elite','boss','portal'].includes(value.type);
+  const isSpawnedTitle=title=>/^ROUSED (?:BOGLING|GUARDIAN)/i.test(title||'');
   const activeSpawnedCount=map=>{
     if(!map)return 0;
     let count=0;
     for(const value of map.values())if(value?.spawned&&!value.completed&&(value.type==='mob'||value.type==='elite'))count++;
     return count;
+  };
+
+  // Once Rootmaw is unlocked, nearby mobs stay on the board but can no longer
+  // force adjacent aggro or combat-attraction encounters on the boss approach.
+  const nativeSetTimeout=window.setTimeout.bind(window);
+  window.setTimeout=(handler,delay,...args)=>{
+    if(typeof handler==='function'&&(delay===120||delay===420)){
+      return nativeSetTimeout((...cbArgs)=>{
+        if(state()?.bossUnlocked)return;
+        handler(...cbArgs);
+      },delay,...args);
+    }
+    return nativeSetTimeout(handler,delay,...args);
   };
 
   const originalMapSet=Map.prototype.set;
@@ -30,8 +46,9 @@
 
     if(value?.spawned&&(value.type==='mob'||value.type==='elite')){
       const s=state();
+      const materializedStep=s?.steps??-1;
       const requestAllowed=spawnDecisionQueue.length?spawnDecisionQueue.shift():true;
-      const suppress=!requestAllowed||!!s?.bossUnlocked||activeSpawnedCount(this)>=MAX_ACTIVE_SPAWNED;
+      const suppress=!requestAllowed||!!s?.bossUnlocked||activeSpawnedCount(this)>=MAX_ACTIVE_SPAWNED||lastMaterializedSpawnStep===materializedStep;
       if(suppress){
         const row=value.r,col=value.c;
         const logKey=`${value.title}|${row+1}|${col+1}`;
@@ -47,6 +64,7 @@
         });
         return result;
       }
+      lastMaterializedSpawnStep=materializedStep;
     }
 
     return originalMapSet.call(this,key,value);
@@ -57,7 +75,7 @@
     const tile=tiles.find(t=>!t.hasAttribute('data-spawn-guard'));
     if(tile){
       tile.setAttribute('data-spawn-guard','1');
-      setTimeout(()=>tile.removeAttribute('data-spawn-guard'),800);
+      nativeSetTimeout(()=>tile.removeAttribute('data-spawn-guard'),800);
     }
     return tile||null;
   }
@@ -67,6 +85,18 @@
     for(const node of nodes){
       const text=node?.textContent?.trim?.()||'';
       const s=state();
+
+      const engaged=text.match(/^(.+?) engaged(?: from nearby aggro)?\.$/i);
+      if(engaged)activeSpawnedCombat=isSpawnedTitle(engaged[1])?engaged[1]:null;
+      if(/^Sharkan fled from a normal mob\.$/i.test(text))activeSpawnedCombat=null;
+
+      // Spawned enemies are already the consequence of high Danger. Their defeat
+      // must not feed +2 Danger back into the system and create a self-amplifying loop.
+      if(activeSpawnedCombat&&/^Danger \+2 \(mob defeated\)/i.test(text)){
+        const current=state();
+        if(current)current.danger=Math.max(0,current.danger-2);
+        continue;
+      }
 
       if(/^Ward Sigil blocked a mob spawn\.$/i.test(text))blockedSpawnStep=s?.steps??-1;
 
@@ -99,6 +129,7 @@
       if(/^ROUSED (?:BOGLING|GUARDIAN).* defeated\.$/i.test(text)){
         const current=state();
         if(current?.spawnTimers?.length)current.spawnTimers.pop();
+        activeSpawnedCombat=null;
       }
 
       if(/^Quest complete: Rootmaw is now unlocked\.$/i.test(text)){

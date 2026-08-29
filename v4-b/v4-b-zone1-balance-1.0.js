@@ -1,5 +1,6 @@
 (()=>{
   const MAX_ACTIVE_SPAWNED=4;
+  const LEVEL4_MAX_HP=165;
   const eventLog=document.getElementById('eventLog');
   const toastArea=document.getElementById('toastArea');
   if(!eventLog)return;
@@ -83,8 +84,20 @@
   const previousPrepend=eventLog.prepend.bind(eventLog);
   eventLog.prepend=(...nodes)=>{
     for(const node of nodes){
-      const text=node?.textContent?.trim?.()||'';
+      let text=node?.textContent?.trim?.()||'';
       const s=state();
+
+      // Zone 1's capstone level gets a larger HP jump: L3 130 -> L4 165.
+      // Level-up still fully restores HP, preserving the planning value of timing L4.
+      if(/^LEVEL UP → 4\. Max HP \+15 and spell damage improved\.$/i.test(text)){
+        const current=state();
+        if(current){
+          current.maxHp=LEVEL4_MAX_HP;
+          current.hp=LEVEL4_MAX_HP;
+        }
+        text='LEVEL UP → 4. Max HP +35 and spell damage improved.';
+        if(node&&'textContent' in node)node.textContent=text;
+      }
 
       const engaged=text.match(/^(.+?) engaged(?: from nearby aggro)?\.$/i);
       if(engaged)activeSpawnedCombat=isSpawnedTitle(engaged[1])?engaged[1]:null;

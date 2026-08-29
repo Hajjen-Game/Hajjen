@@ -42,6 +42,11 @@
   Map.prototype.set=function(key,value){
     if(isGameEntity(value))gameMap=this;
 
+    // Zone 1 opener: two Ember Bolts should cleanly defeat the base Bogling.
+    if(value?.title==='BOGLING'&&value?.type==='mob'&&value?.baseHp===42){
+      value={...value,baseHp:40};
+    }
+
     if(value?.title==='ROOTMAW'&&value?.type==='boss'&&value?.baseHp===180){
       value={...value,baseAttack:17};
     }

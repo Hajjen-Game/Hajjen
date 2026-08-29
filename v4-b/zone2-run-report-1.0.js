@@ -70,30 +70,14 @@
     c.result=result;c.endHpBeforeRewards=result==='LOSS'?0:(c.lastPlayerHp??s?.hp??null);run.currentCombat=null;
   }
 
+  // Potion feedback is not tied to a spell-button click, so keep a tiny message observer for it.
   function processCombatMessage(){
     const text=(combatMessage.textContent||'').trim();
     if(!text||text===lastCombatMessage)return;
     lastCombatMessage=text;
     const s=snapshot();
-    if(s?.combat&&!run.currentCombat)startCombatRecord(s,false);
-    const c=run.currentCombat;
-
-    let m=text.match(/^(.+?) deals (\d+)\.(?: (.+?) hits back for (\d+)\.)?$/i);
-    if(m&&c){
-      const spell=m[1],damage=Number(m[2]);
-      c.casts.push(`${spell} ${damage}`);run.metrics.spellCasts++;
-      if(m[4]){
-        const raw=Number(m[4]);
-        const effective=Math.max(0,(c.lastPlayerHp??s.hp)-s.hp);
-        c.enemyDamage+=raw;c.damageTaken+=effective;run.metrics.enemyDamage+=raw;run.metrics.effectiveDamageTaken+=effective;
-      }
-      c.lastPlayerHp=s.hp;
-      record('COMBAT',text,s);
-      lastSnapshot=s;
-      return;
-    }
-    if(/^Healing Potion restores \d+ HP\. Choose a spell\.$/i.test(text)&&c){
-      c.lastPlayerHp=s.hp;record('COMBAT',text,s);lastSnapshot=s;
+    if(/^Healing Potion restores \d+ HP\. Choose a spell\.$/i.test(text)&&run.currentCombat){
+      run.currentCombat.lastPlayerHp=s.hp;record('COMBAT',text,s);lastSnapshot=s;
     }
   }
 
@@ -140,11 +124,39 @@
     }).observe(toastArea,{childList:true});
   }
 
+  // Capture spell use before campaign-zone's click handler runs, then measure the result in a microtask.
+  // This also records the killing cast, which disappears from state.combat immediately on victory.
   document.addEventListener('click',e=>{
-    const btn=e.target instanceof Element?e.target.closest('#manipCards button'):null;
-    if(!btn||btn.disabled)return;
-    const name=btn.closest('.card,.mini-card')?.querySelector('strong')?.textContent?.trim();
-    if(name&&!run.metrics.manipulation.includes(name))run.metrics.manipulation.push(name);
+    if(!(e.target instanceof Element))return;
+
+    const spellBtn=e.target.closest('#combatSpells button');
+    if(spellBtn&&!spellBtn.disabled&&state.combat){
+      const live=run.currentCombat;
+      if(live){
+        const beforeHp=state.hp;
+        const beforeEnemyHp=state.combat.hp;
+        const rawAttack=state.combat.attack;
+        const label=(spellBtn.childNodes[0]?.textContent||spellBtn.textContent||'SPELL').trim();
+        const damageMatch=(spellBtn.querySelector('small')?.textContent||'').match(/(\d+) damage/i);
+        const damage=damageMatch?Number(damageMatch[1]):0;
+        queueMicrotask(()=>{
+          live.casts.push(`${label} ${damage}`);run.metrics.spellCasts++;
+          const enemySurvived=beforeEnemyHp-damage>0;
+          if(enemySurvived){
+            const effective=Math.max(0,beforeHp-state.hp);
+            live.enemyDamage+=rawAttack;live.damageTaken+=effective;run.metrics.enemyDamage+=rawAttack;run.metrics.effectiveDamageTaken+=effective;
+          }
+          live.lastPlayerHp=state.hp;
+          const s=snapshot();record('COMBAT',`${label} dealt ${damage}${enemySurvived?`; ${live.title} countered for ${rawAttack}`:''}.`,s);lastSnapshot=s;
+        });
+      }
+    }
+
+    const manipBtn=e.target.closest('#manipCards button');
+    if(manipBtn&&!manipBtn.disabled){
+      const name=manipBtn.closest('.card,.mini-card')?.querySelector('strong')?.textContent?.trim();
+      if(name&&!run.metrics.manipulation.includes(name))run.metrics.manipulation.push(name);
+    }
   },true);
 
   function poll(){

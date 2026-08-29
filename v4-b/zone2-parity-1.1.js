@@ -144,11 +144,13 @@
   const world=$('world');
   function normalizeBoardMarks(){
     world?.querySelectorAll('.tile.special').forEach(tile=>{
-      if(tile.classList.contains('ingredient'))tile.dataset.mark='✿';
-      else if(tile.classList.contains('mob'))tile.dataset.mark='☠';
-      else if(tile.classList.contains('elite'))tile.dataset.mark='⚔';
-      else if(tile.classList.contains('boss'))tile.dataset.mark='♛';
-      else if(tile.classList.contains('potion-ingredient'))tile.dataset.mark='⚗';
+      let mark=null;
+      if(tile.classList.contains('ingredient'))mark='✿';
+      else if(tile.classList.contains('mob'))mark='☠';
+      else if(tile.classList.contains('elite'))mark='⚔';
+      else if(tile.classList.contains('boss'))mark='♛';
+      else if(tile.classList.contains('potion-ingredient'))mark='⚗';
+      if(mark&&tile.dataset.mark!==mark)tile.dataset.mark=mark;
     });
   }
   if(world)new MutationObserver(normalizeBoardMarks).observe(world,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-mark']});

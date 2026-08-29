@@ -23,6 +23,7 @@
     setTimeout(()=>{
       if(beforeEnemyHp-damage<=0)return;
       const effective=Math.max(0,beforeHp-state.hp);
+      live.lastPlayerHp=state.hp;
       if(!effective)return;
       live.damageTaken+=effective;
       data.metrics.effectiveDamageTaken+=effective;

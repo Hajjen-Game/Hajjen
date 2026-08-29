@@ -9,5 +9,5 @@ window.HAJJEN_ZONE_CONFIG={
     {row:4,col:23,type:'boss',title:'ZONE 2 BOSS',hp:270,attack:24,xp:80}
   ],
   spellIngredients:[{row:1,col:4,name:'Glowroot',force:'Growth'},{row:8,col:9,name:'Ash Pearl',force:'Ember'},{row:2,col:16,name:'Riverglass',force:'Flow'},{row:7,col:22,name:'Wind Shard',force:'Gale'}],
-  potionIngredients:[{row:4,col:6,name:'Moonleaf'},{row:5,col:17,name:'Clearwater'}]
+  potionIngredients:[{row:4,col:6,name:'Moonleaf'},{row:5,col:13,name:'Clearwater'}]
 };

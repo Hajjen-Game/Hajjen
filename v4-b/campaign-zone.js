@@ -12,10 +12,11 @@
 
   function defaultProgress(){
     const level=cfg.levelFloor,xp=LEVEL_THRESHOLDS[level]||0,maxHp=100+(level-1)*15;
-    return {version:1,zone:cfg.zone-1,level,xp,maxHp,hp:maxHp,potion:1,spells:[{id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true}]};
+    return {version:1,zone:cfg.zone-1,level,xp,maxHp,hp:maxHp,potion:1,spells:[{id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true}],ingredients:[],potionIngredients:[]};
   }
   let saved=defaultProgress();
   try{saved={...saved,...JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')};}catch{}
+  const enteringZone=Number(saved.zone??(cfg.zone-1))<cfg.zone;
   if(saved.level<cfg.levelFloor){saved.level=cfg.levelFloor;saved.xp=LEVEL_THRESHOLDS[cfg.levelFloor]||saved.xp;saved.maxHp=100+(cfg.levelFloor-1)*15;saved.hp=saved.maxHp;}
   const state={
     row:cfg.start.row,col:cfg.start.col,prevRow:cfg.start.row,prevCol:cfg.start.col,
@@ -23,7 +24,7 @@
     spells:Array.isArray(saved.spells)&&saved.spells.length?saved.spells:[{id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true}],
     danger:0,steps:0,nextAmbient:AMBIENT_STEPS,mobKills:0,eliteKills:0,bossKilled:false,bossUnlocked:false,zoneCleared:false,gameOver:false,combat:null,
     spawnBlock:0,steadySteps:0,quietHarvest:false,spawnTimers:[],spawnSerial:0,
-    spellIngredients:[],potionIngredients:[],introComplete:false,enchantmentUsed:false
+    spellIngredients:Array.isArray(saved.ingredients)?saved.ingredients.map(i=>({...i})):[],potionIngredients:Array.isArray(saved.potionIngredients)?[...saved.potionIngredients]:[],introComplete:false,enchantmentUsed:false
   };
   state.spells=state.spells.map(s=>{
     if(s.fallback)return {...s,damage:20,cooldown:0};
@@ -32,6 +33,12 @@
     return {...s,damage:base.damage+bakedBonus,ingredientBonus:bakedBonus,cooldown:base.cooldown};
   });
   state.maxHp=Math.max(state.maxHp,100+(state.level-1)*15);state.hp=Math.min(state.hp,state.maxHp);
+  if(enteringZone)state.hp=state.maxHp;
+  window.HAJJEN_CAMPAIGN_STATE=state;
+  window.HAJJEN_CAMPAIGN_CONFIG=cfg;
+  if(enteringZone){
+    localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,zone:cfg.zone,level:state.level,xp:state.xp,maxHp:state.maxHp,hp:state.hp,potion:state.potion,spells:state.spells,ingredients:state.spellIngredients,potionIngredients:state.potionIngredients}));
+  }
 
   const root=document.getElementById('campaignRoot');
   root.innerHTML=`<div class="campaign-app">
@@ -147,14 +154,14 @@
   function updateQuests(){const was=state.bossUnlocked;state.bossUnlocked=state.mobKills>=4&&state.eliteKills>=2;$('mobQuest').textContent=`Mobs: ${Math.min(state.mobKills,4)} / 4`;$('eliteQuest').textContent=`Elites: ${Math.min(state.eliteKills,2)} / 2`;$('bossQuest').textContent=state.bossKilled?'Boss: DEFEATED':state.bossUnlocked?'Boss: READY':'Boss: LOCKED';$('introQuest').textContent=state.introComplete?'COMPLETE':'NOT COMPLETE';if(state.bossUnlocked&&!was)toast('BOSS UNLOCKED','reward');}
   function clearZone(){state.zoneCleared=true;state.danger=0;[...entities.entries()].forEach(([k,e])=>{if(['mob','elite','boss'].includes(e.type))entities.delete(k);});add(cfg.bossPos.row,cfg.bossPos.col,{type:'portal',mark:'➜',title:cfg.next?'NEXT ZONE PORTAL':'CAMPAIGN EXIT'});saveCampaign();renderAll();toast(`${cfg.name} CLEARED`,'reward');log('Zone cleared. All enemy pressure is gone; explore freely before leaving.','reward');}
 
-  function renderSpells(){const grid=$('spellGrid');grid.innerHTML='';state.spells.forEach(s=>{const d=document.createElement('div');d.className='spell';d.innerHTML=`<strong>${s.name}</strong><span>${s.force} · ${spellDamage(s)} damage · CD ${cooldown(s)}${s.fallback?' · FALLBACK':''}</span><span>${s.enchantmentName||'No extra effect.'}</span>`;grid.appendChild(d);});$('spellResources').textContent=`Spell ingredients: ${state.spellIngredients.length?state.spellIngredients.map(i=>`${i.name} (${i.force})`).join(' · '):'None'}`;$('craftSpellBtn').disabled=state.spellIngredients.length<2||state.spells.filter(s=>!s.fallback).length>=3||state.gameOver;}
+  function renderSpells(){const grid=$('spellGrid');grid.innerHTML='';state.spells.forEach(s=>{const d=document.createElement('div');d.className=`spell ${String(s.force||'').toLowerCase()}`;d.innerHTML=`<strong>${s.name}</strong><span>${s.force} · ${spellDamage(s)} damage · CD ${cooldown(s)}${s.fallback?' · FALLBACK':''}</span><span>${s.enchantmentName||'No extra effect.'}</span>`;grid.appendChild(d);});$('spellResources').textContent=`Spell ingredients: ${state.spellIngredients.length?state.spellIngredients.map(i=>`${i.name} (${i.force})`).join(' · '):'None'}`;$('craftSpellBtn').disabled=state.spellIngredients.length<2||state.spells.filter(s=>!s.fallback).length>=3||state.gameOver;}
   function craftSpell(){if(state.spellIngredients.length<2||state.spells.filter(s=>!s.fallback).length>=3)return;const first=state.spellIngredients.shift(),second=state.spellIngredients.shift(),base=forceSpell[first.force],bonus=modifierBonus(second.force);state.spells.push({id:`crafted-${Date.now()}`,name:base.name,force:first.force,damage:base.damage+bonus,ingredientBonus:bonus,cooldown:base.cooldown});toast(`${base.name.toUpperCase()} CREATED`,'reward');log(`${base.name} created from ${first.name} + ${second.name}. Cooldown ${base.cooldown}.`,'reward');renderAll();}
   $('craftSpellBtn').addEventListener('click',craftSpell);
   $('usePotionBtn').addEventListener('click',()=>usePotion(false));
 
   function renderZoneSystem(){
     const z=$('zoneSystem');
-    if(cfg.zone===2){z.innerHTML=`<p class="resources">Potion ingredients: <strong>${state.potionIngredients.length?state.potionIngredients.join(' + '):'None'}</strong></p><div class="buttons"><button id="craftPotionBtn" ${state.potionIngredients.length<2?'disabled':''}>CREATE HEALING POTION</button></div><p class="resources">Introduction quest only — no XP reward.</p>`;$('craftPotionBtn')?.addEventListener('click',()=>{if(state.potionIngredients.length<2)return;state.potionIngredients.splice(0,2);state.potion++;state.introComplete=true;toast('HEALING POTION CREATED','reward');log('Zone 2 introduction complete: Healing Potion crafted.','reward');renderAll();});
+    if(cfg.zone===2){const recipe=(cfg.potionIngredients||[]).map(x=>x.name).join(' + ')||'Moonleaf + Clearwater';z.innerHTML=`<p class="resources">Recipe: <strong>${recipe}</strong></p><p class="resources">Collected: <strong>${state.potionIngredients.length?state.potionIngredients.join(' + '):'None'}</strong></p><div class="buttons"><button id="craftPotionBtn" ${state.potionIngredients.length<2?'disabled':''}>CREATE HEALING POTION</button></div><p class="resources">Introduction quest only — no XP reward.</p>`;$('craftPotionBtn')?.addEventListener('click',()=>{if(state.potionIngredients.length<2)return;state.potionIngredients.splice(0,2);state.potion++;state.introComplete=true;toast('HEALING POTION CREATED','reward');log('Zone 2 introduction complete: Healing Potion crafted.','reward');renderAll();});
     }else{
       const eligible=state.spells.filter(s=>!s.fallback),has=!!state.hasEnchantment&&!state.enchantmentUsed;
       z.innerHTML=`<div class="enchant-box"><strong>${cfg.enchantment.name}</strong><span class="resources">+${cfg.enchantment.damage} damage. Fixed bonus; the spell still scales normally with Sharkan level.</span><select id="enchantTarget">${eligible.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select><button id="applyEnchantBtn" ${!has||!eligible.length?'disabled':''}>APPLY ENCHANTMENT</button><span class="resources">${state.enchantmentUsed?'Applied.':state.hasEnchantment?'Card collected — choose a crafted spell.':'Find the ✦ Enchantment card in the zone.'}</span></div>`;
@@ -170,7 +177,7 @@
   ].map(c=>({...c,used:false}));
   function renderManip(){const w=$('manipCards');w.innerHTML='';manip.forEach(c=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<strong>${c.name}</strong><span>${c.text}</span><button ${c.used||state.zoneCleared?'disabled':''}>${c.used?'USED':'PLAY'}</button>`;d.querySelector('button').addEventListener('click',()=>{if(c.used)return;if(c.use()){c.used=true;toast(`${c.name.toUpperCase()} PLAYED`,'reward');renderAll();}});w.appendChild(d);});}
 
-  function saveCampaign(){localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,zone:cfg.zone,level:state.level,xp:state.xp,maxHp:state.maxHp,hp:state.hp,potion:state.potion,spells:state.spells}));}
+  function saveCampaign(){localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,zone:cfg.zone,level:state.level,xp:state.xp,maxHp:state.maxHp,hp:state.hp,potion:state.potion,spells:state.spells,ingredients:state.spellIngredients,potionIngredients:state.potionIngredients}));}
   function log(text,type='system'){const e=document.createElement('div');e.className=`event ${type}`;e.textContent=text;$('eventLog').prepend(e);while($('eventLog').children.length>9)$('eventLog').lastChild.remove();}
   function toast(text,type='system'){const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=text;$('toastArea').prepend(t);setTimeout(()=>t.remove(),1700);}
   function renderAll(){renderBoard();renderStatus();renderSpells();renderZoneSystem();renderManip();updateQuests();$('usePotionBtn').textContent=`USE POTION · ${state.potion} LEFT`;$('usePotionBtn').disabled=state.potion<1||state.hp>=state.maxHp||state.combat||state.gameOver;}

@@ -10,6 +10,7 @@
   let blockedSpawnStep=-1;
   let lastMaterializedSpawnStep=-1;
   let activeSpawnedCombat=null;
+  let activeSpawnedDangerBeforeCombat=null;
   let suppressedSpawnToasts=0;
   const spawnDecisionQueue=[];
   const suppressedSpawnLogs=new Set();
@@ -100,14 +101,22 @@
       }
 
       const engaged=text.match(/^(.+?) engaged(?: from nearby aggro)?\.$/i);
-      if(engaged)activeSpawnedCombat=isSpawnedTitle(engaged[1])?engaged[1]:null;
-      if(/^Sharkan fled from a normal mob\.$/i.test(text))activeSpawnedCombat=null;
+      if(engaged){
+        const spawned=isSpawnedTitle(engaged[1]);
+        activeSpawnedCombat=spawned?engaged[1]:null;
+        activeSpawnedDangerBeforeCombat=spawned?(s?.danger??null):null;
+      }
+      if(/^Sharkan fled from a normal mob\.$/i.test(text)){
+        activeSpawnedCombat=null;
+        activeSpawnedDangerBeforeCombat=null;
+      }
 
       // Spawned enemies are already the consequence of high Danger. Their defeat
-      // must not feed +2 Danger back into the system and create a self-amplifying loop.
+      // must leave Danger exactly where it was when combat started. Restoring the
+      // pre-combat value also avoids the old cap bug where 19 -> 20 -> 18.
       if(activeSpawnedCombat&&/^Danger \+2 \(mob defeated\)/i.test(text)){
         const current=state();
-        if(current)current.danger=Math.max(0,current.danger-2);
+        if(current&&Number.isFinite(activeSpawnedDangerBeforeCombat))current.danger=activeSpawnedDangerBeforeCombat;
         continue;
       }
 
@@ -143,6 +152,7 @@
         const current=state();
         if(current?.spawnTimers?.length)current.spawnTimers.pop();
         activeSpawnedCombat=null;
+        activeSpawnedDangerBeforeCombat=null;
       }
 
       if(/^Quest complete: Rootmaw is now unlocked\.$/i.test(text)){

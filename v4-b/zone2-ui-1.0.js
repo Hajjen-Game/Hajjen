@@ -182,7 +182,7 @@
   }
   function syncActionbar(){
     decorateSpells();
-    const spellEls=[...($('spellGrid')?.querySelectorAll('.spell')||[])].filter(s=>!/FALLBACK/i.test(s.textContent||''));
+    const spellEls=[...($('spellGrid')?.querySelectorAll('.spell')||[])];
     spellButtons.forEach((btn,i)=>{
       btn.className='action-slot spell-slot';const src=spellEls[i];
       if(!src){btn.classList.add('empty');btn.textContent='EMPTY SPELL';return;}

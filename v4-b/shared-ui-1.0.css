@@ -9,6 +9,11 @@
    in every zone while leaving an intentional open stage around the board. */
 .hajjen-shared-ui>.bottom{align-self:end}
 
+/* Objectives use one icon geometry in every zone. campaign-zone.css historically
+   targets quest <i> elements at 22px wide; this shared rule prevents Zone 2
+   icons from being squeezed into ovals while Zone 1 remains circular. */
+.hajjen-shared-ui .objectives .quest .quest-icon{width:30px;height:30px;min-width:30px;min-height:30px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;line-height:1;box-sizing:border-box}
+
 /* Decks are one shared component. Zone config decides which piles are present. */
 .hajjen-shared-ui .deck-sidebar-panel{padding:9px 10px 10px}
 .hajjen-shared-ui .deck-sidebar-panel h2{margin-bottom:8px}

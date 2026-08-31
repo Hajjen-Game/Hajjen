@@ -9,10 +9,21 @@
    in every zone while leaving an intentional open stage around the board. */
 .hajjen-shared-ui>.bottom{align-self:end}
 
-/* Objectives use one icon geometry in every zone. campaign-zone.css historically
-   targets quest <i> elements at 22px wide; this shared rule prevents Zone 2
-   icons from being squeezed into ovals while Zone 1 remains circular. */
-.hajjen-shared-ui .objectives .quest .quest-icon{width:30px;height:30px;min-width:30px;min-height:30px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;line-height:1;box-sizing:border-box}
+/* Objectives are one shared component. No zone gets a special active/intro stripe;
+   row geometry and icon geometry are identical everywhere. */
+.hajjen-shared-ui .objectives .quest{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center;padding:8px 4px;border-left:0!important}
+.hajjen-shared-ui .objectives .quest.intro-quest,.hajjen-shared-ui .objectives .quest.intro{border-left:0!important;padding-left:4px!important}
+.hajjen-shared-ui .objectives .quest .quest-icon{width:30px;height:30px;min-width:30px;min-height:30px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;line-height:1;box-sizing:border-box;font-style:normal}
+
+/* Sharkan status is shared too. Zone 1's tighter spacing is the master rhythm. */
+.hajjen-shared-ui .status{padding:10px 10px 12px}
+.hajjen-shared-ui .status h2{text-align:left;margin:0 0 8px}
+.hajjen-shared-ui .status .status-line{display:grid;grid-template-columns:58px 1fr 76px;gap:7px;align-items:center;font-size:11px;font-weight:800;margin:7px 0}
+.hajjen-shared-ui .status .bar{height:20px;margin:0;border:2px solid var(--line);background:#fff}
+.hajjen-shared-ui .status .level-line{display:flex;justify-content:center;align-items:baseline;gap:10px;border-top:1px solid #ccc;border-bottom:1px solid #ccc;padding:7px 0;margin:8px 0;font-size:11px}
+.hajjen-shared-ui .status .level-line strong{font-size:25px}
+.hajjen-shared-ui .status .danger-state{margin:0;text-align:center;font-size:11px;font-weight:900;padding:5px;border:2px solid var(--line)}
+.hajjen-shared-ui .status .danger-expanded{margin-top:8px;padding-top:8px}
 
 /* Decks are one shared component. Zone config decides which piles are present. */
 .hajjen-shared-ui .deck-sidebar-panel{padding:9px 10px 10px}

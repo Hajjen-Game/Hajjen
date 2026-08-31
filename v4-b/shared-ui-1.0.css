@@ -61,6 +61,13 @@
 .hajjen-shared-ui .shared-potion-slot strong{display:block}
 .hajjen-shared-ui .shared-potion-slot small{display:block;margin-top:3px}
 
+/* Combat spell selection is shared across zones. Four spells stay on one row on
+   normal screens and each button exposes its keyboard shortcut visually. */
+.hajjen-shared-ui #combatModal .combat-spells{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.hajjen-shared-ui #combatModal .combat-spells button{position:relative;min-width:0;min-height:68px;padding:7px 26px 7px 7px;font-size:10px;line-height:1.15;overflow:hidden}
+.hajjen-shared-ui #combatModal .combat-spells button small{font-size:8px;line-height:1.2;margin-top:3px}
+.hajjen-shared-ui #combatModal .combat-spells button[data-hotkey]::after{content:attr(data-hotkey);position:absolute;top:5px;right:5px;width:18px;height:18px;border:1.5px solid currentColor;border-radius:4px;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;line-height:1}
+
 @media(max-width:1500px){
   .hajjen-shared-ui{grid-template-columns:230px minmax(620px,1fr) 320px}
   .hajjen-shared-ui .cards-hud .mini-card,.hajjen-shared-ui.zone2-app .cards-hud .mini-card.card,.hajjen-shared-ui .cards-hud .hand-empty-slot{height:128px;min-height:128px}
@@ -86,4 +93,5 @@
   .hajjen-shared-ui .cards-hud .mini-card,.hajjen-shared-ui.zone2-app .cards-hud .mini-card.card,.hajjen-shared-ui .cards-hud .hand-empty-slot{height:140px;min-height:140px}
   .hajjen-shared-ui .actionbar{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hajjen-shared-ui .shared-potion-slot{grid-column:1/-1}
+  .hajjen-shared-ui #combatModal .combat-spells{grid-template-columns:repeat(2,minmax(0,1fr))}
 }

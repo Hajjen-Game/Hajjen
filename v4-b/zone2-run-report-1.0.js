@@ -24,7 +24,7 @@
   const startedAt=new Date();
   const run={
     events:[],combats:[],currentCombat:null,bossUnlockedSnapshot:null,bossEntrySnapshot:null,introCompleteSnapshot:null,
-    metrics:{maxDanger:state.danger||0,spawns:0,aggroCombats:0,potionUses:0,potionHealing:0,potionsCrafted:0,levelUps:0,levelUpHealing:0,enemyDamage:0,effectiveDamageTaken:0,spellCasts:0,manipulation:[]}
+    metrics:{maxDanger:state.danger||0,spawns:0,aggroCombats:0,potionUses:0,potionHealing:0,potionsCrafted:0,springUses:0,springHealing:0,levelUps:0,levelUpHealing:0,enemyDamage:0,effectiveDamageTaken:0,spellCasts:0,manipulation:[]}
   };
   let eventSerial=0;
   let lastStep=state.steps||0;
@@ -95,6 +95,8 @@
       let m=text.match(/^Healing Potion restored (\d+) HP\.$/i);
       if(m){run.metrics.potionUses++;run.metrics.potionHealing+=Number(m[1]);if(run.currentCombat)run.currentCombat.lastPlayerHp=s.hp;}
       if(/^Zone 2 introduction complete: Healing Potion crafted\.$/i.test(text))run.metrics.potionsCrafted++;
+      m=text.match(/^Primal Spring restored (\d+) HP\.$/i);
+      if(m){run.metrics.springUses++;run.metrics.springHealing+=Number(m[1]);}
       if(/^Level up → \d+\.$/i.test(text)){
         run.metrics.levelUps++;
         if(prev&&s)run.metrics.levelUpHealing+=Math.max(0,s.hp-prev.hp);
@@ -124,8 +126,9 @@
     }).observe(toastArea,{childList:true});
   }
 
-  // Capture spell use before campaign-zone's click handler runs, then measure the result in a microtask.
-  // This also records the killing cast, which disappears from state.combat immediately on victory.
+  // Capture spell use before campaign-zone's click handler runs. Keep the event/cast
+  // record in a microtask, but measure effective HP loss one task later so the
+  // campaign handler has definitely applied the counterattack.
   document.addEventListener('click',e=>{
     if(!(e.target instanceof Element))return;
 
@@ -139,16 +142,22 @@
         const label=(spellBtn.childNodes[0]?.textContent||spellBtn.textContent||'SPELL').trim();
         const damageMatch=(spellBtn.querySelector('small')?.textContent||'').match(/(\d+) damage/i);
         const damage=damageMatch?Number(damageMatch[1]):0;
+        const enemySurvived=beforeEnemyHp-damage>0;
+
         queueMicrotask(()=>{
           live.casts.push(`${label} ${damage}`);run.metrics.spellCasts++;
-          const enemySurvived=beforeEnemyHp-damage>0;
-          if(enemySurvived){
-            const effective=Math.max(0,beforeHp-state.hp);
-            live.enemyDamage+=rawAttack;live.damageTaken+=effective;run.metrics.enemyDamage+=rawAttack;run.metrics.effectiveDamageTaken+=effective;
-          }
+          if(enemySurvived){live.enemyDamage+=rawAttack;run.metrics.enemyDamage+=rawAttack;}
           live.lastPlayerHp=state.hp;
           const s=snapshot();record('COMBAT',`${label} dealt ${damage}${enemySurvived?`; ${live.title} countered for ${rawAttack}`:''}.`,s);lastSnapshot=s;
         });
+
+        if(enemySurvived)setTimeout(()=>{
+          const effective=Math.max(0,beforeHp-state.hp);
+          live.lastPlayerHp=state.hp;
+          if(!effective)return;
+          live.damageTaken+=effective;
+          run.metrics.effectiveDamageTaken+=effective;
+        },0);
       }
     }
 
@@ -183,7 +192,7 @@
   const combatCount=type=>run.combats.filter(c=>c.type===type).length;
 
   function buildReport(){
-    poll();const s=snapshot()||lastSnapshot;const crafted=(s.spells||[]).filter(x=>!x.fallback);const totalHealing=run.metrics.potionHealing+run.metrics.levelUpHealing;const lines=[];
+    poll();const s=snapshot()||lastSnapshot;const crafted=(s.spells||[]).filter(x=>!x.fallback);const totalHealing=run.metrics.potionHealing+run.metrics.springHealing+run.metrics.levelUpHealing;const lines=[];
     lines.push('HAJJEN V4-B — ZONE 2 RUN REPORT');
     lines.push(`Run started: ${startedAt.toISOString()}`);lines.push(`Generated: ${new Date().toISOString()}`);lines.push('');
     lines.push('=== RUN SUMMARY ===');
@@ -191,6 +200,7 @@
     lines.push(`Danger: ${s.danger} / 20 | Max Danger: ${run.metrics.maxDanger} / 20`);
     lines.push(`Potion: ${run.metrics.potionUses} used | ${s.potion} remaining | +${run.metrics.potionHealing} HP | ${run.metrics.potionsCrafted} crafted in Zone 2`);
     lines.push(`Potion introduction: ${s.introComplete?'COMPLETE':'NOT COMPLETE'}`);
+    lines.push(`Primal Spring: ${run.metrics.springUses?'USED':'NOT USED'} | +${run.metrics.springHealing} HP`);
     lines.push(`Level-up healing: +${run.metrics.levelUpHealing} HP across ${run.metrics.levelUps} level-up(s)`);lines.push(`Total recorded healing: +${totalHealing} HP`);
     lines.push(`Enemy damage (raw): ${run.metrics.enemyDamage} | Effective HP lost to attacks: ${run.metrics.effectiveDamageTaken}`);
     lines.push(`Combats: ${run.combats.length} total | ${combatCount('mob')} mobs | ${combatCount('elite')} elites | ${combatCount('boss')} boss`);

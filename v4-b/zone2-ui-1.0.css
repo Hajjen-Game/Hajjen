@@ -1,7 +1,6 @@
 /* Zone 2 adapter: only board/camera and Zone 2-specific systems live here.
    Shared HUD/decks/hand/action-bar presentation lives in shared-ui-1.0.css. */
 #campaignRoot{display:contents}
-.zone2-app{min-height:100vh}
 .zone2-app .leftcol,.zone2-app .rightcol{align-self:start}
 .zone2-app .leftcol>.manipulation-panel{display:none}
 .zone2-app .quest i.quest-icon{font-style:normal}

@@ -1,0 +1,68 @@
+/* Shared HAJJEN HUD shell. Board/world rendering remains zone-specific. */
+.hajjen-shared-ui{grid-template-columns:260px minmax(700px,1fr) 360px}
+.hajjen-shared-ui .objectives,.hajjen-shared-ui .deck-sidebar-panel,.hajjen-shared-ui .status,.hajjen-shared-ui .event-panel{box-sizing:border-box}
+.hajjen-shared-ui .event-panel{min-height:250px}
+.hajjen-shared-ui .event-log{max-height:250px;overflow:auto}
+
+/* Decks are one shared component. Zone config decides which piles are present. */
+.hajjen-shared-ui .deck-sidebar-panel{padding:9px 10px 10px}
+.hajjen-shared-ui .deck-sidebar-panel h2{margin-bottom:8px}
+.hajjen-shared-ui .deck-sidebar-panel .deck-row{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile{min-height:94px;padding:13px 78px 10px 12px;border-width:2px;border-radius:6px;display:flex;flex-direction:column;justify-content:center}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile strong{font-size:11px;line-height:1.1}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile span{font-size:9px;line-height:1.25;margin-top:6px}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile::before,.hajjen-shared-ui .deck-sidebar-panel .deck-pile::after{right:14px;top:11px;width:49px;height:66px;border-width:1.5px;border-radius:5px;background:#fff}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile::before{transform:translate(-7px,6px);opacity:.45}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile::after{content:'';transform:translate(-3px,3px);opacity:.82}
+.hajjen-shared-ui .deck-sidebar-panel .deck-pile.locked{opacity:.64;filter:none}
+.hajjen-shared-ui .deck-sidebar-panel .deck-lock{position:absolute;right:20px;top:31px;z-index:4;width:34px;height:34px;border:2px solid currentColor;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1}
+.hajjen-shared-ui .deck-pile.enchantment{color:var(--purple);border-color:var(--purple);background:var(--purple-soft)}
+
+/* Shared seven-slot hand language. */
+.hajjen-shared-ui .cards-hud{gap:0}
+.hajjen-shared-ui .cards-hud .manipulation-panel{padding:8px 9px 9px}
+.hajjen-shared-ui .cards-hud .manipulation-panel h2{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;margin:0 0 7px;font-size:12px}
+.hajjen-shared-ui .cards-hud .hand-slot-count{font-size:9px;font-weight:900;color:#666;letter-spacing:.35px}
+.hajjen-shared-ui .cards-hud .mini-cards{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important}
+.hajjen-shared-ui .cards-hud .mini-card,.hajjen-shared-ui.zone2-app .cards-hud .mini-card.card,.hajjen-shared-ui .cards-hud .hand-empty-slot{height:132px;min-height:132px;border:1.5px solid var(--blue);border-top-width:5px;border-radius:4px;background:var(--blue-soft);padding:6px 5px;position:relative;overflow:hidden;display:flex;flex-direction:column;text-align:left;margin-top:0}
+.hajjen-shared-ui .cards-hud .mini-card .card-cat{font-size:7px;font-weight:900;letter-spacing:.25px;color:var(--blue);margin-bottom:5px}
+.hajjen-shared-ui .cards-hud .mini-card strong{font-size:10px;line-height:1.08;overflow-wrap:anywhere;margin:0 0 5px}
+.hajjen-shared-ui .cards-hud .mini-card>span{font-size:8px;line-height:1.22;flex:1;margin:0;color:#444;overflow:hidden}
+.hajjen-shared-ui .cards-hud .mini-card button{width:100%;margin:5px 0 0;padding:4px 2px;border-width:1.5px;font-size:8px;line-height:1.1;font-weight:900;min-height:28px}
+.hajjen-shared-ui .cards-hud .hand-empty-slot{border-color:#777;border-style:dashed;border-top-width:1.5px;background:#fafafa;opacity:.36;align-items:center;justify-content:center;color:#666;font-size:8px;font-weight:900;letter-spacing:.55px}
+.hajjen-shared-ui .cards-hud .hand-empty-slot::before{content:'EMPTY'}
+
+/* Action bar is shared; each zone only supplies its spell source and potion button. */
+.hajjen-shared-ui .actionbar{grid-template-columns:repeat(4,minmax(0,1fr)) 10px minmax(0,1fr);gap:7px;align-items:stretch}
+.hajjen-shared-ui .actionbar .action-slot{min-width:0}
+.hajjen-shared-ui .actionbar .action-empty{display:none}
+.hajjen-shared-ui .shared-potion-slot{font-weight:900;justify-content:center;border-color:var(--green)!important;background:var(--green-soft)!important}
+.hajjen-shared-ui .shared-potion-slot strong{display:block}
+.hajjen-shared-ui .shared-potion-slot small{display:block;margin-top:3px}
+
+@media(max-width:1500px){
+  .hajjen-shared-ui{grid-template-columns:230px minmax(620px,1fr) 320px}
+  .hajjen-shared-ui .cards-hud .mini-card,.hajjen-shared-ui.zone2-app .cards-hud .mini-card.card,.hajjen-shared-ui .cards-hud .hand-empty-slot{height:128px;min-height:128px}
+}
+@media(max-width:1350px){
+  .hajjen-shared-ui .actionbar{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .hajjen-shared-ui .actionbar .action-divider{display:none}
+  .hajjen-shared-ui .shared-potion-slot{grid-column:1/-1;min-height:70px}
+}
+@media(max-width:1180px){
+  .hajjen-shared-ui .cards-hud{grid-column:1/-1}
+  .hajjen-shared-ui .cards-hud .mini-cards{grid-template-columns:repeat(7,minmax(76px,1fr))!important;overflow-x:auto;padding-bottom:2px}
+}
+@media(max-width:1000px){
+  .hajjen-shared-ui .deck-sidebar-panel .deck-row{grid-template-columns:repeat(2,1fr)!important}
+  .hajjen-shared-ui .deck-sidebar-panel .deck-pile{min-height:86px;padding-right:64px}
+  .hajjen-shared-ui .deck-sidebar-panel .deck-pile::before,.hajjen-shared-ui .deck-sidebar-panel .deck-pile::after{width:40px;height:55px}
+  .hajjen-shared-ui .deck-sidebar-panel .deck-lock{right:16px;top:28px;width:30px;height:30px;font-size:15px}
+}
+@media(max-width:620px){
+  .hajjen-shared-ui .deck-sidebar-panel .deck-row{grid-template-columns:1fr!important}
+  .hajjen-shared-ui .cards-hud .mini-cards{grid-template-columns:repeat(7,90px)!important}
+  .hajjen-shared-ui .cards-hud .mini-card,.hajjen-shared-ui.zone2-app .cards-hud .mini-card.card,.hajjen-shared-ui .cards-hud .hand-empty-slot{height:140px;min-height:140px}
+  .hajjen-shared-ui .actionbar{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hajjen-shared-ui .shared-potion-slot{grid-column:1/-1}
+}

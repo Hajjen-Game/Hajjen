@@ -22,6 +22,7 @@ The current V4-B code still contains prototype-era patch layers. These are being
 Completed cleanup steps:
 - Legacy root trees were removed after `main` became the source of truth.
 - Zone 2 Run Report telemetry and its correction patch were consolidated into one Run Report module.
+- Zone 2 UI, parity behavior, potion UI synchronization and parity CSS were consolidated into the main Zone 2 UI module and stylesheet.
 
 Next planned cleanup step:
-- Consolidate Zone 2 UI/parity/telemetry patch layers while preserving current gameplay and presentation.
+- Consolidate Zone 2 rules/system-fix layers while preserving current gameplay, balance and spawn/aggro behavior.

@@ -7,39 +7,44 @@
   const potionBtn=$('usePotionBtn');
   const eventLog=$('eventLog');
 
-  // Keep the Action Bar and Backpack tied directly to the live potion state.
-  // A potion should remain visible even when Sharkan is at full HP; only its
-  // ability to be used is disabled.
+  // Keep the Action Bar and Backpack tied to the live potion state without
+  // observing and rewriting the same DOM attributes in a feedback loop.
+  // Zone 2 used to watch the potion button's disabled attribute and then set
+  // disabled again inside the observer callback, which could starve the page.
   let potionSyncQueued=false;
   function syncPotionUi(){
     potionSyncQueued=false;
+    const count=Math.max(0,Number(state.potion)||0);
+    const disabled=count<1||state.hp>=state.maxHp||!!state.combat||!!state.gameOver;
+
     if(potionBtn){
-      const count=Math.max(0,Number(state.potion)||0);
       const desired=`<strong>HEALING POTION</strong><small>${count} left · +30 HP</small>`;
       if(potionBtn.innerHTML!==desired)potionBtn.innerHTML=desired;
-      potionBtn.disabled=count<1||state.hp>=state.maxHp||!!state.combat||!!state.gameOver;
+      if(potionBtn.disabled!==disabled)potionBtn.disabled=disabled;
       potionBtn.classList.toggle('has-potion',count>0);
       potionBtn.classList.toggle('no-potion',count<1);
       potionBtn.style.opacity=count>0?'1':'.35';
       potionBtn.setAttribute('aria-label',`Healing Potion, ${count} left, restores 30 HP`);
     }
+
     const backpack=$('backpackPotionText');
-    if(backpack)backpack.textContent=`${Math.max(0,Number(state.potion)||0)} left · +30 HP`;
+    if(backpack)backpack.textContent=`${count} left · +30 HP`;
     const backpackUse=$('backpackUsePotion');
-    if(backpackUse)backpackUse.disabled=(Number(state.potion)||0)<1||state.hp>=state.maxHp||!!state.combat||!!state.gameOver;
+    if(backpackUse&&backpackUse.disabled!==disabled)backpackUse.disabled=disabled;
   }
   function queuePotionSync(){
     if(potionSyncQueued)return;
     potionSyncQueued=true;
     queueMicrotask(syncPotionUi);
   }
-  if(potionBtn)new MutationObserver(queuePotionSync).observe(potionBtn,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled']});
+
   document.addEventListener('click',e=>{
     if(!(e.target instanceof Element))return;
     if(e.target.closest('#craftPotionBtn,#usePotionBtn,#combatPotionBtn,#backpackUsePotion'))queuePotionSync();
   },true);
+  window.addEventListener('focus',queuePotionSync);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)queuePotionSync();});
   syncPotionUi();
-  setInterval(syncPotionUi,120);
 
   // Zone 2's post-boss-unlock spawn guard temporarily lowers Danger inside
   // the movement call so spawn/aggro checks stay suppressed. Keep that
@@ -68,6 +73,7 @@
       }
       previousPrepend(...nodes);
       if(transientDanger!==null)state.danger=transientDanger;
+      queuePotionSync();
     };
   }
 })();

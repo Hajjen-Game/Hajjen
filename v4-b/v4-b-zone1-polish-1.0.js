@@ -2,13 +2,19 @@
   // Zone 1 presentation polish only. No gameplay/balance values are changed here.
 
   // ------------------------------------------------------------
-  // SUPPRESSED SPAWN VISUAL GUARD
+  // SUPPRESSED SPAWN + COMBAT ATTRACTION VISUAL GUARD
   //
   // The Zone 1 balance guard can cancel a spawn at materialization time
   // (for example when two delayed spawn requests resolve on the same step).
   // The core briefly renders the cancelled entity before the balance guard's
   // microtask removes it. Mark that exact tile before renderBoard() runs so a
   // cancelled mob can never flash on screen.
+  //
+  // Existing spawned mobs also move through Map.set() when combat attraction
+  // pulls them toward Sharkan. Those writes are movement, not new spawn
+  // materialization, so temporarily mask the spawned flag while the lower
+  // spawn guard processes the move. The original entity object is preserved
+  // and its spawned flag is restored immediately after the write.
   // ------------------------------------------------------------
   const spawnStyle=document.createElement('style');
   spawnStyle.textContent=`
@@ -21,14 +27,29 @@
       box-shadow:none!important;
     }
     .tile[data-suppress-spawn-render="1"]:nth-child(even){background-color:var(--board-sage-dark)!important}
+    .tile[data-suppress-spawn-render="1"]::before,
     .tile[data-suppress-spawn-render="1"]::after{content:none!important;display:none!important;animation:none!important}
   `;
   document.head.appendChild(spawnStyle);
 
   const previousMapSet=Map.prototype.set;
   Map.prototype.set=function(key,value){
+    const isSpawnedEnemy=!!value?.spawned&&(value.type==='mob'||value.type==='elite');
+    const isAttractionMove=isSpawnedEnemy&&!!window.HAJJEN_V4B_STATE?.aggroPulling;
+
+    // Combat attraction repositions an already-existing spawned enemy. The
+    // lower balance guard must not mistake that movement for another spawn.
+    if(isAttractionMove){
+      value.spawned=false;
+      try{
+        return previousMapSet.call(this,key,value);
+      }finally{
+        value.spawned=true;
+      }
+    }
+
     const result=previousMapSet.call(this,key,value);
-    if(value?.spawned&&(value.type==='mob'||value.type==='elite')){
+    if(isSpawnedEnemy){
       const stored=this.get(key);
       if(stored?.suppressedSpawn){
         const tile=document.querySelector(`.tile[data-r="${stored.r}"][data-c="${stored.c}"]`);

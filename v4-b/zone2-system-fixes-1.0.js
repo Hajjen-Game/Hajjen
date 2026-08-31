@@ -4,7 +4,6 @@
   if(!cfg||cfg.zone!==2||!state)return;
 
   const $=id=>document.getElementById(id);
-  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const eventLog=$('eventLog');
   const toastArea=$('toastArea');
   const world=$('world');
@@ -39,6 +38,43 @@
     const combatHp=$('combatHpText');if(combatHp&&state.combat)combatHp.textContent=`${state.hp} / ${state.maxHp}`;
     const combatFill=$('combatHpFill');if(combatFill&&state.combat)combatFill.style.width=`${state.hp/state.maxHp*100}%`;
   }
+
+  // ------------------------------------------------------------
+  // ZONE 2 BOSS PREPARATION
+  // Boss readiness is deliberately stricter than the shared campaign core:
+  // potion introduction + 4 mobs + 2 elites + Level 7 are all required.
+  // ------------------------------------------------------------
+  const REQUIRED_BOSS_LEVEL=7;
+  let bossUnlockedValue=!!state.bossUnlocked;
+  const bossRequirementsMet=()=>!!state.introComplete&&state.mobKills>=4&&state.eliteKills>=2&&state.level>=REQUIRED_BOSS_LEVEL;
+  Object.defineProperty(state,'bossUnlocked',{
+    configurable:true,
+    enumerable:true,
+    get(){return bossUnlockedValue;},
+    set(value){bossUnlockedValue=!!value&&bossRequirementsMet();}
+  });
+  state.bossUnlocked=bossUnlockedValue;
+
+  const objectives=document.querySelector('.zone2-app .objectives');
+  const bossQuestRow=$('bossQuest')?.closest('.quest');
+  let levelQuest=$('levelQuest');
+  if(objectives&&bossQuestRow&&!levelQuest){
+    const row=document.createElement('div');
+    row.className='quest level-objective';
+    row.innerHTML=`<i class="quest-icon">★</i><div><strong>Reach Level ${REQUIRED_BOSS_LEVEL}</strong><small id="levelQuest"></small></div>`;
+    bossQuestRow.before(row);
+    levelQuest=$('levelQuest');
+  }
+  function syncLevelObjective(){
+    if(levelQuest)levelQuest.textContent=state.level>=REQUIRED_BOSS_LEVEL?'COMPLETE':`Level ${state.level} / ${REQUIRED_BOSS_LEVEL}`;
+    const bossQuest=$('bossQuest');
+    if(bossQuest&&!state.bossKilled&&!state.bossUnlocked){
+      if(!state.introComplete)bossQuest.textContent='Boss: LOCKED · POTION';
+      else if(state.mobKills<4||state.eliteKills<2)bossQuest.textContent='Boss: LOCKED';
+      else if(state.level<REQUIRED_BOSS_LEVEL)bossQuest.textContent=`Boss: LOCKED · REACH L${REQUIRED_BOSS_LEVEL}`;
+    }
+  }
+  syncLevelObjective();
 
   // ------------------------------------------------------------
   // ZONE 2 SPELL CREATION — use the same manual two-ingredient
@@ -197,12 +233,14 @@
   // ZONE 2 SPAWN PARITY WITH ZONE 1
   // - spawned mobs add no Danger when defeated
   // - at most four spawned mobs can be active
-  // - boss unlock suppresses future spawns and forced adjacent aggro
+  // - once the boss is unlocked, future spawns stop
+  // - existing adjacent mobs can still aggro at normal Danger thresholds
   // Core already materializes at most one spawn per movement step.
   // ------------------------------------------------------------
   let activeSpawned=0;
   let spawnedCombatDanger=null;
   let syntheticCapBlock=false;
+  let postBossSpawnBlock=false;
 
   const nativePrepend=eventLog.prepend.bind(eventLog);
   eventLog.prepend=(...nodes)=>{
@@ -223,6 +261,7 @@
       if(/^Sharkan was defeated\./i.test(text))spawnedCombatDanger=null;
     });
     nativePrepend(...nodes);
+    syncLevelObjective();
   };
 
   if(combatModal)new MutationObserver(()=>{
@@ -234,6 +273,7 @@
       if(!(node instanceof Element))continue;
       const text=(node.textContent||'').trim();
       if(/^NEW MOB SPAWNED$/i.test(text))activeSpawned++;
+      if(/^SPAWN BLOCKED$/i.test(text)&&postBossSpawnBlock){node.remove();continue;}
       if(/^SPAWN BLOCKED$/i.test(text)&&syntheticCapBlock)node.textContent='SPAWN PRESSURE CAPPED';
     }
   }).observe(toastArea,{childList:true});
@@ -248,15 +288,13 @@
   function prepareMovementSuppression(tile){
     if(state.combat||state.gameOver||isDirectCombatTarget(tile))return;
 
+    // After the boss unlocks, preserve real Danger so Hostile/Critical adjacent
+    // aggro still works. Only the spawn check is temporarily blocked.
     if(state.bossUnlocked){
-      const original=state.danger;
-      state.danger=0;
-      setTimeout(()=>{
-        // Preserve any ambient/harvest Danger gained during the move while
-        // still keeping spawn/aggro checks below their activation threshold.
-        state.danger=clamp(original+state.danger,0,20);
-        syncDangerUi();
-      },0);
+      const original=state.spawnBlock;
+      postBossSpawnBlock=true;
+      state.spawnBlock=original+1;
+      setTimeout(()=>{state.spawnBlock=original;postBossSpawnBlock=false;},0);
       return;
     }
 
@@ -286,6 +324,7 @@
 
   window.HAJJEN_V4B_ZONE2_SYSTEM_FIXES={
     spring:{get used(){return springUsed;},get healing(){return state.zone2SpringHealing||0;}},
-    spawns:{get active(){return activeSpawned;}}
+    spawns:{get active(){return activeSpawned;}},
+    boss:{requiredLevel:REQUIRED_BOSS_LEVEL,get ready(){return state.bossUnlocked;}}
   };
 })();

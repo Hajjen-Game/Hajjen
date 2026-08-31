@@ -1,8 +1,13 @@
 /* Shared HAJJEN HUD shell. Board/world rendering remains zone-specific. */
-.hajjen-shared-ui{grid-template-columns:260px minmax(700px,1fr) 360px}
+.hajjen-shared-ui{grid-template-columns:260px minmax(700px,1fr) 360px;min-height:100vh}
 .hajjen-shared-ui .objectives,.hajjen-shared-ui .deck-sidebar-panel,.hajjen-shared-ui .status,.hajjen-shared-ui .event-panel{box-sizing:border-box}
 .hajjen-shared-ui .event-panel{min-height:250px}
 .hajjen-shared-ui .event-log{max-height:250px;overflow:auto}
+
+/* The shared shell owns vertical rhythm too. With grid rows auto / 1fr / auto,
+   full viewport height keeps Hand, Action Bar and utilities in the lower dock
+   in every zone while leaving an intentional open stage around the board. */
+.hajjen-shared-ui>.bottom{align-self:end}
 
 /* Decks are one shared component. Zone config decides which piles are present. */
 .hajjen-shared-ui .deck-sidebar-panel{padding:9px 10px 10px}

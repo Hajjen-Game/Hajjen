@@ -170,6 +170,21 @@
     const event=document.querySelector('.event-panel h2');if(event)event.textContent=text.eventLog;
   }
 
+  function decorateCombatHotkeys(){
+    const combatSpells=$('combatSpells');
+    if(!combatSpells)return;
+    [...combatSpells.querySelectorAll('button')].forEach((button,index)=>{
+      if(index<4){
+        const hotkey=String(index+1);
+        button.dataset.hotkey=hotkey;
+        button.setAttribute('aria-keyshortcuts',hotkey);
+      }else{
+        delete button.dataset.hotkey;
+        button.removeAttribute('aria-keyshortcuts');
+      }
+    });
+  }
+
   function sync(){
     normalizeHandTitle();
     const count=$('manipDeckCount');
@@ -177,6 +192,7 @@
     syncActionSlots();
     normalizeUtility();
     normalizeHeadings();
+    decorateCombatHotkeys();
   }
 
   buildDeckSidebar();
@@ -185,9 +201,24 @@
   normalizePotion();
   normalizeUtility();
   normalizeHeadings();
+  decorateCombatHotkeys();
 
   if(hand)new MutationObserver(()=>queueMicrotask(sync)).observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   if(spellSource)new MutationObserver(()=>queueMicrotask(syncActionSlots)).observe(spellSource,{childList:true,subtree:true,characterData:true});
+  const combatSpells=$('combatSpells');
+  if(combatSpells)new MutationObserver(()=>queueMicrotask(decorateCombatHotkeys)).observe(combatSpells,{childList:true,subtree:true});
+
+  window.addEventListener('keydown',event=>{
+    if(event.repeat||event.altKey||event.ctrlKey||event.metaKey||!['1','2','3','4'].includes(event.key))return;
+    const combatModal=$('combatModal');
+    if(!combatModal?.classList.contains('show'))return;
+    if(document.querySelector('.system-modal.show'))return;
+    const button=$('combatSpells')?.querySelectorAll('button')?.[Number(event.key)-1];
+    if(!button||button.disabled)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    button.click();
+  },true);
 
   window.HAJJEN_SHARED_UI={
     zone,

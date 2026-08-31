@@ -26,11 +26,12 @@
     return count;
   };
 
-  // Once Rootmaw is unlocked, nearby mobs stay on the board but can no longer
-  // force adjacent aggro or combat-attraction encounters on the boss approach.
+  // Once Rootmaw is unlocked, existing nearby mobs stay dangerous: normal
+  // adjacent aggro still runs. Only long-range combat attraction is suppressed
+  // on the boss approach, and new spawns remain blocked below.
   const nativeSetTimeout=window.setTimeout.bind(window);
   window.setTimeout=(handler,delay,...args)=>{
-    if(typeof handler==='function'&&(delay===120||delay===420)){
+    if(typeof handler==='function'&&delay===420){
       return nativeSetTimeout((...cbArgs)=>{
         if(state()?.bossUnlocked)return;
         handler(...cbArgs);

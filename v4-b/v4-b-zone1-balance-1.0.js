@@ -18,6 +18,7 @@
   const state=()=>window.HAJJEN_V4B_STATE||null;
   const isGameEntity=value=>value&&Number.isInteger(value.r)&&Number.isInteger(value.c)&&['ingredient','spring','mob','elite','boss','portal'].includes(value.type);
   const isSpawnedTitle=title=>/^ROUSED (?:BOGLING|GUARDIAN)/i.test(title||'');
+  const zone1AttackScale=danger=>danger>=20?1.30:danger>=15?1.20:danger>=10?1.10:danger>=5?1.05:1;
   const activeSpawnedCount=map=>{
     if(!map)return 0;
     let count=0;
@@ -107,6 +108,18 @@
 
       const engaged=text.match(/^(.+?) engaged(?: from nearby aggro)?\.$/i);
       if(engaged){
+        const current=state();
+        const combat=current?.combat;
+
+        // Zone 1 keeps full Danger HP scaling and the same number of fights,
+        // but normal mobs, spawned mobs and elites deal less attrition damage.
+        // Calm/Uneasy/Dangerous/Hostile/Critical attack scaling:
+        // 100% / 105% / 110% / 120% / 130%.
+        // Rootmaw deliberately keeps the original full Danger scaling.
+        if(combat?.entity&&combat.entity.type!=='boss'&&Number.isFinite(combat.entity.baseAttack)){
+          combat.attack=Math.round(combat.entity.baseAttack*zone1AttackScale(current?.danger??0));
+        }
+
         const spawned=isSpawnedTitle(engaged[1]);
         activeSpawnedCombat=spawned?engaged[1]:null;
         activeSpawnedDangerBeforeCombat=spawned?(s?.danger??null):null;

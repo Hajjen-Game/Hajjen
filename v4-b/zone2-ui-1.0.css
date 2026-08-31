@@ -3,8 +3,6 @@
 #campaignRoot{display:contents}
 .zone2-app .leftcol,.zone2-app .rightcol{align-self:start}
 .zone2-app .leftcol>.manipulation-panel{display:none}
-.zone2-app .quest i.quest-icon{font-style:normal}
-.zone2-app .quest.intro-quest{border-left:0}
 
 /* 25x10 world inside the shared board slot. */
 .zone2-board-wrap{position:relative;width:min(100%,1050px);aspect-ratio:15/10;overflow:hidden;border-left:2px solid var(--line);border-top:2px solid var(--line);background:#fdfdfb;box-shadow:none}

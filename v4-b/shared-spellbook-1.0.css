@@ -1,0 +1,33 @@
+/* Shared full-loadout spell crafting / replacement UI. */
+.shared-spell-replace-modal{z-index:90}
+.shared-spell-replace-card{width:min(860px,calc(100vw - 32px));max-height:calc(100vh - 36px);overflow:auto;padding:18px}
+.shared-spell-replace-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:10px}
+.shared-spell-replace-heading h2{margin:2px 0 0;font-size:25px}
+.shared-spell-replace-close{flex:0 0 auto;padding:8px 12px;font-weight:900}
+.shared-spell-replace-copy{margin:0 0 16px;line-height:1.35}
+.shared-spell-replace-card section{margin-top:15px}
+.shared-spell-replace-card section h3{margin:0 0 8px;font-size:12px;letter-spacing:.35px}
+.shared-spell-ingredients{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.shared-spell-ingredient-choice{position:relative;min-height:72px;padding:9px 8px 8px 34px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:5px}
+.shared-spell-ingredient-choice strong,.shared-spell-loadout-choice strong{display:block;font-size:12px;margin-bottom:4px}
+.shared-spell-ingredient-choice small,.shared-spell-loadout-choice small{display:block;font-size:9px;line-height:1.2}
+.shared-spell-order{position:absolute;left:8px;top:9px;width:18px;height:18px;border:1.5px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900}
+.shared-spell-ingredient-choice.selected{outline:3px solid var(--blue);outline-offset:-3px;background:var(--blue-soft)}
+.shared-spell-loadout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.shared-spell-loadout-choice{min-width:0;min-height:78px;padding:9px;text-align:left;border:2px solid var(--line);border-radius:5px;background:#fff}
+.shared-spell-loadout-choice.ember{border-color:#c45f34;background:#fbede7}
+.shared-spell-loadout-choice.growth{border-color:var(--green);background:var(--green-soft)}
+.shared-spell-loadout-choice.flow{border-color:#3f8793;background:#e9f5f6}
+.shared-spell-loadout-choice.stone{border-color:#766e66;background:#f0efed}
+.shared-spell-loadout-choice.gale{border-color:#588da4;background:#edf5f8}
+.shared-spell-loadout-choice.aether{border-color:var(--purple);background:var(--purple-soft)}
+.shared-spell-loadout-choice.selected{outline:3px solid #111;outline-offset:-3px}
+.shared-spell-preview{margin-top:14px;padding:10px;border:2px solid var(--line);background:#fafafa;min-height:48px;line-height:1.35}
+.shared-spell-preview strong{font-size:14px}
+.shared-spell-preview span{font-size:10px;color:#444}
+.shared-spell-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.shared-spell-actions button{padding:9px 13px;font-weight:900}
+@media(max-width:760px){
+  .shared-spell-ingredients{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .shared-spell-loadout{grid-template-columns:1fr}
+}

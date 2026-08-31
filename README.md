@@ -23,6 +23,8 @@ Completed cleanup steps:
 - Legacy root trees were removed after `main` became the source of truth.
 - Zone 2 Run Report telemetry and its correction patch were consolidated into one Run Report module.
 - Zone 2 UI, parity behavior, potion UI synchronization and parity CSS were consolidated into the main Zone 2 UI module and stylesheet.
+- Shared UI Shell 1.0 was introduced for Zone 1 and Zone 2. Shared labels, deck definitions, hand/action layout rules and common HUD styling now live in `shared-ui-config-1.0.js`, `shared-ui-1.0.js` and `shared-ui-1.0.css`. Zone-specific board rendering and the Zone 2 camera remain separate.
 
 Next planned cleanup step:
-- Consolidate Zone 2 rules/system-fix layers while preserving current gameplay, balance and spawn/aggro behavior.
+- Regression-test the shared shell in Zone 1 and Zone 2, then remove the remaining prototype-era per-zone shell construction that the shared layer now supersedes.
+- After UI consolidation is stable, consolidate Zone 2 rules/system-fix layers while preserving current gameplay, balance and spawn/aggro behavior.

@@ -15,6 +15,13 @@ The root `index.html` opens the current game.
 - Gameplay refactors should be structural only unless a balance or rules change is explicitly intended.
 - Zone 1 and Zone 2 behavior should be regression-tested after structural refactors.
 
-## Next cleanup phase
+## Cleanup progress
 
-The current V4-B code still contains prototype-era patch layers. These will be consolidated gradually into clear modules for core state, movement, Danger/spawns, combat, progression, crafting/spells, UI, telemetry and zone configuration. Each consolidation step should preserve existing gameplay before moving to the next one.
+The current V4-B code still contains prototype-era patch layers. These are being consolidated gradually into clear modules for core state, movement, Danger/spawns, combat, progression, crafting/spells, UI, telemetry and zone configuration. Each consolidation step should preserve existing gameplay before moving to the next one.
+
+Completed cleanup steps:
+- Legacy root trees were removed after `main` became the source of truth.
+- Zone 2 Run Report telemetry and its correction patch were consolidated into one Run Report module.
+
+Next planned cleanup step:
+- Consolidate Zone 2 UI/parity/telemetry patch layers while preserving current gameplay and presentation.

@@ -6,7 +6,7 @@
       cardDecks:'CARD DECKS',
       sharkan:'SHARKAN',
       eventLog:'EVENT LOG',
-      hand:'HAND — MANIPULATION',
+      hand:'HAND',
       spellbook:'SPELLBOOK',
       backpack:'BACKPACK',
       help:'HELP',
@@ -20,7 +20,8 @@
       tactical:'TACTICAL'
     },
     layout:{
-      handSlots:7,
+      handSlots:8,
+      hand:{manipulation:4,enchantment:2,tactical:2},
       spellSlots:4,
       potionSlot:true
     },

@@ -5,7 +5,7 @@
   if(!zone)return;
 
   const utility=window.HAJJEN_SHARED_UTILITY;
-  let button=utility?.buttons?.copy||document.querySelector('[data-utility-action="copy"]')||document.getElementById('copyRunReportSharedBtn')||document.getElementById('copyRunReportVisibleBtn')||document.getElementById('copyZone2RunReportBtn')||document.getElementById('copyRunReportBtn');
+  let button=utility?.buttons?.copy||document.querySelector('[data-utility-action="copy"]')||document.getElementById('copyRunReportSharedBtn')||document.getElementById('copyRunReportVisibleBtn')||document.getElementById(`copyZone${zone}RunReportBtn`)||document.getElementById('copyRunReportBtn');
   if(!button)return;
 
   const clean=button.cloneNode(true);
@@ -18,7 +18,10 @@
   button=clean;
   if(utility?.buttons)utility.buttons.copy=button;
 
-  const provider=()=>zone===1?window.HAJJEN_V4B_RUN_REPORT:window.HAJJEN_V4B_ZONE2_RUN_REPORT;
+  const provider=()=>{
+    if(zone===1)return window.HAJJEN_V4B_RUN_REPORT;
+    return window[`HAJJEN_V4B_ZONE${zone}_RUN_REPORT`]||window.HAJJEN_CAMPAIGN_RUN_REPORT;
+  };
   const getText=()=>{
     try{return provider()?.getText?.()||'';}catch{return'';}
   };

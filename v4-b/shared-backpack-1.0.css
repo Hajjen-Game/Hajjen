@@ -1,0 +1,23 @@
+/* Shared Backpack presentation for Zone 1 and Zone 2. */
+#backpackModal.shared-backpack-modal .modal-card{width:min(780px,94vw);max-height:90vh;overflow:auto}
+#backpackModal.shared-backpack-modal .shared-backpack-body{min-width:0}
+#backpackModal.shared-backpack-modal .shared-backpack-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#backpackModal.shared-backpack-modal .shared-backpack-item{border:2px solid var(--line);padding:11px;min-width:0;background:#fff}
+#backpackModal.shared-backpack-modal .shared-backpack-item strong{display:block;font-size:12px}
+#backpackModal.shared-backpack-modal .shared-backpack-item>span{display:block;font-size:10px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
+#backpackModal.shared-backpack-modal .shared-backpack-item>button{margin-top:9px;padding:6px 9px;font-size:10px;font-weight:900}
+#backpackModal.shared-backpack-modal .shared-backpack-potion{border-color:var(--green);background:var(--green-soft)}
+#backpackModal.shared-backpack-modal .shared-backpack-potion button{border-color:var(--green);background:#fff}
+#backpackModal.shared-backpack-modal .shared-backpack-wide{grid-column:1/-1}
+#backpackModal.shared-backpack-modal .shared-backpack-recipe{background:#f7f7f4}
+#backpackModal.shared-backpack-modal .shared-backpack-recipe>span{margin-bottom:8px}
+#backpackModal.shared-backpack-modal .shared-backpack-zone-system{border:0;padding:0;margin:8px 0 0;background:transparent}
+#backpackModal.shared-backpack-modal .shared-backpack-zone-system>h2{display:none}
+#backpackModal.shared-backpack-modal .shared-backpack-zone-system .resources{font-size:10px;line-height:1.4;color:#555}
+#backpackModal.shared-backpack-modal .shared-backpack-zone-system .buttons{margin-top:7px}
+#backpackModal.shared-backpack-modal .shared-backpack-zone-system button{padding:6px 9px;font-size:10px;font-weight:900}
+
+@media(max-width:620px){
+  #backpackModal.shared-backpack-modal .shared-backpack-grid{grid-template-columns:1fr}
+  #backpackModal.shared-backpack-modal .shared-backpack-wide{grid-column:auto}
+}

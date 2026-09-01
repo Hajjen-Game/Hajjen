@@ -1,0 +1,37 @@
+/* Shared HAJJEN utility actions: Spellbook, Backpack, Help, Run Report, Reset. */
+.hajjen-shared-ui .shared-utility-hud{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:repeat(5,minmax(0,1fr))!important;
+  gap:7px!important;
+  min-width:0!important;
+}
+.hajjen-shared-ui .shared-utility-hud>button{
+  width:100%!important;
+  min-height:45px!important;
+  margin:0!important;
+  font-size:11px!important;
+  font-weight:900!important;
+}
+.hajjen-shared-ui .shared-utility-hud .spellbook-open{border-color:var(--purple)!important;background:var(--purple-soft)!important}
+.hajjen-shared-ui .shared-utility-hud .backpack-open{border-color:var(--green)!important;background:var(--green-soft)!important}
+.hajjen-shared-ui .shared-utility-hud .help-open{border-color:var(--blue)!important;background:var(--blue-soft)!important}
+
+@media(max-width:1350px){
+  .hajjen-shared-ui .shared-utility-hud{
+    grid-column:1/-1!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:1fr!important;
+  }
+}
+@media(max-width:1000px){
+  .hajjen-shared-ui .shared-utility-hud{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:620px){
+  .hajjen-shared-ui .shared-utility-hud{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:auto!important;
+  }
+}

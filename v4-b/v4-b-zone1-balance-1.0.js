@@ -12,7 +12,8 @@
   let activeSpawnedCombat=null;
   let activeSpawnedDangerBeforeCombat=null;
   let suppressedSpawnToasts=0;
-  let cancelledSpawnMaterializers=0;
+  let pendingSpawnMaterializers=0;
+  let nextSpawnTimerDecision=null;
   const spawnDecisionQueue=[];
   const suppressedSpawnLogs=new Set();
 
@@ -32,15 +33,23 @@
   // on the boss approach, and new spawns remain blocked below.
   const nativeSetTimeout=window.setTimeout.bind(window);
   window.setTimeout=(handler,delay,...args)=>{
-    // A rejected spawn used to be allowed to reach the core's 650 ms
-    // materialization callback and was then removed inside Map.set(). That kept
-    // gameplay correct but could paint a one-frame mob before cleanup. The
-    // spawn decision is made synchronously by the event-log guard immediately
-    // before telegraphSpawn schedules this timer, so consume that rejected
-    // materializer here and never let the cancelled entity enter the map.
-    if(typeof handler==='function'&&delay===650&&cancelledSpawnMaterializers>0){
-      cancelledSpawnMaterializers--;
-      return nativeSetTimeout(()=>{},delay,...args);
+    // telegraphSpawn() logs its spawn request immediately before scheduling the
+    // 650 ms materializer. The event-log guard below records whether that exact
+    // request reserved a spawn slot. Consume that decision here so rejected
+    // requests never materialize, while accepted requests release their pending
+    // reservation exactly when they become a real map entity.
+    if(typeof handler==='function'&&delay===650&&nextSpawnTimerDecision){
+      const decision=nextSpawnTimerDecision;
+      nextSpawnTimerDecision=null;
+      if(decision==='reject')return nativeSetTimeout(()=>{},delay,...args);
+      return nativeSetTimeout((...cbArgs)=>{
+        pendingSpawnMaterializers=Math.max(0,pendingSpawnMaterializers-1);
+        if(state()?.bossUnlocked){
+          if(spawnDecisionQueue.length)spawnDecisionQueue.shift();
+          return;
+        }
+        handler(...cbArgs);
+      },delay,...args);
     }
     if(typeof handler==='function'&&delay===420){
       return nativeSetTimeout((...cbArgs)=>{
@@ -155,15 +164,18 @@
       if(/^Danger pressure is spawning a new (?:mob|elite)\.$/i.test(text)){
         const step=s?.steps??-1;
         const warningTile=newestWarningTile();
-        const allow=!s?.bossUnlocked&&blockedSpawnStep!==step&&allowedSpawnStep!==step&&activeSpawnedCount(gameMap)<MAX_ACTIVE_SPAWNED;
+        const occupiedOrReserved=activeSpawnedCount(gameMap)+pendingSpawnMaterializers;
+        // warningTile is also our reservation identity. If telegraphSpawn chose a
+        // tile that already has a pending warning, there is no fresh unguarded
+        // warning tile and the duplicate request is rejected before scheduling.
+        const allow=!!warningTile&&!s?.bossUnlocked&&blockedSpawnStep!==step&&allowedSpawnStep!==step&&occupiedOrReserved<MAX_ACTIVE_SPAWNED;
         if(allow){
-          // Only accepted telegraphs need a future Map.set decision. Rejected
-          // telegraphs never materialize, so do not leave a false queue entry
-          // behind to poison the next legitimate spawn.
+          pendingSpawnMaterializers++;
           spawnDecisionQueue.push(true);
           allowedSpawnStep=step;
+          nextSpawnTimerDecision='accept';
         }else{
-          cancelledSpawnMaterializers++;
+          nextSpawnTimerDecision='reject';
           warningTile?.classList.remove('spawn-warning');
           warningTile?.removeAttribute('data-spawn-guard');
           toastArea?.querySelector('.toast.spawn')?.remove();

@@ -55,7 +55,12 @@
         const tile=document.querySelector(`.tile[data-r="${stored.r}"][data-c="${stored.c}"]`);
         if(tile){
           tile.setAttribute('data-suppress-spawn-render','1');
-          queueMicrotask(()=>tile.removeAttribute('data-suppress-spawn-render'));
+          // Keep the visual guard through a complete paint. The balance layer
+          // removes the suppressed placeholder in a microtask; removing this
+          // attribute in another microtask could expose a transient mob glyph
+          // if a late DOM mutation lands in the same frame. Two animation
+          // frames guarantee the cancelled spawn is never paint-visible.
+          requestAnimationFrame(()=>requestAnimationFrame(()=>tile.removeAttribute('data-suppress-spawn-render')));
         }
       }
     }

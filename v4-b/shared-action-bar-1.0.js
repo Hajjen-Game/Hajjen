@@ -15,6 +15,7 @@
 
   const forceClasses=['ember','growth','flow','stone','gale','aether'];
   let observer=null;
+  let potionObserver=null;
   let queued=false;
 
   function ensureHeading(){
@@ -113,9 +114,29 @@
     });
   }
 
+  function syncPotion(){
+    if(zone<2||!potionBtn)return;
+    const state=window.HAJJEN_CAMPAIGN_STATE;
+    if(!state)return;
+
+    const count=Math.max(0,Number(state.potion)||0);
+    const disabled=count<1||Number(state.hp)>=Number(state.maxHp)||!!state.combat||!!state.gameOver;
+    const desired=`<strong>HEALING POTION</strong><small>${count} left · +30 HP</small>`;
+
+    potionObserver?.disconnect();
+    if(potionBtn.innerHTML!==desired)potionBtn.innerHTML=desired;
+    potionBtn.disabled=disabled;
+    potionBtn.classList.add('action-slot','shared-potion-slot');
+    potionBtn.classList.toggle('has-potion',count>0);
+    potionBtn.classList.toggle('no-potion',count<1);
+    potionBtn.setAttribute('aria-label',`Healing Potion, ${count} left, restores 30 HP`);
+    potionObserver?.observe(potionBtn,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled','class']});
+  }
+
   function sync(){
     ensureStructure();
     syncSlots();
+    syncPotion();
   }
 
   observer=new MutationObserver(()=>{
@@ -124,6 +145,11 @@
     queueMicrotask(syncSlots);
   });
   observer.observe(spellSource,{childList:true,subtree:true,characterData:true});
+
+  if(zone>=2&&potionBtn){
+    potionObserver=new MutationObserver(syncPotion);
+    potionObserver.observe(potionBtn,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled','class']});
+  }
 
   sync();
 

@@ -1,0 +1,41 @@
+/* Shared HAJJEN Hand: 4 Manipulation / 2 Enchantment / 2 Tactical. */
+.hajjen-shared-ui .cards-hud .shared-hand-panel{padding:7px 8px 8px!important}
+.hajjen-shared-ui .cards-hud .shared-hand-panel h2{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin:0 0 5px!important;font-size:11px!important;text-align:left!important}
+.hajjen-shared-ui .cards-hud .shared-hand-panel .hand-title-text{font-size:11px!important;line-height:1!important}
+.hajjen-shared-ui .cards-hud .shared-hand-panel .hand-slot-count{font-size:7px!important;line-height:1.15!important;font-weight:900!important;letter-spacing:.2px!important;color:#666!important;text-align:right!important;white-space:nowrap!important}
+.hajjen-shared-ui .cards-hud .shared-hand-panel>.panel-note{display:none!important}
+
+.hajjen-shared-ui .cards-hud .shared-hand-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:repeat(2,48px)!important;gap:5px!important;overflow:visible!important;padding:0!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.legacy-hand-empty{display:none!important}
+
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card,
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder{box-sizing:border-box!important;height:48px!important;min-height:48px!important;max-height:48px!important;margin:0!important;border:1.5px solid var(--blue)!important;border-top-width:3px!important;border-radius:4px!important;background:var(--blue-soft)!important;padding:3px 4px!important;position:relative!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;text-align:left!important;gap:1px!important}
+
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"],
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder.manipulation{order:10!important;border-color:var(--blue)!important;background:var(--blue-soft)!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"],
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder.enchantment{order:20!important;border-color:var(--purple)!important;background:var(--purple-soft)!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"],
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical{order:30!important;border-color:var(--orange)!important;background:var(--orange-soft)!important}
+
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card::before{content:attr(data-hand-label);display:block!important;flex:0 0 auto!important;font-size:5.8px!important;line-height:1!important;font-weight:900!important;letter-spacing:.25px!important;color:currentColor!important;opacity:.8!important;margin:0!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card .card-cat{display:none!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card>strong{display:block!important;flex:0 0 auto!important;font-size:8px!important;line-height:1!important;margin:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card>span{display:none!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card>button{display:block!important;width:100%!important;min-height:15px!important;height:15px!important;margin:0!important;padding:0 2px!important;border-width:1px!important;border-radius:3px!important;font-size:6.5px!important;line-height:13px!important;font-weight:900!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-card>button:disabled{opacity:.48!important}
+
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder{justify-content:center!important;align-items:center!important;text-align:center!important;border-style:dashed!important;border-top-width:1.5px!important;opacity:.58!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder strong{font-size:7px!important;line-height:1!important;margin:0!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-hand-placeholder span{display:block!important;font-size:6px!important;line-height:1!important;font-weight:900!important;margin-top:3px!important;color:#666!important}
+
+/* Keep the two-row Hand approximately level with the current Action Bar panel. */
+.hajjen-shared-ui .cards-hud .shared-hand-panel{min-height:0!important}
+
+@media(max-width:1180px){
+  .hajjen-shared-ui .cards-hud .shared-hand-grid{grid-template-columns:repeat(4,minmax(72px,1fr))!important;grid-template-rows:repeat(2,48px)!important;overflow-x:auto!important;padding-bottom:1px!important}
+}
+@media(max-width:620px){
+  .hajjen-shared-ui .cards-hud .shared-hand-panel .hand-slot-count{white-space:normal!important;max-width:58%!important}
+  .hajjen-shared-ui .cards-hud .shared-hand-grid{grid-template-columns:repeat(4,82px)!important;grid-template-rows:repeat(2,48px)!important}
+}

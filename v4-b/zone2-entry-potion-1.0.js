@@ -15,9 +15,23 @@
 
   let saved;
   try{saved=JSON.parse(raw);}catch{return;}
-  if(saved?.zone2EntryPotionGranted)return;
 
   const previousZone=Number(saved?.zone??1);
+
+  // Zone 1 currently caps at Level 4 and its capstone HP is 165. A Zone 2
+  // entry save above Level 4 can therefore only be stale in-zone progress,
+  // not valid campaign progress carried from Zone 1. Recover the proper Zone 2
+  // entry state instead of allowing a reload/retry to begin at the Zone 2 cap.
+  if(previousZone===2&&Number(saved?.level)>cfg.levelFloor){
+    saved.level=cfg.levelFloor;
+    saved.xp=Math.min(Number.isFinite(Number(saved.xp))?Number(saved.xp):120,120);
+    saved.maxHp=165;
+    saved.hp=165;
+    saved.potion=1;
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
+  }
+
+  if(saved?.zone2EntryPotionGranted)return;
   if(previousZone>2)return;
 
   // Zone 2 starts with exactly one Healing Potion total. This is an entry

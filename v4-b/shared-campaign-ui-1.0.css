@@ -1,0 +1,52 @@
+/* Shared campaign-zone shell for Zone 2+.
+   Zone-specific gameplay remains in campaign-zone.js and zone system modules. */
+#campaignRoot{display:contents}
+.campaign-zone-app .leftcol,.campaign-zone-app .rightcol{align-self:start}
+.campaign-zone-app .leftcol>.manipulation-panel{display:none}
+
+/* Wide campaign world inside the shared board slot. */
+.campaign-board-wrap{position:relative;width:min(100%,1050px);aspect-ratio:15/10;overflow:hidden;border-left:2px solid var(--line);border-top:2px solid var(--line);background:#fdfdfb;box-shadow:none}
+.campaign-world.board{position:absolute;left:0;top:0;inset:auto;border:0;background:#fdfdfb;will-change:transform;transition:transform .18s ease-out}
+.campaign-world .tile{min-width:0;min-height:0}
+.campaign-world .tile.potion-ingredient{color:var(--green);background:var(--green-soft)}
+.campaign-world .tile.portal{color:var(--blue);background:var(--blue-soft)}
+.campaign-world .tile.portal::after{border-radius:4px;border-width:3px}
+.campaign-zone-app .legend{display:flex}
+.campaign-zone-app .tile-tooltip{right:10px;bottom:10px}
+
+/* Campaign source markup adapted for shared Spellbook / Backpack. */
+.campaign-zone-app .spell-grid.spell-list{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.campaign-zone-app .spell-grid.spell-list .spell{min-height:74px}
+.campaign-zone-app .backpack-zone-system{border:0;padding:0;margin-top:8px}
+.campaign-zone-app .backpack-zone-system>h2{display:none}
+.campaign-zone-app .backpack-zone-system .resources{font-size:10px;line-height:1.4;color:#555}
+.campaign-zone-app .backpack-zone-system .buttons{margin-top:7px}
+.campaign-zone-app .backpack-zone-system button{padding:6px 9px;font-size:10px;font-weight:900}
+.campaign-zone-app .potion-crafting-slot{grid-column:1/-1}
+.campaign-zone-app .potion-crafting-slot>span{margin-bottom:8px}
+.campaign-system-hud{grid-column:1/-1}
+.campaign-system-hud>.panel{margin:0}
+
+/* Campaign-core combat markup adapter. */
+.campaign-zone-app .combat-card,.campaign-zone-app #combatModal .modal-card{width:min(760px,95vw);border:3px solid var(--line);background:#fff;padding:20px}
+.campaign-zone-app #combatModal .combat-stats>div{display:grid;grid-template-columns:1fr auto;gap:4px;align-items:center}
+.campaign-zone-app #combatModal .combat-stats .bar{grid-column:1/-1}
+.campaign-zone-app #combatModal .dangerbar i{background:var(--red-dark)}
+.campaign-zone-app #combatModal .combat-footer{gap:8px}
+.campaign-zone-app #combatModal button{border:2px solid var(--line);border-radius:5px;background:#fff}
+.campaign-zone-app #combatModal #fleeBtn{background:#f7f7f4;color:#444;border-style:dashed}
+.campaign-zone-app .footer{display:none}
+
+/* Normalize campaign entity marks to the same visual language as Zone 1. */
+.campaign-zone-app .campaign-world .tile.special::after{content:attr(data-mark)!important;position:absolute!important;inset:50% auto auto 50%!important;transform:translate(-50%,-50%)!important;width:46%!important;height:auto!important;aspect-ratio:1!important;display:flex!important;align-items:center!important;justify-content:center!important;border:2px solid currentColor!important;border-radius:50%!important;background:rgba(248,249,242,.9)!important;box-shadow:0 1px 0 rgba(255,255,255,.7)!important;font-weight:900!important;font-size:clamp(9px,.9vw,14px)!important;line-height:1!important;text-shadow:none!important}
+.campaign-zone-app .campaign-world .tile.mob::after{color:var(--red)!important}
+.campaign-zone-app .campaign-world .tile.elite::after{color:var(--red-dark)!important}
+.campaign-zone-app .campaign-world .tile.boss::after{color:var(--purple)!important;border-radius:4px!important;border-width:3px!important}
+.campaign-zone-app .campaign-world .tile.ingredient::after,.campaign-zone-app .campaign-world .tile.potion-ingredient::after{color:var(--green)!important}
+.campaign-zone-app .campaign-world .tile.enchantment::after{color:var(--purple)!important}
+.campaign-zone-app .campaign-world .tile.potion-ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f!important}
+
+@media(max-width:1350px){.campaign-zone-app .spell-grid.spell-list{grid-template-columns:1fr 1fr}}
+@media(max-width:1000px){.campaign-board-wrap{width:100%}.campaign-zone-app .spell-grid.spell-list{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.campaign-zone-app .spell-grid.spell-list{grid-template-columns:1fr}.campaign-zone-app .potion-crafting-slot{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.campaign-world.board{transition:none}}

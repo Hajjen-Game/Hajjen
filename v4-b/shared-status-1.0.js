@@ -19,8 +19,8 @@
   const dangerState=$('dangerState');
   const dangerRule=$('dangerRule')||existingExpanded?.querySelector('.danger-rule');
   const thresholds=existingExpanded?.querySelector('.thresholds')||document.querySelector('.danger-info .thresholds');
-  const pressureGrid=existingExpanded?.querySelector('.pressure-grid')||document.querySelector('.pressure-panel .pressure-grid');
-  const pressureNote=existingExpanded?.querySelector('.panel-note')||document.querySelector('.pressure-panel .panel-note');
+  let pressureGrid=existingExpanded?.querySelector('.pressure-grid')||document.querySelector('.pressure-panel .pressure-grid');
+  let pressureNote=existingExpanded?.querySelector('.panel-note')||document.querySelector('.pressure-panel .panel-note');
 
   if(!hpFill||!hpText||!xpFill||!xpText||!levelText||!dangerFill||!dangerText||!dangerState)return;
 
@@ -34,6 +34,52 @@
     bar.appendChild(fill);
     row.append(name,bar,text);
     return row;
+  }
+
+  function pressureValue(id,fallback=''){
+    let node=$(id);
+    if(!node){
+      node=document.createElement('strong');
+      node.id=id;
+      node.textContent=fallback;
+    }
+    return node;
+  }
+
+  function pressureCell(label,value){
+    const cell=document.createElement('div');
+    const name=document.createElement('span');
+    name.textContent=label;
+    cell.append(name,value);
+    return cell;
+  }
+
+  if(zone>=2){
+    const campaignState=window.HAJJEN_CAMPAIGN_STATE;
+    const campaignConfig=window.HAJJEN_CAMPAIGN_CONFIG||window.HAJJEN_ZONE_CONFIG||{};
+    const visible=pressureValue('visibleText');
+    const clock=pressureValue('clockText',campaignState?.zoneCleared?'SAFE':`${campaignState?.nextAmbient??3} steps`);
+    const power=pressureValue('powerText','+0%');
+    const cap=document.createElement('strong');
+    cap.textContent=String(campaignConfig.levelCap??'—');
+
+    if(!pressureGrid){
+      pressureGrid=document.createElement('div');
+      pressureGrid.className='pressure-grid';
+    }
+    pressureGrid.classList.add('pressure-grid');
+    pressureGrid.replaceChildren(
+      pressureCell('Visible',visible),
+      pressureCell('Zone level cap',cap),
+      pressureCell('Next ambient Danger',clock),
+      pressureCell('Enemy power',power)
+    );
+
+    if(!pressureNote){
+      pressureNote=document.createElement('p');
+      pressureNote.className='panel-note';
+      pressureNote.textContent='Every 3 movement steps adds +1 Danger. Harvesting adds +1. Fixed mob kills add +2; spawned mobs add 0.';
+    }
   }
 
   panel.classList.add('status','shared-status');

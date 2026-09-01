@@ -12,6 +12,7 @@
   let activeSpawnedCombat=null;
   let activeSpawnedDangerBeforeCombat=null;
   let suppressedSpawnToasts=0;
+  let cancelledSpawnMaterializers=0;
   const spawnDecisionQueue=[];
   const suppressedSpawnLogs=new Set();
 
@@ -31,6 +32,16 @@
   // on the boss approach, and new spawns remain blocked below.
   const nativeSetTimeout=window.setTimeout.bind(window);
   window.setTimeout=(handler,delay,...args)=>{
+    // A rejected spawn used to be allowed to reach the core's 650 ms
+    // materialization callback and was then removed inside Map.set(). That kept
+    // gameplay correct but could paint a one-frame mob before cleanup. The
+    // spawn decision is made synchronously by the event-log guard immediately
+    // before telegraphSpawn schedules this timer, so consume that rejected
+    // materializer here and never let the cancelled entity enter the map.
+    if(typeof handler==='function'&&delay===650&&cancelledSpawnMaterializers>0){
+      cancelledSpawnMaterializers--;
+      return nativeSetTimeout(()=>{},delay,...args);
+    }
     if(typeof handler==='function'&&delay===420){
       return nativeSetTimeout((...cbArgs)=>{
         if(state()?.bossUnlocked)return;
@@ -145,10 +156,14 @@
         const step=s?.steps??-1;
         const warningTile=newestWarningTile();
         const allow=!s?.bossUnlocked&&blockedSpawnStep!==step&&allowedSpawnStep!==step&&activeSpawnedCount(gameMap)<MAX_ACTIVE_SPAWNED;
-        spawnDecisionQueue.push(allow);
         if(allow){
+          // Only accepted telegraphs need a future Map.set decision. Rejected
+          // telegraphs never materialize, so do not leave a false queue entry
+          // behind to poison the next legitimate spawn.
+          spawnDecisionQueue.push(true);
           allowedSpawnStep=step;
         }else{
+          cancelledSpawnMaterializers++;
           warningTile?.classList.remove('spawn-warning');
           warningTile?.removeAttribute('data-spawn-guard');
           toastArea?.querySelector('.toast.spawn')?.remove();

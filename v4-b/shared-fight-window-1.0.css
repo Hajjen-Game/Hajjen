@@ -1,0 +1,43 @@
+/* Shared Fight Window for Zone 1 and Zone 2. Zone-specific combat rules stay in their gameplay files. */
+#combatModal.shared-fight-window{background:rgba(247,247,244,.94);padding:15px;z-index:100}
+#combatModal.shared-fight-window .shared-fight-card{width:min(760px,95vw);max-height:90vh;overflow:auto;border:3px solid var(--line);border-radius:6px;background:#fff;padding:20px}
+#combatModal.shared-fight-window .shared-fight-header{display:block;margin:0 0 12px}
+#combatModal.shared-fight-window .shared-fight-tier{display:block;margin:0 0 2px;font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--muted)}
+#combatModal.shared-fight-window .shared-fight-title{margin:3px 0 0;font-size:22px;line-height:1.1}
+
+#combatModal.shared-fight-window .shared-fight-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#combatModal.shared-fight-window .shared-fight-stat{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;min-width:0}
+#combatModal.shared-fight-window .shared-fight-stat-label,#combatModal.shared-fight-window .shared-fight-stat-value{font-size:10px;font-weight:900}
+#combatModal.shared-fight-window .shared-fight-stat-value{text-align:right}
+#combatModal.shared-fight-window .shared-fight-bar{grid-column:1/-1;height:20px;margin:0;border:2px solid var(--line);background:#fff;overflow:hidden}
+#combatModal.shared-fight-window .shared-fight-bar i{display:block;height:100%;transition:width .2s ease}
+#combatModal.shared-fight-window .shared-fight-enemy-bar i{background:var(--red-dark)}
+#combatModal.shared-fight-window .shared-fight-sharkan-bar i{background:var(--green)}
+
+#combatModal.shared-fight-window .shared-fight-message{border:2px solid var(--line);padding:9px;margin:13px 0;font-size:11px;line-height:1.35;min-height:39px;background:#fff}
+#combatModal.shared-fight-window .shared-fight-spells{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;width:100%}
+#combatModal.shared-fight-window .shared-fight-spell{position:relative;width:100%;min-width:0;min-height:74px;padding:8px 30px 8px 8px;border:2px solid var(--line);border-radius:5px;background:#fff;font-weight:900;text-align:center;overflow:hidden}
+#combatModal.shared-fight-window .shared-fight-spell small{display:block;margin-top:4px;font-size:9px;font-weight:400;line-height:1.25;color:#555}
+#combatModal.shared-fight-window .shared-fight-spell[data-hotkey]::after{content:attr(data-hotkey);position:absolute;top:6px;right:6px;width:20px;height:20px;border:1.5px solid currentColor;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;line-height:1;box-sizing:border-box}
+#combatModal.shared-fight-window .shared-fight-spell:disabled{opacity:.35}
+
+#combatModal.shared-fight-window .shared-fight-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+#combatModal.shared-fight-window .shared-fight-footer button{padding:7px 12px;border:2px solid var(--line);border-radius:5px;font-weight:900;background:#fff}
+#combatModal.shared-fight-window .shared-fight-flee{background:#f7f7f4;border-style:dashed;color:#444}
+
+@media(max-width:620px){
+  #combatModal.shared-fight-window .shared-fight-card{padding:15px}
+  #combatModal.shared-fight-window .shared-fight-stats{grid-template-columns:1fr}
+  #combatModal.shared-fight-window .shared-fight-spells{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #combatModal.shared-fight-window .shared-fight-footer{display:grid;grid-template-columns:1fr 1fr}
+  #combatModal.shared-fight-window .shared-fight-footer button{width:100%}
+}
+
+@media(max-width:420px){
+  #combatModal.shared-fight-window .shared-fight-spells{grid-template-columns:1fr!important}
+  #combatModal.shared-fight-window .shared-fight-footer{grid-template-columns:1fr}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #combatModal.shared-fight-window .shared-fight-bar i{transition:none}
+}

@@ -1,7 +1,7 @@
 (()=>{
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   const state=zone===1?window.HAJJEN_V4B_STATE:window.HAJJEN_CAMPAIGN_STATE;
-  if((zone!==1&&zone!==2)||!state)return;
+  if(!zone||!state)return;
 
   const $=id=>document.getElementById(id);
   const SAVE_KEY='hajjen-v4b-campaign';

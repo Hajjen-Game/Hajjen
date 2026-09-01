@@ -1,0 +1,12 @@
+.shared-help-modal .modal-card{width:min(780px,94vw);max-height:90vh;overflow:auto}
+.shared-help-body{margin:0}
+.shared-help-copy{font-size:12px;line-height:1.5}
+.shared-help-section{margin:0 0 14px}
+.shared-help-section:last-child{margin-bottom:0}
+.shared-help-section-title{display:block;margin:0 0 5px;font-size:12px;font-weight:900;letter-spacing:.2px}
+.shared-help-section ul{margin:0;padding-left:18px}
+.shared-help-section li{margin:3px 0}
+@media(max-width:620px){
+  .shared-help-modal .modal-card{width:94vw}
+  .shared-help-copy{font-size:11px}
+}

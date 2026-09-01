@@ -10,8 +10,15 @@
   const spellbook=document.querySelector('.spellbook-open');
   const backpack=document.querySelector('.backpack-open');
   const help=document.querySelector('.help-open');
-  const copy=document.getElementById('copyRunReportVisibleBtn')||document.getElementById('copyZone2RunReportBtn')||document.getElementById('copyRunReportBtn');
+  let copy=document.getElementById('copyRunReportVisibleBtn')||document.getElementById('copyZone2RunReportBtn')||document.getElementById('copyRunReportBtn');
   const reset=document.getElementById('resetBtn');
+
+  if(!copy){
+    copy=document.createElement('button');
+    copy.id='copyRunReportSharedBtn';
+    copy.type='button';
+    copy.textContent=text.copyRunReport||'COPY RUN REPORT';
+  }
 
   const utility=document.createElement('div');
   utility.className='utility-hud shared-utility-hud';

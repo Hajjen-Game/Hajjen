@@ -3,7 +3,7 @@
   if(!config)return;
 
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
-  if(zone!==1&&zone!==2)return;
+  if(!zone)return;
 
   const hand=document.getElementById(zone===1?'manipulationCards':'manipCards');
   const panel=hand?.closest('.manipulation-panel');

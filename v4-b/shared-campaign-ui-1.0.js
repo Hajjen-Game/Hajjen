@@ -129,11 +129,17 @@
       const heading=pressurePanel.querySelector('h2');
       if(heading)heading.after(grid);else pressurePanel.prepend(grid);
     }
-    if(!pressurePanel.querySelector('.panel-note')){
-      const note=document.createElement('p');
+    let note=pressurePanel.querySelector('.panel-note');
+    if(!note){
+      note=document.createElement('p');
       note.className='panel-note';
       note.textContent='Every 3 movement steps adds +1 Danger. Harvesting adds +1. Fixed mob kills add +2; spawned mobs add 0.';
       grid.after(note);
+    }
+    const expanded=status?.querySelector('.danger-expanded');
+    if(expanded){
+      expanded.appendChild(grid);
+      expanded.appendChild(note);
     }
   }
 

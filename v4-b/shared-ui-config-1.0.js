@@ -26,9 +26,9 @@
       potionSlot:true
     },
     deckLibrary:{
-      manipulation:{label:'MANIPULATION'},
-      enchantment:{label:'ENCHANTMENT'},
-      tactical:{label:'TACTICAL'}
+      manipulation:{label:'MANIPULATION',introducedIn:1},
+      enchantment:{label:'ENCHANTMENT',introducedIn:3},
+      tactical:{label:'TACTICAL',introducedIn:4}
     },
     zones:{
       1:{
@@ -43,7 +43,8 @@
         ],
         decks:[
           {type:'manipulation',state:'active'},
-          {type:'enchantment',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 3'}
+          {type:'enchantment',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 3'},
+          {type:'tactical',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 4'}
         ]
       },
       2:{
@@ -58,7 +59,8 @@
         ],
         decks:[
           {type:'manipulation',state:'active'},
-          {type:'enchantment',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 3'}
+          {type:'enchantment',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 3'},
+          {type:'tactical',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 4'}
         ]
       }
     }

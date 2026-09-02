@@ -9,7 +9,7 @@
 }
 
 .tile{
-  --tile-texture:url('assets/board_tile_light.webp');
+  --tile-texture:url('assets/board_tile_light.webp?v=2');
   --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
   background-color:var(--board-sage-light);
   background-image:var(--tile-overlay),var(--tile-texture)!important;
@@ -21,7 +21,7 @@
 }
 
 .tile:nth-child(even){
-  --tile-texture:url('assets/board_tile_dark.webp');
+  --tile-texture:url('assets/board_tile_dark.webp?v=2');
   background-color:var(--board-sage-dark);
 }
 

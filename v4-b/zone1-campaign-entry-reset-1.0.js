@@ -6,4 +6,5 @@
   localStorage.removeItem('hajjen-v4b-spell-library-v2');
   localStorage.removeItem('hajjen-v4b-zone2-entry-snapshot');
   localStorage.removeItem('hajjen-v4b-zone2-entry-spell-library');
+  localStorage.removeItem('hajjen-v4b-zone3-enchantment-hand-v1');
 })();

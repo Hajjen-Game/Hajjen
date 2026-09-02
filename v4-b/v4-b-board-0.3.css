@@ -30,7 +30,32 @@
   box-shadow:inset 0 0 0 1px rgba(47,111,178,.38);
 }
 .tile.reachable:hover{box-shadow:inset 0 0 0 3px var(--blue),0 0 0 1px rgba(255,255,255,.55)}
-.tile.current{box-shadow:inset 0 0 0 3px var(--blue),0 0 0 1px rgba(255,255,255,.5)}
+
+/* The player is the visual marker now; do not draw a blue outline around the occupied tile. */
+.tile.current{box-shadow:none!important}
+
+/* Shared Sharkan board piece. Direction is controlled by shared-status-1.0.js. */
+.player{
+  border:0!important;
+  border-radius:0!important;
+  max-width:none!important;
+  aspect-ratio:auto!important;
+  background-color:transparent!important;
+  background-image:url('assets/sharkan_right.webp?v=1')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  font-size:0!important;
+  line-height:0!important;
+  display:block!important;
+  pointer-events:none!important;
+  transform:translate(-50%,-50%)!important;
+  transition:left .13s ease,top .13s ease!important;
+}
+.player[data-facing="left"]{background-image:url('assets/sharkan_left.webp?v=1')!important}
+.player[data-facing="right"]{background-image:url('assets/sharkan_right.webp?v=1')!important}
 
 /* Special tiles keep their category color, but the board artwork remains visible underneath. */
 .tile.ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f}

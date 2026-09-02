@@ -123,5 +123,46 @@
     panel.appendChild(expanded);
   }
 
+  function initPlayerAvatar(){
+    const player=$('player');
+    if(!player)return;
+    const campaignConfig=window.HAJJEN_CAMPAIGN_CONFIG||window.HAJJEN_ZONE_CONFIG||{};
+    const cols=zone===1?15:(Number(campaignConfig.cols)||15);
+    const rows=zone===1?10:(Number(campaignConfig.rows)||10);
+
+    player.textContent='';
+    player.setAttribute('aria-label','Sharkan');
+    player.style.width=`${86/cols}%`;
+    player.style.height=`${90/rows}%`;
+
+    let facing='right';
+    try{
+      const saved=sessionStorage.getItem('hajjen-player-facing');
+      if(saved==='left'||saved==='right')facing=saved;
+    }catch{}
+    player.dataset.facing=facing;
+
+    let lastLeft=parseFloat(player.style.left);
+    if(!Number.isFinite(lastLeft))lastLeft=null;
+
+    const syncFacing=()=>{
+      const nextLeft=parseFloat(player.style.left);
+      if(!Number.isFinite(nextLeft))return;
+      if(lastLeft!==null){
+        if(nextLeft>lastLeft+0.0001)facing='right';
+        else if(nextLeft<lastLeft-0.0001)facing='left';
+        else{lastLeft=nextLeft;return;}
+        player.dataset.facing=facing;
+        try{sessionStorage.setItem('hajjen-player-facing',facing);}catch{}
+      }
+      lastLeft=nextLeft;
+    };
+
+    new MutationObserver(syncFacing).observe(player,{attributes:true,attributeFilter:['style']});
+    syncFacing();
+  }
+
+  initPlayerAvatar();
+
   window.HAJJEN_SHARED_STATUS={version:'1.0',zone,panel};
 })();

@@ -87,6 +87,12 @@
   content:""!important;
 }
 
+/* Primal Spring is a complete tile artwork, matching encounter-tile behavior. */
+.tile.spring{
+  background:#9aa16f url('assets/primal_spring.webp?v=1') center center/100% 100% no-repeat!important;
+}
+.tile.spring::after{display:none!important}
+
 /* Other world/resource tiles keep their existing treatment. */
 .tile.shrine{--tile-overlay:linear-gradient(rgba(248,239,198,.55),rgba(248,239,198,.55));background-color:#b1a36d}
 
@@ -112,7 +118,7 @@
 @media(max-width:560px){
   .tile{background-size:100% 100%,100% 100%}
   .tile.ingredient[data-force]{background-size:100% 100%,56% 56%,100% 100%!important}
-  .tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
+  .tile.spring,.tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
 }
 @media(prefers-reduced-motion:reduce){
   .tile.ingredient[data-force]{transition:none}

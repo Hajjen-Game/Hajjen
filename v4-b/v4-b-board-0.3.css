@@ -57,8 +57,33 @@
 .player[data-facing="left"]{background-image:url('assets/sharkan_left.webp?v=1')!important}
 .player[data-facing="right"]{background-image:url('assets/sharkan_right.webp?v=1')!important}
 
-/* World/resource tiles keep the grassy board artwork beneath a category tint. */
-.tile.ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f}
+/* Spell ingredients use one shared icon per Primal Force, directly on grass. */
+.tile.ingredient{
+  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
+}
+.tile.ingredient[data-force="Growth"]{--ingredient-icon:url('assets/ingredient_growth.webp?v=1')}
+.tile.ingredient[data-force="Ember"]{--ingredient-icon:url('assets/ingredient_ember.webp?v=1')}
+.tile.ingredient[data-force="Flow"]{--ingredient-icon:url('assets/ingredient_flow.webp?v=1')}
+.tile.ingredient[data-force="Stone"]{--ingredient-icon:url('assets/ingredient_stone.webp?v=1')}
+.tile.ingredient[data-force="Gale"]{--ingredient-icon:url('assets/ingredient_gale.webp?v=1')}
+.tile.ingredient[data-force="Aether"]{--ingredient-icon:url('assets/ingredient_aether.webp?v=1')}
+.tile.ingredient[data-force]{
+  background-image:var(--tile-overlay),var(--ingredient-icon),var(--tile-texture)!important;
+  background-size:100% 100%,56% 56%,100% 100%!important;
+  background-position:center,center,center!important;
+  background-repeat:no-repeat!important;
+}
+.tile.ingredient[data-force].reachable{
+  --tile-overlay:linear-gradient(rgba(216,233,244,.28),rgba(216,233,244,.28));
+}
+.tile.ingredient.completed[data-force]{--ingredient-icon:none}
+.tile.ingredient[data-force]::after,
+.campaign-zone-app .campaign-world .tile.special.ingredient[data-force]::after{
+  display:none!important;
+  content:""!important;
+}
+
+/* Other world/resource tiles keep their existing treatment. */
 .tile.shrine{--tile-overlay:linear-gradient(rgba(248,239,198,.55),rgba(248,239,198,.55));background-color:#b1a36d}
 
 /* Encounter tiles are complete tile artworks, not icons placed on grass. */
@@ -82,5 +107,6 @@
 
 @media(max-width:560px){
   .tile{background-size:100% 100%,100% 100%}
+  .tile.ingredient[data-force]{background-size:100% 100%,56% 56%,100% 100%!important}
   .tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
 }

@@ -1,15 +1,32 @@
 window.HAJJEN_ZONE_CONFIG={
   zone:3,name:'ZONE 3',cols:30,rows:15,viewCols:15,viewRows:10,start:{row:7,col:1},levelFloor:7,levelCap:10,next:null,
   introQuest:'Apply an Enchantment',introType:'enchantment',bossTitle:'ZONE 3 BOSS',bossPos:{row:7,col:28},
+  mobTarget:7,eliteTarget:2,bossLevelTarget:10,requireIntroForBoss:true,
   enemies:[
-    {row:2,col:5,type:'mob',title:'RIFT WHELP',hp:150,attack:19,xp:30},{row:11,col:7,type:'mob',title:'STONE WRAITH',hp:158,attack:20,xp:30},
-    {row:5,col:12,type:'mob',title:'GALE STALKER',hp:164,attack:20,xp:31},{row:12,col:16,type:'mob',title:'AETHER HUNTER',hp:170,attack:21,xp:31},
-    {row:2,col:22,type:'mob',title:'PRIMAL WRAITH',hp:176,attack:21,xp:32},{row:10,col:25,type:'mob',title:'RIFT PROWLER',hp:180,attack:22,xp:32},
-    {row:6,col:14,type:'elite',title:'PRIMAL SENTINEL',hp:265,attack:27,xp:50},{row:10,col:23,type:'elite',title:'RIFT GUARDIAN',hp:280,attack:28,xp:52},
+    {row:7,col:5,type:'mob',title:'RIFT WHELP',hp:150,attack:19,xp:30},
+    {row:5,col:7,type:'mob',title:'STONE WRAITH',hp:154,attack:19,xp:30},
+    {row:10,col:9,type:'mob',title:'GALE STALKER',hp:158,attack:20,xp:31},
+    {row:8,col:11,type:'mob',title:'AETHER HUNTER',hp:162,attack:20,xp:31},
+    {row:5,col:15,type:'mob',title:'PRIMAL WRAITH',hp:166,attack:21,xp:32},
+    {row:3,col:17,type:'mob',title:'RIFT PROWLER',hp:170,attack:21,xp:32},
+    {row:11,col:18,type:'mob',title:'VOID STALKER',hp:174,attack:21,xp:32},
+    {row:5,col:21,type:'mob',title:'STONE REAVER',hp:178,attack:22,xp:33},
+    {row:9,col:23,type:'mob',title:'GALE REAVER',hp:182,attack:22,xp:33},
+    {row:5,col:26,type:'mob',title:'RIFT HUNTER',hp:186,attack:23,xp:34},
+    {row:6,col:13,type:'elite',title:'PRIMAL SENTINEL',hp:265,attack:27,xp:50},
+    {row:9,col:25,type:'elite',title:'RIFT GUARDIAN',hp:280,attack:28,xp:52},
     {row:7,col:28,type:'boss',title:'ZONE 3 BOSS',hp:390,attack:32,xp:100}
   ],
-  spellIngredients:[{row:3,col:3,name:'Thorn Core',force:'Growth'},{row:13,col:9,name:'Cinder Heart',force:'Ember'},{row:2,col:18,name:'Tide Crystal',force:'Flow'},{row:12,col:27,name:'Moon Rift',force:'Aether'}],
+  spring:{row:7,col:18,heal:45,title:'PRIMAL SPRING'},
+  spellIngredients:[
+    {row:3,col:6,name:'Thorn Core',force:'Growth'},
+    {row:12,col:10,name:'Cinder Heart',force:'Ember'},
+    {row:2,col:19,name:'Tide Crystal',force:'Flow'},
+    {row:12,col:27,name:'Moon Rift',force:'Aether'}
+  ],
   potionIngredients:[],
+  manipulationCards:['Veiled Passage','Misdirection','Safe Window','Pressure Break'],
+  combatAttraction:{enabled:true,radius:2,chance:{calm:0,uneasy:.30,dangerous:.45,hostile:.60,critical:.75}},
   enchantment:{worldPickup:false,draw:2,mark:'✦'},
   enchantmentDeck:[
     {id:'empowered',name:'Empowered',text:'Enchanted spell deals +6 damage.'},
@@ -24,3 +41,30 @@ window.HAJJEN_ZONE_CONFIG={
     {id:'finisher',name:'Finisher',text:'Spell deals +10 damage to enemies below 35% HP.'}
   ]
 };
+
+(()=>{
+  const ui=window.HAJJEN_SHARED_UI_CONFIG?.zones?.[3];
+  if(!ui)return;
+  const mobObjective=(ui.objectives||[]).find(item=>item.kind==='mob');
+  if(mobObjective)mobObjective.target=7;
+  const goal=(ui.help||[]).find(section=>section.title==='ZONE 3 GOAL');
+  if(goal)goal.items=[
+    'Apply one of your two drawn Enchantments to a crafted spell.',
+    'Defeat 7 normal mobs, both Guardians, and reach Level 10 to unlock the Zone 3 boss.',
+    'Zone 3 contains 10 fixed normal mobs. Three are optional, so route choice still matters.'
+  ];
+  const danger=(ui.help||[]).find(section=>section.title==='DANGER');
+  if(danger)danger.items=[
+    'Movement, harvesting and combat continue to raise Danger.',
+    'Higher Danger increases spawn pressure, enemy power and adjacent aggro.',
+    'From Danger 5 onward, combat can attract a nearby existing normal mob into a chained fight.'
+  ];
+  if(!(ui.help||[]).some(section=>section.title==='ZONE 3 MANIPULATION')){
+    ui.help.splice(2,0,{title:'ZONE 3 MANIPULATION',items:[
+      'Veiled Passage suppresses adjacent aggro for 3 movement steps.',
+      'Misdirection moves one nearby normal mob 2 tiles farther away.',
+      'Safe Window prevents ambient spawns for 3 movement steps.',
+      'Pressure Break reduces Danger by 2 and blocks the next combat-attraction check.'
+    ]});
+  }
+})();

@@ -32,6 +32,11 @@
     if(deck.type==='manipulation'){
       return `${readyManipulationCount()} / ${zoneConfig.manipulationDeckSize||0} READY`;
     }
+    if(deck.type==='enchantment'&&deck.state==='active'){
+      const api=window.HAJJEN_ZONE3_ENCHANTMENTS;
+      const drawn=api?.hand?.length||0,total=api?.deck?.length||0;
+      if(drawn&&total)return `${drawn} / ${total} DRAWN`;
+    }
     if(deck.note)return deck.note;
     if(deck.state==='locked'&&def?.introducedIn){
       return `LOCKED · INTRODUCED IN ZONE ${def.introducedIn}`;
@@ -86,12 +91,12 @@
 
   function sync(){
     queued=false;
-    const manipulation=panel.querySelector('[data-deck-note="manipulation"]');
-    if(manipulation){
-      const deck=(zoneConfig.decks||[]).find(item=>item.type==='manipulation')||{type:'manipulation'};
-      const def=config.deckLibrary?.manipulation;
-      manipulation.textContent=deckNote(deck,def);
-    }
+    (zoneConfig.decks||[]).forEach(deck=>{
+      const note=panel.querySelector(`[data-deck-note="${deck.type}"]`);
+      if(!note)return;
+      const def=config.deckLibrary?.[deck.type];
+      note.textContent=deckNote(deck,def);
+    });
   }
 
   render();
@@ -105,11 +110,5 @@
     observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   }
 
-  window.HAJJEN_SHARED_CARD_DECKS={
-    version:'1.0',
-    zone,
-    panel,
-    render,
-    sync
-  };
+  window.HAJJEN_SHARED_CARD_DECKS={version:'1.0',zone,panel,render,sync};
 })();

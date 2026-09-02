@@ -10,5 +10,17 @@ window.HAJJEN_ZONE_CONFIG={
   ],
   spellIngredients:[{row:3,col:3,name:'Thorn Core',force:'Growth'},{row:13,col:9,name:'Cinder Heart',force:'Ember'},{row:2,col:18,name:'Tide Crystal',force:'Flow'},{row:12,col:27,name:'Moon Rift',force:'Aether'}],
   potionIngredients:[],
-  enchantment:{name:'Empowered I',damage:8,mark:'✦'}
+  enchantment:{worldPickup:false,draw:2,mark:'✦'},
+  enchantmentDeck:[
+    {id:'empowered',name:'Empowered',text:'Enchanted spell deals +6 damage.'},
+    {id:'lifebound',name:'Lifebound',text:'Casting the spell restores 5 HP.'},
+    {id:'fortified',name:'Fortified',text:'After casting, reduce the next enemy hit by 4.'},
+    {id:'quickening',name:'Quickening',text:'First cast of this spell each combat deals +8 damage.'},
+    {id:'echoing',name:'Echoing',text:'Every second cast of this spell deals +8 additional damage.'},
+    {id:'siphoning',name:'Siphoning',text:'When this spell defeats an enemy, restore 10 HP.'},
+    {id:'focused',name:'Focused',text:'Spell gains +3 damage for each player level above 1.'},
+    {id:'primal-surge',name:'Primal Surge',text:'Spell deals +10 damage while Danger is 15+.'},
+    {id:'stabilized',name:'Stabilized',text:"Spell's defensive/healing secondary effect is increased by 50%."},
+    {id:'finisher',name:'Finisher',text:'Spell deals +10 damage to enemies below 35% HP.'}
+  ]
 };

@@ -71,7 +71,7 @@
   cfg.enemies.forEach(e=>add(e.row,e.col,{type:e.type,mark:e.type==='mob'?'☠':e.type==='elite'?'⚔':'♛',title:e.title,baseHp:e.hp,baseAttack:e.attack,xp:e.xp}));
   (cfg.spellIngredients||[]).forEach(e=>add(e.row,e.col,{type:'ingredient',mark:'✿',title:e.name.toUpperCase(),name:e.name,force:e.force}));
   (cfg.potionIngredients||[]).forEach(e=>add(e.row,e.col,{type:'potion-ingredient',mark:'⚗',title:e.name.toUpperCase(),name:e.name}));
-  if(cfg.zone===3&&cfg.enchantment)add(4,8,{type:'enchantment',mark:cfg.enchantment.mark||'✦',title:cfg.enchantment.name.toUpperCase()});
+  if(cfg.zone===3&&cfg.enchantment&&cfg.enchantment.worldPickup!==false)add(4,8,{type:'enchantment',mark:cfg.enchantment.mark||'✦',title:String(cfg.enchantment.name||'ENCHANTMENT').toUpperCase()});
 
   function buildWorld(){
     for(let r=0;r<cfg.rows;r++)for(let c=0;c<cfg.cols;c++){
@@ -95,7 +95,7 @@
     if(e.type==='mob'||e.type==='elite')$('tileDesc').textContent=`Base ${e.baseHp} HP / ${e.baseAttack} damage. Enemy power +${enemyPowerBonus()}%.`;
     else if(e.type==='boss')$('tileDesc').textContent=state.bossUnlocked?'Boss ready.':'Defeat 4 mobs and both elites first.';
     else if(e.type==='portal')$('tileDesc').textContent=cfg.next?'Step here to continue to the next zone.':'Campaign prototype complete.';
-    else if(e.type==='enchantment')$('tileDesc').textContent='Collect Empowered I to unlock the Zone 3 Enchantment introduction.';
+    else if(e.type==='enchantment')$('tileDesc').textContent='Collect the Enchantment card.';
     else $('tileDesc').textContent=state.zoneCleared?'Collect freely.':'Collecting adds +1 Danger unless Quiet Harvest is active.';
   }
 
@@ -113,7 +113,7 @@
     const e=entities.get(key(state.row,state.col));if(!e||e.completed)return;
     if(e.type==='ingredient'){e.completed=true;state.spellIngredients.push({name:e.name,force:e.force});harvestDanger();toast(`${e.name.toUpperCase()} COLLECTED`,'reward');log(`Collected ${e.name} (${e.force}).`,'reward');renderAll();return;}
     if(e.type==='potion-ingredient'){e.completed=true;state.potionIngredients.push(e.name);harvestDanger();toast(`${e.name.toUpperCase()} COLLECTED`,'reward');log(`Collected potion ingredient ${e.name}.`,'reward');renderAll();return;}
-    if(e.type==='enchantment'){e.completed=true;state.hasEnchantment=true;toast(`${cfg.enchantment.name.toUpperCase()} FOUND`,'reward');log(`${cfg.enchantment.name} is ready to apply.`,'reward');renderAll();return;}
+    if(e.type==='enchantment'){e.completed=true;state.hasEnchantment=true;toast(`${String(cfg.enchantment?.name||'ENCHANTMENT').toUpperCase()} FOUND`,'reward');log(`${cfg.enchantment?.name||'Enchantment'} is ready to apply.`,'reward');renderAll();return;}
     if(e.type==='portal'){if(cfg.next){saveCampaign();location.href=cfg.next;}else toast('ZONES 1–3 COMPLETE','reward');return;}
     if(['mob','elite','boss'].includes(e.type))startCombat(e);
   }
@@ -127,13 +127,44 @@
   function maybeSpawn(){if(state.danger<5||Math.random()>spawnChance()||state.combat)return;if(state.spawnBlock){state.spawnBlock--;toast('SPAWN BLOCKED','reward');return;}const spots=[];for(let r=0;r<cfg.rows;r++)for(let c=0;c<cfg.cols;c++){if(entities.has(key(r,c))||(r===state.row&&c===state.col))continue;const d=Math.max(Math.abs(r-state.row),Math.abs(c-state.col));if(d>=2&&d<=5)spots.push({r,c});}if(!spots.length)return;const s=spots[Math.floor(Math.random()*spots.length)];state.spawnSerial++;add(s.r,s.c,{type:'mob',mark:'☠',title:`ROUSED MOB ${state.spawnSerial}`,baseHp:cfg.zone===2?96:158,baseAttack:cfg.zone===2?14:20,xp:cfg.zone===2?18:28,spawned:true});toast('NEW MOB SPAWNED','danger');renderBoard();}
   function maybeAggro(){if(state.danger<10)return;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const e=entities.get(key(state.row+dr,state.col+dc));if(e&&!e.completed&&(e.type==='mob'||e.type==='elite')){toast('ADJACENT AGGRO','danger');startCombat(e,true);return;}}}
 
-  function spellDamage(s){return s.damage+(state.level-1)*4+(s.enchantDamage||0);}
+  function enchantmentIds(s){return Array.isArray(s?.enchantments)?s.enchantments.map(item=>typeof item==='string'?item:item?.id).filter(Boolean):[];}
+  function hasEnchantment(s,id){return enchantmentIds(s).includes(id);}
+  function enchantmentDamageBonus(s,c=state.combat){
+    const ids=enchantmentIds(s);let bonus=Number(s?.enchantDamage)||0;
+    if(ids.includes('empowered'))bonus+=6;
+    if(ids.includes('focused'))bonus+=Math.max(0,state.level-1)*3;
+    if(ids.includes('primal-surge')&&state.danger>=15)bonus+=10;
+    if(c){
+      const casts=Number(c.spellCastCounts?.[s.id])||0;
+      if(ids.includes('quickening')&&casts===0)bonus+=8;
+      if(ids.includes('echoing')&&(casts+1)%2===0)bonus+=8;
+      if(ids.includes('finisher')&&c.maxHp>0&&c.hp/c.maxHp<.35)bonus+=10;
+    }
+    return bonus;
+  }
+  function secondaryAmount(s,id,base){if(!hasEnchantment(s,id))return 0;return Math.round(base*(hasEnchantment(s,'stabilized')?1.5:1));}
+  function spellDamage(s){return s.damage+(state.level-1)*4+enchantmentDamageBonus(s);}
   function cooldown(s){return Math.max(0,(s.cooldown||0)-(s.cooldownReduction||0));}
   function startCombat(e,fromAggro=false){
-    if(state.combat||state.zoneCleared)return;const scale=enemyScale(),maxHp=Math.round(e.baseHp*scale),attack=Math.round(e.baseAttack*scale);state.combat={entity:e,maxHp,hp:maxHp,attack,cooldowns:{}};$('combatTier').textContent=e.type==='boss'?'BOSS':e.type==='elite'?'ELITE':'MOB';$('combatTitle').textContent=e.title;$('combatMessage').textContent=`Enemy power +${enemyPowerBonus()}%. Choose a spell.`;$('fleeBtn').disabled=e.type!=='mob';$('combatModal').classList.add('show');renderCombat();log(`${e.title} engaged${fromAggro?' from adjacent aggro':''}.`,'danger');
+    if(state.combat||state.zoneCleared)return;const scale=enemyScale(),maxHp=Math.round(e.baseHp*scale),attack=Math.round(e.baseAttack*scale);state.combat={entity:e,maxHp,hp:maxHp,attack,cooldowns:{},spellCastCounts:{}};$('combatTier').textContent=e.type==='boss'?'BOSS':e.type==='elite'?'ELITE':'MOB';$('combatTitle').textContent=e.title;$('combatMessage').textContent=`Enemy power +${enemyPowerBonus()}%. Choose a spell.`;$('fleeBtn').disabled=e.type!=='mob';$('combatModal').classList.add('show');renderCombat();log(`${e.title} engaged${fromAggro?' from adjacent aggro':''}.`,'danger');
   }
   function renderCombat(){const c=state.combat;if(!c)return;$('enemyHpText').textContent=`${c.hp} / ${c.maxHp}`;$('enemyHpFill').style.width=`${Math.max(0,c.hp/c.maxHp*100)}%`;$('combatHpText').textContent=`${state.hp} / ${state.maxHp}`;$('combatHpFill').style.width=`${state.hp/state.maxHp*100}%`;const potionBtn=$('combatPotionBtn');if(potionBtn){potionBtn.textContent=`USE POTION · ${state.potion} LEFT`;potionBtn.disabled=state.potion<1||state.hp>=state.maxHp||state.gameOver;}const wrap=$('combatSpells');wrap.innerHTML='';state.spells.forEach(s=>{const remain=c.cooldowns[s.id]||0,b=document.createElement('button');b.disabled=remain>0;b.innerHTML=`${s.name}<small>${spellDamage(s)} damage · CD ${cooldown(s)}${remain?` · ${remain} casts remaining`:''}</small>`;b.addEventListener('click',()=>cast(s));wrap.appendChild(b);});}
-  function cast(s){const c=state.combat;if(!c||(c.cooldowns[s.id]||0)>0)return;Object.keys(c.cooldowns).forEach(id=>{if(id!==s.id&&c.cooldowns[id]>0)c.cooldowns[id]--;});const cd=cooldown(s);if(cd)c.cooldowns[s.id]=cd;const dmg=spellDamage(s);c.hp-=dmg;$('combatMessage').textContent=`${s.name} deals ${dmg}.`;if(c.hp<=0){winCombat();return;}state.hp=Math.max(0,state.hp-c.attack);$('combatMessage').textContent+=` ${c.entity.title} hits back for ${c.attack}.`;renderCombat();renderStatus();if(state.hp<=0)defeat();}
+  function cast(s){
+    const c=state.combat;if(!c||(c.cooldowns[s.id]||0)>0)return;
+    Object.keys(c.cooldowns).forEach(id=>{if(id!==s.id&&c.cooldowns[id]>0)c.cooldowns[id]--;});
+    const cd=cooldown(s);if(cd)c.cooldowns[s.id]=cd;
+    const dmg=spellDamage(s);c.spellCastCounts[s.id]=(c.spellCastCounts[s.id]||0)+1;c.hp-=dmg;
+    $('combatMessage').textContent=`${s.name} deals ${dmg}.`;
+    const castHeal=secondaryAmount(s,'lifebound',5);
+    if(castHeal){const healed=Math.min(castHeal,state.maxHp-state.hp);state.hp+=healed;if(healed)$('combatMessage').textContent+=` Lifebound restores ${healed} HP.`;}
+    if(c.hp<=0){
+      const killHeal=secondaryAmount(s,'siphoning',10);
+      if(killHeal){const healed=Math.min(killHeal,state.maxHp-state.hp);state.hp+=healed;if(healed){toast(`+${healed} HP`,'reward');log(`Siphoning restored ${healed} HP.`,'reward');}}
+      winCombat();return;
+    }
+    const reduction=secondaryAmount(s,'fortified',4),blocked=Math.min(reduction,c.attack),incoming=Math.max(0,c.attack-reduction);
+    state.hp=Math.max(0,state.hp-incoming);$('combatMessage').textContent+=` ${c.entity.title} hits back for ${incoming}.${blocked?` Fortified blocks ${blocked}.`:''}`;renderCombat();renderStatus();if(state.hp<=0)defeat();
+  }
   function usePotion(inCombat=false){
     if(state.potion<1||state.hp>=state.maxHp||state.gameOver)return;if(inCombat&&!state.combat)return;if(!inCombat&&state.combat)return;
     const heal=Math.min(30,state.maxHp-state.hp);state.potion--;state.hp+=heal;toast(`+${heal} HP`,'reward');log(`Healing Potion restored ${heal} HP.`,'reward');
@@ -163,9 +194,7 @@
     const z=$('zoneSystem');
     if(cfg.zone===2){const recipe=(cfg.potionIngredients||[]).map(x=>x.name).join(' + ')||'Moonleaf + Clearwater';z.innerHTML=`<p class="resources">Recipe: <strong>${recipe}</strong></p><p class="resources">Collected: <strong>${state.potionIngredients.length?state.potionIngredients.join(' + '):'None'}</strong></p><div class="buttons"><button id="craftPotionBtn" ${state.potionIngredients.length<2?'disabled':''}>CREATE HEALING POTION</button></div><p class="resources">Introduction quest only — no XP reward.</p>`;$('craftPotionBtn')?.addEventListener('click',()=>{if(state.potionIngredients.length<2)return;state.potionIngredients.splice(0,2);state.potion++;state.introComplete=true;toast('HEALING POTION CREATED','reward');log('Zone 2 introduction complete: Healing Potion crafted.','reward');renderAll();});
     }else{
-      const eligible=state.spells.filter(s=>!s.fallback),has=!!state.hasEnchantment&&!state.enchantmentUsed;
-      z.innerHTML=`<div class="enchant-box"><strong>${cfg.enchantment.name}</strong><span class="resources">+${cfg.enchantment.damage} damage. Fixed bonus; the spell still scales normally with Sharkan level.</span><select id="enchantTarget">${eligible.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select><button id="applyEnchantBtn" ${!has||!eligible.length?'disabled':''}>APPLY ENCHANTMENT</button><span class="resources">${state.enchantmentUsed?'Applied.':state.hasEnchantment?'Card collected — choose a crafted spell.':'Find the ✦ Enchantment card in the zone.'}</span></div>`;
-      $('applyEnchantBtn')?.addEventListener('click',()=>{const id=$('enchantTarget')?.value,s=state.spells.find(x=>x.id===id);if(!s||!state.hasEnchantment||state.enchantmentUsed)return;s.enchantDamage=(s.enchantDamage||0)+cfg.enchantment.damage;s.enchantmentName=`${cfg.enchantment.name} · +${cfg.enchantment.damage} damage`;state.enchantmentUsed=true;state.introComplete=true;toast(`${cfg.enchantment.name.toUpperCase()} APPLIED`,'reward');log(`${cfg.enchantment.name} applied to ${s.name}.`,'reward');renderAll();});
+      z.innerHTML='<p class="resources">Enchantment cards are managed directly from Hand.</p>';
     }
   }
 
@@ -183,5 +212,5 @@
   function renderAll(){renderBoard();renderStatus();renderSpells();renderZoneSystem();renderManip();updateQuests();$('usePotionBtn').textContent=`USE POTION · ${state.potion} LEFT`;$('usePotionBtn').disabled=state.potion<1||state.hp>=state.maxHp||state.combat||state.gameOver;}
   $('resetBtn').addEventListener('click',()=>{localStorage.removeItem(SAVE_KEY);location.href='index.html';});
 
-  buildWorld();renderAll();log(`${cfg.name} started. Level cap ${cfg.levelCap}.`,'reward');if(cfg.zone===2)log('Introduction: collect Moonleaf + Clearwater and create a Healing Potion. No XP reward.','system');else log('Introduction: find Empowered I and apply it to a crafted spell.','system');toast(`${cfg.name} · LEVEL CAP ${cfg.levelCap}`,'reward');
+  buildWorld();renderAll();log(`${cfg.name} started. Level cap ${cfg.levelCap}.`,'reward');if(cfg.zone===2)log('Introduction: collect Moonleaf + Clearwater and create a Healing Potion. No XP reward.','system');else log('Introduction: choose one of your two Enchantment cards and apply it to a crafted spell.','system');toast(`${cfg.name} · LEVEL CAP ${cfg.levelCap}`,'reward');
 })();

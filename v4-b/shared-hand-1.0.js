@@ -5,6 +5,7 @@
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone)return;
 
+  const zoneConfig=config.zones?.[zone]||{};
   const hand=document.getElementById(zone===1?'manipulationCards':'manipCards');
   const panel=hand?.closest('.manipulation-panel');
   if(!hand||!panel)return;
@@ -22,6 +23,11 @@
     return'manipulation';
   }
 
+  function deckState(category){
+    if(category==='manipulation')return'active';
+    return (zoneConfig.decks||[]).find(deck=>deck.type===category)?.state||'locked';
+  }
+
   function realCards(){
     return [...hand.children].filter(node=>
       !node.classList.contains('hand-empty-slot')&&
@@ -31,16 +37,17 @@
   }
 
   function makePlaceholder(category,index){
+    const active=deckState(category)==='active';
     const slot=document.createElement('div');
-    slot.className=`shared-hand-placeholder ${category}${category==='manipulation'?' empty':' locked'}`;
+    slot.className=`shared-hand-placeholder ${category}${active?' empty':' locked'}`;
     slot.dataset.handPlaceholder=category;
     slot.dataset.handSlot=String(index);
-    slot.setAttribute('aria-label',category==='manipulation'?'Empty Manipulation slot':`${CATEGORY_LABELS[category]} slot locked`);
+    slot.setAttribute('aria-label',active?`Empty ${CATEGORY_LABELS[category]} slot`:`${CATEGORY_LABELS[category]} slot locked`);
 
     const label=document.createElement('strong');
     label.textContent=CATEGORY_LABELS[category];
     const state=document.createElement('span');
-    state.textContent=category==='manipulation'?'EMPTY':'LOCKED';
+    state.textContent=active?'EMPTY':'LOCKED';
     slot.append(label,state);
     return slot;
   }
@@ -71,7 +78,15 @@
       hand.appendChild(slot);
       existing.push(slot);
     }
-    existing.forEach((slot,index)=>slot.dataset.handSlot=String(index));
+    existing.forEach((slot,index)=>{
+      const active=deckState(category)==='active';
+      slot.dataset.handSlot=String(index);
+      slot.classList.toggle('empty',active);
+      slot.classList.toggle('locked',!active);
+      slot.setAttribute('aria-label',active?`Empty ${CATEGORY_LABELS[category]} slot`:`${CATEGORY_LABELS[category]} slot locked`);
+      const state=slot.querySelector('span');
+      if(state)state.textContent=active?'EMPTY':'LOCKED';
+    });
   }
 
   function sync(){

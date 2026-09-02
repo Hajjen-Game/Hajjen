@@ -63,17 +63,17 @@
 
 /* Encounter tiles are complete tile artworks, not icons placed on grass. */
 .tile.mob{
-  --tile-texture:url('assets/encounter_mob.webp?v=1');
+  --tile-texture:url('assets/encounter_mob.webp?v=2');
   --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
   background-color:#542522;
 }
 .tile.elite{
-  --tile-texture:url('assets/encounter_elite.webp?v=1');
+  --tile-texture:url('assets/encounter_elite.webp?v=2');
   --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
   background-color:#542522;
 }
 .tile.boss{
-  --tile-texture:url('assets/encounter_boss.webp?v=1');
+  --tile-texture:url('assets/encounter_boss.webp?v=2');
   --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
   background-color:#542522;
 }

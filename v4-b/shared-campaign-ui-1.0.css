@@ -42,9 +42,8 @@
 
 /* Normalize campaign entity marks to the same visual language as Zone 1. */
 .campaign-zone-app .campaign-world .tile.special::after{content:attr(data-mark)!important;position:absolute!important;inset:50% auto auto 50%!important;transform:translate(-50%,-50%)!important;width:46%!important;height:auto!important;aspect-ratio:1!important;display:flex!important;align-items:center!important;justify-content:center!important;border:2px solid currentColor!important;border-radius:50%!important;background:rgba(248,249,242,.9)!important;box-shadow:0 1px 0 rgba(255,255,255,.7)!important;font-weight:900!important;font-size:clamp(9px,.9vw,14px)!important;line-height:1!important;text-shadow:none!important}
-.campaign-zone-app .campaign-world .tile.mob::after{color:var(--red)!important}
-.campaign-zone-app .campaign-world .tile.elite::after{color:var(--red-dark)!important}
-.campaign-zone-app .campaign-world .tile.boss::after{color:var(--purple)!important;border-radius:4px!important;border-width:3px!important}
+/* Mob / Elite / Boss are now complete tile artworks, so do not layer the legacy mark on top. */
+.campaign-zone-app .campaign-world .tile.mob::after,.campaign-zone-app .campaign-world .tile.elite::after,.campaign-zone-app .campaign-world .tile.boss::after{display:none!important}
 .campaign-zone-app .campaign-world .tile.ingredient::after,.campaign-zone-app .campaign-world .tile.potion-ingredient::after{color:var(--green)!important}
 .campaign-zone-app .campaign-world .tile.enchantment::after{color:var(--purple)!important}
 .campaign-zone-app .campaign-world .tile.potion-ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f!important}

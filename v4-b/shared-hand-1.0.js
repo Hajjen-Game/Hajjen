@@ -6,7 +6,6 @@
   if(!zone)return;
 
   const zoneConfig=config.zones?.[zone]||{};
-  const campaignConfig=window.HAJJEN_CAMPAIGN_CONFIG||window.HAJJEN_ZONE_CONFIG||{};
   const state=zone===1?window.HAJJEN_V4B_STATE:window.HAJJEN_CAMPAIGN_STATE;
   const hand=document.getElementById(zone===1?'manipulationCards':'manipCards');
   const panel=hand?.closest('.manipulation-panel');
@@ -15,7 +14,6 @@
   const SLOT_COUNTS={manipulation:4,enchantment:2,tactical:2};
   const CATEGORY_LABELS={manipulation:'MANIPULATION',enchantment:'ENCHANTMENT',tactical:'TACTICAL'};
   let observer=null;
-  let zoneSystemObserver=null;
   let queued=false;
 
   function categoryOf(node){
@@ -31,75 +29,70 @@
     return (zoneConfig.decks||[]).find(deck=>deck.type===category)?.state||'locked';
   }
 
-  function enchantmentCard(){return hand.querySelector(':scope > .shared-enchantment-card');}
+  function enchantmentApi(){return window.HAJJEN_ZONE3_ENCHANTMENTS;}
+  function existingEnchantmentCards(){return [...hand.querySelectorAll(':scope > .shared-enchantment-card')];}
 
-  function ensureEnchantmentCard(){
-    const supported=zone>=3&&deckState('enchantment')==='active'&&campaignConfig.enchantment&&state;
-    const owned=supported&&(!!state.hasEnchantment||!!state.enchantmentUsed);
-    let card=enchantmentCard();
+  function createEnchantmentCard(){
+    const card=document.createElement('div');
+    card.className='shared-hand-card shared-enchantment-card enchantment';
+    card.dataset.handCategory='enchantment';
+    card.dataset.handLabel='ENCHANTMENT';
+    card.innerHTML='<strong></strong><span class="shared-enchantment-copy"></span><select class="shared-enchantment-select" aria-label="Choose spell to enchant"></select><button type="button" class="shared-enchantment-apply">APPLY ENCHANTMENT</button>';
 
-    if(!owned){
-      card?.remove();
-      return null;
-    }
-
-    if(!card){
-      card=document.createElement('div');
-      card.className='shared-hand-card shared-enchantment-card enchantment';
-      card.dataset.handCategory='enchantment';
-      card.dataset.handLabel='ENCHANTMENT';
-      card.innerHTML='<strong></strong><span class="shared-enchantment-copy"></span><select class="shared-enchantment-select" aria-label="Choose spell to enchant"></select><button type="button" class="shared-enchantment-apply">APPLY ENCHANTMENT</button>';
-      hand.appendChild(card);
-
-      const select=card.querySelector('.shared-enchantment-select');
-      const apply=card.querySelector('.shared-enchantment-apply');
-      select?.addEventListener('change',()=>{
-        const source=document.getElementById('enchantTarget');
-        if(source)source.value=select.value;
-      });
-      apply?.addEventListener('click',()=>{
-        const source=document.getElementById('enchantTarget');
-        const sourceButton=document.getElementById('applyEnchantBtn');
-        if(!source||!sourceButton||sourceButton.disabled)return;
-        source.value=select?.value||source.value;
-        sourceButton.click();
-        queueMicrotask(sync);
-      });
-    }
-
-    const name=campaignConfig.enchantment?.name||'ENCHANTMENT';
-    const damage=Number(campaignConfig.enchantment?.damage)||0;
-    const title=card.querySelector('strong');
-    const copy=card.querySelector('.shared-enchantment-copy');
     const select=card.querySelector('.shared-enchantment-select');
     const apply=card.querySelector('.shared-enchantment-apply');
-    const source=document.getElementById('enchantTarget');
-    const sourceButton=document.getElementById('applyEnchantBtn');
-
-    if(title)title.textContent=name;
-    if(copy)copy.textContent=state.enchantmentUsed?`Applied · +${damage} damage`:`+${damage} damage · Choose spell`;
-
-    if(select){
-      const wanted=select.value||source?.value||'';
-      const options=source?[...source.options].map(option=>({value:option.value,label:option.textContent||option.value})):[];
-      select.replaceChildren(...options.map(option=>{
-        const node=document.createElement('option');
-        node.value=option.value;
-        node.textContent=option.label;
-        return node;
-      }));
-      if(options.some(option=>option.value===wanted))select.value=wanted;
-      else if(source?.value)select.value=source.value;
-      select.disabled=!!state.enchantmentUsed||!options.length||!state.hasEnchantment;
-    }
-
-    if(apply){
-      const disabled=!!state.enchantmentUsed||!state.hasEnchantment||!sourceButton||sourceButton.disabled||!select?.value;
-      apply.disabled=disabled;
-      apply.textContent=state.enchantmentUsed?'APPLIED':'APPLY ENCHANTMENT';
-    }
-
+    apply?.addEventListener('click',()=>{
+      const api=enchantmentApi();
+      const cardId=card.dataset.enchantmentId;
+      const spellId=select?.value;
+      if(!api||!cardId||!spellId)return;
+      if(api.apply(cardId,spellId))queueMicrotask(sync);
+    });
     return card;
+  }
+
+  function syncEnchantmentCards(){
+    const supported=zone>=3&&deckState('enchantment')==='active'&&enchantmentApi();
+    const existing=existingEnchantmentCards();
+    if(!supported){existing.forEach(card=>card.remove());return;}
+
+    const drawn=enchantmentApi().getHand();
+    const wantedIds=new Set(drawn.map(card=>card.id));
+    existing.filter(card=>!wantedIds.has(card.dataset.enchantmentId)).forEach(card=>card.remove());
+
+    drawn.forEach(cardState=>{
+      const def=cardState.definition||{};
+      let card=hand.querySelector(`:scope > .shared-enchantment-card[data-enchantment-id="${cardState.id}"]`);
+      if(!card){card=createEnchantmentCard();card.dataset.enchantmentId=cardState.id;hand.appendChild(card);}
+
+      const title=card.querySelector('strong');
+      const copy=card.querySelector('.shared-enchantment-copy');
+      const select=card.querySelector('.shared-enchantment-select');
+      const apply=card.querySelector('.shared-enchantment-apply');
+      const eligible=(state?.spells||[]).filter(spell=>!spell.fallback);
+
+      if(title)title.textContent=def.name||cardState.id;
+      if(copy)copy.textContent=cardState.appliedTo
+        ?`Applied to ${cardState.spellName||'spell'}`
+        :(def.text||'Choose a spell.');
+
+      if(select){
+        const wanted=select.value||cardState.appliedTo||eligible[0]?.id||'';
+        select.replaceChildren(...eligible.map(spell=>{
+          const option=document.createElement('option');
+          option.value=spell.id;
+          option.textContent=spell.name;
+          return option;
+        }));
+        if(eligible.some(spell=>spell.id===wanted))select.value=wanted;
+        select.disabled=!!cardState.appliedTo||!eligible.length||!!state?.gameOver;
+      }
+
+      if(apply){
+        apply.disabled=!!cardState.appliedTo||!select?.value||!!state?.gameOver;
+        apply.textContent=cardState.appliedTo?'APPLIED':'APPLY ENCHANTMENT';
+      }
+    });
   }
 
   function realCards(){
@@ -140,8 +133,7 @@
       heading.append(title,meta);
     }
     title.textContent='HAND';
-    const active=cards.length;
-    meta.textContent=`${active} ACTIVE · 4 MANIPULATION · 2 ENCHANTMENT · 2 TACTICAL`;
+    meta.textContent=`${cards.length} ACTIVE · 4 MANIPULATION · 2 ENCHANTMENT · 2 TACTICAL`;
   }
 
   function ensurePlaceholders(category,needed){
@@ -171,7 +163,7 @@
     panel.dataset.sharedComponent='hand-1.0';
     hand.classList.add('shared-hand-grid');
 
-    ensureEnchantmentCard();
+    syncEnchantmentCards();
     const cards=realCards();
     const counts={manipulation:0,enchantment:0,tactical:0};
     cards.forEach(card=>{
@@ -192,27 +184,10 @@
     observer?.observe(hand,{childList:true,subtree:false});
   }
 
-  function queueSync(){
-    if(queued)return;
-    queued=true;
-    queueMicrotask(sync);
-  }
-
+  function queueSync(){if(queued)return;queued=true;queueMicrotask(sync);}
   observer=new MutationObserver(queueSync);
-  const zoneSystem=document.getElementById('zoneSystem');
-  if(zoneSystem){
-    zoneSystemObserver=new MutationObserver(queueSync);
-    zoneSystemObserver.observe(zoneSystem,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','value']});
-  }
-
+  document.addEventListener('hajjen:enchantment-applied',queueSync);
   sync();
 
-  window.HAJJEN_SHARED_HAND={
-    version:'1.0',
-    zone,
-    panel,
-    hand,
-    slots:{...SLOT_COUNTS},
-    sync
-  };
+  window.HAJJEN_SHARED_HAND={version:'1.0',zone,panel,hand,slots:{...SLOT_COUNTS},sync};
 })();

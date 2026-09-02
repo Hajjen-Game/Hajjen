@@ -26,6 +26,9 @@
 .campaign-zone-app .potion-crafting-slot>span{margin-bottom:8px}
 .campaign-system-hud{grid-column:1/-1}
 .campaign-system-hud>.panel{margin:0}
+/* Zone 3's legacy Zone System stays in the DOM for campaign-core compatibility,
+   but its visible interaction now lives on the Enchantment card in Hand. */
+.zone3-app .campaign-system-hud{display:none!important}
 
 /* Campaign-core combat markup adapter. */
 .campaign-zone-app .combat-card,.campaign-zone-app #combatModal .modal-card{width:min(760px,95vw);border:3px solid var(--line);background:#fff;padding:20px}

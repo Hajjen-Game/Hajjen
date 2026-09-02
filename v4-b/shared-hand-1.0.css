@@ -30,7 +30,7 @@
 /* Zone 3+ Enchantment cards keep the target spell selector directly in Hand. */
 .hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-enchantment-card{gap:2px!important}
 .hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-enchantment-card>.shared-enchantment-copy{flex:0 0 auto!important;font-size:8.5px!important;line-height:1.12!important;white-space:nowrap!important;text-overflow:ellipsis!important}
-.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-enchantment-card>.shared-enchantment-select{display:block!important;flex:0 0 auto!important;width:100%!important;height:20px!important;min-height:20px!important;margin:0!important;padding:0 3px!important;border:1px solid var(--purple)!important;border-radius:3px!important;background:#fff!important;color:#222!important;font:700 8px/18px inherit!important}
+.hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-enchantment-card>.shared-enchantment-select{display:block!important;flex:0 0 auto!important;width:100%!important;height:20px!important;min-height:20px!important;margin:0!important;padding:0 3px!important;border:1px solid var(--purple)!important;border-radius:3px!important;background:#fff!important;color:#222!important;font-family:inherit!important;font-size:8px!important;font-weight:700!important;line-height:18px!important}
 .hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-enchantment-card>.shared-enchantment-select:disabled{opacity:.5!important}
 .hajjen-shared-ui .cards-hud .shared-hand-grid>.shared-enchantment-card>.shared-enchantment-apply{border-color:var(--purple)!important;background:#fff!important}
 

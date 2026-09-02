@@ -63,19 +63,13 @@
 
 /* Encounter tiles are complete tile artworks, not icons placed on grass. */
 .tile.mob{
-  --tile-texture:url('assets/encounter_mob.webp?v=3');
-  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
-  background-color:#542522;
+  background:#542522 url('assets/encounter_mob.webp?v=4') center center/100% 100% no-repeat!important;
 }
 .tile.elite{
-  --tile-texture:url('assets/encounter_elite.webp?v=3');
-  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
-  background-color:#542522;
+  background:#542522 url('assets/encounter_elite.webp?v=4') center center/100% 100% no-repeat!important;
 }
 .tile.boss{
-  --tile-texture:url('assets/encounter_boss.webp?v=3');
-  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
-  background-color:#542522;
+  background:#542522 url('assets/encounter_boss.webp?v=4') center center/100% 100% no-repeat!important;
 }
 .tile.mob::after,.tile.elite::after,.tile.boss::after{display:none!important}
 
@@ -88,4 +82,5 @@
 
 @media(max-width:560px){
   .tile{background-size:100% 100%,100% 100%}
+  .tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
 }

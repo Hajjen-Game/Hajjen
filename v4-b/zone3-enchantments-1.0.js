@@ -10,11 +10,12 @@
   const storage=dev?sessionStorage:localStorage;
   const navigation=performance.getEntriesByType?.('navigation')?.[0]?.type||'';
 
-  // A fresh dev entry rolls a new hand, but F5 keeps the same two cards.
+  // A fresh dev entry rolls a new hand. F5 keeps the same two cards.
   if(dev&&navigation!=='reload')storage.removeItem(HAND_KEY);
 
   const deck=cfg.enchantmentDeck.map(card=>({...card}));
   const byId=new Map(deck.map(card=>[card.id,card]));
+  const deckIds=new Set(deck.map(card=>card.id));
   const drawCount=Math.max(1,Math.min(Number(cfg.enchantment?.draw)||2,deck.length));
 
   function randomDraw(){
@@ -39,12 +40,15 @@
   }
 
   const hand=loadHand();
-  state.enchantmentCards=hand;
-  state.enchantmentUsed=hand.some(card=>!!card.appliedTo);
-  state.introComplete=state.enchantmentUsed;
 
   function cardDefinition(cardState){return byId.get(cardState?.id)||null;}
   function spellName(id){return state.spells.find(spell=>spell.id===id)?.name||null;}
+  function cardIdsForSpell(spell){
+    return Array.isArray(spell?.enchantments)
+      ?spell.enchantments.map(item=>typeof item==='string'?item:item?.id).filter(id=>deckIds.has(id))
+      :[];
+  }
+  function effectNames(spell){return cardIdsForSpell(spell).map(id=>byId.get(id)?.name).filter(Boolean);}
 
   function persistHand(){
     storage.setItem(HAND_KEY,JSON.stringify({version:1,cards:hand.map(card=>({id:card.id,appliedTo:card.appliedTo||null}))}));
@@ -69,22 +73,118 @@
     }catch{}
   }
 
+  function clearZone3Enchantments(){
+    state.spells.forEach(spell=>{
+      if(Array.isArray(spell.enchantments))spell.enchantments=spell.enchantments.filter(item=>{
+        const id=typeof item==='string'?item:item?.id;
+        return !deckIds.has(id);
+      });
+      // Remove the obsolete single-card prototype bonus as the new deck replaces it.
+      delete spell.enchantDamage;
+      spell.enchantmentName='';
+    });
+  }
+
+  function restoreApplications(){
+    clearZone3Enchantments();
+    hand.forEach(card=>{
+      if(!card.appliedTo)return;
+      const spell=state.spells.find(item=>item.id===card.appliedTo&&!item.fallback);
+      if(!spell){card.appliedTo=null;return;}
+      if(!Array.isArray(spell.enchantments))spell.enchantments=[];
+      if(!spell.enchantments.includes(card.id))spell.enchantments.push(card.id);
+    });
+  }
+
+  // F5 is a Zone 3 restart: keep the same random two cards, but let the player
+  // choose their spell targets again from scratch.
+  if(navigation==='reload'){
+    hand.forEach(card=>{card.appliedTo=null;});
+    clearZone3Enchantments();
+    persistHand();
+    persistSpells();
+  }else{
+    restoreApplications();
+  }
+
+  state.enchantmentCards=hand;
+  state.enchantmentUsed=hand.some(card=>!!card.appliedTo);
+  state.introComplete=state.enchantmentUsed;
+
+  function staticDamage(spell){
+    let damage=(Number(spell?.damage)||0)+(Math.max(1,Number(state.level)||1)-1)*4;
+    const ids=cardIdsForSpell(spell);
+    if(ids.includes('empowered'))damage+=6;
+    if(ids.includes('focused'))damage+=Math.max(0,(Number(state.level)||1)-1)*3;
+    if(ids.includes('primal-surge')&&(Number(state.danger)||0)>=15)damage+=10;
+    return damage;
+  }
+
+  function cooldown(spell){return Math.max(0,(Number(spell?.cooldown)||0)-(Number(spell?.cooldownReduction)||0));}
+
   function syncSpellLabels(){
     state.spells.forEach(spell=>{
-      const ids=Array.isArray(spell.enchantments)?spell.enchantments:[];
-      const names=ids.map(id=>byId.get(id)?.name).filter(Boolean);
+      const names=effectNames(spell);
       spell.enchantmentName=names.length?names.join(' + '):'';
     });
+  }
 
+  function syncSpellGrid(){
     const grid=document.getElementById('spellGrid');
-    if(grid){
-      [...grid.querySelectorAll('.spell')].forEach((node,index)=>{
-        const spell=state.spells[index];
-        const spans=node.querySelectorAll('span');
-        if(spell&&spans[1])spans[1].textContent=spell.enchantmentName||'No extra effect.';
-      });
-    }
+    if(!grid)return;
+    [...grid.querySelectorAll('.spell')].forEach((node,index)=>{
+      const spell=state.spells[index];
+      if(!spell)return;
+      const spans=node.querySelectorAll('span');
+      const extra=spell.fallback?' · FALLBACK':'';
+      if(spans[0])spans[0].textContent=`${spell.force} · ${staticDamage(spell)} damage · CD ${cooldown(spell)}${extra}`;
+      if(spans[1])spans[1].textContent=spell.enchantmentName||'No extra effect.';
+    });
+  }
+
+  function syncActionBar(){
+    const bar=document.getElementById('actionbar');
+    if(!bar)return;
+    const slots=[...bar.querySelectorAll(':scope > [data-action-spell]')]
+      .sort((a,b)=>(Number(a.dataset.actionSpell)||0)-(Number(b.dataset.actionSpell)||0));
+    slots.forEach((button,index)=>{
+      const spell=state.spells[index];
+      if(!spell)return;
+      const detail=button.querySelector(':scope > span');
+      const meta=button.querySelector(':scope > small');
+      const extra=spell.fallback?' · FALLBACK':'';
+      if(detail)detail.textContent=`${spell.force} · ${staticDamage(spell)} damage · CD ${cooldown(spell)}${extra}`;
+      if(meta)meta.textContent=spell.enchantmentName||'No extra effect.';
+    });
+  }
+
+  function syncFightWindow(){
+    const wrap=document.getElementById('combatSpells');
+    if(!wrap)return;
+    [...wrap.querySelectorAll(':scope > button')].forEach((button,index)=>{
+      const spell=state.spells[index];
+      if(!spell)return;
+      const small=button.querySelector('small');
+      const names=effectNames(spell);
+      if(!small||!names.length)return;
+      const suffix=` · ${names.join(' + ')}`;
+      if(!small.textContent.includes(suffix))small.textContent+=suffix;
+    });
+  }
+
+  let uiQueued=false;
+  function syncPresentation(){
+    syncSpellLabels();
+    syncSpellGrid();
     window.HAJJEN_SHARED_ACTION_BAR?.sync?.();
+    if(uiQueued)return;
+    uiQueued=true;
+    queueMicrotask(()=>{
+      uiQueued=false;
+      syncSpellGrid();
+      syncActionBar();
+      syncFightWindow();
+    });
   }
 
   function addEvent(text,type='reward'){
@@ -119,7 +219,7 @@
     state.enchantmentUsed=true;
     state.introComplete=true;
 
-    syncSpellLabels();
+    syncPresentation();
     persistHand();
     persistSpells();
 
@@ -131,21 +231,29 @@
     return true;
   }
 
-  syncSpellLabels();
+  persistHand();
+  syncPresentation();
   persistSpells();
 
-  window.addEventListener('DOMContentLoaded',()=>{
-    if(cfg.enchantment?.worldPickup===false){
-      document.querySelector('.legend .enchantment-color')?.closest('span')?.remove();
-    }
-  },{once:true});
+  // Keep conditional display values (for example Primal Surge at Danger 15+)
+  // and Fight Window labels in sync with the live campaign UI.
+  const fight=document.getElementById('combatSpells');
+  if(fight)new MutationObserver(()=>queueMicrotask(syncFightWindow)).observe(fight,{childList:true,subtree:true,characterData:true});
+  const danger=document.getElementById('dangerText');
+  if(danger)new MutationObserver(()=>queueMicrotask(syncPresentation)).observe(danger,{childList:true,subtree:true,characterData:true});
+  window.addEventListener('load',()=>queueMicrotask(syncPresentation),{once:true});
+
+  if(cfg.enchantment?.worldPickup===false){
+    document.querySelector('.legend .enchantment-color')?.closest('span')?.remove();
+  }
 
   window.HAJJEN_ZONE3_ENCHANTMENTS={
-    version:'1.0',
+    version:'1.1',
     deck,
     hand,
     getHand:()=>hand.map(card=>({...card,definition:cardDefinition(card),spellName:spellName(card.appliedTo)})),
     apply,
-    persist:persistHand
+    persist:persistHand,
+    sync:syncPresentation
   };
 })();

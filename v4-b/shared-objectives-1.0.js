@@ -64,5 +64,14 @@
     panel.appendChild(row);
   });
 
-  window.HAJJEN_SHARED_OBJECTIVES={version:'1.0',zone,panel};
+  const levelItem=objectives.find(item=>item.kind==='level');
+  const syncLevel=()=>{
+    if(!levelItem)return;
+    const node=document.getElementById(levelItem.statusId);
+    if(node)node.textContent=fallbackStatus(levelItem);
+  };
+  syncLevel();
+  const levelTimer=levelItem&&zone>=2?setInterval(syncLevel,120):null;
+
+  window.HAJJEN_SHARED_OBJECTIVES={version:'1.0',zone,panel,syncLevel,levelTimer};
 })();

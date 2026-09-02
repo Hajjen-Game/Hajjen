@@ -24,7 +24,7 @@
   background-color:var(--board-sage-dark);
 }
 
-/* Movement stays readable without replacing the new raised tile artwork. */
+/* Movement stays readable without replacing the raised tile artwork. */
 .tile.reachable{
   --tile-overlay:linear-gradient(rgba(216,233,244,.28),rgba(216,233,244,.28));
   box-shadow:inset 0 0 0 1px rgba(47,111,178,.38);
@@ -57,12 +57,27 @@
 .player[data-facing="left"]{background-image:url('assets/sharkan_left.webp?v=1')!important}
 .player[data-facing="right"]{background-image:url('assets/sharkan_right.webp?v=1')!important}
 
-/* Special tiles keep their category color, but the board artwork remains visible underneath. */
+/* World/resource tiles keep the grassy board artwork beneath a category tint. */
 .tile.ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f}
-.tile.mob{--tile-overlay:linear-gradient(rgba(249,224,220,.58),rgba(249,224,220,.58));background-color:#ad786d}
-.tile.elite{--tile-overlay:linear-gradient(rgba(241,211,207,.62),rgba(241,211,207,.62));background-color:#99685f}
 .tile.shrine{--tile-overlay:linear-gradient(rgba(248,239,198,.55),rgba(248,239,198,.55));background-color:#b1a36d}
-.tile.boss{--tile-overlay:linear-gradient(rgba(229,216,240,.62),rgba(229,216,240,.62));background-color:#8f7c9d}
+
+/* Encounter tiles are complete tile artworks, not icons placed on grass. */
+.tile.mob{
+  --tile-texture:url('assets/encounter_mob.webp?v=1');
+  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
+  background-color:#542522;
+}
+.tile.elite{
+  --tile-texture:url('assets/encounter_elite.webp?v=1');
+  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
+  background-color:#542522;
+}
+.tile.boss{
+  --tile-texture:url('assets/encounter_boss.webp?v=1');
+  --tile-overlay:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0));
+  background-color:#542522;
+}
+.tile.mob::after,.tile.elite::after,.tile.boss::after{display:none!important}
 
 .tile::after{
   background:rgba(248,249,242,.9);

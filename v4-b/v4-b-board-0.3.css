@@ -72,6 +72,10 @@
   background-size:100% 100%,56% 56%,100% 100%!important;
   background-position:center,center,center!important;
   background-repeat:no-repeat!important;
+  transition:background-size .15s ease;
+}
+.tile.ingredient[data-force]:hover{
+  background-size:100% 100%,72% 72%,100% 100%!important;
 }
 .tile.ingredient[data-force].reachable{
   --tile-overlay:linear-gradient(rgba(216,233,244,.28),rgba(216,233,244,.28));
@@ -109,4 +113,7 @@
   .tile{background-size:100% 100%,100% 100%}
   .tile.ingredient[data-force]{background-size:100% 100%,56% 56%,100% 100%!important}
   .tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .tile.ingredient[data-force]{transition:none}
 }

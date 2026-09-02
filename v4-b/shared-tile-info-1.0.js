@@ -32,6 +32,33 @@
   // to write into the exact same IDs. Only the presentation structure is shared.
   root.replaceChildren(heading,title,sub,desc);
 
+  // Mark spell-ingredient tiles by Primal Force. The underlying entity keeps
+  // its real ingredient name, so hover / Tile Info still says Bloomcap,
+  // Glowroot, Riverglass, etc. The force marker is visual metadata only.
+  const forceNames=new Set(['Growth','Ember','Flow','Stone','Gale','Aether']);
+  const markIngredientForce=(row,col,force,cols)=>{
+    const normalized=String(force||'');
+    if(!forceNames.has(normalized)||!Number.isFinite(Number(row))||!Number.isFinite(Number(col))||!cols)return;
+    const tile=board.children[(Number(row)*Number(cols))+Number(col)];
+    if(tile instanceof HTMLElement)tile.dataset.force=normalized;
+  };
+
+  if(zone===1){
+    const cols=15;
+    [
+      [2,3,'Growth'],
+      [7,4,'Ember'],
+      [1,8,'Flow'],
+      [8,10,'Stone'],
+      [3,12,'Gale'],
+      [7,13,'Aether']
+    ].forEach(([row,col,force])=>markIngredientForce(row,col,force,cols));
+  }else{
+    const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG||{};
+    const cols=Number(cfg.cols)||0;
+    (cfg.spellIngredients||[]).forEach(item=>markIngredientForce(item.row,item.col,item.force,cols));
+  }
+
   // The zone adapters already place Tile Info on top of their own board/viewport.
   // Only repair that placement if a future adapter stops doing it. This does not
   // alter board/world dimensions; the tooltip is absolutely positioned.

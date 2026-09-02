@@ -30,13 +30,7 @@
   const spellDamage=spell=>(Number(spell?.damage)||0)+(Math.max(1,Number(state.level)||1)-1)*4+(Number(spell?.enchantDamage)||0);
   const cooldown=spell=>Math.max(0,(Number(spell?.cooldown)||0)-(Number(spell?.cooldownReduction)||0));
 
-  // Zone 1 is always a fresh campaign run. Its core state already restarts from
-  // Level 1 on page load, so campaign persistence must restart with it too.
-  // Spells are still persisted normally when progressing Zone 1 -> Zone 2.
-  if(zone===1){
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem(LIBRARY_KEY);
-  }
+  if(zone===1&&!localStorage.getItem(SAVE_KEY))localStorage.removeItem(LIBRARY_KEY);
 
   let library=[];
   try{
@@ -315,45 +309,79 @@
     }
   }
 
+  function groupedInventory(){
+    const groups=new Map();
+    ingredientInventory().forEach(item=>{
+      const key=`${item.force}::${item.name}`;
+      const current=groups.get(key)||{force:item.force,name:item.name,count:0};
+      current.count++;
+      groups.set(key,current);
+    });
+    return groups;
+  }
+
   function renderIngredients(){
     const inventory=ingredientInventory();
     ingredientCount.textContent=`${inventory.length} AVAILABLE`;
     forceGrid.replaceChildren();
+    const grouped=groupedInventory();
     forces.forEach(force=>{
-      const items=inventory.filter(item=>item?.force===force);
-      const group=document.createElement('article');
-      group.className=`sbv2-force-group ${forceClass(force)}`;
+      const section=document.createElement('article');
+      section.className=`sbv2-force ${forceClass(force)}`;
+      const items=[...grouped.values()].filter(item=>item.force===force);
       const heading=document.createElement('div');
       heading.className='sbv2-force-heading';
-      heading.innerHTML=`<strong>${force.toUpperCase()}</strong><span>${items.length}</span>`;
+      heading.innerHTML=`<strong>${force.toUpperCase()}</strong><span>${items.reduce((sum,item)=>sum+item.count,0)}</span>`;
       const list=document.createElement('div');
       list.className='sbv2-force-items';
-      if(items.length)items.forEach(item=>{
-        const entry=document.createElement('span');
-        entry.textContent=item.name;
-        list.appendChild(entry);
-      });
-      else{
-        const empty=document.createElement('span');
-        empty.className='empty';
-        empty.textContent='NONE';
+      if(items.length){
+        items.forEach(item=>{
+          const row=document.createElement('div');
+          row.innerHTML=`<span>${item.name}</span><strong>×${item.count}</strong>`;
+          list.appendChild(row);
+        });
+      }else{
+        const empty=document.createElement('div');
+        empty.className='sbv2-force-empty';
+        empty.textContent='None collected';
         list.appendChild(empty);
       }
-      group.append(heading,list);
-      forceGrid.appendChild(group);
+      section.append(heading,list);
+      forceGrid.appendChild(section);
     });
+  }
+
+  function addEvent(text){
+    const log=$('eventLog');
+    if(!log)return;
+    const entry=document.createElement('div');
+    entry.className='event reward';
+    entry.textContent=text;
+    log.prepend(entry);
+    while(log.children.length>8)log.lastChild.remove();
+  }
+
+  function toast(text){
+    const area=$('toastArea');
+    if(!area)return;
+    const note=document.createElement('div');
+    note.className='toast reward';
+    note.textContent=text;
+    area.prepend(note);
+    setTimeout(()=>note.remove(),1750);
   }
 
   function createSpell(){
     if(selectedIngredients.length!==2||isLocked())return;
     const inventory=ingredientInventory();
-    const first=selectedIngredients[0],second=selectedIngredients[1];
+    const [first,second]=selectedIngredients;
     if(!inventory.includes(first)||!inventory.includes(second))return;
     const base=forceSpell[first.force];
     if(!base)return;
+
     const bonus=modifierBonus(second.force);
     const spell={
-      id:`crafted-v2-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+      id:`crafted-v2-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
       name:base.name,
       force:first.force,
       damage:base.damage+bonus,
@@ -361,63 +389,52 @@
       cooldown:base.cooldown,
       craftedFrom:[first.name,second.name]
     };
-
-    [first,second].forEach(item=>{
-      const index=inventory.indexOf(item);
-      if(index>=0)inventory.splice(index,1);
-    });
-    selectedIngredients=[];
     addKnown(spell);
     lastCreatedId=spell.id;
+
+    [first,second]
+      .map(item=>inventory.indexOf(item))
+      .filter(index=>index>=0)
+      .sort((a,b)=>b-a)
+      .forEach(index=>inventory.splice(index,1));
+
+    if(zone===1)state.spellQuestCompleted=true;
+    selectedIngredients=[];
     persistLibrary();
-    state.spellQuestCompleted=true;
-
-    const eventLog=$('eventLog');
-    if(eventLog){
-      const event=document.createElement('div');
-      event.className='event reward';
-      event.textContent=`Created ${spell.name} from ${first.name} + ${second.name}. It was added to the Spell Library.`;
-      eventLog.prepend(event);
-      while(eventLog.children.length>9)eventLog.lastChild.remove();
-    }
-    const toastArea=$('toastArea');
-    if(toastArea){
-      const toast=document.createElement('div');
-      toast.className='toast reward';
-      toast.textContent=`${spell.name.toUpperCase()} · ADDED TO LIBRARY`;
-      toastArea.prepend(toast);
-      setTimeout(()=>toast.remove(),1700);
-    }
-
     syncCompatibilitySource();
+    addEvent(`Created ${spell.name} from ${first.name} + ${second.name}. It was added to the Spell Library.`);
+    toast(`${spell.name.toUpperCase()} ADDED TO LIBRARY`);
     render();
   }
 
-  createBtn.addEventListener('click',createSpell);
-
   function render(){
+    state.spells.forEach(addKnown);
+    persistLibrary();
     renderLoaded();
     renderLibrary();
     renderCreate();
     renderIngredients();
   }
 
-  const queueSync=()=>{
+  createBtn.addEventListener('click',createSpell);
+
+  const scheduleRender=()=>{
     if(syncQueued)return;
     syncQueued=true;
     queueMicrotask(()=>{
       syncQueued=false;
-      state.spells.forEach(addKnown);
-      persistLibrary();
       render();
     });
   };
+  new MutationObserver(scheduleRender).observe(ingredientSource,{childList:true,subtree:true,characterData:true});
+  new MutationObserver(scheduleRender).observe(spellSource,{childList:true,subtree:true,characterData:true});
+  new MutationObserver(scheduleRender).observe(modal,{attributes:true,attributeFilter:['class']});
 
-  new MutationObserver(queueSync).observe(ingredientSource,{childList:true,subtree:true,characterData:true});
-  new MutationObserver(queueSync).observe(spellSource,{childList:true,subtree:true,characterData:true});
-  new MutationObserver(()=>{
-    if(modal.classList.contains('show'))render();
-  }).observe(modal,{attributes:true,attributeFilter:['class']});
+  const resetBtn=$('resetBtn');
+  resetBtn?.addEventListener('click',()=>localStorage.removeItem(LIBRARY_KEY),true);
+
+  const helpSpellLine=[...document.querySelectorAll('#helpModal .help-copy li')].find(li=>/free crafted-spell slot|create another spell|replace/i.test(li.textContent||''));
+  if(helpSpellLine)helpSpellLine.textContent='Crafted spells stay in the Spell Library. Choose which three are loaded beside the permanent Ember Bolt.';
 
   syncCompatibilitySource();
   render();
@@ -425,9 +442,12 @@
   window.HAJJEN_SHARED_SPELLBOOK_V2={
     version:'1.0',
     zone,
-    state,
+    root,
     library,
+    state,
     render,
-    sync:()=>{syncCompatibilitySource();render();}
+    equipToSlot,
+    createSpell,
+    persist:persistLibrary
   };
 })();

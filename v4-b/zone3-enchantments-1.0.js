@@ -134,6 +134,12 @@
   syncSpellLabels();
   persistSpells();
 
+  window.addEventListener('DOMContentLoaded',()=>{
+    if(cfg.enchantment?.worldPickup===false){
+      document.querySelector('.legend .enchantment-color')?.closest('span')?.remove();
+    }
+  },{once:true});
+
   window.HAJJEN_ZONE3_ENCHANTMENTS={
     version:'1.0',
     deck,

@@ -85,8 +85,7 @@
     });
   }
 
-  function restoreApplications(){
-    clearZone3Enchantments();
+  function ensureApplicationsBound(){
     hand.forEach(card=>{
       if(!card.appliedTo)return;
       const spell=state.spells.find(item=>item.id===card.appliedTo&&!item.fallback);
@@ -94,6 +93,11 @@
       if(!Array.isArray(spell.enchantments))spell.enchantments=[];
       if(!spell.enchantments.includes(card.id))spell.enchantments.push(card.id);
     });
+  }
+
+  function restoreApplications(){
+    clearZone3Enchantments();
+    ensureApplicationsBound();
   }
 
   // F5 is a Zone 3 restart: keep the same random two cards, but let the player
@@ -159,6 +163,7 @@
   }
 
   function syncFightWindow(){
+    ensureApplicationsBound();
     const wrap=document.getElementById('combatSpells');
     if(!wrap)return;
     [...wrap.querySelectorAll(':scope > button')].forEach((button,index)=>{
@@ -174,6 +179,7 @@
 
   let uiQueued=false;
   function syncPresentation(){
+    ensureApplicationsBound();
     syncSpellLabels();
     syncSpellGrid();
     window.HAJJEN_SHARED_ACTION_BAR?.sync?.();
@@ -181,6 +187,7 @@
     uiQueued=true;
     queueMicrotask(()=>{
       uiQueued=false;
+      ensureApplicationsBound();
       syncSpellGrid();
       syncActionBar();
       syncFightWindow();

@@ -113,6 +113,42 @@
             'Collect two ingredients to create another spell if you still have a free crafted-spell slot.'
           ]}
         ]
+      },
+      3:{
+        levelTarget:10,
+        manipulationDeckSize:4,
+        objectives:[
+          {kind:'intro',icon:'✦',title:'Apply an Enchantment',statusId:'introQuest'},
+          {kind:'mob',icon:'☠',title:'Cull the Wilds',statusId:'mobQuest',target:4,colorClass:'mob-color'},
+          {kind:'elite',icon:'⚔',title:'Break the Guardians',statusId:'eliteQuest',target:2,colorClass:'elite-color'},
+          {kind:'level',icon:'★',title:'Reach Level 10',statusId:'levelQuest',target:10},
+          {kind:'boss',icon:'♛',title:'ZONE 3 BOSS',statusId:'bossQuest',colorClass:'boss-color'}
+        ],
+        decks:[
+          {type:'manipulation',state:'active'},
+          {type:'enchantment',state:'active',note:'INTRODUCED · ZONE 3'},
+          {type:'tactical',state:'locked',note:'LOCKED · INTRODUCED IN ZONE 4'}
+        ],
+        help:[
+          {title:'ZONE 3 GOAL',items:[
+            'Complete the Enchantment introduction by applying an Enchantment to a crafted spell.',
+            'Defeat 4 normal mobs, both Guardians, and reach Level 10 to unlock the Zone 3 boss.',
+            'Your campaign progression from the earlier zones carries forward.'
+          ]},
+          {title:'ENCHANTMENTS',items:[
+            'Enchantments are introduced in Zone 3 as a new layer on top of crafted spells.',
+            'The Enchantment deck is active from this zone onward.',
+            'The exact Zone 3 Enchantment rewards and effects are defined by the zone gameplay config.'
+          ]},
+          {title:'DANGER',items:[
+            'Movement, harvesting and combat continue to raise Danger.',
+            'Higher Danger continues to increase spawn pressure, enemy power and aggro.'
+          ]},
+          {title:'CAMPAIGN',items:[
+            'Crafted spells remain in the Spell Library and can be reassigned to Loaded Spell slots.',
+            'Unused ingredients and Healing Potions continue with Sharkan through the campaign.'
+          ]}
+        ]
       }
     }
   };

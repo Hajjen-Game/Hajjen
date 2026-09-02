@@ -29,10 +29,14 @@
     }catch{}
   }
 
-  // Direct Zone 2 test with no campaign save already starts with the core's
-  // default single potion. Mark that entry after core init so reloads do not
-  // grant or reset another one.
+  // A genuinely new Zone 2 entry must never reuse a snapshot from an older
+  // campaign/run. Clear only the restart snapshots; the live campaign and
+  // spell library are captured again after campaign-core initializes.
   if(!raw){
+    localStorage.removeItem(ENTRY_KEY);
+    localStorage.removeItem(ENTRY_LIBRARY_KEY);
+    // Direct Zone 2 test with no campaign save starts with the core's default
+    // single potion. Mark that fresh entry so a new restart snapshot is made.
     window.HAJJEN_ZONE2_ENTRY_POTION_MARK_ONLY=true;
     return;
   }
@@ -41,6 +45,11 @@
   try{saved=JSON.parse(raw);}catch{return;}
 
   const previousZone=Number(saved?.zone??1);
+
+  if(previousZone<2){
+    localStorage.removeItem(ENTRY_KEY);
+    localStorage.removeItem(ENTRY_LIBRARY_KEY);
+  }
 
   // Legacy recovery for an in-zone save created before the entry snapshot
   // existed. New reloads are handled by the snapshot restore above.

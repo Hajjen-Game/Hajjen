@@ -66,21 +66,28 @@
     addToast('HEALING POTION CREATED','reward');
     addLog('Zone 3: Moonleaf + Clearwater crafted into one additional Healing Potion.','reward');
     syncPotionButtons();
-    render();
+    render(true);
   }
 
-  function render(){
+  function render(force=false){
     if(rendering)return;
+    const collected=recipe.map(name=>hasIngredient(name)?name:'—').join(' + ');
+    const ready=recipeReady();
+    const signature=[crafted?1:0,collected,ready?1:0,state.combat?1:0,state.gameOver?1:0,state.zoneCleared?1:0].join('|');
+    const panel=zoneSystem.querySelector('[data-zone3-potion-panel="1"]');
+    if(!force&&panel&&zoneSystem.dataset.zone3PotionSignature===signature)return;
+
     rendering=true;
     try{
-      const collected=recipe.map(name=>hasIngredient(name)?name:'—').join(' + ');
-      const ready=recipeReady();
       zoneSystem.dataset.zone3ExtraPotion='1';
+      zoneSystem.dataset.zone3PotionSignature=signature;
       zoneSystem.innerHTML=`
-        <p class="resources">Extra Potion Recipe: <strong>${recipe.join(' + ')}</strong></p>
-        <p class="resources">Collected: <strong>${crafted?'USED':collected}</strong></p>
-        <div class="buttons"><button id="zone3CraftPotionBtn" ${crafted||!ready||state.combat||state.gameOver||state.zoneCleared?'disabled':''}>${crafted?'HEALING POTION CREATED':'CREATE HEALING POTION'}</button></div>
-        <p class="resources">One additional Healing Potion can be crafted in Zone 3.</p>`;
+        <div data-zone3-potion-panel="1">
+          <p class="resources">Extra Potion Recipe: <strong>${recipe.join(' + ')}</strong></p>
+          <p class="resources">Collected: <strong>${crafted?'USED':collected}</strong></p>
+          <div class="buttons"><button id="zone3CraftPotionBtn" ${crafted||!ready||state.combat||state.gameOver||state.zoneCleared?'disabled':''}>${crafted?'HEALING POTION CREATED':'CREATE HEALING POTION'}</button></div>
+          <p class="resources">One additional Healing Potion can be crafted in Zone 3.</p>
+        </div>`;
       document.getElementById('zone3CraftPotionBtn')?.addEventListener('click',craftPotion);
     }finally{
       rendering=false;
@@ -89,16 +96,16 @@
 
   new MutationObserver(()=>{
     if(rendering)return;
-    queueMicrotask(render);
+    queueMicrotask(()=>render(false));
   }).observe(zoneSystem,{childList:true,subtree:true});
 
-  render();
+  render(true);
   syncPotionButtons();
 
   window.HAJJEN_ZONE3_EXTRA_POTION={
     version:'1.0',
     recipe:[...recipe],
     get crafted(){return crafted;},
-    sync:render
+    sync:()=>render(true)
   };
 })();

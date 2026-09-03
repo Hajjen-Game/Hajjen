@@ -17,7 +17,7 @@ window.HAJJEN_ZONE_CONFIG={
     {row:5,col:20,type:'elite',title:'RIFT GUARDIAN',hp:280,attack:28,xp:52},
     {row:4,col:23,type:'boss',title:'ZONE 3 BOSS',hp:390,attack:32,xp:100}
   ],
-  spring:{row:5,col:13,heal:45,title:'PRIMAL SPRING'},
+  spring:{row:5,col:13,heal:75,title:'PRIMAL SPRING'},
   spellIngredients:[
     {row:1,col:4,name:'Thorn Core',force:'Growth'},
     {row:8,col:9,name:'Cinder Heart',force:'Ember'},

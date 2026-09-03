@@ -49,7 +49,10 @@
     const text=node.querySelector('span');
     if(text&&text.textContent!=='Reduce Danger by 3.')text.textContent='Reduce Danger by 3.';
     const button=node.querySelector('button');
-    if(button&&card.used){button.disabled=true;button.textContent='USED';}
+    if(button&&card.used){
+      if(!button.disabled)button.disabled=true;
+      if(button.textContent!=='USED')button.textContent='USED';
+    }
   }
 
   hand.addEventListener('click',event=>{

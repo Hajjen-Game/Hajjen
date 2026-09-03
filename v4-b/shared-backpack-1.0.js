@@ -1,6 +1,7 @@
 (()=>{
   const config=window.HAJJEN_SHARED_UI_CONFIG||{};
-  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
+  const zoneCfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG||{};
+  const zone=zoneCfg.zone||(window.HAJJEN_V4B_STATE?1:null);
   const state=zone===1?window.HAJJEN_V4B_STATE:window.HAJJEN_CAMPAIGN_STATE;
   if(!zone||!state)return;
 
@@ -15,7 +16,9 @@
   const body=heading?.nextElementSibling;
   if(!card||!heading||!body)return;
 
-  const oldZoneSystem=zone===2?(document.querySelector('.backpack-zone-system')||$('zoneSystem')):null;
+  const potionRecipe=Array.isArray(zoneCfg.potionIngredients)?zoneCfg.potionIngredients.map(item=>item?.name||item).filter(Boolean):[];
+  const hasPotionRecipe=zone!==1&&potionRecipe.length>=2;
+  const oldZoneSystem=hasPotionRecipe?(document.querySelector('.backpack-zone-system')||$('zoneSystem')):null;
   const title=heading.querySelector('h2');
   if(title)title.textContent=config.text?.backpack||'BACKPACK';
 
@@ -38,7 +41,7 @@
     :'<strong>SPELL INGREDIENTS</strong><span id="backpackSpellIngredients">None</span>';
   grid.appendChild(spellIngredients);
 
-  if(zone===2){
+  if(hasPotionRecipe){
     const potionIngredients=document.createElement('div');
     potionIngredients.className='backpack-item shared-backpack-item';
     potionIngredients.innerHTML='<strong>POTION INGREDIENTS</strong><span id="backpackPotionIngredients">None</span>';
@@ -46,7 +49,7 @@
 
     const recipe=document.createElement('div');
     recipe.className='backpack-item backpack-resources potion-crafting-slot shared-backpack-item shared-backpack-wide shared-backpack-recipe';
-    recipe.innerHTML='<strong>HEALING POTION RECIPE</strong><span>Moonleaf + Clearwater</span><div id="potionCraftMount" class="shared-backpack-craft-mount"></div>';
+    recipe.innerHTML=`<strong>HEALING POTION RECIPE</strong><span>${potionRecipe.join(' + ')}</span><div id="potionCraftMount" class="shared-backpack-craft-mount"></div>`;
     grid.appendChild(recipe);
     if(oldZoneSystem){
       oldZoneSystem.classList.add('backpack-zone-system','shared-backpack-zone-system');
@@ -57,7 +60,7 @@
   body.appendChild(grid);
 
   const spellIngredientList=()=>zone===1?(state.ingredients||[]):(state.spellIngredients||[]);
-  const potionIngredientList=()=>zone===2?(state.potionIngredients||[]):[];
+  const potionIngredientList=()=>hasPotionRecipe?(state.potionIngredients||[]):[];
   const ingredientName=item=>typeof item==='string'?item:item?.name||String(item||'');
   const spellIngredientText=()=>{
     const list=spellIngredientList();
@@ -109,7 +112,7 @@
 
   document.addEventListener('click',event=>{
     if(!(event.target instanceof Element))return;
-    if(event.target.closest('#craftPotionBtn,#usePotionBtn,#restBtn,#combatPotionBtn'))queueMicrotask(sync);
+    if(event.target.closest('#craftPotionBtn,#zone3CraftPotionBtn,#usePotionBtn,#restBtn,#combatPotionBtn'))queueMicrotask(sync);
   },true);
 
   sync();

@@ -25,7 +25,7 @@ window.HAJJEN_ZONE_CONFIG={
     {row:8,col:23,name:'Moon Rift',force:'Aether'}
   ],
   potionIngredients:[],
-  manipulationCards:['Veiled Passage','Misdirection','Safe Window','Pressure Break'],
+  manipulationCards:['Calm Waters','Misdirection','Safe Window','Pressure Break'],
   combatAttraction:{enabled:true,radius:2,chance:{calm:0,uneasy:.30,dangerous:.45,hostile:.60,critical:.75}},
   enchantment:{worldPickup:false,draw:2,mark:'✦'},
   enchantmentDeck:[
@@ -61,7 +61,7 @@ window.HAJJEN_ZONE_CONFIG={
   ];
   if(!(ui.help||[]).some(section=>section.title==='ZONE 3 MANIPULATION')){
     ui.help.splice(2,0,{title:'ZONE 3 MANIPULATION',items:[
-      'Veiled Passage suppresses adjacent aggro for 3 movement steps.',
+      'Calm Waters reduces Danger by 3.',
       'Misdirection moves one nearby normal mob 2 tiles farther away.',
       'Safe Window prevents ambient spawns for 3 movement steps.',
       'Pressure Break reduces Danger by 2 and blocks the next combat-attraction check.'

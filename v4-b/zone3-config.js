@@ -24,7 +24,10 @@ window.HAJJEN_ZONE_CONFIG={
     {row:1,col:16,name:'Tide Crystal',force:'Flow'},
     {row:8,col:23,name:'Moon Rift',force:'Aether'}
   ],
-  potionIngredients:[],
+  potionIngredients:[
+    {row:7,col:16,name:'Moonleaf'},
+    {row:3,col:19,name:'Clearwater'}
+  ],
   manipulationCards:['Calm Waters','Misdirection','Safe Window','Pressure Break'],
   combatAttraction:{enabled:true,radius:2,chance:{calm:0,uneasy:.30,dangerous:.45,hostile:.60,critical:.75}},
   enchantment:{worldPickup:false,draw:2,mark:'✦'},
@@ -51,6 +54,7 @@ window.HAJJEN_ZONE_CONFIG={
   if(goal)goal.items=[
     'Apply one of your two drawn Enchantments to a crafted spell.',
     'Defeat 7 normal mobs, both Guardians, and reach Level 10 to unlock the Zone 3 boss.',
+    'Collect Moonleaf + Clearwater to craft one additional Healing Potion during the run.',
     'Zone 3 contains 10 fixed normal mobs on the same 25×10 world size as Zone 2. Three mobs are optional, so route choice still matters.'
   ];
   const danger=(ui.help||[]).find(section=>section.title==='DANGER');

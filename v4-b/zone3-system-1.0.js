@@ -120,7 +120,7 @@
   // ------------------------------------------------------------------
   // PRIMAL SPRING — mid-zone recovery checkpoint.
   // ------------------------------------------------------------------
-  const springCfg=cfg.spring||{row:7,col:18,heal:45,title:'PRIMAL SPRING'};
+  const springCfg=cfg.spring||{row:7,col:18,heal:75,title:'PRIMAL SPRING'};
   const springEntity={type:'spring',mark:'✧',title:springCfg.title||'PRIMAL SPRING',r:springCfg.row,c:springCfg.col,depleted:false};
   if(!entities.has(key(springEntity.r,springEntity.c)))entities.set(key(springEntity.r,springEntity.c),springEntity);
   let springUsed=false;
@@ -138,7 +138,20 @@
     if(sub)sub.textContent=springUsed?'Depleted':'Restorative site · One use';
     if(desc)desc.textContent=springUsed
       ?'The spring has already restored Sharkan this run.'
-      :`Step here while injured to restore up to ${springCfg.heal||45} HP. It becomes depleted after use.`;
+      :`Step here while injured to restore up to ${springCfg.heal||75} HP. It becomes depleted after use.`;
+  }
+  function activateSpring(){
+    if(springUsed||state.combat||state.gameOver||state.hp>=state.maxHp)return false;
+    const heal=Math.min(Number(springCfg.heal)||75,state.maxHp-state.hp);
+    state.hp+=heal;
+    springUsed=true;
+    springEntity.depleted=true;
+    state.zone3SpringUsed=true;
+    state.zone3SpringHealing=(state.zone3SpringHealing||0)+heal;
+    addLog(`Primal Spring restored ${heal} HP.`,'reward');
+    addToast(`PRIMAL SPRING · +${heal} HP`,'reward');
+    syncHpUi();decorateSpring();springInfo();
+    return true;
   }
   function checkSpring(){
     decorateSpring();
@@ -147,17 +160,7 @@
       if(state.hp>=state.maxHp){
         addLog('Primal Spring remains unused because Sharkan is already at full HP.','system');
         addToast('HP FULL — SPRING REMAINS','system');
-      }else{
-        const heal=Math.min(Number(springCfg.heal)||45,state.maxHp-state.hp);
-        state.hp+=heal;
-        springUsed=true;
-        springEntity.depleted=true;
-        state.zone3SpringUsed=true;
-        state.zone3SpringHealing=(state.zone3SpringHealing||0)+heal;
-        addLog(`Primal Spring restored ${heal} HP.`,'reward');
-        addToast(`PRIMAL SPRING · +${heal} HP`,'reward');
-        syncHpUi();decorateSpring();springInfo();
-      }
+      }else activateSpring();
     }
     wasOnSpring=on;
   }
@@ -293,7 +296,13 @@
   // ------------------------------------------------------------------
   let syntheticAttraction=false;
   function armMoveProtection(targetR,targetC){
-    if(syntheticAttraction||state.combat||state.gameOver||Math.abs(targetR-state.row)+Math.abs(targetC-state.col)!==1)return;
+    if(syntheticAttraction||window.HAJJEN_ZONE3_ATTRACTION_PULLING||state.combat||state.gameOver||Math.abs(targetR-state.row)+Math.abs(targetC-state.col)!==1)return;
+
+    // Resolve the Spring before campaign-zone's synchronous adjacent-aggro
+    // check. This keeps the checkpoint reliable even when an enemy is already
+    // beside the Spring tile.
+    if(targetR===springEntity.r&&targetC===springEntity.c&&!springUsed&&state.hp<state.maxHp)activateSpring();
+
     if(!veiledSteps&&!safeWindowSteps)return;
 
     const beforeSteps=state.steps;

@@ -1,0 +1,79 @@
+/* HAJJEN visual theme — incremental production skin.
+   Pass 1: Zone 3 top header only. Keep gameplay/layout outside the header untouched. */
+
+.zone3-app .titlebar{
+  position:relative;
+  min-height:70px;
+  margin:0;
+  padding:11px clamp(54px,4.8vw,92px) 13px;
+  border:0;
+  border-radius:0;
+  background-color:transparent;
+  background-image:url("assets/hajjen_top_header_master_v1.png");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
+  color:#f1dfb7;
+  overflow:visible;
+}
+
+.zone3-app .titlebar>div:first-child,
+.zone3-app .titlebar .build{
+  position:relative;
+  z-index:1;
+}
+
+.zone3-app .titlebar .eyebrow{
+  margin:0 0 2px;
+  color:#c7a85e;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:1.15px;
+  text-shadow:0 1px 2px rgba(0,0,0,.9);
+}
+
+.zone3-app .titlebar h1{
+  margin:0;
+  color:#f0d79d;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(18px,1.35vw,23px);
+  font-weight:700;
+  letter-spacing:.3px;
+  line-height:1.05;
+  text-shadow:0 1px 2px #000,0 0 5px rgba(0,0,0,.45);
+}
+
+.zone3-app .titlebar .build{
+  padding:6px 10px;
+  border:1px solid #9d7733;
+  border-radius:2px;
+  background:linear-gradient(180deg,rgba(32,36,39,.92),rgba(15,18,20,.94));
+  box-shadow:inset 0 0 0 1px rgba(224,190,111,.16),0 1px 2px rgba(0,0,0,.7);
+  color:#e8d4a8;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.35px;
+  text-shadow:0 1px 1px #000;
+  white-space:nowrap;
+}
+
+@media(max-width:900px){
+  .zone3-app .titlebar{
+    min-height:64px;
+    margin-bottom:10px;
+    padding:10px 42px 12px;
+  }
+}
+
+@media(max-width:560px){
+  .zone3-app .titlebar{
+    min-height:74px;
+    padding:10px 34px 12px;
+    gap:8px;
+    background-size:auto 100%;
+  }
+  .zone3-app .titlebar h1{font-size:16px}
+  .zone3-app .titlebar .build{font-size:8px;padding:5px 7px}
+}

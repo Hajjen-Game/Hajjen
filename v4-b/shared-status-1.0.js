@@ -82,9 +82,10 @@
     }
   }
 
-  panel.classList.add('status','shared-status');
-  panel.dataset.sharedComponent='status-1.0';
+  panel.classList.add('status','shared-status','hajjen-status-panel');
+  panel.dataset.sharedComponent='status-1.1';
   panel.replaceChildren();
+  window.HAJJEN_PANEL_FRAME?.mount?.(panel);
 
   const heading=document.createElement('h2');
   heading.textContent=config.text?.sharkan||'SHARKAN';
@@ -164,5 +165,5 @@
 
   initPlayerAvatar();
 
-  window.HAJJEN_SHARED_STATUS={version:'1.0',zone,panel};
+  window.HAJJEN_SHARED_STATUS={version:'1.1',zone,panel};
 })();

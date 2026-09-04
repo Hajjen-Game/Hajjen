@@ -1,0 +1,80 @@
+/* HAJJEN utility button master skin.
+   Uses the five approved transparent button assets supplied by the user.
+   The button labels/icons are baked into the art; existing DOM nodes remain the
+   interactive hit targets so all Spellbook/Backpack/Help/Run Report/Reset logic stays intact. */
+
+.zone3-app .shared-utility-hud{
+  gap:7px!important;
+  align-items:stretch;
+}
+
+.zone3-app .shared-utility-hud > button{
+  position:relative!important;
+  width:100%!important;
+  min-height:0!important;
+  aspect-ratio:568 / 112;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  font-size:0!important;
+  line-height:0!important;
+  text-shadow:none!important;
+  overflow:visible!important;
+  cursor:pointer;
+  transition:transform .10s ease,filter .10s ease;
+}
+
+.zone3-app .shared-utility-hud > button[data-utility-action="spellbook"]{
+  background-image:url("assets/utility-buttons/spellbook.png")!important;
+}
+.zone3-app .shared-utility-hud > button[data-utility-action="backpack"]{
+  background-image:url("assets/utility-buttons/backpack.png")!important;
+  aspect-ratio:568 / 113;
+}
+.zone3-app .shared-utility-hud > button[data-utility-action="help"]{
+  background-image:url("assets/utility-buttons/help.png")!important;
+  aspect-ratio:568 / 110;
+}
+.zone3-app .shared-utility-hud > button[data-utility-action="copy"]{
+  background-image:url("assets/utility-buttons/copy-run-report.png")!important;
+}
+.zone3-app .shared-utility-hud > button[data-utility-action="reset"]{
+  background-image:url("assets/utility-buttons/reset-campaign.png")!important;
+  aspect-ratio:568 / 111;
+}
+
+.zone3-app .shared-utility-hud > button:hover:not(:disabled){
+  filter:brightness(1.07);
+  transform:translateY(-1px);
+}
+.zone3-app .shared-utility-hud > button:active:not(:disabled){
+  filter:brightness(.96);
+  transform:translateY(1px);
+}
+.zone3-app .shared-utility-hud > button:focus-visible{
+  outline:2px solid rgba(214,167,72,.95)!important;
+  outline-offset:2px;
+}
+.zone3-app .shared-utility-hud > button:disabled{
+  opacity:.50!important;
+  filter:grayscale(.25);
+}
+
+/* At narrower widths the shared utility module becomes a row/grid. Keep the
+   authored button proportions rather than forcing equal-height debug buttons. */
+@media(max-width:1350px){
+  .zone3-app .shared-utility-hud{
+    align-items:start!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .zone3-app .shared-utility-hud > button{transition:none}
+}

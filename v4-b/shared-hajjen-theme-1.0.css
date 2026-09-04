@@ -98,3 +98,42 @@
   .zone3-app .titlebar h1{font-size:16px}
   .zone3-app .titlebar .build{font-size:8px;padding:5px 7px}
 }
+
+/* Pass 2: Objectives panel only — universal frame + parchment surface. */
+.zone3-app .objectives.shared-objectives{
+  box-sizing:border-box;
+  border:12px solid transparent;
+  border-radius:0;
+  padding:5px 7px 7px;
+  background-color:#ead7b0;
+  background-image:url("assets/hajjen_parchment_surface_v1.png");
+  background-repeat:repeat;
+  background-position:center;
+  background-size:160px 160px;
+  border-image-source:url("assets/hajjen_universal_panel_frame_v1.png");
+  border-image-slice:28 25;
+  border-image-width:12px;
+  border-image-repeat:stretch;
+  box-shadow:0 5px 14px rgba(54,36,17,.16);
+  color:#2b2118;
+}
+
+.zone3-app .objectives.shared-objectives h2{
+  margin:1px 0 6px;
+  color:#2c2118;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.2px;
+  text-shadow:0 1px rgba(255,255,255,.45);
+}
+
+.zone3-app .objectives.shared-objectives .quest{
+  border-top:1px solid rgba(101,75,43,.22);
+  padding:7px 2px;
+}
+
+.zone3-app .objectives.shared-objectives .quest:first-of-type{border-top:0}
+.zone3-app .objectives.shared-objectives .intro{border-left:0;padding-left:2px}
+.zone3-app .objectives.shared-objectives .quest strong{color:#2b2118}
+.zone3-app .objectives.shared-objectives .quest small{color:#6d5941}

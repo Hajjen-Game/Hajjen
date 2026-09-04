@@ -6,11 +6,18 @@
 .zone3-app .shared-utility-hud{
   gap:7px!important;
   align-items:stretch;
+  grid-template-rows:repeat(5,auto)!important;
+  height:auto!important;
+  min-height:0!important;
+  align-self:start!important;
+  overflow:visible!important;
 }
 
 .zone3-app .shared-utility-hud > button{
   position:relative!important;
+  display:block!important;
   width:100%!important;
+  height:auto!important;
   min-height:0!important;
   aspect-ratio:568 / 112;
   margin:0!important;
@@ -71,7 +78,16 @@
    authored button proportions rather than forcing equal-height debug buttons. */
 @media(max-width:1350px){
   .zone3-app .shared-utility-hud{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:auto!important;
     align-items:start!important;
+  }
+}
+
+@media(max-width:620px){
+  .zone3-app .shared-utility-hud{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:auto!important;
   }
 }
 

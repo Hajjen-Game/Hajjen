@@ -1,0 +1,16 @@
+/* HAJJEN Objectives frame precision pass.
+   Objective-only tuning of the approved rebuilt frame asset.
+   Goal: tighter corner/rail joins and more even visual weight without touching
+   Sharkan, Event Log, Card Decks, gameplay, or Objective content/layout. */
+
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame{
+  border-width:32px 34px 34px 34px;
+  border-image-slice:42 42 44 42;
+  border-image-width:32px 34px 34px 34px;
+  border-image-repeat:stretch;
+}
+
+/* Keep the parchment just inside the slimmer precision frame. */
+.zone3-app .objectives.shared-objectives::before{
+  inset:6px;
+}

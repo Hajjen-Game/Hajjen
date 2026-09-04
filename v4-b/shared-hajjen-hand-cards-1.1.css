@@ -1,4 +1,4 @@
-/* HAJJEN Hand Card Skin — Manipulation shell test v1.1.
+/* HAJJEN Hand Card Skin — Manipulation shell test v1.2.
    Uses the authored blue HAJJEN card shell with dynamic text and the existing PLAY action. */
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{
@@ -18,26 +18,27 @@
 }
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]:hover{
-  filter:brightness(1.06) saturate(1.04)!important;
-  transform:translateY(-1px) scale(1.01)!important;
+  filter:brightness(1.09) saturate(1.05)!important;
+  transform:translateY(-1.5px) scale(1.012)!important;
   z-index:4!important;
 }
 
+/* Compact category label: cleaner HUD type and slightly lower/inset placement. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::before{
   position:absolute!important;
-  left:9%!important;
-  right:9%!important;
-  top:7%!important;
-  height:13%!important;
+  left:10.5%!important;
+  right:10.5%!important;
+  top:8.5%!important;
+  height:11.5%!important;
   margin:0!important;
   display:flex!important;
   align-items:center!important;
   justify-content:flex-start!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:7px!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:6.6px!important;
   line-height:1!important;
-  font-weight:700!important;
-  letter-spacing:.35px!important;
+  font-weight:800!important;
+  letter-spacing:.5px!important;
   color:#f3e2b9!important;
   opacity:1!important;
   text-shadow:0 1px 2px rgba(0,0,0,.9)!important;
@@ -78,12 +79,13 @@
   overflow:hidden!important;
 }
 
+/* Keep PLAY clear of the authored gold corner ornaments. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button{
   position:absolute!important;
-  left:9%!important;
-  right:9%!important;
+  left:13%!important;
+  right:13%!important;
   bottom:5.5%!important;
-  width:82%!important;
+  width:74%!important;
   height:13%!important;
   min-height:0!important;
   margin:0!important;
@@ -99,10 +101,13 @@
   letter-spacing:.3px!important;
   text-shadow:0 1px 1px rgba(0,0,0,.9)!important;
   box-shadow:inset 0 1px rgba(255,255,255,.18)!important;
+  transition:filter .12s ease,transform .12s ease,box-shadow .12s ease!important;
 }
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:hover:not(:disabled){
-  filter:brightness(1.18)!important;
+  filter:brightness(1.22) saturate(1.06)!important;
+  transform:translateY(-.5px)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.24),0 1px 3px rgba(0,0,0,.32)!important;
 }
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:disabled{opacity:.5!important}

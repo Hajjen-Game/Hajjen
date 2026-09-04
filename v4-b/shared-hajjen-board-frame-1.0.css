@@ -1,11 +1,17 @@
 /* HAJJEN board frame — Zone 3 visual skin only.
    The approved board frame is rendered in a shell OUTSIDE the clipped gameplay viewport,
    so the ornamental frame can be slightly larger than the board without changing board size,
-   movement, tiles, camera or interaction. */
+   movement, tiles, camera or interaction.
+
+   Important: the source artwork has asymmetric transparent padding vertically
+   (more below the bottom rail than above the top rail). Top and bottom overscan
+   are therefore intentionally different so the visible rails land on the real
+   gameplay-board edges. */
 
 .zone3-app .hajjen-board-frame-shell{
   --hajjen-board-frame-x:clamp(12px,1.6vw,20px);
-  --hajjen-board-frame-y:clamp(14px,1.8vw,22px);
+  --hajjen-board-frame-top:clamp(13px,1.65vw,20px);
+  --hajjen-board-frame-bottom:clamp(28px,3.4vw,42px);
   position:relative;
   width:min(100%,1050px);
   flex:0 0 auto;
@@ -22,15 +28,15 @@
 
 .zone3-app .viewport::after{content:none!important}
 
-/* Important: this is an IMG (a replaced element). Giving it left/right with width:auto
-   caused the browser to keep its intrinsic width, which made the frame visibly smaller
-   than the viewport on desktop. Give it an explicit size based on the shell instead. */
+/* Explicit dimensions are required because this is an IMG/replaced element.
+   Horizontal overscan is symmetric; vertical overscan compensates for the
+   artwork's asymmetric transparent source margins. */
 .zone3-app .hajjen-board-frame-shell > .hajjen-board-frame-overlay{
   position:absolute;
   left:calc(-1 * var(--hajjen-board-frame-x));
-  top:calc(-1 * var(--hajjen-board-frame-y));
+  top:calc(-1 * var(--hajjen-board-frame-top));
   width:calc(100% + var(--hajjen-board-frame-x) + var(--hajjen-board-frame-x));
-  height:calc(100% + var(--hajjen-board-frame-y) + var(--hajjen-board-frame-y));
+  height:calc(100% + var(--hajjen-board-frame-top) + var(--hajjen-board-frame-bottom));
   z-index:60;
   display:block;
   max-width:none;

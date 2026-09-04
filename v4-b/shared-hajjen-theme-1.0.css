@@ -202,6 +202,23 @@
 .zone3-app .hajjen-panel-frame-piece.l{left:var(--hajjen-frame-rail-side)}
 .zone3-app .hajjen-panel-frame-piece.r{right:var(--hajjen-frame-rail-side);transform:scaleX(-1)}
 
+/* Objectives V2 frame test: built directly from the new user-supplied eight-piece sheet.
+   This replaces only the Objectives frame for validation. Other panels continue using
+   the existing shared eight-piece frame until this pass is approved. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame{
+  inset:0;
+  box-sizing:border-box;
+  border-style:solid;
+  border-width:34px 40px 35px 40px;
+  border-image-source:url("assets/hajjen-frame/objectives-frame-v2.webp");
+  border-image-slice:55 64 55 64;
+  border-image-width:34px 40px 35px 40px;
+  border-image-repeat:stretch;
+}
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .hajjen-panel-frame-piece{
+  display:none!important;
+}
+
 .zone3-app .objectives.shared-objectives h2{
   margin:0 0 6px;
   color:#2c2118;

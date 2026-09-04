@@ -99,14 +99,15 @@
   .zone3-app .titlebar .build{font-size:8px;padding:5px 7px}
 }
 
-/* Pass 2: Objectives panel only — universal frame + parchment surface. */
+/* Pass 2: Objectives panel only — parchment + reusable eight-piece frame layer. */
 .zone3-app .objectives.shared-objectives{
+  --hajjen-frame-corner:36px;
   position:relative;
   isolation:isolate;
   box-sizing:border-box;
   border:0;
   border-radius:0;
-  padding:28px 24px 26px;
+  padding:24px 20px 22px;
   background-color:#ead7b0;
   background-image:url("assets/hajjen_parchment_surface_v1.png");
   background-repeat:repeat;
@@ -117,29 +118,67 @@
   overflow:visible;
 }
 
-/* The deployed frame asset is 160×200. The preserved decorative corner region
-   is about 25 source pixels on each side. Using 120 here exceeded the source
-   dimensions and collapsed the nine-slice to tiny corner fragments. */
-.zone3-app .objectives.shared-objectives::before{content:none!important}
-.zone3-app .objectives.shared-objectives::after{
-  content:""!important;
-  position:absolute;
-  inset:0;
-  z-index:3;
-  box-sizing:border-box;
-  border:28px solid transparent;
-  border-image-source:url("assets/hajjen_universal_panel_frame_v1.png");
-  border-image-slice:25;
-  border-image-width:28px;
-  border-image-repeat:stretch;
-  border-image-outset:0;
-  pointer-events:none;
-}
+/* The frame is deliberately split into eight logical pieces at runtime from the
+   approved source PNG: 160px corners, 448px top/bottom center, 640px side center.
+   This keeps corners fixed while only the straight rails stretch. */
+.zone3-app .objectives.shared-objectives::before,
+.zone3-app .objectives.shared-objectives::after{content:none!important}
 
-.zone3-app .objectives.shared-objectives > *{
+.zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame){
   position:relative;
   z-index:1;
 }
+
+.zone3-app .hajjen-panel-frame{
+  position:absolute!important;
+  inset:0;
+  z-index:3!important;
+  pointer-events:none;
+  overflow:visible;
+}
+
+.zone3-app .hajjen-panel-frame-piece{
+  position:absolute;
+  display:block;
+  background-image:url("assets/hajjen_universal_panel_frame_v1.png");
+  background-repeat:no-repeat;
+}
+
+/* Corners: source region = 160×160 of a 768×960 frame. */
+.zone3-app .hajjen-panel-frame-piece.tl,
+.zone3-app .hajjen-panel-frame-piece.tr,
+.zone3-app .hajjen-panel-frame-piece.bl,
+.zone3-app .hajjen-panel-frame-piece.br{
+  width:var(--hajjen-frame-corner);
+  height:var(--hajjen-frame-corner);
+  background-size:172.8px 216px;
+}
+.zone3-app .hajjen-panel-frame-piece.tl{left:0;top:0;background-position:left top}
+.zone3-app .hajjen-panel-frame-piece.tr{right:0;top:0;background-position:right top}
+.zone3-app .hajjen-panel-frame-piece.bl{left:0;bottom:0;background-position:left bottom}
+.zone3-app .hajjen-panel-frame-piece.br{right:0;bottom:0;background-position:right bottom}
+
+/* Top/bottom rails: only the 448px straight center section stretches horizontally. */
+.zone3-app .hajjen-panel-frame-piece.t,
+.zone3-app .hajjen-panel-frame-piece.b{
+  left:var(--hajjen-frame-corner);
+  right:var(--hajjen-frame-corner);
+  height:var(--hajjen-frame-corner);
+  background-size:171.4286% 216px;
+}
+.zone3-app .hajjen-panel-frame-piece.t{top:0;background-position:center top}
+.zone3-app .hajjen-panel-frame-piece.b{bottom:0;background-position:center bottom}
+
+/* Side rails: only the 640px straight center section stretches vertically. */
+.zone3-app .hajjen-panel-frame-piece.l,
+.zone3-app .hajjen-panel-frame-piece.r{
+  top:var(--hajjen-frame-corner);
+  bottom:var(--hajjen-frame-corner);
+  width:var(--hajjen-frame-corner);
+  background-size:172.8px 150%;
+}
+.zone3-app .hajjen-panel-frame-piece.l{left:0;background-position:left center}
+.zone3-app .hajjen-panel-frame-piece.r{right:0;background-position:right center}
 
 .zone3-app .objectives.shared-objectives h2{
   margin:0 0 6px;

@@ -1,5 +1,7 @@
 /* HAJJEN board-frame loader — rebuilds the approved user-supplied frame from
-   four static base64 text chunks and overlays it on the Zone 3 viewport. */
+   four static base64 text chunks and places it in a wrapper around the Zone 3
+   viewport. The wrapper lets the visual frame extend beyond the clipped gameplay
+   board without changing board geometry or interaction. */
 (function(){
   const parts=[
     'assets/board-frame-data/part0.txt?v=1',
@@ -19,14 +21,23 @@
 
       const apply=()=>{
         document.querySelectorAll('.zone3-app .viewport').forEach(viewport=>{
-          if(viewport.querySelector(':scope > .hajjen-board-frame-overlay')) return;
+          if(viewport.parentElement?.classList.contains('hajjen-board-frame-shell')) return;
+
+          /* Remove the old inside-viewport overlay if a previous build left one behind. */
+          viewport.querySelector(':scope > .hajjen-board-frame-overlay')?.remove();
+
+          const shell=document.createElement('div');
+          shell.className='hajjen-board-frame-shell';
+          viewport.parentNode.insertBefore(shell,viewport);
+          shell.appendChild(viewport);
+
           const img=document.createElement('img');
           img.className='hajjen-board-frame-overlay';
           img.alt='';
           img.setAttribute('aria-hidden','true');
           img.draggable=false;
           img.src=src;
-          viewport.appendChild(img);
+          shell.appendChild(img);
         });
       };
 

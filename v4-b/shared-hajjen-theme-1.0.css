@@ -18,7 +18,6 @@
   overflow:hidden;
 }
 
-/* Preserve the decorative end caps while allowing only the calm center to stretch. */
 .zone3-app .titlebar::before,
 .zone3-app .titlebar::after{
   content:"";
@@ -99,13 +98,17 @@
   .zone3-app .titlebar .build{font-size:8px;padding:5px 7px}
 }
 
-/* Pass 2: Objectives panel only — parchment + reusable eight-piece frame layer. */
+/* Pass 2: Objectives panel only — parchment + reusable frame assembled from
+   three production PNG slices cut directly from the user-supplied frame-parts sheet.
+   Corners never stretch; only straight rails stretch. */
 .zone3-app .objectives.shared-objectives{
-  --hajjen-frame-corner:36px;
-  --hajjen-frame-rail-h:7.2px;
-  --hajjen-frame-rail-w:7.4px;
-  --hajjen-frame-rail-y:9px;
-  --hajjen-frame-rail-x:3.6px;
+  --hajjen-frame-corner-w:36px;
+  --hajjen-frame-corner-h:34px;
+  --hajjen-frame-rail-h:8px;
+  --hajjen-frame-rail-w:8px;
+  --hajjen-frame-join:5px;
+  --hajjen-frame-rail-top:4px;
+  --hajjen-frame-rail-side:2px;
   position:relative;
   isolation:isolate;
   box-sizing:border-box;
@@ -122,15 +125,12 @@
   overflow:visible;
 }
 
-/* Production frame. The corner keeps its approved proportions. The rail assets are
-   tightly cropped from the straight portions of the approved 768x960 master, so
-   there is no transparent dead area to stretch. */
 .zone3-app .objectives.shared-objectives::before,
 .zone3-app .objectives.shared-objectives::after{content:none!important}
 
 .zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame){
   position:relative;
-  z-index:1;
+  z-index:4;
 }
 
 .zone3-app .hajjen-panel-frame{
@@ -150,43 +150,45 @@
   transform-origin:center;
 }
 
-/* One 160x160 corner asset, mirrored for the other three corners. */
+/* Fixed ornate corner, mirrored for the other three corners. */
 .zone3-app .hajjen-panel-frame-piece.tl,
 .zone3-app .hajjen-panel-frame-piece.tr,
 .zone3-app .hajjen-panel-frame-piece.bl,
 .zone3-app .hajjen-panel-frame-piece.br{
-  width:var(--hajjen-frame-corner);
-  height:var(--hajjen-frame-corner);
-  background-image:url("assets/hajjen-frame/tl.svg");
+  width:var(--hajjen-frame-corner-w);
+  height:var(--hajjen-frame-corner-h);
+  z-index:2;
+  background-image:url("assets/hajjen-frame/tl-user.png");
 }
 .zone3-app .hajjen-panel-frame-piece.tl{left:0;top:0}
 .zone3-app .hajjen-panel-frame-piece.tr{right:0;top:0;transform:scaleX(-1)}
 .zone3-app .hajjen-panel-frame-piece.bl{left:0;bottom:0;transform:scaleY(-1)}
 .zone3-app .hajjen-panel-frame-piece.br{right:0;bottom:0;transform:scale(-1,-1)}
 
-/* Tight 448x32 horizontal rail. It sits at the same vertical offset that the rail
-   has inside the 160px source corner and overlaps the corner by one pixel. */
+/* Straight horizontal rail. It overlaps the corner's short rail stub so no gap
+   can appear when the panel changes width. */
 .zone3-app .hajjen-panel-frame-piece.t,
 .zone3-app .hajjen-panel-frame-piece.b{
-  left:calc(var(--hajjen-frame-corner) - 1px);
-  right:calc(var(--hajjen-frame-corner) - 1px);
+  left:calc(var(--hajjen-frame-corner-w) - var(--hajjen-frame-join));
+  right:calc(var(--hajjen-frame-corner-w) - var(--hajjen-frame-join));
   height:var(--hajjen-frame-rail-h);
-  background-image:url("assets/hajjen-frame/t.svg?v=2");
+  z-index:1;
+  background-image:url("assets/hajjen-frame/t-user.png");
 }
-.zone3-app .hajjen-panel-frame-piece.t{top:var(--hajjen-frame-rail-y)}
-.zone3-app .hajjen-panel-frame-piece.b{bottom:var(--hajjen-frame-rail-y);transform:scaleY(-1)}
+.zone3-app .hajjen-panel-frame-piece.t{top:var(--hajjen-frame-rail-top)}
+.zone3-app .hajjen-panel-frame-piece.b{bottom:var(--hajjen-frame-rail-top);transform:scaleY(-1)}
 
-/* Tight 33x640 vertical rail. The rail keeps its real thickness instead of being
-   expanded to the full corner width. */
+/* Straight vertical rail. Same principle: fixed thickness, only its length changes. */
 .zone3-app .hajjen-panel-frame-piece.l,
 .zone3-app .hajjen-panel-frame-piece.r{
-  top:calc(var(--hajjen-frame-corner) - 1px);
-  bottom:calc(var(--hajjen-frame-corner) - 1px);
+  top:calc(var(--hajjen-frame-corner-h) - var(--hajjen-frame-join));
+  bottom:calc(var(--hajjen-frame-corner-h) - var(--hajjen-frame-join));
   width:var(--hajjen-frame-rail-w);
-  background-image:url("assets/hajjen-frame/l.svg?v=2");
+  z-index:1;
+  background-image:url("assets/hajjen-frame/l-user.png");
 }
-.zone3-app .hajjen-panel-frame-piece.l{left:var(--hajjen-frame-rail-x)}
-.zone3-app .hajjen-panel-frame-piece.r{right:var(--hajjen-frame-rail-x);transform:scaleX(-1)}
+.zone3-app .hajjen-panel-frame-piece.l{left:var(--hajjen-frame-rail-side)}
+.zone3-app .hajjen-panel-frame-piece.r{right:var(--hajjen-frame-rail-side);transform:scaleX(-1)}
 
 .zone3-app .objectives.shared-objectives h2{
   margin:0 0 6px;

@@ -14,9 +14,13 @@
   align-items:stretch!important;
   align-self:start!important;
   overflow:visible!important;
+  background:transparent!important;
 }
 
-.zone3-app .shared-utility-hud > button{
+/* data-utility-action is intentionally part of the selector. It gives this skin
+   higher specificity than the old .spellbook-open/.backpack-open/.help-open
+   soft-colour button backgrounds in shared-utility-1.0.css. */
+.zone3-app .shared-utility-hud > button[data-utility-action]{
   position:relative!important;
   display:block!important;
   flex:0 0 auto!important;
@@ -28,7 +32,8 @@
   padding:0!important;
   border:0!important;
   border-radius:0!important;
-  background:none!important;
+  background:transparent!important;
+  background-color:transparent!important;
   box-shadow:none!important;
   color:transparent!important;
   font-size:0!important;
@@ -36,17 +41,18 @@
   text-shadow:none!important;
   overflow:visible!important;
   cursor:pointer;
-  transition:transform .10s ease,filter .10s ease;
   appearance:none!important;
   -webkit-appearance:none!important;
+  transition:transform .16s ease,filter .16s ease!important;
 }
 
-.zone3-app .shared-utility-hud > button::before{
+.zone3-app .shared-utility-hud > button[data-utility-action]::before{
   content:"";
   display:block;
   width:100%;
   height:auto;
   aspect-ratio:568 / 112;
+  background-color:transparent!important;
   background-repeat:no-repeat;
   background-position:center;
   background-size:100% 100%;
@@ -69,24 +75,31 @@
   background-image:url("assets/utility-buttons/copy-run-report.webp");
   aspect-ratio:568 / 112;
 }
+.zone3-app .shared-utility-hud > button[data-utility-action="reset"]{
+  display:block!important;
+  visibility:visible!important;
+}
 .zone3-app .shared-utility-hud > button[data-utility-action="reset"]::before{
   background-image:url("assets/utility-buttons/reset-campaign.webp");
   aspect-ratio:568 / 111;
 }
 
-.zone3-app .shared-utility-hud > button:hover:not(:disabled){
-  filter:brightness(1.07);
-  transform:translateY(-1px);
+/* More readable interactive feedback: a small lift/scale plus brighter gold and
+   a warm shadow. Strong enough to feel clickable without changing the artwork. */
+.zone3-app .shared-utility-hud > button[data-utility-action]:hover:not(:disabled){
+  filter:brightness(1.16) saturate(1.08) drop-shadow(0 4px 5px rgba(89,55,18,.38))!important;
+  transform:translateY(-2px) scale(1.028)!important;
+  z-index:2;
 }
-.zone3-app .shared-utility-hud > button:active:not(:disabled){
-  filter:brightness(.96);
-  transform:translateY(1px);
+.zone3-app .shared-utility-hud > button[data-utility-action]:active:not(:disabled){
+  filter:brightness(.94) saturate(1.02) drop-shadow(0 1px 2px rgba(89,55,18,.25))!important;
+  transform:translateY(1px) scale(.992)!important;
 }
-.zone3-app .shared-utility-hud > button:focus-visible{
+.zone3-app .shared-utility-hud > button[data-utility-action]:focus-visible{
   outline:2px solid rgba(214,167,72,.95)!important;
   outline-offset:2px;
 }
-.zone3-app .shared-utility-hud > button:disabled{
+.zone3-app .shared-utility-hud > button[data-utility-action]:disabled{
   opacity:.50!important;
   filter:grayscale(.25);
 }
@@ -108,5 +121,5 @@
 }
 
 @media(prefers-reduced-motion:reduce){
-  .zone3-app .shared-utility-hud > button{transition:none}
+  .zone3-app .shared-utility-hud > button[data-utility-action]{transition:none!important}
 }

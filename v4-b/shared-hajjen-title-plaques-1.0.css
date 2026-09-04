@@ -56,7 +56,7 @@
   width:min(72%,240px)!important;
   height:auto!important;
   min-height:0!important;
-  aspect-ratio:600 / 108!important;
+  aspect-ratio:360 / 65!important;
   margin:0!important;
   padding:0 30px!important;
   display:flex!important;
@@ -64,7 +64,7 @@
   justify-content:center!important;
   box-sizing:border-box!important;
   background-color:transparent!important;
-  background-image:url("assets/title-plaques/title-plaque-green.webp?v=2")!important;
+  background-image:url("assets/title-plaques/title-plaque-green.webp?v=3")!important;
   background-repeat:no-repeat!important;
   background-position:center!important;
   background-size:100% 100%!important;

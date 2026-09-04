@@ -101,50 +101,27 @@
 
 /* Pass 2: Objectives panel only — universal frame + parchment surface. */
 .zone3-app .objectives.shared-objectives{
-  position:relative;
-  isolation:isolate;
   box-sizing:border-box;
-  border:0;
+  border:10px solid transparent;
   border-radius:0;
-  padding:15px 18px 17px;
-  background:transparent;
-  box-shadow:none;
+  padding:5px 8px 7px;
+  background-color:transparent;
+  background-image:
+    url("assets/hajjen_universal_panel_frame_v1.png"),
+    url("assets/hajjen_parchment_surface_v1.png");
+  background-repeat:no-repeat,repeat;
+  background-position:center,center;
+  background-size:100% 100%,160px 160px;
+  background-origin:border-box,padding-box;
+  background-clip:border-box,padding-box;
+  box-shadow:0 5px 14px rgba(54,36,17,.16);
   color:#2b2118;
   overflow:visible;
 }
 
-/* Parchment sits inside the frame so the transparent ornamental corners stay transparent. */
-.zone3-app .objectives.shared-objectives::before{
-  content:"";
-  position:absolute;
-  inset:9px 10px;
-  z-index:0;
-  background-color:#ead7b0;
-  background-image:url("assets/hajjen_parchment_surface_v1.png");
-  background-repeat:repeat;
-  background-position:center;
-  background-size:160px 160px;
-  box-shadow:0 5px 14px rgba(54,36,17,.16);
-  pointer-events:none;
-}
-
-/* The complete frame is drawn as one overlay instead of border-image slices. */
-.zone3-app .objectives.shared-objectives::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:2;
-  background-image:url("assets/hajjen_universal_panel_frame_v1.png");
-  background-repeat:no-repeat;
-  background-position:center;
-  background-size:100% 100%;
-  pointer-events:none;
-}
-
-.zone3-app .objectives.shared-objectives > *{
-  position:relative;
-  z-index:1;
-}
+/* Disable the previous pseudo-element frame experiment completely. */
+.zone3-app .objectives.shared-objectives::before,
+.zone3-app .objectives.shared-objectives::after{content:none!important}
 
 .zone3-app .objectives.shared-objectives h2{
   margin:1px 0 6px;

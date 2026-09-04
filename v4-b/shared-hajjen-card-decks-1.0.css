@@ -85,7 +85,7 @@
   background-image:url("assets/card-decks/manipulation.webp")!important;
 }
 .zone3-app .shared-card-decks-panel .deck-pile.enchantment{
-  background-image:url("assets/card-decks/enchantment.webp")!important;
+  background-image:url("assets/card-decks/enchantment.webp?v=2")!important;
 }
 .zone3-app .shared-card-decks-panel .deck-pile.tactical{
   background-image:url("assets/card-decks/tactical.webp")!important;

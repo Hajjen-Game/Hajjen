@@ -1,7 +1,0 @@
-/* HAJJEN frame alignment pass — Objectives only.
-   Keeps the approved user-supplied artwork unchanged and only tightens the joins. */
-.zone3-app .objectives.shared-objectives{
-  --hajjen-frame-join:7px;
-  --hajjen-frame-rail-top:5px;
-  --hajjen-frame-rail-side:3px;
-}

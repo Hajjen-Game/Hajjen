@@ -118,9 +118,8 @@
   overflow:visible;
 }
 
-/* The frame is deliberately split into eight logical pieces at runtime from the
-   approved source PNG: 160px corners, 448px top/bottom center, 640px side center.
-   This keeps corners fixed while only the straight rails stretch. */
+/* Production frame: eight physical slices cut from the approved 768×960
+   transparent frame master. Corners never stretch; only straight rails stretch. */
 .zone3-app .objectives.shared-objectives::before,
 .zone3-app .objectives.shared-objectives::after{content:none!important}
 
@@ -140,45 +139,52 @@
 .zone3-app .hajjen-panel-frame-piece{
   position:absolute;
   display:block;
-  background-image:url("assets/hajjen_universal_panel_frame_v1.png");
   background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
 }
 
-/* Corners: source region = 160×160 of a 768×960 frame. */
-.zone3-app .hajjen-panel-frame-piece.tl,
-.zone3-app .hajjen-panel-frame-piece.tr,
-.zone3-app .hajjen-panel-frame-piece.bl,
+.zone3-app .hajjen-panel-frame-piece.tl{
+  left:0;top:0;
+  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAABgFBMVEVEKAtqagCSc0KmjVrr2XE/Pz9FLhe/mTbhjyH+/eEAAABtNgi0di9MJglSNSkwFgfHhzIXBgKnaSuJRwnSljGZZCmUVhFIKyOsZRB2RBGQWSf55o8kCwP2x0s7Ig/uuUr12HKlWwv501Hy2opHHANYMw5mKwO4gzPuyWkbCwMlEgXyuDX75nLppjJbQyqaYhsPBQK3dBf//wDFeyfNhRnEikTOmEgLBALIehjYpkl/AACBPAT3xDoJBQYRBwImEwZNLAr79awGBAQ9JyE...");
+}
+.zone3-app .hajjen-panel-frame-piece.tr{
+  right:0;top:0;
+  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAB...TRUNCATED...");
+}
+.zone3-app .hajjen-panel-frame-piece.bl{
+  left:0;bottom:0;
+  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAB...TRUNCATED...");
+}
 .zone3-app .hajjen-panel-frame-piece.br{
-  width:var(--hajjen-frame-corner);
-  height:var(--hajjen-frame-corner);
-  background-size:172.8px 216px;
+  right:0;bottom:0;
+  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAB...TRUNCATED...");
 }
-.zone3-app .hajjen-panel-frame-piece.tl{left:0;top:0;background-position:left top}
-.zone3-app .hajjen-panel-frame-piece.tr{right:0;top:0;background-position:right top}
-.zone3-app .hajjen-panel-frame-piece.bl{left:0;bottom:0;background-position:left bottom}
-.zone3-app .hajjen-panel-frame-piece.br{right:0;bottom:0;background-position:right bottom}
 
-/* Top/bottom rails: only the 448px straight center section stretches horizontally. */
-.zone3-app .hajjen-panel-frame-piece.t,
+.zone3-app .hajjen-panel-frame-piece.t{
+  left:var(--hajjen-frame-corner);right:var(--hajjen-frame-corner);top:0;
+  height:var(--hajjen-frame-corner);
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAABQCAMAAAB8w5dRAAAB...TRUNCATED...");
+}
 .zone3-app .hajjen-panel-frame-piece.b{
-  left:var(--hajjen-frame-corner);
-  right:var(--hajjen-frame-corner);
+  left:var(--hajjen-frame-corner);right:var(--hajjen-frame-corner);bottom:0;
   height:var(--hajjen-frame-corner);
-  background-size:171.4286% 216px;
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAABQCAMAAAB8w5dRAAAB...TRUNCATED...");
 }
-.zone3-app .hajjen-panel-frame-piece.t{top:0;background-position:center top}
-.zone3-app .hajjen-panel-frame-piece.b{bottom:0;background-position:center bottom}
-
-/* Side rails: only the 640px straight center section stretches vertically. */
-.zone3-app .hajjen-panel-frame-piece.l,
-.zone3-app .hajjen-panel-frame-piece.r{
-  top:var(--hajjen-frame-corner);
-  bottom:var(--hajjen-frame-corner);
+.zone3-app .hajjen-panel-frame-piece.l{
+  left:0;top:var(--hajjen-frame-corner);bottom:var(--hajjen-frame-corner);
   width:var(--hajjen-frame-corner);
-  background-size:172.8px 150%;
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAFACAMAAACQ...TRUNCATED...");
 }
-.zone3-app .hajjen-panel-frame-piece.l{left:0;background-position:left center}
-.zone3-app .hajjen-panel-frame-piece.r{right:0;background-position:right center}
+.zone3-app .hajjen-panel-frame-piece.r{
+  right:0;top:var(--hajjen-frame-corner);bottom:var(--hajjen-frame-corner);
+  width:var(--hajjen-frame-corner);
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAFACAMAAACQ...TRUNCATED...");
+}
 
 .zone3-app .objectives.shared-objectives h2{
   margin:0 0 6px;

@@ -101,22 +101,49 @@
 
 /* Pass 2: Objectives panel only — universal frame + parchment surface. */
 .zone3-app .objectives.shared-objectives{
+  position:relative;
+  isolation:isolate;
   box-sizing:border-box;
-  border:14px solid transparent;
+  border:0;
   border-radius:0;
-  padding:5px 7px 7px;
+  padding:15px 18px 17px;
+  background:transparent;
+  box-shadow:none;
+  color:#2b2118;
+  overflow:visible;
+}
+
+/* Parchment sits inside the frame so the transparent ornamental corners stay transparent. */
+.zone3-app .objectives.shared-objectives::before{
+  content:"";
+  position:absolute;
+  inset:9px 10px;
+  z-index:0;
   background-color:#ead7b0;
   background-image:url("assets/hajjen_parchment_surface_v1.png");
   background-repeat:repeat;
   background-position:center;
   background-size:160px 160px;
-  background-clip:padding-box;
-  border-image-source:url("assets/hajjen_universal_panel_frame_v1.png");
-  border-image-slice:72 70;
-  border-image-width:14px;
-  border-image-repeat:stretch;
   box-shadow:0 5px 14px rgba(54,36,17,.16);
-  color:#2b2118;
+  pointer-events:none;
+}
+
+/* The complete frame is drawn as one overlay instead of border-image slices. */
+.zone3-app .objectives.shared-objectives::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  background-image:url("assets/hajjen_universal_panel_frame_v1.png");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
+  pointer-events:none;
+}
+
+.zone3-app .objectives.shared-objectives > *{
+  position:relative;
+  z-index:1;
 }
 
 .zone3-app .objectives.shared-objectives h2{

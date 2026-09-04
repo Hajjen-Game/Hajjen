@@ -32,21 +32,21 @@
 }
 
 .zone3-app .shared-utility-hud > button[data-utility-action="spellbook"]{
-  background-image:url("assets/utility-buttons/spellbook.png")!important;
+  background-image:url("assets/utility-buttons/spellbook.webp")!important;
 }
 .zone3-app .shared-utility-hud > button[data-utility-action="backpack"]{
-  background-image:url("assets/utility-buttons/backpack.png")!important;
+  background-image:url("assets/utility-buttons/backpack.webp")!important;
   aspect-ratio:568 / 113;
 }
 .zone3-app .shared-utility-hud > button[data-utility-action="help"]{
-  background-image:url("assets/utility-buttons/help.png")!important;
+  background-image:url("assets/utility-buttons/help.webp")!important;
   aspect-ratio:568 / 110;
 }
 .zone3-app .shared-utility-hud > button[data-utility-action="copy"]{
-  background-image:url("assets/utility-buttons/copy-run-report.png")!important;
+  background-image:url("assets/utility-buttons/copy-run-report.webp")!important;
 }
 .zone3-app .shared-utility-hud > button[data-utility-action="reset"]{
-  background-image:url("assets/utility-buttons/reset-campaign.png")!important;
+  background-image:url("assets/utility-buttons/reset-campaign.webp")!important;
   aspect-ratio:568 / 111;
 }
 

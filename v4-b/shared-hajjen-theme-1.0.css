@@ -106,7 +106,7 @@
   box-sizing:border-box;
   border:0;
   border-radius:0;
-  padding:20px 16px 18px;
+  padding:28px 18px 25px;
   background-color:#ead7b0;
   background-image:url("assets/hajjen_parchment_surface_v1.png");
   background-repeat:repeat;
@@ -117,7 +117,9 @@
   overflow:visible;
 }
 
-/* Draw the full frame as a real nine-slice overlay. The frame never controls panel height. */
+/* The source frame is 768×960. Its decorative corners/rails occupy roughly
+   120 source pixels on each side, so the nine-slice must preserve that region.
+   A small 34px slice only captured transparent tail pixels at the bottom. */
 .zone3-app .objectives.shared-objectives::before{content:none!important}
 .zone3-app .objectives.shared-objectives::after{
   content:""!important;
@@ -125,10 +127,10 @@
   inset:0;
   z-index:3;
   box-sizing:border-box;
-  border:34px solid transparent;
+  border:28px solid transparent;
   border-image-source:url("assets/hajjen_universal_panel_frame_v1.png");
-  border-image-slice:34;
-  border-image-width:34px;
+  border-image-slice:120 120 120 120;
+  border-image-width:28px;
   border-image-repeat:stretch;
   pointer-events:none;
 }

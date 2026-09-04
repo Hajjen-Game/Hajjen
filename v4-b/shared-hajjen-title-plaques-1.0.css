@@ -42,23 +42,32 @@
   padding-top:30px!important;
 }
 
-/* SHARKAN + EVENT LOG – green plaque centered over the top frame. */
+/* SHARKAN + EVENT LOG – green plaque centered over the top frame.
+   IMPORTANT: the approved green master is much taller than the dark plaque
+   (1351×244). Keep that authored aspect ratio instead of forcing a short fixed
+   height, otherwise its ornate ends become vertically crushed and look broken. */
 .zone3-app .shared-status.hajjen-framed-panel > h2,
 .zone3-app .shared-event-log.hajjen-framed-panel > h2{
   position:absolute!important;
   left:50%!important;
-  top:-13px!important;
-  transform:translateX(-50%)!important;
+  top:0!important;
+  transform:translate(-50%,-44%)!important;
   z-index:12!important;
   width:72%!important;
-  height:34px!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:1351 / 244!important;
   margin:0!important;
-  padding:0 20px!important;
+  padding:0 30px!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   box-sizing:border-box!important;
-  background:transparent url("assets/title-plaques/title-plaque-green.webp") center/100% 100% no-repeat!important;
+  background-color:transparent!important;
+  background-image:url("assets/title-plaques/title-plaque-green.webp")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
   color:#f2dfb2!important;
   font-family:Georgia,"Times New Roman",serif!important;
   font-size:12px!important;
@@ -71,7 +80,7 @@
 }
 .zone3-app .shared-status.hajjen-framed-panel,
 .zone3-app .shared-event-log.hajjen-framed-panel{
-  padding-top:30px!important;
+  padding-top:32px!important;
 }
 
 /* HAND – title plaque sits on the upper-left frame like the target mockup.

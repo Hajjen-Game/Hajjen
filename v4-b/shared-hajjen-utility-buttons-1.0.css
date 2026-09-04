@@ -1,14 +1,17 @@
 /* HAJJEN utility button master skin.
-   Uses the five approved transparent button assets supplied by the user.
-   The button labels/icons are baked into the art; existing DOM nodes remain the
-   interactive hit targets so all Spellbook/Backpack/Help/Run Report/Reset logic stays intact. */
+   The approved button artwork is rendered by a layout-bearing pseudo element.
+   This deliberately avoids the legacy utility grid forcing the artwork into
+   equal-height rows and clipping the large fantasy button silhouettes. */
 
 .zone3-app .shared-utility-hud{
+  display:flex!important;
+  flex-direction:column!important;
+  flex-wrap:nowrap!important;
   gap:7px!important;
-  align-items:stretch;
-  grid-template-rows:repeat(5,auto)!important;
+  width:100%!important;
   height:auto!important;
   min-height:0!important;
+  align-items:stretch!important;
   align-self:start!important;
   overflow:visible!important;
 }
@@ -16,18 +19,16 @@
 .zone3-app .shared-utility-hud > button{
   position:relative!important;
   display:block!important;
+  flex:0 0 auto!important;
   width:100%!important;
   height:auto!important;
   min-height:0!important;
-  aspect-ratio:568 / 112;
+  aspect-ratio:auto!important;
   margin:0!important;
   padding:0!important;
   border:0!important;
   border-radius:0!important;
-  background-color:transparent!important;
-  background-repeat:no-repeat!important;
-  background-position:center!important;
-  background-size:100% 100%!important;
+  background:none!important;
   box-shadow:none!important;
   color:transparent!important;
   font-size:0!important;
@@ -36,24 +37,40 @@
   overflow:visible!important;
   cursor:pointer;
   transition:transform .10s ease,filter .10s ease;
+  appearance:none!important;
+  -webkit-appearance:none!important;
 }
 
-.zone3-app .shared-utility-hud > button[data-utility-action="spellbook"]{
-  background-image:url("assets/utility-buttons/spellbook.webp")!important;
+.zone3-app .shared-utility-hud > button::before{
+  content:"";
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:568 / 112;
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
+  pointer-events:none;
 }
-.zone3-app .shared-utility-hud > button[data-utility-action="backpack"]{
-  background-image:url("assets/utility-buttons/backpack.webp")!important;
+
+.zone3-app .shared-utility-hud > button[data-utility-action="spellbook"]::before{
+  background-image:url("assets/utility-buttons/spellbook.webp");
+  aspect-ratio:568 / 112;
+}
+.zone3-app .shared-utility-hud > button[data-utility-action="backpack"]::before{
+  background-image:url("assets/utility-buttons/backpack.webp");
   aspect-ratio:568 / 113;
 }
-.zone3-app .shared-utility-hud > button[data-utility-action="help"]{
-  background-image:url("assets/utility-buttons/help.webp")!important;
+.zone3-app .shared-utility-hud > button[data-utility-action="help"]::before{
+  background-image:url("assets/utility-buttons/help.webp");
   aspect-ratio:568 / 110;
 }
-.zone3-app .shared-utility-hud > button[data-utility-action="copy"]{
-  background-image:url("assets/utility-buttons/copy-run-report.webp")!important;
+.zone3-app .shared-utility-hud > button[data-utility-action="copy"]::before{
+  background-image:url("assets/utility-buttons/copy-run-report.webp");
+  aspect-ratio:568 / 112;
 }
-.zone3-app .shared-utility-hud > button[data-utility-action="reset"]{
-  background-image:url("assets/utility-buttons/reset-campaign.webp")!important;
+.zone3-app .shared-utility-hud > button[data-utility-action="reset"]::before{
+  background-image:url("assets/utility-buttons/reset-campaign.webp");
   aspect-ratio:568 / 111;
 }
 
@@ -74,20 +91,19 @@
   filter:grayscale(.25);
 }
 
-/* At narrower widths the shared utility module becomes a row/grid. Keep the
-   authored button proportions rather than forcing equal-height debug buttons. */
+/* Keep the authored proportions at every breakpoint. The rest of the campaign
+   shell may reflow, but this utility module remains a simple vertical stack. */
 @media(max-width:1350px){
   .zone3-app .shared-utility-hud{
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
-    grid-template-rows:auto!important;
-    align-items:start!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 }
 
 @media(max-width:620px){
   .zone3-app .shared-utility-hud{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    grid-template-rows:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 }
 

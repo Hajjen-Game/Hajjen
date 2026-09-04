@@ -18,7 +18,7 @@
   }
 
   panel.classList.add('shared-card-decks-panel');
-  panel.dataset.sharedComponent='card-decks-1.1';
+  panel.dataset.sharedComponent='card-decks-1.2';
   window.HAJJEN_PANEL_FRAME?.mount(panel);
 
   let observer=null;
@@ -65,8 +65,8 @@
     if(deck.state==='locked'){
       const lock=document.createElement('span');
       lock.className='deck-lock';
+      lock.setAttribute('role','img');
       lock.setAttribute('aria-label',`${def.label} locked`);
-      lock.textContent='🔒';
       pile.appendChild(lock);
     }
 
@@ -115,5 +115,5 @@
     observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   }
 
-  window.HAJJEN_SHARED_CARD_DECKS={version:'1.1',zone,panel,render,sync};
+  window.HAJJEN_SHARED_CARD_DECKS={version:'1.2',zone,panel,render,sync};
 })();

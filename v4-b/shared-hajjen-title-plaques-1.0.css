@@ -43,9 +43,9 @@
 }
 
 /* SHARKAN + EVENT LOG – green plaque centered over the top frame.
-   IMPORTANT: the approved green master is much taller than the dark plaque
-   (1351×244). Keep that authored aspect ratio instead of forcing a short fixed
-   height, otherwise its ornate ends become vertically crushed and look broken. */
+   The clean user-supplied master keeps its authored long/low silhouette.
+   A pixel cap prevents the plaque from becoming oversized when the side panel
+   becomes full-width on phones. */
 .zone3-app .shared-status.hajjen-framed-panel > h2,
 .zone3-app .shared-event-log.hajjen-framed-panel > h2{
   position:absolute!important;
@@ -53,10 +53,10 @@
   top:0!important;
   transform:translate(-50%,-44%)!important;
   z-index:12!important;
-  width:72%!important;
+  width:min(72%,240px)!important;
   height:auto!important;
   min-height:0!important;
-  aspect-ratio:1351 / 244!important;
+  aspect-ratio:600 / 108!important;
   margin:0!important;
   padding:0 30px!important;
   display:flex!important;
@@ -64,7 +64,7 @@
   justify-content:center!important;
   box-sizing:border-box!important;
   background-color:transparent!important;
-  background-image:url("assets/title-plaques/title-plaque-green.webp")!important;
+  background-image:url("assets/title-plaques/title-plaque-green.webp?v=2")!important;
   background-repeat:no-repeat!important;
   background-position:center!important;
   background-size:100% 100%!important;
@@ -158,13 +158,13 @@
 @media(max-width:1000px){
   .zone3-app .shared-card-decks-panel.hajjen-framed-panel > h2{width:70%!important}
   .zone3-app .shared-status.hajjen-framed-panel > h2,
-  .zone3-app .shared-event-log.hajjen-framed-panel > h2{width:64%!important}
+  .zone3-app .shared-event-log.hajjen-framed-panel > h2{width:min(64%,240px)!important}
 }
 
 @media(max-width:620px){
   .zone3-app .shared-card-decks-panel.hajjen-framed-panel > h2{width:62%!important}
   .zone3-app .shared-status.hajjen-framed-panel > h2,
-  .zone3-app .shared-event-log.hajjen-framed-panel > h2{width:58%!important}
+  .zone3-app .shared-event-log.hajjen-framed-panel > h2{width:min(58%,240px)!important}
   .zone3-app .cards-hud .shared-hand-panel .hand-title-text,
   .zone3-app .shared-action-bar .action-hud-title > span:first-child{
     left:-4px!important;

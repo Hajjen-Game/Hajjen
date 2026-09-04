@@ -17,8 +17,23 @@
     objectivePanel.insertAdjacentElement('afterend',panel);
   }
 
-  panel.classList.add('shared-card-decks-panel');
-  panel.dataset.sharedComponent='card-decks-1.0';
+  panel.classList.add('shared-card-decks-panel','hajjen-framed-panel');
+  panel.dataset.sharedComponent='card-decks-1.1';
+
+  function ensureFrame(){
+    let frame=panel.querySelector(':scope > .hajjen-panel-frame');
+    if(frame)return frame;
+    frame=document.createElement('span');
+    frame.className='hajjen-panel-frame';
+    frame.setAttribute('aria-hidden','true');
+    ['tl','t','tr','l','r','bl','b','br'].forEach(part=>{
+      const piece=document.createElement('span');
+      piece.className=`hajjen-panel-frame-piece ${part}`;
+      frame.appendChild(piece);
+    });
+    panel.prepend(frame);
+    return frame;
+  }
 
   let observer=null;
   let queued=false;
@@ -73,14 +88,18 @@
   }
 
   function render(){
-    let heading=panel.querySelector('h2');
+    ensureFrame();
+
+    let heading=panel.querySelector(':scope > h2');
     if(!heading){
       heading=document.createElement('h2');
-      panel.prepend(heading);
+      const frame=panel.querySelector(':scope > .hajjen-panel-frame');
+      frame?.insertAdjacentElement('afterend',heading);
+      if(!frame)panel.prepend(heading);
     }
     heading.textContent=config.text?.cardDecks||'CARD DECKS';
 
-    let row=panel.querySelector('.deck-row');
+    let row=panel.querySelector(':scope > .deck-row');
     if(!row){
       row=document.createElement('div');
       panel.appendChild(row);
@@ -110,5 +129,5 @@
     observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   }
 
-  window.HAJJEN_SHARED_CARD_DECKS={version:'1.0',zone,panel,render,sync};
+  window.HAJJEN_SHARED_CARD_DECKS={version:'1.1',zone,panel,render,sync};
 })();

@@ -1,0 +1,23 @@
+/* HAJJEN board frame — Zone 3 visual skin only.
+   Uses the user-supplied 3:2 transparent frame directly over the existing gameplay viewport.
+   Gameplay dimensions and board logic stay unchanged. */
+
+.zone3-app .viewport{
+  position:relative;
+  isolation:isolate;
+  border:0;
+  border-radius:0;
+  box-shadow:0 8px 22px rgba(51,65,48,.10),0 4px 12px rgba(54,36,17,.16);
+}
+
+.zone3-app .viewport::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:60;
+  pointer-events:none;
+  background-image:url("assets/hajjen_board_frame_v1.png");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
+}

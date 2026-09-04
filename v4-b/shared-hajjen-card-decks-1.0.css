@@ -1,7 +1,7 @@
 /* HAJJEN Card Decks visual skin.
-   Reuses the same universal panel frame core as Objectives / Sharkan / Event Log.
-   Deck rows keep their existing semantic colours and logic, but are tuned to the
-   parchment/gold HUD language. */
+   Uses the approved Card Decks row masters supplied by the user.
+   The outer panel still shares the common parchment/frame core, while each
+   deck row is now the dedicated Manipulation / Enchantment / Tactical asset. */
 
 .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
   --hajjen-frame-corner-w:36px;
@@ -16,7 +16,7 @@
   box-sizing:border-box;
   border:0;
   border-radius:0;
-  padding:24px 14px 18px;
+  padding:24px 9px 17px;
   background:transparent;
   box-shadow:none;
   color:#2b2118;
@@ -46,7 +46,7 @@
 }
 
 .zone3-app .shared-card-decks-panel.hajjen-framed-panel > h2{
-  margin:0 0 9px;
+  margin:0 0 8px;
   color:#2c2118;
   font-family:Georgia,"Times New Roman",serif;
   font-size:13px;
@@ -57,104 +57,125 @@
 }
 
 .zone3-app .shared-card-decks-panel .deck-row{
-  gap:8px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:6px!important;
 }
 
+/* Dedicated row artwork. The row keeps a natural ~4.4:1 ratio from the approved master. */
 .zone3-app .shared-card-decks-panel .deck-pile{
-  min-height:88px;
   position:relative;
-  border:1px solid rgba(75,54,33,.42)!important;
-  border-radius:4px!important;
-  padding:12px 70px 10px 11px!important;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.25),
-    inset 0 10px 18px rgba(255,255,255,.08),
-    0 1px 2px rgba(71,45,18,.12);
+  display:block!important;
+  width:100%;
+  min-height:0!important;
+  aspect-ratio:4.38 / 1;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  box-shadow:none!important;
+  overflow:visible;
+  color:#f2dfb2!important;
 }
 
-.zone3-app .shared-card-decks-panel .deck-pile strong{
-  font-family:Arial,Helvetica,sans-serif;
-  font-size:10px!important;
-  font-weight:900;
-  letter-spacing:.15px;
+.zone3-app .shared-card-decks-panel .deck-pile.manipulation{
+  background-image:url("assets/card-decks/manipulation.webp")!important;
+}
+.zone3-app .shared-card-decks-panel .deck-pile.enchantment{
+  background-image:url("assets/card-decks/enchantment.webp")!important;
+}
+.zone3-app .shared-card-decks-panel .deck-pile.tactical{
+  background-image:url("assets/card-decks/tactical.webp")!important;
+}
+
+/* Remove the old CSS-generated white card stack: the approved artwork already contains it. */
+.zone3-app .shared-card-decks-panel .deck-pile::before,
+.zone3-app .shared-card-decks-panel .deck-pile::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* Live game text sits in the large coloured centre field of each master row. */
+.zone3-app .shared-card-decks-panel .deck-pile > strong{
+  position:absolute;
+  left:29%;
+  top:34%;
+  width:49%;
+  margin:0!important;
+  color:#f3e2bd!important;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(7px,.52vw,10px)!important;
+  font-weight:700!important;
+  line-height:1.05;
+  letter-spacing:.3px;
+  text-shadow:0 1px 2px rgba(0,0,0,.9);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .zone3-app .shared-card-decks-panel .deck-pile > span:not(.deck-lock){
-  margin-top:5px!important;
-  color:currentColor;
-  opacity:.82;
-  font-size:8px!important;
-  font-weight:800;
-  line-height:1.25;
+  position:absolute;
+  left:29%;
+  top:53%;
+  width:49%;
+  margin:0!important;
+  color:rgba(244,225,187,.88)!important;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(5.5px,.40vw,8px)!important;
+  font-weight:800!important;
+  line-height:1.15;
+  letter-spacing:.1px;
+  text-shadow:0 1px 2px rgba(0,0,0,.85);
+  white-space:normal;
 }
 
-/* Restrained deck-family colours: identity remains obvious without fighting the parchment panel. */
-.zone3-app .shared-card-decks-panel .deck-pile.manipulation{
-  color:#2f6299;
-  border-color:rgba(47,98,153,.58)!important;
-  background:linear-gradient(180deg,rgba(225,237,250,.92),rgba(214,230,246,.80));
-}
-.zone3-app .shared-card-decks-panel .deck-pile.enchantment{
-  color:#71529b;
-  border-color:rgba(113,82,155,.58)!important;
-  background:linear-gradient(180deg,rgba(237,228,248,.92),rgba(228,216,242,.80));
-}
-.zone3-app .shared-card-decks-panel .deck-pile.tactical{
-  color:#a86024;
-  border-color:rgba(168,96,36,.52)!important;
-  background:linear-gradient(180deg,rgba(249,235,218,.90),rgba(243,224,203,.78));
-}
-
-/* Compact physical card-stack readout at the right edge. */
-.zone3-app .shared-card-decks-panel .deck-pile::before,
-.zone3-app .shared-card-decks-panel .deck-pile::after{
-  box-sizing:border-box;
-  border:1px solid currentColor!important;
-  border-radius:4px!important;
-  background:rgba(255,251,241,.74)!important;
-  box-shadow:0 1px 1px rgba(63,42,20,.10);
-}
-.zone3-app .shared-card-decks-panel .deck-pile::before{
-  right:13px!important;
-  top:12px!important;
-  width:43px!important;
-  height:58px!important;
-  transform:translate(-5px,4px)!important;
-  opacity:.42!important;
-}
-.zone3-app .shared-card-decks-panel .deck-pile::after{
-  right:13px!important;
-  top:12px!important;
-  width:43px!important;
-  height:58px!important;
-  transform:translate(-2px,2px)!important;
-  opacity:.78!important;
-}
-
+/* Locked Tactical uses the separate approved lock medallion in the right socket. */
 .zone3-app .shared-card-decks-panel .deck-pile.locked{
-  opacity:.72!important;
+  opacity:.86!important;
   filter:none!important;
 }
 
 .zone3-app .shared-card-decks-panel .deck-lock{
-  right:18px!important;
-  top:30px!important;
-  width:28px!important;
-  height:28px!important;
+  position:absolute!important;
+  right:4.2%!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  width:17%!important;
+  height:auto!important;
+  aspect-ratio:1!important;
   z-index:5;
-  border:1px solid currentColor!important;
-  background:rgba(255,248,232,.88)!important;
-  box-shadow:0 1px 2px rgba(63,42,20,.12);
-  font-size:13px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-image:url("assets/card-decks/lock.webp")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  font-size:0!important;
+  line-height:0!important;
+  overflow:hidden;
 }
 
 @media(max-width:1000px){
   .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
-    padding-left:18px;
-    padding-right:18px;
+    padding-left:12px;
+    padding-right:12px;
   }
-  .zone3-app .shared-card-decks-panel .deck-pile{
-    min-height:84px;
-    padding-right:62px!important;
+  .zone3-app .shared-card-decks-panel .deck-row{gap:7px!important}
+  .zone3-app .shared-card-decks-panel .deck-pile > strong{font-size:9px!important}
+  .zone3-app .shared-card-decks-panel .deck-pile > span:not(.deck-lock){font-size:7px!important}
+}
+
+@media(max-width:620px){
+  .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
+    padding-left:14px;
+    padding-right:14px;
   }
 }

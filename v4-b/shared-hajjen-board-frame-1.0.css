@@ -9,9 +9,9 @@
    gameplay-board edges. */
 
 .zone3-app .hajjen-board-frame-shell{
-  --hajjen-board-frame-x:clamp(12px,1.6vw,20px);
-  --hajjen-board-frame-top:clamp(13px,1.65vw,20px);
-  --hajjen-board-frame-bottom:clamp(28px,3.4vw,42px);
+  --hajjen-board-frame-x:clamp(18px,2.15vw,28px);
+  --hajjen-board-frame-top:clamp(18px,2.15vw,28px);
+  --hajjen-board-frame-bottom:clamp(34px,4.25vw,52px);
   position:relative;
   width:min(100%,1050px);
   flex:0 0 auto;
@@ -48,6 +48,9 @@
 
 @media(max-width:560px){
   .zone3-app .hajjen-board-frame-shell{
+    --hajjen-board-frame-x:18px;
+    --hajjen-board-frame-top:18px;
+    --hajjen-board-frame-bottom:36px;
     width:700px;
     min-width:700px;
   }

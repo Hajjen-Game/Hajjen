@@ -22,16 +22,19 @@
 
 .zone3-app .viewport::after{content:none!important}
 
+/* Important: this is an IMG (a replaced element). Giving it left/right with width:auto
+   caused the browser to keep its intrinsic width, which made the frame visibly smaller
+   than the viewport on desktop. Give it an explicit size based on the shell instead. */
 .zone3-app .hajjen-board-frame-shell > .hajjen-board-frame-overlay{
   position:absolute;
   left:calc(-1 * var(--hajjen-board-frame-x));
-  right:calc(-1 * var(--hajjen-board-frame-x));
   top:calc(-1 * var(--hajjen-board-frame-y));
-  bottom:calc(-1 * var(--hajjen-board-frame-y));
+  width:calc(100% + var(--hajjen-board-frame-x) + var(--hajjen-board-frame-x));
+  height:calc(100% + var(--hajjen-board-frame-y) + var(--hajjen-board-frame-y));
   z-index:60;
   display:block;
-  width:auto;
-  height:auto;
+  max-width:none;
+  max-height:none;
   object-fit:fill;
   pointer-events:none;
   user-select:none;

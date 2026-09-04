@@ -118,8 +118,9 @@
   overflow:visible;
 }
 
-/* Production frame: eight physical slices cut from the approved 768×960
-   transparent frame master. Corners never stretch; only straight rails stretch. */
+/* Production frame: three physical source slices cut from the approved master.
+   The other five pieces are mirrored versions, so corners remain fixed and only
+   straight rails stretch. */
 .zone3-app .objectives.shared-objectives::before,
 .zone3-app .objectives.shared-objectives::after{content:none!important}
 
@@ -142,49 +143,44 @@
   background-repeat:no-repeat;
   background-position:center;
   background-size:100% 100%;
+  transform-origin:center;
 }
 
-.zone3-app .hajjen-panel-frame-piece.tl{
-  left:0;top:0;
-  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAABgFBMVEVEKAtqagCSc0KmjVrr2XE/Pz9FLhe/mTbhjyH+/eEAAABtNgi0di9MJglSNSkwFgfHhzIXBgKnaSuJRwnSljGZZCmUVhFIKyOsZRB2RBGQWSf55o8kCwP2x0s7Ig/uuUr12HKlWwv501Hy2opHHANYMw5mKwO4gzPuyWkbCwMlEgXyuDX75nLppjJbQyqaYhsPBQK3dBf//wDFeyfNhRnEikTOmEgLBALIehjYpkl/AACBPAT3xDoJBQYRBwImEwZNLAr79awGBAQ9JyE...");
-}
-.zone3-app .hajjen-panel-frame-piece.tr{
-  right:0;top:0;
-  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAB...TRUNCATED...");
-}
-.zone3-app .hajjen-panel-frame-piece.bl{
-  left:0;bottom:0;
-  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAB...TRUNCATED...");
-}
+/* One corner asset, mirrored for the other three corners. */
+.zone3-app .hajjen-panel-frame-piece.tl,
+.zone3-app .hajjen-panel-frame-piece.tr,
+.zone3-app .hajjen-panel-frame-piece.bl,
 .zone3-app .hajjen-panel-frame-piece.br{
-  right:0;bottom:0;
-  width:var(--hajjen-frame-corner);height:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAB...TRUNCATED...");
+  width:var(--hajjen-frame-corner);
+  height:var(--hajjen-frame-corner);
+  background-image:url("assets/hajjen-frame/tl.svg");
 }
+.zone3-app .hajjen-panel-frame-piece.tl{left:0;top:0}
+.zone3-app .hajjen-panel-frame-piece.tr{right:0;top:0;transform:scaleX(-1)}
+.zone3-app .hajjen-panel-frame-piece.bl{left:0;bottom:0;transform:scaleY(-1)}
+.zone3-app .hajjen-panel-frame-piece.br{right:0;bottom:0;transform:scale(-1,-1)}
 
-.zone3-app .hajjen-panel-frame-piece.t{
-  left:var(--hajjen-frame-corner);right:var(--hajjen-frame-corner);top:0;
-  height:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAABQCAMAAAB8w5dRAAAB...TRUNCATED...");
-}
+/* One horizontal rail asset, mirrored vertically for the bottom. */
+.zone3-app .hajjen-panel-frame-piece.t,
 .zone3-app .hajjen-panel-frame-piece.b{
-  left:var(--hajjen-frame-corner);right:var(--hajjen-frame-corner);bottom:0;
+  left:var(--hajjen-frame-corner);
+  right:var(--hajjen-frame-corner);
   height:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAABQCAMAAAB8w5dRAAAB...TRUNCATED...");
+  background-image:url("assets/hajjen-frame/t.svg");
 }
-.zone3-app .hajjen-panel-frame-piece.l{
-  left:0;top:var(--hajjen-frame-corner);bottom:var(--hajjen-frame-corner);
-  width:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAFACAMAAACQ...TRUNCATED...");
-}
+.zone3-app .hajjen-panel-frame-piece.t{top:0}
+.zone3-app .hajjen-panel-frame-piece.b{bottom:0;transform:scaleY(-1)}
+
+/* One vertical rail asset, mirrored horizontally for the right. */
+.zone3-app .hajjen-panel-frame-piece.l,
 .zone3-app .hajjen-panel-frame-piece.r{
-  right:0;top:var(--hajjen-frame-corner);bottom:var(--hajjen-frame-corner);
+  top:var(--hajjen-frame-corner);
+  bottom:var(--hajjen-frame-corner);
   width:var(--hajjen-frame-corner);
-  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAFACAMAAACQ...TRUNCATED...");
+  background-image:url("assets/hajjen-frame/l.svg");
 }
+.zone3-app .hajjen-panel-frame-piece.l{left:0}
+.zone3-app .hajjen-panel-frame-piece.r{right:0;transform:scaleX(-1)}
 
 .zone3-app .objectives.shared-objectives h2{
   margin:0 0 6px;

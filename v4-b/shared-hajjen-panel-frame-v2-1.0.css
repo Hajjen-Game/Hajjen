@@ -1,0 +1,35 @@
+/* HAJJEN shared panel frame V2.
+   Applies the approved Objectives precision-frame geometry to the four HUD panels
+   that share the parchment panel language: Objectives, Sharkan, Event Log and
+   Card Decks. The gameplay board frame is intentionally NOT targeted here. */
+
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-panel-frame{
+  inset:0;
+  box-sizing:border-box;
+  border-style:solid;
+  border-width:32px 34px 34px 34px;
+  border-image-source:url("assets/hajjen-frame/objectives-frame-v2.webp");
+  border-image-slice:42 42 44 42;
+  border-image-width:32px 34px 34px 34px;
+  border-image-repeat:stretch;
+}
+
+/* The V2 frame is a single precision 9-slice asset, so the older individual
+   corner/rail spans remain mounted for compatibility but are not rendered. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .hajjen-panel-frame-piece,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .hajjen-panel-frame-piece,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .hajjen-panel-frame-piece,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-panel-frame > .hajjen-panel-frame-piece{
+  display:none!important;
+}
+
+/* Keep each parchment surface tucked inside the same inner frame boundary. */
+.zone3-app .objectives.shared-objectives::before,
+.zone3-app .shared-status.hajjen-framed-panel::before,
+.zone3-app .shared-event-log.hajjen-framed-panel::before,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel::before{
+  inset:6px;
+}

@@ -115,17 +115,29 @@
   border:0;
   border-radius:0;
   padding:24px 20px 22px;
+  background:transparent;
+  box-shadow:none;
+  color:#2b2118;
+  overflow:visible;
+}
+
+/* Keep parchment physically inside the decorative frame instead of painting a
+   full rectangular panel behind the ornate transparent corners. This prevents
+   the parchment from leaking outside the frame against the future main HUD background. */
+.zone3-app .objectives.shared-objectives::before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  z-index:0;
+  pointer-events:none;
   background-color:#ead7b0;
   background-image:url("assets/hajjen_parchment_surface_v1.png");
   background-repeat:repeat;
   background-position:center;
   background-size:160px 160px;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
   box-shadow:0 5px 14px rgba(54,36,17,.16);
-  color:#2b2118;
-  overflow:visible;
 }
-
-.zone3-app .objectives.shared-objectives::before,
 .zone3-app .objectives.shared-objectives::after{content:none!important}
 
 .zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame){

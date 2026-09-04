@@ -1,0 +1,139 @@
+/* HAJJEN Sharkan + Event Log skin.
+   Both panels use the same shared frame core/assets as Objectives, while keeping
+   their own spacing and content tuning so later panel-specific fixes stay local. */
+
+/* Shared defaults. Objectives overrides these with its own variables at higher specificity. */
+.zone3-app .hajjen-framed-panel{
+  --hajjen-frame-corner-w:36px;
+  --hajjen-frame-corner-h:34px;
+  --hajjen-frame-rail-h:8px;
+  --hajjen-frame-rail-w:8px;
+  --hajjen-frame-join:5px;
+  --hajjen-frame-rail-top:4px;
+  --hajjen-frame-rail-side:2px;
+  position:relative;
+  isolation:isolate;
+  box-sizing:border-box;
+}
+
+.zone3-app .shared-status.hajjen-framed-panel,
+.zone3-app .shared-event-log.hajjen-framed-panel{
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:#2b2118;
+  overflow:visible;
+}
+
+.zone3-app .shared-status.hajjen-framed-panel{
+  padding:24px 18px 20px;
+}
+
+.zone3-app .shared-event-log.hajjen-framed-panel{
+  min-height:220px;
+  padding:24px 18px 18px;
+}
+
+/* Parchment is inset so it cannot show through outside the ornate transparent corners. */
+.zone3-app .shared-status.hajjen-framed-panel::before,
+.zone3-app .shared-event-log.hajjen-framed-panel::before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  z-index:0;
+  pointer-events:none;
+  background-color:#ead7b0;
+  background-image:url("assets/hajjen_parchment_surface_v1.png");
+  background-repeat:repeat;
+  background-position:center;
+  background-size:160px 160px;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+  box-shadow:0 5px 14px rgba(54,36,17,.16);
+}
+
+.zone3-app .shared-status.hajjen-framed-panel::after,
+.zone3-app .shared-event-log.hajjen-framed-panel::after{content:none!important}
+
+.zone3-app .shared-status.hajjen-framed-panel > *:not(.hajjen-panel-frame),
+.zone3-app .shared-event-log.hajjen-framed-panel > *:not(.hajjen-panel-frame){
+  position:relative;
+  z-index:4;
+}
+
+.zone3-app .shared-status.hajjen-framed-panel h2,
+.zone3-app .shared-event-log.hajjen-framed-panel h2{
+  margin:0 0 9px;
+  color:#2c2118;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.2px;
+  text-align:center;
+  text-shadow:0 1px rgba(255,255,255,.45);
+}
+
+/* Sharkan panel content keeps the existing information hierarchy, but drops the
+   temporary stark black/white debug-card look. */
+.zone3-app .shared-status .status-line{
+  color:#2b2118;
+}
+
+.zone3-app .shared-status .bar{
+  height:18px;
+  border:1px solid rgba(72,51,31,.72);
+  background:rgba(255,248,232,.62);
+  box-shadow:inset 0 1px 2px rgba(67,42,18,.10);
+}
+
+.zone3-app .shared-status .level-line{
+  border-top:1px solid rgba(101,75,43,.24);
+  border-bottom:1px solid rgba(101,75,43,.24);
+  color:#5f4c38;
+}
+
+.zone3-app .shared-status .danger-state{
+  border:1px solid rgba(72,51,31,.72);
+  background:rgba(255,248,232,.56);
+  box-shadow:inset 0 1px 2px rgba(67,42,18,.08);
+}
+
+.zone3-app .shared-status .danger-expanded{
+  border-top:1px solid rgba(101,75,43,.24);
+  margin-top:8px;
+  padding-top:8px;
+}
+
+.zone3-app .shared-status .danger-expanded-title{
+  color:#6b553d;
+}
+
+.zone3-app .shared-status .pressure-grid div,
+.zone3-app .shared-status .thresholds div,
+.zone3-app .shared-status .danger-rule{
+  border-color:rgba(101,75,43,.28);
+  background:rgba(255,249,237,.38);
+}
+
+.zone3-app .shared-status .panel-note{color:#6d5941}
+
+/* Event Log: retain semantic colour strips, but let the cards live naturally on parchment. */
+.zone3-app .shared-event-log .event-log{
+  background:transparent;
+}
+
+.zone3-app .shared-event-log .event{
+  color:#3d3023;
+  background:rgba(255,250,239,.48);
+  border-top:1px solid rgba(101,75,43,.10);
+  border-right:1px solid rgba(101,75,43,.10);
+  border-bottom:1px solid rgba(101,75,43,.10);
+}
+
+@media(max-width:900px){
+  .zone3-app .shared-status.hajjen-framed-panel,
+  .zone3-app .shared-event-log.hajjen-framed-panel{
+    padding-left:20px;
+    padding-right:20px;
+  }
+}

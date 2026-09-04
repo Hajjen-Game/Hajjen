@@ -102,6 +102,10 @@
 /* Pass 2: Objectives panel only — parchment + reusable eight-piece frame layer. */
 .zone3-app .objectives.shared-objectives{
   --hajjen-frame-corner:36px;
+  --hajjen-frame-rail-h:7.2px;
+  --hajjen-frame-rail-w:7.4px;
+  --hajjen-frame-rail-y:9px;
+  --hajjen-frame-rail-x:3.6px;
   position:relative;
   isolation:isolate;
   box-sizing:border-box;
@@ -118,9 +122,9 @@
   overflow:visible;
 }
 
-/* Production frame: three physical source slices cut from the approved master.
-   The other five pieces are mirrored versions, so corners remain fixed and only
-   straight rails stretch. */
+/* Production frame. The corner keeps its approved proportions. The rail assets are
+   tightly cropped from the straight portions of the approved 768x960 master, so
+   there is no transparent dead area to stretch. */
 .zone3-app .objectives.shared-objectives::before,
 .zone3-app .objectives.shared-objectives::after{content:none!important}
 
@@ -146,7 +150,7 @@
   transform-origin:center;
 }
 
-/* One corner asset, mirrored for the other three corners. */
+/* One 160x160 corner asset, mirrored for the other three corners. */
 .zone3-app .hajjen-panel-frame-piece.tl,
 .zone3-app .hajjen-panel-frame-piece.tr,
 .zone3-app .hajjen-panel-frame-piece.bl,
@@ -160,27 +164,29 @@
 .zone3-app .hajjen-panel-frame-piece.bl{left:0;bottom:0;transform:scaleY(-1)}
 .zone3-app .hajjen-panel-frame-piece.br{right:0;bottom:0;transform:scale(-1,-1)}
 
-/* One horizontal rail asset, mirrored vertically for the bottom. */
+/* Tight 448x32 horizontal rail. It sits at the same vertical offset that the rail
+   has inside the 160px source corner and overlaps the corner by one pixel. */
 .zone3-app .hajjen-panel-frame-piece.t,
 .zone3-app .hajjen-panel-frame-piece.b{
-  left:var(--hajjen-frame-corner);
-  right:var(--hajjen-frame-corner);
-  height:var(--hajjen-frame-corner);
-  background-image:url("assets/hajjen-frame/t.svg");
+  left:calc(var(--hajjen-frame-corner) - 1px);
+  right:calc(var(--hajjen-frame-corner) - 1px);
+  height:var(--hajjen-frame-rail-h);
+  background-image:url("assets/hajjen-frame/t.svg?v=2");
 }
-.zone3-app .hajjen-panel-frame-piece.t{top:0}
-.zone3-app .hajjen-panel-frame-piece.b{bottom:0;transform:scaleY(-1)}
+.zone3-app .hajjen-panel-frame-piece.t{top:var(--hajjen-frame-rail-y)}
+.zone3-app .hajjen-panel-frame-piece.b{bottom:var(--hajjen-frame-rail-y);transform:scaleY(-1)}
 
-/* One vertical rail asset, mirrored horizontally for the right. */
+/* Tight 33x640 vertical rail. The rail keeps its real thickness instead of being
+   expanded to the full corner width. */
 .zone3-app .hajjen-panel-frame-piece.l,
 .zone3-app .hajjen-panel-frame-piece.r{
-  top:var(--hajjen-frame-corner);
-  bottom:var(--hajjen-frame-corner);
-  width:var(--hajjen-frame-corner);
-  background-image:url("assets/hajjen-frame/l.svg");
+  top:calc(var(--hajjen-frame-corner) - 1px);
+  bottom:calc(var(--hajjen-frame-corner) - 1px);
+  width:var(--hajjen-frame-rail-w);
+  background-image:url("assets/hajjen-frame/l.svg?v=2");
 }
-.zone3-app .hajjen-panel-frame-piece.l{left:0}
-.zone3-app .hajjen-panel-frame-piece.r{right:0;transform:scaleX(-1)}
+.zone3-app .hajjen-panel-frame-piece.l{left:var(--hajjen-frame-rail-x)}
+.zone3-app .hajjen-panel-frame-piece.r{right:var(--hajjen-frame-rail-x);transform:scaleX(-1)}
 
 .zone3-app .objectives.shared-objectives h2{
   margin:0 0 6px;

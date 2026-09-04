@@ -17,23 +17,9 @@
     objectivePanel.insertAdjacentElement('afterend',panel);
   }
 
-  panel.classList.add('shared-card-decks-panel','hajjen-framed-panel');
+  panel.classList.add('shared-card-decks-panel');
   panel.dataset.sharedComponent='card-decks-1.1';
-
-  function ensureFrame(){
-    let frame=panel.querySelector(':scope > .hajjen-panel-frame');
-    if(frame)return frame;
-    frame=document.createElement('span');
-    frame.className='hajjen-panel-frame';
-    frame.setAttribute('aria-hidden','true');
-    ['tl','t','tr','l','r','bl','b','br'].forEach(part=>{
-      const piece=document.createElement('span');
-      piece.className=`hajjen-panel-frame-piece ${part}`;
-      frame.appendChild(piece);
-    });
-    panel.prepend(frame);
-    return frame;
-  }
+  window.HAJJEN_PANEL_FRAME?.mount(panel);
 
   let observer=null;
   let queued=false;
@@ -88,7 +74,7 @@
   }
 
   function render(){
-    ensureFrame();
+    window.HAJJEN_PANEL_FRAME?.mount(panel);
 
     let heading=panel.querySelector(':scope > h2');
     if(!heading){

@@ -1,0 +1,1 @@
+HAJJEN frame alignment pass uses the user-supplied frame parts. Corners and rails are positioned independently; only straight rails stretch.

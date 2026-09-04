@@ -1,0 +1,160 @@
+/* HAJJEN Card Decks visual skin.
+   Reuses the same universal panel frame core as Objectives / Sharkan / Event Log.
+   Deck rows keep their existing semantic colours and logic, but are tuned to the
+   parchment/gold HUD language. */
+
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel{
+  --hajjen-frame-corner-w:36px;
+  --hajjen-frame-corner-h:34px;
+  --hajjen-frame-rail-h:8px;
+  --hajjen-frame-rail-w:8px;
+  --hajjen-frame-join:5px;
+  --hajjen-frame-rail-top:4px;
+  --hajjen-frame-rail-side:2px;
+  position:relative;
+  isolation:isolate;
+  box-sizing:border-box;
+  border:0;
+  border-radius:0;
+  padding:24px 14px 18px;
+  background:transparent;
+  box-shadow:none;
+  color:#2b2118;
+  overflow:visible;
+}
+
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel::before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  z-index:0;
+  pointer-events:none;
+  background-color:#ead7b0;
+  background-image:url("assets/hajjen_parchment_surface_v1.png");
+  background-repeat:repeat;
+  background-position:center;
+  background-size:160px 160px;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+  box-shadow:0 5px 14px rgba(54,36,17,.16);
+}
+
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel::after{content:none!important}
+
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > *:not(.hajjen-panel-frame){
+  position:relative;
+  z-index:4;
+}
+
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > h2{
+  margin:0 0 9px;
+  color:#2c2118;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.2px;
+  text-align:center;
+  text-shadow:0 1px rgba(255,255,255,.45);
+}
+
+.zone3-app .shared-card-decks-panel .deck-row{
+  gap:8px!important;
+}
+
+.zone3-app .shared-card-decks-panel .deck-pile{
+  min-height:88px;
+  position:relative;
+  border:1px solid rgba(75,54,33,.42)!important;
+  border-radius:4px!important;
+  padding:12px 70px 10px 11px!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.25),
+    inset 0 10px 18px rgba(255,255,255,.08),
+    0 1px 2px rgba(71,45,18,.12);
+}
+
+.zone3-app .shared-card-decks-panel .deck-pile strong{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:10px!important;
+  font-weight:900;
+  letter-spacing:.15px;
+}
+
+.zone3-app .shared-card-decks-panel .deck-pile > span:not(.deck-lock){
+  margin-top:5px!important;
+  color:currentColor;
+  opacity:.82;
+  font-size:8px!important;
+  font-weight:800;
+  line-height:1.25;
+}
+
+/* Restrained deck-family colours: identity remains obvious without fighting the parchment panel. */
+.zone3-app .shared-card-decks-panel .deck-pile.manipulation{
+  color:#2f6299;
+  border-color:rgba(47,98,153,.58)!important;
+  background:linear-gradient(180deg,rgba(225,237,250,.92),rgba(214,230,246,.80));
+}
+.zone3-app .shared-card-decks-panel .deck-pile.enchantment{
+  color:#71529b;
+  border-color:rgba(113,82,155,.58)!important;
+  background:linear-gradient(180deg,rgba(237,228,248,.92),rgba(228,216,242,.80));
+}
+.zone3-app .shared-card-decks-panel .deck-pile.tactical{
+  color:#a86024;
+  border-color:rgba(168,96,36,.52)!important;
+  background:linear-gradient(180deg,rgba(249,235,218,.90),rgba(243,224,203,.78));
+}
+
+/* Compact physical card-stack readout at the right edge. */
+.zone3-app .shared-card-decks-panel .deck-pile::before,
+.zone3-app .shared-card-decks-panel .deck-pile::after{
+  box-sizing:border-box;
+  border:1px solid currentColor!important;
+  border-radius:4px!important;
+  background:rgba(255,251,241,.74)!important;
+  box-shadow:0 1px 1px rgba(63,42,20,.10);
+}
+.zone3-app .shared-card-decks-panel .deck-pile::before{
+  right:13px!important;
+  top:12px!important;
+  width:43px!important;
+  height:58px!important;
+  transform:translate(-5px,4px)!important;
+  opacity:.42!important;
+}
+.zone3-app .shared-card-decks-panel .deck-pile::after{
+  right:13px!important;
+  top:12px!important;
+  width:43px!important;
+  height:58px!important;
+  transform:translate(-2px,2px)!important;
+  opacity:.78!important;
+}
+
+.zone3-app .shared-card-decks-panel .deck-pile.locked{
+  opacity:.72!important;
+  filter:none!important;
+}
+
+.zone3-app .shared-card-decks-panel .deck-lock{
+  right:18px!important;
+  top:30px!important;
+  width:28px!important;
+  height:28px!important;
+  z-index:5;
+  border:1px solid currentColor!important;
+  background:rgba(255,248,232,.88)!important;
+  box-shadow:0 1px 2px rgba(63,42,20,.12);
+  font-size:13px!important;
+}
+
+@media(max-width:1000px){
+  .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
+    padding-left:18px;
+    padding-right:18px;
+  }
+  .zone3-app .shared-card-decks-panel .deck-pile{
+    min-height:84px;
+    padding-right:62px!important;
+  }
+}

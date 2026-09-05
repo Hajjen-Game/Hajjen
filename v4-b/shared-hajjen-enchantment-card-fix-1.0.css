@@ -1,7 +1,7 @@
-/* HAJJEN Enchantment Hand Card — precision fix v1.1.
+/* HAJJEN Enchantment Hand Card — precision fix v1.2.
    Uses the authored purple shell directly via a runtime-loaded data URI.
-   This override intentionally replaces the earlier hue-mask experiment so the
-   frame cannot show green artifacts. */
+   The shell is slightly overscaled to compensate for transparent canvas padding
+   in the source art so its visible footprint matches Manipulation cards. */
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]{
   border:0!important;
@@ -11,7 +11,7 @@
   background-image:var(--hajjen-enchantment-shell,url("assets/hand-cards/manipulation-shell-v2.webp"))!important;
   background-position:center!important;
   background-repeat:no-repeat!important;
-  background-size:100% 100%!important;
+  background-size:105% 104%!important;
   box-shadow:none!important;
   color:#211824!important;
   overflow:hidden!important;

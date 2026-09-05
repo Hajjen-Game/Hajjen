@@ -16,6 +16,10 @@
   width:min(100%,1050px);
   flex:0 0 auto;
   overflow:visible;
+  /* Keep the ornamental overlay inside the board's own stacking context.
+     Without this, its former z-index:60 could escape above Spellbook/Backpack/Help backdrops. */
+  isolation:isolate;
+  z-index:0;
 }
 
 .zone3-app .hajjen-board-frame-shell > .viewport{
@@ -37,7 +41,7 @@
   top:calc(-1 * var(--hajjen-board-frame-top));
   width:calc(100% + var(--hajjen-board-frame-x) + var(--hajjen-board-frame-x));
   height:calc(100% + var(--hajjen-board-frame-top) + var(--hajjen-board-frame-bottom));
-  z-index:60;
+  z-index:2;
   display:block;
   max-width:none;
   max-height:none;

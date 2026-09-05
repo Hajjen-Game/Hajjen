@@ -1,0 +1,130 @@
+/* HAJJEN Enchantment Hand Card — precision fix v1.0.
+   Uses the authored purple shell directly. This override intentionally replaces
+   the earlier hue-mask experiment so the frame cannot show green artifacts. */
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]{
+  border:0!important;
+  border-radius:0!important;
+  padding:0!important;
+  background-color:transparent!important;
+  background-image:url("assets/hand-cards/enchantment-shell-v2.webp")!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  box-shadow:none!important;
+  color:#211824!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
+
+/* Kill the old masked recolour layer completely. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  -webkit-mask:none!important;
+  mask:none!important;
+  filter:none!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::before{
+  left:13.8%!important;
+  right:8%!important;
+  top:6.0%!important;
+  height:11%!important;
+  z-index:3!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:8px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.35px!important;
+  color:#f3dfb6!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.92)!important;
+}
+
+/* Compact vertical rhythm: title, rules text, target selector and action all fit
+   inside the parchment/lower command band without touching each other. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong{
+  left:8.5%!important;
+  right:8.5%!important;
+  top:23%!important;
+  height:13%!important;
+  z-index:2!important;
+  color:#241c15!important;
+  font-size:10.8px!important;
+  line-height:1.05!important;
+  font-weight:900!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
+  left:8.5%!important;
+  right:8.5%!important;
+  top:37%!important;
+  height:18%!important;
+  min-height:0!important;
+  max-height:none!important;
+  z-index:2!important;
+  margin:0!important;
+  display:-webkit-box!important;
+  color:#2f271f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:7.7px!important;
+  line-height:1.12!important;
+  font-weight:900!important;
+  font-synthesis:weight!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  overflow:hidden!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
+  left:8.5%!important;
+  right:8.5%!important;
+  top:57%!important;
+  width:83%!important;
+  height:14%!important;
+  min-height:0!important;
+  z-index:2!important;
+  margin:0!important;
+  padding:0 18px 0 5px!important;
+  border:1px solid #7c4da0!important;
+  border-radius:2px!important;
+  background:rgba(255,252,246,.97)!important;
+  color:#211a1f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:7.5px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  box-sizing:border-box!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply{
+  left:13%!important;
+  right:13%!important;
+  bottom:5.5%!important;
+  width:74%!important;
+  height:13%!important;
+  min-height:0!important;
+  z-index:2!important;
+  margin:0!important;
+  padding:0 5px!important;
+  border:1px solid rgba(235,196,98,.94)!important;
+  border-radius:2px!important;
+  background:linear-gradient(180deg,rgba(128,67,151,.97),rgba(72,31,91,.98))!important;
+  color:#f5e7c2!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:6.7px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.15px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  box-sizing:border-box!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]:hover{
+  filter:brightness(1.09) saturate(1.05)!important;
+  transform:translateY(-1.5px) scale(1.012)!important;
+  z-index:4!important;
+}

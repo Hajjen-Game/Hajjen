@@ -42,6 +42,7 @@
   let lastSnapshot=null;
   let lastStep=Number(state.steps)||0;
   let lastCombatStartStep=null;
+  let pendingPotionReport=null;
 
   function snapshot(){
     const c=state.combat;
@@ -82,7 +83,9 @@
   function stamp(s){return `Step ${s.step} | R${s.row}C${s.col} | HP ${s.hp}/${s.maxHp} | L${s.level} | D ${s.danger}/20`;}
   function record(kind,text,s=snapshot()){
     run.metrics.maxDanger=Math.max(run.metrics.maxDanger,s?.danger||0);
-    run.events.push({n:++serial,kind,text,state:s});
+    const entry={n:++serial,kind,text,state:s};
+    run.events.push(entry);
+    return entry;
   }
 
   function syncMoves(s=snapshot()){
@@ -132,8 +135,13 @@
       if(/ engaged(?: from adjacent aggro)?\.$/i.test(text)&&s.combat){
         startCombatRecord(s,/from adjacent aggro/i.test(text));
       }
-      let m=text.match(/^Healing Potion restored (\d+) HP\.$/i);
-      if(m){run.metrics.potionUses++;run.metrics.potionHealing+=Number(m[1]);}
+      const potionMatch=text.match(/^Healing Potion restored (\d+) HP\.$/i);
+      if(potionMatch){
+        const initial=Number(potionMatch[1])||0;
+        run.metrics.potionUses++;
+        run.metrics.potionHealing+=initial;
+        pendingPotionReport={initial,entry:null};
+      }
       if(/^Level up → \d+\.$/i.test(text)){
         run.metrics.levelUps++;
         if(prev)run.metrics.levelUpHealing+=Math.max(0,s.hp-prev.hp);
@@ -142,9 +150,22 @@
       if(/^Sharkan was defeated\./i.test(text)&&run.currentCombat)finalizeCombat('LOSS',s);
       if(/^Zone cleared\./i.test(text)&&run.currentCombat)finalizeCombat('WIN',s);
 
-      record('LOG',text,s);lastSnapshot=s;
+      const entry=record('LOG',text,s);
+      if(pendingPotionReport&&!pendingPotionReport.entry)pendingPotionReport.entry=entry;
+      lastSnapshot=s;
     });
   };
+
+  window.addEventListener('hajjen:zone3-potion-healed',event=>{
+    const pending=pendingPotionReport;
+    if(!pending?.entry)return;
+    const total=Math.max(0,Number(event.detail?.total)||pending.initial);
+    run.metrics.potionHealing+=total-pending.initial;
+    pending.entry.text=`Healing Potion restored ${total} HP.`;
+    pending.entry.state=snapshot();
+    lastSnapshot=pending.entry.state;
+    pendingPotionReport=null;
+  });
 
   if(toastArea){
     new MutationObserver(mutations=>{

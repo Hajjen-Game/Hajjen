@@ -1,4 +1,4 @@
-/* HAJJEN Hand Card Skin — Manipulation shell test v1.3.
+/* HAJJEN Hand Card Skin — Manipulation shell test v1.4.
    Uses the authored blue HAJJEN card shell with dynamic text and the existing PLAY action. */
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{
@@ -23,12 +23,12 @@
   z-index:4!important;
 }
 
-/* Match the HAND / SHARKAN / EVENT LOG title typography and seat it cleanly in the blue banner. */
+/* Match HAND / SHARKAN / EVENT LOG typography; move the category label higher and farther right. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::before{
   position:absolute!important;
-  left:11.5%!important;
-  right:10%!important;
-  top:9.2%!important;
+  left:13.8%!important;
+  right:8%!important;
+  top:6.5%!important;
   height:11.5%!important;
   margin:0!important;
   display:flex!important;
@@ -75,6 +75,7 @@
   color:#3f362c!important;
   font-size:9.8px!important;
   line-height:1.2!important;
+  font-weight:700!important;
   -webkit-box-orient:vertical!important;
   -webkit-line-clamp:3!important;
   overflow:hidden!important;

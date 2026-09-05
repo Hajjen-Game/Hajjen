@@ -29,6 +29,14 @@
     return (zoneConfig.decks||[]).find(deck=>deck.type===category)?.state||'locked';
   }
 
+  function cardDisplayLabel(card,category){
+    if(category==='manipulation'||category==='enchantment'){
+      const title=card.querySelector(':scope > strong')?.textContent?.trim();
+      if(title)return title;
+    }
+    return CATEGORY_LABELS[category];
+  }
+
   function enchantmentApi(){return window.HAJJEN_ZONE3_ENCHANTMENTS;}
   function existingEnchantmentCards(){return [...hand.querySelectorAll(':scope > .shared-enchantment-card')];}
 
@@ -70,8 +78,10 @@
       const select=card.querySelector('.shared-enchantment-select');
       const apply=card.querySelector('.shared-enchantment-apply');
       const eligible=(state?.spells||[]).filter(spell=>!spell.fallback);
+      const cardName=def.name||cardState.id;
 
-      if(title)title.textContent=def.name||cardState.id;
+      if(title)title.textContent=cardName;
+      card.dataset.handLabel=cardName;
       if(copy)copy.textContent=cardState.appliedTo
         ?`Applied to ${cardState.spellName||'spell'}`
         :(def.text||'Choose a spell.');
@@ -171,7 +181,7 @@
       counts[category]++;
       card.classList.add('shared-hand-card');
       card.dataset.handCategory=category;
-      card.dataset.handLabel=CATEGORY_LABELS[category];
+      card.dataset.handLabel=cardDisplayLabel(card,category);
     });
 
     [...hand.querySelectorAll(':scope > .hand-empty-slot')].forEach(slot=>slot.classList.add('legacy-hand-empty'));

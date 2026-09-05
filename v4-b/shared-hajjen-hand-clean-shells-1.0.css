@@ -1,0 +1,316 @@
+/* HAJJEN HAND clean-shell precision pass.
+   Uses the user-supplied text-free card art. Dynamic card copy and actions remain live HTML controls. */
+
+.zone3-app .cards-hud .shared-hand-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,auto)!important;
+  gap:8px!important;
+  align-items:start!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder{
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:611/388!important;
+  box-sizing:border-box!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card{
+  border:0!important;
+  border-radius:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background-color:transparent!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  box-shadow:none!important;
+  isolation:isolate!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card::before,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* --------------------------------------------------------------------------
+   MANIPULATION
+   -------------------------------------------------------------------------- */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]{
+  background-image:var(--hajjen-hand-v2-manip)!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>strong{
+  position:absolute!important;
+  left:31%!important;
+  right:5.5%!important;
+  top:15%!important;
+  height:18%!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  background:transparent!important;
+  color:#1b1510!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(12px,.88vw,16px)!important;
+  line-height:1!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>span,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>small{
+  position:absolute!important;
+  left:8%!important;
+  right:6%!important;
+  top:40%!important;
+  bottom:24%!important;
+  margin:0!important;
+  padding:0!important;
+  display:-webkit-box!important;
+  background:transparent!important;
+  color:#2a2118!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(9px,.65vw,12px)!important;
+  line-height:1.16!important;
+  font-weight:700!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  overflow:hidden!important;
+  z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>button{
+  position:absolute!important;
+  left:6.5%!important;
+  right:6.5%!important;
+  bottom:5%!important;
+  width:87%!important;
+  height:17.5%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#f3e7c9!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(9px,.68vw,12px)!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.35px!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.9)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  cursor:pointer!important;
+  z-index:4!important;
+}
+
+/* --------------------------------------------------------------------------
+   ENCHANTMENT
+   -------------------------------------------------------------------------- */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]{
+  background-image:var(--hajjen-hand-v2-ench)!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>strong{
+  position:absolute!important;
+  left:31%!important;
+  right:5.5%!important;
+  top:14%!important;
+  height:18%!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  background:transparent!important;
+  color:#1b1510!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(12px,.88vw,16px)!important;
+  line-height:1!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>.shared-enchantment-copy{
+  position:absolute!important;
+  left:31%!important;
+  right:6%!important;
+  top:33%!important;
+  height:20%!important;
+  margin:0!important;
+  padding:0!important;
+  display:-webkit-box!important;
+  min-height:0!important;
+  max-height:none!important;
+  background:transparent!important;
+  color:#49306c!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(8px,.59vw,11px)!important;
+  line-height:1.14!important;
+  font-weight:700!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  overflow:hidden!important;
+  z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>.shared-enchantment-select{
+  position:absolute!important;
+  left:7%!important;
+  right:7%!important;
+  top:58.5%!important;
+  width:86%!important;
+  height:12.5%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 22px 0 7px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:rgba(246,238,221,.76)!important;
+  color:#1e1711!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(8px,.61vw,11px)!important;
+  line-height:1!important;
+  font-weight:800!important;
+  box-shadow:none!important;
+  z-index:4!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>.shared-enchantment-apply{
+  position:absolute!important;
+  left:7%!important;
+  right:7%!important;
+  bottom:5%!important;
+  width:86%!important;
+  height:17.5%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 4px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#f3e7c9!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(7.5px,.57vw,10.5px)!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.1px!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.85)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  z-index:4!important;
+}
+
+/* --------------------------------------------------------------------------
+   TACTICAL ACTIVE
+   -------------------------------------------------------------------------- */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]{
+  background-image:var(--hajjen-hand-v2-tact)!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]>strong{
+  position:absolute!important;
+  left:31%!important;
+  right:5.5%!important;
+  top:15%!important;
+  height:18%!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  background:transparent!important;
+  color:#1b1510!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(12px,.88vw,16px)!important;
+  font-weight:800!important;
+  overflow:hidden!important;
+  z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]>span{
+  position:absolute!important;
+  left:8%!important;
+  right:6%!important;
+  top:41%!important;
+  bottom:24%!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  color:#2a2118!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(9px,.65vw,12px)!important;
+  line-height:1.16!important;
+  font-weight:700!important;
+  overflow:hidden!important;
+  z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]>button{
+  position:absolute!important;
+  left:7%!important;
+  right:7%!important;
+  bottom:5%!important;
+  width:86%!important;
+  height:17.5%!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#f3e7c9!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(9px,.68vw,12px)!important;
+  font-weight:800!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.85)!important;
+  z-index:4!important;
+}
+
+/* Locked Tactical slots are complete static art. */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical.locked{
+  border:0!important;
+  border-radius:0!important;
+  padding:0!important;
+  opacity:1!important;
+  background-color:transparent!important;
+  background-image:var(--hajjen-hand-v2-locked)!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  overflow:hidden!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical.locked>strong,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical.locked>span{display:none!important}
+
+/* Keep authored card art intact while still giving clear interaction feedback. */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card:hover{
+  filter:brightness(1.075) saturate(1.025)!important;
+  transform:translateY(-1px)!important;
+  z-index:5!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card button:hover:not(:disabled){
+  filter:brightness(1.18)!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card button:disabled,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card select:disabled{opacity:.52!important}
+
+@media(max-width:1180px){
+  .zone3-app .cards-hud .shared-hand-grid{
+    grid-template-columns:repeat(4,170px)!important;
+    grid-template-rows:repeat(2,108px)!important;
+    overflow-x:auto!important;
+  }
+  .zone3-app .cards-hud .shared-hand-grid>.shared-hand-card,
+  .zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder{aspect-ratio:auto!important;height:108px!important}
+}
+@media(max-width:620px){
+  .zone3-app .cards-hud .shared-hand-grid{
+    grid-template-columns:repeat(4,168px)!important;
+    grid-template-rows:repeat(2,107px)!important;
+    gap:6px!important;
+  }
+  .zone3-app .cards-hud .shared-hand-grid>.shared-hand-card,
+  .zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder{height:107px!important}
+}

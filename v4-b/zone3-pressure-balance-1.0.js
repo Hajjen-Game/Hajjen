@@ -9,6 +9,7 @@
   if(!cfg||cfg.zone!==3||!state||!(entities instanceof Map)||!eventLog||!toastArea||!world)return;
 
   const ACTIVE_SPAWN_CAP=3;
+  const SPAWNED_MOB_XP=34;
   let safeWindowStartStep=null;
   let safeWindowEndStep=null;
   let spawnedCombat=false;
@@ -84,6 +85,8 @@
   eventObserver.observe(eventLog,{childList:true});
 
   // Core creates the entity synchronously, then emits NEW MOB SPAWNED.
+  // Assign Zone 3's spawned-mob XP immediately so the normal core win/level-up
+  // flow awards the full value, including threshold-crossing heals.
   // If Safe Window covers this movement step or the active-spawn cap is exceeded,
   // remove that just-created entity before it can affect play.
   const spawnObserver=new MutationObserver(mutations=>{
@@ -93,6 +96,7 @@
 
       const spawned=newestSpawned();
       if(!spawned)continue;
+      spawned.xp=SPAWNED_MOB_XP;
 
       if(safeWindowProtectsCurrentMove()){
         eraseSpawn(spawned);
@@ -109,8 +113,9 @@
   spawnObserver.observe(toastArea,{childList:true});
 
   window.HAJJEN_ZONE3_PRESSURE_BALANCE={
-    version:'1.0',
+    version:'1.1',
     activeSpawnCap:ACTIVE_SPAWN_CAP,
+    spawnedMobXp:SPAWNED_MOB_XP,
     get activeSpawned(){return activeSpawned().length;},
     get safeWindow(){return {startStep:safeWindowStartStep,endStep:safeWindowEndStep};}
   };

@@ -1,6 +1,6 @@
 (()=>{
   const root=document.documentElement;
-  const source='assets/hand-cards/enchantment-shell-v2-q80.b64.txt?v=1';
+  const source='assets/hand-cards/enchantment-shell-v2-q80.b64.txt?v=2';
   fetch(source,{cache:'force-cache'})
     .then(response=>{
       if(!response.ok)throw new Error(`Enchantment shell asset ${response.status}`);

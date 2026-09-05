@@ -1,5 +1,5 @@
-/* HAJJEN Hand Card Skin — Manipulation shell test v1.5.
-   Uses the authored blue HAJJEN card shell with dynamic text and the existing PLAY action. */
+/* HAJJEN Hand Card Skin — Manipulation + Enchantment shell pass v1.6.
+   Uses the authored HAJJEN card geometry with dynamic text and existing card actions. */
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{
   border:0!important;
@@ -23,7 +23,7 @@
   z-index:4!important;
 }
 
-/* Match HAND / SHARKAN / EVENT LOG typography; move the category label higher and farther right. */
+/* Match HAND / SHARKAN / EVENT LOG typography. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::before{
   position:absolute!important;
   left:13.8%!important;
@@ -45,7 +45,6 @@
   pointer-events:none!important;
 }
 
-/* Larger card copy for comfortable reading in the compact Hand dock. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong{
   position:absolute!important;
   left:8.5%!important;
@@ -63,8 +62,7 @@
   text-overflow:ellipsis!important;
 }
 
-/* Force the effect/rules copy to read as genuinely bold at HUD size.
-   Include <small> as a guard for legacy card markup as well as the shared <span>. */
+/* Force the effect/rules copy to read as genuinely bold at HUD size. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small{
   position:absolute!important;
@@ -120,6 +118,189 @@
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:disabled{opacity:.5!important}
 
+/* --------------------------------------------------------------------------
+   ENCHANTMENT HAND CARD
+   Reuse the exact approved shell geometry, then recolor only the authored
+   blue field regions to purple so the gold trim and parchment stay intact.
+   -------------------------------------------------------------------------- */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]{
+  border:0!important;
+  border-radius:0!important;
+  padding:0!important;
+  background-color:transparent!important;
+  background-image:url("assets/hand-cards/manipulation-shell-v2.webp")!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  box-shadow:none!important;
+  color:#211824!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  transition:filter .14s ease,transform .14s ease!important;
+}
+
+/* Purple color pass is isolated to the colored field areas of the shell. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  background-image:url("assets/hand-cards/manipulation-shell-v2.webp")!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  filter:hue-rotate(82deg) saturate(1.18) brightness(.92)!important;
+  -webkit-mask:
+    linear-gradient(#000 0 0) 12% 3%/76% 18% no-repeat,
+    linear-gradient(#000 0 0) 9% 78%/82% 18% no-repeat,
+    linear-gradient(#000 0 0) 2% 20%/10% 58% no-repeat,
+    linear-gradient(#000 0 0) 88% 20%/10% 58% no-repeat!important;
+  mask:
+    linear-gradient(#000 0 0) 12% 3%/76% 18% no-repeat,
+    linear-gradient(#000 0 0) 9% 78%/82% 18% no-repeat,
+    linear-gradient(#000 0 0) 2% 20%/10% 58% no-repeat,
+    linear-gradient(#000 0 0) 88% 20%/10% 58% no-repeat!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]:hover{
+  filter:brightness(1.09) saturate(1.05)!important;
+  transform:translateY(-1.5px) scale(1.012)!important;
+  z-index:4!important;
+}
+
+/* ENCHANTMENT label — same title family and visual rhythm as Manipulation. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::before{
+  position:absolute!important;
+  left:13.8%!important;
+  right:8%!important;
+  top:6.5%!important;
+  height:11.5%!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  z-index:3!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:8px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.35px!important;
+  color:#f3dfb6!important;
+  opacity:1!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.92)!important;
+  pointer-events:none!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong{
+  position:absolute!important;
+  left:8.5%!important;
+  right:8.5%!important;
+  top:23.5%!important;
+  height:14%!important;
+  z-index:2!important;
+  margin:0!important;
+  display:block!important;
+  color:#241c15!important;
+  font-size:11px!important;
+  line-height:1.08!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
+  position:absolute!important;
+  left:8.5%!important;
+  right:8.5%!important;
+  top:38%!important;
+  height:16%!important;
+  min-height:0!important;
+  max-height:none!important;
+  z-index:2!important;
+  margin:0!important;
+  display:-webkit-box!important;
+  color:#30251f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:8.3px!important;
+  line-height:1.14!important;
+  font-weight:800!important;
+  font-synthesis:weight!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+
+/* Spell target remains inside the parchment area. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
+  position:absolute!important;
+  left:8.5%!important;
+  right:8.5%!important;
+  top:55%!important;
+  width:83%!important;
+  height:15%!important;
+  min-height:0!important;
+  z-index:2!important;
+  margin:0!important;
+  padding:0 18px 0 5px!important;
+  border:1px solid #7c4da0!important;
+  border-radius:2px!important;
+  background:rgba(255,252,246,.96)!important;
+  color:#211a1f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:7.8px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  box-shadow:inset 0 1px 2px rgba(74,42,81,.14)!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select:focus{
+  outline:1px solid rgba(164,109,196,.85)!important;
+  outline-offset:1px!important;
+}
+
+/* APPLY ENCHANTMENT sits inside the authored purple lower command band. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply{
+  position:absolute!important;
+  left:13%!important;
+  right:13%!important;
+  bottom:5.5%!important;
+  width:74%!important;
+  height:13%!important;
+  min-height:0!important;
+  z-index:2!important;
+  margin:0!important;
+  padding:0 5px!important;
+  border:1px solid rgba(235,196,98,.94)!important;
+  border-radius:2px!important;
+  background:linear-gradient(180deg,rgba(128,67,151,.97),rgba(72,31,91,.98))!important;
+  color:#f5e7c2!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:6.8px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.18px!important;
+  text-shadow:0 1px 1px rgba(0,0,0,.9)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18)!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  transition:filter .12s ease,transform .12s ease,box-shadow .12s ease!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:hover:not(:disabled){
+  filter:brightness(1.22) saturate(1.08)!important;
+  transform:translateY(-.5px)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.24),0 1px 3px rgba(0,0,0,.32)!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:disabled,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select:disabled{
+  opacity:.52!important;
+}
+
 @media(max-width:1180px){
-  .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{border:0!important}
+  .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
+  .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]{border:0!important}
 }

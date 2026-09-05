@@ -120,8 +120,9 @@
     if(!state)return;
 
     const count=Math.max(0,Number(state.potion)||0);
+    const heal=Math.max(1,Number(window.HAJJEN_ZONE_CONFIG?.potionHeal||window.HAJJEN_CAMPAIGN_CONFIG?.potionHeal)||30);
     const disabled=count<1||Number(state.hp)>=Number(state.maxHp)||!!state.combat||!!state.gameOver;
-    const desired=`<strong>HEALING POTION</strong><small>${count} left · +30 HP</small>`;
+    const desired=`<strong>HEALING POTION</strong><small>${count} left · +${heal} HP</small>`;
 
     potionObserver?.disconnect();
     if(potionBtn.innerHTML!==desired)potionBtn.innerHTML=desired;
@@ -129,7 +130,7 @@
     potionBtn.classList.add('action-slot','shared-potion-slot');
     potionBtn.classList.toggle('has-potion',count>0);
     potionBtn.classList.toggle('no-potion',count<1);
-    potionBtn.setAttribute('aria-label',`Healing Potion, ${count} left, restores 30 HP`);
+    potionBtn.setAttribute('aria-label',`Healing Potion, ${count} left, restores ${heal} HP`);
     potionObserver?.observe(potionBtn,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled','class']});
   }
 

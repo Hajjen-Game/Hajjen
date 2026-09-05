@@ -1,11 +1,11 @@
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
-  if(!cfg||cfg.zone!==3||!state)return;
+  const eventLog=document.getElementById('eventLog');
+  const toastArea=document.getElementById('toastArea');
+  if(!cfg||cfg.zone!==3||!state||!eventLog)return;
 
   const TARGET_HEAL=Math.max(30,Number(cfg.potionHeal)||45);
-  const BASE_HEAL=30;
-  let before=null;
 
   function syncHpUi(){
     const hpText=document.getElementById('hpText');
@@ -26,36 +26,28 @@
     if(button)button.setAttribute('aria-label',`Healing Potion, ${count} left, restores ${TARGET_HEAL} HP`);
   }
 
-  document.addEventListener('click',event=>{
-    if(!(event.target instanceof Element))return;
-    const button=event.target.closest('#usePotionBtn,#combatPotionBtn');
-    if(!button)return;
-    before={hp:Number(state.hp)||0,potion:Number(state.potion)||0,inCombat:button.id==='combatPotionBtn'};
-  },true);
+  function adjustPotionLog(row){
+    if(!(row instanceof Element)||row.dataset.zone3PotionAdjusted==='1')return;
+    const match=/^Healing Potion restored (\d+) HP\.$/.exec((row.textContent||'').trim());
+    if(!match)return;
 
-  document.addEventListener('click',event=>{
-    if(!(event.target instanceof Element))return;
-    const button=event.target.closest('#usePotionBtn,#combatPotionBtn');
-    if(!button||!before)return;
-
-    const start=before;
-    before=null;
-    if((Number(state.potion)||0)!==start.potion-1)return;
-
-    const baseRestored=Math.max(0,(Number(state.hp)||0)-start.hp);
-    const desired=Math.min(TARGET_HEAL,Math.max(0,(Number(state.maxHp)||0)-start.hp));
-    const bonus=Math.max(0,desired-baseRestored);
+    row.dataset.zone3PotionAdjusted='1';
+    const baseRestored=Number(match[1])||0;
+    const room=Math.max(0,(Number(state.maxHp)||0)-(Number(state.hp)||0));
+    const bonus=Math.max(0,Math.min(TARGET_HEAL-baseRestored,room));
     if(bonus>0)state.hp=Math.min(state.maxHp,state.hp+bonus);
-    const total=Math.max(0,state.hp-start.hp);
+    const total=baseRestored+bonus;
 
-    const latestLog=[...document.querySelectorAll('#eventLog .event')].find(row=>/^Healing Potion restored \d+ HP\.$/.test((row.textContent||'').trim()));
-    if(latestLog)latestLog.textContent=`Healing Potion restored ${total} HP.`;
-    const latestToast=[...document.querySelectorAll('#toastArea .toast')].find(row=>/^\+\d+ HP$/.test((row.textContent||'').trim()));
-    if(latestToast)latestToast.textContent=`+${total} HP`;
+    row.textContent=`Healing Potion restored ${total} HP.`;
 
-    if(start.inCombat){
-      const message=document.getElementById('combatMessage');
-      if(message)message.textContent=`Healing Potion restores ${total} HP. Choose a spell.`;
+    if(toastArea){
+      const toast=[...toastArea.querySelectorAll('.toast')].find(item=>(item.textContent||'').trim()===`+${baseRestored} HP`);
+      if(toast)toast.textContent=`+${total} HP`;
+    }
+
+    const message=document.getElementById('combatMessage');
+    if(message&&/^Healing Potion restores \d+ HP\./.test((message.textContent||'').trim())){
+      message.textContent=`Healing Potion restores ${total} HP. Choose a spell.`;
     }
 
     syncHpUi();
@@ -64,12 +56,24 @@
       syncBackpack();
       syncHpUi();
     });
-  },false);
+  }
+
+  new MutationObserver(mutations=>{
+    for(const mutation of mutations){
+      for(const node of mutation.addedNodes)adjustPotionLog(node);
+    }
+  }).observe(eventLog,{childList:true});
 
   document.addEventListener('click',event=>{
-    if(event.target instanceof Element&&event.target.closest('.backpack-open'))queueMicrotask(syncBackpack);
-  },true);
+    if(!(event.target instanceof Element))return;
+    if(event.target.closest('.backpack-open,#backpackUsePotion,#usePotionBtn,#combatPotionBtn')){
+      setTimeout(()=>{
+        syncBackpack();
+        syncHpUi();
+      },0);
+    }
+  },false);
 
-  queueMicrotask(syncBackpack);
-  window.HAJJEN_ZONE3_POTION_HEAL={version:'1.1-safe-bonus',amount:TARGET_HEAL};
+  syncBackpack();
+  window.HAJJEN_ZONE3_POTION_HEAL={version:'1.2-log-adjust',amount:TARGET_HEAL};
 })();

@@ -89,7 +89,7 @@
 
 /* Primal Spring is a complete tile artwork, matching encounter-tile behavior. */
 .tile.spring{
-  background:#9aa16f url('assets/primal_spring.webp?v=1') center center/100% 100% no-repeat!important;
+  background:#9aa16f url('assets/primal_spring_user.jpg?v=1') center center/100% 100% no-repeat!important;
 }
 .tile.spring::after{display:none!important}
 

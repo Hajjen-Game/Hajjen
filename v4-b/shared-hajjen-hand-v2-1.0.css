@@ -1,0 +1,78 @@
+/* HAJJEN HAND v2 — new parchment + gold card family supplied by user.
+   Presentation only: existing Hand state, actions, dropdowns and slot logic stay intact. */
+
+.zone3-app .cards-hud .shared-hand-panel{height:auto!important;min-height:0!important}
+.zone3-app .cards-hud .shared-hand-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,minmax(124px,142px))!important;
+  gap:8px!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card{
+  border:0!important;border-radius:0!important;padding:0!important;overflow:hidden!important;
+  background-color:transparent!important;background-position:center!important;background-repeat:no-repeat!important;background-size:100% 100%!important;
+  box-shadow:none!important;isolation:isolate!important;transition:filter .14s ease,transform .14s ease!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card:hover{filter:brightness(1.07) saturate(1.03)!important;transform:translateY(-1px)!important;z-index:5!important}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card::before,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card::after{content:none!important;display:none!important}
+
+/* MANIPULATION */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]{background-image:var(--hajjen-hand-v2-manip)!important}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>strong{
+  display:block!important;position:absolute!important;left:31%!important;right:5.5%!important;top:15%!important;height:19%!important;margin:0!important;padding:1px 3px!important;
+  background:linear-gradient(90deg,#efe4cf 0%,#f4ead8 55%,#eee2cd 100%)!important;color:#17120e!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(12px,.9vw,16px)!important;line-height:1.05!important;font-weight:800!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>span,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>small{
+  display:block!important;position:absolute!important;left:8%!important;right:5.5%!important;top:39%!important;bottom:24%!important;margin:0!important;padding:2px 3px!important;
+  background:linear-gradient(100deg,#efe4cf 0%,#f5ead9 58%,#eee1cb 100%)!important;color:#211b15!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(9px,.67vw,12px)!important;line-height:1.18!important;font-weight:700!important;overflow:hidden!important;z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="manipulation"]>button{
+  position:absolute!important;left:5.5%!important;right:5.5%!important;bottom:4.5%!important;width:89%!important;height:20%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:transparent!important;box-shadow:none!important;opacity:1!important;cursor:pointer!important;z-index:4!important;
+}
+
+/* ENCHANTMENT */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]{background-image:var(--hajjen-hand-v2-ench)!important}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>strong{
+  display:block!important;position:absolute!important;left:32%!important;right:5.5%!important;top:14%!important;height:18%!important;margin:0!important;padding:1px 3px!important;
+  background:linear-gradient(90deg,#eee2e0 0%,#f2e6e4 60%,#ecdfdc 100%)!important;color:#17120e!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(12px,.9vw,16px)!important;line-height:1.05!important;font-weight:800!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>.shared-enchantment-copy{
+  display:block!important;position:absolute!important;left:31%!important;right:5.5%!important;top:34%!important;height:21%!important;margin:0!important;padding:1px 3px!important;
+  background:linear-gradient(90deg,#eee2e0 0%,#f2e6e4 60%,#ecdfdc 100%)!important;color:#39225a!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(8px,.6vw,11px)!important;line-height:1.16!important;font-weight:700!important;overflow:hidden!important;z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>.shared-enchantment-select{
+  position:absolute!important;left:7%!important;right:7%!important;top:58%!important;width:86%!important;height:12.5%!important;min-height:0!important;margin:0!important;padding:0 22px 0 6px!important;
+  border:0!important;border-radius:0!important;background:#f2e7d5!important;color:#1d1712!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(8px,.62vw,11px)!important;font-weight:800!important;box-shadow:none!important;z-index:4!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="enchantment"]>.shared-enchantment-apply{
+  position:absolute!important;left:17%!important;right:17%!important;bottom:5.5%!important;width:66%!important;height:16%!important;min-height:0!important;margin:0!important;padding:0 3px!important;
+  border:0!important;border-radius:0!important;background:#5e1f65!important;color:#f3e4c8!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(7px,.54vw,10px)!important;line-height:1!important;font-weight:800!important;box-shadow:none!important;z-index:4!important;
+}
+
+/* TACTICAL active cards — same dynamic text pattern, orange family. */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]{background-image:var(--hajjen-hand-v2-tact)!important}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]>strong{
+  display:block!important;position:absolute!important;left:31%!important;right:5.5%!important;top:15%!important;height:20%!important;margin:0!important;padding:1px 3px!important;background:linear-gradient(90deg,#efe4cf,#f4ead8,#eee2cd)!important;color:#17120e!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(12px,.9vw,16px)!important;font-weight:800!important;z-index:3!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]>span{position:absolute!important;left:8%!important;right:5.5%!important;top:42%!important;bottom:25%!important;margin:0!important;padding:2px 3px!important;background:linear-gradient(100deg,#efe4cf,#f5ead9,#eee1cb)!important;color:#211b15!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(9px,.67vw,12px)!important;font-weight:700!important;overflow:hidden!important;z-index:3!important}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-card[data-hand-category="tactical"]>button{position:absolute!important;left:17%!important;right:17%!important;bottom:6%!important;width:66%!important;height:17%!important;margin:0!important;border:0!important;background:#9d3f0c!important;color:#f3e4c8!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(8px,.6vw,11px)!important;font-weight:800!important;z-index:4!important}
+
+/* Locked Tactical slots use the supplied complete locked card art. */
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical.locked{
+  border:0!important;border-radius:0!important;padding:0!important;opacity:1!important;background-color:transparent!important;background-image:var(--hajjen-hand-v2-locked)!important;background-position:center!important;background-repeat:no-repeat!important;background-size:100% 100%!important;overflow:hidden!important;
+}
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical.locked>strong,
+.zone3-app .cards-hud .shared-hand-grid>.shared-hand-placeholder.tactical.locked>span{display:none!important}
+
+@media(max-width:1180px){
+  .zone3-app .cards-hud .shared-hand-grid{grid-template-columns:repeat(4,minmax(170px,1fr))!important;grid-template-rows:repeat(2,116px)!important;overflow-x:auto!important}
+}
+@media(max-width:620px){
+  .zone3-app .cards-hud .shared-hand-grid{grid-template-columns:repeat(4,168px)!important;grid-template-rows:repeat(2,114px)!important;gap:6px!important}
+}

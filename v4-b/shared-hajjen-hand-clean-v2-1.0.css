@@ -1,0 +1,275 @@
+/* HAJJEN Zone 3 HAND — clean card masters v2.
+   Visual-only replacement using the four approved clean card assets.
+   Existing HAND logic, card actions, enchantment behavior and gameplay are unchanged. */
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
+  box-sizing:border-box!important;
+  position:relative!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  opacity:1!important;
+  text-align:left!important;
+  transition:filter .14s ease,transform .14s ease!important;
+}
+
+/* Approved clean masters. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation{
+  background-image:url("assets/hand-cards/hand-clean-v2-manipulation.webp")!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"],
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.enchantment{
+  background-image:url("assets/hand-cards/hand-clean-v2-enchantment.webp")!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"],
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.empty{
+  background-image:url("assets/hand-cards/hand-clean-v2-tactical.webp")!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.locked{
+  background-image:url("assets/hand-cards/hand-clean-v2-locked.webp")!important;
+}
+
+/* Remove the old top-plaque label and the old Enchantment recolour layer. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card::before,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  -webkit-mask:none!important;
+  mask:none!important;
+  filter:none!important;
+}
+
+/* Card names now live in the open parchment field, clear of the icon medallion. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > strong{
+  position:absolute!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  left:27%!important;
+  right:7.5%!important;
+  top:23%!important;
+  height:15%!important;
+  z-index:2!important;
+  margin:0!important;
+  color:#241c15!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:10.5px!important;
+  line-height:1.05!important;
+  font-weight:800!important;
+  letter-spacing:.05px!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Manipulation rules copy. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > span,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > small{
+  position:absolute!important;
+  display:-webkit-box!important;
+  left:10.5%!important;
+  right:9%!important;
+  top:41%!important;
+  bottom:24%!important;
+  height:auto!important;
+  min-height:0!important;
+  z-index:2!important;
+  margin:0!important;
+  color:#30271f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:8.8px!important;
+  line-height:1.18!important;
+  font-weight:800!important;
+  font-synthesis:weight!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  overflow:hidden!important;
+}
+
+/* PLAY / future Tactical action sits directly on the authored colored command band. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > button{
+  position:absolute!important;
+  display:block!important;
+  left:12%!important;
+  right:12%!important;
+  bottom:5.2%!important;
+  width:76%!important;
+  height:14.5%!important;
+  min-height:0!important;
+  z-index:3!important;
+  margin:0!important;
+  padding:0 4px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#f5e7c2!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:7.2px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.25px!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.88)!important;
+  box-shadow:none!important;
+}
+
+/* Enchantment: description in parchment, native select over the authored cream slot,
+   APPLY ENCHANTMENT over the authored purple command band. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
+  position:absolute!important;
+  display:-webkit-box!important;
+  left:10.5%!important;
+  right:9%!important;
+  top:39.5%!important;
+  height:14%!important;
+  min-height:0!important;
+  max-height:none!important;
+  z-index:2!important;
+  margin:0!important;
+  color:#30251f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:7.9px!important;
+  line-height:1.13!important;
+  font-weight:800!important;
+  font-synthesis:weight!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
+  position:absolute!important;
+  display:block!important;
+  left:11.5%!important;
+  right:10.5%!important;
+  top:58.3%!important;
+  width:78%!important;
+  height:12.5%!important;
+  min-height:0!important;
+  z-index:3!important;
+  margin:0!important;
+  padding:0 17px 0 5px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#241c15!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:7.6px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  box-shadow:none!important;
+  box-sizing:border-box!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select:focus{
+  outline:1px solid rgba(107,55,124,.5)!important;
+  outline-offset:0!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply{
+  position:absolute!important;
+  display:block!important;
+  left:12%!important;
+  right:12%!important;
+  bottom:5.1%!important;
+  width:76%!important;
+  height:14.5%!important;
+  min-height:0!important;
+  z-index:3!important;
+  margin:0!important;
+  padding:0 4px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#f5e7c2!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:6.6px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.12px!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.9)!important;
+  box-shadow:none!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > button:hover:not(:disabled),
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .shared-enchantment-apply:hover:not(:disabled){
+  filter:brightness(1.18)!important;
+  transform:translateY(-.5px)!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card:hover{
+  filter:brightness(1.06) saturate(1.03)!important;
+  transform:translateY(-1px)!important;
+  z-index:4!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > button:disabled,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .shared-enchantment-select:disabled{
+  opacity:.5!important;
+}
+
+/* Placeholders use the same clean masters. Tactical Locked already contains its
+   own lock icon and label, so suppress duplicate HTML labels. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
+  justify-content:center!important;
+  align-items:center!important;
+  border-style:none!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > strong{
+  position:absolute!important;
+  left:27%!important;
+  right:7.5%!important;
+  top:29%!important;
+  margin:0!important;
+  color:#2b2119!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  text-align:center!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > span{
+  position:absolute!important;
+  left:12%!important;
+  right:12%!important;
+  bottom:8%!important;
+  margin:0!important;
+  color:#f2dfb2!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:7px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  text-align:center!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.8)!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.locked > strong,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.locked > span{
+  display:none!important;
+}

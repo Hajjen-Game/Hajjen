@@ -18,6 +18,7 @@ window.HAJJEN_ZONE_CONFIG={
     {row:4,col:23,type:'boss',title:'ZONE 3 BOSS',hp:390,attack:32,xp:100}
   ],
   spring:{row:5,col:13,heal:75,title:'PRIMAL SPRING'},
+  potionHeal:45,
   spellIngredients:[
     {row:1,col:4,name:'Thorn Core',force:'Growth'},
     {row:8,col:9,name:'Cinder Heart',force:'Ember'},

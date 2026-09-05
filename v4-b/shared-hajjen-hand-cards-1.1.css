@@ -1,4 +1,4 @@
-/* HAJJEN Hand Card Skin — Manipulation shell test v1.4.
+/* HAJJEN Hand Card Skin — Manipulation shell test v1.5.
    Uses the authored blue HAJJEN card shell with dynamic text and the existing PLAY action. */
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{
@@ -63,7 +63,10 @@
   text-overflow:ellipsis!important;
 }
 
-.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span{
+/* Force the effect/rules copy to read as genuinely bold at HUD size.
+   Include <small> as a guard for legacy card markup as well as the shared <span>. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small{
   position:absolute!important;
   left:8.5%!important;
   right:8.5%!important;
@@ -72,10 +75,13 @@
   margin:0!important;
   display:-webkit-box!important;
   min-height:0!important;
-  color:#3f362c!important;
+  color:#2f271f!important;
+  font-family:Arial,Helvetica,sans-serif!important;
   font-size:9.8px!important;
   line-height:1.2!important;
-  font-weight:700!important;
+  font-weight:900!important;
+  font-synthesis:weight!important;
+  letter-spacing:.02px!important;
   -webkit-box-orient:vertical!important;
   -webkit-line-clamp:3!important;
   overflow:hidden!important;

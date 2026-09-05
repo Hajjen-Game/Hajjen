@@ -11,6 +11,8 @@
 
   const TELEGRAPH_MS=650;
   const ZONE3_ACTIVE_CAP=3;
+  const ZONE3_TOTAL_CAP=4;
+  let zone3SpawnedTotal=0;
   const pending=new Set();
   const moveKeys={ArrowUp:[-1,0],w:[-1,0],W:[-1,0],ArrowDown:[1,0],s:[1,0],S:[1,0],ArrowLeft:[0,-1],a:[0,-1],A:[0,-1],ArrowRight:[0,1],d:[0,1],D:[0,1]};
 
@@ -77,11 +79,21 @@
     e.__spawnVisualSeen=true;
 
     // Zone 3 can have several rapid spawn requests while earlier warnings are
-    // still pending. Count those reservations too so the three-mob cap cannot
-    // briefly overflow between request and materialization.
+    // still pending. Count those reservations too so the three-mob active cap
+    // cannot briefly overflow between request and materialization.
     if(zone===3&&activeOrPending()>ZONE3_ACTIVE_CAP){
       cancelPending(e);
       if(toastNode)toastNode.textContent='SPAWN PRESSURE CAPPED';
+      return;
+    }
+
+    // Zone 3 is allowed at most four accepted Roused Mobs over the whole run.
+    // Safe Window and active-cap rejections happen before this function sees a
+    // NEW MOB SPAWNED toast (or are rejected above), so blocked attempts do not
+    // consume one of the four run slots.
+    if(zone===3&&zone3SpawnedTotal>=ZONE3_TOTAL_CAP){
+      cancelPending(e);
+      if(toastNode)toastNode.textContent='SPAWN RUN CAP REACHED';
       return;
     }
 
@@ -90,6 +102,7 @@
     e.__spawnVisualPending=true;
     e.completed=true;
     pending.add(e);
+    if(zone===3)zone3SpawnedTotal++;
 
     tile.setAttribute('data-spawn-pending','1');
     tile.classList.remove('special','mob','reachable','spawned-now');
@@ -130,7 +143,9 @@
   },true);
 
   window.HAJJEN_CAMPAIGN_SPAWN_PARITY={
-    version:'1.0',zone,
-    get pending(){return pending.size;}
+    version:'1.1',zone,
+    zone3TotalCap:zone===3?ZONE3_TOTAL_CAP:null,
+    get pending(){return pending.size;},
+    get zone3SpawnedTotal(){return zone===3?zone3SpawnedTotal:null;}
   };
 })();

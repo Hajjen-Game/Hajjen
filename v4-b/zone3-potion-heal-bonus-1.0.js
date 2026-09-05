@@ -50,6 +50,10 @@
       message.textContent=`Healing Potion restores ${total} HP. Choose a spell.`;
     }
 
+    window.dispatchEvent(new CustomEvent('hajjen:zone3-potion-healed',{
+      detail:{total,baseRestored,target:TARGET_HEAL}
+    }));
+
     syncHpUi();
     queueMicrotask(()=>{
       window.HAJJEN_SHARED_BACKPACK?.sync?.();
@@ -75,5 +79,5 @@
   },false);
 
   syncBackpack();
-  window.HAJJEN_ZONE3_POTION_HEAL={version:'1.2-log-adjust',amount:TARGET_HEAL};
+  window.HAJJEN_ZONE3_POTION_HEAL={version:'1.3-report-sync',amount:TARGET_HEAL};
 })();

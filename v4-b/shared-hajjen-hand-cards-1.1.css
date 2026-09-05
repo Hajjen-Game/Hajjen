@@ -1,4 +1,4 @@
-/* HAJJEN Hand Card Skin — Manipulation shell test v1.2.
+/* HAJJEN Hand Card Skin — Manipulation shell test v1.3.
    Uses the authored blue HAJJEN card shell with dynamic text and the existing PLAY action. */
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{
@@ -23,39 +23,40 @@
   z-index:4!important;
 }
 
-/* Compact category label: cleaner HUD type and slightly lower/inset placement. */
+/* Match the HAND / SHARKAN / EVENT LOG title typography and seat it cleanly in the blue banner. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::before{
   position:absolute!important;
-  left:10.5%!important;
-  right:10.5%!important;
-  top:8.5%!important;
+  left:11.5%!important;
+  right:10%!important;
+  top:9.2%!important;
   height:11.5%!important;
   margin:0!important;
   display:flex!important;
   align-items:center!important;
   justify-content:flex-start!important;
-  font-family:Arial,Helvetica,sans-serif!important;
-  font-size:6.6px!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:8px!important;
   line-height:1!important;
-  font-weight:800!important;
-  letter-spacing:.5px!important;
-  color:#f3e2b9!important;
+  font-weight:700!important;
+  letter-spacing:.35px!important;
+  color:#f2dfb2!important;
   opacity:1!important;
   text-shadow:0 1px 2px rgba(0,0,0,.9)!important;
   pointer-events:none!important;
 }
 
+/* Larger card copy for comfortable reading in the compact Hand dock. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong{
   position:absolute!important;
   left:8.5%!important;
   right:8.5%!important;
-  top:25%!important;
-  height:13%!important;
+  top:24.5%!important;
+  height:15%!important;
   margin:0!important;
   display:block!important;
-  color:#201a15!important;
-  font-size:10px!important;
-  line-height:1.05!important;
+  color:#241c15!important;
+  font-size:11.5px!important;
+  line-height:1.08!important;
   font-weight:800!important;
   white-space:nowrap!important;
   overflow:hidden!important;
@@ -71,9 +72,9 @@
   margin:0!important;
   display:-webkit-box!important;
   min-height:0!important;
-  color:#51483d!important;
-  font-size:8.5px!important;
-  line-height:1.18!important;
+  color:#3f362c!important;
+  font-size:9.8px!important;
+  line-height:1.2!important;
   -webkit-box-orient:vertical!important;
   -webkit-line-clamp:3!important;
   overflow:hidden!important;

@@ -1,17 +1,12 @@
 (()=>{
   const root=document.documentElement;
+  const base='assets/hand-cards/';
   const assets={
-    manip:['assets/hand-cards/hand-v2-manip.b64.txt?v=1','--hajjen-hand-v2-manip'],
-    ench:['assets/hand-cards/hand-v2-ench.b64.txt?v=1','--hajjen-hand-v2-ench'],
-    tact:['assets/hand-cards/hand-v2-tact.b64.txt?v=1','--hajjen-hand-v2-tact'],
-    locked:['assets/hand-cards/hand-v2-locked.b64.txt?v=1','--hajjen-hand-v2-locked']
+    '--hajjen-hand-v2-manip':`${base}hand-clean-manip.webp?v=1`,
+    '--hajjen-hand-v2-ench':`${base}hand-clean-ench.webp?v=1`,
+    '--hajjen-hand-v2-tact':`${base}hand-clean-tact.webp?v=1`,
+    '--hajjen-hand-v2-locked':`${base}hand-clean-locked.webp?v=1`
   };
-  Promise.all(Object.entries(assets).map(async([key,[url,prop]])=>{
-    const r=await fetch(url,{cache:'force-cache'});
-    if(!r.ok)throw new Error(`HAND v2 ${key} ${r.status}`);
-    const data=(await r.text()).trim();
-    if(!data.startsWith('UklG'))throw new Error(`Invalid HAND v2 ${key} asset`);
-    root.style.setProperty(prop,`url("data:image/webp;base64,${data}")`);
-  })).then(()=>root.classList.add('hajjen-hand-v2-ready'))
-    .catch(err=>console.warn('[HAJJEN] HAND v2 asset fallback active:',err));
+  Object.entries(assets).forEach(([prop,url])=>root.style.setProperty(prop,`url("${url}")`));
+  root.classList.add('hajjen-hand-v2-ready');
 })();

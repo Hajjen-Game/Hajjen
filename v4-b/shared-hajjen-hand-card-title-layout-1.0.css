@@ -1,0 +1,31 @@
+/* HAJJEN Hand Card Title Layout v1.0
+   Card names live in the authored top plaque; parchment space is reserved for rules text. */
+
+/* The actual card name is rendered by ::before from data-hand-label.
+   Hide the duplicate <strong> title in the parchment area. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong{
+  display:none!important;
+}
+
+/* Manipulation: use the freed parchment height for the effect copy. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small{
+  top:25%!important;
+  bottom:22%!important;
+  height:auto!important;
+  -webkit-line-clamp:5!important;
+}
+
+/* Enchantment: description now owns the upper parchment area; selector remains below it. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
+  top:24%!important;
+  height:30%!important;
+  font-size:8.2px!important;
+  line-height:1.14!important;
+  -webkit-line-clamp:4!important;
+}
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
+  top:57%!important;
+}

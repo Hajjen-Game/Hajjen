@@ -102,10 +102,26 @@
     return path;
   }
 
+  const misdirectionGuarded=entity=>Number(entity?.__zone3MisdirectionAttractionGuard)>0;
+
+  function armMisdirectionGuard(title){
+    const target=[...entities.values()].find(entity=>
+      entity?.type==='mob'&&!entity.completed&&String(entity.title||'').toLowerCase()===String(title||'').toLowerCase()
+    );
+    if(target)target.__zone3MisdirectionAttractionGuard=1;
+  }
+
+  function consumeMisdirectionGuards(){
+    for(const entity of entities.values()){
+      if(!misdirectionGuarded(entity))continue;
+      entity.__zone3MisdirectionAttractionGuard=Math.max(0,Number(entity.__zone3MisdirectionAttractionGuard)-1);
+    }
+  }
+
   function pickAttractedMob(){
     const radius=Number(rules.radius)||2;
     const options=[...entities.values()]
-      .filter(e=>e?.type==='mob'&&!e.completed&&!e.__spawnVisualPending&&chebyshev(state.row,state.col,e.r,e.c)<=radius)
+      .filter(e=>e?.type==='mob'&&!e.completed&&!e.__spawnVisualPending&&!misdirectionGuarded(e)&&chebyshev(state.row,state.col,e.r,e.c)<=radius)
       .map(entity=>({entity,path:findPath(entity)}))
       .filter(item=>Array.isArray(item.path));
     if(!options.length)return null;
@@ -211,13 +227,18 @@
     if(pulling||state.zoneCleared||state.gameOver||state.combat)return;
     if(attractionBlocks>0){
       attractionBlocks--;
+      consumeMisdirectionGuards();
       addLog('Pressure Break prevented combat attraction.','reward');
       addToast('COMBAT ATTRACTION BLOCKED','reward');
       return;
     }
     const chance=attractionChance();
-    if(!chance||Math.random()>chance)return;
+    if(!chance||Math.random()>chance){
+      consumeMisdirectionGuards();
+      return;
+    }
     const pick=pickAttractedMob();
+    consumeMisdirectionGuards();
     if(!pick)return;
     setPulling(true);
     setTimeout(()=>animatePick(pick),420);
@@ -228,6 +249,11 @@
       if(!(node instanceof Element))continue;
       const text=(node.textContent||'').trim();
       if(!text)continue;
+      const misdirectionMatch=text.match(/^Misdirection moved (.+) 2 tiles away from Sharkan\.$/i);
+      if(misdirectionMatch){
+        armMisdirectionGuard(misdirectionMatch[1]);
+        continue;
+      }
       if(/^Pressure Break reduced Danger .*will block the next combat-attraction check\.$/i.test(text)){
         attractionBlocks++;
         continue;
@@ -238,7 +264,7 @@
   }).observe(eventLog,{childList:true});
 
   window.HAJJEN_ZONE3_ATTRACTION_VISUAL={
-    version:'1.0',rules,
+    version:'1.1-misdirection-guard',rules,
     get pulling(){return pulling;},
     get blocks(){return attractionBlocks;}
   };

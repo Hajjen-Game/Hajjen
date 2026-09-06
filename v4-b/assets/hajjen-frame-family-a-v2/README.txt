@@ -1,0 +1,1 @@
+Frame Family A V2 uses the user's original transparent eight-part PNG assets (TL/T/TR/L/R/BL/B/BR).

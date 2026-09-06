@@ -1,78 +1,89 @@
-/* HAJJEN Zone 3 HAND — typography fit pass v1.0.
-   Tuned against the approved clean-card reference at the real four-column HUD scale.
-   Visual only: card/gameplay logic is unchanged. */
+/* HAJJEN Zone 3 HAND — typography fit pass v1.1.
+   Final spacing/polish pass against the approved clean-card reference at the
+   real four-column HUD scale. Visual only; gameplay/card logic is unchanged. */
 
-/* Card names: keep the reference hierarchy, but fit long names such as Pressure Break. */
+/* Card names: more breathing room from the medallion and slightly calmer scale. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > strong{
-  left:28%!important;
-  right:5.5%!important;
-  top:13%!important;
-  height:18%!important;
-  font-size:clamp(10px,.78vw,14px)!important;
+  left:30.5%!important;
+  right:5%!important;
+  top:14.5%!important;
+  height:17%!important;
+  font-size:clamp(9.2px,.72vw,13px)!important;
   line-height:1.02!important;
-  letter-spacing:-.08px!important;
+  font-weight:700!important;
+  letter-spacing:-.05px!important;
 }
 
-/* Main Manipulation / Tactical rules copy. */
+/* Main Manipulation / Tactical rules copy: lower, lighter and more compact. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > span,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > small{
-  top:38%!important;
-  bottom:25%!important;
-  font-size:clamp(8.5px,.62vw,11.5px)!important;
-  line-height:1.12!important;
-  font-weight:600!important;
-  letter-spacing:-.03px!important;
+  left:10.5%!important;
+  right:8.5%!important;
+  top:41.5%!important;
+  bottom:25.5%!important;
+  font-size:clamp(7.7px,.56vw,10.2px)!important;
+  line-height:1.08!important;
+  font-weight:500!important;
+  letter-spacing:0!important;
   -webkit-line-clamp:4!important;
 }
 
-/* Enchantment description: smaller and denser so three lines fit above the selector. */
+/* Enchantment copy: keep it beside the icon, but allow a fourth line so long
+   effects such as Echoing never collide with the selector. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
-  left:28.5%!important;
+  left:29.5%!important;
   right:6.5%!important;
-  top:33.5%!important;
-  height:23%!important;
-  font-size:clamp(8px,.58vw,10.5px)!important;
-  line-height:1.1!important;
-  font-weight:600!important;
-  letter-spacing:-.03px!important;
-  -webkit-line-clamp:3!important;
+  top:34.5%!important;
+  height:24.5%!important;
+  font-size:clamp(7.1px,.51vw,9.4px)!important;
+  line-height:1.06!important;
+  font-weight:500!important;
+  letter-spacing:0!important;
+  -webkit-line-clamp:4!important;
 }
 
-/* Spell selector follows the same smaller HUD typography. */
+/* Give the authored selector its own clean lane. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
-  font-size:clamp(8.5px,.63vw,11.5px)!important;
-  padding-left:8px!important;
-  padding-right:24px!important;
+  top:63.5%!important;
+  height:11.5%!important;
+  font-size:clamp(7.8px,.57vw,10.2px)!important;
+  padding-left:7px!important;
+  padding-right:22px!important;
 }
 
-/* Command labels should never crowd or clip inside the authored bars. */
+/* Command labels should read clearly without dominating the card. */
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button,
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > button{
-  font-size:clamp(9px,.66vw,12px)!important;
-  letter-spacing:.03px!important;
+  font-size:clamp(8.1px,.59vw,10.8px)!important;
+  letter-spacing:.02px!important;
 }
 
 .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply{
-  font-size:clamp(7.5px,.56vw,10.5px)!important;
+  font-size:clamp(6.8px,.49vw,9.2px)!important;
   letter-spacing:0!important;
 }
 
-/* At stacked/mobile widths keep a readable floor without changing card geometry. */
+/* At stacked/mobile widths keep the same hierarchy without reintroducing the
+   oversized desktop floors. */
 @media(max-width:850px){
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong,
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong,
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > strong{
-    font-size:10px!important;
+    font-size:9.2px!important;
   }
 
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span,
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small,
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > span,
   .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > small{
-    font-size:8.5px!important;
+    font-size:7.7px!important;
+  }
+
+  .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
+    font-size:7.1px!important;
   }
 }

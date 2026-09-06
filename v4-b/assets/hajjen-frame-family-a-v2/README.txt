@@ -1,1 +1,12 @@
-Frame Family A V2 uses the user's original transparent eight-part PNG assets (TL/T/TR/L/R/BL/B/BR).
+Place these files in your repo folder:
+v4-b/assets/hajjen-frame-family-a-v2/
+
+Files:
+tl.png
+t.png
+tr.png
+l.png
+r.png
+bl.png
+b.png
+br.png

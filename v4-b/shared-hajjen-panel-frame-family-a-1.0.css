@@ -1,19 +1,27 @@
-/* HAJJEN frame family A — new thin bronze/gold panel frame.
-   Applies only to Objectives, Sharkan/Status and Event Log for the first whole-HUD test.
-   Built from the user's separated transparent frame parts. */
+/* HAJJEN frame family A V2 — true 8-piece bronze/gold frame.
+   Uses the user's exact separated PNG pieces: tl / t / tr / l / r / bl / b / br.
+   Corners keep their authored aspect ratio. Straight rails stretch only along their length.
+   Applies to Objectives, Sharkan/Status and Event Log. */
 
 .zone3-app .objectives.shared-objectives,
 .zone3-app .shared-status.hajjen-framed-panel,
 .zone3-app .shared-event-log.hajjen-framed-panel{
-  --hajjen-family-a-corner-w:31px;
-  --hajjen-family-a-corner-h:40px;
-  --hajjen-family-a-rail-h:8px;
-  --hajjen-family-a-rail-w:8px;
-  /* The source corner has transparent lead-in before its short horizontal stub.
-     A deeper overlap keeps the straight rail physically under that stub so the
-     join stays closed at every responsive panel width. */
-  --hajjen-family-a-overlap-x:12px;
-  --hajjen-family-a-overlap-y:7px;
+  /* Uniform 2/3 scale from the authored 8-piece sheet.
+     This preserves the original geometry while keeping the HUD frame thin. */
+  --hajjen-a2-tl-w:46px;
+  --hajjen-a2-tl-h:62.67px;
+  --hajjen-a2-tr-w:46px;
+  --hajjen-a2-tr-h:62.67px;
+  --hajjen-a2-bl-w:46px;
+  --hajjen-a2-bl-h:55.33px;
+  --hajjen-a2-br-w:46px;
+  --hajjen-a2-br-h:55.33px;
+  --hajjen-a2-top-h:8px;
+  --hajjen-a2-bottom-h:8.67px;
+  --hajjen-a2-left-w:9.33px;
+  --hajjen-a2-right-w:8.67px;
+  --hajjen-a2-join:20.67px;
+
   position:relative!important;
   isolation:isolate!important;
   border:0!important;
@@ -21,7 +29,8 @@
   overflow:visible!important;
 }
 
-/* Disable the older heavy 9-slice frame only on the three family-A panels. */
+/* The old V2 9-slice may still be mounted for compatibility, but Family A V2
+   owns the actual rendering on these panels. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame{
@@ -33,9 +42,10 @@
   box-sizing:border-box!important;
   border:0!important;
   border-image:none!important;
+  background:none!important;
 }
 
-/* Re-enable the eight mounted frame pieces hidden by the previous V2 frame. */
+/* Shared eight-piece base. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .hajjen-panel-frame-piece,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .hajjen-panel-frame-piece,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .hajjen-panel-frame-piece{
@@ -49,100 +59,118 @@
   background-position:center!important;
   background-size:100% 100%!important;
   pointer-events:none!important;
+  transform:none!important;
   transform-origin:center!important;
 }
 
-/* One authored corner is mirrored for the remaining three corners. */
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .tl,
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .tr,
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .bl,
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .br,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .tl,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .tr,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .bl,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .br,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .tl,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .tr,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .bl,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .br{
-  width:var(--hajjen-family-a-corner-w)!important;
-  height:var(--hajjen-family-a-corner-h)!important;
-  z-index:2!important;
-  background-image:url("assets/hajjen-frame-family-a/corner.png")!important;
-}
-
+/* TOP-LEFT — exact authored piece. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .tl,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .tl,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .tl{
-  left:0!important;top:0!important;transform:none!important;
-}
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .tr,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .tr,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .tr{
-  right:0!important;top:0!important;left:auto!important;transform:scaleX(-1)!important;
-}
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .bl,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .bl,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .bl{
-  left:0!important;bottom:0!important;top:auto!important;transform:scaleY(-1)!important;
-}
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .br,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .br,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .br{
-  right:0!important;bottom:0!important;left:auto!important;top:auto!important;transform:scale(-1,-1)!important;
+  left:0!important;
+  top:0!important;
+  width:var(--hajjen-a2-tl-w)!important;
+  height:var(--hajjen-a2-tl-h)!important;
+  z-index:2!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/tl.png")!important;
 }
 
-/* Horizontal rails stretch only in length and overlap the corner stubs. */
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .t,
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .b,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .t,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .b,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .t,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .b{
-  left:calc(var(--hajjen-family-a-corner-w) - var(--hajjen-family-a-overlap-x))!important;
-  right:calc(var(--hajjen-family-a-corner-w) - var(--hajjen-family-a-overlap-x))!important;
-  width:auto!important;
-  height:var(--hajjen-family-a-rail-h)!important;
-  z-index:1!important;
-  background-image:url("assets/hajjen-frame-family-a/horizontal.png")!important;
-}
+/* TOP — overlaps underneath both corner stubs. Only length is stretched. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .t,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .t,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .t{
-  top:1px!important;bottom:auto!important;transform:none!important;
-}
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .b,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .b,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .b{
-  bottom:1px!important;top:auto!important;transform:scaleY(-1)!important;
+  left:var(--hajjen-a2-join)!important;
+  right:var(--hajjen-a2-join)!important;
+  top:0!important;
+  width:auto!important;
+  height:var(--hajjen-a2-top-h)!important;
+  z-index:1!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/t.png")!important;
 }
 
-/* Vertical rails use the same authored family and stretch only in length. */
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .l,
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .r,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .l,
-.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .r,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .l,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .r{
-  top:calc(var(--hajjen-family-a-corner-h) - var(--hajjen-family-a-overlap-y))!important;
-  bottom:calc(var(--hajjen-family-a-corner-h) - var(--hajjen-family-a-overlap-y))!important;
-  height:auto!important;
-  width:var(--hajjen-family-a-rail-w)!important;
-  z-index:1!important;
-  background-image:url("assets/hajjen-frame-family-a/vertical.png")!important;
+/* TOP-RIGHT — exact authored piece, no mirroring. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .tr,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .tr,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .tr{
+  right:0!important;
+  top:0!important;
+  left:auto!important;
+  width:var(--hajjen-a2-tr-w)!important;
+  height:var(--hajjen-a2-tr-h)!important;
+  z-index:2!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/tr.png")!important;
 }
+
+/* LEFT — exact authored side rail. Only length is stretched. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .l,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .l,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .l{
-  left:1px!important;right:auto!important;transform:none!important;
+  left:0!important;
+  right:auto!important;
+  top:var(--hajjen-a2-join)!important;
+  bottom:var(--hajjen-a2-join)!important;
+  width:var(--hajjen-a2-left-w)!important;
+  height:auto!important;
+  z-index:1!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/l.png")!important;
 }
+
+/* RIGHT — exact authored side rail, no mirroring. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .r,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .r,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .r{
-  right:1px!important;left:auto!important;transform:scaleX(-1)!important;
+  right:0!important;
+  left:auto!important;
+  top:var(--hajjen-a2-join)!important;
+  bottom:var(--hajjen-a2-join)!important;
+  width:var(--hajjen-a2-right-w)!important;
+  height:auto!important;
+  z-index:1!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/r.png")!important;
 }
 
-/* Keep the existing parchment surface, but tuck it under the new thinner rail. */
+/* BOTTOM-LEFT — exact authored piece. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .bl,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .bl,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .bl{
+  left:0!important;
+  bottom:0!important;
+  top:auto!important;
+  width:var(--hajjen-a2-bl-w)!important;
+  height:var(--hajjen-a2-bl-h)!important;
+  z-index:2!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/bl.png")!important;
+}
+
+/* BOTTOM — exact authored rail. Only length is stretched. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .b,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .b,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .b{
+  left:var(--hajjen-a2-join)!important;
+  right:var(--hajjen-a2-join)!important;
+  bottom:0!important;
+  top:auto!important;
+  width:auto!important;
+  height:var(--hajjen-a2-bottom-h)!important;
+  z-index:1!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/b.png")!important;
+}
+
+/* BOTTOM-RIGHT — exact authored piece, no mirroring. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame > .br,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame > .br,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame > .br{
+  right:0!important;
+  bottom:0!important;
+  left:auto!important;
+  top:auto!important;
+  width:var(--hajjen-a2-br-w)!important;
+  height:var(--hajjen-a2-br-h)!important;
+  z-index:2!important;
+  background-image:url("assets/hajjen-frame-family-a-v2/br.png")!important;
+}
+
+/* Keep parchment physically inside the decorative rails/corners. */
 .zone3-app .objectives.shared-objectives::before,
 .zone3-app .shared-status.hajjen-framed-panel::before,
 .zone3-app .shared-event-log.hajjen-framed-panel::before{

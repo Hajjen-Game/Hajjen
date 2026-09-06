@@ -1,0 +1,31 @@
+/* HAJJEN Zone 3 HAND — stacked/mobile intrinsic card height fix.
+   Below 850px the campaign bottom dock stacks vertically and no longer gives
+   HAND a definite block height. The clean card contents are absolutely
+   positioned, so without an intrinsic card size the two grid rows collapse.
+   Restore the authored landscape proportion only in the stacked layout. */
+
+@media(max-width:850px){
+  .zone3-app .cards-hud{
+    height:auto!important;
+  }
+
+  .zone3-app .cards-hud .shared-hand-panel{
+    height:auto!important;
+    min-height:0!important;
+  }
+
+  .zone3-app .cards-hud .shared-hand-grid{
+    flex:0 0 auto!important;
+    height:auto!important;
+    min-height:0!important;
+    grid-template-rows:repeat(2,auto)!important;
+    align-items:start!important;
+  }
+
+  .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card,
+  .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
+    height:auto!important;
+    min-height:0!important;
+    aspect-ratio:611 / 388!important;
+  }
+}

@@ -1,0 +1,89 @@
+/* HAJJEN HAND outer panel frame test v1.0.
+   Reuses the approved shared bronze-gold panel frame around the whole HAND area.
+   Card assets and HAND gameplay are untouched. */
+
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+  box-sizing:border-box!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:24px 24px 22px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Parchment surface stays inside the ornate frame. */
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  z-index:0;
+  pointer-events:none;
+  background-color:#ead7b0;
+  background-image:url("assets/hajjen_parchment_surface_v1.png");
+  background-repeat:repeat;
+  background-position:center;
+  background-size:160px 160px;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+  box-shadow:0 5px 14px rgba(54,36,17,.16);
+}
+
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::after{
+  content:none!important;
+}
+
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > *:not(.hajjen-panel-frame){
+  position:relative;
+  z-index:4;
+}
+
+/* Same approved 9-slice frame used by Objectives / Sharkan / Event Log,
+   slightly slimmer here so the eight HAND cards keep their useful width. */
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-panel-frame{
+  position:absolute!important;
+  inset:0!important;
+  z-index:3!important;
+  pointer-events:none!important;
+  box-sizing:border-box!important;
+  border-style:solid!important;
+  border-width:22px 24px 24px 24px!important;
+  border-image-source:url("assets/hajjen-frame/objectives-frame-v2.webp")!important;
+  border-image-slice:42 42 44 42!important;
+  border-image-width:22px 24px 24px 24px!important;
+  border-image-repeat:stretch!important;
+}
+
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-panel-frame > .hajjen-panel-frame-piece{
+  display:none!important;
+}
+
+/* Keep the existing HAND plaque sitting on the upper-left rail. */
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel .hand-title-text{
+  left:-20px!important;
+  top:-20px!important;
+}
+
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel .hand-slot-count{
+  right:0!important;
+  top:-2px!important;
+}
+
+@media(max-width:850px){
+  .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{
+    padding:21px 20px 20px!important;
+  }
+
+  .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-panel-frame{
+    border-width:18px 20px 20px 20px!important;
+    border-image-width:18px 20px 20px 20px!important;
+  }
+
+  .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel .hand-title-text{
+    left:-16px!important;
+    top:-18px!important;
+  }
+}

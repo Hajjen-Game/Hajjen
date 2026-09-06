@@ -1,0 +1,9 @@
+/* HAJJEN Zone 3 HAND — Enchantment select text vertical alignment.
+   Keeps the authored cream dropdown slot and control geometry unchanged;
+   only nudges the native select label upward for the real HUD scale. */
+
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
+  padding-top:0!important;
+  padding-bottom:2px!important;
+  line-height:1!important;
+}

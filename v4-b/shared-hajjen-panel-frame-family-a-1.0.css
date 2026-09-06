@@ -9,7 +9,10 @@
   --hajjen-family-a-corner-h:40px;
   --hajjen-family-a-rail-h:8px;
   --hajjen-family-a-rail-w:8px;
-  --hajjen-family-a-overlap-x:6px;
+  /* The source corner has transparent lead-in before its short horizontal stub.
+     A deeper overlap keeps the straight rail physically under that stub so the
+     join stays closed at every responsive panel width. */
+  --hajjen-family-a-overlap-x:12px;
   --hajjen-family-a-overlap-y:7px;
   position:relative!important;
   isolation:isolate!important;

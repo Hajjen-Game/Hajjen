@@ -1,0 +1,54 @@
+/* HAJJEN clean HAND v2 precision fix.
+   Restores live card names above the parchment copy and removes legacy button hover chrome
+   that leaked through from the previous HAND skin. Visual-only; no HAND/gameplay logic changes. */
+
+/* The older title-layout file hides <strong> with a category-specific selector.
+   Match that specificity here so the real dynamic card names are visible again. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > strong{
+  position:absolute!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  left:27%!important;
+  right:7.5%!important;
+  top:15%!important;
+  height:18%!important;
+  z-index:5!important;
+  margin:0!important;
+  color:#241c15!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:10.5px!important;
+  line-height:1.05!important;
+  font-weight:800!important;
+  letter-spacing:.05px!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* The old authored-button skin has a more specific hover selector than the clean shell.
+   Keep the button itself transparent so the authored blue/purple command band remains intact. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:hover:not(:disabled),
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > button:hover:not(:disabled),
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:hover:not(:disabled){
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  filter:brightness(1.16)!important;
+  transform:none!important;
+}
+
+/* Prevent keyboard/mouse focus from drawing a native line through the authored command band. */
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:focus,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:focus-visible,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > button:focus,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > button:focus-visible,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:focus,
+.zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:focus-visible{
+  outline:0!important;
+  box-shadow:none!important;
+}

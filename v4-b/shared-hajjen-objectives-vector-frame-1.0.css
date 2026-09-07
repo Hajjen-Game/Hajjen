@@ -1,6 +1,6 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
    Zone 3 Objectives only. Thin continuous vector rails, compact corner accent,
-   round node and a smooth inward sweep; no PNG slices or bitmap joins. */
+   round node and a tight inward sweep; no PNG slices or bitmap joins. */
 
 .zone3-app .objectives.shared-objectives{
   position:relative!important;
@@ -90,25 +90,25 @@
   opacity:.94;
 }
 
-/* Two strokes on the same Bezier create a delicate engraved-metal sweep. */
+/* Two fine strokes on the same Bezier keep the corner sweep light and engraved. */
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-sweep-shadow{
   fill:none;
   stroke:#68431f;
-  stroke-width:1.38;
+  stroke-width:1.12;
   stroke-linecap:round;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  opacity:.72;
+  opacity:.68;
 }
 
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-sweep{
   fill:none;
   stroke:#d0a356;
-  stroke-width:.68;
+  stroke-width:.60;
   stroke-linecap:round;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  opacity:.96;
+  opacity:.94;
 }
 
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-node{

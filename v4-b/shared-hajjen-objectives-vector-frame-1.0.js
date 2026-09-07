@@ -1,6 +1,6 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Objectives only. V1.2 adds a small integrated corner accent inspired by
-   the polished target UI while keeping every rail continuous and seam-free. */
+   Objectives only. V1.3 keeps the thin continuous frame, refines the small
+   nested corner accent and adds a tiny integrated round corner node. */
 (()=>{
   const panel=document.querySelector('.zone3-app .objectives.shared-objectives');
   if(!panel)return;
@@ -48,12 +48,20 @@
   const inner=makePath('frame-inner');
   const highlight=makePath('frame-highlight');
 
-  const cornerAccents=['tl','tr','br','bl'].map(name=>{
-    const p=document.createElementNS(NS,'path');
-    p.setAttribute('class','corner-accent');
-    p.setAttribute('data-corner',name);
-    svg.appendChild(p);
-    return {name,p};
+  const corners=['tl','tr','br','bl'].map(name=>{
+    const group=document.createElementNS(NS,'g');
+    group.setAttribute('data-corner',name);
+
+    const accent=document.createElementNS(NS,'path');
+    accent.setAttribute('class','corner-accent');
+
+    const node=document.createElementNS(NS,'circle');
+    node.setAttribute('class','corner-node');
+    node.setAttribute('r','1.35');
+
+    group.append(accent,node);
+    svg.appendChild(group);
+    return {name,accent,node};
   });
 
   function roundedFramePath(w,h,inset,r){
@@ -90,20 +98,37 @@
     inner.setAttribute('d',innerD);
     highlight.setAttribute('d',highlightD);
 
-    /* Small nested L/curve accents: they echo the corner radius instead of
-       floating into the parchment. No dots, diagonals or disconnected ornaments. */
+    /* Compact nested corner motif. The round node sits inside the quarter-curve,
+       so it reads as part of the ornament rather than floating in the parchment. */
     const inset=6.05;
     const radius=4.15;
-    const arm=8.0;
+    const arm=7.35;
+    const nodeOffset=2.95;
 
     const data={
-      tl:`M ${inset} ${inset+radius+arm} V ${inset+radius} Q ${inset} ${inset} ${inset+radius} ${inset} H ${inset+radius+arm}`,
-      tr:`M ${w-inset-radius-arm} ${inset} H ${w-inset-radius} Q ${w-inset} ${inset} ${w-inset} ${inset+radius} V ${inset+radius+arm}`,
-      br:`M ${w-inset} ${h-inset-radius-arm} V ${h-inset-radius} Q ${w-inset} ${h-inset} ${w-inset-radius} ${h-inset} H ${w-inset-radius-arm}`,
-      bl:`M ${inset+radius+arm} ${h-inset} H ${inset+radius} Q ${inset} ${h-inset} ${inset} ${h-inset-radius} V ${h-inset-radius-arm}`
+      tl:{
+        d:`M ${inset} ${inset+radius+arm} V ${inset+radius} Q ${inset} ${inset} ${inset+radius} ${inset} H ${inset+radius+arm}`,
+        cx:inset+nodeOffset,cy:inset+nodeOffset
+      },
+      tr:{
+        d:`M ${w-inset-radius-arm} ${inset} H ${w-inset-radius} Q ${w-inset} ${inset} ${w-inset} ${inset+radius} V ${inset+radius+arm}`,
+        cx:w-inset-nodeOffset,cy:inset+nodeOffset
+      },
+      br:{
+        d:`M ${w-inset} ${h-inset-radius-arm} V ${h-inset-radius} Q ${w-inset} ${h-inset} ${w-inset-radius} ${h-inset} H ${w-inset-radius-arm}`,
+        cx:w-inset-nodeOffset,cy:h-inset-nodeOffset
+      },
+      bl:{
+        d:`M ${inset+radius+arm} ${h-inset} H ${inset+radius} Q ${inset} ${h-inset} ${inset} ${h-inset-radius} V ${h-inset-radius-arm}`,
+        cx:inset+nodeOffset,cy:h-inset-nodeOffset
+      }
     };
 
-    cornerAccents.forEach(({name,p})=>p.setAttribute('d',data[name]));
+    corners.forEach(({name,accent,node})=>{
+      accent.setAttribute('d',data[name].d);
+      node.setAttribute('cx',data[name].cx);
+      node.setAttribute('cy',data[name].cy);
+    });
   }
 
   panel.prepend(svg);
@@ -113,5 +138,5 @@
   ro?.observe(panel);
   if(!ro)window.addEventListener('resize',render,{passive:true});
 
-  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.2',panel,svg,render,resizeObserver:ro};
+  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.3',panel,svg,render,resizeObserver:ro};
 })();

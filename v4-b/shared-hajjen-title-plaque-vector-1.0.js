@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   SHARKAN/status V1.3: deliberately simple, compact and integrated with the
-   vector board-frame family. No dark/brown outer shell and almost no ornament. */
+   SHARKAN/status V1.4: simple compact geometry with the exact approved
+   board-frame bronze/gold palette. No dark/brown outer shell. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -23,21 +23,25 @@
 
     const defs=svgEl('defs');
 
-    /* Exact bronze/gold family used by the vector board frame. */
+    /* Exact approved frame palette:
+       #3B2416 #4C2C16 #7A4C29 #B77A3B #C9914F #DFB46B #EFD6A0
+       The two darkest browns are reserved for subtle shadow/contrast in CSS;
+       the visible outer rail remains bronze/gold rather than a brown band. */
     const gold=svgEl('linearGradient',{
       id:`hajjenTitleGold-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
       gradientUnits:'objectBoundingBox'
     });
     [
-      ['0%','#f2d9a1'],
-      ['24%','#cf9853'],
-      ['56%','#81502b'],
-      ['79%','#bb7d3c'],
-      ['100%','#e4b86d']
+      ['0%','#EFD6A0'],
+      ['24%','#DFB46B'],
+      ['50%','#C9914F'],
+      ['74%','#B77A3B'],
+      ['100%','#DFB46B']
     ].forEach(([offset,color])=>gold.appendChild(svgEl('stop',{offset,'stop-color':color})));
 
-    /* Lighter green, closer to the supplied reference plaque. */
+    /* Green stays deliberately soft/light; this pass changes the metal palette,
+       not the plaque geometry. */
     const green=svgEl('linearGradient',{
       id:`hajjenTitleGreen-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
@@ -54,7 +58,7 @@
     svg.appendChild(defs);
 
     /* Simple beveled plaque. No chunky dark outer shell, side diamonds or
-       decorative spikes. The gold rail itself is the outside edge. */
+       decorative spikes. The bronze/gold rail itself is the outside edge. */
     const goldD=[
       'M 46 3','H 314','L 327 12','V 30','L 314 39',
       'H 46','L 33 30','V 12','Z'
@@ -68,7 +72,7 @@
     svg.appendChild(svgEl('path',{class:'plaque-gold',d:goldD,fill:`url(#hajjenTitleGold-${index})`}));
     svg.appendChild(svgEl('path',{class:'plaque-green',d:greenD,fill:`url(#hajjenTitleGreen-${index})`}));
 
-    /* One restrained highlight line is enough to tie the plaque to the frame. */
+    /* One restrained pale-gold highlight line ties directly into the frame. */
     svg.appendChild(svgEl('path',{
       class:'plaque-top-highlight',
       d:'M 52 7.2 H 308 L 319.2 14.6'
@@ -87,11 +91,11 @@
 
     const label=(heading.textContent||'').trim()||'SHARKAN';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource='green-gold-1.3';
+    heading.dataset.vectorTitlePlaqueSource='green-gold-1.4';
 
     const layer=document.createElement('div');
     layer.className='hajjen-vector-title-plaque-layer';
-    layer.dataset.vectorTitlePlaque='green-gold-1.3';
+    layer.dataset.vectorTitlePlaque='green-gold-1.4';
     layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index);
@@ -113,5 +117,5 @@
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.3',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.4',mount,buildPlaque};
 })();

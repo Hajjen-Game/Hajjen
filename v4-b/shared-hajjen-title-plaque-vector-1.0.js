@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   SHARKAN/status V1.8: plaque frame keeps the board-frame rail language while
-   the circular mounts are tucked slightly farther into the plaque ends. */
+   SHARKAN/status V1.9: plaque frame keeps the board-frame rail language while
+   the circular mounts are tucked farther into the plaque ends. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -79,9 +79,8 @@
       d:'M 52 33.1 H 308 L 317.3 26.9'
     }));
 
-    /* Mounts remain on the end faces, but sit 4 units farther inward so they
-       feel embedded in the plaque instead of hanging at its outer edge. */
-    [['42','21'],['318','21']].forEach(([cx,cy])=>{
+    /* Mounts are tucked farther inward so they read as embedded fasteners. */
+    [['48','21'],['312','21']].forEach(([cx,cy])=>{
       svg.appendChild(svgEl('circle',{class:'plaque-mount-ring',cx,cy,r:'4.1'}));
       svg.appendChild(svgEl('circle',{class:'plaque-mount-core',cx,cy,r:'2.65'}));
       svg.appendChild(svgEl('circle',{class:'plaque-mount-jewel',cx,cy:Math.max(0,Number(cy)-.65),r:'.72'}));
@@ -100,11 +99,11 @@
 
     const label=(heading.textContent||'').trim()||'SHARKAN';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource='green-gold-1.8';
+    heading.dataset.vectorTitlePlaqueSource='green-gold-1.9';
 
     const layer=document.createElement('div');
     layer.className='hajjen-vector-title-plaque-layer';
-    layer.dataset.vectorTitlePlaque='green-gold-1.8';
+    layer.dataset.vectorTitlePlaque='green-gold-1.9';
     layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index);
@@ -126,5 +125,5 @@
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.8',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.9',mount,buildPlaque};
 })();

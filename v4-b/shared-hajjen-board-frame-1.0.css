@@ -1,6 +1,6 @@
 /* HAJJEN board frame — Zone 3 visual skin only.
    Normal mode uses the approved bitmap overlay.
-   ?dev=1 uses a larger elegant vector frame outside the gameplay viewport. */
+   ?dev=1 uses a larger elegant vector frame just outside the gameplay viewport. */
 
 .zone3-app .hajjen-board-frame-shell{
   --hajjen-board-frame-x:clamp(18px,2.15vw,28px);
@@ -39,10 +39,12 @@
   user-select:none;
 }
 
-/* DEV board vector: deliberately outside the board so it never covers tiles.
-   Slightly more substantial and ornamental than the shared panel frame. */
+/* DEV board vector: closer to the board than the previous pass. The SVG still
+   has a small outer canvas so the dark/gold rails and drop shadow never clip.
+   Rail geometry itself is anchored to the real viewport in JS; the brown inner
+   rail is exactly 1px inside the board. */
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{
-  --hajjen-board-vector-outset:clamp(9px,1.0vw,13px);
+  --hajjen-board-vector-outset:7px;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell > .viewport{
@@ -155,5 +157,5 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-jewe
     min-width:700px;
   }
   .zone3-app .hajjen-board-frame-shell > .viewport{min-width:0;}
-  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{--hajjen-board-vector-outset:9px;}
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{--hajjen-board-vector-outset:7px;}
 }

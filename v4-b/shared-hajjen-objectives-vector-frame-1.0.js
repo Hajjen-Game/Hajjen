@@ -1,6 +1,6 @@
 /* HAJJEN shared thin vector panel frame — seam-free coded prototype.
-   V1.7 keeps the approved Objectives look and applies the exact same frame to
-   Objectives, Sharkan/Status and Event Log. No PNG slices or bitmap joins. */
+   V1.8 keeps the approved Objectives geometry on Objectives, Sharkan/Status
+   and Event Log, with a warmer bronze-gold palette matched to the board frame. */
 (()=>{
   const NS='http://www.w3.org/2000/svg';
   const targets=[
@@ -53,10 +53,11 @@
     gradient.setAttribute('y2','1');
     gradient.setAttribute('gradientUnits','objectBoundingBox');
     [
-      ['0%','#f2d586'],
-      ['35%','#d2a253'],
-      ['70%','#a87637'],
-      ['100%','#e2bd70']
+      ['0%','#efd6a0'],
+      ['28%','#c9914f'],
+      ['62%','#7a4c29'],
+      ['82%','#b77a3b'],
+      ['100%','#dfb46b']
     ].forEach(([offset,color])=>{
       const stop=document.createElementNS(NS,'stop');
       stop.setAttribute('offset',offset);
@@ -167,6 +168,6 @@
   }
 
   const mounted=targets.map((target,index)=>mount(document.querySelector(target.selector),target.key,index)).filter(Boolean);
-  window.HAJJEN_SHARED_VECTOR_FRAMES={version:'1.7',mounted};
+  window.HAJJEN_SHARED_VECTOR_FRAMES={version:'1.8',mounted};
   window.HAJJEN_OBJECTIVES_VECTOR_FRAME=mounted.find(item=>item.key==='objectives')||null;
 })();

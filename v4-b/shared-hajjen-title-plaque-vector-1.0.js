@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   SHARKAN/status V1.4: simple compact geometry with the exact approved
-   board-frame bronze/gold palette. No dark/brown outer shell. */
+   SHARKAN/status V1.5: simple compact geometry with pale-gold-dominant metal
+   weighting derived from the approved board-frame master. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -23,10 +23,9 @@
 
     const defs=svgEl('defs');
 
-    /* Exact approved frame palette:
-       #3B2416 #4C2C16 #7A4C29 #B77A3B #C9914F #DFB46B #EFD6A0
-       The two darkest browns are reserved for subtle shadow/contrast in CSS;
-       the visible outer rail remains bronze/gold rather than a brown band. */
+    /* Board-frame master principle: the visible metal reads pale first.
+       #ECD39D is deliberately dominant; darker bronze values only appear as
+       a restrained lower-edge transition rather than filling the whole rail. */
     const gold=svgEl('linearGradient',{
       id:`hajjenTitleGold-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
@@ -34,14 +33,15 @@
     });
     [
       ['0%','#EFD6A0'],
-      ['24%','#DFB46B'],
-      ['50%','#C9914F'],
-      ['74%','#B77A3B'],
-      ['100%','#DFB46B']
+      ['10%','#ECD39D'],
+      ['68%','#ECD39D'],
+      ['82%','#DFB46B'],
+      ['93%','#C9914F'],
+      ['100%','#B77A3B']
     ].forEach(([offset,color])=>gold.appendChild(svgEl('stop',{offset,'stop-color':color})));
 
-    /* Green stays deliberately soft/light; this pass changes the metal palette,
-       not the plaque geometry. */
+    /* Green stays deliberately soft/light; this pass only changes how the
+       metal colors are weighted. */
     const green=svgEl('linearGradient',{
       id:`hajjenTitleGreen-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
@@ -58,7 +58,7 @@
     svg.appendChild(defs);
 
     /* Simple beveled plaque. No chunky dark outer shell, side diamonds or
-       decorative spikes. The bronze/gold rail itself is the outside edge. */
+       decorative spikes. The pale-gold rail itself is the outside edge. */
     const goldD=[
       'M 46 3','H 314','L 327 12','V 30','L 314 39',
       'H 46','L 33 30','V 12','Z'
@@ -91,11 +91,11 @@
 
     const label=(heading.textContent||'').trim()||'SHARKAN';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource='green-gold-1.4';
+    heading.dataset.vectorTitlePlaqueSource='green-gold-1.5';
 
     const layer=document.createElement('div');
     layer.className='hajjen-vector-title-plaque-layer';
-    layer.dataset.vectorTitlePlaque='green-gold-1.4';
+    layer.dataset.vectorTitlePlaque='green-gold-1.5';
     layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index);
@@ -117,5 +117,5 @@
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.4',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.5',mount,buildPlaque};
 })();

@@ -56,8 +56,6 @@
     defs.append(gold,green);
     svg.appendChild(defs);
 
-    /* Long, low silhouette matching the supplied SHARKAN plaque:
-       stepped/bevelled ends, compact gold rim and small ornamental side points. */
     const outerD=[
       'M 48 4.5','H 312','L 319 9.5','H 327','L 333 15.5','L 330 22.5',
       'L 344 32.5','L 330 42.5','L 333 49.5','L 327 55.5','H 319','L 312 60.5',
@@ -100,9 +98,6 @@
       d:'M 58 54.2 H 302 L 311.5 48 H 319.5'
     }));
 
-    /* Tiny engraved side ornaments and the small lower-centre jewel visible in
-       the supplied reference. They are deliberately restrained so the plaque
-       reads as the same UI family rather than a separate illustration. */
     const leftDiamond=svgEl('path',{
       class:'plaque-ornament',
       d:'M 37.5 32.5 L 42 27.4 L 46.5 32.5 L 42 37.6 Z'
@@ -113,7 +108,6 @@
     });
     const leftDot=svgEl('circle',{class:'plaque-ornament-highlight',cx:'42',cy:'30.6',r:'1.05'});
     const rightDot=svgEl('circle',{class:'plaque-ornament-highlight',cx:'318',cy:'30.6',r:'1.05'});
-
     const lowerJewel=svgEl('path',{
       class:'plaque-ornament',
       d:'M 180 55.2 L 184.2 59 L 180 62.8 L 175.8 59 Z'
@@ -126,29 +120,41 @@
     return svg;
   }
 
-  function mount(heading,index=0){
-    if(!heading||heading.classList.contains('hajjen-vector-title-plaque'))return heading;
+  function mount(panel,index=0){
+    if(!panel)return null;
+    const heading=panel.querySelector(':scope > h2');
+    if(!heading)return null;
+
+    const existing=panel.querySelector(':scope > .hajjen-vector-title-plaque-layer');
+    if(existing)return existing;
 
     const label=(heading.textContent||'').trim()||'SHARKAN';
-    heading.classList.add('hajjen-vector-title-plaque');
-    heading.dataset.vectorTitlePlaque='green-gold-1.0';
+    heading.classList.add('hajjen-vector-title-plaque-source');
+    heading.dataset.vectorTitlePlaqueSource='green-gold-1.1';
+
+    const layer=document.createElement('div');
+    layer.className='hajjen-vector-title-plaque-layer';
+    layer.dataset.vectorTitlePlaque='green-gold-1.1';
+    layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index);
     const text=document.createElement('span');
     text.className='hajjen-vector-title-plaque-text';
     text.textContent=label;
-    heading.replaceChildren(svg,text);
-    return heading;
+
+    layer.append(svg,text);
+    panel.appendChild(layer);
+    return layer;
   }
 
   function apply(){
-    const heading=document.querySelector('.zone3-app .shared-status.hajjen-framed-panel > h2');
-    if(heading)mount(heading,0);
+    const panel=document.querySelector('.zone3-app .shared-status.hajjen-framed-panel');
+    if(panel)mount(panel,0);
   }
 
   apply();
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.0',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.1',mount,buildPlaque};
 })();

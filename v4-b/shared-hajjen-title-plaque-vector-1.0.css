@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   First use: SHARKAN/status. The vector plaque is mounted as its own sibling
-   layer above the panel frame so legacy H2/title-plaque rules cannot hide it. */
+   SHARKAN/status V1.2: slimmer board-family plaque. The plaque stays an
+   independent sibling layer so legacy H2/title-plaque rules cannot affect it. */
 
 /* Keep the original heading only as a semantic/text source in dev mode. */
 html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source{
@@ -9,16 +9,17 @@ html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2
   background-image:none!important;
 }
 
-/* Independent plaque layer: no dependency on legacy H2 geometry or stacking. */
+/* Lower, lighter silhouette than V1.1. Width is retained so the plaque still
+   has the elegant long/low proportions of the supplied reference. */
 html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
   position:absolute!important;
   left:50%!important;
   top:0!important;
-  transform:translate(-50%,-44%)!important;
+  transform:translate(-50%,-43%)!important;
   z-index:15!important;
   width:min(72%,240px)!important;
   height:auto!important;
-  aspect-ratio:360 / 65!important;
+  aspect-ratio:360 / 50!important;
   margin:0!important;
   padding:0!important;
   display:block!important;
@@ -38,7 +39,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .ha
   z-index:0!important;
   pointer-events:none!important;
   shape-rendering:geometricPrecision;
-  filter:drop-shadow(0 1.5px 1.2px rgba(47,29,14,.34));
+  filter:drop-shadow(0 1px .8px rgba(48,28,14,.24));
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .hajjen-vector-title-plaque-text{
@@ -49,79 +50,81 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .ha
   align-items:center!important;
   justify-content:center!important;
   box-sizing:border-box!important;
-  padding:0 46px!important;
+  padding:0 42px!important;
   overflow:hidden!important;
-  color:#f3e4bc!important;
+  color:#f2dfb2!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:12px!important;
+  font-size:10.5px!important;
   font-weight:700!important;
-  letter-spacing:.45px!important;
+  letter-spacing:.35px!important;
   line-height:1!important;
   text-align:center!important;
-  text-shadow:0 1px 1px rgba(25,18,10,.96),0 0 2px rgba(25,18,10,.55)!important;
+  text-shadow:0 1px 1px rgba(38,25,12,.78)!important;
   white-space:nowrap!important;
   text-overflow:ellipsis!important;
-  transform:translateY(-.5px);
+  transform:translateY(-.25px);
 }
 
+/* Exact dark/brown family used by the approved vector board frame. */
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-outer-shadow{
-  fill:#4a2d18;
-  stroke:#392113;
-  stroke-width:1.35;
+  fill:#3b2416;
+  stroke:#3b2416;
+  stroke-width:.72;
+  stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-gold{
-  stroke:#6b4723;
-  stroke-width:1.05;
+  stroke:#7f4f2a;
+  stroke-width:.68;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-green{
-  stroke:#73512d;
-  stroke-width:1.15;
+  stroke:#7f4f2a;
+  stroke-width:.62;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-green-inner{
   fill:none;
-  stroke:#7f9453;
-  stroke-width:.72;
+  stroke:#91a469;
+  stroke-width:.42;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  opacity:.74;
+  opacity:.76;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-top-highlight{
   fill:none;
-  stroke:#d7b76b;
-  stroke-width:.72;
+  stroke:#e7bd78;
+  stroke-width:.42;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.78;
+  opacity:.74;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-bottom-shadow{
   fill:none;
-  stroke:#4e321b;
-  stroke-width:1.0;
+  stroke:#4c2c16;
+  stroke-width:.54;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.70;
+  opacity:.60;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-ornament{
-  fill:#c49347;
-  stroke:#67431f;
-  stroke-width:.75;
+  fill:#b97838;
+  stroke:#59351d;
+  stroke-width:.46;
   vector-effect:non-scaling-stroke;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-ornament-highlight{
-  fill:#efd28a;
-  opacity:.84;
+  fill:#e7bd78;
+  opacity:.82;
 }
 
 @media(max-width:1000px){

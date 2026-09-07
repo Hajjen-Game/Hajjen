@@ -1,6 +1,5 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   SHARKAN/status V1.8: same board-frame rail styling, with slightly higher
-   placement and mounts tucked farther into the plaque ends. */
+   SHARKAN/status V1.9: same board-frame rail styling, with slightly higher placement. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source{
   visibility:hidden!important;
@@ -12,7 +11,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .h
   position:absolute!important;
   left:50%!important;
   top:0!important;
-  transform:translate(-50%,-34%)!important;
+  transform:translate(-50%,-40%)!important;
   z-index:15!important;
   width:min(60%,200px)!important;
   height:auto!important;
@@ -62,8 +61,6 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .ha
   transform:translateY(-.1px);
 }
 
-/* The board-frame look comes from layered STROKES, not a broad metal fill.
-   Ratios are scaled down from the board frame so the plaque stays delicate. */
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-base{
   stroke:none;
 }
@@ -115,7 +112,6 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque
   opacity:.72;
 }
 
-/* Small mount nodes sit slightly farther inside the plaque end faces. */
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-mount-ring{
   fill:#ECD39D;
   stroke:#7A4C29;

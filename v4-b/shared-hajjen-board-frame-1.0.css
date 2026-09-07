@@ -1,12 +1,6 @@
 /* HAJJEN board frame — Zone 3 visual skin only.
-   The approved board frame is rendered in a shell OUTSIDE the clipped gameplay viewport,
-   so the ornamental frame can be slightly larger than the board without changing board size,
-   movement, tiles, camera or interaction.
-
-   Important: the source artwork has asymmetric transparent padding vertically
-   (more below the bottom rail than above the top rail). Top and bottom overscan
-   are therefore intentionally different so the visible rails land on the real
-   gameplay-board edges. */
+   Normal mode uses the approved bitmap overlay.
+   ?dev=1 uses a larger elegant vector frame outside the gameplay viewport. */
 
 .zone3-app .hajjen-board-frame-shell{
   --hajjen-board-frame-x:clamp(18px,2.15vw,28px);
@@ -16,8 +10,6 @@
   width:min(100%,1050px);
   flex:0 0 auto;
   overflow:visible;
-  /* Keep the ornamental overlay inside the board's own stacking context.
-     Without this, its former z-index:60 could escape above Spellbook/Backpack/Help backdrops. */
   isolation:isolate;
   z-index:0;
 }
@@ -32,9 +24,6 @@
 
 .zone3-app .viewport::after{content:none!important}
 
-/* Explicit dimensions are required because this is an IMG/replaced element.
-   Horizontal overscan is symmetric; vertical overscan compensates for the
-   artwork's asymmetric transparent source margins. */
 .zone3-app .hajjen-board-frame-shell > .hajjen-board-frame-overlay{
   position:absolute;
   left:calc(-1 * var(--hajjen-board-frame-x));
@@ -50,6 +39,113 @@
   user-select:none;
 }
 
+/* DEV board vector: deliberately outside the board so it never covers tiles.
+   Slightly more substantial and ornamental than the shared panel frame. */
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{
+  --hajjen-board-vector-outset:clamp(9px,1.0vw,13px);
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell > .viewport{
+  box-shadow:0 9px 24px rgba(51,65,48,.11),0 5px 14px rgba(54,36,17,.17);
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell > .hajjen-board-vector-frame{
+  position:absolute;
+  left:calc(-1 * var(--hajjen-board-vector-outset));
+  top:calc(-1 * var(--hajjen-board-vector-outset));
+  width:calc(100% + (2 * var(--hajjen-board-vector-outset)));
+  height:calc(100% + (2 * var(--hajjen-board-vector-outset)));
+  z-index:4;
+  display:block;
+  overflow:visible;
+  pointer-events:none;
+  shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 2px 1.5px rgba(48,28,14,.24));
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-shadow{
+  fill:none;
+  stroke:#3b2416;
+  stroke-width:4.2;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.88;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-gold{
+  fill:none;
+  stroke-width:2.25;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.99;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-inner{
+  fill:none;
+  stroke:#7f4f2a;
+  stroke-width:1.08;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.97;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-highlight{
+  fill:none;
+  stroke:#f0c77f;
+  stroke-width:.64;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.82;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-accent{
+  fill:none;
+  stroke:#ae7137;
+  stroke-width:1.12;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.98;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-sweep-shadow{
+  fill:none;
+  stroke:#4c2c16;
+  stroke-width:1.55;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.75;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-sweep{
+  fill:none;
+  stroke:#c18443;
+  stroke-width:.86;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.98;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-node{
+  fill:#c18443;
+  stroke:#59351d;
+  stroke-width:.82;
+  vector-effect:non-scaling-stroke;
+  opacity:1;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-jewel{
+  fill:#f1ce8c;
+  stroke:none;
+  opacity:.92;
+}
+
 @media(max-width:560px){
   .zone3-app .hajjen-board-frame-shell{
     --hajjen-board-frame-x:18px;
@@ -58,7 +154,6 @@
     width:700px;
     min-width:700px;
   }
-  .zone3-app .hajjen-board-frame-shell > .viewport{
-    min-width:0;
-  }
+  .zone3-app .hajjen-board-frame-shell > .viewport{min-width:0;}
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{--hajjen-board-vector-outset:9px;}
 }

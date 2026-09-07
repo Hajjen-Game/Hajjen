@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   V2.1: approved SHARKAN/EVENT LOG plaque reused for ACTION BAR with the exact
-   same geometry, rails and mounts; only the plaque surface changes to muted navy. */
+   V2.2: approved green plaques remain on SHARKAN/EVENT LOG, while ACTION BAR,
+   CARD DECKS and HAND share the exact same muted-navy plaque variant. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -107,11 +107,11 @@
 
     const variant=options.variant==='blue'?'blue':'green';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource=`${variant}-gold-2.1`;
+    heading.dataset.vectorTitlePlaqueSource=`${variant}-gold-2.2`;
 
     const layer=document.createElement('div');
     layer.className=`hajjen-vector-title-plaque-layer hajjen-vector-title-plaque-${variant}`;
-    layer.dataset.vectorTitlePlaque=`${variant}-gold-2.1`;
+    layer.dataset.vectorTitlePlaque=`${variant}-gold-2.2`;
     layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index,variant);
@@ -128,6 +128,8 @@
     const status=document.querySelector('.zone3-app .shared-status.hajjen-framed-panel');
     const eventLog=document.querySelector('.zone3-app .shared-event-log.hajjen-framed-panel');
     const actionBar=document.querySelector('.zone3-app .shared-action-bar');
+    const cardDecks=document.querySelector('.zone3-app .shared-card-decks-panel');
+    const hand=document.querySelector('.zone3-app .shared-hand-panel');
 
     if(status)mount(status,0);
     if(eventLog)mount(eventLog,1);
@@ -136,11 +138,17 @@
       labelSelector:':scope > span:first-child',
       variant:'blue'
     });
+    if(cardDecks)mount(cardDecks,3,{variant:'blue'});
+    if(hand)mount(hand,4,{
+      headingSelector:':scope > h2',
+      labelSelector:':scope > .hand-title-text',
+      variant:'blue'
+    });
   }
 
   apply();
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'2.1',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'2.2',mount,buildPlaque};
 })();

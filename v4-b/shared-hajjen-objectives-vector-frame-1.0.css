@@ -1,6 +1,6 @@
 /* HAJJEN shared thin vector panel frame — seam-free coded prototype.
    Same approved frame on Objectives, Sharkan/Status and Event Log.
-   Thin continuous SVG rails, compact corner accent, round node and tight sweep. */
+   Bronze-gold palette tuned to harmonize with the thicker board frame. */
 
 .zone3-app .objectives.shared-objectives,
 .zone3-app .shared-status.hajjen-framed-panel,
@@ -12,7 +12,7 @@
   overflow:visible!important;
 }
 
-/* The old bitmap frame must not participate on panels using the vector test. */
+/* The old bitmap frame must not participate on panels using the vector frame. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame,
 .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame{
@@ -48,17 +48,17 @@
   overflow:visible!important;
   pointer-events:none!important;
   shape-rendering:geometricPrecision;
-  filter:drop-shadow(0 1px 1px rgba(63,42,20,.18));
+  filter:drop-shadow(0 1px 1px rgba(48,28,14,.22));
 }
 
 .zone3-app .hajjen-shared-vector-frame .frame-shadow{
   fill:none;
-  stroke:#49331e;
+  stroke:#3b2416;
   stroke-width:3.0;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.80;
+  opacity:.86;
 }
 
 .zone3-app .hajjen-shared-vector-frame .frame-gold{
@@ -67,64 +67,65 @@
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
+  opacity:.98;
 }
 
 .zone3-app .hajjen-shared-vector-frame .frame-inner{
   fill:none;
-  stroke:#9b6a32;
+  stroke:#7f4f2a;
   stroke-width:.82;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.92;
+  opacity:.96;
 }
 
 .zone3-app .hajjen-shared-vector-frame .frame-highlight{
   fill:none;
-  stroke:#f0cf7b;
+  stroke:#e7bd78;
   stroke-width:.48;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.78;
+  opacity:.80;
 }
 
 .zone3-app .hajjen-shared-vector-frame .corner-accent{
   fill:none;
-  stroke:#c99b50;
+  stroke:#a96d35;
   stroke-width:.86;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.94;
+  opacity:.96;
 }
 
 .zone3-app .hajjen-shared-vector-frame .corner-sweep-shadow{
   fill:none;
-  stroke:#68431f;
+  stroke:#4c2c16;
   stroke-width:1.12;
   stroke-linecap:round;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  opacity:.68;
+  opacity:.74;
 }
 
 .zone3-app .hajjen-shared-vector-frame .corner-sweep{
   fill:none;
-  stroke:#d0a356;
+  stroke:#b97838;
   stroke-width:.60;
   stroke-linecap:round;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  opacity:.94;
+  opacity:.96;
 }
 
 .zone3-app .hajjen-shared-vector-frame .corner-node{
-  fill:#cfa24f;
-  stroke:#72502b;
+  fill:#b87b3b;
+  stroke:#59351d;
   stroke-width:.62;
   vector-effect:non-scaling-stroke;
-  opacity:.98;
+  opacity:.99;
 }
 
 /* Real panel contents stay over parchment and under/with decorative frame details. */

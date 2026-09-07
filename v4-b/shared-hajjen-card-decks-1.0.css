@@ -163,6 +163,249 @@
   overflow:hidden;
 }
 
+/* DEV vector Card Decks -----------------------------------------------------
+   Clean interpretation of the user's reference. The approved blue title plaque
+   remains untouched; only the panel body and deck rows are replaced here. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks{
+  padding:29px 10px 13px!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+
+/* The old image-sliced panel frame is hidden only for this dev prototype. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-panel-frame{
+  display:none!important;
+}
+
+/* One clipped surface carries the same pale-gold / bronze rail hierarchy used
+   by the board frame and title plaques, while the centre is muted navy. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  background:
+    linear-gradient(180deg,#506176 0%,#42546A 38%,#37495E 74%,#304155 100%)!important;
+  background-image:linear-gradient(180deg,#506176 0%,#42546A 38%,#37495E 74%,#304155 100%)!important;
+  clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px),0 9px)!important;
+  border:1px solid #3B2416!important;
+  box-sizing:border-box!important;
+  box-shadow:
+    inset 0 0 0 1px #ECD39D,
+    inset 0 0 0 2px #7A4C29,
+    inset 0 0 0 3px rgba(239,214,160,.46),
+    0 3px 7px rgba(59,36,22,.22)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks::after{
+  content:""!important;
+  position:absolute!important;
+  left:8px!important;
+  right:8px!important;
+  top:7px!important;
+  height:1px!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background:#EFD6A0!important;
+  opacity:.55!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks > *:not(.hajjen-panel-frame){
+  position:relative!important;
+  z-index:4!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-row{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile{
+  --deck-surface-top:#EEF1F1;
+  --deck-surface-bottom:#DCE2E4;
+  --deck-accent:#466A91;
+  --deck-accent-dark:#345577;
+  --deck-title:#274F79;
+  --deck-note:#36536E;
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:58px minmax(0,1fr)!important;
+  gap:10px!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:68px!important;
+  aspect-ratio:auto!important;
+  box-sizing:border-box!important;
+  padding:7px 10px 7px 7px!important;
+  margin:0!important;
+  border:1px solid #7A4C29!important;
+  border-radius:0!important;
+  background-image:linear-gradient(180deg,var(--deck-surface-top) 0%,var(--deck-surface-bottom) 100%)!important;
+  background-color:var(--deck-surface-bottom)!important;
+  background-size:auto!important;
+  background-position:initial!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(236,211,157,.78),
+    inset 0 1px 0 rgba(239,214,160,.78),
+    0 2px 3px rgba(59,36,22,.17)!important;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)!important;
+  overflow:hidden!important;
+  color:var(--deck-title)!important;
+  filter:none!important;
+  opacity:1!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile.manipulation{
+  --deck-surface-top:#F0F2F1;
+  --deck-surface-bottom:#DCE2E4;
+  --deck-accent:#537CA6;
+  --deck-accent-dark:#3E668E;
+  --deck-title:#2E5781;
+  --deck-note:#36536E;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile.enchantment{
+  --deck-surface-top:#DFCDE1;
+  --deck-surface-bottom:#CDB7D3;
+  --deck-accent:#86569A;
+  --deck-accent-dark:#6F437F;
+  --deck-title:#594168;
+  --deck-note:#674C72;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile.tactical{
+  --deck-surface-top:#F0D19E;
+  --deck-surface-bottom:#E2B875;
+  --deck-accent:#D48620;
+  --deck-accent-dark:#B96D12;
+  --deck-title:#673916;
+  --deck-note:#74431D;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile::before,
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile::after{
+  content:none!important;
+  display:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-icon-slot{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  width:52px!important;
+  height:52px!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  justify-self:start!important;
+  color:#F3E3BE!important;
+  background:linear-gradient(180deg,var(--deck-accent) 0%,var(--deck-accent-dark) 100%)!important;
+  border:1px solid #7A4C29!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(236,211,157,.60),
+    inset 0 1px 0 rgba(239,214,160,.72),
+    0 2px 2px rgba(59,36,22,.16)!important;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)!important;
+  text-shadow:none!important;
+  overflow:hidden!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-vector-icon{
+  width:34px!important;
+  height:34px!important;
+  display:block!important;
+  overflow:visible!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:2.25!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  filter:drop-shadow(0 1px rgba(59,36,22,.34));
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-vector-icon .deck-icon-fill{
+  fill:currentColor!important;
+  stroke:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-copy{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:5px!important;
+  color:var(--deck-title)!important;
+  font-family:inherit!important;
+  font-size:inherit!important;
+  line-height:normal!important;
+  letter-spacing:normal!important;
+  text-shadow:none!important;
+  white-space:normal!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-copy > strong{
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0!important;
+  color:var(--deck-title)!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  line-height:1.05!important;
+  letter-spacing:.28px!important;
+  text-shadow:none!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-copy > span[data-deck-note]{
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0!important;
+  color:var(--deck-note)!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:8.5px!important;
+  font-weight:800!important;
+  line-height:1.18!important;
+  letter-spacing:.08px!important;
+  text-shadow:none!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile.locked{
+  opacity:1!important;
+  filter:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-lock{
+  display:none!important;
+}
+
 @media(max-width:1000px){
   .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
     padding-left:12px;
@@ -171,6 +414,20 @@
   .zone3-app .shared-card-decks-panel .deck-row{gap:7px!important}
   .zone3-app .shared-card-decks-panel .deck-pile > strong{font-size:9px!important}
   .zone3-app .shared-card-decks-panel .deck-pile > span:not(.deck-lock){font-size:7px!important}
+
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks{
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-pile{
+    grid-template-columns:54px minmax(0,1fr)!important;
+    min-height:64px!important;
+    gap:8px!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-card-decks-panel.hajjen-vector-card-decks .deck-icon-slot{
+    width:48px!important;
+    height:48px!important;
+  }
 }
 
 @media(max-width:620px){

@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   SHARKAN/status V1.3: compact, simple and visually integrated with the board
-   frame. The gold rail is the outside edge; no dark/brown outer shell. */
+   SHARKAN/status V1.4: compact, simple and visually integrated with the board
+   frame using the exact approved bronze/gold palette. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source{
   visibility:hidden!important;
@@ -36,7 +36,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .ha
   z-index:0!important;
   pointer-events:none!important;
   shape-rendering:geometricPrecision;
-  filter:drop-shadow(0 1px .6px rgba(48,28,14,.13));
+  filter:drop-shadow(0 1px .6px rgba(59,36,22,.13));
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .hajjen-vector-title-plaque-text{
@@ -49,29 +49,38 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .ha
   box-sizing:border-box!important;
   padding:0 34px!important;
   overflow:hidden!important;
-  color:#f2dfb2!important;
+  color:#EFD6A0!important;
   font-family:Georgia,"Times New Roman",serif!important;
   font-size:9.5px!important;
   font-weight:700!important;
   letter-spacing:.28px!important;
   line-height:1!important;
   text-align:center!important;
-  text-shadow:0 1px 1px rgba(38,25,12,.62)!important;
+  text-shadow:0 1px 1px rgba(59,36,22,.62)!important;
   white-space:nowrap!important;
   text-overflow:ellipsis!important;
   transform:translateY(-.1px);
 }
 
-/* No dark outer rail. These use only the board frame's bronze/gold family. */
+/* Exact approved board-frame palette:
+   #3B2416 Darkest Brown
+   #4C2C16 Deep Bronze Brown
+   #7A4C29 Dark Bronze
+   #B77A3B Warm Bronze
+   #C9914F Gold
+   #DFB46B Light Gold
+   #EFD6A0 Pale Gold Highlight
+
+   No solid brown outer band: the visible outside rail is bronze/gold. */
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-gold{
-  stroke:#bb7d3c;
+  stroke:#7A4C29;
   stroke-width:.54;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-green{
-  stroke:#cf9853;
+  stroke:#B77A3B;
   stroke-width:.46;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
@@ -79,7 +88,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-top-highlight{
   fill:none;
-  stroke:#f2d9a1;
+  stroke:#EFD6A0;
   stroke-width:.34;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;

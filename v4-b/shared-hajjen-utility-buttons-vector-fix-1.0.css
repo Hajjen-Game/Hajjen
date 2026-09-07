@@ -1,0 +1,73 @@
+/* HAJJEN DEV vector utility correction pass.
+   Keeps the new vector family, but restores responsive sizing and gives each
+   action its intended surface colour with enough specificity to beat defaults. */
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action="spellbook"]{
+  --utility-top:#785B7E;
+  --utility-mid:#684D70;
+  --utility-bottom:#533C5C;
+  --utility-text:#F5E8C6;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action="backpack"]{
+  --utility-top:#82936A;
+  --utility-mid:#6E8254;
+  --utility-bottom:#56683F;
+  --utility-text:#F5E8C6;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action="help"]{
+  --utility-top:#58749A;
+  --utility-mid:#456287;
+  --utility-bottom:#344C6B;
+  --utility-text:#F5E8C6;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action="copy"],
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action="reset"]{
+  --utility-top:#F0DEB8;
+  --utility-mid:#E7CFA3;
+  --utility-bottom:#D7BA87;
+  --utility-text:#3B2416;
+}
+
+/* The old responsive shell intentionally makes utilities a horizontal strip on
+   medium screens. The first vector pass accidentally overrode that and made
+   each button span the entire viewport width. Restore the shared layout here. */
+@media(max-width:1350px){
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud{
+    display:grid!important;
+    grid-column:1/-1!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:1fr!important;
+    gap:7px!important;
+    width:100%!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]{
+    width:100%!important;
+    aspect-ratio:568 / 112!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content{
+    grid-template-columns:38px minmax(0,1fr) 20px!important;
+    padding:0 5px!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-icon-wrap{
+    width:28px!important;
+    height:28px!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-icon{
+    width:23px!important;
+    height:23px!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{
+    font-size:10.5px!important;
+    letter-spacing:.2px!important;
+  }
+}
+
+@media(max-width:620px){
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:auto!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{
+    font-size:10px!important;
+  }
+}

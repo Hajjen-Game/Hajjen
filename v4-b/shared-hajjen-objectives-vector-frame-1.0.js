@@ -1,7 +1,6 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Draws one continuous responsive SVG frame around Objectives only.
-   V1.1 removes the floating corner flourish/dot and uses a tighter, cleaner
-   corner radius so the frame reads more like the polished target UI. */
+   Objectives only. V1.2 adds a small integrated corner accent inspired by
+   the polished target UI while keeping every rail continuous and seam-free. */
 (()=>{
   const panel=document.querySelector('.zone3-app .objectives.shared-objectives');
   if(!panel)return;
@@ -24,10 +23,10 @@
   gradient.setAttribute('y2','1');
   gradient.setAttribute('gradientUnits','objectBoundingBox');
   [
-    ['0%','#f0cf78'],
-    ['34%','#c89443'],
-    ['70%','#9a672f'],
-    ['100%','#ddb35d']
+    ['0%','#f2d586'],
+    ['35%','#d2a253'],
+    ['70%','#a87637'],
+    ['100%','#e2bd70']
   ].forEach(([offset,color])=>{
     const stop=document.createElementNS(NS,'stop');
     stop.setAttribute('offset',offset);
@@ -48,6 +47,14 @@
   const gold=makePath('frame-gold');
   const inner=makePath('frame-inner');
   const highlight=makePath('frame-highlight');
+
+  const cornerAccents=['tl','tr','br','bl'].map(name=>{
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('class','corner-accent');
+    p.setAttribute('data-corner',name);
+    svg.appendChild(p);
+    return {name,p};
+  });
 
   function roundedFramePath(w,h,inset,r){
     const x=inset;
@@ -74,16 +81,29 @@
     const h=Math.max(100,panel.clientHeight||0);
     svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
 
-    /* Tighter radii make the corners feel deliberate rather than bulbous.
-       All four visible rails remain continuous closed SVG paths — no joins. */
-    const outer=roundedFramePath(w,h,2.4,5.8);
-    const innerD=roundedFramePath(w,h,5.2,4.3);
-    const highlightD=roundedFramePath(w,h,3.5,5.1);
+    const outer=roundedFramePath(w,h,2.35,5.9);
+    const innerD=roundedFramePath(w,h,5.1,4.35);
+    const highlightD=roundedFramePath(w,h,3.5,5.15);
 
     shadow.setAttribute('d',outer);
     gold.setAttribute('d',outer);
     inner.setAttribute('d',innerD);
     highlight.setAttribute('d',highlightD);
+
+    /* Small nested L/curve accents: they echo the corner radius instead of
+       floating into the parchment. No dots, diagonals or disconnected ornaments. */
+    const inset=6.05;
+    const radius=4.15;
+    const arm=8.0;
+
+    const data={
+      tl:`M ${inset} ${inset+radius+arm} V ${inset+radius} Q ${inset} ${inset} ${inset+radius} ${inset} H ${inset+radius+arm}`,
+      tr:`M ${w-inset-radius-arm} ${inset} H ${w-inset-radius} Q ${w-inset} ${inset} ${w-inset} ${inset+radius} V ${inset+radius+arm}`,
+      br:`M ${w-inset} ${h-inset-radius-arm} V ${h-inset-radius} Q ${w-inset} ${h-inset} ${w-inset-radius} ${h-inset} H ${w-inset-radius-arm}`,
+      bl:`M ${inset+radius+arm} ${h-inset} H ${inset+radius} Q ${inset} ${h-inset} ${inset} ${h-inset-radius} V ${h-inset-radius-arm}`
+    };
+
+    cornerAccents.forEach(({name,p})=>p.setAttribute('d',data[name]));
   }
 
   panel.prepend(svg);
@@ -93,5 +113,5 @@
   ro?.observe(panel);
   if(!ro)window.addEventListener('resize',render,{passive:true});
 
-  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.1',panel,svg,render,resizeObserver:ro};
+  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.2',panel,svg,render,resizeObserver:ro};
 })();

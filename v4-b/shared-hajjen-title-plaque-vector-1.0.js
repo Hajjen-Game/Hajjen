@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   V2.0: the approved SHARKAN plaque is now a reusable shared title treatment
-   for both SHARKAN/status and EVENT LOG, with identical geometry and styling. */
+   V2.1: approved SHARKAN/EVENT LOG plaque reused for ACTION BAR with the exact
+   same geometry, rails and mounts; only the plaque surface changes to muted navy. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -13,7 +13,7 @@
     return node;
   }
 
-  function buildPlaque(index=0){
+  function buildPlaque(index=0,variant='green'){
     const svg=svgEl('svg',{
       class:'hajjen-vector-title-plaque-svg',
       viewBox:'0 0 360 42',
@@ -37,19 +37,28 @@
       ['100%','#B77A3B']
     ].forEach(([offset,color])=>gold.appendChild(svgEl('stop',{offset,'stop-color':color})));
 
-    const green=svgEl('linearGradient',{
-      id:`hajjenTitleGreen-${index}`,
+    const surface=svgEl('linearGradient',{
+      id:`hajjenTitleSurface-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
       gradientUnits:'objectBoundingBox'
     });
-    [
-      ['0%','#82936a'],
-      ['34%','#74885c'],
-      ['72%','#62774b'],
-      ['100%','#56683f']
-    ].forEach(([offset,color])=>green.appendChild(svgEl('stop',{offset,'stop-color':color})));
 
-    defs.append(gold,green);
+    const stops=variant==='blue'
+      ? [
+          ['0%','#52606D'],
+          ['34%','#434F5B'],
+          ['72%','#363F49'],
+          ['100%','#2E3741']
+        ]
+      : [
+          ['0%','#82936A'],
+          ['34%','#74885C'],
+          ['72%','#62774B'],
+          ['100%','#56683F']
+        ];
+    stops.forEach(([offset,color])=>surface.appendChild(svgEl('stop',{offset,'stop-color':color})));
+
+    defs.append(gold,surface);
     svg.appendChild(defs);
 
     const outerD=[
@@ -61,7 +70,7 @@
       'H 51','L 41 27','V 15','Z'
     ].join(' ');
 
-    svg.appendChild(svgEl('path',{class:'plaque-base',d:outerD,fill:`url(#hajjenTitleGreen-${index})`}));
+    svg.appendChild(svgEl('path',{class:'plaque-base',d:outerD,fill:`url(#hajjenTitleSurface-${index})`}));
     svg.appendChild(svgEl('path',{class:'plaque-frame-shadow',d:outerD}));
     svg.appendChild(svgEl('path',{class:'plaque-frame-gold',d:outerD,stroke:`url(#hajjenTitleGold-${index})`}));
     svg.appendChild(svgEl('path',{class:'plaque-frame-inner',d:innerD}));
@@ -83,27 +92,32 @@
     return svg;
   }
 
-  function mount(panel,index=0){
+  function mount(panel,index=0,options={}){
     if(!panel)return null;
-    const heading=panel.querySelector(':scope > h2');
+    const headingSelector=options.headingSelector||':scope > h2';
+    const heading=panel.querySelector(headingSelector);
     if(!heading)return null;
 
     const existing=panel.querySelector(':scope > .hajjen-vector-title-plaque-layer');
     if(existing)return existing;
 
-    const label=(heading.textContent||'').trim()||'SHARKAN';
+    let label=options.label||'';
+    if(!label&&options.labelSelector)label=heading.querySelector(options.labelSelector)?.textContent||'';
+    if(!label)label=(heading.textContent||'').trim()||'SHARKAN';
+
+    const variant=options.variant==='blue'?'blue':'green';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource='green-gold-2.0';
+    heading.dataset.vectorTitlePlaqueSource=`${variant}-gold-2.1`;
 
     const layer=document.createElement('div');
-    layer.className='hajjen-vector-title-plaque-layer';
-    layer.dataset.vectorTitlePlaque='green-gold-2.0';
+    layer.className=`hajjen-vector-title-plaque-layer hajjen-vector-title-plaque-${variant}`;
+    layer.dataset.vectorTitlePlaque=`${variant}-gold-2.1`;
     layer.setAttribute('aria-hidden','true');
 
-    const svg=buildPlaque(index);
+    const svg=buildPlaque(index,variant);
     const text=document.createElement('span');
     text.className='hajjen-vector-title-plaque-text';
-    text.textContent=label;
+    text.textContent=label.trim();
 
     layer.append(svg,text);
     panel.appendChild(layer);
@@ -111,16 +125,22 @@
   }
 
   function apply(){
-    const panels=[
-      document.querySelector('.zone3-app .shared-status.hajjen-framed-panel'),
-      document.querySelector('.zone3-app .shared-event-log.hajjen-framed-panel')
-    ];
-    panels.forEach((panel,index)=>{if(panel)mount(panel,index);});
+    const status=document.querySelector('.zone3-app .shared-status.hajjen-framed-panel');
+    const eventLog=document.querySelector('.zone3-app .shared-event-log.hajjen-framed-panel');
+    const actionBar=document.querySelector('.zone3-app .shared-action-bar');
+
+    if(status)mount(status,0);
+    if(eventLog)mount(eventLog,1);
+    if(actionBar)mount(actionBar,2,{
+      headingSelector:':scope > .action-hud-title',
+      labelSelector:':scope > span:first-child',
+      variant:'blue'
+    });
   }
 
   apply();
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'2.0',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'2.1',mount,buildPlaque};
 })();

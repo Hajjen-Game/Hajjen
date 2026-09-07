@@ -1,6 +1,6 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Zone 3 Objectives only. Thin continuous vector rails plus a small integrated
-   corner accent; no PNG slices, image joins, matte pixels or stretch seams. */
+   Zone 3 Objectives only. Thin continuous vector rails plus a compact integrated
+   corner accent and a small round node; no PNG slices or bitmap joins. */
 
 .zone3-app .objectives.shared-objectives{
   position:relative!important;
@@ -83,11 +83,19 @@
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-accent{
   fill:none;
   stroke:#c99b50;
-  stroke-width:.9;
+  stroke-width:.86;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.92;
+  opacity:.94;
+}
+
+.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-node{
+  fill:#cfa24f;
+  stroke:#72502b;
+  stroke-width:.62;
+  vector-effect:non-scaling-stroke;
+  opacity:.98;
 }
 
 .zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame):not(.hajjen-objectives-vector-frame){

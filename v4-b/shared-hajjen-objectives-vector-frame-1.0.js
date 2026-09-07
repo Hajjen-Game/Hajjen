@@ -1,5 +1,7 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Draws one continuous responsive SVG frame around Objectives only. */
+   Draws one continuous responsive SVG frame around Objectives only.
+   V1.1 removes the floating corner flourish/dot and uses a tighter, cleaner
+   corner radius so the frame reads more like the polished target UI. */
 (()=>{
   const panel=document.querySelector('.zone3-app .objectives.shared-objectives');
   if(!panel)return;
@@ -47,19 +49,6 @@
   const inner=makePath('frame-inner');
   const highlight=makePath('frame-highlight');
 
-  const corners=['tl','tr','br','bl'].map(name=>{
-    const group=document.createElementNS(NS,'g');
-    group.setAttribute('data-corner',name);
-    const flourish=document.createElementNS(NS,'path');
-    flourish.setAttribute('class','corner-flourish');
-    const dot=document.createElementNS(NS,'circle');
-    dot.setAttribute('class','corner-dot');
-    dot.setAttribute('r','1.55');
-    group.append(flourish,dot);
-    svg.appendChild(group);
-    return {name,flourish,dot};
-  });
-
   function roundedFramePath(w,h,inset,r){
     const x=inset;
     const y=inset;
@@ -85,43 +74,16 @@
     const h=Math.max(100,panel.clientHeight||0);
     svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
 
-    const outer=roundedFramePath(w,h,2.4,8.5);
-    const innerD=roundedFramePath(w,h,5.2,6.7);
-    const highlightD=roundedFramePath(w,h,3.5,7.8);
+    /* Tighter radii make the corners feel deliberate rather than bulbous.
+       All four visible rails remain continuous closed SVG paths — no joins. */
+    const outer=roundedFramePath(w,h,2.4,5.8);
+    const innerD=roundedFramePath(w,h,5.2,4.3);
+    const highlightD=roundedFramePath(w,h,3.5,5.1);
+
     shadow.setAttribute('d',outer);
     gold.setAttribute('d',outer);
     inner.setAttribute('d',innerD);
     highlight.setAttribute('d',highlightD);
-
-    const pad=2.4;
-    const arm=16;
-    const curve=9;
-    const dotOffset=6.6;
-
-    const data={
-      tl:{
-        d:`M ${pad} ${pad+arm} C ${pad+1.5} ${pad+curve} ${pad+curve} ${pad+1.5} ${pad+arm} ${pad}`,
-        cx:pad+dotOffset,cy:pad+dotOffset
-      },
-      tr:{
-        d:`M ${w-pad-arm} ${pad} C ${w-pad-curve} ${pad+1.5} ${w-pad-1.5} ${pad+curve} ${w-pad} ${pad+arm}`,
-        cx:w-pad-dotOffset,cy:pad+dotOffset
-      },
-      br:{
-        d:`M ${w-pad} ${h-pad-arm} C ${w-pad-1.5} ${h-pad-curve} ${w-pad-curve} ${h-pad-1.5} ${w-pad-arm} ${h-pad}`,
-        cx:w-pad-dotOffset,cy:h-pad-dotOffset
-      },
-      bl:{
-        d:`M ${pad+arm} ${h-pad} C ${pad+curve} ${h-pad-1.5} ${pad+1.5} ${h-pad-curve} ${pad} ${h-pad-arm}`,
-        cx:pad+dotOffset,cy:h-pad-dotOffset
-      }
-    };
-
-    corners.forEach(({name,flourish,dot})=>{
-      flourish.setAttribute('d',data[name].d);
-      dot.setAttribute('cx',data[name].cx);
-      dot.setAttribute('cy',data[name].cy);
-    });
   }
 
   panel.prepend(svg);
@@ -131,5 +93,5 @@
   ro?.observe(panel);
   if(!ro)window.addEventListener('resize',render,{passive:true});
 
-  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.0',panel,svg,render,resizeObserver:ro};
+  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.1',panel,svg,render,resizeObserver:ro};
 })();

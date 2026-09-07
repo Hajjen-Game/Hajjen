@@ -1,12 +1,16 @@
 /* HAJJEN shared thin vector panel frame — seam-free coded prototype.
-   V1.8 keeps the approved Objectives geometry on Objectives, Sharkan/Status
-   and Event Log, with a warmer bronze-gold palette matched to the board frame. */
+   V1.9 keeps the approved Objectives geometry and board-matched bronze-gold
+   palette, now shared by Objectives, Sharkan/Status, Event Log, Card Decks,
+   Hand and Action Bar. No PNG slices or bitmap joins. */
 (()=>{
   const NS='http://www.w3.org/2000/svg';
   const targets=[
     {key:'objectives',selector:'.zone3-app .objectives.shared-objectives'},
     {key:'status',selector:'.zone3-app .shared-status.hajjen-framed-panel'},
-    {key:'event-log',selector:'.zone3-app .shared-event-log.hajjen-framed-panel'}
+    {key:'event-log',selector:'.zone3-app .shared-event-log.hajjen-framed-panel'},
+    {key:'card-decks',selector:'.zone3-app .shared-card-decks-panel.hajjen-framed-panel'},
+    {key:'hand',selector:'.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel'},
+    {key:'action-bar',selector:'.zone3-app .action-hud.shared-action-bar'}
   ];
 
   function roundedFramePath(w,h,inset,r){
@@ -168,6 +172,6 @@
   }
 
   const mounted=targets.map((target,index)=>mount(document.querySelector(target.selector),target.key,index)).filter(Boolean);
-  window.HAJJEN_SHARED_VECTOR_FRAMES={version:'1.8',mounted};
+  window.HAJJEN_SHARED_VECTOR_FRAMES={version:'1.9',mounted};
   window.HAJJEN_OBJECTIVES_VECTOR_FRAME=mounted.find(item=>item.key==='objectives')||null;
 })();

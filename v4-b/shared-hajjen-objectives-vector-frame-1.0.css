@@ -1,8 +1,10 @@
-/* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Zone 3 Objectives only. Thin continuous vector rails, compact corner accent,
-   round node and a tight inward sweep; no PNG slices or bitmap joins. */
+/* HAJJEN shared thin vector panel frame — seam-free coded prototype.
+   Same approved frame on Objectives, Sharkan/Status and Event Log.
+   Thin continuous SVG rails, compact corner accent, round node and tight sweep. */
 
-.zone3-app .objectives.shared-objectives{
+.zone3-app .objectives.shared-objectives,
+.zone3-app .shared-status.hajjen-framed-panel,
+.zone3-app .shared-event-log.hajjen-framed-panel{
   position:relative!important;
   isolation:isolate!important;
   border:0!important;
@@ -10,11 +12,17 @@
   overflow:visible!important;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-panel-frame{
+/* The old bitmap frame must not participate on panels using the vector test. */
+.zone3-app .objectives.shared-objectives > .hajjen-panel-frame,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame{
   display:none!important;
 }
 
-.zone3-app .objectives.shared-objectives::before{
+/* Keep the parchment surface close to the thin vector rail. */
+.zone3-app .objectives.shared-objectives::before,
+.zone3-app .shared-status.hajjen-framed-panel::before,
+.zone3-app .shared-event-log.hajjen-framed-panel::before{
   inset:3px!important;
   clip-path:polygon(
     8px 0,
@@ -28,7 +36,9 @@
   )!important;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame{
+.zone3-app .objectives.shared-objectives > .hajjen-shared-vector-frame,
+.zone3-app .shared-status.hajjen-framed-panel > .hajjen-shared-vector-frame,
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-shared-vector-frame{
   position:absolute!important;
   inset:0!important;
   width:100%!important;
@@ -41,7 +51,7 @@
   filter:drop-shadow(0 1px 1px rgba(63,42,20,.18));
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-shadow{
+.zone3-app .hajjen-shared-vector-frame .frame-shadow{
   fill:none;
   stroke:#49331e;
   stroke-width:3.0;
@@ -51,16 +61,15 @@
   opacity:.80;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-gold{
+.zone3-app .hajjen-shared-vector-frame .frame-gold{
   fill:none;
-  stroke:url(#hajjenObjectivesGold);
   stroke-width:1.72;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-inner{
+.zone3-app .hajjen-shared-vector-frame .frame-inner{
   fill:none;
   stroke:#9b6a32;
   stroke-width:.82;
@@ -70,7 +79,7 @@
   opacity:.92;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-highlight{
+.zone3-app .hajjen-shared-vector-frame .frame-highlight{
   fill:none;
   stroke:#f0cf7b;
   stroke-width:.48;
@@ -80,7 +89,7 @@
   opacity:.78;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-accent{
+.zone3-app .hajjen-shared-vector-frame .corner-accent{
   fill:none;
   stroke:#c99b50;
   stroke-width:.86;
@@ -90,8 +99,7 @@
   opacity:.94;
 }
 
-/* Two fine strokes on the same Bezier keep the corner sweep light and engraved. */
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-sweep-shadow{
+.zone3-app .hajjen-shared-vector-frame .corner-sweep-shadow{
   fill:none;
   stroke:#68431f;
   stroke-width:1.12;
@@ -101,7 +109,7 @@
   opacity:.68;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-sweep{
+.zone3-app .hajjen-shared-vector-frame .corner-sweep{
   fill:none;
   stroke:#d0a356;
   stroke-width:.60;
@@ -111,7 +119,7 @@
   opacity:.94;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-node{
+.zone3-app .hajjen-shared-vector-frame .corner-node{
   fill:#cfa24f;
   stroke:#72502b;
   stroke-width:.62;
@@ -119,7 +127,10 @@
   opacity:.98;
 }
 
-.zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame):not(.hajjen-objectives-vector-frame){
+/* Real panel contents stay over parchment and under/with decorative frame details. */
+.zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
+.zone3-app .shared-status.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
+.zone3-app .shared-event-log.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame){
   position:relative;
   z-index:4;
 }

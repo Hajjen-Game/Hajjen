@@ -1,6 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   SHARKAN/status V1.6: plaque frame now uses the same layered rail logic as the
-   approved vector board frame, plus restrained circular side mounts. */
+   SHARKAN/status V1.7: plaque frame keeps the board-frame rail language while
+   the circular mounts now sit directly on the plaque ends like real fasteners. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -55,9 +55,8 @@
     defs.append(gold,green);
     svg.appendChild(defs);
 
-    /* Simple low plaque. The frame is no longer a filled gold polygon. Instead
-       the SAME outline is layered like the board frame: dark support -> pale
-       gold rail -> fine bronze inner rail -> pale highlight. */
+    /* Simple low plaque. The frame is layered like the board frame:
+       dark support -> pale gold rail -> fine bronze inner rail -> highlight. */
     const outerD=[
       'M 48 6','H 312','L 322 13','V 29','L 312 36',
       'H 48','L 38 29','V 13','Z'
@@ -80,9 +79,10 @@
       d:'M 52 33.1 H 308 L 317.3 26.9'
     }));
 
-    /* Small round mounts echo the circular nodes on the board/panel frame and
-       visually explain how the title plaque is attached to the same rail. */
-    [['30','21'],['330','21']].forEach(([cx,cy])=>{
+    /* Mounts are centered on the left/right end faces of the plaque itself.
+       This makes them read as physical fasteners instead of loose dots on the
+       surrounding panel rail. */
+    [['38','21'],['322','21']].forEach(([cx,cy])=>{
       svg.appendChild(svgEl('circle',{class:'plaque-mount-ring',cx,cy,r:'4.1'}));
       svg.appendChild(svgEl('circle',{class:'plaque-mount-core',cx,cy,r:'2.65'}));
       svg.appendChild(svgEl('circle',{class:'plaque-mount-jewel',cx,cy:Math.max(0,Number(cy)-.65),r:'.72'}));
@@ -101,11 +101,11 @@
 
     const label=(heading.textContent||'').trim()||'SHARKAN';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource='green-gold-1.6';
+    heading.dataset.vectorTitlePlaqueSource='green-gold-1.7';
 
     const layer=document.createElement('div');
     layer.className='hajjen-vector-title-plaque-layer';
-    layer.dataset.vectorTitlePlaque='green-gold-1.6';
+    layer.dataset.vectorTitlePlaque='green-gold-1.7';
     layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index);
@@ -127,5 +127,5 @@
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.6',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.7',mount,buildPlaque};
 })();

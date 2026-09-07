@@ -1,10 +1,13 @@
 /* HAJJEN shared thin vector panel frame — seam-free coded prototype.
-   Same approved frame on Objectives, Sharkan/Status and Event Log.
-   Bronze-gold palette tuned to harmonize with the thicker board frame. */
+   Same approved frame on Objectives, Sharkan/Status, Event Log, Card Decks,
+   Hand and Action Bar. Bronze-gold palette harmonizes with the board frame. */
 
 .zone3-app .objectives.shared-objectives,
 .zone3-app .shared-status.hajjen-framed-panel,
-.zone3-app .shared-event-log.hajjen-framed-panel{
+.zone3-app .shared-event-log.hajjen-framed-panel,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel,
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel,
+.zone3-app .action-hud.shared-action-bar{
   position:relative!important;
   isolation:isolate!important;
   border:0!important;
@@ -12,17 +15,29 @@
   overflow:visible!important;
 }
 
+/* Action Bar previously owned a plain white CSS box. The shared frame now owns
+   the shell while preserving all spell/potion slot layout and gameplay. */
+.zone3-app .action-hud.shared-action-bar{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
 /* The old bitmap frame must not participate on panels using the vector frame. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-panel-frame,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame{
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-panel-frame,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-panel-frame,
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-panel-frame{
   display:none!important;
 }
 
-/* Keep the parchment surface close to the thin vector rail. */
+/* Keep existing parchment surfaces close to the thin vector rail. */
 .zone3-app .objectives.shared-objectives::before,
 .zone3-app .shared-status.hajjen-framed-panel::before,
-.zone3-app .shared-event-log.hajjen-framed-panel::before{
+.zone3-app .shared-event-log.hajjen-framed-panel::before,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel::before,
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::before,
+.zone3-app .action-hud.shared-action-bar::before{
   inset:3px!important;
   clip-path:polygon(
     8px 0,
@@ -36,9 +51,26 @@
   )!important;
 }
 
+/* Action Bar did not previously use the common parchment pseudo-surface. */
+.zone3-app .action-hud.shared-action-bar::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  background-color:#ead7b0;
+  background-image:url("assets/hajjen_parchment_surface_v1.png");
+  background-repeat:repeat;
+  background-position:center;
+  background-size:160px 160px;
+  box-shadow:0 5px 14px rgba(54,36,17,.14);
+}
+
 .zone3-app .objectives.shared-objectives > .hajjen-shared-vector-frame,
 .zone3-app .shared-status.hajjen-framed-panel > .hajjen-shared-vector-frame,
-.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-shared-vector-frame{
+.zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-shared-vector-frame,
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-shared-vector-frame,
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-shared-vector-frame,
+.zone3-app .action-hud.shared-action-bar > .hajjen-shared-vector-frame{
   position:absolute!important;
   inset:0!important;
   width:100%!important;
@@ -131,7 +163,10 @@
 /* Real panel contents stay over parchment and under/with decorative frame details. */
 .zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
 .zone3-app .shared-status.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
-.zone3-app .shared-event-log.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame){
+.zone3-app .shared-event-log.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
+.zone3-app .shared-card-decks-panel.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
+.zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > *:not(.hajjen-panel-frame):not(.hajjen-shared-vector-frame),
+.zone3-app .action-hud.shared-action-bar > *:not(.hajjen-shared-vector-frame){
   position:relative;
   z-index:4;
 }

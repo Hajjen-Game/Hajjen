@@ -1,7 +1,6 @@
 /* HAJJEN utility button master skin.
-   The approved button artwork is rendered by a layout-bearing pseudo element.
-   This deliberately avoids the legacy utility grid forcing the artwork into
-   equal-height rows and clipping the large fantasy button silhouettes. */
+   Legacy artwork remains the non-dev fallback. The dev skin below replaces the
+   WEBP surfaces with the same thin layered frame language as the board/plaque family. */
 
 .zone3-app .shared-utility-hud{
   display:flex!important;
@@ -17,9 +16,6 @@
   background:transparent!important;
 }
 
-/* data-utility-action is intentionally part of the selector. It gives this skin
-   higher specificity than the old .spellbook-open/.backpack-open/.help-open
-   soft-colour button backgrounds in shared-utility-1.0.css. */
 .zone3-app .shared-utility-hud > button[data-utility-action]{
   position:relative!important;
   display:block!important;
@@ -84,8 +80,6 @@
   aspect-ratio:568 / 111;
 }
 
-/* More readable interactive feedback: a small lift/scale plus brighter gold and
-   a warm shadow. Strong enough to feel clickable without changing the artwork. */
 .zone3-app .shared-utility-hud > button[data-utility-action]:hover:not(:disabled){
   filter:brightness(1.16) saturate(1.08) drop-shadow(0 4px 5px rgba(89,55,18,.38))!important;
   transform:translateY(-2px) scale(1.028)!important;
@@ -104,8 +98,170 @@
   filter:grayscale(.25);
 }
 
-/* Keep the authored proportions at every breakpoint. The rest of the campaign
-   shell may reflow, but this utility module remains a simple vertical stack. */
+/* DEV vector utility family -------------------------------------------------
+   Same principle as board-frame master:
+   dark support -> pale gold rail -> bronze inner rail -> coloured surface. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud{
+  gap:8px!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]{
+  --utility-top:#52606D;
+  --utility-mid:#434F5B;
+  --utility-bottom:#2E3741;
+  --utility-text:#F5E8C6;
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  aspect-ratio:568 / 112!important;
+  min-height:0!important;
+  overflow:visible!important;
+  padding:0!important;
+  color:var(--utility-text)!important;
+  font-size:inherit!important;
+  line-height:normal!important;
+  background:#3B2416!important;
+  clip-path:polygon(13px 0,calc(100% - 13px) 0,100% 13px,100% calc(100% - 13px),calc(100% - 13px) 100%,13px 100%,0 calc(100% - 13px),0 13px)!important;
+  filter:drop-shadow(0 2px 2px rgba(59,36,22,.20));
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]::before,
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]::after{
+  content:""!important;
+  position:absolute!important;
+  display:block!important;
+  pointer-events:none!important;
+  background-image:none!important;
+  background-repeat:no-repeat!important;
+  width:auto!important;
+  height:auto!important;
+  aspect-ratio:auto!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]::before{
+  inset:1px!important;
+  z-index:0!important;
+  background:linear-gradient(180deg,#EFD6A0 0%,#ECD39D 58%,#DFB46B 76%,#C9914F 90%,#B77A3B 100%)!important;
+  clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]::after{
+  inset:3px!important;
+  z-index:1!important;
+  background:linear-gradient(180deg,var(--utility-top) 0%,var(--utility-mid) 52%,var(--utility-bottom) 100%)!important;
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;
+  box-shadow:inset 0 0 0 1px rgba(122,76,41,.82),inset 0 1px rgba(239,214,160,.40)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="spellbook"]{
+  --utility-top:#785B7E;
+  --utility-mid:#684D70;
+  --utility-bottom:#533C5C;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="backpack"]{
+  --utility-top:#82936A;
+  --utility-mid:#6E8254;
+  --utility-bottom:#56683F;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="help"]{
+  --utility-top:#58749A;
+  --utility-mid:#456287;
+  --utility-bottom:#344C6B;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="copy"],
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="reset"]{
+  --utility-top:#F0DEB8;
+  --utility-mid:#E7CFA3;
+  --utility-bottom:#D7BA87;
+  --utility-text:#3B2416;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content{
+  position:absolute!important;
+  inset:3px!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:58px minmax(0,1fr) 58px!important;
+  align-items:center!important;
+  min-width:0!important;
+  padding:0 12px!important;
+  box-sizing:border-box!important;
+  pointer-events:none!important;
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content::before{
+  content:"";
+  position:absolute;
+  inset:1.5px;
+  pointer-events:none;
+  clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px),0 9px);
+  box-shadow:inset 0 0 0 1px rgba(236,211,157,.34);
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-icon-wrap{
+  grid-column:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  justify-self:center;
+  color:var(--utility-text);
+  filter:drop-shadow(0 1px rgba(59,36,22,.42));
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-icon{
+  width:31px;
+  height:31px;
+  overflow:visible;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2.15;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-icon .utility-icon-detail{
+  fill:currentColor;
+  stroke:none;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-icon .utility-icon-fill{
+  fill:currentColor;
+  stroke:none;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{
+  grid-column:2;
+  min-width:0;
+  overflow:hidden;
+  color:var(--utility-text)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:16px!important;
+  font-weight:700!important;
+  letter-spacing:.35px!important;
+  line-height:1!important;
+  text-align:center!important;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  text-shadow:0 1px 1px rgba(59,36,22,.52)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="copy"] .hajjen-utility-vector-label,
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button[data-utility-action="reset"] .hajjen-utility-vector-label{
+  text-shadow:0 1px rgba(255,255,255,.28)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]:hover:not(:disabled){
+  filter:brightness(1.08) saturate(1.04) drop-shadow(0 3px 4px rgba(59,36,22,.26))!important;
+  transform:translateY(-1px) scale(1.012)!important;
+}
+html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vector-utility-button[data-utility-action]:active:not(:disabled){
+  filter:brightness(.96) drop-shadow(0 1px 2px rgba(59,36,22,.18))!important;
+  transform:translateY(1px) scale(.996)!important;
+}
+
 @media(max-width:1350px){
   .zone3-app .shared-utility-hud{
     display:flex!important;
@@ -118,6 +274,8 @@
     display:flex!important;
     flex-direction:column!important;
   }
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{font-size:14px!important}
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content{grid-template-columns:48px minmax(0,1fr) 48px!important}
 }
 
 @media(prefers-reduced-motion:reduce){

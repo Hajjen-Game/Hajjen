@@ -23,11 +23,21 @@
     return shell;
   }
 
-  function roundedFramePath(w,h,inset,r){
-    const x=inset,y=inset;
-    const right=Math.max(x,w-inset),bottom=Math.max(y,h-inset);
-    const radius=Math.min(r,(right-x)/2,(bottom-y)/2);
-    return [`M ${x+radius} ${y}`,`H ${right-radius}`,`Q ${right} ${y} ${right} ${y+radius}`,`V ${bottom-radius}`,`Q ${right} ${bottom} ${right-radius} ${bottom}`,`H ${x+radius}`,`Q ${x} ${bottom} ${x} ${bottom-radius}`,`V ${y+radius}`,`Q ${x} ${y} ${x+radius} ${y}`,'Z'].join(' ');
+  function roundedRectPath(x,y,w,h,r){
+    const right=x+w,bottom=y+h;
+    const radius=Math.min(r,w/2,h/2);
+    return [
+      `M ${x+radius} ${y}`,
+      `H ${right-radius}`,
+      `Q ${right} ${y} ${right} ${y+radius}`,
+      `V ${bottom-radius}`,
+      `Q ${right} ${bottom} ${right-radius} ${bottom}`,
+      `H ${x+radius}`,
+      `Q ${x} ${bottom} ${x} ${bottom-radius}`,
+      `V ${y+radius}`,
+      `Q ${x} ${y} ${x+radius} ${y}`,
+      'Z'
+    ].join(' ');
   }
 
   function mountDevVector(viewport,index){
@@ -73,19 +83,34 @@
     function render(){
       const w=Math.max(100,svg.clientWidth||shell.clientWidth||0);
       const h=Math.max(100,svg.clientHeight||shell.clientHeight||0);
+      const boardW=Math.max(80,viewport.clientWidth||shell.clientWidth||0);
+      const boardH=Math.max(80,viewport.clientHeight||shell.clientHeight||0);
+      const boardX=(w-boardW)/2;
+      const boardY=(h-boardH)/2;
       svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
 
-      const outer=roundedFramePath(w,h,3.2,10.4);
-      shadow.setAttribute('d',outer);gold.setAttribute('d',outer);
-      inner.setAttribute('d',roundedFramePath(w,h,7.2,7.4));
-      highlight.setAttribute('d',roundedFramePath(w,h,4.75,9.0));
+      /* Anchor every rail to the real gameplay-board edge rather than the SVG edge.
+         This keeps the frame slightly outside the board while placing the brown
+         inner rail exactly 1px inside the playable viewport. */
+      const shadowRect={x:boardX-4.15,y:boardY-4.15,w:boardW+8.3,h:boardH+8.3,r:10.4};
+      const goldRect={x:boardX-2.35,y:boardY-2.35,w:boardW+4.7,h:boardH+4.7,r:9.0};
+      const highlightRect={x:boardX-.45,y:boardY-.45,w:boardW+.9,h:boardH+.9,r:7.9};
+      const innerRect={x:boardX+1,y:boardY+1,w:boardW-2,h:boardH-2,r:7.2};
 
-      const inset=9.1,radius=7.1,arm=13.4,nodeOffset=4.35,sweepReach=18.8,sweepEdge=1.0;
+      shadow.setAttribute('d',roundedRectPath(shadowRect.x,shadowRect.y,shadowRect.w,shadowRect.h,shadowRect.r));
+      gold.setAttribute('d',roundedRectPath(goldRect.x,goldRect.y,goldRect.w,goldRect.h,goldRect.r));
+      highlight.setAttribute('d',roundedRectPath(highlightRect.x,highlightRect.y,highlightRect.w,highlightRect.h,highlightRect.r));
+      inner.setAttribute('d',roundedRectPath(innerRect.x,innerRect.y,innerRect.w,innerRect.h,innerRect.r));
+
+      /* Keep the established larger board-corner motif, now anchored to the gold rail. */
+      const inset=6.75,radius=7.1,arm=13.4,nodeOffset=4.35,sweepReach=18.8,sweepEdge=1.0;
+      const gx=goldRect.x,gy=goldRect.y;
+      const gr=goldRect.x+goldRect.w,gb=goldRect.y+goldRect.h;
       const data={
-        tl:{accent:`M ${inset} ${inset+radius+arm} V ${inset+radius} Q ${inset} ${inset} ${inset+radius} ${inset} H ${inset+radius+arm}`,sweep:`M ${inset+sweepEdge} ${inset+sweepReach} C ${inset+2.6} ${inset+12.7}, ${inset+10.2} ${inset+2.7}, ${inset+sweepReach} ${inset+sweepEdge}`,cx:inset+nodeOffset,cy:inset+nodeOffset},
-        tr:{accent:`M ${w-inset-radius-arm} ${inset} H ${w-inset-radius} Q ${w-inset} ${inset} ${w-inset} ${inset+radius} V ${inset+radius+arm}`,sweep:`M ${w-inset-sweepEdge} ${inset+sweepReach} C ${w-inset-2.6} ${inset+12.7}, ${w-inset-10.2} ${inset+2.7}, ${w-inset-sweepReach} ${inset+sweepEdge}`,cx:w-inset-nodeOffset,cy:inset+nodeOffset},
-        br:{accent:`M ${w-inset} ${h-inset-radius-arm} V ${h-inset-radius} Q ${w-inset} ${h-inset} ${w-inset-radius} ${h-inset} H ${w-inset-radius-arm}`,sweep:`M ${w-inset-sweepEdge} ${h-inset-sweepReach} C ${w-inset-2.6} ${h-inset-12.7}, ${w-inset-10.2} ${h-inset-2.7}, ${w-inset-sweepReach} ${h-inset-sweepEdge}`,cx:w-inset-nodeOffset,cy:h-inset-nodeOffset},
-        bl:{accent:`M ${inset+radius+arm} ${h-inset} H ${inset+radius} Q ${inset} ${h-inset} ${inset} ${h-inset-radius} V ${h-inset-radius-arm}`,sweep:`M ${inset+sweepEdge} ${h-inset-sweepReach} C ${inset+2.6} ${h-inset-12.7}, ${inset+10.2} ${h-inset-2.7}, ${inset+sweepReach} ${h-inset-sweepEdge}`,cx:inset+nodeOffset,cy:h-inset-nodeOffset}
+        tl:{accent:`M ${gx+inset} ${gy+inset+radius+arm} V ${gy+inset+radius} Q ${gx+inset} ${gy+inset} ${gx+inset+radius} ${gy+inset} H ${gx+inset+radius+arm}`,sweep:`M ${gx+inset+sweepEdge} ${gy+inset+sweepReach} C ${gx+inset+2.6} ${gy+inset+12.7}, ${gx+inset+10.2} ${gy+inset+2.7}, ${gx+inset+sweepReach} ${gy+inset+sweepEdge}`,cx:gx+inset+nodeOffset,cy:gy+inset+nodeOffset},
+        tr:{accent:`M ${gr-inset-radius-arm} ${gy+inset} H ${gr-inset-radius} Q ${gr-inset} ${gy+inset} ${gr-inset} ${gy+inset+radius} V ${gy+inset+radius+arm}`,sweep:`M ${gr-inset-sweepEdge} ${gy+inset+sweepReach} C ${gr-inset-2.6} ${gy+inset+12.7}, ${gr-inset-10.2} ${gy+inset+2.7}, ${gr-inset-sweepReach} ${gy+inset+sweepEdge}`,cx:gr-inset-nodeOffset,cy:gy+inset+nodeOffset},
+        br:{accent:`M ${gr-inset} ${gb-inset-radius-arm} V ${gb-inset-radius} Q ${gr-inset} ${gb-inset} ${gr-inset-radius} ${gb-inset} H ${gr-inset-radius-arm}`,sweep:`M ${gr-inset-sweepEdge} ${gb-inset-sweepReach} C ${gr-inset-2.6} ${gb-inset-12.7}, ${gr-inset-10.2} ${gb-inset-2.7}, ${gr-inset-sweepReach} ${gb-inset-sweepEdge}`,cx:gr-inset-nodeOffset,cy:gb-inset-nodeOffset},
+        bl:{accent:`M ${gx+inset+radius+arm} ${gb-inset} H ${gx+inset+radius} Q ${gx+inset} ${gb-inset} ${gx+inset} ${gb-inset-radius} V ${gb-inset-radius-arm}`,sweep:`M ${gx+inset+sweepEdge} ${gb-inset-sweepReach} C ${gx+inset+2.6} ${gb-inset-12.7}, ${gx+inset+10.2} ${gb-inset-2.7}, ${gx+inset+sweepReach} ${gb-inset-sweepEdge}`,cx:gx+inset+nodeOffset,cy:gb-inset-nodeOffset}
       };
       corners.forEach(({name,accent,sweepShadow,sweep,node,jewel})=>{
         const d=data[name];

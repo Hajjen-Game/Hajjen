@@ -6,18 +6,7 @@
     const x=inset,y=inset;
     const right=Math.max(x,w-inset),bottom=Math.max(y,h-inset);
     const radius=Math.min(r,(right-x)/2,(bottom-y)/2);
-    return [
-      `M ${x+radius} ${y}`,
-      `H ${right-radius}`,
-      `Q ${right} ${y} ${right} ${y+radius}`,
-      `V ${bottom-radius}`,
-      `Q ${right} ${bottom} ${right-radius} ${bottom}`,
-      `H ${x+radius}`,
-      `Q ${x} ${bottom} ${x} ${bottom-radius}`,
-      `V ${y+radius}`,
-      `Q ${x} ${y} ${x+radius} ${y}`,
-      'Z'
-    ].join(' ');
+    return [`M ${x+radius} ${y}`,`H ${right-radius}`,`Q ${right} ${y} ${right} ${y+radius}`,`V ${bottom-radius}`,`Q ${right} ${bottom} ${right-radius} ${bottom}`,`H ${x+radius}`,`Q ${x} ${bottom} ${x} ${bottom-radius}`,`V ${y+radius}`,`Q ${x} ${y} ${x+radius} ${y}`,'Z'].join(' ');
   }
 
   function mount(viewport,index){
@@ -31,7 +20,7 @@
     }
 
     shell.querySelector(':scope > .hajjen-board-frame-overlay')?.remove();
-    shell.querySelector(':scope > .hajjen-board-vector-preview-frame')?.remove();
+    if(shell.querySelector(':scope > .hajjen-board-vector-preview-frame'))return;
 
     const svg=document.createElementNS(NS,'svg');
     svg.classList.add('hajjen-board-vector-preview-frame');
@@ -42,15 +31,10 @@
     const defs=document.createElementNS(NS,'defs');
     const gradient=document.createElementNS(NS,'linearGradient');
     gradient.id=gradientId;
-    gradient.setAttribute('x1','0');gradient.setAttribute('y1','0');
-    gradient.setAttribute('x2','0');gradient.setAttribute('y2','1');
+    gradient.setAttribute('x1','0');gradient.setAttribute('y1','0');gradient.setAttribute('x2','0');gradient.setAttribute('y2','1');
     gradient.setAttribute('gradientUnits','objectBoundingBox');
-    [
-      ['0%','#efd6a0'],['28%','#c9914f'],['62%','#7a4c29'],['82%','#b77a3b'],['100%','#dfb46b']
-    ].forEach(([offset,color])=>{
-      const stop=document.createElementNS(NS,'stop');
-      stop.setAttribute('offset',offset);stop.setAttribute('stop-color',color);
-      gradient.appendChild(stop);
+    [['0%','#efd6a0'],['28%','#c9914f'],['62%','#7a4c29'],['82%','#b77a3b'],['100%','#dfb46b']].forEach(([offset,color])=>{
+      const stop=document.createElementNS(NS,'stop');stop.setAttribute('offset',offset);stop.setAttribute('stop-color',color);gradient.appendChild(stop);
     });
     defs.appendChild(gradient);svg.appendChild(defs);
 
@@ -71,14 +55,11 @@
     });
 
     function render(){
-      const w=Math.max(80,shell.clientWidth||viewport.clientWidth||0);
-      const h=Math.max(80,shell.clientHeight||viewport.clientHeight||0);
+      const w=Math.max(80,shell.clientWidth||viewport.clientWidth||0),h=Math.max(80,shell.clientHeight||viewport.clientHeight||0);
       svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-
       const outer=roundedFramePath(w,h,2.35,5.9);
       shadow.setAttribute('d',outer);gold.setAttribute('d',outer);
-      inner.setAttribute('d',roundedFramePath(w,h,5.1,4.35));
-      highlight.setAttribute('d',roundedFramePath(w,h,3.5,5.15));
+      inner.setAttribute('d',roundedFramePath(w,h,5.1,4.35));highlight.setAttribute('d',roundedFramePath(w,h,3.5,5.15));
 
       const inset=6.05,radius=4.15,arm=7.35,nodeOffset=2.95,sweepReach=10.9,sweepEdge=.72;
       const data={
@@ -88,16 +69,15 @@
         bl:{accent:`M ${inset+radius+arm} ${h-inset} H ${inset+radius} Q ${inset} ${h-inset} ${inset} ${h-inset-radius} V ${h-inset-radius-arm}`,sweep:`M ${inset+sweepEdge} ${h-inset-sweepReach} C ${inset+1.55} ${h-inset-7.55}, ${inset+6.35} ${h-inset-1.75}, ${inset+sweepReach} ${h-inset-sweepEdge}`,cx:inset+nodeOffset,cy:h-inset-nodeOffset}
       };
       corners.forEach(({name,accent,sweepShadow,sweep,node})=>{
-        accent.setAttribute('d',data[name].accent);sweepShadow.setAttribute('d',data[name].sweep);sweep.setAttribute('d',data[name].sweep);
-        node.setAttribute('cx',data[name].cx);node.setAttribute('cy',data[name].cy);
+        accent.setAttribute('d',data[name].accent);sweepShadow.setAttribute('d',data[name].sweep);sweep.setAttribute('d',data[name].sweep);node.setAttribute('cx',data[name].cx);node.setAttribute('cy',data[name].cy);
       });
     }
 
     shell.appendChild(svg);render();
-    new ResizeObserver(render).observe(shell);
+    if(typeof ResizeObserver==='function')new ResizeObserver(render).observe(shell);else window.addEventListener('resize',render,{passive:true});
   }
 
-  const apply=()=>document.querySelectorAll('.zone3-app .viewport').forEach(mount);
+  const apply=()=>document.querySelectorAll('.zone3-app .viewport').forEach((viewport,index)=>mount(viewport,index));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});

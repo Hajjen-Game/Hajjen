@@ -1,0 +1,137 @@
+/* HAJJEN Card Decks DEV shell fix.
+   One frame only: the exact shared SHARKAN / EVENT LOG frame surrounds a navy
+   inner surface, and the three deck panels are the sole in-flow content that
+   determines the panel height. */
+
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks{
+  position:relative!important;
+  isolation:isolate!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:max-content!important;
+  grid-auto-rows:max-content!important;
+  align-content:start!important;
+  justify-content:stretch!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  flex:none!important;
+  flex-grow:0!important;
+  flex-shrink:0!important;
+  flex-basis:auto!important;
+  align-self:stretch!important;
+  margin:0!important;
+  padding:30px 14px 14px!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+
+/* Navy is only the inner panel surface. It is NOT another frame. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks::before{
+  content:""!important;
+  position:absolute!important;
+  inset:5px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  background-color:#34485F!important;
+  background-image:linear-gradient(180deg,#506176 0%,#42546A 38%,#37495E 74%,#304155 100%)!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)!important;
+  box-shadow:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* The ordinary shared frame remains the one and only outer frame. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-panel-frame{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  margin:0!important;
+  z-index:3!important;
+  pointer-events:none!important;
+}
+
+/* The copied H2 has no layout box after the vector plaque has mounted. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > h2.hajjen-vector-title-plaque-source{
+  display:none!important;
+  position:absolute!important;
+  inset:auto!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+/* This is deliberately the ONLY normal-flow child. Its measured height closes
+   the outer frame immediately after Tactical. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .deck-row{
+  grid-column:1!important;
+  grid-row:1!important;
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  z-index:4!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:repeat(3,max-content)!important;
+  grid-auto-rows:max-content!important;
+  align-content:start!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  gap:7px!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .deck-row > .deck-pile{
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:68px!important;
+  max-height:none!important;
+  margin:0!important;
+}
+
+/* CARD DECKS plaque stays attached to the top rail and stays out of layout. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-vector-title-plaque-layer{
+  position:absolute!important;
+  left:50%!important;
+  top:0!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:translate(-50%,-40%)!important;
+  z-index:15!important;
+  margin:0!important;
+}
+
+@media(max-width:1000px){
+  html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .deck-row > .deck-pile{
+    min-height:64px!important;
+  }
+}
+
+@media(max-width:620px){
+  html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks{
+    padding:30px 14px 14px!important;
+  }
+}

@@ -1,61 +1,67 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   First use: SHARKAN/status. Mirrors the supplied green-and-gold plaque without
-   bitmap assets so the title stays crisp at any scale. Existing title plaques
-   remain untouched outside Zone 3 ?dev=1. */
+   First use: SHARKAN/status. The vector plaque is mounted as its own sibling
+   layer above the panel frame so legacy H2/title-plaque rules cannot hide it. */
 
-html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque{
+/* Keep the original heading only as a semantic/text source in dev mode. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source{
+  visibility:hidden!important;
+  background:none!important;
+  background-image:none!important;
+}
+
+/* Independent plaque layer: no dependency on legacy H2 geometry or stacking. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
   position:absolute!important;
   left:50%!important;
   top:0!important;
   transform:translate(-50%,-44%)!important;
-  z-index:14!important;
+  z-index:15!important;
   width:min(72%,240px)!important;
   height:auto!important;
-  min-height:0!important;
   aspect-ratio:360 / 65!important;
   margin:0!important;
   padding:0!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+  pointer-events:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .hajjen-vector-title-plaque-svg{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  overflow:visible!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 1.5px 1.2px rgba(47,29,14,.34));
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-layer > .hajjen-vector-title-plaque-text{
+  position:absolute!important;
+  inset:0!important;
+  z-index:2!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   box-sizing:border-box!important;
-  overflow:visible!important;
-  background:none!important;
-  background-image:none!important;
+  padding:0 46px!important;
+  overflow:hidden!important;
   color:#f3e4bc!important;
   font-family:Georgia,"Times New Roman",serif!important;
   font-size:12px!important;
   font-weight:700!important;
   letter-spacing:.45px!important;
   line-height:1!important;
+  text-align:center!important;
   text-shadow:0 1px 1px rgba(25,18,10,.96),0 0 2px rgba(25,18,10,.55)!important;
   white-space:nowrap!important;
-  pointer-events:none!important;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque > .hajjen-vector-title-plaque-svg{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  display:block;
-  overflow:visible;
-  z-index:0;
-  pointer-events:none;
-  shape-rendering:geometricPrecision;
-  filter:drop-shadow(0 1.5px 1.2px rgba(47,29,14,.34));
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque > .hajjen-vector-title-plaque-text{
-  position:relative;
-  z-index:2;
-  display:block;
+  text-overflow:ellipsis!important;
   transform:translateY(-.5px);
-  padding:0 46px;
-  max-width:100%;
-  box-sizing:border-box;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque-outer-shadow{
@@ -119,13 +125,13 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque
 }
 
 @media(max-width:1000px){
-  html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque{
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
     width:min(64%,240px)!important;
   }
 }
 
 @media(max-width:620px){
-  html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque{
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
     width:min(58%,240px)!important;
   }
 }

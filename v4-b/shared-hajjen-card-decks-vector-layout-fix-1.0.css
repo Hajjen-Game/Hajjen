@@ -1,0 +1,62 @@
+/* HAJJEN Card Decks DEV vector layout fix.
+   Keeps the vector Card Decks prototype content-sized inside the left rail and
+   restores the shared title plaque as an absolute overlay above the top rail. */
+
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks{
+  display:block!important;
+  flex:none!important;
+  flex-grow:0!important;
+  flex-shrink:0!important;
+  flex-basis:auto!important;
+  align-self:stretch!important;
+  width:auto!important;
+  height:fit-content!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:29px 10px 13px!important;
+  overflow:visible!important;
+}
+
+/* The source H2 is no longer needed after the shared vector plaque has copied
+   its label. Removing its box avoids any legacy title-plaque layout influence. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > h2.hajjen-vector-title-plaque-source{
+  display:none!important;
+  position:absolute!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+/* Only ordinary panel content belongs in normal flow. The vector plaque must
+   not inherit the earlier generic direct-child position:relative rule. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .deck-row{
+  position:relative!important;
+  inset:auto!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-auto-rows:auto!important;
+  align-content:start!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-vector-title-plaque-layer{
+  position:absolute!important;
+  left:50%!important;
+  top:0!important;
+  transform:translate(-50%,-40%)!important;
+  z-index:15!important;
+  margin:0!important;
+}
+
+/* Keep the dark outer surface tied exactly to the content-sized panel box. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks::before{
+  inset:0!important;
+}

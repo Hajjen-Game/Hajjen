@@ -1,7 +1,6 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   Reusable SVG/CSS plaque component. First target is the SHARKAN/status title.
-   It only activates in Zone 3 ?dev=1 so the approved bitmap title plaques remain
-   untouched in normal gameplay while the vector version is evaluated. */
+   Reusable SVG/CSS plaque component. SHARKAN/status V1.2 uses a slimmer,
+   lighter silhouette and the same bronze-gold family as the vector board frame. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -17,38 +16,40 @@
   function buildPlaque(index=0){
     const svg=svgEl('svg',{
       class:'hajjen-vector-title-plaque-svg',
-      viewBox:'0 0 360 65',
+      viewBox:'0 0 360 50',
       preserveAspectRatio:'none',
       'aria-hidden':'true'
     });
 
     const defs=svgEl('defs');
 
+    /* Same bronze-gold palette as the approved vector board frame. */
     const gold=svgEl('linearGradient',{
       id:`hajjenTitleGold-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
       gradientUnits:'objectBoundingBox'
     });
     [
-      ['0%','#f0d395'],
-      ['24%','#c18a43'],
-      ['55%','#7c5328'],
-      ['78%','#b77938'],
-      ['100%','#e1ba6d']
+      ['0%','#f2d9a1'],
+      ['24%','#cf9853'],
+      ['56%','#81502b'],
+      ['79%','#bb7d3c'],
+      ['100%','#e4b86d']
     ].forEach(([offset,color])=>{
       gold.appendChild(svgEl('stop',{offset,'stop-color':color}));
     });
 
+    /* Slightly lighter, softer green inspired by the supplied plaque reference. */
     const green=svgEl('linearGradient',{
       id:`hajjenTitleGreen-${index}`,
       x1:'0',y1:'0',x2:'0',y2:'1',
       gradientUnits:'objectBoundingBox'
     });
     [
-      ['0%','#5c7041'],
-      ['34%','#495f36'],
-      ['72%','#344927'],
-      ['100%','#2b3d23']
+      ['0%','#71865a'],
+      ['34%','#607748'],
+      ['72%','#4f653b'],
+      ['100%','#425631']
     ].forEach(([offset,color])=>{
       green.appendChild(svgEl('stop',{offset,'stop-color':color}));
     });
@@ -56,32 +57,34 @@
     defs.append(gold,green);
     svg.appendChild(defs);
 
+    /* V1.2 geometry: same ornamental idea as V1.1 but substantially lower,
+       with narrower rail bands and restrained side points. */
     const outerD=[
-      'M 48 4.5','H 312','L 319 9.5','H 327','L 333 15.5','L 330 22.5',
-      'L 344 32.5','L 330 42.5','L 333 49.5','L 327 55.5','H 319','L 312 60.5',
-      'H 48','L 41 55.5','H 33','L 27 49.5','L 30 42.5','L 16 32.5',
-      'L 30 22.5','L 27 15.5','L 33 9.5','H 41','Z'
+      'M 52 3','H 308','L 314 7','H 321','L 325 11','L 323 16',
+      'L 333 25','L 323 34','L 325 39','L 321 43','H 314','L 308 47',
+      'H 52','L 46 43','H 39','L 35 39','L 37 34','L 27 25',
+      'L 37 16','L 35 11','L 39 7','H 46','Z'
     ].join(' ');
 
     const goldD=[
-      'M 51 7.5','H 309','L 317 13','H 324','L 329.5 18.5','L 326.8 24.8',
-      'L 337.8 32.5','L 326.8 40.2','L 329.5 46.5','L 324 52','H 317','L 309 57.5',
-      'H 51','L 43 52','H 36','L 30.5 46.5','L 33.2 40.2','L 22.2 32.5',
-      'L 33.2 24.8','L 30.5 18.5','L 36 13','H 43','Z'
+      'M 54 5','H 306','L 313 9','H 319','L 322.5 12.5','L 320.5 17',
+      'L 329.5 25','L 320.5 33','L 322.5 37.5','L 319 41','H 313','L 306 45',
+      'H 54','L 47 41','H 41','L 37.5 37.5','L 39.5 33','L 30.5 25',
+      'L 39.5 17','L 37.5 12.5','L 41 9','H 47','Z'
     ].join(' ');
 
     const greenD=[
-      'M 58 10.5','H 302','L 312 17','H 320','L 324.5 21.5','L 321.8 27',
-      'L 329.5 32.5','L 321.8 38','L 324.5 43.5','L 320 48','H 312','L 302 54.5',
-      'H 58','L 48 48','H 40','L 35.5 43.5','L 38.2 38','L 30.5 32.5',
-      'L 38.2 27','L 35.5 21.5','L 40 17','H 48','Z'
+      'M 58 7','H 302','L 311 12','H 317','L 319.5 14.5','L 317.8 18.5',
+      'L 325 25','L 317.8 31.5','L 319.5 35.5','L 317 38','H 311','L 302 43',
+      'H 58','L 49 38','H 43','L 40.5 35.5','L 42.2 31.5','L 35 25',
+      'L 42.2 18.5','L 40.5 14.5','L 43 12','H 49','Z'
     ].join(' ');
 
     const greenInnerD=[
-      'M 61 13','H 299','L 310 19.5','H 318','L 321.5 23','L 319.3 27.8',
-      'L 325.8 32.5','L 319.3 37.2','L 321.5 42','L 318 45.5','H 310','L 299 52',
-      'H 61','L 50 45.5','H 42','L 38.5 42','L 40.7 37.2','L 34.2 32.5',
-      'L 40.7 27.8','L 38.5 23','L 42 19.5','H 50','Z'
+      'M 60 9','H 300','L 310 14','H 315.5','L 317.2 15.8','L 315.7 19.2',
+      'L 322.2 25','L 315.7 30.8','L 317.2 34.2','L 315.5 36','H 310','L 300 41',
+      'H 60','L 50 36','H 44.5','L 42.8 34.2','L 44.3 30.8','L 37.8 25',
+      'L 44.3 19.2','L 42.8 15.8','L 44.5 14','H 50','Z'
     ].join(' ');
 
     svg.appendChild(svgEl('path',{class:'plaque-outer-shadow',d:outerD}));
@@ -91,29 +94,30 @@
 
     svg.appendChild(svgEl('path',{
       class:'plaque-top-highlight',
-      d:'M 58 10.8 H 302 L 311.5 17 H 319.5'
+      d:'M 58.8 7.5 H 301.2 L 310.5 12.6 H 316.2'
     }));
     svg.appendChild(svgEl('path',{
       class:'plaque-bottom-shadow',
-      d:'M 58 54.2 H 302 L 311.5 48 H 319.5'
+      d:'M 58.8 42.5 H 301.2 L 310.5 37.4 H 316.2'
     }));
 
+    /* Smaller side ornaments and the tiny lower-centre jewel from the reference. */
     const leftDiamond=svgEl('path',{
       class:'plaque-ornament',
-      d:'M 37.5 32.5 L 42 27.4 L 46.5 32.5 L 42 37.6 Z'
+      d:'M 40 25 L 43.1 21.6 L 46.2 25 L 43.1 28.4 Z'
     });
     const rightDiamond=svgEl('path',{
       class:'plaque-ornament',
-      d:'M 322.5 32.5 L 318 27.4 L 313.5 32.5 L 318 37.6 Z'
+      d:'M 320 25 L 316.9 21.6 L 313.8 25 L 316.9 28.4 Z'
     });
-    const leftDot=svgEl('circle',{class:'plaque-ornament-highlight',cx:'42',cy:'30.6',r:'1.05'});
-    const rightDot=svgEl('circle',{class:'plaque-ornament-highlight',cx:'318',cy:'30.6',r:'1.05'});
+    const leftDot=svgEl('circle',{class:'plaque-ornament-highlight',cx:'43.1',cy:'23.8',r:'.72'});
+    const rightDot=svgEl('circle',{class:'plaque-ornament-highlight',cx:'316.9',cy:'23.8',r:'.72'});
     const lowerJewel=svgEl('path',{
       class:'plaque-ornament',
-      d:'M 180 55.2 L 184.2 59 L 180 62.8 L 175.8 59 Z'
+      d:'M 180 45.7 L 183.1 48.6 L 180 51.5 L 176.9 48.6 Z'
     });
     const lowerJewelHighlight=svgEl('circle',{
-      class:'plaque-ornament-highlight',cx:'180',cy:'58.4',r:'1.0'
+      class:'plaque-ornament-highlight',cx:'180',cy:'48.1',r:'.68'
     });
 
     svg.append(leftDiamond,rightDiamond,leftDot,rightDot,lowerJewel,lowerJewelHighlight);
@@ -130,11 +134,11 @@
 
     const label=(heading.textContent||'').trim()||'SHARKAN';
     heading.classList.add('hajjen-vector-title-plaque-source');
-    heading.dataset.vectorTitlePlaqueSource='green-gold-1.1';
+    heading.dataset.vectorTitlePlaqueSource='green-gold-1.2';
 
     const layer=document.createElement('div');
     layer.className='hajjen-vector-title-plaque-layer';
-    layer.dataset.vectorTitlePlaque='green-gold-1.1';
+    layer.dataset.vectorTitlePlaque='green-gold-1.2';
     layer.setAttribute('aria-hidden','true');
 
     const svg=buildPlaque(index);
@@ -156,5 +160,5 @@
   const root=document.getElementById('campaignRoot')||document.body;
   new MutationObserver(apply).observe(root,{childList:true,subtree:true});
 
-  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.1',mount,buildPlaque};
+  window.HAJJEN_VECTOR_TITLE_PLAQUE={version:'1.2',mount,buildPlaque};
 })();

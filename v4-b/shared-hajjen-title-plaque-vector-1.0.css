@@ -1,15 +1,24 @@
 /* HAJJEN shared vector title plaque — DEV prototype.
-   V2.0: SHARKAN/status and EVENT LOG now share the exact same approved plaque. */
+   V2.1: SHARKAN and EVENT LOG use green; ACTION BAR reuses the exact same
+   geometry, frame rails, mounts and placement with a muted navy surface. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source,
-html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source{
+html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source,
+html[data-hajjen-dev="zone3"] .zone3-app .shared-action-bar > .action-hud-title.hajjen-vector-title-plaque-source{
   visibility:hidden!important;
   background:none!important;
   background-image:none!important;
 }
 
+/* Action Bar needs a positioning context for the shared absolute plaque layer. */
+html[data-hajjen-dev="zone3"] .zone3-app .shared-action-bar{
+  position:relative!important;
+  overflow:visible!important;
+}
+
 html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer,
-html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
+html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-vector-title-plaque-layer,
+html[data-hajjen-dev="zone3"] .zone3-app .shared-action-bar > .hajjen-vector-title-plaque-layer{
   position:absolute!important;
   left:50%!important;
   top:0!important;
@@ -136,14 +145,16 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-vector-title-plaque-svg .plaque
 
 @media(max-width:1000px){
   html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer,
-  html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-vector-title-plaque-layer,
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-action-bar > .hajjen-vector-title-plaque-layer{
     width:min(55%,200px)!important;
   }
 }
 
 @media(max-width:620px){
   html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel > .hajjen-vector-title-plaque-layer,
-  html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-event-log.hajjen-framed-panel > .hajjen-vector-title-plaque-layer,
+  html[data-hajjen-dev="zone3"] .zone3-app .shared-action-bar > .hajjen-vector-title-plaque-layer{
     width:min(50%,200px)!important;
   }
 }

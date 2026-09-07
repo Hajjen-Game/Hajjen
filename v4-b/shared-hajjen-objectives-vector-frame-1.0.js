@@ -1,6 +1,6 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Objectives only. V1.4 keeps the thin continuous frame and corner node,
-   then adds a refined inward sweep inspired by the user's final corner sketch. */
+   Objectives only. V1.5 keeps the thin continuous frame and corner node,
+   with a tighter, more delicate inward sweep tucked close to the corner. */
 (()=>{
   const panel=document.querySelector('.zone3-app .objectives.shared-objectives');
   if(!panel)return;
@@ -104,35 +104,33 @@
     inner.setAttribute('d',innerD);
     highlight.setAttribute('d',highlightD);
 
-    /* Compact nested corner motif plus a smooth inward quarter-sweep.
-       The sweep is deliberately detached from the frame rails: it echoes the
-       corner without creating another visual seam or thickening the border. */
+    /* Tight nested corner motif. The sweep now stays close to the frame/node
+       instead of reaching far into the parchment. */
     const inset=6.05;
     const radius=4.15;
     const arm=7.35;
     const nodeOffset=2.95;
-    const sweepStart=27.0;
-    const sweepEnd=27.0;
+    const sweepReach=18.2;
 
     const data={
       tl:{
         accent:`M ${inset} ${inset+radius+arm} V ${inset+radius} Q ${inset} ${inset} ${inset+radius} ${inset} H ${inset+radius+arm}`,
-        sweep:`M ${inset+0.45} ${inset+sweepStart} C ${inset+3.3} ${inset+16.2}, ${inset+13.0} ${inset+4.0}, ${inset+sweepEnd} ${inset+0.45}`,
+        sweep:`M ${inset+0.45} ${inset+sweepReach} C ${inset+2.0} ${inset+11.4}, ${inset+8.0} ${inset+3.0}, ${inset+sweepReach} ${inset+0.45}`,
         cx:inset+nodeOffset,cy:inset+nodeOffset
       },
       tr:{
         accent:`M ${w-inset-radius-arm} ${inset} H ${w-inset-radius} Q ${w-inset} ${inset} ${w-inset} ${inset+radius} V ${inset+radius+arm}`,
-        sweep:`M ${w-inset-0.45} ${inset+sweepStart} C ${w-inset-3.3} ${inset+16.2}, ${w-inset-13.0} ${inset+4.0}, ${w-inset-sweepEnd} ${inset+0.45}`,
+        sweep:`M ${w-inset-0.45} ${inset+sweepReach} C ${w-inset-2.0} ${inset+11.4}, ${w-inset-8.0} ${inset+3.0}, ${w-inset-sweepReach} ${inset+0.45}`,
         cx:w-inset-nodeOffset,cy:inset+nodeOffset
       },
       br:{
         accent:`M ${w-inset} ${h-inset-radius-arm} V ${h-inset-radius} Q ${w-inset} ${h-inset} ${w-inset-radius} ${h-inset} H ${w-inset-radius-arm}`,
-        sweep:`M ${w-inset-0.45} ${h-inset-sweepStart} C ${w-inset-3.3} ${h-inset-16.2}, ${w-inset-13.0} ${h-inset-4.0}, ${w-inset-sweepEnd} ${h-inset-0.45}`,
+        sweep:`M ${w-inset-0.45} ${h-inset-sweepReach} C ${w-inset-2.0} ${h-inset-11.4}, ${w-inset-8.0} ${h-inset-3.0}, ${w-inset-sweepReach} ${h-inset-0.45}`,
         cx:w-inset-nodeOffset,cy:h-inset-nodeOffset
       },
       bl:{
         accent:`M ${inset+radius+arm} ${h-inset} H ${inset+radius} Q ${inset} ${h-inset} ${inset} ${h-inset-radius} V ${h-inset-radius-arm}`,
-        sweep:`M ${inset+0.45} ${h-inset-sweepStart} C ${inset+3.3} ${h-inset-16.2}, ${inset+13.0} ${h-inset-4.0}, ${inset+sweepEnd} ${h-inset-0.45}`,
+        sweep:`M ${inset+0.45} ${h-inset-sweepReach} C ${inset+2.0} ${h-inset-11.4}, ${inset+8.0} ${h-inset-3.0}, ${inset+sweepReach} ${h-inset-0.45}`,
         cx:inset+nodeOffset,cy:h-inset-nodeOffset
       }
     };
@@ -153,5 +151,5 @@
   ro?.observe(panel);
   if(!ro)window.addEventListener('resize',render,{passive:true});
 
-  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.4',panel,svg,render,resizeObserver:ro};
+  window.HAJJEN_OBJECTIVES_VECTOR_FRAME={version:'1.5',panel,svg,render,resizeObserver:ro};
 })();

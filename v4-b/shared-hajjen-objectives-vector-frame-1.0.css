@@ -1,6 +1,6 @@
 /* HAJJEN Objectives vector frame — seam-free coded prototype.
-   Zone 3 test only for now. The frame is drawn as continuous SVG paths,
-   so there are no PNG slices, image joins, matte pixels or stretch seams. */
+   Zone 3 Objectives only. Thin continuous vector rails plus a small integrated
+   corner accent; no PNG slices, image joins, matte pixels or stretch seams. */
 
 .zone3-app .objectives.shared-objectives{
   position:relative!important;
@@ -10,12 +10,10 @@
   overflow:visible!important;
 }
 
-/* The legacy eight-piece bitmap frame must not participate in the Objectives test. */
 .zone3-app .objectives.shared-objectives > .hajjen-panel-frame{
   display:none!important;
 }
 
-/* Keep the parchment surface, but let the new thin vector rail sit much closer to it. */
 .zone3-app .objectives.shared-objectives::before{
   inset:3px!important;
   clip-path:polygon(
@@ -40,23 +38,23 @@
   overflow:visible!important;
   pointer-events:none!important;
   shape-rendering:geometricPrecision;
-  filter:drop-shadow(0 1px 1px rgba(63,42,20,.20));
+  filter:drop-shadow(0 1px 1px rgba(63,42,20,.18));
 }
 
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-shadow{
   fill:none;
   stroke:#49331e;
-  stroke-width:3.2;
+  stroke-width:3.0;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.82;
+  opacity:.80;
 }
 
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-gold{
   fill:none;
   stroke:url(#hajjenObjectivesGold);
-  stroke-width:1.9;
+  stroke-width:1.72;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
@@ -65,7 +63,7 @@
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-inner{
   fill:none;
   stroke:#9b6a32;
-  stroke-width:.9;
+  stroke-width:.82;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
@@ -75,30 +73,23 @@
 .zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .frame-highlight{
   fill:none;
   stroke:#f0cf7b;
-  stroke-width:.55;
+  stroke-width:.48;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
-  opacity:.8;
+  opacity:.78;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-flourish{
+.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-accent{
   fill:none;
-  stroke:url(#hajjenObjectivesGold);
-  stroke-width:1.25;
+  stroke:#c99b50;
+  stroke-width:.9;
   stroke-linejoin:round;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke;
+  opacity:.92;
 }
 
-.zone3-app .objectives.shared-objectives > .hajjen-objectives-vector-frame .corner-dot{
-  fill:#c69443;
-  stroke:#6d4925;
-  stroke-width:.7;
-  vector-effect:non-scaling-stroke;
-}
-
-/* Content remains above the parchment and below the decorative vector rail. */
 .zone3-app .objectives.shared-objectives > *:not(.hajjen-panel-frame):not(.hajjen-objectives-vector-frame){
   position:relative;
   z-index:4;

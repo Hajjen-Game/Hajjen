@@ -1,0 +1,91 @@
+/* HAJJEN Zone 3 Card Decks — gameplay-safe shell skin.
+   Presentation only: changes the panel surface/frame presentation without
+   rebuilding, replacing or observing deck-row gameplay DOM. */
+
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
+  position:relative!important;
+  isolation:isolate!important;
+  box-sizing:border-box!important;
+  padding:30px 14px 14px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+
+/* Same approved muted-blue texture family as HAND. The already-mounted shared
+   SVG vector frame remains the sole decorative outer rail. */
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel::before{
+  content:""!important;
+  position:absolute!important;
+  inset:3px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  background-color:#4c6178!important;
+  background-image:url("assets/hand-panel/hand-background-blue-v1.png")!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)!important;
+  box-shadow:none!important;
+}
+
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* Never allow the legacy sliced frame to show through. */
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-panel-frame,
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-card-decks-frame{
+  display:none!important;
+  visibility:hidden!important;
+}
+
+/* Preserve the thin shared vector frame already mounted by the common panel
+   frame pass. This is visual-only and does not alter panel content. */
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-shared-vector-frame{
+  display:block!important;
+  visibility:visible!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:3!important;
+  pointer-events:none!important;
+  overflow:visible!important;
+}
+
+/* The approved vector plaque already contains the visible CARD DECKS label.
+   Remove only the hidden source heading from layout so it does not leave an
+   unnecessary blank strip above the real deck rows. */
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel > h2.hajjen-vector-title-plaque-source{
+  display:none!important;
+  position:absolute!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+/* Existing production deck rows remain untouched. Keep them above the blue
+   surface and below the decorative plaque/frame layers. */
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel > .deck-row{
+  position:relative!important;
+  z-index:4!important;
+  margin:0!important;
+}
+
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{
+  z-index:15!important;
+}
+
+@media(max-width:620px){
+  html[data-hajjen-promoted="zone3-safe"] .zone3-app .shared-card-decks-panel.hajjen-framed-panel{
+    padding:30px 14px 14px!important;
+  }
+}

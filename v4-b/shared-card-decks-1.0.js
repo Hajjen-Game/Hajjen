@@ -20,11 +20,13 @@
 
   panel.classList.add('shared-card-decks-panel');
   if(isDev)panel.classList.add('hajjen-vector-card-decks');
-  panel.dataset.sharedComponent=isDev?'card-decks-1.3-vector-dev':'card-decks-1.2';
+  panel.dataset.sharedComponent=isDev?'card-decks-1.4-vector-dev-height-lock':'card-decks-1.2';
   window.HAJJEN_PANEL_FRAME?.mount(panel);
 
   let observer=null;
   let queued=false;
+  let deckResizeObserver=null;
+  let heightRaf=0;
   const NS='http://www.w3.org/2000/svg';
 
   function readyManipulationCount(){
@@ -124,6 +126,53 @@
     return pile;
   }
 
+  function lockDevPanelHeight(){
+    heightRaf=0;
+    if(!isDev)return;
+    const row=panel.querySelector(':scope > .deck-row');
+    const piles=row?[...row.querySelectorAll(':scope > .deck-pile')]:[];
+    if(!row||!piles.length)return;
+
+    const panelStyle=getComputedStyle(panel);
+    const paddingTop=parseFloat(panelStyle.paddingTop)||0;
+    const paddingBottom=parseFloat(panelStyle.paddingBottom)||0;
+    const first=piles[0].getBoundingClientRect();
+    const last=piles[piles.length-1].getBoundingClientRect();
+    const contentHeight=Math.max(0,last.bottom-first.top);
+    if(!(contentHeight>0))return;
+
+    const height=Math.ceil(paddingTop+contentHeight+paddingBottom);
+    const px=`${height}px`;
+    panel.style.setProperty('height',px,'important');
+    panel.style.setProperty('min-height',px,'important');
+    panel.style.setProperty('max-height',px,'important');
+    panel.style.setProperty('block-size',px,'important');
+    panel.style.setProperty('min-block-size',px,'important');
+    panel.style.setProperty('max-block-size',px,'important');
+    panel.style.setProperty('flex','0 0 auto','important');
+    panel.dataset.hajjenDeckMeasuredHeight=String(height);
+  }
+
+  function scheduleDevHeight(){
+    if(!isDev||heightRaf)return;
+    heightRaf=requestAnimationFrame(()=>requestAnimationFrame(lockDevPanelHeight));
+  }
+
+  function bindDevHeight(){
+    if(!isDev)return;
+    const row=panel.querySelector(':scope > .deck-row');
+    if(!row)return;
+    deckResizeObserver?.disconnect();
+    if(window.ResizeObserver){
+      deckResizeObserver=new ResizeObserver(scheduleDevHeight);
+      deckResizeObserver.observe(row);
+      row.querySelectorAll(':scope > .deck-pile').forEach(pile=>deckResizeObserver.observe(pile));
+    }
+    window.addEventListener('resize',scheduleDevHeight,{passive:true});
+    document.fonts?.ready?.then(scheduleDevHeight).catch(()=>{});
+    scheduleDevHeight();
+  }
+
   function render(){
     window.HAJJEN_PANEL_FRAME?.mount(panel);
 
@@ -143,6 +192,7 @@
     }
     row.className='deck-row deck-sidebar three-decks';
     row.replaceChildren(...(zoneConfig.decks||[]).map(buildPile));
+    bindDevHeight();
   }
 
   function sync(){
@@ -153,6 +203,7 @@
       const def=config.deckLibrary?.[deck.type];
       note.textContent=deckNote(deck,def);
     });
+    scheduleDevHeight();
   }
 
   render();
@@ -166,5 +217,5 @@
     observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   }
 
-  window.HAJJEN_SHARED_CARD_DECKS={version:isDev?'1.3-vector-dev':'1.2',zone,panel,render,sync};
+  window.HAJJEN_SHARED_CARD_DECKS={version:isDev?'1.4-vector-dev-height-lock':'1.2',zone,panel,render,sync,lockHeight:lockDevPanelHeight};
 })();

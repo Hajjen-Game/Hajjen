@@ -1,0 +1,52 @@
+/* HAJJEN HAND — Enchantment vector refinement, DEV only.
+   Match the approved Manipulation card frame exactly, preserve text size,
+   give the effect copy more vertical room, and move the select down close
+   to APPLY ENCHANTMENT. */
+
+/* Match the approved Manipulation frame treatment: the board-frame master
+   gradient is the actual outer shell, not only an inset rail. */
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]{
+  background:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  box-shadow:0 2px 4px rgba(59,36,22,.16)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::before{
+  inset:1px!important;
+  background:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  box-shadow:inset 0 0 0 1px rgba(122,76,41,.34)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::after{
+  inset:3px!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(122,76,41,.48),
+    inset 0 1px rgba(239,214,160,.66)!important;
+}
+
+/* Keep the existing font size. Start the rules copy immediately below the
+   title/medallion band and allow three lines instead of two. */
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
+  left:7.5%!important;
+  right:7.5%!important;
+  top:33.5%!important;
+  bottom:36.5%!important;
+  height:auto!important;
+  -webkit-line-clamp:3!important;
+}
+
+/* Pull the two controls together at the bottom, leaving the gained space to
+   the description instead of shrinking typography. */
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
+  top:auto!important;
+  bottom:21%!important;
+  height:13.5%!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply,
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:hover:not(:disabled),
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:focus,
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:focus-visible,
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-apply:active:not(:disabled){
+  bottom:6.2%!important;
+  height:13.5%!important;
+}

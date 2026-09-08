@@ -1,10 +1,12 @@
 /* HAJJEN board-frame loader.
-   Normal Zone 3 keeps the approved bitmap frame.
-   Zone 3 ?dev=1 swaps only the board frame to a larger, more elegant vector frame
-   in the same visual family as the shared HUD panels. */
+   Real Zone 3 and Zone 3 ?dev=1 use the approved elegant vector frame.
+   This module is presentation-only: it never changes gameplay state, URL or
+   campaign systems. Other pages keep the existing bitmap fallback. */
 (function(){
   const params=new URLSearchParams(location.search);
   const devVector=params.get('dev')==='1';
+  const productionZone3=/\/zone3\.html$/i.test(location.pathname);
+  const useVectorFrame=devVector||productionZone3;
   const NS='http://www.w3.org/2000/svg';
   const parts=[
     'assets/board-frame-data/part0.txt?v=1',
@@ -127,6 +129,6 @@
     new MutationObserver(apply).observe(root,{childList:true,subtree:true});
   }
 
-  const start=()=>devVector?loadDevVector():loadBitmapFrame();
+  const start=()=>useVectorFrame?loadDevVector():loadBitmapFrame();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

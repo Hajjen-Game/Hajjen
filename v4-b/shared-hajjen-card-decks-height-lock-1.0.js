@@ -13,24 +13,28 @@
     raf=0;
     panel=document.querySelector(selector);
     row=panel?.querySelector(':scope > .deck-row')||null;
-    if(!panel||!row)return false;
+    const piles=row?[...row.querySelectorAll(':scope > .deck-pile')]:[];
+    if(!panel||!row||!piles.length)return false;
 
     const panelStyle=getComputedStyle(panel);
     const paddingTop=parseFloat(panelStyle.paddingTop)||0;
     const paddingBottom=parseFloat(panelStyle.paddingBottom)||0;
-    const rowHeight=row.getBoundingClientRect().height;
-    if(!(rowHeight>0))return false;
+    const first=piles[0].getBoundingClientRect();
+    const last=piles[piles.length-1].getBoundingClientRect();
+    const contentHeight=Math.max(0,last.bottom-first.top);
+    if(!(contentHeight>0))return false;
 
-    /* Card Decks must end immediately after Tactical. Older shared/mobile CSS can
-       stretch the left-column panel, so lock the rendered box to its measured
-       content height instead of relying on flex/grid intrinsic sizing. */
-    const height=Math.ceil(paddingTop+rowHeight+paddingBottom);
+    /* Measure the actual visible deck stack, never the row box itself: legacy
+       layout rules can stretch .deck-row to the full left-column height. */
+    const height=Math.ceil(paddingTop+contentHeight+paddingBottom);
     const px=`${height}px`;
     panel.style.setProperty('height',px,'important');
     panel.style.setProperty('min-height',px,'important');
     panel.style.setProperty('max-height',px,'important');
+    panel.style.setProperty('block-size',px,'important');
+    panel.style.setProperty('min-block-size',px,'important');
+    panel.style.setProperty('max-block-size',px,'important');
     panel.style.setProperty('flex','0 0 auto','important');
-    panel.style.setProperty('flex-basis','auto','important');
     panel.dataset.hajjenDeckMeasuredHeight=String(height);
     return true;
   }
@@ -48,7 +52,7 @@
 
     resizeObserver?.disconnect();
     resizeObserver=new ResizeObserver(schedule);
-    resizeObserver.observe(row);
+    row.querySelectorAll(':scope > .deck-pile').forEach(pile=>resizeObserver.observe(pile));
 
     mutationObserver?.disconnect();
     mutationObserver=new MutationObserver(schedule);

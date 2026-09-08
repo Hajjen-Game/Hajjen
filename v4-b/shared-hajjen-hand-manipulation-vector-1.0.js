@@ -19,9 +19,6 @@
       focusable:'false'
     });
 
-    /* The authored hand paths sit slightly high/left inside the 48x48 viewBox.
-       Shift the glyph itself, not the SVG box, so the symbol is optically centered
-       while the medallion stays perfectly centered by CSS. */
     const glyph=svgEl('g',{transform:'translate(2.6 3.4)'});
     svg.appendChild(glyph);
     const path=(d,extra={})=>glyph.appendChild(svgEl('path',{d,...extra}));
@@ -40,18 +37,26 @@
     const category=(card.dataset.handCategory||'').toLowerCase();
     const looksManip=category==='manipulation'||card.classList.contains('card')||card.classList.contains('mini-card');
     if(!looksManip)return;
-    if(card.querySelector(':scope > .hajjen-manip-card-icon-wrap'))return;
 
-    const wrap=document.createElement('span');
-    wrap.className='hajjen-manip-card-icon-wrap';
-    wrap.setAttribute('aria-hidden','true');
-    wrap.appendChild(manipulationIcon());
-    card.prepend(wrap);
+    let wrap=card.querySelector(':scope > .hajjen-manip-card-icon-wrap');
+    if(!wrap){
+      wrap=document.createElement('span');
+      wrap.className='hajjen-manip-card-icon-wrap';
+      wrap.setAttribute('aria-hidden','true');
+      card.prepend(wrap);
+    }
+    if(!wrap.querySelector(':scope > .hajjen-manip-card-icon')){
+      wrap.replaceChildren(manipulationIcon());
+    }
+  }
+
+  function handNode(){
+    return document.getElementById('manipCards')||document.getElementById('manipulationCards');
   }
 
   function scan(){
     raf=0;
-    const hand=document.getElementById('manipCards');
+    const hand=handNode();
     if(!hand)return false;
     [...hand.children].forEach(decorate);
     return true;
@@ -63,11 +68,11 @@
   }
 
   function start(){
-    const hand=document.getElementById('manipCards');
+    const hand=handNode();
     if(!hand){
       const root=document.getElementById('campaignRoot')||document.body;
       const wait=new MutationObserver(()=>{
-        if(document.getElementById('manipCards')){
+        if(handNode()){
           wait.disconnect();
           start();
         }
@@ -77,14 +82,17 @@
     }
 
     scan();
+    requestAnimationFrame(scan);
+    setTimeout(scan,40);
+    setTimeout(scan,160);
     observer?.disconnect();
     observer=new MutationObserver(schedule);
-    observer.observe(hand,{childList:true,subtree:false});
+    observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-hand-category']});
     document.fonts?.ready?.then(schedule).catch(()=>{});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 
-  window.HAJJEN_HAND_MANIPULATION_VECTOR={version:'1.1',scan:schedule};
+  window.HAJJEN_HAND_MANIPULATION_VECTOR={version:'1.2',scan:schedule};
 })();

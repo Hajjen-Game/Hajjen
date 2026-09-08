@@ -23,4 +23,14 @@
     panel,
     eventLog
   };
+
+  /* Zone 3 DEV visual prototype: reuse the exact approved Sharkan light
+     background for Objectives and Event Log. Kept behind the dev marker so
+     the real campaign zones are unaffected. */
+  if(document.documentElement.dataset.hajjenDev==='zone3' && !document.getElementById('hajjen-light-side-panel-backgrounds-loader')){
+    const script=document.createElement('script');
+    script.id='hajjen-light-side-panel-backgrounds-loader';
+    script.src='shared-hajjen-light-side-panel-backgrounds-1.0.js?v=1';
+    document.body.appendChild(script);
+  }
 })();

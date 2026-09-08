@@ -49,20 +49,3 @@
     content:copy
   };
 })();
-
-/* Production UI promotion hook.
-   All three real campaign pages already load this shared Help component, so it
-   is a stable common entry point for the approved visual redesign. DEV mode is
-   deliberately excluded: zone3-dev-entry remains the sole owner of ?dev=1. */
-(()=>{
-  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
-  if(![1,2,3].includes(Number(zone)))return;
-  if(new URLSearchParams(location.search).get('dev')==='1')return;
-  if(document.querySelector('script[data-hajjen-redesign-production]'))return;
-
-  const script=document.createElement('script');
-  script.src='shared-hajjen-redesign-production-1.0.js?v=1';
-  script.async=false;
-  script.dataset.hajjenRedesignProduction='1';
-  document.body.appendChild(script);
-})();

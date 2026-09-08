@@ -16,7 +16,7 @@
   box-shadow:none!important;
 }
 
-/* Parchment surface stays inside the ornate frame. */
+/* Parchment surface stays inside the ornate frame by default. */
 .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::before{
   content:"";
   position:absolute;
@@ -30,6 +30,16 @@
   background-size:160px 160px;
   clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
   box-shadow:0 5px 14px rgba(54,36,17,.16);
+}
+
+/* DEV: use the user-supplied blue low-poly texture directly as a real repo asset.
+   Keep the blue tone as a fallback only if the PNG cannot load. */
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::before{
+  background-color:#4c6178!important;
+  background-image:url("assets/hand-panel/hand-background-blue-v1.png")!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
 }
 
 .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::after{

@@ -1,9 +1,0 @@
-/* HAJJEN HAND — blue textured background prototype, DEV only.
-   Swaps only the inner HAND panel surface; frame, title plaque, cards and layout stay untouched. */
-html[data-hajjen-dev="zone3"].hajjen-hand-blue-bg-ready .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel::before{
-  background-color:#4c6178!important;
-  background-image:var(--hajjen-hand-blue-bg)!important;
-  background-repeat:no-repeat!important;
-  background-position:center center!important;
-  background-size:cover!important;
-}

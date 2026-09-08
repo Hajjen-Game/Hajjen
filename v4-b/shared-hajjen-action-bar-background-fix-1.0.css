@@ -1,11 +1,14 @@
-/* HAJJEN ACTION BAR background visibility fix — Zone 3 DEV only.
-   Paints the approved background on a dedicated inner layer and removes the
-   legacy Action Bar shell that was still visible outside the decorative frame.
-   Title plaque, spell slots, potion slot and gameplay remain untouched. */
+/* HAJJEN ACTION BAR background — Zone 3 DEV prototype only.
+   This file is the sole owner of the temporary red Action Bar surface.
+   The Action Bar root remains fully transparent so no old surface can bleed
+   outside the decorative frame. Title plaque, slots and gameplay are untouched. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar{
   position:relative!important;
   isolation:isolate!important;
+  background:none!important;
+  background-image:none!important;
+  background-color:transparent!important;
   border:0!important;
   border-radius:0!important;
   box-shadow:none!important;
@@ -19,8 +22,8 @@ html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar::before{
   z-index:0;
   pointer-events:none;
   border-radius:4px;
-  background-color:inherit;
-  background-image:inherit;
+  background-color:#633431;
+  background-image:url("assets/Backgrounds/dev-background-test-2.png");
   background-repeat:no-repeat;
   background-position:center center;
   background-size:cover;

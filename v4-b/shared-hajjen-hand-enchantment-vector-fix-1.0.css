@@ -1,7 +1,7 @@
 /* HAJJEN HAND — Enchantment vector refinement, DEV only.
    Match the approved Manipulation card frame exactly, preserve text size,
-   give the effect copy more vertical room, and move the select down close
-   to APPLY ENCHANTMENT. */
+   center the effect copy in the body between heading and controls, and keep
+   the select close to APPLY ENCHANTMENT. */
 
 /* Match the approved Manipulation frame treatment: the board-frame master
    gradient is the actual outer shell, not only an inset rail. */
@@ -23,19 +23,32 @@ html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-
     inset 0 1px rgba(239,214,160,.66)!important;
 }
 
-/* Keep the existing font size. Start the rules copy immediately below the
-   title/medallion band and allow three lines instead of two. */
+/* Treat the effect description as the card's central body field. Keep the
+   approved font size, but center the copy in the free space below the title
+   so short and medium descriptions both read naturally. */
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-copy{
-  left:7.5%!important;
-  right:7.5%!important;
-  top:33.5%!important;
+  position:absolute!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  left:8.5%!important;
+  right:8.5%!important;
+  top:31.5%!important;
   bottom:36.5%!important;
+  width:auto!important;
   height:auto!important;
-  -webkit-line-clamp:3!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0 2px!important;
+  text-align:center!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  -webkit-line-clamp:unset!important;
+  -webkit-box-orient:initial!important;
 }
 
-/* Pull the two controls together at the bottom, leaving the gained space to
-   the description instead of shrinking typography. */
+/* Keep the two controls tightly paired at the bottom. */
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .shared-enchantment-select{
   top:auto!important;
   bottom:21%!important;

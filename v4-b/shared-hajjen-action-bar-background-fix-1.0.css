@@ -1,14 +1,20 @@
 /* HAJJEN ACTION BAR background — Zone 3 DEV prototype only.
-   This file is the sole owner of the temporary red Action Bar surface.
-   The Action Bar root remains fully transparent so no old surface can bleed
-   outside the decorative frame. Title plaque, slots and gameplay are untouched. */
+   The original temporary red texture remains supplied by
+   shared-hajjen-action-bar-background-1.0.css, but the Action Bar root itself
+   does not paint that image. The dedicated inner layer inherits and renders it
+   inside the decorative frame only. Title plaque, slots and gameplay untouched. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar{
   position:relative!important;
   isolation:isolate!important;
-  background:none!important;
-  background-image:none!important;
+
+  /* Preserve the original data-URI as the computed background-image so the
+     inner layer can inherit it, while preventing the root from painting it. */
   background-color:transparent!important;
+  background-repeat:no-repeat!important;
+  background-position:-9999px -9999px!important;
+  background-size:0 0!important;
+
   border:0!important;
   border-radius:0!important;
   box-shadow:none!important;
@@ -22,11 +28,11 @@ html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar::before{
   z-index:0;
   pointer-events:none;
   border-radius:4px;
-  background-color:#633431;
-  background-image:url("assets/Backgrounds/dev-background-test-2.png");
-  background-repeat:no-repeat;
-  background-position:center center;
-  background-size:cover;
+  background-color:#633431!important;
+  background-image:inherit!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > *{

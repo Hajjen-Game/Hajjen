@@ -1,0 +1,165 @@
+/* HAJJEN ACTION BAR vector shell v1.0 — Zone 3 DEV prototype only.
+   Pass 1 intentionally changes only the outer panel frame and panel surface.
+   Spell slots, potion slot and all Action Bar gameplay/interaction remain untouched. */
+
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  padding:24px 18px 17px!important;
+}
+
+/* Same approved blue low-poly surface used by HAND and CARD DECKS. */
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar::before{
+  content:"";
+  position:absolute;
+  inset:4px;
+  z-index:0;
+  pointer-events:none;
+  border-radius:7px;
+  background-color:#4c6178;
+  background-image:url("assets/hand-panel/hand-background-blue-v1.png");
+  background-repeat:no-repeat;
+  background-position:center center;
+  background-size:cover;
+  box-shadow:inset 0 0 0 1px rgba(39,50,62,.26),0 5px 14px rgba(54,36,17,.13);
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar::after{
+  content:none!important;
+}
+
+/* Keep live Action Bar content above the decorative vector shell. */
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > *:not(.hajjen-action-bar-vector-frame){
+  position:relative;
+  z-index:4;
+}
+
+/* The approved vector title plaque is absolute. Remove only the hidden source
+   heading's layout footprint and let panel padding reserve the top rail space. */
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > .action-hud-title.hajjen-vector-title-plaque-source{
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  overflow:hidden!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > .hajjen-action-bar-vector-frame{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  overflow:visible;
+  pointer-events:none;
+  user-select:none;
+  shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 2px 1.5px rgba(48,28,14,.22));
+}
+
+/* Exact board-frame metal family. */
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-shadow{
+  fill:none;
+  stroke:#3B2416;
+  stroke-width:4.2;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.86;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-gold{
+  fill:none;
+  stroke-width:2.25;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.99;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-inner{
+  fill:none;
+  stroke:#7F4F2A;
+  stroke-width:1.08;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.97;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-highlight{
+  fill:none;
+  stroke:#F0C77F;
+  stroke-width:.64;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.82;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-accent{
+  fill:none;
+  stroke:#AE7137;
+  stroke-width:1.12;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.98;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-sweep-shadow{
+  fill:none;
+  stroke:#4C2C16;
+  stroke-width:1.55;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.72;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-sweep{
+  fill:none;
+  stroke:#C18443;
+  stroke-width:.86;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.98;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-node{
+  fill:#C18443;
+  stroke:#59351D;
+  stroke-width:.82;
+  vector-effect:non-scaling-stroke;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-jewel{
+  fill:#F1CE8C;
+  stroke:none;
+  opacity:.92;
+}
+
+/* Do not skin the slots in this pass. Keep only their existing grid geometry. */
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > .actionbar{
+  position:relative;
+  z-index:4;
+  margin:0!important;
+  background:transparent!important;
+}
+
+@media(max-width:620px){
+  html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar{
+    padding:22px 15px 15px!important;
+  }
+}

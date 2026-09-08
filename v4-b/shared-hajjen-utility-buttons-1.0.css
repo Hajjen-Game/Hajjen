@@ -181,10 +181,10 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content{
   inset:3px!important;
   z-index:2!important;
   display:grid!important;
-  grid-template-columns:58px minmax(0,1fr) 58px!important;
+  grid-template-columns:42px minmax(0,1fr) 18px!important;
   align-items:center!important;
   min-width:0!important;
-  padding:0 12px!important;
+  padding:0 8px!important;
   box-sizing:border-box!important;
   pointer-events:none!important;
   clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;
@@ -237,9 +237,9 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{
   overflow:hidden;
   color:var(--utility-text)!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:16px!important;
+  font-size:11px!important;
   font-weight:700!important;
-  letter-spacing:.35px!important;
+  letter-spacing:.12px!important;
   line-height:1!important;
   text-align:center!important;
   text-transform:uppercase;
@@ -274,8 +274,8 @@ html[data-hajjen-dev="zone3"] .zone3-app .shared-utility-hud > button.hajjen-vec
     display:flex!important;
     flex-direction:column!important;
   }
-  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{font-size:14px!important}
-  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content{grid-template-columns:48px minmax(0,1fr) 48px!important}
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-label{font-size:10px!important}
+  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-utility-vector-content{grid-template-columns:40px minmax(0,1fr) 14px!important;padding:0 6px!important}
 }
 
 @media(prefers-reduced-motion:reduce){

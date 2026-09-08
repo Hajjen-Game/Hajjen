@@ -1,0 +1,14 @@
+/* DEV safety override: the injected Manipulation icon is a <span>, so explicitly
+   neutralize legacy direct-span rules from the old bitmap card layout. */
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > .hajjen-manip-card-icon-wrap{
+  right:auto!important;
+  bottom:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  font-size:0!important;
+  line-height:0!important;
+  letter-spacing:0!important;
+  -webkit-line-clamp:unset!important;
+  -webkit-box-orient:initial!important;
+  overflow:visible!important;
+}

@@ -1,0 +1,163 @@
+/* HAJJEN HAND — generic Locked slot vector/CSS card, DEV only.
+   Category-neutral by design: the same visual is used for any locked Hand slot
+   (for example Enchantment before Zone 3 or Tactical before Zone 4). */
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot{
+  --locked-surface-top:#D7D9DB;
+  --locked-surface-bottom:#BEC2C5;
+  --locked-accent-top:#878D93;
+  --locked-accent-bottom:#676E75;
+  --locked-title:#4A5056;
+  --locked-copy:#596168;
+  position:relative!important;
+  isolation:isolate!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:611 / 388!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  border-style:solid!important;
+  background:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  background-image:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  box-shadow:0 2px 4px rgba(59,36,22,.16)!important;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)!important;
+  overflow:hidden!important;
+  opacity:1!important;
+  filter:none!important;
+  display:block!important;
+  text-align:left!important;
+  color:var(--locked-copy)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  inset:1px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  margin:0!important;
+  background:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px)!important;
+  box-shadow:inset 0 0 0 1px rgba(122,76,41,.34)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot::after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  inset:3px!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,0) 28%),
+    linear-gradient(180deg,var(--locked-surface-top) 0%,var(--locked-surface-bottom) 100%)!important;
+  clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)!important;
+  box-shadow:inset 0 0 0 1px rgba(122,76,41,.42),inset 0 1px rgba(239,214,160,.56)!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > *{
+  z-index:3!important;
+}
+
+/* Neutral lock medallion — category is deliberately not represented. */
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > .hajjen-locked-card-icon-wrap{
+  position:absolute!important;
+  left:7.5%!important;
+  right:auto!important;
+  top:8.5%!important;
+  bottom:auto!important;
+  width:18%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+  border:1px solid #7A4C29!important;
+  border-radius:50%!important;
+  background:linear-gradient(180deg,var(--locked-accent-top) 0%,var(--locked-accent-bottom) 100%)!important;
+  color:#F3E3BE!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(236,211,157,.58),
+    inset 0 1px rgba(239,214,160,.66),
+    0 1px 2px rgba(59,36,22,.18)!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot .hajjen-locked-card-icon{
+  position:static!important;
+  display:block!important;
+  width:61%!important;
+  height:61%!important;
+  margin:0!important;
+  overflow:visible!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:2.35!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  filter:drop-shadow(0 1px rgba(59,36,22,.30));
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > strong{
+  position:absolute!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  left:29%!important;
+  right:7%!important;
+  top:10%!important;
+  height:20%!important;
+  margin:0!important;
+  color:var(--locked-title)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(10px,.82vw,14px)!important;
+  line-height:1.02!important;
+  font-weight:700!important;
+  letter-spacing:-.08px!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-shadow:none!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > .shared-locked-copy{
+  position:absolute!important;
+  left:10%!important;
+  right:10%!important;
+  top:40%!important;
+  bottom:12%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  color:var(--locked-copy)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(8.5px,.67vw,11.5px)!important;
+  line-height:1.22!important;
+  font-weight:500!important;
+  letter-spacing:-.03px!important;
+  text-align:center!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  text-shadow:none!important;
+}
+
+@media(max-width:850px){
+  html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > strong{
+    font-size:11px!important;
+  }
+  html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > .shared-locked-copy{
+    font-size:9px!important;
+  }
+}

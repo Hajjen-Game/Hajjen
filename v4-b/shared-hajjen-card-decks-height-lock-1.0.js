@@ -9,12 +9,70 @@
   let mutationObserver=null;
   let raf=0;
 
+  function ensureFrameCss(){
+    if(document.getElementById('hajjen-card-decks-isolated-frame-css'))return;
+    const link=document.createElement('link');
+    link.id='hajjen-card-decks-isolated-frame-css';
+    link.rel='stylesheet';
+    link.href='shared-hajjen-card-decks-frame-isolated-1.0.css?v=1';
+    document.head.appendChild(link);
+  }
+
+  function mountIsolatedFrame(){
+    panel=document.querySelector(selector);
+    if(!panel)return false;
+
+    ensureFrameCss();
+
+    /* Keep only the live Card Decks panel in the left rail. */
+    document.querySelectorAll('.zone3-app .leftcol > .deck-sidebar-panel').forEach(node=>{
+      if(node!==panel)node.remove();
+    });
+
+    panel.classList.add('hajjen-card-decks-isolated-frame');
+
+    /* The generic frame node is the part that has been inheriting conflicting
+       frame-size/layout rules. Disable it completely for Card Decks DEV. */
+    const oldFrame=panel.querySelector(':scope > .hajjen-panel-frame');
+    if(oldFrame){
+      oldFrame.style.setProperty('display','none','important');
+      oldFrame.style.setProperty('visibility','hidden','important');
+    }
+
+    let frame=panel.querySelector(':scope > .hajjen-card-decks-frame');
+    if(!frame){
+      frame=document.createElement('span');
+      frame.className='hajjen-card-decks-frame';
+      frame.setAttribute('aria-hidden','true');
+      ['tl','t','tr','l','r','bl','b','br'].forEach(part=>{
+        const piece=document.createElement('span');
+        piece.className=`hajjen-card-decks-frame-piece ${part}`;
+        frame.appendChild(piece);
+      });
+      panel.prepend(frame);
+    }
+
+    /* Lock the new frame to the panel box even before the stylesheet finishes
+       loading; the stylesheet only supplies the shared Family-A artwork. */
+    frame.style.setProperty('position','absolute','important');
+    frame.style.setProperty('left','0','important');
+    frame.style.setProperty('top','0','important');
+    frame.style.setProperty('right','0','important');
+    frame.style.setProperty('bottom','0','important');
+    frame.style.setProperty('width','100%','important');
+    frame.style.setProperty('height','100%','important');
+    frame.style.setProperty('z-index','6','important');
+    frame.style.setProperty('pointer-events','none','important');
+
+    return true;
+  }
+
   function measure(){
     raf=0;
-    panel=document.querySelector(selector);
-    row=panel?.querySelector(':scope > .deck-row')||null;
+    if(!mountIsolatedFrame())return false;
+    row=panel.querySelector(':scope > .deck-row')||null;
     const piles=row?[...row.querySelectorAll(':scope > .deck-pile')]:[];
-    if(!panel||!row||!piles.length)return false;
+    if(!row||!piles.length)return false;
 
     const panelStyle=getComputedStyle(panel);
     const paddingTop=parseFloat(panelStyle.paddingTop)||0;

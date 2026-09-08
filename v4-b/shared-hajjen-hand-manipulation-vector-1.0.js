@@ -18,7 +18,14 @@
       'aria-hidden':'true',
       focusable:'false'
     });
-    const path=(d,extra={})=>svg.appendChild(svgEl('path',{d,...extra}));
+
+    /* The authored hand paths sit slightly high/left inside the 48x48 viewBox.
+       Shift the glyph itself, not the SVG box, so the symbol is optically centered
+       while the medallion stays perfectly centered by CSS. */
+    const glyph=svgEl('g',{transform:'translate(2.6 3.4)'});
+    svg.appendChild(glyph);
+    const path=(d,extra={})=>glyph.appendChild(svgEl('path',{d,...extra}));
+
     path('M15 25V10.5c0-1.8 2.8-1.8 2.8 0V21');
     path('M17.8 21V7.5c0-1.9 2.9-1.9 2.9 0V21');
     path('M20.7 21V6.5c0-1.9 2.9-1.9 2.9 0V21');
@@ -79,5 +86,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 
-  window.HAJJEN_HAND_MANIPULATION_VECTOR={version:'1.0',scan:schedule};
+  window.HAJJEN_HAND_MANIPULATION_VECTOR={version:'1.1',scan:schedule};
 })();

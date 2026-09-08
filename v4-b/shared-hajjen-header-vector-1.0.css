@@ -1,9 +1,9 @@
 /* HAJJEN top header — vector/CSS redesign, DEV only.
-   Full-bleed dark-brown header with no top frame. Only the lower edge carries
-   the approved HAJJEN metal rail, with a deeper left bay reserved for a future logo. */
+   Dark-brown full-bleed header with NO frame at the top or sides. The lower
+   edge is drawn by shared-hajjen-header-vector-1.0.js using the exact stroke
+   hierarchy of the approved board vector frame. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .titlebar{
-  --hajjen-header-metal:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%);
   position:relative!important;
   isolation:isolate!important;
   grid-column:1 / -1!important;
@@ -32,88 +32,75 @@ html[data-hajjen-dev="zone3"] .zone3-app .titlebar{
   clip-path:polygon(
     0 0,
     100% 0,
-    100% 80%,
-    98.2% 80%,
-    97.3% 86%,
-    16.3% 86%,
+    100% 79%,
+    16.3% 79%,
     15.1% 100%,
     3.2% 100%,
-    2.1% 86%,
-    0 86%
+    2.1% 79%,
+    0 79%
   )!important;
   overflow:hidden!important;
 }
 
-/* Main lower metal rail only. There is deliberately no rail at the top. */
-html[data-hajjen-dev="zone3"] .zone3-app .titlebar::before{
-  content:""!important;
-  display:block!important;
-  position:absolute!important;
-  left:0!important;
-  right:0!important;
-  bottom:0!important;
-  top:auto!important;
-  width:auto!important;
-  height:17px!important;
-  z-index:1!important;
-  pointer-events:none!important;
-  background:var(--hajjen-header-metal)!important;
-  background-image:var(--hajjen-header-metal)!important;
-  clip-path:polygon(
-    0 0,
-    2.1% 0,
-    3.2% 11px,
-    15.1% 11px,
-    16.3% 0,
-    97.3% 0,
-    98.2% 5px,
-    100% 5px,
-    100% 9px,
-    98.1% 9px,
-    97.1% 4px,
-    16.5% 4px,
-    15.3% 15px,
-    3% 15px,
-    1.9% 4px,
-    0 4px
-  )!important;
-  box-shadow:none!important;
-  opacity:1!important;
+/* Remove the previous CSS imitation rails. The live lower rail is now a real
+   SVG path using the same board-frame shadow / gold / inner / highlight layers. */
+html[data-hajjen-dev="zone3"] .zone3-app .titlebar::before,
+html[data-hajjen-dev="zone3"] .zone3-app .titlebar::after{
+  content:none!important;
+  display:none!important;
 }
 
-/* Thin inner highlight gives the lower edge the layered rail look from the reference. */
-html[data-hajjen-dev="zone3"] .zone3-app .titlebar::after{
-  content:""!important;
-  display:block!important;
+html[data-hajjen-dev="zone3"] .zone3-app .titlebar > .hajjen-header-vector-rail{
   position:absolute!important;
-  left:0!important;
-  right:0!important;
-  bottom:4px!important;
-  top:auto!important;
-  width:auto!important;
-  height:13px!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
   z-index:1!important;
+  display:block!important;
   pointer-events:none!important;
-  background:linear-gradient(180deg,rgba(242,217,161,.92) 0%,rgba(207,152,83,.92) 48%,rgba(129,80,43,.96) 100%)!important;
-  clip-path:polygon(
-    0 0,
-    2.05% 0,
-    3.15% 10px,
-    15.15% 10px,
-    16.25% 0,
-    97.25% 0,
-    98.15% 4px,
-    100% 4px,
-    100% 6px,
-    98.05% 6px,
-    97.15% 2px,
-    16.4% 2px,
-    15.25% 12px,
-    3.05% 12px,
-    1.95% 2px,
-    0 2px
-  )!important;
-  opacity:.72!important;
+  overflow:visible!important;
+  shape-rendering:geometricPrecision!important;
+  filter:drop-shadow(0 2px 1.5px rgba(48,28,14,.24))!important;
+}
+
+/* Exact visual hierarchy from shared-hajjen-board-frame-1.0.css. */
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-header-vector-rail .header-frame-shadow{
+  fill:none!important;
+  stroke:#3b2416!important;
+  stroke-width:4.2!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.88!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-header-vector-rail .header-frame-gold{
+  fill:none!important;
+  stroke-width:2.25!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.99!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-header-vector-rail .header-frame-inner{
+  fill:none!important;
+  stroke:#7f4f2a!important;
+  stroke-width:1.08!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.97!important;
+}
+
+html[data-hajjen-dev="zone3"] .zone3-app .hajjen-header-vector-rail .header-frame-highlight{
+  fill:none!important;
+  stroke:#f0c77f!important;
+  stroke-width:.64!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.82!important;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .titlebar > div:first-child,
@@ -151,7 +138,6 @@ html[data-hajjen-dev="zone3"] .zone3-app .titlebar h1{
   white-space:nowrap!important;
 }
 
-/* Existing build/dev text, restyled as a compact brown framed plaque. */
 html[data-hajjen-dev="zone3"] .zone3-app .titlebar .build{
   align-self:flex-start!important;
   margin-top:8px!important;
@@ -179,7 +165,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .titlebar .build{
     min-height:80px!important;
     height:80px!important;
     padding:11px 30px 18px 96px!important;
-    clip-path:polygon(0 0,100% 0,100% 81%,97.8% 81%,96.8% 87%,19% 87%,17.5% 100%,4% 100%,2.5% 87%,0 87%)!important;
+    clip-path:polygon(0 0,100% 0,100% 80%,19% 80%,17.5% 100%,4% 100%,2.5% 80%,0 80%)!important;
   }
 }
 
@@ -192,12 +178,8 @@ html[data-hajjen-dev="zone3"] .zone3-app .titlebar .build{
     padding:10px 18px 17px 74px!important;
     gap:8px!important;
   }
-  html[data-hajjen-dev="zone3"] .zone3-app .titlebar h1{
-    font-size:15px!important;
-  }
-  html[data-hajjen-dev="zone3"] .zone3-app .titlebar .eyebrow{
-    font-size:7.5px!important;
-  }
+  html[data-hajjen-dev="zone3"] .zone3-app .titlebar h1{font-size:15px!important;}
+  html[data-hajjen-dev="zone3"] .zone3-app .titlebar .eyebrow{font-size:7.5px!important;}
   html[data-hajjen-dev="zone3"] .zone3-app .titlebar .build{
     margin-top:7px!important;
     padding:5px 7px!important;

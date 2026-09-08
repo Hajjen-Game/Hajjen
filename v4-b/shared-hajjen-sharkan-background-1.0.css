@@ -1,0 +1,11 @@
+/* HAJJEN SHARKAN panel background — Zone 3 DEV prototype only.
+   Replaces only the existing inner parchment surface with the dedicated Sharkan
+   texture. Frame, title plaque, status content and gameplay remain untouched. */
+
+html[data-hajjen-dev="zone3"] .zone3-app .shared-status.hajjen-framed-panel::before{
+  background-color:#5f7592!important;
+  background-image:url("assets/Backgrounds/sharkan-background-blue-spotted-v1.png")!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+}

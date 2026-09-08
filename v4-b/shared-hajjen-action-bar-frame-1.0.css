@@ -1,4 +1,4 @@
-/* HAJJEN ACTION BAR vector shell v1.0 — Zone 3 DEV prototype only.
+/* HAJJEN ACTION BAR vector/CSS shell v1.0 — Zone 3 DEV prototype only.
    Pass 1 intentionally changes only the outer panel frame and panel surface.
    Spell slots, potion slot and all Action Bar gameplay/interaction remain untouched. */
 
@@ -7,35 +7,57 @@ html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar{
   isolation:isolate!important;
   overflow:visible!important;
   box-sizing:border-box!important;
-  border:0!important;
-  border-radius:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
   padding:24px 18px 17px!important;
+
+  /* Browser-rendered board-family frame: no bitmap frame asset. */
+  border:2.25px solid transparent!important;
+  border-radius:10px!important;
+  background-color:#4c6178!important;
+  background-image:
+    url("assets/hand-panel/hand-background-blue-v1.png"),
+    linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  background-repeat:no-repeat,no-repeat!important;
+  background-position:center center,center center!important;
+  background-size:cover,100% 100%!important;
+  background-origin:padding-box,border-box!important;
+  background-clip:padding-box,border-box!important;
+  box-shadow:
+    0 0 0 1.8px #3B2416,
+    0 4px 10px rgba(48,28,14,.16),
+    inset 0 0 0 .7px rgba(240,199,127,.72)!important;
 }
 
-/* Same approved blue low-poly surface used by HAND and CARD DECKS. */
+/* Brown inner rail + fine light highlight from the approved board frame family. */
 html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar::before{
   content:"";
   position:absolute;
   inset:4px;
-  z-index:0;
+  z-index:2;
   pointer-events:none;
-  border-radius:7px;
-  background-color:#4c6178;
-  background-image:url("assets/hand-panel/hand-background-blue-v1.png");
-  background-repeat:no-repeat;
-  background-position:center center;
-  background-size:cover;
-  box-shadow:inset 0 0 0 1px rgba(39,50,62,.26),0 5px 14px rgba(54,36,17,.13);
+  border:1.05px solid #7F4F2A;
+  border-radius:6.8px;
+  background:transparent;
+  box-shadow:inset 0 0 0 .65px rgba(240,199,127,.62);
 }
 
+/* Small corner mounts echo the board frame without making the panel chunky. */
 html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar::after{
-  content:none!important;
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  border-radius:10px;
+  background:
+    radial-gradient(circle at 9px 9px,#F1CE8C 0 1px,#C18443 1.1px 2px,#59351D 2.1px 2.75px,transparent 2.9px),
+    radial-gradient(circle at calc(100% - 9px) 9px,#F1CE8C 0 1px,#C18443 1.1px 2px,#59351D 2.1px 2.75px,transparent 2.9px),
+    radial-gradient(circle at calc(100% - 9px) calc(100% - 9px),#F1CE8C 0 1px,#C18443 1.1px 2px,#59351D 2.1px 2.75px,transparent 2.9px),
+    radial-gradient(circle at 9px calc(100% - 9px),#F1CE8C 0 1px,#C18443 1.1px 2px,#59351D 2.1px 2.75px,transparent 2.9px);
+  background-repeat:no-repeat;
 }
 
-/* Keep live Action Bar content above the decorative vector shell. */
-html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > *:not(.hajjen-action-bar-vector-frame){
+/* Keep all live Action Bar content above the decorative shell. */
+html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > *{
   position:relative;
   z-index:4;
 }
@@ -51,109 +73,8 @@ html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > .action
   overflow:hidden!important;
 }
 
-html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > .hajjen-action-bar-vector-frame{
-  position:absolute;
-  inset:0;
-  z-index:3;
-  display:block;
-  width:100%;
-  height:100%;
-  max-width:none;
-  max-height:none;
-  overflow:visible;
-  pointer-events:none;
-  user-select:none;
-  shape-rendering:geometricPrecision;
-  filter:drop-shadow(0 2px 1.5px rgba(48,28,14,.22));
-}
-
-/* Exact board-frame metal family. */
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-shadow{
-  fill:none;
-  stroke:#3B2416;
-  stroke-width:4.2;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.86;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-gold{
-  fill:none;
-  stroke-width:2.25;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.99;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-inner{
-  fill:none;
-  stroke:#7F4F2A;
-  stroke-width:1.08;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.97;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .frame-highlight{
-  fill:none;
-  stroke:#F0C77F;
-  stroke-width:.64;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.82;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-accent{
-  fill:none;
-  stroke:#AE7137;
-  stroke-width:1.12;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.98;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-sweep-shadow{
-  fill:none;
-  stroke:#4C2C16;
-  stroke-width:1.55;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.72;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-sweep{
-  fill:none;
-  stroke:#C18443;
-  stroke-width:.86;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.98;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-node{
-  fill:#C18443;
-  stroke:#59351D;
-  stroke-width:.82;
-  vector-effect:non-scaling-stroke;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-action-bar-vector-frame .corner-jewel{
-  fill:#F1CE8C;
-  stroke:none;
-  opacity:.92;
-}
-
 /* Do not skin the slots in this pass. Keep only their existing grid geometry. */
 html[data-hajjen-dev="zone3"] .zone3-app .action-hud.shared-action-bar > .actionbar{
-  position:relative;
-  z-index:4;
   margin:0!important;
   background:transparent!important;
 }

@@ -1,6 +1,7 @@
 /* HAJJEN Card Decks DEV shell.
    One frame only: the same thin SVG/CSS vector frame used by SHARKAN and
-   EVENT LOG surrounds a navy inner surface. No PNG / Family-A frame artwork. */
+   EVENT LOG surrounds the same blue textured surface used by HAND.
+   No PNG / Family-A frame artwork. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks{
   position:relative!important;
@@ -30,7 +31,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.haj
   overflow:visible!important;
 }
 
-/* Navy is only the inner surface. The SVG vector frame is the sole outer rail. */
+/* Same uploaded blue texture as HAND. The SVG vector frame is the sole outer rail. */
 html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks::before{
   content:""!important;
   position:absolute!important;
@@ -39,11 +40,11 @@ html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.haj
   pointer-events:none!important;
   box-sizing:border-box!important;
   border:0!important;
-  background-color:#34485F!important;
-  background-image:linear-gradient(180deg,#506176 0%,#42546A 38%,#37495E 74%,#304155 100%)!important;
+  background-color:#4c6178!important;
+  background-image:url("assets/hand-panel/hand-background-blue-v1.png")!important;
   background-repeat:no-repeat!important;
-  background-position:center!important;
-  background-size:100% 100%!important;
+  background-position:center center!important;
+  background-size:cover!important;
   clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)!important;
   box-shadow:none!important;
 }

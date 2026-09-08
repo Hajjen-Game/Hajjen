@@ -1,7 +1,6 @@
-/* HAJJEN Card Decks DEV shell fix.
-   One frame only: the exact shared SHARKAN / EVENT LOG frame surrounds a navy
-   inner surface, and the three deck panels are the sole in-flow content that
-   determines the panel height. */
+/* HAJJEN Card Decks DEV shell.
+   One frame only: the same thin SVG/CSS vector frame used by SHARKAN and
+   EVENT LOG surrounds a navy inner surface. No PNG / Family-A frame artwork. */
 
 html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks{
   position:relative!important;
@@ -31,11 +30,11 @@ html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.haj
   overflow:visible!important;
 }
 
-/* Navy is only the inner panel surface. It is NOT another frame. */
+/* Navy is only the inner surface. The SVG vector frame is the sole outer rail. */
 html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks::before{
   content:""!important;
   position:absolute!important;
-  inset:5px!important;
+  inset:3px!important;
   z-index:0!important;
   pointer-events:none!important;
   box-sizing:border-box!important;
@@ -45,7 +44,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.haj
   background-repeat:no-repeat!important;
   background-position:center!important;
   background-size:100% 100%!important;
-  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)!important;
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)!important;
   box-shadow:none!important;
 }
 
@@ -54,16 +53,26 @@ html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.haj
   display:none!important;
 }
 
-/* The ordinary shared frame remains the one and only outer frame. */
-html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-panel-frame{
+/* Never allow the old bitmap/sliced panel frame to participate. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-panel-frame,
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-card-decks-frame{
+  display:none!important;
+  visibility:hidden!important;
+}
+
+/* This is the approved thin vector frame shared with SHARKAN / EVENT LOG. */
+html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .hajjen-shared-vector-frame{
   display:block!important;
+  visibility:visible!important;
   position:absolute!important;
   inset:0!important;
-  width:auto!important;
-  height:auto!important;
+  width:100%!important;
+  height:100%!important;
   margin:0!important;
+  padding:0!important;
   z-index:3!important;
   pointer-events:none!important;
+  overflow:visible!important;
 }
 
 /* The copied H2 has no layout box after the vector plaque has mounted. */
@@ -79,7 +88,7 @@ html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.haj
 }
 
 /* This is deliberately the ONLY normal-flow child. Its measured height closes
-   the outer frame immediately after Tactical. */
+   the vector frame immediately after Tactical. */
 html[data-hajjen-dev="zone3"] .zone3-app .leftcol > .shared-card-decks-panel.hajjen-vector-card-decks > .deck-row{
   grid-column:1!important;
   grid-row:1!important;

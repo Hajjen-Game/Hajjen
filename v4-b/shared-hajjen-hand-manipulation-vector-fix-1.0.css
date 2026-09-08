@@ -1,30 +1,29 @@
 /* HAJJEN HAND — Manipulation vector refinement, DEV only.
-   Tightens the metal hierarchy, centers the injected hand medallion, lowers
-   rules copy slightly and keeps the PLAY surface stable across hover/focus. */
+   Restore the approved first-pass card-frame geometry, but use the exact
+   board-frame master gold gradient instead of letting dark brown dominate.
+   Keep the lowered rules copy and stable PLAY interaction. */
 
-/* The pale metal should visually dominate; darkest brown is only a support/shadow. */
+/* Same geometry as the first vector pass. Only the metal treatment changes. */
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]{
-  background:#ECD39D!important;
-  box-shadow:
-    0 2px 4px rgba(59,36,22,.14),
-    inset 0 0 0 1px rgba(122,76,41,.78)!important;
+  background:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  box-shadow:0 2px 4px rgba(59,36,22,.16)!important;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::before{
   inset:1px!important;
-  background:linear-gradient(180deg,#F2DFB5 0%,#ECD39D 58%,#DFB46B 82%,#C9914F 100%)!important;
-  box-shadow:inset 0 0 0 1px rgba(122,76,41,.42)!important;
+  background:linear-gradient(180deg,#f2d9a1 0%,#cf9853 24%,#81502b 56%,#bb7d3c 79%,#e4b86d 100%)!important;
+  box-shadow:inset 0 0 0 1px rgba(122,76,41,.34)!important;
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::after{
-  inset:4px!important;
+  inset:3px!important;
   box-shadow:
-    inset 0 0 0 1px rgba(122,76,41,.44),
-    inset 0 1px rgba(239,214,160,.56)!important;
+    inset 0 0 0 1px rgba(122,76,41,.48),
+    inset 0 1px rgba(239,214,160,.66)!important;
 }
 
-/* The injected icon wrapper is a <span>; fully neutralize the legacy direct-span
-   rules, then place it explicitly. */
+/* The injected icon wrapper is a <span>; fully neutralize old direct-span rules,
+   then keep the original medallion size and centering. */
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > .hajjen-manip-card-icon-wrap{
   position:absolute!important;
   left:7.5%!important;
@@ -36,8 +35,9 @@ html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-
   min-height:0!important;
   max-height:none!important;
   aspect-ratio:1!important;
-  display:grid!important;
-  place-items:center!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
   margin:0!important;
   font-size:0!important;
   line-height:0!important;
@@ -48,25 +48,22 @@ html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-
 }
 
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] .hajjen-manip-card-icon{
-  position:relative!important;
-  left:0!important;
-  top:0!important;
-  width:59%!important;
-  height:59%!important;
+  position:static!important;
+  width:67%!important;
+  height:67%!important;
   margin:0!important;
-  transform:translate(1px,-1px)!important;
+  transform:none!important;
   transform-origin:center!important;
 }
 
-/* Give the title/effect a little more breathing room, as in the supplied card reference. */
+/* Keep the effect copy slightly lower than the first pass. */
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span:not(.hajjen-manip-card-icon-wrap),
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small{
   top:40.5%!important;
   bottom:22%!important;
 }
 
-/* Older HAND hover rules used transparent authored-image command bands. Override
-   every interactive state so the new real CSS button never disappears. */
+/* Preserve the working real CSS PLAY surface in every interactive state. */
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button,
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:hover:not(:disabled),
 html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:focus,

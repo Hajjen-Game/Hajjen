@@ -67,8 +67,8 @@ html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid 
 }
 
 /* Reuse the existing <strong> as both neutral lock medallion + title area.
-   The original category label remains in DOM for shared-hand synchronization,
-   but is visually replaced by SLOT LOCKED. */
+   The real category label stays in DOM for shared-hand synchronization, but its
+   font size is collapsed so it cannot push the visual SLOT LOCKED copy aside. */
 html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked > strong{
   display:flex!important;
   align-items:center!important;
@@ -83,7 +83,7 @@ html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid 
   box-sizing:border-box!important;
   color:transparent!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(10px,.82vw,14px)!important;
+  font-size:0!important;
   line-height:1.02!important;
   font-weight:700!important;
   letter-spacing:-.08px!important;
@@ -102,18 +102,21 @@ html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid 
   content:"SLOT LOCKED"!important;
   display:block!important;
   color:var(--locked-title)!important;
-  font:inherit!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(10px,.82vw,14px)!important;
+  font-weight:700!important;
+  letter-spacing:-.08px!important;
   line-height:1.02!important;
   white-space:nowrap!important;
 }
 
-/* Reuse the existing state <span>; keep its real LOCKED text in DOM but show
-   the neutral explanatory copy visually. */
+/* Reuse the existing state <span>; its real LOCKED text stays in DOM but its
+   width is collapsed so the explanatory copy is genuinely centered. */
 html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked > span{
   left:10%!important;
   right:10%!important;
-  top:40%!important;
-  bottom:12%!important;
+  top:37.5%!important;
+  bottom:14.5%!important;
   width:auto!important;
   height:auto!important;
   min-height:0!important;
@@ -123,7 +126,7 @@ html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid 
   justify-content:center!important;
   color:transparent!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(8.5px,.67vw,11.5px)!important;
+  font-size:0!important;
   line-height:1.22!important;
   font-weight:500!important;
   letter-spacing:-.03px!important;
@@ -137,15 +140,22 @@ html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid 
   content:"See Card Decks for unlock timing."!important;
   display:block!important;
   color:var(--locked-copy)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(8.5px,.67vw,11.5px)!important;
+  line-height:1.22!important;
+  font-weight:500!important;
+  letter-spacing:-.03px!important;
 }
 
 @media(max-width:850px){
   html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked > strong{
     padding-left:21%!important;
     background-size:17.5% auto!important;
+  }
+  html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked > strong::after{
     font-size:11px!important;
   }
-  html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked > span{
+  html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked > span::after{
     font-size:9px!important;
   }
 }

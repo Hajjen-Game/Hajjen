@@ -7,6 +7,7 @@
   if(!zoneConfig)return;
 
   const isDev=new URLSearchParams(location.search).get('dev')==='1';
+  const useVector=isDev||Number(zone)===3;
   const objectivePanel=document.querySelector('.objectives');
   const hand=document.getElementById(zone===1?'manipulationCards':'manipCards');
   if(!objectivePanel)return;
@@ -19,8 +20,8 @@
   }
 
   panel.classList.add('shared-card-decks-panel');
-  if(isDev)panel.classList.add('hajjen-vector-card-decks');
-  panel.dataset.sharedComponent=isDev?'card-decks-1.4-vector-dev-height-lock':'card-decks-1.2';
+  if(useVector)panel.classList.add('hajjen-vector-card-decks');
+  panel.dataset.sharedComponent=useVector?'card-decks-1.5-vector-zone3-height-lock':'card-decks-1.2';
   window.HAJJEN_PANEL_FRAME?.mount(panel);
 
   let observer=null;
@@ -100,7 +101,7 @@
     if(deck.type==='manipulation')note.id='manipDeckCount';
     note.textContent=deckNote(deck,def);
 
-    if(isDev){
+    if(useVector){
       const iconSlot=document.createElement('span');
       iconSlot.className='deck-icon-slot';
       iconSlot.appendChild(deckIcon(deck.type));
@@ -126,9 +127,9 @@
     return pile;
   }
 
-  function lockDevPanelHeight(){
+  function lockVectorPanelHeight(){
     heightRaf=0;
-    if(!isDev)return;
+    if(!useVector)return;
     const row=panel.querySelector(':scope > .deck-row');
     const piles=row?[...row.querySelectorAll(':scope > .deck-pile')]:[];
     if(!row||!piles.length)return;
@@ -153,24 +154,24 @@
     panel.dataset.hajjenDeckMeasuredHeight=String(height);
   }
 
-  function scheduleDevHeight(){
-    if(!isDev||heightRaf)return;
-    heightRaf=requestAnimationFrame(()=>requestAnimationFrame(lockDevPanelHeight));
+  function scheduleVectorHeight(){
+    if(!useVector||heightRaf)return;
+    heightRaf=requestAnimationFrame(()=>requestAnimationFrame(lockVectorPanelHeight));
   }
 
-  function bindDevHeight(){
-    if(!isDev)return;
+  function bindVectorHeight(){
+    if(!useVector)return;
     const row=panel.querySelector(':scope > .deck-row');
     if(!row)return;
     deckResizeObserver?.disconnect();
     if(window.ResizeObserver){
-      deckResizeObserver=new ResizeObserver(scheduleDevHeight);
+      deckResizeObserver=new ResizeObserver(scheduleVectorHeight);
       deckResizeObserver.observe(row);
       row.querySelectorAll(':scope > .deck-pile').forEach(pile=>deckResizeObserver.observe(pile));
     }
-    window.addEventListener('resize',scheduleDevHeight,{passive:true});
-    document.fonts?.ready?.then(scheduleDevHeight).catch(()=>{});
-    scheduleDevHeight();
+    window.addEventListener('resize',scheduleVectorHeight,{passive:true});
+    document.fonts?.ready?.then(scheduleVectorHeight).catch(()=>{});
+    scheduleVectorHeight();
   }
 
   function render(){
@@ -192,7 +193,7 @@
     }
     row.className='deck-row deck-sidebar three-decks';
     row.replaceChildren(...(zoneConfig.decks||[]).map(buildPile));
-    bindDevHeight();
+    bindVectorHeight();
   }
 
   function sync(){
@@ -203,7 +204,7 @@
       const def=config.deckLibrary?.[deck.type];
       note.textContent=deckNote(deck,def);
     });
-    scheduleDevHeight();
+    scheduleVectorHeight();
   }
 
   render();
@@ -217,5 +218,5 @@
     observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   }
 
-  window.HAJJEN_SHARED_CARD_DECKS={version:isDev?'1.4-vector-dev-height-lock':'1.2',zone,panel,render,sync,lockHeight:lockDevPanelHeight};
+  window.HAJJEN_SHARED_CARD_DECKS={version:useVector?'1.5-vector-zone3-height-lock':'1.2',zone,panel,render,sync,lockHeight:lockVectorPanelHeight};
 })();

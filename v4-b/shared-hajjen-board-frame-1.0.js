@@ -1,19 +1,8 @@
-/* HAJJEN board-frame loader.
-   Real Zone 3 and Zone 3 ?dev=1 use the approved elegant vector frame.
-   This module is presentation-only: it never changes gameplay state, URL or
-   campaign systems. Other pages keep the existing bitmap fallback. */
+/* HAJJEN board-frame loader — vector-only.
+   The old bitmap/base64 overlay has been retired. This module is presentation
+   only and never changes gameplay state, URL, board coordinates or movement. */
 (function(){
-  const params=new URLSearchParams(location.search);
-  const devVector=params.get('dev')==='1';
-  const productionZone3=/\/zone3\.html$/i.test(location.pathname);
-  const useVectorFrame=devVector||productionZone3;
   const NS='http://www.w3.org/2000/svg';
-  const parts=[
-    'assets/board-frame-data/part0.txt?v=1',
-    'assets/board-frame-data/part1.txt?v=1',
-    'assets/board-frame-data/part2.txt?v=1',
-    'assets/board-frame-data/part3.txt?v=1'
-  ];
 
   function ensureShell(viewport){
     if(viewport.parentElement?.classList.contains('hajjen-board-frame-shell'))return viewport.parentElement;
@@ -32,7 +21,7 @@
     return [`M ${x+radius} ${y}`,`H ${right-radius}`,`Q ${right} ${y} ${right} ${y+radius}`,`V ${bottom-radius}`,`Q ${right} ${bottom} ${right-radius} ${bottom}`,`H ${x+radius}`,`Q ${x} ${bottom} ${x} ${bottom-radius}`,`V ${y+radius}`,`Q ${x} ${y} ${x+radius} ${y}`,'Z'].join(' ');
   }
 
-  function mountDevVector(viewport,index){
+  function mountVector(viewport,index){
     const shell=ensureShell(viewport);
     shell.querySelector(':scope > .hajjen-board-frame-overlay')?.remove();
     if(shell.querySelector(':scope > .hajjen-board-vector-frame'))return;
@@ -101,34 +90,16 @@
     else window.addEventListener('resize',render,{passive:true});
   }
 
-  async function loadBitmapFrame(){
-    try{
-      const chunks=await Promise.all(parts.map(async path=>{
-        const res=await fetch(path,{cache:'force-cache'});
-        if(!res.ok)throw new Error('Frame chunk failed: '+path);
-        return (await res.text()).trim();
-      }));
-      const src='data:image/webp;base64,'+chunks.join('');
-      const apply=()=>document.querySelectorAll('.zone3-app .viewport').forEach(viewport=>{
-        const shell=ensureShell(viewport);
-        if(shell.querySelector(':scope > .hajjen-board-frame-overlay'))return;
-        const img=document.createElement('img');
-        img.className='hajjen-board-frame-overlay';img.alt='';img.setAttribute('aria-hidden','true');img.draggable=false;img.src=src;
-        shell.appendChild(img);
-      });
-      apply();
-      const root=document.getElementById('campaignRoot')||document.body;
-      new MutationObserver(apply).observe(root,{childList:true,subtree:true});
-    }catch(err){console.error('[HAJJEN] board frame failed to load',err);}
+  function apply(){
+    document.querySelectorAll('.zone3-app .viewport').forEach((viewport,index)=>mountVector(viewport,index));
   }
 
-  function loadDevVector(){
-    const apply=()=>document.querySelectorAll('.zone3-app .viewport').forEach((viewport,index)=>mountDevVector(viewport,index));
+  function start(){
     apply();
     const root=document.getElementById('campaignRoot')||document.body;
     new MutationObserver(apply).observe(root,{childList:true,subtree:true});
   }
 
-  const start=()=>useVectorFrame?loadDevVector():loadBitmapFrame();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
 })();

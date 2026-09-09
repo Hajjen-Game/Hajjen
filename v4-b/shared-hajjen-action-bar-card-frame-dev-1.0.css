@@ -1,27 +1,19 @@
 /* HAJJEN Action Bar spell-card frame test — Zone 3 DEV only.
-   CSS-only. Applies the same bronze/gold vector-frame colour family used by
-   the outer Action Bar panel while keeping the existing Force-tinted card
-   interiors, live spell text and gameplay DOM untouched. */
+   CSS-only. This version deliberately mirrors the THIN shared panel frame used
+   by Sharkan, Event Log and the outer Action Bar. No DOM/gameplay changes. */
 
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot{
-  /* Same visual rail family as .hajjen-shared-vector-frame:
-     shadow #3b2416, bronze/gold, inner #7f4f2a, highlight #e7bd78. */
-  border:3px solid transparent!important;
+  /* Keep the Force-tinted interior from the base DEV card prototype. The first
+     background layer is a scale-safe inline SVG rendition of the same panel
+     frame family: dark shadow rail, bronze/gold rail, brown inner rail, light
+     highlight and the small swept corner accents. */
+  border:0!important;
   border-style:solid!important;
   background:
-    linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 30%) padding-box,
-    linear-gradient(180deg,var(--ab-top) 0%,var(--ab-bottom) 100%) padding-box,
-    linear-gradient(180deg,
-      #e7bd78 0%,
-      #c58a46 18%,
-      #8b542c 48%,
-      #b97838 76%,
-      #e7bd78 100%) border-box!important;
-  box-shadow:
-    0 0 0 1px rgba(59,36,22,.94),
-    inset 0 0 0 1px rgba(127,79,42,.96),
-    inset 0 0 0 2px rgba(231,189,120,.58),
-    0 2px 4px rgba(59,36,22,.18)!important;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M1.7 7 L7 1.7 H93 L98.3 7 V93 L93 98.3 H7 L1.7 93 Z' fill='none' stroke='%233b2416' stroke-width='2.4' vector-effect='non-scaling-stroke' stroke-linejoin='round'/%3E%3Cpath d='M2.8 7.8 L7.8 2.8 H92.2 L97.2 7.8 V92.2 L92.2 97.2 H7.8 L2.8 92.2 Z' fill='none' stroke='%23b97838' stroke-width='1.35' vector-effect='non-scaling-stroke' stroke-linejoin='round'/%3E%3Cpath d='M4 8.7 L8.7 4 H91.3 L96 8.7 V91.3 L91.3 96 H8.7 L4 91.3 Z' fill='none' stroke='%237f4f2a' stroke-width='.82' vector-effect='non-scaling-stroke' stroke-linejoin='round'/%3E%3Cpath d='M5.1 9.5 L9.5 5.1 H90.5 L94.9 9.5 V90.5 L90.5 94.9 H9.5 L5.1 90.5 Z' fill='none' stroke='%23e7bd78' stroke-width='.5' vector-effect='non-scaling-stroke' stroke-linejoin='round' opacity='.86'/%3E%3Cpath d='M4.2 18 V10.5 Q4.2 4.2 10.5 4.2 H18 M82 4.2 H89.5 Q95.8 4.2 95.8 10.5 V18 M95.8 82 V89.5 Q95.8 95.8 89.5 95.8 H82 M18 95.8 H10.5 Q4.2 95.8 4.2 89.5 V82' fill='none' stroke='%23a96d35' stroke-width='.9' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3Cpath d='M5.2 14 V10.8 Q5.2 5.2 10.8 5.2 H14 M86 5.2 H89.2 Q94.8 5.2 94.8 10.8 V14 M94.8 86 V89.2 Q94.8 94.8 89.2 94.8 H86 M14 94.8 H10.8 Q5.2 94.8 5.2 89.2 V86' fill='none' stroke='%23e0ad64' stroke-width='.45' vector-effect='non-scaling-stroke' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E") center/100% 100% no-repeat,
+    linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 30%),
+    linear-gradient(180deg,var(--ab-top) 0%,var(--ab-bottom) 100%)!important;
+  box-shadow:0 2px 4px rgba(59,36,22,.13)!important;
   clip-path:polygon(
     7px 0,
     calc(100% - 7px) 0,
@@ -34,14 +26,9 @@ body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .actio
   )!important;
 }
 
-/* A very subtle inset rail makes the small card read as the same family as
-   the large panel without turning it into a heavy ornate frame. */
-body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot > strong{
-  position:relative;
-}
-
-/* Empty slots keep their neutral surface but use the same solid frame for the
-   comparison instead of the previous dashed border. */
+/* Empty slots use the same thin shared frame too; only their neutral interior
+   remains different. */
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .spell-slot.empty{
+  border:0!important;
   border-style:solid!important;
 }

@@ -1,50 +1,50 @@
-/* HAJJEN Action Bar spell-card frame test — Zone 3 DEV only.
-   CSS-only. Mirrors the thin shared panel frame used by Sharkan, Event Log and
-   the outer Action Bar without SVG scaling or DOM/gameplay changes. */
+/* HAJJEN Action Bar spell-card frame — Zone 3 DEV only.
+   The frame itself is now the REAL shared vector frame geometry, drawn by
+   shared-hajjen-action-bar-card-shared-frame-dev-1.0.js as one passive overlay.
+   This CSS only prepares the existing cards/surface; no gameplay DOM is changed. */
+
+body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar{
+  position:relative!important;
+}
 
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot{
-  /* Keep the Force-tinted interior from the base DEV card prototype. Use thin
-     fixed-width rails so the frame stays proportionate on narrow/tall cards. */
+  /* Remove the earlier fake card rails. The live Force surface remains, while
+     the exact shared SVG frame sits above it. */
   position:relative!important;
-  border:1px solid #3b2416!important;
+  z-index:1!important;
+  border:0!important;
   border-style:solid!important;
+  border-radius:6px!important;
+  clip-path:none!important;
   background:
     linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 30%),
     linear-gradient(180deg,var(--ab-top) 0%,var(--ab-bottom) 100%)!important;
-  box-shadow:
-    inset 0 0 0 1px #b97838,
-    inset 0 0 0 2px rgba(127,79,42,.92),
-    inset 0 0 0 3px rgba(231,189,120,.58),
-    0 2px 4px rgba(59,36,22,.13)!important;
-  clip-path:polygon(
-    6px 0,
-    calc(100% - 6px) 0,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    0 calc(100% - 6px),
-    0 6px
-  )!important;
+  box-shadow:0 2px 4px rgba(59,36,22,.12)!important;
 }
 
-/* Small corner sweeps in the same bronze family as the shared panel frame.
-   ::before remains reserved for the spell icon, so corners use ::after. */
+/* Remove the previous CSS corner approximation. ::before stays reserved for
+   the spell/potion icon slot from the base DEV prototype. */
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot::after{
-  content:"";
-  position:absolute;
-  inset:4px;
-  z-index:2;
-  pointer-events:none;
-  background:
-    linear-gradient(135deg,transparent 0 8px,#a96d35 8px 9px,transparent 9px) left top/18px 18px no-repeat,
-    linear-gradient(225deg,transparent 0 8px,#a96d35 8px 9px,transparent 9px) right top/18px 18px no-repeat,
-    linear-gradient(315deg,transparent 0 8px,#a96d35 8px 9px,transparent 9px) right bottom/18px 18px no-repeat,
-    linear-gradient(45deg,transparent 0 8px,#a96d35 8px 9px,transparent 9px) left bottom/18px 18px no-repeat;
-  opacity:.92;
+  content:none!important;
+  display:none!important;
 }
 
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .spell-slot.empty{
-  border:1px solid #3b2416!important;
+  border:0!important;
   border-style:solid!important;
+}
+
+/* One overlay covers the whole Action Bar row. It does not participate in the
+   grid and never receives pointer input. Its child paths reuse the SAME shared
+   frame classes/palette as Sharkan, Event Log and the outer Action Bar. */
+body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .hajjen-action-card-shared-frame-overlay{
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  z-index:8!important;
+  display:block!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+  shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 1px 1px rgba(48,28,14,.10));
 }

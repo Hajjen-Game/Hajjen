@@ -1,0 +1,94 @@
+/* HAJJEN Zone 3 DEV — Shared Vector Frame test on every Hand card/slot.
+   Presentation only. The existing clean card artwork, text, controls and Hand logic remain untouched. */
+
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card,
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
+  position:relative!important;
+  isolation:isolate!important;
+}
+
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-card-shared-frame,
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-card-shared-frame{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:8!important;
+  display:block!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+  shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 1px 1px rgba(48,28,14,.12));
+}
+
+/* Exact Shared Vector Frame palette used by Objectives, Sharkan, Event Log,
+   Action Bar and Fight Window. */
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .frame-shadow{
+  fill:none;
+  stroke:#3b2416;
+  stroke-width:3;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.86;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .frame-gold{
+  fill:none;
+  stroke-width:1.72;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.98;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .frame-inner{
+  fill:none;
+  stroke:#7f4f2a;
+  stroke-width:.82;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.96;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .frame-highlight{
+  fill:none;
+  stroke:#e7bd78;
+  stroke-width:.48;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.80;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .corner-accent{
+  fill:none;
+  stroke:#a96d35;
+  stroke-width:.86;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.96;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .corner-sweep-shadow{
+  fill:none;
+  stroke:#4c2c16;
+  stroke-width:1.12;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.74;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .corner-sweep{
+  fill:none;
+  stroke:#b97838;
+  stroke-width:.60;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  opacity:.96;
+}
+body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-card-shared-frame .corner-node{
+  fill:#b87b3b;
+  stroke:#59351d;
+  stroke-width:.62;
+  vector-effect:non-scaling-stroke;
+  opacity:.99;
+}

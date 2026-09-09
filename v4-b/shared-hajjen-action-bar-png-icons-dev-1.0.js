@@ -9,6 +9,26 @@
   const actionbar=document.getElementById('actionbar');
   if(!actionbar)return;
 
+  /* Real PNG icons already contain their own square presentation. Remove the
+     old temporary pseudo-icon plate only when a PNG is actually bound. */
+  const STYLE_ID='hajjenActionBarPngIconPlateFixDev';
+  if(!document.getElementById(STYLE_ID)){
+    const style=document.createElement('style');
+    style.id=STYLE_ID;
+    style.textContent=`
+      body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot.has-action-png-icon::before{
+        content:""!important;
+        color:transparent!important;
+        text-shadow:none!important;
+        background-color:transparent!important;
+        border:0!important;
+        box-shadow:none!important;
+        clip-path:none!important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   const iconFiles={
     'ember bolt':'ember-bolt.png',
     'cinder burst':'cinder-burst.png',
@@ -64,7 +84,7 @@
   observer?.observe(spellSource,{childList:true,subtree:true,characterData:true});
 
   window.HAJJEN_ACTION_BAR_PNG_ICONS_DEV={
-    version:'1.0',
+    version:'1.1',
     iconFiles,
     sync:syncIcons,
     observer

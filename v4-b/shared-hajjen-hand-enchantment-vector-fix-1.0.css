@@ -63,3 +63,34 @@ html[data-hajjen-dev="zone3"] .zone3-app .cards-hud .shared-hand-grid > .shared-
   bottom:6.2%!important;
   height:13.5%!important;
 }
+
+/* Production-safe completion: the vector shell above is already enabled by the
+   late visual marker, but the DEV-only JS icon decorator intentionally does not
+   run in normal Zone 3. Draw the Enchantment medallion inside the existing title
+   element so no live Hand DOM is rewritten. */
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong{
+  left:7.5%!important;
+  right:7%!important;
+  top:8.5%!important;
+  height:23%!important;
+  box-sizing:border-box!important;
+  padding:0 0 0 22%!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='21.5' fill='%23794D8C' stroke='%237A4C29' stroke-width='1.5'/%3E%3Ccircle cx='24' cy='24' r='19.5' fill='none' stroke='%23ECD39D' stroke-opacity='.62' stroke-width='1'/%3E%3Cg fill='none' stroke='%23F3E3BE' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 7.5l3.2 10.2L37.5 21l-10.3 3.2L24 34.5l-3.2-10.3L10.5 21l10.3-3.3z'/%3E%3Cpath d='M24 12.2v23.6M12.2 21h23.6'/%3E%3Ccircle cx='24' cy='21' r='3.1' fill='%23F3E3BE' stroke='none'/%3E%3C/g%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:left center!important;
+  background-size:18% auto!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong::before{
+  content:none!important;
+  display:none!important;
+}
+
+@media(max-width:850px){
+  html[data-hajjen-promoted="zone3-safe"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong{
+    padding-left:21%!important;
+    background-size:17.5% auto!important;
+  }
+}

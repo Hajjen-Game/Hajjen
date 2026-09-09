@@ -35,25 +35,13 @@
   }
 
   panel.classList.add('objectives','shared-objectives');
-  panel.dataset.sharedComponent='objectives-1.2';
+  panel.dataset.sharedComponent='objectives-1.3-vector-only';
   panel.replaceChildren();
 
-  // Shared core creates the exact same eight-piece frame structure used by
-  // Objectives, Sharkan and Event Log. Panel-specific CSS controls sizing.
-  if(window.HAJJEN_PANEL_FRAME?.mount){
-    window.HAJJEN_PANEL_FRAME.mount(panel);
-  }else{
-    // Safe fallback for pages that have not loaded the shared frame helper yet.
-    const frame=document.createElement('span');
-    frame.className='hajjen-panel-frame';
-    frame.setAttribute('aria-hidden','true');
-    ['tl','t','tr','l','r','bl','b','br'].forEach(part=>{
-      const piece=document.createElement('span');
-      piece.className=`hajjen-panel-frame-piece ${part}`;
-      frame.appendChild(piece);
-    });
-    panel.appendChild(frame);
-  }
+  /* The retired bitmap frame fallback used to create eight tl/t/tr/l/r/bl/b/br
+     spans here. The approved UI uses the shared SVG vector-frame pass instead. */
+  if(window.HAJJEN_PANEL_FRAME?.mount)window.HAJJEN_PANEL_FRAME.mount(panel);
+  else panel.classList.add('hajjen-framed-panel');
 
   const heading=document.createElement('h2');
   heading.textContent='OBJECTIVES';
@@ -90,5 +78,5 @@
   syncLevel();
   const levelTimer=levelItem&&zone>=2?setInterval(syncLevel,120):null;
 
-  window.HAJJEN_SHARED_OBJECTIVES={version:'1.2',zone,panel,syncLevel,levelTimer};
+  window.HAJJEN_SHARED_OBJECTIVES={version:'1.3-vector-only',zone,panel,syncLevel,levelTimer};
 })();

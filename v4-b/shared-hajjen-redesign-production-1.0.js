@@ -1,30 +1,27 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.3 keeps Zone 1–2 on the approved visual skin while avoiding late visual
-   decorators that can flicker when a live gameplay component rebuilds DOM.
-   Card Decks is now vector-first in the shared component and is never rerun. */
+   V1.4 keeps Zone 1–2 on the approved visual skin. Card Decks, board frames
+   and shared panel frames are now vector-first; retired bitmap frame CSS is no
+   longer loaded. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1')return;
 
   const html=document.documentElement;
-  html.dataset.hajjenDev='zone3';       // Activates the approved visual CSS selectors.
-  html.dataset.hajjenPromoted='1';      // Explicit production marker for diagnostics.
+  html.dataset.hajjenDev='zone3';
+  html.dataset.hajjenPromoted='1';
 
   const cssFiles=[
     'shared-hajjen-theme-1.0.css?v=13',
     'shared-hajjen-background-1.0.css?v=3',
-    'shared-hajjen-board-frame-1.0.css?v=10',
+    'shared-hajjen-board-frame-1.0.css?v=11',
     'shared-hajjen-side-panels-1.0.css?v=1',
     'shared-hajjen-sharkan-light-background-test-1.0.css?v=1',
-    'shared-hajjen-card-decks-1.0.css?v=4',
-    'shared-hajjen-panel-frame-v2-1.0.css?v=1',
-    'shared-hajjen-panel-frame-family-a-1.0.css?v=5',
+    'shared-hajjen-card-decks-1.0.css?v=7',
     'shared-hajjen-objectives-vector-frame-1.0.css?v=9',
     'shared-hajjen-utility-buttons-1.0.css?v=6',
     'shared-hajjen-utility-buttons-vector-fix-1.0.css?v=1',
     'shared-hajjen-title-plaques-1.0.css?v=4',
     'shared-hajjen-title-plaque-vector-1.0.css?v=13',
-    'shared-hajjen-card-decks-shell-fix-1.0.css?v=3',
     'shared-hajjen-hand-cards-1.1.css?v=6',
     'shared-hajjen-enchantment-card-fix-1.0.css?v=2',
     'shared-hajjen-hand-card-title-layout-1.0.css?v=2',
@@ -73,11 +70,6 @@
     document.querySelectorAll('.app,.campaign-zone-app').forEach(app=>{
       app.classList.add('zone3-app','hajjen-redesign-app');
     });
-
-    /* Zone 1 uses the legacy .board-wrap name while Zones 2–3 call the same
-       visual viewport .viewport. Add only the compatibility class so the
-       approved responsive vector board frame can mount without changing the
-       Zone 1 board dimensions or movement logic. */
     if(zoneNumber()===1){
       document.querySelector('.hajjen-redesign-app .board-wrap')?.classList.add('viewport');
     }
@@ -124,37 +116,25 @@
     });
   }
 
-  async function loadSequential(files,options){
-    for(const file of files)await loadScript(file,options);
-  }
+  async function loadSequential(files,options){for(const file of files)await loadScript(file,options);}
 
-  /* Several approved visual modules were intentionally gated by the literal
-     ?dev=1 URL while they were prototypes. Temporarily expose that query only
-     while those allow-listed presentation scripts execute. replaceState does
-     not reload the page and therefore cannot start zone3-dev-entry, which has
-     already executed and returned in normal campaign mode. */
+  /* A few remaining presentation prototypes are still literal ?dev=1 gated.
+     This compatibility bridge is intentionally limited to those visual modules;
+     Card Decks and frame systems no longer depend on it. */
   async function withVisualDevQuery(callback){
     const original=`${location.pathname}${location.search}${location.hash}`;
     const devUrl=new URL(location.href);
     devUrl.searchParams.set('dev','1');
     const devRelative=`${devUrl.pathname}${devUrl.search}${devUrl.hash}`;
     history.replaceState(history.state,'',devRelative);
-    try{
-      await callback();
-    }finally{
-      history.replaceState(history.state,'',original);
-    }
+    try{await callback();}finally{history.replaceState(history.state,'',original);}
   }
 
   async function promote(){
     await Promise.all(cssFiles.map(ensureStylesheet));
     markApps();
 
-    /* Zone 1–2 originally initialized Objectives/Status/Event Log before the
-       decorative frame helper existed. Load it now and explicitly adopt the
-       already-live panels before any vector frame/plaque pass. Card Decks no
-       longer needs a second render: shared-card-decks builds vector rows first. */
-    await loadScript('shared-hajjen-panel-frame-1.0.js?v=2',{force:false});
+    await loadScript('shared-hajjen-panel-frame-1.0.js?v=3',{force:false});
     mountExistingPanelFrames();
 
     await withVisualDevQuery(async()=>{
@@ -167,28 +147,19 @@
         'shared-hajjen-hand-enchantment-vector-1.0.js?v=1',
         'shared-hajjen-hand-locked-vector-1.0.js?v=1',
         'shared-hajjen-header-vector-1.0.js?v=1',
-        'shared-hajjen-board-frame-1.0.js?v=5'
+        'shared-hajjen-board-frame-1.0.js?v=6'
       );
       await loadSequential(presentationScripts,{force:true});
     });
 
-    /* Hand outer frame is not DEV-gated. Re-run after the live Hand component
-       has settled, then mount every eligible panel before the shared SVG frame
-       family is generated. */
     await loadScript('shared-hajjen-hand-panel-frame-1.0.js?v=2',{force:true});
     mountExistingPanelFrames();
-
-    /* Force a fresh shared vector-frame pass. This removes any legacy sliced
-       frame that existed before promotion and gives Objectives, Status, Event
-       Log, Card Decks, Hand and Action Bar the approved thin frame family. */
     await loadScript('shared-hajjen-objectives-vector-frame-1.0.js?v=11',{force:true});
-
-    /* Reuse the exact approved Sharkan texture for Objectives + Event Log. */
     await loadScript('shared-hajjen-light-side-panel-backgrounds-1.0.js?v=1',{force:true});
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.3'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.4-vector-frame-cleanup'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

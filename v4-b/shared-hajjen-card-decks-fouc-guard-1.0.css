@@ -1,0 +1,10 @@
+/* HAJJEN Card Decks production startup guard.
+   Zones 1–2 now build the approved vector rows on first render. Keep the panel
+   hidden only until the redesign stylesheet/frame pass is complete so neither
+   legacy nor temporarily unstyled rows can flash during refresh. */
+html:not([data-hajjen-redesign-ready="1"]) .shared-card-decks-panel{
+  visibility:hidden!important;
+}
+html[data-hajjen-redesign-ready="1"] .shared-card-decks-panel{
+  visibility:visible!important;
+}

@@ -1,14 +1,17 @@
 /* HAJJEN Zone 1 production — stable Manipulation medallion.
    CSS only. Zone 1's renderer rebuilds Manipulation cards during movement.
-   Keeping the approved shared medallion on the persistent title styling avoids
-   the DEV decorator's remove/re-mount flicker and matches Zones 2–3. */
+   Keep the approved shared medallion on the persistent title styling so it
+   never flickers and matches the stable Zone 2 presentation exactly. */
 
-html[data-hajjen-promoted="1"] .hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > .hajjen-manip-card-icon-wrap{
+html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > .hajjen-manip-card-icon-wrap{
   display:none!important;
   visibility:hidden!important;
 }
 
-html[data-hajjen-promoted="1"] .hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong{
+/* Higher specificity than the generic DEV-derived Manipulation title rule.
+   Zone 1 therefore keeps the same full-width title box used by stable Zone 2,
+   which also gives the CSS medallion the same apparent size. */
+html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong{
   left:7.5%!important;
   right:7%!important;
   top:8.5%!important;
@@ -23,14 +26,35 @@ html[data-hajjen-promoted="1"] .hajjen-zone-1 .cards-hud .shared-hand-grid > .sh
   text-overflow:ellipsis!important;
 }
 
-html[data-hajjen-promoted="1"] .hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong::before{
+html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong::before{
   content:none!important;
   display:none!important;
 }
 
+/* Zone 1 gameplay historically renders "PLAY · 1 left". Keep the real button,
+   disabled state and click handler untouched, but present the same concise label
+   as Zones 2–3. */
+html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button{
+  font-size:0!important;
+}
+html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button::after{
+  content:"PLAY";
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(7px,.56vw,9.5px)!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.28px!important;
+}
+html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button:disabled::after{
+  content:"USED";
+}
+
 @media(max-width:850px){
-  html[data-hajjen-promoted="1"] .hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong{
+  html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > strong{
     padding-left:21%!important;
     background-size:17.5% auto!important;
+  }
+  html[data-hajjen-promoted="1"][data-hajjen-dev="zone3"] .zone3-app.hajjen-zone-1 .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button::after{
+    font-size:8px!important;
   }
 }

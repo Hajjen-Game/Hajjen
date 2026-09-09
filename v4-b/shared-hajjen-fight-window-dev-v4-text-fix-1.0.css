@@ -1,0 +1,17 @@
+/* HAJJEN Zone 3 DEV — Fight Window V4 message text layering fix.
+   V3 moved the parchment to ::before to stop edge bleed. The combat message is
+   a raw text node, so that z-index:0 surface could paint over it. Keep the same
+   inset parchment/frame, but place only the message parchment behind its text. */
+
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-message{
+  position:relative!important;
+  isolation:isolate!important;
+}
+
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-message::before{
+  z-index:-1!important;
+}
+
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-message > .hajjen-fight-inner-frame{
+  z-index:7!important;
+}

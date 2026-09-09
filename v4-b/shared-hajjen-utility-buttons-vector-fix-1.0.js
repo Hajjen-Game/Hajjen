@@ -1,10 +1,13 @@
-/* HAJJEN DEV vector utility repair hook.
-   Run after the shared Run Report code. That component clones/relabels the Copy
-   button, so this hook restores/maintains the vector icon+label content without
-   touching the actual click behaviour. */
+/* HAJJEN Zone 3 vector utility repair hook.
+   Run after the shared Run Report code. That component or later shared UI syncs
+   can clone/relabel utility buttons, so this hook restores/maintains the vector
+   icon+label content without touching the actual click behaviour. */
 (()=>{
   const params=new URLSearchParams(location.search);
-  if(params.get('dev')!=='1')return;
+  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||null;
+  const isDev=params.get('dev')==='1';
+  const isZone3=Number(zone)===3;
+  if(!isDev&&!isZone3)return;
 
   const utility=document.querySelector('.zone3-app .shared-utility-hud');
   if(!utility)return;
@@ -111,5 +114,5 @@
   new MutationObserver(queueRepair).observe(utility,{childList:true,subtree:true,characterData:true});
   setTimeout(repair,0);
 
-  window.HAJJEN_VECTOR_UTILITY_REPAIR={version:'1.0',repair};
+  window.HAJJEN_VECTOR_UTILITY_REPAIR={version:'1.1-zone3-production',repair};
 })();

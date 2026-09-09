@@ -1,11 +1,9 @@
-/* HAJJEN board frame — Zone 3 visual skin only.
-   Normal mode uses the approved bitmap overlay.
-   ?dev=1 uses the established elegant vector frame, moved inward only. */
+/* HAJJEN board frame — vector-only production skin.
+   The retired bitmap overlay/base64 fallback has been removed. All campaign
+   zones use the same approved coded bronze-gold vector frame. */
 
 .zone3-app .hajjen-board-frame-shell{
-  --hajjen-board-frame-x:clamp(18px,2.15vw,28px);
-  --hajjen-board-frame-top:clamp(18px,2.15vw,28px);
-  --hajjen-board-frame-bottom:clamp(34px,4.25vw,52px);
+  --hajjen-board-vector-outset:6.2px;
   position:relative;
   width:min(100%,1050px);
   flex:0 0 auto;
@@ -19,39 +17,12 @@
   border:0;
   border-radius:0;
   overflow:hidden;
-  box-shadow:0 8px 22px rgba(51,65,48,.10),0 4px 12px rgba(54,36,17,.16);
+  box-shadow:0 9px 24px rgba(51,65,48,.11),0 5px 14px rgba(54,36,17,.17);
 }
 
 .zone3-app .viewport::after{content:none!important}
 
-.zone3-app .hajjen-board-frame-shell > .hajjen-board-frame-overlay{
-  position:absolute;
-  left:calc(-1 * var(--hajjen-board-frame-x));
-  top:calc(-1 * var(--hajjen-board-frame-top));
-  width:calc(100% + var(--hajjen-board-frame-x) + var(--hajjen-board-frame-x));
-  height:calc(100% + var(--hajjen-board-frame-top) + var(--hajjen-board-frame-bottom));
-  z-index:2;
-  display:block;
-  max-width:none;
-  max-height:none;
-  object-fit:fill;
-  pointer-events:none;
-  user-select:none;
-}
-
-/* DEV board vector: preserve the exact v1.93 frame geometry and styling.
-   Only the outer canvas position changes. With the established 7.2px inner
-   rail inset, a 6.2px outset places that brown rail exactly 1px inside the
-   real gameplay-board edge. */
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{
-  --hajjen-board-vector-outset:6.2px;
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell > .viewport{
-  box-shadow:0 9px 24px rgba(51,65,48,.11),0 5px 14px rgba(54,36,17,.17);
-}
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell > .hajjen-board-vector-frame{
+.zone3-app .hajjen-board-vector-shell > .hajjen-board-vector-frame{
   position:absolute;
   left:calc(-1 * var(--hajjen-board-vector-outset));
   top:calc(-1 * var(--hajjen-board-vector-outset));
@@ -65,97 +36,37 @@ html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell > .hajjen-bo
   filter:drop-shadow(0 2px 1.5px rgba(48,28,14,.24));
 }
 
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-shadow{
-  fill:none;
-  stroke:#3b2416;
-  stroke-width:4.2;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.88;
+.zone3-app .hajjen-board-vector-frame .frame-shadow{
+  fill:none;stroke:#3b2416;stroke-width:4.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.88;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-gold{
-  fill:none;
-  stroke-width:2.25;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.99;
+.zone3-app .hajjen-board-vector-frame .frame-gold{
+  fill:none;stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.99;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-inner{
-  fill:none;
-  stroke:#7f4f2a;
-  stroke-width:1.08;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.97;
+.zone3-app .hajjen-board-vector-frame .frame-inner{
+  fill:none;stroke:#7f4f2a;stroke-width:1.08;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.97;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .frame-highlight{
-  fill:none;
-  stroke:#f0c77f;
-  stroke-width:.64;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.82;
+.zone3-app .hajjen-board-vector-frame .frame-highlight{
+  fill:none;stroke:#f0c77f;stroke-width:.64;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.82;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-accent{
-  fill:none;
-  stroke:#ae7137;
-  stroke-width:1.12;
-  stroke-linejoin:round;
-  stroke-linecap:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.98;
+.zone3-app .hajjen-board-vector-frame .corner-accent{
+  fill:none;stroke:#ae7137;stroke-width:1.12;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.98;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-sweep-shadow{
-  fill:none;
-  stroke:#4c2c16;
-  stroke-width:1.55;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.75;
+.zone3-app .hajjen-board-vector-frame .corner-sweep-shadow{
+  fill:none;stroke:#4c2c16;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.75;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-sweep{
-  fill:none;
-  stroke:#c18443;
-  stroke-width:.86;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  vector-effect:non-scaling-stroke;
-  opacity:.98;
+.zone3-app .hajjen-board-vector-frame .corner-sweep{
+  fill:none;stroke:#c18443;stroke-width:.86;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.98;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-node{
-  fill:#c18443;
-  stroke:#59351d;
-  stroke-width:.82;
-  vector-effect:non-scaling-stroke;
-  opacity:1;
+.zone3-app .hajjen-board-vector-frame .corner-node{
+  fill:#c18443;stroke:#59351d;stroke-width:.82;vector-effect:non-scaling-stroke;opacity:1;
 }
-
-html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-frame .corner-jewel{
-  fill:#f1ce8c;
-  stroke:none;
-  opacity:.92;
-}
+.zone3-app .hajjen-board-vector-frame .corner-jewel{fill:#f1ce8c;stroke:none;opacity:.92}
 
 @media(max-width:560px){
   .zone3-app .hajjen-board-frame-shell{
-    --hajjen-board-frame-x:18px;
-    --hajjen-board-frame-top:18px;
-    --hajjen-board-frame-bottom:36px;
+    --hajjen-board-vector-outset:6.2px;
     width:700px;
     min-width:700px;
   }
-  .zone3-app .hajjen-board-frame-shell > .viewport{min-width:0;}
-  html[data-hajjen-dev="zone3"] .zone3-app .hajjen-board-vector-shell{--hajjen-board-vector-outset:6.2px;}
+  .zone3-app .hajjen-board-frame-shell > .viewport{min-width:0}
 }

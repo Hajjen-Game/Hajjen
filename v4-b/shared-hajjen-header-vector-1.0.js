@@ -1,9 +1,12 @@
-/* HAJJEN top header lower rail — DEV only.
+/* HAJJEN top header lower rail — Zone 3 presentation.
    Uses the exact same stroke hierarchy and gold gradient as the approved board
    vector frame. The header itself stays frameless at the top and sides. */
 (()=>{
   const params=new URLSearchParams(location.search);
-  if(params.get('dev')!=='1')return;
+  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||null;
+  const isDev=params.get('dev')==='1';
+  const isZone3=Number(zone)===3;
+  if(!isDev&&!isZone3)return;
 
   const NS='http://www.w3.org/2000/svg';
   const make=(name,attrs={})=>{

@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="theme-color" content="#cdbb96"/>
-  <meta name="hajjen-build" content="v4-b-1.187-card-decks-vector-first-cleanup"/>
+  <meta name="hajjen-build" content="v4-b-1.188-legacy-frame-cleanup"/>
   <title>HAJJEN V4-B – Zone 2</title>
   <link rel="stylesheet" href="campaign-zone.css"/>
   <link rel="stylesheet" href="v4-b.css"/>
@@ -38,7 +38,7 @@
   <script src="campaign-zone.js"></script>
   <script src="zone2-entry-potion-persist-1.0.js"></script>
   <script src="shared-campaign-ui-1.0.js"></script>
-  <script src="shared-objectives-1.0.js"></script>
+  <script src="shared-objectives-1.0.js?v=4"></script>
   <script src="shared-status-1.0.js"></script>
   <script src="zone2-system-fixes-1.0.js"></script>
   <script src="campaign-spawn-parity-1.0.js"></script>
@@ -65,11 +65,9 @@
       document.addEventListener('hajjen-ui-redesign-promoted',()=>{
         html.dataset.hajjenRedesignReady='1';
       },{once:true});
-      /* Fail open if a presentation asset fails to load: never leave Hand or
-         Card Decks permanently hidden because of a cosmetic network error. */
       setTimeout(()=>{html.dataset.hajjenRedesignReady='1';},2500);
     })();
   </script>
-  <script data-hajjen-redesign-production="1" src="shared-hajjen-redesign-production-1.0.js?v=4"></script>
+  <script data-hajjen-redesign-production="1" src="shared-hajjen-redesign-production-1.0.js?v=5"></script>
 </body>
 </html>

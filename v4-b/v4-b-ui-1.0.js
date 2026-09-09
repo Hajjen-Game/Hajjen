@@ -16,6 +16,10 @@
 
   const actionHud=document.querySelector('.action-hud');
   const actionbar=$('actionbar');
+  /* Zone 1 originally shipped with 3 SPELLS + 2 ACTIONS. The modern shared
+     Action Bar is 4 SPELLS + POTION, so remove the obsolete sixth EMPTY ACTION
+     button before the fourth spell slot and shared presentation initialize. */
+  actionbar?.querySelector(':scope > .action-empty')?.remove();
   if(actionbar&&!actionbar.querySelector('[data-action-spell="3"]')){
     const fourth=document.createElement('button');fourth.type='button';fourth.className='action-slot spell-slot empty';fourth.dataset.actionSpell='3';fourth.textContent='EMPTY SPELL';
     const divider=actionbar.querySelector('.action-divider');actionbar.insertBefore(fourth,divider||actionbar.firstChild);

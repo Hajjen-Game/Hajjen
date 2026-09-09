@@ -1,0 +1,47 @@
+/* HAJJEN Action Bar spell-card frame test — Zone 3 DEV only.
+   CSS-only. Applies the same bronze/gold vector-frame colour family used by
+   the outer Action Bar panel while keeping the existing Force-tinted card
+   interiors, live spell text and gameplay DOM untouched. */
+
+body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot{
+  /* Same visual rail family as .hajjen-shared-vector-frame:
+     shadow #3b2416, bronze/gold, inner #7f4f2a, highlight #e7bd78. */
+  border:3px solid transparent!important;
+  border-style:solid!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 30%) padding-box,
+    linear-gradient(180deg,var(--ab-top) 0%,var(--ab-bottom) 100%) padding-box,
+    linear-gradient(180deg,
+      #e7bd78 0%,
+      #c58a46 18%,
+      #8b542c 48%,
+      #b97838 76%,
+      #e7bd78 100%) border-box!important;
+  box-shadow:
+    0 0 0 1px rgba(59,36,22,.94),
+    inset 0 0 0 1px rgba(127,79,42,.96),
+    inset 0 0 0 2px rgba(231,189,120,.58),
+    0 2px 4px rgba(59,36,22,.18)!important;
+  clip-path:polygon(
+    7px 0,
+    calc(100% - 7px) 0,
+    100% 7px,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    7px 100%,
+    0 calc(100% - 7px),
+    0 7px
+  )!important;
+}
+
+/* A very subtle inset rail makes the small card read as the same family as
+   the large panel without turning it into a heavy ornate frame. */
+body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot > strong{
+  position:relative;
+}
+
+/* Empty slots keep their neutral surface but use the same solid frame for the
+   comparison instead of the previous dashed border. */
+body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .spell-slot.empty{
+  border-style:solid!important;
+}

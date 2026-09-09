@@ -1,8 +1,6 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.1 makes the visual skin proven in zone3.html?dev=1 available in the real
-   Zone 1–3 pages without enabling the DEV save-state/bootstrap or Tactical
-   preview behaviour. The existing shared gameplay components remain owners of
-   all progression and interactions; this file only promotes presentation. */
+   V1.2 keeps Zone 1–2 on the approved visual skin while avoiding late visual
+   decorators that can flicker when a live gameplay component rebuilds DOM. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1')return;
@@ -41,6 +39,7 @@
     'shared-hajjen-hand-enchantment-vector-fix-1.0.css?v=2',
     'shared-hajjen-hand-tactical-vector-1.0.css?v=1',
     'shared-hajjen-hand-locked-vector-1.0.css?v=1',
+    'shared-hajjen-hand-manipulation-zone2-stable-icon-1.0.css?v=1',
     'shared-hajjen-header-vector-1.0.css?v=3',
     'shared-hajjen-header-background-crop-test-1.0.css?v=3',
     'shared-hajjen-action-bar-background-1.0.css?v=2',
@@ -164,16 +163,22 @@
       mountExistingPanelFrames();
       await loadScript('shared-hajjen-card-decks-height-lock-1.0.js?v=3',{force:true});
 
-      /* Presentation-only modules. Tactical preview is intentionally absent. */
-      await loadSequential([
+      /* Presentation-only modules. Tactical preview is intentionally absent.
+         Zone 2 uses the stable CSS Manipulation medallion instead of the DEV
+         MutationObserver decorator, because its live cards are rebuilt during
+         movement renders. */
+      const presentationScripts=[
         'shared-hajjen-title-plaque-vector-1.0.js?v=13',
-        'shared-hajjen-utility-buttons-vector-fix-1.0.js?v=1',
-        'shared-hajjen-hand-manipulation-vector-1.0.js?v=3',
+        'shared-hajjen-utility-buttons-vector-fix-1.0.js?v=1'
+      ];
+      if(zoneNumber()!==2)presentationScripts.push('shared-hajjen-hand-manipulation-vector-1.0.js?v=3');
+      presentationScripts.push(
         'shared-hajjen-hand-enchantment-vector-1.0.js?v=1',
         'shared-hajjen-hand-locked-vector-1.0.js?v=1',
         'shared-hajjen-header-vector-1.0.js?v=1',
         'shared-hajjen-board-frame-1.0.js?v=5'
-      ],{force:true});
+      );
+      await loadSequential(presentationScripts,{force:true});
     });
 
     /* Hand outer frame is not DEV-gated. Re-run after the live Hand component
@@ -192,7 +197,7 @@
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.1'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.2'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

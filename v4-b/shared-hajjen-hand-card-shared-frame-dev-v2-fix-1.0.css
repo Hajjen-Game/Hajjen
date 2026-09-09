@@ -1,21 +1,69 @@
 /* HAJJEN Zone 3 DEV — frameless Hand card masters.
-   The clean-v2 WEBP files contain their old gold outer frame baked into the bitmap.
-   Stop painting those bitmaps entirely so the Shared Vector Frame is the only frame. */
+   The old bitmap frames are gone. Paint each card surface as an inset layer so
+   no card fill can protrude beyond the Shared Vector Frame. */
 
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
+  --hand-card-surface:linear-gradient(180deg,#f4f6f5 0%,#e0e6e8 100%);
+  background:transparent!important;
   background-image:none!important;
-  background-repeat:no-repeat!important;
-  background-position:center!important;
-  background-size:100% 100%!important;
   border:0!important;
   box-shadow:none!important;
+  position:relative!important;
+  isolation:isolate!important;
 }
 
-/* Remove legacy bitmap/mask/pseudo-frame layers, including the previous cleanup mask. */
+/* Category surfaces only — no baked/legacy frame artwork. */
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation{
+  --hand-card-surface:linear-gradient(180deg,#f4f6f5 0%,#e0e6e8 100%);
+}
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"],
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.enchantment{
+  --hand-card-surface:linear-gradient(180deg,#eee1f0 0%,#dcc8e1 100%);
+}
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"],
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.empty{
+  --hand-card-surface:linear-gradient(180deg,#f3ddb1 0%,#e8bf7e 100%);
+}
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked,
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.locked{
+  --hand-card-surface:linear-gradient(180deg,#e2e4e5 0%,#c9cdcf 100%);
+}
+
+/* Reclaim ::before as the frameless card surface. It begins inside the outer
+   vector rail, so there is no pale/colored strip visible outside the frame. */
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card::before,
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  inset:3px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:var(--hand-card-surface)!important;
+  background-image:var(--hand-card-surface)!important;
+  -webkit-mask:none!important;
+  mask:none!important;
+  filter:none!important;
+  box-shadow:none!important;
+  clip-path:polygon(
+    5px 0,
+    calc(100% - 5px) 0,
+    100% 5px,
+    100% calc(100% - 5px),
+    calc(100% - 5px) 100%,
+    5px 100%,
+    0 calc(100% - 5px),
+    0 5px
+  )!important;
+}
+
+/* No second legacy pseudo layer. */
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card::after,
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder::before,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder::after{
   content:none!important;
   display:none!important;
@@ -27,22 +75,10 @@ body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-place
   filter:none!important;
 }
 
-/* Frameless category surfaces. */
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation{
-  background:linear-gradient(180deg,#f4f6f5 0%,#e0e6e8 100%)!important;
-}
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"],
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.enchantment{
-  background:linear-gradient(180deg,#eee1f0 0%,#dcc8e1 100%)!important;
-}
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"],
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.empty{
-  background:linear-gradient(180deg,#f3ddb1 0%,#e8bf7e 100%)!important;
-}
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked,
-body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.locked{
-  background:linear-gradient(180deg,#e2e4e5 0%,#c9cdcf 100%)!important;
+/* Keep real card content above the inset surface and below the shared frame. */
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > *:not(.hajjen-hand-card-shared-frame),
+body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > *:not(.hajjen-hand-card-shared-frame){
+  z-index:3!important;
 }
 
 /* Recreate only the functional command/select surfaces that used to be painted into the bitmap. */
@@ -71,13 +107,12 @@ body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[
   box-shadow:inset 0 0 0 1px rgba(248,222,164,.45),inset 0 1px rgba(255,240,194,.55)!important;
 }
 
-/* Locked slot text/copy is real HTML again now that the baked bitmap is gone. */
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > strong,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > .shared-locked-copy{
   display:flex!important;
 }
 
-/* Shared Vector Frame paints last and is the only outer frame. */
+/* Shared Vector Frame paints last and remains the only outer frame. */
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-card-shared-frame,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-card-shared-frame{
   z-index:8!important;

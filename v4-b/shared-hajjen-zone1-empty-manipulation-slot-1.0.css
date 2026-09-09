@@ -1,4 +1,4 @@
-/* HAJJEN Zone 1 — gameplay-safe empty Manipulation slot 4.
+/* HAJJEN Zone 1 — gameplay-safe locked-style Manipulation slot 4.
    CSS only. The existing active Manipulation placeholder remains untouched in
    shared-hand state; this file only gives the single empty Zone 1 slot the
    approved neutral locked-card visual language. */
@@ -8,8 +8,6 @@
 html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"]{
   --zone1-empty-surface-top:#D7D9DB;
   --zone1-empty-surface-bottom:#BEC2C5;
-  --zone1-empty-accent-top:#878D93;
-  --zone1-empty-accent-bottom:#676E75;
   --zone1-empty-title:#4A5056;
   --zone1-empty-copy:#596168;
   position:relative!important;
@@ -35,7 +33,6 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   color:var(--zone1-empty-copy)!important;
 }
 
-/* Gold frame rail. */
 html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"]::before{
   content:""!important;
   display:block!important;
@@ -49,7 +46,6 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   box-shadow:inset 0 0 0 1px rgba(122,76,41,.34)!important;
 }
 
-/* Neutral grey inner surface, matching SLOT LOCKED. */
 html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"]::after{
   content:""!important;
   display:block!important;
@@ -69,8 +65,8 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   z-index:3!important;
 }
 
-/* Keep the real MANIPULATION text in DOM for shared-hand, but visually replace
-   it with SLOT EMPTY and the same neutral lock medallion used by locked slots. */
+/* Keep the real MANIPULATION text in DOM for shared-hand synchronization, but
+   collapse its width exactly like the approved Zone 3 SLOT LOCKED card. */
 html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"] > strong{
   display:flex!important;
   align-items:center!important;
@@ -85,14 +81,14 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   box-sizing:border-box!important;
   color:transparent!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(10px,.82vw,14px)!important;
-  line-height:0!important;
+  font-size:0!important;
+  line-height:1.02!important;
   font-weight:700!important;
   letter-spacing:-.08px!important;
   text-align:left!important;
   white-space:nowrap!important;
   overflow:hidden!important;
-  text-overflow:clip!important;
+  text-overflow:ellipsis!important;
   text-shadow:none!important;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='21.5' fill='%23767D84' stroke='%237A4C29' stroke-width='1.5'/%3E%3Ccircle cx='24' cy='24' r='19.5' fill='none' stroke='%23ECD39D' stroke-opacity='.58' stroke-width='1'/%3E%3Cg fill='none' stroke='%23F3E3BE' stroke-width='2.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 22v-5c0-5.1 4-9 9-9s9 3.9 9 9v5'/%3E%3Crect x='11' y='21' width='26' height='19' rx='3.5'/%3E%3Ccircle cx='24' cy='29' r='2.2'/%3E%3Cpath d='M24 31.2v4'/%3E%3C/g%3E%3C/svg%3E")!important;
   background-repeat:no-repeat!important;
@@ -101,20 +97,23 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
 }
 
 html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"] > strong::after{
-  content:"SLOT EMPTY"!important;
+  content:"SLOT LOCKED"!important;
   display:block!important;
   color:var(--zone1-empty-title)!important;
-  font:700 clamp(10px,.82vw,14px)/1.02 Georgia,"Times New Roman",serif!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(10px,.82vw,14px)!important;
+  font-weight:700!important;
   letter-spacing:-.08px!important;
+  line-height:1.02!important;
   white-space:nowrap!important;
 }
 
-/* Keep the real EMPTY state text in DOM, but visually show Zone 2 timing. */
+/* Keep the real EMPTY state in DOM but show the Zone 2 unlock timing. */
 html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"] > span{
   left:10%!important;
   right:10%!important;
-  top:35%!important;
-  bottom:14%!important;
+  top:37.5%!important;
+  bottom:14.5%!important;
   width:auto!important;
   height:auto!important;
   min-height:0!important;
@@ -124,8 +123,11 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   align-items:center!important;
   justify-content:center!important;
   color:transparent!important;
+  font-family:Georgia,"Times New Roman",serif!important;
   font-size:0!important;
-  line-height:0!important;
+  line-height:1.22!important;
+  font-weight:500!important;
+  letter-spacing:-.03px!important;
   text-align:center!important;
   white-space:normal!important;
   overflow:hidden!important;
@@ -136,7 +138,10 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   content:"Unlocks in Zone 2"!important;
   display:block!important;
   color:var(--zone1-empty-copy)!important;
-  font:500 clamp(8.5px,.67vw,11.5px)/1.22 Georgia,"Times New Roman",serif!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(8.5px,.67vw,11.5px)!important;
+  line-height:1.22!important;
+  font-weight:500!important;
   letter-spacing:-.03px!important;
   text-align:center!important;
 }
@@ -145,5 +150,11 @@ html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared
   html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"] > strong{
     padding-left:21%!important;
     background-size:17.5% auto!important;
+  }
+  html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"] > strong::after{
+    font-size:11px!important;
+  }
+  html[data-hajjen-promoted="1"] .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation.empty[data-hand-placeholder="manipulation"] > span::after{
+    font-size:9px!important;
   }
 }

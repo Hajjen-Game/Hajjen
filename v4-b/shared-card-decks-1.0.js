@@ -6,8 +6,15 @@
   const zoneConfig=config.zones?.[zone];
   if(!zoneConfig)return;
 
-  const isDev=new URLSearchParams(location.search).get('dev')==='1';
-  const useVector=isDev||Number(zone)===3;
+  /* The approved vector Card Decks is now the production renderer for all
+     supported campaign zones. If the promotion loader tries to execute this
+     shared component again, keep the existing live instance instead of
+     rebuilding its DOM. */
+  if(window.HAJJEN_SHARED_CARD_DECKS?.version==='1.6-vector-shared-height-lock'&&Number(window.HAJJEN_SHARED_CARD_DECKS.zone)===Number(zone)){
+    window.HAJJEN_SHARED_CARD_DECKS.sync?.();
+    return;
+  }
+
   const objectivePanel=document.querySelector('.objectives');
   const hand=document.getElementById(zone===1?'manipulationCards':'manipCards');
   if(!objectivePanel)return;
@@ -19,9 +26,8 @@
     objectivePanel.insertAdjacentElement('afterend',panel);
   }
 
-  panel.classList.add('shared-card-decks-panel');
-  if(useVector)panel.classList.add('hajjen-vector-card-decks');
-  panel.dataset.sharedComponent=useVector?'card-decks-1.5-vector-zone3-height-lock':'card-decks-1.2';
+  panel.classList.add('shared-card-decks-panel','hajjen-vector-card-decks');
+  panel.dataset.sharedComponent='card-decks-1.6-vector-shared-height-lock';
   window.HAJJEN_PANEL_FRAME?.mount(panel);
 
   let observer=null;
@@ -101,35 +107,20 @@
     if(deck.type==='manipulation')note.id='manipDeckCount';
     note.textContent=deckNote(deck,def);
 
-    if(useVector){
-      const iconSlot=document.createElement('span');
-      iconSlot.className='deck-icon-slot';
-      iconSlot.appendChild(deckIcon(deck.type));
+    const iconSlot=document.createElement('span');
+    iconSlot.className='deck-icon-slot';
+    iconSlot.appendChild(deckIcon(deck.type));
 
-      const copy=document.createElement('span');
-      copy.className='deck-copy';
-      copy.append(label,note);
+    const copy=document.createElement('span');
+    copy.className='deck-copy';
+    copy.append(label,note);
 
-      pile.append(iconSlot,copy);
-      return pile;
-    }
-
-    pile.append(label,note);
-
-    if(deck.state==='locked'){
-      const lock=document.createElement('span');
-      lock.className='deck-lock';
-      lock.setAttribute('role','img');
-      lock.setAttribute('aria-label',`${def.label} locked`);
-      pile.appendChild(lock);
-    }
-
+    pile.append(iconSlot,copy);
     return pile;
   }
 
   function lockVectorPanelHeight(){
     heightRaf=0;
-    if(!useVector)return;
     const row=panel.querySelector(':scope > .deck-row');
     const piles=row?[...row.querySelectorAll(':scope > .deck-pile')]:[];
     if(!row||!piles.length)return;
@@ -155,12 +146,11 @@
   }
 
   function scheduleVectorHeight(){
-    if(!useVector||heightRaf)return;
+    if(heightRaf)return;
     heightRaf=requestAnimationFrame(()=>requestAnimationFrame(lockVectorPanelHeight));
   }
 
   function bindVectorHeight(){
-    if(!useVector)return;
     const row=panel.querySelector(':scope > .deck-row');
     if(!row)return;
     deckResizeObserver?.disconnect();
@@ -218,5 +208,5 @@
     observer.observe(hand,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
   }
 
-  window.HAJJEN_SHARED_CARD_DECKS={version:useVector?'1.5-vector-zone3-height-lock':'1.2',zone,panel,render,sync,lockHeight:lockVectorPanelHeight};
+  window.HAJJEN_SHARED_CARD_DECKS={version:'1.6-vector-shared-height-lock',zone,panel,render,sync,lockHeight:lockVectorPanelHeight};
 })();

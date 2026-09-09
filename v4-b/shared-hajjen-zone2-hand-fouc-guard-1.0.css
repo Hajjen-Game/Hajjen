@@ -1,0 +1,8 @@
+/* HAJJEN Zone 2 Hand FOUC guard.
+   Zone 2 loads the approved redesign asynchronously after the live campaign UI.
+   Keep locked Hand placeholders hidden until that promotion has fully finished,
+   so the legacy Enchantment/Tactical placeholder artwork never flashes on F5. */
+
+html:not([data-hajjen-redesign-ready="1"]) .zone2-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked{
+  visibility:hidden!important;
+}

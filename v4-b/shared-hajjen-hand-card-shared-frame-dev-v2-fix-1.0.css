@@ -1,7 +1,7 @@
 /* HAJJEN Zone 3 DEV — Hand Shared Vector Frame V2 cleanup.
    The clean Hand WEBP masters contain their previous gold frame baked into the
-   image. Keep the artwork/layout intact, but mask only that outer baked rail so
-   the Shared Vector Frame becomes the single visible card frame. */
+   image. Keep the artwork/layout intact, but mask that baked rail so the Shared
+   Vector Frame becomes the single visible card frame. */
 
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
@@ -10,22 +10,23 @@ body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-place
 
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation{
-  --hand-frame-mask:#f0f1ee;
+  --hand-frame-mask:#eef1f0;
 }
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"],
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.enchantment{
-  --hand-frame-mask:#e5d3e8;
+  --hand-frame-mask:#e4d3e7;
 }
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"],
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.empty{
-  --hand-frame-mask:#eadfc7;
+  --hand-frame-mask:#efd19a;
 }
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical.locked{
-  --hand-frame-mask:#d4cec7;
+  --hand-frame-mask:#d4d6d5;
 }
 
-/* clean-v2 intentionally disabled card pseudo-elements. Reclaim ::after only in
-   DEV as a passive edge mask. It does not alter card dimensions or controls. */
+/* The first pass only covered 9px. The baked master rail is substantially
+   thicker, including its bevels and corner tips. Cover the whole outer band.
+   This layer stays below the new Shared Vector Frame and above the WEBP. */
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card::after,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder::after{
   content:""!important;
@@ -34,16 +35,17 @@ body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-place
   inset:0!important;
   z-index:7!important;
   pointer-events:none!important;
-  border:0!important;
+  box-sizing:border-box!important;
+  border:20px solid var(--hand-frame-mask)!important;
   border-radius:5px!important;
   background:transparent!important;
   -webkit-mask:none!important;
   mask:none!important;
   filter:none!important;
-  box-shadow:inset 0 0 0 9px var(--hand-frame-mask)!important;
+  box-shadow:none!important;
 }
 
-/* Shared Vector Frame stays above the cleanup rail. */
+/* The Shared Vector Frame is the only frame painted above the cleanup band. */
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-card-shared-frame,
 body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-card-shared-frame{
   z-index:8!important;

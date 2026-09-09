@@ -53,8 +53,8 @@ body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .actio
   font-weight:800!important;
 }
 
-/* Reserved future PNG area. Later this ::before can simply switch from a glyph
-   to background-image:url(...), without changing Action Bar markup. */
+/* The square icon area is kept as a pseudo-element so the live Action Bar DOM
+   stays untouched. A DEV-only binder supplies --ab-icon-image by spell name. */
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot::before{
   content:"◇";
   flex:0 0 auto!important;
@@ -67,6 +67,7 @@ body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .actio
   box-sizing:border-box!important;
   border:1px solid rgba(122,76,41,.46)!important;
   background-color:rgba(255,249,235,.28)!important;
+  background-image:var(--ab-icon-image,none)!important;
   background-repeat:no-repeat!important;
   background-position:center!important;
   background-size:86% 86%!important;
@@ -81,7 +82,7 @@ body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .actio
   pointer-events:none!important;
 }
 
-/* Muted Force palettes so future transparent PNG spell art remains the focus. */
+/* Muted Force palettes so transparent PNG spell art remains the focus. */
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot.ember{
   --ab-top:#f3d5ad;--ab-bottom:#e7bb83;--ab-edge:#b66d2d;--ab-icon:#c65018;
 }
@@ -119,6 +120,13 @@ body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .share
   font-weight:800!important;
 }
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .shared-potion-slot::before{content:"⚗"}
+
+/* When a real PNG is bound, suppress the temporary force glyph completely. */
+body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot.has-action-png-icon::before{
+  content:""!important;
+  color:transparent!important;
+  text-shadow:none!important;
+}
 
 body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot > strong{
   display:block!important;

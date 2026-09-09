@@ -8,12 +8,21 @@
   let button=utility?.buttons?.copy||document.querySelector('[data-utility-action="copy"]')||document.getElementById('copyRunReportSharedBtn')||document.getElementById('copyRunReportVisibleBtn')||document.getElementById(`copyZone${zone}RunReportBtn`)||document.getElementById('copyRunReportBtn');
   if(!button)return;
 
+  function setButtonLabel(node,label){
+    const vectorLabel=node.querySelector(':scope > .hajjen-utility-vector-content .hajjen-utility-vector-label');
+    if(vectorLabel){
+      vectorLabel.textContent=label;
+      return;
+    }
+    node.textContent=label;
+  }
+
   const clean=button.cloneNode(true);
   clean.id='copyRunReportSharedBtn';
   clean.type='button';
   clean.dataset.utilityAction='copy';
   clean.setAttribute('aria-label',text.copyRunReport||'COPY RUN REPORT');
-  clean.textContent=text.copyRunReport||'COPY RUN REPORT';
+  setButtonLabel(clean,text.copyRunReport||'COPY RUN REPORT');
   button.replaceWith(clean);
   button=clean;
   if(utility?.buttons)utility.buttons.copy=button;
@@ -29,8 +38,8 @@
   let feedbackTimer=null;
   function setFeedback(label){
     clearTimeout(feedbackTimer);
-    button.textContent=label;
-    feedbackTimer=setTimeout(()=>{button.textContent=text.copyRunReport||'COPY RUN REPORT';},1800);
+    setButtonLabel(button,label);
+    feedbackTimer=setTimeout(()=>setButtonLabel(button,text.copyRunReport||'COPY RUN REPORT'),1800);
   }
 
   async function copy(){

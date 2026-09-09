@@ -1,0 +1,51 @@
+/* HAJJEN Zone 3 DEV — Fight Window V3 refinement.
+   Keeps the parchment surface inside the inner vector rails so the HP/info
+   panels do not bleed past the decorative frame edges. */
+
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-stat,
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-message{
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* Paint the parchment as a dedicated inset surface instead of letting the
+   rectangular panel background extend beneath/outside the rounded vector rail. */
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-stat::before,
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-message::before{
+  content:""!important;
+  position:absolute!important;
+  inset:4px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  background-color:var(--fight-parchment)!important;
+  background-image:
+    linear-gradient(rgba(255,250,235,.24),rgba(255,250,235,.08)),
+    url('assets/hajjen_parchment_surface_v1.png')!important;
+  background-repeat:repeat!important;
+  background-size:auto,160px 160px!important;
+  clip-path:polygon(
+    6px 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0 calc(100% - 6px),
+    0 6px
+  )!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(83,53,26,.16),
+    inset 0 1px 0 rgba(255,255,255,.3)!important;
+}
+
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-stat > *:not(.hajjen-fight-inner-frame){
+  position:relative!important;
+  z-index:2!important;
+}
+
+/* The combat message is mostly a text node, so keep the frame above the inset
+   parchment while the text naturally paints above the ::before surface. */
+body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-message > .hajjen-fight-inner-frame{
+  z-index:7!important;
+}

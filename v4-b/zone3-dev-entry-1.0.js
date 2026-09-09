@@ -30,13 +30,22 @@
   const sampleLibrary=[
     {id:'dev-flow-tide-lash',name:'Tide Lash',force:'Flow',damage:31,ingredientBonus:5,cooldown:1,craftedFrom:['Tide Pearl','Cinder Seed']},
     {id:'dev-stone-breaker',name:'Stone Breaker',force:'Stone',damage:33,ingredientBonus:4,cooldown:2,craftedFrom:['Ironroot','Feather Reed']},
-    {id:'dev-aether-rift-pulse',name:'Rift Pulse',force:'Aether',damage:37,ingredientBonus:2,cooldown:3,craftedFrom:['Moonspore','Bloomcap']}
+    {id:'dev-aether-rift-pulse',name:'Rift Pulse',force:'Aether',damage:37,ingredientBonus:2,cooldown:3,craftedFrom:['Moonspore','Bloomcap']},
+    {id:'dev-ember-cinder-burst',name:'Cinder Burst',force:'Ember',damage:32,cooldown:2,craftedFrom:['Cinder Seed','Ironroot']},
+    {id:'dev-growth-thorn-bloom',name:'Thorn Bloom',force:'Growth',damage:24,cooldown:1,craftedFrom:['Bloomcap','Moonspore']},
+    {id:'dev-gale-razor-gust',name:'Razor Gust',force:'Gale',damage:23,cooldown:1,craftedFrom:['Feather Reed','Tide Pearl']}
   ];
   const library=existingLibrary.length?existingLibrary.map(spell=>({...spell})):sampleLibrary.map(spell=>({...spell}));
   const fallback={id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true};
-  const existingLoaded=Array.isArray(existingCampaign.spells)?existingCampaign.spells.filter(Boolean):[];
-  const loadedCrafted=existingLoaded.filter(spell=>!spell.fallback).slice(0,3);
-  const loaded=[fallback,...(loadedCrafted.length?loadedCrafted:library.slice(0,3))];
+
+  // DEV-only Action Bar icon review loadout. The real campaign save is backed up
+  // above and restored on pagehide/beforeunload, so production progress is untouched.
+  const reviewCrafted=[
+    {id:'dev-ember-cinder-burst',name:'Cinder Burst',force:'Ember',damage:32,cooldown:2,craftedFrom:['Cinder Seed','Ironroot']},
+    {id:'dev-growth-thorn-bloom',name:'Thorn Bloom',force:'Growth',damage:24,cooldown:1,craftedFrom:['Bloomcap','Moonspore']},
+    {id:'dev-gale-razor-gust',name:'Razor Gust',force:'Gale',damage:23,cooldown:1,craftedFrom:['Feather Reed','Tide Pearl']}
+  ];
+  const loaded=[fallback,...reviewCrafted.map(spell=>({...spell}))];
 
   loaded.filter(spell=>!spell.fallback).forEach(spell=>{
     if(!library.some(item=>item.id===spell.id))library.push({...spell});

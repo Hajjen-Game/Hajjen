@@ -1,5 +1,11 @@
 /* HAJJEN HAND — Manipulation vector icon/decor mount, DEV only. */
 (()=>{
+  /* Production Zones 1–2 use the stable CSS medallion. The redesign loader may
+     temporarily expose ?dev=1 while presentation modules load, so explicitly
+     refuse to mount this MutationObserver decorator in promoted production. */
+  const promoted=document.documentElement.dataset.hajjenPromoted==='1';
+  const promotedZone=Number(window.HAJJEN_SHARED_UI?.zone||window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:0));
+  if(promoted&&(promotedZone===1||promotedZone===2))return;
   if(new URLSearchParams(location.search).get('dev')!=='1')return;
   const NS='http://www.w3.org/2000/svg';
   let observer=null;
@@ -94,5 +100,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 
-  window.HAJJEN_HAND_MANIPULATION_VECTOR={version:'1.2',scan:schedule};
+  window.HAJJEN_HAND_MANIPULATION_VECTOR={version:'1.3',scan:schedule};
 })();

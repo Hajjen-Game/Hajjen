@@ -1,6 +1,7 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.2 keeps Zone 1–2 on the approved visual skin while avoiding late visual
-   decorators that can flicker when a live gameplay component rebuilds DOM. */
+   V1.3 keeps Zone 1–2 on the approved visual skin while avoiding late visual
+   decorators that can flicker when a live gameplay component rebuilds DOM.
+   Card Decks is now vector-first in the shared component and is never rerun. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1')return;
@@ -151,22 +152,12 @@
 
     /* Zone 1–2 originally initialized Objectives/Status/Event Log before the
        decorative frame helper existed. Load it now and explicitly adopt the
-       already-live panels before any vector frame/plaque pass. */
+       already-live panels before any vector frame/plaque pass. Card Decks no
+       longer needs a second render: shared-card-decks builds vector rows first. */
     await loadScript('shared-hajjen-panel-frame-1.0.js?v=2',{force:false});
     mountExistingPanelFrames();
 
     await withVisualDevQuery(async()=>{
-      /* Re-run Card Decks in visual DEV mode. The normal instance deliberately
-         built the old production pile markup; this pass rebuilds the same live
-         component with the approved clean vector rows while preserving state. */
-      await loadScript('shared-card-decks-1.0.js?v=5',{force:true});
-      mountExistingPanelFrames();
-      await loadScript('shared-hajjen-card-decks-height-lock-1.0.js?v=3',{force:true});
-
-      /* Presentation-only modules. Tactical preview is intentionally absent.
-         Zone 2 uses the stable CSS Manipulation medallion instead of the DEV
-         MutationObserver decorator, because its live cards are rebuilt during
-         movement renders. */
       const presentationScripts=[
         'shared-hajjen-title-plaque-vector-1.0.js?v=13',
         'shared-hajjen-utility-buttons-vector-fix-1.0.js?v=1'
@@ -197,7 +188,7 @@
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.2'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.3'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

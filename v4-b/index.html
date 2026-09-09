@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="theme-color" content="#cdbb96"/>
-  <meta name="hajjen-build" content="v4-b-1.187-card-decks-vector-first-cleanup"/>
+  <meta name="hajjen-build" content="v4-b-1.188-legacy-frame-cleanup"/>
   <title>HAJJEN V4-B – Zones 1–3</title>
   <link rel="stylesheet" href="v4-b.css"/>
   <link rel="stylesheet" href="v4-b-ui-0.2.css"/>
@@ -65,7 +65,7 @@
 <script src="v4-b-run-report-1.0.js"></script>
 <script src="v4-b-zone1-balance-1.0.js"></script>
 <script src="v4-b-1.0.js"></script>
-<script src="shared-objectives-1.0.js"></script>
+<script src="shared-objectives-1.0.js?v=4"></script>
 <script src="v4-b-zone1-objectives-1.0.js"></script>
 <script src="v4-b-ui-0.2.js"></script>
 <script src="shared-status-1.0.js"></script>
@@ -92,14 +92,10 @@
   (()=>{
     const html=document.documentElement;
     delete html.dataset.hajjenRedesignReady;
-    document.addEventListener('hajjen-ui-redesign-promoted',()=>{
-      html.dataset.hajjenRedesignReady='1';
-    },{once:true});
-    /* Fail open if a presentation asset fails to load: never leave Card Decks
-       permanently hidden because of a cosmetic network error. */
+    document.addEventListener('hajjen-ui-redesign-promoted',()=>{html.dataset.hajjenRedesignReady='1';},{once:true});
     setTimeout(()=>{html.dataset.hajjenRedesignReady='1';},2500);
   })();
 </script>
-<script data-hajjen-redesign-production="1" src="shared-hajjen-redesign-production-1.0.js?v=4"></script>
+<script data-hajjen-redesign-production="1" src="shared-hajjen-redesign-production-1.0.js?v=5"></script>
 </body>
 </html>

@@ -10,12 +10,15 @@
   if(!actionbar)return;
 
   /* Real PNG icons already contain their own square presentation. Remove the
-     old temporary pseudo-icon plate only when a PNG is actually bound. */
+     old temporary pseudo-icon plate/glyph whenever a PNG data marker exists.
+     The data attribute is intentional: shared-action-bar resets className when
+     it synchronizes spells, but it does not remove data-action-png-icon. */
   const STYLE_ID='hajjenActionBarPngIconPlateFixDev';
   if(!document.getElementById(STYLE_ID)){
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
+      body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot[data-action-png-icon]::before,
       body.zone3-dev-mode .zone3-app .action-hud.shared-action-bar .actionbar > .action-slot.has-action-png-icon::before{
         content:""!important;
         color:transparent!important;
@@ -76,7 +79,7 @@
 
   /* Observe only the spell SOURCE. shared-action-bar already mirrors that source
      into the Action Bar in a microtask; our frame callback runs afterward and
-     only refreshes CSS variables/classes on the existing buttons. */
+     only refreshes CSS variables/classes/data markers on the existing buttons. */
   const spellSource=window.HAJJEN_SHARED_ACTION_BAR?.spellSource||document.getElementById('spellGrid');
   const observer=spellSource&&typeof MutationObserver==='function'
     ?new MutationObserver(schedule)
@@ -84,7 +87,7 @@
   observer?.observe(spellSource,{childList:true,subtree:true,characterData:true});
 
   window.HAJJEN_ACTION_BAR_PNG_ICONS_DEV={
-    version:'1.1',
+    version:'1.2',
     iconFiles,
     sync:syncIcons,
     observer

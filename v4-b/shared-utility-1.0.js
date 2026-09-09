@@ -34,6 +34,7 @@
   ];
 
   const isDev=new URLSearchParams(location.search).get('dev')==='1';
+  const useVector=isDev||Number(zone)===3;
   const NS='http://www.w3.org/2000/svg';
 
   function svgEl(name,attrs={}){
@@ -80,7 +81,7 @@
   }
 
   function decorateVectorButton(node,key,label){
-    if(!isDev||!node)return;
+    if(!useVector||!node)return;
     node.classList.add('hajjen-vector-utility-button');
     node.dataset.utilityVector='1';
 
@@ -111,7 +112,7 @@
   current.replaceWith(utility);
 
   window.HAJJEN_SHARED_UTILITY={
-    version:'1.1',
+    version:useVector?'1.2-vector':'1.1',
     zone,
     root:utility,
     buttons:{spellbook,backpack,help,copy,reset}

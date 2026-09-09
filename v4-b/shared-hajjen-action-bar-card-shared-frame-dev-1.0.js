@@ -8,6 +8,7 @@
   if(params.get('dev')!=='1')return;
 
   const NS='http://www.w3.org/2000/svg';
+  const FRAME_OUTSET=5;
   const actionbar=document.getElementById('actionbar');
   if(!actionbar)return;
 
@@ -106,10 +107,10 @@
 
   function renderFrame(frame){
     const {slot,group,shadow,gold,inner,highlight,corners}=frame;
-    const x=slot.offsetLeft;
-    const y=slot.offsetTop;
-    const w=Math.max(80,slot.offsetWidth||0);
-    const h=Math.max(80,slot.offsetHeight||0);
+    const x=slot.offsetLeft-FRAME_OUTSET;
+    const y=slot.offsetTop-FRAME_OUTSET;
+    const w=Math.max(80,(slot.offsetWidth||0)+(FRAME_OUTSET*2));
+    const h=Math.max(80,(slot.offsetHeight||0)+(FRAME_OUTSET*2));
 
     group.setAttribute('transform',`translate(${x} ${y})`);
 
@@ -186,7 +187,8 @@
   requestAnimationFrame(render);
 
   window.HAJJEN_ACTION_CARD_SHARED_FRAME_DEV={
-    version:'1.0',
+    version:'1.1',
+    frameOutset:FRAME_OUTSET,
     svg,
     slots,
     render,

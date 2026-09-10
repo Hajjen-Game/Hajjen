@@ -1,6 +1,7 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.5 promotes the approved three-column Hand list and Tactical Fight Window
-   slots to production Zones 1–2 while preserving the established zone gameplay.
+   V1.6 keeps the approved three-column Hand list and Tactical Fight Window
+   slots in production while the campaign now stages Enchantment in Zone 2 and
+   Tactical in Zone 3.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -120,9 +121,6 @@
 
   async function loadSequential(files,options){for(const file of files)await loadScript(file,options);}
 
-  /* A few remaining presentation prototypes are still literal ?dev=1 gated.
-     This compatibility bridge is intentionally limited to those visual modules;
-     Card Decks and frame systems no longer depend on it. */
   async function withVisualDevQuery(callback){
     const original=`${location.pathname}${location.search}${location.hash}`;
     const devUrl=new URL(location.href);
@@ -159,14 +157,12 @@
     await loadScript('shared-hajjen-objectives-vector-frame-1.0.js?v=11',{force:true});
     await loadScript('shared-hajjen-light-side-panel-backgrounds-1.0.js?v=1',{force:true});
 
-    /* New production Hand + Tactical footer. These proxy existing shared gameplay
-       rather than replacing it, so Zone 1–2 progression remains unchanged. */
     await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1',{force:false});
-    await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=1',{force:false});
+    await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=2',{force:false});
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.5-hand-tactical-production'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.6-card-introductions'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

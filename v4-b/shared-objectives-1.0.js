@@ -24,6 +24,8 @@
       const complete=zone===1?!!state.spellQuestCompleted:!!state.introComplete;
       return zone===1?(complete?'Spell: CREATED':'Spell: NOT CREATED'):(complete?'COMPLETE':'NOT COMPLETE');
     }
+    if(item.kind==='enchantment')return state.enchantmentUsed?'COMPLETE':'NOT COMPLETE';
+    if(item.kind==='tactical')return state.tacticalUsed?'COMPLETE':'NOT COMPLETE';
     if(item.kind==='mob')return `Mobs: ${Math.min(Number(state.mobKills)||0,item.target||4)} / ${item.target||4}`;
     if(item.kind==='elite')return `Elites: ${Math.min(Number(state.eliteKills)||0,item.target||2)} / ${item.target||2}`;
     if(item.kind==='level'){
@@ -35,11 +37,9 @@
   }
 
   panel.classList.add('objectives','shared-objectives');
-  panel.dataset.sharedComponent='objectives-1.3-vector-only';
+  panel.dataset.sharedComponent='objectives-1.4-card-intros';
   panel.replaceChildren();
 
-  /* The retired bitmap frame fallback used to create eight tl/t/tr/l/r/bl/b/br
-     spans here. The approved UI uses the shared SVG vector-frame pass instead. */
   if(window.HAJJEN_PANEL_FRAME?.mount)window.HAJJEN_PANEL_FRAME.mount(panel);
   else panel.classList.add('hajjen-framed-panel');
 
@@ -69,14 +69,17 @@
     panel.appendChild(row);
   });
 
-  const levelItem=objectives.find(item=>item.kind==='level');
-  const syncLevel=()=>{
-    if(!levelItem)return;
-    const node=document.getElementById(levelItem.statusId);
-    if(node)node.textContent=fallbackStatus(levelItem);
-  };
-  syncLevel();
-  const levelTimer=levelItem&&zone>=2?setInterval(syncLevel,120):null;
+  function syncDynamic(){
+    objectives.forEach(item=>{
+      if(!['intro','enchantment','tactical','level'].includes(item.kind))return;
+      const node=document.getElementById(item.statusId);
+      if(node)node.textContent=fallbackStatus(item);
+    });
+  }
+  syncDynamic();
+  const dynamicTimer=zone>=2?setInterval(syncDynamic,120):null;
+  document.addEventListener('hajjen:enchantment-applied',syncDynamic);
+  document.addEventListener('hajjen:tactical-used',syncDynamic);
 
-  window.HAJJEN_SHARED_OBJECTIVES={version:'1.3-vector-only',zone,panel,syncLevel,levelTimer};
+  window.HAJJEN_SHARED_OBJECTIVES={version:'1.4-card-intros',zone,panel,syncLevel:syncDynamic,syncDynamic,levelTimer:dynamicTimer};
 })();

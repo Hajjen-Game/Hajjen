@@ -100,7 +100,7 @@
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
   window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV={
-    version:'2.3',
+    version:'2.4',
     hand,
     iconFiles,
     sync:scan,
@@ -132,7 +132,7 @@
   if(!document.querySelector('link[data-hajjen-hand-category-vector-frame-dev]')){
     const frameCss=document.createElement('link');
     frameCss.rel='stylesheet';
-    frameCss.href='shared-hajjen-hand-category-vector-frame-dev-1.0.css?v=1';
+    frameCss.href='shared-hajjen-hand-category-vector-frame-dev-1.0.css?v=2';
     frameCss.dataset.hajjenHandCategoryVectorFrameDev='1';
     document.head.appendChild(frameCss);
   }

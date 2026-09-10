@@ -1,6 +1,7 @@
 /* HAJJEN Zone 3 DEV — Shared Vector Frame on the three Hand category panels.
    Presentation only. HAND footprint, row layout and gameplay interactions stay unchanged.
-   v1.1: frame sits 4px outside the category surface for more breathing room.
+   v1.2: frame sits 4px outside the category surface and the taller Enchantment/
+   Tactical rows use larger icons so their visual weight matches the available space.
 */
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category{
@@ -29,6 +30,19 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-
   pointer-events:none!important;
   shape-rendering:geometricPrecision!important;
   filter:drop-shadow(0 1px 1px rgba(48,28,14,.14))!important;
+}
+
+/* Taller Enchantment/Tactical rows can carry a stronger icon without changing
+   the category width or row height. Manipulation deliberately stays compact. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="enchantment"] .hajjen-hand-list-row,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="tactical"] .hajjen-hand-list-row{
+  grid-template-columns:46px minmax(0,1fr) auto!important;
+  gap:9px!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="enchantment"] .hajjen-hand-list-row-icon,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="tactical"] .hajjen-hand-list-row-icon{
+  width:44px!important;
+  height:44px!important;
 }
 
 /* Same Shared Vector Frame palette used across the approved HUD family. */

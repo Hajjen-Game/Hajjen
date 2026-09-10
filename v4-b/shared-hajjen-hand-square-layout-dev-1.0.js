@@ -39,8 +39,6 @@
 
     let img=slot.querySelector(':scope > img');
     if(!img){
-      /* A previous DEV pass could let Calm Waters write its rules text into the
-         prepended icon span. Clear any such stale text before mounting the PNG. */
       slot.replaceChildren();
       img=document.createElement('img');
       img.alt='';
@@ -51,8 +49,6 @@
       [...slot.childNodes].forEach(node=>{if(node!==img)node.remove();});
     }
 
-    /* Keep decoration AFTER the native <strong>/<span>/<button> nodes. Zone 3's
-       Calm Waters gameplay decorator intentionally asks for the first span. */
     card.appendChild(slot);
 
     const show=()=>slot.classList.add('has-icon');
@@ -111,4 +107,25 @@
     observer
   };
   window.HAJJEN_HAND_SQUARE_LAYOUT_DEV=window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV;
+})();
+
+/* Load the alternate three-column Hand experiment only in Zone 3 DEV. */
+(()=>{
+  if(new URLSearchParams(location.search).get('dev')!=='1')return;
+  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone;
+  if(zone!==3)return;
+
+  if(!document.querySelector('link[data-hajjen-hand-deck-list-dev]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='shared-hajjen-hand-deck-list-dev-1.0.css?v=1';
+    link.dataset.hajjenHandDeckListDev='1';
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-hajjen-hand-deck-list-dev]')){
+    const script=document.createElement('script');
+    script.src='shared-hajjen-hand-deck-list-dev-1.0.js?v=1';
+    script.dataset.hajjenHandDeckListDev='1';
+    document.body.appendChild(script);
+  }
 })();

@@ -40,6 +40,12 @@
     script.dataset.hajjenSpellbookDevV2='1';
     document.body.appendChild(script);
   }
+  if(!document.querySelector('script[data-hajjen-spellbook-dev-v4-upgrades]')){
+    const script=document.createElement('script');
+    script.src='shared-hajjen-spellbook-dev-v4-upgrade-prune-1.0.js?v=1';
+    script.dataset.hajjenSpellbookDevV4Upgrades='1';
+    document.body.appendChild(script);
+  }
 })();
 
 /* HAJJEN Zone 3 DEV — Fight Window V3 live info-frame persistence.

@@ -6,7 +6,7 @@
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.0',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.1-potency-guard',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
@@ -36,7 +36,7 @@
   async function installCss(){
     const chunks=await Promise.all(cssFiles.map(async file=>{
       try{
-        const response=await fetch(`${file}?v=production-1`,{cache:'force-cache'});
+        const response=await fetch(`${file}?v=production-2`,{cache:'force-cache'});
         if(!response.ok)throw new Error(`${response.status}`);
         return await response.text();
       }catch(error){
@@ -55,7 +55,7 @@
       const existing=document.querySelector(`script[data-hajjen-spellbook-production-src="${src}"]`);
       if(existing){resolve();return;}
       const script=document.createElement('script');
-      script.src=`${src}?v=1`;
+      script.src=`${src}?v=2`;
       script.dataset.hajjenSpellbookProductionSrc=src;
       script.onload=()=>resolve();
       script.onerror=()=>reject(new Error(`Failed to load ${src}`));

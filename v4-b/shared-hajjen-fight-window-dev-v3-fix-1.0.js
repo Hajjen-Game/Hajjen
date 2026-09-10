@@ -20,6 +20,13 @@
     link.dataset.hajjenSpellbookDevV2='1';
     document.head.appendChild(link);
   }
+  if(!document.querySelector('link[data-hajjen-spellbook-dev-v3-surface]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='shared-hajjen-spellbook-dev-v3-frame-surface-fix-1.0.css?v=1';
+    link.dataset.hajjenSpellbookDevV3Surface='1';
+    document.head.appendChild(link);
+  }
 
   if(!document.querySelector('script[data-hajjen-spellbook-dev-v1]')){
     const script=document.createElement('script');

@@ -6,7 +6,7 @@
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
-  const zone=window.HAJJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
+  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(zone!==3)return;
 
   const hand=document.getElementById('manipCards');

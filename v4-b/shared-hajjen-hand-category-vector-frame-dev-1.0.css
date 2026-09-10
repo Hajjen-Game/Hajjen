@@ -1,5 +1,7 @@
 /* HAJJEN Zone 3 DEV — Shared Vector Frame on the three Hand category panels.
-   Presentation only. HAND footprint, row layout and gameplay interactions stay unchanged. */
+   Presentation only. HAND footprint, row layout and gameplay interactions stay unchanged.
+   v1.1: frame sits 4px outside the category surface for more breathing room.
+*/
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category{
   position:relative!important;
@@ -7,6 +9,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-
   border:0!important;
   border-radius:0!important;
   box-shadow:none!important;
+  overflow:visible!important;
 }
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category > .hajjen-hand-category-header,
@@ -17,9 +20,9 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category > .hajjen-hand-category-shared-frame{
   position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
+  inset:-4px!important;
+  width:calc(100% + 8px)!important;
+  height:calc(100% + 8px)!important;
   z-index:6!important;
   display:block!important;
   overflow:visible!important;

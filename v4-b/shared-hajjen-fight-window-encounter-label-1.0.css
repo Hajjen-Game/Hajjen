@@ -1,0 +1,63 @@
+/* HAJJEN Fight Window — encounter type label.
+   Shared by Zone 1–3 production and Zone 3 DEV. Keeps MOB / ELITE / BOSS
+   clearly visible directly above the enemy name without adding another plaque. */
+
+#combatModal.shared-fight-window .shared-fight-header{
+  gap:0!important;
+}
+
+#combatModal.shared-fight-window .shared-fight-header .shared-fight-tier{
+  position:static!important;
+  top:auto!important;
+  left:auto!important;
+  transform:none!important;
+  display:block!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin:0 0 8px!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  background:none!important;
+  box-shadow:none!important;
+  clip-path:none!important;
+  color:#d8b06f!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:12px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:1.8px!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+  text-shadow:0 1px 0 rgba(42,24,14,.72)!important;
+}
+
+#combatModal.shared-fight-window .shared-fight-header .shared-fight-tier::before,
+#combatModal.shared-fight-window .shared-fight-header .shared-fight-tier::after{
+  content:"◆";
+  display:inline-block;
+  margin:0 9px;
+  color:#b97838;
+  font-size:7px;
+  vertical-align:1px;
+  text-shadow:none;
+}
+
+#combatModal.shared-fight-window .shared-fight-tier[data-encounter-type="elite"]{
+  color:#e0bc72!important;
+}
+#combatModal.shared-fight-window .shared-fight-tier[data-encounter-type="boss"]{
+  color:#efc681!important;
+}
+
+@media(max-width:520px){
+  #combatModal.shared-fight-window .shared-fight-header .shared-fight-tier{
+    margin-bottom:6px!important;
+    font-size:10px!important;
+    letter-spacing:1.35px!important;
+  }
+  #combatModal.shared-fight-window .shared-fight-header .shared-fight-tier::before,
+  #combatModal.shared-fight-window .shared-fight-header .shared-fight-tier::after{
+    margin:0 7px;
+  }
+}

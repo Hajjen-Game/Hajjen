@@ -1,5 +1,5 @@
-/* HAJJEN Zone 3 DEV — Hand square-card layout binder.
-   Presentation only. Reserves future PNG icon slots and adds the small title rule.
+/* HAJJEN Zone 3 DEV — Hand reference-layout binder.
+   Presentation only. Mounts the final PNG category icons and adds the title rule.
    No card actions, enchantment logic, Tactical logic or Hand state is changed. */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -25,6 +25,7 @@
 
   function ensureIconSlot(card){
     const kind=iconKind(card);
+    const src=iconFiles[kind];
     let slot=card.querySelector(':scope > .hajjen-hand-icon-slot');
     if(!slot){
       slot=document.createElement('span');
@@ -33,14 +34,27 @@
       card.prepend(slot);
     }
     slot.dataset.handIconKind=kind;
-    slot.dataset.handIconSrc=iconFiles[kind];
+    slot.dataset.handIconSrc=src;
 
-    /* Do not request the future PNG until it actually exists. Once the asset is
-       added later, the icon binder can insert an <img> and add .has-icon without
-       changing any card geometry. */
-    slot.querySelectorAll(':scope > img').forEach(img=>{
-      if(!img.getAttribute('src'))img.remove();
-    });
+    let img=slot.querySelector(':scope > img');
+    if(!img){
+      img=document.createElement('img');
+      img.alt='';
+      img.decoding='async';
+      img.draggable=false;
+      slot.appendChild(img);
+    }
+
+    const show=()=>slot.classList.add('has-icon');
+    const hide=()=>slot.classList.remove('has-icon');
+    img.onload=show;
+    img.onerror=hide;
+    if(img.getAttribute('src')!==src){
+      hide();
+      img.src=src;
+    }else if(img.complete&&img.naturalWidth>0){
+      show();
+    }
   }
 
   function ensureTitleRule(card){
@@ -58,7 +72,8 @@
     if(!card.classList.contains('shared-hand-card')&&!card.classList.contains('shared-hand-placeholder'))return;
     ensureIconSlot(card);
     ensureTitleRule(card);
-    card.classList.add('hajjen-square-hand-card');
+    card.classList.add('hajjen-reference-hand-card');
+    card.classList.remove('hajjen-square-hand-card');
   }
 
   let raf=0;
@@ -78,11 +93,12 @@
   observer.observe(hand,{childList:true,subtree:false});
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
-  window.HAJJEN_HAND_SQUARE_LAYOUT_DEV={
-    version:'1.0',
+  window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV={
+    version:'2.0',
     hand,
     iconFiles,
     sync:scan,
     observer
   };
+  window.HAJJEN_HAND_SQUARE_LAYOUT_DEV=window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV;
 })();

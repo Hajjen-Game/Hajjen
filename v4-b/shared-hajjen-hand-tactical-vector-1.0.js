@@ -19,7 +19,7 @@
   if(!hand)return;
 
   const NS='http://www.w3.org/2000/svg';
-  const CARD_KEY='guard stance';
+  const CARD_KEY='guard-stance';
   let equipped=false;
   let ensureRaf=0;
   let ensuring=false;
@@ -45,7 +45,8 @@
   }
 
   function consumed(){
-    return window.HAJJEN_TACTICAL_COMBAT_DEV?.usedKeys?.has?.(CARD_KEY)===true;
+    const used=window.HAJJEN_TACTICAL_COMBAT_DEV?.usedKeys;
+    return used?.has?.(CARD_KEY)===true||used?.has?.('guard stance')===true;
   }
 
   function applyState(card){

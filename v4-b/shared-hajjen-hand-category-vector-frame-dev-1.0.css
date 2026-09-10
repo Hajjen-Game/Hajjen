@@ -1,0 +1,100 @@
+/* HAJJEN Zone 3 DEV — Shared Vector Frame on the three Hand category panels.
+   Presentation only. HAND footprint, row layout and gameplay interactions stay unchanged. */
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category{
+  position:relative!important;
+  isolation:isolate!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category > .hajjen-hand-category-header,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category > .hajjen-hand-category-rows{
+  position:relative!important;
+  z-index:3!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category > .hajjen-hand-category-shared-frame{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:6!important;
+  display:block!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+  shape-rendering:geometricPrecision!important;
+  filter:drop-shadow(0 1px 1px rgba(48,28,14,.14))!important;
+}
+
+/* Same Shared Vector Frame palette used across the approved HUD family. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .frame-shadow{
+  fill:none!important;
+  stroke:#3b2416!important;
+  stroke-width:3!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.86!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .frame-gold{
+  fill:none!important;
+  stroke-width:1.72!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.98!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .frame-inner{
+  fill:none!important;
+  stroke:#7f4f2a!important;
+  stroke-width:.82!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.96!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .frame-highlight{
+  fill:none!important;
+  stroke:#e7bd78!important;
+  stroke-width:.48!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.80!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .corner-accent{
+  fill:none!important;
+  stroke:#a96d35!important;
+  stroke-width:.86!important;
+  stroke-linejoin:round!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.96!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .corner-sweep-shadow{
+  fill:none!important;
+  stroke:#4c2c16!important;
+  stroke-width:1.12!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.74!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .corner-sweep{
+  fill:none!important;
+  stroke:#b97838!important;
+  stroke-width:.60!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.96!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category-shared-frame .corner-node{
+  fill:#b87b3b!important;
+  stroke:#59351d!important;
+  stroke-width:.62!important;
+  vector-effect:non-scaling-stroke!important;
+  opacity:.99!important;
+}

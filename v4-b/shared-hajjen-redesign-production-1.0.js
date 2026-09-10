@@ -1,7 +1,7 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.4 keeps Zone 1–2 on the approved visual skin. Card Decks, board frames
-   and shared panel frames are now vector-first; retired bitmap frame CSS is no
-   longer loaded. */
+   V1.5 promotes the approved three-column Hand list and Tactical Fight Window
+   slots to production Zones 1–2 while preserving the established zone gameplay.
+*/
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1')return;
@@ -41,7 +41,9 @@
     'shared-hajjen-header-vector-1.0.css?v=3',
     'shared-hajjen-header-background-crop-test-1.0.css?v=3',
     'shared-hajjen-action-bar-background-1.0.css?v=2',
-    'shared-hajjen-action-bar-background-fix-1.0.css?v=4'
+    'shared-hajjen-action-bar-background-fix-1.0.css?v=4',
+    'shared-hajjen-hand-list-production-1.0.css?v=1',
+    'shared-hajjen-tactical-combat-production-1.0.css?v=1'
   ];
 
   function baseName(src){return src.split('?')[0];}
@@ -157,9 +159,14 @@
     await loadScript('shared-hajjen-objectives-vector-frame-1.0.js?v=11',{force:true});
     await loadScript('shared-hajjen-light-side-panel-backgrounds-1.0.js?v=1',{force:true});
 
+    /* New production Hand + Tactical footer. These proxy existing shared gameplay
+       rather than replacing it, so Zone 1–2 progression remains unchanged. */
+    await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1',{force:false});
+    await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=1',{force:false});
+
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.4-vector-frame-cleanup'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.5-hand-tactical-production'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

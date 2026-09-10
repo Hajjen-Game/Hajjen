@@ -1,16 +1,16 @@
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
-  if(!cfg||cfg.zone!==3||!state||!Array.isArray(cfg.enchantmentDeck))return;
+  const zone=Number(cfg?.zone)||0;
+  if(!cfg||![2,3].includes(zone)||!state||!Array.isArray(cfg.enchantmentDeck))return;
 
   const SAVE_KEY='hajjen-v4b-campaign';
   const LIBRARY_KEY='hajjen-v4b-spell-library-v2';
-  const HAND_KEY='hajjen-v4b-zone3-enchantment-hand-v1';
-  const dev=!!window.HAJJEN_ZONE3_DEV_MODE;
+  const HAND_KEY=`hajjen-v4b-zone${zone}-enchantment-hand-v2`;
+  const dev=zone===3&&!!window.HAJJEN_ZONE3_DEV_MODE;
   const storage=dev?sessionStorage:localStorage;
   const navigation=performance.getEntriesByType?.('navigation')?.[0]?.type||'';
 
-  // A fresh dev entry rolls a new hand. F5 keeps the same two cards.
   if(dev&&navigation!=='reload')storage.removeItem(HAND_KEY);
 
   const deck=cfg.enchantmentDeck.map(card=>({...card}));
@@ -18,8 +18,23 @@
   const deckIds=new Set(deck.map(card=>card.id));
   const drawCount=Math.max(1,Math.min(Number(cfg.enchantment?.draw)||2,deck.length));
 
+  function enchantmentId(item){return typeof item==='string'?item:item?.id;}
+  function alreadyKnownIds(){
+    const ids=new Set();
+    (state.spells||[]).forEach(spell=>{
+      (spell.enchantments||[]).forEach(item=>{
+        const id=enchantmentId(item);
+        if(deckIds.has(id))ids.add(id);
+      });
+    });
+    return ids;
+  }
+
   function randomDraw(){
-    const pool=[...deck];
+    const used=alreadyKnownIds();
+    const preferred=deck.filter(card=>!used.has(card.id));
+    const fallback=deck.filter(card=>used.has(card.id));
+    const pool=[...preferred,...fallback];
     for(let i=pool.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [pool[i],pool[j]]=[pool[j],pool[i]];
@@ -35,7 +50,7 @@
       }
     }catch{}
     const cards=randomDraw();
-    storage.setItem(HAND_KEY,JSON.stringify({version:1,cards}));
+    storage.setItem(HAND_KEY,JSON.stringify({version:2,cards}));
     return cards;
   }
 
@@ -45,13 +60,13 @@
   function spellName(id){return state.spells.find(spell=>spell.id===id)?.name||null;}
   function cardIdsForSpell(spell){
     return Array.isArray(spell?.enchantments)
-      ?spell.enchantments.map(item=>typeof item==='string'?item:item?.id).filter(id=>deckIds.has(id))
+      ?spell.enchantments.map(enchantmentId).filter(id=>deckIds.has(id))
       :[];
   }
   function effectNames(spell){return cardIdsForSpell(spell).map(id=>byId.get(id)?.name).filter(Boolean);}
 
   function persistHand(){
-    storage.setItem(HAND_KEY,JSON.stringify({version:1,cards:hand.map(card=>({id:card.id,appliedTo:card.appliedTo||null}))}));
+    storage.setItem(HAND_KEY,JSON.stringify({version:2,cards:hand.map(card=>({id:card.id,appliedTo:card.appliedTo||null}))}));
   }
 
   function persistSpells(){
@@ -73,15 +88,14 @@
     }catch{}
   }
 
-  function clearZone3Enchantments(){
+  function clearCurrentZoneEnchantments(){
+    const handIds=new Set(hand.map(card=>card.id));
     state.spells.forEach(spell=>{
       if(Array.isArray(spell.enchantments))spell.enchantments=spell.enchantments.filter(item=>{
-        const id=typeof item==='string'?item:item?.id;
-        return !deckIds.has(id);
+        if(typeof item==='string')return !(zone===3&&handIds.has(item));
+        return !(item?.sourceZone===zone&&handIds.has(item?.id));
       });
-      // Remove the obsolete single-card prototype bonus as the new deck replaces it.
       delete spell.enchantDamage;
-      spell.enchantmentName='';
     });
   }
 
@@ -91,29 +105,23 @@
       const spell=state.spells.find(item=>item.id===card.appliedTo&&!item.fallback);
       if(!spell){card.appliedTo=null;return;}
       if(!Array.isArray(spell.enchantments))spell.enchantments=[];
-      if(!spell.enchantments.includes(card.id))spell.enchantments.push(card.id);
+      const exists=spell.enchantments.some(item=>enchantmentId(item)===card.id&&typeof item==='object'&&item?.sourceZone===zone);
+      if(!exists)spell.enchantments.push({id:card.id,sourceZone:zone});
     });
   }
 
-  function restoreApplications(){
-    clearZone3Enchantments();
-    ensureApplicationsBound();
-  }
-
-  // F5 is a Zone 3 restart: keep the same random two cards, but let the player
-  // choose their spell targets again from scratch.
   if(navigation==='reload'){
     hand.forEach(card=>{card.appliedTo=null;});
-    clearZone3Enchantments();
+    clearCurrentZoneEnchantments();
     persistHand();
     persistSpells();
   }else{
-    restoreApplications();
+    ensureApplicationsBound();
   }
 
   state.enchantmentCards=hand;
   state.enchantmentUsed=hand.some(card=>!!card.appliedTo);
-  state.introComplete=state.enchantmentUsed;
+  if(cfg.introType==='enchantment')state.introComplete=state.enchantmentUsed;
 
   function staticDamage(spell){
     let damage=(Number(spell?.damage)||0)+(Math.max(1,Number(state.level)||1)-1)*4;
@@ -177,11 +185,21 @@
     });
   }
 
+  function syncObjective(){
+    const node=document.getElementById('enchantmentQuest');
+    if(node)node.textContent=state.enchantmentUsed?'COMPLETE':'NOT COMPLETE';
+    if(cfg.introType==='enchantment'){
+      const intro=document.getElementById('introQuest');
+      if(intro)intro.textContent=state.introComplete?'COMPLETE':'NOT COMPLETE';
+    }
+  }
+
   let uiQueued=false;
   function syncPresentation(){
     ensureApplicationsBound();
     syncSpellLabels();
     syncSpellGrid();
+    syncObjective();
     window.HAJJEN_SHARED_ACTION_BAR?.sync?.();
     if(uiQueued)return;
     uiQueued=true;
@@ -191,6 +209,8 @@
       syncSpellGrid();
       syncActionBar();
       syncFightWindow();
+      syncObjective();
+      window.HAJJEN_SHARED_HAND?.sync?.();
     });
   }
 
@@ -221,20 +241,20 @@
     if(!card||card.appliedTo||!spell||!def||state.gameOver)return false;
 
     if(!Array.isArray(spell.enchantments))spell.enchantments=[];
-    if(!spell.enchantments.includes(card.id))spell.enchantments.push(card.id);
+    const exists=spell.enchantments.some(item=>enchantmentId(item)===card.id&&typeof item==='object'&&item?.sourceZone===zone);
+    if(!exists)spell.enchantments.push({id:card.id,sourceZone:zone});
     card.appliedTo=spell.id;
     state.enchantmentUsed=true;
-    state.introComplete=true;
+    if(cfg.introType==='enchantment')state.introComplete=true;
 
     syncPresentation();
     persistHand();
     persistSpells();
 
-    const intro=document.getElementById('introQuest');
-    if(intro)intro.textContent='COMPLETE';
+    syncObjective();
     addEvent(`${def.name} applied to ${spell.name}.`,'reward');
     addToast(`${def.name.toUpperCase()} APPLIED`);
-    document.dispatchEvent(new CustomEvent('hajjen:enchantment-applied',{detail:{cardId,spellId}}));
+    document.dispatchEvent(new CustomEvent('hajjen:enchantment-applied',{detail:{zone,cardId,spellId}}));
     return true;
   }
 
@@ -242,8 +262,6 @@
   syncPresentation();
   persistSpells();
 
-  // Keep conditional display values (for example Primal Surge at Danger 15+)
-  // and Fight Window labels in sync with the live campaign UI.
   const fight=document.getElementById('combatSpells');
   if(fight)new MutationObserver(()=>queueMicrotask(syncFightWindow)).observe(fight,{childList:true,subtree:true,characterData:true});
   const danger=document.getElementById('dangerText');
@@ -254,8 +272,9 @@
     document.querySelector('.legend .enchantment-color')?.closest('span')?.remove();
   }
 
-  window.HAJJEN_ZONE3_ENCHANTMENTS={
-    version:'1.1',
+  const api={
+    version:'2.0-zones-2-3',
+    zone,
     deck,
     hand,
     getHand:()=>hand.map(card=>({...card,definition:cardDefinition(card),spellName:spellName(card.appliedTo)})),
@@ -263,4 +282,6 @@
     persist:persistHand,
     sync:syncPresentation
   };
+  window.HAJJEN_ENCHANTMENTS=api;
+  window.HAJJEN_ZONE3_ENCHANTMENTS=api;
 })();

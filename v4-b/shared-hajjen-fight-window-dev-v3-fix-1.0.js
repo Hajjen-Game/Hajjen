@@ -1,6 +1,6 @@
 /* HAJJEN Zone 3 DEV tail bootstrap.
-   This file is already loaded last in Zone 3 DEV, so it also mounts the isolated
-   Spellbook V1 prototype assets after shared-spellbook-v2 has built its DOM. */
+   This file is already loaded last in Zone 3 DEV, so it mounts the isolated
+   Spellbook visual prototype layers after shared-spellbook-v2 has built its DOM. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -13,10 +13,24 @@
     link.dataset.hajjenSpellbookDevV1='1';
     document.head.appendChild(link);
   }
+  if(!document.querySelector('link[data-hajjen-spellbook-dev-v2]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='shared-hajjen-spellbook-dev-v2-picker-1.0.css?v=1';
+    link.dataset.hajjenSpellbookDevV2='1';
+    document.head.appendChild(link);
+  }
+
   if(!document.querySelector('script[data-hajjen-spellbook-dev-v1]')){
     const script=document.createElement('script');
     script.src='shared-hajjen-spellbook-dev-1.0.js?v=1';
     script.dataset.hajjenSpellbookDevV1='1';
+    document.body.appendChild(script);
+  }
+  if(!document.querySelector('script[data-hajjen-spellbook-dev-v2]')){
+    const script=document.createElement('script');
+    script.src='shared-hajjen-spellbook-dev-v2-picker-1.0.js?v=1';
+    script.dataset.hajjenSpellbookDevV2='1';
     document.body.appendChild(script);
   }
 })();

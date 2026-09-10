@@ -1,9 +1,10 @@
-/* HAJJEN Zone 3 DEV — Hand deck-list experiment v1.1.
+/* HAJJEN Zone 3 DEV — Hand deck-list experiment v1.2.
    Visual proxy over the real Hand DOM. Gameplay stays owned by shared-hand / zone3.
-   - Manipulation PLAY resolves the current live card before clicking it.
-   - Tactical EQUIP resolves the current live card before clicking it.
-   - Enchantment APPLY opens a spell picker and uses the Zone 3 enchantment API.
-   - Rows keep the full gameplay description and expose it through a hover tooltip.
+   IMPORTANT: the proxy UI is intentionally stable between real Hand state changes.
+   Earlier versions observed every subtree/text/attribute mutation, which caused the
+   proxy rows to be replaced between pointerdown and click and made hover tooltips
+   flicker. This version only reacts to direct Hand child changes plus explicit
+   gameplay events.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -134,7 +135,6 @@
     const card=resolveSource('enchantment',key,index);
     const select=selectFor(card);
     const apply=buttonFor(card,'enchantment');
-    const api=window.HAJJEN_ZONE3_ENCHANTMENTS;
     if(!card||!select||!apply||apply.disabled)return;
 
     removePicker();
@@ -178,6 +178,7 @@
           const current=resolveSource('enchantment',key,index);
           if(!current)return;
           const currentId=current.dataset.enchantmentId;
+          const api=window.HAJJEN_ZONE3_ENCHANTMENTS;
           let applied=false;
           if(api?.apply&&currentId){
             applied=api.apply(currentId,option.value)===true;
@@ -194,7 +195,6 @@
           if(applied){
             backdrop.remove();
             schedule();
-            setTimeout(schedule,80);
           }
         });
         options.appendChild(choice);
@@ -236,7 +236,8 @@
 
     const title=source?cardTitle(source):(locked?'SLOT LOCKED':'EMPTY SLOT');
     const description=source?cardCopy(source,category):(locked?'See Card Decks for unlock timing.':'Empty card slot.');
-    row.dataset.fullDescription=description;
+    const safeDescription=description||'No description.';
+    row.dataset.fullDescription=safeDescription;
 
     const icon=document.createElement('img');
     icon.className='hajjen-hand-list-row-icon';
@@ -251,7 +252,8 @@
     name.textContent=title;
     const desc=document.createElement('span');
     desc.className='hajjen-hand-list-row-description';
-    desc.textContent=description||'No description.';
+    desc.textContent=safeDescription;
+    desc.title=safeDescription;
     copy.append(name,desc);
 
     const action=document.createElement('button');
@@ -298,36 +300,11 @@
     return section;
   }
 
-  function performAction(button){
-    if(button.disabled)return;
-    const category=button.dataset.category;
-    const key=button.dataset.sourceKey;
-    const index=Number(button.dataset.slot)||0;
-    if(category==='enchantment'){
-      openEnchantmentPicker(key,index);
-      return;
-    }
-    const {live,disabled}=currentActionState(category,key,index);
-    if(disabled||!live)return;
-    live.click();
-    schedule();
-    setTimeout(schedule,50);
-    setTimeout(schedule,140);
-  }
-
-  /* Stable event delegation: proxy buttons survive repeated re-renders and always
-     resolve the CURRENT live source card at click time. */
-  layout.addEventListener('click',event=>{
-    const button=event.target.closest('.hajjen-hand-list-action');
-    if(!button||!layout.contains(button))return;
-    event.preventDefault();
-    event.stopPropagation();
-    performAction(button);
-  });
-
-  /* Custom full-description hover tooltip. */
   let tooltip=null;
+  let tooltipTimer=0;
   function hideTooltip(){
+    clearTimeout(tooltipTimer);
+    tooltipTimer=0;
     tooltip?.remove();
     tooltip=null;
   }
@@ -348,10 +325,40 @@
     tooltip.style.left=`${Math.round(left)}px`;
     tooltip.style.top=`${Math.round(top)}px`;
   }
+
+  function performAction(button){
+    if(button.disabled)return;
+    const category=button.dataset.category;
+    const key=button.dataset.sourceKey;
+    const index=Number(button.dataset.slot)||0;
+    hideTooltip();
+    if(category==='enchantment'){
+      openEnchantmentPicker(key,index);
+      return;
+    }
+    const {live,disabled}=currentActionState(category,key,index);
+    if(disabled||!live)return;
+    live.click();
+    schedule();
+  }
+
+  /* Delegated click handling is kept on a DOM tree that no longer gets replaced
+     continuously, so pointerdown and click land on the same button. */
+  layout.addEventListener('click',event=>{
+    const button=event.target.closest('.hajjen-hand-list-action');
+    if(!button||!layout.contains(button))return;
+    event.preventDefault();
+    event.stopPropagation();
+    performAction(button);
+  },true);
+
   layout.addEventListener('pointerover',event=>{
     const row=event.target.closest('.hajjen-hand-list-row');
     if(!row||!layout.contains(row)||row.contains(event.relatedTarget))return;
-    showTooltip(row);
+    clearTimeout(tooltipTimer);
+    tooltipTimer=setTimeout(()=>{
+      if(row.isConnected&&row.matches(':hover'))showTooltip(row);
+    },180);
   });
   layout.addEventListener('pointerout',event=>{
     const row=event.target.closest('.hajjen-hand-list-row');
@@ -377,14 +384,16 @@
     raf=requestAnimationFrame(()=>requestAnimationFrame(render));
   }
 
+  /* CRITICAL: only direct child changes represent a new Hand state. Watching the
+     hidden cards' subtree/attributes caused a render loop with the vector/icon
+     decorators and was the source of flickering tooltips and dead clicks. */
   const observer=new MutationObserver(schedule);
-  observer.observe(hand,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','disabled','aria-pressed','data-hand-category','data-hand-placeholder']});
+  observer.observe(hand,{childList:true,subtree:false});
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
   render();
-  requestAnimationFrame(render);
-  setTimeout(render,80);
-  setTimeout(render,250);
+  /* One late sync catches startup decorators without leaving a permanent loop. */
+  setTimeout(schedule,220);
 
-  window.HAJJEN_HAND_DECK_LIST_DEV={version:'1.1',hand,panel,layout,render:schedule,observer};
+  window.HAJJEN_HAND_DECK_LIST_DEV={version:'1.2',hand,panel,layout,render:schedule,observer};
 })();

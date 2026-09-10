@@ -131,3 +131,25 @@
     sync
   };
 })();
+
+/* Production presentation promotion. All three zones load this shared component.
+   Zone 3 ?dev=1 keeps the isolated prototype stack and therefore skips production. */
+(()=>{
+  const zone=window.HAJJEN_SHARED_FIGHT_WINDOW?.zone;
+  if(!zone)return;
+  if(zone===3&&new URLSearchParams(location.search).get('dev')==='1')return;
+
+  if(!document.querySelector('link[data-hajjen-fight-production]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='shared-hajjen-fight-window-production-1.0.css?v=1';
+    link.dataset.hajjenFightProduction='1';
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-hajjen-fight-production]')){
+    const script=document.createElement('script');
+    script.src='shared-hajjen-fight-window-production-1.0.js?v=1';
+    script.dataset.hajjenFightProduction='1';
+    document.body.appendChild(script);
+  }
+})();

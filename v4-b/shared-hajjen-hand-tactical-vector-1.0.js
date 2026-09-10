@@ -1,16 +1,29 @@
 /* HAJJEN HAND — Tactical vector/CSS card preview, DEV only.
-   Zone 3 keeps Tactical progression locked; this mounts one visual prototype
-   into the first Tactical hand slot so the card family can be reviewed safely. */
+   Zone 3 keeps Tactical progression locked, but DEV mounts one Guard Stance
+   prototype into the first Tactical hand slot so the full equip/combat flow can
+   be tested safely.
+
+   IMPORTANT: campaign-zone.js rebuilds #manipCards on every renderAll(), including
+   movement. Earlier this prototype was inserted only once at startup, so the first
+   movement deleted Guard Stance and the shared Hand correctly fell back to two
+   locked Tactical placeholders. This version owns the DEV prototype state and
+   re-mounts it whenever the native Hand is rebuilt.
+*/
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone;
-  if(zone!==3)return;
+  if(zone!==3||window.HAJJEN_TACTICAL_CARD_DEV)return;
 
   const hand=document.getElementById('manipCards');
-  if(!hand||hand.querySelector(':scope > .hajjen-dev-tactical-card'))return;
+  if(!hand)return;
 
   const NS='http://www.w3.org/2000/svg';
+  const CARD_KEY='guard stance';
+  let equipped=false;
+  let ensureRaf=0;
+  let ensuring=false;
+
   const svgEl=(name,attrs={})=>{
     const node=document.createElementNS(NS,name);
     Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,String(value)));
@@ -31,11 +44,38 @@
     return svg;
   }
 
+  function consumed(){
+    return window.HAJJEN_TACTICAL_COMBAT_DEV?.usedKeys?.has?.(CARD_KEY)===true;
+  }
+
+  function applyState(card){
+    if(!card)return;
+    const equip=card.querySelector(':scope > .shared-tactical-equip');
+    const used=consumed();
+    card.classList.toggle('is-used',used);
+    card.classList.toggle('is-equipt',!used&&equipped);
+    if(!equip)return;
+    if(used){
+      equip.textContent='USED';
+      equip.disabled=true;
+      equip.setAttribute('aria-pressed','false');
+    }else if(equipped){
+      equip.textContent='EQUIPT';
+      equip.disabled=false;
+      equip.setAttribute('aria-pressed','true');
+    }else{
+      equip.textContent='EQUIP';
+      equip.disabled=false;
+      equip.setAttribute('aria-pressed','false');
+    }
+  }
+
   function createCard(){
     const card=document.createElement('div');
     card.className='shared-hand-card shared-tactical-card tactical hajjen-dev-tactical-card';
     card.dataset.handCategory='tactical';
     card.dataset.handLabel='Guard Stance';
+    card.dataset.tacticalId='guard-stance';
     card.dataset.devPreview='tactical';
 
     const iconWrap=document.createElement('span');
@@ -52,25 +92,69 @@
     const equip=document.createElement('button');
     equip.type='button';
     equip.className='shared-tactical-equip';
-    equip.textContent='EQUIP';
-    equip.setAttribute('aria-pressed','false');
     equip.addEventListener('click',()=>{
-      if(card.classList.contains('is-equipt'))return;
-      card.classList.add('is-equipt');
-      equip.textContent='EQUIPT';
-      equip.setAttribute('aria-pressed','true');
+      if(consumed()||equipped)return;
+      equipped=true;
+      applyState(card);
+      queueMicrotask(()=>window.HAJJEN_TACTICAL_COMBAT_DEV?.sync?.());
+      window.HAJJEN_HAND_DECK_LIST_DEV?.render?.();
     });
 
     card.append(iconWrap,title,copy,equip);
+    applyState(card);
     return card;
   }
 
-  const card=createCard();
-  const firstTacticalPlaceholder=hand.querySelector(':scope > .shared-hand-placeholder[data-hand-placeholder="tactical"]');
-  if(firstTacticalPlaceholder)firstTacticalPlaceholder.before(card);
-  else hand.appendChild(card);
+  function ensureCard(){
+    ensureRaf=0;
+    if(ensuring||!hand.isConnected)return;
+    ensuring=true;
+    try{
+      let card=hand.querySelector(':scope > .hajjen-dev-tactical-card');
+      if(!card){
+        card=createCard();
+        const firstTacticalPlaceholder=hand.querySelector(':scope > .shared-hand-placeholder[data-hand-placeholder="tactical"]');
+        if(firstTacticalPlaceholder)firstTacticalPlaceholder.before(card);
+        else hand.appendChild(card);
 
-  /* Let the existing shared Hand component recalculate the remaining Tactical
-     placeholder count. This leaves one preview card + one locked Tactical slot. */
-  window.HAJJEN_SHARED_HAND?.sync?.();
+        /* Recalculate placeholders after the prototype is restored. This is what
+           keeps the Hand at 1 Guard Stance + 1 Tactical locked slot instead of
+           falling back to 2 locked slots after movement. */
+        window.HAJJEN_SHARED_HAND?.sync?.();
+      }else{
+        applyState(card);
+      }
+      window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV?.sync?.();
+      window.HAJJEN_HAND_DECK_LIST_DEV?.render?.();
+      window.HAJJEN_TACTICAL_COMBAT_DEV?.sync?.();
+    }finally{
+      ensuring=false;
+    }
+  }
+
+  function scheduleEnsure(){
+    if(ensureRaf)return;
+    ensureRaf=requestAnimationFrame(()=>requestAnimationFrame(ensureCard));
+  }
+
+  /* campaign-zone.js empties/rebuilds the direct children of #manipCards on every
+     movement/status render. Watch exactly that boundary, not the subtree, so icon
+     decorators and button text changes cannot create a render loop. */
+  const observer=new MutationObserver(records=>{
+    const prototypeStillThere=hand.querySelector(':scope > .hajjen-dev-tactical-card');
+    if(!prototypeStillThere&&records.some(record=>record.type==='childList'))scheduleEnsure();
+  });
+  observer.observe(hand,{childList:true,subtree:false});
+
+  ensureCard();
+  requestAnimationFrame(ensureCard);
+
+  window.HAJJEN_TACTICAL_CARD_DEV={
+    version:'1.1-persistent',
+    hand,
+    observer,
+    get equipped(){return equipped;},
+    setEquipped(value){equipped=!!value;ensureCard();},
+    sync:ensureCard
+  };
 })();

@@ -1,14 +1,14 @@
 /* HAJJEN — production Tactical Fight Window bridge for Zones 1–3.
-   Does not unlock or inject Tactical cards. It only exposes the two combat slots
-   and mirrors Tactical cards that gameplay has actually equipped. A used Tactical
-   card is consumed for the current run/page session.
+   Exposes two combat slots and mirrors Tactical cards that gameplay has actually
+   equipped. A used Tactical card is consumed for the current run/page session.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1'||window.HAJJEN_TACTICAL_COMBAT_PRODUCTION)return;
 
   const sharedHand=window.HAJJEN_SHARED_HAND;
-  const zone=Number(sharedHand?.zone||window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:0));
+  const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG||{};
+  const zone=Number(sharedHand?.zone||cfg.zone||(window.HAJJEN_V4B_STATE?1:0));
   if(zone<1||zone>3)return;
 
   const hand=sharedHand?.hand||document.getElementById(zone===1?'manipulationCards':'manipCards');
@@ -143,6 +143,17 @@
     renderSlots();
   }
 
+  function completeTacticalObjective(name,key){
+    if(zone!==3)return;
+    state.tacticalUsed=true;
+    if(cfg.introType==='tactical')state.introComplete=true;
+    const intro=document.getElementById('introQuest');
+    if(intro&&cfg.introType==='tactical')intro.textContent='COMPLETE';
+    const tactical=document.getElementById('tacticalQuest');
+    if(tactical)tactical.textContent='COMPLETE';
+    document.dispatchEvent(new CustomEvent('hajjen:tactical-used',{detail:{zone,name,key}}));
+  }
+
   function useTactical(index){
     const key=slots[index];
     if(!key||usedKeys.has(key)||!state.combat)return;
@@ -150,6 +161,7 @@
     const name=card?titleOf(card):key;
     markConsumed(card,key);
     slots[index]=null;
+    completeTacticalObjective(name,key);
     if(name.toLowerCase()==='guard stance'&&installGuardSetter()){
       guardArmed=true;
       message.textContent='Guard Stance activated. The next enemy hit is blocked. Choose a spell.';
@@ -172,5 +184,5 @@
 
   syncEquipped();
   requestAnimationFrame(syncEquipped);
-  window.HAJJEN_TACTICAL_COMBAT_PRODUCTION={version:'1.0',zone,slots,usedKeys,sync:syncEquipped,use:useTactical,handObserver,modalObserver};
+  window.HAJJEN_TACTICAL_COMBAT_PRODUCTION={version:'1.1-objective',zone,slots,usedKeys,sync:syncEquipped,use:useTactical,handObserver,modalObserver};
 })();

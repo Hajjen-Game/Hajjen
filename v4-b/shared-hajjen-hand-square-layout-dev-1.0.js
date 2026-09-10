@@ -100,7 +100,7 @@
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
   window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV={
-    version:'2.1',
+    version:'2.2',
     hand,
     iconFiles,
     sync:scan,
@@ -124,7 +124,7 @@
   }
   if(!document.querySelector('script[data-hajjen-hand-deck-list-dev]')){
     const script=document.createElement('script');
-    script.src='shared-hajjen-hand-deck-list-dev-1.0.js?v=2';
+    script.src='shared-hajjen-hand-deck-list-dev-1.0.js?v=3';
     script.dataset.hajjenHandDeckListDev='1';
     document.body.appendChild(script);
   }

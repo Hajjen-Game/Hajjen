@@ -1,6 +1,6 @@
 window.HAJJEN_ZONE_CONFIG={
   zone:3,name:'ZONE 3',cols:25,rows:10,viewCols:15,viewRows:10,start:{row:5,col:1},levelFloor:7,levelCap:10,next:null,
-  introQuest:'Apply an Enchantment',introType:'enchantment',bossTitle:'ZONE 3 BOSS',bossPos:{row:4,col:23},
+  introQuest:'Use a Tactical Card',introType:'tactical',bossTitle:'ZONE 3 BOSS',bossPos:{row:4,col:23},
   mobTarget:7,eliteTarget:2,bossLevelTarget:10,requireIntroForBoss:true,
   enemies:[
     {row:5,col:4,type:'mob',title:'RIFT WHELP',hp:150,attack:19,xp:30},
@@ -44,6 +44,10 @@ window.HAJJEN_ZONE_CONFIG={
     {id:'primal-surge',name:'Primal Surge',text:'Spell deals +10 damage while Danger is 15+.'},
     {id:'stabilized',name:'Stabilized',text:"Spell's defensive/healing secondary effect is increased by 50%."},
     {id:'finisher',name:'Finisher',text:'Spell deals +10 damage to enemies below 35% HP.'}
+  ],
+  tactical:{draw:1},
+  tacticalDeck:[
+    {id:'guard-stance',name:'Guard Stance',text:'Equip this Tactical card to prepare a defensive stance for combat.'}
   ]
 };
 
@@ -54,7 +58,8 @@ window.HAJJEN_ZONE_CONFIG={
   if(mobObjective)mobObjective.target=7;
   const goal=(ui.help||[]).find(section=>section.title==='ZONE 3 GOAL');
   if(goal)goal.items=[
-    'Apply one of your two drawn Enchantments to a crafted spell.',
+    'Use your new Tactical card during combat.',
+    'You receive two Enchantment cards in Zone 3.',
     'Defeat 7 normal mobs, both Guardians, and reach Level 10 to unlock the Zone 3 boss.',
     'Collect Moonleaf + Clearwater to craft one additional Healing Potion during the run.',
     'Zone 3 contains 10 fixed normal mobs on the same 25×10 world size as Zone 2. Three mobs are optional, so route choice still matters.'
@@ -66,7 +71,7 @@ window.HAJJEN_ZONE_CONFIG={
     'From Danger 5 onward, combat can attract a nearby existing normal mob into a chained fight.'
   ];
   if(!(ui.help||[]).some(section=>section.title==='ZONE 3 MANIPULATION')){
-    ui.help.splice(2,0,{title:'ZONE 3 MANIPULATION',items:[
+    ui.help.splice(3,0,{title:'ZONE 3 MANIPULATION',items:[
       'Calm Waters reduces Danger by 3.',
       'Misdirection moves one nearby normal mob 2 tiles farther away.',
       'Safe Window prevents ambient spawns for 3 movement steps.',

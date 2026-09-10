@@ -21,7 +21,7 @@
   const NS='http://www.w3.org/2000/svg';
   const CARD_KEY='guard-stance';
   let equipped=false;
-  let ensureRaf=0;
+  let ensureQueued=false;
   let ensuring=false;
 
   const svgEl=(name,attrs={})=>{
@@ -107,7 +107,7 @@
   }
 
   function ensureCard(){
-    ensureRaf=0;
+    ensureQueued=false;
     if(ensuring||!hand.isConnected)return;
     ensuring=true;
     try{
@@ -134,8 +134,12 @@
   }
 
   function scheduleEnsure(){
-    if(ensureRaf)return;
-    ensureRaf=requestAnimationFrame(()=>requestAnimationFrame(ensureCard));
+    if(ensureQueued)return;
+    ensureQueued=true;
+    /* Shared Hand queues its own reconciliation from the same child mutation.
+       Queue behind that work, but still before the browser paints, so Guard
+       Stance never visibly falls back to a locked row while Sharkan moves. */
+    queueMicrotask(ensureCard);
   }
 
   /* campaign-zone.js empties/rebuilds the direct children of #manipCards on every
@@ -148,10 +152,10 @@
   observer.observe(hand,{childList:true,subtree:false});
 
   ensureCard();
-  requestAnimationFrame(ensureCard);
+  queueMicrotask(ensureCard);
 
   window.HAJJEN_TACTICAL_CARD_DEV={
-    version:'1.1-persistent',
+    version:'1.2-prepaint-persistent',
     hand,
     observer,
     get equipped(){return equipped;},

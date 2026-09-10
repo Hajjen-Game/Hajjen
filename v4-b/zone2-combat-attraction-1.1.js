@@ -9,11 +9,25 @@
   const rules=cfg.combatAttraction||{};
   const radius=Number(rules.radius)||3;
   const chanceByTier={calm:0,uneasy:0,dangerous:.30,hostile:.45,critical:.65,...(rules.chance||{})};
+  const movementKeys=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D']);
   let pulling=false;
+  let synthetic=false;
 
   const dangerTier=()=>state.danger>=20?'critical':state.danger>=15?'hostile':state.danger>=10?'dangerous':state.danger>=5?'uneasy':'calm';
   const tileAt=(r,c)=>world.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
   const chebyshev=(r,c)=>Math.max(Math.abs(r-state.row),Math.abs(c-state.col));
+
+  window.addEventListener('keydown',event=>{
+    if(!pulling||synthetic||!movementKeys.has(event.key))return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },true);
+  world.addEventListener('click',event=>{
+    if(!pulling||synthetic)return;
+    if(!(event.target instanceof Element)||!event.target.closest('.tile'))return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },true);
 
   function addLog(text,type='danger'){
     const row=document.createElement('div');
@@ -105,13 +119,15 @@
       steadySteps:state.steadySteps||0,spawnBlock:state.spawnBlock||0
     };
     const adjacent=[[mobR-1,mobC],[mobR+1,mobC],[mobR,mobC-1],[mobR,mobC+1]]
-      .find(([r,c])=>r>=0&&c>=0&&r<cfg.rows&&c<cfg.cols&&!(r===mobR&&c===mobC));
+      .find(([r,c])=>r>=0&&c>=0&&r<cfg.rows&&c<cfg.cols);
     if(!adjacent){pulling=false;source.style.visibility='';return;}
 
     state.row=adjacent[0];state.col=adjacent[1];
     state.prevRow=origin.row;state.prevCol=origin.col;
     source.style.visibility='';
-    source.click();
+    synthetic=true;
+    try{source.click();}
+    finally{synthetic=false;}
 
     const engaged=!!state.combat;
     state.row=origin.row;state.col=origin.col;
@@ -167,5 +183,5 @@
     }
   }).observe(eventLog,{childList:true});
 
-  window.HAJJEN_ZONE2_COMBAT_ATTRACTION={version:'1.1',rules:{radius,chance:chanceByTier},get pulling(){return pulling;}};
+  window.HAJJEN_ZONE2_COMBAT_ATTRACTION={version:'1.2',rules:{radius,chance:chanceByTier},get pulling(){return pulling;}};
 })();

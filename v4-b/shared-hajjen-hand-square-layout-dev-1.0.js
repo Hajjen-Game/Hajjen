@@ -100,7 +100,7 @@
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
   window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV={
-    version:'2.2',
+    version:'2.3',
     hand,
     iconFiles,
     sync:scan,
@@ -127,5 +127,19 @@
     script.src='shared-hajjen-hand-deck-list-dev-1.0.js?v=3';
     script.dataset.hajjenHandDeckListDev='1';
     document.body.appendChild(script);
+  }
+
+  if(!document.querySelector('link[data-hajjen-hand-category-vector-frame-dev]')){
+    const frameCss=document.createElement('link');
+    frameCss.rel='stylesheet';
+    frameCss.href='shared-hajjen-hand-category-vector-frame-dev-1.0.css?v=1';
+    frameCss.dataset.hajjenHandCategoryVectorFrameDev='1';
+    document.head.appendChild(frameCss);
+  }
+  if(!document.querySelector('script[data-hajjen-hand-category-vector-frame-dev]')){
+    const frameScript=document.createElement('script');
+    frameScript.src='shared-hajjen-hand-category-vector-frame-dev-1.0.js?v=1';
+    frameScript.dataset.hajjenHandCategoryVectorFrameDev='1';
+    document.body.appendChild(frameScript);
   }
 })();

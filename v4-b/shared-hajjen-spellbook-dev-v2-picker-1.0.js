@@ -1,0 +1,274 @@
+/* HAJJEN Zone 3 DEV — Spellbook V2 ingredient-picker UX.
+   Keeps shared-spellbook-v2 crafting logic untouched. The existing hidden
+   ingredient buttons remain the source of truth; this layer presents them in
+   an explicit slot-driven picker grouped by Primal Force. */
+(()=>{
+  const params=new URLSearchParams(location.search);
+  if(params.get('dev')!=='1')return;
+  if((window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone)!==3)return;
+
+  const modal=document.getElementById('spellbookModal');
+  const card=modal?.querySelector(':scope > .modal-card');
+  const root=modal?.querySelector('.shared-spellbook-v2');
+  const createSection=root?.querySelector('.sbv2-create-section');
+  const createSlots=root?.querySelector('[data-sbv2-create-slots]');
+  const sourcePicker=root?.querySelector('[data-sbv2-create-picker]');
+  const ingredientSection=root?.querySelector('.sbv2-ingredients-section');
+  if(!modal||!card||!root||!createSection||!createSlots||!sourcePicker)return;
+
+  modal.classList.add('hajjen-spellbook-dev-v2');
+  card.classList.add('hajjen-spellbook-dev-v2-card');
+
+  /* Replace the old floating SPELLBOOK plaque with the small central rail used
+     at the top of the Fight Window. */
+  let topOrnament=card.querySelector(':scope > .hajjen-spellbook-top-ornament');
+  if(!topOrnament){
+    topOrnament=document.createElement('div');
+    topOrnament.className='hajjen-spellbook-top-ornament';
+    topOrnament.setAttribute('aria-hidden','true');
+    card.prepend(topOrnament);
+  }
+
+  const forceOrder=['Growth','Ember','Flow','Stone','Gale','Aether'];
+  const forceIcons={
+    Growth:'assets/ingredient_growth.webp',
+    Ember:'assets/ingredient_ember.webp',
+    Flow:'assets/ingredient_flow.webp',
+    Stone:'assets/ingredient_stone.webp',
+    Gale:'assets/ingredient_gale.webp',
+    Aether:'assets/ingredient_aether.webp'
+  };
+
+  const overlay=document.createElement('div');
+  overlay.className='hajjen-ingredient-picker-overlay';
+  overlay.setAttribute('aria-hidden','true');
+  overlay.innerHTML=`
+    <div class="hajjen-ingredient-picker-panel" role="dialog" aria-modal="true" aria-labelledby="hajjenIngredientPickerTitle">
+      <div class="hajjen-ingredient-picker-toprail" aria-hidden="true"></div>
+      <header class="hajjen-ingredient-picker-header">
+        <div>
+          <small>CREATE SPELL</small>
+          <h3 id="hajjenIngredientPickerTitle">CHOOSE INGREDIENT</h3>
+          <p data-picker-subtitle>Select one collected ingredient.</p>
+        </div>
+        <button type="button" class="hajjen-ingredient-picker-close">× CLOSE</button>
+      </header>
+      <div class="hajjen-ingredient-picker-grid" data-picker-grid></div>
+    </div>`;
+  modal.appendChild(overlay);
+
+  const panel=overlay.querySelector('.hajjen-ingredient-picker-panel');
+  const title=overlay.querySelector('#hajjenIngredientPickerTitle');
+  const subtitle=overlay.querySelector('[data-picker-subtitle]');
+  const grid=overlay.querySelector('[data-picker-grid]');
+  const closeButton=overlay.querySelector('.hajjen-ingredient-picker-close');
+  let targetSlot=0;
+
+  function sourceButtons(){
+    return [...sourcePicker.querySelectorAll(':scope > .sbv2-pick')];
+  }
+
+  function sourceData(){
+    return sourceButtons().map((button,index)=>({
+      index,
+      button,
+      name:button.querySelector('strong')?.textContent?.trim()||`Ingredient ${index+1}`,
+      force:button.querySelector('small')?.textContent?.trim()||'',
+      selectedOrder:Number.parseInt(button.querySelector(':scope > span')?.textContent||'',10)||0,
+      disabled:button.disabled
+    }));
+  }
+
+  function selectedMap(){
+    const data=sourceData();
+    return {
+      slot1:data.find(item=>item.selectedOrder===1)?.index ?? null,
+      slot2:data.find(item=>item.selectedOrder===2)?.index ?? null
+    };
+  }
+
+  function clickSource(index){
+    const button=sourceButtons()[index];
+    if(button&&!button.disabled)button.click();
+  }
+
+  /* shared-spellbook-v2 stores selections internally, so use its real hidden
+     buttons to preserve every existing rule. For Ingredient 1 we rebuild the
+     ordering when needed; Ingredient 2 only replaces the second selection. */
+  function chooseForTarget(index){
+    let current=selectedMap();
+
+    if(targetSlot===0){
+      if(index===current.slot1){closePicker();return;}
+      const oldSlot1=current.slot1;
+      const oldSlot2=current.slot2;
+      if(oldSlot2!==null)clickSource(oldSlot2);
+      if(oldSlot1!==null)clickSource(oldSlot1);
+      clickSource(index);
+      if(oldSlot2!==null&&oldSlot2!==index)clickSource(oldSlot2);
+    }else{
+      if(current.slot1===null)return;
+      if(index===current.slot1)return;
+      if(index===current.slot2){closePicker();return;}
+      if(current.slot2!==null)clickSource(current.slot2);
+      clickSource(index);
+    }
+
+    closePicker();
+    queueMicrotask(decorateCreateArea);
+  }
+
+  function renderPicker(){
+    const data=sourceData();
+    const selected=selectedMap();
+    grid.replaceChildren();
+
+    forceOrder.forEach(force=>{
+      const items=data.filter(item=>item.force.toLowerCase()===force.toLowerCase());
+      const forceCard=document.createElement('section');
+      forceCard.className=`hajjen-ingredient-force-card ${force.toLowerCase()}`;
+
+      const head=document.createElement('div');
+      head.className='hajjen-ingredient-force-head';
+      const icon=document.createElement('img');
+      icon.src=forceIcons[force];
+      icon.alt='';
+      icon.draggable=false;
+      const labels=document.createElement('div');
+      const strong=document.createElement('strong');
+      strong.textContent=force.toUpperCase();
+      const count=document.createElement('span');
+      count.textContent=`${items.length} AVAILABLE`;
+      labels.append(strong,count);
+      head.append(icon,labels);
+
+      const choices=document.createElement('div');
+      choices.className='hajjen-ingredient-force-choices';
+      if(!items.length){
+        const empty=document.createElement('div');
+        empty.className='hajjen-ingredient-force-empty';
+        empty.textContent='None collected';
+        choices.appendChild(empty);
+      }else{
+        items.forEach(item=>{
+          const button=document.createElement('button');
+          button.type='button';
+          button.className='hajjen-ingredient-choice';
+          button.textContent=item.name;
+          const isThisTarget=(targetSlot===0&&item.index===selected.slot1)||(targetSlot===1&&item.index===selected.slot2);
+          const usedByOther=(targetSlot===0&&item.index===selected.slot2)||(targetSlot===1&&item.index===selected.slot1);
+          if(isThisTarget){
+            button.classList.add('selected');
+            button.title=`${item.name} is already selected for Ingredient ${targetSlot+1}.`;
+          }
+          if(usedByOther){
+            button.classList.add('used-other-slot');
+            button.disabled=true;
+            button.title=`Already used for Ingredient ${targetSlot===0?2:1}.`;
+          }else if(item.disabled){
+            button.disabled=true;
+          }
+          button.addEventListener('click',()=>chooseForTarget(item.index));
+          choices.appendChild(button);
+        });
+      }
+
+      forceCard.append(head,choices);
+      grid.appendChild(forceCard);
+    });
+  }
+
+  function openPicker(slot){
+    if(slot===1&&selectedMap().slot1===null)return;
+    targetSlot=slot;
+    title.textContent=`CHOOSE INGREDIENT ${slot+1}`;
+    subtitle.textContent=slot===0
+      ?'Choose the ingredient that determines the spell’s Primal Force.'
+      :'Choose the second ingredient that modifies the spell.';
+
+    /* Use the exact board-tile Primal Force icons, not the square spell art. */
+    const style=getComputedStyle(card);
+    panel.style.setProperty('--hajjen-picker-bg-image',style.backgroundImage||'none');
+    renderPicker();
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden','false');
+    requestAnimationFrame(()=>overlay.querySelector('button:not(:disabled)')?.focus?.({preventScroll:true}));
+  }
+
+  function closePicker(){
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden','true');
+  }
+
+  function decorateCreateArea(){
+    const slots=[...createSlots.querySelectorAll(':scope > .sbv2-create-slot')];
+    slots.forEach((slot,index)=>{
+      slot.classList.add('hajjen-ingredient-slot-trigger');
+      slot.dataset.ingredientSlot=String(index);
+      slot.setAttribute('role','button');
+      slot.setAttribute('tabindex',index===1&&selectedMap().slot1===null?'-1':'0');
+      slot.setAttribute('aria-label',`Choose Ingredient ${index+1}`);
+      slot.classList.toggle('waiting-for-first',index===1&&selectedMap().slot1===null);
+      if(!slot.querySelector(':scope > .hajjen-ingredient-slot-action')){
+        const action=document.createElement('span');
+        action.className='hajjen-ingredient-slot-action';
+        action.textContent=index===1&&selectedMap().slot1===null?'CHOOSE INGREDIENT 1 FIRST':'CLICK TO CHOOSE';
+        slot.appendChild(action);
+      }else{
+        slot.querySelector(':scope > .hajjen-ingredient-slot-action').textContent=index===1&&selectedMap().slot1===null?'CHOOSE INGREDIENT 1 FIRST':'CLICK TO CHOOSE';
+      }
+    });
+
+    const total=sourceButtons().length;
+    const headingSmall=createSection.querySelector('.sbv2-section-heading small');
+    if(headingSmall)headingSmall.textContent=`${total} AVAILABLE`;
+    const copy=createSection.querySelector('.sbv2-section-copy');
+    if(copy)copy.textContent='Choose Ingredient 1, then Ingredient 2. Click a slot to browse your collected ingredients by Primal Force.';
+  }
+
+  createSlots.addEventListener('click',event=>{
+    const slot=event.target.closest('.sbv2-create-slot');
+    if(!slot||!createSlots.contains(slot))return;
+    const index=Number(slot.dataset.ingredientSlot);
+    if(index===1&&selectedMap().slot1===null)return;
+    openPicker(index);
+  });
+
+  createSlots.addEventListener('keydown',event=>{
+    if(!['Enter',' '].includes(event.key))return;
+    const slot=event.target.closest('.sbv2-create-slot');
+    if(!slot)return;
+    event.preventDefault();
+    const index=Number(slot.dataset.ingredientSlot);
+    if(index===1&&selectedMap().slot1===null)return;
+    openPicker(index);
+  });
+
+  closeButton.addEventListener('click',closePicker);
+  overlay.addEventListener('click',event=>{if(event.target===overlay)closePicker();});
+
+  let queued=false;
+  function scheduleDecorate(){
+    if(queued)return;
+    queued=true;
+    queueMicrotask(()=>{
+      queued=false;
+      decorateCreateArea();
+      if(overlay.classList.contains('show'))renderPicker();
+    });
+  }
+  new MutationObserver(scheduleDecorate).observe(createSlots,{childList:true,subtree:true});
+  new MutationObserver(scheduleDecorate).observe(sourcePicker,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class']});
+  new MutationObserver(()=>{if(!modal.classList.contains('show'))closePicker();}).observe(modal,{attributes:true,attributeFilter:['class']});
+
+  /* Keep the old ingredient inventory DOM alive for shared-spellbook-v2 state
+     syncing, but V2 CSS removes it from the visible Spellbook. */
+  ingredientSection?.setAttribute('aria-hidden','true');
+
+  decorateCreateArea();
+  requestAnimationFrame(decorateCreateArea);
+
+  window.HAJJEN_SPELLBOOK_DEV_V2={
+    version:'2.0',modal,card,root,overlay,openPicker,closePicker,sync:decorateCreateArea
+  };
+})();

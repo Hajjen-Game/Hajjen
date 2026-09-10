@@ -1,5 +1,7 @@
 /* HAJJEN Zone 3 DEV — Hand reference-layout binder.
    Presentation only. Mounts the final PNG category icons and adds the title rule.
+   IMPORTANT: icon/title decoration is appended after the native card DOM so
+   gameplay scripts that use querySelector('span') still resolve the real card copy.
    No card actions, enchantment logic, Tactical logic or Hand state is changed. */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -31,19 +33,27 @@
       slot=document.createElement('span');
       slot.className='hajjen-hand-icon-slot';
       slot.setAttribute('aria-hidden','true');
-      card.prepend(slot);
     }
     slot.dataset.handIconKind=kind;
     slot.dataset.handIconSrc=src;
 
     let img=slot.querySelector(':scope > img');
     if(!img){
+      /* A previous DEV pass could let Calm Waters write its rules text into the
+         prepended icon span. Clear any such stale text before mounting the PNG. */
+      slot.replaceChildren();
       img=document.createElement('img');
       img.alt='';
       img.decoding='async';
       img.draggable=false;
       slot.appendChild(img);
+    }else{
+      [...slot.childNodes].forEach(node=>{if(node!==img)node.remove();});
     }
+
+    /* Keep decoration AFTER the native <strong>/<span>/<button> nodes. Zone 3's
+       Calm Waters gameplay decorator intentionally asks for the first span. */
+    card.appendChild(slot);
 
     const show=()=>slot.classList.add('has-icon');
     const hide=()=>slot.classList.remove('has-icon');
@@ -63,8 +73,8 @@
       rule=document.createElement('span');
       rule.className='hajjen-hand-title-rule';
       rule.setAttribute('aria-hidden','true');
-      card.appendChild(rule);
     }
+    card.appendChild(rule);
   }
 
   function decorate(card){
@@ -94,7 +104,7 @@
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
   window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV={
-    version:'2.0',
+    version:'2.1',
     hand,
     iconFiles,
     sync:scan,

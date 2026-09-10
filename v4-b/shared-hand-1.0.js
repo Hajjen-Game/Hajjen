@@ -24,20 +24,28 @@
     return'manipulation';
   }
 
+  function deckConfig(category){return (zoneConfig.decks||[]).find(deck=>deck.type===category)||null;}
   function deckState(category){
     if(category==='manipulation')return'active';
-    return (zoneConfig.decks||[]).find(deck=>deck.type===category)?.state||'locked';
+    return deckConfig(category)?.state||'locked';
+  }
+  function unlockedSlots(category){
+    if(category==='manipulation')return SLOT_COUNTS.manipulation;
+    const deck=deckConfig(category);
+    if(!deck||deck.state!=='active')return 0;
+    const requested=Number(deck.slots);
+    return Number.isFinite(requested)?Math.max(0,Math.min(SLOT_COUNTS[category],requested)):SLOT_COUNTS[category];
   }
 
   function cardDisplayLabel(card,category){
-    if(category==='manipulation'||category==='enchantment'){
+    if(category==='manipulation'||category==='enchantment'||category==='tactical'){
       const title=card.querySelector(':scope > strong')?.textContent?.trim();
       if(title)return title;
     }
     return CATEGORY_LABELS[category];
   }
 
-  function enchantmentApi(){return window.HAJJEN_ZONE3_ENCHANTMENTS;}
+  function enchantmentApi(){return window.HAJJEN_ENCHANTMENTS||window.HAJJEN_ZONE3_ENCHANTMENTS;}
   function existingEnchantmentCards(){return [...hand.querySelectorAll(':scope > .shared-enchantment-card')];}
 
   function createEnchantmentCard(){
@@ -60,11 +68,11 @@
   }
 
   function syncEnchantmentCards(){
-    const supported=zone>=3&&deckState('enchantment')==='active'&&enchantmentApi();
+    const supported=zone>=2&&deckState('enchantment')==='active'&&enchantmentApi();
     const existing=existingEnchantmentCards();
     if(!supported){existing.forEach(card=>card.remove());return;}
 
-    const drawn=enchantmentApi().getHand();
+    const drawn=enchantmentApi().getHand().slice(0,unlockedSlots('enchantment'));
     const wantedIds=new Set(drawn.map(card=>card.id));
     existing.filter(card=>!wantedIds.has(card.dataset.enchantmentId)).forEach(card=>card.remove());
 
@@ -113,8 +121,7 @@
     );
   }
 
-  function makePlaceholder(category,index){
-    const active=deckState(category)==='active';
+  function makePlaceholder(category,index,active){
     const slot=document.createElement('div');
     slot.className=`shared-hand-placeholder ${category}${active?' empty':' locked'}`;
     slot.dataset.handPlaceholder=category;
@@ -143,20 +150,23 @@
       heading.append(title,meta);
     }
     title.textContent='HAND';
-    meta.textContent=`${cards.length} ACTIVE · 4 MANIPULATION · 2 ENCHANTMENT · 2 TACTICAL`;
+    meta.textContent=`${cards.length} ACTIVE · 4 MANIPULATION · ${unlockedSlots('enchantment')} ENCHANTMENT · ${unlockedSlots('tactical')} TACTICAL`;
   }
 
-  function ensurePlaceholders(category,needed){
+  function ensurePlaceholders(category,needed,occupied){
     let existing=[...hand.querySelectorAll(`:scope > .shared-hand-placeholder[data-hand-placeholder="${category}"]`)];
     while(existing.length>needed){existing.pop().remove();}
     while(existing.length<needed){
-      const slot=makePlaceholder(category,existing.length);
+      const logicalIndex=occupied+existing.length;
+      const active=logicalIndex<unlockedSlots(category);
+      const slot=makePlaceholder(category,logicalIndex,active);
       hand.appendChild(slot);
       existing.push(slot);
     }
     existing.forEach((slot,index)=>{
-      const active=deckState(category)==='active';
-      slot.dataset.handSlot=String(index);
+      const logicalIndex=occupied+index;
+      const active=logicalIndex<unlockedSlots(category);
+      slot.dataset.handSlot=String(logicalIndex);
       slot.classList.toggle('empty',active);
       slot.classList.toggle('locked',!active);
       slot.setAttribute('aria-label',active?`Empty ${CATEGORY_LABELS[category]} slot`:`${CATEGORY_LABELS[category]} slot locked`);
@@ -170,7 +180,7 @@
     observer?.disconnect();
 
     panel.classList.add('shared-hand-panel');
-    panel.dataset.sharedComponent='hand-1.0';
+    panel.dataset.sharedComponent='hand-1.1-staged-slots';
     hand.classList.add('shared-hand-grid');
 
     syncEnchantmentCards();
@@ -186,9 +196,9 @@
 
     [...hand.querySelectorAll(':scope > .hand-empty-slot')].forEach(slot=>slot.classList.add('legacy-hand-empty'));
 
-    ensurePlaceholders('manipulation',Math.max(0,SLOT_COUNTS.manipulation-counts.manipulation));
-    ensurePlaceholders('enchantment',Math.max(0,SLOT_COUNTS.enchantment-counts.enchantment));
-    ensurePlaceholders('tactical',Math.max(0,SLOT_COUNTS.tactical-counts.tactical));
+    ensurePlaceholders('manipulation',Math.max(0,SLOT_COUNTS.manipulation-counts.manipulation),counts.manipulation);
+    ensurePlaceholders('enchantment',Math.max(0,SLOT_COUNTS.enchantment-counts.enchantment),counts.enchantment);
+    ensurePlaceholders('tactical',Math.max(0,SLOT_COUNTS.tactical-counts.tactical),counts.tactical);
     syncHeading(cards);
 
     observer?.observe(hand,{childList:true,subtree:false});
@@ -197,7 +207,8 @@
   function queueSync(){if(queued)return;queued=true;queueMicrotask(sync);}
   observer=new MutationObserver(queueSync);
   document.addEventListener('hajjen:enchantment-applied',queueSync);
+  document.addEventListener('hajjen:tactical-used',queueSync);
   sync();
 
-  window.HAJJEN_SHARED_HAND={version:'1.0',zone,panel,hand,slots:{...SLOT_COUNTS},sync};
+  window.HAJJEN_SHARED_HAND={version:'1.1-staged-slots',zone,panel,hand,slots:{...SLOT_COUNTS},unlockedSlots,sync};
 })();

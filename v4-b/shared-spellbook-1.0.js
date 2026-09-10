@@ -218,3 +218,13 @@
   syncCraftButton();
   window.HAJJEN_SHARED_SPELLBOOK={openReplacement,sync:syncCraftButton,maxCrafted};
 })();
+
+/* Load the approved Spellbook redesign in production. The loader waits for
+   shared-spellbook-v2, and skips Zone 3 ?dev=1 so the isolated DEV stack remains untouched. */
+(()=>{
+  if(document.querySelector('script[data-hajjen-spellbook-production-loader]'))return;
+  const script=document.createElement('script');
+  script.src='shared-hajjen-spellbook-production-loader-1.0.js?v=1';
+  script.dataset.hajjenSpellbookProductionLoader='1';
+  document.body.appendChild(script);
+})();

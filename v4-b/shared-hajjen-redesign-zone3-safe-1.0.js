@@ -1,7 +1,7 @@
 /* HAJJEN Zone 3 production redesign — gameplay-safe bridge.
-   V1.3 keeps the approved visual promotion path and now mounts the production
-   Hand list plus Tactical Fight Window slots after the real Zone 3 systems have
-   initialized. Neither module unlocks cards or changes Zone 3 progression. */
+   V1.4 keeps the approved visual promotion path and mounts the production Hand
+   list plus the current Tactical Fight Window bridge after Zone 3 systems init.
+*/
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1')return;
@@ -55,12 +55,13 @@
     ]);
     markApps();
     await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1');
-    await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=1');
+    await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=2');
+    window.HAJJEN_TACTICAL_CARD_PRODUCTION?.sync?.();
   }
 
   promoteApprovedHand().catch(err=>console.error('[HAJJEN] Zone 3 Hand promotion failed',err));
 
   document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{
-    detail:{version:'zone3-safe-1.3-hand-tactical'}
+    detail:{version:'zone3-safe-1.4-tactical-intro'}
   }));
 })();

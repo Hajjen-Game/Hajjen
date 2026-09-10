@@ -1,7 +1,9 @@
-/* HAJJEN Zone 3 DEV — Hand deck-list experiment v1.0.
+/* HAJJEN Zone 3 DEV — Hand deck-list experiment v1.1.
    Visual proxy over the real Hand DOM. Gameplay stays owned by shared-hand / zone3.
-   Manipulation PLAY and Tactical EQUIP proxy the live buttons. Enchantment APPLY
-   opens a compact spell picker, then delegates to the live select/apply controls.
+   - Manipulation PLAY resolves the current live card before clicking it.
+   - Tactical EQUIP resolves the current live card before clicking it.
+   - Enchantment APPLY opens a spell picker and uses the Zone 3 enchantment API.
+   - Rows keep the full gameplay description and expose it through a hover tooltip.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -76,6 +78,27 @@
     return rows.slice(0,CAPACITY[category]);
   }
 
+  function sourceKey(source,category,index){
+    if(!source)return`empty:${category}:${index}`;
+    if(category==='enchantment'&&source.dataset.enchantmentId)return`id:${source.dataset.enchantmentId}`;
+    return`title:${cardTitle(source).toLowerCase()}`;
+  }
+
+  function resolveSource(category,key,index){
+    const sources=sourceRows(category);
+    if(key?.startsWith('id:')){
+      const id=key.slice(3);
+      const hit=sources.find(source=>source?.dataset?.enchantmentId===id);
+      if(hit)return hit;
+    }
+    if(key?.startsWith('title:')){
+      const wanted=key.slice(6);
+      const hit=sources.find(source=>source&&!isLocked(source)&&cardTitle(source).toLowerCase()===wanted);
+      if(hit)return hit;
+    }
+    return sources[index]||null;
+  }
+
   function buttonFor(card,category){
     if(!card||isLocked(card))return null;
     if(category==='enchantment')return direct(card,'.shared-enchantment-apply');
@@ -97,12 +120,24 @@
     return category==='tactical'?'EQUIP':'PLAY';
   }
 
-  function openEnchantmentPicker(card){
+  function currentActionState(category,key,index){
+    const source=resolveSource(category,key,index);
+    const live=buttonFor(source,category);
+    return {source,live,disabled:!source||isLocked(source)||!live||live.disabled};
+  }
+
+  function removePicker(){
+    document.querySelectorAll('.hajjen-hand-enchant-picker-backdrop').forEach(node=>node.remove());
+  }
+
+  function openEnchantmentPicker(key,index){
+    const card=resolveSource('enchantment',key,index);
     const select=selectFor(card);
     const apply=buttonFor(card,'enchantment');
-    if(!select||!apply||apply.disabled)return;
+    const api=window.HAJJEN_ZONE3_ENCHANTMENTS;
+    if(!card||!select||!apply||apply.disabled)return;
 
-    document.querySelectorAll('.hajjen-hand-enchant-picker-backdrop').forEach(node=>node.remove());
+    removePicker();
     const backdrop=document.createElement('div');
     backdrop.className='hajjen-hand-enchant-picker-backdrop';
     const modal=document.createElement('div');
@@ -140,12 +175,27 @@
         choice.className='hajjen-hand-enchant-picker-option';
         choice.textContent=clean(option.textContent)||option.value;
         choice.addEventListener('click',()=>{
-          select.value=option.value;
-          select.dispatchEvent(new Event('change',{bubbles:true}));
-          apply.click();
-          backdrop.remove();
-          schedule();
-          setTimeout(schedule,80);
+          const current=resolveSource('enchantment',key,index);
+          if(!current)return;
+          const currentId=current.dataset.enchantmentId;
+          let applied=false;
+          if(api?.apply&&currentId){
+            applied=api.apply(currentId,option.value)===true;
+          }else{
+            const currentSelect=selectFor(current);
+            const currentApply=buttonFor(current,'enchantment');
+            if(currentSelect&&currentApply&&!currentApply.disabled){
+              currentSelect.value=option.value;
+              currentSelect.dispatchEvent(new Event('change',{bubbles:true}));
+              currentApply.click();
+              applied=true;
+            }
+          }
+          if(applied){
+            backdrop.remove();
+            schedule();
+            setTimeout(schedule,80);
+          }
         });
         options.appendChild(choice);
       });
@@ -161,7 +211,13 @@
       }
     };
     document.addEventListener('keydown',onKey);
-    backdrop.addEventListener('DOMNodeRemoved',()=>document.removeEventListener('keydown',onKey),{once:true});
+    const cleanup=new MutationObserver(()=>{
+      if(!document.body.contains(backdrop)){
+        document.removeEventListener('keydown',onKey);
+        cleanup.disconnect();
+      }
+    });
+    cleanup.observe(document.body,{childList:true});
 
     modal.append(head,note,options);
     backdrop.appendChild(modal);
@@ -171,14 +227,16 @@
 
   function makeRow(source,category,index){
     const locked=!source||isLocked(source);
+    const key=sourceKey(source,category,index);
     const row=document.createElement('div');
     row.className=`hajjen-hand-list-row${locked?' is-locked':''}`;
     row.dataset.category=category;
-    row.dataset.slot=String(index+1);
+    row.dataset.slot=String(index);
+    row.dataset.sourceKey=key;
 
     const title=source?cardTitle(source):(locked?'SLOT LOCKED':'EMPTY SLOT');
     const description=source?cardCopy(source,category):(locked?'See Card Decks for unlock timing.':'Empty card slot.');
-    row.title=description;
+    row.dataset.fullDescription=description;
 
     const icon=document.createElement('img');
     icon.className='hajjen-hand-list-row-icon';
@@ -194,24 +252,17 @@
     const desc=document.createElement('span');
     desc.className='hajjen-hand-list-row-description';
     desc.textContent=description||'No description.';
-    desc.title=description;
     copy.append(name,desc);
 
     const action=document.createElement('button');
     action.type='button';
     action.className='hajjen-hand-list-action';
+    action.dataset.category=category;
+    action.dataset.sourceKey=key;
+    action.dataset.slot=String(index);
     action.textContent=actionLabel(source,category);
-    const live=buttonFor(source,category);
-    action.disabled=locked||!live||live.disabled;
-    if(category==='enchantment'&&!locked){
-      action.addEventListener('click',()=>openEnchantmentPicker(source));
-    }else if(!locked&&live){
-      action.addEventListener('click',()=>{
-        live.click();
-        schedule();
-        setTimeout(schedule,60);
-      });
-    }
+    const state=currentActionState(category,key,index);
+    action.disabled=locked||state.disabled;
 
     row.append(icon,copy,action);
     return row;
@@ -247,9 +298,73 @@
     return section;
   }
 
+  function performAction(button){
+    if(button.disabled)return;
+    const category=button.dataset.category;
+    const key=button.dataset.sourceKey;
+    const index=Number(button.dataset.slot)||0;
+    if(category==='enchantment'){
+      openEnchantmentPicker(key,index);
+      return;
+    }
+    const {live,disabled}=currentActionState(category,key,index);
+    if(disabled||!live)return;
+    live.click();
+    schedule();
+    setTimeout(schedule,50);
+    setTimeout(schedule,140);
+  }
+
+  /* Stable event delegation: proxy buttons survive repeated re-renders and always
+     resolve the CURRENT live source card at click time. */
+  layout.addEventListener('click',event=>{
+    const button=event.target.closest('.hajjen-hand-list-action');
+    if(!button||!layout.contains(button))return;
+    event.preventDefault();
+    event.stopPropagation();
+    performAction(button);
+  });
+
+  /* Custom full-description hover tooltip. */
+  let tooltip=null;
+  function hideTooltip(){
+    tooltip?.remove();
+    tooltip=null;
+  }
+  function showTooltip(row){
+    const text=clean(row?.dataset?.fullDescription);
+    if(!text)return;
+    hideTooltip();
+    tooltip=document.createElement('div');
+    tooltip.className='hajjen-hand-list-tooltip';
+    tooltip.textContent=text;
+    document.body.appendChild(tooltip);
+    const rect=row.getBoundingClientRect();
+    const tip=tooltip.getBoundingClientRect();
+    let left=rect.left+rect.width/2-tip.width/2;
+    left=Math.max(8,Math.min(left,window.innerWidth-tip.width-8));
+    let top=rect.top-tip.height-7;
+    if(top<8)top=rect.bottom+7;
+    tooltip.style.left=`${Math.round(left)}px`;
+    tooltip.style.top=`${Math.round(top)}px`;
+  }
+  layout.addEventListener('pointerover',event=>{
+    const row=event.target.closest('.hajjen-hand-list-row');
+    if(!row||!layout.contains(row)||row.contains(event.relatedTarget))return;
+    showTooltip(row);
+  });
+  layout.addEventListener('pointerout',event=>{
+    const row=event.target.closest('.hajjen-hand-list-row');
+    if(!row||!layout.contains(row)||row.contains(event.relatedTarget))return;
+    hideTooltip();
+  });
+  window.addEventListener('scroll',hideTooltip,{passive:true});
+  window.addEventListener('resize',hideTooltip,{passive:true});
+
   let raf=0;
   function render(){
     raf=0;
+    hideTooltip();
     if(!document.body.contains(hand)||!document.body.contains(panel))return;
     layout.replaceChildren(
       makeCategory('manipulation'),
@@ -271,5 +386,5 @@
   setTimeout(render,80);
   setTimeout(render,250);
 
-  window.HAJJEN_HAND_DECK_LIST_DEV={version:'1.0',hand,panel,layout,render:schedule,observer};
+  window.HAJJEN_HAND_DECK_LIST_DEV={version:'1.1',hand,panel,layout,render:schedule,observer};
 })();

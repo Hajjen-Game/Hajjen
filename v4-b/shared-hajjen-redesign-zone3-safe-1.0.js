@@ -1,7 +1,7 @@
 /* HAJJEN Zone 3 production redesign — gameplay-safe bridge.
-   IMPORTANT: this file never changes the URL, never emulates ?dev=1 and never
-   re-executes gameplay-adjacent shared components. It only enables the approved
-   visual CSS marker after the real Zone 3 systems have initialized. */
+   V1.3 keeps the approved visual promotion path and now mounts the production
+   Hand list plus Tactical Fight Window slots after the real Zone 3 systems have
+   initialized. Neither module unlocks cards or changes Zone 3 progression. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')==='1')return;
@@ -16,15 +16,51 @@
     });
   }
 
-  markApps();
+  function baseName(src){return src.split('?')[0];}
+  function ensureStylesheet(src){
+    const base=baseName(src);
+    const existing=[...document.querySelectorAll('link[rel="stylesheet"][href]')]
+      .find(link=>baseName(link.getAttribute('href')||'')===base);
+    if(existing)return Promise.resolve();
+    return new Promise(resolve=>{
+      const link=document.createElement('link');
+      link.rel='stylesheet';
+      link.href=src;
+      link.addEventListener('load',resolve,{once:true});
+      link.addEventListener('error',()=>{console.warn('[HAJJEN] Zone 3 production CSS failed:',src);resolve();},{once:true});
+      document.head.appendChild(link);
+    });
+  }
+  function loadScript(src){
+    const base=baseName(src);
+    if([...document.scripts].some(script=>baseName(script.getAttribute('src')||'')===base))return Promise.resolve();
+    return new Promise(resolve=>{
+      const script=document.createElement('script');
+      script.src=src;
+      script.async=false;
+      script.addEventListener('load',resolve,{once:true});
+      script.addEventListener('error',()=>{console.warn('[HAJJEN] Zone 3 production JS failed:',src);resolve();},{once:true});
+      document.body.appendChild(script);
+    });
+  }
 
-  /* Campaign/gameplay systems are already initialized. Keep this bridge
-     presentation-only: no script reinjection, URL spoofing, board rebuilding,
-     component rerenders or live gameplay-DOM rewriting. */
+  markApps();
   const observer=new MutationObserver(markApps);
   observer.observe(document.body,{childList:true,subtree:true});
 
+  async function promoteApprovedHand(){
+    await Promise.all([
+      ensureStylesheet('shared-hajjen-hand-list-production-1.0.css?v=1'),
+      ensureStylesheet('shared-hajjen-tactical-combat-production-1.0.css?v=1')
+    ]);
+    markApps();
+    await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1');
+    await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=1');
+  }
+
+  promoteApprovedHand().catch(err=>console.error('[HAJJEN] Zone 3 Hand promotion failed',err));
+
   document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{
-    detail:{version:'zone3-safe-1.2'}
+    detail:{version:'zone3-safe-1.3-hand-tactical'}
   }));
 })();

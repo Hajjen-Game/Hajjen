@@ -1,0 +1,230 @@
+/* HAJJEN shared production Fight Window — approved Zone 3 DEV design promoted to Zones 1–3. */
+
+#combatModal.shared-fight-window.hajjen-fight-production{
+  --fight-gold-hi:#efd6a0;
+  --fight-gold:#c9914f;
+  --fight-gold-mid:#b77a3b;
+  --fight-gold-dark:#7a4c29;
+  --fight-brown:#3b2416;
+  --fight-brown-2:#59351d;
+  --fight-parchment:#ead7b0;
+  --fight-ink:#2e251e;
+  --fight-copy:#51483e;
+  --fight-surface:#633431;
+  background:rgba(29,20,16,.76)!important;
+  backdrop-filter:blur(1.5px) saturate(.82);
+  -webkit-backdrop-filter:blur(1.5px) saturate(.82);
+  padding:clamp(16px,3vw,34px)!important;
+}
+
+#combatModal.shared-fight-window.hajjen-fight-production .shared-fight-card{
+  position:relative!important;
+  isolation:isolate!important;
+  width:min(1080px,94vw)!important;
+  max-height:min(88vh,820px)!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  border-radius:0!important;
+  padding:56px 28px 24px!important;
+  color:#f3dfb6!important;
+  background-color:#633431!important;
+  background-image:var(--hajjen-fight-bg-image,
+    radial-gradient(circle at 28% 22%,rgba(143,77,68,.34),transparent 36%),
+    linear-gradient(145deg,#6c3935,#4f2928 58%,#3e2322))!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  box-shadow:0 22px 54px rgba(17,10,7,.44)!important;
+}
+
+#combatModal.shared-fight-window.hajjen-fight-production .shared-fight-card > *:not(.hajjen-fight-window-frame){position:relative;z-index:4}
+
+/* Shared Vector Frame — outer Fight Window. */
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:9!important;
+  display:block!important;overflow:visible!important;pointer-events:none!important;shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 1px 1px rgba(48,28,14,.28));
+}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .frame-shadow{fill:none;stroke:#3b2416;stroke-width:4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.96}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .frame-gold{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:1}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .frame-inner{fill:none;stroke:#7f4f2a;stroke-width:1.05;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.98}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .frame-highlight{fill:none;stroke:#e7bd78;stroke-width:.62;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.84}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .corner-accent{fill:none;stroke:#a96d35;stroke-width:1.08;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.98}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .corner-sweep-shadow{fill:none;stroke:#4c2c16;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.82}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .corner-sweep{fill:none;stroke:#b97838;stroke-width:.72;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.98}
+#combatModal.hajjen-fight-production .hajjen-fight-window-frame .corner-node{fill:#b87b3b;stroke:#59351d;stroke-width:.7;vector-effect:non-scaling-stroke;opacity:1}
+
+/* Header. */
+#combatModal.hajjen-fight-production .shared-fight-header{
+  position:static!important;display:flex!important;flex-direction:column!important;align-items:center!important;
+  margin:0 0 18px!important;text-align:center!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-tier{
+  position:absolute!important;top:-25px!important;left:50%!important;transform:translateX(-50%)!important;
+  min-width:300px!important;max-width:min(70%,520px)!important;padding:10px 34px 9px!important;box-sizing:border-box!important;
+  border:2px solid var(--fight-gold-dark)!important;outline:1px solid rgba(239,214,160,.88)!important;outline-offset:-5px!important;
+  background:linear-gradient(180deg,#59422f 0%,#38291f 100%)!important;color:#f2dfb5!important;
+  box-shadow:0 3px 0 #2b1b12,0 8px 18px rgba(23,13,8,.25)!important;
+  clip-path:polygon(18px 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,18px 100%,0 50%)!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:15px!important;line-height:1!important;font-weight:800!important;
+  letter-spacing:1.4px!important;white-space:nowrap!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-title{
+  position:relative!important;display:inline-block!important;margin:0!important;padding:0 54px!important;color:#f4dfb1!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(31px,4vw,46px)!important;line-height:1!important;
+  font-weight:800!important;letter-spacing:.7px!important;text-shadow:0 2px 0 rgba(39,20,13,.58)!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-title::before,
+#combatModal.hajjen-fight-production .shared-fight-title::after{
+  content:"◆";position:absolute;top:50%;transform:translateY(-50%) scale(.58,.82);color:#c9914f;font-size:18px;text-shadow:none;
+}
+#combatModal.hajjen-fight-production .shared-fight-title::before{left:15px}
+#combatModal.hajjen-fight-production .shared-fight-title::after{right:15px}
+
+/* HP + message panels. */
+#combatModal.hajjen-fight-production .shared-fight-stats{
+  display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:0 0 16px!important;padding:0!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-stat,
+#combatModal.hajjen-fight-production .shared-fight-message{
+  position:relative!important;isolation:isolate!important;border:0!important;outline:0!important;
+  background-color:transparent!important;background-image:none!important;box-shadow:none!important;overflow:visible!important;color:var(--fight-ink)!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-stat{
+  display:grid!important;grid-template-columns:1fr auto!important;gap:7px 10px!important;min-height:112px!important;padding:22px 28px 20px!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-stat-label,
+#combatModal.hajjen-fight-production .shared-fight-stat-value{
+  color:#35281e!important;font-family:Georgia,"Times New Roman",serif!important;font-size:15px!important;line-height:1!important;font-weight:800!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-stat-value{font-family:Arial,Helvetica,sans-serif!important;font-size:14px!important}
+#combatModal.hajjen-fight-production .shared-fight-bar{
+  grid-column:1/-1!important;height:29px!important;margin:0!important;padding:3px!important;border:2px solid #44301f!important;border-radius:4px!important;
+  background:#d8c39c!important;box-shadow:inset 0 0 0 1px #b57c37,0 1px 0 rgba(255,255,255,.35)!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-bar i{border-radius:1px!important;box-shadow:inset 0 2px 2px rgba(255,255,255,.25),inset 0 -2px 2px rgba(0,0,0,.16)!important}
+#combatModal.hajjen-fight-production .shared-fight-enemy-bar i{background:linear-gradient(180deg,#c43838,#8f171c)!important}
+#combatModal.hajjen-fight-production .shared-fight-sharkan-bar i{background:linear-gradient(180deg,#5da55e,#2f743e)!important}
+#combatModal.hajjen-fight-production .shared-fight-message{
+  min-height:70px!important;margin:0 0 16px!important;padding:22px 28px!important;display:flex!important;align-items:center!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:18px!important;line-height:1.3!important;font-weight:800!important;
+}
+
+/* Inset parchment keeps the surface inside the vector rail. */
+#combatModal.hajjen-fight-production .shared-fight-stat::before,
+#combatModal.hajjen-fight-production .shared-fight-message::before{
+  content:""!important;position:absolute!important;inset:4px!important;z-index:0!important;pointer-events:none!important;
+  background-color:var(--fight-parchment)!important;
+  background-image:linear-gradient(rgba(255,250,235,.24),rgba(255,250,235,.08)),url('assets/hajjen_parchment_surface_v1.png')!important;
+  background-repeat:repeat!important;background-size:auto,160px 160px!important;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)!important;
+  box-shadow:inset 0 0 0 1px rgba(83,53,26,.16),inset 0 1px 0 rgba(255,255,255,.3)!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-stat > *:not(.hajjen-fight-inner-frame){position:relative!important;z-index:2!important}
+#combatModal.hajjen-fight-production .shared-fight-message::before{z-index:-1!important}
+#combatModal.hajjen-fight-production .shared-fight-message > .hajjen-fight-inner-frame{z-index:7!important}
+
+/* Shared Vector Frame — internal parchment panels. */
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:7!important;display:block!important;
+  overflow:visible!important;pointer-events:none!important;shape-rendering:geometricPrecision;filter:drop-shadow(0 1px 1px rgba(48,28,14,.14));
+}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .frame-shadow{fill:none;stroke:#3b2416;stroke-width:3;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.88}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .frame-gold{fill:none;stroke-width:1.75;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.99}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .frame-inner{fill:none;stroke:#7f4f2a;stroke-width:.84;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.97}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .frame-highlight{fill:none;stroke:#e7bd78;stroke-width:.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.82}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .corner-accent{fill:none;stroke:#a96d35;stroke-width:.88;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.97}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .corner-sweep-shadow{fill:none;stroke:#4c2c16;stroke-width:1.12;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.74}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .corner-sweep{fill:none;stroke:#b97838;stroke-width:.61;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.97}
+#combatModal.hajjen-fight-production .hajjen-fight-inner-frame .corner-node{fill:#b87b3b;stroke:#59351d;stroke-width:.62;vector-effect:non-scaling-stroke;opacity:1}
+
+/* Spell row. */
+#combatModal.hajjen-fight-production .shared-fight-spells{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;width:100%!important;margin:0!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-spell{
+  --fight-card-top:#eee7da;--fight-card-bottom:#ddd2c0;--fight-card-edge:#8b6b47;--fight-card-title:#2e251e;--fight-icon-image:none;
+  position:relative!important;isolation:isolate!important;display:flex!important;flex-direction:column!important;align-items:center!important;
+  justify-content:flex-start!important;min-width:0!important;min-height:190px!important;padding:102px 14px 20px!important;box-sizing:border-box!important;
+  border:0!important;border-radius:5px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.33),rgba(255,255,255,0) 31%),linear-gradient(180deg,var(--fight-card-top),var(--fight-card-bottom))!important;
+  color:var(--fight-card-title)!important;box-shadow:0 2px 4px rgba(59,36,22,.16)!important;overflow:visible!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-size:17px!important;line-height:1.08!important;font-weight:800!important;text-align:center!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-spell::before{
+  content:""!important;position:absolute!important;z-index:2!important;top:17px!important;left:50%!important;transform:translateX(-50%)!important;
+  width:72px!important;height:72px!important;border:1px solid rgba(85,55,30,.46)!important;background-color:rgba(255,249,235,.22)!important;
+  background-image:var(--fight-icon-image)!important;background-repeat:no-repeat!important;background-position:center!important;background-size:90% 90%!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)!important;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)!important;
+  pointer-events:none!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-spell[data-hotkey]::after{
+  z-index:7!important;top:11px!important;right:11px!important;width:30px!important;height:30px!important;border:2px solid #604329!important;
+  border-radius:6px!important;background:#f2e3c4!important;color:#2f241c!important;font-family:Arial,Helvetica,sans-serif!important;font-size:14px!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.5)!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-spell small{
+  display:block!important;width:100%!important;margin-top:12px!important;padding-top:10px!important;border-top:1px solid rgba(104,78,52,.20)!important;
+  color:#51483e!important;font-family:Arial,Helvetica,sans-serif!important;font-size:12px!important;line-height:1.25!important;font-weight:600!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-spell.ember{--fight-card-top:#f3d5ad;--fight-card-bottom:#e7bb83;--fight-card-edge:#b66d2d}
+#combatModal.hajjen-fight-production .shared-fight-spell.flow{--fight-card-top:#e1ebea;--fight-card-bottom:#c7d9da;--fight-card-edge:#567d8d}
+#combatModal.hajjen-fight-production .shared-fight-spell.stone{--fight-card-top:#eee3d2;--fight-card-bottom:#d9c7ad;--fight-card-edge:#8a7258}
+#combatModal.hajjen-fight-production .shared-fight-spell.growth{--fight-card-top:#e3e7c9;--fight-card-bottom:#cbd2a5;--fight-card-edge:#71814f}
+#combatModal.hajjen-fight-production .shared-fight-spell.gale{--fight-card-top:#e6ece9;--fight-card-bottom:#ccd9d7;--fight-card-edge:#6f8a88}
+#combatModal.hajjen-fight-production .shared-fight-spell.aether{--fight-card-top:#ead9eb;--fight-card-bottom:#d6bddc;--fight-card-edge:#865a98}
+#combatModal.hajjen-fight-production .shared-fight-spell:hover:not(:disabled){transform:translateY(-2px)!important;filter:brightness(1.025)!important}
+#combatModal.hajjen-fight-production .shared-fight-spell:disabled{opacity:.48!important;filter:saturate(.66)!important}
+
+/* Shared Vector Frame — spell cards. */
+#combatModal.hajjen-fight-production .shared-fight-spell > .hajjen-fight-spell-frame{
+  position:absolute!important;inset:-5px!important;width:calc(100% + 10px)!important;height:calc(100% + 10px)!important;z-index:6!important;
+  display:block!important;overflow:visible!important;pointer-events:none!important;shape-rendering:geometricPrecision;filter:drop-shadow(0 1px 1px rgba(48,28,14,.12));
+}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .frame-shadow{fill:none;stroke:#3b2416;stroke-width:3;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.86}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .frame-gold{fill:none;stroke-width:1.72;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.98}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .frame-inner{fill:none;stroke:#7f4f2a;stroke-width:.82;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.96}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .frame-highlight{fill:none;stroke:#e7bd78;stroke-width:.48;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.8}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .corner-accent{fill:none;stroke:#a96d35;stroke-width:.86;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.96}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .corner-sweep-shadow{fill:none;stroke:#4c2c16;stroke-width:1.12;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.74}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .corner-sweep{fill:none;stroke:#b97838;stroke-width:.6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.96}
+#combatModal.hajjen-fight-production .hajjen-fight-spell-frame .corner-node{fill:#b87b3b;stroke:#59351d;stroke-width:.62;vector-effect:non-scaling-stroke;opacity:.99}
+
+/* Footer. */
+#combatModal.hajjen-fight-production .shared-fight-footer{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:14px!important;margin-top:18px!important}
+#combatModal.hajjen-fight-production .shared-fight-footer button{
+  position:relative!important;min-height:56px!important;padding:12px 24px!important;border:2px solid #6b482a!important;border-radius:4px!important;
+  outline:1px solid rgba(239,214,160,.72)!important;outline-offset:-5px!important;box-shadow:0 2px 0 #2d1b12,0 4px 9px rgba(35,20,12,.19)!important;
+  color:#f2e2bd!important;font-family:Georgia,"Times New Roman",serif!important;font-size:17px!important;line-height:1!important;font-weight:800!important;letter-spacing:.15px!important;
+}
+#combatModal.hajjen-fight-production .shared-fight-potion{min-width:310px!important;padding-left:66px!important;background:linear-gradient(180deg,#426b42,#274a31)!important;border-color:#9a773c!important}
+#combatModal.hajjen-fight-production .shared-fight-potion::before{
+  content:"";position:absolute;left:20px;top:50%;width:35px;height:35px;transform:translateY(-50%);
+  background:url('assets/action-bar-icons/healing-potion.png') center/contain no-repeat;pointer-events:none;
+}
+#combatModal.hajjen-fight-production .shared-fight-flee{min-width:132px!important;background:linear-gradient(180deg,#a33f45,#74252c)!important;border-style:solid!important}
+#combatModal.hajjen-fight-production .shared-fight-footer button:hover:not(:disabled){filter:brightness(1.07)!important;transform:translateY(-1px)!important}
+#combatModal.hajjen-fight-production .shared-fight-footer button:disabled{opacity:.5!important;filter:saturate(.6)!important}
+
+@media(max-width:820px){
+  #combatModal.hajjen-fight-production .shared-fight-card{padding:50px 18px 20px!important}
+  #combatModal.hajjen-fight-production .shared-fight-stats{grid-template-columns:1fr!important;gap:12px!important}
+  #combatModal.hajjen-fight-production .shared-fight-spells{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #combatModal.hajjen-fight-production .shared-fight-tier{min-width:260px!important;font-size:13px!important}
+}
+@media(max-width:520px){
+  #combatModal.shared-fight-window.hajjen-fight-production{padding:12px!important}
+  #combatModal.hajjen-fight-production .shared-fight-card{width:96vw!important;padding:46px 13px 15px!important}
+  #combatModal.hajjen-fight-production .shared-fight-title{font-size:27px!important;padding:0 34px!important}
+  #combatModal.hajjen-fight-production .shared-fight-title::before{left:3px}
+  #combatModal.hajjen-fight-production .shared-fight-title::after{right:3px}
+  #combatModal.hajjen-fight-production .shared-fight-stat{padding:18px!important}
+  #combatModal.hajjen-fight-production .shared-fight-message{padding:18px!important;font-size:16px!important}
+  #combatModal.hajjen-fight-production .shared-fight-spells{grid-template-columns:1fr!important}
+  #combatModal.hajjen-fight-production .shared-fight-footer{display:grid!important;grid-template-columns:1fr!important}
+  #combatModal.hajjen-fight-production .shared-fight-footer button,
+  #combatModal.hajjen-fight-production .shared-fight-potion{width:100%!important;min-width:0!important}
+}
+@media(prefers-reduced-motion:reduce){#combatModal.hajjen-fight-production *{transition:none!important}}

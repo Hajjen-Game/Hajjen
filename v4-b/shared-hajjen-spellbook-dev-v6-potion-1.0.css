@@ -1,0 +1,104 @@
+/* HAJJEN Zone 3 DEV — Spellbook V6 potion integration. */
+
+/* Backpack is intentionally retired in this DEV iteration. Keep the remaining
+   four utility actions balanced in exactly the same HUD footprint. */
+body.zone3-dev-mode .hajjen-shared-ui .shared-utility-hud{
+  grid-template-rows:repeat(4,minmax(0,1fr))!important;
+}
+body.zone3-dev-mode #backpackModal,
+body.zone3-dev-mode .backpack-open,
+body.zone3-dev-mode .campaign-system-hud{
+  display:none!important;
+}
+
+@media(max-width:1350px){
+  body.zone3-dev-mode .hajjen-shared-ui .shared-utility-hud{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    grid-template-rows:1fr!important;
+  }
+}
+@media(max-width:1000px){
+  body.zone3-dev-mode .hajjen-shared-ui .shared-utility-hud{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:620px){
+  body.zone3-dev-mode .hajjen-shared-ui .shared-utility-hud{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:auto!important;
+  }
+}
+
+/* Potion ingredients use the same picker family as Primal ingredients but get a
+   warm restorative identity instead of pretending to be a seventh Primal Force. */
+body.zone3-dev-mode #spellbookModal .hajjen-ingredient-force-card.hajjen-potion-force-card{
+  --force-surface:#e6e2c2!important;
+  --force-edge:#76865d!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 34%),
+    linear-gradient(145deg,#ece7ca,#d8d7b7)!important;
+}
+body.zone3-dev-mode #spellbookModal .hajjen-potion-force-card .hajjen-ingredient-force-head img{
+  width:48px!important;
+  height:48px!important;
+  border-radius:5px!important;
+}
+body.zone3-dev-mode #spellbookModal .hajjen-potion-ingredient-choice{
+  border-color:#6f7d58!important;
+  background:linear-gradient(180deg,#f3efd7,#dcdab9)!important;
+}
+body.zone3-dev-mode #spellbookModal .hajjen-potion-ingredient-choice.selected{
+  border-color:#9ca966!important;
+  background:linear-gradient(180deg,#65704d,#465039)!important;
+  color:#f3e8c8!important;
+}
+
+/* Selected potion ingredients retain the existing two-slot geometry. */
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot{
+  position:relative!important;
+  padding-left:66px!important;
+  border-color:#7d845c!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0)),
+    #e5dfbd!important;
+}
+body.zone3-dev-mode #spellbookModal .hajjen-selected-potion-ingredient-icon{
+  position:absolute!important;
+  left:10px!important;
+  top:50%!important;
+  width:46px!important;
+  height:46px!important;
+  transform:translateY(-50%)!important;
+  object-fit:contain!important;
+  border-radius:4px!important;
+  filter:drop-shadow(0 1px 1px rgba(54,35,20,.18))!important;
+}
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot em{
+  color:#455036!important;
+}
+
+/* Potion preview reuses the result box; it simply gets the existing Action Bar
+   potion artwork and enough left padding for it. */
+body.zone3-dev-mode #spellbookModal .sbv2-preview.hajjen-potion-preview{
+  position:relative!important;
+  min-height:105px!important;
+  padding-left:86px!important;
+  border-color:#79825d!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0)),
+    #e8e1bf!important;
+}
+body.zone3-dev-mode #spellbookModal .hajjen-potion-result-icon{
+  position:absolute!important;
+  left:13px!important;
+  top:50%!important;
+  width:60px!important;
+  height:60px!important;
+  transform:translateY(-50%)!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 2px 2px rgba(46,27,16,.22))!important;
+}
+
+body.zone3-dev-mode #spellbookModal .sbv2-create-button:not(:disabled){
+  cursor:pointer!important;
+}

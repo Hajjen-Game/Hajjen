@@ -1,6 +1,6 @@
 (()=>{
   window.HAJJEN_SHARED_UI_CONFIG={
-    version:'1.1',
+    version:'1.2',
     text:{
       actionBar:'ACTION BAR',
       cardDecks:'CARD DECKS',
@@ -109,15 +109,17 @@
           ]},
           {title:'DANGER',items:[
             'Movement, harvesting and combat raise Danger just like Zone 1.',
-            'Higher Danger increases spawn pressure and enemy scaling.'
+            'Higher Danger increases spawn pressure and enemy scaling.',
+            'From Danger 10 onward, combat can attract a nearby existing normal mob into a chained fight.'
           ]},
           {title:'BACKPACK',items:[
-            'Unused spell ingredients carry between zones.',
-            'Healing Potions and crafted spells also carry forward.'
+            'Spell ingredients are zone-local and disappear when Sharkan enters the next zone.',
+            'Healing Potions and crafted spells carry forward.'
           ]},
           {title:'SPELLS',items:[
             'Your Zone 1 spells remain available.',
-            'Collect two ingredients to create another spell if you still have a free crafted-spell slot.'
+            'Spells crafted with Zone 2 ingredients gain +4 base damage compared with the same recipe in Zone 1.',
+            'Collect two ingredients to create another spell; crafted spells stay in the Spell Library.'
           ]}
         ]
       },
@@ -158,7 +160,7 @@
           ]},
           {title:'CAMPAIGN',items:[
             'Crafted spells remain in the Spell Library and can be reassigned to Loaded Spell slots.',
-            'Unused ingredients and Healing Potions continue with Sharkan through the campaign.'
+            'Spell ingredients are zone-local and do not carry between zones. Healing Potions continue with Sharkan.'
           ]}
         ]
       }

@@ -7,6 +7,11 @@
    - Moonleaf + Clearwater creates one Healing Potion (either order).
    - Mixed Primal/Potion pairs are not allowed.
    - Crafted potions go straight to the existing Action Bar potion count.
+
+   V6.1 fixes two DEV integration issues:
+   - Removes any stale/duplicate ingredient-picker overlay so only one picker opens.
+   - Reconciles collected Moonleaf/Clearwater from live state, completed board
+     entities and the event log, so already-collected potion ingredients remain selectable.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -53,7 +58,13 @@
     const pairReady=()=>potionSelection.length===2&&RECIPE.every(required=>potionSelection.some(name=>name.toLowerCase()===required.toLowerCase()));
     const locked=()=>!!state.combat||!!state.gameOver||!!state.zoneCleared;
 
-    function potionCounts(){
+    function dedupePickers(){
+      [...modal.querySelectorAll('.hajjen-ingredient-picker-overlay')].forEach(candidate=>{
+        if(candidate!==overlay)candidate.remove();
+      });
+    }
+
+    function countDirectPotionIngredients(){
       const counts=new Map(RECIPE.map(name=>[name,0]));
       potionList().forEach(item=>{
         const name=canonicalName(ingredientName(item));
@@ -61,6 +72,51 @@
       });
       return counts;
     }
+
+    function countCompletedBoardIngredients(){
+      const counts=new Map(RECIPE.map(name=>[name,0]));
+      const entities=window.HAJJEN_ZONE3_ENTITY_MAP;
+      if(!(entities instanceof Map))return counts;
+      entities.forEach(entity=>{
+        if(!entity?.completed||entity.type!=='potion-ingredient')return;
+        const name=canonicalName(entity.name);
+        if(counts.has(name))counts.set(name,(counts.get(name)||0)+1);
+      });
+      return counts;
+    }
+
+    function countCollectedLogIngredients(){
+      const counts=new Map(RECIPE.map(name=>[name,0]));
+      const log=document.getElementById('eventLog');
+      if(!log)return counts;
+      [...log.children].forEach(row=>{
+        const text=clean(row.textContent).toLowerCase();
+        RECIPE.forEach(name=>{
+          if(text.includes('collected potion ingredient')&&text.includes(name.toLowerCase())){
+            counts.set(name,(counts.get(name)||0)+1);
+          }
+        });
+      });
+      return counts;
+    }
+
+    function potionCounts(){
+      const direct=countDirectPotionIngredients();
+      const board=countCompletedBoardIngredients();
+      const logged=countCollectedLogIngredients();
+      const crafts=Math.max(0,Number(state.zone3ExtraPotionCrafts)||0);
+      const counts=new Map();
+
+      RECIPE.forEach(name=>{
+        const directCount=direct.get(name)||0;
+        const observed=Math.max(board.get(name)||0,logged.get(name)||0);
+        const observedRemaining=Math.max(0,observed-crafts);
+        counts.set(name,Math.max(directCount,observedRemaining));
+      });
+      return counts;
+    }
+
+    function potionTotal(){return [...potionCounts().values()].reduce((sum,count)=>sum+count,0);}
 
     function sourceButtons(){return [...sourcePicker.querySelectorAll(':scope > .sbv2-pick')];}
     function sourceData(){
@@ -94,7 +150,7 @@
       const heading=createSection.querySelector('.sbv2-section-heading h4');
       if(heading)heading.textContent='CREATE SPELL / CREATE POTION';
       const small=createSection.querySelector('.sbv2-section-heading small');
-      if(small)small.textContent=`${sourceButtons().length+potionList().length} AVAILABLE`;
+      if(small)small.textContent=`${sourceButtons().length+potionTotal()} AVAILABLE`;
       const copy=createSection.querySelector('.sbv2-section-copy');
       if(copy)copy.textContent='Choose two collected ingredients. Primal Force pairs create spells; Moonleaf + Clearwater creates a Healing Potion.';
       const kicker=overlay.querySelector('.hajjen-ingredient-picker-header small');
@@ -113,6 +169,7 @@
     }
 
     function renderPotionPicker(){
+      dedupePickers();
       if(!overlay.classList.contains('show'))return;
       grid.querySelector(':scope > .hajjen-potion-force-card')?.remove();
 
@@ -231,7 +288,7 @@
           const label=document.createElement('strong');label.textContent=`INGREDIENT ${index+1}`;
           const type=document.createElement('span');type.textContent='POTION RECIPE';
           const value=document.createElement('em');value.textContent='NOT SELECTED';
-          const action=document.createElement('span');action.className='hajjen-ingredient-slot-action';action.textContent=index===1?'CLICK TO CHOOSE':'CLICK TO CHOOSE';
+          const action=document.createElement('span');action.className='hajjen-ingredient-slot-action';action.textContent='CLICK TO CHOOSE';
           slot.append(label,type,value,action);
         }
       });
@@ -249,7 +306,7 @@
       preview.classList.add('hajjen-potion-preview');
       preview.innerHTML=`
         <img class="hajjen-potion-result-icon" src="${POTION_ICON}" alt="" draggable="false">
-        <div><span>RESULT</span><strong>${ready?'HEALING POTION':'HEALING POTION'}</strong></div>
+        <div><span>RESULT</span><strong>HEALING POTION</strong></div>
         <p>${ready?'MOONLEAF + CLEARWATER':`${potionSelection.length} / 2 INGREDIENTS`}</p>
         <small>${ready?'Creates one Healing Potion and adds it directly to the Action Bar.':'Choose one Moonleaf and one Clearwater to complete the recipe.'}</small>`;
       createBtn.textContent='CREATE POTION';
@@ -274,6 +331,8 @@
         const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')||{};
         saved.potion=state.potion;
         saved.potionIngredients=potionList();
+        saved.zone3ExtraPotionCrafted=!!state.zone3ExtraPotionCrafted;
+        saved.zone3ExtraPotionCrafts=Math.max(0,Number(state.zone3ExtraPotionCrafts)||0);
         localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
       }catch{}
     }
@@ -312,7 +371,7 @@
 
     function craftPotion(){
       if(!pairReady()||locked())return false;
-      if(!RECIPE.every(name=>potionCounts().get(name)>0))return false;
+      if(!RECIPE.every(name=>(potionCounts().get(name)||0)>0))return false;
       RECIPE.forEach(removeOnePotionIngredient);
       state.potion=Math.max(0,Number(state.potion)||0)+1;
       state.zone3ExtraPotionCrafted=true;
@@ -357,6 +416,7 @@
         forcedPickerTarget=1;
         pickerApi?.openPicker?.(0);
         queueMicrotask(()=>{
+          dedupePickers();
           if(pickerTitle)pickerTitle.textContent='CHOOSE INGREDIENT 2';
           if(pickerSubtitle)pickerSubtitle.textContent='Choose the other potion ingredient to complete Moonleaf + Clearwater.';
           renderPotionPicker();
@@ -373,7 +433,7 @@
         event.preventDefault();event.stopImmediatePropagation();
         forcedPickerTarget=1;
         pickerApi?.openPicker?.(0);
-        queueMicrotask(renderPotionPicker);
+        queueMicrotask(()=>{dedupePickers();renderPotionPicker();});
       }
     },true);
 
@@ -390,6 +450,7 @@
       if(syncing)return;
       syncing=true;
       try{
+        dedupePickers();
         retireBackpack();
         setPermanentCopy();
         if(potionSelection.length){
@@ -407,15 +468,19 @@
     new MutationObserver(scheduleSync).observe(sourcePicker,{childList:true,subtree:false});
     new MutationObserver(scheduleSync).observe(overlay,{attributes:true,attributeFilter:['class']});
     new MutationObserver(scheduleSync).observe(modal,{attributes:true,attributeFilter:['class']});
+    const eventLog=document.getElementById('eventLog');
+    if(eventLog)new MutationObserver(scheduleSync).observe(eventLog,{childList:true,subtree:false});
 
+    dedupePickers();
     retireBackpack();
     syncAll();
     requestAnimationFrame(syncAll);
 
     window.HAJJEN_SPELLBOOK_DEV_V6_POTION={
-      version:'6.0',
+      version:'6.1',
       get selection(){return [...potionSelection];},
       get hasFirst(){return !!potionSelection[0];},
+      get available(){return Object.fromEntries(potionCounts());},
       clearSelection:clearPotionSelection,
       craftPotion,
       sync:syncAll

@@ -1,4 +1,4 @@
-/* HAJJEN Zone 3 DEV — Tactical combat preview v1.0.
+/* HAJJEN Zone 3 DEV — Tactical combat preview v1.1.
    Adds two Tactical slots to the approved Fight Window footer and connects the
    existing DEV Tactical EQUIP action to those slots.
 
@@ -113,8 +113,28 @@
     });
   }
 
+  function syncConsumedPresentation(card){
+    if(!card)return;
+    const used=usedKeys.has(keyOf(card));
+    if(!used)return;
+    card.classList.remove('is-equipt');
+    card.classList.add('is-used');
+    const button=equipButton(card);
+    if(button){
+      button.disabled=true;
+      button.textContent='USED';
+      button.setAttribute('aria-pressed','false');
+    }
+  }
+
   function syncEquipped(){
     syncRaf=0;
+
+    /* campaign-zone.js rebuilds the Hand on every movement. A consumed Tactical
+       card may therefore be represented by a fresh DOM node; restore USED before
+       looking for equipped cards so it can never return to the combat slots. */
+    tacticalCards().forEach(syncConsumedPresentation);
+
     // Remove consumed/disconnected cards from combat slots.
     slots.forEach((card,index)=>{
       if(card&&(!card.isConnected||isUsed(card)))slots[index]=null;
@@ -145,6 +165,7 @@
       button.textContent='USED';
       button.setAttribute('aria-pressed','false');
     }
+    window.HAJJEN_TACTICAL_CARD_DEV?.setEquipped?.(false);
     window.HAJJEN_HAND_DECK_LIST_DEV?.render?.();
   }
 
@@ -232,7 +253,7 @@
   requestAnimationFrame(syncEquipped);
 
   window.HAJJEN_TACTICAL_COMBAT_DEV={
-    version:'1.0',
+    version:'1.1-persistent-hand',
     slots,
     usedKeys,
     get guardArmed(){return guardArmed;},

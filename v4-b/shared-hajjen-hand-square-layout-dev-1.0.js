@@ -118,13 +118,13 @@
   if(!document.querySelector('link[data-hajjen-hand-deck-list-dev]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='shared-hajjen-hand-deck-list-dev-1.0.css?v=1';
+    link.href='shared-hajjen-hand-deck-list-dev-1.0.css?v=2';
     link.dataset.hajjenHandDeckListDev='1';
     document.head.appendChild(link);
   }
   if(!document.querySelector('script[data-hajjen-hand-deck-list-dev]')){
     const script=document.createElement('script');
-    script.src='shared-hajjen-hand-deck-list-dev-1.0.js?v=1';
+    script.src='shared-hajjen-hand-deck-list-dev-1.0.js?v=2';
     script.dataset.hajjenHandDeckListDev='1';
     document.body.appendChild(script);
   }

@@ -6,7 +6,7 @@
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
-  const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
+  const zone=window.HAJJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(zone!==3)return;
 
   const hand=document.getElementById('manipCards');
@@ -100,7 +100,7 @@
   document.addEventListener('hajjen:enchantment-applied',schedule);
 
   window.HAJJEN_HAND_REFERENCE_LAYOUT_DEV={
-    version:'2.5',
+    version:'2.6',
     hand,
     iconFiles,
     sync:scan,
@@ -132,7 +132,7 @@
   if(!document.querySelector('link[data-hajjen-hand-category-vector-frame-dev]')){
     const frameCss=document.createElement('link');
     frameCss.rel='stylesheet';
-    frameCss.href='shared-hajjen-hand-category-vector-frame-dev-1.0.css?v=3';
+    frameCss.href='shared-hajjen-hand-category-vector-frame-dev-1.0.css?v=4';
     frameCss.dataset.hajjenHandCategoryVectorFrameDev='1';
     document.head.appendChild(frameCss);
   }

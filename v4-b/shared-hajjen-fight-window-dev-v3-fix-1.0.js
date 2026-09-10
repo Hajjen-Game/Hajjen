@@ -27,6 +27,13 @@
     link.dataset.hajjenSpellbookDevV3Surface='1';
     document.head.appendChild(link);
   }
+  if(!document.querySelector('link[data-hajjen-spellbook-dev-v5-create-ux]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='shared-hajjen-spellbook-dev-v5-create-ux-1.0.css?v=1';
+    link.dataset.hajjenSpellbookDevV5CreateUx='1';
+    document.head.appendChild(link);
+  }
 
   if(!document.querySelector('script[data-hajjen-spellbook-dev-v1]')){
     const script=document.createElement('script');
@@ -44,6 +51,12 @@
     const script=document.createElement('script');
     script.src='shared-hajjen-spellbook-dev-v4-upgrade-prune-1.0.js?v=1';
     script.dataset.hajjenSpellbookDevV4Upgrades='1';
+    document.body.appendChild(script);
+  }
+  if(!document.querySelector('script[data-hajjen-spellbook-dev-v5-create-ux]')){
+    const script=document.createElement('script');
+    script.src='shared-hajjen-spellbook-dev-v5-create-ux-1.0.js?v=1';
+    script.dataset.hajjenSpellbookDevV5CreateUx='1';
     document.body.appendChild(script);
   }
 })();

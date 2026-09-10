@@ -1,37 +1,55 @@
-/* HAJJEN Zone 3 DEV — Hand reference-card geometry v2.0.
+/* HAJJEN Zone 3 DEV — Hand reference layout v2.1.
    Presentation only.
 
-   The previous passes assumed 1:1 squares. The approved visual reference is not
-   square: its cards are moderately wider than tall (about 1.3:1). This pass keeps
-   the established outer HAND footprint, uses more of the blue interior, and makes
-   all eight slots share the same reference-like geometry. Final PNG icon slots stay
-   reserved but invisible until the assets are added. */
+   Goal:
+   - Keep the OUTER HAND panel at the same compact footprint as Zone 1–3.
+   - Do not use 1:1 cards.
+   - Let the 4x2 cards consume the previously unused blue interior so their
+     proportions land close to the supplied reference (~1.3:1).
+   - Keep Shared Vector Frame as the only visible card shell.
+   - Keep final square PNG icon slots prepared but hidden until assets arrive.
+*/
 
-/* Keep the OUTER Hand footprint at the compact height we just approved. We gain
-   card height by using the otherwise empty vertical inset inside the frame rather
-   than making the whole panel taller. The frame is moved above the grid so cards
-   may sit close to the inner rail without painting over it. */
+/* At the current two-column HUD width this reproduces the approved production
+   HAND footprint (roughly 2.65:1). The previous DEV pass let card content drive
+   the grid row taller; this explicit panel ratio prevents that. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{
+  box-sizing:border-box!important;
+  width:100%!important;
   height:auto!important;
   min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:2.65 / 1!important;
   padding:8px 24px!important;
-}
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-panel-frame{
-  z-index:10!important;
-}
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > h2{
-  z-index:12!important;
-}
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel .hand-slot-count{
-  display:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:visible!important;
 }
 
-/* 4 x 2, same panel footprint. At the normal desktop Hand width, 2.62:1 gives
-   cards around 1.30–1.35:1 — matching the supplied reference much more closely. */
+/* The source H2 is invisible because the real HAND plaque is an absolute vector
+   layer. Remove the hidden source heading from flow so it cannot steal card room. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > h2{
+  position:absolute!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-panel-frame{z-index:10!important}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel > .hajjen-vector-title-plaque-layer{z-index:15!important}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel .hand-slot-count{display:none!important}
+
+/* Fill the fixed production-sized panel. Four columns / two equal rows naturally
+   produce the moderately-wide card geometry from the reference without any
+   card aspect-ratio forcing. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{
   position:relative!important;
   z-index:4!important;
   display:grid!important;
+  flex:1 1 auto!important;
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
   grid-template-rows:repeat(2,minmax(0,1fr))!important;
   grid-auto-rows:0!important;
@@ -40,16 +58,17 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   height:auto!important;
   min-height:0!important;
   max-height:none!important;
-  aspect-ratio:2.62 / 1!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
   padding:0!important;
   align-items:stretch!important;
   justify-items:stretch!important;
-  align-content:start!important;
+  align-content:stretch!important;
   overflow:visible!important;
 }
 
-/* High-specificity geometry reset for every real card category. No 1:1 square,
-   no centered narrow cards, and no old 611:388 category override. */
+/* Normalize every category to the same cell geometry. This beats both the old
+   authored 611:388 Tactical/Locked rules and the retired square DEV rules. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"],
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"].hajjen-dev-tactical-card,
@@ -70,8 +89,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   overflow:hidden!important;
 }
 
-/* Final square PNG artwork slot — geometry prepared now, still hidden until the
-   real image binder adds .has-icon. */
+/* Final PNG icon slot — invisible until the prepared asset binder finds a file. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot{
   position:absolute!important;
   z-index:4!important;
@@ -89,18 +107,23 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-
   visibility:hidden!important;
   opacity:0!important;
 }
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot > img{
-  display:block!important;
-  width:100%!important;
-  height:100%!important;
-  object-fit:contain!important;
-}
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot.has-icon{
-  visibility:visible!important;
-  opacity:1!important;
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot > img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot.has-icon{visibility:visible!important;opacity:1!important}
+
+/* Retire the old temporary round medallions. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-manip-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-ench-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-tactical-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-locked-card-icon-wrap{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  width:0!important;
+  height:0!important;
+  pointer-events:none!important;
 }
 
-/* Title block beside the future icon. */
+/* Title beside the future square artwork. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > strong,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-placeholder.hajjen-vector-locked-slot > strong{
   position:absolute!important;
@@ -234,7 +257,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   text-align:center!important;
 }
 
-/* Bottom controls scale to the wider reference-card geometry. */
+/* Bottom controls. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"].hajjen-dev-tactical-card > .shared-tactical-equip{
   position:absolute!important;
@@ -274,25 +297,17 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   font-size:clamp(6.5px,.48vw,8.8px)!important;
 }
 
-/* Final guard: retired circular SVG medallions must not reappear. */
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-manip-card-icon-wrap,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-ench-card-icon-wrap,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-tactical-card-icon-wrap,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-locked-card-icon-wrap{
-  display:none!important;
-  visibility:hidden!important;
-  opacity:0!important;
-}
+/* Shared Vector Frame remains the only outer shell. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-card-shared-frame,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-card-shared-frame{z-index:9!important}
 
-/* Smaller viewports keep the same card proportions and use horizontal scroll only
-   when four usable cards can no longer fit. */
 @media(max-width:1180px){
   html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{
+    aspect-ratio:2.65 / 1!important;
     padding:8px 20px!important;
   }
   html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{
     min-width:620px!important;
-    aspect-ratio:2.62 / 1!important;
     overflow-x:auto!important;
   }
 }

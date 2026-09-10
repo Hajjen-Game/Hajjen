@@ -109,20 +109,36 @@
   });
   observer.observe(hand,{childList:true,subtree:false});
 
-  /* Zone 3 boss-readiness logic already gates on state.introComplete. The old
-     copy still said Enchantment, so normalize those user-facing strings while
-     Tactical is the introduction objective. */
+  /* Zone 3's established boss system gates on state.introComplete. Tactical now
+     owns that introduction flag, so normalize the remaining legacy Enchantment
+     copy emitted by the older zone-system layer. */
   function normalizeObjectiveCopy(){
     const boss=document.getElementById('bossQuest');
     if(boss&&boss.textContent.includes('ENCHANTMENT'))boss.textContent=boss.textContent.replace('ENCHANTMENT','TACTICAL');
+
     const tile=document.getElementById('tileDesc');
     if(tile&&/Apply an Enchantment/i.test(tile.textContent))tile.textContent=tile.textContent.replace(/Apply an Enchantment/i,'Use a Tactical card');
+
+    const log=document.getElementById('eventLog');
+    log?.querySelectorAll('.event').forEach(row=>{
+      const text=row.textContent||'';
+      if(/Introduction: choose one of your two Enchantment cards/i.test(text)){
+        row.textContent='Introduction: equip Guard Stance and use it once during combat.';
+      }else if(/Zone 3 boss unlocked: Enchantment applied,/i.test(text)){
+        row.textContent=text.replace(/Enchantment applied,/i,'Tactical used,');
+      }
+    });
+
+    const footer=document.querySelector('.footer');
+    if(footer)footer.textContent='ZONE 3 LEVEL CAP: 10 · 2 ENCHANTMENTS · TACTICAL INTRODUCED · 1 CARD';
   }
   const objectiveObserver=new MutationObserver(normalizeObjectiveCopy);
   const bossNode=document.getElementById('bossQuest');
   const tileNode=document.getElementById('tileDesc');
+  const logNode=document.getElementById('eventLog');
   if(bossNode)objectiveObserver.observe(bossNode,{childList:true,characterData:true,subtree:true});
   if(tileNode)objectiveObserver.observe(tileNode,{childList:true,characterData:true,subtree:true});
+  if(logNode)objectiveObserver.observe(logNode,{childList:true,subtree:true});
   setInterval(normalizeObjectiveCopy,120);
 
   ensureCard();
@@ -130,7 +146,7 @@
   normalizeObjectiveCopy();
 
   window.HAJJEN_TACTICAL_CARD_PRODUCTION={
-    version:'1.0-zone3-intro',
+    version:'1.1-zone3-intro-copy',
     hand,
     definition,
     observer,

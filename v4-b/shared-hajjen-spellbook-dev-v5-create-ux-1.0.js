@@ -1,6 +1,8 @@
 /* HAJJEN Zone 3 DEV — Spellbook V5 Create Spell UX.
    Adds an explicit SWAP action, shows board Primal Force icons in selected
-   ingredient slots, and shows the resulting spell's Action Bar icon in preview. */
+   ingredient slots, and shows the resulting spell's Action Bar icon in preview.
+   V5.1 keeps observers container-scoped so our own decorations cannot create a
+   MutationObserver feedback loop when an ingredient is selected. */
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -102,8 +104,10 @@
         plus.append(symbol,button);
       }
       const selected=selectedMap();
-      button.disabled=selected.slot1==null||selected.slot2==null;
-      button.title=button.disabled?'Choose both ingredients first.':'Swap Ingredient 1 and Ingredient 2.';
+      const shouldDisable=selected.slot1==null||selected.slot2==null;
+      if(button.disabled!==shouldDisable)button.disabled=shouldDisable;
+      const nextTitle=shouldDisable?'Choose both ingredients first.':'Swap Ingredient 1 and Ingredient 2.';
+      if(button.title!==nextTitle)button.title=nextTitle;
     }
 
     function decorateSelectedSlots(){
@@ -142,7 +146,8 @@
           if(em)slot.insertBefore(forceName,em);
           else slot.appendChild(forceName);
         }
-        forceName.textContent=item.force.toUpperCase();
+        const nextForceName=item.force.toUpperCase();
+        if(forceName.textContent!==nextForceName)forceName.textContent=nextForceName;
       });
     }
 
@@ -181,14 +186,17 @@
       queueMicrotask(syncAll);
     }
 
-    new MutationObserver(schedule).observe(createSlots,{childList:true,subtree:true});
-    new MutationObserver(schedule).observe(sourcePicker,{childList:true,subtree:true,attributes:true,attributeFilter:['class','disabled']});
-    new MutationObserver(schedule).observe(preview,{childList:true,subtree:true,characterData:true});
+    /* shared-spellbook-v2 replaces the direct children of these containers when
+       selection/preview changes. Observe only those structural replacements.
+       Do NOT observe nested descendants: V5 itself inserts icons/labels there. */
+    new MutationObserver(schedule).observe(createSlots,{childList:true,subtree:false});
+    new MutationObserver(schedule).observe(sourcePicker,{childList:true,subtree:false});
+    new MutationObserver(schedule).observe(preview,{childList:true,subtree:false});
 
     syncAll();
     requestAnimationFrame(syncAll);
 
-    window.HAJJEN_SPELLBOOK_DEV_V5={version:'5.0',swapIngredients,sync:syncAll};
+    window.HAJJEN_SPELLBOOK_DEV_V5={version:'5.1',swapIngredients,sync:syncAll};
   }
 
   boot();

@@ -1,29 +1,31 @@
-/* HAJJEN Zone 3 DEV — Hand layout pass inspired by the approved square-card mockup.
-   Layout/presentation only. Keeps Shared Vector Frame as the only outer card frame
-   and reserves a square art slot for the future PNG category icons. */
+/* HAJJEN Zone 3 DEV — Hand square-card layout v1.1.
+   Presentation only. Keeps Shared Vector Frame as the single outer card frame,
+   makes the 4x2 Hand grid near-square/landscape instead of portrait, and reserves
+   a square PNG icon slot for the final category artwork. */
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{
+  height:auto!important;
+  min-height:0!important;
   padding:30px 18px 18px!important;
 }
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel .hand-slot-count{display:none!important}
 
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel .hand-slot-count{
-  display:none!important;
-}
-
-/* Make the eight cards own the available Hand surface instead of preserving the
-   older wide 611:388 card ratio. Four cards remain on each of two rows. */
+/* Four cards per row, two rows. The first pass was too tall (31vw), which made
+   the cards portrait. This keeps them distinctly more square than the old cards
+   while still filling the Hand panel cleanly. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{
   display:grid!important;
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
   grid-template-rows:repeat(2,minmax(0,1fr))!important;
   gap:10px!important;
   width:100%!important;
-  min-height:clamp(420px,31vw,540px)!important;
+  height:auto!important;
+  min-height:clamp(320px,19vw,360px)!important;
   padding:0!important;
   align-items:stretch!important;
+  align-content:start!important;
   overflow:visible!important;
 }
-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder{
   width:100%!important;
@@ -36,262 +38,82 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   overflow:hidden!important;
 }
 
-/* Slightly cleaner / lighter card fields. The existing single-frame pass paints
-   these colors on the inset ::after surface beneath Shared Vector Frame. */
+/* Card field colors are painted by the existing single-frame pass. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"]::after,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation::after{
-  --hand-single-surface:linear-gradient(180deg,#f5f7f6 0%,#e4e9ea 100%)!important;
-}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.manipulation::after{--hand-single-surface:linear-gradient(180deg,#f5f7f6 0%,#e4e9ea 100%)!important}
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"]::after,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.enchantment::after{
-  --hand-single-surface:linear-gradient(180deg,#f1e7f2 0%,#dfcfe4 100%)!important;
-}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.enchantment::after{--hand-single-surface:linear-gradient(180deg,#f1e7f2 0%,#dfcfe4 100%)!important}
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"]::after,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical::after{
-  --hand-single-surface:linear-gradient(180deg,#f5e5bd 0%,#e9c98d 100%)!important;
-}
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked::after{
-  --hand-single-surface:linear-gradient(180deg,#e5e6e5 0%,#cfd2d2 100%)!important;
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.tactical::after{--hand-single-surface:linear-gradient(180deg,#f5e5bd 0%,#e9c98d 100%)!important}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked::after{--hand-single-surface:linear-gradient(180deg,#e5e6e5 0%,#cfd2d2 100%)!important}
+
+/* Fully suppress the temporary circular SVG medallions. These selectors beat
+   the older category-specific DEV rules that were still showing in v1.0. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > .hajjen-manip-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > .hajjen-ench-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > .hajjen-tactical-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.hajjen-vector-locked-slot > .hajjen-locked-card-icon-wrap{
+  display:none!important;visibility:hidden!important;opacity:0!important;width:0!important;height:0!important;min-width:0!important;min-height:0!important;border:0!important;background:none!important;box-shadow:none!important;pointer-events:none!important
 }
 
-/* Retire the temporary CSS/SVG category medallions. Their space is now owned by
-   .hajjen-hand-icon-slot, which is intentionally invisible until PNGs are added. */
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-manip-card-icon-wrap,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-ench-card-icon-wrap,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-tactical-card-icon-wrap,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-locked-card-icon-wrap{
-  display:none!important;
-}
-
+/* Final square PNG slot. It is deliberately invisible until an image is mounted. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot{
-  position:absolute!important;
-  z-index:4!important;
-  left:7.5%!important;
-  top:8%!important;
-  width:24%!important;
-  height:auto!important;
-  aspect-ratio:1!important;
-  margin:0!important;
-  padding:0!important;
-  border:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  pointer-events:none!important;
-  visibility:hidden!important;
+  position:absolute!important;z-index:4!important;left:7%!important;top:8%!important;width:23%!important;height:auto!important;aspect-ratio:1!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;pointer-events:none!important;visibility:hidden!important;opacity:0!important
 }
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot > img{
-  display:block!important;
-  width:100%!important;
-  height:100%!important;
-  object-fit:contain!important;
-}
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot.has-icon{
-  visibility:visible!important;
-}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot>img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-icon-slot.has-icon{visibility:visible!important;opacity:1!important}
 
-/* Title sits to the right of the future square icon, with the small divider used
-   by the target mockup. */
+/* Titles reserve the left art slot but are sized for the real in-game Hand width. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > strong,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.hajjen-vector-locked-slot > strong{
-  position:absolute!important;
-  display:flex!important;
-  align-items:center!important;
-  left:36%!important;
-  right:7%!important;
-  top:8%!important;
-  height:18%!important;
-  margin:0!important;
-  padding:0!important;
-  color:#27384b!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(14px,1.25vw,22px)!important;
-  line-height:1.02!important;
-  font-weight:700!important;
-  letter-spacing:-.15px!important;
-  white-space:normal!important;
-  overflow:hidden!important;
-  text-overflow:clip!important;
-  text-align:left!important;
+  position:absolute!important;display:flex!important;align-items:center!important;left:34%!important;right:6.5%!important;top:8%!important;height:19%!important;margin:0!important;padding:0!important;color:#27384b!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(12px,.96vw,17px)!important;line-height:1.02!important;font-weight:700!important;letter-spacing:-.12px!important;white-space:normal!important;overflow:hidden!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:none!important;text-align:left!important
 }
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"] > strong{color:#56366f!important}
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > strong{color:#664016!important}
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.hajjen-vector-locked-slot > strong{color:#4f5354!important}
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-title-rule{
-  position:absolute!important;
-  z-index:4!important;
-  display:block!important;
-  left:36%!important;
-  right:7%!important;
-  top:29%!important;
-  height:1px!important;
-  min-height:1px!important;
-  margin:0!important;
-  padding:0!important;
-  border:0!important;
-  background:linear-gradient(90deg,rgba(112,80,47,.16),rgba(112,80,47,.42),rgba(112,80,47,.16))!important;
-  overflow:visible!important;
-  pointer-events:none!important;
+  position:absolute!important;z-index:4!important;display:block!important;left:34%!important;right:6.5%!important;top:29%!important;height:1px!important;min-height:1px!important;margin:0!important;padding:0!important;border:0!important;background:linear-gradient(90deg,rgba(112,80,47,.16),rgba(112,80,47,.42),rgba(112,80,47,.16))!important;overflow:visible!important;pointer-events:none!important
 }
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-title-rule::after{
-  content:""!important;
-  position:absolute!important;
-  left:50%!important;
-  top:50%!important;
-  width:7px!important;
-  height:7px!important;
-  transform:translate(-50%,-50%) rotate(45deg)!important;
-  border:1px solid #8b5d32!important;
-  background:#d8a75e!important;
-  box-shadow:inset 0 0 0 1px rgba(255,235,185,.55)!important;
-}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-title-rule::after{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:6px!important;height:6px!important;transform:translate(-50%,-50%) rotate(45deg)!important;border:1px solid #8b5d32!important;background:#d8a75e!important;box-shadow:inset 0 0 0 1px rgba(255,235,185,.55)!important}
 
-/* Rules copy owns the broad middle of each card. */
+/* Rules copy. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span:not(.hajjen-hand-icon-slot):not(.hajjen-hand-title-rule):not(.hajjen-manip-card-icon-wrap),
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small{
-  position:absolute!important;
-  display:-webkit-box!important;
-  left:8%!important;
-  right:8%!important;
-  top:38%!important;
-  bottom:23%!important;
-  height:auto!important;
-  margin:0!important;
-  color:#2e3440!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(11px,.92vw,16px)!important;
-  line-height:1.16!important;
-  font-weight:500!important;
-  text-align:center!important;
-  -webkit-line-clamp:5!important;
-  -webkit-box-orient:vertical!important;
-  overflow:hidden!important;
+  position:absolute!important;display:-webkit-box!important;left:8%!important;right:8%!important;top:36%!important;bottom:24%!important;height:auto!important;margin:0!important;color:#2e3440!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(9px,.72vw,12.5px)!important;line-height:1.14!important;font-weight:500!important;text-align:center!important;-webkit-line-clamp:5!important;-webkit-box-orient:vertical!important;overflow:hidden!important
 }
-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-enchantment-card > .shared-enchantment-copy{
-  position:absolute!important;
-  display:-webkit-box!important;
-  left:8%!important;
-  right:8%!important;
-  top:36%!important;
-  height:20%!important;
-  max-height:none!important;
-  margin:0!important;
-  color:#49344f!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(10.5px,.86vw,15px)!important;
-  line-height:1.15!important;
-  font-weight:500!important;
-  text-align:center!important;
-  -webkit-line-clamp:4!important;
-  -webkit-box-orient:vertical!important;
-  overflow:hidden!important;
+  position:absolute!important;display:-webkit-box!important;left:8%!important;right:8%!important;top:34%!important;height:19%!important;max-height:none!important;margin:0!important;color:#49344f!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(8.8px,.69vw,12px)!important;line-height:1.14!important;font-weight:500!important;text-align:center!important;-webkit-line-clamp:4!important;-webkit-box-orient:vertical!important;overflow:hidden!important
 }
-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > .shared-tactical-copy{
-  position:absolute!important;
-  display:-webkit-box!important;
-  left:8%!important;
-  right:8%!important;
-  top:39%!important;
-  bottom:23%!important;
-  margin:0!important;
-  color:#5c3a18!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(11px,.9vw,15.5px)!important;
-  line-height:1.16!important;
-  font-weight:500!important;
-  text-align:center!important;
-  -webkit-line-clamp:5!important;
-  -webkit-box-orient:vertical!important;
-  overflow:hidden!important;
+  position:absolute!important;display:-webkit-box!important;left:8%!important;right:8%!important;top:36%!important;bottom:24%!important;margin:0!important;color:#5c3a18!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(9px,.72vw,12.5px)!important;line-height:1.14!important;font-weight:500!important;text-align:center!important;-webkit-line-clamp:5!important;-webkit-box-orient:vertical!important;overflow:hidden!important
 }
-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.hajjen-vector-locked-slot > .shared-locked-copy{
-  position:absolute!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  left:10%!important;
-  right:10%!important;
-  top:39%!important;
-  bottom:15%!important;
-  margin:0!important;
-  color:#596064!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(11px,.9vw,15.5px)!important;
-  line-height:1.22!important;
-  font-weight:500!important;
-  text-align:center!important;
+  position:absolute!important;display:flex!important;align-items:center!important;justify-content:center!important;left:10%!important;right:10%!important;top:35%!important;bottom:14%!important;margin:0!important;color:#596064!important;font-family:Georgia,"Times New Roman",serif!important;font-size:clamp(9px,.72vw,12.5px)!important;line-height:1.2!important;font-weight:500!important;text-align:center!important
 }
 
-/* Controls hug the bottom rail and grow with the taller cards. */
+/* Bottom controls. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > button,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > .shared-tactical-equip{
-  position:absolute!important;
-  left:7.5%!important;
-  right:7.5%!important;
-  bottom:6%!important;
-  width:85%!important;
-  height:15%!important;
-  min-height:32px!important;
-  margin:0!important;
-  font-size:clamp(10px,.82vw,14px)!important;
+  position:absolute!important;left:7.5%!important;right:7.5%!important;bottom:6%!important;width:85%!important;height:16%!important;min-height:26px!important;margin:0!important;font-size:clamp(8px,.65vw,11px)!important
 }
-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-enchantment-card > .shared-enchantment-select{
-  position:absolute!important;
-  left:7.5%!important;
-  right:7.5%!important;
-  top:auto!important;
-  bottom:23%!important;
-  width:85%!important;
-  height:13%!important;
-  min-height:29px!important;
-  margin:0!important;
-  padding:0 9px!important;
-  font-size:clamp(10px,.78vw,13px)!important;
+  position:absolute!important;left:7.5%!important;right:7.5%!important;top:auto!important;bottom:23%!important;width:85%!important;height:14%!important;min-height:23px!important;margin:0!important;padding:0 7px!important;font-size:clamp(8px,.62vw,10.5px)!important
 }
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-enchantment-card > .shared-enchantment-apply{
-  position:absolute!important;
-  left:7.5%!important;
-  right:7.5%!important;
-  bottom:6%!important;
-  width:85%!important;
-  height:14%!important;
-  min-height:31px!important;
-  margin:0!important;
-  font-size:clamp(9px,.76vw,13px)!important;
+  position:absolute!important;left:7.5%!important;right:7.5%!important;bottom:6%!important;width:85%!important;height:15%!important;min-height:25px!important;margin:0!important;font-size:clamp(7.5px,.58vw,10px)!important
 }
 
-/* Shared Vector Frame stays above everything and remains the only card shell. */
+/* Shared Vector Frame remains the only visible outer shell. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-card-shared-frame,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-card-shared-frame{
-  z-index:9!important;
-}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-card-shared-frame{z-index:9!important}
 
 @media(max-width:1180px){
-  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{
-    grid-template-columns:repeat(4,minmax(180px,1fr))!important;
-    min-height:460px!important;
-    overflow-x:auto!important;
-    overflow-y:hidden!important;
-    padding:1px 1px 4px!important;
-  }
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{grid-template-columns:repeat(4,minmax(170px,1fr))!important;min-height:330px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:1px 1px 4px!important}
 }
-
 @media(max-width:700px){
-  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{
-    padding:25px 14px 15px!important;
-  }
-  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{
-    grid-template-columns:repeat(4,190px)!important;
-    grid-template-rows:repeat(2,215px)!important;
-    min-height:440px!important;
-    gap:8px!important;
-  }
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-panel.hajjen-framed-panel{padding:25px 14px 15px!important}
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{grid-template-columns:repeat(4,175px)!important;grid-template-rows:repeat(2,158px)!important;min-height:326px!important;gap:8px!important}
   html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > strong,
-  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.hajjen-vector-locked-slot > strong{
-    font-size:14px!important;
-  }
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.hajjen-vector-locked-slot > strong{font-size:12px!important}
 }

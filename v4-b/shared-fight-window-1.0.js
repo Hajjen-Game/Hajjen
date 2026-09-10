@@ -80,9 +80,11 @@
 
   function normalizeTier(){
     const combat=state()?.combat;
-    const type=combat?.entity?.type;
-    const desired=type==='boss'?'BOSS ENCOUNTER':type==='elite'?'ELITE ENCOUNTER':type==='mob'?'MOB ENCOUNTER':null;
-    if(desired&&tier.textContent!==desired)tier.textContent=desired;
+    const type=String(combat?.entity?.type||'').toLowerCase();
+    const desired=type==='boss'?'BOSS ENCOUNTER':type==='elite'?'ELITE ENCOUNTER':type==='mob'?'MOB ENCOUNTER':'ENCOUNTER';
+    if(tier.textContent!==desired)tier.textContent=desired;
+    if(type==='boss'||type==='elite'||type==='mob')tier.dataset.encounterType=type;
+    else delete tier.dataset.encounterType;
   }
 
   function normalizeSpellButtons(){
@@ -152,4 +154,16 @@
     script.dataset.hajjenFightProduction='1';
     document.body.appendChild(script);
   }
+})();
+
+/* Shared encounter label override. Loaded last in both DEV and production so the
+   encounter type sits visibly above the enemy name in every fight window. */
+(()=>{
+  if(!window.HAJJEN_SHARED_FIGHT_WINDOW?.zone)return;
+  if(document.querySelector('link[data-hajjen-fight-encounter-label]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href='shared-hajjen-fight-window-encounter-label-1.0.css?v=1';
+  link.dataset.hajjenFightEncounterLabel='1';
+  document.head.appendChild(link);
 })();

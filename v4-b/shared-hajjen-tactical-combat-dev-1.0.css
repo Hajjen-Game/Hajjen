@@ -1,0 +1,137 @@
+/* HAJJEN Zone 3 DEV — Tactical combat slots.
+   Two compact Tactical slots sit immediately left of Healing Potion in the
+   approved Fight Window footer. Tactical remains a DEV-only gameplay preview. */
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-footer{
+  flex-wrap:nowrap!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slots{
+  display:flex!important;
+  align-items:stretch!important;
+  gap:8px!important;
+  margin-right:0!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot{
+  --tactical-accent:#bd7818;
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:30px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:7px!important;
+  width:158px!important;
+  min-width:158px!important;
+  min-height:56px!important;
+  padding:7px 10px!important;
+  box-sizing:border-box!important;
+  border:2px solid #6b482a!important;
+  border-radius:4px!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 38%),
+    linear-gradient(180deg,#bd7818,#865010)!important;
+  color:#f7e8c5!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(242,207,145,.46),
+    0 2px 4px rgba(38,22,12,.22)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  overflow:hidden!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot::after{
+  content:""!important;
+  position:absolute!important;
+  inset:3px!important;
+  border:1px solid rgba(236,202,137,.30)!important;
+  border-radius:2px!important;
+  pointer-events:none!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot-icon{
+  display:block!important;
+  width:30px!important;
+  height:30px!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 1px 1px rgba(35,20,10,.30))!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot-copy{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  min-width:0!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot-title{
+  display:block!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  line-height:1.05!important;
+  font-weight:800!important;
+  letter-spacing:.15px!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot-state{
+  display:block!important;
+  margin-top:3px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.4px!important;
+  text-transform:uppercase!important;
+  opacity:.88!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot.is-empty{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,0) 42%),
+    linear-gradient(180deg,#756c60,#514a42)!important;
+  color:#ddcfb4!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot.is-empty .hajjen-combat-tactical-slot-icon{
+  filter:grayscale(.72) saturate(.38) opacity(.62)!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot:disabled{
+  cursor:default!important;
+  opacity:.55!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot:not(:disabled):hover{
+  filter:brightness(1.07)!important;
+  transform:translateY(-1px)!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot:not(:disabled):active{
+  transform:translateY(1px)!important;
+}
+
+/* Keep Potion/Flee hierarchy intact while making room for two Tactical slots. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-potion{
+  min-width:258px!important;
+}
+
+@media(max-width:980px){
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .shared-fight-footer{
+    flex-wrap:wrap!important;
+  }
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slots{
+    flex:1 1 100%!important;
+    justify-content:flex-end!important;
+  }
+}
+
+@media(max-width:560px){
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slots{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    width:100%!important;
+  }
+  html[data-hajjen-dev="zone3"] body.zone3-dev-mode #combatModal.shared-fight-window .hajjen-combat-tactical-slot{
+    width:100%!important;
+    min-width:0!important;
+  }
+}

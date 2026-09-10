@@ -1,0 +1,39 @@
+/* HAJJEN Zone 3 DEV — Spellbook V3 section-surface fit.
+   The Shared Vector Frame is rounded/inset, while V1 painted the parchment
+   background all the way to each section's rectangular box. That let the
+   Loaded Spells / Crafted Spells / Create Spell surfaces peek outside the frame.
+   Keep layout and frame geometry unchanged; paint parchment as an inset layer. */
+
+body.zone3-dev-mode #spellbookModal.hajjen-spellbook-dev-v2 .sbv2-section{
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+body.zone3-dev-mode #spellbookModal.hajjen-spellbook-dev-v2 .sbv2-section::before{
+  content:""!important;
+  position:absolute!important;
+  inset:3px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  border-radius:4px!important;
+  background-color:var(--sb-parchment)!important;
+  background-image:
+    linear-gradient(rgba(255,250,235,.27),rgba(255,250,235,.07)),
+    url('assets/hajjen_parchment_surface_v1.png')!important;
+  background-repeat:repeat!important;
+  background-size:auto,160px 160px!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(83,53,26,.11),
+    0 2px 5px rgba(46,25,14,.13)!important;
+}
+
+/* Keep every real section child above the inset parchment, with the Shared
+   Vector Frame remaining above both. */
+body.zone3-dev-mode #spellbookModal.hajjen-spellbook-dev-v2 .sbv2-section > *:not(.hajjen-spellbook-section-frame){
+  position:relative!important;
+  z-index:3!important;
+}
+body.zone3-dev-mode #spellbookModal.hajjen-spellbook-dev-v2 .hajjen-spellbook-section-frame{
+  z-index:4!important;
+}

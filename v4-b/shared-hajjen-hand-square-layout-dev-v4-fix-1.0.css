@@ -1,0 +1,95 @@
+/* HAJJEN Zone 3 DEV — Hand true-square normalization v1.0.
+   Fixes category-specific legacy CSS that was still overriding the 1:1 geometry
+   for Tactical / Locked (and hard-normalizes every Hand slot to the same square).
+   The Hand panel itself is intentionally untouched. */
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  justify-items:center!important;
+  align-items:stretch!important;
+}
+
+/* High-specificity dimension reset for every real card category. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"],
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="enchantment"],
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"].hajjen-dev-tactical-card,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot{
+  box-sizing:border-box!important;
+  height:100%!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  aspect-ratio:1 / 1!important;
+  align-self:stretch!important;
+  justify-self:center!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+/* Also normalize any generic placeholder that is not yet decorated. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder:not(.hajjen-vector-locked-slot){
+  box-sizing:border-box!important;
+  height:100%!important;
+  width:auto!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  aspect-ratio:1 / 1!important;
+  align-self:stretch!important;
+  justify-self:center!important;
+}
+
+/* Tactical / Locked had stronger legacy 611:388 rules. Keep their content mapped
+   to the square geometry too so they match Manipulation / Enchantment exactly. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"].hajjen-dev-tactical-card > strong,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > strong{
+  left:38%!important;
+  right:6%!important;
+  top:7%!important;
+  height:20%!important;
+  font-size:clamp(9px,.72vw,13px)!important;
+  white-space:normal!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"].hajjen-dev-tactical-card > .shared-tactical-copy{
+  left:7%!important;
+  right:7%!important;
+  top:37%!important;
+  bottom:24%!important;
+  font-size:clamp(7px,.52vw,9.5px)!important;
+  line-height:1.12!important;
+  text-align:center!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder.locked.hajjen-vector-locked-slot > .shared-locked-copy{
+  left:8%!important;
+  right:8%!important;
+  top:36%!important;
+  bottom:13%!important;
+  font-size:clamp(7px,.52vw,9.5px)!important;
+  line-height:1.15!important;
+  text-align:center!important;
+}
+
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"].hajjen-dev-tactical-card > .shared-tactical-equip{
+  left:7%!important;
+  right:7%!important;
+  bottom:6%!important;
+  width:86%!important;
+  height:16%!important;
+  min-height:16px!important;
+  font-size:clamp(6.5px,.48vw,8.5px)!important;
+}
+
+/* Final guard: none of the retired circular SVG medallions may reappear. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-manip-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-ench-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-tactical-card-icon-wrap,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid .hajjen-locked-card-icon-wrap{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}

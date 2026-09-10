@@ -96,7 +96,7 @@
      buttons to preserve every existing rule. For Ingredient 1 we rebuild the
      ordering when needed; Ingredient 2 only replaces the second selection. */
   function chooseForTarget(index){
-    let current=selectedMap();
+    const current=selectedMap();
 
     if(targetSlot===0){
       if(index===current.slot1){closePicker();return;}
@@ -201,29 +201,36 @@
   }
 
   function decorateCreateArea(){
+    const selection=selectedMap();
     const slots=[...createSlots.querySelectorAll(':scope > .sbv2-create-slot')];
     slots.forEach((slot,index)=>{
+      const waiting=index===1&&selection.slot1===null;
       slot.classList.add('hajjen-ingredient-slot-trigger');
       slot.dataset.ingredientSlot=String(index);
       slot.setAttribute('role','button');
-      slot.setAttribute('tabindex',index===1&&selectedMap().slot1===null?'-1':'0');
+      slot.setAttribute('tabindex',waiting?'-1':'0');
       slot.setAttribute('aria-label',`Choose Ingredient ${index+1}`);
-      slot.classList.toggle('waiting-for-first',index===1&&selectedMap().slot1===null);
-      if(!slot.querySelector(':scope > .hajjen-ingredient-slot-action')){
-        const action=document.createElement('span');
+      slot.classList.toggle('waiting-for-first',waiting);
+
+      const actionText=waiting?'CHOOSE INGREDIENT 1 FIRST':'CLICK TO CHOOSE';
+      let action=slot.querySelector(':scope > .hajjen-ingredient-slot-action');
+      if(!action){
+        action=document.createElement('span');
         action.className='hajjen-ingredient-slot-action';
-        action.textContent=index===1&&selectedMap().slot1===null?'CHOOSE INGREDIENT 1 FIRST':'CLICK TO CHOOSE';
+        action.textContent=actionText;
         slot.appendChild(action);
-      }else{
-        slot.querySelector(':scope > .hajjen-ingredient-slot-action').textContent=index===1&&selectedMap().slot1===null?'CHOOSE INGREDIENT 1 FIRST':'CLICK TO CHOOSE';
+      }else if(action.textContent!==actionText){
+        action.textContent=actionText;
       }
     });
 
     const total=sourceButtons().length;
     const headingSmall=createSection.querySelector('.sbv2-section-heading small');
-    if(headingSmall)headingSmall.textContent=`${total} AVAILABLE`;
+    const headingText=`${total} AVAILABLE`;
+    if(headingSmall&&headingSmall.textContent!==headingText)headingSmall.textContent=headingText;
     const copy=createSection.querySelector('.sbv2-section-copy');
-    if(copy)copy.textContent='Choose Ingredient 1, then Ingredient 2. Click a slot to browse your collected ingredients by Primal Force.';
+    const copyText='Choose Ingredient 1, then Ingredient 2. Click a slot to browse your collected ingredients by Primal Force.';
+    if(copy&&copy.textContent!==copyText)copy.textContent=copyText;
   }
 
   createSlots.addEventListener('click',event=>{

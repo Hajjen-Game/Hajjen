@@ -11,6 +11,7 @@ window.HAJJEN_ZONE_CONFIG={
   ],
   spellIngredients:[{row:1,col:4,name:'Glowroot',force:'Growth'},{row:8,col:9,name:'Ash Pearl',force:'Ember'},{row:2,col:16,name:'Riverglass',force:'Flow'},{row:7,col:22,name:'Wind Shard',force:'Gale'}],
   potionIngredients:[{row:4,col:6,name:'Moonleaf'},{row:5,col:13,name:'Clearwater'}],
+  combatAttraction:{enabled:true,radius:3,chance:{calm:0,uneasy:0,dangerous:.30,hostile:.45,critical:.65}},
   enchantment:{worldPickup:false,draw:1,mark:'✦'},
   enchantmentDeck:[
     {id:'empowered',name:'Empowered',text:'Enchanted spell deals +6 damage.'},

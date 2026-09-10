@@ -1,7 +1,8 @@
 /* HAJJEN Zone 3 DEV — Shared Vector Frame on the three Hand category panels.
    Presentation only. HAND footprint, row layout and gameplay interactions stay unchanged.
-   v1.3: frame sits 4px outside the category surface and the taller Enchantment/
-   Tactical rows use larger icons so their visual weight matches the available space.
+   v1.4: all row icons use 56px. Enchantment/Tactical descriptions may wrap across
+   multiple lines instead of truncating with ellipsis. Row titles/descriptions are
+   slightly larger for better readability.
 */
 
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category{
@@ -32,17 +33,39 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-
   filter:drop-shadow(0 1px 1px rgba(48,28,14,.14))!important;
 }
 
-/* Taller Enchantment/Tactical rows can carry a stronger icon without changing
-   the category width or row height. Manipulation deliberately stays compact. */
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="enchantment"] .hajjen-hand-list-row,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="tactical"] .hajjen-hand-list-row{
+/* All three Hand categories now use the same stronger 56px row icon size.
+   Manipulation has the wider column, so it can carry this without changing the
+   HAND footprint or the 4/2/2 row structure. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category .hajjen-hand-list-row{
   grid-template-columns:58px minmax(0,1fr) auto!important;
   gap:10px!important;
 }
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="enchantment"] .hajjen-hand-list-row-icon,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="tactical"] .hajjen-hand-list-row-icon{
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category .hajjen-hand-list-row-icon{
   width:56px!important;
   height:56px!important;
+}
+
+/* Slightly stronger typography in every Hand row. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-list-row-title{
+  font-size:clamp(11.5px,.83vw,14.5px)!important;
+  line-height:1.04!important;
+  font-weight:700!important;
+}
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-list-row-description{
+  font-size:clamp(9.5px,.68vw,12.5px)!important;
+  line-height:1.15!important;
+  font-weight:550!important;
+}
+
+/* The taller Enchantment/Tactical rows have room for the real description.
+   Do not shorten these rows with an ellipsis; let the text wrap naturally. */
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="enchantment"] .hajjen-hand-list-row-description,
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .hajjen-hand-category[data-category="tactical"] .hajjen-hand-list-row-description{
+  display:block!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  max-width:100%!important;
 }
 
 /* Same Shared Vector Frame palette used across the approved HUD family. */

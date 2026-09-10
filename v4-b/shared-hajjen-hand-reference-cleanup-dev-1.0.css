@@ -1,10 +1,11 @@
-/* HAJJEN Zone 3 DEV — Hand reference cleanup v1.1.
+/* HAJJEN Zone 3 DEV — Hand reference cleanup v1.2.
    Final presentation guard for the compact reference-card layout.
    - Keeps the outer HAND panel/card geometry untouched.
    - Removes legacy copy backing boxes.
    - Forces final PNG icons into the header zone.
    - Keeps title + decorative rule beside the icon.
    - Keeps rules text below the header so it cannot collide with artwork.
+   - Raises body-copy size/weight toward the approved reference.
 */
 
 /* Never let live rules/copy elements paint their own rectangle. */
@@ -149,7 +150,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-title-rule::before,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-placeholder > .hajjen-hand-title-rule::before{content:none!important;display:none!important}
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card > .hajjen-hand-title-rule::after,
-html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-placeholder > .hajjen-hand-title-rule::after{
+html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-placeholder > .hajjen-hand-title-rule::after{
   content:""!important;
   position:absolute!important;
   display:block!important;
@@ -169,7 +170,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   opacity:1!important;
 }
 
-/* MANIPULATION / TACTICAL copy starts beneath the icon/header zone. */
+/* MANIPULATION / TACTICAL body copy: larger + slightly heavier for readability. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > span:not(.hajjen-hand-icon-slot):not(.hajjen-hand-title-rule):not(.hajjen-manip-card-icon-wrap),
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small,
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > .shared-tactical-copy{
@@ -177,8 +178,8 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   display:-webkit-box!important;
   left:8%!important;
   right:8%!important;
-  top:45%!important;
-  bottom:24%!important;
+  top:43%!important;
+  bottom:23%!important;
   width:auto!important;
   height:auto!important;
   min-width:0!important;
@@ -186,9 +187,9 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   margin:0!important;
   padding:0!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(7.2px,.54vw,9.8px)!important;
-  line-height:1.12!important;
-  font-weight:500!important;
+  font-size:clamp(8.8px,.66vw,12px)!important;
+  line-height:1.14!important;
+  font-weight:600!important;
   text-align:center!important;
   -webkit-line-clamp:4!important;
   -webkit-box-orient:vertical!important;
@@ -199,16 +200,16 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="manipulation"] > small{color:#2e3440!important}
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-hand-card[data-hand-category="tactical"] > .shared-tactical-copy{color:#5c3a18!important}
 
-/* ENCHANTMENT copy stays beside/below its icon and clear of the selector. */
+/* ENCHANTMENT copy: same readability increase while preserving selector room. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-grid > .shared-enchantment-card > .shared-enchantment-copy{
   position:absolute!important;
   display:-webkit-box!important;
   left:36%!important;
   right:7%!important;
-  top:37%!important;
+  top:36%!important;
   bottom:auto!important;
   width:auto!important;
-  height:19%!important;
+  height:21%!important;
   min-width:0!important;
   min-height:0!important;
   max-height:none!important;
@@ -216,9 +217,9 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   padding:0!important;
   color:#49344f!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(7px,.52vw,9.4px)!important;
-  line-height:1.1!important;
-  font-weight:500!important;
+  font-size:clamp(8.4px,.63vw,11.5px)!important;
+  line-height:1.13!important;
+  font-weight:600!important;
   text-align:left!important;
   -webkit-line-clamp:3!important;
   -webkit-box-orient:vertical!important;
@@ -226,7 +227,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   z-index:4!important;
 }
 
-/* Locked body copy. */
+/* Locked body copy uses the same stronger visual weight. */
 html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-hand-placeholder.hajjen-vector-locked-slot > .shared-locked-copy{
   position:absolute!important;
   display:flex!important;
@@ -234,7 +235,7 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   justify-content:center!important;
   left:9%!important;
   right:9%!important;
-  top:44%!important;
+  top:43%!important;
   bottom:14%!important;
   width:auto!important;
   height:auto!important;
@@ -242,9 +243,9 @@ html[data-hajjen-dev="zone3"] body.zone3-dev-mode .zone3-app .cards-hud .shared-
   padding:0!important;
   color:#596064!important;
   font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(7.2px,.54vw,9.8px)!important;
-  line-height:1.15!important;
-  font-weight:500!important;
+  font-size:clamp(8.8px,.66vw,12px)!important;
+  line-height:1.16!important;
+  font-weight:600!important;
   text-align:center!important;
   overflow:hidden!important;
   z-index:4!important;

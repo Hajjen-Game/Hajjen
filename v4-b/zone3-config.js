@@ -1,5 +1,5 @@
 window.HAJJEN_ZONE_CONFIG={
-  zone:3,name:'ZONE 3',cols:25,rows:10,viewCols:15,viewRows:10,start:{row:5,col:1},levelFloor:7,levelCap:10,next:null,
+  zone:3,name:'ZONE 3',cols:25,rows:10,viewCols:15,viewRows:10,start:{row:5,col:1},levelFloor:7,levelCap:10,next:'zone4.html',
   introQuest:'Use a Tactical Card',introType:'tactical',bossTitle:'ZONE 3 BOSS',bossPos:{row:4,col:23},
   mobTarget:7,eliteTarget:2,bossLevelTarget:10,requireIntroForBoss:true,
   enemies:[

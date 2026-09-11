@@ -34,6 +34,7 @@ window.HAJJEN_ZONE_CONFIG={
     {row:6,col:14,name:'Moonleaf'},
     {row:3,col:19,name:'Clearwater'}
   ],
+  cardReward:{row:5,col:2,title:'CARD REWARD'},
   manipulationCards:['Calm Waters','Ward Sigil','Steady Nerves','Quiet Harvest'],
   combatAttraction:{enabled:true,radius:2,chance:{calm:0,uneasy:.30,dangerous:.45,hostile:.60,critical:.75}},
   enchantment:{worldPickup:false,draw:2,mark:'✦'},

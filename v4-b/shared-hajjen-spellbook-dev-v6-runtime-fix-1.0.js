@@ -1,6 +1,12 @@
 /* HAJJEN Zone 3 DEV — Spellbook V6 runtime fix.
    Keeps the Backpack retired visually without breaking campaign-zone's hidden
    Zone System render target, and makes potion ingredient slot reopening robust.
+
+   v1.1 also protects the Potion section from the older V2 picker repaint. V2
+   rebuilds its grid with replaceChildren(); when that happens after Moonleaf or
+   Clearwater has already been selected it can erase V6's Potion card again.
+   A small observer now restores the Potion card on the next frame whenever that
+   specific overwrite happens.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -29,6 +35,21 @@
 
   ensureZoneSystemTarget();
 
+  let repaintQueued=false;
+  function repaintPotionPicker(){
+    repaintQueued=false;
+    const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
+    const v2=window.HAJJEN_SPELLBOOK_DEV_V2;
+    const overlay=v2?.overlay;
+    if(!v6?.selection?.length||!overlay?.classList.contains('show'))return;
+    v6.sync?.();
+  }
+  function schedulePotionRepaint(){
+    if(repaintQueued)return;
+    repaintQueued=true;
+    requestAnimationFrame(repaintPotionPicker);
+  }
+
   function reopenPotionPicker(slotIndex){
     const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
     const v2=window.HAJJEN_SPELLBOOK_DEV_V2;
@@ -38,9 +59,9 @@
     if(!overlay)return;
     if(!overlay.isConnected)modal.appendChild(overlay);
 
-    /* Open through the established V2 picker, then let V6 repaint the Potion
-       section. V6's own slot handler has already set its forced target by the
-       time this queued callback runs. */
+    /* Open through the established V2 picker. V2 may repaint the grid again in
+       a queued observer pass, so V6 gets an immediate sync plus a next-frame
+       sync. The grid observer below is the final safety net. */
     v2.openPicker?.(0);
     const title=overlay.querySelector('#hajjenIngredientPickerTitle');
     const subtitle=overlay.querySelector('[data-picker-subtitle]');
@@ -51,6 +72,7 @@
         :'Choose Moonleaf or Clearwater.';
     }
     v6.sync?.();
+    schedulePotionRepaint();
   }
 
   function slotFromEvent(event){
@@ -81,9 +103,37 @@
     queueMicrotask(()=>reopenPotionPicker(index));
   },true);
 
+  /* The old V2 picker owns the whole grid and occasionally calls
+     grid.replaceChildren(), which removes the V6 Potion card. Restore it only
+     when potion mode is active and the overlay is visible. Because the restore
+     itself leaves a Potion card behind, this does not loop. */
+  let gridObserver=null;
+  function attachGridObserver(){
+    if(gridObserver)return true;
+    const grid=window.HAJJEN_SPELLBOOK_DEV_V2?.overlay?.querySelector('[data-picker-grid]');
+    if(!grid)return false;
+    gridObserver=new MutationObserver(()=>{
+      const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
+      const overlay=window.HAJJEN_SPELLBOOK_DEV_V2?.overlay;
+      if(!v6?.selection?.length||!overlay?.classList.contains('show'))return;
+      if(grid.querySelector(':scope > .hajjen-potion-force-card'))return;
+      schedulePotionRepaint();
+    });
+    gridObserver.observe(grid,{childList:true,subtree:false});
+    return true;
+  }
+
+  let observerAttempts=0;
+  const observerTimer=setInterval(()=>{
+    if(attachGridObserver()||observerAttempts++>120)clearInterval(observerTimer);
+  },25);
+  attachGridObserver();
+
   window.HAJJEN_SPELLBOOK_DEV_V6_RUNTIME_FIX={
-    version:'1.0',
+    version:'1.1-picker-repaint-guard',
     ensureZoneSystemTarget,
-    reopenPotionPicker
+    reopenPotionPicker,
+    schedulePotionRepaint,
+    get gridObserver(){return gridObserver;}
   };
 })();

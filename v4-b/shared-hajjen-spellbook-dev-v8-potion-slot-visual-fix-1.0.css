@@ -1,7 +1,7 @@
 /* HAJJEN Zone 3 DEV — Spellbook V8 potion slot visual alignment.
-   Potion ingredients should use the exact same centered visual rhythm as the
-   normal Primal Force create-spell slots: large centered icon, centered metadata,
-   ingredient name, then the existing action line at the bottom. */
+   Potion ingredients use the same centered visual rhythm as normal Primal Force
+   create-spell slots. V8.1 also makes Ingredient 2 look and behave selectable as
+   soon as Potion Ingredient 1 has been chosen. */
 
 body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled{
   padding:12px 14px 32px!important;
@@ -13,8 +13,24 @@ body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.
   pointer-events:auto!important;
 }
 
+/* Once Moonleaf/Clearwater is in Ingredient 1, Ingredient 2 must have the same
+   active state as normal spell crafting: full opacity and pointer cursor. */
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.hajjen-potion-slot-ready{
+  opacity:1!important;
+  filter:none!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  transform:none!important;
+}
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.hajjen-potion-slot-ready:hover,
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.hajjen-potion-slot-ready:focus-visible{
+  filter:brightness(1.035)!important;
+  transform:translateY(-1px)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.42),0 3px 8px rgba(59,36,22,.15)!important;
+}
+
 /* Selected normal spell slots hide INGREDIENT 1 / INGREDIENT 2 once the large
-   icon is present. Potion slots now follow that same treatment. */
+   icon is present. Potion slots follow that same treatment. */
 body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled > strong{
   display:none!important;
 }
@@ -57,9 +73,9 @@ body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.
   font-weight:800!important;
 }
 
-/* The legacy Primal picker may briefly re-apply waiting-for-first to Ingredient 2.
-   V8 JS removes that class, but keep this as a visual safety net as well. */
-body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first{
+/* Safety net if the hidden Primal picker briefly reapplies waiting-for-first. */
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first,
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.hajjen-potion-slot-ready.waiting-for-first{
   opacity:1!important;
   filter:none!important;
   cursor:pointer!important;

@@ -90,6 +90,13 @@ body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.
   opacity:1!important;
   filter:drop-shadow(0 1px 1px rgba(54,35,20,.18))!important;
 }
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first .hajjen-ingredient-slot-action{
+  font-size:0!important;
+}
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first .hajjen-ingredient-slot-action::after{
+  content:'CLICK TO CHANGE';
+  font-size:9px!important;
+}
 
 /* Potion preview reuses the result box; it simply gets the existing Action Bar
    potion artwork and enough left padding for it. */

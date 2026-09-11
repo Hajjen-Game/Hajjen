@@ -17,23 +17,15 @@
   const original={campaign:localStorage.getItem(SAVE_KEY),library:localStorage.getItem(LIBRARY_KEY)};
   sessionStorage.setItem(BACKUP_KEY,JSON.stringify(original));
 
-  let existingCampaign={};
-  let existingLibrary=[];
-  try{existingCampaign=JSON.parse(original.campaign||'{}')||{};}catch{}
-  try{
-    const parsed=JSON.parse(original.library||'null');
-    if(Array.isArray(parsed?.spells))existingLibrary=parsed.spells.filter(spell=>spell&&!spell.fallback);
-  }catch{}
-
   const sampleLibrary=[
-    {id:'z4-dev-flow-tide-lash',name:'Tide Lash',force:'Flow',damage:36,ingredientBonus:10,cooldown:1,craftedFrom:['Deepglass','Pyre Shard']},
-    {id:'z4-dev-stone-breaker',name:'Stone Breaker',force:'Stone',damage:43,ingredientBonus:14,cooldown:2,craftedFrom:['Ironroot','Starroot']},
-    {id:'z4-dev-aether-rift-pulse',name:'Rift Pulse',force:'Aether',damage:50,ingredientBonus:15,cooldown:3,craftedFrom:['Starroot','Verdant Heart']},
-    {id:'z4-dev-ember-cinder-burst',name:'Cinder Burst',force:'Ember',damage:47,ingredientBonus:15,cooldown:2,craftedFrom:['Pyre Shard','Deepglass']},
-    {id:'z4-dev-growth-thorn-bloom',name:'Thorn Bloom',force:'Growth',damage:36,ingredientBonus:12,cooldown:1,craftedFrom:['Verdant Heart','Starroot']},
-    {id:'z4-dev-gale-razor-gust',name:'Razor Gust',force:'Gale',damage:37,ingredientBonus:14,cooldown:1,craftedFrom:['Feather Reed','Deepglass']}
+    {id:'z4-dev-flow-tide-lash',name:'Tide Lash',force:'Flow',damage:38,ingredientBonus:12,cooldown:1,craftedFrom:['Deepglass','Pyre Shard'],zone3PotencyBonus:7},
+    {id:'z4-dev-stone-breaker',name:'Stone Breaker',force:'Stone',damage:41,ingredientBonus:12,cooldown:2,craftedFrom:['Ironroot','Starroot'],zone3PotencyBonus:7},
+    {id:'z4-dev-aether-rift-pulse',name:'Rift Pulse',force:'Aether',damage:44,ingredientBonus:9,cooldown:3,craftedFrom:['Starroot','Verdant Heart'],zone3PotencyBonus:7},
+    {id:'z4-dev-ember-cinder-burst',name:'Cinder Burst',force:'Ember',damage:42,ingredientBonus:10,cooldown:2,craftedFrom:['Pyre Shard','Deepglass'],zone3PotencyBonus:7},
+    {id:'z4-dev-growth-thorn-bloom',name:'Thorn Bloom',force:'Growth',damage:36,ingredientBonus:12,cooldown:1,craftedFrom:['Verdant Heart','Starroot'],zone3PotencyBonus:7},
+    {id:'z4-dev-gale-razor-gust',name:'Razor Gust',force:'Gale',damage:33,ingredientBonus:10,cooldown:1,craftedFrom:['Feather Reed','Deepglass'],zone3PotencyBonus:7}
   ];
-  const library=existingLibrary.length?existingLibrary.map(spell=>({...spell})):sampleLibrary.map(spell=>({...spell}));
+  const library=sampleLibrary.map(spell=>({...spell}));
   const fallback={id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true};
 
   const preferred=['Cinder Burst','Thorn Bloom','Razor Gust'];

@@ -71,10 +71,24 @@ body.zone3-dev-mode #spellbookModal .hajjen-selected-potion-ingredient-icon{
   transform:translateY(-50%)!important;
   object-fit:contain!important;
   border-radius:4px!important;
+  opacity:1!important;
   filter:drop-shadow(0 1px 1px rgba(54,35,20,.18))!important;
 }
 body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot em{
   color:#455036!important;
+}
+
+/* V2 still briefly marks Ingredient 2 as waiting-for-first because its hidden
+   Primal selection is empty. In Potion mode V7 owns the two slots, so a filled
+   Potion slot must never inherit V2's faded/disabled appearance. */
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first{
+  opacity:1!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first .hajjen-selected-potion-ingredient-icon{
+  opacity:1!important;
+  filter:drop-shadow(0 1px 1px rgba(54,35,20,.18))!important;
 }
 
 /* Potion preview reuses the result box; it simply gets the existing Action Bar

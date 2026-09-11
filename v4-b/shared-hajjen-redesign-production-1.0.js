@@ -1,7 +1,6 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.6 keeps the approved three-column Hand list and Tactical Fight Window
-   slots in production while the campaign now stages Enchantment in Zone 2 and
-   Tactical in Zone 3.
+   V1.7 keeps the approved Hand/Tactical production stack and now promotes the
+   stable Spellbook Potion flow, retiring Backpack visually in Zones 1–2.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -159,10 +158,11 @@
 
     await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1',{force:false});
     await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=2',{force:false});
+    await loadScript('shared-hajjen-spellbook-production-loader-1.0.js?v=3',{force:false});
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.6-card-introductions'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.7-spellbook-potion'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

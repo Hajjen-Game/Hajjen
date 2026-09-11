@@ -2,11 +2,9 @@
    Keeps the Backpack retired visually without breaking campaign-zone's hidden
    Zone System render target, and makes potion ingredient slot reopening robust.
 
-   v1.1 also protects the Potion section from the older V2 picker repaint. V2
-   rebuilds its grid with replaceChildren(); when that happens after Moonleaf or
-   Clearwater has already been selected it can erase V6's Potion card again.
-   A small observer now restores the Potion card on the next frame whenever that
-   specific overwrite happens.
+   v1.2 loads the V7 deterministic two-slot potion selector. Once V7 is ready,
+   the older repaint guard becomes passive so both layers cannot fight over the
+   same picker grid.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -35,9 +33,20 @@
 
   ensureZoneSystemTarget();
 
+  function loadV7(){
+    if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION||document.querySelector('script[data-hajjen-v7-potion-selection]'))return;
+    const script=document.createElement('script');
+    script.src='shared-hajjen-spellbook-dev-v7-potion-selection-fix-1.0.js?v=1';
+    script.async=false;
+    script.dataset.hajjenV7PotionSelection='1';
+    document.head.appendChild(script);
+  }
+  loadV7();
+
   let repaintQueued=false;
   function repaintPotionPicker(){
     repaintQueued=false;
+    if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION)return;
     const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
     const v2=window.HAJJEN_SPELLBOOK_DEV_V2;
     const overlay=v2?.overlay;
@@ -45,12 +54,13 @@
     v6.sync?.();
   }
   function schedulePotionRepaint(){
-    if(repaintQueued)return;
+    if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION||repaintQueued)return;
     repaintQueued=true;
     requestAnimationFrame(repaintPotionPicker);
   }
 
   function reopenPotionPicker(slotIndex){
+    if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION)return;
     const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
     const v2=window.HAJJEN_SPELLBOOK_DEV_V2;
     if(!v6||!v2||!v6.selection?.length)return;
@@ -59,9 +69,6 @@
     if(!overlay)return;
     if(!overlay.isConnected)modal.appendChild(overlay);
 
-    /* Open through the established V2 picker. V2 may repaint the grid again in
-       a queued observer pass, so V6 gets an immediate sync plus a next-frame
-       sync. The grid observer below is the final safety net. */
     v2.openPicker?.(0);
     const title=overlay.querySelector('#hajjenIngredientPickerTitle');
     const subtitle=overlay.querySelector('[data-picker-subtitle]');
@@ -84,9 +91,8 @@
     return Number.isInteger(index)&&index>=0&&index<=1?index:null;
   }
 
-  /* Capture on document so this safety path still runs even when V6 correctly
-     stops the slot-2 event before the older V2 bubble handler. */
   document.addEventListener('click',event=>{
+    if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION)return;
     const index=slotFromEvent(event);
     if(index===null)return;
     const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
@@ -95,6 +101,7 @@
   },true);
 
   document.addEventListener('keydown',event=>{
+    if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION)return;
     if(event.key!=='Enter'&&event.key!==' ')return;
     const index=slotFromEvent(event);
     if(index===null)return;
@@ -103,16 +110,13 @@
     queueMicrotask(()=>reopenPotionPicker(index));
   },true);
 
-  /* The old V2 picker owns the whole grid and occasionally calls
-     grid.replaceChildren(), which removes the V6 Potion card. Restore it only
-     when potion mode is active and the overlay is visible. Because the restore
-     itself leaves a Potion card behind, this does not loop. */
   let gridObserver=null;
   function attachGridObserver(){
     if(gridObserver)return true;
     const grid=window.HAJJEN_SPELLBOOK_DEV_V2?.overlay?.querySelector('[data-picker-grid]');
     if(!grid)return false;
     gridObserver=new MutationObserver(()=>{
+      if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION)return;
       const v6=window.HAJJEN_SPELLBOOK_DEV_V6_POTION;
       const overlay=window.HAJJEN_SPELLBOOK_DEV_V2?.overlay;
       if(!v6?.selection?.length||!overlay?.classList.contains('show'))return;
@@ -130,10 +134,11 @@
   attachGridObserver();
 
   window.HAJJEN_SPELLBOOK_DEV_V6_RUNTIME_FIX={
-    version:'1.1-picker-repaint-guard',
+    version:'1.2-v7-loader',
     ensureZoneSystemTarget,
     reopenPotionPicker,
     schedulePotionRepaint,
+    loadV7,
     get gridObserver(){return gridObserver;}
   };
 })();

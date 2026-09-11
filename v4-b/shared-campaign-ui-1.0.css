@@ -8,7 +8,10 @@
 .campaign-board-wrap{position:relative;width:min(100%,1050px);aspect-ratio:15/10;overflow:hidden;border-left:2px solid var(--line);border-top:2px solid var(--line);background:#fdfdfb;box-shadow:none}
 .campaign-world.board{position:absolute;left:0;top:0;inset:auto;border:0;background:#fdfdfb;will-change:transform;transition:transform .18s ease-out}
 .campaign-world .tile{min-width:0;min-height:0}
-.campaign-world .tile.potion-ingredient{color:var(--green);background:var(--green-soft)}
+/* Potion ingredients now use the exact same board tile underneath as normal
+   Primal ingredients. Keep only their semantic color here; do not tint/replace
+   the grass tile or force a pale overlay. */
+.campaign-world .tile.potion-ingredient{color:var(--green)}
 .campaign-world .tile.portal{color:var(--blue);background:var(--blue-soft)}
 .campaign-world .tile.portal::after{border-radius:4px;border-width:3px}
 .campaign-zone-app .legend{display:flex}
@@ -46,7 +49,6 @@
 .campaign-zone-app .campaign-world .tile.spring::after,.campaign-zone-app .campaign-world .tile.mob::after,.campaign-zone-app .campaign-world .tile.elite::after,.campaign-zone-app .campaign-world .tile.boss::after{display:none!important}
 .campaign-zone-app .campaign-world .tile.ingredient::after,.campaign-zone-app .campaign-world .tile.potion-ingredient::after{color:var(--green)!important}
 .campaign-zone-app .campaign-world .tile.enchantment::after{color:var(--purple)!important}
-.campaign-zone-app .campaign-world .tile.potion-ingredient{--tile-overlay:linear-gradient(rgba(226,242,221,.52),rgba(226,242,221,.52));background-color:#8fae7f!important}
 
 @media(max-width:1350px){.campaign-zone-app .spell-grid.spell-list{grid-template-columns:1fr 1fr}}
 @media(max-width:1000px){.campaign-board-wrap{width:100%}.campaign-zone-app .spell-grid.spell-list{grid-template-columns:repeat(2,1fr)}}

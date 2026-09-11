@@ -1,14 +1,15 @@
 /* HAJJEN Spellbook production promotion loader — Zones 1–4.
    Reuses the approved DEV presentation CSS under a production-only body class
-   and loads production-safe binders. v1.6 keeps the stable Spellbook Potion flow,
-   retired Backpack, cleaned individual Moonleaf/Clearwater board artwork and
-   restores the shared CREATE SPELL / CREATE POTION section title. */
+   and loads production-safe binders. v1.7 keeps the stable Spellbook Potion flow,
+   retired Backpack, cleaned individual Moonleaf/Clearwater board artwork,
+   restores the shared CREATE SPELL / CREATE POTION section title, and refreshes
+   the strongest-version guard with Zone 4 potency support. */
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.6-create-spell-potion-heading',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.7-zone4-potency',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
@@ -78,7 +79,7 @@
       const existing=document.querySelector(`script[data-hajjen-spellbook-production-src="${src}"]`);
       if(existing){resolve();return;}
       const script=document.createElement('script');
-      script.src=`${src}?v=6`;
+      script.src=`${src}?v=7`;
       script.dataset.hajjenSpellbookProductionSrc=src;
       script.onload=()=>resolve();
       script.onerror=()=>reject(new Error(`Failed to load ${src}`));

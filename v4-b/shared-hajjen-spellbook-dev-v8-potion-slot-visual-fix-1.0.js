@@ -4,11 +4,11 @@
    Potion slots so Potion crafting follows the same interaction states as normal
    Create Spell slots.
 
-   V8.2:
-   - makes Ingredient 2 active as soon as Potion Ingredient 1 is chosen;
+   V8.3:
+   - keeps Ingredient 2 active as soon as Potion Ingredient 1 is chosen;
    - keeps Potion icons independent from V5's Primal Force icon decorator;
-   - recreates a Potion icon if another legacy decorator removes it while the
-     second ingredient is being selected.
+   - uses the individual Moonleaf / Clearwater PNG artwork;
+   - mounts the shared Potion artwork binder in DEV as well as production.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -16,8 +16,33 @@
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   if(!cfg||cfg.zone!==3||window.HAJJEN_SPELLBOOK_DEV_V8_POTION_SLOT_VISUAL_FIX)return;
 
-  const POTION_INGREDIENT_ICON='assets/potion_ingredients_moonleaf_clearwater.webp';
+  const POTION_INGREDIENT_ICONS={
+    Moonleaf:'assets/potion_ingredient_moonleaf.png?v=1',
+    Clearwater:'assets/potion_ingredient_clearwater.png?v=1'
+  };
+  const FALLBACK_ICON='assets/potion_ingredients_moonleaf_clearwater.webp';
   let attempts=0;
+
+  function loadArtworkBinder(){
+    if(!document.querySelector('link[data-hajjen-potion-ingredient-icons]')){
+      const link=document.createElement('link');
+      link.rel='stylesheet';
+      link.href='shared-hajjen-potion-ingredient-icons-1.0.css?v=1';
+      link.dataset.hajjenPotionIngredientIcons='1';
+      document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-hajjen-potion-ingredient-icons]')){
+      const script=document.createElement('script');
+      script.src='shared-hajjen-potion-ingredient-icons-1.0.js?v=1';
+      script.dataset.hajjenPotionIngredientIcons='1';
+      document.body.appendChild(script);
+    }
+  }
+
+  function iconForSlot(slot){
+    const name=slot?.querySelector(':scope > em')?.textContent?.trim()||'';
+    return POTION_INGREDIENT_ICONS[name]||FALLBACK_ICON;
+  }
 
   function boot(){
     const root=window.HAJJEN_SHARED_SPELLBOOK_V2?.root;
@@ -30,11 +55,12 @@
     let queued=false;
 
     function ensurePotionIcon(slot){
+      const expected=iconForSlot(slot);
       let icon=slot.querySelector(':scope > .hajjen-selected-potion-ingredient-icon');
       if(!icon){
         icon=document.createElement('img');
         icon.className='hajjen-selected-potion-ingredient-icon';
-        icon.src=POTION_INGREDIENT_ICON;
+        icon.src=expected;
         icon.alt='';
         icon.draggable=false;
         slot.prepend(icon);
@@ -44,7 +70,7 @@
          Primal selection is empty. Potion icons must therefore never use that
          class even though their CSS intentionally matches the same visual size. */
       icon.classList.remove('hajjen-selected-force-icon');
-      if(icon.getAttribute('src')!==POTION_INGREDIENT_ICON)icon.src=POTION_INGREDIENT_ICON;
+      if(icon.getAttribute('src')!==expected)icon.src=expected;
       return icon;
     }
 
@@ -85,6 +111,7 @@
         const action=second.querySelector(':scope > .hajjen-ingredient-slot-action');
         if(action&&action.textContent!=='CLICK TO CHOOSE')action.textContent='CLICK TO CHOOSE';
       }
+      window.HAJJEN_POTION_INGREDIENT_ICONS?.sync?.();
     }
 
     function schedule(){
@@ -106,12 +133,13 @@
     const keepAlive=setInterval(normalize,120);
 
     window.HAJJEN_SPELLBOOK_DEV_V8_POTION_SLOT_VISUAL_FIX={
-      version:'8.2-stable-potion-icons',
+      version:'8.3-individual-potion-icons',
       sync:normalize,
       observer,
       keepAlive
     };
   }
 
+  loadArtworkBinder();
   boot();
 })();

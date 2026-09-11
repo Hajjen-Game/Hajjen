@@ -1,6 +1,6 @@
 /* HAJJEN Spellbook production promotion loader — Zones 1–3.
    Reuses the approved DEV presentation CSS under a production-only body class
-   and loads production-safe binders. v1.2 promotes the stable Spellbook Potion
+   and loads production-safe binders. v1.3 promotes the stable Spellbook Potion
    flow and retires Backpack visually while keeping its hidden compatibility DOM.
 */
 (()=>{
@@ -8,7 +8,7 @@
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.2-spellbook-potion',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.3-backpack-retired',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
@@ -23,7 +23,8 @@
     'shared-hajjen-spellbook-production-picker-1.0.js',
     'shared-hajjen-spellbook-production-upgrade-prune-1.0.js',
     'shared-hajjen-spellbook-production-create-ux-1.0.js',
-    'shared-hajjen-spellbook-production-potion-1.0.js'
+    'shared-hajjen-spellbook-production-potion-1.0.js',
+    'shared-hajjen-backpack-retire-production-1.0.js'
   ];
 
   function waitForV2(){
@@ -41,7 +42,7 @@
   async function installCss(){
     const chunks=await Promise.all(cssFiles.map(async file=>{
       try{
-        const response=await fetch(`${file}?v=production-3`,{cache:'force-cache'});
+        const response=await fetch(`${file}?v=production-4`,{cache:'force-cache'});
         if(!response.ok)throw new Error(`${response.status}`);
         return await response.text();
       }catch(error){
@@ -61,7 +62,7 @@
       const existing=document.querySelector(`script[data-hajjen-spellbook-production-src="${src}"]`);
       if(existing){resolve();return;}
       const script=document.createElement('script');
-      script.src=`${src}?v=3`;
+      script.src=`${src}?v=4`;
       script.dataset.hajjenSpellbookProductionSrc=src;
       script.onload=()=>resolve();
       script.onerror=()=>reject(new Error(`Failed to load ${src}`));
@@ -83,5 +84,6 @@
     window.HAJJEN_SPELLBOOK_PRODUCTION_UPGRADES?.syncCraftGuard?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_CREATE_UX?.sync?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_POTION?.sync?.();
+    window.HAJJEN_BACKPACK_RETIRED_PRODUCTION?.sync?.();
   })();
 })();

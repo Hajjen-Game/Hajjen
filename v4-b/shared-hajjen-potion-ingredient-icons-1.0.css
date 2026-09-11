@@ -2,8 +2,9 @@
 
 /* Board: same footprint and hover growth as normal Primal ingredients. The PNG
    sits in its own pseudo layer so it stays fully saturated above tile overlays. */
-html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name="Moonleaf"],
-html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name="Clearwater"]{
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name],
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name],
+html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]{
   background-image:var(--tile-overlay),var(--tile-texture)!important;
   background-size:100% 100%,100% 100%!important;
   background-position:center,center!important;
@@ -14,6 +15,8 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
   opacity:1!important;
   filter:none!important;
 }
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name]::before,
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name]::before,
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]::before{
   content:""!important;
   display:block!important;
@@ -35,10 +38,14 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
   pointer-events:none!important;
   transition:width .15s ease,height .15s ease!important;
 }
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name]:hover::before,
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name]:hover::before,
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]:hover::before{
   width:72%!important;
   height:72%!important;
 }
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name]::after,
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name]::after,
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]::after{
   content:none!important;
   display:none!important;
@@ -86,10 +93,10 @@ html body #campaignRoot .tile.special.potion-ingredient.completed[data-potion-in
    old shared asset. The data attribute is the source of truth, and CSS content
    forces the correct individual PNG to render regardless of that legacy src. */
 #spellbookModal .hajjen-selected-potion-ingredient-icon[data-potion-ingredient-icon="Moonleaf"]{
-  content:url('assets/potion_ingredient_moonleaf.png?v=2')!important;
+  content:url('assets/potion_ingredient_moonleaf.png?v=3')!important;
 }
 #spellbookModal .hajjen-selected-potion-ingredient-icon[data-potion-ingredient-icon="Clearwater"]{
-  content:url('assets/potion_ingredient_clearwater.png?v=2')!important;
+  content:url('assets/potion_ingredient_clearwater.png?v=3')!important;
 }
 #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled .hajjen-selected-potion-ingredient-icon{
   object-fit:contain!important;

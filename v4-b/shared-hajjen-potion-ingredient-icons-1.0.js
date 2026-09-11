@@ -5,8 +5,8 @@
   if(window.HAJJEN_POTION_INGREDIENT_ICONS)return;
 
   const ICONS={
-    Moonleaf:'assets/potion_ingredient_moonleaf.png?v=1',
-    Clearwater:'assets/potion_ingredient_clearwater.png?v=1'
+    Moonleaf:'assets/potion_ingredient_moonleaf.png?v=4',
+    Clearwater:'assets/potion_ingredient_clearwater.png?v=4'
   };
   const byCoord=new Map(
     cfg.potionIngredients
@@ -23,6 +23,7 @@
     tile.style.removeProperty('background-size');
     tile.style.removeProperty('background-position');
     tile.style.removeProperty('background-repeat');
+    tile.style.removeProperty('background-color');
   }
 
   function syncBoard(){
@@ -36,12 +37,16 @@
 
       tile.dataset.potionIngredientName=name;
       tile.style.setProperty('--hajjen-potion-ingredient-icon',`url("${ICONS[name]}")`);
-      /* Inline !important beats the older full-tile shared Potion artwork while
-         preserving the normal board texture beneath the transparent PNG. */
-      tile.style.setProperty('background-image',`var(--tile-overlay), url("${ICONS[name]}"), var(--tile-texture)`,'important');
-      tile.style.setProperty('background-size','100% 100%,82% 82%,100% 100%','important');
-      tile.style.setProperty('background-position','center,center,center','important');
-      tile.style.setProperty('background-repeat','no-repeat,no-repeat,no-repeat','important');
+
+      /* Older builds drew the Potion PNG directly into the tile background at
+         82% while CSS also drew the same icon in ::before. Remove those inline
+         overrides so the board has ONE icon layer only. The shared CSS now owns
+         the same 56% -> 72% sizing/hover used by normal Primal ingredients. */
+      tile.style.removeProperty('background-image');
+      tile.style.removeProperty('background-size');
+      tile.style.removeProperty('background-position');
+      tile.style.removeProperty('background-repeat');
+      tile.style.removeProperty('background-color');
     });
   }
 
@@ -116,5 +121,5 @@
   setTimeout(sync,100);
   setTimeout(sync,500);
 
-  window.HAJJEN_POTION_INGREDIENT_ICONS={version:'1.1-board-and-spellbook',icons:{...ICONS},sync,observer};
+  window.HAJJEN_POTION_INGREDIENT_ICONS={version:'1.2-single-board-layer',icons:{...ICONS},sync,observer};
 })();

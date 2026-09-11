@@ -1,4 +1,4 @@
-/* HAJJEN Spellbook production strongest-version rule — Zones 1–3. */
+/* HAJJEN Spellbook production strongest-version rule — Zones 1–4. */
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
@@ -19,7 +19,7 @@
     const baseDamage={Growth:24,Ember:32,Flow:26,Stone:29,Gale:23,Aether:35};
     const spellName={Growth:'Thorn Bloom',Ember:'Cinder Burst',Flow:'Tide Lash',Stone:'Stone Breaker',Gale:'Razor Gust',Aether:'Rift Pulse'};
     const modifierBonus={Growth:2,Ember:5,Flow:3,Stone:4,Gale:4,Aether:5};
-    const zoneCraftBonus=zone===2?4:zone===3?7:0;
+    const zoneCraftBonus=zone===2?4:zone===3?7:zone===4?10:0;
     const keyOf=spell=>`${String(spell?.force||'').toLowerCase()}::${String(spell?.name||'').toLowerCase()}`;
     const rawDamage=spell=>Number(spell?.damage)||0;
     const rawCooldown=spell=>Math.max(0,Number(spell?.cooldown)||0);
@@ -29,7 +29,7 @@
       if(!target||!source)return;
       target.name=source.name;target.force=source.force;target.damage=source.damage;target.ingredientBonus=source.ingredientBonus;target.cooldown=source.cooldown;
       target.craftedFrom=Array.isArray(source.craftedFrom)?[...source.craftedFrom]:source.craftedFrom;
-      for(const field of ['zone2PotencyBonus','zone3PotencyBonus']){
+      for(const field of ['zone2PotencyBonus','zone3PotencyBonus','zone4PotencyBonus']){
         if(source[field]!=null)target[field]=source[field];else delete target[field];
       }
     }
@@ -101,7 +101,7 @@
     let queued=false;function scheduleGuard(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;syncCraftGuard();});}
     new MutationObserver(scheduleGuard).observe(sourcePicker,{childList:true,subtree:true,attributes:true,attributeFilter:['class','disabled']});
     createBtn.addEventListener('click',()=>queueMicrotask(()=>{normalizeLibrary({notify:true});syncCraftGuard();}));
-    window.HAJJEN_SPELLBOOK_PRODUCTION_UPGRADES={version:'1.1-zone-potency',normalizeLibrary,syncCraftGuard,zoneCraftBonus};
+    window.HAJJEN_SPELLBOOK_PRODUCTION_UPGRADES={version:'1.2-zone4-potency',normalizeLibrary,syncCraftGuard,zoneCraftBonus};
   }
   boot();
 })();

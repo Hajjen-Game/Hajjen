@@ -2,7 +2,7 @@
    Keeps the Backpack retired visually without breaking campaign-zone's hidden
    Zone System render target, and makes potion ingredient slot reopening robust.
 
-   v1.2 loads the V7 deterministic two-slot potion selector. Once V7 is ready,
+   v1.3 loads the V7 deterministic two-slot potion selector. Once V7 is ready,
    the older repaint guard becomes passive so both layers cannot fight over the
    same picker grid.
 */
@@ -15,10 +15,6 @@
   const modal=document.getElementById('spellbookModal');
   if(!modal)return;
 
-  /* V6 retired the old campaign-system HUD by removing its DOM. campaign-zone
-     still writes to #zoneSystem inside renderAll(); if that target is missing,
-     movement stops before resolveTile(), which also prevents normal combat.
-     Keep a hidden compatibility target alive instead. */
   function ensureZoneSystemTarget(){
     let zoneSystem=document.getElementById('zoneSystem');
     if(zoneSystem)return zoneSystem;
@@ -36,7 +32,7 @@
   function loadV7(){
     if(window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION||document.querySelector('script[data-hajjen-v7-potion-selection]'))return;
     const script=document.createElement('script');
-    script.src='shared-hajjen-spellbook-dev-v7-potion-selection-fix-1.0.js?v=1';
+    script.src='shared-hajjen-spellbook-dev-v7-potion-selection-fix-1.0.js?v=2';
     script.async=false;
     script.dataset.hajjenV7PotionSelection='1';
     document.head.appendChild(script);
@@ -134,7 +130,7 @@
   attachGridObserver();
 
   window.HAJJEN_SPELLBOOK_DEV_V6_RUNTIME_FIX={
-    version:'1.2-v7-loader',
+    version:'1.3-v7-loader',
     ensureZoneSystemTarget,
     reopenPotionPicker,
     schedulePotionRepaint,

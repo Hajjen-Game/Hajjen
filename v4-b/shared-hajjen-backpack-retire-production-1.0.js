@@ -30,14 +30,14 @@
     if(!document.querySelector('link[data-hajjen-potion-ingredient-icons]')){
       const link=document.createElement('link');
       link.rel='stylesheet';
-      link.href='shared-hajjen-potion-ingredient-icons-1.0.css?v=3';
+      link.href='shared-hajjen-potion-ingredient-icons-1.0.css?v=4';
       link.dataset.hajjenPotionIngredientIcons='1';
       document.head.appendChild(link);
     }
 
     if(!document.querySelector('script[data-hajjen-potion-ingredient-icons]')){
       const script=document.createElement('script');
-      script.src='shared-hajjen-potion-ingredient-icons-1.0.js?v=2';
+      script.src='shared-hajjen-potion-ingredient-icons-1.0.js?v=3';
       script.dataset.hajjenPotionIngredientIcons='1';
       document.body.appendChild(script);
     }else{
@@ -50,5 +50,5 @@
   const observer=new MutationObserver(retire);
   observer.observe(document.body,{childList:true,subtree:true});
 
-  window.HAJJEN_BACKPACK_RETIRED_PRODUCTION={version:'1.3-potion-icons-match-primal',sync(){retire();loadPotionIngredientArtwork();},observer};
+  window.HAJJEN_BACKPACK_RETIRED_PRODUCTION={version:'1.4-potion-board-clean',sync(){retire();loadPotionIngredientArtwork();},observer};
 })();

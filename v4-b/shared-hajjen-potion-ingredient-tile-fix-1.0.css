@@ -1,58 +1,80 @@
 /* Moonleaf + Clearwater individual transparent token artwork.
-   Each Potion ingredient keeps the normal raised board tile underneath. */
+   Match normal Primal ingredient sizing/hover and keep the normal board tile underneath. */
 
-/* Zone 2 coordinates. */
+/* Zone 2 + Zone 3 Moonleaf coordinates. */
 html body #campaignRoot .tile.special.potion-ingredient[data-r="4"][data-c="6"],
-/* Zone 3 coordinates. */
 html body #campaignRoot .tile.special.potion-ingredient[data-r="7"][data-c="16"]{
-  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_moonleaf.png?v=1');
+  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_moonleaf.png?v=2');
 }
 
-/* Zone 2 coordinates. */
+/* Zone 2 + Zone 3 Clearwater coordinates. */
 html body #campaignRoot .tile.special.potion-ingredient[data-r="5"][data-c="13"],
-/* Zone 3 coordinates. */
 html body #campaignRoot .tile.special.potion-ingredient[data-r="3"][data-c="19"]{
-  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_clearwater.png?v=1');
+  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_clearwater.png?v=2');
 }
 
+/* Keep only the normal board texture in the tile background. The transparent
+   ingredient PNG is drawn as its own layer above the tile so it stays crisp and
+   is not washed out by tile overlays. */
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient,
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient,
 html body #campaignRoot .tile.special.potion-ingredient{
-  background-color:#9aa16f!important;
-  background-image:
-    var(--tile-overlay),
-    var(--hajjen-potion-ingredient-icon),
-    var(--tile-texture)!important;
-  background-size:100% 100%,82% 82%,100% 100%!important;
-  background-position:center,center,center!important;
-  background-repeat:no-repeat,no-repeat,no-repeat!important;
+  background-image:var(--tile-overlay),var(--tile-texture)!important;
+  background-size:100% 100%,100% 100%!important;
+  background-position:center,center!important;
+  background-repeat:no-repeat,no-repeat!important;
   color:transparent!important;
   font-size:0!important;
   text-shadow:none!important;
+  opacity:1!important;
+  filter:none!important;
 }
 
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient::before,
-html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient::after,
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient::before,
-html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient::after,
-html body #campaignRoot .tile.special.potion-ingredient::before,
-html body #campaignRoot .tile.special.potion-ingredient::after{
-  content:none!important;
-  display:none!important;
-  background:none!important;
+html body #campaignRoot .tile.special.potion-ingredient::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:56%!important;
+  height:56%!important;
+  transform:translate(-50%,-50%)!important;
+  background-image:var(--hajjen-potion-ingredient-icon)!important;
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
   border:0!important;
   box-shadow:none!important;
   outline:0!important;
-  color:transparent!important;
-  opacity:0!important;
-  width:0!important;
-  height:0!important;
+  opacity:1!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  pointer-events:none!important;
+  transition:width .15s ease,height .15s ease!important;
 }
 
-@media(max-width:560px){
-  html body #campaignRoot .tile.special.potion-ingredient{
-    background-size:100% 100%,82% 82%,100% 100%!important;
-    background-position:center,center,center!important;
-    background-repeat:no-repeat,no-repeat,no-repeat!important;
-  }
+/* Same 56% -> 72% hover growth used by normal Primal ingredient icons. */
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient:hover::before,
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient:hover::before,
+html body #campaignRoot .tile.special.potion-ingredient:hover::before{
+  width:72%!important;
+  height:72%!important;
+}
+
+/* Suppress only the legacy data-mark badge. */
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient::after,
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient::after,
+html body #campaignRoot .tile.special.potion-ingredient::after{
+  content:none!important;
+  display:none!important;
+}
+
+.tile.potion-ingredient.completed::before{
+  display:none!important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  html body #campaignRoot .tile.special.potion-ingredient::before{transition:none!important}
 }

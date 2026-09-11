@@ -1,6 +1,6 @@
 /* HAJJEN Zone 3 production redesign — gameplay-safe bridge.
-   V1.5 keeps the approved Hand/Tactical promotion and now loads the stable
-   production Spellbook Potion flow after Zone 3 gameplay systems initialize.
+   V1.6 keeps the approved Hand/Tactical promotion, stable production Spellbook
+   Potion flow, and refreshed compact Fight Window potion layout.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -51,7 +51,7 @@
   async function promoteApprovedSystems(){
     await Promise.all([
       ensureStylesheet('shared-hajjen-hand-list-production-1.0.css?v=1'),
-      ensureStylesheet('shared-hajjen-tactical-combat-production-1.0.css?v=1')
+      ensureStylesheet('shared-hajjen-tactical-combat-production-1.0.css?v=2')
     ]);
     markApps();
     await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1');
@@ -64,6 +64,6 @@
   promoteApprovedSystems().catch(err=>console.error('[HAJJEN] Zone 3 production promotion failed',err));
 
   document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{
-    detail:{version:'zone3-safe-1.5-spellbook-potion'}
+    detail:{version:'zone3-safe-1.6-fight-potion-alignment'}
   }));
 })();

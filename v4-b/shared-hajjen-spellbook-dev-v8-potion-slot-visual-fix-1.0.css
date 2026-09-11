@@ -1,0 +1,75 @@
+/* HAJJEN Zone 3 DEV — Spellbook V8 potion slot visual alignment.
+   Potion ingredients should use the exact same centered visual rhythm as the
+   normal Primal Force create-spell slots: large centered icon, centered metadata,
+   ingredient name, then the existing action line at the bottom. */
+
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled{
+  padding:12px 14px 32px!important;
+  align-items:center!important;
+  text-align:center!important;
+  opacity:1!important;
+  filter:none!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+
+/* Selected normal spell slots hide INGREDIENT 1 / INGREDIENT 2 once the large
+   icon is present. Potion slots now follow that same treatment. */
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled > strong{
+  display:none!important;
+}
+
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled .hajjen-selected-potion-ingredient-icon{
+  position:static!important;
+  display:block!important;
+  width:48px!important;
+  height:48px!important;
+  margin:0 auto 4px!important;
+  transform:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  border:0!important;
+  border-radius:0!important;
+  opacity:1!important;
+  filter:drop-shadow(0 2px 2px rgba(48,29,17,.18))!important;
+}
+
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled > span:not(.hajjen-ingredient-slot-action){
+  display:block!important;
+  margin:2px 0 0!important;
+  color:#4a3829!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.55px!important;
+  text-transform:uppercase!important;
+}
+
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled > em{
+  margin:5px 0 24px!important;
+  max-width:100%!important;
+  color:#34281e!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  font-style:normal!important;
+  font-weight:800!important;
+}
+
+/* The legacy Primal picker may briefly re-apply waiting-for-first to Ingredient 2.
+   V8 JS removes that class, but keep this as a visual safety net as well. */
+body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled.waiting-for-first{
+  opacity:1!important;
+  filter:none!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  transform:none!important;
+}
+
+@media(max-width:700px){
+  body.zone3-dev-mode #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled .hajjen-selected-potion-ingredient-icon{
+    width:42px!important;
+    height:42px!important;
+  }
+}

@@ -1,27 +1,49 @@
 /* HAJJEN Moonleaf / Clearwater individual artwork — board + Spellbook. */
 
-/* Transparent potion-ingredient tokens sit on the normal raised board tile,
-   matching the visual language used by other collectible ingredients. */
+/* Board: same footprint and hover growth as normal Primal ingredients. The PNG
+   sits in its own pseudo layer so it stays fully saturated above tile overlays. */
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name="Moonleaf"],
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name="Clearwater"]{
-  background-image:
-    var(--tile-overlay),
-    var(--hajjen-potion-ingredient-icon),
-    var(--tile-texture)!important;
-  background-size:100% 100%,82% 82%,100% 100%!important;
-  background-position:center,center,center!important;
-  background-repeat:no-repeat!important;
+  background-image:var(--tile-overlay),var(--tile-texture)!important;
+  background-size:100% 100%,100% 100%!important;
+  background-position:center,center!important;
+  background-repeat:no-repeat,no-repeat!important;
   color:transparent!important;
   font-size:0!important;
   text-shadow:none!important;
-  transition:background-size .15s ease!important;
+  opacity:1!important;
+  filter:none!important;
 }
-html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]:hover{
-  background-size:100% 100%,90% 90%,100% 100%!important;
+html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:56%!important;
+  height:56%!important;
+  transform:translate(-50%,-50%)!important;
+  background-image:var(--hajjen-potion-ingredient-icon)!important;
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  border:0!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  pointer-events:none!important;
+  transition:width .15s ease,height .15s ease!important;
 }
-html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]::before,
+html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]:hover::before{
+  width:72%!important;
+  height:72%!important;
+}
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]::after{
   content:none!important;
+  display:none!important;
+}
+html body #campaignRoot .tile.special.potion-ingredient.completed[data-potion-ingredient-name]::before{
   display:none!important;
 }
 
@@ -43,8 +65,8 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
     linear-gradient(180deg,#65704d,#465039)!important;
 }
 
-/* The Potion picker header shows the two real ingredients instead of the old
-   shared Moonleaf/Clearwater artwork. */
+/* The Potion picker header shows both real ingredients instead of the retired
+   shared Moonleaf/Clearwater image. */
 #spellbookModal .hajjen-potion-force-card .hajjen-ingredient-force-head .hajjen-potion-header-icon{
   display:block!important;
   width:34px!important;
@@ -53,27 +75,31 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
   object-fit:contain!important;
   border:0!important;
   border-radius:0!important;
-  filter:drop-shadow(0 1px 1px rgba(48,29,17,.18))!important;
+  opacity:1!important;
+  filter:none!important;
 }
 #spellbookModal .hajjen-potion-force-card .hajjen-ingredient-force-head .hajjen-potion-header-icon + .hajjen-potion-header-icon{
   margin-left:-5px!important;
 }
 
-/* Selected Potion ingredient slots use the individual transparent artwork. */
+/* Selected Potion slots: production/DEV logic may still rewrite img.src to the
+   old shared asset. The data attribute is the source of truth, and CSS content
+   forces the correct individual PNG to render regardless of that legacy src. */
+#spellbookModal .hajjen-selected-potion-ingredient-icon[data-potion-ingredient-icon="Moonleaf"]{
+  content:url('assets/potion_ingredient_moonleaf.png?v=2')!important;
+}
+#spellbookModal .hajjen-selected-potion-ingredient-icon[data-potion-ingredient-icon="Clearwater"]{
+  content:url('assets/potion_ingredient_clearwater.png?v=2')!important;
+}
 #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled .hajjen-selected-potion-ingredient-icon{
   object-fit:contain!important;
   object-position:center!important;
   border:0!important;
   border-radius:0!important;
   opacity:1!important;
+  filter:none!important;
 }
 
-@media(max-width:560px){
-  html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name="Moonleaf"],
-  html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name="Clearwater"]{
-    background-size:100% 100%,82% 82%,100% 100%!important;
-  }
-}
 @media(prefers-reduced-motion:reduce){
-  html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]{transition:none!important}
+  html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]::before{transition:none!important}
 }

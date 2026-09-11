@@ -1,10 +1,31 @@
-/* V4-B 1.190 — Moonleaf + Clearwater full-tile artwork.
-   Suppress the legacy data-mark badge even if later shared UI rules style special tiles. */
+/* Moonleaf + Clearwater individual transparent token artwork.
+   Each Potion ingredient keeps the normal raised board tile underneath. */
+
+/* Zone 2 coordinates. */
+html body #campaignRoot .tile.special.potion-ingredient[data-r="4"][data-c="6"],
+/* Zone 3 coordinates. */
+html body #campaignRoot .tile.special.potion-ingredient[data-r="7"][data-c="16"]{
+  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_moonleaf.png?v=1');
+}
+
+/* Zone 2 coordinates. */
+html body #campaignRoot .tile.special.potion-ingredient[data-r="5"][data-c="13"],
+/* Zone 3 coordinates. */
+html body #campaignRoot .tile.special.potion-ingredient[data-r="3"][data-c="19"]{
+  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_clearwater.png?v=1');
+}
 
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient,
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient,
 html body #campaignRoot .tile.special.potion-ingredient{
-  background:#9aa16f url('assets/potion_ingredients_moonleaf_clearwater.webp?v=1') center center / 100% 100% no-repeat!important;
+  background-color:#9aa16f!important;
+  background-image:
+    var(--tile-overlay),
+    var(--hajjen-potion-ingredient-icon),
+    var(--tile-texture)!important;
+  background-size:100% 100%,82% 82%,100% 100%!important;
+  background-position:center,center,center!important;
+  background-repeat:no-repeat,no-repeat,no-repeat!important;
   color:transparent!important;
   font-size:0!important;
   text-shadow:none!important;
@@ -30,8 +51,8 @@ html body #campaignRoot .tile.special.potion-ingredient::after{
 
 @media(max-width:560px){
   html body #campaignRoot .tile.special.potion-ingredient{
-    background-size:100% 100%!important;
-    background-position:center center!important;
-    background-repeat:no-repeat!important;
+    background-size:100% 100%,82% 82%,100% 100%!important;
+    background-position:center,center,center!important;
+    background-repeat:no-repeat,no-repeat,no-repeat!important;
   }
 }

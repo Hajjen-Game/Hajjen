@@ -1,6 +1,6 @@
 /* HAJJEN Zone 3 production redesign — gameplay-safe bridge.
-   V1.6 keeps the approved Hand/Tactical promotion, stable production Spellbook
-   Potion flow, and refreshed compact Fight Window potion layout.
+   V1.7 keeps the approved Hand/Tactical promotion, stable production Spellbook
+   Potion flow, and refreshed Moonleaf/Clearwater board artwork.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -56,14 +56,15 @@
     markApps();
     await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1');
     await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=2');
-    await loadScript('shared-hajjen-spellbook-production-loader-1.0.js?v=3');
+    await loadScript('shared-hajjen-spellbook-production-loader-1.0.js?v=4');
     window.HAJJEN_TACTICAL_CARD_PRODUCTION?.sync?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_POTION?.sync?.();
+    window.HAJJEN_POTION_INGREDIENT_ICONS?.sync?.();
   }
 
   promoteApprovedSystems().catch(err=>console.error('[HAJJEN] Zone 3 production promotion failed',err));
 
   document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{
-    detail:{version:'zone3-safe-1.6-fight-potion-alignment'}
+    detail:{version:'zone3-safe-1.7-potion-board-clean'}
   }));
 })();

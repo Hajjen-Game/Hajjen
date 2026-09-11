@@ -9,7 +9,7 @@
   const state=window.HAJJEN_CAMPAIGN_STATE;
   if(!cfg||cfg.zone!==3||!state||window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION)return;
 
-  const marker={version:'7.0-loading'};
+  const marker={version:'7.1-loading'};
   window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION=marker;
 
   const RECIPE=['Moonleaf','Clearwater'];
@@ -34,9 +34,6 @@
       return;
     }
 
-    /* The old runtime guard is no longer needed for picker repainting once V7
-       owns potion mode. Keep its #zoneSystem compatibility fix, but disconnect
-       only its grid observer so the two layers cannot repaint each other. */
     window.HAJJEN_SPELLBOOK_DEV_V6_RUNTIME_FIX?.gridObserver?.disconnect?.();
 
     let selection=[];
@@ -78,12 +75,18 @@
         :'Choose Moonleaf or Clearwater, or switch back to a Primal ingredient.';
     }
 
-    function buildPotionCard(){
+    function potionCardSignature(){
+      const counts=availableCounts();
+      return [activeSlot===1?1:0,selection.join('|'),...RECIPE.map(name=>counts[name]||0),locked()?1:0].join('::');
+    }
+
+    function buildPotionCard(signature){
       const counts=availableCounts();
       const target=activeSlot===1?1:0;
       const card=document.createElement('section');
       card.className='hajjen-ingredient-force-card hajjen-potion-force-card';
       card.dataset.v7PotionCard='1';
+      card.dataset.v7PotionSignature=signature;
 
       const head=document.createElement('div');
       head.className='hajjen-ingredient-force-head';
@@ -119,9 +122,13 @@
       rendering=true;
       try{
         setPickerCopy(activeSlot===1?1:0);
+        const signature=potionCardSignature();
         const existing=grid.querySelector(':scope > .hajjen-potion-force-card');
-        if(existing)existing.replaceWith(buildPotionCard());
-        else grid.appendChild(buildPotionCard());
+        if(!existing){
+          grid.appendChild(buildPotionCard(signature));
+        }else if(existing.dataset.v7PotionSignature!==signature){
+          existing.replaceWith(buildPotionCard(signature));
+        }
 
         if(activeSlot===1){
           grid.querySelectorAll(':scope > .hajjen-ingredient-force-card:not(.hajjen-potion-force-card) .hajjen-ingredient-choice').forEach(button=>{
@@ -297,8 +304,6 @@
       return true;
     }
 
-    /* Slot clicks in potion mode are intercepted before V2/V6. This removes the
-       race entirely: only one layer decides which slot the picker is editing. */
     document.addEventListener('click',event=>{
       const target=event.target;
       if(!(target instanceof Element))return;
@@ -334,8 +339,6 @@
         return;
       }
 
-      /* Clicking a normal Primal choice while editing Ingredient 1 exits potion
-         mode and returns ownership to the established spell picker. */
       const normalChoice=target.closest('.hajjen-ingredient-choice:not(.hajjen-potion-ingredient-choice)');
       if(normalChoice&&overlay.contains(normalChoice)&&activeSlot===0&&selection.length){
         selection=[];
@@ -367,14 +370,12 @@
     });
     gridObserver.observe(grid,{childList:true,subtree:false});
 
-    /* V6 owns the first potion selection. Once that happens, keep the visible
-       two-slot UI stable even if one of the older decoration observers repaints. */
     const keepAlive=setInterval(()=>{
       syncFromV6();
       if(selection.length)syncPotionUi();
     },120);
 
-    marker.version='7.0-deterministic-two-slot';
+    marker.version='7.1-deterministic-two-slot';
     marker.getSelection=()=>[...selection];
     marker.openPicker=openPotionPicker;
     marker.craftPotion=craftPotion;

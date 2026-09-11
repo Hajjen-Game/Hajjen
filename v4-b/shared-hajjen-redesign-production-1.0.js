@@ -1,6 +1,6 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.7 keeps the approved Hand/Tactical production stack and now promotes the
-   stable Spellbook Potion flow, retiring Backpack visually in Zones 1–2.
+   V1.8 keeps the approved Hand/Tactical production stack, promotes the stable
+   Spellbook Potion flow, and refreshes the compact Fight Window potion layout.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -43,7 +43,7 @@
     'shared-hajjen-action-bar-background-1.0.css?v=2',
     'shared-hajjen-action-bar-background-fix-1.0.css?v=4',
     'shared-hajjen-hand-list-production-1.0.css?v=1',
-    'shared-hajjen-tactical-combat-production-1.0.css?v=1'
+    'shared-hajjen-tactical-combat-production-1.0.css?v=2'
   ];
 
   function baseName(src){return src.split('?')[0];}
@@ -162,7 +162,7 @@
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.7-spellbook-potion'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.8-fight-potion-alignment'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

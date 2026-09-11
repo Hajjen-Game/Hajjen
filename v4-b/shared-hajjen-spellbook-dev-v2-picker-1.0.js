@@ -1,7 +1,13 @@
 /* HAJJEN Zone 3 DEV — Spellbook V2 ingredient-picker UX.
    Keeps shared-spellbook-v2 crafting logic untouched. The existing hidden
    ingredient buttons remain the source of truth; this layer presents them in
-   an explicit slot-driven picker grouped by Primal Force. */
+   an explicit slot-driven picker grouped by Primal Force.
+
+   V2.1: once the dedicated Potion selector owns the create area, this legacy
+   Primal picker becomes passive. This prevents its MutationObservers from
+   repeatedly re-applying waiting-for-first and rebuilding the picker while the
+   player is choosing Moonleaf/Clearwater.
+*/
 (()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('dev')!=='1')return;
@@ -64,6 +70,11 @@
   const closeButton=overlay.querySelector('.hajjen-ingredient-picker-close');
   let targetSlot=0;
 
+  function potionModeActive(){
+    const v7=window.HAJJEN_SPELLBOOK_DEV_V7_POTION_SELECTION;
+    return !!v7?.getSelection?.().length;
+  }
+
   function sourceButtons(){
     return [...sourcePicker.querySelectorAll(':scope > .sbv2-pick')];
   }
@@ -96,6 +107,7 @@
      buttons to preserve every existing rule. For Ingredient 1 we rebuild the
      ordering when needed; Ingredient 2 only replaces the second selection. */
   function chooseForTarget(index){
+    if(potionModeActive())return;
     const current=selectedMap();
 
     if(targetSlot===0){
@@ -179,6 +191,8 @@
   }
 
   function openPicker(slot){
+    /* V7 deliberately calls this once as a shell for the Potion picker. Do not
+       block the function itself; only stop V2's automatic/user-driven calls. */
     if(slot===1&&selectedMap().slot1===null)return;
     targetSlot=slot;
     title.textContent=`CHOOSE INGREDIENT ${slot+1}`;
@@ -186,7 +200,6 @@
       ?'Choose the ingredient that determines the spell’s Primal Force.'
       :'Choose the second ingredient that modifies the spell.';
 
-    /* Use the exact board-tile Primal Force icons, not the square spell art. */
     const style=getComputedStyle(card);
     panel.style.setProperty('--hajjen-picker-bg-image',style.backgroundImage||'none');
     renderPicker();
@@ -201,6 +214,10 @@
   }
 
   function decorateCreateArea(){
+    /* Potion mode owns these exact nodes. Leaving them alone is critical: V7/V8
+       already provide the correct visual state and interaction behavior. */
+    if(potionModeActive())return;
+
     const selection=selectedMap();
     const slots=[...createSlots.querySelectorAll(':scope > .sbv2-create-slot')];
     slots.forEach((slot,index)=>{
@@ -234,6 +251,7 @@
   }
 
   createSlots.addEventListener('click',event=>{
+    if(potionModeActive())return;
     const slot=event.target.closest('.sbv2-create-slot');
     if(!slot||!createSlots.contains(slot))return;
     const index=Number(slot.dataset.ingredientSlot);
@@ -242,6 +260,7 @@
   });
 
   createSlots.addEventListener('keydown',event=>{
+    if(potionModeActive())return;
     if(!['Enter',' '].includes(event.key))return;
     const slot=event.target.closest('.sbv2-create-slot');
     if(!slot)return;
@@ -256,10 +275,11 @@
 
   let queued=false;
   function scheduleDecorate(){
-    if(queued)return;
+    if(potionModeActive()||queued)return;
     queued=true;
     queueMicrotask(()=>{
       queued=false;
+      if(potionModeActive())return;
       decorateCreateArea();
       if(overlay.classList.contains('show'))renderPicker();
     });
@@ -268,14 +288,13 @@
   new MutationObserver(scheduleDecorate).observe(sourcePicker,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class']});
   new MutationObserver(()=>{if(!modal.classList.contains('show'))closePicker();}).observe(modal,{attributes:true,attributeFilter:['class']});
 
-  /* Keep the old ingredient inventory DOM alive for shared-spellbook-v2 state
-     syncing, but V2 CSS removes it from the visible Spellbook. */
   ingredientSection?.setAttribute('aria-hidden','true');
 
   decorateCreateArea();
   requestAnimationFrame(decorateCreateArea);
 
   window.HAJJEN_SPELLBOOK_DEV_V2={
-    version:'2.0',modal,card,root,overlay,openPicker,closePicker,sync:decorateCreateArea
+    version:'2.1-potion-passive',modal,card,root,overlay,openPicker,closePicker,sync:decorateCreateArea,
+    potionModeActive
   };
 })();

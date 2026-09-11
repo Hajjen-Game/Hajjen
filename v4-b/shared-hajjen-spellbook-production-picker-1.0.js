@@ -1,4 +1,6 @@
-/* HAJJEN Spellbook production ingredient-picker UX — Zones 1–3. */
+/* HAJJEN Spellbook production ingredient-picker UX — Zones 1–3.
+   v1.1: the normal Primal picker becomes passive while the production Potion
+   selector owns the Create area. This mirrors the stable DEV race-condition fix. */
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
@@ -38,12 +40,16 @@
   const closeButton=overlay.querySelector('.hajjen-ingredient-picker-close');
   let targetSlot=0;
 
+  function potionModeActive(){
+    return !!window.HAJJEN_SPELLBOOK_PRODUCTION_POTION?.getSelection?.().length;
+  }
   function sourceButtons(){return [...sourcePicker.querySelectorAll(':scope > .sbv2-pick')];}
   function sourceData(){return sourceButtons().map((button,index)=>({index,button,name:button.querySelector('strong')?.textContent?.trim()||`Ingredient ${index+1}`,force:button.querySelector('small')?.textContent?.trim()||'',selectedOrder:Number.parseInt(button.querySelector(':scope > span')?.textContent||'',10)||0,disabled:button.disabled}));}
   function selectedMap(){const data=sourceData();return {slot1:data.find(item=>item.selectedOrder===1)?.index ?? null,slot2:data.find(item=>item.selectedOrder===2)?.index ?? null};}
   function clickSource(index){const button=sourceButtons()[index];if(button&&!button.disabled)button.click();}
 
   function chooseForTarget(index){
+    if(potionModeActive())return;
     const current=selectedMap();
     if(targetSlot===0){
       if(index===current.slot1){closePicker();return;}
@@ -80,6 +86,8 @@
     });
   }
 
+  /* Potion mode calls openPicker(0) deliberately as a stable shell. Do not block
+     this function itself; block only normal user-driven handlers/decorators. */
   function openPicker(slot){
     if(slot===1&&selectedMap().slot1===null)return;
     targetSlot=slot;title.textContent=`CHOOSE INGREDIENT ${slot+1}`;
@@ -90,6 +98,7 @@
   function closePicker(){overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
 
   function decorateCreateArea(){
+    if(potionModeActive())return;
     const selection=selectedMap();const slots=[...createSlots.querySelectorAll(':scope > .sbv2-create-slot')];
     slots.forEach((slot,index)=>{
       const waiting=index===1&&selection.slot1===null;slot.classList.add('hajjen-ingredient-slot-trigger');slot.dataset.ingredientSlot=String(index);slot.setAttribute('role','button');slot.setAttribute('tabindex',waiting?'-1':'0');slot.setAttribute('aria-label',`Choose Ingredient ${index+1}`);slot.classList.toggle('waiting-for-first',waiting);
@@ -100,15 +109,15 @@
     const copy=createSection.querySelector('.sbv2-section-copy');const copyText='Choose Ingredient 1, then Ingredient 2. Click a slot to browse your collected ingredients by Primal Force.';if(copy&&copy.textContent!==copyText)copy.textContent=copyText;
   }
 
-  createSlots.addEventListener('click',event=>{const slot=event.target.closest('.sbv2-create-slot');if(!slot||!createSlots.contains(slot))return;const index=Number(slot.dataset.ingredientSlot);if(index===1&&selectedMap().slot1===null)return;openPicker(index);});
-  createSlots.addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;const slot=event.target.closest('.sbv2-create-slot');if(!slot)return;event.preventDefault();const index=Number(slot.dataset.ingredientSlot);if(index===1&&selectedMap().slot1===null)return;openPicker(index);});
+  createSlots.addEventListener('click',event=>{if(potionModeActive())return;const slot=event.target.closest('.sbv2-create-slot');if(!slot||!createSlots.contains(slot))return;const index=Number(slot.dataset.ingredientSlot);if(index===1&&selectedMap().slot1===null)return;openPicker(index);});
+  createSlots.addEventListener('keydown',event=>{if(potionModeActive())return;if(!['Enter',' '].includes(event.key))return;const slot=event.target.closest('.sbv2-create-slot');if(!slot)return;event.preventDefault();const index=Number(slot.dataset.ingredientSlot);if(index===1&&selectedMap().slot1===null)return;openPicker(index);});
   closeButton.addEventListener('click',closePicker);overlay.addEventListener('click',event=>{if(event.target===overlay)closePicker();});
 
-  let queued=false;function scheduleDecorate(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;decorateCreateArea();if(overlay.classList.contains('show'))renderPicker();});}
+  let queued=false;function scheduleDecorate(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;if(potionModeActive())return;decorateCreateArea();if(overlay.classList.contains('show'))renderPicker();});}
   new MutationObserver(scheduleDecorate).observe(createSlots,{childList:true,subtree:true});
   new MutationObserver(scheduleDecorate).observe(sourcePicker,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class']});
   new MutationObserver(()=>{if(!modal.classList.contains('show'))closePicker();}).observe(modal,{attributes:true,attributeFilter:['class']});
 
   ingredientSection?.setAttribute('aria-hidden','true');decorateCreateArea();requestAnimationFrame(decorateCreateArea);
-  window.HAJJEN_SPELLBOOK_PRODUCTION_PICKER={version:'1.0',modal,card,root,overlay,openPicker,closePicker,sync:decorateCreateArea};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_PICKER={version:'1.1-potion-passive',modal,card,root,overlay,grid,openPicker,closePicker,sync:decorateCreateArea,renderPicker};
 })();

@@ -1,7 +1,10 @@
-/* HAJJEN Zone 4 DEV — moving-enemy prototype V4.
+/* HAJJEN Zone 4 DEV — moving-enemy prototype V5.
    Purpose: test coherent enemy movement, not difficulty tuning.
    Exactly 3 mobs + 1 elite participate. Ambient spawns stay suppressed so this
-   test only measures patrol / alert / hunting behavior. */
+   test only measures patrol / alert / hunting behavior.
+
+   V5 keeps the V4 movement rules intact and changes only presentation:
+   enemy tiles now visibly travel between cells instead of snapping instantly. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
@@ -16,6 +19,13 @@
   const eventLog=document.getElementById('eventLog');
   const world=document.getElementById('world');
   const spawnBlockBeforeTest=Number(state.spawnBlock)||0;
+  const movementKeys=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D']);
+  const START_DELAY_MS=110;
+  const MOVE_MS=190;
+  const STAGGER_MS=40;
+  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+  let visualMoving=false;
+  let visualTimer=0;
   state.spawnBlock=1000000;
 
   function addLog(text){
@@ -35,6 +45,25 @@
     entity.zone4LastMoveStep=0;
     mobile.push(entity);
   });
+
+  const motionStyle=document.createElement('style');
+  motionStyle.dataset.zone4EnemyMotion='v5';
+  motionStyle.textContent=`
+    .zone4-enemy-motion-ghost,.zone4-enemy-motion-cover{
+      position:absolute!important;pointer-events:none!important;margin:0!important;border:0!important;
+      border-radius:0!important;box-shadow:none!important;background-position:center!important;
+      background-size:100% 100%!important;background-repeat:no-repeat!important;
+    }
+    .zone4-enemy-motion-cover{z-index:7}
+    .zone4-enemy-motion-ghost{z-index:8;will-change:transform,filter;transform-origin:center center}
+    .zone4-enemy-motion-ghost.mob{background:#542522 url('assets/encounter_mob.webp?v=4') center/100% 100% no-repeat!important}
+    .zone4-enemy-motion-ghost.elite{background:#542522 url('assets/encounter_elite.webp?v=4') center/100% 100% no-repeat!important}
+    .zone4-enemy-motion-ghost[data-mode="alert"]{filter:brightness(1.035)}
+    .zone4-enemy-motion-ghost[data-mode="hunting"]{filter:brightness(1.065)}
+    .zone4-enemy-motion-ghost::before,.zone4-enemy-motion-ghost::after,
+    .zone4-enemy-motion-cover::before,.zone4-enemy-motion-cover::after{display:none!important;content:none!important}
+  `;
+  document.head.appendChild(motionStyle);
 
   const toastArea=document.getElementById('toastArea');
   const spawnToastObserver=toastArea&&typeof MutationObserver==='function'
@@ -126,17 +155,18 @@
   }
 
   function moveEnemy(enemy,destination,step){
-    if(!destination)return false;
+    if(!destination)return null;
     const oldKey=key(enemy.r,enemy.c),newKey=key(destination.r,destination.c);
-    if(oldKey===newKey||entities.get(oldKey)!==enemy)return false;
+    if(oldKey===newKey||entities.get(oldKey)!==enemy)return null;
     const from={r:Number(enemy.r),c:Number(enemy.c)};
+    const mode=enemy.zone4MoveMode||'idle';
     entities.delete(oldKey);
     enemy.r=destination.r;enemy.c=destination.c;
     enemy.zone4PathPhase=(Number(enemy.zone4PathPhase)||0)+1;
     enemy.zone4LastMoveStep=step;
     entities.set(newKey,enemy);
-    addLog(`${enemy.title} ${enemy.zone4MoveMode==='idle'?'patrols':'advances'} R${from.r+1}C${from.c+1} → R${destination.r+1}C${destination.c+1}.`);
-    return true;
+    addLog(`${enemy.title} ${mode==='idle'?'patrols':'advances'} R${from.r+1}C${from.c+1} → R${destination.r+1}C${destination.c+1}.`);
+    return {enemy,from,to:{r:destination.r,c:destination.c},mode,type:enemy.type};
   }
 
   function hasCoreAdjacentThreat(){
@@ -156,6 +186,65 @@
       const tile=world.querySelector(`.tile[data-r="${enemy.r}"][data-c="${enemy.c}"]`);
       if(tile){tile.classList.add('zone4-mobile-enemy-dev');tile.dataset.mobileMode=enemy.zone4MoveMode||'idle';}
     });
+  }
+
+  function overlayBox(node,r,c){
+    node.style.left=`${(c/cfg.cols)*100}%`;
+    node.style.top=`${(r/cfg.rows)*100}%`;
+    node.style.width=`${(1/cfg.cols)*100}%`;
+    node.style.height=`${(1/cfg.rows)*100}%`;
+  }
+
+  function coverBackground(cover,r,c){
+    const tile=world?.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
+    const dark=tile?.matches(':nth-child(even)');
+    cover.style.backgroundColor=dark?'var(--board-sage-dark,#819171)':'var(--board-sage-light,#9CAF88)';
+    cover.style.backgroundImage=`url('assets/board_tile_${dark?'dark':'light'}.webp?v=3')`;
+  }
+
+  function clearMotionVisuals(){
+    if(!world)return;
+    world.querySelectorAll('.zone4-enemy-motion-ghost,.zone4-enemy-motion-cover').forEach(node=>node.remove());
+  }
+
+  function playMoveAnimations(records){
+    if(!world||!records.length){visualMoving=false;return;}
+    clearTimeout(visualTimer);
+    clearMotionVisuals();
+
+    if(reducedMotion){visualMoving=false;return;}
+
+    records.forEach((record,index)=>{
+      const cover=document.createElement('div');
+      cover.className='zone4-enemy-motion-cover';
+      cover.setAttribute('aria-hidden','true');
+      overlayBox(cover,record.to.r,record.to.c);
+      coverBackground(cover,record.to.r,record.to.c);
+      world.appendChild(cover);
+
+      const ghost=document.createElement('div');
+      ghost.className=`zone4-enemy-motion-ghost ${record.type==='elite'?'elite':'mob'}`;
+      ghost.dataset.mode=record.mode;
+      ghost.setAttribute('aria-hidden','true');
+      overlayBox(ghost,record.from.r,record.from.c);
+      world.appendChild(ghost);
+
+      const dx=(record.to.c-record.from.c)*100;
+      const dy=(record.to.r-record.from.r)*100;
+      const delay=START_DELAY_MS+(index*STAGGER_MS);
+      const animation=ghost.animate([
+        {transform:'translate(0%,0%) scale(.97)',filter:record.mode==='hunting'?'brightness(1.065)':'brightness(1)'},
+        {transform:`translate(${dx}%,${dy}%) scale(1.02)`,offset:.72},
+        {transform:`translate(${dx}%,${dy}%) scale(1)`}
+      ],{duration:MOVE_MS,delay,easing:'cubic-bezier(.22,.78,.24,1)',fill:'forwards'});
+
+      const cleanup=()=>{ghost.remove();cover.remove();};
+      animation.finished.then(cleanup).catch(cleanup);
+      setTimeout(cleanup,delay+MOVE_MS+80);
+    });
+
+    const total=START_DELAY_MS+MOVE_MS+Math.max(0,records.length-1)*STAGGER_MS+30;
+    visualTimer=setTimeout(()=>{visualMoving=false;clearMotionVisuals();},total);
   }
 
   function enemyTurn(step){
@@ -178,8 +267,9 @@
       const cells=neighbors(enemy);
       if(!cells.length)continue;
       const destination=mode==='idle'?choosePatrol(enemy,cells):chooseToward(enemy,cells,mode);
-      if(!moveEnemy(enemy,destination,step))continue;
-      moved.push(enemy);
+      const record=moveEnemy(enemy,destination,step);
+      if(!record)continue;
+      moved.push(record);
 
       // Once a mover reaches the same adjacency radius used by the core aggro
       // system, stop the rest of this enemy phase. The core will start combat.
@@ -187,12 +277,24 @@
     }
 
     if(moved.length){
+      visualMoving=true;
       document.dispatchEvent(new CustomEvent('hajjen:zone4-enemy-movement-dev',{
-        detail:{step,moved:moved.map(enemy=>({title:enemy.title,type:enemy.type,r:enemy.r,c:enemy.c,mode:enemy.zone4MoveMode}))}
+        detail:{step,moved:moved.map(record=>({title:record.enemy.title,type:record.enemy.type,r:record.enemy.r,c:record.enemy.c,mode:record.enemy.zone4MoveMode}))}
       }));
-      queueMicrotask(decorateMobileEnemies);
+      queueMicrotask(()=>{decorateMobileEnemies();playMoveAnimations(moved);});
     }
   }
+
+  function blockMovementDuringAnimation(event){
+    if(!visualMoving||!movementKeys.has(event.key))return;
+    event.preventDefault();event.stopImmediatePropagation();
+  }
+  function blockBoardClickDuringAnimation(event){
+    if(!visualMoving||!(event.target instanceof Element)||!event.target.closest('.tile'))return;
+    event.preventDefault();event.stopImmediatePropagation();
+  }
+  window.addEventListener('keydown',blockMovementDuringAnimation,true);
+  world?.addEventListener('click',blockBoardClickDuringAnimation,true);
 
   let stepsValue=Number(state.steps)||0;
   const previousDescriptor=Object.getOwnPropertyDescriptor(state,'steps');
@@ -203,12 +305,17 @@
   });
 
   decorateMobileEnemies();
-  addLog('DEV V4: fixed movement cadence; ambient spawns disabled. 3 mobs + 1 elite patrol/react.');
+  addLog('DEV V5: smooth enemy movement active; ambient spawns disabled.');
 
   window.HAJJEN_ZONE4_ENEMY_MOVEMENT_DEV={
-    version:'4.0-fixed-cadence-aggro-aligned',mobile,enemyTurn,decorate:decorateMobileEnemies,
+    version:'5.0-animated-cell-transitions',mobile,enemyTurn,decorate:decorateMobileEnemies,
+    get visualMoving(){return visualMoving;},
     restore(){
-      spawnToastObserver?.disconnect();state.spawnBlock=spawnBlockBeforeTest;
+      spawnToastObserver?.disconnect();
+      window.removeEventListener('keydown',blockMovementDuringAnimation,true);
+      world?.removeEventListener('click',blockBoardClickDuringAnimation,true);
+      clearTimeout(visualTimer);clearMotionVisuals();motionStyle.remove();
+      state.spawnBlock=spawnBlockBeforeTest;
       if(previousDescriptor)Object.defineProperty(state,'steps',previousDescriptor);
       else Object.defineProperty(state,'steps',{configurable:true,enumerable:true,writable:true,value:stepsValue});
     }

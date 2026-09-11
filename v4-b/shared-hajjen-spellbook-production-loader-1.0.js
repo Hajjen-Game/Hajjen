@@ -1,13 +1,14 @@
-/* HAJJEN Spellbook production promotion loader — Zones 1–3.
+/* HAJJEN Spellbook production promotion loader — Zones 1–4.
    Reuses the approved DEV presentation CSS under a production-only body class
-   and loads production-safe binders. v1.5 keeps the stable Spellbook Potion flow,
-   retired Backpack and the cleaned individual Moonleaf/Clearwater board artwork. */
+   and loads production-safe binders. v1.6 keeps the stable Spellbook Potion flow,
+   retired Backpack, cleaned individual Moonleaf/Clearwater board artwork and
+   restores the shared CREATE SPELL / CREATE POTION section title. */
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.5-potion-board-clean',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.6-create-spell-potion-heading',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
@@ -36,6 +37,22 @@
       };
       check();
     });
+  }
+
+  function syncCreateHeading(){
+    const root=window.HAJJEN_SHARED_SPELLBOOK_V2?.root;
+    const heading=root?.querySelector('.sbv2-create-section .sbv2-section-heading h4, .sbv2-create-section .sbv2-section-heading strong');
+    if(heading&&heading.textContent!=='CREATE SPELL / CREATE POTION')heading.textContent='CREATE SPELL / CREATE POTION';
+  }
+
+  function installCreateHeadingGuard(){
+    syncCreateHeading();
+    const root=window.HAJJEN_SHARED_SPELLBOOK_V2?.root;
+    const section=root?.querySelector('.sbv2-create-section');
+    if(!section)return null;
+    const observer=new MutationObserver(()=>syncCreateHeading());
+    observer.observe(section,{childList:true,subtree:true,characterData:true});
+    return observer;
   }
 
   async function installCss(){
@@ -73,11 +90,13 @@
     const ready=await waitForV2();
     if(!ready){window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER.state='v2-timeout';return;}
     document.body.classList.add('hajjen-spellbook-production');
+    window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER.headingObserver=installCreateHeadingGuard();
     await installCss();
     for(const src of scriptFiles){
       try{await loadScript(src);}catch(error){console.error('[HAJJEN] Spellbook production script failed:',error);window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER.state='script-error';return;}
     }
     window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER.state='ready';
+    syncCreateHeading();
     window.HAJJEN_SPELLBOOK_PRODUCTION_VISUAL?.sync?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_PICKER?.sync?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_UPGRADES?.syncCraftGuard?.();
@@ -85,5 +104,6 @@
     window.HAJJEN_SPELLBOOK_PRODUCTION_POTION?.sync?.();
     window.HAJJEN_BACKPACK_RETIRED_PRODUCTION?.sync?.();
     window.HAJJEN_POTION_INGREDIENT_ICONS?.sync?.();
+    syncCreateHeading();
   })();
 })();

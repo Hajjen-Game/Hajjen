@@ -1,6 +1,7 @@
 /* HAJJEN Zone 4 — two-card Enchantment hand.
-   V1.1 keeps applied-card state and spell data reconciled across reloads,
-   and refreshes eligible spell choices whenever the loaded spell set changes. */
+   V1.2 treats Zone 4 Enchantments as run-local: reloading/re-entering Zone 4
+   starts a fresh Enchantment hand and removes only effects applied in Zone 4.
+   Eligible spell choices still refresh whenever the loaded spell set changes. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
@@ -8,28 +9,11 @@
 
   const SAVE_KEY='hajjen-v4b-campaign';
   const LIBRARY_KEY='hajjen-v4b-spell-library-v2';
-  const HAND_KEY='hajjen-v4b-zone4-enchantment-hand-v1';
-  const storage=window.HAJJEN_ZONE4_DEV_MODE?sessionStorage:localStorage;
   const deck=cfg.enchantmentDeck.map(card=>({...card}));
   const byId=new Map(deck.map(card=>[card.id,card]));
   const drawCount=Math.max(1,Math.min(2,Number(cfg.enchantment?.draw)||2,deck.length));
   let loadoutSyncQueued=false;
 
-  function loadHand(){
-    try{
-      const parsed=JSON.parse(storage.getItem(HAND_KEY)||'null');
-      if(Array.isArray(parsed?.cards)&&parsed.cards.length===drawCount&&parsed.cards.every(card=>byId.has(card.id))){
-        return parsed.cards.map(card=>({id:card.id,appliedTo:card.appliedTo||null}));
-      }
-    }catch{}
-    const pool=[...deck];
-    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-    const cards=pool.slice(0,drawCount).map(card=>({id:card.id,appliedTo:null}));
-    storage.setItem(HAND_KEY,JSON.stringify({version:1,cards}));
-    return cards;
-  }
-
-  const hand=loadHand();
   const enchantmentId=item=>typeof item==='string'?item:item?.id;
   const definition=card=>byId.get(card?.id)||null;
 
@@ -49,9 +33,63 @@
   }
   const spellName=id=>spellForId(id)?.name||null;
 
-  function persistHand(){
-    storage.setItem(HAND_KEY,JSON.stringify({version:1,cards:hand.map(card=>({id:card.id,appliedTo:card.appliedTo||null}))}));
+  function drawFreshHand(){
+    const pool=[...deck];
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    return pool.slice(0,drawCount).map(card=>({id:card.id,appliedTo:null}));
   }
+
+  const hand=drawFreshHand();
+
+  /* Zone 4 enchantments belong to the current run only. A fresh Zone 4 page
+     therefore strips sourceZone:4 effects from both active spells and the
+     persistent Spell Library before the new run begins. */
+  function stripZone4Effects(spell){
+    if(!spell)return false;
+    let changed=false;
+    if(Array.isArray(spell.enchantments)){
+      const next=spell.enchantments.filter(item=>{
+        const remove=typeof item==='object'&&item?.sourceZone===4;
+        if(remove)changed=true;
+        return !remove;
+      });
+      if(next.length)spell.enchantments=next;
+      else delete spell.enchantments;
+    }
+    if(changed)delete spell.enchantmentName;
+    return changed;
+  }
+
+  function resetZone4Effects(){
+    let changed=false;
+    const seen=new Set();
+    (state.spells||[]).forEach(spell=>{
+      if(!spell||seen.has(spell))return;seen.add(spell);
+      if(stripZone4Effects(spell))changed=true;
+    });
+
+    try{
+      const parsed=JSON.parse(localStorage.getItem(LIBRARY_KEY)||'null');
+      if(Array.isArray(parsed?.spells)){
+        parsed.spells.forEach(spell=>{if(stripZone4Effects(spell))changed=true;});
+        localStorage.setItem(LIBRARY_KEY,JSON.stringify(parsed));
+      }
+    }catch{}
+
+    try{
+      const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')||{};
+      if(Array.isArray(saved.spells))saved.spells.forEach(stripZone4Effects);
+      saved.spells=state.spells;
+      localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
+    }catch{}
+    return changed;
+  }
+
+  resetZone4Effects();
+
+  /* The hand itself is deliberately memory-only. Card Reward may mutate it
+     during the run through api.persist(), but refresh must not restore it. */
+  function persistHand(){}
 
   function persistSpells(){
     try{
@@ -89,10 +127,9 @@
   }
 
   function hasZone4Effect(spell,cardId){
-    return Array.isArray(spell?.enchantments)&&spell.enchantments.some(item=>{
-      const id=enchantmentId(item);
-      return id===cardId&&(typeof item==='string'||item?.sourceZone===4);
-    });
+    return Array.isArray(spell?.enchantments)&&spell.enchantments.some(item=>
+      typeof item==='object'&&item?.sourceZone===4&&enchantmentId(item)===cardId
+    );
   }
 
   function ensureZone4Effect(spell,cardId){
@@ -103,30 +140,8 @@
     return true;
   }
 
-  function reconcileApplied({persist=true}={}){
-    const library=storedLibrary();
-    let changed=false;
-    hand.forEach(card=>{
-      if(!card.appliedTo)return;
-      const active=(state.spells||[]).find(spell=>spell?.id===card.appliedTo)||null;
-      const known=library.find(spell=>spell?.id===card.appliedTo)||null;
-      if(!active&&!known){
-        card.appliedTo=null;
-        changed=true;
-        return;
-      }
-      if(active&&ensureZone4Effect(active,card.id))changed=true;
-      if(known&&ensureZone4Effect(known,card.id))changed=true;
-    });
-    syncLabels();
-    state.enchantmentCards=hand;
-    state.enchantmentUsed=hand.some(card=>!!card.appliedTo);
-    if(changed&&persist){persistHand();persistSpells();}
-    return changed;
-  }
-
   function sync(){
-    reconcileApplied({persist:true});
+    syncLabels();
     window.HAJJEN_SHARED_HAND?.sync?.();
     window.HAJJEN_SHARED_ACTION_BAR?.sync?.();
     window.HAJJEN_SHARED_UI?.sync?.();
@@ -152,7 +167,7 @@
     if(known&&known!==spell)ensureZone4Effect(known,card.id);
     card.appliedTo=spell.id;
     state.enchantmentUsed=true;
-    persistHand();persistSpells();sync();
+    persistSpells();sync();
     addLog(`${def.name} applied to ${spell.name}.`);addToast(`${def.name.toUpperCase()} APPLIED`);
     document.dispatchEvent(new CustomEvent('hajjen:enchantment-applied',{detail:{zone:4,cardId,spellId}}));
     return true;
@@ -160,7 +175,7 @@
 
   function syncAfterLoadoutChange(){
     loadoutSyncQueued=false;
-    reconcileApplied({persist:true});
+    syncLabels();
     window.HAJJEN_SHARED_HAND?.sync?.();
     window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();
     window.HAJJEN_SHARED_ACTION_BAR?.sync?.();
@@ -172,23 +187,20 @@
   }
 
   state.enchantmentCards=hand;
-  state.enchantmentUsed=hand.some(card=>!!card.appliedTo);
-  reconcileApplied({persist:true});
-  persistHand();
+  state.enchantmentUsed=false;
+  syncLabels();
 
   const api={
-    version:'1.1-zone4-two-card-sync',zone:4,deck,hand,
+    version:'1.2-zone4-run-local',zone:4,deck,hand,
     getHand:()=>hand.map(card=>({...card,definition:definition(card),spellName:spellName(card.appliedTo)})),
-    apply,persist:persistHand,persistSpells,reconcileApplied,sync
+    apply,persist:persistHand,persistSpells,sync
   };
   window.HAJJEN_ENCHANTMENTS=api;
   /* Existing shared Hand/Card Deck code reads the historical alias. */
   window.HAJJEN_ZONE3_ENCHANTMENTS=api;
   window.HAJJEN_ZONE4_ENCHANTMENTS=api;
 
-  /* Spellbook replaces the contents of #spellGrid whenever the prepared
-     loadout changes. Observe that Zone-4-only compatibility source so the
-     Enchantment picker always reflects the currently loaded spells. */
+  /* Spellbook replaces #spellGrid whenever the prepared loadout changes. */
   const spellGrid=document.getElementById('spellGrid');
   let loadoutObserver=null;
   if(spellGrid){

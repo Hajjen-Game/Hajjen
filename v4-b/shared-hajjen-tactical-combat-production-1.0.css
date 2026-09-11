@@ -94,7 +94,32 @@ html[data-hajjen-promoted] #combatModal.shared-fight-window .hajjen-combat-tacti
 }
 html[data-hajjen-promoted] #combatModal.shared-fight-window .hajjen-combat-tactical-slot:not(:disabled):hover{filter:brightness(1.07)!important;transform:translateY(-1px)!important}
 html[data-hajjen-promoted] #combatModal.shared-fight-window .hajjen-combat-tactical-slot:not(:disabled):active{transform:translateY(1px)!important}
-html[data-hajjen-promoted] #combatModal.shared-fight-window .shared-fight-potion{min-width:258px!important}
+
+/* Potion shares the compact footer row with two Tactical slots. Keep the icon
+   and label as one centered flex group so the PNG can never overlap the text. */
+html[data-hajjen-promoted] #combatModal.shared-fight-window .shared-fight-potion{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:9px!important;
+  min-width:258px!important;
+  padding:10px 16px!important;
+  white-space:nowrap!important;
+  font-size:16px!important;
+  text-align:center!important;
+}
+html[data-hajjen-promoted] #combatModal.shared-fight-window .shared-fight-potion::before{
+  position:static!important;
+  display:block!important;
+  flex:0 0 32px!important;
+  width:32px!important;
+  height:32px!important;
+  transform:none!important;
+  margin:0!important;
+  background-position:center!important;
+  background-size:contain!important;
+  background-repeat:no-repeat!important;
+}
 
 @media(max-width:980px){
   html[data-hajjen-promoted] #combatModal.shared-fight-window .shared-fight-footer{flex-wrap:wrap!important}
@@ -103,4 +128,5 @@ html[data-hajjen-promoted] #combatModal.shared-fight-window .shared-fight-potion
 @media(max-width:560px){
   html[data-hajjen-promoted] #combatModal.shared-fight-window .hajjen-combat-tactical-slots{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
   html[data-hajjen-promoted] #combatModal.shared-fight-window .hajjen-combat-tactical-slot{width:100%!important;min-width:0!important}
+  html[data-hajjen-promoted] #combatModal.shared-fight-window .shared-fight-potion{white-space:normal!important}
 }

@@ -1,7 +1,7 @@
-/* HAJJEN Zone 4 DEV — moving-enemy prototype V3.
+/* HAJJEN Zone 4 DEV — moving-enemy prototype V4.
    Purpose: test coherent enemy movement, not difficulty tuning.
-   Exactly 3 mobs + 1 elite participate. Existing ambient spawns are suppressed
-   during this DEV test so movement can be evaluated without random new mobs. */
+   Exactly 3 mobs + 1 elite participate. Ambient spawns stay suppressed so this
+   test only measures patrol / alert / hunting behavior. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
@@ -10,29 +10,27 @@
 
   const key=(r,c)=>`${r},${c}`;
   const distance=(a,b)=>Math.abs(Number(a.r)-Number(b.r))+Math.abs(Number(a.c)-Number(b.c));
+  const coreAdjacent=(a,b)=>Math.max(Math.abs(Number(a.r)-Number(b.r)),Math.abs(Number(a.c)-Number(b.c)))<=1;
   const mobileTitles=new Set(['RIFT HUNTER','AETHER PROWLER','VOID HUNTER','DUSK SENTINEL']);
   const mobile=[];
   const eventLog=document.getElementById('eventLog');
   const world=document.getElementById('world');
-  const combatModal=document.getElementById('combatModal');
-  let graceMoves=0;
   const spawnBlockBeforeTest=Number(state.spawnBlock)||0;
   state.spawnBlock=1000000;
 
   function addLog(text){
     if(!eventLog)return;
-    const row=document.createElement('div');
-    row.className='event system';
-    row.textContent=text;
-    eventLog.prepend(row);
+    const row=document.createElement('div');row.className='event system';row.textContent=text;eventLog.prepend(row);
     while(eventLog.children.length>9)eventLog.lastChild.remove();
   }
 
   entities.forEach(entity=>{
     if(!entity||entity.completed||!mobileTitles.has(entity.title))return;
+    const index=mobile.length;
     entity.zone4MobileDev=true;
     entity.zone4MoveHome={r:Number(entity.r),c:Number(entity.c)};
-    entity.zone4MovePhase=mobile.length;
+    entity.zone4CadenceSeed=index;
+    entity.zone4PathPhase=index;
     entity.zone4MoveMode='idle';
     entity.zone4LastMoveStep=0;
     mobile.push(entity);
@@ -40,11 +38,7 @@
 
   const toastArea=document.getElementById('toastArea');
   const spawnToastObserver=toastArea&&typeof MutationObserver==='function'
-    ?new MutationObserver(()=>{
-      [...toastArea.children].forEach(node=>{
-        if((node.textContent||'').trim()==='SPAWN BLOCKED')node.remove();
-      });
-    })
+    ?new MutationObserver(()=>{[...toastArea.children].forEach(node=>{if((node.textContent||'').trim()==='SPAWN BLOCKED')node.remove();});})
     :null;
   spawnToastObserver?.observe(toastArea,{childList:true});
 
@@ -54,8 +48,7 @@
     const reward=cfg.cardRewardTest;
     if(reward&&r===Number(reward.row)&&c===Number(reward.col))return true;
     const occupying=entities.get(key(r,c));
-    if(occupying&&occupying!==enemy&&!occupying.completed)return true;
-    return false;
+    return !!(occupying&&occupying!==enemy&&!occupying.completed);
   }
 
   function neighbors(enemy){
@@ -82,16 +75,17 @@
   }
 
   function cadenceAllows(enemy,mode,step){
+    const seed=Number(enemy.zone4CadenceSeed)||0;
     const danger=Number(state.danger)||0;
-    if(mode==='idle')return step%3===(Number(enemy.zone4MovePhase)||0)%3;
-    if(mode==='alert')return step%2===(Number(enemy.zone4MovePhase)||0)%2;
-    if(mode==='hunting')return danger>=15||step%2===(Number(enemy.zone4MovePhase)||0)%2;
+    if(mode==='idle')return step%3===seed%3;
+    if(mode==='alert')return step%2===seed%2;
+    if(mode==='hunting')return danger>=15||step%2===seed%2;
     return false;
   }
 
   function withinLeash(enemy,cell,mode){
     const home=enemy.zone4MoveHome;
-    if(enemy.type==='elite')return distance(cell,home)<=3;
+    if(enemy.type==='elite')return distance(cell,home)<= (mode==='idle'?2:3);
     if(mode==='idle')return distance(cell,home)<=2;
     return true;
   }
@@ -100,16 +94,13 @@
     const home=enemy.zone4MoveHome;
     const allowed=cells.filter(cell=>withinLeash(enemy,cell,'idle'));
     if(!allowed.length)return null;
-    const phase=Number(enemy.zone4MovePhase)||0;
+    const phase=Number(enemy.zone4PathPhase)||0;
     const preferredDir=(phase+1)%4;
-    const ranked=[...allowed].sort((a,b)=>{
-      const aDir=(a.dir-preferredDir+4)%4;
-      const bDir=(b.dir-preferredDir+4)%4;
-      if(aDir!==bDir)return aDir-bDir;
-      const da=distance(a,home),db=distance(b,home);
-      return db-da;
-    });
-    return ranked[0]||null;
+    return [...allowed].sort((a,b)=>{
+      const ar=(a.dir-preferredDir+4)%4,br=(b.dir-preferredDir+4)%4;
+      if(ar!==br)return ar-br;
+      return distance(b,home)-distance(a,home);
+    })[0]||null;
   }
 
   function chooseToward(enemy,cells,mode){
@@ -117,10 +108,10 @@
     const current=distance(enemy,player);
     let allowed=cells.filter(cell=>withinLeash(enemy,cell,mode));
     if(!allowed.length)return null;
-    const bestDistance=Math.min(...allowed.map(cell=>distance(cell,player)));
-    if(bestDistance>=current)return null;
-    allowed=allowed.filter(cell=>distance(cell,player)===bestDistance);
-    const phase=Number(enemy.zone4MovePhase)||0;
+    const best=Math.min(...allowed.map(cell=>distance(cell,player)));
+    if(best>=current)return null;
+    allowed=allowed.filter(cell=>distance(cell,player)===best);
+    const phase=Number(enemy.zone4PathPhase)||0;
     allowed.sort((a,b)=>((a.dir-phase+8)%4)-((b.dir-phase+8)%4));
     return allowed[0]||null;
   }
@@ -136,32 +127,34 @@
 
   function moveEnemy(enemy,destination,step){
     if(!destination)return false;
-    const oldKey=key(enemy.r,enemy.c);
-    const newKey=key(destination.r,destination.c);
+    const oldKey=key(enemy.r,enemy.c),newKey=key(destination.r,destination.c);
     if(oldKey===newKey||entities.get(oldKey)!==enemy)return false;
     const from={r:Number(enemy.r),c:Number(enemy.c)};
     entities.delete(oldKey);
-    enemy.r=destination.r;
-    enemy.c=destination.c;
-    enemy.zone4MovePhase=(Number(enemy.zone4MovePhase)||0)+1;
+    enemy.r=destination.r;enemy.c=destination.c;
+    enemy.zone4PathPhase=(Number(enemy.zone4PathPhase)||0)+1;
     enemy.zone4LastMoveStep=step;
     entities.set(newKey,enemy);
     addLog(`${enemy.title} ${enemy.zone4MoveMode==='idle'?'patrols':'advances'} R${from.r+1}C${from.c+1} → R${destination.r+1}C${destination.c+1}.`);
     return true;
   }
 
+  function hasCoreAdjacentThreat(){
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+      if(!dr&&!dc)continue;
+      const entity=entities.get(key(state.row+dr,state.col+dc));
+      if(entity&&!entity.completed&&(entity.type==='mob'||entity.type==='elite'))return true;
+    }
+    return false;
+  }
+
   function decorateMobileEnemies(){
     if(!world)return;
-    world.querySelectorAll('.tile.zone4-mobile-enemy-dev').forEach(tile=>{
-      tile.classList.remove('zone4-mobile-enemy-dev');
-      delete tile.dataset.mobileMode;
-    });
+    world.querySelectorAll('.tile.zone4-mobile-enemy-dev').forEach(tile=>{tile.classList.remove('zone4-mobile-enemy-dev');delete tile.dataset.mobileMode;});
     mobile.forEach(enemy=>{
       if(!enemy||enemy.completed)return;
       const tile=world.querySelector(`.tile[data-r="${enemy.r}"][data-c="${enemy.c}"]`);
-      if(!tile)return;
-      tile.classList.add('zone4-mobile-enemy-dev');
-      tile.dataset.mobileMode=enemy.zone4MoveMode||'idle';
+      if(tile){tile.classList.add('zone4-mobile-enemy-dev');tile.dataset.mobileMode=enemy.zone4MoveMode||'idle';}
     });
   }
 
@@ -171,26 +164,26 @@
     const occupied=entities.get(key(state.row,state.col));
     if(occupied&&!occupied.completed&&(occupied.type==='mob'||occupied.type==='elite'||occupied.type==='boss'))return;
 
-    if(graceMoves>0){
-      graceMoves--;
-      addLog('Enemy movement pauses for one step after combat.');
-      return;
-    }
+    // Core aggro checks all 8 neighboring cells. If Sharkan already ended beside
+    // a threat, do not move unrelated enemies before that combat is resolved.
+    if(hasCoreAdjacentThreat())return;
 
     const moved=[];
     for(const enemy of mobile){
       if(!enemy||enemy.completed)continue;
-      const mode=modeFor(enemy);
-      setMode(enemy,mode);
-      if(distance(enemy,{r:state.row,c:state.col})<=1)continue;
+      const mode=modeFor(enemy);setMode(enemy,mode);
+      if(coreAdjacent(enemy,{r:state.row,c:state.col}))continue;
       if(!cadenceAllows(enemy,mode,step))continue;
 
       const cells=neighbors(enemy);
       if(!cells.length)continue;
-      const destination=mode==='idle'
-        ?choosePatrol(enemy,cells)
-        :chooseToward(enemy,cells,mode);
-      if(moveEnemy(enemy,destination,step))moved.push(enemy);
+      const destination=mode==='idle'?choosePatrol(enemy,cells):chooseToward(enemy,cells,mode);
+      if(!moveEnemy(enemy,destination,step))continue;
+      moved.push(enemy);
+
+      // Once a mover reaches the same adjacency radius used by the core aggro
+      // system, stop the rest of this enemy phase. The core will start combat.
+      if(coreAdjacent(enemy,{r:state.row,c:state.col}))break;
     }
 
     if(moved.length){
@@ -201,43 +194,21 @@
     }
   }
 
-  let combatWasOpen=!!combatModal?.classList.contains('show');
-  const combatObserver=combatModal&&typeof MutationObserver==='function'
-    ?new MutationObserver(()=>{
-      const open=combatModal.classList.contains('show');
-      if(combatWasOpen&&!open&&!state.gameOver)graceMoves=Math.max(graceMoves,1);
-      combatWasOpen=open;
-    })
-    :null;
-  combatObserver?.observe(combatModal,{attributes:true,attributeFilter:['class']});
-
   let stepsValue=Number(state.steps)||0;
   const previousDescriptor=Object.getOwnPropertyDescriptor(state,'steps');
   Object.defineProperty(state,'steps',{
-    configurable:true,
-    enumerable:true,
+    configurable:true,enumerable:true,
     get(){return stepsValue;},
-    set(value){
-      const next=Number(value)||0;
-      const previous=stepsValue;
-      stepsValue=next;
-      if(next>previous)enemyTurn(next);
-    }
+    set(value){const next=Number(value)||0,previous=stepsValue;stepsValue=next;if(next>previous)enemyTurn(next);}
   });
 
   decorateMobileEnemies();
-  addLog('DEV V3: movement test active; ambient spawns disabled. 3 mobs + 1 elite can patrol/react.');
+  addLog('DEV V4: fixed movement cadence; ambient spawns disabled. 3 mobs + 1 elite patrol/react.');
 
   window.HAJJEN_ZONE4_ENEMY_MOVEMENT_DEV={
-    version:'3.0-coherent-isolated-test',
-    mobile,
-    enemyTurn,
-    decorate:decorateMobileEnemies,
-    get graceMoves(){return graceMoves;},
+    version:'4.0-fixed-cadence-aggro-aligned',mobile,enemyTurn,decorate:decorateMobileEnemies,
     restore(){
-      combatObserver?.disconnect();
-      spawnToastObserver?.disconnect();
-      state.spawnBlock=spawnBlockBeforeTest;
+      spawnToastObserver?.disconnect();state.spawnBlock=spawnBlockBeforeTest;
       if(previousDescriptor)Object.defineProperty(state,'steps',previousDescriptor);
       else Object.defineProperty(state,'steps',{configurable:true,enumerable:true,writable:true,value:stepsValue});
     }

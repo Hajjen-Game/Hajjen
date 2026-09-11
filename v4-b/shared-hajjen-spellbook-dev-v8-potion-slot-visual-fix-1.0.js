@@ -4,9 +4,11 @@
    Potion slots so Potion crafting follows the same interaction states as normal
    Create Spell slots.
 
-   V8.1 also makes the empty Ingredient 2 slot fully active as soon as Ingredient
-   1 contains Moonleaf/Clearwater: no dimming, pointer cursor, tabindex 0 and the
-   same CLICK TO CHOOSE affordance as normal spell crafting.
+   V8.2:
+   - makes Ingredient 2 active as soon as Potion Ingredient 1 is chosen;
+   - keeps Potion icons independent from V5's Primal Force icon decorator;
+   - recreates a Potion icon if another legacy decorator removes it while the
+     second ingredient is being selected.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -14,7 +16,9 @@
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   if(!cfg||cfg.zone!==3||window.HAJJEN_SPELLBOOK_DEV_V8_POTION_SLOT_VISUAL_FIX)return;
 
+  const POTION_INGREDIENT_ICON='assets/potion_ingredients_moonleaf_clearwater.webp';
   let attempts=0;
+
   function boot(){
     const root=window.HAJJEN_SHARED_SPELLBOOK_V2?.root;
     const createSlots=root?.querySelector('[data-sbv2-create-slots]');
@@ -24,6 +28,26 @@
     }
 
     let queued=false;
+
+    function ensurePotionIcon(slot){
+      let icon=slot.querySelector(':scope > .hajjen-selected-potion-ingredient-icon');
+      if(!icon){
+        icon=document.createElement('img');
+        icon.className='hajjen-selected-potion-ingredient-icon';
+        icon.src=POTION_INGREDIENT_ICON;
+        icon.alt='';
+        icon.draggable=false;
+        slot.prepend(icon);
+      }
+
+      /* V5 owns .hajjen-selected-force-icon and removes it whenever the hidden
+         Primal selection is empty. Potion icons must therefore never use that
+         class even though their CSS intentionally matches the same visual size. */
+      icon.classList.remove('hajjen-selected-force-icon');
+      if(icon.getAttribute('src')!==POTION_INGREDIENT_ICON)icon.src=POTION_INGREDIENT_ICON;
+      return icon;
+    }
+
     function normalize(){
       queued=false;
       const slots=[...createSlots.querySelectorAll(':scope > .sbv2-create-slot')];
@@ -51,11 +75,7 @@
         if(!isFilled)return;
         if(!slot.classList.contains('filled'))slot.classList.add('filled');
         if(!slot.classList.contains('hajjen-has-force-icon'))slot.classList.add('hajjen-has-force-icon');
-
-        const icon=slot.querySelector(':scope > .hajjen-selected-potion-ingredient-icon');
-        if(icon&&!icon.classList.contains('hajjen-selected-force-icon')){
-          icon.classList.add('hajjen-selected-force-icon');
-        }
+        ensurePotionIcon(slot);
       });
 
       /* V2 may also rewrite the action copy while its hidden Primal slot is
@@ -86,7 +106,7 @@
     const keepAlive=setInterval(normalize,120);
 
     window.HAJJEN_SPELLBOOK_DEV_V8_POTION_SLOT_VISUAL_FIX={
-      version:'8.1-second-slot-active',
+      version:'8.2-stable-potion-icons',
       sync:normalize,
       observer,
       keepAlive

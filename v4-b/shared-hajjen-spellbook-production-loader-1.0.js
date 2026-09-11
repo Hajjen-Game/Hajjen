@@ -1,14 +1,13 @@
 /* HAJJEN Spellbook production promotion loader — Zones 1–3.
    Reuses the approved DEV presentation CSS under a production-only body class
-   and loads production-safe binders. v1.3 promotes the stable Spellbook Potion
-   flow and retires Backpack visually while keeping its hidden compatibility DOM.
-*/
+   and loads production-safe binders. v1.4 keeps the stable Spellbook Potion flow,
+   retired Backpack and the new individual Moonleaf/Clearwater artwork. */
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.3-backpack-retired',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.4-potion-ingredient-icons',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
@@ -42,7 +41,7 @@
   async function installCss(){
     const chunks=await Promise.all(cssFiles.map(async file=>{
       try{
-        const response=await fetch(`${file}?v=production-4`,{cache:'force-cache'});
+        const response=await fetch(`${file}?v=production-5`,{cache:'force-cache'});
         if(!response.ok)throw new Error(`${response.status}`);
         return await response.text();
       }catch(error){
@@ -62,7 +61,7 @@
       const existing=document.querySelector(`script[data-hajjen-spellbook-production-src="${src}"]`);
       if(existing){resolve();return;}
       const script=document.createElement('script');
-      script.src=`${src}?v=4`;
+      script.src=`${src}?v=5`;
       script.dataset.hajjenSpellbookProductionSrc=src;
       script.onload=()=>resolve();
       script.onerror=()=>reject(new Error(`Failed to load ${src}`));
@@ -85,5 +84,6 @@
     window.HAJJEN_SPELLBOOK_PRODUCTION_CREATE_UX?.sync?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_POTION?.sync?.();
     window.HAJJEN_BACKPACK_RETIRED_PRODUCTION?.sync?.();
+    window.HAJJEN_POTION_INGREDIENT_ICONS?.sync?.();
   })();
 })();

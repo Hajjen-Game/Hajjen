@@ -10,6 +10,7 @@
   const state=zone===1?window.HAJJEN_V4B_STATE:window.HAJJEN_CAMPAIGN_STATE;
   if(!state)return;
 
+  const runtimeConfig=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG||{};
   const panel=document.querySelector('.objectives')||(zone>=2?document.querySelector('.left-side > .panel:first-child'):null);
   if(!panel)return;
 
@@ -22,7 +23,14 @@
   function fallbackStatus(item){
     if(item.kind==='intro'){
       const complete=zone===1?!!state.spellQuestCompleted:!!state.introComplete;
-      return zone===1?(complete?'Spell: CREATED':'Spell: NOT CREATED'):(complete?'COMPLETE':'NOT COMPLETE');
+      if(zone===1)return complete?'Spell: CREATED':'Spell: NOT CREATED';
+      if(zone===4&&runtimeConfig.introType==='tactical-pair'){
+        if(complete)return'COMPLETE';
+        const required=Math.max(1,Math.min(2,Number(runtimeConfig.tactical?.draw)||2));
+        const used=Array.isArray(state.zone4TacticalUsedKeys)?state.zone4TacticalUsedKeys.length:0;
+        return `${Math.min(used,required)} / ${required} USED`;
+      }
+      return complete?'COMPLETE':'NOT COMPLETE';
     }
     if(item.kind==='enchantment')return state.enchantmentUsed?'COMPLETE':'NOT COMPLETE';
     if(item.kind==='tactical')return state.tacticalUsed?'COMPLETE':'NOT COMPLETE';
@@ -37,7 +45,7 @@
   }
 
   panel.classList.add('objectives','shared-objectives');
-  panel.dataset.sharedComponent='objectives-1.4-card-intros';
+  panel.dataset.sharedComponent='objectives-1.5-zone4-tactical-progress';
   panel.replaceChildren();
 
   if(window.HAJJEN_PANEL_FRAME?.mount)window.HAJJEN_PANEL_FRAME.mount(panel);
@@ -81,5 +89,5 @@
   document.addEventListener('hajjen:enchantment-applied',syncDynamic);
   document.addEventListener('hajjen:tactical-used',syncDynamic);
 
-  window.HAJJEN_SHARED_OBJECTIVES={version:'1.4-card-intros',zone,panel,syncLevel:syncDynamic,syncDynamic,levelTimer:dynamicTimer};
+  window.HAJJEN_SHARED_OBJECTIVES={version:'1.5-zone4-tactical-progress',zone,panel,syncLevel:syncDynamic,syncDynamic,levelTimer:dynamicTimer};
 })();

@@ -93,9 +93,13 @@
 }
 .tile.spring::after{display:none!important}
 
-/* Moonleaf + Clearwater share one complete potion-ingredient tile artwork. */
+/* Potion ingredients now use the normal raised board surface. Their individual
+   Moonleaf/Clearwater PNG is mounted by the shared Potion ingredient layer. */
 .tile.potion-ingredient{
-  background:#9aa16f url('assets/potion_ingredients_moonleaf_clearwater.webp?v=1') center center/100% 100% no-repeat!important;
+  background-image:var(--tile-overlay),var(--tile-texture)!important;
+  background-size:100% 100%,100% 100%!important;
+  background-position:center,center!important;
+  background-repeat:no-repeat,no-repeat!important;
 }
 .tile.potion-ingredient::after{display:none!important}
 
@@ -124,7 +128,8 @@
 @media(max-width:560px){
   .tile{background-size:100% 100%,100% 100%}
   .tile.ingredient[data-force]{background-size:100% 100%,56% 56%,100% 100%!important}
-  .tile.spring,.tile.potion-ingredient,.tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
+  .tile.potion-ingredient{background-size:100% 100%,100% 100%!important;background-position:center,center!important;background-repeat:no-repeat,no-repeat!important}
+  .tile.spring,.tile.mob,.tile.elite,.tile.boss{background-size:100% 100%!important;background-position:center center!important;background-repeat:no-repeat!important}
 }
 @media(prefers-reduced-motion:reduce){
   .tile.ingredient[data-force]{transition:none}

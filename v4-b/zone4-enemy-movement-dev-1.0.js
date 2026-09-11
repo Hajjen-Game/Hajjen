@@ -1,10 +1,11 @@
-/* HAJJEN Zone 4 DEV — moving-enemy prototype V5.
+/* HAJJEN Zone 4 DEV — moving-enemy prototype V6.
    Purpose: test coherent enemy movement, not difficulty tuning.
    Exactly 3 mobs + 1 elite participate. Ambient spawns stay suppressed so this
    test only measures patrol / alert / hunting behavior.
 
-   V5 keeps the V4 movement rules intact and changes only presentation:
-   enemy tiles now visibly travel between cells instead of snapping instantly. */
+   V6 keeps the V5 movement cadence + animation and adds awareness memory:
+   Hunting persists for 3 Sharkan steps after losing the target, then Alert can
+   persist for 2 more steps before the enemy settles back to Idle. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
@@ -23,6 +24,8 @@
   const START_DELAY_MS=110;
   const MOVE_MS=190;
   const STAGGER_MS=40;
+  const HUNT_MEMORY_STEPS=3;
+  const ALERT_MEMORY_STEPS=2;
   const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
   let visualMoving=false;
   let visualTimer=0;
@@ -43,11 +46,14 @@
     entity.zone4PathPhase=index;
     entity.zone4MoveMode='idle';
     entity.zone4LastMoveStep=0;
+    entity.zone4HuntMemoryUntil=0;
+    entity.zone4AlertMemoryUntil=0;
+    entity.zone4LastKnown={r:Number(entity.r),c:Number(entity.c)};
     mobile.push(entity);
   });
 
   const motionStyle=document.createElement('style');
-  motionStyle.dataset.zone4EnemyMotion='v5';
+  motionStyle.dataset.zone4EnemyMotion='v6';
   motionStyle.textContent=`
     .zone4-enemy-motion-ghost,.zone4-enemy-motion-cover{
       position:absolute!important;pointer-events:none!important;margin:0!important;border:0!important;
@@ -89,7 +95,7 @@
     ].filter(cell=>!blocked(cell.r,cell.c,enemy));
   }
 
-  function modeFor(enemy){
+  function sensedMode(enemy){
     const d=distance(enemy,{r:state.row,c:state.col});
     const danger=Number(state.danger)||0;
     if(enemy.type==='elite'){
@@ -101,6 +107,37 @@
     if(danger>=10&&d<=7)return 'hunting';
     if(danger>=5&&d<=6)return 'alert';
     return 'idle';
+  }
+
+  function awarenessFor(enemy,step){
+    const sensed=sensedMode(enemy);
+    const player={r:Number(state.row),c:Number(state.col)};
+
+    if(sensed==='hunting'){
+      enemy.zone4LastKnown={...player};
+      enemy.zone4HuntMemoryUntil=step+HUNT_MEMORY_STEPS;
+      enemy.zone4AlertMemoryUntil=step+HUNT_MEMORY_STEPS+ALERT_MEMORY_STEPS;
+      return {mode:'hunting',target:player,sensed:true};
+    }
+
+    if(sensed==='alert'){
+      enemy.zone4LastKnown={...player};
+      enemy.zone4AlertMemoryUntil=Math.max(Number(enemy.zone4AlertMemoryUntil)||0,step+ALERT_MEMORY_STEPS);
+      if((enemy.zone4MoveMode==='hunting')&&step<=Number(enemy.zone4HuntMemoryUntil||0)){
+        return {mode:'hunting',target:player,sensed:true};
+      }
+      return {mode:'alert',target:player,sensed:true};
+    }
+
+    if(enemy.zone4MoveMode==='hunting'&&step<=Number(enemy.zone4HuntMemoryUntil||0)){
+      return {mode:'hunting',target:enemy.zone4LastKnown||player,sensed:false};
+    }
+
+    if((enemy.zone4MoveMode==='alert'||enemy.zone4MoveMode==='hunting')&&step<=Number(enemy.zone4AlertMemoryUntil||0)){
+      return {mode:'alert',target:enemy.zone4LastKnown||player,sensed:false};
+    }
+
+    return {mode:'idle',target:null,sensed:false};
   }
 
   function cadenceAllows(enemy,mode,step){
@@ -132,14 +169,14 @@
     })[0]||null;
   }
 
-  function chooseToward(enemy,cells,mode){
-    const player={r:state.row,c:state.col};
-    const current=distance(enemy,player);
+  function chooseToward(enemy,cells,mode,target){
+    const destinationTarget=target||{r:state.row,c:state.col};
+    const current=distance(enemy,destinationTarget);
     let allowed=cells.filter(cell=>withinLeash(enemy,cell,mode));
     if(!allowed.length)return null;
-    const best=Math.min(...allowed.map(cell=>distance(cell,player)));
+    const best=Math.min(...allowed.map(cell=>distance(cell,destinationTarget)));
     if(best>=current)return null;
-    allowed=allowed.filter(cell=>distance(cell,player)===best);
+    allowed=allowed.filter(cell=>distance(cell,destinationTarget)===best);
     const phase=Number(enemy.zone4PathPhase)||0;
     allowed.sort((a,b)=>((a.dir-phase+8)%4)-((b.dir-phase+8)%4));
     return allowed[0]||null;
@@ -150,6 +187,7 @@
     if(previous===nextMode)return;
     enemy.zone4MoveMode=nextMode;
     if(nextMode==='idle')addLog(`${enemy.title} settles back to IDLE.`);
+    else if(nextMode==='alert'&&previous==='hunting')addLog(`${enemy.title} loses the trail but remains ALERT.`);
     else if(nextMode==='alert')addLog(`${enemy.title} becomes ALERT.`);
     else if(nextMode==='hunting')addLog(`${enemy.title} is now HUNTING Sharkan.`);
   }
@@ -260,13 +298,17 @@
     const moved=[];
     for(const enemy of mobile){
       if(!enemy||enemy.completed)continue;
-      const mode=modeFor(enemy);setMode(enemy,mode);
+      const awareness=awarenessFor(enemy,step);
+      const mode=awareness.mode;
+      setMode(enemy,mode);
       if(coreAdjacent(enemy,{r:state.row,c:state.col}))continue;
       if(!cadenceAllows(enemy,mode,step))continue;
 
       const cells=neighbors(enemy);
       if(!cells.length)continue;
-      const destination=mode==='idle'?choosePatrol(enemy,cells):chooseToward(enemy,cells,mode);
+      const destination=mode==='idle'
+        ?choosePatrol(enemy,cells)
+        :chooseToward(enemy,cells,mode,awareness.target);
       const record=moveEnemy(enemy,destination,step);
       if(!record)continue;
       moved.push(record);
@@ -305,10 +347,11 @@
   });
 
   decorateMobileEnemies();
-  addLog('DEV V5: smooth enemy movement active; ambient spawns disabled.');
+  addLog('DEV V6: awareness memory + smooth movement active; ambient spawns disabled.');
 
   window.HAJJEN_ZONE4_ENEMY_MOVEMENT_DEV={
-    version:'5.0-animated-cell-transitions',mobile,enemyTurn,decorate:decorateMobileEnemies,
+    version:'6.0-awareness-memory',mobile,enemyTurn,decorate:decorateMobileEnemies,
+    rules:{huntMemorySteps:HUNT_MEMORY_STEPS,alertMemorySteps:ALERT_MEMORY_STEPS},
     get visualMoving(){return visualMoving;},
     restore(){
       spawnToastObserver?.disconnect();

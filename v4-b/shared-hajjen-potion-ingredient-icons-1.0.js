@@ -16,12 +16,32 @@
 
   let queued=false;
 
+  function clearBoardOverride(tile){
+    delete tile.dataset.potionIngredientName;
+    tile.style.removeProperty('--hajjen-potion-ingredient-icon');
+    tile.style.removeProperty('background-image');
+    tile.style.removeProperty('background-size');
+    tile.style.removeProperty('background-position');
+    tile.style.removeProperty('background-repeat');
+  }
+
   function syncBoard(){
     document.querySelectorAll('#campaignRoot .tile').forEach(tile=>{
       const name=byCoord.get(`${Number(tile.dataset.r)},${Number(tile.dataset.c)}`);
-      if(!name||!ICONS[name])return;
+      const active=!!name&&!!ICONS[name]&&tile.classList.contains('potion-ingredient');
+      if(!active){
+        if(tile.dataset.potionIngredientName)clearBoardOverride(tile);
+        return;
+      }
+
       tile.dataset.potionIngredientName=name;
       tile.style.setProperty('--hajjen-potion-ingredient-icon',`url("${ICONS[name]}")`);
+      /* Inline !important beats the older full-tile shared Potion artwork while
+         preserving the normal board texture beneath the transparent PNG. */
+      tile.style.setProperty('background-image',`var(--tile-overlay), url("${ICONS[name]}"), var(--tile-texture)`,'important');
+      tile.style.setProperty('background-size','100% 100%,82% 82%,100% 100%','important');
+      tile.style.setProperty('background-position','center,center,center','important');
+      tile.style.setProperty('background-repeat','no-repeat,no-repeat,no-repeat','important');
     });
   }
 
@@ -88,7 +108,7 @@
   }
 
   const observer=new MutationObserver(schedule);
-  observer.observe(document.body,{childList:true,subtree:true});
+  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   document.addEventListener('hajjen-ui-redesign-promoted',schedule);
 
   sync();
@@ -96,5 +116,5 @@
   setTimeout(sync,100);
   setTimeout(sync,500);
 
-  window.HAJJEN_POTION_INGREDIENT_ICONS={version:'1.0',icons:{...ICONS},sync,observer};
+  window.HAJJEN_POTION_INGREDIENT_ICONS={version:'1.1-board-and-spellbook',icons:{...ICONS},sync,observer};
 })();

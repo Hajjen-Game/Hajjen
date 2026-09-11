@@ -1,6 +1,6 @@
 /* HAJJEN approved UI redesign — production promotion loader.
-   V1.8 keeps the approved Hand/Tactical production stack, promotes the stable
-   Spellbook Potion flow, and refreshes the compact Fight Window potion layout.
+   V1.9 keeps the approved Hand/Tactical production stack, promotes the stable
+   Spellbook Potion flow, and refreshes the cleaned Moonleaf/Clearwater board art.
 */
 (()=>{
   const params=new URLSearchParams(location.search);
@@ -158,11 +158,11 @@
 
     await loadScript('shared-hajjen-hand-list-production-1.0.js?v=1',{force:false});
     await loadScript('shared-hajjen-tactical-combat-production-1.0.js?v=2',{force:false});
-    await loadScript('shared-hajjen-spellbook-production-loader-1.0.js?v=3',{force:false});
+    await loadScript('shared-hajjen-spellbook-production-loader-1.0.js?v=4',{force:false});
 
     markApps();
     mountExistingPanelFrames();
-    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.8-fight-potion-alignment'}}));
+    document.dispatchEvent(new CustomEvent('hajjen-ui-redesign-promoted',{detail:{version:'1.9-potion-board-clean'}}));
   }
 
   promote().catch(err=>console.error('[HAJJEN] UI redesign promotion failed',err));

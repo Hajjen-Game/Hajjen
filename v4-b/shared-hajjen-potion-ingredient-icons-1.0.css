@@ -1,10 +1,11 @@
 /* HAJJEN Moonleaf / Clearwater individual artwork — board + Spellbook. */
 
-/* Board: same footprint and hover growth as normal Primal ingredients. The PNG
-   sits in its own pseudo layer so it stays fully saturated above tile overlays. */
+/* Board: exact same board surface, footprint and hover growth as normal Primal
+   ingredients. The transparent PNG is one pseudo-element above the tile. */
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name],
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name],
 html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]{
+  background-color:var(--board-sage-light)!important;
   background-image:var(--tile-overlay),var(--tile-texture)!important;
   background-size:100% 100%,100% 100%!important;
   background-position:center,center!important;
@@ -14,6 +15,11 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
   text-shadow:none!important;
   opacity:1!important;
   filter:none!important;
+}
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name]:nth-child(even),
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name]:nth-child(even),
+html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-name]:nth-child(even){
+  background-color:var(--board-sage-dark)!important;
 }
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient[data-potion-ingredient-name]::before,
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient[data-potion-ingredient-name]::before,
@@ -26,6 +32,7 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
   width:56%!important;
   height:56%!important;
   transform:translate(-50%,-50%)!important;
+  background-color:transparent!important;
   background-image:var(--hajjen-potion-ingredient-icon)!important;
   background-size:contain!important;
   background-position:center!important;
@@ -50,9 +57,7 @@ html body #campaignRoot .tile.special.potion-ingredient[data-potion-ingredient-n
   content:none!important;
   display:none!important;
 }
-html body #campaignRoot .tile.special.potion-ingredient.completed[data-potion-ingredient-name]::before{
-  display:none!important;
-}
+html body #campaignRoot .tile.special.potion-ingredient.completed[data-potion-ingredient-name]::before{display:none!important}
 
 /* Each Potion choice in the Spellbook picker gets its own icon. */
 #spellbookModal .hajjen-potion-ingredient-choice[data-potion-ingredient-icon]{
@@ -89,14 +94,12 @@ html body #campaignRoot .tile.special.potion-ingredient.completed[data-potion-in
   margin-left:-5px!important;
 }
 
-/* Selected Potion slots: production/DEV logic may still rewrite img.src to the
-   old shared asset. The data attribute is the source of truth, and CSS content
-   forces the correct individual PNG to render regardless of that legacy src. */
+/* Selected Potion slots use the individual transparent artwork. */
 #spellbookModal .hajjen-selected-potion-ingredient-icon[data-potion-ingredient-icon="Moonleaf"]{
-  content:url('assets/potion_ingredient_moonleaf.png?v=3')!important;
+  content:url('assets/potion_ingredient_moonleaf.png?v=4')!important;
 }
 #spellbookModal .hajjen-selected-potion-ingredient-icon[data-potion-ingredient-icon="Clearwater"]{
-  content:url('assets/potion_ingredient_clearwater.png?v=3')!important;
+  content:url('assets/potion_ingredient_clearwater.png?v=4')!important;
 }
 #spellbookModal .sbv2-create-slot.hajjen-potion-create-slot.filled .hajjen-selected-potion-ingredient-icon{
   object-fit:contain!important;

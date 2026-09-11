@@ -1,24 +1,29 @@
 /* HAJJEN Spellbook production promotion loader — Zones 1–3.
-   Reuses the approved DEV CSS verbatim by scoping it to a production-only body class,
-   then loads the production-safe JS binders in the same order as the tested DEV stack. */
+   Reuses the approved DEV presentation CSS under a production-only body class
+   and loads production-safe binders. v1.2 promotes the stable Spellbook Potion
+   flow and retires Backpack visually while keeping its hidden compatibility DOM.
+*/
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.1-potency-guard',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.2-spellbook-potion',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
     'shared-hajjen-spellbook-dev-v2-picker-1.0.css',
     'shared-hajjen-spellbook-dev-v3-frame-surface-fix-1.0.css',
-    'shared-hajjen-spellbook-dev-v5-create-ux-1.0.css'
+    'shared-hajjen-spellbook-dev-v5-create-ux-1.0.css',
+    'shared-hajjen-spellbook-dev-v6-potion-1.0.css',
+    'shared-hajjen-spellbook-dev-v8-potion-slot-visual-fix-1.0.css'
   ];
   const scriptFiles=[
     'shared-hajjen-spellbook-production-visual-1.0.js',
     'shared-hajjen-spellbook-production-picker-1.0.js',
     'shared-hajjen-spellbook-production-upgrade-prune-1.0.js',
-    'shared-hajjen-spellbook-production-create-ux-1.0.js'
+    'shared-hajjen-spellbook-production-create-ux-1.0.js',
+    'shared-hajjen-spellbook-production-potion-1.0.js'
   ];
 
   function waitForV2(){
@@ -36,7 +41,7 @@
   async function installCss(){
     const chunks=await Promise.all(cssFiles.map(async file=>{
       try{
-        const response=await fetch(`${file}?v=production-2`,{cache:'force-cache'});
+        const response=await fetch(`${file}?v=production-3`,{cache:'force-cache'});
         if(!response.ok)throw new Error(`${response.status}`);
         return await response.text();
       }catch(error){
@@ -44,6 +49,7 @@
         return '';
       }
     }));
+    document.getElementById('hajjen-spellbook-production-styles')?.remove();
     const style=document.createElement('style');
     style.id='hajjen-spellbook-production-styles';
     style.textContent=chunks.join('\n\n').replaceAll('body.zone3-dev-mode','body.hajjen-spellbook-production');
@@ -55,7 +61,7 @@
       const existing=document.querySelector(`script[data-hajjen-spellbook-production-src="${src}"]`);
       if(existing){resolve();return;}
       const script=document.createElement('script');
-      script.src=`${src}?v=2`;
+      script.src=`${src}?v=3`;
       script.dataset.hajjenSpellbookProductionSrc=src;
       script.onload=()=>resolve();
       script.onerror=()=>reject(new Error(`Failed to load ${src}`));
@@ -76,5 +82,6 @@
     window.HAJJEN_SPELLBOOK_PRODUCTION_PICKER?.sync?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_UPGRADES?.syncCraftGuard?.();
     window.HAJJEN_SPELLBOOK_PRODUCTION_CREATE_UX?.sync?.();
+    window.HAJJEN_SPELLBOOK_PRODUCTION_POTION?.sync?.();
   })();
 })();

@@ -4,21 +4,21 @@
 /* Zone 2 + Zone 3 Moonleaf coordinates. */
 html body #campaignRoot .tile.special.potion-ingredient[data-r="4"][data-c="6"],
 html body #campaignRoot .tile.special.potion-ingredient[data-r="7"][data-c="16"]{
-  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_moonleaf.png?v=2');
+  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_moonleaf.png?v=4');
 }
 
 /* Zone 2 + Zone 3 Clearwater coordinates. */
 html body #campaignRoot .tile.special.potion-ingredient[data-r="5"][data-c="13"],
 html body #campaignRoot .tile.special.potion-ingredient[data-r="3"][data-c="19"]{
-  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_clearwater.png?v=2');
+  --hajjen-potion-ingredient-icon:url('assets/potion_ingredient_clearwater.png?v=4');
 }
 
-/* Keep only the normal board texture in the tile background. The transparent
-   ingredient PNG is drawn as its own layer above the tile so it stays crisp and
-   is not washed out by tile overlays. */
+/* The old Potion rule used a full-tile shorthand with its own pale background.
+   Reset Potion tiles to exactly the same light/dark board surface as normal tiles. */
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient,
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient,
 html body #campaignRoot .tile.special.potion-ingredient{
+  background-color:var(--board-sage-light)!important;
   background-image:var(--tile-overlay),var(--tile-texture)!important;
   background-size:100% 100%,100% 100%!important;
   background-position:center,center!important;
@@ -29,7 +29,13 @@ html body #campaignRoot .tile.special.potion-ingredient{
   opacity:1!important;
   filter:none!important;
 }
+html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient:nth-child(even),
+html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient:nth-child(even),
+html body #campaignRoot .tile.special.potion-ingredient:nth-child(even){
+  background-color:var(--board-sage-dark)!important;
+}
 
+/* One icon layer only, with the same footprint as Ember/Growth/etc. */
 html body #campaignRoot .campaign-app .main .viewport .world .tile.special.potion-ingredient::before,
 html body #campaignRoot .campaign-zone-app .campaign-world .tile.special.potion-ingredient::before,
 html body #campaignRoot .tile.special.potion-ingredient::before{
@@ -45,6 +51,7 @@ html body #campaignRoot .tile.special.potion-ingredient::before{
   background-size:contain!important;
   background-position:center!important;
   background-repeat:no-repeat!important;
+  background-color:transparent!important;
   border:0!important;
   box-shadow:none!important;
   outline:0!important;
@@ -71,9 +78,7 @@ html body #campaignRoot .tile.special.potion-ingredient::after{
   display:none!important;
 }
 
-.tile.potion-ingredient.completed::before{
-  display:none!important;
-}
+.tile.potion-ingredient.completed::before{display:none!important}
 
 @media(prefers-reduced-motion:reduce){
   html body #campaignRoot .tile.special.potion-ingredient::before{transition:none!important}

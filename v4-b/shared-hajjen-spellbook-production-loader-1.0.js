@@ -1,13 +1,13 @@
 /* HAJJEN Spellbook production promotion loader — Zones 1–3.
    Reuses the approved DEV presentation CSS under a production-only body class
-   and loads production-safe binders. v1.4 keeps the stable Spellbook Potion flow,
-   retired Backpack and the new individual Moonleaf/Clearwater artwork. */
+   and loads production-safe binders. v1.5 keeps the stable Spellbook Potion flow,
+   retired Backpack and the cleaned individual Moonleaf/Clearwater board artwork. */
 (()=>{
   const params=new URLSearchParams(location.search);
   const zone=window.HAJJEN_ZONE_CONFIG?.zone||window.HAJJEN_CAMPAIGN_CONFIG?.zone||(window.HAJJEN_V4B_STATE?1:null);
   if(!zone||(zone===3&&params.get('dev')==='1'))return;
   if(window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER)return;
-  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.4-potion-ingredient-icons',state:'waiting'};
+  window.HAJJEN_SPELLBOOK_PRODUCTION_LOADER={version:'1.5-potion-board-clean',state:'waiting'};
 
   const cssFiles=[
     'shared-hajjen-spellbook-dev-1.0.css',
@@ -41,7 +41,7 @@
   async function installCss(){
     const chunks=await Promise.all(cssFiles.map(async file=>{
       try{
-        const response=await fetch(`${file}?v=production-5`,{cache:'force-cache'});
+        const response=await fetch(`${file}?v=production-6`,{cache:'force-cache'});
         if(!response.ok)throw new Error(`${response.status}`);
         return await response.text();
       }catch(error){
@@ -61,7 +61,7 @@
       const existing=document.querySelector(`script[data-hajjen-spellbook-production-src="${src}"]`);
       if(existing){resolve();return;}
       const script=document.createElement('script');
-      script.src=`${src}?v=5`;
+      script.src=`${src}?v=6`;
       script.dataset.hajjenSpellbookProductionSrc=src;
       script.onload=()=>resolve();
       script.onerror=()=>reject(new Error(`Failed to load ${src}`));

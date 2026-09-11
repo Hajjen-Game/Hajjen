@@ -33,7 +33,7 @@
     }
     if(!document.querySelector('script[data-hajjen-potion-ingredient-icons]')){
       const script=document.createElement('script');
-      script.src='shared-hajjen-potion-ingredient-icons-1.0.js?v=1';
+      script.src='shared-hajjen-potion-ingredient-icons-1.0.js?v=2';
       script.dataset.hajjenPotionIngredientIcons='1';
       document.body.appendChild(script);
     }

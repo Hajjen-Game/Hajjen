@@ -1,16 +1,14 @@
-/* HAJJEN Zone 4 DEV — moving-enemy prototype V7.
+/* HAJJEN Zone 4 DEV — moving-enemy prototype V8.
    All placed mobs + elites can move, but activation is staged by how far Sharkan
    has ever progressed toward the boss. Position decides who is awake; Danger
    decides how aggressively awake enemies behave. Ambient spawns stay suppressed.
 
-   V7 keeps V6 cadence, smooth movement and awareness memory. New rules:
-   - Normal mobs activate when their home column is within 6 columns ahead of
-     Sharkan's furthest-ever column.
-   - Elites activate within 4 columns ahead.
-   - A dormant enemy also wakes if Sharkan gets within 3 Manhattan tiles.
-   - Once awake, an enemy stays awake for the rest of the run.
-   - At most 4 enemies move per Sharkan step, with hunting/alert enemies taking
-     priority and a rotating cursor preventing the same enemies always winning. */
+   V8 keeps V7 cadence, animation, awareness memory and four-move budget, with
+   two pursuit fixes:
+   - A moving mob/elite that reaches core adjacency now forces combat even below
+     Danger 10; Danger still decides whether/how strongly enemies pursue.
+   - Within the same Hunting/Alert priority, enemies closer to Sharkan move first.
+     The rotating cursor remains the tie-breaker and still controls Idle fairness. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
@@ -65,7 +63,7 @@
   });
 
   const motionStyle=document.createElement('style');
-  motionStyle.dataset.zone4EnemyMotion='v7';
+  motionStyle.dataset.zone4EnemyMotion='v8';
   motionStyle.textContent=`
     .zone4-enemy-motion-ghost,.zone4-enemy-motion-cover{
       position:absolute!important;pointer-events:none!important;margin:0!important;border:0!important;
@@ -253,6 +251,24 @@
     return {enemy,from,to:{r:destination.r,c:destination.c},mode,type:enemy.type};
   }
 
+  function armLowDangerContact(enemy,player){
+    if(!enemy||Number(state.danger)>=10||state.combat||!coreAdjacent(enemy,player))return false;
+    const playerKey=key(state.row,state.col);
+    const previous=entities.get(playerKey);
+
+    // campaign-zone's resolveTile() runs synchronously after the steps setter.
+    // Temporarily expose the adjacent mover at Sharkan's coordinate so the
+    // existing core startCombat path is used with the real current Danger scale.
+    // Restore any underlying tile entity immediately after that synchronous pass.
+    entities.set(playerKey,enemy);
+    queueMicrotask(()=>{
+      if(entities.get(playerKey)!==enemy)return;
+      if(previous)entities.set(playerKey,previous);
+      else entities.delete(playerKey);
+    });
+    return true;
+  }
+
   function hasCoreAdjacentThreat(){
     for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
       if(!dr&&!dc)continue;
@@ -359,10 +375,18 @@
       if(coreAdjacent(enemy,player))continue;
       if(!cadenceAllows(enemy,mode,step))continue;
       const rotationRank=(Number(enemy.zone4MobileIndex)-moveCursor+mobile.length)%mobile.length;
-      candidates.push({enemy,awareness,mode,rotationRank});
+      candidates.push({enemy,awareness,mode,rotationRank,playerDistance:distance(enemy,player)});
     }
 
-    candidates.sort((a,b)=>modePriority(b.mode)-modePriority(a.mode)||a.rotationRank-b.rotationRank);
+    candidates.sort((a,b)=>{
+      const priority=modePriority(b.mode)-modePriority(a.mode);
+      if(priority)return priority;
+      if(a.mode!=='idle'){
+        const proximity=a.playerDistance-b.playerDistance;
+        if(proximity)return proximity;
+      }
+      return a.rotationRank-b.rotationRank;
+    });
 
     const moved=[];
     for(const candidate of candidates){
@@ -378,9 +402,13 @@
       if(!record)continue;
       moved.push(record);
 
-      // Once a mover reaches the same adjacency radius used by the core aggro
-      // system, stop the rest of this enemy phase. The core will start combat.
-      if(coreAdjacent(enemy,player))break;
+      // Contact is physical, not gated by the Danger threshold. At Danger 10+
+      // the existing core adjacent-aggro path starts combat. Below 10, expose
+      // this mover to the same core startCombat path via a one-stack alias.
+      if(coreAdjacent(enemy,player)){
+        armLowDangerContact(enemy,player);
+        break;
+      }
     }
 
     moveCursor=(moveCursor+1)%Math.max(1,mobile.length);
@@ -422,11 +450,11 @@
 
   decorateMobileEnemies();
   const openingActive=mobile.filter(enemy=>enemy.zone4MoveActive&&!enemy.completed).length;
-  addLog(`DEV V7: staged movement active — ${openingActive}/${mobile.length} enemies awake; ambient spawns disabled.`);
+  addLog(`DEV V8: staged movement active — ${openingActive}/${mobile.length} enemies awake; contact aggro + proximity priority enabled; ambient spawns disabled.`);
 
   window.HAJJEN_ZONE4_ENEMY_MOVEMENT_DEV={
-    version:'7.0-all-enemies-staged-activation',mobile,enemyTurn,decorate:decorateMobileEnemies,syncActivation,
-    rules:{mobActivationLead:MOB_ACTIVATION_LEAD,eliteActivationLead:ELITE_ACTIVATION_LEAD,proximityWake:PROXIMITY_WAKE_DISTANCE,maxMovesPerStep:MAX_MOVES_PER_STEP,huntMemory:HUNT_MEMORY_STEPS,alertMemory:ALERT_MEMORY_STEPS},
+    version:'8.0-contact-aggro-proximity-priority',mobile,enemyTurn,decorate:decorateMobileEnemies,syncActivation,
+    rules:{mobActivationLead:MOB_ACTIVATION_LEAD,eliteActivationLead:ELITE_ACTIVATION_LEAD,proximityWake:PROXIMITY_WAKE_DISTANCE,maxMovesPerStep:MAX_MOVES_PER_STEP,huntMemory:HUNT_MEMORY_STEPS,alertMemory:ALERT_MEMORY_STEPS,contactAggro:true,proximityPriority:true},
     get furthestCol(){return furthestCol;},
     get activeCount(){return mobile.filter(enemy=>enemy.zone4MoveActive&&!enemy.completed).length;},
     get visualMoving(){return visualMoving;},

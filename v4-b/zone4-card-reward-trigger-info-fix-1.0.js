@@ -57,7 +57,7 @@
   if(onRewardTile()&&!state.combat)maybeOpenAfterCombat();
 
   window.HAJJEN_ZONE4_CARD_REWARD_TRIGGER_INFO_FIX={
-    version:'1.2-post-combat-trigger-tile-info-balance-loader',
+    version:'1.3-post-combat-trigger-tile-info-balance-loader',
     showRewardInfo,
     maybeOpenAfterCombat,
     restore(){
@@ -71,6 +71,7 @@
 
 if(window.HAJJEN_ZONE4_DEV_MODE){
   import('./zone4-balance-config-1.0.js?v=1').then(()=>Promise.all([
+    import('./zone4-enchantment-definition-sync-1.0.js?v=1'),
     import('./zone4-manipulation-balance-1.0.js?v=1'),
     import('./zone4-enchantment-balance-1.0.js?v=1')
   ])).catch(error=>console.error('Zone 4 balance bridge failed',error));

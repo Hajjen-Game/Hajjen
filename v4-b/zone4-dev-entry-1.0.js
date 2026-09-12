@@ -28,7 +28,10 @@
   const library=sampleLibrary.map(spell=>({...spell}));
   const fallback={id:'ember-bolt',name:'Ember Bolt',force:'Ember',damage:20,cooldown:0,fallback:true};
 
-  const preferred=['Cinder Burst','Thorn Bloom','Razor Gust'];
+  // Keep every Zone 4 dev run on the same combat baseline used during balancing.
+  // The library still contains the full sample set, but the Action Bar always
+  // starts Ember Bolt -> Tide Lash -> Cinder Burst -> Rift Pulse.
+  const preferred=['Tide Lash','Cinder Burst','Rift Pulse'];
   const reviewCrafted=preferred.map(name=>library.find(spell=>spell?.name===name)).filter(Boolean).slice(0,3);
   while(reviewCrafted.length<3){
     const next=sampleLibrary.find(spell=>!reviewCrafted.some(item=>item.id===spell.id));

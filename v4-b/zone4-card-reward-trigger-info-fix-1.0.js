@@ -48,18 +48,16 @@
   function handleRewardTileInfo(event){
     const tile=event.target instanceof Element?event.target.closest('.tile'):null;
     if(tile!==rewardTile())return;
-    // Run after legacy/shared hover handlers so CARD REWARD remains the final copy.
     setTimeout(showRewardInfo,0);
   }
   world.addEventListener('pointerover',handleRewardTileInfo,true);
   world.addEventListener('mouseover',handleRewardTileInfo,true);
   world.addEventListener('click',handleRewardTileInfo,true);
 
-  // Also covers the unlikely case where this bridge loads while combat is already closing.
   if(onRewardTile()&&!state.combat)maybeOpenAfterCombat();
 
   window.HAJJEN_ZONE4_CARD_REWARD_TRIGGER_INFO_FIX={
-    version:'1.1-post-combat-trigger-tile-info-balance-loader',
+    version:'1.2-post-combat-trigger-tile-info-balance-loader',
     showRewardInfo,
     maybeOpenAfterCombat,
     restore(){
@@ -72,8 +70,10 @@
 })();
 
 if(window.HAJJEN_ZONE4_DEV_MODE){
-  import('./zone4-manipulation-balance-1.0.js?v=1');
-  import('./zone4-enchantment-balance-1.0.js?v=1');
+  import('./zone4-balance-config-1.0.js?v=1').then(()=>Promise.all([
+    import('./zone4-manipulation-balance-1.0.js?v=1'),
+    import('./zone4-enchantment-balance-1.0.js?v=1')
+  ])).catch(error=>console.error('Zone 4 balance bridge failed',error));
   const meta=document.querySelector('meta[name="hajjen-build"]');
   if(meta)meta.content='v4-b-1.325-zone4-tools-balance-pass';
 }

@@ -1,13 +1,15 @@
 /* HAJJEN Zone 4 DEV — ambient spawn + movement integration test.
    V7 intentionally suppressed legacy ambient spawns while enemy movement was
    isolated. This bridge turns them back on without changing spawn chance and
-   enrolls newly spawned mobs into the same staged movement system. */
+   enrolls newly spawned mobs into the same staged movement system.
+
+   V1.1 performance pass: watch only the spawn toast instead of every class/
+   data-mark mutation across the 250-tile board. Gameplay is unchanged. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
   const entities=window.HAJJEN_ZONE4_ENTITY_MAP;
   const movement=window.HAJJEN_ZONE4_ENEMY_MOVEMENT_DEV;
-  const world=document.getElementById('world');
   const eventLog=document.getElementById('eventLog');
   const toastArea=document.getElementById('toastArea');
   if(!window.HAJJEN_ZONE4_DEV_MODE||!cfg||cfg.zone!==4||!state||!(entities instanceof Map)||!movement||!Array.isArray(movement.mobile)||window.HAJJEN_ZONE4_AMBIENT_MOVEMENT_TEST)return;
@@ -70,19 +72,39 @@
       node.textContent=(node.textContent||'').replace(/ambient spawns disabled/i,'ambient spawns enabled');
   });
 
-  const observer=world&&typeof MutationObserver==='function'
-    ?new MutationObserver(()=>queueMicrotask(enrollAmbientMobs))
+  // Zone 4 spawn parity already announces every accepted ambient spawn with
+  // NEW MOB SPAWNED and materializes it after a 650 ms telegraph. Listen only
+  // to that tiny toast container, then enroll after materialization. This avoids
+  // waking an observer for the many tile-class changes produced by every board
+  // render and every moving-enemy animation.
+  const pendingEnrollTimers=new Set();
+  const scheduleEnroll=()=>{
+    const timer=setTimeout(()=>{
+      pendingEnrollTimers.delete(timer);
+      enrollAmbientMobs();
+    },700);
+    pendingEnrollTimers.add(timer);
+  };
+
+  const observer=toastArea&&typeof MutationObserver==='function'
+    ?new MutationObserver(mutations=>{
+      for(const mutation of mutations)for(const node of mutation.addedNodes){
+        if(!(node instanceof Element))continue;
+        if((node.textContent||'').trim()==='NEW MOB SPAWNED')scheduleEnroll();
+      }
+    })
     :null;
-  observer?.observe(world,{subtree:true,attributes:true,attributeFilter:['class','data-mark']});
+  observer?.observe(toastArea,{childList:true});
 
   enrollAmbientMobs();
 
   window.HAJJEN_ZONE4_AMBIENT_MOVEMENT_TEST={
-    version:'1.0-ambient-enabled-moving-spawns',
+    version:'1.1-toast-only-enrollment',
     enroll:enrollAmbientMobs,
     get spawnBlock(){return spawnBlockValue;},
     restore(){
       observer?.disconnect();
+      pendingEnrollTimers.forEach(clearTimeout);pendingEnrollTimers.clear();
       if(priorSpawnDescriptor)Object.defineProperty(state,'spawnBlock',priorSpawnDescriptor);
       else{delete state.spawnBlock;state.spawnBlock=spawnBlockValue;}
     }

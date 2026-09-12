@@ -59,7 +59,7 @@
   if(onRewardTile()&&!state.combat)maybeOpenAfterCombat();
 
   window.HAJJEN_ZONE4_CARD_REWARD_TRIGGER_INFO_FIX={
-    version:'1.0-post-combat-trigger-tile-info',
+    version:'1.1-post-combat-trigger-tile-info-pool10-loader',
     showRewardInfo,
     maybeOpenAfterCombat,
     restore(){
@@ -70,3 +70,9 @@
     }
   };
 })();
+
+if(window.HAJJEN_ZONE4_DEV_MODE){
+  import('./zone4-card-reward-pool10-1.0.js?v=1').catch(error=>console.error('Zone 4 reward pool failed',error));
+  const meta=document.querySelector('meta[name="hajjen-build"]');
+  if(meta)meta.content='v4-b-1.325-zone4-manipulation-pool10';
+}

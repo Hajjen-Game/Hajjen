@@ -72,7 +72,7 @@
 })();
 
 if(window.HAJJEN_ZONE4_DEV_MODE){
-  import('./zone4-card-reward-pool10-1.0.js?v=1').catch(error=>console.error('Zone 4 reward pool failed',error));
+  import('./zone4-card-reward-pool10-1.0.js?v=2').catch(error=>console.error('Zone 4 reward pool failed',error));
   const meta=document.querySelector('meta[name="hajjen-build"]');
   if(meta)meta.content='v4-b-1.325-zone4-manipulation-pool10';
 }

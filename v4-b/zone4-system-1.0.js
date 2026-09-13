@@ -21,6 +21,7 @@
   const $=id=>document.getElementById(id);
   const key=(r,c)=>`${r},${c}`;
   const maxHpForLevel=level=>100+(Math.max(1,Number(level)||1)-1)*15;
+  const carriedEssence=()=>Math.max(0,Number(state.unsecuredEssence)||0);
 
   function addLog(text,type='system'){
     if(!eventLog)return;
@@ -125,7 +126,9 @@
 
   // ------------------------------------------------------------
   // TWO PRIMAL SPRINGS — reserve their tiles in the entity map so spawned mobs
-  // cannot occupy them. Each spring is one-use for the run.
+  // cannot occupy them. Each spring is one-use for the run. With the RPG
+  // progression pass, a Spring can also be consumed at full HP when Sharkan
+  // carries unsecured Primal Essence, so the player can bank that run reward.
   // ------------------------------------------------------------
   const springs=(Array.isArray(cfg.springs)&&cfg.springs.length?cfg.springs:[cfg.spring,cfg.spring2]).filter(Boolean).map((spring,index)=>({
     type:'spring',mark:'✧',title:spring.title||'PRIMAL SPRING',r:Number(spring.row),c:Number(spring.col),heal:Number(spring.heal)||90,index,depleted:false
@@ -143,9 +146,28 @@
   function springAt(r,c){return springs.find(spring=>spring.r===r&&spring.c===c)||null;}
   function activateSpring(spring){
     if(!spring||usedSprings.has(spring.index)||state.combat||state.gameOver)return;
-    if(state.hp>=state.maxHp){addToast('HP FULL — SPRING REMAINS','system');addLog('Primal Spring remains unused because Sharkan is already at full HP.','system');return;}
-    const heal=Math.min(spring.heal,state.maxHp-state.hp);state.hp+=heal;usedSprings.add(spring.index);spring.depleted=true;
-    addToast(`PRIMAL SPRING · +${heal} HP`,'reward');addLog(`Primal Spring restored ${heal} HP.`,'reward');decorateSprings();persist();
+    const needsHeal=state.hp<state.maxHp;
+    const essenceBefore=carriedEssence();
+    if(!needsHeal&&essenceBefore<=0){
+      addToast('HP FULL — SPRING REMAINS','system');
+      addLog('Primal Spring remains unused because Sharkan is already at full HP and carries no unsecured Essence.','system');
+      return;
+    }
+
+    const heal=needsHeal?Math.min(spring.heal,state.maxHp-state.hp):0;
+    if(heal>0)state.hp+=heal;
+    usedSprings.add(spring.index);spring.depleted=true;
+
+    if(heal>0){
+      addToast(`PRIMAL SPRING · +${heal} HP`,'reward');
+      addLog(`Primal Spring restored ${heal} HP.`,'reward');
+    }
+
+    document.dispatchEvent(new CustomEvent('hajjen:primal-spring-used',{detail:{
+      zone:4,index:spring.index,row:spring.r,col:spring.c,title:spring.title,heal,carriedEssence:essenceBefore
+    }}));
+
+    decorateSprings();persist();
   }
   function checkSpring(){
     decorateSprings();
@@ -166,5 +188,5 @@
   function tick(){syncLevelProgression();syncObjectives();checkSpring();scaleSpawnedMobs();syncFooter();}
   setInterval(tick,80);tick();requestAnimationFrame(tick);
 
-  window.HAJJEN_ZONE4_SYSTEM={version:'1.0-level13-full-hand',thresholds:{...LEVEL_THRESHOLDS},springs,usedSprings,sync:tick,persist};
+  window.HAJJEN_ZONE4_SYSTEM={version:'1.1-level13-essence-springs',thresholds:{...LEVEL_THRESHOLDS},springs,usedSprings,sync:tick,persist};
 })();

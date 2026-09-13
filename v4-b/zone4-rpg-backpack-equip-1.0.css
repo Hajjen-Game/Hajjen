@@ -1,0 +1,8 @@
+/* HAJJEN Zone 4 DEV — isolated Backpack equipment controls. */
+.zone4-rpg-item-action{display:flex;justify-content:flex-end;margin-top:4px}
+.zone4-rpg-item-action button{
+  min-width:78px;min-height:29px;padding:6px 9px;border:1px solid #91703b;
+  background:linear-gradient(180deg,#ead8ac,#d4b779);color:#3d2d1e;
+  font:900 8px/1 Arial,sans-serif;letter-spacing:.55px;cursor:pointer;
+}
+.zone4-rpg-item-action button:disabled{background:#596548;color:#f1e4bd;cursor:default;opacity:1}

@@ -13,7 +13,7 @@
   const num=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
   const arr=value=>Array.isArray(value)?value:[];
   const stamp=()=>new Date().toISOString();
-  const dev=()=>!!(window.HAJJEN_ZONE3_DEV_MODE||window.HAJJEN_ZONE4_DEV_MODE||document.documentElement?.dataset?.hajjenDev);
+  const dev=()=>!!(window.HAJJEN_ZONE3_DEV_MODE||window.HAJJEN_ZONE4_DEV_MODE||document.documentElement?.dataset?.hajjenDev||window.HAJJEN_ZONE4_DEV_REQUESTED);
 
   function fresh(){
     const time=stamp();
@@ -52,9 +52,13 @@
   let profile=normalize(parse(localStorage.getItem(PROFILE_KEY),null));
   let run=null;
 
+  function notifyProfileChanged(reason='update'){
+    document.dispatchEvent(new CustomEvent('hajjen:rpg-profile-changed',{detail:{reason,profile:clone(profile),dev:dev()}}));
+  }
+
   function saveProfile(){
-    if(dev())return false;
     profile=normalize(profile);profile.meta.updatedAt=stamp();
+    if(dev())return false;
     localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));
     return true;
   }
@@ -78,7 +82,7 @@
       profile.meta.migratedFromLegacy=true;changed=true;
     }
     if(Array.isArray(library?.spells)){profile.spells.library=clone(library.spells);changed=true;}
-    if(changed)saveProfile();
+    if(changed){saveProfile();notifyProfileChanged('legacy-sync');}
     return changed;
   }
 
@@ -115,20 +119,25 @@
     if(Array.isArray(state.spells))profile.spells.loaded=clone(state.spells);
     const library=parse(localStorage.getItem(LIBRARY_KEY),null);
     if(Array.isArray(library?.spells))profile.spells.library=clone(library.spells);
-    return saveProfile();
+    const saved=saveProfile();
+    notifyProfileChanged('run-commit');
+    return saved;
   }
 
-  function updateProfile(mutator){
-    if(dev()||typeof mutator!=='function')return false;
+  function updateProfile(mutator,reason='update'){
+    if(typeof mutator!=='function')return false;
     const draft=clone(profile);const result=mutator(draft);
     profile=normalize(result&&typeof result==='object'?result:draft);
-    return saveProfile();
+    profile.meta.updatedAt=stamp();
+    if(!dev())localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));
+    notifyProfileChanged(reason);
+    return true;
   }
 
   if(!dev())syncFromLegacy();
 
   window.HAJJEN_RPG_STATE={
-    version:'1.1-profile-run-foundation',
+    version:'1.2-dev-session-profile-mutations',
     keys:{profile:PROFILE_KEY,legacyCampaign:CAMPAIGN_KEY,legacyLibrary:LIBRARY_KEY},
     getProfile:()=>clone(profile),getRun:()=>run,snapshotRun,bindRun,
     commitProfileFromState:commitFromRun,updateProfile,syncFromCompatibility:syncFromLegacy,isDevSession:dev

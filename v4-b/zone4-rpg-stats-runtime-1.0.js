@@ -69,11 +69,14 @@
       enumerable:true,
       get(){return hpValue;},
       set(next){
-        let value=Number(next);
-        if(!Number.isFinite(value))value=hpValue;
+        let value=Number(next);if(!Number.isFinite(value))value=hpValue;
         if(value<hpValue&&state.combat&&resolveValue>0){
           const reduction=Math.floor(resolveValue/2);
-          if(reduction>0)value=Math.min(hpValue,value+reduction);
+          /* campaign-zone clamps lethal combat damage to 0 before assigning HP.
+             Adding Resolve after that clamp used to turn 0 back into 1 HP,
+             making Resolve gear immortal at 1 HP. A core lethal result must
+             remain lethal; Resolve still reduces every non-lethal hit. */
+          if(reduction>0&&value>0)value=Math.min(hpValue,value+reduction);
         }
         hpValue=value;
       }
@@ -161,7 +164,7 @@
   },30);
 
   window.HAJJEN_ZONE4_RPG_STATS_RUNTIME={
-    version:'1.1-levelup-vitality-sync',
+    version:'1.2-resolve-lethal-safe',
     totals,
     sync:syncProfile,
     stop:()=>clearInterval(timer)

@@ -17,7 +17,7 @@ window.HAJJEN_ZONE_CONFIG={
     {row:7,col:18,type:'mob',title:'RIFT STALKER',hp:252,attack:28,xp:43},
     {row:3,col:21,type:'mob',title:'DUSK REAVER',hp:258,attack:29,xp:44},
     {row:8,col:23,type:'mob',title:'VOID PROWLER',hp:264,attack:29,xp:44},
-    {row:2,col:11,type:'elite',title:'DUSK SENTINEL',hp:345,attack:33,xp:62},
+    {row:5,col:10,type:'elite',title:'DUSK SENTINEL',hp:345,attack:33,xp:62},
     {row:7,col:20,type:'elite',title:'VOID GUARDIAN',hp:365,attack:34,xp:65},
     {row:4,col:23,type:'boss',title:'ZONE 4 BOSS',hp:510,attack:38,xp:140}
   ],

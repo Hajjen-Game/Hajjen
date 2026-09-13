@@ -28,7 +28,12 @@
     card.classList.toggle('is-equipt',isEquipped);
     if(!button)return;
     if(used){button.textContent='USED';button.disabled=true;button.setAttribute('aria-pressed','false');}
-    else if(isEquipped){button.textContent='EQUIPT';button.disabled=false;button.setAttribute('aria-pressed','true');}
+    else if(isEquipped){
+      // Equipped Tactical cards stay armed until combat consumes them. There is
+      // no separate unequip action in this pass, so keeping the real button
+      // enabled made the desktop proxy alternate between enabled/disabled.
+      button.textContent='EQUIPPED';button.disabled=true;button.setAttribute('aria-pressed','true');
+    }
     else{button.textContent='EQUIP';button.disabled=false;button.setAttribute('aria-pressed','false');}
   }
 
@@ -110,7 +115,7 @@
 
   ensureCards();queueMicrotask(ensureCards);
   window.HAJJEN_ZONE4_TACTICAL_HAND={
-    version:'1.1-replaceable-instances',definitions,equipped,hand,observer,
+    version:'1.2-stable-equipped-state',definitions,equipped,hand,observer,
     keyOf,getSlots,replaceSlot,sync:ensureCards
   };
 })();

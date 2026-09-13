@@ -15,6 +15,11 @@
   const toastArea=document.getElementById('toastArea');
   let started=false;
   let timer=null;
+  let seenMobKills=0;
+  let seenEliteKills=0;
+  let seenBossKilled=false;
+  let defeatHandled=false;
+  let clearHandled=false;
 
   const carried=()=>Math.max(0,Number(state.unsecuredEssence)||0);
   const secured=()=>Math.max(0,Number(window.HAJJEN_RPG_STATE?.getProfile?.()?.currencies?.securedEssence)||0);
@@ -136,16 +141,44 @@
     return true;
   }
 
+  function getProgress(){
+    return {seenMobKills,seenEliteKills,seenBossKilled,defeatHandled,clearHandled};
+  }
+
+  function restoreProgress(saved){
+    const data=saved&&typeof saved==='object'?saved:{};
+    seenMobKills=Math.max(0,Number(data.seenMobKills)||0);
+    seenEliteKills=Math.max(0,Number(data.seenEliteKills)||0);
+    seenBossKilled=!!data.seenBossKilled;
+    defeatHandled=!!data.defeatHandled;
+    clearHandled=!!data.clearHandled;
+    syncUi();
+    return getProgress();
+  }
+
+  function tick(){
+    const mobs=Math.max(0,Number(state.mobKills)||0);
+    const elites=Math.max(0,Number(state.eliteKills)||0);
+    if(mobs>seenMobKills){award('mob',mobs-seenMobKills);seenMobKills=mobs;}
+    if(elites>seenEliteKills){award('elite',elites-seenEliteKills);seenEliteKills=elites;}
+    if(!!state.bossKilled&&!seenBossKilled){seenBossKilled=true;award('boss',1);}
+
+    if(!!state.zoneCleared&&!clearHandled){clearHandled=true;secure('zone-clear');}
+    if(!!state.gameOver&&!defeatHandled){defeatHandled=true;loseOnDefeat();}
+
+    wrapRunReport();
+    syncUi();
+  }
+
   function start(){
     if(started||!window.HAJJEN_RPG_STATE)return false;
     started=true;
     state.unsecuredEssence=Math.max(0,Number(state.unsecuredEssence)||0);
-
-    let seenMobKills=Math.max(0,Number(state.mobKills)||0);
-    let seenEliteKills=Math.max(0,Number(state.eliteKills)||0);
-    let seenBossKilled=!!state.bossKilled;
-    let defeatHandled=!!state.gameOver;
-    let clearHandled=!!state.zoneCleared;
+    seenMobKills=Math.max(0,Number(state.mobKills)||0);
+    seenEliteKills=Math.max(0,Number(state.eliteKills)||0);
+    seenBossKilled=!!state.bossKilled;
+    defeatHandled=!!state.gameOver;
+    clearHandled=!!state.zoneCleared;
 
     document.addEventListener('hajjen:primal-spring-used',event=>{
       if(Number(event.detail?.zone)!==4)return;
@@ -154,31 +187,19 @@
     document.addEventListener('hajjen:rpg-profile-changed',syncUi);
     document.addEventListener('hajjen-ui-redesign-promoted',()=>setTimeout(syncUi,0),{once:true});
 
-    function tick(){
-      const mobs=Math.max(0,Number(state.mobKills)||0);
-      const elites=Math.max(0,Number(state.eliteKills)||0);
-      if(mobs>seenMobKills){award('mob',mobs-seenMobKills);seenMobKills=mobs;}
-      if(elites>seenEliteKills){award('elite',elites-seenEliteKills);seenEliteKills=elites;}
-      if(!!state.bossKilled&&!seenBossKilled){seenBossKilled=true;award('boss',1);}
-
-      if(!!state.zoneCleared&&!clearHandled){clearHandled=true;secure('zone-clear');}
-      if(!!state.gameOver&&!defeatHandled){defeatHandled=true;loseOnDefeat();}
-
-      wrapRunReport();
-      syncUi();
-    }
-
     timer=setInterval(tick,80);
     tick();
 
     window.HAJJEN_ZONE4_RPG_ESSENCE={
-      version:'1.0-carried-secured-death-stakes',
+      version:'1.1-save-resume',
       values:{...VALUES},
       getCarried:carried,
       getSecured:secured,
       award,
       secure,
       loseOnDefeat,
+      getProgress,
+      restoreProgress,
       sync:tick,
       stop:()=>{if(timer)clearInterval(timer);}
     };

@@ -1,6 +1,6 @@
 /* HAJJEN Zone 4 DEV — isolated RPG Backpack prototype.
    Mounts only after the approved UI promotion has settled.
-   No MutationObserver, no shared Backpack rewrite, no Hand/board/state mutations. */
+   No MutationObserver, no shared Backpack rewrite, no Hand/board mutation. */
 (()=>{
   if(window.HAJJEN_ZONE4_RPG_BACKPACK_ISOLATED)return;
 
@@ -62,6 +62,22 @@
     return modal;
   }
 
+  function equipItem(itemId){
+    const rpg=window.HAJJEN_RPG_STATE;
+    if(!rpg?.updateProfile)return false;
+    const changed=rpg.updateProfile(profile=>{
+      const inventory=Array.isArray(profile.inventory)?profile.inventory:[];
+      const item=inventory.find(entry=>entry?.id===itemId);
+      const slot=String(item?.slot||'').toLowerCase();
+      if(!item||!SLOT_DEFS.some(def=>def.id===slot))return profile;
+      profile.equipment=profile.equipment||{};
+      profile.equipment[slot]=JSON.parse(JSON.stringify(item));
+      return profile;
+    },'equipment-change');
+    if(changed)render();
+    return changed;
+  }
+
   function render(){
     const modal=createModal();
     const body=modal.querySelector('.zone4-rpg-isolated-body');
@@ -103,7 +119,7 @@
 
     const stats=document.createElement('section');
     stats.className='zone4-rpg-panel';
-    stats.innerHTML='<div class="zone4-rpg-panel-title"><strong>SHARKAN STATS</strong><span>Deterministic · no crit/dodge RNG</span></div>';
+    stats.innerHTML='<div class="zone4-rpg-panel-title"><strong>SHARKAN STATS</strong><span>Active in combat · deterministic</span></div>';
     const statList=document.createElement('div');
     statList.className='zone4-rpg-stat-list';
     STAT_DEFS.forEach(def=>{
@@ -123,13 +139,22 @@
     const grid=document.createElement('div');
     grid.className='zone4-rpg-inventory-grid';
     if(!inventory.length){
-      grid.innerHTML='<div class="zone4-rpg-empty"><strong>NO PERMANENT LOOT YET</strong><span>Elite and boss rewards will populate this inventory in the loot step.</span></div>';
+      grid.innerHTML='<div class="zone4-rpg-empty"><strong>NO PERMANENT LOOT YET</strong><span>Defeat an elite to receive your first equipment choice.</span></div>';
     }else{
       inventory.forEach(item=>{
+        const slot=String(item?.slot||'').toLowerCase();
+        const validSlot=SLOT_DEFS.some(def=>def.id===slot);
         const equipped=!!item?.id&&equippedIds.has(item.id);
         const card=document.createElement('article');
         card.className=`zone4-rpg-item${equipped?' is-equipped':''}`;
-        card.innerHTML=`<span>${String(item.slot||'ITEM').toUpperCase()} · RANK ${Math.max(1,Number(item.rank)||1)}</span><strong>${item.name||'Unnamed item'}</strong><small>${statText(item)}</small>${item.trait?.name?`<em>Trait · ${item.trait.name}</em>`:''}<b>${equipped?'EQUIPPED':'IN INVENTORY'}</b>`;
+        card.innerHTML=`<span>${String(item.slot||'ITEM').toUpperCase()} · RANK ${Math.max(1,Number(item.rank)||1)}</span><strong>${item.name||'Unnamed item'}</strong><small>${statText(item)}</small>${item.trait?.name?`<em>Trait · ${item.trait.name}</em>`:''}<div class="zone4-rpg-item-action"></div>`;
+        const action=card.querySelector('.zone4-rpg-item-action');
+        const button=document.createElement('button');
+        button.type='button';
+        button.disabled=!validSlot||equipped;
+        button.textContent=equipped?'EQUIPPED':'EQUIP';
+        if(!equipped&&validSlot)button.addEventListener('click',()=>equipItem(item.id));
+        action?.appendChild(button);
         grid.appendChild(card);
       });
     }
@@ -160,9 +185,7 @@
     const template=utility.querySelector(':scope > button[data-utility-action="spellbook"]')||utility.querySelector(':scope > button');
     const button=document.createElement('button');
     button.type='button';
-    if(template){
-      [...template.classList].forEach(name=>button.classList.add(name));
-    }
+    if(template){[...template.classList].forEach(name=>button.classList.add(name));}
     button.classList.remove('spellbook-open','help-open');
     button.classList.add('zone4-rpg-backpack-open','hajjen-vector-utility-button');
     button.dataset.utilityAction='backpack';
@@ -184,6 +207,10 @@
   }
 
   document.addEventListener('hajjen-ui-redesign-promoted',mountWhenSettled,{once:true});
+  document.addEventListener('hajjen:rpg-profile-changed',()=>{
+    const modal=document.getElementById('zone4RpgBackpackModal');
+    if(modal?.classList.contains('is-open'))render();
+  });
   if(document.documentElement.dataset.hajjenRedesignReady==='1')setTimeout(mountWhenSettled,0);
   setTimeout(mountWhenSettled,2700);
 
@@ -195,5 +222,5 @@
     event.stopImmediatePropagation();
   },true);
 
-  window.HAJJEN_ZONE4_RPG_BACKPACK_ISOLATED={version:'1.0-no-observers',open,close,render,mountButton};
+  window.HAJJEN_ZONE4_RPG_BACKPACK_ISOLATED={version:'1.1-loot-equip',open,close,render,mountButton,equipItem,totals};
 })();

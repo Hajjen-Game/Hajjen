@@ -123,6 +123,32 @@
     maybeOpenNext();
   }
 
+  function getProgress(){
+    return {
+      seenEliteKills,
+      activeReward,
+      pending:pending.map(item=>({killNumber:item.killNumber}))
+    };
+  }
+
+  function restoreProgress(saved){
+    const data=saved&&typeof saved==='object'?saved:{};
+    const modal=createModal();
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden','true');
+    document.documentElement.classList.remove('zone4-rpg-loot-open');
+    activeReward=null;
+    pending.length=0;
+    seenEliteKills=Math.max(0,Number(data.seenEliteKills)||0);
+    const now=performance.now();
+    const queued=[];
+    if(Number(data.activeReward)>0)queued.push(Number(data.activeReward));
+    if(Array.isArray(data.pending))data.pending.forEach(item=>{const n=Math.max(0,Number(item?.killNumber)||0);if(n&&!queued.includes(n))queued.push(n);});
+    queued.forEach((killNumber,index)=>pending.push({killNumber,readyAt:now+250+(index*100)}));
+    tick();
+    return getProgress();
+  }
+
   document.addEventListener('keydown',event=>{
     const modal=document.getElementById('zone4RpgLootModal');
     if(!modal?.classList.contains('is-open'))return;
@@ -134,11 +160,13 @@
   tick();
 
   window.HAJJEN_ZONE4_RPG_LOOT={
-    version:'1.1-elite-choice-750ms-beat',
+    version:'1.2-save-resume',
     items:ITEMS,
     rewards:REWARDS,
     rewardDelayMs:REWARD_DELAY_MS,
     tick,
+    getProgress,
+    restoreProgress,
     stop:()=>clearInterval(timer)
   };
 })();

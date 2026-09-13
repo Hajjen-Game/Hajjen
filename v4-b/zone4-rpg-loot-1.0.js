@@ -8,6 +8,7 @@
   const state=window.HAJJEN_CAMPAIGN_STATE;
   if(Number(cfg?.zone)!==4||!state)return;
 
+  const REWARD_DELAY_MS=750;
   const ITEMS={
     tideguardVest:{id:'z4-tideguard-vest',name:'Tideguard Vest',slot:'armor',rank:1,stats:{power:0,vitality:4,resolve:2},flavor:'Layered hide that steadies Sharkan when the pressure rises.'},
     aetherglassCharm:{id:'z4-aetherglass-charm',name:'Aetherglass Charm',slot:'charm',rank:1,stats:{power:6,vitality:0,resolve:0},flavor:'A fractured prism that amplifies every spell cast.'},
@@ -106,13 +107,17 @@
 
   function maybeOpenNext(){
     if(activeReward||state.combat||state.gameOver||!pending.length)return;
-    openReward(pending.shift());
+    const next=pending[0];
+    if(performance.now()<next.readyAt)return;
+    pending.shift();
+    openReward(next.killNumber);
   }
 
   function tick(){
     const kills=Math.max(0,Number(state.eliteKills)||0);
     if(kills>seenEliteKills){
-      for(let n=seenEliteKills+1;n<=kills;n++)pending.push(n);
+      const now=performance.now();
+      for(let n=seenEliteKills+1;n<=kills;n++)pending.push({killNumber:n,readyAt:now+REWARD_DELAY_MS});
       seenEliteKills=kills;
     }
     maybeOpenNext();
@@ -129,9 +134,10 @@
   tick();
 
   window.HAJJEN_ZONE4_RPG_LOOT={
-    version:'1.0-elite-choice-rank1',
+    version:'1.1-elite-choice-750ms-beat',
     items:ITEMS,
     rewards:REWARDS,
+    rewardDelayMs:REWARD_DELAY_MS,
     tick,
     stop:()=>clearInterval(timer)
   };

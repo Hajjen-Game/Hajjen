@@ -1,7 +1,10 @@
 /* HAJJEN Zone 4 DEV — Misdirection parity with Zone 3.
    PLAY arms the card; select one nearby normal mob (Chebyshev <= 4); the
    selected mob moves exactly 2 tiles in a clear cardinal direction that
-   increases its distance from Sharkan. */
+   increases its distance from Sharkan.
+
+   Temporary Zone 4 dev test: starting Manipulation slot 4 is presented as
+   Misdirection so the mechanic can be tested every run. */
 (()=>{
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
   const state=window.HAJJEN_CAMPAIGN_STATE;
@@ -13,11 +16,18 @@
   const toastArea=document.getElementById('toastArea');
   if(!window.HAJJEN_ZONE4_DEV_MODE||!cfg||cfg.zone!==4||!state||!api||!(entities instanceof Map)||!world||!hand)return;
 
+  const START_SLOT=3;
   const key=(r,c)=>`${r},${c}`;
   const inBounds=(r,c)=>r>=0&&c>=0&&r<cfg.rows&&c<cfg.cols;
   const manhattan=(a,b,r,c)=>Math.abs(a-r)+Math.abs(b-c);
   const chebyshev=(a,b,r,c)=>Math.max(Math.abs(a-r),Math.abs(b-c));
   let pending=null;
+  let startingUsed=false;
+  let patchQueued=false;
+
+  if(Array.isArray(cfg.manipulationCards)&&cfg.manipulationCards.length>START_SLOT){
+    cfg.manipulationCards[START_SLOT]='Misdirection';
+  }
 
   function addLog(text,type='system'){
     if(!eventLog)return;
@@ -38,10 +48,45 @@
     const tile=world.querySelector(`.tile[data-r="${entity.r}"][data-c="${entity.c}"]`);if(!tile)return;
     tile.classList.add('special','mob');tile.dataset.mark=entity.mark||'☠';
   }
-  function buttonFor(index){return hand.querySelector(`.card[data-card-reward-manip-slot="${index}"] > button`);}
-  function syncButton(){
+
+  function manipulationCards(){
+    return [...hand.children].filter(node=>
+      node instanceof HTMLElement&&
+      node.classList.contains('card')&&
+      !node.classList.contains('enchantment')&&
+      !node.classList.contains('tactical')
+    ).slice(0,4);
+  }
+  function rewardButton(index){return hand.querySelector(`.card[data-card-reward-manip-slot="${index}"] > button`);}
+  function startingCard(){
+    const card=manipulationCards()[START_SLOT];
+    if(!card||card.hasAttribute('data-card-reward-manip-slot'))return null;
+    return card;
+  }
+  function patchStartingCard(){
+    patchQueued=false;
+    const card=startingCard();if(!card)return;
+    card.dataset.zone4StartMisdirection='1';
+    card.dataset.handLabel='Misdirection';
+    const title=card.querySelector(':scope > strong');
+    const copy=card.querySelector(':scope > span');
+    const button=card.querySelector(':scope > button');
+    if(title&&title.textContent!=='Misdirection')title.textContent='Misdirection';
+    if(copy&&copy.textContent!=='Move one nearby normal mob 2 tiles away from Sharkan.')copy.textContent='Move one nearby normal mob 2 tiles away from Sharkan.';
+    if(button){
+      const selecting=!!pending&&pending.kind==='starting';
+      const wanted=startingUsed?'USED':selecting?'SELECT MOB':'PLAY';
+      if(button.textContent!==wanted)button.textContent=wanted;
+      button.disabled=startingUsed||selecting||state.gameOver||state.zoneCleared;
+    }
+  }
+  function queueStartingPatch(){
+    if(patchQueued)return;patchQueued=true;queueMicrotask(patchStartingCard);
+  }
+  function syncPendingButton(){
     if(!pending)return;
-    const button=buttonFor(pending.index);if(!button)return;
+    if(pending.kind==='starting'){patchStartingCard();return;}
+    const button=rewardButton(pending.index);if(!button)return;
     button.textContent='SELECT MOB';button.disabled=true;
   }
 
@@ -66,8 +111,14 @@
 
   function finish(){
     if(!pending)return;
-    const {index,replacement}=pending;pending=null;replacement.used=true;
-    const button=buttonFor(index);if(button){button.textContent='USED';button.disabled=true;}
+    const completed=pending;pending=null;
+    if(completed.kind==='reward'){
+      completed.replacement.used=true;
+      const button=rewardButton(completed.index);if(button){button.textContent='USED';button.disabled=true;}
+    }else{
+      startingUsed=true;
+      patchStartingCard();
+    }
     window.HAJJEN_SHARED_CARD_DECKS?.sync?.();
     window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();
   }
@@ -88,18 +139,30 @@
   }
 
   hand.addEventListener('click',event=>{
-    const button=event.target instanceof Element?event.target.closest('.card[data-card-reward-manip-slot] > button'):null;
+    const button=event.target instanceof Element?event.target.closest('.card > button'):null;
     if(!button)return;
-    const card=button.closest('.card[data-card-reward-manip-slot]');
-    const index=Number(card?.dataset.cardRewardManipSlot);
+    const card=button.closest('.card');if(!card)return;
+
+    if(card.dataset.zone4StartMisdirection==='1'){
+      if(startingUsed||state.gameOver||state.zoneCleared)return;
+      event.preventDefault();event.stopImmediatePropagation();
+      pending={kind:'starting',index:START_SLOT};
+      addLog('Misdirection armed: choose a nearby normal mob.','system');
+      addToast('SELECT A NEARBY MOB','system');
+      syncPendingButton();
+      return;
+    }
+
+    if(!card.hasAttribute('data-card-reward-manip-slot'))return;
+    const index=Number(card.dataset.cardRewardManipSlot);
     const replacement=api.manipulationReplacements?.[index];
     if(!replacement||replacement.used||replacement.def?.id!=='misdirection'||state.gameOver||state.zoneCleared)return;
 
     event.preventDefault();event.stopImmediatePropagation();
-    pending={index,replacement};
+    pending={kind:'reward',index,replacement};
     addLog('Misdirection armed: choose a nearby normal mob.','system');
     addToast('SELECT A NEARBY MOB','system');
-    syncButton();
+    syncPendingButton();
   },true);
 
   world.addEventListener('click',event=>{
@@ -109,8 +172,17 @@
     handleTarget(Number(tile.dataset.r),Number(tile.dataset.c));
   },true);
 
-  const handObserver=new MutationObserver(()=>queueMicrotask(syncButton));
+  const handObserver=new MutationObserver(()=>{queueStartingPatch();queueMicrotask(syncPendingButton);});
   handObserver.observe(hand,{childList:true,subtree:true});
 
-  window.HAJJEN_ZONE4_MISDIRECTION={version:'1.0-zone3-parity',get pending(){return !!pending;}};
+  patchStartingCard();
+  window.HAJJEN_SHARED_HAND?.sync?.();
+  window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();
+  window.HAJJEN_SHARED_CARD_DECKS?.sync?.();
+
+  window.HAJJEN_ZONE4_MISDIRECTION={
+    version:'1.1-zone3-parity-start-test',
+    get pending(){return !!pending;},
+    get startingUsed(){return startingUsed;}
+  };
 })();

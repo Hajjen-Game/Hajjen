@@ -16,6 +16,7 @@
   let appliedPower=0;
   let vitalityBonus=0;
   let lastAppliedMax=Number(state.maxHp)||1;
+  let maxHpValue=Number(state.maxHp)||1;
   let resolveValue=0;
   let hpValue=Number(state.hp)||0;
 
@@ -30,6 +31,33 @@
     });
     out.power=Math.max(0,out.power);out.vitality=Math.max(0,out.vitality);out.resolve=Math.max(0,out.resolve);
     return out;
+  }
+
+  function installMaxHpGuard(){
+    const desc=Object.getOwnPropertyDescriptor(state,'maxHp');
+    if(desc&&!desc.configurable)return false;
+    maxHpValue=Math.max(1,Number(state.maxHp)||1);
+    Object.defineProperty(state,'maxHp',{
+      configurable:true,
+      enumerable:true,
+      get(){return maxHpValue;},
+      set(next){
+        let value=Number(next);
+        if(!Number.isFinite(value))value=maxHpValue;
+        value=Math.max(1,value);
+
+        /* Zone 4's legacy level ladder writes the level's base Max HP directly
+           (100 + 15 per level). If Vitality gear is equipped, preserve that
+           permanent bonus immediately so the level-up heal/log already sees
+           the correct total instead of waiting for the runtime sync timer. */
+        const levelBase=100+(Math.max(1,Number(state.level)||1)-1)*15;
+        const liveVitalityBonus=Math.max(0,Number(totals().vitality)||0)*5;
+        if(liveVitalityBonus>0&&Math.abs(value-levelBase)<=1)value=levelBase+liveVitalityBonus;
+
+        maxHpValue=value;
+      }
+    });
+    return true;
   }
 
   function installHpGuard(){
@@ -112,6 +140,7 @@
     window.HAJJEN_ZONE4_RPG_STATS={...t,maxHpBonus:t.vitality*5,damageReduction:Math.floor(t.resolve/2)};
   }
 
+  installMaxHpGuard();
   installHpGuard();
   syncProfile();
   document.addEventListener('hajjen:rpg-profile-changed',syncProfile);
@@ -132,7 +161,7 @@
   },30);
 
   window.HAJJEN_ZONE4_RPG_STATS_RUNTIME={
-    version:'1.0-power-vitality-resolve',
+    version:'1.1-levelup-vitality-sync',
     totals,
     sync:syncProfile,
     stop:()=>clearInterval(timer)

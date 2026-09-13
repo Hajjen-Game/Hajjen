@@ -24,6 +24,16 @@
     eventLog
   };
 
+  /* RPG foundation: load after the legacy zone core has created its live state.
+     The module then binds that object as the current expedition Run while the
+     permanent Sharkan Profile stays separate in localStorage. */
+  if(!window.HAJJEN_RPG_STATE&&!document.getElementById('hajjen-rpg-state-loader')){
+    const script=document.createElement('script');
+    script.id='hajjen-rpg-state-loader';
+    script.src='shared-rpg-state-1.1.js?v=1';
+    document.body.appendChild(script);
+  }
+
   /* Zone 3 DEV visual prototype: reuse the exact approved Sharkan light
      background for Objectives and Event Log. Kept behind the dev marker so
      the real campaign zones are unaffected. */

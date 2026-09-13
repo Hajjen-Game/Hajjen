@@ -1,0 +1,52 @@
+/* HAJJEN Zone 4 DEV — Primal Essence status presentation. */
+.zone4-rpg-essence-line{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:8px;
+  margin:7px 0;
+  padding:7px 8px;
+  border:1px solid rgba(145,111,55,.42);
+  background:rgba(236,220,178,.46);
+}
+.zone4-rpg-essence-line>div{display:grid;gap:1px;min-width:0}
+.zone4-rpg-essence-line span{
+  color:#5d4728;
+  font:800 8.5px/1 Arial,sans-serif;
+  letter-spacing:.6px;
+}
+.zone4-rpg-essence-line small{
+  color:#7a684d;
+  font:400 7.5px/1.25 Arial,sans-serif;
+}
+.zone4-rpg-essence-line>strong{
+  min-width:28px;
+  color:#7a684d;
+  font-size:16px;
+  text-align:right;
+}
+.zone4-rpg-essence-line>em{
+  padding:3px 5px;
+  border:1px solid rgba(134,91,44,.36);
+  background:rgba(141,93,46,.08);
+  color:#8a6540;
+  font:800 7px/1 Arial,sans-serif;
+  font-style:normal;
+  letter-spacing:.45px;
+}
+.zone4-rpg-essence-line.has-essence{
+  border-color:#9d7437;
+  background:rgba(223,198,132,.34);
+}
+.zone4-rpg-essence-line.has-essence>strong{color:#5c633c}
+.zone4-rpg-essence-line.has-essence>em{color:#7b3f2d;border-color:rgba(123,63,45,.42);background:rgba(123,63,45,.08)}
+.zone4-rpg-summary-meta .zone4-rpg-carried-essence{
+  display:block;
+  margin-top:3px;
+  color:#7b543d;
+  font:700 8px/1.25 Arial,sans-serif;
+}
+@media(max-width:520px){
+  .zone4-rpg-essence-line{grid-template-columns:minmax(0,1fr) auto;gap:5px 7px}
+  .zone4-rpg-essence-line>em{grid-column:2;justify-self:end}
+}

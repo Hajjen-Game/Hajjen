@@ -30,7 +30,7 @@
   if(!window.HAJJEN_RPG_STATE&&!document.getElementById('hajjen-rpg-state-loader')){
     const script=document.createElement('script');
     script.id='hajjen-rpg-state-loader';
-    script.src='shared-rpg-state-1.1.js?v=1';
+    script.src='shared-rpg-state-1.1.js?v=2';
     document.body.appendChild(script);
   }
 

@@ -11,13 +11,14 @@
   const dev=!!(window.HAJJEN_ZONE4_DEV_MODE||window.HAJJEN_ZONE4_DEV_REQUESTED||document.documentElement.dataset.hajjenDev==='zone4');
   const ACTIVE_KEY=dev?'hajjen-v4b-zone4-dev-active-expedition-v1':'hajjen-v4b-active-expedition-v1';
   const DEV_PROFILE_KEY='hajjen-v4b-zone4-dev-profile-save-v1';
+  const RESTART_KEY=dev?'hajjen-v4b-zone4-dev-restart-pending-v1':'hajjen-v4b-zone4-restart-pending-v1';
   const CAMPAIGN_KEY='hajjen-v4b-campaign';
   const clone=v=>{try{return structuredClone(v);}catch{try{return JSON.parse(JSON.stringify(v));}catch{return null;}}};
   const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}};
   const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}};
   const num=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
   const pos=(r,c)=>`${Number(r)},${Number(c)}`;
-  let restoring=true,lastSerialized='',claimedOverride=false,restoredManip=[];
+  let restoring=true,lastSerialized='',claimedOverride=false,restoredManip=[],restarting=false;
 
   function profileApi(){return window.HAJJEN_ZONE4_SAVE_PROFILE;}
   function idOf(e){
@@ -58,6 +59,7 @@
   }
   function pulse(){const n=indicator();n.classList.add('is-saved');clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('is-saved'),700);}
   function save(force=false){
+    if(restarting)return false;
     profileApi()?.sync?.('expedition-autosave');
     if(restoring||state.combat)return false;
     const snap=build(),text=JSON.stringify(snap);if(!force&&text===lastSerialized)return false;
@@ -123,7 +125,7 @@
     window.HAJJEN_ZONE4_RPG_LOOT?.restoreProgress?.(saved.loot);window.HAJJEN_ZONE4_RPG_ESSENCE?.restoreProgress?.(saved.essence);
     queueMicrotask(render);setTimeout(render,100);return true;
   }
-  function toastRestore(saved){
+  function toastRestore(){
     if(state.gameOver)return;const a=document.getElementById('toastArea');if(a){const n=document.createElement('div');n.className='toast reward';n.textContent='EXPEDITION RESTORED';a.prepend(n);setTimeout(()=>n.remove(),1800);}
   }
   function failureModal(){
@@ -139,22 +141,43 @@
     const spells=clone(state.spells||[])||[];spells.forEach(s=>{if(Array.isArray(s.enchantments))s.enchantments=s.enchantments.filter(x=>!(typeof x==='object'&&x?.sourceZone===4));delete s.enchantmentName;});
     write(CAMPAIGN_KEY,{version:1,zone:3,level,xp:Math.max(0,num(p.xp,state.xp)),maxHp,hp:maxHp,potion:Math.max(0,num(p.potion,state.potion)),spells,ingredients:[],potionIngredients:[]});
   }
+  function markRestartPending(){
+    try{sessionStorage.setItem(RESTART_KEY,'1');}catch{}
+  }
+  function consumeRestartPending(){
+    let pending=false;try{pending=sessionStorage.getItem(RESTART_KEY)==='1';if(pending)sessionStorage.removeItem(RESTART_KEY);}catch{}
+    if(pending){try{localStorage.removeItem(ACTIVE_KEY);}catch{}lastSerialized='';}
+    return pending;
+  }
   function restart(){
-    const profile=profileApi()?.sync?.('restart-expedition')||profileApi()?.get?.();try{localStorage.removeItem(ACTIVE_KEY);}catch{}productionHandoff(profile);location.reload();
+    if(restarting)return;
+    restarting=true;
+    const profile=profileApi()?.sync?.('restart-expedition')||profileApi()?.get?.();
+    markRestartPending();
+    try{localStorage.removeItem(ACTIVE_KEY);}catch{}
+    productionHandoff(profile);
+    const url=new URL(location.href);
+    if(dev)url.searchParams.set('dev','1');else url.searchParams.delete('dev');
+    location.replace(`${url.pathname}${url.search}${url.hash}`);
   }
 
   function init(){
     const pApi=profileApi();if(!pApi||!window.HAJJEN_RPG_STATE)return false;
-    const active=read(ACTIVE_KEY),devRecord=dev?read(DEV_PROFILE_KEY):null;
+    const restartBoot=consumeRestartPending();
+    const active=restartBoot?null:read(ACTIVE_KEY),devRecord=dev?read(DEV_PROFILE_KEY):null;
     if(active?.profile)pApi.restore(active.profile);else if(devRecord?.profile)pApi.restore(devRecord.profile);
-    if(active?.version===1&&Number(active.zone)===4){restore(active);lastSerialized=JSON.stringify(active);setTimeout(()=>toastRestore(active),140);}
-    else{pApi.applyFresh(pApi.get());setTimeout(render,50);}
+    if(active?.version===1&&Number(active.zone)===4){restore(active);lastSerialized=JSON.stringify(active);setTimeout(toastRestore,140);}
+    else{pApi.applyFresh(pApi.get());state.gameOver=false;state.zoneCleared=false;state.combat=null;setTimeout(render,50);}
     restoring=false;indicator();
     const hand=document.getElementById('manipCards');if(hand)new MutationObserver(()=>queueMicrotask(patchManip)).observe(hand,{childList:true,subtree:true});
-    setInterval(()=>{patchManip();patchClaimed();save(false);},450);setTimeout(()=>save(true),300);if(state.gameOver)setTimeout(showFailure,120);return true;
+    setInterval(()=>{if(restarting)return;patchManip();patchClaimed();save(false);},450);
+    setTimeout(()=>{if(!restarting)save(true);},300);
+    if(state.gameOver)setTimeout(showFailure,120);
+    return true;
   }
 
-  window.addEventListener('pagehide',()=>save(true));window.addEventListener('beforeunload',()=>save(true));
-  window.HAJJEN_ZONE4_SAVE_GAME={version:'1.0-profile-expedition-autosave',key:ACTIVE_KEY,save:()=>save(true),restartExpedition:restart,clearActive:()=>{try{localStorage.removeItem(ACTIVE_KEY);}catch{}},getSnapshot:()=>read(ACTIVE_KEY)};
+  window.addEventListener('pagehide',()=>{if(!restarting)save(true);});
+  window.addEventListener('beforeunload',()=>{if(!restarting)save(true);});
+  window.HAJJEN_ZONE4_SAVE_GAME={version:'1.1-restart-unload-safe',key:ACTIVE_KEY,save:()=>save(true),restartExpedition:restart,clearActive:()=>{try{localStorage.removeItem(ACTIVE_KEY);}catch{}},getSnapshot:()=>read(ACTIVE_KEY)};
   if(!init())setTimeout(init,80);
 })();

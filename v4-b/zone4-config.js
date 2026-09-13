@@ -2,36 +2,41 @@ window.HAJJEN_ZONE_CONFIG={
   zone:4,name:'ZONE 4',cols:25,rows:10,viewCols:15,viewRows:10,start:{row:5,col:1},levelFloor:10,levelCap:13,next:null,
   introQuest:'Use Both Tactical Cards',introType:'tactical-pair',bossTitle:'ZONE 4 BOSS',bossPos:{row:4,col:23},
   mobTarget:7,eliteTarget:2,bossLevelTarget:13,requireIntroForBoss:true,
+
+  // Zone 4 is laid out for moving enemies rather than copying Zone 3 lanes.
+  // Early threats are sparse; later homes alternate vertically so pursuit can
+  // develop across the board instead of every encounter sitting on one route.
   enemies:[
-    {row:5,col:4,type:'mob',title:'DUSK WHELP',hp:210,attack:25,xp:40},
-    {row:2,col:7,type:'mob',title:'RIFT HUNTER',hp:216,attack:25,xp:40},
-    {row:8,col:6,type:'mob',title:'STONE LURKER',hp:222,attack:26,xp:41},
-    {row:4,col:9,type:'mob',title:'AETHER PROWLER',hp:228,attack:26,xp:41},
-    {row:1,col:13,type:'mob',title:'PRIMAL REAVER',hp:234,attack:27,xp:42},
-    {row:8,col:14,type:'mob',title:'VOID HUNTER',hp:240,attack:27,xp:42},
-    {row:3,col:17,type:'mob',title:'GALE REAVER',hp:246,attack:28,xp:43},
-    {row:6,col:19,type:'mob',title:'RIFT STALKER',hp:252,attack:28,xp:43},
-    {row:1,col:22,type:'mob',title:'DUSK REAVER',hp:258,attack:29,xp:44},
+    {row:7,col:4,type:'mob',title:'DUSK WHELP',hp:210,attack:25,xp:40},
+    {row:2,col:6,type:'mob',title:'RIFT HUNTER',hp:216,attack:25,xp:40},
+    {row:5,col:8,type:'mob',title:'STONE LURKER',hp:222,attack:26,xp:41},
+    {row:1,col:10,type:'mob',title:'AETHER PROWLER',hp:228,attack:26,xp:41},
+    {row:8,col:13,type:'mob',title:'PRIMAL REAVER',hp:234,attack:27,xp:42},
+    {row:4,col:15,type:'mob',title:'VOID HUNTER',hp:240,attack:27,xp:42},
+    {row:1,col:17,type:'mob',title:'GALE REAVER',hp:246,attack:28,xp:43},
+    {row:7,col:18,type:'mob',title:'RIFT STALKER',hp:252,attack:28,xp:43},
+    {row:3,col:21,type:'mob',title:'DUSK REAVER',hp:258,attack:29,xp:44},
     {row:8,col:23,type:'mob',title:'VOID PROWLER',hp:264,attack:29,xp:44},
-    {row:5,col:11,type:'elite',title:'DUSK SENTINEL',hp:345,attack:33,xp:62},
-    {row:5,col:20,type:'elite',title:'VOID GUARDIAN',hp:365,attack:34,xp:65},
+    {row:2,col:11,type:'elite',title:'DUSK SENTINEL',hp:345,attack:33,xp:62},
+    {row:7,col:20,type:'elite',title:'VOID GUARDIAN',hp:365,attack:34,xp:65},
     {row:4,col:23,type:'boss',title:'ZONE 4 BOSS',hp:510,attack:38,xp:140}
   ],
-  spring:{row:4,col:12,heal:90,title:'PRIMAL SPRING'},
-  spring2:{row:8,col:18,heal:90,title:'PRIMAL SPRING'},
+
+  spring:{row:6,col:14,heal:90,title:'PRIMAL SPRING'},
+  spring2:{row:2,col:21,heal:90,title:'PRIMAL SPRING'},
   springs:[
-    {row:4,col:12,heal:90,title:'PRIMAL SPRING'},
-    {row:8,col:18,heal:90,title:'PRIMAL SPRING'}
+    {row:6,col:14,heal:90,title:'PRIMAL SPRING'},
+    {row:2,col:21,heal:90,title:'PRIMAL SPRING'}
   ],
   potionHeal:45,
   spellIngredients:[
     {row:1,col:5,name:'Verdant Heart',force:'Growth'},
-    {row:8,col:10,name:'Pyre Shard',force:'Ember'},
+    {row:7,col:9,name:'Pyre Shard',force:'Ember'},
     {row:2,col:16,name:'Deepglass',force:'Flow'},
-    {row:7,col:21,name:'Starroot',force:'Aether'}
+    {row:6,col:22,name:'Starroot',force:'Aether'}
   ],
   potionIngredients:[
-    {row:6,col:14,name:'Moonleaf'},
+    {row:8,col:12,name:'Moonleaf'},
     {row:3,col:19,name:'Clearwater'}
   ],
   manipulationCards:['Calm Waters','Ward Sigil','Steady Nerves','Quiet Harvest'],
@@ -80,7 +85,7 @@ window.HAJJEN_ZONE_CONFIG={
         'All eight Hand slots are now active: 4 Manipulation, 2 Enchantment and 2 Tactical.',
         'Use both Tactical cards during the run.',
         'Defeat 7 normal mobs, both Guardians, and reach Level 13 to unlock the Zone 4 boss.',
-        'Zone 4 uses the same 25×10 world size as Zone 3.'
+        'Zone 4 uses the same 25×10 world size as Zone 3, but its encounters are arranged around moving enemies.'
       ]},
       {title:'ZONE 4 POWER STEP',items:[
         'The level band advances from 7–10 to 10–13.',

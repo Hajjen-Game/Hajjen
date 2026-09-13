@@ -2,7 +2,12 @@
    Desktop renders a visual Hand proxy above the real hidden controls. This
    bridge treats Zone 4's gameplay owners as source of truth and routes mouse
    actions by screen coordinates, so a stale disabled button or decorative
-   overlay cannot swallow Enchantment/Tactical input. Mobile is left alone. */
+   overlay cannot swallow Enchantment/Tactical input.
+
+   V3 is deliberately event-driven. The previous 180 ms polling loop rewrote
+   proxy button state while the pointer was hovering, which made PLAY/APPLY and
+   EQUIPPED appear to blink on desktop. Manipulation buttons are now left fully
+   to the production Hand owner; this bridge only touches Enchantment/Tactical. */
 (()=>{
   if(window.HAJJEN_ZONE4_DESKTOP_HAND_DIRECT_ACTIONS)return;
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
@@ -32,12 +37,6 @@
     }
     return list[index]||null;
   }
-  function liveButton(source,category){
-    if(!source)return null;
-    if(category==='enchantment')return source.querySelector(':scope > .shared-enchantment-apply');
-    if(category==='tactical')return source.querySelector(':scope > .shared-tactical-equip')||source.querySelector(':scope > button');
-    return source.querySelector(':scope > button');
-  }
   function enchantState(source){
     const id=source?.dataset?.enchantmentId;
     const api=window.HAJJEN_ZONE4_ENCHANTMENTS||window.HAJJEN_ENCHANTMENTS;
@@ -56,25 +55,26 @@
 
   function proxyState(button){
     const category=button?.dataset?.category,source=sourceFor(button);
+    if(category!=='enchantment'&&category!=='tactical')return null;
     if(!source||state.gameOver)return {source,usable:false,label:button?.textContent||''};
     if(category==='enchantment'){
       const s=enchantState(source);return {source,usable:s.usable,label:s.applied?'APPLIED':'APPLY'};
     }
-    if(category==='tactical'){
-      const s=tacticalState(source);return {source,usable:s.usable,label:s.used?'USED':s.equipped?'EQUIPT':'EQUIP'};
-    }
-    const live=liveButton(source,category);
-    return {source,usable:!!live&&!live.disabled,label:clean(live?.textContent)||'PLAY'};
+    const s=tacticalState(source);
+    return {source,usable:s.usable,label:s.used?'USED':s.equipped?'EQUIPPED':'EQUIP'};
   }
 
   function syncProxy(){
     proxyButtons().forEach(button=>{
-      const {source,usable,label}=proxyState(button);
+      const next=proxyState(button);if(!next)return;
+      const {source,usable,label}=next;
       if(source)button.closest('.hajjen-hand-list-row')?.classList.remove('is-locked','is-empty');
-      button.disabled=!usable;
-      if(label)button.textContent=label;
+      const wantedDisabled=!usable;
+      if(button.disabled!==wantedDisabled)button.disabled=wantedDisabled;
+      if(label&&button.textContent!==label)button.textContent=label;
     });
   }
+  function syncAfterRender(){requestAnimationFrame(()=>requestAnimationFrame(syncProxy));}
 
   function closePickers(){document.querySelectorAll('.hajjen-hand-enchant-picker-backdrop').forEach(node=>node.remove());}
   function openEnchantmentPicker(source){
@@ -91,7 +91,7 @@
       const choice=document.createElement('button');choice.type='button';choice.className='hajjen-hand-enchant-picker-option';choice.textContent=spell.name||spell.id;
       choice.addEventListener('click',()=>{
         if(api.apply(id,spell.id)===true){
-          backdrop.remove();window.HAJJEN_SHARED_HAND?.sync?.();window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();setTimeout(syncProxy,0);
+          backdrop.remove();window.HAJJEN_SHARED_HAND?.sync?.();window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();syncAfterRender();
         }
       });options.appendChild(choice);
     });
@@ -102,21 +102,27 @@
   function equipTactical(source){
     const s=tacticalState(source);if(!s.usable)return false;
     s.owner.equipped.add(s.key);state.tacticalEquippedKeys=[...s.owner.equipped];
-    s.owner.sync?.();s.combat?.sync?.();window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();setTimeout(syncProxy,0);return true;
-  }
-  function runAction(button){
-    if(!button||state.gameOver)return false;
-    const category=button.dataset.category,source=sourceFor(button);if(!source)return false;
-    if(category==='enchantment')return openEnchantmentPicker(source);
-    if(category==='tactical')return equipTactical(source);
-    const live=liveButton(source,category);if(!live||live.disabled)return false;live.click();setTimeout(syncProxy,0);return true;
+
+    // Keep the hidden real card semantically in the same state as the proxy.
+    // There is no separate unequip action in this first Tactical pass.
+    source.classList.add('is-equipt');
+    const realButton=source.querySelector(':scope > .shared-tactical-equip');
+    if(realButton){realButton.textContent='EQUIPPED';realButton.disabled=true;realButton.setAttribute('aria-pressed','true');}
+
+    s.combat?.sync?.();window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();syncAfterRender();return true;
   }
 
-  /* elementsFromPoint can still omit a control hidden below a decorative SVG.
-     The proxy action rectangles themselves are stable, so use geometry as the
-     final source of truth for desktop mouse input. */
+  function runAction(button){
+    if(!button||state.gameOver)return false;
+    const category=button.dataset.category;if(category!=='enchantment'&&category!=='tactical')return false;
+    const source=sourceFor(button);if(!source)return false;
+    if(category==='enchantment')return openEnchantmentPicker(source);
+    return equipTactical(source);
+  }
+
   function buttonAtPoint(x,y){
     return proxyButtons().find(button=>{
+      if(button.dataset.category!=='enchantment'&&button.dataset.category!=='tactical')return false;
       const r=button.getBoundingClientRect();return r.width>0&&r.height>0&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
     })||null;
   }
@@ -125,30 +131,34 @@
   function onPointerDown(event){
     if(!finePointer()||event.button!==0||event.pointerType==='touch')return;
     const button=buttonAtPoint(event.clientX,event.clientY);if(!button)return;
-    const stateNow=proxyState(button);if(!stateNow.usable)return;
+    const stateNow=proxyState(button);if(!stateNow?.usable)return;
     event.preventDefault();event.stopImmediatePropagation();
     if(runAction(button))suppressClickUntil=performance.now()+500;
   }
   function onClick(event){
     if(!finePointer())return;
-    const button=(event.target instanceof Element?event.target.closest('.hajjen-hand-list-action'):null)||buttonAtPoint(event.clientX,event.clientY);
+    const direct=event.target instanceof Element?event.target.closest('.hajjen-hand-list-action'):null;
+    const button=(direct&&(direct.dataset.category==='enchantment'||direct.dataset.category==='tactical')?direct:null)||buttonAtPoint(event.clientX,event.clientY);
     if(!button)return;
     if(performance.now()<suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();return;}
-    const stateNow=proxyState(button);if(!stateNow.usable)return;
+    const stateNow=proxyState(button);if(!stateNow?.usable)return;
     event.preventDefault();event.stopImmediatePropagation();runAction(button);
   }
 
   document.addEventListener('pointerdown',onPointerDown,true);
   document.addEventListener('click',onClick,true);
-  const timer=setInterval(syncProxy,180);
+
+  // Startup catches only; after this, updates are tied to actual game/UI events.
   [0,80,220,600,1400].forEach(delay=>setTimeout(syncProxy,delay));
-  window.addEventListener('pageshow',syncProxy);
-  document.addEventListener('hajjen-ui-redesign-promoted',()=>setTimeout(syncProxy,0));
-  document.addEventListener('hajjen:enchantment-applied',()=>setTimeout(syncProxy,0));
-  document.addEventListener('hajjen:tactical-used',()=>setTimeout(syncProxy,0));
+  window.addEventListener('pageshow',syncAfterRender);
+  document.addEventListener('hajjen-ui-redesign-promoted',syncAfterRender);
+  document.addEventListener('hajjen:enchantment-applied',syncAfterRender);
+  document.addEventListener('hajjen:enchantment-replaced',syncAfterRender);
+  document.addEventListener('hajjen:tactical-used',syncAfterRender);
+  document.addEventListener('hajjen:tactical-replaced',syncAfterRender);
 
   window.HAJJEN_ZONE4_DESKTOP_HAND_DIRECT_ACTIONS={
-    version:'2.0-coordinate-owner-routing',sync:syncProxy,
-    stop:()=>{clearInterval(timer);document.removeEventListener('pointerdown',onPointerDown,true);document.removeEventListener('click',onClick,true);}
+    version:'3.0-event-driven-no-hover-polling',sync:syncAfterRender,
+    stop:()=>{document.removeEventListener('pointerdown',onPointerDown,true);document.removeEventListener('click',onClick,true);}
   };
 })();

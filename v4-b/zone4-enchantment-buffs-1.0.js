@@ -80,14 +80,20 @@
       const hpFill=document.getElementById('hpFill');if(hpFill)hpFill.style.width=`${state.maxHp?state.hp/state.maxHp*100:0}%`;
       window.HAJJEN_SHARED_STATUS?.sync?.();
     }
-    function rewriteSiphonLog(extra){
-      if(!(extra>0))return;
+    function siphonRows(){
       const log=document.getElementById('eventLog');
-      const row=[...(log?.children||[])].find(node=>/^Siphoning restored \d+ HP\.$/.test((node.textContent||'').trim()));
-      if(row){
-        const match=(row.textContent||'').match(/(\d+)/);const core=Number(match?.[1])||0;
-        row.textContent=`Siphoning restored ${core+extra} HP.`;
-      }
+      return [...(log?.children||[])].filter(node=>/^Siphoning restored \d+ HP\.$/.test((node.textContent||'').trim()));
+    }
+    function rewriteNewSiphonLog(extra,previousRows){
+      if(!(extra>0))return 0;
+      const previous=previousRows||new Set();
+      const row=siphonRows().find(node=>!previous.has(node));
+      if(!row)return 0;
+      const match=(row.textContent||'').match(/(\d+)/);const core=Number(match?.[1])||0;
+      const total=core+extra;
+      row.textContent=`Siphoning restored ${total} HP.`;
+      document.dispatchEvent(new CustomEvent('hajjen:zone4-siphoning-buffed',{detail:{zone:4,core,extra,total}}));
+      return total;
     }
 
     combatSpells.addEventListener('click',event=>{
@@ -98,7 +104,7 @@
       const index=buttons.indexOf(button),spell=(state.spells||[])[index];
       if(!spell)return;
 
-      const c=state.combat,ids=allIds(spell),data={combat:c,spell,lifeAdded:0,desiredBlock:0,originalAttack:null,siphonExtra:0};
+      const c=state.combat,ids=allIds(spell),data={combat:c,spell,lifeAdded:0,desiredBlock:0,originalAttack:null,siphonExtra:0,siphonPreAdded:0,previousSiphonRows:new Set(siphonRows())};
 
       if(ids.includes('lifebound')){
         const desired=desiredSecondary(spell,'lifebound');
@@ -122,8 +128,27 @@
         const desired=desiredSecondary(spell,'siphoning');
         const core=coreSecondary(spell,'siphoning',10);
         data.siphonExtra=Math.max(0,desired-core);
+
+        /* Siphoning used to apply its Zone 4 delta after winCombat(), which
+           made the base +10 appear in telemetry and could let a level-up heal
+           happen first. Combat is deterministic, so when the button already
+           shows lethal damage we can safely apply the Zone 4 delta before the
+           core +10. The fallback below still covers any unusual lethal cast. */
+        const shownDamage=Number((button.textContent||'').match(/(\d+)\s*damage/i)?.[1])||0;
+        if(data.siphonExtra>0&&shownDamage>0&&Number(c.hp)<=shownDamage){
+          const before=state.hp;
+          state.hp=Math.min(state.maxHp,state.hp+data.siphonExtra);
+          data.siphonPreAdded=state.hp-before;
+        }
       }
       event.__hajjenZone4EnchantBuff=data;
+
+      if(data.siphonPreAdded>0){
+        queueMicrotask(()=>{
+          rewriteNewSiphonLog(data.siphonPreAdded,data.previousSiphonRows);
+          syncHp();
+        });
+      }
     },true);
 
     combatSpells.addEventListener('click',event=>{
@@ -139,10 +164,13 @@
         message.textContent=(message.textContent||'').replace(/Fortified blocks \d+\./,`Fortified blocks ${desiredBlock}.`);
       }
 
-      if(combat.entity?.completed&&data.siphonExtra>0){
+      if(combat.entity?.completed&&data.siphonExtra>0&&data.siphonPreAdded===0){
         const before=state.hp;state.hp=Math.min(state.maxHp,state.hp+data.siphonExtra);
         const added=state.hp-before;
-        if(added>0){rewriteSiphonLog(added);syncHp();}
+        if(added>0){
+          rewriteNewSiphonLog(added,data.previousSiphonRows);
+          syncHp();
+        }
       }
     });
 
@@ -154,7 +182,7 @@
 
     patchSpells();
     window.HAJJEN_ZONE4_ENCHANTMENT_BUFFS={
-      version:'1.0-zone4-buffed',
+      version:'1.1-zone4-buffed-siphoning-sync',
       values:{empowered:12,lifebound:10,fortified:12,quickening:18,echoing:14,siphoning:20,focusedPerLevel:3,primalSurge:18,stabilizedPercent:100,finisher:18},
       patch:patchSpells,observer
     };

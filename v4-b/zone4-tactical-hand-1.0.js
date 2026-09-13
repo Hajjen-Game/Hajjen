@@ -28,12 +28,7 @@
     card.classList.toggle('is-equipt',isEquipped);
     if(!button)return;
     if(used){button.textContent='USED';button.disabled=true;button.setAttribute('aria-pressed','false');}
-    else if(isEquipped){
-      // Equipped Tactical cards stay armed until combat consumes them. There is
-      // no separate unequip action in this pass, so keeping the real button
-      // enabled made the desktop proxy alternate between enabled/disabled.
-      button.textContent='EQUIPPED';button.disabled=true;button.setAttribute('aria-pressed','true');
-    }
+    else if(isEquipped){button.textContent='EQUIPPED';button.disabled=true;button.setAttribute('aria-pressed','true');}
     else{button.textContent='EQUIP';button.disabled=false;button.setAttribute('aria-pressed','false');}
   }
 
@@ -44,15 +39,12 @@
     card.dataset.handCategory='tactical';
     card.dataset.handLabel=def.name||'Tactical';
     card.dataset.tacticalId=key;
-
     const title=document.createElement('strong');title.textContent=def.name||'Tactical';
     const copy=document.createElement('span');copy.className='shared-tactical-copy';copy.textContent=def.text||'Equip this Tactical card for combat.';
     const button=document.createElement('button');button.type='button';button.className='shared-tactical-equip';
     button.addEventListener('click',()=>{
       if(consumed(def)||equipped.has(key))return;
-      equipped.add(key);
-      state.tacticalEquippedKeys=[...equipped];
-      applyState(card,def);
+      equipped.add(key);state.tacticalEquippedKeys=[...equipped];applyState(card,def);
       queueMicrotask(()=>window.HAJJEN_ZONE4_TACTICAL_COMBAT?.sync?.());
       window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();
     });
@@ -61,10 +53,11 @@
 
   function ensureCards(){
     queued=false;if(ensuring||!hand.isConnected)return;ensuring=true;
+    let changed=false;
     try{
       const wanted=new Set(definitions.map(keyOf));
       [...hand.querySelectorAll(':scope > .hajjen-zone4-tactical-card')].forEach(card=>{
-        if(!wanted.has(String(card.dataset.tacticalId||'').toLowerCase()))card.remove();
+        if(!wanted.has(String(card.dataset.tacticalId||'').toLowerCase())){card.remove();changed=true;}
       });
       definitions.forEach(def=>{
         const key=keyOf(def);
@@ -73,10 +66,10 @@
           card=createCard(def);
           const placeholder=hand.querySelector(':scope > .shared-hand-placeholder[data-hand-placeholder="tactical"]');
           if(placeholder)placeholder.before(card);else hand.appendChild(card);
+          changed=true;
         }else applyState(card,def);
       });
-      window.HAJJEN_SHARED_HAND?.sync?.();
-      window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();
+      if(changed){window.HAJJEN_SHARED_HAND?.sync?.();window.HAJJEN_HAND_LIST_PRODUCTION?.render?.();}
       window.HAJJEN_ZONE4_TACTICAL_COMBAT?.sync?.();
     }finally{ensuring=false;}
   }
@@ -84,38 +77,22 @@
 
   function getSlots(){
     const used=usedKeys();
-    return definitions.map((def,index)=>({
-      index,key:keyOf(def),id:def.id||null,name:def.name||'Tactical',text:def.text||'',
-      used:used.has(keyOf(def)),equipped:equipped.has(keyOf(def))&&!used.has(keyOf(def))
-    }));
+    return definitions.map((def,index)=>({index,key:keyOf(def),id:def.id||null,name:def.name||'Tactical',text:def.text||'',used:used.has(keyOf(def)),equipped:equipped.has(keyOf(def))&&!used.has(keyOf(def))}));
   }
 
   function replaceSlot(index,newDefinition){
-    index=Number(index);
-    if(!Number.isInteger(index)||index<0||index>=definitions.length||!newDefinition)return null;
-    const old=definitions[index];
-    const oldKey=keyOf(old);
-    equipped.delete(oldKey);
-    state.tacticalEquippedKeys=[...equipped];
-
+    index=Number(index);if(!Number.isInteger(index)||index<0||index>=definitions.length||!newDefinition)return null;
+    const old=definitions[index],oldKey=keyOf(old);equipped.delete(oldKey);state.tacticalEquippedKeys=[...equipped];
     const combat=window.HAJJEN_ZONE4_TACTICAL_COMBAT;
     if(Array.isArray(combat?.slots))combat.slots.forEach((key,slotIndex)=>{if(key===oldKey)combat.slots[slotIndex]=null;});
-
     hand.querySelector(`:scope > .hajjen-zone4-tactical-card[data-tactical-id="${CSS.escape(oldKey)}"]`)?.remove();
-    const next=makeInstance(newDefinition,index);
-    definitions[index]=next;
-    ensureCards();
-    combat?.sync?.();
+    const next=makeInstance(newDefinition,index);definitions[index]=next;ensureCards();combat?.sync?.();
     document.dispatchEvent(new CustomEvent('hajjen:tactical-replaced',{detail:{zone:4,index,oldKey,newKey:keyOf(next),oldName:old?.name||'',newName:next?.name||''}}));
     return {index,old:{...old},current:{...next}};
   }
 
   const observer=new MutationObserver(records=>{if(records.some(record=>record.type==='childList'))schedule();});
   observer.observe(hand,{childList:true,subtree:false});
-
   ensureCards();queueMicrotask(ensureCards);
-  window.HAJJEN_ZONE4_TACTICAL_HAND={
-    version:'1.2-stable-equipped-state',definitions,equipped,hand,observer,
-    keyOf,getSlots,replaceSlot,sync:ensureCards
-  };
+  window.HAJJEN_ZONE4_TACTICAL_HAND={version:'1.3-no-render-loop',definitions,equipped,hand,observer,keyOf,getSlots,replaceSlot,sync:ensureCards};
 })();

@@ -61,6 +61,10 @@
     let expected=defeated.reduce((sum,e)=>sum+expectedXp(e),0);
     if(defeated.length<count)expected+=(count-defeated.length)*(FALLBACK[type]||0);
 
+    /* xpFloor is deliberately the XP observed BEFORE this kill. Core awards
+       XP synchronously in winCombat(), so current-xpFloor is the core award.
+       Do not advance xpFloor before this calculation or the same XP will be
+       awarded a second time. */
     const current=Math.max(0,Number(state.xp)||0);
     const coreGain=Math.max(0,current-xpFloor);
     const missing=Math.max(0,expected-coreGain);
@@ -74,17 +78,24 @@
   }
 
   function tick(){
-    const currentXp=Math.max(0,Number(state.xp)||0);
-    if(currentXp<xpFloor)state.xp=xpFloor;
-    else if(currentXp>xpFloor)xpFloor=currentXp;
+    let currentXp=Math.max(0,Number(state.xp)||0);
+    if(currentXp<xpFloor){state.xp=xpFloor;currentXp=xpFloor;}
 
     const mobs=Math.max(0,Number(state.mobKills)||0);
     const elites=Math.max(0,Number(state.eliteKills)||0);
     const boss=!!state.bossKilled;
+    let killHandled=false;
 
-    if(mobs>lastMobKills)awardMissing('mob',mobs-lastMobKills);
-    if(elites>lastEliteKills)awardMissing('elite',elites-lastEliteKills);
-    if(boss&&!lastBossKilled)awardMissing('boss',1);
+    if(mobs>lastMobKills){awardMissing('mob',mobs-lastMobKills);killHandled=true;}
+    if(elites>lastEliteKills){awardMissing('elite',elites-lastEliteKills);killHandled=true;}
+    if(boss&&!lastBossKilled){awardMissing('boss',1);killHandled=true;}
+
+    /* Non-kill XP/profile sync may legitimately move XP forward. Only adopt
+       that value after kill reconciliation, never before it. */
+    if(!killHandled){
+      currentXp=Math.max(0,Number(state.xp)||0);
+      if(currentXp>xpFloor)xpFloor=currentXp;
+    }
 
     lastMobKills=mobs;lastEliteKills=elites;lastBossKilled=boss;
   }
@@ -101,7 +112,7 @@
     timer=setInterval(tick,25);
     tick();
     window.HAJJEN_ZONE4_XP_SAFETY={
-      version:'3.0-monotonic-live-kill-ledger',
+      version:'3.1-no-duplicate-core-xp',
       tick,get xpFloor(){return xpFloor;},
       stop:()=>clearInterval(timer)
     };

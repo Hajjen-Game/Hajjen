@@ -34,6 +34,10 @@
       out.vitality+=Number(stats.vitality)||0;
       out.resolve+=Number(stats.resolve)||0;
     });
+    const talent=window.HAJJEN_ZONE4_TALENTS?.statBonuses?.()||{};
+    out.power+=Number(talent.power)||0;
+    out.vitality+=Number(talent.vitality)||0;
+    out.resolve+=Number(talent.resolve)||0;
     return out;
   }
 
@@ -95,7 +99,7 @@
 
     const summary=document.createElement('div');
     summary.className='zone4-rpg-summary';
-    summary.innerHTML=`<div><span>PERMANENT CHARACTER</span><strong>SHARKAN</strong><small>Level ${Math.max(1,Number(state.level)||Number(profile.progression?.level)||1)} · Equipment and RPG progression persist between expeditions.</small></div><div class="zone4-rpg-summary-meta"><span>SECURED ESSENCE</span><strong>${Math.max(0,Number(profile.currencies?.securedEssence)||0)}</strong></div>`;
+    summary.innerHTML=`<div><span>PERMANENT CHARACTER</span><strong>SHARKAN</strong><small>Level ${Math.max(1,Number(state.level)||Number(profile.progression?.level)||1)} · Equipment, Talents and RPG progression persist between expeditions.</small></div><div class="zone4-rpg-summary-meta"><span>SECURED ESSENCE</span><strong>${Math.max(0,Number(profile.currencies?.securedEssence)||0)}</strong></div>`;
     body.appendChild(summary);
 
     const top=document.createElement('div');
@@ -119,7 +123,7 @@
 
     const stats=document.createElement('section');
     stats.className='zone4-rpg-panel';
-    stats.innerHTML='<div class="zone4-rpg-panel-title"><strong>SHARKAN STATS</strong><span>Active in combat · deterministic</span></div>';
+    stats.innerHTML='<div class="zone4-rpg-panel-title"><strong>SHARKAN STATS</strong><span>Equipment + Talents · deterministic</span></div>';
     const statList=document.createElement('div');
     statList.className='zone4-rpg-stat-list';
     STAT_DEFS.forEach(def=>{
@@ -222,5 +226,5 @@
     event.stopImmediatePropagation();
   },true);
 
-  window.HAJJEN_ZONE4_RPG_BACKPACK_ISOLATED={version:'1.1-loot-equip',open,close,render,mountButton,equipItem,totals};
+  window.HAJJEN_ZONE4_RPG_BACKPACK_ISOLATED={version:'1.2-talent-stats',open,close,render,mountButton,equipItem,totals};
 })();

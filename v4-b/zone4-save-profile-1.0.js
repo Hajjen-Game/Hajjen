@@ -50,6 +50,13 @@
   }
 
   const saved=loadDev();
-  window.HAJJEN_ZONE4_SAVE_PROFILE={version:'1.1',dev,key:dev?DEV_KEY:null,get,restore,sync,applyFresh,saved,baseMax};
+  window.HAJJEN_ZONE4_SAVE_PROFILE={version:'1.2-legacy-loadout',dev,key:dev?DEV_KEY:null,get,restore,sync,applyFresh,saved,baseMax};
   document.addEventListener('hajjen:rpg-profile-changed',()=>{if(!syncing)setTimeout(()=>sync('profile-change'),0);});
+
+  if(dev&&!window.HAJJEN_ZONE4_LEGACY_LOADOUT){
+    const script=document.createElement('script');
+    script.src='zone4-legacy-loadout-1.0.js?v=1';
+    script.dataset.hajjenZone4LegacyLoadout='1';
+    document.head.appendChild(script);
+  }
 })();

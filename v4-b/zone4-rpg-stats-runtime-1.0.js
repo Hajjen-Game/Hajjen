@@ -1,9 +1,8 @@
-/* HAJJEN Zone 4 DEV — RPG equipment stats runtime.
-   Isolated bridge for the first gear pass:
+/* HAJJEN Zone 4 DEV — RPG equipment + Talent stats runtime.
    Power = +1 spell damage per point during combat.
    Vitality = +5 Max HP per point.
    Resolve = -1 incoming combat damage per 2 points.
-   No random combat stats. */
+   Talent-specific spell bonuses are layered deterministically on top. */
 (()=>{
   if(window.HAJJEN_ZONE4_RPG_STATS_RUNTIME)return;
   const cfg=window.HAJJEN_ZONE_CONFIG||window.HAJJEN_CAMPAIGN_CONFIG;
@@ -20,6 +19,12 @@
   let resolveValue=0;
   let hpValue=Number(state.hp)||0;
 
+  function talentStats(){
+    const raw=window.HAJJEN_ZONE4_TALENTS?.statBonuses?.()||{};
+    return {power:Number(raw.power)||0,vitality:Number(raw.vitality)||0,resolve:Number(raw.resolve)||0};
+  }
+  function talentSpellBonus(spell){return Math.max(0,Number(window.HAJJEN_ZONE4_TALENTS?.spellDamageBonus?.(spell))||0);}
+
   function totals(){
     const profile=window.HAJJEN_RPG_STATE?.getProfile?.()||{};
     const out={power:Number(profile.stats?.power)||0,vitality:Number(profile.stats?.vitality)||0,resolve:Number(profile.stats?.resolve)||0};
@@ -29,6 +34,7 @@
       out.vitality+=Number(stats.vitality)||0;
       out.resolve+=Number(stats.resolve)||0;
     });
+    const talent=talentStats();out.power+=talent.power;out.vitality+=talent.vitality;out.resolve+=talent.resolve;
     out.power=Math.max(0,out.power);out.vitality=Math.max(0,out.vitality);out.resolve=Math.max(0,out.resolve);
     return out;
   }
@@ -45,15 +51,9 @@
         let value=Number(next);
         if(!Number.isFinite(value))value=maxHpValue;
         value=Math.max(1,value);
-
-        /* Zone 4's legacy level ladder writes the level's base Max HP directly
-           (100 + 15 per level). If Vitality gear is equipped, preserve that
-           permanent bonus immediately so the level-up heal/log already sees
-           the correct total instead of waiting for the runtime sync timer. */
         const levelBase=100+(Math.max(1,Number(state.level)||1)-1)*15;
         const liveVitalityBonus=Math.max(0,Number(totals().vitality)||0)*5;
         if(liveVitalityBonus>0&&Math.abs(value-levelBase)<=1)value=levelBase+liveVitalityBonus;
-
         maxHpValue=value;
       }
     });
@@ -72,10 +72,8 @@
         let value=Number(next);if(!Number.isFinite(value))value=hpValue;
         if(value<hpValue&&state.combat&&resolveValue>0){
           const reduction=Math.floor(resolveValue/2);
-          /* campaign-zone clamps lethal combat damage to 0 before assigning HP.
-             Adding Resolve after that clamp used to turn 0 back into 1 HP,
-             making Resolve gear immortal at 1 HP. A core lethal result must
-             remain lethal; Resolve still reduces every non-lethal hit. */
+          /* Lethal core damage arrives as 0. Never add Resolve back onto a
+             lethal assignment; this keeps the old 1-HP immortality fix safe. */
           if(reduction>0&&value>0)value=Math.min(hpValue,value+reduction);
         }
         hpValue=value;
@@ -103,7 +101,7 @@
   function ensureSpellBase(spell){
     if(!spell||typeof spell!=='object')return null;
     let rec=spellBase.get(spell);
-    if(!rec){rec={base:Number(spell.damage)||0,last:Number(spell.damage)||0};spellBase.set(spell,rec);}
+    if(!rec){rec={base:Number(spell.damage)||0,last:Number(spell.damage)||0,appliedBonus:0};spellBase.set(spell,rec);}
     return rec;
   }
 
@@ -112,11 +110,13 @@
     spells.forEach(spell=>{
       const rec=ensureSpellBase(spell);if(!rec)return;
       if(combatPowerApplied&&Number(spell.damage)!==rec.last){
-        rec.base=Math.max(0,Number(spell.damage)-appliedPower);
+        rec.base=Math.max(0,Number(spell.damage)-rec.appliedBonus);
       }else if(!combatPowerApplied&&Number(spell.damage)!==rec.base){
         rec.base=Math.max(0,Number(spell.damage));
       }
-      spell.damage=rec.base+power;
+      const totalBonus=power+talentSpellBonus(spell);
+      spell.damage=rec.base+totalBonus;
+      rec.appliedBonus=totalBonus;
       rec.last=spell.damage;
     });
     combatPowerApplied=true;
@@ -127,8 +127,8 @@
     const spells=Array.isArray(state.spells)?state.spells:[];
     spells.forEach(spell=>{
       const rec=ensureSpellBase(spell);if(!rec)return;
-      if(Number(spell.damage)!==rec.last)rec.base=Math.max(0,Number(spell.damage)-appliedPower);
-      spell.damage=rec.base;rec.last=rec.base;
+      if(Number(spell.damage)!==rec.last)rec.base=Math.max(0,Number(spell.damage)-rec.appliedBonus);
+      spell.damage=rec.base;rec.last=rec.base;rec.appliedBonus=0;
     });
     combatPowerApplied=false;
     appliedPower=0;
@@ -164,7 +164,7 @@
   },30);
 
   window.HAJJEN_ZONE4_RPG_STATS_RUNTIME={
-    version:'1.2-resolve-lethal-safe',
+    version:'1.3-talents-integrated',
     totals,
     sync:syncProfile,
     stop:()=>clearInterval(timer)

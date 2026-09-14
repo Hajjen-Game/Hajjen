@@ -9,10 +9,10 @@
   if(Number(cfg?.zone)!==4||!state)return;
 
   const BRANCHES=[
-    {id:'explorer',name:'EXPLORER',icon:'E',subtitle:'Danger · movement · Essence',nodes:[
-      {id:'scavenger',name:'Scavenger',text:'Enemy kills yield 20% more Primal Essence.',effect:'+20% kill Essence'},
-      {id:'trailwise',name:'Trailwise',text:'Every 6th movement step reduces Danger by 1.',effect:'-1 Danger every 6 steps',requires:'scavenger'},
-      {id:'pressure-control',name:'Pressure Control',text:'The first time Danger reaches 15 each expedition, immediately reduce it by 3.',effect:'Once per expedition · Danger -3',requires:'trailwise'}
+    {id:'explorer',name:'EXPLORER',icon:'E',subtitle:'Danger · movement · exploration',nodes:[
+      {id:'pathfinder',name:'Pathfinder',text:'Every 6th movement step reduces Danger by 1.',effect:'-1 Danger every 6 steps'},
+      {id:'pressure-control',name:'Pressure Control',text:'The first time Danger reaches 15 each expedition, immediately reduce it by 3.',effect:'Once per expedition · Danger -3',requires:'pathfinder'},
+      {id:'safe-haven',name:'Safe Haven',text:'Using a Primal Spring also reduces Danger by 3.',effect:'Spring use · Danger -3',requires:'pressure-control'}
     ]},
     {id:'spellweaver',name:'SPELLWEAVER',icon:'S',subtitle:'Spells · Forces · Enchantments',nodes:[
       {id:'arcane-edge',name:'Arcane Edge',text:'Gain +2 Power.',effect:'+2 spell damage'},
@@ -83,7 +83,7 @@
       return profile;
     },`talent-learned:${id}`);
     syncing=false;
-    if(id==='trailwise')state.talentTrailwiseMilestone=Math.floor((Number(state.steps)||0)/6);
+    if(id==='pathfinder')state.talentPathfinderMilestone=Math.floor((Number(state.steps)||0)/6);
     addLog(`Talent learned: ${node.name}.`,'reward');toast(`${node.name.toUpperCase()} LEARNED`,'reward');
     window.HAJJEN_ZONE4_RPG_STATS_RUNTIME?.sync?.();render();syncButton();return true;
   }
@@ -94,7 +94,7 @@
       profile.talents=profile.talents||{unspent:0,nodes:[]};profile.talents.nodes=[];profile.talents.unspent=totalPoints();return profile;
     },'talent-respec');
     syncing=false;
-    state.talentTrailwiseMilestone=0;state.talentPressureControlUsed=false;
+    state.talentPathfinderMilestone=0;state.talentPressureControlUsed=false;
     addLog('Talent Tree reset before expedition start.','system');toast('TALENTS RESET','system');
     window.HAJJEN_ZONE4_RPG_STATS_RUNTIME?.sync?.();render();syncButton();return true;
   }
@@ -162,28 +162,23 @@
   function syncButton(){const b=document.querySelector('.shared-utility-hud > .zone4-talents-open');if(!b)return;b.classList.toggle('has-points',unspentPoints()>0);b.title=unspentPoints()>0?`${unspentPoints()} Talent Point${unspentPoints()===1?'':'s'} available`:'Talent Tree';}
 
   function explorerTick(){
-    if(has('trailwise')){
-      const milestone=Math.floor((Number(state.steps)||0)/6),seen=Math.max(0,Number(state.talentTrailwiseMilestone)||0);
-      if(milestone>seen){state.talentTrailwiseMilestone=milestone;if(Number(state.danger)>0){state.danger=Math.max(0,Number(state.danger)-1);addLog('Trailwise reduced Danger by 1.','reward');toast('TRAILWISE · DANGER -1','reward');}}
+    if(has('pathfinder')){
+      const milestone=Math.floor((Number(state.steps)||0)/6),seen=Math.max(0,Number(state.talentPathfinderMilestone)||0);
+      if(milestone>seen){state.talentPathfinderMilestone=milestone;if(Number(state.danger)>0){state.danger=Math.max(0,Number(state.danger)-1);addLog('Pathfinder reduced Danger by 1.','reward');toast('PATHFINDER · DANGER -1','reward');}}
     }
     if(has('pressure-control')&&!state.talentPressureControlUsed&&Number(state.danger)>=15){state.talentPressureControlUsed=true;state.danger=Math.max(0,Number(state.danger)-3);addLog('Pressure Control triggered at high Danger · Danger -3.','reward');toast('PRESSURE CONTROL · DANGER -3','reward');}
   }
 
-  document.addEventListener('hajjen:rpg-essence-changed',event=>{
-    if(event.detail?.reason!=='earned'||!has('scavenger'))return;
-    const base=Math.max(0,Number(event.detail?.amount)||0),bonus=Math.floor(base*.20);if(!bonus)return;
-    state.unsecuredEssence=Math.max(0,Number(state.unsecuredEssence)||0)+bonus;addLog(`Scavenger yielded +${bonus} bonus Primal Essence.`,'reward');
-    setTimeout(()=>window.HAJJEN_ZONE4_RPG_ESSENCE?.sync?.(),0);
-  });
   document.addEventListener('hajjen:primal-spring-used',event=>{
-    if(Number(event.detail?.zone)!==4||!has('deep-renewal')||!(Number(event.detail?.heal)>0))return;
-    const bonus=Math.min(25,Math.max(0,Number(state.maxHp)-Number(state.hp)));if(!bonus)return;state.hp=Number(state.hp)+bonus;addLog(`Deep Renewal restored ${bonus} additional HP.`,'reward');toast(`DEEP RENEWAL · +${bonus} HP`,'reward');
+    if(Number(event.detail?.zone)!==4)return;
+    if(has('safe-haven')&&Number(state.danger)>0){const before=Number(state.danger);state.danger=Math.max(0,before-3);const reduced=before-Number(state.danger);if(reduced>0){addLog(`Safe Haven reduced Danger by ${reduced}.`,'reward');toast(`SAFE HAVEN · DANGER -${reduced}`,'reward');}}
+    if(has('deep-renewal')&&Number(event.detail?.heal)>0){const bonus=Math.min(25,Math.max(0,Number(state.maxHp)-Number(state.hp)));if(bonus>0){state.hp=Number(state.hp)+bonus;addLog(`Deep Renewal restored ${bonus} additional HP.`,'reward');toast(`DEEP RENEWAL · +${bonus} HP`,'reward');}}
   });
   document.addEventListener('hajjen:rpg-profile-changed',()=>{if(syncing)return;render();syncButton();window.HAJJEN_ZONE4_RPG_STATS_RUNTIME?.sync?.();});
   document.addEventListener('hajjen-ui-redesign-promoted',()=>{setTimeout(mountButton,0);});
   document.addEventListener('keydown',event=>{const modal=document.getElementById('zone4TalentsModal');if(!modal?.classList.contains('is-open'))return;if(event.key==='Escape')close();if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(event.key)){event.preventDefault();event.stopImmediatePropagation();}},true);
 
-  window.HAJJEN_ZONE4_TALENTS={version:'1.0-nine-node-mvp',branches:BRANCHES,totalPoints,unspentPoints,has,learn,respec,canRespec,statBonuses,spellDamageBonus,open,close,render,sync:()=>{syncProfilePoints();render();syncButton();}};
+  window.HAJJEN_ZONE4_TALENTS={version:'1.1-nine-node-mvp',branches:BRANCHES,totalPoints,unspentPoints,has,learn,respec,canRespec,statBonuses,spellDamageBonus,open,close,render,sync:()=>{syncProfilePoints();render();syncButton();}};
 
   function start(){
     if(!rpg()?.getProfile)return false;syncProfilePoints('talent-tree-init');createModal();mountButton();
@@ -192,7 +187,7 @@
       explorerTick();
       const level=Number(state.level)||0;if(level!==lastLevel){const before=Math.max(0,lastLevel-9),after=Math.max(0,level-9);lastLevel=level;syncProfilePoints('talent-point-level-up');syncButton();if(after>before)toast(`TALENT POINT +${after-before}`,'reward');}
     },100);
-    const profile=getProfile();if(totalPoints()>0&&canRespec()&&!profile?.unlocks?.talentsIntroduced){setTimeout(()=>{if(canRespec())open();},900);}
+    const profile=getProfile();if(totalPoints()>0&&canRespec()&&!profile?.unlocks?.talentsIntroduced){setTimeout(()=>{if(canRespec()&&!getProfile()?.unlocks?.talentsIntroduced)open();},900);}
     return true;
   }
   if(!start())[50,120,250,500,1000].forEach(delay=>setTimeout(start,delay));

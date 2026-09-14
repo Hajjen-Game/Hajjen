@@ -165,7 +165,9 @@ Focus on:
 - Tactical cards
 - low-HP survival tools
 
-Initial target: roughly one talent point per level. There should be more useful nodes than the player can purchase, so builds differ.
+**Unlock timing is locked:** Talents are introduced at the start of **Zone 4 / Level 10**. Level 10 grants Sharkan the first Talent Point. Each later level grants one additional Talent Point, so the initial Zone 4 band is L10 = 1 point, L11 = 2, L12 = 3, L13 = 4.
+
+There should be more useful nodes than the player can purchase, so builds differ.
 
 **Free respec between expedition runs** is the intended rule. Do not allow constant mid-run respec.
 

@@ -10,7 +10,7 @@
 
   const BRANCHES=[
     {id:'explorer',name:'EXPLORER',icon:'E',subtitle:'Danger · movement · exploration',nodes:[
-      {id:'pathfinder',name:'Pathfinder',text:'Every 6th movement step reduces Danger by 1.',effect:'-1 Danger every 6 steps'},
+      {id:'pathfinder',name:'Pathfinder',text:'Every 12th movement step reduces Danger by 1.',effect:'-1 Danger every 12 steps'},
       {id:'pressure-control',name:'Pressure Control',text:'The first time Danger reaches 15 each expedition, immediately reduce it by 3.',effect:'Once per expedition · Danger -3',requires:'pathfinder'},
       {id:'safe-haven',name:'Safe Haven',text:'Using a Primal Spring also reduces Danger by 3.',effect:'Spring use · Danger -3',requires:'pressure-control'}
     ]},
@@ -83,7 +83,7 @@
       return profile;
     },`talent-learned:${id}`);
     syncing=false;
-    if(id==='pathfinder')state.talentPathfinderMilestone=Math.floor((Number(state.steps)||0)/6);
+    if(id==='pathfinder')state.talentPathfinderMilestone=Math.floor((Number(state.steps)||0)/12);
     addLog(`Talent learned: ${node.name}.`,'reward');toast(`${node.name.toUpperCase()} LEARNED`,'reward');
     window.HAJJEN_ZONE4_RPG_STATS_RUNTIME?.sync?.();render();syncButton();return true;
   }
@@ -163,7 +163,7 @@
 
   function explorerTick(){
     if(has('pathfinder')){
-      const milestone=Math.floor((Number(state.steps)||0)/6),seen=Math.max(0,Number(state.talentPathfinderMilestone)||0);
+      const milestone=Math.floor((Number(state.steps)||0)/12),seen=Math.max(0,Number(state.talentPathfinderMilestone)||0);
       if(milestone>seen){state.talentPathfinderMilestone=milestone;if(Number(state.danger)>0){state.danger=Math.max(0,Number(state.danger)-1);addLog('Pathfinder reduced Danger by 1.','reward');toast('PATHFINDER · DANGER -1','reward');}}
     }
     if(has('pressure-control')&&!state.talentPressureControlUsed&&Number(state.danger)>=15){state.talentPressureControlUsed=true;state.danger=Math.max(0,Number(state.danger)-3);addLog('Pressure Control triggered at high Danger · Danger -3.','reward');toast('PRESSURE CONTROL · DANGER -3','reward');}
@@ -178,7 +178,7 @@
   document.addEventListener('hajjen-ui-redesign-promoted',()=>{setTimeout(mountButton,0);});
   document.addEventListener('keydown',event=>{const modal=document.getElementById('zone4TalentsModal');if(!modal?.classList.contains('is-open'))return;if(event.key==='Escape')close();if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(event.key)){event.preventDefault();event.stopImmediatePropagation();}},true);
 
-  window.HAJJEN_ZONE4_TALENTS={version:'1.1-nine-node-mvp',branches:BRANCHES,totalPoints,unspentPoints,has,learn,respec,canRespec,statBonuses,spellDamageBonus,open,close,render,sync:()=>{syncProfilePoints();render();syncButton();}};
+  window.HAJJEN_ZONE4_TALENTS={version:'1.2-pathfinder12',branches:BRANCHES,totalPoints,unspentPoints,has,learn,respec,canRespec,statBonuses,spellDamageBonus,open,close,render,sync:()=>{syncProfilePoints();render();syncButton();}};
 
   function start(){
     if(!rpg()?.getProfile)return false;syncProfilePoints('talent-tree-init');createModal();mountButton();

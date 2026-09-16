@@ -1,5 +1,5 @@
 /* HAJJEN Zone 4 DEV — slower Danger gain test.
-   Movement Danger cadence: every 5 steps instead of 3.
+   Movement Danger cadence: every 4 steps instead of 3.
    Mob/Elite defeat Danger: +1 instead of +2.
    Harvesting remains +1. */
 (()=>{
@@ -9,21 +9,22 @@
   const dev=!!(window.HAJJEN_ZONE4_DEV_MODE||window.HAJJEN_ZONE4_DEV_REQUESTED||document.documentElement.dataset.hajjenDev==='zone4');
   if(Number(cfg?.zone)!==4||!state||!dev)return;
 
-  const MOVEMENT_STEPS=5;
+  const MOVEMENT_STEPS=4;
 
-  // Core resets nextAmbient to 3 after each movement Danger tick. Translate
-  // that reset to 5 without touching Zones 1–3 or the shared campaign core.
+  // Core counts nextAmbient down to 0, then resets it to its native value (3).
+  // Only translate that RESET from 3 -> 4. Do not translate a normal countdown
+  // step from 4 -> 3, otherwise the counter can never reach 0.
   const nextDesc=Object.getOwnPropertyDescriptor(state,'nextAmbient');
   if(!nextDesc||nextDesc.configurable){
     let next=Math.max(1,Number(state.nextAmbient)||3);
-    if(next<=3)next=MOVEMENT_STEPS;
+    if(next===3)next=MOVEMENT_STEPS;
     Object.defineProperty(state,'nextAmbient',{
       configurable:true,enumerable:true,
       get(){return next;},
       set(value){
         let incoming=Number(value);if(!Number.isFinite(incoming))return;
-        if(incoming===3)incoming=MOVEMENT_STEPS;
-        next=incoming;
+        const isCoreReset=incoming===3&&next<=0;
+        next=isCoreReset?MOVEMENT_STEPS:incoming;
       }
     });
   }
@@ -48,6 +49,6 @@
   }
 
   window.HAJJEN_ZONE4_DANGER_SLOW_TEST={
-    version:'1.0',movementSteps:MOVEMENT_STEPS,killDanger:1,harvestDanger:1
+    version:'1.2-four-step-reset-safe',movementSteps:MOVEMENT_STEPS,killDanger:1,harvestDanger:1
   };
 })();

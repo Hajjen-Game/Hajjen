@@ -118,6 +118,9 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - each character permanently keeps its class plus separate Honor, Rank, win/loss record and banked Talent Points
   - a CHARACTERS button returns to the character screen; an active match can be resumed if you only opened the screen to look
   - existing pre-character Honor progress is automatically preserved as a legacy "Player" character on first load
+- Dynamic roster role layout:
+  - match setup hides the role already filled by the selected player character
+  - Warrior therefore sees only Healer + Caster teammate selectors; healer characters see only Melee + Caster
 - Pre-match draft:
   - every match begins on a setup screen before the arena timer or AI starts
   - the random enemy healer, melee and caster are revealed first

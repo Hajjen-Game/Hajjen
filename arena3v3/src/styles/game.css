@@ -858,3 +858,10 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .character-create-modal {
   z-index: 120;
 }
+
+
+/* Dynamic match setup roles: hidden roster slots must stay out of the grid even
+   when .roster-field has an authored display rule. */
+.roster-field[hidden] {
+  display: none !important;
+}

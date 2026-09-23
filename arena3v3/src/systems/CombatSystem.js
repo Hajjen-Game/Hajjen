@@ -19,6 +19,8 @@ export class CombatSystem {
       this.game.resources.update(actor, deltaMs);
 
       actor.gcdRemaining = Math.max(0, actor.gcdRemaining - deltaMs);
+      if (actor.gcdRemaining <= 0) actor.gcdTotalMs = 0;
+
       for (const [spellId, remaining] of actor.cooldowns.entries()) {
         actor.cooldowns.set(spellId, Math.max(0, remaining - deltaMs));
       }
@@ -155,7 +157,9 @@ export class CombatSystem {
     }
 
     if (!spell.ignoreGcd) {
-      caster.gcdRemaining = spell.gcdMs ?? 1200;
+      const gcdMs = spell.gcdMs ?? 1200;
+      caster.gcdRemaining = gcdMs;
+      caster.gcdTotalMs = gcdMs;
     }
 
     if (spell.castMs > 0) {

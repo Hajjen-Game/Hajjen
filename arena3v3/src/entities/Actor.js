@@ -36,6 +36,7 @@ export class Actor {
     this.effects = [];
     this.cast = null;
     this.gcdRemaining = 0;
+    this.gcdTotalMs = 0;
     this.targetId = null;
     this.aiTargetId = null;
     this.aiPeelTargetId = null;

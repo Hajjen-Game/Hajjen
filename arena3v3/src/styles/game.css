@@ -364,9 +364,32 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   cursor: pointer;
   z-index: 2;
 }
+.gcd-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(238, 212, 168, .12) 0%,
+      rgba(24, 16, 12, .34) 18%,
+      rgba(7, 5, 4, .48) 100%
+    );
+  box-shadow: inset 0 1px 0 rgba(238, 198, 126, .34);
+}
+
+.gcd-sweep.active {
+  opacity: 1;
+}
+
 .cooldown {
   position: absolute;
   inset: 0;
+  z-index: 3;
   display: grid;
   place-items: center;
   background: rgba(9,7,6,.68);
@@ -377,6 +400,17 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   pointer-events: none;
 }
 .cooldown.active { opacity: 1; }
+
+.action-slot > .spell-name,
+.action-slot > .spell-meta,
+.action-slot > .drag-handle {
+  position: relative;
+  z-index: 2;
+}
+
+.action-slot .keycap {
+  z-index: 4;
+}
 
 .player-status-bars {
   position: absolute;

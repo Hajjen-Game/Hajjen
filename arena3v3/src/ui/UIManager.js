@@ -504,6 +504,7 @@ export class UIManager {
 
       const cooldown = this.game.player.cooldownFor(spell.id);
       const overlay = slot.querySelector(".cooldown");
+      const gcdSweep = slot.querySelector(".gcd-sweep");
 
       if (cooldown > 0) {
         overlay.classList.add("active");
@@ -511,6 +512,23 @@ export class UIManager {
       } else {
         overlay.classList.remove("active");
         overlay.textContent = "";
+      }
+
+      const gcdActive =
+        !spell.ignoreGcd
+        && this.game.player.gcdRemaining > 0
+        && this.game.player.gcdTotalMs > 0;
+
+      if (gcdActive) {
+        const gcdRatio = Math.max(
+          0,
+          Math.min(1, this.game.player.gcdRemaining / this.game.player.gcdTotalMs),
+        );
+        gcdSweep.classList.add("active");
+        gcdSweep.style.transform = "scaleY(" + gcdRatio.toFixed(4) + ")";
+      } else {
+        gcdSweep.classList.remove("active");
+        gcdSweep.style.transform = "scaleY(0)";
       }
 
       const selectedTarget = this.game.getActor(this.game.player.targetId);

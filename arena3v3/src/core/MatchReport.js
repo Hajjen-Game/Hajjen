@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.38-castbar-feedback-fix",
+    "Build: prototype-v0.39-gcd-feedback",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -38,6 +38,7 @@ export function buildMatchReport(game) {
     "Range feedback: action-bar abilities dim in real time when the currently selected valid target is outside that ability's range",
     "Combat HUD layout: only the cast bar remains in the centered arena overlay; healer casts use a green gradient and DPS casts use a red gradient",
     "HUD cleanup: combat log is hidden, toast feedback is raised above the cast bar, and cast progress resets to 0 before every new cast",
+    "GCD feedback: every GCD-bound action slot receives a synchronized dark sweep that clears over the actual global cooldown duration",
     "",
     "=== FRIENDLY TEAM ===",
   ];

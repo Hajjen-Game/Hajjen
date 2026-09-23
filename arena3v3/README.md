@@ -101,6 +101,12 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Global cooldown feedback:
+  - abilities already use a real global cooldown, normally 1.2 seconds
+  - GCD duration is now tracked explicitly on every actor
+  - all GCD-bound action slots show a synchronized sweep while the global cooldown is active
+  - the overlay clears continuously as the GCD expires, making successful instant casts such as Renew immediately visible
+  - abilities marked `ignoreGcd` remain exempt from both the mechanic and the visual
 - Cast-bar feedback polish:
   - the fast-scrolling combat log is hidden from the arena view
   - toast feedback is positioned higher so it does not overlap the cast bar

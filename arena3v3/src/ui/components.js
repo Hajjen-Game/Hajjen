@@ -93,6 +93,7 @@ export function createActionSlot(spell, index, onCast, onRebind) {
     <span class="spell-name"></span>
     <span class="spell-meta"></span>
     <span class="keycap" role="button" tabindex="0"></span>
+    <span class="gcd-sweep" aria-hidden="true"></span>
     <span class="cooldown"></span>
   `;
 

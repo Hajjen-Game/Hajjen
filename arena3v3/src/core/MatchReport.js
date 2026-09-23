@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.11-healer-aware-kiting",
+    "Build: prototype-v0.12-reset-diagnostics",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -46,6 +46,21 @@ export function buildMatchReport(game) {
   appendTeam("friendly");
   lines.push("", "=== ENEMY TEAM ===");
   appendTeam("enemy");
+
+  lines.push("", "=== RESET / RELOAD DIAGNOSTICS ===");
+  if (!game.resetDiagnostics || game.resetDiagnostics.length === 0) {
+    lines.push("None detected in this browser tab.");
+  } else {
+    game.resetDiagnostics.forEach(event => {
+      const at = Number(event.previousElapsedSeconds || 0).toFixed(1);
+      lines.push(
+        event.kind.toUpperCase()
+        + " — previous match " + at + "s"
+        + " — " + event.reason
+        + (event.recordedAt ? " — " + event.recordedAt : "")
+      );
+    });
+  }
 
   lines.push("", "=== DEATH ORDER ===");
   if (game.deathEvents.length === 0) lines.push("None");

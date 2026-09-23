@@ -45,7 +45,13 @@ export class Game {
     this.floatingTexts = [];
     this.lastFrame = performance.now();
 
+    this.runSessionKey = "arena3v3-active-run-v1";
+    this.resetDiagnostics = [];
+    this.lastHeartbeatSecond = -1;
+    this.restorePreviousRunDiagnostic();
+
     this.resetMatchTracking();
+    this.writeRunHeartbeat();
     this.ui = new UIManager(this, input);
 
     this.input.setActionHandler(action => {
@@ -171,6 +177,7 @@ export class Game {
       this.elapsedSeconds += deltaMs / 1000;
       const deltaSeconds = deltaMs / 1000;
 
+      this.writeRunHeartbeat();
       this.dampening.update(this.elapsedSeconds);
 
       for (const actor of this.actors) {
@@ -243,6 +250,7 @@ export class Game {
     this.resultText = result;
     this.ui.setResult(result);
     this.log(message);
+    this.markRunInactive();
   }
 
   recordDamage(source, target, amount, crit) {
@@ -313,12 +321,68 @@ export class Game {
     return buildMatchReport(this);
   }
 
-  setCharacterConfigs(characterConfigs) {
-    this.characterConfigs = characterConfigs;
-    this.reset();
+  restorePreviousRunDiagnostic() {
+    try {
+      const previous = JSON.parse(sessionStorage.getItem(this.runSessionKey) || "null");
+
+      if (previous?.active && Number.isFinite(previous.elapsedSeconds)) {
+        this.resetDiagnostics.push({
+          kind: "reload",
+          reason: "page reload / navigation / renderer restart",
+          previousElapsedSeconds: previous.elapsedSeconds,
+          recordedAt: previous.recordedAt || null,
+        });
+      }
+    } catch {
+      // Diagnostics must never block gameplay.
+    }
   }
 
-  reset() {
+  writeRunHeartbeat() {
+    const second = Math.floor(this.elapsedSeconds);
+    if (second === this.lastHeartbeatSecond) return;
+    this.lastHeartbeatSecond = second;
+
+    try {
+      sessionStorage.setItem(this.runSessionKey, JSON.stringify({
+        active: !this.ended,
+        elapsedSeconds: this.elapsedSeconds,
+        recordedAt: new Date().toISOString(),
+      }));
+    } catch {
+      // Session storage can be unavailable in hardened/private browser modes.
+    }
+  }
+
+  markRunInactive() {
+    try {
+      sessionStorage.setItem(this.runSessionKey, JSON.stringify({
+        active: false,
+        elapsedSeconds: this.elapsedSeconds,
+        recordedAt: new Date().toISOString(),
+      }));
+    } catch {
+      // Diagnostics must never block gameplay.
+    }
+  }
+
+  recordResetDiagnostic(reason) {
+    this.resetDiagnostics.push({
+      kind: "internal-reset",
+      reason,
+      previousElapsedSeconds: this.elapsedSeconds,
+      recordedAt: new Date().toISOString(),
+    });
+    this.resetDiagnostics = this.resetDiagnostics.slice(-5);
+  }
+
+  setCharacterConfigs(characterConfigs) {
+    this.characterConfigs = characterConfigs;
+    this.reset("roster apply");
+  }
+
+  reset(reason = "unknown internal reset") {
+    this.recordResetDiagnostic(reason);
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;
@@ -340,8 +404,10 @@ export class Game {
     this.ended = false;
     this.resultText = "IN PROGRESS";
     this.floatingTexts = [];
+    this.lastHeartbeatSecond = -1;
 
     this.resetMatchTracking();
+    this.writeRunHeartbeat();
 
     this.ui.clearResult();
     this.ui.clearLog();

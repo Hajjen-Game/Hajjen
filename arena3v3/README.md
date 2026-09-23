@@ -88,6 +88,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Reset/reload diagnostics:
+  - header Restart requires two pointer clicks and ignores keyboard activation
+  - internal resets record their source (manual restart / roster apply / play again)
+  - a session heartbeat detects an unexpected browser reload/navigation while a match was active
+  - Copy Run Report includes a RESET / RELOAD DIAGNOSTICS section
 
 ## Visual effects
 

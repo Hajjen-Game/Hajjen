@@ -39,9 +39,12 @@ export class UIManager {
 
     this.controlsModal = document.querySelector("#controls-modal");
     this.bindingList = document.querySelector("#binding-list");
+    this.restartButton = document.querySelector("#restart-button");
+    this.restartConfirmTimer = null;
+    this.restartArmed = false;
 
-    document.querySelector("#restart-button").addEventListener("click", () => game.reset());
-    document.querySelector("#result-restart-button").addEventListener("click", () => game.reset());
+    this.restartButton.addEventListener("click", event => this.handleRestartClick(event));
+    document.querySelector("#result-restart-button").addEventListener("click", () => game.reset("play again after match"));
     document.querySelector("#controls-button").addEventListener("click", () => this.openControls());
     document.querySelector("#controls-close").addEventListener("click", () => this.closeControls());
 
@@ -58,6 +61,42 @@ export class UIManager {
     this.buildDamageMeter();
     this.buildActionBar();
     this.renderBindings();
+  }
+
+  handleRestartClick(event) {
+    // Ignore keyboard-generated button activation. In a WASD/action-key game,
+    // a focused HUD button should never be able to restart the match.
+    if (event.detail === 0) {
+      this.toast("Restart requires two mouse clicks");
+      return;
+    }
+
+    if (!this.restartArmed) {
+      this.restartArmed = true;
+      this.restartButton.textContent = "CONFIRM RESTART";
+      this.restartButton.classList.add("primary");
+      this.toast("Click RESTART again to confirm");
+
+      window.clearTimeout(this.restartConfirmTimer);
+      this.restartConfirmTimer = window.setTimeout(() => {
+        this.disarmRestart();
+      }, 2200);
+      return;
+    }
+
+    this.disarmRestart();
+    this.game.reset("manual restart button");
+  }
+
+  disarmRestart() {
+    this.restartArmed = false;
+    window.clearTimeout(this.restartConfirmTimer);
+    this.restartConfirmTimer = null;
+
+    if (this.restartButton) {
+      this.restartButton.textContent = "RESTART";
+      this.restartButton.classList.remove("primary");
+    }
   }
 
   buildFrames() {

@@ -213,6 +213,13 @@ export class CombatSystem {
         const label = hit === "miss" ? "MISS" : "DODGE";
         this.game.addFloatingText(target, label, "avoid");
         this.game.log(caster.name + "'s " + spell.name + ": " + label.toLowerCase() + ".");
+        this.game.vfx.spell(
+          caster,
+          target,
+          spell.id,
+          spell.visualStyle || caster.visualStyle || "damage",
+          true,
+        );
         caster.cooldowns.set(spell.id, spell.cooldownMs || 0);
         this.game.resources.spend(caster, spell);
         this.game.recordCast(caster, spell);
@@ -226,6 +233,13 @@ export class CombatSystem {
     if (spell.cooldownMs > 0) caster.cooldowns.set(spell.id, spell.cooldownMs);
     this.game.recordCast(caster, spell);
     this.activateOffensiveCooldown(caster, spell);
+    this.game.vfx.spell(
+      caster,
+      target,
+      spell.id,
+      spell.visualStyle || caster.visualStyle || "damage",
+      false,
+    );
 
     for (const effect of spell.effects) {
       const effectTarget = effect.to === "self" ? caster : target;

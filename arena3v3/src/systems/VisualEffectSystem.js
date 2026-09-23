@@ -71,4 +71,31 @@ export class VisualEffectSystem {
       style,
     }, durationMs);
   }
+
+  spell(source, target, spellId, style = "damage", missed = false) {
+    if (!source || !target || !spellId) return;
+
+    const durations = {
+      "mage-pyroblast": 620,
+      "warlock-chaos-bolt": 620,
+      "shaman-lava-burst": 560,
+      "priest-greater-heal": 560,
+      "paladin-holy-light": 560,
+      "druid-regrowth": 520,
+      "warrior-charge": 520,
+    };
+
+    this.add("spell", {
+      sourceId: source.id,
+      targetId: target.id,
+      sourceX: source.x,
+      sourceY: source.y,
+      targetX: target.x,
+      targetY: target.y,
+      spellId,
+      style,
+      missed,
+      seed: this.nextId * 37,
+    }, durations[spellId] || 420);
+  }
 }

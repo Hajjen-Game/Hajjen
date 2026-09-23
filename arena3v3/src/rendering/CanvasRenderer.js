@@ -696,6 +696,10 @@ export class CanvasRenderer {
         ctx.restore();
       }
 
+      if (effect.type === "spell") {
+        this.drawSpellVfx(ctx, effect, game, progress, alpha);
+      }
+
       if (effect.type === "chain") {
         const actors = effect.actorIds.map(id => game.getActor(id)).filter(Boolean);
         if (actors.length < 2) continue;
@@ -719,6 +723,363 @@ export class CanvasRenderer {
         ctx.restore();
       }
     }
+  }
+
+  drawSpellVfx(ctx, effect, game, progress, alpha) {
+    const source = game.getActor(effect.sourceId);
+    const target = game.getActor(effect.targetId);
+    const from = {
+      x: effect.sourceX ?? source?.x ?? 0,
+      y: effect.sourceY ?? source?.y ?? 0,
+    };
+    const to = {
+      x: target?.x ?? effect.targetX ?? from.x,
+      y: target?.y ?? effect.targetY ?? from.y,
+    };
+
+    const spellId = effect.spellId || "";
+    const color = this.spellVfxColor(spellId, effect.style);
+    const accent = this.spellVfxAccent(spellId, color);
+    const travel = Math.min(1, progress * 1.35);
+    const x = lerp(from.x, to.x, travel);
+    const y = lerp(from.y, to.y, travel);
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const angle = Math.atan2(dy, dx);
+    const distanceToTarget = Math.hypot(dx, dy);
+    const missedAlpha = effect.missed ? 0.72 : 1;
+
+    ctx.save();
+    ctx.globalAlpha = alpha * missedAlpha;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    const projectileIds = new Set([
+      "mage-frostbolt", "mage-pyroblast",
+      "warlock-shadow-bolt", "warlock-chaos-bolt",
+      "shaman-lava-burst", "paladin-holy-shock",
+    ]);
+
+    const healIds = new Set([
+      "priest-renew", "priest-flash-heal", "priest-greater-heal",
+      "druid-rejuvenation", "druid-swiftmend", "druid-regrowth",
+      "paladin-flash-light", "paladin-holy-light",
+    ]);
+
+    const shieldIds = new Set([
+      "priest-pain-suppression", "druid-ironbark",
+      "paladin-blessing", "warlock-resolve",
+    ]);
+
+    const meleeIds = new Set([
+      "warrior-rend", "warrior-mortal-strike", "warrior-slam",
+      "rogue-garrote", "rogue-sinister", "rogue-eviscerate", "rogue-kidney",
+      "dk-death-strike", "dk-obliterate",
+    ]);
+
+    const controlIds = new Set([
+      "priest-psychic-scream", "druid-cyclone", "paladin-hammer",
+      "mage-frost-nova", "mage-polymorph", "warlock-fear",
+      "shaman-hex", "dk-chains",
+    ]);
+
+    if (projectileIds.has(spellId)) {
+      const tail = Math.max(14, Math.min(42, distanceToTarget * 0.12));
+      const tailX = x - Math.cos(angle) * tail;
+      const tailY = y - Math.sin(angle) * tail;
+
+      ctx.shadowColor = color;
+      ctx.shadowBlur = spellId.includes("pyroblast") || spellId.includes("chaos-bolt") ? 18 : 11;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = spellId.includes("chaos-bolt") ? 7 : 4;
+      ctx.globalAlpha = alpha * 0.65 * missedAlpha;
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+
+      ctx.globalAlpha = alpha * missedAlpha;
+      ctx.fillStyle = color;
+
+      if (spellId === "mage-frostbolt") {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(11, 0);
+        ctx.lineTo(-7, -5);
+        ctx.lineTo(-3, 0);
+        ctx.lineTo(-7, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      } else if (spellId === "warlock-chaos-bolt") {
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, 11, progress * 7, progress * 7 + Math.PI * 1.3);
+        ctx.stroke();
+      } else {
+        const radius = spellId === "mage-pyroblast" ? 10 : spellId === "shaman-lava-burst" ? 8 : 7;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = accent;
+        ctx.globalAlpha = alpha * 0.8 * missedAlpha;
+        ctx.beginPath();
+        ctx.arc(x - radius * .22, y - radius * .22, radius * .38, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let i = 0; i < 3; i += 1) {
+        const t = Math.max(0, travel - 0.07 * (i + 1));
+        const px = lerp(from.x, to.x, t) + Math.sin(effect.seed + i * 2.1) * 5;
+        const py = lerp(from.y, to.y, t) + Math.cos(effect.seed + i * 1.7) * 5;
+        ctx.globalAlpha = alpha * (0.5 - i * 0.09) * missedAlpha;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(px, py, Math.max(1.5, 3 - i * .6), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (healIds.has(spellId)) {
+      const radius = 18 + progress * 17;
+      ctx.translate(to.x, to.y);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.globalAlpha = alpha * 0.72;
+      ctx.lineWidth = spellId.includes("greater") || spellId.includes("holy-light") ? 4 : 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const motes = spellId.startsWith("druid") ? 5 : 4;
+      for (let i = 0; i < motes; i += 1) {
+        const a = progress * 3.2 + (i / motes) * Math.PI * 2;
+        const r = 10 + progress * 18;
+        const mx = Math.cos(a) * r;
+        const my = Math.sin(a) * r - progress * 12;
+        ctx.globalAlpha = alpha * 0.78;
+        ctx.beginPath();
+        if (spellId.startsWith("druid")) {
+          ctx.ellipse(mx, my, 2.5, 5, a, 0, Math.PI * 2);
+        } else {
+          ctx.arc(mx, my, 2.3, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      }
+
+      if (!spellId.startsWith("druid")) {
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(6, 0);
+        ctx.moveTo(0, -6);
+        ctx.lineTo(0, 6);
+        ctx.stroke();
+      }
+    } else if (shieldIds.has(spellId)) {
+      ctx.translate(to.x, to.y);
+      const radius = 27 + Math.sin(progress * Math.PI) * 6;
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = alpha * 0.82;
+
+      for (let i = 0; i < 3; i += 1) {
+        const start = -Math.PI * .85 + i * Math.PI * .62 + progress * .25;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius + i * 3, start, start + Math.PI * .42);
+        ctx.stroke();
+      }
+
+      if (spellId === "druid-ironbark") {
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i += 1) {
+          const a = (i / 5) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * 13, Math.sin(a) * 13);
+          ctx.lineTo(Math.cos(a) * 28, Math.sin(a) * 28);
+          ctx.stroke();
+        }
+      }
+    } else if (meleeIds.has(spellId)) {
+      ctx.translate(to.x, to.y);
+      ctx.rotate(angle + Math.PI / 4);
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = spellId.includes("eviscerate") || spellId.includes("slam") || spellId.includes("obliterate") ? 5 : 3;
+      const spread = 18 + progress * 19;
+
+      ctx.beginPath();
+      ctx.arc(0, 0, spread, -Math.PI * .78, Math.PI * .12);
+      ctx.stroke();
+
+      if (spellId.includes("eviscerate") || spellId.includes("obliterate")) {
+        ctx.rotate(-Math.PI / 2.6);
+        ctx.globalAlpha = alpha * .72;
+        ctx.beginPath();
+        ctx.arc(0, 0, spread - 5, -Math.PI * .72, Math.PI * .08);
+        ctx.stroke();
+      }
+    } else if (spellId === "warrior-charge") {
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 5;
+      ctx.globalAlpha = alpha * .7;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = alpha * .45;
+      const nx = distanceToTarget > 0 ? -dy / distanceToTarget : 0;
+      const ny = distanceToTarget > 0 ? dx / distanceToTarget : 0;
+      ctx.beginPath();
+      ctx.moveTo(from.x + nx * 8, from.y + ny * 8);
+      ctx.lineTo(to.x + nx * 8, to.y + ny * 8);
+      ctx.moveTo(from.x - nx * 8, from.y - ny * 8);
+      ctx.lineTo(to.x - nx * 8, to.y - ny * 8);
+      ctx.stroke();
+    } else if (controlIds.has(spellId)) {
+      ctx.translate(to.x, to.y);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 2.4;
+
+      if (spellId === "paladin-hammer") {
+        ctx.globalAlpha = alpha * .9;
+        ctx.rotate(-0.35 + progress * .7);
+        ctx.strokeRect(-3, -15, 6, 18);
+        ctx.fillRect(-9, -17, 18, 6);
+      } else if (spellId === "mage-frost-nova" || spellId === "dk-chains") {
+        const spikes = 8;
+        const radius = 18 + progress * 25;
+        for (let i = 0; i < spikes; i += 1) {
+          const a = (i / spikes) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * (radius - 8), Math.sin(a) * (radius - 8));
+          ctx.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+          ctx.stroke();
+        }
+      } else {
+        const turns = spellId === "druid-cyclone" ? 2.4 : 1.6;
+        ctx.globalAlpha = alpha * .78;
+        ctx.beginPath();
+        for (let i = 0; i <= 24; i += 1) {
+          const t = i / 24;
+          const a = t * Math.PI * 2 * turns + progress * 4;
+          const rr = 5 + t * 27;
+          const sx = Math.cos(a) * rr;
+          const sy = Math.sin(a) * rr * .58;
+          if (i === 0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+      }
+    } else if (spellId === "mage-living-bomb" || spellId === "warlock-corruption"
+      || spellId === "shaman-flame-shock" || spellId === "dk-fever") {
+      ctx.translate(to.x, to.y);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 7;
+
+      for (let i = 0; i < 4; i += 1) {
+        const a = progress * 5 + (i / 4) * Math.PI * 2 + effect.seed * .01;
+        const rr = 13 + progress * 11;
+        ctx.globalAlpha = alpha * (.72 - i * .08);
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = alpha * .7;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 15 + progress * 12, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (spellId === "shaman-wind-shear" || spellId === "warrior-pummel"
+      || spellId === "rogue-kick" || spellId === "dk-mind-freeze") {
+      ctx.translate(to.x, to.y);
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 4;
+      ctx.rotate(progress * .7);
+      const rr = 16 + progress * 15;
+      ctx.beginPath();
+      ctx.arc(0, 0, rr, -Math.PI * .8, Math.PI * .15);
+      ctx.stroke();
+    } else if (spellId === "shaman-chain-lightning") {
+      ctx.translate(from.x, from.y);
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < 4; i += 1) {
+        const a = (i / 4) * Math.PI * 2 + progress * 5;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 7, Math.sin(a) * 7);
+        ctx.lineTo(Math.cos(a) * (18 + progress * 8), Math.sin(a) * (18 + progress * 8));
+        ctx.stroke();
+      }
+    } else {
+      ctx.translate(to.x, to.y);
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 6;
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = alpha * .7;
+      ctx.beginPath();
+      ctx.arc(0, 0, 10 + progress * 18, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  spellVfxColor(spellId, fallbackStyle) {
+    if (["mage-pyroblast", "mage-living-bomb", "shaman-lava-burst", "shaman-flame-shock"].includes(spellId)) {
+      return "#f28a4f";
+    }
+    if (["mage-frostbolt", "mage-frost-nova", "dk-fever", "dk-chains", "dk-mind-freeze"].includes(spellId)) {
+      return "#83d8ef";
+    }
+    if (["warlock-shadow-bolt", "warlock-corruption", "warlock-fear", "warlock-resolve"].includes(spellId)) {
+      return "#b07bd8";
+    }
+    if (spellId === "warlock-chaos-bolt") return "#72d36d";
+    if (spellId.startsWith("paladin-") || spellId.startsWith("priest-")) return "#efd477";
+    if (spellId.startsWith("druid-")) return "#88c879";
+    if (spellId.startsWith("shaman-")) return "#73c8de";
+    if (spellId.startsWith("rogue-")) return "#e7cb68";
+    if (spellId.startsWith("warrior-")) return "#c98d69";
+    if (spellId.startsWith("dk-")) return "#82c5d6";
+    return this.vfxColor(fallbackStyle);
+  }
+
+  spellVfxAccent(spellId, fallback) {
+    if (spellId === "mage-pyroblast" || spellId === "shaman-lava-burst") return "#ffd37a";
+    if (spellId === "warlock-chaos-bolt") return "#d5ff9e";
+    if (spellId === "mage-frostbolt") return "#e8fbff";
+    if (spellId.startsWith("paladin-") || spellId.startsWith("priest-")) return "#fff4bf";
+    return fallback;
   }
 
   drawLightningSegment(ctx, from, to, seed, progress, outerColor = this.theme.lightning) {

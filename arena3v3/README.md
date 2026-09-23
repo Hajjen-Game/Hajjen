@@ -90,6 +90,13 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Spell and attack VFX:
+  - lightweight Canvas-only effects; no sprite sheets or external assets required
+  - Mage Frostbolt/Pyroblast, Warlock bolts, Shaman Lava Burst and Paladin Holy Shock have distinct projectiles
+  - melee attacks use compact class-colored slash arcs; Charge leaves a short motion streak
+  - healing uses class-themed halos/motes, while major defensives show shield arcs
+  - CC/root effects use compact swirls, frost spikes or hammer/chains silhouettes without obscuring unit frames
+  - existing Chain Lightning, hit bursts, CC rings and floating combat text remain in place
 - Action bar clarity:
   - each spell now shows a compact effect summary directly in the action bar
   - defensives display mitigation + duration (e.g. Pain Suppression: 30% less damage · 4.2s)

@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.23-honor-ranks",
+    "Build: prototype-v0.24-honor-menu",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -25,6 +25,7 @@ export function buildMatchReport(game) {
     "Player control alerts: every implemented hard CC/root plus interrupt school lock shows a large center icon + countdown",
     "Matchmaking: enemy healer/melee/caster setup is randomized for every new match",
     "Honor progression: victory awards 200 Honor, defeat awards 70 Honor; persistent Classic-inspired ranks 1-14 award one future Talent Point per rank gained",
+    "Honor menu: top-bar HONOR button opens full rank, record, progress, rewards and 14-rank ladder view",
     "",
     "=== FRIENDLY TEAM ===",
   ];

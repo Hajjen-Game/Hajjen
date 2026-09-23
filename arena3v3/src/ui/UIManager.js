@@ -2,6 +2,7 @@ import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
 import { createActionSlot, createUnitFrame } from "./components.js";
 import { classColorFor } from "../content/classes/classColors.js";
+import { HONOR_RANKS } from "../core/HonorSystem.js";
 
 export class UIManager {
   constructor(game, input) {
@@ -33,6 +34,16 @@ export class UIManager {
     this.honorProgressFill = document.querySelector("#honor-progress-fill");
     this.honorProgressText = document.querySelector("#honor-progress-text");
     this.honorTalentPoints = document.querySelector("#honor-talent-points");
+
+    this.honorModal = document.querySelector("#honor-modal");
+    this.honorModalRank = document.querySelector("#honor-modal-rank");
+    this.honorModalTotal = document.querySelector("#honor-modal-total");
+    this.honorModalRecord = document.querySelector("#honor-modal-record");
+    this.honorModalTp = document.querySelector("#honor-modal-tp");
+    this.honorModalProgressText = document.querySelector("#honor-modal-progress-text");
+    this.honorModalProgressFill = document.querySelector("#honor-modal-progress-fill");
+    this.honorModalNext = document.querySelector("#honor-modal-next");
+    this.honorRankList = document.querySelector("#honor-rank-list");
     this.playerCast = document.querySelector("#player-cast");
     this.playerCastLabel = document.querySelector("#player-cast-label");
     this.playerCastFill = document.querySelector("#player-cast-fill");
@@ -54,6 +65,8 @@ export class UIManager {
 
     this.restartButton.addEventListener("click", event => this.handleRestartClick(event));
     document.querySelector("#result-restart-button").addEventListener("click", () => game.reset("play again after match"));
+    document.querySelector("#honor-button").addEventListener("click", () => this.openHonor());
+    document.querySelector("#honor-close").addEventListener("click", () => this.closeHonor());
     document.querySelector("#controls-button").addEventListener("click", () => this.openControls());
     document.querySelector("#controls-close").addEventListener("click", () => this.closeControls());
 
@@ -201,6 +214,65 @@ export class UIManager {
       this.refreshActionKeycaps();
       this.refreshPartyKeycaps();
     });
+  }
+
+  openHonor() {
+    this.updateHonorMenu();
+    this.honorModal.classList.remove("hidden");
+  }
+
+  closeHonor() {
+    this.honorModal.classList.add("hidden");
+  }
+
+  updateHonorMenu() {
+    const status = this.game.honor.status();
+
+    this.honorModalRank.textContent = "RANK " + status.rank + " · " + status.title.toUpperCase();
+    this.honorModalTotal.textContent = status.lifetimeHonor.toLocaleString();
+    this.honorModalRecord.textContent = status.wins + "W · " + status.losses + "L";
+    this.honorModalTp.textContent = status.talentPoints.toString();
+
+    if (status.nextRank) {
+      this.honorModalProgressText.textContent =
+        status.progressHonor.toLocaleString() + " / " + status.neededHonor.toLocaleString();
+      this.honorModalProgressFill.style.width = (status.progress * 100).toFixed(1) + "%";
+      this.honorModalNext.textContent =
+        "Next: Rank " + status.nextRank.rank + " · " + status.nextRank.title
+        + " · " + (status.nextRank.requiredHonor - status.lifetimeHonor).toLocaleString() + " Honor remaining";
+    } else {
+      this.honorModalProgressText.textContent = "MAX RANK";
+      this.honorModalProgressFill.style.width = "100%";
+      this.honorModalNext.textContent = "Grand Marshal reached";
+    }
+
+    this.honorRankList.innerHTML = "";
+
+    for (const rank of HONOR_RANKS) {
+      const row = document.createElement("div");
+      const reached = status.rank >= rank.rank;
+      const current = status.rank === rank.rank;
+
+      row.className =
+        "honor-rank-entry"
+        + (reached ? " reached" : "")
+        + (current ? " current" : "");
+
+      row.innerHTML =
+        '<span class="honor-rank-number"></span>'
+        + '<span class="honor-rank-name"></span>'
+        + '<span class="honor-rank-requirement"></span>'
+        + '<span class="honor-rank-reward"></span>';
+
+      row.querySelector(".honor-rank-number").textContent = "R" + rank.rank;
+      row.querySelector(".honor-rank-name").textContent = rank.title;
+      row.querySelector(".honor-rank-requirement").textContent =
+        rank.requiredHonor.toLocaleString() + " Honor";
+      row.querySelector(".honor-rank-reward").textContent =
+        rank.rank === 1 ? "START" : "+1 TP";
+
+      this.honorRankList.appendChild(row);
+    }
   }
 
   openControls() {
@@ -484,6 +556,10 @@ export class UIManager {
     this.honorRank.textContent = "RANK " + status.rank + " · " + status.title;
     this.honorTotal.textContent = status.lifetimeHonor.toLocaleString() + " HONOR";
     this.honorTalentPoints.textContent = "TP " + status.talentPoints;
+
+    if (!this.honorModal.classList.contains("hidden")) {
+      this.updateHonorMenu();
+    }
 
     if (!status.nextRank) {
       this.honorProgressFill.style.width = "100%";

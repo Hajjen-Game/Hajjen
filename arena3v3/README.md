@@ -90,6 +90,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Honor menu:
+  - top HUD has a dedicated HONOR button
+  - modal shows current rank, lifetime Honor, win/loss record, saved Talent Points and exact progress to next rank
+  - full Rank 1-14 ladder shows Honor thresholds and the +1 Talent Point reward for each rank-up
+  - current and already reached ranks are highlighted
 - Honor and rank progression:
   - every completed match grants persistent Honor: 200 for a win, 70 for a loss
   - 14 Classic-inspired PvP ranks run from Private to Grand Marshal

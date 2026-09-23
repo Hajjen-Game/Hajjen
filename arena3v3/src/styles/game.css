@@ -421,3 +421,166 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   font-size: 10px;
   line-height: 1.35;
 }
+
+
+.honor-card {
+  width: 650px;
+  max-height: 86vh;
+}
+
+.honor-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.honor-summary-box {
+  display: grid;
+  gap: 5px;
+  min-height: 72px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: rgba(15,11,9,.58);
+}
+
+.honor-summary-box span {
+  color: var(--cream-dim);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.honor-summary-box strong {
+  align-self: end;
+  color: var(--gold-bright);
+  font-size: 12px;
+}
+
+.honor-modal-progress {
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(18,12,9,.6);
+}
+
+.honor-modal-progress-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--cream-dim);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.honor-modal-progress-head strong {
+  color: var(--gold-bright);
+}
+
+.honor-modal-progress-track {
+  height: 12px;
+  margin-top: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #120d0b;
+}
+
+.honor-modal-progress-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #6d4e29, var(--gold-bright));
+  transition: width .2s ease;
+}
+
+.honor-modal-next {
+  margin-top: 6px;
+  color: var(--cream-dim);
+  font-size: 9px;
+  text-align: right;
+}
+
+.honor-reward-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(222,169,94,.25);
+  border-radius: 8px;
+  background: rgba(74,50,28,.35);
+  color: var(--cream-dim);
+  font-size: 9px;
+}
+
+.honor-reward-note strong {
+  color: var(--gold-bright);
+  letter-spacing: .08em;
+}
+
+.honor-ladder-title {
+  margin: 14px 0 7px;
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .13em;
+}
+
+.honor-rank-list {
+  display: grid;
+  gap: 4px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.honor-rank-entry {
+  display: grid;
+  grid-template-columns: 42px 1fr 110px 48px;
+  gap: 8px;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: rgba(14,10,8,.55);
+  color: var(--cream-dim);
+  font-size: 9px;
+}
+
+.honor-rank-entry.reached {
+  color: var(--cream);
+  border-color: rgba(222,169,94,.35);
+}
+
+.honor-rank-entry.current {
+  border-color: var(--gold-bright);
+  background: rgba(94,61,30,.58);
+  box-shadow: inset 0 0 14px rgba(227,186,114,.08);
+}
+
+.honor-rank-number {
+  color: var(--gold);
+  font-weight: 950;
+}
+
+.honor-rank-name {
+  font-weight: 850;
+}
+
+.honor-rank-requirement,
+.honor-rank-reward {
+  text-align: right;
+}
+
+.honor-rank-entry.current .honor-rank-name,
+.honor-rank-entry.current .honor-rank-number {
+  color: var(--gold-bright);
+}
+
+@media (max-width: 1180px) {
+  .honor-card { width: 590px; }
+  .honor-summary-grid { grid-template-columns: repeat(2, 1fr); }
+}

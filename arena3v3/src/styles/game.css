@@ -412,6 +412,120 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   z-index: 4;
 }
 
+/* Priest action-bar icons: inline SVG only, no image assets. */
+.action-slot.has-spell-icon {
+  --spell-accent: #e8c67d;
+  --spell-accent-2: #fff0bd;
+  padding-left: 66px;
+  background:
+    radial-gradient(circle at 28px 31px, color-mix(in srgb, var(--spell-accent) 12%, transparent), transparent 42px),
+    linear-gradient(180deg, #342316, #20150f);
+}
+
+.action-slot.has-spell-icon::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, var(--spell-accent), transparent);
+  opacity: .72;
+}
+
+.spell-icon {
+  position: absolute;
+  left: 10px;
+  top: 13px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--spell-accent) 72%, #6b4525);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 35%, color-mix(in srgb, var(--spell-accent) 18%, transparent), transparent 48%),
+    rgba(19, 13, 10, .86);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.025),
+    0 0 12px color-mix(in srgb, var(--spell-accent) 16%, transparent);
+  pointer-events: none;
+}
+
+.spell-icon svg {
+  width: 36px;
+  height: 36px;
+  overflow: visible;
+}
+
+.spell-icon .icon-line,
+.spell-icon .icon-ring,
+.spell-icon .icon-shield {
+  fill: none;
+  stroke: var(--spell-accent-2);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.spell-icon .icon-soft {
+  opacity: .64;
+  stroke-width: 3;
+}
+
+.spell-icon .icon-fill,
+.spell-icon .icon-core,
+.spell-icon .icon-head {
+  fill: var(--spell-accent-2);
+  stroke: none;
+}
+
+.spell-icon .icon-shield {
+  fill: color-mix(in srgb, var(--spell-accent) 30%, transparent);
+  stroke: var(--spell-accent-2);
+}
+
+.action-slot.spell-priest-renew {
+  --spell-accent: #d9b968;
+  --spell-accent-2: #fff0b8;
+}
+
+.action-slot.spell-priest-flash-heal {
+  --spell-accent: #e7c56f;
+  --spell-accent-2: #fff4c8;
+}
+
+.action-slot.spell-priest-greater-heal {
+  --spell-accent: #d99a2f;
+  --spell-accent-2: #ffd768;
+}
+
+.action-slot.spell-priest-pain-suppression {
+  --spell-accent: #5aa2d7;
+  --spell-accent-2: #bde6ff;
+}
+
+.action-slot.spell-priest-psychic-scream {
+  --spell-accent: #9d61d7;
+  --spell-accent-2: #dcb4ff;
+}
+
+.action-slot.has-spell-icon .spell-name {
+  padding-right: 28px;
+}
+
+.action-slot.has-spell-icon .spell-meta {
+  margin-top: 5px;
+}
+
+.action-slot.has-spell-icon:hover .spell-icon {
+  border-color: var(--spell-accent-2);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.035),
+    0 0 15px color-mix(in srgb, var(--spell-accent) 28%, transparent);
+}
+
+
 .player-status-bars {
   position: absolute;
   left: 50%;

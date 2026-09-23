@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.39-gcd-feedback",
+    "Build: prototype-v0.40-priest-action-icons",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -39,6 +39,7 @@ export function buildMatchReport(game) {
     "Combat HUD layout: only the cast bar remains in the centered arena overlay; healer casts use a green gradient and DPS casts use a red gradient",
     "HUD cleanup: combat log is hidden, toast feedback is raised above the cast bar, and cast progress resets to 0 before every new cast",
     "GCD feedback: every GCD-bound action slot receives a synchronized dark sweep that clears over the actual global cooldown duration",
+    "Priest action icons: Renew, Flash Heal, Greater Heal, Pain Suppression and Psychic Scream now use inline SVG-style icons with restrained spell-specific color accents",
     "",
     "=== FRIENDLY TEAM ===",
   ];

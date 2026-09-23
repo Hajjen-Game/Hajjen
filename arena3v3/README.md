@@ -101,6 +101,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Priest action-bar icons:
+  - Priest abilities now use lightweight inline SVG vector icons directly in the action bar; no PNG assets are required
+  - Renew uses a pale holy-gold cross/halo motif instead of green nature imagery
+  - Flash Heal is pale white-gold, Greater Heal deeper radiant gold, Pain Suppression blue shield, Psychic Scream violet psychic waves
+  - the existing spell name, metadata, keycap, drag-reordering, cooldown and GCD overlays remain functional
 - Global cooldown feedback:
   - abilities already use a real global cooldown, normally 1.2 seconds
   - GCD duration is now tracked explicitly on every actor

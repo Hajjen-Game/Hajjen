@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.19-actionbar-effects",
+    "Build: prototype-v0.20-pillar-pathing",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -19,7 +19,7 @@ export function buildMatchReport(game) {
     "Healer-aware kiting: threatened/low casters try to remain in healing range + LOS of their healer",
     "Combat readability: raised CC markers, red enemy names, WoW class-color HP bars and pulsing red sub-20% health",
     "Caster healer safety: low/pressured casters will not start or finish offensive casts while outside healer range/LOS",
-    "Movement polish: AI slides around pillar corners, tries alternate routes and self-recovers from short stalls",
+    "Movement polish: AI slides around pillar corners, never bypasses anti-stuck on blocked steering, flips route side under sustained obstruction and recovers rare collider overlaps",
     "Action bar: spell cards now show their actual combat effect, including defensive reduction and CC duration",
     "",
     "=== FRIENDLY TEAM ===",
@@ -50,6 +50,28 @@ export function buildMatchReport(game) {
   appendTeam("friendly");
   lines.push("", "=== ENEMY TEAM ===");
   appendTeam("enemy");
+
+  lines.push("", "=== AI MOVEMENT DIAGNOSTICS ===");
+  const movementDiagnostics = game.actors
+    .filter(actor => actor.control !== "player")
+    .map(actor => ({
+      name: actor.name,
+      reroutes: actor.aiPathReroutes || 0,
+      overlapRecoveries: actor.aiOverlapRecoveries || 0,
+    }))
+    .filter(item => item.reroutes > 0 || item.overlapRecoveries > 0);
+
+  if (movementDiagnostics.length === 0) {
+    lines.push("No path recovery events recorded.");
+  } else {
+    movementDiagnostics.forEach(item => {
+      lines.push(
+        item.name
+        + " — route flips " + item.reroutes
+        + " | collider recoveries " + item.overlapRecoveries
+      );
+    });
+  }
 
   lines.push("", "=== RESET / RELOAD DIAGNOSTICS ===");
   if (!game.resetDiagnostics || game.resetDiagnostics.length === 0) {

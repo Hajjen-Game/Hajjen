@@ -95,6 +95,10 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - defensives display mitigation + duration (e.g. Pain Suppression: 30% less damage · 4.2s)
   - heals, damage, DoTs/HoTs and CC durations are also shown
 - AI movement polish:
+  - blocked steering no longer returns a zero vector before the anti-stuck navigator can run
+  - sustained pillar obstruction flips the preferred route side even when the actor is still sliding
+  - rare collider overlap gets a nearest-valid-position recovery instead of trapping the actor
+  - run reports include AI movement diagnostics when a route flip or overlap recovery occurs
   - AI uses obstacle-aware alternate movement angles when its preferred path is blocked
   - full-diagonal movement is tried before wall sliding to reduce pillar-corner stalls
   - persistent stalls flip the actor's preferred avoidance side and allow a short retreat

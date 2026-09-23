@@ -43,6 +43,34 @@ function collides(actor, x, y, arena) {
 }
 
 export class MovementSystem {
+  recoverIfEmbedded(actor, arena) {
+    if (!collides(actor, actor.x, actor.y, arena)) return false;
+
+    const originX = actor.x;
+    const originY = actor.y;
+    const maxDistance = actor.radius * 3 + 24;
+    const angleCount = 24;
+
+    for (let radius = 4; radius <= maxDistance; radius += 4) {
+      for (let i = 0; i < angleCount; i += 1) {
+        const angle = (i / angleCount) * Math.PI * 2;
+        const x = originX + Math.cos(angle) * radius;
+        const y = originY + Math.sin(angle) * radius;
+
+        if (!collides(actor, x, y, arena)) {
+          actor.x = x;
+          actor.y = y;
+          actor.aiOverlapRecoveries = (actor.aiOverlapRecoveries || 0) + 1;
+          actor.aiStuckMs = 0;
+          actor.aiAvoidanceMs = 0;
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   tryDirection(actor, direction, step, arena) {
     const dx = direction.x * step;
     const dy = direction.y * step;
@@ -89,6 +117,11 @@ export class MovementSystem {
   moveAI(actor, vector, deltaSeconds, arena) {
     if (!actor.alive) return false;
 
+    // Safety valve for the rare case where an AI ends up microscopically inside
+    // a pillar collider. Normal collision movement cannot leave an overlap
+    // because every small exit step still counts as colliding.
+    this.recoverIfEmbedded(actor, arena);
+
     const desired = normalize(vector.x, vector.y);
     if (desired.x === 0 && desired.y === 0) {
       actor.lastMove = { x: 0, y: 0 };
@@ -96,7 +129,30 @@ export class MovementSystem {
     }
 
     const step = actor.moveSpeed * deltaSeconds;
-    const sign = avoidanceSign(actor);
+    let sign = avoidanceSign(actor);
+    const directBlocked = collides(
+      actor,
+      actor.x + desired.x * step,
+      actor.y + desired.y * step,
+      arena,
+    );
+
+    if (directBlocked) {
+      actor.aiAvoidanceMs = (actor.aiAvoidanceMs || 0) + deltaSeconds * 1000;
+
+      // An actor may still be moving while hugging the wrong side of a pillar,
+      // so a pure "no movement" watchdog is not enough. Flip the preferred
+      // avoidance side after sustained obstruction.
+      if (actor.aiAvoidanceMs >= 850) {
+        actor.aiAvoidanceSign = -sign;
+        sign = -sign;
+        actor.aiAvoidanceMs = 0;
+        actor.aiPathReroutes = (actor.aiPathReroutes || 0) + 1;
+      }
+    } else {
+      actor.aiAvoidanceMs = 0;
+    }
+
     const degrees = [0, 24, 45, 68, 90, 118, 150];
     const directions = [];
 
@@ -114,7 +170,7 @@ export class MovementSystem {
 
     // If an AI has been blocked for a while, allow a short retreat to escape
     // pillar corners and then swap its preferred navigation side.
-    if ((actor.aiStuckMs || 0) >= 360) {
+    if ((actor.aiStuckMs || 0) >= 360 || (actor.aiAvoidanceMs || 0) >= 620) {
       directions.push(rotate(desired, Math.PI));
     }
 

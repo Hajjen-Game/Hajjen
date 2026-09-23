@@ -510,7 +510,9 @@ export class AISystem {
       !this.movement.wouldCollide(actor, candidate, Math.max(18, actor.radius), this.game.arena)
     );
 
-    if (candidates.length === 0) return { x: 0, y: 0 };
+    // Let MovementSystem's obstacle navigator handle the escape instead of
+    // returning a zero vector, which previously bypassed anti-stuck logic.
+    if (candidates.length === 0) return directAway;
 
     const probeDistance = 54;
 
@@ -653,6 +655,8 @@ export class AISystem {
       }
     }
 
-    return { x: 0, y: 0 };
+    // Do not give up here. A zero vector means moveAI never runs, so its
+    // alternate-angle and stuck-recovery logic cannot help at a pillar corner.
+    return direct;
   }
 }

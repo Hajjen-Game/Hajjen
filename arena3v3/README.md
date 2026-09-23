@@ -102,9 +102,10 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
 - Mouse steering:
-  - hold the right mouse button inside the arena to continuously move toward the current cursor position
-  - movement direction updates while the mouse moves, giving a direct mouse-steering feel
-  - releasing right mouse immediately stops mouse steering; WASD remains available and resumes normally
+  - hold left + right mouse buttons together inside the arena to continuously move toward the current cursor position
+  - either mouse button by itself does not move the character; left click by itself still targets normally
+  - movement direction updates while the mouse moves, giving a WoW-style dual-button movement feel adapted to the top-down arena
+  - releasing either mouse button immediately stops mouse steering; WASD remains available and resumes normally
   - browser context menu is suppressed on the arena during right-click play
   - instant spells such as Renew and Psychic Scream can be activated by hotkey without stopping movement
   - cast-time spells still cancel when movement continues, matching the existing movement/casting rule

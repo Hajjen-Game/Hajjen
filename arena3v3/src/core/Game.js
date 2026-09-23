@@ -52,11 +52,14 @@ export class Game {
     this.floatingTexts = [];
     this.lastFrame = performance.now();
 
-    this.rightMouseMove = {
+    this.mouseSteering = {
       active: false,
+      leftDown: false,
+      rightDown: false,
       x: 0,
       y: 0,
       pointerId: null,
+      suppressClickUntil: 0,
     };
 
     this.runSessionKey = "arena3v3-active-run-v1";
@@ -84,9 +87,9 @@ export class Game {
     this.canvas.addEventListener("pointerdown", event => this.onCanvasPointerDown(event));
     this.canvas.addEventListener("pointermove", event => this.onCanvasPointerMove(event));
     this.canvas.addEventListener("pointerup", event => this.onCanvasPointerUp(event));
-    this.canvas.addEventListener("pointercancel", event => this.onCanvasPointerUp(event));
+    this.canvas.addEventListener("pointercancel", () => this.stopMouseSteering());
     window.addEventListener("pointerup", event => this.onWindowPointerUp(event));
-    window.addEventListener("blur", () => this.stopRightMouseMove());
+    window.addEventListener("blur", () => this.stopMouseSteering());
   }
 
   createActors() {
@@ -164,6 +167,8 @@ export class Game {
   }
 
   onCanvasClick(event) {
+    if (performance.now() <= this.mouseSteering.suppressClickUntil) return;
+
     const rect = this.canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left) * (this.canvas.width / rect.width);
     const y = (event.clientY - rect.top) * (this.canvas.height / rect.height);
@@ -188,71 +193,114 @@ export class Game {
     };
   }
 
-  updateRightMouseTarget(event) {
+  updateMouseSteeringTarget(event) {
     const point = this.canvasPointFromEvent(event);
-    this.rightMouseMove.x = point.x;
-    this.rightMouseMove.y = point.y;
+    this.mouseSteering.x = point.x;
+    this.mouseSteering.y = point.y;
+  }
+
+  syncMouseSteeringButtons(event) {
+    const buttons = event.buttons ?? 0;
+    this.mouseSteering.leftDown = (buttons & 1) !== 0;
+    this.mouseSteering.rightDown = (buttons & 2) !== 0;
+
+    const bothDown = this.mouseSteering.leftDown && this.mouseSteering.rightDown;
+    this.mouseSteering.active = bothDown;
+
+    if (bothDown) {
+      this.mouseSteering.suppressClickUntil = performance.now() + 300;
+      this.updateMouseSteeringTarget(event);
+    }
   }
 
   onCanvasPointerDown(event) {
-    if (event.button !== 2) return;
+    if (event.button !== 0 && event.button !== 2) return;
 
-    event.preventDefault();
-    this.rightMouseMove.active = true;
-    this.rightMouseMove.pointerId = event.pointerId;
-    this.updateRightMouseTarget(event);
+    if (event.button === 2) event.preventDefault();
+
+    this.mouseSteering.pointerId = event.pointerId;
+    this.syncMouseSteeringButtons(event);
 
     try {
       this.canvas.setPointerCapture(event.pointerId);
     } catch {
-      // Pointer capture is a convenience; window pointerup still stops movement.
+      // Pointer capture is a convenience; window pointerup still updates state.
     }
   }
 
   onCanvasPointerMove(event) {
-    if (!this.rightMouseMove.active) return;
-    if (this.rightMouseMove.pointerId !== null && event.pointerId !== this.rightMouseMove.pointerId) return;
+    if (
+      this.mouseSteering.pointerId !== null
+      && event.pointerId !== this.mouseSteering.pointerId
+    ) return;
 
-    this.updateRightMouseTarget(event);
+    if ((event.buttons & 3) !== 0) {
+      this.updateMouseSteeringTarget(event);
+    }
+
+    this.syncMouseSteeringButtons(event);
   }
 
   onCanvasPointerUp(event) {
-    if (event.button !== 2 && event.pointerId !== this.rightMouseMove.pointerId) return;
-    this.stopRightMouseMove(event.pointerId);
+    if (
+      this.mouseSteering.pointerId !== null
+      && event.pointerId !== this.mouseSteering.pointerId
+    ) return;
+
+    this.syncMouseSteeringButtons(event);
+
+    if ((event.buttons & 3) === 0) {
+      this.releaseMousePointer(event.pointerId);
+    }
   }
 
   onWindowPointerUp(event) {
-    if (!this.rightMouseMove.active) return;
-    if (event.button !== 2 && event.pointerId !== this.rightMouseMove.pointerId) return;
-    this.stopRightMouseMove(event.pointerId);
-  }
-
-  stopRightMouseMove(pointerId = null) {
     if (
-      pointerId !== null
-      && this.rightMouseMove.pointerId !== null
-      && pointerId !== this.rightMouseMove.pointerId
+      this.mouseSteering.pointerId !== null
+      && event.pointerId !== this.mouseSteering.pointerId
     ) return;
 
-    if (this.rightMouseMove.pointerId !== null) {
+    this.syncMouseSteeringButtons(event);
+
+    if ((event.buttons & 3) === 0) {
+      this.releaseMousePointer(event.pointerId);
+    }
+  }
+
+  releaseMousePointer(pointerId = null) {
+    const capturedId = this.mouseSteering.pointerId;
+
+    if (
+      pointerId !== null
+      && capturedId !== null
+      && pointerId !== capturedId
+    ) return;
+
+    if (capturedId !== null) {
       try {
-        this.canvas.releasePointerCapture(this.rightMouseMove.pointerId);
+        this.canvas.releasePointerCapture(capturedId);
       } catch {
         // The pointer may already have been released by the browser.
       }
     }
 
-    this.rightMouseMove.active = false;
-    this.rightMouseMove.pointerId = null;
+    this.mouseSteering.pointerId = null;
   }
 
-  rightMouseMovementVector() {
-    if (!this.rightMouseMove.active || !this.player?.alive) {
+  stopMouseSteering() {
+    this.releaseMousePointer();
+    this.mouseSteering.active = false;
+    this.mouseSteering.leftDown = false;
+    this.mouseSteering.rightDown = false;
+  }
+
+  mouseSteeringVector() {
+    if (!this.mouseSteering.active || !this.player?.alive) {
       return { x: 0, y: 0 };
     }
 
-    const dx = this.rightMouseMove.x - this.player.x;
-    const dy = this.rightMouseMove.y - this.player.y;
+    const dx = this.mouseSteering.x - this.player.x;
+    const dy = this.mouseSteering.y - this.player.y;
     const distance = Math.hypot(dx, dy);
     const deadZone = Math.max(10, this.player.radius * 0.65);
 
@@ -294,8 +342,8 @@ export class Game {
       }
 
       const keyboardMove = this.input.movementVector();
-      const mouseMove = this.rightMouseMovementVector();
-      const move = this.rightMouseMove.active ? mouseMove : keyboardMove;
+      const mouseMove = this.mouseSteeringVector();
+      const move = this.mouseSteering.active ? mouseMove : keyboardMove;
       const moving = move.x !== 0 || move.y !== 0;
       const playerCanMove = !this.cc.isHardControlled(this.player) && !this.cc.isRooted(this.player);
 
@@ -520,7 +568,7 @@ export class Game {
 
   reset(reason = "unknown internal reset") {
     this.recordResetDiagnostic(reason);
-    this.stopRightMouseMove();
+    this.stopMouseSteering();
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;

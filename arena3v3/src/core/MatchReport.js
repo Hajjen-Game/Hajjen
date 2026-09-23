@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.27-mouse-steering",
+    "Build: prototype-v0.28-dual-mouse-steering",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -30,7 +30,7 @@ export function buildMatchReport(game) {
     "Honor menu: top-bar HONOR button opens full rank, record, progress, rewards and 14-rank ladder view",
     "Pre-match draft: random enemy composition is revealed before combat, then the player chooses their melee/caster teammates and explicitly starts the match",
     "Character select: persistent WoW-style healer characters have their own name, fixed healer class, Honor/Rank record and future Talent Points",
-    "Mouse steering: hold right mouse button on the arena to continuously move toward the cursor; instant abilities remain usable while moving",
+    "Mouse steering: hold left + right mouse buttons together to continuously move toward the cursor; either button alone does not trigger movement and instant abilities remain usable while moving",
     "",
     "=== FRIENDLY TEAM ===",
   ];

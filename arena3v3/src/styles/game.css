@@ -904,3 +904,21 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   gap: 8px;
   flex-wrap: wrap;
 }
+
+
+/* Range feedback: valid-target abilities stay readable but visibly muted until
+   the selected target is close enough to use them. */
+.action-slot.out-of-range:not(.disabled) {
+  opacity: .58;
+  filter: saturate(.62) brightness(.82);
+  border-color: rgba(137, 101, 66, .78);
+}
+
+.action-slot.out-of-range:not(.disabled) .spell-name,
+.action-slot.out-of-range:not(.disabled) .spell-meta {
+  color: rgba(224, 211, 190, .68);
+}
+
+.action-slot.out-of-range:not(.disabled) .keycap {
+  opacity: .78;
+}

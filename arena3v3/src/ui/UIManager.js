@@ -511,6 +511,9 @@ export class UIManager {
       const selectedTarget = this.game.getActor(this.game.player.targetId);
       const target = spell.target === "self" ? this.game.player : selectedTarget;
       const invalidTarget = !this.game.combat.canTarget(this.game.player, target, spell);
+      const outOfRange = !invalidTarget
+        && spell.target !== "self"
+        && !this.game.combat.inRange(this.game.player, target, spell.range);
       const noResource = !this.game.resources.canPay(this.game.player, spell);
       const controlled = this.game.cc.isHardControlled(this.game.player);
       const schoolLocked = this.game.cc.isSchoolLocked(this.game.player, spell);
@@ -519,6 +522,7 @@ export class UIManager {
         "disabled",
         invalidTarget || noResource || controlled || schoolLocked || !this.game.player.alive,
       );
+      slot.classList.toggle("out-of-range", outOfRange);
       slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === spellIndex);
     });
 

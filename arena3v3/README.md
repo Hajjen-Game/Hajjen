@@ -101,6 +101,10 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Out-of-range action feedback:
+  - spells and attacks dim automatically when the currently selected valid target is outside their usable range
+  - the feedback updates continuously while either unit moves
+  - self-target abilities are unaffected, and invalid/no-target states keep their existing disabled treatment
 - Role-based Tab targeting:
   - Tab defaults to Target Nearest and can be rebound in KEYBINDINGS
   - DPS characters target the closest living enemy

@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.34-role-tab-targeting",
+    "Build: prototype-v0.35-range-feedback",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -35,6 +35,7 @@ export function buildMatchReport(game) {
     "Responsive arena layout: unused horizontal letterbox space beside the 16:9 arena is reassigned to wider friendly/enemy team panels",
     "Action bar customization: spells can be drag-reordered per character; keybinds now belong to Slot 1-5 instead of fixed spell positions and persist independently",
     "Role-based Tab targeting: Tab selects the nearest living enemy for DPS characters and the nearest living teammate for healer characters",
+    "Range feedback: action-bar abilities dim in real time when the currently selected valid target is outside that ability's range",
     "",
     "=== FRIENDLY TEAM ===",
   ];

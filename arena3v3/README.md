@@ -101,6 +101,10 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Responsive team-panel layout:
+  - the center arena column follows the playable 16:9 arena footprint instead of stretching wider than the rendered arena
+  - spare horizontal desktop space is split between YOUR TEAM and ENEMY TEAM
+  - narrow layouts retain minimum side-panel widths and allow the arena to become width-limited when necessary
 - Mouse steering:
   - hold left + right mouse buttons together inside the arena to continuously move toward the current cursor position
   - either mouse button by itself does not move the character; left click by itself still targets normally

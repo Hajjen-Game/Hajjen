@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.31-playable-mage",
+    "Build: prototype-v0.32-wide-team-panels",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -32,6 +32,7 @@ export function buildMatchReport(game) {
     "Character select: persistent WoW-style healer characters have their own name, fixed healer class, Honor/Rank record and future Talent Points",
     "Mouse steering: hold left + right mouse buttons together to continuously move toward the cursor; either button alone does not trigger movement and instant abilities remain usable while moving",
     "Playable DPS: Warrior and Mage can now be created and controlled as the player; match setup automatically fills the missing role choices for the selected player class",
+    "Responsive arena layout: unused horizontal letterbox space beside the 16:9 arena is reassigned to wider friendly/enemy team panels",
     "",
     "=== FRIENDLY TEAM ===",
   ];

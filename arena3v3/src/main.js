@@ -19,6 +19,7 @@ const LEGACY_ROSTER_STORAGE_KEY = "arena3v3-roster-v3";
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
+const gameShell = document.querySelector("#game-shell");
 const input = new InputManager();
 const characters = new CharacterStore();
 const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "mage"]);
@@ -41,6 +42,36 @@ function fitArenaStage() {
 
   const logicalWidth = arenaConfig.width;
   const logicalHeight = arenaConfig.height;
+
+  // Keep the center column close to the arena's real 16:9 footprint.
+  // Any horizontal space that used to become black bars beside the arena
+  // is instead given to YOUR TEAM / ENEMY TEAM.
+  if (gameShell) {
+    const shellWidth = gameShell.clientWidth;
+    const shellHeight = gameShell.clientHeight;
+    const columnGap = 8;
+    const minSideWidth = window.innerWidth <= 1180 ? 185 : 220;
+
+    if (shellWidth > 0 && shellHeight > 0) {
+      const heightLimitedArenaWidth = Math.floor(
+        shellHeight * (logicalWidth / logicalHeight),
+      );
+      const widthLimitedArenaWidth = Math.max(
+        600,
+        shellWidth - (minSideWidth * 2) - (columnGap * 2),
+      );
+      const arenaColumnWidth = Math.min(
+        heightLimitedArenaWidth,
+        widthLimitedArenaWidth,
+      );
+
+      gameShell.style.gridTemplateColumns =
+        "minmax(" + minSideWidth + "px, 1fr) "
+        + arenaColumnWidth + "px "
+        + "minmax(" + minSideWidth + "px, 1fr)";
+    }
+  }
+
   const availableWidth = arenaWrap.clientWidth;
   const availableHeight = arenaWrap.clientHeight;
 

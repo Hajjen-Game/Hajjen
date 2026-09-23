@@ -54,6 +54,7 @@ export class CrowdControlSystem {
       originY: source.y,
     });
 
+    this.game.vfx.burst(target, "fear", 340);
     this.game.recordCc(source, target, "fear", effect.durationMs);
     this.game.addFloatingText(target, "FEAR", "cc");
     this.game.log(source.name + " fears " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
@@ -62,6 +63,7 @@ export class CrowdControlSystem {
 
   applyFearAoE(source, spell, effect) {
     let affected = 0;
+    this.game.vfx.ring(source, "fear", source.radius + 10, effect.radius, 430);
 
     for (const target of this.game.actors.filter(actor => actor.alive && actor.team !== source.team)) {
       if (distance(source, target) > effect.radius + source.radius + target.radius) continue;
@@ -101,6 +103,8 @@ export class CrowdControlSystem {
       breakOnDamage: effect.breakOnDamage !== false,
     });
 
+    this.game.vfx.beam(source, target, "control", 250);
+    this.game.vfx.burst(target, "control", 360);
     this.game.recordCc(source, target, "incapacitate", effect.durationMs);
     this.game.addFloatingText(target, "CONTROLLED", "cc");
     this.game.log(source.name + " incapacitates " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
@@ -129,6 +133,8 @@ export class CrowdControlSystem {
       breakOnDamage: false,
     });
 
+    this.game.vfx.beam(source, target, "interrupt", 180);
+    this.game.vfx.slash(target, "interrupt", 300);
     this.game.recordInterrupt(source, target, effect.durationMs);
     this.game.addFloatingText(target, "INTERRUPTED", "cc");
     this.game.log(

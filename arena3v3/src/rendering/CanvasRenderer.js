@@ -1,5 +1,5 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
-import { clamp } from "../core/utils.js";
+import { clamp, lerp } from "../core/utils.js";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -41,6 +41,12 @@ export class CanvasRenderer {
       dot: cssVar("--dot"),
       mana: cssVar("--mana"),
       energy: cssVar("--energy"),
+      lightning: cssVar("--vfx-lightning"),
+      lightningCore: cssVar("--vfx-lightning-core"),
+      healVfx: cssVar("--vfx-heal"),
+      damageVfx: cssVar("--vfx-damage"),
+      fearVfx: cssVar("--vfx-fear"),
+      interruptVfx: cssVar("--vfx-interrupt"),
     };
   }
 
@@ -55,6 +61,7 @@ export class CanvasRenderer {
       this.drawActor(ctx, actor, game);
     }
 
+    this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
 
@@ -171,6 +178,17 @@ export class CanvasRenderer {
     const teamBright = actor.team === "friendly" ? this.theme.friendlyBright : this.theme.enemyBright;
 
     ctx.save();
+
+    if (actor.cast) {
+      const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
+      ctx.globalAlpha = 0.35 + progress * 0.35;
+      ctx.strokeStyle = this.theme.cast;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(actor.x, actor.y, actor.radius + 14 + progress * 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
 
     if (selected) {
       ctx.beginPath();
@@ -373,6 +391,153 @@ export class CanvasRenderer {
 
       x += size + gap;
     }
+  }
+
+  drawVfx(ctx, game) {
+    for (const effect of game.vfx.effects) {
+      const progress = 1 - effect.remainingMs / effect.totalMs;
+      const alpha = clamp(effect.remainingMs / effect.totalMs, 0, 1);
+
+      if (effect.type === "beam") {
+        const source = game.getActor(effect.sourceId);
+        const target = game.getActor(effect.targetId);
+        if (!source || !target) continue;
+
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.strokeStyle = this.vfxColor(effect.style);
+        ctx.lineWidth = effect.style === "heal" ? 5 : 3;
+        ctx.beginPath();
+        ctx.moveTo(source.x, source.y);
+        ctx.lineTo(target.x, target.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (effect.type === "burst") {
+        const target = game.getActor(effect.targetId);
+        const x = target?.x ?? effect.x;
+        const y = target?.y ?? effect.y;
+        const radius = lerp(8, 30, progress);
+
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.strokeStyle = this.vfxColor(effect.style);
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * 0.35;
+        ctx.fillStyle = this.vfxColor(effect.style);
+        ctx.beginPath();
+        ctx.arc(x, y, Math.max(3, 13 * (1 - progress)), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (effect.type === "ring") {
+        const source = game.getActor(effect.sourceId);
+        const x = source?.x ?? effect.x;
+        const y = source?.y ?? effect.y;
+        const radius = lerp(effect.radiusStart, effect.radiusEnd, progress);
+
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.75;
+        ctx.strokeStyle = this.vfxColor(effect.style);
+        ctx.lineWidth = 4 - progress * 2;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (effect.type === "slash") {
+        const target = game.getActor(effect.targetId);
+        const x = target?.x ?? effect.x;
+        const y = target?.y ?? effect.y;
+        const spread = lerp(8, 25, progress);
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = this.vfxColor(effect.style);
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x - spread, y - spread);
+        ctx.lineTo(x + spread, y + spread);
+        ctx.moveTo(x + spread, y - spread);
+        ctx.lineTo(x - spread, y + spread);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (effect.type === "chain") {
+        const actors = effect.actorIds.map(id => game.getActor(id)).filter(Boolean);
+        if (actors.length < 2) continue;
+
+        ctx.save();
+        ctx.globalAlpha = 0.45 + alpha * 0.55;
+        ctx.shadowColor = this.theme.lightning;
+        ctx.shadowBlur = 12;
+
+        for (let i = 0; i < actors.length - 1; i += 1) {
+          this.drawLightningSegment(
+            ctx,
+            actors[i],
+            actors[i + 1],
+            effect.seed + i * 23,
+            progress,
+          );
+        }
+
+        ctx.restore();
+      }
+    }
+  }
+
+  drawLightningSegment(ctx, from, to, seed, progress) {
+    const segments = 8;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const px = -dy / length;
+    const py = dx / length;
+
+    const drawPath = (strokeStyle, width, amplitude) => {
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+
+      for (let i = 1; i < segments; i += 1) {
+        const t = i / segments;
+        const baseX = lerp(from.x, to.x, t);
+        const baseY = lerp(from.y, to.y, t);
+        const wave = Math.sin(seed * 0.37 + i * 2.31 + progress * 9) * amplitude;
+        ctx.lineTo(baseX + px * wave, baseY + py * wave);
+      }
+
+      ctx.lineTo(to.x, to.y);
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = width;
+      ctx.stroke();
+    };
+
+    drawPath(this.theme.lightning, 7, 8);
+    drawPath(this.theme.lightningCore, 2, 6);
+  }
+
+  vfxColor(style) {
+    const colors = {
+      heal: this.theme.healVfx,
+      hot: this.theme.hot,
+      dot: this.theme.dot,
+      damage: this.theme.damageVfx,
+      fear: this.theme.fearVfx,
+      buff: this.theme.cast,
+      control: this.theme.goldBright,
+      interrupt: this.theme.interruptVfx,
+      lightning: this.theme.lightning,
+    };
+    return colors[style] || this.theme.cream;
   }
 
   drawFloatingTexts(ctx, floatingTexts) {

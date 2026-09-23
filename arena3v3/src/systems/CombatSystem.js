@@ -174,7 +174,7 @@ export class CombatSystem {
     }
 
     const specialUtility = spell.effects.some(effect =>
-      ["fearAoE", "interrupt", "incapacitate"].includes(effect.kind)
+      ["fearAoE", "interrupt", "incapacitate", "chainDamage"].includes(effect.kind)
     );
 
     if (spell.target === "enemy" && !spell.noHitRoll && !specialUtility) {
@@ -202,6 +202,9 @@ export class CombatSystem {
         case "damage":
           this.applyDamage(caster, target, effect.amount, spell.id, false, true);
           break;
+        case "chainDamage":
+          this.applyChainDamage(caster, target, spell, effect);
+          break;
         case "heal":
           this.applyHeal(caster, target, effect.amount, spell.id, false);
           break;
@@ -227,6 +230,53 @@ export class CombatSystem {
     }
 
     return true;
+  }
+
+  applyChainDamage(caster, primaryTarget, spell, effect) {
+    const maxTargets = effect.maxTargets ?? 3;
+    const multipliers = effect.multipliers ?? [1, 0.72, 0.55];
+    const validEnemies = this.game.actors.filter(candidate =>
+      candidate.alive
+      && candidate.team !== caster.team
+      && this.inRange(caster, candidate, effect.range ?? spell.range)
+      && this.hasLos(caster, candidate)
+    );
+
+    const ordered = [primaryTarget];
+    const others = validEnemies
+      .filter(candidate => candidate.id !== primaryTarget.id)
+      .sort((a, b) => distance(primaryTarget, a) - distance(primaryTarget, b));
+
+    ordered.push(...others);
+
+    const targets = ordered.slice(0, maxTargets);
+    const visualIds = [caster.id, ...targets.map(target => target.id)];
+
+    targets.forEach((chainTarget, index) => {
+      const outcome = this.rollHit(caster, chainTarget, spell.id + ":chain:" + index);
+
+      if (outcome !== "hit") {
+        this.game.recordAvoidance(caster, chainTarget, outcome);
+        this.game.addFloatingText(chainTarget, outcome.toUpperCase(), "avoid");
+        return;
+      }
+
+      const multiplier = multipliers[index] ?? multipliers[multipliers.length - 1] ?? 1;
+      this.applyDamage(
+        caster,
+        chainTarget,
+        Math.round(effect.amount * multiplier),
+        spell.id + ":chain:" + index,
+        false,
+        true,
+      );
+    });
+
+    this.game.vfx.chain(visualIds, effect.visualStyle || "lightning", 380);
+
+    if (targets.length > 1) {
+      this.game.log(caster.name + "'s " + spell.name + " chains through " + targets.length + " targets.");
+    }
   }
 
   rollHit(caster, target, spellId) {
@@ -280,6 +330,11 @@ export class CombatSystem {
 
     this.game.recordDamage(source, target, actual, crit);
     this.game.addFloatingText(target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
+
+    if (!periodic) {
+      this.game.vfx.burst(target, "damage", crit ? 340 : 240);
+    }
+
     this.game.log(
       source.name + " hits " + target.name + " for " + actual + (crit ? " (crit)" : "") + ".",
     );
@@ -305,6 +360,12 @@ export class CombatSystem {
     if (actual > 0) {
       this.game.recordHealing(source, target, actual, crit);
       this.game.addFloatingText(target, (crit ? "✦ " : "") + "+" + actual, crit ? "crit-heal" : "heal");
+
+      if (!periodic) {
+        this.game.vfx.beam(source, target, "heal", 260);
+        this.game.vfx.burst(target, "heal", crit ? 380 : 280);
+      }
+
       this.game.log(
         source.name + " heals " + target.name + " for " + actual + (crit ? " (crit)" : "") + ".",
       );
@@ -330,6 +391,7 @@ export class CombatSystem {
       value: effect.value || 0,
     });
 
+    this.game.vfx.ring(target, effect.kind, target.radius + 4, target.radius + 22, 300);
     this.game.log(source.name + " applies " + spell.name + " to " + target.name + ".");
   }
 
@@ -349,6 +411,7 @@ export class CombatSystem {
       value: effect.value,
     });
 
+    this.game.vfx.ring(target, "buff", target.radius + 3, target.radius + 26, 360);
     this.game.addFloatingText(target, "GUARDED", "buff");
     this.game.log(target.name + " gains " + spell.name + ".");
   }

@@ -3,6 +3,7 @@ import { MovementSystem } from "../systems/MovementSystem.js";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
+import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
 import { AISystem } from "../systems/AISystem.js";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
@@ -18,6 +19,7 @@ export class Game {
 
     this.movement = new MovementSystem();
     this.resources = new ResourceSystem();
+    this.vfx = new VisualEffectSystem();
 
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
@@ -185,6 +187,8 @@ export class Game {
       this.checkWinCondition();
     }
 
+    this.vfx.update(deltaMs);
+
     for (const item of this.floatingTexts) item.remainingMs -= deltaMs;
     this.floatingTexts = this.floatingTexts.filter(item => item.remainingMs > 0);
   }
@@ -304,6 +308,7 @@ export class Game {
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;
 
+    this.vfx.reset();
     this.cc = new CrowdControlSystem(this);
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);

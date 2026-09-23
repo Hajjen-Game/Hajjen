@@ -29,4 +29,11 @@
   --pillar-edge: #8a6847;
   --shadow: rgba(0, 0, 0, .42);
   --focus: #e7b363;
+
+  --vfx-lightning: #b9d9e8;
+  --vfx-lightning-core: #f1fbff;
+  --vfx-heal: #a9cfa1;
+  --vfx-damage: #d98973;
+  --vfx-fear: #d6ad65;
+  --vfx-interrupt: #c6addd;
 }

@@ -19,7 +19,7 @@ No build step or package manager is required.
 - F1/F2/F3 target self, party member 2 and party member 3
 - Five abilities on 1–5
 - Rebindable movement, action and party-target keys saved in localStorage
-- 400 ms player ability queue window to prevent near-GCD/cast-end inputs from being dropped
+- 400 ms player ability queue window
 - Mana for healers/casters, energy for melee
 - Cast times, cooldowns and global cooldown
 - HoTs and DoTs with visible effect badges
@@ -27,16 +27,28 @@ No build step or package manager is required.
   - healer: short-range AoE fear
   - melee: off-GCD interrupt with temporary spell-school lock
   - caster: casted incapacitate that breaks on damage
-- Large central CC alert with icon and countdown when the player is feared or incapacitated
+- Large central CC alert with icon and countdown for the player
+- Shared combat VFX system:
+  - cast aura
+  - heal beam + heal burst
+  - direct-damage burst
+  - HoT/DoT application pulse
+  - fear shockwave
+  - interrupt beam + slash
+  - incapacitate beam/burst
+  - chain-lightning arcs
+- Caster fast spell is now a chain spell:
+  - up to 3 enemies
+  - every secondary target must independently be in caster range and line of sight
+  - damage falloff 100% / 72% / 55%
 - DPS switches pressure to an enemy healer at 10% mana or lower
 - DPS tries to drag its kill target back into healer line of sight while its own healer is hard-CC'd
 - Crits, misses and dodges
 - Marble-bag RNG for hit/crit/amount variance
 - Four large line-of-sight pillars in a symmetric arena
-- Basic collision and AI steering around pillars
-- Shared vector role icons: healer cross, melee sword, caster spell glyph
+- Shared vector role icons
 - Damage meter for both teams
-- Copy Run Report with combat, damage, healing, CC and interrupt data
+- Copy Run Report
 - Match ends immediately if the player character dies
 - Shared UI/theme/rendering components
 
@@ -44,10 +56,10 @@ No build step or package manager is required.
 
 `src/core/` — game loop, input, geometry, RNG and match reports  
 `src/entities/` — runtime actor model  
-`src/systems/` — movement, resources, crowd control, player ability queue, AI and combat systems  
+`src/systems/` — movement, resources, crowd control, player ability queue, visual effects, AI and combat  
 `src/rendering/` — shared Canvas rendering  
 `src/ui/` — shared HUD components  
-`src/content/` — all tuneable arena and character configuration
+`src/content/` — tuneable arena and character configuration
 
 Every player class, teammate and opponent has its own folder. Tune values in each folder's `config.js`; future animation art belongs in that same folder's `assets/` directory.
 

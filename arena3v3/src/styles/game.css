@@ -127,10 +127,23 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  display: grid;
+  place-items: center;
   border-radius: 14px;
   background: #0d0a08;
   border: 1px solid var(--line);
 }
+
+.arena-stage {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  flex: none;
+  overflow: hidden;
+  background: var(--arena-floor);
+  box-shadow: 0 0 0 1px rgba(197, 138, 67, .18);
+}
+
 #arena {
   position: absolute;
   inset: 0;

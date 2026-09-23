@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.8-nine-classes",
+    "Build: prototype-v0.9-team-ai",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -14,6 +14,7 @@ export function buildMatchReport(game) {
     "RNG: marble bags for hit / dodge / miss / crit / amount variance",
     "Caster splash: chain spell can hit up to 3 enemies when each is in range + LOS",
     "Dampening: " + game.dampening.percent + "% final | starts 10% at 45s | +2% every 10s",
+    "Team AI: preserves breakable friendly CC and peels melee pressure from vulnerable healer/caster allies",
     "",
     "=== FRIENDLY TEAM ===",
   ];

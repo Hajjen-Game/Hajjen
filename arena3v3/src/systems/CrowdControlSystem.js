@@ -19,6 +19,18 @@ export class CrowdControlSystem {
     return this.hasKind(actor, "root");
   }
 
+  shouldAvoidBreakingFriendlyCc(actor, target) {
+    if (!actor?.alive || !target?.alive) return false;
+
+    return target.effects.some(effect => {
+      if (effect.remainingMs <= 0 || !effect.breakOnDamage) return false;
+      if (!["fear", "incapacitate", "root"].includes(effect.kind)) return false;
+
+      const source = this.game.getActor(effect.sourceId);
+      return source?.team === actor.team;
+    });
+  }
+
   isSchoolLocked(actor, spell) {
     const school = spell.school || (actor.role === "melee" ? "physical" : "magic");
     return actor.effects.some(effect =>

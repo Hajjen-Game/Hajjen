@@ -38,6 +38,8 @@ export class Actor {
     this.gcdRemaining = 0;
     this.targetId = null;
     this.aiTargetId = null;
+    this.aiPeelTargetId = null;
+    this.aiPeelUntil = 0;
     this.lastMove = { x: 0, y: 0 };
   }
 

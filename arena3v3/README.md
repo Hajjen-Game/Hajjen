@@ -64,6 +64,15 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - starts at 10% at 45 seconds
   - rises by 2% every 10 seconds
 - DPS switches pressure to an enemy healer at low mana
+- Team AI preserves breakable friendly CC:
+  - DPS swaps off feared / polymorphed / hexed targets instead of immediately breaking the control
+  - breakable targeted CC avoids enemies already carrying friendly DoTs when possible
+  - chain spells skip secondary targets protected by breakable friendly CC
+  - AI finishes an already-started cast without damaging a newly CC'd target
+- Peel AI:
+  - when a healer or caster teammate drops low while an enemy melee is actively tunneling them, DPS can temporarily switch to that melee
+  - available stuns / incapacitates can prioritize the peel target
+  - peel pressure is sticky for a short window to avoid target-switch jitter
 - DPS tries to reposition its kill target back into healer line of sight when its own healer is hard-CC'd
 - Crits, misses and dodges
 - Marble-bag RNG for hit/crit/amount variance

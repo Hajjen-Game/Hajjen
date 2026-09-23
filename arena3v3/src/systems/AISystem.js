@@ -92,6 +92,10 @@ export class AISystem {
     );
     if (enemies.length === 0) return;
 
+    const damageableEnemies = enemies.filter(candidate =>
+      !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, candidate)
+    );
+
     const defensive = this.spell(actor, "defensiveSelf");
     if (defensive && actor.healthPct < 0.42 && this.ready(actor, defensive)) {
       if (this.castIfPossible(actor, defensive, actor)) return;
@@ -99,7 +103,7 @@ export class AISystem {
 
     const interrupt = this.spell(actor, "interrupt");
     if (interrupt && this.ready(actor, interrupt)) {
-      const interruptTarget = enemies
+      const interruptTarget = damageableEnemies
         .filter(candidate =>
           candidate.cast
           && this.game.combat.inRange(actor, candidate, interrupt.range)
@@ -117,29 +121,64 @@ export class AISystem {
     if (panicRoot && this.ready(actor, panicRoot)) {
       const effect = panicRoot.effects.find(item => item.kind === "rootAoE");
       const radius = effect?.radius || 0;
-      const closeMelee = enemies.find(candidate =>
+      const closeMelee = damageableEnemies.find(candidate =>
         candidate.role === "melee"
         && distance(actor, candidate) <= radius + actor.radius + candidate.radius
       );
       if (closeMelee && this.castIfPossible(actor, panicRoot, actor)) return;
     }
 
-    const oomHealer = this.findOomHealerTarget(actor, enemies);
-    if (oomHealer && actor.aiTargetId !== oomHealer.id) {
-      actor.aiTargetId = oomHealer.id;
-      this.game.log(actor.name + " switches pressure to " + oomHealer.name + " — healer is out of mana.");
-    }
+    if (damageableEnemies.length === 0) return;
 
-    let target = this.game.getActor(actor.aiTargetId);
-    const lowest = [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
+    const peel = this.findPeelSituation(actor, damageableEnemies);
+    const oomHealer = this.findOomHealerTarget(actor, damageableEnemies);
 
-    if (oomHealer) {
+    let target = null;
+
+    if (peel) {
+      target = peel.attacker;
+      this.beginPeel(actor, peel);
+    } else if (oomHealer) {
       target = oomHealer;
+      if (actor.aiTargetId !== oomHealer.id) {
+        this.game.log(actor.name + " switches pressure to " + oomHealer.name + " — healer is out of mana.");
+      }
       actor.aiTargetId = oomHealer.id;
-    } else if (!target?.alive || lowest.healthPct < 0.24) {
-      target = lowest.healthPct < 0.24 ? lowest : this.pickPriorityTarget(actor, enemies);
-      actor.aiTargetId = target.id;
+      actor.aiPeelTargetId = null;
+      actor.aiPeelUntil = 0;
+    } else {
+      const current = this.game.getActor(actor.aiTargetId);
+      const currentProtected = current?.alive
+        && this.game.cc.shouldAvoidBreakingFriendlyCc(actor, current);
+
+      if (currentProtected) {
+        const alternate = this.pickPriorityTarget(actor, damageableEnemies);
+        if (alternate && alternate.id !== current.id) {
+          this.game.log(actor.name + " swaps off " + current.name + " to preserve friendly crowd control.");
+          target = alternate;
+          actor.aiTargetId = alternate.id;
+        }
+      }
+
+      if (!target) {
+        const currentDamageable = current?.alive
+          && damageableEnemies.some(candidate => candidate.id === current.id)
+          ? current
+          : null;
+        const lowest = [...damageableEnemies].sort((a, b) => a.healthPct - b.healthPct)[0];
+
+        if (!currentDamageable || lowest.healthPct < 0.24) {
+          target = lowest.healthPct < 0.24
+            ? lowest
+            : this.pickPriorityTarget(actor, damageableEnemies);
+          actor.aiTargetId = target.id;
+        } else {
+          target = currentDamageable;
+        }
+      }
     }
+
+    if (!target?.alive) return;
 
     const gapClose = this.spell(actor, "gapClose");
     if (
@@ -154,7 +193,17 @@ export class AISystem {
 
     const control = this.spell(actor, "control");
     if (control && this.ready(actor, control)) {
-      const controlTarget = this.pickCcTarget(actor, enemies, control);
+      let controlTarget = null;
+
+      if (
+        peel
+        && this.canControlTarget(actor, peel.attacker, control)
+      ) {
+        controlTarget = peel.attacker;
+      } else {
+        controlTarget = this.pickCcTarget(actor, enemies, control);
+      }
+
       if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
     }
 
@@ -166,11 +215,104 @@ export class AISystem {
       periodic
       && this.ready(actor, periodic)
       && !target.hasEffect(periodic.id, actor.id)
+      && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, target)
       && this.castIfPossible(actor, periodic, target)
     ) return;
 
-    if (big && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
-    if (filler && this.ready(actor, filler)) this.castIfPossible(actor, filler, target);
+    if (
+      big
+      && this.ready(actor, big)
+      && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, target)
+      && this.castIfPossible(actor, big, target)
+    ) return;
+
+    if (
+      filler
+      && this.ready(actor, filler)
+      && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, target)
+    ) {
+      this.castIfPossible(actor, filler, target);
+    }
+  }
+
+  findPeelSituation(actor, enemies) {
+    const now = this.game.elapsedSeconds;
+    const stickyTarget = this.game.getActor(actor.aiPeelTargetId);
+
+    if (
+      actor.aiPeelUntil > now
+      && stickyTarget?.alive
+      && enemies.some(candidate => candidate.id === stickyTarget.id)
+    ) {
+      const threatened = this.findThreatenedAlly(actor, stickyTarget);
+      if (threatened) return { attacker: stickyTarget, ally: threatened };
+    }
+
+    const allies = this.game.actors
+      .filter(candidate =>
+        candidate.alive
+        && candidate.team === actor.team
+        && ["healer", "caster"].includes(candidate.role)
+        && candidate.healthPct <= (actor.config.ai.peelHealthPct ?? 0.62)
+      )
+      .sort((a, b) => a.healthPct - b.healthPct);
+
+    for (const ally of allies) {
+      const attacker = enemies
+        .filter(candidate =>
+          candidate.role === "melee"
+          && candidate.aiTargetId === ally.id
+          && distance(candidate, ally) <= (actor.config.ai.peelThreatRange ?? 115)
+          && !this.game.cc.isHardControlled(candidate)
+          && !this.game.cc.isRooted(candidate)
+        )
+        .sort((a, b) => distance(a, ally) - distance(b, ally))[0];
+
+      if (attacker) return { attacker, ally };
+    }
+
+    actor.aiPeelTargetId = null;
+    actor.aiPeelUntil = 0;
+    return null;
+  }
+
+  findThreatenedAlly(actor, attacker) {
+    return this.game.actors.find(candidate =>
+      candidate.alive
+      && candidate.team === actor.team
+      && ["healer", "caster"].includes(candidate.role)
+      && candidate.id === attacker.aiTargetId
+      && candidate.healthPct <= 0.72
+      && distance(attacker, candidate) <= (actor.config.ai.peelThreatRange ?? 115)
+    ) || null;
+  }
+
+  beginPeel(actor, peel) {
+    const now = this.game.elapsedSeconds;
+    const isNewPeel = actor.aiPeelTargetId !== peel.attacker.id || actor.aiPeelUntil <= now;
+
+    actor.aiPeelTargetId = peel.attacker.id;
+    actor.aiPeelUntil = now + (actor.config.ai.peelDurationSeconds ?? 4.5);
+    actor.aiTargetId = peel.attacker.id;
+
+    if (isNewPeel) {
+      this.game.log(
+        actor.name + " peels " + peel.attacker.name + " off " + peel.ally.name + ".",
+      );
+    }
+  }
+
+  canControlTarget(actor, target, spell) {
+    if (!target?.alive) return false;
+    if (this.game.cc.isHardControlled(target) || this.game.cc.isRooted(target)) return false;
+    if (!this.game.combat.inRange(actor, target, spell.range)) return false;
+    if (!this.game.combat.hasLos(actor, target)) return false;
+
+    if (this.isBreakableControlSpell(spell) && this.hasFriendlyDotPressure(actor, target)) {
+      return false;
+    }
+
+    return true;
   }
 
   pickCcTarget(actor, enemies, spell) {
@@ -179,15 +321,27 @@ export class AISystem {
     for (const role of priorityRoles) {
       const target = enemies.find(candidate =>
         candidate.role === role
-        && !this.game.cc.isHardControlled(candidate)
-        && !this.game.cc.isRooted(candidate)
-        && this.game.combat.inRange(actor, candidate, spell.range)
-        && this.game.combat.hasLos(actor, candidate)
+        && this.canControlTarget(actor, candidate, spell)
       );
       if (target) return target;
     }
 
     return null;
+  }
+
+  isBreakableControlSpell(spell) {
+    return spell.effects.some(effect =>
+      ["fear", "incapacitate", "root"].includes(effect.kind)
+      && effect.breakOnDamage !== false
+    );
+  }
+
+  hasFriendlyDotPressure(actor, target) {
+    return target.effects.some(effect => {
+      if (effect.kind !== "dot" || effect.remainingMs <= 0) return false;
+      const source = this.game.getActor(effect.sourceId);
+      return source?.team === actor.team;
+    });
   }
 
   findOomHealerTarget(actor, enemies) {

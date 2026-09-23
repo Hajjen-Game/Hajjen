@@ -184,6 +184,16 @@ export class CombatSystem {
   }
 
   resolveSpell(caster, target, spell) {
+    if (
+      caster.control === "ai"
+      && spell.target === "enemy"
+      && this.spellWouldBreakFriendlyCc(spell)
+      && this.game.cc.shouldAvoidBreakingFriendlyCc(caster, target)
+    ) {
+      this.game.log(caster.name + " holds " + spell.name + " to preserve friendly crowd control.");
+      return false;
+    }
+
     if (!this.game.resources.canPay(caster, spell)) {
       if (caster.control === "player") this.game.ui.toast("Not enough " + caster.resource.type);
       return false;
@@ -293,7 +303,11 @@ export class CombatSystem {
 
     ordered.push(...others);
 
-    const targets = ordered.slice(0, maxTargets);
+    const targets = ordered
+      .filter((chainTarget, index) =>
+        index === 0 || !this.game.cc.shouldAvoidBreakingFriendlyCc(caster, chainTarget)
+      )
+      .slice(0, maxTargets);
     const visualIds = [caster.id, ...targets.map(chainTarget => chainTarget.id)];
     const style = effect.visualStyle || spell.visualStyle || caster.visualStyle || "lightning";
 
@@ -323,6 +337,12 @@ export class CombatSystem {
     if (targets.length > 1) {
       this.game.log(caster.name + "'s " + spell.name + " chains through " + targets.length + " targets.");
     }
+  }
+
+  spellWouldBreakFriendlyCc(spell) {
+    return spell.effects.some(effect =>
+      ["damage", "dot", "chainDamage"].includes(effect.kind)
+    );
   }
 
   rollHit(caster, target, spellId) {

@@ -88,6 +88,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Combat readability:
+  - stun, fear, incapacitate and root show a large colored arena ring + overhead timer
+  - side unit frames receive a matching CC banner and colored outline
+  - current heavy DPS cooldown abilities trigger a short BURST aura and frame banner around the user
+  - burst telegraphs are visual/readability metadata only and do not add hidden damage modifiers
 - Reset/reload diagnostics:
   - header Restart requires two pointer clicks and ignores keyboard activation
   - internal resets record their source (manual restart / roster apply / play again)

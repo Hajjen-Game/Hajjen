@@ -4,6 +4,7 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
   button.type = "button";
 
   button.innerHTML = `
+    <div class="frame-state-banner" hidden></div>
     <div class="unit-frame-top">
       <div class="unit-name"></div>
       <div class="unit-role-wrap">

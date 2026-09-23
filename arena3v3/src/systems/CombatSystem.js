@@ -225,6 +225,7 @@ export class CombatSystem {
 
     if (spell.cooldownMs > 0) caster.cooldowns.set(spell.id, spell.cooldownMs);
     this.game.recordCast(caster, spell);
+    this.activateOffensiveCooldown(caster, spell);
 
     for (const effect of spell.effects) {
       const effectTarget = effect.to === "self" ? caster : target;
@@ -284,6 +285,38 @@ export class CombatSystem {
     }
 
     return true;
+  }
+
+  activateOffensiveCooldown(caster, spell) {
+    if (!spell.offensiveCooldown) return;
+
+    const durationMs = spell.offensiveCooldown.durationMs ?? 2400;
+    const label = spell.offensiveCooldown.label || "BURST";
+    const style = spell.visualStyle || caster.visualStyle || "damage";
+
+    caster.effects = caster.effects.filter(effect =>
+      !(effect.kind === "offensiveCooldown" && effect.sourceId === caster.id)
+    );
+
+    caster.effects.push({
+      kind: "offensiveCooldown",
+      spellId: spell.id,
+      sourceId: caster.id,
+      durationMs,
+      remainingMs: durationMs,
+      breakOnDamage: false,
+      visualStyle: style,
+      label,
+    });
+
+    this.game.vfx.ring(
+      caster,
+      style,
+      caster.radius + 12,
+      caster.radius + 42,
+      460,
+    );
+    this.game.addFloatingText(caster, label, "burst");
   }
 
   applyChainDamage(caster, primaryTarget, spell, effect) {

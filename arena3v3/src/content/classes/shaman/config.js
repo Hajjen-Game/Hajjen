@@ -30,7 +30,7 @@ export const shamanClass = {
       }],
     },
     {
-      id: "shaman-lava-burst", name: "Lava Burst", aiRole: "bigDamage", visualStyle: "shaman",
+      id: "shaman-lava-burst", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Lava Burst", aiRole: "bigDamage", visualStyle: "shaman",
       target: "enemy", school: "fire", resourceCost: 25, castMs: 1900, cooldownMs: 5000, gcdMs: 1200, range: 360,
       effects: [{ kind: "damage", amount: 182 }],
     },

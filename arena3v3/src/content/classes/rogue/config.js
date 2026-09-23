@@ -25,7 +25,7 @@ export const rogueClass = {
       effects: [{ kind: "damage", amount: 82 }],
     },
     {
-      id: "rogue-eviscerate", name: "Eviscerate", aiRole: "bigDamage", visualStyle: "rogue",
+      id: "rogue-eviscerate", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Eviscerate", aiRole: "bigDamage", visualStyle: "rogue",
       target: "enemy", school: "physical", resourceCost: 38, castMs: 0, cooldownMs: 6000, gcdMs: 1200, range: 60,
       effects: [{ kind: "damage", amount: 205 }],
     },

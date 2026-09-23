@@ -27,7 +27,7 @@ export const mageClass = {
       effects: [{ kind: "damage", amount: 88 }],
     },
     {
-      id: "mage-pyroblast", name: "Pyroblast", aiRole: "bigDamage", visualStyle: "mage",
+      id: "mage-pyroblast", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Pyroblast", aiRole: "bigDamage", visualStyle: "mage",
       target: "enemy", school: "fire", resourceCost: 26, castMs: 2100, cooldownMs: 5000, gcdMs: 1200, range: 365,
       effects: [{ kind: "damage", amount: 188 }],
     },

@@ -58,6 +58,11 @@ export class CanvasRenderer {
       damageVfx: cssVar("--vfx-damage"),
       fearVfx: cssVar("--vfx-fear"),
       interruptVfx: cssVar("--vfx-interrupt"),
+      ccFear: cssVar("--cc-fear"),
+      ccIncap: cssVar("--cc-incap"),
+      ccStun: cssVar("--cc-stun"),
+      ccRoot: cssVar("--cc-root"),
+      burst: cssVar("--vfx-burst"),
     };
   }
 
@@ -146,11 +151,9 @@ export class CanvasRenderer {
     for (const actor of game.actors.filter(actor => actor.alive)) {
       const hasHot = actor.effects.some(effect => effect.kind === "hot");
       const hasDot = actor.effects.some(effect => effect.kind === "dot");
-      const hasCc = actor.effects.some(effect =>
-        ["fear", "incapacitate", "stun", "root", "schoolLock"].includes(effect.kind),
-      );
+      const hasLock = actor.effects.some(effect => effect.kind === "schoolLock");
 
-      if (!hasHot && !hasDot && !hasCc) continue;
+      if (!hasHot && !hasDot && !hasLock) continue;
 
       ctx.save();
       ctx.globalAlpha = 0.62;
@@ -171,9 +174,9 @@ export class CanvasRenderer {
         ctx.stroke();
       }
 
-      if (hasCc) {
+      if (hasLock) {
         ctx.setLineDash([3, 4]);
-        ctx.strokeStyle = this.theme.goldBright;
+        ctx.strokeStyle = this.theme.interruptVfx;
         ctx.beginPath();
         ctx.arc(actor.x, actor.y, actor.radius + 18, 0, Math.PI * 2);
         ctx.stroke();
@@ -228,6 +231,7 @@ export class CanvasRenderer {
     this.drawWorldResource(ctx, actor);
     this.drawName(ctx, actor);
     this.drawEffectIcons(ctx, actor);
+    this.drawCombatState(ctx, actor, game);
 
     if (actor.cast) this.drawWorldCast(ctx, actor);
 
@@ -361,7 +365,7 @@ export class CanvasRenderer {
     const effects = actor.effects
       .filter(effect => effect.remainingMs > 0)
       .filter(effect =>
-        ["hot", "dot", "damageReduction", "healingReduction", "fear", "incapacitate", "stun", "root", "schoolLock"].includes(effect.kind),
+        ["hot", "dot", "damageReduction", "healingReduction", "offensiveCooldown", "fear", "incapacitate", "stun", "root", "schoolLock"].includes(effect.kind),
       )
       .slice(0, 5);
 
@@ -398,6 +402,9 @@ export class CanvasRenderer {
       } else if (effect.kind === "healingReduction") {
         fill = this.theme.enemyBright;
         label = "M";
+      } else if (effect.kind === "offensiveCooldown") {
+        fill = this.theme.burst;
+        label = "!";
       } else if (effect.kind === "schoolLock") {
         fill = "#b29ad1";
         label = "L";
@@ -417,6 +424,110 @@ export class CanvasRenderer {
 
       x += size + gap;
     }
+  }
+
+  drawCombatState(ctx, actor, game) {
+    const ccKinds = ["stun", "fear", "incapacitate", "root"];
+    const cc = actor.effects
+      .filter(effect => effect.remainingMs > 0 && ccKinds.includes(effect.kind))
+      .sort((a, b) => {
+        const priority = { stun: 0, fear: 1, incapacitate: 2, root: 3 };
+        return priority[a.kind] - priority[b.kind];
+      })[0];
+
+    const burst = actor.effects.find(effect =>
+      effect.kind === "offensiveCooldown" && effect.remainingMs > 0
+    );
+
+    if (!cc && !burst) return;
+
+    const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 8);
+
+    if (burst) {
+      const radius = actor.radius + 28 + pulse * 4;
+      const spokes = 10;
+      const rotation = game.elapsedSeconds * 2.8;
+
+      ctx.save();
+      ctx.globalAlpha = 0.52 + pulse * 0.22;
+      ctx.strokeStyle = this.vfxColor(burst.visualStyle || actor.visualStyle);
+      ctx.lineWidth = 3;
+      ctx.shadowColor = this.theme.burst;
+      ctx.shadowBlur = 12;
+
+      ctx.beginPath();
+      ctx.arc(actor.x, actor.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      for (let i = 0; i < spokes; i += 1) {
+        const angle = rotation + (i / spokes) * Math.PI * 2;
+        const inner = radius + 3;
+        const outer = radius + 10 + (i % 2) * 4;
+        ctx.beginPath();
+        ctx.moveTo(actor.x + Math.cos(angle) * inner, actor.y + Math.sin(angle) * inner);
+        ctx.lineTo(actor.x + Math.cos(angle) * outer, actor.y + Math.sin(angle) * outer);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    if (!cc) return;
+
+    const colors = {
+      fear: this.theme.ccFear,
+      incapacitate: this.theme.ccIncap,
+      stun: this.theme.ccStun,
+      root: this.theme.ccRoot,
+    };
+    const labels = {
+      fear: "FEAR",
+      incapacitate: "CC",
+      stun: "STUN",
+      root: "ROOT",
+    };
+    const color = colors[cc.kind] || this.theme.goldBright;
+    const ringRadius = actor.radius + 23 + pulse * 3;
+
+    ctx.save();
+    ctx.globalAlpha = 0.82;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4 + pulse * 2;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.30 + pulse * 0.12;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, actor.radius + 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    const seconds = Math.max(0, cc.remainingMs / 1000).toFixed(1);
+    const text = labels[cc.kind] + " " + seconds;
+    ctx.font = "900 12px system-ui";
+    const textWidth = ctx.measureText(text).width;
+    const badgeW = textWidth + 18;
+    const badgeH = 22;
+    const badgeX = actor.x - badgeW / 2;
+    const badgeY = actor.y - actor.radius - 59;
+
+    ctx.shadowBlur = 8;
+    ctx.globalAlpha = 0.96;
+    roundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+    ctx.fillStyle = "rgba(14, 9, 7, .92)";
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = this.theme.cream;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, actor.x, badgeY + badgeH / 2 + 0.5);
+    ctx.restore();
   }
 
   drawVfx(ctx, game) {
@@ -682,6 +793,7 @@ export class CanvasRenderer {
         buff: "#d9b4e8",
         cc: "#ffd18a",
         debuff: "#e18f7e",
+        burst: "#ffc06b",
       };
 
       ctx.fillStyle = colors[item.type] || this.theme.cream;

@@ -38,6 +38,12 @@
   --vfx-damage: #d98973;
   --vfx-fear: #d6ad65;
   --vfx-interrupt: #c6addd;
+  --vfx-burst: #f0a04a;
+
+  --cc-fear: #e2a85f;
+  --cc-incap: #b89be8;
+  --cc-stun: #e46f5e;
+  --cc-root: #78c6df;
 
   --vfx-priest: #ead8a5;
   --vfx-druid: #86b77c;

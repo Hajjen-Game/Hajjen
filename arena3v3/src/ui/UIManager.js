@@ -240,6 +240,7 @@ export class UIManager {
 
       frame.classList.toggle("dead", !actor.alive);
       frame.classList.toggle("targeted", this.game.player.targetId === actor.id);
+      this.updateFrameCombatState(frame, actor);
 
       this.renderEffects(frame, actor);
 
@@ -295,6 +296,59 @@ export class UIManager {
     } else {
       this.playerCast.classList.add("hidden");
     }
+  }
+
+  updateFrameCombatState(frame, actor) {
+    const ccKinds = ["stun", "fear", "incapacitate", "root"];
+    const cc = actor.effects
+      .filter(effect => effect.remainingMs > 0 && ccKinds.includes(effect.kind))
+      .sort((a, b) => {
+        const priority = { stun: 0, fear: 1, incapacitate: 2, root: 3 };
+        return priority[a.kind] - priority[b.kind];
+      })[0];
+
+    const burst = actor.effects.find(effect =>
+      effect.kind === "offensiveCooldown" && effect.remainingMs > 0
+    );
+
+    frame.classList.remove(
+      "cc-active",
+      "cc-stun",
+      "cc-fear",
+      "cc-incapacitate",
+      "cc-root",
+      "burst-active",
+    );
+
+    const banner = frame.querySelector(".frame-state-banner");
+
+    if (cc) {
+      const labels = {
+        stun: "STUN",
+        fear: "FEAR",
+        incapacitate: "CC",
+        root: "ROOT",
+      };
+      frame.classList.add("cc-active", "cc-" + cc.kind);
+      banner.hidden = false;
+      banner.className = "frame-state-banner cc-state " + cc.kind;
+      banner.textContent =
+        labels[cc.kind] + " · " + Math.max(0, cc.remainingMs / 1000).toFixed(1) + "s";
+      return;
+    }
+
+    if (burst) {
+      frame.classList.add("burst-active");
+      banner.hidden = false;
+      banner.className = "frame-state-banner burst-state";
+      banner.textContent =
+        (burst.label || "BURST") + " · " + Math.max(0, burst.remainingMs / 1000).toFixed(1) + "s";
+      return;
+    }
+
+    banner.hidden = true;
+    banner.className = "frame-state-banner";
+    banner.textContent = "";
   }
 
   updateDampening() {
@@ -378,6 +432,9 @@ export class UIManager {
       } else if (effect.kind === "healingReduction") {
         style = "debuff";
         letter = "MORTAL";
+      } else if (effect.kind === "offensiveCooldown") {
+        style = "burst";
+        letter = effect.label || "BURST";
       } else if (effect.kind === "schoolLock") {
         style = "lock";
         letter = "LOCK";

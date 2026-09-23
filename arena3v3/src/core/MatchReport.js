@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.12-reset-diagnostics",
+    "Build: prototype-v0.13-combat-readability",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -17,6 +17,7 @@ export function buildMatchReport(game) {
     "Team AI: preserves breakable friendly CC and peels melee pressure from vulnerable healer/caster allies",
     "Caster survival: casters kite active melee tunnel pressure; Mage/Shaman receive a light survivability tune",
     "Healer-aware kiting: threatened/low casters try to remain in healing range + LOS of their healer",
+    "Combat readability: strong world + frame indicators for CC; burst abilities show offensive aura",
     "",
     "=== FRIENDLY TEAM ===",
   ];

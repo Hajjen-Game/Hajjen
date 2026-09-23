@@ -101,6 +101,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Role-based Tab targeting:
+  - Tab defaults to Target Nearest and can be rebound in KEYBINDINGS
+  - DPS characters target the closest living enemy
+  - healer characters target the closest living teammate, excluding themselves
+  - distance is measured directly from the player and does not require line of sight
 - Action bar customization:
   - drag spells directly on the action bar to reorder them
   - layout is saved separately for each character

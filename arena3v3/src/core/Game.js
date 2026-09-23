@@ -79,6 +79,11 @@ export class Game {
 
       if (action.startsWith("party")) {
         this.targetPartyMember(Number(action.slice(-1)) - 1);
+        return;
+      }
+
+      if (action === "targetNearest") {
+        this.targetNearestRelevant();
       }
     });
 
@@ -135,6 +140,27 @@ export class Game {
     const friendly = this.actors.filter(actor => actor.team === "friendly");
     const target = friendly[index];
     if (target?.alive) this.selectTarget(target.id);
+  }
+
+  targetNearestRelevant() {
+    if (!this.player?.alive || this.ended || this.waitingForStart) return;
+
+    const wantsFriendly = this.player.role === "healer";
+    const candidates = this.actors
+      .filter(actor =>
+        actor.alive
+        && actor.id !== this.player.id
+        && (wantsFriendly
+          ? actor.team === this.player.team
+          : actor.team !== this.player.team)
+      )
+      .map(actor => ({
+        actor,
+        distance: Math.hypot(actor.x - this.player.x, actor.y - this.player.y),
+      }))
+      .sort((a, b) => a.distance - b.distance);
+
+    if (candidates[0]) this.selectTarget(candidates[0].actor.id);
   }
 
   castPlayerSpell(index) {

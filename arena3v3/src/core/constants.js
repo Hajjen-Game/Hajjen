@@ -17,6 +17,7 @@ export const DEFAULT_BINDINGS = {
   party1: "F1",
   party2: "F2",
   party3: "F3",
+  targetNearest: "Tab",
 };
 
 export const BINDING_LABELS = {
@@ -32,4 +33,5 @@ export const BINDING_LABELS = {
   party1: "Target Self",
   party2: "Target Party 2",
   party3: "Target Party 3",
+  targetNearest: "Target Nearest",
 };

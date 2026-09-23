@@ -16,6 +16,14 @@ export class AISystem {
       const remaining = (this.thinkTimers.get(actor.id) || 0) - deltaSeconds;
       this.thinkTimers.set(actor.id, remaining);
 
+      if (actor.role === "caster" && actor.cast && this.casterMustRecoverHealerSupport(actor)) {
+        const spell = actor.getSpell(actor.cast.spellId);
+        this.game.combat.cancelCast(actor, "recover healer LOS");
+        this.game.log(
+          actor.name + " cancels " + (spell?.name || "cast") + " to recover healer line of sight.",
+        );
+      }
+
       if (remaining <= 0) {
         this.thinkTimers.set(actor.id, 0.12 + (stableHash(actor.id) % 80) / 1000);
         this.think(actor);
@@ -91,6 +99,10 @@ export class AISystem {
       candidate.alive && candidate.team !== actor.team,
     );
     if (enemies.length === 0) return;
+
+    if (actor.role === "caster" && this.casterMustRecoverHealerSupport(actor)) {
+      return;
+    }
 
     const damageableEnemies = enemies.filter(candidate =>
       !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, candidate)
@@ -391,13 +403,10 @@ export class AISystem {
     if (actor.role === "caster") {
       const healer = this.getTeamHealer(actor);
       const meleeThreat = this.findCasterMeleeThreat(actor);
-      const healerLosHealthPct = actor.config.ai.healerLosHealthPct ?? 0.82;
-      const needsHealerSupport = healer
-        && (Boolean(meleeThreat) || actor.healthPct <= healerLosHealthPct);
 
       if (
-        needsHealerSupport
-        && !this.hasHealerSupport(actor, healer)
+        healer
+        && this.casterMustRecoverHealerSupport(actor)
       ) {
         const recoveryVector = this.healerSupportVector(actor, healer, meleeThreat);
 
@@ -442,6 +451,29 @@ export class AISystem {
     if (vector.x !== 0 || vector.y !== 0) {
       this.movement.move(actor, vector, deltaSeconds, this.game.arena);
     }
+  }
+
+  casterMustRecoverHealerSupport(actor) {
+    if (actor.role !== "caster") return false;
+
+    const healer = this.getTeamHealer(actor);
+    if (!healer?.alive) return false;
+
+    const meleeThreat = this.findCasterMeleeThreat(actor);
+    const healerLosHealthPct = actor.config.ai.healerLosHealthPct ?? 0.82;
+    const emergencyHealthPct = actor.config.ai.healerLosEmergencyPct ?? 0.62;
+    const pressured = Boolean(meleeThreat);
+    const low = actor.healthPct <= healerLosHealthPct;
+    const emergency = actor.healthPct <= emergencyHealthPct;
+
+    if (!pressured && !low) return false;
+
+    const supported = this.hasHealerSupport(actor, healer);
+    if (supported) return false;
+
+    // At low HP, or whenever a melee is actively tunnelling the caster,
+    // healer LOS/range is a hard priority over offensive casting.
+    return emergency || pressured || low;
   }
 
   findCasterMeleeThreat(actor) {

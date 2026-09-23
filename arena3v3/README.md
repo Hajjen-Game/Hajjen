@@ -78,6 +78,8 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - casters actively kite enemy melee that are tunneling them instead of positioning only from their offensive target
   - threatened or low-health casters now treat their own healer's healing range + line of sight as a movement constraint
   - if a caster loses healer LOS while pressured, it first tries to recover a healable position rather than blindly kiting farther around a pillar
+  - low/pressured casters now treat healer LOS as a hard safety gate before starting offensive casts
+  - if healer LOS is lost during an offensive cast, the caster cancels that cast and repositions instead of finishing the cast while unhealable
   - self-peel starts earlier for casters under sustained melee pressure
   - Mage receives a small health + movement-speed increase
   - Shaman receives a smaller health + movement-speed increase

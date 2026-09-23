@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.21-spell-vfx",
+    "Build: prototype-v0.22-player-control-alerts",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -22,6 +22,7 @@ export function buildMatchReport(game) {
     "Movement polish: AI slides around pillar corners, never bypasses anti-stuck on blocked steering, flips route side under sustained obstruction and recovers rare collider overlaps",
     "Action bar: spell cards now show their actual combat effect, including defensive reduction and CC duration",
     "Spell VFX: lightweight procedural class/spell effects add projectiles, melee arcs, healing halos, defensive shields and control swirls",
+    "Player control alerts: every implemented hard CC/root plus interrupt school lock shows a large center icon + countdown",
     "",
     "=== FRIENDLY TEAM ===",
   ];

@@ -373,32 +373,45 @@ export class UIManager {
   }
 
   updatePlayerCcAlert() {
-    const effect = this.game.player.effects.find(item =>
-      item.remainingMs > 0
-      && ["fear", "incapacitate", "stun", "root"].includes(item.kind)
-    );
+    const supportedKinds = ["stun", "fear", "incapacitate", "root", "schoolLock"];
+    const priority = { stun: 0, fear: 1, incapacitate: 2, root: 3, schoolLock: 4 };
+
+    const effect = this.game.player.effects
+      .filter(item => item.remainingMs > 0 && supportedKinds.includes(item.kind))
+      .sort((a, b) => priority[a.kind] - priority[b.kind])[0];
+
+    const alertClasses = ["fear", "incapacitate", "stun", "root", "school-lock"];
 
     if (!effect || !this.game.player.alive) {
       this.playerCcAlert.classList.add("hidden");
-      this.playerCcAlert.classList.remove("fear", "incapacitate", "stun", "root");
+      this.playerCcAlert.classList.remove(...alertClasses);
       return;
     }
 
     const source = this.game.getActor(effect.sourceId);
     const spell = source?.getSpell(effect.spellId);
+    const alertClass = effect.kind === "schoolLock" ? "school-lock" : effect.kind;
 
-    this.playerCcAlert.classList.remove("hidden", "fear", "incapacitate", "stun", "root");
-    this.playerCcAlert.classList.add(effect.kind);
+    this.playerCcAlert.classList.remove("hidden", ...alertClasses);
+    this.playerCcAlert.classList.add(alertClass);
 
     const titles = {
       fear: "FEARED",
       incapacitate: "INCAPACITATED",
       stun: "STUNNED",
       root: "ROOTED",
+      schoolLock: "INTERRUPTED",
     };
+
     this.playerCcTitle.textContent = titles[effect.kind] || "CONTROLLED";
     this.playerCcTime.textContent = Math.max(0, effect.remainingMs / 1000).toFixed(1) + "s";
-    this.playerCcSource.textContent = spell?.name ? spell.name : "";
+
+    if (effect.kind === "schoolLock") {
+      const school = effect.lockedSchool ? effect.lockedSchool.toUpperCase() + " LOCKED" : "SCHOOL LOCKED";
+      this.playerCcSource.textContent = spell?.name ? spell.name + " · " + school : school;
+    } else {
+      this.playerCcSource.textContent = spell?.name ? spell.name : "";
+    }
   }
 
   renderEffects(frame, actor) {

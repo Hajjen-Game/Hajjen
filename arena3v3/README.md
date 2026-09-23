@@ -90,6 +90,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Player control alerts:
+  - Fear, Stun, Incapacitate, Root and Interrupt/School Lock all use the large center-screen warning
+  - each state has its own large icon and countdown
+  - interrupt alerts also show the locked spell school
+  - hard CC takes priority over a simultaneous school lock so the most restrictive state is shown
 - Spell and attack VFX:
   - lightweight Canvas-only effects; no sprite sheets or external assets required
   - Mage Frostbolt/Pyroblast, Warlock bolts, Shaman Lava Burst and Paladin Holy Shock have distinct projectiles

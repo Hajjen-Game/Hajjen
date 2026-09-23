@@ -74,6 +74,12 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - available stuns / incapacitates can prioritize the peel target
   - peel pressure is sticky for a short window to avoid target-switch jitter
 - DPS tries to reposition its kill target back into healer line of sight when its own healer is hard-CC'd
+- Caster survival / uptime pass:
+  - casters actively kite enemy melee that are tunneling them instead of positioning only from their offensive target
+  - self-peel starts earlier for casters under sustained melee pressure
+  - Mage receives a small health + movement-speed increase
+  - Shaman receives a smaller health + movement-speed increase
+  - Warlock keeps its higher health and Unending Resolve instead of receiving a raw stat buff
 - Crits, misses and dodges
 - Marble-bag RNG for hit/crit/amount variance
 - Four line-of-sight pillars in a proportional 16:9 arena

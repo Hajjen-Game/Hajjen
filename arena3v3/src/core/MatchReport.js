@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.9-team-ai",
+    "Build: prototype-v0.10-caster-survival",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -15,6 +15,7 @@ export function buildMatchReport(game) {
     "Caster splash: chain spell can hit up to 3 enemies when each is in range + LOS",
     "Dampening: " + game.dampening.percent + "% final | starts 10% at 45s | +2% every 10s",
     "Team AI: preserves breakable friendly CC and peels melee pressure from vulnerable healer/caster allies",
+    "Caster survival: casters kite active melee tunnel pressure; Mage/Shaman receive a light survivability tune",
     "",
     "=== FRIENDLY TEAM ===",
   ];

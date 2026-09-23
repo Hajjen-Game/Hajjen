@@ -12,6 +12,8 @@ export const warlockClass = {
     preferredRange: 310, targetPriorityRoles: ["caster", "melee", "healer"],
     ccTargetRoles: ["healer", "caster"], oomHealerFocusPct: 0.10,
     repositionWhenHealerControlled: true, healerLosPullDistance: 125,
+    peelHealthPct: 0.68, peelThreatRange: 120, peelDurationSeconds: 4.5,
+    kiteThreatRange: 150,
   },
   spells: [
     {

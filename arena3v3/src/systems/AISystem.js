@@ -296,9 +296,13 @@ export class AISystem {
     actor.aiTargetId = peel.attacker.id;
 
     if (isNewPeel) {
-      this.game.log(
-        actor.name + " peels " + peel.attacker.name + " off " + peel.ally.name + ".",
-      );
+      if (peel.ally.id === actor.id) {
+        this.game.log(actor.name + " self-peels " + peel.attacker.name + ".");
+      } else {
+        this.game.log(
+          actor.name + " peels " + peel.attacker.name + " off " + peel.ally.name + ".",
+        );
+      }
     }
   }
 
@@ -384,6 +388,19 @@ export class AISystem {
   moveForRole(actor, target, deltaSeconds) {
     if (!target?.alive || this.game.cc.isRooted(actor)) return;
 
+    if (actor.role === "caster") {
+      const meleeThreat = this.findCasterMeleeThreat(actor);
+
+      if (meleeThreat) {
+        const kiteVector = this.kiteVector(actor, meleeThreat);
+
+        if (kiteVector.x !== 0 || kiteVector.y !== 0) {
+          this.movement.move(actor, kiteVector, deltaSeconds, this.game.arena);
+          return;
+        }
+      }
+    }
+
     if (actor.role !== "healer" && this.shouldPullForControlledHealer(actor, target)) {
       const pullVector = this.healerLosPullVector(actor, target);
 
@@ -409,6 +426,51 @@ export class AISystem {
     if (vector.x !== 0 || vector.y !== 0) {
       this.movement.move(actor, vector, deltaSeconds, this.game.arena);
     }
+  }
+
+  findCasterMeleeThreat(actor) {
+    const threatRange = actor.config.ai.kiteThreatRange ?? 150;
+
+    return this.game.actors
+      .filter(candidate =>
+        candidate.alive
+        && candidate.team !== actor.team
+        && candidate.role === "melee"
+        && candidate.aiTargetId === actor.id
+        && !this.game.cc.isHardControlled(candidate)
+        && !this.game.cc.isRooted(candidate)
+        && distance(candidate, actor) <= threatRange
+      )
+      .sort((a, b) => distance(a, actor) - distance(b, actor))[0] || null;
+  }
+
+  kiteVector(actor, threat) {
+    const directAway = normalize(actor.x - threat.x, actor.y - threat.y);
+
+    if (!this.movement.wouldCollide(actor, directAway, actor.radius + 26, this.game.arena)) {
+      return directAway;
+    }
+
+    const sign = stableHash(actor.id + ":kite") % 2 === 0 ? 1 : -1;
+    const side = {
+      x: -directAway.y * sign,
+      y: directAway.x * sign,
+    };
+
+    const candidates = [
+      normalize(directAway.x * 0.7 + side.x * 0.7, directAway.y * 0.7 + side.y * 0.7),
+      normalize(directAway.x * 0.7 - side.x * 0.7, directAway.y * 0.7 - side.y * 0.7),
+      side,
+      { x: -side.x, y: -side.y },
+    ];
+
+    for (const candidate of candidates) {
+      if (!this.movement.wouldCollide(actor, candidate, actor.radius + 26, this.game.arena)) {
+        return candidate;
+      }
+    }
+
+    return { x: 0, y: 0 };
   }
 
   shouldPullForControlledHealer(actor, target) {

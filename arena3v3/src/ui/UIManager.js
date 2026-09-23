@@ -401,6 +401,7 @@ export class UIManager {
     const container = frame.querySelector(".frame-effects");
     const visible = actor.effects
       .filter(effect => effect.remainingMs > 0)
+      .filter(effect => !["fear", "incapacitate", "stun", "root"].includes(effect.kind))
       .sort((a, b) => a.remainingMs - b.remainingMs)
       .slice(0, 6);
 

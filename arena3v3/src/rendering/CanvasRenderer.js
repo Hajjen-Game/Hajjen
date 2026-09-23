@@ -365,7 +365,7 @@ export class CanvasRenderer {
     const effects = actor.effects
       .filter(effect => effect.remainingMs > 0)
       .filter(effect =>
-        ["hot", "dot", "damageReduction", "healingReduction", "offensiveCooldown", "fear", "incapacitate", "stun", "root", "schoolLock"].includes(effect.kind),
+        ["hot", "dot", "damageReduction", "healingReduction", "offensiveCooldown", "schoolLock"].includes(effect.kind),
       )
       .slice(0, 5);
 
@@ -479,54 +479,113 @@ export class CanvasRenderer {
       stun: this.theme.ccStun,
       root: this.theme.ccRoot,
     };
-    const labels = {
-      fear: "FEAR",
-      incapacitate: "CC",
-      stun: "STUN",
-      root: "ROOT",
-    };
     const color = colors[cc.kind] || this.theme.goldBright;
-    const ringRadius = actor.radius + 23 + pulse * 3;
+    const ringRadius = actor.radius + 12 + pulse * 2;
 
     ctx.save();
-    ctx.globalAlpha = 0.82;
+    ctx.globalAlpha = 0.76;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 4 + pulse * 2;
+    ctx.lineWidth = 2.5 + pulse;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 14;
+    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(actor.x, actor.y, ringRadius, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.globalAlpha = 0.30 + pulse * 0.12;
+    ctx.globalAlpha = 0.10 + pulse * 0.04;
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(actor.x, actor.y, actor.radius + 5, 0, Math.PI * 2);
+    ctx.arc(actor.x, actor.y, actor.radius + 3, 0, Math.PI * 2);
     ctx.fill();
 
     const seconds = Math.max(0, cc.remainingMs / 1000).toFixed(1);
-    const text = labels[cc.kind] + " " + seconds;
-    ctx.font = "900 12px system-ui";
-    const textWidth = ctx.measureText(text).width;
-    const badgeW = textWidth + 18;
-    const badgeH = 22;
+    const badgeW = 30;
+    const badgeH = 37;
     const badgeX = actor.x - badgeW / 2;
-    const badgeY = actor.y - actor.radius - 59;
+    const badgeY = actor.y - actor.radius - 72;
 
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 7;
     ctx.globalAlpha = 0.96;
-    roundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
-    ctx.fillStyle = "rgba(14, 9, 7, .92)";
+    roundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 7);
+    ctx.fillStyle = "rgba(14, 9, 7, .94)";
     ctx.fill();
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.stroke();
 
     ctx.shadowBlur = 0;
+    this.drawCcIcon(ctx, cc.kind, actor.x, badgeY + 11, 12, color);
+
     ctx.fillStyle = this.theme.cream;
+    ctx.font = "900 10px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(text, actor.x, badgeY + badgeH / 2 + 0.5);
+    ctx.fillText(seconds, actor.x, badgeY + 27);
+    ctx.restore();
+  }
+
+  drawCcIcon(ctx, kind, x, y, size, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (kind === "stun") {
+      const points = 8;
+      ctx.beginPath();
+      for (let i = 0; i < points * 2; i += 1) {
+        const angle = -Math.PI / 2 + (i / (points * 2)) * Math.PI * 2;
+        const radius = i % 2 === 0 ? size * 0.5 : size * 0.22;
+        const px = Math.cos(angle) * radius;
+        const py = Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+    } else if (kind === "fear") {
+      ctx.beginPath();
+      ctx.arc(-size * 0.22, -size * 0.12, size * 0.08, 0, Math.PI * 2);
+      ctx.arc(size * 0.22, -size * 0.12, size * 0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, size * 0.16, size * 0.22, Math.PI, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.47, Math.PI * 0.12, Math.PI * 0.88, true);
+      ctx.stroke();
+    } else if (kind === "incapacitate") {
+      ctx.beginPath();
+      const turns = 2.25;
+      const steps = 28;
+      for (let i = 0; i <= steps; i += 1) {
+        const t = i / steps;
+        const angle = t * Math.PI * 2 * turns;
+        const radius = size * 0.06 + t * size * 0.42;
+        const px = Math.cos(angle) * radius;
+        const py = Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    } else if (kind === "root") {
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.48);
+      ctx.lineTo(0, size * 0.12);
+      ctx.moveTo(0, -size * 0.08);
+      ctx.lineTo(-size * 0.28, -size * 0.28);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(size * 0.3, -size * 0.2);
+      ctx.moveTo(0, size * 0.1);
+      ctx.lineTo(-size * 0.34, size * 0.42);
+      ctx.moveTo(0, size * 0.1);
+      ctx.lineTo(size * 0.34, size * 0.42);
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 

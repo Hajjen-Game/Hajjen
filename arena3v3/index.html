@@ -80,6 +80,7 @@
         <button id="honor-button" class="hud-button" type="button">HONOR</button>
         <button id="roster-button" class="hud-button" type="button">ROSTER</button>
         <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
+        <button id="help-button" class="hud-button" type="button">HELP</button>
         <button id="restart-button" class="hud-button" type="button">RESTART</button>
       </div>
     </header>
@@ -115,6 +116,23 @@
           <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
           <div id="combat-log" class="combat-log" aria-live="polite"></div>
           <div id="toast" class="toast" aria-live="polite"></div>
+
+          <div class="player-status-bars" aria-label="Player cast and resource">
+            <div id="player-cast" class="player-cast hidden">
+              <div id="player-cast-label" class="cast-label"></div>
+              <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
+            </div>
+
+            <div id="player-resource" class="player-resource">
+              <div class="player-resource-head">
+                <span id="player-resource-label">MANA</span>
+                <span id="player-resource-value">100 / 100</span>
+              </div>
+              <div class="player-resource-track">
+                <div id="player-resource-fill" class="player-resource-fill"></div>
+              </div>
+            </div>
+          </div>
 
           <div id="player-cc-alert" class="player-cc-alert hidden" aria-live="assertive">
             <div class="player-cc-icon">
@@ -168,23 +186,7 @@
     </main>
 
     <footer class="bottom-hud panel">
-      <div id="player-cast" class="player-cast hidden">
-        <div id="player-cast-label" class="cast-label"></div>
-        <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
-      </div>
-
-      <div id="player-resource" class="player-resource">
-        <div class="player-resource-head">
-          <span id="player-resource-label">MANA</span>
-          <span id="player-resource-value">100 / 100</span>
-        </div>
-        <div class="player-resource-track">
-          <div id="player-resource-fill" class="player-resource-fill"></div>
-        </div>
-      </div>
-
       <div id="action-bar" class="action-bar"></div>
-      <div class="hint">Left click target · Hold LMB + RMB to steer/move · WASD also moves · F1/F2/F3 target party · Drag spells to rearrange · TAB targets nearest · keys in KEYBINDINGS</div>
     </footer>
   </div>
 
@@ -295,6 +297,47 @@
       <div class="roster-actions">
         <button id="roster-cancel" class="hud-button">CANCEL</button>
         <button id="roster-apply" class="hud-button primary">START MATCH</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="help-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal-card help-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">QUICK GUIDE</div>
+          <h2 id="help-title">HELP</h2>
+        </div>
+        <button id="help-close" class="icon-button" aria-label="Close help">×</button>
+      </div>
+
+      <div class="help-grid">
+        <section class="help-section">
+          <h3>MOVEMENT</h3>
+          <p><strong>WASD</strong> moves your character.</p>
+          <p>Hold <strong>Left + Right Mouse Button</strong> together to steer and move toward the cursor.</p>
+        </section>
+
+        <section class="help-section">
+          <h3>TARGETING</h3>
+          <p><strong>Left Click</strong> a unit or unit frame to target it.</p>
+          <p><strong>Tab</strong> targets the nearest enemy on DPS classes and the nearest teammate on healer classes.</p>
+          <p><strong>F1 / F2 / F3</strong> target your party members.</p>
+        </section>
+
+        <section class="help-section">
+          <h3>ACTION BAR</h3>
+          <p>Use the configured <strong>Slot 1–5</strong> keys to activate abilities.</p>
+          <p>Drag abilities directly on the action bar to rearrange them. The keybind stays with the slot.</p>
+          <p>Open <strong>KEYBINDINGS</strong> to change movement, targeting and action-slot keys.</p>
+        </section>
+
+        <section class="help-section">
+          <h3>COMBAT FEEDBACK</h3>
+          <p>Dimmed abilities are currently unusable; range feedback becomes dim when the selected target is too far away.</p>
+          <p>The large center icon shows crowd control or an interrupt lockout affecting your character.</p>
+        </section>
       </div>
     </div>
   </div>

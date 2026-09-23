@@ -76,6 +76,8 @@ export class UIManager {
     document.querySelector("#honor-close").addEventListener("click", () => this.closeHonor());
     document.querySelector("#controls-button").addEventListener("click", () => this.openControls());
     document.querySelector("#controls-close").addEventListener("click", () => this.closeControls());
+    document.querySelector("#help-button").addEventListener("click", () => this.openHelp());
+    document.querySelector("#help-close").addEventListener("click", () => this.closeHelp());
 
     document.querySelector("#reset-bindings").addEventListener("click", () => {
       this.input.reset();
@@ -419,6 +421,14 @@ export class UIManager {
 
       this.honorRankList.appendChild(row);
     }
+  }
+
+  openHelp() {
+    document.querySelector("#help-modal").classList.remove("hidden");
+  }
+
+  closeHelp() {
+    document.querySelector("#help-modal").classList.add("hidden");
   }
 
   openControls() {

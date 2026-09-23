@@ -94,6 +94,7 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - stun, fear, incapacitate and root show a compact colored arena ring + icon-over-timer marker
   - each CC type has its own procedural icon: stun burst, fear face, incapacitate spiral and root branches
   - hard CC is no longer duplicated in the small world-effect row or side-frame effect chips
+  - CC icon/timer contents explicitly clear inherited Canvas shadows so they render once instead of appearing doubled
   - side unit frames receive a matching CC banner and colored outline
   - current heavy DPS cooldown abilities trigger a short BURST aura and frame banner around the user
   - burst telegraphs are visual/readability metadata only and do not add hidden damage modifiers

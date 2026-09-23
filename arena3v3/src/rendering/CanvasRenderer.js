@@ -513,7 +513,14 @@ export class CanvasRenderer {
     ctx.lineWidth = 2;
     ctx.stroke();
 
+    // drawActor leaves a 4px shadow offset behind for the actor body.
+    // With blur set to 0 that became a crisp duplicate of the CC icon/timer.
+    // Fully disable the inherited shadow before drawing badge contents.
+    ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
     this.drawCcIcon(ctx, cc.kind, actor.x, badgeY + 11, 12, color);
 
     ctx.fillStyle = this.theme.cream;

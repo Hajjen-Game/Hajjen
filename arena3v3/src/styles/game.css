@@ -400,8 +400,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   filter: drop-shadow(0 5px 12px rgba(0,0,0,.58));
 }
 
-.player-cast,
-.player-resource {
+.player-cast {
   width: 100%;
   padding: 7px 10px 8px;
   border: 1px solid rgba(204, 145, 74, .48);
@@ -432,31 +431,16 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .cast-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #685a86, var(--cast));
+  transition: width .06s linear;
 }
 
-.player-resource-head {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--cream-dim);
-  margin-bottom: 5px;
+.player-cast.healer .cast-fill {
+  background: linear-gradient(90deg, #2f6f43 0%, #4fa965 48%, #86d98d 100%);
 }
 
-.player-resource-track {
-  height: 13px;
-  background: var(--resource-bg);
-  border: 1px solid var(--line-soft);
-  border-radius: 7px;
-  overflow: hidden;
+.player-cast.dps .cast-fill {
+  background: linear-gradient(90deg, #7c2d2d 0%, #b8483e 48%, #e06a59 100%);
 }
-
-.player-resource-fill { height: 100%; width: 100%; transition: width .12s linear; }
-.player-resource-fill.mana { background: var(--mana); }
-.player-resource-fill.energy { background: var(--energy); }
-.player-resource-fill.rage { background: var(--rage); }
-.player-resource-fill.runic { background: var(--runic); }
 
 .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(7,5,4,.72); }
 .modal.hidden { display: none; }

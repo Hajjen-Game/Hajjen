@@ -53,10 +53,6 @@ export class UIManager {
     this.playerCastLabel = document.querySelector("#player-cast-label");
     this.playerCastFill = document.querySelector("#player-cast-fill");
 
-    this.playerResourceLabel = document.querySelector("#player-resource-label");
-    this.playerResourceValue = document.querySelector("#player-resource-value");
-    this.playerResourceFill = document.querySelector("#player-resource-fill");
-
     this.playerCcAlert = document.querySelector("#player-cc-alert");
     this.playerCcTitle = document.querySelector("#player-cc-title");
     this.playerCcTime = document.querySelector("#player-cc-time");
@@ -496,7 +492,6 @@ export class UIManager {
     }
 
     this.updateDamageMeter();
-    this.updatePlayerResource();
     this.updatePlayerCcAlert();
     this.updateDampening();
     this.updateHonorStatus();
@@ -535,6 +530,10 @@ export class UIManager {
       slot.classList.toggle("out-of-range", outOfRange);
       slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === spellIndex);
     });
+
+    const healerCast = this.game.player.role === "healer";
+    this.playerCast.classList.toggle("healer", healerCast);
+    this.playerCast.classList.toggle("dps", !healerCast);
 
     if (this.game.player.cast) {
       const spell = this.game.player.getSpell(this.game.player.cast.spellId);
@@ -750,16 +749,6 @@ export class UIManager {
       row.querySelector(".meter-value").textContent = Math.round(values[index]).toLocaleString();
       row.querySelector(".meter-fill").style.width = ((values[index] / max) * 100) + "%";
     });
-  }
-
-  updatePlayerResource() {
-    const resource = this.game.player.resource;
-    this.playerResourceLabel.textContent = resource.type.toUpperCase();
-    this.playerResourceValue.textContent =
-      Math.floor(resource.value) + " / " + resource.max;
-
-    this.playerResourceFill.className = "player-resource-fill " + resource.type;
-    this.playerResourceFill.style.width = (clamp(this.game.player.resourcePct, 0, 1) * 100) + "%";
   }
 
   actionSlotForSpellIndex(spellIndex) {

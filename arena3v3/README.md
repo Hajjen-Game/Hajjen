@@ -102,8 +102,9 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
 - Combat HUD layout:
-  - player cast and resource bars are now centered inside the arena above the action bar area
-  - both bars are wider, thicker and easier to read during combat
+  - only the player cast bar is shown in the centered arena overlay; the separate resource bar was removed
+  - healer casts use a green gradient and DPS casts use a red gradient
+  - the cast bar remains wide and thick for fast readability during combat
   - action-bar cards are taller to leave room for richer future spell presentation and icons
   - the always-visible bottom instruction line was removed
   - a HELP button in the top HUD opens movement, targeting, action-bar and combat-feedback guidance

@@ -25,6 +25,7 @@ export const enemyCasterConfig = {
   ai: {
     preferredRange: 300,
     targetPriorityRoles: ["caster", "melee", "healer"],
+    ccTargetRoles: ["healer", "caster"],
   },
 
   spells: [
@@ -37,9 +38,7 @@ export const enemyCasterConfig = {
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 360,
-      effects: [
-        { kind: "dot", amount: 47, durationMs: 8000, tickMs: 2000 },
-      ],
+      effects: [{ kind: "dot", amount: 47, durationMs: 8000, tickMs: 2000 }],
     },
     {
       id: "scholar-spark",
@@ -50,9 +49,7 @@ export const enemyCasterConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 360,
-      effects: [
-        { kind: "damage", amount: 84 },
-      ],
+      effects: [{ kind: "damage", amount: 84 }],
     },
     {
       id: "scholar-rift",
@@ -63,9 +60,7 @@ export const enemyCasterConfig = {
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 360,
-      effects: [
-        { kind: "damage", amount: 172 },
-      ],
+      effects: [{ kind: "damage", amount: 172 }],
     },
     {
       id: "scholar-collapse",
@@ -76,8 +71,23 @@ export const enemyCasterConfig = {
       cooldownMs: 14500,
       gcdMs: 1200,
       range: 360,
+      effects: [{ kind: "damage", amount: 234 }],
+    },
+    {
+      id: "scholar-trance",
+      name: "Void Trance",
+      target: "enemy",
+      school: "magic",
+      utility: true,
+      aiRole: "control",
+      resourceCost: 18,
+      castMs: 1500,
+      cooldownMs: 18000,
+      gcdMs: 1200,
+      range: 340,
+      noHitRoll: true,
       effects: [
-        { kind: "damage", amount: 234 },
+        { kind: "incapacitate", durationMs: 4500, breakOnDamage: true },
       ],
     },
   ],

@@ -37,9 +37,7 @@ export const enemyMeleeConfig = {
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 58,
-      effects: [
-        { kind: "dot", amount: 43, durationMs: 8000, tickMs: 2000 },
-      ],
+      effects: [{ kind: "dot", amount: 43, durationMs: 8000, tickMs: 2000 }],
     },
     {
       id: "reaver-slice",
@@ -50,9 +48,7 @@ export const enemyMeleeConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 58,
-      effects: [
-        { kind: "damage", amount: 74 },
-      ],
+      effects: [{ kind: "damage", amount: 74 }],
     },
     {
       id: "reaver-cleave",
@@ -63,9 +59,7 @@ export const enemyMeleeConfig = {
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 62,
-      effects: [
-        { kind: "damage", amount: 154 },
-      ],
+      effects: [{ kind: "damage", amount: 154 }],
     },
     {
       id: "reaver-execution",
@@ -76,9 +70,23 @@ export const enemyMeleeConfig = {
       cooldownMs: 13500,
       gcdMs: 1200,
       range: 62,
-      effects: [
-        { kind: "damage", amount: 216 },
-      ],
+      effects: [{ kind: "damage", amount: 216 }],
+    },
+    {
+      id: "reaver-interrupt",
+      name: "Skullbreaker",
+      target: "enemy",
+      school: "physical",
+      utility: true,
+      aiRole: "interrupt",
+      resourceCost: 10,
+      castMs: 0,
+      cooldownMs: 10000,
+      gcdMs: 0,
+      ignoreGcd: true,
+      range: 70,
+      noHitRoll: true,
+      effects: [{ kind: "interrupt", durationMs: 3000 }],
     },
   ],
 };

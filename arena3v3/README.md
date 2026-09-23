@@ -1,6 +1,6 @@
 # 3v3 Arena prototype
 
-A dependency-free browser prototype for a single-player 3v3 arena game inspired by MMO arena combat: positioning, line of sight, target switching, pressure and healing decisions.
+A dependency-free browser prototype for a single-player 3v3 arena game inspired by MMO arena combat: positioning, line of sight, target switching, pressure, healing decisions and crowd control.
 
 ## Run
 
@@ -17,17 +17,21 @@ No build step or package manager is required.
 - WASD movement
 - Click world units or side frames to target
 - F1/F2/F3 target self, party member 2 and party member 3
-- Four abilities on 1–4
+- Five abilities on 1–5
 - Rebindable movement, action and party-target keys saved in localStorage
 - Mana for healers/casters, energy for melee
 - Cast times, cooldowns and global cooldown
 - HoTs and DoTs with visible effect badges
+- Crowd control:
+  - healer: short-range AoE fear
+  - melee: off-GCD interrupt with temporary spell-school lock
+  - caster: casted incapacitate that breaks on damage
 - Crits, misses and dodges
 - Marble-bag RNG for hit/crit/amount variance
 - Four large line-of-sight pillars in a symmetric arena
 - Basic collision and AI steering around pillars
-- Friendly damage meter
-- Copy Run Report for match analysis
+- Damage meter for both teams
+- Copy Run Report with combat, damage, healing, CC and interrupt data
 - Match ends immediately if the player character dies
 - Shared UI/theme/rendering components
 
@@ -35,7 +39,7 @@ No build step or package manager is required.
 
 `src/core/` — game loop, input, geometry, RNG and match reports  
 `src/entities/` — runtime actor model  
-`src/systems/` — movement, resources, AI and combat systems  
+`src/systems/` — movement, resources, crowd control, AI and combat systems  
 `src/rendering/` — shared Canvas rendering  
 `src/ui/` — shared HUD components  
 `src/content/` — all tuneable arena and character configuration

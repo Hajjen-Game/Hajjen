@@ -36,9 +36,7 @@ export const enemyHealerConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 340,
-      effects: [
-        { kind: "hot", amount: 62, durationMs: 9000, tickMs: 3000 },
-      ],
+      effects: [{ kind: "hot", amount: 62, durationMs: 9000, tickMs: 3000 }],
     },
     {
       id: "warden-stitch",
@@ -49,9 +47,7 @@ export const enemyHealerConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 340,
-      effects: [
-        { kind: "heal", amount: 126 },
-      ],
+      effects: [{ kind: "heal", amount: 126 }],
     },
     {
       id: "warden-restoration",
@@ -62,9 +58,7 @@ export const enemyHealerConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 340,
-      effects: [
-        { kind: "heal", amount: 280 },
-      ],
+      effects: [{ kind: "heal", amount: 280 }],
     },
     {
       id: "warden-shell",
@@ -78,6 +72,23 @@ export const enemyHealerConfig = {
       effects: [
         { kind: "heal", amount: 315 },
         { kind: "damageReduction", value: 0.22, durationMs: 4000 },
+      ],
+    },
+    {
+      id: "warden-terror",
+      name: "Warden's Terror",
+      target: "self",
+      school: "magic",
+      utility: true,
+      aiRole: "panicCc",
+      resourceCost: 10,
+      castMs: 0,
+      cooldownMs: 25000,
+      gcdMs: 1200,
+      range: 0,
+      noHitRoll: true,
+      effects: [
+        { kind: "fearAoE", radius: 120, durationMs: 3300, breakOnDamage: true },
       ],
     },
   ],

@@ -25,6 +25,7 @@ export const allyCasterConfig = {
   ai: {
     preferredRange: 300,
     targetPriorityRoles: ["caster", "melee", "healer"],
+    ccTargetRoles: ["healer", "caster"],
   },
 
   spells: [
@@ -37,9 +38,7 @@ export const allyCasterConfig = {
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 360,
-      effects: [
-        { kind: "dot", amount: 48, durationMs: 8000, tickMs: 2000 },
-      ],
+      effects: [{ kind: "dot", amount: 48, durationMs: 8000, tickMs: 2000 }],
     },
     {
       id: "arcanist-bolt",
@@ -50,9 +49,7 @@ export const allyCasterConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 360,
-      effects: [
-        { kind: "damage", amount: 86 },
-      ],
+      effects: [{ kind: "damage", amount: 86 }],
     },
     {
       id: "arcanist-lance",
@@ -63,9 +60,7 @@ export const allyCasterConfig = {
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 360,
-      effects: [
-        { kind: "damage", amount: 176 },
-      ],
+      effects: [{ kind: "damage", amount: 176 }],
     },
     {
       id: "arcanist-comet",
@@ -76,8 +71,23 @@ export const allyCasterConfig = {
       cooldownMs: 14000,
       gcdMs: 1200,
       range: 360,
+      effects: [{ kind: "damage", amount: 240 }],
+    },
+    {
+      id: "arcanist-trance",
+      name: "Ember Trance",
+      target: "enemy",
+      school: "magic",
+      utility: true,
+      aiRole: "control",
+      resourceCost: 18,
+      castMs: 1500,
+      cooldownMs: 18000,
+      gcdMs: 1200,
+      range: 340,
+      noHitRoll: true,
       effects: [
-        { kind: "damage", amount: 240 },
+        { kind: "incapacitate", durationMs: 4500, breakOnDamage: true },
       ],
     },
   ],

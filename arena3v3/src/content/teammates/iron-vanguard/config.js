@@ -37,9 +37,7 @@ export const allyMeleeConfig = {
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 58,
-      effects: [
-        { kind: "dot", amount: 44, durationMs: 8000, tickMs: 2000 },
-      ],
+      effects: [{ kind: "dot", amount: 44, durationMs: 8000, tickMs: 2000 }],
     },
     {
       id: "vanguard-jab",
@@ -50,9 +48,7 @@ export const allyMeleeConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 58,
-      effects: [
-        { kind: "damage", amount: 76 },
-      ],
+      effects: [{ kind: "damage", amount: 76 }],
     },
     {
       id: "vanguard-crush",
@@ -63,9 +59,7 @@ export const allyMeleeConfig = {
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 62,
-      effects: [
-        { kind: "damage", amount: 158 },
-      ],
+      effects: [{ kind: "damage", amount: 158 }],
     },
     {
       id: "vanguard-breaker",
@@ -76,9 +70,23 @@ export const allyMeleeConfig = {
       cooldownMs: 13500,
       gcdMs: 1200,
       range: 62,
-      effects: [
-        { kind: "damage", amount: 222 },
-      ],
+      effects: [{ kind: "damage", amount: 222 }],
+    },
+    {
+      id: "vanguard-interrupt",
+      name: "Disrupting Strike",
+      target: "enemy",
+      school: "physical",
+      utility: true,
+      aiRole: "interrupt",
+      resourceCost: 10,
+      castMs: 0,
+      cooldownMs: 10000,
+      gcdMs: 0,
+      ignoreGcd: true,
+      range: 70,
+      noHitRoll: true,
+      effects: [{ kind: "interrupt", durationMs: 3000 }],
     },
   ],
 };

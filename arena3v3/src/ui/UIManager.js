@@ -84,17 +84,26 @@ export class UIManager {
     this.damageMeter.innerHTML = "";
     this.meterElements.clear();
 
-    for (const actor of this.game.actors.filter(unit => unit.team === "friendly")) {
-      const row = document.createElement("div");
-      row.className = "meter-row";
-      row.innerHTML = `
-        <span class="meter-name"></span>
-        <span class="meter-value">0</span>
-        <div class="meter-track"><div class="meter-fill"></div></div>
-      `;
-      row.querySelector(".meter-name").textContent = actor.name;
-      this.damageMeter.appendChild(row);
-      this.meterElements.set(actor.id, row);
+    for (const team of ["friendly", "enemy"]) {
+      const heading = document.createElement("div");
+      heading.className = "meter-team-heading " + team;
+      heading.textContent = team === "friendly" ? "YOUR TEAM" : "ENEMY TEAM";
+      this.damageMeter.appendChild(heading);
+
+      for (const actor of this.game.actors.filter(unit => unit.team === team)) {
+        const row = document.createElement("div");
+        row.className = "meter-row";
+        row.innerHTML = `
+          <span class="meter-name"></span>
+          <span class="meter-value">0</span>
+          <div class="meter-track"><div class="meter-fill"></div></div>
+        `;
+
+        row.querySelector(".meter-name").textContent = actor.name;
+        row.querySelector(".meter-fill").classList.toggle("enemy", team === "enemy");
+        this.damageMeter.appendChild(row);
+        this.meterElements.set(actor.id, row);
+      }
     }
   }
 
@@ -212,10 +221,17 @@ export class UIManager {
         overlay.textContent = "";
       }
 
-      const target = this.game.getActor(this.game.player.targetId);
+      const selectedTarget = this.game.getActor(this.game.player.targetId);
+      const target = spell.target === "self" ? this.game.player : selectedTarget;
       const invalidTarget = !this.game.combat.canTarget(this.game.player, target, spell);
       const noResource = !this.game.resources.canPay(this.game.player, spell);
-      slot.classList.toggle("disabled", invalidTarget || noResource || !this.game.player.alive);
+      const controlled = this.game.cc.isHardControlled(this.game.player);
+      const schoolLocked = this.game.cc.isSchoolLocked(this.game.player, spell);
+
+      slot.classList.toggle(
+        "disabled",
+        invalidTarget || noResource || controlled || schoolLocked || !this.game.player.alive,
+      );
     });
 
     if (this.game.player.cast) {
@@ -234,18 +250,36 @@ export class UIManager {
     const visible = actor.effects
       .filter(effect => effect.remainingMs > 0)
       .sort((a, b) => a.remainingMs - b.remainingMs)
-      .slice(0, 5);
+      .slice(0, 6);
 
     container.innerHTML = "";
 
     for (const effect of visible) {
       const badge = document.createElement("span");
-      const kind = effect.kind === "hot" ? "hot" : effect.kind === "dot" ? "dot" : "buff";
-      badge.className = "effect-badge " + kind;
+      let style = "buff";
+      let letter = "B";
+
+      if (effect.kind === "hot") {
+        style = "hot";
+        letter = "H";
+      } else if (effect.kind === "dot") {
+        style = "dot";
+        letter = "D";
+      } else if (effect.kind === "fear") {
+        style = "cc";
+        letter = "FEAR";
+      } else if (effect.kind === "incapacitate") {
+        style = "cc";
+        letter = "CC";
+      } else if (effect.kind === "schoolLock") {
+        style = "lock";
+        letter = "LOCK";
+      }
+
+      badge.className = "effect-badge " + style;
 
       const source = this.game.getActor(effect.sourceId);
       const spell = source?.getSpell(effect.spellId);
-      const letter = effect.kind === "hot" ? "H" : effect.kind === "dot" ? "D" : "B";
       badge.textContent = letter + " " + Math.ceil(effect.remainingMs / 1000);
       badge.title = (spell?.name || effect.spellId) + " · " + Math.ceil(effect.remainingMs / 1000) + "s";
 
@@ -254,11 +288,11 @@ export class UIManager {
   }
 
   updateDamageMeter() {
-    const friendly = this.game.actors.filter(actor => actor.team === "friendly");
-    const values = friendly.map(actor => this.game.matchStats.get(actor.id)?.damage || 0);
+    const actors = [...this.game.actors];
+    const values = actors.map(actor => this.game.matchStats.get(actor.id)?.damage || 0);
     const max = Math.max(1, ...values);
 
-    friendly.forEach((actor, index) => {
+    actors.forEach((actor, index) => {
       const row = this.meterElements.get(actor.id);
       if (!row) return;
 

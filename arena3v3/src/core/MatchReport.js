@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.2",
+    "Build: prototype-v0.3-cc",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -29,7 +29,10 @@ export function buildMatchReport(game) {
         + " | Casts " + n(stats?.casts)
         + " | Crits " + n(stats?.crits)
         + " | Misses " + n(stats?.misses)
-        + " | Dodged " + n(stats?.dodges),
+        + " | Dodged " + n(stats?.dodges)
+        + " | Interrupts " + n(stats?.interrupts)
+        + " | CC " + n(stats?.ccApplied)
+        + " (" + (stats?.ccSeconds || 0).toFixed(1) + "s)",
       );
     }
   };

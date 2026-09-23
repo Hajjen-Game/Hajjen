@@ -11,6 +11,7 @@ export class AISystem {
   update(deltaSeconds) {
     for (const actor of this.game.actors) {
       if (!actor.alive || actor.control === "player") continue;
+      if (this.game.cc.isHardControlled(actor)) continue;
 
       const remaining = (this.thinkTimers.get(actor.id) || 0) - deltaSeconds;
       this.thinkTimers.set(actor.id, remaining);
@@ -20,7 +21,7 @@ export class AISystem {
         this.think(actor);
       }
 
-      if (actor.cast) continue;
+      if (actor.cast || this.game.cc.isRooted(actor)) continue;
 
       const target = this.game.getActor(actor.aiTargetId);
       if (target?.alive) this.moveForRole(actor, target, deltaSeconds);
@@ -33,6 +34,19 @@ export class AISystem {
   }
 
   healerThink(actor) {
+    const utility = actor.spells.find(spell => spell.aiRole === "panicCc");
+
+    if (utility && this.ready(actor, utility)) {
+      const effect = utility.effects.find(item => item.kind === "fearAoE");
+      const closeEnemy = this.game.actors.find(candidate =>
+        candidate.alive
+        && candidate.team !== actor.team
+        && distance(actor, candidate) <= (effect?.radius || 0) + actor.radius + candidate.radius
+      );
+
+      if (closeEnemy && this.castIfPossible(actor, utility, actor)) return;
+    }
+
     const allies = this.game.actors
       .filter(candidate => candidate.alive && candidate.team === actor.team)
       .sort((a, b) => a.healthPct - b.healthPct);
@@ -41,22 +55,67 @@ export class AISystem {
     if (!target) return;
 
     actor.aiTargetId = target.id;
-    const [hot, quick, big, cooldown] = actor.spells;
+
+    const rotation = actor.spells.filter(spell => !spell.utility);
+    const [hot, quick, big, cooldown] = rotation;
 
     if (target.healthPct < 0.38 && this.ready(actor, cooldown) && this.castIfPossible(actor, cooldown, target)) return;
     if (target.healthPct < 0.72 && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
+
     if (
       target.healthPct < 0.9
       && !target.hasEffect(hot.id, actor.id)
       && this.ready(actor, hot)
       && this.castIfPossible(actor, hot, target)
     ) return;
-    if (target.healthPct < 0.94 && this.ready(actor, quick)) this.castIfPossible(actor, quick, target);
+
+    if (target.healthPct < 0.94 && this.ready(actor, quick)) {
+      this.castIfPossible(actor, quick, target);
+    }
   }
 
   damageThink(actor) {
-    const enemies = this.game.actors.filter(candidate => candidate.alive && candidate.team !== actor.team);
+    const enemies = this.game.actors.filter(candidate =>
+      candidate.alive && candidate.team !== actor.team,
+    );
     if (enemies.length === 0) return;
+
+    const interrupt = actor.spells.find(spell => spell.aiRole === "interrupt");
+
+    if (interrupt && this.ready(actor, interrupt)) {
+      const interruptTarget = enemies
+        .filter(candidate =>
+          candidate.cast
+          && this.game.combat.inRange(actor, candidate, interrupt.range)
+          && this.game.combat.hasLos(actor, candidate)
+        )
+        .sort((a, b) => {
+          const score = role => role === "healer" ? 0 : role === "caster" ? 1 : 2;
+          return score(a.role) - score(b.role);
+        })[0];
+
+      if (interruptTarget && this.castIfPossible(actor, interrupt, interruptTarget)) return;
+    }
+
+    const control = actor.spells.find(spell => spell.aiRole === "control");
+
+    if (control && this.ready(actor, control)) {
+      const priorityRoles = actor.config.ai.ccTargetRoles || ["healer", "caster"];
+      let controlTarget = null;
+
+      for (const role of priorityRoles) {
+        controlTarget = enemies.find(candidate =>
+          candidate.role === role
+          && !this.game.cc.isHardControlled(candidate)
+          && this.game.combat.inRange(actor, candidate, control.range)
+          && this.game.combat.hasLos(actor, candidate)
+        );
+
+        if (controlTarget) break;
+      }
+
+      if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
+    }
 
     let target = this.game.getActor(actor.aiTargetId);
     const lowest = [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
@@ -66,14 +125,17 @@ export class AISystem {
       actor.aiTargetId = target.id;
     }
 
-    const [periodic, quick, big, cooldown] = actor.spells;
+    const rotation = actor.spells.filter(spell => !spell.utility);
+    const [periodic, quick, big, cooldown] = rotation;
 
     if (target.healthPct < 0.68 && this.ready(actor, cooldown) && this.castIfPossible(actor, cooldown, target)) return;
+
     if (
       !target.hasEffect(periodic.id, actor.id)
       && this.ready(actor, periodic)
       && this.castIfPossible(actor, periodic, target)
     ) return;
+
     if (this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
     if (this.ready(actor, quick)) this.castIfPossible(actor, quick, target);
   }
@@ -83,6 +145,7 @@ export class AISystem {
 
     for (const role of priorityRoles) {
       const candidates = enemies.filter(candidate => candidate.role === role);
+
       if (candidates.length > 0) {
         return candidates.sort((a, b) => a.healthPct - b.healthPct)[0];
       }
@@ -92,9 +155,11 @@ export class AISystem {
   }
 
   ready(actor, spell) {
-    return actor.gcdRemaining <= 0
+    return (spell.ignoreGcd || actor.gcdRemaining <= 0)
       && actor.cooldownFor(spell.id) <= 0
       && !actor.cast
+      && !this.game.cc.isHardControlled(actor)
+      && !this.game.cc.isSchoolLocked(actor, spell)
       && this.game.resources.canPay(actor, spell);
   }
 
@@ -103,7 +168,7 @@ export class AISystem {
   }
 
   moveForRole(actor, target, deltaSeconds) {
-    if (!target?.alive) return;
+    if (!target?.alive || this.game.cc.isRooted(actor)) return;
 
     const preferred = actor.config.ai.preferredRange;
     const los = hasLineOfSight(actor, target, this.game.arena.obstacles);

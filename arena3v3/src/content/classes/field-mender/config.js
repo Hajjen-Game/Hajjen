@@ -36,9 +36,7 @@ export const playerHealerConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 345,
-      effects: [
-        { kind: "hot", amount: 66, durationMs: 9000, tickMs: 3000 },
-      ],
+      effects: [{ kind: "hot", amount: 66, durationMs: 9000, tickMs: 3000 }],
     },
     {
       id: "quick-mend",
@@ -49,9 +47,7 @@ export const playerHealerConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 345,
-      effects: [
-        { kind: "heal", amount: 132 },
-      ],
+      effects: [{ kind: "heal", amount: 132 }],
     },
     {
       id: "deep-restoration",
@@ -62,9 +58,7 @@ export const playerHealerConfig = {
       cooldownMs: 0,
       gcdMs: 1200,
       range: 345,
-      effects: [
-        { kind: "heal", amount: 294 },
-      ],
+      effects: [{ kind: "heal", amount: 294 }],
     },
     {
       id: "guardian-pulse",
@@ -78,6 +72,23 @@ export const playerHealerConfig = {
       effects: [
         { kind: "heal", amount: 330 },
         { kind: "damageReduction", value: 0.24, durationMs: 4200 },
+      ],
+    },
+    {
+      id: "dread-scream",
+      name: "Dread Scream",
+      target: "self",
+      school: "magic",
+      utility: true,
+      aiRole: "panicCc",
+      resourceCost: 10,
+      castMs: 0,
+      cooldownMs: 24000,
+      gcdMs: 1200,
+      range: 0,
+      noHitRoll: true,
+      effects: [
+        { kind: "fearAoE", radius: 125, durationMs: 3500, breakOnDamage: true },
       ],
     },
   ],

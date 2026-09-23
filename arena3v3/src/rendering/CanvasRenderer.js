@@ -121,13 +121,6 @@ export class CanvasRenderer {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    const midY = rect.y + rect.h / 2;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + 15, midY);
-    ctx.lineTo(rect.x + rect.w - 15, midY);
-    ctx.strokeStyle = "rgba(0,0,0,.18)";
-    ctx.stroke();
-
     ctx.restore();
   }
 
@@ -135,11 +128,14 @@ export class CanvasRenderer {
     for (const actor of game.actors.filter(actor => actor.alive)) {
       const hasHot = actor.effects.some(effect => effect.kind === "hot");
       const hasDot = actor.effects.some(effect => effect.kind === "dot");
+      const hasCc = actor.effects.some(effect =>
+        ["fear", "incapacitate", "schoolLock"].includes(effect.kind),
+      );
 
-      if (!hasHot && !hasDot) continue;
+      if (!hasHot && !hasDot && !hasCc) continue;
 
       ctx.save();
-      ctx.globalAlpha = 0.58;
+      ctx.globalAlpha = 0.62;
       ctx.lineWidth = 3;
 
       if (hasHot) {
@@ -154,6 +150,14 @@ export class CanvasRenderer {
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.arc(actor.x, actor.y, actor.radius + 13, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      if (hasCc) {
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = this.theme.goldBright;
+        ctx.beginPath();
+        ctx.arc(actor.x, actor.y, actor.radius + 18, 0, Math.PI * 2);
         ctx.stroke();
       }
 
@@ -194,7 +198,7 @@ export class CanvasRenderer {
     this.drawWorldHealth(ctx, actor);
     this.drawWorldResource(ctx, actor);
     this.drawName(ctx, actor);
-    this.drawEffectIcons(ctx, actor, game);
+    this.drawEffectIcons(ctx, actor);
 
     if (actor.cast) this.drawWorldCast(ctx, actor);
 
@@ -280,26 +284,42 @@ export class CanvasRenderer {
     ctx.fillText(actor.name, actor.x, actor.y - actor.radius - 31);
   }
 
-  drawEffectIcons(ctx, actor, game) {
+  drawEffectIcons(ctx, actor) {
     const effects = actor.effects
-      .filter(effect => effect.remainingMs > 0 && ["hot", "dot", "damageReduction"].includes(effect.kind))
-      .slice(0, 4);
+      .filter(effect => effect.remainingMs > 0)
+      .filter(effect =>
+        ["hot", "dot", "damageReduction", "fear", "incapacitate", "schoolLock"].includes(effect.kind),
+      )
+      .slice(0, 5);
 
     if (effects.length === 0) return;
 
-    const size = 17;
+    const size = 18;
     const gap = 3;
     const totalWidth = effects.length * size + (effects.length - 1) * gap;
     let x = actor.x - totalWidth / 2;
     const y = actor.y + actor.radius + 8;
 
     for (const effect of effects) {
-      const kind = effect.kind === "hot" ? "hot" : effect.kind === "dot" ? "dot" : "buff";
-      const fill = kind === "hot"
-        ? this.theme.hot
-        : kind === "dot"
-          ? this.theme.dot
-          : this.theme.cast;
+      let fill = this.theme.cast;
+      let label = "B";
+
+      if (effect.kind === "hot") {
+        fill = this.theme.hot;
+        label = "H";
+      } else if (effect.kind === "dot") {
+        fill = this.theme.dot;
+        label = "D";
+      } else if (effect.kind === "fear") {
+        fill = this.theme.goldBright;
+        label = "F";
+      } else if (effect.kind === "incapacitate") {
+        fill = this.theme.goldBright;
+        label = "C";
+      } else if (effect.kind === "schoolLock") {
+        fill = "#b29ad1";
+        label = "L";
+      }
 
       ctx.fillStyle = "rgba(14,10,8,.92)";
       ctx.fillRect(x, y, size, size);
@@ -311,7 +331,7 @@ export class CanvasRenderer {
       ctx.fillStyle = this.theme.cream;
       ctx.font = "900 9px system-ui";
       ctx.textAlign = "center";
-      ctx.fillText(kind === "hot" ? "H" : kind === "dot" ? "D" : "B", x + size / 2, y + 11);
+      ctx.fillText(label, x + size / 2, y + 12);
 
       x += size + gap;
     }
@@ -332,6 +352,7 @@ export class CanvasRenderer {
         "crit-heal": "#d8efad",
         avoid: "#d8c6a7",
         buff: "#d9b4e8",
+        cc: "#ffd18a",
       };
 
       ctx.fillStyle = colors[item.type] || this.theme.cream;

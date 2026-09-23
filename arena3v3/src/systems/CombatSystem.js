@@ -74,31 +74,52 @@ export class CombatSystem {
   }
 
   canTarget(caster, target, spell) {
-    if (!target?.alive || !caster.alive) return false;
+    if (!caster.alive || !spell) return false;
+    if (spell.target === "self") return target?.id === caster.id;
+    if (!target?.alive) return false;
     if (spell.target === "ally") return caster.team === target.team;
     if (spell.target === "enemy") return caster.team !== target.team;
     return false;
   }
 
   inRange(caster, target, range) {
+    if (target?.id === caster.id) return true;
     return distance(caster, target) <= range + caster.radius + target.radius;
   }
 
   hasLos(caster, target) {
+    if (target?.id === caster.id) return true;
     return hasLineOfSight(caster, target, this.game.arena.obstacles);
   }
 
   tryCast(caster, spell, target, { silent = false } = {}) {
     if (!caster.alive || this.game.ended || caster.cast || !spell) return false;
 
+    if (this.game.cc.isHardControlled(caster)) {
+      if (!silent && caster.control === "player") this.game.ui.toast("Crowd controlled");
+      return false;
+    }
+
+    if (this.game.cc.isSchoolLocked(caster, spell)) {
+      if (!silent && caster.control === "player") this.game.ui.toast("Spell school is locked");
+      return false;
+    }
+
     if (!target || !this.canTarget(caster, target, spell)) {
       if (!silent && caster.control === "player") {
-        this.game.ui.toast(spell.target === "ally" ? "Select a friendly target" : "Select an enemy target");
+        this.game.ui.toast(
+          spell.target === "ally"
+            ? "Select a friendly target"
+            : spell.target === "enemy"
+              ? "Select an enemy target"
+              : "Invalid target",
+        );
       }
       return false;
     }
 
-    if (caster.gcdRemaining > 0 || caster.cooldownFor(spell.id) > 0) return false;
+    if (!spell.ignoreGcd && caster.gcdRemaining > 0) return false;
+    if (caster.cooldownFor(spell.id) > 0) return false;
 
     if (!this.game.resources.canPay(caster, spell)) {
       if (!silent && caster.control === "player") {
@@ -117,7 +138,9 @@ export class CombatSystem {
       return false;
     }
 
-    caster.gcdRemaining = spell.gcdMs ?? 1200;
+    if (!spell.ignoreGcd) {
+      caster.gcdRemaining = spell.gcdMs ?? 1200;
+    }
 
     if (spell.castMs > 0) {
       caster.cast = {
@@ -150,7 +173,11 @@ export class CombatSystem {
       return false;
     }
 
-    if (spell.target === "enemy") {
+    const specialUtility = spell.effects.some(effect =>
+      ["fearAoE", "interrupt", "incapacitate"].includes(effect.kind)
+    );
+
+    if (spell.target === "enemy" && !spell.noHitRoll && !specialUtility) {
       const hit = this.rollHit(caster, target, spell.id);
       if (hit !== "hit") {
         this.game.recordAvoidance(caster, target, hit);
@@ -184,6 +211,15 @@ export class CombatSystem {
           break;
         case "damageReduction":
           this.applyTimedBuff(caster, target, spell, effect);
+          break;
+        case "fearAoE":
+          this.game.cc.applyFearAoE(caster, spell, effect);
+          break;
+        case "incapacitate":
+          this.game.cc.applyIncapacitate(caster, target, spell, effect);
+          break;
+        case "interrupt":
+          this.game.cc.interrupt(caster, target, spell, effect);
           break;
         default:
           break;
@@ -230,6 +266,8 @@ export class CombatSystem {
         return;
       }
     }
+
+    this.game.cc.breakOnDamage(target);
 
     let amount = this.amount(source, spellId, baseAmount, periodic ? "dot" : "damage");
     const crit = this.rollCrit(source, spellId, periodic ? "dot" : "damage");

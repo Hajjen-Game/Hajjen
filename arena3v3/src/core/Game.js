@@ -1,6 +1,7 @@
 import { Actor } from "../entities/Actor.js";
 import { MovementSystem } from "../systems/MovementSystem.js";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
+import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
 import { AISystem } from "../systems/AISystem.js";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
@@ -21,6 +22,7 @@ export class Game {
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;
 
+    this.cc = new CrowdControlSystem(this);
     this.combat = new CombatSystem(this);
     this.ai = new AISystem(this, this.movement);
     this.renderer = new CanvasRenderer(canvas, arena);
@@ -67,6 +69,9 @@ export class Game {
           crits: 0,
           misses: 0,
           dodges: 0,
+          interrupts: 0,
+          ccApplied: 0,
+          ccSeconds: 0,
         },
       ]),
     );
@@ -94,9 +99,13 @@ export class Game {
     if (!this.player.alive || this.ended) return false;
 
     const spell = this.player.spells[index];
-    const target = this.getActor(this.player.targetId);
-    const success = this.combat.tryCast(this.player, spell, target);
+    if (!spell) return false;
 
+    const target = spell.target === "self"
+      ? this.player
+      : this.getActor(this.player.targetId);
+
+    const success = this.combat.tryCast(this.player, spell, target);
     this.ui?.pulseAction(index, success);
     return success;
   }
@@ -134,15 +143,27 @@ export class Game {
   update(deltaMs) {
     if (!this.ended) {
       this.elapsedSeconds += deltaMs / 1000;
+      const deltaSeconds = deltaMs / 1000;
+
+      for (const actor of this.actors) {
+        if (!actor.alive || !this.cc.hasKind(actor, "fear")) continue;
+        this.movement.move(actor, this.cc.forcedFearVector(actor), deltaSeconds, this.arena);
+      }
 
       const move = this.input.movementVector();
       const moving = move.x !== 0 || move.y !== 0;
+      const playerCanMove = !this.cc.isHardControlled(this.player) && !this.cc.isRooted(this.player);
 
-      if (moving && this.player.cast) this.combat.cancelCast(this.player, "movement");
-      if (moving) this.movement.move(this.player, move, deltaMs / 1000, this.arena);
+      if (moving && playerCanMove && this.player.cast) {
+        this.combat.cancelCast(this.player, "movement");
+      }
+
+      if (moving && playerCanMove) {
+        this.movement.move(this.player, move, deltaSeconds, this.arena);
+      }
 
       this.combat.update(deltaMs);
-      this.ai.update(deltaMs / 1000);
+      this.ai.update(deltaSeconds);
       this.checkWinCondition();
     }
 
@@ -226,6 +247,19 @@ export class Game {
     if (outcome === "dodge" && targetStats) targetStats.dodges += 1;
   }
 
+  recordInterrupt(source) {
+    const stats = this.matchStats.get(source.id);
+    if (stats) stats.interrupts += 1;
+  }
+
+  recordCc(source, target, kind, durationMs) {
+    const stats = this.matchStats.get(source.id);
+    if (stats) {
+      stats.ccApplied += 1;
+      stats.ccSeconds += durationMs / 1000;
+    }
+  }
+
   addFloatingText(actor, text, type) {
     this.floatingTexts.push({
       x: actor.x,
@@ -251,7 +285,8 @@ export class Game {
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;
 
-    this.combat.reset();
+    this.cc = new CrowdControlSystem(this);
+    this.combat = new CombatSystem(this);
     this.ai = new AISystem(this, this.movement);
 
     this.elapsedSeconds = 0;

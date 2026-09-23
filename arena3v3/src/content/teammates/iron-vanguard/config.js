@@ -1,0 +1,62 @@
+export const allyMeleeConfig = {
+  id: "ally-melee",
+  name: "Iron Vanguard",
+  team: "friendly",
+  role: "melee",
+  control: "ai",
+
+  stats: {
+    maxHealth: 1420,
+    moveSpeed: 205,
+    radius: 21,
+    hitChance: 0.91,
+    critChance: 0.15,
+    dodgeChance: 0.08,
+    critMultiplier: 1.5,
+  },
+
+  ai: { preferredRange: 52 },
+
+  spells: [
+    {
+      id: "vanguard-bleed",
+      name: "Rending Cut",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 7000,
+      gcdMs: 1200,
+      range: 58,
+      effects: [{ kind: "dot", amount: 44, durationMs: 8000, tickMs: 2000 }],
+    },
+    {
+      id: "vanguard-jab",
+      name: "Quick Jab",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 0,
+      gcdMs: 1200,
+      range: 58,
+      effects: [{ kind: "damage", amount: 76 }],
+    },
+    {
+      id: "vanguard-crush",
+      name: "Crushing Swing",
+      target: "enemy",
+      castMs: 1250,
+      cooldownMs: 4500,
+      gcdMs: 1200,
+      range: 62,
+      effects: [{ kind: "damage", amount: 158 }],
+    },
+    {
+      id: "vanguard-breaker",
+      name: "Breaker",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 13500,
+      gcdMs: 1200,
+      range: 62,
+      effects: [{ kind: "damage", amount: 222 }],
+    },
+  ],
+};

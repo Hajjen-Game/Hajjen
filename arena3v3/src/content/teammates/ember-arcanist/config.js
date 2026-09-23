@@ -1,0 +1,62 @@
+export const allyCasterConfig = {
+  id: "ally-caster",
+  name: "Ember Arcanist",
+  team: "friendly",
+  role: "caster",
+  control: "ai",
+
+  stats: {
+    maxHealth: 1180,
+    moveSpeed: 184,
+    radius: 19,
+    hitChance: 0.93,
+    critChance: 0.17,
+    dodgeChance: 0.04,
+    critMultiplier: 1.5,
+  },
+
+  ai: { preferredRange: 300 },
+
+  spells: [
+    {
+      id: "arcanist-brand",
+      name: "Ember Brand",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 7000,
+      gcdMs: 1200,
+      range: 360,
+      effects: [{ kind: "dot", amount: 48, durationMs: 8000, tickMs: 2000 }],
+    },
+    {
+      id: "arcanist-bolt",
+      name: "Arc Bolt",
+      target: "enemy",
+      castMs: 900,
+      cooldownMs: 0,
+      gcdMs: 1200,
+      range: 360,
+      effects: [{ kind: "damage", amount: 86 }],
+    },
+    {
+      id: "arcanist-lance",
+      name: "Sun Lance",
+      target: "enemy",
+      castMs: 2050,
+      cooldownMs: 4500,
+      gcdMs: 1200,
+      range: 360,
+      effects: [{ kind: "damage", amount: 176 }],
+    },
+    {
+      id: "arcanist-comet",
+      name: "Comet Seal",
+      target: "enemy",
+      castMs: 1200,
+      cooldownMs: 14000,
+      gcdMs: 1200,
+      range: 360,
+      effects: [{ kind: "damage", amount: 240 }],
+    },
+  ],
+};

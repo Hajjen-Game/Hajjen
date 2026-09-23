@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3v3 Arena — Prototype</title>
+  <link rel="stylesheet" href="./src/styles/theme.css" />
+  <link rel="stylesheet" href="./src/styles/game.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="top-hud panel">
+      <div>
+        <div class="eyebrow">SINGLE PLAYER · 3V3 ARENA · PROTOTYPE</div>
+        <h1>THE GRAND RING</h1>
+      </div>
+      <div class="top-actions">
+        <div id="match-clock" class="clock">00:00</div>
+        <button id="controls-button" class="hud-button">CONTROLS</button>
+        <button id="restart-button" class="hud-button">RESTART</button>
+      </div>
+    </header>
+
+    <main id="game-shell">
+      <aside class="side-panel panel">
+        <div class="side-title">YOUR TEAM</div>
+        <div id="team-frames" class="unit-frame-list"></div>
+      </aside>
+
+      <section id="arena-wrap" class="arena-wrap">
+        <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
+        <div id="combat-log" class="combat-log" aria-live="polite"></div>
+        <div id="toast" class="toast" aria-live="polite"></div>
+        <div id="match-result" class="match-result hidden">
+          <div class="match-result-card panel">
+            <div class="eyebrow">ARENA COMPLETE</div>
+            <div id="match-result-title" class="match-result-title">VICTORY</div>
+            <button id="result-restart-button" class="hud-button primary">PLAY AGAIN</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel panel">
+        <div class="side-title enemy">ENEMY TEAM</div>
+        <div id="enemy-frames" class="unit-frame-list"></div>
+      </aside>
+    </main>
+
+    <footer class="bottom-hud panel">
+      <div id="player-cast" class="player-cast hidden">
+        <div id="player-cast-label" class="cast-label"></div>
+        <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
+      </div>
+      <div id="action-bar" class="action-bar"></div>
+      <div class="hint">Click a unit or unit frame to target · Move with WASD · Cast with 1–4</div>
+    </footer>
+  </div>
+
+  <div id="controls-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="controls-title">
+    <div class="modal-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">KEY BINDINGS</div>
+          <h2 id="controls-title">CONTROLS</h2>
+        </div>
+        <button id="controls-close" class="icon-button" aria-label="Close controls">×</button>
+      </div>
+      <div id="binding-list" class="binding-list"></div>
+      <div class="binding-help">Click a key, then press the new key. Existing bindings are swapped automatically.</div>
+      <button id="reset-bindings" class="hud-button">RESET DEFAULTS</button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

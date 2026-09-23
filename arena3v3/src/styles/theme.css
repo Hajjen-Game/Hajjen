@@ -1,0 +1,29 @@
+:root {
+  --bg-0: #100d0b;
+  --bg-1: #17110d;
+  --panel: #21170f;
+  --panel-2: #2a1d13;
+  --panel-3: #332217;
+  --line: #6e4626;
+  --line-soft: #4d331f;
+  --gold: #c58a43;
+  --gold-bright: #e3ba72;
+  --cream: #e7d6b7;
+  --cream-dim: #a8977f;
+  --friendly: #6f9d97;
+  --friendly-bright: #9bc7bf;
+  --enemy: #a86555;
+  --enemy-bright: #d58c78;
+  --health: #7e9d70;
+  --health-low: #b75e4f;
+  --cast: #8877a6;
+  --hot: #71927a;
+  --dot: #ad6e59;
+  --arena-floor: #3a2c20;
+  --arena-floor-2: #433224;
+  --arena-line: #6b4b2b;
+  --pillar: #5a4532;
+  --pillar-edge: #8a6847;
+  --shadow: rgba(0, 0, 0, .42);
+  --focus: #e7b363;
+}

@@ -1,0 +1,65 @@
+export const enemyHealerConfig = {
+  id: "enemy-healer",
+  name: "Dusk Warden",
+  team: "enemy",
+  role: "healer",
+  control: "ai",
+
+  stats: {
+    maxHealth: 1250,
+    moveSpeed: 190,
+    radius: 20,
+    hitChance: 0.94,
+    critChance: 0.16,
+    dodgeChance: 0.05,
+    critMultiplier: 1.5,
+  },
+
+  ai: { preferredRange: 315 },
+
+  spells: [
+    {
+      id: "warden-bloom",
+      name: "Dusk Bloom",
+      target: "ally",
+      castMs: 0,
+      cooldownMs: 0,
+      gcdMs: 1200,
+      range: 340,
+      effects: [{ kind: "hot", amount: 62, durationMs: 9000, tickMs: 3000 }],
+    },
+    {
+      id: "warden-stitch",
+      name: "Swift Stitch",
+      target: "ally",
+      castMs: 900,
+      cooldownMs: 0,
+      gcdMs: 1200,
+      range: 340,
+      effects: [{ kind: "heal", amount: 126 }],
+    },
+    {
+      id: "warden-restoration",
+      name: "Warden's Restoration",
+      target: "ally",
+      castMs: 2150,
+      cooldownMs: 0,
+      gcdMs: 1200,
+      range: 340,
+      effects: [{ kind: "heal", amount: 280 }],
+    },
+    {
+      id: "warden-shell",
+      name: "Warden Shell",
+      target: "ally",
+      castMs: 0,
+      cooldownMs: 19000,
+      gcdMs: 1200,
+      range: 340,
+      effects: [
+        { kind: "heal", amount: 315 },
+        { kind: "damageReduction", value: 0.22, durationMs: 4000 },
+      ],
+    },
+  ],
+};

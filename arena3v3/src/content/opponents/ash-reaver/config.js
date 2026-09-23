@@ -1,0 +1,62 @@
+export const enemyMeleeConfig = {
+  id: "enemy-melee",
+  name: "Ash Reaver",
+  team: "enemy",
+  role: "melee",
+  control: "ai",
+
+  stats: {
+    maxHealth: 1410,
+    moveSpeed: 202,
+    radius: 21,
+    hitChance: 0.90,
+    critChance: 0.15,
+    dodgeChance: 0.08,
+    critMultiplier: 1.5,
+  },
+
+  ai: { preferredRange: 52 },
+
+  spells: [
+    {
+      id: "reaver-wound",
+      name: "Ash Wound",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 7000,
+      gcdMs: 1200,
+      range: 58,
+      effects: [{ kind: "dot", amount: 43, durationMs: 8000, tickMs: 2000 }],
+    },
+    {
+      id: "reaver-slice",
+      name: "Fast Slice",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 0,
+      gcdMs: 1200,
+      range: 58,
+      effects: [{ kind: "damage", amount: 74 }],
+    },
+    {
+      id: "reaver-cleave",
+      name: "Heavy Cleave",
+      target: "enemy",
+      castMs: 1300,
+      cooldownMs: 4500,
+      gcdMs: 1200,
+      range: 62,
+      effects: [{ kind: "damage", amount: 154 }],
+    },
+    {
+      id: "reaver-execution",
+      name: "Execution Mark",
+      target: "enemy",
+      castMs: 0,
+      cooldownMs: 13500,
+      gcdMs: 1200,
+      range: 62,
+      effects: [{ kind: "damage", amount: 216 }],
+    },
+  ],
+};

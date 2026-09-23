@@ -96,13 +96,32 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .frame-state-banner.burst-state { border: 1px solid var(--vfx-burst); color: #ffd59b; background: rgba(77,43,19,.82); }
 .unit-frame-top { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-bottom: 5px; }
 .unit-name { font-size: 12px; font-weight: 850; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.unit-frame.enemy .unit-name { color: var(--enemy-name); }
 .unit-role-wrap { display: flex; align-items: center; gap: 5px; }
 .unit-role { color: var(--cream-dim); font-size: 9px; text-transform: uppercase; letter-spacing: .07em; }
 .party-key { min-width: 22px; text-align: center; border: 1px solid var(--line-soft); border-radius: 5px; color: var(--gold-bright); font-size: 8px; padding: 2px 3px; }
 
 .frame-bar { height: 12px; background: #120d0b; border: 1px solid #493221; border-radius: 5px; overflow: hidden; position: relative; }
-.frame-health { height: 100%; width: 100%; background: linear-gradient(90deg, #5f805b, var(--health)); transition: width .12s linear; }
-.unit-frame.enemy .frame-health { background: linear-gradient(90deg, #8e4b42, var(--enemy)); }
+.frame-health {
+  height: 100%;
+  width: 100%;
+  background: var(--class-health, var(--health));
+  transition: width .12s linear, background-color .12s linear, box-shadow .12s linear;
+}
+.unit-frame.low-health .frame-health {
+  background: #e5433a;
+  animation: arena-low-health-pulse .58s ease-in-out infinite alternate;
+}
+@keyframes arena-low-health-pulse {
+  from {
+    filter: brightness(.82);
+    box-shadow: 0 0 2px rgba(255,77,66,.35);
+  }
+  to {
+    filter: brightness(1.22);
+    box-shadow: 0 0 10px rgba(255,77,66,.95);
+  }
+}
 .frame-value { margin-top: 3px; color: var(--cream-dim); font-size: 9px; text-align: right; }
 
 .frame-resource { height: 6px; margin-top: 5px; background: var(--resource-bg); border-radius: 3px; overflow: hidden; }

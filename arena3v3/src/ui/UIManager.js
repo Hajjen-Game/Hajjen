@@ -1,6 +1,7 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
 import { createActionSlot, createUnitFrame } from "./components.js";
+import { classColorFor } from "../content/classes/classColors.js";
 
 export class UIManager {
   constructor(game, input) {
@@ -229,7 +230,10 @@ export class UIManager {
       if (!frame) continue;
 
       const healthPct = clamp(actor.healthPct, 0, 1);
-      frame.querySelector(".frame-health").style.width = (healthPct * 100) + "%";
+      const healthFill = frame.querySelector(".frame-health");
+      healthFill.style.width = (healthPct * 100) + "%";
+      healthFill.style.setProperty("--class-health", classColorFor(actor));
+      frame.classList.toggle("low-health", actor.alive && healthPct < 0.20);
       frame.querySelector(".frame-value").textContent = actor.alive
         ? Math.ceil(actor.health) + " / " + actor.maxHealth
         : "DOWN";

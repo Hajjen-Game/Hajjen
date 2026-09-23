@@ -1,5 +1,6 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { clamp, lerp } from "../core/utils.js";
+import { classColorFor } from "../content/classes/classColors.js";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -30,6 +31,7 @@ export class CanvasRenderer {
       friendlyBright: cssVar("--friendly-bright"),
       enemy: cssVar("--enemy"),
       enemyBright: cssVar("--enemy-bright"),
+      enemyName: cssVar("--enemy-name"),
       health: cssVar("--health"),
       low: cssVar("--health-low"),
       cream: cssVar("--cream"),
@@ -227,7 +229,7 @@ export class CanvasRenderer {
     ctx.stroke();
 
     this.drawRoleGlyph(ctx, actor);
-    this.drawWorldHealth(ctx, actor);
+    this.drawWorldHealth(ctx, actor, game);
     this.drawWorldResource(ctx, actor);
     this.drawName(ctx, actor);
     this.drawEffectIcons(ctx, actor);
@@ -307,19 +309,35 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  drawWorldHealth(ctx, actor) {
+  drawWorldHealth(ctx, actor, game) {
     const width = 70;
     const x = actor.x - width / 2;
     const y = actor.y - actor.radius - 24;
+    const lowHealth = actor.healthPct < 0.20;
+    const pulse = lowHealth
+      ? 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 11)
+      : 0;
 
     ctx.fillStyle = "rgba(11,8,6,.9)";
     ctx.fillRect(x, y, width, 7);
 
-    ctx.fillStyle = actor.healthPct < 0.3 ? this.theme.low : this.theme.health;
-    ctx.fillRect(x + 1, y + 1, (width - 2) * clamp(actor.healthPct, 0, 1), 5);
+    ctx.save();
+    ctx.fillStyle = lowHealth
+      ? `rgba(229, 67, 58, ${0.72 + pulse * 0.28})`
+      : classColorFor(actor);
 
-    ctx.strokeStyle = "rgba(220,180,120,.35)";
-    ctx.lineWidth = 1;
+    if (lowHealth) {
+      ctx.shadowColor = "#ff5148";
+      ctx.shadowBlur = 3 + pulse * 8;
+    }
+
+    ctx.fillRect(x + 1, y + 1, (width - 2) * clamp(actor.healthPct, 0, 1), 5);
+    ctx.restore();
+
+    ctx.strokeStyle = lowHealth
+      ? `rgba(255, 92, 82, ${0.55 + pulse * 0.4})`
+      : "rgba(220,180,120,.35)";
+    ctx.lineWidth = lowHealth ? 1.5 : 1;
     ctx.strokeRect(x, y, width, 7);
   }
 
@@ -357,7 +375,9 @@ export class CanvasRenderer {
   drawName(ctx, actor) {
     ctx.font = "700 11px system-ui";
     ctx.textAlign = "center";
-    ctx.fillStyle = this.theme.cream;
+    ctx.fillStyle = actor.team === "enemy"
+      ? this.theme.enemyName
+      : this.theme.cream;
     ctx.fillText(actor.name, actor.x, actor.y - actor.radius - 31);
   }
 
@@ -502,7 +522,7 @@ export class CanvasRenderer {
     const badgeW = 30;
     const badgeH = 37;
     const badgeX = actor.x - badgeW / 2;
-    const badgeY = actor.y - actor.radius - 72;
+    const badgeY = actor.y - actor.radius - 88;
 
     ctx.shadowBlur = 7;
     ctx.globalAlpha = 0.96;

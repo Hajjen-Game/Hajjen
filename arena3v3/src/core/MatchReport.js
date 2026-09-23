@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.16-cc-shadow-fix",
+    "Build: prototype-v0.17-class-health-bars",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -17,7 +17,7 @@ export function buildMatchReport(game) {
     "Team AI: preserves breakable friendly CC and peels melee pressure from vulnerable healer/caster allies",
     "Caster survival: casters kite active melee tunnel pressure; Mage/Shaman receive a light survivability tune",
     "Healer-aware kiting: threatened/low casters try to remain in healing range + LOS of their healer",
-    "Combat readability: compact single icon+timer CC markers, smaller world rings, frame indicators and offensive burst aura",
+    "Combat readability: raised CC markers, red enemy names, WoW class-color HP bars and pulsing red sub-20% health",
     "Caster healer safety: low/pressured casters will not start or finish offensive casts while outside healer range/LOS",
     "",
     "=== FRIENDLY TEAM ===",

@@ -90,6 +90,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- WoW-style unit readability:
+  - world and side-frame HP bars use standard WoW class colors
+  - enemy names render in red for faster team recognition
+  - HP below 20% overrides class color with a pulsing red danger state
+  - overhead CC icon/timer is raised to keep the character name unobstructed
 - Combat readability:
   - stun, fear, incapacitate and root show a compact colored arena ring + icon-over-timer marker
   - each CC type has its own procedural icon: stun burst, fear face, incapacitate spiral and root branches

@@ -104,7 +104,7 @@
               <div id="match-result-title" class="match-result-title">VICTORY</div>
               <div id="match-result-honor" class="match-result-honor"></div>
               <div id="match-result-rank-up" class="match-result-rank-up" hidden></div>
-              <button id="result-restart-button" class="hud-button primary" type="button">PLAY AGAIN</button>
+              <button id="result-restart-button" class="hud-button primary" type="button">NEXT MATCH</button>
             </div>
           </div>
         </div>
@@ -194,8 +194,8 @@
     <div class="modal-card roster-card panel">
       <div class="modal-header">
         <div>
-          <div class="eyebrow">TEAM SETUP</div>
-          <h2 id="roster-title">ROSTER</h2>
+          <div class="eyebrow">MATCH SETUP</div>
+          <h2 id="roster-title">CHOOSE YOUR TEAM</h2>
         </div>
         <button id="roster-close" class="icon-button" aria-label="Close roster">×</button>
       </div>
@@ -216,19 +216,29 @@
         </label>
       </div>
 
-      <div class="roster-section">
-        <div class="roster-section-title enemy">ENEMY TEAM</div>
-        <div class="roster-random-card">
-          <strong>RANDOM OPPONENTS</strong>
-          <span>Healer + Melee + Caster are rolled automatically for every new match.</span>
-          <span>The same exact enemy setup is avoided on consecutive matches.</span>
+      <div class="roster-section matchup-section">
+        <div class="roster-section-title enemy">YOUR OPPONENTS</div>
+
+        <div class="matchup-card enemy-matchup-card">
+          <span class="matchup-role">HEALER</span>
+          <strong id="setup-enemy-healer">Paladin</strong>
+        </div>
+
+        <div class="matchup-card enemy-matchup-card">
+          <span class="matchup-role">MELEE</span>
+          <strong id="setup-enemy-melee">Rogue</strong>
+        </div>
+
+        <div class="matchup-card enemy-matchup-card">
+          <span class="matchup-role">CASTER</span>
+          <strong id="setup-enemy-caster">Warlock</strong>
         </div>
       </div>
 
-      <div class="roster-note">Changing your team restarts the arena. Your opponents are always random and cannot be selected.</div>
+      <div class="roster-note">The enemy setup is rolled first. Build your own Healer + Melee + Caster team after seeing what you are facing.</div>
       <div class="roster-actions">
         <button id="roster-cancel" class="hud-button">CANCEL</button>
-        <button id="roster-apply" class="hud-button primary">APPLY & RESTART</button>
+        <button id="roster-apply" class="hud-button primary">START MATCH</button>
       </div>
     </div>
   </div>

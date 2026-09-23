@@ -64,7 +64,9 @@ export class UIManager {
     this.restartArmed = false;
 
     this.restartButton.addEventListener("click", event => this.handleRestartClick(event));
-    document.querySelector("#result-restart-button").addEventListener("click", () => game.reset("play again after match"));
+    document.querySelector("#result-restart-button").addEventListener("click", () => {
+      window.dispatchEvent(new CustomEvent("arena3v3:request-match-setup"));
+    });
     document.querySelector("#honor-button").addEventListener("click", () => this.openHonor());
     document.querySelector("#honor-close").addEventListener("click", () => this.closeHonor());
     document.querySelector("#controls-button").addEventListener("click", () => this.openControls());
@@ -107,7 +109,7 @@ export class UIManager {
     }
 
     this.disarmRestart();
-    this.game.reset("manual restart button");
+    window.dispatchEvent(new CustomEvent("arena3v3:request-match-setup"));
   }
 
   disarmRestart() {

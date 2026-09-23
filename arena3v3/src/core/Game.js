@@ -13,12 +13,12 @@ import { buildMatchReport } from "./MatchReport.js";
 import { HonorSystem } from "./HonorSystem.js";
 
 export class Game {
-  constructor({ canvas, input, arena, characterConfigs, nextCharacterConfigs = null }) {
+  constructor({ canvas, input, arena, characterConfigs }) {
     this.canvas = canvas;
     this.input = input;
     this.arena = arena;
     this.characterConfigs = characterConfigs;
-    this.nextCharacterConfigs = nextCharacterConfigs;
+    this.waitingForStart = true;
 
     this.movement = new MovementSystem();
     this.resources = new ResourceSystem();
@@ -56,7 +56,7 @@ export class Game {
     this.restorePreviousRunDiagnostic();
 
     this.resetMatchTracking();
-    this.writeRunHeartbeat();
+    this.markRunInactive();
     this.ui = new UIManager(this, input);
 
     this.input.setActionHandler(action => {
@@ -119,7 +119,7 @@ export class Game {
   }
 
   castPlayerSpell(index) {
-    if (!this.player.alive || this.ended) return false;
+    if (!this.player.alive || this.ended || this.waitingForStart) return false;
 
     const result = this.abilityQueue.request(index);
 
@@ -135,7 +135,7 @@ export class Game {
   }
 
   tryCastPlayerSpellNow(index, targetId = null) {
-    if (!this.player.alive || this.ended) return false;
+    if (!this.player.alive || this.ended || this.waitingForStart) return false;
 
     const spell = this.player.spells[index];
     if (!spell) return false;
@@ -178,7 +178,7 @@ export class Game {
   }
 
   update(deltaMs) {
-    if (!this.ended) {
+    if (!this.ended && !this.waitingForStart) {
       this.elapsedSeconds += deltaMs / 1000;
       const deltaSeconds = deltaMs / 1000;
 
@@ -360,7 +360,7 @@ export class Game {
 
     try {
       sessionStorage.setItem(this.runSessionKey, JSON.stringify({
-        active: !this.ended,
+        active: !this.ended && !this.waitingForStart,
         elapsedSeconds: this.elapsedSeconds,
         recordedAt: new Date().toISOString(),
       }));
@@ -391,21 +391,18 @@ export class Game {
     this.resetDiagnostics = this.resetDiagnostics.slice(-5);
   }
 
-  setCharacterConfigs(characterConfigs) {
+  startPreparedMatch(characterConfigs) {
     this.characterConfigs = characterConfigs;
-    this.reset("roster apply", { rerollRoster: false });
+    this.waitingForStart = false;
+    this.reset("match start");
   }
 
-  reset(reason = "unknown internal reset", { rerollRoster = true } = {}) {
+  setCharacterConfigs(characterConfigs) {
+    this.startPreparedMatch(characterConfigs);
+  }
+
+  reset(reason = "unknown internal reset") {
     this.recordResetDiagnostic(reason);
-
-    if (rerollRoster && typeof this.nextCharacterConfigs === "function") {
-      const nextConfigs = this.nextCharacterConfigs();
-      if (Array.isArray(nextConfigs) && nextConfigs.length > 0) {
-        this.characterConfigs = nextConfigs;
-      }
-    }
-
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;
@@ -426,6 +423,7 @@ export class Game {
     this.elapsedSeconds = 0;
     this.ended = false;
     this.resultText = "IN PROGRESS";
+    this.lastHonorAward = null;
     this.floatingTexts = [];
     this.lastHeartbeatSecond = -1;
 

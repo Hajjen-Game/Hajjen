@@ -62,11 +62,12 @@ function loadRoster() {
 let baseRoster = loadRoster();
 let roster = randomizeEnemyRoster(baseRoster);
 let lastEnemyKey = enemyRosterKey(roster);
+let setupRequired = true;
+let resumeAfterCancel = false;
 
-function nextMatchConfigs() {
+function rollOpponent() {
   roster = randomizeEnemyRoster(baseRoster, lastEnemyKey);
   lastEnemyKey = enemyRosterKey(roster);
-  return buildRosterConfigs(roster);
 }
 
 fitArenaStage();
@@ -83,7 +84,6 @@ const game = new Game({
   input,
   arena: arenaConfig,
   characterConfigs: buildRosterConfigs(roster),
-  nextCharacterConfigs: nextMatchConfigs,
 });
 
 function fillSelect(selectId, role, selectedClassId) {
@@ -105,17 +105,53 @@ function renderRosterForm() {
   fillSelect("#roster-ally-caster", "caster", baseRoster.allyCaster);
 }
 
+function className(classId) {
+  return CLASS_REGISTRY[classId]?.displayName || classId;
+}
+
+function renderEnemyPreview() {
+  document.querySelector("#setup-enemy-healer").textContent = className(roster.enemyHealer);
+  document.querySelector("#setup-enemy-melee").textContent = className(roster.enemyMelee);
+  document.querySelector("#setup-enemy-caster").textContent = className(roster.enemyCaster);
+}
+
 const rosterModal = document.querySelector("#roster-modal");
-document.querySelector("#roster-button").addEventListener("click", () => {
+const rosterClose = document.querySelector("#roster-close");
+const rosterCancel = document.querySelector("#roster-cancel");
+
+function openMatchSetup({ reroll = true, required = true, resumeOnCancel = false } = {}) {
+  if (reroll) rollOpponent();
+
+  setupRequired = required;
+  resumeAfterCancel = resumeOnCancel;
+  game.waitingForStart = true;
+
   renderRosterForm();
+  renderEnemyPreview();
+
+  rosterClose.hidden = required;
+  rosterCancel.hidden = required;
   rosterModal.classList.remove("hidden");
-});
-document.querySelector("#roster-close").addEventListener("click", () => {
+}
+
+function closeMatchSetup() {
+  if (setupRequired) return;
+
   rosterModal.classList.add("hidden");
+
+  if (resumeAfterCancel && !game.ended) {
+    game.waitingForStart = false;
+  }
+
+  resumeAfterCancel = false;
+}
+
+document.querySelector("#roster-button").addEventListener("click", () => {
+  openMatchSetup({ reroll: true, required: false, resumeOnCancel: !game.ended });
 });
-document.querySelector("#roster-cancel").addEventListener("click", () => {
-  rosterModal.classList.add("hidden");
-});
+rosterClose.addEventListener("click", closeMatchSetup);
+rosterCancel.addEventListener("click", closeMatchSetup);
+
 document.querySelector("#roster-apply").addEventListener("click", () => {
   baseRoster = {
     playerHealer: document.querySelector("#roster-player-healer").value,
@@ -125,13 +161,29 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
 
   localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify(baseRoster));
 
-  roster = randomizeEnemyRoster(baseRoster, lastEnemyKey);
-  lastEnemyKey = enemyRosterKey(roster);
-  game.setCharacterConfigs(buildRosterConfigs(roster));
+  roster = {
+    ...roster,
+    ...baseRoster,
+  };
+
+  game.startPreparedMatch(buildRosterConfigs(roster));
   rosterModal.classList.add("hidden");
-  game.ui.toast("Team applied · new enemy setup rolled");
+  setupRequired = false;
+  resumeAfterCancel = false;
+  game.ui.toast(
+    "Match started · vs "
+    + className(roster.enemyHealer) + " / "
+    + className(roster.enemyMelee) + " / "
+    + className(roster.enemyCaster)
+  );
+});
+
+window.addEventListener("arena3v3:request-match-setup", () => {
+  openMatchSetup({ reroll: true, required: true, resumeOnCancel: false });
 });
 
 renderRosterForm();
+renderEnemyPreview();
 game.start();
+openMatchSetup({ reroll: false, required: true, resumeOnCancel: false });
 window.arena3v3 = game;

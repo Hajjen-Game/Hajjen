@@ -101,9 +101,12 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
-- Random enemy matchmaking:
-  - the player may choose their own healer/melee/caster team
-  - enemy healer, melee and caster are randomized every new match
+- Pre-match draft:
+  - every match begins on a setup screen before the arena timer or AI starts
+  - the random enemy healer, melee and caster are revealed first
+  - after seeing the opponent composition, the player chooses their own healer + melee + caster
+  - START MATCH locks that setup and begins combat
+  - NEXT MATCH and confirmed RESTART both return to this setup flow with a newly rolled enemy composition
   - the exact same enemy composition is avoided twice in a row
 - Player control alerts:
   - Fear, Stun, Incapacitate, Root and Interrupt/School Lock all use the large center-screen warning

@@ -584,3 +584,44 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   .honor-card { width: 590px; }
   .honor-summary-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+
+.matchup-section {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(181, 91, 75, .28);
+}
+
+.matchup-card {
+  display: grid;
+  gap: 5px;
+  min-height: 68px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: rgba(15,11,9,.56);
+}
+
+.enemy-matchup-card {
+  border-color: rgba(181,91,75,.52);
+  background: linear-gradient(180deg, rgba(79,35,29,.58), rgba(35,20,17,.62));
+  box-shadow: inset 0 0 14px rgba(181,91,75,.05);
+}
+
+.matchup-role {
+  color: var(--enemy-bright);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+.matchup-card strong {
+  align-self: end;
+  color: #ffd4cd;
+  font-size: 15px;
+  letter-spacing: .03em;
+}
+
+#roster-modal:not(.hidden) {
+  z-index: 30;
+}

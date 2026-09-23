@@ -80,3 +80,30 @@ export function buildRosterConfigs(roster) {
     createCombatantConfig(roster.enemyCaster, "enemyCaster"),
   ];
 }
+
+
+function randomClassId(role) {
+  const pool = CLASS_IDS_BY_ROLE[role];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+export function enemyRosterKey(roster) {
+  return [roster.enemyHealer, roster.enemyMelee, roster.enemyCaster].join("|");
+}
+
+export function randomizeEnemyRoster(roster, previousEnemyKey = "") {
+  let candidate = null;
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    candidate = {
+      ...roster,
+      enemyHealer: randomClassId("healer"),
+      enemyMelee: randomClassId("melee"),
+      enemyCaster: randomClassId("caster"),
+    };
+
+    if (enemyRosterKey(candidate) !== previousEnemyKey) return candidate;
+  }
+
+  return candidate;
+}

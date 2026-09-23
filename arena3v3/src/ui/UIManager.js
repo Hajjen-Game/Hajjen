@@ -25,6 +25,14 @@ export class UIManager {
     this.toastElement = document.querySelector("#toast");
     this.result = document.querySelector("#match-result");
     this.resultTitle = document.querySelector("#match-result-title");
+    this.resultHonor = document.querySelector("#match-result-honor");
+    this.resultRankUp = document.querySelector("#match-result-rank-up");
+
+    this.honorRank = document.querySelector("#honor-rank");
+    this.honorTotal = document.querySelector("#honor-total");
+    this.honorProgressFill = document.querySelector("#honor-progress-fill");
+    this.honorProgressText = document.querySelector("#honor-progress-text");
+    this.honorTalentPoints = document.querySelector("#honor-talent-points");
     this.playerCast = document.querySelector("#player-cast");
     this.playerCastLabel = document.querySelector("#player-cast-label");
     this.playerCastFill = document.querySelector("#player-cast-fill");
@@ -263,6 +271,7 @@ export class UIManager {
     this.updatePlayerResource();
     this.updatePlayerCcAlert();
     this.updateDampening();
+    this.updateHonorStatus();
 
     this.game.player.spells.forEach((spell, index) => {
       const slot = this.actionSlots[index];
@@ -469,6 +478,26 @@ export class UIManager {
     }
   }
 
+  updateHonorStatus() {
+    const status = this.game.honor.status();
+
+    this.honorRank.textContent = "RANK " + status.rank + " · " + status.title;
+    this.honorTotal.textContent = status.lifetimeHonor.toLocaleString() + " HONOR";
+    this.honorTalentPoints.textContent = "TP " + status.talentPoints;
+
+    if (!status.nextRank) {
+      this.honorProgressFill.style.width = "100%";
+      this.honorProgressText.textContent = "MAX RANK";
+      return;
+    }
+
+    this.honorProgressFill.style.width = (status.progress * 100).toFixed(1) + "%";
+    this.honorProgressText.textContent =
+      status.progressHonor.toLocaleString()
+      + " / " + status.neededHonor.toLocaleString()
+      + " TO " + status.nextRank.title.toUpperCase();
+  }
+
   updateDamageMeter() {
     const actors = [...this.game.actors];
     const values = actors.map(actor => this.game.matchStats.get(actor.id)?.damage || 0);
@@ -514,13 +543,37 @@ export class UIManager {
     slot.classList.add("queued");
   }
 
-  setResult(title) {
+  setResult(title, honorAward = null) {
     this.resultTitle.textContent = title;
+
+    if (honorAward) {
+      this.resultHonor.textContent = "+" + honorAward.honor + " HONOR";
+
+      if (honorAward.rankedUp) {
+        this.resultRankUp.hidden = false;
+        this.resultRankUp.textContent =
+          "RANK UP · " + honorAward.rankTitle.toUpperCase()
+          + " · +" + honorAward.talentPointsGained + " TALENT POINT";
+      } else {
+        this.resultRankUp.hidden = true;
+        this.resultRankUp.textContent = "";
+      }
+    } else {
+      this.resultHonor.textContent = "";
+      this.resultRankUp.hidden = true;
+      this.resultRankUp.textContent = "";
+    }
+
+    this.updateHonorStatus();
     this.result.classList.remove("hidden");
   }
 
   clearResult() {
     this.result.classList.add("hidden");
+    this.resultHonor.textContent = "";
+    this.resultRankUp.hidden = true;
+    this.resultRankUp.textContent = "";
+    this.updateHonorStatus();
   }
 
   addLog(text) {

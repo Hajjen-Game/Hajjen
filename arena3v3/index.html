@@ -37,6 +37,19 @@
         <div class="side-title">YOUR TEAM</div>
         <div id="team-frames" class="unit-frame-list"></div>
 
+        <section class="side-widget honor-widget">
+          <div class="widget-title">PVP RANK</div>
+          <div class="honor-rank-row">
+            <strong id="honor-rank">RANK 1 · PRIVATE</strong>
+            <span id="honor-total">0 HONOR</span>
+          </div>
+          <div class="honor-progress-track"><div id="honor-progress-fill" class="honor-progress-fill"></div></div>
+          <div class="honor-progress-copy">
+            <span id="honor-progress-text">0 / 800 TO CORPORAL</span>
+            <span id="honor-talent-points" title="Talent trees will use these later">TP 0</span>
+          </div>
+        </section>
+
         <section class="side-widget damage-widget">
           <div class="widget-title">DAMAGE METER</div>
           <div id="damage-meter" class="damage-meter"></div>
@@ -88,6 +101,8 @@
             <div class="match-result-card panel">
               <div class="eyebrow">ARENA COMPLETE</div>
               <div id="match-result-title" class="match-result-title">VICTORY</div>
+              <div id="match-result-honor" class="match-result-honor"></div>
+              <div id="match-result-rank-up" class="match-result-rank-up" hidden></div>
               <button id="result-restart-button" class="hud-button primary" type="button">PLAY AGAIN</button>
             </div>
           </div>
@@ -149,21 +164,14 @@
 
       <div class="roster-section">
         <div class="roster-section-title enemy">ENEMY TEAM</div>
-        <label class="roster-field">
-          <span>Enemy · Healer</span>
-          <select id="roster-enemy-healer"></select>
-        </label>
-        <label class="roster-field">
-          <span>Enemy · Melee</span>
-          <select id="roster-enemy-melee"></select>
-        </label>
-        <label class="roster-field">
-          <span>Enemy · Caster</span>
-          <select id="roster-enemy-caster"></select>
-        </label>
+        <div class="roster-random-card">
+          <strong>RANDOM OPPONENTS</strong>
+          <span>Healer + Melee + Caster are rolled automatically for every new match.</span>
+          <span>The same exact enemy setup is avoided on consecutive matches.</span>
+        </div>
       </div>
 
-      <div class="roster-note">Changing the roster restarts the arena. Player remains the player name; the selected healer class controls your five abilities.</div>
+      <div class="roster-note">Changing your team restarts the arena. Your opponents are always random and cannot be selected.</div>
       <div class="roster-actions">
         <button id="roster-cancel" class="hud-button">CANCEL</button>
         <button id="roster-apply" class="hud-button primary">APPLY & RESTART</button>

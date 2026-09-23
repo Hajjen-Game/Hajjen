@@ -6,9 +6,11 @@ import {
   CLASS_IDS_BY_ROLE,
   DEFAULT_ROSTER,
   buildRosterConfigs,
+  enemyRosterKey,
+  randomizeEnemyRoster,
 } from "./content/classes/registry.js";
 
-const ROSTER_STORAGE_KEY = "arena3v3-roster-v1";
+const ROSTER_STORAGE_KEY = "arena3v3-roster-v2";
 
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
@@ -46,17 +48,26 @@ function loadRoster() {
     if (!validClassForRole(candidate.playerHealer, "healer")) candidate.playerHealer = DEFAULT_ROSTER.playerHealer;
     if (!validClassForRole(candidate.allyMelee, "melee")) candidate.allyMelee = DEFAULT_ROSTER.allyMelee;
     if (!validClassForRole(candidate.allyCaster, "caster")) candidate.allyCaster = DEFAULT_ROSTER.allyCaster;
-    if (!validClassForRole(candidate.enemyHealer, "healer")) candidate.enemyHealer = DEFAULT_ROSTER.enemyHealer;
-    if (!validClassForRole(candidate.enemyMelee, "melee")) candidate.enemyMelee = DEFAULT_ROSTER.enemyMelee;
-    if (!validClassForRole(candidate.enemyCaster, "caster")) candidate.enemyCaster = DEFAULT_ROSTER.enemyCaster;
 
-    return candidate;
+    return {
+      playerHealer: candidate.playerHealer,
+      allyMelee: candidate.allyMelee,
+      allyCaster: candidate.allyCaster,
+    };
   } catch {
     return { ...DEFAULT_ROSTER };
   }
 }
 
-let roster = loadRoster();
+let baseRoster = loadRoster();
+let roster = randomizeEnemyRoster(baseRoster);
+let lastEnemyKey = enemyRosterKey(roster);
+
+function nextMatchConfigs() {
+  roster = randomizeEnemyRoster(baseRoster, lastEnemyKey);
+  lastEnemyKey = enemyRosterKey(roster);
+  return buildRosterConfigs(roster);
+}
 
 fitArenaStage();
 
@@ -72,6 +83,7 @@ const game = new Game({
   input,
   arena: arenaConfig,
   characterConfigs: buildRosterConfigs(roster),
+  nextCharacterConfigs: nextMatchConfigs,
 });
 
 function fillSelect(selectId, role, selectedClassId) {
@@ -88,12 +100,9 @@ function fillSelect(selectId, role, selectedClassId) {
 }
 
 function renderRosterForm() {
-  fillSelect("#roster-player-healer", "healer", roster.playerHealer);
-  fillSelect("#roster-ally-melee", "melee", roster.allyMelee);
-  fillSelect("#roster-ally-caster", "caster", roster.allyCaster);
-  fillSelect("#roster-enemy-healer", "healer", roster.enemyHealer);
-  fillSelect("#roster-enemy-melee", "melee", roster.enemyMelee);
-  fillSelect("#roster-enemy-caster", "caster", roster.enemyCaster);
+  fillSelect("#roster-player-healer", "healer", baseRoster.playerHealer);
+  fillSelect("#roster-ally-melee", "melee", baseRoster.allyMelee);
+  fillSelect("#roster-ally-caster", "caster", baseRoster.allyCaster);
 }
 
 const rosterModal = document.querySelector("#roster-modal");
@@ -108,19 +117,19 @@ document.querySelector("#roster-cancel").addEventListener("click", () => {
   rosterModal.classList.add("hidden");
 });
 document.querySelector("#roster-apply").addEventListener("click", () => {
-  roster = {
+  baseRoster = {
     playerHealer: document.querySelector("#roster-player-healer").value,
     allyMelee: document.querySelector("#roster-ally-melee").value,
     allyCaster: document.querySelector("#roster-ally-caster").value,
-    enemyHealer: document.querySelector("#roster-enemy-healer").value,
-    enemyMelee: document.querySelector("#roster-enemy-melee").value,
-    enemyCaster: document.querySelector("#roster-enemy-caster").value,
   };
 
-  localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify(roster));
+  localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify(baseRoster));
+
+  roster = randomizeEnemyRoster(baseRoster, lastEnemyKey);
+  lastEnemyKey = enemyRosterKey(roster);
   game.setCharacterConfigs(buildRosterConfigs(roster));
   rosterModal.classList.add("hidden");
-  game.ui.toast("Roster applied");
+  game.ui.toast("Team applied · new enemy setup rolled");
 });
 
 renderRosterForm();

@@ -90,6 +90,16 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Honor and rank progression:
+  - every completed match grants persistent Honor: 200 for a win, 70 for a loss
+  - 14 Classic-inspired PvP ranks run from Private to Grand Marshal
+  - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
+  - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
+  - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Random enemy matchmaking:
+  - the player may choose their own healer/melee/caster team
+  - enemy healer, melee and caster are randomized every new match
+  - the exact same enemy composition is avoided twice in a row
 - Player control alerts:
   - Fear, Stun, Incapacitate, Root and Interrupt/School Lock all use the large center-screen warning
   - each state has its own large icon and countdown

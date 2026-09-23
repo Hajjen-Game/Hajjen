@@ -10,17 +10,21 @@ import { AISystem } from "../systems/AISystem.js";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
 import { UIManager } from "../ui/UIManager.js";
 import { buildMatchReport } from "./MatchReport.js";
+import { HonorSystem } from "./HonorSystem.js";
 
 export class Game {
-  constructor({ canvas, input, arena, characterConfigs }) {
+  constructor({ canvas, input, arena, characterConfigs, nextCharacterConfigs = null }) {
     this.canvas = canvas;
     this.input = input;
     this.arena = arena;
     this.characterConfigs = characterConfigs;
+    this.nextCharacterConfigs = nextCharacterConfigs;
 
     this.movement = new MovementSystem();
     this.resources = new ResourceSystem();
     this.vfx = new VisualEffectSystem();
+    this.honor = new HonorSystem();
+    this.lastHonorAward = null;
 
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
@@ -42,6 +46,7 @@ export class Game {
     this.elapsedSeconds = 0;
     this.ended = false;
     this.resultText = "IN PROGRESS";
+    this.lastHonorAward = null;
     this.floatingTexts = [];
     this.lastFrame = performance.now();
 
@@ -248,8 +253,18 @@ export class Game {
     this.ended = true;
     this.abilityQueue.clear();
     this.resultText = result;
-    this.ui.setResult(result);
+    this.lastHonorAward = this.honor.award(result);
+    this.ui.setResult(result, this.lastHonorAward);
     this.log(message);
+
+    if (this.lastHonorAward) {
+      this.log(
+        "+" + this.lastHonorAward.honor + " Honor · Rank "
+        + this.lastHonorAward.rankAfter + " " + this.lastHonorAward.rankTitle
+        + (this.lastHonorAward.rankedUp ? " · RANK UP" : ""),
+      );
+    }
+
     this.markRunInactive();
   }
 
@@ -378,11 +393,19 @@ export class Game {
 
   setCharacterConfigs(characterConfigs) {
     this.characterConfigs = characterConfigs;
-    this.reset("roster apply");
+    this.reset("roster apply", { rerollRoster: false });
   }
 
-  reset(reason = "unknown internal reset") {
+  reset(reason = "unknown internal reset", { rerollRoster = true } = {}) {
     this.recordResetDiagnostic(reason);
+
+    if (rerollRoster && typeof this.nextCharacterConfigs === "function") {
+      const nextConfigs = this.nextCharacterConfigs();
+      if (Array.isArray(nextConfigs) && nextConfigs.length > 0) {
+        this.characterConfigs = nextConfigs;
+      }
+    }
+
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;

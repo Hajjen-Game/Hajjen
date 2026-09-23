@@ -26,6 +26,9 @@ export const allyCasterConfig = {
     preferredRange: 300,
     targetPriorityRoles: ["caster", "melee", "healer"],
     ccTargetRoles: ["healer", "caster"],
+    oomHealerFocusPct: 0.10,
+    repositionWhenHealerControlled: true,
+    healerLosPullDistance: 125,
   },
 
   spells: [

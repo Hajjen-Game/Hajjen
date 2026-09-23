@@ -25,6 +25,9 @@ export const allyMeleeConfig = {
   ai: {
     preferredRange: 52,
     targetPriorityRoles: ["caster", "melee", "healer"],
+    oomHealerFocusPct: 0.10,
+    repositionWhenHealerControlled: true,
+    healerLosPullDistance: 115,
   },
 
   spells: [

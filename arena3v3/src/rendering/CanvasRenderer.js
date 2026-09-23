@@ -211,10 +211,12 @@ export class CanvasRenderer {
 
     ctx.strokeStyle = "#f3dfbd";
     ctx.fillStyle = "#f3dfbd";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.6;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
     if (actor.role === "healer") {
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(-7, 0);
       ctx.lineTo(7, 0);
@@ -222,14 +224,50 @@ export class CanvasRenderer {
       ctx.lineTo(0, 7);
       ctx.stroke();
     } else if (actor.role === "melee") {
-      ctx.rotate(Math.PI / 4);
-      ctx.strokeRect(-6, -6, 12, 12);
-    } else {
+      ctx.rotate(-Math.PI / 4);
+
       ctx.beginPath();
-      ctx.moveTo(0, -8);
-      ctx.lineTo(8, 7);
-      ctx.lineTo(-8, 7);
+      ctx.moveTo(0, -9);
+      ctx.lineTo(0, 6);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(-4, 3);
+      ctx.lineTo(4, 3);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(-2.6, -6);
+      ctx.lineTo(2.6, -6);
       ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 8, 1.7, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.lineWidth = 2.2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -9);
+      ctx.lineTo(2.2, -2.2);
+      ctx.lineTo(9, 0);
+      ctx.lineTo(2.2, 2.2);
+      ctx.lineTo(0, 9);
+      ctx.lineTo(-2.2, 2.2);
+      ctx.lineTo(-9, 0);
+      ctx.lineTo(-2.2, -2.2);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.78;
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, -0.7, 1.75);
       ctx.stroke();
     }
 

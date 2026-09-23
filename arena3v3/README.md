@@ -26,10 +26,13 @@ No build step or package manager is required.
   - healer: short-range AoE fear
   - melee: off-GCD interrupt with temporary spell-school lock
   - caster: casted incapacitate that breaks on damage
+- DPS switches pressure to an enemy healer at 10% mana or lower
+- DPS tries to drag its kill target back into healer line of sight while its own healer is hard-CC'd
 - Crits, misses and dodges
 - Marble-bag RNG for hit/crit/amount variance
 - Four large line-of-sight pillars in a symmetric arena
 - Basic collision and AI steering around pillars
+- Shared vector role icons: healer cross, melee sword, caster spell glyph
 - Damage meter for both teams
 - Copy Run Report with combat, damage, healing, CC and interrupt data
 - Match ends immediately if the player character dies

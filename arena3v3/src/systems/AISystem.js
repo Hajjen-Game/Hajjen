@@ -80,6 +80,12 @@ export class AISystem {
     );
     if (enemies.length === 0) return;
 
+    const oomHealer = this.findOomHealerTarget(actor, enemies);
+    if (oomHealer && actor.aiTargetId !== oomHealer.id) {
+      actor.aiTargetId = oomHealer.id;
+      this.game.log(actor.name + " switches pressure to " + oomHealer.name + " — healer is out of mana.");
+    }
+
     const interrupt = actor.spells.find(spell => spell.aiRole === "interrupt");
 
     if (interrupt && this.ready(actor, interrupt)) {
@@ -120,7 +126,10 @@ export class AISystem {
     let target = this.game.getActor(actor.aiTargetId);
     const lowest = [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
 
-    if (!target?.alive || lowest.healthPct < 0.24) {
+    if (oomHealer) {
+      target = oomHealer;
+      actor.aiTargetId = oomHealer.id;
+    } else if (!target?.alive || lowest.healthPct < 0.24) {
       target = lowest.healthPct < 0.24 ? lowest : this.pickPriorityTarget(actor, enemies);
       actor.aiTargetId = target.id;
     }
@@ -138,6 +147,16 @@ export class AISystem {
 
     if (this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
     if (this.ready(actor, quick)) this.castIfPossible(actor, quick, target);
+  }
+
+  findOomHealerTarget(actor, enemies) {
+    const threshold = actor.config.ai.oomHealerFocusPct ?? 0.1;
+
+    return enemies.find(candidate =>
+      candidate.role === "healer"
+      && candidate.resource.type === "mana"
+      && candidate.resourcePct <= threshold
+    ) || null;
   }
 
   pickPriorityTarget(actor, enemies) {
@@ -170,6 +189,15 @@ export class AISystem {
   moveForRole(actor, target, deltaSeconds) {
     if (!target?.alive || this.game.cc.isRooted(actor)) return;
 
+    if (actor.role !== "healer" && this.shouldPullForControlledHealer(actor, target)) {
+      const pullVector = this.healerLosPullVector(actor, target);
+
+      if (pullVector.x !== 0 || pullVector.y !== 0) {
+        this.movement.move(actor, pullVector, deltaSeconds, this.game.arena);
+        return;
+      }
+    }
+
     const preferred = actor.config.ai.preferredRange;
     const los = hasLineOfSight(actor, target, this.game.arena.obstacles);
     const dist = distance(actor, target);
@@ -186,6 +214,54 @@ export class AISystem {
     if (vector.x !== 0 || vector.y !== 0) {
       this.movement.move(actor, vector, deltaSeconds, this.game.arena);
     }
+  }
+
+  shouldPullForControlledHealer(actor, target) {
+    if (actor.config.ai.repositionWhenHealerControlled === false) return false;
+
+    const healer = this.getTeamHealer(actor);
+    if (!healer || !this.game.cc.isHardControlled(healer)) return false;
+
+    return !hasLineOfSight(healer, target, this.game.arena.obstacles);
+  }
+
+  healerLosPullVector(actor, target) {
+    const healer = this.getTeamHealer(actor);
+    if (!healer) return { x: 0, y: 0 };
+
+    const pullDistance = actor.config.ai.healerLosPullDistance ?? 115;
+    const healerToTarget = normalize(target.x - healer.x, target.y - healer.y);
+
+    const pullPoint = {
+      x: healer.x + healerToTarget.x * pullDistance,
+      y: healer.y + healerToTarget.y * pullDistance,
+    };
+
+    const distToPullPoint = distance(actor, pullPoint);
+
+    if (distToPullPoint > 52) {
+      return this.steer(actor, pullPoint, 1);
+    }
+
+    const sign = stableHash(actor.id + ":healer-pull") % 2 === 0 ? 1 : -1;
+    const side = {
+      x: -healerToTarget.y * sign,
+      y: healerToTarget.x * sign,
+    };
+
+    if (!this.movement.wouldCollide(actor, side, actor.radius + 24, this.game.arena)) {
+      return side;
+    }
+
+    return this.steer(actor, healer, 1);
+  }
+
+  getTeamHealer(actor) {
+    return this.game.actors.find(candidate =>
+      candidate.alive
+      && candidate.team === actor.team
+      && candidate.role === "healer"
+    );
   }
 
   steer(actor, target, toward = 1) {

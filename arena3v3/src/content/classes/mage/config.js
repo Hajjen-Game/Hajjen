@@ -13,7 +13,7 @@ export const mageClass = {
     ccTargetRoles: ["healer", "caster"], oomHealerFocusPct: 0.10,
     repositionWhenHealerControlled: true, healerLosPullDistance: 125,
     peelHealthPct: 0.72, peelThreatRange: 125, peelDurationSeconds: 5.0,
-    kiteThreatRange: 165,
+    kiteThreatRange: 165, healerLosHealthPct: 0.88,
   },
   spells: [
     {

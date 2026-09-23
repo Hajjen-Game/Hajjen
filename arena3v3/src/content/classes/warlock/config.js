@@ -13,7 +13,7 @@ export const warlockClass = {
     ccTargetRoles: ["healer", "caster"], oomHealerFocusPct: 0.10,
     repositionWhenHealerControlled: true, healerLosPullDistance: 125,
     peelHealthPct: 0.68, peelThreatRange: 120, peelDurationSeconds: 4.5,
-    kiteThreatRange: 150,
+    kiteThreatRange: 150, healerLosHealthPct: 0.78,
   },
   spells: [
     {

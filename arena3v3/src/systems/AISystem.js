@@ -389,10 +389,26 @@ export class AISystem {
     if (!target?.alive || this.game.cc.isRooted(actor)) return;
 
     if (actor.role === "caster") {
+      const healer = this.getTeamHealer(actor);
       const meleeThreat = this.findCasterMeleeThreat(actor);
+      const healerLosHealthPct = actor.config.ai.healerLosHealthPct ?? 0.82;
+      const needsHealerSupport = healer
+        && (Boolean(meleeThreat) || actor.healthPct <= healerLosHealthPct);
+
+      if (
+        needsHealerSupport
+        && !this.hasHealerSupport(actor, healer)
+      ) {
+        const recoveryVector = this.healerSupportVector(actor, healer, meleeThreat);
+
+        if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
+          this.movement.move(actor, recoveryVector, deltaSeconds, this.game.arena);
+          return;
+        }
+      }
 
       if (meleeThreat) {
-        const kiteVector = this.kiteVector(actor, meleeThreat);
+        const kiteVector = this.kiteVector(actor, meleeThreat, healer);
 
         if (kiteVector.x !== 0 || kiteVector.y !== 0) {
           this.movement.move(actor, kiteVector, deltaSeconds, this.game.arena);
@@ -444,13 +460,8 @@ export class AISystem {
       .sort((a, b) => distance(a, actor) - distance(b, actor))[0] || null;
   }
 
-  kiteVector(actor, threat) {
+  kiteVector(actor, threat, healer = null) {
     const directAway = normalize(actor.x - threat.x, actor.y - threat.y);
-
-    if (!this.movement.wouldCollide(actor, directAway, actor.radius + 26, this.game.arena)) {
-      return directAway;
-    }
-
     const sign = stableHash(actor.id + ":kite") % 2 === 0 ? 1 : -1;
     const side = {
       x: -directAway.y * sign,
@@ -458,19 +469,85 @@ export class AISystem {
     };
 
     const candidates = [
-      normalize(directAway.x * 0.7 + side.x * 0.7, directAway.y * 0.7 + side.y * 0.7),
-      normalize(directAway.x * 0.7 - side.x * 0.7, directAway.y * 0.7 - side.y * 0.7),
+      directAway,
+      normalize(directAway.x * 0.75 + side.x * 0.65, directAway.y * 0.75 + side.y * 0.65),
+      normalize(directAway.x * 0.75 - side.x * 0.65, directAway.y * 0.75 - side.y * 0.65),
       side,
       { x: -side.x, y: -side.y },
-    ];
+    ].filter(candidate =>
+      !this.movement.wouldCollide(actor, candidate, actor.radius + 28, this.game.arena)
+    );
 
-    for (const candidate of candidates) {
-      if (!this.movement.wouldCollide(actor, candidate, actor.radius + 26, this.game.arena)) {
-        return candidate;
+    if (candidates.length === 0) return { x: 0, y: 0 };
+
+    const probeDistance = 54;
+
+    const scored = candidates.map(candidate => {
+      const probe = {
+        x: actor.x + candidate.x * probeDistance,
+        y: actor.y + candidate.y * probeDistance,
+      };
+
+      let score = distance(probe, threat);
+
+      if (healer?.alive) {
+        if (this.hasHealerSupport(probe, healer, actor.radius)) {
+          score += 260;
+        } else {
+          score -= 220;
+        }
+
+        const supportRange = this.healerSupportRange(healer);
+        const healerDistance = distance(probe, healer);
+        if (healerDistance > supportRange * 0.92) {
+          score -= (healerDistance - supportRange * 0.92) * 1.6;
+        }
       }
+
+      return { candidate, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0].candidate;
+  }
+
+  hasHealerSupport(actorOrPoint, healer, actorRadius = null) {
+    if (!healer?.alive) return true;
+
+    const radius = actorRadius ?? actorOrPoint.radius ?? 0;
+    const supportRange = this.healerSupportRange(healer);
+    const inRange = distance(actorOrPoint, healer) <= supportRange + radius + healer.radius;
+    const los = hasLineOfSight(actorOrPoint, healer, this.game.arena.obstacles);
+
+    return inRange && los;
+  }
+
+  healerSupportRange(healer) {
+    const allyRanges = healer.spells
+      .filter(spell => spell.target === "ally")
+      .map(spell => spell.range || 0);
+
+    return allyRanges.length > 0 ? Math.max(...allyRanges) : 330;
+  }
+
+  healerSupportVector(actor, healer, threat = null) {
+    const towardHealer = this.steer(actor, healer, 1);
+    if (!threat) return towardHealer;
+
+    const awayFromThreat = normalize(actor.x - threat.x, actor.y - threat.y);
+    const combined = normalize(
+      towardHealer.x * 1.15 + awayFromThreat.x * 0.55,
+      towardHealer.y * 1.15 + awayFromThreat.y * 0.55,
+    );
+
+    if (
+      (combined.x !== 0 || combined.y !== 0)
+      && !this.movement.wouldCollide(actor, combined, actor.radius + 26, this.game.arena)
+    ) {
+      return combined;
     }
 
-    return { x: 0, y: 0 };
+    return towardHealer;
   }
 
   shouldPullForControlledHealer(actor, target) {

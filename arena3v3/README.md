@@ -101,6 +101,14 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Action bar customization:
+  - drag spells directly on the action bar to reorder them
+  - layout is saved separately for each character
+  - keybindings are attached to Slot 1-5, not to a specific spell
+  - moving a spell into another slot immediately gives it that slot's keybind
+  - the KEYBINDINGS menu can rebind Slot 1-5, movement and party targeting
+  - legacy Spell 1-5 bindings are migrated automatically to Slot 1-5
+  - action-bar layout and keybindings can be reset independently
 - Responsive team-panel layout:
   - the center arena column follows the playable 16:9 arena footprint instead of stretching wider than the rendered arena
   - spare horizontal desktop space is split between YOUR TEAM and ENEMY TEAM

@@ -865,3 +865,42 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .roster-field[hidden] {
   display: none !important;
 }
+
+
+.action-slot {
+  position: relative;
+}
+
+.action-slot.dragging {
+  opacity: .42;
+  transform: scale(.97);
+}
+
+.action-slot.drag-over {
+  border-color: var(--gold-bright);
+  box-shadow:
+    0 0 0 2px rgba(227,186,114,.22),
+    0 0 18px rgba(227,186,114,.20);
+}
+
+.drag-handle {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  color: rgba(227,186,114,.58);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.action-slot .spell-name {
+  padding-left: 12px;
+}
+
+.binding-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

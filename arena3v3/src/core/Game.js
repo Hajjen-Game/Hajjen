@@ -72,8 +72,8 @@ export class Game {
     this.ui = new UIManager(this, input);
 
     this.input.setActionHandler(action => {
-      if (action.startsWith("spell")) {
-        this.castPlayerSpell(Number(action.slice(-1)) - 1);
+      if (action.startsWith("slot")) {
+        this.ui?.castActionSlot(Number(action.slice(4)) - 1);
         return;
       }
 

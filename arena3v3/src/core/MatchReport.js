@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.32-wide-team-panels",
+    "Build: prototype-v0.33-actionbar-customization",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -33,6 +33,7 @@ export function buildMatchReport(game) {
     "Mouse steering: hold left + right mouse buttons together to continuously move toward the cursor; either button alone does not trigger movement and instant abilities remain usable while moving",
     "Playable DPS: Warrior and Mage can now be created and controlled as the player; match setup automatically fills the missing role choices for the selected player class",
     "Responsive arena layout: unused horizontal letterbox space beside the 16:9 arena is reassigned to wider friendly/enemy team panels",
+    "Action bar customization: spells can be drag-reordered per character; keybinds now belong to Slot 1-5 instead of fixed spell positions and persist independently",
     "",
     "=== FRIENDLY TEAM ===",
   ];

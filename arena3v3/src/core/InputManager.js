@@ -1,6 +1,7 @@
 import { DEFAULT_BINDINGS } from "./constants.js";
 
-const STORAGE_KEY = "arena3v3-bindings-v2";
+const STORAGE_KEY = "arena3v3-bindings-v3";
+const LEGACY_STORAGE_KEY = "arena3v3-bindings-v2";
 
 function printableCode(code) {
   if (code.startsWith("Key")) return code.slice(3);
@@ -35,7 +36,23 @@ export class InputManager {
   loadBindings() {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      return { ...DEFAULT_BINDINGS, ...(stored || {}) };
+      if (stored) return { ...DEFAULT_BINDINGS, ...stored };
+
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "null");
+      if (!legacy) return { ...DEFAULT_BINDINGS };
+
+      const migrated = { ...DEFAULT_BINDINGS };
+
+      for (const action of ["moveUp", "moveLeft", "moveDown", "moveRight", "party1", "party2", "party3"]) {
+        if (legacy[action]) migrated[action] = legacy[action];
+      }
+
+      for (let slot = 1; slot <= 5; slot += 1) {
+        if (legacy["spell" + slot]) migrated["slot" + slot] = legacy["spell" + slot];
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
     } catch {
       return { ...DEFAULT_BINDINGS };
     }

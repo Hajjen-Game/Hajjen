@@ -79,7 +79,7 @@
         <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
         <button id="honor-button" class="hud-button" type="button">HONOR</button>
         <button id="roster-button" class="hud-button" type="button">ROSTER</button>
-        <button id="controls-button" class="hud-button" type="button">CONTROLS</button>
+        <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
         <button id="restart-button" class="hud-button" type="button">RESTART</button>
       </div>
     </header>
@@ -184,7 +184,7 @@
       </div>
 
       <div id="action-bar" class="action-bar"></div>
-      <div class="hint">Left click target · Hold LMB + RMB to steer/move · WASD also moves · F1/F2/F3 target party · Abilities 1–5</div>
+      <div class="hint">Left click target · Hold LMB + RMB to steer/move · WASD also moves · F1/F2/F3 target party · Drag spells to rearrange · keys in KEYBINDINGS</div>
     </footer>
   </div>
 
@@ -303,15 +303,18 @@
     <div class="modal-card panel">
       <div class="modal-header">
         <div>
-          <div class="eyebrow">KEY BINDINGS</div>
-          <h2 id="controls-title">CONTROLS</h2>
+          <div class="eyebrow">ACTION BAR & KEYS</div>
+          <h2 id="controls-title">KEYBINDINGS</h2>
         </div>
-        <button id="controls-close" class="icon-button" aria-label="Close controls">×</button>
+        <button id="controls-close" class="icon-button" aria-label="Close keybindings">×</button>
       </div>
 
       <div id="binding-list" class="binding-list"></div>
-      <div class="binding-help">Click a key, then press the new key. Existing bindings are swapped automatically.</div>
-      <button id="reset-bindings" class="hud-button">RESET DEFAULTS</button>
+      <div class="binding-help">Slots keep their keybinds when you move spells. Drag spells directly on the action bar to rearrange them. Click a key below, then press the new key; existing bindings are swapped automatically.</div>
+      <div class="binding-actions">
+        <button id="reset-actionbar" class="hud-button">RESET ACTION BAR</button>
+        <button id="reset-bindings" class="hud-button">RESET KEYBINDINGS</button>
+      </div>
     </div>
   </div>
 

@@ -85,8 +85,11 @@ export function createActionSlot(spell, index, onCast, onRebind) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "action-slot";
+  button.draggable = true;
+  button.title = "Drag to rearrange this action slot";
 
   button.innerHTML = `
+    <span class="drag-handle" aria-hidden="true">⋮⋮</span>
     <span class="spell-name"></span>
     <span class="spell-meta"></span>
     <span class="keycap" role="button" tabindex="0"></span>

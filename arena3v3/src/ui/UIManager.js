@@ -4,6 +4,8 @@ import { createActionSlot, createUnitFrame } from "./components.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js";
 
+const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
+
 export class UIManager {
   constructor(game, input) {
     this.game = game;
@@ -11,6 +13,9 @@ export class UIManager {
     this.frameElements = new Map();
     this.meterElements = new Map();
     this.actionSlots = [];
+    this.actionSlotSpellIds = [];
+    this.draggedActionSlot = null;
+    this.suppressActionClickUntil = 0;
     this.logLines = [];
     this.toastTimer = null;
 
@@ -77,6 +82,11 @@ export class UIManager {
       this.renderBindings();
       this.refreshActionKeycaps();
       this.refreshPartyKeycaps();
+    });
+
+    document.querySelector("#reset-actionbar").addEventListener("click", () => {
+      this.resetActionBarLayout();
+      this.toast("Action bar reset");
     });
 
     document.querySelector("#copy-report-button").addEventListener("click", () => this.copyRunReport());
@@ -180,27 +190,161 @@ export class UIManager {
     }
   }
 
-  buildActionBar() {
-    this.actionBar.innerHTML = "";
+  actionBarStorageKey() {
+    const owner = this.game.activeCharacterId
+      || ("class-" + (this.game.player?.classId || "default"));
+    return ACTION_BAR_STORAGE_PREFIX + owner;
+  }
 
-    this.actionSlots = this.game.player.spells.map((spell, index) => {
-      const slot = createActionSlot(
-        spell,
-        index,
-        spellIndex => this.game.castPlayerSpell(spellIndex),
-        spellIndex => this.captureBinding("spell" + (spellIndex + 1)),
+  defaultActionBarSpellIds() {
+    return this.game.player.spells.map(spell => spell.id);
+  }
+
+  loadActionBarLayout() {
+    const defaults = this.defaultActionBarSpellIds();
+
+    try {
+      const stored = JSON.parse(localStorage.getItem(this.actionBarStorageKey()) || "null");
+      if (!Array.isArray(stored)) return defaults;
+
+      const valid = stored.filter((spellId, index, array) =>
+        defaults.includes(spellId) && array.indexOf(spellId) === index
       );
 
+      for (const spellId of defaults) {
+        if (!valid.includes(spellId)) valid.push(spellId);
+      }
+
+      return valid.slice(0, defaults.length);
+    } catch {
+      return defaults;
+    }
+  }
+
+  saveActionBarLayout() {
+    try {
+      localStorage.setItem(
+        this.actionBarStorageKey(),
+        JSON.stringify(this.actionSlotSpellIds),
+      );
+    } catch {
+      // Action-bar customization should never block gameplay.
+    }
+  }
+
+  resetActionBarLayout() {
+    this.actionSlotSpellIds = this.defaultActionBarSpellIds();
+
+    try {
+      localStorage.removeItem(this.actionBarStorageKey());
+    } catch {
+      // Ignore storage failures and still rebuild the current bar.
+    }
+
+    this.buildActionBar();
+  }
+
+  spellIndexForActionSlot(slotIndex) {
+    const spellId = this.actionSlotSpellIds[slotIndex];
+    return this.game.player.spells.findIndex(spell => spell.id === spellId);
+  }
+
+  castActionSlot(slotIndex) {
+    if (performance.now() <= this.suppressActionClickUntil) return false;
+
+    const spellIndex = this.spellIndexForActionSlot(slotIndex);
+    if (spellIndex < 0) return false;
+    return this.game.castPlayerSpell(spellIndex);
+  }
+
+  moveActionSlot(fromIndex, toIndex) {
+    if (
+      fromIndex === toIndex
+      || fromIndex < 0
+      || toIndex < 0
+      || fromIndex >= this.actionSlotSpellIds.length
+      || toIndex >= this.actionSlotSpellIds.length
+    ) return;
+
+    const next = [...this.actionSlotSpellIds];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+
+    this.actionSlotSpellIds = next;
+    this.saveActionBarLayout();
+    this.buildActionBar();
+  }
+
+  wireActionSlotDrag(slot, slotIndex) {
+    slot.dataset.slotIndex = String(slotIndex);
+
+    slot.addEventListener("dragstart", event => {
+      this.draggedActionSlot = slotIndex;
+      slot.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", String(slotIndex));
+    });
+
+    slot.addEventListener("dragover", event => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      slot.classList.add("drag-over");
+    });
+
+    slot.addEventListener("dragleave", () => {
+      slot.classList.remove("drag-over");
+    });
+
+    slot.addEventListener("drop", event => {
+      event.preventDefault();
+      slot.classList.remove("drag-over");
+
+      const fromIndex = Number.parseInt(
+        event.dataTransfer.getData("text/plain"),
+        10,
+      );
+
+      if (Number.isInteger(fromIndex)) {
+        this.moveActionSlot(fromIndex, slotIndex);
+      }
+    });
+
+    slot.addEventListener("dragend", () => {
+      this.suppressActionClickUntil = performance.now() + 180;
+      this.draggedActionSlot = null;
+
+      for (const actionSlot of this.actionSlots) {
+        actionSlot.classList.remove("dragging", "drag-over");
+      }
+    });
+  }
+
+  buildActionBar() {
+    this.actionBar.innerHTML = "";
+    this.actionSlotSpellIds = this.loadActionBarLayout();
+
+    this.actionSlots = this.actionSlotSpellIds.map((spellId, slotIndex) => {
+      const spell = this.game.player.spells.find(item => item.id === spellId);
+      if (!spell) return null;
+
+      const slot = createActionSlot(
+        spell,
+        slotIndex,
+        index => this.castActionSlot(index),
+        index => this.captureBinding("slot" + (index + 1)),
+      );
+
+      this.wireActionSlotDrag(slot, slotIndex);
       this.actionBar.appendChild(slot);
       return slot;
-    });
+    }).filter(Boolean);
 
     this.refreshActionKeycaps();
   }
 
   refreshActionKeycaps() {
     this.actionSlots.forEach((slot, index) => {
-      slot.querySelector(".keycap").textContent = this.input.label("spell" + (index + 1));
+      slot.querySelector(".keycap").textContent = this.input.label("slot" + (index + 1));
     });
   }
 
@@ -347,8 +491,12 @@ export class UIManager {
     this.updateDampening();
     this.updateHonorStatus();
 
-    this.game.player.spells.forEach((spell, index) => {
-      const slot = this.actionSlots[index];
+    this.actionSlotSpellIds.forEach((spellId, slotIndex) => {
+      const spellIndex = this.game.player.spells.findIndex(spell => spell.id === spellId);
+      const spell = this.game.player.spells[spellIndex];
+      const slot = this.actionSlots[slotIndex];
+      if (!spell || !slot) return;
+
       const cooldown = this.game.player.cooldownFor(spell.id);
       const overlay = slot.querySelector(".cooldown");
 
@@ -371,7 +519,7 @@ export class UIManager {
         "disabled",
         invalidTarget || noResource || controlled || schoolLocked || !this.game.player.alive,
       );
-      slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === index);
+      slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === spellIndex);
     });
 
     if (this.game.player.cast) {
@@ -600,8 +748,16 @@ export class UIManager {
     this.playerResourceFill.style.width = (clamp(this.game.player.resourcePct, 0, 1) * 100) + "%";
   }
 
+  actionSlotForSpellIndex(spellIndex) {
+    const spell = this.game.player.spells[spellIndex];
+    if (!spell) return null;
+
+    const slotIndex = this.actionSlotSpellIds.indexOf(spell.id);
+    return slotIndex >= 0 ? this.actionSlots[slotIndex] : null;
+  }
+
   pulseAction(index, success) {
-    const slot = this.actionSlots[index];
+    const slot = this.actionSlotForSpellIndex(index);
     if (!slot) return;
 
     slot.classList.remove("pressed", "rejected");
@@ -614,7 +770,7 @@ export class UIManager {
   }
 
   pulseQueuedAction(index) {
-    const slot = this.actionSlots[index];
+    const slot = this.actionSlotForSpellIndex(index);
     if (!slot) return;
 
     slot.classList.remove("rejected");

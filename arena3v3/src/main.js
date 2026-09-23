@@ -21,7 +21,7 @@ const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
 const input = new InputManager();
 const characters = new CharacterStore();
-const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior"]);
+const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "mage"]);
 
 let game = null;
 let activeCharacter = null;
@@ -269,7 +269,7 @@ function hideCharacterScreen() {
 function fillCharacterClassSelect(selectedClassId = "priest") {
   createCharacterClass.innerHTML = "";
 
-  for (const classId of ["priest", "druid", "paladin", "warrior"]) {
+  for (const classId of ["priest", "druid", "paladin", "warrior", "mage"]) {
     const option = document.createElement("option");
     option.value = classId;
     option.textContent =

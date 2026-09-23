@@ -71,7 +71,7 @@ export function createCombatantConfig(classId, slotKey) {
 }
 
 export function buildRosterConfigs(roster) {
-  return [
+  const configs = [
     createCombatantConfig(roster.playerHealer, "playerHealer"),
     createCombatantConfig(roster.allyMelee, "allyMelee"),
     createCombatantConfig(roster.allyCaster, "allyCaster"),
@@ -79,6 +79,9 @@ export function buildRosterConfigs(roster) {
     createCombatantConfig(roster.enemyMelee, "enemyMelee"),
     createCombatantConfig(roster.enemyCaster, "enemyCaster"),
   ];
+
+  if (roster.playerName) configs[0].name = roster.playerName;
+  return configs;
 }
 
 

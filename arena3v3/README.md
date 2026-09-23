@@ -101,10 +101,17 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Character selection:
+  - the game now opens on a WoW-style character screen
+  - create multiple persistent healer characters; creating a new one never overwrites existing characters
+  - character creation asks for a custom name and healer class (Priest, Druid or Paladin)
+  - each character permanently keeps its healer class plus separate Honor, Rank, win/loss record and banked Talent Points
+  - a CHARACTERS button returns to the character screen; an active match can be resumed if you only opened the screen to look
+  - existing pre-character Honor progress is automatically preserved as a legacy "Player" character on first load
 - Pre-match draft:
   - every match begins on a setup screen before the arena timer or AI starts
   - the random enemy healer, melee and caster are revealed first
-  - after seeing the opponent composition, the player chooses their own healer + melee + caster
+  - after seeing the opponent composition, the selected healer character chooses their melee + caster teammates
   - START MATCH locks that setup and begins combat
   - NEXT MATCH and confirmed RESTART both return to this setup flow with a newly rolled enemy composition
   - the exact same enemy composition is avoided twice in a row

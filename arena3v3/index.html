@@ -9,11 +9,61 @@
   <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
+  <section id="character-screen" class="character-screen">
+    <div class="character-screen-shell">
+      <div class="character-screen-header">
+        <div>
+          <div class="eyebrow">THE GRAND RING</div>
+          <h1>SELECT CHARACTER</h1>
+          <p>Choose a healer, build Honor and Rank, and keep separate progression for every character.</p>
+        </div>
+        <div class="character-screen-actions">
+          <button id="character-return" class="hud-button" type="button" hidden>RETURN TO MATCH</button>
+          <button id="create-character-button" class="hud-button primary" type="button">CREATE CHARACTER</button>
+        </div>
+      </div>
+      <div id="character-list" class="character-list"></div>
+    </div>
+  </section>
+
+  <div id="create-character-modal" class="modal hidden character-create-modal" role="dialog" aria-modal="true" aria-labelledby="create-character-title">
+    <div class="modal-card character-create-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">NEW CHARACTER</div>
+          <h2 id="create-character-title">CREATE HEALER</h2>
+        </div>
+        <button id="create-character-close" class="icon-button" aria-label="Close character creation">×</button>
+      </div>
+
+      <div class="character-create-form">
+        <label class="roster-field">
+          <span>Character Name</span>
+          <input id="create-character-name" type="text" maxlength="18" autocomplete="off" placeholder="Enter name" />
+        </label>
+
+        <label class="roster-field">
+          <span>Healer Class</span>
+          <select id="create-character-class"></select>
+        </label>
+      </div>
+
+      <div id="create-character-error" class="character-create-error"></div>
+      <div class="roster-note">Class is locked to this character. Honor, Rank and future Talent Points are saved separately per character.</div>
+
+      <div class="roster-actions">
+        <button id="create-character-cancel" class="hud-button" type="button">CANCEL</button>
+        <button id="create-character-confirm" class="hud-button primary" type="button">CREATE & PLAY</button>
+      </div>
+    </div>
+  </div>
+
   <div id="app">
     <header class="top-hud panel">
       <div>
         <div class="eyebrow">SINGLE PLAYER · 3V3 ARENA · PROTOTYPE</div>
         <h1>THE GRAND RING</h1>
+        <div id="active-character-label" class="active-character-label">NO CHARACTER SELECTED</div>
       </div>
       <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
         <div class="dampening-icon" aria-hidden="true">▼</div>
@@ -26,6 +76,7 @@
 
       <div class="top-actions">
         <div id="match-clock" class="clock">00:00</div>
+        <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
         <button id="honor-button" class="hud-button" type="button">HONOR</button>
         <button id="roster-button" class="hud-button" type="button">ROSTER</button>
         <button id="controls-button" class="hud-button" type="button">CONTROLS</button>
@@ -202,10 +253,11 @@
 
       <div class="roster-section">
         <div class="roster-section-title friendly">YOUR TEAM</div>
-        <label class="roster-field">
-          <span>Player · Healer</span>
-          <select id="roster-player-healer"></select>
-        </label>
+        <div class="roster-field roster-character-fixed">
+          <span>Your Character · Healer</span>
+          <strong id="setup-player-name">Player</strong>
+          <small id="setup-player-class">Priest</small>
+        </div>
         <label class="roster-field">
           <span>Teammate · Melee</span>
           <select id="roster-ally-melee"></select>

@@ -1,5 +1,7 @@
 import { Game } from "./core/Game.js";
 import { InputManager } from "./core/InputManager.js";
+import { CharacterStore } from "./core/CharacterStore.js";
+import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";
 import { arenaConfig } from "./content/arena/nagrand-inspired/config.js";
 import {
   CLASS_REGISTRY,
@@ -9,13 +11,29 @@ import {
   enemyRosterKey,
   randomizeEnemyRoster,
 } from "./content/classes/registry.js";
+import { WOW_CLASS_COLORS } from "./content/classes/classColors.js";
 
-const ROSTER_STORAGE_KEY = "arena3v3-roster-v2";
+const ROSTER_STORAGE_KEY = "arena3v3-roster-v3";
+const LEGACY_ROSTER_STORAGE_KEY = "arena3v3-roster-v2";
 
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
 const input = new InputManager();
+const characters = new CharacterStore();
+
+let game = null;
+let activeCharacter = null;
+let baseRoster = loadTeamPreferences();
+let roster = {
+  ...baseRoster,
+  playerHealer: DEFAULT_ROSTER.playerHealer,
+  playerName: "Player",
+};
+let lastEnemyKey = "";
+let setupRequired = true;
+let resumeAfterCancel = false;
+let canReturnToMatch = false;
 
 function fitArenaStage() {
   if (!arenaWrap || !arenaStage) return;
@@ -40,51 +58,51 @@ function validClassForRole(classId, role) {
   return CLASS_IDS_BY_ROLE[role].includes(classId);
 }
 
-function loadRoster() {
+function readRosterStorage(key) {
   try {
-    const stored = JSON.parse(localStorage.getItem(ROSTER_STORAGE_KEY) || "null");
-    const candidate = { ...DEFAULT_ROSTER, ...(stored || {}) };
-
-    if (!validClassForRole(candidate.playerHealer, "healer")) candidate.playerHealer = DEFAULT_ROSTER.playerHealer;
-    if (!validClassForRole(candidate.allyMelee, "melee")) candidate.allyMelee = DEFAULT_ROSTER.allyMelee;
-    if (!validClassForRole(candidate.allyCaster, "caster")) candidate.allyCaster = DEFAULT_ROSTER.allyCaster;
-
-    return {
-      playerHealer: candidate.playerHealer,
-      allyMelee: candidate.allyMelee,
-      allyCaster: candidate.allyCaster,
-    };
+    return JSON.parse(localStorage.getItem(key) || "null");
   } catch {
-    return { ...DEFAULT_ROSTER };
+    return null;
   }
 }
 
-let baseRoster = loadRoster();
-let roster = randomizeEnemyRoster(baseRoster);
-let lastEnemyKey = enemyRosterKey(roster);
-let setupRequired = true;
-let resumeAfterCancel = false;
+function loadTeamPreferences() {
+  const stored = readRosterStorage(ROSTER_STORAGE_KEY)
+    || readRosterStorage(LEGACY_ROSTER_STORAGE_KEY)
+    || {};
+
+  return {
+    allyMelee: validClassForRole(stored.allyMelee, "melee")
+      ? stored.allyMelee
+      : DEFAULT_ROSTER.allyMelee,
+    allyCaster: validClassForRole(stored.allyCaster, "caster")
+      ? stored.allyCaster
+      : DEFAULT_ROSTER.allyCaster,
+  };
+}
+
+function className(classId) {
+  return CLASS_REGISTRY[classId]?.displayName || classId;
+}
+
+function currentCharacterRoster() {
+  return {
+    playerHealer: activeCharacter?.healerClass || DEFAULT_ROSTER.playerHealer,
+    playerName: activeCharacter?.name || "Player",
+    allyMelee: baseRoster.allyMelee,
+    allyCaster: baseRoster.allyCaster,
+  };
+}
 
 function rollOpponent() {
-  roster = randomizeEnemyRoster(baseRoster, lastEnemyKey);
+  const seedRoster = {
+    ...currentCharacterRoster(),
+    ...roster,
+  };
+
+  roster = randomizeEnemyRoster(seedRoster, lastEnemyKey);
   lastEnemyKey = enemyRosterKey(roster);
 }
-
-fitArenaStage();
-
-if ("ResizeObserver" in window) {
-  const arenaResizeObserver = new ResizeObserver(fitArenaStage);
-  arenaResizeObserver.observe(arenaWrap);
-} else {
-  window.addEventListener("resize", fitArenaStage);
-}
-
-const game = new Game({
-  canvas,
-  input,
-  arena: arenaConfig,
-  characterConfigs: buildRosterConfigs(roster),
-});
 
 function fillSelect(selectId, role, selectedClassId) {
   const select = document.querySelector(selectId);
@@ -100,13 +118,12 @@ function fillSelect(selectId, role, selectedClassId) {
 }
 
 function renderRosterForm() {
-  fillSelect("#roster-player-healer", "healer", baseRoster.playerHealer);
+  document.querySelector("#setup-player-name").textContent = activeCharacter?.name || "Player";
+  document.querySelector("#setup-player-class").textContent =
+    className(activeCharacter?.healerClass || DEFAULT_ROSTER.playerHealer);
+
   fillSelect("#roster-ally-melee", "melee", baseRoster.allyMelee);
   fillSelect("#roster-ally-caster", "caster", baseRoster.allyCaster);
-}
-
-function className(classId) {
-  return CLASS_REGISTRY[classId]?.displayName || classId;
 }
 
 function renderEnemyPreview() {
@@ -120,6 +137,7 @@ const rosterClose = document.querySelector("#roster-close");
 const rosterCancel = document.querySelector("#roster-cancel");
 
 function openMatchSetup({ reroll = true, required = true, resumeOnCancel = false } = {}) {
+  if (!activeCharacter || !game) return;
   if (reroll) rollOpponent();
 
   setupRequired = required;
@@ -139,30 +157,227 @@ function closeMatchSetup() {
 
   rosterModal.classList.add("hidden");
 
-  if (resumeAfterCancel && !game.ended) {
+  if (resumeAfterCancel && game && !game.ended) {
     game.waitingForStart = false;
   }
 
   resumeAfterCancel = false;
 }
 
+function saveTeamPreferences() {
+  try {
+    localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify({
+      allyMelee: baseRoster.allyMelee,
+      allyCaster: baseRoster.allyCaster,
+    }));
+  } catch {
+    // Team preferences are a convenience only.
+  }
+}
+
+const characterScreen = document.querySelector("#character-screen");
+const characterList = document.querySelector("#character-list");
+const characterReturn = document.querySelector("#character-return");
+const createCharacterModal = document.querySelector("#create-character-modal");
+const createCharacterName = document.querySelector("#create-character-name");
+const createCharacterClass = document.querySelector("#create-character-class");
+const createCharacterError = document.querySelector("#create-character-error");
+
+function renderCharacterList() {
+  characterList.innerHTML = "";
+  const saved = characters.all();
+
+  if (saved.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "character-empty";
+    empty.textContent = "No characters yet. Create a healer to enter the arena.";
+    characterList.appendChild(empty);
+  }
+
+  for (const character of saved) {
+    const status = new HonorSystem(character.id).status();
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "character-card";
+    card.style.setProperty(
+      "--character-color",
+      WOW_CLASS_COLORS[character.healerClass] || "#d9b977",
+    );
+
+    card.innerHTML =
+      '<span class="character-class-mark"></span>'
+      + '<span class="character-copy">'
+      + '<strong class="character-name"></strong>'
+      + '<span class="character-class"></span>'
+      + '<span class="character-rank"></span>'
+      + '</span>'
+      + '<span class="character-honor"></span>'
+      + '<span class="character-play">PLAY</span>';
+
+    card.querySelector(".character-name").textContent = character.name;
+    card.querySelector(".character-class").textContent = className(character.healerClass) + " · Healer";
+    card.querySelector(".character-rank").textContent =
+      "Rank " + status.rank + " · " + status.title + " · TP " + status.talentPoints;
+    card.querySelector(".character-honor").textContent =
+      status.lifetimeHonor.toLocaleString() + " Honor";
+    card.addEventListener("click", () => selectCharacter(character.id));
+    characterList.appendChild(card);
+  }
+
+  const createCard = document.createElement("button");
+  createCard.type = "button";
+  createCard.className = "character-card create-character-card";
+  createCard.innerHTML =
+    '<span class="create-character-plus">+</span>'
+    + '<span class="character-copy"><strong>CREATE NEW CHARACTER</strong>'
+    + '<span>Your existing characters stay saved.</span></span>';
+  createCard.addEventListener("click", openCreateCharacter);
+  characterList.appendChild(createCard);
+
+  characterReturn.hidden = !canReturnToMatch;
+}
+
+function showCharacterScreen({ allowReturn = false } = {}) {
+  canReturnToMatch = allowReturn;
+  if (game) game.waitingForStart = true;
+  rosterModal.classList.add("hidden");
+  renderCharacterList();
+  characterScreen.classList.remove("hidden");
+}
+
+function hideCharacterScreen() {
+  characterScreen.classList.add("hidden");
+}
+
+function openCreateCharacter() {
+  createCharacterError.textContent = "";
+  createCharacterName.value = "";
+  fillSelect("#create-character-class", "healer", "priest");
+  createCharacterModal.classList.remove("hidden");
+  window.setTimeout(() => createCharacterName.focus(), 0);
+}
+
+function closeCreateCharacter() {
+  createCharacterModal.classList.add("hidden");
+  createCharacterError.textContent = "";
+}
+
+function ensureLegacyCharacter() {
+  if (characters.all().length > 0 || !legacyHonorAvailable()) return;
+
+  const legacyRoster = readRosterStorage(LEGACY_ROSTER_STORAGE_KEY) || {};
+  const healerClass = validClassForRole(legacyRoster.playerHealer, "healer")
+    ? legacyRoster.playerHealer
+    : DEFAULT_ROSTER.playerHealer;
+
+  try {
+    const character = characters.create({
+      name: "Player",
+      healerClass,
+    });
+    migrateLegacyHonor(character.id);
+  } catch {
+    // If migration fails, the regular creation flow remains available.
+  }
+}
+
+function selectCharacter(characterId) {
+  const character = characters.get(characterId);
+  if (!character) return;
+
+  activeCharacter = characters.touch(characterId) || character;
+  baseRoster = loadTeamPreferences();
+  roster = {
+    ...currentCharacterRoster(),
+  };
+  rollOpponent();
+
+  game.selectCharacter(activeCharacter, buildRosterConfigs(roster));
+
+  document.querySelector("#active-character-label").textContent =
+    activeCharacter.name + " · " + className(activeCharacter.healerClass);
+
+  hideCharacterScreen();
+  renderCharacterList();
+  openMatchSetup({ reroll: false, required: true, resumeOnCancel: false });
+}
+
+document.querySelector("#characters-button").addEventListener("click", () => {
+  canReturnToMatch = Boolean(
+    activeCharacter
+    && game
+    && !game.ended
+    && game.elapsedSeconds > 0
+    && rosterModal.classList.contains("hidden")
+  );
+  showCharacterScreen({ allowReturn: canReturnToMatch });
+});
+
+characterReturn.addEventListener("click", () => {
+  if (!canReturnToMatch || !game || game.ended) return;
+  hideCharacterScreen();
+  game.waitingForStart = false;
+  canReturnToMatch = false;
+});
+
+document.querySelector("#create-character-button").addEventListener("click", openCreateCharacter);
+document.querySelector("#create-character-close").addEventListener("click", closeCreateCharacter);
+document.querySelector("#create-character-cancel").addEventListener("click", closeCreateCharacter);
+
+document.querySelector("#create-character-confirm").addEventListener("click", () => {
+  try {
+    const healerClass = createCharacterClass.value;
+    if (!validClassForRole(healerClass, "healer")) {
+      throw new Error("Choose a healer class.");
+    }
+
+    const character = characters.create({
+      name: createCharacterName.value,
+      healerClass,
+    });
+
+    closeCreateCharacter();
+    renderCharacterList();
+    selectCharacter(character.id);
+  } catch (error) {
+    createCharacterError.textContent = error?.message || "Could not create character.";
+  }
+});
+
+createCharacterName.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.querySelector("#create-character-confirm").click();
+  }
+});
+
 document.querySelector("#roster-button").addEventListener("click", () => {
-  openMatchSetup({ reroll: true, required: false, resumeOnCancel: !game.ended });
+  if (!activeCharacter) {
+    showCharacterScreen();
+    return;
+  }
+
+  openMatchSetup({
+    reroll: true,
+    required: false,
+    resumeOnCancel: Boolean(game && !game.ended),
+  });
 });
 rosterClose.addEventListener("click", closeMatchSetup);
 rosterCancel.addEventListener("click", closeMatchSetup);
 
 document.querySelector("#roster-apply").addEventListener("click", () => {
+  if (!activeCharacter || !game) return;
+
   baseRoster = {
-    playerHealer: document.querySelector("#roster-player-healer").value,
     allyMelee: document.querySelector("#roster-ally-melee").value,
     allyCaster: document.querySelector("#roster-ally-caster").value,
   };
-
-  localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify(baseRoster));
+  saveTeamPreferences();
 
   roster = {
     ...roster,
+    ...currentCharacterRoster(),
     ...baseRoster,
   };
 
@@ -171,7 +386,7 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
   setupRequired = false;
   resumeAfterCancel = false;
   game.ui.toast(
-    "Match started · vs "
+    activeCharacter.name + " enters arena · vs "
     + className(roster.enemyHealer) + " / "
     + className(roster.enemyMelee) + " / "
     + className(roster.enemyCaster)
@@ -179,11 +394,37 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
 });
 
 window.addEventListener("arena3v3:request-match-setup", () => {
+  if (!activeCharacter) {
+    showCharacterScreen();
+    return;
+  }
   openMatchSetup({ reroll: true, required: true, resumeOnCancel: false });
 });
 
-renderRosterForm();
-renderEnemyPreview();
+fitArenaStage();
+
+if ("ResizeObserver" in window) {
+  const arenaResizeObserver = new ResizeObserver(fitArenaStage);
+  arenaResizeObserver.observe(arenaWrap);
+} else {
+  window.addEventListener("resize", fitArenaStage);
+}
+
+ensureLegacyCharacter();
+
+const placeholderRoster = randomizeEnemyRoster({
+  ...DEFAULT_ROSTER,
+  playerName: "Player",
+});
+
+game = new Game({
+  canvas,
+  input,
+  arena: arenaConfig,
+  characterConfigs: buildRosterConfigs(placeholderRoster),
+});
+
+fillSelect("#create-character-class", "healer", "priest");
 game.start();
-openMatchSetup({ reroll: false, required: true, resumeOnCancel: false });
+showCharacterScreen({ allowReturn: false });
 window.arena3v3 = game;

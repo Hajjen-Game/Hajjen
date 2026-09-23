@@ -1,13 +1,12 @@
-const STORAGE_KEY = "arena3v3-honor-v1";
+const LEGACY_STORAGE_KEY = "arena3v3-honor-v1";
+const STORAGE_PREFIX = "arena3v3-honor-v2:";
+const LEGACY_MIGRATION_KEY = "arena3v3-honor-v2-legacy-migrated";
 
 export const HONOR_REWARDS = Object.freeze({
   VICTORY: 200,
   DEFEAT: 70,
 });
 
-// Classic-inspired 14-rank ladder adapted for a single-player game.
-// The original WoW system depended on weekly realm/faction standings;
-// here the grind is deterministic and persistent instead.
 export const HONOR_RANKS = Object.freeze([
   { rank: 1, title: "Private", requiredHonor: 0 },
   { rank: 2, title: "Corporal", requiredHonor: 800 },
@@ -25,6 +24,32 @@ export const HONOR_RANKS = Object.freeze([
   { rank: 14, title: "Grand Marshal", requiredHonor: 125000 },
 ]);
 
+function emptyState() {
+  return {
+    lifetimeHonor: 0,
+    wins: 0,
+    losses: 0,
+    rank: 1,
+    talentPoints: 0,
+  };
+}
+
+function normalizeState(stored) {
+  if (!stored) return emptyState();
+
+  return {
+    lifetimeHonor: Math.max(0, Number(stored.lifetimeHonor) || 0),
+    wins: Math.max(0, Number(stored.wins) || 0),
+    losses: Math.max(0, Number(stored.losses) || 0),
+    rank: Math.max(1, Math.min(14, Number(stored.rank) || 1)),
+    talentPoints: Math.max(0, Number(stored.talentPoints) || 0),
+  };
+}
+
+function storageKey(characterId) {
+  return characterId ? STORAGE_PREFIX + characterId : null;
+}
+
 function rankForHonor(honor) {
   let current = HONOR_RANKS[0];
 
@@ -36,39 +61,56 @@ function rankForHonor(honor) {
   return current;
 }
 
+export function legacyHonorAvailable() {
+  try {
+    if (localStorage.getItem(LEGACY_MIGRATION_KEY) === "1") return false;
+    const legacy = normalizeState(JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "null"));
+    return legacy.lifetimeHonor > 0 || legacy.wins > 0 || legacy.losses > 0 || legacy.talentPoints > 0;
+  } catch {
+    return false;
+  }
+}
+
+export function migrateLegacyHonor(characterId) {
+  const key = storageKey(characterId);
+  if (!key) return false;
+
+  try {
+    if (!legacyHonorAvailable() || localStorage.getItem(key)) return false;
+
+    const legacy = normalizeState(JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "null"));
+    localStorage.setItem(key, JSON.stringify(legacy));
+    localStorage.setItem(LEGACY_MIGRATION_KEY, "1");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export class HonorSystem {
-  constructor() {
+  constructor(characterId = null) {
+    this.characterId = characterId;
+    this.storageKey = storageKey(characterId);
     this.state = this.load();
     this.lastAward = null;
     this.reconcileRank();
   }
 
   load() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (!stored) throw new Error("missing");
+    if (!this.storageKey) return emptyState();
 
-      return {
-        lifetimeHonor: Math.max(0, Number(stored.lifetimeHonor) || 0),
-        wins: Math.max(0, Number(stored.wins) || 0),
-        losses: Math.max(0, Number(stored.losses) || 0),
-        rank: Math.max(1, Math.min(14, Number(stored.rank) || 1)),
-        talentPoints: Math.max(0, Number(stored.talentPoints) || 0),
-      };
+    try {
+      return normalizeState(JSON.parse(localStorage.getItem(this.storageKey) || "null"));
     } catch {
-      return {
-        lifetimeHonor: 0,
-        wins: 0,
-        losses: 0,
-        rank: 1,
-        talentPoints: 0,
-      };
+      return emptyState();
     }
   }
 
   save() {
+    if (!this.storageKey) return;
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      localStorage.setItem(this.storageKey, JSON.stringify(this.state));
     } catch {
       // Progression should not block gameplay if storage is unavailable.
     }
@@ -77,12 +119,13 @@ export class HonorSystem {
   reconcileRank() {
     const current = rankForHonor(this.state.lifetimeHonor);
     this.state.rank = current.rank;
-    // One point for every rank gained after Rank 1.
     this.state.talentPoints = Math.max(this.state.talentPoints, current.rank - 1);
     this.save();
   }
 
   award(result) {
+    if (!this.characterId) return null;
+
     const gain = HONOR_REWARDS[result];
     if (!gain) return null;
 

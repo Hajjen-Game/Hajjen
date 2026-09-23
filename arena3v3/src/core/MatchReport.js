@@ -6,8 +6,10 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.25-prematch-draft",
+    "Build: prototype-v0.26-character-select",
     "Arena: " + game.arena.name,
+    "Character: " + (game.activeCharacterName || game.player?.name || "Player")
+      + " [" + (game.player?.className || "Healer") + "]",
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
     "Input queue: 400ms ability queue window",
@@ -26,7 +28,8 @@ export function buildMatchReport(game) {
     "Matchmaking: enemy healer/melee/caster setup is randomized for every new match",
     "Honor progression: victory awards 200 Honor, defeat awards 70 Honor; persistent Classic-inspired ranks 1-14 award one future Talent Point per rank gained",
     "Honor menu: top-bar HONOR button opens full rank, record, progress, rewards and 14-rank ladder view",
-    "Pre-match draft: random enemy composition is revealed before combat, then the player chooses their own healer/melee/caster team and explicitly starts the match",
+    "Pre-match draft: random enemy composition is revealed before combat, then the player chooses their melee/caster teammates and explicitly starts the match",
+    "Character select: persistent WoW-style healer characters have their own name, fixed healer class, Honor/Rank record and future Talent Points",
     "",
     "=== FRIENDLY TEAM ===",
   ];

@@ -23,6 +23,8 @@ export class Game {
     this.movement = new MovementSystem();
     this.resources = new ResourceSystem();
     this.vfx = new VisualEffectSystem();
+    this.activeCharacterId = null;
+    this.activeCharacterName = "Player";
     this.honor = new HonorSystem();
     this.lastHonorAward = null;
 
@@ -389,6 +391,18 @@ export class Game {
       recordedAt: new Date().toISOString(),
     });
     this.resetDiagnostics = this.resetDiagnostics.slice(-5);
+  }
+
+  selectCharacter(character, characterConfigs) {
+    this.activeCharacterId = character.id;
+    this.activeCharacterName = character.name;
+    this.honor = new HonorSystem(character.id);
+    this.characterConfigs = characterConfigs;
+    this.waitingForStart = true;
+    this.reset("character select");
+    this.waitingForStart = true;
+    this.markRunInactive();
+    this.ui?.updateHonorStatus();
   }
 
   startPreparedMatch(characterConfigs) {

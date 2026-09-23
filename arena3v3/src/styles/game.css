@@ -252,22 +252,13 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 }
 
 .combat-log {
-  position: absolute;
-  left: 12px;
-  bottom: 10px;
-  width: min(390px, 45%);
-  pointer-events: none;
-  display: grid;
-  gap: 3px;
-  font-size: 10px;
-  color: var(--cream-dim);
-  text-shadow: 0 1px 2px #000;
+  display: none;
 }
 .log-line strong { color: var(--cream); }
 .toast {
   position: absolute;
   left: 50%;
-  bottom: 50px;
+  bottom: 108px;
   transform: translateX(-50%);
   background: rgba(20,13,9,.92);
   color: var(--gold-bright);
@@ -431,7 +422,6 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .cast-fill {
   height: 100%;
   width: 0%;
-  transition: width .06s linear;
 }
 
 .player-cast.healer .cast-fill {

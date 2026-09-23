@@ -101,6 +101,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Cast-bar feedback polish:
+  - the fast-scrolling combat log is hidden from the arena view
+  - toast feedback is positioned higher so it does not overlap the cast bar
+  - cast progress resets to 0% whenever casting stops, preventing the next cast from animating backward from stale progress
+  - the cast-fill CSS transition was removed so progress follows the actual cast timer directly
 - Combat HUD layout:
   - only the player cast bar is shown in the centered arena overlay; the separate resource bar was removed
   - healer casts use a green gradient and DPS casts use a red gradient

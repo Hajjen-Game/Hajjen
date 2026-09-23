@@ -542,6 +542,7 @@ export class UIManager {
       this.playerCastFill.style.width =
         ((1 - this.game.player.cast.remainingMs / this.game.player.cast.totalMs) * 100) + "%";
     } else {
+      this.playerCastFill.style.width = "0%";
       this.playerCast.classList.add("hidden");
     }
   }

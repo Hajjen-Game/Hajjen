@@ -4,22 +4,24 @@ export const arenaConfig = {
   width: 1280,
   height: 720,
 
-  // Symmetric, open-field 4-pillar layout inspired by classic MMO arena geometry.
-  // These rectangles are both collision and line-of-sight blockers.
-  bounds: { x: 42, y: 42, w: 1196, h: 636 },
+  // Open four-pillar layout with wide center and side lanes.
+  // Obstacles are shared by collision and line-of-sight systems.
+  bounds: { x: 58, y: 58, w: 1164, h: 604 },
+
   obstacles: [
-    { id: "nw-pillar", x: 300, y: 175, w: 112, h: 154 },
-    { id: "sw-pillar", x: 300, y: 391, w: 112, h: 154 },
-    { id: "ne-pillar", x: 868, y: 175, w: 112, h: 154 },
-    { id: "se-pillar", x: 868, y: 391, w: 112, h: 154 },
+    { id: "nw-pillar", x: 250, y: 145, w: 100, h: 140 },
+    { id: "sw-pillar", x: 250, y: 435, w: 100, h: 140 },
+    { id: "ne-pillar", x: 930, y: 145, w: 100, h: 140 },
+    { id: "se-pillar", x: 930, y: 435, w: 100, h: 140 },
   ],
 
   spawns: {
-    "player-healer": { x: 145, y: 360, facing: 0 },
-    "ally-melee": { x: 185, y: 300, facing: 0 },
-    "ally-caster": { x: 185, y: 420, facing: 0 },
-    "enemy-healer": { x: 1135, y: 360, facing: Math.PI },
-    "enemy-melee": { x: 1095, y: 300, facing: Math.PI },
-    "enemy-caster": { x: 1095, y: 420, facing: Math.PI },
+    "player-healer": { x: 135, y: 360, facing: 0 },
+    "ally-melee": { x: 175, y: 300, facing: 0 },
+    "ally-caster": { x: 175, y: 420, facing: 0 },
+
+    "enemy-healer": { x: 1145, y: 360, facing: Math.PI },
+    "enemy-melee": { x: 1105, y: 300, facing: Math.PI },
+    "enemy-caster": { x: 1105, y: 420, facing: Math.PI },
   },
 };

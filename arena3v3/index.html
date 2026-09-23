@@ -25,6 +25,13 @@
       <aside class="side-panel panel">
         <div class="side-title">YOUR TEAM</div>
         <div id="team-frames" class="unit-frame-list"></div>
+
+        <section class="side-widget damage-widget">
+          <div class="widget-title">DAMAGE</div>
+          <div id="damage-meter" class="damage-meter"></div>
+        </section>
+
+        <button id="copy-report-button" class="hud-button report-button">COPY RUN REPORT</button>
       </aside>
 
       <section id="arena-wrap" class="arena-wrap">
@@ -51,8 +58,17 @@
         <div id="player-cast-label" class="cast-label"></div>
         <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
       </div>
+
+      <div id="player-resource" class="player-resource">
+        <div class="player-resource-head">
+          <span id="player-resource-label">MANA</span>
+          <span id="player-resource-value">100 / 100</span>
+        </div>
+        <div class="player-resource-track"><div id="player-resource-fill" class="player-resource-fill"></div></div>
+      </div>
+
       <div id="action-bar" class="action-bar"></div>
-      <div class="hint">Click a unit or unit frame to target · Move with WASD · Cast with 1–4</div>
+      <div class="hint">Click unit/frame to target · F1/F2/F3 target party · Move WASD · Cast 1–4</div>
     </footer>
   </div>
 

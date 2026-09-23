@@ -15,48 +15,70 @@ export const allyCasterConfig = {
     critMultiplier: 1.5,
   },
 
-  ai: { preferredRange: 300 },
+  resource: {
+    type: "mana",
+    max: 100,
+    start: 100,
+    regenPerSecond: 5,
+  },
+
+  ai: {
+    preferredRange: 300,
+    targetPriorityRoles: ["caster", "melee", "healer"],
+  },
 
   spells: [
     {
       id: "arcanist-brand",
       name: "Ember Brand",
       target: "enemy",
+      resourceCost: 12,
       castMs: 0,
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "dot", amount: 48, durationMs: 8000, tickMs: 2000 }],
+      effects: [
+        { kind: "dot", amount: 48, durationMs: 8000, tickMs: 2000 },
+      ],
     },
     {
       id: "arcanist-bolt",
       name: "Arc Bolt",
       target: "enemy",
+      resourceCost: 15,
       castMs: 900,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "damage", amount: 86 }],
+      effects: [
+        { kind: "damage", amount: 86 },
+      ],
     },
     {
       id: "arcanist-lance",
       name: "Sun Lance",
       target: "enemy",
+      resourceCost: 24,
       castMs: 2050,
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "damage", amount: 176 }],
+      effects: [
+        { kind: "damage", amount: 176 },
+      ],
     },
     {
       id: "arcanist-comet",
       name: "Comet Seal",
       target: "enemy",
+      resourceCost: 30,
       castMs: 1200,
       cooldownMs: 14000,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "damage", amount: 240 }],
+      effects: [
+        { kind: "damage", amount: 240 },
+      ],
     },
   ],
 };

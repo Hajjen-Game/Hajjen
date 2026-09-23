@@ -15,43 +15,62 @@ export const playerHealerConfig = {
     critMultiplier: 1.5,
   },
 
-  ai: { preferredRange: 320 },
+  resource: {
+    type: "mana",
+    max: 100,
+    start: 100,
+    regenPerSecond: 5.5,
+  },
+
+  ai: {
+    preferredRange: 320,
+  },
 
   spells: [
     {
       id: "renewing-thread",
       name: "Renewing Thread",
       target: "ally",
+      resourceCost: 12,
       castMs: 0,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 345,
-      effects: [{ kind: "hot", amount: 66, durationMs: 9000, tickMs: 3000 }],
+      effects: [
+        { kind: "hot", amount: 66, durationMs: 9000, tickMs: 3000 },
+      ],
     },
     {
       id: "quick-mend",
       name: "Quick Mend",
       target: "ally",
+      resourceCost: 14,
       castMs: 850,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 345,
-      effects: [{ kind: "heal", amount: 132 }],
+      effects: [
+        { kind: "heal", amount: 132 },
+      ],
     },
     {
       id: "deep-restoration",
       name: "Deep Restoration",
       target: "ally",
+      resourceCost: 24,
       castMs: 2100,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 345,
-      effects: [{ kind: "heal", amount: 294 }],
+      effects: [
+        { kind: "heal", amount: 294 },
+      ],
     },
     {
       id: "guardian-pulse",
       name: "Guardian Pulse",
       target: "ally",
+      resourceCost: 20,
       castMs: 0,
       cooldownMs: 18000,
       gcdMs: 1200,

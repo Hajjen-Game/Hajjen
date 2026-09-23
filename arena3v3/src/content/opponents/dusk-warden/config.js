@@ -15,43 +15,62 @@ export const enemyHealerConfig = {
     critMultiplier: 1.5,
   },
 
-  ai: { preferredRange: 315 },
+  resource: {
+    type: "mana",
+    max: 100,
+    start: 100,
+    regenPerSecond: 5.5,
+  },
+
+  ai: {
+    preferredRange: 315,
+  },
 
   spells: [
     {
       id: "warden-bloom",
       name: "Dusk Bloom",
       target: "ally",
+      resourceCost: 12,
       castMs: 0,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 340,
-      effects: [{ kind: "hot", amount: 62, durationMs: 9000, tickMs: 3000 }],
+      effects: [
+        { kind: "hot", amount: 62, durationMs: 9000, tickMs: 3000 },
+      ],
     },
     {
       id: "warden-stitch",
       name: "Swift Stitch",
       target: "ally",
+      resourceCost: 14,
       castMs: 900,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 340,
-      effects: [{ kind: "heal", amount: 126 }],
+      effects: [
+        { kind: "heal", amount: 126 },
+      ],
     },
     {
       id: "warden-restoration",
       name: "Warden's Restoration",
       target: "ally",
+      resourceCost: 24,
       castMs: 2150,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 340,
-      effects: [{ kind: "heal", amount: 280 }],
+      effects: [
+        { kind: "heal", amount: 280 },
+      ],
     },
     {
       id: "warden-shell",
       name: "Warden Shell",
       target: "ally",
+      resourceCost: 20,
       castMs: 0,
       cooldownMs: 19000,
       gcdMs: 1200,

@@ -15,48 +15,70 @@ export const enemyMeleeConfig = {
     critMultiplier: 1.5,
   },
 
-  ai: { preferredRange: 52 },
+  resource: {
+    type: "energy",
+    max: 100,
+    start: 100,
+    regenPerSecond: 14,
+  },
+
+  ai: {
+    preferredRange: 52,
+    targetPriorityRoles: ["caster", "melee", "healer"],
+  },
 
   spells: [
     {
       id: "reaver-wound",
       name: "Ash Wound",
       target: "enemy",
+      resourceCost: 20,
       castMs: 0,
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 58,
-      effects: [{ kind: "dot", amount: 43, durationMs: 8000, tickMs: 2000 }],
+      effects: [
+        { kind: "dot", amount: 43, durationMs: 8000, tickMs: 2000 },
+      ],
     },
     {
       id: "reaver-slice",
       name: "Fast Slice",
       target: "enemy",
+      resourceCost: 18,
       castMs: 0,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 58,
-      effects: [{ kind: "damage", amount: 74 }],
+      effects: [
+        { kind: "damage", amount: 74 },
+      ],
     },
     {
       id: "reaver-cleave",
       name: "Heavy Cleave",
       target: "enemy",
+      resourceCost: 35,
       castMs: 1300,
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 62,
-      effects: [{ kind: "damage", amount: 154 }],
+      effects: [
+        { kind: "damage", amount: 154 },
+      ],
     },
     {
       id: "reaver-execution",
       name: "Execution Mark",
       target: "enemy",
+      resourceCost: 45,
       castMs: 0,
       cooldownMs: 13500,
       gcdMs: 1200,
       range: 62,
-      effects: [{ kind: "damage", amount: 216 }],
+      effects: [
+        { kind: "damage", amount: 216 },
+      ],
     },
   ],
 };

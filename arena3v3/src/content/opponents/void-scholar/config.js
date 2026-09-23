@@ -15,48 +15,70 @@ export const enemyCasterConfig = {
     critMultiplier: 1.5,
   },
 
-  ai: { preferredRange: 300 },
+  resource: {
+    type: "mana",
+    max: 100,
+    start: 100,
+    regenPerSecond: 5,
+  },
+
+  ai: {
+    preferredRange: 300,
+    targetPriorityRoles: ["caster", "melee", "healer"],
+  },
 
   spells: [
     {
       id: "scholar-hex",
       name: "Lingering Hex",
       target: "enemy",
+      resourceCost: 12,
       castMs: 0,
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "dot", amount: 47, durationMs: 8000, tickMs: 2000 }],
+      effects: [
+        { kind: "dot", amount: 47, durationMs: 8000, tickMs: 2000 },
+      ],
     },
     {
       id: "scholar-spark",
       name: "Void Spark",
       target: "enemy",
+      resourceCost: 15,
       castMs: 950,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "damage", amount: 84 }],
+      effects: [
+        { kind: "damage", amount: 84 },
+      ],
     },
     {
       id: "scholar-rift",
       name: "Deep Rift",
       target: "enemy",
+      resourceCost: 24,
       castMs: 2100,
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "damage", amount: 172 }],
+      effects: [
+        { kind: "damage", amount: 172 },
+      ],
     },
     {
       id: "scholar-collapse",
       name: "Star Collapse",
       target: "enemy",
+      resourceCost: 30,
       castMs: 1250,
       cooldownMs: 14500,
       gcdMs: 1200,
       range: 360,
-      effects: [{ kind: "damage", amount: 234 }],
+      effects: [
+        { kind: "damage", amount: 234 },
+      ],
     },
   ],
 };

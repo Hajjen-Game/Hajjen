@@ -15,48 +15,70 @@ export const allyMeleeConfig = {
     critMultiplier: 1.5,
   },
 
-  ai: { preferredRange: 52 },
+  resource: {
+    type: "energy",
+    max: 100,
+    start: 100,
+    regenPerSecond: 14,
+  },
+
+  ai: {
+    preferredRange: 52,
+    targetPriorityRoles: ["caster", "melee", "healer"],
+  },
 
   spells: [
     {
       id: "vanguard-bleed",
       name: "Rending Cut",
       target: "enemy",
+      resourceCost: 20,
       castMs: 0,
       cooldownMs: 7000,
       gcdMs: 1200,
       range: 58,
-      effects: [{ kind: "dot", amount: 44, durationMs: 8000, tickMs: 2000 }],
+      effects: [
+        { kind: "dot", amount: 44, durationMs: 8000, tickMs: 2000 },
+      ],
     },
     {
       id: "vanguard-jab",
       name: "Quick Jab",
       target: "enemy",
+      resourceCost: 18,
       castMs: 0,
       cooldownMs: 0,
       gcdMs: 1200,
       range: 58,
-      effects: [{ kind: "damage", amount: 76 }],
+      effects: [
+        { kind: "damage", amount: 76 },
+      ],
     },
     {
       id: "vanguard-crush",
       name: "Crushing Swing",
       target: "enemy",
+      resourceCost: 35,
       castMs: 1250,
       cooldownMs: 4500,
       gcdMs: 1200,
       range: 62,
-      effects: [{ kind: "damage", amount: 158 }],
+      effects: [
+        { kind: "damage", amount: 158 },
+      ],
     },
     {
       id: "vanguard-breaker",
       name: "Breaker",
       target: "enemy",
+      resourceCost: 45,
       castMs: 0,
       cooldownMs: 13500,
       gcdMs: 1200,
       range: 62,
-      effects: [{ kind: "damage", amount: 222 }],
+      effects: [
+        { kind: "damage", amount: 222 },
+      ],
     },
   ],
 };

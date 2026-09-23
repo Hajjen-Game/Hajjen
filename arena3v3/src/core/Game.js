@@ -4,6 +4,7 @@ import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
+import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
 import { AISystem } from "../systems/AISystem.js";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
@@ -26,6 +27,13 @@ export class Game {
     this.player.targetId = this.player.id;
 
     this.cc = new CrowdControlSystem(this);
+    this.dampening = new DampeningSystem(this, {
+      startSeconds: 45,
+      startPercent: 10,
+      stepSeconds: 10,
+      stepPercent: 2,
+      maxPercent: 100,
+    });
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);
@@ -162,6 +170,8 @@ export class Game {
     if (!this.ended) {
       this.elapsedSeconds += deltaMs / 1000;
       const deltaSeconds = deltaMs / 1000;
+
+      this.dampening.update(this.elapsedSeconds);
 
       for (const actor of this.actors) {
         if (!actor.alive || !this.cc.hasKind(actor, "fear")) continue;
@@ -310,6 +320,13 @@ export class Game {
 
     this.vfx.reset();
     this.cc = new CrowdControlSystem(this);
+    this.dampening = new DampeningSystem(this, {
+      startSeconds: 45,
+      startPercent: 10,
+      stepSeconds: 10,
+      stepPercent: 2,
+      maxPercent: 100,
+    });
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);

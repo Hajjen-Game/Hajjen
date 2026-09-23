@@ -6,13 +6,14 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.6-vfx-chain",
+    "Build: prototype-v0.7-dampening",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
     "Input queue: 400ms ability queue window",
     "RNG: marble bags for hit / dodge / miss / crit / amount variance",
     "Caster splash: chain spell can hit up to 3 enemies when each is in range + LOS",
+    "Dampening: " + game.dampening.percent + "% final | starts 10% at 45s | +2% every 10s",
     "",
     "=== FRIENDLY TEAM ===",
   ];

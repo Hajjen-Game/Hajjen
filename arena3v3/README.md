@@ -20,6 +20,12 @@ No build step or package manager is required.
 - Five abilities on 1–5
 - Rebindable movement, action and party-target keys saved in localStorage
 - 400 ms player ability queue window
+- WoW-inspired Dampening, scaled to prototype match length:
+  - 0% during the opening 45 seconds
+  - starts at 10% at 45 seconds
+  - rises by 2% every 10 seconds
+  - reduces all direct healing and HoT healing received
+  - always-visible HUD indicator with next increase timer
 - Mana for healers/casters, energy for melee
 - Cast times, cooldowns and global cooldown
 - HoTs and DoTs with visible effect badges

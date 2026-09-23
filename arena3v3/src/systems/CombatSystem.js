@@ -354,6 +354,10 @@ export class CombatSystem {
 
     if (crit) amount = Math.round(amount * source.critMultiplier);
 
+    // Dampening is applied to healing received, matching the arena-style
+    // mechanic rather than changing spell coefficients themselves.
+    amount = this.game.dampening.applyToHealing(amount);
+
     const actual = Math.min(amount, target.maxHealth - target.health);
     target.health = Math.min(target.maxHealth, target.health + amount);
 

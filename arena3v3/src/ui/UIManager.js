@@ -17,6 +17,9 @@ export class UIManager {
     this.damageMeter = document.querySelector("#damage-meter");
     this.actionBar = document.querySelector("#action-bar");
     this.matchClock = document.querySelector("#match-clock");
+    this.dampeningIndicator = document.querySelector("#dampening-indicator");
+    this.dampeningValue = document.querySelector("#dampening-value");
+    this.dampeningNext = document.querySelector("#dampening-next");
     this.combatLog = document.querySelector("#combat-log");
     this.toastElement = document.querySelector("#toast");
     this.result = document.querySelector("#match-result");
@@ -215,6 +218,7 @@ export class UIManager {
     this.updateDamageMeter();
     this.updatePlayerResource();
     this.updatePlayerCcAlert();
+    this.updateDampening();
 
     this.game.player.spells.forEach((spell, index) => {
       const slot = this.actionSlots[index];
@@ -251,6 +255,23 @@ export class UIManager {
         ((1 - this.game.player.cast.remainingMs / this.game.player.cast.totalMs) * 100) + "%";
     } else {
       this.playerCast.classList.add("hidden");
+    }
+  }
+
+  updateDampening() {
+    const dampening = this.game.dampening;
+    const percent = dampening.percent;
+    const next = dampening.nextStepSeconds(this.game.elapsedSeconds);
+
+    this.dampeningIndicator.classList.toggle("active", percent > 0);
+    this.dampeningValue.textContent = percent + "%";
+
+    if (percent <= 0) {
+      this.dampeningNext.textContent = "starts in " + Math.ceil(next || 0) + "s";
+    } else if (percent >= dampening.maxPercent) {
+      this.dampeningNext.textContent = "maximum";
+    } else {
+      this.dampeningNext.textContent = "+" + dampening.stepPercent + "% in " + Math.ceil(next || 0) + "s";
     }
   }
 

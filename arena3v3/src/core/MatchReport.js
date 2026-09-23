@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.18-movement-polish",
+    "Build: prototype-v0.19-actionbar-effects",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -20,6 +20,7 @@ export function buildMatchReport(game) {
     "Combat readability: raised CC markers, red enemy names, WoW class-color HP bars and pulsing red sub-20% health",
     "Caster healer safety: low/pressured casters will not start or finish offensive casts while outside healer range/LOS",
     "Movement polish: AI slides around pillar corners, tries alternate routes and self-recovers from short stalls",
+    "Action bar: spell cards now show their actual combat effect, including defensive reduction and CC duration",
     "",
     "=== FRIENDLY TEAM ===",
   ];

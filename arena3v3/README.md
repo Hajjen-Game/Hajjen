@@ -90,6 +90,10 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- Action bar clarity:
+  - each spell now shows a compact effect summary directly in the action bar
+  - defensives display mitigation + duration (e.g. Pain Suppression: 30% less damage · 4.2s)
+  - heals, damage, DoTs/HoTs and CC durations are also shown
 - AI movement polish:
   - AI uses obstacle-aware alternate movement angles when its preferred path is blocked
   - full-diagonal movement is tried before wall sliding to reduce pillar-corner stalls

@@ -52,6 +52,13 @@ export class Game {
     this.floatingTexts = [];
     this.lastFrame = performance.now();
 
+    this.rightMouseMove = {
+      active: false,
+      x: 0,
+      y: 0,
+      pointerId: null,
+    };
+
     this.runSessionKey = "arena3v3-active-run-v1";
     this.resetDiagnostics = [];
     this.lastHeartbeatSecond = -1;
@@ -73,6 +80,13 @@ export class Game {
     });
 
     this.canvas.addEventListener("click", event => this.onCanvasClick(event));
+    this.canvas.addEventListener("contextmenu", event => event.preventDefault());
+    this.canvas.addEventListener("pointerdown", event => this.onCanvasPointerDown(event));
+    this.canvas.addEventListener("pointermove", event => this.onCanvasPointerMove(event));
+    this.canvas.addEventListener("pointerup", event => this.onCanvasPointerUp(event));
+    this.canvas.addEventListener("pointercancel", event => this.onCanvasPointerUp(event));
+    window.addEventListener("pointerup", event => this.onWindowPointerUp(event));
+    window.addEventListener("blur", () => this.stopRightMouseMove());
   }
 
   createActors() {
@@ -163,6 +177,93 @@ export class Game {
     if (candidates[0]) this.selectTarget(candidates[0].actor.id);
   }
 
+  canvasPointFromEvent(event) {
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / Math.max(1, rect.width);
+    const scaleY = this.canvas.height / Math.max(1, rect.height);
+
+    return {
+      x: Math.max(0, Math.min(this.canvas.width, (event.clientX - rect.left) * scaleX)),
+      y: Math.max(0, Math.min(this.canvas.height, (event.clientY - rect.top) * scaleY)),
+    };
+  }
+
+  updateRightMouseTarget(event) {
+    const point = this.canvasPointFromEvent(event);
+    this.rightMouseMove.x = point.x;
+    this.rightMouseMove.y = point.y;
+  }
+
+  onCanvasPointerDown(event) {
+    if (event.button !== 2) return;
+
+    event.preventDefault();
+    this.rightMouseMove.active = true;
+    this.rightMouseMove.pointerId = event.pointerId;
+    this.updateRightMouseTarget(event);
+
+    try {
+      this.canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture is a convenience; window pointerup still stops movement.
+    }
+  }
+
+  onCanvasPointerMove(event) {
+    if (!this.rightMouseMove.active) return;
+    if (this.rightMouseMove.pointerId !== null && event.pointerId !== this.rightMouseMove.pointerId) return;
+
+    this.updateRightMouseTarget(event);
+  }
+
+  onCanvasPointerUp(event) {
+    if (event.button !== 2 && event.pointerId !== this.rightMouseMove.pointerId) return;
+    this.stopRightMouseMove(event.pointerId);
+  }
+
+  onWindowPointerUp(event) {
+    if (!this.rightMouseMove.active) return;
+    if (event.button !== 2 && event.pointerId !== this.rightMouseMove.pointerId) return;
+    this.stopRightMouseMove(event.pointerId);
+  }
+
+  stopRightMouseMove(pointerId = null) {
+    if (
+      pointerId !== null
+      && this.rightMouseMove.pointerId !== null
+      && pointerId !== this.rightMouseMove.pointerId
+    ) return;
+
+    if (this.rightMouseMove.pointerId !== null) {
+      try {
+        this.canvas.releasePointerCapture(this.rightMouseMove.pointerId);
+      } catch {
+        // The pointer may already have been released by the browser.
+      }
+    }
+
+    this.rightMouseMove.active = false;
+    this.rightMouseMove.pointerId = null;
+  }
+
+  rightMouseMovementVector() {
+    if (!this.rightMouseMove.active || !this.player?.alive) {
+      return { x: 0, y: 0 };
+    }
+
+    const dx = this.rightMouseMove.x - this.player.x;
+    const dy = this.rightMouseMove.y - this.player.y;
+    const distance = Math.hypot(dx, dy);
+    const deadZone = Math.max(10, this.player.radius * 0.65);
+
+    if (distance <= deadZone) return { x: 0, y: 0 };
+
+    return {
+      x: dx / distance,
+      y: dy / distance,
+    };
+  }
+
   start() {
     this.lastFrame = performance.now();
     requestAnimationFrame(time => this.loop(time));
@@ -192,7 +293,9 @@ export class Game {
         this.movement.move(actor, this.cc.forcedFearVector(actor), deltaSeconds, this.arena);
       }
 
-      const move = this.input.movementVector();
+      const keyboardMove = this.input.movementVector();
+      const mouseMove = this.rightMouseMovementVector();
+      const move = this.rightMouseMove.active ? mouseMove : keyboardMove;
       const moving = move.x !== 0 || move.y !== 0;
       const playerCanMove = !this.cc.isHardControlled(this.player) && !this.cc.isRooted(this.player);
 
@@ -417,6 +520,7 @@ export class Game {
 
   reset(reason = "unknown internal reset") {
     this.recordResetDiagnostic(reason);
+    this.stopRightMouseMove();
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = this.player.id;

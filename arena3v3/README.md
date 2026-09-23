@@ -101,6 +101,13 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Mouse steering:
+  - hold the right mouse button inside the arena to continuously move toward the current cursor position
+  - movement direction updates while the mouse moves, giving a direct mouse-steering feel
+  - releasing right mouse immediately stops mouse steering; WASD remains available and resumes normally
+  - browser context menu is suppressed on the arena during right-click play
+  - instant spells such as Renew and Psychic Scream can be activated by hotkey without stopping movement
+  - cast-time spells still cancel when movement continues, matching the existing movement/casting rule
 - Character selection:
   - the game now opens on a WoW-style character screen
   - create multiple persistent healer characters; creating a new one never overwrites existing characters

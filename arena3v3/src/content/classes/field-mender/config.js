@@ -1,6 +1,6 @@
 export const playerHealerConfig = {
   id: "player-healer",
-  name: "Field Mender",
+  name: "Player",
   team: "friendly",
   role: "healer",
   control: "player",

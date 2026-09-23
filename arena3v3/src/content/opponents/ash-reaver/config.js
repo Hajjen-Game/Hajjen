@@ -1,6 +1,6 @@
 export const enemyMeleeConfig = {
   id: "enemy-melee",
-  name: "Ash Reaver",
+  name: "Rogue",
   team: "enemy",
   role: "melee",
   control: "ai",

@@ -1,6 +1,6 @@
 export const enemyCasterConfig = {
   id: "enemy-caster",
-  name: "Void Scholar",
+  name: "Warlock",
   team: "enemy",
   role: "caster",
   control: "ai",

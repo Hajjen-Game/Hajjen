@@ -1,6 +1,6 @@
 export const enemyHealerConfig = {
   id: "enemy-healer",
-  name: "Dusk Warden",
+  name: "Priest",
   team: "enemy",
   role: "healer",
   control: "ai",

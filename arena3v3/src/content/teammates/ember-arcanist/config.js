@@ -1,6 +1,6 @@
 export const allyCasterConfig = {
   id: "ally-caster",
-  name: "Ember Arcanist",
+  name: "Mage",
   team: "friendly",
   role: "caster",
   control: "ai",

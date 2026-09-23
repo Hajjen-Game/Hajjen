@@ -1,6 +1,6 @@
 export const allyMeleeConfig = {
   id: "ally-melee",
-  name: "Iron Vanguard",
+  name: "Warrior",
   team: "friendly",
   role: "melee",
   control: "ai",

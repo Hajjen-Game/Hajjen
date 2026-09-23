@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.7-dampening",
+    "Build: prototype-v0.8-nine-classes",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -23,7 +23,7 @@ export function buildMatchReport(game) {
       const stats = game.matchStats.get(actor.id);
       lines.push(
         actor.name
-        + " [" + actor.role + "]"
+        + " [" + actor.className + " / " + actor.role + "]"
         + " — HP " + n(actor.health) + "/" + actor.maxHealth
         + " | " + actor.resource.type.toUpperCase() + " " + n(actor.resource.value) + "/" + actor.resource.max
         + " | Damage " + n(stats?.damage)

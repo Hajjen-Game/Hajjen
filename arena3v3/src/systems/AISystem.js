@@ -33,18 +33,23 @@ export class AISystem {
     else this.damageThink(actor);
   }
 
+  spell(actor, aiRole) {
+    return actor.spells.find(spell => spell.aiRole === aiRole);
+  }
+
   healerThink(actor) {
-    const utility = actor.spells.find(spell => spell.aiRole === "panicCc");
+    const enemies = this.game.actors.filter(candidate =>
+      candidate.alive && candidate.team !== actor.team
+    );
 
-    if (utility && this.ready(actor, utility)) {
-      const effect = utility.effects.find(item => item.kind === "fearAoE");
-      const closeEnemy = this.game.actors.find(candidate =>
-        candidate.alive
-        && candidate.team !== actor.team
-        && distance(actor, candidate) <= (effect?.radius || 0) + actor.radius + candidate.radius
+    const panicCc = this.spell(actor, "panicCc");
+    if (panicCc && this.ready(actor, panicCc)) {
+      const effect = panicCc.effects.find(item => ["fearAoE", "rootAoE"].includes(item.kind));
+      const radius = effect?.radius || 0;
+      const closeEnemy = enemies.find(candidate =>
+        distance(actor, candidate) <= radius + actor.radius + candidate.radius
       );
-
-      if (closeEnemy && this.castIfPossible(actor, utility, actor)) return;
+      if (closeEnemy && this.castIfPossible(actor, panicCc, actor)) return;
     }
 
     const allies = this.game.actors
@@ -56,21 +61,28 @@ export class AISystem {
 
     actor.aiTargetId = target.id;
 
-    const rotation = actor.spells.filter(spell => !spell.utility);
-    const [hot, quick, big, cooldown] = rotation;
+    const defensive = this.spell(actor, "defensive");
+    const big = this.spell(actor, "bigHeal");
+    const quick = this.spell(actor, "quickHeal");
+    const instant = this.spell(actor, "instantHeal");
+    const sustain = this.spell(actor, "sustainHot");
 
-    if (target.healthPct < 0.38 && this.ready(actor, cooldown) && this.castIfPossible(actor, cooldown, target)) return;
-    if (target.healthPct < 0.72 && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
+    if (target.healthPct < 0.42 && defensive && this.ready(actor, defensive) && this.castIfPossible(actor, defensive, target)) return;
+    if (target.healthPct < 0.70 && big && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
+    if (target.healthPct < 0.82 && instant && this.ready(actor, instant) && this.castIfPossible(actor, instant, target)) return;
 
-    if (
-      target.healthPct < 0.9
-      && !target.hasEffect(hot.id, actor.id)
-      && this.ready(actor, hot)
-      && this.castIfPossible(actor, hot, target)
-    ) return;
+    if (target.healthPct < 0.90 && sustain && this.ready(actor, sustain)) {
+      const hot = sustain.effects.find(effect => effect.kind === "hot");
+      const shouldApply = !hot || !target.hasEffect(sustain.id, actor.id);
+      if (shouldApply && this.castIfPossible(actor, sustain, target)) return;
+    }
 
-    if (target.healthPct < 0.94 && this.ready(actor, quick)) {
-      this.castIfPossible(actor, quick, target);
+    if (target.healthPct < 0.94 && quick && this.ready(actor, quick) && this.castIfPossible(actor, quick, target)) return;
+
+    const control = this.spell(actor, "control");
+    if (control && this.ready(actor, control) && allies.every(ally => ally.healthPct > 0.55)) {
+      const controlTarget = this.pickCcTarget(actor, enemies, control);
+      if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
     }
   }
 
@@ -80,14 +92,12 @@ export class AISystem {
     );
     if (enemies.length === 0) return;
 
-    const oomHealer = this.findOomHealerTarget(actor, enemies);
-    if (oomHealer && actor.aiTargetId !== oomHealer.id) {
-      actor.aiTargetId = oomHealer.id;
-      this.game.log(actor.name + " switches pressure to " + oomHealer.name + " — healer is out of mana.");
+    const defensive = this.spell(actor, "defensiveSelf");
+    if (defensive && actor.healthPct < 0.42 && this.ready(actor, defensive)) {
+      if (this.castIfPossible(actor, defensive, actor)) return;
     }
 
-    const interrupt = actor.spells.find(spell => spell.aiRole === "interrupt");
-
+    const interrupt = this.spell(actor, "interrupt");
     if (interrupt && this.ready(actor, interrupt)) {
       const interruptTarget = enemies
         .filter(candidate =>
@@ -103,24 +113,21 @@ export class AISystem {
       if (interruptTarget && this.castIfPossible(actor, interrupt, interruptTarget)) return;
     }
 
-    const control = actor.spells.find(spell => spell.aiRole === "control");
+    const panicRoot = this.spell(actor, "panicRoot");
+    if (panicRoot && this.ready(actor, panicRoot)) {
+      const effect = panicRoot.effects.find(item => item.kind === "rootAoE");
+      const radius = effect?.radius || 0;
+      const closeMelee = enemies.find(candidate =>
+        candidate.role === "melee"
+        && distance(actor, candidate) <= radius + actor.radius + candidate.radius
+      );
+      if (closeMelee && this.castIfPossible(actor, panicRoot, actor)) return;
+    }
 
-    if (control && this.ready(actor, control)) {
-      const priorityRoles = actor.config.ai.ccTargetRoles || ["healer", "caster"];
-      let controlTarget = null;
-
-      for (const role of priorityRoles) {
-        controlTarget = enemies.find(candidate =>
-          candidate.role === role
-          && !this.game.cc.isHardControlled(candidate)
-          && this.game.combat.inRange(actor, candidate, control.range)
-          && this.game.combat.hasLos(actor, candidate)
-        );
-
-        if (controlTarget) break;
-      }
-
-      if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
+    const oomHealer = this.findOomHealerTarget(actor, enemies);
+    if (oomHealer && actor.aiTargetId !== oomHealer.id) {
+      actor.aiTargetId = oomHealer.id;
+      this.game.log(actor.name + " switches pressure to " + oomHealer.name + " — healer is out of mana.");
     }
 
     let target = this.game.getActor(actor.aiTargetId);
@@ -134,19 +141,53 @@ export class AISystem {
       actor.aiTargetId = target.id;
     }
 
-    const rotation = actor.spells.filter(spell => !spell.utility);
-    const [periodic, quick, big, cooldown] = rotation;
+    const gapClose = this.spell(actor, "gapClose");
+    if (
+      gapClose
+      && this.ready(actor, gapClose)
+      && distance(actor, target) > (actor.config.ai.preferredRange || 55) * 1.8
+      && this.game.combat.inRange(actor, target, gapClose.range)
+      && this.game.combat.hasLos(actor, target)
+    ) {
+      if (this.castIfPossible(actor, gapClose, target)) return;
+    }
 
-    if (target.healthPct < 0.68 && this.ready(actor, cooldown) && this.castIfPossible(actor, cooldown, target)) return;
+    const control = this.spell(actor, "control");
+    if (control && this.ready(actor, control)) {
+      const controlTarget = this.pickCcTarget(actor, enemies, control);
+      if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
+    }
+
+    const periodic = this.spell(actor, "periodic");
+    const big = this.spell(actor, "bigDamage");
+    const filler = this.spell(actor, "filler");
 
     if (
-      !target.hasEffect(periodic.id, actor.id)
+      periodic
       && this.ready(actor, periodic)
+      && !target.hasEffect(periodic.id, actor.id)
       && this.castIfPossible(actor, periodic, target)
     ) return;
 
-    if (this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
-    if (this.ready(actor, quick)) this.castIfPossible(actor, quick, target);
+    if (big && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
+    if (filler && this.ready(actor, filler)) this.castIfPossible(actor, filler, target);
+  }
+
+  pickCcTarget(actor, enemies, spell) {
+    const priorityRoles = actor.config.ai.ccTargetRoles || ["healer", "caster"];
+
+    for (const role of priorityRoles) {
+      const target = enemies.find(candidate =>
+        candidate.role === role
+        && !this.game.cc.isHardControlled(candidate)
+        && !this.game.cc.isRooted(candidate)
+        && this.game.combat.inRange(actor, candidate, spell.range)
+        && this.game.combat.hasLos(actor, candidate)
+      );
+      if (target) return target;
+    }
+
+    return null;
   }
 
   findOomHealerTarget(actor, enemies) {

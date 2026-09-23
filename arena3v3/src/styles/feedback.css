@@ -45,7 +45,9 @@
   display: none;
 }
 
-.player-cc-alert.incapacitate #cc-fear-icon {
+.player-cc-alert.incapacitate #cc-fear-icon,
+.player-cc-alert.stun #cc-fear-icon,
+.player-cc-alert.root #cc-fear-icon {
   display: none;
 }
 

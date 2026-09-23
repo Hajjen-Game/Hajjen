@@ -3,6 +3,9 @@ export class Actor {
     this.config = config;
     this.id = config.id;
     this.name = config.name;
+    this.className = config.className || config.displayName || config.name;
+    this.classId = config.classId || "";
+    this.visualStyle = config.visualStyle || "damage";
     this.team = config.team;
     this.role = config.role;
     this.control = config.control;
@@ -70,5 +73,11 @@ export class Actor {
     return this.effects
       .filter(effect => effect.kind === "damageReduction" && effect.remainingMs > 0)
       .reduce((total, effect) => 1 - (1 - total) * (1 - effect.value), 0);
+  }
+
+  healingReduction() {
+    return this.effects
+      .filter(effect => effect.kind === "healingReduction" && effect.remainingMs > 0)
+      .reduce((highest, effect) => Math.max(highest, effect.value || 0), 0);
   }
 }

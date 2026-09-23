@@ -41,6 +41,17 @@ export class CanvasRenderer {
       dot: cssVar("--dot"),
       mana: cssVar("--mana"),
       energy: cssVar("--energy"),
+      rage: cssVar("--rage"),
+      runic: cssVar("--runic"),
+      priest: cssVar("--vfx-priest"),
+      druid: cssVar("--vfx-druid"),
+      paladin: cssVar("--vfx-paladin"),
+      warrior: cssVar("--vfx-warrior"),
+      rogue: cssVar("--vfx-rogue"),
+      deathKnight: cssVar("--vfx-death-knight"),
+      mage: cssVar("--vfx-mage"),
+      warlock: cssVar("--vfx-warlock"),
+      shaman: cssVar("--vfx-shaman"),
       lightning: cssVar("--vfx-lightning"),
       lightningCore: cssVar("--vfx-lightning-core"),
       healVfx: cssVar("--vfx-heal"),
@@ -136,7 +147,7 @@ export class CanvasRenderer {
       const hasHot = actor.effects.some(effect => effect.kind === "hot");
       const hasDot = actor.effects.some(effect => effect.kind === "dot");
       const hasCc = actor.effects.some(effect =>
-        ["fear", "incapacitate", "schoolLock"].includes(effect.kind),
+        ["fear", "incapacitate", "stun", "root", "schoolLock"].includes(effect.kind),
       );
 
       if (!hasHot && !hasDot && !hasCc) continue;
@@ -182,7 +193,7 @@ export class CanvasRenderer {
     if (actor.cast) {
       const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
       ctx.globalAlpha = 0.35 + progress * 0.35;
-      ctx.strokeStyle = this.theme.cast;
+      ctx.strokeStyle = this.vfxColor(actor.visualStyle);
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(actor.x, actor.y, actor.radius + 14 + progress * 6, 0, Math.PI * 2);
@@ -316,7 +327,13 @@ export class CanvasRenderer {
     ctx.fillStyle = "rgba(11,8,6,.9)";
     ctx.fillRect(x, y, width, 4);
 
-    ctx.fillStyle = actor.resource.type === "energy" ? this.theme.energy : this.theme.mana;
+    const resourceColors = {
+      mana: this.theme.mana,
+      energy: this.theme.energy,
+      rage: this.theme.rage,
+      runic: this.theme.runic,
+    };
+    ctx.fillStyle = resourceColors[actor.resource.type] || this.theme.mana;
     ctx.fillRect(x + 1, y + 1, (width - 2) * clamp(actor.resourcePct, 0, 1), 2);
   }
 
@@ -344,7 +361,7 @@ export class CanvasRenderer {
     const effects = actor.effects
       .filter(effect => effect.remainingMs > 0)
       .filter(effect =>
-        ["hot", "dot", "damageReduction", "fear", "incapacitate", "schoolLock"].includes(effect.kind),
+        ["hot", "dot", "damageReduction", "healingReduction", "fear", "incapacitate", "stun", "root", "schoolLock"].includes(effect.kind),
       )
       .slice(0, 5);
 
@@ -372,6 +389,15 @@ export class CanvasRenderer {
       } else if (effect.kind === "incapacitate") {
         fill = this.theme.goldBright;
         label = "C";
+      } else if (effect.kind === "stun") {
+        fill = this.theme.goldBright;
+        label = "S";
+      } else if (effect.kind === "root") {
+        fill = this.theme.mage;
+        label = "R";
+      } else if (effect.kind === "healingReduction") {
+        fill = this.theme.enemyBright;
+        label = "M";
       } else if (effect.kind === "schoolLock") {
         fill = "#b29ad1";
         label = "L";
@@ -433,6 +459,8 @@ export class CanvasRenderer {
         ctx.beginPath();
         ctx.arc(x, y, Math.max(3, 13 * (1 - progress)), 0, Math.PI * 2);
         ctx.fill();
+
+        this.drawVfxGlyph(ctx, effect.style, x, y, 14 + progress * 8, alpha);
         ctx.restore();
       }
 
@@ -477,7 +505,7 @@ export class CanvasRenderer {
 
         ctx.save();
         ctx.globalAlpha = 0.45 + alpha * 0.55;
-        ctx.shadowColor = this.theme.lightning;
+        ctx.shadowColor = this.vfxColor(effect.style);
         ctx.shadowBlur = 12;
 
         for (let i = 0; i < actors.length - 1; i += 1) {
@@ -487,6 +515,7 @@ export class CanvasRenderer {
             actors[i + 1],
             effect.seed + i * 23,
             progress,
+            this.vfxColor(effect.style),
           );
         }
 
@@ -495,7 +524,7 @@ export class CanvasRenderer {
     }
   }
 
-  drawLightningSegment(ctx, from, to, seed, progress) {
+  drawLightningSegment(ctx, from, to, seed, progress, outerColor = this.theme.lightning) {
     const segments = 8;
     const dx = to.x - from.x;
     const dy = to.y - from.y;
@@ -521,8 +550,95 @@ export class CanvasRenderer {
       ctx.stroke();
     };
 
-    drawPath(this.theme.lightning, 7, 8);
+    drawPath(outerColor, 7, 8);
     drawPath(this.theme.lightningCore, 2, 6);
+  }
+
+  drawVfxGlyph(ctx, style, x, y, size, alpha) {
+    const color = this.vfxColor(style);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.globalAlpha = Math.min(1, alpha * 0.9);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (style === "priest") {
+      ctx.beginPath();
+      ctx.moveTo(-size * .45, 0);
+      ctx.lineTo(size * .45, 0);
+      ctx.moveTo(0, -size * .45);
+      ctx.lineTo(0, size * .45);
+      ctx.stroke();
+    } else if (style === "druid") {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * .28, size * .5, Math.PI / 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-size * .25, size * .25);
+      ctx.lineTo(size * .28, -size * .28);
+      ctx.stroke();
+    } else if (style === "paladin") {
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeRect(-size * .3, -size * .3, size * .6, size * .6);
+    } else if (style === "warrior") {
+      ctx.beginPath();
+      ctx.moveTo(-size * .4, size * .35);
+      ctx.lineTo(size * .4, -size * .35);
+      ctx.moveTo(-size * .1, size * .15);
+      ctx.lineTo(size * .12, size * .37);
+      ctx.stroke();
+    } else if (style === "rogue") {
+      ctx.beginPath();
+      ctx.moveTo(-size * .35, size * .38);
+      ctx.lineTo(size * .05, -size * .4);
+      ctx.moveTo(size * .02, size * .4);
+      ctx.lineTo(size * .38, -size * .35);
+      ctx.stroke();
+    } else if (style === "deathKnight") {
+      for (let i = 0; i < 6; i += 1) {
+        ctx.rotate(Math.PI / 3);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -size * .45);
+        ctx.stroke();
+      }
+    } else if (style === "mage") {
+      ctx.beginPath();
+      ctx.moveTo(0, -size * .5);
+      ctx.lineTo(size * .22, -size * .12);
+      ctx.lineTo(size * .48, 0);
+      ctx.lineTo(size * .22, size * .12);
+      ctx.lineTo(0, size * .5);
+      ctx.lineTo(-size * .22, size * .12);
+      ctx.lineTo(-size * .48, 0);
+      ctx.lineTo(-size * .22, -size * .12);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (style === "warlock") {
+      ctx.beginPath();
+      ctx.arc(0, 0, size * .38, 0, Math.PI * 1.65);
+      ctx.arc(0, 0, size * .2, Math.PI * 1.65, Math.PI * .2, true);
+      ctx.stroke();
+    } else if (style === "shaman") {
+      ctx.beginPath();
+      ctx.moveTo(size * .08, -size * .5);
+      ctx.lineTo(-size * .2, 0);
+      ctx.lineTo(size * .05, 0);
+      ctx.lineTo(-size * .08, size * .5);
+      ctx.lineTo(size * .3, -size * .08);
+      ctx.lineTo(size * .05, -size * .08);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, size * .3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 
   vfxColor(style) {
@@ -536,6 +652,15 @@ export class CanvasRenderer {
       control: this.theme.goldBright,
       interrupt: this.theme.interruptVfx,
       lightning: this.theme.lightning,
+      priest: this.theme.priest,
+      druid: this.theme.druid,
+      paladin: this.theme.paladin,
+      warrior: this.theme.warrior,
+      rogue: this.theme.rogue,
+      deathKnight: this.theme.deathKnight,
+      mage: this.theme.mage,
+      warlock: this.theme.warlock,
+      shaman: this.theme.shaman,
     };
     return colors[style] || this.theme.cream;
   }
@@ -556,6 +681,7 @@ export class CanvasRenderer {
         avoid: "#d8c6a7",
         buff: "#d9b4e8",
         cc: "#ffd18a",
+        debuff: "#e18f7e",
       };
 
       ctx.fillStyle = colors[item.type] || this.theme.cream;

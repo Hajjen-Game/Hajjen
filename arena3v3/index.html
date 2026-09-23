@@ -26,6 +26,7 @@
 
       <div class="top-actions">
         <div id="match-clock" class="clock">00:00</div>
+        <button id="roster-button" class="hud-button">ROSTER</button>
         <button id="controls-button" class="hud-button">CONTROLS</button>
         <button id="restart-button" class="hud-button">RESTART</button>
       </div>
@@ -103,6 +104,56 @@
       <div id="action-bar" class="action-bar"></div>
       <div class="hint">Click unit/frame to target · F1/F2/F3 target party · Move WASD · Abilities 1–5</div>
     </footer>
+  </div>
+
+  <div id="roster-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="roster-title">
+    <div class="modal-card roster-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">TEAM SETUP</div>
+          <h2 id="roster-title">ROSTER</h2>
+        </div>
+        <button id="roster-close" class="icon-button" aria-label="Close roster">×</button>
+      </div>
+
+      <div class="roster-section">
+        <div class="roster-section-title friendly">YOUR TEAM</div>
+        <label class="roster-field">
+          <span>Player · Healer</span>
+          <select id="roster-player-healer"></select>
+        </label>
+        <label class="roster-field">
+          <span>Teammate · Melee</span>
+          <select id="roster-ally-melee"></select>
+        </label>
+        <label class="roster-field">
+          <span>Teammate · Caster</span>
+          <select id="roster-ally-caster"></select>
+        </label>
+      </div>
+
+      <div class="roster-section">
+        <div class="roster-section-title enemy">ENEMY TEAM</div>
+        <label class="roster-field">
+          <span>Enemy · Healer</span>
+          <select id="roster-enemy-healer"></select>
+        </label>
+        <label class="roster-field">
+          <span>Enemy · Melee</span>
+          <select id="roster-enemy-melee"></select>
+        </label>
+        <label class="roster-field">
+          <span>Enemy · Caster</span>
+          <select id="roster-enemy-caster"></select>
+        </label>
+      </div>
+
+      <div class="roster-note">Changing the roster restarts the arena. Player remains the player name; the selected healer class controls your five abilities.</div>
+      <div class="roster-actions">
+        <button id="roster-cancel" class="hud-button">CANCEL</button>
+        <button id="roster-apply" class="hud-button primary">APPLY & RESTART</button>
+      </div>
+    </div>
   </div>
 
   <div id="controls-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="controls-title">

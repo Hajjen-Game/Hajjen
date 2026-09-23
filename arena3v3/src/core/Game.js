@@ -222,7 +222,7 @@ export class Game {
 
   checkWinCondition() {
     if (!this.player.alive) {
-      this.finishMatch("DEFEAT", "Field Mender has fallen. The match ends immediately.");
+      this.finishMatch("DEFEAT", "Player has fallen. The match ends immediately.");
       return;
     }
 
@@ -311,6 +311,11 @@ export class Game {
 
   buildRunReport() {
     return buildMatchReport(this);
+  }
+
+  setCharacterConfigs(characterConfigs) {
+    this.characterConfigs = characterConfigs;
+    this.reset();
   }
 
   reset() {

@@ -96,6 +96,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .effect-badge.buff { color: #e6d5f4; background: rgba(92,74,119,.5); border-color: var(--cast); }
 .effect-badge.cc { color: #fff0cf; background: rgba(138,91,40,.66); border-color: var(--gold-bright); }
 .effect-badge.lock { color: #efe2ff; background: rgba(80,64,105,.7); border-color: #b29ad1; }
+.effect-badge.debuff { color: #ffe0d5; background: rgba(126,69,52,.7); border-color: var(--enemy-bright); }
 
 .frame-cast { height: 5px; margin-top: 4px; background: #120d0b; border-radius: 3px; overflow: hidden; opacity: 0; }
 .frame-cast.active { opacity: 1; }

@@ -21,6 +21,8 @@
   --dot: #ad6e59;
   --mana: #706da6;
   --energy: #bd8e45;
+  --rage: #b96454;
+  --runic: #5fa9b8;
   --resource-bg: #15100d;
   --arena-floor: #3a2c20;
   --arena-floor-2: #433224;
@@ -36,4 +38,14 @@
   --vfx-damage: #d98973;
   --vfx-fear: #d6ad65;
   --vfx-interrupt: #c6addd;
+
+  --vfx-priest: #ead8a5;
+  --vfx-druid: #86b77c;
+  --vfx-paladin: #e0bd64;
+  --vfx-warrior: #b88e72;
+  --vfx-rogue: #c59a72;
+  --vfx-death-knight: #79b7c7;
+  --vfx-mage: #82b7dc;
+  --vfx-warlock: #a986c8;
+  --vfx-shaman: #72c6d5;
 }

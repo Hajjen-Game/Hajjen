@@ -1,6 +1,6 @@
 # 3v3 Arena prototype
 
-A dependency-free browser prototype for a single-player 3v3 arena game inspired by MMO arena combat: positioning, line of sight, target switching, pressure, healing decisions and crowd control.
+A dependency-free browser prototype for a single-player 3v3 arena game inspired by MMO arena combat: positioning, line of sight, target switching, pressure, healing decisions, crowd control and class matchups.
 
 ## Run
 
@@ -10,7 +10,36 @@ The prototype is static and GitHub Pages-ready:
 
 No build step or package manager is required.
 
-## Current prototype
+## Class roster
+
+Nine classes are implemented. Every class currently has exactly five abilities so the prototype stays readable while the future Honor progression system is still undefined.
+
+Healers:
+- Priest — reactive healing, defensive cooldown and short-range AoE fear
+- Druid — HoTs, instant healing, Ironbark-style defense and Cyclone-style control
+- Paladin — strong direct healing, durable defensive cooldown and short stun
+
+Melee:
+- Warrior — rage, Rend, Mortal Strike healing reduction, Charge and Pummel
+- Rogue — energy, bleeds, burst, Kidney Shot and Kick
+- Death Knight — runic power, disease pressure, self-sustain, Chains of Ice and Mind Freeze
+
+Casters:
+- Mage — Living Bomb, Frostbolt, Pyroblast, Frost Nova and Polymorph
+- Warlock — Corruption, Shadow Bolt, Chaos Bolt, Unending Resolve and Fear
+- Shaman — Flame Shock, Chain Lightning, Lava Burst, Hex and Wind Shear
+
+The **ROSTER** button lets you choose:
+- your healer class
+- friendly melee
+- friendly caster
+- enemy healer
+- enemy melee
+- enemy caster
+
+The player-controlled unit is always named **Player**. AI units use their class name.
+
+## Current systems
 
 - 3v3 teams: healer + melee + caster
 - Player controls the healer
@@ -20,53 +49,55 @@ No build step or package manager is required.
 - Five abilities on 1–5
 - Rebindable movement, action and party-target keys saved in localStorage
 - 400 ms player ability queue window
-- WoW-inspired Dampening, scaled to prototype match length:
+- Mana, energy, rage and runic resources
+- Cast times, cooldowns and global cooldown
+- HoTs, DoTs, damage reduction and healing-reduction debuffs
+- Crowd control:
+  - fear
+  - incapacitate
+  - stun
+  - root
+  - interrupt + spell-school lock
+- Large central CC/root alert for the player
+- WoW-inspired Dampening scaled to prototype match length:
   - 0% during the opening 45 seconds
   - starts at 10% at 45 seconds
   - rises by 2% every 10 seconds
-  - reduces all direct healing and HoT healing received
-  - always-visible HUD indicator with next increase timer
-- Mana for healers/casters, energy for melee
-- Cast times, cooldowns and global cooldown
-- HoTs and DoTs with visible effect badges
-- Crowd control:
-  - healer: short-range AoE fear
-  - melee: off-GCD interrupt with temporary spell-school lock
-  - caster: casted incapacitate that breaks on damage
-- Large central CC alert with icon and countdown for the player
-- Shared combat VFX system:
-  - cast aura
-  - heal beam + heal burst
-  - direct-damage burst
-  - HoT/DoT application pulse
-  - fear shockwave
-  - interrupt beam + slash
-  - incapacitate beam/burst
-  - chain-lightning arcs
-- Caster fast spell is now a chain spell:
-  - up to 3 enemies
-  - every secondary target must independently be in caster range and line of sight
-  - damage falloff 100% / 72% / 55%
-- DPS switches pressure to an enemy healer at 10% mana or lower
-- DPS tries to drag its kill target back into healer line of sight while its own healer is hard-CC'd
+- DPS switches pressure to an enemy healer at low mana
+- DPS tries to reposition its kill target back into healer line of sight when its own healer is hard-CC'd
 - Crits, misses and dodges
 - Marble-bag RNG for hit/crit/amount variance
-- Four large line-of-sight pillars in a symmetric arena
-- Shared vector role icons
+- Four line-of-sight pillars in a proportional 16:9 arena
 - Damage meter for both teams
 - Copy Run Report
-- Match ends immediately if the player character dies
-- Shared UI/theme/rendering components
+- Match ends immediately if Player dies
+
+## Visual effects
+
+Every class has its own procedural Canvas VFX identity and color language:
+
+- Priest — warm holy gold
+- Druid — nature green
+- Paladin — bright sacred gold
+- Warrior — steel/bronze
+- Rogue — amber blade effects
+- Death Knight — icy runic cyan
+- Mage — arcane/frost blue
+- Warlock — shadow violet
+- Shaman — electric cyan
+
+Class bursts also draw a small class-specific glyph, while beams, rings, interrupts, CC and Chain Lightning inherit the caster's class visual style.
+
+Future sprites, animations, spell icons and textures belong in each class folder's `assets/` directory.
 
 ## Architecture
 
 `src/core/` — game loop, input, geometry, RNG and match reports  
 `src/entities/` — runtime actor model  
-`src/systems/` — movement, resources, crowd control, player ability queue, visual effects, AI and combat  
+`src/systems/` — movement, resources, crowd control, player ability queue, visual effects, AI, dampening and combat  
 `src/rendering/` — shared Canvas rendering  
 `src/ui/` — shared HUD components  
-`src/content/` — tuneable arena and character configuration
+`src/content/classes/` — one folder per class plus the class registry  
+`src/content/arena/` — arena configuration
 
-Every player class, teammate and opponent has its own folder. Tune values in each folder's `config.js`; future animation art belongs in that same folder's `assets/` directory.
-
-The visual theme is centralized in `src/styles/theme.css`, while interaction/feedback styles are isolated in `src/styles/feedback.css`. Canvas rendering reads the shared theme variables.
+The visual theme is centralized in `src/styles/theme.css`, while interaction/feedback styles are isolated in `src/styles/feedback.css`.

@@ -1,6 +1,6 @@
 import { distance, normalize } from "../core/utils.js";
 
-const HARD_CONTROL = new Set(["fear", "incapacitate"]);
+const HARD_CONTROL = new Set(["fear", "incapacitate", "stun"]);
 
 export class CrowdControlSystem {
   constructor(game) {
@@ -54,7 +54,7 @@ export class CrowdControlSystem {
       originY: source.y,
     });
 
-    this.game.vfx.burst(target, "fear", 340);
+    this.game.vfx.burst(target, spell.visualStyle || source.visualStyle || "fear", 340);
     this.game.recordCc(source, target, "fear", effect.durationMs);
     this.game.addFloatingText(target, "FEAR", "cc");
     this.game.log(source.name + " fears " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
@@ -63,7 +63,13 @@ export class CrowdControlSystem {
 
   applyFearAoE(source, spell, effect) {
     let affected = 0;
-    this.game.vfx.ring(source, "fear", source.radius + 10, effect.radius, 430);
+    this.game.vfx.ring(
+      source,
+      spell.visualStyle || source.visualStyle || "fear",
+      source.radius + 10,
+      effect.radius,
+      430,
+    );
 
     for (const target of this.game.actors.filter(actor => actor.alive && actor.team !== source.team)) {
       if (distance(source, target) > effect.radius + source.radius + target.radius) continue;
@@ -103,12 +109,79 @@ export class CrowdControlSystem {
       breakOnDamage: effect.breakOnDamage !== false,
     });
 
-    this.game.vfx.beam(source, target, "control", 250);
-    this.game.vfx.burst(target, "control", 360);
+    const style = spell.visualStyle || source.visualStyle || "control";
+    this.game.vfx.beam(source, target, style, 250);
+    this.game.vfx.burst(target, style, 360);
     this.game.recordCc(source, target, "incapacitate", effect.durationMs);
     this.game.addFloatingText(target, "CONTROLLED", "cc");
     this.game.log(source.name + " incapacitates " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
     return true;
+  }
+
+  applyStun(source, target, spell, effect) {
+    if (!target.alive) return false;
+
+    this.removeHardControl(target);
+    this.cancelTargetCast(target, "stun");
+
+    target.effects.push({
+      kind: "stun",
+      spellId: spell.id,
+      sourceId: source.id,
+      durationMs: effect.durationMs,
+      remainingMs: effect.durationMs,
+      breakOnDamage: false,
+    });
+
+    const style = spell.visualStyle || source.visualStyle || "control";
+    this.game.vfx.burst(target, style, 360);
+    this.game.recordCc(source, target, "stun", effect.durationMs);
+    this.game.addFloatingText(target, "STUNNED", "cc");
+    this.game.log(source.name + " stuns " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
+    return true;
+  }
+
+  applyRoot(source, target, spell, effect) {
+    if (!target.alive) return false;
+
+    target.effects = target.effects.filter(existing =>
+      !(existing.kind === "root" && existing.sourceId === source.id)
+    );
+
+    target.effects.push({
+      kind: "root",
+      spellId: spell.id,
+      sourceId: source.id,
+      durationMs: effect.durationMs,
+      remainingMs: effect.durationMs,
+      breakOnDamage: effect.breakOnDamage === true,
+    });
+
+    const style = spell.visualStyle || source.visualStyle || "control";
+    this.game.vfx.ring(target, style, target.radius + 2, target.radius + 24, 360);
+    this.game.recordCc(source, target, "root", effect.durationMs);
+    this.game.addFloatingText(target, "ROOTED", "cc");
+    this.game.log(source.name + " roots " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
+    return true;
+  }
+
+  applyRootAoE(source, spell, effect) {
+    let affected = 0;
+    this.game.vfx.ring(
+      source,
+      spell.visualStyle || source.visualStyle || "control",
+      source.radius + 8,
+      effect.radius,
+      420,
+    );
+
+    for (const target of this.game.actors.filter(actor => actor.alive && actor.team !== source.team)) {
+      if (distance(source, target) > effect.radius + source.radius + target.radius) continue;
+      if (!this.game.combat.hasLos(source, target)) continue;
+      if (this.applyRoot(source, target, spell, effect)) affected += 1;
+    }
+
+    return affected > 0;
   }
 
   interrupt(source, target, spell, effect) {
@@ -133,8 +206,9 @@ export class CrowdControlSystem {
       breakOnDamage: false,
     });
 
-    this.game.vfx.beam(source, target, "interrupt", 180);
-    this.game.vfx.slash(target, "interrupt", 300);
+    const style = spell.visualStyle || source.visualStyle || "interrupt";
+    this.game.vfx.beam(source, target, style, 180);
+    this.game.vfx.slash(target, style, 300);
     this.game.recordInterrupt(source, target, effect.durationMs);
     this.game.addFloatingText(target, "INTERRUPTED", "cc");
     this.game.log(
@@ -148,7 +222,7 @@ export class CrowdControlSystem {
     const broken = target.effects.filter(effect =>
       effect.remainingMs > 0
       && effect.breakOnDamage
-      && HARD_CONTROL.has(effect.kind)
+      && (HARD_CONTROL.has(effect.kind) || effect.kind === "root")
     );
 
     if (broken.length === 0) return;
@@ -163,6 +237,7 @@ export class CrowdControlSystem {
 
   cancelTargetCast(target, reason) {
     if (!target.cast) return;
+
     const spell = target.getSpell(target.cast.spellId);
     target.cast = null;
 

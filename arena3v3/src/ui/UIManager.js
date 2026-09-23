@@ -277,21 +277,29 @@ export class UIManager {
 
   updatePlayerCcAlert() {
     const effect = this.game.player.effects.find(item =>
-      item.remainingMs > 0 && (item.kind === "fear" || item.kind === "incapacitate")
+      item.remainingMs > 0
+      && ["fear", "incapacitate", "stun", "root"].includes(item.kind)
     );
 
     if (!effect || !this.game.player.alive) {
       this.playerCcAlert.classList.add("hidden");
-      this.playerCcAlert.classList.remove("fear", "incapacitate");
+      this.playerCcAlert.classList.remove("fear", "incapacitate", "stun", "root");
       return;
     }
 
     const source = this.game.getActor(effect.sourceId);
     const spell = source?.getSpell(effect.spellId);
 
-    this.playerCcAlert.classList.remove("hidden", "fear", "incapacitate");
+    this.playerCcAlert.classList.remove("hidden", "fear", "incapacitate", "stun", "root");
     this.playerCcAlert.classList.add(effect.kind);
-    this.playerCcTitle.textContent = effect.kind === "fear" ? "FEARED" : "INCAPACITATED";
+
+    const titles = {
+      fear: "FEARED",
+      incapacitate: "INCAPACITATED",
+      stun: "STUNNED",
+      root: "ROOTED",
+    };
+    this.playerCcTitle.textContent = titles[effect.kind] || "CONTROLLED";
     this.playerCcTime.textContent = Math.max(0, effect.remainingMs / 1000).toFixed(1) + "s";
     this.playerCcSource.textContent = spell?.name ? spell.name : "";
   }
@@ -322,6 +330,15 @@ export class UIManager {
       } else if (effect.kind === "incapacitate") {
         style = "cc";
         letter = "CC";
+      } else if (effect.kind === "stun") {
+        style = "cc";
+        letter = "STUN";
+      } else if (effect.kind === "root") {
+        style = "cc";
+        letter = "ROOT";
+      } else if (effect.kind === "healingReduction") {
+        style = "debuff";
+        letter = "MORTAL";
       } else if (effect.kind === "schoolLock") {
         style = "lock";
         letter = "LOCK";

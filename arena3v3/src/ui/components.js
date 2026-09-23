@@ -19,7 +19,10 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
   `;
 
   button.querySelector(".unit-name").textContent = actor.name;
-  button.querySelector(".unit-role").textContent = actor.role;
+  button.querySelector(".unit-role").textContent =
+    actor.control === "player"
+      ? actor.className + " · " + actor.role
+      : actor.role;
 
   const partyKeyElement = button.querySelector(".party-key");
   partyKeyElement.textContent = partyKey;

@@ -1,115 +1,94 @@
-# Proposed class roster — v1
+# Class roster — implemented v0.8
 
-The first full roster should stay small enough that every class can have strong AI, readable counterplay, clear visuals and meaningful balance.
+The prototype currently uses nine classes: three healers, three melee and three casters. All classes have five abilities for now. The ability count can grow later through the planned Honor progression system.
 
 ## Healers
 
 ### Priest
-Identity: reactive healing, shields, fear and clutch saves.
+Reactive healer with strong emergency casting and fear.
 
-Core arena ideas:
-- Fast emergency heal
-- Larger efficient casted heal
-- HoT or shield
-- Short-range AoE fear
-- Defensive cooldown
+1. Renew — HoT
+2. Flash Heal — fast heal
+3. Greater Heal — large slow heal
+4. Pain Suppression — ally damage reduction
+5. Psychic Scream — short-range AoE fear
 
 ### Druid
-Identity: mobile HoT healer that wins through positioning.
+Mobile HoT healer with nature control.
 
-Core arena ideas:
-- Multiple HoTs
-- Instant mobility tool
-- Root
-- Cyclone-style short crowd control
-- Strong healing-over-time cooldown
+1. Rejuvenation — strong HoT
+2. Swiftmend — instant emergency heal
+3. Regrowth — direct heal plus HoT
+4. Ironbark — ally damage reduction
+5. Cyclone — casted incapacitate
 
 ### Paladin
-Identity: durable single-target healer with powerful cooldowns.
+Durable single-target healer with short-range control.
 
-Core arena ideas:
-- Strong direct heals
-- Shorter effective range than other healers
-- Damage reduction / immunity-style cooldown
-- Short stun
-- Limited mobility
+1. Holy Shock — instant heal
+2. Flash of Light — fast heal
+3. Holy Light — large heal
+4. Blessing of Protection — strong temporary damage reduction
+5. Hammer of Justice — short stun
 
 ## Melee
 
 ### Warrior
-Identity: straightforward sustained pressure and anti-healing.
+Sustained pressure with rage and anti-healing.
 
-Core arena ideas:
-- Charge / gap closer
-- Strong sustained melee damage
-- Healing-reduction debuff
-- Interrupt
-- Defensive cooldown
+1. Rend — bleed
+2. Mortal Strike — damage plus healing reduction
+3. Slam — heavy hit
+4. Charge — gap closer plus short root
+5. Pummel — interrupt and spell-school lock
 
 ### Rogue
-Identity: control, setup and short burst windows.
+Fast energy melee focused on burst and control.
 
-Core arena ideas:
-- Energy resource
-- Fast attacks
-- Stun
-- Blind-style crowd control
-- Interrupt
-- High burst with lower sustained pressure
+1. Garrote — bleed
+2. Sinister Strike — filler
+3. Eviscerate — burst finisher
+4. Kidney Shot — stun
+5. Kick — interrupt and spell-school lock
 
 ### Death Knight
-Identity: slow, disruptive melee that controls enemy positioning.
+Slow, durable melee with disease pressure and control.
 
-Core arena ideas:
-- Disease / DoT pressure
-- Grip that pulls a target
-- Strong slow
-- Anti-magic defensive
-- Interrupt
-- Runic-style resource later
+1. Frost Fever — ranged disease DoT
+2. Death Strike — damage plus self-heal
+3. Obliterate — heavy strike
+4. Chains of Ice — ranged root
+5. Mind Freeze — interrupt and spell-school lock
 
 ## Casters
 
 ### Mage
-Identity: burst caster with strong control and escape tools.
+Burst/control caster.
 
-Core arena ideas:
-- Fast filler spell
-- Large casted nuke
-- Root
-- Polymorph-style crowd control
-- Blink / reposition ability
+1. Living Bomb — DoT
+2. Frostbolt — fast cast
+3. Pyroblast — large cast
+4. Frost Nova — point-blank AoE root
+5. Polymorph — casted incapacitate
 
 ### Warlock
-Identity: durable pressure caster built around DoTs and fear.
+Durable shadow pressure caster.
 
-Core arena ideas:
-- Multiple DoTs
-- Fear
-- Drain-style sustain
-- Large slow cast
-- Defensive cooldown
+1. Corruption — long DoT
+2. Shadow Bolt — filler cast
+3. Chaos Bolt — large cast
+4. Unending Resolve — self damage reduction
+5. Fear — casted single-target fear
 
 ### Shaman
-Identity: utility caster with lightning, disruption and flexible support.
+Utility caster with multi-target lightning.
 
-Core arena ideas:
-- Chain Lightning hitting multiple enemies
-- Fast lightning filler
-- Purge-style utility
-- Grounding / protection utility
-- Short-cooldown interrupt
+1. Flame Shock — DoT
+2. Chain Lightning — can hit up to all three enemies in range and LOS
+3. Lava Burst — heavy cast
+4. Hex — casted incapacitate
+5. Wind Shear — long-range short-cooldown interrupt
 
-## Current prototype mapping
+## Prototype philosophy
 
-Friendly:
-- Player — player-controlled healer; currently Priest-inspired mechanically
-- Warrior — friendly melee AI
-- Mage — friendly caster AI
-
-Enemy:
-- Priest — enemy healer AI
-- Rogue — enemy melee AI
-- Warlock — enemy caster AI
-
-The class folders can be renamed later when each full class is implemented. For now the existing internal IDs stay stable so prototype systems and run reports do not break.
+The classes are intentionally inspired by recognizable MMO PvP archetypes, but the values and exact implementations are tuned for this browser game's shorter matches, simpler controls and AI teammates. The current five-spell kits are a foundation, not the final endgame kits.

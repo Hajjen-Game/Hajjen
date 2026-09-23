@@ -19,6 +19,7 @@ No build step or package manager is required.
 - F1/F2/F3 target self, party member 2 and party member 3
 - Five abilities on 1–5
 - Rebindable movement, action and party-target keys saved in localStorage
+- 400 ms player ability queue window to prevent near-GCD/cast-end inputs from being dropped
 - Mana for healers/casters, energy for melee
 - Cast times, cooldowns and global cooldown
 - HoTs and DoTs with visible effect badges
@@ -26,6 +27,7 @@ No build step or package manager is required.
   - healer: short-range AoE fear
   - melee: off-GCD interrupt with temporary spell-school lock
   - caster: casted incapacitate that breaks on damage
+- Large central CC alert with icon and countdown when the player is feared or incapacitated
 - DPS switches pressure to an enemy healer at 10% mana or lower
 - DPS tries to drag its kill target back into healer line of sight while its own healer is hard-CC'd
 - Crits, misses and dodges
@@ -42,11 +44,11 @@ No build step or package manager is required.
 
 `src/core/` — game loop, input, geometry, RNG and match reports  
 `src/entities/` — runtime actor model  
-`src/systems/` — movement, resources, crowd control, AI and combat systems  
+`src/systems/` — movement, resources, crowd control, player ability queue, AI and combat systems  
 `src/rendering/` — shared Canvas rendering  
 `src/ui/` — shared HUD components  
 `src/content/` — all tuneable arena and character configuration
 
 Every player class, teammate and opponent has its own folder. Tune values in each folder's `config.js`; future animation art belongs in that same folder's `assets/` directory.
 
-The visual theme is centralized in `src/styles/theme.css`, so later palette/frame changes propagate across the HUD. Canvas rendering reads those same CSS variables.
+The visual theme is centralized in `src/styles/theme.css`, while interaction/feedback styles are isolated in `src/styles/feedback.css`. Canvas rendering reads the shared theme variables.

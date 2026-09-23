@@ -6,6 +6,7 @@
   <title>3v3 Arena — Prototype</title>
   <link rel="stylesheet" href="./src/styles/theme.css" />
   <link rel="stylesheet" href="./src/styles/game.css" />
+  <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
   <div id="app">
@@ -38,6 +39,24 @@
         <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
         <div id="combat-log" class="combat-log" aria-live="polite"></div>
         <div id="toast" class="toast" aria-live="polite"></div>
+
+        <div id="player-cc-alert" class="player-cc-alert hidden" aria-live="assertive">
+          <div class="player-cc-icon">
+            <svg id="cc-fear-icon" class="cc-alert-svg" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M12 25 Q20 17 28 25" />
+              <path d="M36 25 Q44 17 52 25" />
+              <path d="M17 43 Q32 31 47 43" />
+              <path d="M9 13 L16 18 M55 13 L48 18" />
+            </svg>
+            <svg id="cc-incap-icon" class="cc-alert-svg" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M32 8 L36 24 L52 20 L40 32 L54 42 L37 40 L32 56 L27 40 L10 42 L24 32 L12 20 L28 24 Z" />
+              <circle cx="32" cy="32" r="5" />
+            </svg>
+          </div>
+          <div id="player-cc-title" class="player-cc-title">FEARED</div>
+          <div id="player-cc-time" class="player-cc-time">3.5s</div>
+          <div id="player-cc-source" class="player-cc-source"></div>
+        </div>
 
         <div id="match-result" class="match-result hidden">
           <div class="match-result-card panel">

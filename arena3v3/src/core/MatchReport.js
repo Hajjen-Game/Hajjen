@@ -6,10 +6,11 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.4-ai-tactics",
+    "Build: prototype-v0.5-input-cc-feedback",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
+    "Input queue: 400ms ability queue window",
     "RNG: marble bags for hit / dodge / miss / crit / amount variance",
     "",
     "=== FRIENDLY TEAM ===",

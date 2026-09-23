@@ -29,6 +29,11 @@ export class UIManager {
     this.playerResourceValue = document.querySelector("#player-resource-value");
     this.playerResourceFill = document.querySelector("#player-resource-fill");
 
+    this.playerCcAlert = document.querySelector("#player-cc-alert");
+    this.playerCcTitle = document.querySelector("#player-cc-title");
+    this.playerCcTime = document.querySelector("#player-cc-time");
+    this.playerCcSource = document.querySelector("#player-cc-source");
+
     this.controlsModal = document.querySelector("#controls-modal");
     this.bindingList = document.querySelector("#binding-list");
 
@@ -71,9 +76,11 @@ export class UIManager {
 
   refreshPartyKeycaps() {
     const friendly = this.game.actors.filter(actor => actor.team === "friendly");
+
     friendly.forEach((actor, index) => {
       const frame = this.frameElements.get(actor.id);
       if (!frame) return;
+
       const key = frame.querySelector(".party-key");
       key.textContent = this.input.label("party" + (index + 1));
       key.hidden = false;
@@ -207,6 +214,7 @@ export class UIManager {
 
     this.updateDamageMeter();
     this.updatePlayerResource();
+    this.updatePlayerCcAlert();
 
     this.game.player.spells.forEach((spell, index) => {
       const slot = this.actionSlots[index];
@@ -232,6 +240,7 @@ export class UIManager {
         "disabled",
         invalidTarget || noResource || controlled || schoolLocked || !this.game.player.alive,
       );
+      slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === index);
     });
 
     if (this.game.player.cast) {
@@ -243,6 +252,27 @@ export class UIManager {
     } else {
       this.playerCast.classList.add("hidden");
     }
+  }
+
+  updatePlayerCcAlert() {
+    const effect = this.game.player.effects.find(item =>
+      item.remainingMs > 0 && (item.kind === "fear" || item.kind === "incapacitate")
+    );
+
+    if (!effect || !this.game.player.alive) {
+      this.playerCcAlert.classList.add("hidden");
+      this.playerCcAlert.classList.remove("fear", "incapacitate");
+      return;
+    }
+
+    const source = this.game.getActor(effect.sourceId);
+    const spell = source?.getSpell(effect.spellId);
+
+    this.playerCcAlert.classList.remove("hidden", "fear", "incapacitate");
+    this.playerCcAlert.classList.add(effect.kind);
+    this.playerCcTitle.textContent = effect.kind === "fear" ? "FEARED" : "INCAPACITATED";
+    this.playerCcTime.textContent = Math.max(0, effect.remainingMs / 1000).toFixed(1) + "s";
+    this.playerCcSource.textContent = spell?.name ? spell.name : "";
   }
 
   renderEffects(frame, actor) {
@@ -322,6 +352,14 @@ export class UIManager {
     window.setTimeout(() => {
       slot.classList.remove("pressed", "rejected");
     }, 170);
+  }
+
+  pulseQueuedAction(index) {
+    const slot = this.actionSlots[index];
+    if (!slot) return;
+
+    slot.classList.remove("rejected");
+    slot.classList.add("queued");
   }
 
   setResult(title) {

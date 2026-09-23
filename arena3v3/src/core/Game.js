@@ -2,6 +2,7 @@ import { Actor } from "../entities/Actor.js";
 import { MovementSystem } from "../systems/MovementSystem.js";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
+import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
 import { AISystem } from "../systems/AISystem.js";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
@@ -24,6 +25,7 @@ export class Game {
 
     this.cc = new CrowdControlSystem(this);
     this.combat = new CombatSystem(this);
+    this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);
     this.renderer = new CanvasRenderer(canvas, arena);
 
@@ -98,16 +100,30 @@ export class Game {
   castPlayerSpell(index) {
     if (!this.player.alive || this.ended) return false;
 
+    const result = this.abilityQueue.request(index);
+
+    if (result.cast) {
+      this.ui?.pulseAction(index, true);
+    } else if (result.queued) {
+      this.ui?.pulseQueuedAction(index);
+    } else {
+      this.ui?.pulseAction(index, false);
+    }
+
+    return result.accepted;
+  }
+
+  tryCastPlayerSpellNow(index, targetId = null) {
+    if (!this.player.alive || this.ended) return false;
+
     const spell = this.player.spells[index];
     if (!spell) return false;
 
     const target = spell.target === "self"
       ? this.player
-      : this.getActor(this.player.targetId);
+      : this.getActor(targetId ?? this.player.targetId);
 
-    const success = this.combat.tryCast(this.player, spell, target);
-    this.ui?.pulseAction(index, success);
-    return success;
+    return this.combat.tryCast(this.player, spell, target);
   }
 
   onCanvasClick(event) {
@@ -156,6 +172,7 @@ export class Game {
 
       if (moving && playerCanMove && this.player.cast) {
         this.combat.cancelCast(this.player, "movement");
+        this.abilityQueue.clear();
       }
 
       if (moving && playerCanMove) {
@@ -163,6 +180,7 @@ export class Game {
       }
 
       this.combat.update(deltaMs);
+      this.abilityQueue.update();
       this.ai.update(deltaSeconds);
       this.checkWinCondition();
     }
@@ -207,6 +225,7 @@ export class Game {
     if (this.ended) return;
 
     this.ended = true;
+    this.abilityQueue.clear();
     this.resultText = result;
     this.ui.setResult(result);
     this.log(message);
@@ -287,6 +306,7 @@ export class Game {
 
     this.cc = new CrowdControlSystem(this);
     this.combat = new CombatSystem(this);
+    this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);
 
     this.elapsedSeconds = 0;

@@ -1,0 +1,116 @@
+.player-cc-alert {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  z-index: 9;
+  transform: translate(-50%, -50%);
+  width: 172px;
+  padding: 12px 14px 11px;
+  text-align: center;
+  pointer-events: none;
+  border: 1px solid var(--gold-bright);
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 25%, rgba(93,58,28,.94), rgba(23,14,10,.95) 70%);
+  box-shadow:
+    0 0 0 2px rgba(227,186,114,.15),
+    0 0 34px rgba(0,0,0,.6),
+    inset 0 0 20px rgba(227,186,114,.08);
+  animation: cc-alert-pulse .75s ease-in-out infinite alternate;
+}
+
+.player-cc-alert.hidden {
+  display: none;
+}
+
+.player-cc-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 4px;
+  display: grid;
+  place-items: center;
+}
+
+.cc-alert-svg {
+  width: 58px;
+  height: 58px;
+  fill: none;
+  stroke: #ffe2ad;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 7px rgba(227,186,114,.38));
+}
+
+.player-cc-alert.fear #cc-incap-icon {
+  display: none;
+}
+
+.player-cc-alert.incapacitate #cc-fear-icon {
+  display: none;
+}
+
+.player-cc-title {
+  color: #fff1d2;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.player-cc-time {
+  margin-top: 5px;
+  color: var(--gold-bright);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.player-cc-source {
+  min-height: 13px;
+  margin-top: 2px;
+  color: var(--cream-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.action-slot.queued {
+  opacity: 1;
+  border-color: var(--gold-bright);
+  background: linear-gradient(180deg, #4a321c, #25170f);
+  box-shadow:
+    0 0 0 2px rgba(227,186,114,.18),
+    0 0 16px rgba(227,186,114,.22);
+}
+
+.action-slot.queued::after {
+  content: "QUEUED";
+  position: absolute;
+  right: 7px;
+  bottom: 5px;
+  color: var(--gold-bright);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .1em;
+  pointer-events: none;
+}
+
+.action-slot.queued .spell-meta {
+  color: #d8bd8a;
+}
+
+@keyframes cc-alert-pulse {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow:
+      0 0 0 2px rgba(227,186,114,.12),
+      0 0 28px rgba(0,0,0,.55),
+      inset 0 0 18px rgba(227,186,114,.06);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.025);
+    box-shadow:
+      0 0 0 3px rgba(227,186,114,.22),
+      0 0 40px rgba(0,0,0,.65),
+      inset 0 0 24px rgba(227,186,114,.12);
+  }
+}

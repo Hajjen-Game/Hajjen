@@ -15,7 +15,7 @@
         <div>
           <div class="eyebrow">THE GRAND RING</div>
           <h1>SELECT CHARACTER</h1>
-          <p>Choose a healer, build Honor and Rank, and keep separate progression for every character.</p>
+          <p>Choose a character, build Honor and Rank, and keep separate progression for every character. Warrior is now available as the first playable DPS class.</p>
         </div>
         <div class="character-screen-actions">
           <button id="character-return" class="hud-button" type="button" hidden>RETURN TO MATCH</button>
@@ -31,7 +31,7 @@
       <div class="modal-header">
         <div>
           <div class="eyebrow">NEW CHARACTER</div>
-          <h2 id="create-character-title">CREATE HEALER</h2>
+          <h2 id="create-character-title">CREATE CHARACTER</h2>
         </div>
         <button id="create-character-close" class="icon-button" aria-label="Close character creation">×</button>
       </div>
@@ -43,13 +43,13 @@
         </label>
 
         <label class="roster-field">
-          <span>Healer Class</span>
+          <span>Class</span>
           <select id="create-character-class"></select>
         </label>
       </div>
 
       <div id="create-character-error" class="character-create-error"></div>
-      <div class="roster-note">Class is locked to this character. Honor, Rank and future Talent Points are saved separately per character.</div>
+      <div class="roster-note">Priest, Druid and Paladin are healer characters. Warrior is the first playable DPS character. Class, Honor, Rank and future Talent Points are saved separately per character.</div>
 
       <div class="roster-actions">
         <button id="create-character-cancel" class="hud-button" type="button">CANCEL</button>
@@ -254,15 +254,19 @@
       <div class="roster-section">
         <div class="roster-section-title friendly">YOUR TEAM</div>
         <div class="roster-field roster-character-fixed">
-          <span>Your Character · Healer</span>
+          <span id="setup-player-role">Your Character · Healer</span>
           <strong id="setup-player-name">Player</strong>
           <small id="setup-player-class">Priest</small>
         </div>
-        <label class="roster-field">
+        <label id="roster-field-healer" class="roster-field">
+          <span>Teammate · Healer</span>
+          <select id="roster-ally-healer"></select>
+        </label>
+        <label id="roster-field-melee" class="roster-field">
           <span>Teammate · Melee</span>
           <select id="roster-ally-melee"></select>
         </label>
-        <label class="roster-field">
+        <label id="roster-field-caster" class="roster-field">
           <span>Teammate · Caster</span>
           <select id="roster-ally-caster"></select>
         </label>
@@ -287,7 +291,7 @@
         </div>
       </div>
 
-      <div class="roster-note">The enemy setup is rolled first. Build your own Healer + Melee + Caster team after seeing what you are facing.</div>
+      <div class="roster-note">The enemy setup is rolled first. Your selected character keeps its class; choose the two missing roles to complete a Healer + Melee + Caster team.</div>
       <div class="roster-actions">
         <button id="roster-cancel" class="hud-button">CANCEL</button>
         <button id="roster-apply" class="hud-button primary">START MATCH</button>

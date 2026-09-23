@@ -13,21 +13,22 @@ import {
 } from "./content/classes/registry.js";
 import { WOW_CLASS_COLORS } from "./content/classes/classColors.js";
 
-const ROSTER_STORAGE_KEY = "arena3v3-roster-v3";
-const LEGACY_ROSTER_STORAGE_KEY = "arena3v3-roster-v2";
+const ROSTER_STORAGE_KEY = "arena3v3-roster-v4";
+const LEGACY_ROSTER_STORAGE_KEY = "arena3v3-roster-v3";
 
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
 const input = new InputManager();
 const characters = new CharacterStore();
+const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior"]);
 
 let game = null;
 let activeCharacter = null;
 let baseRoster = loadTeamPreferences();
 let roster = {
   ...baseRoster,
-  playerHealer: DEFAULT_ROSTER.playerHealer,
+  playerClass: DEFAULT_ROSTER.playerClass,
   playerName: "Player",
 };
 let lastEnemyKey = "";
@@ -72,6 +73,9 @@ function loadTeamPreferences() {
     || {};
 
   return {
+    allyHealer: validClassForRole(stored.allyHealer, "healer")
+      ? stored.allyHealer
+      : DEFAULT_ROSTER.allyHealer,
     allyMelee: validClassForRole(stored.allyMelee, "melee")
       ? stored.allyMelee
       : DEFAULT_ROSTER.allyMelee,
@@ -87,8 +91,9 @@ function className(classId) {
 
 function currentCharacterRoster() {
   return {
-    playerHealer: activeCharacter?.healerClass || DEFAULT_ROSTER.playerHealer,
+    playerClass: activeCharacter?.classId || DEFAULT_ROSTER.playerClass,
     playerName: activeCharacter?.name || "Player",
+    allyHealer: baseRoster.allyHealer,
     allyMelee: baseRoster.allyMelee,
     allyCaster: baseRoster.allyCaster,
   };
@@ -118,12 +123,21 @@ function fillSelect(selectId, role, selectedClassId) {
 }
 
 function renderRosterForm() {
-  document.querySelector("#setup-player-name").textContent = activeCharacter?.name || "Player";
-  document.querySelector("#setup-player-class").textContent =
-    className(activeCharacter?.healerClass || DEFAULT_ROSTER.playerHealer);
+  const playerClassId = activeCharacter?.classId || DEFAULT_ROSTER.playerClass;
+  const playerRole = CLASS_REGISTRY[playerClassId]?.role || "healer";
 
+  document.querySelector("#setup-player-name").textContent = activeCharacter?.name || "Player";
+  document.querySelector("#setup-player-role").textContent =
+    "Your Character · " + playerRole.charAt(0).toUpperCase() + playerRole.slice(1);
+  document.querySelector("#setup-player-class").textContent = className(playerClassId);
+
+  fillSelect("#roster-ally-healer", "healer", baseRoster.allyHealer);
   fillSelect("#roster-ally-melee", "melee", baseRoster.allyMelee);
   fillSelect("#roster-ally-caster", "caster", baseRoster.allyCaster);
+
+  document.querySelector("#roster-field-healer").hidden = playerRole === "healer";
+  document.querySelector("#roster-field-melee").hidden = playerRole === "melee";
+  document.querySelector("#roster-field-caster").hidden = playerRole === "caster";
 }
 
 function renderEnemyPreview() {
@@ -167,6 +181,7 @@ function closeMatchSetup() {
 function saveTeamPreferences() {
   try {
     localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify({
+      allyHealer: baseRoster.allyHealer,
       allyMelee: baseRoster.allyMelee,
       allyCaster: baseRoster.allyCaster,
     }));
@@ -190,7 +205,7 @@ function renderCharacterList() {
   if (saved.length === 0) {
     const empty = document.createElement("div");
     empty.className = "character-empty";
-    empty.textContent = "No characters yet. Create a healer to enter the arena.";
+    empty.textContent = "No characters yet. Create a character to enter the arena.";
     characterList.appendChild(empty);
   }
 
@@ -201,7 +216,7 @@ function renderCharacterList() {
     card.className = "character-card";
     card.style.setProperty(
       "--character-color",
-      WOW_CLASS_COLORS[character.healerClass] || "#d9b977",
+      WOW_CLASS_COLORS[character.classId] || "#d9b977",
     );
 
     card.innerHTML =
@@ -215,7 +230,9 @@ function renderCharacterList() {
       + '<span class="character-play">PLAY</span>';
 
     card.querySelector(".character-name").textContent = character.name;
-    card.querySelector(".character-class").textContent = className(character.healerClass) + " · Healer";
+    const role = CLASS_REGISTRY[character.classId]?.role || "unknown";
+    card.querySelector(".character-class").textContent =
+      className(character.classId) + " · " + role.charAt(0).toUpperCase() + role.slice(1);
     card.querySelector(".character-rank").textContent =
       "Rank " + status.rank + " · " + status.title + " · TP " + status.talentPoints;
     card.querySelector(".character-honor").textContent =
@@ -249,10 +266,25 @@ function hideCharacterScreen() {
   characterScreen.classList.add("hidden");
 }
 
+function fillCharacterClassSelect(selectedClassId = "priest") {
+  createCharacterClass.innerHTML = "";
+
+  for (const classId of ["priest", "druid", "paladin", "warrior"]) {
+    const option = document.createElement("option");
+    option.value = classId;
+    option.textContent =
+      CLASS_REGISTRY[classId].displayName
+      + " · " + CLASS_REGISTRY[classId].role.charAt(0).toUpperCase()
+      + CLASS_REGISTRY[classId].role.slice(1);
+    option.selected = classId === selectedClassId;
+    createCharacterClass.appendChild(option);
+  }
+}
+
 function openCreateCharacter() {
   createCharacterError.textContent = "";
   createCharacterName.value = "";
-  fillSelect("#create-character-class", "healer", "priest");
+  fillCharacterClassSelect("priest");
   createCharacterModal.classList.remove("hidden");
   window.setTimeout(() => createCharacterName.focus(), 0);
 }
@@ -273,7 +305,7 @@ function ensureLegacyCharacter() {
   try {
     const character = characters.create({
       name: "Player",
-      healerClass,
+      classId: healerClass,
     });
     migrateLegacyHonor(character.id);
   } catch {
@@ -295,7 +327,7 @@ function selectCharacter(characterId) {
   game.selectCharacter(activeCharacter, buildRosterConfigs(roster));
 
   document.querySelector("#active-character-label").textContent =
-    activeCharacter.name + " · " + className(activeCharacter.healerClass);
+    activeCharacter.name + " · " + className(activeCharacter.classId);
 
   hideCharacterScreen();
   renderCharacterList();
@@ -326,14 +358,14 @@ document.querySelector("#create-character-cancel").addEventListener("click", clo
 
 document.querySelector("#create-character-confirm").addEventListener("click", () => {
   try {
-    const healerClass = createCharacterClass.value;
-    if (!validClassForRole(healerClass, "healer")) {
-      throw new Error("Choose a healer class.");
+    const classId = createCharacterClass.value;
+    if (!PLAYABLE_CLASS_IDS.has(classId)) {
+      throw new Error("Choose a playable class.");
     }
 
     const character = characters.create({
       name: createCharacterName.value,
-      healerClass,
+      classId,
     });
 
     closeCreateCharacter();
@@ -370,6 +402,7 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
   if (!activeCharacter || !game) return;
 
   baseRoster = {
+    allyHealer: document.querySelector("#roster-ally-healer").value,
     allyMelee: document.querySelector("#roster-ally-melee").value,
     allyCaster: document.querySelector("#roster-ally-caster").value,
   };
@@ -424,7 +457,7 @@ game = new Game({
   characterConfigs: buildRosterConfigs(placeholderRoster),
 });
 
-fillSelect("#create-character-class", "healer", "priest");
+fillCharacterClassSelect("priest");
 game.start();
 showCharacterScreen({ allowReturn: false });
 window.arena3v3 = game;

@@ -20,11 +20,11 @@ export class CharacterStore {
       if (!Array.isArray(stored)) return [];
 
       return stored
-        .filter(item => item && item.id && item.name && item.healerClass)
+        .filter(item => item && item.id && item.name && (item.classId || item.healerClass))
         .map(item => ({
           id: String(item.id),
           name: cleanName(item.name).slice(0, 18),
-          healerClass: String(item.healerClass),
+          classId: String(item.classId || item.healerClass),
           createdAt: Number(item.createdAt) || Date.now(),
           lastPlayedAt: Number(item.lastPlayedAt) || 0,
         }))
@@ -52,7 +52,7 @@ export class CharacterStore {
     return this.characters.find(character => character.id === id) || null;
   }
 
-  create({ name, healerClass }) {
+  create({ name, classId }) {
     const cleaned = cleanName(name);
 
     if (cleaned.length < 2 || cleaned.length > 18) {
@@ -73,7 +73,7 @@ export class CharacterStore {
     const character = {
       id: newId(),
       name: cleaned,
-      healerClass,
+      classId,
       createdAt: now,
       lastPlayedAt: now,
     };

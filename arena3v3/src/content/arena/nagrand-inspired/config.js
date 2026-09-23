@@ -17,6 +17,7 @@ export const arenaConfig = {
 
   spawns: {
     "player-healer": { x: 135, y: 360, facing: 0 },
+    "ally-healer": { x: 175, y: 300, facing: 0 },
     "ally-melee": { x: 175, y: 300, facing: 0 },
     "ally-caster": { x: 175, y: 420, facing: 0 },
 

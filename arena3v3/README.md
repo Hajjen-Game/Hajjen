@@ -111,15 +111,18 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - cast-time spells still cancel when movement continues, matching the existing movement/casting rule
 - Character selection:
   - the game now opens on a WoW-style character screen
-  - create multiple persistent healer characters; creating a new one never overwrites existing characters
-  - character creation asks for a custom name and healer class (Priest, Druid or Paladin)
-  - each character permanently keeps its healer class plus separate Honor, Rank, win/loss record and banked Talent Points
+  - create multiple persistent characters; creating a new one never overwrites existing characters
+  - character creation asks for a custom name and class
+  - playable player classes currently include Priest, Druid, Paladin and Warrior
+  - Warrior is the first playable DPS class; its existing five-spell Warrior kit is controlled directly by the player
+  - each character permanently keeps its class plus separate Honor, Rank, win/loss record and banked Talent Points
   - a CHARACTERS button returns to the character screen; an active match can be resumed if you only opened the screen to look
   - existing pre-character Honor progress is automatically preserved as a legacy "Player" character on first load
 - Pre-match draft:
   - every match begins on a setup screen before the arena timer or AI starts
   - the random enemy healer, melee and caster are revealed first
-  - after seeing the opponent composition, the selected healer character chooses their melee + caster teammates
+  - after seeing the opponent composition, the selected character chooses the two missing roles needed to form Healer + Melee + Caster
+  - healer characters choose melee + caster; Warrior chooses healer + caster
   - START MATCH locks that setup and begins combat
   - NEXT MATCH and confirmed RESTART both return to this setup flow with a newly rolled enemy composition
   - the exact same enemy composition is avoided twice in a row

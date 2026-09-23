@@ -27,7 +27,9 @@ export const CLASS_IDS_BY_ROLE = {
 };
 
 export const DEFAULT_ROSTER = {
+  playerClass: "priest",
   playerHealer: "priest",
+  allyHealer: "priest",
   allyMelee: "warrior",
   allyCaster: "mage",
   enemyHealer: "paladin",
@@ -36,7 +38,8 @@ export const DEFAULT_ROSTER = {
 };
 
 const SLOT_META = {
-  playerHealer: { id: "player-healer", team: "friendly", control: "player", role: "healer", name: "Player" },
+  player: { id: "player-healer", team: "friendly", control: "player", role: null, name: "Player" },
+  allyHealer: { id: "ally-healer", team: "friendly", control: "ai", role: "healer" },
   allyMelee: { id: "ally-melee", team: "friendly", control: "ai", role: "melee" },
   allyCaster: { id: "ally-caster", team: "friendly", control: "ai", role: "caster" },
   enemyHealer: { id: "enemy-healer", team: "enemy", control: "ai", role: "healer" },
@@ -54,7 +57,7 @@ export function createCombatantConfig(classId, slotKey) {
 
   if (!template) throw new Error("Unknown class: " + classId);
   if (!slot) throw new Error("Unknown roster slot: " + slotKey);
-  if (template.role !== slot.role) {
+  if (slot.role && template.role !== slot.role) {
     throw new Error(template.displayName + " cannot be used in " + slot.role + " slot");
   }
 
@@ -65,16 +68,31 @@ export function createCombatantConfig(classId, slotKey) {
     name: slot.name || template.displayName,
     className: template.displayName,
     team: slot.team,
-    role: slot.role,
+    role: slot.role || template.role,
     control: slot.control,
   };
 }
 
 export function buildRosterConfigs(roster) {
+  const playerClassId = roster.playerClass || roster.playerHealer || DEFAULT_ROSTER.playerClass;
+  const playerTemplate = CLASS_REGISTRY[playerClassId];
+
+  if (!playerTemplate) throw new Error("Unknown player class: " + playerClassId);
+
+  const friendly = [createCombatantConfig(playerClassId, "player")];
+
+  if (playerTemplate.role !== "healer") {
+    friendly.push(createCombatantConfig(roster.allyHealer || DEFAULT_ROSTER.allyHealer, "allyHealer"));
+  }
+  if (playerTemplate.role !== "melee") {
+    friendly.push(createCombatantConfig(roster.allyMelee || DEFAULT_ROSTER.allyMelee, "allyMelee"));
+  }
+  if (playerTemplate.role !== "caster") {
+    friendly.push(createCombatantConfig(roster.allyCaster || DEFAULT_ROSTER.allyCaster, "allyCaster"));
+  }
+
   const configs = [
-    createCombatantConfig(roster.playerHealer, "playerHealer"),
-    createCombatantConfig(roster.allyMelee, "allyMelee"),
-    createCombatantConfig(roster.allyCaster, "allyCaster"),
+    ...friendly,
     createCombatantConfig(roster.enemyHealer, "enemyHealer"),
     createCombatantConfig(roster.enemyMelee, "enemyMelee"),
     createCombatantConfig(roster.enemyCaster, "enemyCaster"),

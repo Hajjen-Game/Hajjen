@@ -78,6 +78,8 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .frame-resource-fill { height: 100%; width: 100%; transition: width .12s linear; }
 .frame-resource-fill.mana { background: var(--mana); }
 .frame-resource-fill.energy { background: var(--energy); }
+.frame-resource-fill.rage { background: var(--rage); }
+.frame-resource-fill.runic { background: var(--runic); }
 
 .frame-effects { min-height: 20px; display: flex; align-items: center; gap: 4px; margin-top: 5px; overflow: hidden; }
 .effect-badge {
@@ -266,6 +268,8 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .player-resource-fill { height: 100%; width: 100%; transition: width .12s linear; }
 .player-resource-fill.mana { background: var(--mana); }
 .player-resource-fill.energy { background: var(--energy); }
+.player-resource-fill.rage { background: var(--rage); }
+.player-resource-fill.runic { background: var(--runic); }
 
 .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(7,5,4,.72); }
 .modal.hidden { display: none; }

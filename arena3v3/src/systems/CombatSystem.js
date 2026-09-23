@@ -56,6 +56,7 @@ export class CombatSystem {
       if (effect.kind !== "hot" && effect.kind !== "dot") continue;
 
       effect.nextTickMs -= deltaMs;
+
       while (effect.nextTickMs <= 0 && effect.remainingMs > -effect.tickMs) {
         effect.nextTickMs += effect.tickMs;
 
@@ -63,9 +64,24 @@ export class CombatSystem {
         if (!source?.alive) continue;
 
         if (effect.kind === "hot") {
-          this.applyHeal(source, actor, effect.amount, effect.spellId, true);
+          this.applyHeal(
+            source,
+            actor,
+            effect.amount,
+            effect.spellId,
+            true,
+            effect.visualStyle,
+          );
         } else {
-          this.applyDamage(source, actor, effect.amount, effect.spellId, true, true);
+          this.applyDamage(
+            source,
+            actor,
+            effect.amount,
+            effect.spellId,
+            true,
+            true,
+            effect.visualStyle,
+          );
         }
       }
     }
@@ -173,12 +189,15 @@ export class CombatSystem {
       return false;
     }
 
-    const specialUtility = spell.effects.some(effect =>
-      ["fearAoE", "interrupt", "incapacitate", "chainDamage"].includes(effect.kind)
-    );
+    const utilityKinds = new Set([
+      "fearAoE", "fear", "interrupt", "incapacitate", "stun",
+      "root", "rootAoE", "gapClose", "chainDamage",
+    ]);
+    const specialUtility = spell.effects.some(effect => utilityKinds.has(effect.kind));
 
     if (spell.target === "enemy" && !spell.noHitRoll && !specialUtility) {
       const hit = this.rollHit(caster, target, spell.id);
+
       if (hit !== "hit") {
         this.game.recordAvoidance(caster, target, hit);
         const label = hit === "miss" ? "MISS" : "DODGE";
@@ -198,31 +217,56 @@ export class CombatSystem {
     this.game.recordCast(caster, spell);
 
     for (const effect of spell.effects) {
+      const effectTarget = effect.to === "self" ? caster : target;
+      const style = effect.visualStyle || spell.visualStyle || caster.visualStyle || "damage";
+
       switch (effect.kind) {
         case "damage":
-          this.applyDamage(caster, target, effect.amount, spell.id, false, true);
+          this.applyDamage(caster, effectTarget, effect.amount, spell.id, false, true, style);
           break;
         case "chainDamage":
           this.applyChainDamage(caster, target, spell, effect);
           break;
         case "heal":
-          this.applyHeal(caster, target, effect.amount, spell.id, false);
+          this.applyHeal(caster, effectTarget, effect.amount, spell.id, false, style);
           break;
         case "dot":
         case "hot":
-          this.applyPeriodic(caster, target, spell, effect);
+          this.applyPeriodic(caster, effectTarget, spell, effect, style);
           break;
         case "damageReduction":
-          this.applyTimedBuff(caster, target, spell, effect);
+        case "healingReduction":
+          this.applyTimedEffect(caster, effectTarget, spell, effect, style);
           break;
         case "fearAoE":
           this.game.cc.applyFearAoE(caster, spell, effect);
           break;
+        case "fear":
+          this.game.cc.applyFear(caster, effectTarget, spell, effect);
+          break;
         case "incapacitate":
-          this.game.cc.applyIncapacitate(caster, target, spell, effect);
+          this.game.cc.applyIncapacitate(caster, effectTarget, spell, effect);
+          break;
+        case "stun":
+          this.game.cc.applyStun(caster, effectTarget, spell, effect);
+          break;
+        case "root":
+          this.game.cc.applyRoot(caster, effectTarget, spell, effect);
+          break;
+        case "rootAoE":
+          this.game.cc.applyRootAoE(caster, spell, effect);
           break;
         case "interrupt":
-          this.game.cc.interrupt(caster, target, spell, effect);
+          this.game.cc.interrupt(caster, effectTarget, spell, effect);
+          break;
+        case "gapClose":
+          this.game.movement.dashToRange(
+            caster,
+            effectTarget,
+            effect.stopDistance ?? 50,
+            this.game.arena,
+          );
+          this.game.vfx.beam(caster, effectTarget, style, 170);
           break;
         default:
           break;
@@ -250,7 +294,8 @@ export class CombatSystem {
     ordered.push(...others);
 
     const targets = ordered.slice(0, maxTargets);
-    const visualIds = [caster.id, ...targets.map(target => target.id)];
+    const visualIds = [caster.id, ...targets.map(chainTarget => chainTarget.id)];
+    const style = effect.visualStyle || spell.visualStyle || caster.visualStyle || "lightning";
 
     targets.forEach((chainTarget, index) => {
       const outcome = this.rollHit(caster, chainTarget, spell.id + ":chain:" + index);
@@ -269,10 +314,11 @@ export class CombatSystem {
         spell.id + ":chain:" + index,
         false,
         true,
+        style,
       );
     });
 
-    this.game.vfx.chain(visualIds, effect.visualStyle || "lightning", 380);
+    this.game.vfx.chain(visualIds, style, 380);
 
     if (targets.length > 1) {
       this.game.log(caster.name + "'s " + spell.name + " chains through " + targets.length + " targets.");
@@ -305,7 +351,7 @@ export class CombatSystem {
     return Math.round(base * variance);
   }
 
-  applyDamage(source, target, baseAmount, spellId, periodic = false, skipHit = false) {
+  applyDamage(source, target, baseAmount, spellId, periodic = false, skipHit = false, visualStyle = "damage") {
     if (!source.alive || !target.alive) return;
 
     if (!skipHit) {
@@ -332,7 +378,7 @@ export class CombatSystem {
     this.game.addFloatingText(target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
 
     if (!periodic) {
-      this.game.vfx.burst(target, "damage", crit ? 340 : 240);
+      this.game.vfx.burst(target, visualStyle, crit ? 360 : 250);
     }
 
     this.game.log(
@@ -346,7 +392,7 @@ export class CombatSystem {
     }
   }
 
-  applyHeal(source, target, baseAmount, spellId, periodic = false) {
+  applyHeal(source, target, baseAmount, spellId, periodic = false, visualStyle = "heal") {
     if (!source.alive || !target.alive) return;
 
     let amount = this.amount(source, spellId, baseAmount, periodic ? "hot" : "heal");
@@ -354,9 +400,8 @@ export class CombatSystem {
 
     if (crit) amount = Math.round(amount * source.critMultiplier);
 
-    // Dampening is applied to healing received, matching the arena-style
-    // mechanic rather than changing spell coefficients themselves.
     amount = this.game.dampening.applyToHealing(amount);
+    amount = Math.round(amount * (1 - target.healingReduction()));
 
     const actual = Math.min(amount, target.maxHealth - target.health);
     target.health = Math.min(target.maxHealth, target.health + amount);
@@ -366,8 +411,8 @@ export class CombatSystem {
       this.game.addFloatingText(target, (crit ? "✦ " : "") + "+" + actual, crit ? "crit-heal" : "heal");
 
       if (!periodic) {
-        this.game.vfx.beam(source, target, "heal", 260);
-        this.game.vfx.burst(target, "heal", crit ? 380 : 280);
+        this.game.vfx.beam(source, target, visualStyle, 260);
+        this.game.vfx.burst(target, visualStyle, crit ? 390 : 290);
       }
 
       this.game.log(
@@ -376,7 +421,7 @@ export class CombatSystem {
     }
   }
 
-  applyPeriodic(source, target, spell, effect) {
+  applyPeriodic(source, target, spell, effect, visualStyle) {
     target.effects = target.effects.filter(existing =>
       !(existing.spellId === spell.id
         && existing.sourceId === source.id
@@ -393,13 +438,14 @@ export class CombatSystem {
       tickMs: effect.tickMs,
       nextTickMs: effect.tickMs,
       value: effect.value || 0,
+      visualStyle,
     });
 
-    this.game.vfx.ring(target, effect.kind, target.radius + 4, target.radius + 22, 300);
+    this.game.vfx.ring(target, visualStyle, target.radius + 4, target.radius + 22, 300);
     this.game.log(source.name + " applies " + spell.name + " to " + target.name + ".");
   }
 
-  applyTimedBuff(source, target, spell, effect) {
+  applyTimedEffect(source, target, spell, effect, visualStyle) {
     target.effects = target.effects.filter(existing =>
       !(existing.spellId === spell.id
         && existing.sourceId === source.id
@@ -413,10 +459,17 @@ export class CombatSystem {
       durationMs: effect.durationMs,
       remainingMs: effect.durationMs,
       value: effect.value,
+      visualStyle,
     });
 
-    this.game.vfx.ring(target, "buff", target.radius + 3, target.radius + 26, 360);
-    this.game.addFloatingText(target, "GUARDED", "buff");
-    this.game.log(target.name + " gains " + spell.name + ".");
+    this.game.vfx.ring(target, visualStyle, target.radius + 3, target.radius + 26, 360);
+
+    if (effect.kind === "damageReduction") {
+      this.game.addFloatingText(target, "GUARDED", "buff");
+      this.game.log(target.name + " gains " + spell.name + ".");
+    } else {
+      this.game.addFloatingText(target, "HEALING REDUCED", "debuff");
+      this.game.log(source.name + " applies healing reduction to " + target.name + ".");
+    }
   }
 }

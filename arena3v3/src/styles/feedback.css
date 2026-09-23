@@ -175,3 +175,66 @@
   font-size: 8px;
   color: var(--cream-dim);
 }
+
+
+.roster-card {
+  width: 620px;
+}
+
+.roster-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.roster-section-title {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+.roster-section-title.friendly { color: var(--friendly-bright); }
+.roster-section-title.enemy { color: var(--enemy-bright); }
+
+.roster-field {
+  display: grid;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: rgba(15, 11, 9, .56);
+}
+
+.roster-field span {
+  color: var(--cream-dim);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.roster-field select {
+  width: 100%;
+  color: var(--cream);
+  background: #1b120d;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.roster-note {
+  margin-top: 13px;
+  color: var(--cream-dim);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.roster-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 13px;
+}

@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.17-class-health-bars",
+    "Build: prototype-v0.18-movement-polish",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -19,6 +19,7 @@ export function buildMatchReport(game) {
     "Healer-aware kiting: threatened/low casters try to remain in healing range + LOS of their healer",
     "Combat readability: raised CC markers, red enemy names, WoW class-color HP bars and pulsing red sub-20% health",
     "Caster healer safety: low/pressured casters will not start or finish offensive casts while outside healer range/LOS",
+    "Movement polish: AI slides around pillar corners, tries alternate routes and self-recovers from short stalls",
     "",
     "=== FRIENDLY TEAM ===",
   ];

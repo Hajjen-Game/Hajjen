@@ -411,7 +411,7 @@ export class AISystem {
         const recoveryVector = this.healerSupportVector(actor, healer, meleeThreat);
 
         if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
-          this.movement.move(actor, recoveryVector, deltaSeconds, this.game.arena);
+          this.movement.moveAI(actor, recoveryVector, deltaSeconds, this.game.arena);
           return;
         }
       }
@@ -420,7 +420,7 @@ export class AISystem {
         const kiteVector = this.kiteVector(actor, meleeThreat, healer);
 
         if (kiteVector.x !== 0 || kiteVector.y !== 0) {
-          this.movement.move(actor, kiteVector, deltaSeconds, this.game.arena);
+          this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
           return;
         }
       }
@@ -430,7 +430,7 @@ export class AISystem {
       const pullVector = this.healerLosPullVector(actor, target);
 
       if (pullVector.x !== 0 || pullVector.y !== 0) {
-        this.movement.move(actor, pullVector, deltaSeconds, this.game.arena);
+        this.movement.moveAI(actor, pullVector, deltaSeconds, this.game.arena);
         return;
       }
     }
@@ -449,7 +449,7 @@ export class AISystem {
     }
 
     if (vector.x !== 0 || vector.y !== 0) {
-      this.movement.move(actor, vector, deltaSeconds, this.game.arena);
+      this.movement.moveAI(actor, vector, deltaSeconds, this.game.arena);
     }
   }
 
@@ -507,7 +507,7 @@ export class AISystem {
       side,
       { x: -side.x, y: -side.y },
     ].filter(candidate =>
-      !this.movement.wouldCollide(actor, candidate, actor.radius + 28, this.game.arena)
+      !this.movement.wouldCollide(actor, candidate, Math.max(18, actor.radius), this.game.arena)
     );
 
     if (candidates.length === 0) return { x: 0, y: 0 };
@@ -574,7 +574,7 @@ export class AISystem {
 
     if (
       (combined.x !== 0 || combined.y !== 0)
-      && !this.movement.wouldCollide(actor, combined, actor.radius + 26, this.game.arena)
+      && !this.movement.wouldCollide(actor, combined, Math.max(16, actor.radius * 0.9), this.game.arena)
     ) {
       return combined;
     }
@@ -615,7 +615,7 @@ export class AISystem {
       y: healerToTarget.x * sign,
     };
 
-    if (!this.movement.wouldCollide(actor, side, actor.radius + 24, this.game.arena)) {
+    if (!this.movement.wouldCollide(actor, side, Math.max(16, actor.radius * 0.9), this.game.arena)) {
       return side;
     }
 
@@ -633,7 +633,7 @@ export class AISystem {
   steer(actor, target, toward = 1) {
     const direct = normalize((target.x - actor.x) * toward, (target.y - actor.y) * toward);
 
-    if (!this.movement.wouldCollide(actor, direct, actor.radius + 20, this.game.arena)) {
+    if (!this.movement.wouldCollide(actor, direct, Math.max(14, actor.radius * 0.8), this.game.arena)) {
       return direct;
     }
 
@@ -648,7 +648,7 @@ export class AISystem {
     ];
 
     for (const candidate of candidates) {
-      if (!this.movement.wouldCollide(actor, candidate, actor.radius + 22, this.game.arena)) {
+      if (!this.movement.wouldCollide(actor, candidate, Math.max(16, actor.radius * 0.9), this.game.arena)) {
         return candidate;
       }
     }

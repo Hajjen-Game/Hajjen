@@ -90,6 +90,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Damage meter for both teams
 - Copy Run Report
 - Match ends immediately if Player dies
+- AI movement polish:
+  - AI uses obstacle-aware alternate movement angles when its preferred path is blocked
+  - full-diagonal movement is tried before wall sliding to reduce pillar-corner stalls
+  - persistent stalls flip the actor's preferred avoidance side and allow a short retreat
+  - player movement behavior remains unchanged
 - WoW-style unit readability:
   - world and side-frame HP bars use standard WoW class colors
   - enemy names render in red for faster team recognition

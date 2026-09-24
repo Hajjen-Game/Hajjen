@@ -185,11 +185,13 @@ function renderEnemyPreview() {
 const rosterModal = document.querySelector("#roster-modal");
 const rosterClose = document.querySelector("#roster-close");
 const rosterCancel = document.querySelector("#roster-cancel");
-const characterPrepModal = document.querySelector("#character-prep-modal");
+const arenaLobby = document.querySelector("#arena-lobby");
+const arenaLobbyName = document.querySelector("#arena-lobby-name");
+const arenaLobbyMeta = document.querySelector("#arena-lobby-meta");
 
 function openMatchSetup({ reroll = true, required = true, resumeOnCancel = false } = {}) {
   if (!activeCharacter || !game) return;
-  characterPrepModal.classList.add("hidden");
+  arenaLobby.classList.add("hidden");
   if (reroll) rollOpponent();
 
   setupRequired = required;
@@ -211,47 +213,52 @@ function closeMatchSetup() {
 
   if (resumeAfterCancel && game && !game.ended) {
     game.waitingForStart = false;
+    arenaLobby.classList.add("hidden");
+  } else {
+    enterArenaLobby();
   }
 
   resumeAfterCancel = false;
 }
 
 
-function renderCharacterPrep() {
+function renderArenaLobby() {
   if (!activeCharacter || !game) return;
 
   const honor = game.honor.status();
-  const talents = game.talentStatus();
-
-  document.querySelector("#character-prep-name").textContent = activeCharacter.name;
-  document.querySelector("#character-prep-class").textContent =
-    className(activeCharacter.classId) + " · "
-    + (CLASS_REGISTRY[activeCharacter.classId]?.role || "unknown").toUpperCase();
-  document.querySelector("#character-prep-rank").textContent =
-    "Rank " + honor.rank + " · " + honor.title;
-  document.querySelector("#character-prep-honor").textContent =
-    honor.lifetimeHonor.toLocaleString() + " Honor";
-  document.querySelector("#character-prep-tp").textContent =
-    talents.availablePoints + " TP AVAILABLE";
-  document.querySelector("#character-prep-talent-status").textContent =
-    talents.availablePoints > 0
-      ? talents.spentPoints + " spent · " + talents.availablePoints + " ready to spend"
-      : talents.earnedPoints === 0
-        ? "Reach Rank 2 for your first point"
-        : talents.spentPoints + " / " + talents.earnedPoints + " points spent";
+  arenaLobbyName.textContent = activeCharacter.name;
+  arenaLobbyMeta.textContent =
+    className(activeCharacter.classId).toUpperCase()
+    + " · RANK " + honor.rank
+    + " · " + honor.title.toUpperCase();
 }
 
-function openCharacterPrep() {
-  if (!activeCharacter || !game) return;
+function enterArenaLobby({ reset = false } = {}) {
+  if (!activeCharacter || !game) {
+    showCharacterScreen({ allowReturn: false });
+    return;
+  }
 
-  game.waitingForStart = true;
   rosterModal.classList.add("hidden");
-  renderCharacterPrep();
-  characterPrepModal.classList.remove("hidden");
+  setupRequired = false;
+  resumeAfterCancel = false;
+
+  if (reset || game.ended || game.elapsedSeconds > 0) {
+    game.prepareLobby();
+  } else {
+    game.waitingForStart = true;
+    game.stopMouseSteering?.();
+    game.markRunInactive?.();
+    game.ui.clearResult();
+    game.ui.hideDeathForfeit();
+  }
+
+  renderArenaLobby();
+  arenaLobby.classList.remove("hidden");
 }
 
-function closeCharacterPrep() {
-  characterPrepModal.classList.add("hidden");
+function leaveArenaLobby() {
+  arenaLobby.classList.add("hidden");
 }
 
 function saveTeamPreferences() {
@@ -382,6 +389,7 @@ function deleteCharacter(characterId) {
       game.markRunInactive?.();
     }
 
+    leaveArenaLobby();
     const label = document.querySelector("#active-character-label");
     if (label) label.textContent = "No character selected";
   }
@@ -393,7 +401,7 @@ function showCharacterScreen({ allowReturn = false } = {}) {
   canReturnToMatch = allowReturn;
   if (game) game.waitingForStart = true;
   rosterModal.classList.add("hidden");
-  characterPrepModal.classList.add("hidden");
+  arenaLobby.classList.add("hidden");
   renderCharacterList();
   characterScreen.classList.remove("hidden");
 }
@@ -470,7 +478,7 @@ function selectCharacter(characterId) {
 
   hideCharacterScreen();
   renderCharacterList();
-  openCharacterPrep();
+  enterArenaLobby();
 }
 
 document.querySelector("#characters-button").addEventListener("click", () => {
@@ -487,6 +495,7 @@ document.querySelector("#characters-button").addEventListener("click", () => {
 characterReturn.addEventListener("click", () => {
   if (!canReturnToMatch || !game || game.ended) return;
   hideCharacterScreen();
+  leaveArenaLobby();
   game.waitingForStart = false;
   canReturnToMatch = false;
 });
@@ -522,36 +531,25 @@ createCharacterName.addEventListener("keydown", event => {
   }
 });
 
-document.querySelector("#prep-back-characters").addEventListener("click", () => {
-  closeCharacterPrep();
-  showCharacterScreen({ allowReturn: false });
-});
-
-document.querySelector("#prep-talents").addEventListener("click", () => {
-  renderCharacterPrep();
-  game.ui.openTalents();
-});
-
-document.querySelector("#prep-loadout").addEventListener("click", () => {
+document.querySelector("#actionbar-button").addEventListener("click", () => {
+  if (!activeCharacter) {
+    showCharacterScreen();
+    return;
+  }
   game.ui.openLoadout();
 });
 
-document.querySelector("#prep-honor").addEventListener("click", () => {
-  renderCharacterPrep();
-  game.ui.openHonor();
-});
-
-document.querySelector("#prep-keybindings").addEventListener("click", () => {
-  game.ui.openControls();
-});
-
-document.querySelector("#prep-continue").addEventListener("click", () => {
-  closeCharacterPrep();
-  openMatchSetup({ reroll: true, required: true, resumeOnCancel: false });
+document.querySelector("#start-arena-button").addEventListener("click", () => {
+  if (!activeCharacter || !game) return;
+  openMatchSetup({
+    reroll: true,
+    required: false,
+    resumeOnCancel: false,
+  });
 });
 
 window.addEventListener("arena3v3:talents-updated", () => {
-  if (!characterPrepModal.classList.contains("hidden")) renderCharacterPrep();
+  if (!arenaLobby.classList.contains("hidden")) renderArenaLobby();
 });
 
 document.querySelector("#roster-button").addEventListener("click", () => {
@@ -560,10 +558,17 @@ document.querySelector("#roster-button").addEventListener("click", () => {
     return;
   }
 
+  const activeMatch = Boolean(
+    game
+    && !game.ended
+    && !game.waitingForStart
+    && game.elapsedSeconds > 0
+  );
+
   openMatchSetup({
     reroll: true,
     required: false,
-    resumeOnCancel: Boolean(game && !game.ended),
+    resumeOnCancel: activeMatch,
   });
 });
 rosterClose.addEventListener("click", closeMatchSetup);
@@ -585,6 +590,7 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
     ...baseRoster,
   };
 
+  leaveArenaLobby();
   game.startPreparedMatch(buildRosterConfigs(roster));
   rosterModal.classList.add("hidden");
   setupRequired = false;
@@ -603,7 +609,7 @@ window.addEventListener("arena3v3:request-match-setup", () => {
     return;
   }
 
-  openCharacterPrep();
+  enterArenaLobby({ reset: true });
 });
 
 fitArenaStage();

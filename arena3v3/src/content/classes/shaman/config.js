@@ -38,7 +38,7 @@ export const shamanClass = {
       id: "shaman-hex", name: "Hex", aiRole: "control", visualStyle: "shaman",
       target: "enemy", school: "nature", utility: true, resourceCost: 15, castMs: 1300, cooldownMs: 17000, gcdMs: 1200, range: 335,
       noHitRoll: true,
-      effects: [{ kind: "incapacitate", durationMs: 4200, breakOnDamage: true }],
+      effects: [{ kind: "incapacitate", drCategory: "incapacitate", durationMs: 4200, breakOnDamage: true }],
     },
     {
       id: "shaman-wind-shear", name: "Wind Shear", aiRole: "interrupt", visualStyle: "shaman",

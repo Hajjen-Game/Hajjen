@@ -532,6 +532,10 @@ document.querySelector("#prep-talents").addEventListener("click", () => {
   game.ui.openTalents();
 });
 
+document.querySelector("#prep-loadout").addEventListener("click", () => {
+  game.ui.openLoadout();
+});
+
 document.querySelector("#prep-honor").addEventListener("click", () => {
   renderCharacterPrep();
   game.ui.openHonor();

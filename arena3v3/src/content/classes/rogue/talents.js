@@ -1,0 +1,282 @@
+const MUTILATE_SPELL = Object.freeze({
+  id: "rogue-mutilate",
+  name: "Mutilate",
+  aiRole: "bigDamage",
+  visualStyle: "rogue",
+  target: "enemy",
+  school: "physical",
+  interruptible: false,
+  resourceCost: 32,
+  castMs: 0,
+  cooldownMs: 4500,
+  gcdMs: 1200,
+  range: 60,
+  effects: [{ kind: "damage", amount: 154 }],
+});
+
+const SHADOWSTEP_SPELL = Object.freeze({
+  id: "rogue-shadowstep",
+  name: "Shadowstep",
+  aiRole: "gapClose",
+  visualStyle: "rogue",
+  target: "enemy",
+  school: "physical",
+  interruptible: false,
+  utility: true,
+  resourceCost: 10,
+  castMs: 0,
+  cooldownMs: 12000,
+  gcdMs: 0,
+  ignoreGcd: true,
+  range: 250,
+  noHitRoll: true,
+  effects: [{ kind: "gapClose", stopDistance: 44 }],
+});
+
+export const rogueTalentTree = Object.freeze({
+  classId: "rogue",
+  displayName: "Rogue",
+  branches: [
+    {
+      id: "assassination",
+      name: "Assassination",
+      subtitle: "Bleeds, efficient finishers and lethal single-target pressure.",
+      accent: "#e7d85f",
+      talents: [
+        {
+          id: "rogue-mutilate",
+          name: "Mutilate",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Unlock Mutilate. Its damage is increased by 10% per rank.",
+          rankDescriptions: [
+            "Unlock Mutilate · Mutilate damage +10%.",
+            "Mutilate damage +20%.",
+          ],
+          effects: [
+            { type: "unlockSpell", minRank: 1, spell: MUTILATE_SPELL },
+            { type: "spellEffectScale", spellId: "rogue-mutilate", kinds: ["damage"], field: "amount", perRank: 0.10 },
+          ],
+        },
+        {
+          id: "rogue-serrated-blades",
+          name: "Serrated Blades",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Garrote deals 12% more periodic damage per rank.",
+          rankDescriptions: [
+            "Garrote DoT damage +12%.",
+            "Garrote DoT damage +24%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "rogue-garrote", kinds: ["dot"], field: "amount", perRank: 0.12 },
+          ],
+        },
+        {
+          id: "rogue-efficient-killer",
+          name: "Efficient Killer",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Mutilate and Eviscerate cost 7% less Energy per rank.",
+          rankDescriptions: [
+            "Mutilate & Eviscerate Energy cost -7%.",
+            "Mutilate & Eviscerate Energy cost -14%.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "rogue-mutilate", field: "resourceCost", perRank: -0.07, min: 1 },
+            { type: "spellFieldScale", spellId: "rogue-eviscerate", field: "resourceCost", perRank: -0.07, min: 1 },
+          ],
+        },
+        {
+          id: "rogue-eviscerator",
+          name: "Eviscerator",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Eviscerate deals 9% more damage and recharges 6% faster per rank.",
+          rankDescriptions: [
+            "Eviscerate: +9% damage · -6% cooldown.",
+            "Eviscerate: +18% damage · -12% cooldown.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "rogue-eviscerate", kinds: ["damage"], field: "amount", perRank: 0.09 },
+            { type: "spellFieldScale", spellId: "rogue-eviscerate", field: "cooldownMs", perRank: -0.06, min: 2500 },
+          ],
+        },
+        {
+          id: "rogue-lingering-wounds",
+          name: "Lingering Wounds",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Garrote lasts 1s longer and recharges 8% faster per rank.",
+          rankDescriptions: [
+            "Garrote: +1.0s duration · -8% cooldown.",
+            "Garrote: +2.0s duration · -16% cooldown.",
+          ],
+          effects: [
+            { type: "spellEffectFieldAdd", spellId: "rogue-garrote", kinds: ["dot"], field: "durationMs", perRank: 1000 },
+            { type: "spellFieldScale", spellId: "rogue-garrote", field: "cooldownMs", perRank: -0.08, min: 3000 },
+          ],
+        },
+        {
+          id: "rogue-lethality",
+          name: "Lethality",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Critical strike chance increases by 2 percentage points and Mutilate deals 5% more damage per rank.",
+          rankDescriptions: [
+            "Critical strike chance +2 points · Mutilate damage +5%.",
+            "Critical strike chance +4 points · Mutilate damage +10%.",
+          ],
+          effects: [
+            { type: "statFieldAdd", field: "critChance", perRank: 0.02, integer: false },
+            { type: "spellEffectScale", spellId: "rogue-mutilate", kinds: ["damage"], field: "amount", perRank: 0.05 },
+          ],
+        },
+        {
+          id: "rogue-master-assassin",
+          name: "Master Assassin",
+          tier: 4,
+          requiredPoints: 12,
+          maxRank: 1,
+          capstone: true,
+          description: "Mutilate and Eviscerate deal 20% more damage. Garrote deals 15% more periodic damage.",
+          rankDescriptions: [
+            "Mutilate & Eviscerate +20% damage · Garrote DoT +15%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "rogue-mutilate", kinds: ["damage"], field: "amount", perRank: 0.20 },
+            { type: "spellEffectScale", spellId: "rogue-eviscerate", kinds: ["damage"], field: "amount", perRank: 0.20 },
+            { type: "spellEffectScale", spellId: "rogue-garrote", kinds: ["dot"], field: "amount", perRank: 0.15 },
+          ],
+        },
+      ],
+    },
+    {
+      id: "subtlety",
+      name: "Subtlety",
+      subtitle: "Mobility, control, interrupts and sudden burst windows.",
+      accent: "#b28bd8",
+      talents: [
+        {
+          id: "rogue-shadowstep",
+          name: "Shadowstep",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Unlock Shadowstep. Its cooldown is reduced by 15% per rank.",
+          rankDescriptions: [
+            "Unlock Shadowstep · cooldown -15%.",
+            "Shadowstep cooldown -30%.",
+          ],
+          effects: [
+            { type: "unlockSpell", minRank: 1, spell: SHADOWSTEP_SPELL },
+            { type: "spellFieldScale", spellId: "rogue-shadowstep", field: "cooldownMs", perRank: -0.15, min: 4000 },
+          ],
+        },
+        {
+          id: "rogue-quick-blades",
+          name: "Quick Blades",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Sinister Strike deals 6% more damage and costs 8% less Energy per rank.",
+          rankDescriptions: [
+            "Sinister Strike: +6% damage · -8% Energy cost.",
+            "Sinister Strike: +12% damage · -16% Energy cost.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "rogue-sinister", kinds: ["damage"], field: "amount", perRank: 0.06 },
+            { type: "spellFieldScale", spellId: "rogue-sinister", field: "resourceCost", perRank: -0.08, min: 1 },
+          ],
+        },
+        {
+          id: "rogue-preparation",
+          name: "Preparation",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Kidney Shot and Kick recharge 8% faster per rank.",
+          rankDescriptions: [
+            "Kidney Shot & Kick cooldown -8%.",
+            "Kidney Shot & Kick cooldown -16%.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "rogue-kidney", field: "cooldownMs", perRank: -0.08, min: 7000 },
+            { type: "spellFieldScale", spellId: "rogue-kick", field: "cooldownMs", perRank: -0.08, min: 4000 },
+          ],
+        },
+        {
+          id: "rogue-control-is-king",
+          name: "Control Is King",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Kidney Shot lasts 0.25s longer and Kick locks the interrupted school 0.25s longer per rank.",
+          rankDescriptions: [
+            "Kidney Shot +0.25s · Kick lockout +0.25s.",
+            "Kidney Shot +0.50s · Kick lockout +0.50s.",
+          ],
+          effects: [
+            { type: "spellEffectFieldAdd", spellId: "rogue-kidney", kinds: ["stun"], field: "durationMs", perRank: 250 },
+            { type: "spellEffectFieldAdd", spellId: "rogue-kick", kinds: ["interrupt"], field: "durationMs", perRank: 250 },
+          ],
+        },
+        {
+          id: "rogue-elusiveness",
+          name: "Elusiveness",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Dodge chance increases by 2.5 percentage points and movement speed by 2% per rank.",
+          rankDescriptions: [
+            "Dodge chance +2.5 points · movement speed +2%.",
+            "Dodge chance +5 points · movement speed +4%.",
+          ],
+          effects: [
+            { type: "statFieldAdd", field: "dodgeChance", perRank: 0.025, integer: false },
+            { type: "statFieldScale", field: "moveSpeed", perRank: 0.02, min: 150 },
+          ],
+        },
+        {
+          id: "rogue-find-weakness",
+          name: "Find Weakness",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Sinister Strike and Eviscerate deal 8% more damage per rank.",
+          rankDescriptions: [
+            "Sinister Strike & Eviscerate damage +8%.",
+            "Sinister Strike & Eviscerate damage +16%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "rogue-sinister", kinds: ["damage"], field: "amount", perRank: 0.08 },
+            { type: "spellEffectScale", spellId: "rogue-eviscerate", kinds: ["damage"], field: "amount", perRank: 0.08 },
+          ],
+        },
+        {
+          id: "rogue-shadow-dance",
+          name: "Shadow Dance",
+          tier: 4,
+          requiredPoints: 12,
+          maxRank: 1,
+          capstone: true,
+          description: "Gain 5% critical strike chance. Shadowstep recharges 25% faster and Eviscerate deals 15% more damage.",
+          rankDescriptions: [
+            "Critical strike chance +5 points · Shadowstep cooldown -25% · Eviscerate damage +15%.",
+          ],
+          effects: [
+            { type: "statFieldAdd", field: "critChance", perRank: 0.05, integer: false },
+            { type: "spellFieldScale", spellId: "rogue-shadowstep", field: "cooldownMs", perRank: -0.25, min: 3000 },
+            { type: "spellEffectScale", spellId: "rogue-eviscerate", kinds: ["damage"], field: "amount", perRank: 0.15 },
+          ],
+        },
+      ],
+    },
+  ],
+});

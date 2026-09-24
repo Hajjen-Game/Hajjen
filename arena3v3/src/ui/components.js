@@ -142,6 +142,49 @@ const ACTION_ICONS = Object.freeze({
       <path class="icon-line icon-soft" d="M12 20 L21 25 M52 19 L43 25"></path>
     </svg>
   `,
+  "rogue-garrote": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M13 44 C24 27 38 18 53 15 M14 50 C28 36 39 28 53 24"></path>
+      <path class="icon-secondary" d="M10 39 L18 47 L12 55 L5 47 Z"></path>
+    </svg>
+  `,
+  "rogue-sinister": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M13 48 C22 26 36 15 52 11 C47 29 36 43 17 53"></path>
+      <path class="icon-secondary" d="M44 10 L56 8 L53 20 Z"></path>
+    </svg>
+  `,
+  "rogue-eviscerate": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M12 19 L48 51 M17 49 L52 15 M10 34 H54"></path>
+      <circle class="icon-core" cx="32" cy="32" r="5"></circle>
+    </svg>
+  `,
+  "rogue-kidney": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-secondary" d="M32 7 L38 23 L55 18 L46 32 L58 44 L41 41 L34 57 L28 41 L11 47 L19 32 L7 21 L24 24 Z"></path>
+      <circle class="icon-core" cx="32" cy="32" r="6"></circle>
+    </svg>
+  `,
+  "rogue-kick": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-secondary" d="M18 11 H31 L35 30 L51 38 L47 52 L29 44 L21 29 Z"></path>
+      <path class="icon-line" d="M31 30 L21 45 M35 31 L26 50"></path>
+    </svg>
+  `,
+  "rogue-mutilate": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M14 52 L48 14 M16 13 L50 49"></path>
+      <path class="icon-secondary" d="M44 9 L56 8 L52 20 Z M8 8 L20 11 L12 22 Z"></path>
+      <circle class="icon-core" cx="32" cy="32" r="4"></circle>
+    </svg>
+  `,
+  "rogue-shadowstep": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line icon-soft" d="M8 20 H29 M5 32 H24 M10 44 H30"></path>
+      <path class="icon-secondary" d="M34 10 L56 32 L34 54 V41 H22 V23 H34 Z"></path>
+    </svg>
+  `,
 
 });
 

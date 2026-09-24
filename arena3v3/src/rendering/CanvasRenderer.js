@@ -809,6 +809,7 @@ export class CanvasRenderer {
       "warrior-rend", "warrior-mortal-strike", "warrior-slam",
       "warrior-overpower", "warrior-bloodthirst",
       "rogue-garrote", "rogue-sinister", "rogue-eviscerate", "rogue-kidney",
+      "rogue-mutilate",
       "dk-death-strike", "dk-obliterate",
     ]);
 
@@ -1004,7 +1005,7 @@ export class CanvasRenderer {
         ctx.lineTo(Math.cos(sparkAngle) * outer, Math.sin(sparkAngle) * outer);
         ctx.stroke();
       }
-    } else if (spellId === "warrior-charge") {
+    } else if (spellId === "warrior-charge" || spellId === "rogue-shadowstep") {
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
       ctx.shadowBlur = 16;

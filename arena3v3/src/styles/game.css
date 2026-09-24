@@ -1799,3 +1799,39 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   --spell-accent: #a93232;
   --spell-accent-2: #efb48b;
 }
+
+
+.action-slot.spell-rogue-garrote {
+  --spell-accent: #c84f45;
+  --spell-accent-2: #f0df78;
+}
+
+.action-slot.spell-rogue-sinister {
+  --spell-accent: #d8b44a;
+  --spell-accent-2: #fff2a3;
+}
+
+.action-slot.spell-rogue-eviscerate {
+  --spell-accent: #d44c40;
+  --spell-accent-2: #f5d56a;
+}
+
+.action-slot.spell-rogue-kidney {
+  --spell-accent: #d2aa45;
+  --spell-accent-2: #fff0a0;
+}
+
+.action-slot.spell-rogue-kick {
+  --spell-accent: #a88742;
+  --spell-accent-2: #eadb94;
+}
+
+.action-slot.spell-rogue-mutilate {
+  --spell-accent: #d24a42;
+  --spell-accent-2: #f2df70;
+}
+
+.action-slot.spell-rogue-shadowstep {
+  --spell-accent: #8460b6;
+  --spell-accent-2: #e0c8ff;
+}

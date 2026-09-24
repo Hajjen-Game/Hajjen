@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.52-warrior-talent-tree",
+    "Build: prototype-v0.53-rogue-talent-tree",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -53,6 +53,8 @@ export function buildMatchReport(game) {
     "Talent rank feedback: every Priest talent now shows the exact current effect and the exact next-rank effect, making 1/2 versus 2/2 immediately readable",
     "Warrior talents: two complete 7-node branches are available — Arms for Rend/Mortal Strike/control/heavy attacks and Fury for Rage tempo, Bloodthirst sustain and faster pressure",
     "Warrior talent spells: Arms can unlock Overpower and Fury can unlock Bloodthirst; a hybrid build can unlock both and fill all seven action-bar slots",
+    "Rogue talents: two complete 7-node branches are available — Assassination for Garrote/Mutilate/Eviscerate pressure and Subtlety for Shadowstep, control, interrupts and mobility",
+    "Playable Rogue: Rogue can now be created as a player character, with vector action-bar icons for all five core abilities plus talent-unlocked Mutilate and Shadowstep",
     "",
     "=== FRIENDLY TEAM ===",
   ];

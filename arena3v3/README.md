@@ -21,7 +21,7 @@ Healers:
 
 Melee:
 - Warrior — rage, Rend, Mortal Strike healing reduction, Charge and Pummel
-- Rogue — energy, bleeds, burst, Kidney Shot and Kick
+- Rogue — energy, bleeds, burst, Kidney Shot and Kick; playable with Assassination/Subtlety talents
 - Death Knight — runic power, disease pressure, self-sustain, Chains of Ice and Mind Freeze
 
 Casters:
@@ -112,6 +112,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - spendable talent cards are stable and clickable; the talent tree is no longer rebuilt every animation frame while the modal is open
   - all seven action slots are always visible, including empty placeholders for future/talent-unlocked spells
   - legacy five-slot action-bar layouts automatically expand to seven slots without losing existing spell order
+- Rogue talent tree:
+  - Assassination: unlocks Mutilate and focuses on Garrote pressure, efficient finishers, Energy economy, crit and a Master Assassin capstone
+  - Subtlety: unlocks off-GCD Shadowstep and focuses on Sinister Strike efficiency, Kidney/Kick control, dodge/mobility and a Shadow Dance capstone
+  - both branches use the same 7-node / 13-point structure; hybrid builds can unlock both Mutilate and Shadowstep and fill all seven action-bar slots
+  - Rogue is now selectable as a player character and all seven Rogue abilities have inline SVG action-bar icons
 - Warrior talent tree:
   - Arms: Overpower unlock, stronger Rend/Mortal Strike, improved Charge, heavier Slam, stronger Pummel lockouts and Mortal Mastery capstone
   - Fury: Bloodthirst unlock with self-healing, stronger Rage economy, faster Slam pressure, improved Charge, Blood Craze sustain and Recklessness capstone

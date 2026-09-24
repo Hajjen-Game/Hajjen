@@ -36,6 +36,7 @@ export class UIManager {
     this.meterElements = new Map();
     this.enemyCooldownRows = new Map();
     this.actionSlots = [];
+    this.loadoutSlots = [];
     this.actionSlotSpellIds = [];
     this.draggedActionSlot = null;
     this.suppressActionClickUntil = 0;
@@ -48,6 +49,8 @@ export class UIManager {
     this.enemyCooldownWidget = document.querySelector("#enemy-cooldown-widget");
     this.damageMeter = document.querySelector("#damage-meter");
     this.actionBar = document.querySelector("#action-bar");
+    this.loadoutModal = document.querySelector("#loadout-modal");
+    this.loadoutActionBar = document.querySelector("#loadout-action-bar");
     this.matchClock = document.querySelector("#match-clock");
     this.dampeningIndicator = document.querySelector("#dampening-indicator");
     this.dampeningValue = document.querySelector("#dampening-value");
@@ -111,6 +114,8 @@ export class UIManager {
     document.querySelector("#talents-button").addEventListener("click", () => this.openTalents());
     document.querySelector("#talent-close").addEventListener("click", () => this.closeTalents());
     document.querySelector("#talent-reset").addEventListener("click", () => this.resetTalents());
+    document.querySelector("#loadout-close").addEventListener("click", () => this.closeLoadout());
+    document.querySelector("#loadout-done").addEventListener("click", () => this.closeLoadout());
     document.querySelector("#controls-button").addEventListener("click", () => this.openControls());
     document.querySelector("#controls-close").addEventListener("click", () => this.closeControls());
     document.querySelector("#help-button").addEventListener("click", () => this.openHelp());
@@ -120,6 +125,7 @@ export class UIManager {
       this.input.reset();
       this.renderBindings();
       this.refreshActionKeycaps();
+      this.refreshLoadoutKeycaps();
       this.refreshPartyKeycaps();
     });
 
@@ -398,6 +404,7 @@ export class UIManager {
     }
 
     this.buildActionBar();
+    this.buildLoadoutBar();
   }
 
   spellIndexForActionSlot(slotIndex) {
@@ -429,6 +436,7 @@ export class UIManager {
     this.actionSlotSpellIds = next;
     this.saveActionBarLayout();
     this.buildActionBar();
+    this.buildLoadoutBar();
   }
 
   wireActionSlotDrag(slot, slotIndex, hasSpell = true) {
@@ -509,6 +517,100 @@ export class UIManager {
     this.refreshActionKeycaps();
   }
 
+  buildLoadoutBar() {
+    if (!this.loadoutActionBar) return;
+
+    this.loadoutActionBar.innerHTML = "";
+    this.actionSlotSpellIds = this.loadActionBarLayout();
+
+    this.loadoutSlots = this.actionSlotSpellIds.map((spellId, slotIndex) => {
+      const spell = spellId
+        ? this.game.player.spells.find(item => item.id === spellId)
+        : null;
+
+      const slot = spell
+        ? createActionSlot(
+          spell,
+          slotIndex,
+          () => {},
+          index => this.captureBinding("slot" + (index + 1)),
+        )
+        : createEmptyActionSlot(
+          slotIndex,
+          index => this.captureBinding("slot" + (index + 1)),
+        );
+
+      slot.classList.add("loadout-action-slot");
+      this.wireLoadoutSlotDrag(slot, slotIndex, Boolean(spell));
+      this.loadoutActionBar.appendChild(slot);
+      return slot;
+    });
+
+    this.refreshLoadoutKeycaps();
+  }
+
+  wireLoadoutSlotDrag(slot, slotIndex, hasSpell = true) {
+    slot.dataset.slotIndex = String(slotIndex);
+    slot.draggable = hasSpell;
+
+    slot.addEventListener("dragstart", event => {
+      if (!hasSpell) {
+        event.preventDefault();
+        return;
+      }
+
+      slot.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", String(slotIndex));
+    });
+
+    slot.addEventListener("dragover", event => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      slot.classList.add("drag-over");
+    });
+
+    slot.addEventListener("dragleave", () => {
+      slot.classList.remove("drag-over");
+    });
+
+    slot.addEventListener("drop", event => {
+      event.preventDefault();
+      slot.classList.remove("drag-over");
+
+      const fromIndex = Number.parseInt(
+        event.dataTransfer.getData("text/plain"),
+        10,
+      );
+
+      if (Number.isInteger(fromIndex)) {
+        this.moveActionSlot(fromIndex, slotIndex);
+      }
+    });
+
+    slot.addEventListener("dragend", () => {
+      for (const loadoutSlot of this.loadoutSlots) {
+        loadoutSlot.classList.remove("dragging", "drag-over");
+      }
+    });
+  }
+
+  refreshLoadoutKeycaps() {
+    this.loadoutSlots.forEach((slot, index) => {
+      const keycap = slot.querySelector(".keycap");
+      if (keycap) keycap.textContent = this.input.label("slot" + (index + 1));
+    });
+  }
+
+  openLoadout() {
+    this.buildLoadoutBar();
+    this.loadoutModal?.classList.remove("hidden");
+  }
+
+  closeLoadout() {
+    this.loadoutModal?.classList.add("hidden");
+  }
+
   refreshActionKeycaps() {
     this.actionSlots.forEach((slot, index) => {
       const keycap = slot.querySelector(".keycap");
@@ -526,6 +628,7 @@ export class UIManager {
     this.input.captureNext(action, () => {
       this.renderBindings();
       this.refreshActionKeycaps();
+      this.refreshLoadoutKeycaps();
       this.refreshPartyKeycaps();
     });
   }
@@ -551,7 +654,9 @@ export class UIManager {
     this.renderTalentTree();
     this.updateHonorStatus();
     window.dispatchEvent(new CustomEvent("arena3v3:talents-updated"));
-    this.toast("Talent learned · applies next match");
+    this.toast(this.game.waitingForStart
+      ? "Talent learned · pre-match loadout updated"
+      : "Talent learned · applies next match");
   }
 
   resetTalents() {
@@ -565,7 +670,9 @@ export class UIManager {
     this.renderTalentTree();
     this.updateHonorStatus();
     window.dispatchEvent(new CustomEvent("arena3v3:talents-updated"));
-    this.toast("Talents reset · applies next match");
+    this.toast(this.game.waitingForStart
+      ? "Talents reset · pre-match loadout updated"
+      : "Talents reset · applies next match");
   }
 
   renderTalentTree() {

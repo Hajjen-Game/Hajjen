@@ -640,6 +640,10 @@ export class UIManager {
           + '</div>'
           + '<strong class="talent-name"></strong>'
           + '<span class="talent-description"></span>'
+          + '<div class="talent-rank-effects" hidden>'
+          + '<div class="talent-effect-current" hidden><span>CURRENT</span><strong></strong></div>'
+          + '<div class="talent-effect-next" hidden><span>NEXT</span><strong></strong></div>'
+          + '</div>'
           + '<div class="talent-node-bottom">'
           + '<span class="talent-requirement"></span>'
           + '<button class="talent-add" type="button"></button>'
@@ -650,6 +654,29 @@ export class UIManager {
         node.querySelector(".talent-rank").textContent = rank + " / " + talent.maxRank;
         node.querySelector(".talent-name").textContent = talent.name;
         node.querySelector(".talent-description").textContent = talent.description;
+
+        const rankEffects = node.querySelector(".talent-rank-effects");
+        const currentEffect = node.querySelector(".talent-effect-current");
+        const nextEffect = node.querySelector(".talent-effect-next");
+        const rankDescriptions = Array.isArray(talent.rankDescriptions)
+          ? talent.rankDescriptions
+          : [];
+
+        if (rankDescriptions.length > 0) {
+          rankEffects.hidden = false;
+
+          if (rank > 0 && rankDescriptions[rank - 1]) {
+            currentEffect.hidden = false;
+            currentEffect.querySelector("strong").textContent = rankDescriptions[rank - 1];
+          }
+
+          if (!maxed && rankDescriptions[rank]) {
+            nextEffect.hidden = false;
+            nextEffect.querySelector("strong").textContent = rankDescriptions[rank];
+            nextEffect.querySelector("span").textContent = rank === 0 ? "RANK 1" : "NEXT RANK";
+          }
+        }
+
         node.querySelector(".talent-requirement").textContent =
           talent.requiredPoints > 0
             ? talent.requiredPoints + " pts in branch"

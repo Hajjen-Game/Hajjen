@@ -50,6 +50,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 0,
           maxRank: 2,
           description: "Renew heals 10% more per rank.",
+          rankDescriptions: [
+            "Renew healing +10%.",
+            "Renew healing +20%.",
+          ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-renew", kinds: ["hot"], field: "amount", perRank: 0.10 },
           ],
@@ -61,6 +65,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 0,
           maxRank: 2,
           description: "Flash Heal heals 8% more and costs 5% less mana per rank.",
+          rankDescriptions: [
+            "Flash Heal: +8% healing · -5% mana cost.",
+            "Flash Heal: +16% healing · -10% mana cost.",
+          ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-flash-heal", kinds: ["heal"], field: "amount", perRank: 0.08 },
             { type: "spellFieldScale", spellId: "priest-flash-heal", field: "resourceCost", perRank: -0.05, min: 1 },
@@ -73,6 +81,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 4,
           maxRank: 2,
           description: "Greater Heal heals 10% more and casts 6% faster per rank.",
+          rankDescriptions: [
+            "Greater Heal: +10% healing · 6% faster cast.",
+            "Greater Heal: +20% healing · 12% faster cast.",
+          ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-greater-heal", kinds: ["heal"], field: "amount", perRank: 0.10 },
             { type: "spellFieldScale", spellId: "priest-greater-heal", field: "castMs", perRank: -0.06, min: 900 },
@@ -85,6 +97,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 4,
           maxRank: 2,
           description: "Mana regeneration is increased by 8% per rank.",
+          rankDescriptions: [
+            "Mana regeneration +8%.",
+            "Mana regeneration +16%.",
+          ],
           effects: [
             { type: "resourceFieldScale", field: "regenPerSecond", perRank: 0.08 },
           ],
@@ -96,6 +112,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 8,
           maxRank: 2,
           description: "Pain Suppression gains 4% damage reduction and 0.35s duration per rank.",
+          rankDescriptions: [
+            "Pain Suppression: +4% damage reduction · +0.35s duration.",
+            "Pain Suppression: +8% damage reduction · +0.70s duration.",
+          ],
           effects: [
             { type: "spellEffectFieldAdd", spellId: "priest-pain-suppression", kinds: ["damageReduction"], field: "value", perRank: 0.04, integer: false },
             { type: "spellEffectFieldAdd", spellId: "priest-pain-suppression", kinds: ["damageReduction"], field: "durationMs", perRank: 350 },
@@ -108,6 +128,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 8,
           maxRank: 2,
           description: "Flash Heal casts 7% faster and Greater Heal 5% faster per rank.",
+          rankDescriptions: [
+            "Flash Heal 7% faster · Greater Heal 5% faster.",
+            "Flash Heal 14% faster · Greater Heal 10% faster.",
+          ],
           effects: [
             { type: "spellFieldScale", spellId: "priest-flash-heal", field: "castMs", perRank: -0.07, min: 450 },
             { type: "spellFieldScale", spellId: "priest-greater-heal", field: "castMs", perRank: -0.05, min: 750 },
@@ -121,6 +145,9 @@ export const priestTalentTree = Object.freeze({
           maxRank: 1,
           capstone: true,
           description: "Renew, Flash Heal and Greater Heal gain 15% healing. Direct heals cost 15% less mana.",
+          rankDescriptions: [
+            "Renew, Flash Heal and Greater Heal: +15% healing · direct heals -15% mana cost.",
+          ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-renew", kinds: ["hot"], field: "amount", perRank: 0.15 },
             { type: "spellEffectScale", spellId: "priest-flash-heal", kinds: ["heal"], field: "amount", perRank: 0.15 },
@@ -144,6 +171,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 0,
           maxRank: 2,
           description: "Unlock Smite. Its damage is increased by 10% per rank.",
+          rankDescriptions: [
+            "Unlock Smite · Smite damage +10%.",
+            "Smite damage +20%.",
+          ],
           effects: [
             { type: "unlockSpell", minRank: 1, spell: SMITE_SPELL },
             { type: "spellEffectScale", spellId: "priest-smite", kinds: ["damage"], field: "amount", perRank: 0.10 },
@@ -156,6 +187,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 0,
           maxRank: 2,
           description: "Smite casts 7% faster and costs 8% less mana per rank.",
+          rankDescriptions: [
+            "Smite: 7% faster cast · -8% mana cost.",
+            "Smite: 14% faster cast · -16% mana cost.",
+          ],
           effects: [
             { type: "spellFieldScale", spellId: "priest-smite", field: "castMs", perRank: -0.07, min: 550 },
             { type: "spellFieldScale", spellId: "priest-smite", field: "resourceCost", perRank: -0.08, min: 1 },
@@ -168,6 +203,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 4,
           maxRank: 2,
           description: "Unlock Holy Fire. Its direct and periodic damage is increased by 10% per rank.",
+          rankDescriptions: [
+            "Unlock Holy Fire · direct and DoT damage +10%.",
+            "Holy Fire direct and DoT damage +20%.",
+          ],
           effects: [
             { type: "unlockSpell", minRank: 1, spell: HOLY_FIRE_SPELL },
             { type: "spellEffectScale", spellId: "priest-holy-fire", kinds: ["damage", "dot"], field: "amount", perRank: 0.10 },
@@ -180,6 +219,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 4,
           maxRank: 2,
           description: "Smite and Holy Fire heal the lowest-health ally for 15% of damage dealt per rank.",
+          rankDescriptions: [
+            "Atonement heals the lowest-health ally for 15% of damage dealt.",
+            "Atonement heals the lowest-health ally for 30% of damage dealt.",
+          ],
           effects: [
             { type: "passiveAdd", key: "damageHealPct", perRank: 0.15 },
           ],
@@ -191,6 +234,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 8,
           maxRank: 2,
           description: "Smite and Holy Fire deal 8% more damage and cost 6% less mana per rank.",
+          rankDescriptions: [
+            "Smite & Holy Fire: +8% damage · -6% mana cost.",
+            "Smite & Holy Fire: +16% damage · -12% mana cost.",
+          ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-smite", kinds: ["damage"], field: "amount", perRank: 0.08 },
             { type: "spellEffectScale", spellId: "priest-holy-fire", kinds: ["damage", "dot"], field: "amount", perRank: 0.08 },
@@ -205,6 +252,10 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 8,
           maxRank: 2,
           description: "Atonement healing is increased by another 10% of damage dealt per rank.",
+          rankDescriptions: [
+            "Atonement conversion +10 percentage points.",
+            "Atonement conversion +20 percentage points.",
+          ],
           effects: [
             { type: "passiveAdd", key: "damageHealPct", perRank: 0.10 },
           ],
@@ -217,6 +268,9 @@ export const priestTalentTree = Object.freeze({
           maxRank: 1,
           capstone: true,
           description: "Smite and Holy Fire deal 20% more damage, Holy Fire recharges 20% faster, and Atonement gains +15%.",
+          rankDescriptions: [
+            "Smite & Holy Fire +20% damage · Holy Fire -20% cooldown · Atonement +15 percentage points.",
+          ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-smite", kinds: ["damage"], field: "amount", perRank: 0.20 },
             { type: "spellEffectScale", spellId: "priest-holy-fire", kinds: ["damage", "dot"], field: "amount", perRank: 0.20 },

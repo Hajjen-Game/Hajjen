@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.50-halved-honor-ranks",
+    "Build: prototype-v0.51-talent-rank-feedback",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -50,6 +50,7 @@ export function buildMatchReport(game) {
     "Seven-slot action bar: all seven action slots are always visible, with empty placeholders ready for talent-unlocked abilities",
     "Pre-match ready room: selecting a character now opens a preparation step for Talents, Honor and Keybindings before team/opponent selection",
     "Warrior Slam: retains its 0.85s wind-up but is now explicitly non-interruptible, so Kick/Pummel/Wind Shear style interrupts cannot stop or school-lock it",
+    "Talent rank feedback: every Priest talent now shows the exact current effect and the exact next-rank effect, making 1/2 versus 2/2 immediately readable",
     "",
     "=== FRIENDLY TEAM ===",
   ];

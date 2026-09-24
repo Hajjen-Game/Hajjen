@@ -112,6 +112,10 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - spendable talent cards are stable and clickable; the talent tree is no longer rebuilt every animation frame while the modal is open
   - all seven action slots are always visible, including empty placeholders for future/talent-unlocked spells
   - legacy five-slot action-bar layouts automatically expand to seven slots without losing existing spell order
+- Talent rank feedback:
+  - Priest talent nodes now show a concrete CURRENT effect after a point is spent and a NEXT RANK preview while another rank is available
+  - two-rank talents display their cumulative total, e.g. Renewed Faith 1/2 = +10% Renew healing and 2/2 = +20%
+  - maxed talents keep the final effect visible and explicitly mark it as MAX
 - Talent trees v1:
   - each character now has persistent talent allocations stored separately from Honor/Rank
   - the shared tree format supports two branches, tier gates, multi-rank nodes, capstones, spell/stat modifiers, passive modifiers and talent-unlocked spells

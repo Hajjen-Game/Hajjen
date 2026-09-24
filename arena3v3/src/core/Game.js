@@ -11,6 +11,7 @@ import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
 import { UIManager } from "../ui/UIManager.js";
 import { buildMatchReport } from "./MatchReport.js";
 import { HonorSystem } from "./HonorSystem.js";
+import { TalentSystem } from "./TalentSystem.js";
 
 export class Game {
   constructor({ canvas, input, arena, characterConfigs }) {
@@ -26,6 +27,7 @@ export class Game {
     this.activeCharacterId = null;
     this.activeCharacterName = "Player";
     this.honor = new HonorSystem();
+    this.talents = new TalentSystem();
     this.lastHonorAward = null;
 
     this.actors = this.createActors();
@@ -98,9 +100,29 @@ export class Game {
   }
 
   createActors() {
-    return this.characterConfigs.map(config =>
-      new Actor(config, this.arena.spawns[config.id]),
-    );
+    return this.characterConfigs.map(config => {
+      const actorConfig = config.control === "player"
+        ? this.talents.applyToConfig(config)
+        : config;
+
+      return new Actor(actorConfig, this.arena.spawns[config.id]);
+    });
+  }
+
+  talentStatus() {
+    return this.talents.status(this.honor.status().talentPoints);
+  }
+
+  canSpendTalent(talentId) {
+    return this.talents.canSpend(talentId, this.honor.status().talentPoints);
+  }
+
+  spendTalent(talentId) {
+    return this.talents.spend(talentId, this.honor.status().talentPoints);
+  }
+
+  resetTalents() {
+    this.talents.reset();
   }
 
   resetMatchTracking() {
@@ -574,6 +596,7 @@ export class Game {
     this.activeCharacterId = character.id;
     this.activeCharacterName = character.name;
     this.honor = new HonorSystem(character.id);
+    this.talents = new TalentSystem(character.id, character.classId);
     this.characterConfigs = characterConfigs;
     this.waitingForStart = true;
     this.reset("character select");

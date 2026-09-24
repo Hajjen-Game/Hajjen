@@ -73,6 +73,14 @@ export class UIManager {
     this.honorModalProgressFill = document.querySelector("#honor-modal-progress-fill");
     this.honorModalNext = document.querySelector("#honor-modal-next");
     this.honorRankList = document.querySelector("#honor-rank-list");
+
+    this.talentModal = document.querySelector("#talent-modal");
+    this.talentClass = document.querySelector("#talent-class");
+    this.talentAvailable = document.querySelector("#talent-available");
+    this.talentSpent = document.querySelector("#talent-spent");
+    this.talentTree = document.querySelector("#talent-tree");
+    this.talentEmpty = document.querySelector("#talent-empty");
+
     this.playerCast = document.querySelector("#player-cast");
     this.playerCastLabel = document.querySelector("#player-cast-label");
     this.playerCastFill = document.querySelector("#player-cast-fill");
@@ -94,6 +102,9 @@ export class UIManager {
     });
     document.querySelector("#honor-button").addEventListener("click", () => this.openHonor());
     document.querySelector("#honor-close").addEventListener("click", () => this.closeHonor());
+    document.querySelector("#talents-button").addEventListener("click", () => this.openTalents());
+    document.querySelector("#talent-close").addEventListener("click", () => this.closeTalents());
+    document.querySelector("#talent-reset").addEventListener("click", () => this.resetTalents());
     document.querySelector("#controls-button").addEventListener("click", () => this.openControls());
     document.querySelector("#controls-close").addEventListener("click", () => this.closeControls());
     document.querySelector("#help-button").addEventListener("click", () => this.openHelp());
@@ -483,6 +494,143 @@ export class UIManager {
     });
   }
 
+
+  openTalents() {
+    this.renderTalentTree();
+    this.talentModal.classList.remove("hidden");
+  }
+
+  closeTalents() {
+    this.talentModal.classList.add("hidden");
+  }
+
+  learnTalent(talentId) {
+    const result = this.game.spendTalent(talentId);
+
+    if (!result.ok) {
+      this.toast(result.reason);
+      return;
+    }
+
+    this.renderTalentTree();
+    this.updateHonorStatus();
+    this.toast("Talent learned · applies next match");
+  }
+
+  resetTalents() {
+    const status = this.game.talentStatus();
+    if (status.spentPoints <= 0) {
+      this.toast("No talents to reset");
+      return;
+    }
+
+    this.game.resetTalents();
+    this.renderTalentTree();
+    this.updateHonorStatus();
+    this.toast("Talents reset · applies next match");
+  }
+
+  renderTalentTree() {
+    const status = this.game.talentStatus();
+    const tree = status.tree;
+
+    this.talentAvailable.textContent = status.availablePoints + " TP";
+    this.talentSpent.textContent = status.spentPoints + " / " + status.earnedPoints;
+    this.talentTree.innerHTML = "";
+
+    if (!tree) {
+      this.talentClass.textContent = this.game.player?.className || "—";
+      this.talentEmpty.hidden = false;
+      this.talentEmpty.textContent =
+        "This class uses the shared Talent system, but its two branches have not been built yet.";
+      this.talentTree.hidden = true;
+      document.querySelector("#talent-reset").hidden = true;
+      return;
+    }
+
+    this.talentClass.textContent = tree.displayName;
+    this.talentEmpty.hidden = true;
+    this.talentTree.hidden = false;
+    document.querySelector("#talent-reset").hidden = false;
+
+    for (const branch of tree.branches) {
+      const branchElement = document.createElement("section");
+      branchElement.className = "talent-branch";
+      branchElement.style.setProperty("--branch-accent", branch.accent || "#d9b977");
+
+      const branchHeader = document.createElement("div");
+      branchHeader.className = "talent-branch-header";
+      branchHeader.innerHTML =
+        '<div><strong class="talent-branch-name"></strong><span class="talent-branch-subtitle"></span></div>'
+        + '<span class="talent-branch-points"></span>';
+      branchHeader.querySelector(".talent-branch-name").textContent = branch.name;
+      branchHeader.querySelector(".talent-branch-subtitle").textContent = branch.subtitle;
+      branchHeader.querySelector(".talent-branch-points").textContent =
+        (status.branchPoints[branch.id] || 0) + " PTS";
+      branchElement.appendChild(branchHeader);
+
+      const grid = document.createElement("div");
+      grid.className = "talent-branch-grid";
+
+      for (const talent of branch.talents) {
+        const rank = status.allocations[talent.id] || 0;
+        const check = this.game.canSpendTalent(talent.id);
+        const maxed = rank >= talent.maxRank;
+        const branchPoints = status.branchPoints[branch.id] || 0;
+        const tierLocked = branchPoints < talent.requiredPoints;
+
+        const node = document.createElement("div");
+        node.className =
+          "talent-node"
+          + (talent.capstone ? " capstone" : "")
+          + (maxed ? " maxed" : "")
+          + (tierLocked ? " locked" : "")
+          + (!maxed && check.ok ? " spendable" : "");
+        node.style.gridRow = String(talent.tier);
+        if (talent.capstone) node.style.gridColumn = "1 / -1";
+
+        node.innerHTML =
+          '<div class="talent-node-top">'
+          + '<span class="talent-tier"></span>'
+          + '<span class="talent-rank"></span>'
+          + '</div>'
+          + '<strong class="talent-name"></strong>'
+          + '<span class="talent-description"></span>'
+          + '<div class="talent-node-bottom">'
+          + '<span class="talent-requirement"></span>'
+          + '<button class="talent-add" type="button"></button>'
+          + '</div>';
+
+        node.querySelector(".talent-tier").textContent =
+          talent.capstone ? "CAPSTONE" : "TIER " + talent.tier;
+        node.querySelector(".talent-rank").textContent = rank + " / " + talent.maxRank;
+        node.querySelector(".talent-name").textContent = talent.name;
+        node.querySelector(".talent-description").textContent = talent.description;
+        node.querySelector(".talent-requirement").textContent =
+          talent.requiredPoints > 0
+            ? talent.requiredPoints + " pts in branch"
+            : "Available from start";
+
+        const add = node.querySelector(".talent-add");
+        add.disabled = !check.ok;
+        add.textContent = maxed
+          ? "MAX"
+          : tierLocked
+            ? "LOCKED"
+            : status.availablePoints <= 0
+              ? "0 TP"
+              : "+1";
+        add.title = check.ok ? "Spend 1 Talent Point" : check.reason;
+        add.addEventListener("click", () => this.learnTalent(talent.id));
+
+        grid.appendChild(node);
+      }
+
+      branchElement.appendChild(grid);
+      this.talentTree.appendChild(branchElement);
+    }
+  }
+
   openHonor() {
     this.updateHonorMenu();
     this.honorModal.classList.remove("hidden");
@@ -498,7 +646,9 @@ export class UIManager {
     this.honorModalRank.textContent = "RANK " + status.rank + " · " + status.title.toUpperCase();
     this.honorModalTotal.textContent = status.lifetimeHonor.toLocaleString();
     this.honorModalRecord.textContent = status.wins + "W · " + status.losses + "L";
-    this.honorModalTp.textContent = status.talentPoints.toString();
+    const talentStatus = this.game.talentStatus();
+    this.honorModalTp.textContent =
+      talentStatus.availablePoints + " available · " + talentStatus.earnedPoints + " earned";
 
     if (status.nextRank) {
       this.honorModalProgressText.textContent =
@@ -861,10 +1011,16 @@ export class UIManager {
 
     this.honorRank.textContent = "RANK " + status.rank + " · " + status.title;
     this.honorTotal.textContent = status.lifetimeHonor.toLocaleString() + " HONOR";
-    this.honorTalentPoints.textContent = "TP " + status.talentPoints;
+    const talentStatus = this.game.talentStatus();
+    this.honorTalentPoints.textContent = "TP " + talentStatus.availablePoints;
+    this.honorTalentPoints.title =
+      talentStatus.availablePoints + " available · " + talentStatus.spentPoints + " spent";
 
     if (!this.honorModal.classList.contains("hidden")) {
       this.updateHonorMenu();
+    }
+    if (!this.talentModal.classList.contains("hidden")) {
+      this.renderTalentTree();
     }
 
     if (!status.nextRank) {

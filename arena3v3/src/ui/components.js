@@ -83,6 +83,19 @@ const ACTION_ICONS = Object.freeze({
       <path class="icon-line" d="M18 18 C11 24 11 36 18 42 M12 12 C1 22 1 42 12 52 M46 18 C53 24 53 36 46 42 M52 12 C63 22 63 42 52 52"></path>
     </svg>
   `,
+  "priest-smite": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="icon-ring icon-soft" cx="32" cy="32" r="20"></circle>
+      <path class="icon-fill" d="M34 7 L29 26 L42 24 L24 55 L29 35 L17 38 Z"></path>
+      <circle class="icon-core" cx="42" cy="17" r="4"></circle>
+    </svg>
+  `,
+  "priest-holy-fire": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-fill" d="M34 6 C39 17 49 22 47 35 C46 48 39 57 28 57 C17 57 10 49 12 38 C14 28 23 24 24 13 C29 17 31 22 30 28 C37 23 38 15 34 6 Z"></path>
+      <path class="icon-line" d="M31 31 C36 36 36 45 30 49 C24 47 22 42 24 37 C25 34 28 32 31 31 Z"></path>
+    </svg>
+  `,
   "warrior-rend": `
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path class="icon-line" d="M18 12 L42 36 M28 9 L49 30 M12 24 L33 45"></path>

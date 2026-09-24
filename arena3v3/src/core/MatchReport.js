@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.46-countdown-cooldown-bars",
+    "Build: prototype-v0.47-priest-talent-tree",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -44,6 +44,8 @@ export function buildMatchReport(game) {
     "Warrior action icons: Rend, Mortal Strike, Slam, Charge and Pummel now use inline SVG-style action-bar icons with red, steel and warm impact accents",
     "Combat VFX readability: projectiles, heals, defensives, melee swings, CC, interrupts and periodic applications are larger, brighter and longer-lived while Chain Lightning keeps its existing lightning presentation",
     "Enemy cooldown tracker: enemy burst and major CC cooldowns appear only after use; their bars now drain from full to empty as the timer counts down, then disappear when ready",
+    "Talent system: persistent per-character Talent Points can now be spent in two 7-node branches; Priest ships first with Holy Grace and Atonement",
+    "Priest Atonement: talent-unlocked Smite and Holy Fire can convert a percentage of dealt damage into smart healing on the lowest-health friendly target",
     "",
     "=== FRIENDLY TEAM ===",
   ];

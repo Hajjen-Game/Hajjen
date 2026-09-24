@@ -101,6 +101,13 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Talent trees v1:
+  - each character now has persistent talent allocations stored separately from Honor/Rank
+  - the shared tree format supports two branches, tier gates, multi-rank nodes, capstones, spell/stat modifiers, passive modifiers and talent-unlocked spells
+  - Priest is the first complete tree: Holy Grace focuses on direct healing/mana/defensives, while Atonement unlocks Smite and Holy Fire and converts offensive holy damage into smart team healing
+  - each branch has 7 nodes; the first 6 have 2 ranks and the capstone has 1 rank, so fully maxing one branch costs all 13 Rank 2-14 points
+  - the TALENTS menu shows available/spent points, branch requirements and supports free prototype respecs; changes apply at the next match start
+  - action slots 6 and 7 are now bindable for builds that unlock extra spells
 - Enemy major cooldown tracker:
   - the area below the enemy unit frames stays completely empty while all tracked abilities are ready
   - when an enemy uses a tracked BURST or major CC ability, that cooldown appears with a thick countdown bar that starts full and drains from right to left while the timer runs

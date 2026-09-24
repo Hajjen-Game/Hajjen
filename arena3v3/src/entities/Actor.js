@@ -6,6 +6,7 @@ export class Actor {
     this.className = config.className || config.displayName || config.name;
     this.classId = config.classId || "";
     this.visualStyle = config.visualStyle || "damage";
+    this.talentPassives = { ...(config.talentPassives || {}) };
     this.team = config.team;
     this.role = config.role;
     this.control = config.control;

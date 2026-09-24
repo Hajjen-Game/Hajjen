@@ -447,6 +447,7 @@ export class CombatSystem {
 
     this.game.recordDamage(source, target, actual, crit);
     this.game.addFloatingText(target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
+    this.applyTalentDamageHealing(source, spellId, actual);
 
     if (!periodic) {
       this.game.vfx.burst(target, visualStyle, crit ? 360 : 250);
@@ -461,6 +462,39 @@ export class CombatSystem {
       this.game.log(target.name + " is down.");
       this.game.onActorDeath(target);
     }
+  }
+
+  applyTalentDamageHealing(source, spellId, damageAmount) {
+    const damageHealPct = Number(source.talentPassives?.damageHealPct || 0);
+    const spell = source.getSpell(spellId);
+
+    if (damageHealPct <= 0 || !spell?.talentDamageHeal || damageAmount <= 0) return;
+
+    const healTarget = this.game.actors
+      .filter(actor =>
+        actor.alive
+        && actor.team === source.team
+        && actor.health < actor.maxHealth
+      )
+      .sort((a, b) => a.healthPct - b.healthPct || a.health - b.health)[0];
+
+    if (!healTarget) return;
+
+    let amount = Math.max(1, Math.round(damageAmount * damageHealPct));
+    amount = this.game.dampening.applyToHealing(amount);
+    amount = Math.round(amount * (1 - healTarget.healingReduction()));
+
+    const actual = Math.min(amount, healTarget.maxHealth - healTarget.health);
+    if (actual <= 0) return;
+
+    healTarget.health = Math.min(healTarget.maxHealth, healTarget.health + actual);
+    this.game.recordHealing(source, healTarget, actual, false);
+    this.game.addFloatingText(healTarget, "+" + actual, "heal");
+    this.game.vfx.beam(source, healTarget, "priest", 210);
+    this.game.vfx.burst(healTarget, "priest", 250);
+    this.game.log(
+      source.name + "'s Atonement heals " + healTarget.name + " for " + actual + ".",
+    );
   }
 
   applyHeal(source, target, baseAmount, spellId, periodic = false, visualStyle = "heal") {

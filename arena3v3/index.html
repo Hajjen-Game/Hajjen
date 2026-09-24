@@ -78,6 +78,7 @@
         <div id="match-clock" class="clock">00:00</div>
         <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
         <button id="honor-button" class="hud-button" type="button">HONOR</button>
+        <button id="talents-button" class="hud-button" type="button">TALENTS</button>
         <button id="roster-button" class="hud-button" type="button">ROSTER</button>
         <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
         <button id="help-button" class="hud-button" type="button">HELP</button>
@@ -99,7 +100,7 @@
           <div class="honor-progress-track"><div id="honor-progress-fill" class="honor-progress-fill"></div></div>
           <div class="honor-progress-copy">
             <span id="honor-progress-text">0 / 800 TO CORPORAL</span>
-            <span id="honor-talent-points" title="Talent trees will use these later">TP 0</span>
+            <span id="honor-talent-points" title="Unspent Talent Points available for your character">TP 0</span>
           </div>
         </section>
 
@@ -238,6 +239,42 @@
     </div>
   </div>
 
+
+  <div id="talent-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="talent-title">
+    <div class="modal-card talent-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">CHARACTER PROGRESSION</div>
+          <h2 id="talent-title">TALENTS</h2>
+        </div>
+        <button id="talent-close" class="icon-button" aria-label="Close talents">×</button>
+      </div>
+
+      <div class="talent-summary">
+        <div>
+          <span>CLASS</span>
+          <strong id="talent-class">—</strong>
+        </div>
+        <div>
+          <span>AVAILABLE</span>
+          <strong id="talent-available">0 TP</strong>
+        </div>
+        <div>
+          <span>SPENT</span>
+          <strong id="talent-spent">0 / 0</strong>
+        </div>
+      </div>
+
+      <div id="talent-empty" class="talent-empty" hidden></div>
+      <div id="talent-tree" class="talent-tree"></div>
+
+      <div class="talent-footer">
+        <span>Rank 2–14 awards one Talent Point per rank. Talent changes apply when the next match starts.</span>
+        <button id="talent-reset" class="hud-button" type="button">RESET TALENTS</button>
+      </div>
+    </div>
+  </div>
+
   <div id="roster-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="roster-title">
     <div class="modal-card roster-card panel">
       <div class="modal-header">
@@ -323,7 +360,7 @@
 
         <section class="help-section">
           <h3>ACTION BAR</h3>
-          <p>Use the configured <strong>Slot 1–5</strong> keys to activate abilities.</p>
+          <p>Use the configured <strong>Slot 1–7</strong> keys to activate abilities as your build unlocks more spells.</p>
           <p>Drag abilities directly on the action bar to rearrange them. The keybind stays with the slot.</p>
           <p>Open <strong>KEYBINDINGS</strong> to change movement, targeting and action-slot keys.</p>
         </section>

@@ -791,6 +791,7 @@ export class CanvasRenderer {
       "mage-frostbolt", "mage-pyroblast",
       "warlock-shadow-bolt", "warlock-chaos-bolt",
       "shaman-lava-burst", "paladin-holy-shock",
+      "priest-smite", "priest-holy-fire",
     ]);
 
     const healIds = new Set([

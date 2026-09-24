@@ -11,6 +11,6 @@ export const paladinClass = {
     { id: "paladin-flash-light", name: "Flash of Light", aiRole: "quickHeal", visualStyle: "paladin", target: "ally", school: "holy", resourceCost: 16, castMs: 950, cooldownMs: 0, gcdMs: 1200, range: 310, effects: [{ kind: "heal", amount: 150 }] },
     { id: "paladin-holy-light", name: "Holy Light", aiRole: "bigHeal", visualStyle: "paladin", target: "ally", school: "holy", resourceCost: 24, castMs: 1950, cooldownMs: 0, gcdMs: 1200, range: 310, effects: [{ kind: "heal", amount: 305 }] },
     { id: "paladin-blessing", name: "Blessing of Protection", aiRole: "defensive", visualStyle: "paladin", target: "ally", school: "holy", resourceCost: 18, castMs: 0, cooldownMs: 20000, gcdMs: 1200, range: 310, effects: [{ kind: "damageReduction", value: 0.38, durationMs: 3500 }] },
-    { id: "paladin-hammer", name: "Hammer of Justice", aiRole: "control", visualStyle: "paladin", target: "enemy", school: "holy", utility: true, resourceCost: 10, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 135, noHitRoll: true, effects: [{ kind: "stun", durationMs: 3000 }] },
+    { id: "paladin-hammer", name: "Hammer of Justice", aiRole: "control", visualStyle: "paladin", target: "enemy", school: "holy", utility: true, resourceCost: 10, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 135, noHitRoll: true, effects: [{ kind: "stun", drCategory: "stun", durationMs: 3000 }] },
   ],
 };

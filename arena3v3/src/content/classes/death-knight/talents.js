@@ -1,0 +1,280 @@
+const FROST_STRIKE_SPELL = Object.freeze({
+  id: "dk-frost-strike",
+  name: "Frost Strike",
+  aiRole: "filler",
+  visualStyle: "deathKnight",
+  target: "enemy",
+  school: "shadowfrost",
+  interruptible: false,
+  resourceCost: 28,
+  resourceGain: 8,
+  castMs: 0,
+  cooldownMs: 5000,
+  gcdMs: 1200,
+  range: 62,
+  effects: [{ kind: "damage", amount: 146 }],
+});
+
+const RUNE_TAP_SPELL = Object.freeze({
+  id: "dk-rune-tap",
+  name: "Rune Tap",
+  aiRole: "defensive",
+  visualStyle: "deathKnight",
+  target: "self",
+  school: "physical",
+  interruptible: false,
+  utility: true,
+  resourceCost: 18,
+  castMs: 0,
+  cooldownMs: 16000,
+  gcdMs: 1200,
+  range: 0,
+  effects: [{ kind: "damageReduction", value: 0.28, durationMs: 4000 }],
+});
+
+export const deathKnightTalentTree = Object.freeze({
+  classId: "death-knight",
+  displayName: "Death Knight",
+  branches: [
+    {
+      id: "frost",
+      name: "Frost",
+      subtitle: "Heavy Obliterate pressure, stronger diseases and relentless runic offense.",
+      accent: "#72c9e8",
+      talents: [
+        {
+          id: "dk-frost-strike",
+          name: "Frost Strike",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Unlock Frost Strike. Its damage is increased by 10% per rank.",
+          rankDescriptions: [
+            "Unlock Frost Strike · damage +10%.",
+            "Frost Strike damage +20%.",
+          ],
+          effects: [
+            { type: "unlockSpell", minRank: 1, spell: FROST_STRIKE_SPELL },
+            { type: "spellEffectScale", spellId: "dk-frost-strike", kinds: ["damage"], field: "amount", perRank: 0.10 },
+          ],
+        },
+        {
+          id: "dk-biting-cold",
+          name: "Biting Cold",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Frost Fever deals 12% more periodic damage per rank.",
+          rankDescriptions: [
+            "Frost Fever DoT damage +12%.",
+            "Frost Fever DoT damage +24%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "dk-fever", kinds: ["dot"], field: "amount", perRank: 0.12 },
+          ],
+        },
+        {
+          id: "dk-runic-efficiency",
+          name: "Runic Efficiency",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Frost Strike and Obliterate cost 7% less Runic Power per rank.",
+          rankDescriptions: [
+            "Frost Strike & Obliterate cost -7% Runic Power.",
+            "Frost Strike & Obliterate cost -14% Runic Power.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "dk-frost-strike", field: "resourceCost", perRank: -0.07, min: 1 },
+            { type: "spellFieldScale", spellId: "dk-obliterate", field: "resourceCost", perRank: -0.07, min: 1 },
+          ],
+        },
+        {
+          id: "dk-killing-machine",
+          name: "Killing Machine",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Obliterate deals 9% more damage and winds up 8% faster per rank.",
+          rankDescriptions: [
+            "Obliterate: +9% damage · 8% faster wind-up.",
+            "Obliterate: +18% damage · 16% faster wind-up.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "dk-obliterate", kinds: ["damage"], field: "amount", perRank: 0.09 },
+            { type: "spellFieldScale", spellId: "dk-obliterate", field: "castMs", perRank: -0.08, min: 350 },
+          ],
+        },
+        {
+          id: "dk-chillblains",
+          name: "Chillblains",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Chains of Ice recharges 8% faster and roots 0.25s longer per rank.",
+          rankDescriptions: [
+            "Chains of Ice: -8% cooldown · +0.25s root.",
+            "Chains of Ice: -16% cooldown · +0.50s root.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "dk-chains", field: "cooldownMs", perRank: -0.08, min: 5000 },
+            { type: "spellEffectFieldAdd", spellId: "dk-chains", kinds: ["root"], field: "durationMs", perRank: 250 },
+          ],
+        },
+        {
+          id: "dk-frozen-core",
+          name: "Frozen Core",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Critical strike chance increases by 2 percentage points and Frost Strike deals 5% more damage per rank.",
+          rankDescriptions: [
+            "Critical strike chance +2 points · Frost Strike damage +5%.",
+            "Critical strike chance +4 points · Frost Strike damage +10%.",
+          ],
+          effects: [
+            { type: "statFieldAdd", field: "critChance", perRank: 0.02, integer: false },
+            { type: "spellEffectScale", spellId: "dk-frost-strike", kinds: ["damage"], field: "amount", perRank: 0.05 },
+          ],
+        },
+        {
+          id: "dk-pillar-of-frost",
+          name: "Pillar of Frost",
+          tier: 4,
+          requiredPoints: 12,
+          maxRank: 1,
+          capstone: true,
+          description: "Obliterate and Frost Strike deal 18% more damage. Frost Fever deals 15% more periodic damage.",
+          rankDescriptions: [
+            "Obliterate & Frost Strike +18% damage · Frost Fever DoT +15%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "dk-obliterate", kinds: ["damage"], field: "amount", perRank: 0.18 },
+            { type: "spellEffectScale", spellId: "dk-frost-strike", kinds: ["damage"], field: "amount", perRank: 0.18 },
+            { type: "spellEffectScale", spellId: "dk-fever", kinds: ["dot"], field: "amount", perRank: 0.15 },
+          ],
+        },
+      ],
+    },
+    {
+      id: "blood",
+      name: "Blood",
+      subtitle: "Self-sustain, durability and control built around Death Strike.",
+      accent: "#b94646",
+      talents: [
+        {
+          id: "dk-rune-tap",
+          name: "Rune Tap",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Unlock Rune Tap. Its damage reduction increases by 3 percentage points per rank.",
+          rankDescriptions: [
+            "Unlock Rune Tap · 31% damage reduction for 4.0s.",
+            "Rune Tap · 34% damage reduction for 4.0s.",
+          ],
+          effects: [
+            { type: "unlockSpell", minRank: 1, spell: RUNE_TAP_SPELL },
+            { type: "spellEffectFieldAdd", spellId: "dk-rune-tap", kinds: ["damageReduction"], field: "value", perRank: 0.03, integer: false },
+          ],
+        },
+        {
+          id: "dk-veteran-of-the-third-war",
+          name: "Veteran of the Third War",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Maximum Health increases by 5% per rank.",
+          rankDescriptions: [
+            "Maximum Health +5%.",
+            "Maximum Health +10%.",
+          ],
+          effects: [
+            { type: "statFieldScale", field: "maxHealth", perRank: 0.05, integer: true },
+          ],
+        },
+        {
+          id: "dk-improved-death-strike",
+          name: "Improved Death Strike",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Death Strike heals 15% more and deals 6% more damage per rank.",
+          rankDescriptions: [
+            "Death Strike: +15% self-healing · +6% damage.",
+            "Death Strike: +30% self-healing · +12% damage.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "dk-death-strike", kinds: ["heal"], field: "amount", perRank: 0.15 },
+            { type: "spellEffectScale", spellId: "dk-death-strike", kinds: ["damage"], field: "amount", perRank: 0.06 },
+          ],
+        },
+        {
+          id: "dk-runic-empowerment",
+          name: "Runic Empowerment",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Runic Power regeneration increases by 10% and maximum Runic Power by 5% per rank.",
+          rankDescriptions: [
+            "Runic regeneration +10% · maximum Runic Power +5%.",
+            "Runic regeneration +20% · maximum Runic Power +10%.",
+          ],
+          effects: [
+            { type: "resourceFieldScale", field: "regenPerSecond", perRank: 0.10 },
+            { type: "resourceFieldScale", field: "max", perRank: 0.05, integer: true },
+          ],
+        },
+        {
+          id: "dk-sanguine-fortitude",
+          name: "Sanguine Fortitude",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Rune Tap recharges 8% faster and lasts 0.4s longer per rank.",
+          rankDescriptions: [
+            "Rune Tap: -8% cooldown · +0.4s duration.",
+            "Rune Tap: -16% cooldown · +0.8s duration.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "dk-rune-tap", field: "cooldownMs", perRank: -0.08, min: 7000 },
+            { type: "spellEffectFieldAdd", spellId: "dk-rune-tap", kinds: ["damageReduction"], field: "durationMs", perRank: 400 },
+          ],
+        },
+        {
+          id: "dk-relentless-winter",
+          name: "Relentless Winter",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Mind Freeze recharges 10% faster and Chains of Ice costs 10% less Runic Power per rank.",
+          rankDescriptions: [
+            "Mind Freeze: -10% cooldown · Chains of Ice cost -10%.",
+            "Mind Freeze: -20% cooldown · Chains of Ice cost -20%.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "dk-mind-freeze", field: "cooldownMs", perRank: -0.10, min: 4000 },
+            { type: "spellFieldScale", spellId: "dk-chains", field: "resourceCost", perRank: -0.10, min: 1 },
+          ],
+        },
+        {
+          id: "dk-blood-shield",
+          name: "Blood Shield",
+          tier: 4,
+          requiredPoints: 12,
+          maxRank: 1,
+          capstone: true,
+          description: "Death Strike heals 25% more, Rune Tap reduces another 6% damage, and maximum Health increases by 8%.",
+          rankDescriptions: [
+            "Death Strike healing +25% · Rune Tap damage reduction +6 points · maximum Health +8%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "dk-death-strike", kinds: ["heal"], field: "amount", perRank: 0.25 },
+            { type: "spellEffectFieldAdd", spellId: "dk-rune-tap", kinds: ["damageReduction"], field: "value", perRank: 0.06, integer: false },
+            { type: "statFieldScale", field: "maxHealth", perRank: 0.08, integer: true },
+          ],
+        },
+      ],
+    },
+  ],
+});

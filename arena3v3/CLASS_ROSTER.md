@@ -52,13 +52,15 @@ Fast energy melee focused on burst and control.
 5. Kick — interrupt and spell-school lock
 
 ### Death Knight
-Slow, durable melee with disease pressure and control.
+Playable slow, durable melee with disease pressure and control. Its talent tree branches into Frost pressure or Blood survivability.
 
 1. Frost Fever — ranged disease DoT
 2. Death Strike — damage plus self-heal
 3. Obliterate — heavy strike
 4. Chains of Ice — ranged root
 5. Mind Freeze — interrupt and spell-school lock
+
+Talent unlocks include Frost Strike and Rune Tap.
 
 ## Casters
 

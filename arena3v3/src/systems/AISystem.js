@@ -321,6 +321,7 @@ export class AISystem {
   canControlTarget(actor, target, spell) {
     if (!target?.alive) return false;
     if (this.game.cc.isHardControlled(target) || this.game.cc.isRooted(target)) return false;
+    if (this.game.cc.wouldBeImmune(target, spell)) return false;
     if (!this.game.combat.inRange(actor, target, spell.range)) return false;
     if (!this.game.combat.hasLos(actor, target)) return false;
 

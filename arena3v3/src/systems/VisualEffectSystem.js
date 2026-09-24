@@ -76,13 +76,17 @@ export class VisualEffectSystem {
     if (!source || !target || !spellId) return;
 
     const durations = {
-      "mage-pyroblast": 620,
-      "warlock-chaos-bolt": 620,
-      "shaman-lava-burst": 560,
-      "priest-greater-heal": 560,
-      "paladin-holy-light": 560,
-      "druid-regrowth": 520,
-      "warrior-charge": 520,
+      "shaman-chain-lightning": 420,
+      "mage-pyroblast": 720,
+      "warlock-chaos-bolt": 720,
+      "shaman-lava-burst": 650,
+      "mage-frostbolt": 540,
+      "warlock-shadow-bolt": 540,
+      "paladin-holy-shock": 520,
+      "priest-greater-heal": 650,
+      "paladin-holy-light": 650,
+      "druid-regrowth": 620,
+      "warrior-charge": 580,
     };
 
     this.add("spell", {
@@ -96,6 +100,6 @@ export class VisualEffectSystem {
       style,
       missed,
       seed: this.nextId * 37,
-    }, durations[spellId] || 420);
+    }, durations[spellId] || 520);
   }
 }

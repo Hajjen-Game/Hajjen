@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.42-warrior-action-icons",
+    "Build: prototype-v0.43-combat-vfx-readability",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -42,6 +42,7 @@ export function buildMatchReport(game) {
     "Priest action icons: Renew, Flash Heal, Greater Heal, Pain Suppression and Psychic Scream now use inline SVG-style icons with restrained spell-specific color accents",
     "Class unit icons: generic healer/melee/caster glyphs are replaced by nine distinct vector-drawn class emblems on arena units",
     "Warrior action icons: Rend, Mortal Strike, Slam, Charge and Pummel now use inline SVG-style action-bar icons with red, steel and warm impact accents",
+    "Combat VFX readability: projectiles, heals, defensives, melee swings, CC, interrupts and periodic applications are larger, brighter and longer-lived while Chain Lightning keeps its existing lightning presentation",
     "",
     "=== FRIENDLY TEAM ===",
   ];

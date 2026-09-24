@@ -628,13 +628,27 @@ export class CanvasRenderer {
         if (!source || !target) continue;
 
         ctx.save();
-        ctx.globalAlpha = alpha * 0.9;
-        ctx.strokeStyle = this.vfxColor(effect.style);
-        ctx.lineWidth = effect.style === "heal" ? 5 : 3;
+        const healingBeam = ["heal", "priest", "druid", "paladin"].includes(effect.style);
+        const beamColor = this.vfxColor(effect.style);
+        ctx.globalAlpha = alpha * (healingBeam ? 0.96 : 0.9);
+        ctx.strokeStyle = beamColor;
+        ctx.shadowColor = beamColor;
+        ctx.shadowBlur = healingBeam ? 14 : 8;
+        ctx.lineWidth = healingBeam ? 6 : 3.5;
         ctx.beginPath();
         ctx.moveTo(source.x, source.y);
         ctx.lineTo(target.x, target.y);
         ctx.stroke();
+
+        if (healingBeam) {
+          ctx.globalAlpha = alpha * 0.48;
+          ctx.strokeStyle = "#fff4cf";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.stroke();
+        }
         ctx.restore();
       }
 
@@ -669,11 +683,20 @@ export class CanvasRenderer {
         const radius = lerp(effect.radiusStart, effect.radiusEnd, progress);
 
         ctx.save();
-        ctx.globalAlpha = alpha * 0.75;
-        ctx.strokeStyle = this.vfxColor(effect.style);
-        ctx.lineWidth = 4 - progress * 2;
+        const ringColor = this.vfxColor(effect.style);
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.strokeStyle = ringColor;
+        ctx.shadowColor = ringColor;
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 5 - progress * 1.8;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * 0.34;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, Math.max(4, radius - 7), 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
@@ -685,14 +708,23 @@ export class CanvasRenderer {
         const spread = lerp(8, 25, progress);
 
         ctx.save();
+        const slashColor = this.vfxColor(effect.style);
         ctx.globalAlpha = alpha;
-        ctx.strokeStyle = this.vfxColor(effect.style);
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = slashColor;
+        ctx.shadowColor = slashColor;
+        ctx.shadowBlur = 14;
+        ctx.lineWidth = 5.5;
         ctx.beginPath();
         ctx.moveTo(x - spread, y - spread);
         ctx.lineTo(x + spread, y + spread);
         ctx.moveTo(x + spread, y - spread);
         ctx.lineTo(x - spread, y + spread);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .45;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, spread * .72, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
@@ -785,14 +817,14 @@ export class CanvasRenderer {
     ]);
 
     if (projectileIds.has(spellId)) {
-      const tail = Math.max(14, Math.min(42, distanceToTarget * 0.12));
+      const tail = Math.max(20, Math.min(56, distanceToTarget * 0.16));
       const tailX = x - Math.cos(angle) * tail;
       const tailY = y - Math.sin(angle) * tail;
 
       ctx.shadowColor = color;
-      ctx.shadowBlur = spellId.includes("pyroblast") || spellId.includes("chaos-bolt") ? 18 : 11;
+      ctx.shadowBlur = spellId.includes("pyroblast") || spellId.includes("chaos-bolt") ? 26 : 18;
       ctx.strokeStyle = color;
-      ctx.lineWidth = spellId.includes("chaos-bolt") ? 7 : 4;
+      ctx.lineWidth = spellId.includes("chaos-bolt") ? 9 : 6;
       ctx.globalAlpha = alpha * 0.65 * missedAlpha;
       ctx.beginPath();
       ctx.moveTo(tailX, tailY);
@@ -807,10 +839,10 @@ export class CanvasRenderer {
         ctx.translate(x, y);
         ctx.rotate(angle);
         ctx.beginPath();
-        ctx.moveTo(11, 0);
-        ctx.lineTo(-7, -5);
-        ctx.lineTo(-3, 0);
-        ctx.lineTo(-7, 5);
+        ctx.moveTo(15, 0);
+        ctx.lineTo(-10, -7);
+        ctx.lineTo(-4, 0);
+        ctx.lineTo(-10, 7);
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle = accent;
@@ -820,15 +852,15 @@ export class CanvasRenderer {
       } else if (spellId === "warlock-chaos-bolt") {
         ctx.fillStyle = accent;
         ctx.beginPath();
-        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.arc(x, y, 11, progress * 7, progress * 7 + Math.PI * 1.3);
+        ctx.arc(x, y, 15, progress * 7, progress * 7 + Math.PI * 1.3);
         ctx.stroke();
       } else {
-        const radius = spellId === "mage-pyroblast" ? 10 : spellId === "shaman-lava-burst" ? 8 : 7;
+        const radius = spellId === "mage-pyroblast" ? 14 : spellId === "shaman-lava-burst" ? 12 : 10;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
@@ -839,70 +871,90 @@ export class CanvasRenderer {
         ctx.fill();
       }
 
-      for (let i = 0; i < 3; i += 1) {
-        const t = Math.max(0, travel - 0.07 * (i + 1));
-        const px = lerp(from.x, to.x, t) + Math.sin(effect.seed + i * 2.1) * 5;
-        const py = lerp(from.y, to.y, t) + Math.cos(effect.seed + i * 1.7) * 5;
-        ctx.globalAlpha = alpha * (0.5 - i * 0.09) * missedAlpha;
-        ctx.fillStyle = color;
+      for (let i = 0; i < 5; i += 1) {
+        const t = Math.max(0, travel - 0.055 * (i + 1));
+        const px = lerp(from.x, to.x, t) + Math.sin(effect.seed + i * 2.1) * 7;
+        const py = lerp(from.y, to.y, t) + Math.cos(effect.seed + i * 1.7) * 7;
+        ctx.globalAlpha = alpha * Math.max(.16, .62 - i * .09) * missedAlpha;
+        ctx.fillStyle = i % 2 === 0 ? accent : color;
         ctx.beginPath();
-        ctx.arc(px, py, Math.max(1.5, 3 - i * .6), 0, Math.PI * 2);
+        ctx.arc(px, py, Math.max(1.8, 4.2 - i * .55), 0, Math.PI * 2);
         ctx.fill();
       }
     } else if (healIds.has(spellId)) {
-      const radius = 18 + progress * 17;
+      const radius = 22 + progress * 23;
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 10;
-      ctx.globalAlpha = alpha * 0.72;
-      ctx.lineWidth = spellId.includes("greater") || spellId.includes("holy-light") ? 4 : 2.5;
+      ctx.shadowBlur = 18;
+      ctx.globalAlpha = alpha * 0.9;
+      ctx.lineWidth = spellId.includes("greater") || spellId.includes("holy-light") ? 5 : 3.5;
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
       ctx.stroke();
 
-      const motes = spellId.startsWith("druid") ? 5 : 4;
+      ctx.globalAlpha = alpha * .28;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = accent;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(8, radius - 9), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = alpha * .11;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(7, radius * .65), 0, Math.PI * 2);
+      ctx.fill();
+
+      const motes = spellId.startsWith("druid") ? 8 : 7;
       for (let i = 0; i < motes; i += 1) {
         const a = progress * 3.2 + (i / motes) * Math.PI * 2;
-        const r = 10 + progress * 18;
+        const r = 12 + progress * 24;
         const mx = Math.cos(a) * r;
         const my = Math.sin(a) * r - progress * 12;
         ctx.globalAlpha = alpha * 0.78;
         ctx.beginPath();
         if (spellId.startsWith("druid")) {
-          ctx.ellipse(mx, my, 2.5, 5, a, 0, Math.PI * 2);
+          ctx.ellipse(mx, my, 3.2, 6.5, a, 0, Math.PI * 2);
         } else {
-          ctx.arc(mx, my, 2.3, 0, Math.PI * 2);
+          ctx.arc(mx, my, 3.2, 0, Math.PI * 2);
         }
         ctx.fill();
       }
 
       if (!spellId.startsWith("druid")) {
-        ctx.globalAlpha = alpha * 0.8;
-        ctx.lineWidth = 2.4;
+        ctx.globalAlpha = alpha * 0.95;
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 3.2;
         ctx.beginPath();
-        ctx.moveTo(-6, 0);
-        ctx.lineTo(6, 0);
-        ctx.moveTo(0, -6);
-        ctx.lineTo(0, 6);
+        ctx.moveTo(-9, 0);
+        ctx.lineTo(9, 0);
+        ctx.moveTo(0, -9);
+        ctx.lineTo(0, 9);
         ctx.stroke();
       }
     } else if (shieldIds.has(spellId)) {
       ctx.translate(to.x, to.y);
-      const radius = 27 + Math.sin(progress * Math.PI) * 6;
+      const radius = 31 + Math.sin(progress * Math.PI) * 8;
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 12;
-      ctx.lineWidth = 3;
-      ctx.globalAlpha = alpha * 0.82;
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 4;
+      ctx.globalAlpha = alpha * 0.94;
 
-      for (let i = 0; i < 3; i += 1) {
-        const start = -Math.PI * .85 + i * Math.PI * .62 + progress * .25;
+      for (let i = 0; i < 4; i += 1) {
+        const start = -Math.PI * .92 + i * Math.PI * .48 + progress * .3;
         ctx.beginPath();
-        ctx.arc(0, 0, radius + i * 3, start, start + Math.PI * .42);
+        ctx.arc(0, 0, radius + i * 3.2, start, start + Math.PI * .38);
         ctx.stroke();
       }
+
+      ctx.globalAlpha = alpha * .12;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius - 6, 0, Math.PI * 2);
+      ctx.fill();
 
       if (spellId === "druid-ironbark") {
         ctx.lineWidth = 2;
@@ -919,34 +971,50 @@ export class CanvasRenderer {
       ctx.rotate(angle + Math.PI / 4);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
-      ctx.lineWidth = spellId.includes("eviscerate") || spellId.includes("slam") || spellId.includes("obliterate") ? 5 : 3;
-      const spread = 18 + progress * 19;
+      ctx.shadowBlur = 15;
+      const heavyMelee = spellId.includes("eviscerate") || spellId.includes("slam") || spellId.includes("obliterate");
+      ctx.lineWidth = heavyMelee ? 7 : 4.5;
+      const spread = 21 + progress * 26;
 
       ctx.beginPath();
-      ctx.arc(0, 0, spread, -Math.PI * .78, Math.PI * .12);
+      ctx.arc(0, 0, spread, -Math.PI * .82, Math.PI * .16);
       ctx.stroke();
 
-      if (spellId.includes("eviscerate") || spellId.includes("obliterate")) {
+      if (heavyMelee) {
         ctx.rotate(-Math.PI / 2.6);
-        ctx.globalAlpha = alpha * .72;
+        ctx.globalAlpha = alpha * .82;
+        ctx.lineWidth = 5;
         ctx.beginPath();
-        ctx.arc(0, 0, spread - 5, -Math.PI * .72, Math.PI * .08);
+        ctx.arc(0, 0, spread - 6, -Math.PI * .72, Math.PI * .08);
+        ctx.stroke();
+      }
+
+      ctx.rotate(-angle - Math.PI / 4);
+      ctx.globalAlpha = alpha * .75;
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 2.4;
+      for (let i = 0; i < 5; i += 1) {
+        const sparkAngle = (i / 5) * Math.PI * 2 + progress * 2.2;
+        const inner = 11 + progress * 4;
+        const outer = 20 + progress * 11;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(sparkAngle) * inner, Math.sin(sparkAngle) * inner);
+        ctx.lineTo(Math.cos(sparkAngle) * outer, Math.sin(sparkAngle) * outer);
         ctx.stroke();
       }
     } else if (spellId === "warrior-charge") {
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
-      ctx.lineWidth = 5;
-      ctx.globalAlpha = alpha * .7;
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 7;
+      ctx.globalAlpha = alpha * .9;
       ctx.beginPath();
       ctx.moveTo(from.x, from.y);
       ctx.lineTo(to.x, to.y);
       ctx.stroke();
 
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = alpha * .45;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = alpha * .62;
       const nx = distanceToTarget > 0 ? -dy / distanceToTarget : 0;
       const ny = distanceToTarget > 0 ? dx / distanceToTarget : 0;
       ctx.beginPath();
@@ -960,17 +1028,17 @@ export class CanvasRenderer {
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
-      ctx.lineWidth = 2.4;
+      ctx.shadowBlur = 15;
+      ctx.lineWidth = 3.5;
 
       if (spellId === "paladin-hammer") {
         ctx.globalAlpha = alpha * .9;
         ctx.rotate(-0.35 + progress * .7);
-        ctx.strokeRect(-3, -15, 6, 18);
-        ctx.fillRect(-9, -17, 18, 6);
+        ctx.strokeRect(-4, -19, 8, 23);
+        ctx.fillRect(-12, -22, 24, 8);
       } else if (spellId === "mage-frost-nova" || spellId === "dk-chains") {
         const spikes = 8;
-        const radius = 18 + progress * 25;
+        const radius = 22 + progress * 31;
         for (let i = 0; i < spikes; i += 1) {
           const a = (i / spikes) * Math.PI * 2;
           ctx.beginPath();
@@ -999,33 +1067,39 @@ export class CanvasRenderer {
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 7;
+      ctx.shadowBlur = 14;
 
-      for (let i = 0; i < 4; i += 1) {
-        const a = progress * 5 + (i / 4) * Math.PI * 2 + effect.seed * .01;
-        const rr = 13 + progress * 11;
-        ctx.globalAlpha = alpha * (.72 - i * .08);
+      for (let i = 0; i < 6; i += 1) {
+        const a = progress * 5.5 + (i / 6) * Math.PI * 2 + effect.seed * .01;
+        const rr = 15 + progress * 16;
+        ctx.globalAlpha = alpha * Math.max(.28, .82 - i * .07);
         ctx.beginPath();
-        ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 2.5, 0, Math.PI * 2);
+        ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 3.4, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      ctx.globalAlpha = alpha * .7;
-      ctx.lineWidth = 2;
+      ctx.globalAlpha = alpha * .88;
+      ctx.lineWidth = 3.4;
       ctx.beginPath();
-      ctx.arc(0, 0, 15 + progress * 12, 0, Math.PI * 2);
+      ctx.arc(0, 0, 18 + progress * 17, 0, Math.PI * 2);
       ctx.stroke();
     } else if (spellId === "shaman-wind-shear" || spellId === "warrior-pummel"
       || spellId === "rogue-kick" || spellId === "dk-mind-freeze") {
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
-      ctx.lineWidth = 4;
-      ctx.rotate(progress * .7);
-      const rr = 16 + progress * 15;
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 5.5;
+      ctx.rotate(progress * .9);
+      const rr = 18 + progress * 22;
       ctx.beginPath();
-      ctx.arc(0, 0, rr, -Math.PI * .8, Math.PI * .15);
+      ctx.arc(0, 0, rr, -Math.PI * .85, Math.PI * .18);
+      ctx.stroke();
+
+      ctx.globalAlpha = alpha * .55;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, rr - 7, -Math.PI * .72, Math.PI * .05);
       ctx.stroke();
     } else if (spellId === "shaman-chain-lightning") {
       ctx.translate(from.x, from.y);
@@ -1044,12 +1118,18 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 6;
-      ctx.lineWidth = 2.5;
-      ctx.globalAlpha = alpha * .7;
+      ctx.shadowBlur = 13;
+      ctx.lineWidth = 4;
+      ctx.globalAlpha = alpha * .88;
       ctx.beginPath();
-      ctx.arc(0, 0, 10 + progress * 18, 0, Math.PI * 2);
+      ctx.arc(0, 0, 14 + progress * 24, 0, Math.PI * 2);
       ctx.stroke();
+
+      ctx.globalAlpha = alpha * .32;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(0, 0, 8 + progress * 10, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();

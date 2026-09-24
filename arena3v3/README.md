@@ -101,6 +101,12 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Combat VFX readability pass:
+  - direct heals now use thicker class-colored beams, larger halos, more motes and stronger holy/nature symbols
+  - projectiles have larger cores, longer trails, brighter glow and more trailing particles
+  - melee attacks gain wider weapon arcs plus impact sparks; Charge, interrupts, CC and defensive effects are more readable at arena zoom
+  - DoT/HoT application rings and spell visuals are stronger without changing combat numbers or mechanics
+  - Shaman Chain Lightning is intentionally left at its previous visual strength/style
 - Warrior action-bar icons:
   - Warrior now has five lightweight inline SVG action icons using the same implementation as Priest
   - Rend uses slashes/blood accent, Mortal Strike crossed weapon lines, Slam a heavy impact motif, Charge a forward arrow, and Pummel a fist

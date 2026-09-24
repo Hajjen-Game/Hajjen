@@ -92,13 +92,17 @@
           <strong>TALENTS</strong>
           <span>Spend Talent Points and shape your build before the next match.</span>
         </button>
+        <button id="prep-loadout" class="character-prep-option" type="button">
+          <strong>ACTION BAR</strong>
+          <span>Arrange all unlocked spells into Slot 1–7 before the match starts.</span>
+        </button>
         <button id="prep-honor" class="character-prep-option" type="button">
           <strong>HONOR & RANK</strong>
           <span>Review rank progress, record and upcoming Talent Points.</span>
         </button>
         <button id="prep-keybindings" class="character-prep-option" type="button">
           <strong>KEYBINDINGS</strong>
-          <span>Adjust movement, targeting and all seven action slots.</span>
+          <span>Adjust movement, targeting and the keys assigned to Slot 1–7.</span>
         </button>
       </div>
 
@@ -303,6 +307,29 @@
   </div>
 
 
+  <div id="loadout-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="loadout-title">
+    <div class="modal-card loadout-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">PRE-MATCH LOADOUT</div>
+          <h2 id="loadout-title">ACTION BAR</h2>
+        </div>
+        <button id="loadout-close" class="icon-button" aria-label="Close action bar setup">×</button>
+      </div>
+
+      <div class="loadout-note">
+        Drag spells between Slot 1–7. Newly unlocked talent spells appear here immediately. Click a slot key to rebind it without starting a match.
+      </div>
+
+      <div id="loadout-action-bar" class="loadout-action-bar"></div>
+
+      <div class="loadout-footer">
+        <span>Your layout and slot keybindings are saved automatically for this character.</span>
+        <button id="loadout-done" class="hud-button primary" type="button">DONE</button>
+      </div>
+    </div>
+  </div>
+
   <div id="talent-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="talent-title">
     <div class="modal-card talent-card panel">
       <div class="modal-header">
@@ -333,7 +360,7 @@
       <div id="talent-tree" class="talent-tree"></div>
 
       <div class="talent-footer">
-        <span>Rank 2–14 awards one Talent Point per rank. Talent changes apply when the next match starts.</span>
+        <span>Rank 2–14 awards one Talent Point per rank. New talent spells update your pre-match Action Bar immediately and apply in the next match.</span>
         <button id="talent-reset" class="hud-button" type="button">RESET TALENTS</button>
       </div>
     </div>

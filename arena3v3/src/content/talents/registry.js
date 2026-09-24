@@ -3,6 +3,7 @@ import { warriorTalentTree } from "../classes/warrior/talents.js";
 import { rogueTalentTree } from "../classes/rogue/talents.js";
 import { shamanTalentTree } from "../classes/shaman/talents.js";
 import { deathKnightTalentTree } from "../classes/death-knight/talents.js";
+import { warlockTalentTree } from "../classes/warlock/talents.js";
 
 export const TALENT_TREE_REGISTRY = Object.freeze({
   priest: priestTalentTree,
@@ -10,4 +11,5 @@ export const TALENT_TREE_REGISTRY = Object.freeze({
   rogue: rogueTalentTree,
   shaman: shamanTalentTree,
   "death-knight": deathKnightTalentTree,
+  warlock: warlockTalentTree,
 });

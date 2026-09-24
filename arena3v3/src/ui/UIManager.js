@@ -58,6 +58,9 @@ export class UIManager {
     this.resultTitle = document.querySelector("#match-result-title");
     this.resultHonor = document.querySelector("#match-result-honor");
     this.resultRankUp = document.querySelector("#match-result-rank-up");
+    this.deathForfeit = document.querySelector("#death-forfeit");
+    this.deathKeepWatching = document.querySelector("#death-keep-watching");
+    this.deathForfeitButton = document.querySelector("#death-forfeit-button");
 
     this.honorRank = document.querySelector("#honor-rank");
     this.honorTotal = document.querySelector("#honor-total");
@@ -98,6 +101,8 @@ export class UIManager {
     this.restartArmed = false;
 
     this.restartButton.addEventListener("click", event => this.handleRestartClick(event));
+    this.deathKeepWatching.addEventListener("click", () => this.hideDeathForfeit());
+    this.deathForfeitButton.addEventListener("click", () => this.game.forfeitMatch());
     document.querySelector("#result-restart-button").addEventListener("click", () => {
       window.dispatchEvent(new CustomEvent("arena3v3:request-match-setup"));
     });
@@ -1160,6 +1165,15 @@ export class UIManager {
 
     slot.classList.remove("rejected");
     slot.classList.add("queued");
+  }
+
+  showDeathForfeit() {
+    if (!this.deathForfeit || this.game.ended) return;
+    this.deathForfeit.classList.remove("hidden");
+  }
+
+  hideDeathForfeit() {
+    this.deathForfeit?.classList.add("hidden");
   }
 
   setResult(title, honorAward = null) {

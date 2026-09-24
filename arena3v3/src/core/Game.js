@@ -118,11 +118,27 @@ export class Game {
   }
 
   spendTalent(talentId) {
-    return this.talents.spend(talentId, this.honor.status().talentPoints);
+    const result = this.talents.spend(talentId, this.honor.status().talentPoints);
+    if (result.ok && this.waitingForStart) this.refreshPreparedLoadout();
+    return result;
   }
 
   resetTalents() {
     this.talents.reset();
+    if (this.waitingForStart) this.refreshPreparedLoadout();
+  }
+
+  refreshPreparedLoadout() {
+    if (!this.waitingForStart) return;
+
+    this.actors = this.createActors();
+    this.player = this.actors.find(actor => actor.control === "player");
+    this.player.targetId = this.player.id;
+
+    this.ui?.buildFrames();
+    this.ui?.buildDamageMeter();
+    this.ui?.buildActionBar();
+    this.ui?.buildLoadoutBar?.();
   }
 
   resetMatchTracking() {

@@ -33,7 +33,7 @@ export const rogueClass = {
       id: "rogue-kidney", name: "Kidney Shot", aiRole: "control", visualStyle: "rogue",
       target: "enemy", school: "physical", utility: true, resourceCost: 25, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 60,
       noHitRoll: true,
-      effects: [{ kind: "stun", durationMs: 3200 }],
+      effects: [{ kind: "stun", drCategory: "stun", durationMs: 3200 }],
     },
     {
       id: "rogue-kick", name: "Kick", aiRole: "interrupt", visualStyle: "rogue",

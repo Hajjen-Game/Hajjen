@@ -542,7 +542,16 @@ export class UIManager {
 
       slot.classList.add("loadout-action-slot");
       this.wireLoadoutSlotDrag(slot, slotIndex, Boolean(spell));
-      this.loadoutActionBar.appendChild(slot);
+
+      const shell = document.createElement("div");
+      shell.className = "loadout-slot-shell";
+
+      const label = document.createElement("div");
+      label.className = "loadout-slot-label";
+      label.textContent = "SLOT " + (slotIndex + 1);
+
+      shell.append(label, slot);
+      this.loadoutActionBar.appendChild(shell);
       return slot;
     });
 

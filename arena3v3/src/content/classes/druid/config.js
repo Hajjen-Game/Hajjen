@@ -37,7 +37,7 @@ export const druidClass = {
       id: "druid-cyclone", name: "Cyclone", aiRole: "control", visualStyle: "druid",
       target: "enemy", school: "nature", utility: true, resourceCost: 14, castMs: 1400, cooldownMs: 15000, gcdMs: 1200, range: 320,
       noHitRoll: true,
-      effects: [{ kind: "incapacitate", durationMs: 4000, breakOnDamage: false }],
+      effects: [{ kind: "incapacitate", drCategory: "disorient", durationMs: 4000, breakOnDamage: false }],
     },
   ],
 };

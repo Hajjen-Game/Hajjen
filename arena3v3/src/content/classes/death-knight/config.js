@@ -36,7 +36,7 @@ export const deathKnightClass = {
       id: "dk-chains", name: "Chains of Ice", aiRole: "control", visualStyle: "deathKnight",
       target: "enemy", school: "frost", utility: true, resourceCost: 12, castMs: 0, cooldownMs: 12000, gcdMs: 1200, range: 250,
       noHitRoll: true,
-      effects: [{ kind: "root", durationMs: 2600, breakOnDamage: false }],
+      effects: [{ kind: "root", drCategory: "root", durationMs: 2600, breakOnDamage: false }],
     },
     {
       id: "dk-mind-freeze", name: "Mind Freeze", aiRole: "interrupt", visualStyle: "deathKnight",

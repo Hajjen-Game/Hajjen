@@ -22,7 +22,7 @@ const arenaStage = document.querySelector("#arena-stage");
 const gameShell = document.querySelector("#game-shell");
 const input = new InputManager();
 const characters = new CharacterStore();
-const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "mage", "shaman"]);
+const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "death-knight", "mage", "shaman"]);
 
 let game = null;
 let activeCharacter = null;
@@ -341,7 +341,7 @@ function hideCharacterScreen() {
 function fillCharacterClassSelect(selectedClassId = "priest") {
   createCharacterClass.innerHTML = "";
 
-  for (const classId of ["priest", "druid", "paladin", "warrior", "rogue", "mage", "shaman"]) {
+  for (const classId of ["priest", "druid", "paladin", "warrior", "rogue", "death-knight", "mage", "shaman"]) {
     const option = document.createElement("option");
     option.value = classId;
     option.textContent =

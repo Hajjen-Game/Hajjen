@@ -1,10 +1,36 @@
 import { distance, normalize } from "../core/utils.js";
 
 const HARD_CONTROL = new Set(["fear", "incapacitate", "stun"]);
+const DR_RESET_MS = 20000;
+
+const DR_LABELS = Object.freeze({
+  stun: "STUN",
+  incapacitate: "INCAP",
+  disorient: "DISORIENT",
+  root: "ROOT",
+});
+
+function drCategoryForEffect(effect) {
+  if (!effect) return null;
+
+  if (Object.prototype.hasOwnProperty.call(effect, "drCategory")) {
+    return effect.drCategory || null;
+  }
+
+  if (effect.kind === "stun") return "stun";
+  if (effect.kind === "incapacitate") return "incapacitate";
+  if (effect.kind === "fear" || effect.kind === "fearAoE") return "disorient";
+  if (effect.kind === "root" || effect.kind === "rootAoE") return "root";
+  return null;
+}
 
 export class CrowdControlSystem {
   constructor(game) {
     this.game = game;
+  }
+
+  nowMs() {
+    return this.game.elapsedSeconds * 1000;
   }
 
   hasKind(actor, kind) {
@@ -49,8 +75,152 @@ export class CrowdControlSystem {
     return normalize(actor.x - origin.x, actor.y - origin.y);
   }
 
+  normalizeDrState(target, category) {
+    if (!category || !target?.drStates) return null;
+
+    const state = target.drStates.get(category);
+    if (!state) return null;
+
+    if (state.resetAtMs !== null && this.nowMs() >= state.resetAtMs) {
+      target.drStates.delete(category);
+      return null;
+    }
+
+    return state;
+  }
+
+  syncDrStates(target) {
+    if (!target?.drStates || target.drStates.size === 0) return;
+
+    const now = this.nowMs();
+
+    for (const [category, state] of [...target.drStates.entries()]) {
+      if (state.resetAtMs !== null && now >= state.resetAtMs) {
+        target.drStates.delete(category);
+        continue;
+      }
+
+      const active = target.effects.some(effect =>
+        effect.remainingMs > 0 && effect.drCategory === category
+      );
+
+      if (active) {
+        state.resetAtMs = null;
+      } else if (state.resetAtMs === null) {
+        state.resetAtMs = now + DR_RESET_MS;
+      }
+    }
+  }
+
+  drCategoryForSpell(spell) {
+    for (const effect of spell?.effects || []) {
+      const category = drCategoryForEffect(effect);
+      if (category) return category;
+    }
+    return null;
+  }
+
+  wouldBeImmune(target, spell) {
+    const category = this.drCategoryForSpell(spell);
+    if (!category) return false;
+
+    this.syncDrStates(target);
+    const state = this.normalizeDrState(target, category);
+    return (state?.applications || 0) >= 2;
+  }
+
+  drStatuses(target) {
+    this.syncDrStates(target);
+    const now = this.nowMs();
+    const statuses = [];
+
+    for (const [category, state] of target?.drStates || []) {
+      if (state.applications <= 0) continue;
+
+      const activeEffects = target.effects.filter(effect =>
+        effect.remainingMs > 0 && effect.drCategory === category
+      );
+      const activeRemainingMs = activeEffects.reduce(
+        (highest, effect) => Math.max(highest, effect.remainingMs),
+        0,
+      );
+
+      const resetRemainingMs = state.resetAtMs === null
+        ? activeRemainingMs + DR_RESET_MS
+        : Math.max(0, state.resetAtMs - now);
+
+      statuses.push({
+        category,
+        label: DR_LABELS[category] || category.toUpperCase(),
+        applications: state.applications,
+        nextMultiplier: state.applications >= 2 ? 0 : 0.5,
+        immune: state.applications >= 2,
+        active: activeRemainingMs > 0,
+        resetRemainingMs,
+      });
+    }
+
+    return statuses.sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  applyDr(source, target, spell, effect) {
+    const category = drCategoryForEffect(effect);
+    const baseDurationMs = Math.max(0, Number(effect.durationMs) || 0);
+
+    if (!category || baseDurationMs <= 0) {
+      return {
+        immune: false,
+        category: null,
+        durationMs: baseDurationMs,
+        multiplier: 1,
+      };
+    }
+
+    this.syncDrStates(target);
+    let state = this.normalizeDrState(target, category);
+
+    if (!state) {
+      state = { applications: 0, resetAtMs: null };
+      target.drStates.set(category, state);
+    }
+
+    if (state.applications >= 2) {
+      const label = DR_LABELS[category] || category.toUpperCase();
+      this.game.addFloatingText(target, "IMMUNE", "avoid");
+      this.game.log(
+        target.name + " is immune to " + spell.name + " — " + label + " DR.",
+      );
+      return {
+        immune: true,
+        category,
+        durationMs: 0,
+        multiplier: 0,
+      };
+    }
+
+    const multiplier = state.applications === 0 ? 1 : 0.5;
+    const durationMs = Math.max(1, Math.round(baseDurationMs * multiplier));
+
+    state.applications += 1;
+    state.resetAtMs = null;
+
+    return {
+      immune: false,
+      category,
+      durationMs,
+      multiplier,
+    };
+  }
+
+  drLogSuffix(dr) {
+    return dr?.multiplier === 0.5 ? " · 50% DR" : "";
+  }
+
   applyFear(source, target, spell, effect) {
     if (!target.alive) return false;
+
+    const dr = this.applyDr(source, target, spell, effect);
+    if (dr.immune) return false;
 
     this.removeHardControl(target);
     this.cancelTargetCast(target, "fear");
@@ -59,17 +229,23 @@ export class CrowdControlSystem {
       kind: "fear",
       spellId: spell.id,
       sourceId: source.id,
-      durationMs: effect.durationMs,
-      remainingMs: effect.durationMs,
+      drCategory: dr.category,
+      durationMs: dr.durationMs,
+      remainingMs: dr.durationMs,
       breakOnDamage: effect.breakOnDamage !== false,
       originX: source.x,
       originY: source.y,
     });
+    this.syncDrStates(target);
 
     this.game.vfx.burst(target, spell.visualStyle || source.visualStyle || "fear", 340);
-    this.game.recordCc(source, target, "fear", effect.durationMs);
+    this.game.recordCc(source, target, "fear", dr.durationMs);
     this.game.addFloatingText(target, "FEAR", "cc");
-    this.game.log(source.name + " fears " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
+    this.game.log(
+      source.name + " fears " + target.name + " for "
+      + (dr.durationMs / 1000).toFixed(1) + "s"
+      + this.drLogSuffix(dr) + ".",
+    );
     return true;
   }
 
@@ -100,7 +276,7 @@ export class CrowdControlSystem {
     }
 
     if (affected === 0) {
-      this.game.log(source.name + "'s " + spell.name + " hits no targets.");
+      this.game.log(source.name + "'s " + spell.name + " hits no controllable targets.");
     }
 
     return affected > 0;
@@ -109,6 +285,9 @@ export class CrowdControlSystem {
   applyIncapacitate(source, target, spell, effect) {
     if (!target.alive) return false;
 
+    const dr = this.applyDr(source, target, spell, effect);
+    if (dr.immune) return false;
+
     this.removeHardControl(target);
     this.cancelTargetCast(target, "crowd control");
 
@@ -116,22 +295,31 @@ export class CrowdControlSystem {
       kind: "incapacitate",
       spellId: spell.id,
       sourceId: source.id,
-      durationMs: effect.durationMs,
-      remainingMs: effect.durationMs,
+      drCategory: dr.category,
+      durationMs: dr.durationMs,
+      remainingMs: dr.durationMs,
       breakOnDamage: effect.breakOnDamage !== false,
     });
+    this.syncDrStates(target);
 
     const style = spell.visualStyle || source.visualStyle || "control";
     this.game.vfx.beam(source, target, style, 250);
     this.game.vfx.burst(target, style, 360);
-    this.game.recordCc(source, target, "incapacitate", effect.durationMs);
+    this.game.recordCc(source, target, "incapacitate", dr.durationMs);
     this.game.addFloatingText(target, "CONTROLLED", "cc");
-    this.game.log(source.name + " incapacitates " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
+    this.game.log(
+      source.name + " incapacitates " + target.name + " for "
+      + (dr.durationMs / 1000).toFixed(1) + "s"
+      + this.drLogSuffix(dr) + ".",
+    );
     return true;
   }
 
   applyStun(source, target, spell, effect) {
     if (!target.alive) return false;
+
+    const dr = this.applyDr(source, target, spell, effect);
+    if (dr.immune) return false;
 
     this.removeHardControl(target);
     this.cancelTargetCast(target, "stun");
@@ -140,21 +328,30 @@ export class CrowdControlSystem {
       kind: "stun",
       spellId: spell.id,
       sourceId: source.id,
-      durationMs: effect.durationMs,
-      remainingMs: effect.durationMs,
+      drCategory: dr.category,
+      durationMs: dr.durationMs,
+      remainingMs: dr.durationMs,
       breakOnDamage: false,
     });
+    this.syncDrStates(target);
 
     const style = spell.visualStyle || source.visualStyle || "control";
     this.game.vfx.burst(target, style, 360);
-    this.game.recordCc(source, target, "stun", effect.durationMs);
+    this.game.recordCc(source, target, "stun", dr.durationMs);
     this.game.addFloatingText(target, "STUNNED", "cc");
-    this.game.log(source.name + " stuns " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
+    this.game.log(
+      source.name + " stuns " + target.name + " for "
+      + (dr.durationMs / 1000).toFixed(1) + "s"
+      + this.drLogSuffix(dr) + ".",
+    );
     return true;
   }
 
   applyRoot(source, target, spell, effect) {
     if (!target.alive) return false;
+
+    const dr = this.applyDr(source, target, spell, effect);
+    if (dr.immune) return false;
 
     target.effects = target.effects.filter(existing =>
       !(existing.kind === "root" && existing.sourceId === source.id)
@@ -164,16 +361,22 @@ export class CrowdControlSystem {
       kind: "root",
       spellId: spell.id,
       sourceId: source.id,
-      durationMs: effect.durationMs,
-      remainingMs: effect.durationMs,
+      drCategory: dr.category,
+      durationMs: dr.durationMs,
+      remainingMs: dr.durationMs,
       breakOnDamage: effect.breakOnDamage === true,
     });
+    this.syncDrStates(target);
 
     const style = spell.visualStyle || source.visualStyle || "control";
     this.game.vfx.ring(target, style, target.radius + 2, target.radius + 24, 360);
-    this.game.recordCc(source, target, "root", effect.durationMs);
+    this.game.recordCc(source, target, "root", dr.durationMs);
     this.game.addFloatingText(target, "ROOTED", "cc");
-    this.game.log(source.name + " roots " + target.name + " for " + (effect.durationMs / 1000).toFixed(1) + "s.");
+    this.game.log(
+      source.name + " roots " + target.name + " for "
+      + (dr.durationMs / 1000).toFixed(1) + "s"
+      + this.drLogSuffix(dr) + ".",
+    );
     return true;
   }
 
@@ -248,6 +451,7 @@ export class CrowdControlSystem {
     if (broken.length === 0) return;
 
     target.effects = target.effects.filter(effect => !broken.includes(effect));
+    this.syncDrStates(target);
     this.game.log(target.name + "'s crowd control breaks from damage.");
   }
 

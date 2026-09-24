@@ -102,10 +102,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
 - Enemy major cooldown tracker:
-  - the open area below the enemy unit frames now shows enemy BURST and CC cooldowns
+  - the area below the enemy unit frames stays completely empty while all tracked abilities are ready
+  - when an enemy uses a tracked BURST or major CC ability, that cooldown appears with a thick recharge bar and live countdown
+  - the row disappears immediately when the cooldown reaches zero; class headings and the whole widget hide automatically when nothing is active
   - burst abilities are detected from offensiveCooldown metadata; major CC tracks fear, incapacitate, stun and root effects
-  - each row has a thicker recharge bar, READY/DOWN state and a live countdown until the ability is available again
-  - interrupts are intentionally excluded so the widget stays focused on the larger cooldowns requested
+  - interrupts are intentionally excluded so the widget stays focused on larger cooldowns
 - Combat VFX readability pass:
   - direct heals now use thicker class-colored beams, larger halos, more motes and stronger holy/nature symbols
   - projectiles have larger cores, longer trails, brighter glow and more trailing particles

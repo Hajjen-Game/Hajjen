@@ -222,6 +222,12 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   margin-top: 14px;
 }
 
+.enemy-cooldown-widget[hidden],
+.enemy-cooldown-group[hidden],
+.enemy-cooldown-row[hidden] {
+  display: none !important;
+}
+
 .enemy-cooldown-title {
   color: var(--enemy-bright);
 }

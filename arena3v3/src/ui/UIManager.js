@@ -44,6 +44,7 @@ export class UIManager {
     this.teamFrames = document.querySelector("#team-frames");
     this.enemyFrames = document.querySelector("#enemy-frames");
     this.enemyCooldowns = document.querySelector("#enemy-cooldowns");
+    this.enemyCooldownWidget = document.querySelector("#enemy-cooldown-widget");
     this.damageMeter = document.querySelector("#damage-meter");
     this.actionBar = document.querySelector("#action-bar");
     this.matchClock = document.querySelector("#match-clock");
@@ -188,6 +189,7 @@ export class UIManager {
 
       const group = document.createElement("div");
       group.className = "enemy-cooldown-group";
+      group.hidden = true;
 
       const heading = document.createElement("div");
       heading.className = "enemy-cooldown-class";
@@ -198,6 +200,7 @@ export class UIManager {
       for (const { spell, category } of trackedSpells) {
         const row = document.createElement("div");
         row.className = "enemy-cooldown-row " + category;
+        row.hidden = true;
         row.dataset.actorId = actor.id;
         row.dataset.spellId = spell.id;
         row.innerHTML = `
@@ -222,6 +225,7 @@ export class UIManager {
           actorId: actor.id,
           spellId: spell.id,
           cooldownMs: spell.cooldownMs,
+          group,
         });
       }
 
@@ -230,26 +234,41 @@ export class UIManager {
   }
 
   updateEnemyCooldowns() {
+    const activeGroups = new Set();
+    let activeCount = 0;
+
     for (const entry of this.enemyCooldownRows.values()) {
       const actor = this.game.getActor(entry.actorId);
       const row = entry.row;
       if (!actor) continue;
 
       const remaining = actor.cooldownFor(entry.spellId);
-      const ready = remaining <= 0;
+      const active = actor.alive && remaining > 0;
+
+      row.hidden = !active;
+      row.classList.toggle("cooling", active);
+      row.classList.remove("ready", "dead");
+
+      if (!active) continue;
+
+      activeCount += 1;
+      activeGroups.add(entry.group);
+
       const recharge = entry.cooldownMs > 0
         ? clamp(1 - remaining / entry.cooldownMs, 0, 1)
         : 1;
 
-      row.classList.toggle("ready", ready && actor.alive);
-      row.classList.toggle("cooling", !ready && actor.alive);
-      row.classList.toggle("dead", !actor.alive);
-
       row.querySelector(".enemy-cooldown-time").textContent =
-        actor.alive ? cooldownTimerLabel(remaining) : "DOWN";
+        cooldownTimerLabel(remaining);
       row.querySelector(".enemy-cooldown-fill").style.width =
-        (actor.alive ? recharge * 100 : 0).toFixed(1) + "%";
+        (recharge * 100).toFixed(1) + "%";
     }
+
+    for (const group of this.enemyCooldowns.querySelectorAll(".enemy-cooldown-group")) {
+      group.hidden = !activeGroups.has(group);
+    }
+
+    this.enemyCooldownWidget.hidden = activeCount === 0;
   }
 
   refreshPartyKeycaps() {

@@ -531,14 +531,6 @@ createCharacterName.addEventListener("keydown", event => {
   }
 });
 
-document.querySelector("#actionbar-button").addEventListener("click", () => {
-  if (!activeCharacter) {
-    showCharacterScreen();
-    return;
-  }
-  game.ui.openLoadout();
-});
-
 document.querySelector("#start-arena-button").addEventListener("click", () => {
   if (!activeCharacter || !game) return;
   openMatchSetup({
@@ -552,25 +544,6 @@ window.addEventListener("arena3v3:talents-updated", () => {
   if (!arenaLobby.classList.contains("hidden")) renderArenaLobby();
 });
 
-document.querySelector("#roster-button").addEventListener("click", () => {
-  if (!activeCharacter) {
-    showCharacterScreen();
-    return;
-  }
-
-  const activeMatch = Boolean(
-    game
-    && !game.ended
-    && !game.waitingForStart
-    && game.elapsedSeconds > 0
-  );
-
-  openMatchSetup({
-    reroll: true,
-    required: false,
-    resumeOnCancel: activeMatch,
-  });
-});
 rosterClose.addEventListener("click", closeMatchSetup);
 rosterCancel.addEventListener("click", closeMatchSetup);
 

@@ -35,6 +35,7 @@ export class Actor {
     this.spells = config.spells;
     this.cooldowns = new Map();
     this.effects = [];
+    this.drStates = new Map();
     this.cast = null;
     this.gcdRemaining = 0;
     this.gcdTotalMs = 0;

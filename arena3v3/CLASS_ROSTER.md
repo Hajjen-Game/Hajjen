@@ -81,13 +81,15 @@ Durable shadow pressure caster.
 5. Fear — casted single-target fear
 
 ### Shaman
-Utility caster with multi-target lightning.
+Playable utility caster with multi-target lightning. Its talent tree branches into Elemental pressure or Restoration hybrid support.
 
 1. Flame Shock — DoT
 2. Chain Lightning — can hit up to all three enemies in range and LOS
 3. Lava Burst — heavy cast
 4. Hex — casted incapacitate
 5. Wind Shear — long-range short-cooldown interrupt
+
+Talent unlocks include Elemental Blast and Healing Surge.
 
 ## Prototype philosophy
 

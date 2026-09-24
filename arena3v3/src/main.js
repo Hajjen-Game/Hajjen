@@ -15,6 +15,11 @@ import { WOW_CLASS_COLORS } from "./content/classes/classColors.js";
 
 const ROSTER_STORAGE_KEY = "arena3v3-roster-v4";
 const LEGACY_ROSTER_STORAGE_KEY = "arena3v3-roster-v3";
+const CHARACTER_DATA_PREFIXES = [
+  "arena3v3-honor-v2:",
+  "arena3v3-talents-v1:",
+  "arena3v3-actionbar-v1:",
+];
 
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
@@ -282,9 +287,11 @@ function renderCharacterList() {
 
   for (const character of saved) {
     const status = new HonorSystem(character.id).status();
-    const card = document.createElement("button");
-    card.type = "button";
+    const card = document.createElement("div");
     card.className = "character-card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", "Play " + character.name);
     card.style.setProperty(
       "--character-color",
       WOW_CLASS_COLORS[character.classId] || "#d9b977",
@@ -298,7 +305,10 @@ function renderCharacterList() {
       + '<span class="character-rank"></span>'
       + '</span>'
       + '<span class="character-honor"></span>'
-      + '<span class="character-play">PLAY</span>';
+      + '<span class="character-card-actions">'
+      + '<span class="character-play">PLAY</span>'
+      + '<button class="character-delete" type="button">DELETE</button>'
+      + '</span>';
 
     card.querySelector(".character-name").textContent = character.name;
     const role = CLASS_REGISTRY[character.classId]?.role || "unknown";
@@ -308,7 +318,22 @@ function renderCharacterList() {
       "Rank " + status.rank + " · " + status.title + " · TP " + status.talentPoints;
     card.querySelector(".character-honor").textContent =
       status.lifetimeHonor.toLocaleString() + " Honor";
+
+    const deleteButton = card.querySelector(".character-delete");
+    deleteButton.setAttribute("aria-label", "Delete " + character.name);
+    deleteButton.addEventListener("click", event => {
+      event.stopPropagation();
+      deleteCharacter(character.id);
+    });
+
     card.addEventListener("click", () => selectCharacter(character.id));
+    card.addEventListener("keydown", event => {
+      if (event.target !== card) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      selectCharacter(character.id);
+    });
+
     characterList.appendChild(card);
   }
 
@@ -323,6 +348,45 @@ function renderCharacterList() {
   characterList.appendChild(createCard);
 
   characterReturn.hidden = !canReturnToMatch;
+}
+
+function deleteCharacter(characterId) {
+  const character = characters.get(characterId);
+  if (!character) return;
+
+  const deletingActiveCharacter = activeCharacter?.id === characterId;
+  const warning = deletingActiveCharacter
+    ? 'Delete "' + character.name + '" permanently?\n\nThis is your active character. The current match will be abandoned and all Honor, Talents and action-bar settings for this character will be lost.'
+    : 'Delete "' + character.name + '" permanently?\n\nAll Honor, Talents and action-bar settings for this character will be lost.';
+
+  if (!window.confirm(warning)) return;
+
+  const removed = characters.remove(characterId);
+  if (!removed) return;
+
+  try {
+    for (const prefix of CHARACTER_DATA_PREFIXES) {
+      localStorage.removeItem(prefix + characterId);
+    }
+  } catch {
+    // Character removal should still succeed if storage cleanup is unavailable.
+  }
+
+  if (deletingActiveCharacter) {
+    activeCharacter = null;
+    canReturnToMatch = false;
+
+    if (game) {
+      game.waitingForStart = true;
+      game.stopMouseSteering?.();
+      game.markRunInactive?.();
+    }
+
+    const label = document.querySelector("#active-character-label");
+    if (label) label.textContent = "No character selected";
+  }
+
+  renderCharacterList();
 }
 
 function showCharacterScreen({ allowReturn = false } = {}) {

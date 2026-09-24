@@ -103,7 +103,7 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
 - Enemy major cooldown tracker:
   - the area below the enemy unit frames stays completely empty while all tracked abilities are ready
-  - when an enemy uses a tracked BURST or major CC ability, that cooldown appears with a thick recharge bar and live countdown
+  - when an enemy uses a tracked BURST or major CC ability, that cooldown appears with a thick countdown bar that starts full and drains from right to left while the timer runs
   - the row disappears immediately when the cooldown reaches zero; class headings and the whole widget hide automatically when nothing is active
   - burst abilities are detected from offensiveCooldown metadata; major CC tracks fear, incapacitate, stun and root effects
   - interrupts are intentionally excluded so the widget stays focused on larger cooldowns

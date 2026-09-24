@@ -254,14 +254,14 @@ export class UIManager {
       activeCount += 1;
       activeGroups.add(entry.group);
 
-      const recharge = entry.cooldownMs > 0
-        ? clamp(1 - remaining / entry.cooldownMs, 0, 1)
-        : 1;
+      const remainingFraction = entry.cooldownMs > 0
+        ? clamp(remaining / entry.cooldownMs, 0, 1)
+        : 0;
 
       row.querySelector(".enemy-cooldown-time").textContent =
         cooldownTimerLabel(remaining);
       row.querySelector(".enemy-cooldown-fill").style.width =
-        (recharge * 100).toFixed(1) + "%";
+        (remainingFraction * 100).toFixed(1) + "%";
     }
 
     for (const group of this.enemyCooldowns.querySelectorAll(".enemy-cooldown-group")) {

@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.45-active-enemy-cooldowns",
+    "Build: prototype-v0.46-countdown-cooldown-bars",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -43,7 +43,7 @@ export function buildMatchReport(game) {
     "Class unit icons: generic healer/melee/caster glyphs are replaced by nine distinct vector-drawn class emblems on arena units",
     "Warrior action icons: Rend, Mortal Strike, Slam, Charge and Pummel now use inline SVG-style action-bar icons with red, steel and warm impact accents",
     "Combat VFX readability: projectiles, heals, defensives, melee swings, CC, interrupts and periodic applications are larger, brighter and longer-lived while Chain Lightning keeps its existing lightning presentation",
-    "Enemy cooldown tracker: enemy burst and major CC cooldowns now appear only after use, count down while unavailable, and disappear again as soon as they are ready",
+    "Enemy cooldown tracker: enemy burst and major CC cooldowns appear only after use; their bars now drain from full to empty as the timer counts down, then disappear when ready",
     "",
     "=== FRIENDLY TEAM ===",
   ];

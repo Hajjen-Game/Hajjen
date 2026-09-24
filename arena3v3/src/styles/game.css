@@ -1067,7 +1067,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   width: 100%;
   min-height: 82px;
   display: grid;
-  grid-template-columns: 12px 1fr 130px 66px;
+  grid-template-columns: 12px 1fr 130px 84px;
   gap: 12px;
   align-items: center;
   padding: 12px 14px;
@@ -1127,6 +1127,38 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   font-weight: 950;
   letter-spacing: .12em;
   text-align: right;
+}
+
+.character-card:focus-visible {
+  outline: 2px solid var(--character-color);
+  outline-offset: 2px;
+}
+
+.character-card-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.character-delete {
+  padding: 4px 7px;
+  border: 1px solid rgba(190, 83, 70, .48);
+  border-radius: 5px;
+  background: rgba(77, 28, 24, .42);
+  color: #d99a8f;
+  font: inherit;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+.character-delete:hover,
+.character-delete:focus-visible {
+  border-color: #d46e5e;
+  background: rgba(116, 39, 31, .62);
+  color: #ffd1c9;
+  outline: none;
 }
 
 .create-character-card {

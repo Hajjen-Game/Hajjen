@@ -59,60 +59,6 @@
   </div>
 
 
-  <div id="character-prep-modal" class="modal hidden character-prep-modal" role="dialog" aria-modal="true" aria-labelledby="character-prep-title">
-    <div class="modal-card character-prep-card panel">
-      <div class="modal-header">
-        <div>
-          <div class="eyebrow">CHARACTER READY ROOM</div>
-          <h2 id="character-prep-title">PREPARE FOR ARENA</h2>
-        </div>
-      </div>
-
-      <div class="character-prep-identity">
-        <div>
-          <span>CHARACTER</span>
-          <strong id="character-prep-name">—</strong>
-          <small id="character-prep-class">—</small>
-        </div>
-        <div>
-          <span>RANK</span>
-          <strong id="character-prep-rank">—</strong>
-          <small id="character-prep-honor">—</small>
-        </div>
-        <div>
-          <span>TALENTS</span>
-          <strong id="character-prep-tp">0 TP</strong>
-          <small id="character-prep-talent-status">No points available</small>
-        </div>
-      </div>
-
-      <div class="character-prep-section-title">CHARACTER SETUP</div>
-      <div class="character-prep-options">
-        <button id="prep-talents" class="character-prep-option" type="button">
-          <strong>TALENTS</strong>
-          <span>Spend Talent Points and shape your build before the next match.</span>
-        </button>
-        <button id="prep-loadout" class="character-prep-option" type="button">
-          <strong>ACTION BAR</strong>
-          <span>Arrange all unlocked spells into Slot 1–7 before the match starts.</span>
-        </button>
-        <button id="prep-honor" class="character-prep-option" type="button">
-          <strong>HONOR & RANK</strong>
-          <span>Review rank progress, record and upcoming Talent Points.</span>
-        </button>
-        <button id="prep-keybindings" class="character-prep-option" type="button">
-          <strong>KEYBINDINGS</strong>
-          <span>Adjust movement, targeting and the keys assigned to Slot 1–7.</span>
-        </button>
-      </div>
-
-      <div class="character-prep-actions">
-        <button id="prep-back-characters" class="hud-button" type="button">BACK TO CHARACTERS</button>
-        <button id="prep-continue" class="hud-button primary" type="button">CHOOSE TEAM & OPPONENT</button>
-      </div>
-    </div>
-  </div>
-
   <div id="app">
     <header class="top-hud panel">
       <div>
@@ -134,6 +80,7 @@
         <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
         <button id="honor-button" class="hud-button" type="button">HONOR</button>
         <button id="talents-button" class="hud-button" type="button">TALENTS</button>
+        <button id="actionbar-button" class="hud-button" type="button">ACTION BAR</button>
         <button id="roster-button" class="hud-button" type="button">ROSTER</button>
         <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
         <button id="help-button" class="hud-button" type="button">HELP</button>
@@ -172,6 +119,18 @@
           <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
           <div id="combat-log" class="combat-log" aria-live="polite"></div>
           <div id="toast" class="toast" aria-live="polite"></div>
+
+          <div id="arena-lobby" class="arena-lobby hidden">
+            <div class="arena-lobby-card panel">
+              <div class="eyebrow">CHARACTER READY</div>
+              <div id="arena-lobby-name" class="arena-lobby-name">PLAYER</div>
+              <div id="arena-lobby-meta" class="arena-lobby-meta">PRIEST · RANK 1 · PRIVATE</div>
+              <div class="arena-lobby-copy">
+                Adjust talents, action bar, keybindings and progression from the main UI. Enter the arena when you are ready.
+              </div>
+              <button id="start-arena-button" class="hud-button primary arena-lobby-start" type="button">START ARENA</button>
+            </div>
+          </div>
 
           <div class="player-status-bars" aria-label="Player cast bar">
             <div id="player-cast" class="player-cast hidden">
@@ -231,7 +190,7 @@
               <div id="match-result-title" class="match-result-title">VICTORY</div>
               <div id="match-result-honor" class="match-result-honor"></div>
               <div id="match-result-rank-up" class="match-result-rank-up" hidden></div>
-              <button id="result-restart-button" class="hud-button primary" type="button">NEXT MATCH</button>
+              <button id="result-restart-button" class="hud-button primary" type="button">RETURN TO LOBBY</button>
             </div>
           </div>
         </div>

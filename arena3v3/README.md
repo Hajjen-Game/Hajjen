@@ -101,6 +101,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Enemy major cooldown tracker:
+  - the open area below the enemy unit frames now shows enemy BURST and CC cooldowns
+  - burst abilities are detected from offensiveCooldown metadata; major CC tracks fear, incapacitate, stun and root effects
+  - each row has a thicker recharge bar, READY/DOWN state and a live countdown until the ability is available again
+  - interrupts are intentionally excluded so the widget stays focused on the larger cooldowns requested
 - Combat VFX readability pass:
   - direct heals now use thicker class-colored beams, larger halos, more motes and stronger holy/nature symbols
   - projectiles have larger cores, longer trails, brighter glow and more trailing particles

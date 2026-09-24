@@ -5,6 +5,27 @@ import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
+const ENEMY_CC_KINDS = new Set([
+  "fearAoE",
+  "fear",
+  "incapacitate",
+  "stun",
+  "root",
+  "rootAoE",
+]);
+
+function enemyCooldownCategory(spell) {
+  if (!spell || spell.cooldownMs <= 0) return null;
+  if (spell.offensiveCooldown) return "burst";
+  if ((spell.effects || []).some(effect => ENEMY_CC_KINDS.has(effect.kind))) return "cc";
+  return null;
+}
+
+function cooldownTimerLabel(remainingMs) {
+  if (remainingMs <= 0) return "READY";
+  const seconds = remainingMs / 1000;
+  return seconds >= 10 ? Math.ceil(seconds) + "s" : seconds.toFixed(1) + "s";
+}
 
 export class UIManager {
   constructor(game, input) {
@@ -12,6 +33,7 @@ export class UIManager {
     this.input = input;
     this.frameElements = new Map();
     this.meterElements = new Map();
+    this.enemyCooldownRows = new Map();
     this.actionSlots = [];
     this.actionSlotSpellIds = [];
     this.draggedActionSlot = null;
@@ -21,6 +43,7 @@ export class UIManager {
 
     this.teamFrames = document.querySelector("#team-frames");
     this.enemyFrames = document.querySelector("#enemy-frames");
+    this.enemyCooldowns = document.querySelector("#enemy-cooldowns");
     this.damageMeter = document.querySelector("#damage-meter");
     this.actionBar = document.querySelector("#action-bar");
     this.matchClock = document.querySelector("#match-clock");
@@ -145,6 +168,87 @@ export class UIManager {
 
       (actor.team === "friendly" ? this.teamFrames : this.enemyFrames).appendChild(frame);
       this.frameElements.set(actor.id, frame);
+    }
+
+    this.buildEnemyCooldowns();
+  }
+
+  buildEnemyCooldowns() {
+    this.enemyCooldowns.innerHTML = "";
+    this.enemyCooldownRows.clear();
+
+    const enemies = this.game.actors.filter(actor => actor.team === "enemy");
+
+    for (const actor of enemies) {
+      const trackedSpells = actor.spells
+        .map(spell => ({ spell, category: enemyCooldownCategory(spell) }))
+        .filter(item => item.category);
+
+      if (trackedSpells.length === 0) continue;
+
+      const group = document.createElement("div");
+      group.className = "enemy-cooldown-group";
+
+      const heading = document.createElement("div");
+      heading.className = "enemy-cooldown-class";
+      heading.textContent = actor.className || actor.name;
+      heading.style.setProperty("--cooldown-class", classColorFor(actor));
+      group.appendChild(heading);
+
+      for (const { spell, category } of trackedSpells) {
+        const row = document.createElement("div");
+        row.className = "enemy-cooldown-row " + category;
+        row.dataset.actorId = actor.id;
+        row.dataset.spellId = spell.id;
+        row.innerHTML = `
+          <div class="enemy-cooldown-head">
+            <span class="enemy-cooldown-type"></span>
+            <span class="enemy-cooldown-name"></span>
+            <span class="enemy-cooldown-time">READY</span>
+          </div>
+          <div class="enemy-cooldown-track">
+            <div class="enemy-cooldown-fill"></div>
+          </div>
+        `;
+
+        row.querySelector(".enemy-cooldown-type").textContent =
+          category === "burst" ? "BURST" : "CC";
+        row.querySelector(".enemy-cooldown-name").textContent = spell.name;
+        row.querySelector(".enemy-cooldown-fill").style.width = "100%";
+
+        group.appendChild(row);
+        this.enemyCooldownRows.set(actor.id + ":" + spell.id, {
+          row,
+          actorId: actor.id,
+          spellId: spell.id,
+          cooldownMs: spell.cooldownMs,
+        });
+      }
+
+      this.enemyCooldowns.appendChild(group);
+    }
+  }
+
+  updateEnemyCooldowns() {
+    for (const entry of this.enemyCooldownRows.values()) {
+      const actor = this.game.getActor(entry.actorId);
+      const row = entry.row;
+      if (!actor) continue;
+
+      const remaining = actor.cooldownFor(entry.spellId);
+      const ready = remaining <= 0;
+      const recharge = entry.cooldownMs > 0
+        ? clamp(1 - remaining / entry.cooldownMs, 0, 1)
+        : 1;
+
+      row.classList.toggle("ready", ready && actor.alive);
+      row.classList.toggle("cooling", !ready && actor.alive);
+      row.classList.toggle("dead", !actor.alive);
+
+      row.querySelector(".enemy-cooldown-time").textContent =
+        actor.alive ? cooldownTimerLabel(remaining) : "DOWN";
+      row.querySelector(".enemy-cooldown-fill").style.width =
+        (actor.alive ? recharge * 100 : 0).toFixed(1) + "%";
     }
   }
 
@@ -492,6 +596,7 @@ export class UIManager {
     }
 
     this.updateDamageMeter();
+    this.updateEnemyCooldowns();
     this.updatePlayerCcAlert();
     this.updateDampening();
     this.updateHonorStatus();

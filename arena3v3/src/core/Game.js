@@ -393,7 +393,9 @@ export class Game {
       const mouseMove = this.mouseSteeringVector();
       const move = this.mouseSteering.active ? mouseMove : keyboardMove;
       const moving = move.x !== 0 || move.y !== 0;
-      const playerCanMove = !this.cc.isHardControlled(this.player) && !this.cc.isRooted(this.player);
+      const playerCanMove = this.player.alive
+        && !this.cc.isHardControlled(this.player)
+        && !this.cc.isRooted(this.player);
 
       if (moving && playerCanMove && this.player.cast) {
         this.combat.cancelCast(this.player, "movement");

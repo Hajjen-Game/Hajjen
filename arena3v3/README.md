@@ -101,6 +101,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Class unit icons:
+  - arena units now use distinct class emblems instead of the generic healer cross / melee sword / caster star
+  - all nine current classes have procedural vector icons: Priest, Druid, Paladin, Warrior, Rogue, Death Knight, Mage, Warlock and Shaman
+  - the icons are drawn directly on the canvas with vector paths and class-specific palettes; no PNG assets are required
+  - unknown/future classes still fall back to the old role glyph automatically
 - Priest action-bar icons:
   - Priest abilities now use lightweight inline SVG vector icons directly in the action bar; no PNG assets are required
   - Renew uses a pale holy-gold cross/halo motif instead of green nature imagery

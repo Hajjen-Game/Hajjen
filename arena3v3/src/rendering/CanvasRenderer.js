@@ -1,6 +1,7 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { clamp, lerp } from "../core/utils.js";
 import { classColorFor } from "../content/classes/classColors.js";
+import { drawClassGlyph } from "./ClassGlyphs.js";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -228,7 +229,7 @@ export class CanvasRenderer {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    this.drawRoleGlyph(ctx, actor);
+    if (!drawClassGlyph(ctx, actor)) this.drawRoleGlyph(ctx, actor);
     this.drawWorldHealth(ctx, actor, game);
     this.drawWorldResource(ctx, actor);
     this.drawName(ctx, actor);

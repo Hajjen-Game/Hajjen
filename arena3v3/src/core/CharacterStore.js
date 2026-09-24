@@ -91,4 +91,13 @@ export class CharacterStore {
     this.save();
     return character;
   }
+
+  remove(id) {
+    const index = this.characters.findIndex(character => character.id === id);
+    if (index < 0) return null;
+
+    const [removed] = this.characters.splice(index, 1);
+    this.save();
+    return removed;
+  }
 }

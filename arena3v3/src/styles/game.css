@@ -151,6 +151,51 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .effect-badge.debuff { color: #ffe0d5; background: rgba(126,69,52,.7); border-color: var(--enemy-bright); }
 .effect-badge.burst { color: #ffe2b6; background: rgba(111,62,25,.72); border-color: var(--vfx-burst); }
 
+.frame-dr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-height: 0;
+  margin-top: 3px;
+}
+
+.frame-dr[hidden] {
+  display: none;
+}
+
+.dr-badge {
+  padding: 2px 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  background: rgba(16,11,9,.78);
+  color: var(--cream-dim);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .035em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dr-badge.stun {
+  border-color: color-mix(in srgb, var(--cc-stun) 62%, var(--line-soft));
+  color: #ffd8d0;
+}
+
+.dr-badge.incapacitate {
+  border-color: color-mix(in srgb, var(--cc-incap) 62%, var(--line-soft));
+  color: #eadcff;
+}
+
+.dr-badge.disorient {
+  border-color: color-mix(in srgb, var(--cc-fear) 62%, var(--line-soft));
+  color: #ffe2b4;
+}
+
+.dr-badge.root {
+  border-color: color-mix(in srgb, var(--cc-root) 62%, var(--line-soft));
+  color: #d9f6ff;
+}
+
 .frame-cast { height: 5px; margin-top: 4px; background: #120d0b; border-radius: 3px; overflow: hidden; opacity: 0; }
 .frame-cast.active { opacity: 1; }
 .frame-cast > div { height: 100%; width: 0; background: var(--cast); }

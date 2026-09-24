@@ -1004,14 +1004,19 @@ export class UIManager {
   updatePlayerCcAlert() {
     const supportedKinds = ["stun", "fear", "incapacitate", "root", "schoolLock"];
     const priority = { stun: 0, fear: 1, incapacitate: 2, root: 3, schoolLock: 4 };
+    const alertClasses = ["fear", "incapacitate", "stun", "root", "school-lock"];
+
+    if (this.game.ended || this.game.waitingForStart || !this.game.player.alive) {
+      this.playerCcAlert.classList.add("hidden");
+      this.playerCcAlert.classList.remove(...alertClasses);
+      return;
+    }
 
     const effect = this.game.player.effects
       .filter(item => item.remainingMs > 0 && supportedKinds.includes(item.kind))
       .sort((a, b) => priority[a.kind] - priority[b.kind])[0];
 
-    const alertClasses = ["fear", "incapacitate", "stun", "root", "school-lock"];
-
-    if (!effect || !this.game.player.alive) {
+    if (!effect) {
       this.playerCcAlert.classList.add("hidden");
       this.playerCcAlert.classList.remove(...alertClasses);
       return;
@@ -1177,6 +1182,8 @@ export class UIManager {
   }
 
   setResult(title, honorAward = null) {
+    this.playerCcAlert.classList.add("hidden");
+    this.playerCcAlert.classList.remove("fear", "incapacitate", "stun", "root", "school-lock");
     this.resultTitle.textContent = title;
 
     if (honorAward) {

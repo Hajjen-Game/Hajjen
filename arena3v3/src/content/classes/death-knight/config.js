@@ -29,7 +29,7 @@ export const deathKnightClass = {
     },
     {
       id: "dk-obliterate", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Obliterate", aiRole: "bigDamage", visualStyle: "deathKnight",
-      target: "enemy", school: "shadowfrost", resourceCost: 36, resourceGain: 12, castMs: 900, cooldownMs: 5000, gcdMs: 1200, range: 62,
+      target: "enemy", school: "shadowfrost", interruptible: false, resourceCost: 36, resourceGain: 12, castMs: 900, cooldownMs: 5000, gcdMs: 1200, range: 62,
       effects: [{ kind: "damage", amount: 198 }],
     },
     {

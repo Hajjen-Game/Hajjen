@@ -34,7 +34,7 @@ export const priestClass = {
       id: "priest-psychic-scream", name: "Psychic Scream", aiRole: "panicCc", visualStyle: "priest",
       target: "self", school: "shadow", utility: true, resourceCost: 10, castMs: 0, cooldownMs: 24000, gcdMs: 1200, range: 0,
       noHitRoll: true,
-      effects: [{ kind: "fearAoE", radius: 125, durationMs: 3500, breakOnDamage: true }],
+      effects: [{ kind: "fearAoE", drCategory: "disorient", radius: 125, durationMs: 3500, breakOnDamage: true }],
     },
   ],
 };

@@ -960,6 +960,7 @@ export class UIManager {
       this.updateFrameCombatState(frame, actor);
 
       this.renderEffects(frame, actor);
+      this.renderDr(frame, actor);
 
       const castTrack = frame.querySelector(".frame-cast");
       const castFill = castTrack.querySelector("div");
@@ -1161,6 +1162,34 @@ export class UIManager {
       this.playerCcSource.textContent = spell?.name ? spell.name + " · " + school : school;
     } else {
       this.playerCcSource.textContent = spell?.name ? spell.name : "";
+    }
+  }
+
+  renderDr(frame, actor) {
+    const container = frame.querySelector(".frame-dr");
+    if (!container) return;
+
+    const statuses = this.game.cc.drStatuses(actor);
+    container.innerHTML = "";
+    container.hidden = statuses.length === 0;
+
+    for (const status of statuses) {
+      const badge = document.createElement("span");
+      badge.className = "dr-badge " + status.category;
+
+      const nextState = status.immune ? "IMMUNE" : "50%";
+      const seconds = Math.max(0, Math.ceil(status.resetRemainingMs / 1000));
+
+      badge.textContent = status.active
+        ? status.label + " → " + nextState
+        : status.label + " " + nextState + " · " + seconds + "s";
+
+      badge.title = status.active
+        ? status.label + " DR is active. The next " + status.label.toLowerCase()
+          + " effect is " + (status.immune ? "immune" : "50% duration") + "."
+        : status.label + " DR resets in " + seconds + "s.";
+
+      container.appendChild(badge);
     }
   }
 

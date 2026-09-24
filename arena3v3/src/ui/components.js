@@ -210,6 +210,7 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
     <div class="frame-value"></div>
     <div class="frame-resource"><div class="frame-resource-fill"></div></div>
     <div class="frame-effects"></div>
+    <div class="frame-dr"></div>
     <div class="frame-cast"><div></div></div>
   `;
 

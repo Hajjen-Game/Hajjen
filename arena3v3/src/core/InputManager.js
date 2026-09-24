@@ -21,6 +21,12 @@ function printableCode(code) {
   return replacements[code] || code.toUpperCase();
 }
 
+function isTextEntryTarget(target) {
+  if (!(target instanceof Element)) return false;
+  if (target.matches("input, textarea, select")) return true;
+  return Boolean(target.closest("[contenteditable='true'], [contenteditable='']"));
+}
+
 export class InputManager {
   constructor() {
     this.keysDown = new Set();
@@ -78,6 +84,8 @@ export class InputManager {
       callback(event.code);
       return;
     }
+
+    if (isTextEntryTarget(event.target)) return;
 
     this.keysDown.add(event.code);
     const action = Object.entries(this.bindings).find(([, code]) => code === event.code)?.[0];

@@ -58,6 +58,57 @@
     </div>
   </div>
 
+
+  <div id="character-prep-modal" class="modal hidden character-prep-modal" role="dialog" aria-modal="true" aria-labelledby="character-prep-title">
+    <div class="modal-card character-prep-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">CHARACTER READY ROOM</div>
+          <h2 id="character-prep-title">PREPARE FOR ARENA</h2>
+        </div>
+      </div>
+
+      <div class="character-prep-identity">
+        <div>
+          <span>CHARACTER</span>
+          <strong id="character-prep-name">—</strong>
+          <small id="character-prep-class">—</small>
+        </div>
+        <div>
+          <span>RANK</span>
+          <strong id="character-prep-rank">—</strong>
+          <small id="character-prep-honor">—</small>
+        </div>
+        <div>
+          <span>TALENTS</span>
+          <strong id="character-prep-tp">0 TP</strong>
+          <small id="character-prep-talent-status">No points available</small>
+        </div>
+      </div>
+
+      <div class="character-prep-section-title">CHARACTER SETUP</div>
+      <div class="character-prep-options">
+        <button id="prep-talents" class="character-prep-option" type="button">
+          <strong>TALENTS</strong>
+          <span>Spend Talent Points and shape your build before the next match.</span>
+        </button>
+        <button id="prep-honor" class="character-prep-option" type="button">
+          <strong>HONOR & RANK</strong>
+          <span>Review rank progress, record and upcoming Talent Points.</span>
+        </button>
+        <button id="prep-keybindings" class="character-prep-option" type="button">
+          <strong>KEYBINDINGS</strong>
+          <span>Adjust movement, targeting and all seven action slots.</span>
+        </button>
+      </div>
+
+      <div class="character-prep-actions">
+        <button id="prep-back-characters" class="hud-button" type="button">BACK TO CHARACTERS</button>
+        <button id="prep-continue" class="hud-button primary" type="button">CHOOSE TEAM & OPPONENT</button>
+      </div>
+    </div>
+  </div>
+
   <div id="app">
     <header class="top-hud panel">
       <div>
@@ -265,6 +316,7 @@
         </div>
       </div>
 
+      <div id="talent-point-note" class="talent-point-note">Reach Rank 2 to earn your first Talent Point.</div>
       <div id="talent-empty" class="talent-empty" hidden></div>
       <div id="talent-tree" class="talent-tree"></div>
 

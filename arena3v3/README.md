@@ -101,6 +101,14 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Pre-match ready room:
+  - selecting a character no longer jumps straight into team selection
+  - a character preparation screen now appears first with direct access to Talents, Honor/Rank and Keybindings
+  - continuing from the ready room rolls the opponent and opens team selection; restarting after a match returns to the ready room so newly earned Talent Points can be spent before the next arena
+- Talent/action-bar fixes:
+  - spendable talent cards are stable and clickable; the talent tree is no longer rebuilt every animation frame while the modal is open
+  - all seven action slots are always visible, including empty placeholders for future/talent-unlocked spells
+  - legacy five-slot action-bar layouts automatically expand to seven slots without losing existing spell order
 - Talent trees v1:
   - each character now has persistent talent allocations stored separately from Honor/Rank
   - the shared tree format supports two branches, tier gates, multi-rank nodes, capstones, spell/stat modifiers, passive modifiers and talent-unlocked spells

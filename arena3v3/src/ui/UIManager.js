@@ -1,10 +1,11 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createUnitFrame } from "./components.js";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
+const ACTION_BAR_SLOT_COUNT = 7;
 const ENEMY_CC_KINDS = new Set([
   "fearAoE",
   "fear",
@@ -329,7 +330,15 @@ export class UIManager {
   }
 
   defaultActionBarSpellIds() {
-    return this.game.player.spells.map(spell => spell.id);
+    return this.game.player.spells.map(spell => spell.id).slice(0, ACTION_BAR_SLOT_COUNT);
+  }
+
+  defaultActionBarLayout() {
+    const layout = Array(ACTION_BAR_SLOT_COUNT).fill(null);
+    this.defaultActionBarSpellIds().forEach((spellId, index) => {
+      layout[index] = spellId;
+    });
+    return layout;
   }
 
   loadActionBarLayout() {
@@ -337,19 +346,29 @@ export class UIManager {
 
     try {
       const stored = JSON.parse(localStorage.getItem(this.actionBarStorageKey()) || "null");
-      if (!Array.isArray(stored)) return defaults;
+      if (!Array.isArray(stored)) return this.defaultActionBarLayout();
 
-      const valid = stored.filter((spellId, index, array) =>
-        defaults.includes(spellId) && array.indexOf(spellId) === index
-      );
+      const layout = Array(ACTION_BAR_SLOT_COUNT).fill(null);
+      const used = new Set();
 
-      for (const spellId of defaults) {
-        if (!valid.includes(spellId)) valid.push(spellId);
+      for (let index = 0; index < Math.min(stored.length, ACTION_BAR_SLOT_COUNT); index += 1) {
+        const spellId = stored[index];
+        if (!spellId || !defaults.includes(spellId) || used.has(spellId)) continue;
+        layout[index] = spellId;
+        used.add(spellId);
       }
 
-      return valid.slice(0, defaults.length);
+      for (const spellId of defaults) {
+        if (used.has(spellId)) continue;
+        const emptyIndex = layout.indexOf(null);
+        if (emptyIndex < 0) break;
+        layout[emptyIndex] = spellId;
+        used.add(spellId);
+      }
+
+      return layout;
     } catch {
-      return defaults;
+      return this.defaultActionBarLayout();
     }
   }
 
@@ -365,7 +384,7 @@ export class UIManager {
   }
 
   resetActionBarLayout() {
-    this.actionSlotSpellIds = this.defaultActionBarSpellIds();
+    this.actionSlotSpellIds = this.defaultActionBarLayout();
 
     try {
       localStorage.removeItem(this.actionBarStorageKey());
@@ -407,10 +426,15 @@ export class UIManager {
     this.buildActionBar();
   }
 
-  wireActionSlotDrag(slot, slotIndex) {
+  wireActionSlotDrag(slot, slotIndex, hasSpell = true) {
     slot.dataset.slotIndex = String(slotIndex);
+    slot.draggable = hasSpell;
 
     slot.addEventListener("dragstart", event => {
+      if (!hasSpell) {
+        event.preventDefault();
+        return;
+      }
       this.draggedActionSlot = slotIndex;
       slot.classList.add("dragging");
       event.dataTransfer.effectAllowed = "move";
@@ -456,27 +480,34 @@ export class UIManager {
     this.actionSlotSpellIds = this.loadActionBarLayout();
 
     this.actionSlots = this.actionSlotSpellIds.map((spellId, slotIndex) => {
-      const spell = this.game.player.spells.find(item => item.id === spellId);
-      if (!spell) return null;
+      const spell = spellId
+        ? this.game.player.spells.find(item => item.id === spellId)
+        : null;
 
-      const slot = createActionSlot(
-        spell,
-        slotIndex,
-        index => this.castActionSlot(index),
-        index => this.captureBinding("slot" + (index + 1)),
-      );
+      const slot = spell
+        ? createActionSlot(
+          spell,
+          slotIndex,
+          index => this.castActionSlot(index),
+          index => this.captureBinding("slot" + (index + 1)),
+        )
+        : createEmptyActionSlot(
+          slotIndex,
+          index => this.captureBinding("slot" + (index + 1)),
+        );
 
-      this.wireActionSlotDrag(slot, slotIndex);
+      this.wireActionSlotDrag(slot, slotIndex, Boolean(spell));
       this.actionBar.appendChild(slot);
       return slot;
-    }).filter(Boolean);
+    });
 
     this.refreshActionKeycaps();
   }
 
   refreshActionKeycaps() {
     this.actionSlots.forEach((slot, index) => {
-      slot.querySelector(".keycap").textContent = this.input.label("slot" + (index + 1));
+      const keycap = slot.querySelector(".keycap");
+      if (keycap) keycap.textContent = this.input.label("slot" + (index + 1));
     });
   }
 
@@ -514,6 +545,7 @@ export class UIManager {
 
     this.renderTalentTree();
     this.updateHonorStatus();
+    window.dispatchEvent(new CustomEvent("arena3v3:talents-updated"));
     this.toast("Talent learned · applies next match");
   }
 
@@ -527,6 +559,7 @@ export class UIManager {
     this.game.resetTalents();
     this.renderTalentTree();
     this.updateHonorStatus();
+    window.dispatchEvent(new CustomEvent("arena3v3:talents-updated"));
     this.toast("Talents reset · applies next match");
   }
 
@@ -537,6 +570,17 @@ export class UIManager {
     this.talentAvailable.textContent = status.availablePoints + " TP";
     this.talentSpent.textContent = status.spentPoints + " / " + status.earnedPoints;
     this.talentTree.innerHTML = "";
+
+    const pointNote = document.querySelector("#talent-point-note");
+    if (status.availablePoints > 0) {
+      pointNote.textContent =
+        status.availablePoints + " Talent Point" + (status.availablePoints === 1 ? "" : "s")
+        + " available. Click a highlighted talent or its +1 button.";
+    } else if (status.earnedPoints === 0) {
+      pointNote.textContent = "Reach Rank 2 to earn your first Talent Point.";
+    } else {
+      pointNote.textContent = "All earned Talent Points are currently spent. Reset to rebuild.";
+    }
 
     if (!tree) {
       this.talentClass.textContent = this.game.player?.className || "—";
@@ -621,7 +665,23 @@ export class UIManager {
               ? "0 TP"
               : "+1";
         add.title = check.ok ? "Spend 1 Talent Point" : check.reason;
-        add.addEventListener("click", () => this.learnTalent(talent.id));
+        add.addEventListener("click", event => {
+          event.stopPropagation();
+          this.learnTalent(talent.id);
+        });
+
+        node.title = check.ok ? "Click to spend 1 Talent Point" : check.reason;
+        if (check.ok) {
+          node.tabIndex = 0;
+          node.setAttribute("role", "button");
+          node.addEventListener("click", () => this.learnTalent(talent.id));
+          node.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              this.learnTalent(talent.id);
+            }
+          });
+        }
 
         grid.appendChild(node);
       }
@@ -1019,10 +1079,6 @@ export class UIManager {
     if (!this.honorModal.classList.contains("hidden")) {
       this.updateHonorMenu();
     }
-    if (!this.talentModal.classList.contains("hidden")) {
-      this.renderTalentTree();
-    }
-
     if (!status.nextRank) {
       this.honorProgressFill.style.width = "100%";
       this.honorProgressText.textContent = "MAX RANK";

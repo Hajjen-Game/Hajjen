@@ -170,6 +170,35 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
   return button;
 }
 
+export function createEmptyActionSlot(index, onRebind) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "action-slot empty-action-slot";
+  button.draggable = false;
+  button.title = "Empty action slot · talent-unlocked abilities can appear here";
+
+  button.innerHTML = `
+    <span class="spell-name">EMPTY</span>
+    <span class="spell-meta">Available for unlocked abilities</span>
+    <span class="keycap" role="button" tabindex="0"></span>
+  `;
+
+  const keycap = button.querySelector(".keycap");
+  keycap.addEventListener("click", event => {
+    event.stopPropagation();
+    onRebind(index, keycap);
+  });
+
+  keycap.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onRebind(index, keycap);
+    }
+  });
+
+  return button;
+}
+
 export function createActionSlot(spell, index, onCast, onRebind) {
   const button = document.createElement("button");
   button.type = "button";

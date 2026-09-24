@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.47-priest-talent-tree",
+    "Build: prototype-v0.48-pre-match-prep-and-talent-fixes",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -46,6 +46,9 @@ export function buildMatchReport(game) {
     "Enemy cooldown tracker: enemy burst and major CC cooldowns appear only after use; their bars now drain from full to empty as the timer counts down, then disappear when ready",
     "Talent system: persistent per-character Talent Points can now be spent in two 7-node branches; Priest ships first with Holy Grace and Atonement",
     "Priest Atonement: talent-unlocked Smite and Holy Fire can convert a percentage of dealt damage into smart healing on the lowest-health friendly target",
+    "Talent interaction fix: the tree no longer rebuilds every animation frame, so highlighted talents can be clicked normally; entire spendable talent cards are clickable",
+    "Seven-slot action bar: all seven action slots are always visible, with empty placeholders ready for talent-unlocked abilities",
+    "Pre-match ready room: selecting a character now opens a preparation step for Talents, Honor and Keybindings before team/opponent selection",
     "",
     "=== FRIENDLY TEAM ===",
   ];

@@ -461,7 +461,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   background: linear-gradient(180deg, rgba(139,55,44,.96), rgba(78,32,26,.96));
 }
 
-.match-result { position: absolute; inset: 0; background: rgba(7,5,4,.6); display: grid; place-items: center; }
+.match-result { position: absolute; inset: 0; z-index: 12; background: rgba(7,5,4,.6); display: grid; place-items: center; }
 .match-result.hidden { display: none; }
 .match-result-card { width: 330px; padding: 24px; text-align: center; }
 .match-result-title { font-size: 38px; font-weight: 950; letter-spacing: .08em; margin: 8px 0 10px; color: var(--gold-bright); }

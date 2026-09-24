@@ -35,13 +35,13 @@ export const mageClass = {
       id: "mage-frost-nova", name: "Frost Nova", aiRole: "panicRoot", visualStyle: "mage",
       target: "self", school: "frost", utility: true, resourceCost: 12, castMs: 0, cooldownMs: 16000, gcdMs: 1200, range: 0,
       noHitRoll: true,
-      effects: [{ kind: "rootAoE", radius: 120, durationMs: 2600, breakOnDamage: false }],
+      effects: [{ kind: "rootAoE", drCategory: "root", radius: 120, durationMs: 2600, breakOnDamage: false }],
     },
     {
       id: "mage-polymorph", name: "Polymorph", aiRole: "control", visualStyle: "mage",
       target: "enemy", school: "arcane", utility: true, resourceCost: 16, castMs: 1500, cooldownMs: 16000, gcdMs: 1200, range: 340,
       noHitRoll: true,
-      effects: [{ kind: "incapacitate", durationMs: 4500, breakOnDamage: true }],
+      effects: [{ kind: "incapacitate", drCategory: "incapacitate", durationMs: 4500, breakOnDamage: true }],
     },
   ],
 };

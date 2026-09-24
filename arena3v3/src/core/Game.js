@@ -641,6 +641,13 @@ export class Game {
     this.ui?.updateHonorStatus();
   }
 
+  prepareLobby() {
+    this.waitingForStart = true;
+    this.reset("arena lobby");
+    this.waitingForStart = true;
+    this.markRunInactive();
+  }
+
   startPreparedMatch(characterConfigs) {
     this.characterConfigs = characterConfigs;
     this.waitingForStart = false;

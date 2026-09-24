@@ -40,7 +40,7 @@ export const warlockClass = {
       id: "warlock-fear", name: "Fear", aiRole: "control", visualStyle: "warlock",
       target: "enemy", school: "shadow", utility: true, resourceCost: 15, castMs: 1350, cooldownMs: 15000, gcdMs: 1200, range: 335,
       noHitRoll: true,
-      effects: [{ kind: "fear", durationMs: 4000, breakOnDamage: true }],
+      effects: [{ kind: "fear", drCategory: "disorient", durationMs: 4000, breakOnDamage: true }],
     },
   ],
 };

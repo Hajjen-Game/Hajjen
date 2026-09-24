@@ -209,6 +209,18 @@
             <div id="player-cc-source" class="player-cc-source"></div>
           </div>
 
+          <div id="death-forfeit" class="death-forfeit hidden" role="dialog" aria-modal="false" aria-labelledby="death-forfeit-title">
+            <div class="death-forfeit-card panel">
+              <div class="eyebrow">YOU ARE DOWN</div>
+              <div id="death-forfeit-title" class="death-forfeit-title">YOUR TEAM IS STILL FIGHTING</div>
+              <div class="death-forfeit-copy">The arena continues until an entire team is defeated. You can keep watching or forfeit the match now.</div>
+              <div class="death-forfeit-actions">
+                <button id="death-keep-watching" class="hud-button primary" type="button">KEEP WATCHING</button>
+                <button id="death-forfeit-button" class="hud-button danger" type="button">FORFEIT MATCH</button>
+              </div>
+            </div>
+          </div>
+
           <div id="match-result" class="match-result hidden">
             <div class="match-result-card panel">
               <div class="eyebrow">ARENA COMPLETE</div>

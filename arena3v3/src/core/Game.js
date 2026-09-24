@@ -425,6 +425,13 @@ export class Game {
       });
     }
 
+    if (actor.id === this.player.id) {
+      this.stopMouseSteering();
+      this.abilityQueue.clear();
+      this.ui?.showDeathForfeit();
+      this.log("Player has fallen. The friendly team keeps fighting.");
+    }
+
     if (this.player.targetId === actor.id && this.player.alive) {
       const replacement = this.actors.find(candidate =>
         candidate.alive && candidate.team === actor.team,
@@ -434,18 +441,28 @@ export class Game {
   }
 
   checkWinCondition() {
-    if (!this.player.alive) {
-      this.finishMatch("DEFEAT", "Player has fallen. The match ends immediately.");
-      return;
-    }
-
     const enemyAlive = this.actors.some(actor =>
       actor.team === "enemy" && actor.alive,
+    );
+    const friendlyAlive = this.actors.some(actor =>
+      actor.team === "friendly" && actor.alive,
     );
 
     if (!enemyAlive) {
       this.finishMatch("VICTORY", "Enemy team eliminated.");
+      return;
     }
+
+    if (!friendlyAlive) {
+      this.finishMatch("DEFEAT", "Friendly team eliminated.");
+    }
+  }
+
+  forfeitMatch() {
+    if (this.ended || this.waitingForStart || this.player?.alive) return false;
+
+    this.finishMatch("DEFEAT", "Player forfeited after falling.");
+    return true;
   }
 
   finishMatch(result, message) {
@@ -455,6 +472,7 @@ export class Game {
     this.abilityQueue.clear();
     this.resultText = result;
     this.lastHonorAward = this.honor.award(result);
+    this.ui.hideDeathForfeit();
     this.ui.setResult(result, this.lastHonorAward);
     this.log(message);
 
@@ -646,6 +664,7 @@ export class Game {
     this.writeRunHeartbeat();
 
     this.ui.clearResult();
+    this.ui.hideDeathForfeit();
     this.ui.clearLog();
     this.ui.buildFrames();
     this.ui.buildDamageMeter();

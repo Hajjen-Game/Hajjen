@@ -101,6 +101,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Warrior action-bar icons:
+  - Warrior now has five lightweight inline SVG action icons using the same implementation as Priest
+  - Rend uses slashes/blood accent, Mortal Strike crossed weapon lines, Slam a heavy impact motif, Charge a forward arrow, and Pummel a fist
+  - red, steel and warm orange accents keep the Warrior bar visually distinct without requiring PNG assets
+  - drag-reordering, keybinds, cooldowns, GCD sweep and out-of-range dimming continue to work normally
 - Class unit icons:
   - arena units now use distinct class emblems instead of the generic healer cross / melee sword / caster star
   - all nine current classes have procedural vector icons: Priest, Druid, Paladin, Warrior, Rogue, Death Knight, Mage, Warlock and Shaman

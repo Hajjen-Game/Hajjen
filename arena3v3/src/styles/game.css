@@ -480,6 +480,11 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   stroke: none;
 }
 
+.spell-icon .icon-secondary {
+  fill: var(--spell-accent);
+  stroke: none;
+}
+
 .spell-icon .icon-shield {
   fill: color-mix(in srgb, var(--spell-accent) 30%, transparent);
   stroke: var(--spell-accent-2);
@@ -509,6 +514,32 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   --spell-accent: #9d61d7;
   --spell-accent-2: #dcb4ff;
 }
+
+.action-slot.spell-warrior-rend {
+  --spell-accent: #a83a31;
+  --spell-accent-2: #e7d6c2;
+}
+
+.action-slot.spell-warrior-mortal-strike {
+  --spell-accent: #b44a37;
+  --spell-accent-2: #f0d2ad;
+}
+
+.action-slot.spell-warrior-slam {
+  --spell-accent: #c06b33;
+  --spell-accent-2: #e6ddd0;
+}
+
+.action-slot.spell-warrior-charge {
+  --spell-accent: #d06c32;
+  --spell-accent-2: #f3d3a2;
+}
+
+.action-slot.spell-warrior-pummel {
+  --spell-accent: #9f4737;
+  --spell-accent-2: #e2d8ca;
+}
+
 
 .action-slot.has-spell-icon .spell-name {
   padding-right: 28px;

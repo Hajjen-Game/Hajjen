@@ -46,7 +46,7 @@ function spellEffectSummary(spell) {
     .join(" + ");
 }
 
-const PRIEST_ACTION_ICONS = Object.freeze({
+const ACTION_ICONS = Object.freeze({
   "priest-renew": `
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <circle class="icon-ring" cx="32" cy="32" r="22"></circle>
@@ -83,10 +83,43 @@ const PRIEST_ACTION_ICONS = Object.freeze({
       <path class="icon-line" d="M18 18 C11 24 11 36 18 42 M12 12 C1 22 1 42 12 52 M46 18 C53 24 53 36 46 42 M52 12 C63 22 63 42 52 52"></path>
     </svg>
   `,
+  "warrior-rend": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M18 12 L42 36 M28 9 L49 30 M12 24 L33 45"></path>
+      <path class="icon-secondary" d="M42 37 C48 40 52 46 50 53 C43 54 37 50 34 44 Z"></path>
+    </svg>
+  `,
+  "warrior-mortal-strike": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M17 49 L47 15 M14 16 L48 50"></path>
+      <path class="icon-secondary" d="M44 11 L54 10 L51 20 Z M10 12 L20 14 L13 22 Z"></path>
+      <circle class="icon-core" cx="32" cy="32" r="5"></circle>
+    </svg>
+  `,
+  "warrior-slam": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-secondary" d="M25 9 H39 L43 27 L36 34 H28 L21 27 Z"></path>
+      <path class="icon-line" d="M32 34 V48 M21 49 H43"></path>
+      <path class="icon-line icon-soft" d="M13 42 L20 37 M51 42 L44 37 M17 54 L24 49 M47 54 L40 49"></path>
+    </svg>
+  `,
+  "warrior-charge": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-secondary" d="M37 10 L55 32 L37 54 V42 H22 V22 H37 Z"></path>
+      <path class="icon-line icon-soft" d="M10 20 H24 M7 32 H22 M10 44 H24"></path>
+    </svg>
+  `,
+  "warrior-pummel": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-secondary" d="M18 28 L22 15 L29 13 L32 19 L36 12 L43 14 L45 22 L51 24 L49 36 L42 46 L29 51 L18 44 Z"></path>
+      <path class="icon-line" d="M22 29 H43 M28 22 L29 31 M36 19 L36 31 M43 23 L42 32"></path>
+    </svg>
+  `,
+
 });
 
 function actionIconMarkup(spellId) {
-  return PRIEST_ACTION_ICONS[spellId] || "";
+  return ACTION_ICONS[spellId] || "";
 }
 
 export function createUnitFrame(actor, onTarget, partyKey = "") {

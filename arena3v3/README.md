@@ -211,7 +211,7 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - the game now opens on a WoW-style character screen
   - create multiple persistent characters; creating a new one never overwrites existing characters
   - character creation asks for a custom name and class
-  - playable player classes currently include Priest, Druid, Paladin, Warrior, Rogue, Death Knight, Mage and Shaman
+  - playable player classes currently include Priest, Druid, Paladin, Warrior, Rogue, Death Knight, Mage, Warlock and Shaman
   - Warrior uses its existing melee kit directly as the player
   - Mage uses its existing Living Bomb, Frostbolt, Pyroblast, Frost Nova and Polymorph kit directly as the player
   - each character permanently keeps its class plus separate Honor, Rank, win/loss record and banked Talent Points

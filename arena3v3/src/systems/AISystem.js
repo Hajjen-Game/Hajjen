@@ -56,6 +56,7 @@ export class AISystem {
       const radius = effect?.radius || 0;
       const closeEnemy = enemies.find(candidate =>
         distance(actor, candidate) <= radius + actor.radius + candidate.radius
+        && !this.game.cc.wouldBeImmune(candidate, panicCc)
       );
       if (closeEnemy && this.castIfPossible(actor, panicCc, actor)) return;
     }
@@ -136,6 +137,7 @@ export class AISystem {
       const closeMelee = damageableEnemies.find(candidate =>
         candidate.role === "melee"
         && distance(actor, candidate) <= radius + actor.radius + candidate.radius
+        && !this.game.cc.wouldBeImmune(candidate, panicRoot)
       );
       if (closeMelee && this.castIfPossible(actor, panicRoot, actor)) return;
     }

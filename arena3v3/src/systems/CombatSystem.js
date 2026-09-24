@@ -89,6 +89,7 @@ export class CombatSystem {
     }
 
     actor.effects = actor.effects.filter(effect => effect.remainingMs > 0);
+    this.game.cc.syncDrStates(actor);
   }
 
   canTarget(caster, target, spell) {

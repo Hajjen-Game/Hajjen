@@ -12,7 +12,7 @@ No build step or package manager is required.
 
 ## Class roster
 
-Nine classes are implemented. Every class currently has exactly five abilities so the prototype stays readable while the future Honor progression system is still undefined.
+Nine classes are implemented. Each class starts with five core abilities; talent trees can unlock additional class abilities for the player character.
 
 Healers:
 - Priest — reactive healing, defensive cooldown and short-range AoE fear
@@ -46,7 +46,7 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - WASD movement
 - Click world units or side frames to target
 - F1/F2/F3 target self, party member 2 and party member 3
-- Five abilities on 1–5
+- Seven action-bar slots on 1–7; classes start with five core abilities and talents can unlock additional spells
 - Rebindable movement, action and party-target keys saved in localStorage
 - 400 ms player ability queue window
 - Mana, energy, rage and runic resources
@@ -112,6 +112,11 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - spendable talent cards are stable and clickable; the talent tree is no longer rebuilt every animation frame while the modal is open
   - all seven action slots are always visible, including empty placeholders for future/talent-unlocked spells
   - legacy five-slot action-bar layouts automatically expand to seven slots without losing existing spell order
+- Warrior talent tree:
+  - Arms: Overpower unlock, stronger Rend/Mortal Strike, improved Charge, heavier Slam, stronger Pummel lockouts and Mortal Mastery capstone
+  - Fury: Bloodthirst unlock with self-healing, stronger Rage economy, faster Slam pressure, improved Charge, Blood Craze sustain and Recklessness capstone
+  - both branches use the same 7-node / 13-point structure as Priest; a full branch costs all Rank 2-14 points, while hybrid builds can unlock both Overpower and Bloodthirst
+  - Overpower and Bloodthirst have dedicated inline SVG action-bar icons and Warrior melee VFX
 - Talent rank feedback:
   - Priest talent nodes now show a concrete CURRENT effect after a point is spent and a NEXT RANK preview while another rank is available
   - two-rank talents display their cumulative total, e.g. Renewed Faith 1/2 = +10% Renew healing and 2/2 = +20%

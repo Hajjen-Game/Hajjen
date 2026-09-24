@@ -807,6 +807,7 @@ export class CanvasRenderer {
 
     const meleeIds = new Set([
       "warrior-rend", "warrior-mortal-strike", "warrior-slam",
+      "warrior-overpower", "warrior-bloodthirst",
       "rogue-garrote", "rogue-sinister", "rogue-eviscerate", "rogue-kidney",
       "dk-death-strike", "dk-obliterate",
     ]);

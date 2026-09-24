@@ -1788,3 +1788,14 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   content: " · MAX";
   color: var(--branch-accent);
 }
+
+
+.action-slot.spell-warrior-overpower {
+  --spell-accent: #b84d38;
+  --spell-accent-2: #f0d5b2;
+}
+
+.action-slot.spell-warrior-bloodthirst {
+  --spell-accent: #a93232;
+  --spell-accent-2: #efb48b;
+}

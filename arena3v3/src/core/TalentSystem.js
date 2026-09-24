@@ -64,6 +64,28 @@ function applyTalentEffect(config, effect, rank) {
     return;
   }
 
+  if (effect.type === "statFieldScale") {
+    config.stats[effect.field] = scaledValue(
+      config.stats[effect.field],
+      effect.perRank,
+      rank,
+      effect.min,
+      effect.integer === true,
+    );
+    return;
+  }
+
+  if (effect.type === "statFieldAdd") {
+    config.stats[effect.field] = addedValue(
+      config.stats[effect.field],
+      effect.perRank,
+      rank,
+      effect.min,
+      effect.integer === true,
+    );
+    return;
+  }
+
   const spell = config.spells.find(item => item.id === effect.spellId);
   if (!spell) return;
 

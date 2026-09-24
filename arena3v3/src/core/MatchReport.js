@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.51-talent-rank-feedback",
+    "Build: prototype-v0.52-warrior-talent-tree",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -51,6 +51,8 @@ export function buildMatchReport(game) {
     "Pre-match ready room: selecting a character now opens a preparation step for Talents, Honor and Keybindings before team/opponent selection",
     "Warrior Slam: retains its 0.85s wind-up but is now explicitly non-interruptible, so Kick/Pummel/Wind Shear style interrupts cannot stop or school-lock it",
     "Talent rank feedback: every Priest talent now shows the exact current effect and the exact next-rank effect, making 1/2 versus 2/2 immediately readable",
+    "Warrior talents: two complete 7-node branches are available — Arms for Rend/Mortal Strike/control/heavy attacks and Fury for Rage tempo, Bloodthirst sustain and faster pressure",
+    "Warrior talent spells: Arms can unlock Overpower and Fury can unlock Bloodthirst; a hybrid build can unlock both and fill all seven action-bar slots",
     "",
     "=== FRIENDLY TEAM ===",
   ];

@@ -128,6 +128,20 @@ const ACTION_ICONS = Object.freeze({
       <path class="icon-line" d="M22 29 H43 M28 22 L29 31 M36 19 L36 31 M43 23 L42 32"></path>
     </svg>
   `,
+  "warrior-overpower": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M13 49 L48 14 M17 14 L50 47"></path>
+      <path class="icon-secondary" d="M39 10 L55 9 L51 25 Z M9 39 L25 53 L9 55 Z"></path>
+      <circle class="icon-core" cx="32" cy="32" r="6"></circle>
+    </svg>
+  `,
+  "warrior-bloodthirst": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-secondary" d="M32 6 C41 18 50 27 48 39 C47 51 40 58 31 58 C21 58 14 50 16 40 C18 30 27 24 32 6 Z"></path>
+      <path class="icon-line" d="M21 37 C27 31 35 31 43 36 M25 45 C30 49 36 49 40 44"></path>
+      <path class="icon-line icon-soft" d="M12 20 L21 25 M52 19 L43 25"></path>
+    </svg>
+  `,
 
 });
 

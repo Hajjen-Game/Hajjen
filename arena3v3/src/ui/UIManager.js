@@ -936,7 +936,9 @@ export class UIManager {
   }
 
   update() {
-    this.matchClock.textContent = formatTime(this.game.elapsedSeconds);
+    this.matchClock.textContent = this.game.waitingForStart
+      ? "READY"
+      : formatTime(this.game.elapsedSeconds);
 
     for (const actor of this.game.actors) {
       const frame = this.frameElements.get(actor.id);

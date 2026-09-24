@@ -203,8 +203,16 @@ export class CrowdControlSystem {
     }
 
     const interruptedSpell = target.getSpell(target.cast.spellId);
-    const lockedSchool = interruptedSpell?.school || (target.role === "melee" ? "physical" : "magic");
     const interruptedName = interruptedSpell?.name || "cast";
+
+    if (interruptedSpell?.interruptible === false) {
+      this.game.log(
+        source.name + "'s " + spell.name + " cannot interrupt " + target.name + "'s " + interruptedName + ".",
+      );
+      return false;
+    }
+
+    const lockedSchool = interruptedSpell?.school || (target.role === "melee" ? "physical" : "magic");
 
     target.cast = null;
     target.effects = target.effects.filter(existing => existing.kind !== "schoolLock");

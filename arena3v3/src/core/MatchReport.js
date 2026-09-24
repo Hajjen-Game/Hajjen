@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.48-pre-match-prep-and-talent-fixes",
+    "Build: prototype-v0.49-uninterruptible-slam",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -49,6 +49,7 @@ export function buildMatchReport(game) {
     "Talent interaction fix: the tree no longer rebuilds every animation frame, so highlighted talents can be clicked normally; entire spendable talent cards are clickable",
     "Seven-slot action bar: all seven action slots are always visible, with empty placeholders ready for talent-unlocked abilities",
     "Pre-match ready room: selecting a character now opens a preparation step for Talents, Honor and Keybindings before team/opponent selection",
+    "Warrior Slam: retains its 0.85s wind-up but is now explicitly non-interruptible, so Kick/Pummel/Wind Shear style interrupts cannot stop or school-lock it",
     "",
     "=== FRIENDLY TEAM ===",
   ];

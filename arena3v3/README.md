@@ -101,6 +101,9 @@ The player-controlled unit is always named **Player**. AI units use their class 
   - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
   - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
+- Warrior Slam interrupt rule:
+  - Slam keeps its 0.85s physical wind-up but is explicitly marked non-interruptible
+  - interrupt effects now respect an ability's interruptible flag before cancelling the cast or applying a school lock
 - Pre-match ready room:
   - selecting a character no longer jumps straight into team selection
   - a character preparation screen now appears first with direct access to Talents, Honor/Rank and Keybindings

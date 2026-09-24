@@ -74,13 +74,15 @@ Burst/control caster.
 5. Polymorph — casted incapacitate
 
 ### Warlock
-Durable shadow pressure caster.
+Playable durable shadow pressure caster. Its talent tree branches into Affliction pressure/sustain or Destruction burst.
 
 1. Corruption — long DoT
 2. Shadow Bolt — filler cast
 3. Chaos Bolt — large cast
 4. Unending Resolve — self damage reduction
 5. Fear — casted single-target fear
+
+Talent unlocks include Drain Life and Conflagrate.
 
 ### Shaman
 Playable utility caster with multi-target lightning. Its talent tree branches into Elemental pressure or Restoration hybrid support.

@@ -6,7 +6,7 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const lines = [
     "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.49-uninterruptible-slam",
+    "Build: prototype-v0.50-halved-honor-ranks",
     "Arena: " + game.arena.name,
     "Character: " + (game.activeCharacterName || game.player?.name || "Player")
       + " [" + (game.player?.className || "Healer") + "]",
@@ -26,7 +26,7 @@ export function buildMatchReport(game) {
     "Spell VFX: lightweight procedural class/spell effects add projectiles, melee arcs, healing halos, defensive shields and control swirls",
     "Player control alerts: every implemented hard CC/root plus interrupt school lock shows a large center icon + countdown",
     "Matchmaking: enemy healer/melee/caster setup is randomized for every new match",
-    "Honor progression: victory awards 200 Honor, defeat awards 70 Honor; persistent Classic-inspired ranks 1-14 award one future Talent Point per rank gained",
+    "Honor progression: victory awards 200 Honor, defeat awards 70 Honor; Rank 2-14 thresholds are halved from the original curve, with Grand Marshal now at 62,500 lifetime Honor and one Talent Point per rank gained",
     "Honor menu: top-bar HONOR button opens full rank, record, progress, rewards and 14-rank ladder view",
     "Pre-match draft: random enemy composition is revealed before combat, then the player chooses their melee/caster teammates and explicitly starts the match",
     "Character select: persistent WoW-style healer characters have their own name, fixed healer class, Honor/Rank record and future Talent Points",

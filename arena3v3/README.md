@@ -98,8 +98,8 @@ The player-controlled unit is always named **Player**. AI units use their class 
 - Honor and rank progression:
   - every completed match grants persistent Honor: 200 for a win, 70 for a loss
   - 14 Classic-inspired PvP ranks run from Private to Grand Marshal
-  - thresholds rise sharply at higher ranks; Rank 14 requires 125,000 lifetime Honor
-  - every rank gained after Rank 1 banks one Talent Point for the future class talent-tree system
+  - thresholds still rise at higher ranks, but the full curve is halved; Rank 14 now requires 62,500 lifetime Honor
+  - every rank gained after Rank 1 awards one Talent Point for the class talent-tree system
   - this is intentionally adapted for single-player: it keeps the long grind but does not depend on weekly realm standings or real-world weekly lockouts
 - Warrior Slam interrupt rule:
   - Slam keeps its 0.85s physical wind-up but is explicitly marked non-interruptible

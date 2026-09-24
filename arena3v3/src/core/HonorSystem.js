@@ -9,19 +9,19 @@ export const HONOR_REWARDS = Object.freeze({
 
 export const HONOR_RANKS = Object.freeze([
   { rank: 1, title: "Private", requiredHonor: 0 },
-  { rank: 2, title: "Corporal", requiredHonor: 800 },
-  { rank: 3, title: "Sergeant", requiredHonor: 2200 },
-  { rank: 4, title: "Master Sergeant", requiredHonor: 4500 },
-  { rank: 5, title: "Sergeant Major", requiredHonor: 8000 },
-  { rank: 6, title: "Knight", requiredHonor: 13000 },
-  { rank: 7, title: "Knight-Lieutenant", requiredHonor: 20000 },
-  { rank: 8, title: "Knight-Captain", requiredHonor: 29000 },
-  { rank: 9, title: "Knight-Champion", requiredHonor: 40000 },
-  { rank: 10, title: "Lieutenant Commander", requiredHonor: 53000 },
-  { rank: 11, title: "Commander", requiredHonor: 68000 },
-  { rank: 12, title: "Marshal", requiredHonor: 85000 },
-  { rank: 13, title: "Field Marshal", requiredHonor: 103000 },
-  { rank: 14, title: "Grand Marshal", requiredHonor: 125000 },
+  { rank: 2, title: "Corporal", requiredHonor: 400 },
+  { rank: 3, title: "Sergeant", requiredHonor: 1100 },
+  { rank: 4, title: "Master Sergeant", requiredHonor: 2250 },
+  { rank: 5, title: "Sergeant Major", requiredHonor: 4000 },
+  { rank: 6, title: "Knight", requiredHonor: 6500 },
+  { rank: 7, title: "Knight-Lieutenant", requiredHonor: 10000 },
+  { rank: 8, title: "Knight-Captain", requiredHonor: 14500 },
+  { rank: 9, title: "Knight-Champion", requiredHonor: 20000 },
+  { rank: 10, title: "Lieutenant Commander", requiredHonor: 26500 },
+  { rank: 11, title: "Commander", requiredHonor: 34000 },
+  { rank: 12, title: "Marshal", requiredHonor: 42500 },
+  { rank: 13, title: "Field Marshal", requiredHonor: 51500 },
+  { rank: 14, title: "Grand Marshal", requiredHonor: 62500 },
 ]);
 
 function emptyState() {

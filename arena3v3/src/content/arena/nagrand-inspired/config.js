@@ -1,6 +1,7 @@
 export const arenaConfig = {
   id: "four-pillar-ring",
   name: "The Grand Ring",
+  description: "Four wide-spaced pillars create an open arena with flexible LOS routes.",
   width: 1280,
   height: 720,
 

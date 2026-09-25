@@ -1037,7 +1037,7 @@ export class UIManager {
       row.querySelector(".honor-rank-requirement").textContent =
         rank.requiredHonor.toLocaleString() + " Honor";
       row.querySelector(".honor-rank-reward").textContent =
-        rank.rank === 1 ? "START" : "+1 TP";
+        rank.rank === 1 ? "START" : "+" + rank.talentPointsAward + " TP";
 
       this.honorRankList.appendChild(row);
     }
@@ -1541,7 +1541,8 @@ export class UIManager {
         this.resultRankUp.hidden = false;
         this.resultRankUp.textContent =
           "RANK UP · " + honorAward.rankTitle.toUpperCase()
-          + " · +" + honorAward.talentPointsGained + " TALENT POINT";
+          + " · +" + honorAward.talentPointsGained
+          + " TALENT POINT" + (honorAward.talentPointsGained === 1 ? "" : "S");
       } else {
         this.resultRankUp.hidden = true;
         this.resultRankUp.textContent = "";

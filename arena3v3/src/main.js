@@ -577,6 +577,21 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
   );
 });
 
+window.addEventListener("arena3v3:request-next-match", () => {
+  if (!activeCharacter || !game) {
+    showCharacterScreen();
+    return;
+  }
+
+  game.prepareLobby();
+  leaveArenaLobby();
+  openMatchSetup({
+    reroll: true,
+    required: false,
+    resumeOnCancel: false,
+  });
+});
+
 window.addEventListener("arena3v3:request-match-setup", () => {
   if (!activeCharacter) {
     showCharacterScreen();

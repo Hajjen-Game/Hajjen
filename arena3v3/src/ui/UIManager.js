@@ -62,6 +62,11 @@ export class UIManager {
     this.resultTitle = document.querySelector("#match-result-title");
     this.resultHonor = document.querySelector("#match-result-honor");
     this.resultRankUp = document.querySelector("#match-result-rank-up");
+    this.resultProgressText = document.querySelector("#match-result-progress-text");
+    this.resultProgressFill = document.querySelector("#match-result-progress-fill");
+    this.resultNextRank = document.querySelector("#match-result-next-rank");
+    this.resultWallet = document.querySelector("#match-result-wallet");
+    this.resultAdvice = document.querySelector("#match-result-advice");
     this.deathForfeit = document.querySelector("#death-forfeit");
     this.deathKeepWatching = document.querySelector("#death-keep-watching");
     this.deathForfeitButton = document.querySelector("#death-forfeit-button");
@@ -116,6 +121,9 @@ export class UIManager {
 
     this.deathKeepWatching.addEventListener("click", () => this.hideDeathForfeit());
     this.deathForfeitButton.addEventListener("click", () => this.game.forfeitMatch());
+    document.querySelector("#result-next-button")?.addEventListener("click", () => {
+      window.dispatchEvent(new CustomEvent("arena3v3:request-next-match"));
+    });
     document.querySelector("#result-restart-button").addEventListener("click", () => {
       window.dispatchEvent(new CustomEvent("arena3v3:request-match-setup"));
     });
@@ -1460,6 +1468,64 @@ export class UIManager {
     this.deathForfeit?.classList.add("hidden");
   }
 
+  updateResultProgression() {
+    const honor = this.game.honor.status();
+    const talentStatus = this.game.talentStatus();
+    const gearStatus = this.game.gearStatus();
+
+    if (this.resultWallet) {
+      this.resultWallet.textContent = honor.honorPoints.toLocaleString() + " HONOR";
+    }
+
+    if (honor.nextRank) {
+      if (this.resultProgressFill) {
+        this.resultProgressFill.style.width = (honor.progress * 100).toFixed(1) + "%";
+      }
+      if (this.resultProgressText) {
+        this.resultProgressText.textContent =
+          honor.progressHonor.toLocaleString()
+          + " / " + honor.neededHonor.toLocaleString();
+      }
+      if (this.resultNextRank) {
+        this.resultNextRank.textContent =
+          "Next: Rank " + honor.nextRank.rank + " · " + honor.nextRank.title;
+      }
+    } else {
+      if (this.resultProgressFill) this.resultProgressFill.style.width = "100%";
+      if (this.resultProgressText) this.resultProgressText.textContent = "MAX RANK";
+      if (this.resultNextRank) this.resultNextRank.textContent = "Grand Marshal reached";
+    }
+
+    if (this.resultAdvice) {
+      const notices = [];
+
+      if (talentStatus.availablePoints > 0) {
+        notices.push(
+          talentStatus.availablePoints === 1
+            ? "UNSPENT TALENT POINT"
+            : talentStatus.availablePoints + " UNSPENT TALENT POINTS",
+        );
+      }
+
+      const affordableGear = gearStatus.available
+        ? gearStatus.items.filter(item => !item.owned && item.purchase?.ok)
+        : [];
+
+      if (affordableGear.length > 0) {
+        notices.push(
+          affordableGear.length === 1
+            ? "GEAR AVAILABLE"
+            : affordableGear.length + " GEAR UPGRADES AVAILABLE",
+        );
+      }
+
+      this.resultAdvice.hidden = notices.length === 0;
+      this.resultAdvice.textContent = notices.length > 0
+        ? "CHECK BEFORE NEXT MATCH · " + notices.join(" · ")
+        : "";
+    }
+  }
+
   setResult(title, honorAward = null) {
     this.playerCcAlert.classList.add("hidden");
     this.playerCcAlert.classList.remove("fear", "incapacitate", "stun", "root", "school-lock");
@@ -1484,6 +1550,8 @@ export class UIManager {
     }
 
     this.updateHonorStatus();
+    this.updateResultProgression();
+
     if (this.gearModal && !this.gearModal.classList.contains("hidden")) {
       this.renderGear();
     }
@@ -1495,6 +1563,10 @@ export class UIManager {
     this.resultHonor.textContent = "";
     this.resultRankUp.hidden = true;
     this.resultRankUp.textContent = "";
+    if (this.resultAdvice) {
+      this.resultAdvice.hidden = true;
+      this.resultAdvice.textContent = "";
+    }
     this.updateHonorStatus();
   }
 

@@ -838,7 +838,7 @@ export class UIManager {
         status.availablePoints + " Talent Point" + (status.availablePoints === 1 ? "" : "s")
         + " available. Click a highlighted talent or its +1 button.";
     } else if (status.earnedPoints === 0) {
-      pointNote.textContent = "Reach Rank 2 to earn your first Talent Point.";
+      pointNote.textContent = "Reach Rank 2 to earn 2 Talent Points.";
     } else {
       pointNote.textContent = "All earned Talent Points are currently spent. Reset to rebuild.";
     }

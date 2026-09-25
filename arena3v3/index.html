@@ -82,6 +82,7 @@
         <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
         <button id="honor-button" class="hud-button" type="button">HONOR</button>
         <button id="talents-button" class="hud-button" type="button">TALENTS</button>
+        <button id="gear-button" class="hud-button" type="button">GEAR</button>
         <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
         <button id="help-button" class="hud-button" type="button">HELP</button>
         <span id="restart-button" hidden aria-hidden="true"></span>
@@ -233,6 +234,10 @@
           <strong id="honor-modal-total">0</strong>
         </div>
         <div class="honor-summary-box">
+          <span>SPENDABLE HONOR</span>
+          <strong id="honor-modal-wallet">0</strong>
+        </div>
+        <div class="honor-summary-box">
           <span>RECORD</span>
           <strong id="honor-modal-record">0W · 0L</strong>
         </div>
@@ -322,6 +327,60 @@
         <span>Rank 2–14 awards one Talent Point per rank. New talent spells update your pre-match Action Bar immediately and apply in the next match.</span>
         <button id="talent-reset" class="hud-button" type="button">RESET TALENTS</button>
       </div>
+    </div>
+  </div>
+
+  <div id="gear-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="gear-title">
+    <div class="modal-card gear-card panel">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">PVP EQUIPMENT</div>
+          <h2 id="gear-title">GEAR</h2>
+        </div>
+        <button id="gear-close" class="icon-button" aria-label="Close gear">×</button>
+      </div>
+
+      <div class="gear-summary">
+        <div>
+          <span>CLASS</span>
+          <strong id="gear-class">—</strong>
+        </div>
+        <div>
+          <span>RANK</span>
+          <strong id="gear-rank">RANK 1</strong>
+        </div>
+        <div>
+          <span>HONOR POINTS</span>
+          <strong id="gear-wallet">0</strong>
+        </div>
+        <div>
+          <span>SET</span>
+          <strong id="gear-set-count">0 / 6</strong>
+        </div>
+      </div>
+
+      <div id="gear-empty" class="gear-empty" hidden></div>
+
+      <section id="gear-set-section" class="gear-set-section">
+        <div class="gear-section-title">
+          <div>
+            <span>ARMOR SET</span>
+            <strong id="gear-set-name">ARENA NIGHTSTALKER</strong>
+          </div>
+          <span id="gear-set-progress">0 / 6 EQUIPPED</span>
+        </div>
+        <div id="gear-set-bonuses" class="gear-set-bonuses"></div>
+      </section>
+
+      <div class="gear-section-title gear-shop-title">
+        <div>
+          <span>HONOR VENDOR</span>
+          <strong>BUY & EQUIP</strong>
+        </div>
+        <span>Purchases never reduce your PvP Rank.</span>
+      </div>
+
+      <div id="gear-grid" class="gear-grid"></div>
     </div>
   </div>
 
@@ -450,6 +509,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/main.js?v=20260924-lobby2"></script>
+  <script type="module" src="./src/main.js?v=20260925-gear1"></script>
 </body>
 </html>

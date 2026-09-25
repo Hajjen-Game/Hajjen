@@ -37,5 +37,5 @@ export const BINDING_LABELS = {
   party1: "Target Self",
   party2: "Target Party 2",
   party3: "Target Party 3",
-  targetNearest: "Target Nearest",
+  targetNearest: "Cycle Enemy Target",
 };

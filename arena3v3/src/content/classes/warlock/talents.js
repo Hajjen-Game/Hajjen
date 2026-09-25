@@ -22,7 +22,7 @@ const CONFLAGRATE_SPELL = Object.freeze({
   aiRole: "bigDamage",
   visualStyle: "warlock",
   target: "enemy",
-  school: "shadow",
+  school: "fire",
   resourceCost: 20,
   castMs: 0,
   cooldownMs: 7000,

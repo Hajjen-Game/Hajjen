@@ -60,12 +60,12 @@ function bindingParts(binding) {
   };
 }
 
-function printableBinding(binding) {
+function printableBinding(binding, compact = false) {
   const { baseCode, ctrl, shift, alt } = bindingParts(binding);
   const labels = [];
-  if (ctrl) labels.push("Ctrl");
-  if (shift) labels.push("Shift");
-  if (alt) labels.push("Alt");
+  if (ctrl) labels.push(compact ? "C" : "Ctrl");
+  if (shift) labels.push(compact ? "S" : "Shift");
+  if (alt) labels.push(compact ? "A" : "Alt");
   if (baseCode) labels.push(printableCode(baseCode));
   return labels.join("+") || "—";
 }
@@ -211,7 +211,7 @@ export class InputManager {
     this.saveBindings();
   }
 
-  label(action) {
-    return printableBinding(this.bindings[action]);
+  label(action, compact = false) {
+    return printableBinding(this.bindings[action], compact);
   }
 }

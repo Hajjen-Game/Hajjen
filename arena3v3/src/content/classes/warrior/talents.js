@@ -80,7 +80,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-mortal-precision",
           name: "Mortal Precision",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Mortal Strike deals 8% more damage and reduces 2.5% more healing per rank.",
           rankDescriptions: [
@@ -96,7 +96,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-tactical-advance",
           name: "Tactical Advance",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Charge recharges 8% faster and generates 10% more Rage per rank.",
           rankDescriptions: [
@@ -112,7 +112,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-heavy-blows",
           name: "Heavy Blows",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Slam deals 10% more damage and winds up 6% faster per rank.",
           rankDescriptions: [
@@ -128,7 +128,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-disruptive-strikes",
           name: "Disruptive Strikes",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Pummel recharges 10% faster and locks the interrupted school 0.25s longer per rank.",
           rankDescriptions: [
@@ -144,7 +144,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-mortal-mastery",
           name: "Mortal Mastery",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Mortal Strike and Overpower deal 20% more damage. Mortal Strike reduces another 5% healing.",
@@ -201,7 +201,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-flurry",
           name: "Flurry",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Slam winds up 10% faster and costs 8% less Rage per rank.",
           rankDescriptions: [
@@ -217,7 +217,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-cruel-strikes",
           name: "Cruel Strikes",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Mortal Strike and Slam deal 6% more damage per rank.",
           rankDescriptions: [
@@ -233,7 +233,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-blood-craze",
           name: "Blood Craze",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Bloodthirst heals 20% more and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -249,7 +249,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-berserkers-rush",
           name: "Berserker's Rush",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Charge recharges 10% faster and generates 15% more Rage per rank.",
           rankDescriptions: [
@@ -265,7 +265,7 @@ export const warriorTalentTree = Object.freeze({
           id: "warrior-recklessness",
           name: "Recklessness",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Gain 5% critical strike chance. Slam and Bloodthirst deal 15% more damage.",

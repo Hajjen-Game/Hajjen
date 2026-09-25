@@ -19,6 +19,7 @@ const CHARACTER_DATA_PREFIXES = [
   "arena3v3-honor-v2:",
   "arena3v3-talents-v1:",
   "arena3v3-actionbar-v1:",
+  "arena3v3-gear-v1:",
 ];
 
 const canvas = document.querySelector("#arena");
@@ -363,8 +364,8 @@ function deleteCharacter(characterId) {
 
   const deletingActiveCharacter = activeCharacter?.id === characterId;
   const warning = deletingActiveCharacter
-    ? 'Delete "' + character.name + '" permanently?\n\nThis is your active character. The current match will be abandoned and all Honor, Talents and action-bar settings for this character will be lost.'
-    : 'Delete "' + character.name + '" permanently?\n\nAll Honor, Talents and action-bar settings for this character will be lost.';
+    ? 'Delete "' + character.name + '" permanently?\n\nThis is your active character. The current match will be abandoned and all Honor, Talents, Gear and action-bar settings for this character will be lost.'
+    : 'Delete "' + character.name + '" permanently?\n\nAll Honor, Talents, Gear and action-bar settings for this character will be lost.';
 
   if (!window.confirm(warning)) return;
 

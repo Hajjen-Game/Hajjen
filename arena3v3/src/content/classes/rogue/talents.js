@@ -78,7 +78,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-efficient-killer",
           name: "Efficient Killer",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Mutilate and Eviscerate cost 7% less Energy per rank.",
           rankDescriptions: [
@@ -94,7 +94,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-eviscerator",
           name: "Eviscerator",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Eviscerate deals 9% more damage and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -110,7 +110,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-lingering-wounds",
           name: "Lingering Wounds",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Garrote lasts 1s longer and recharges 8% faster per rank.",
           rankDescriptions: [
@@ -126,7 +126,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-lethality",
           name: "Lethality",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Critical strike chance increases by 2 percentage points and Mutilate deals 5% more damage per rank.",
           rankDescriptions: [
@@ -142,7 +142,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-master-assassin",
           name: "Master Assassin",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Mutilate and Eviscerate deal 20% more damage. Garrote deals 15% more periodic damage.",
@@ -199,7 +199,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-preparation",
           name: "Preparation",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Kidney Shot and Kick recharge 8% faster per rank.",
           rankDescriptions: [
@@ -215,7 +215,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-control-is-king",
           name: "Control Is King",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Kidney Shot lasts 0.25s longer and Kick locks the interrupted school 0.25s longer per rank.",
           rankDescriptions: [
@@ -231,7 +231,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-elusiveness",
           name: "Elusiveness",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Dodge chance increases by 2.5 percentage points and movement speed by 2% per rank.",
           rankDescriptions: [
@@ -247,7 +247,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-find-weakness",
           name: "Find Weakness",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Sinister Strike and Eviscerate deal 8% more damage per rank.",
           rankDescriptions: [
@@ -263,7 +263,7 @@ export const rogueTalentTree = Object.freeze({
           id: "rogue-shadow-dance",
           name: "Shadow Dance",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Gain 5% critical strike chance. Shadowstep recharges 25% faster and Eviscerate deals 15% more damage.",

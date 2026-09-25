@@ -3,6 +3,15 @@ import { DEFAULT_BINDINGS } from "./constants.js";
 const STORAGE_KEY = "arena3v3-bindings-v3";
 const LEGACY_STORAGE_KEY = "arena3v3-bindings-v2";
 
+const MODIFIER_CODES = new Set([
+  "ControlLeft",
+  "ControlRight",
+  "ShiftLeft",
+  "ShiftRight",
+  "AltLeft",
+  "AltRight",
+]);
+
 function printableCode(code) {
   if (code.startsWith("Key")) return code.slice(3);
   if (code.startsWith("Digit")) return code.slice(5);
@@ -13,12 +22,52 @@ function printableCode(code) {
     ArrowDown: "↓",
     ArrowLeft: "←",
     ArrowRight: "→",
-    ShiftLeft: "L-SHIFT",
-    ShiftRight: "R-SHIFT",
-    ControlLeft: "L-CTRL",
-    ControlRight: "R-CTRL",
+    ShiftLeft: "SHIFT",
+    ShiftRight: "SHIFT",
+    ControlLeft: "CTRL",
+    ControlRight: "CTRL",
+    AltLeft: "ALT",
+    AltRight: "ALT",
   };
   return replacements[code] || code.toUpperCase();
+}
+
+function isModifierCode(code) {
+  return MODIFIER_CODES.has(code);
+}
+
+function modifiersFromEvent(event) {
+  const modifiers = [];
+  if (event.ctrlKey) modifiers.push("Ctrl");
+  if (event.shiftKey) modifiers.push("Shift");
+  if (event.altKey) modifiers.push("Alt");
+  return modifiers;
+}
+
+function bindingFromEvent(event) {
+  if (isModifierCode(event.code)) return null;
+  return [...modifiersFromEvent(event), event.code].join("+");
+}
+
+function bindingParts(binding) {
+  const parts = String(binding || "").split("+").filter(Boolean);
+  const baseCode = parts.pop() || "";
+  return {
+    baseCode,
+    ctrl: parts.includes("Ctrl"),
+    shift: parts.includes("Shift"),
+    alt: parts.includes("Alt"),
+  };
+}
+
+function printableBinding(binding) {
+  const { baseCode, ctrl, shift, alt } = bindingParts(binding);
+  const labels = [];
+  if (ctrl) labels.push("Ctrl");
+  if (shift) labels.push("Shift");
+  if (alt) labels.push("Alt");
+  if (baseCode) labels.push(printableCode(baseCode));
+  return labels.join("+") || "—";
 }
 
 function isTextEntryTarget(target) {
@@ -71,6 +120,7 @@ export class InputManager {
   onKeyDown(event) {
     if (this.capture) {
       event.preventDefault();
+
       if (event.code === "Escape") {
         const callback = this.capture.callback;
         this.capture = null;
@@ -78,17 +128,30 @@ export class InputManager {
         return;
       }
 
-      this.rebind(this.capture.action, event.code);
+      // Modifier keys arm the chord but do not complete capture by themselves.
+      // Example: Ctrl keydown -> W keydown captures "Ctrl+KeyW".
+      if (isModifierCode(event.code)) return;
+
+      const binding = bindingFromEvent(event);
+      if (!binding) return;
+
+      this.rebind(this.capture.action, binding);
       const callback = this.capture.callback;
       this.capture = null;
-      callback(event.code);
+      callback(binding);
       return;
     }
 
     if (isTextEntryTarget(event.target)) return;
 
     this.keysDown.add(event.code);
-    const action = Object.entries(this.bindings).find(([, code]) => code === event.code)?.[0];
+
+    const binding = bindingFromEvent(event);
+    if (!binding) return;
+
+    const action = Object.entries(this.bindings)
+      .find(([, configuredBinding]) => configuredBinding === binding)?.[0];
+
     if (!action || action.startsWith("move")) return;
 
     event.preventDefault();
@@ -99,8 +162,25 @@ export class InputManager {
     this.actionHandler = handler;
   }
 
+  activeModifiers() {
+    return {
+      ctrl: this.keysDown.has("ControlLeft") || this.keysDown.has("ControlRight"),
+      shift: this.keysDown.has("ShiftLeft") || this.keysDown.has("ShiftRight"),
+      alt: this.keysDown.has("AltLeft") || this.keysDown.has("AltRight"),
+    };
+  }
+
   isHeld(action) {
-    return this.keysDown.has(this.bindings[action]);
+    const { baseCode, ctrl, shift, alt } = bindingParts(this.bindings[action]);
+    if (!baseCode || !this.keysDown.has(baseCode)) return false;
+
+    const active = this.activeModifiers();
+
+    // Movement and any future hold action only fires for its exact chord.
+    // This prevents Ctrl+W from also triggering a plain W movement bind.
+    return active.ctrl === ctrl
+      && active.shift === shift
+      && active.alt === alt;
   }
 
   movementVector() {
@@ -114,13 +194,15 @@ export class InputManager {
     this.capture = { action, callback };
   }
 
-  rebind(action, code) {
-    const currentCode = this.bindings[action];
+  rebind(action, binding) {
+    const currentBinding = this.bindings[action];
     const duplicateAction = Object.entries(this.bindings)
-      .find(([otherAction, otherCode]) => otherAction !== action && otherCode === code)?.[0];
+      .find(([otherAction, otherBinding]) =>
+        otherAction !== action && otherBinding === binding
+      )?.[0];
 
-    if (duplicateAction) this.bindings[duplicateAction] = currentCode;
-    this.bindings[action] = code;
+    if (duplicateAction) this.bindings[duplicateAction] = currentBinding;
+    this.bindings[action] = binding;
     this.saveBindings();
   }
 
@@ -130,6 +212,6 @@ export class InputManager {
   }
 
   label(action) {
-    return printableCode(this.bindings[action]);
+    return printableBinding(this.bindings[action]);
   }
 }

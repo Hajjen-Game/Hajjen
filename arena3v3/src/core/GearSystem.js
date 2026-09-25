@@ -6,6 +6,7 @@ import { druidGear } from "../content/gear/druid.js";
 import { mageGear } from "../content/gear/mage.js";
 import { warlockGear } from "../content/gear/warlock.js";
 import { paladinGear } from "../content/gear/paladin.js";
+import { deathKnightGear } from "../content/gear/death-knight.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
@@ -18,6 +19,7 @@ const GEAR_REGISTRY = Object.freeze({
   mage: mageGear,
   warlock: warlockGear,
   paladin: paladinGear,
+  "death-knight": deathKnightGear,
 });
 
 function cloneConfig(config) {
@@ -141,6 +143,8 @@ export function describeGearStats(item) {
     "warlock-conflagrate": "Conflagrate",
     "paladin-word-of-glory": "Word of Glory",
     "paladin-judgment": "Judgment",
+    "dk-frost-strike": "Frost Strike",
+    "dk-death-strike": "Death Strike",
   };
 
   const modifierLabels = {

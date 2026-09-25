@@ -191,7 +191,29 @@
               <div id="match-result-title" class="match-result-title">VICTORY</div>
               <div id="match-result-honor" class="match-result-honor"></div>
               <div id="match-result-rank-up" class="match-result-rank-up" hidden></div>
-              <button id="result-restart-button" class="hud-button primary" type="button">RETURN TO LOBBY</button>
+
+              <div class="match-result-progression">
+                <div class="match-result-progress-head">
+                  <span>PROGRESS TO NEXT RANK</span>
+                  <strong id="match-result-progress-text">0 / 400</strong>
+                </div>
+                <div class="match-result-progress-track">
+                  <div id="match-result-progress-fill" class="match-result-progress-fill"></div>
+                </div>
+                <div id="match-result-next-rank" class="match-result-next-rank">Next: Rank 2 · Corporal</div>
+
+                <div class="match-result-wallet">
+                  <span>SPENDABLE HONOR</span>
+                  <strong id="match-result-wallet">0</strong>
+                </div>
+              </div>
+
+              <div id="match-result-advice" class="match-result-advice" hidden></div>
+
+              <div class="match-result-actions">
+                <button id="result-next-button" class="hud-button primary" type="button">NEXT MATCH</button>
+                <button id="result-restart-button" class="hud-button" type="button">RETURN TO LOBBY</button>
+              </div>
             </div>
           </div>
         </div>

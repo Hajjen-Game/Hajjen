@@ -12,6 +12,7 @@ import { UIManager } from "../ui/UIManager.js";
 import { buildMatchReport } from "./MatchReport.js";
 import { HonorSystem } from "./HonorSystem.js";
 import { TalentSystem } from "./TalentSystem.js";
+import { GearSystem } from "./GearSystem.js";
 
 export class Game {
   constructor({ canvas, input, arena, characterConfigs }) {
@@ -28,6 +29,7 @@ export class Game {
     this.activeCharacterName = "Player";
     this.honor = new HonorSystem();
     this.talents = new TalentSystem();
+    this.gear = new GearSystem();
     this.lastHonorAward = null;
 
     this.actors = this.createActors();
@@ -101,9 +103,12 @@ export class Game {
 
   createActors() {
     return this.characterConfigs.map(config => {
-      const actorConfig = config.control === "player"
-        ? this.talents.applyToConfig(config)
-        : config;
+      let actorConfig = config;
+
+      if (config.control === "player") {
+        actorConfig = this.talents.applyToConfig(config);
+        actorConfig = this.gear.applyToConfig(actorConfig);
+      }
 
       return new Actor(actorConfig, this.arena.spawns[config.id]);
     });
@@ -111,6 +116,22 @@ export class Game {
 
   talentStatus() {
     return this.talents.status(this.honor.status().talentPoints);
+  }
+
+  gearStatus() {
+    const honor = this.honor.status();
+    return this.gear.status(honor.rank, honor.honorPoints);
+  }
+
+  purchaseGear(itemId) {
+    const honor = this.honor.status();
+    const result = this.gear.purchase(itemId, honor.rank, this.honor);
+
+    if (result.ok && this.waitingForStart) {
+      this.refreshPreparedLoadout();
+    }
+
+    return result;
   }
 
   canSpendTalent(talentId) {
@@ -633,6 +654,7 @@ export class Game {
     this.activeCharacterName = character.name;
     this.honor = new HonorSystem(character.id);
     this.talents = new TalentSystem(character.id, character.classId);
+    this.gear = new GearSystem(character.id, character.classId);
     this.characterConfigs = characterConfigs;
     this.waitingForStart = true;
     this.reset("character select");

@@ -8,14 +8,24 @@ export const rogueGear = Object.freeze({
       {
         pieces: 2,
         description: "+4% damage.",
+        effects: [
+          { type: "allSpellEffectScale", kinds: ["damage", "dot"], scale: 0.04 },
+        ],
       },
       {
         pieces: 4,
         description: "Kidney Shot cooldown reduced by 1.5s.",
+        effects: [
+          { type: "spellFieldAdd", spellId: "rogue-kidney", field: "cooldownMs", amount: -1500, min: 4000 },
+        ],
       },
       {
         pieces: 6,
         description: "+5% Energy regeneration and +3% movement speed.",
+        effects: [
+          { type: "resourceFieldScale", field: "regenPerSecond", scale: 0.05 },
+          { type: "statFieldScale", field: "moveSpeed", scale: 0.03, integer: true },
+        ],
       },
     ]),
   }),

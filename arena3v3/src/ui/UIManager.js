@@ -661,7 +661,7 @@ export class UIManager {
     if (!status.available) {
       this.gearEmpty.hidden = false;
       this.gearEmpty.textContent =
-        "PvP gear is being introduced class by class. Rogue is the first completed gear set.";
+        "PvP gear is being introduced class by class. This class does not have a completed gear set yet.";
       this.gearSetSection.hidden = true;
       this.gearGrid.hidden = true;
       this.gearSetCount.textContent = "COMING LATER";
@@ -697,8 +697,9 @@ export class UIManager {
       hands: 3,
       legs: 4,
       feet: 5,
-      mainHand: 6,
-      offHand: 7,
+      weapon: 6,
+      mainHand: 7,
+      offHand: 8,
     };
 
     const items = [...status.items].sort((a, b) =>

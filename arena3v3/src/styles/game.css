@@ -1060,7 +1060,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .binding-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .binding-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid var(--line-soft); border-radius: 9px; padding: 9px 10px; background: rgba(15,11,9,.56); }
 .binding-label { font-size: 12px; font-weight: 750; }
-.binding-key { min-width: 70px; text-align: center; color: var(--gold-bright); border: 1px solid var(--line); background: #1b120d; border-radius: 7px; padding: 6px 8px; cursor: pointer; font-weight: 850; }
+.binding-key { min-width: 96px; text-align: center; color: var(--gold-bright); border: 1px solid var(--line); background: #1b120d; border-radius: 7px; padding: 6px 8px; cursor: pointer; font-weight: 850; }
 .binding-key.capturing { border-color: var(--focus); color: #fff2d6; }
 .binding-help { color: var(--cream-dim); font-size: 11px; margin: 12px 0; }
 

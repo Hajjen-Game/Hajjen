@@ -1,5 +1,5 @@
-import { Game } from "./core/Game.js";
-import { InputManager } from "./core/InputManager.js";
+import { Game } from "./core/Game.js?v=20260925-keycapture1";
+import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";
 import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";

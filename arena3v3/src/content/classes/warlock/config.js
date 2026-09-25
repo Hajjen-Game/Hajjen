@@ -22,8 +22,8 @@ export const warlockClass = {
       effects: [{ kind: "dot", amount: 52, durationMs: 10000, tickMs: 2000 }],
     },
     {
-      id: "warlock-shadow-bolt", name: "Incinerate", aiRole: "filler", visualStyle: "warlock",
-      target: "enemy", school: "fire", resourceCost: 14, castMs: 1100, cooldownMs: 0, gcdMs: 1200, range: 360,
+      id: "warlock-shadow-bolt", name: "Shadow Bolt", aiRole: "filler", visualStyle: "warlock",
+      target: "enemy", school: "shadow", resourceCost: 14, castMs: 1100, cooldownMs: 0, gcdMs: 1200, range: 360,
       effects: [{ kind: "damage", amount: 86 }],
     },
     {

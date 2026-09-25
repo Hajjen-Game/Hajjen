@@ -2,6 +2,7 @@ import { rogueGear } from "../content/gear/rogue.js";
 import { warriorGear } from "../content/gear/warrior.js";
 import { shamanGear } from "../content/gear/shaman.js";
 import { priestGear } from "../content/gear/priest.js";
+import { druidGear } from "../content/gear/druid.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
@@ -10,6 +11,7 @@ const GEAR_REGISTRY = Object.freeze({
   warrior: warriorGear,
   shaman: shamanGear,
   priest: priestGear,
+  druid: druidGear,
 });
 
 function cloneConfig(config) {
@@ -125,6 +127,8 @@ export function describeGearStats(item) {
     "priest-greater-heal": "Greater Heal",
     "priest-smite": "Smite",
     "priest-holy-fire": "Holy Fire",
+    "druid-regrowth": "Regrowth",
+    "druid-moonfire": "Moonfire",
   };
 
   const modifierLabels = {

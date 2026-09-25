@@ -297,14 +297,12 @@ export class Game {
   targetNearestRelevant() {
     if (!this.player?.alive || this.ended || this.waitingForStart) return;
 
-    const wantsFriendly = this.player.role === "healer";
+    // Tab always cycles living enemies, regardless of the player's role.
+    // F1/F2/F3 remain the dedicated party-target controls for healers.
     const candidates = this.actors
       .filter(actor =>
         actor.alive
-        && actor.id !== this.player.id
-        && (wantsFriendly
-          ? actor.team === this.player.team
-          : actor.team !== this.player.team)
+        && actor.team !== this.player.team
       )
       .map(actor => ({
         actor,
@@ -312,7 +310,17 @@ export class Game {
       }))
       .sort((a, b) => a.distance - b.distance);
 
-    if (candidates[0]) this.selectTarget(candidates[0].actor.id);
+    if (candidates.length === 0) return;
+
+    const currentIndex = candidates.findIndex(item =>
+      item.actor.id === this.player.targetId
+    );
+
+    const nextIndex = currentIndex >= 0
+      ? (currentIndex + 1) % candidates.length
+      : 0;
+
+    this.selectTarget(candidates[nextIndex].actor.id);
   }
 
   castPlayerSpell(index) {

@@ -5,6 +5,7 @@ import { priestGear } from "../content/gear/priest.js";
 import { druidGear } from "../content/gear/druid.js";
 import { mageGear } from "../content/gear/mage.js";
 import { warlockGear } from "../content/gear/warlock.js";
+import { paladinGear } from "../content/gear/paladin.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
@@ -16,6 +17,7 @@ const GEAR_REGISTRY = Object.freeze({
   druid: druidGear,
   mage: mageGear,
   warlock: warlockGear,
+  paladin: paladinGear,
 });
 
 function cloneConfig(config) {
@@ -137,6 +139,8 @@ export function describeGearStats(item) {
     "mage-arcane-barrage": "Arcane Barrage",
     "warlock-drain-life": "Drain Life",
     "warlock-conflagrate": "Conflagrate",
+    "paladin-word-of-glory": "Word of Glory",
+    "paladin-judgment": "Judgment",
   };
 
   const modifierLabels = {

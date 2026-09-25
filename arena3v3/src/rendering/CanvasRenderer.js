@@ -534,6 +534,37 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
+  targetHitScore(actor, game, x, y) {
+    if (!actor?.alive) return null;
+
+    const bodyDistance = Math.hypot(actor.x - x, actor.y - y);
+    if (bodyDistance <= actor.radius + 12) {
+      return bodyDistance;
+    }
+
+    // The world name, health bar and resource bar are visually one nameplate.
+    // Use the exact shifted UI center used by the renderer so crowded units
+    // remain individually targetable by clicking their own plate.
+    const centerX = this.worldUiX(actor, game);
+    this.ctx.save();
+    this.ctx.font = "800 12px system-ui";
+    const nameWidth = this.ctx.measureText(actor.name).width;
+    this.ctx.restore();
+
+    const width = Math.max(80, Math.ceil(nameWidth) + 18);
+    const left = centerX - width / 2;
+    const right = centerX + width / 2;
+    const top = actor.y - actor.radius - 46;
+    const bottom = actor.y - actor.radius - 6;
+
+    if (x < left || x > right || y < top || y > bottom) return null;
+
+    // Keep body hits preferred when hit regions overlap. Inside a nameplate,
+    // prefer the plate whose visual center is closest to the click.
+    const plateCenterY = (top + bottom) / 2;
+    return 1000 + Math.hypot(centerX - x, plateCenterY - y);
+  }
+
   drawWorldHealth(ctx, actor, game) {
     const width = 80;
     const height = 9;

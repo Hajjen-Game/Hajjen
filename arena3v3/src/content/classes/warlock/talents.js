@@ -76,7 +76,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-nightfall",
           name: "Nightfall",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Shadow Bolt casts 8% faster and costs 7% less Mana per rank.",
           rankDescriptions: [
@@ -92,7 +92,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-fear-mastery",
           name: "Fear Mastery",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Fear recharges 8% faster and lasts 0.25s longer per rank.",
           rankDescriptions: [
@@ -108,7 +108,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-soul-siphon",
           name: "Soul Siphon",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Drain Life heals 18% more and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -124,7 +124,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-dark-resilience",
           name: "Dark Resilience",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Maximum Health increases by 4% and Unending Resolve recharges 6% faster per rank.",
           rankDescriptions: [
@@ -140,7 +140,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-master-affliction",
           name: "Master Affliction",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Corruption deals 18% more periodic damage. Drain Life deals and heals 18% more.",
@@ -195,7 +195,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-backdraft",
           name: "Backdraft",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Chaos Bolt casts 8% faster and costs 6% less Mana per rank.",
           rankDescriptions: [
@@ -211,7 +211,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-emberstorm",
           name: "Emberstorm",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Conflagrate recharges 8% faster and Shadow Bolt deals 6% more damage per rank.",
           rankDescriptions: [
@@ -227,7 +227,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-devastation",
           name: "Devastation",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Critical strike chance increases by 2 percentage points and Conflagrate deals 5% more damage per rank.",
           rankDescriptions: [
@@ -243,7 +243,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-chaotic-energy",
           name: "Chaotic Energy",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Mana regeneration increases by 10% and maximum Mana by 5% per rank.",
           rankDescriptions: [
@@ -259,7 +259,7 @@ export const warlockTalentTree = Object.freeze({
           id: "warlock-ruin",
           name: "Ruin",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Chaos Bolt and Conflagrate deal 20% more damage. Shadow Bolt casts 12% faster.",

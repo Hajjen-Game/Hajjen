@@ -797,6 +797,7 @@ export class Game {
   startPreparedMatch(characterConfigs, arena = null) {
     this.characterConfigs = characterConfigs;
     if (arena) this.setArena(arena);
+    this.ui?.cancelBindingCapture?.();
     this.waitingForStart = false;
     this.reset("match start");
   }

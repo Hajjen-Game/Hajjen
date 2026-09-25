@@ -123,8 +123,8 @@ export class UIManager {
     document.querySelector("#honor-close").addEventListener("click", () => this.closeHonor());
     document.querySelector("#talents-button").addEventListener("click", () => this.openTalents());
     document.querySelector("#talent-close").addEventListener("click", () => this.closeTalents());
-    document.querySelector("#gear-button").addEventListener("click", () => this.openGear());
-    document.querySelector("#gear-close").addEventListener("click", () => this.closeGear());
+    document.querySelector("#gear-button")?.addEventListener("click", () => this.openGear());
+    document.querySelector("#gear-close")?.addEventListener("click", () => this.closeGear());
     document.querySelector("#talent-reset").addEventListener("click", () => this.resetTalents());
     document.querySelector("#loadout-close").addEventListener("click", () => this.closeLoadout());
     document.querySelector("#loadout-done").addEventListener("click", () => this.closeLoadout());
@@ -620,12 +620,13 @@ export class UIManager {
 
 
   openGear() {
+    if (!this.gearModal) return;
     this.renderGear();
     this.gearModal.classList.remove("hidden");
   }
 
   closeGear() {
-    this.gearModal.classList.add("hidden");
+    this.gearModal?.classList.add("hidden");
   }
 
   purchaseGear(itemId) {
@@ -646,6 +647,8 @@ export class UIManager {
   }
 
   renderGear() {
+    if (!this.gearModal || !this.gearGrid) return;
+
     const honor = this.game.honor.status();
     const status = this.game.gearStatus();
 
@@ -967,7 +970,9 @@ export class UIManager {
 
     this.honorModalRank.textContent = "RANK " + status.rank + " · " + status.title.toUpperCase();
     this.honorModalTotal.textContent = status.lifetimeHonor.toLocaleString();
-    this.honorModalWallet.textContent = status.honorPoints.toLocaleString();
+    if (this.honorModalWallet) {
+      this.honorModalWallet.textContent = status.honorPoints.toLocaleString();
+    }
     this.honorModalRecord.textContent = status.wins + "W · " + status.losses + "L";
     const talentStatus = this.game.talentStatus();
     this.honorModalTp.textContent =
@@ -1467,7 +1472,7 @@ export class UIManager {
     }
 
     this.updateHonorStatus();
-    if (!this.gearModal.classList.contains("hidden")) {
+    if (this.gearModal && !this.gearModal.classList.contains("hidden")) {
       this.renderGear();
     }
     this.result.classList.remove("hidden");

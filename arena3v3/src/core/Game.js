@@ -353,9 +353,12 @@ export class Game {
 
     const candidates = this.actors
       .filter(actor => actor.alive)
-      .map(actor => ({ actor, d: Math.hypot(actor.x - x, actor.y - y) }))
-      .filter(item => item.d <= item.actor.radius + 12)
-      .sort((a, b) => a.d - b.d);
+      .map(actor => ({
+        actor,
+        score: this.renderer.targetHitScore(actor, this, x, y),
+      }))
+      .filter(item => item.score !== null)
+      .sort((a, b) => a.score - b.score);
 
     if (candidates[0]) this.selectTarget(candidates[0].actor.id);
   }

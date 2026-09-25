@@ -37,7 +37,7 @@ export class CombatSystem {
 
           if (spell && target?.alive) {
             if (!this.inRange(actor, target, spell.range) || !this.hasLos(actor, target)) {
-              this.game.log(actor.name + "'s " + spell.name + " failed: target moved out of range or line of sight.");
+              this.game.log(this.game.combatantLabel(actor) + "'s " + spell.name + " failed: target moved out of range or line of sight.");
               if (actor.control === "player") this.game.ui.toast("Target out of range or line of sight");
             } else {
               this.resolveSpell(actor, target, spell);
@@ -170,7 +170,7 @@ export class CombatSystem {
         totalMs: spell.castMs,
         remainingMs: spell.castMs,
       };
-      this.game.log(caster.name + " begins " + spell.name + ".");
+      this.game.log(this.game.combatantLabel(caster) + " begins " + spell.name + ".");
       return true;
     }
 
@@ -195,7 +195,7 @@ export class CombatSystem {
       && this.spellWouldBreakFriendlyCc(spell)
       && this.game.cc.shouldAvoidBreakingFriendlyCc(caster, target)
     ) {
-      this.game.log(caster.name + " holds " + spell.name + " to preserve friendly crowd control.");
+      this.game.log(this.game.combatantLabel(caster) + " holds " + spell.name + " to preserve friendly crowd control.");
       return false;
     }
 
@@ -217,7 +217,7 @@ export class CombatSystem {
         this.game.recordAvoidance(caster, target, hit);
         const label = hit === "miss" ? "MISS" : "DODGE";
         this.game.addFloatingText(target, label, "avoid");
-        this.game.log(caster.name + "'s " + spell.name + ": " + label.toLowerCase() + ".");
+        this.game.log(this.game.combatantLabel(caster) + "'s " + spell.name + ": " + label.toLowerCase() + ".");
         this.game.vfx.spell(
           caster,
           target,
@@ -387,7 +387,7 @@ export class CombatSystem {
     this.game.vfx.chain(visualIds, style, 380);
 
     if (targets.length > 1) {
-      this.game.log(caster.name + "'s " + spell.name + " chains through " + targets.length + " targets.");
+      this.game.log(this.game.combatantLabel(caster) + "'s " + spell.name + " chains through " + targets.length + " targets.");
     }
   }
 
@@ -455,12 +455,12 @@ export class CombatSystem {
     }
 
     this.game.log(
-      source.name + " hits " + target.name + " for " + actual + (crit ? " (crit)" : "") + ".",
+      this.game.combatantLabel(source) + " hits " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",
     );
 
     if (!target.alive) {
       target.cast = null;
-      this.game.log(target.name + " is down.");
+      this.game.log(this.game.combatantLabel(target) + " is down.");
       this.game.onActorDeath(target);
     }
   }
@@ -494,7 +494,7 @@ export class CombatSystem {
     this.game.vfx.beam(source, healTarget, "priest", 210);
     this.game.vfx.burst(healTarget, "priest", 250);
     this.game.log(
-      source.name + "'s Atonement heals " + healTarget.name + " for " + actual + ".",
+      this.game.combatantLabel(source) + "'s Atonement heals " + this.game.combatantLabel(healTarget) + " for " + actual + ".",
     );
   }
 
@@ -522,7 +522,7 @@ export class CombatSystem {
       }
 
       this.game.log(
-        source.name + " heals " + target.name + " for " + actual + (crit ? " (crit)" : "") + ".",
+        this.game.combatantLabel(source) + " heals " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",
       );
     }
   }
@@ -548,7 +548,7 @@ export class CombatSystem {
     });
 
     this.game.vfx.ring(target, visualStyle, target.radius + 4, target.radius + 22, 300);
-    this.game.log(source.name + " applies " + spell.name + " to " + target.name + ".");
+    this.game.log(this.game.combatantLabel(source) + " applies " + spell.name + " to " + this.game.combatantLabel(target) + ".");
   }
 
   applyTimedEffect(source, target, spell, effect, visualStyle) {
@@ -572,10 +572,10 @@ export class CombatSystem {
 
     if (effect.kind === "damageReduction") {
       this.game.addFloatingText(target, "GUARDED", "buff");
-      this.game.log(target.name + " gains " + spell.name + ".");
+      this.game.log(this.game.combatantLabel(target) + " gains " + spell.name + ".");
     } else {
       this.game.addFloatingText(target, "HEALING REDUCED", "debuff");
-      this.game.log(source.name + " applies healing reduction to " + target.name + ".");
+      this.game.log(this.game.combatantLabel(source) + " applies healing reduction to " + this.game.combatantLabel(target) + ".");
     }
   }
 }

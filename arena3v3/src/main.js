@@ -2,7 +2,7 @@ import { Game } from "./core/Game.js";
 import { InputManager } from "./core/InputManager.js";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";
-import { arenaConfig } from "./content/arena/nagrand-inspired/config.js";
+import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,
@@ -39,6 +39,8 @@ let roster = {
   playerName: "Player",
 };
 let lastEnemyKey = "";
+let lastPlayedArenaId = null;
+let pendingArena = DEFAULT_ARENA;
 let setupRequired = true;
 let resumeAfterCancel = false;
 let canReturnToMatch = false;
@@ -46,8 +48,9 @@ let canReturnToMatch = false;
 function fitArenaStage() {
   if (!arenaWrap || !arenaStage) return;
 
-  const logicalWidth = arenaConfig.width;
-  const logicalHeight = arenaConfig.height;
+  const arena = pendingArena || game?.arena || DEFAULT_ARENA;
+  const logicalWidth = arena.width;
+  const logicalHeight = arena.height;
 
   // Keep the center column close to the arena's real 16:9 footprint.
   // Any horizontal space that used to become black bars beside the arena
@@ -146,6 +149,10 @@ function rollOpponent() {
   lastEnemyKey = enemyRosterKey(roster);
 }
 
+function rollArena() {
+  pendingArena = randomArena(lastPlayedArenaId);
+}
+
 function fillSelect(selectId, role, selectedClassId) {
   const select = document.querySelector(selectId);
   select.innerHTML = "";
@@ -183,6 +190,12 @@ function renderEnemyPreview() {
   document.querySelector("#setup-enemy-caster").textContent = className(roster.enemyCaster);
 }
 
+function renderArenaPreview() {
+  document.querySelector("#setup-arena-name").textContent = pendingArena.name;
+  document.querySelector("#setup-arena-description").textContent =
+    pendingArena.description || "Arena layout selected for this match.";
+}
+
 const rosterModal = document.querySelector("#roster-modal");
 const rosterClose = document.querySelector("#roster-close");
 const rosterCancel = document.querySelector("#roster-cancel");
@@ -193,7 +206,10 @@ const arenaLobbyMeta = document.querySelector("#arena-lobby-meta");
 function openMatchSetup({ reroll = true, required = true, resumeOnCancel = false } = {}) {
   if (!activeCharacter || !game) return;
   arenaLobby.classList.add("hidden");
-  if (reroll) rollOpponent();
+  if (reroll) {
+    rollOpponent();
+    rollArena();
+  }
 
   setupRequired = required;
   resumeAfterCancel = resumeOnCancel;
@@ -201,6 +217,7 @@ function openMatchSetup({ reroll = true, required = true, resumeOnCancel = false
 
   renderRosterForm();
   renderEnemyPreview();
+  renderArenaPreview();
 
   rosterClose.hidden = required;
   rosterCancel.hidden = required;
@@ -565,7 +582,8 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
   };
 
   leaveArenaLobby();
-  game.startPreparedMatch(buildRosterConfigs(roster));
+  game.startPreparedMatch(buildRosterConfigs(roster), pendingArena);
+  lastPlayedArenaId = pendingArena.id;
   rosterModal.classList.add("hidden");
   setupRequired = false;
   resumeAfterCancel = false;
@@ -574,6 +592,7 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
     + className(roster.enemyHealer) + " / "
     + className(roster.enemyMelee) + " / "
     + className(roster.enemyCaster)
+    + " · " + pendingArena.name
   );
 });
 
@@ -620,7 +639,7 @@ const placeholderRoster = randomizeEnemyRoster({
 game = new Game({
   canvas,
   input,
-  arena: arenaConfig,
+  arena: DEFAULT_ARENA,
   characterConfigs: buildRosterConfigs(placeholderRoster),
 });
 

@@ -1,5 +1,5 @@
 import { arenaConfig as grandRingArena } from "./nagrand-inspired/config.js";
-import { windscarProvingGroundsArena } from "./windscar-proving-grounds/config.js";
+import { windscarProvingGroundsArena } from "./windscar-proving-grounds/config.js?v=20260925-windscar2";
 
 export const ARENA_REGISTRY = Object.freeze({
   [grandRingArena.id]: grandRingArena,

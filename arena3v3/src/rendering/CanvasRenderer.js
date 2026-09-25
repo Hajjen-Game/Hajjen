@@ -295,15 +295,18 @@ export class CanvasRenderer {
     );
     const markerX = this.worldUiX(actor, game);
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 7);
-    const size = 11 + pulse * 1.5;
-    const markerColor = this.theme.enemyBright || "#ff4b42";
+    const size = 12.5 + pulse * 1.8;
+    const markerColor = "#ff2b2b";
+    const markerGlow = "#ff0000";
 
     ctx.save();
 
     if (Math.abs(markerX - actor.x) > 3) {
-      ctx.globalAlpha = 0.55;
-      ctx.strokeStyle = markerColor;
-      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.72;
+      ctx.strokeStyle = markerGlow;
+      ctx.shadowColor = markerGlow;
+      ctx.shadowBlur = 9;
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(markerX, markerY + size * 1.05);
       ctx.lineTo(actor.x, actor.y - actor.radius - 5);
@@ -311,14 +314,34 @@ export class CanvasRenderer {
     }
 
     ctx.translate(markerX, markerY);
-    ctx.shadowColor = markerColor;
-    ctx.shadowBlur = 8 + pulse * 5;
+
+    // Dark backing separates the red mark from orange burst VFX,
+    // class colors and bright cast/nameplate elements.
+    ctx.shadowColor = "transparent";
+    ctx.globalAlpha = 0.76;
+    ctx.fillStyle = "rgba(30, 0, 0, .82)";
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 1.18, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Strong outer red aura remains visible even in crowded melee stacks.
+    ctx.globalAlpha = 0.62 + pulse * 0.18;
+    ctx.strokeStyle = markerGlow;
+    ctx.shadowColor = markerGlow;
+    ctx.shadowBlur = 18 + pulse * 10;
+    ctx.lineWidth = 3.2 + pulse * 0.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 1.12, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.shadowColor = markerGlow;
+    ctx.shadowBlur = 15 + pulse * 9;
     ctx.strokeStyle = markerColor;
     ctx.fillStyle = markerColor;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.globalAlpha = 0.9 + pulse * 0.1;
+    ctx.globalAlpha = 0.96;
 
     // Hunter's-Mark-inspired floating angular sigil:
     // central diamond with four outward tracking prongs.
@@ -348,7 +371,7 @@ export class CanvasRenderer {
     ctx.lineTo(size * 0.55, size * 0.35);
     ctx.stroke();
 
-    ctx.globalAlpha = 0.28 + pulse * 0.12;
+    ctx.globalAlpha = 0.42 + pulse * 0.18;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.24, 0, Math.PI * 2);
     ctx.fill();

@@ -1374,7 +1374,7 @@ export class UIManager {
     const status = this.game.honor.status();
 
     this.honorRank.textContent = "RANK " + status.rank + " · " + status.title;
-    this.honorTotal.textContent = status.lifetimeHonor.toLocaleString() + " HONOR";
+    this.honorTotal.textContent = status.lifetimeHonor.toLocaleString() + " LIFETIME";
     const talentStatus = this.game.talentStatus();
     this.honorTalentPoints.textContent = "TP " + talentStatus.availablePoints;
     this.honorTalentPoints.title =

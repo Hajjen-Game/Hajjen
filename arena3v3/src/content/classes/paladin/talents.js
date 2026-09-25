@@ -74,7 +74,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-lights-grace",
           name: "Light's Grace",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Holy Light heals 10% more and casts 6% faster per rank.",
           rankDescriptions: [
@@ -90,7 +90,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-divine-intellect",
           name: "Divine Intellect",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Maximum Mana increases by 5% and Mana regeneration by 9% per rank.",
           rankDescriptions: [
@@ -106,7 +106,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-flash-of-grace",
           name: "Flash of Grace",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Flash of Light heals 8% more, casts 6% faster and costs 5% less Mana per rank.",
           rankDescriptions: [
@@ -123,7 +123,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-sacred-guardian",
           name: "Sacred Guardian",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Blessing of Protection gains 3 percentage points of damage reduction and 0.30s duration per rank.",
           rankDescriptions: [
@@ -139,7 +139,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-beacon-of-faith",
           name: "Beacon of Faith",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Holy Shock, Flash of Light, Holy Light and Word of Glory heal 15% more.",
@@ -197,7 +197,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-fist-of-justice",
           name: "Fist of Justice",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Hammer of Justice recharges 7% faster and gains 6% range per rank.",
           rankDescriptions: [
@@ -213,7 +213,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-righteous-judgment",
           name: "Righteous Judgment",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Judgment costs 8% less Mana and recharges 7% faster per rank.",
           rankDescriptions: [
@@ -229,7 +229,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-divine-protection",
           name: "Divine Protection",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Blessing of Protection recharges 7% faster and costs 6% less Mana per rank.",
           rankDescriptions: [
@@ -245,7 +245,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-sanctified-shock",
           name: "Sanctified Shock",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Holy Shock heals 7% more and Judgment deals 7% more damage per rank.",
           rankDescriptions: [
@@ -261,7 +261,7 @@ export const paladinTalentTree = Object.freeze({
           id: "paladin-avenging-crusader",
           name: "Avenging Crusader",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Judgment deals 20% more damage, Holy Shock heals 12% more, and Hammer of Justice recharges 12% faster.",

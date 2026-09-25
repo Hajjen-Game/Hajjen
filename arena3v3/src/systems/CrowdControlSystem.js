@@ -188,7 +188,7 @@ export class CrowdControlSystem {
       const label = DR_LABELS[category] || category.toUpperCase();
       this.game.addFloatingText(target, "IMMUNE", "avoid");
       this.game.log(
-        target.name + " is immune to " + spell.name + " — " + label + " DR.",
+        this.game.combatantLabel(target) + " is immune to " + spell.name + " — " + label + " DR.",
       );
       return {
         immune: true,
@@ -242,7 +242,7 @@ export class CrowdControlSystem {
     this.game.recordCc(source, target, "fear", dr.durationMs);
     this.game.addFloatingText(target, "FEAR", "cc");
     this.game.log(
-      source.name + " fears " + target.name + " for "
+      this.game.combatantLabel(source) + " fears " + this.game.combatantLabel(target) + " for "
       + (dr.durationMs / 1000).toFixed(1) + "s"
       + this.drLogSuffix(dr) + ".",
     );
@@ -276,7 +276,7 @@ export class CrowdControlSystem {
     }
 
     if (affected === 0) {
-      this.game.log(source.name + "'s " + spell.name + " hits no controllable targets.");
+      this.game.log(this.game.combatantLabel(source) + "'s " + spell.name + " hits no controllable targets.");
     }
 
     return affected > 0;
@@ -308,7 +308,7 @@ export class CrowdControlSystem {
     this.game.recordCc(source, target, "incapacitate", dr.durationMs);
     this.game.addFloatingText(target, "CONTROLLED", "cc");
     this.game.log(
-      source.name + " incapacitates " + target.name + " for "
+      this.game.combatantLabel(source) + " incapacitates " + this.game.combatantLabel(target) + " for "
       + (dr.durationMs / 1000).toFixed(1) + "s"
       + this.drLogSuffix(dr) + ".",
     );
@@ -340,7 +340,7 @@ export class CrowdControlSystem {
     this.game.recordCc(source, target, "stun", dr.durationMs);
     this.game.addFloatingText(target, "STUNNED", "cc");
     this.game.log(
-      source.name + " stuns " + target.name + " for "
+      this.game.combatantLabel(source) + " stuns " + this.game.combatantLabel(target) + " for "
       + (dr.durationMs / 1000).toFixed(1) + "s"
       + this.drLogSuffix(dr) + ".",
     );
@@ -373,7 +373,7 @@ export class CrowdControlSystem {
     this.game.recordCc(source, target, "root", dr.durationMs);
     this.game.addFloatingText(target, "ROOTED", "cc");
     this.game.log(
-      source.name + " roots " + target.name + " for "
+      this.game.combatantLabel(source) + " roots " + this.game.combatantLabel(target) + " for "
       + (dr.durationMs / 1000).toFixed(1) + "s"
       + this.drLogSuffix(dr) + ".",
     );
@@ -401,7 +401,7 @@ export class CrowdControlSystem {
 
   interrupt(source, target, spell, effect) {
     if (!target.alive || !target.cast) {
-      this.game.log(source.name + "'s " + spell.name + " finds no cast to interrupt.");
+      this.game.log(this.game.combatantLabel(source) + "'s " + spell.name + " finds no cast to interrupt.");
       return false;
     }
 
@@ -410,7 +410,7 @@ export class CrowdControlSystem {
 
     if (interruptedSpell?.interruptible === false) {
       this.game.log(
-        source.name + "'s " + spell.name + " cannot interrupt " + target.name + "'s " + interruptedName + ".",
+        this.game.combatantLabel(source) + "'s " + spell.name + " cannot interrupt " + this.game.combatantLabel(target) + "'s " + interruptedName + ".",
       );
       return false;
     }
@@ -435,7 +435,7 @@ export class CrowdControlSystem {
     this.game.recordInterrupt(source, target, effect.durationMs);
     this.game.addFloatingText(target, "INTERRUPTED", "cc");
     this.game.log(
-      source.name + " interrupts " + target.name + "'s " + interruptedName
+      this.game.combatantLabel(source) + " interrupts " + this.game.combatantLabel(target) + "'s " + interruptedName
       + " — " + lockedSchool + " locked " + (effect.durationMs / 1000).toFixed(1) + "s.",
     );
     return true;
@@ -452,7 +452,7 @@ export class CrowdControlSystem {
 
     target.effects = target.effects.filter(effect => !broken.includes(effect));
     this.syncDrStates(target);
-    this.game.log(target.name + "'s crowd control breaks from damage.");
+    this.game.log(this.game.combatantLabel(target) + "'s crowd control breaks from damage.");
   }
 
   removeHardControl(actor) {

@@ -16,13 +16,21 @@ export const arenaConfig = {
   ],
 
   spawns: {
-    "player-healer": { x: 135, y: 360, facing: 0 },
-    "ally-healer": { x: 175, y: 300, facing: 0 },
-    "ally-melee": { x: 175, y: 300, facing: 0 },
-    "ally-caster": { x: 175, y: 420, facing: 0 },
+    // Friendly spawns are role-based, not tied to who the player controls.
+    // This keeps the opening formation identical for healer, melee and caster
+    // characters and guarantees that the three friendly units never overlap.
+    "friendly-healer": { x: 135, y: 360, facing: 0 },
+    "friendly-melee": { x: 185, y: 300, facing: 0 },
+    "friendly-caster": { x: 185, y: 420, facing: 0 },
 
     "enemy-healer": { x: 1145, y: 360, facing: Math.PI },
-    "enemy-melee": { x: 1105, y: 300, facing: Math.PI },
-    "enemy-caster": { x: 1105, y: 420, facing: Math.PI },
+    "enemy-melee": { x: 1095, y: 300, facing: Math.PI },
+    "enemy-caster": { x: 1095, y: 420, facing: Math.PI },
+
+    // Legacy aliases kept for compatibility with older diagnostics/bookmarks.
+    "player-healer": { x: 135, y: 360, facing: 0 },
+    "ally-healer": { x: 135, y: 360, facing: 0 },
+    "ally-melee": { x: 185, y: 300, facing: 0 },
+    "ally-caster": { x: 185, y: 420, facing: 0 },
   },
 };

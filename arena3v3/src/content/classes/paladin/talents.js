@@ -1,0 +1,280 @@
+const WORD_OF_GLORY_SPELL = Object.freeze({
+  id: "paladin-word-of-glory",
+  name: "Word of Glory",
+  aiRole: "instantHeal",
+  visualStyle: "paladin",
+  target: "ally",
+  school: "holy",
+  resourceCost: 18,
+  castMs: 0,
+  cooldownMs: 8000,
+  gcdMs: 1200,
+  range: 310,
+  effects: [{ kind: "heal", amount: 190 }],
+});
+
+const JUDGMENT_SPELL = Object.freeze({
+  id: "paladin-judgment",
+  name: "Judgment",
+  aiRole: "bigDamage",
+  visualStyle: "paladin",
+  target: "enemy",
+  school: "holy",
+  resourceCost: 11,
+  castMs: 0,
+  cooldownMs: 6500,
+  gcdMs: 1200,
+  range: 300,
+  effects: [{ kind: "damage", amount: 118 }],
+});
+
+export const paladinTalentTree = Object.freeze({
+  classId: "paladin",
+  displayName: "Paladin",
+  branches: [
+    {
+      id: "holy",
+      name: "Holy",
+      subtitle: "Reliable direct healing, Mana efficiency and powerful emergency recovery.",
+      accent: "#f0d56f",
+      talents: [
+        {
+          id: "paladin-word-of-glory",
+          name: "Word of Glory",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Unlock Word of Glory. Its healing is increased by 10% per rank.",
+          rankDescriptions: [
+            "Unlock Word of Glory · healing +10%.",
+            "Word of Glory healing +20%.",
+          ],
+          effects: [
+            { type: "unlockSpell", minRank: 1, spell: WORD_OF_GLORY_SPELL },
+            { type: "spellEffectScale", spellId: "paladin-word-of-glory", kinds: ["heal"], field: "amount", perRank: 0.10 },
+          ],
+        },
+        {
+          id: "paladin-infusion-of-light",
+          name: "Infusion of Light",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Holy Shock heals 9% more and recharges 6% faster per rank.",
+          rankDescriptions: [
+            "Holy Shock: +9% healing · -6% cooldown.",
+            "Holy Shock: +18% healing · -12% cooldown.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "paladin-holy-shock", kinds: ["heal"], field: "amount", perRank: 0.09 },
+            { type: "spellFieldScale", spellId: "paladin-holy-shock", field: "cooldownMs", perRank: -0.06, min: 2500 },
+          ],
+        },
+        {
+          id: "paladin-lights-grace",
+          name: "Light's Grace",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Holy Light heals 10% more and casts 6% faster per rank.",
+          rankDescriptions: [
+            "Holy Light: +10% healing · 6% faster cast.",
+            "Holy Light: +20% healing · 12% faster cast.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "paladin-holy-light", kinds: ["heal"], field: "amount", perRank: 0.10 },
+            { type: "spellFieldScale", spellId: "paladin-holy-light", field: "castMs", perRank: -0.06, min: 850 },
+          ],
+        },
+        {
+          id: "paladin-divine-intellect",
+          name: "Divine Intellect",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Maximum Mana increases by 5% and Mana regeneration by 9% per rank.",
+          rankDescriptions: [
+            "Maximum Mana +5% · Mana regeneration +9%.",
+            "Maximum Mana +10% · Mana regeneration +18%.",
+          ],
+          effects: [
+            { type: "resourceFieldScale", field: "max", perRank: 0.05, integer: true },
+            { type: "resourceFieldScale", field: "regenPerSecond", perRank: 0.09 },
+          ],
+        },
+        {
+          id: "paladin-flash-of-grace",
+          name: "Flash of Grace",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Flash of Light heals 8% more, casts 6% faster and costs 5% less Mana per rank.",
+          rankDescriptions: [
+            "Flash of Light: +8% healing · 6% faster cast · -5% Mana cost.",
+            "Flash of Light: +16% healing · 12% faster cast · -10% Mana cost.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "paladin-flash-light", kinds: ["heal"], field: "amount", perRank: 0.08 },
+            { type: "spellFieldScale", spellId: "paladin-flash-light", field: "castMs", perRank: -0.06, min: 450 },
+            { type: "spellFieldScale", spellId: "paladin-flash-light", field: "resourceCost", perRank: -0.05, min: 1 },
+          ],
+        },
+        {
+          id: "paladin-sacred-guardian",
+          name: "Sacred Guardian",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Blessing of Protection gains 3 percentage points of damage reduction and 0.30s duration per rank.",
+          rankDescriptions: [
+            "Blessing of Protection: +3% damage reduction · +0.30s duration.",
+            "Blessing of Protection: +6% damage reduction · +0.60s duration.",
+          ],
+          effects: [
+            { type: "spellEffectFieldAdd", spellId: "paladin-blessing", kinds: ["damageReduction"], field: "value", perRank: 0.03, integer: false },
+            { type: "spellEffectFieldAdd", spellId: "paladin-blessing", kinds: ["damageReduction"], field: "durationMs", perRank: 300 },
+          ],
+        },
+        {
+          id: "paladin-beacon-of-faith",
+          name: "Beacon of Faith",
+          tier: 4,
+          requiredPoints: 12,
+          maxRank: 1,
+          capstone: true,
+          description: "Holy Shock, Flash of Light, Holy Light and Word of Glory heal 15% more.",
+          rankDescriptions: [
+            "All four primary Paladin heals gain +15% healing.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "paladin-holy-shock", kinds: ["heal"], field: "amount", perRank: 0.15 },
+            { type: "spellEffectScale", spellId: "paladin-flash-light", kinds: ["heal"], field: "amount", perRank: 0.15 },
+            { type: "spellEffectScale", spellId: "paladin-holy-light", kinds: ["heal"], field: "amount", perRank: 0.15 },
+            { type: "spellEffectScale", spellId: "paladin-word-of-glory", kinds: ["heal"], field: "amount", perRank: 0.15 },
+          ],
+        },
+      ],
+    },
+    {
+      id: "crusader",
+      name: "Crusader",
+      subtitle: "Battle-healer pressure, stronger control and durable defensive support.",
+      accent: "#d9ad55",
+      talents: [
+        {
+          id: "paladin-judgment",
+          name: "Judgment",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Unlock Judgment. Its damage is increased by 10% per rank.",
+          rankDescriptions: [
+            "Unlock Judgment · damage +10%.",
+            "Judgment damage +20%.",
+          ],
+          effects: [
+            { type: "unlockSpell", minRank: 1, spell: JUDGMENT_SPELL },
+            { type: "spellEffectScale", spellId: "paladin-judgment", kinds: ["damage"], field: "amount", perRank: 0.10 },
+          ],
+        },
+        {
+          id: "paladin-blessed-resilience",
+          name: "Blessed Resilience",
+          tier: 1,
+          requiredPoints: 0,
+          maxRank: 2,
+          description: "Maximum Health increases by 4% and movement speed by 2% per rank.",
+          rankDescriptions: [
+            "Maximum Health +4% · movement speed +2%.",
+            "Maximum Health +8% · movement speed +4%.",
+          ],
+          effects: [
+            { type: "statFieldScale", field: "maxHealth", perRank: 0.04, integer: true },
+            { type: "statFieldScale", field: "moveSpeed", perRank: 0.02, integer: true },
+          ],
+        },
+        {
+          id: "paladin-fist-of-justice",
+          name: "Fist of Justice",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Hammer of Justice recharges 7% faster and gains 6% range per rank.",
+          rankDescriptions: [
+            "Hammer of Justice: -7% cooldown · +6% range.",
+            "Hammer of Justice: -14% cooldown · +12% range.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "paladin-hammer", field: "cooldownMs", perRank: -0.07, min: 8500 },
+            { type: "spellFieldScale", spellId: "paladin-hammer", field: "range", perRank: 0.06, min: 0 },
+          ],
+        },
+        {
+          id: "paladin-righteous-judgment",
+          name: "Righteous Judgment",
+          tier: 2,
+          requiredPoints: 4,
+          maxRank: 2,
+          description: "Judgment costs 8% less Mana and recharges 7% faster per rank.",
+          rankDescriptions: [
+            "Judgment: -8% Mana cost · -7% cooldown.",
+            "Judgment: -16% Mana cost · -14% cooldown.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "paladin-judgment", field: "resourceCost", perRank: -0.08, min: 1 },
+            { type: "spellFieldScale", spellId: "paladin-judgment", field: "cooldownMs", perRank: -0.07, min: 2500 },
+          ],
+        },
+        {
+          id: "paladin-divine-protection",
+          name: "Divine Protection",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Blessing of Protection recharges 7% faster and costs 6% less Mana per rank.",
+          rankDescriptions: [
+            "Blessing of Protection: -7% cooldown · -6% Mana cost.",
+            "Blessing of Protection: -14% cooldown · -12% Mana cost.",
+          ],
+          effects: [
+            { type: "spellFieldScale", spellId: "paladin-blessing", field: "cooldownMs", perRank: -0.07, min: 9000 },
+            { type: "spellFieldScale", spellId: "paladin-blessing", field: "resourceCost", perRank: -0.06, min: 1 },
+          ],
+        },
+        {
+          id: "paladin-sanctified-shock",
+          name: "Sanctified Shock",
+          tier: 3,
+          requiredPoints: 8,
+          maxRank: 2,
+          description: "Holy Shock heals 7% more and Judgment deals 7% more damage per rank.",
+          rankDescriptions: [
+            "Holy Shock healing +7% · Judgment damage +7%.",
+            "Holy Shock healing +14% · Judgment damage +14%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "paladin-holy-shock", kinds: ["heal"], field: "amount", perRank: 0.07 },
+            { type: "spellEffectScale", spellId: "paladin-judgment", kinds: ["damage"], field: "amount", perRank: 0.07 },
+          ],
+        },
+        {
+          id: "paladin-avenging-crusader",
+          name: "Avenging Crusader",
+          tier: 4,
+          requiredPoints: 12,
+          maxRank: 1,
+          capstone: true,
+          description: "Judgment deals 20% more damage, Holy Shock heals 12% more, and Hammer of Justice recharges 12% faster.",
+          rankDescriptions: [
+            "Judgment +20% damage · Holy Shock +12% healing · Hammer of Justice cooldown -12%.",
+          ],
+          effects: [
+            { type: "spellEffectScale", spellId: "paladin-judgment", kinds: ["damage"], field: "amount", perRank: 0.20 },
+            { type: "spellEffectScale", spellId: "paladin-holy-shock", kinds: ["heal"], field: "amount", perRank: 0.12 },
+            { type: "spellFieldScale", spellId: "paladin-hammer", field: "cooldownMs", perRank: -0.12, min: 7500 },
+          ],
+        },
+      ],
+    },
+  ],
+});

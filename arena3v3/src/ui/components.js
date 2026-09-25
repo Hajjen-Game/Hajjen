@@ -206,8 +206,8 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
         <span class="unit-role"></span>
       </div>
     </div>
-    <div class="frame-bar"><div class="frame-health"></div></div>
     <div class="frame-value"></div>
+    <div class="frame-bar"><div class="frame-health"></div></div>
     <div class="frame-resource"><div class="frame-resource-fill"></div></div>
     <div class="frame-effects"></div>
     <div class="frame-dr"></div>

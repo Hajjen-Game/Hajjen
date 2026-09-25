@@ -2,94 +2,248 @@ function n(value) {
   return Math.round(value || 0);
 }
 
+function pct(value, digits = 1) {
+  return (Math.max(0, Number(value) || 0) * 100).toFixed(digits) + "%";
+}
+
+function formatResource(resource) {
+  if (!resource || resource.max <= 0) return "None";
+  return (
+    String(resource.type || "resource").toUpperCase()
+    + " " + n(resource.max)
+    + " max · " + Number(resource.regenPerSecond || 0).toFixed(2) + "/s regen"
+  );
+}
+
+function playerLoadout(game) {
+  return game.matchLoadoutSnapshot
+    || game.capturePlayerLoadoutSnapshot?.()
+    || null;
+}
+
+function appendTalentSection(lines, game, loadout) {
+  lines.push("", "=== TALENT BUILD ===");
+
+  if (!loadout?.talents) {
+    lines.push("No talent snapshot available.");
+    return;
+  }
+
+  lines.push(
+    "Talent Points: "
+    + loadout.talents.spentPoints + " spent"
+    + " | " + loadout.talents.availablePoints + " available"
+    + " | " + (loadout.honor?.talentPoints ?? 0) + " earned",
+  );
+
+  const branches = game.talents?.tree?.branches || [];
+  if (branches.length > 0) {
+    lines.push(
+      "Branch points: "
+      + branches.map(branch =>
+        branch.name + " " + (loadout.talents.branchPoints?.[branch.id] || 0)
+      ).join(" | "),
+    );
+  }
+
+  if (!loadout.talents.entries?.length) {
+    lines.push("Allocated talents: None");
+    return;
+  }
+
+  for (const branch of branches) {
+    const entries = loadout.talents.entries.filter(entry => entry.branchId === branch.id);
+    if (entries.length === 0) continue;
+
+    lines.push(
+      branch.name + ": "
+      + entries.map(entry =>
+        entry.name + " " + entry.rank + "/" + entry.maxRank
+      ).join(", "),
+    );
+  }
+}
+
+function appendGearSection(lines, loadout) {
+  lines.push("", "=== GEAR LOADOUT ===");
+
+  if (!loadout?.gear) {
+    lines.push("No gear snapshot available.");
+    return;
+  }
+
+  if (loadout.gear.setName) {
+    lines.push(
+      "Set: " + loadout.gear.setName
+      + " · " + loadout.gear.setPieces + "/6 set pieces",
+    );
+  } else {
+    lines.push("Set: None");
+  }
+
+  if (loadout.gear.activeSetBonuses?.length) {
+    lines.push(
+      "Active set bonuses: "
+      + loadout.gear.activeSetBonuses
+        .map(bonus => bonus.pieces + "pc " + bonus.description)
+        .join(" | "),
+    );
+  } else {
+    lines.push("Active set bonuses: None");
+  }
+
+  if (loadout.gear.equipped?.length) {
+    lines.push(
+      "Equipped: "
+      + loadout.gear.equipped
+        .map(item => item.slotLabel + ": " + item.name)
+        .join(" | "),
+    );
+  } else {
+    lines.push("Equipped: None");
+  }
+}
+
+function appendPlayerStats(lines, loadout) {
+  lines.push("", "=== PLAYER STATS AT MATCH START ===");
+
+  if (!loadout?.stats) {
+    lines.push("No player stat snapshot available.");
+    return;
+  }
+
+  lines.push(
+    "Health " + n(loadout.stats.maxHealth)
+    + " | Move " + n(loadout.stats.moveSpeed)
+    + " | Hit " + pct(loadout.stats.hitChance)
+    + " | Crit " + pct(loadout.stats.critChance)
+    + " | Dodge " + pct(loadout.stats.dodgeChance)
+    + " | Resolve " + pct(loadout.stats.baseDamageReduction),
+  );
+
+  lines.push("Resource: " + formatResource(loadout.resource));
+
+  if (loadout.spells?.length) {
+    lines.push("Abilities: " + loadout.spells.map(spell => spell.name).join(", "));
+  }
+}
+
+function appendTeam(lines, game, team) {
+  for (const actor of game.actors.filter(unit => unit.team === team)) {
+    const stats = game.matchStats.get(actor.id);
+
+    lines.push(
+      actor.name
+      + " [" + actor.className + " / " + actor.role
+      + (actor.control === "player" ? " / PLAYER" : " / AI") + "]"
+      + " — HP " + n(actor.health) + "/" + actor.maxHealth
+      + " | " + actor.resource.type.toUpperCase() + " " + n(actor.resource.value) + "/" + actor.resource.max
+      + " | Damage " + n(stats?.damage)
+      + " | Healing " + n(stats?.healing)
+      + " | Taken " + n(stats?.damageTaken)
+      + " | Healing Received " + n(stats?.healingReceived)
+      + " | Casts " + n(stats?.casts)
+      + " | Crits " + n(stats?.crits)
+      + " | Misses " + n(stats?.misses)
+      + " | Dodges " + n(stats?.dodges)
+      + " | Interrupts " + n(stats?.interrupts)
+      + " | CC " + n(stats?.ccApplied)
+      + " (" + (stats?.ccSeconds || 0).toFixed(1) + "s)",
+    );
+  }
+}
+
 export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
+  const loadout = playerLoadout(game);
+  const startHonor = loadout?.honor || null;
+  const currentHonor = game.honor?.status?.() || null;
+  const award = game.lastHonorAward || null;
+
+  const friendlyComposition = game.actors
+    .filter(actor => actor.team === "friendly")
+    .map(actor => actor.className)
+    .join(" / ");
+  const enemyComposition = game.actors
+    .filter(actor => actor.team === "enemy")
+    .map(actor => actor.className)
+    .join(" / ");
+
   const lines = [
-    "3V3 ARENA — RUN REPORT",
-    "Build: prototype-v0.53-rogue-talent-tree",
+    "3V3 ARENA — STRESS TEST RUN REPORT",
+    "Report schema: stress-v2",
     "Arena: " + game.arena.name,
-    "Character: " + (game.activeCharacterName || game.player?.name || "Player")
-      + " [" + (game.player?.className || "Healer") + "]",
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
-    "Input queue: 400ms ability queue window",
-    "RNG: marble bags for hit / dodge / miss / crit / amount variance",
-    "Caster splash: chain spell can hit up to 3 enemies when each is in range + LOS",
-    "Dampening: " + game.dampening.percent + "% final | starts 10% at 45s | +2% every 10s",
-    "Team AI: preserves breakable friendly CC and peels melee pressure from vulnerable healer/caster allies",
-    "Caster survival: casters kite active melee tunnel pressure; Mage/Shaman receive a light survivability tune",
-    "Healer-aware kiting: threatened/low casters try to remain in healing range + LOS of their healer",
-    "Combat readability: raised CC markers, red enemy names, WoW class-color HP bars and pulsing red sub-20% health",
-    "Caster healer safety: low/pressured casters will not start or finish offensive casts while outside healer range/LOS",
-    "Movement polish: AI slides around pillar corners, never bypasses anti-stuck on blocked steering, flips route side under sustained obstruction and recovers rare collider overlaps",
-    "Action bar: spell cards now show their actual combat effect, including defensive reduction and CC duration",
-    "Spell VFX: lightweight procedural class/spell effects add projectiles, melee arcs, healing halos, defensive shields and control swirls",
-    "Player control alerts: every implemented hard CC/root plus interrupt school lock shows a large center icon + countdown",
-    "Matchmaking: enemy healer/melee/caster setup is randomized for every new match",
-    "Honor progression: victory awards 200 Honor, defeat awards 70 Honor; Rank 2-14 thresholds are halved from the original curve, with Grand Marshal now at 62,500 lifetime Honor and one Talent Point per rank gained",
-    "Honor menu: top-bar HONOR button opens full rank, record, progress, rewards and 14-rank ladder view",
-    "Pre-match draft: random enemy composition is revealed before combat, then the player chooses their melee/caster teammates and explicitly starts the match",
-    "Character select: persistent WoW-style healer characters have their own name, fixed healer class, Honor/Rank record and future Talent Points",
-    "Mouse steering: hold left + right mouse buttons together to continuously move toward the cursor; either button alone does not trigger movement and instant abilities remain usable while moving",
-    "Playable DPS: Warrior and Mage can now be created and controlled as the player; match setup automatically fills the missing role choices for the selected player class",
-    "Responsive arena layout: unused horizontal letterbox space beside the 16:9 arena is reassigned to wider friendly/enemy team panels",
-    "Action bar customization: spells can be drag-reordered per character; keybinds now belong to Slot 1-5 instead of fixed spell positions and persist independently",
-    "Role-based Tab targeting: Tab selects the nearest living enemy for DPS characters and the nearest living teammate for healer characters",
-    "Range feedback: action-bar abilities dim in real time when the currently selected valid target is outside that ability's range",
-    "Combat HUD layout: only the cast bar remains in the centered arena overlay; healer casts use a green gradient and DPS casts use a red gradient",
-    "HUD cleanup: combat log is hidden, toast feedback is raised above the cast bar, and cast progress resets to 0 before every new cast",
-    "GCD feedback: every GCD-bound action slot receives a synchronized dark sweep that clears over the actual global cooldown duration",
-    "Priest action icons: Renew, Flash Heal, Greater Heal, Pain Suppression and Psychic Scream now use inline SVG-style icons with restrained spell-specific color accents",
-    "Class unit icons: generic healer/melee/caster glyphs are replaced by nine distinct vector-drawn class emblems on arena units",
-    "Warrior action icons: Rend, Mortal Strike, Slam, Charge and Pummel now use inline SVG-style action-bar icons with red, steel and warm impact accents",
-    "Combat VFX readability: projectiles, heals, defensives, melee swings, CC, interrupts and periodic applications are larger, brighter and longer-lived while Chain Lightning keeps its existing lightning presentation",
-    "Enemy cooldown tracker: enemy burst and major CC cooldowns appear only after use; their bars now drain from full to empty as the timer counts down, then disappear when ready",
-    "Talent system: persistent per-character Talent Points can now be spent in two 7-node branches; Priest ships first with Holy Grace and Atonement",
-    "Priest Atonement: talent-unlocked Smite and Holy Fire can convert a percentage of dealt damage into smart healing on the lowest-health friendly target",
-    "Talent interaction fix: the tree no longer rebuilds every animation frame, so highlighted talents can be clicked normally; entire spendable talent cards are clickable",
-    "Seven-slot action bar: all seven action slots are always visible, with empty placeholders ready for talent-unlocked abilities",
-    "Pre-match ready room: selecting a character now opens a preparation step for Talents, Honor and Keybindings before team/opponent selection",
-    "Warrior Slam: retains its 0.85s wind-up but is now explicitly non-interruptible, so Kick/Pummel/Wind Shear style interrupts cannot stop or school-lock it",
-    "Talent rank feedback: every Priest talent now shows the exact current effect and the exact next-rank effect, making 1/2 versus 2/2 immediately readable",
-    "Warrior talents: two complete 7-node branches are available — Arms for Rend/Mortal Strike/control/heavy attacks and Fury for Rage tempo, Bloodthirst sustain and faster pressure",
-    "Warrior talent spells: Arms can unlock Overpower and Fury can unlock Bloodthirst; a hybrid build can unlock both and fill all seven action-bar slots",
-    "Rogue talents: two complete 7-node branches are available — Assassination for Garrote/Mutilate/Eviscerate pressure and Subtlety for Shadowstep, control, interrupts and mobility",
-    "Playable Rogue: Rogue can now be created as a player character, with vector action-bar icons for all five core abilities plus talent-unlocked Mutilate and Shadowstep",
+    "Final Dampening: " + game.dampening.percent + "%",
+    "Friendly composition: " + friendlyComposition,
+    "Enemy composition: " + enemyComposition,
     "",
-    "=== FRIENDLY TEAM ===",
+    "=== CHARACTER / PROGRESSION AT MATCH START ===",
+    "Character: "
+      + (loadout?.characterName || game.activeCharacterName || game.player?.name || "Player")
+      + " [" + (loadout?.className || game.player?.className || "Unknown")
+      + " / " + (loadout?.role || game.player?.role || "unknown") + "]",
   ];
 
-  const appendTeam = team => {
-    for (const actor of game.actors.filter(unit => unit.team === team)) {
-      const stats = game.matchStats.get(actor.id);
-      lines.push(
-        actor.name
-        + " [" + actor.className + " / " + actor.role + "]"
-        + " — HP " + n(actor.health) + "/" + actor.maxHealth
-        + " | " + actor.resource.type.toUpperCase() + " " + n(actor.resource.value) + "/" + actor.resource.max
-        + " | Damage " + n(stats?.damage)
-        + " | Healing " + n(stats?.healing)
-        + " | Taken " + n(stats?.damageTaken)
-        + " | Casts " + n(stats?.casts)
-        + " | Crits " + n(stats?.crits)
-        + " | Misses " + n(stats?.misses)
-        + " | Dodged " + n(stats?.dodges)
-        + " | Interrupts " + n(stats?.interrupts)
-        + " | CC " + n(stats?.ccApplied)
-        + " (" + (stats?.ccSeconds || 0).toFixed(1) + "s)",
-      );
-    }
-  };
+  if (startHonor) {
+    lines.push(
+      "Rank: " + startHonor.rank + " · " + startHonor.title
+      + " | Lifetime Honor " + n(startHonor.lifetimeHonor)
+      + " | Spendable Honor " + n(startHonor.honorPoints),
+    );
+  } else {
+    lines.push("Progression snapshot unavailable.");
+  }
 
-  appendTeam("friendly");
-  lines.push("", "=== ENEMY TEAM ===");
-  appendTeam("enemy");
+  if (award) {
+    lines.push(
+      "Match reward: +" + award.honor + " Honor"
+      + " | Rank after match " + award.rankAfter + " · " + award.rankTitle
+      + (award.rankedUp ? " | RANK UP +" + award.talentPointsGained + " Talent Point" + (award.talentPointsGained === 1 ? "" : "s") : ""),
+    );
+  } else if (currentHonor && game.ended) {
+    lines.push(
+      "Progression after match: Rank " + currentHonor.rank + " · " + currentHonor.title
+      + " | Lifetime Honor " + n(currentHonor.lifetimeHonor)
+      + " | Spendable Honor " + n(currentHonor.honorPoints),
+    );
+  }
+
+  appendTalentSection(lines, game, loadout);
+  appendGearSection(lines, loadout);
+  appendPlayerStats(lines, loadout);
+
+  lines.push(
+    "",
+    "=== MATCH RULES / CONTEXT ===",
+    "Ability queue: 400ms",
+    "Dampening: 0% until 45s, then 10%, +2% every 10s",
+    "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",
+    "Player death: friendly AI can continue; player may spectate or forfeit",
+    "",
+    "=== FRIENDLY TEAM — FINAL COMBAT STATS ===",
+  );
+
+  appendTeam(lines, game, "friendly");
+  lines.push("", "=== ENEMY TEAM — FINAL COMBAT STATS ===");
+  appendTeam(lines, game, "enemy");
+
+  lines.push("", "=== DEATH ORDER ===");
+  if (game.deathEvents.length === 0) {
+    lines.push("None");
+  } else {
+    game.deathEvents.forEach(event => {
+      lines.push(event.time.toFixed(1) + "s — " + event.name);
+    });
+  }
 
   lines.push("", "=== AI MOVEMENT DIAGNOSTICS ===");
   const movementDiagnostics = game.actors
     .filter(actor => actor.control !== "player")
     .map(actor => ({
       name: actor.name,
+      className: actor.className,
       reroutes: actor.aiPathReroutes || 0,
       overlapRecoveries: actor.aiOverlapRecoveries || 0,
     }))
@@ -100,35 +254,44 @@ export function buildMatchReport(game) {
   } else {
     movementDiagnostics.forEach(item => {
       lines.push(
-        item.name
+        item.name + " [" + item.className + "]"
         + " — route flips " + item.reroutes
-        + " | collider recoveries " + item.overlapRecoveries
+        + " | collider recoveries " + item.overlapRecoveries,
       );
     });
   }
 
-  lines.push("", "=== RESET / RELOAD DIAGNOSTICS ===");
-  if (!game.resetDiagnostics || game.resetDiagnostics.length === 0) {
-    lines.push("None detected in this browser tab.");
+  lines.push("", "=== UNEXPECTED RESET / RELOAD DIAGNOSTICS ===");
+  const resetDiagnostics = (game.resetDiagnostics || []).filter(event => {
+    if (event.kind === "reload") return true;
+
+    const normalReasons = new Set(["character select", "arena lobby", "match start"]);
+    return Number(event.previousElapsedSeconds || 0) > 1
+      && !normalReasons.has(event.reason);
+  });
+
+  if (resetDiagnostics.length === 0) {
+    lines.push("None detected.");
   } else {
-    game.resetDiagnostics.forEach(event => {
+    resetDiagnostics.forEach(event => {
       const at = Number(event.previousElapsedSeconds || 0).toFixed(1);
       lines.push(
         event.kind.toUpperCase()
         + " — previous match " + at + "s"
         + " — " + event.reason
-        + (event.recordedAt ? " — " + event.recordedAt : "")
+        + (event.recordedAt ? " — " + event.recordedAt : ""),
       );
     });
   }
 
-  lines.push("", "=== DEATH ORDER ===");
-  if (game.deathEvents.length === 0) lines.push("None");
-  else game.deathEvents.forEach(event => lines.push(event.time.toFixed(1) + "s — " + event.name));
-
   lines.push("", "=== COMBAT LOG ===");
-  if (game.runLog.length === 0) lines.push("No combat events yet.");
-  else game.runLog.forEach(entry => lines.push(entry.time.toFixed(1) + "s — " + entry.text));
+  if (game.runLog.length === 0) {
+    lines.push("No combat events yet.");
+  } else {
+    game.runLog.forEach(entry => {
+      lines.push(entry.time.toFixed(1) + "s — " + entry.text);
+    });
+  }
 
   return lines.join("\n");
 }

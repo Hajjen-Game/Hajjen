@@ -76,9 +76,16 @@ export class CanvasRenderer {
     this.drawArena(ctx);
     this.drawEffectRings(ctx, game);
 
-    for (const actor of game.actors.filter(actor => actor.alive)) {
+    const livingActors = game.actors.filter(actor => actor.alive);
+    const otherActors = livingActors.filter(actor => actor.id !== game.player?.id);
+    const playerActor = livingActors.find(actor => actor.id === game.player?.id);
+
+    // Always render the player after every other actor so their body, glyph
+    // and world UI stay readable when several units overlap.
+    for (const actor of otherActors) {
       this.drawActor(ctx, actor, game);
     }
+    if (playerActor) this.drawActor(ctx, playerActor, game);
 
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
@@ -207,12 +214,8 @@ export class CanvasRenderer {
       ctx.globalAlpha = 1;
     }
 
-    if (selected) {
-      ctx.beginPath();
-      ctx.arc(actor.x, actor.y, actor.radius + 11, 0, Math.PI * 2);
-      ctx.strokeStyle = this.theme.goldBright;
-      ctx.lineWidth = 4;
-      ctx.stroke();
+    if (actor.id === game.player?.id) {
+      this.drawPlayerHighlight(ctx, actor, game);
     }
 
     ctx.shadowColor = "rgba(0,0,0,.42)";
@@ -237,6 +240,104 @@ export class CanvasRenderer {
     this.drawCombatState(ctx, actor, game);
 
     if (actor.cast) this.drawWorldCast(ctx, actor);
+    if (selected) this.drawTargetMarker(ctx, actor, game);
+
+    ctx.restore();
+  }
+
+  drawPlayerHighlight(ctx, actor, game) {
+    const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 5.5);
+    const outerRadius = actor.radius + 17 + pulse * 2;
+    const innerRadius = actor.radius + 8;
+
+    ctx.save();
+    ctx.shadowColor = this.theme.friendlyBright;
+    ctx.shadowBlur = 14 + pulse * 7;
+
+    ctx.globalAlpha = 0.38 + pulse * 0.12;
+    ctx.fillStyle = this.theme.friendlyBright;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, actor.radius + 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.92;
+    ctx.strokeStyle = this.theme.cream;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, innerRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.72 + pulse * 0.2;
+    ctx.strokeStyle = this.theme.friendlyBright;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 5]);
+    ctx.lineDashOffset = -game.elapsedSeconds * 24;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, outerRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  drawTargetMarker(ctx, actor, game) {
+    const ccKinds = new Set(["stun", "fear", "incapacitate", "root"]);
+    const hasCrowdControl = actor.effects.some(effect =>
+      effect.remainingMs > 0 && ccKinds.has(effect.kind)
+    );
+
+    // Normal world UI ends around the name at radius + 31.
+    // CC badges occupy roughly radius + 51 through radius + 88.
+    // Shift the target sigil above that entire block while CC is active.
+    const markerY = Math.max(
+      18,
+      actor.y - actor.radius - (hasCrowdControl ? 112 : 58),
+    );
+    const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 7);
+    const size = 11 + pulse * 1.5;
+
+    ctx.save();
+    ctx.translate(actor.x, markerY);
+    ctx.shadowColor = this.theme.goldBright;
+    ctx.shadowBlur = 8 + pulse * 5;
+    ctx.strokeStyle = this.theme.goldBright;
+    ctx.fillStyle = this.theme.goldBright;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.globalAlpha = 0.9 + pulse * 0.1;
+
+    // Hunter's-Mark-inspired floating angular sigil:
+    // central diamond with four outward tracking prongs.
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.55);
+    ctx.lineTo(size * 0.45, 0);
+    ctx.lineTo(0, size * 0.55);
+    ctx.lineTo(-size * 0.45, 0);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.95, -size * 0.75);
+    ctx.lineTo(-size * 0.55, -size * 0.75);
+    ctx.lineTo(-size * 0.55, -size * 0.35);
+
+    ctx.moveTo(size * 0.95, -size * 0.75);
+    ctx.lineTo(size * 0.55, -size * 0.75);
+    ctx.lineTo(size * 0.55, -size * 0.35);
+
+    ctx.moveTo(-size * 0.95, size * 0.75);
+    ctx.lineTo(-size * 0.55, size * 0.75);
+    ctx.lineTo(-size * 0.55, size * 0.35);
+
+    ctx.moveTo(size * 0.95, size * 0.75);
+    ctx.lineTo(size * 0.55, size * 0.75);
+    ctx.lineTo(size * 0.55, size * 0.35);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.28 + pulse * 0.12;
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.24, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   }

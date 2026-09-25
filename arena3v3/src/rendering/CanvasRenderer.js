@@ -87,6 +87,7 @@ export class CanvasRenderer {
     }
     if (playerActor) this.drawActor(ctx, playerActor, game);
 
+    this.drawOverlapReadability(ctx, game, livingActors);
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
@@ -234,12 +235,12 @@ export class CanvasRenderer {
 
     if (!drawClassGlyph(ctx, actor)) this.drawRoleGlyph(ctx, actor);
     this.drawWorldHealth(ctx, actor, game);
-    this.drawWorldResource(ctx, actor);
-    this.drawName(ctx, actor);
-    this.drawEffectIcons(ctx, actor);
+    this.drawWorldResource(ctx, actor, game);
+    this.drawName(ctx, actor, game);
+    this.drawEffectIcons(ctx, actor, game);
     this.drawCombatState(ctx, actor, game);
 
-    if (actor.cast) this.drawWorldCast(ctx, actor);
+    if (actor.cast) this.drawWorldCast(ctx, actor, game);
     if (selected) this.drawTargetMarker(ctx, actor, game);
 
     ctx.restore();
@@ -290,17 +291,30 @@ export class CanvasRenderer {
     // Shift the target sigil above that entire block while CC is active.
     const markerY = Math.max(
       18,
-      actor.y - actor.radius - (hasCrowdControl ? 112 : 58),
+      actor.y - actor.radius - (hasCrowdControl ? 118 : 72),
     );
+    const markerX = this.worldUiX(actor, game);
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 7);
     const size = 11 + pulse * 1.5;
+    const markerColor = this.theme.enemyBright || "#ff4b42";
 
     ctx.save();
-    ctx.translate(actor.x, markerY);
-    ctx.shadowColor = this.theme.goldBright;
+
+    if (Math.abs(markerX - actor.x) > 3) {
+      ctx.globalAlpha = 0.55;
+      ctx.strokeStyle = markerColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(markerX, markerY + size * 1.05);
+      ctx.lineTo(actor.x, actor.y - actor.radius - 5);
+      ctx.stroke();
+    }
+
+    ctx.translate(markerX, markerY);
+    ctx.shadowColor = markerColor;
     ctx.shadowBlur = 8 + pulse * 5;
-    ctx.strokeStyle = this.theme.goldBright;
-    ctx.fillStyle = this.theme.goldBright;
+    ctx.strokeStyle = markerColor;
+    ctx.fillStyle = markerColor;
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -411,17 +425,106 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
+  overlappingActors(actor, game) {
+    const living = game.actors.filter(candidate => candidate.alive);
+    const nearby = living.filter(candidate => {
+      if (candidate.id === actor.id) return false;
+
+      const dx = candidate.x - actor.x;
+      const dy = candidate.y - actor.y;
+      const distanceSq = dx * dx + dy * dy;
+      const visualRadius = actor.radius + candidate.radius + 18;
+
+      // Include units whose bodies or immediate nameplate area collide.
+      return distanceSq < visualRadius * visualRadius
+        || (Math.abs(dx) < 58 && Math.abs(dy) < 44);
+    });
+
+    return nearby;
+  }
+
+  worldUiX(actor, game) {
+    const nearby = this.overlappingActors(actor, game);
+    if (nearby.length === 0) return actor.x;
+
+    const group = [actor, ...nearby]
+      .filter((candidate, index, list) =>
+        list.findIndex(item => item.id === candidate.id) === index
+      )
+      .sort((a, b) => {
+        if (a.id === game.player?.id) return 1;
+        if (b.id === game.player?.id) return -1;
+        return String(a.id).localeCompare(String(b.id));
+      });
+
+    const index = group.findIndex(candidate => candidate.id === actor.id);
+    const spacing = group.length >= 4 ? 34 : 42;
+    const centeredIndex = index - (group.length - 1) / 2;
+    return actor.x + centeredIndex * spacing;
+  }
+
+  drawOverlapReadability(ctx, game, livingActors) {
+    const crowded = livingActors.filter(actor =>
+      this.overlappingActors(actor, game).length > 0
+    );
+    if (crowded.length === 0) return;
+
+    const stable = [...crowded].sort((a, b) =>
+      String(a.id).localeCompare(String(b.id))
+    );
+
+    ctx.save();
+    ctx.lineCap = "round";
+
+    for (const actor of stable) {
+      const localGroup = [actor, ...this.overlappingActors(actor, game)]
+        .filter((candidate, index, list) =>
+          list.findIndex(item => item.id === candidate.id) === index
+        )
+        .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+
+      const layer = Math.max(
+        0,
+        localGroup.findIndex(candidate => candidate.id === actor.id),
+      );
+      const radius = actor.radius + 6 + layer * 4;
+      const color = classColorFor(actor);
+
+      ctx.globalAlpha = actor.team === "friendly" ? 0.9 : 0.72;
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = actor.team === "friendly" ? 8 : 5;
+      ctx.lineWidth = actor.team === "friendly" ? 2.8 : 2.2;
+      ctx.setLineDash(actor.team === "friendly" ? [] : [5, 4]);
+
+      ctx.beginPath();
+      ctx.arc(actor.x, actor.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // A small top tick makes concentric rings readable even at identical centers.
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(actor.x, actor.y - radius - 2);
+      ctx.lineTo(actor.x, actor.y - radius - 8);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
   drawWorldHealth(ctx, actor, game) {
-    const width = 70;
-    const x = actor.x - width / 2;
+    const width = 80;
+    const height = 9;
+    const centerX = this.worldUiX(actor, game);
+    const x = centerX - width / 2;
     const y = actor.y - actor.radius - 24;
     const lowHealth = actor.healthPct < 0.20;
     const pulse = lowHealth
       ? 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 11)
       : 0;
 
-    ctx.fillStyle = "rgba(11,8,6,.9)";
-    ctx.fillRect(x, y, width, 7);
+    ctx.fillStyle = "rgba(11,8,6,.92)";
+    ctx.fillRect(x, y, width, height);
 
     ctx.save();
     ctx.fillStyle = lowHealth
@@ -433,23 +536,30 @@ export class CanvasRenderer {
       ctx.shadowBlur = 3 + pulse * 8;
     }
 
-    ctx.fillRect(x + 1, y + 1, (width - 2) * clamp(actor.healthPct, 0, 1), 5);
+    ctx.fillRect(
+      x + 1,
+      y + 1,
+      (width - 2) * clamp(actor.healthPct, 0, 1),
+      height - 2,
+    );
     ctx.restore();
 
     ctx.strokeStyle = lowHealth
       ? `rgba(255, 92, 82, ${0.55 + pulse * 0.4})`
-      : "rgba(220,180,120,.35)";
+      : "rgba(220,180,120,.42)";
     ctx.lineWidth = lowHealth ? 1.5 : 1;
-    ctx.strokeRect(x, y, width, 7);
+    ctx.strokeRect(x, y, width, height);
   }
 
-  drawWorldResource(ctx, actor) {
-    const width = 70;
-    const x = actor.x - width / 2;
-    const y = actor.y - actor.radius - 15;
+  drawWorldResource(ctx, actor, game) {
+    const width = 74;
+    const height = 5;
+    const centerX = this.worldUiX(actor, game);
+    const x = centerX - width / 2;
+    const y = actor.y - actor.radius - 13;
 
-    ctx.fillStyle = "rgba(11,8,6,.9)";
-    ctx.fillRect(x, y, width, 4);
+    ctx.fillStyle = "rgba(11,8,6,.92)";
+    ctx.fillRect(x, y, width, height);
 
     const resourceColors = {
       mana: this.theme.mana,
@@ -458,32 +568,58 @@ export class CanvasRenderer {
       runic: this.theme.runic,
     };
     ctx.fillStyle = resourceColors[actor.resource.type] || this.theme.mana;
-    ctx.fillRect(x + 1, y + 1, (width - 2) * clamp(actor.resourcePct, 0, 1), 2);
+    ctx.fillRect(
+      x + 1,
+      y + 1,
+      (width - 2) * clamp(actor.resourcePct, 0, 1),
+      height - 2,
+    );
   }
 
-  drawWorldCast(ctx, actor) {
-    const width = 70;
-    const x = actor.x - width / 2;
-    const y = actor.y + actor.radius + 31;
+  drawWorldCast(ctx, actor, game) {
+    const width = 86;
+    const height = 8;
+    const centerX = this.worldUiX(actor, game);
+    const x = centerX - width / 2;
+    const y = actor.y - actor.radius - 49;
     const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
 
-    ctx.fillStyle = "rgba(11,8,6,.9)";
-    ctx.fillRect(x, y, width, 5);
+    ctx.save();
+    ctx.fillStyle = "rgba(11,8,6,.95)";
+    ctx.fillRect(x, y, width, height);
 
-    ctx.fillStyle = this.theme.cast;
-    ctx.fillRect(x + 1, y + 1, (width - 2) * clamp(progress, 0, 1), 3);
+    const castColor = actor.role === "healer"
+      ? this.theme.hot
+      : this.theme.enemyBright;
+
+    ctx.fillStyle = castColor;
+    ctx.shadowColor = castColor;
+    ctx.shadowBlur = 5;
+    ctx.fillRect(
+      x + 1,
+      y + 1,
+      (width - 2) * clamp(progress, 0, 1),
+      height - 2,
+    );
+
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "rgba(245,224,190,.48)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, width, height);
+    ctx.restore();
   }
 
-  drawName(ctx, actor) {
-    ctx.font = "700 11px system-ui";
+  drawName(ctx, actor, game) {
+    const centerX = this.worldUiX(actor, game);
+    ctx.font = "800 12px system-ui";
     ctx.textAlign = "center";
     ctx.fillStyle = actor.team === "enemy"
       ? this.theme.enemyName
       : this.theme.cream;
-    ctx.fillText(actor.name, actor.x, actor.y - actor.radius - 31);
+    ctx.fillText(actor.name, centerX, actor.y - actor.radius - 31);
   }
 
-  drawEffectIcons(ctx, actor) {
+  drawEffectIcons(ctx, actor, game) {
     const effects = actor.effects
       .filter(effect => effect.remainingMs > 0)
       .filter(effect =>
@@ -496,7 +632,8 @@ export class CanvasRenderer {
     const size = 18;
     const gap = 3;
     const totalWidth = effects.length * size + (effects.length - 1) * gap;
-    let x = actor.x - totalWidth / 2;
+    const centerX = this.worldUiX(actor, game);
+    let x = centerX - totalWidth / 2;
     const y = actor.y + actor.radius + 8;
 
     for (const effect of effects) {
@@ -528,21 +665,32 @@ export class CanvasRenderer {
         fill = this.theme.burst;
         label = "!";
       } else if (effect.kind === "schoolLock") {
-        fill = "#b29ad1";
-        label = "L";
+        fill = this.theme.interruptVfx;
+        label = "X";
       }
 
-      ctx.fillStyle = "rgba(14,10,8,.92)";
-      ctx.fillRect(x, y, size, size);
+      ctx.fillStyle = "rgba(12,8,6,.92)";
+      roundedRect(ctx, x, y, size, size, 5);
+      ctx.fill();
 
-      ctx.strokeStyle = fill;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = fill;
+      roundedRect(ctx, x + 2, y + 2, size - 4, size - 4, 4);
+      ctx.fill();
 
-      ctx.fillStyle = this.theme.cream;
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#160d09";
       ctx.font = "900 9px system-ui";
       ctx.textAlign = "center";
-      ctx.fillText(label, x + size / 2, y + 12);
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, x + size / 2, y + size / 2);
+
+      const seconds = Math.max(0, effect.remainingMs / 1000);
+      ctx.fillStyle = this.theme.cream;
+      ctx.font = "900 8px system-ui";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(seconds < 10 ? seconds.toFixed(1) : Math.ceil(seconds), x + size, y + size + 8);
 
       x += size + gap;
     }
@@ -623,8 +771,9 @@ export class CanvasRenderer {
     const seconds = Math.max(0, cc.remainingMs / 1000).toFixed(1);
     const badgeW = 30;
     const badgeH = 37;
-    const badgeX = actor.x - badgeW / 2;
-    const badgeY = actor.y - actor.radius - 88;
+    const badgeCenterX = this.worldUiX(actor, game);
+    const badgeX = badgeCenterX - badgeW / 2;
+    const badgeY = actor.y - actor.radius - 92;
 
     ctx.shadowBlur = 7;
     ctx.globalAlpha = 0.96;
@@ -643,13 +792,13 @@ export class CanvasRenderer {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    this.drawCcIcon(ctx, cc.kind, actor.x, badgeY + 11, 12, color);
+    this.drawCcIcon(ctx, cc.kind, badgeCenterX, badgeY + 11, 12, color);
 
     ctx.fillStyle = this.theme.cream;
     ctx.font = "900 10px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(seconds, actor.x, badgeY + 27);
+    ctx.fillText(seconds, badgeCenterX, badgeY + 27);
     ctx.restore();
   }
 

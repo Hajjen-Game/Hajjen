@@ -11,7 +11,7 @@ import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
 import { UIManager } from "../ui/UIManager.js?v=20260925-keycapture1";
 import { buildMatchReport } from "./MatchReport.js";
 import { HonorSystem } from "./HonorSystem.js";
-import { TalentSystem } from "./TalentSystem.js";
+import { TalentSystem } from "./TalentSystem.js?v=20260925-schools1";
 import { GearSystem } from "./GearSystem.js";
 
 export class Game {

@@ -78,7 +78,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-greater-grace",
           name: "Greater Grace",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Greater Heal heals 10% more and casts 6% faster per rank.",
           rankDescriptions: [
@@ -94,7 +94,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-inner-reserve",
           name: "Inner Reserve",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Mana regeneration is increased by 8% per rank.",
           rankDescriptions: [
@@ -109,7 +109,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-guardians-resolve",
           name: "Guardian's Resolve",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Pain Suppression gains 4% damage reduction and 0.35s duration per rank.",
           rankDescriptions: [
@@ -125,7 +125,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-holy-momentum",
           name: "Holy Momentum",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Flash Heal casts 7% faster and Greater Heal 5% faster per rank.",
           rankDescriptions: [
@@ -141,7 +141,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-divine-grace",
           name: "Divine Grace",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Renew, Flash Heal and Greater Heal gain 15% healing. Direct heals cost 15% less mana.",
@@ -200,7 +200,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-holy-fire",
           name: "Holy Fire",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Unlock Holy Fire. Its direct and periodic damage is increased by 10% per rank.",
           rankDescriptions: [
@@ -216,7 +216,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-atonement",
           name: "Atonement",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Smite and Holy Fire heal the lowest-health ally for 15% of damage dealt per rank.",
           rankDescriptions: [
@@ -231,7 +231,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-evangelism",
           name: "Evangelism",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Smite and Holy Fire deal 8% more damage and cost 6% less mana per rank.",
           rankDescriptions: [
@@ -249,7 +249,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-contrition",
           name: "Contrition",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Atonement healing is increased by another 10% of damage dealt per rank.",
           rankDescriptions: [
@@ -264,7 +264,7 @@ export const priestTalentTree = Object.freeze({
           id: "priest-radiant-wrath",
           name: "Radiant Wrath",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Smite and Holy Fire deal 20% more damage, Holy Fire recharges 20% faster, and Atonement gains +15%.",

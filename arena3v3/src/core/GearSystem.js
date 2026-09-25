@@ -1,11 +1,13 @@
 import { rogueGear } from "../content/gear/rogue.js";
 import { warriorGear } from "../content/gear/warrior.js";
+import { shamanGear } from "../content/gear/shaman.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
 const GEAR_REGISTRY = Object.freeze({
   rogue: rogueGear,
   warrior: warriorGear,
+  shaman: shamanGear,
 });
 
 function cloneConfig(config) {
@@ -116,6 +118,8 @@ export function describeGearStats(item) {
   const spellNames = {
     "rogue-eviscerate": "Eviscerate",
     "warrior-slam": "Slam",
+    "shaman-lava-burst": "Lava Burst",
+    "shaman-stormstrike": "Stormstrike",
   };
 
   for (const modifier of item?.spellModifiers || []) {
@@ -307,7 +311,7 @@ export class GearSystem {
     }
 
     if (power > 0) {
-      scaleSpellEffects(next.spells, ["damage", "heal", "hot", "dot"], 1 + power);
+      scaleSpellEffects(next.spells, ["damage", "heal", "hot", "dot", "chainDamage"], 1 + power);
     }
 
     const baseResolve = Number(next.stats.baseDamageReduction) || 0;

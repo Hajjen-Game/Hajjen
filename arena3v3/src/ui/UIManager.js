@@ -76,6 +76,8 @@ export class UIManager {
     this.honorProgressFill = document.querySelector("#honor-progress-fill");
     this.honorProgressText = document.querySelector("#honor-progress-text");
     this.honorTalentPoints = document.querySelector("#honor-talent-points");
+    this.talentsButton = document.querySelector("#talents-button");
+    this.gearButton = document.querySelector("#gear-button");
 
     this.honorModal = document.querySelector("#honor-modal");
     this.honorModalRank = document.querySelector("#honor-modal-rank");
@@ -1403,6 +1405,8 @@ export class UIManager {
     this.honorTalentPoints.title =
       talentStatus.availablePoints + " available · " + talentStatus.spentPoints + " spent";
 
+    this.updateProgressionAttention(talentStatus);
+
     if (!this.honorModal.classList.contains("hidden")) {
       this.updateHonorMenu();
     }
@@ -1417,6 +1421,32 @@ export class UIManager {
       status.progressHonor.toLocaleString()
       + " / " + status.neededHonor.toLocaleString()
       + " TO " + status.nextRank.title.toUpperCase();
+  }
+
+  updateProgressionAttention(talentStatus = this.game.talentStatus()) {
+    const hasUnspentTalents = (talentStatus?.availablePoints || 0) > 0;
+    this.talentsButton?.classList.toggle("progression-ready", hasUnspentTalents);
+    if (this.talentsButton) {
+      this.talentsButton.title = hasUnspentTalents
+        ? talentStatus.availablePoints + " unspent Talent Point"
+          + (talentStatus.availablePoints === 1 ? "" : "s")
+        : "";
+    }
+
+    const gearStatus = this.game.gearStatus();
+    const purchasableGear = (gearStatus?.items || []).filter(item =>
+      !item.owned && item.purchase?.ok
+    );
+    const hasPurchasableGear = purchasableGear.length > 0;
+
+    this.gearButton?.classList.toggle("progression-ready", hasPurchasableGear);
+    if (this.gearButton) {
+      this.gearButton.title = hasPurchasableGear
+        ? purchasableGear.length + " gear "
+          + (purchasableGear.length === 1 ? "purchase" : "purchases")
+          + " available"
+        : "";
+    }
   }
 
   updateDamageMeter() {

@@ -77,7 +77,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-natural-focus",
           name: "Natural Focus",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Regrowth heals 8% more, casts 6% faster and costs 5% less Mana per rank.",
           rankDescriptions: [
@@ -94,7 +94,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-gift-of-ysera",
           name: "Gift of Ysera",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Mana regeneration increases by 8% and maximum Mana by 5% per rank.",
           rankDescriptions: [
@@ -110,7 +110,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-swift-recovery",
           name: "Swift Recovery",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Swiftmend heals 9% more and recharges 7% faster per rank.",
           rankDescriptions: [
@@ -126,7 +126,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-ironwood",
           name: "Ironwood",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Ironbark gains 3 percentage points of damage reduction and 0.35s duration per rank.",
           rankDescriptions: [
@@ -142,7 +142,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-tree-of-life",
           name: "Tree of Life",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Rejuvenation and Lifebloom heal 15% more, Swiftmend heals 12% more, and maximum Health increases by 6%.",
@@ -200,7 +200,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-cyclone-mastery",
           name: "Cyclone Mastery",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Cyclone casts 7% faster and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -216,7 +216,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-lunar-guidance",
           name: "Lunar Guidance",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Moonfire costs 8% less Mana and recharges 7% faster per rank.",
           rankDescriptions: [
@@ -232,7 +232,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-thick-hide",
           name: "Thick Hide",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Maximum Health increases by 4% and Ironbark costs 6% less Mana per rank.",
           rankDescriptions: [
@@ -248,7 +248,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-dreamstate",
           name: "Dreamstate",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Mana regeneration increases by 6% and Regrowth casts 5% faster per rank.",
           rankDescriptions: [
@@ -264,7 +264,7 @@ export const druidTalentTree = Object.freeze({
           id: "druid-heart-of-the-wild",
           name: "Heart of the Wild",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Moonfire deals 20% more damage, Cyclone casts 15% faster, and movement speed increases by 5%.",

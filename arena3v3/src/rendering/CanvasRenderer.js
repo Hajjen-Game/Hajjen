@@ -241,8 +241,13 @@ export class CanvasRenderer {
     this.drawCombatState(ctx, actor, game);
 
     if (actor.cast) this.drawWorldCast(ctx, actor, game);
-    if (selected && actor.team === "enemy") {
-      this.drawTargetMarker(ctx, actor, game);
+    if (selected && actor.id !== game.player?.id) {
+      this.drawTargetMarker(
+        ctx,
+        actor,
+        game,
+        actor.team === "friendly" ? "friendly" : "enemy",
+      );
     }
 
     ctx.restore();
@@ -282,7 +287,7 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  drawTargetMarker(ctx, actor, game) {
+  drawTargetMarker(ctx, actor, game, variant = "enemy") {
     const ccKinds = new Set(["stun", "fear", "incapacitate", "root"]);
     const hasCrowdControl = actor.effects.some(effect =>
       effect.remainingMs > 0 && ccKinds.has(effect.kind)
@@ -298,23 +303,27 @@ export class CanvasRenderer {
     const markerX = this.worldUiX(actor, game);
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 7);
     const size = 12.5 + pulse * 1.8;
-    const markerColor = "#ff2b2b";
-    const markerGlow = "#ff0000";
+    const friendly = variant === "friendly";
+    const markerColor = friendly ? "#4dff88" : "#ff2b2b";
+    const markerGlow = friendly ? "#00e866" : "#ff0000";
+    const markerBacking = friendly
+      ? "rgba(0, 30, 12, .84)"
+      : "rgba(30, 0, 0, .82)";
 
     ctx.save();
 
     ctx.translate(markerX, markerY);
 
-    // Dark backing separates the red mark from orange burst VFX,
+    // Dark backing separates the target mark from burst VFX,
     // class colors and bright cast/nameplate elements.
     ctx.shadowColor = "transparent";
     ctx.globalAlpha = 0.76;
-    ctx.fillStyle = "rgba(30, 0, 0, .82)";
+    ctx.fillStyle = markerBacking;
     ctx.beginPath();
     ctx.arc(0, 0, size * 1.18, 0, Math.PI * 2);
     ctx.fill();
 
-    // Strong outer red aura remains visible even in crowded melee stacks.
+    // Strong outer aura remains visible even in crowded melee stacks.
     ctx.globalAlpha = 0.62 + pulse * 0.18;
     ctx.strokeStyle = markerGlow;
     ctx.shadowColor = markerGlow;

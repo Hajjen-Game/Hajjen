@@ -1,6 +1,7 @@
 import { rogueGear } from "../content/gear/rogue.js";
 import { warriorGear } from "../content/gear/warrior.js";
 import { shamanGear } from "../content/gear/shaman.js";
+import { priestGear } from "../content/gear/priest.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
@@ -8,6 +9,7 @@ const GEAR_REGISTRY = Object.freeze({
   rogue: rogueGear,
   warrior: warriorGear,
   shaman: shamanGear,
+  priest: priestGear,
 });
 
 function cloneConfig(config) {
@@ -120,12 +122,26 @@ export function describeGearStats(item) {
     "warrior-slam": "Slam",
     "shaman-lava-burst": "Lava Burst",
     "shaman-stormstrike": "Stormstrike",
+    "priest-greater-heal": "Greater Heal",
+    "priest-smite": "Smite",
+    "priest-holy-fire": "Holy Fire",
+  };
+
+  const modifierLabels = {
+    damage: "damage",
+    dot: "DoT damage",
+    heal: "healing",
+    hot: "HoT healing",
+    chainDamage: "damage",
   };
 
   for (const modifier of item?.spellModifiers || []) {
-    if (modifier.kind !== "damage") continue;
+    const label = modifierLabels[modifier.kind];
+    if (!label) continue;
     const spellName = spellNames[modifier.spellId] || modifier.spellId;
-    lines.push(spellName + " +" + Math.round((modifier.scale || 0) * 100) + "% damage");
+    lines.push(
+      spellName + " +" + Math.round((modifier.scale || 0) * 100) + "% " + label,
+    );
   }
 
   return lines;

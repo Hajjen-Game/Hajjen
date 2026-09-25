@@ -74,7 +74,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-shatter",
           name: "Shatter",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Critical strike chance increases by 2 percentage points and Pyroblast deals 5% more damage per rank.",
           rankDescriptions: [
@@ -90,7 +90,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-frostbite",
           name: "Frostbite",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Frost Nova recharges 7% faster and lasts 0.20s longer per rank.",
           rankDescriptions: [
@@ -106,7 +106,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-hot-streak",
           name: "Hot Streak",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Pyroblast casts 7% faster and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -122,7 +122,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-piercing-cold",
           name: "Piercing Cold",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Frostbolt casts 5% faster and costs 6% less Mana per rank.",
           rankDescriptions: [
@@ -138,7 +138,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-elemental-fusion",
           name: "Elemental Fusion",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Frostfire Bolt deals 20% more damage. Living Bomb, Frostbolt and Pyroblast deal 12% more damage.",
@@ -196,7 +196,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-improved-polymorph",
           name: "Improved Polymorph",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Polymorph casts 7% faster and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -212,7 +212,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-glacial-mobility",
           name: "Glacial Mobility",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Movement speed increases by 3% and Frost Nova recharges 6% faster per rank.",
           rankDescriptions: [
@@ -228,7 +228,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-arcane-efficiency",
           name: "Arcane Efficiency",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Arcane Barrage costs 8% less Mana and recharges 7% faster per rank.",
           rankDescriptions: [
@@ -244,7 +244,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-icy-veins",
           name: "Icy Veins",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Frostbolt casts 7% faster and Polymorph costs 7% less Mana per rank.",
           rankDescriptions: [
@@ -260,7 +260,7 @@ export const mageTalentTree = Object.freeze({
           id: "mage-arcane-freeze",
           name: "Arcane Freeze",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Arcane Barrage deals 20% more damage, Frostbolt casts 12% faster, and Polymorph casts 10% faster.",

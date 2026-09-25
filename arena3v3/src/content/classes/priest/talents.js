@@ -1,10 +1,10 @@
-const SMITE_SPELL = Object.freeze({
+const MIND_BLAST_SPELL = Object.freeze({
   id: "priest-smite",
-  name: "Smite",
+  name: "Mind Blast",
   aiRole: "filler",
   visualStyle: "priest",
   target: "enemy",
-  school: "holy",
+  school: "shadow",
   resourceCost: 11,
   castMs: 1150,
   cooldownMs: 0,
@@ -161,22 +161,22 @@ export const priestTalentTree = Object.freeze({
     {
       id: "atonement",
       name: "Atonement",
-      subtitle: "Offensive holy magic that turns pressure into smart healing for your team.",
+      subtitle: "Offensive holy and shadow magic that turns pressure into smart healing for your team.",
       accent: "#c892e8",
       talents: [
         {
           id: "priest-smite",
-          name: "Smite",
+          name: "Mind Blast",
           tier: 1,
           requiredPoints: 0,
           maxRank: 2,
-          description: "Unlock Smite. Its damage is increased by 10% per rank.",
+          description: "Unlock Mind Blast. Its damage is increased by 10% per rank.",
           rankDescriptions: [
-            "Unlock Smite · Smite damage +10%.",
-            "Smite damage +20%.",
+            "Unlock Mind Blast · Mind Blast damage +10%.",
+            "Mind Blast damage +20%.",
           ],
           effects: [
-            { type: "unlockSpell", minRank: 1, spell: SMITE_SPELL },
+            { type: "unlockSpell", minRank: 1, spell: MIND_BLAST_SPELL },
             { type: "spellEffectScale", spellId: "priest-smite", kinds: ["damage"], field: "amount", perRank: 0.10 },
           ],
         },
@@ -186,10 +186,10 @@ export const priestTalentTree = Object.freeze({
           tier: 1,
           requiredPoints: 0,
           maxRank: 2,
-          description: "Smite casts 7% faster and costs 8% less mana per rank.",
+          description: "Mind Blast casts 7% faster and costs 8% less mana per rank.",
           rankDescriptions: [
-            "Smite: 7% faster cast · -8% mana cost.",
-            "Smite: 14% faster cast · -16% mana cost.",
+            "Mind Blast: 7% faster cast · -8% mana cost.",
+            "Mind Blast: 14% faster cast · -16% mana cost.",
           ],
           effects: [
             { type: "spellFieldScale", spellId: "priest-smite", field: "castMs", perRank: -0.07, min: 550 },
@@ -218,7 +218,7 @@ export const priestTalentTree = Object.freeze({
           tier: 2,
           requiredPoints: 3,
           maxRank: 2,
-          description: "Smite and Holy Fire heal the lowest-health ally for 15% of damage dealt per rank.",
+          description: "Mind Blast and Holy Fire heal the lowest-health ally for 15% of damage dealt per rank.",
           rankDescriptions: [
             "Atonement heals the lowest-health ally for 15% of damage dealt.",
             "Atonement heals the lowest-health ally for 30% of damage dealt.",
@@ -233,10 +233,10 @@ export const priestTalentTree = Object.freeze({
           tier: 3,
           requiredPoints: 6,
           maxRank: 2,
-          description: "Smite and Holy Fire deal 8% more damage and cost 6% less mana per rank.",
+          description: "Mind Blast and Holy Fire deal 8% more damage and cost 6% less mana per rank.",
           rankDescriptions: [
-            "Smite & Holy Fire: +8% damage · -6% mana cost.",
-            "Smite & Holy Fire: +16% damage · -12% mana cost.",
+            "Mind Blast & Holy Fire: +8% damage · -6% mana cost.",
+            "Mind Blast & Holy Fire: +16% damage · -12% mana cost.",
           ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-smite", kinds: ["damage"], field: "amount", perRank: 0.08 },
@@ -267,9 +267,9 @@ export const priestTalentTree = Object.freeze({
           requiredPoints: 9,
           maxRank: 1,
           capstone: true,
-          description: "Smite and Holy Fire deal 20% more damage, Holy Fire recharges 20% faster, and Atonement gains +15%.",
+          description: "Mind Blast and Holy Fire deal 20% more damage, Holy Fire recharges 20% faster, and Atonement gains +15%.",
           rankDescriptions: [
-            "Smite & Holy Fire +20% damage · Holy Fire -20% cooldown · Atonement +15 percentage points.",
+            "Mind Blast & Holy Fire +20% damage · Holy Fire -20% cooldown · Atonement +15 percentage points.",
           ],
           effects: [
             { type: "spellEffectScale", spellId: "priest-smite", kinds: ["damage"], field: "amount", perRank: 0.20 },

@@ -18,7 +18,7 @@ export const shamanClass = {
   spells: [
     {
       id: "shaman-flame-shock", name: "Flame Shock", aiRole: "periodic", visualStyle: "shaman",
-      target: "enemy", school: "nature", resourceCost: 11, castMs: 0, cooldownMs: 7000, gcdMs: 1200, range: 360,
+      target: "enemy", school: "fire", resourceCost: 11, castMs: 0, cooldownMs: 7000, gcdMs: 1200, range: 360,
       effects: [{ kind: "dot", amount: 46, durationMs: 8000, tickMs: 2000 }],
     },
     {

@@ -488,11 +488,11 @@ export class UIManager {
           spell,
           slotIndex,
           index => this.castActionSlot(index),
-          index => this.captureBinding("slot" + (index + 1)),
+          index => this.handleLiveActionKeycap(index),
         )
         : createEmptyActionSlot(
           slotIndex,
-          index => this.captureBinding("slot" + (index + 1)),
+          index => this.handleLiveActionKeycap(index),
         );
 
       this.wireActionSlotDrag(slot, slotIndex, Boolean(spell));
@@ -603,6 +603,7 @@ export class UIManager {
   }
 
   closeLoadout() {
+    this.cancelBindingCapture();
     this.loadoutModal?.classList.add("hidden");
   }
 
@@ -611,6 +612,25 @@ export class UIManager {
       const keycap = slot.querySelector(".keycap");
       if (keycap) keycap.textContent = this.input.label("slot" + (index + 1), true);
     });
+  }
+
+  handleLiveActionKeycap(slotIndex) {
+    if (this.game.waitingForStart) {
+      this.captureBinding("slot" + (slotIndex + 1));
+      return;
+    }
+
+    // During a live match the visible key label is part of the spell button,
+    // not a rebinding control. This also prevents accidental touch taps on
+    // mobile from entering hidden key-capture mode mid-combat.
+    this.castActionSlot(slotIndex);
+  }
+
+  cancelBindingCapture() {
+    const cancelled = this.input.cancelCapture?.() || false;
+    document.querySelectorAll(".binding-key.capturing")
+      .forEach(button => button.classList.remove("capturing"));
+    return cancelled;
   }
 
   captureBinding(action) {
@@ -1059,6 +1079,7 @@ export class UIManager {
   }
 
   closeControls() {
+    this.cancelBindingCapture();
     this.controlsModal.classList.add("hidden");
   }
 

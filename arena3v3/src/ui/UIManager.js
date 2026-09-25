@@ -1378,9 +1378,6 @@ export class UIManager {
     if (!this.honorModal.classList.contains("hidden")) {
       this.updateHonorMenu();
     }
-    if (!this.gearModal.classList.contains("hidden")) {
-      this.renderGear();
-    }
     if (!status.nextRank) {
       this.honorProgressFill.style.width = "100%";
       this.honorProgressText.textContent = "MAX RANK";
@@ -1470,6 +1467,9 @@ export class UIManager {
     }
 
     this.updateHonorStatus();
+    if (!this.gearModal.classList.contains("hidden")) {
+      this.renderGear();
+    }
     this.result.classList.remove("hidden");
   }
 

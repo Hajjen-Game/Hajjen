@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
 import { AISystem } from "../systems/AISystem.js";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
-import { UIManager } from "../ui/UIManager.js";
+import { UIManager } from "../ui/UIManager.js?v=20260925-keycapture1";
 import { buildMatchReport } from "./MatchReport.js";
 import { HonorSystem } from "./HonorSystem.js";
 import { TalentSystem } from "./TalentSystem.js";

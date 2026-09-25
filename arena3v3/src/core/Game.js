@@ -787,8 +787,16 @@ export class Game {
     this.markRunInactive();
   }
 
-  startPreparedMatch(characterConfigs) {
+  setArena(arena) {
+    if (!arena) return;
+
+    this.arena = arena;
+    if (this.renderer) this.renderer.arena = arena;
+  }
+
+  startPreparedMatch(characterConfigs, arena = null) {
     this.characterConfigs = characterConfigs;
+    if (arena) this.setArena(arena);
     this.waitingForStart = false;
     this.reset("match start");
   }

@@ -27,6 +27,7 @@ export const HONOR_RANKS = Object.freeze([
 function emptyState() {
   return {
     lifetimeHonor: 0,
+    honorPoints: 0,
     wins: 0,
     losses: 0,
     rank: 1,
@@ -37,8 +38,16 @@ function emptyState() {
 function normalizeState(stored) {
   if (!stored) return emptyState();
 
+  const lifetimeHonor = Math.max(0, Number(stored.lifetimeHonor) || 0);
+  const hasHonorWallet = Object.prototype.hasOwnProperty.call(stored, "honorPoints");
+
   return {
-    lifetimeHonor: Math.max(0, Number(stored.lifetimeHonor) || 0),
+    lifetimeHonor,
+    // One-time migration for characters created before purchasable gear existed:
+    // all Honor they already earned becomes spendable once, without reducing rank.
+    honorPoints: hasHonorWallet
+      ? Math.max(0, Number(stored.honorPoints) || 0)
+      : lifetimeHonor,
     wins: Math.max(0, Number(stored.wins) || 0),
     losses: Math.max(0, Number(stored.losses) || 0),
     rank: Math.max(1, Math.min(14, Number(stored.rank) || 1)),
@@ -131,6 +140,7 @@ export class HonorSystem {
 
     const before = rankForHonor(this.state.lifetimeHonor);
     this.state.lifetimeHonor += gain;
+    this.state.honorPoints += gain;
 
     if (result === "VICTORY") this.state.wins += 1;
     else this.state.losses += 1;
@@ -153,10 +163,21 @@ export class HonorSystem {
       ranksGained,
       talentPointsGained,
       lifetimeHonor: this.state.lifetimeHonor,
+      honorPoints: this.state.honorPoints,
       talentPoints: this.state.talentPoints,
     };
 
     return this.lastAward;
+  }
+
+  spend(amount) {
+    const cost = Math.max(0, Math.round(Number(amount) || 0));
+    if (cost <= 0) return true;
+    if (this.state.honorPoints < cost) return false;
+
+    this.state.honorPoints -= cost;
+    this.save();
+    return true;
   }
 
   status() {

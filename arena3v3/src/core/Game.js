@@ -552,7 +552,7 @@ export class Game {
     if (!this.deathEvents.some(event => event.id === actor.id)) {
       this.deathEvents.push({
         id: actor.id,
-        name: actor.name,
+        name: this.combatantLabel(actor),
         time: this.elapsedSeconds,
       });
     }
@@ -676,6 +676,19 @@ export class Game {
       totalMs: 850,
       remainingMs: 850,
     });
+  }
+
+  combatantLabel(actor) {
+    if (!actor) return "Unknown";
+
+    const ambiguous = this.actors.some(candidate =>
+      candidate.id !== actor.id
+      && candidate.team !== actor.team
+      && candidate.name === actor.name
+    );
+
+    if (!ambiguous) return actor.name;
+    return (actor.team === "friendly" ? "Friendly " : "Enemy ") + actor.name;
   }
 
   log(text) {

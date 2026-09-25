@@ -3,6 +3,7 @@ import { clamp, formatTime } from "../core/utils.js";
 import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js";
+import { describeGearStats } from "../core/GearSystem.js";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
 const ACTION_BAR_SLOT_COUNT = 7;
@@ -74,6 +75,7 @@ export class UIManager {
     this.honorModal = document.querySelector("#honor-modal");
     this.honorModalRank = document.querySelector("#honor-modal-rank");
     this.honorModalTotal = document.querySelector("#honor-modal-total");
+    this.honorModalWallet = document.querySelector("#honor-modal-wallet");
     this.honorModalRecord = document.querySelector("#honor-modal-record");
     this.honorModalTp = document.querySelector("#honor-modal-tp");
     this.honorModalProgressText = document.querySelector("#honor-modal-progress-text");
@@ -87,6 +89,18 @@ export class UIManager {
     this.talentSpent = document.querySelector("#talent-spent");
     this.talentTree = document.querySelector("#talent-tree");
     this.talentEmpty = document.querySelector("#talent-empty");
+
+    this.gearModal = document.querySelector("#gear-modal");
+    this.gearClass = document.querySelector("#gear-class");
+    this.gearRank = document.querySelector("#gear-rank");
+    this.gearWallet = document.querySelector("#gear-wallet");
+    this.gearSetCount = document.querySelector("#gear-set-count");
+    this.gearEmpty = document.querySelector("#gear-empty");
+    this.gearSetSection = document.querySelector("#gear-set-section");
+    this.gearSetName = document.querySelector("#gear-set-name");
+    this.gearSetProgress = document.querySelector("#gear-set-progress");
+    this.gearSetBonuses = document.querySelector("#gear-set-bonuses");
+    this.gearGrid = document.querySelector("#gear-grid");
 
     this.playerCast = document.querySelector("#player-cast");
     this.playerCastLabel = document.querySelector("#player-cast-label");
@@ -109,6 +123,8 @@ export class UIManager {
     document.querySelector("#honor-close").addEventListener("click", () => this.closeHonor());
     document.querySelector("#talents-button").addEventListener("click", () => this.openTalents());
     document.querySelector("#talent-close").addEventListener("click", () => this.closeTalents());
+    document.querySelector("#gear-button").addEventListener("click", () => this.openGear());
+    document.querySelector("#gear-close").addEventListener("click", () => this.closeGear());
     document.querySelector("#talent-reset").addEventListener("click", () => this.resetTalents());
     document.querySelector("#loadout-close").addEventListener("click", () => this.closeLoadout());
     document.querySelector("#loadout-done").addEventListener("click", () => this.closeLoadout());
@@ -603,6 +619,144 @@ export class UIManager {
   }
 
 
+  openGear() {
+    this.renderGear();
+    this.gearModal.classList.remove("hidden");
+  }
+
+  closeGear() {
+    this.gearModal.classList.add("hidden");
+  }
+
+  purchaseGear(itemId) {
+    const result = this.game.purchaseGear(itemId);
+
+    if (!result.ok) {
+      this.toast(result.reason);
+      this.renderGear();
+      return;
+    }
+
+    this.renderGear();
+    this.updateHonorStatus();
+    this.toast(
+      result.item.name + " purchased · "
+      + (this.game.waitingForStart ? "equipped now" : "equips next match"),
+    );
+  }
+
+  renderGear() {
+    const honor = this.game.honor.status();
+    const status = this.game.gearStatus();
+
+    this.gearClass.textContent = this.game.player?.className || "—";
+    this.gearRank.textContent = "RANK " + honor.rank;
+    this.gearWallet.textContent = honor.honorPoints.toLocaleString() + " HONOR";
+    this.gearGrid.innerHTML = "";
+    this.gearSetBonuses.innerHTML = "";
+
+    if (!status.available) {
+      this.gearEmpty.hidden = false;
+      this.gearEmpty.textContent =
+        "PvP gear is being introduced class by class. Rogue is the first completed gear set.";
+      this.gearSetSection.hidden = true;
+      this.gearGrid.hidden = true;
+      this.gearSetCount.textContent = "COMING LATER";
+      return;
+    }
+
+    this.gearEmpty.hidden = true;
+    this.gearSetSection.hidden = false;
+    this.gearGrid.hidden = false;
+
+    this.gearSetCount.textContent = status.setPieces + " / 6";
+    this.gearSetName.textContent = status.set?.name?.toUpperCase() || "PVP SET";
+    this.gearSetProgress.textContent = status.setPieces + " / 6 EQUIPPED";
+
+    for (const bonus of status.set?.bonuses || []) {
+      const active = status.setPieces >= bonus.pieces;
+      const row = document.createElement("div");
+      row.className = "gear-set-bonus" + (active ? " active" : "");
+      row.innerHTML =
+        '<span class="gear-set-threshold"></span>'
+        + '<span class="gear-set-description"></span>'
+        + '<strong class="gear-set-state"></strong>';
+      row.querySelector(".gear-set-threshold").textContent = bonus.pieces + " PIECES";
+      row.querySelector(".gear-set-description").textContent = bonus.description;
+      row.querySelector(".gear-set-state").textContent = active ? "ACTIVE" : "LOCKED";
+      this.gearSetBonuses.appendChild(row);
+    }
+
+    const slotOrder = {
+      head: 0,
+      shoulders: 1,
+      chest: 2,
+      hands: 3,
+      legs: 4,
+      feet: 5,
+      mainHand: 6,
+      offHand: 7,
+    };
+
+    const items = [...status.items].sort((a, b) =>
+      (slotOrder[a.slot] ?? 99) - (slotOrder[b.slot] ?? 99)
+      || a.rankRequired - b.rankRequired
+    );
+
+    for (const item of items) {
+      const card = document.createElement("article");
+      card.className =
+        "gear-item"
+        + (item.equipped ? " equipped" : "")
+        + (item.owned ? " owned" : "")
+        + (!item.owned && !item.purchase.ok ? " unavailable" : "");
+
+      card.innerHTML =
+        '<div class="gear-item-head">'
+        + '<div><span class="gear-slot"></span><strong class="gear-item-name"></strong></div>'
+        + '<span class="gear-rank-lock"></span>'
+        + '</div>'
+        + '<div class="gear-item-stats"></div>'
+        + '<div class="gear-item-footer">'
+        + '<span class="gear-item-cost"></span>'
+        + '<button class="gear-buy hud-button" type="button"></button>'
+        + '</div>';
+
+      card.querySelector(".gear-slot").textContent = item.slotLabel.toUpperCase();
+      card.querySelector(".gear-item-name").textContent = item.name;
+      card.querySelector(".gear-rank-lock").textContent =
+        item.rankRequired <= 1 ? "BASE" : "RANK " + item.rankRequired;
+
+      const stats = card.querySelector(".gear-item-stats");
+      for (const line of describeGearStats(item)) {
+        const stat = document.createElement("span");
+        stat.textContent = line;
+        stats.appendChild(stat);
+      }
+
+      const cost = card.querySelector(".gear-item-cost");
+      cost.textContent = item.cost.toLocaleString() + " HONOR";
+
+      const button = card.querySelector(".gear-buy");
+
+      if (item.equipped) {
+        button.textContent = "EQUIPPED";
+        button.disabled = true;
+      } else if (item.owned) {
+        button.textContent = "OWNED";
+        button.disabled = true;
+      } else if (!item.purchase.ok) {
+        button.textContent = item.purchase.reason;
+        button.disabled = true;
+      } else {
+        button.textContent = "BUY & EQUIP";
+        button.addEventListener("click", () => this.purchaseGear(item.id));
+      }
+
+      this.gearGrid.appendChild(card);
+    }
+  }
+
   openTalents() {
     this.renderTalentTree();
     this.talentModal.classList.remove("hidden");
@@ -813,6 +967,7 @@ export class UIManager {
 
     this.honorModalRank.textContent = "RANK " + status.rank + " · " + status.title.toUpperCase();
     this.honorModalTotal.textContent = status.lifetimeHonor.toLocaleString();
+    this.honorModalWallet.textContent = status.honorPoints.toLocaleString();
     this.honorModalRecord.textContent = status.wins + "W · " + status.losses + "L";
     const talentStatus = this.game.talentStatus();
     this.honorModalTp.textContent =
@@ -1222,6 +1377,9 @@ export class UIManager {
 
     if (!this.honorModal.classList.contains("hidden")) {
       this.updateHonorMenu();
+    }
+    if (!this.gearModal.classList.contains("hidden")) {
+      this.renderGear();
     }
     if (!status.nextRank) {
       this.honorProgressFill.style.width = "100%";

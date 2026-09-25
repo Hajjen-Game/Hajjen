@@ -62,14 +62,20 @@ export function createCombatantConfig(classId, slotKey) {
   }
 
   const config = clone(template);
+  const role = slot.role || template.role;
+
   return {
     ...config,
     id: slot.id,
     name: slot.name || template.displayName,
     className: template.displayName,
     team: slot.team,
-    role: slot.role || template.role,
+    role,
     control: slot.control,
+    // Spawn by actual combat role instead of actor id. The player's actor id
+    // is intentionally stable across classes, so id-based spawning would put
+    // melee/caster players in the old healer position.
+    spawnId: slot.team + "-" + role,
   };
 }
 

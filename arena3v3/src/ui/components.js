@@ -194,7 +194,7 @@ function actionIconMarkup(spellId) {
 
 export function createUnitFrame(actor, onTarget, partyKey = "") {
   const button = document.createElement("button");
-  button.className = "unit-frame " + (actor.team === "enemy" ? "enemy" : "");
+  button.className = "unit-frame " + (actor.team === "enemy" ? "enemy" : "friendly");
   button.type = "button";
 
   button.innerHTML = `

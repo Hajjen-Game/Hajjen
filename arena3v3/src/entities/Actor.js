@@ -23,6 +23,10 @@ export class Actor {
     this.critChance = config.stats.critChance;
     this.dodgeChance = config.stats.dodgeChance;
     this.critMultiplier = config.stats.critMultiplier || 1.5;
+    this.baseDamageReduction = Math.max(
+      0,
+      Math.min(0.75, Number(config.stats.baseDamageReduction) || 0),
+    );
 
     const resource = config.resource || { type: "none", max: 0, start: 0, regenPerSecond: 0 };
     this.resource = {
@@ -77,7 +81,10 @@ export class Actor {
   damageReduction() {
     return this.effects
       .filter(effect => effect.kind === "damageReduction" && effect.remainingMs > 0)
-      .reduce((total, effect) => 1 - (1 - total) * (1 - effect.value), 0);
+      .reduce(
+        (total, effect) => 1 - (1 - total) * (1 - effect.value),
+        this.baseDamageReduction,
+      );
   }
 
   healingReduction() {

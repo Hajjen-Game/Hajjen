@@ -1,9 +1,9 @@
 import { arenaConfig as grandRingArena } from "./nagrand-inspired/config.js";
-import { twinRuinsArena } from "./twin-ruins/config.js";
+import { windscarProvingGroundsArena } from "./windscar-proving-grounds/config.js";
 
 export const ARENA_REGISTRY = Object.freeze({
   [grandRingArena.id]: grandRingArena,
-  [twinRuinsArena.id]: twinRuinsArena,
+  [windscarProvingGroundsArena.id]: windscarProvingGroundsArena,
 });
 
 export const ARENA_IDS = Object.freeze(Object.keys(ARENA_REGISTRY));

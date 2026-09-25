@@ -241,7 +241,9 @@ export class CanvasRenderer {
     this.drawCombatState(ctx, actor, game);
 
     if (actor.cast) this.drawWorldCast(ctx, actor, game);
-    if (selected) this.drawTargetMarker(ctx, actor, game);
+    if (selected && actor.team === "enemy") {
+      this.drawTargetMarker(ctx, actor, game);
+    }
 
     ctx.restore();
   }
@@ -300,18 +302,6 @@ export class CanvasRenderer {
     const markerGlow = "#ff0000";
 
     ctx.save();
-
-    if (Math.abs(markerX - actor.x) > 3) {
-      ctx.globalAlpha = 0.72;
-      ctx.strokeStyle = markerGlow;
-      ctx.shadowColor = markerGlow;
-      ctx.shadowBlur = 9;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(markerX, markerY + size * 1.05);
-      ctx.lineTo(actor.x, actor.y - actor.radius - 5);
-      ctx.stroke();
-    }
 
     ctx.translate(markerX, markerY);
 

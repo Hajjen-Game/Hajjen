@@ -749,7 +749,18 @@ export class UIManager {
         button.textContent = "OWNED";
         button.disabled = true;
       } else if (!item.purchase.ok) {
-        button.textContent = item.purchase.reason;
+        const needsBase = item.upgradeFrom && !status.owned.includes(item.upgradeFrom);
+        const lacksRank = honor.rank < item.rankRequired;
+        const lacksHonor = honor.honorPoints < item.cost;
+
+        if (lacksRank) button.textContent = "RANK " + item.rankRequired;
+        else if (needsBase) button.textContent = "BASE REQUIRED";
+        else if (lacksHonor) {
+          button.textContent =
+            "NEED " + (item.cost - honor.honorPoints).toLocaleString() + " HONOR";
+        } else button.textContent = "LOCKED";
+
+        button.title = item.purchase.reason;
         button.disabled = true;
       } else {
         button.textContent = "BUY & EQUIP";

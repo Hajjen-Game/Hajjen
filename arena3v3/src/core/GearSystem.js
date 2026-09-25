@@ -1,9 +1,11 @@
 import { rogueGear } from "../content/gear/rogue.js";
+import { warriorGear } from "../content/gear/warrior.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
 const GEAR_REGISTRY = Object.freeze({
   rogue: rogueGear,
+  warrior: warriorGear,
 });
 
 function cloneConfig(config) {
@@ -58,6 +60,47 @@ function scaleSpellEffects(spells, kinds, multiplier) {
   }
 }
 
+function applySetEffect(config, effect) {
+  if (!config || !effect) return;
+
+  if (effect.type === "allSpellEffectScale") {
+    scaleSpellEffects(
+      config.spells,
+      effect.kinds || [],
+      1 + (Number(effect.scale) || 0),
+    );
+    return;
+  }
+
+  if (effect.type === "spellFieldAdd") {
+    const spell = config.spells?.find(candidate => candidate.id === effect.spellId);
+    if (!spell || !Number.isFinite(spell[effect.field])) return;
+
+    const value = spell[effect.field] + (Number(effect.amount) || 0);
+    spell[effect.field] = Number.isFinite(effect.min)
+      ? Math.max(effect.min, value)
+      : value;
+    return;
+  }
+
+  if (effect.type === "resourceFieldScale") {
+    const current = config.resource?.[effect.field];
+    if (!Number.isFinite(current)) return;
+
+    const value = current * (1 + (Number(effect.scale) || 0));
+    config.resource[effect.field] = effect.integer ? Math.round(value) : value;
+    return;
+  }
+
+  if (effect.type === "statFieldScale") {
+    const current = config.stats?.[effect.field];
+    if (!Number.isFinite(current)) return;
+
+    const value = current * (1 + (Number(effect.scale) || 0));
+    config.stats[effect.field] = effect.integer ? Math.round(value) : value;
+  }
+}
+
 export function describeGearStats(item) {
   const lines = [];
   const stats = item?.stats || {};
@@ -70,10 +113,15 @@ export function describeGearStats(item) {
   if (stats.haste) lines.push("+" + Math.round(stats.haste * 1000) / 10 + "% Haste");
   if (stats.resolve) lines.push("+" + Math.round(stats.resolve * 1000) / 10 + "% Resolve");
 
+  const spellNames = {
+    "rogue-eviscerate": "Eviscerate",
+    "warrior-slam": "Slam",
+  };
+
   for (const modifier of item?.spellModifiers || []) {
-    if (modifier.spellId === "rogue-eviscerate" && modifier.kind === "damage") {
-      lines.push("Eviscerate +" + Math.round((modifier.scale || 0) * 100) + "% damage");
-    }
+    if (modifier.kind !== "damage") continue;
+    const spellName = spellNames[modifier.spellId] || modifier.spellId;
+    lines.push(spellName + " +" + Math.round((modifier.scale || 0) * 100) + "% damage");
   }
 
   return lines;
@@ -270,18 +318,11 @@ export class GearSystem {
 
     const setPieces = this.setPieceCount();
 
-    if (setPieces >= 2) {
-      scaleSpellEffects(next.spells, ["damage", "dot"], 1.04);
-    }
-
-    if (setPieces >= 4) {
-      const kidney = next.spells.find(spell => spell.id === "rogue-kidney");
-      if (kidney) kidney.cooldownMs = Math.max(4000, kidney.cooldownMs - 1500);
-    }
-
-    if (setPieces >= 6) {
-      next.resource.regenPerSecond *= 1.05;
-      next.stats.moveSpeed = Math.round(next.stats.moveSpeed * 1.03);
+    for (const bonus of this.definition.set?.bonuses || []) {
+      if (setPieces < bonus.pieces) continue;
+      for (const effect of bonus.effects || []) {
+        applySetEffect(next, effect);
+      }
     }
 
     for (const item of items) {

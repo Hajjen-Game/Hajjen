@@ -194,6 +194,15 @@ export class InputManager {
     this.capture = { action, callback };
   }
 
+  cancelCapture() {
+    if (!this.capture) return false;
+
+    const callback = this.capture.callback;
+    this.capture = null;
+    callback?.(null);
+    return true;
+  }
+
   rebind(action, binding) {
     const currentBinding = this.bindings[action];
     const duplicateAction = Object.entries(this.bindings)

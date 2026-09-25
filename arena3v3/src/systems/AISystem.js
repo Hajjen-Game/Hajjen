@@ -20,7 +20,8 @@ export class AISystem {
         const spell = actor.getSpell(actor.cast.spellId);
         this.game.combat.cancelCast(actor, "recover healer LOS");
         this.game.log(
-          actor.name + " cancels " + (spell?.name || "cast") + " to recover healer line of sight.",
+          this.game.combatantLabel(actor)
+          + " cancels " + (spell?.name || "cast") + " to recover healer line of sight.",
         );
       }
 
@@ -155,7 +156,11 @@ export class AISystem {
     } else if (oomHealer) {
       target = oomHealer;
       if (actor.aiTargetId !== oomHealer.id) {
-        this.game.log(actor.name + " switches pressure to " + oomHealer.name + " — healer is out of mana.");
+        this.game.log(
+          this.game.combatantLabel(actor)
+          + " switches pressure to " + this.game.combatantLabel(oomHealer)
+          + " — healer is out of mana.",
+        );
       }
       actor.aiTargetId = oomHealer.id;
       actor.aiPeelTargetId = null;
@@ -168,7 +173,11 @@ export class AISystem {
       if (currentProtected) {
         const alternate = this.pickPriorityTarget(actor, damageableEnemies);
         if (alternate && alternate.id !== current.id) {
-          this.game.log(actor.name + " swaps off " + current.name + " to preserve friendly crowd control.");
+          this.game.log(
+            this.game.combatantLabel(actor)
+            + " swaps off " + this.game.combatantLabel(current)
+            + " to preserve friendly crowd control.",
+          );
           target = alternate;
           actor.aiTargetId = alternate.id;
         }
@@ -249,6 +258,47 @@ export class AISystem {
     }
   }
 
+  combatTargetId(actor) {
+    return actor?.control === "player" ? actor.targetId : actor?.aiTargetId;
+  }
+
+  meleeThreatTo(actor, threatRange = null) {
+    if (!actor?.alive) return null;
+
+    const range = threatRange
+      ?? actor.config.ai.peelThreatRange
+      ?? 125;
+
+    return this.game.actors
+      .filter(candidate =>
+        candidate.alive
+        && candidate.team !== actor.team
+        && candidate.role === "melee"
+        && this.combatTargetId(candidate) === actor.id
+        && distance(candidate, actor) <= range
+        && !this.game.cc.isHardControlled(candidate)
+        && !this.game.cc.isRooted(candidate)
+      )
+      .sort((a, b) => distance(a, actor) - distance(b, actor))[0] || null;
+  }
+
+  allyNeedsPeel(actor, ally) {
+    if (!ally?.alive || ally.team !== actor.team) return false;
+
+    // Healers should receive help as soon as a melee is actively tunnelling
+    // them; waiting until they are already low makes peel arrive too late.
+    if (ally.role === "healer") return Boolean(this.meleeThreatTo(ally));
+
+    // Casters still require meaningful pressure before teammates abandon
+    // their current offensive plan to peel for them.
+    if (ally.role === "caster") {
+      const threshold = actor.config.ai.peelHealthPct ?? 0.62;
+      return ally.healthPct <= threshold && Boolean(this.meleeThreatTo(ally));
+    }
+
+    return false;
+  }
+
   findPeelSituation(actor, enemies) {
     const now = this.game.elapsedSeconds;
     const stickyTarget = this.game.getActor(actor.aiPeelTargetId);
@@ -267,22 +317,25 @@ export class AISystem {
         candidate.alive
         && candidate.team === actor.team
         && ["healer", "caster"].includes(candidate.role)
-        && candidate.healthPct <= (actor.config.ai.peelHealthPct ?? 0.62)
+        && this.allyNeedsPeel(actor, candidate)
       )
-      .sort((a, b) => a.healthPct - b.healthPct);
+      .sort((a, b) => {
+        if (a.role !== b.role) return a.role === "healer" ? -1 : 1;
+        return a.healthPct - b.healthPct;
+      });
 
     for (const ally of allies) {
-      const attacker = enemies
-        .filter(candidate =>
-          candidate.role === "melee"
-          && candidate.aiTargetId === ally.id
-          && distance(candidate, ally) <= (actor.config.ai.peelThreatRange ?? 115)
-          && !this.game.cc.isHardControlled(candidate)
-          && !this.game.cc.isRooted(candidate)
-        )
-        .sort((a, b) => distance(a, ally) - distance(b, ally))[0];
+      const attacker = this.meleeThreatTo(
+        ally,
+        actor.config.ai.peelThreatRange ?? 125,
+      );
 
-      if (attacker) return { attacker, ally };
+      if (
+        attacker
+        && enemies.some(candidate => candidate.id === attacker.id)
+      ) {
+        return { attacker, ally };
+      }
     }
 
     actor.aiPeelTargetId = null;
@@ -291,14 +344,24 @@ export class AISystem {
   }
 
   findThreatenedAlly(actor, attacker) {
-    return this.game.actors.find(candidate =>
-      candidate.alive
-      && candidate.team === actor.team
-      && ["healer", "caster"].includes(candidate.role)
-      && candidate.id === attacker.aiTargetId
-      && candidate.healthPct <= 0.72
-      && distance(attacker, candidate) <= (actor.config.ai.peelThreatRange ?? 115)
-    ) || null;
+    const targetId = this.combatTargetId(attacker);
+    if (!targetId) return null;
+
+    const ally = this.game.getActor(targetId);
+    if (
+      !ally?.alive
+      || ally.team !== actor.team
+      || !["healer", "caster"].includes(ally.role)
+      || distance(attacker, ally) > (actor.config.ai.peelThreatRange ?? 125)
+    ) {
+      return null;
+    }
+
+    if (ally.role === "healer") return ally;
+
+    return ally.healthPct <= (actor.config.ai.peelHealthPct ?? 0.62)
+      ? ally
+      : null;
   }
 
   beginPeel(actor, peel) {
@@ -311,10 +374,15 @@ export class AISystem {
 
     if (isNewPeel) {
       if (peel.ally.id === actor.id) {
-        this.game.log(actor.name + " self-peels " + peel.attacker.name + ".");
+        this.game.log(
+          this.game.combatantLabel(actor)
+          + " self-peels " + this.game.combatantLabel(peel.attacker) + ".",
+        );
       } else {
         this.game.log(
-          actor.name + " peels " + peel.attacker.name + " off " + peel.ally.name + ".",
+          this.game.combatantLabel(actor)
+          + " peels " + this.game.combatantLabel(peel.attacker)
+          + " off " + this.game.combatantLabel(peel.ally) + ".",
         );
       }
     }
@@ -402,6 +470,22 @@ export class AISystem {
 
   moveForRole(actor, target, deltaSeconds) {
     if (!target?.alive || this.game.cc.isRooted(actor)) return;
+
+    if (actor.role === "healer") {
+      const meleeThreat = this.meleeThreatTo(
+        actor,
+        actor.config.ai.peelThreatRange ?? 135,
+      );
+
+      if (meleeThreat) {
+        const escapeVector = this.kiteVector(actor, meleeThreat, null);
+
+        if (escapeVector.x !== 0 || escapeVector.y !== 0) {
+          this.movement.moveAI(actor, escapeVector, deltaSeconds, this.game.arena);
+          return;
+        }
+      }
+    }
 
     if (actor.role === "caster") {
       const healer = this.getTeamHealer(actor);

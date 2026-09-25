@@ -2,7 +2,7 @@ import { Game } from "./core/Game.js";
 import { InputManager } from "./core/InputManager.js";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";
-import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js";
+import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js?v=20260925-provinggrounds1";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,

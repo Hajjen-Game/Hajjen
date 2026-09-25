@@ -171,7 +171,7 @@ export class UIManager {
 
     for (const actor of this.game.actors) {
       const partyIndex = friendly.indexOf(actor);
-      const partyKey = partyIndex >= 0 ? this.input.label("party" + (partyIndex + 1)) : "";
+      const partyKey = partyIndex >= 0 ? this.input.label("party" + (partyIndex + 1), true) : "";
       const frame = createUnitFrame(actor, id => this.game.selectTarget(id), partyKey);
 
       (actor.team === "friendly" ? this.teamFrames : this.enemyFrames).appendChild(frame);
@@ -286,7 +286,7 @@ export class UIManager {
       if (!frame) return;
 
       const key = frame.querySelector(".party-key");
-      key.textContent = this.input.label("party" + (index + 1));
+      key.textContent = this.input.label("party" + (index + 1), true);
       key.hidden = false;
     });
   }
@@ -591,7 +591,7 @@ export class UIManager {
   refreshLoadoutKeycaps() {
     this.loadoutSlots.forEach((slot, index) => {
       const keycap = slot.querySelector(".keycap");
-      if (keycap) keycap.textContent = this.input.label("slot" + (index + 1));
+      if (keycap) keycap.textContent = this.input.label("slot" + (index + 1), true);
     });
   }
 
@@ -607,7 +607,7 @@ export class UIManager {
   refreshActionKeycaps() {
     this.actionSlots.forEach((slot, index) => {
       const keycap = slot.querySelector(".keycap");
-      if (keycap) keycap.textContent = this.input.label("slot" + (index + 1));
+      if (keycap) keycap.textContent = this.input.label("slot" + (index + 1), true);
     });
   }
 
@@ -616,7 +616,10 @@ export class UIManager {
       .find(button => button.dataset.action === action);
 
     if (keyButton) keyButton.classList.add("capturing");
-    this.toast("Press a key for " + BINDING_LABELS[action] + " · Esc cancels");
+    this.toast(
+      "Press a key or Ctrl/Shift/Alt + key for "
+      + BINDING_LABELS[action] + " · Esc cancels",
+    );
 
     this.input.captureNext(action, () => {
       this.renderBindings();

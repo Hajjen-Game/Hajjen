@@ -63,6 +63,32 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 }
 .unit-frame:hover { border-color: var(--gold); transform: translateY(-1px); }
 .unit-frame.targeted { border-color: var(--focus); box-shadow: inset 0 0 0 1px rgba(231,179,99,.27); }
+
+.unit-frame.enemy.targeted {
+  border-color: #ff2b2b;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,43,43,.82),
+    inset 0 0 18px rgba(255,0,0,.14),
+    0 0 0 1px rgba(255,43,43,.46),
+    0 0 16px rgba(255,0,0,.34);
+}
+
+.unit-frame.enemy.targeted::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 4px;
+  background: #ff2b2b;
+  box-shadow: 0 0 11px rgba(255,0,0,.72);
+}
+
+.unit-frame.enemy.targeted .unit-name {
+  color: #ff7777;
+  text-shadow: 0 0 7px rgba(255,0,0,.42);
+}
 .unit-frame.dead { opacity: .42; filter: grayscale(.5); }
 
 .unit-frame.cc-active {

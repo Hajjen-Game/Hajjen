@@ -1538,6 +1538,36 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 }
 
 
+.arena-match-preview {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 11px 12px;
+  border: 1px solid rgba(222,169,94,.38);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(69,47,28,.50), rgba(31,22,16,.62));
+  box-shadow: inset 0 0 18px rgba(222,169,94,.05);
+}
+
+.arena-match-label {
+  color: var(--gold);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+.arena-match-preview strong {
+  color: var(--gold-bright);
+  font-size: 15px;
+  letter-spacing: .04em;
+}
+
+.arena-match-preview small {
+  color: var(--cream-dim);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
 .matchup-section {
   margin-top: 14px;
   padding-top: 13px;

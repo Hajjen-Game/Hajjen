@@ -4,6 +4,7 @@ import { shamanGear } from "../content/gear/shaman.js";
 import { priestGear } from "../content/gear/priest.js";
 import { druidGear } from "../content/gear/druid.js";
 import { mageGear } from "../content/gear/mage.js";
+import { warlockGear } from "../content/gear/warlock.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
 
@@ -14,6 +15,7 @@ const GEAR_REGISTRY = Object.freeze({
   priest: priestGear,
   druid: druidGear,
   mage: mageGear,
+  warlock: warlockGear,
 });
 
 function cloneConfig(config) {
@@ -133,6 +135,8 @@ export function describeGearStats(item) {
     "druid-moonfire": "Moonfire",
     "mage-frostfire-bolt": "Frostfire Bolt",
     "mage-arcane-barrage": "Arcane Barrage",
+    "warlock-drain-life": "Drain Life",
+    "warlock-conflagrate": "Conflagrate",
   };
 
   const modifierLabels = {

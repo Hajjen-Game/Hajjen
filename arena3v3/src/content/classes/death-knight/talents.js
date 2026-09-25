@@ -77,7 +77,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-runic-efficiency",
           name: "Runic Efficiency",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Frost Strike and Obliterate cost 7% less Runic Power per rank.",
           rankDescriptions: [
@@ -93,7 +93,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-killing-machine",
           name: "Killing Machine",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Obliterate deals 9% more damage and winds up 8% faster per rank.",
           rankDescriptions: [
@@ -109,7 +109,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-chillblains",
           name: "Chillblains",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Chains of Ice recharges 8% faster and roots 0.25s longer per rank.",
           rankDescriptions: [
@@ -125,7 +125,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-frozen-core",
           name: "Frozen Core",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Critical strike chance increases by 2 percentage points and Frost Strike deals 5% more damage per rank.",
           rankDescriptions: [
@@ -141,7 +141,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-pillar-of-frost",
           name: "Pillar of Frost",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Obliterate and Frost Strike deal 18% more damage. Frost Fever deals 15% more periodic damage.",
@@ -197,7 +197,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-improved-death-strike",
           name: "Improved Death Strike",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Death Strike heals 15% more and deals 6% more damage per rank.",
           rankDescriptions: [
@@ -213,7 +213,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-runic-empowerment",
           name: "Runic Empowerment",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Runic Power regeneration increases by 10% and maximum Runic Power by 5% per rank.",
           rankDescriptions: [
@@ -229,7 +229,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-sanguine-fortitude",
           name: "Sanguine Fortitude",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Rune Tap recharges 8% faster and lasts 0.4s longer per rank.",
           rankDescriptions: [
@@ -245,7 +245,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-relentless-winter",
           name: "Relentless Winter",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Mind Freeze recharges 10% faster and Chains of Ice costs 10% less Runic Power per rank.",
           rankDescriptions: [
@@ -261,7 +261,7 @@ export const deathKnightTalentTree = Object.freeze({
           id: "dk-blood-shield",
           name: "Blood Shield",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Death Strike heals 25% more, Rune Tap reduces another 6% damage, and maximum Health increases by 8%.",

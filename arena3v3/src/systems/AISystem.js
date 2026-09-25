@@ -78,6 +78,21 @@ export class AISystem {
     const sustain = this.spell(actor, "sustainHot");
 
     if (target.healthPct < 0.42 && defensive && this.ready(actor, defensive) && this.castIfPossible(actor, defensive, target)) return;
+
+    // Under heavy pressure, prefer a true instant heal before committing to a
+    // long big-heal cast. This catches Paladin Holy Shock and Druid Swiftmend,
+    // while casted quick heals such as Priest Flash Heal keep their normal role.
+    const emergencyInstant = [instant, quick]
+      .filter(Boolean)
+      .find(spell => (spell.castMs || 0) <= 0);
+
+    if (
+      target.healthPct < 0.70
+      && emergencyInstant
+      && this.ready(actor, emergencyInstant)
+      && this.castIfPossible(actor, emergencyInstant, target)
+    ) return;
+
     if (target.healthPct < 0.70 && big && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
     if (target.healthPct < 0.82 && instant && this.ready(actor, instant) && this.castIfPossible(actor, instant, target)) return;
 

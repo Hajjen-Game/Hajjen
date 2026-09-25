@@ -1,7 +1,7 @@
 export const windscarProvingGroundsArena = {
   id: "windscar-proving-grounds",
   name: "Windscar Proving Grounds",
-  description: "A short center wall and two offset pillars create open cross-lanes and fast LOS rotations.",
+  description: "A longer center wall and two wide-set offset pillars create open cross-lanes and stronger LOS rotations.",
   width: 1280,
   height: 720,
 
@@ -14,9 +14,9 @@ export const windscarProvingGroundsArena = {
   // The layout is 180-degree rotationally symmetric so both teams get the
   // same geometry while still feeling less rigid than The Grand Ring.
   obstacles: [
-    { id: "northwest-pillar", x: 390, y: 130, w: 120, h: 120 },
-    { id: "center-wall", x: 550, y: 325, w: 180, h: 70 },
-    { id: "southeast-pillar", x: 770, y: 470, w: 120, h: 120 },
+    { id: "northwest-pillar", x: 340, y: 130, w: 120, h: 120 },
+    { id: "center-wall", x: 505, y: 325, w: 270, h: 70 },
+    { id: "southeast-pillar", x: 820, y: 470, w: 120, h: 120 },
   ],
 
   spawns: {

@@ -7,9 +7,9 @@ export const priestGear = Object.freeze({
     bonuses: Object.freeze([
       {
         pieces: 2,
-        description: "+4% healing.",
+        description: "+4% healing and damage.",
         effects: [
-          { type: "allSpellEffectScale", kinds: ["heal", "hot"], scale: 0.04 },
+          { type: "allSpellEffectScale", kinds: ["heal", "hot", "damage", "dot"], scale: 0.04 },
         ],
       },
       {

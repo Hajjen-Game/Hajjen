@@ -31,6 +31,7 @@ export class Game {
     this.talents = new TalentSystem();
     this.gear = new GearSystem();
     this.lastHonorAward = null;
+    this.matchLoadoutSnapshot = null;
 
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
@@ -110,8 +111,100 @@ export class Game {
         actorConfig = this.gear.applyToConfig(actorConfig);
       }
 
-      return new Actor(actorConfig, this.arena.spawns[config.id]);
+      const spawnId = config.spawnId || config.id;
+      const spawn = this.arena.spawns[spawnId];
+
+      if (!spawn) {
+        throw new Error("Missing arena spawn: " + spawnId + " for " + config.id);
+      }
+
+      return new Actor(actorConfig, spawn);
     });
+  }
+
+  capturePlayerLoadoutSnapshot() {
+    const player = this.player;
+    if (!player) return null;
+
+    const honor = this.honor.status();
+    const talentStatus = this.talentStatus();
+    const gearStatus = this.gearStatus();
+
+    const talents = [];
+    for (const branch of talentStatus.tree?.branches || []) {
+      for (const talent of branch.talents || []) {
+        const rank = Number(talentStatus.allocations?.[talent.id] || 0);
+        if (rank <= 0) continue;
+
+        talents.push({
+          id: talent.id,
+          name: talent.name,
+          branchId: branch.id,
+          branchName: branch.name,
+          rank,
+          maxRank: talent.maxRank,
+        });
+      }
+    }
+
+    const equippedGear = this.gear.equippedItems().map(item => ({
+      id: item.id,
+      name: item.name,
+      slot: item.slot,
+      slotLabel: item.slotLabel || item.slot,
+      rankRequired: item.rankRequired,
+    }));
+
+    return {
+      characterId: this.activeCharacterId,
+      characterName: this.activeCharacterName,
+      classId: player.classId,
+      className: player.className,
+      role: player.role,
+      honor: {
+        rank: honor.rank,
+        title: honor.title,
+        lifetimeHonor: honor.lifetimeHonor,
+        honorPoints: honor.honorPoints,
+        talentPoints: honor.talentPoints,
+      },
+      talents: {
+        spentPoints: talentStatus.spentPoints,
+        availablePoints: talentStatus.availablePoints,
+        branchPoints: { ...(talentStatus.branchPoints || {}) },
+        entries: talents,
+      },
+      gear: {
+        setName: gearStatus.set?.name || null,
+        setPieces: gearStatus.setPieces || 0,
+        activeSetBonuses: (gearStatus.activeSetBonuses || []).map(bonus => ({
+          pieces: bonus.pieces,
+          description: bonus.description,
+        })),
+        equipped: equippedGear,
+      },
+      stats: {
+        maxHealth: player.maxHealth,
+        moveSpeed: player.moveSpeed,
+        hitChance: player.hitChance,
+        critChance: player.critChance,
+        dodgeChance: player.dodgeChance,
+        baseDamageReduction: player.baseDamageReduction,
+      },
+      resource: {
+        type: player.resource.type,
+        max: player.resource.max,
+        regenPerSecond: player.resource.regenPerSecond,
+      },
+      spells: player.spells.map(spell => ({
+        id: spell.id,
+        name: spell.name,
+        resourceCost: spell.resourceCost || 0,
+        castMs: spell.castMs || 0,
+        cooldownMs: spell.cooldownMs || 0,
+        range: spell.range || 0,
+      })),
+    };
   }
 
   talentStatus() {
@@ -708,6 +801,9 @@ export class Game {
     this.lastHeartbeatSecond = -1;
 
     this.resetMatchTracking();
+    this.matchLoadoutSnapshot = this.waitingForStart
+      ? null
+      : this.capturePlayerLoadoutSnapshot();
     this.writeRunHeartbeat();
 
     this.ui.clearResult();

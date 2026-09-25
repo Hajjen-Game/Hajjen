@@ -74,7 +74,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-convection",
           name: "Convection",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Chain Lightning costs 8% less Mana and casts 6% faster per rank.",
           rankDescriptions: [
@@ -90,7 +90,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-lava-surge",
           name: "Lava Surge",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Lava Burst deals 8% more damage and recharges 6% faster per rank.",
           rankDescriptions: [
@@ -106,7 +106,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-reverberation",
           name: "Reverberation",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Wind Shear recharges 10% faster and locks the interrupted school 0.25s longer per rank.",
           rankDescriptions: [
@@ -122,7 +122,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-elemental-precision",
           name: "Elemental Precision",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Critical strike chance increases by 2 percentage points and Elemental Blast deals 5% more damage per rank.",
           rankDescriptions: [
@@ -138,7 +138,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-elemental-mastery",
           name: "Elemental Mastery",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Lava Burst and Elemental Blast deal 18% more damage. Chain Lightning casts 12% faster.",
@@ -195,7 +195,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-storms-reach",
           name: "Storm's Reach",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Stormstrike gains 10% range and recharges 7% faster per rank.",
           rankDescriptions: [
@@ -211,7 +211,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-maelstrom-weapon",
           name: "Maelstrom Weapon",
           tier: 2,
-          requiredPoints: 4,
+          requiredPoints: 3,
           maxRank: 2,
           description: "Chain Lightning casts 7% faster and costs 6% less Mana per rank.",
           rankDescriptions: [
@@ -227,7 +227,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-toughness",
           name: "Toughness",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Maximum Health increases by 4% and movement speed by 3% per rank.",
           rankDescriptions: [
@@ -243,7 +243,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-improved-wind-shear",
           name: "Improved Wind Shear",
           tier: 3,
-          requiredPoints: 8,
+          requiredPoints: 6,
           maxRank: 2,
           description: "Wind Shear recharges 9% faster and gains 6% range per rank.",
           rankDescriptions: [
@@ -259,7 +259,7 @@ export const shamanTalentTree = Object.freeze({
           id: "shaman-stormbringer",
           name: "Stormbringer",
           tier: 4,
-          requiredPoints: 12,
+          requiredPoints: 9,
           maxRank: 1,
           capstone: true,
           description: "Stormstrike deals 20% more damage. Flame Shock deals 12% more periodic damage and Chain Lightning casts 10% faster.",

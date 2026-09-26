@@ -14,7 +14,6 @@ import { HonorSystem, talentPointsForRank } from "./HonorSystem.js";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-astralshift2";
 import { GearSystem } from "./GearSystem.js";
 
-const ARENA_HEALTH_MULTIPLIER = 1.20;
 
 export class Game {
   constructor({ canvas, input, arena, characterConfigs }) {
@@ -112,16 +111,6 @@ export class Game {
         actorConfig = this.talents.applyToConfig(config);
         actorConfig = this.gear.applyToConfig(actorConfig);
       }
-
-      // Global arena stamina pass. Apply it after talents and gear so every
-      // combatant receives the same relative survivability increase.
-      actorConfig = {
-        ...actorConfig,
-        stats: {
-          ...actorConfig.stats,
-          maxHealth: Math.round(actorConfig.stats.maxHealth * ARENA_HEALTH_MULTIPLIER),
-        },
-      };
 
       const spawnId = config.spawnId || config.id;
       const spawn = this.arena.spawns[spawnId];

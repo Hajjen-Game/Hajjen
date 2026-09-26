@@ -41,10 +41,10 @@ export const shamanClass = {
       effects: [{ kind: "incapacitate", drCategory: "incapacitate", durationMs: 4200, breakOnDamage: true }],
     },
     {
-      id: "shaman-wind-shear", name: "Wind Shear", aiRole: "interrupt", visualStyle: "shaman",
-      target: "enemy", school: "nature", utility: true, resourceCost: 8, castMs: 0, cooldownMs: 8000, gcdMs: 0, ignoreGcd: true, range: 260,
+      id: "shaman-astral-shift", name: "Astral Shift", aiRole: "defensiveSelf", visualStyle: "shaman",
+      target: "self", school: "nature", utility: true, resourceCost: 10, castMs: 0, cooldownMs: 20000, gcdMs: 1200, range: 0,
       noHitRoll: true,
-      effects: [{ kind: "interrupt", durationMs: 2500 }],
+      effects: [{ kind: "damageReduction", value: 0.30, durationMs: 4000 }],
     },
   ],
 };

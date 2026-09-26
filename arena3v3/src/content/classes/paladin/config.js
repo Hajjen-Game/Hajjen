@@ -4,7 +4,7 @@ export const paladinClass = {
   role: "healer",
   visualStyle: "paladin",
   stats: { maxHealth: 1360, moveSpeed: 184, radius: 21, hitChance: 0.95, critChance: 0.15, dodgeChance: 0.04, critMultiplier: 1.5 },
-  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 2.2 },
+  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 4.2 },
   ai: { preferredRange: 285, ccTargetRoles: ["melee", "healer"] },
   spells: [
     { id: "paladin-holy-shock", name: "Holy Shock", aiRole: "instantHeal", visualStyle: "paladin", target: "ally", school: "holy", resourceCost: 13, castMs: 0, cooldownMs: 5000, gcdMs: 1200, range: 310, effects: [{ kind: "heal", amount: 150 }] },

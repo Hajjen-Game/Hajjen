@@ -6,7 +6,7 @@ import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
-import { AISystem } from "../systems/AISystem.js";
+import { AISystem } from "../systems/AISystem.js?v=20260926-healertriage1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-schoolvfx2";
 import { UIManager } from "../ui/UIManager.js?v=20260925-keycapture1";
 import { buildMatchReport } from "./MatchReport.js";

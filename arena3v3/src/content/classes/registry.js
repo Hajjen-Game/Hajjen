@@ -6,7 +6,7 @@ import { rogueClass } from "./rogue/config.js";
 import { deathKnightClass } from "./death-knight/config.js";
 import { mageClass } from "./mage/config.js";
 import { warlockClass } from "./warlock/config.js?v=20260926-schoolvfx2";
-import { shamanClass } from "./shaman/config.js?v=20260925-schools1";
+import { shamanClass } from "./shaman/config.js?v=20260926-astralshift1";
 
 export const CLASS_REGISTRY = {
   priest: priestClass,

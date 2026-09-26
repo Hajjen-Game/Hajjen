@@ -55,6 +55,7 @@ export class CanvasRenderer {
       deathKnight: cssVar("--vfx-death-knight"),
       mage: cssVar("--vfx-mage"),
       warlock: cssVar("--vfx-warlock"),
+      warlockChaos: cssVar("--vfx-warlock-chaos"),
       shaman: cssVar("--vfx-shaman"),
       lightning: cssVar("--vfx-lightning"),
       lightningCore: cssVar("--vfx-lightning-core"),
@@ -746,6 +747,15 @@ export class CanvasRenderer {
         end: "#b49cff",
         glow: "#9c82ff",
         border: "#ded3ff",
+      };
+    }
+
+    if (school === "chaos") {
+      return {
+        start: "#3f9b58",
+        end: "#9be86f",
+        glow: "#72d36d",
+        border: "#d5ff9e",
       };
     }
 
@@ -1776,6 +1786,7 @@ export class CanvasRenderer {
       deathKnight: this.theme.deathKnight,
       mage: this.theme.mage,
       warlock: this.theme.warlock,
+      warlockChaos: this.theme.warlockChaos,
       shaman: this.theme.shaman,
     };
     return colors[style] || this.theme.cream;

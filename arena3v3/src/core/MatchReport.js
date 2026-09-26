@@ -155,6 +155,18 @@ function appendAiProgression(lines, game, team, title) {
       + " | Talent Points " + progression.spentPoints + "/" + progression.talentPoints,
     );
 
+    const gear = actor.config?.aiGearProgression;
+    const gearItems = gear?.equippedItems || [];
+    if (gear) {
+      lines.push(
+        "  Gear: "
+        + (gearItems.length > 0
+          ? gearItems.map(item => item.name).join(" | ")
+          : "None")
+        + (gear.setPieces > 0 ? " · " + gear.setPieces + "/6 set pieces" : ""),
+      );
+    }
+
     const grouped = new Map();
     for (const entry of progression.entries || []) {
       if (!grouped.has(entry.branchName)) grouped.set(entry.branchName, []);

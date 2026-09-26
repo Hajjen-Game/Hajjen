@@ -216,7 +216,7 @@ export class CombatSystem {
       if (hit !== "hit") {
         this.game.recordAvoidance(caster, target, hit);
         const label = hit === "miss" ? "MISS" : "DODGE";
-        this.game.addFloatingText(target, label, "avoid");
+        this.game.addActionFloatingText(caster, target, label, "avoid");
         this.game.log(this.game.combatantLabel(caster) + "'s " + spell.name + ": " + label.toLowerCase() + ".");
         this.game.vfx.spell(
           caster,
@@ -368,7 +368,7 @@ export class CombatSystem {
 
       if (outcome !== "hit") {
         this.game.recordAvoidance(caster, chainTarget, outcome);
-        this.game.addFloatingText(chainTarget, outcome.toUpperCase(), "avoid");
+        this.game.addActionFloatingText(caster, chainTarget, outcome.toUpperCase(), "avoid");
         return;
       }
 
@@ -430,7 +430,7 @@ export class CombatSystem {
       const outcome = this.rollHit(source, target, spellId);
       if (outcome !== "hit") {
         this.game.recordAvoidance(source, target, outcome);
-        this.game.addFloatingText(target, outcome.toUpperCase(), "avoid");
+        this.game.addActionFloatingText(source, target, outcome.toUpperCase(), "avoid");
         return;
       }
     }
@@ -447,7 +447,7 @@ export class CombatSystem {
     target.health = Math.max(0, target.health - amount);
 
     this.game.recordDamage(source, target, actual, crit);
-    this.game.addFloatingText(target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
+    this.game.addActionFloatingText(source, target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
     this.applyTalentDamageHealing(source, spellId, actual);
 
     if (!periodic) {
@@ -490,7 +490,7 @@ export class CombatSystem {
 
     healTarget.health = Math.min(healTarget.maxHealth, healTarget.health + actual);
     this.game.recordHealing(source, healTarget, actual, false);
-    this.game.addFloatingText(healTarget, "+" + actual, "heal");
+    this.game.addActionFloatingText(source, healTarget, "+" + actual, "heal");
     this.game.vfx.beam(source, healTarget, "priest", 210);
     this.game.vfx.burst(healTarget, "priest", 250);
     this.game.log(
@@ -514,7 +514,7 @@ export class CombatSystem {
 
     if (actual > 0) {
       this.game.recordHealing(source, target, actual, crit);
-      this.game.addFloatingText(target, (crit ? "✦ " : "") + "+" + actual, crit ? "crit-heal" : "heal");
+      this.game.addActionFloatingText(source, target, (crit ? "✦ " : "") + "+" + actual, crit ? "crit-heal" : "heal");
 
       if (!periodic) {
         this.game.vfx.beam(source, target, visualStyle, 260);

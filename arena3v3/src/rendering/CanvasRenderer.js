@@ -1475,68 +1475,441 @@ export class CanvasRenderer {
     ]);
 
     if (projectileIds.has(spellId)) {
-      const tail = Math.max(20, Math.min(56, distanceToTarget * 0.16));
-      const tailX = x - Math.cos(angle) * tail;
-      const tailY = y - Math.sin(angle) * tail;
+      const tail = Math.max(26, Math.min(72, distanceToTarget * 0.2));
+      const tx = Math.cos(angle);
+      const ty = Math.sin(angle);
+      const nx = -ty;
+      const ny = tx;
 
-      ctx.shadowColor = color;
-      ctx.shadowBlur = spellId.includes("pyroblast") || spellId.includes("chaos-bolt") ? 26 : 18;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = spellId.includes("chaos-bolt") ? 9 : 6;
-      ctx.globalAlpha = alpha * 0.65 * missedAlpha;
-      ctx.beginPath();
-      ctx.moveTo(tailX, tailY);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-
-      ctx.globalAlpha = alpha * missedAlpha;
-      ctx.fillStyle = color;
+      const trailPoint = (offset, wobble = 0) => ({
+        x: x - tx * offset + nx * wobble,
+        y: y - ty * offset + ny * wobble,
+      });
 
       if (spellId === "mage-frostbolt") {
+        ctx.shadowColor = "#72d9f7";
+        ctx.shadowBlur = 24;
+        ctx.globalAlpha = alpha * .42 * missedAlpha;
+        ctx.strokeStyle = "#75dff7";
+        ctx.lineWidth = 11;
+        const tailPoint = trailPoint(tail);
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .92 * missedAlpha;
+        ctx.strokeStyle = "#dffaff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angle);
+        ctx.fillStyle = "#9eeaff";
+        ctx.strokeStyle = "#effdff";
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 18;
         ctx.beginPath();
-        ctx.moveTo(15, 0);
-        ctx.lineTo(-10, -7);
-        ctx.lineTo(-4, 0);
-        ctx.lineTo(-10, 7);
+        ctx.moveTo(19, 0);
+        ctx.lineTo(-7, -8);
+        ctx.lineTo(-2, -2);
+        ctx.lineTo(-13, 0);
+        ctx.lineTo(-2, 2);
+        ctx.lineTo(-7, 8);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = accent;
-        ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        ctx.globalAlpha = alpha * .72 * missedAlpha;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i += 1) {
+          const off = 7 + i * 5;
+          ctx.beginPath();
+          ctx.moveTo(-off, 0);
+          ctx.lineTo(-off - 7, -5 - i * 2);
+          ctx.moveTo(-off, 0);
+          ctx.lineTo(-off - 7, 5 + i * 2);
+          ctx.stroke();
+        }
         ctx.restore();
+
+        for (let i = 0; i < 7; i += 1) {
+          const t = Math.max(0, travel - .043 * (i + 1));
+          const px = lerp(from.x, to.x, t) + Math.sin(effect.seed * .13 + i * 2.3) * 8;
+          const py = lerp(from.y, to.y, t) + Math.cos(effect.seed * .11 + i * 1.8) * 8;
+          ctx.globalAlpha = alpha * Math.max(.16, .72 - i * .085) * missedAlpha;
+          ctx.fillStyle = i % 2 ? "#dffaff" : "#7fdcf5";
+          ctx.shadowColor = "#79ddf6";
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.moveTo(px, py - 3.5);
+          ctx.lineTo(px + 3.2, py);
+          ctx.lineTo(px, py + 3.5);
+          ctx.lineTo(px - 3.2, py);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        if (travel > .78) {
+          const hit = Math.min(1, (travel - .78) / .22);
+          ctx.globalAlpha = alpha * (1 - hit) * .82 * missedAlpha;
+          ctx.strokeStyle = "#dffaff";
+          ctx.shadowColor = "#72d9f7";
+          ctx.shadowBlur = 18;
+          ctx.lineWidth = 2.7;
+          for (let i = 0; i < 8; i += 1) {
+            const a = i / 8 * Math.PI * 2;
+            const inner = 8 + hit * 4;
+            const outer = 21 + hit * 24;
+            ctx.beginPath();
+            ctx.moveTo(to.x + Math.cos(a) * inner, to.y + Math.sin(a) * inner);
+            ctx.lineTo(to.x + Math.cos(a) * outer, to.y + Math.sin(a) * outer);
+            ctx.stroke();
+          }
+        }
       } else if (spellId === "warlock-chaos-bolt") {
-        ctx.fillStyle = accent;
+        const tailPoint = trailPoint(tail * 1.05);
+        ctx.shadowColor = "#62df6b";
+        ctx.shadowBlur = 30;
+        ctx.globalAlpha = alpha * .38 * missedAlpha;
+        ctx.strokeStyle = "#51c85a";
+        ctx.lineWidth = 15;
         ctx.beginPath();
-        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .82 * missedAlpha;
+        ctx.strokeStyle = "#9aff75";
+        ctx.lineWidth = 5.5;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = "#baff86";
+        ctx.strokeStyle = "#5ddc61";
+        ctx.shadowColor = "#64e46b";
+        ctx.shadowBlur = 24;
+        ctx.globalAlpha = alpha * missedAlpha;
+        ctx.beginPath();
+        ctx.arc(0, 0, 11, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = color;
+
+        for (let ring = 0; ring < 3; ring += 1) {
+          ctx.globalAlpha = alpha * (.88 - ring * .18) * missedAlpha;
+          ctx.lineWidth = 3.8 - ring * .7;
+          const rr = 16 + ring * 5;
+          const phase = progress * (8 + ring * 2) + ring * 2.1;
+          ctx.beginPath();
+          ctx.arc(0, 0, rr, phase, phase + Math.PI * (1.08 + ring * .12));
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = "#d8ff9f";
+        for (let i = 0; i < 6; i += 1) {
+          const a = progress * 7 + i * Math.PI / 3;
+          const rr = 14 + (i % 2) * 7;
+          ctx.globalAlpha = alpha * .72 * missedAlpha;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        for (let i = 0; i < 8; i += 1) {
+          const t = Math.max(0, travel - .042 * (i + 1));
+          const wave = Math.sin(effect.seed * .09 + i * 1.9 + progress * 10) * (8 + i * .7);
+          const px = lerp(from.x, to.x, t) + nx * wave;
+          const py = lerp(from.y, to.y, t) + ny * wave;
+          ctx.globalAlpha = alpha * Math.max(.13, .62 - i * .06) * missedAlpha;
+          ctx.fillStyle = i % 2 ? "#cfff94" : "#62dc68";
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(1.8, 4.7 - i * .35), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (travel > .75) {
+          const hit = Math.min(1, (travel - .75) / .25);
+          ctx.globalAlpha = alpha * (1 - hit) * .72 * missedAlpha;
+          ctx.strokeStyle = "#83ef70";
+          ctx.shadowColor = "#5ee66a";
+          ctx.shadowBlur = 24;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(to.x, to.y, 14 + hit * 38, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha *= .65;
+          ctx.beginPath();
+          ctx.arc(to.x, to.y, 8 + hit * 24, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (spellId === "warlock-shadow-bolt") {
+        const tailPoint = trailPoint(tail);
+        ctx.shadowColor = "#9c66cb";
+        ctx.shadowBlur = 26;
+        ctx.globalAlpha = alpha * .4 * missedAlpha;
+        ctx.strokeStyle = "#7f4aad";
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .8 * missedAlpha;
+        ctx.strokeStyle = "#c69be6";
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.arc(x, y, 15, progress * 7, progress * 7 + Math.PI * 1.3);
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
         ctx.stroke();
-      } else {
-        const radius = spellId === "mage-pyroblast" ? 14 : spellId === "shaman-lava-burst" ? 12 : 10;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = accent;
-        ctx.globalAlpha = alpha * 0.8 * missedAlpha;
-        ctx.beginPath();
-        ctx.arc(x - radius * .22, y - radius * .22, radius * .38, 0, Math.PI * 2);
-        ctx.fill();
-      }
 
-      for (let i = 0; i < 5; i += 1) {
-        const t = Math.max(0, travel - 0.055 * (i + 1));
-        const px = lerp(from.x, to.x, t) + Math.sin(effect.seed + i * 2.1) * 7;
-        const py = lerp(from.y, to.y, t) + Math.cos(effect.seed + i * 1.7) * 7;
-        ctx.globalAlpha = alpha * Math.max(.16, .62 - i * .09) * missedAlpha;
-        ctx.fillStyle = i % 2 === 0 ? accent : color;
+        ctx.fillStyle = "#b67bdc";
+        ctx.shadowColor = "#a765d4";
+        ctx.shadowBlur = 22;
+        ctx.globalAlpha = alpha * missedAlpha;
         ctx.beginPath();
-        ctx.arc(px, py, Math.max(1.8, 4.2 - i * .55), 0, Math.PI * 2);
+        ctx.arc(x, y, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#e0bdf4";
+        ctx.lineWidth = 2.2;
+        for (let i = 0; i < 4; i += 1) {
+          const phase = progress * 7 + i * Math.PI / 2;
+          const rr = 14 + i * 2.5;
+          ctx.globalAlpha = alpha * (.75 - i * .1) * missedAlpha;
+          ctx.beginPath();
+          ctx.arc(x, y, rr, phase, phase + 1.15);
+          ctx.stroke();
+        }
+
+        for (let i = 0; i < 6; i += 1) {
+          const t = Math.max(0, travel - .05 * (i + 1));
+          const wobble = Math.sin(effect.seed + i * 2.4 + progress * 8) * 9;
+          const px = lerp(from.x, to.x, t) + nx * wobble;
+          const py = lerp(from.y, to.y, t) + ny * wobble;
+          ctx.fillStyle = i % 2 ? "#d5a9ef" : "#844db2";
+          ctx.globalAlpha = alpha * Math.max(.15, .62 - i * .08) * missedAlpha;
+          ctx.beginPath();
+          ctx.arc(px, py, 3.8 - i * .35, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (spellId === "mage-pyroblast") {
+        const tailPoint = trailPoint(tail * 1.15);
+        ctx.shadowColor = "#ff6f38";
+        ctx.shadowBlur = 32;
+        ctx.globalAlpha = alpha * .4 * missedAlpha;
+        ctx.strokeStyle = "#e64f2e";
+        ctx.lineWidth = 16;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .84 * missedAlpha;
+        ctx.strokeStyle = "#ffbd58";
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        const pulse = .82 + Math.sin(progress * 18) * .12;
+        ctx.fillStyle = "#ff7a39";
+        ctx.shadowColor = "#ff6b2f";
+        ctx.shadowBlur = 26;
+        ctx.globalAlpha = alpha * missedAlpha;
+        ctx.beginPath();
+        ctx.arc(x, y, 15 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#ffe38a";
+        ctx.globalAlpha = alpha * .86 * missedAlpha;
+        ctx.beginPath();
+        ctx.arc(x - 3, y - 3, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let i = 0; i < 9; i += 1) {
+          const t = Math.max(0, travel - .038 * (i + 1));
+          const jitter = Math.sin(effect.seed * .2 + i * 2.1 + progress * 12) * 9;
+          const px = lerp(from.x, to.x, t) + nx * jitter;
+          const py = lerp(from.y, to.y, t) + ny * jitter;
+          ctx.globalAlpha = alpha * Math.max(.12, .7 - i * .065) * missedAlpha;
+          ctx.fillStyle = i % 3 === 0 ? "#fff09a" : i % 2 ? "#ffae43" : "#ee5c32";
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(1.7, 4.8 - i * .33), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (travel > .73) {
+          const hit = Math.min(1, (travel - .73) / .27);
+          ctx.globalAlpha = alpha * (1 - hit) * .75 * missedAlpha;
+          ctx.strokeStyle = "#ff9a43";
+          ctx.shadowColor = "#ff5c32";
+          ctx.shadowBlur = 24;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(to.x, to.y, 13 + hit * 42, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (spellId === "shaman-lava-burst") {
+        const tailPoint = trailPoint(tail);
+        ctx.shadowColor = "#f2673e";
+        ctx.shadowBlur = 28;
+        ctx.globalAlpha = alpha * .38 * missedAlpha;
+        ctx.strokeStyle = "#d84d31";
+        ctx.lineWidth = 13;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .82 * missedAlpha;
+        ctx.strokeStyle = "#ffbc58";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(progress * 9);
+        ctx.fillStyle = "#ef6238";
+        ctx.strokeStyle = "#ffd36f";
+        ctx.shadowColor = "#f15c37";
+        ctx.shadowBlur = 22;
+        ctx.globalAlpha = alpha * missedAlpha;
+        ctx.beginPath();
+        for (let i = 0; i < 8; i += 1) {
+          const a = i / 8 * Math.PI * 2;
+          const rr = i % 2 === 0 ? 13 : 9;
+          const px = Math.cos(a) * rr;
+          const py = Math.sin(a) * rr;
+          if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        for (let i = 0; i < 7; i += 1) {
+          const t = Math.max(0, travel - .048 * (i + 1));
+          const wobble = Math.sin(i * 2.3 + progress * 11 + effect.seed) * 7;
+          const px = lerp(from.x, to.x, t) + nx * wobble;
+          const py = lerp(from.y, to.y, t) + ny * wobble;
+          ctx.globalAlpha = alpha * Math.max(.14, .66 - i * .075) * missedAlpha;
+          ctx.fillStyle = i % 2 ? "#ffd36f" : "#f3663d";
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(2, 4.5 - i * .35), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (spellId === "priest-smite") {
+        const tailPoint = trailPoint(tail * .88);
+        ctx.shadowColor = "#9c6ccc";
+        ctx.shadowBlur = 26;
+        ctx.globalAlpha = alpha * .34 * missedAlpha;
+        ctx.strokeStyle = "#744da8";
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .84 * missedAlpha;
+        ctx.strokeStyle = "#c6a2e6";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#a876d1";
+        ctx.shadowColor = "#a876d1";
+        ctx.shadowBlur = 24;
+        ctx.beginPath();
+        ctx.arc(x, y, 11, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#e0c7f3";
+        ctx.lineWidth = 2.5;
+        for (let i = 0; i < 5; i += 1) {
+          const a = progress * 6 + i * Math.PI * .4;
+          const rr = 15 + (i % 2) * 5;
+          ctx.globalAlpha = alpha * .72 * missedAlpha;
+          ctx.beginPath();
+          ctx.arc(x, y, rr, a, a + .85);
+          ctx.stroke();
+        }
+
+        if (travel > .8) {
+          const hit = Math.min(1, (travel - .8) / .2);
+          ctx.globalAlpha = alpha * (1 - hit) * .75 * missedAlpha;
+          ctx.strokeStyle = "#c79ce8";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(to.x, to.y, 10 + hit * 32, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (spellId === "paladin-holy-shock") {
+        const tailPoint = trailPoint(tail * .7);
+        ctx.shadowColor = "#f2c84f";
+        ctx.shadowBlur = 24;
+        ctx.globalAlpha = alpha * .38 * missedAlpha;
+        ctx.strokeStyle = "#dfad36";
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .9 * missedAlpha;
+        ctx.strokeStyle = "#fff0a8";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffe174";
+        ctx.shadowColor = "#f0c64b";
+        ctx.shadowBlur = 22;
+        ctx.beginPath();
+        ctx.arc(x, y, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#fff5c5";
+        ctx.lineWidth = 2.4;
+        for (let i = 0; i < 8; i += 1) {
+          const a = i / 8 * Math.PI * 2 + progress * .8;
+          ctx.globalAlpha = alpha * .72 * missedAlpha;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(a) * 8, y + Math.sin(a) * 8);
+          ctx.lineTo(x + Math.cos(a) * 18, y + Math.sin(a) * 18);
+          ctx.stroke();
+        }
+      } else {
+        const tailPoint = trailPoint(tail);
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 7;
+        ctx.globalAlpha = alpha * .62 * missedAlpha;
+        ctx.beginPath();
+        ctx.moveTo(tailPoint.x, tailPoint.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * missedAlpha;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
         ctx.fill();
       }
     } else if (healIds.has(spellId)) {

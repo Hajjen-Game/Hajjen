@@ -33,28 +33,28 @@
   --shadow: rgba(0, 0, 0, .42);
   --focus: #e7b363;
 
-  --vfx-lightning: #b9d9e8;
-  --vfx-lightning-core: #f1fbff;
-  --vfx-heal: #a9cfa1;
-  --vfx-damage: #d98973;
-  --vfx-fear: #d6ad65;
-  --vfx-interrupt: #c6addd;
-  --vfx-burst: #f0a04a;
+  --vfx-lightning: #68ddff;
+  --vfx-lightning-core: #f7feff;
+  --vfx-heal: #78dd82;
+  --vfx-damage: #f06e58;
+  --vfx-fear: #eeb357;
+  --vfx-interrupt: #d49cff;
+  --vfx-burst: #ff9c32;
 
   --cc-fear: #e2a85f;
   --cc-incap: #b89be8;
   --cc-stun: #e46f5e;
   --cc-root: #78c6df;
 
-  --vfx-priest: #ead8a5;
-  --vfx-priest-shadow: #9b72c7;
-  --vfx-druid: #86b77c;
-  --vfx-paladin: #e0bd64;
-  --vfx-warrior: #b88e72;
-  --vfx-rogue: #c59a72;
-  --vfx-death-knight: #79b7c7;
-  --vfx-mage: #82b7dc;
-  --vfx-warlock: #a986c8;
-  --vfx-warlock-chaos: #72d36d;
-  --vfx-shaman: #72c6d5;
+  --vfx-priest: #ffd85c;
+  --vfx-priest-shadow: #b86be8;
+  --vfx-druid: #63d978;
+  --vfx-paladin: #ffcb3f;
+  --vfx-warrior: #dc8f62;
+  --vfx-rogue: #e3c04f;
+  --vfx-death-knight: #5fd5ef;
+  --vfx-mage: #55c9ff;
+  --vfx-warlock: #bb6ee9;
+  --vfx-warlock-chaos: #55ed61;
+  --vfx-shaman: #46d7ee;
 }

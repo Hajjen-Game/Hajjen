@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20260926-mindblastvfx1";
+import { Game } from "./core/Game.js?v=20260926-schoolvfx2";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";
@@ -10,7 +10,7 @@ import {
   buildRosterConfigs,
   enemyRosterKey,
   randomizeEnemyRoster,
-} from "./content/classes/registry.js?v=20260925-schools1";
+} from "./content/classes/registry.js?v=20260926-schoolvfx2";
 import { WOW_CLASS_COLORS } from "./content/classes/classColors.js";
 
 const ROSTER_STORAGE_KEY = "arena3v3-roster-v4";

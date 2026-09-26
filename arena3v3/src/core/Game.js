@@ -5,7 +5,7 @@ import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
-import { CombatSystem } from "../systems/CombatSystem.js";
+import { CombatSystem } from "../systems/CombatSystem.js?v=20260926-playercombattext1";
 import { AISystem } from "../systems/AISystem.js?v=20260926-healertriage1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-combattext1";
 import { UIManager } from "../ui/UIManager.js?v=20260925-keycapture1";
@@ -687,6 +687,11 @@ export class Game {
       totalMs: 850,
       remainingMs: 850,
     });
+  }
+
+  addActionFloatingText(source, actor, text, type) {
+    if (!source || source.id !== this.player?.id) return;
+    this.addFloatingText(actor, text, type);
   }
 
   combatantLabel(actor) {

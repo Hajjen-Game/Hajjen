@@ -2,7 +2,7 @@ const MIND_BLAST_SPELL = Object.freeze({
   id: "priest-smite",
   name: "Mind Blast",
   aiRole: "filler",
-  visualStyle: "priest",
+  visualStyle: "priestShadow",
   target: "enemy",
   school: "shadow",
   resourceCost: 11,

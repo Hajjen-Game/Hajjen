@@ -104,12 +104,23 @@ export class Game {
   }
 
   createActors() {
+    const aiGearProfile = this.gear?.progressionProfile?.() || null;
+
     return this.characterConfigs.map(config => {
       let actorConfig = config;
 
       if (config.control === "player") {
         actorConfig = this.talents.applyToConfig(config);
         actorConfig = this.gear.applyToConfig(actorConfig);
+      } else if (aiGearProfile) {
+        const aiGear = new GearSystem(null, config.classId);
+        actorConfig = aiGear.applyProgressionProfileToConfig(actorConfig, aiGearProfile);
+        actorConfig.aiGearProgression = {
+          mirroredFromPlayer: true,
+          profile: aiGearProfile,
+          equippedItems: actorConfig.gearSummary?.equippedItems || [],
+          setPieces: actorConfig.gearSummary?.setPieces || 0,
+        };
       }
 
       const spawnId = config.spawnId || config.id;

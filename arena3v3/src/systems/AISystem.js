@@ -161,6 +161,13 @@ export class AISystem {
     const enemies = this.game.actors.filter(candidate =>
       candidate.alive && candidate.team !== actor.team
     );
+    const allies = this.game.actors
+      .filter(candidate => candidate.alive && candidate.team === actor.team);
+
+    const target = this.pickHealTarget(actor, allies);
+    if (!target) return;
+
+    actor.aiTargetId = target.id;
 
     const panicCc = this.spell(actor, "panicCc");
     if (panicCc && this.ready(actor, panicCc)) {
@@ -170,16 +177,17 @@ export class AISystem {
         distance(actor, candidate) <= radius + actor.radius + candidate.radius
         && !this.game.cc.wouldBeImmune(candidate, panicCc)
       );
-      if (closeEnemy && this.castIfPossible(actor, panicCc, actor)) return;
+      const selfThreat = this.meleeThreatTo(actor, actor.config.ai.peelThreatRange ?? 135);
+
+      // Do not spend the healer's next global on panic CC while a teammate is
+      // in real danger, unless the healer is personally being trained and
+      // needs the CC to stay alive / keep casting.
+      if (
+        closeEnemy
+        && (target.healthPct >= 0.55 || selfThreat)
+        && this.castIfPossible(actor, panicCc, actor)
+      ) return;
     }
-
-    const allies = this.game.actors
-      .filter(candidate => candidate.alive && candidate.team === actor.team);
-
-    const target = this.pickHealTarget(actor, allies);
-    if (!target) return;
-
-    actor.aiTargetId = target.id;
 
     const defensive = this.spell(actor, "defensive");
     const big = this.spell(actor, "bigHeal");

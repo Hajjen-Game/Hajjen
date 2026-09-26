@@ -161,42 +161,9 @@ export class CanvasRenderer {
   }
 
   drawEffectRings(ctx, game) {
-    for (const actor of game.actors.filter(actor => actor.alive)) {
-      const hasHot = actor.effects.some(effect => effect.kind === "hot");
-      const hasDot = actor.effects.some(effect => effect.kind === "dot");
-      const hasLock = actor.effects.some(effect => effect.kind === "schoolLock");
-
-      if (!hasHot && !hasDot && !hasLock) continue;
-
-      ctx.save();
-      ctx.globalAlpha = 0.62;
-      ctx.lineWidth = 3;
-
-      if (hasHot) {
-        ctx.strokeStyle = this.theme.hot;
-        ctx.beginPath();
-        ctx.arc(actor.x, actor.y, actor.radius + 8, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      if (hasDot) {
-        ctx.strokeStyle = this.theme.dot;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.arc(actor.x, actor.y, actor.radius + 13, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      if (hasLock) {
-        ctx.setLineDash([3, 4]);
-        ctx.strokeStyle = this.theme.interruptVfx;
-        ctx.beginPath();
-        ctx.arc(actor.x, actor.y, actor.radius + 18, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
+    // Intentionally disabled for a cleaner arena read.
+    // HoT, DoT and school-lock states remain visible through their effect icons.
+    return;
   }
 
   drawActor(ctx, actor, game) {
@@ -936,43 +903,11 @@ export class CanvasRenderer {
         return priority[a.kind] - priority[b.kind];
       })[0];
 
-    const burst = actor.effects.find(effect =>
-      effect.kind === "offensiveCooldown" && effect.remainingMs > 0
-    );
-
-    if (!cc && !burst) return;
+    // Big-damage abilities no longer draw a persistent BURST ring.
+    // Keep only actual crowd-control world feedback here.
+    if (!cc) return;
 
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 8);
-
-    if (burst) {
-      const radius = actor.radius + 28 + pulse * 4;
-      const spokes = 10;
-      const rotation = game.elapsedSeconds * 2.8;
-
-      ctx.save();
-      ctx.globalAlpha = 0.52 + pulse * 0.22;
-      ctx.strokeStyle = this.vfxColor(burst.visualStyle || actor.visualStyle);
-      ctx.lineWidth = 3;
-      ctx.shadowColor = this.theme.burst;
-      ctx.shadowBlur = 12;
-
-      ctx.beginPath();
-      ctx.arc(actor.x, actor.y, radius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      for (let i = 0; i < spokes; i += 1) {
-        const angle = rotation + (i / spokes) * Math.PI * 2;
-        const inner = radius + 3;
-        const outer = radius + 10 + (i % 2) * 4;
-        ctx.beginPath();
-        ctx.moveTo(actor.x + Math.cos(angle) * inner, actor.y + Math.sin(angle) * inner);
-        ctx.lineTo(actor.x + Math.cos(angle) * outer, actor.y + Math.sin(angle) * outer);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    if (!cc) return;
 
     const colors = {
       fear: this.theme.ccFear,

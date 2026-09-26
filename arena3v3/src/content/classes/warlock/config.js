@@ -27,7 +27,7 @@ export const warlockClass = {
       effects: [{ kind: "damage", amount: 86 }],
     },
     {
-      id: "warlock-chaos-bolt", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Chaos Bolt", aiRole: "bigDamage", visualStyle: "warlock",
+      id: "warlock-chaos-bolt", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Chaos Bolt", aiRole: "bigDamage", visualStyle: "warlockChaos",
       target: "enemy", school: "chaos", resourceCost: 28, castMs: 2200, cooldownMs: 6000, gcdMs: 1200, range: 360,
       effects: [{ kind: "damage", amount: 205 }],
     },

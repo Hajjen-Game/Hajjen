@@ -128,17 +128,22 @@ function appendPlayerStats(lines, loadout) {
   }
 }
 
-function appendEnemyProgression(lines, game) {
-  lines.push("", "=== ENEMY PROGRESSION / TALENT BUILDS ===");
+function appendAiProgression(lines, game, team, title) {
+  lines.push("", "=== " + title + " ===");
 
-  const enemies = game.actors.filter(actor => actor.team === "enemy");
-  if (enemies.length === 0) {
-    lines.push("No enemy progression snapshot available.");
+  const actors = game.actors.filter(actor =>
+    actor.team === team && actor.control !== "player"
+  );
+
+  if (actors.length === 0) {
+    lines.push("No AI progression snapshot available.");
     return;
   }
 
-  for (const actor of enemies) {
-    const progression = actor.config?.enemyProgression;
+  for (const actor of actors) {
+    const progression = actor.config?.aiProgression
+      || actor.config?.enemyProgression;
+
     if (!progression) {
       lines.push(actor.name + " [" + actor.className + "] — progression unavailable");
       continue;
@@ -257,7 +262,8 @@ export function buildMatchReport(game) {
   appendTalentSection(lines, game, loadout);
   appendGearSection(lines, loadout);
   appendPlayerStats(lines, loadout);
-  appendEnemyProgression(lines, game);
+  appendAiProgression(lines, game, "friendly", "FRIENDLY AI PROGRESSION / TALENT BUILDS");
+  appendAiProgression(lines, game, "enemy", "ENEMY PROGRESSION / TALENT BUILDS");
 
   lines.push(
     "",

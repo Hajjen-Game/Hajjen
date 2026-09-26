@@ -140,7 +140,7 @@ export class CanvasRenderer {
   drawPillar(ctx, rect) {
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,.45)";
-    ctx.shadowBlur = 16;
+    ctx.shadowBlur = 28;
     ctx.shadowOffsetY = 8;
 
     roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 16);
@@ -1114,9 +1114,9 @@ export class CanvasRenderer {
 
         if (healingBeam) {
           const palettes = {
-            priest: { main: "#e9cf71", core: "#fff4c6", mote: "#fff9df" },
-            paladin: { main: "#d9ae43", core: "#ffe99a", mote: "#fff2b6" },
-            druid: { main: "#5fae6d", core: "#b9e897", mote: "#8fdb86" },
+            priest: { main: "#ffd75a", core: "#fff8d1", mote: "#fffbe8" },
+            paladin: { main: "#ffca3a", core: "#fff0a0", mote: "#fff7c7" },
+            druid: { main: "#5fd978", core: "#c7f7a4", mote: "#87ec8d" },
             heal: { main: beamColor, core: "#e7ffd5", mote: "#f2ffe9" },
           };
           const palette = palettes[effect.style] || palettes.heal;
@@ -1140,8 +1140,8 @@ export class CanvasRenderer {
 
           ctx.lineCap = "round";
           ctx.shadowColor = palette.main;
-          ctx.shadowBlur = 24;
-          ctx.globalAlpha = alpha * 0.34;
+          ctx.shadowBlur = 30;
+          ctx.globalAlpha = alpha * 0.44;
           ctx.strokeStyle = palette.main;
           ctx.lineWidth = effect.style === "paladin" ? 12 : 10;
           ctx.beginPath();
@@ -1149,8 +1149,8 @@ export class CanvasRenderer {
           ctx.quadraticCurveTo(cx, cy, target.x, target.y);
           ctx.stroke();
 
-          ctx.shadowBlur = 16;
-          ctx.globalAlpha = alpha * 0.92;
+          ctx.shadowBlur = 28;
+          ctx.globalAlpha = alpha * 0.98;
           ctx.strokeStyle = palette.main;
           ctx.lineWidth = effect.style === "paladin" ? 6.5 : 5.5;
           ctx.beginPath();
@@ -1159,7 +1159,7 @@ export class CanvasRenderer {
           ctx.stroke();
 
           ctx.shadowBlur = 8;
-          ctx.globalAlpha = alpha * 0.78;
+          ctx.globalAlpha = alpha * 0.88;
           ctx.strokeStyle = palette.core;
           ctx.lineWidth = 2.1;
           ctx.beginPath();
@@ -1190,10 +1190,10 @@ export class CanvasRenderer {
           }
 
           const impactRadius = 18 + progress * 13;
-          ctx.globalAlpha = alpha * 0.68;
+          ctx.globalAlpha = alpha * 0.78;
           ctx.strokeStyle = palette.core;
           ctx.shadowColor = palette.main;
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = 24;
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.arc(target.x, target.y, impactRadius, 0, Math.PI * 2);
@@ -1223,9 +1223,9 @@ export class CanvasRenderer {
 
         if (healingBurst) {
           const palettes = {
-            priest: { main: "#e9cf71", core: "#fff4c6", mote: "#fff9df" },
-            paladin: { main: "#d9ae43", core: "#ffe99a", mote: "#fff2b6" },
-            druid: { main: "#5fae6d", core: "#b9e897", mote: "#8fdb86" },
+            priest: { main: "#ffd75a", core: "#fff8d1", mote: "#fffbe8" },
+            paladin: { main: "#ffca3a", core: "#fff0a0", mote: "#fff7c7" },
+            druid: { main: "#5fd978", core: "#c7f7a4", mote: "#87ec8d" },
             heal: { main: this.vfxColor(effect.style), core: "#e7ffd5", mote: "#f2ffe9" },
           };
           const palette = palettes[effect.style] || palettes.heal;
@@ -1234,15 +1234,15 @@ export class CanvasRenderer {
           const inner = 8 + progress * 22;
 
           ctx.shadowColor = palette.main;
-          ctx.shadowBlur = 22;
-          ctx.globalAlpha = alpha * 0.86;
+          ctx.shadowBlur = 28;
+          ctx.globalAlpha = alpha * 0.94;
           ctx.strokeStyle = palette.main;
           ctx.lineWidth = effect.style === "paladin" ? 4.5 : 3.5;
           ctx.beginPath();
           ctx.arc(x, y, outer, 0, Math.PI * 2);
           ctx.stroke();
 
-          ctx.globalAlpha = alpha * 0.58;
+          ctx.globalAlpha = alpha * 0.68;
           ctx.strokeStyle = palette.core;
           ctx.lineWidth = 2;
           ctx.beginPath();
@@ -1253,7 +1253,7 @@ export class CanvasRenderer {
           glow.addColorStop(0, palette.core);
           glow.addColorStop(0.45, palette.main);
           glow.addColorStop(1, "rgba(255,255,255,0)");
-          ctx.globalAlpha = alpha * 0.24;
+          ctx.globalAlpha = alpha * 0.34;
           ctx.fillStyle = glow;
           ctx.beginPath();
           ctx.arc(x, y, 30 + pulse * 8, 0, Math.PI * 2);
@@ -1280,7 +1280,7 @@ export class CanvasRenderer {
           }
 
           if (effect.style === "priest" || effect.style === "paladin") {
-            ctx.globalAlpha = alpha * 0.86;
+            ctx.globalAlpha = alpha * 0.94;
             ctx.strokeStyle = palette.core;
             ctx.lineWidth = effect.style === "paladin" ? 3.4 : 2.7;
             const cross = 8 + pulse * 5;
@@ -1341,7 +1341,7 @@ export class CanvasRenderer {
             const rr = Math.max(9, radius - 3);
             const px = x + Math.cos(a) * rr;
             const py = y + Math.sin(a) * rr - progress * 7;
-            ctx.globalAlpha = alpha * 0.68;
+            ctx.globalAlpha = alpha * 0.78;
             ctx.fillStyle = effect.style === "druid" ? "#a4df88" : "#fff0ad";
             ctx.shadowBlur = 8;
             ctx.beginPath();
@@ -1487,10 +1487,10 @@ export class CanvasRenderer {
       });
 
       if (spellId === "mage-frostbolt") {
-        ctx.shadowColor = "#72d9f7";
-        ctx.shadowBlur = 24;
-        ctx.globalAlpha = alpha * .42 * missedAlpha;
-        ctx.strokeStyle = "#75dff7";
+        ctx.shadowColor = "#5ee2ff";
+        ctx.shadowBlur = 30;
+        ctx.globalAlpha = alpha * .52 * missedAlpha;
+        ctx.strokeStyle = "#58dcff";
         ctx.lineWidth = 11;
         const tailPoint = trailPoint(tail);
         ctx.beginPath();
@@ -1509,10 +1509,10 @@ export class CanvasRenderer {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angle);
-        ctx.fillStyle = "#9eeaff";
+        ctx.fillStyle = "#b5f2ff";
         ctx.strokeStyle = "#effdff";
         ctx.lineWidth = 2;
-        ctx.shadowBlur = 18;
+        ctx.shadowBlur = 24;
         ctx.beginPath();
         ctx.moveTo(19, 0);
         ctx.lineTo(-7, -8);
@@ -1558,8 +1558,8 @@ export class CanvasRenderer {
           const hit = Math.min(1, (travel - .78) / .22);
           ctx.globalAlpha = alpha * (1 - hit) * .82 * missedAlpha;
           ctx.strokeStyle = "#dffaff";
-          ctx.shadowColor = "#72d9f7";
-          ctx.shadowBlur = 18;
+          ctx.shadowColor = "#5ee2ff";
+          ctx.shadowBlur = 24;
           ctx.lineWidth = 2.7;
           for (let i = 0; i < 8; i += 1) {
             const a = i / 8 * Math.PI * 2;
@@ -1573,18 +1573,18 @@ export class CanvasRenderer {
         }
       } else if (spellId === "warlock-chaos-bolt") {
         const tailPoint = trailPoint(tail * 1.05);
-        ctx.shadowColor = "#62df6b";
+        ctx.shadowColor = "#4ff05d";
         ctx.shadowBlur = 30;
-        ctx.globalAlpha = alpha * .38 * missedAlpha;
-        ctx.strokeStyle = "#51c85a";
+        ctx.globalAlpha = alpha * .48 * missedAlpha;
+        ctx.strokeStyle = "#42e653";
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.globalAlpha = alpha * .82 * missedAlpha;
-        ctx.strokeStyle = "#9aff75";
+        ctx.globalAlpha = alpha * .9 * missedAlpha;
+        ctx.strokeStyle = "#9cff78";
         ctx.lineWidth = 5.5;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
@@ -1596,7 +1596,7 @@ export class CanvasRenderer {
         ctx.fillStyle = "#baff86";
         ctx.strokeStyle = "#5ddc61";
         ctx.shadowColor = "#64e46b";
-        ctx.shadowBlur = 24;
+        ctx.shadowBlur = 30;
         ctx.globalAlpha = alpha * missedAlpha;
         ctx.beginPath();
         ctx.arc(0, 0, 11, 0, Math.PI * 2);
@@ -1640,7 +1640,7 @@ export class CanvasRenderer {
           ctx.globalAlpha = alpha * (1 - hit) * .72 * missedAlpha;
           ctx.strokeStyle = "#83ef70";
           ctx.shadowColor = "#5ee66a";
-          ctx.shadowBlur = 24;
+          ctx.shadowBlur = 30;
           ctx.lineWidth = 4;
           ctx.beginPath();
           ctx.arc(to.x, to.y, 14 + hit * 38, 0, Math.PI * 2);
@@ -1652,9 +1652,9 @@ export class CanvasRenderer {
         }
       } else if (spellId === "warlock-shadow-bolt") {
         const tailPoint = trailPoint(tail);
-        ctx.shadowColor = "#9c66cb";
+        ctx.shadowColor = "#b566e8";
         ctx.shadowBlur = 26;
-        ctx.globalAlpha = alpha * .4 * missedAlpha;
+        ctx.globalAlpha = alpha * .5 * missedAlpha;
         ctx.strokeStyle = "#7f4aad";
         ctx.lineWidth = 12;
         ctx.beginPath();
@@ -1662,7 +1662,7 @@ export class CanvasRenderer {
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.globalAlpha = alpha * .8 * missedAlpha;
+        ctx.globalAlpha = alpha * .9 * missedAlpha;
         ctx.strokeStyle = "#c69be6";
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -1670,9 +1670,9 @@ export class CanvasRenderer {
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.fillStyle = "#b67bdc";
+        ctx.fillStyle = "#c47af0";
         ctx.shadowColor = "#a765d4";
-        ctx.shadowBlur = 22;
+        ctx.shadowBlur = 28;
         ctx.globalAlpha = alpha * missedAlpha;
         ctx.beginPath();
         ctx.arc(x, y, 10.5, 0, Math.PI * 2);
@@ -1702,18 +1702,18 @@ export class CanvasRenderer {
         }
       } else if (spellId === "mage-pyroblast") {
         const tailPoint = trailPoint(tail * 1.15);
-        ctx.shadowColor = "#ff6f38";
+        ctx.shadowColor = "#ff5a24";
         ctx.shadowBlur = 32;
-        ctx.globalAlpha = alpha * .4 * missedAlpha;
-        ctx.strokeStyle = "#e64f2e";
+        ctx.globalAlpha = alpha * .5 * missedAlpha;
+        ctx.strokeStyle = "#f34c24";
         ctx.lineWidth = 16;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.globalAlpha = alpha * .84 * missedAlpha;
-        ctx.strokeStyle = "#ffbd58";
+        ctx.globalAlpha = alpha * .92 * missedAlpha;
+        ctx.strokeStyle = "#ffd05c";
         ctx.lineWidth = 6;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
@@ -1752,7 +1752,7 @@ export class CanvasRenderer {
           ctx.globalAlpha = alpha * (1 - hit) * .75 * missedAlpha;
           ctx.strokeStyle = "#ff9a43";
           ctx.shadowColor = "#ff5c32";
-          ctx.shadowBlur = 24;
+          ctx.shadowBlur = 30;
           ctx.lineWidth = 4;
           ctx.beginPath();
           ctx.arc(to.x, to.y, 13 + hit * 42, 0, Math.PI * 2);
@@ -1760,17 +1760,17 @@ export class CanvasRenderer {
         }
       } else if (spellId === "shaman-lava-burst") {
         const tailPoint = trailPoint(tail);
-        ctx.shadowColor = "#f2673e";
+        ctx.shadowColor = "#ff6336";
         ctx.shadowBlur = 28;
-        ctx.globalAlpha = alpha * .38 * missedAlpha;
-        ctx.strokeStyle = "#d84d31";
+        ctx.globalAlpha = alpha * .48 * missedAlpha;
+        ctx.strokeStyle = "#f04a28";
         ctx.lineWidth = 13;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.globalAlpha = alpha * .82 * missedAlpha;
+        ctx.globalAlpha = alpha * .9 * missedAlpha;
         ctx.strokeStyle = "#ffbc58";
         ctx.lineWidth = 5;
         ctx.beginPath();
@@ -1784,7 +1784,7 @@ export class CanvasRenderer {
         ctx.fillStyle = "#ef6238";
         ctx.strokeStyle = "#ffd36f";
         ctx.shadowColor = "#f15c37";
-        ctx.shadowBlur = 22;
+        ctx.shadowBlur = 28;
         ctx.globalAlpha = alpha * missedAlpha;
         ctx.beginPath();
         for (let i = 0; i < 8; i += 1) {
@@ -1812,17 +1812,17 @@ export class CanvasRenderer {
         }
       } else if (spellId === "priest-smite") {
         const tailPoint = trailPoint(tail * .88);
-        ctx.shadowColor = "#9c6ccc";
+        ctx.shadowColor = "#b56ce8";
         ctx.shadowBlur = 26;
         ctx.globalAlpha = alpha * .34 * missedAlpha;
-        ctx.strokeStyle = "#744da8";
+        ctx.strokeStyle = "#8745c7";
         ctx.lineWidth = 11;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.globalAlpha = alpha * .84 * missedAlpha;
+        ctx.globalAlpha = alpha * .92 * missedAlpha;
         ctx.strokeStyle = "#c6a2e6";
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -1832,7 +1832,7 @@ export class CanvasRenderer {
 
         ctx.fillStyle = "#a876d1";
         ctx.shadowColor = "#a876d1";
-        ctx.shadowBlur = 24;
+        ctx.shadowBlur = 30;
         ctx.beginPath();
         ctx.arc(x, y, 11, 0, Math.PI * 2);
         ctx.fill();
@@ -1860,9 +1860,9 @@ export class CanvasRenderer {
       } else if (spellId === "paladin-holy-shock") {
         const tailPoint = trailPoint(tail * .7);
         ctx.shadowColor = "#f2c84f";
-        ctx.shadowBlur = 24;
-        ctx.globalAlpha = alpha * .38 * missedAlpha;
-        ctx.strokeStyle = "#dfad36";
+        ctx.shadowBlur = 30;
+        ctx.globalAlpha = alpha * .48 * missedAlpha;
+        ctx.strokeStyle = "#f2b52e";
         ctx.lineWidth = 11;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
@@ -1877,9 +1877,9 @@ export class CanvasRenderer {
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.fillStyle = "#ffe174";
+        ctx.fillStyle = "#ffe56d";
         ctx.shadowColor = "#f0c64b";
-        ctx.shadowBlur = 22;
+        ctx.shadowBlur = 28;
         ctx.beginPath();
         ctx.arc(x, y, 10.5, 0, Math.PI * 2);
         ctx.fill();
@@ -1918,7 +1918,7 @@ export class CanvasRenderer {
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 24;
       ctx.globalAlpha = alpha * 0.9;
       ctx.lineWidth = spellId.includes("greater") || spellId.includes("holy-light") ? 5 : 3.5;
       ctx.beginPath();
@@ -1944,7 +1944,7 @@ export class CanvasRenderer {
         const r = 12 + progress * 24;
         const mx = Math.cos(a) * r;
         const my = Math.sin(a) * r - progress * 12;
-        ctx.globalAlpha = alpha * 0.78;
+        ctx.globalAlpha = alpha * 0.88;
         ctx.beginPath();
         if (spellId.startsWith("druid")) {
           ctx.ellipse(mx, my, 3.2, 6.5, a, 0, Math.PI * 2);
@@ -1970,7 +1970,7 @@ export class CanvasRenderer {
       const radius = 31 + Math.sin(progress * Math.PI) * 8;
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 24;
       ctx.lineWidth = 4;
       ctx.globalAlpha = alpha * 0.94;
 
@@ -2032,7 +2032,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       const impact = 15 + progress * 38;
       ctx.shadowColor = "#c98d69";
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 24;
       ctx.strokeStyle = "#d8a17b";
       ctx.lineWidth = 5.5;
       ctx.globalAlpha = alpha * .92;
@@ -2065,7 +2065,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       ctx.rotate(angle + Math.PI / 4);
       ctx.shadowColor = "#e7cb68";
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 24;
       ctx.strokeStyle = "#efd86f";
       ctx.lineCap = "round";
 
@@ -2113,7 +2113,7 @@ export class CanvasRenderer {
         ctx.stroke();
       }
 
-      ctx.globalAlpha = alpha * .72;
+      ctx.globalAlpha = alpha * .82;
       ctx.beginPath();
       ctx.arc(0, 0, 5 + pulse * 3, 0, Math.PI * 2);
       ctx.fill();
@@ -2121,7 +2121,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       const fracture = 17 + progress * 34;
       ctx.shadowColor = "#86dcf0";
-      ctx.shadowBlur = 22;
+      ctx.shadowBlur = 28;
       ctx.strokeStyle = "#8edced";
       ctx.lineWidth = 4.5;
       ctx.globalAlpha = alpha * .94;
@@ -2149,7 +2149,7 @@ export class CanvasRenderer {
     } else if (spellId === "dk-death-strike") {
       ctx.translate(to.x, to.y);
       ctx.shadowColor = "#9b3342";
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 24;
       ctx.strokeStyle = "#b94a58";
       ctx.lineWidth = 5;
       ctx.globalAlpha = alpha * .9;
@@ -2214,7 +2214,7 @@ export class CanvasRenderer {
     } else if (spellId === "warrior-charge" || spellId === "rogue-shadowstep") {
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 16;
+      ctx.shadowBlur = 28;
       ctx.lineWidth = 7;
       ctx.globalAlpha = alpha * .9;
       ctx.beginPath();
@@ -2270,7 +2270,7 @@ export class CanvasRenderer {
         ctx.fillStyle = "#d9a8f0";
         ctx.shadowColor = "#8d4db0";
         ctx.shadowBlur = 19;
-        ctx.globalAlpha = alpha * .88;
+        ctx.globalAlpha = alpha * .96;
         ctx.lineWidth = 3.3;
 
         for (let i = 0; i < 6; i += 1) {
@@ -2295,7 +2295,7 @@ export class CanvasRenderer {
         ctx.strokeStyle = "#bfa5ff";
         ctx.fillStyle = "#e9deff";
         ctx.shadowColor = "#a98df1";
-        ctx.shadowBlur = 18;
+        ctx.shadowBlur = 24;
         ctx.globalAlpha = alpha * .92;
 
         const star = 9 + Math.sin(progress * Math.PI) * 5;
@@ -2323,7 +2323,7 @@ export class CanvasRenderer {
         ctx.strokeStyle = "#75d5c4";
         ctx.fillStyle = "#a8eadf";
         ctx.shadowColor = "#56bcae";
-        ctx.shadowBlur = 18;
+        ctx.shadowBlur = 24;
         ctx.globalAlpha = alpha * .9;
         ctx.lineWidth = 3;
 
@@ -2385,7 +2385,7 @@ export class CanvasRenderer {
       if (spellId === "mage-living-bomb") {
         ctx.shadowColor = "#ff6938";
         ctx.shadowBlur = 21;
-        ctx.strokeStyle = "#ff7b3d";
+        ctx.strokeStyle = "#ff6f2f";
         ctx.fillStyle = "#ffd36d";
         ctx.globalAlpha = alpha * .9;
         ctx.lineWidth = 3.5;
@@ -2413,7 +2413,7 @@ export class CanvasRenderer {
       } else if (spellId === "warlock-corruption") {
         ctx.shadowColor = "#8d4bb2";
         ctx.shadowBlur = 20;
-        ctx.strokeStyle = "#b06fd2";
+        ctx.strokeStyle = "#bf70e9";
         ctx.fillStyle = "#9b5bc0";
         ctx.lineWidth = 3.2;
 
@@ -2426,7 +2426,7 @@ export class CanvasRenderer {
           ctx.fill();
         }
 
-        ctx.globalAlpha = alpha * .72;
+        ctx.globalAlpha = alpha * .82;
         ctx.beginPath();
         for (let s = 0; s <= 24; s += 1) {
           const t = s / 24;
@@ -2440,7 +2440,7 @@ export class CanvasRenderer {
       } else if (spellId === "shaman-flame-shock") {
         ctx.shadowColor = "#f05d35";
         ctx.shadowBlur = 20;
-        ctx.strokeStyle = "#f1763b";
+        ctx.strokeStyle = "#ff7132";
         ctx.fillStyle = "#ffbd59";
         ctx.lineWidth = 3.2;
 
@@ -2467,7 +2467,7 @@ export class CanvasRenderer {
       } else {
         ctx.shadowColor = "#72cfe7";
         ctx.shadowBlur = 19;
-        ctx.strokeStyle = "#8ad9eb";
+        ctx.strokeStyle = "#6ee6ff";
         ctx.fillStyle = "#c4f4ff";
         ctx.lineWidth = 2.8;
 
@@ -2482,7 +2482,7 @@ export class CanvasRenderer {
           ctx.stroke();
         }
 
-        ctx.globalAlpha = alpha * .32;
+        ctx.globalAlpha = alpha * .46;
         ctx.beginPath();
         ctx.arc(0, 0, 10 + progress * 16, 0, Math.PI * 2);
         ctx.fill();
@@ -2492,7 +2492,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 16;
+      ctx.shadowBlur = 28;
       ctx.lineWidth = 5.5;
       ctx.rotate(progress * .9);
       const rr = 18 + progress * 22;
@@ -2507,14 +2507,14 @@ export class CanvasRenderer {
       ctx.stroke();
     } else if (spellId === "shaman-chain-lightning") {
       ctx.translate(from.x, from.y);
-      ctx.strokeStyle = "#8de8ff";
+      ctx.strokeStyle = "#70e8ff";
       ctx.fillStyle = "#dffbff";
-      ctx.shadowColor = "#66dff8";
-      ctx.shadowBlur = 22;
+      ctx.shadowColor = "#4de4ff";
+      ctx.shadowBlur = 28;
       ctx.lineWidth = 3;
 
       const core = 7 + Math.sin(progress * Math.PI * 6) * 2;
-      ctx.globalAlpha = alpha * .88;
+      ctx.globalAlpha = alpha * .96;
       ctx.beginPath();
       ctx.arc(0, 0, core, 0, Math.PI * 2);
       ctx.fill();
@@ -2535,14 +2535,14 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 13;
+      ctx.shadowBlur = 22;
       ctx.lineWidth = 4;
-      ctx.globalAlpha = alpha * .88;
+      ctx.globalAlpha = alpha * .96;
       ctx.beginPath();
       ctx.arc(0, 0, 14 + progress * 24, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.globalAlpha = alpha * .32;
+      ctx.globalAlpha = alpha * .46;
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(0, 0, 8 + progress * 10, 0, Math.PI * 2);

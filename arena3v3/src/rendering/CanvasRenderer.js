@@ -1111,20 +1111,99 @@ export class CanvasRenderer {
         ctx.save();
         const healingBeam = ["heal", "priest", "druid", "paladin"].includes(effect.style);
         const beamColor = this.vfxColor(effect.style);
-        ctx.globalAlpha = alpha * (healingBeam ? 0.96 : 0.9);
-        ctx.strokeStyle = beamColor;
-        ctx.shadowColor = beamColor;
-        ctx.shadowBlur = healingBeam ? 14 : 8;
-        ctx.lineWidth = healingBeam ? 6 : 3.5;
-        ctx.beginPath();
-        ctx.moveTo(source.x, source.y);
-        ctx.lineTo(target.x, target.y);
-        ctx.stroke();
 
         if (healingBeam) {
-          ctx.globalAlpha = alpha * 0.48;
-          ctx.strokeStyle = "#fff4cf";
-          ctx.lineWidth = 2;
+          const palettes = {
+            priest: { main: "#e9cf71", core: "#fff4c6", mote: "#fff9df" },
+            paladin: { main: "#d9ae43", core: "#ffe99a", mote: "#fff2b6" },
+            druid: { main: "#5fae6d", core: "#b9e897", mote: "#8fdb86" },
+            heal: { main: beamColor, core: "#e7ffd5", mote: "#f2ffe9" },
+          };
+          const palette = palettes[effect.style] || palettes.heal;
+          const dx = target.x - source.x;
+          const dy = target.y - source.y;
+          const length = Math.max(1, Math.hypot(dx, dy));
+          const nx = -dy / length;
+          const ny = dx / length;
+          const bendSign = effect.id % 2 === 0 ? 1 : -1;
+          const bend = Math.min(42, Math.max(16, length * 0.09)) * bendSign;
+          const cx = (source.x + target.x) * 0.5 + nx * bend;
+          const cy = (source.y + target.y) * 0.5 + ny * bend;
+
+          const pointOnCurve = t => {
+            const inv = 1 - t;
+            return {
+              x: inv * inv * source.x + 2 * inv * t * cx + t * t * target.x,
+              y: inv * inv * source.y + 2 * inv * t * cy + t * t * target.y,
+            };
+          };
+
+          ctx.lineCap = "round";
+          ctx.shadowColor = palette.main;
+          ctx.shadowBlur = 24;
+          ctx.globalAlpha = alpha * 0.34;
+          ctx.strokeStyle = palette.main;
+          ctx.lineWidth = effect.style === "paladin" ? 12 : 10;
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.quadraticCurveTo(cx, cy, target.x, target.y);
+          ctx.stroke();
+
+          ctx.shadowBlur = 16;
+          ctx.globalAlpha = alpha * 0.92;
+          ctx.strokeStyle = palette.main;
+          ctx.lineWidth = effect.style === "paladin" ? 6.5 : 5.5;
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.quadraticCurveTo(cx, cy, target.x, target.y);
+          ctx.stroke();
+
+          ctx.shadowBlur = 8;
+          ctx.globalAlpha = alpha * 0.78;
+          ctx.strokeStyle = palette.core;
+          ctx.lineWidth = 2.1;
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.quadraticCurveTo(cx, cy, target.x, target.y);
+          ctx.stroke();
+
+          const motes = effect.style === "druid" ? 7 : 6;
+          for (let i = 0; i < motes; i += 1) {
+            const t = (progress * 1.45 + i / motes) % 1;
+            const p = pointOnCurve(t);
+            const wobble = Math.sin(effect.id * 1.7 + i * 2.3 + progress * 9) * 7;
+            const mx = p.x + nx * wobble;
+            const my = p.y + ny * wobble;
+            ctx.globalAlpha = alpha * (0.42 + 0.42 * (1 - t));
+            ctx.fillStyle = i % 2 === 0 ? palette.core : palette.mote;
+            ctx.shadowColor = palette.mote;
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            if (effect.style === "druid") {
+              const leafAngle = Math.atan2(dy, dx) + Math.sin(i + progress * 4) * 0.55;
+              ctx.ellipse(mx, my, 2.4, 5.2, leafAngle, 0, Math.PI * 2);
+            } else {
+              ctx.arc(mx, my, 2.2 + (i % 2) * 0.8, 0, Math.PI * 2);
+            }
+            ctx.fill();
+          }
+
+          const impactRadius = 18 + progress * 13;
+          ctx.globalAlpha = alpha * 0.68;
+          ctx.strokeStyle = palette.core;
+          ctx.shadowColor = palette.main;
+          ctx.shadowBlur = 18;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(target.x, target.y, impactRadius, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.globalAlpha = alpha * 0.9;
+          ctx.strokeStyle = beamColor;
+          ctx.shadowColor = beamColor;
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 3.5;
           ctx.beginPath();
           ctx.moveTo(source.x, source.y);
           ctx.lineTo(target.x, target.y);
@@ -1138,22 +1217,96 @@ export class CanvasRenderer {
         const x = target?.x ?? effect.x;
         const y = target?.y ?? effect.y;
         const radius = lerp(8, 30, progress);
+        const healingBurst = ["heal", "priest", "druid", "paladin"].includes(effect.style);
 
         ctx.save();
-        ctx.globalAlpha = alpha * 0.8;
-        ctx.strokeStyle = this.vfxColor(effect.style);
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.stroke();
 
-        ctx.globalAlpha = alpha * 0.35;
-        ctx.fillStyle = this.vfxColor(effect.style);
-        ctx.beginPath();
-        ctx.arc(x, y, Math.max(3, 13 * (1 - progress)), 0, Math.PI * 2);
-        ctx.fill();
+        if (healingBurst) {
+          const palettes = {
+            priest: { main: "#e9cf71", core: "#fff4c6", mote: "#fff9df" },
+            paladin: { main: "#d9ae43", core: "#ffe99a", mote: "#fff2b6" },
+            druid: { main: "#5fae6d", core: "#b9e897", mote: "#8fdb86" },
+            heal: { main: this.vfxColor(effect.style), core: "#e7ffd5", mote: "#f2ffe9" },
+          };
+          const palette = palettes[effect.style] || palettes.heal;
+          const pulse = Math.sin(progress * Math.PI);
+          const outer = 11 + progress * 35;
+          const inner = 8 + progress * 22;
 
-        this.drawVfxGlyph(ctx, effect.style, x, y, 14 + progress * 8, alpha);
+          ctx.shadowColor = palette.main;
+          ctx.shadowBlur = 22;
+          ctx.globalAlpha = alpha * 0.86;
+          ctx.strokeStyle = palette.main;
+          ctx.lineWidth = effect.style === "paladin" ? 4.5 : 3.5;
+          ctx.beginPath();
+          ctx.arc(x, y, outer, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.globalAlpha = alpha * 0.58;
+          ctx.strokeStyle = palette.core;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, inner, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const glow = ctx.createRadialGradient(x, y, 2, x, y, 28 + pulse * 8);
+          glow.addColorStop(0, palette.core);
+          glow.addColorStop(0.45, palette.main);
+          glow.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.globalAlpha = alpha * 0.24;
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x, y, 30 + pulse * 8, 0, Math.PI * 2);
+          ctx.fill();
+
+          const rays = effect.style === "druid" ? 7 : 8;
+          for (let i = 0; i < rays; i += 1) {
+            const a = (i / rays) * Math.PI * 2 + progress * (effect.style === "druid" ? 1.2 : 0.5);
+            const r = 14 + progress * 25;
+            const rx = x + Math.cos(a) * r;
+            const ry = y + Math.sin(a) * r - progress * 8;
+            ctx.globalAlpha = alpha * 0.72;
+            ctx.fillStyle = i % 2 === 0 ? palette.core : palette.mote;
+            ctx.shadowColor = palette.main;
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            if (effect.style === "druid") {
+              ctx.ellipse(rx, ry, 2.6, 5.4, a, 0, Math.PI * 2);
+            } else {
+              ctx.arc(rx, ry, 2.5 + (i % 3 === 0 ? 1 : 0), 0, Math.PI * 2);
+            }
+            ctx.fill();
+          }
+
+          if (effect.style === "priest" || effect.style === "paladin") {
+            ctx.globalAlpha = alpha * 0.86;
+            ctx.strokeStyle = palette.core;
+            ctx.lineWidth = effect.style === "paladin" ? 3.4 : 2.7;
+            const cross = 8 + pulse * 5;
+            ctx.beginPath();
+            ctx.moveTo(x - cross, y);
+            ctx.lineTo(x + cross, y);
+            ctx.moveTo(x, y - cross);
+            ctx.lineTo(x, y + cross);
+            ctx.stroke();
+          }
+        } else {
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.strokeStyle = this.vfxColor(effect.style);
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.globalAlpha = alpha * 0.35;
+          ctx.fillStyle = this.vfxColor(effect.style);
+          ctx.beginPath();
+          ctx.arc(x, y, Math.max(3, 13 * (1 - progress)), 0, Math.PI * 2);
+          ctx.fill();
+
+          this.drawVfxGlyph(ctx, effect.style, x, y, 14 + progress * 8, alpha);
+        }
         ctx.restore();
       }
 
@@ -1162,23 +1315,44 @@ export class CanvasRenderer {
         const x = source?.x ?? effect.x;
         const y = source?.y ?? effect.y;
         const radius = lerp(effect.radiusStart, effect.radiusEnd, progress);
+        const healingRing = ["heal", "priest", "druid", "paladin"].includes(effect.style);
 
         ctx.save();
         const ringColor = this.vfxColor(effect.style);
         ctx.globalAlpha = alpha * 0.9;
         ctx.strokeStyle = ringColor;
         ctx.shadowColor = ringColor;
-        ctx.shadowBlur = 12;
-        ctx.lineWidth = 5 - progress * 1.8;
+        ctx.shadowBlur = healingRing ? 18 : 12;
+        ctx.lineWidth = healingRing ? 4.8 - progress * 1.3 : 5 - progress * 1.8;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.globalAlpha = alpha * 0.34;
+        ctx.globalAlpha = alpha * (healingRing ? 0.48 : 0.34);
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(x, y, Math.max(4, radius - 7), 0, Math.PI * 2);
         ctx.stroke();
+
+        if (healingRing) {
+          const count = effect.style === "druid" ? 7 : 6;
+          for (let i = 0; i < count; i += 1) {
+            const a = (i / count) * Math.PI * 2 + progress * 2.2;
+            const rr = Math.max(9, radius - 3);
+            const px = x + Math.cos(a) * rr;
+            const py = y + Math.sin(a) * rr - progress * 7;
+            ctx.globalAlpha = alpha * 0.68;
+            ctx.fillStyle = effect.style === "druid" ? "#a4df88" : "#fff0ad";
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            if (effect.style === "druid") {
+              ctx.ellipse(px, py, 2.2, 4.5, a, 0, Math.PI * 2);
+            } else {
+              ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+            }
+            ctx.fill();
+          }
+        }
         ctx.restore();
       }
 

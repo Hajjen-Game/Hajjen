@@ -46,8 +46,30 @@ export class AISystem {
     else this.damageThink(actor);
   }
 
-  spell(actor, aiRole) {
-    return actor.spells.find(spell => spell.aiRole === aiRole);
+  spells(actor, aiRole) {
+    return actor.spells.filter(spell => spell.aiRole === aiRole);
+  }
+
+  spell(actor, aiRole, target = null) {
+    const matches = this.spells(actor, aiRole);
+    if (matches.length <= 1) return matches[0] || null;
+
+    let candidates = matches.filter(spell => this.ready(actor, spell));
+
+    if (target && ["periodic", "sustainHot"].includes(aiRole)) {
+      const missingEffects = candidates.filter(spell =>
+        !target.hasEffect(spell.id, actor.id)
+      );
+      if (missingEffects.length > 0) candidates = missingEffects;
+    }
+
+    if (candidates.length === 0) candidates = matches;
+
+    // A stable short rotation lets talent-unlocked abilities compete with
+    // baseline abilities instead of always losing to the first matching role.
+    const bucket = Math.floor(this.game.elapsedSeconds / 1.25);
+    const index = stableHash(actor.id + ":" + aiRole + ":" + bucket) % candidates.length;
+    return candidates[index];
   }
 
   healingUrgencyScore(actor, ally) {
@@ -193,7 +215,7 @@ export class AISystem {
     const big = this.spell(actor, "bigHeal");
     const quick = this.spell(actor, "quickHeal");
     const instant = this.spell(actor, "instantHeal");
-    const sustain = this.spell(actor, "sustainHot");
+    const sustain = this.spell(actor, "sustainHot", target);
 
     if (target.healthPct < 0.42 && defensive && this.ready(actor, defensive) && this.castIfPossible(actor, defensive, target)) return;
 
@@ -227,6 +249,35 @@ export class AISystem {
       const controlTarget = this.pickCcTarget(actor, enemies, control);
       if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
     }
+
+    // Talent trees can unlock offensive spells for healers (Smite, Holy Fire,
+    // Moonfire, Judgment). Use them only when the team is stable so those
+    // talents matter without compromising healing triage.
+    if (allies.every(ally => ally.healthPct > 0.90) && enemies.length > 0) {
+      const offensiveTarget = [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
+      const periodic = this.spell(actor, "periodic", offensiveTarget);
+      const bigDamage = this.spell(actor, "bigDamage");
+      const filler = this.spell(actor, "filler");
+
+      if (
+        periodic
+        && this.ready(actor, periodic)
+        && !offensiveTarget.hasEffect(periodic.id, actor.id)
+        && this.castIfPossible(actor, periodic, offensiveTarget)
+      ) return;
+
+      if (
+        bigDamage
+        && this.ready(actor, bigDamage)
+        && this.castIfPossible(actor, bigDamage, offensiveTarget)
+      ) return;
+
+      if (
+        filler
+        && this.ready(actor, filler)
+        && this.castIfPossible(actor, filler, offensiveTarget)
+      ) return;
+    }
   }
 
   damageThink(actor) {
@@ -243,7 +294,7 @@ export class AISystem {
       !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, candidate)
     );
 
-    const defensive = this.spell(actor, "defensiveSelf");
+    const defensive = this.spell(actor, "defensiveSelf") || this.spell(actor, "defensive");
     if (defensive && actor.healthPct < 0.42 && this.ready(actor, defensive)) {
       if (this.castIfPossible(actor, defensive, actor)) return;
     }
@@ -397,7 +448,7 @@ export class AISystem {
       if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
     }
 
-    const periodic = this.spell(actor, "periodic");
+    const periodic = this.spell(actor, "periodic", target);
     const big = this.spell(actor, "bigDamage");
     const filler = this.spell(actor, "filler");
 

@@ -429,10 +429,10 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   letter-spacing: .08em;
 }
 
-.enemy-cooldown-row.burst .enemy-cooldown-type {
-  color: #ffd59b;
-  border-color: rgba(240,160,74,.55);
-  background: rgba(111,62,25,.5);
+.enemy-cooldown-row.defensive .enemy-cooldown-type {
+  color: #d9f1cf;
+  border-color: rgba(119,190,116,.58);
+  background: rgba(45,85,49,.52);
 }
 
 .enemy-cooldown-row.cc .enemy-cooldown-type {
@@ -475,8 +475,8 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   transition: width .08s linear, filter .12s;
 }
 
-.enemy-cooldown-row.burst .enemy-cooldown-fill {
-  background: linear-gradient(90deg, #874229, #e18443, #f0b064);
+.enemy-cooldown-row.defensive .enemy-cooldown-fill {
+  background: linear-gradient(90deg, #3f714a, #70ad6d, #a7d68f);
 }
 
 .enemy-cooldown-row.cc .enemy-cooldown-fill {

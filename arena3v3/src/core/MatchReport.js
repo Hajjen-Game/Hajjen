@@ -269,7 +269,6 @@ export function buildMatchReport(game) {
     "",
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
-    "Arena stamina: +20% max health for all combatants",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",
     "Player death: friendly AI can continue; player may spectate or forfeit",

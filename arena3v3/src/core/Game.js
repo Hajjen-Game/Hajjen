@@ -122,13 +122,6 @@ export class Game {
     });
   }
 
-  rollEnemyRank(playerRank) {
-    const rank = Math.max(1, Math.min(14, Number(playerRank) || 1));
-    const minRank = Math.max(1, rank - 2);
-    const maxRank = Math.min(14, rank + 1);
-    return minRank + Math.floor(Math.random() * (maxRank - minRank + 1));
-  }
-
   randomEnemyTalentBuild(classId, earnedPoints) {
     const system = new TalentSystem(null, classId);
     const branches = system.tree?.branches || [];
@@ -151,8 +144,8 @@ export class Game {
 
       if (spendable.length === 0) break;
 
-      // Enemies tend to form a recognizable build instead of spreading every
-      // point evenly, while still allowing hybrid allocations.
+      // AI builds tend to form a recognizable main branch instead of spreading
+      // every point evenly, while still allowing hybrid allocations.
       const preferred = spendable.filter(entry => entry.branch.id === primaryBranch);
       const pool = preferred.length > 0 && Math.random() < 0.72
         ? preferred
@@ -194,12 +187,14 @@ export class Game {
   }
 
   prepareAiProgressionConfigs(characterConfigs) {
-    const playerRank = this.honor.status().rank;
+    const playerRank = Math.max(1, Math.min(14, Number(this.honor.status().rank) || 1));
 
     return characterConfigs.map(config => {
       if (config.control === "player") return config;
 
-      const rank = this.rollEnemyRank(playerRank);
+      // Singleplayer fairness: every combatant plays at the player's current
+      // rank. AI variety comes from class and random talent build, not rank.
+      const rank = playerRank;
       const talentPoints = talentPointsForRank(rank);
       const build = this.randomEnemyTalentBuild(config.classId, talentPoints);
       const progressed = build.system.applyToConfig(config);

@@ -1,4 +1,4 @@
-import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260925-schools1";
+import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260926-mindblastvfx1";
 
 const STORAGE_PREFIX = "arena3v3-talents-v1:";
 

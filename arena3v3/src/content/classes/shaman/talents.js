@@ -103,7 +103,7 @@ export const shamanTalentTree = Object.freeze({
           ],
         },
         {
-          id: "shaman-elemental-warding",
+          id: "shaman-reverberation",
           name: "Elemental Warding",
           tier: 3,
           requiredPoints: 6,
@@ -240,7 +240,7 @@ export const shamanTalentTree = Object.freeze({
           ],
         },
         {
-          id: "shaman-ancestral-fortitude",
+          id: "shaman-improved-wind-shear",
           name: "Ancestral Fortitude",
           tier: 3,
           requiredPoints: 6,

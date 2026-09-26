@@ -899,6 +899,7 @@ export class CanvasRenderer {
       "priest-pain-suppression",
       "druid-ironbark",
       "paladin-blessing",
+      "shaman-astral-shift",
     ]);
 
     const defensive = actor.effects.find(effect =>
@@ -930,6 +931,10 @@ export class CanvasRenderer {
         "paladin-blessing": {
           main: "#ffd447",
           core: "#fff2a8",
+        },
+        "shaman-astral-shift": {
+          main: "#53ddf2",
+          core: "#c9f8ff",
         },
       };
 
@@ -1451,7 +1456,7 @@ export class CanvasRenderer {
 
     const shieldIds = new Set([
       "priest-pain-suppression", "druid-ironbark",
-      "paladin-blessing", "warlock-resolve",
+      "paladin-blessing", "warlock-resolve", "shaman-astral-shift",
     ]);
 
     const meleeIds = new Set([

@@ -37,7 +37,7 @@ export const rogueClass = {
     },
     {
       id: "rogue-kick", name: "Kick", aiRole: "interrupt", visualStyle: "rogue",
-      target: "enemy", school: "physical", utility: true, resourceCost: 10, castMs: 0, cooldownMs: 9000, gcdMs: 0, ignoreGcd: true, range: 68,
+      target: "enemy", school: "physical", utility: true, resourceCost: 10, castMs: 0, cooldownMs: 12000, gcdMs: 0, ignoreGcd: true, range: 68,
       noHitRoll: true,
       effects: [{ kind: "interrupt", durationMs: 3000 }],
     },

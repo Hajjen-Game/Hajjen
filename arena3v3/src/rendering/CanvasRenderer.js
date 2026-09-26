@@ -1611,7 +1611,7 @@ export class CanvasRenderer {
 
   spellVfxColor(spellId, fallbackStyle) {
     if (spellId === "priest-smite") return "#9b72c7";
-    if (["mage-pyroblast", "mage-living-bomb", "shaman-lava-burst", "shaman-flame-shock"].includes(spellId)) {
+    if (["mage-pyroblast", "mage-living-bomb", "shaman-lava-burst", "shaman-flame-shock", "warlock-conflagrate"].includes(spellId)) {
       return "#f28a4f";
     }
     if (["mage-frostbolt", "mage-frost-nova", "dk-fever", "dk-chains", "dk-mind-freeze"].includes(spellId)) {
@@ -1632,7 +1632,7 @@ export class CanvasRenderer {
 
   spellVfxAccent(spellId, fallback) {
     if (spellId === "priest-smite") return "#d9c0f2";
-    if (spellId === "mage-pyroblast" || spellId === "shaman-lava-burst") return "#ffd37a";
+    if (["mage-pyroblast", "shaman-lava-burst", "warlock-conflagrate"].includes(spellId)) return "#ffd37a";
     if (spellId === "warlock-chaos-bolt") return "#d5ff9e";
     if (spellId === "mage-frostbolt") return "#e8fbff";
     if (spellId.startsWith("paladin-") || spellId.startsWith("priest-")) return "#fff4bf";

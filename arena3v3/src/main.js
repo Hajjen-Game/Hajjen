@@ -10,7 +10,7 @@ import {
   buildRosterConfigs,
   enemyRosterKey,
   randomizeEnemyRoster,
-} from "./content/classes/registry.js?v=20260926-manapressure2";
+} from "./content/classes/registry.js?v=20260926-manapressure3";
 import { WOW_CLASS_COLORS } from "./content/classes/classColors.js";
 
 const ROSTER_STORAGE_KEY = "arena3v3-roster-v4";

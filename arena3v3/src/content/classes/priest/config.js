@@ -7,7 +7,7 @@ export const priestClass = {
     maxHealth: 1260, moveSpeed: 194, radius: 20,
     hitChance: 0.94, critChance: 0.17, dodgeChance: 0.05, critMultiplier: 1.5,
   },
-  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 5.5 },
+  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 2.4 },
   ai: { preferredRange: 320, ccTargetRoles: ["healer", "caster"] },
   spells: [
     {

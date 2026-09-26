@@ -25,6 +25,10 @@ export class AISystem {
         );
       }
 
+      if (actor.role === "healer" && actor.cast) {
+        this.reconsiderHealerCast(actor);
+      }
+
       if (remaining <= 0) {
         this.thinkTimers.set(actor.id, 0.12 + (stableHash(actor.id) % 80) / 1000);
         this.think(actor);
@@ -46,6 +50,113 @@ export class AISystem {
     return actor.spells.find(spell => spell.aiRole === aiRole);
   }
 
+  healingUrgencyScore(actor, ally) {
+    if (!ally?.alive || ally.team !== actor.team) return -Infinity;
+
+    const healthPct = ally.healthPct;
+    const enemies = this.game.actors.filter(candidate =>
+      candidate.alive
+      && candidate.team !== actor.team
+      && !this.game.cc.isHardControlled(candidate)
+    );
+
+    const activeAttackers = enemies.filter(candidate =>
+      this.combatTargetId(candidate) === ally.id
+    ).length;
+
+    const hasDot = ally.effects.some(effect =>
+      effect.kind === "dot" && effect.remainingMs > 0
+    );
+    const hasHealingReduction = ally.effects.some(effect =>
+      effect.kind === "healingReduction" && effect.remainingMs > 0
+    );
+
+    // Missing health remains the main signal. Current enemy pressure then
+    // breaks close calls so a teammate being actively trained gets help
+    // before their health bar has already collapsed.
+    let score = (1 - healthPct) * 100;
+    score += activeAttackers * (healthPct < 0.70 ? 10 : 6);
+    if (hasDot) score += 4;
+    if (hasHealingReduction) score += 5;
+    if (healthPct < 0.45) score += 12;
+    if (healthPct < 0.30) score += 18;
+
+    return score;
+  }
+
+  pickHealTarget(actor, allies) {
+    return [...allies].sort((a, b) => {
+      const scoreDiff = this.healingUrgencyScore(actor, b)
+        - this.healingUrgencyScore(actor, a);
+      if (Math.abs(scoreDiff) > 0.001) return scoreDiff;
+      return a.healthPct - b.healthPct;
+    })[0] || null;
+  }
+
+  reconsiderHealerCast(actor) {
+    const cast = actor.cast;
+    if (!cast) return false;
+
+    const spell = actor.getSpell(cast.spellId);
+    if (
+      !spell
+      || spell.target !== "ally"
+      || !spell.effects.some(effect => ["heal", "hot"].includes(effect.kind))
+    ) {
+      return false;
+    }
+
+    const allies = this.game.actors.filter(candidate =>
+      candidate.alive && candidate.team === actor.team
+    );
+    const best = this.pickHealTarget(actor, allies);
+    const current = this.game.getActor(cast.targetId);
+
+    if (!best || best.id === current?.id) return false;
+
+    const bestScore = this.healingUrgencyScore(actor, best);
+    const currentScore = current
+      ? this.healingUrgencyScore(actor, current)
+      : -Infinity;
+    const hpGap = current ? current.healthPct - best.healthPct : 1;
+    const scoreGap = bestScore - currentScore;
+
+    const bestReachable = this.game.combat.inRange(actor, best, spell.range)
+      && this.game.combat.hasLos(actor, best);
+
+    const criticalSwap = best.healthPct < 0.30
+      && (hpGap >= 0.04 || scoreGap >= 10);
+    const emergencySwap = best.healthPct < 0.50
+      && (hpGap >= 0.08 || scoreGap >= 16);
+    const pressureSwap = best.healthPct < 0.68
+      && hpGap >= 0.14
+      && scoreGap >= 12;
+
+    if (
+      !criticalSwap
+      && !emergencySwap
+      && !pressureSwap
+    ) {
+      return false;
+    }
+
+    // Do not throw away a useful heal for a merely preferable target hidden
+    // behind LOS. A truly critical ally is the exception: cancel and move.
+    if (!bestReachable && best.healthPct >= 0.30) return false;
+
+    this.game.combat.cancelCast(actor, "emergency triage");
+    actor.aiTargetId = best.id;
+    this.thinkTimers.set(actor.id, 0);
+
+    this.game.log(
+      this.game.combatantLabel(actor)
+      + " cancels " + spell.name
+      + " to triage " + this.game.combatantLabel(best) + ".",
+    );
+
+    return true;
+  }
+
   healerThink(actor) {
     const enemies = this.game.actors.filter(candidate =>
       candidate.alive && candidate.team !== actor.team
@@ -63,10 +174,9 @@ export class AISystem {
     }
 
     const allies = this.game.actors
-      .filter(candidate => candidate.alive && candidate.team === actor.team)
-      .sort((a, b) => a.healthPct - b.healthPct);
+      .filter(candidate => candidate.alive && candidate.team === actor.team);
 
-    const target = allies[0];
+    const target = this.pickHealTarget(actor, allies);
     if (!target) return;
 
     actor.aiTargetId = target.id;

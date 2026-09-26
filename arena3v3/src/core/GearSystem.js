@@ -9,6 +9,8 @@ import { paladinGear } from "../content/gear/paladin.js";
 import { deathKnightGear } from "../content/gear/death-knight.js";
 
 const STORAGE_PREFIX = "arena3v3-gear-v1:";
+const ARMOR_SLOTS = Object.freeze(["head", "shoulders", "chest", "hands", "legs", "feet"]);
+const WEAPON_SLOTS = Object.freeze(["weapon", "mainHand", "offHand"]);
 
 const GEAR_REGISTRY = Object.freeze({
   rogue: rogueGear,
@@ -314,11 +316,73 @@ export class GearSystem {
     };
   }
 
+  progressionProfile() {
+    if (!this.definition) return { armorRanks: {}, weaponRank: 0 };
+
+    const items = this.equippedItems();
+    const armorRanks = {};
+
+    for (const slot of ARMOR_SLOTS) {
+      const item = items.find(candidate => candidate.slot === slot);
+      if (item) armorRanks[slot] = Number(item.rankRequired) || 1;
+    }
+
+    const weaponItems = items.filter(item => WEAPON_SLOTS.includes(item.slot));
+    const weaponRank = weaponItems.length > 0
+      ? Math.min(...weaponItems.map(item => Number(item.rankRequired) || 1))
+      : 0;
+
+    return { armorRanks, weaponRank };
+  }
+
+  itemsForProgressionProfile(profile) {
+    if (!this.definition || !profile) return [];
+
+    const selected = [];
+
+    for (const slot of ARMOR_SLOTS) {
+      const rank = Number(profile.armorRanks?.[slot]) || 0;
+      if (rank <= 0) continue;
+
+      const candidates = this.definition.items
+        .filter(item => item.slot === slot && Number(item.rankRequired) <= rank)
+        .sort((a, b) => Number(b.rankRequired) - Number(a.rankRequired));
+
+      if (candidates[0]) selected.push(candidates[0]);
+    }
+
+    const weaponRank = Number(profile.weaponRank) || 0;
+    if (weaponRank > 0) {
+      const weaponSlots = [...new Set(
+        this.definition.items
+          .filter(item => WEAPON_SLOTS.includes(item.slot))
+          .map(item => item.slot),
+      )];
+
+      for (const slot of weaponSlots) {
+        const candidates = this.definition.items
+          .filter(item => item.slot === slot && Number(item.rankRequired) <= weaponRank)
+          .sort((a, b) => Number(b.rankRequired) - Number(a.rankRequired));
+
+        if (candidates[0]) selected.push(candidates[0]);
+      }
+    }
+
+    return selected;
+  }
+
+  applyProgressionProfileToConfig(config, profile) {
+    return this.applyItemsToConfig(config, this.itemsForProgressionProfile(profile));
+  }
+
   applyToConfig(config) {
+    return this.applyItemsToConfig(config, this.equippedItems());
+  }
+
+  applyItemsToConfig(config, items = []) {
     if (!this.definition || config.classId !== this.classId) return config;
 
     const next = cloneConfig(config);
-    const items = this.equippedItems();
 
     let stamina = 0;
     let power = 0;
@@ -356,7 +420,10 @@ export class GearSystem {
       1 - (1 - baseResolve) * (1 - Math.min(0.25, resolve)),
     );
 
-    const setPieces = this.setPieceCount();
+    const setId = this.definition.set?.id;
+    const setPieces = setId
+      ? items.filter(item => item.setId === setId).length
+      : 0;
 
     for (const bonus of this.definition.set?.bonuses || []) {
       if (setPieces < bonus.pieces) continue;
@@ -381,6 +448,12 @@ export class GearSystem {
       equippedCount: items.length,
       setPieces,
       setName: this.definition.set?.name || null,
+      equippedItems: items.map(item => ({
+        id: item.id,
+        name: item.name,
+        slot: item.slot,
+        rankRequired: item.rankRequired,
+      })),
     };
 
     return next;

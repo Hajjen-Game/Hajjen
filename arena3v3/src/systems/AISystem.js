@@ -194,7 +194,13 @@ export class AISystem {
     const bestReachable = this.game.combat.inRange(actor, best, spell.range)
       && this.game.combat.hasLos(actor, best);
 
-    const reactivity = (this.behavior(actor, "healerTriage", 0.70) + this.skill(actor)) / 2;
+    const triage = this.behavior(actor, "healerTriage", 0.70);
+    const castGreed = this.behavior(actor, "healerCastGreed", 0.38);
+    const reactivity = clamp01(
+      triage * 0.50
+      + this.skill(actor) * 0.38
+      + (1 - castGreed) * 0.12
+    );
     const criticalSwap = best.healthPct < 0.30
       && (hpGap >= 0.06 - reactivity * 0.03 || scoreGap >= 12 - reactivity * 5);
     const emergencySwap = best.healthPct < 0.50

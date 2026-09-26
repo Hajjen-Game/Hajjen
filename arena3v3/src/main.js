@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20260926-astralshift3";
+import { Game } from "./core/Game.js?v=20260926-enemyprogress1";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";

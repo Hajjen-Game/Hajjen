@@ -1,7 +1,7 @@
-import { priestClass } from "./priest/config.js";
-import { druidClass } from "./druid/config.js";
-import { paladinClass } from "./paladin/config.js";
-import { warriorClass } from "./warrior/config.js";
+import { priestClass } from "./priest/config.js?v=20260926-manapressure1";
+import { druidClass } from "./druid/config.js?v=20260926-manapressure1";
+import { paladinClass } from "./paladin/config.js?v=20260926-manapressure1";
+import { warriorClass } from "./warrior/config.js?v=20260926-slamai1";
 import { rogueClass } from "./rogue/config.js";
 import { deathKnightClass } from "./death-knight/config.js";
 import { mageClass } from "./mage/config.js";

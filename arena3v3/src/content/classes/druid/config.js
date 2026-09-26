@@ -7,7 +7,7 @@ export const druidClass = {
     maxHealth: 1210, moveSpeed: 205, radius: 19,
     hitChance: 0.95, critChance: 0.16, dodgeChance: 0.06, critMultiplier: 1.5,
   },
-  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.0 },
+  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 2.6 },
   ai: { preferredRange: 330, ccTargetRoles: ["healer", "caster"] },
   spells: [
     {

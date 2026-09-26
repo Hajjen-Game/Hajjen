@@ -929,11 +929,21 @@ export class AISystem {
       );
 
       if (meleeThreat) {
-        const escapeVector = this.kiteVector(actor, meleeThreat, null);
+        const kiteBias = this.behavior(actor, "healerKiteBias", 0.62);
+        const selfPreservation = this.behavior(actor, "healerSelfPreservation", 0.68);
+        const kiteChance = 0.24 + kiteBias * 0.48 + this.skill(actor) * 0.18
+          + (actor.healthPct < 0.55 ? selfPreservation * 0.22 : 0);
 
-        if (escapeVector.x !== 0 || escapeVector.y !== 0) {
-          this.movement.moveAI(actor, escapeVector, deltaSeconds, this.game.arena);
-          return;
+        if (
+          actor.healthPct < 0.38
+          || this.shouldAttempt(actor, "healer-kite", kiteChance, 1.7)
+        ) {
+          const escapeVector = this.kiteVector(actor, meleeThreat, null);
+
+          if (escapeVector.x !== 0 || escapeVector.y !== 0) {
+            this.movement.moveAI(actor, escapeVector, deltaSeconds, this.game.arena);
+            return;
+          }
         }
       }
     }
@@ -955,11 +965,19 @@ export class AISystem {
       }
 
       if (meleeThreat) {
-        const kiteVector = this.kiteVector(actor, meleeThreat, healer);
+        const kiteBias = this.behavior(actor, "casterKiteBias", 0.68);
+        const kiteChance = 0.25 + kiteBias * 0.50 + this.skill(actor) * 0.18;
 
-        if (kiteVector.x !== 0 || kiteVector.y !== 0) {
-          this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
-          return;
+        if (
+          actor.healthPct < 0.42
+          || this.shouldAttempt(actor, "caster-kite", kiteChance, 1.6)
+        ) {
+          const kiteVector = this.kiteVector(actor, meleeThreat, healer);
+
+          if (kiteVector.x !== 0 || kiteVector.y !== 0) {
+            this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
+            return;
+          }
         }
       }
     }
@@ -982,8 +1000,12 @@ export class AISystem {
       vector = this.steer(actor, target, 1);
     } else if (actor.role === "caster" && dist < preferred * 0.5) {
       vector = this.steer(actor, target, -1);
-    } else if (actor.role === "healer" && dist < 120) {
-      vector = this.steer(actor, target, -0.35);
+    } else if (actor.role === "healer") {
+      const selfPreservation = this.behavior(actor, "healerSelfPreservation", 0.68);
+      const comfortDistance = 92 + selfPreservation * 58;
+      if (dist < comfortDistance) {
+        vector = this.steer(actor, target, -0.35);
+      }
     }
 
     if (vector.x !== 0 || vector.y !== 0) {
@@ -998,8 +1020,13 @@ export class AISystem {
     if (!healer?.alive) return false;
 
     const meleeThreat = this.findCasterMeleeThreat(actor);
-    const healerLosHealthPct = actor.config.ai.healerLosHealthPct ?? 0.82;
-    const emergencyHealthPct = actor.config.ai.healerLosEmergencyPct ?? 0.62;
+    const discipline = this.behavior(actor, "supportDiscipline", 0.68);
+    const castGreed = this.behavior(actor, "casterCastGreed", 0.42);
+    const skill = this.skill(actor);
+    const healerLosHealthPct = actor.config.ai.healerLosHealthPct
+      ?? (0.70 + discipline * 0.17 - castGreed * 0.05);
+    const emergencyHealthPct = actor.config.ai.healerLosEmergencyPct
+      ?? (0.50 + discipline * 0.14);
     const pressured = Boolean(meleeThreat);
     const low = actor.healthPct <= healerLosHealthPct;
     const emergency = actor.healthPct <= emergencyHealthPct;
@@ -1008,10 +1035,16 @@ export class AISystem {
 
     const supported = this.hasHealerSupport(actor, healer);
     if (supported) return false;
+    if (emergency) return true;
 
-    // At low HP, or whenever a melee is actively tunnelling the caster,
-    // healer LOS/range is a hard priority over offensive casting.
-    return emergency || pressured || low;
+    const recoverChance = 0.24
+      + discipline * 0.48
+      + skill * 0.22
+      - castGreed * 0.20;
+
+    // Greedy casters occasionally finish pressure from a bad position; more
+    // disciplined and higher-ranked casters recover healer support sooner.
+    return this.shouldAttempt(actor, "recover-healer-support", recoverChance, 1.5);
   }
 
   findCasterMeleeThreat(actor) {
@@ -1127,8 +1160,14 @@ export class AISystem {
 
     const healer = this.getTeamHealer(actor);
     if (!healer || !this.game.cc.isHardControlled(healer)) return false;
+    if (hasLineOfSight(healer, target, this.game.arena.obstacles)) return false;
 
-    return !hasLineOfSight(healer, target, this.game.arena.obstacles);
+    const chaseGreed = this.behavior(actor, "chaseGreed", 0.48);
+    const discipline = 0.40 + this.skill(actor) * 0.46 - chaseGreed * 0.24;
+
+    // A greedy player can overchase while the healer is controlled. High-rank
+    // AI does this less often, but personality never disappears entirely.
+    return this.shouldAttempt(actor, "controlled-healer-pull", discipline, 2.0);
   }
 
   healerLosPullVector(actor, target) {

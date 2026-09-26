@@ -2381,25 +2381,112 @@ export class CanvasRenderer {
     } else if (spellId === "mage-living-bomb" || spellId === "warlock-corruption"
       || spellId === "shaman-flame-shock" || spellId === "dk-fever") {
       ctx.translate(to.x, to.y);
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 14;
 
-      for (let i = 0; i < 6; i += 1) {
-        const a = progress * 5.5 + (i / 6) * Math.PI * 2 + effect.seed * .01;
-        const rr = 15 + progress * 16;
-        ctx.globalAlpha = alpha * Math.max(.28, .82 - i * .07);
+      if (spellId === "mage-living-bomb") {
+        ctx.shadowColor = "#ff6938";
+        ctx.shadowBlur = 21;
+        ctx.strokeStyle = "#ff7b3d";
+        ctx.fillStyle = "#ffd36d";
+        ctx.globalAlpha = alpha * .9;
+        ctx.lineWidth = 3.5;
+
+        const core = 8 + Math.sin(progress * Math.PI * 5) * 2;
         ctx.beginPath();
-        ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 3.4, 0, Math.PI * 2);
+        ctx.arc(0, 0, core, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let i = 0; i < 7; i += 1) {
+          const a = progress * 6 + i / 7 * Math.PI * 2;
+          const rr = 15 + progress * 20;
+          ctx.globalAlpha = alpha * (.72 - i * .045);
+          ctx.fillStyle = i % 2 ? "#ffb34a" : "#ef5a35";
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 2.7 + (i % 3 === 0 ? 1 : 0), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.strokeStyle = "#ffc05a";
+        ctx.globalAlpha = alpha * .78;
+        ctx.beginPath();
+        ctx.arc(0, 0, 18 + progress * 18, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (spellId === "warlock-corruption") {
+        ctx.shadowColor = "#8d4bb2";
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = "#b06fd2";
+        ctx.fillStyle = "#9b5bc0";
+        ctx.lineWidth = 3.2;
+
+        for (let i = 0; i < 7; i += 1) {
+          const a = progress * 3.8 + i / 7 * Math.PI * 2;
+          const rr = 11 + progress * 24 + Math.sin(i + progress * 8) * 3;
+          ctx.globalAlpha = alpha * (.75 - i * .05);
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr * .72, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.globalAlpha = alpha * .72;
+        ctx.beginPath();
+        for (let s = 0; s <= 24; s += 1) {
+          const t = s / 24;
+          const a = t * Math.PI * 2 * 1.7 + progress * 4;
+          const rr = 7 + t * 24;
+          const sx = Math.cos(a) * rr;
+          const sy = Math.sin(a) * rr * .55;
+          if(s===0) ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy);
+        }
+        ctx.stroke();
+      } else if (spellId === "shaman-flame-shock") {
+        ctx.shadowColor = "#f05d35";
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = "#f1763b";
+        ctx.fillStyle = "#ffbd59";
+        ctx.lineWidth = 3.2;
+
+        for (let i = 0; i < 6; i += 1) {
+          const a = i / 6 * Math.PI * 2 + progress * .7;
+          const base = 13 + progress * 16;
+          const tip = 25 + progress * 24;
+          ctx.globalAlpha = alpha * .8;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * base, Math.sin(a) * base);
+          ctx.quadraticCurveTo(
+            Math.cos(a + .18) * (base + tip) * .48,
+            Math.sin(a + .18) * (base + tip) * .48,
+            Math.cos(a) * tip,
+            Math.sin(a) * tip,
+          );
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = alpha * .55;
+        ctx.beginPath();
+        ctx.arc(0, 0, 12 + progress * 14, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.shadowColor = "#72cfe7";
+        ctx.shadowBlur = 19;
+        ctx.strokeStyle = "#8ad9eb";
+        ctx.fillStyle = "#c4f4ff";
+        ctx.lineWidth = 2.8;
+
+        for (let i = 0; i < 8; i += 1) {
+          const a = i / 8 * Math.PI * 2 + progress * .35;
+          const inner = 9 + progress * 3;
+          const outer = 23 + progress * 22;
+          ctx.globalAlpha = alpha * (.78 - i * .035);
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+          ctx.lineTo(Math.cos(a + .08 * (i % 2 ? 1 : -1)) * outer, Math.sin(a + .08 * (i % 2 ? 1 : -1)) * outer);
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = alpha * .32;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10 + progress * 16, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      ctx.globalAlpha = alpha * .88;
-      ctx.lineWidth = 3.4;
-      ctx.beginPath();
-      ctx.arc(0, 0, 18 + progress * 17, 0, Math.PI * 2);
-      ctx.stroke();
     } else if (spellId === "shaman-wind-shear" || spellId === "warrior-pummel"
       || spellId === "rogue-kick" || spellId === "dk-mind-freeze") {
       ctx.translate(to.x, to.y);
@@ -2420,15 +2507,28 @@ export class CanvasRenderer {
       ctx.stroke();
     } else if (spellId === "shaman-chain-lightning") {
       ctx.translate(from.x, from.y);
-      ctx.strokeStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 12;
-      ctx.lineWidth = 2.5;
-      for (let i = 0; i < 4; i += 1) {
-        const a = (i / 4) * Math.PI * 2 + progress * 5;
+      ctx.strokeStyle = "#8de8ff";
+      ctx.fillStyle = "#dffbff";
+      ctx.shadowColor = "#66dff8";
+      ctx.shadowBlur = 22;
+      ctx.lineWidth = 3;
+
+      const core = 7 + Math.sin(progress * Math.PI * 6) * 2;
+      ctx.globalAlpha = alpha * .88;
+      ctx.beginPath();
+      ctx.arc(0, 0, core, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let i = 0; i < 8; i += 1) {
+        const a = (i / 8) * Math.PI * 2 + progress * 5.4;
+        const inner = 8;
+        const mid = 18 + progress * 7 + (i % 2) * 4;
+        const outer = 29 + progress * 14;
+        ctx.globalAlpha = alpha * (.82 - i * .04);
         ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * 7, Math.sin(a) * 7);
-        ctx.lineTo(Math.cos(a) * (18 + progress * 8), Math.sin(a) * (18 + progress * 8));
+        ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+        ctx.lineTo(Math.cos(a + .16) * mid, Math.sin(a + .16) * mid);
+        ctx.lineTo(Math.cos(a - .08) * outer, Math.sin(a - .08) * outer);
         ctx.stroke();
       }
     } else {

@@ -280,6 +280,7 @@ export class AISystem {
 
     const peel = this.findPeelSituation(actor, damageableEnemies);
     const oomHealer = this.findOomHealerTarget(actor, damageableEnemies);
+    const healerPressure = this.findHealerPressureTarget(actor, damageableEnemies);
 
     let target = null;
 
@@ -296,6 +297,18 @@ export class AISystem {
         );
       }
       actor.aiTargetId = oomHealer.id;
+      actor.aiPeelTargetId = null;
+      actor.aiPeelUntil = 0;
+    } else if (healerPressure) {
+      target = healerPressure;
+      if (actor.aiTargetId !== healerPressure.id) {
+        this.game.log(
+          this.game.combatantLabel(actor)
+          + " tests pressure on " + this.game.combatantLabel(healerPressure)
+          + ".",
+        );
+      }
+      actor.aiTargetId = healerPressure.id;
       actor.aiPeelTargetId = null;
       actor.aiPeelUntil = 0;
     } else {
@@ -323,13 +336,34 @@ export class AISystem {
           : null;
         const lowest = [...damageableEnemies].sort((a, b) => a.healthPct - b.healthPct)[0];
 
-        if (!currentDamageable || lowest.healthPct < 0.24) {
-          target = lowest.healthPct < 0.24
-            ? lowest
-            : this.pickPriorityTarget(actor, damageableEnemies);
-          actor.aiTargetId = target.id;
-        } else {
-          target = currentDamageable;
+        // A short healer-pressure test should end cleanly instead of turning
+        // into a permanent healer tunnel. Once the window closes, return to
+        // the normal role priority unless the healer is actually OOM or is
+        // now the lowest kill target.
+        if (currentDamageable?.role === "healer" && lowest.id !== currentDamageable.id) {
+          const nonHealers = damageableEnemies.filter(candidate => candidate.role !== "healer");
+          const resetTarget = this.pickPriorityTarget(actor, nonHealers);
+
+          if (resetTarget) {
+            target = resetTarget;
+            actor.aiTargetId = resetTarget.id;
+            this.game.log(
+              this.game.combatantLabel(actor)
+              + " returns pressure to " + this.game.combatantLabel(resetTarget)
+              + ".",
+            );
+          }
+        }
+
+        if (!target) {
+          if (!currentDamageable || lowest.healthPct < 0.24) {
+            target = lowest.healthPct < 0.24
+              ? lowest
+              : this.pickPriorityTarget(actor, damageableEnemies);
+            actor.aiTargetId = target.id;
+          } else {
+            target = currentDamageable;
+          }
         }
       }
     }
@@ -574,6 +608,48 @@ export class AISystem {
     ) || null;
   }
 
+  findHealerPressureTarget(actor, enemies) {
+    const healer = enemies.find(candidate => candidate.role === "healer");
+    if (!healer) return null;
+
+    const nonHealers = enemies.filter(candidate => candidate.id !== healer.id);
+    const lowestNonHealer = [...nonHealers]
+      .sort((a, b) => a.healthPct - b.healthPct)[0];
+
+    // Do not throw away an obvious kill just to manufacture a healer swap.
+    const killStopPct = actor.config.ai.healerPressureKillStopPct ?? 0.32;
+    if (lowestNonHealer?.healthPct <= killStopPct) return null;
+
+    const cycleSeconds = actor.config.ai.healerPressureCycleSeconds ?? 18;
+    const windowSeconds = actor.config.ai.healerPressureWindowSeconds ?? 4;
+    const cycleMs = Math.max(1000, Math.round(cycleSeconds * 1000));
+    const phaseOffset = (stableHash(actor.id + ":healer-pressure") % cycleMs) / 1000;
+    const phase = (this.game.elapsedSeconds + phaseOffset) % cycleSeconds;
+
+    if (phase >= windowSeconds) return null;
+
+    const castSpell = healer.cast
+      ? healer.getSpell(healer.cast.spellId)
+      : null;
+    const activelyHealing = Boolean(
+      castSpell
+      && castSpell.target === "ally"
+      && castSpell.effects.some(effect => ["heal", "hot"].includes(effect.kind))
+    );
+
+    const manaThreshold = actor.config.ai.healerPressureManaPct ?? 0.72;
+    const manaExposed = healer.resource.type === "mana"
+      && healer.resourcePct <= manaThreshold;
+    const healthExposed = healer.healthPct <= 0.80;
+
+    // Pressure windows are opportunities, not mandatory swaps. The healer
+    // must expose something worth reacting to: a heal cast, lower mana, or
+    // meaningful personal damage.
+    if (!activelyHealing && !manaExposed && !healthExposed) return null;
+
+    return healer;
+  }
+
   pickPriorityTarget(actor, enemies) {
     const priorityRoles = actor.config.ai.targetPriorityRoles || ["caster", "melee", "healer"];
 
@@ -598,6 +674,17 @@ export class AISystem {
   }
 
   castIfPossible(actor, spell, target) {
+    if (
+      Number.isFinite(spell?.aiStartRange)
+      && spell.castMs > 0
+      && spell.target === "enemy"
+      && target?.alive
+    ) {
+      const maxStartDistance = spell.aiStartRange + actor.radius + target.radius;
+      if (distance(actor, target) > maxStartDistance) return false;
+      if (!this.game.combat.hasLos(actor, target)) return false;
+    }
+
     return this.game.combat.tryCast(actor, spell, target, { silent: true });
   }
 

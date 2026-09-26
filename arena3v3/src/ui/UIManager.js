@@ -18,7 +18,7 @@ const ENEMY_CC_KINDS = new Set([
 
 function enemyCooldownCategory(spell) {
   if (!spell || spell.cooldownMs <= 0) return null;
-  if (spell.offensiveCooldown) return "burst";
+  if ((spell.effects || []).some(effect => effect.kind === "damageReduction")) return "defensive";
   if ((spell.effects || []).some(effect => ENEMY_CC_KINDS.has(effect.kind))) return "cc";
   return null;
 }
@@ -224,7 +224,7 @@ export class UIManager {
         `;
 
         row.querySelector(".enemy-cooldown-type").textContent =
-          category === "burst" ? "BURST" : "CC";
+          category === "defensive" ? "DEF" : "CC";
         row.querySelector(".enemy-cooldown-name").textContent = spell.name;
         row.querySelector(".enemy-cooldown-fill").style.width = "100%";
 

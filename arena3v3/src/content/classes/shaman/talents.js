@@ -103,19 +103,19 @@ export const shamanTalentTree = Object.freeze({
           ],
         },
         {
-          id: "shaman-reverberation",
-          name: "Reverberation",
+          id: "shaman-elemental-warding",
+          name: "Elemental Warding",
           tier: 3,
           requiredPoints: 6,
           maxRank: 2,
-          description: "Wind Shear recharges 10% faster and locks the interrupted school 0.25s longer per rank.",
+          description: "Astral Shift recharges 8% faster and lasts 0.25s longer per rank.",
           rankDescriptions: [
-            "Wind Shear: -10% cooldown · +0.25s lockout.",
-            "Wind Shear: -20% cooldown · +0.50s lockout.",
+            "Astral Shift: -8% cooldown · +0.25s duration.",
+            "Astral Shift: -16% cooldown · +0.50s duration.",
           ],
           effects: [
-            { type: "spellFieldScale", spellId: "shaman-wind-shear", field: "cooldownMs", perRank: -0.10, min: 3500 },
-            { type: "spellEffectFieldAdd", spellId: "shaman-wind-shear", kinds: ["interrupt"], field: "durationMs", perRank: 250 },
+            { type: "spellFieldScale", spellId: "shaman-astral-shift", field: "cooldownMs", perRank: -0.08, min: 12000 },
+            { type: "spellEffectFieldAdd", spellId: "shaman-astral-shift", kinds: ["damageReduction"], field: "durationMs", perRank: 250 },
           ],
         },
         {
@@ -240,19 +240,18 @@ export const shamanTalentTree = Object.freeze({
           ],
         },
         {
-          id: "shaman-improved-wind-shear",
-          name: "Improved Wind Shear",
+          id: "shaman-ancestral-fortitude",
+          name: "Ancestral Fortitude",
           tier: 3,
           requiredPoints: 6,
           maxRank: 2,
-          description: "Wind Shear recharges 9% faster and gains 6% range per rank.",
+          description: "Astral Shift reduces an additional 2.5 percentage points of damage per rank.",
           rankDescriptions: [
-            "Wind Shear: -9% cooldown · +6% range.",
-            "Wind Shear: -18% cooldown · +12% range.",
+            "Astral Shift damage reduction +2.5 points.",
+            "Astral Shift damage reduction +5 points.",
           ],
           effects: [
-            { type: "spellFieldScale", spellId: "shaman-wind-shear", field: "cooldownMs", perRank: -0.09, min: 3500 },
-            { type: "spellFieldScale", spellId: "shaman-wind-shear", field: "range", perRank: 0.06, min: 0 },
+            { type: "spellEffectFieldAdd", spellId: "shaman-astral-shift", kinds: ["damageReduction"], field: "value", perRank: 0.025 },
           ],
         },
         {

@@ -899,7 +899,9 @@ export class CanvasRenderer {
       "priest-pain-suppression",
       "druid-ironbark",
       "paladin-blessing",
+      "warlock-resolve",
       "shaman-astral-shift",
+      "dk-rune-tap",
     ]);
 
     const defensive = actor.effects.find(effect =>
@@ -932,9 +934,17 @@ export class CanvasRenderer {
           main: "#ffd447",
           core: "#fff2a8",
         },
+        "warlock-resolve": {
+          main: "#b76cff",
+          core: "#ead4ff",
+        },
         "shaman-astral-shift": {
           main: "#53ddf2",
           core: "#c9f8ff",
+        },
+        "dk-rune-tap": {
+          main: "#68d6ee",
+          core: "#d6f8ff",
         },
       };
 
@@ -1444,19 +1454,21 @@ export class CanvasRenderer {
     const projectileIds = new Set([
       "mage-frostbolt", "mage-pyroblast",
       "warlock-shadow-bolt", "warlock-chaos-bolt",
-      "shaman-lava-burst", "paladin-holy-shock",
+      "shaman-lava-burst", "shaman-elemental-blast",
+      "paladin-holy-shock", "paladin-judgment",
+      "mage-arcane-barrage",
       "priest-smite", "priest-holy-fire",
     ]);
 
     const healIds = new Set([
       "priest-renew", "priest-flash-heal", "priest-greater-heal",
-      "druid-rejuvenation", "druid-swiftmend", "druid-regrowth",
-      "paladin-flash-light", "paladin-holy-light",
+      "druid-rejuvenation", "druid-swiftmend", "druid-regrowth", "druid-lifebloom",
+      "paladin-flash-light", "paladin-holy-light", "paladin-word-of-glory",
     ]);
 
     const shieldIds = new Set([
       "priest-pain-suppression", "druid-ironbark",
-      "paladin-blessing", "warlock-resolve", "shaman-astral-shift",
+      "paladin-blessing", "warlock-resolve", "shaman-astral-shift", "dk-rune-tap",
     ]);
 
     const meleeIds = new Set([
@@ -1464,7 +1476,8 @@ export class CanvasRenderer {
       "warrior-overpower", "warrior-bloodthirst",
       "rogue-garrote", "rogue-sinister", "rogue-eviscerate", "rogue-kidney",
       "rogue-mutilate",
-      "dk-death-strike", "dk-obliterate",
+      "dk-death-strike", "dk-obliterate", "dk-frost-strike",
+      "shaman-stormstrike",
     ]);
 
     const controlIds = new Set([
@@ -1473,7 +1486,48 @@ export class CanvasRenderer {
       "shaman-hex", "dk-chains",
     ]);
 
-    if (projectileIds.has(spellId)) {
+    if (spellId === "warlock-drain-life") {
+      const siphonProgress = Math.sin(progress * Math.PI);
+      ctx.strokeStyle = "#bd6ff0";
+      ctx.shadowColor = "#a64ddd";
+      ctx.shadowBlur = 30;
+      ctx.lineWidth = 5.5;
+      ctx.globalAlpha = alpha * .88 * missedAlpha;
+
+      const segments = 18;
+      ctx.beginPath();
+      ctx.moveTo(to.x, to.y);
+      for (let i = 1; i <= segments; i += 1) {
+        const t = i / segments;
+        const bx = lerp(to.x, from.x, t);
+        const by = lerp(to.y, from.y, t);
+        const wave = Math.sin(effect.seed * .07 + t * Math.PI * 5 + progress * 7)
+          * 9 * (1 - Math.abs(.5 - t));
+        const nx = distanceToTarget > 0 ? -dy / distanceToTarget : 0;
+        const ny = distanceToTarget > 0 ? dx / distanceToTarget : 0;
+        ctx.lineTo(bx + nx * wave, by + ny * wave);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = "#f0c8ff";
+      ctx.lineWidth = 2.2;
+      ctx.globalAlpha = alpha * .78 * missedAlpha;
+      ctx.beginPath();
+      ctx.moveTo(to.x, to.y);
+      ctx.lineTo(from.x, from.y);
+      ctx.stroke();
+
+      ctx.fillStyle = "#dc9cff";
+      for (let i = 0; i < 6; i += 1) {
+        const t = Math.max(0, Math.min(1, progress * 1.2 - i * .08));
+        const px = lerp(to.x, from.x, t);
+        const py = lerp(to.y, from.y, t);
+        ctx.globalAlpha = alpha * (.72 - i * .08) * missedAlpha;
+        ctx.beginPath();
+        ctx.arc(px, py, 3 + siphonProgress * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (projectileIds.has(spellId)) {
       const tail = Math.max(26, Math.min(72, distanceToTarget * 0.2));
       const tx = Math.cos(angle);
       const ty = Math.sin(angle);
@@ -2378,7 +2432,8 @@ export class CanvasRenderer {
         ctx.stroke();
       }
     } else if (spellId === "mage-living-bomb" || spellId === "warlock-corruption"
-      || spellId === "shaman-flame-shock" || spellId === "dk-fever") {
+      || spellId === "shaman-flame-shock" || spellId === "dk-fever"
+      || spellId === "druid-moonfire") {
       ctx.translate(to.x, to.y);
 
       if (spellId === "mage-living-bomb") {
@@ -2463,6 +2518,27 @@ export class CanvasRenderer {
         ctx.beginPath();
         ctx.arc(0, 0, 12 + progress * 14, 0, Math.PI * 2);
         ctx.fill();
+      } else if (spellId === "druid-moonfire") {
+        ctx.shadowColor = "#9ca8ff";
+        ctx.shadowBlur = 30;
+        ctx.strokeStyle = "#b9c0ff";
+        ctx.fillStyle = "#dfe4ff";
+        ctx.lineWidth = 3.2;
+        ctx.globalAlpha = alpha * .9;
+
+        const crescent = 14 + progress * 18;
+        ctx.beginPath();
+        ctx.arc(0, 0, crescent, -Math.PI * .65, Math.PI * .65);
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .65;
+        for (let i = 0; i < 7; i += 1) {
+          const a = progress * 2.4 + i / 7 * Math.PI * 2;
+          const rr = 12 + progress * 22;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 2.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
       } else {
         ctx.shadowColor = "#72cfe7";
         ctx.shadowBlur = 28;
@@ -2554,6 +2630,9 @@ export class CanvasRenderer {
   spellVfxColor(spellId, fallbackStyle) {
     if (spellId === "priest-smite" || spellId === "priest-psychic-scream") return "#9b72c7";
     if (spellId === "mage-polymorph") return "#b9a1f2";
+    if (spellId === "mage-arcane-barrage") return "#b784ff";
+    if (spellId === "shaman-elemental-blast") return "#62e2ff";
+    if (spellId === "druid-moonfire") return "#aeb9ff";
     if (spellId === "shaman-hex") return "#72cdbc";
     if (["mage-pyroblast", "mage-living-bomb", "shaman-lava-burst", "shaman-flame-shock", "warlock-conflagrate"].includes(spellId)) {
       return "#f28a4f";

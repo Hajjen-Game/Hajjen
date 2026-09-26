@@ -2486,7 +2486,7 @@ export class CanvasRenderer {
         ctx.arc(0, 0, 10 + progress * 16, 0, Math.PI * 2);
         ctx.fill();
       }
-    } else if (spellId === "shaman-wind-shear" || spellId === "warrior-pummel"
+    } else if (spellId === "warrior-pummel"
       || spellId === "rogue-kick" || spellId === "dk-mind-freeze") {
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;

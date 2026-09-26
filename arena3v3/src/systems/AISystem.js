@@ -240,6 +240,20 @@ export class AISystem {
 
     actor.aiTargetId = target.id;
 
+    const skill = this.skill(actor);
+    const triage = this.behavior(actor, "healerTriage", 0.70);
+    const manaConservation = this.behavior(actor, "manaConservation", 0.50);
+    const defensiveGreed = this.behavior(actor, "defensiveGreed", 0.42);
+    const ccBias = this.behavior(actor, "ccBias", 0.58);
+    const offenseBias = this.behavior(actor, "healerOffenseBias", 0.42);
+
+    const defensiveThreshold = 0.50 - defensiveGreed * 0.16 + skill * 0.02;
+    const emergencyThreshold = 0.66 + triage * 0.10 - manaConservation * 0.04;
+    const bigHealThreshold = 0.64 + triage * 0.09 - manaConservation * 0.05;
+    const instantThreshold = 0.78 + triage * 0.08 - manaConservation * 0.03;
+    const sustainThreshold = 0.87 + triage * 0.06 - manaConservation * 0.05;
+    const quickThreshold = 0.91 + triage * 0.05 - manaConservation * 0.05;
+
     const panicCc = this.spell(actor, "panicCc");
     if (panicCc && this.ready(actor, panicCc)) {
       const effect = panicCc.effects.find(item => ["fearAoE", "rootAoE"].includes(item.kind));
@@ -253,9 +267,15 @@ export class AISystem {
       // Do not spend the healer's next global on panic CC while a teammate is
       // in real danger, unless the healer is personally being trained and
       // needs the CC to stay alive / keep casting.
+      const panicSafePct = 0.66 - ccBias * 0.16;
+      const panicChance = 0.30 + ccBias * 0.55 + skill * 0.10;
+
       if (
         closeEnemy
-        && (target.healthPct >= 0.55 || selfThreat)
+        && (selfThreat || (
+          target.healthPct >= panicSafePct
+          && this.shouldAttempt(actor, "healer-panic-cc", panicChance, 2.0)
+        ))
         && this.castIfPossible(actor, panicCc, actor)
       ) return;
     }
@@ -266,7 +286,12 @@ export class AISystem {
     const instant = this.spell(actor, "instantHeal");
     const sustain = this.spell(actor, "sustainHot", target);
 
-    if (target.healthPct < 0.42 && defensive && this.ready(actor, defensive) && this.castIfPossible(actor, defensive, target)) return;
+    if (
+      target.healthPct < defensiveThreshold
+      && defensive
+      && this.ready(actor, defensive)
+      && this.castIfPossible(actor, defensive, target)
+    ) return;
 
     // Under heavy pressure, prefer a true instant heal before committing to a
     // long big-heal cast. This catches Paladin Holy Shock and Druid Swiftmend,
@@ -276,33 +301,46 @@ export class AISystem {
       .find(spell => (spell.castMs || 0) <= 0);
 
     if (
-      target.healthPct < 0.70
+      target.healthPct < emergencyThreshold
       && emergencyInstant
       && this.ready(actor, emergencyInstant)
       && this.castIfPossible(actor, emergencyInstant, target)
     ) return;
 
-    if (target.healthPct < 0.70 && big && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
-    if (target.healthPct < 0.82 && instant && this.ready(actor, instant) && this.castIfPossible(actor, instant, target)) return;
+    if (target.healthPct < bigHealThreshold && big && this.ready(actor, big) && this.castIfPossible(actor, big, target)) return;
+    if (target.healthPct < instantThreshold && instant && this.ready(actor, instant) && this.castIfPossible(actor, instant, target)) return;
 
-    if (target.healthPct < 0.90 && sustain && this.ready(actor, sustain)) {
+    if (target.healthPct < sustainThreshold && sustain && this.ready(actor, sustain)) {
       const hot = sustain.effects.find(effect => effect.kind === "hot");
       const shouldApply = !hot || !target.hasEffect(sustain.id, actor.id);
       if (shouldApply && this.castIfPossible(actor, sustain, target)) return;
     }
 
-    if (target.healthPct < 0.94 && quick && this.ready(actor, quick) && this.castIfPossible(actor, quick, target)) return;
+    if (target.healthPct < quickThreshold && quick && this.ready(actor, quick) && this.castIfPossible(actor, quick, target)) return;
 
     const control = this.spell(actor, "control");
-    if (control && this.ready(actor, control) && allies.every(ally => ally.healthPct > 0.55)) {
+    const controlStablePct = 0.68 - ccBias * 0.14;
+    const controlChance = 0.24 + ccBias * 0.58 + skill * 0.10;
+    if (
+      control
+      && this.ready(actor, control)
+      && allies.every(ally => ally.healthPct > controlStablePct)
+      && this.shouldAttempt(actor, "healer-control", controlChance, 3.0)
+    ) {
       const controlTarget = this.pickCcTarget(actor, enemies, control);
       if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
     }
 
-    // Talent trees can unlock offensive spells for healers (Smite, Holy Fire,
-    // Moonfire, Judgment). Use them only when the team is stable so those
-    // talents matter without compromising healing triage.
-    if (allies.every(ally => ally.healthPct > 0.90) && enemies.length > 0) {
+    // Aggressive healers create pressure more readily; conservative healers
+    // wait for a cleaner window. The profile drifts during the match, so the
+    // tendency is readable without becoming completely deterministic.
+    const offenseStablePct = 0.97 - offenseBias * 0.13;
+    const offenseChance = 0.20 + offenseBias * 0.65 + skill * 0.10;
+    if (
+      allies.every(ally => ally.healthPct > offenseStablePct)
+      && enemies.length > 0
+      && this.shouldAttempt(actor, "healer-offense", offenseChance, 2.4)
+    ) {
       const offensiveTarget = [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
       const periodic = this.spell(actor, "periodic", offensiveTarget);
       const bigDamage = this.spell(actor, "bigDamage");
@@ -343,13 +381,23 @@ export class AISystem {
       !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, candidate)
     );
 
+    const skill = this.skill(actor);
+    const defensiveGreed = this.behavior(actor, "defensiveGreed", 0.48);
+    const defensiveThreshold = 0.52 - defensiveGreed * 0.20 + skill * 0.02;
+
     const defensive = this.spell(actor, "defensiveSelf") || this.spell(actor, "defensive");
-    if (defensive && actor.healthPct < 0.42 && this.ready(actor, defensive)) {
+    if (defensive && actor.healthPct < defensiveThreshold && this.ready(actor, defensive)) {
       if (this.castIfPossible(actor, defensive, actor)) return;
     }
 
     const interrupt = this.spell(actor, "interrupt");
-    if (interrupt && this.ready(actor, interrupt)) {
+    const interruptDiscipline = this.behavior(actor, "interruptDiscipline", 0.65);
+    const interruptChance = 0.32 + skill * 0.45 + interruptDiscipline * 0.28;
+    if (
+      interrupt
+      && this.ready(actor, interrupt)
+      && this.shouldAttempt(actor, "interrupt", interruptChance, 0.75)
+    ) {
       const interruptTarget = damageableEnemies
         .filter(candidate =>
           candidate.cast
@@ -373,7 +421,14 @@ export class AISystem {
         && distance(actor, candidate) <= radius + actor.radius + candidate.radius
         && !this.game.cc.wouldBeImmune(candidate, panicRoot)
       );
-      if (closeMelee && this.castIfPossible(actor, panicRoot, actor)) return;
+      const rootChance = 0.32
+        + this.behavior(actor, "ccBias", 0.58) * 0.48
+        + skill * 0.15;
+      if (
+        closeMelee
+        && (actor.healthPct < 0.52 || this.shouldAttempt(actor, "panic-root", rootChance, 2.0))
+        && this.castIfPossible(actor, panicRoot, actor)
+      ) return;
     }
 
     if (damageableEnemies.length === 0) return;

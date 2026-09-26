@@ -261,6 +261,32 @@ export function buildMatchReport(game) {
     });
   }
 
+  lines.push("", "=== AI CAST DIAGNOSTICS ===");
+  const castDiagnostics = game.actors
+    .filter(actor => actor.control !== "player")
+    .flatMap(actor =>
+      Object.entries(actor.aiGuardedCastStarts || {}).map(([spellId, starts]) => ({
+        name: actor.name,
+        className: actor.className,
+        spellName: actor.getSpell(spellId)?.name || spellId,
+        starts,
+        failures: actor.aiRangeLosCastFailures?.[spellId] || 0,
+      }))
+    );
+
+  if (castDiagnostics.length === 0) {
+    lines.push("No guarded AI casts recorded.");
+  } else {
+    castDiagnostics.forEach(item => {
+      lines.push(
+        item.name + " [" + item.className + "]"
+        + " — " + item.spellName
+        + " starts " + item.starts
+        + " | range/LOS failures " + item.failures,
+      );
+    });
+  }
+
   lines.push("", "=== UNEXPECTED RESET / RELOAD DIAGNOSTICS ===");
   const resetDiagnostics = (game.resetDiagnostics || []).filter(event => {
     if (event.kind === "reload") return true;

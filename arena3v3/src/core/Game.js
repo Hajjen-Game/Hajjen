@@ -193,22 +193,28 @@ export class Game {
     };
   }
 
-  prepareEnemyProgressionConfigs(characterConfigs) {
+  prepareAiProgressionConfigs(characterConfigs) {
     const playerRank = this.honor.status().rank;
 
     return characterConfigs.map(config => {
-      if (config.team !== "enemy") return config;
+      if (config.control === "player") return config;
 
       const rank = this.rollEnemyRank(playerRank);
       const talentPoints = talentPointsForRank(rank);
       const build = this.randomEnemyTalentBuild(config.classId, talentPoints);
       const progressed = build.system.applyToConfig(config);
 
-      progressed.enemyProgression = {
+      progressed.aiProgression = {
         rank,
         talentPoints,
         ...build.snapshot,
       };
+
+      // Keep the old field for enemy reports / compatibility with any
+      // existing tooling that still reads enemyProgression.
+      if (config.team === "enemy") {
+        progressed.enemyProgression = progressed.aiProgression;
+      }
 
       return progressed;
     });
@@ -892,7 +898,7 @@ export class Game {
   }
 
   startPreparedMatch(characterConfigs, arena = null) {
-    this.characterConfigs = this.prepareEnemyProgressionConfigs(characterConfigs);
+    this.characterConfigs = this.prepareAiProgressionConfigs(characterConfigs);
     if (arena) this.setArena(arena);
     this.ui?.cancelBindingCapture?.();
     this.waitingForStart = false;

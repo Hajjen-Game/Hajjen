@@ -510,6 +510,23 @@ export class AISystem {
           }
         }
 
+        if (!target && currentDamageable) {
+          const voluntarySwap = this.pickVoluntarySwapTarget(
+            actor,
+            currentDamageable,
+            damageableEnemies,
+          );
+
+          if (voluntarySwap) {
+            target = voluntarySwap;
+            actor.aiTargetId = voluntarySwap.id;
+            this.game.log(
+              this.game.combatantLabel(actor)
+              + " swaps pressure to " + this.game.combatantLabel(voluntarySwap) + ".",
+            );
+          }
+        }
+
         if (!target) {
           if (!currentDamageable || lowest.healthPct < 0.24) {
             target = lowest.healthPct < 0.24
@@ -546,7 +563,11 @@ export class AISystem {
       ) {
         controlTarget = peel.attacker;
       } else {
-        controlTarget = this.pickCcTarget(actor, enemies, control);
+        const ccBias = this.behavior(actor, "ccBias", 0.58);
+        const ccChance = 0.22 + ccBias * 0.58 + skill * 0.12;
+        if (this.shouldAttempt(actor, "damage-control", ccChance, 2.8)) {
+          controlTarget = this.pickCcTarget(actor, enemies, control);
+        }
       }
 
       if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
@@ -656,7 +677,18 @@ export class AISystem {
         attacker
         && enemies.some(candidate => candidate.id === attacker.id)
       ) {
-        return { attacker, ally };
+        const peelBias = this.behavior(actor, "peelBias", 0.55);
+        const urgency = ally.role === "healer"
+          ? 0.12 + Math.max(0, 0.72 - ally.healthPct) * 0.55
+          : Math.max(0, 0.68 - ally.healthPct) * 0.45;
+        const peelChance = 0.14 + peelBias * 0.62 + this.skill(actor) * 0.16 + urgency;
+
+        if (
+          ally.healthPct < 0.32
+          || this.shouldAttempt(actor, "peel:" + ally.id, peelChance, 2.2)
+        ) {
+          return { attacker, ally };
+        }
       }
     }
 
@@ -771,14 +803,21 @@ export class AISystem {
     const lowestNonHealer = [...nonHealers]
       .sort((a, b) => a.healthPct - b.healthPct)[0];
 
-    // Do not throw away an obvious kill just to manufacture a healer swap.
-    const killStopPct = actor.config.ai.healerPressureKillStopPct ?? 0.32;
+    // Swap-heavy players test the healer more often, while sticky players
+    // may spend most of the match tunnelling a DPS. An obvious kill still
+    // overrides personality.
+    const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.45);
+    const killStopPct = actor.config.ai.healerPressureKillStopPct
+      ?? (0.29 + this.skill(actor) * 0.04);
     if (lowestNonHealer?.healthPct <= killStopPct) return null;
 
-    const cycleSeconds = actor.config.ai.healerPressureCycleSeconds ?? 18;
-    const windowSeconds = actor.config.ai.healerPressureWindowSeconds ?? 4;
+    const cycleSeconds = actor.config.ai.healerPressureCycleSeconds
+      ?? (24 - healerSwapBias * 11);
+    const windowSeconds = actor.config.ai.healerPressureWindowSeconds
+      ?? (2.1 + healerSwapBias * 3.8);
     const cycleMs = Math.max(1000, Math.round(cycleSeconds * 1000));
-    const phaseOffset = (stableHash(actor.id + ":healer-pressure") % cycleMs) / 1000;
+    const profileSeed = this.behaviorProfile(actor)?.seed ?? actor.id;
+    const phaseOffset = (stableHash(profileSeed + ":healer-pressure") % cycleMs) / 1000;
     const phase = (this.game.elapsedSeconds + phaseOffset) % cycleSeconds;
 
     if (phase >= windowSeconds) return null;
@@ -792,17 +831,54 @@ export class AISystem {
       && castSpell.effects.some(effect => ["heal", "hot"].includes(effect.kind))
     );
 
-    const manaThreshold = actor.config.ai.healerPressureManaPct ?? 0.72;
+    const manaThreshold = actor.config.ai.healerPressureManaPct
+      ?? (0.54 + healerSwapBias * 0.32);
     const manaExposed = healer.resource.type === "mana"
       && healer.resourcePct <= manaThreshold;
-    const healthExposed = healer.healthPct <= 0.80;
+    const healthExposed = healer.healthPct <= 0.70 + healerSwapBias * 0.18;
 
     // Pressure windows are opportunities, not mandatory swaps. The healer
-    // must expose something worth reacting to: a heal cast, lower mana, or
-    // meaningful personal damage.
+    // must expose something worth reacting to, and personality still decides
+    // whether this particular window is taken.
     if (!activelyHealing && !manaExposed && !healthExposed) return null;
 
-    return healer;
+    const swapChance = 0.16 + healerSwapBias * 0.62 + this.skill(actor) * 0.12;
+    return this.shouldAttempt(actor, "healer-pressure", swapChance, 2.6)
+      ? healer
+      : null;
+  }
+
+  pickVoluntarySwapTarget(actor, current, enemies) {
+    if (!current?.alive || enemies.length < 2) return null;
+
+    const alternatives = enemies
+      .filter(candidate => candidate.id !== current.id)
+      .sort((a, b) => a.healthPct - b.healthPct);
+    const candidate = alternatives[0];
+    if (!candidate) return null;
+
+    const stickiness = this.behavior(actor, "targetStickiness", 0.58);
+    const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.42);
+    const aggression = this.behavior(actor, "aggression", 0.65);
+    const healthAdvantage = current.healthPct - candidate.healthPct;
+
+    if (candidate.role === "healer" && healerSwapBias < 0.52) return null;
+    if (candidate.role !== "healer" && healthAdvantage < -0.08) return null;
+
+    const minInterval = 2.8 + stickiness * 5.2;
+    const lastSwap = Number(actor.aiLastVoluntarySwapAt) || -99;
+    if (this.game.elapsedSeconds - lastSwap < minInterval) return null;
+
+    const killOpportunity = candidate.healthPct < 0.45 ? 0.18 : 0;
+    const chance = (1 - stickiness) * 0.46
+      + Math.max(0, healthAdvantage) * 1.15
+      + aggression * 0.08
+      + killOpportunity;
+
+    if (!this.shouldAttempt(actor, "voluntary-swap", chance, 3.2)) return null;
+
+    actor.aiLastVoluntarySwapAt = this.game.elapsedSeconds;
+    return candidate;
   }
 
   pickPriorityTarget(actor, enemies) {

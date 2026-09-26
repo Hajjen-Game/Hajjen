@@ -1,9 +1,9 @@
 import { priestClass } from "./priest/config.js?v=20260926-manapressure3";
 import { druidClass } from "./druid/config.js?v=20260926-manapressure2";
 import { paladinClass } from "./paladin/config.js?v=20260926-manapressure2";
-import { warriorClass } from "./warrior/config.js?v=20260926-slamai1";
-import { rogueClass } from "./rogue/config.js";
-import { deathKnightClass } from "./death-knight/config.js";
+import { warriorClass } from "./warrior/config.js?v=20260926-interrupt12";
+import { rogueClass } from "./rogue/config.js?v=20260926-interrupt12";
+import { deathKnightClass } from "./death-knight/config.js?v=20260926-interrupt12";
 import { mageClass } from "./mage/config.js";
 import { warlockClass } from "./warlock/config.js?v=20260926-schoolvfx2";
 import { shamanClass } from "./shaman/config.js?v=20260926-astralshift1";

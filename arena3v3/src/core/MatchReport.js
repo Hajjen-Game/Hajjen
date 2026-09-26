@@ -128,6 +128,50 @@ function appendPlayerStats(lines, loadout) {
   }
 }
 
+function appendEnemyProgression(lines, game) {
+  lines.push("", "=== ENEMY PROGRESSION / TALENT BUILDS ===");
+
+  const enemies = game.actors.filter(actor => actor.team === "enemy");
+  if (enemies.length === 0) {
+    lines.push("No enemy progression snapshot available.");
+    return;
+  }
+
+  for (const actor of enemies) {
+    const progression = actor.config?.enemyProgression;
+    if (!progression) {
+      lines.push(actor.name + " [" + actor.className + "] — progression unavailable");
+      continue;
+    }
+
+    lines.push(
+      actor.name + " [" + actor.className + "]"
+      + " — Rank " + progression.rank
+      + " | Talent Points " + progression.spentPoints + "/" + progression.talentPoints,
+    );
+
+    const grouped = new Map();
+    for (const entry of progression.entries || []) {
+      if (!grouped.has(entry.branchName)) grouped.set(entry.branchName, []);
+      grouped.get(entry.branchName).push(entry);
+    }
+
+    if (grouped.size === 0) {
+      lines.push("  Talents: None");
+      continue;
+    }
+
+    for (const [branchName, entries] of grouped.entries()) {
+      lines.push(
+        "  " + branchName + ": "
+        + entries.map(entry =>
+          entry.name + " " + entry.rank + "/" + entry.maxRank
+        ).join(", "),
+      );
+    }
+  }
+}
+
 function appendTeam(lines, game, team) {
   for (const actor of game.actors.filter(unit => unit.team === team)) {
     const stats = game.matchStats.get(actor.id);
@@ -213,6 +257,7 @@ export function buildMatchReport(game) {
   appendTalentSection(lines, game, loadout);
   appendGearSection(lines, loadout);
   appendPlayerStats(lines, loadout);
+  appendEnemyProgression(lines, game);
 
   lines.push(
     "",

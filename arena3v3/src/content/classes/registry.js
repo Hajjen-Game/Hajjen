@@ -1,4 +1,4 @@
-import { priestClass } from "./priest/config.js?v=20260926-manapressure2";
+import { priestClass } from "./priest/config.js?v=20260926-manapressure3";
 import { druidClass } from "./druid/config.js?v=20260926-manapressure2";
 import { paladinClass } from "./paladin/config.js?v=20260926-manapressure2";
 import { warriorClass } from "./warrior/config.js?v=20260926-slamai1";

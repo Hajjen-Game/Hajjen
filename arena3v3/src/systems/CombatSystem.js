@@ -37,6 +37,12 @@ export class CombatSystem {
 
           if (spell && target?.alive) {
             if (!this.inRange(actor, target, spell.range) || !this.hasLos(actor, target)) {
+              if (actor.control === "ai" && Number.isFinite(spell.aiStartRange)) {
+                actor.aiRangeLosCastFailures = actor.aiRangeLosCastFailures || {};
+                actor.aiRangeLosCastFailures[spell.id] =
+                  (actor.aiRangeLosCastFailures[spell.id] || 0) + 1;
+              }
+
               this.game.log(this.game.combatantLabel(actor) + "'s " + spell.name + " failed: target moved out of range or line of sight.");
               if (actor.control === "player") this.game.ui.toast("Target out of range or line of sight");
             } else {
@@ -170,6 +176,13 @@ export class CombatSystem {
         totalMs: spell.castMs,
         remainingMs: spell.castMs,
       };
+
+      if (caster.control === "ai" && Number.isFinite(spell.aiStartRange)) {
+        caster.aiGuardedCastStarts = caster.aiGuardedCastStarts || {};
+        caster.aiGuardedCastStarts[spell.id] =
+          (caster.aiGuardedCastStarts[spell.id] || 0) + 1;
+      }
+
       this.game.log(this.game.combatantLabel(caster) + " begins " + spell.name + ".");
       return true;
     }

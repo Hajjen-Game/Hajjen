@@ -9,10 +9,10 @@ import { CombatSystem } from "../systems/CombatSystem.js?v=20260926-cleanrings1"
 import { AISystem } from "../systems/AISystem.js?v=20260926-enemyprogress1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-talentvfx1";
 import { UIManager } from "../ui/UIManager.js?v=20260926-enemycd1";
-import { buildMatchReport } from "./MatchReport.js?v=20260926-revertstamina1";
+import { buildMatchReport } from "./MatchReport.js?v=20260926-aigear1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-astralshift2";
-import { GearSystem } from "./GearSystem.js";
+import { GearSystem } from "./GearSystem.js?v=20260926-aigear1";
 
 
 export class Game {

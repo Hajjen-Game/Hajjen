@@ -47,6 +47,7 @@ export class CanvasRenderer {
       rage: cssVar("--rage"),
       runic: cssVar("--runic"),
       priest: cssVar("--vfx-priest"),
+      priestShadow: cssVar("--vfx-priest-shadow"),
       druid: cssVar("--vfx-druid"),
       paladin: cssVar("--vfx-paladin"),
       warrior: cssVar("--vfx-warrior"),
@@ -206,8 +207,10 @@ export class CanvasRenderer {
 
     if (actor.cast) {
       const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
+      const castSpell = actor.getSpell(actor.cast.spellId);
+      const castVisualStyle = castSpell?.visualStyle || actor.visualStyle;
       ctx.globalAlpha = 0.35 + progress * 0.35;
-      ctx.strokeStyle = this.vfxColor(actor.visualStyle);
+      ctx.strokeStyle = this.vfxColor(castVisualStyle);
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(actor.x, actor.y, actor.radius + 14 + progress * 6, 0, Math.PI * 2);
@@ -1607,6 +1610,7 @@ export class CanvasRenderer {
   }
 
   spellVfxColor(spellId, fallbackStyle) {
+    if (spellId === "priest-smite") return "#9b72c7";
     if (["mage-pyroblast", "mage-living-bomb", "shaman-lava-burst", "shaman-flame-shock"].includes(spellId)) {
       return "#f28a4f";
     }
@@ -1627,6 +1631,7 @@ export class CanvasRenderer {
   }
 
   spellVfxAccent(spellId, fallback) {
+    if (spellId === "priest-smite") return "#d9c0f2";
     if (spellId === "mage-pyroblast" || spellId === "shaman-lava-burst") return "#ffd37a";
     if (spellId === "warlock-chaos-bolt") return "#d5ff9e";
     if (spellId === "mage-frostbolt") return "#e8fbff";
@@ -1763,6 +1768,7 @@ export class CanvasRenderer {
       interrupt: this.theme.interruptVfx,
       lightning: this.theme.lightning,
       priest: this.theme.priest,
+      priestShadow: this.theme.priestShadow,
       druid: this.theme.druid,
       paladin: this.theme.paladin,
       warrior: this.theme.warrior,

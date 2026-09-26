@@ -10,7 +10,7 @@ import { AISystem } from "../systems/AISystem.js?v=20260926-healerpressure1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-astralshift3";
 import { UIManager } from "../ui/UIManager.js?v=20260926-enemycd1";
 import { buildMatchReport } from "./MatchReport.js?v=20260926-slamdiag1";
-import { HonorSystem } from "./HonorSystem.js";
+import { HonorSystem, talentPointsForRank } from "./HonorSystem.js";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-astralshift2";
 import { GearSystem } from "./GearSystem.js";
 
@@ -119,6 +119,98 @@ export class Game {
       }
 
       return new Actor(actorConfig, spawn);
+    });
+  }
+
+  rollEnemyRank(playerRank) {
+    const rank = Math.max(1, Math.min(14, Number(playerRank) || 1));
+    const minRank = Math.max(1, rank - 2);
+    const maxRank = Math.min(14, rank + 1);
+    return minRank + Math.floor(Math.random() * (maxRank - minRank + 1));
+  }
+
+  randomEnemyTalentBuild(classId, earnedPoints) {
+    const system = new TalentSystem(null, classId);
+    const branches = system.tree?.branches || [];
+    const primaryBranch = branches.length > 0
+      ? branches[Math.floor(Math.random() * branches.length)]?.id
+      : null;
+
+    let guard = 0;
+    while (system.spentPoints() < earnedPoints && guard < 100) {
+      guard += 1;
+
+      const spendable = [];
+      for (const branch of branches) {
+        for (const talent of branch.talents || []) {
+          if (system.canSpend(talent.id, earnedPoints).ok) {
+            spendable.push({ branch, talent });
+          }
+        }
+      }
+
+      if (spendable.length === 0) break;
+
+      // Enemies tend to form a recognizable build instead of spreading every
+      // point evenly, while still allowing hybrid allocations.
+      const preferred = spendable.filter(entry => entry.branch.id === primaryBranch);
+      const pool = preferred.length > 0 && Math.random() < 0.72
+        ? preferred
+        : spendable;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      system.spend(pick.talent.id, earnedPoints);
+    }
+
+    const status = system.status(earnedPoints);
+    const entries = [];
+
+    for (const branch of branches) {
+      for (const talent of branch.talents || []) {
+        const rank = Number(status.allocations?.[talent.id] || 0);
+        if (rank <= 0) continue;
+
+        entries.push({
+          id: talent.id,
+          name: talent.name,
+          branchId: branch.id,
+          branchName: branch.name,
+          rank,
+          maxRank: talent.maxRank,
+        });
+      }
+    }
+
+    return {
+      system,
+      snapshot: {
+        earnedPoints,
+        spentPoints: status.spentPoints,
+        availablePoints: status.availablePoints,
+        branchPoints: { ...(status.branchPoints || {}) },
+        primaryBranch,
+        entries,
+      },
+    };
+  }
+
+  prepareEnemyProgressionConfigs(characterConfigs) {
+    const playerRank = this.honor.status().rank;
+
+    return characterConfigs.map(config => {
+      if (config.team !== "enemy") return config;
+
+      const rank = this.rollEnemyRank(playerRank);
+      const talentPoints = talentPointsForRank(rank);
+      const build = this.randomEnemyTalentBuild(config.classId, talentPoints);
+      const progressed = build.system.applyToConfig(config);
+
+      progressed.enemyProgression = {
+        rank,
+        talentPoints,
+        ...build.snapshot,
+      };
+
+      return progressed;
     });
   }
 
@@ -800,7 +892,7 @@ export class Game {
   }
 
   startPreparedMatch(characterConfigs, arena = null) {
-    this.characterConfigs = characterConfigs;
+    this.characterConfigs = this.prepareEnemyProgressionConfigs(characterConfigs);
     if (arena) this.setArena(arena);
     this.ui?.cancelBindingCapture?.();
     this.waitingForStart = false;

@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260926-cleanrings1";
 import { AISystem } from "../systems/AISystem.js?v=20260926-healerpressure1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-defring1";
-import { UIManager } from "../ui/UIManager.js?v=20260925-keycapture1";
+import { UIManager } from "../ui/UIManager.js?v=20260926-enemycd1";
 import { buildMatchReport } from "./MatchReport.js?v=20260926-slamdiag1";
 import { HonorSystem } from "./HonorSystem.js";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-mindblastvfx1";

@@ -140,7 +140,7 @@ export class CanvasRenderer {
   drawPillar(ctx, rect) {
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,.45)";
-    ctx.shadowBlur = 28;
+    ctx.shadowBlur = 16;
     ctx.shadowOffsetY = 8;
 
     roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 16);
@@ -1373,6 +1373,9 @@ export class CanvasRenderer {
     const missedAlpha = effect.missed ? 0.72 : 1;
 
     ctx.save();
+    // Transient spell art should read as emitted light against the dark arena.
+    // Additive blending makes saturated cores/trails pop without adding persistent rings.
+    ctx.globalCompositeOperation = "lighter";
     ctx.globalAlpha = alpha * missedAlpha;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -1423,9 +1426,9 @@ export class CanvasRenderer {
 
       if (spellId === "mage-frostbolt") {
         ctx.shadowColor = "#5ee2ff";
-        ctx.shadowBlur = 30;
-        ctx.globalAlpha = alpha * .52 * missedAlpha;
-        ctx.strokeStyle = "#58dcff";
+        ctx.shadowBlur = 40;
+        ctx.globalAlpha = alpha * .68 * missedAlpha;
+        ctx.strokeStyle = "#35d9ff";
         ctx.lineWidth = 11;
         const tailPoint = trailPoint(tail);
         ctx.beginPath();
@@ -1434,8 +1437,8 @@ export class CanvasRenderer {
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .92 * missedAlpha;
-        ctx.strokeStyle = "#dffaff";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#f4feff";
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
@@ -1444,8 +1447,8 @@ export class CanvasRenderer {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angle);
-        ctx.fillStyle = "#b5f2ff";
-        ctx.strokeStyle = "#effdff";
+        ctx.fillStyle = "#78e9ff";
+        ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
         ctx.shadowBlur = 24;
         ctx.beginPath();
@@ -1509,9 +1512,9 @@ export class CanvasRenderer {
       } else if (spellId === "warlock-chaos-bolt") {
         const tailPoint = trailPoint(tail * 1.05);
         ctx.shadowColor = "#4ff05d";
-        ctx.shadowBlur = 30;
-        ctx.globalAlpha = alpha * .48 * missedAlpha;
-        ctx.strokeStyle = "#42e653";
+        ctx.shadowBlur = 42;
+        ctx.globalAlpha = alpha * .68 * missedAlpha;
+        ctx.strokeStyle = "#26ef44";
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
@@ -1519,8 +1522,8 @@ export class CanvasRenderer {
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .9 * missedAlpha;
-        ctx.strokeStyle = "#9cff78";
-        ctx.lineWidth = 5.5;
+        ctx.strokeStyle = "#c6ff72";
+        ctx.lineWidth = 6.5;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
@@ -1528,7 +1531,7 @@ export class CanvasRenderer {
 
         ctx.save();
         ctx.translate(x, y);
-        ctx.fillStyle = "#baff86";
+        ctx.fillStyle = "#d7ff70";
         ctx.strokeStyle = "#5ddc61";
         ctx.shadowColor = "#64e46b";
         ctx.shadowBlur = 30;
@@ -1587,25 +1590,25 @@ export class CanvasRenderer {
         }
       } else if (spellId === "warlock-shadow-bolt") {
         const tailPoint = trailPoint(tail);
-        ctx.shadowColor = "#b566e8";
-        ctx.shadowBlur = 26;
-        ctx.globalAlpha = alpha * .5 * missedAlpha;
-        ctx.strokeStyle = "#7f4aad";
-        ctx.lineWidth = 12;
+        ctx.shadowColor = "#c34cff";
+        ctx.shadowBlur = 38;
+        ctx.globalAlpha = alpha * .68 * missedAlpha;
+        ctx.strokeStyle = "#a43cdd";
+        ctx.lineWidth = 13;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .9 * missedAlpha;
-        ctx.strokeStyle = "#c69be6";
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#efc1ff";
+        ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.fillStyle = "#c47af0";
+        ctx.fillStyle = "#d968ff";
         ctx.shadowColor = "#a765d4";
         ctx.shadowBlur = 28;
         ctx.globalAlpha = alpha * missedAlpha;
@@ -1637,26 +1640,26 @@ export class CanvasRenderer {
         }
       } else if (spellId === "mage-pyroblast") {
         const tailPoint = trailPoint(tail * 1.15);
-        ctx.shadowColor = "#ff5a24";
-        ctx.shadowBlur = 32;
-        ctx.globalAlpha = alpha * .5 * missedAlpha;
-        ctx.strokeStyle = "#f34c24";
-        ctx.lineWidth = 16;
+        ctx.shadowColor = "#ff3d12";
+        ctx.shadowBlur = 44;
+        ctx.globalAlpha = alpha * .7 * missedAlpha;
+        ctx.strokeStyle = "#ff431a";
+        ctx.lineWidth = 17;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .92 * missedAlpha;
-        ctx.strokeStyle = "#ffd05c";
-        ctx.lineWidth = 6;
+        ctx.strokeStyle = "#ffe36a";
+        ctx.lineWidth = 7;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
         const pulse = .82 + Math.sin(progress * 18) * .12;
-        ctx.fillStyle = "#ff7a39";
+        ctx.fillStyle = "#ff641f";
         ctx.shadowColor = "#ff6b2f";
         ctx.shadowBlur = 26;
         ctx.globalAlpha = alpha * missedAlpha;
@@ -1664,7 +1667,7 @@ export class CanvasRenderer {
         ctx.arc(x, y, 15 * pulse, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = "#ffe38a";
+        ctx.fillStyle = "#fff1a6";
         ctx.globalAlpha = alpha * .86 * missedAlpha;
         ctx.beginPath();
         ctx.arc(x - 3, y - 3, 7, 0, Math.PI * 2);
@@ -1695,19 +1698,19 @@ export class CanvasRenderer {
         }
       } else if (spellId === "shaman-lava-burst") {
         const tailPoint = trailPoint(tail);
-        ctx.shadowColor = "#ff6336";
-        ctx.shadowBlur = 28;
-        ctx.globalAlpha = alpha * .48 * missedAlpha;
-        ctx.strokeStyle = "#f04a28";
-        ctx.lineWidth = 13;
+        ctx.shadowColor = "#ff4018";
+        ctx.shadowBlur = 40;
+        ctx.globalAlpha = alpha * .68 * missedAlpha;
+        ctx.strokeStyle = "#ff4a1f";
+        ctx.lineWidth = 14;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .9 * missedAlpha;
-        ctx.strokeStyle = "#ffbc58";
-        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#ffdc64";
+        ctx.lineWidth = 6;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
@@ -1716,7 +1719,7 @@ export class CanvasRenderer {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(progress * 9);
-        ctx.fillStyle = "#ef6238";
+        ctx.fillStyle = "#ff5a25";
         ctx.strokeStyle = "#ffd36f";
         ctx.shadowColor = "#f15c37";
         ctx.shadowBlur = 28;
@@ -1747,25 +1750,25 @@ export class CanvasRenderer {
         }
       } else if (spellId === "priest-smite") {
         const tailPoint = trailPoint(tail * .88);
-        ctx.shadowColor = "#b56ce8";
-        ctx.shadowBlur = 26;
-        ctx.globalAlpha = alpha * .34 * missedAlpha;
-        ctx.strokeStyle = "#8745c7";
-        ctx.lineWidth = 11;
+        ctx.shadowColor = "#c44fff";
+        ctx.shadowBlur = 38;
+        ctx.globalAlpha = alpha * .62 * missedAlpha;
+        ctx.strokeStyle = "#a638e6";
+        ctx.lineWidth = 12;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .92 * missedAlpha;
-        ctx.strokeStyle = "#c6a2e6";
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#efd0ff";
+        ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.fillStyle = "#a876d1";
+        ctx.fillStyle = "#c45ff0";
         ctx.shadowColor = "#a876d1";
         ctx.shadowBlur = 30;
         ctx.beginPath();
@@ -1794,25 +1797,25 @@ export class CanvasRenderer {
         }
       } else if (spellId === "paladin-holy-shock") {
         const tailPoint = trailPoint(tail * .7);
-        ctx.shadowColor = "#f2c84f";
-        ctx.shadowBlur = 30;
-        ctx.globalAlpha = alpha * .48 * missedAlpha;
-        ctx.strokeStyle = "#f2b52e";
-        ctx.lineWidth = 11;
+        ctx.shadowColor = "#ffd329";
+        ctx.shadowBlur = 40;
+        ctx.globalAlpha = alpha * .68 * missedAlpha;
+        ctx.strokeStyle = "#ffc51f";
+        ctx.lineWidth = 12;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
         ctx.globalAlpha = alpha * .9 * missedAlpha;
-        ctx.strokeStyle = "#fff0a8";
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#fff8cf";
+        ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.moveTo(tailPoint.x, tailPoint.y);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.fillStyle = "#ffe56d";
+        ctx.fillStyle = "#ffe94a";
         ctx.shadowColor = "#f0c64b";
         ctx.shadowBlur = 28;
         ctx.beginPath();
@@ -1832,7 +1835,7 @@ export class CanvasRenderer {
       } else {
         const tailPoint = trailPoint(tail);
         ctx.shadowColor = color;
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 30;
         ctx.strokeStyle = color;
         ctx.lineWidth = 7;
         ctx.globalAlpha = alpha * .62 * missedAlpha;
@@ -1936,7 +1939,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       ctx.rotate(angle + Math.PI / 4);
       ctx.shadowColor = "#d77b64";
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 30;
       ctx.strokeStyle = "#cf755f";
       ctx.lineWidth = 7;
       ctx.globalAlpha = alpha * .94;
@@ -2027,7 +2030,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       const pulse = Math.sin(progress * Math.PI);
       ctx.shadowColor = "#f0d36a";
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 30;
       ctx.strokeStyle = "#e7cb68";
       ctx.fillStyle = "#fff0a0";
       ctx.globalAlpha = alpha * .92;
@@ -2115,7 +2118,7 @@ export class CanvasRenderer {
       ctx.rotate(angle + Math.PI / 4);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 24;
       const heavyMelee = spellId.includes("eviscerate") || spellId.includes("slam") || spellId.includes("obliterate");
       ctx.lineWidth = heavyMelee ? 7 : 4.5;
       const spread = 21 + progress * 26;
@@ -2172,14 +2175,14 @@ export class CanvasRenderer {
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 24;
       ctx.lineWidth = 3.5;
 
       if (spellId === "priest-psychic-scream") {
         ctx.strokeStyle = "#b38add";
         ctx.fillStyle = "#d9c4f2";
         ctx.shadowColor = "#8f63bd";
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 30;
         ctx.globalAlpha = alpha * .9;
 
         for (let ring = 0; ring < 3; ring += 1) {
@@ -2204,7 +2207,7 @@ export class CanvasRenderer {
         ctx.strokeStyle = "#bb80df";
         ctx.fillStyle = "#d9a8f0";
         ctx.shadowColor = "#8d4db0";
-        ctx.shadowBlur = 19;
+        ctx.shadowBlur = 28;
         ctx.globalAlpha = alpha * .96;
         ctx.lineWidth = 3.3;
 
@@ -2319,7 +2322,7 @@ export class CanvasRenderer {
 
       if (spellId === "mage-living-bomb") {
         ctx.shadowColor = "#ff6938";
-        ctx.shadowBlur = 21;
+        ctx.shadowBlur = 32;
         ctx.strokeStyle = "#ff6f2f";
         ctx.fillStyle = "#ffd36d";
         ctx.globalAlpha = alpha * .9;
@@ -2347,7 +2350,7 @@ export class CanvasRenderer {
         ctx.stroke();
       } else if (spellId === "warlock-corruption") {
         ctx.shadowColor = "#8d4bb2";
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 30;
         ctx.strokeStyle = "#bf70e9";
         ctx.fillStyle = "#9b5bc0";
         ctx.lineWidth = 3.2;
@@ -2374,7 +2377,7 @@ export class CanvasRenderer {
         ctx.stroke();
       } else if (spellId === "shaman-flame-shock") {
         ctx.shadowColor = "#f05d35";
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 30;
         ctx.strokeStyle = "#ff7132";
         ctx.fillStyle = "#ffbd59";
         ctx.lineWidth = 3.2;
@@ -2401,7 +2404,7 @@ export class CanvasRenderer {
         ctx.fill();
       } else {
         ctx.shadowColor = "#72cfe7";
-        ctx.shadowBlur = 19;
+        ctx.shadowBlur = 28;
         ctx.strokeStyle = "#6ee6ff";
         ctx.fillStyle = "#c4f4ff";
         ctx.lineWidth = 2.8;
@@ -2470,7 +2473,7 @@ export class CanvasRenderer {
       ctx.translate(to.x, to.y);
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 22;
+      ctx.shadowBlur = 32;
       ctx.lineWidth = 4;
       ctx.globalAlpha = alpha * .96;
       ctx.beginPath();

@@ -1048,6 +1048,7 @@ export class CanvasRenderer {
         const beamColor = this.vfxColor(effect.style);
 
         if (healingBeam) {
+          ctx.globalCompositeOperation = "lighter";
           const palettes = {
             priest: { main: "#ffd75a", core: "#fff8d1", mote: "#fffbe8" },
             paladin: { main: "#ffca3a", core: "#fff0a0", mote: "#fff7c7" },
@@ -1328,9 +1329,10 @@ export class CanvasRenderer {
         if (actors.length < 2) continue;
 
         ctx.save();
-        ctx.globalAlpha = 0.45 + alpha * 0.55;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = 0.58 + alpha * 0.42;
         ctx.shadowColor = this.vfxColor(effect.style);
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 24;
 
         for (let i = 0; i < actors.length - 1; i += 1) {
           this.drawLightningSegment(

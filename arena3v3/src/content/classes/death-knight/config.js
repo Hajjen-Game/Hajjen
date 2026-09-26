@@ -40,7 +40,7 @@ export const deathKnightClass = {
     },
     {
       id: "dk-mind-freeze", name: "Mind Freeze", aiRole: "interrupt", visualStyle: "deathKnight",
-      target: "enemy", school: "shadowfrost", utility: true, resourceCost: 8, castMs: 0, cooldownMs: 10000, gcdMs: 0, ignoreGcd: true, range: 75,
+      target: "enemy", school: "shadowfrost", utility: true, resourceCost: 8, castMs: 0, cooldownMs: 12000, gcdMs: 0, ignoreGcd: true, range: 75,
       noHitRoll: true,
       effects: [{ kind: "interrupt", durationMs: 3000 }],
     },

@@ -1624,6 +1624,184 @@ export class CanvasRenderer {
           ctx.stroke();
         }
       }
+    } else if (spellId === "warrior-mortal-strike") {
+      ctx.translate(to.x, to.y);
+      ctx.rotate(angle + Math.PI / 4);
+      ctx.shadowColor = "#d77b64";
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = "#cf755f";
+      ctx.lineWidth = 7;
+      ctx.globalAlpha = alpha * .94;
+
+      const spread = 24 + progress * 30;
+      ctx.beginPath();
+      ctx.arc(0, 0, spread, -Math.PI * .9, Math.PI * .12);
+      ctx.stroke();
+
+      ctx.rotate(-Math.PI / 2.35);
+      ctx.strokeStyle = "#f0ad82";
+      ctx.lineWidth = 4.5;
+      ctx.globalAlpha = alpha * .8;
+      ctx.beginPath();
+      ctx.arc(0, 0, spread - 5, -Math.PI * .78, Math.PI * .05);
+      ctx.stroke();
+
+      ctx.globalAlpha = alpha * .68;
+      ctx.fillStyle = "#ffd1ad";
+      for (let i = 0; i < 6; i += 1) {
+        const a = (i / 6) * Math.PI * 2 + progress * 1.6;
+        const r = 15 + progress * 22;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * r, Math.sin(a) * r, 2.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (spellId === "warrior-slam") {
+      ctx.translate(to.x, to.y);
+      const impact = 15 + progress * 38;
+      ctx.shadowColor = "#c98d69";
+      ctx.shadowBlur = 18;
+      ctx.strokeStyle = "#d8a17b";
+      ctx.lineWidth = 5.5;
+      ctx.globalAlpha = alpha * .92;
+      ctx.beginPath();
+      ctx.arc(0, 0, impact, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#f0c6a0";
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = alpha * .74;
+      for (let i = 0; i < 7; i += 1) {
+        const a = (i / 7) * Math.PI * 2 + effect.seed * .013;
+        const inner = 8 + progress * 5;
+        const outer = 21 + progress * 31;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+        ctx.lineTo(
+          Math.cos(a) * outer + Math.sin(effect.seed + i) * 3,
+          Math.sin(a) * outer + Math.cos(effect.seed + i) * 3,
+        );
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = alpha * .18;
+      ctx.fillStyle = "#d69b75";
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(6, impact - 8), 0, Math.PI * 2);
+      ctx.fill();
+    } else if (spellId === "rogue-eviscerate") {
+      ctx.translate(to.x, to.y);
+      ctx.rotate(angle + Math.PI / 4);
+      ctx.shadowColor = "#e7cb68";
+      ctx.shadowBlur = 18;
+      ctx.strokeStyle = "#efd86f";
+      ctx.lineCap = "round";
+
+      const slash = 21 + progress * 29;
+      for (let i = -1; i <= 1; i += 1) {
+        ctx.globalAlpha = alpha * (i === 0 ? .96 : .7);
+        ctx.lineWidth = i === 0 ? 6 : 3.5;
+        ctx.beginPath();
+        ctx.moveTo(-slash, i * 9 - slash * .25);
+        ctx.lineTo(slash, i * 9 + slash * .25);
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = alpha * .65;
+      ctx.fillStyle = "#fff0a2";
+      for (let i = 0; i < 5; i += 1) {
+        const a = -0.8 + i * .38;
+        const r = 15 + progress * 24;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * r, Math.sin(a) * r, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (spellId === "rogue-kidney") {
+      ctx.translate(to.x, to.y);
+      const pulse = Math.sin(progress * Math.PI);
+      ctx.shadowColor = "#f0d36a";
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = "#e7cb68";
+      ctx.fillStyle = "#fff0a0";
+      ctx.globalAlpha = alpha * .92;
+      ctx.lineWidth = 4;
+
+      const rr = 18 + progress * 26;
+      ctx.beginPath();
+      ctx.arc(0, 0, rr, 0, Math.PI * 2);
+      ctx.stroke();
+
+      for (let i = 0; i < 4; i += 1) {
+        const a = i * Math.PI / 2 + Math.PI / 4;
+        const inner = 8 + pulse * 4;
+        const outer = 22 + progress * 15;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+        ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = alpha * .72;
+      ctx.beginPath();
+      ctx.arc(0, 0, 5 + pulse * 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (spellId === "dk-obliterate") {
+      ctx.translate(to.x, to.y);
+      const fracture = 17 + progress * 34;
+      ctx.shadowColor = "#86dcf0";
+      ctx.shadowBlur = 22;
+      ctx.strokeStyle = "#8edced";
+      ctx.lineWidth = 4.5;
+      ctx.globalAlpha = alpha * .94;
+
+      ctx.beginPath();
+      ctx.arc(0, 0, fracture, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#e7fbff";
+      ctx.lineWidth = 2.8;
+      for (let i = 0; i < 8; i += 1) {
+        const a = (i / 8) * Math.PI * 2 + effect.seed * .01;
+        const inner = 7 + (i % 2) * 4;
+        const middle = 18 + progress * 12;
+        const outer = 28 + progress * 26;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+        ctx.lineTo(
+          Math.cos(a + .08 * (i % 2 ? 1 : -1)) * middle,
+          Math.sin(a + .08 * (i % 2 ? 1 : -1)) * middle,
+        );
+        ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+        ctx.stroke();
+      }
+    } else if (spellId === "dk-death-strike") {
+      ctx.translate(to.x, to.y);
+      ctx.shadowColor = "#9b3342";
+      ctx.shadowBlur = 18;
+      ctx.strokeStyle = "#b94a58";
+      ctx.lineWidth = 5;
+      ctx.globalAlpha = alpha * .9;
+
+      const rr = 19 + progress * 27;
+      ctx.beginPath();
+      ctx.arc(0, 0, rr, -Math.PI * .88, Math.PI * .22);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#9fdcea";
+      ctx.lineWidth = 2.6;
+      ctx.globalAlpha = alpha * .7;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(9, rr - 8), -Math.PI * .75, Math.PI * .08);
+      ctx.stroke();
+
+      ctx.fillStyle = "#d65d69";
+      for (let i = 0; i < 5; i += 1) {
+        const a = (i / 5) * Math.PI * 2 - progress * 2.2;
+        const r = 24 - progress * 11;
+        ctx.globalAlpha = alpha * .65;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * r, Math.sin(a) * r, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     } else if (meleeIds.has(spellId)) {
       ctx.translate(to.x, to.y);
       ctx.rotate(angle + Math.PI / 4);
@@ -1689,7 +1867,115 @@ export class CanvasRenderer {
       ctx.shadowBlur = 15;
       ctx.lineWidth = 3.5;
 
-      if (spellId === "paladin-hammer") {
+      if (spellId === "priest-psychic-scream") {
+        ctx.strokeStyle = "#b38add";
+        ctx.fillStyle = "#d9c4f2";
+        ctx.shadowColor = "#8f63bd";
+        ctx.shadowBlur = 20;
+        ctx.globalAlpha = alpha * .9;
+
+        for (let ring = 0; ring < 3; ring += 1) {
+          const rr = 12 + ring * 9 + progress * (20 + ring * 4);
+          ctx.lineWidth = 3.8 - ring * .7;
+          ctx.beginPath();
+          ctx.arc(0, 0, rr, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ctx.lineWidth = 2.5;
+        for (let i = 0; i < 8; i += 1) {
+          const a = (i / 8) * Math.PI * 2 + progress * .8;
+          const inner = 10 + progress * 5;
+          const outer = 25 + progress * 25;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+          ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+          ctx.stroke();
+        }
+      } else if (spellId === "warlock-fear") {
+        ctx.strokeStyle = "#bb80df";
+        ctx.fillStyle = "#d9a8f0";
+        ctx.shadowColor = "#8d4db0";
+        ctx.shadowBlur = 19;
+        ctx.globalAlpha = alpha * .88;
+        ctx.lineWidth = 3.3;
+
+        for (let i = 0; i < 6; i += 1) {
+          const base = (i / 6) * Math.PI * 2 + progress * 1.7;
+          ctx.beginPath();
+          for (let s = 0; s <= 12; s += 1) {
+            const t = s / 12;
+            const a = base + t * .8 * (i % 2 ? 1 : -1);
+            const rr = 7 + t * (26 + progress * 16);
+            const px = Math.cos(a) * rr;
+            const py = Math.sin(a) * rr * .78;
+            if(s===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+          }
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = alpha * .42;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10 + progress * 8, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (spellId === "mage-polymorph") {
+        ctx.strokeStyle = "#bfa5ff";
+        ctx.fillStyle = "#e9deff";
+        ctx.shadowColor = "#a98df1";
+        ctx.shadowBlur = 18;
+        ctx.globalAlpha = alpha * .92;
+
+        const star = 9 + Math.sin(progress * Math.PI) * 5;
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i += 1) {
+          const a = -Math.PI / 2 + (i / 10) * Math.PI * 2 + progress * .7;
+          const rr = i % 2 === 0 ? star * 1.55 : star * .65;
+          const px = Math.cos(a) * rr;
+          const py = Math.sin(a) * rr;
+          if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        for (let i = 0; i < 7; i += 1) {
+          const a = progress * 3.4 + (i / 7) * Math.PI * 2;
+          const rr = 18 + progress * 19;
+          ctx.globalAlpha = alpha * (.45 + (i % 2) * .25);
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, 2.3 + (i % 3 === 0 ? 1 : 0), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (spellId === "shaman-hex") {
+        ctx.strokeStyle = "#75d5c4";
+        ctx.fillStyle = "#a8eadf";
+        ctx.shadowColor = "#56bcae";
+        ctx.shadowBlur = 18;
+        ctx.globalAlpha = alpha * .9;
+        ctx.lineWidth = 3;
+
+        const rr = 17 + progress * 18;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i += 1) {
+          const a = -Math.PI / 2 + (i / 6) * Math.PI * 2 + progress * .5;
+          const px = Math.cos(a) * rr;
+          const py = Math.sin(a) * rr;
+          if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.globalAlpha = alpha * .7;
+        for (let i = 0; i < 3; i += 1) {
+          const a = progress * 2 + i * Math.PI * 2 / 3;
+          const inner = 7;
+          const outer = 22 + progress * 14;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+          ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+          ctx.stroke();
+        }
+      } else if (spellId === "paladin-hammer") {
         ctx.globalAlpha = alpha * .9;
         ctx.rotate(-0.35 + progress * .7);
         ctx.strokeRect(-4, -19, 8, 23);
@@ -1794,7 +2080,9 @@ export class CanvasRenderer {
   }
 
   spellVfxColor(spellId, fallbackStyle) {
-    if (spellId === "priest-smite") return "#9b72c7";
+    if (spellId === "priest-smite" || spellId === "priest-psychic-scream") return "#9b72c7";
+    if (spellId === "mage-polymorph") return "#b9a1f2";
+    if (spellId === "shaman-hex") return "#72cdbc";
     if (["mage-pyroblast", "mage-living-bomb", "shaman-lava-burst", "shaman-flame-shock", "warlock-conflagrate"].includes(spellId)) {
       return "#f28a4f";
     }
@@ -1815,7 +2103,9 @@ export class CanvasRenderer {
   }
 
   spellVfxAccent(spellId, fallback) {
-    if (spellId === "priest-smite") return "#d9c0f2";
+    if (spellId === "priest-smite" || spellId === "priest-psychic-scream") return "#d9c0f2";
+    if (spellId === "mage-polymorph") return "#eadfff";
+    if (spellId === "shaman-hex") return "#b8f2e6";
     if (["mage-pyroblast", "shaman-lava-burst", "warlock-conflagrate"].includes(spellId)) return "#ffd37a";
     if (spellId === "warlock-chaos-bolt") return "#d5ff9e";
     if (spellId === "mage-frostbolt") return "#e8fbff";

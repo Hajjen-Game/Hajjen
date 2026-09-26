@@ -895,6 +895,18 @@ export class CanvasRenderer {
   }
 
   drawCombatState(ctx, actor, game) {
+    const defensiveIds = new Set([
+      "priest-pain-suppression",
+      "druid-ironbark",
+      "paladin-blessing",
+    ]);
+
+    const defensive = actor.effects.find(effect =>
+      effect.remainingMs > 0
+      && effect.kind === "damageReduction"
+      && defensiveIds.has(effect.spellId)
+    );
+
     const ccKinds = ["stun", "fear", "incapacitate", "root"];
     const cc = actor.effects
       .filter(effect => effect.remainingMs > 0 && ccKinds.includes(effect.kind))
@@ -903,8 +915,50 @@ export class CanvasRenderer {
         return priority[a.kind] - priority[b.kind];
       })[0];
 
-    // Big-damage abilities no longer draw a persistent BURST ring.
-    // Keep only actual crowd-control world feedback here.
+    if (!defensive && !cc) return;
+
+    if (defensive) {
+      const defensivePalette = {
+        "priest-pain-suppression": {
+          main: "#c56cff",
+          core: "#f1d4ff",
+        },
+        "druid-ironbark": {
+          main: "#66df76",
+          core: "#c6f3a8",
+        },
+        "paladin-blessing": {
+          main: "#ffd447",
+          core: "#fff2a8",
+        },
+      };
+
+      const palette = defensivePalette[defensive.spellId];
+      const defensivePulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 3.8);
+      const radius = actor.radius + 20 + defensivePulse * 2.5;
+
+      ctx.save();
+      ctx.globalAlpha = 0.72 + defensivePulse * 0.12;
+      ctx.strokeStyle = palette.main;
+      ctx.shadowColor = palette.main;
+      ctx.shadowBlur = 16 + defensivePulse * 5;
+      ctx.lineWidth = 3.8;
+      ctx.beginPath();
+      ctx.arc(actor.x, actor.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = 0.42 + defensivePulse * 0.10;
+      ctx.strokeStyle = palette.core;
+      ctx.shadowColor = palette.core;
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(actor.x, actor.y, radius - 5.5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
     if (!cc) return;
 
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 8);

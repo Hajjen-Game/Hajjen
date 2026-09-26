@@ -341,13 +341,8 @@ export class CombatSystem {
       label,
     });
 
-    this.game.vfx.ring(
-      caster,
-      style,
-      caster.radius + 12,
-      caster.radius + 42,
-      460,
-    );
+    // The old BURST world ring is intentionally disabled.
+    // Keep the lightweight text/status marker for now until true offensive cooldowns exist.
     this.game.addFloatingText(caster, label, "burst");
   }
 

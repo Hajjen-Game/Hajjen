@@ -1,4 +1,4 @@
-import { priestTalentTree } from "../classes/priest/talents.js?v=20260925-schools1";
+import { priestTalentTree } from "../classes/priest/talents.js?v=20260926-mindblastvfx1";
 import { druidTalentTree } from "../classes/druid/talents.js";
 import { mageTalentTree } from "../classes/mage/talents.js";
 import { paladinTalentTree } from "../classes/paladin/talents.js";

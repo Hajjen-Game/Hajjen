@@ -1,11 +1,56 @@
 import { hasLineOfSight } from "../core/LineOfSight.js";
 import { distance, normalize, stableHash } from "../core/utils.js";
 
+function clamp01(value) {
+  return Math.max(0, Math.min(1, Number(value) || 0));
+}
+
 export class AISystem {
   constructor(game, movementSystem) {
     this.game = game;
     this.movement = movementSystem;
     this.thinkTimers = new Map();
+  }
+
+  behaviorProfile(actor) {
+    return actor?.config?.aiBehaviorProfile || null;
+  }
+
+  skill(actor) {
+    return clamp01(this.behaviorProfile(actor)?.skill ?? 0.65);
+  }
+
+  behavior(actor, key, fallback = 0.5) {
+    const profile = this.behaviorProfile(actor);
+    if (!profile || !Number.isFinite(profile[key])) return fallback;
+
+    const base = clamp01(profile[key]);
+    const volatility = clamp01(profile.volatility ?? 0.35);
+    const seed = Number(profile.seed) || stableHash(actor.id + ":behavior");
+    const driftSeconds = 7 + (Math.abs(seed) % 5);
+    const bucket = Math.floor(this.game.elapsedSeconds / driftSeconds);
+    const raw = (stableHash(seed + ":" + key + ":" + bucket) % 10001) / 10000;
+    const drift = (raw - 0.5) * 0.28 * volatility;
+
+    return clamp01(base + drift);
+  }
+
+  decisionRoll(actor, key, bucketSeconds = 2.5) {
+    const profile = this.behaviorProfile(actor);
+    const seed = Number(profile?.seed) || stableHash(actor.id + ":decision");
+    const bucket = Math.floor(this.game.elapsedSeconds / Math.max(0.35, bucketSeconds));
+    return (stableHash(seed + ":" + key + ":" + bucket) % 10001) / 10000;
+  }
+
+  shouldAttempt(actor, key, chance, bucketSeconds = 2.5) {
+    return this.decisionRoll(actor, key, bucketSeconds) < clamp01(chance);
+  }
+
+  thinkDelay(actor) {
+    const skill = this.skill(actor);
+    const base = 0.225 - skill * 0.105;
+    const jitter = (stableHash(actor.id + ":think") % 31) / 1000;
+    return Math.max(0.095, base + jitter);
   }
 
   update(deltaSeconds) {
@@ -30,7 +75,7 @@ export class AISystem {
       }
 
       if (remaining <= 0) {
-        this.thinkTimers.set(actor.id, 0.12 + (stableHash(actor.id) % 80) / 1000);
+        this.thinkTimers.set(actor.id, this.thinkDelay(actor));
         this.think(actor);
       }
 
@@ -93,15 +138,18 @@ export class AISystem {
       effect.kind === "healingReduction" && effect.remainingMs > 0
     );
 
-    // Missing health remains the main signal. Current enemy pressure then
-    // breaks close calls so a teammate being actively trained gets help
-    // before their health bar has already collapsed.
-    let score = (1 - healthPct) * 100;
-    score += activeAttackers * (healthPct < 0.70 ? 10 : 6);
-    if (hasDot) score += 4;
-    if (hasHealingReduction) score += 5;
-    if (healthPct < 0.45) score += 12;
-    if (healthPct < 0.30) score += 18;
+    // Healers do not all read pressure the same way. Higher triage values
+    // react earlier to incoming pressure; lower values lean more heavily on
+    // the raw health bar. Rank improves the quality of that read without
+    // removing the hidden playstyle.
+    const triage = this.behavior(actor, "healerTriage", 0.70);
+    const pressureRead = 0.72 + triage * 0.48;
+    let score = (1 - healthPct) * (90 + triage * 20);
+    score += activeAttackers * (healthPct < 0.70 ? 10 : 6) * pressureRead;
+    if (hasDot) score += 3 + triage * 2;
+    if (hasHealingReduction) score += 4 + triage * 2;
+    if (healthPct < 0.45) score += 10 + triage * 4;
+    if (healthPct < 0.30) score += 15 + triage * 6;
 
     return score;
   }
@@ -146,13 +194,14 @@ export class AISystem {
     const bestReachable = this.game.combat.inRange(actor, best, spell.range)
       && this.game.combat.hasLos(actor, best);
 
+    const reactivity = (this.behavior(actor, "healerTriage", 0.70) + this.skill(actor)) / 2;
     const criticalSwap = best.healthPct < 0.30
-      && (hpGap >= 0.04 || scoreGap >= 10);
+      && (hpGap >= 0.06 - reactivity * 0.03 || scoreGap >= 12 - reactivity * 5);
     const emergencySwap = best.healthPct < 0.50
-      && (hpGap >= 0.08 || scoreGap >= 16);
-    const pressureSwap = best.healthPct < 0.68
-      && hpGap >= 0.14
-      && scoreGap >= 12;
+      && (hpGap >= 0.11 - reactivity * 0.05 || scoreGap >= 20 - reactivity * 8);
+    const pressureSwap = best.healthPct < 0.62 + reactivity * 0.08
+      && hpGap >= 0.18 - reactivity * 0.07
+      && scoreGap >= 16 - reactivity * 6;
 
     if (
       !criticalSwap

@@ -7,11 +7,11 @@ import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js";
 import { AISystem } from "../systems/AISystem.js";
-import { CanvasRenderer } from "../rendering/CanvasRenderer.js";
+import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-mindblastvfx1";
 import { UIManager } from "../ui/UIManager.js?v=20260925-keycapture1";
 import { buildMatchReport } from "./MatchReport.js";
 import { HonorSystem } from "./HonorSystem.js";
-import { TalentSystem } from "./TalentSystem.js?v=20260925-schools1";
+import { TalentSystem } from "./TalentSystem.js?v=20260926-mindblastvfx1";
 import { GearSystem } from "./GearSystem.js";
 
 export class Game {

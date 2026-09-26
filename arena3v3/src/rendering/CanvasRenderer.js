@@ -1794,17 +1794,33 @@ export class CanvasRenderer {
 
   drawFloatingTexts(ctx, floatingTexts) {
     ctx.textAlign = "center";
-    ctx.font = "800 15px system-ui";
+    ctx.textBaseline = "middle";
 
     for (const item of floatingTexts) {
-      const alpha = clamp(item.remainingMs / item.totalMs, 0, 1);
-      ctx.globalAlpha = alpha;
+      const progress = clamp(1 - item.remainingMs / item.totalMs, 0, 1);
+      const fadeIn = clamp(progress / 0.08, 0, 1);
+      const fadeOut = clamp(item.remainingMs / 220, 0, 1);
+      const alpha = Math.min(fadeIn, fadeOut);
+      const isCrit = item.type === "crit-damage" || item.type === "crit-heal";
+      const isDamage = item.type === "damage" || item.type === "crit-damage";
+      const isHeal = item.type === "heal" || item.type === "crit-heal";
+
+      let fontSize = isCrit ? 21 : 17;
+
+      if (isCrit) {
+        // Quick impact pop: expand hard, then settle to the larger crit size.
+        const popProgress = clamp(progress / 0.22, 0, 1);
+        const popScale = popProgress < 0.42
+          ? 1 + (popProgress / 0.42) * 0.42
+          : 1.42 - ((popProgress - 0.42) / 0.58) * 0.42;
+        fontSize *= popScale;
+      }
 
       const colors = {
-        damage: "#d98a75",
-        "crit-damage": "#ffd08a",
-        heal: "#9fc28d",
-        "crit-heal": "#d8efad",
+        damage: "#f05a50",
+        "crit-damage": "#ff6b5d",
+        heal: "#62d77a",
+        "crit-heal": "#86eb91",
         avoid: "#d8c6a7",
         buff: "#d9b4e8",
         cc: "#ffd18a",
@@ -1812,8 +1828,32 @@ export class CanvasRenderer {
         burst: "#ffc06b",
       };
 
+      const rise = isCrit ? 34 : 28;
+      const y = item.y - progress * rise;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font = (isCrit ? "950 " : "850 ") + fontSize.toFixed(1) + "px system-ui";
+
+      // High-contrast edge for readability in busy combat. Intentionally no
+      // glow/shadow so scrolling combat text stays distinct from target marks.
+      ctx.shadowColor = "transparent";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(19, 10, 8, .92)";
+      ctx.lineWidth = isCrit ? 4.5 : 3.5;
+      ctx.strokeText(item.text, item.x, y);
+
       ctx.fillStyle = colors[item.type] || this.theme.cream;
-      ctx.fillText(item.text, item.x, item.y - (1 - alpha) * 22);
+      ctx.fillText(item.text, item.x, y);
+
+      if (isCrit && (isDamage || isHeal)) {
+        ctx.globalAlpha = alpha * 0.5;
+        ctx.strokeStyle = "rgba(255,255,255,.36)";
+        ctx.lineWidth = 1;
+        ctx.strokeText(item.text, item.x, y);
+      }
+
+      ctx.restore();
     }
 
     ctx.globalAlpha = 1;

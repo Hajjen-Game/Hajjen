@@ -1222,7 +1222,9 @@ export class AISystem {
       return direct;
     }
 
-    const sign = stableHash(actor.id) % 2 === 0 ? 1 : -1;
+    const sign = actor.aiAvoidanceSign === 1 || actor.aiAvoidanceSign === -1
+      ? actor.aiAvoidanceSign
+      : (stableHash(actor.id) % 2 === 0 ? 1 : -1);
     const side = { x: -direct.y * sign, y: direct.x * sign };
 
     const candidates = [

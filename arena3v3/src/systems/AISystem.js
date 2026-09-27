@@ -53,6 +53,447 @@ export class AISystem {
     return Math.max(0.095, base + jitter);
   }
 
+  ensureCognition(actor) {
+    if (!actor.aiMemory) {
+      actor.aiMemory = {
+        observations: 0,
+        targetSwaps: 0,
+        previousTargetId: null,
+        events: [],
+        totals: {
+          lowHealthSeen: 0,
+          lowManaHealerSeen: 0,
+          defensivesSeen: 0,
+          burstsSeen: 0,
+          pressureSeen: 0,
+          healerCcSeen: 0,
+          deathsSeen: 0,
+        },
+        seen: {
+          lowHealth: {},
+          lowMana: {},
+          activeEffects: {},
+          pressure: {},
+          deaths: {},
+          healerCc: false,
+        },
+      };
+    }
+
+    if (!Array.isArray(actor.aiIntentHistory)) actor.aiIntentHistory = [];
+    return actor.aiMemory;
+  }
+
+  rememberEvent(actor, type, data = {}) {
+    const memory = this.ensureCognition(actor);
+    memory.events.push({
+      at: this.game.elapsedSeconds,
+      type,
+      ...data,
+    });
+    memory.events = memory.events.slice(-24);
+  }
+
+  latestMemoryEvent(actor, type, subjectId = null) {
+    const events = this.ensureCognition(actor).events;
+    for (let index = events.length - 1; index >= 0; index -= 1) {
+      const event = events[index];
+      if (event.type !== type) continue;
+      if (subjectId !== null && event.subjectId !== subjectId) continue;
+      return event;
+    }
+    return null;
+  }
+
+  observeMemory(actor) {
+    const memory = this.ensureCognition(actor);
+    const now = this.game.elapsedSeconds;
+    memory.observations += 1;
+
+    const targetId = actor.aiTargetId || null;
+    if (
+      targetId
+      && memory.previousTargetId
+      && targetId !== memory.previousTargetId
+    ) {
+      memory.targetSwaps += 1;
+    }
+    if (targetId) memory.previousTargetId = targetId;
+
+    for (const unit of this.game.actors) {
+      if (unit.alive || memory.seen.deaths[unit.id]) continue;
+      memory.seen.deaths[unit.id] = true;
+      memory.totals.deathsSeen += 1;
+      this.rememberEvent(actor, "death", {
+        subjectId: unit.id,
+        subjectName: this.game.combatantLabel(unit),
+      });
+    }
+
+    const enemies = this.game.actors.filter(unit =>
+      unit.alive && unit.team !== actor.team
+    );
+
+    const nextLowHealth = {};
+    const nextLowMana = {};
+    const nextEffects = {};
+
+    for (const enemy of enemies) {
+      if (enemy.healthPct <= 0.35) {
+        nextLowHealth[enemy.id] = true;
+        if (!memory.seen.lowHealth[enemy.id]) {
+          memory.totals.lowHealthSeen += 1;
+          this.rememberEvent(actor, "enemy-low-health", {
+            subjectId: enemy.id,
+            subjectName: this.game.combatantLabel(enemy),
+            value: enemy.healthPct,
+          });
+        }
+      }
+
+      if (
+        enemy.role === "healer"
+        && enemy.resource.type === "mana"
+        && enemy.resourcePct <= 0.25
+      ) {
+        nextLowMana[enemy.id] = true;
+        if (!memory.seen.lowMana[enemy.id]) {
+          memory.totals.lowManaHealerSeen += 1;
+          this.rememberEvent(actor, "healer-low-mana", {
+            subjectId: enemy.id,
+            subjectName: this.game.combatantLabel(enemy),
+            value: enemy.resourcePct,
+          });
+        }
+      }
+
+      for (const effect of enemy.effects || []) {
+        if (!["damageReduction", "offensiveCooldown"].includes(effect.kind)) continue;
+
+        const key = enemy.id + ":" + effect.kind + ":" + effect.spellId;
+        nextEffects[key] = true;
+
+        if (memory.seen.activeEffects[key]) continue;
+
+        const defensive = effect.kind === "damageReduction";
+        if (defensive) memory.totals.defensivesSeen += 1;
+        else memory.totals.burstsSeen += 1;
+
+        const source = this.game.getActor(effect.sourceId);
+        const spell = source?.getSpell(effect.spellId) || enemy.getSpell(effect.spellId);
+        this.rememberEvent(actor, defensive ? "enemy-defensive" : "enemy-burst", {
+          subjectId: enemy.id,
+          subjectName: this.game.combatantLabel(enemy),
+          spellId: effect.spellId,
+          spellName: spell?.name || effect.spellId,
+        });
+      }
+    }
+
+    memory.seen.lowHealth = nextLowHealth;
+    memory.seen.lowMana = nextLowMana;
+    memory.seen.activeEffects = nextEffects;
+
+    const nextPressure = {};
+    const allies = this.game.actors.filter(unit =>
+      unit.alive
+      && unit.team === actor.team
+      && ["healer", "caster"].includes(unit.role)
+    );
+
+    for (const enemy of enemies) {
+      const pressureTargetId = this.combatTargetId(enemy);
+      const ally = allies.find(unit => unit.id === pressureTargetId);
+      if (!ally) continue;
+
+      const key = enemy.id + ">" + ally.id;
+      nextPressure[key] = true;
+      if (memory.seen.pressure[key]) continue;
+
+      memory.totals.pressureSeen += 1;
+      this.rememberEvent(actor, "ally-pressured", {
+        subjectId: ally.id,
+        subjectName: this.game.combatantLabel(ally),
+        sourceId: enemy.id,
+        sourceName: this.game.combatantLabel(enemy),
+      });
+    }
+    memory.seen.pressure = nextPressure;
+
+    const healer = this.game.actors.find(unit =>
+      unit.alive && unit.team === actor.team && unit.role === "healer"
+    );
+    const healerControlled = Boolean(healer && this.game.cc.isHardControlled(healer));
+
+    if (healerControlled && !memory.seen.healerCc) {
+      memory.totals.healerCcSeen += 1;
+      this.rememberEvent(actor, "healer-controlled", {
+        subjectId: healer.id,
+        subjectName: this.game.combatantLabel(healer),
+      });
+    }
+    memory.seen.healerCc = healerControlled;
+
+    memory.lastObservedAt = now;
+  }
+
+  closeIntent(actor, reason = "expired") {
+    const intent = actor.aiIntent;
+    if (!intent) return;
+
+    const history = actor.aiIntentHistory || [];
+    const entry = history[history.length - 1];
+    if (entry && entry.endedAt == null) {
+      entry.endedAt = this.game.elapsedSeconds;
+      entry.endReason = reason;
+    }
+
+    actor.aiIntent = null;
+  }
+
+  setIntent(actor, type, target = null, reason = "", durationSeconds = 3) {
+    this.ensureCognition(actor);
+    const now = this.game.elapsedSeconds;
+    const targetId = target?.id || null;
+    const current = actor.aiIntent;
+
+    if (
+      current
+      && current.type === type
+      && current.targetId === targetId
+      && current.expiresAt > now
+    ) {
+      return current;
+    }
+
+    if (current) this.closeIntent(actor, "replanned");
+
+    const intent = {
+      type,
+      targetId,
+      targetName: target ? this.game.combatantLabel(target) : null,
+      reason,
+      startedAt: now,
+      expiresAt: now + Math.max(0.8, durationSeconds),
+    };
+
+    actor.aiIntent = intent;
+    actor.aiIntentHistory.push({
+      ...intent,
+      endedAt: null,
+      endReason: null,
+    });
+    actor.aiIntentHistory = actor.aiIntentHistory.slice(-30);
+    return intent;
+  }
+
+  currentIntent(actor) {
+    const intent = actor.aiIntent;
+    if (!intent) return null;
+
+    if (intent.expiresAt <= this.game.elapsedSeconds) {
+      this.closeIntent(actor, "expired");
+      return null;
+    }
+
+    if (intent.targetId) {
+      const target = this.game.getActor(intent.targetId);
+      if (!target?.alive) {
+        this.closeIntent(actor, "target unavailable");
+        return null;
+      }
+    }
+
+    return intent;
+  }
+
+  healerIntentTarget(actor, bestTarget, allies) {
+    const now = this.game.elapsedSeconds;
+    const triage = this.behavior(actor, "healerTriage", 0.70);
+    const manaConservation = this.behavior(actor, "manaConservation", 0.50);
+    const selfThreat = this.meleeThreatTo(
+      actor,
+      actor.config.ai.peelThreatRange ?? 135,
+    );
+
+    if (selfThreat && actor.healthPct < 0.62) {
+      this.setIntent(
+        actor,
+        "SURVIVE",
+        actor,
+        "melee pressure on self",
+        2.2 + this.behavior(actor, "healerSelfPreservation", 0.68) * 1.8,
+      );
+    } else if (bestTarget?.healthPct < 0.58) {
+      this.setIntent(
+        actor,
+        "STABILIZE",
+        bestTarget,
+        "ally under dangerous pressure",
+        2.0 + triage * 2.2,
+      );
+    } else if (
+      actor.resource.type === "mana"
+      && actor.resourcePct < 0.28
+      && manaConservation > 0.42
+    ) {
+      this.setIntent(
+        actor,
+        "CONSERVE",
+        bestTarget,
+        "low mana",
+        3.0 + manaConservation * 2.0,
+      );
+    }
+
+    const current = this.currentIntent(actor);
+    if (!current?.targetId) {
+      this.setIntent(
+        actor,
+        "SUPPORT",
+        bestTarget,
+        "maintain team stability",
+        2.0 + triage * 1.6,
+      );
+    }
+
+    const active = this.currentIntent(actor);
+    const committed = active?.targetId
+      ? allies.find(ally => ally.id === active.targetId)
+      : null;
+
+    if (!committed?.alive) return bestTarget;
+
+    // A new real emergency breaks commitment. Otherwise the healer gives the
+    // current plan a short chance to resolve instead of retargeting every tick.
+    if (
+      bestTarget
+      && bestTarget.id !== committed.id
+      && (
+        bestTarget.healthPct < 0.34
+        || committed.healthPct - bestTarget.healthPct > 0.16
+      )
+    ) {
+      this.setIntent(
+        actor,
+        "STABILIZE",
+        bestTarget,
+        "new higher-priority emergency",
+        2.0 + triage * 1.8,
+      );
+      return bestTarget;
+    }
+
+    return committed;
+  }
+
+  damageIntentTarget(actor, enemies) {
+    if (!enemies.length) return null;
+
+    const currentIntent = this.currentIntent(actor);
+    if (currentIntent?.targetId) {
+      const committed = enemies.find(enemy => enemy.id === currentIntent.targetId);
+      if (
+        committed
+        && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, committed)
+      ) {
+        return committed;
+      }
+      this.closeIntent(actor, "target no longer damageable");
+    }
+
+    const now = this.game.elapsedSeconds;
+    const skill = this.skill(actor);
+    const stickiness = this.behavior(actor, "targetStickiness", 0.58);
+    const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.42);
+
+    const finish = [...enemies]
+      .filter(enemy => enemy.healthPct <= 0.34)
+      .sort((a, b) => a.healthPct - b.healthPct)[0];
+
+    if (finish) {
+      this.setIntent(
+        actor,
+        "FINISH",
+        finish,
+        "enemy seen at killable health",
+        3.0 + stickiness * 2.4,
+      );
+      return finish;
+    }
+
+    const rememberedHealer = enemies.find(enemy => {
+      if (enemy.role !== "healer") return false;
+      const event = this.latestMemoryEvent(actor, "healer-low-mana", enemy.id);
+      return event && now - event.at <= 7.0;
+    });
+
+    if (
+      rememberedHealer
+      && rememberedHealer.resourcePct <= 0.34
+      && this.shouldAttempt(
+        actor,
+        "intent-low-mana-healer",
+        0.12 + healerSwapBias * 0.42 + skill * 0.32,
+        2.8,
+      )
+    ) {
+      this.setIntent(
+        actor,
+        "PRESSURE_HEALER",
+        rememberedHealer,
+        "remembered healer low mana",
+        3.0 + healerSwapBias * 2.4,
+      );
+      return rememberedHealer;
+    }
+
+    const current = this.game.getActor(actor.aiTargetId);
+    const currentDamageable = current?.alive
+      && enemies.some(enemy => enemy.id === current.id)
+      ? current
+      : null;
+
+    if (currentDamageable) {
+      const defensiveActive = (currentDamageable.effects || []).some(effect =>
+        effect.kind === "damageReduction" && effect.remainingMs > 0
+      );
+
+      if (defensiveActive && enemies.length > 1) {
+        const alternate = [...enemies]
+          .filter(enemy => enemy.id !== currentDamageable.id)
+          .sort((a, b) => a.healthPct - b.healthPct)[0];
+        const swapChance = 0.14 + (1 - stickiness) * 0.42 + skill * 0.26;
+
+        if (
+          alternate
+          && this.shouldAttempt(actor, "intent-swap-defensive", swapChance, 2.4)
+        ) {
+          this.setIntent(
+            actor,
+            "SWAP_DEFENSIVE",
+            alternate,
+            "current target used a defensive",
+            2.4 + (1 - stickiness) * 1.8,
+          );
+          return alternate;
+        }
+      }
+    }
+
+    const target = currentDamageable || this.pickPriorityTarget(actor, enemies);
+    if (!target) return null;
+
+    this.setIntent(
+      actor,
+      "PRESSURE",
+      target,
+      currentDamageable ? "continue current pressure" : "establish pressure",
+      2.8 + stickiness * 4.2,
+    );
+    return target;
+  }
+
   update(deltaSeconds) {
     for (const actor of this.game.actors) {
       if (!actor.alive || actor.control === "player") continue;
@@ -87,6 +528,8 @@ export class AISystem {
   }
 
   think(actor) {
+    this.observeMemory(actor);
+
     if (actor.role === "healer") this.healerThink(actor);
     else this.damageThink(actor);
   }
@@ -140,7 +583,7 @@ export class AISystem {
 
     // Healers do not all read pressure the same way. Higher triage values
     // react earlier to incoming pressure; lower values lean more heavily on
-    // the raw health bar. Rank improves the quality of that read without
+    // the raw health bar. Rating improves the quality of that read without
     // removing the hidden playstyle.
     const triage = this.behavior(actor, "healerTriage", 0.70);
     const pressureRead = 0.72 + triage * 0.48;
@@ -148,6 +591,15 @@ export class AISystem {
     score += activeAttackers * (healthPct < 0.70 ? 10 : 6) * pressureRead;
     if (hasDot) score += 3 + triage * 2;
     if (hasHealingReduction) score += 4 + triage * 2;
+
+    const recentPressure = this.latestMemoryEvent(actor, "ally-pressured", ally.id);
+    if (
+      recentPressure
+      && this.game.elapsedSeconds - recentPressure.at <= 4.0
+    ) {
+      score += 2 + this.skill(actor) * 5;
+    }
+
     if (healthPct < 0.45) score += 10 + triage * 4;
     if (healthPct < 0.30) score += 15 + triage * 6;
 
@@ -241,7 +693,10 @@ export class AISystem {
     const allies = this.game.actors
       .filter(candidate => candidate.alive && candidate.team === actor.team);
 
-    const target = this.pickHealTarget(actor, allies);
+    const bestTarget = this.pickHealTarget(actor, allies);
+    if (!bestTarget) return;
+
+    const target = this.healerIntentTarget(actor, bestTarget, allies);
     if (!target) return;
 
     actor.aiTargetId = target.id;
@@ -442,14 +897,31 @@ export class AISystem {
     const peel = this.findPeelSituation(actor, damageableEnemies);
     const oomHealer = this.findOomHealerTarget(actor, damageableEnemies);
     const healerPressure = this.findHealerPressureTarget(actor, damageableEnemies);
+    const intentTarget = !peel && !oomHealer && !healerPressure
+      ? this.damageIntentTarget(actor, damageableEnemies)
+      : null;
 
     let target = null;
 
     if (peel) {
       target = peel.attacker;
+      this.setIntent(
+        actor,
+        "PEEL",
+        peel.attacker,
+        "protect " + this.game.combatantLabel(peel.ally),
+        actor.config.ai.peelDurationSeconds ?? 4.5,
+      );
       this.beginPeel(actor, peel);
     } else if (oomHealer) {
       target = oomHealer;
+      this.setIntent(
+        actor,
+        "PRESSURE_HEALER",
+        oomHealer,
+        "healer is out of mana",
+        4.0 + this.behavior(actor, "healerSwapBias", 0.42) * 2.0,
+      );
       if (actor.aiTargetId !== oomHealer.id) {
         this.game.log(
           this.game.combatantLabel(actor)
@@ -462,6 +934,13 @@ export class AISystem {
       actor.aiPeelUntil = 0;
     } else if (healerPressure) {
       target = healerPressure;
+      this.setIntent(
+        actor,
+        "TEST_HEALER",
+        healerPressure,
+        "temporary healer pressure window",
+        2.0 + this.behavior(actor, "healerSwapBias", 0.42) * 2.0,
+      );
       if (actor.aiTargetId !== healerPressure.id) {
         this.game.log(
           this.game.combatantLabel(actor)
@@ -473,11 +952,16 @@ export class AISystem {
       actor.aiPeelTargetId = null;
       actor.aiPeelUntil = 0;
     } else {
+      if (intentTarget) {
+        target = intentTarget;
+        actor.aiTargetId = intentTarget.id;
+      }
+
       const current = this.game.getActor(actor.aiTargetId);
       const currentProtected = current?.alive
         && this.game.cc.shouldAvoidBreakingFriendlyCc(actor, current);
 
-      if (currentProtected) {
+      if (!target && currentProtected) {
         const alternate = this.pickPriorityTarget(actor, damageableEnemies);
         if (alternate && alternate.id !== current.id) {
           this.game.log(
@@ -1049,7 +1533,7 @@ export class AISystem {
       - castGreed * 0.20;
 
     // Greedy casters occasionally finish pressure from a bad position; more
-    // disciplined and higher-ranked casters recover healer support sooner.
+    // disciplined and higher-rated casters recover healer support sooner.
     return this.shouldAttempt(actor, "recover-healer-support", recoverChance, 1.5);
   }
 
@@ -1171,7 +1655,7 @@ export class AISystem {
     const chaseGreed = this.behavior(actor, "chaseGreed", 0.48);
     const discipline = 0.40 + this.skill(actor) * 0.46 - chaseGreed * 0.24;
 
-    // A greedy player can overchase while the healer is controlled. High-rank
+    // A greedy player can overchase while the healer is controlled. High-rating
     // AI does this less often, but personality never disappears entirely.
     return this.shouldAttempt(actor, "controlled-healer-pull", discipline, 2.0);
   }

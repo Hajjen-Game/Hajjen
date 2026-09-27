@@ -2,7 +2,7 @@ import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
 import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js";
 import { classColorFor } from "../content/classes/classColors.js";
-import { HONOR_RANKS } from "../core/HonorSystem.js";
+import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";

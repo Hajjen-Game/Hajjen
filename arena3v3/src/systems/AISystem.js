@@ -87,10 +87,11 @@ export class AISystem {
     }
     if (!actor.aiOpponentModelUsage) {
       actor.aiOpponentModelUsage = {
-        triageReads: 0,
+        triageTargetSelections: 0,
         peelAssists: 0,
         defensiveAnticipations: 0,
       };
+      actor.aiOpponentModelTriageChoiceKey = null;
     }
     return actor.aiMemory;
   }
@@ -848,7 +849,7 @@ export class AISystem {
     return candidates[index];
   }
 
-  healingUrgencyScore(actor, ally) {
+  healingUrgencyScore(actor, ally, includeOpponentModel = true) {
     if (!ally?.alive || ally.team !== actor.team) return -Infinity;
 
     const healthPct = ally.healthPct;
@@ -878,14 +879,15 @@ export class AISystem {
     let score = (1 - healthPct) * (90 + triage * 20);
     score += activeAttackers * (healthPct < 0.70 ? 10 : 6) * pressureRead;
 
-    let learnedPressure = 0;
-    for (const enemy of enemies) {
-      if (this.combatTargetId(enemy) !== ally.id) continue;
-      learnedPressure += this.opponentPressureRead(actor, enemy, ally);
-    }
-    if (learnedPressure > 0.08) {
-      score += learnedPressure * (4 + triage * 4);
-      actor.aiOpponentModelUsage.triageReads += 1;
+    if (includeOpponentModel) {
+      let learnedPressure = 0;
+      for (const enemy of enemies) {
+        if (this.combatTargetId(enemy) !== ally.id) continue;
+        learnedPressure += this.opponentPressureRead(actor, enemy, ally);
+      }
+      if (learnedPressure > 0.08) {
+        score += learnedPressure * (4 + triage * 4);
+      }
     }
 
     if (hasDot) score += 3 + triage * 2;
@@ -905,13 +907,45 @@ export class AISystem {
     return score;
   }
 
-  pickHealTarget(actor, allies) {
-    return [...allies].sort((a, b) => {
-      const scoreDiff = this.healingUrgencyScore(actor, b)
-        - this.healingUrgencyScore(actor, a);
-      if (Math.abs(scoreDiff) > 0.001) return scoreDiff;
-      return a.healthPct - b.healthPct;
-    })[0] || null;
+  pickHealTarget(actor, allies, recordModelInfluence = false) {
+    const rankTargets = includeOpponentModel =>
+      [...allies].sort((a, b) => {
+        const scoreDiff = this.healingUrgencyScore(
+          actor,
+          b,
+          includeOpponentModel,
+        ) - this.healingUrgencyScore(
+          actor,
+          a,
+          includeOpponentModel,
+        );
+        if (Math.abs(scoreDiff) > 0.001) return scoreDiff;
+        return a.healthPct - b.healthPct;
+      });
+
+    const best = rankTargets(true)[0] || null;
+    if (!recordModelInfluence) return best;
+
+    const baseline = rankTargets(false)[0] || null;
+    const modelChangedChoice = Boolean(
+      best
+      && baseline
+      && best.id !== baseline.id
+    );
+
+    const choiceKey = modelChangedChoice
+      ? baseline.id + "->" + best.id
+      : null;
+
+    if (
+      choiceKey
+      && actor.aiOpponentModelTriageChoiceKey !== choiceKey
+    ) {
+      actor.aiOpponentModelUsage.triageTargetSelections += 1;
+    }
+
+    actor.aiOpponentModelTriageChoiceKey = choiceKey;
+    return best;
   }
 
   reconsiderHealerCast(actor) {
@@ -992,7 +1026,7 @@ export class AISystem {
     const allies = this.game.actors
       .filter(candidate => candidate.alive && candidate.team === actor.team);
 
-    const bestTarget = this.pickHealTarget(actor, allies);
+    const bestTarget = this.pickHealTarget(actor, allies, true);
     if (!bestTarget) return;
 
     const target = this.healerIntentTarget(actor, bestTarget, allies);

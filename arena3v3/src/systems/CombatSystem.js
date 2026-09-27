@@ -3,6 +3,8 @@ import { hasLineOfSight } from "../core/LineOfSight.js";
 import { clamp, distance } from "../core/utils.js";
 
 const AMOUNT_VARIANCE = [0.92, 0.95, 0.97, 0.99, 1, 1.01, 1.03, 1.05, 1.08];
+const RANGED_SPELL_RANGE_MULTIPLIER = 1.20;
+const RANGED_SPELL_RANGE_THRESHOLD = 280;
 
 export class CombatSystem {
   constructor(game) {
@@ -36,7 +38,7 @@ export class CombatSystem {
           const target = this.game.getActor(completed.targetId);
 
           if (spell && target?.alive) {
-            if (!this.inRange(actor, target, spell.range) || !this.hasLos(actor, target)) {
+            if (!this.spellInRange(actor, target, spell) || !this.hasLos(actor, target)) {
               if (actor.control === "ai" && Number.isFinite(spell.aiStartRange)) {
                 actor.aiRangeLosCastFailures = actor.aiRangeLosCastFailures || {};
                 actor.aiRangeLosCastFailures[spell.id] =
@@ -112,6 +114,22 @@ export class CombatSystem {
     return distance(caster, target) <= range + caster.radius + target.radius;
   }
 
+  effectiveSpellRange(spell) {
+    const baseRange = Number(spell?.range) || 0;
+    if (
+      baseRange < RANGED_SPELL_RANGE_THRESHOLD
+      || !["ally", "enemy"].includes(spell?.target)
+    ) {
+      return baseRange;
+    }
+
+    return baseRange * RANGED_SPELL_RANGE_MULTIPLIER;
+  }
+
+  spellInRange(caster, target, spell) {
+    return this.inRange(caster, target, this.effectiveSpellRange(spell));
+  }
+
   hasLos(caster, target) {
     if (target?.id === caster.id) return true;
     return hasLineOfSight(caster, target, this.game.arena.obstacles);
@@ -153,7 +171,7 @@ export class CombatSystem {
       return false;
     }
 
-    if (!this.inRange(caster, target, spell.range)) {
+    if (!this.spellInRange(caster, target, spell)) {
       if (!silent && caster.control === "player") this.game.ui.toast("Target out of range");
       return false;
     }

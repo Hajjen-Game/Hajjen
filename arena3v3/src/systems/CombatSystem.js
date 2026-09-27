@@ -3,6 +3,8 @@ import { hasLineOfSight } from "../core/LineOfSight.js";
 import { clamp, distance } from "../core/utils.js";
 
 const AMOUNT_VARIANCE = [0.92, 0.95, 0.97, 0.99, 1, 1.01, 1.03, 1.05, 1.08];
+const CAST_COMPLETION_RANGE_GRACE = 20;
+const CAST_COMPLETION_GRACE_THRESHOLD = 280;
 
 export class CombatSystem {
   constructor(game) {
@@ -36,8 +38,13 @@ export class CombatSystem {
           const target = this.game.getActor(completed.targetId);
 
           if (spell && target?.alive) {
-            const rangeOk = this.spellInRange(actor, target, spell);
+            const baseRangeOk = this.spellInRange(actor, target, spell);
+            const rangeOk = this.completionSpellInRange(actor, target, spell);
             const losOk = this.hasLos(actor, target);
+
+            if (!baseRangeOk && rangeOk && losOk) {
+              this.castDiagnostic(actor, spell).graceSaves += 1;
+            }
 
             if (!rangeOk || !losOk) {
               if (actor.control === "ai" && Number.isFinite(spell.aiStartRange)) {
@@ -63,13 +70,18 @@ export class CombatSystem {
               const startDistance = Math.round(Number(completed.startDistance) || 0);
               const endDistance = Math.round(this.edgeDistance(actor, target));
               const spellRange = Math.round(Number(completed.spellRange ?? spell.range) || 0);
+              const completionRange = Math.round(this.completionRangeFor(spell));
 
               this.game.log(
                 this.game.combatantLabel(actor) + "'s " + spell.name
                 + " failed: " + reason
                 + " · start " + startDistance
                 + " · end " + endDistance
-                + " · range " + spellRange + ".",
+                + " · range " + spellRange
+                + (completionRange > spellRange
+                  ? " · completion limit " + completionRange
+                  : "")
+                + ".",
               );
 
               if (actor.control === "player") {
@@ -152,6 +164,18 @@ export class CombatSystem {
     return this.inRange(caster, target, Number(spell?.range) || 0);
   }
 
+  completionRangeFor(spell) {
+    const baseRange = Number(spell?.range) || 0;
+    const getsGrace = baseRange >= CAST_COMPLETION_GRACE_THRESHOLD
+      && ["ally", "enemy"].includes(spell?.target);
+
+    return baseRange + (getsGrace ? CAST_COMPLETION_RANGE_GRACE : 0);
+  }
+
+  completionSpellInRange(caster, target, spell) {
+    return this.inRange(caster, target, this.completionRangeFor(spell));
+  }
+
   edgeDistance(caster, target) {
     if (!caster || !target || caster.id === target.id) return 0;
     return Math.max(
@@ -164,6 +188,7 @@ export class CombatSystem {
     actor.castRangeDiagnostics = actor.castRangeDiagnostics || {};
     actor.castRangeDiagnostics[spell.id] = actor.castRangeDiagnostics[spell.id] || {
       starts: 0,
+      graceSaves: 0,
       outOfRangeFailures: 0,
       losFailures: 0,
       bothFailures: 0,
@@ -198,6 +223,7 @@ export class CombatSystem {
         startDistance: Math.round(Number(completed.startDistance) || 0),
         endDistance: Math.round(this.edgeDistance(actor, target)),
         range: Math.round(Number(completed.spellRange ?? spell.range) || 0),
+        completionRange: Math.round(this.completionRangeFor(spell)),
       });
     }
   }

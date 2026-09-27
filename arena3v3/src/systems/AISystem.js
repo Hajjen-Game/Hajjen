@@ -191,7 +191,7 @@ export class AISystem {
     const hpGap = current ? current.healthPct - best.healthPct : 1;
     const scoreGap = bestScore - currentScore;
 
-    const bestReachable = this.game.combat.inRange(actor, best, spell.range)
+    const bestReachable = this.game.combat.spellInRange(actor, best, spell)
       && this.game.combat.hasLos(actor, best);
 
     const triage = this.behavior(actor, "healerTriage", 0.70);
@@ -407,7 +407,7 @@ export class AISystem {
       const interruptTarget = damageableEnemies
         .filter(candidate =>
           candidate.cast
-          && this.game.combat.inRange(actor, candidate, interrupt.range)
+          && this.game.combat.spellInRange(actor, candidate, interrupt)
           && this.game.combat.hasLos(actor, candidate)
         )
         .sort((a, b) => {
@@ -553,7 +553,7 @@ export class AISystem {
       gapClose
       && this.ready(actor, gapClose)
       && distance(actor, target) > (actor.config.ai.preferredRange || 55) * 1.8
-      && this.game.combat.inRange(actor, target, gapClose.range)
+      && this.game.combat.spellInRange(actor, target, gapClose)
       && this.game.combat.hasLos(actor, target)
     ) {
       if (this.castIfPossible(actor, gapClose, target)) return;
@@ -752,7 +752,7 @@ export class AISystem {
     if (!target?.alive) return false;
     if (this.game.cc.isHardControlled(target) || this.game.cc.isRooted(target)) return false;
     if (this.game.cc.wouldBeImmune(target, spell)) return false;
-    if (!this.game.combat.inRange(actor, target, spell.range)) return false;
+    if (!this.game.combat.spellInRange(actor, target, spell)) return false;
     if (!this.game.combat.hasLos(actor, target)) return false;
 
     if (this.isBreakableControlSpell(spell) && this.hasFriendlyDotPressure(actor, target)) {

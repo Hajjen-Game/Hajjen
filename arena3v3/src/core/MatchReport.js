@@ -246,6 +246,90 @@ function opponentModelSummary(actor, model, game) {
   };
 }
 
+function appendTeamCoordination(lines, game) {
+  lines.push("", "=== TEAM PLAN / PLAYER INTENT MODEL ===");
+
+  const ai = game.ai;
+  const playerModel = ai?.playerIntentModel || null;
+
+  if (!ai) {
+    lines.push("Team coordination unavailable.");
+    return;
+  }
+
+  if (playerModel) {
+    lines.push(
+      "Player intent model:"
+      + " inferred target "
+      + (playerModel.targetName || "None")
+      + " | confidence " + modelPct(playerModel.confidence)
+      + " | offensive signals " + (playerModel.signals?.offensive || 0)
+      + " | setup signals " + (playerModel.signals?.setup || 0)
+      + " | defensive signals " + (playerModel.signals?.defensive || 0),
+    );
+
+    const playerHistory = (playerModel.history || []).slice(-10);
+    if (playerHistory.length > 0) {
+      lines.push("  Player intent history:");
+      playerHistory.forEach(entry => {
+        lines.push(
+          "    " + entry.at.toFixed(1) + "s"
+          + " -> " + entry.targetName
+          + " · confidence " + modelPct(entry.confidence)
+          + " · " + entry.reason,
+        );
+      });
+    }
+  }
+
+  for (const team of ["friendly", "enemy"]) {
+    const plan = ai.teamPlans?.[team];
+    if (!plan) continue;
+
+    lines.push(
+      (team === "friendly" ? "Friendly" : "Enemy")
+      + " team plan:"
+      + " " + plan.state
+      + " | primary " + (plan.primaryTargetName || "None")
+      + " | confidence " + modelPct(plan.confidence)
+      + " | source " + plan.source
+      + " | revision " + plan.revision
+      + " | " + plan.reason,
+    );
+
+    const history = (plan.history || []).slice(-12);
+    if (history.length > 0) {
+      lines.push("  Recent plan changes:");
+      history.forEach(entry => {
+        lines.push(
+          "    " + entry.at.toFixed(1) + "s"
+          + " #" + entry.revision
+          + " " + entry.state
+          + (entry.targetName ? " -> " + entry.targetName : "")
+          + " · confidence " + modelPct(entry.confidence)
+          + " · " + entry.source
+          + " · " + entry.reason,
+        );
+      });
+    }
+
+    const members = game.actors.filter(actor =>
+      actor.team === team && actor.control !== "player"
+    );
+    if (members.length > 0) {
+      lines.push(
+        "  AI plan response: "
+        + members.map(actor => {
+          const usage = actor.aiTeamPlanUsage || {};
+          return actor.name
+            + " follows " + (usage.follows || 0)
+            + " / divergences " + (usage.divergences || 0);
+        }).join(" | "),
+      );
+    }
+  }
+}
+
 function appendAiIdentityMemoryIntent(lines, game) {
   lines.push("", "=== AI IDENTITY / MEMORY / OPPONENT MODEL / INTENT ===");
 
@@ -339,6 +423,12 @@ function appendAiIdentityMemoryIntent(lines, game) {
       + " triage target selections " + (usage.triageTargetSelections || 0)
       + " | peel assists " + (usage.peelAssists || 0)
       + " | defensive anticipations " + (usage.defensiveAnticipations || 0),
+    );
+    const teamUsage = actor.aiTeamPlanUsage || {};
+    lines.push(
+      "  Team plan usage:"
+      + " follows " + (teamUsage.follows || 0)
+      + " | divergences " + (teamUsage.divergences || 0),
     );
 
     if (models.length === 0) {
@@ -463,7 +553,7 @@ export function buildMatchReport(game) {
 
   const lines = [
     "3V3 ARENA — STRESS TEST RUN REPORT",
-    "Report schema: stress-v4-ai-opponent-model",
+    "Report schema: stress-v5-ai-team-plan",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -515,6 +605,7 @@ export function buildMatchReport(game) {
   appendPlayerStats(lines, loadout);
   appendAiProgression(lines, game, "friendly", "FRIENDLY AI PROGRESSION / TALENT BUILDS");
   appendAiProgression(lines, game, "enemy", "ENEMY PROGRESSION / TALENT BUILDS");
+  appendTeamCoordination(lines, game);
   appendAiIdentityMemoryIntent(lines, game);
 
   lines.push(
@@ -522,7 +613,7 @@ export function buildMatchReport(game) {
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
     "AI decision difficulty: scaled from player Rating " + n(startRating?.rating) + " (Rank controls talents/gear progression, not AI skill)",
-    "AI cognition: Memory + individual Intent + per-opponent behavioural models enabled; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
+    "AI cognition: Memory + individual Intent + Opponent Modelling + Team Plan enabled; friendly AI infers player intent from observable actions; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",

@@ -17,15 +17,18 @@ function roleRange(role, healer, melee, caster) {
   return caster;
 }
 
-export function aiSkillForRank(rank) {
-  const normalized = clamp((Math.max(1, Math.min(14, Number(rank) || 1)) - 1) / 13);
-  // Rank should improve decision quality, not raw combat stats. Even low-rank
-  // opponents remain functional; high-rank opponents become more disciplined.
-  return 0.36 + normalized * 0.64;
+export function aiSkillForRating(rating) {
+  const normalizedRating = Math.max(0, Number(rating) || 0);
+
+  // Rating now drives decision quality while Rank is reserved for character
+  // progression. 1500 Rating lands close to the old mid-rank AI difficulty,
+  // and the curve remains smooth enough that one match never causes a jump.
+  return clamp(0.28 + normalizedRating / 5500);
 }
 
-export function createAiBehaviorProfile(role, rank) {
-  const skill = aiSkillForRank(rank);
+export function createAiBehaviorProfile(role, rating) {
+  const normalizedRating = Math.max(0, Math.round(Number(rating) || 0));
+  const skill = aiSkillForRating(normalizedRating);
   const range = (healer, melee, caster) => {
     const [min, max] = roleRange(role, healer, melee, caster);
     return clamp(rollRange(min, max));
@@ -33,7 +36,7 @@ export function createAiBehaviorProfile(role, rank) {
 
   return {
     seed: Math.floor(Math.random() * 0x7fffffff),
-    rank: Math.max(1, Math.min(14, Number(rank) || 1)),
+    rating: normalizedRating,
     skill,
 
     // Shared personality dimensions.

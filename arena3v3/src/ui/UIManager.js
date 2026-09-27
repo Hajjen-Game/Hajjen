@@ -1187,7 +1187,7 @@ export class UIManager {
       const invalidTarget = !this.game.combat.canTarget(this.game.player, target, spell);
       const outOfRange = !invalidTarget
         && spell.target !== "self"
-        && !this.game.combat.inRange(this.game.player, target, spell.range);
+        && !this.game.combat.spellInRange(this.game.player, target, spell);
       const noResource = !this.game.resources.canPay(this.game.player, spell);
       const controlled = this.game.cc.isHardControlled(this.game.player);
       const schoolLocked = this.game.cc.isSchoolLocked(this.game.player, spell);

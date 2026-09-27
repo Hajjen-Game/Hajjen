@@ -1,7 +1,8 @@
 import { Game } from "./core/Game.js?v=20260927-castgrace20";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
-import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js";
+import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating1";
+import { RatingSystem } from "./core/RatingSystem.js?v=20260927-rank20rating1";
 import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";
 import {
   CLASS_REGISTRY,
@@ -17,6 +18,7 @@ const ROSTER_STORAGE_KEY = "arena3v3-roster-v4";
 const LEGACY_ROSTER_STORAGE_KEY = "arena3v3-roster-v3";
 const CHARACTER_DATA_PREFIXES = [
   "arena3v3-honor-v2:",
+  "arena3v3-rating-v1:",
   "arena3v3-talents-v1:",
   "arena3v3-actionbar-v1:",
   "arena3v3-gear-v1:",
@@ -244,11 +246,12 @@ function renderArenaLobby() {
   if (!activeCharacter || !game) return;
 
   const honor = game.honor.status();
+  const rating = game.rating.status();
   arenaLobbyName.textContent = activeCharacter.name;
   arenaLobbyMeta.textContent =
     className(activeCharacter.classId).toUpperCase()
     + " · RANK " + honor.rank
-    + " · " + honor.title.toUpperCase();
+    + " · RATING " + rating.rating.toLocaleString();
 }
 
 function enterArenaLobby({ reset = false } = {}) {
@@ -312,6 +315,7 @@ function renderCharacterList() {
 
   for (const character of saved) {
     const status = new HonorSystem(character.id).status();
+    const rating = new RatingSystem(character.id).status();
     const card = document.createElement("div");
     card.className = "character-card";
     card.tabIndex = 0;
@@ -340,7 +344,9 @@ function renderCharacterList() {
     card.querySelector(".character-class").textContent =
       className(character.classId) + " · " + role.charAt(0).toUpperCase() + role.slice(1);
     card.querySelector(".character-rank").textContent =
-      "Rank " + status.rank + " · " + status.title + " · TP " + status.talentPoints;
+      "Rank " + status.rank
+      + " · Rating " + rating.rating.toLocaleString()
+      + " · TP " + status.talentPoints;
     card.querySelector(".character-honor").textContent =
       status.lifetimeHonor.toLocaleString() + " Honor";
 
@@ -381,8 +387,8 @@ function deleteCharacter(characterId) {
 
   const deletingActiveCharacter = activeCharacter?.id === characterId;
   const warning = deletingActiveCharacter
-    ? 'Delete "' + character.name + '" permanently?\n\nThis is your active character. The current match will be abandoned and all Honor, Talents, Gear and action-bar settings for this character will be lost.'
-    : 'Delete "' + character.name + '" permanently?\n\nAll Honor, Talents, Gear and action-bar settings for this character will be lost.';
+    ? 'Delete "' + character.name + '" permanently?\n\nThis is your active character. The current match will be abandoned and all Honor, Rating, Talents, Gear and action-bar settings for this character will be lost.'
+    : 'Delete "' + character.name + '" permanently?\n\nAll Honor, Rating, Talents, Gear and action-bar settings for this character will be lost.';
 
   if (!window.confirm(warning)) return;
 

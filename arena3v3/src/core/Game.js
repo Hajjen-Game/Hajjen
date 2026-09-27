@@ -6,7 +6,7 @@ import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-team-plan1";
-import { AISystem } from "../systems/AISystem.js?v=20260927-kitebounds1";
+import { AISystem } from "../systems/AISystem.js?v=20260927-pillarlookahead1";
 import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260927-rating-ai1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260927-targetglow2";
 import { UIManager } from "../ui/UIManager.js?v=20260927-focus-hud1";

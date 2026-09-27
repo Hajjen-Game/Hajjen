@@ -3,8 +3,6 @@ import { hasLineOfSight } from "../core/LineOfSight.js";
 import { clamp, distance } from "../core/utils.js";
 
 const AMOUNT_VARIANCE = [0.92, 0.95, 0.97, 0.99, 1, 1.01, 1.03, 1.05, 1.08];
-const RANGED_SPELL_RANGE_MULTIPLIER = 1.20;
-const RANGED_SPELL_RANGE_THRESHOLD = 280;
 
 export class CombatSystem {
   constructor(game) {
@@ -38,15 +36,51 @@ export class CombatSystem {
           const target = this.game.getActor(completed.targetId);
 
           if (spell && target?.alive) {
-            if (!this.spellInRange(actor, target, spell) || !this.hasLos(actor, target)) {
+            const rangeOk = this.spellInRange(actor, target, spell);
+            const losOk = this.hasLos(actor, target);
+
+            if (!rangeOk || !losOk) {
               if (actor.control === "ai" && Number.isFinite(spell.aiStartRange)) {
                 actor.aiRangeLosCastFailures = actor.aiRangeLosCastFailures || {};
                 actor.aiRangeLosCastFailures[spell.id] =
                   (actor.aiRangeLosCastFailures[spell.id] || 0) + 1;
               }
 
-              this.game.log(this.game.combatantLabel(actor) + "'s " + spell.name + " failed: target moved out of range or line of sight.");
-              if (actor.control === "player") this.game.ui.toast("Target out of range or line of sight");
+              this.recordCastCompletionFailure(
+                actor,
+                target,
+                spell,
+                completed,
+                rangeOk,
+                losOk,
+              );
+
+              const reason = !rangeOk && !losOk
+                ? "OUT OF RANGE + LINE OF SIGHT"
+                : !rangeOk
+                  ? "OUT OF RANGE"
+                  : "LINE OF SIGHT";
+              const startDistance = Math.round(Number(completed.startDistance) || 0);
+              const endDistance = Math.round(this.edgeDistance(actor, target));
+              const spellRange = Math.round(Number(completed.spellRange ?? spell.range) || 0);
+
+              this.game.log(
+                this.game.combatantLabel(actor) + "'s " + spell.name
+                + " failed: " + reason
+                + " · start " + startDistance
+                + " · end " + endDistance
+                + " · range " + spellRange + ".",
+              );
+
+              if (actor.control === "player") {
+                this.game.ui.toast(
+                  reason === "OUT OF RANGE"
+                    ? "Target moved out of range"
+                    : reason === "LINE OF SIGHT"
+                      ? "Line of sight blocked"
+                      : "Target moved out of range and line of sight",
+                );
+              }
             } else {
               this.resolveSpell(actor, target, spell);
             }
@@ -114,20 +148,58 @@ export class CombatSystem {
     return distance(caster, target) <= range + caster.radius + target.radius;
   }
 
-  effectiveSpellRange(spell) {
-    const baseRange = Number(spell?.range) || 0;
-    if (
-      baseRange < RANGED_SPELL_RANGE_THRESHOLD
-      || !["ally", "enemy"].includes(spell?.target)
-    ) {
-      return baseRange;
-    }
-
-    return baseRange * RANGED_SPELL_RANGE_MULTIPLIER;
+  spellInRange(caster, target, spell) {
+    return this.inRange(caster, target, Number(spell?.range) || 0);
   }
 
-  spellInRange(caster, target, spell) {
-    return this.inRange(caster, target, this.effectiveSpellRange(spell));
+  edgeDistance(caster, target) {
+    if (!caster || !target || caster.id === target.id) return 0;
+    return Math.max(
+      0,
+      distance(caster, target) - (Number(caster.radius) || 0) - (Number(target.radius) || 0),
+    );
+  }
+
+  castDiagnostic(actor, spell) {
+    actor.castRangeDiagnostics = actor.castRangeDiagnostics || {};
+    actor.castRangeDiagnostics[spell.id] = actor.castRangeDiagnostics[spell.id] || {
+      starts: 0,
+      outOfRangeFailures: 0,
+      losFailures: 0,
+      bothFailures: 0,
+      samples: [],
+    };
+    return actor.castRangeDiagnostics[spell.id];
+  }
+
+  recordCastStart(actor, target, spell) {
+    const diagnostic = this.castDiagnostic(actor, spell);
+    diagnostic.starts += 1;
+    return {
+      startDistance: this.edgeDistance(actor, target),
+      spellRange: Number(spell.range) || 0,
+      startHadLos: this.hasLos(actor, target),
+    };
+  }
+
+  recordCastCompletionFailure(actor, target, spell, completed, rangeOk, losOk) {
+    const diagnostic = this.castDiagnostic(actor, spell);
+    if (!rangeOk) diagnostic.outOfRangeFailures += 1;
+    if (!losOk) diagnostic.losFailures += 1;
+    if (!rangeOk && !losOk) diagnostic.bothFailures += 1;
+
+    if (diagnostic.samples.length < 6) {
+      diagnostic.samples.push({
+        reason: !rangeOk && !losOk
+          ? "OUT OF RANGE + LINE OF SIGHT"
+          : !rangeOk
+            ? "OUT OF RANGE"
+            : "LINE OF SIGHT",
+        startDistance: Math.round(Number(completed.startDistance) || 0),
+        endDistance: Math.round(this.edgeDistance(actor, target)),
+        range: Math.round(Number(completed.spellRange ?? spell.range) || 0),
+      });
+    }
   }
 
   hasLos(caster, target) {
@@ -188,11 +260,15 @@ export class CombatSystem {
     }
 
     if (spell.castMs > 0) {
+      const startDiagnostic = this.recordCastStart(caster, target, spell);
       caster.cast = {
         spellId: spell.id,
         targetId: target.id,
         totalMs: spell.castMs,
         remainingMs: spell.castMs,
+        startDistance: startDiagnostic.startDistance,
+        spellRange: startDiagnostic.spellRange,
+        startHadLos: startDiagnostic.startHadLos,
       };
 
       if (caster.control === "ai" && Number.isFinite(spell.aiStartRange)) {

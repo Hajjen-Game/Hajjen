@@ -404,7 +404,9 @@ export class CombatSystem {
         case "damageReduction":
         case "healingReduction":
         case "slow":
-          this.applyTimedEffect(caster, effectTarget, spell, effect, style);
+          if (effectTarget.alive) {
+            this.applyTimedEffect(caster, effectTarget, spell, effect, style);
+          }
           break;
         case "fearAoE":
           this.game.cc.applyFearAoE(caster, spell, effect);

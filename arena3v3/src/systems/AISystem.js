@@ -1728,11 +1728,14 @@ export class AISystem {
       && this.shouldAttempt(actor, "interrupt", interruptChance, 0.75)
     ) {
       const interruptTarget = damageableEnemies
-        .filter(candidate =>
-          candidate.cast
-          && this.game.combat.spellInRange(actor, candidate, interrupt)
-          && this.game.combat.hasLos(actor, candidate)
-        )
+        .filter(candidate => {
+          if (!candidate.cast) return false;
+          const castingSpell = candidate.getSpell(candidate.cast.spellId);
+          if (castingSpell?.interruptible === false) return false;
+
+          return this.game.combat.spellInRange(actor, candidate, interrupt)
+            && this.game.combat.hasLos(actor, candidate);
+        })
         .sort((a, b) => {
           const score = role => role === "healer" ? 0 : role === "caster" ? 1 : 2;
           return score(a.role) - score(b.role);

@@ -643,8 +643,13 @@ export function buildMatchReport(game) {
       className: actor.className,
       reroutes: actor.aiPathReroutes || 0,
       overlapRecoveries: actor.aiOverlapRecoveries || 0,
+      boundaryEscapes: actor.aiBoundaryEscapeSelections || 0,
     }))
-    .filter(item => item.reroutes > 0 || item.overlapRecoveries > 0);
+    .filter(item =>
+      item.reroutes > 0
+      || item.overlapRecoveries > 0
+      || item.boundaryEscapes > 0
+    );
 
   if (movementDiagnostics.length === 0) {
     lines.push("No path recovery events recorded.");
@@ -653,7 +658,8 @@ export function buildMatchReport(game) {
       lines.push(
         item.name + " [" + item.className + "]"
         + " — route flips " + item.reroutes
-        + " | collider recoveries " + item.overlapRecoveries,
+        + " | collider recoveries " + item.overlapRecoveries
+        + " | boundary escapes " + item.boundaryEscapes,
       );
     });
   }

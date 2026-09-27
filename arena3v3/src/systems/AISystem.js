@@ -2454,28 +2454,88 @@ export class AISystem {
   }
 
   kiteVector(actor, threat, healer = null) {
+    const arena = this.game.arena;
+    const bounds = arena.bounds;
     const directAway = normalize(actor.x - threat.x, actor.y - threat.y);
     const sign = stableHash(actor.id + ":kite") % 2 === 0 ? 1 : -1;
     const side = {
       x: -directAway.y * sign,
       y: directAway.x * sign,
     };
+    const arenaCenter = {
+      x: bounds.x + bounds.w * 0.5,
+      y: bounds.y + bounds.h * 0.5,
+    };
+    const towardCenter = normalize(
+      arenaCenter.x - actor.x,
+      arenaCenter.y - actor.y,
+    );
 
-    const candidates = [
+    const edgeClearanceAt = point => Math.min(
+      point.x - actor.radius - bounds.x,
+      bounds.x + bounds.w - actor.radius - point.x,
+      point.y - actor.radius - bounds.y,
+      bounds.y + bounds.h - actor.radius - point.y,
+    );
+
+    const currentEdgeClearance = edgeClearanceAt(actor);
+    const nearBoundary = currentEdgeClearance < 96;
+
+    const rawCandidates = [
       directAway,
       normalize(directAway.x * 0.75 + side.x * 0.65, directAway.y * 0.75 + side.y * 0.65),
       normalize(directAway.x * 0.75 - side.x * 0.65, directAway.y * 0.75 - side.y * 0.65),
       side,
       { x: -side.x, y: -side.y },
-    ].filter(candidate =>
-      !this.movement.wouldCollide(actor, candidate, Math.max(18, actor.radius), this.game.arena)
+    ];
+
+    // When a healer is being chased against the outer wall, "away from melee"
+    // can keep pointing out of the arena and eventually feed the actor into a
+    // corner. Add inward escape lanes only when the healer is already close to
+    // the boundary so normal pillar kiting remains unchanged.
+    if (actor.role === "healer" && nearBoundary) {
+      rawCandidates.push(
+        towardCenter,
+        normalize(
+          directAway.x * 0.45 + towardCenter.x * 0.95,
+          directAway.y * 0.45 + towardCenter.y * 0.95,
+        ),
+        normalize(
+          side.x * 0.50 + towardCenter.x * 0.92,
+          side.y * 0.50 + towardCenter.y * 0.92,
+        ),
+        normalize(
+          -side.x * 0.50 + towardCenter.x * 0.92,
+          -side.y * 0.50 + towardCenter.y * 0.92,
+        ),
+      );
+    }
+
+    const immediateProbe = Math.max(18, actor.radius);
+    const candidates = rawCandidates.filter(candidate =>
+      !this.movement.wouldCollide(actor, candidate, immediateProbe, arena)
     );
 
-    // Let MovementSystem's obstacle navigator handle the escape instead of
-    // returning a zero vector, which previously bypassed anti-stuck logic.
-    if (candidates.length === 0) return directAway;
+    // If every normal escape direction is blocked, prefer an inward step for a
+    // boundary-pinned healer before falling back to the direct-away vector.
+    if (candidates.length === 0) {
+      if (
+        actor.role === "healer"
+        && nearBoundary
+        && !this.movement.wouldCollide(actor, towardCenter, immediateProbe, arena)
+      ) {
+        if (!actor.aiBoundaryEscapeActive) {
+          actor.aiBoundaryEscapeSelections = (actor.aiBoundaryEscapeSelections || 0) + 1;
+        }
+        actor.aiBoundaryEscapeActive = true;
+        return towardCenter;
+      }
+
+      return directAway;
+    }
 
     const probeDistance = 54;
+    const laneProbeDistances = [32, 58, 86];
 
     const scored = candidates.map(candidate => {
       const probe = {
@@ -2484,6 +2544,32 @@ export class AISystem {
       };
 
       let score = distance(probe, threat);
+      const futureEdgeClearance = edgeClearanceAt(probe);
+
+      // Avoid choosing a vector that is legal for one tiny step but runs into
+      // an outer wall or pillar immediately afterwards.
+      let blockedLaneSamples = 0;
+      for (const laneDistance of laneProbeDistances) {
+        if (this.movement.wouldCollide(actor, candidate, laneDistance, arena)) {
+          blockedLaneSamples += 1;
+        }
+      }
+      score -= blockedLaneSamples * 210;
+
+      // Preserve breathing room from the outer walls. This is deliberately
+      // mild in open space and becomes strong only near the boundary/corners.
+      const boundedClearance = Math.max(-80, Math.min(130, futureEdgeClearance));
+      score += boundedClearance * 0.65;
+
+      if (futureEdgeClearance < 58) {
+        score -= (58 - futureEdgeClearance) * 4.2;
+      }
+
+      if (actor.role === "healer" && nearBoundary) {
+        const inwardProgress =
+          candidate.x * towardCenter.x + candidate.y * towardCenter.y;
+        score += inwardProgress * 190;
+      }
 
       if (healer?.alive) {
         if (this.hasHealerSupport(probe, healer, actor.radius)) {
@@ -2499,11 +2585,32 @@ export class AISystem {
         }
       }
 
-      return { candidate, score };
+      return {
+        candidate,
+        score,
+        futureEdgeClearance,
+      };
     });
 
     scored.sort((a, b) => b.score - a.score);
-    return scored[0].candidate;
+    const selected = scored[0];
+
+    if (actor.role === "healer") {
+      const escapingBoundary =
+        nearBoundary
+        && selected.futureEdgeClearance > currentEdgeClearance + 6;
+
+      if (escapingBoundary) {
+        if (!actor.aiBoundaryEscapeActive) {
+          actor.aiBoundaryEscapeSelections = (actor.aiBoundaryEscapeSelections || 0) + 1;
+        }
+        actor.aiBoundaryEscapeActive = true;
+      } else if (currentEdgeClearance > 126) {
+        actor.aiBoundaryEscapeActive = false;
+      }
+    }
+
+    return selected.candidate;
   }
 
   hasHealerSupport(actorOrPoint, healer, actorRadius = null) {

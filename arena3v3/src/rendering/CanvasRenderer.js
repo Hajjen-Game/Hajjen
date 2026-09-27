@@ -2,6 +2,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { clamp, lerp } from "../core/utils.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { drawClassGlyph } from "./ClassGlyphs.js";
+import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -190,21 +191,25 @@ export class CanvasRenderer {
       this.drawPlayerHighlight(ctx, actor, game);
     }
 
-    ctx.shadowColor = "rgba(0,0,0,.42)";
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 4;
+    if (!this.drawClassIcon(ctx, actor)) {
+      // Fallback keeps the game readable while an image is still loading or
+      // if a class icon asset is ever missing.
+      ctx.shadowColor = "rgba(0,0,0,.42)";
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 4;
 
-    ctx.beginPath();
-    ctx.arc(actor.x, actor.y, actor.radius, 0, Math.PI * 2);
-    ctx.fillStyle = teamColor;
-    ctx.fill();
+      ctx.beginPath();
+      ctx.arc(actor.x, actor.y, actor.radius, 0, Math.PI * 2);
+      ctx.fillStyle = teamColor;
+      ctx.fill();
 
-    ctx.shadowColor = "transparent";
-    ctx.strokeStyle = teamBright;
-    ctx.lineWidth = 2;
-    ctx.stroke();
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = teamBright;
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-    if (!drawClassGlyph(ctx, actor)) this.drawRoleGlyph(ctx, actor);
+      if (!drawClassGlyph(ctx, actor)) this.drawRoleGlyph(ctx, actor);
+    }
     this.drawWorldHealth(ctx, actor, game);
     this.drawWorldResource(ctx, actor, game);
     this.drawName(ctx, actor, game);
@@ -222,6 +227,46 @@ export class CanvasRenderer {
     }
 
     ctx.restore();
+  }
+
+  drawClassIcon(ctx, actor) {
+    const image = getClassIcon(actor.classId);
+    if (!classIconReady(image)) return false;
+
+    // The PNGs are already circular artwork. Draw them as the actor body and
+    // clip to the gameplay collision circle so transparent square corners can
+    // never leak onto the arena.
+    const diameter = actor.radius * 2.18;
+    const x = actor.x - diameter / 2;
+    const y = actor.y - diameter / 2;
+
+    ctx.save();
+
+    // Keep a small neutral shadow for separation from the arena floor without
+    // adding another visible frame around the user's class artwork.
+    ctx.shadowColor = "rgba(0,0,0,.48)";
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 4;
+    ctx.fillStyle = "rgba(0,0,0,.12)";
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, actor.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, actor.radius, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(image, x, y, diameter, diameter);
+
+    ctx.restore();
+    return true;
   }
 
   drawPlayerHighlight(ctx, actor, game) {

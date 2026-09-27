@@ -252,6 +252,11 @@ function appendAiIdentityMemoryIntent(lines, game) {
         + " | selfPreservation " + trait(profile.healerSelfPreservation)
         + " | castGreed " + trait(profile.healerCastGreed),
       );
+      lines.push(
+        "  Healer intent hysteresis: "
+        + (actor.aiHealerIntentHolds || 0)
+        + " replan attempts held by minimum commitment",
+      );
     }
 
     if (actor.role === "caster") {
@@ -439,7 +444,7 @@ export function buildMatchReport(game) {
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
     "AI decision difficulty: scaled from player Rating " + n(startRating?.rating) + " (Rank controls talents/gear progression, not AI skill)",
-    "AI cognition: per-match Memory + individual short-term Intent enabled; identity/cognition exposed in run report only",
+    "AI cognition: per-match Memory + individual short-term Intent enabled; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",

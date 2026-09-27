@@ -610,6 +610,16 @@ export class AISystem {
         divergences: 0,
       };
     }
+    if (!actor.aiSlowUsage) {
+      actor.aiSlowUsage = {
+        casts: 0,
+        meleeAssists: 0,
+        teammatePeels: 0,
+        selfPeels: 0,
+        modelAssisted: 0,
+        teamAssisted: 0,
+      };
+    }
     return actor.aiMemory;
   }
 
@@ -1696,6 +1706,204 @@ export class AISystem {
     }
   }
 
+  slowDamageSpell(actor) {
+    if (actor.role !== "caster") return null;
+
+    return actor.spells.find(spell =>
+      spell.target === "enemy"
+      && spell.effects.some(effect =>
+        effect.kind === "slow"
+        || (effect.kind === "chainDamage" && effect.primarySlow)
+      )
+    ) || null;
+  }
+
+  tacticalSlowDecision(actor, currentTarget, enemies) {
+    const spell = this.slowDamageSpell(actor);
+    if (!spell || !this.ready(actor, spell) || enemies.length === 0) return null;
+
+    const allies = this.game.actors.filter(unit =>
+      unit.alive && unit.team === actor.team
+    );
+    const friendlyMelee = allies.filter(unit => unit.role === "melee");
+    const plan = this.teamPlan(actor.team);
+    const currentIntent = actor.aiIntent?.expiresAt > this.game.elapsedSeconds
+      ? actor.aiIntent
+      : null;
+
+    const supportDiscipline = this.behavior(actor, "supportDiscipline", 0.68);
+    const peelBias = this.behavior(actor, "peelBias", 0.55);
+    const kiteBias = this.behavior(actor, "casterKiteBias", 0.68);
+    const skill = this.skill(actor);
+
+    let best = null;
+
+    for (const enemy of enemies) {
+      if (!enemy?.alive) continue;
+      if (!this.game.combat.spellInRange(actor, enemy, spell)) continue;
+      if (!this.game.combat.hasLos(actor, enemy)) continue;
+
+      // Slow is a bonus on a normal damage spell. Never penalize a target for
+      // already being slowed, rooted or stunned: the cast still deals damage,
+      // and refreshing the slow can be valuable when the harder control ends.
+      let score = enemy.id === currentTarget?.id ? 8 : 0;
+      let kind = null;
+      let reason = "";
+      let modelAssisted = false;
+      let teamAssisted = false;
+
+      const enemyTargetId = this.combatTargetId(enemy);
+      const pressuredAlly = enemyTargetId
+        ? allies.find(ally => ally.id === enemyTargetId)
+        : null;
+
+      if (enemy.role === "melee" && pressuredAlly) {
+        if (pressuredAlly.id === actor.id) {
+          const threatDistance = distance(enemy, actor);
+          score += 42 + clamp01((180 - threatDistance) / 130) * 14;
+          kind = "selfPeel";
+          reason = "self-peel";
+        } else if (pressuredAlly.role === "healer") {
+          score += 38 + Math.max(0, 0.78 - pressuredAlly.healthPct) * 22;
+          kind = "teammatePeel";
+          reason = "peel " + this.game.combatantLabel(pressuredAlly);
+        } else if (
+          pressuredAlly.role === "caster"
+          && pressuredAlly.healthPct <= 0.78
+        ) {
+          score += 24 + Math.max(0, 0.72 - pressuredAlly.healthPct) * 18;
+          kind = "teammatePeel";
+          reason = "peel " + this.game.combatantLabel(pressuredAlly);
+        }
+
+        if (kind) {
+          const modelRead = this.opponentPressureRead(actor, enemy, pressuredAlly);
+          if (modelRead > 0.08) {
+            score += modelRead * 12;
+            modelAssisted = true;
+          }
+
+          const recentPressure = this.latestMemoryEvent(
+            actor,
+            "ally-pressured",
+            pressuredAlly.id,
+          );
+          if (
+            recentPressure
+            && this.game.elapsedSeconds - recentPressure.at <= 4.0
+          ) {
+            score += 4 + skill * 3;
+          }
+        }
+      }
+
+      let bestMeleeAssist = null;
+      for (const melee of friendlyMelee) {
+        if (this.combatTargetId(melee) !== enemy.id) continue;
+
+        const meleeRange = melee.config.ai.preferredRange || 55;
+        const gap = distance(melee, enemy);
+        const helpThreshold = meleeRange * 1.35;
+        if (gap <= helpThreshold) continue;
+
+        const need = clamp01((gap - helpThreshold) / 150);
+        const assistScore = 18 + need * 18;
+
+        if (!bestMeleeAssist || assistScore > bestMeleeAssist.score) {
+          bestMeleeAssist = { melee, score: assistScore };
+        }
+      }
+
+      if (bestMeleeAssist) {
+        score += bestMeleeAssist.score;
+        if (!kind || kind === "meleeAssist") {
+          kind = "meleeAssist";
+          reason = "help "
+            + this.game.combatantLabel(bestMeleeAssist.melee)
+            + " connect";
+        }
+      }
+
+      if (
+        plan?.primaryTargetId === enemy.id
+        && ["PRESSURE", "BURST"].includes(plan.state)
+      ) {
+        score += 5 + (plan.confidence || 0) * 5;
+        teamAssisted = true;
+      }
+
+      if (
+        plan
+        && ["PEEL", "RECOVER"].includes(plan.state)
+        && pressuredAlly?.role === "healer"
+      ) {
+        score += 7 + (plan.confidence || 0) * 5;
+        teamAssisted = true;
+      }
+
+      if (currentIntent?.targetId === enemy.id) {
+        score += 4;
+      }
+
+      if (!kind || score < 20) continue;
+
+      let chance = 0.35;
+      if (kind === "selfPeel") {
+        chance = 0.52 + kiteBias * 0.28 + skill * 0.16;
+        if (actor.healthPct < 0.42) chance = 1;
+      } else if (kind === "teammatePeel") {
+        chance = 0.44 + peelBias * 0.28 + skill * 0.18;
+      } else if (kind === "meleeAssist") {
+        chance = 0.30 + supportDiscipline * 0.36 + skill * 0.18;
+      }
+
+      if (teamAssisted) chance += 0.06;
+      if (modelAssisted) chance += 0.04;
+
+      const decision = {
+        spell,
+        target: enemy,
+        kind,
+        reason,
+        score,
+        chance: clamp01(chance),
+        modelAssisted,
+        teamAssisted,
+      };
+
+      if (!best || decision.score > best.score) best = decision;
+    }
+
+    if (!best) return null;
+
+    const key = "tactical-slow:" + best.kind + ":" + best.target.id;
+    return this.shouldAttempt(actor, key, best.chance, 1.6)
+      ? best
+      : null;
+  }
+
+  recordTacticalSlow(actor, decision) {
+    this.ensureCognition(actor);
+    const usage = actor.aiSlowUsage;
+
+    usage.casts += 1;
+    if (decision.kind === "meleeAssist") usage.meleeAssists += 1;
+    if (decision.kind === "teammatePeel") usage.teammatePeels += 1;
+    if (decision.kind === "selfPeel") usage.selfPeels += 1;
+    if (decision.modelAssisted) usage.modelAssisted += 1;
+    if (decision.teamAssisted) usage.teamAssisted += 1;
+
+    actor.aiLastSlowDecision = {
+      at: this.game.elapsedSeconds,
+      targetId: decision.target.id,
+      targetName: this.game.combatantLabel(decision.target),
+      spellId: decision.spell.id,
+      spellName: decision.spell.name,
+      kind: decision.kind,
+      reason: decision.reason,
+    };
+  }
+
   damageThink(actor) {
     const enemies = this.game.actors.filter(candidate =>
       candidate.alive && candidate.team !== actor.team,
@@ -1938,6 +2146,21 @@ export class AISystem {
       }
 
       if (controlTarget && this.castIfPossible(actor, control, controlTarget)) return;
+    }
+
+    const tacticalSlow = this.tacticalSlowDecision(
+      actor,
+      target,
+      damageableEnemies,
+    );
+
+    if (
+      tacticalSlow
+      && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, tacticalSlow.target)
+      && this.castIfPossible(actor, tacticalSlow.spell, tacticalSlow.target)
+    ) {
+      this.recordTacticalSlow(actor, tacticalSlow);
+      return;
     }
 
     const periodic = this.spell(actor, "periodic", target);

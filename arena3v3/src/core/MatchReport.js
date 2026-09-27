@@ -431,6 +431,25 @@ function appendAiIdentityMemoryIntent(lines, game) {
       + " | divergences " + (teamUsage.divergences || 0),
     );
 
+    const hasSlowDamageSpell = (actor.spells || []).some(spell =>
+      spell.effects?.some(effect =>
+        effect.kind === "slow"
+        || (effect.kind === "chainDamage" && effect.primarySlow)
+      )
+    );
+    if (hasSlowDamageSpell) {
+      const slowUsage = actor.aiSlowUsage || {};
+      lines.push(
+        "  Tactical slow usage:"
+        + " casts " + (slowUsage.casts || 0)
+        + " | melee assists " + (slowUsage.meleeAssists || 0)
+        + " | teammate peels " + (slowUsage.teammatePeels || 0)
+        + " | self-peels " + (slowUsage.selfPeels || 0)
+        + " | model-assisted " + (slowUsage.modelAssisted || 0)
+        + " | team-assisted " + (slowUsage.teamAssisted || 0),
+      );
+    }
+
     if (models.length === 0) {
       lines.push("  Opponent models: none formed.");
     } else {

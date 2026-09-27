@@ -311,80 +311,112 @@ export class AISystem {
     const now = this.game.elapsedSeconds;
     const triage = this.behavior(actor, "healerTriage", 0.70);
     const manaConservation = this.behavior(actor, "manaConservation", 0.50);
+    const selfPreservation = this.behavior(actor, "healerSelfPreservation", 0.68);
+    const volatility = this.behavior(actor, "volatility", 0.45);
     const selfThreat = this.meleeThreatTo(
       actor,
       actor.config.ai.peelThreatRange ?? 135,
     );
 
-    if (selfThreat && actor.healthPct < 0.62) {
-      this.setIntent(
-        actor,
-        "SURVIVE",
-        actor,
-        "melee pressure on self",
-        2.2 + this.behavior(actor, "healerSelfPreservation", 0.68) * 1.8,
-      );
+    // Pick exactly one desired plan per think. Previously SURVIVE could be set
+    // first and then immediately overwritten by STABILIZE later in this same
+    // function, creating sub-second intent ping-pong.
+    const allyEmergency = Boolean(
+      bestTarget
+      && bestTarget.id !== actor.id
+      && bestTarget.healthPct < 0.34
+      && bestTarget.healthPct < actor.healthPct - 0.12
+    );
+
+    let desiredType = "SUPPORT";
+    let desiredTarget = bestTarget;
+    let desiredReason = "maintain team stability";
+    let desiredDuration = 2.0 + triage * 1.6;
+
+    if (selfThreat && actor.healthPct < 0.62 && !allyEmergency) {
+      desiredType = "SURVIVE";
+      desiredTarget = actor;
+      desiredReason = "melee pressure on self";
+      desiredDuration = 2.2 + selfPreservation * 1.8;
     } else if (bestTarget?.healthPct < 0.58) {
-      this.setIntent(
-        actor,
-        "STABILIZE",
-        bestTarget,
-        "ally under dangerous pressure",
-        2.0 + triage * 2.2,
-      );
+      desiredType = "STABILIZE";
+      desiredTarget = bestTarget;
+      desiredReason = allyEmergency
+        ? "new higher-priority emergency"
+        : "ally under dangerous pressure";
+      desiredDuration = 2.0 + triage * 2.2;
     } else if (
       actor.resource.type === "mana"
       && actor.resourcePct < 0.28
       && manaConservation > 0.42
     ) {
-      this.setIntent(
-        actor,
-        "CONSERVE",
-        bestTarget,
-        "low mana",
-        3.0 + manaConservation * 2.0,
-      );
+      desiredType = "CONSERVE";
+      desiredTarget = bestTarget;
+      desiredReason = "low mana";
+      desiredDuration = 3.0 + manaConservation * 2.0;
     }
 
     const current = this.currentIntent(actor);
-    if (!current?.targetId) {
-      this.setIntent(
-        actor,
-        "SUPPORT",
-        bestTarget,
-        "maintain team stability",
-        2.0 + triage * 1.6,
-      );
+    const committed = current?.targetId
+      ? allies.find(ally => ally.id === current.targetId)
+      : null;
+
+    const samePlan = Boolean(
+      current
+      && current.type === desiredType
+      && current.targetId === (desiredTarget?.id || null)
+    );
+
+    if (samePlan) {
+      return committed?.alive ? committed : bestTarget;
     }
 
+    if (current) {
+      // Human-like hysteresis: once a healer commits to a plan, comparable
+      // priorities do not replace it every think tick. More volatile healers
+      // are allowed to reconsider slightly sooner.
+      const minimumCommitment = 1.45 + (1 - volatility) * 0.75;
+      const intentAge = Math.max(0, now - current.startedAt);
+      const desiredIsCareIntent = ["SURVIVE", "STABILIZE"].includes(desiredType);
+      const currentIsCareIntent = ["SURVIVE", "STABILIZE"].includes(current.type);
+      const desiredHealth = desiredTarget?.healthPct ?? 1;
+      const committedHealth = committed?.healthPct ?? 1;
+
+      // Real emergencies may still break the commitment immediately. SUPPORT
+      // and CONSERVE yield earlier to dangerous HP; SURVIVE/STABILIZE require a
+      // more severe or clearly higher-priority emergency to be interrupted.
+      const emergencyThreshold = currentIsCareIntent ? 0.32 : 0.42;
+      const emergencyBreak = Boolean(
+        desiredIsCareIntent
+        && desiredTarget?.alive
+        && desiredHealth < emergencyThreshold
+        && (
+          !currentIsCareIntent
+          || !committed?.alive
+          || committedHealth - desiredHealth > 0.08
+        )
+      );
+
+      if (intentAge < minimumCommitment && !emergencyBreak) {
+        actor.aiHealerIntentHolds = (actor.aiHealerIntentHolds || 0) + 1;
+        return committed?.alive ? committed : bestTarget;
+      }
+    }
+
+    this.setIntent(
+      actor,
+      desiredType,
+      desiredTarget,
+      desiredReason,
+      desiredDuration,
+    );
+
     const active = this.currentIntent(actor);
-    const committed = active?.targetId
+    const activeTarget = active?.targetId
       ? allies.find(ally => ally.id === active.targetId)
       : null;
 
-    if (!committed?.alive) return bestTarget;
-
-    // A new real emergency breaks commitment. Otherwise the healer gives the
-    // current plan a short chance to resolve instead of retargeting every tick.
-    if (
-      bestTarget
-      && bestTarget.id !== committed.id
-      && (
-        bestTarget.healthPct < 0.34
-        || committed.healthPct - bestTarget.healthPct > 0.16
-      )
-    ) {
-      this.setIntent(
-        actor,
-        "STABILIZE",
-        bestTarget,
-        "new higher-priority emergency",
-        2.0 + triage * 1.8,
-      );
-      return bestTarget;
-    }
-
-    return committed;
+    return activeTarget?.alive ? activeTarget : bestTarget;
   }
 
   damageIntentTarget(actor, enemies) {

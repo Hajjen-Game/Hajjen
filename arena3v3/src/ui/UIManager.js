@@ -81,6 +81,7 @@ export class UIManager {
 
     this.honorModal = document.querySelector("#honor-modal");
     this.honorModalRank = document.querySelector("#honor-modal-rank");
+    this.honorModalRating = document.querySelector("#honor-modal-rating");
     this.honorModalTotal = document.querySelector("#honor-modal-total");
     this.honorModalWallet = document.querySelector("#honor-modal-wallet");
     this.honorModalRecord = document.querySelector("#honor-modal-record");
@@ -860,7 +861,7 @@ export class UIManager {
         status.availablePoints + " Talent Point" + (status.availablePoints === 1 ? "" : "s")
         + " available. Click a highlighted talent or its +1 button.";
     } else if (status.earnedPoints === 0) {
-      pointNote.textContent = "Reach Rank 2 to earn 2 Talent Points.";
+      pointNote.textContent = "Reach Rank 2 to earn 1 Talent Point.";
     } else {
       pointNote.textContent = "All earned Talent Points are currently spent. Reset to rebuild.";
     }
@@ -1012,8 +1013,13 @@ export class UIManager {
 
   updateHonorMenu() {
     const status = this.game.honor.status();
+    const rating = this.game.rating.status();
 
-    this.honorModalRank.textContent = "RANK " + status.rank + " · " + status.title.toUpperCase();
+    this.honorModalRank.textContent = "RANK " + status.rank;
+    if (this.honorModalRating) {
+      this.honorModalRating.textContent =
+        rating.rating.toLocaleString() + " · PEAK " + rating.peakRating.toLocaleString();
+    }
     this.honorModalTotal.textContent = status.lifetimeHonor.toLocaleString();
     if (this.honorModalWallet) {
       this.honorModalWallet.textContent = status.honorPoints.toLocaleString();
@@ -1028,12 +1034,12 @@ export class UIManager {
         status.progressHonor.toLocaleString() + " / " + status.neededHonor.toLocaleString();
       this.honorModalProgressFill.style.width = (status.progress * 100).toFixed(1) + "%";
       this.honorModalNext.textContent =
-        "Next: Rank " + status.nextRank.rank + " · " + status.nextRank.title
+        "Next: Rank " + status.nextRank.rank
         + " · " + (status.nextRank.requiredHonor - status.lifetimeHonor).toLocaleString() + " Honor remaining";
     } else {
       this.honorModalProgressText.textContent = "MAX RANK";
       this.honorModalProgressFill.style.width = "100%";
-      this.honorModalNext.textContent = "Grand Marshal reached";
+      this.honorModalNext.textContent = "Rank 20 reached";
     }
 
     this.honorRankList.innerHTML = "";
@@ -1055,11 +1061,12 @@ export class UIManager {
         + '<span class="honor-rank-reward"></span>';
 
       row.querySelector(".honor-rank-number").textContent = "R" + rank.rank;
-      row.querySelector(".honor-rank-name").textContent = rank.title;
+      row.querySelector(".honor-rank-name").textContent =
+        rank.rank === 20 ? "MAX RANK" : "1 TALENT POINT";
       row.querySelector(".honor-rank-requirement").textContent =
         rank.requiredHonor.toLocaleString() + " Honor";
       row.querySelector(".honor-rank-reward").textContent =
-        rank.rank === 1 ? "START" : "+" + rank.talentPointsAward + " TP";
+        rank.rank === 1 ? "START" : "+1 TP";
 
       this.honorRankList.appendChild(row);
     }
@@ -1418,9 +1425,10 @@ export class UIManager {
 
   updateHonorStatus() {
     const status = this.game.honor.status();
+    const rating = this.game.rating.status();
 
-    this.honorRank.textContent = "RANK " + status.rank + " · " + status.title;
-    this.honorTotal.textContent = status.lifetimeHonor.toLocaleString() + " LIFETIME";
+    this.honorRank.textContent = "RANK " + status.rank;
+    this.honorTotal.textContent = "RATING " + rating.rating.toLocaleString();
     const talentStatus = this.game.talentStatus();
     this.honorTalentPoints.textContent = "TP " + talentStatus.availablePoints;
     this.honorTalentPoints.title =
@@ -1441,7 +1449,7 @@ export class UIManager {
     this.honorProgressText.textContent =
       status.progressHonor.toLocaleString()
       + " / " + status.neededHonor.toLocaleString()
-      + " TO " + status.nextRank.title.toUpperCase();
+      + " TO RANK " + status.nextRank.rank;
   }
 
   updateProgressionAttention(talentStatus = this.game.talentStatus()) {
@@ -1542,12 +1550,12 @@ export class UIManager {
       }
       if (this.resultNextRank) {
         this.resultNextRank.textContent =
-          "Next: Rank " + honor.nextRank.rank + " · " + honor.nextRank.title;
+          "Next: Rank " + honor.nextRank.rank;
       }
     } else {
       if (this.resultProgressFill) this.resultProgressFill.style.width = "100%";
       if (this.resultProgressText) this.resultProgressText.textContent = "MAX RANK";
-      if (this.resultNextRank) this.resultNextRank.textContent = "Grand Marshal reached";
+      if (this.resultNextRank) this.resultNextRank.textContent = "Rank 20 reached";
     }
 
     if (this.resultAdvice) {
@@ -1580,18 +1588,25 @@ export class UIManager {
     }
   }
 
-  setResult(title, honorAward = null) {
+  setResult(title, honorAward = null, ratingAward = null) {
     this.playerCcAlert.classList.add("hidden");
     this.playerCcAlert.classList.remove("fear", "incapacitate", "stun", "root", "school-lock");
     this.resultTitle.textContent = title;
 
     if (honorAward) {
-      this.resultHonor.textContent = "+" + honorAward.honor + " HONOR";
+      const ratingText = ratingAward
+        ? " · RATING "
+          + (ratingAward.change >= 0 ? "+" : "")
+          + ratingAward.change
+          + " → " + ratingAward.after
+        : "";
+      this.resultHonor.textContent =
+        "+" + honorAward.honor + " HONOR" + ratingText;
 
       if (honorAward.rankedUp) {
         this.resultRankUp.hidden = false;
         this.resultRankUp.textContent =
-          "RANK UP · " + honorAward.rankTitle.toUpperCase()
+          "RANK UP · RANK " + honorAward.rankAfter
           + " · +" + honorAward.talentPointsGained
           + " TALENT POINT" + (honorAward.talentPointsGained === 1 ? "" : "S");
       } else {

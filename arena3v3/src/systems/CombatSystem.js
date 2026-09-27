@@ -403,6 +403,7 @@ export class CombatSystem {
           break;
         case "damageReduction":
         case "healingReduction":
+        case "slow":
           this.applyTimedEffect(caster, effectTarget, spell, effect, style);
           break;
         case "fearAoE":
@@ -514,6 +515,20 @@ export class CombatSystem {
         true,
         style,
       );
+
+      if (index === 0 && chainTarget.alive && effect.primarySlow) {
+        this.applyTimedEffect(
+          caster,
+          chainTarget,
+          spell,
+          {
+            kind: "slow",
+            value: effect.primarySlow.value,
+            durationMs: effect.primarySlow.durationMs,
+          },
+          style,
+        );
+      }
     });
 
     this.game.vfx.chain(visualIds, style, 380);
@@ -705,9 +720,19 @@ export class CombatSystem {
     if (effect.kind === "damageReduction") {
       this.game.addFloatingText(target, "GUARDED", "buff");
       this.game.log(this.game.combatantLabel(target) + " gains " + spell.name + ".");
-    } else {
+    } else if (effect.kind === "healingReduction") {
       this.game.addFloatingText(target, "HEALING REDUCED", "debuff");
       this.game.log(this.game.combatantLabel(source) + " applies healing reduction to " + this.game.combatantLabel(target) + ".");
+    } else if (effect.kind === "slow") {
+      this.game.addFloatingText(target, "SLOWED", "debuff");
+      this.game.log(
+        this.game.combatantLabel(source)
+        + " slows "
+        + this.game.combatantLabel(target)
+        + " with "
+        + spell.name
+        + ".",
+      );
     }
   }
 }

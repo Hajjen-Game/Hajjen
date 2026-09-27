@@ -24,7 +24,10 @@ export const mageClass = {
     {
       id: "mage-frostbolt", name: "Frostbolt", aiRole: "filler", visualStyle: "mage",
       target: "enemy", school: "frost", resourceCost: 14, castMs: 950, cooldownMs: 0, gcdMs: 1200, range: 365,
-      effects: [{ kind: "damage", amount: 88 }],
+      effects: [
+      { kind: "damage", amount: 88 },
+      { kind: "slow", value: 0.35, durationMs: 3000 },
+    ],
     },
     {
       id: "mage-pyroblast", offensiveCooldown: { durationMs: 2400, label: "BURST" }, name: "Pyroblast", aiRole: "bigDamage", visualStyle: "mage",

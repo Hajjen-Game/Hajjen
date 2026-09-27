@@ -27,6 +27,7 @@ export const shamanClass = {
       effects: [{
         kind: "chainDamage", amount: 82, range: 360, maxTargets: 3,
         multipliers: [1, 0.72, 0.55], visualStyle: "shaman",
+        primarySlow: { value: 0.30, durationMs: 2500 },
       }],
     },
     {

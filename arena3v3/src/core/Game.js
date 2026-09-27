@@ -1,11 +1,11 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20260927-pillarfixed1";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20260927-slow1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
-import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-team-plan1";
+import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-slow1";
 import { AISystem } from "../systems/AISystem.js?v=20260927-pillarlookahead1";
 import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260927-rating-ai1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260927-targetglow2";

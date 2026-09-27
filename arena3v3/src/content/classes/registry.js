@@ -4,9 +4,9 @@ import { paladinClass } from "./paladin/config.js?v=20260926-manapressure2";
 import { warriorClass } from "./warrior/config.js?v=20260926-interrupt12";
 import { rogueClass } from "./rogue/config.js?v=20260926-interrupt12";
 import { deathKnightClass } from "./death-knight/config.js?v=20260926-interrupt12";
-import { mageClass } from "./mage/config.js";
-import { warlockClass } from "./warlock/config.js?v=20260926-schoolvfx2";
-import { shamanClass } from "./shaman/config.js?v=20260926-astralshift1";
+import { mageClass } from "./mage/config.js?v=20260927-slow1";
+import { warlockClass } from "./warlock/config.js?v=20260927-slow1";
+import { shamanClass } from "./shaman/config.js?v=20260927-slow1";
 
 export const CLASS_REGISTRY = {
   priest: priestClass,

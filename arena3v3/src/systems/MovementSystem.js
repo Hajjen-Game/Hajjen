@@ -30,6 +30,17 @@ function avoidanceSign(actor) {
   return actor.aiAvoidanceSign;
 }
 
+function movementSpeedMultiplier(actor) {
+  const strongestSlow = (actor.effects || [])
+    .filter(effect => effect.kind === "slow" && effect.remainingMs > 0)
+    .reduce(
+      (highest, effect) => Math.max(highest, Number(effect.value) || 0),
+      0,
+    );
+
+  return Math.max(0.10, 1 - Math.min(0.90, strongestSlow));
+}
+
 function collides(actor, x, y, arena) {
   const b = arena.bounds;
   if (
@@ -114,7 +125,7 @@ export class MovementSystem {
       return false;
     }
 
-    const step = actor.moveSpeed * deltaSeconds;
+    const step = actor.moveSpeed * movementSpeedMultiplier(actor) * deltaSeconds;
     return this.tryDirection(actor, direction, step, arena);
   }
 
@@ -132,7 +143,7 @@ export class MovementSystem {
       return false;
     }
 
-    const step = actor.moveSpeed * deltaSeconds;
+    const step = actor.moveSpeed * movementSpeedMultiplier(actor) * deltaSeconds;
     let sign = avoidanceSign(actor);
 
     // Progress watchdog: an AI can technically keep moving while oscillating

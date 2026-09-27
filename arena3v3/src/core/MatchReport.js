@@ -152,6 +152,7 @@ function appendAiProgression(lines, game, team, title) {
     lines.push(
       actor.name + " [" + actor.className + "]"
       + " — Rank " + progression.rank
+      + " | Rating " + (progression.rating ?? "—")
       + " | Talent Points " + progression.spentPoints + "/" + progression.talentPoints,
     );
 
@@ -218,8 +219,11 @@ export function buildMatchReport(game) {
   const result = game.resultText || (game.ended ? "ENDED" : "IN PROGRESS");
   const loadout = playerLoadout(game);
   const startHonor = loadout?.honor || null;
+  const startRating = loadout?.rating || null;
   const currentHonor = game.honor?.status?.() || null;
+  const currentRating = game.rating?.status?.() || null;
   const award = game.lastHonorAward || null;
+  const ratingAward = game.lastRatingAward || null;
 
   const friendlyComposition = game.actors
     .filter(actor => actor.team === "friendly")
@@ -249,7 +253,8 @@ export function buildMatchReport(game) {
 
   if (startHonor) {
     lines.push(
-      "Rank: " + startHonor.rank + " · " + startHonor.title
+      "Rank: " + startHonor.rank
+      + " | Rating: " + n(startRating?.rating)
       + " | Lifetime Honor " + n(startHonor.lifetimeHonor)
       + " | Spendable Honor " + n(startHonor.honorPoints),
     );
@@ -260,12 +265,19 @@ export function buildMatchReport(game) {
   if (award) {
     lines.push(
       "Match reward: +" + award.honor + " Honor"
-      + " | Rank after match " + award.rankAfter + " · " + award.rankTitle
+      + (ratingAward
+        ? " | Rating "
+          + (ratingAward.change >= 0 ? "+" : "")
+          + ratingAward.change
+          + " → " + ratingAward.after
+        : "")
+      + " | Rank after match " + award.rankAfter
       + (award.rankedUp ? " | RANK UP +" + award.talentPointsGained + " Talent Point" + (award.talentPointsGained === 1 ? "" : "s") : ""),
     );
   } else if (currentHonor && game.ended) {
     lines.push(
-      "Progression after match: Rank " + currentHonor.rank + " · " + currentHonor.title
+      "Progression after match: Rank " + currentHonor.rank
+      + " | Rating " + n(currentRating?.rating)
       + " | Lifetime Honor " + n(currentHonor.lifetimeHonor)
       + " | Spendable Honor " + n(currentHonor.honorPoints),
     );
@@ -281,6 +293,7 @@ export function buildMatchReport(game) {
     "",
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
+    "AI decision difficulty: scaled from player Rating " + n(startRating?.rating) + " (Rank controls talents/gear progression, not AI skill)",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",

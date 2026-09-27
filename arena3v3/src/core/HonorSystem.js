@@ -8,20 +8,26 @@ export const HONOR_REWARDS = Object.freeze({
 });
 
 export const HONOR_RANKS = Object.freeze([
-  { rank: 1, title: "Private", requiredHonor: 0, talentPointsAward: 0, totalTalentPoints: 0 },
-  { rank: 2, title: "Corporal", requiredHonor: 300, talentPointsAward: 2, totalTalentPoints: 2 },
-  { rank: 3, title: "Sergeant", requiredHonor: 800, talentPointsAward: 2, totalTalentPoints: 4 },
-  { rank: 4, title: "Master Sergeant", requiredHonor: 1600, talentPointsAward: 2, totalTalentPoints: 6 },
-  { rank: 5, title: "Sergeant Major", requiredHonor: 2700, talentPointsAward: 1, totalTalentPoints: 7 },
-  { rank: 6, title: "Knight", requiredHonor: 4200, talentPointsAward: 2, totalTalentPoints: 9 },
-  { rank: 7, title: "Knight-Lieutenant", requiredHonor: 6100, talentPointsAward: 1, totalTalentPoints: 10 },
-  { rank: 8, title: "Knight-Captain", requiredHonor: 8500, talentPointsAward: 2, totalTalentPoints: 12 },
-  { rank: 9, title: "Knight-Champion", requiredHonor: 11500, talentPointsAward: 1, totalTalentPoints: 13 },
-  { rank: 10, title: "Lieutenant Commander", requiredHonor: 15100, talentPointsAward: 1, totalTalentPoints: 14 },
-  { rank: 11, title: "Commander", requiredHonor: 19300, talentPointsAward: 2, totalTalentPoints: 16 },
-  { rank: 12, title: "Marshal", requiredHonor: 24100, talentPointsAward: 1, totalTalentPoints: 17 },
-  { rank: 13, title: "Field Marshal", requiredHonor: 29500, talentPointsAward: 1, totalTalentPoints: 18 },
-  { rank: 14, title: "Grand Marshal", requiredHonor: 35500, talentPointsAward: 1, totalTalentPoints: 19 },
+  { rank: 1, requiredHonor: 0, talentPointsAward: 0, totalTalentPoints: 0 },
+  { rank: 2, requiredHonor: 150, talentPointsAward: 1, totalTalentPoints: 1 },
+  { rank: 3, requiredHonor: 300, talentPointsAward: 1, totalTalentPoints: 2 },
+  { rank: 4, requiredHonor: 550, talentPointsAward: 1, totalTalentPoints: 3 },
+  { rank: 5, requiredHonor: 800, talentPointsAward: 1, totalTalentPoints: 4 },
+  { rank: 6, requiredHonor: 1200, talentPointsAward: 1, totalTalentPoints: 5 },
+  { rank: 7, requiredHonor: 1600, talentPointsAward: 1, totalTalentPoints: 6 },
+  { rank: 8, requiredHonor: 2700, talentPointsAward: 1, totalTalentPoints: 7 },
+  { rank: 9, requiredHonor: 3450, talentPointsAward: 1, totalTalentPoints: 8 },
+  { rank: 10, requiredHonor: 4200, talentPointsAward: 1, totalTalentPoints: 9 },
+  { rank: 11, requiredHonor: 6100, talentPointsAward: 1, totalTalentPoints: 10 },
+  { rank: 12, requiredHonor: 7300, talentPointsAward: 1, totalTalentPoints: 11 },
+  { rank: 13, requiredHonor: 8500, talentPointsAward: 1, totalTalentPoints: 12 },
+  { rank: 14, requiredHonor: 11500, talentPointsAward: 1, totalTalentPoints: 13 },
+  { rank: 15, requiredHonor: 15100, talentPointsAward: 1, totalTalentPoints: 14 },
+  { rank: 16, requiredHonor: 17200, talentPointsAward: 1, totalTalentPoints: 15 },
+  { rank: 17, requiredHonor: 19300, talentPointsAward: 1, totalTalentPoints: 16 },
+  { rank: 18, requiredHonor: 24100, talentPointsAward: 1, totalTalentPoints: 17 },
+  { rank: 19, requiredHonor: 29500, talentPointsAward: 1, totalTalentPoints: 18 },
+  { rank: 20, requiredHonor: 35500, talentPointsAward: 1, totalTalentPoints: 19 },
 ]);
 
 function emptyState() {
@@ -50,7 +56,7 @@ function normalizeState(stored) {
       : lifetimeHonor,
     wins: Math.max(0, Number(stored.wins) || 0),
     losses: Math.max(0, Number(stored.losses) || 0),
-    rank: Math.max(1, Math.min(14, Number(stored.rank) || 1)),
+    rank: Math.max(1, Math.min(20, Number(stored.rank) || 1)),
     talentPoints: Math.max(0, Number(stored.talentPoints) || 0),
   };
 }
@@ -172,7 +178,6 @@ export class HonorSystem {
       honor: gain,
       rankBefore: before.rank,
       rankAfter: after.rank,
-      rankTitle: after.title,
       rankedUp: ranksGained > 0,
       ranksGained,
       talentPointsGained,

@@ -807,6 +807,10 @@ export class Game {
       stats.ccApplied += 1;
       stats.ccSeconds += durationMs / 1000;
     }
+
+    if (source?.control === "player") {
+      this.ai?.observePlayerCc?.(source, target, kind);
+    }
   }
 
   addFloatingText(actor, text, type) {

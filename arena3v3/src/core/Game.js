@@ -1,12 +1,12 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20260927-pillarfixed1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260926-cleanrings1";
-import { AISystem } from "../systems/AISystem.js?v=20260926-behavior1";
+import { AISystem } from "../systems/AISystem.js?v=20260927-pillarfixed1";
 import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260926-behavior1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-talentvfx1";
 import { UIManager } from "../ui/UIManager.js?v=20260926-enemycd1";

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3v3 Arena — Prototype</title>
   <link rel="stylesheet" href="./src/styles/theme.css?v=20260926-vfxintensity1" />
-  <link rel="stylesheet" href="./src/styles/game.css?v=20260927-ui-layout3" />
+  <link rel="stylesheet" href="./src/styles/game.css?v=20260927-focus-hud1" />
   <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
@@ -115,10 +115,61 @@
             </div>
           </div>
 
-          <div class="player-status-bars" aria-label="Player cast bar">
-            <div id="player-cast" class="player-cast hidden">
-              <div id="player-cast-label" class="cast-label"></div>
-              <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
+          <div class="combat-focus-hud" aria-label="Player and target status">
+            <div class="focus-unit-stack player-focus-stack">
+              <div id="player-cast" class="focus-cast player-cast hidden" aria-label="Player cast bar">
+                <div id="player-cast-label" class="cast-label"></div>
+                <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
+              </div>
+
+              <div id="player-focus-frame" class="focus-unit-frame player-focus-frame">
+                <div class="focus-class-medallion">
+                  <canvas id="player-focus-icon" class="focus-class-icon" width="72" height="72" aria-label="Player class icon"></canvas>
+                </div>
+                <div class="focus-unit-copy">
+                  <div class="focus-unit-head">
+                    <strong id="player-focus-name" class="focus-unit-name">PLAYER</strong>
+                    <span id="player-focus-meta" class="focus-unit-meta"></span>
+                  </div>
+                  <div class="focus-health-track">
+                    <div id="player-focus-health" class="focus-health-fill"></div>
+                    <span id="player-focus-health-value" class="focus-bar-value"></span>
+                  </div>
+                  <div class="focus-resource-track">
+                    <div id="player-focus-resource" class="focus-resource-fill"></div>
+                    <span id="player-focus-resource-label" class="focus-resource-label"></span>
+                    <span id="player-focus-resource-value" class="focus-resource-value"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="target-focus-stack" class="focus-unit-stack target-focus-stack hidden" aria-hidden="true">
+              <div id="target-cast" class="focus-cast target-cast hidden" aria-label="Target cast bar">
+                <div id="target-cast-label" class="cast-label"></div>
+                <div class="cast-track"><div id="target-cast-fill" class="cast-fill"></div></div>
+              </div>
+
+              <div id="target-focus-frame" class="focus-unit-frame target-focus-frame">
+                <div class="focus-class-medallion">
+                  <canvas id="target-focus-icon" class="focus-class-icon" width="72" height="72" aria-label="Target class icon"></canvas>
+                </div>
+                <div class="focus-unit-copy">
+                  <div class="focus-unit-head">
+                    <strong id="target-focus-name" class="focus-unit-name"></strong>
+                    <span id="target-focus-meta" class="focus-unit-meta"></span>
+                  </div>
+                  <div class="focus-health-track">
+                    <div id="target-focus-health" class="focus-health-fill"></div>
+                    <span id="target-focus-health-value" class="focus-bar-value"></span>
+                  </div>
+                  <div class="focus-resource-track">
+                    <div id="target-focus-resource" class="focus-resource-fill"></div>
+                    <span id="target-focus-resource-label" class="focus-resource-label"></span>
+                    <span id="target-focus-resource-value" class="focus-resource-value"></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -542,6 +593,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/main.js?v=20260927-ui-layout2"></script>
+  <script type="module" src="./src/main.js?v=20260927-focus-hud1"></script>
 </body>
 </html>

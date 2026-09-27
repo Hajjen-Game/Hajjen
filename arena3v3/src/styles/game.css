@@ -2615,3 +2615,357 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     font-size: 9px;
   }
 }
+
+
+/* Center combat focus HUD — player + current target */
+.combat-focus-hud {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 7;
+  width: min(760px, 72%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: drop-shadow(0 6px 13px rgba(0,0,0,.55));
+}
+
+.focus-unit-stack {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.target-focus-stack.hidden {
+  visibility: hidden;
+}
+
+.focus-cast {
+  width: calc(100% - 58px);
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.focus-cast.player-cast,
+.focus-cast.target-cast {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.player-focus-stack .focus-cast {
+  justify-self: end;
+  margin-right: 4px;
+}
+
+.target-focus-stack .focus-cast {
+  justify-self: start;
+  margin-left: 4px;
+}
+
+.focus-cast.hidden {
+  visibility: hidden;
+}
+
+.focus-cast .cast-label {
+  min-height: 13px;
+  margin: 0 4px 3px;
+  overflow: hidden;
+  color: var(--cream);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .045em;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 4px rgba(0,0,0,.9);
+  white-space: nowrap;
+}
+
+.focus-cast .cast-track {
+  height: 12px;
+  border: 1px solid rgba(222,169,94,.35);
+  border-radius: 6px;
+  background: rgba(10,8,6,.38);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.025);
+  overflow: hidden;
+}
+
+.focus-cast .cast-fill {
+  height: 100%;
+  width: 0%;
+  transition: width .04s linear;
+}
+
+.focus-cast.healer .cast-fill {
+  background: linear-gradient(90deg, #2f6f43 0%, #4fa965 48%, #86d98d 100%);
+}
+
+.focus-cast.dps .cast-fill {
+  background: linear-gradient(90deg, #7c2d2d 0%, #b8483e 48%, #e06a59 100%);
+}
+
+.focus-unit-frame {
+  --focus-class-color: var(--health);
+  --focus-team-color: var(--friendly-bright);
+  position: relative;
+  min-width: 0;
+  height: 78px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px 8px 8px;
+  border: 1px solid color-mix(in srgb, var(--focus-team-color) 55%, var(--line));
+  border-radius: 11px;
+  background:
+    linear-gradient(180deg, rgba(42,29,20,.90), rgba(17,12,9,.86));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.025),
+    inset 0 0 22px color-mix(in srgb, var(--focus-class-color) 6%, transparent);
+  overflow: hidden;
+}
+
+.focus-unit-frame::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--focus-team-color) 18%,
+    var(--focus-class-color) 50%,
+    var(--focus-team-color) 82%,
+    transparent
+  );
+  opacity: .88;
+}
+
+.target-focus-frame {
+  flex-direction: row-reverse;
+  padding: 8px 8px 8px 10px;
+}
+
+.focus-class-medallion {
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--focus-class-color) 62%, var(--line));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 45% 38%, rgba(75,53,35,.82), rgba(18,12,9,.94) 72%);
+  box-shadow:
+    inset 0 0 0 2px rgba(0,0,0,.26),
+    0 0 10px color-mix(in srgb, var(--focus-class-color) 18%, transparent);
+}
+
+.focus-class-icon {
+  width: 56px;
+  height: 56px;
+  display: block;
+}
+
+.focus-unit-copy {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  align-content: center;
+}
+
+.focus-unit-head {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 2px 5px;
+}
+
+.target-focus-frame .focus-unit-head {
+  flex-direction: row-reverse;
+}
+
+.focus-unit-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cream);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .025em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-unit-meta {
+  flex: 0 0 auto;
+  color: var(--cream-dim);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.focus-unit-frame.enemy .focus-unit-name {
+  color: var(--enemy-name);
+}
+
+.focus-health-track {
+  position: relative;
+  height: 23px;
+  border: 1px solid rgba(222,169,94,.28);
+  border-radius: 6px;
+  background: rgba(9,7,6,.74);
+  overflow: hidden;
+}
+
+.focus-health-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--focus-class-color);
+  transition: width .10s linear, filter .12s linear;
+}
+
+.focus-bar-value {
+  position: absolute;
+  inset: 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: rgba(16,11,9,.92);
+  font-size: 9px;
+  font-weight: 950;
+  text-shadow: 0 1px 0 rgba(255,255,255,.15);
+}
+
+.focus-unit-frame.low-health .focus-health-fill {
+  background: #e5433a !important;
+  animation: focus-frame-low-health .58s ease-in-out infinite alternate;
+}
+
+@keyframes focus-frame-low-health {
+  from { filter: brightness(.80); }
+  to { filter: brightness(1.22); }
+}
+
+.focus-unit-frame.dead {
+  opacity: .52;
+  filter: grayscale(.45);
+}
+
+.focus-resource-track {
+  position: relative;
+  height: 13px;
+  margin-top: 4px;
+  border-radius: 5px;
+  background: rgba(9,7,6,.70);
+  overflow: hidden;
+}
+
+.focus-resource-fill {
+  height: 100%;
+  width: 100%;
+  transition: width .10s linear;
+}
+
+.focus-resource-fill.mana { background: var(--mana); }
+.focus-resource-fill.energy { background: var(--energy); }
+.focus-resource-fill.rage { background: var(--rage); }
+.focus-resource-fill.runic { background: var(--runic); }
+
+.focus-resource-label,
+.focus-resource-value {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  color: rgba(238,226,207,.86);
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0,0,0,.9);
+}
+
+.focus-resource-label {
+  left: 6px;
+  letter-spacing: .08em;
+}
+
+.focus-resource-value {
+  right: 6px;
+}
+
+@media (max-width: 1600px) {
+  .combat-focus-hud {
+    width: min(690px, 70%);
+    gap: 14px;
+  }
+
+  .focus-unit-frame {
+    height: 72px;
+  }
+
+  .focus-class-medallion {
+    flex-basis: 52px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .focus-class-icon {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 1300px) {
+  .combat-focus-hud {
+    width: min(610px, 72%);
+    gap: 10px;
+    bottom: 6px;
+  }
+
+  .focus-unit-frame {
+    height: 68px;
+    gap: 6px;
+    padding-inline: 6px;
+  }
+
+  .focus-class-medallion {
+    flex-basis: 46px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .focus-class-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .focus-unit-name {
+    font-size: 10px;
+  }
+
+  .focus-unit-meta {
+    font-size: 6px;
+  }
+
+  .focus-health-track {
+    height: 20px;
+  }
+
+  .focus-cast {
+    width: calc(100% - 46px);
+  }
+}

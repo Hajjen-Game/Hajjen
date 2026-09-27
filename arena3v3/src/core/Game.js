@@ -9,7 +9,7 @@ import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-team-plan1";
 import { AISystem } from "../systems/AISystem.js?v=20260927-team-plan1";
 import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260927-rating-ai1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-talentvfx1";
-import { UIManager } from "../ui/UIManager.js?v=20260927-rank20rating2";
+import { UIManager } from "../ui/UIManager.js?v=20260927-focus-hud1";
 import { buildMatchReport } from "./MatchReport.js?v=20260927-team-plan1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
@@ -40,7 +40,7 @@ export class Game {
 
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
-    this.player.targetId = this.player.id;
+    this.player.targetId = null;
 
     this.cc = new CrowdControlSystem(this);
     this.dampening = new DampeningSystem(this, {
@@ -369,7 +369,7 @@ export class Game {
 
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
-    this.player.targetId = this.player.id;
+    this.player.targetId = null;
 
     this.ui?.buildFrames();
     this.ui?.buildDamageMeter();
@@ -952,7 +952,7 @@ export class Game {
     this.stopMouseSteering();
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
-    this.player.targetId = this.player.id;
+    this.player.targetId = null;
 
     this.vfx.reset();
     this.cc = new CrowdControlSystem(this);

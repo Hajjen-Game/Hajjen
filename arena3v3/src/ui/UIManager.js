@@ -4,6 +4,7 @@ import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./comp
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
+import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
 const ACTION_BAR_SLOT_COUNT = 7;
@@ -113,6 +114,15 @@ export class UIManager {
     this.playerCast = document.querySelector("#player-cast");
     this.playerCastLabel = document.querySelector("#player-cast-label");
     this.playerCastFill = document.querySelector("#player-cast-fill");
+
+    this.playerFocusFrame = document.querySelector("#player-focus-frame");
+    this.playerFocusIcon = document.querySelector("#player-focus-icon");
+    this.targetFocusStack = document.querySelector("#target-focus-stack");
+    this.targetFocusFrame = document.querySelector("#target-focus-frame");
+    this.targetFocusIcon = document.querySelector("#target-focus-icon");
+    this.targetCast = document.querySelector("#target-cast");
+    this.targetCastLabel = document.querySelector("#target-cast-label");
+    this.targetCastFill = document.querySelector("#target-cast-fill");
 
     this.playerCcAlert = document.querySelector("#player-cc-alert");
     this.playerCcTitle = document.querySelector("#player-cc-title");
@@ -1108,6 +1118,129 @@ export class UIManager {
     }
   }
 
+  drawFocusClassIcon(canvas, actor) {
+    if (!canvas || !actor) return;
+    if (canvas.dataset.classId === actor.classId) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.save();
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(1.55, 1.55);
+    drawClassGlyph(context, {
+      ...actor,
+      x: 0,
+      y: 0,
+      radius: 20,
+    });
+    context.restore();
+
+    canvas.dataset.classId = actor.classId || "";
+    canvas.setAttribute("aria-label", (actor.className || actor.name) + " class icon");
+  }
+
+  updateFocusFrame(frame, iconCanvas, actor) {
+    if (!frame || !actor) return;
+
+    const healthPct = clamp(actor.healthPct, 0, 1);
+    const resourcePct = clamp(actor.resourcePct, 0, 1);
+    const classColor = classColorFor(actor);
+    const friendly = actor.team === this.game.player.team;
+
+    frame.style.setProperty("--focus-class-color", classColor);
+    frame.style.setProperty(
+      "--focus-team-color",
+      friendly ? "var(--friendly-bright)" : "var(--enemy-bright)",
+    );
+    frame.classList.toggle("enemy", !friendly);
+    frame.classList.toggle("friendly", friendly);
+    frame.classList.toggle("dead", !actor.alive);
+    frame.classList.toggle("low-health", actor.alive && healthPct < 0.20);
+
+    frame.querySelector(".focus-unit-name").textContent = actor.name;
+    frame.querySelector(".focus-unit-meta").textContent =
+      (actor.className || "") + " · " + actor.role;
+
+    const healthFill = frame.querySelector(".focus-health-fill");
+    healthFill.style.width = (healthPct * 100) + "%";
+    healthFill.style.background = classColor;
+    frame.querySelector(".focus-bar-value").textContent = actor.alive
+      ? Math.ceil(actor.health) + " / " + actor.maxHealth
+      : "DOWN";
+
+    const resourceTrack = frame.querySelector(".focus-resource-track");
+    const resourceFill = frame.querySelector(".focus-resource-fill");
+    const hasResource = actor.resource?.max > 0;
+    resourceTrack.style.display = hasResource ? "" : "none";
+
+    if (hasResource) {
+      resourceFill.className = "focus-resource-fill " + actor.resource.type;
+      resourceFill.style.width = (resourcePct * 100) + "%";
+      frame.querySelector(".focus-resource-label").textContent =
+        String(actor.resource.type || "").toUpperCase();
+      frame.querySelector(".focus-resource-value").textContent =
+        Math.ceil(actor.resource.value) + " / " + actor.resource.max;
+    }
+
+    this.drawFocusClassIcon(iconCanvas, actor);
+  }
+
+  updateFocusCast(castElement, labelElement, fillElement, actor) {
+    if (!castElement || !labelElement || !fillElement || !actor) return;
+
+    const healerCast = actor.role === "healer";
+    castElement.classList.toggle("healer", healerCast);
+    castElement.classList.toggle("dps", !healerCast);
+
+    if (actor.cast) {
+      const spell = actor.getSpell(actor.cast.spellId);
+      const totalMs = Math.max(1, actor.cast.totalMs || 1);
+      const progress = clamp(1 - actor.cast.remainingMs / totalMs, 0, 1);
+
+      castElement.classList.remove("hidden");
+      labelElement.textContent = spell?.name || "Casting";
+      fillElement.style.width = (progress * 100) + "%";
+    } else {
+      fillElement.style.width = "0%";
+      castElement.classList.add("hidden");
+    }
+  }
+
+  updateFocusHud() {
+    const player = this.game.player;
+    if (!player) return;
+
+    this.updateFocusFrame(this.playerFocusFrame, this.playerFocusIcon, player);
+    this.updateFocusCast(
+      this.playerCast,
+      this.playerCastLabel,
+      this.playerCastFill,
+      player,
+    );
+
+    const target = this.game.getActor(player.targetId);
+    const hasTarget = Boolean(target);
+
+    this.targetFocusStack.classList.toggle("hidden", !hasTarget);
+    this.targetFocusStack.setAttribute("aria-hidden", hasTarget ? "false" : "true");
+
+    if (!hasTarget) {
+      this.targetCastFill.style.width = "0%";
+      this.targetCast.classList.add("hidden");
+      return;
+    }
+
+    this.updateFocusFrame(this.targetFocusFrame, this.targetFocusIcon, target);
+    this.updateFocusCast(
+      this.targetCast,
+      this.targetCastLabel,
+      this.targetCastFill,
+      target,
+    );
+  }
+
   update() {
     this.matchClock.textContent = this.game.waitingForStart
       ? "READY"
@@ -1207,20 +1340,7 @@ export class UIManager {
       slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === spellIndex);
     });
 
-    const healerCast = this.game.player.role === "healer";
-    this.playerCast.classList.toggle("healer", healerCast);
-    this.playerCast.classList.toggle("dps", !healerCast);
-
-    if (this.game.player.cast) {
-      const spell = this.game.player.getSpell(this.game.player.cast.spellId);
-      this.playerCast.classList.remove("hidden");
-      this.playerCastLabel.textContent = spell?.name || "Casting";
-      this.playerCastFill.style.width =
-        ((1 - this.game.player.cast.remainingMs / this.game.player.cast.totalMs) * 100) + "%";
-    } else {
-      this.playerCastFill.style.width = "0%";
-      this.playerCast.classList.add("hidden");
-    }
+    this.updateFocusHud();
   }
 
   updateFrameCombatState(frame, actor) {

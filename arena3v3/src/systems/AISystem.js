@@ -1208,7 +1208,10 @@ export class AISystem {
         actor,
         "PEEL",
         peel.attacker,
-        "protect " + this.game.combatantLabel(peel.ally),
+        "protect " + this.game.combatantLabel(peel.ally)
+          + (peel.modelAssisted
+            ? " · opponent model expects sustained pressure"
+            : ""),
         actor.config.ai.peelDurationSeconds ?? 4.5,
       );
       this.beginPeel(actor, peel);
@@ -1481,13 +1484,14 @@ export class AISystem {
           ally.healthPct < 0.32
           || peelRoll < clamp01(peelChance)
         ) {
-          if (
+          const modelAssisted = Boolean(
             modelBonus > 0
             && peelRoll >= clamp01(basePeelChance)
-          ) {
+          );
+          if (modelAssisted) {
             actor.aiOpponentModelUsage.peelAssists += 1;
           }
-          return { attacker, ally };
+          return { attacker, ally, modelAssisted };
         }
       }
     }

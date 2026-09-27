@@ -281,7 +281,6 @@ export function buildMatchReport(game) {
     "",
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
-    "Ranged targeted spells: +20% effective range",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",
     "Player death: friendly AI can continue; player may spectate or forfeit",
@@ -325,29 +324,42 @@ export function buildMatchReport(game) {
     });
   }
 
-  lines.push("", "=== AI CAST DIAGNOSTICS ===");
-  const castDiagnostics = game.actors
-    .filter(actor => actor.control !== "player")
-    .flatMap(actor =>
-      Object.entries(actor.aiGuardedCastStarts || {}).map(([spellId, starts]) => ({
-        name: actor.name,
-        className: actor.className,
-        spellName: actor.getSpell(spellId)?.name || spellId,
-        starts,
-        failures: actor.aiRangeLosCastFailures?.[spellId] || 0,
-      }))
-    );
+  lines.push("", "=== CAST RANGE / LOS DIAGNOSTICS ===");
+  const castDiagnostics = game.actors.flatMap(actor =>
+    Object.entries(actor.castRangeDiagnostics || {}).map(([spellId, diagnostic]) => ({
+      label: actor.control === "player"
+        ? "Player [" + actor.className + "]"
+        : actor.name + " [" + actor.className + "]",
+      spellName: actor.getSpell(spellId)?.name || spellId,
+      starts: diagnostic.starts || 0,
+      outOfRangeFailures: diagnostic.outOfRangeFailures || 0,
+      losFailures: diagnostic.losFailures || 0,
+      bothFailures: diagnostic.bothFailures || 0,
+      samples: diagnostic.samples || [],
+    }))
+  );
 
   if (castDiagnostics.length === 0) {
-    lines.push("No guarded AI casts recorded.");
+    lines.push("No casted spells recorded.");
   } else {
     castDiagnostics.forEach(item => {
       lines.push(
-        item.name + " [" + item.className + "]"
+        item.label
         + " — " + item.spellName
         + " starts " + item.starts
-        + " | range/LOS failures " + item.failures,
+        + " | OUT OF RANGE " + item.outOfRangeFailures
+        + " | LOS " + item.losFailures
+        + " | BOTH " + item.bothFailures,
       );
+
+      item.samples.forEach(sample => {
+        lines.push(
+          "  " + sample.reason
+          + " · start " + sample.startDistance
+          + " -> end " + sample.endDistance
+          + " · range " + sample.range,
+        );
+      });
     });
   }
 

@@ -7,14 +7,14 @@ import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-castgrace20";
 import { AISystem } from "../systems/AISystem.js?v=20260927-range-diagnostics1";
-import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260926-behavior1";
+import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260927-rating-ai1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-talentvfx1";
-import { UIManager } from "../ui/UIManager.js?v=20260927-range-diagnostics1";
-import { buildMatchReport } from "./MatchReport.js?v=20260927-castgrace20";
-import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating1";
-import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating1";
+import { UIManager } from "../ui/UIManager.js?v=20260927-rank20rating2";
+import { buildMatchReport } from "./MatchReport.js?v=20260927-rank20rating2";
+import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
+import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-astralshift2";
-import { GearSystem } from "./GearSystem.js?v=20260926-aigear1";
+import { GearSystem } from "./GearSystem.js?v=20260927-rank20rating2";
 
 
 export class Game {

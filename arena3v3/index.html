@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3v3 Arena — Prototype</title>
   <link rel="stylesheet" href="./src/styles/theme.css?v=20260926-vfxintensity1" />
-  <link rel="stylesheet" href="./src/styles/game.css?v=20260926-enemycd1" />
+  <link rel="stylesheet" href="./src/styles/game.css?v=20260927-ui-layout1" />
   <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
@@ -60,35 +60,6 @@
 
 
   <div id="app">
-    <header class="top-hud panel">
-      <div>
-        <div class="eyebrow">SINGLE PLAYER · 3V3 ARENA · PROTOTYPE</div>
-        <h1>THE GRAND RING</h1>
-        <div id="active-character-label" class="active-character-label">NO CHARACTER SELECTED</div>
-      </div>
-      <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
-        <div class="dampening-icon" aria-hidden="true">▼</div>
-        <div class="dampening-copy">
-          <span class="dampening-label">DAMPENING</span>
-          <strong id="dampening-value">0%</strong>
-          <span id="dampening-next" class="dampening-next">starts in 45s</span>
-        </div>
-      </div>
-
-      <div class="top-actions">
-        <span id="actionbar-button" hidden aria-hidden="true"></span>
-        <span id="roster-button" hidden aria-hidden="true"></span>
-        <div id="match-clock" class="clock">00:00</div>
-        <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
-        <button id="honor-button" class="hud-button" type="button">HONOR</button>
-        <button id="talents-button" class="hud-button" type="button">TALENTS</button>
-        <button id="gear-button" class="hud-button" type="button">GEAR</button>
-        <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
-        <button id="help-button" class="hud-button" type="button">HELP</button>
-        <span id="restart-button" hidden aria-hidden="true"></span>
-      </div>
-    </header>
-
     <main id="game-shell">
       <aside class="side-panel panel">
         <div class="side-title">YOUR TEAM</div>
@@ -116,6 +87,17 @@
       </aside>
 
       <section id="arena-wrap" class="arena-wrap">
+        <div class="arena-top-hud" aria-label="Match status">
+          <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
+            <div class="dampening-icon" aria-hidden="true">▼</div>
+            <div class="dampening-copy">
+              <span class="dampening-label">DAMPENING</span>
+              <strong id="dampening-value">0%</strong>
+              <span id="dampening-next" class="dampening-next">starts in 45s</span>
+            </div>
+          </div>
+          <div id="match-clock" class="clock arena-clock" aria-label="Match time">00:00</div>
+        </div>
         <div id="arena-stage" class="arena-stage">
           <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
           <div id="combat-log" class="combat-log" aria-live="polite"></div>
@@ -231,7 +213,25 @@
     </main>
 
     <footer class="bottom-hud panel">
+      <div class="arena-name-block" aria-label="Current arena">
+        <span class="bottom-hud-label">ARENA</span>
+        <strong id="arena-name-display">The Grand Ring</strong>
+        <span id="active-character-label" hidden>NO CHARACTER SELECTED</span>
+      </div>
+
       <div id="action-bar" class="action-bar"></div>
+
+      <div class="bottom-actions" aria-label="Game menus">
+        <span id="actionbar-button" hidden aria-hidden="true"></span>
+        <span id="roster-button" hidden aria-hidden="true"></span>
+        <button id="characters-button" class="hud-button" type="button">CHARACTERS</button>
+        <button id="honor-button" class="hud-button" type="button">HONOR</button>
+        <button id="talents-button" class="hud-button" type="button">TALENTS</button>
+        <button id="gear-button" class="hud-button" type="button">GEAR</button>
+        <button id="controls-button" class="hud-button" type="button">KEYBINDINGS</button>
+        <button id="help-button" class="hud-button" type="button">HELP</button>
+        <span id="restart-button" hidden aria-hidden="true"></span>
+      </div>
     </footer>
   </div>
 
@@ -542,6 +542,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/main.js?v=20260927-team-plan1"></script>
+  <script type="module" src="./src/main.js?v=20260927-ui-layout1"></script>
 </body>
 </html>

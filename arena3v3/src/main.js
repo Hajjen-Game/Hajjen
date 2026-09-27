@@ -27,6 +27,8 @@ const CHARACTER_DATA_PREFIXES = [
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
+const arenaTopHud = document.querySelector(".arena-top-hud");
+const arenaNameDisplay = document.querySelector("#arena-name-display");
 const gameShell = document.querySelector("#game-shell");
 const input = new InputManager();
 const characters = new CharacterStore();
@@ -53,13 +55,18 @@ function fitArenaStage() {
   const arena = pendingArena || game?.arena || DEFAULT_ARENA;
   const logicalWidth = arena.width;
   const logicalHeight = arena.height;
+  const wrapStyle = window.getComputedStyle(arenaWrap);
+  const rowGap = Number.parseFloat(wrapStyle.rowGap || wrapStyle.gap) || 0;
+  const paddingTop = Number.parseFloat(wrapStyle.paddingTop) || 0;
+  const paddingBottom = Number.parseFloat(wrapStyle.paddingBottom) || 0;
+  const arenaChromeHeight =
+    (arenaTopHud?.offsetHeight || 0) + rowGap + paddingTop + paddingBottom;
 
-  // Keep the center column close to the arena's real 16:9 footprint.
-  // Any horizontal space that used to become black bars beside the arena
-  // is instead given to YOUR TEAM / ENEMY TEAM.
+  // Keep the center column close to the arena's real footprint while reserving
+  // a slim row above it for Dampening + match time.
   if (gameShell) {
     const shellWidth = gameShell.clientWidth;
-    const shellHeight = gameShell.clientHeight;
+    const shellHeight = Math.max(0, gameShell.clientHeight - arenaChromeHeight);
     const columnGap = 8;
     const minSideWidth = window.innerWidth <= 1180 ? 185 : 220;
 
@@ -84,7 +91,7 @@ function fitArenaStage() {
   }
 
   const availableWidth = arenaWrap.clientWidth;
-  const availableHeight = arenaWrap.clientHeight;
+  const availableHeight = Math.max(0, arenaWrap.clientHeight - arenaChromeHeight);
 
   if (availableWidth <= 0 || availableHeight <= 0) return;
 
@@ -192,10 +199,16 @@ function renderEnemyPreview() {
   document.querySelector("#setup-enemy-caster").textContent = className(roster.enemyCaster);
 }
 
+function syncArenaName(arena = pendingArena || game?.arena || DEFAULT_ARENA) {
+  if (arenaNameDisplay) arenaNameDisplay.textContent = arena?.name || "Arena";
+}
+
 function renderArenaPreview() {
   document.querySelector("#setup-arena-name").textContent = pendingArena.name;
   document.querySelector("#setup-arena-description").textContent =
     pendingArena.description || "Arena layout selected for this match.";
+  syncArenaName(pendingArena);
+  fitArenaStage();
 }
 
 const rosterModal = document.querySelector("#roster-modal");
@@ -626,6 +639,7 @@ window.addEventListener("arena3v3:request-match-setup", () => {
   enterArenaLobby({ reset: true });
 });
 
+syncArenaName(DEFAULT_ARENA);
 fitArenaStage();
 
 if ("ResizeObserver" in window) {

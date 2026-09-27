@@ -220,6 +220,7 @@ function appendAiIdentityMemoryIntent(lines, game) {
     const memory = actor.aiMemory || null;
     const history = actor.aiIntentHistory || [];
     const currentIntent = actor.aiIntent || null;
+    const deathEvent = game.deathEvents.find(event => event.id === actor.id) || null;
 
     lines.push(
       actor.name + " [" + actor.className + " / " + actor.team + "]"
@@ -301,16 +302,28 @@ function appendAiIdentityMemoryIntent(lines, game) {
     );
 
     for (const intent of history) {
-      const endAt = intent.endedAt ?? (
+      const isCurrentIntent = Boolean(
         currentIntent
         && currentIntent.startedAt === intent.startedAt
         && currentIntent.type === intent.type
-          ? game.elapsedSeconds
-          : intent.expiresAt
+      );
+      const diedDuringIntent = Boolean(
+        deathEvent
+        && deathEvent.time >= intent.startedAt
+        && intent.endedAt == null
+        && isCurrentIntent
+      );
+      const endAt = intent.endedAt ?? (
+        diedDuringIntent
+          ? deathEvent.time
+          : isCurrentIntent
+            ? game.elapsedSeconds
+            : intent.expiresAt
       );
       const target = intent.targetName ? " -> " + intent.targetName : "";
       const reason = intent.reason ? " · " + intent.reason : "";
-      const endReason = intent.endReason ? " · end " + intent.endReason : "";
+      const effectiveEndReason = intent.endReason || (diedDuringIntent ? "death" : "");
+      const endReason = effectiveEndReason ? " · end " + effectiveEndReason : "";
 
       lines.push(
         "    " + intent.startedAt.toFixed(1)

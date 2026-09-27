@@ -322,6 +322,10 @@ export class CombatSystem {
   }
 
   resolveSpell(caster, target, spell) {
+    if (caster.control === "player") {
+      this.game.ai?.observePlayerSpell?.(caster, target, spell);
+    }
+
     if (
       caster.control === "ai"
       && spell.target === "enemy"

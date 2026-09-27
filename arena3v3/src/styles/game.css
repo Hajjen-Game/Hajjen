@@ -2471,20 +2471,21 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 
 /* Arena HUD layout v1 — headerless combat view */
 .arena-wrap {
-  grid-template-rows: auto minmax(0, 1fr);
   place-items: center;
-  row-gap: 6px;
-  padding: 6px 0 8px;
+  padding: 0;
 }
 
 .arena-top-hud {
-  position: relative;
+  position: absolute;
+  top: 10px;
+  left: 50%;
   z-index: 9;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-height: 38px;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 

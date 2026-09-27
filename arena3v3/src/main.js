@@ -27,7 +27,6 @@ const CHARACTER_DATA_PREFIXES = [
 const canvas = document.querySelector("#arena");
 const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
-const arenaTopHud = document.querySelector(".arena-top-hud");
 const arenaNameDisplay = document.querySelector("#arena-name-display");
 const gameShell = document.querySelector("#game-shell");
 const input = new InputManager();
@@ -55,18 +54,13 @@ function fitArenaStage() {
   const arena = pendingArena || game?.arena || DEFAULT_ARENA;
   const logicalWidth = arena.width;
   const logicalHeight = arena.height;
-  const wrapStyle = window.getComputedStyle(arenaWrap);
-  const rowGap = Number.parseFloat(wrapStyle.rowGap || wrapStyle.gap) || 0;
-  const paddingTop = Number.parseFloat(wrapStyle.paddingTop) || 0;
-  const paddingBottom = Number.parseFloat(wrapStyle.paddingBottom) || 0;
-  const arenaChromeHeight =
-    (arenaTopHud?.offsetHeight || 0) + rowGap + paddingTop + paddingBottom;
 
-  // Keep the center column close to the arena's real footprint while reserving
-  // a slim row above it for Dampening + match time.
+  // The match HUD now overlays the arena instead of reserving layout height.
+  // Let the arena use the full center-column height so the combat view can sit
+  // as high and as large as the viewport allows.
   if (gameShell) {
     const shellWidth = gameShell.clientWidth;
-    const shellHeight = Math.max(0, gameShell.clientHeight - arenaChromeHeight);
+    const shellHeight = gameShell.clientHeight;
     const columnGap = 8;
     const minSideWidth = window.innerWidth <= 1180 ? 185 : 220;
 
@@ -91,7 +85,7 @@ function fitArenaStage() {
   }
 
   const availableWidth = arenaWrap.clientWidth;
-  const availableHeight = Math.max(0, arenaWrap.clientHeight - arenaChromeHeight);
+  const availableHeight = arenaWrap.clientHeight;
 
   if (availableWidth <= 0 || availableHeight <= 0) return;
 

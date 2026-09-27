@@ -81,7 +81,209 @@ export class AISystem {
     }
 
     if (!Array.isArray(actor.aiIntentHistory)) actor.aiIntentHistory = [];
+    if (!actor.aiOpponentModels) actor.aiOpponentModels = {};
+    if (!actor.aiOpponentModelProcessedEvents) {
+      actor.aiOpponentModelProcessedEvents = new Set();
+    }
+    if (!actor.aiOpponentModelUsage) {
+      actor.aiOpponentModelUsage = {
+        triageReads: 0,
+        peelAssists: 0,
+        defensiveAnticipations: 0,
+      };
+    }
     return actor.aiMemory;
+  }
+
+  ensureOpponentModel(actor, enemy) {
+    this.ensureCognition(actor);
+
+    if (!actor.aiOpponentModels[enemy.id]) {
+      actor.aiOpponentModels[enemy.id] = {
+        enemyId: enemy.id,
+        enemyName: this.game.combatantLabel(enemy),
+        className: enemy.className,
+        role: enemy.role,
+        observations: 0,
+        targetSamples: 0,
+        roleSamples: {
+          healer: 0,
+          melee: 0,
+          caster: 0,
+        },
+        targetSwitches: 0,
+        currentTargetId: null,
+        currentTargetSince: null,
+        completedTargetHolds: 0,
+        totalTargetHoldSeconds: 0,
+        defensiveUses: 0,
+        defensiveHealthTotal: 0,
+        burstUses: 0,
+        pressureEvents: 0,
+      };
+    }
+
+    return actor.aiOpponentModels[enemy.id];
+  }
+
+  opponentModelConfidence(actor, model) {
+    if (!model) return 0;
+
+    const skill = this.skill(actor);
+    const sampleProgress = clamp01(model.observations / 70);
+    const skillCeiling = 0.38 + skill * 0.54;
+    return clamp01(sampleProgress * skillCeiling);
+  }
+
+  opponentModelRead(actor, enemy) {
+    const model = actor.aiOpponentModels?.[enemy?.id];
+    if (!model) return null;
+
+    const now = this.game.elapsedSeconds;
+    const activeHold = model.currentTargetId && Number.isFinite(model.currentTargetSince)
+      ? Math.min(12, Math.max(0, now - model.currentTargetSince))
+      : 0;
+    const holdCount = model.completedTargetHolds + (activeHold > 0 ? 1 : 0);
+    const avgHoldSeconds = holdCount > 0
+      ? (model.totalTargetHoldSeconds + activeHold) / holdCount
+      : 0;
+    const samples = Math.max(1, model.targetSamples);
+    const confidence = this.opponentModelConfidence(actor, model);
+    const trust = confidence * (0.38 + this.skill(actor) * 0.62);
+
+    return {
+      ...model,
+      confidence,
+      trust,
+      avgHoldSeconds,
+      healerFocus: model.roleSamples.healer / samples,
+      meleeFocus: model.roleSamples.melee / samples,
+      casterFocus: model.roleSamples.caster / samples,
+      averageDefensiveHealth: model.defensiveUses > 0
+        ? model.defensiveHealthTotal / model.defensiveUses
+        : null,
+    };
+  }
+
+  observeOpponentModels(actor) {
+    const memory = this.ensureCognition(actor);
+    const now = this.game.elapsedSeconds;
+    const enemies = this.game.actors.filter(unit =>
+      unit.alive && unit.team !== actor.team
+    );
+
+    for (const enemy of enemies) {
+      const model = this.ensureOpponentModel(actor, enemy);
+      model.observations += 1;
+
+      const targetId = this.combatTargetId(enemy);
+      const target = targetId ? this.game.getActor(targetId) : null;
+      const observedTarget = target?.alive && target.team === actor.team
+        ? target
+        : null;
+
+      if (observedTarget) {
+        model.targetSamples += 1;
+        if (Object.prototype.hasOwnProperty.call(model.roleSamples, observedTarget.role)) {
+          model.roleSamples[observedTarget.role] += 1;
+        }
+
+        if (model.currentTargetId !== observedTarget.id) {
+          if (
+            model.currentTargetId
+            && Number.isFinite(model.currentTargetSince)
+          ) {
+            model.totalTargetHoldSeconds += Math.min(
+              12,
+              Math.max(0, now - model.currentTargetSince),
+            );
+            model.completedTargetHolds += 1;
+            model.targetSwitches += 1;
+          }
+          model.currentTargetId = observedTarget.id;
+          model.currentTargetSince = now;
+        }
+      } else if (
+        model.currentTargetId
+        && Number.isFinite(model.currentTargetSince)
+      ) {
+        model.totalTargetHoldSeconds += Math.min(
+          12,
+          Math.max(0, now - model.currentTargetSince),
+        );
+        model.completedTargetHolds += 1;
+        model.currentTargetId = null;
+        model.currentTargetSince = null;
+      }
+    }
+
+    // Opponent models are interpretations of remembered events, not a second
+    // omniscient event stream. Process each Memory event once.
+    for (const event of memory.events) {
+      const key = [
+        event.at,
+        event.type,
+        event.subjectId || "",
+        event.sourceId || "",
+        event.spellId || "",
+      ].join(":");
+
+      if (actor.aiOpponentModelProcessedEvents.has(key)) continue;
+      actor.aiOpponentModelProcessedEvents.add(key);
+
+      if (event.type === "enemy-defensive" || event.type === "enemy-burst") {
+        const enemy = this.game.getActor(event.subjectId);
+        if (!enemy || enemy.team === actor.team) continue;
+
+        const model = this.ensureOpponentModel(actor, enemy);
+        if (event.type === "enemy-defensive") {
+          model.defensiveUses += 1;
+          model.defensiveHealthTotal += Number.isFinite(event.value)
+            ? event.value
+            : enemy.healthPct;
+        } else {
+          model.burstUses += 1;
+        }
+      }
+
+      if (event.type === "ally-pressured" && event.sourceId) {
+        const enemy = this.game.getActor(event.sourceId);
+        if (!enemy || enemy.team === actor.team) continue;
+        this.ensureOpponentModel(actor, enemy).pressureEvents += 1;
+      }
+    }
+
+    // The memory list is intentionally short. Keep the de-dupe set bounded too.
+    if (actor.aiOpponentModelProcessedEvents.size > 96) {
+      const recentKeys = new Set(
+        memory.events.map(event => [
+          event.at,
+          event.type,
+          event.subjectId || "",
+          event.sourceId || "",
+          event.spellId || "",
+        ].join(":"))
+      );
+      actor.aiOpponentModelProcessedEvents = recentKeys;
+    }
+  }
+
+  opponentPressureRead(actor, enemy, ally) {
+    const read = this.opponentModelRead(actor, enemy);
+    if (!read || read.targetSamples < 8) return 0;
+
+    const roleFocus = ally.role === "healer"
+      ? read.healerFocus
+      : ally.role === "caster"
+        ? read.casterFocus
+        : read.meleeFocus;
+    const persistence = clamp01((read.avgHoldSeconds - 1.5) / 5.5);
+
+    return clamp01(
+      read.trust
+      * (0.35 + roleFocus * 0.65)
+      * (0.45 + persistence * 0.55)
+    );
   }
 
   rememberEvent(actor, type, data = {}) {
@@ -186,6 +388,7 @@ export class AISystem {
           subjectName: this.game.combatantLabel(enemy),
           spellId: effect.spellId,
           spellName: spell?.name || effect.spellId,
+          value: enemy.healthPct,
         });
       }
     }
@@ -511,6 +714,58 @@ export class AISystem {
           return alternate;
         }
       }
+
+      // With repeated observations, a stronger AI can form a rough expectation
+      // for when this opponent tends to press a defensive. It is deliberately
+      // probabilistic and requires at least two observed uses, so this never
+      // becomes perfect cooldown knowledge.
+      if (!defensiveActive && enemies.length > 1) {
+        const model = this.opponentModelRead(actor, currentDamageable);
+        const expectedHp = model?.averageDefensiveHealth;
+
+        if (
+          model
+          && model.defensiveUses >= 2
+          && model.confidence >= 0.28
+          && Number.isFinite(expectedHp)
+          && currentDamageable.healthPct <= Math.min(0.72, expectedHp + 0.08)
+          && currentDamageable.healthPct >= Math.max(0.18, expectedHp - 0.14)
+        ) {
+          const alternate = [...enemies]
+            .filter(enemy =>
+              enemy.id !== currentDamageable.id
+              && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, enemy)
+            )
+            .sort((a, b) => a.healthPct - b.healthPct)[0];
+
+          const anticipationChance = model.trust * (
+            0.10
+            + (1 - stickiness) * 0.22
+            + skill * 0.18
+          );
+
+          if (
+            alternate
+            && this.shouldAttempt(
+              actor,
+              "intent-anticipate-defensive:" + currentDamageable.id,
+              anticipationChance,
+              3.6,
+            )
+          ) {
+            actor.aiOpponentModelUsage.defensiveAnticipations += 1;
+            this.setIntent(
+              actor,
+              "ANTICIPATE_DEFENSIVE",
+              alternate,
+              "opponent model expects defensive near "
+                + Math.round(expectedHp * 100) + "% HP",
+              2.2 + (1 - stickiness) * 1.5,
+            );
+            return alternate;
+          }
+        }
+      }
     }
 
     const target = currentDamageable || this.pickPriorityTarget(actor, enemies);
@@ -561,6 +816,7 @@ export class AISystem {
 
   think(actor) {
     this.observeMemory(actor);
+    this.observeOpponentModels(actor);
 
     if (actor.role === "healer") this.healerThink(actor);
     else this.damageThink(actor);
@@ -621,6 +877,17 @@ export class AISystem {
     const pressureRead = 0.72 + triage * 0.48;
     let score = (1 - healthPct) * (90 + triage * 20);
     score += activeAttackers * (healthPct < 0.70 ? 10 : 6) * pressureRead;
+
+    let learnedPressure = 0;
+    for (const enemy of enemies) {
+      if (this.combatTargetId(enemy) !== ally.id) continue;
+      learnedPressure += this.opponentPressureRead(actor, enemy, ally);
+    }
+    if (learnedPressure > 0.08) {
+      score += learnedPressure * (4 + triage * 4);
+      actor.aiOpponentModelUsage.triageReads += 1;
+    }
+
     if (hasDot) score += 3 + triage * 2;
     if (hasHealingReduction) score += 4 + triage * 2;
 
@@ -1203,12 +1470,23 @@ export class AISystem {
         const urgency = ally.role === "healer"
           ? 0.12 + Math.max(0, 0.72 - ally.healthPct) * 0.55
           : Math.max(0, 0.68 - ally.healthPct) * 0.45;
-        const peelChance = 0.14 + peelBias * 0.62 + this.skill(actor) * 0.16 + urgency;
+        const basePeelChance =
+          0.14 + peelBias * 0.62 + this.skill(actor) * 0.16 + urgency;
+        const modelRead = this.opponentPressureRead(actor, attacker, ally);
+        const modelBonus = modelRead * 0.16;
+        const peelChance = basePeelChance + modelBonus;
+        const peelRoll = this.decisionRoll(actor, "peel:" + ally.id, 2.2);
 
         if (
           ally.healthPct < 0.32
-          || this.shouldAttempt(actor, "peel:" + ally.id, peelChance, 2.2)
+          || peelRoll < clamp01(peelChance)
         ) {
+          if (
+            modelBonus > 0
+            && peelRoll >= clamp01(basePeelChance)
+          ) {
+            actor.aiOpponentModelUsage.peelAssists += 1;
+          }
           return { attacker, ally };
         }
       }

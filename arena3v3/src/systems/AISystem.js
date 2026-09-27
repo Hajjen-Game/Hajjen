@@ -1780,6 +1780,9 @@ export class AISystem {
         "protect " + this.game.combatantLabel(peel.ally)
           + (peel.modelAssisted
             ? " · opponent model expects sustained pressure"
+            : "")
+          + (peel.teamAssisted
+            ? " · team plan calls for peel"
             : ""),
         actor.config.ai.peelDurationSeconds ?? 4.5,
       );
@@ -2046,7 +2049,14 @@ export class AISystem {
           0.14 + peelBias * 0.62 + this.skill(actor) * 0.16 + urgency;
         const modelRead = this.opponentPressureRead(actor, attacker, ally);
         const modelBonus = modelRead * 0.16;
-        const peelChance = basePeelChance + modelBonus;
+        const teamPlan = this.teamPlan(actor.team);
+        const teamPeelBonus = (
+          ally.role === "healer"
+          && ["PEEL", "RECOVER"].includes(teamPlan?.state)
+        )
+          ? 0.08 + (teamPlan?.confidence || 0) * 0.12
+          : 0;
+        const peelChance = basePeelChance + modelBonus + teamPeelBonus;
         const peelRoll = this.decisionRoll(actor, "peel:" + ally.id, 2.2);
 
         if (
@@ -2057,10 +2067,17 @@ export class AISystem {
             modelBonus > 0
             && peelRoll >= clamp01(basePeelChance)
           );
+          const teamAssisted = Boolean(
+            teamPeelBonus > 0
+            && peelRoll >= clamp01(basePeelChance + modelBonus)
+          );
           if (modelAssisted) {
             actor.aiOpponentModelUsage.peelAssists += 1;
           }
-          return { attacker, ally, modelAssisted };
+          if (teamAssisted) {
+            actor.aiTeamPlanUsage.follows += 1;
+          }
+          return { attacker, ally, modelAssisted, teamAssisted };
         }
       }
     }

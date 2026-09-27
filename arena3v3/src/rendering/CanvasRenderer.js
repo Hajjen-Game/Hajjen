@@ -189,6 +189,8 @@ export class CanvasRenderer {
 
     if (actor.id === game.player?.id) {
       this.drawPlayerHighlight(ctx, actor, game);
+    } else if (selected) {
+      this.drawTargetHighlight(ctx, actor, game);
     }
 
     if (!this.drawClassIcon(ctx, actor)) {
@@ -217,14 +219,6 @@ export class CanvasRenderer {
     this.drawCombatState(ctx, actor, game);
 
     if (actor.cast) this.drawWorldCast(ctx, actor, game);
-    if (selected && actor.id !== game.player?.id) {
-      this.drawTargetMarker(
-        ctx,
-        actor,
-        game,
-        actor.team === "friendly" ? "friendly" : "enemy",
-      );
-    }
 
     ctx.restore();
   }
@@ -267,6 +261,44 @@ export class CanvasRenderer {
 
     ctx.restore();
     return true;
+  }
+
+  drawTargetHighlight(ctx, actor, game) {
+    const friendly = actor.team === game.player?.team;
+    const glowColor = friendly ? this.theme.friendlyBright : this.theme.enemyBright;
+    const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 5.5);
+    const outerRadius = actor.radius + 17 + pulse * 2;
+    const innerRadius = actor.radius + 8;
+
+    ctx.save();
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 14 + pulse * 7;
+
+    // Same aura language as the player highlight, but team-colored:
+    // green for friendly targets and red for enemy targets.
+    ctx.globalAlpha = 0.38 + pulse * 0.12;
+    ctx.fillStyle = glowColor;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, actor.radius + 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.92;
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, innerRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.72 + pulse * 0.2;
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 5]);
+    ctx.lineDashOffset = -game.elapsedSeconds * 24;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, outerRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   drawPlayerHighlight(ctx, actor, game) {

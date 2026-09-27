@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-team-plan1";
 import { AISystem } from "../systems/AISystem.js?v=20260927-kitebounds1";
 import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260927-rating-ai1";
-import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260927-classicons1";
+import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260927-targetglow1";
 import { UIManager } from "../ui/UIManager.js?v=20260927-focus-hud1";
 import { buildMatchReport } from "./MatchReport.js?v=20260927-kitebounds1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";

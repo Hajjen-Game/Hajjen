@@ -336,7 +336,7 @@ function appendAiIdentityMemoryIntent(lines, game) {
     const usage = actor.aiOpponentModelUsage || {};
     lines.push(
       "  Opponent model usage:"
-      + " triage reads " + (usage.triageReads || 0)
+      + " triage target selections " + (usage.triageTargetSelections || 0)
       + " | peel assists " + (usage.peelAssists || 0)
       + " | defensive anticipations " + (usage.defensiveAnticipations || 0),
     );

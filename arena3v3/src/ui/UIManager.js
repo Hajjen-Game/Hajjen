@@ -1062,7 +1062,7 @@ export class UIManager {
 
       row.querySelector(".honor-rank-number").textContent = "R" + rank.rank;
       row.querySelector(".honor-rank-name").textContent =
-        rank.rank === 20 ? "MAX RANK" : "1 TALENT POINT";
+        rank.rank === 20 ? "MAX" : "";
       row.querySelector(".honor-rank-requirement").textContent =
         rank.requiredHonor.toLocaleString() + " Honor";
       row.querySelector(".honor-rank-reward").textContent =

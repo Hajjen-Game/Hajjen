@@ -63,6 +63,10 @@ export class MovementSystem {
           actor.aiOverlapRecoveries = (actor.aiOverlapRecoveries || 0) + 1;
           actor.aiStuckMs = 0;
           actor.aiAvoidanceMs = 0;
+          actor.aiProgressAnchorX = x;
+          actor.aiProgressAnchorY = y;
+          actor.aiProgressWindowMs = 0;
+          actor.aiForcedDetourMs = 0;
           return true;
         }
       }
@@ -130,6 +134,43 @@ export class MovementSystem {
 
     const step = actor.moveSpeed * deltaSeconds;
     let sign = avoidanceSign(actor);
+
+    // Progress watchdog: an AI can technically keep moving while oscillating
+    // around the same pillar corner, which means the normal "could not move"
+    // watchdog never fires. Track net displacement across a short window and
+    // force a route-side change if the actor is not making real progress.
+    if (!Number.isFinite(actor.aiProgressAnchorX) || !Number.isFinite(actor.aiProgressAnchorY)) {
+      actor.aiProgressAnchorX = actor.x;
+      actor.aiProgressAnchorY = actor.y;
+      actor.aiProgressWindowMs = 0;
+    }
+
+    actor.aiProgressWindowMs = (actor.aiProgressWindowMs || 0) + deltaSeconds * 1000;
+    actor.aiForcedDetourMs = Math.max(
+      0,
+      (actor.aiForcedDetourMs || 0) - deltaSeconds * 1000,
+    );
+
+    const progressDistance = Math.hypot(
+      actor.x - actor.aiProgressAnchorX,
+      actor.y - actor.aiProgressAnchorY,
+    );
+    const progressThreshold = Math.max(24, actor.radius * 1.3);
+
+    if (progressDistance >= progressThreshold) {
+      actor.aiProgressAnchorX = actor.x;
+      actor.aiProgressAnchorY = actor.y;
+      actor.aiProgressWindowMs = 0;
+    } else if (actor.aiProgressWindowMs >= 1100) {
+      actor.aiAvoidanceSign = -sign;
+      sign = -sign;
+      actor.aiForcedDetourMs = 900;
+      actor.aiProgressAnchorX = actor.x;
+      actor.aiProgressAnchorY = actor.y;
+      actor.aiProgressWindowMs = 0;
+      actor.aiPathReroutes = (actor.aiPathReroutes || 0) + 1;
+    }
+
     const directBlocked = collides(
       actor,
       actor.x + desired.x * step,
@@ -153,7 +194,10 @@ export class MovementSystem {
       actor.aiAvoidanceMs = 0;
     }
 
-    const degrees = [0, 24, 45, 68, 90, 118, 150];
+    const forcedDetour = (actor.aiForcedDetourMs || 0) > 0;
+    const degrees = forcedDetour
+      ? [90, 118, 150, 68, 45, 24, 0]
+      : [0, 24, 45, 68, 90, 118, 150];
     const directions = [];
 
     for (const degreesAway of degrees) {

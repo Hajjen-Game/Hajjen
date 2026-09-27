@@ -10,6 +10,517 @@ export class AISystem {
     this.game = game;
     this.movement = movementSystem;
     this.thinkTimers = new Map();
+    this.teamPlanTimer = 0;
+    this.teamPlans = {
+      friendly: this.createTeamPlan("friendly"),
+      enemy: this.createTeamPlan("enemy"),
+    };
+    this.playerIntentModel = {
+      targetScores: {},
+      targetId: null,
+      targetName: null,
+      confidence: 0,
+      lastTargetId: null,
+      targetHoldSeconds: 0,
+      lastActionAt: -Infinity,
+      burstUntil: 0,
+      setupUntil: 0,
+      recoverUntil: 0,
+      signals: {
+        offensive: 0,
+        setup: 0,
+        defensive: 0,
+      },
+      history: [],
+    };
+  }
+
+  createTeamPlan(team) {
+    return {
+      team,
+      state: "PRESSURE",
+      primaryTargetId: null,
+      primaryTargetName: null,
+      confidence: 0,
+      source: "forming",
+      reason: "forming initial read",
+      changedAt: 0,
+      minHoldUntil: 0,
+      revision: 0,
+      history: [],
+    };
+  }
+
+  teamPlan(team) {
+    return this.teamPlans?.[team] || null;
+  }
+
+  recordPlayerIntentSignal(type, target = null, weight = 0) {
+    const model = this.playerIntentModel;
+    if (!model) return;
+
+    const now = this.game.elapsedSeconds;
+
+    if (target?.alive && target.team !== this.game.player.team && weight > 0) {
+      const entry = model.targetScores[target.id] || {
+        score: 0,
+        lastEvidenceAt: now,
+      };
+      entry.score = Math.min(4, entry.score + weight);
+      entry.lastEvidenceAt = now;
+      model.targetScores[target.id] = entry;
+      model.lastActionAt = now;
+    }
+
+    if (type === "offensive") model.signals.offensive += 1;
+    if (type === "setup") model.signals.setup += 1;
+    if (type === "defensive") model.signals.defensive += 1;
+  }
+
+  observePlayerSpell(caster, target, spell) {
+    if (caster?.control !== "player" || !spell) return;
+
+    const effects = spell.effects || [];
+    const kinds = new Set(effects.map(effect => effect.kind));
+    const targetIsEnemy = Boolean(
+      target?.alive && target.team !== caster.team
+    );
+    const offensiveKinds = new Set([
+      "damage",
+      "chainDamage",
+      "dot",
+      "healingReduction",
+      "gapClose",
+    ]);
+
+    const offensive = targetIsEnemy
+      && (
+        spell.offensiveCooldown
+        || [...kinds].some(kind => offensiveKinds.has(kind))
+      );
+
+    if (offensive) {
+      const roleWeight = caster.role === "healer" ? 0.50 : 0.95;
+      const burstWeight = spell.offensiveCooldown ? 0.55 : 0;
+      this.recordPlayerIntentSignal(
+        "offensive",
+        target,
+        roleWeight + burstWeight,
+      );
+
+      if (spell.offensiveCooldown) {
+        this.playerIntentModel.burstUntil = Math.max(
+          this.playerIntentModel.burstUntil,
+          this.game.elapsedSeconds + 3.2,
+        );
+      }
+    }
+
+    const defensive = kinds.has("damageReduction")
+      && target?.team === caster.team;
+
+    if (defensive) {
+      this.recordPlayerIntentSignal("defensive", null, 0);
+      this.playerIntentModel.recoverUntil = Math.max(
+        this.playerIntentModel.recoverUntil,
+        this.game.elapsedSeconds + 2.6,
+      );
+    }
+  }
+
+  observePlayerCc(source, target, kind) {
+    if (
+      source?.control !== "player"
+      || !target?.alive
+      || target.team === source.team
+    ) return;
+
+    const hardSetup = ["fear", "incapacitate", "stun"].includes(kind);
+    if (!hardSetup) return;
+
+    if (target.role === "healer") {
+      this.recordPlayerIntentSignal("setup", null, 0);
+      this.playerIntentModel.setupUntil = Math.max(
+        this.playerIntentModel.setupUntil,
+        this.game.elapsedSeconds + 4.0,
+      );
+    }
+  }
+
+  updatePlayerIntentModel(deltaSeconds) {
+    const player = this.game.player;
+    const model = this.playerIntentModel;
+    if (!player || !model) return;
+
+    const now = this.game.elapsedSeconds;
+
+    for (const [targetId, entry] of Object.entries(model.targetScores)) {
+      entry.score = Math.max(0, entry.score - deltaSeconds * 0.12);
+      if (entry.score <= 0.02 || now - entry.lastEvidenceAt > 12) {
+        delete model.targetScores[targetId];
+      }
+    }
+
+    const selected = this.game.getActor(player.targetId);
+    const selectedEnemy = selected?.alive && selected.team !== player.team
+      ? selected
+      : null;
+
+    if (player.role !== "healer" && selectedEnemy) {
+      if (model.lastTargetId === selectedEnemy.id) {
+        model.targetHoldSeconds += deltaSeconds;
+      } else {
+        model.lastTargetId = selectedEnemy.id;
+        model.targetHoldSeconds = 0;
+      }
+
+      if (model.targetHoldSeconds > 1.25) {
+        const entry = model.targetScores[selectedEnemy.id] || {
+          score: 0,
+          lastEvidenceAt: now,
+        };
+        entry.score = Math.min(4, entry.score + deltaSeconds * 0.075);
+        entry.lastEvidenceAt = now;
+        model.targetScores[selectedEnemy.id] = entry;
+      }
+    } else {
+      model.lastTargetId = null;
+      model.targetHoldSeconds = 0;
+    }
+
+    const candidates = Object.entries(model.targetScores)
+      .map(([targetId, entry]) => ({
+        target: this.game.getActor(targetId),
+        score: entry.score,
+      }))
+      .filter(item =>
+        item.target?.alive && item.target.team !== player.team
+      )
+      .sort((a, b) => b.score - a.score);
+
+    const top = candidates[0] || null;
+    const previousTargetId = model.targetId;
+    const previousConfidence = model.confidence;
+
+    if (top && top.score >= 0.45) {
+      model.targetId = top.target.id;
+      model.targetName = this.game.combatantLabel(top.target);
+      model.confidence = clamp01((top.score - 0.35) / 1.85);
+    } else {
+      model.targetId = null;
+      model.targetName = null;
+      model.confidence = 0;
+    }
+
+    if (
+      model.targetId
+      && (
+        model.targetId !== previousTargetId
+        || (
+          previousConfidence < 0.55
+          && model.confidence >= 0.55
+        )
+      )
+    ) {
+      model.history.push({
+        at: now,
+        targetId: model.targetId,
+        targetName: model.targetName,
+        confidence: model.confidence,
+        reason: player.role === "healer"
+          ? "repeated offensive support"
+          : "sustained target pressure",
+      });
+      model.history = model.history.slice(-18);
+    }
+  }
+
+  teamConsensus(team) {
+    const enemies = this.game.actors.filter(actor =>
+      actor.alive && actor.team !== team
+    );
+    const members = this.game.actors.filter(actor =>
+      actor.alive && actor.team === team
+    );
+    const scores = new Map();
+
+    const add = (target, amount) => {
+      if (!target?.alive || target.team === team) return;
+      scores.set(target.id, (scores.get(target.id) || 0) + amount);
+    };
+
+    for (const member of members) {
+      if (member.role === "healer" || member.control === "player") continue;
+
+      const target = this.game.getActor(
+        member.aiIntent?.targetId || member.aiTargetId
+      );
+
+      let weight = 1;
+      if (member.aiIntent?.type === "FINISH") weight += 0.45;
+      if (member.aiIntent?.type === "PRESSURE_HEALER") weight += 0.25;
+      if (member.aiIntent?.type === "TEAM_BURST") weight += 0.35;
+      add(target, weight);
+    }
+
+    if (team === this.game.player?.team && this.game.player?.alive) {
+      const model = this.playerIntentModel;
+      const playerTarget = this.game.getActor(model.targetId);
+
+      if (playerTarget?.alive && model.confidence > 0) {
+        const playerWeight = this.game.player.role === "healer"
+          ? 0.35 + model.confidence * 0.35
+          : 1.10 + model.confidence * 0.85;
+        add(playerTarget, playerWeight);
+      }
+    }
+
+    for (const enemy of enemies) {
+      add(enemy, Math.max(0, 0.34 - enemy.healthPct * 0.22));
+    }
+
+    const ranked = [...scores.entries()]
+      .map(([id, score]) => ({
+        target: this.game.getActor(id),
+        score,
+      }))
+      .filter(item => item.target?.alive)
+      .sort((a, b) => b.score - a.score);
+
+    const top = ranked[0] || null;
+    const total = ranked.reduce((sum, item) => sum + item.score, 0);
+
+    return {
+      target: top?.target || null,
+      confidence: top
+        ? clamp01(0.32 + (top.score / Math.max(0.01, total)) * 0.58)
+        : 0,
+      scores: ranked,
+    };
+  }
+
+  setTeamPlan(team, state, target, confidence, source, reason) {
+    const plan = this.teamPlan(team);
+    if (!plan) return;
+
+    const now = this.game.elapsedSeconds;
+    const targetId = target?.id || null;
+    const samePlan = plan.state === state && plan.primaryTargetId === targetId;
+
+    if (samePlan) {
+      plan.confidence = confidence;
+      plan.source = source;
+      plan.reason = reason;
+      plan.primaryTargetName = target
+        ? this.game.combatantLabel(target)
+        : null;
+      return;
+    }
+
+    const currentTarget = this.game.getActor(plan.primaryTargetId);
+    const urgent = ["RECOVER", "PEEL"].includes(state)
+      || state === "BURST"
+      || !currentTarget?.alive;
+
+    if (now < plan.minHoldUntil && !urgent) return;
+
+    plan.state = state;
+    plan.primaryTargetId = targetId;
+    plan.primaryTargetName = target
+      ? this.game.combatantLabel(target)
+      : null;
+    plan.confidence = confidence;
+    plan.source = source;
+    plan.reason = reason;
+    plan.changedAt = now;
+    plan.minHoldUntil = now + (
+      ["RECOVER", "PEEL"].includes(state) ? 1.8 : 2.2
+    );
+    plan.revision += 1;
+    plan.history.push({
+      at: now,
+      revision: plan.revision,
+      state,
+      targetId,
+      targetName: plan.primaryTargetName,
+      confidence,
+      source,
+      reason,
+    });
+    plan.history = plan.history.slice(-30);
+  }
+
+  updateTeamPlan(team) {
+    const members = this.game.actors.filter(actor =>
+      actor.alive && actor.team === team
+    );
+    const enemies = this.game.actors.filter(actor =>
+      actor.alive && actor.team !== team
+    );
+    if (!members.length || !enemies.length) return;
+
+    const consensus = this.teamConsensus(team);
+    const healer = members.find(actor => actor.role === "healer") || null;
+    const enemyHealer = enemies.find(actor => actor.role === "healer") || null;
+    const playerLed = team === this.game.player?.team
+      && this.game.player?.alive
+      && this.playerIntentModel.targetId === consensus.target?.id
+      && this.playerIntentModel.confidence >= 0.45;
+
+    const healerThreat = healer
+      ? this.meleeThreatTo(healer, healer.config.ai.peelThreatRange ?? 135)
+      : null;
+    const healerLow = Boolean(
+      healer
+      && (
+        healer.healthPct < 0.40
+        || (
+          healer.resource.type === "mana"
+          && healer.resourcePct < 0.14
+        )
+      )
+    );
+
+    let state = "PRESSURE";
+    let reason = playerLed
+      ? "player intent suggests focus"
+      : "team pressure consensus";
+    let source = playerLed ? "player-led" : "ai-consensus";
+
+    const friendlyPlayerSignal = team === this.game.player?.team;
+    const playerSetup = friendlyPlayerSignal
+      && this.playerIntentModel.setupUntil > this.game.elapsedSeconds;
+    const playerBurst = friendlyPlayerSignal
+      && this.playerIntentModel.burstUntil > this.game.elapsedSeconds;
+    const playerRecover = friendlyPlayerSignal
+      && this.playerIntentModel.recoverUntil > this.game.elapsedSeconds;
+
+    if (healerLow || playerRecover) {
+      state = "RECOVER";
+      reason = healerLow
+        ? "team healer under survival/resource pressure"
+        : "player defensive signals stabilization";
+      source = playerRecover ? "player-signal" : "team-read";
+    } else if (healerThreat && healer.healthPct < 0.72) {
+      state = "PEEL";
+      reason = "melee pressure on team healer";
+      source = "team-read";
+    } else if (
+      playerSetup
+      || playerBurst
+      || (enemyHealer && this.game.cc.isHardControlled(enemyHealer))
+      || consensus.target?.healthPct < 0.38
+    ) {
+      state = "BURST";
+      if (playerSetup) {
+        reason = "player controlled enemy healer";
+        source = "player-signal";
+      } else if (playerBurst) {
+        reason = "player offensive cooldown signal";
+        source = "player-signal";
+      } else if (enemyHealer && this.game.cc.isHardControlled(enemyHealer)) {
+        reason = "enemy healer controlled";
+        source = "team-read";
+      } else {
+        reason = "primary target in finishing range";
+        source = playerLed ? "player-led" : "team-read";
+      }
+    }
+
+    this.setTeamPlan(
+      team,
+      state,
+      consensus.target,
+      consensus.confidence,
+      source,
+      reason,
+    );
+  }
+
+  updateTeamCoordination(deltaSeconds) {
+    this.updatePlayerIntentModel(deltaSeconds);
+    this.teamPlanTimer -= deltaSeconds;
+    if (this.teamPlanTimer > 0) return;
+
+    this.teamPlanTimer = 0.45;
+    this.updateTeamPlan("friendly");
+    this.updateTeamPlan("enemy");
+  }
+
+  considerTeamPlanTarget(actor, enemies, currentIntent = null) {
+    const plan = this.teamPlan(actor.team);
+    if (
+      !plan
+      || !["PRESSURE", "BURST"].includes(plan.state)
+      || plan.confidence < 0.38
+    ) return null;
+
+    const target = enemies.find(enemy =>
+      enemy.id === plan.primaryTargetId
+      && enemy.alive
+      && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, enemy)
+    );
+    if (!target) return null;
+
+    if (currentIntent?.targetId === target.id) return target;
+
+    if (
+      currentIntent
+      && ["FINISH", "PRESSURE_HEALER"].includes(currentIntent.type)
+      && this.game.elapsedSeconds - currentIntent.startedAt < 2.0
+    ) return null;
+
+    if (
+      currentIntent
+      && this.game.elapsedSeconds - currentIntent.startedAt < 1.45
+    ) return null;
+
+    const stickiness = this.behavior(actor, "targetStickiness", 0.58);
+    const skill = this.skill(actor);
+    const playerLedBonus = plan.source === "player-led" ? 0.08 : 0;
+    const burstBonus = plan.state === "BURST" ? 0.12 : 0;
+    const followChance = clamp01(
+      0.10
+      + skill * 0.30
+      + plan.confidence * 0.28
+      + (1 - stickiness) * 0.20
+      + playerLedBonus
+      + burstBonus
+    );
+
+    const follows = this.shouldAttempt(
+      actor,
+      "team-plan:" + plan.revision + ":" + target.id,
+      followChance,
+      1.8,
+    );
+
+    actor.aiTeamPlanUsage = actor.aiTeamPlanUsage || {
+      follows: 0,
+      divergences: 0,
+    };
+
+    if (!follows) {
+      if (actor.aiTeamPlanLastDivergenceRevision !== plan.revision) {
+        actor.aiTeamPlanUsage.divergences += 1;
+        actor.aiTeamPlanLastDivergenceRevision = plan.revision;
+      }
+      return null;
+    }
+
+    if (actor.aiTeamPlanLastFollowRevision !== plan.revision) {
+      actor.aiTeamPlanUsage.follows += 1;
+      actor.aiTeamPlanLastFollowRevision = plan.revision;
+    }
+
+    this.setIntent(
+      actor,
+      plan.state === "BURST" ? "TEAM_BURST" : "TEAM_PRESSURE",
+      target,
+      "team plan · " + plan.reason,
+      2.6 + stickiness * 2.2,
+    );
+    return target;
   }
 
   behaviorProfile(actor) {
@@ -92,6 +603,12 @@ export class AISystem {
         defensiveAnticipations: 0,
       };
       actor.aiOpponentModelTriageChoiceKey = null;
+    }
+    if (!actor.aiTeamPlanUsage) {
+      actor.aiTeamPlanUsage = {
+        follows: 0,
+        divergences: 0,
+      };
     }
     return actor.aiMemory;
   }
@@ -627,6 +1144,14 @@ export class AISystem {
     if (!enemies.length) return null;
 
     const currentIntent = this.currentIntent(actor);
+    const teamTarget = this.considerTeamPlanTarget(
+      actor,
+      enemies,
+      currentIntent,
+    );
+
+    if (teamTarget) return teamTarget;
+
     if (currentIntent?.targetId) {
       const committed = enemies.find(enemy => enemy.id === currentIntent.targetId);
       if (
@@ -783,6 +1308,8 @@ export class AISystem {
   }
 
   update(deltaSeconds) {
+    this.updateTeamCoordination(deltaSeconds);
+
     for (const actor of this.game.actors) {
       if (!actor.alive || actor.control === "player") continue;
       if (this.game.cc.isHardControlled(actor)) continue;
@@ -1130,12 +1657,20 @@ export class AISystem {
     // tendency is readable without becoming completely deterministic.
     const offenseStablePct = 0.97 - offenseBias * 0.13;
     const offenseChance = 0.20 + offenseBias * 0.65 + skill * 0.10;
+    const teamPlan = this.teamPlan(actor.team);
+    const teamPlanTarget = enemies.find(enemy =>
+      enemy.id === teamPlan?.primaryTargetId
+    );
+    const teamRecovering = ["RECOVER", "PEEL"].includes(teamPlan?.state);
+
     if (
-      allies.every(ally => ally.healthPct > offenseStablePct)
+      !teamRecovering
+      && allies.every(ally => ally.healthPct > offenseStablePct)
       && enemies.length > 0
       && this.shouldAttempt(actor, "healer-offense", offenseChance, 2.4)
     ) {
-      const offensiveTarget = [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
+      const offensiveTarget = teamPlanTarget
+        || [...enemies].sort((a, b) => a.healthPct - b.healthPct)[0];
       const periodic = this.spell(actor, "periodic", offensiveTarget);
       const bigDamage = this.spell(actor, "bigDamage");
       const filler = this.spell(actor, "filler");

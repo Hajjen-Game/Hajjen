@@ -15,7 +15,7 @@
         <div>
           <div class="eyebrow">THE GRAND RING</div>
           <h1>SELECT CHARACTER</h1>
-          <p>Choose a character, build Honor and Rank, and keep separate progression for every character. Warrior, Rogue and Mage are available as playable DPS classes.</p>
+          <p>Choose a character, build Honor and Rank, climb Rating, and keep separate progression for every character. Warrior, Rogue and Mage are available as playable DPS classes.</p>
         </div>
         <div class="character-screen-actions">
           <button id="character-return" class="hud-button" type="button" hidden>RETURN TO MATCH</button>
@@ -49,7 +49,7 @@
       </div>
 
       <div id="create-character-error" class="character-create-error"></div>
-      <div class="roster-note">Priest, Druid and Paladin are healer characters. Warrior, Rogue and Mage are playable DPS characters. Class, Honor, Rank and future Talent Points are saved separately per character.</div>
+      <div class="roster-note">Priest, Druid and Paladin are healer characters. Warrior, Rogue and Mage are playable DPS characters. Class, Honor, Rank, Rating and Talent Points are saved separately per character.</div>
 
       <div class="roster-actions">
         <button id="create-character-cancel" class="hud-button" type="button">CANCEL</button>
@@ -95,14 +95,14 @@
         <div id="team-frames" class="unit-frame-list"></div>
 
         <section class="side-widget honor-widget">
-          <div class="widget-title">PVP RANK</div>
+          <div class="widget-title">PVP PROGRESSION</div>
           <div class="honor-rank-row">
-            <strong id="honor-rank">RANK 1 · PRIVATE</strong>
-            <span id="honor-total">0 HONOR</span>
+            <strong id="honor-rank">RANK 1</strong>
+            <span id="honor-total">RATING 1500</span>
           </div>
           <div class="honor-progress-track"><div id="honor-progress-fill" class="honor-progress-fill"></div></div>
           <div class="honor-progress-copy">
-            <span id="honor-progress-text">0 / 300 TO CORPORAL</span>
+            <span id="honor-progress-text">0 / 150 TO RANK 2</span>
             <span id="honor-talent-points" title="Unspent Talent Points available for your character">TP 0</span>
           </div>
         </section>
@@ -125,7 +125,7 @@
             <div class="arena-lobby-card panel">
               <div class="eyebrow">CHARACTER READY</div>
               <div id="arena-lobby-name" class="arena-lobby-name">PLAYER</div>
-              <div id="arena-lobby-meta" class="arena-lobby-meta">PRIEST · RANK 1 · PRIVATE</div>
+              <div id="arena-lobby-meta" class="arena-lobby-meta">PRIEST · RANK 1 · RATING 1500</div>
               <div class="arena-lobby-copy">
                 Adjust talents, action bar, keybindings and progression from the main UI. Enter the arena when you are ready.
               </div>
@@ -200,7 +200,7 @@
                 <div class="match-result-progress-track">
                   <div id="match-result-progress-fill" class="match-result-progress-fill"></div>
                 </div>
-                <div id="match-result-next-rank" class="match-result-next-rank">Next: Rank 2 · Corporal</div>
+                <div id="match-result-next-rank" class="match-result-next-rank">Next: Rank 2</div>
 
                 <div class="match-result-wallet">
                   <span>SPENDABLE HONOR</span>
@@ -249,7 +249,11 @@
       <div class="honor-summary-grid">
         <div class="honor-summary-box">
           <span>CURRENT RANK</span>
-          <strong id="honor-modal-rank">RANK 1 · PRIVATE</strong>
+          <strong id="honor-modal-rank">RANK 1</strong>
+        </div>
+        <div class="honor-summary-box">
+          <span>RATING</span>
+          <strong id="honor-modal-rating">1500</strong>
         </div>
         <div class="honor-summary-box">
           <span>LIFETIME HONOR</span>
@@ -277,14 +281,14 @@
         <div class="honor-modal-progress-track">
           <div id="honor-modal-progress-fill" class="honor-modal-progress-fill"></div>
         </div>
-        <div id="honor-modal-next" class="honor-modal-next">Next: Rank 2 · Corporal</div>
+        <div id="honor-modal-next" class="honor-modal-next">Next: Rank 2</div>
       </div>
 
       <div class="honor-reward-note">
         <strong>PER MATCH</strong>
         <span>Victory +200 · Defeat +70</span>
         <span>Match Honor is added to both Lifetime Honor and Spendable Honor.</span>
-        <span>Ranks award 1–2 Talent Points, with more rewards front-loaded early.</span>
+        <span>Ranks 2–20 each award exactly 1 Talent Point. Rating changes after every match and controls AI decision difficulty.</span>
       </div>
 
       <div class="honor-ladder-title">RANK LADDER</div>
@@ -341,12 +345,12 @@
         </div>
       </div>
 
-      <div id="talent-point-note" class="talent-point-note">Reach Rank 2 to earn 2 Talent Points.</div>
+      <div id="talent-point-note" class="talent-point-note">Reach Rank 2 to earn 1 Talent Point.</div>
       <div id="talent-empty" class="talent-empty" hidden></div>
       <div id="talent-tree" class="talent-tree"></div>
 
       <div class="talent-footer">
-        <span>Ranks 2–14 award 1–2 Talent Points, for 19 total at Rank 14. New talent spells update your pre-match Action Bar immediately and apply in the next match.</span>
+        <span>Ranks 2–20 award exactly 1 Talent Point each, for 19 total at Rank 20. New talent spells update your pre-match Action Bar immediately and apply in the next match.</span>
         <button id="talent-reset" class="hud-button" type="button">RESET TALENTS</button>
       </div>
     </div>

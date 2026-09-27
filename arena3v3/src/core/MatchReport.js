@@ -281,6 +281,7 @@ export function buildMatchReport(game) {
     "",
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
+    "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",
     "Player death: friendly AI can continue; player may spectate or forfeit",
@@ -332,6 +333,7 @@ export function buildMatchReport(game) {
         : actor.name + " [" + actor.className + "]",
       spellName: actor.getSpell(spellId)?.name || spellId,
       starts: diagnostic.starts || 0,
+      graceSaves: diagnostic.graceSaves || 0,
       outOfRangeFailures: diagnostic.outOfRangeFailures || 0,
       losFailures: diagnostic.losFailures || 0,
       bothFailures: diagnostic.bothFailures || 0,
@@ -347,6 +349,7 @@ export function buildMatchReport(game) {
         item.label
         + " — " + item.spellName
         + " starts " + item.starts
+        + " | GRACE SAVES " + item.graceSaves
         + " | OUT OF RANGE " + item.outOfRangeFailures
         + " | LOS " + item.losFailures
         + " | BOTH " + item.bothFailures,
@@ -357,7 +360,10 @@ export function buildMatchReport(game) {
           "  " + sample.reason
           + " · start " + sample.startDistance
           + " -> end " + sample.endDistance
-          + " · range " + sample.range,
+          + " · range " + sample.range
+          + (sample.completionRange > sample.range
+            ? " · completion limit " + sample.completionRange
+            : ""),
         );
       });
     });

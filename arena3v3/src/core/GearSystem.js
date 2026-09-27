@@ -12,6 +12,30 @@ const STORAGE_PREFIX = "arena3v3-gear-v1:";
 const ARMOR_SLOTS = Object.freeze(["head", "shoulders", "chest", "hands", "legs", "feet"]);
 const WEAPON_SLOTS = Object.freeze(["weapon", "mainHand", "offHand"]);
 
+const LEGACY_TO_NEW_RANK = Object.freeze({
+  1: 1,
+  2: 3,
+  3: 5,
+  4: 7,
+  5: 8,
+  6: 10,
+  7: 11,
+  8: 13,
+  9: 14,
+  10: 15,
+  11: 17,
+  12: 18,
+  13: 19,
+  14: 20,
+});
+
+function progressionRankRequired(itemOrRank) {
+  const legacyRank = Number(
+    typeof itemOrRank === "object" ? itemOrRank?.rankRequired : itemOrRank,
+  ) || 1;
+  return LEGACY_TO_NEW_RANK[legacyRank] || legacyRank;
+}
+
 const GEAR_REGISTRY = Object.freeze({
   rogue: rogueGear,
   warrior: warriorGear,
@@ -238,10 +262,11 @@ export class GearSystem {
     if (this.state.owned.includes(item.id)) {
       return { ok: false, reason: "Already owned." };
     }
-    if (rank < item.rankRequired) {
+    const requiredRank = progressionRankRequired(item);
+    if (rank < requiredRank) {
       return {
         ok: false,
-        reason: "Requires Rank " + item.rankRequired + ".",
+        reason: "Requires Rank " + requiredRank + ".",
       };
     }
     if (item.upgradeFrom && !this.state.owned.includes(item.upgradeFrom)) {
@@ -309,6 +334,7 @@ export class GearSystem {
       activeSetBonuses: this.activeSetBonuses(),
       items: this.definition.items.map(item => ({
         ...item,
+        rankRequired: progressionRankRequired(item),
         owned: ownedSet.has(item.id),
         equipped: this.state.equipped[item.slot] === item.id,
         purchase: this.canPurchase(item.id, rank, honorPoints),
@@ -324,12 +350,12 @@ export class GearSystem {
 
     for (const slot of ARMOR_SLOTS) {
       const item = items.find(candidate => candidate.slot === slot);
-      if (item) armorRanks[slot] = Number(item.rankRequired) || 1;
+      if (item) armorRanks[slot] = progressionRankRequired(item);
     }
 
     const weaponItems = items.filter(item => WEAPON_SLOTS.includes(item.slot));
     const weaponRank = weaponItems.length > 0
-      ? Math.min(...weaponItems.map(item => Number(item.rankRequired) || 1))
+      ? Math.min(...weaponItems.map(item => progressionRankRequired(item)))
       : 0;
 
     return { armorRanks, weaponRank };
@@ -345,8 +371,8 @@ export class GearSystem {
       if (rank <= 0) continue;
 
       const candidates = this.definition.items
-        .filter(item => item.slot === slot && Number(item.rankRequired) <= rank)
-        .sort((a, b) => Number(b.rankRequired) - Number(a.rankRequired));
+        .filter(item => item.slot === slot && progressionRankRequired(item) <= rank)
+        .sort((a, b) => progressionRankRequired(b) - progressionRankRequired(a));
 
       if (candidates[0]) selected.push(candidates[0]);
     }
@@ -361,8 +387,8 @@ export class GearSystem {
 
       for (const slot of weaponSlots) {
         const candidates = this.definition.items
-          .filter(item => item.slot === slot && Number(item.rankRequired) <= weaponRank)
-          .sort((a, b) => Number(b.rankRequired) - Number(a.rankRequired));
+          .filter(item => item.slot === slot && progressionRankRequired(item) <= weaponRank)
+          .sort((a, b) => progressionRankRequired(b) - progressionRankRequired(a));
 
         if (candidates[0]) selected.push(candidates[0]);
       }
@@ -452,7 +478,7 @@ export class GearSystem {
         id: item.id,
         name: item.name,
         slot: item.slot,
-        rankRequired: item.rankRequired,
+        rankRequired: progressionRankRequired(item),
       })),
     };
 

@@ -206,8 +206,48 @@ function formatMemoryEvent(event) {
     + subject + source + spell + value;
 }
 
+function modelPct(value) {
+  return (Math.max(0, Math.min(1, Number(value) || 0)) * 100).toFixed(0) + "%";
+}
+
+function opponentModelSummary(actor, model, game) {
+  const skill = Math.max(
+    0,
+    Math.min(1, Number(actor.config?.aiBehaviorProfile?.skill) || 0),
+  );
+  const sampleProgress = Math.max(
+    0,
+    Math.min(1, (Number(model.observations) || 0) / 70),
+  );
+  const confidence = Math.max(
+    0,
+    Math.min(1, sampleProgress * (0.38 + skill * 0.54)),
+  );
+
+  const activeHold = model.currentTargetId && Number.isFinite(model.currentTargetSince)
+    ? Math.min(12, Math.max(0, game.elapsedSeconds - model.currentTargetSince))
+    : 0;
+  const holdCount = (model.completedTargetHolds || 0) + (activeHold > 0 ? 1 : 0);
+  const averageHold = holdCount > 0
+    ? ((model.totalTargetHoldSeconds || 0) + activeHold) / holdCount
+    : 0;
+  const samples = Math.max(1, Number(model.targetSamples) || 0);
+  const roleSamples = model.roleSamples || {};
+
+  return {
+    confidence,
+    averageHold,
+    healerFocus: (roleSamples.healer || 0) / samples,
+    meleeFocus: (roleSamples.melee || 0) / samples,
+    casterFocus: (roleSamples.caster || 0) / samples,
+    averageDefensiveHealth: (model.defensiveUses || 0) > 0
+      ? (model.defensiveHealthTotal || 0) / model.defensiveUses
+      : null,
+  };
+}
+
 function appendAiIdentityMemoryIntent(lines, game) {
-  lines.push("", "=== AI IDENTITY / MEMORY / INTENT ===");
+  lines.push("", "=== AI IDENTITY / MEMORY / OPPONENT MODEL / INTENT ===");
 
   const actors = game.actors.filter(actor => actor.control !== "player");
   if (actors.length === 0) {
@@ -289,6 +329,44 @@ function appendAiIdentityMemoryIntent(lines, game) {
       if (events.length > 0) {
         lines.push("  Recent memory events:");
         events.forEach(event => lines.push("    " + formatMemoryEvent(event)));
+      }
+    }
+
+    const models = Object.values(actor.aiOpponentModels || {});
+    const usage = actor.aiOpponentModelUsage || {};
+    lines.push(
+      "  Opponent model usage:"
+      + " triage reads " + (usage.triageReads || 0)
+      + " | peel assists " + (usage.peelAssists || 0)
+      + " | defensive anticipations " + (usage.defensiveAnticipations || 0),
+    );
+
+    if (models.length === 0) {
+      lines.push("  Opponent models: none formed.");
+    } else {
+      lines.push("  Opponent models:");
+      for (const model of models) {
+        const summary = opponentModelSummary(actor, model, game);
+        const defensiveText = (model.defensiveUses || 0) > 0
+          ? (model.defensiveUses || 0)
+            + " @ avg " + modelPct(summary.averageDefensiveHealth) + " HP"
+          : "0";
+
+        lines.push(
+          "    " + model.enemyName
+          + " [" + model.className + " / " + model.role + "]"
+          + " — confidence " + modelPct(summary.confidence)
+          + " | target samples " + (model.targetSamples || 0)
+          + " | focus H/M/C "
+            + modelPct(summary.healerFocus) + "/"
+            + modelPct(summary.meleeFocus) + "/"
+            + modelPct(summary.casterFocus)
+          + " | avg hold " + summary.averageHold.toFixed(1) + "s"
+          + " | switches " + (model.targetSwitches || 0)
+          + " | pressure events " + (model.pressureEvents || 0)
+          + " | defensives " + defensiveText
+          + " | bursts " + (model.burstUses || 0),
+        );
       }
     }
 
@@ -385,7 +463,7 @@ export function buildMatchReport(game) {
 
   const lines = [
     "3V3 ARENA — STRESS TEST RUN REPORT",
-    "Report schema: stress-v3-ai-memory-intent",
+    "Report schema: stress-v4-ai-opponent-model",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -444,7 +522,7 @@ export function buildMatchReport(game) {
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
     "AI decision difficulty: scaled from player Rating " + n(startRating?.rating) + " (Rank controls talents/gear progression, not AI skill)",
-    "AI cognition: per-match Memory + individual short-term Intent enabled; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
+    "AI cognition: Memory + individual Intent + per-opponent behavioural models enabled; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",

@@ -11,7 +11,8 @@ import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=2026
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260926-talentvfx1";
 import { UIManager } from "../ui/UIManager.js?v=20260927-range-diagnostics1";
 import { buildMatchReport } from "./MatchReport.js?v=20260927-castgrace20";
-import { HonorSystem, talentPointsForRank } from "./HonorSystem.js";
+import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating1";
+import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating1";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-astralshift2";
 import { GearSystem } from "./GearSystem.js?v=20260926-aigear1";
 
@@ -30,9 +31,11 @@ export class Game {
     this.activeCharacterId = null;
     this.activeCharacterName = "Player";
     this.honor = new HonorSystem();
+    this.rating = new RatingSystem();
     this.talents = new TalentSystem();
     this.gear = new GearSystem();
     this.lastHonorAward = null;
+    this.lastRatingAward = null;
     this.matchLoadoutSnapshot = null;
 
     this.actors = this.createActors();
@@ -56,6 +59,7 @@ export class Game {
     this.ended = false;
     this.resultText = "IN PROGRESS";
     this.lastHonorAward = null;
+    this.lastRatingAward = null;
     this.floatingTexts = [];
     this.lastFrame = performance.now();
 
@@ -200,13 +204,15 @@ export class Game {
   }
 
   prepareAiProgressionConfigs(characterConfigs) {
-    const playerRank = Math.max(1, Math.min(14, Number(this.honor.status().rank) || 1));
+    const playerRank = Math.max(1, Math.min(20, Number(this.honor.status().rank) || 1));
+    const playerRating = Math.max(0, Math.round(Number(this.rating.status().rating) || 0));
 
     return characterConfigs.map(config => {
       if (config.control === "player") return config;
 
-      // Singleplayer fairness: every combatant plays at the player's current
-      // rank. AI variety comes from class and random talent build, not rank.
+      // Singleplayer fairness: every combatant mirrors the player's character
+      // progression Rank, while PvP Rating independently controls AI decision
+      // quality. Builds still vary through legal random talent allocations.
       const rank = playerRank;
       const talentPoints = talentPointsForRank(rank);
       const build = this.randomEnemyTalentBuild(config.classId, talentPoints);
@@ -214,13 +220,14 @@ export class Game {
 
       progressed.aiProgression = {
         rank,
+        rating: playerRating,
         talentPoints,
         ...build.snapshot,
       };
 
-      // Hidden per-match playstyle. This is intentionally not exposed in the
-      // arena UI: the player should infer tendencies by watching the match.
-      progressed.aiBehaviorProfile = createAiBehaviorProfile(config.role, rank);
+      // Hidden per-match playstyle. The tendencies stay hidden, while Rating
+      // determines how well that rolled playstyle is executed.
+      progressed.aiBehaviorProfile = createAiBehaviorProfile(config.role, playerRating);
 
       // Keep the old field for enemy reports / compatibility with any
       // existing tooling that still reads enemyProgression.
@@ -237,6 +244,7 @@ export class Game {
     if (!player) return null;
 
     const honor = this.honor.status();
+    const rating = this.rating.status();
     const talentStatus = this.talentStatus();
     const gearStatus = this.gearStatus();
 
@@ -273,10 +281,14 @@ export class Game {
       role: player.role,
       honor: {
         rank: honor.rank,
-        title: honor.title,
         lifetimeHonor: honor.lifetimeHonor,
         honorPoints: honor.honorPoints,
         talentPoints: honor.talentPoints,
+      },
+      rating: {
+        rating: rating.rating,
+        peakRating: rating.peakRating,
+        matches: rating.matches,
       },
       talents: {
         spentPoints: talentStatus.spentPoints,
@@ -725,14 +737,23 @@ export class Game {
     this.abilityQueue.clear();
     this.resultText = result;
     this.lastHonorAward = this.honor.award(result);
+    this.lastRatingAward = this.rating.award(result);
     this.ui.hideDeathForfeit();
-    this.ui.setResult(result, this.lastHonorAward);
+    this.ui.setResult(result, this.lastHonorAward, this.lastRatingAward);
     this.log(message);
 
     if (this.lastHonorAward) {
+      const ratingText = this.lastRatingAward
+        ? " · Rating "
+          + (this.lastRatingAward.change >= 0 ? "+" : "")
+          + this.lastRatingAward.change
+          + " → " + this.lastRatingAward.after
+        : "";
+
       this.log(
         "+" + this.lastHonorAward.honor + " Honor · Rank "
-        + this.lastHonorAward.rankAfter + " " + this.lastHonorAward.rankTitle
+        + this.lastHonorAward.rankAfter
+        + ratingText
         + (this.lastHonorAward.rankedUp ? " · RANK UP" : ""),
       );
     }
@@ -885,6 +906,7 @@ export class Game {
     this.activeCharacterId = character.id;
     this.activeCharacterName = character.name;
     this.honor = new HonorSystem(character.id);
+    this.rating = new RatingSystem(character.id);
     this.talents = new TalentSystem(character.id, character.classId);
     this.gear = new GearSystem(character.id, character.classId);
     this.characterConfigs = characterConfigs;

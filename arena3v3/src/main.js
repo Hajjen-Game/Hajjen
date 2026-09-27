@@ -1,8 +1,8 @@
-import { Game } from "./core/Game.js?v=20260927-castgrace20";
+import { Game } from "./core/Game.js?v=20260927-rank20rating2";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
-import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating1";
-import { RatingSystem } from "./core/RatingSystem.js?v=20260927-rank20rating1";
+import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
+import { RatingSystem } from "./core/RatingSystem.js?v=20260927-rank20rating2";
 import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";
 import {
   CLASS_REGISTRY,

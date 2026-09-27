@@ -190,6 +190,137 @@ function appendAiProgression(lines, game, team, title) {
   }
 }
 
+function trait(value) {
+  return (Math.max(0, Math.min(1, Number(value) || 0)) * 100).toFixed(0) + "%";
+}
+
+function formatMemoryEvent(event) {
+  const subject = event.subjectName ? " " + event.subjectName : "";
+  const source = event.sourceName ? " from " + event.sourceName : "";
+  const spell = event.spellName ? " · " + event.spellName : "";
+  const value = Number.isFinite(event.value)
+    ? " · " + Math.round(event.value * 100) + "%"
+    : "";
+
+  return event.at.toFixed(1) + "s " + event.type.toUpperCase()
+    + subject + source + spell + value;
+}
+
+function appendAiIdentityMemoryIntent(lines, game) {
+  lines.push("", "=== AI IDENTITY / MEMORY / INTENT ===");
+
+  const actors = game.actors.filter(actor => actor.control !== "player");
+  if (actors.length === 0) {
+    lines.push("No AI cognition data available.");
+    return;
+  }
+
+  for (const actor of actors) {
+    const profile = actor.config?.aiBehaviorProfile || {};
+    const memory = actor.aiMemory || null;
+    const history = actor.aiIntentHistory || [];
+    const currentIntent = actor.aiIntent || null;
+
+    lines.push(
+      actor.name + " [" + actor.className + " / " + actor.team + "]"
+      + " — Rating " + (profile.rating ?? "—")
+      + " | Skill " + trait(profile.skill)
+      + " | Seed " + (profile.seed ?? "—"),
+    );
+
+    lines.push(
+      "  Identity shared:"
+      + " volatility " + trait(profile.volatility)
+      + " | aggression " + trait(profile.aggression)
+      + " | stickiness " + trait(profile.targetStickiness)
+      + " | healerSwap " + trait(profile.healerSwapBias)
+      + " | peel " + trait(profile.peelBias)
+      + " | CC " + trait(profile.ccBias)
+      + " | defensiveGreed " + trait(profile.defensiveGreed)
+      + " | interruptDiscipline " + trait(profile.interruptDiscipline)
+      + " | chaseGreed " + trait(profile.chaseGreed),
+    );
+
+    if (actor.role === "healer") {
+      lines.push(
+        "  Identity healer:"
+        + " offense " + trait(profile.healerOffenseBias)
+        + " | triage " + trait(profile.healerTriage)
+        + " | manaConservation " + trait(profile.manaConservation)
+        + " | kite " + trait(profile.healerKiteBias)
+        + " | selfPreservation " + trait(profile.healerSelfPreservation)
+        + " | castGreed " + trait(profile.healerCastGreed),
+      );
+    }
+
+    if (actor.role === "caster") {
+      lines.push(
+        "  Identity caster:"
+        + " kite " + trait(profile.casterKiteBias)
+        + " | supportDiscipline " + trait(profile.supportDiscipline)
+        + " | castGreed " + trait(profile.casterCastGreed),
+      );
+    }
+
+    if (!memory) {
+      lines.push("  Memory: no observations recorded.");
+    } else {
+      const totals = memory.totals || {};
+      lines.push(
+        "  Memory:"
+        + " observations " + (memory.observations || 0)
+        + " | target swaps " + (memory.targetSwaps || 0)
+        + " | low-health sightings " + (totals.lowHealthSeen || 0)
+        + " | low-mana healer sightings " + (totals.lowManaHealerSeen || 0)
+        + " | defensives seen " + (totals.defensivesSeen || 0)
+        + " | bursts seen " + (totals.burstsSeen || 0)
+        + " | pressure sightings " + (totals.pressureSeen || 0)
+        + " | healer CC seen " + (totals.healerCcSeen || 0)
+        + " | deaths seen " + (totals.deathsSeen || 0),
+      );
+
+      const events = (memory.events || []).slice(-10);
+      if (events.length > 0) {
+        lines.push("  Recent memory events:");
+        events.forEach(event => lines.push("    " + formatMemoryEvent(event)));
+      }
+    }
+
+    const intentCounts = {};
+    for (const intent of history) {
+      intentCounts[intent.type] = (intentCounts[intent.type] || 0) + 1;
+    }
+
+    const countText = Object.entries(intentCounts)
+      .map(([type, count]) => type + " " + count)
+      .join(" | ");
+
+    lines.push(
+      "  Intents: " + history.length
+      + (countText ? " · " + countText : ""),
+    );
+
+    for (const intent of history) {
+      const endAt = intent.endedAt ?? (
+        currentIntent
+        && currentIntent.startedAt === intent.startedAt
+        && currentIntent.type === intent.type
+          ? game.elapsedSeconds
+          : intent.expiresAt
+      );
+      const target = intent.targetName ? " -> " + intent.targetName : "";
+      const reason = intent.reason ? " · " + intent.reason : "";
+      const endReason = intent.endReason ? " · end " + intent.endReason : "";
+
+      lines.push(
+        "    " + intent.startedAt.toFixed(1)
+        + "-" + Math.max(intent.startedAt, endAt).toFixed(1) + "s"
+        + " " + intent.type + target + reason + endReason,
+      );
+    }
+  }
+}
+
 function appendTeam(lines, game, team) {
   for (const actor of game.actors.filter(unit => unit.team === team)) {
     const stats = game.matchStats.get(actor.id);
@@ -236,7 +367,7 @@ export function buildMatchReport(game) {
 
   const lines = [
     "3V3 ARENA — STRESS TEST RUN REPORT",
-    "Report schema: stress-v2",
+    "Report schema: stress-v3-ai-memory-intent",
     "Arena: " + game.arena.name,
     "Result: " + result,
     "Duration: " + game.elapsedSeconds.toFixed(1) + "s",
@@ -288,6 +419,7 @@ export function buildMatchReport(game) {
   appendPlayerStats(lines, loadout);
   appendAiProgression(lines, game, "friendly", "FRIENDLY AI PROGRESSION / TALENT BUILDS");
   appendAiProgression(lines, game, "enemy", "ENEMY PROGRESSION / TALENT BUILDS");
+  appendAiIdentityMemoryIntent(lines, game);
 
   lines.push(
     "",

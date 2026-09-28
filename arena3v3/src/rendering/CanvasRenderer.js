@@ -189,8 +189,14 @@ export class CanvasRenderer {
 
     if (actor.id === game.player?.id) {
       this.drawPlayerHighlight(ctx, actor, game);
-    } else if (selected) {
-      this.drawTargetHighlight(ctx, actor, game);
+    } else {
+      // Every non-player unit gets a subtle team-affiliation ring so same-class
+      // units remain instantly readable when they stand next to each other.
+      // The selected target keeps the stronger existing target highlight on top.
+      this.drawTeamAffiliationRing(ctx, actor, game);
+      if (selected) {
+        this.drawTargetHighlight(ctx, actor, game);
+      }
     }
 
     if (!this.drawClassIcon(ctx, actor)) {
@@ -272,6 +278,31 @@ export class CanvasRenderer {
 
     ctx.restore();
     return true;
+  }
+
+  drawTeamAffiliationRing(ctx, actor, game) {
+    const friendly = actor.team === game.player?.team;
+    const ringColor = friendly ? "#55c878" : "#d45a5a";
+    const glowColor = friendly
+      ? "rgba(55, 170, 91, .55)"
+      : "rgba(190, 60, 60, .50)";
+    const ringRadius = actor.radius + 3;
+
+    ctx.save();
+
+    // Deliberately calmer than the active target ring: no pulse, thin stroke
+    // and only a small glow. It communicates team ownership without competing
+    // with the selected-target highlight.
+    ctx.globalAlpha = friendly ? 0.56 : 0.50;
+    ctx.strokeStyle = ringColor;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 3;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(actor.x, actor.y, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   drawTargetHighlight(ctx, actor, game) {

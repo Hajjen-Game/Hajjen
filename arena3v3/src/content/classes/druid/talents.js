@@ -9,7 +9,7 @@ const LIFEBLOOM_SPELL = Object.freeze({
   castMs: 0,
   cooldownMs: 0,
   gcdMs: 1200,
-  range: 355,
+  range: 385,
   effects: [{ kind: "hot", amount: 46, durationMs: 8000, tickMs: 2000 }],
 });
 

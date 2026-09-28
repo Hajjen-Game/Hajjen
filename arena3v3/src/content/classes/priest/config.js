@@ -12,22 +12,22 @@ export const priestClass = {
   spells: [
     {
       id: "priest-renew", name: "Renew", aiRole: "sustainHot", visualStyle: "priest",
-      target: "ally", school: "holy", resourceCost: 12, castMs: 0, cooldownMs: 0, gcdMs: 1200, range: 345,
+      target: "ally", school: "holy", resourceCost: 12, castMs: 0, cooldownMs: 0, gcdMs: 1200, range: 385,
       effects: [{ kind: "hot", amount: 66, durationMs: 9000, tickMs: 3000 }],
     },
     {
       id: "priest-flash-heal", name: "Flash Heal", aiRole: "quickHeal", visualStyle: "priest",
-      target: "ally", school: "holy", resourceCost: 14, castMs: 850, cooldownMs: 0, gcdMs: 1200, range: 345,
+      target: "ally", school: "holy", resourceCost: 14, castMs: 850, cooldownMs: 0, gcdMs: 1200, range: 385,
       effects: [{ kind: "heal", amount: 132 }],
     },
     {
       id: "priest-greater-heal", name: "Greater Heal", aiRole: "bigHeal", visualStyle: "priest",
-      target: "ally", school: "holy", resourceCost: 24, castMs: 2100, cooldownMs: 0, gcdMs: 1200, range: 345,
+      target: "ally", school: "holy", resourceCost: 24, castMs: 2100, cooldownMs: 0, gcdMs: 1200, range: 385,
       effects: [{ kind: "heal", amount: 294 }],
     },
     {
       id: "priest-pain-suppression", name: "Pain Suppression", aiRole: "defensive", visualStyle: "priest",
-      target: "ally", school: "holy", resourceCost: 20, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 345,
+      target: "ally", school: "holy", resourceCost: 20, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 385,
       effects: [{ kind: "damageReduction", value: 0.30, durationMs: 4200 }],
     },
     {

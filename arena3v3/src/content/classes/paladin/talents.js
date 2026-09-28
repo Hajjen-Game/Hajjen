@@ -9,7 +9,7 @@ const WORD_OF_GLORY_SPELL = Object.freeze({
   castMs: 0,
   cooldownMs: 8000,
   gcdMs: 1200,
-  range: 310,
+  range: 385,
   effects: [{ kind: "heal", amount: 190 }],
 });
 

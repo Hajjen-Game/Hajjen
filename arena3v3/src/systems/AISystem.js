@@ -15,6 +15,10 @@ export class AISystem {
       friendly: this.createTeamPlan("friendly"),
       enemy: this.createTeamPlan("enemy"),
     };
+    this.teamBurstReads = {
+      friendly: null,
+      enemy: null,
+    };
     this.playerIntentModel = {
       targetScores: {},
       targetId: null,
@@ -42,6 +46,7 @@ export class AISystem {
       primaryTargetId: null,
       primaryTargetName: null,
       confidence: 0,
+      coordinationStrength: 1,
       source: "forming",
       reason: "forming initial read",
       changedAt: 0,
@@ -53,6 +58,23 @@ export class AISystem {
 
   teamPlan(team) {
     return this.teamPlans?.[team] || null;
+  }
+
+  teamCoordinationStrength(team) {
+    if (team === this.game.player?.team) return 1;
+
+    const ratingState = this.game.rating?.status?.();
+    const rawRating = Number(ratingState?.rating);
+    if (!Number.isFinite(rawRating)) return 1;
+
+    const rating = Math.max(0, rawRating);
+
+    if (rating <= 1200) return 0;
+    if (rating < 1500) return ((rating - 1200) / 300) * 0.20;
+    if (rating < 1750) return 0.20 + ((rating - 1500) / 250) * 0.25;
+    if (rating < 2000) return 0.45 + ((rating - 1750) / 250) * 0.35;
+    if (rating < 2200) return 0.80 + ((rating - 2000) / 200) * 0.20;
+    return 1;
   }
 
   recordPlayerIntentSignal(type, target = null, weight = 0) {
@@ -351,6 +373,24 @@ export class AISystem {
   }
 
   updateTeamPlan(team) {
+    const plan = this.teamPlans?.[team] || null;
+    const coordinationStrength = this.teamCoordinationStrength(team);
+
+    if (plan) plan.coordinationStrength = coordinationStrength;
+
+    if (team !== this.game.player?.team && coordinationStrength <= 0) {
+      if (plan) {
+        plan.state = "INDIVIDUAL";
+        plan.primaryTargetId = null;
+        plan.primaryTargetName = null;
+        plan.confidence = 0;
+        plan.source = "difficulty";
+        plan.reason = "enemy Team Plan disabled at low Rating";
+      }
+      this.teamBurstReads[team] = null;
+      return;
+    }
+
     const members = this.game.actors.filter(actor =>
       actor.alive && actor.team === team
     );
@@ -380,6 +420,8 @@ export class AISystem {
         )
       )
     );
+
+    const now = this.game.elapsedSeconds;
 
     let state = "PRESSURE";
     let reason = playerLed
@@ -427,11 +469,41 @@ export class AISystem {
       }
     }
 
+    const burstCandidate = (
+      team !== this.game.player?.team
+      && state === "BURST"
+      && source === "team-read"
+    );
+
+    if (burstCandidate) {
+      const burstKey = reason + ":" + (consensus.target?.id || "none");
+      const existingRead = this.teamBurstReads[team];
+
+      if (!existingRead || existingRead.key !== burstKey) {
+        this.teamBurstReads[team] = { key: burstKey, firstSeenAt: now };
+      }
+
+      const read = this.teamBurstReads[team];
+      const reactionDelay = (1 - coordinationStrength) * 2.4;
+
+      if (now - read.firstSeenAt < reactionDelay) {
+        state = "PRESSURE";
+        source = "ai-consensus";
+        reason = "team still reading burst window";
+      }
+    } else if (team !== this.game.player?.team) {
+      this.teamBurstReads[team] = null;
+    }
+
+    const effectiveConfidence = team === this.game.player?.team
+      ? consensus.confidence
+      : consensus.confidence * coordinationStrength;
+
     this.setTeamPlan(
       team,
       state,
       consensus.target,
-      consensus.confidence,
+      effectiveConfidence,
       source,
       reason,
     );
@@ -479,14 +551,15 @@ export class AISystem {
     const skill = this.skill(actor);
     const playerLedBonus = plan.source === "player-led" ? 0.08 : 0;
     const burstBonus = plan.state === "BURST" ? 0.12 : 0;
-    const followChance = clamp01(
+    const coordinationStrength = plan.coordinationStrength ?? 1;
+    const followChance = clamp01((
       0.10
       + skill * 0.30
       + plan.confidence * 0.28
       + (1 - stickiness) * 0.20
       + playerLedBonus
       + burstBonus
-    );
+    ) * coordinationStrength);
 
     const follows = this.shouldAttempt(
       actor,
@@ -1826,6 +1899,8 @@ export class AISystem {
 
       if (
         plan?.primaryTargetId === enemy.id
+        && plan.confidence >= 0.38
+        && (plan.coordinationStrength ?? 1) >= 0.35
         && ["PRESSURE", "BURST"].includes(plan.state)
       ) {
         score += 5 + (plan.confidence || 0) * 5;
@@ -1834,6 +1909,8 @@ export class AISystem {
 
       if (
         plan
+        && plan.confidence >= 0.38
+        && (plan.coordinationStrength ?? 1) >= 0.35
         && ["PEEL", "RECOVER"].includes(plan.state)
         && pressuredAlly?.role === "healer"
       ) {
@@ -2278,9 +2355,13 @@ export class AISystem {
         const teamPlan = this.teamPlan(actor.team);
         const teamPeelBonus = (
           ally.role === "healer"
+          && (teamPlan?.confidence || 0) >= 0.38
+          && (teamPlan?.coordinationStrength ?? 1) >= 0.35
           && ["PEEL", "RECOVER"].includes(teamPlan?.state)
         )
-          ? 0.08 + (teamPlan?.confidence || 0) * 0.12
+          ? (
+            0.08 + (teamPlan?.confidence || 0) * 0.12
+          ) * (teamPlan?.coordinationStrength ?? 1)
           : 0;
         const peelChance = basePeelChance + modelBonus + teamPeelBonus;
         const peelRoll = this.decisionRoll(actor, "peel:" + ally.id, 2.2);

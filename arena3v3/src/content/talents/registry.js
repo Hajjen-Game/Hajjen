@@ -1,7 +1,7 @@
 import { priestTalentTree } from "../classes/priest/talents.js?v=20260926-mindblastvfx1";
-import { druidTalentTree } from "../classes/druid/talents.js";
+import { druidTalentTree } from "../classes/druid/talents.js?v=20260928-beginnercurve1";
 import { mageTalentTree } from "../classes/mage/talents.js";
-import { paladinTalentTree } from "../classes/paladin/talents.js";
+import { paladinTalentTree } from "../classes/paladin/talents.js?v=20260928-beginnercurve1";
 import { warriorTalentTree } from "../classes/warrior/talents.js";
 import { rogueTalentTree } from "../classes/rogue/talents.js";
 import { shamanTalentTree } from "../classes/shaman/talents.js?v=20260926-astralshift2";

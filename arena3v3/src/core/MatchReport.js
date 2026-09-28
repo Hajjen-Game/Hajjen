@@ -298,6 +298,7 @@ function appendTeamCoordination(lines, game) {
       + " " + plan.state
       + " | primary " + (plan.primaryTargetName || "None")
       + " | confidence " + modelPct(plan.confidence)
+      + " | coordination " + modelPct(plan.coordinationStrength ?? 1)
       + " | source " + plan.source
       + " | revision " + plan.revision
       + " | " + plan.reason,

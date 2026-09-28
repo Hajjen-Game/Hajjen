@@ -12,17 +12,17 @@ export const druidClass = {
   spells: [
     {
       id: "druid-rejuvenation", name: "Rejuvenation", aiRole: "sustainHot", visualStyle: "druid",
-      target: "ally", school: "nature", resourceCost: 11, castMs: 0, cooldownMs: 0, gcdMs: 1200, range: 355,
+      target: "ally", school: "nature", resourceCost: 11, castMs: 0, cooldownMs: 0, gcdMs: 1200, range: 385,
       effects: [{ kind: "hot", amount: 58, durationMs: 10000, tickMs: 2000 }],
     },
     {
       id: "druid-swiftmend", name: "Swiftmend", aiRole: "quickHeal", visualStyle: "druid",
-      target: "ally", school: "nature", resourceCost: 18, castMs: 0, cooldownMs: 6500, gcdMs: 1200, range: 355,
+      target: "ally", school: "nature", resourceCost: 18, castMs: 0, cooldownMs: 6500, gcdMs: 1200, range: 385,
       effects: [{ kind: "heal", amount: 168 }],
     },
     {
       id: "druid-regrowth", name: "Regrowth", aiRole: "bigHeal", visualStyle: "druid",
-      target: "ally", school: "nature", resourceCost: 23, castMs: 1550, cooldownMs: 0, gcdMs: 1200, range: 355,
+      target: "ally", school: "nature", resourceCost: 23, castMs: 1550, cooldownMs: 0, gcdMs: 1200, range: 385,
       effects: [
         { kind: "heal", amount: 215 },
         { kind: "hot", amount: 34, durationMs: 6000, tickMs: 2000 },
@@ -30,7 +30,7 @@ export const druidClass = {
     },
     {
       id: "druid-ironbark", name: "Ironbark", aiRole: "defensive", visualStyle: "druid",
-      target: "ally", school: "nature", resourceCost: 16, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 355,
+      target: "ally", school: "nature", resourceCost: 16, castMs: 0, cooldownMs: 18000, gcdMs: 1200, range: 385,
       effects: [{ kind: "damageReduction", value: 0.26, durationMs: 5000 }],
     },
     {

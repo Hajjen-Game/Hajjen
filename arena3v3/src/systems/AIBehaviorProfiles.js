@@ -26,6 +26,14 @@ export function aiSkillForRating(rating) {
   return clamp(0.28 + normalizedRating / 5500);
 }
 
+export function enemyAiRatingForPlayerRating(rating) {
+  const normalizedRating = Math.max(0, Math.round(Number(rating) || 0));
+  const handicapProgress = clamp((2200 - normalizedRating) / 700);
+  const handicap = Math.round(400 * handicapProgress);
+
+  return Math.max(0, normalizedRating - handicap);
+}
+
 export function createAiBehaviorProfile(role, rating) {
   const normalizedRating = Math.max(0, Math.round(Number(rating) || 0));
   const skill = aiSkillForRating(normalizedRating);

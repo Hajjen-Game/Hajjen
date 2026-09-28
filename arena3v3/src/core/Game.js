@@ -7,10 +7,10 @@ import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260927-slow2";
 import { AISystem } from "../systems/AISystem.js?v=20260927-slowai1";
-import { createAiBehaviorProfile } from "../systems/AIBehaviorProfiles.js?v=20260927-rating-ai1";
+import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260927-targetglow2";
 import { UIManager } from "../ui/UIManager.js?v=20260927-focus-hud1";
-import { buildMatchReport } from "./MatchReport.js?v=20260927-slowai1";
+import { buildMatchReport } from "./MatchReport.js?v=20260928-onboarding1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260926-astralshift2";
@@ -218,16 +218,22 @@ export class Game {
       const build = this.randomEnemyTalentBuild(config.classId, talentPoints);
       const progressed = build.system.applyToConfig(config);
 
+      const decisionRating = config.team === "enemy"
+        ? enemyAiRatingForPlayerRating(playerRating)
+        : playerRating;
+
       progressed.aiProgression = {
         rank,
         rating: playerRating,
+        decisionRating,
         talentPoints,
         ...build.snapshot,
       };
 
-      // Hidden per-match playstyle. The tendencies stay hidden, while Rating
-      // determines how well that rolled playstyle is executed.
-      progressed.aiBehaviorProfile = createAiBehaviorProfile(config.role, playerRating);
+      // Friendly AI stays at the player's real Rating. Enemy decision quality
+      // gets an onboarding handicap at low Rating, which fades smoothly and is
+      // completely gone by 2200. Stats, Rank, talents and gear remain mirrored.
+      progressed.aiBehaviorProfile = createAiBehaviorProfile(config.role, decisionRating);
 
       // Keep the old field for enemy reports / compatibility with any
       // existing tooling that still reads enemyProgression.

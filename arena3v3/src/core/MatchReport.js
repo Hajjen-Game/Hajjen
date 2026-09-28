@@ -153,6 +153,12 @@ function appendAiProgression(lines, game, team, title) {
       actor.name + " [" + actor.className + "]"
       + " — Rank " + progression.rank
       + " | Rating " + (progression.rating ?? "—")
+      + (
+        Number.isFinite(progression.decisionRating)
+        && progression.decisionRating !== progression.rating
+          ? " | AI Difficulty " + progression.decisionRating
+          : ""
+      )
       + " | Talent Points " + progression.spentPoints + "/" + progression.talentPoints,
     );
 
@@ -631,7 +637,20 @@ export function buildMatchReport(game) {
     "",
     "=== MATCH RULES / CONTEXT ===",
     "Ability queue: 400ms",
-    "AI decision difficulty: scaled from player Rating " + n(startRating?.rating) + " (Rank controls talents/gear progression, not AI skill)",
+    "AI decision difficulty: friendly "
+      + (
+        game.actors.find(actor => actor.team === "friendly" && actor.control !== "player")
+          ?.config?.aiProgression?.decisionRating
+        ?? n(startRating?.rating)
+      )
+      + " | enemy "
+      + (
+        game.actors.find(actor => actor.team === "enemy" && actor.control !== "player")
+          ?.config?.aiProgression?.decisionRating
+        ?? n(startRating?.rating)
+      )
+      + " (player Rating " + n(startRating?.rating)
+      + "; enemy onboarding handicap fades out by 2200; Rank still controls talents/gear)",
     "AI cognition: Memory + individual Intent + Opponent Modelling + Team Plan enabled; friendly AI infers player intent from observable actions; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",

@@ -652,6 +652,13 @@ export function buildMatchReport(game) {
       )
       + " (player Rating " + n(startRating?.rating)
       + "; enemy onboarding handicap fades out by 2200; Rank still controls talents/gear)",
+    "AI individual cognition: friendly 100% | enemy "
+      + modelPct(
+        game.ai?.individualCognitionStrength?.(
+          game.actors.find(actor => actor.team === "enemy" && actor.control !== "player"),
+        ) ?? 1,
+      )
+      + " (advanced reads such as FINISH, healer testing/OOM pressure, smart swaps, interrupts and Opponent Modelling scale with player Rating)",
     "AI cognition: Memory + individual Intent + Opponent Modelling + Team Plan enabled; friendly AI infers player intent from observable actions; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",

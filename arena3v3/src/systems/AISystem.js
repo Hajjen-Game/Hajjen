@@ -77,6 +77,27 @@ export class AISystem {
     return 1;
   }
 
+  individualCognitionStrength(actor) {
+    if (!actor || actor.team === this.game.player?.team) return 1;
+
+    const ratingState = this.game.rating?.status?.();
+    const rawRating = Number(ratingState?.rating);
+    if (!Number.isFinite(rawRating)) return 1;
+
+    const rating = Math.max(0, rawRating);
+
+    // Advanced individual arena reads are intentionally almost absent at the
+    // beginner floor. Basic rotations, movement, simple peels and defensives
+    // stay intact; smarter target swaps, finishing reads, OOM hunting,
+    // interrupts and opponent modelling ramp in with Rating.
+    if (rating <= 1200) return 0.08;
+    if (rating < 1500) return 0.08 + ((rating - 1200) / 300) * 0.27;
+    if (rating < 1750) return 0.35 + ((rating - 1500) / 250) * 0.25;
+    if (rating < 2000) return 0.60 + ((rating - 1750) / 250) * 0.30;
+    if (rating < 2200) return 0.90 + ((rating - 2000) / 200) * 0.10;
+    return 1;
+  }
+
   recordPlayerIntentSignal(type, target = null, weight = 0) {
     const model = this.playerIntentModel;
     if (!model) return;
@@ -733,7 +754,8 @@ export class AISystem {
     const skill = this.skill(actor);
     const sampleProgress = clamp01(model.observations / 70);
     const skillCeiling = 0.38 + skill * 0.54;
-    return clamp01(sampleProgress * skillCeiling);
+    const cognition = this.individualCognitionStrength(actor);
+    return clamp01(sampleProgress * skillCeiling * cognition);
   }
 
   opponentModelRead(actor, enemy) {
@@ -1250,12 +1272,22 @@ export class AISystem {
     const skill = this.skill(actor);
     const stickiness = this.behavior(actor, "targetStickiness", 0.58);
     const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.42);
+    const cognition = this.individualCognitionStrength(actor);
 
+    const finishThreshold = 0.18 + cognition * 0.16;
     const finish = [...enemies]
-      .filter(enemy => enemy.healthPct <= 0.34)
+      .filter(enemy => enemy.healthPct <= finishThreshold)
       .sort((a, b) => a.healthPct - b.healthPct)[0];
 
-    if (finish) {
+    if (
+      finish
+      && this.shouldAttempt(
+        actor,
+        "intent-finish:" + finish.id,
+        0.15 + cognition * 0.85,
+        2.2,
+      )
+    ) {
       this.setIntent(
         actor,
         "FINISH",
@@ -1273,12 +1305,13 @@ export class AISystem {
     });
 
     if (
-      rememberedHealer
+      cognition >= 0.25
+      && rememberedHealer
       && rememberedHealer.resourcePct <= 0.34
       && this.shouldAttempt(
         actor,
         "intent-low-mana-healer",
-        0.12 + healerSwapBias * 0.42 + skill * 0.32,
+        (0.12 + healerSwapBias * 0.42 + skill * 0.32) * cognition,
         2.8,
       )
     ) {
@@ -1307,7 +1340,9 @@ export class AISystem {
         const alternate = [...enemies]
           .filter(enemy => enemy.id !== currentDamageable.id)
           .sort((a, b) => a.healthPct - b.healthPct)[0];
-        const swapChance = 0.14 + (1 - stickiness) * 0.42 + skill * 0.26;
+        const swapChance = (
+          0.14 + (1 - stickiness) * 0.42 + skill * 0.26
+        ) * (0.15 + cognition * 0.85);
 
         if (
           alternate
@@ -1333,7 +1368,8 @@ export class AISystem {
         const expectedHp = model?.averageDefensiveHealth;
 
         if (
-          model
+          cognition >= 0.55
+          && model
           && model.defensiveUses >= 2
           && model.confidence >= 0.28
           && Number.isFinite(expectedHp)
@@ -1347,7 +1383,7 @@ export class AISystem {
             )
             .sort((a, b) => a.healthPct - b.healthPct)[0];
 
-          const anticipationChance = model.trust * (
+          const anticipationChance = model.trust * cognition * (
             0.10
             + (1 - stickiness) * 0.22
             + skill * 0.18
@@ -1724,7 +1760,10 @@ export class AISystem {
 
     const control = this.spell(actor, "control");
     const controlStablePct = 0.68 - ccBias * 0.14;
-    const controlChance = 0.24 + ccBias * 0.58 + skill * 0.10;
+    const cognition = this.individualCognitionStrength(actor);
+    const controlChance = (
+      0.24 + ccBias * 0.58 + skill * 0.10
+    ) * (0.20 + cognition * 0.80);
     if (
       control
       && this.ready(actor, control)
@@ -2006,7 +2045,10 @@ export class AISystem {
 
     const interrupt = this.spell(actor, "interrupt");
     const interruptDiscipline = this.behavior(actor, "interruptDiscipline", 0.65);
-    const interruptChance = 0.32 + skill * 0.45 + interruptDiscipline * 0.28;
+    const cognition = this.individualCognitionStrength(actor);
+    const interruptChance = (
+      0.32 + skill * 0.45 + interruptDiscipline * 0.28
+    ) * (0.12 + cognition * 0.88);
     if (
       interrupt
       && this.ready(actor, interrupt)
@@ -2180,8 +2222,10 @@ export class AISystem {
         }
 
         if (!target) {
-          if (!currentDamageable || lowest.healthPct < 0.24) {
-            target = lowest.healthPct < 0.24
+          const cognition = this.individualCognitionStrength(actor);
+          const snapFinishPct = 0.14 + cognition * 0.10;
+          if (!currentDamageable || lowest.healthPct < snapFinishPct) {
+            target = lowest.healthPct < snapFinishPct
               ? lowest
               : this.pickPriorityTarget(actor, damageableEnemies);
             actor.aiTargetId = target.id;
@@ -2216,7 +2260,10 @@ export class AISystem {
         controlTarget = peel.attacker;
       } else {
         const ccBias = this.behavior(actor, "ccBias", 0.58);
-        const ccChance = 0.22 + ccBias * 0.58 + skill * 0.12;
+        const cognition = this.individualCognitionStrength(actor);
+        const ccChance = (
+          0.22 + ccBias * 0.58 + skill * 0.12
+        ) * (0.25 + cognition * 0.75);
         if (this.shouldAttempt(actor, "damage-control", ccChance, 2.8)) {
           controlTarget = this.pickCcTarget(actor, enemies, control);
         }
@@ -2483,6 +2530,9 @@ export class AISystem {
   }
 
   findOomHealerTarget(actor, enemies) {
+    const cognition = this.individualCognitionStrength(actor);
+    if (cognition < 0.25) return null;
+
     const threshold = actor.config.ai.oomHealerFocusPct ?? 0.1;
     const healer = enemies.find(candidate =>
       candidate.role === "healer"
@@ -2497,7 +2547,9 @@ export class AISystem {
     // healer mana bar; stronger AI reacts more reliably.
     const skill = this.skill(actor);
     const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.42);
-    const noticeChance = 0.12 + skill * 0.58 + healerSwapBias * 0.18;
+    const noticeChance = (
+      0.12 + skill * 0.58 + healerSwapBias * 0.18
+    ) * cognition;
 
     return this.shouldAttempt(
       actor,
@@ -2508,6 +2560,9 @@ export class AISystem {
   }
 
   findHealerPressureTarget(actor, enemies) {
+    const cognition = this.individualCognitionStrength(actor);
+    if (cognition < 0.30) return null;
+
     const healer = enemies.find(candidate => candidate.role === "healer");
     if (!healer) return null;
 
@@ -2554,7 +2609,9 @@ export class AISystem {
     // whether this particular window is taken.
     if (!activelyHealing && !manaExposed && !healthExposed) return null;
 
-    const swapChance = 0.16 + healerSwapBias * 0.62 + this.skill(actor) * 0.12;
+    const swapChance = (
+      0.16 + healerSwapBias * 0.62 + this.skill(actor) * 0.12
+    ) * cognition;
     return this.shouldAttempt(actor, "healer-pressure", swapChance, 2.6)
       ? healer
       : null;
@@ -2582,10 +2639,13 @@ export class AISystem {
     if (this.game.elapsedSeconds - lastSwap < minInterval) return null;
 
     const killOpportunity = candidate.healthPct < 0.45 ? 0.18 : 0;
-    const chance = (1 - stickiness) * 0.46
+    const cognition = this.individualCognitionStrength(actor);
+    const chance = (
+      (1 - stickiness) * 0.46
       + Math.max(0, healthAdvantage) * 1.15
       + aggression * 0.08
-      + killOpportunity;
+      + killOpportunity
+    ) * (0.20 + cognition * 0.80);
 
     if (!this.shouldAttempt(actor, "voluntary-swap", chance, 3.2)) return null;
 

@@ -7,7 +7,7 @@ export const shamanClass = {
     maxHealth: 1235, moveSpeed: 191, radius: 20,
     hitChance: 0.94, critChance: 0.17, dodgeChance: 0.05, critMultiplier: 1.5,
   },
-  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 5.2 },
+  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.2 },
   ai: {
     preferredRange: 305, targetPriorityRoles: ["caster", "melee", "healer"],
     ccTargetRoles: ["healer", "caster"], oomHealerFocusPct: 0.10,

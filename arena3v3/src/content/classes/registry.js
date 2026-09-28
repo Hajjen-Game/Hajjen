@@ -1,12 +1,12 @@
-import { priestClass } from "./priest/config.js?v=20260926-manapressure3";
-import { druidClass } from "./druid/config.js?v=20260926-manapressure2";
-import { paladinClass } from "./paladin/config.js?v=20260926-manapressure2";
+import { priestClass } from "./priest/config.js?v=20260928-manapacing1";
+import { druidClass } from "./druid/config.js?v=20260928-manapacing1";
+import { paladinClass } from "./paladin/config.js?v=20260928-manapacing1";
 import { warriorClass } from "./warrior/config.js?v=20260926-interrupt12";
 import { rogueClass } from "./rogue/config.js?v=20260926-interrupt12";
 import { deathKnightClass } from "./death-knight/config.js?v=20260926-interrupt12";
-import { mageClass } from "./mage/config.js?v=20260927-slow1";
-import { warlockClass } from "./warlock/config.js?v=20260927-slow1";
-import { shamanClass } from "./shaman/config.js?v=20260927-slow1";
+import { mageClass } from "./mage/config.js?v=20260928-manapacing1";
+import { warlockClass } from "./warlock/config.js?v=20260928-manapacing1";
+import { shamanClass } from "./shaman/config.js?v=20260928-manapacing1";
 
 export const CLASS_REGISTRY = {
   priest: priestClass,

@@ -2403,12 +2403,27 @@ export class AISystem {
 
   findOomHealerTarget(actor, enemies) {
     const threshold = actor.config.ai.oomHealerFocusPct ?? 0.1;
-
-    return enemies.find(candidate =>
+    const healer = enemies.find(candidate =>
       candidate.role === "healer"
       && candidate.resource.type === "mana"
       && candidate.resourcePct <= threshold
     ) || null;
+
+    if (!healer) return null;
+
+    // OOM awareness is a decision, not perfect information. Lower-rated AI
+    // may need several observation windows before it capitalizes on an empty
+    // healer mana bar; stronger AI reacts more reliably.
+    const skill = this.skill(actor);
+    const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.42);
+    const noticeChance = 0.12 + skill * 0.58 + healerSwapBias * 0.18;
+
+    return this.shouldAttempt(
+      actor,
+      "notice-oom-healer:" + healer.id,
+      noticeChance,
+      2.8,
+    ) ? healer : null;
   }
 
   findHealerPressureTarget(actor, enemies) {
@@ -2535,6 +2550,73 @@ export class AISystem {
     return this.game.combat.tryCast(actor, spell, target, { silent: true });
   }
 
+  casterNeedsManaRecoveryMovement(actor, target) {
+    if (
+      actor.role !== "caster"
+      || actor.resource.type !== "mana"
+      || actor.resourcePct > 0.35
+      || !target?.alive
+    ) return false;
+
+    const pressureSpells = actor.spells.filter(spell =>
+      spell.target === "enemy"
+      && ["periodic", "bigDamage", "filler"].includes(spell.aiRole)
+      && actor.cooldownFor(spell.id) <= 0
+      && !this.game.cc.isSchoolLocked(actor, spell)
+      && !(spell.aiRole === "periodic" && target.hasEffect(spell.id, actor.id))
+    );
+
+    if (pressureSpells.length === 0) return false;
+    return !pressureSpells.some(spell => this.game.resources.canPay(actor, spell));
+  }
+
+  casterManaRecoveryVector(actor, target, healer = null) {
+    const preferred = actor.config.ai.preferredRange || 305;
+    const dist = distance(actor, target);
+    const toward = normalize(target.x - actor.x, target.y - actor.y);
+    const away = normalize(actor.x - target.x, actor.y - target.y);
+    const sign = stableHash(actor.id + ":mana-recovery") % 2 === 0 ? 1 : -1;
+    const side = { x: -toward.y * sign, y: toward.x * sign };
+
+    let x = side.x;
+    let y = side.y;
+
+    if (dist < preferred * 0.82) {
+      x += away.x * 1.15;
+      y += away.y * 1.15;
+    } else if (
+      !hasLineOfSight(actor, target, this.game.arena.obstacles)
+      || dist > preferred * 1.12
+    ) {
+      x += toward.x * 0.75;
+      y += toward.y * 0.75;
+    }
+
+    if (healer?.alive && !this.hasHealerSupport(actor, healer)) {
+      const toHealer = normalize(healer.x - actor.x, healer.y - actor.y);
+      x += toHealer.x * 1.15;
+      y += toHealer.y * 1.15;
+    }
+
+    const primary = normalize(x, y);
+    const alternate = normalize(-side.x + away.x * 0.65, -side.y + away.y * 0.65);
+    const candidates = [primary, alternate, away, toward];
+
+    for (const candidate of candidates) {
+      if (
+        (candidate.x !== 0 || candidate.y !== 0)
+        && !this.movement.wouldCollide(
+          actor,
+          candidate,
+          Math.max(42, actor.radius * 2),
+          this.game.arena,
+        )
+      ) return candidate;
+    }
+
+    return this.steer(actor, target, dist > preferred ? 1 : -1);
+  }
+
   moveForRole(actor, target, deltaSeconds) {
     if (!target?.alive || this.game.cc.isRooted(actor)) return;
 
@@ -2591,10 +2673,26 @@ export class AISystem {
           const kiteVector = this.kiteVector(actor, meleeThreat, healer);
 
           if (kiteVector.x !== 0 || kiteVector.y !== 0) {
+            actor.aiManaRecoveryActive = false;
             this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
             return;
           }
         }
+      }
+
+      if (this.casterNeedsManaRecoveryMovement(actor, target)) {
+        const recoveryVector = this.casterManaRecoveryVector(actor, target, healer);
+
+        if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
+          if (!actor.aiManaRecoveryActive) {
+            actor.aiManaRecoveryPhases = (actor.aiManaRecoveryPhases || 0) + 1;
+          }
+          actor.aiManaRecoveryActive = true;
+          this.movement.moveAI(actor, recoveryVector, deltaSeconds, this.game.arena);
+          return;
+        }
+      } else {
+        actor.aiManaRecoveryActive = false;
       }
     }
 

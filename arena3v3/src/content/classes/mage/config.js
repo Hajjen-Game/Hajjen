@@ -7,7 +7,7 @@ export const mageClass = {
     maxHealth: 1210, moveSpeed: 194, radius: 19,
     hitChance: 0.94, critChance: 0.18, dodgeChance: 0.05, critMultiplier: 1.55,
   },
-  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 5.0 },
+  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.2 },
   ai: {
     preferredRange: 315, targetPriorityRoles: ["caster", "melee", "healer"],
     ccTargetRoles: ["healer", "caster"], oomHealerFocusPct: 0.10,

@@ -7,7 +7,7 @@ export const warlockClass = {
     maxHealth: 1270, moveSpeed: 180, radius: 20,
     hitChance: 0.93, critChance: 0.16, dodgeChance: 0.04, critMultiplier: 1.5,
   },
-  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 5.3 },
+  resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.2 },
   ai: {
     preferredRange: 310, targetPriorityRoles: ["caster", "melee", "healer"],
     ccTargetRoles: ["healer", "caster"], oomHealerFocusPct: 0.10,

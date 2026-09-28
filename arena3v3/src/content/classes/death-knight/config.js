@@ -4,7 +4,7 @@ export const deathKnightClass = {
   role: "melee",
   visualStyle: "deathKnight",
   stats: {
-    maxHealth: 1500, moveSpeed: 186, radius: 22,
+    maxHealth: 1590, moveSpeed: 186, radius: 22,
     hitChance: 0.92, critChance: 0.14, dodgeChance: 0.05, critMultiplier: 1.5,
   },
   resource: { type: "runic", max: 100, start: 45, regenPerSecond: 8 },

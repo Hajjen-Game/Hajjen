@@ -4,7 +4,7 @@ export const priestClass = {
   role: "healer",
   visualStyle: "priest",
   stats: {
-    maxHealth: 1260, moveSpeed: 194, radius: 20,
+    maxHealth: 1336, moveSpeed: 194, radius: 20,
     hitChance: 0.94, critChance: 0.17, dodgeChance: 0.05, critMultiplier: 1.5,
   },
   resource: { type: "mana", max: 100, start: 100, regenPerSecond: 5.6 },
@@ -18,12 +18,12 @@ export const priestClass = {
     {
       id: "priest-flash-heal", name: "Flash Heal", aiRole: "quickHeal", visualStyle: "priest",
       target: "ally", school: "holy", resourceCost: 14, castMs: 850, cooldownMs: 0, gcdMs: 1200, range: 385,
-      effects: [{ kind: "heal", amount: 132 }],
+      effects: [{ kind: "heal", amount: 144 }],
     },
     {
       id: "priest-greater-heal", name: "Greater Heal", aiRole: "bigHeal", visualStyle: "priest",
       target: "ally", school: "holy", resourceCost: 24, castMs: 2100, cooldownMs: 0, gcdMs: 1200, range: 385,
-      effects: [{ kind: "heal", amount: 294 }],
+      effects: [{ kind: "heal", amount: 320 }],
     },
     {
       id: "priest-pain-suppression", name: "Pain Suppression", aiRole: "defensive", visualStyle: "priest",

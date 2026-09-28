@@ -4,7 +4,7 @@ export const warlockClass = {
   role: "caster",
   visualStyle: "warlock",
   stats: {
-    maxHealth: 1270, moveSpeed: 180, radius: 20,
+    maxHealth: 1346, moveSpeed: 180, radius: 20,
     hitChance: 0.93, critChance: 0.16, dodgeChance: 0.04, critMultiplier: 1.5,
   },
   resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.2 },

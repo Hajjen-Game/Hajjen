@@ -4,7 +4,7 @@ export const druidClass = {
   role: "healer",
   visualStyle: "druid",
   stats: {
-    maxHealth: 1210, moveSpeed: 205, radius: 19,
+    maxHealth: 1283, moveSpeed: 205, radius: 19,
     hitChance: 0.95, critChance: 0.16, dodgeChance: 0.06, critMultiplier: 1.5,
   },
   resource: { type: "mana", max: 100, start: 100, regenPerSecond: 5.6 },
@@ -18,13 +18,13 @@ export const druidClass = {
     {
       id: "druid-swiftmend", name: "Swiftmend", aiRole: "quickHeal", visualStyle: "druid",
       target: "ally", school: "nature", resourceCost: 18, castMs: 0, cooldownMs: 6500, gcdMs: 1200, range: 385,
-      effects: [{ kind: "heal", amount: 168 }],
+      effects: [{ kind: "heal", amount: 183 }],
     },
     {
       id: "druid-regrowth", name: "Regrowth", aiRole: "bigHeal", visualStyle: "druid",
       target: "ally", school: "nature", resourceCost: 23, castMs: 1550, cooldownMs: 0, gcdMs: 1200, range: 385,
       effects: [
-        { kind: "heal", amount: 215 },
+        { kind: "heal", amount: 234 },
         { kind: "hot", amount: 34, durationMs: 6000, tickMs: 2000 },
       ],
     },

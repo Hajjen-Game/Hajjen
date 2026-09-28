@@ -4,7 +4,7 @@ export const shamanClass = {
   role: "caster",
   visualStyle: "shaman",
   stats: {
-    maxHealth: 1235, moveSpeed: 191, radius: 20,
+    maxHealth: 1309, moveSpeed: 191, radius: 20,
     hitChance: 0.94, critChance: 0.17, dodgeChance: 0.05, critMultiplier: 1.5,
   },
   resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.2 },

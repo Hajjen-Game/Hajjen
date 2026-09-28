@@ -4,7 +4,7 @@ export const rogueClass = {
   role: "melee",
   visualStyle: "rogue",
   stats: {
-    maxHealth: 1320, moveSpeed: 218, radius: 19,
+    maxHealth: 1399, moveSpeed: 218, radius: 19,
     hitChance: 0.93, critChance: 0.19, dodgeChance: 0.11, critMultiplier: 1.6,
   },
   resource: { type: "energy", max: 100, start: 100, regenPerSecond: 16 },

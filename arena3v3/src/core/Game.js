@@ -13,7 +13,7 @@ import { UIManager } from "../ui/UIManager.js?v=20260927-focus-hud1";
 import { buildMatchReport } from "./MatchReport.js?v=20260928-targetspread1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
-import { TalentSystem } from "./TalentSystem.js?v=20260928-beginnercurve1";
+import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";
 import { GearSystem } from "./GearSystem.js?v=20260927-rank20rating2";
 
 

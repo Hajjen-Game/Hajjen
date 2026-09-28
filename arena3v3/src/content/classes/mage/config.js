@@ -4,7 +4,7 @@ export const mageClass = {
   role: "caster",
   visualStyle: "mage",
   stats: {
-    maxHealth: 1210, moveSpeed: 194, radius: 19,
+    maxHealth: 1283, moveSpeed: 194, radius: 19,
     hitChance: 0.94, critChance: 0.18, dodgeChance: 0.05, critMultiplier: 1.55,
   },
   resource: { type: "mana", max: 100, start: 100, regenPerSecond: 6.2 },

@@ -47,6 +47,9 @@ export class CombatSystem {
             }
 
             if (!rangeOk || !losOk) {
+              if (actor.control === "player") {
+                this.game.ui?.onPlayerCastFailed?.(spell.id);
+              }
               if (actor.control === "ai" && Number.isFinite(spell.aiStartRange)) {
                 actor.aiRangeLosCastFailures = actor.aiRangeLosCastFailures || {};
                 actor.aiRangeLosCastFailures[spell.id] =
@@ -96,6 +99,8 @@ export class CombatSystem {
             } else {
               this.resolveSpell(actor, target, spell);
             }
+          } else if (spell && actor.control === "player") {
+            this.game.ui?.onPlayerCastFailed?.(spell.id);
           }
         }
       }
@@ -303,6 +308,9 @@ export class CombatSystem {
           (caster.aiGuardedCastStarts[spell.id] || 0) + 1;
       }
 
+      if (caster.control === "player") {
+        this.game.ui?.onPlayerCastStarted?.(spell.id);
+      }
       this.game.log(this.game.combatantLabel(caster) + " begins " + spell.name + ".");
       return true;
     }
@@ -317,6 +325,7 @@ export class CombatSystem {
     actor.cast = null;
 
     if (actor.control === "player") {
+      if (spell?.id) this.game.ui?.onPlayerCastCancelled?.(spell.id);
       this.game.ui.toast((spell?.name || "Cast") + " cancelled by " + reason);
     }
   }
@@ -365,6 +374,9 @@ export class CombatSystem {
         caster.cooldowns.set(spell.id, spell.cooldownMs || 0);
         this.game.resources.spend(caster, spell);
         this.game.recordCast(caster, spell);
+        if (caster.control === "player") {
+          this.game.ui?.onPlayerSpellSucceeded?.(spell.id);
+        }
         return true;
       }
     }
@@ -443,6 +455,9 @@ export class CombatSystem {
       }
     }
 
+    if (caster.control === "player") {
+      this.game.ui?.onPlayerSpellSucceeded?.(spell.id);
+    }
     return true;
   }
 

@@ -418,6 +418,10 @@ export class CrowdControlSystem {
     const lockedSchool = interruptedSpell?.school || (target.role === "melee" ? "physical" : "magic");
 
     target.cast = null;
+    if (target.control === "player" && interruptedSpell?.id) {
+      this.game.ui?.onPlayerCastInterrupted?.(interruptedSpell.id);
+    }
+
     target.effects = target.effects.filter(existing => existing.kind !== "schoolLock");
     target.effects.push({
       kind: "schoolLock",
@@ -466,6 +470,7 @@ export class CrowdControlSystem {
     target.cast = null;
 
     if (target.control === "player") {
+      if (spell?.id) this.game.ui?.onPlayerCastCancelled?.(spell.id);
       this.game.ui?.toast((spell?.name || "Cast") + " cancelled by " + reason);
     }
   }

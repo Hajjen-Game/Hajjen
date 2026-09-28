@@ -271,6 +271,11 @@ export function createActionSlot(spell, index, onCast, onRebind) {
     <span class="spell-name"></span>
     <span class="spell-meta"></span>
     <span class="keycap" role="button" tabindex="0"></span>
+    <span class="action-cast-progress" aria-hidden="true"><span class="action-cast-edge"></span></span>
+    <span class="action-feedback action-success-feedback" aria-hidden="true"></span>
+    <span class="action-feedback action-interrupt-feedback" aria-hidden="true"></span>
+    <span class="action-feedback action-fail-feedback" aria-hidden="true"></span>
+    <span class="action-feedback action-ready-feedback" aria-hidden="true"></span>
     <span class="gcd-sweep" aria-hidden="true"></span>
     <span class="cooldown"></span>
   `;

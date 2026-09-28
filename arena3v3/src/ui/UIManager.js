@@ -1,6 +1,6 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260928-actionfeedback1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
@@ -44,6 +44,8 @@ export class UIManager {
     this.actionSlotSpellIds = [];
     this.draggedActionSlot = null;
     this.suppressActionClickUntil = 0;
+    this.actionFeedbackTimers = new Map();
+    this.lastActionCooldowns = new Map();
     this.logLines = [];
     this.toastTimer = null;
 
@@ -416,6 +418,8 @@ export class UIManager {
 
     const spellIndex = this.spellIndexForActionSlot(slotIndex);
     if (spellIndex < 0) return false;
+
+    this.pulseInputSlot(slotIndex);
     return this.game.castPlayerSpell(spellIndex);
   }
 
@@ -491,6 +495,8 @@ export class UIManager {
     this.actionBar.innerHTML = "";
     this.actionSlotSpellIds = this.loadActionBarLayout();
 
+    this.lastActionCooldowns.clear();
+
     this.actionSlots = this.actionSlotSpellIds.map((spellId, slotIndex) => {
       const spell = spellId
         ? this.game.player.spells.find(item => item.id === spellId)
@@ -510,6 +516,12 @@ export class UIManager {
 
       this.wireActionSlotDrag(slot, slotIndex, Boolean(spell));
       this.actionBar.appendChild(slot);
+
+      if (spell) {
+        this.lastActionCooldowns.set(spell.id, this.game.player.cooldownFor(spell.id));
+        this.applyActionFeedbackPalette(slot, spell);
+      }
+
       return slot;
     });
 
@@ -1329,8 +1341,30 @@ export class UIManager {
       if (!spell || !slot) return;
 
       const cooldown = this.game.player.cooldownFor(spell.id);
+      const previousCooldown = this.lastActionCooldowns.get(spell.id);
       const overlay = slot.querySelector(".cooldown");
       const gcdSweep = slot.querySelector(".gcd-sweep");
+
+      if (
+        spell.cooldownMs > 0
+        && Number.isFinite(previousCooldown)
+        && previousCooldown > 0
+        && cooldown <= 0
+      ) {
+        this.flashActionSlotClass(slotIndex, "cooldown-ready", 460);
+      }
+      this.lastActionCooldowns.set(spell.id, cooldown);
+
+      const activeCast = this.game.player.cast?.spellId === spell.id;
+      slot.classList.toggle("casting", activeCast);
+      if (activeCast) {
+        const cast = this.game.player.cast;
+        const progress = clamp(1 - cast.remainingMs / Math.max(1, cast.totalMs), 0, 1);
+        slot.style.setProperty("--action-cast-progress", progress.toFixed(4));
+        this.applyActionFeedbackPalette(slot, spell);
+      } else {
+        slot.style.setProperty("--action-cast-progress", "0");
+      }
 
       if (cooldown > 0) {
         overlay.classList.add("active");
@@ -1647,33 +1681,148 @@ export class UIManager {
     });
   }
 
-  actionSlotForSpellIndex(spellIndex) {
-    const spell = this.game.player.spells[spellIndex];
-    if (!spell) return null;
+  actionSlotIndexForSpellId(spellId) {
+    return this.actionSlotSpellIds.indexOf(spellId);
+  }
 
-    const slotIndex = this.actionSlotSpellIds.indexOf(spell.id);
+  actionSlotForSpellId(spellId) {
+    const slotIndex = this.actionSlotIndexForSpellId(spellId);
     return slotIndex >= 0 ? this.actionSlots[slotIndex] : null;
   }
 
-  pulseAction(index, success) {
-    const slot = this.actionSlotForSpellIndex(index);
+  actionSlotForSpellIndex(spellIndex) {
+    const spell = this.game.player.spells[spellIndex];
+    if (!spell) return null;
+    return this.actionSlotForSpellId(spell.id);
+  }
+
+  applyActionFeedbackPalette(slot, spell) {
+    if (!slot || !spell) return;
+
+    const originalCast = this.game.player.cast;
+    const needsShim = originalCast?.spellId !== spell.id;
+    if (needsShim) {
+      this.game.player.cast = {
+        spellId: spell.id,
+        totalMs: spell.castMs || 1,
+        remainingMs: spell.castMs || 0,
+      };
+    }
+
+    const palette = castBarPaletteFor(this.game.player, {
+      cast: "var(--cast)",
+      cream: "var(--cream)",
+      border: "var(--line)",
+    });
+
+    if (needsShim) this.game.player.cast = originalCast;
+
+    slot.style.setProperty("--action-spell-start", palette.start);
+    slot.style.setProperty("--action-spell-end", palette.end);
+    slot.style.setProperty("--action-spell-glow", palette.glow);
+    slot.style.setProperty("--action-spell-border", palette.border);
+  }
+
+  flashActionSlotClass(slotIndex, className, durationMs = 360) {
+    const slot = this.actionSlots[slotIndex];
     if (!slot) return;
 
-    slot.classList.remove("pressed", "rejected");
-    void slot.offsetWidth;
-    slot.classList.add(success ? "pressed" : "rejected");
+    const key = slotIndex + ":" + className;
+    const previousTimer = this.actionFeedbackTimers.get(key);
+    if (previousTimer) window.clearTimeout(previousTimer);
 
-    window.setTimeout(() => {
-      slot.classList.remove("pressed", "rejected");
-    }, 170);
+    slot.classList.remove(className);
+    void slot.offsetWidth;
+    slot.classList.add(className);
+
+    const timer = window.setTimeout(() => {
+      slot.classList.remove(className);
+      this.actionFeedbackTimers.delete(key);
+    }, durationMs);
+    this.actionFeedbackTimers.set(key, timer);
+  }
+
+  pulseInputSlot(slotIndex) {
+    this.flashActionSlotClass(slotIndex, "input-pressed", 105);
+  }
+
+  pulseAction(index, success) {
+    const spell = this.game.player.spells[index];
+    if (!spell) return;
+
+    const slotIndex = this.actionSlotIndexForSpellId(spell.id);
+    if (slotIndex < 0) return;
+
+    this.flashActionSlotClass(
+      slotIndex,
+      success ? "accepted" : "rejected",
+      success ? 150 : 260,
+    );
   }
 
   pulseQueuedAction(index) {
-    const slot = this.actionSlotForSpellIndex(index);
+    const spell = this.game.player.spells[index];
+    if (!spell) return;
+
+    const slot = this.actionSlotForSpellId(spell.id);
+    slot?.classList.remove("rejected");
+    slot?.classList.add("queued");
+  }
+
+  onPlayerCastStarted(spellId) {
+    const slotIndex = this.actionSlotIndexForSpellId(spellId);
+    if (slotIndex < 0) return;
+
+    const slot = this.actionSlots[slotIndex];
+    const spell = this.game.player.getSpell(spellId);
+    if (!slot || !spell) return;
+
+    this.applyActionFeedbackPalette(slot, spell);
+    slot.classList.remove("cast-success", "cast-interrupted", "cast-failed", "cooldown-ready");
+    slot.classList.add("casting");
+    slot.style.setProperty("--action-cast-progress", "0");
+  }
+
+  onPlayerSpellSucceeded(spellId) {
+    const slotIndex = this.actionSlotIndexForSpellId(spellId);
+    if (slotIndex < 0) return;
+
+    const slot = this.actionSlots[slotIndex];
+    const spell = this.game.player.getSpell(spellId);
+    if (!slot || !spell) return;
+
+    this.applyActionFeedbackPalette(slot, spell);
+    slot.classList.remove("casting", "queued", "cast-interrupted", "cast-failed");
+    slot.style.setProperty("--action-cast-progress", "0");
+    this.flashActionSlotClass(slotIndex, "cast-success", 480);
+  }
+
+  onPlayerCastInterrupted(spellId) {
+    const slotIndex = this.actionSlotIndexForSpellId(spellId);
+    if (slotIndex < 0) return;
+
+    const slot = this.actionSlots[slotIndex];
     if (!slot) return;
 
-    slot.classList.remove("rejected");
-    slot.classList.add("queued");
+    slot.classList.remove("casting", "queued", "cast-success");
+    slot.style.setProperty("--action-cast-progress", "0");
+    this.flashActionSlotClass(slotIndex, "cast-interrupted", 620);
+  }
+
+  onPlayerCastFailed(spellId) {
+    const slotIndex = this.actionSlotIndexForSpellId(spellId);
+    if (slotIndex < 0) return;
+
+    const slot = this.actionSlots[slotIndex];
+    if (!slot) return;
+
+    slot.classList.remove("casting", "queued", "cast-success");
+    slot.style.setProperty("--action-cast-progress", "0");
+    this.flashActionSlotClass(slotIndex, "cast-failed", 390);
+  }
+
+  onPlayerCastCancelled(spellId) {
+    this.onPlayerCastFailed(spellId);
   }
 
   showDeathForfeit() {

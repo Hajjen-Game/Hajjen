@@ -805,16 +805,32 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 }
 .action-slot:hover { border-color: var(--gold); }
 .action-slot.disabled { opacity: .46; }
-.action-slot.pressed {
-  transform: translateY(2px) scale(.985);
+
+.action-slot:active,
+.action-slot.input-pressed {
+  transform: translateY(3px) scale(.965);
   border-color: var(--gold-bright);
-  background: linear-gradient(180deg, #5a3c20, #2c1a0f);
-  box-shadow: 0 0 0 2px rgba(227,186,114,.18), 0 0 18px rgba(227,186,114,.28);
+  filter: brightness(1.10);
+  box-shadow: inset 0 3px 10px rgba(0,0,0,.46), 0 0 0 2px rgba(227,186,114,.18);
 }
+
+.action-slot.accepted {
+  border-color: color-mix(in srgb, var(--action-spell-border, var(--gold-bright)) 78%, var(--gold));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.10), 0 0 14px color-mix(in srgb, var(--action-spell-glow, var(--gold)) 34%, transparent);
+}
+
 .action-slot.rejected {
-  transform: translateY(1px);
-  border-color: var(--health-low);
-  box-shadow: 0 0 0 2px rgba(183,94,79,.17);
+  animation: action-rejected-kick .26s ease-out;
+  border-color: #e36a58;
+  box-shadow: inset 0 0 18px rgba(222,73,52,.20), 0 0 0 2px rgba(227,91,70,.24), 0 0 16px rgba(212,62,48,.30);
+}
+
+@keyframes action-rejected-kick {
+  0% { transform: translateX(0) scale(1); }
+  28% { transform: translateX(-3px) scale(.985); }
+  55% { transform: translateX(3px) scale(.99); }
+  78% { transform: translateX(-1px); }
+  100% { transform: translateX(0) scale(1); }
 }
 .action-slot .spell-name {
   font-size: 13px;
@@ -848,6 +864,132 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   cursor: pointer;
   z-index: 2;
 }
+.action-cast-progress,
+.action-feedback {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.action-cast-progress {
+  z-index: 1;
+  opacity: 0;
+  transform: scaleX(var(--action-cast-progress, 0));
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--action-spell-start, var(--cast)) 34%, transparent),
+    color-mix(in srgb, var(--action-spell-end, var(--cream)) 48%, transparent));
+  box-shadow: inset -2px 0 0 color-mix(in srgb, var(--action-spell-border, var(--cream)) 72%, transparent),
+    0 0 16px color-mix(in srgb, var(--action-spell-glow, var(--cast)) 32%, transparent);
+  transition: transform .035s linear;
+}
+
+.action-slot.casting {
+  border-color: color-mix(in srgb, var(--action-spell-border, var(--gold)) 72%, var(--line));
+  box-shadow: inset 0 0 16px color-mix(in srgb, var(--action-spell-glow, var(--cast)) 10%, transparent),
+    0 0 12px color-mix(in srgb, var(--action-spell-glow, var(--cast)) 22%, transparent);
+}
+
+.action-slot.casting .action-cast-progress { opacity: 1; }
+
+.action-cast-edge {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: 4px;
+  background: var(--action-spell-border, var(--cream));
+  box-shadow: 0 0 8px var(--action-spell-glow, var(--cast)), 0 0 15px var(--action-spell-glow, var(--cast));
+  opacity: .92;
+}
+
+.action-feedback {
+  z-index: 6;
+  opacity: 0;
+  border-radius: 9px;
+}
+
+.action-slot.cast-success .action-success-feedback {
+  animation: action-cast-success .48s ease-out;
+  border: 2px solid var(--action-spell-border, var(--gold-bright));
+  background: radial-gradient(circle at center,
+    color-mix(in srgb, var(--action-spell-end, var(--cream)) 32%, transparent) 0%,
+    color-mix(in srgb, var(--action-spell-glow, var(--gold)) 16%, transparent) 38%,
+    transparent 72%);
+}
+
+@keyframes action-cast-success {
+  0% { opacity: 0; transform: scale(.90); box-shadow: 0 0 0 0 transparent; }
+  18% { opacity: 1; transform: scale(1); box-shadow: inset 0 0 24px color-mix(in srgb, var(--action-spell-end, var(--cream)) 38%, transparent), 0 0 20px var(--action-spell-glow, var(--gold)); }
+  100% { opacity: 0; transform: scale(1.08); box-shadow: 0 0 30px color-mix(in srgb, var(--action-spell-glow, var(--gold)) 5%, transparent); }
+}
+
+.action-slot.cast-interrupted {
+  animation: action-interrupt-shake .34s ease-out;
+  border-color: #e28cff;
+  box-shadow: inset 0 0 24px rgba(134,49,170,.30), 0 0 18px rgba(212,100,255,.42);
+}
+
+.action-slot.cast-interrupted .action-interrupt-feedback {
+  opacity: 1;
+  animation: action-interrupt-flash .62s ease-out;
+  background:
+    linear-gradient(135deg, transparent 0 42%, rgba(244,150,255,.92) 44% 48%, rgba(110,28,139,.92) 49% 53%, transparent 55% 100%),
+    linear-gradient(45deg, transparent 0 45%, rgba(225,75,92,.68) 47% 51%, transparent 53% 100%);
+}
+
+@keyframes action-interrupt-shake {
+  0% { transform: translateX(0); }
+  18% { transform: translateX(-4px); }
+  38% { transform: translateX(4px); }
+  58% { transform: translateX(-3px); }
+  78% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes action-interrupt-flash {
+  0% { opacity: 0; filter: brightness(1); }
+  16% { opacity: 1; filter: brightness(1.55); }
+  48% { opacity: .80; }
+  100% { opacity: 0; filter: brightness(.85); }
+}
+
+.action-slot.cast-failed .action-fail-feedback {
+  opacity: 1;
+  animation: action-cast-failed .39s ease-out;
+  border: 2px solid rgba(231,107,79,.90);
+  background: repeating-linear-gradient(-45deg, rgba(196,63,43,.18) 0 8px, rgba(80,22,18,.10) 8px 16px);
+}
+
+@keyframes action-cast-failed {
+  0% { opacity: 0; transform: scale(.96); }
+  24% { opacity: .96; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.025); }
+}
+
+.action-slot.cooldown-ready .action-ready-feedback {
+  animation: action-cooldown-ready .46s ease-out;
+  border: 2px solid var(--gold-bright);
+}
+
+@keyframes action-cooldown-ready {
+  0% { opacity: 0; transform: scale(.90); box-shadow: 0 0 0 0 rgba(255,211,126,0); }
+  26% { opacity: .96; transform: scale(1); box-shadow: inset 0 0 18px rgba(255,225,162,.22), 0 0 22px rgba(255,199,94,.64); }
+  100% { opacity: 0; transform: scale(1.07); box-shadow: 0 0 28px rgba(255,199,94,0); }
+}
+
+.action-slot.queued {
+  border-color: color-mix(in srgb, var(--action-spell-border, var(--gold)) 56%, var(--line));
+  box-shadow: inset 0 0 13px color-mix(in srgb, var(--action-spell-glow, var(--cast)) 9%, transparent),
+    0 0 9px color-mix(in srgb, var(--action-spell-glow, var(--cast)) 20%, transparent);
+  animation: action-queued-pulse .62s ease-in-out infinite alternate;
+}
+
+@keyframes action-queued-pulse {
+  from { filter: brightness(.94); }
+  to { filter: brightness(1.10); }
+}
+
 .gcd-sweep {
   position: absolute;
   inset: 0;

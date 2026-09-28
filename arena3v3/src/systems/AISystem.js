@@ -98,6 +98,26 @@ export class AISystem {
     return 1;
   }
 
+  beginnerTargetDispersionStrength(actor) {
+    if (!actor || actor.team === this.game.player?.team) return 0;
+
+    const ratingState = this.game.rating?.status?.();
+    const rawRating = Number(ratingState?.rating);
+    if (!Number.isFinite(rawRating)) return 0;
+
+    const rating = Math.max(0, rawRating);
+
+    // At the beginner floor, enemy DPS should feel like individuals rather
+    // than accidentally acting like a premade just because their deterministic
+    // target priorities point at the same unit. The protection fades smoothly:
+    // 1000-1200 = strong split pressure, 1500 = partial, 2000+ = none.
+    if (rating <= 1200) return 1;
+    if (rating < 1500) return 1 - ((rating - 1200) / 300) * 0.45;
+    if (rating < 1750) return 0.55 - ((rating - 1500) / 250) * 0.30;
+    if (rating < 2000) return 0.25 - ((rating - 1750) / 250) * 0.25;
+    return 0;
+  }
+
   recordPlayerIntentSignal(type, target = null, weight = 0) {
     const model = this.playerIntentModel;
     if (!model) return;
@@ -1330,6 +1350,24 @@ export class AISystem {
       && enemies.some(enemy => enemy.id === current.id)
       ? current
       : null;
+
+    const dispersedTarget = this.beginnerDispersedPressureTarget(
+      actor,
+      enemies,
+      currentDamageable,
+    );
+    if (dispersedTarget) {
+      this.setIntent(
+        actor,
+        "PRESSURE",
+        dispersedTarget,
+        currentDamageable
+          ? "beginner target spread"
+          : "establish independent pressure",
+        2.8 + stickiness * 4.2,
+      );
+      return dispersedTarget;
+    }
 
     if (currentDamageable) {
       const defensiveActive = (currentDamageable.effects || []).some(effect =>
@@ -2615,6 +2653,106 @@ export class AISystem {
     return this.shouldAttempt(actor, "healer-pressure", swapChance, 2.6)
       ? healer
       : null;
+  }
+
+  beginnerDispersedPressureTarget(actor, enemies, currentTarget = null) {
+    const dispersion = this.beginnerTargetDispersionStrength(actor);
+    if (
+      dispersion <= 0
+      || actor.role === "healer"
+      || enemies.length < 2
+    ) return null;
+
+    const offensiveIntentTypes = new Set([
+      "PRESSURE",
+      "FINISH",
+      "PRESSURE_HEALER",
+      "TEST_HEALER",
+      "SWAP_DEFENSIVE",
+      "ANTICIPATE_DEFENSIVE",
+    ]);
+    const focusCounts = new Map(enemies.map(enemy => [enemy.id, 0]));
+
+    for (const teammate of this.game.actors) {
+      if (
+        !teammate.alive
+        || teammate.id === actor.id
+        || teammate.team !== actor.team
+        || teammate.role === "healer"
+      ) continue;
+
+      const intent = teammate.aiIntent;
+      const activeOffensiveIntent = Boolean(
+        intent
+        && intent.expiresAt > this.game.elapsedSeconds
+        && offensiveIntentTypes.has(intent.type)
+        && intent.targetId
+      );
+      const targetId = activeOffensiveIntent
+        ? intent.targetId
+        : (!intent ? teammate.aiTargetId : null);
+
+      if (focusCounts.has(targetId)) {
+        focusCounts.set(targetId, focusCounts.get(targetId) + 1);
+      }
+    }
+
+    const counts = enemies.map(enemy => focusCounts.get(enemy.id) || 0);
+    const minFocus = Math.min(...counts);
+    const maxFocus = Math.max(...counts);
+
+    // No accidental convergence exists yet, so normal class target priorities
+    // may establish the first pressure target.
+    if (maxFocus <= minFocus) return null;
+
+    const currentFocus = currentTarget
+      ? (focusCounts.get(currentTarget.id) || 0)
+      : null;
+
+    if (currentTarget && currentFocus <= minFocus) return null;
+
+    // Even beginner opponents may help close an obvious near-death target.
+    const cognition = this.individualCognitionStrength(actor);
+    const naturalFinishPct = 0.14 + cognition * 0.10;
+    if (currentTarget?.healthPct <= naturalFinishPct) return null;
+
+    if (!this.shouldAttempt(
+      actor,
+      "beginner-target-dispersion:" + (currentTarget?.id || "new"),
+      dispersion,
+      4.8,
+    )) return null;
+
+    const priorityRoles = actor.config.ai.targetPriorityRoles
+      || ["caster", "melee", "healer"];
+    const roleRank = candidate => {
+      const index = priorityRoles.indexOf(candidate.role);
+      return index >= 0 ? index : priorityRoles.length;
+    };
+
+    const candidates = enemies
+      .filter(enemy =>
+        (focusCounts.get(enemy.id) || 0) === minFocus
+        && !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, enemy)
+      )
+      .sort((a, b) => {
+        const roleDiff = roleRank(a) - roleRank(b);
+        if (roleDiff !== 0) return roleDiff;
+
+        const healthDiff = a.healthPct - b.healthPct;
+        if (Math.abs(healthDiff) > 0.02) return healthDiff;
+
+        return stableHash(actor.id + ":target-affinity:" + a.id)
+          - stableHash(actor.id + ":target-affinity:" + b.id);
+      });
+
+    const target = candidates[0] || null;
+    if (!target || target.id === currentTarget?.id) return null;
+
+    actor.aiBeginnerTargetDispersionSwitches =
+      (actor.aiBeginnerTargetDispersionSwitches || 0) + 1;
+
+    return target;
   }
 
   pickVoluntarySwapTarget(actor, current, enemies) {

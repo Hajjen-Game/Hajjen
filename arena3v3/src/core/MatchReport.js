@@ -225,10 +225,14 @@ function opponentModelSummary(actor, model, game) {
     0,
     Math.min(1, (Number(model.observations) || 0) / 70),
   );
-  const confidence = Math.max(
+  const fallbackConfidence = Math.max(
     0,
     Math.min(1, sampleProgress * (0.38 + skill * 0.54)),
   );
+  const aiConfidence = game.ai?.opponentModelConfidence?.(actor, model);
+  const confidence = Number.isFinite(aiConfidence)
+    ? Math.max(0, Math.min(1, aiConfidence))
+    : fallbackConfidence;
 
   const activeHold = model.currentTargetId && Number.isFinite(model.currentTargetSince)
     ? Math.min(12, Math.max(0, game.elapsedSeconds - model.currentTargetSince))
@@ -659,6 +663,13 @@ export function buildMatchReport(game) {
         ) ?? 1,
       )
       + " (advanced reads such as FINISH, healer testing/OOM pressure, smart swaps, interrupts and Opponent Modelling scale with player Rating)",
+    "AI beginner target dispersion: enemy "
+      + modelPct(
+        game.ai?.beginnerTargetDispersionStrength?.(
+          game.actors.find(actor => actor.team === "enemy" && actor.control !== "player"),
+        ) ?? 0,
+      )
+      + " (reduces accidental DPS target convergence at low Rating; fades out by 2000)",
     "AI cognition: Memory + individual Intent + Opponent Modelling + Team Plan enabled; friendly AI infers player intent from observable actions; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",

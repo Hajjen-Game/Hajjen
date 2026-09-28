@@ -1,6 +1,7 @@
 const STORAGE_PREFIX = "arena3v3-rating-v1:";
+const STARTING_RATING_RESET_KEY = "arena3v3-rating-reset-1000-v1";
 
-export const STARTING_RATING = 1500;
+export const STARTING_RATING = 1000;
 
 export const RATING_CHANGES = Object.freeze({
   VICTORY: 25,
@@ -33,6 +34,30 @@ function normalizeState(stored) {
 
 function storageKey(characterId) {
   return characterId ? STORAGE_PREFIX + characterId : null;
+}
+
+export function migrateExistingRatingsToStartingRating(characterIds = []) {
+  try {
+    if (localStorage.getItem(STARTING_RATING_RESET_KEY) === "1") return false;
+
+    for (const characterId of characterIds) {
+      const key = storageKey(characterId);
+      if (!key) continue;
+
+      const stored = JSON.parse(localStorage.getItem(key) || "null");
+      if (!stored) continue;
+
+      const state = normalizeState(stored);
+      state.rating = STARTING_RATING;
+      state.peakRating = Math.max(state.peakRating, STARTING_RATING);
+      localStorage.setItem(key, JSON.stringify(state));
+    }
+
+    localStorage.setItem(STARTING_RATING_RESET_KEY, "1");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export class RatingSystem {

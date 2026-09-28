@@ -2,7 +2,7 @@ import { Game } from "./core/Game.js?v=20260928-manapacing1";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
-import { RatingSystem } from "./core/RatingSystem.js?v=20260927-rank20rating2";
+import { RatingSystem, migrateExistingRatingsToStartingRating } from "./core/RatingSystem.js?v=20260928-rating1000";
 import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";
 import {
   CLASS_REGISTRY,
@@ -644,6 +644,9 @@ if ("ResizeObserver" in window) {
 }
 
 ensureLegacyCharacter();
+migrateExistingRatingsToStartingRating(
+  characters.all().map(character => character.id),
+);
 
 const placeholderRoster = randomizeEnemyRoster({
   ...DEFAULT_ROSTER,

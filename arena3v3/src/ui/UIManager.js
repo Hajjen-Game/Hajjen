@@ -5,6 +5,8 @@ import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
+import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js";
+import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
 const ACTION_BAR_SLOT_COUNT = 7;
@@ -1120,24 +1122,51 @@ export class UIManager {
 
   drawFocusClassIcon(canvas, actor) {
     if (!canvas || !actor) return;
-    if (canvas.dataset.classId === actor.classId) return;
 
     const context = canvas.getContext("2d");
     if (!context) return;
 
+    const image = getClassIcon(actor.classId);
+    const pngReady = classIconReady(image);
+    const signature = (actor.classId || "") + ":" + (pngReady ? "png" : "glyph");
+    if (canvas.dataset.iconSignature === signature) return;
+
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.save();
-    context.translate(canvas.width / 2, canvas.height / 2);
-    context.scale(1.55, 1.55);
-    drawClassGlyph(context, {
-      ...actor,
-      x: 0,
-      y: 0,
-      radius: 20,
-    });
+
+    if (pngReady) {
+      const size = Math.min(canvas.width, canvas.height) - 6;
+      const x = (canvas.width - size) / 2;
+      const y = (canvas.height - size) / 2;
+
+      context.beginPath();
+      context.arc(
+        canvas.width / 2,
+        canvas.height / 2,
+        size / 2,
+        0,
+        Math.PI * 2,
+      );
+      context.clip();
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      context.drawImage(image, x, y, size, size);
+    } else {
+      // Keep the old vector glyph as a loading/missing-asset fallback.
+      // Do not freeze the fallback: the signature changes once the PNG loads.
+      context.translate(canvas.width / 2, canvas.height / 2);
+      context.scale(1.55, 1.55);
+      drawClassGlyph(context, {
+        ...actor,
+        x: 0,
+        y: 0,
+        radius: 20,
+      });
+    }
+
     context.restore();
 
-    canvas.dataset.classId = actor.classId || "";
+    canvas.dataset.iconSignature = signature;
     canvas.setAttribute("aria-label", (actor.className || actor.name) + " class icon");
   }
 
@@ -1190,14 +1219,20 @@ export class UIManager {
   updateFocusCast(castElement, labelElement, fillElement, actor) {
     if (!castElement || !labelElement || !fillElement || !actor) return;
 
-    const healerCast = actor.role === "healer";
-    castElement.classList.toggle("healer", healerCast);
-    castElement.classList.toggle("dps", !healerCast);
-
     if (actor.cast) {
       const spell = actor.getSpell(actor.cast.spellId);
       const totalMs = Math.max(1, actor.cast.totalMs || 1);
       const progress = clamp(1 - actor.cast.remainingMs / totalMs, 0, 1);
+      const palette = castBarPaletteFor(actor, {
+        cast: "var(--cast)",
+        cream: "var(--cream)",
+        border: "var(--line)",
+      });
+
+      castElement.style.setProperty("--focus-cast-start", palette.start);
+      castElement.style.setProperty("--focus-cast-end", palette.end);
+      castElement.style.setProperty("--focus-cast-glow", palette.glow);
+      castElement.style.setProperty("--focus-cast-border", palette.border);
 
       castElement.classList.remove("hidden");
       labelElement.textContent = spell?.name || "Casting";

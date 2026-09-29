@@ -1,6 +1,6 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-rangelos1";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-enemyintel1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
@@ -203,31 +203,30 @@ export class UIManager {
   }
 
   buildEnemyCooldowns() {
-    this.enemyCooldowns.innerHTML = "";
     this.enemyCooldownRows.clear();
+
+    // The old standalone ENEMY COOLDOWNS widget is intentionally retired.
+    // Cooldown intel now lives directly under the matching enemy frame.
+    if (this.enemyCooldowns) this.enemyCooldowns.innerHTML = "";
+    if (this.enemyCooldownWidget) this.enemyCooldownWidget.hidden = true;
 
     const enemies = this.game.actors.filter(actor => actor.team === "enemy");
 
     for (const actor of enemies) {
+      const frame = this.frameElements.get(actor.id);
+      const container = frame?.querySelector(".frame-enemy-cooldowns");
+      if (!container) continue;
+
+      container.innerHTML = "";
+      container.hidden = true;
+
       const trackedSpells = actor.spells
         .map(spell => ({ spell, category: enemyCooldownCategory(spell) }))
         .filter(item => item.category);
 
-      if (trackedSpells.length === 0) continue;
-
-      const group = document.createElement("div");
-      group.className = "enemy-cooldown-group";
-      group.hidden = true;
-
-      const heading = document.createElement("div");
-      heading.className = "enemy-cooldown-class";
-      heading.textContent = actor.className || actor.name;
-      heading.style.setProperty("--cooldown-class", classColorFor(actor));
-      group.appendChild(heading);
-
       for (const { spell, category } of trackedSpells) {
         const row = document.createElement("div");
-        row.className = "enemy-cooldown-row " + category;
+        row.className = "enemy-cooldown-row frame-local " + category;
         row.hidden = true;
         row.dataset.actorId = actor.id;
         row.dataset.spellId = spell.id;
@@ -246,24 +245,22 @@ export class UIManager {
           category === "defensive" ? "DEF" : "CC";
         row.querySelector(".enemy-cooldown-name").textContent = spell.name;
         row.querySelector(".enemy-cooldown-fill").style.width = "100%";
+        row.title = spell.name + " cooldown";
 
-        group.appendChild(row);
+        container.appendChild(row);
         this.enemyCooldownRows.set(actor.id + ":" + spell.id, {
           row,
           actorId: actor.id,
           spellId: spell.id,
           cooldownMs: spell.cooldownMs,
-          group,
+          container,
         });
       }
-
-      this.enemyCooldowns.appendChild(group);
     }
   }
 
   updateEnemyCooldowns() {
-    const activeGroups = new Set();
-    let activeCount = 0;
+    const activeContainers = new Set();
 
     for (const entry of this.enemyCooldownRows.values()) {
       const actor = this.game.getActor(entry.actorId);
@@ -279,8 +276,7 @@ export class UIManager {
 
       if (!active) continue;
 
-      activeCount += 1;
-      activeGroups.add(entry.group);
+      activeContainers.add(entry.container);
 
       const remainingFraction = entry.cooldownMs > 0
         ? clamp(remaining / entry.cooldownMs, 0, 1)
@@ -292,11 +288,13 @@ export class UIManager {
         (remainingFraction * 100).toFixed(1) + "%";
     }
 
-    for (const group of this.enemyCooldowns.querySelectorAll(".enemy-cooldown-group")) {
-      group.hidden = !activeGroups.has(group);
+    for (const actor of this.game.actors.filter(unit => unit.team === "enemy")) {
+      const frame = this.frameElements.get(actor.id);
+      const container = frame?.querySelector(".frame-enemy-cooldowns");
+      if (container) container.hidden = !activeContainers.has(container);
     }
 
-    this.enemyCooldownWidget.hidden = activeCount === 0;
+    if (this.enemyCooldownWidget) this.enemyCooldownWidget.hidden = true;
   }
 
   refreshPartyKeycaps() {
@@ -1745,16 +1743,59 @@ export class UIManager {
     if (!container) return;
 
     const statuses = this.game.cc.drStatuses(actor);
+    const enemyFrame = actor.team === "enemy";
+
     container.innerHTML = "";
     container.hidden = statuses.length === 0;
+    container.classList.toggle("enemy-dr-icons", enemyFrame);
 
     for (const status of statuses) {
-      const badge = document.createElement("span");
-      badge.className = "dr-badge " + status.category;
-
       const nextState = status.immune ? "IMMUNE" : "50%";
       const seconds = Math.max(0, Math.ceil(status.resetRemainingMs / 1000));
 
+      if (enemyFrame) {
+        const effectKind = {
+          stun: "stun",
+          incapacitate: "incapacitate",
+          disorient: "fear",
+          root: "root",
+        }[status.category] || "stun";
+        const iconEffect = { kind: effectKind };
+        const palette = effectPalette(iconEffect);
+        const resetRatio = status.active
+          ? 1
+          : clamp(status.resetRemainingMs / 20000, 0, 1);
+
+        const icon = document.createElement("span");
+        icon.className =
+          "dr-icon "
+          + status.category
+          + (status.active ? " active" : "")
+          + (status.immune ? " immune" : "");
+        icon.style.setProperty("--dr-color", palette.color);
+        icon.style.setProperty("--dr-bg", palette.background);
+        icon.style.setProperty("--dr-border", palette.border);
+        icon.style.setProperty("--dr-sweep", Math.round(resetRatio * 360) + "deg");
+
+        icon.innerHTML =
+          '<span class="dr-icon-art">' + effectIconMarkup(iconEffect) + '</span>'
+          + '<span class="dr-icon-state">' + (status.immune ? "IMM" : "50%") + '</span>'
+          + (status.active
+            ? '<span class="dr-icon-time">DR</span>'
+            : '<span class="dr-icon-time">' + seconds + '</span>');
+
+        icon.title = status.active
+          ? status.label + " DR active · next " + status.label.toLowerCase()
+            + " is " + (status.immune ? "immune" : "50% duration") + "."
+          : status.label + " DR · next " + (status.immune ? "immune" : "50% duration")
+            + " · resets in " + seconds + "s.";
+
+        container.appendChild(icon);
+        continue;
+      }
+
+      const badge = document.createElement("span");
+      badge.className = "dr-badge " + status.category;
       badge.textContent = status.active
         ? status.label + " → " + nextState
         : status.label + " " + nextState + " · " + seconds + "s";

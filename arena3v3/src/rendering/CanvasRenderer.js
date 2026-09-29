@@ -734,11 +734,26 @@ export class CanvasRenderer {
       }
     }
 
-    ctx.strokeStyle = lowHealth
-      ? `rgba(255, 92, 82, ${0.55 + pulse * 0.4})`
-      : "rgba(220,180,120,.42)";
-    ctx.lineWidth = lowHealth ? 1.5 : 1;
-    ctx.strokeRect(x, y, width, height);
+    const selected = game.player?.targetId === actor.id;
+    const selectedFriendly = actor.team === game.player?.team;
+
+    if (selected) {
+      const targetColor = selectedFriendly ? "#61d98b" : "#ef6158";
+      ctx.save();
+      ctx.strokeStyle = targetColor;
+      ctx.shadowColor = targetColor;
+      ctx.shadowBlur = 4;
+      ctx.globalAlpha = 0.92;
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(x - 0.5, y - 0.5, width + 1, height + 1);
+      ctx.restore();
+    } else {
+      ctx.strokeStyle = lowHealth
+        ? `rgba(255, 92, 82, ${0.55 + pulse * 0.4})`
+        : "rgba(220,180,120,.42)";
+      ctx.lineWidth = lowHealth ? 1.5 : 1;
+      ctx.strokeRect(x, y, width, height);
+    }
   }
 
   drawWorldResource(ctx, actor, game) {
@@ -804,10 +819,38 @@ export class CanvasRenderer {
       );
     }
 
+    const spell = actor.getSpell(actor.cast.spellId);
+    const uninterruptible = spell?.interruptible === false;
+
     ctx.shadowColor = "transparent";
-    ctx.strokeStyle = palette.border;
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = uninterruptible ? "#e7bd63" : palette.border;
+    ctx.lineWidth = uninterruptible ? 1.8 : 1;
+
+    if (uninterruptible) {
+      ctx.shadowColor = "rgba(224,177,82,.48)";
+      ctx.shadowBlur = 5;
+    }
+
     ctx.strokeRect(x, y, width, height);
+
+    if (uninterruptible) {
+      const shieldX = x + width - 7;
+      const shieldY = y + height / 2;
+
+      ctx.shadowColor = "rgba(255,210,111,.55)";
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = "#e8b95d";
+      ctx.beginPath();
+      ctx.moveTo(shieldX, shieldY - 4);
+      ctx.lineTo(shieldX + 4, shieldY - 2.5);
+      ctx.lineTo(shieldX + 3.2, shieldY + 2);
+      ctx.lineTo(shieldX, shieldY + 4.5);
+      ctx.lineTo(shieldX - 3.2, shieldY + 2);
+      ctx.lineTo(shieldX - 4, shieldY - 2.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 
@@ -818,6 +861,10 @@ export class CanvasRenderer {
     ctx.fillStyle = actor.team === "enemy"
       ? this.theme.enemyName
       : this.theme.cream;
+    ctx.strokeStyle = "rgba(5,3,2,.92)";
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.strokeText(actor.name, centerX, actor.y - actor.radius - 31);
     ctx.fillText(actor.name, centerX, actor.y - actor.radius - 31);
   }
 
@@ -853,8 +900,12 @@ export class CanvasRenderer {
       const ratio = effect.durationMs > 0
         ? clamp(effect.remainingMs / effect.durationMs, 0, 1)
         : 0;
+      const expiryAlpha = effect.remainingMs < 700
+        ? clamp(effect.remainingMs / 700, 0.30, 1)
+        : 1;
 
       ctx.save();
+      ctx.globalAlpha = expiryAlpha;
 
       ctx.shadowColor = "rgba(0,0,0,.55)";
       ctx.shadowBlur = 5;
@@ -863,7 +914,7 @@ export class CanvasRenderer {
       ctx.fill();
 
       ctx.shadowColor = "transparent";
-      ctx.globalAlpha = 0.96;
+      ctx.globalAlpha = 0.96 * expiryAlpha;
       ctx.fillStyle = palette.background;
       roundedRect(ctx, x + 1.5, y + 1.5, size - 3, size - 3, 3);
       ctx.fill();
@@ -903,17 +954,18 @@ export class CanvasRenderer {
       }
 
       const seconds = Math.max(0, effect.remainingMs / 1000);
+      const durationLabel = seconds < 10 ? seconds.toFixed(1) : Math.ceil(seconds);
       ctx.fillStyle = this.theme.cream;
       ctx.font = "950 8px system-ui";
       ctx.textAlign = "right";
       ctx.textBaseline = "alphabetic";
-      ctx.shadowColor = "rgba(0,0,0,.9)";
-      ctx.shadowBlur = 2;
-      ctx.fillText(
-        seconds < 10 ? seconds.toFixed(1) : Math.ceil(seconds),
-        x + size + 1,
-        y + size + 8,
-      );
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(0,0,0,.94)";
+      ctx.lineWidth = 2.4;
+      ctx.lineJoin = "round";
+      ctx.strokeText(durationLabel, x + size + 1, y + size + 8);
+      ctx.fillText(durationLabel, x + size + 1, y + size + 8);
 
       ctx.restore();
       x += size + gap;
@@ -1059,6 +1111,10 @@ export class CanvasRenderer {
     ctx.font = "900 10px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.strokeStyle = "rgba(0,0,0,.94)";
+    ctx.lineWidth = 2.8;
+    ctx.lineJoin = "round";
+    ctx.strokeText(seconds, badgeCenterX, badgeY + 27);
     ctx.fillText(seconds, badgeCenterX, badgeY + 27);
     ctx.restore();
   }

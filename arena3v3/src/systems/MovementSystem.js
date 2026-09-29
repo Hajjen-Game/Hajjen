@@ -277,7 +277,7 @@ export class MovementSystem {
     // get very close, then gently creates enough visual space to distinguish
     // individual combatants without changing normal melee ranges.
     const pushes = new Map(living.map(actor => [actor.id, { x: 0, y: 0 }]));
-    const maxStep = Math.min(1.6, 30 * deltaSeconds);
+    const maxStep = Math.min(3.2, 68 * deltaSeconds);
 
     for (let i = 0; i < living.length; i += 1) {
       const a = living[i];
@@ -289,8 +289,12 @@ export class MovementSystem {
         let distance = Math.hypot(dx, dy);
 
         const combinedRadius = Math.max(1, a.radius + b.radius);
-        const triggerDistance = combinedRadius * 0.70;
-        const targetDistance = combinedRadius * 0.88;
+
+        // The visible class icon is clipped to actor.radius, so two icons touch
+        // when their centers are one combinedRadius apart. Wake separation at
+        // that full-icon boundary instead of waiting for deep visual overlap.
+        const triggerDistance = combinedRadius * 1.04;
+        const targetDistance = combinedRadius * 1.08;
 
         if (distance >= triggerDistance) continue;
 

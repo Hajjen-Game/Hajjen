@@ -27,6 +27,8 @@ export class CanvasRenderer {
     this.healthGame = null;
     this.lastHealthElapsed = -Infinity;
     this.frameNowMs = performance.now();
+    this.nameplateOffsets = new Map();
+    this.lastNameplateLayoutMs = this.frameNowMs;
   }
 
   readTheme() {
@@ -85,6 +87,8 @@ export class CanvasRenderer {
 
     if (this.healthGame !== game || elapsed + 0.05 < this.lastHealthElapsed) {
       this.healthPresentation.clear();
+      this.nameplateOffsets.clear();
+      this.lastNameplateLayoutMs = this.frameNowMs;
     }
 
     this.healthGame = game;
@@ -96,6 +100,8 @@ export class CanvasRenderer {
     this.drawEffectRings(ctx, game);
 
     const livingActors = game.actors.filter(actor => actor.alive);
+    this.prepareSoftNameplateStack(game, livingActors);
+
     const otherActors = livingActors.filter(actor => actor.id !== game.player?.id);
     const playerActor = livingActors.find(actor => actor.id === game.player?.id);
 
@@ -392,7 +398,7 @@ export class CanvasRenderer {
       18,
       actor.y - actor.radius - (hasCrowdControl ? 118 : 72),
     );
-    const markerX = this.worldUiX(actor, game);
+    const markerX = actor.x;
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 7);
     const size = 12.5 + pulse * 1.8;
     const friendly = variant === "friendly";
@@ -557,24 +563,146 @@ export class CanvasRenderer {
     return nearby;
   }
 
-  worldUiX(actor, game) {
-    const nearby = this.overlappingActors(actor, game);
-    if (nearby.length === 0) return actor.x;
+  nameplateRect(actor, offset = { x: 0, y: 0 }) {
+    const centerX = actor.x + offset.x;
+    const centerY = actor.y + offset.y;
 
-    const group = [actor, ...nearby]
-      .filter((candidate, index, list) =>
-        list.findIndex(item => item.id === candidate.id) === index
-      )
-      .sort((a, b) => {
-        if (a.id === game.player?.id) return 1;
-        if (b.id === game.player?.id) return -1;
-        return String(a.id).localeCompare(String(b.id));
+    return {
+      left: centerX - 45,
+      right: centerX + 45,
+      top: centerY - actor.radius - 54,
+      bottom: centerY - actor.radius - 5,
+    };
+  }
+
+  nameplateOverlapArea(a, b) {
+    const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+    const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    return width * height;
+  }
+
+  prepareSoftNameplateStack(game, livingActors) {
+    const candidates = [
+      { x: 0, y: 0 },
+      { x: -44, y: 0 },
+      { x: 44, y: 0 },
+      { x: 0, y: -30 },
+      { x: 0, y: 30 },
+      { x: -42, y: -28 },
+      { x: 42, y: -28 },
+      { x: -42, y: 28 },
+      { x: 42, y: 28 },
+      { x: -56, y: -34 },
+      { x: 56, y: -34 },
+      { x: -56, y: 34 },
+      { x: 56, y: 34 },
+    ];
+
+    const selectedId = game.player?.targetId;
+    const playerId = game.player?.id;
+    const ordered = [...livingActors].sort((a, b) => {
+      if (a.id === selectedId) return -1;
+      if (b.id === selectedId) return 1;
+      if (a.id === playerId) return -1;
+      if (b.id === playerId) return 1;
+
+      const yDelta = a.y - b.y;
+      if (Math.abs(yDelta) > 1) return yDelta;
+
+      const xDelta = a.x - b.x;
+      if (Math.abs(xDelta) > 1) return xDelta;
+
+      return String(a.id).localeCompare(String(b.id));
+    });
+
+    const chosen = new Map();
+    const placedRects = [];
+    const arenaBounds = this.arena.bounds;
+
+    for (const actor of ordered) {
+      let best = null;
+
+      for (const candidate of candidates) {
+        const rect = this.nameplateRect(actor, candidate);
+
+        // Keep the soft stack local and inside the arena. These limits are
+        // intentionally conservative after the previous lane experiment.
+        const edgePenalty =
+          Math.max(0, arenaBounds.x + 4 - rect.left)
+          + Math.max(0, rect.right - (arenaBounds.x + arenaBounds.w - 4))
+          + Math.max(0, arenaBounds.y + 4 - rect.top)
+          + Math.max(0, rect.bottom - (arenaBounds.y + arenaBounds.h - 4));
+
+        let overlapArea = 0;
+        for (const placed of placedRects) {
+          overlapArea += this.nameplateOverlapArea(rect, placed.rect);
+        }
+
+        const distancePenalty =
+          candidate.x * candidate.x
+          + candidate.y * candidate.y;
+
+        // Any non-overlapping local position wins over an overlapping one.
+        // Otherwise choose the smallest remaining overlap while preferring
+        // offsets closest to the actor.
+        const score =
+          overlapArea * 120
+          + edgePenalty * 900
+          + distancePenalty * 0.16;
+
+        if (!best || score < best.score) {
+          best = { candidate, rect, score, overlapArea };
+        }
+
+        if (overlapArea === 0 && edgePenalty === 0 && candidate.x === 0 && candidate.y === 0) {
+          break;
+        }
+      }
+
+      const target = best?.candidate || { x: 0, y: 0 };
+      chosen.set(actor.id, target);
+      placedRects.push({
+        actorId: actor.id,
+        rect: this.nameplateRect(actor, target),
       });
+    }
 
-    const index = group.findIndex(candidate => candidate.id === actor.id);
-    const spacing = group.length >= 4 ? 34 : 42;
-    const centeredIndex = index - (group.length - 1) / 2;
-    return actor.x + centeredIndex * spacing;
+    const now = this.frameNowMs;
+    const dt = clamp(now - this.lastNameplateLayoutMs, 0, 50);
+    const alpha = 1 - Math.exp(-dt / 75);
+    const livingIds = new Set(livingActors.map(actor => actor.id));
+
+    for (const actor of livingActors) {
+      const target = chosen.get(actor.id) || { x: 0, y: 0 };
+      const previous = this.nameplateOffsets.get(actor.id) || { x: 0, y: 0 };
+
+      this.nameplateOffsets.set(actor.id, {
+        x: lerp(previous.x, target.x, alpha),
+        y: lerp(previous.y, target.y, alpha),
+      });
+    }
+
+    for (const id of [...this.nameplateOffsets.keys()]) {
+      if (!livingIds.has(id)) this.nameplateOffsets.delete(id);
+    }
+
+    this.lastNameplateLayoutMs = now;
+  }
+
+  worldUiPosition(actor) {
+    const offset = this.nameplateOffsets.get(actor.id) || { x: 0, y: 0 };
+    return {
+      x: actor.x + offset.x,
+      y: actor.y + offset.y,
+    };
+  }
+
+  worldUiX(actor, game) {
+    return this.worldUiPosition(actor, game).x;
+  }
+
+  worldUiY(actor, game) {
+    return this.worldUiPosition(actor, game).y;
   }
 
   drawOverlapReadability(ctx, game, livingActors) {
@@ -638,6 +766,7 @@ export class CanvasRenderer {
     // Use the exact shifted UI center used by the renderer so crowded units
     // remain individually targetable by clicking their own plate.
     const centerX = this.worldUiX(actor, game);
+    const centerY = this.worldUiY(actor, game);
     this.ctx.save();
     this.ctx.font = "800 12px system-ui";
     const nameWidth = this.ctx.measureText(actor.name).width;
@@ -646,8 +775,8 @@ export class CanvasRenderer {
     const width = Math.max(80, Math.ceil(nameWidth) + 18);
     const left = centerX - width / 2;
     const right = centerX + width / 2;
-    const top = actor.y - actor.radius - 46;
-    const bottom = actor.y - actor.radius - 6;
+    const top = centerY - actor.radius - 52;
+    const bottom = centerY - actor.radius - 6;
 
     if (x < left || x > right || y < top || y > bottom) return null;
 
@@ -661,8 +790,9 @@ export class CanvasRenderer {
     const width = 80;
     const height = 9;
     const centerX = this.worldUiX(actor, game);
+    const centerY = this.worldUiY(actor, game);
     const x = centerX - width / 2;
-    const y = actor.y - actor.radius - 24;
+    const y = centerY - actor.radius - 24;
     const actualPct = clamp(actor.healthPct, 0, 1);
     let healthVisual = this.healthPresentation.get(actor.id);
 
@@ -760,8 +890,9 @@ export class CanvasRenderer {
     const width = 74;
     const height = 5;
     const centerX = this.worldUiX(actor, game);
+    const centerY = this.worldUiY(actor, game);
     const x = centerX - width / 2;
-    const y = actor.y - actor.radius - 13;
+    const y = centerY - actor.radius - 13;
 
     ctx.fillStyle = "rgba(11,8,6,.92)";
     ctx.fillRect(x, y, width, height);
@@ -793,8 +924,9 @@ export class CanvasRenderer {
     const width = 86;
     const height = 8;
     const centerX = this.worldUiX(actor, game);
+    const centerY = this.worldUiY(actor, game);
     const x = centerX - width / 2;
-    const y = actor.y - actor.radius - 49;
+    const y = centerY - actor.radius - 49;
     const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
     const palette = this.castBarPalette(actor);
     const fillWidth = (width - 2) * clamp(progress, 0, 1);
@@ -856,6 +988,7 @@ export class CanvasRenderer {
 
   drawName(ctx, actor, game) {
     const centerX = this.worldUiX(actor, game);
+    const centerY = this.worldUiY(actor, game);
     ctx.font = "800 12px system-ui";
     ctx.textAlign = "center";
     ctx.fillStyle = actor.team === "enemy"
@@ -864,8 +997,8 @@ export class CanvasRenderer {
     ctx.strokeStyle = "rgba(5,3,2,.92)";
     ctx.lineWidth = 3;
     ctx.lineJoin = "round";
-    ctx.strokeText(actor.name, centerX, actor.y - actor.radius - 31);
-    ctx.fillText(actor.name, centerX, actor.y - actor.radius - 31);
+    ctx.strokeText(actor.name, centerX, centerY - actor.radius - 31);
+    ctx.fillText(actor.name, centerX, centerY - actor.radius - 31);
   }
 
   drawEffectIcons(ctx, actor, game) {
@@ -892,8 +1025,9 @@ export class CanvasRenderer {
     const gap = 3;
     const totalWidth = effects.length * size + (effects.length - 1) * gap;
     const centerX = this.worldUiX(actor, game);
+    const centerY = this.worldUiY(actor, game);
     let x = centerX - totalWidth / 2;
-    const y = actor.y + actor.radius + 8;
+    const y = centerY + actor.radius + 8;
 
     for (const effect of effects) {
       const palette = effectPalette(effect);
@@ -1085,8 +1219,9 @@ export class CanvasRenderer {
     const badgeW = 30;
     const badgeH = 37;
     const badgeCenterX = this.worldUiX(actor, game);
+    const badgeCenterY = this.worldUiY(actor, game);
     const badgeX = badgeCenterX - badgeW / 2;
-    const badgeY = actor.y - actor.radius - 92;
+    const badgeY = badgeCenterY - actor.radius - 92;
 
     ctx.shadowBlur = 7;
     ctx.globalAlpha = 0.96;

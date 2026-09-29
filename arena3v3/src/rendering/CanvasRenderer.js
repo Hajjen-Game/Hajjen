@@ -617,8 +617,8 @@ export class CanvasRenderer {
 
       const rows = hasBothTeams
         ? [
-            { actors: enemies, yOffset: -75 },
-            { actors: friendlies, yOffset: 75 },
+            { actors: enemies, yOffset: -112 },
+            { actors: friendlies, yOffset: 112 },
           ]
         : [
             { actors: component, yOffset: 0 },
@@ -643,8 +643,8 @@ export class CanvasRenderer {
         const baseCenterY = hasBothTeams
           ? clamp(
               centerY,
-              bounds.y + safeY + 75,
-              bounds.y + bounds.h - safeY - 75,
+              bounds.y + safeY + 112,
+              bounds.y + bounds.h - safeY - 112,
             )
           : clamp(
               centerY,

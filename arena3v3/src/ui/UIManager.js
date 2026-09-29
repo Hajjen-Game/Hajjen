@@ -1344,7 +1344,7 @@ export class UIManager {
     );
   }
 
-  updateHealPrediction(frame, actor, healthVisual) {
+  updateHealPrediction(frame, actor) {
     const prediction = frame.querySelector(".frame-heal-prediction");
     if (!prediction) return;
 
@@ -1407,7 +1407,7 @@ export class UIManager {
       healFlash.style.left = (healFrom * 100).toFixed(3) + "%";
       healFlash.style.width = (healWidth * 100).toFixed(3) + "%";
       healFlash.style.opacity = healthVisual.healFlashAlpha.toFixed(3);
-      this.updateHealPrediction(frame, actor, healthVisual);
+      this.updateHealPrediction(frame, actor);
 
       frame.classList.toggle("low-health", actor.alive && healthPct < 0.20);
 

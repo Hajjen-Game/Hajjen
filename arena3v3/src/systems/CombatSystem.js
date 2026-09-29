@@ -654,12 +654,28 @@ export class CombatSystem {
 
     healTarget.health = Math.min(healTarget.maxHealth, healTarget.health + actual);
     this.game.recordHealing(source, healTarget, actual, false);
-    this.game.addActionFloatingText(source, healTarget, "+" + actual, "heal");
-    this.game.vfx.beam(source, healTarget, "priest", 210);
-    this.game.vfx.burst(healTarget, "priest", 250);
+    this.emitHealFeedback(source, healTarget, actual, false, "priest", false);
     this.game.log(
       this.game.combatantLabel(source) + "'s Atonement heals " + this.game.combatantLabel(healTarget) + " for " + actual + ".",
     );
+  }
+
+  emitHealFeedback(source, target, actual, crit, visualStyle = "heal", periodic = false) {
+    if (actual <= 0) return;
+
+    // All direct player healing, including Atonement, deliberately uses the
+    // exact same green scrolling combat text path.
+    this.game.addActionFloatingText(
+      source,
+      target,
+      (crit ? "✦ " : "") + "+" + actual,
+      crit ? "crit-heal" : "heal",
+    );
+
+    if (!periodic) {
+      this.game.vfx.beam(source, target, visualStyle, 260);
+      this.game.vfx.burst(target, visualStyle, crit ? 390 : 290);
+    }
   }
 
   applyHeal(source, target, baseAmount, spellId, periodic = false, visualStyle = "heal") {
@@ -678,12 +694,7 @@ export class CombatSystem {
 
     if (actual > 0) {
       this.game.recordHealing(source, target, actual, crit);
-      this.game.addActionFloatingText(source, target, (crit ? "✦ " : "") + "+" + actual, crit ? "crit-heal" : "heal");
-
-      if (!periodic) {
-        this.game.vfx.beam(source, target, visualStyle, 260);
-        this.game.vfx.burst(target, visualStyle, crit ? 390 : 290);
-      }
+      this.emitHealFeedback(source, target, actual, crit, visualStyle, periodic);
 
       this.game.log(
         this.game.combatantLabel(source) + " heals " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",

@@ -1,11 +1,11 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260928-actionfeedback1";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-unitframes1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
-import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js";
+import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
 import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
@@ -1298,13 +1298,19 @@ export class UIManager {
       if (!frame) continue;
 
       const healthPct = clamp(actor.healthPct, 0, 1);
+      const classColor = classColorFor(actor);
       const healthFill = frame.querySelector(".frame-health");
+      frame.style.setProperty("--class-health", classColor);
       healthFill.style.width = (healthPct * 100) + "%";
-      healthFill.style.setProperty("--class-health", classColorFor(actor));
       frame.classList.toggle("low-health", actor.alive && healthPct < 0.20);
-      frame.querySelector(".frame-value").textContent = actor.alive
-        ? Math.ceil(actor.health) + " / " + actor.maxHealth
+
+      const healthValue = frame.querySelector(".frame-value");
+      healthValue.textContent = actor.alive
+        ? Math.round(healthPct * 100) + "%"
         : "DOWN";
+      healthValue.title = actor.alive
+        ? Math.ceil(actor.health) + " / " + actor.maxHealth
+        : "Down";
 
       const resourceFill = frame.querySelector(".frame-resource-fill");
       resourceFill.className = "frame-resource-fill " + actor.resource.type;
@@ -1318,13 +1324,36 @@ export class UIManager {
       this.renderDr(frame, actor);
 
       const castTrack = frame.querySelector(".frame-cast");
-      const castFill = castTrack.querySelector("div");
+      const castFill = frame.querySelector(".frame-cast-fill");
+      const castName = frame.querySelector(".frame-cast-name");
+      const castTime = frame.querySelector(".frame-cast-time");
 
       if (actor.cast) {
+        const castProgress = clamp(
+          1 - actor.cast.remainingMs / Math.max(1, actor.cast.totalMs),
+          0,
+          1,
+        );
+        const spell = actor.getSpell(actor.cast.spellId);
+        const palette = castBarPaletteFor(actor, {
+          cast: "var(--cast)",
+          cream: "var(--cream)",
+          border: "var(--gold)",
+        });
+
         castTrack.classList.add("active");
-        castFill.style.width = ((1 - actor.cast.remainingMs / actor.cast.totalMs) * 100) + "%";
+        castTrack.style.setProperty("--frame-cast-start", palette.start);
+        castTrack.style.setProperty("--frame-cast-end", palette.end);
+        castTrack.style.setProperty("--frame-cast-glow", palette.glow);
+        castTrack.style.setProperty("--frame-cast-border", palette.border);
+        castFill.style.width = (castProgress * 100) + "%";
+        castName.textContent = spell?.name || "CASTING";
+        castTime.textContent = Math.max(0, actor.cast.remainingMs / 1000).toFixed(1);
       } else {
         castTrack.classList.remove("active");
+        castFill.style.width = "0%";
+        castName.textContent = "";
+        castTime.textContent = "";
       }
     }
 

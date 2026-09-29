@@ -1,3 +1,5 @@
+import { classIconUrlFor } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
+
 function seconds(ms) {
   return (ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1) + "s";
 }
@@ -197,28 +199,57 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
   button.className = "unit-frame " + (actor.team === "enemy" ? "enemy" : "friendly");
   button.type = "button";
 
+  const iconUrl = classIconUrlFor(actor.classId);
+  const fallback = String(actor.className || actor.name || "?")
+    .replace(/[^A-Za-z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+
   button.innerHTML = `
-    <div class="frame-state-banner" hidden></div>
-    <div class="unit-frame-top">
-      <div class="unit-name"></div>
-      <div class="unit-role-wrap">
+    <div class="unit-frame-core">
+      <div class="unit-portrait">
+        <span class="unit-portrait-fallback">${fallback}</span>
+        ${iconUrl ? '<img class="unit-class-icon" src="' + iconUrl + '" alt="" aria-hidden="true">' : ""}
         <span class="party-key"></span>
-        <span class="unit-role"></span>
+      </div>
+
+      <div class="unit-frame-main">
+        <div class="frame-bar">
+          <div class="frame-health"></div>
+          <div class="frame-health-glass"></div>
+          <div class="frame-health-copy">
+            <span class="unit-name"></span>
+            <span class="frame-value"></span>
+          </div>
+        </div>
+
+        <div class="frame-meta-row">
+          <span class="unit-role"></span>
+          <span class="frame-status-dot" aria-hidden="true"></span>
+        </div>
+
+        <div class="frame-resource"><div class="frame-resource-fill"></div></div>
+
+        <div class="frame-cast">
+          <div class="frame-cast-fill"></div>
+          <div class="frame-cast-copy">
+            <span class="frame-cast-name"></span>
+            <span class="frame-cast-time"></span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="frame-value"></div>
-    <div class="frame-bar"><div class="frame-health"></div></div>
-    <div class="frame-resource"><div class="frame-resource-fill"></div></div>
+
+    <div class="frame-state-banner" hidden></div>
     <div class="frame-effects"></div>
     <div class="frame-dr"></div>
-    <div class="frame-cast"><div></div></div>
   `;
 
   button.querySelector(".unit-name").textContent = actor.name;
   button.querySelector(".unit-role").textContent =
-    actor.control === "player"
-      ? actor.className + " · " + actor.role
-      : actor.role;
+    String(actor.className || actor.name).toUpperCase()
+    + " · "
+    + String(actor.role || "").toUpperCase();
 
   const partyKeyElement = button.querySelector(".party-key");
   partyKeyElement.textContent = partyKey;

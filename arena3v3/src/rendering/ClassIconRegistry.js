@@ -12,14 +12,19 @@ const CLASS_ICON_PATHS = Object.freeze({
 
 const classIconCache = new Map();
 
-export function getClassIcon(classId) {
+export function classIconUrlFor(classId) {
   const path = CLASS_ICON_PATHS[classId];
-  if (!path || typeof Image === "undefined") return null;
+  return path ? new URL(path, import.meta.url).href : "";
+}
+
+export function getClassIcon(classId) {
+  const src = classIconUrlFor(classId);
+  if (!src || typeof Image === "undefined") return null;
 
   if (!classIconCache.has(classId)) {
     const image = new Image();
     image.decoding = "async";
-    image.src = new URL(path, import.meta.url).href;
+    image.src = src;
     classIconCache.set(classId, image);
   }
 

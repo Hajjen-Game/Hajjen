@@ -1,5 +1,5 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20260929-chargeglide1";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20260929-iconcollision1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260928-actionfeedback1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260929-chargeglide1";
 import { AISystem } from "../systems/AISystem.js?v=20260929-manarecovery2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260929-personalspace1";
+import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260929-iconcollision1";
 import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
 import { buildMatchReport } from "./MatchReport.js?v=20260929-manarecovery2";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";

@@ -86,7 +86,7 @@ export class VisualEffectSystem {
       "priest-greater-heal": 650,
       "paladin-holy-light": 650,
       "druid-regrowth": 620,
-      "warrior-charge": 580,
+      "warrior-charge": 260,
     };
 
     this.add("spell", {

@@ -53,6 +53,24 @@ function collides(actor, x, y, arena) {
   return arena.obstacles.some(rect => circleHitsRect(x, y, actor.radius + 3, rect));
 }
 
+function separationLocked(actor) {
+  return (actor.effects || []).some(effect =>
+    effect.remainingMs > 0
+    && ["stun", "incapacitate", "root"].includes(effect.kind)
+  );
+}
+
+function deterministicPairDirection(a, b) {
+  const key = [String(a.id || ""), String(b.id || "")].sort().join("|");
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    hash = (hash * 31 + key.charCodeAt(i)) | 0;
+  }
+
+  const angle = ((hash >>> 0) % 360) * Math.PI / 180;
+  return { x: Math.cos(angle), y: Math.sin(angle) };
+}
+
 export class MovementSystem {
   recoverIfEmbedded(actor, arena) {
     if (!collides(actor, actor.x, actor.y, arena)) return false;
@@ -246,6 +264,94 @@ export class MovementSystem {
 
     actor.lastMove = { x: 0, y: 0 };
     return false;
+  }
+
+  resolveActorSeparation(actors, deltaSeconds, arena, playerId = null) {
+    const living = (actors || []).filter(actor => actor?.alive);
+    if (living.length < 2 || deltaSeconds <= 0) return;
+
+    // This is deliberately not hard collision. Actors may still overlap and
+    // pass through one another. Separation only wakes up when their centers
+    // get very close, then gently creates enough visual space to distinguish
+    // individual combatants without changing normal melee ranges.
+    const pushes = new Map(living.map(actor => [actor.id, { x: 0, y: 0 }]));
+    const maxStep = Math.min(1.6, 30 * deltaSeconds);
+
+    for (let i = 0; i < living.length; i += 1) {
+      const a = living[i];
+
+      for (let j = i + 1; j < living.length; j += 1) {
+        const b = living[j];
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distance = Math.hypot(dx, dy);
+
+        const combinedRadius = Math.max(1, a.radius + b.radius);
+        const triggerDistance = combinedRadius * 0.70;
+        const targetDistance = combinedRadius * 0.88;
+
+        if (distance >= triggerDistance) continue;
+
+        if (distance < 0.001) {
+          const fallback = deterministicPairDirection(a, b);
+          dx = fallback.x;
+          dy = fallback.y;
+          distance = 1;
+        }
+
+        const nx = dx / distance;
+        const ny = dy / distance;
+        const correction = Math.min(
+          targetDistance - distance,
+          maxStep * 2,
+        );
+
+        const aLocked = separationLocked(a);
+        const bLocked = separationLocked(b);
+        const aWeight = aLocked ? 0 : (a.id === playerId ? 0.18 : 1);
+        const bWeight = bLocked ? 0 : (b.id === playerId ? 0.18 : 1);
+        const weightTotal = aWeight + bWeight;
+
+        if (weightTotal <= 0) continue;
+
+        const aShare = aWeight / weightTotal;
+        const bShare = bWeight / weightTotal;
+        const pushA = pushes.get(a.id);
+        const pushB = pushes.get(b.id);
+
+        pushA.x -= nx * correction * aShare;
+        pushA.y -= ny * correction * aShare;
+        pushB.x += nx * correction * bShare;
+        pushB.y += ny * correction * bShare;
+      }
+    }
+
+    for (const actor of living) {
+      const push = pushes.get(actor.id);
+      if (!push || separationLocked(actor)) continue;
+
+      const magnitude = Math.hypot(push.x, push.y);
+      if (magnitude < 0.001) continue;
+
+      const scale = Math.min(1, maxStep / magnitude);
+      const dx = push.x * scale;
+      const dy = push.y * scale;
+
+      // Prefer the combined nudge, then allow axis-only movement near pillars
+      // so separation can never push an actor into arena geometry.
+      if (!collides(actor, actor.x + dx, actor.y + dy, arena)) {
+        actor.x += dx;
+        actor.y += dy;
+        continue;
+      }
+
+      if (!collides(actor, actor.x + dx, actor.y, arena)) {
+        actor.x += dx;
+      }
+      if (!collides(actor, actor.x, actor.y + dy, arena)) {
+        actor.y += dy;
+      }
+    }
   }
 
   dashToRange(actor, target, stopDistance, arena) {

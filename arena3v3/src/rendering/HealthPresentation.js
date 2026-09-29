@@ -48,9 +48,8 @@ export function updateHealthPresentation(
     state.healFlashStartedAtMs = nowMs;
     state.healFlashUntilMs = nowMs + healFlashMs;
 
-    // A healing event must never leave the delayed damage layer behind the
-    // newly gained health. Old damage can still remain visible beyond it.
-    state.trailPct = Math.max(clamp01(state.trailPct), pct);
+    // Healing gets its own light flash. Do not create a red damage trail in
+    // the newly gained segment; any genuine older damage trail can remain.
   }
 
   state.actualPct = pct;

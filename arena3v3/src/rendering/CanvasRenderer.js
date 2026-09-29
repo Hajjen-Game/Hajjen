@@ -27,9 +27,6 @@ export class CanvasRenderer {
     this.healthGame = null;
     this.lastHealthElapsed = -Infinity;
     this.frameNowMs = performance.now();
-    this.nameplateLayout = new Map();
-    this.nameplatePresentation = new Map();
-    this.lastNameplateFrameMs = this.frameNowMs;
   }
 
   readTheme() {
@@ -88,9 +85,6 @@ export class CanvasRenderer {
 
     if (this.healthGame !== game || elapsed + 0.05 < this.lastHealthElapsed) {
       this.healthPresentation.clear();
-      this.nameplateLayout.clear();
-      this.nameplatePresentation.clear();
-      this.lastNameplateFrameMs = this.frameNowMs;
     }
 
     this.healthGame = game;
@@ -102,9 +96,6 @@ export class CanvasRenderer {
     this.drawEffectRings(ctx, game);
 
     const livingActors = game.actors.filter(actor => actor.alive);
-    this.prepareNameplateLayout(game, livingActors);
-    this.drawNameplateConnectors(ctx, game, livingActors);
-
     const otherActors = livingActors.filter(actor => actor.id !== game.player?.id);
     const playerActor = livingActors.find(actor => actor.id === game.player?.id);
 
@@ -115,6 +106,7 @@ export class CanvasRenderer {
     }
     if (playerActor) this.drawActor(ctx, playerActor, game);
 
+    this.drawOverlapReadability(ctx, game, livingActors);
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
@@ -400,7 +392,7 @@ export class CanvasRenderer {
       18,
       actor.y - actor.radius - (hasCrowdControl ? 118 : 72),
     );
-    const markerX = actor.x;
+    const markerX = this.worldUiX(actor, game);
     const pulse = 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 7);
     const size = 12.5 + pulse * 1.8;
     const friendly = variant === "friendly";
@@ -547,217 +539,88 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  nameplateActorsOverlap(a, b) {
-    const dx = Math.abs(a.x - b.x);
-    const dy = Math.abs(a.y - b.y);
-    const bodyDistance = Math.hypot(dx, dy);
-    const bodyThreshold = a.radius + b.radius + 34;
+  overlappingActors(actor, game) {
+    const living = game.actors.filter(candidate => candidate.alive);
+    const nearby = living.filter(candidate => {
+      if (candidate.id === actor.id) return false;
 
-    // Nameplates are ~86px wide and the status rows extend beyond the body.
-    // Group actors before their UI literally collides so the layout can
-    // separate them smoothly instead of reacting only after everything stacks.
-    return bodyDistance < bodyThreshold
-      || (dx < 92 && dy < 72);
-  }
+      const dx = candidate.x - actor.x;
+      const dy = candidate.y - actor.y;
+      const distanceSq = dx * dx + dy * dy;
+      const visualRadius = actor.radius + candidate.radius + 18;
 
-  nameplateComponents(livingActors) {
-    const remaining = new Set(livingActors.map(actor => actor.id));
-    const byId = new Map(livingActors.map(actor => [actor.id, actor]));
-    const components = [];
+      // Include units whose bodies or immediate nameplate area collide.
+      return distanceSq < visualRadius * visualRadius
+        || (Math.abs(dx) < 58 && Math.abs(dy) < 44);
+    });
 
-    while (remaining.size > 0) {
-      const firstId = remaining.values().next().value;
-      remaining.delete(firstId);
-
-      const component = [];
-      const queue = [byId.get(firstId)];
-
-      while (queue.length > 0) {
-        const actor = queue.shift();
-        if (!actor) continue;
-        component.push(actor);
-
-        for (const candidateId of [...remaining]) {
-          const candidate = byId.get(candidateId);
-          if (!candidate || !this.nameplateActorsOverlap(actor, candidate)) continue;
-          remaining.delete(candidateId);
-          queue.push(candidate);
-        }
-      }
-
-      components.push(component);
-    }
-
-    return components;
-  }
-
-  prepareNameplateLayout(game, livingActors) {
-    const targets = new Map();
-    const bounds = this.arena.bounds;
-    const friendlyTeam = game.player?.team || "friendly";
-    const roleOrder = { healer: 0, melee: 1, caster: 2 };
-
-    for (const actor of livingActors) {
-      targets.set(actor.id, {
-        x: actor.x,
-        y: actor.y,
-        crowded: false,
-        groupSize: 1,
-      });
-    }
-
-    for (const component of this.nameplateComponents(livingActors)) {
-      if (component.length <= 1) continue;
-
-      const centerX = component.reduce((sum, actor) => sum + actor.x, 0) / component.length;
-      const centerY = component.reduce((sum, actor) => sum + actor.y, 0) / component.length;
-      const friendlies = component.filter(actor => actor.team === friendlyTeam);
-      const enemies = component.filter(actor => actor.team !== friendlyTeam);
-      const hasBothTeams = friendlies.length > 0 && enemies.length > 0;
-
-      const rows = hasBothTeams
-        ? [
-            { actors: enemies, yOffset: -112 },
-            { actors: friendlies, yOffset: 112 },
-          ]
-        : [
-            { actors: component, yOffset: 0 },
-          ];
-
-      for (const row of rows) {
-        const ordered = [...row.actors].sort((a, b) => {
-          const roleDelta = (roleOrder[a.role] ?? 9) - (roleOrder[b.role] ?? 9);
-          return roleDelta || String(a.id).localeCompare(String(b.id));
-        });
-
-        const spacing = 116;
-        const halfSpread = ((ordered.length - 1) * spacing) / 2;
-        const edgePadding = 50;
-        const rowCenterX = clamp(
-          centerX,
-          bounds.x + edgePadding + halfSpread,
-          bounds.x + bounds.w - edgePadding - halfSpread,
-        );
-
-        const safeY = 82;
-        const baseCenterY = hasBothTeams
-          ? clamp(
-              centerY,
-              bounds.y + safeY + 112,
-              bounds.y + bounds.h - safeY - 112,
-            )
-          : clamp(
-              centerY,
-              bounds.y + safeY,
-              bounds.y + bounds.h - safeY,
-            );
-        const rowCenterY = baseCenterY + row.yOffset;
-
-        ordered.forEach((actor, index) => {
-          const centeredIndex = index - (ordered.length - 1) / 2;
-          targets.set(actor.id, {
-            x: rowCenterX + centeredIndex * spacing,
-            y: rowCenterY,
-            crowded: true,
-            groupSize: component.length,
-          });
-        });
-      }
-    }
-
-    const now = this.frameNowMs;
-    const dt = clamp(now - this.lastNameplateFrameMs, 0, 50);
-    const alpha = 1 - Math.exp(-dt / 85);
-    const livingIds = new Set(livingActors.map(actor => actor.id));
-
-    for (const actor of livingActors) {
-      const target = targets.get(actor.id) || {
-        x: actor.x,
-        y: actor.y,
-        crowded: false,
-        groupSize: 1,
-      };
-      const previous = this.nameplatePresentation.get(actor.id) || {
-        x: actor.x,
-        y: actor.y,
-      };
-
-      const next = {
-        x: lerp(previous.x, target.x, alpha),
-        y: lerp(previous.y, target.y, alpha),
-        crowded: target.crowded,
-        groupSize: target.groupSize,
-      };
-
-      this.nameplatePresentation.set(actor.id, next);
-      this.nameplateLayout.set(actor.id, next);
-    }
-
-    for (const id of [...this.nameplatePresentation.keys()]) {
-      if (!livingIds.has(id)) {
-        this.nameplatePresentation.delete(id);
-        this.nameplateLayout.delete(id);
-      }
-    }
-
-    this.lastNameplateFrameMs = now;
-  }
-
-  worldUiPosition(actor) {
-    return this.nameplateLayout.get(actor.id) || {
-      x: actor.x,
-      y: actor.y,
-      crowded: false,
-      groupSize: 1,
-    };
+    return nearby;
   }
 
   worldUiX(actor, game) {
-    return this.worldUiPosition(actor, game).x;
+    const nearby = this.overlappingActors(actor, game);
+    if (nearby.length === 0) return actor.x;
+
+    const group = [actor, ...nearby]
+      .filter((candidate, index, list) =>
+        list.findIndex(item => item.id === candidate.id) === index
+      )
+      .sort((a, b) => {
+        if (a.id === game.player?.id) return 1;
+        if (b.id === game.player?.id) return -1;
+        return String(a.id).localeCompare(String(b.id));
+      });
+
+    const index = group.findIndex(candidate => candidate.id === actor.id);
+    const spacing = group.length >= 4 ? 34 : 42;
+    const centeredIndex = index - (group.length - 1) / 2;
+    return actor.x + centeredIndex * spacing;
   }
 
-  worldUiY(actor, game) {
-    return this.worldUiPosition(actor, game).y;
-  }
+  drawOverlapReadability(ctx, game, livingActors) {
+    const crowded = livingActors.filter(actor =>
+      this.overlappingActors(actor, game).length > 0
+    );
+    if (crowded.length === 0) return;
 
-  drawNameplateConnectors(ctx, game, livingActors) {
+    const stable = [...crowded].sort((a, b) =>
+      String(a.id).localeCompare(String(b.id))
+    );
+
     ctx.save();
     ctx.lineCap = "round";
 
-    for (const actor of livingActors) {
-      const position = this.worldUiPosition(actor, game);
-      const plateX = position.x;
-      const plateY = position.y - actor.radius - 18;
-      const dx = plateX - actor.x;
-      const dy = plateY - actor.y;
-      const distance = Math.hypot(dx, dy);
+    for (const actor of stable) {
+      const localGroup = [actor, ...this.overlappingActors(actor, game)]
+        .filter((candidate, index, list) =>
+          list.findIndex(item => item.id === candidate.id) === index
+        )
+        .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
-      if (!position.crowded || distance < 26) continue;
+      const layer = Math.max(
+        0,
+        localGroup.findIndex(candidate => candidate.id === actor.id),
+      );
+      const radius = actor.radius + 6 + layer * 4;
+      const color = classColorFor(actor);
 
-      const nx = dx / Math.max(1, distance);
-      const ny = dy / Math.max(1, distance);
-      const startX = actor.x + nx * (actor.radius + 5);
-      const startY = actor.y + ny * (actor.radius + 5);
-      const endX = plateX - nx * 6;
-      const endY = plateY - ny * 6;
-      const friendly = actor.team === game.player?.team;
-      const color = friendly ? "#6bcf8d" : "#df7168";
-
-      ctx.globalAlpha = actor.id === game.player?.targetId ? 0.55 : 0.30;
+      ctx.globalAlpha = actor.team === "friendly" ? 0.9 : 0.72;
       ctx.strokeStyle = color;
-      ctx.lineWidth = actor.id === game.player?.targetId ? 1.7 : 1.15;
-      ctx.setLineDash(actor.id === game.player?.targetId ? [] : [4, 4]);
+      ctx.shadowColor = color;
+      ctx.shadowBlur = actor.team === "friendly" ? 8 : 5;
+      ctx.lineWidth = actor.team === "friendly" ? 2.8 : 2.2;
+      ctx.setLineDash(actor.team === "friendly" ? [] : [5, 4]);
+
       ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
+      ctx.arc(actor.x, actor.y, radius, 0, Math.PI * 2);
       ctx.stroke();
 
+      // A small top tick makes concentric rings readable even at identical centers.
       ctx.setLineDash([]);
-      ctx.globalAlpha = actor.id === game.player?.targetId ? 0.78 : 0.46;
-      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(startX, startY, actor.id === game.player?.targetId ? 2.4 : 1.8, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(actor.x, actor.y - radius - 2);
+      ctx.lineTo(actor.x, actor.y - radius - 8);
+      ctx.stroke();
     }
 
     ctx.restore();
@@ -775,7 +638,6 @@ export class CanvasRenderer {
     // Use the exact shifted UI center used by the renderer so crowded units
     // remain individually targetable by clicking their own plate.
     const centerX = this.worldUiX(actor, game);
-    const centerY = this.worldUiY(actor, game);
     this.ctx.save();
     this.ctx.font = "800 12px system-ui";
     const nameWidth = this.ctx.measureText(actor.name).width;
@@ -784,8 +646,8 @@ export class CanvasRenderer {
     const width = Math.max(80, Math.ceil(nameWidth) + 18);
     const left = centerX - width / 2;
     const right = centerX + width / 2;
-    const top = centerY - actor.radius - 52;
-    const bottom = centerY - actor.radius - 6;
+    const top = actor.y - actor.radius - 46;
+    const bottom = actor.y - actor.radius - 6;
 
     if (x < left || x > right || y < top || y > bottom) return null;
 
@@ -799,9 +661,8 @@ export class CanvasRenderer {
     const width = 80;
     const height = 9;
     const centerX = this.worldUiX(actor, game);
-    const centerY = this.worldUiY(actor, game);
     const x = centerX - width / 2;
-    const y = centerY - actor.radius - 24;
+    const y = actor.y - actor.radius - 24;
     const actualPct = clamp(actor.healthPct, 0, 1);
     let healthVisual = this.healthPresentation.get(actor.id);
 
@@ -899,9 +760,8 @@ export class CanvasRenderer {
     const width = 74;
     const height = 5;
     const centerX = this.worldUiX(actor, game);
-    const centerY = this.worldUiY(actor, game);
     const x = centerX - width / 2;
-    const y = centerY - actor.radius - 13;
+    const y = actor.y - actor.radius - 13;
 
     ctx.fillStyle = "rgba(11,8,6,.92)";
     ctx.fillRect(x, y, width, height);
@@ -933,9 +793,8 @@ export class CanvasRenderer {
     const width = 86;
     const height = 8;
     const centerX = this.worldUiX(actor, game);
-    const centerY = this.worldUiY(actor, game);
     const x = centerX - width / 2;
-    const y = centerY - actor.radius - 49;
+    const y = actor.y - actor.radius - 49;
     const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
     const palette = this.castBarPalette(actor);
     const fillWidth = (width - 2) * clamp(progress, 0, 1);
@@ -997,7 +856,6 @@ export class CanvasRenderer {
 
   drawName(ctx, actor, game) {
     const centerX = this.worldUiX(actor, game);
-    const centerY = this.worldUiY(actor, game);
     ctx.font = "800 12px system-ui";
     ctx.textAlign = "center";
     ctx.fillStyle = actor.team === "enemy"
@@ -1006,8 +864,8 @@ export class CanvasRenderer {
     ctx.strokeStyle = "rgba(5,3,2,.92)";
     ctx.lineWidth = 3;
     ctx.lineJoin = "round";
-    ctx.strokeText(actor.name, centerX, centerY - actor.radius - 31);
-    ctx.fillText(actor.name, centerX, centerY - actor.radius - 31);
+    ctx.strokeText(actor.name, centerX, actor.y - actor.radius - 31);
+    ctx.fillText(actor.name, centerX, actor.y - actor.radius - 31);
   }
 
   drawEffectIcons(ctx, actor, game) {
@@ -1034,9 +892,8 @@ export class CanvasRenderer {
     const gap = 3;
     const totalWidth = effects.length * size + (effects.length - 1) * gap;
     const centerX = this.worldUiX(actor, game);
-    const centerY = this.worldUiY(actor, game);
     let x = centerX - totalWidth / 2;
-    const y = centerY + actor.radius + 8;
+    const y = actor.y + actor.radius + 8;
 
     for (const effect of effects) {
       const palette = effectPalette(effect);
@@ -1228,9 +1085,8 @@ export class CanvasRenderer {
     const badgeW = 30;
     const badgeH = 37;
     const badgeCenterX = this.worldUiX(actor, game);
-    const badgeCenterY = this.worldUiY(actor, game);
     const badgeX = badgeCenterX - badgeW / 2;
-    const badgeY = badgeCenterY - actor.radius - 92;
+    const badgeY = actor.y - actor.radius - 92;
 
     ctx.shadowBlur = 7;
     ctx.globalAlpha = 0.96;

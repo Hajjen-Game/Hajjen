@@ -1,6 +1,6 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-unitframes1";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-healthfeedback1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
@@ -8,6 +8,7 @@ import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
 import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
 import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20260929-auricons1";
+import { createHealthPresentation, updateHealthPresentation } from "../rendering/HealthPresentation.js?v=20260929-healthfeedback1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
 const ACTION_BAR_SLOT_COUNT = 7;
@@ -38,6 +39,7 @@ export class UIManager {
     this.game = game;
     this.input = input;
     this.frameElements = new Map();
+    this.healthPresentation = new Map();
     this.meterElements = new Map();
     this.enemyCooldownRows = new Map();
     this.actionSlots = [];
@@ -184,6 +186,7 @@ export class UIManager {
     this.teamFrames.innerHTML = "";
     this.enemyFrames.innerHTML = "";
     this.frameElements.clear();
+    this.healthPresentation.clear();
 
     const friendly = this.game.actors.filter(actor => actor.team === "friendly");
 
@@ -1294,15 +1297,37 @@ export class UIManager {
       ? "READY"
       : formatTime(this.game.elapsedSeconds);
 
+    const healthNowMs = performance.now();
+
     for (const actor of this.game.actors) {
       const frame = this.frameElements.get(actor.id);
       if (!frame) continue;
 
       const healthPct = clamp(actor.healthPct, 0, 1);
       const classColor = classColorFor(actor);
+      let healthVisual = this.healthPresentation.get(actor.id);
+
+      if (!healthVisual) {
+        healthVisual = createHealthPresentation(healthPct, healthNowMs);
+        this.healthPresentation.set(actor.id, healthVisual);
+      }
+
+      updateHealthPresentation(healthVisual, healthPct, healthNowMs);
+
       const healthFill = frame.querySelector(".frame-health");
+      const healthTrail = frame.querySelector(".frame-health-trail");
+      const healFlash = frame.querySelector(".frame-heal-flash");
+
       frame.style.setProperty("--class-health", classColor);
-      healthFill.style.width = (healthPct * 100) + "%";
+      healthFill.style.width = (healthVisual.displayPct * 100).toFixed(3) + "%";
+      healthTrail.style.width = (healthVisual.trailPct * 100).toFixed(3) + "%";
+
+      const healFrom = Math.min(healthVisual.healFromPct, healthVisual.healToPct);
+      const healWidth = Math.max(0, healthVisual.healToPct - healFrom);
+      healFlash.style.left = (healFrom * 100).toFixed(3) + "%";
+      healFlash.style.width = (healWidth * 100).toFixed(3) + "%";
+      healFlash.style.opacity = healthVisual.healFlashAlpha.toFixed(3);
+
       frame.classList.toggle("low-health", actor.alive && healthPct < 0.20);
 
       const healthValue = frame.querySelector(".frame-value");

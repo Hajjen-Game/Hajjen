@@ -639,12 +639,19 @@ export class CanvasRenderer {
           bounds.x + bounds.w - edgePadding - halfSpread,
         );
 
-        const safeY = hasBothTeams ? 105 : 82;
-        const rowCenterY = clamp(
-          centerY + row.yOffset,
-          bounds.y + safeY,
-          bounds.y + bounds.h - safeY,
-        );
+        const safeY = 82;
+        const baseCenterY = hasBothTeams
+          ? clamp(
+              centerY,
+              bounds.y + safeY + 75,
+              bounds.y + bounds.h - safeY - 75,
+            )
+          : clamp(
+              centerY,
+              bounds.y + safeY,
+              bounds.y + bounds.h - safeY,
+            );
+        const rowCenterY = baseCenterY + row.yOffset;
 
         ordered.forEach((actor, index) => {
           const centeredIndex = index - (ordered.length - 1) / 2;

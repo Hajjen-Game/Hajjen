@@ -3175,6 +3175,9 @@ export class AISystem {
         const recoveryVector = this.healerSupportVector(actor, healer, meleeThreat);
 
         if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
+          if (actor.aiManaRecoveryActive) {
+            this.markManaRecoveryMode(actor, "mobile");
+          }
           this.movement.moveAI(actor, recoveryVector, deltaSeconds, this.game.arena);
           return;
         }
@@ -3191,8 +3194,9 @@ export class AISystem {
           const kiteVector = this.kiteVector(actor, meleeThreat, healer);
 
           if (kiteVector.x !== 0 || kiteVector.y !== 0) {
-            actor.aiManaRecoveryActive = false;
-            actor.aiManaRecoveryPhaseMode = null;
+            if (actor.aiManaRecoveryActive) {
+              this.markManaRecoveryMode(actor, "mobile");
+            }
             actor.aiSafeTurretActive = false;
             this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
             return;

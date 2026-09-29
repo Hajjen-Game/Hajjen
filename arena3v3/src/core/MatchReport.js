@@ -700,7 +700,7 @@ export function buildMatchReport(game) {
       + " (reduces accidental DPS target convergence at low Rating; fades out by 2000)",
     "AI cognition: Memory + individual Intent + Opponent Modelling + Team Plan enabled; friendly AI infers player intent from observable actions; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
     "Arena state awareness: deaths immediately re-evaluate 3v3/3v2/2v2/2v1/1v2/1v3 context; numerical advantage/disadvantage can alter pressure, survival, CC, healer offense and caster movement",
-    "Caster mana recovery: hysteresis enabled; safe cleanup states may use stationary turret recovery instead of lateral mana-recovery movement",
+    "Caster mana recovery: hysteresis enabled and persists through temporary kiting/support movement; safe cleanup states may use stationary turret recovery instead of lateral mana-recovery movement",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",

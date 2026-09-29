@@ -292,6 +292,34 @@ function appendTeamCoordination(lines, game) {
     }
   }
 
+  lines.push("Arena state awareness:");
+  for (const team of ["friendly", "enemy"]) {
+    const state = ai.arenaState?.(team);
+    if (!state) continue;
+
+    lines.push(
+      "  " + (team === "friendly" ? "Friendly" : "Enemy")
+      + ": " + state.label
+      + " | " + state.mode
+      + " | roles " + state.rolePattern
+      + " | healer own/enemy "
+      + (state.ownHealerAlive ? "yes" : "no")
+      + "/" + (state.enemyHealerAlive ? "yes" : "no"),
+    );
+
+    const transitions = (ai.arenaStateHistory?.[team] || []).slice(-8);
+    if (transitions.length > 0) {
+      lines.push(
+        "    transitions: "
+        + transitions.map(entry =>
+          entry.at.toFixed(1) + "s "
+          + entry.label + " " + entry.mode
+          + " (" + entry.rolePattern + ")"
+        ).join(" | "),
+      );
+    }
+  }
+
   for (const team of ["friendly", "enemy"]) {
     const plan = ai.teamPlans?.[team];
     if (!plan) continue;
@@ -671,6 +699,8 @@ export function buildMatchReport(game) {
       )
       + " (reduces accidental DPS target convergence at low Rating; fades out by 2000)",
     "AI cognition: Memory + individual Intent + Opponent Modelling + Team Plan enabled; friendly AI infers player intent from observable actions; healer intents use short commitment hysteresis; identity/cognition exposed in run report only",
+    "Arena state awareness: deaths immediately re-evaluate 3v3/3v2/2v2/2v1/1v2/1v3 context; numerical advantage/disadvantage can alter pressure, survival, CC, healer offense and caster movement",
+    "Caster mana recovery: hysteresis enabled; safe cleanup states may use stationary turret recovery instead of lateral mana-recovery movement",
     "Cast completion grace: +20 units for targeted ranged casts (start range and LOS unchanged)",
     "Dampening: 0% until 45s, then 10%, +2% every 10s",
     "CC DR: full duration -> 50% -> immune; category resets 20s after control ends",
@@ -702,12 +732,18 @@ export function buildMatchReport(game) {
       overlapRecoveries: actor.aiOverlapRecoveries || 0,
       boundaryEscapes: actor.aiBoundaryEscapeSelections || 0,
       manaRecoveryPhases: actor.aiManaRecoveryPhases || 0,
+      stationaryManaRecoveryPhases: actor.aiStationaryManaRecoveryPhases || 0,
+      mobileManaRecoveryPhases: actor.aiMobileManaRecoveryPhases || 0,
+      safeTurretEntries: actor.aiSafeTurretEntries || 0,
+      arenaStateTransitions: actor.aiArenaStateTransitions || 0,
     }))
     .filter(item =>
       item.reroutes > 0
       || item.overlapRecoveries > 0
       || item.boundaryEscapes > 0
       || item.manaRecoveryPhases > 0
+      || item.safeTurretEntries > 0
+      || item.arenaStateTransitions > 0
     );
 
   if (movementDiagnostics.length === 0) {
@@ -719,7 +755,11 @@ export function buildMatchReport(game) {
         + " — route flips " + item.reroutes
         + " | collider recoveries " + item.overlapRecoveries
         + " | boundary escapes " + item.boundaryEscapes
-        + " | mana recovery phases " + item.manaRecoveryPhases,
+        + " | mana recovery phases " + item.manaRecoveryPhases
+        + " (stationary " + item.stationaryManaRecoveryPhases
+        + " / mobile " + item.mobileManaRecoveryPhases + ")"
+        + " | safe turret entries " + item.safeTurretEntries
+        + " | arena-state replans " + item.arenaStateTransitions,
       );
     });
   }

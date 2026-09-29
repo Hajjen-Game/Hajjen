@@ -1,5 +1,6 @@
 import { hasLineOfSight } from "../core/LineOfSight.js";
 import { distance, normalize, stableHash } from "../core/utils.js";
+import { buildArenaState, arenaStateSignature } from "./ArenaState.js?v=20260929-arenastate1";
 
 function clamp01(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
@@ -18,6 +19,14 @@ export class AISystem {
     this.teamBurstReads = {
       friendly: null,
       enemy: null,
+    };
+    this.arenaStates = {
+      friendly: null,
+      enemy: null,
+    };
+    this.arenaStateHistory = {
+      friendly: [],
+      enemy: [],
     };
     this.playerIntentModel = {
       targetScores: {},
@@ -116,6 +125,76 @@ export class AISystem {
     if (rating < 1750) return 0.55 - ((rating - 1500) / 250) * 0.30;
     if (rating < 2000) return 0.25 - ((rating - 1750) / 250) * 0.25;
     return 0;
+  }
+
+  arenaState(teamOrActor) {
+    const team = typeof teamOrActor === "string"
+      ? teamOrActor
+      : teamOrActor?.team;
+    if (!team) return null;
+
+    const next = buildArenaState(this.game, team);
+    this.arenaStates[team] = next;
+    return next;
+  }
+
+  updateArenaStateAwareness() {
+    for (const team of ["friendly", "enemy"]) {
+      const previous = this.arenaStates[team];
+      const previousSignature = arenaStateSignature(previous);
+      const next = buildArenaState(this.game, team);
+      const nextSignature = arenaStateSignature(next);
+
+      if (!previous) {
+        this.arenaStates[team] = next;
+        this.arenaStateHistory[team].push({
+          at: this.game.elapsedSeconds,
+          label: next.label,
+          mode: next.mode,
+          rolePattern: next.rolePattern,
+          reason: "initial state",
+        });
+        continue;
+      }
+
+      if (previousSignature === nextSignature) {
+        this.arenaStates[team] = next;
+        continue;
+      }
+
+      this.arenaStates[team] = next;
+      this.arenaStateHistory[team].push({
+        at: this.game.elapsedSeconds,
+        label: next.label,
+        mode: next.mode,
+        rolePattern: next.rolePattern,
+        reason: previous.label + " -> " + next.label,
+      });
+      this.arenaStateHistory[team] = this.arenaStateHistory[team].slice(-12);
+
+      // A death changes the arena win condition immediately. Do not let old
+      // pressure/recovery intents linger for several seconds after the matchup
+      // has become 3v2, 2v2, 2v1, 1v2, etc.
+      this.teamPlanTimer = 0;
+      this.teamBurstReads[team] = null;
+
+      for (const actor of this.game.actors) {
+        if (!actor.alive || actor.team !== team || actor.control === "player") continue;
+
+        if (actor.aiIntent) {
+          this.closeIntent(
+            actor,
+            "arena state changed " + previous.label + " -> " + next.label,
+          );
+        }
+
+        this.thinkTimers.set(actor.id, 0);
+        actor.aiManaRecoveryActive = false;
+        actor.aiManaRecoveryPhaseMode = null;
+        actor.aiSafeTurretActive = false;
+        actor.aiArenaStateTransitions = (actor.aiArenaStateTransitions || 0) + 1;
+      }
+    }
   }
 
   recordPlayerIntentSignal(type, target = null, weight = 0) {
@@ -440,6 +519,7 @@ export class AISystem {
     );
     if (!members.length || !enemies.length) return;
 
+    const arenaState = this.arenaState(team);
     const consensus = this.teamConsensus(team);
     const healer = members.find(actor => actor.role === "healer") || null;
     const enemyHealer = enemies.find(actor => actor.role === "healer") || null;
@@ -451,16 +531,19 @@ export class AISystem {
     const healerThreat = healer
       ? this.meleeThreatTo(healer, healer.config.ai.peelThreatRange ?? 135)
       : null;
-    const healerLow = Boolean(
+    const healerHealthLow = Boolean(healer && healer.healthPct < 0.40);
+    const healerResourceLow = Boolean(
       healer
-      && (
-        healer.healthPct < 0.40
-        || (
-          healer.resource.type === "mana"
-          && healer.resourcePct < 0.14
-        )
-      )
+      && healer.resource.type === "mana"
+      && healer.resourcePct < 0.14
     );
+    const safeCleanup = Boolean(
+      arenaState?.cleanup
+      && arenaState.enemyAlive === 1
+      && !healerThreat
+      && members.every(member => member.healthPct > 0.34)
+    );
+    const healerLow = healerHealthLow || (healerResourceLow && !safeCleanup);
 
     const now = this.game.elapsedSeconds;
 
@@ -478,7 +561,12 @@ export class AISystem {
     const playerRecover = friendlyPlayerSignal
       && this.playerIntentModel.recoverUntil > this.game.elapsedSeconds;
 
-    if (healerLow || playerRecover) {
+    if (safeCleanup && consensus.target) {
+      state = "BURST";
+      reason = arenaState.label + " cleanup: close out isolated "
+        + (consensus.target.role || "target");
+      source = "arena-state";
+    } else if (healerLow || (playerRecover && !safeCleanup)) {
       state = "RECOVER";
       reason = healerLow
         ? "team healer under survival/resource pressure"
@@ -508,6 +596,14 @@ export class AISystem {
         reason = "primary target in finishing range";
         source = playerLed ? "player-led" : "team-read";
       }
+    } else if (arenaState?.disadvantage) {
+      state = "PRESSURE";
+      reason = arenaState.label + " underdog: create a kill or control window";
+      source = "arena-state";
+    } else if (arenaState?.advantage) {
+      state = "PRESSURE";
+      reason = arenaState.label + " advantage: maintain pressure";
+      source = "arena-state";
     }
 
     const burstCandidate = (
@@ -1293,8 +1389,14 @@ export class AISystem {
     const stickiness = this.behavior(actor, "targetStickiness", 0.58);
     const healerSwapBias = this.behavior(actor, "healerSwapBias", 0.42);
     const cognition = this.individualCognitionStrength(actor);
+    const arenaState = this.arenaState(actor.team);
+    const situationalFinishBoost = arenaState?.disadvantage
+      ? 0.07
+      : arenaState?.cleanup
+        ? 0.04
+        : 0;
 
-    const finishThreshold = 0.18 + cognition * 0.16;
+    const finishThreshold = 0.18 + cognition * 0.16 + situationalFinishBoost;
     const finish = [...enemies]
       .filter(enemy => enemy.healthPct <= finishThreshold)
       .sort((a, b) => a.healthPct - b.healthPct)[0];
@@ -1304,7 +1406,12 @@ export class AISystem {
       && this.shouldAttempt(
         actor,
         "intent-finish:" + finish.id,
-        0.15 + cognition * 0.85,
+        clamp01(
+          0.15
+          + cognition * 0.85
+          + (arenaState?.disadvantage ? 0.22 : 0)
+          + (arenaState?.cleanup ? 0.12 : 0)
+        ),
         2.2,
       )
     ) {
@@ -1465,6 +1572,7 @@ export class AISystem {
   }
 
   update(deltaSeconds) {
+    this.updateArenaStateAwareness();
     this.updateTeamCoordination(deltaSeconds);
 
     for (const actor of this.game.actors) {
@@ -1724,6 +1832,7 @@ export class AISystem {
     const defensiveGreed = this.behavior(actor, "defensiveGreed", 0.42);
     const ccBias = this.behavior(actor, "ccBias", 0.58);
     const offenseBias = this.behavior(actor, "healerOffenseBias", 0.42);
+    const arenaState = this.arenaState(actor.team);
 
     const defensiveThreshold = 0.50 - defensiveGreed * 0.16 + skill * 0.02;
     const emergencyThreshold = 0.66 + triage * 0.10 - manaConservation * 0.04;
@@ -1815,8 +1924,19 @@ export class AISystem {
     // Aggressive healers create pressure more readily; conservative healers
     // wait for a cleaner window. The profile drifts during the match, so the
     // tendency is readable without becoming completely deterministic.
-    const offenseStablePct = 0.97 - offenseBias * 0.13;
-    const offenseChance = 0.20 + offenseBias * 0.65 + skill * 0.10;
+    let offenseStablePct = 0.97 - offenseBias * 0.13;
+    let offenseChance = 0.20 + offenseBias * 0.65 + skill * 0.10;
+
+    if (arenaState?.cleanup) {
+      offenseStablePct = Math.max(0.72, offenseStablePct - 0.16);
+      offenseChance = clamp01(offenseChance + 0.35);
+    } else if (arenaState?.advantage) {
+      offenseStablePct = Math.max(0.78, offenseStablePct - 0.06);
+      offenseChance = clamp01(offenseChance + 0.15);
+    } else if (arenaState?.disadvantage) {
+      offenseStablePct = Math.min(0.98, offenseStablePct + 0.02);
+      offenseChance = clamp01(offenseChance * 0.68);
+    }
     const teamPlan = this.teamPlan(actor.team);
     const teamPlanTarget = enemies.find(enemy =>
       enemy.id === teamPlan?.primaryTargetId
@@ -2074,7 +2194,13 @@ export class AISystem {
 
     const skill = this.skill(actor);
     const defensiveGreed = this.behavior(actor, "defensiveGreed", 0.48);
-    const defensiveThreshold = 0.52 - defensiveGreed * 0.20 + skill * 0.02;
+    const arenaState = this.arenaState(actor.team);
+    let defensiveThreshold = 0.52 - defensiveGreed * 0.20 + skill * 0.02;
+
+    if (arenaState?.lastStand) defensiveThreshold += 0.14;
+    else if (arenaState?.disadvantage) defensiveThreshold += 0.08;
+    else if (arenaState?.cleanup) defensiveThreshold -= 0.05;
+    defensiveThreshold = Math.max(0.24, Math.min(0.78, defensiveThreshold));
 
     const defensive = this.spell(actor, "defensiveSelf") || this.spell(actor, "defensive");
     if (defensive && actor.healthPct < defensiveThreshold && this.ready(actor, defensive)) {
@@ -2129,6 +2255,15 @@ export class AISystem {
     }
 
     if (damageableEnemies.length === 0) return;
+
+    const recoveryTarget = this.game.getActor(actor.aiTargetId)
+      || damageableEnemies[0];
+    if (
+      actor.role === "caster"
+      && this.casterShouldHoldManaRecovery(actor, recoveryTarget, arenaState)
+    ) {
+      return;
+    }
 
     const peel = this.findPeelSituation(actor, damageableEnemies);
     const oomHealer = this.findOomHealerTarget(actor, damageableEnemies);
@@ -2299,9 +2434,23 @@ export class AISystem {
       } else {
         const ccBias = this.behavior(actor, "ccBias", 0.58);
         const cognition = this.individualCognitionStrength(actor);
-        const ccChance = (
+        let ccChance = (
           0.22 + ccBias * 0.58 + skill * 0.12
         ) * (0.25 + cognition * 0.75);
+
+        if (arenaState?.disadvantage) {
+          ccChance = clamp01(ccChance + 0.18);
+        }
+
+        const breakableControl = control.effects.some(effect => effect.breakOnDamage);
+        if (
+          arenaState?.cleanup
+          && arenaState.enemyAlive === 1
+          && breakableControl
+        ) {
+          ccChance *= 0.15;
+        }
+
         if (this.shouldAttempt(actor, "damage-control", ccChance, 2.8)) {
           controlTarget = this.pickCcTarget(actor, enemies, control);
         }
@@ -2829,24 +2978,113 @@ export class AISystem {
     return this.game.combat.tryCast(actor, spell, target, { silent: true });
   }
 
-  casterNeedsManaRecoveryMovement(actor, target) {
-    if (
-      actor.role !== "caster"
-      || actor.resource.type !== "mana"
-      || actor.resourcePct > 0.35
-      || !target?.alive
-    ) return false;
+  casterManaRecoveryExitPct(actor, arenaState = null) {
+    const configured = actor.config.ai.manaRecoveryExitPct;
+    if (Number.isFinite(configured)) return configured;
+    if (arenaState?.cleanup) return 0.34;
+    if (arenaState?.disadvantage) return 0.20;
+    return 0.30;
+  }
 
-    const pressureSpells = actor.spells.filter(spell =>
+  casterPressureSpells(actor, target) {
+    return actor.spells.filter(spell =>
       spell.target === "enemy"
       && ["periodic", "bigDamage", "filler"].includes(spell.aiRole)
       && actor.cooldownFor(spell.id) <= 0
       && !this.game.cc.isSchoolLocked(actor, spell)
       && !(spell.aiRole === "periodic" && target.hasEffect(spell.id, actor.id))
     );
+  }
 
+  casterNeedsManaRecovery(actor, target, arenaState = null) {
+    if (
+      actor.role !== "caster"
+      || actor.resource.type !== "mana"
+      || !target?.alive
+    ) {
+      actor.aiManaRecoveryActive = false;
+      actor.aiManaRecoveryPhaseMode = null;
+      return false;
+    }
+
+    const state = arenaState || this.arenaState(actor.team);
+    const exitPct = this.casterManaRecoveryExitPct(actor, state);
+
+    // Hysteresis: once a caster has genuinely run dry, do not bounce back into
+    // a single filler the instant 17 mana appears. Build a small resource bank
+    // first unless the target is already in a natural finishing window.
+    if (actor.aiManaRecoveryActive) {
+      if (actor.resourcePct >= exitPct || target.healthPct <= 0.18) {
+        actor.aiManaRecoveryActive = false;
+        actor.aiManaRecoveryPhaseMode = null;
+        return false;
+      }
+      return true;
+    }
+
+    if (actor.resourcePct > 0.35) return false;
+
+    const pressureSpells = this.casterPressureSpells(actor, target);
     if (pressureSpells.length === 0) return false;
-    return !pressureSpells.some(spell => this.game.resources.canPay(actor, spell));
+
+    const canAffordPressure = pressureSpells.some(spell =>
+      this.game.resources.canPay(actor, spell)
+    );
+    if (canAffordPressure) return false;
+
+    actor.aiManaRecoveryActive = true;
+    actor.aiManaRecoveryPhaseMode = null;
+    actor.aiManaRecoveryPhases = (actor.aiManaRecoveryPhases || 0) + 1;
+    return true;
+  }
+
+  casterShouldHoldManaRecovery(actor, target, arenaState = null) {
+    if (!this.casterNeedsManaRecovery(actor, target, arenaState)) return false;
+
+    // Survival and peel trump mana banking. Under melee pressure the caster
+    // should act/kite rather than becoming a stationary resource bot.
+    if (this.findCasterMeleeThreat(actor)) return false;
+    if (actor.healthPct < 0.42) return false;
+    return true;
+  }
+
+  markManaRecoveryMode(actor, mode) {
+    if (actor.aiManaRecoveryPhaseMode === mode) return;
+    actor.aiManaRecoveryPhaseMode = mode;
+
+    if (mode === "stationary") {
+      actor.aiStationaryManaRecoveryPhases =
+        (actor.aiStationaryManaRecoveryPhases || 0) + 1;
+    } else if (mode === "mobile") {
+      actor.aiMobileManaRecoveryPhases =
+        (actor.aiMobileManaRecoveryPhases || 0) + 1;
+    }
+  }
+
+  casterShouldSafeTurret(actor, target, healer, meleeThreat, arenaState = null) {
+    const state = arenaState || this.arenaState(actor.team);
+    if (
+      actor.role !== "caster"
+      || !target?.alive
+      || meleeThreat
+      || !state?.cleanup
+      || state.enemyAlive !== 1
+    ) return false;
+
+    const preferred = actor.config.ai.preferredRange || 305;
+    const dist = distance(actor, target);
+    if (dist < preferred * 0.58 || dist > preferred * 1.10) return false;
+    if (!hasLineOfSight(actor, target, this.game.arena.obstacles)) return false;
+
+    // If the caster is actually in danger and cut off from the healer, recovering
+    // support is still more important than turret uptime.
+    if (
+      healer?.alive
+      && actor.healthPct < 0.68
+      && !this.hasHealerSupport(actor, healer)
+    ) return false;
+
+    return true;
   }
 
   casterManaRecoveryVector(actor, target, healer = null) {
@@ -2928,6 +3166,7 @@ export class AISystem {
     if (actor.role === "caster") {
       const healer = this.getTeamHealer(actor);
       const meleeThreat = this.findCasterMeleeThreat(actor);
+      const arenaState = this.arenaState(actor.team);
 
       if (
         healer
@@ -2953,25 +3192,51 @@ export class AISystem {
 
           if (kiteVector.x !== 0 || kiteVector.y !== 0) {
             actor.aiManaRecoveryActive = false;
+            actor.aiManaRecoveryPhaseMode = null;
+            actor.aiSafeTurretActive = false;
             this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
             return;
           }
         }
       }
 
-      if (this.casterNeedsManaRecoveryMovement(actor, target)) {
+      const recoveringMana = this.casterNeedsManaRecovery(
+        actor,
+        target,
+        arenaState,
+      );
+      const safeTurret = this.casterShouldSafeTurret(
+        actor,
+        target,
+        healer,
+        meleeThreat,
+        arenaState,
+      );
+
+      if (safeTurret) {
+        if (!actor.aiSafeTurretActive) {
+          actor.aiSafeTurretEntries = (actor.aiSafeTurretEntries || 0) + 1;
+        }
+        actor.aiSafeTurretActive = true;
+
+        if (recoveringMana) {
+          this.markManaRecoveryMode(actor, "stationary");
+        }
+        return;
+      }
+
+      actor.aiSafeTurretActive = false;
+
+      if (recoveringMana) {
+        this.markManaRecoveryMode(actor, "mobile");
         const recoveryVector = this.casterManaRecoveryVector(actor, target, healer);
 
         if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
-          if (!actor.aiManaRecoveryActive) {
-            actor.aiManaRecoveryPhases = (actor.aiManaRecoveryPhases || 0) + 1;
-          }
-          actor.aiManaRecoveryActive = true;
           this.movement.moveAI(actor, recoveryVector, deltaSeconds, this.game.arena);
           return;
         }
       } else {
-        actor.aiManaRecoveryActive = false;
+        actor.aiManaRecoveryPhaseMode = null;
       }
     }
 

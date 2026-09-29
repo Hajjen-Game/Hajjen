@@ -54,6 +54,8 @@ function collides(actor, x, y, arena) {
 }
 
 function separationLocked(actor) {
+  if (actor.activeDash) return true;
+
   return (actor.effects || []).some(effect =>
     effect.remainingMs > 0
     && ["stun", "incapacitate", "root"].includes(effect.kind)
@@ -135,7 +137,7 @@ export class MovementSystem {
   }
 
   move(actor, vector, deltaSeconds, arena) {
-    if (!actor.alive) return false;
+    if (!actor.alive || actor.activeDash) return false;
 
     const direction = normalize(vector.x, vector.y);
     if (direction.x === 0 && direction.y === 0) {
@@ -148,7 +150,7 @@ export class MovementSystem {
   }
 
   moveAI(actor, vector, deltaSeconds, arena) {
-    if (!actor.alive) return false;
+    if (!actor.alive || actor.activeDash) return false;
 
     // Safety valve for the rare case where an AI ends up microscopically inside
     // a pillar collider. Normal collision movement cannot leave an overlap
@@ -354,7 +356,7 @@ export class MovementSystem {
     }
   }
 
-  dashToRange(actor, target, stopDistance, arena) {
+  dashToRange(actor, target, stopDistance, arena, durationMs = 0) {
     if (!actor.alive || !target?.alive) return false;
 
     const dx = target.x - actor.x;
@@ -364,29 +366,86 @@ export class MovementSystem {
 
     const direction = normalize(dx, dy);
     const travel = Math.max(0, distance - stopDistance);
-    const stepSize = 10;
+    const stepSize = 8;
     let remaining = travel;
+    let endX = actor.x;
+    let endY = actor.y;
     let moved = false;
 
+    // Trace the full path first so a dash can never cross a pillar or wall.
     while (remaining > 0) {
       const step = Math.min(stepSize, remaining);
-      const nextX = actor.x + direction.x * step;
-      const nextY = actor.y + direction.y * step;
+      const nextX = endX + direction.x * step;
+      const nextY = endY + direction.y * step;
 
       if (collides(actor, nextX, nextY, arena)) break;
 
-      actor.x = nextX;
-      actor.y = nextY;
+      endX = nextX;
+      endY = nextY;
       remaining -= step;
       moved = true;
     }
 
-    if (moved) {
-      actor.lastMove = direction;
-      actor.facing = Math.atan2(direction.y, direction.x);
+    if (!moved) return false;
+
+    actor.lastMove = direction;
+    actor.facing = Math.atan2(direction.y, direction.x);
+
+    if (durationMs > 0) {
+      actor.activeDash = {
+        startX: actor.x,
+        startY: actor.y,
+        endX,
+        endY,
+        totalMs: Math.max(80, durationMs),
+        elapsedMs: 0,
+        direction,
+      };
+      return true;
     }
 
-    return moved;
+    actor.x = endX;
+    actor.y = endY;
+    return true;
+  }
+
+  updateActiveDashes(actors, deltaMs, arena) {
+    if (deltaMs <= 0) return;
+
+    for (const actor of actors || []) {
+      const dash = actor?.activeDash;
+      if (!dash) continue;
+
+      if (!actor.alive) {
+        actor.activeDash = null;
+        continue;
+      }
+
+      dash.elapsedMs = Math.min(dash.totalMs, dash.elapsedMs + deltaMs);
+      const progress = clamp(dash.elapsedMs / dash.totalMs, 0, 1);
+
+      // Fast ease-out: obvious travel at the start, then a crisp WoW-like
+      // arrival instead of a teleport.
+      const eased = 1 - Math.pow(1 - progress, 2.35);
+      const nextX = dash.startX + (dash.endX - dash.startX) * eased;
+      const nextY = dash.startY + (dash.endY - dash.startY) * eased;
+
+      if (collides(actor, nextX, nextY, arena)) {
+        actor.activeDash = null;
+        continue;
+      }
+
+      actor.x = nextX;
+      actor.y = nextY;
+      actor.lastMove = dash.direction;
+      actor.facing = Math.atan2(dash.direction.y, dash.direction.x);
+
+      if (progress >= 1) {
+        actor.x = dash.endX;
+        actor.y = dash.endY;
+        actor.activeDash = null;
+      }
+    }
   }
 
   wouldCollide(actor, vector, step, arena) {

@@ -7,6 +7,7 @@ import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
 import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
+import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20260929-auricons1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
 const ACTION_BAR_SLOT_COUNT = 7;
@@ -1445,10 +1446,7 @@ export class UIManager {
     const ccKinds = ["stun", "fear", "incapacitate", "root"];
     const cc = actor.effects
       .filter(effect => effect.remainingMs > 0 && ccKinds.includes(effect.kind))
-      .sort((a, b) => {
-        const priority = { stun: 0, fear: 1, incapacitate: 2, root: 3 };
-        return priority[a.kind] - priority[b.kind];
-      })[0];
+      .sort((a, b) => effectPriority(b) - effectPriority(a))[0];
 
     const burst = actor.effects.find(effect =>
       effect.kind === "offensiveCooldown" && effect.remainingMs > 0
@@ -1463,35 +1461,44 @@ export class UIManager {
       "burst-active",
     );
 
+    const majorCc = frame.querySelector(".frame-major-cc");
+    const majorGlyph = frame.querySelector(".major-cc-glyph");
+    const majorTime = frame.querySelector(".major-cc-time");
     const banner = frame.querySelector(".frame-state-banner");
 
+    if (banner) {
+      banner.hidden = true;
+      banner.className = "frame-state-banner";
+      banner.textContent = "";
+    }
+
     if (cc) {
-      const labels = {
-        stun: "STUN",
-        fear: "FEAR",
-        incapacitate: "CC",
-        root: "ROOT",
-      };
+      const source = this.game.getActor(cc.sourceId);
+      const spell = source?.getSpell(cc.spellId);
+      const palette = effectPalette(cc);
+
       frame.classList.add("cc-active", "cc-" + cc.kind);
-      banner.hidden = false;
-      banner.className = "frame-state-banner cc-state " + cc.kind;
-      banner.textContent =
-        labels[cc.kind] + " · " + Math.max(0, cc.remainingMs / 1000).toFixed(1) + "s";
-      return;
+      majorCc.hidden = false;
+      majorCc.className = "frame-major-cc " + cc.kind;
+      majorCc.style.setProperty("--major-cc-border", palette.border);
+      majorCc.style.setProperty("--major-cc-bg", palette.background);
+      majorGlyph.innerHTML = effectIconMarkup(cc);
+      majorTime.textContent = Math.max(0, cc.remainingMs / 1000).toFixed(1);
+      majorCc.title = (spell?.name || cc.spellId || "Crowd control")
+        + " · "
+        + Math.max(0, cc.remainingMs / 1000).toFixed(1)
+        + "s";
+    } else {
+      majorCc.hidden = true;
+      majorCc.className = "frame-major-cc";
+      majorGlyph.innerHTML = "";
+      majorTime.textContent = "";
+      majorCc.title = "";
     }
 
     if (burst) {
       frame.classList.add("burst-active");
-      banner.hidden = false;
-      banner.className = "frame-state-banner burst-state";
-      banner.textContent =
-        (burst.label || "BURST") + " · " + Math.max(0, burst.remainingMs / 1000).toFixed(1) + "s";
-      return;
     }
-
-    banner.hidden = true;
-    banner.className = "frame-state-banner";
-    banner.textContent = "";
   }
 
   updateDampening() {
@@ -1588,56 +1595,48 @@ export class UIManager {
 
   renderEffects(frame, actor) {
     const container = frame.querySelector(".frame-effects");
+    const hardCcKinds = new Set(["fear", "incapacitate", "stun", "root"]);
     const visible = actor.effects
       .filter(effect => effect.remainingMs > 0)
-      .filter(effect => !["fear", "incapacitate", "stun", "root"].includes(effect.kind))
-      .sort((a, b) => a.remainingMs - b.remainingMs)
-      .slice(0, 6);
+      .filter(effect => !hardCcKinds.has(effect.kind))
+      .sort((a, b) => {
+        const priority = effectPriority(b) - effectPriority(a);
+        return priority || a.remainingMs - b.remainingMs;
+      })
+      .slice(0, 5);
 
     container.innerHTML = "";
+    container.hidden = visible.length === 0;
 
     for (const effect of visible) {
-      const badge = document.createElement("span");
-      let style = "buff";
-      let letter = "B";
-
-      if (effect.kind === "hot") {
-        style = "hot";
-        letter = "H";
-      } else if (effect.kind === "dot") {
-        style = "dot";
-        letter = "D";
-      } else if (effect.kind === "fear") {
-        style = "cc";
-        letter = "FEAR";
-      } else if (effect.kind === "incapacitate") {
-        style = "cc";
-        letter = "CC";
-      } else if (effect.kind === "stun") {
-        style = "cc";
-        letter = "STUN";
-      } else if (effect.kind === "root") {
-        style = "cc";
-        letter = "ROOT";
-      } else if (effect.kind === "healingReduction") {
-        style = "debuff";
-        letter = "MORTAL";
-      } else if (effect.kind === "offensiveCooldown") {
-        style = "burst";
-        letter = effect.label || "BURST";
-      } else if (effect.kind === "schoolLock") {
-        style = "lock";
-        letter = "LOCK";
-      }
-
-      badge.className = "effect-badge " + style;
-
       const source = this.game.getActor(effect.sourceId);
       const spell = source?.getSpell(effect.spellId);
-      badge.textContent = letter + " " + Math.ceil(effect.remainingMs / 1000);
-      badge.title = (spell?.name || effect.spellId) + " · " + Math.ceil(effect.remainingMs / 1000) + "s";
+      const palette = effectPalette(effect);
+      const ratio = effect.durationMs > 0
+        ? clamp(effect.remainingMs / effect.durationMs, 0, 1)
+        : 0;
 
-      container.appendChild(badge);
+      const icon = document.createElement("span");
+      icon.className = "effect-icon effect-" + effect.kind
+        + (effectIsImportant(effect) ? " important" : "");
+      icon.style.setProperty("--effect-color", palette.color);
+      icon.style.setProperty("--effect-bg", palette.background);
+      icon.style.setProperty("--effect-border", palette.border);
+      icon.style.setProperty("--effect-sweep", Math.round(ratio * 360) + "deg");
+      icon.innerHTML =
+        '<span class="effect-icon-art">' + effectIconMarkup(effect) + '</span>'
+        + '<span class="effect-duration">'
+        + (effect.remainingMs < 10000
+          ? Math.max(0, effect.remainingMs / 1000).toFixed(1)
+          : Math.ceil(effect.remainingMs / 1000))
+        + '</span>';
+
+      icon.title = (spell?.name || effect.spellId || effect.kind)
+        + " · "
+        + Math.max(0, effect.remainingMs / 1000).toFixed(1)
+        + "s";
+
+      container.appendChild(icon);
     }
   }
 

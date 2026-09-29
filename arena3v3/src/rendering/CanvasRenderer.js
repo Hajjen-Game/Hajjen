@@ -4,6 +4,7 @@ import { classColorFor } from "../content/classes/classColors.js";
 import { drawClassGlyph } from "./ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
+import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -762,16 +763,26 @@ export class CanvasRenderer {
   }
 
   drawEffectIcons(ctx, actor, game) {
+    const visibleKinds = new Set([
+      "hot",
+      "dot",
+      "damageReduction",
+      "healingReduction",
+      "offensiveCooldown",
+      "schoolLock",
+      "slow",
+    ]);
     const effects = actor.effects
-      .filter(effect => effect.remainingMs > 0)
-      .filter(effect =>
-        ["hot", "dot", "damageReduction", "healingReduction", "offensiveCooldown", "schoolLock"].includes(effect.kind),
-      )
+      .filter(effect => effect.remainingMs > 0 && visibleKinds.has(effect.kind))
+      .sort((a, b) => {
+        const priority = effectPriority(b) - effectPriority(a);
+        return priority || a.remainingMs - b.remainingMs;
+      })
       .slice(0, 5);
 
     if (effects.length === 0) return;
 
-    const size = 18;
+    const size = 20;
     const gap = 3;
     const totalWidth = effects.length * size + (effects.length - 1) * gap;
     const centerX = this.worldUiX(actor, game);
@@ -779,61 +790,73 @@ export class CanvasRenderer {
     const y = actor.y + actor.radius + 8;
 
     for (const effect of effects) {
-      let fill = this.theme.cast;
-      let label = "B";
+      const palette = effectPalette(effect);
+      const ratio = effect.durationMs > 0
+        ? clamp(effect.remainingMs / effect.durationMs, 0, 1)
+        : 0;
 
-      if (effect.kind === "hot") {
-        fill = this.theme.hot;
-        label = "H";
-      } else if (effect.kind === "dot") {
-        fill = this.theme.dot;
-        label = "D";
-      } else if (effect.kind === "fear") {
-        fill = this.theme.goldBright;
-        label = "F";
-      } else if (effect.kind === "incapacitate") {
-        fill = this.theme.goldBright;
-        label = "C";
-      } else if (effect.kind === "stun") {
-        fill = this.theme.goldBright;
-        label = "S";
-      } else if (effect.kind === "root") {
-        fill = this.theme.mage;
-        label = "R";
-      } else if (effect.kind === "healingReduction") {
-        fill = this.theme.enemyBright;
-        label = "M";
-      } else if (effect.kind === "offensiveCooldown") {
-        fill = this.theme.burst;
-        label = "!";
-      } else if (effect.kind === "schoolLock") {
-        fill = this.theme.interruptVfx;
-        label = "X";
+      ctx.save();
+
+      ctx.shadowColor = "rgba(0,0,0,.55)";
+      ctx.shadowBlur = 5;
+      ctx.fillStyle = "rgba(10,7,5,.94)";
+      roundedRect(ctx, x, y, size, size, 4);
+      ctx.fill();
+
+      ctx.shadowColor = "transparent";
+      ctx.globalAlpha = 0.96;
+      ctx.fillStyle = palette.background;
+      roundedRect(ctx, x + 1.5, y + 1.5, size - 3, size - 3, 3);
+      ctx.fill();
+
+      ctx.strokeStyle = palette.border;
+      ctx.lineWidth = 1.2;
+      roundedRect(ctx, x + 0.5, y + 0.5, size - 1, size - 1, 4);
+      ctx.stroke();
+
+      drawEffectGlyph(
+        ctx,
+        effect,
+        x + size / 2,
+        y + size / 2 - 0.5,
+        13,
+        palette.color,
+      );
+
+      // WoW-style radial duration sweep. The dark sector shrinks as the aura
+      // approaches expiry while the numerical timer remains readable.
+      if (ratio > 0.01) {
+        ctx.save();
+        ctx.globalAlpha = 0.30;
+        ctx.fillStyle = "#050302";
+        ctx.beginPath();
+        ctx.moveTo(x + size / 2, y + size / 2);
+        ctx.arc(
+          x + size / 2,
+          y + size / 2,
+          size * 0.48,
+          -Math.PI / 2,
+          -Math.PI / 2 + Math.PI * 2 * ratio,
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
-
-      ctx.fillStyle = "rgba(12,8,6,.92)";
-      roundedRect(ctx, x, y, size, size, 5);
-      ctx.fill();
-
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = fill;
-      roundedRect(ctx, x + 2, y + 2, size - 4, size - 4, 4);
-      ctx.fill();
-
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#160d09";
-      ctx.font = "900 9px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(label, x + size / 2, y + size / 2);
 
       const seconds = Math.max(0, effect.remainingMs / 1000);
       ctx.fillStyle = this.theme.cream;
-      ctx.font = "900 8px system-ui";
+      ctx.font = "950 8px system-ui";
       ctx.textAlign = "right";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText(seconds < 10 ? seconds.toFixed(1) : Math.ceil(seconds), x + size, y + size + 8);
+      ctx.shadowColor = "rgba(0,0,0,.9)";
+      ctx.shadowBlur = 2;
+      ctx.fillText(
+        seconds < 10 ? seconds.toFixed(1) : Math.ceil(seconds),
+        x + size + 1,
+        y + size + 8,
+      );
 
+      ctx.restore();
       x += size + gap;
     }
   }
@@ -971,7 +994,7 @@ export class CanvasRenderer {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    this.drawCcIcon(ctx, cc.kind, badgeCenterX, badgeY + 11, 12, color);
+    drawEffectGlyph(ctx, cc, badgeCenterX, badgeY + 11, 15, color);
 
     ctx.fillStyle = this.theme.cream;
     ctx.font = "900 10px system-ui";

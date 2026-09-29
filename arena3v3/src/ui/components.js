@@ -210,6 +210,10 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
       <div class="unit-portrait">
         <span class="unit-portrait-fallback">${fallback}</span>
         ${iconUrl ? '<img class="unit-class-icon" src="' + iconUrl + '" alt="" aria-hidden="true">' : ""}
+        <span class="frame-major-cc" hidden>
+          <span class="major-cc-glyph"></span>
+          <span class="major-cc-time"></span>
+        </span>
         <span class="party-key"></span>
       </div>
 

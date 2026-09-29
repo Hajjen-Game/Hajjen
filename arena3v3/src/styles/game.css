@@ -282,6 +282,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 }
 
 .frame-health-trail,
+.frame-heal-prediction,
 .frame-health,
 .frame-heal-flash {
   position: absolute;
@@ -298,8 +299,31 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     inset -1px 0 0 rgba(255,202,182,.18);
 }
 
-.frame-health {
+.frame-heal-prediction {
   z-index: 2;
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(238,209,126,.58),
+      rgba(220,243,177,.78) 55%,
+      rgba(198,245,184,.88)
+    );
+  box-shadow:
+    inset 1px 0 0 rgba(255,239,180,.52),
+    inset -1px 0 0 rgba(222,255,205,.74),
+    0 0 7px rgba(205,244,179,.20);
+  transition: opacity .08s ease;
+}
+
+.frame-heal-prediction.active {
+  opacity: .82;
+}
+
+.frame-health {
+  z-index: 3;
   background:
     linear-gradient(
       180deg,
@@ -313,7 +337,7 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 }
 
 .frame-heal-flash {
-  z-index: 3;
+  z-index: 4;
   width: 0;
   opacity: 0;
   pointer-events: none;
@@ -330,12 +354,12 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(255,255,255,.07), transparent 36%, rgba(0,0,0,.11));
-  z-index: 4;
+  z-index: 5;
 }
 
 .frame-health-copy {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   inset: 0 6px;
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-healprediction1";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-rangelos1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
@@ -1372,12 +1372,71 @@ export class UIManager {
     );
   }
 
+  primaryHealRangeSpell() {
+    const player = this.game.player;
+    if (!player || player.role !== "healer") return null;
+
+    const directHeal = player.spells.find(spell =>
+      spell.target === "ally"
+      && Number(spell.range) > 0
+      && ["quickHeal", "instantHeal", "bigHeal"].includes(spell.aiRole)
+      && (spell.effects || []).some(effect => effect.kind === "heal")
+    );
+
+    if (directHeal) return directHeal;
+
+    return player.spells.find(spell =>
+      spell.target === "ally"
+      && Number(spell.range) > 0
+      && (spell.effects || []).some(effect =>
+        effect.kind === "heal" || effect.kind === "hot"
+      )
+    ) || null;
+  }
+
+  updateFriendlyReachability(frame, actor, healSpell) {
+    const player = this.game.player;
+    const indicator = frame.querySelector(".frame-los-indicator");
+
+    const relevant = Boolean(
+      player?.alive
+      && actor?.alive
+      && !this.game.waitingForStart
+      && healSpell
+      && actor.team === player.team
+      && actor.id !== player.id
+    );
+
+    if (!relevant) {
+      frame.classList.remove("heal-out-of-range", "heal-los-blocked");
+      if (indicator) {
+        indicator.hidden = true;
+        indicator.title = "";
+      }
+      return;
+    }
+
+    const inRange = this.game.combat.spellInRange(player, actor, healSpell);
+    const losBlocked = inRange && !this.game.combat.hasLos(player, actor);
+
+    frame.classList.toggle("heal-out-of-range", !inRange);
+    frame.classList.toggle("heal-los-blocked", losBlocked);
+
+    if (indicator) {
+      indicator.hidden = !losBlocked;
+      indicator.title = losBlocked
+        ? "Line of sight blocked"
+        : "";
+    }
+  }
+
   update() {
     this.matchClock.textContent = this.game.waitingForStart
       ? "READY"
       : formatTime(this.game.elapsedSeconds);
 
     const healthNowMs = performance.now();
+    const primaryHealSpell = this.primaryHealRangeSpell();
 
     for (const actor of this.game.actors) {
       const frame = this.frameElements.get(actor.id);
@@ -1425,6 +1484,7 @@ export class UIManager {
 
       frame.classList.toggle("dead", !actor.alive);
       frame.classList.toggle("targeted", this.game.player.targetId === actor.id);
+      this.updateFriendlyReachability(frame, actor, primaryHealSpell);
       this.updateFrameCombatState(frame, actor);
 
       this.renderEffects(frame, actor);

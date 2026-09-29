@@ -232,7 +232,10 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
 
         <div class="frame-meta-row">
           <span class="unit-role"></span>
-          <span class="frame-status-dot" aria-hidden="true"></span>
+          <span class="frame-meta-status">
+            <span class="frame-los-indicator" aria-hidden="true" hidden></span>
+            <span class="frame-status-dot" aria-hidden="true"></span>
+          </span>
         </div>
 
         <div class="frame-resource"><div class="frame-resource-fill"></div></div>

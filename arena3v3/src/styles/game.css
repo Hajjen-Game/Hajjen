@@ -281,10 +281,25 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     0 1px 0 rgba(255,222,170,.035);
 }
 
-.frame-health {
+.frame-health-trail,
+.frame-health,
+.frame-heal-flash {
   position: absolute;
   inset: 0 auto 0 0;
   width: 100%;
+}
+
+.frame-health-trail {
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(238,130,103,.93), rgba(171,65,53,.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255,226,206,.16),
+    inset -1px 0 0 rgba(255,202,182,.18);
+}
+
+.frame-health {
+  z-index: 2;
   background:
     linear-gradient(
       180deg,
@@ -294,7 +309,19 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.12),
     inset -1px 0 0 rgba(255,255,255,.10);
-  transition: width .12s linear, filter .12s linear;
+  transition: filter .12s linear;
+}
+
+.frame-heal-flash {
+  z-index: 3;
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(242,255,220,.22), rgba(245,255,226,.92), rgba(219,255,209,.56));
+  box-shadow:
+    0 0 8px rgba(217,255,201,.62),
+    inset 0 0 4px rgba(255,255,245,.72);
 }
 
 .frame-health-glass {
@@ -303,12 +330,12 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(255,255,255,.07), transparent 36%, rgba(0,0,0,.11));
-  z-index: 2;
+  z-index: 4;
 }
 
 .frame-health-copy {
   position: absolute;
-  z-index: 3;
+  z-index: 5;
   inset: 0 6px;
   display: flex;
   align-items: center;
@@ -503,10 +530,6 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .unit-frame.dead {
   opacity: .38;
   filter: grayscale(.66) saturate(.55);
-}
-
-.unit-frame.dead .frame-health {
-  width: 0 !important;
 }
 
 .unit-frame.low-health:not(.dead) {

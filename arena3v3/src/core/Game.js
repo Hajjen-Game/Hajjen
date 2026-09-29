@@ -5,7 +5,7 @@ import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260928-
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
-import { CombatSystem } from "../systems/CombatSystem.js?v=20260928-actionfeedback1";
+import { CombatSystem } from "../systems/CombatSystem.js?v=20260929-healtext1";
 import { AISystem } from "../systems/AISystem.js?v=20260929-manarecovery2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260929-personalspace1";
@@ -826,9 +826,25 @@ export class Game {
   }
 
   addFloatingText(actor, text, type) {
+    const isHeal = type === "heal" || type === "crit-heal";
+    let laneOffset = 0;
+
+    if (isHeal) {
+      const recentHealCount = this.floatingTexts.filter(item =>
+        item.actorId === actor.id
+        && (item.type === "heal" || item.type === "crit-heal")
+        && item.remainingMs > 620
+      ).length;
+
+      // Keep the exact same green heal text, but avoid fresh heals being drawn
+      // directly on top of one another during Atonement + normal-heal bursts.
+      laneOffset = Math.min(2, recentHealCount) * 14;
+    }
+
     this.floatingTexts.push({
+      actorId: actor.id,
       x: actor.x,
-      y: actor.y - actor.radius - 8,
+      y: actor.y - actor.radius - 8 - laneOffset,
       text,
       type,
       totalMs: 850,

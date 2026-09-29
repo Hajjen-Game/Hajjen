@@ -1,7 +1,7 @@
 import { priestClass } from "./priest/config.js?v=20260928-healinghp1";
 import { druidClass } from "./druid/config.js?v=20260928-healinghp1";
 import { paladinClass } from "./paladin/config.js?v=20260928-healinghp1";
-import { warriorClass } from "./warrior/config.js?v=20260928-healinghp1";
+import { warriorClass } from "./warrior/config.js?v=20260929-chargeglide1";
 import { rogueClass } from "./rogue/config.js?v=20260928-healinghp1";
 import { deathKnightClass } from "./death-knight/config.js?v=20260928-healinghp1";
 import { mageClass } from "./mage/config.js?v=20260928-healinghp1";

@@ -1249,12 +1249,17 @@ export class UIManager {
       castElement.style.setProperty("--focus-cast-end", palette.end);
       castElement.style.setProperty("--focus-cast-glow", palette.glow);
       castElement.style.setProperty("--focus-cast-border", palette.border);
+      castElement.classList.toggle(
+        "uninterruptible",
+        spell?.interruptible === false,
+      );
 
       castElement.classList.remove("hidden");
       labelElement.textContent = spell?.name || "Casting";
       fillElement.style.width = (progress * 100) + "%";
     } else {
       fillElement.style.width = "0%";
+      castElement.classList.remove("uninterruptible");
       castElement.classList.add("hidden");
     }
   }
@@ -1509,6 +1514,10 @@ export class UIManager {
         });
 
         castTrack.classList.add("active");
+        castTrack.classList.toggle(
+          "uninterruptible",
+          spell?.interruptible === false,
+        );
         castTrack.style.setProperty("--frame-cast-start", palette.start);
         castTrack.style.setProperty("--frame-cast-end", palette.end);
         castTrack.style.setProperty("--frame-cast-glow", palette.glow);
@@ -1517,7 +1526,7 @@ export class UIManager {
         castName.textContent = spell?.name || "CASTING";
         castTime.textContent = Math.max(0, actor.cast.remainingMs / 1000).toFixed(1);
       } else {
-        castTrack.classList.remove("active");
+        castTrack.classList.remove("active", "uninterruptible");
         castFill.style.width = "0%";
         castName.textContent = "";
         castTime.textContent = "";

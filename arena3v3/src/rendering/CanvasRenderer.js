@@ -937,7 +937,7 @@ export class CanvasRenderer {
       // approaches expiry while the numerical timer remains readable.
       if (ratio > 0.01) {
         ctx.save();
-        ctx.globalAlpha = 0.30;
+        ctx.globalAlpha = 0.30 * expiryAlpha;
         ctx.fillStyle = "#050302";
         ctx.beginPath();
         ctx.moveTo(x + size / 2, y + size / 2);

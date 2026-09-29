@@ -447,6 +447,7 @@ export class CombatSystem {
             effectTarget,
             effect.stopDistance ?? 50,
             this.game.arena,
+            effect.dashDurationMs ?? 0,
           );
           this.game.vfx.beam(caster, effectTarget, style, 170);
           break;

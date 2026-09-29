@@ -5,6 +5,7 @@ import { drawClassGlyph } from "./ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
+import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -22,6 +23,10 @@ export class CanvasRenderer {
     this.ctx = canvas.getContext("2d");
     this.arena = arena;
     this.theme = this.readTheme();
+    this.healthPresentation = new Map();
+    this.healthGame = null;
+    this.lastHealthElapsed = -Infinity;
+    this.frameNowMs = performance.now();
   }
 
   readTheme() {
@@ -76,6 +81,15 @@ export class CanvasRenderer {
 
   render(game) {
     const ctx = this.ctx;
+    const elapsed = Number.isFinite(game.elapsedSeconds) ? game.elapsedSeconds : 0;
+
+    if (this.healthGame !== game || elapsed + 0.05 < this.lastHealthElapsed) {
+      this.healthPresentation.clear();
+    }
+
+    this.healthGame = game;
+    this.lastHealthElapsed = elapsed;
+    this.frameNowMs = performance.now();
 
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     this.drawArena(ctx);
@@ -649,13 +663,38 @@ export class CanvasRenderer {
     const centerX = this.worldUiX(actor, game);
     const x = centerX - width / 2;
     const y = actor.y - actor.radius - 24;
-    const lowHealth = actor.healthPct < 0.20;
+    const actualPct = clamp(actor.healthPct, 0, 1);
+    let healthVisual = this.healthPresentation.get(actor.id);
+
+    if (!healthVisual) {
+      healthVisual = createHealthPresentation(actualPct, this.frameNowMs);
+      this.healthPresentation.set(actor.id, healthVisual);
+    }
+
+    updateHealthPresentation(healthVisual, actualPct, this.frameNowMs);
+
+    const lowHealth = actualPct < 0.20;
     const pulse = lowHealth
       ? 0.5 + 0.5 * Math.sin(game.elapsedSeconds * 11)
       : 0;
+    const innerWidth = width - 2;
+    const innerHeight = height - 2;
 
     ctx.fillStyle = "rgba(11,8,6,.92)";
     ctx.fillRect(x, y, width, height);
+
+    if (healthVisual.trailPct > healthVisual.displayPct + 0.001) {
+      const trailGradient = ctx.createLinearGradient(x, y, x, y + height);
+      trailGradient.addColorStop(0, "rgba(238,130,103,.94)");
+      trailGradient.addColorStop(1, "rgba(171,65,53,.94)");
+      ctx.fillStyle = trailGradient;
+      ctx.fillRect(
+        x + 1,
+        y + 1,
+        innerWidth * healthVisual.trailPct,
+        innerHeight,
+      );
+    }
 
     ctx.save();
     ctx.fillStyle = lowHealth
@@ -670,10 +709,30 @@ export class CanvasRenderer {
     ctx.fillRect(
       x + 1,
       y + 1,
-      (width - 2) * clamp(actor.healthPct, 0, 1),
-      height - 2,
+      innerWidth * healthVisual.displayPct,
+      innerHeight,
     );
     ctx.restore();
+
+    if (healthVisual.healFlashAlpha > 0.001) {
+      const healFrom = Math.min(healthVisual.healFromPct, healthVisual.healToPct);
+      const healWidth = Math.max(0, healthVisual.healToPct - healFrom);
+
+      if (healWidth > 0.001) {
+        ctx.save();
+        ctx.globalAlpha = 0.30 + healthVisual.healFlashAlpha * 0.62;
+        ctx.fillStyle = "#ecffd9";
+        ctx.shadowColor = "#d9ffc9";
+        ctx.shadowBlur = 5 + healthVisual.healFlashAlpha * 5;
+        ctx.fillRect(
+          x + 1 + innerWidth * healFrom,
+          y + 1,
+          innerWidth * healWidth,
+          innerHeight,
+        );
+        ctx.restore();
+      }
+    }
 
     ctx.strokeStyle = lowHealth
       ? `rgba(255, 92, 82, ${0.55 + pulse * 0.4})`

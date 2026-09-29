@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3v3 Arena — Prototype</title>
   <link rel="stylesheet" href="./src/styles/theme.css?v=20260926-vfxintensity1" />
-  <link rel="stylesheet" href="./src/styles/game.css?v=20260929-enemyintel1" />
+  <link rel="stylesheet" href="./src/styles/game.css?v=20260929-sidecenter1" />
   <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
@@ -61,29 +61,33 @@
 
   <div id="app">
     <main id="game-shell">
-      <aside class="side-panel panel">
-        <div class="side-title">YOUR TEAM</div>
-        <div id="team-frames" class="unit-frame-list"></div>
+      <aside class="side-panel panel friendly-side-panel">
+        <div class="side-team-cluster">
+          <div class="side-title">YOUR TEAM</div>
+          <div id="team-frames" class="unit-frame-list"></div>
+        </div>
 
-        <section class="side-widget honor-widget">
-          <div class="widget-title">PVP PROGRESSION</div>
-          <div class="honor-rank-row">
-            <strong id="honor-rank">RANK 1</strong>
-            <span id="honor-total">RATING 1500</span>
-          </div>
-          <div class="honor-progress-track"><div id="honor-progress-fill" class="honor-progress-fill"></div></div>
-          <div class="honor-progress-copy">
-            <span id="honor-progress-text">0 / 150 TO RANK 2</span>
-            <span id="honor-talent-points" title="Unspent Talent Points available for your character">TP 0</span>
-          </div>
-        </section>
+        <div class="side-utility-stack">
+          <section class="side-widget honor-widget">
+            <div class="widget-title">PVP PROGRESSION</div>
+            <div class="honor-rank-row">
+              <strong id="honor-rank">RANK 1</strong>
+              <span id="honor-total">RATING 1500</span>
+            </div>
+            <div class="honor-progress-track"><div id="honor-progress-fill" class="honor-progress-fill"></div></div>
+            <div class="honor-progress-copy">
+              <span id="honor-progress-text">0 / 150 TO RANK 2</span>
+              <span id="honor-talent-points" title="Unspent Talent Points available for your character">TP 0</span>
+            </div>
+          </section>
 
-        <section class="side-widget damage-widget">
-          <div class="widget-title">DAMAGE METER</div>
-          <div id="damage-meter" class="damage-meter"></div>
-        </section>
+          <section class="side-widget damage-widget">
+            <div class="widget-title">DAMAGE METER</div>
+            <div id="damage-meter" class="damage-meter"></div>
+          </section>
 
-        <button id="copy-report-button" class="hud-button report-button">COPY RUN REPORT</button>
+          <button id="copy-report-button" class="hud-button report-button">COPY RUN REPORT</button>
+        </div>
       </aside>
 
       <section id="arena-wrap" class="arena-wrap">
@@ -115,14 +119,14 @@
             </div>
           </div>
 
-          <div class="combat-focus-hud" aria-label="Player and target status">
+          <div class="combat-focus-hud cast-only-hud" aria-label="Player cast status">
             <div class="focus-unit-stack player-focus-stack">
               <div id="player-cast" class="focus-cast player-cast hidden" aria-label="Player cast bar">
                 <div id="player-cast-label" class="cast-label"></div>
                 <div class="cast-track"><div id="player-cast-fill" class="cast-fill"></div></div>
               </div>
 
-              <div id="player-focus-frame" class="focus-unit-frame player-focus-frame">
+              <div id="player-focus-frame" class="focus-unit-frame player-focus-frame" aria-hidden="true">
                 <div class="focus-class-medallion">
                   <canvas id="player-focus-icon" class="focus-class-icon" width="72" height="72" aria-label="Player class icon"></canvas>
                 </div>
@@ -252,9 +256,11 @@
         </div>
       </section>
 
-      <aside class="side-panel panel">
-        <div class="side-title enemy">ENEMY TEAM</div>
-        <div id="enemy-frames" class="unit-frame-list"></div>
+      <aside class="side-panel panel enemy-side-panel">
+        <div class="side-team-cluster">
+          <div class="side-title enemy">ENEMY TEAM</div>
+          <div id="enemy-frames" class="unit-frame-list"></div>
+        </div>
 
         <section id="enemy-cooldown-widget" class="side-widget enemy-cooldown-widget" hidden>
           <div class="widget-title enemy-cooldown-title">ENEMY COOLDOWNS</div>

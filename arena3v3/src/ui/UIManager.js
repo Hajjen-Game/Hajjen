@@ -1,6 +1,6 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-healthfeedback1";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-healprediction1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
@@ -1292,6 +1292,86 @@ export class UIManager {
     );
   }
 
+  incomingHealPrediction(target) {
+    if (
+      !target?.alive
+      || !this.game.player
+      || target.team !== this.game.player.team
+    ) {
+      return 0;
+    }
+
+    let predicted = 0;
+
+    for (const caster of this.game.actors) {
+      if (
+        !caster.alive
+        || caster.team !== target.team
+        || !caster.cast
+        || caster.cast.targetId !== target.id
+      ) {
+        continue;
+      }
+
+      const spell = caster.getSpell(caster.cast.spellId);
+      if (!spell) continue;
+
+      for (const effect of spell.effects || []) {
+        if (effect.kind !== "heal") continue;
+
+        const effectTarget = effect.to === "self"
+          ? caster
+          : target;
+
+        if (effectTarget.id !== target.id) continue;
+
+        // Prediction deliberately uses the spell's normal, non-crit amount.
+        // The live heal still rolls variance and crit at completion, so the UI
+        // communicates incoming healing without exposing future RNG.
+        let amount = this.game.dampening.applyToHealing(
+          Math.max(0, Number(effect.amount) || 0),
+        );
+        amount = Math.round(
+          amount * (1 - target.healingReduction()),
+        );
+        predicted += Math.max(0, amount);
+      }
+    }
+
+    return Math.min(
+      predicted,
+      Math.max(0, target.maxHealth - target.health),
+    );
+  }
+
+  updateHealPrediction(frame, actor, healthVisual) {
+    const prediction = frame.querySelector(".frame-heal-prediction");
+    if (!prediction) return;
+
+    const friendly = actor.team === this.game.player?.team;
+    const amount = friendly
+      ? this.incomingHealPrediction(actor)
+      : 0;
+
+    const actualPct = clamp(actor.healthPct, 0, 1);
+    const endPct = actor.maxHealth > 0
+      ? clamp((actor.health + amount) / actor.maxHealth, 0, 1)
+      : actualPct;
+
+    // Keep the projected segment behind the real health fill. Starting at the
+    // real HP value means recent smooth-health interpolation can never make
+    // predicted healing overwrite health the player already has.
+    const startPct = actualPct;
+    const widthPct = Math.max(0, endPct - startPct);
+
+    prediction.style.left = (startPct * 100).toFixed(3) + "%";
+    prediction.style.width = (widthPct * 100).toFixed(3) + "%";
+    prediction.classList.toggle(
+      "active",
+      actor.alive && amount > 0 && widthPct > 0.0005,
+    );
+  }
+
   update() {
     this.matchClock.textContent = this.game.waitingForStart
       ? "READY"
@@ -1327,6 +1407,7 @@ export class UIManager {
       healFlash.style.left = (healFrom * 100).toFixed(3) + "%";
       healFlash.style.width = (healWidth * 100).toFixed(3) + "%";
       healFlash.style.opacity = healthVisual.healFlashAlpha.toFixed(3);
+      this.updateHealPrediction(frame, actor, healthVisual);
 
       frame.classList.toggle("low-health", actor.alive && healthPct < 0.20);
 

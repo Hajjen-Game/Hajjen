@@ -253,6 +253,7 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
     <div class="frame-state-banner" hidden></div>
     <div class="frame-effects"></div>
     <div class="frame-dr"></div>
+    <div class="frame-enemy-cooldowns" hidden></div>
   `;
 
   button.querySelector(".unit-name").textContent = actor.name;

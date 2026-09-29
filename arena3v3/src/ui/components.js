@@ -220,6 +220,7 @@ export function createUnitFrame(actor, onTarget, partyKey = "") {
       <div class="unit-frame-main">
         <div class="frame-bar">
           <div class="frame-health-trail" aria-hidden="true"></div>
+          <div class="frame-heal-prediction" aria-hidden="true"></div>
           <div class="frame-health"></div>
           <div class="frame-heal-flash" aria-hidden="true"></div>
           <div class="frame-health-glass"></div>

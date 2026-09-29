@@ -3828,3 +3828,81 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     width: calc(100% - 46px);
   }
 }
+
+
+/* Side-centered team frames + cast-only center HUD experiment */
+.side-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.side-team-cluster {
+  position: absolute;
+  z-index: 3;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.side-team-cluster .side-title {
+  padding-inline: 4px;
+}
+
+.friendly-side-panel .side-utility-stack {
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  max-height: calc(50% - 170px);
+  overflow: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+
+.friendly-side-panel .side-utility-stack .side-widget:first-child {
+  margin-top: 0;
+}
+
+.cast-only-hud.combat-focus-hud {
+  left: 50%;
+  bottom: 10px;
+  width: min(560px, 48%);
+  display: block;
+  transform: translateX(-50%);
+}
+
+.cast-only-hud .player-focus-stack {
+  display: block;
+  width: 100%;
+}
+
+.cast-only-hud .player-focus-frame,
+.cast-only-hud .target-focus-stack {
+  display: none !important;
+}
+
+.cast-only-hud .player-focus-stack .focus-cast {
+  width: 100%;
+  min-height: 30px;
+  margin: 0;
+  justify-self: stretch;
+}
+
+.cast-only-hud .player-focus-stack .focus-cast.hidden {
+  visibility: hidden;
+}
+
+@media (max-width: 1300px) {
+  .cast-only-hud.combat-focus-hud {
+    width: min(470px, 52%);
+    bottom: 8px;
+  }
+}
+
+@media (max-height: 760px) {
+  .friendly-side-panel .side-utility-stack {
+    max-height: calc(50% - 145px);
+  }
+}

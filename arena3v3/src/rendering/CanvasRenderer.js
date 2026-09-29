@@ -234,13 +234,21 @@ export class CanvasRenderer {
 
       if (!drawClassGlyph(ctx, actor)) this.drawRoleGlyph(ctx, actor);
     }
-    this.drawWorldHealth(ctx, actor, game);
-    this.drawWorldResource(ctx, actor, game);
+    const isPlayer = actor.id === game.player?.id;
+
+    // The player's health/resource already live in the centered party frame,
+    // and their cast is shown in the dedicated castbar above the action bar.
+    // Keep the arena body cleaner by reserving world bars for other units.
+    if (!isPlayer) {
+      this.drawWorldHealth(ctx, actor, game);
+      this.drawWorldResource(ctx, actor, game);
+    }
+
     this.drawName(ctx, actor, game);
     this.drawEffectIcons(ctx, actor, game);
     this.drawCombatState(ctx, actor, game);
 
-    if (actor.cast) this.drawWorldCast(ctx, actor, game);
+    if (actor.cast && !isPlayer) this.drawWorldCast(ctx, actor, game);
 
     // Keep the floating Hunter's-Mark-style target sigil as a second,
     // high-readability target cue above the selected unit.

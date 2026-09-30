@@ -62,34 +62,37 @@ function syncCameraSafeArea() {
 
   const sx = canvas.width / stage.width;
   const sy = canvas.height / stage.height;
-  const friendly = friendlyArenaPanel.getBoundingClientRect();
-  const enemy = enemyArenaPanel.getBoundingClientRect();
   const top = arenaTopHud?.getBoundingClientRect();
-  const maxSideMargin = Math.max(80, (canvas.width - 180) / 2);
 
-  // Measure the actual displayed frames, not hardcoded sidebar widths.
-  // Convert their edges to logical canvas pixels so the camera protects the
-  // player correctly at different window sizes and aspect ratios.
-  const left = Math.min(
-    maxSideMargin,
-    Math.max(94, (friendly.right - stage.left + 30) * sx),
-  );
-  const right = Math.min(
-    maxSideMargin,
-    Math.max(94, (stage.right - enemy.left + 30) * sx),
-  );
-  const topMargin = Math.max(
-    80,
-    top ? (top.bottom - stage.top + 28) * sy : 80,
-  );
-
-  // Reserve clearance around the player castbar and the arena boundaries.
+  // General screen-edge limits are deliberately modest. Using the full team
+  // panel widths as permanent side margins made the camera move needlessly
+  // even when all combatants were below the frames.
   game.camera.setSafeMargins({
-    left,
-    right,
-    top: Math.min(canvas.height * .35, topMargin),
-    bottom: Math.min(canvas.height * .30, Math.max(94, 54 * sy)),
+    left: 72,
+    right: 72,
+    top: Math.max(76, top ? (top.bottom - stage.top + 28) * sy : 76),
+    bottom: Math.max(94, 54 * sy),
   });
+
+  // React only where an on-screen team cluster really exists. The camera
+  // avoids these rectangles when the player approaches; otherwise it leaves
+  // the world stable, including along the lower left/right arena lanes.
+  const panels = [
+    { element: friendlyArenaPanel, side: "left" },
+    { element: enemyArenaPanel, side: "right" },
+  ];
+  const obstacles = panels.map(({ element, side }) => {
+    const box = element.getBoundingClientRect();
+    return {
+      side,
+      left: (box.left - stage.left) * sx,
+      right: (box.right - stage.left) * sx,
+      top: (box.top - stage.top) * sy,
+      bottom: (box.bottom - stage.top) * sy,
+    };
+  });
+
+  game.camera.setAvoidRects(obstacles);
 }
 
 function fitArenaStage() {
@@ -686,6 +689,12 @@ if ("ResizeObserver" in window) {
   const frameResizeObserver = new ResizeObserver(syncCameraSafeArea);
   frameResizeObserver.observe(friendlyArenaPanel);
   frameResizeObserver.observe(enemyArenaPanel);
+  for (const panel of [friendlyArenaPanel, enemyArenaPanel]) {
+    // Watch the contents too: a max-height scroll container can stay the same
+    // height even while DR and cooldown rows grow inside it.
+    const cluster = panel.querySelector(".side-team-cluster");
+    if (cluster) frameResizeObserver.observe(cluster);
+  }
 } else {
   window.addEventListener("resize", fitArenaStage);
 }

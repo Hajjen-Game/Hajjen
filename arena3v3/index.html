@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3v3 Arena — Prototype</title>
   <link rel="stylesheet" href="./src/styles/theme.css?v=20260926-vfxintensity1" />
-  <link rel="stylesheet" href="./src/styles/game.css?v=20260929-barsizes1" />
+  <link rel="stylesheet" href="./src/styles/game.css?v=20260930-fullarena1" />
   <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
@@ -61,12 +61,48 @@
 
   <div id="app">
     <main id="game-shell">
-      <aside class="side-panel panel friendly-side-panel">
+      <section id="arena-wrap" class="arena-wrap">
+        <div class="arena-top-hud" aria-label="Match status">
+          <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
+            <div class="dampening-icon" aria-hidden="true">▼</div>
+            <div class="dampening-copy">
+              <span class="dampening-label">DAMPENING</span>
+              <strong id="dampening-value">0%</strong>
+              <span id="dampening-next" class="dampening-next">starts in 45s</span>
+            </div>
+          </div>
+          <div id="match-clock" class="clock arena-clock" aria-label="Match time">00:00</div>
+          <button id="match-stats-toggle" class="hud-button arena-stats-toggle" type="button"
+            aria-controls="match-stats-panel" aria-expanded="false" aria-label="Toggle match statistics">STATS</button>
+        </div>
+
+        <!-- Teams are fixed screen-space overlays; the arena camera moves beneath them. -->
+        <aside id="friendly-arena-panel" class="arena-team-panel friendly-arena-panel"
+          aria-label="Your team">
         <div class="side-team-cluster">
           <div class="side-title">YOUR TEAM</div>
           <div id="team-frames" class="unit-frame-list"></div>
         </div>
+        </aside>
 
+        <aside id="enemy-arena-panel" class="arena-team-panel enemy-arena-panel"
+          aria-label="Enemy team">
+        <div class="side-team-cluster">
+          <div class="side-title enemy">ENEMY TEAM</div>
+          <div id="enemy-frames" class="unit-frame-list"></div>
+        </div>
+        <section id="enemy-cooldown-widget" class="side-widget enemy-cooldown-widget" hidden>
+          <div class="widget-title enemy-cooldown-title">ENEMY COOLDOWNS</div>
+          <div id="enemy-cooldowns" class="enemy-cooldowns"></div>
+        </section>
+        </aside>
+
+        <section id="match-stats-panel" class="arena-match-stats panel" hidden
+          aria-label="PvP progression and damage meter">
+          <div class="arena-stats-header">
+            <strong>MATCH STATS</strong>
+            <button id="match-stats-close" class="icon-button" type="button" aria-label="Close match stats">×</button>
+          </div>
         <div class="side-utility-stack">
           <section class="side-widget honor-widget">
             <div class="widget-title">PVP PROGRESSION</div>
@@ -88,20 +124,8 @@
 
           <button id="copy-report-button" class="hud-button report-button">COPY RUN REPORT</button>
         </div>
-      </aside>
+        </section>
 
-      <section id="arena-wrap" class="arena-wrap">
-        <div class="arena-top-hud" aria-label="Match status">
-          <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
-            <div class="dampening-icon" aria-hidden="true">▼</div>
-            <div class="dampening-copy">
-              <span class="dampening-label">DAMPENING</span>
-              <strong id="dampening-value">0%</strong>
-              <span id="dampening-next" class="dampening-next">starts in 45s</span>
-            </div>
-          </div>
-          <div id="match-clock" class="clock arena-clock" aria-label="Match time">00:00</div>
-        </div>
         <div id="arena-stage" class="arena-stage">
           <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
           <div id="combat-log" class="combat-log" aria-live="polite"></div>
@@ -256,17 +280,6 @@
         </div>
       </section>
 
-      <aside class="side-panel panel enemy-side-panel">
-        <div class="side-team-cluster">
-          <div class="side-title enemy">ENEMY TEAM</div>
-          <div id="enemy-frames" class="unit-frame-list"></div>
-        </div>
-
-        <section id="enemy-cooldown-widget" class="side-widget enemy-cooldown-widget" hidden>
-          <div class="widget-title enemy-cooldown-title">ENEMY COOLDOWNS</div>
-          <div id="enemy-cooldowns" class="enemy-cooldowns"></div>
-        </section>
-      </aside>
     </main>
 
     <footer class="bottom-hud panel">

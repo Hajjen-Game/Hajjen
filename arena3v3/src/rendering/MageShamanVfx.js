@@ -1,4 +1,4 @@
-import { usesMageShamanVfx2 } from "../systems/MageShamanVfxProfile.js?v=20260930-vfx2a";
+import { usesMageShamanVfx2 } from "../systems/MageShamanVfxProfile.js?v=20260930-vfx2b";
 
 const TAU = Math.PI * 2;
 

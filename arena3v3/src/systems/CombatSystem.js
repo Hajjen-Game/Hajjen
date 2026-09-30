@@ -662,7 +662,7 @@ export class CombatSystem {
     );
   }
 
-  emitHealFeedback(source, target, actual, crit, visualStyle = "heal", periodic = false) {
+  emitHealFeedback(source, target, actual, crit, visualStyle = "heal", periodic = false, suppressLegacyVisual = false) {
     if (actual <= 0) return;
 
     // All direct player healing, including Atonement, deliberately uses the
@@ -674,7 +674,7 @@ export class CombatSystem {
       crit ? "crit-heal" : "heal",
     );
 
-    if (!periodic) {
+    if (!periodic && !suppressLegacyVisual) {
       this.game.vfx.beam(source, target, visualStyle, 260);
       this.game.vfx.burst(target, visualStyle, crit ? 390 : 290);
     }
@@ -696,7 +696,15 @@ export class CombatSystem {
 
     if (actual > 0) {
       this.game.recordHealing(source, target, actual, crit);
-      this.emitHealFeedback(source, target, actual, crit, visualStyle, periodic);
+      this.emitHealFeedback(
+        source,
+        target,
+        actual,
+        crit,
+        visualStyle,
+        periodic,
+        this.game.vfx.ownsImpact(spellId),
+      );
 
       this.game.log(
         this.game.combatantLabel(source) + " heals " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",

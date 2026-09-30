@@ -135,6 +135,15 @@ export class Camera2D {
     this.offsetY += (this.targetOffsetY - this.offsetY) * alpha;
   }
 
+  snapToSafeArea(player) {
+    if (!player?.alive) return;
+    // Match starts should not spend their first half-second with the player
+    // obscured by a team frame while the camera catches up.
+    this.update(player, 16);
+    this.offsetX = this.targetOffsetX;
+    this.offsetY = this.targetOffsetY;
+  }
+
   worldToScreen({ x, y }) {
     return {
       x: x * this.zoom + this.offsetX,

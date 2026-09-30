@@ -18,7 +18,7 @@ import {
 import {
   drawPriestDruidCastVfx,
   drawPriestDruidSpellVfx,
-} from "./PriestDruidVfx.js?v=20260930-vfx2c";
+} from "./PriestDruidVfx.js?v=20260930-vfx2c1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

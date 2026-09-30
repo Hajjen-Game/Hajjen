@@ -1,4 +1,4 @@
-import { ownsMageShamanImpact, vfx2DurationFor } from "./MageShamanVfxProfile.js?v=20260930-vfx2a";
+import { ownsCasterVfx2Impact, vfx2DurationFor } from "./MageShamanVfxProfile.js?v=20260930-vfx2b";
 
 export class VisualEffectSystem {
   constructor() {
@@ -67,7 +67,7 @@ export class VisualEffectSystem {
   }
 
   ownsImpact(spellId = "") {
-    return ownsMageShamanImpact(spellId);
+    return ownsCasterVfx2Impact(spellId);
   }
 
   slash(target, style = "interrupt", durationMs = 280) {
@@ -92,7 +92,7 @@ export class VisualEffectSystem {
       "warrior-charge": 260,
     };
 
-    const layeredDuration = ownsMageShamanImpact(spellId)
+    const layeredDuration = ownsCasterVfx2Impact(spellId)
       ? vfx2DurationFor(spellId)
       : null;
 

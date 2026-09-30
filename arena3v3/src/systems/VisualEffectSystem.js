@@ -1,3 +1,5 @@
+import { ownsMageShamanImpact, vfx2DurationFor } from "./MageShamanVfxProfile.js?v=20260930-vfx2a";
+
 export class VisualEffectSystem {
   constructor() {
     this.effects = [];
@@ -54,13 +56,18 @@ export class VisualEffectSystem {
     }, durationMs);
   }
 
-  chain(actorIds, style = "lightning", durationMs = 360) {
+  chain(actorIds, style = "lightning", durationMs = 360, spellId = "") {
     if (!actorIds || actorIds.length < 2) return;
     this.add("chain", {
       actorIds: [...actorIds],
       style,
+      spellId,
       seed: this.nextId * 17,
     }, durationMs);
+  }
+
+  ownsImpact(spellId = "") {
+    return ownsMageShamanImpact(spellId);
   }
 
   slash(target, style = "interrupt", durationMs = 280) {
@@ -76,11 +83,7 @@ export class VisualEffectSystem {
     if (!source || !target || !spellId) return;
 
     const durations = {
-      "shaman-chain-lightning": 420,
-      "mage-pyroblast": 720,
       "warlock-chaos-bolt": 720,
-      "shaman-lava-burst": 650,
-      "mage-frostbolt": 540,
       "warlock-shadow-bolt": 540,
       "paladin-holy-shock": 520,
       "priest-greater-heal": 650,
@@ -88,6 +91,10 @@ export class VisualEffectSystem {
       "druid-regrowth": 620,
       "warrior-charge": 260,
     };
+
+    const layeredDuration = ownsMageShamanImpact(spellId)
+      ? vfx2DurationFor(spellId)
+      : null;
 
     this.add("spell", {
       sourceId: source.id,
@@ -100,6 +107,6 @@ export class VisualEffectSystem {
       style,
       missed,
       seed: this.nextId * 37,
-    }, durations[spellId] || 520);
+    }, layeredDuration || durations[spellId] || 520);
   }
 }

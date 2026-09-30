@@ -254,13 +254,15 @@ export class CrowdControlSystem {
 
   applyFearAoE(source, spell, effect) {
     let affected = 0;
-    this.game.vfx.ring(
-      source,
-      spell.visualStyle || source.visualStyle || "fear",
-      source.radius + 10,
-      effect.radius,
-      430,
-    );
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.ring(
+        source,
+        spell.visualStyle || source.visualStyle || "fear",
+        source.radius + 10,
+        effect.radius,
+        430,
+      );
+    }
 
     for (const target of this.game.actors.filter(actor => actor.alive && actor.team !== source.team)) {
       if (distance(source, target) > effect.radius + source.radius + target.radius) continue;

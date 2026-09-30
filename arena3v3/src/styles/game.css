@@ -4081,3 +4081,43 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     max-height: calc(100% - 62px);
   }
 }
+
+
+/* Step 3: calm, upper-corner frames and real combatant-aware occlusion */
+.arena-team-panel {
+  top: clamp(68px, 8.5%, 96px);
+  bottom: auto;
+  transform: none;
+  max-height: calc(100% - 116px);
+}
+
+/* Fade the individual frame that actually covers a combatant, not an
+   entire team or a permanently translucent HUD. Hover/focus restores it
+   so targeting via the frame remains usable. */
+.arena-team-panel .unit-frame {
+  transition:
+    opacity .20s ease,
+    border-color .12s ease,
+    box-shadow .12s ease,
+    transform .12s ease;
+}
+
+.arena-team-panel .unit-frame.world-occluded:not(:hover):not(:focus-visible) {
+  opacity: .38;
+}
+
+.arena-team-panel .unit-frame.player-occluded:not(:hover):not(:focus-visible) {
+  opacity: .17;
+}
+
+.arena-team-panel .unit-frame.world-occluded:hover,
+.arena-team-panel .unit-frame.world-occluded:focus-visible {
+  opacity: .96;
+}
+
+@media (max-height: 650px) {
+  .arena-team-panel {
+    top: 56px;
+    max-height: calc(100% - 72px);
+  }
+}

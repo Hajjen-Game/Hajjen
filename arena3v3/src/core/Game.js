@@ -1,7 +1,7 @@
 import { Actor } from "../entities/Actor.js";
 import { MovementSystem } from "../systems/MovementSystem.js?v=20260929-iconcollision1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
-import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2c";
+import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2c1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20260930-vfx2c";
 import { DampeningSystem } from "../systems/DampeningSystem.js";

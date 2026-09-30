@@ -804,7 +804,7 @@ function drawShamanElemental(ctx, from, to, profile, progress, seed, missed) {
   }
 
   const tail = pointAlong(from, destination, Math.max(0, t - .13));
-  drawLightningSegment(ctx, tail, p, seed + 71, progress * 4, profile.main);
+  drawLightningArc(ctx, tail, p, seed + 71, .72, 2.2, profile.main, progress * 4);
   ctx.restore();
 
   if (!missed && progress >= travelEnd) {

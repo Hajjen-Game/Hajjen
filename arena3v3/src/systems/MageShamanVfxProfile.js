@@ -25,9 +25,27 @@ export const WARLOCK_VFX2_IDS = Object.freeze(new Set([
   "warlock-conflagrate",
 ]));
 
+export const PRIEST_DRUID_VFX2_IDS = Object.freeze(new Set([
+  "priest-renew",
+  "priest-flash-heal",
+  "priest-greater-heal",
+  "priest-pain-suppression",
+  "priest-psychic-scream",
+  "priest-smite",
+  "priest-holy-fire",
+  "druid-rejuvenation",
+  "druid-swiftmend",
+  "druid-regrowth",
+  "druid-ironbark",
+  "druid-cyclone",
+  "druid-lifebloom",
+  "druid-moonfire",
+]));
+
 const CASTER_VFX2_IDS = new Set([
   ...MAGE_SHAMAN_VFX2_IDS,
   ...WARLOCK_VFX2_IDS,
+  ...PRIEST_DRUID_VFX2_IDS,
 ]);
 
 export function baseSpellId(spellId = "") {
@@ -40,6 +58,10 @@ export function usesMageShamanVfx2(spellId = "") {
 
 export function usesWarlockVfx2(spellId = "") {
   return WARLOCK_VFX2_IDS.has(baseSpellId(spellId));
+}
+
+export function usesPriestDruidVfx2(spellId = "") {
+  return PRIEST_DRUID_VFX2_IDS.has(baseSpellId(spellId));
 }
 
 export function ownsCasterVfx2Impact(spellId = "") {
@@ -77,6 +99,22 @@ export function vfx2DurationFor(spellId = "") {
     "warlock-fear": 620,
     "warlock-drain-life": 720,
     "warlock-conflagrate": 560,
+
+    "priest-renew": 560,
+    "priest-flash-heal": 560,
+    "priest-greater-heal": 720,
+    "priest-pain-suppression": 620,
+    "priest-psychic-scream": 620,
+    "priest-smite": 620,
+    "priest-holy-fire": 700,
+
+    "druid-rejuvenation": 580,
+    "druid-swiftmend": 540,
+    "druid-regrowth": 700,
+    "druid-ironbark": 650,
+    "druid-cyclone": 680,
+    "druid-lifebloom": 600,
+    "druid-moonfire": 680,
   };
 
   return durations[id] || 520;

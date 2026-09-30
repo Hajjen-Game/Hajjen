@@ -3,21 +3,21 @@ import { usesMageShamanVfx2 } from "../systems/MageShamanVfxProfile.js?v=2026093
 const TAU = Math.PI * 2;
 
 const PROFILE = Object.freeze({
-  "mage-living-bomb": { kind: "fire-mark", main: "#d86b3f", core: "#ffe0a8", accent: "#9f342b" },
-  "mage-frostbolt": { kind: "frost", main: "#63c9e7", core: "#effcff", accent: "#77a9dc" },
-  "mage-pyroblast": { kind: "fire", main: "#d96839", core: "#ffe2aa", accent: "#a73d2d", heavy: true },
-  "mage-frost-nova": { kind: "frost-nova", main: "#67cee8", core: "#f1fdff", accent: "#6f9fd7" },
-  "mage-polymorph": { kind: "arcane-control", main: "#a38ada", core: "#f4e7ff", accent: "#6e5aa9" },
-  "mage-frostfire-bolt": { kind: "frostfire", main: "#75d4e7", core: "#fff1d1", accent: "#dd7540", heavy: true },
-  "mage-arcane-barrage": { kind: "arcane", main: "#a389db", core: "#f3e5ff", accent: "#6e5db7" },
+  "mage-living-bomb": { family: "mage", kind: "mage-bomb", main: "#d86b3f", core: "#ffe0a8", accent: "#9f342b" },
+  "mage-frostbolt": { family: "mage", kind: "frost", main: "#63c9e7", core: "#effcff", accent: "#77a9dc" },
+  "mage-pyroblast": { family: "mage", kind: "fire", main: "#d96839", core: "#ffe2aa", accent: "#a73d2d", heavy: true },
+  "mage-frost-nova": { family: "mage", kind: "frost-nova", main: "#67cee8", core: "#f1fdff", accent: "#6f9fd7" },
+  "mage-polymorph": { family: "mage", kind: "arcane-control", main: "#a38ada", core: "#f4e7ff", accent: "#6e5aa9" },
+  "mage-frostfire-bolt": { family: "mage", kind: "frostfire", main: "#75d4e7", core: "#fff1d1", accent: "#dd7540", heavy: true },
+  "mage-arcane-barrage": { family: "mage", kind: "arcane", main: "#a389db", core: "#f3e5ff", accent: "#6e5db7" },
 
-  "shaman-flame-shock": { kind: "fire-mark", main: "#d96d3e", core: "#ffe0a1", accent: "#9e3e2d" },
-  "shaman-chain-lightning": { kind: "lightning-release", main: "#63c7dd", core: "#ecfeff", accent: "#4c91bd" },
-  "shaman-lava-burst": { kind: "lava", main: "#d66a38", core: "#ffe7a4", accent: "#9d3527", heavy: true },
-  "shaman-hex": { kind: "nature-control", main: "#78b89e", core: "#eaffdf", accent: "#4d7f68" },
-  "shaman-astral-shift": { kind: "astral", main: "#78c4d6", core: "#effeff", accent: "#846cb7" },
-  "shaman-elemental-blast": { kind: "elemental", main: "#66c5dc", core: "#fff0bc", accent: "#d97843", heavy: true },
-  "shaman-stormstrike": { kind: "stormstrike", main: "#65cce0", core: "#efffff", accent: "#d19b58" },
+  "shaman-flame-shock": { family: "shaman", kind: "shaman-flame-shock", main: "#d96d3e", core: "#ffe0a1", accent: "#9e3e2d" },
+  "shaman-chain-lightning": { family: "shaman", kind: "lightning-release", main: "#63c7dd", core: "#ecfeff", accent: "#4c91bd" },
+  "shaman-lava-burst": { family: "shaman", kind: "shaman-lava", main: "#d66a38", core: "#ffe7a4", accent: "#9d3527", heavy: true },
+  "shaman-hex": { family: "shaman", kind: "shaman-hex", main: "#78b89e", core: "#eaffdf", accent: "#4d7f68" },
+  "shaman-astral-shift": { family: "shaman", kind: "astral", main: "#78c4d6", core: "#effeff", accent: "#846cb7" },
+  "shaman-elemental-blast": { family: "shaman", kind: "shaman-elemental", main: "#66c5dc", core: "#fff0bc", accent: "#d97843", heavy: true },
+  "shaman-stormstrike": { family: "shaman", kind: "stormstrike", main: "#65cce0", core: "#efffff", accent: "#d19b58" },
 });
 
 function clamp01(value) {
@@ -571,6 +571,309 @@ function drawStormstrike(ctx, from, to, profile, progress, seed) {
   drawImpact(ctx, to, profile, clamp01((progress - 0.10) / 0.52), seed, 0.72);
 }
 
+function drawShamanCastCharge(ctx, actor, profile, progress, nowMs) {
+  const p = clamp01(progress);
+  const pulse = .5 + .5 * Math.sin(nowMs * .019);
+  const count = profile.heavy ? 8 : 6;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+
+  for (let i = 0; i < count; i += 1) {
+    const angle = seeded(actor.x + actor.y, i) * TAU + nowMs * .0011 * (i % 2 ? 1 : -1);
+    const start = actor.radius + 29 + seeded(actor.x, i) * 18;
+    const end = Math.max(actor.radius + 7, start * (1 - p * .58));
+    const x1 = actor.x + Math.cos(angle) * start;
+    const y1 = actor.y + Math.sin(angle) * start;
+    const x2 = actor.x + Math.cos(angle + .16 * Math.sin(i + p * 8)) * end;
+    const y2 = actor.y + Math.sin(angle + .16 * Math.sin(i + p * 8)) * end;
+
+    ctx.globalAlpha = .18 + p * .42;
+    ctx.strokeStyle = i % 3 === 0 ? profile.core : profile.main;
+    ctx.shadowColor = profile.main;
+    ctx.shadowBlur = 8 + pulse * 5;
+    ctx.lineWidth = 1.2 + (i % 2) * .8;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    const bendX = (seeded(actor.y, i + 20) - .5) * 13;
+    const bendY = (seeded(actor.x, i + 40) - .5) * 13;
+    ctx.lineTo((x1 + x2) * .5 + bendX, (y1 + y2) * .5 + bendY);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  if (p > .68) {
+    const flicker = (p - .68) / .32;
+    for (let i = 0; i < 4; i += 1) {
+      const a = i / 4 * TAU + nowMs * .002;
+      glowDot(
+        ctx,
+        actor.x + Math.cos(a) * (actor.radius + 5),
+        actor.y + Math.sin(a) * (actor.radius + 5),
+        1.7 + pulse,
+        i % 2 ? profile.core : profile.main,
+        flicker * .65,
+      );
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawMageBomb(ctx, target, profile, progress, seed) {
+  const p = clamp01(progress);
+  const pop = smoothstep(p / .18);
+  const fade = 1 - clamp01((p - .58) / .42);
+  const radius = 12 + pop * 20;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.translate(target.x, target.y);
+  ctx.rotate(p * 2.8);
+  ctx.globalAlpha = fade * .82;
+  ctx.strokeStyle = profile.main;
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 14;
+  ctx.lineWidth = 2.2;
+
+  // Mage fire remains precise: a rotating four-corner bomb sigil.
+  ctx.beginPath();
+  for (let i = 0; i < 4; i += 1) {
+    const a = i * Math.PI / 2;
+    const x = Math.cos(a) * radius;
+    const y = Math.sin(a) * radius;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.rotate(-p * 5.1);
+  ctx.globalAlpha = fade * .62;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * .62, 0, TAU);
+  ctx.stroke();
+
+  for (let i = 0; i < 4; i += 1) {
+    const a = i * Math.PI / 2 + Math.PI / 4;
+    glowDot(ctx, Math.cos(a) * radius * .72, Math.sin(a) * radius * .72, 2.2, profile.core, fade * .72);
+  }
+  glowDot(ctx, 0, 0, 5 + pop * 3, profile.core, fade * .55);
+  ctx.restore();
+}
+
+function drawShamanFlameShock(ctx, target, profile, progress, seed) {
+  const p = clamp01(progress);
+  const fade = 1 - clamp01((p - .55) / .45);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  // Shaman fire crawls upward in uneven tongues; no rune geometry.
+  for (let i = 0; i < 8; i += 1) {
+    const side = (seeded(seed, i) - .5) * 38;
+    const baseX = target.x + side;
+    const baseY = target.y + 17 - seeded(seed + 10, i) * 7;
+    const rise = easeOut(p) * (18 + seeded(seed + 30, i) * 30);
+    ctx.globalAlpha = fade * (.35 + seeded(seed + 50, i) * .43);
+    ctx.strokeStyle = i % 3 === 0 ? profile.core : profile.main;
+    ctx.shadowColor = profile.main;
+    ctx.shadowBlur = 11;
+    ctx.lineWidth = 1.6 + seeded(seed + 70, i) * 2.2;
+    ctx.beginPath();
+    ctx.moveTo(baseX, baseY);
+    ctx.quadraticCurveTo(
+      baseX + Math.sin(i * 2.2 + p * 10) * 10,
+      baseY - rise * .55,
+      baseX + Math.cos(i + p * 8) * 5,
+      baseY - rise,
+    );
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawShamanLava(ctx, from, to, profile, progress, seed, missed) {
+  const travelEnd = .52;
+  const t = easeOut(progress / travelEnd);
+  const b = segmentBasis(from, to);
+  const destination = missed
+    ? { x: to.x + b.nx * 42 + b.tx * 12, y: to.y + b.ny * 42 + b.ty * 12 }
+    : to;
+
+  // A slight arc makes this read like thrown molten rock rather than Mage Pyro.
+  const base = pointAlong(from, destination, t);
+  const arcHeight = Math.sin(t * Math.PI) * 24;
+  const p = { x: base.x, y: base.y - arcHeight };
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.translate(p.x, p.y);
+  ctx.rotate(progress * 11 + seed * .01);
+
+  ctx.fillStyle = "#6b3426";
+  ctx.strokeStyle = profile.main;
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 20;
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = .96;
+  ctx.beginPath();
+  for (let i = 0; i < 9; i += 1) {
+    const a = i / 9 * TAU;
+    const rr = i % 2 ? 9 : 13;
+    const x = Math.cos(a) * rr;
+    const y = Math.sin(a) * rr;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < 3; i += 1) {
+    const a = i * 2.1 + progress * 4;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * 3, Math.sin(a) * 3);
+    ctx.lineTo(Math.cos(a + .45) * 9, Math.sin(a + .45) * 9);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  for (let i = 0; i < 7; i += 1) {
+    const lag = Math.max(0, t - .038 * (i + 1));
+    const q0 = pointAlong(from, destination, lag);
+    const y = q0.y - Math.sin(lag * Math.PI) * 24;
+    glowDot(ctx, q0.x + (seeded(seed, i) - .5) * 12, y + (seeded(seed + 9, i) - .5) * 8, 1.6 + (i % 3) * .5, i % 3 ? profile.main : profile.core, .52 - i * .045);
+  }
+
+  if (!missed && progress >= travelEnd) {
+    const hit = clamp01((progress - travelEnd) / .38);
+    const fade = 1 - hit;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 9; i += 1) {
+      const a = seeded(seed + 21, i) * TAU;
+      const rr = 7 + easeOut(hit) * (22 + seeded(seed + 41, i) * 30);
+      const x = to.x + Math.cos(a) * rr;
+      const y = to.y + Math.sin(a) * rr - hit * 8;
+      glowDot(ctx, x, y, 1.7 + seeded(seed + 61, i) * 2.6, i % 3 === 0 ? profile.core : profile.main, fade * .75);
+    }
+    ctx.strokeStyle = "#8b4b31";
+    ctx.globalAlpha = fade * .7;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i += 1) {
+      const a = i / 6 * TAU + seeded(seed, i) * .3;
+      ctx.beginPath();
+      ctx.moveTo(to.x + Math.cos(a) * 6, to.y + Math.sin(a) * 6);
+      ctx.lineTo(to.x + Math.cos(a) * (18 + hit * 28), to.y + Math.sin(a) * (18 + hit * 28));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawShamanElemental(ctx, from, to, profile, progress, seed, missed) {
+  const travelEnd = .50;
+  const t = easeOut(progress / travelEnd);
+  const b = segmentBasis(from, to);
+  const destination = missed
+    ? { x: to.x + b.nx * 40, y: to.y + b.ny * 40 }
+    : to;
+  const p = pointAlong(from, destination, t);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  // Three unstable elemental satellites orbit a bright moving core.
+  glowDot(ctx, p.x, p.y, 7.5, profile.core, .95);
+  const satelliteColors = [profile.main, profile.accent, "#87b978"];
+  for (let i = 0; i < 3; i += 1) {
+    const a = progress * 15 * (i % 2 ? -1 : 1) + i * TAU / 3;
+    const rr = 10 + (i % 2) * 4;
+    const sx = p.x + Math.cos(a) * rr;
+    const sy = p.y + Math.sin(a) * rr;
+    glowDot(ctx, sx, sy, 3.2, satelliteColors[i], .78);
+    ctx.globalAlpha = .38;
+    ctx.strokeStyle = satelliteColors[i];
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(sx, sy);
+    ctx.stroke();
+  }
+
+  const tail = pointAlong(from, destination, Math.max(0, t - .13));
+  drawLightningSegment(ctx, tail, p, seed + 71, progress * 4, profile.main);
+  ctx.restore();
+
+  if (!missed && progress >= travelEnd) {
+    const hit = clamp01((progress - travelEnd) / .38);
+    const fade = 1 - hit;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 9; i += 1) {
+      const a = i / 9 * TAU + seeded(seed, i) * .24;
+      const inner = 7 + hit * 3;
+      const outer = 18 + easeOut(hit) * (28 + seeded(seed + 17, i) * 18);
+      ctx.globalAlpha = fade * .68;
+      ctx.strokeStyle = satelliteColors[i % 3];
+      ctx.shadowColor = satelliteColors[i % 3];
+      ctx.shadowBlur = 9;
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(to.x + Math.cos(a) * inner, to.y + Math.sin(a) * inner);
+      ctx.lineTo(to.x + Math.cos(a) * outer, to.y + Math.sin(a) * outer);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawShamanHex(ctx, from, to, profile, progress, seed, missed) {
+  const travelEnd = .34;
+  const t = easeOut(progress / travelEnd);
+  const b = segmentBasis(from, to);
+  const destination = missed ? { x: to.x + b.nx * 31, y: to.y + b.ny * 31 } : to;
+  const p = pointAlong(from, destination, t);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  // Twisting paired nature wisps instead of Mage's rotating runes.
+  for (const sign of [-1, 1]) {
+    const side = Math.sin(progress * 14) * 7 * sign;
+    glowDot(ctx, p.x + b.nx * side, p.y + b.ny * side, 3.2, sign > 0 ? profile.core : profile.main, .72);
+  }
+
+  if (!missed && progress >= travelEnd) {
+    const phase = clamp01((progress - travelEnd) / .56);
+    const fade = 1 - phase;
+    ctx.strokeStyle = profile.main;
+    ctx.shadowColor = profile.main;
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i += 1) {
+      const a = i / 5 * TAU + phase * 1.3;
+      const r0 = 8 + phase * 8;
+      const r1 = 17 + phase * 22;
+      ctx.globalAlpha = fade * .7;
+      ctx.beginPath();
+      ctx.moveTo(to.x + Math.cos(a) * r0, to.y + Math.sin(a) * r0);
+      ctx.quadraticCurveTo(
+        to.x + Math.cos(a + .55) * ((r0 + r1) * .55),
+        to.y + Math.sin(a + .55) * ((r0 + r1) * .55),
+        to.x + Math.cos(a + .18) * r1,
+        to.y + Math.sin(a + .18) * r1,
+      );
+      ctx.stroke();
+      glowDot(ctx, to.x + Math.cos(a + .18) * r1, to.y + Math.sin(a + .18) * r1, 1.8, i % 2 ? profile.core : profile.main, fade * .55);
+    }
+  }
+
+  ctx.restore();
+}
+
 function drawChainSegment(ctx, from, to, profile, phase, seed) {
   const t = clamp01(phase);
   if (t <= 0) return;
@@ -591,6 +894,12 @@ export function drawMageShamanCastVfx(ctx, actor, spell, progress, nowMs = perfo
   if (!profile) return false;
 
   const p = clamp01(progress);
+
+  if (profile.family === "shaman") {
+    drawShamanCastCharge(ctx, actor, profile, p, nowMs);
+    return true;
+  }
+
   const swell = smoothstep(p);
   const pulse = 0.5 + 0.5 * Math.sin(nowMs * 0.012 + actor.x * 0.01);
   const radius = actor.radius + 10 + swell * (profile.heavy ? 16 : 10);
@@ -644,18 +953,31 @@ export function drawMageShamanSpellVfx(ctx, effect, game, progress, alpha) {
     case "fire":
     case "frostfire":
     case "arcane":
-    case "lava":
-    case "elemental":
       drawProjectile(ctx, from, to, profile, p, seed, Boolean(effect.missed));
       break;
 
     case "arcane-control":
-    case "nature-control":
       drawControl(ctx, from, to, profile, p, seed, Boolean(effect.missed));
       break;
 
-    case "fire-mark":
-      drawMark(ctx, to, profile, p, seed);
+    case "mage-bomb":
+      drawMageBomb(ctx, to, profile, p, seed);
+      break;
+
+    case "shaman-flame-shock":
+      drawShamanFlameShock(ctx, to, profile, p, seed);
+      break;
+
+    case "shaman-lava":
+      drawShamanLava(ctx, from, to, profile, p, seed, Boolean(effect.missed));
+      break;
+
+    case "shaman-elemental":
+      drawShamanElemental(ctx, from, to, profile, p, seed, Boolean(effect.missed));
+      break;
+
+    case "shaman-hex":
+      drawShamanHex(ctx, from, to, profile, p, seed, Boolean(effect.missed));
       break;
 
     case "frost-nova":

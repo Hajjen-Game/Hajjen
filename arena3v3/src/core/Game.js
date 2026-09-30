@@ -1,4 +1,5 @@
 import { Actor } from "../entities/Actor.js";
+import { Camera2D } from "./Camera2D.js?v=20260930-camera1";
 import { MovementSystem } from "../systems/MovementSystem.js?v=20260929-iconcollision1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260928-actionfeedback1";
@@ -26,6 +27,7 @@ export class Game {
     this.waitingForStart = true;
 
     this.movement = new MovementSystem();
+    this.camera = new Camera2D(canvas.width, canvas.height, arena.width, arena.height);
     this.resources = new ResourceSystem();
     this.vfx = new VisualEffectSystem();
     this.activeCharacterId = null;
@@ -483,9 +485,8 @@ export class Game {
   onCanvasClick(event) {
     if (performance.now() <= this.mouseSteering.suppressClickUntil) return;
 
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (event.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (event.clientY - rect.top) * (this.canvas.height / rect.height);
+    const screenPoint = this.canvasPointFromEvent(event);
+    const { x, y } = this.camera.screenToWorld(screenPoint);
 
     const candidates = this.actors
       .filter(actor => actor.alive)
@@ -616,8 +617,11 @@ export class Game {
       return { x: 0, y: 0 };
     }
 
-    const dx = this.mouseSteering.x - this.player.x;
-    const dy = this.mouseSteering.y - this.player.y;
+    // Keep the mouse in screen space while both buttons are held: when the
+    // camera pans, the world destination must update even without pointermove.
+    const mouseWorld = this.camera.screenToWorld(this.mouseSteering);
+    const dx = mouseWorld.x - this.player.x;
+    const dy = mouseWorld.y - this.player.y;
     const distance = Math.hypot(dx, dy);
     const deadZone = Math.max(10, this.player.radius * 0.65);
 
@@ -685,6 +689,7 @@ export class Game {
         this.arena,
         this.player?.id,
       );
+      this.camera.update(this.player, deltaMs);
       this.checkWinCondition();
     }
 
@@ -961,6 +966,7 @@ export class Game {
     if (!arena) return;
 
     this.arena = arena;
+    this.camera?.reset(arena.width, arena.height);
     if (this.renderer) this.renderer.arena = arena;
   }
 
@@ -982,6 +988,7 @@ export class Game {
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = null;
+    this.camera.reset(this.arena.width, this.arena.height);
 
     this.vfx.reset();
     this.cc = new CrowdControlSystem(this);

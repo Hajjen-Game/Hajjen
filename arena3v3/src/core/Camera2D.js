@@ -9,8 +9,11 @@ export class Camera2D {
   constructor(viewportWidth, viewportHeight, worldWidth, worldHeight) {
     this.viewportWidth = viewportWidth;
     this.viewportHeight = viewportHeight;
-    this.safeMargins = { left: 130, right: 130, top: 95, bottom: 95 };
-    this.followMs = 155;
+    this.safeMargins = { left: 78, right: 78, top: 88, bottom: 94 };
+    // Only the actual rectangles occupied by team frames need protection.
+    // The rest of the arena's left/right edges stay available for gameplay.
+    this.avoidRects = [];
+    this.followMs = 180;
     this.reset(worldWidth, worldHeight);
   }
 
@@ -65,6 +68,19 @@ export class Camera2D {
     };
   }
 
+  setAvoidRects(rectangles = []) {
+    this.avoidRects = rectangles
+      .filter(rect => rect && (rect.side === "left" || rect.side === "right"))
+      .map(rect => ({
+        side: rect.side,
+        left: clamp(Number(rect.left) || 0, 0, this.viewportWidth),
+        right: clamp(Number(rect.right) || 0, 0, this.viewportWidth),
+        top: clamp(Number(rect.top) || 0, 0, this.viewportHeight),
+        bottom: clamp(Number(rect.bottom) || 0, 0, this.viewportHeight),
+      }))
+      .filter(rect => rect.right > rect.left && rect.bottom > rect.top);
+  }
+
   // Reserved for the full-arena HUD step. Zooming is centered on a screen
   // anchor and uses the same inverse conversion as mouse targeting.
   setZoom(value, screenAnchor = {
@@ -111,26 +127,62 @@ export class Camera2D {
 
     const { viewportWidth: width, viewportHeight: height } = this;
     const margins = this.safeMargins;
-    const minX = margins.left;
-    const maxX = Math.max(minX + 80, width - margins.right);
-    const minY = margins.top;
-    const maxY = Math.max(minY + 80, height - margins.bottom);
+    const iconRadius = (Number(player.radius) || 25) * this.zoom;
+    // Include the visible player highlight and name, not just the small
+    // collision circle. A frame must never completely cover the player icon.
+    const haloX = Math.max(45, iconRadius + 24);
+    const haloY = Math.max(62, iconRadius + 40);
+    const minX = Math.max(margins.left, haloX + 10);
+    const maxX = Math.max(minX + 80, width - Math.max(margins.right, haloX + 10));
+    const minY = Math.max(margins.top, haloY + 10);
+    const maxY = Math.max(minY + 80, height - Math.max(margins.bottom, haloY + 10));
 
-    // Compare with the desired offset instead of the smoothed offset. That
-    // prevents the camera from accumulating corrections and jittering when
-    // a player lingers on the dead-zone boundary.
-    const projectedX = player.x * this.zoom + this.targetOffsetX;
-    const projectedY = player.y * this.zoom + this.targetOffsetY;
+    // Work from the desired offset, not the currently interpolating camera.
+    // This means the camera doesn't repeatedly overcorrect at a HUD edge.
+    let px = player.x * this.zoom + this.targetOffsetX;
+    let py = player.y * this.zoom + this.targetOffsetY;
 
-    if (projectedX < minX) this.targetOffsetX += minX - projectedX;
-    else if (projectedX > maxX) this.targetOffsetX += maxX - projectedX;
+    if (px < minX) this.targetOffsetX += minX - px;
+    else if (px > maxX) this.targetOffsetX += maxX - px;
 
-    if (projectedY < minY) this.targetOffsetY += minY - projectedY;
-    else if (projectedY > maxY) this.targetOffsetY += maxY - projectedY;
+    if (py < minY) this.targetOffsetY += minY - py;
+    else if (py > maxY) this.targetOffsetY += maxY - py;
+
+    px = player.x * this.zoom + this.targetOffsetX;
+    py = player.y * this.zoom + this.targetOffsetY;
+    let avoidingHud = false;
+
+    for (const rect of this.avoidRects) {
+      // Crucially, don't pan horizontally when the player is BELOW the
+      // upper-corner frames. The previous full-height side margins caused
+      // needless camera motion throughout the entire match.
+      if (py + haloY < rect.top - 6 || py - haloY > rect.bottom + 6) continue;
+
+      if (rect.side === "left") {
+        const clearance = rect.right + haloX + 12;
+        if (px - haloX < rect.right + 12 && px + haloX > rect.left - 6) {
+          const correction = Math.max(0, clearance - px);
+          this.targetOffsetX += correction;
+          px += correction;
+          avoidingHud ||= correction > 0;
+        }
+      } else {
+        const clearance = rect.left - haloX - 12;
+        if (px + haloX > rect.left - 12 && px - haloX < rect.right + 6) {
+          const correction = Math.max(0, px - clearance);
+          this.targetOffsetX -= correction;
+          px -= correction;
+          avoidingHud ||= correction > 0;
+        }
+      }
+    }
 
     this.clampTargetOffsets();
 
-    const alpha = 1 - Math.exp(-Math.min(deltaMs, 50) / this.followMs);
+    // Normal movement stays calm. Approaching the HUD gets a slightly faster
+    // response, with fading as backup if physical camera limits are reached.
+    const responseMs = avoidingHud ? 110 : this.followMs;
+    const alpha = 1 - Math.exp(-Math.min(deltaMs, 50) / responseMs);
     this.offsetX += (this.targetOffsetX - this.offsetX) * alpha;
     this.offsetY += (this.targetOffsetY - this.offsetY) * alpha;
   }

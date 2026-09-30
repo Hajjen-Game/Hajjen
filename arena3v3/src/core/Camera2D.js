@@ -27,6 +27,34 @@ export class Camera2D {
     this.targetOffsetY = this.offsetY;
   }
 
+  resizeViewport(width, height) {
+    const nextWidth = Math.max(1, Math.round(width || this.viewportWidth));
+    const nextHeight = Math.max(1, Math.round(height || this.viewportHeight));
+    if (nextWidth === this.viewportWidth && nextHeight === this.viewportHeight) return;
+
+    // The HTML canvas changes shape with the browser, but world positions and
+    // scale do not. Preserve the current world-space center while resizing.
+    const dx = (nextWidth - this.viewportWidth) / 2;
+    const dy = (nextHeight - this.viewportHeight) / 2;
+    this.viewportWidth = nextWidth;
+    this.viewportHeight = nextHeight;
+    this.offsetX += dx;
+    this.offsetY += dy;
+    this.targetOffsetX += dx;
+    this.targetOffsetY += dy;
+    this.clampTargetOffsets();
+    this.offsetX = clamp(
+      this.offsetX,
+      (this.viewportWidth - this.worldWidth * this.zoom) / 2 - this.viewportWidth * .25,
+      (this.viewportWidth - this.worldWidth * this.zoom) / 2 + this.viewportWidth * .25,
+    );
+    this.offsetY = clamp(
+      this.offsetY,
+      (this.viewportHeight - this.worldHeight * this.zoom) / 2 - this.viewportHeight * .22,
+      (this.viewportHeight - this.worldHeight * this.zoom) / 2 + this.viewportHeight * .22,
+    );
+  }
+
   setSafeMargins({ left, right, top, bottom } = {}) {
     const previous = this.safeMargins;
     this.safeMargins = {

@@ -3906,3 +3906,178 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     max-height: calc(50% - 145px);
   }
 }
+
+/* Full-arena HUD — camera-aware team overlays */
+#game-shell {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#arena-wrap.arena-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  display: block;
+  background: var(--arena-floor);
+}
+
+#arena-wrap .arena-stage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+.arena-team-panel {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  width: clamp(196px, 17vw, 280px);
+  max-height: calc(100% - 116px);
+  transform: translateY(-50%);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185,138,75,.45) transparent;
+  pointer-events: none;
+}
+
+.friendly-arena-panel {
+  left: clamp(8px, 1vw, 18px);
+}
+
+.enemy-arena-panel {
+  right: clamp(8px, 1vw, 18px);
+}
+
+.arena-team-panel .side-team-cluster {
+  position: static;
+  z-index: auto;
+  inset: auto;
+  transform: none;
+  width: 100%;
+  padding: 0 2px 2px;
+}
+
+.arena-team-panel .side-team-cluster .side-title {
+  padding: 3px 3px 8px;
+  color: var(--friendly-bright);
+  text-shadow: 0 1px 4px #0c0806;
+}
+
+.arena-team-panel .side-team-cluster .side-title.enemy {
+  color: var(--enemy-bright);
+}
+
+.arena-team-panel .unit-frame-list {
+  gap: 7px;
+}
+
+.arena-team-panel .unit-frame {
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(39,26,18,.91), rgba(18,13,10,.93));
+  box-shadow:
+    inset 0 1px 0 rgba(255,226,177,.055),
+    0 2px 9px rgba(0,0,0,.43);
+  backdrop-filter: blur(4px);
+}
+
+.arena-team-panel .side-widget[hidden],
+.arena-team-panel .enemy-cooldown-widget[hidden] {
+  display: none !important;
+}
+
+.arena-stats-toggle.hud-button {
+  min-width: 58px;
+  min-height: 34px;
+  padding: 7px 9px;
+  border-color: rgba(197,138,67,.72);
+  font-size: 10px;
+  background: rgba(23,15,11,.8);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.arena-stats-toggle[aria-expanded="true"] {
+  color: #fff0cf;
+  box-shadow: 0 0 9px rgba(213,152,75,.43);
+}
+
+.arena-match-stats {
+  position: absolute;
+  z-index: 16;
+  top: 52px;
+  left: 50%;
+  width: min(340px, calc(100% - 26px));
+  max-height: calc(100% - 70px);
+  overflow: auto;
+  padding: 13px;
+  border-color: rgba(210,154,91,.8);
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(40,26,17,.96), rgba(20,14,10,.97));
+  scrollbar-width: thin;
+}
+
+.arena-match-stats[hidden] {
+  display: none !important;
+}
+
+.arena-stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--gold-bright);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.arena-stats-header .icon-button {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.arena-match-stats .side-utility-stack {
+  position: static;
+  z-index: auto;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+
+.arena-match-stats .side-widget:first-child {
+  margin-top: 0;
+}
+
+.arena-wrap:has(.arena-lobby:not(.hidden)) .arena-team-panel,
+.arena-wrap:has(.match-result:not(.hidden)) .arena-team-panel {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-height: 650px) {
+  .arena-team-panel {
+    max-height: calc(100% - 76px);
+  }
+
+  .arena-match-stats {
+    max-height: calc(100% - 62px);
+  }
+}

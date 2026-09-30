@@ -303,8 +303,12 @@ export class CrowdControlSystem {
     this.syncDrStates(target);
 
     const style = spell.visualStyle || source.visualStyle || "control";
-    this.game.vfx.beam(source, target, style, 250);
-    this.game.vfx.burst(target, style, 360);
+    // Polymorph and Hex now own their complete travel + rune impact.
+    // Keep the old beam/burst for other classes' crowd control only.
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.beam(source, target, style, 250);
+      this.game.vfx.burst(target, style, 360);
+    }
     this.game.recordCc(source, target, "incapacitate", dr.durationMs);
     this.game.addFloatingText(target, "CONTROLLED", "cc");
     this.game.log(
@@ -369,7 +373,9 @@ export class CrowdControlSystem {
     this.syncDrStates(target);
 
     const style = spell.visualStyle || source.visualStyle || "control";
-    this.game.vfx.ring(target, style, target.radius + 2, target.radius + 24, 360);
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.ring(target, style, target.radius + 2, target.radius + 24, 360);
+    }
     this.game.recordCc(source, target, "root", dr.durationMs);
     this.game.addFloatingText(target, "ROOTED", "cc");
     this.game.log(
@@ -382,13 +388,16 @@ export class CrowdControlSystem {
 
   applyRootAoE(source, spell, effect) {
     let affected = 0;
-    this.game.vfx.ring(
-      source,
-      spell.visualStyle || source.visualStyle || "control",
-      source.radius + 8,
-      effect.radius,
-      420,
-    );
+    // Frost Nova's custom expanding ice wave replaces the generic ring.
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.ring(
+        source,
+        spell.visualStyle || source.visualStyle || "control",
+        source.radius + 8,
+        effect.radius,
+        420,
+      );
+    }
 
     for (const target of this.game.actors.filter(actor => actor.alive && actor.team !== source.team)) {
       if (distance(source, target) > effect.radius + source.radius + target.radius) continue;

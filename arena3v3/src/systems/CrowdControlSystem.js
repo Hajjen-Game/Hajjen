@@ -345,7 +345,9 @@ export class CrowdControlSystem {
     this.syncDrStates(target);
 
     const style = spell.visualStyle || source.visualStyle || "control";
-    this.game.vfx.burst(target, style, 360);
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.burst(target, style, 360);
+    }
     this.game.recordCc(source, target, "stun", dr.durationMs);
     this.game.addFloatingText(target, "STUNNED", "cc");
     this.game.log(
@@ -448,8 +450,10 @@ export class CrowdControlSystem {
     });
 
     const style = spell.visualStyle || source.visualStyle || "interrupt";
-    this.game.vfx.beam(source, target, style, 180);
-    this.game.vfx.slash(target, style, 300);
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.beam(source, target, style, 180);
+      this.game.vfx.slash(target, style, 300);
+    }
     this.game.recordInterrupt(source, target, effect.durationMs);
     this.game.addFloatingText(target, "INTERRUPTED", "cc");
     this.game.log(

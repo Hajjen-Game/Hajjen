@@ -181,9 +181,12 @@ function drawHolyHot(ctx, target, profile, progress, seed) {
   ctx.restore();
 }
 
-function drawMindImplosion(ctx, source, target, profile, progress, seed) {
+function drawMindImplosion(ctx, source, target, profile, progress, seed, missed = false) {
   const p = clamp01(progress);
   sourceCue(ctx, source, profile, Math.min(1, p / .28), "shadow");
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 0) > .5 ? 46 : -46), y: target.y - 19 }
+    : target;
 
   const gather = smoothstep(p / .44);
   const burst = clamp01((p - .34) / .54);
@@ -196,12 +199,12 @@ function drawMindImplosion(ctx, source, target, profile, progress, seed) {
     const a = seeded(seed, i) * TAU + p * (i % 2 ? 1.7 : -1.4);
     const start = 38 + seeded(seed + 9, i) * 20;
     const rr = start * (1 - gather * .80);
-    const x = target.x + Math.cos(a) * rr;
-    const y = target.y + Math.sin(a) * rr;
+    const x = visualTarget.x + Math.cos(a) * rr;
+    const y = visualTarget.y + Math.sin(a) * rr;
     dot(ctx, x, y, 1.7 + seeded(seed + 19, i) * 1.8, i % 3 === 0 ? profile.core : profile.main, .25 + gather * .5);
   }
 
-  if (p > .30) {
+  if (p > .30 && !missed) {
     ctx.globalAlpha = fade * .72;
     ctx.strokeStyle = profile.main;
     ctx.shadowColor = profile.main;
@@ -212,27 +215,30 @@ function drawMindImplosion(ctx, source, target, profile, progress, seed) {
       const inner = 7 + burst * 3;
       const outer = 13 + easeOut(burst) * (28 + seeded(seed + 50, i) * 15);
       ctx.beginPath();
-      ctx.moveTo(target.x + Math.cos(a) * inner, target.y + Math.sin(a) * inner);
+      ctx.moveTo(visualTarget.x + Math.cos(a) * inner, visualTarget.y + Math.sin(a) * inner);
       ctx.quadraticCurveTo(
-        target.x + Math.cos(a + .35) * outer * .60,
-        target.y + Math.sin(a + .35) * outer * .60,
-        target.x + Math.cos(a) * outer,
-        target.y + Math.sin(a) * outer,
+        visualTarget.x + Math.cos(a + .35) * outer * .60,
+        visualTarget.y + Math.sin(a + .35) * outer * .60,
+        visualTarget.x + Math.cos(a) * outer,
+        visualTarget.y + Math.sin(a) * outer,
       );
       ctx.stroke();
     }
-    dot(ctx, target.x, target.y, 7 * (1 - burst * .35), profile.core, fade * .78);
+    dot(ctx, visualTarget.x, visualTarget.y, 7 * (1 - burst * .35), profile.core, fade * .78);
   }
   ctx.restore();
 }
 
-function drawHolySky(ctx, source, target, profile, progress, seed) {
+function drawHolySky(ctx, source, target, profile, progress, seed, missed = false) {
   const p = clamp01(progress);
   sourceCue(ctx, source, profile, Math.min(1, p / .22), "holy");
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 1) > .5 ? 43 : -43), y: target.y - 14 }
+    : target;
 
   const strike = clamp01((p - .12) / .58);
   const fade = 1 - clamp01((p - .72) / .28);
-  const topY = target.y - 126;
+  const topY = visualTarget.y - 126;
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
@@ -244,25 +250,25 @@ function drawHolySky(ctx, source, target, profile, progress, seed) {
   ctx.shadowBlur = 18;
   ctx.lineWidth = 4.2;
   ctx.beginPath();
-  ctx.moveTo(target.x + 3, topY);
-  ctx.lineTo(target.x, yHead);
+  ctx.moveTo(visualTarget.x + 3, topY);
+  ctx.lineTo(visualTarget.x, yHead);
   ctx.stroke();
 
   ctx.globalAlpha = fade * .35;
   ctx.strokeStyle = profile.accent;
   ctx.lineWidth = 10;
   ctx.beginPath();
-  ctx.moveTo(target.x + 4, topY + 8);
-  ctx.lineTo(target.x, yHead);
+  ctx.moveTo(visualTarget.x + 4, topY + 8);
+  ctx.lineTo(visualTarget.x, yHead);
   ctx.stroke();
 
-  if (strike > .58) {
+  if (strike > .58 && !missed) {
     const hit = (strike - .58) / .42;
-    ring(ctx, target.x, target.y, 8 + easeOut(hit) * 40, profile.main, (1 - hit) * .76, 2.6);
+    ring(ctx, visualTarget.x, visualTarget.y, 8 + easeOut(hit) * 40, profile.main, (1 - hit) * .76, 2.6);
     for (let i = 0; i < 8; i += 1) {
       const a = i / 8 * TAU + seeded(seed, i) * .16;
       const rr = 8 + easeOut(hit) * (25 + seeded(seed + 14, i) * 18);
-      dot(ctx, target.x + Math.cos(a) * rr, target.y + Math.sin(a) * rr, 1.8 + seeded(seed + 22, i) * 1.6, i % 3 === 0 ? profile.core : profile.main, (1 - hit) * .72);
+      dot(ctx, visualTarget.x + Math.cos(a) * rr, visualTarget.y + Math.sin(a) * rr, 1.8 + seeded(seed + 22, i) * 1.6, i % 3 === 0 ? profile.core : profile.main, (1 - hit) * .72);
     }
   }
 
@@ -489,13 +495,16 @@ function drawCyclone(ctx, source, target, profile, progress, seed) {
   ctx.restore();
 }
 
-function drawMoonfire(ctx, source, target, profile, progress, seed) {
+function drawMoonfire(ctx, source, target, profile, progress, seed, missed = false) {
   const p = clamp01(progress);
   sourceCue(ctx, source, profile, Math.min(1, p / .20), "nature");
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 2) > .5 ? 45 : -45), y: target.y - 14 }
+    : target;
 
   const strike = clamp01((p - .10) / .56);
   const fade = 1 - clamp01((p - .70) / .30);
-  const topY = target.y - 142;
+  const topY = visualTarget.y - 142;
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
@@ -514,17 +523,17 @@ function drawMoonfire(ctx, source, target, profile, progress, seed) {
   }
 
   const headY = topY + easeOut(strike) * 138;
-  const gradient = ctx.createLinearGradient(target.x, topY, target.x, target.y + 9);
+  const gradient = ctx.createLinearGradient(visualTarget.x, topY, visualTarget.x, visualTarget.y + 9);
   gradient.addColorStop(0, "rgba(230,239,255,0)");
   gradient.addColorStop(.42, profile.core);
   gradient.addColorStop(1, profile.main);
   ctx.globalAlpha = fade * .28;
   ctx.fillStyle = gradient;
   ctx.beginPath();
-  ctx.moveTo(target.x - 13, topY);
-  ctx.lineTo(target.x + 13, topY);
-  ctx.lineTo(target.x + 20, headY);
-  ctx.lineTo(target.x - 20, headY);
+  ctx.moveTo(visualTarget.x - 13, topY);
+  ctx.lineTo(visualTarget.x + 13, topY);
+  ctx.lineTo(visualTarget.x + 20, headY);
+  ctx.lineTo(visualTarget.x - 20, headY);
   ctx.closePath();
   ctx.fill();
 
@@ -534,17 +543,17 @@ function drawMoonfire(ctx, source, target, profile, progress, seed) {
   ctx.shadowBlur = 19;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(target.x, topY);
-  ctx.lineTo(target.x, headY);
+  ctx.moveTo(visualTarget.x, topY);
+  ctx.lineTo(visualTarget.x, headY);
   ctx.stroke();
 
-  if (strike > .62) {
+  if (strike > .62 && !missed) {
     const hit = (strike - .62) / .38;
-    ring(ctx, target.x, target.y, 9 + easeOut(hit) * 38, profile.main, (1 - hit) * .70, 2);
+    ring(ctx, visualTarget.x, visualTarget.y, 9 + easeOut(hit) * 38, profile.main, (1 - hit) * .70, 2);
     for (let i = 0; i < 6; i += 1) {
       const a = i / 6 * TAU + seeded(seed, i) * .2;
       const rr = 10 + hit * (18 + seeded(seed + 8, i) * 18);
-      dot(ctx, target.x + Math.cos(a) * rr, target.y + Math.sin(a) * rr, 1.7, profile.core, (1 - hit) * .6);
+      dot(ctx, visualTarget.x + Math.cos(a) * rr, visualTarget.y + Math.sin(a) * rr, 1.7, profile.core, (1 - hit) * .6);
     }
   }
 
@@ -619,10 +628,10 @@ export function drawPriestDruidSpellVfx(ctx, effect, game, progress, alpha) {
       drawPsychicScream(ctx, source || to, profile, p, seed);
       break;
     case "mind-implosion":
-      drawMindImplosion(ctx, source, to, profile, p, seed);
+      drawMindImplosion(ctx, source, to, profile, p, seed, Boolean(effect.missed));
       break;
     case "holy-sky":
-      drawHolySky(ctx, source, to, profile, p, seed);
+      drawHolySky(ctx, source, to, profile, p, seed, Boolean(effect.missed));
       break;
 
     case "leaf-hot":
@@ -644,7 +653,7 @@ export function drawPriestDruidSpellVfx(ctx, effect, game, progress, alpha) {
       drawNatureBloom(ctx, source, to, profile, p, seed, "lifebloom");
       break;
     case "moon-sky":
-      drawMoonfire(ctx, source, to, profile, p, seed);
+      drawMoonfire(ctx, source, to, profile, p, seed, Boolean(effect.missed));
       break;
     default:
       break;

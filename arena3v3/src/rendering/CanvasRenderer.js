@@ -22,7 +22,7 @@ import {
 import {
   drawPaladinDkCastVfx,
   drawPaladinDkSpellVfx,
-} from "./PaladinDeathKnightVfx.js?v=20260930-vfx2d";
+} from "./PaladinDeathKnightVfx.js?v=20260930-vfx2d1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

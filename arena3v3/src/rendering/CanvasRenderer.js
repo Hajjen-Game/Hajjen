@@ -10,7 +10,11 @@ import {
   drawMageShamanCastVfx,
   drawMageShamanSpellVfx,
   drawMageShamanChainVfx,
-} from "./MageShamanVfx.js?v=20260930-vfx2a";
+} from "./MageShamanVfx.js?v=20260930-vfx2b";
+import {
+  drawWarlockCastVfx,
+  drawWarlockSpellVfx,
+} from "./WarlockVfx.js?v=20260930-vfx2b";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -198,13 +202,21 @@ export class CanvasRenderer {
     if (actor.cast) {
       const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
       const castSpell = actor.getSpell(actor.cast.spellId);
-      const handledByLayeredVfx = drawMageShamanCastVfx(
-        ctx,
-        actor,
-        castSpell,
-        progress,
-        this.frameNowMs,
-      );
+      const handledByLayeredVfx =
+        drawMageShamanCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawWarlockCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        );
 
       if (!handledByLayeredVfx) {
         const castVisualStyle = castSpell?.visualStyle || actor.visualStyle;
@@ -1528,6 +1540,7 @@ export class CanvasRenderer {
 
   drawSpellVfx(ctx, effect, game, progress, alpha) {
     if (drawMageShamanSpellVfx(ctx, effect, game, progress, alpha)) return;
+    if (drawWarlockSpellVfx(ctx, effect, game, progress, alpha)) return;
 
     const source = game.getActor(effect.sourceId);
     const target = game.getActor(effect.targetId);

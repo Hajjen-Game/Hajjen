@@ -511,7 +511,7 @@ export class CombatSystem {
         index === 0 || !this.game.cc.shouldAvoidBreakingFriendlyCc(caster, chainTarget)
       )
       .slice(0, maxTargets);
-    const visualIds = [caster.id, ...targets.map(chainTarget => chainTarget.id)];
+    const hitVisualIds = [caster.id];
     const style = effect.visualStyle || spell.visualStyle || caster.visualStyle || "lightning";
 
     targets.forEach((chainTarget, index) => {
@@ -523,6 +523,7 @@ export class CombatSystem {
         return;
       }
 
+      hitVisualIds.push(chainTarget.id);
       const multiplier = multipliers[index] ?? multipliers[multipliers.length - 1] ?? 1;
       this.applyDamage(
         caster,
@@ -549,7 +550,7 @@ export class CombatSystem {
       }
     });
 
-    this.game.vfx.chain(visualIds, style, 380);
+    this.game.vfx.chain(hitVisualIds, style, 420, spell.id);
 
     if (targets.length > 1) {
       this.game.log(this.game.combatantLabel(caster) + "'s " + spell.name + " chains through " + targets.length + " targets.");
@@ -615,7 +616,7 @@ export class CombatSystem {
     this.game.addActionFloatingText(source, target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
     this.applyTalentDamageHealing(source, spellId, actual);
 
-    if (!periodic) {
+    if (!periodic && !this.game.vfx.ownsImpact(spellId)) {
       this.game.vfx.burst(target, visualStyle, crit ? 360 : 250);
     }
 
@@ -723,7 +724,9 @@ export class CombatSystem {
       visualStyle,
     });
 
-    this.game.vfx.ring(target, visualStyle, target.radius + 4, target.radius + 22, 300);
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.ring(target, visualStyle, target.radius + 4, target.radius + 22, 300);
+    }
     this.game.log(this.game.combatantLabel(source) + " applies " + spell.name + " to " + this.game.combatantLabel(target) + ".");
   }
 
@@ -744,7 +747,9 @@ export class CombatSystem {
       visualStyle,
     });
 
-    this.game.vfx.ring(target, visualStyle, target.radius + 3, target.radius + 26, 360);
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.ring(target, visualStyle, target.radius + 3, target.radius + 26, 360);
+    }
 
     if (effect.kind === "damageReduction") {
       this.game.addFloatingText(target, "GUARDED", "buff");

@@ -42,6 +42,23 @@ export const PRIEST_DRUID_VFX2_IDS = Object.freeze(new Set([
   "druid-moonfire",
 ]));
 
+export const WARRIOR_ROGUE_VFX2_IDS = Object.freeze(new Set([
+  "warrior-rend",
+  "warrior-mortal-strike",
+  "warrior-slam",
+  "warrior-charge",
+  "warrior-pummel",
+  "warrior-overpower",
+  "warrior-bloodthirst",
+  "rogue-garrote",
+  "rogue-sinister",
+  "rogue-eviscerate",
+  "rogue-kidney",
+  "rogue-kick",
+  "rogue-mutilate",
+  "rogue-shadowstep",
+]));
+
 export const PALADIN_DK_VFX2_IDS = Object.freeze(new Set([
   "paladin-holy-shock",
   "paladin-flash-light",
@@ -64,6 +81,7 @@ const CASTER_VFX2_IDS = new Set([
   ...WARLOCK_VFX2_IDS,
   ...PRIEST_DRUID_VFX2_IDS,
   ...PALADIN_DK_VFX2_IDS,
+  ...WARRIOR_ROGUE_VFX2_IDS,
 ]);
 
 export function baseSpellId(spellId = "") {
@@ -84,6 +102,10 @@ export function usesPriestDruidVfx2(spellId = "") {
 
 export function usesPaladinDkVfx2(spellId = "") {
   return PALADIN_DK_VFX2_IDS.has(baseSpellId(spellId));
+}
+
+export function usesWarriorRogueVfx2(spellId = "") {
+  return WARRIOR_ROGUE_VFX2_IDS.has(baseSpellId(spellId));
 }
 
 export function ownsCasterVfx2Impact(spellId = "") {
@@ -153,6 +175,23 @@ export function vfx2DurationFor(spellId = "") {
     "dk-mind-freeze": 480,
     "dk-frost-strike": 600,
     "dk-rune-tap": 620,
+
+    // Melee impacts stay shorter than spell projectiles, avoiding
+    // stacked visual noise when six players fight in one clump.
+    "warrior-rend": 380,
+    "warrior-mortal-strike": 470,
+    "warrior-slam": 560,
+    "warrior-charge": 350,
+    "warrior-pummel": 320,
+    "warrior-overpower": 430,
+    "warrior-bloodthirst": 470,
+    "rogue-garrote": 350,
+    "rogue-sinister": 320,
+    "rogue-eviscerate": 470,
+    "rogue-kidney": 370,
+    "rogue-kick": 300,
+    "rogue-mutilate": 440,
+    "rogue-shadowstep": 450,
   };
 
   return durations[id] || 520;

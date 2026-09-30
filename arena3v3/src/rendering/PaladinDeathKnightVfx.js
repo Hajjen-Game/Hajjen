@@ -163,10 +163,13 @@ function drawJudgment(ctx, source, target, profile, progress, seed, missed) {
   ctx.restore();
 }
 
-function drawFever(ctx, source, target, profile, progress, seed) {
+function drawFever(ctx, source, target, profile, progress, seed, missed=false) {
   const p=clamp01(progress), fade=1-clamp01((p-.62)/.38);
   dkSourceCue(ctx, source, profile, Math.min(1,p/.18));
-  ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.translate(target.x,target.y);
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 4) > .5 ? 42 : -42), y: target.y - 12 }
+    : target;
+  ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.translate(visualTarget.x,visualTarget.y);
   ctx.strokeStyle=profile.main; ctx.shadowColor=profile.main; ctx.shadowBlur=12; ctx.lineWidth=1.8; ctx.globalAlpha=fade*.74;
   // Jagged frost rune grows under target.
   const r=9+easeOut(p)*24;
@@ -191,23 +194,30 @@ function drawSlash(ctx, target, profile, progress, seed, double=false, frost=fal
   ctx.restore();
 }
 
-function drawDeathStrike(ctx, source, target, profile, progress, seed) {
+function drawDeathStrike(ctx, source, target, profile, progress, seed, missed=false) {
   const p=clamp01(progress);
   dkSourceCue(ctx, source, profile, Math.min(1,p/.15));
-  drawSlash(ctx,target,profile,p,seed,true,false);
-  if(source && p>.28){
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 5) > .5 ? 43 : -43), y: target.y - 10 }
+    : target;
+  drawSlash(ctx,visualTarget,profile,p,seed,true,false);
+  if(source && !missed && p>.28){
     const t=clamp01((p-.28)/.48), fade=1-clamp01((p-.75)/.25);
-    const q=along(target,source,easeOut(t)); const b=basis(target,source);
+    const q=along(visualTarget,source,easeOut(t)); const b=basis(visualTarget,source);
     ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=profile.main;ctx.shadowColor=profile.main;ctx.shadowBlur=12;ctx.lineWidth=2;ctx.globalAlpha=fade*.56;
-    ctx.beginPath();ctx.moveTo(target.x,target.y);ctx.quadraticCurveTo((target.x+source.x)/2+b.nx*12,(target.y+source.y)/2+b.ny*12,q.x,q.y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(visualTarget.x,visualTarget.y);ctx.quadraticCurveTo((visualTarget.x+source.x)/2+b.nx*12,(visualTarget.y+source.y)/2+b.ny*12,q.x,q.y);ctx.stroke();
     dot(ctx,q.x,q.y,3.2,profile.core,fade*.72);ctx.restore();
   }
 }
 
-function drawObliterate(ctx, source, target, profile, progress, seed) {
+function drawObliterate(ctx, source, target, profile, progress, seed, missed=false) {
   const p=clamp01(progress);
   dkSourceCue(ctx, source, profile, Math.min(1,p/.20));
-  drawSlash(ctx,target,profile,p,seed,true,true);
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 6) > .5 ? 46 : -46), y: target.y - 9 }
+    : target;
+  drawSlash(ctx,visualTarget,profile,p,seed,true,!missed);
+  if (missed) return;
   const hit=clamp01((p-.22)/.62), fade=1-clamp01((p-.72)/.28);
   ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=profile.main;ctx.lineWidth=1.8;ctx.globalAlpha=fade*.68;
   for(let i=0;i<8;i++){const a=i*TAU/8+seeded(seed,i)*.22;ctx.beginPath();ctx.moveTo(target.x+Math.cos(a)*8,target.y+Math.sin(a)*8);ctx.lineTo(target.x+Math.cos(a)*(18+hit*28),target.y+Math.sin(a)*(18+hit*28));ctx.stroke();}
@@ -242,9 +252,13 @@ function drawMindFreeze(ctx, source, target, profile, progress) {
   ctx.restore();
 }
 
-function drawFrostStrike(ctx, source, target, profile, progress, seed) {
+function drawFrostStrike(ctx, source, target, profile, progress, seed, missed=false) {
   const p=clamp01(progress);dkSourceCue(ctx,source,profile,Math.min(1,p/.12));
-  drawSlash(ctx,target,profile,p,seed,false,true);
+  const visualTarget = missed
+    ? { x: target.x + (seeded(seed, 7) > .5 ? 42 : -42), y: target.y - 9 }
+    : target;
+  drawSlash(ctx,visualTarget,profile,p,seed,false,!missed);
+  if (missed) return;
   const fade=1-clamp01((p-.68)/.32);
   ring(ctx,target.x,target.y,10+easeOut(p)*27,profile.main,fade*.35,1.5);
 }
@@ -293,12 +307,12 @@ export function drawPaladinDkSpellVfx(ctx,effect,game,progress,alpha){
     case "hammer": drawHammer(ctx,source,target,profile,p,seed); break;
     case "word-glory": drawWordGlory(ctx,source,target,profile,p,seed); break;
     case "judgment": drawJudgment(ctx,source,target,profile,p,seed,Boolean(effect.missed)); break;
-    case "fever": drawFever(ctx,source,target,profile,p,seed); break;
-    case "death-strike": drawDeathStrike(ctx,source,target,profile,p,seed); break;
-    case "obliterate": drawObliterate(ctx,source,target,profile,p,seed); break;
+    case "fever": drawFever(ctx,source,target,profile,p,seed,Boolean(effect.missed)); break;
+    case "death-strike": drawDeathStrike(ctx,source,target,profile,p,seed,Boolean(effect.missed)); break;
+    case "obliterate": drawObliterate(ctx,source,target,profile,p,seed,Boolean(effect.missed)); break;
     case "chains": drawChains(ctx,source,target,profile,p,seed); break;
     case "mind-freeze": drawMindFreeze(ctx,source,target,profile,p); break;
-    case "frost-strike": drawFrostStrike(ctx,source,target,profile,p,seed); break;
+    case "frost-strike": drawFrostStrike(ctx,source,target,profile,p,seed,Boolean(effect.missed)); break;
     case "rune-tap": drawRuneTap(ctx,source||target,profile,p); break;
     default: break;
   }

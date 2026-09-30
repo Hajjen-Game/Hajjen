@@ -449,7 +449,12 @@ export class CombatSystem {
             this.game.arena,
             effect.dashDurationMs ?? 0,
           );
-          this.game.vfx.beam(caster, effectTarget, style, 170);
+          // Warrior Charge owns its moving dust trail and Rogue Shadowstep
+          // owns its vanish/reappear cue. A legacy beam visually joins their
+          // positions and makes Shadowstep appear to shoot a projectile.
+          if (!this.game.vfx.ownsImpact(spell.id)) {
+            this.game.vfx.beam(caster, effectTarget, style, 170);
+          }
           break;
         default:
           break;

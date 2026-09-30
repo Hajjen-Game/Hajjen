@@ -127,7 +127,7 @@ export class CanvasRenderer {
     ctx.fillStyle = gradient;
     // Allow a small amount of real arena floor beyond the playable walls
     // when the camera follows the player near an edge (never empty black).
-    ctx.fillRect(-512, -384, GAME_WIDTH + 1024, GAME_HEIGHT + 768);
+    ctx.fillRect(-768, -512, GAME_WIDTH + 1536, GAME_HEIGHT + 1024);
 
     ctx.strokeStyle = this.theme.arenaLine;
     ctx.lineWidth = 3;

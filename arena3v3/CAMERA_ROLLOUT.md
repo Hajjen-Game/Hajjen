@@ -77,3 +77,32 @@ Source touch points:
 If visual layout or mouse behavior regresses, the **tested step-1 fallback**
 branch restores the previous HUD while keeping the working camera. The
 pre-camera backup remains available for a full rollback.
+
+
+## Step 3: upper-corner frames + local occlusion avoidance (2026-09-30)
+
+Backup of the original step-2 layout, before these visual changes:
+- Commit: `1c56bf504b035e18b7312db2efc05868dab6ea1e`
+- Branch: `arena3v3-camera-step2-before-hud-tuning-20260930`
+
+Changes:
+- Anchor both existing team stacks in the upper corners instead of vertical center.
+- Keep the bottom action bar and the central castbar unchanged.
+- Camera only avoids the **actual upper frame rectangles** when the player's
+  class icon/highlight is vertically and horizontally close enough to them.
+  The rest of both side lanes remain valid gameplay areas, preventing the
+  constant side-margin panning of step 2.
+- Include icon/highlight and the player's name in the camera clearance.
+- Fade an individual unit frame only while a living combatant's projected
+  world visual is underneath it; apply stronger fade when that combatant is
+  the human player. Frame hover and keyboard focus restore full readability
+  and click-targeting remains available.
+- Track the dynamic frame bounds via ResizeObserver so new effect and
+  cooldown rows update the avoidance zone without changing match logic.
+
+Before treating this version as accepted, test close camera approaches
+to both upper corners, mid-/lower-side lanes, active Charge/fear movement,
+click-targeting after panning, three-player stacks underneath opposing
+frames, fade recovery when combatants move away and three browser sizes.
+If problematic, the saved step-1 tested camera and pre-camera backups
+remain completely untouched.

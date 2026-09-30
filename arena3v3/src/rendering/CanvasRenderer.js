@@ -15,6 +15,10 @@ import {
   drawWarlockCastVfx,
   drawWarlockSpellVfx,
 } from "./WarlockVfx.js?v=20260930-vfx2b";
+import {
+  drawPriestDruidCastVfx,
+  drawPriestDruidSpellVfx,
+} from "./PriestDruidVfx.js?v=20260930-vfx2c";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -211,6 +215,13 @@ export class CanvasRenderer {
           this.frameNowMs,
         )
         || drawWarlockCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawPriestDruidCastVfx(
           ctx,
           actor,
           castSpell,
@@ -1541,6 +1552,7 @@ export class CanvasRenderer {
   drawSpellVfx(ctx, effect, game, progress, alpha) {
     if (drawMageShamanSpellVfx(ctx, effect, game, progress, alpha)) return;
     if (drawWarlockSpellVfx(ctx, effect, game, progress, alpha)) return;
+    if (drawPriestDruidSpellVfx(ctx, effect, game, progress, alpha)) return;
 
     const source = game.getActor(effect.sourceId);
     const target = game.getActor(effect.targetId);

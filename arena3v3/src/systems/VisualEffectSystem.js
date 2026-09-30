@@ -1,4 +1,4 @@
-import { ownsCasterVfx2Impact, vfx2DurationFor } from "./MageShamanVfxProfile.js?v=20260930-vfx2d";
+import { ownsCasterVfx2Impact, vfx2DurationFor } from "./MageShamanVfxProfile.js?v=20260930-vfx2e";
 
 export class VisualEffectSystem {
   constructor() {

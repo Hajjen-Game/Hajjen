@@ -1,5 +1,5 @@
 import { Actor } from "../entities/Actor.js";
-import { Camera2D } from "./Camera2D.js?v=20260930-camera1";
+import { Camera2D } from "./Camera2D.js?v=20260930-fullarena1";
 import { MovementSystem } from "../systems/MovementSystem.js?v=20260929-iconcollision1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260928-actionfeedback1";
@@ -9,7 +9,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260929-chargeglide1";
 import { AISystem } from "../systems/AISystem.js?v=20260929-manarecovery2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260930-camera1";
+import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20260930-fullarena1";
 import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
 import { buildMatchReport } from "./MatchReport.js?v=20260929-manarecovery2";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
@@ -989,6 +989,7 @@ export class Game {
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = null;
     this.camera.reset(this.arena.width, this.arena.height);
+    this.camera.snapToSafeArea(this.player);
 
     this.vfx.reset();
     this.cc = new CrowdControlSystem(this);

@@ -42,10 +42,28 @@ export const PRIEST_DRUID_VFX2_IDS = Object.freeze(new Set([
   "druid-moonfire",
 ]));
 
+export const PALADIN_DK_VFX2_IDS = Object.freeze(new Set([
+  "paladin-holy-shock",
+  "paladin-flash-light",
+  "paladin-holy-light",
+  "paladin-blessing",
+  "paladin-hammer",
+  "paladin-word-of-glory",
+  "paladin-judgment",
+  "dk-fever",
+  "dk-death-strike",
+  "dk-obliterate",
+  "dk-chains",
+  "dk-mind-freeze",
+  "dk-frost-strike",
+  "dk-rune-tap",
+]));
+
 const CASTER_VFX2_IDS = new Set([
   ...MAGE_SHAMAN_VFX2_IDS,
   ...WARLOCK_VFX2_IDS,
   ...PRIEST_DRUID_VFX2_IDS,
+  ...PALADIN_DK_VFX2_IDS,
 ]);
 
 export function baseSpellId(spellId = "") {
@@ -62,6 +80,10 @@ export function usesWarlockVfx2(spellId = "") {
 
 export function usesPriestDruidVfx2(spellId = "") {
   return PRIEST_DRUID_VFX2_IDS.has(baseSpellId(spellId));
+}
+
+export function usesPaladinDkVfx2(spellId = "") {
+  return PALADIN_DK_VFX2_IDS.has(baseSpellId(spellId));
 }
 
 export function ownsCasterVfx2Impact(spellId = "") {
@@ -115,6 +137,22 @@ export function vfx2DurationFor(spellId = "") {
     "druid-cyclone": 680,
     "druid-lifebloom": 600,
     "druid-moonfire": 680,
+
+    "paladin-holy-shock": 560,
+    "paladin-flash-light": 580,
+    "paladin-holy-light": 720,
+    "paladin-blessing": 640,
+    "paladin-hammer": 560,
+    "paladin-word-of-glory": 620,
+    "paladin-judgment": 660,
+
+    "dk-fever": 580,
+    "dk-death-strike": 620,
+    "dk-obliterate": 720,
+    "dk-chains": 640,
+    "dk-mind-freeze": 480,
+    "dk-frost-strike": 600,
+    "dk-rune-tap": 620,
   };
 
   return durations[id] || 520;

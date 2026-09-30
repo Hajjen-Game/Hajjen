@@ -51,6 +51,7 @@ export class UIManager {
     this.lastActionCooldowns = new Map();
     this.logLines = [];
     this.toastTimer = null;
+    this.lastOcclusionUpdateMs = -Infinity;
 
     this.teamFrames = document.querySelector("#team-frames");
     this.enemyFrames = document.querySelector("#enemy-frames");
@@ -1613,6 +1614,78 @@ export class UIManager {
     });
 
     this.updateFocusHud();
+    this.updateArenaFrameOcclusion(healthNowMs);
+  }
+
+  updateArenaFrameOcclusion(nowMs) {
+    if (nowMs - this.lastOcclusionUpdateMs < 85) return;
+    this.lastOcclusionUpdateMs = nowMs;
+
+    const clear = () => {
+      for (const frame of this.frameElements.values()) {
+        frame.classList.remove("world-occluded", "player-occluded");
+      }
+    };
+
+    const camera = this.game.camera;
+    const canvas = this.game.canvas;
+    if (
+      !camera || !canvas
+      || this.game.waitingForStart
+      || this.game.ended
+    ) {
+      clear();
+      return;
+    }
+
+    const viewport = canvas.getBoundingClientRect();
+    if (viewport.width <= 0 || viewport.height <= 0) return;
+    const scaleX = viewport.width / canvas.width;
+    const scaleY = viewport.height / canvas.height;
+
+    // These are visual UI footprints, not collision or targeting ranges.
+    // Include the class icon, highlight, floating name and ordinary nameplate.
+    const visibleCombatants = this.game.actors
+      .filter(actor => actor.alive)
+      .map(actor => {
+        const screen = camera.worldToScreen(actor);
+        const x = viewport.left + screen.x * scaleX;
+        const y = viewport.top + screen.y * scaleY;
+        const isPlayer = actor.id === this.game.player?.id;
+        const radiusX = Math.max(43, actor.radius + 13) * camera.zoom * scaleX;
+        const above = (actor.radius + (isPlayer ? 63 : 66))
+          * camera.zoom * scaleY;
+        const below = (actor.radius + 14) * camera.zoom * scaleY;
+
+        return {
+          isPlayer,
+          left: x - radiusX,
+          right: x + radiusX,
+          top: y - above,
+          bottom: y + below,
+        };
+      });
+
+    for (const frame of this.frameElements.values()) {
+      // A hidden/dead frame still receives ordinary dead styling.
+      const box = frame.getBoundingClientRect();
+      let occlusion = 0;
+
+      for (const actor of visibleCombatants) {
+        const overlaps =
+          actor.left < box.right
+          && actor.right > box.left
+          && actor.top < box.bottom
+          && actor.bottom > box.top;
+
+        if (!overlaps) continue;
+        occlusion = Math.max(occlusion, actor.isPlayer ? 2 : 1);
+        if (occlusion === 2) break;
+      }
+
+      frame.classList.toggle("world-occluded", occlusion === 1);
+      frame.classList.toggle("player-occluded", occlusion === 2);
+    }
   }
 
   updateFrameCombatState(frame, actor) {

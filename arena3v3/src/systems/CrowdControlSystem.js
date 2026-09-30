@@ -238,7 +238,10 @@ export class CrowdControlSystem {
     });
     this.syncDrStates(target);
 
-    this.game.vfx.burst(target, spell.visualStyle || source.visualStyle || "fear", 340);
+    // Warlock Fear draws its own travelling tendril and target impact.
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.burst(target, spell.visualStyle || source.visualStyle || "fear", 340);
+    }
     this.game.recordCc(source, target, "fear", dr.durationMs);
     this.game.addFloatingText(target, "FEAR", "cc");
     this.game.log(

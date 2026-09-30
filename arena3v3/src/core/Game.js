@@ -1,5 +1,5 @@
 import { Actor } from "../entities/Actor.js";
-import { Camera2D } from "./Camera2D.js?v=20260930-fullarena1";
+import { Camera2D } from "./Camera2D.js?v=20260930-hudavoid1";
 import { MovementSystem } from "../systems/MovementSystem.js?v=20260929-iconcollision1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260928-actionfeedback1";

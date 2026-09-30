@@ -6,6 +6,11 @@ import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
 import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
+import {
+  drawMageShamanCastVfx,
+  drawMageShamanSpellVfx,
+  drawMageShamanChainVfx,
+} from "./MageShamanVfx.js?v=20260930-vfx2a";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -193,14 +198,24 @@ export class CanvasRenderer {
     if (actor.cast) {
       const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
       const castSpell = actor.getSpell(actor.cast.spellId);
-      const castVisualStyle = castSpell?.visualStyle || actor.visualStyle;
-      ctx.globalAlpha = 0.35 + progress * 0.35;
-      ctx.strokeStyle = this.vfxColor(castVisualStyle);
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(actor.x, actor.y, actor.radius + 14 + progress * 6, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
+      const handledByLayeredVfx = drawMageShamanCastVfx(
+        ctx,
+        actor,
+        castSpell,
+        progress,
+        this.frameNowMs,
+      );
+
+      if (!handledByLayeredVfx) {
+        const castVisualStyle = castSpell?.visualStyle || actor.visualStyle;
+        ctx.globalAlpha = 0.35 + progress * 0.35;
+        ctx.strokeStyle = this.vfxColor(castVisualStyle);
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(actor.x, actor.y, actor.radius + 14 + progress * 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
     }
 
     if (actor.id === game.player?.id) {
@@ -1484,6 +1499,8 @@ export class CanvasRenderer {
       }
 
       if (effect.type === "chain") {
+        if (drawMageShamanChainVfx(ctx, effect, game, progress, alpha)) continue;
+
         const actors = effect.actorIds.map(id => game.getActor(id)).filter(Boolean);
         if (actors.length < 2) continue;
 
@@ -1510,6 +1527,8 @@ export class CanvasRenderer {
   }
 
   drawSpellVfx(ctx, effect, game, progress, alpha) {
+    if (drawMageShamanSpellVfx(ctx, effect, game, progress, alpha)) return;
+
     const source = game.getActor(effect.sourceId);
     const target = game.getActor(effect.targetId);
     const from = {

@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20260930-camera1";
+import { Game } from "./core/Game.js?v=20260930-fullarena1";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
@@ -29,6 +29,12 @@ const arenaWrap = document.querySelector("#arena-wrap");
 const arenaStage = document.querySelector("#arena-stage");
 const arenaNameDisplay = document.querySelector("#arena-name-display");
 const gameShell = document.querySelector("#game-shell");
+const friendlyArenaPanel = document.querySelector("#friendly-arena-panel");
+const enemyArenaPanel = document.querySelector("#enemy-arena-panel");
+const arenaTopHud = document.querySelector(".arena-top-hud");
+const matchStatsToggle = document.querySelector("#match-stats-toggle");
+const matchStatsPanel = document.querySelector("#match-stats-panel");
+const matchStatsClose = document.querySelector("#match-stats-close");
 const input = new InputManager();
 const characters = new CharacterStore();
 const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "death-knight", "mage", "warlock", "shaman"]);
@@ -48,55 +54,88 @@ let setupRequired = true;
 let resumeAfterCancel = false;
 let canReturnToMatch = false;
 
+function syncCameraSafeArea() {
+  if (!game?.camera || !arenaStage || !friendlyArenaPanel || !enemyArenaPanel) return;
+
+  const stage = arenaStage.getBoundingClientRect();
+  if (stage.width < 1 || stage.height < 1) return;
+
+  const sx = canvas.width / stage.width;
+  const sy = canvas.height / stage.height;
+  const friendly = friendlyArenaPanel.getBoundingClientRect();
+  const enemy = enemyArenaPanel.getBoundingClientRect();
+  const top = arenaTopHud?.getBoundingClientRect();
+  const maxSideMargin = Math.max(80, (canvas.width - 180) / 2);
+
+  // Measure the actual displayed frames, not hardcoded sidebar widths.
+  // Convert their edges to logical canvas pixels so the camera protects the
+  // player correctly at different window sizes and aspect ratios.
+  const left = Math.min(
+    maxSideMargin,
+    Math.max(94, (friendly.right - stage.left + 30) * sx),
+  );
+  const right = Math.min(
+    maxSideMargin,
+    Math.max(94, (stage.right - enemy.left + 30) * sx),
+  );
+  const topMargin = Math.max(
+    80,
+    top ? (top.bottom - stage.top + 28) * sy : 80,
+  );
+
+  // Reserve clearance around the player castbar and the arena boundaries.
+  game.camera.setSafeMargins({
+    left,
+    right,
+    top: Math.min(canvas.height * .35, topMargin),
+    bottom: Math.min(canvas.height * .30, Math.max(94, 54 * sy)),
+  });
+}
+
 function fitArenaStage() {
   if (!arenaWrap || !arenaStage) return;
 
-  const arena = pendingArena || game?.arena || DEFAULT_ARENA;
-  const logicalWidth = arena.width;
-  const logicalHeight = arena.height;
-
-  // The match HUD now overlays the arena instead of reserving layout height.
-  // Let the arena use the full center-column height so the combat view can sit
-  // as high and as large as the viewport allows.
-  if (gameShell) {
-    const shellWidth = gameShell.clientWidth;
-    const shellHeight = gameShell.clientHeight;
-    const columnGap = 8;
-    const minSideWidth = window.innerWidth <= 1180 ? 185 : 220;
-
-    if (shellWidth > 0 && shellHeight > 0) {
-      const heightLimitedArenaWidth = Math.floor(
-        shellHeight * (logicalWidth / logicalHeight),
-      );
-      const widthLimitedArenaWidth = Math.max(
-        600,
-        shellWidth - (minSideWidth * 2) - (columnGap * 2),
-      );
-      const arenaColumnWidth = Math.min(
-        heightLimitedArenaWidth,
-        widthLimitedArenaWidth,
-      );
-
-      gameShell.style.gridTemplateColumns =
-        "minmax(" + minSideWidth + "px, 1fr) "
-        + arenaColumnWidth + "px "
-        + "minmax(" + minSideWidth + "px, 1fr)";
-    }
-  }
-
+  const arena = game?.arena || pendingArena || DEFAULT_ARENA;
+  const worldWidth = arena.width;
+  const worldHeight = arena.height;
   const availableWidth = arenaWrap.clientWidth;
   const availableHeight = arenaWrap.clientHeight;
+  if (availableWidth < 1 || availableHeight < 1) return;
 
-  if (availableWidth <= 0 || availableHeight <= 0) return;
-
-  const scale = Math.min(
-    availableWidth / logicalWidth,
-    availableHeight / logicalHeight,
+  // Fill all space above the bottom HUD, without stretching the world or
+  // cropping off half the arena on unusually wide/tall browser windows.
+  // Extra space becomes arena floor outside the playable walls.
+  const worldScale = Math.min(
+    availableWidth / worldWidth,
+    availableHeight / worldHeight,
   );
+  const viewportWidth = Math.max(1, Math.round(availableWidth / worldScale));
+  const viewportHeight = Math.max(1, Math.round(availableHeight / worldScale));
 
-  arenaStage.style.width = Math.floor(logicalWidth * scale) + "px";
-  arenaStage.style.height = Math.floor(logicalHeight * scale) + "px";
+  if (canvas.width !== viewportWidth || canvas.height !== viewportHeight) {
+    canvas.width = viewportWidth;
+    canvas.height = viewportHeight;
+    game?.camera?.resizeViewport(viewportWidth, viewportHeight);
+  }
+
+  syncCameraSafeArea();
 }
+
+function closeMatchStats() {
+  if (!matchStatsPanel || !matchStatsToggle) return;
+  matchStatsPanel.hidden = true;
+  matchStatsToggle.setAttribute("aria-expanded", "false");
+}
+
+matchStatsToggle?.addEventListener("click", () => {
+  const nextOpen = matchStatsPanel.hidden;
+  matchStatsPanel.hidden = !nextOpen;
+  matchStatsToggle.setAttribute("aria-expanded", String(nextOpen));
+});
+matchStatsClose?.addEventListener("click", closeMatchStats);
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !matchStatsPanel.hidden) closeMatchStats();
+});
 
 function validClassForRole(classId, role) {
   return CLASS_IDS_BY_ROLE[role].includes(classId);
@@ -520,6 +559,7 @@ document.querySelector("#characters-button").addEventListener("click", () => {
     && game.elapsedSeconds > 0
     && rosterModal.classList.contains("hidden")
   );
+  closeMatchStats();
   showCharacterScreen({ allowReturn: canReturnToMatch });
 });
 
@@ -596,6 +636,8 @@ document.querySelector("#roster-apply").addEventListener("click", () => {
 
   leaveArenaLobby();
   game.startPreparedMatch(buildRosterConfigs(roster), pendingArena);
+  closeMatchStats();
+  fitArenaStage();
   lastPlayedArenaId = pendingArena.id;
   rosterModal.classList.add("hidden");
   setupRequired = false;
@@ -639,6 +681,11 @@ fitArenaStage();
 if ("ResizeObserver" in window) {
   const arenaResizeObserver = new ResizeObserver(fitArenaStage);
   arenaResizeObserver.observe(arenaWrap);
+  // Aura/DR/cooldown rows change frame heights while a match is running.
+  // Recalculate camera clearance whenever either overlay changes size.
+  const frameResizeObserver = new ResizeObserver(syncCameraSafeArea);
+  frameResizeObserver.observe(friendlyArenaPanel);
+  frameResizeObserver.observe(enemyArenaPanel);
 } else {
   window.addEventListener("resize", fitArenaStage);
 }
@@ -661,6 +708,7 @@ game = new Game({
 });
 
 fillCharacterClassSelect("priest");
+syncCameraSafeArea();
 game.start();
 showCharacterScreen({ allowReturn: false });
 window.arena3v3 = game;

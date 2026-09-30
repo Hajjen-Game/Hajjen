@@ -94,9 +94,9 @@ export class CanvasRenderer {
     // Keep the canvas clear in screen space. The arena, units, nameplates,
     // combat text and VFX below all share one reversible world transform.
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.fillStyle = this.theme.floor;
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.save();
     game.camera?.applyToContext(ctx);
     this.drawArena(ctx);
@@ -127,7 +127,12 @@ export class CanvasRenderer {
     ctx.fillStyle = gradient;
     // Allow a small amount of real arena floor beyond the playable walls
     // when the camera follows the player near an edge (never empty black).
-    ctx.fillRect(-768, -512, GAME_WIDTH + 1536, GAME_HEIGHT + 1024);
+    ctx.fillRect(
+      -this.canvas.width * 2,
+      -this.canvas.height * 2,
+      this.canvas.width * 5,
+      this.canvas.height * 5,
+    );
 
     ctx.strokeStyle = this.theme.arenaLine;
     ctx.lineWidth = 3;

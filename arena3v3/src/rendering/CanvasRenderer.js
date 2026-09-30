@@ -23,6 +23,10 @@ import {
   drawPaladinDkCastVfx,
   drawPaladinDkSpellVfx,
 } from "./PaladinDeathKnightVfx.js?v=20260930-vfx2d1";
+import {
+  drawWarriorRogueCastVfx,
+  drawWarriorRogueSpellVfx,
+} from "./WarriorRogueVfx.js?v=20260930-vfx2e";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -233,6 +237,13 @@ export class CanvasRenderer {
           this.frameNowMs,
         )
         || drawPaladinDkCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawWarriorRogueCastVfx(
           ctx,
           actor,
           castSpell,
@@ -1565,6 +1576,7 @@ export class CanvasRenderer {
     if (drawWarlockSpellVfx(ctx, effect, game, progress, alpha)) return;
     if (drawPriestDruidSpellVfx(ctx, effect, game, progress, alpha)) return;
     if (drawPaladinDkSpellVfx(ctx, effect, game, progress, alpha)) return;
+    if (drawWarriorRogueSpellVfx(ctx, effect, game, progress, alpha)) return;
 
     const source = game.getActor(effect.sourceId);
     const target = game.getActor(effect.targetId);

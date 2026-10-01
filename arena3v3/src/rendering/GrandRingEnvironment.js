@@ -534,35 +534,35 @@ function drawPillarGrounding(ctx, rect, index) {
   ctx.save();
 
   const ground = ctx.createRadialGradient(
-    rect.x + rect.w * .54,
-    rect.y + rect.h * .72,
-    4,
-    rect.x + rect.w * .54,
-    rect.y + rect.h * .72,
-    Math.max(rect.w, rect.h) * .62,
+    rect.x + rect.w * .50,
+    rect.y + rect.h * .93,
+    3,
+    rect.x + rect.w * .50,
+    rect.y + rect.h * .93,
+    Math.max(rect.w, rect.h) * .40,
   );
-  ground.addColorStop(0, "rgba(24,28,21,.27)");
-  ground.addColorStop(.38, "rgba(54,68,40,.16)");
-  ground.addColorStop(.76, "rgba(104,88,52,.065)");
+  ground.addColorStop(0, "rgba(26,30,23,.18)");
+  ground.addColorStop(.44, "rgba(54,66,41,.10)");
+  ground.addColorStop(.80, "rgba(0,0,0,0)");
   ground.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = ground;
   ctx.fillRect(
-    rect.x - 34,
-    rect.y - 22,
-    rect.w + 76,
-    rect.h + 54,
+    rect.x - 18,
+    rect.y + rect.h - 12,
+    rect.w + 36,
+    38,
   );
 
   // Tight contact shadow right at the stone/ground boundary.
-  ctx.globalAlpha = .24;
-  ctx.fillStyle = "#20251d";
+  ctx.globalAlpha = .20;
+  ctx.fillStyle = "#1d221a";
   ctx.beginPath();
   ctx.ellipse(
-    rect.x + rect.w * .54,
-    rect.y + rect.h + 4,
-    rect.w * .47,
-    8 + (index % 2) * 2,
-    -.03,
+    rect.x + rect.w * .50,
+    rect.y + rect.h + 1.5,
+    rect.w * .35,
+    4.5 + (index % 2) * .8,
+    0,
     0,
     TAU,
   );
@@ -611,10 +611,10 @@ function drawStonePillar(ctx, rect, index = 0) {
 
   // Every pillar gets a slightly different silhouette while remaining fully
   // inside the original collision rectangle.
-  ctx.shadowColor = "rgba(19,21,17,.48)";
-  ctx.shadowBlur = 21;
-  ctx.shadowOffsetX = 8 + index % 2;
-  ctx.shadowOffsetY = 12;
+  ctx.shadowColor = "rgba(16,18,14,.28)";
+  ctx.shadowBlur = 9;
+  ctx.shadowOffsetX = 2 + index % 2;
+  ctx.shadowOffsetY = 4;
   ctx.fillStyle = "#48483f";
   chamferedRectPath(ctx, x, y, w, h, variant.cut);
   ctx.fill();

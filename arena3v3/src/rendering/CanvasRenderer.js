@@ -143,6 +143,7 @@ export class CanvasRenderer {
       skipBeamVfx = false,
       skipChainVfx = false,
       skipCastVfx = false,
+      skipTargetMarker = false,
       skipSpellVfxIds = null,
     } = {},
   ) {
@@ -230,7 +231,7 @@ export class CanvasRenderer {
         )
       : null;
 
-    if (selectedTarget) {
+    if (selectedTarget && !skipTargetMarker) {
       this.drawTargetMarker(
         ctx,
         selectedTarget,

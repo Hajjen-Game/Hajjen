@@ -1230,6 +1230,16 @@ export class PixiProofRenderer {
     targetRing.visible = false;
     root.addChild(targetRing);
 
+    const targetMarkerGlow = new Graphics();
+    targetMarkerGlow.visible = false;
+    targetMarkerGlow.blendMode = "screen";
+    targetMarkerGlow.filters = [new BlurFilter({ strength: 5, quality: 1 })];
+    root.addChild(targetMarkerGlow);
+
+    const targetMarker = new Graphics();
+    targetMarker.visible = false;
+    root.addChild(targetMarker);
+
     const name = new Text({
       text: actor.name,
       style: {
@@ -1311,6 +1321,8 @@ export class PixiProofRenderer {
       playerRing,
       targetGlow,
       targetRing,
+      targetMarkerGlow,
+      targetMarker,
       targetVariant: null,
       healthBg,
       healthFill,
@@ -1351,6 +1363,64 @@ export class PixiProofRenderer {
         .circle(0, 0, actor.radius + 8)
         .stroke({ color: ringColor, width: 3, alpha: .92 });
 
+      const markerColor = ringColor;
+      const markerGlow = glowColor;
+      const markerBacking = targetFriendly ? 0x001e0c : 0x1e0000;
+      const markerSize = 12.5;
+
+      view.targetMarkerGlow.clear()
+        .circle(0, 0, markerSize * 1.12)
+        .stroke({
+          color: markerGlow,
+          width: 6.5,
+          alpha: .42,
+        });
+
+      view.targetMarker.clear()
+        .circle(0, 0, markerSize * 1.18)
+        .fill({
+          color: markerBacking,
+          alpha: .82,
+        })
+        .circle(0, 0, markerSize * 1.12)
+        .stroke({
+          color: markerGlow,
+          width: 3.2,
+          alpha: .74,
+        })
+        .moveTo(0, -markerSize * .55)
+        .lineTo(markerSize * .45, 0)
+        .lineTo(0, markerSize * .55)
+        .lineTo(-markerSize * .45, 0)
+        .lineTo(0, -markerSize * .55)
+        .stroke({
+          color: markerColor,
+          width: 3,
+          alpha: .96,
+        })
+        .moveTo(-markerSize * .95, -markerSize * .75)
+        .lineTo(-markerSize * .55, -markerSize * .75)
+        .lineTo(-markerSize * .55, -markerSize * .35)
+        .moveTo(markerSize * .95, -markerSize * .75)
+        .lineTo(markerSize * .55, -markerSize * .75)
+        .lineTo(markerSize * .55, -markerSize * .35)
+        .moveTo(-markerSize * .95, markerSize * .75)
+        .lineTo(-markerSize * .55, markerSize * .75)
+        .lineTo(-markerSize * .55, markerSize * .35)
+        .moveTo(markerSize * .95, markerSize * .75)
+        .lineTo(markerSize * .55, markerSize * .75)
+        .lineTo(markerSize * .55, markerSize * .35)
+        .stroke({
+          color: markerColor,
+          width: 3,
+          alpha: .96,
+        })
+        .circle(0, 0, markerSize * .24)
+        .fill({
+          color: markerColor,
+          alpha: .54,
+        });
+
       view.targetVariant = targetVariant;
     }
 
@@ -1358,6 +1428,8 @@ export class PixiProofRenderer {
     view.playerRing.visible = isPlayer;
     view.targetGlow.visible = selected && !isPlayer;
     view.targetRing.visible = selected && !isPlayer;
+    view.targetMarkerGlow.visible = selected && !isPlayer;
+    view.targetMarker.visible = selected && !isPlayer;
 
     if (isPlayer) {
       const playerPulse = 1 + Math.sin(game.elapsedSeconds * 3.4) * .025;
@@ -1369,11 +1441,35 @@ export class PixiProofRenderer {
     if (selected && !isPlayer) {
       const pulse = 1 + Math.sin(game.elapsedSeconds * 8) * .045;
       const glowPulse = 1 + Math.sin(game.elapsedSeconds * 5.6) * .075;
+      const markerPulse = .5 + .5 * Math.sin(game.elapsedSeconds * 7);
+      const markerScale = 1 + markerPulse * .144;
+
       view.targetRing.scale.set(pulse);
       view.targetGlow.scale.set(glowPulse);
+      view.targetMarker.scale.set(markerScale);
+      view.targetMarkerGlow.scale.set(markerScale);
+
+      const ccKinds = new Set(["stun", "fear", "incapacitate", "root"]);
+      const hasCrowdControl = actor.effects.some(effect =>
+        effect.remainingMs > 0 && ccKinds.has(effect.kind)
+      );
+      const markerWorldY = Math.max(
+        18,
+        actor.y - actor.radius - (hasCrowdControl ? 118 : 72),
+      );
+      const markerLocalY = markerWorldY - actor.y;
+
+      view.targetMarker.position.set(0, markerLocalY);
+      view.targetMarkerGlow.position.set(0, markerLocalY);
+      view.targetMarkerGlow.alpha = .78 + markerPulse * .18;
+      view.targetMarker.alpha = .94 + markerPulse * .06;
     } else {
       view.targetRing.scale.set(1);
       view.targetGlow.scale.set(1);
+      view.targetMarker.scale.set(1);
+      view.targetMarkerGlow.scale.set(1);
+      view.targetMarkerGlow.alpha = 1;
+      view.targetMarker.alpha = 1;
     }
 
     // Match current Canvas behavior: the player's own world bars stay hidden.

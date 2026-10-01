@@ -32,6 +32,15 @@ function resourceColor(type) {
   return 0x777777;
 }
 
+function actorVisualSignature(actor) {
+  return [
+    actor?.classId || "",
+    actor?.team || "",
+    actor?.resource?.type || "",
+    Number(actor?.radius) || 0,
+  ].join("|");
+}
+
 function paintFallbackArena(ctx, arena) {
   ctx.fillStyle = "#33281f";
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -316,6 +325,7 @@ export class PixiProofRenderer {
       castFill,
       castBorder,
       castSpellId: null,
+      visualSignature: actorVisualSignature(actor),
     };
     this.actorViews.set(actor.id, view);
     return view;
@@ -326,6 +336,7 @@ export class PixiProofRenderer {
     if (!actor.alive) return;
 
     view.root.position.set(actor.x, actor.y);
+    if (view.name.text !== actor.name) view.name.text = actor.name;
 
     const isPlayer = actor.id === game.player?.id;
     const selected = game.player?.targetId === actor.id;
@@ -414,7 +425,20 @@ export class PixiProofRenderer {
     }
 
     for (const actor of game.actors) {
-      const view = this.actorViews.get(actor.id) || this.createActorView(actor);
+      let view = this.actorViews.get(actor.id);
+      const nextSignature = actorVisualSignature(actor);
+
+      // Actor ids are role/slot based and survive roster rerolls. If a slot
+      // changes from Mage to Shaman (or any other visual identity change),
+      // the old Pixi sprite must not be reused.
+      if (view && view.visualSignature !== nextSignature) {
+        this.app.stage.removeChild(view.root);
+        view.root.destroy({ children: true });
+        this.actorViews.delete(actor.id);
+        view = null;
+      }
+
+      view = view || this.createActorView(actor);
       this.updateActorView(view, actor, game);
     }
 

@@ -445,7 +445,11 @@ export class PixiProofRenderer {
 
     const softLight = new Graphics();
     const heatCore = new Graphics();
+    const hazeVeil = new Graphics();
+    const groundDetail = new Graphics();
+    const obstacleContact = new Graphics();
     const obstacleBounce = new Graphics();
+    const ashDust = new Graphics();
     const particleGlow = new Graphics();
     const particleCore = new Graphics();
 
@@ -456,6 +460,7 @@ export class PixiProofRenderer {
     ];
 
     const particles = [];
+    const ashParticles = [];
     const random = seededRandom(
       arena.id === "windscar-proving-grounds" ? 0x7a11ce : 0x47a6d,
     );
@@ -488,9 +493,61 @@ export class PixiProofRenderer {
       heatCore.blendMode = "add";
       heatCore.filters = [new BlurFilter({ strength: 8, quality: 2 })];
 
-      // Very soft warm bounce just under LOS obstacles visually reconnects
-      // them to the ground without adding another dark fake shadow.
+      // A very low-contrast drifting haze gives the arena depth without
+      // lowering combat readability. It sits under units and world bars.
+      hazeVeil
+        .ellipse(b.x + b.w * .28, b.y + b.h * .36, 210, 72)
+        .fill({ color: 0x8a624a, alpha: .018 })
+        .ellipse(b.x + b.w * .67, b.y + b.h * .58, 245, 82)
+        .fill({ color: 0x6f594b, alpha: .015 })
+        .ellipse(b.x + b.w * .48, b.y + b.h * .78, 185, 58)
+        .fill({ color: 0x9b694c, alpha: .012 });
+      hazeVeil.filters = [new BlurFilter({ strength: 26, quality: 2 })];
+
+      // Tiny clinker flecks around the authored hot areas add close-up terrain
+      // detail in Pixi only. They are deterministic and never affect collision.
+      const heatZones = [
+        { x: 215, y: 128, rx: 80, ry: 38 },
+        { x: 730, y: 182, rx: 70, ry: 35 },
+        { x: 1065, y: 505, rx: 83, ry: 40 },
+        { x: 490, y: 555, rx: 74, ry: 34 },
+      ];
+      for (let i = 0; i < 38; i += 1) {
+        const zone = heatZones[i % heatZones.length];
+        const angle = random() * Math.PI * 2;
+        const distance = Math.sqrt(random());
+        const x = zone.x + Math.cos(angle) * zone.rx * distance;
+        const y = zone.y + Math.sin(angle) * zone.ry * distance;
+        const blocked = arena.obstacles.some(rect =>
+          x >= rect.x - 5
+          && x <= rect.x + rect.w + 5
+          && y >= rect.y - 5
+          && y <= rect.y + rect.h + 5
+        );
+        if (blocked) continue;
+
+        const size = .55 + random() * 1.05;
+        const warm = random() > .48;
+        groundDetail
+          .circle(x, y, size)
+          .fill({
+            color: warm ? 0xd97838 : 0x2b2825,
+            alpha: warm ? .10 + random() * .08 : .085 + random() * .055,
+          });
+      }
+
+      // Keep obstacle grounding extremely tight. This is contact occlusion,
+      // not a second cast shadow, so it cannot recreate the old black clouds.
       for (const rect of arena.obstacles) {
+        obstacleContact
+          .ellipse(
+            rect.x + rect.w * .51,
+            rect.y + rect.h + 1.5,
+            Math.max(15, rect.w * .24),
+            4.5,
+          )
+          .fill({ color: 0x151210, alpha: .042 });
+
         obstacleBounce
           .ellipse(
             rect.x + rect.w * .52,
@@ -500,19 +557,35 @@ export class PixiProofRenderer {
           )
           .fill({ color: 0xd06a38, alpha: .030 });
       }
+      obstacleContact.filters = [new BlurFilter({ strength: 4, quality: 2 })];
       obstacleBounce.blendMode = "screen";
       obstacleBounce.filters = [new BlurFilter({ strength: 9, quality: 2 })];
 
-      for (let i = 0; i < 34; i += 1) {
+      // Bright embers stay sparse and readable; ash uses its own slower,
+      // darker layer so the arena gains atmosphere rather than visual noise.
+      for (let i = 0; i < 28; i += 1) {
         particles.push({
           x: b.x + 26 + random() * (b.w - 52),
           y: b.y + 18 + random() * (b.h - 36),
           speed: 4 + random() * 8,
           drift: 5 + random() * 13,
           phase: random() * Math.PI * 2,
-          size: .65 + random() * 1.25,
-          alpha: .18 + random() * .34,
+          size: .65 + random() * 1.20,
+          alpha: .16 + random() * .28,
           color: random() > .30 ? 0xff7a32 : 0xe2a05e,
+        });
+      }
+
+      for (let i = 0; i < 18; i += 1) {
+        ashParticles.push({
+          x: b.x + 24 + random() * (b.w - 48),
+          y: b.y + 20 + random() * (b.h - 40),
+          speed: 1.1 + random() * 2.5,
+          drift: 2 + random() * 5,
+          phase: random() * Math.PI * 2,
+          size: .55 + random() * .85,
+          alpha: .035 + random() * .065,
+          color: random() > .42 ? 0x9b8d80 : 0x665d56,
         });
       }
     } else if (arena.id === "four-pillar-ring") {
@@ -542,7 +615,17 @@ export class PixiProofRenderer {
       }
     }
 
-    container.addChild(softLight, heatCore, obstacleBounce, particleGlow, particleCore);
+    container.addChild(
+      softLight,
+      heatCore,
+      hazeVeil,
+      groundDetail,
+      obstacleContact,
+      obstacleBounce,
+      ashDust,
+      particleGlow,
+      particleCore,
+    );
     this.app.stage.addChildAt(container, Math.min(2, this.app.stage.children.length));
 
     this.atmosphere = {
@@ -551,10 +634,15 @@ export class PixiProofRenderer {
       container,
       softLight,
       heatCore,
+      hazeVeil,
+      groundDetail,
+      obstacleContact,
       obstacleBounce,
+      ashDust,
       particleGlow,
       particleCore,
       particles,
+      ashParticles,
     };
   }
 
@@ -567,14 +655,36 @@ export class PixiProofRenderer {
     const spanY = Math.max(1, b.h - 28);
     const glow = atmosphere.particleGlow;
     const core = atmosphere.particleCore;
+    const ash = atmosphere.ashDust;
 
     glow.clear();
     core.clear();
+    ash.clear();
 
     if (atmosphere.arenaId === "windscar-proving-grounds") {
       atmosphere.softLight.alpha = .76 + Math.sin(t * 1.15) * .055;
       atmosphere.heatCore.alpha = .82 + Math.sin(t * 1.55) * .075;
       atmosphere.obstacleBounce.alpha = .88 + Math.sin(t * .72) * .035;
+      atmosphere.hazeVeil.position.set(
+        Math.sin(t * .055) * 3.2,
+        Math.cos(t * .043) * 1.6,
+      );
+
+      for (const dust of atmosphere.ashParticles) {
+        const x = b.x + 14 + (
+          ((dust.x - b.x - 14 + t * dust.speed) % (b.w - 28) + (b.w - 28))
+          % (b.w - 28)
+        );
+        const y = dust.y + Math.sin(t * .24 + dust.phase) * dust.drift;
+        const fade = .72 + Math.sin(t * .48 + dust.phase) * .28;
+
+        ash
+          .ellipse(x, y, dust.size * 1.45, dust.size * .58)
+          .fill({
+            color: dust.color,
+            alpha: dust.alpha * fade,
+          });
+      }
 
       for (const particle of atmosphere.particles) {
         const wrapped = ((particle.y - b.y - 14 - t * particle.speed) % spanY + spanY) % spanY;

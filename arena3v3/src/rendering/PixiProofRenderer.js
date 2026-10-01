@@ -413,6 +413,130 @@ function commonCasterSpellProfile(spellId) {
   return profiles[spellId] || null;
 }
 
+const POLISH_PROJECTILE_SPELLS = new Set([
+  "priest-smite",
+  "priest-holy-fire",
+  "druid-moonfire",
+  "paladin-hammer",
+  "paladin-judgment",
+  "mage-frostbolt",
+  "mage-pyroblast",
+  "mage-frostfire-bolt",
+  "mage-arcane-barrage",
+  "shaman-lava-burst",
+  "shaman-elemental-blast",
+  "warlock-shadow-bolt",
+  "warlock-chaos-bolt",
+]);
+
+const POLISH_HEAL_SPELLS = new Set([
+  "priest-renew",
+  "priest-flash-heal",
+  "priest-greater-heal",
+  "druid-rejuvenation",
+  "druid-swiftmend",
+  "druid-regrowth",
+  "druid-lifebloom",
+  "paladin-holy-shock",
+  "paladin-flash-light",
+  "paladin-holy-light",
+  "paladin-word-of-glory",
+]);
+
+const POLISH_CONTROL_SPELLS = new Set([
+  "priest-psychic-scream",
+  "druid-cyclone",
+  "mage-frost-nova",
+  "mage-polymorph",
+  "shaman-hex",
+  "warlock-fear",
+  "dk-chains",
+  "dk-mind-freeze",
+  "warrior-pummel",
+  "rogue-kidney",
+  "rogue-kick",
+]);
+
+const POLISH_MELEE_SPELLS = new Set([
+  "warrior-rend",
+  "warrior-mortal-strike",
+  "warrior-slam",
+  "warrior-charge",
+  "warrior-overpower",
+  "warrior-bloodthirst",
+  "rogue-garrote",
+  "rogue-sinister",
+  "rogue-eviscerate",
+  "rogue-mutilate",
+  "rogue-shadowstep",
+  "dk-death-strike",
+  "dk-obliterate",
+  "dk-frost-strike",
+  "shaman-stormstrike",
+]);
+
+const POLISH_HEAVY_SPELLS = new Set([
+  "priest-greater-heal",
+  "druid-regrowth",
+  "paladin-holy-light",
+  "paladin-word-of-glory",
+  "warrior-mortal-strike",
+  "warrior-slam",
+  "rogue-eviscerate",
+  "rogue-mutilate",
+  "dk-death-strike",
+  "dk-obliterate",
+  "mage-pyroblast",
+  "mage-frostfire-bolt",
+  "shaman-lava-burst",
+  "shaman-elemental-blast",
+  "warlock-chaos-bolt",
+]);
+
+const POLISH_ALREADY_FINAL = new Set([
+  // Chain Lightning already has its bespoke 2.0 multi-hop presentation.
+  "shaman-chain-lightning",
+]);
+
+function spellPolishProfile(spellId, style = "damage") {
+  const existing =
+    commonCasterSpellProfile(spellId)
+    || priestDruidSpellProfile(spellId)
+    || paladinDkSpellProfile(spellId)
+    || warriorRogueSpellProfile(spellId);
+
+  if (existing) {
+    return {
+      ...existing,
+      family: existing.family || String(spellId || "").split("-")[0] || "magic",
+    };
+  }
+
+  if (
+    spellId === "priest-renew"
+    || spellId === "priest-flash-heal"
+    || spellId === "priest-greater-heal"
+  ) {
+    const [main, core, accent] = priestHealSpellColors(spellId);
+    return {
+      family: "priest",
+      kind: "heal",
+      main,
+      core,
+      accent,
+    };
+  }
+
+  const [main, core] = burstColors(style);
+  return {
+    family: String(spellId || "").split("-")[0] || "magic",
+    kind: "generic",
+    main,
+    core,
+    accent: main,
+  };
+}
+
 function actorVisualSignature(actor) {
   return [
     actor?.classId || "",
@@ -1200,7 +1324,23 @@ export class PixiProofRenderer {
     commonCasterSpellFx.visible = false;
     root.addChild(commonCasterSpellFx);
 
+    const spellPolishGlowFx = new Graphics();
+    spellPolishGlowFx.visible = false;
+    root.addChild(spellPolishGlowFx);
+
+    const spellPolishCoreFx = new Graphics();
+    spellPolishCoreFx.visible = false;
+    root.addChild(spellPolishCoreFx);
+
     const { BlurFilter } = this.PIXI;
+
+    // One shared actor-local glow pass gives every class a stronger release,
+    // projectile trail and impact without creating stage-level filter stacks.
+    spellPolishGlowFx.blendMode = "screen";
+    spellPolishGlowFx.filters = [
+      new BlurFilter({ strength: 4.2, quality: 1 }),
+    ];
+    spellPolishCoreFx.blendMode = "screen";
 
     // Chain Lightning uses three actor-local layers. The glow layer gets the
     // same lightweight blur family already proven on player/target glows.
@@ -1324,6 +1464,8 @@ export class PixiProofRenderer {
       paladinDkSpellFx,
       warriorRogueSpellFx,
       commonCasterSpellFx,
+      spellPolishGlowFx,
+      spellPolishCoreFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -5516,6 +5658,510 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeSpellAnimationPolish(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+
+    const strokeArc = (
+      graphics,
+      cx,
+      cy,
+      radius,
+      start,
+      end,
+      style,
+      segments = 7,
+    ) => {
+      if (style.alpha <= 0) return;
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const angle = start + (end - start) * t;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        if (i === 0) graphics.moveTo(x, y);
+        else graphics.lineTo(x, y);
+      }
+      graphics.stroke(style);
+    };
+
+    for (const view of this.actorViews.values()) {
+      view.spellPolishGlowFx.clear();
+      view.spellPolishGlowFx.visible = false;
+      view.spellPolishCoreFx.clear();
+      view.spellPolishCoreFx.visible = false;
+    }
+
+    const time = Number(game.elapsedSeconds) || 0;
+
+    // CAST COMPRESSION / RELEASE
+    // Existing class windups keep their identity. This final 35% adds a shared
+    // anticipation beat so the actual release reads clearly at game scale.
+    for (const actor of game.actors) {
+      if (!actor.alive || !actor.cast) continue;
+      const view = this.actorViews.get(actor.id);
+      if (!view || !view.root.visible) continue;
+
+      const spell = actor.getSpell(actor.cast.spellId);
+      const spellId = spell?.id || actor.cast.spellId;
+      if (POLISH_ALREADY_FINAL.has(spellId)) continue;
+
+      const profile = spellPolishProfile(spellId, spell?.visualStyle);
+      const total = Math.max(1, Number(actor.cast.totalMs) || 1);
+      const remaining = Math.max(0, Number(actor.cast.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const anticipation = smooth((p - .62) / .38);
+      if (anticipation <= 0) continue;
+
+      const heavy = POLISH_HEAVY_SPELLS.has(spellId) || total >= 1800;
+      const glow = view.spellPolishGlowFx;
+      const core = view.spellPolishCoreFx;
+      glow.visible = true;
+      core.visible = true;
+
+      const pulse = .5 + .5 * Math.sin(time * 15 + actor.x * .017);
+      const outer = actor.radius + (heavy ? 27 : 21) - anticipation * (heavy ? 10 : 7);
+
+      glow.circle(0, 0, outer).stroke({
+        color: profile.main,
+        width: heavy ? 7 : 5,
+        alpha: (.09 + anticipation * .18) * (.82 + pulse * .18),
+      });
+
+      core.circle(0, 0, outer).stroke({
+        color: profile.main,
+        width: heavy ? 2.3 : 1.7,
+        alpha: .18 + anticipation * .40,
+      });
+
+      const rays = heavy ? 8 : 6;
+      for (let i = 0; i < rays; i += 1) {
+        const angle =
+          i / rays * Math.PI * 2
+          + time * (i % 2 ? -.35 : .32);
+        const startR = outer + 10 - anticipation * 4;
+        const endR = actor.radius + 5 + anticipation * 3;
+        core
+          .moveTo(Math.cos(angle) * startR, Math.sin(angle) * startR)
+          .lineTo(Math.cos(angle) * endR, Math.sin(angle) * endR)
+          .stroke({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            width: heavy ? 1.7 : 1.25,
+            alpha: anticipation * (heavy ? .48 : .34),
+          });
+      }
+
+      if (p > .88) {
+        const release = smooth((p - .88) / .12);
+        const flashFade = 1 - release;
+        glow.circle(0, 0, 6 + release * (heavy ? 18 : 13)).fill({
+          color: profile.core,
+          alpha: flashFade * (heavy ? .24 : .16),
+        });
+        core.circle(0, 0, 3.2 + release * 3).fill({
+          color: profile.core,
+          alpha: flashFade * (heavy ? .72 : .55),
+        });
+      }
+    }
+
+    // SPELL RELEASE / TRAVEL / IMPACT
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+      if (POLISH_ALREADY_FINAL.has(effect.spellId)) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX ?? source.x;
+      const targetY = target?.y ?? effect.targetY ?? source.y;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const profile = spellPolishProfile(effect.spellId, effect.style);
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const random = seededRandom(seed * 13 + 7);
+      const heavy = POLISH_HEAVY_SPELLS.has(effect.spellId);
+      const isHeal = POLISH_HEAL_SPELLS.has(effect.spellId);
+      const isControl = POLISH_CONTROL_SPELLS.has(effect.spellId);
+      const isMelee = POLISH_MELEE_SPELLS.has(effect.spellId);
+      const isProjectile = POLISH_PROJECTILE_SPELLS.has(effect.spellId);
+      const missed = Boolean(effect.missed);
+
+      let dx = targetX - source.x;
+      let dy = targetY - source.y;
+      const baseDistance = Math.max(1, Math.hypot(dx, dy));
+      const tx = dx / baseDistance;
+      const ty = dy / baseDistance;
+      const nx = -ty;
+      const ny = tx;
+
+      if (missed) {
+        const sign = Math.sin(seed * .91) >= 0 ? 1 : -1;
+        dx += nx * sign * (heavy ? 50 : 38);
+        dy += ny * sign * (heavy ? 50 : 38) - 8;
+      }
+
+      const glow = view.spellPolishGlowFx;
+      const core = view.spellPolishCoreFx;
+      glow.visible = true;
+      core.visible = true;
+
+      // A crisp release snap at the source. It is intentionally short so it
+      // doesn't bury each class's bespoke cast art.
+      const releaseP = clamp01(p / .18);
+      const releaseFade = 1 - releaseP;
+      if (releaseFade > 0) {
+        const radius = source.radius + 8 + easeOut(releaseP) * (heavy ? 20 : 13);
+
+        glow.circle(0, 0, radius).stroke({
+          color: profile.main,
+          width: heavy ? 7 : 5,
+          alpha: alpha * releaseFade * (heavy ? .20 : .13),
+        });
+        core.circle(0, 0, radius).stroke({
+          color: profile.core,
+          width: heavy ? 2.1 : 1.5,
+          alpha: alpha * releaseFade * (heavy ? .55 : .38),
+        });
+
+        const sparkCount = heavy ? 7 : 4;
+        for (let i = 0; i < sparkCount; i += 1) {
+          const angle =
+            i / sparkCount * Math.PI * 2
+            + seed * .019
+            + releaseP * .5;
+          const inner = source.radius + 4;
+          const outer = inner + 9 + releaseP * (heavy ? 18 : 11);
+          core
+            .moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner)
+            .lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer)
+            .stroke({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              width: heavy ? 1.8 : 1.2,
+              alpha: alpha * releaseFade * (heavy ? .52 : .34),
+            });
+        }
+      }
+
+      const selfEffect = baseDistance < Math.max(8, source.radius * .35);
+      if (selfEffect) {
+        const expand = easeOut(p);
+        const fade = 1 - smooth((p - .55) / .45);
+        const radius = source.radius + 10 + expand * (heavy ? 30 : 20);
+
+        glow.circle(0, 0, radius).stroke({
+          color: profile.main,
+          width: heavy ? 7 : 5,
+          alpha: alpha * fade * .14,
+        });
+        core.circle(0, 0, radius).stroke({
+          color: profile.core,
+          width: heavy ? 2.2 : 1.5,
+          alpha: alpha * fade * .35,
+        });
+
+        const motes = heavy ? 8 : 6;
+        for (let i = 0; i < motes; i += 1) {
+          const angle =
+            i / motes * Math.PI * 2
+            + p * (i % 2 ? 2.4 : -2.0)
+            + seed * .013;
+          const rr = source.radius + 12 + (i % 3) * 5 + p * 5;
+          core.circle(
+            Math.cos(angle) * rr,
+            Math.sin(angle) * rr,
+            1.2 + (i % 3) * .35,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            alpha: alpha * fade * .42,
+          });
+        }
+        continue;
+      }
+
+      let impactStart = .10;
+
+      if (isProjectile) {
+        const travelEnd = clamp01(profile.travelEnd || (heavy ? .58 : .52));
+        const travelQ = smooth(p / Math.max(.1, travelEnd));
+        impactStart = travelEnd * .90;
+
+        const arcHeight = Math.sin(travelQ * Math.PI) * (heavy ? -12 : -7);
+        const px = dx * travelQ;
+        const py = dy * travelQ + arcHeight;
+
+        const trailCount = heavy ? 5 : 4;
+        for (let i = trailCount; i >= 1; i -= 1) {
+          const lagQ = Math.max(0, travelQ - i * (heavy ? .055 : .065));
+          const lagArc = Math.sin(lagQ * Math.PI) * (heavy ? -12 : -7);
+          const lx = dx * lagQ;
+          const ly = dy * lagQ + lagArc;
+          const trailAlpha = alpha * (1 - i / (trailCount + 1)) * (heavy ? .22 : .16);
+
+          glow.circle(
+            lx,
+            ly,
+            (profile.size || (heavy ? 10 : 7)) * (1.05 - i * .08),
+          ).fill({
+            color: profile.main,
+            alpha: trailAlpha * .42,
+          });
+          core.circle(
+            lx,
+            ly,
+            Math.max(1.4, (profile.size || 7) * (.42 - i * .035)),
+          ).fill({
+            color: profile.main,
+            alpha: trailAlpha,
+          });
+        }
+
+        const orbSize = profile.size || (heavy ? 10 : 7);
+        glow.circle(px, py, orbSize * (heavy ? 1.8 : 1.55)).fill({
+          color: profile.main,
+          alpha: alpha * (heavy ? .24 : .18),
+        });
+        core.circle(px, py, orbSize).fill({
+          color: profile.main,
+          alpha: alpha * .82,
+        });
+        core.circle(px - tx * 1.5, py - ty * 1.5, orbSize * .42).fill({
+          color: profile.core,
+          alpha: alpha * .92,
+        });
+
+        const jitterCount = heavy ? 6 : 4;
+        for (let i = 0; i < jitterCount; i += 1) {
+          const phase = random() * Math.PI * 2 + p * 8;
+          const side = (4 + random() * (heavy ? 9 : 6)) * (i % 2 ? 1 : -1);
+          const behind = 4 + random() * (heavy ? 17 : 11);
+          core.circle(
+            px - tx * behind + nx * side + Math.cos(phase) * 2,
+            py - ty * behind + ny * side + Math.sin(phase) * 2,
+            .9 + random() * 1.2,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.accent,
+            alpha: alpha * (heavy ? .52 : .36),
+          });
+        }
+      }
+
+      const impactP = clamp01((p - impactStart) / Math.max(.12, 1 - impactStart));
+      if (impactP <= 0) continue;
+
+      // Misses get a readable dissipating ghost instead of a successful hit pop.
+      if (missed) {
+        const fade = 1 - smooth(impactP);
+        const radius = 8 + easeOut(impactP) * (heavy ? 24 : 17);
+        core.circle(dx, dy, radius).stroke({
+          color: profile.main,
+          width: 1.4,
+          alpha: alpha * fade * .28,
+        });
+        for (let i = 0; i < 4; i += 1) {
+          const angle = seed * .03 + i * Math.PI / 2;
+          core
+            .moveTo(dx + Math.cos(angle) * 6, dy + Math.sin(angle) * 6)
+            .lineTo(
+              dx + Math.cos(angle) * (13 + impactP * 12),
+              dy + Math.sin(angle) * (13 + impactP * 12),
+            )
+            .stroke({
+              color: profile.accent,
+              width: 1,
+              alpha: alpha * fade * .25,
+            });
+        }
+        continue;
+      }
+
+      const hitEase = easeOut(impactP);
+      const hitFade = 1 - smooth((impactP - .20) / .80);
+      const weight = heavy ? 1.34 : 1;
+
+      if (isHeal) {
+        const radius = 10 + hitEase * 30 * weight;
+        glow.circle(dx, dy, radius * .82).fill({
+          color: profile.main,
+          alpha: alpha * hitFade * (heavy ? .10 : .07),
+        });
+        core.circle(dx, dy, radius).stroke({
+          color: profile.main,
+          width: heavy ? 2.2 : 1.5,
+          alpha: alpha * hitFade * .38,
+        });
+        core.circle(dx, dy, radius * .66).stroke({
+          color: profile.core,
+          width: 1.1,
+          alpha: alpha * hitFade * .28,
+        });
+
+        const motes = heavy ? 9 : 6;
+        for (let i = 0; i < motes; i += 1) {
+          const spread = (i - (motes - 1) / 2) * (heavy ? 5 : 4);
+          const wobble = Math.sin(seed * .07 + i * 2.1 + impactP * 8) * 4;
+          core.circle(
+            dx + spread + wobble,
+            dy + 11 - impactP * (heavy ? 42 : 31) - (i % 2) * 4,
+            1.1 + (i % 3) * .4,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            alpha: alpha * hitFade * .48,
+          });
+        }
+        continue;
+      }
+
+      if (isControl) {
+        const radius = 14 + hitEase * (heavy ? 31 : 24);
+        const segments = heavy ? 5 : 4;
+        for (let i = 0; i < segments; i += 1) {
+          const angle =
+            i / segments * Math.PI * 2
+            + impactP * (i % 2 ? -1.5 : 1.25)
+            + seed * .009;
+          strokeArc(
+            core,
+            dx,
+            dy,
+            radius + (i % 2) * 4,
+            angle,
+            angle + .72,
+            {
+              color: i % 2 ? profile.core : profile.main,
+              width: heavy ? 2 : 1.5,
+              alpha: alpha * hitFade * .45,
+            },
+            5,
+          );
+        }
+
+        glow.circle(dx, dy, radius * .82).stroke({
+          color: profile.main,
+          width: 6,
+          alpha: alpha * hitFade * .11,
+        });
+
+        for (let i = 0; i < 5; i += 1) {
+          const angle = i / 5 * Math.PI * 2 + seed * .021;
+          const outer = radius + 10;
+          const inner = radius - 4 - impactP * 5;
+          core
+            .moveTo(dx + Math.cos(angle) * outer, dy + Math.sin(angle) * outer)
+            .lineTo(dx + Math.cos(angle) * inner, dy + Math.sin(angle) * inner)
+            .stroke({
+              color: profile.accent,
+              width: 1.2,
+              alpha: alpha * hitFade * .34,
+            });
+        }
+        continue;
+      }
+
+      if (isMelee) {
+        const burstRadius = 9 + hitEase * (heavy ? 30 : 21);
+        glow.ellipse(
+          dx,
+          dy + 8,
+          burstRadius * 1.15,
+          burstRadius * .34,
+        ).stroke({
+          color: profile.main,
+          width: heavy ? 7 : 5,
+          alpha: alpha * hitFade * .12,
+        });
+
+        const shards = heavy ? 9 : 6;
+        for (let i = 0; i < shards; i += 1) {
+          const angle =
+            -2.65 + i / Math.max(1, shards - 1) * 2.15
+            + Math.sin(seed * .03 + i) * .16;
+          const inner = 5 + (i % 2) * 2;
+          const outer = 15 + hitEase * (heavy ? 27 : 18) + (i % 3) * 3;
+          core
+            .moveTo(
+              dx + Math.cos(angle) * inner,
+              dy + Math.sin(angle) * inner,
+            )
+            .lineTo(
+              dx + Math.cos(angle) * outer,
+              dy + Math.sin(angle) * outer,
+            )
+            .stroke({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              width: heavy ? 2.2 : 1.5,
+              alpha: alpha * hitFade * (heavy ? .58 : .42),
+            });
+        }
+
+        core.circle(dx, dy, 3 + (1 - impactP) * (heavy ? 5 : 3)).fill({
+          color: profile.core,
+          alpha: alpha * hitFade * (heavy ? .72 : .52),
+        });
+        continue;
+      }
+
+      // General magical impact: concentric snap + irregular radial fragments.
+      const radius = 8 + hitEase * (heavy ? 39 : 27);
+      glow.circle(dx, dy, radius * .72).fill({
+        color: profile.main,
+        alpha: alpha * hitFade * (heavy ? .12 : .08),
+      });
+      core.circle(dx, dy, radius).stroke({
+        color: profile.main,
+        width: heavy ? 2.4 : 1.6,
+        alpha: alpha * hitFade * .42,
+      });
+      core.circle(dx, dy, radius * .56).stroke({
+        color: profile.core,
+        width: 1,
+        alpha: alpha * hitFade * .28,
+      });
+
+      const fragments = heavy ? 10 : 7;
+      for (let i = 0; i < fragments; i += 1) {
+        const angle =
+          i / fragments * Math.PI * 2
+          + seed * .011
+          + Math.sin(i * 4.7 + seed) * .12;
+        const inner = 6 + (i % 2) * 2;
+        const outer =
+          14 + hitEase * (heavy ? 32 : 21) + (i % 3) * 4;
+        core
+          .moveTo(
+            dx + Math.cos(angle) * inner,
+            dy + Math.sin(angle) * inner,
+          )
+          .lineTo(
+            dx + Math.cos(angle) * outer,
+            dy + Math.sin(angle) * outer,
+          )
+          .stroke({
+            color: i % 3 === 0 ? profile.core : profile.accent,
+            width: heavy ? 1.8 : 1.2,
+            alpha: alpha * hitFade * (heavy ? .50 : .34),
+          });
+      }
+
+      core.circle(dx, dy, 3.5 + (1 - impactP) * (heavy ? 6 : 4)).fill({
+        color: profile.core,
+        alpha: alpha * hitFade * (heavy ? .72 : .55),
+      });
+    }
+  }
+
   updateNativeFloatingCombatText(game) {
     const layer = this.combatTextLayer;
     const { Container, Text } = this.PIXI || {};
@@ -5689,6 +6335,7 @@ export class PixiProofRenderer {
     this.updateNativePaladinDkSpellVfx(game);
     this.updateNativeWarriorRogueSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
+    this.updateNativeSpellAnimationPolish(game);
     this.updateNativeFloatingCombatText(game);
 
     this.app.render();

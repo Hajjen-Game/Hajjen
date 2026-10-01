@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260930-vfx2e";
 import { AISystem } from "../systems/AISystem.js?v=20260929-manarecovery2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { CanvasRenderer } from "../rendering/CanvasRenderer.js?v=20261001-windscar2";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261001-pixi2";
 import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
 import { buildMatchReport } from "./MatchReport.js?v=20260929-manarecovery2";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
@@ -53,7 +53,7 @@ export class Game {
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);
-    this.renderer = new CanvasRenderer(canvas, arena);
+    this.renderer = new RendererBridge(canvas, arena);
 
     this.elapsedSeconds = 0;
     this.ended = false;

@@ -460,6 +460,90 @@ function projectileVfx2Spec(spellId) {
   return spec ? { ...profile, ...spec } : null;
 }
 
+const COMBAT_VFX2_HEALS = new Set([
+  "priest-renew",
+  "priest-flash-heal",
+  "priest-greater-heal",
+  "druid-rejuvenation",
+  "druid-swiftmend",
+  "druid-regrowth",
+  "druid-lifebloom",
+  "paladin-holy-shock",
+  "paladin-flash-light",
+  "paladin-holy-light",
+  "paladin-word-of-glory",
+]);
+
+const COMBAT_VFX2_DEFENSIVES = new Set([
+  "priest-pain-suppression",
+  "druid-ironbark",
+  "paladin-blessing",
+  "shaman-astral-shift",
+  "warlock-resolve",
+  "dk-rune-tap",
+]);
+
+const COMBAT_VFX2_CC = new Set([
+  "priest-psychic-scream",
+  "druid-cyclone",
+  "mage-frost-nova",
+  "mage-polymorph",
+  "shaman-hex",
+  "warlock-fear",
+  "dk-chains",
+  "dk-mind-freeze",
+  "warrior-pummel",
+  "rogue-kidney",
+  "rogue-kick",
+]);
+
+const COMBAT_VFX2_MELEE = new Set([
+  "warrior-rend",
+  "warrior-mortal-strike",
+  "warrior-slam",
+  "warrior-charge",
+  "warrior-overpower",
+  "warrior-bloodthirst",
+  "rogue-garrote",
+  "rogue-sinister",
+  "rogue-eviscerate",
+  "rogue-mutilate",
+  "rogue-shadowstep",
+  "dk-death-strike",
+  "dk-obliterate",
+  "dk-frost-strike",
+  "shaman-stormstrike",
+]);
+
+const COMBAT_VFX2_DOTS = new Set([
+  "mage-living-bomb",
+  "shaman-flame-shock",
+  "warlock-corruption",
+  "dk-fever",
+]);
+
+const COMBAT_VFX2_SKY = new Set([
+  "priest-holy-fire",
+  "druid-moonfire",
+  "paladin-judgment",
+]);
+
+const COMBAT_VFX2_SPECIAL = new Set([
+  "priest-smite",
+  "warlock-drain-life",
+  "warlock-conflagrate",
+]);
+
+const COMBAT_VFX2_SPELLS = new Set([
+  ...COMBAT_VFX2_HEALS,
+  ...COMBAT_VFX2_DEFENSIVES,
+  ...COMBAT_VFX2_CC,
+  ...COMBAT_VFX2_MELEE,
+  ...COMBAT_VFX2_DOTS,
+  ...COMBAT_VFX2_SKY,
+  ...COMBAT_VFX2_SPECIAL,
+]);
+
 const POLISH_PROJECTILE_SPELLS = new Set([
   "priest-smite",
   "priest-holy-fire",
@@ -1371,6 +1455,14 @@ export class PixiProofRenderer {
     commonCasterSpellFx.visible = false;
     root.addChild(commonCasterSpellFx);
 
+    const combatVfx2GlowFx = new Graphics();
+    combatVfx2GlowFx.visible = false;
+    root.addChild(combatVfx2GlowFx);
+
+    const combatVfx2CoreFx = new Graphics();
+    combatVfx2CoreFx.visible = false;
+    root.addChild(combatVfx2CoreFx);
+
     const projectileVfx2GlowFx = new Graphics();
     projectileVfx2GlowFx.visible = false;
     root.addChild(projectileVfx2GlowFx);
@@ -1388,6 +1480,12 @@ export class PixiProofRenderer {
     root.addChild(spellPolishCoreFx);
 
     const { BlurFilter } = this.PIXI;
+
+    combatVfx2GlowFx.blendMode = "screen";
+    combatVfx2GlowFx.filters = [
+      new BlurFilter({ strength: 4.8, quality: 1 }),
+    ];
+    combatVfx2CoreFx.blendMode = "screen";
 
     projectileVfx2GlowFx.blendMode = "screen";
     projectileVfx2GlowFx.filters = [
@@ -1525,6 +1623,8 @@ export class PixiProofRenderer {
       paladinDkSpellFx,
       warriorRogueSpellFx,
       commonCasterSpellFx,
+      combatVfx2GlowFx,
+      combatVfx2CoreFx,
       projectileVfx2GlowFx,
       projectileVfx2CoreFx,
       spellPolishGlowFx,
@@ -5722,6 +5822,1096 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeCombatVfx2(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const point = (cx, cy, x, y, angle) => {
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      return {
+        x: cx + x * ca - y * sa,
+        y: cy + x * sa + y * ca,
+      };
+    };
+
+    const polygon = (g, pts, style, fill = false) => {
+      if (!pts?.length || style.alpha <= 0) return;
+      g.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i += 1) {
+        g.lineTo(pts[i].x, pts[i].y);
+      }
+      g.lineTo(pts[0].x, pts[0].y);
+      if (fill) g.fill(style);
+      else g.stroke(style);
+    };
+
+    const arc = (g, cx, cy, radius, start, end, style, segments = 8) => {
+      if (style.alpha <= 0) return;
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const a = start + (end - start) * t;
+        const x = cx + Math.cos(a) * radius;
+        const y = cy + Math.sin(a) * radius;
+        if (i === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.stroke(style);
+    };
+
+    const leaf = (g, cx, cy, angle, size, color, alpha) => {
+      const pts = [
+        point(cx,cy,size,0,angle),
+        point(cx,cy,0,size*.48,angle),
+        point(cx,cy,-size,0,angle),
+        point(cx,cy,0,-size*.48,angle),
+      ];
+      polygon(g,pts,{color,alpha},true);
+    };
+
+    const weaponSlash = (
+      g,
+      cx,
+      cy,
+      angle,
+      length,
+      profile,
+      alpha,
+      width,
+      bend = 0,
+    ) => {
+      if (alpha <= 0) return;
+      const a=point(cx,cy,-length*.52,-bend,angle);
+      const m=point(cx,cy,0,bend,angle);
+      const b=point(cx,cy,length*.52,bend*.15,angle);
+      g.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
+        color:profile.core,width,alpha
+      });
+      g.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
+        color:profile.accent,width:width+4,alpha:alpha*.16
+      });
+    };
+
+    for (const view of this.actorViews.values()) {
+      view.combatVfx2GlowFx.clear();
+      view.combatVfx2GlowFx.visible = false;
+      view.combatVfx2CoreFx.clear();
+      view.combatVfx2CoreFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+      if (!COMBAT_VFX2_SPELLS.has(effect.spellId)) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX ?? source.x;
+      const targetY = target?.y ?? effect.targetY ?? source.y;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const profile = spellPolishProfile(effect.spellId, effect.style);
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const missed = Boolean(effect.missed);
+      const glow = view.combatVfx2GlowFx;
+      const core = view.combatVfx2CoreFx;
+
+      const dx0 = targetX - source.x;
+      const dy0 = targetY - source.y;
+      const len0 = Math.max(1, Math.hypot(dx0,dy0));
+      const tx = dx0 / len0;
+      const ty = dy0 / len0;
+      const nx = -ty;
+      const ny = tx;
+      const missSign = Math.sin(seed*.83) >= 0 ? 1 : -1;
+      const dx = missed ? dx0 + nx*missSign*44 : dx0;
+      const dy = missed ? dy0 + ny*missSign*44 - 8 : dy0;
+
+      glow.visible = true;
+      core.visible = true;
+
+      // ---------------------------------------------------------------------
+      // HEALING: Priest = falling holy light, Druid = living foliage,
+      // Paladin = angular sun seals/crown. Same purpose, distinct language.
+      // ---------------------------------------------------------------------
+      if (COMBAT_VFX2_HEALS.has(effect.spellId)) {
+        const fade=1-smooth((p-.62)/.38);
+        const strong=
+          effect.spellId==="priest-greater-heal"
+          || effect.spellId==="druid-regrowth"
+          || effect.spellId==="paladin-holy-light"
+          || effect.spellId==="paladin-word-of-glory";
+        const power=strong?1.28:1;
+
+        if (effect.spellId.startsWith("priest-")) {
+          const top=dy-72*(strong?1.18:1);
+          const appear=easeOut(p/.30);
+          glow
+            .moveTo(dx,top)
+            .lineTo(dx,dy+8)
+            .stroke({
+              color:profile.main,
+              width:strong?16:11,
+              alpha:alpha*fade*.10,
+            });
+          core
+            .moveTo(dx,top)
+            .lineTo(dx,dy+5)
+            .stroke({
+              color:profile.core,
+              width:strong?3.8:2.6,
+              alpha:alpha*fade*(.44+.24*appear),
+            });
+
+          for(let i=0;i<(strong?10:7);i++){
+            const side=(i-(strong?4.5:3))*5.4;
+            const y=top+(i%4)*14+p*17;
+            core.circle(dx+side+Math.sin(seed*.03+i+p*7)*4,y,1.2+(i%3)*.45).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.52,
+            });
+          }
+
+          core.circle(dx,dy,9+easeOut(p)*29*power).stroke({
+            color:profile.main,width:strong?2.5:1.7,alpha:alpha*fade*.54
+          });
+          arc(core,dx,dy,17+easeOut(p)*21,0.15,1.05,{
+            color:profile.core,width:1.4,alpha:alpha*fade*.44
+          },6);
+          arc(core,dx,dy,17+easeOut(p)*21,Math.PI+.15,Math.PI+1.05,{
+            color:profile.core,width:1.4,alpha:alpha*fade*.44
+          },6);
+          continue;
+        }
+
+        if (effect.spellId.startsWith("druid-")) {
+          const count=effect.spellId==="druid-swiftmend"?12:(strong?10:8);
+
+          if(effect.spellId==="druid-regrowth"){
+            for(let i=0;i<4;i++){
+              const side=(i-1.5)*8;
+              core
+                .moveTo(dx+side,dy+18)
+                .lineTo(
+                  dx+side+Math.sin(i+p*5)*10,
+                  dy-8-p*17
+                )
+                .lineTo(dx+side*.3,dy-29-p*10)
+                .stroke({
+                  color:profile.main,width:2,alpha:alpha*fade*.46
+                });
+            }
+          }
+
+          for(let i=0;i<count;i++){
+            const a=i/count*Math.PI*2+p*(i%2?.9:-.7)+seed*.006;
+            const rr=7+easeOut(p)*(18+(i%4)*4);
+            leaf(
+              core,
+              dx+Math.cos(a)*rr,
+              dy+Math.sin(a)*rr-p*(effect.spellId==="druid-lifebloom"?12:7),
+              a+.4+p,
+              3.4+(i%3)*.7,
+              i%3===0?profile.core:profile.main,
+              alpha*fade*.70
+            );
+          }
+
+          if(effect.spellId==="druid-lifebloom"){
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2+p*.45;
+              const rr=7+easeOut(p)*10;
+              leaf(core,dx+Math.cos(a)*rr,dy+Math.sin(a)*rr,a,5.3,
+                i%2?profile.main:profile.core,alpha*fade*.75);
+            }
+          }
+
+          glow.circle(dx,dy,12+easeOut(p)*24*power).stroke({
+            color:profile.main,width:7,alpha:alpha*fade*.09
+          });
+          continue;
+        }
+
+        // Paladin heal language.
+        const radius=10+easeOut(p)*(strong?36:29);
+        glow.circle(dx,dy,radius*.80).fill({
+          color:profile.main,alpha:alpha*fade*.09
+        });
+        for(let i=0;i<8;i++){
+          const a=i/8*Math.PI*2+(effect.spellId==="paladin-holy-shock"?-p*1.6:p*.45);
+          core
+            .moveTo(dx+Math.cos(a)*radius*.42,dy+Math.sin(a)*radius*.42)
+            .lineTo(dx+Math.cos(a)*radius*(strong?1.24:1),dy+Math.sin(a)*radius*(strong?1.24:1))
+            .stroke({
+              color:i%2?profile.main:profile.core,
+              width:strong?2.5:1.8,
+              alpha:alpha*fade*.64,
+            });
+        }
+
+        const rot=Math.PI/4+p*.2;
+        const square=[
+          point(dx,dy,-radius*.42,-radius*.42,rot),
+          point(dx,dy,radius*.42,-radius*.42,rot),
+          point(dx,dy,radius*.42,radius*.42,rot),
+          point(dx,dy,-radius*.42,radius*.42,rot),
+        ];
+        polygon(core,square,{
+          color:profile.core,width:1.6,alpha:alpha*fade*.52
+        });
+
+        if(effect.spellId==="paladin-word-of-glory"){
+          const rise=21+easeOut(p)*13;
+          core
+            .moveTo(dx-21,dy-rise)
+            .lineTo(dx-11,dy-rise-13)
+            .lineTo(dx,dy-rise-4)
+            .lineTo(dx+11,dy-rise-13)
+            .lineTo(dx+21,dy-rise)
+            .stroke({
+              color:profile.main,width:2.3,alpha:alpha*fade*.74
+            });
+        }
+        core.circle(dx,dy,strong?6.5:5).fill({
+          color:profile.core,alpha:alpha*fade*.70
+        });
+        continue;
+      }
+
+      // ---------------------------------------------------------------------
+      // DEFENSIVES: actual shield/bark/rune/ward shapes instead of generic rings.
+      // ---------------------------------------------------------------------
+      if (COMBAT_VFX2_DEFENSIVES.has(effect.spellId)) {
+        const appear=easeOut(p/.25);
+        const fade=1-smooth((p-.70)/.30);
+        const a=alpha*appear*fade;
+
+        if(effect.spellId==="priest-pain-suppression"){
+          for(let i=0;i<4;i++){
+            const start=i*Math.PI/2+.16+p*.38;
+            arc(core,dx,dy,27+(i%2)*5,start,start+.92,{
+              color:i===2?profile.core:profile.main,
+              width:2.6,
+              alpha:a*(.54+i*.04),
+            },7);
+          }
+          const shield=[
+            {x:dx,y:dy-25},{x:dx+15,y:dy-7},{x:dx+11,y:dy+18},
+            {x:dx,y:dy+26},{x:dx-11,y:dy+18},{x:dx-15,y:dy-7},
+          ];
+          polygon(core,shield,{
+            color:profile.accent,width:1.8,alpha:a*.78
+          });
+          glow.circle(dx,dy,31).stroke({
+            color:profile.main,width:8,alpha:a*.10
+          });
+          continue;
+        }
+
+        if(effect.spellId==="druid-ironbark"){
+          for(let i=0;i<6;i++){
+            const ang=i/6*Math.PI*2+.18*Math.sin(i+p*3);
+            const rr=25+(i%2)*4;
+            const cx=dx+Math.cos(ang)*rr;
+            const cy=dy+Math.sin(ang)*rr;
+            const plate=[
+              point(cx,cy,-6,-10,ang+Math.PI/2),
+              point(cx,cy,6,-8,ang+Math.PI/2),
+              point(cx,cy,8,8,ang+Math.PI/2),
+              point(cx,cy,-6,10,ang+Math.PI/2),
+            ];
+            polygon(core,plate,{
+              color:profile.accent,width:3.5,alpha:a*(.58+(i%2)*.12)
+            });
+          }
+          glow.circle(dx,dy,30).stroke({
+            color:profile.main,width:7,alpha:a*.08
+          });
+          continue;
+        }
+
+        if(effect.spellId==="paladin-blessing"){
+          const rr=22+easeOut(p)*8;
+          for(let i=0;i<4;i++){
+            const ang=i*Math.PI/2+p*.28;
+            const cx=dx+Math.cos(ang)*rr;
+            const cy=dy+Math.sin(ang)*rr;
+            const plate=[
+              point(cx,cy,-7,-7,ang),
+              point(cx,cy,7,-7,ang),
+              point(cx,cy,10,3,ang),
+              point(cx,cy,0,10,ang),
+              point(cx,cy,-10,3,ang),
+            ];
+            polygon(core,plate,{
+              color:profile.main,width:2.8,alpha:a*.80
+            });
+          }
+          glow.circle(dx,dy,rr+5).stroke({
+            color:profile.main,width:7,alpha:a*.11
+          });
+          continue;
+        }
+
+        if(effect.spellId==="shaman-astral-shift"){
+          const colors=[profile.main,profile.core,profile.accent];
+          for(let i=0;i<3;i++){
+            const ang=p*(i%2?4.2:-3.7)+i*Math.PI*2/3;
+            const rr=18+i*6;
+            core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,3.2).fill({
+              color:colors[i],alpha:a*.72
+            });
+            arc(core,dx,dy,rr,ang-.55,ang+.55,{
+              color:colors[i],width:1.4,alpha:a*.44
+            },6);
+          }
+          glow.circle(dx,dy,31).fill({
+            color:profile.main,alpha:a*.07
+          });
+          continue;
+        }
+
+        if(effect.spellId==="warlock-resolve"){
+          for(let i=0;i<5;i++){
+            const ang=i/5*Math.PI*2-p*.65;
+            const outer=31+(i%2)*4;
+            const inner=18;
+            core
+              .moveTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .lineTo(
+                dx+Math.cos(ang+.48)*inner,
+                dy+Math.sin(ang+.48)*inner
+              )
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:2.2,
+                alpha:a*.66,
+              });
+          }
+          glow.circle(dx,dy,28).fill({
+            color:profile.accent,alpha:a*.12
+          });
+          continue;
+        }
+
+        // DK Rune Tap.
+        const rot=-p*.7;
+        for(let i=0;i<4;i++){
+          const ang=i*Math.PI/2+rot;
+          const p0=point(dx,dy,-7,-source.radius-9,ang);
+          const p1=point(dx,dy,0,-source.radius-19,ang);
+          const p2=point(dx,dy,7,-source.radius-9,ang);
+          core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).lineTo(p2.x,p2.y).stroke({
+            color:profile.main,width:2.8,alpha:a*.72
+          });
+        }
+        const rune=[
+          point(dx,dy,-11,-11,rot),
+          point(dx,dy,11,-11,rot),
+          point(dx,dy,11,11,rot),
+          point(dx,dy,-11,11,rot),
+        ];
+        polygon(core,rune,{
+          color:profile.core,width:1.5,alpha:a*.66
+        });
+        glow.circle(dx,dy,26).stroke({
+          color:profile.main,width:7,alpha:a*.10
+        });
+        continue;
+      }
+
+      // ---------------------------------------------------------------------
+      // CC / INTERRUPTS
+      // ---------------------------------------------------------------------
+      if (COMBAT_VFX2_CC.has(effect.spellId)) {
+        const fade=1-smooth((p-.60)/.40);
+
+        if(effect.spellId==="priest-psychic-scream"){
+          const wave=easeOut(p/.72);
+          for(let layer=0;layer<3;layer++){
+            const radius=source.radius+12+wave*(80+layer*16);
+            for(let i=0;i<=28;i++){
+              const ang=i/28*Math.PI*2;
+              const wobble=Math.sin(ang*5+p*10+layer)*(3+layer);
+              const rr=radius+wobble;
+              const x=Math.cos(ang)*rr;
+              const y=Math.sin(ang)*rr;
+              if(i===0) core.moveTo(x,y); else core.lineTo(x,y);
+            }
+            core.stroke({
+              color:layer===1?profile.core:profile.main,
+              width:2.7-layer*.45,
+              alpha:alpha*fade*(.52-layer*.10),
+            });
+          }
+          continue;
+        }
+
+        if(effect.spellId==="druid-cyclone"){
+          const build=easeOut((p-.08)/.68);
+          for(let layer=0;layer<6;layer++){
+            const yOff=20-layer*8.5;
+            const rx=12+layer*5+build*11;
+            const ry=5+layer*1.55;
+            core.ellipse(dx,dy+yOff,rx,ry).stroke({
+              color:layer%2?profile.core:profile.main,
+              width:1.8+layer*.16,
+              alpha:alpha*fade*(.25+layer*.075),
+            });
+          }
+          for(let i=0;i<9;i++){
+            const ang=i/9*Math.PI*2+p*(i%2?8:-7)+seed*.01;
+            const rr=13+(i%4)*7;
+            core.circle(
+              dx+Math.cos(ang)*rr,
+              dy+Math.sin(ang)*rr*.42-p*8,
+              1.1+(i%3)*.45
+            ).fill({
+              color:profile.core,alpha:alpha*fade*.40
+            });
+          }
+          glow.ellipse(dx,dy+2,29+build*15,20+build*11).stroke({
+            color:profile.main,width:8,alpha:alpha*fade*.08
+          });
+          continue;
+        }
+
+        if(effect.spellId==="mage-frost-nova"){
+          const burst=easeOut(p/.46);
+          const radius=10+burst*42;
+          for(let i=0;i<12;i++){
+            const ang=i/12*Math.PI*2+seed*.007;
+            const inner=8+burst*8;
+            const outer=18+burst*(29+(i%3)*5);
+            core
+              .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+              .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:i%3===0?2.7:1.7,
+                alpha:alpha*fade*.66,
+              });
+          }
+          core.circle(dx,dy,radius).stroke({
+            color:profile.main,width:1.8,alpha:alpha*fade*.44
+          });
+          glow.circle(dx,dy,radius*.72).fill({
+            color:profile.main,alpha:alpha*fade*.08
+          });
+          continue;
+        }
+
+        if(effect.spellId==="mage-polymorph"){
+          const spin=p*4.5;
+          for(let ring=0;ring<3;ring++){
+            const rr=13+ring*8+easeOut(p)*4;
+            for(let seg=0;seg<4;seg++){
+              const a0=seg*Math.PI/2+.22+spin*(ring%2?-.35:.28);
+              arc(core,dx,dy,rr,a0,a0+.66,{
+                color:ring===1?profile.core:profile.main,
+                width:1.7,
+                alpha:alpha*fade*(.56-ring*.08),
+              },6);
+            }
+          }
+          for(let i=0;i<7;i++){
+            const ang=i/7*Math.PI*2+p*3+seed*.01;
+            const rr=18+(i%3)*5;
+            core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,1.4+(i%2)*.4).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.50
+            });
+          }
+          continue;
+        }
+
+        if(effect.spellId==="shaman-hex"){
+          const radius=13+easeOut(p)*24;
+          for(let i=0;i<6;i++){
+            const ang=i/6*Math.PI*2+p*(i%2?2.7:-2.2);
+            arc(core,dx,dy,radius+(i%2)*4,ang,ang+.72,{
+              color:i%3===0?profile.core:profile.main,
+              width:1.8,alpha:alpha*fade*.55
+            },5);
+          }
+          // Narrow eye/diamond at center.
+          const diamond=[
+            {x:dx,y:dy-10},{x:dx+15,y:dy},{x:dx,y:dy+10},{x:dx-15,y:dy},
+          ];
+          polygon(core,diamond,{
+            color:profile.accent,width:1.7,alpha:alpha*fade*.62
+          });
+          core.circle(dx,dy,3.2).fill({
+            color:profile.core,alpha:alpha*fade*.75
+          });
+          continue;
+        }
+
+        if(effect.spellId==="warlock-fear"){
+          const radius=12+easeOut(p)*39;
+          for(let i=0;i<3;i++){
+            const start=Math.PI*(1.02+i*.47)+p*(i%2?1.4:-1.1);
+            arc(core,dx,dy,radius+i*5,start,start+1.05,{
+              color:i===1?profile.core:profile.main,
+              width:2.4,
+              alpha:alpha*fade*(.68-i*.09),
+            },7);
+          }
+          // Collapsing eye.
+          const eyeW=17*(1-p*.38), eyeH=7*(1-p*.55);
+          const eye=[
+            {x:dx-eyeW,y:dy},
+            {x:dx,y:dy-eyeH},
+            {x:dx+eyeW,y:dy},
+            {x:dx,y:dy+eyeH},
+          ];
+          polygon(core,eye,{
+            color:profile.core,width:1.8,alpha:alpha*fade*.60
+          });
+          core.circle(dx,dy,2.8).fill({
+            color:profile.core,alpha:alpha*fade*.72
+          });
+          continue;
+        }
+
+        if(effect.spellId==="dk-chains"){
+          const links=8;
+          for(let i=0;i<links;i++){
+            const ang=i/links*Math.PI*2+p*.8;
+            const rr=19+(i%2)*4;
+            const yOff=18-easeOut(p)*(8+(i%3)*6);
+            const cx=dx+Math.cos(ang)*rr;
+            const cy=dy+yOff+Math.sin(ang)*rr*.35;
+            // Pixi ellipse has no rotation, so cross-paired links imply wrapping.
+            core.ellipse(cx,cy,6,3).stroke({
+              color:i%2?profile.main:profile.core,
+              width:2.2,alpha:alpha*fade*.76
+            });
+            if(i>0){
+              const prevAng=(i-1)/links*Math.PI*2+p*.8;
+              const px0=dx+Math.cos(prevAng)*(19+((i-1)%2)*4);
+              const py0=dy+18-easeOut(p)*(8+((i-1)%3)*6)
+                +Math.sin(prevAng)*(19+((i-1)%2)*4)*.35;
+              core.moveTo(px0,py0).lineTo(cx,cy).stroke({
+                color:profile.main,width:1.1,alpha:alpha*fade*.34
+              });
+            }
+          }
+          core.circle(dx,dy,16+easeOut(p)*13).stroke({
+            color:profile.core,width:1.5,alpha:alpha*fade*.42
+          });
+          continue;
+        }
+
+        if(
+          effect.spellId==="dk-mind-freeze"
+          || effect.spellId==="warrior-pummel"
+        ){
+          const close=1-easeOut(p);
+          for(const sign of [-1,1]){
+            core
+              .moveTo(dx+sign*(29+close*11),dy-16)
+              .lineTo(dx+sign*(11+close*5),dy)
+              .lineTo(dx+sign*(29+close*11),dy+16)
+              .stroke({
+                color:effect.spellId==="dk-mind-freeze"?profile.core:profile.core,
+                width:effect.spellId==="dk-mind-freeze"?2.8:3.5,
+                alpha:alpha*fade*.82,
+              });
+          }
+          glow.circle(dx,dy,18+easeOut(p)*9).stroke({
+            color:profile.main,width:6,alpha:alpha*fade*.09
+          });
+          continue;
+        }
+
+        if(effect.spellId==="rogue-kidney"){
+          for(let i=0;i<3;i++){
+            const ang=-.45+i*.45;
+            core
+              .moveTo(dx+Math.cos(ang)*27,dy+Math.sin(ang)*27)
+              .lineTo(dx+Math.cos(ang)*6,dy+Math.sin(ang)*6)
+              .stroke({
+                color:profile.core,width:2.4,alpha:alpha*fade*.72
+              });
+          }
+          core.circle(dx,dy,10+easeOut(p)*16).stroke({
+            color:profile.accent,width:1.4,alpha:alpha*fade*.38
+          });
+          continue;
+        }
+
+        // Rogue Kick.
+        const kickAngle=-.52;
+        const ka=point(dx,dy,-25,9,kickAngle);
+        const km=point(dx,dy,8,-5,kickAngle);
+        const kb=point(dx,dy,24,-13,kickAngle);
+        core.moveTo(ka.x,ka.y).lineTo(km.x,km.y).lineTo(kb.x,kb.y).stroke({
+          color:profile.core,width:3,alpha:alpha*fade*.78
+        });
+        for(let i=0;i<3;i++){
+          const s=point(dx,dy,7+i*5,-3-i*3,kickAngle);
+          const e=point(dx,dy,15+i*6,3-i*2,kickAngle);
+          core.moveTo(s.x,s.y).lineTo(e.x,e.y).stroke({
+            color:profile.accent,width:1.4,alpha:alpha*fade*.50
+          });
+        }
+        continue;
+      }
+
+      // ---------------------------------------------------------------------
+      // MELEE: stronger weapon silhouette, afterimage and ground reaction.
+      // ---------------------------------------------------------------------
+      if (COMBAT_VFX2_MELEE.has(effect.spellId)) {
+        const fade=1-smooth((p-.66)/.34);
+        const warrior=effect.spellId.startsWith("warrior-");
+        const rogue=effect.spellId.startsWith("rogue-");
+        const dk=effect.spellId.startsWith("dk-");
+
+        if(effect.spellId==="warrior-charge"){
+          const originX=Number.isFinite(effect.sourceX)?effect.sourceX-source.x:0;
+          const originY=Number.isFinite(effect.sourceY)?effect.sourceY-source.y:0;
+          const moved=Math.hypot(originX,originY)>5;
+          if(moved){
+            const ll=Math.max(1,Math.hypot(originX,originY));
+            const mx=-originX/ll, my=-originY/ll, sx=-my, sy=mx;
+            for(let i=0;i<5;i++){
+              const off=(i-2)*4;
+              core
+                .moveTo(-mx*Math.min(52,ll)+sx*off,-my*Math.min(52,ll)+sy*off)
+                .lineTo(-mx*6+sx*off*.4,-my*6+sy*off*.4)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.4+i*.25,
+                  alpha:alpha*fade*(.18+i*.05),
+                });
+            }
+          }
+          glow.ellipse(0,source.radius*.65,14+p*30,5+p*8).stroke({
+            color:profile.main,width:7,alpha:alpha*fade*.10
+          });
+          continue;
+        }
+
+        if(effect.spellId==="rogue-shadowstep"){
+          const ox=Number.isFinite(effect.sourceX)?effect.sourceX-source.x:0;
+          const oy=Number.isFinite(effect.sourceY)?effect.sourceY-source.y:0;
+          const out=1-clamp01(p/.52);
+          core.circle(ox,oy,9+p*23).stroke({
+            color:profile.accent,width:1.7,alpha:alpha*out*.48
+          });
+          for(let i=0;i<8;i++){
+            const ang=i/8*Math.PI*2+p*2.5+seed*.01;
+            const rr=6+p*(15+(i%4)*5);
+            core.circle(ox+Math.cos(ang)*rr,oy+Math.sin(ang)*rr,1.2+(i%3)*.4).fill({
+              color:i%3===0?profile.core:profile.accent,
+              alpha:alpha*out*.46
+            });
+          }
+          const arrive=clamp01((p-.08)/.55);
+          for(let i=0;i<8;i++){
+            const ang=i/8*Math.PI*2-arrive*1.8;
+            const rr=31*(1-arrive*.65)+(i%2)*4;
+            core.circle(Math.cos(ang)*rr,Math.sin(ang)*rr,1.3+(i%3)*.4).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.54
+            });
+          }
+          continue;
+        }
+
+        if(effect.spellId==="warrior-slam"){
+          const impact=smooth(p/.34);
+          core
+            .moveTo(dx-11,dy-45+impact*18)
+            .lineTo(dx+5,dy+13)
+            .stroke({
+              color:profile.core,width:6,alpha:alpha*fade*impact*.88
+            });
+          const shock=clamp01((p-.20)/.58);
+          if(shock>0 && !missed){
+            core.ellipse(dx,dy+13,10+easeOut(shock)*42,4+easeOut(shock)*11).stroke({
+              color:profile.main,width:2.6,alpha:alpha*(1-shock)*.66
+            });
+            for(let i=0;i<8;i++){
+              const ang=-.25+i*Math.PI/7;
+              const len=11+shock*(17+(i%3)*6);
+              core
+                .moveTo(dx+Math.cos(ang)*7,dy+13+Math.sin(ang)*3)
+                .lineTo(dx+Math.cos(ang)*len,dy+13+Math.sin(ang)*len*.40)
+                .stroke({
+                  color:i%3===0?profile.core:profile.main,
+                  width:1.5,alpha:alpha*(1-shock)*.50
+                });
+            }
+          }
+          continue;
+        }
+
+        let slashCount=1;
+        let slashLength=48;
+        let slashWidth=3.8;
+        if(effect.spellId==="warrior-rend"){slashCount=3;slashLength=42;slashWidth=2.4;}
+        if(effect.spellId==="warrior-mortal-strike"){slashLength=62;slashWidth=5.8;}
+        if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=40;slashWidth=3;}
+        if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=46;slashWidth=2.3;}
+        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=48;slashWidth=2.6;}
+        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=60;slashWidth=4.8;}
+        if(effect.spellId==="dk-death-strike"){slashLength=57;slashWidth=4.4;}
+        if(effect.spellId==="dk-frost-strike"){slashLength=51;slashWidth=4;}
+        if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=54;slashWidth=4.2;}
+
+        for(let i=0;i<slashCount;i++){
+          const delay=i*(slashCount>1?.055:0);
+          const local=smooth((p-delay)/.28);
+          if(local<=0) continue;
+          const baseAngle=
+            rogue
+              ? (-.92+i*(slashCount===2?1.55:.86))
+              : dk
+                ? (-.70+i*.92)
+                : effect.spellId==="shaman-stormstrike"
+                  ? (-.72+i*1.44)
+                  : (-.72+i*.48);
+          weaponSlash(
+            core,
+            dx+(i-(slashCount-1)/2)*4,
+            dy+(i-(slashCount-1)/2)*2,
+            baseAngle,
+            slashLength,
+            profile,
+            alpha*fade*local*(warrior?.88:.80),
+            slashWidth,
+            (i%2?7:-7)
+          );
+        }
+
+        if(!missed){
+          const hit=clamp01((p-.20)/.50);
+          const shards=
+            effect.spellId==="dk-obliterate"
+              || effect.spellId==="shaman-stormstrike"
+              ? 10 : 7;
+          for(let i=0;i<shards;i++){
+            const ang=i/shards*Math.PI*2+seed*.009;
+            const inner=7+(i%2)*2;
+            const outer=14+easeOut(hit)*(18+(i%4)*5);
+            core
+              .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+              .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .stroke({
+                color:
+                  effect.spellId==="shaman-stormstrike" && i%2
+                    ? 0x65cce0
+                    : (i%3===0?profile.core:profile.main),
+                width:1.4+(i%3===0?.8:0),
+                alpha:alpha*(1-hit)*.50,
+              });
+          }
+
+          if(effect.spellId==="warrior-mortal-strike"){
+            for(let i=0;i<3;i++){
+              const a0=i*Math.PI*2/3+.2;
+              arc(core,dx,dy,18+hit*15,a0,a0+.72,{
+                color:profile.main,width:2,alpha:alpha*(1-hit)*.52
+              },6);
+            }
+          }
+
+          if(effect.spellId==="dk-obliterate" || effect.spellId==="dk-frost-strike"){
+            glow.circle(dx,dy,11+hit*29).stroke({
+              color:profile.main,width:7,alpha:alpha*(1-hit)*.12
+            });
+          }
+
+          if(effect.spellId==="shaman-stormstrike"){
+            for(let i=0;i<4;i++){
+              const sign=i%2?1:-1;
+              const bx=dx+sign*(7+i*3);
+              core
+                .moveTo(bx,dy-24)
+                .lineTo(dx-sign*5,dy-5)
+                .lineTo(dx+sign*11,dy+11)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.8,
+                  alpha:alpha*(1-hit)*.62,
+                });
+            }
+          }
+        }
+        continue;
+      }
+
+      // ---------------------------------------------------------------------
+      // DOT / MARK APPLICATIONS
+      // ---------------------------------------------------------------------
+      if (COMBAT_VFX2_DOTS.has(effect.spellId)) {
+        const fade=1-smooth((p-.58)/.42);
+
+        if(effect.spellId==="mage-living-bomb"){
+          const radius=12+easeOut(p)*20;
+          core.circle(dx,dy,radius).stroke({
+            color:profile.main,width:2.2,alpha:alpha*fade*.58
+          });
+          for(let i=0;i<6;i++){
+            const ang=i/6*Math.PI*2+p*2.2;
+            core
+              .moveTo(dx+Math.cos(ang)*radius*.55,dy+Math.sin(ang)*radius*.55)
+              .lineTo(dx+Math.cos(ang)*radius*1.15,dy+Math.sin(ang)*radius*1.15)
+              .stroke({
+                color:i%2?profile.core:profile.accent,
+                width:1.5,alpha:alpha*fade*.54
+              });
+          }
+          const fuseA=-Math.PI*.72+p*.8;
+          core
+            .moveTo(dx+Math.cos(fuseA)*radius*.72,dy+Math.sin(fuseA)*radius*.72)
+            .lineTo(dx+Math.cos(fuseA)*radius*1.32,dy+Math.sin(fuseA)*radius*1.32)
+            .stroke({
+              color:profile.core,width:1.8,alpha:alpha*fade*.72
+            });
+          core.circle(
+            dx+Math.cos(fuseA)*radius*1.38,
+            dy+Math.sin(fuseA)*radius*1.38,
+            2.2
+          ).fill({color:profile.core,alpha:alpha*fade*.82});
+          continue;
+        }
+
+        if(effect.spellId==="shaman-flame-shock"){
+          for(let i=0;i<9;i++){
+            const side=Math.sin(seed*.41+i*1.91)*19;
+            const baseX=dx+side;
+            const baseY=dy+16-(i%3)*2;
+            const rise=(18+(i%4)*8)*easeOut(p);
+            const sway=Math.sin(i*2.2+p*10)*8;
+            core
+              .moveTo(baseX,baseY)
+              .lineTo(baseX+sway*.45,baseY-rise*.55)
+              .lineTo(baseX+sway,baseY-rise)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:1.7+(i%3)*.5,
+                alpha:alpha*fade*(.46+(i%2)*.16),
+              });
+          }
+          glow.circle(dx,dy,9+p*24).stroke({
+            color:profile.accent,width:7,alpha:alpha*fade*.09
+          });
+          continue;
+        }
+
+        if(effect.spellId==="warlock-corruption"){
+          const appear=easeOut(p/.22);
+          for(let i=0;i<8;i++){
+            const ang=i/8*Math.PI*2+p*(i%2?1.5:-1.2)+seed*.011;
+            const outer=31+(i%3)*6;
+            const inner=9+(1-appear)*18;
+            const sx=dx+Math.cos(ang)*outer;
+            const sy=dy+Math.sin(ang)*outer;
+            const ex=dx+Math.cos(ang+.8)*inner;
+            const ey=dy+Math.sin(ang+.8)*inner;
+            const mx=dx+Math.cos(ang+.42)*outer*.48;
+            const my=dy+Math.sin(ang+.42)*outer*.48;
+            core.moveTo(sx,sy).lineTo(mx,my).lineTo(ex,ey).stroke({
+              color:i%3===0?profile.core:profile.main,
+              width:1.5+(i%3)*.4,
+              alpha:alpha*fade*(.40+(i%3)*.10),
+            });
+          }
+          glow.circle(dx,dy,15+appear*5).fill({
+            color:profile.accent,alpha:alpha*fade*.12
+          });
+          continue;
+        }
+
+        // DK Fever.
+        const rr=9+easeOut(p)*24;
+        for(let i=0;i<7;i++){
+          const ang=i/7*Math.PI*2+p*.35;
+          core
+            .moveTo(dx+Math.cos(ang)*rr*.35,dy+Math.sin(ang)*rr*.35)
+            .lineTo(dx+Math.cos(ang+.14)*rr,dy+Math.sin(ang+.14)*rr)
+            .stroke({
+              color:i%3===0?profile.core:profile.main,
+              width:1.8,alpha:alpha*fade*.72
+            });
+        }
+        for(let i=0;i<7;i++){
+          const ang=i/7*Math.PI*2+seed*.017;
+          const q=8+p*(15+(i%4)*4);
+          core.circle(dx+Math.cos(ang)*q,dy+Math.sin(ang)*q-p*9,1.4+(i%2)*.3).fill({
+            color:profile.core,alpha:alpha*fade*.44
+          });
+        }
+        continue;
+      }
+
+      // ---------------------------------------------------------------------
+      // SKY STRIKES: Holy Fire, Moonfire, Judgment.
+      // ---------------------------------------------------------------------
+      if (COMBAT_VFX2_SKY.has(effect.spellId)) {
+        const strike=clamp01((p-.08)/.58);
+        const fade=1-smooth((p-.70)/.30);
+        const top=dy-(effect.spellId==="druid-moonfire"?145:130);
+        const headY=top+easeOut(strike)*(effect.spellId==="druid-moonfire"?140:126);
+
+        if(effect.spellId==="paladin-judgment"){
+          glow.moveTo(dx,top).lineTo(dx,headY).stroke({
+            color:profile.main,width:12,alpha:alpha*fade*.13
+          });
+          core.moveTo(dx,top).lineTo(dx,headY).stroke({
+            color:profile.core,width:3.8,alpha:alpha*fade*.72
+          });
+          const hAngle=.18;
+          const handle=[
+            point(dx,headY,-4,-20,hAngle),point(dx,headY,4,-20,hAngle),
+            point(dx,headY,4,7,hAngle),point(dx,headY,-4,7,hAngle),
+          ];
+          const head=[
+            point(dx,headY,-15,-24,hAngle),point(dx,headY,15,-24,hAngle),
+            point(dx,headY,15,-15,hAngle),point(dx,headY,-15,-15,hAngle),
+          ];
+          polygon(core,handle,{color:profile.main,alpha:alpha*fade*.82},true);
+          polygon(core,head,{color:profile.main,alpha:alpha*fade*.82},true);
+        } else {
+          const beamWidth=effect.spellId==="druid-moonfire"?15:11;
+          glow.moveTo(dx,top).lineTo(dx,headY).stroke({
+            color:profile.main,width:beamWidth,alpha:alpha*fade*.12
+          });
+          core.moveTo(dx,top).lineTo(dx,headY).stroke({
+            color:profile.core,width:effect.spellId==="druid-moonfire"?3.2:4.2,
+            alpha:alpha*fade*.76
+          });
+
+          if(effect.spellId==="druid-moonfire" && p<.35){
+            arc(core,0,-source.radius-14,10,-.95,1.20,{
+              color:profile.core,width:2.2,alpha:alpha*(1-p/.35)*.62
+            },7);
+          }
+        }
+
+        if(!missed && strike>.56){
+          const hit=clamp01((strike-.56)/.44);
+          core.circle(dx,dy,9+easeOut(hit)*42).stroke({
+            color:profile.main,width:2.3,alpha:alpha*(1-hit)*.68
+          });
+          for(let i=0;i<10;i++){
+            const ang=i/10*Math.PI*2+seed*.009;
+            const rr=8+easeOut(hit)*(24+(i%4)*5);
+            core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,1.4+(i%3)*.4).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*(1-hit)*.62,
+            });
+          }
+        }
+        continue;
+      }
+
+      // ---------------------------------------------------------------------
+      // SPECIALS: Smite mind implosion, Drain Life, Conflagrate.
+      // ---------------------------------------------------------------------
+      if (effect.spellId==="priest-smite") {
+        const gather=smooth(p/.44);
+        const burst=clamp01((p-.34)/.54);
+        const fade=1-smooth((p-.70)/.30);
+        for(let i=0;i<9;i++){
+          const ang=i/9*Math.PI*2+p*(i%2?1.7:-1.4)+seed*.011;
+          const start=38+(i%4)*5;
+          const rr=start*(1-gather*.80);
+          core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,1.4+(i%3)*.45).fill({
+            color:i%3===0?profile.core:profile.main,
+            alpha:alpha*(.24+gather*.48),
+          });
+        }
+        if(p>.30 && !missed){
+          for(let i=0;i<6;i++){
+            const ang=i/6*Math.PI*2+seed*.013;
+            const inner=7+burst*3;
+            const outer=13+easeOut(burst)*(28+(i%3)*6);
+            const midAng=ang+.35;
+            core
+              .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+              .lineTo(dx+Math.cos(midAng)*outer*.60,dy+Math.sin(midAng)*outer*.60)
+              .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:2.1,alpha:alpha*fade*.70
+              });
+          }
+          glow.circle(dx,dy,10+burst*26).fill({
+            color:profile.main,alpha:alpha*fade*.10
+          });
+          core.circle(dx,dy,7*(1-burst*.35)).fill({
+            color:profile.core,alpha:alpha*fade*.76
+          });
+        }
+        continue;
+      }
+
+      if (effect.spellId==="warlock-drain-life") {
+        // Reverse-flow wisps from target back to caster.
+        const fade=1-smooth((p-.78)/.22);
+        const pulses=8;
+        for(let i=0;i<pulses;i++){
+          const q=((p*1.75+i/pulses)%1);
+          const eased=smooth(q);
+          const cx=dx*(1-eased);
+          const cy=dy*(1-eased);
+          const wobble=Math.sin(seed*.05+i*1.7+p*10)*9;
+          core.circle(cx+nx*wobble,cy+ny*wobble,1.4+(i%3)*.55).fill({
+            color:i%3===0?profile.core:profile.main,
+            alpha:alpha*fade*(.36+(1-q)*.32),
+          });
+        }
+        core.moveTo(dx,dy).lineTo(0,0).stroke({
+          color:profile.main,width:1.6,alpha:alpha*fade*.22
+        });
+        glow.moveTo(dx,dy).lineTo(0,0).stroke({
+          color:profile.main,width:8,alpha:alpha*fade*.07
+        });
+        continue;
+      }
+
+      // Conflagrate: compact violent burst, no traveling orb.
+      const hit=easeOut(p/.52);
+      const fade=1-smooth((p-.58)/.42);
+      glow.circle(dx,dy,8+hit*35).fill({
+        color:profile.main,alpha:alpha*fade*.12
+      });
+      for(let i=0;i<12;i++){
+        const ang=i/12*Math.PI*2+seed*.013;
+        const inner=5+(i%2)*2;
+        const outer=14+hit*(24+(i%4)*5);
+        core
+          .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+          .lineTo(dx+Math.cos(ang+.10*Math.sin(i))*outer,dy+Math.sin(ang+.10*Math.sin(i))*outer)
+          .stroke({
+            color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+            width:1.5+(i%3===0?.7:0),
+            alpha:alpha*fade*.62,
+          });
+      }
+      core.circle(dx,dy,6+hit*8).fill({
+        color:profile.core,alpha:alpha*fade*.72
+      });
+    }
+  }
+
   updateNativeProjectileVfx2(game) {
     const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
     const easeOut = value => {
@@ -6520,6 +7710,7 @@ export class PixiProofRenderer {
       if (effect.type !== "spell") continue;
       if (POLISH_ALREADY_FINAL.has(effect.spellId)) continue;
       if (PROJECTILE_VFX2_SPELLS.has(effect.spellId)) continue;
+      if (COMBAT_VFX2_SPELLS.has(effect.spellId)) continue;
 
       const source = game.getActor(effect.sourceId);
       const target = game.getActor(effect.targetId);
@@ -7080,6 +8271,7 @@ export class PixiProofRenderer {
     this.updateNativePaladinDkSpellVfx(game);
     this.updateNativeWarriorRogueSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
+    this.updateNativeCombatVfx2(game);
     this.updateNativeProjectileVfx2(game);
     this.updateNativeSpellAnimationPolish(game);
     this.updateNativeFloatingCombatText(game);

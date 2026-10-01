@@ -16,6 +16,12 @@ import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";
 import { GearSystem } from "./GearSystem.js?v=20260927-rank20rating2";
 
+const PIXI_FIXED_STEP_MS = 1000 / 60;
+const PIXI_MAX_CATCHUP_MS = 200;
+const PIXI_MAX_STEPS_PER_FRAME = Math.ceil(
+  PIXI_MAX_CATCHUP_MS / PIXI_FIXED_STEP_MS,
+);
+
 
 export class Game {
   constructor({ canvas, input, arena, characterConfigs }) {
@@ -62,6 +68,17 @@ export class Game {
     this.lastRatingAward = null;
     this.floatingTexts = [];
     this.lastFrame = performance.now();
+
+    // Pixi test path: gameplay advances on a fixed 60 Hz clock instead of
+    // inheriting the render frame rate. Canvas stays unchanged as the A/B baseline.
+    this.simulationAccumulatorMs = 0;
+    this.simulationTiming = {
+      rawElapsedMs: 0,
+      simulatedMs: 0,
+      droppedMs: 0,
+      lastStepCount: 0,
+      maxRawFrameMs: 0,
+    };
 
     this.mouseSteering = {
       active: false,
@@ -631,14 +648,59 @@ export class Game {
 
   start() {
     this.lastFrame = performance.now();
+    this.simulationAccumulatorMs = 0;
     requestAnimationFrame(time => this.loop(time));
   }
 
+  updatePixiSimulation(rawDeltaMs) {
+    const raw = Math.max(0, Number(rawDeltaMs) || 0);
+    const accepted = Math.min(PIXI_MAX_CATCHUP_MS, raw);
+
+    this.simulationTiming.rawElapsedMs += raw;
+    this.simulationTiming.maxRawFrameMs = Math.max(
+      this.simulationTiming.maxRawFrameMs,
+      raw,
+    );
+
+    if (raw > accepted) {
+      this.simulationTiming.droppedMs += raw - accepted;
+    }
+
+    this.simulationAccumulatorMs += accepted;
+
+    // Recover short render hitches, but never allow a tab switch/debugger pause
+    // to produce seconds of AI/combat updates in a single visual frame.
+    if (this.simulationAccumulatorMs > PIXI_MAX_CATCHUP_MS) {
+      this.simulationTiming.droppedMs +=
+        this.simulationAccumulatorMs - PIXI_MAX_CATCHUP_MS;
+      this.simulationAccumulatorMs = PIXI_MAX_CATCHUP_MS;
+    }
+
+    let steps = 0;
+    while (
+      this.simulationAccumulatorMs + 0.0001 >= PIXI_FIXED_STEP_MS
+      && steps < PIXI_MAX_STEPS_PER_FRAME
+    ) {
+      this.update(PIXI_FIXED_STEP_MS);
+      this.simulationAccumulatorMs -= PIXI_FIXED_STEP_MS;
+      this.simulationTiming.simulatedMs += PIXI_FIXED_STEP_MS;
+      steps += 1;
+    }
+
+    this.simulationTiming.lastStepCount = steps;
+  }
+
   loop(time) {
-    const deltaMs = Math.min(50, Math.max(0, time - this.lastFrame));
+    const rawDeltaMs = Math.max(0, time - this.lastFrame);
     this.lastFrame = time;
 
-    this.update(deltaMs);
+    if (this.renderer?.mode === "pixi") {
+      this.updatePixiSimulation(rawDeltaMs);
+    } else {
+      // Keep the normal Canvas URL behavior untouched while Pixi timing is tested.
+      const deltaMs = Math.min(50, rawDeltaMs);
+      this.update(deltaMs);
+    }
 
     try {
       this.renderer.render(this);

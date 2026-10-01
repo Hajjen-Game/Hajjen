@@ -1,6 +1,6 @@
 const TAU = Math.PI * 2;
 const GRAND_RING_ID = "four-pillar-ring";
-const TERRAIN_VERSION = "grand-ring-v2-noise";
+const TERRAIN_VERSION = "grand-ring-v3-painted";
 
 function seededRandom(seed = 1) {
   let state = seed >>> 0;
@@ -98,6 +98,30 @@ const VEGETATION_CLUSTERS = Object.freeze([
   { x: 810, y: 520, rx: 74, ry: 48 },
   { x: 1110, y: 540, rx: 62, ry: 46 },
   { x: 160, y: 560, rx: 65, ry: 46 },
+  { x: 610, y: 285, rx: 66, ry: 42 },
+  { x: 1010, y: 345, rx: 58, ry: 40 },
+]);
+
+// Medium-sized authored color masses are deliberately sparse. They sit above
+// the procedural noise and create the "painted by hand" rhythm that pure
+// noise cannot provide on its own.
+const PAINTED_PATCHES = Object.freeze([
+  { x: 175, y: 155, rx: 150, ry: 54, rot: -.14, inner: "rgba(147,123,72,.18)", mid: "rgba(132,108,63,.08)" },
+  { x: 410, y: 270, rx: 118, ry: 48, rot: .18, inner: "rgba(92,112,58,.16)", mid: "rgba(72,96,50,.07)" },
+  { x: 650, y: 170, rx: 145, ry: 56, rot: -.05, inner: "rgba(153,139,77,.13)", mid: "rgba(136,123,69,.06)" },
+  { x: 890, y: 250, rx: 128, ry: 50, rot: .12, inner: "rgba(75,101,53,.15)", mid: "rgba(63,91,48,.07)" },
+  { x: 1110, y: 180, rx: 104, ry: 52, rot: -.22, inner: "rgba(137,112,67,.16)", mid: "rgba(121,98,58,.07)" },
+  { x: 250, y: 475, rx: 132, ry: 50, rot: -.16, inner: "rgba(68,94,49,.16)", mid: "rgba(57,83,45,.07)" },
+  { x: 575, y: 520, rx: 148, ry: 56, rot: .07, inner: "rgba(143,119,69,.14)", mid: "rgba(126,105,61,.06)" },
+  { x: 860, y: 520, rx: 126, ry: 48, rot: -.12, inner: "rgba(82,105,53,.14)", mid: "rgba(68,94,48,.06)" },
+  { x: 1100, y: 515, rx: 116, ry: 54, rot: .16, inner: "rgba(144,116,66,.14)", mid: "rgba(126,101,58,.06)" },
+]);
+
+const PILLAR_VARIANTS = Object.freeze([
+  { cut: 14, inset: 2, topInset: 6, topShift: -1, topScale: .24, crack: .22, moss: .30 },
+  { cut: 10, inset: 3, topInset: 7, topShift: 2, topScale: .22, crack: -.18, moss: .20 },
+  { cut: 16, inset: 2, topInset: 5, topShift: 1, topScale: .26, crack: .34, moss: .26 },
+  { cut: 12, inset: 3, topInset: 6, topShift: -2, topScale: .23, crack: -.31, moss: .34 },
 ]);
 
 function dirtFieldAt(x, y) {
@@ -131,7 +155,7 @@ function buildTerrainTexture(arena) {
   ) return null;
 
   const b = arena.bounds;
-  const scale = 4;
+  const scale = 3;
   const texture = document.createElement("canvas");
   texture.width = Math.max(1, Math.ceil(b.w / scale));
   texture.height = Math.max(1, Math.ceil(b.h / scale));
@@ -251,33 +275,63 @@ function buildDecor() {
     return out;
   };
 
-  // Much fewer stones than v1. They are larger, softer and more deliberate.
-  const pebbles = freeSample(24, 8, (x, y, r) => ({
+  // Isolated stones are now rare. Most stones appear as small authored-looking
+  // groups, which reads much closer to the reference than evenly scattered dots.
+  const pebbles = freeSample(7, 10, (x, y, r) => ({
     x,
     y,
-    rx: 3.4 + r() * 5.8,
-    ry: 2.3 + r() * 3.8,
+    rx: 3.8 + r() * 5.8,
+    ry: 2.6 + r() * 3.6,
     angle: r() * TAU,
     tone: r(),
   }));
 
-  const grass = clusteredSample(54, 6, (x, y, r) => ({
+  const rockGroups = freeSample(11, 18, (x, y, r) => {
+    const count = 2 + Math.floor(r() * 3);
+    const stones = [];
+
+    for (let i = 0; i < count; i += 1) {
+      const a = r() * TAU;
+      const rr = 3 + r() * 13;
+      stones.push({
+        x: Math.cos(a) * rr,
+        y: Math.sin(a) * rr * .65,
+        rx: 2.8 + r() * 5.3,
+        ry: 2 + r() * 3.2,
+        angle: r() * TAU,
+        tone: r(),
+      });
+    }
+
+    return { x, y, stones };
+  });
+
+  const grass = clusteredSample(44, 6, (x, y, r) => ({
     x,
     y,
-    size: 3.2 + r() * 5.3,
+    size: 3.4 + r() * 5.2,
     angle: r() * TAU,
     tone: r(),
   }));
 
-  const clover = clusteredSample(22, 8, (x, y, r) => ({
+  const clover = clusteredSample(18, 8, (x, y, r) => ({
     x,
     y,
-    size: 4.2 + r() * 4.3,
+    size: 4.8 + r() * 4.4,
     angle: r() * TAU,
     tone: r(),
   }));
 
-  return { pebbles, grass, clover };
+  const broadleaf = clusteredSample(30, 9, (x, y, r) => ({
+    x,
+    y,
+    size: 5.4 + r() * 5.6,
+    angle: r() * TAU,
+    tone: r(),
+    leaves: 3 + Math.floor(r() * 3),
+  }));
+
+  return { pebbles, rockGroups, grass, clover, broadleaf };
 }
 
 const DECOR = buildDecor();
@@ -391,6 +445,130 @@ function drawPebble(ctx, stone) {
   ctx.restore();
 }
 
+function drawRockGroup(ctx, group) {
+  for (const stone of group.stones) {
+    drawPebble(ctx, {
+      ...stone,
+      x: group.x + stone.x,
+      y: group.y + stone.y,
+    });
+  }
+
+  ctx.save();
+  ctx.globalAlpha = .10;
+  ctx.fillStyle = "#3f5534";
+  ctx.beginPath();
+  ctx.ellipse(group.x, group.y + 3, 15, 7, 0, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawBroadleafCluster(ctx, plant) {
+  const dark = plant.tone > .52 ? "#4d713d" : "#456638";
+  const mid = plant.tone > .62 ? "#6d914b" : "#5f8446";
+  const light = plant.tone > .74 ? "#829e55" : "#75934f";
+
+  ctx.save();
+  ctx.translate(plant.x, plant.y);
+  ctx.rotate(plant.angle);
+  ctx.globalAlpha = .38;
+
+  ctx.strokeStyle = "#435f36";
+  ctx.lineWidth = Math.max(.7, plant.size * .10);
+  ctx.beginPath();
+  ctx.moveTo(0, plant.size * .42);
+  ctx.lineTo(0, -plant.size * .16);
+  ctx.stroke();
+
+  for (let i = 0; i < plant.leaves; i += 1) {
+    const a = i / plant.leaves * TAU + (i % 2) * .16;
+    const rr = plant.size * (.38 + (i % 3) * .05);
+    const x = Math.cos(a) * rr;
+    const y = Math.sin(a) * rr * .78;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(a);
+    ctx.fillStyle = i % 3 === 0 ? light : i % 2 ? mid : dark;
+    ctx.beginPath();
+    ctx.ellipse(
+      plant.size * .25,
+      0,
+      plant.size * .62,
+      plant.size * .34,
+      .08,
+      0,
+      TAU,
+    );
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawPaintedGroundPatches(ctx) {
+  for (const patch of PAINTED_PATCHES) {
+    ctx.save();
+    ctx.translate(patch.x, patch.y);
+    ctx.rotate(patch.rot);
+    ctx.scale(1, patch.ry / patch.rx);
+
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, patch.rx);
+    gradient.addColorStop(0, patch.inner);
+    gradient.addColorStop(.56, patch.mid);
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, patch.rx, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawPillarGrounding(ctx, rect, index) {
+  const variant = PILLAR_VARIANTS[index % PILLAR_VARIANTS.length];
+
+  ctx.save();
+
+  const ground = ctx.createRadialGradient(
+    rect.x + rect.w * .54,
+    rect.y + rect.h * .72,
+    4,
+    rect.x + rect.w * .54,
+    rect.y + rect.h * .72,
+    Math.max(rect.w, rect.h) * .62,
+  );
+  ground.addColorStop(0, "rgba(35,38,26,.20)");
+  ground.addColorStop(.42, "rgba(63,74,43,.13)");
+  ground.addColorStop(.78, "rgba(106,91,55,.06)");
+  ground.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = ground;
+  ctx.fillRect(
+    rect.x - 34,
+    rect.y - 22,
+    rect.w + 76,
+    rect.h + 54,
+  );
+
+  ctx.globalAlpha = variant.moss;
+  ctx.fillStyle = "#5b743f";
+  const baseY = rect.y + rect.h - 2;
+  const tufts = [
+    [rect.x + 11, baseY + 3, 9, 4, -.20],
+    [rect.x + rect.w - 9, baseY + 1, 7, 3.5, .18],
+    [rect.x + rect.w * .50, baseY + 5, 11, 4, .05],
+  ];
+  for (const [x, y, rx, ry, angle] of tufts) {
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, angle, 0, TAU);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function chamferedRectPath(ctx, x, y, w, h, cut = 10) {
   const c = Math.min(cut, w * .18, h * .18);
   ctx.beginPath();
@@ -405,95 +583,120 @@ function chamferedRectPath(ctx, x, y, w, h, cut = 10) {
   ctx.closePath();
 }
 
-function drawStonePillar(ctx, rect) {
+function drawStonePillar(ctx, rect, index = 0) {
+  const variant = PILLAR_VARIANTS[index % PILLAR_VARIANTS.length];
+  const inset = variant.inset;
+  const x = rect.x + inset;
+  const y = rect.y + inset;
+  const w = rect.w - inset * 2;
+  const h = rect.h - inset * 2;
+
   ctx.save();
 
-  // Broad ground shadow — visual only, collision remains the original rect.
-  ctx.shadowColor = "rgba(23,24,18,.42)";
-  ctx.shadowBlur = 20;
-  ctx.shadowOffsetX = 8;
-  ctx.shadowOffsetY = 11;
-  ctx.fillStyle = "#4b4b40";
-  chamferedRectPath(ctx, rect.x, rect.y, rect.w, rect.h, 12);
+  // Every pillar gets a slightly different silhouette while remaining fully
+  // inside the original collision rectangle.
+  ctx.shadowColor = "rgba(19,21,17,.48)";
+  ctx.shadowBlur = 21;
+  ctx.shadowOffsetX = 8 + index % 2;
+  ctx.shadowOffsetY = 12;
+  ctx.fillStyle = "#48483f";
+  chamferedRectPath(ctx, x, y, w, h, variant.cut);
   ctx.fill();
 
   ctx.shadowColor = "transparent";
 
-  const body = ctx.createLinearGradient(
-    rect.x,
-    rect.y,
-    rect.x + rect.w,
-    rect.y + rect.h,
-  );
-  body.addColorStop(0, "#898474");
-  body.addColorStop(.45, "#726e61");
-  body.addColorStop(1, "#555348");
+  const body = ctx.createLinearGradient(x, y, x + w, y + h);
+  body.addColorStop(0, index % 2 ? "#878272" : "#8d8877");
+  body.addColorStop(.43, index % 3 ? "#716d60" : "#767164");
+  body.addColorStop(1, "#504f46");
   ctx.fillStyle = body;
-  chamferedRectPath(ctx, rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2, 11);
+  chamferedRectPath(ctx, x + 1, y + 1, w - 2, h - 2, Math.max(7, variant.cut - 2));
   ctx.fill();
 
-  // Distinct top slab and side face make the pillar read as a block of stone.
-  const topH = Math.min(34, rect.h * .25);
-  const top = ctx.createLinearGradient(
-    rect.x,
-    rect.y,
-    rect.x,
-    rect.y + topH,
-  );
-  top.addColorStop(0, "#b8b09b");
-  top.addColorStop(.55, "#a39a83");
-  top.addColorStop(1, "#89816f");
+  const topH = Math.min(38, h * variant.topScale);
+  const topX = x + variant.topInset + variant.topShift;
+  const topW = w - variant.topInset * 2;
+  const top = ctx.createLinearGradient(topX, y + 4, topX, y + topH + 8);
+  top.addColorStop(0, index % 2 ? "#bbb39e" : "#b4ad98");
+  top.addColorStop(.52, "#9f9782");
+  top.addColorStop(1, "#817b6b");
   ctx.fillStyle = top;
   chamferedRectPath(
     ctx,
-    rect.x + 5,
-    rect.y + 5,
-    rect.w - 10,
+    topX,
+    y + 5,
+    topW,
     topH,
-    8,
+    Math.max(6, variant.cut - 5),
   );
   ctx.fill();
 
-  ctx.globalAlpha = .24;
-  ctx.fillStyle = "#393a33";
+  // Side planes are offset per pillar so four identical collision rectangles
+  // don't read as four cloned UI cards.
+  ctx.globalAlpha = .25;
+  ctx.fillStyle = "#363830";
   ctx.beginPath();
-  ctx.moveTo(rect.x + rect.w - 9, rect.y + topH + 9);
-  ctx.lineTo(rect.x + rect.w - 3, rect.y + topH + 4);
-  ctx.lineTo(rect.x + rect.w - 3, rect.y + rect.h - 11);
-  ctx.lineTo(rect.x + rect.w - 12, rect.y + rect.h - 5);
+  ctx.moveTo(x + w - 10, y + topH + 10);
+  ctx.lineTo(x + w - 2, y + topH + 4);
+  ctx.lineTo(x + w - 3, y + h - 12);
+  ctx.lineTo(x + w - 13, y + h - 5);
   ctx.closePath();
   ctx.fill();
 
-  ctx.globalAlpha = .19;
-  ctx.fillStyle = "#262820";
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 10, rect.y + rect.h - 31);
-  ctx.lineTo(rect.x + rect.w - 12, rect.y + rect.h - 31);
-  ctx.lineTo(rect.x + rect.w - 5, rect.y + rect.h - 10);
-  ctx.lineTo(rect.x + 10, rect.y + rect.h - 6);
-  ctx.closePath();
-  ctx.fill();
-
-  // Tiny lichen, not large moss blobs.
   ctx.globalAlpha = .18;
+  ctx.fillStyle = "#272a24";
+  ctx.beginPath();
+  ctx.moveTo(x + 9, y + h - 33);
+  ctx.lineTo(x + w - 13, y + h - 31 + (index % 2) * 3);
+  ctx.lineTo(x + w - 7, y + h - 10);
+  ctx.lineTo(x + 12, y + h - 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Hairline cracks make the blocks feel carved/weathered rather than plastic.
+  ctx.globalAlpha = .20;
+  ctx.strokeStyle = "#34362f";
+  ctx.lineWidth = 1.15;
+  ctx.beginPath();
+  const crackX = x + w * (.34 + index * .07);
+  const crackY = y + topH + 21;
+  ctx.moveTo(crackX, crackY);
+  ctx.lineTo(crackX + variant.crack * 18, crackY + 14);
+  ctx.lineTo(crackX - variant.crack * 12, crackY + 28);
+  ctx.lineTo(crackX + variant.crack * 20, crackY + 40);
+  ctx.stroke();
+
+  // Small top chips break the perfect top edge without ever leaving collision.
+  ctx.globalAlpha = .20;
+  ctx.fillStyle = "#777263";
+  const chipX = topX + topW * (index % 2 ? .72 : .25);
+  ctx.beginPath();
+  ctx.moveTo(chipX - 5, y + 5);
+  ctx.lineTo(chipX + 6, y + 5);
+  ctx.lineTo(chipX + 2, y + 10);
+  ctx.lineTo(chipX - 4, y + 9);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = .16 + variant.moss * .15;
+  ctx.fillStyle = "#617247";
   const lichen = [
-    [rect.x + 17, rect.y + 18, 7, 3],
-    [rect.x + rect.w - 20, rect.y + topH + 12, 6, 3],
-    [rect.x + 15, rect.y + rect.h - 20, 5, 2.6],
+    [x + 16, y + 18, 6 + index % 2, 3],
+    [x + w - 19, y + topH + 13, 5.5, 2.8],
+    [x + 15 + index * 2, y + h - 19, 5, 2.5],
   ];
-  for (const [x, y, rx, ry] of lichen) {
-    ctx.fillStyle = "#667548";
+  for (const [lx, ly, rx, ry] of lichen) {
     ctx.beginPath();
-    ctx.ellipse(x, y, rx, ry, -.2, 0, TAU);
+    ctx.ellipse(lx, ly, rx, ry, -.2, 0, TAU);
     ctx.fill();
   }
 
-  ctx.globalAlpha = .22;
-  ctx.strokeStyle = "#d7cfb6";
-  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = .20;
+  ctx.strokeStyle = "#dad2bb";
+  ctx.lineWidth = 1.1;
   ctx.beginPath();
-  ctx.moveTo(rect.x + 12, rect.y + 7);
-  ctx.lineTo(rect.x + rect.w - 15, rect.y + 7);
+  ctx.moveTo(topX + 7, y + 7);
+  ctx.lineTo(topX + topW - 10, y + 7);
   ctx.stroke();
 
   ctx.restore();
@@ -552,6 +755,10 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
     drawFallbackTerrain(ctx, arena);
   }
 
+  // Authored medium-scale forms bridge the gap between broad procedural
+  // terrain and tiny ground detail. This is the main v3 "hand-painted" layer.
+  drawPaintedGroundPatches(ctx);
+
   // A few very soft light/shade masses sit on top of the noise so the floor
   // feels painted rather than like a visible procedural texture.
   const lightMasses = [
@@ -583,6 +790,8 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
 
   for (const tuft of DECOR.grass) drawGrassBlade(ctx, tuft);
   for (const plant of DECOR.clover) drawClover(ctx, plant);
+  for (const plant of DECOR.broadleaf) drawBroadleafCluster(ctx, plant);
+  for (const group of DECOR.rockGroups) drawRockGroup(ctx, group);
   for (const pebble of DECOR.pebbles) drawPebble(ctx, pebble);
 
   // Soft ambient shading: keep the middle playable and readable while the
@@ -616,7 +825,12 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
   ctx.strokeRect(b.x + 3, b.y + 3, b.w - 6, b.h - 6);
   ctx.restore();
 
-  for (const obstacle of arena.obstacles) drawStonePillar(ctx, obstacle);
+  arena.obstacles.forEach((obstacle, index) => {
+    drawPillarGrounding(ctx, obstacle, index);
+  });
+  arena.obstacles.forEach((obstacle, index) => {
+    drawStonePillar(ctx, obstacle, index);
+  });
 
   return true;
 }

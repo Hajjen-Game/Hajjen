@@ -1138,6 +1138,11 @@ export class PixiProofRenderer {
     }
     root.addChild(body);
 
+    const castWindupFx = new Graphics();
+    castWindupFx.visible = false;
+    castWindupFx.blendMode = "screen";
+    root.addChild(castWindupFx);
+
     // Native Pixi burst preview lives inside the already-stable actor tree.
     // No extra stage container or filter is used in this migration step.
     const burstFx = new Graphics();
@@ -1289,6 +1294,7 @@ export class PixiProofRenderer {
     const view = {
       root,
       name,
+      castWindupFx,
       burstFx,
       slashFx,
       ringFx,
@@ -1420,6 +1426,462 @@ export class PixiProofRenderer {
       }
     } else {
       view.castSpellId = null;
+    }
+  }
+
+  updateNativeCastWindupVfx(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const strokeArc = (
+      graphics,
+      radius,
+      start,
+      end,
+      style,
+      segments = 7,
+      cx = 0,
+      cy = 0,
+    ) => {
+      if (style.alpha <= 0) return;
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const a = start + (end - start) * t;
+        const x = cx + Math.cos(a) * radius;
+        const y = cy + Math.sin(a) * radius;
+        if (i === 0) graphics.moveTo(x, y);
+        else graphics.lineTo(x, y);
+      }
+      graphics.stroke(style);
+    };
+
+    const drawLeaf = (graphics, x, y, angle, size, color, alpha) => {
+      if (alpha <= 0) return;
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      const pts = [
+        [size, 0],
+        [0, size * .46],
+        [-size, 0],
+        [0, -size * .46],
+      ].map(([px, py]) => ({
+        x: x + px * ca - py * sa,
+        y: y + px * sa + py * ca,
+      }));
+      graphics
+        .moveTo(pts[0].x, pts[0].y)
+        .lineTo(pts[1].x, pts[1].y)
+        .lineTo(pts[2].x, pts[2].y)
+        .lineTo(pts[3].x, pts[3].y)
+        .lineTo(pts[0].x, pts[0].y)
+        .fill({ color, alpha });
+    };
+
+    const drawDiamond = (graphics, x, y, size, angle, color, alpha) => {
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      const pts = [
+        [0, -size * 1.7],
+        [size, 0],
+        [0, size * 1.7],
+        [-size, 0],
+      ].map(([px,py]) => ({
+        x: x + px * ca - py * sa,
+        y: y + px * sa + py * ca,
+      }));
+      graphics
+        .moveTo(pts[0].x,pts[0].y)
+        .lineTo(pts[1].x,pts[1].y)
+        .lineTo(pts[2].x,pts[2].y)
+        .lineTo(pts[3].x,pts[3].y)
+        .lineTo(pts[0].x,pts[0].y)
+        .fill({ color, alpha });
+    };
+
+    const profileFor = spellId =>
+      commonCasterSpellProfile(spellId)
+      || priestDruidSpellProfile(spellId)
+      || paladinDkSpellProfile(spellId)
+      || warriorRogueSpellProfile(spellId);
+
+    for (const view of this.actorViews.values()) {
+      view.castWindupFx.clear();
+      view.castWindupFx.visible = false;
+    }
+
+    const time = Number(game.elapsedSeconds) || 0;
+
+    for (const actor of game.actors) {
+      if (!actor.alive || !actor.cast) continue;
+
+      const view = this.actorViews.get(actor.id);
+      if (!view || !view.root.visible) continue;
+
+      const spell = actor.getSpell(actor.cast.spellId);
+      const spellId = spell?.id || actor.cast.spellId;
+      const total = Math.max(1, Number(actor.cast.totalMs) || 1);
+      const remaining = Math.max(0, Number(actor.cast.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const profile = profileFor(spellId);
+      const classId = actor.classId;
+      const g = view.castWindupFx;
+      g.visible = true;
+
+      // Mage: tightening elemental motes around a segmented rune ring.
+      if (classId === "mage" && profile) {
+        const swell = smooth(p);
+        const pulse = .5 + .5 * Math.sin(time * 12 + actor.x * .01);
+        const radius =
+          actor.radius + 10 + swell * (profile.heavy ? 16 : 10);
+        const ringAlpha = .32 + p * .48;
+
+        g.circle(0,0,radius + pulse * 2).stroke({
+          color: profile.main,
+          width: 2 + p * 1.1,
+          alpha: ringAlpha,
+        });
+
+        const runeRadius = radius + 6;
+        const runePhase = time * 1.7 * .55;
+        for (let i = 0; i < 4; i += 1) {
+          const start = i * Math.PI / 2 + .16 + runePhase;
+          strokeArc(g,runeRadius,start,start + .62,{
+            color: profile.core,
+            width: 1.8,
+            alpha: .30 + p * .48,
+          },6);
+        }
+
+        const count = profile.heavy ? 9 : 7;
+        const fireLike =
+          profile.kind?.includes?.("fire")
+          || profile.kind === "lava";
+        for (let i = 0; i < count; i += 1) {
+          const base = i / count * Math.PI * 2;
+          const spin = time * (fireLike ? 2.1 : 1.5);
+          const angle = base + spin * (i % 2 ? 1 : -1);
+          const startRadius = actor.radius + 34 + (i % 3) * 7;
+          const rr = startRadius * (1 - p * .58);
+          const x = Math.cos(angle) * rr;
+          const y = Math.sin(angle) * rr;
+          const size = 1.6 + (i % 3) * .55 + p * .8;
+          const moteAlpha = .22 + p * .52;
+          const color = i % 3 === 0 ? profile.core : profile.main;
+
+          if (profile.kind === "frost" || profile.kind === "frost-nova") {
+            drawDiamond(g,x,y,size,angle,color,moteAlpha);
+          } else {
+            g.circle(x,y,size).fill({ color, alpha:moteAlpha });
+          }
+        }
+
+        if (p > .72) {
+          g.circle(0,0,5 + (p - .72) * 15).fill({
+            color: profile.core,
+            alpha: clamp01((p - .72) * 1.7),
+          });
+        }
+        continue;
+      }
+
+      // Shaman: broken electrical strands collapse inward toward the caster.
+      if (classId === "shaman" && profile) {
+        const pulse = .5 + .5 * Math.sin(time * 19);
+        const count = profile.heavy ? 8 : 6;
+
+        for (let i = 0; i < count; i += 1) {
+          const base =
+            i / count * Math.PI * 2
+            + time * 1.1 * (i % 2 ? 1 : -1)
+            + Math.sin(actor.x * .013 + actor.y * .017 + i * 2.1) * .24;
+          const start =
+            actor.radius + 29 + ((i * 17 + actor.radius * 3) % 18);
+          const end = Math.max(actor.radius + 7,start * (1 - p * .58));
+          const x1 = Math.cos(base) * start;
+          const y1 = Math.sin(base) * start;
+          const bendA = base + .16 * Math.sin(i + p * 8);
+          const x2 = Math.cos(bendA) * end;
+          const y2 = Math.sin(bendA) * end;
+          const bendX =
+            (Math.sin(actor.y * .071 + i * 4.3) * .5) * 13;
+          const bendY =
+            (Math.cos(actor.x * .063 + i * 3.7) * .5) * 13;
+
+          g
+            .moveTo(x1,y1)
+            .lineTo((x1+x2) * .5 + bendX,(y1+y2) * .5 + bendY)
+            .lineTo(x2,y2)
+            .stroke({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              width: 1.2 + (i % 2) * .8,
+              alpha: .18 + p * .42,
+            });
+        }
+
+        if (p > .68) {
+          const flicker = (p - .68) / .32;
+          for (let i = 0; i < 4; i += 1) {
+            const a = i / 4 * Math.PI * 2 + time * 2;
+            g.circle(
+              Math.cos(a) * (actor.radius + 5),
+              Math.sin(a) * (actor.radius + 5),
+              1.7 + pulse,
+            ).fill({
+              color: i % 2 ? profile.core : profile.main,
+              alpha: flicker * .65,
+            });
+          }
+        }
+        continue;
+      }
+
+      // Warlock: smoky motes spiral inward with three broken shadow arcs.
+      if (classId === "warlock" && profile) {
+        const pulse = .5 + .5 * Math.sin(time * 12);
+        for (let i = 0; i < 8; i += 1) {
+          const base =
+            (i / 8) * Math.PI * 2
+            + Math.sin((actor.id?.length || 1) * .7 + i * 3.1) * .45;
+          const angle = base + time * 1.3 * (i % 2 ? 1 : -1);
+          const radius = actor.radius + 38 + (i % 4) * 5;
+          const inward = radius * (1 - p * .68);
+          g.circle(
+            Math.cos(angle) * inward,
+            Math.sin(angle) * inward,
+            1.5 + (i % 3) * .55,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            alpha: .25 + p * .5,
+          });
+        }
+
+        for (let i = 0; i < 3; i += 1) {
+          const radius = actor.radius + 11 + i * 5 + pulse * 2;
+          const start =
+            -1.4 + i * 2.1 + time * (i % 2 ? -1 : 1);
+          strokeArc(g,radius,start,start + .9,{
+            color: profile.main,
+            width:2,
+            alpha:.25 + p * .45,
+          },6);
+        }
+
+        if (p > .74) {
+          g.circle(0,0,4 + (p - .74) * 16).fill({
+            color:profile.core,
+            alpha:clamp01((p - .74) * 1.8),
+          });
+        }
+        continue;
+      }
+
+      // Priest: holy/shadow motes pull toward the body plus a compact ring.
+      if (classId === "priest" && profile) {
+        const shadow =
+          profile.kind === "mind-implosion"
+          || profile.kind === "shadow-wave";
+        const count = shadow ? 5 : 7;
+        const pulse = .5 + .5 * Math.sin(time * 14);
+
+        for (let i = 0; i < count; i += 1) {
+          const a =
+            i / count * Math.PI * 2
+            + time * 1.2 * (i % 2 ? 1 : -1);
+          const rr = actor.radius + 28 - p * 14 + (i % 2) * 5;
+          g.circle(
+            Math.cos(a) * rr,
+            Math.sin(a) * rr,
+            1.5 + p * 1.1,
+          ).fill({
+            color:i % 3 === 0 ? profile.core : profile.main,
+            alpha:.24 + p * .48,
+          });
+        }
+
+        g.circle(0,0,actor.radius + 10 + p * 8 + pulse * 2).stroke({
+          color:profile.main,
+          width:1.8,
+          alpha:.28 + p * .36,
+        });
+
+        if (p > .74) {
+          g.circle(0,0,4 + (p - .74) * 15).fill({
+            color:profile.core,
+            alpha:clamp01((p - .74) * 1.7),
+          });
+        }
+        continue;
+      }
+
+      // Druid: leaf motes spiral inward, avoiding a mage-like rune ring.
+      if (classId === "druid" && profile) {
+        for (let i = 0; i < 8; i += 1) {
+          const base =
+            i / 8 * Math.PI * 2
+            + Math.sin(actor.x * .011 + actor.y * .019 + i * 2.7) * .38;
+          const a = base + time * (i % 2 ? 1 : -1);
+          const rr = actor.radius + 34 - p * 18 + (i % 3) * 4;
+          drawLeaf(
+            g,
+            Math.cos(a) * rr,
+            Math.sin(a) * rr,
+            a + p,
+            2.8 + (i % 3) * .6,
+            i % 3 === 0 ? profile.core : profile.main,
+            .24 + p * .48,
+          );
+        }
+
+        if (p > .74) {
+          g.circle(0,0,4 + (p - .74) * 15).fill({
+            color:profile.core,
+            alpha:clamp01((p - .74) * 1.7),
+          });
+        }
+        continue;
+      }
+
+      // Paladin: rotating angular seal and four holy rays.
+      if (classId === "paladin" && profile) {
+        const pulse = .5 + .5 * Math.sin(time * 15);
+        const rotation = p * .35;
+        const r = actor.radius + 12 + p * 10 + pulse * 2;
+        const half = r * .62;
+        const corners = [
+          [-half,-half],[half,-half],[half,half],[-half,half],
+        ].map(([x,y]) => {
+          const ca=Math.cos(rotation), sa=Math.sin(rotation);
+          return {x:x*ca-y*sa,y:x*sa+y*ca};
+        });
+
+        g.moveTo(corners[0].x,corners[0].y);
+        for(let i=1;i<corners.length;i++) g.lineTo(corners[i].x,corners[i].y);
+        g.lineTo(corners[0].x,corners[0].y).stroke({
+          color:profile.main,
+          width:1.8 + p * .7,
+          alpha:.28 + p * .48,
+        });
+
+        for(let i=0;i<4;i++){
+          const a=i*Math.PI/2 + rotation;
+          g
+            .moveTo(Math.cos(a)*r*.55,Math.sin(a)*r*.55)
+            .lineTo(Math.cos(a)*r,Math.sin(a)*r)
+            .stroke({
+              color:profile.main,
+              width:1.8 + p*.7,
+              alpha:.28 + p*.48,
+            });
+        }
+        continue;
+      }
+
+      // Death Knight: three cold rune strokes rotate inward. Obliterate adds
+      // five frost motes, matching its heavier windup.
+      if (classId === "death-knight" && profile) {
+        const rotation = -p * .65;
+        for(let i=0;i<3;i++){
+          const a=i*Math.PI*2/3 + rotation;
+          const p0={
+            x:Math.cos(a)*(actor.radius+7),
+            y:Math.sin(a)*(actor.radius+7),
+          };
+          const p1={
+            x:Math.cos(a+.4)*(actor.radius+20-p*6),
+            y:Math.sin(a+.4)*(actor.radius+20-p*6),
+          };
+          g.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+            color:profile.main,
+            width:1.7,
+            alpha:.28+p*.48,
+          });
+        }
+
+        if(profile.kind==="obliterate"){
+          for(let i=0;i<5;i++){
+            const a=i*Math.PI*2/5 + rotation*.4;
+            g.circle(
+              Math.cos(a)*(actor.radius+14),
+              Math.sin(a)*(actor.radius+14),
+              1.7,
+            ).fill({
+              color:profile.core,
+              alpha:.35+p*.4,
+            });
+          }
+        }
+        continue;
+      }
+
+      // Warrior/Rogue are mostly instant. Slam is the current visible melee
+      // cast and should feel like weapon weight rather than caster magic.
+      if (classId === "warrior" && profile) {
+        const heavy = spellId === "warrior-slam";
+        const cueP = Math.max(0,1-p);
+        const fade = 1-clamp01(cueP);
+        const count = heavy ? 5 : 3;
+        for(let i=0;i<count;i++){
+          const a=-.95+i*(heavy?.48:.72);
+          const inner=actor.radius+5;
+          const outer=actor.radius+13+i*2+cueP*8;
+          g
+            .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+            .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+            .stroke({
+              color:profile.accent,
+              width:heavy?2.4:1.6,
+              alpha:fade*(heavy?.58:.38),
+            });
+        }
+
+        if(heavy){
+          strokeArc(
+            g,
+            actor.radius+11+p*8,
+            -2.5,
+            -.5,
+            {
+              color:profile.core,
+              width:2+p*1.6,
+              alpha:.25+p*.45,
+            },
+            7,
+          );
+        }
+        continue;
+      }
+
+      if (classId === "rogue" && profile) {
+        const cueP=Math.max(0,1-p);
+        const fade=1-clamp01(cueP);
+        for(let i=0;i<3;i++){
+          const a=i*Math.PI*2/3-cueP*1.8;
+          strokeArc(g,actor.radius+7+i*3,a,a+.72,{
+            color:profile.accent,
+            width:1.4,
+            alpha:fade*.38,
+          },5);
+        }
+        continue;
+      }
+
+      // Generic future-proof fallback for any cast without a class VFX profile.
+      const [main,core]=burstColors(spell?.visualStyle || actor.visualStyle || "damage");
+      const pulse=.5+.5*Math.sin(time*10+actor.x*.01);
+      g.circle(0,0,actor.radius+14+p*6+pulse*1.5).stroke({
+        color:main,
+        width:3,
+        alpha:.35+p*.35,
+      });
+      if(p>.78){
+        g.circle(0,0,4+(p-.78)*10).fill({
+          color:core,
+          alpha:clamp01((p-.78)*2.2)*.55,
+        });
+      }
     }
   }
 
@@ -4992,6 +5454,7 @@ export class PixiProofRenderer {
       this.updateActorView(view, actor, game);
     }
 
+    this.updateNativeCastWindupVfx(game);
     this.updateNativeBurstVfx(game);
     this.updateNativeSlashVfx(game);
     this.updateNativeRingVfx(game);

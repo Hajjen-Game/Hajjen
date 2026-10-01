@@ -130,11 +130,11 @@ export class CanvasRenderer {
     if (playerActor) this.drawActor(ctx, playerActor, game);
 
     this.drawOverlapReadability(ctx, game, livingActors);
-    this.drawVfx(ctx, game);
+    this.drawVfx(ctx, game, { skipBurstVfx });
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
 
-  renderEffectsOverlay(game) {
+  renderEffectsOverlay(game, { skipBurstVfx = false } = {}) {
     const ctx = this.ctx;
     this.frameNowMs = performance.now();
 
@@ -1356,8 +1356,9 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  drawVfx(ctx, game) {
+  drawVfx(ctx, game, { skipBurstVfx = false } = {}) {
     for (const effect of game.vfx.effects) {
+      if (skipBurstVfx && effect.type === "burst") continue;
       const progress = 1 - effect.remainingMs / effect.totalMs;
       const alpha = clamp(effect.remainingMs / effect.totalMs, 0, 1);
 

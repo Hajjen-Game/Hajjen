@@ -32,6 +32,24 @@ function resourceColor(type) {
   return 0x777777;
 }
 
+function burstColors(style = "damage") {
+  const colors = {
+    heal: [0x65db78, 0xedffe7],
+    priest: [0xffd45d, 0xfff9d9],
+    druid: [0x69dd7b, 0xe9ffd9],
+    paladin: [0xffca45, 0xfff4bd],
+    mage: [0x65cfff, 0xf0fbff],
+    shaman: [0x62d9ff, 0xf1fdff],
+    lightning: [0x62d9ff, 0xf1fdff],
+    warlock: [0xa45dff, 0xf0dcff],
+    warrior: [0xd86b5c, 0xffd9c9],
+    rogue: [0xe9c85c, 0xfff2bc],
+    "death-knight": [0xd95b56, 0xffddd1],
+    damage: [0xe56b5c, 0xffe0d4],
+  };
+  return colors[style] || colors.damage;
+}
+
 function actorVisualSignature(actor) {
   return [
     actor?.classId || "",
@@ -757,6 +775,12 @@ export class PixiProofRenderer {
     }
     root.addChild(body);
 
+    // Native Pixi burst preview lives inside the already-stable actor tree.
+    // No extra stage container or filter is used in this migration step.
+    const burstFx = new Graphics();
+    burstFx.visible = false;
+    root.addChild(burstFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -851,6 +875,7 @@ export class PixiProofRenderer {
     const view = {
       root,
       name,
+      burstFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -973,6 +998,60 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeBurstVfx(game) {
+    for (const view of this.actorViews.values()) {
+      view.burstFx.clear();
+      view.burstFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "burst") continue;
+
+      const view = this.actorViews.get(effect.targetId);
+      if (!view || !view.root.visible) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const [main, core] = burstColors(effect.style);
+      const healing = ["heal", "priest", "druid", "paladin"].includes(effect.style);
+      const outer = 8 + progress * (healing ? 38 : 30);
+      const inner = 5 + progress * (healing ? 23 : 18);
+
+      view.burstFx.visible = true;
+      view.burstFx
+        .circle(0, 0, outer)
+        .stroke({
+          color: main,
+          width: healing ? 3.4 : 2.7,
+          alpha: alpha * .88,
+        })
+        .circle(0, 0, inner)
+        .stroke({
+          color: core,
+          width: 1.2,
+          alpha: alpha * .72,
+        });
+
+      const motes = healing ? 7 : 5;
+      for (let i = 0; i < motes; i += 1) {
+        const angle = (i / motes) * Math.PI * 2 + progress * 1.25;
+        const radius = 8 + progress * (healing ? 27 : 21);
+        view.burstFx
+          .circle(
+            Math.cos(angle) * radius,
+            Math.sin(angle) * radius,
+            healing ? 2 : 1.6,
+          )
+          .fill({
+            color: i % 2 ? core : main,
+            alpha: alpha * .62,
+          });
+      }
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1013,6 +1092,8 @@ export class PixiProofRenderer {
       view = view || this.createActorView(actor);
       this.updateActorView(view, actor, game);
     }
+
+    this.updateNativeBurstVfx(game);
 
     this.app.render();
   }

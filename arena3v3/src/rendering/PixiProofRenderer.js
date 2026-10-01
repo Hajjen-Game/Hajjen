@@ -863,9 +863,17 @@ export class PixiProofRenderer {
     beamFx.visible = false;
     root.addChild(beamFx);
 
+    const chainGlowFx = new Graphics();
+    chainGlowFx.visible = false;
+    root.addChild(chainGlowFx);
+
     const chainFx = new Graphics();
     chainFx.visible = false;
     root.addChild(chainFx);
+
+    const chainSparkFx = new Graphics();
+    chainSparkFx.visible = false;
+    root.addChild(chainSparkFx);
 
     const priestHealSpellFx = new Graphics();
     priestHealSpellFx.visible = false;
@@ -876,6 +884,13 @@ export class PixiProofRenderer {
     root.addChild(commonCasterSpellFx);
 
     const { BlurFilter } = this.PIXI;
+
+    // Chain Lightning uses three actor-local layers. The glow layer gets the
+    // same lightweight blur family already proven on player/target glows.
+    chainGlowFx.blendMode = "screen";
+    chainGlowFx.filters = [new BlurFilter({ strength: 4, quality: 1 })];
+    chainFx.blendMode = "screen";
+    chainSparkFx.blendMode = "screen";
 
     const playerGlow = new Graphics()
       .circle(0, 0, actor.radius + 8)
@@ -973,7 +988,9 @@ export class PixiProofRenderer {
       slashFx,
       ringFx,
       beamFx,
+      chainGlowFx,
       chainFx,
+      chainSparkFx,
       priestHealSpellFx,
       commonCasterSpellFx,
       playerGlow,
@@ -1378,9 +1395,28 @@ export class PixiProofRenderer {
   }
 
   updateNativeChainVfx(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+
+    const strokePath = (graphics, points, style) => {
+      if (!points || points.length < 2 || style.alpha <= 0) return;
+      graphics.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        graphics.lineTo(points[i].x, points[i].y);
+      }
+      graphics.stroke(style);
+    };
+
     for (const view of this.actorViews.values()) {
+      view.chainGlowFx.clear();
       view.chainFx.clear();
+      view.chainSparkFx.clear();
+      view.chainGlowFx.visible = false;
       view.chainFx.visible = false;
+      view.chainSparkFx.visible = false;
     }
 
     for (const effect of game.vfx?.effects || []) {
@@ -1397,29 +1433,37 @@ export class PixiProofRenderer {
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
       const remaining = Math.max(0, Number(effect.remainingMs) || 0);
-      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
-      const alpha = Math.max(0, Math.min(1, remaining / total));
-      const [main, core] = burstColors(effect.style || "lightning");
+      const progress = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
       const specialChainLightning = effect.spellId === "shaman-chain-lightning";
+      const palette = specialChainLightning
+        ? { main: 0x63c7dd, core: 0xecfeff, accent: 0x4c91bd }
+        : (() => {
+            const [main, core] = burstColors(effect.style || "lightning");
+            return { main, core, accent: main };
+          })();
 
+      view.chainGlowFx.visible = true;
       view.chainFx.visible = true;
+      view.chainSparkFx.visible = true;
 
       for (let segmentIndex = 0; segmentIndex < actors.length - 1; segmentIndex += 1) {
         const fromActor = actors[segmentIndex];
         const toActor = actors[segmentIndex + 1];
+
         const localProgress = specialChainLightning
-          ? Math.max(0, Math.min(1, (progress - segmentIndex * .10) / .66))
+          ? clamp01((progress - segmentIndex * .10) / .66)
           : progress;
         if (localProgress <= 0) continue;
 
         const fade = specialChainLightning
-          ? 1 - Math.max(0, Math.min(1, (localProgress - .54) / .46))
+          ? 1 - clamp01((localProgress - .54) / .46)
           : alpha;
 
         const reveal = specialChainLightning
-          ? Math.max(0, Math.min(1, localProgress / .34))
+          ? clamp01(localProgress / .34)
           : 1;
-        const easedReveal = 1 - Math.pow(1 - reveal, 3);
+        const easedReveal = easeOut(reveal);
 
         const from = {
           x: fromActor.x - source.x,
@@ -1439,61 +1483,253 @@ export class PixiProofRenderer {
         const length = Math.max(1, Math.hypot(dx, dy));
         const px = -dy / length;
         const py = dx / length;
-        const segments = Math.max(6, Math.min(9, Math.round(length / 34)));
+        const tx = dx / length;
+        const ty = dy / length;
         const seed = Number(effect.seed || 1) + segmentIndex * 47;
-        const phase = localProgress * 5;
+        const framePhase = game.elapsedSeconds * 26 + localProgress * 8.5;
+        const baseAmplitude = Math.min(18, Math.max(8, length * .065));
 
-        const points = [{ x: from.x, y: from.y }];
-        for (let i = 1; i < segments; i += 1) {
-          const t = i / segments;
-          const baseX = from.x + dx * t;
-          const baseY = from.y + dy * t;
-          const wave =
-            Math.sin(seed * .37 + i * 2.31 + phase * 1.8) * 7
-            + Math.sin(seed * .17 + i * 4.2 - phase * 2.1) * 2.5;
-          points.push({
-            x: baseX + px * wave,
-            y: baseY + py * wave,
+        const buildArc = (seedOffset, amplitude, phaseOffset = 0) => {
+          const segments = Math.max(6, Math.min(12, Math.round(length / 28)));
+          const points = [{ x: from.x, y: from.y }];
+
+          for (let i = 1; i < segments; i += 1) {
+            const t = i / segments;
+            const envelope = Math.sin(t * Math.PI);
+            const waveA = Math.sin(
+              (seed + seedOffset) * .37 + i * 2.31 + framePhase * 1.55 + phaseOffset,
+            );
+            const waveB = Math.sin(
+              (seed + seedOffset) * .17 + i * 4.07 - framePhase * 2.05 - phaseOffset,
+            );
+            const jitter = (waveA * .72 + waveB * .38) * amplitude * envelope;
+
+            points.push({
+              x: from.x + dx * t + px * jitter,
+              y: from.y + dy * t + py * jitter,
+            });
+          }
+
+          points.push({ x: to.x, y: to.y });
+          return points;
+        };
+
+        const mainArc = buildArc(0, baseAmplitude);
+        const sideArcA = buildArc(19, baseAmplitude * 1.28, .9);
+        const sideArcB = buildArc(37, baseAmplitude * 1.18, -1.1);
+
+        if (!specialChainLightning) {
+          strokePath(view.chainGlowFx, mainArc, {
+            color: palette.main,
+            width: 8,
+            alpha: alpha * fade * .22,
+          });
+          strokePath(view.chainFx, mainArc, {
+            color: palette.main,
+            width: 4.5,
+            alpha: alpha * fade * .60,
+          });
+          strokePath(view.chainFx, mainArc, {
+            color: palette.core,
+            width: 1.5,
+            alpha: alpha * fade * .92,
+          });
+          continue;
+        }
+
+        const intensity = alpha * fade;
+
+        // Wide blurred energy halo.
+        strokePath(view.chainGlowFx, mainArc, {
+          color: palette.main,
+          width: 16,
+          alpha: intensity * .22,
+        });
+        strokePath(view.chainGlowFx, sideArcA, {
+          color: palette.main,
+          width: 9,
+          alpha: intensity * .12,
+        });
+        strokePath(view.chainGlowFx, sideArcB, {
+          color: palette.accent,
+          width: 8,
+          alpha: intensity * .10,
+        });
+
+        // Main bolt: saturated cyan body with a near-white electrical core.
+        strokePath(view.chainFx, mainArc, {
+          color: palette.main,
+          width: 5.8,
+          alpha: intensity * .78,
+        });
+        strokePath(view.chainFx, mainArc, {
+          color: palette.core,
+          width: 2.05,
+          alpha: intensity * .99,
+        });
+
+        // Two thinner arcs keep the bolt alive rather than reading as one line.
+        strokePath(view.chainFx, sideArcA, {
+          color: palette.main,
+          width: 1.65,
+          alpha: intensity * .50,
+        });
+        strokePath(view.chainFx, sideArcB, {
+          color: palette.core,
+          width: .85,
+          alpha: intensity * .62,
+        });
+
+        // Short branches snap away from the main bolt at several points.
+        const branchFractions = [.26, .51, .73];
+        for (let branchIndex = 0; branchIndex < branchFractions.length; branchIndex += 1) {
+          const t = branchFractions[branchIndex];
+          const pathIndex = Math.max(
+            1,
+            Math.min(mainArc.length - 2, Math.round(t * (mainArc.length - 1))),
+          );
+          const anchor = mainArc[pathIndex];
+          const sign = (branchIndex + segmentIndex) % 2 === 0 ? 1 : -1;
+          const branchLength =
+            17
+            + branchIndex * 5
+            + (Math.sin(seed * .23 + branchIndex * 2.4 + framePhase) * .5 + .5) * 9;
+          const forward = 4 + branchIndex * 2;
+          const mid = {
+            x: anchor.x + tx * forward + px * sign * branchLength * .52,
+            y: anchor.y + ty * forward + py * sign * branchLength * .52,
+          };
+          const tip = {
+            x: anchor.x + tx * (forward + 5) + px * sign * branchLength,
+            y: anchor.y + ty * (forward + 5) + py * sign * branchLength,
+          };
+          const branch = [anchor, mid, tip];
+
+          strokePath(view.chainGlowFx, branch, {
+            color: palette.main,
+            width: 5.5,
+            alpha: intensity * .13,
+          });
+          strokePath(view.chainFx, branch, {
+            color: palette.core,
+            width: 1.1,
+            alpha: intensity * .58,
           });
         }
-        points.push(to);
 
-        view.chainFx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i += 1) {
-          view.chainFx.lineTo(points[i].x, points[i].y);
+        // Moving sparks ride the bolt and make the energy feel directional.
+        const sparkCount = 7;
+        for (let i = 0; i < sparkCount; i += 1) {
+          const sparkT = (progress * 2.35 + i / sparkCount + segmentIndex * .11) % 1;
+          const pathPos = sparkT * (mainArc.length - 1);
+          const leftIndex = Math.floor(pathPos);
+          const rightIndex = Math.min(mainArc.length - 1, leftIndex + 1);
+          const localT = pathPos - leftIndex;
+          const a = mainArc[leftIndex];
+          const b = mainArc[rightIndex];
+          const wobble = Math.sin(framePhase * 2.1 + i * 2.6 + seed * .09) * 4;
+          const sx = a.x + (b.x - a.x) * localT + px * wobble;
+          const sy = a.y + (b.y - a.y) * localT + py * wobble;
+
+          view.chainGlowFx
+            .circle(sx, sy, 4.3)
+            .fill({
+              color: palette.main,
+              alpha: intensity * .17,
+            });
+          view.chainSparkFx
+            .circle(sx, sy, i % 3 === 0 ? 2.0 : 1.35)
+            .fill({
+              color: i % 2 ? palette.core : palette.main,
+              alpha: intensity * (.58 + (i % 3) * .10),
+            });
         }
-        view.chainFx.stroke({
-          color: main,
-          width: specialChainLightning ? 5.4 : 4.6,
-          alpha: alpha * fade * .46,
-        });
 
-        view.chainFx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i += 1) {
-          view.chainFx.lineTo(points[i].x, points[i].y);
-        }
-        view.chainFx.stroke({
-          color: core,
-          width: specialChainLightning ? 1.8 : 1.4,
-          alpha: alpha * fade * .96,
-        });
+        // The first hop gets a compact discharge at the caster.
+        if (segmentIndex === 0 && localProgress < .52) {
+          const sourcePulse = clamp01(localProgress / .52);
+          const sourceFade = 1 - sourcePulse;
+          const sourceRadius = source.radius + 7 + sourcePulse * 19;
 
-        if (specialChainLightning && localProgress > .28) {
-          const impactProgress = Math.max(0, Math.min(1, (localProgress - .28) / .62));
-          const impactRadius = 7 + impactProgress * 20;
-          view.chainFx
-            .circle(fullTo.x, fullTo.y, impactRadius)
+          view.chainGlowFx
+            .circle(from.x, from.y, sourceRadius + 5)
             .stroke({
-              color: main,
-              width: 2.1,
-              alpha: alpha * fade * .56,
+              color: palette.main,
+              width: 7,
+              alpha: intensity * sourceFade * .13,
             });
           view.chainFx
-            .circle(fullTo.x, fullTo.y, Math.max(4, impactRadius - 5))
+            .circle(from.x, from.y, sourceRadius)
             .stroke({
-              color: core,
-              width: 1,
-              alpha: alpha * fade * .74,
+              color: palette.core,
+              width: 1.45,
+              alpha: intensity * sourceFade * .58,
+            });
+        }
+
+        // A proper hit flash on every jump: glow, double ring and radial sparks.
+        if (localProgress > .28) {
+          const impactProgress = clamp01((localProgress - .28) / .62);
+          const impactFade = 1 - impactProgress;
+          const pulse = Math.sin(Math.min(1, impactProgress * 1.7) * Math.PI);
+          const outer = 9 + easeOut(impactProgress) * 38;
+
+          view.chainGlowFx
+            .circle(fullTo.x, fullTo.y, 30 + pulse * 11)
+            .fill({
+              color: palette.main,
+              alpha: intensity * impactFade * .13,
+            });
+
+          view.chainFx
+            .circle(fullTo.x, fullTo.y, outer)
+            .stroke({
+              color: palette.main,
+              width: 2.7,
+              alpha: intensity * impactFade * .78,
+            })
+            .circle(
+              fullTo.x,
+              fullTo.y,
+              7 + easeOut(impactProgress) * 27,
+            )
+            .stroke({
+              color: palette.core,
+              width: 1.35,
+              alpha: intensity * impactFade * .72,
+            });
+
+          const rayCount = 8;
+          for (let i = 0; i < rayCount; i += 1) {
+            const angle =
+              i / rayCount * Math.PI * 2
+              + Math.sin(seed * .19 + i * 2.7) * .20;
+            const inner = 8 + impactProgress * 4;
+            const outerRay =
+              18
+              + easeOut(impactProgress) * (24 + (i % 3) * 7);
+
+            view.chainSparkFx
+              .moveTo(
+                fullTo.x + Math.cos(angle) * inner,
+                fullTo.y + Math.sin(angle) * inner,
+              )
+              .lineTo(
+                fullTo.x + Math.cos(angle) * outerRay,
+                fullTo.y + Math.sin(angle) * outerRay,
+              )
+              .stroke({
+                color: i % 3 === 0 ? palette.core : palette.main,
+                width: i % 3 === 0 ? 1.7 : 1.15,
+                alpha: intensity * impactFade * (.42 + (i % 2) * .16),
+              });
+          }
+
+          view.chainSparkFx
+            .circle(fullTo.x, fullTo.y, 4 + pulse * 3)
+            .fill({
+              color: palette.core,
+              alpha: intensity * impactFade * .84,
             });
         }
       }

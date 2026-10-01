@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi8";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi9";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi10";
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";

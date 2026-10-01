@@ -150,10 +150,14 @@ void main(void)
     (waveB - waveA * 0.35) * 0.00105
   ) * heat * uStrength;
 
-  vec4 color = texture2D(uTexture, uv + offset);
+  vec4 baseColor = texture2D(uTexture, uv);
+  vec4 shiftedColor = texture2D(uTexture, uv + offset);
+  float distortionMix = clamp(heat * uStrength, 0.0, 1.0);
 
-  color.a *= heat * 0.78;
-  gl_FragColor = color;
+  // Replace the ground sample instead of alpha-blending a second copy of the
+  // terrain over itself. The old overlay path could double dark baked terrain
+  // features and make them read as large detached shadows.
+  gl_FragColor = mix(baseColor, shiftedColor, distortionMix);
 }
 `;
 
@@ -322,9 +326,10 @@ export class PixiProofRenderer {
   destroyHeatShimmer() {
     if (!this.heatShimmer) return;
 
-    const { container } = this.heatShimmer;
+    const { container, heatTexture } = this.heatShimmer;
     if (container?.parent) container.parent.removeChild(container);
     container?.destroy?.({ children: true, texture: false });
+    heatTexture?.destroy?.(true);
     this.heatShimmer = null;
   }
 
@@ -336,18 +341,48 @@ export class PixiProofRenderer {
       || !terrainTexture
       || !this.PIXI
       || !this.app
+      || typeof document === "undefined"
     ) return;
 
-    const { Container, Filter, GlProgram, Rectangle, Sprite } = this.PIXI;
+    const { Container, Filter, GlProgram, Sprite, Texture } = this.PIXI;
+    const source = terrainTexture?.source?.resource;
+    if (!source) return;
+
+    const b = arena.bounds;
+    const heatCanvas = document.createElement("canvas");
+    heatCanvas.width = Math.max(1, Math.round(b.w));
+    heatCanvas.height = Math.max(1, Math.round(b.h));
+
+    const heatCtx = heatCanvas.getContext("2d");
+    if (!heatCtx) return;
+
+    // Work on an arena-local copy so the shader's 0..1 UV coordinates map
+    // exactly to Windscar's authored heat zones. This also keeps the normal
+    // Canvas link untouched and prevents filter-frame sampling artifacts.
+    heatCtx.imageSmoothingEnabled = true;
+    heatCtx.imageSmoothingQuality = "high";
+    heatCtx.drawImage(
+      source,
+      b.x,
+      b.y,
+      b.w,
+      b.h,
+      0,
+      0,
+      heatCanvas.width,
+      heatCanvas.height,
+    );
+
+    const heatTexture = Texture.from(heatCanvas);
+    const heatSprite = new Sprite(heatTexture);
+    heatSprite.position.set(b.x, b.y);
+    heatSprite.width = b.w;
+    heatSprite.height = b.h;
+    heatSprite.alpha = 1;
 
     const container = new Container();
     container.label = "windscar-heat-shimmer";
     container.eventMode = "none";
-
-    const heatSprite = new Sprite(terrainTexture);
-    heatSprite.width = GAME_WIDTH;
-    heatSprite.height = GAME_HEIGHT;
-    heatSprite.alpha = .90;
 
     const glProgram = GlProgram.from({
       vertex: WIND_SCAR_HEAT_VERTEX,
@@ -367,19 +402,13 @@ export class PixiProofRenderer {
     heatFilter.padding = 3;
     heatSprite.filters = [heatFilter];
 
-    heatSprite.filterArea = new Rectangle(
-      arena.bounds.x,
-      arena.bounds.y,
-      arena.bounds.w,
-      arena.bounds.h,
-    );
-
     container.addChild(heatSprite);
     this.app.stage.addChildAt(container, Math.min(1, this.app.stage.children.length));
 
     this.heatShimmer = {
       container,
       heatSprite,
+      heatTexture,
       heatFilter,
     };
   }
@@ -392,8 +421,8 @@ export class PixiProofRenderer {
     const uniforms = heat.heatFilter.resources.heatUniforms.uniforms;
 
     uniforms.uTime = t;
-    uniforms.uStrength = .86 + Math.sin(t * .74) * .10;
-    heat.heatSprite.alpha = .84 + Math.sin(t * .43) * .035;
+    uniforms.uStrength = .78 + Math.sin(t * .74) * .08;
+    heat.heatSprite.alpha = 1;
   }
 
   destroyAtmosphere() {
@@ -415,6 +444,8 @@ export class PixiProofRenderer {
     container.eventMode = "none";
 
     const softLight = new Graphics();
+    const heatCore = new Graphics();
+    const obstacleBounce = new Graphics();
     const particleGlow = new Graphics();
     const particleCore = new Graphics();
 
@@ -433,15 +464,44 @@ export class PixiProofRenderer {
     if (arena.id === "windscar-proving-grounds") {
       softLight
         .ellipse(215, 128, 82, 42)
-        .fill({ color: 0xd75422, alpha: .10 })
+        .fill({ color: 0xd75422, alpha: .085 })
         .ellipse(730, 182, 72, 38)
-        .fill({ color: 0xc94b20, alpha: .085 })
+        .fill({ color: 0xc94b20, alpha: .072 })
         .ellipse(1065, 505, 86, 44)
-        .fill({ color: 0xe06425, alpha: .10 })
+        .fill({ color: 0xe06425, alpha: .085 })
         .ellipse(490, 555, 78, 38)
-        .fill({ color: 0xbc431e, alpha: .075 });
+        .fill({ color: 0xbc431e, alpha: .064 });
       softLight.blendMode = "screen";
-      softLight.filters = [new BlurFilter({ strength: 22, quality: 3 })];
+      softLight.filters = [new BlurFilter({ strength: 18, quality: 3 })];
+
+      // A tighter warm core gives the hot ground actual depth instead of one
+      // broad orange blur. It remains subtle enough not to compete with units.
+      heatCore
+        .ellipse(215, 128, 45, 20)
+        .fill({ color: 0xff7b35, alpha: .105 })
+        .ellipse(730, 182, 39, 18)
+        .fill({ color: 0xff7130, alpha: .090 })
+        .ellipse(1065, 505, 48, 21)
+        .fill({ color: 0xff8438, alpha: .110 })
+        .ellipse(490, 555, 42, 18)
+        .fill({ color: 0xee6c30, alpha: .082 });
+      heatCore.blendMode = "add";
+      heatCore.filters = [new BlurFilter({ strength: 8, quality: 2 })];
+
+      // Very soft warm bounce just under LOS obstacles visually reconnects
+      // them to the ground without adding another dark fake shadow.
+      for (const rect of arena.obstacles) {
+        obstacleBounce
+          .ellipse(
+            rect.x + rect.w * .52,
+            rect.y + rect.h + 2,
+            Math.max(18, rect.w * .36),
+            8,
+          )
+          .fill({ color: 0xd06a38, alpha: .030 });
+      }
+      obstacleBounce.blendMode = "screen";
+      obstacleBounce.filters = [new BlurFilter({ strength: 9, quality: 2 })];
 
       for (let i = 0; i < 34; i += 1) {
         particles.push({
@@ -482,7 +542,7 @@ export class PixiProofRenderer {
       }
     }
 
-    container.addChild(softLight, particleGlow, particleCore);
+    container.addChild(softLight, heatCore, obstacleBounce, particleGlow, particleCore);
     this.app.stage.addChildAt(container, Math.min(2, this.app.stage.children.length));
 
     this.atmosphere = {
@@ -490,6 +550,8 @@ export class PixiProofRenderer {
       bounds: arena.bounds,
       container,
       softLight,
+      heatCore,
+      obstacleBounce,
       particleGlow,
       particleCore,
       particles,
@@ -510,7 +572,9 @@ export class PixiProofRenderer {
     core.clear();
 
     if (atmosphere.arenaId === "windscar-proving-grounds") {
-      atmosphere.softLight.alpha = .72 + Math.sin(t * 1.15) * .08;
+      atmosphere.softLight.alpha = .76 + Math.sin(t * 1.15) * .055;
+      atmosphere.heatCore.alpha = .82 + Math.sin(t * 1.55) * .075;
+      atmosphere.obstacleBounce.alpha = .88 + Math.sin(t * .72) * .035;
 
       for (const particle of atmosphere.particles) {
         const wrapped = ((particle.y - b.y - 14 - t * particle.speed) % spanY + spanY) % spanY;

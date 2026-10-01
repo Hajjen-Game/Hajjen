@@ -48,6 +48,31 @@ export class RendererBridge {
     this.canvasRenderer.render(game);
   }
 
+  recoverFromRenderError(error, game) {
+    if (this.mode !== "pixi" || !this.pixiRenderer) return false;
+
+    console.error("[Pixi preview] runtime render failed; switching to Canvas fallback.", error);
+
+    try {
+      this.pixiRenderer.destroy?.();
+    } catch (cleanupError) {
+      console.warn("[Pixi preview] cleanup after runtime failure was partial.", cleanupError);
+    }
+
+    this.pixiRenderer = null;
+    this.mode = "canvas";
+    this.canvas.style.background = "";
+    this.canvas.style.zIndex = "";
+
+    try {
+      this.canvasRenderer.render(game);
+    } catch (fallbackError) {
+      console.error("[Canvas fallback] recovery frame failed.", fallbackError);
+    }
+
+    return true;
+  }
+
   targetHitScore(actor, game, x, y) {
     return this.canvasRenderer.targetHitScore(actor, game, x, y);
   }

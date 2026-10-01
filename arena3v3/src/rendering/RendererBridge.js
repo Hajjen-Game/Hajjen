@@ -1,5 +1,5 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi14";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi14";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi15";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi15";
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";
@@ -44,6 +44,7 @@ export class RendererBridge {
       this.canvasRenderer.renderEffectsOverlay(game, {
         skipBurstVfx: true,
         skipSlashVfx: true,
+        skipRingVfx: true,
       });
       return;
     }

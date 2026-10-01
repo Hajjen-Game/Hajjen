@@ -785,6 +785,10 @@ export class PixiProofRenderer {
     slashFx.visible = false;
     root.addChild(slashFx);
 
+    const ringFx = new Graphics();
+    ringFx.visible = false;
+    root.addChild(ringFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -881,6 +885,7 @@ export class PixiProofRenderer {
       name,
       burstFx,
       slashFx,
+      ringFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -1110,6 +1115,65 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeRingVfx(game) {
+    for (const view of this.actorViews.values()) {
+      view.ringFx.clear();
+      view.ringFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "ring") continue;
+
+      const view = this.actorViews.get(effect.sourceId);
+      if (!view || !view.root.visible) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const [main, core] = burstColors(effect.style);
+      const healing = ["heal", "priest", "druid", "paladin"].includes(effect.style);
+      const start = Number(effect.radiusStart) || 20;
+      const end = Number(effect.radiusEnd) || 80;
+      const radius = start + (end - start) * progress;
+
+      view.ringFx.visible = true;
+      view.ringFx
+        .circle(0, 0, radius)
+        .stroke({
+          color: main,
+          width: healing ? 3.6 - progress * .8 : 3.8 - progress * 1.0,
+          alpha: alpha * .86,
+        });
+
+      view.ringFx
+        .circle(0, 0, Math.max(4, radius - 7))
+        .stroke({
+          color: core,
+          width: 1.15,
+          alpha: alpha * (healing ? .56 : .40),
+        });
+
+      if (healing) {
+        const motes = effect.style === "druid" ? 7 : 6;
+        for (let i = 0; i < motes; i += 1) {
+          const angle = (i / motes) * Math.PI * 2 + progress * 2.1;
+          const rr = Math.max(8, radius - 3);
+          view.ringFx
+            .circle(
+              Math.cos(angle) * rr,
+              Math.sin(angle) * rr - progress * 6,
+              effect.style === "druid" ? 1.8 : 1.6,
+            )
+            .fill({
+              color: i % 2 ? core : main,
+              alpha: alpha * .62,
+            });
+        }
+      }
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1153,6 +1217,7 @@ export class PixiProofRenderer {
 
     this.updateNativeBurstVfx(game);
     this.updateNativeSlashVfx(game);
+    this.updateNativeRingVfx(game);
 
     this.app.render();
   }

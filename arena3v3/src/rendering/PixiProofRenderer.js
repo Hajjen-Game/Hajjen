@@ -789,6 +789,10 @@ export class PixiProofRenderer {
     ringFx.visible = false;
     root.addChild(ringFx);
 
+    const beamFx = new Graphics();
+    beamFx.visible = false;
+    root.addChild(beamFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -886,6 +890,7 @@ export class PixiProofRenderer {
       burstFx,
       slashFx,
       ringFx,
+      beamFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -1174,6 +1179,119 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeBeamVfx(game) {
+    for (const view of this.actorViews.values()) {
+      view.beamFx.clear();
+      view.beamFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "beam") continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !target || !view || !view.root.visible) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const [main, core] = burstColors(effect.style);
+      const healing = ["heal", "priest", "druid", "paladin"].includes(effect.style);
+
+      const dx = target.x - source.x;
+      const dy = target.y - source.y;
+      const length = Math.max(1, Math.hypot(dx, dy));
+      const nx = -dy / length;
+      const ny = dx / length;
+
+      view.beamFx.visible = true;
+
+      if (healing) {
+        const bendSign = effect.id % 2 === 0 ? 1 : -1;
+        const bend = Math.min(42, Math.max(16, length * .09)) * bendSign;
+        const cx = dx * .5 + nx * bend;
+        const cy = dy * .5 + ny * bend;
+        const segments = 12;
+
+        const curvePoint = t => {
+          const inv = 1 - t;
+          return {
+            x: 2 * inv * t * cx + t * t * dx,
+            y: 2 * inv * t * cy + t * t * dy,
+          };
+        };
+
+        let previous = { x: 0, y: 0 };
+        for (let i = 1; i <= segments; i += 1) {
+          const point = curvePoint(i / segments);
+          view.beamFx
+            .moveTo(previous.x, previous.y)
+            .lineTo(point.x, point.y)
+            .stroke({
+              color: main,
+              width: effect.style === "paladin" ? 5.2 : 4.4,
+              alpha: alpha * .84,
+            });
+          view.beamFx
+            .moveTo(previous.x, previous.y)
+            .lineTo(point.x, point.y)
+            .stroke({
+              color: core,
+              width: 1.25,
+              alpha: alpha * .88,
+            });
+          previous = point;
+        }
+
+        const motes = effect.style === "druid" ? 7 : 6;
+        for (let i = 0; i < motes; i += 1) {
+          const t = (progress * 1.45 + i / motes) % 1;
+          const point = curvePoint(t);
+          const wobble = Math.sin(effect.id * 1.7 + i * 2.3 + progress * 9) * 6;
+          view.beamFx
+            .circle(
+              point.x + nx * wobble,
+              point.y + ny * wobble,
+              effect.style === "druid" ? 2.1 : 1.8,
+            )
+            .fill({
+              color: i % 2 ? core : main,
+              alpha: alpha * (.34 + (1 - t) * .34),
+            });
+        }
+
+        const impactRadius = 14 + progress * 14;
+        view.beamFx
+          .circle(dx, dy, impactRadius)
+          .stroke({
+            color: core,
+            width: 1.7,
+            alpha: alpha * .68,
+          });
+      } else {
+        view.beamFx
+          .moveTo(0, 0)
+          .lineTo(dx, dy)
+          .stroke({
+            color: main,
+            width: 3.2,
+            alpha: alpha * .82,
+          });
+
+        view.beamFx
+          .moveTo(0, 0)
+          .lineTo(dx, dy)
+          .stroke({
+            color: core,
+            width: 1.0,
+            alpha: alpha * .72,
+          });
+      }
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1218,6 +1336,7 @@ export class PixiProofRenderer {
     this.updateNativeBurstVfx(game);
     this.updateNativeSlashVfx(game);
     this.updateNativeRingVfx(game);
+    this.updateNativeBeamVfx(game);
 
     this.app.render();
   }

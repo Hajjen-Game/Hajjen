@@ -1,5 +1,5 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi16";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi16";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi17";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi17";
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";
@@ -45,6 +45,7 @@ export class RendererBridge {
         skipBurstVfx: true,
         skipSlashVfx: true,
         skipRingVfx: true,
+        skipBeamVfx: true,
       });
       return;
     }

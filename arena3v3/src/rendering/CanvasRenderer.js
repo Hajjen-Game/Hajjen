@@ -140,6 +140,7 @@ export class CanvasRenderer {
       skipBurstVfx = false,
       skipSlashVfx = false,
       skipRingVfx = false,
+      skipBeamVfx = false,
     } = {},
   ) {
     const ctx = this.ctx;
@@ -236,6 +237,7 @@ export class CanvasRenderer {
       skipBurstVfx,
       skipSlashVfx,
       skipRingVfx,
+      skipBeamVfx,
     });
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
@@ -1374,12 +1376,14 @@ export class CanvasRenderer {
       skipBurstVfx = false,
       skipSlashVfx = false,
       skipRingVfx = false,
+      skipBeamVfx = false,
     } = {},
   ) {
     for (const effect of game.vfx.effects) {
       if (skipBurstVfx && effect.type === "burst") continue;
       if (skipSlashVfx && effect.type === "slash") continue;
       if (skipRingVfx && effect.type === "ring") continue;
+      if (skipBeamVfx && effect.type === "beam") continue;
       const progress = 1 - effect.remainingMs / effect.totalMs;
       const alpha = clamp(effect.remainingMs / effect.totalMs, 0, 1);
 

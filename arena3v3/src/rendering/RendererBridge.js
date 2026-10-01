@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi21";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi22";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",

@@ -888,7 +888,7 @@ export class PixiProofRenderer {
     // Chain Lightning uses three actor-local layers. The glow layer gets the
     // same lightweight blur family already proven on player/target glows.
     chainGlowFx.blendMode = "screen";
-    chainGlowFx.filters = [new BlurFilter({ strength: 4, quality: 1 })];
+    chainGlowFx.filters = [new BlurFilter({ strength: 5.5, quality: 1 })];
     chainFx.blendMode = "screen";
     chainSparkFx.blendMode = "screen";
 
@@ -1437,7 +1437,7 @@ export class PixiProofRenderer {
       const alpha = clamp01(remaining / total);
       const specialChainLightning = effect.spellId === "shaman-chain-lightning";
       const palette = specialChainLightning
-        ? { main: 0x63c7dd, core: 0xecfeff, accent: 0x4c91bd }
+        ? { main: 0x59ccef, core: 0xf5ffff, accent: 0x3f91c9 }
         : (() => {
             const [main, core] = burstColors(effect.style || "lightning");
             return { main, core, accent: main };
@@ -1486,23 +1486,40 @@ export class PixiProofRenderer {
         const tx = dx / length;
         const ty = dy / length;
         const seed = Number(effect.seed || 1) + segmentIndex * 47;
-        const framePhase = game.elapsedSeconds * 26 + localProgress * 8.5;
-        const baseAmplitude = Math.min(18, Math.max(8, length * .065));
+
+        // Chain Lightning should "snap" between electrical shapes instead of
+        // smoothly wobbling like a ribbon. Quantizing the geometry phase gives
+        // the bolt a harsher, more electrical cadence while remaining deterministic.
+        const snapFrame = Math.floor(game.elapsedSeconds * 34 + segmentIndex * 3);
+        const microPhase = game.elapsedSeconds * 71 + seed * .031;
+        const flicker =
+          .84
+          + (.5 + .5 * Math.sin(microPhase)) * .16;
+        const hotFlash =
+          Math.pow(Math.max(0, Math.sin(microPhase * .63 + 1.1)), 7) * .24;
+        const baseAmplitude = Math.min(22, Math.max(10, length * .072));
 
         const buildArc = (seedOffset, amplitude, phaseOffset = 0) => {
-          const segments = Math.max(6, Math.min(12, Math.round(length / 28)));
+          const segments = Math.max(7, Math.min(13, Math.round(length / 25)));
           const points = [{ x: from.x, y: from.y }];
 
           for (let i = 1; i < segments; i += 1) {
             const t = i / segments;
             const envelope = Math.sin(t * Math.PI);
+            const phaseSeed = snapFrame * .91 + phaseOffset;
             const waveA = Math.sin(
-              (seed + seedOffset) * .37 + i * 2.31 + framePhase * 1.55 + phaseOffset,
+              (seed + seedOffset) * .37 + i * 2.31 + phaseSeed * 1.71,
             );
             const waveB = Math.sin(
-              (seed + seedOffset) * .17 + i * 4.07 - framePhase * 2.05 - phaseOffset,
+              (seed + seedOffset) * .17 + i * 4.19 - phaseSeed * 2.13,
             );
-            const jitter = (waveA * .72 + waveB * .38) * amplitude * envelope;
+            const tooth = Math.sin(
+              (seed + seedOffset) * .071 + i * 7.13 + snapFrame * 1.37,
+            );
+            const jitter =
+              (waveA * .66 + waveB * .31 + tooth * .23)
+              * amplitude
+              * envelope;
 
             points.push({
               x: from.x + dx * t + px * jitter,
@@ -1515,8 +1532,9 @@ export class PixiProofRenderer {
         };
 
         const mainArc = buildArc(0, baseAmplitude);
-        const sideArcA = buildArc(19, baseAmplitude * 1.28, .9);
-        const sideArcB = buildArc(37, baseAmplitude * 1.18, -1.1);
+        const sideArcA = buildArc(19, baseAmplitude * 1.36, .9);
+        const sideArcB = buildArc(37, baseAmplitude * 1.22, -1.1);
+        const sideArcC = buildArc(61, baseAmplitude * 1.52, 2.2);
 
         if (!specialChainLightning) {
           strokePath(view.chainGlowFx, mainArc, {
@@ -1537,137 +1555,278 @@ export class PixiProofRenderer {
           continue;
         }
 
-        const intensity = alpha * fade;
+        const intensity = alpha * fade * flicker;
 
-        // Wide blurred energy halo.
+        // A wider halo gives the bolt actual luminous volume instead of reading
+        // as a cyan line. The hot flash occasionally overdrives it for a frame.
         strokePath(view.chainGlowFx, mainArc, {
           color: palette.main,
-          width: 16,
-          alpha: intensity * .22,
+          width: 22,
+          alpha: intensity * (.20 + hotFlash),
+        });
+        strokePath(view.chainGlowFx, mainArc, {
+          color: palette.core,
+          width: 11,
+          alpha: intensity * (.075 + hotFlash * .42),
         });
         strokePath(view.chainGlowFx, sideArcA, {
           color: palette.main,
-          width: 9,
-          alpha: intensity * .12,
+          width: 11,
+          alpha: intensity * .105,
         });
         strokePath(view.chainGlowFx, sideArcB, {
           color: palette.accent,
-          width: 8,
-          alpha: intensity * .10,
+          width: 9,
+          alpha: intensity * .085,
         });
 
-        // Main bolt: saturated cyan body with a near-white electrical core.
+        // Dense cyan body + white core + razor-thin hot center.
+        strokePath(view.chainFx, mainArc, {
+          color: palette.accent,
+          width: 8.4,
+          alpha: intensity * .34,
+        });
         strokePath(view.chainFx, mainArc, {
           color: palette.main,
-          width: 5.8,
-          alpha: intensity * .78,
+          width: 6.2,
+          alpha: intensity * .88,
         });
         strokePath(view.chainFx, mainArc, {
           color: palette.core,
-          width: 2.05,
-          alpha: intensity * .99,
+          width: 2.55,
+          alpha: Math.min(1, intensity * (1.02 + hotFlash)),
+        });
+        strokePath(view.chainSparkFx, mainArc, {
+          color: 0xffffff,
+          width: .72,
+          alpha: Math.min(1, intensity * (.72 + hotFlash * 1.4)),
         });
 
-        // Two thinner arcs keep the bolt alive rather than reading as one line.
+        // Secondary arcs are deliberately intermittent. Electricity should
+        // appear/disappear rather than keep three perfectly stable parallel lines.
+        const secondaryVisibilityA =
+          Math.sin(snapFrame * 1.17 + seed * .13) > -.38 ? 1 : 0;
+        const secondaryVisibilityB =
+          Math.sin(snapFrame * .93 + seed * .27 + 1.4) > -.18 ? 1 : 0;
+        const secondaryVisibilityC =
+          Math.sin(snapFrame * 1.41 + seed * .19 + 2.1) > .16 ? 1 : 0;
+
+        strokePath(view.chainGlowFx, sideArcA, {
+          color: palette.main,
+          width: 6.5,
+          alpha: intensity * .10 * secondaryVisibilityA,
+        });
         strokePath(view.chainFx, sideArcA, {
           color: palette.main,
-          width: 1.65,
-          alpha: intensity * .50,
+          width: 1.85,
+          alpha: intensity * .58 * secondaryVisibilityA,
         });
         strokePath(view.chainFx, sideArcB, {
           color: palette.core,
-          width: .85,
-          alpha: intensity * .62,
+          width: 1.15,
+          alpha: intensity * .68 * secondaryVisibilityB,
+        });
+        strokePath(view.chainFx, sideArcC, {
+          color: palette.main,
+          width: 1.05,
+          alpha: intensity * .42 * secondaryVisibilityC,
         });
 
-        // Short branches snap away from the main bolt at several points.
-        const branchFractions = [.26, .51, .73];
+        // Four short branches jump away from the main channel. Their visibility
+        // also changes on the snapped electrical cadence.
+        const branchFractions = [.20, .39, .61, .79];
         for (let branchIndex = 0; branchIndex < branchFractions.length; branchIndex += 1) {
+          const active =
+            Math.sin(
+              snapFrame * (1.03 + branchIndex * .11)
+              + seed * .17
+              + branchIndex * 1.8,
+            ) > -.26;
+          if (!active) continue;
+
           const t = branchFractions[branchIndex];
           const pathIndex = Math.max(
             1,
             Math.min(mainArc.length - 2, Math.round(t * (mainArc.length - 1))),
           );
           const anchor = mainArc[pathIndex];
-          const sign = (branchIndex + segmentIndex) % 2 === 0 ? 1 : -1;
+          const sign =
+            Math.sin(seed * .31 + branchIndex * 4.7 + snapFrame * .71) >= 0
+              ? 1
+              : -1;
           const branchLength =
-            17
-            + branchIndex * 5
-            + (Math.sin(seed * .23 + branchIndex * 2.4 + framePhase) * .5 + .5) * 9;
-          const forward = 4 + branchIndex * 2;
-          const mid = {
-            x: anchor.x + tx * forward + px * sign * branchLength * .52,
-            y: anchor.y + ty * forward + py * sign * branchLength * .52,
+            18
+            + branchIndex * 3
+            + (.5 + .5 * Math.sin(seed * .23 + branchIndex * 2.4 + snapFrame)) * 13;
+          const forward = 3 + branchIndex * 1.7;
+          const kink = {
+            x: anchor.x + tx * forward + px * sign * branchLength * .44,
+            y: anchor.y + ty * forward + py * sign * branchLength * .44,
           };
           const tip = {
-            x: anchor.x + tx * (forward + 5) + px * sign * branchLength,
-            y: anchor.y + ty * (forward + 5) + py * sign * branchLength,
+            x: anchor.x + tx * (forward + 7) + px * sign * branchLength,
+            y: anchor.y + ty * (forward + 7) + py * sign * branchLength,
           };
-          const branch = [anchor, mid, tip];
+          const branch = [anchor, kink, tip];
 
           strokePath(view.chainGlowFx, branch, {
             color: palette.main,
-            width: 5.5,
+            width: 7,
             alpha: intensity * .13,
           });
           strokePath(view.chainFx, branch, {
-            color: palette.core,
-            width: 1.1,
-            alpha: intensity * .58,
+            color: palette.main,
+            width: 2.15,
+            alpha: intensity * .52,
           });
+          strokePath(view.chainSparkFx, branch, {
+            color: palette.core,
+            width: .78,
+            alpha: intensity * .74,
+          });
+
+          view.chainSparkFx
+            .circle(tip.x, tip.y, 1.45)
+            .fill({
+              color: palette.core,
+              alpha: intensity * .70,
+            });
         }
 
-        // Moving sparks ride the bolt and make the energy feel directional.
-        const sparkCount = 7;
+        // A bright travelling front sells the initial discharge into each hop.
+        if (reveal < .995) {
+          const tipPulse = .65 + (.5 + .5 * Math.sin(microPhase * 1.3)) * .35;
+          view.chainGlowFx
+            .circle(to.x, to.y, 13 + tipPulse * 4)
+            .fill({
+              color: palette.main,
+              alpha: intensity * .16,
+            });
+          view.chainSparkFx
+            .circle(to.x, to.y, 3.2 + tipPulse)
+            .fill({
+              color: palette.core,
+              alpha: intensity * .94,
+            });
+        }
+
+        // Directional sparks flow along the main channel.
+        const sparkCount = 9;
         for (let i = 0; i < sparkCount; i += 1) {
-          const sparkT = (progress * 2.35 + i / sparkCount + segmentIndex * .11) % 1;
+          const sparkT =
+            (progress * 2.8 + i / sparkCount + segmentIndex * .11) % 1;
           const pathPos = sparkT * (mainArc.length - 1);
           const leftIndex = Math.floor(pathPos);
           const rightIndex = Math.min(mainArc.length - 1, leftIndex + 1);
           const localT = pathPos - leftIndex;
           const a = mainArc[leftIndex];
           const b = mainArc[rightIndex];
-          const wobble = Math.sin(framePhase * 2.1 + i * 2.6 + seed * .09) * 4;
+          const wobble =
+            Math.sin(microPhase * .72 + i * 2.6 + seed * .09) * 5;
           const sx = a.x + (b.x - a.x) * localT + px * wobble;
           const sy = a.y + (b.y - a.y) * localT + py * wobble;
 
           view.chainGlowFx
-            .circle(sx, sy, 4.3)
+            .circle(sx, sy, 4.6)
             .fill({
               color: palette.main,
-              alpha: intensity * .17,
+              alpha: intensity * .16,
             });
           view.chainSparkFx
-            .circle(sx, sy, i % 3 === 0 ? 2.0 : 1.35)
+            .circle(sx, sy, i % 3 === 0 ? 2.15 : 1.35)
             .fill({
               color: i % 2 ? palette.core : palette.main,
-              alpha: intensity * (.58 + (i % 3) * .10),
+              alpha: intensity * (.62 + (i % 3) * .09),
             });
         }
 
-        // The first hop gets a compact discharge at the caster.
-        if (segmentIndex === 0 && localProgress < .52) {
-          const sourcePulse = clamp01(localProgress / .52);
+        // Stronger source discharge on the first hop: an expanding ring, central
+        // white flash, radial fingers and tiny orbiting sparks.
+        if (segmentIndex === 0 && localProgress < .58) {
+          const sourcePulse = clamp01(localProgress / .58);
           const sourceFade = 1 - sourcePulse;
-          const sourceRadius = source.radius + 7 + sourcePulse * 19;
+          const sourceRadius = source.radius + 5 + easeOut(sourcePulse) * 23;
+          const sourceIntensity = intensity * sourceFade;
 
           view.chainGlowFx
-            .circle(from.x, from.y, sourceRadius + 5)
+            .circle(from.x, from.y, sourceRadius + 8)
             .stroke({
               color: palette.main,
-              width: 7,
-              alpha: intensity * sourceFade * .13,
+              width: 10,
+              alpha: sourceIntensity * .13,
             });
           view.chainFx
             .circle(from.x, from.y, sourceRadius)
             .stroke({
+              color: palette.main,
+              width: 2.3,
+              alpha: sourceIntensity * .64,
+            })
+            .circle(from.x, from.y, Math.max(5, sourceRadius - 7))
+            .stroke({
               color: palette.core,
-              width: 1.45,
-              alpha: intensity * sourceFade * .58,
+              width: 1.0,
+              alpha: sourceIntensity * .52,
             });
+
+          view.chainGlowFx
+            .circle(from.x, from.y, 12 + (1 - sourcePulse) * 8)
+            .fill({
+              color: palette.main,
+              alpha: sourceIntensity * .12,
+            });
+          view.chainSparkFx
+            .circle(from.x, from.y, 3.5 + (1 - sourcePulse) * 2.2)
+            .fill({
+              color: palette.core,
+              alpha: sourceIntensity * .88,
+            });
+
+          for (let i = 0; i < 8; i += 1) {
+            const angle =
+              i / 8 * Math.PI * 2
+              + snapFrame * .09 * (i % 2 ? 1 : -1);
+            const inner = source.radius + 2;
+            const outer =
+              source.radius
+              + 13
+              + sourcePulse * 18
+              + (i % 3) * 3;
+
+            view.chainSparkFx
+              .moveTo(
+                from.x + Math.cos(angle) * inner,
+                from.y + Math.sin(angle) * inner,
+              )
+              .lineTo(
+                from.x + Math.cos(angle + .06 * (i % 2 ? 1 : -1)) * outer,
+                from.y + Math.sin(angle + .06 * (i % 2 ? 1 : -1)) * outer,
+              )
+              .stroke({
+                color: i % 3 === 0 ? palette.core : palette.main,
+                width: i % 3 === 0 ? 1.5 : .9,
+                alpha: sourceIntensity * (.42 + (i % 2) * .18),
+              });
+          }
+
+          for (let i = 0; i < 5; i += 1) {
+            const angle = i / 5 * Math.PI * 2 + microPhase * .035;
+            const rr = source.radius + 13 + (i % 2) * 5;
+            view.chainSparkFx
+              .circle(
+                from.x + Math.cos(angle) * rr,
+                from.y + Math.sin(angle) * rr,
+                1.25 + (i % 2) * .45,
+              )
+              .fill({
+                color: i % 2 ? palette.core : palette.main,
+                alpha: sourceIntensity * .62,
+              });
+          }
         }
 
-        // A proper hit flash on every jump: glow, double ring and radial sparks.
+        // Keep the existing hit language for pass 1. Pass 2 will specifically
+        // upgrade impact particles/afterglow/ground response.
         if (localProgress > .28) {
           const impactProgress = clamp01((localProgress - .28) / .62);
           const impactFade = 1 - impactProgress;

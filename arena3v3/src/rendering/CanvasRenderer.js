@@ -144,6 +144,70 @@ export class CanvasRenderer {
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+    // Cast/wind-up VFX normally live inside drawActor(). In Pixi preview mode
+    // actors are rendered by WebGL, so replay just that VFX layer here.
+    for (const actor of game.actors) {
+      if (!actor.alive || !actor.cast) continue;
+
+      const progress = 1 - actor.cast.remainingMs / actor.cast.totalMs;
+      const castSpell = actor.getSpell(actor.cast.spellId);
+      const handledByLayeredVfx =
+        drawMageShamanCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawWarlockCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawPriestDruidCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawPaladinDkCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        )
+        || drawWarriorRogueCastVfx(
+          ctx,
+          actor,
+          castSpell,
+          progress,
+          this.frameNowMs,
+        );
+
+      if (!handledByLayeredVfx) {
+        const castVisualStyle = castSpell?.visualStyle || actor.visualStyle;
+        ctx.save();
+        ctx.globalAlpha = 0.35 + progress * 0.35;
+        ctx.strokeStyle = this.vfxColor(castVisualStyle);
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(
+          actor.x,
+          actor.y,
+          actor.radius + 14 + progress * 6,
+          0,
+          Math.PI * 2,
+        );
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }

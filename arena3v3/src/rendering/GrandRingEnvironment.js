@@ -1,6 +1,6 @@
 const TAU = Math.PI * 2;
 const GRAND_RING_ID = "four-pillar-ring";
-const TERRAIN_VERSION = "grand-ring-v3-painted";
+const TERRAIN_VERSION = "grand-ring-v4-polish";
 
 function seededRandom(seed = 1) {
   let state = seed >>> 0;
@@ -204,13 +204,14 @@ function buildTerrainTexture(arena) {
         * .34;
       color = mixRgb(color, dryGrass, dryAmount);
 
-      const grain = (fine - .5) * 8.5 + (hash2(px, py, 229) - .5) * 3.2;
-      const shade = .91 + macro * .13;
+      const grain = (fine - .5) * 9.6 + (hash2(px, py, 229) - .5) * 3.6;
+      const microContrast = (middle - .5) * 4.2;
+      const shade = .895 + macro * .15;
 
       const index = (py * texture.width + px) * 4;
-      pixels[index] = Math.max(0, Math.min(255, color[0] * shade + grain));
-      pixels[index + 1] = Math.max(0, Math.min(255, color[1] * shade + grain));
-      pixels[index + 2] = Math.max(0, Math.min(255, color[2] * shade + grain * .62));
+      pixels[index] = Math.max(0, Math.min(255, color[0] * shade + grain + microContrast));
+      pixels[index + 1] = Math.max(0, Math.min(255, color[1] * shade + grain + microContrast * .78));
+      pixels[index + 2] = Math.max(0, Math.min(255, color[2] * shade + grain * .62 + microContrast * .42));
       pixels[index + 3] = 255;
     }
   }
@@ -455,8 +456,8 @@ function drawRockGroup(ctx, group) {
   }
 
   ctx.save();
-  ctx.globalAlpha = .10;
-  ctx.fillStyle = "#3f5534";
+  ctx.globalAlpha = .13;
+  ctx.fillStyle = "#3d5133";
   ctx.beginPath();
   ctx.ellipse(group.x, group.y + 3, 15, 7, 0, 0, TAU);
   ctx.fill();
@@ -471,7 +472,7 @@ function drawBroadleafCluster(ctx, plant) {
   ctx.save();
   ctx.translate(plant.x, plant.y);
   ctx.rotate(plant.angle);
-  ctx.globalAlpha = .38;
+  ctx.globalAlpha = .44;
 
   ctx.strokeStyle = "#435f36";
   ctx.lineWidth = Math.max(.7, plant.size * .10);
@@ -540,9 +541,9 @@ function drawPillarGrounding(ctx, rect, index) {
     rect.y + rect.h * .72,
     Math.max(rect.w, rect.h) * .62,
   );
-  ground.addColorStop(0, "rgba(35,38,26,.20)");
-  ground.addColorStop(.42, "rgba(63,74,43,.13)");
-  ground.addColorStop(.78, "rgba(106,91,55,.06)");
+  ground.addColorStop(0, "rgba(24,28,21,.27)");
+  ground.addColorStop(.38, "rgba(54,68,40,.16)");
+  ground.addColorStop(.76, "rgba(104,88,52,.065)");
   ground.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = ground;
   ctx.fillRect(
@@ -551,6 +552,21 @@ function drawPillarGrounding(ctx, rect, index) {
     rect.w + 76,
     rect.h + 54,
   );
+
+  // Tight contact shadow right at the stone/ground boundary.
+  ctx.globalAlpha = .24;
+  ctx.fillStyle = "#20251d";
+  ctx.beginPath();
+  ctx.ellipse(
+    rect.x + rect.w * .54,
+    rect.y + rect.h + 4,
+    rect.w * .47,
+    8 + (index % 2) * 2,
+    -.03,
+    0,
+    TAU,
+  );
+  ctx.fill();
 
   ctx.globalAlpha = variant.moss;
   ctx.fillStyle = "#5b743f";
@@ -606,9 +622,9 @@ function drawStonePillar(ctx, rect, index = 0) {
   ctx.shadowColor = "transparent";
 
   const body = ctx.createLinearGradient(x, y, x + w, y + h);
-  body.addColorStop(0, index % 2 ? "#878272" : "#8d8877");
-  body.addColorStop(.43, index % 3 ? "#716d60" : "#767164");
-  body.addColorStop(1, "#504f46");
+  body.addColorStop(0, index % 2 ? "#787467" : "#7d796b");
+  body.addColorStop(.43, index % 3 ? "#646156" : "#686459");
+  body.addColorStop(1, "#45463f");
   ctx.fillStyle = body;
   chamferedRectPath(ctx, x + 1, y + 1, w - 2, h - 2, Math.max(7, variant.cut - 2));
   ctx.fill();
@@ -617,9 +633,9 @@ function drawStonePillar(ctx, rect, index = 0) {
   const topX = x + variant.topInset + variant.topShift;
   const topW = w - variant.topInset * 2;
   const top = ctx.createLinearGradient(topX, y + 4, topX, y + topH + 8);
-  top.addColorStop(0, index % 2 ? "#bbb39e" : "#b4ad98");
-  top.addColorStop(.52, "#9f9782");
-  top.addColorStop(1, "#817b6b");
+  top.addColorStop(0, index % 2 ? "#a59d89" : "#9f9885");
+  top.addColorStop(.52, "#8f8877");
+  top.addColorStop(1, "#716d61");
   ctx.fillStyle = top;
   chamferedRectPath(
     ctx,
@@ -667,8 +683,8 @@ function drawStonePillar(ctx, rect, index = 0) {
   ctx.stroke();
 
   // Small top chips break the perfect top edge without ever leaving collision.
-  ctx.globalAlpha = .20;
-  ctx.fillStyle = "#777263";
+  ctx.globalAlpha = .28;
+  ctx.fillStyle = "#625f55";
   const chipX = topX + topW * (index % 2 ? .72 : .25);
   ctx.beginPath();
   ctx.moveTo(chipX - 5, y + 5);
@@ -691,8 +707,8 @@ function drawStonePillar(ctx, rect, index = 0) {
     ctx.fill();
   }
 
-  ctx.globalAlpha = .20;
-  ctx.strokeStyle = "#dad2bb";
+  ctx.globalAlpha = .13;
+  ctx.strokeStyle = "#c5bdab";
   ctx.lineWidth = 1.1;
   ctx.beginPath();
   ctx.moveTo(topX + 7, y + 7);
@@ -762,10 +778,10 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
   // A few very soft light/shade masses sit on top of the noise so the floor
   // feels painted rather than like a visible procedural texture.
   const lightMasses = [
-    [265, 225, 250, "rgba(188,188,97,.12)"],
-    [690, 180, 320, "rgba(201,183,99,.08)"],
-    [970, 480, 300, "rgba(49,76,43,.12)"],
-    [405, 555, 260, "rgba(43,71,39,.10)"],
+    [265, 225, 250, "rgba(188,188,97,.13)"],
+    [690, 180, 320, "rgba(201,183,99,.09)"],
+    [970, 480, 300, "rgba(45,72,41,.14)"],
+    [405, 555, 260, "rgba(40,68,37,.12)"],
   ];
 
   for (const [x, y, radius, color] of lightMasses) {
@@ -778,7 +794,7 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
 
   // Subtle grounded grain instead of hundreds of visible black dots.
   const grain = seededRandom(0x31f26a);
-  for (let i = 0; i < 170; i += 1) {
+  for (let i = 0; i < 145; i += 1) {
     const x = b.x + grain() * b.w;
     const y = b.y + grain() * b.h;
     if (insideExpandedObstacle(x, y, arena.obstacles, 0)) continue;

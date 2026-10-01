@@ -533,48 +533,16 @@ function drawPillarGrounding(ctx, rect, index) {
 
   ctx.save();
 
-  const ground = ctx.createRadialGradient(
-    rect.x + rect.w * .50,
-    rect.y + rect.h * .93,
-    3,
-    rect.x + rect.w * .50,
-    rect.y + rect.h * .93,
-    Math.max(rect.w, rect.h) * .40,
-  );
-  ground.addColorStop(0, "rgba(26,30,23,.18)");
-  ground.addColorStop(.44, "rgba(54,66,41,.10)");
-  ground.addColorStop(.80, "rgba(0,0,0,0)");
-  ground.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = ground;
-  ctx.fillRect(
-    rect.x - 18,
-    rect.y + rect.h - 12,
-    rect.w + 36,
-    38,
-  );
-
-  // Tight contact shadow right at the stone/ground boundary.
-  ctx.globalAlpha = .20;
-  ctx.fillStyle = "#1d221a";
-  ctx.beginPath();
-  ctx.ellipse(
-    rect.x + rect.w * .50,
-    rect.y + rect.h + 1.5,
-    rect.w * .35,
-    4.5 + (index % 2) * .8,
-    0,
-    0,
-    TAU,
-  );
-  ctx.fill();
-
-  ctx.globalAlpha = variant.moss;
+  // No separate oval/radial shadow here. Those detached shapes made the
+  // pillar read as if it hovered above the floor. Grounding is now handled
+  // by the pillar's own soft directional cast shadow, like the reference.
+  ctx.globalAlpha = variant.moss * .72;
   ctx.fillStyle = "#5b743f";
-  const baseY = rect.y + rect.h - 2;
+  const baseY = rect.y + rect.h - 1;
   const tufts = [
-    [rect.x + 11, baseY + 3, 9, 4, -.20],
-    [rect.x + rect.w - 9, baseY + 1, 7, 3.5, .18],
-    [rect.x + rect.w * .50, baseY + 5, 11, 4, .05],
+    [rect.x + 11, baseY + 2, 8, 3.4, -.20],
+    [rect.x + rect.w - 9, baseY + 1, 6.5, 3, .18],
+    [rect.x + rect.w * .50, baseY + 3, 9, 3.4, .05],
   ];
   for (const [x, y, rx, ry, angle] of tufts) {
     ctx.beginPath();
@@ -611,10 +579,12 @@ function drawStonePillar(ctx, rect, index = 0) {
 
   // Every pillar gets a slightly different silhouette while remaining fully
   // inside the original collision rectangle.
-  ctx.shadowColor = "rgba(16,18,14,.28)";
-  ctx.shadowBlur = 9;
-  ctx.shadowOffsetX = 2 + index % 2;
-  ctx.shadowOffsetY = 4;
+  // Soft directional shadow stays attached to the lower/right silhouette,
+  // matching the grounded look in the reference screenshot.
+  ctx.shadowColor = "rgba(18,20,15,.24)";
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetX = 5 + (index % 2) * .5;
+  ctx.shadowOffsetY = 7;
   ctx.fillStyle = "#48483f";
   chamferedRectPath(ctx, x, y, w, h, variant.cut);
   ctx.fill();

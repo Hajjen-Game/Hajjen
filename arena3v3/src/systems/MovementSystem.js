@@ -136,6 +136,21 @@ export class MovementSystem {
     return moved;
   }
 
+  tryDirectionStrict(actor, direction, step, arena) {
+    const dx = direction.x * step;
+    const dy = direction.y * step;
+
+    if (collides(actor, actor.x + dx, actor.y + dy, arena)) {
+      return false;
+    }
+
+    actor.x += dx;
+    actor.y += dy;
+    actor.lastMove = direction;
+    actor.facing = Math.atan2(direction.y, direction.x);
+    return true;
+  }
+
   move(actor, vector, deltaSeconds, arena) {
     if (!actor.alive || actor.activeDash) return false;
 
@@ -212,46 +227,54 @@ export class MovementSystem {
     if (directBlocked) {
       actor.aiAvoidanceMs = (actor.aiAvoidanceMs || 0) + deltaSeconds * 1000;
 
-      // An actor may still be moving while hugging the wrong side of a pillar,
-      // so a pure "no movement" watchdog is not enough. Flip the preferred
-      // avoidance side after sustained obstruction.
-      if (actor.aiAvoidanceMs >= 850) {
-        actor.aiAvoidanceSign = -sign;
-        sign = -sign;
-        actor.aiAvoidanceMs = 0;
-        actor.aiPathReroutes = (actor.aiPathReroutes || 0) + 1;
+      if (!actor.aiObstacleContactActive) {
+        actor.aiObstacleDetours = (actor.aiObstacleDetours || 0) + 1;
       }
+      actor.aiObstacleContactActive = true;
     } else {
       actor.aiAvoidanceMs = 0;
+      actor.aiObstacleContactActive = false;
     }
 
     const forcedDetour = (actor.aiForcedDetourMs || 0) > 0;
-    const degrees = forcedDetour
-      ? [90, 118, 150, 68, 45, 24, 0]
-      : [0, 24, 45, 68, 90, 118, 150];
+    const preferredAngles = forcedDetour
+      ? [90, 118, 150, 68, 45, 24]
+      : [24, 45, 68, 90, 118, 150];
     const directions = [];
 
-    for (const degreesAway of degrees) {
-      if (degreesAway === 0) {
-        directions.push(desired);
-        continue;
-      }
+    // Normal travel gets the intended direction first. During a forced detour,
+    // commit to the chosen wall side before trying to point through the obstacle.
+    if (!forcedDetour) directions.push(desired);
 
-      const radians = degreesAway * Math.PI / 180;
-      // Keep a stable preferred side first, then try the opposite side.
-      directions.push(rotate(desired, radians * sign));
-      directions.push(rotate(desired, -radians * sign));
+    // Important: exhaust the actor's preferred side before trying the opposite
+    // side. The old interleaved ordering (+24, -24, +45, -45...) could make a
+    // character visibly ping-pong along the same wall from one frame to the next.
+    for (const degreesAway of preferredAngles) {
+      directions.push(
+        rotate(desired, degreesAway * Math.PI / 180 * sign),
+      );
+    }
+    for (const degreesAway of preferredAngles) {
+      directions.push(
+        rotate(desired, -degreesAway * Math.PI / 180 * sign),
+      );
     }
 
-    // If an AI has been blocked for a while, allow a short retreat to escape
-    // pillar corners and then swap its preferred navigation side.
-    if ((actor.aiStuckMs || 0) >= 360 || (actor.aiAvoidanceMs || 0) >= 620) {
+    if (forcedDetour) directions.push(desired);
+
+    // A retreat is now a genuine stuck recovery only. Merely travelling beside
+    // a wall for 620ms is not a reason to reverse direction.
+    if ((actor.aiStuckMs || 0) >= 360) {
       directions.push(rotate(desired, Math.PI));
     }
 
     for (const candidate of directions) {
       const direction = normalize(candidate.x, candidate.y);
-      if (this.tryDirection(actor, direction, step, arena)) {
+
+      // AI obstacle navigation uses full-vector collision only. Axis sliding is
+      // useful for direct player controls but looks like rapid wall-bouncing
+      // when an AI continuously recomputes a target on the far side of a wall.
+      if (this.tryDirectionStrict(actor, direction, step, arena)) {
         actor.aiStuckMs = 0;
         return true;
       }

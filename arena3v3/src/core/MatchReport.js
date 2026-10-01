@@ -729,6 +729,7 @@ export function buildMatchReport(game) {
       name: actor.name,
       className: actor.className,
       reroutes: actor.aiPathReroutes || 0,
+      obstacleDetours: actor.aiObstacleDetours || 0,
       overlapRecoveries: actor.aiOverlapRecoveries || 0,
       boundaryEscapes: actor.aiBoundaryEscapeSelections || 0,
       manaRecoveryPhases: actor.aiManaRecoveryPhases || 0,
@@ -739,6 +740,7 @@ export function buildMatchReport(game) {
     }))
     .filter(item =>
       item.reroutes > 0
+      || item.obstacleDetours > 0
       || item.overlapRecoveries > 0
       || item.boundaryEscapes > 0
       || item.manaRecoveryPhases > 0
@@ -753,6 +755,7 @@ export function buildMatchReport(game) {
       lines.push(
         item.name + " [" + item.className + "]"
         + " — route flips " + item.reroutes
+        + " | wall detours " + item.obstacleDetours
         + " | collider recoveries " + item.overlapRecoveries
         + " | boundary escapes " + item.boundaryEscapes
         + " | mana recovery phases " + item.manaRecoveryPhases

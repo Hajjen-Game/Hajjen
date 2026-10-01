@@ -3579,45 +3579,12 @@ export class AISystem {
   }
 
   steer(actor, target, toward = 1) {
-    const direct = normalize((target.x - actor.x) * toward, (target.y - actor.y) * toward);
-
-    // Return to the short obstacle probe used before the early-routing change.
-    // The deeper MovementSystem progress watchdog still handles real pillar
-    // deadlocks, so normal steering no longer takes wide detours pre-emptively.
-    if (!this.movement.wouldCollide(
-      actor,
-      direct,
-      Math.max(14, actor.radius * 0.8),
-      this.game.arena,
-    )) {
-      return direct;
-    }
-
-    const sign = actor.aiAvoidanceSign === 1 || actor.aiAvoidanceSign === -1
-      ? actor.aiAvoidanceSign
-      : (stableHash(actor.id) % 2 === 0 ? 1 : -1);
-    const side = { x: -direct.y * sign, y: direct.x * sign };
-
-    const candidates = [
-      normalize(direct.x * 0.25 + side.x, direct.y * 0.25 + side.y),
-      normalize(direct.x * 0.25 - side.x, direct.y * 0.25 - side.y),
-      side,
-      { x: -side.x, y: -side.y },
-    ];
-
-    for (const candidate of candidates) {
-      if (!this.movement.wouldCollide(
-        actor,
-        candidate,
-        Math.max(16, actor.radius * 0.9),
-        this.game.arena,
-      )) {
-        return candidate;
-      }
-    }
-
-    // Let moveAI's alternate-angle and progress watchdog recovery take over
-    // instead of returning a zero vector at a difficult pillar corner.
-    return direct;
+    // High-level AI chooses where it wants to go. Collision routing is handled
+    // centrally by MovementSystem.moveAI so two separate avoidance layers do
+    // not fight over left/right choices every frame.
+    return normalize(
+      (target.x - actor.x) * toward,
+      (target.y - actor.y) * toward,
+    );
   }
 }

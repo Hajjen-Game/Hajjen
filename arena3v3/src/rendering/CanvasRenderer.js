@@ -7,6 +7,7 @@ import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
 import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
+import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar1";
 import {
   drawMageShamanCastVfx,
   drawMageShamanSpellVfx,
@@ -135,6 +136,9 @@ export class CanvasRenderer {
 
   drawArena(ctx) {
     if (drawGrandRingEnvironment(ctx, this.arena, GAME_WIDTH, GAME_HEIGHT)) {
+      return;
+    }
+    if (drawWindscarEnvironment(ctx, this.arena, GAME_WIDTH, GAME_HEIGHT)) {
       return;
     }
 

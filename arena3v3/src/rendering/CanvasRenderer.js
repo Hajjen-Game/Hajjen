@@ -208,6 +208,23 @@ export class CanvasRenderer {
       }
     }
 
+    const selectedTarget = game.player?.targetId
+      ? game.actors.find(actor =>
+          actor.alive
+          && actor.id === game.player.targetId
+          && actor.id !== game.player.id
+        )
+      : null;
+
+    if (selectedTarget) {
+      this.drawTargetMarker(
+        ctx,
+        selectedTarget,
+        game,
+        selectedTarget.team === game.player?.team ? "friendly" : "enemy",
+      );
+    }
+
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }

@@ -32,26 +32,6 @@ function resourceColor(type) {
   return 0x777777;
 }
 
-function burstPalette(style = "damage") {
-  const palettes = {
-    heal: { main: 0x65db78, core: 0xedffe7, accent: 0x4aa65a },
-    priest: { main: 0xffd45d, core: 0xfff9d9, accent: 0xf0a84b },
-    druid: { main: 0x69dd7b, core: 0xe9ffd9, accent: 0x47a85b },
-    paladin: { main: 0xffca45, core: 0xfff4bd, accent: 0xf28b37 },
-    mage: { main: 0x65cfff, core: 0xf0fbff, accent: 0x4e79ff },
-    shaman: { main: 0x62d9ff, core: 0xf1fdff, accent: 0x3d7fff },
-    lightning: { main: 0x62d9ff, core: 0xf1fdff, accent: 0x3d7fff },
-    warlock: { main: 0xa45dff, core: 0xf0dcff, accent: 0x6540b8 },
-    warrior: { main: 0xd86b5c, core: 0xffd9c9, accent: 0x9da7b3 },
-    rogue: { main: 0xe9c85c, core: 0xfff2bc, accent: 0xd77937 },
-    "death-knight": { main: 0xd95b56, core: 0xffddd1, accent: 0x72cfff },
-    fear: { main: 0xa45dff, core: 0xf0dcff, accent: 0x6540b8 },
-    interrupt: { main: 0xf0c35b, core: 0xfff1c6, accent: 0xcf5b42 },
-    damage: { main: 0xe56b5c, core: 0xffe0d4, accent: 0xd04238 },
-  };
-  return palettes[style] || palettes.damage;
-}
-
 function actorVisualSignature(actor) {
   return [
     actor?.classId || "",
@@ -216,8 +196,6 @@ export class PixiProofRenderer {
     this.actorViews = new Map();
     this.arenaBuildPromise = null;
     this.atmosphere = null;
-    this.burstVfx = null;
-    this.burstVfxFailed = false;
   }
 
   async init() {
@@ -254,7 +232,6 @@ export class PixiProofRenderer {
       resolution: Math.min(2, Math.max(1.5, Number(window.devicePixelRatio) || 1)),
     });
     this.app = app;
-    this.createBurstVfxLayer();
 
     this.inputCanvas.style.zIndex = "2";
     this.inputCanvas.style.background = "transparent";
@@ -750,114 +727,6 @@ export class PixiProofRenderer {
     }
   }
 
-  createBurstVfxLayer() {
-    if (!this.PIXI || !this.app || this.burstVfx) return;
-
-    const { BlurFilter, Container, Graphics } = this.PIXI;
-    const container = new Container();
-    container.label = "pixi-native-burst-vfx";
-    container.eventMode = "none";
-
-    const glow = new Graphics();
-    const core = new Graphics();
-    const accent = new Graphics();
-
-    glow.blendMode = "add";
-    core.blendMode = "screen";
-    accent.blendMode = "screen";
-    glow.filters = [new BlurFilter({ strength: 6, quality: 2 })];
-
-    container.addChild(glow, core, accent);
-    this.app.stage.addChild(container);
-
-    this.burstVfx = { container, glow, core, accent };
-    this.burstVfxFailed = false;
-  }
-
-  destroyBurstVfxLayer() {
-    if (!this.burstVfx) return;
-    const { container } = this.burstVfx;
-    if (container?.parent) container.parent.removeChild(container);
-    container?.destroy?.({ children: true });
-    this.burstVfx = null;
-  }
-
-  usesNativeVfxType(type) {
-    return type === "burst" && Boolean(this.burstVfx) && !this.burstVfxFailed;
-  }
-
-  updateBurstVfx(game) {
-    const layer = this.burstVfx;
-    if (!layer) return;
-
-    const { glow, core, accent, container } = layer;
-    glow.clear();
-    core.clear();
-    accent.clear();
-
-    for (const effect of game.vfx?.effects || []) {
-      if (effect.type !== "burst") continue;
-
-      const total = Math.max(1, Number(effect.totalMs) || 1);
-      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
-      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
-      const alpha = Math.max(0, Math.min(1, remaining / total));
-      const target = game.getActor(effect.targetId);
-      const x = target?.x ?? effect.x;
-      const y = target?.y ?? effect.y;
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-
-      const palette = burstPalette(effect.style);
-      const healing = ["heal", "priest", "druid", "paladin"].includes(effect.style);
-      const outer = 9 + progress * (healing ? 38 : 30);
-      const inner = 6 + progress * (healing ? 24 : 18);
-
-      glow
-        .circle(x, y, outer)
-        .stroke({
-          color: palette.main,
-          width: healing ? 7 : 5,
-          alpha: alpha * .24,
-        });
-
-      core
-        .circle(x, y, outer)
-        .stroke({
-          color: palette.main,
-          width: healing ? 3.1 : 2.5,
-          alpha: alpha * .82,
-        });
-
-      accent
-        .circle(x, y, inner)
-        .stroke({
-          color: palette.core,
-          width: 1.2,
-          alpha: alpha * .72,
-        });
-
-      const motes = healing ? 8 : 6;
-      for (let i = 0; i < motes; i += 1) {
-        const angle = (i / motes) * Math.PI * 2 + progress * (healing ? .85 : 1.45);
-        const radius = 8 + progress * (healing ? 28 : 22);
-        core
-          .circle(
-            x + Math.cos(angle) * radius,
-            y + Math.sin(angle) * radius,
-            healing ? 2.0 : 1.55,
-          )
-          .fill({
-            color: i % 2 ? palette.accent : palette.core,
-            alpha: alpha * .68,
-          });
-      }
-    }
-
-    if (container.parent) {
-      container.parent.setChildIndex(container, container.parent.children.length - 1);
-    }
-  }
-
   createActorView(actor) {
     const { Container, Graphics, Sprite, Text } = this.PIXI;
     const root = new Container();
@@ -1145,18 +1014,6 @@ export class PixiProofRenderer {
       this.updateActorView(view, actor, game);
     }
 
-    if (!this.burstVfxFailed) {
-      try {
-        this.updateBurstVfx(game);
-      } catch (error) {
-        this.burstVfxFailed = true;
-        this.burstVfx?.glow?.clear?.();
-        this.burstVfx?.core?.clear?.();
-        this.burstVfx?.accent?.clear?.();
-        console.error("[Pixi preview] native burst VFX disabled after render error", error);
-      }
-    }
-
     this.app.render();
   }
 
@@ -1164,7 +1021,6 @@ export class PixiProofRenderer {
     this.ready = false;
     this.destroyHeatShimmer();
     this.destroyAtmosphere();
-    this.destroyBurstVfxLayer();
     this.badge?.remove();
     this.badge = null;
 

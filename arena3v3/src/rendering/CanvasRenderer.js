@@ -130,11 +130,11 @@ export class CanvasRenderer {
     if (playerActor) this.drawActor(ctx, playerActor, game);
 
     this.drawOverlapReadability(ctx, game, livingActors);
-    this.drawVfx(ctx, game);
+    if (includeTransientVfx) this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
 
-  renderEffectsOverlay(game) {
+  renderEffectsOverlay(game, { includeTransientVfx = true } = {}) {
     const ctx = this.ctx;
     this.frameNowMs = performance.now();
 

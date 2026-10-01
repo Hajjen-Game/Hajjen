@@ -449,7 +449,7 @@ export class PixiProofRenderer {
 
     const targetGlow = new Graphics()
       .circle(0, 0, actor.radius + 9)
-      .stroke({ color: 0xff4e45, width: 8, alpha: .28 });
+      .stroke({ color: 0xff0000, width: 8, alpha: .28 });
     targetGlow.blendMode = "screen";
     targetGlow.filters = [new BlurFilter({ strength: 6, quality: 2 })];
     targetGlow.visible = false;
@@ -457,7 +457,7 @@ export class PixiProofRenderer {
 
     const targetRing = new Graphics()
       .circle(0, 0, actor.radius + 8)
-      .stroke({ color: 0xff5c50, width: 3, alpha: .92 });
+      .stroke({ color: 0xff2b2b, width: 3, alpha: .92 });
     targetRing.visible = false;
     root.addChild(targetRing);
 
@@ -529,6 +529,7 @@ export class PixiProofRenderer {
       playerRing,
       targetGlow,
       targetRing,
+      targetVariant: null,
       healthBg,
       healthFill,
       resourceBg,
@@ -552,6 +553,24 @@ export class PixiProofRenderer {
 
     const isPlayer = actor.id === game.player?.id;
     const selected = game.player?.targetId === actor.id;
+
+    const targetFriendly = actor.team === game.player?.team;
+    const targetVariant = targetFriendly ? "friendly" : "enemy";
+
+    if (view.targetVariant !== targetVariant) {
+      const ringColor = targetFriendly ? 0x4dff88 : 0xff2b2b;
+      const glowColor = targetFriendly ? 0x00e866 : 0xff0000;
+
+      view.targetGlow.clear()
+        .circle(0, 0, actor.radius + 9)
+        .stroke({ color: glowColor, width: 8, alpha: .28 });
+
+      view.targetRing.clear()
+        .circle(0, 0, actor.radius + 8)
+        .stroke({ color: ringColor, width: 3, alpha: .92 });
+
+      view.targetVariant = targetVariant;
+    }
 
     view.playerGlow.visible = isPlayer;
     view.playerRing.visible = isPlayer;

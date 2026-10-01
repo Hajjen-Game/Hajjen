@@ -1825,48 +1825,166 @@ export class PixiProofRenderer {
           }
         }
 
-        // Keep the existing hit language for pass 1. Pass 2 will specifically
-        // upgrade impact particles/afterglow/ground response.
+        // Chain Lightning 2.0 pass 2: every hop gets a compact electrical
+        // detonation, local ground response, particle spray and a short afterglow.
         if (localProgress > .28) {
           const impactProgress = clamp01((localProgress - .28) / .62);
-          const impactFade = 1 - impactProgress;
-          const pulse = Math.sin(Math.min(1, impactProgress * 1.7) * Math.PI);
-          const outer = 9 + easeOut(impactProgress) * 38;
+          const easedImpact = easeOut(impactProgress);
+          const impactFlash = Math.exp(-impactProgress * 10.5);
+          const afterglow = Math.exp(-impactProgress * 2.8);
+          const impactEnvelope = alpha * Math.max(impactFlash, afterglow * .62);
+          const bodyRadius = Math.max(12, Number(toActor.radius) || 18);
+          const hitPulse = Math.sin(Math.min(1, impactProgress * 1.55) * Math.PI);
+          const outer = 9 + easedImpact * 44;
 
+          // A very short near-white center flash makes the exact hit frame obvious.
           view.chainGlowFx
-            .circle(fullTo.x, fullTo.y, 30 + pulse * 11)
+            .circle(fullTo.x, fullTo.y, 22 + hitPulse * 16)
+            .fill({
+              color: palette.core,
+              alpha: impactEnvelope * (.10 + impactFlash * .24),
+            })
+            .circle(fullTo.x, fullTo.y, 38 + hitPulse * 17)
             .fill({
               color: palette.main,
-              alpha: intensity * impactFade * .13,
+              alpha: impactEnvelope * (.055 + impactFlash * .10),
+            });
+
+          view.chainSparkFx
+            .circle(fullTo.x, fullTo.y, 4.2 + impactFlash * 6.5)
+            .fill({
+              color: 0xffffff,
+              alpha: Math.min(1, impactEnvelope * (.70 + impactFlash * .55)),
+            });
+
+          // Flattened light on the floor beneath the target. Kept subtle so it
+          // reads as illumination, not a gameplay targeting marker.
+          const groundY = fullTo.y + bodyRadius * .58;
+          const groundWidth = bodyRadius * 1.55 + hitPulse * 17;
+          const groundHeight = bodyRadius * .34 + hitPulse * 4.5;
+
+          view.chainGlowFx
+            .ellipse(fullTo.x, groundY, groundWidth, groundHeight)
+            .fill({
+              color: palette.main,
+              alpha: impactEnvelope * (.07 + impactFlash * .12),
+            });
+
+          view.chainFx
+            .ellipse(fullTo.x, groundY, groundWidth * .78, groundHeight * .72)
+            .stroke({
+              color: palette.core,
+              width: 1.05,
+              alpha: impactEnvelope * impactFlash * .36,
+            });
+
+          // Double expanding shock ring: bright inner edge followed by a wider
+          // cyan afterglow that hangs around for a few extra frames.
+          view.chainGlowFx
+            .circle(fullTo.x, fullTo.y, outer + 8)
+            .stroke({
+              color: palette.main,
+              width: 9,
+              alpha: impactEnvelope * afterglow * .10,
             });
 
           view.chainFx
             .circle(fullTo.x, fullTo.y, outer)
             .stroke({
               color: palette.main,
-              width: 2.7,
-              alpha: intensity * impactFade * .78,
+              width: 2.9,
+              alpha: impactEnvelope * afterglow * .74,
             })
-            .circle(
-              fullTo.x,
-              fullTo.y,
-              7 + easeOut(impactProgress) * 27,
-            )
+            .circle(fullTo.x, fullTo.y, 7 + easedImpact * 30)
             .stroke({
               color: palette.core,
               width: 1.35,
-              alpha: intensity * impactFade * .72,
+              alpha: impactEnvelope * afterglow * .78,
             });
 
-          const rayCount = 8;
+          // Electrical fragments get short trails so they read as fast particles.
+          const particleCount = 14;
+          for (let i = 0; i < particleCount; i += 1) {
+            const angle =
+              i / particleCount * Math.PI * 2
+              + Math.sin(seed * .19 + i * 2.73) * .24;
+            const speed =
+              24
+              + (i % 5) * 7
+              + (Math.sin(seed * .11 + i * 1.91) * .5 + .5) * 13;
+            const radial = 7 + easedImpact * speed;
+            const lift =
+              impactProgress * (4 + (i % 4) * 2)
+              + Math.sin(angle * 2.3 + seed) * 2.5;
+            const sx = fullTo.x + Math.cos(angle) * radial;
+            const sy = fullTo.y + Math.sin(angle) * radial - lift;
+            const trailBack = 5 + (i % 4) * 2.4;
+            const tx0 = sx - Math.cos(angle) * trailBack;
+            const ty0 = sy - Math.sin(angle) * trailBack + 1.5;
+
+            view.chainSparkFx
+              .moveTo(tx0, ty0)
+              .lineTo(sx, sy)
+              .stroke({
+                color: i % 4 === 0 ? palette.core : palette.main,
+                width: i % 4 === 0 ? 1.65 : 1.0,
+                alpha: impactEnvelope * afterglow * (.38 + (i % 3) * .12),
+              });
+
+            view.chainSparkFx
+              .circle(sx, sy, i % 4 === 0 ? 1.8 : 1.2 + (i % 2) * .3)
+              .fill({
+                color: i % 4 === 0 ? palette.core : palette.main,
+                alpha: impactEnvelope * afterglow * (.52 + (i % 3) * .10),
+              });
+          }
+
+          // Brief broken arcs cling to the target after the hit.
+          const clingCount = 7;
+          const clingRadius = bodyRadius + 5 + hitPulse * 3;
+          for (let i = 0; i < clingCount; i += 1) {
+            const angle =
+              i / clingCount * Math.PI * 2
+              + snapFrame * .17 * (i % 2 ? 1 : -1);
+            const arcLength = .20 + (i % 3) * .055;
+            const a0 = angle - arcLength;
+            const a1 = angle + arcLength;
+            const middleAngle =
+              angle + Math.sin(seed * .23 + i * 3.1 + snapFrame) * .12;
+            const r0 = clingRadius;
+            const r1 = clingRadius + 4 + (i % 2) * 3;
+
+            view.chainSparkFx
+              .moveTo(
+                fullTo.x + Math.cos(a0) * r0,
+                fullTo.y + Math.sin(a0) * r0,
+              )
+              .lineTo(
+                fullTo.x + Math.cos(middleAngle) * r1,
+                fullTo.y + Math.sin(middleAngle) * r1,
+              )
+              .lineTo(
+                fullTo.x + Math.cos(a1) * r0,
+                fullTo.y + Math.sin(a1) * r0,
+              )
+              .stroke({
+                color: i % 3 === 0 ? palette.core : palette.main,
+                width: i % 3 === 0 ? 1.45 : .9,
+                alpha:
+                  impactEnvelope
+                  * afterglow
+                  * (.32 + impactFlash * .36),
+              });
+          }
+
+          // Radial hit spikes retain the crisp readability of the old impact.
+          const rayCount = 10;
           for (let i = 0; i < rayCount; i += 1) {
             const angle =
               i / rayCount * Math.PI * 2
-              + Math.sin(seed * .19 + i * 2.7) * .20;
-            const inner = 8 + impactProgress * 4;
-            const outerRay =
-              18
-              + easeOut(impactProgress) * (24 + (i % 3) * 7);
+              + Math.sin(seed * .17 + i * 2.47) * .18;
+            const inner = 8 + impactProgress * 5;
+            const outerRay = 20 + easedImpact * (26 + (i % 4) * 7);
 
             view.chainSparkFx
               .moveTo(
@@ -1879,17 +1997,33 @@ export class PixiProofRenderer {
               )
               .stroke({
                 color: i % 3 === 0 ? palette.core : palette.main,
-                width: i % 3 === 0 ? 1.7 : 1.15,
-                alpha: intensity * impactFade * (.42 + (i % 2) * .16),
+                width: i % 3 === 0 ? 1.8 : 1.1,
+                alpha:
+                  impactEnvelope
+                  * afterglow
+                  * (.30 + (i % 2) * .13),
               });
           }
 
-          view.chainSparkFx
-            .circle(fullTo.x, fullTo.y, 4 + pulse * 3)
-            .fill({
-              color: palette.core,
-              alpha: intensity * impactFade * .84,
-            });
+          // Small lingering motes survive the initial flash for a short afterglow.
+          const emberCount = 6;
+          for (let i = 0; i < emberCount; i += 1) {
+            const angle =
+              i / emberCount * Math.PI * 2
+              - impactProgress * (i % 2 ? 1.15 : -.9)
+              + seed * .013;
+            const rr = bodyRadius + 9 + impactProgress * (11 + (i % 3) * 4);
+            view.chainSparkFx
+              .circle(
+                fullTo.x + Math.cos(angle) * rr,
+                fullTo.y + Math.sin(angle) * rr - impactProgress * 5,
+                1.1 + (i % 2) * .45,
+              )
+              .fill({
+                color: i % 2 ? palette.core : palette.main,
+                alpha: impactEnvelope * afterglow * .42,
+              });
+          }
         }
       }
     }

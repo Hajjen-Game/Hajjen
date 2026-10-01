@@ -282,11 +282,24 @@ function drawCrack(ctx, crack, index) {
   const normY = dirX;
 
   const points = [{ x: crack.x, y: crack.y }];
-  const segments = 6;
+  const segments = 7;
 
+  // Uneven segment spacing + lateral drift keeps cracks from reading like
+  // hand-drawn zig-zag lines while remaining deterministic.
+  let traveled = 0;
+  const steps = [];
+  for (let i = 0; i < segments; i += 1) {
+    const step = .78 + random() * .48;
+    steps.push(step);
+    traveled += step;
+  }
+
+  let accumulated = 0;
   for (let i = 1; i <= segments; i += 1) {
-    const t = i / segments;
-    const jitter = (random() - .5) * 15;
+    accumulated += steps[i - 1];
+    const t = accumulated / traveled;
+    const edgeFade = Math.sin(Math.PI * t);
+    const jitter = (random() - .5) * (11 + edgeFade * 9);
     points.push({
       x: crack.x + dirX * crack.length * t + normX * jitter,
       y: crack.y + dirY * crack.length * t + normY * jitter,
@@ -297,53 +310,68 @@ function drawCrack(ctx, crack, index) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  ctx.strokeStyle = "rgba(20,18,17,.72)";
-  ctx.lineWidth = 4.2;
-  ctx.beginPath();
-  points.forEach((point, i) => {
-    if (i === 0) ctx.moveTo(point.x, point.y);
-    else ctx.lineTo(point.x, point.y);
-  });
-  ctx.stroke();
+  // Draw each segment with slightly different width instead of one perfectly
+  // uniform stroke. This makes the fissure feel chipped into the terrain.
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const a = points[i];
+    const b = points[i + 1];
+    const widthNoise = .82 + random() * .40;
 
-  if (crack.glow > 0) {
-    ctx.globalCompositeOperation = "lighter";
-    ctx.shadowColor = "rgba(255,108,35,.62)";
-    ctx.shadowBlur = 8;
-    ctx.strokeStyle = `rgba(230,91,28,${.22 + crack.glow * .30})`;
-    ctx.lineWidth = 1.4;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "rgba(18,16,15,.73)";
+    ctx.lineWidth = 3.4 * widthNoise;
     ctx.beginPath();
-    points.forEach((point, i) => {
-      if (i === 0) ctx.moveTo(point.x, point.y);
-      else ctx.lineTo(point.x, point.y);
-    });
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
     ctx.stroke();
+
+    if (crack.glow > 0) {
+      const glowNoise = .72 + random() * .34;
+      ctx.globalCompositeOperation = "lighter";
+      ctx.shadowColor = "rgba(255,103,31,.48)";
+      ctx.shadowBlur = 6;
+      ctx.strokeStyle = `rgba(226,83,25,${(.16 + crack.glow * .25) * glowNoise})`;
+      ctx.lineWidth = .78 + random() * .48;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
   }
 
   for (let branch = 0; branch < crack.branches; branch += 1) {
     const anchorIndex = 1 + Math.floor(random() * (points.length - 2));
     const anchor = points[anchorIndex];
     const sign = random() > .5 ? 1 : -1;
-    const branchAngle = crack.angle + sign * (.55 + random() * .45);
+    const branchAngle = crack.angle + sign * (.52 + random() * .52);
     const branchLength = 14 + random() * 25;
-    const endX = anchor.x + Math.cos(branchAngle) * branchLength;
-    const endY = anchor.y + Math.sin(branchAngle) * branchLength;
+    const bend = (random() - .5) * .40;
+
+    const midX = anchor.x + Math.cos(branchAngle) * branchLength * .54;
+    const midY = anchor.y + Math.sin(branchAngle) * branchLength * .54;
+    const endX = midX + Math.cos(branchAngle + bend) * branchLength * .46;
+    const endY = midY + Math.sin(branchAngle + bend) * branchLength * .46;
 
     ctx.globalCompositeOperation = "source-over";
     ctx.shadowColor = "transparent";
-    ctx.strokeStyle = "rgba(19,17,16,.60)";
-    ctx.lineWidth = 2.1;
+    ctx.strokeStyle = "rgba(17,15,14,.58)";
+    ctx.lineWidth = 1.55 + random() * .55;
     ctx.beginPath();
     ctx.moveTo(anchor.x, anchor.y);
+    ctx.lineTo(midX, midY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
     if (crack.glow > .3) {
       ctx.globalCompositeOperation = "lighter";
-      ctx.strokeStyle = `rgba(223,84,25,${.12 + crack.glow * .16})`;
-      ctx.lineWidth = .8;
+      ctx.shadowColor = "rgba(243,91,28,.35)";
+      ctx.shadowBlur = 4;
+      ctx.strokeStyle = `rgba(215,75,23,${.08 + crack.glow * .13})`;
+      ctx.lineWidth = .55 + random() * .22;
       ctx.beginPath();
       ctx.moveTo(anchor.x, anchor.y);
+      ctx.lineTo(midX, midY);
       ctx.lineTo(endX, endY);
       ctx.stroke();
     }
@@ -496,6 +524,7 @@ function drawVolcanicObstacle(ctx, rect, index) {
   const y = rect.y + inset;
   const w = rect.w - inset * 2;
   const h = rect.h - inset * 2;
+  const random = seededRandom(0xb451 + index * 97);
 
   ctx.save();
 
@@ -538,7 +567,45 @@ function drawVolcanicObstacle(ctx, rect, index) {
   ctx.closePath();
   ctx.fill();
 
-  ctx.globalAlpha = .22;
+  // Sparse basalt flecks break up the large clean faces without turning the
+  // LOS obstacles into noisy textures.
+  ctx.globalAlpha = .16;
+  for (let i = 0; i < 7; i += 1) {
+    const fx = x + 13 + random() * Math.max(8, w - 26);
+    const fy = y + topH + 12 + random() * Math.max(8, h - topH - 28);
+    const size = 1.1 + random() * 2.2;
+    ctx.fillStyle = random() > .42 ? "#242526" : "#69635d";
+    ctx.beginPath();
+    ctx.ellipse(
+      fx,
+      fy,
+      size,
+      size * (.42 + random() * .34),
+      random() * TAU,
+      0,
+      TAU,
+    );
+    ctx.fill();
+  }
+
+  // Tiny chips along the top rim make each obstacle feel hewn rather than
+  // perfectly manufactured, while staying inside its collision rectangle.
+  ctx.globalAlpha = .20;
+  ctx.fillStyle = "#3e3c39";
+  for (let i = 0; i < 3; i += 1) {
+    const cx = x + 17 + random() * Math.max(10, w - 34);
+    const cy = y + 5 + random() * 3;
+    const cw = 4 + random() * 6;
+    ctx.beginPath();
+    ctx.moveTo(cx - cw * .5, cy);
+    ctx.lineTo(cx + cw * .5, cy);
+    ctx.lineTo(cx + cw * .18, cy + 4 + random() * 3);
+    ctx.lineTo(cx - cw * .36, cy + 3 + random() * 2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = .24;
   ctx.strokeStyle = "#242322";
   ctx.lineWidth = 1.2;
   const crackX = x + w * (.33 + index * .12);
@@ -550,6 +617,18 @@ function drawVolcanicObstacle(ctx, rect, index) {
   ctx.lineTo(crackX + variant.crack * 18, crackY + 41);
   ctx.stroke();
 
+  // Secondary hairline fracture differs per obstacle and keeps the surface
+  // from looking cloned without adding another strong visual mark.
+  ctx.globalAlpha = .12;
+  ctx.lineWidth = .8;
+  const hairX = x + w * (.64 - index * .07);
+  const hairY = y + topH + 20 + index * 5;
+  ctx.beginPath();
+  ctx.moveTo(hairX, hairY);
+  ctx.lineTo(hairX + (random() - .5) * 8, hairY + 10);
+  ctx.lineTo(hairX + (random() - .5) * 12, hairY + 19);
+  ctx.stroke();
+
   // Tiny warm reflection from hot ground, not an emissive obstacle.
   ctx.globalAlpha = variant.warm;
   const warm = ctx.createLinearGradient(x, y + h - 25, x, y + h);
@@ -558,7 +637,7 @@ function drawVolcanicObstacle(ctx, rect, index) {
   ctx.fillStyle = warm;
   ctx.fillRect(x + 7, y + h - 26, w - 14, 20);
 
-  ctx.globalAlpha = .14;
+  ctx.globalAlpha = .12;
   ctx.strokeStyle = "#aaa095";
   ctx.lineWidth = 1;
   ctx.beginPath();

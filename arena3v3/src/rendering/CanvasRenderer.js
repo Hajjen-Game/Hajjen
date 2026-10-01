@@ -7,7 +7,7 @@ import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
 import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
-import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar1";
+import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
 import {
   drawMageShamanCastVfx,
   drawMageShamanSpellVfx,

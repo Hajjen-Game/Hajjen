@@ -376,7 +376,7 @@ export class PixiProofRenderer {
       this.updateActorView(view, actor, game);
     }
 
-    this.app.renderer.render({ container: this.app.stage, clear: true });
+    this.app.render();
   }
 
   destroy() {
@@ -390,7 +390,7 @@ export class PixiProofRenderer {
     }
 
     if (this.app) {
-      this.app.destroy(true, { children: true, texture: false });
+      this.app.destroy({ removeView: true }, { children: true, texture: false });
       this.app = null;
     } else {
       this.view?.remove();

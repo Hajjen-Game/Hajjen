@@ -4,7 +4,6 @@ import { classIconUrlFor } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { PixiSpellVfxLayer } from "./PixiSpellVfx.js?v=20261001-vfx1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const CLASS_IDS = Object.freeze([
@@ -197,7 +196,6 @@ export class PixiProofRenderer {
     this.actorViews = new Map();
     this.arenaBuildPromise = null;
     this.atmosphere = null;
-    this.spellVfxLayer = null;
   }
 
   async init() {
@@ -234,7 +232,6 @@ export class PixiProofRenderer {
       resolution: Math.min(2, Math.max(1.5, Number(window.devicePixelRatio) || 1)),
     });
     this.app = app;
-    this.spellVfxLayer = new PixiSpellVfxLayer(PIXI, app.stage);
 
     this.inputCanvas.style.zIndex = "2";
     this.inputCanvas.style.background = "transparent";
@@ -1017,9 +1014,6 @@ export class PixiProofRenderer {
       this.updateActorView(view, actor, game);
     }
 
-    this.spellVfxLayer?.update(game);
-    this.spellVfxLayer?.bringToFront();
-
     this.app.render();
   }
 
@@ -1027,8 +1021,6 @@ export class PixiProofRenderer {
     this.ready = false;
     this.destroyHeatShimmer();
     this.destroyAtmosphere();
-    this.spellVfxLayer?.destroy();
-    this.spellVfxLayer = null;
     this.badge?.remove();
     this.badge = null;
 

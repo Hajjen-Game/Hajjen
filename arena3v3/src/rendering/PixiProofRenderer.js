@@ -59,6 +59,79 @@ function priestHealSpellColors(spellId) {
   return colors[spellId] || colors["priest-flash-heal"];
 }
 
+function priestDruidSpellProfile(spellId) {
+  const profiles = {
+    "priest-pain-suppression": {
+      kind: "holy-shield",
+      main: 0xd9c78f,
+      core: 0xfff8d6,
+      accent: 0x8d78b4,
+    },
+    "priest-psychic-scream": {
+      kind: "shadow-wave",
+      main: 0x8865b4,
+      core: 0xceb5e8,
+      accent: 0x473158,
+    },
+    "priest-smite": {
+      kind: "mind-implosion",
+      main: 0x8d64bd,
+      core: 0xd8b8ef,
+      accent: 0x4d315e,
+    },
+    "priest-holy-fire": {
+      kind: "holy-sky",
+      main: 0xe3b95e,
+      core: 0xfff5c2,
+      accent: 0xcc7440,
+    },
+
+    "druid-rejuvenation": {
+      kind: "leaf-hot",
+      main: 0x72b978,
+      core: 0xdff4a8,
+      accent: 0x4d8255,
+    },
+    "druid-swiftmend": {
+      kind: "leaf-burst",
+      main: 0x79bd74,
+      core: 0xeef7b1,
+      accent: 0x4f8b55,
+    },
+    "druid-regrowth": {
+      kind: "regrowth",
+      main: 0x6eb06f,
+      core: 0xe2f2a6,
+      accent: 0x4c7951,
+    },
+    "druid-ironbark": {
+      kind: "bark-shield",
+      main: 0x7ea46a,
+      core: 0xd6e6a2,
+      accent: 0x70563a,
+    },
+    "druid-cyclone": {
+      kind: "cyclone",
+      main: 0x91b98a,
+      core: 0xeaf1ca,
+      accent: 0x6d8c72,
+    },
+    "druid-lifebloom": {
+      kind: "lifebloom",
+      main: 0x7bc082,
+      core: 0xf0f5b3,
+      accent: 0x5d9264,
+    },
+    "druid-moonfire": {
+      kind: "moon-sky",
+      main: 0x8aa8d8,
+      core: 0xeef3ff,
+      accent: 0x7690ba,
+    },
+  };
+  return profiles[spellId] || null;
+}
+
 function commonCasterSpellProfile(spellId) {
   const profiles = {
     "mage-living-bomb": {
@@ -973,6 +1046,10 @@ export class PixiProofRenderer {
     priestHealSpellFx.visible = false;
     root.addChild(priestHealSpellFx);
 
+    const priestDruidSpellFx = new Graphics();
+    priestDruidSpellFx.visible = false;
+    root.addChild(priestDruidSpellFx);
+
     const commonCasterSpellFx = new Graphics();
     commonCasterSpellFx.visible = false;
     root.addChild(commonCasterSpellFx);
@@ -1086,6 +1163,7 @@ export class PixiProofRenderer {
       chainFx,
       chainSparkFx,
       priestHealSpellFx,
+      priestDruidSpellFx,
       commonCasterSpellFx,
       playerGlow,
       playerRing,
@@ -2316,6 +2394,488 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativePriestDruidSpellVfx(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smoothstep = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const drawLeaf = (graphics, x, y, angle, size, color, alpha) => {
+      if (alpha <= 0) return;
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      const points = [
+        { x: size, y: 0 },
+        { x: 0, y: size * .48 },
+        { x: -size, y: 0 },
+        { x: 0, y: -size * .48 },
+      ].map(point => ({
+        x: x + point.x * ca - point.y * sa,
+        y: y + point.x * sa + point.y * ca,
+      }));
+
+      graphics
+        .moveTo(points[0].x, points[0].y)
+        .lineTo(points[1].x, points[1].y)
+        .lineTo(points[2].x, points[2].y)
+        .lineTo(points[3].x, points[3].y)
+        .lineTo(points[0].x, points[0].y)
+        .fill({ color, alpha });
+    };
+
+    const drawSourceCue = (graphics, source, profile, phase, shape) => {
+      if (!source) return;
+      const p = clamp01(phase);
+      const fade = 1 - p;
+      if (fade <= 0) return;
+
+      if (shape === "nature") {
+        for (let i = 0; i < 5; i += 1) {
+          const a = i / 5 * Math.PI * 2 + p * 1.2;
+          const rr = source.radius + 10 + p * 13;
+          drawLeaf(
+            graphics,
+            Math.cos(a) * rr,
+            Math.sin(a) * rr,
+            a + p,
+            4.3,
+            i % 2 ? profile.main : profile.core,
+            fade * .55,
+          );
+        }
+        graphics
+          .circle(0, 0, source.radius + 8 + p * 10)
+          .stroke({
+            color: profile.main,
+            width: 1.4,
+            alpha: fade * .33,
+          });
+        return;
+      }
+
+      if (shape === "shadow") {
+        for (let i = 0; i < 4; i += 1) {
+          const rr = source.radius + 8 + i * 4 + p * 7;
+          const a0 = i * 1.5 - p * (i % 2 ? 1.4 : -1.2);
+          const a1 = a0 + .9;
+          const segments = 4;
+          for (let s = 0; s < segments; s += 1) {
+            const t0 = s / segments;
+            const t1 = (s + 1) / segments;
+            const q0 = a0 + (a1 - a0) * t0;
+            const q1 = a0 + (a1 - a0) * t1;
+            graphics
+              .moveTo(Math.cos(q0) * rr, Math.sin(q0) * rr)
+              .lineTo(Math.cos(q1) * rr, Math.sin(q1) * rr)
+              .stroke({
+                color: i % 2 ? profile.core : profile.main,
+                width: 1.7,
+                alpha: fade * (.35 + i * .08),
+              });
+          }
+        }
+        return;
+      }
+
+      graphics
+        .circle(0, 0, source.radius + 9 + p * 11)
+        .stroke({
+          color: profile.main,
+          width: 2,
+          alpha: fade * .46,
+        });
+
+      for (let i = 0; i < 6; i += 1) {
+        const a = i / 6 * Math.PI * 2;
+        const inner = source.radius + 4;
+        const outer = source.radius + 16 + p * 14;
+        graphics
+          .moveTo(Math.cos(a) * inner, Math.sin(a) * inner)
+          .lineTo(Math.cos(a) * outer, Math.sin(a) * outer)
+          .stroke({
+            color: i % 2 ? profile.core : profile.main,
+            width: 1.5,
+            alpha: fade * .45,
+          });
+      }
+    };
+
+    for (const view of this.actorViews.values()) {
+      view.priestDruidSpellFx.clear();
+      view.priestDruidSpellFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+      const profile = priestDruidSpellProfile(effect.spellId);
+      if (!profile) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX ?? source.x;
+      const targetY = target?.y ?? effect.targetY ?? source.y;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const random = seededRandom(seed);
+      const dx = targetX - source.x;
+      const dy = targetY - source.y;
+      const missed = Boolean(effect.missed);
+      const g = view.priestDruidSpellFx;
+
+      g.visible = true;
+
+      if (profile.kind === "holy-shield") {
+        drawSourceCue(g, source, profile, p / .20, "holy");
+        const appear = easeOut(p / .25);
+        const fade = 1 - clamp01((p - .72) / .28);
+        const a = appear * fade * alpha;
+
+        g
+          .circle(dx, dy, 29)
+          .stroke({
+            color: profile.main,
+            width: 2.7,
+            alpha: a * .62,
+          })
+          .circle(dx, dy, 23)
+          .stroke({
+            color: profile.core,
+            width: 1.1,
+            alpha: a * .34,
+          });
+
+        const shield = [
+          [0, -24],
+          [15, -7],
+          [11, 18],
+          [0, 25],
+          [-11, 18],
+          [-15, -7],
+          [0, -24],
+        ];
+        g.moveTo(dx + shield[0][0], dy + shield[0][1]);
+        for (let i = 1; i < shield.length; i += 1) {
+          g.lineTo(dx + shield[i][0], dy + shield[i][1]);
+        }
+        g.stroke({
+          color: profile.accent,
+          width: 1.7,
+          alpha: a * .76,
+        });
+        continue;
+      }
+
+      if (profile.kind === "shadow-wave") {
+        const wave = easeOut(p / .72);
+        const fade = 1 - clamp01((p - .55) / .45);
+
+        for (let layer = 0; layer < 3; layer += 1) {
+          const radius = source.radius + 12 + wave * (80 + layer * 16);
+          g.circle(0, 0, radius).stroke({
+            color: layer === 1 ? profile.core : profile.main,
+            width: 2.6 - layer * .45,
+            alpha: alpha * fade * (.50 - layer * .10),
+          });
+        }
+
+        for (let i = 0; i < 8; i += 1) {
+          const a = i / 8 * Math.PI * 2 + p * (i % 2 ? 1.2 : -1.0);
+          const rr = source.radius + 18 + wave * (45 + (i % 3) * 11);
+          g.circle(
+            Math.cos(a) * rr,
+            Math.sin(a) * rr,
+            1.4 + (i % 2) * .4,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            alpha: alpha * fade * .38,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "mind-implosion") {
+        drawSourceCue(g, source, profile, p / .28, "shadow");
+        const missSign = Math.sin(seed * .91) > 0 ? 1 : -1;
+        const vx = dx + (missed ? missSign * 46 : 0);
+        const vy = dy - (missed ? 19 : 0);
+        const gather = smoothstep(p / .44);
+        const burst = clamp01((p - .34) / .54);
+        const fade = 1 - clamp01((p - .70) / .30);
+
+        for (let i = 0; i < 8; i += 1) {
+          const a = random() * Math.PI * 2 + p * (i % 2 ? 1.7 : -1.4);
+          const start = 38 + random() * 20;
+          const rr = start * (1 - gather * .80);
+          g.circle(
+            vx + Math.cos(a) * rr,
+            vy + Math.sin(a) * rr,
+            1.7 + random() * 1.8,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            alpha: alpha * (.25 + gather * .50),
+          });
+        }
+
+        if (p > .30 && !missed) {
+          for (let i = 0; i < 5; i += 1) {
+            const a = i / 5 * Math.PI * 2 + Math.sin(seed * .17 + i) * .20;
+            const inner = 7 + burst * 3;
+            const outer = 13 + easeOut(burst) * (28 + (i % 3) * 7);
+            g
+              .moveTo(vx + Math.cos(a) * inner, vy + Math.sin(a) * inner)
+              .lineTo(
+                vx + Math.cos(a + .18) * outer * .62,
+                vy + Math.sin(a + .18) * outer * .62,
+              )
+              .lineTo(vx + Math.cos(a) * outer, vy + Math.sin(a) * outer)
+              .stroke({
+                color: profile.main,
+                width: 2.1,
+                alpha: alpha * fade * .70,
+              });
+          }
+          g.circle(vx, vy, Math.max(3, 7 * (1 - burst * .35))).fill({
+            color: profile.core,
+            alpha: alpha * fade * .76,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "holy-sky" || profile.kind === "moon-sky") {
+        const nature = profile.kind === "moon-sky";
+        drawSourceCue(g, source, profile, p / (nature ? .20 : .22), nature ? "nature" : "holy");
+
+        const missSign = Math.sin(seed * .73) > 0 ? 1 : -1;
+        const vx = dx + (missed ? missSign * (nature ? 45 : 43) : 0);
+        const vy = dy - (missed ? 14 : 0);
+        const strike = clamp01((p - (nature ? .10 : .12)) / (nature ? .56 : .58));
+        const fade = 1 - clamp01((p - (nature ? .70 : .72)) / (nature ? .30 : .28));
+        const topY = vy - (nature ? 142 : 126);
+        const headY = topY + easeOut(strike) * (nature ? 138 : 124);
+
+        if (nature && p < .32) {
+          const crescentY = -source.radius - 13;
+          g
+            .circle(0, crescentY, 9)
+            .stroke({
+              color: profile.core,
+              width: 2.0,
+              alpha: alpha * (1 - p / .32) * .44,
+            })
+            .circle(3.2, crescentY - .4, 7.4)
+            .stroke({
+              color: profile.main,
+              width: 1,
+              alpha: alpha * (1 - p / .32) * .18,
+            });
+        }
+
+        g
+          .moveTo(vx + (nature ? 0 : 3), topY)
+          .lineTo(vx, headY)
+          .stroke({
+            color: profile.accent,
+            width: nature ? 8 : 10,
+            alpha: alpha * fade * (nature ? .20 : .28),
+          })
+          .moveTo(vx, topY)
+          .lineTo(vx, headY)
+          .stroke({
+            color: profile.core,
+            width: nature ? 3 : 4.2,
+            alpha: alpha * fade * .74,
+          });
+
+        const threshold = nature ? .62 : .58;
+        if (strike > threshold && !missed) {
+          const hit = (strike - threshold) / (1 - threshold);
+          g.circle(vx, vy, 8 + easeOut(hit) * 40).stroke({
+            color: profile.main,
+            width: nature ? 2 : 2.6,
+            alpha: alpha * (1 - hit) * .72,
+          });
+
+          const count = nature ? 6 : 8;
+          for (let i = 0; i < count; i += 1) {
+            const a = i / count * Math.PI * 2 + Math.sin(seed * .11 + i * 2.3) * .16;
+            const rr = 8 + easeOut(hit) * (24 + (i % 4) * 5);
+            g.circle(
+              vx + Math.cos(a) * rr,
+              vy + Math.sin(a) * rr,
+              1.6 + (i % 2) * .3,
+            ).fill({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              alpha: alpha * (1 - hit) * .66,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (
+        profile.kind === "leaf-hot"
+        || profile.kind === "leaf-burst"
+        || profile.kind === "regrowth"
+        || profile.kind === "lifebloom"
+      ) {
+        const swift = profile.kind === "leaf-burst";
+        const regrowth = profile.kind === "regrowth";
+        const lifebloom = profile.kind === "lifebloom";
+        drawSourceCue(g, source, profile, p / (swift ? .15 : .20), "nature");
+        const fade = 1 - clamp01((p - (swift ? .55 : .68)) / (swift ? .45 : .32));
+        const count = regrowth ? 10 : lifebloom ? 8 : swift ? 10 : 7;
+
+        if (regrowth) {
+          for (let i = 0; i < 4; i += 1) {
+            const side = (i - 1.5) * 8;
+            const sway = Math.sin(i + p * 5) * 12;
+            g
+              .moveTo(dx + side, dy + 18)
+              .lineTo(dx + side + sway * .55, dy - p * 12)
+              .lineTo(dx + side * .35, dy - 30 - p * 12)
+              .stroke({
+                color: profile.main,
+                width: 2,
+                alpha: alpha * fade * .46,
+              });
+          }
+        }
+
+        for (let i = 0; i < count; i += 1) {
+          const base = i / count * Math.PI * 2;
+          const angle =
+            swift
+              ? base + Math.sin(seed * .13 + i * 1.9) * .55
+              : base + p * (i % 2 ? .9 : -.7);
+          const rr =
+            swift
+              ? 5 + easeOut(p) * (22 + (i % 4) * 6)
+              : 7 + easeOut(p) * (18 + (i % 3) * 6);
+          const yLift = p * (lifebloom ? 12 : 7);
+          drawLeaf(
+            g,
+            dx + Math.cos(angle) * rr,
+            dy + Math.sin(angle) * rr - yLift,
+            angle + (swift ? p * 2 : .4),
+            3.2 + (i % 3) * .65,
+            i % 3 === 0 ? profile.core : profile.main,
+            alpha * fade * (swift ? .78 : .70),
+          );
+        }
+
+        if (lifebloom) {
+          for (let i = 0; i < 6; i += 1) {
+            const a = i / 6 * Math.PI * 2 + p * .45;
+            const rr = 6 + easeOut(p) * 9;
+            drawLeaf(
+              g,
+              dx + Math.cos(a) * rr,
+              dy + Math.sin(a) * rr,
+              a,
+              5.2,
+              i % 2 ? profile.main : profile.core,
+              alpha * fade * .70,
+            );
+          }
+        }
+
+        if (swift) {
+          g.circle(dx, dy, 6 + (1 - p) * 5).fill({
+            color: profile.core,
+            alpha: alpha * fade * .66,
+          });
+        } else {
+          g.circle(dx, dy, 8 + p * 23).stroke({
+            color: profile.main,
+            width: 1.4,
+            alpha: alpha * fade * .28,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "bark-shield") {
+        drawSourceCue(g, source, profile, p / .18, "nature");
+        const appear = easeOut(p / .26);
+        const fade = 1 - clamp01((p - .72) / .28);
+
+        for (let i = 0; i < 6; i += 1) {
+          const a = i / 6 * Math.PI * 2 + .18 * Math.sin(i + p * 3);
+          const radius = 25 + (i % 2) * 4;
+          const cx = dx + Math.cos(a) * radius;
+          const cy = dy + Math.sin(a) * radius;
+          const ca = Math.cos(a + Math.PI / 2);
+          const sa = Math.sin(a + Math.PI / 2);
+          const local = [
+            [-5, -10],
+            [6, -8],
+            [8, 8],
+            [-6, 10],
+            [-5, -10],
+          ].map(([x,y]) => ({
+            x: cx + x * ca - y * sa,
+            y: cy + x * sa + y * ca,
+          }));
+
+          g.moveTo(local[0].x, local[0].y);
+          for (let j = 1; j < local.length; j += 1) {
+            g.lineTo(local[j].x, local[j].y);
+          }
+          g.stroke({
+            color: profile.accent,
+            width: 4,
+            alpha: alpha * appear * fade * (.58 + (i % 2) * .12),
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "cyclone") {
+        drawSourceCue(g, source, profile, p / .22, "nature");
+        const build = easeOut((p - .08) / .68);
+        const fade = 1 - clamp01((p - .78) / .22);
+
+        for (let layer = 0; layer < 5; layer += 1) {
+          const yOff = 18 - layer * 9;
+          const radius = 12 + layer * 5 + build * 10;
+          g.ellipse(dx, dy + yOff, radius, 5 + layer * 1.5).stroke({
+            color: layer % 2 ? profile.core : profile.main,
+            width: 1.8 + layer * .18,
+            alpha: alpha * fade * (.28 + layer * .09),
+          });
+        }
+
+        for (let i = 0; i < 7; i += 1) {
+          const a = i / 7 * Math.PI * 2 + p * (i % 2 ? 8 : -7) + seed * .013;
+          const rr = 13 + (i % 4) * 6;
+          g.circle(
+            dx + Math.cos(a) * rr,
+            dy + Math.sin(a) * rr * .42 - p * 8,
+            1.2 + (i % 3) * .45,
+          ).fill({
+            color: profile.core,
+            alpha: alpha * fade * .38,
+          });
+        }
+        continue;
+      }
+    }
+  }
+
   updateNativeCommonCasterSpellVfx(game) {
     for (const view of this.actorViews.values()) {
       view.commonCasterSpellFx.clear();
@@ -2792,6 +3352,7 @@ export class PixiProofRenderer {
       const destinationX = dxFull + nx * missOffset + tx * (missed ? 10 : 0);
       const destinationY = dyFull + ny * missOffset + ty * (missed ? 10 : 0);
 
+      const size = profile.size || 8;
       let projectileX = destinationX * travel;
       let projectileY = destinationY * travel;
       if (profile.kind === "lava") {
@@ -2830,8 +3391,6 @@ export class PixiProofRenderer {
         projectileX += nx * Math.sin(p * 17 + seed * .05) * 5;
         projectileY += ny * Math.sin(p * 17 + seed * .05) * 5;
       }
-
-      const size = profile.size || 8;
 
       // Tail first so the projectile core reads clearly on top.
       const tailCount = profile.heavy ? 6 : 4;
@@ -3037,6 +3596,7 @@ export class PixiProofRenderer {
     this.updateNativeBeamVfx(game);
     this.updateNativeChainVfx(game);
     this.updateNativePriestHealSpellVfx(game);
+    this.updateNativePriestDruidSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
 
     this.app.render();

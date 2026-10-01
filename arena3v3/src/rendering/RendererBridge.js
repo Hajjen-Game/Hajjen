@@ -1,10 +1,22 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi25";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi26";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",
   "priest-flash-heal",
   "priest-greater-heal",
+  "priest-pain-suppression",
+  "priest-psychic-scream",
+  "priest-smite",
+  "priest-holy-fire",
+
+  "druid-rejuvenation",
+  "druid-swiftmend",
+  "druid-regrowth",
+  "druid-ironbark",
+  "druid-cyclone",
+  "druid-lifebloom",
+  "druid-moonfire",
 
   "mage-living-bomb",
   "mage-frostbolt",

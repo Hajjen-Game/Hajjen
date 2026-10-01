@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi26";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi27";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",
@@ -17,6 +17,22 @@ const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "druid-cyclone",
   "druid-lifebloom",
   "druid-moonfire",
+
+  "paladin-holy-shock",
+  "paladin-flash-light",
+  "paladin-holy-light",
+  "paladin-blessing",
+  "paladin-hammer",
+  "paladin-word-of-glory",
+  "paladin-judgment",
+
+  "dk-fever",
+  "dk-death-strike",
+  "dk-obliterate",
+  "dk-chains",
+  "dk-mind-freeze",
+  "dk-frost-strike",
+  "dk-rune-tap",
 
   "mage-living-bomb",
   "mage-frostbolt",

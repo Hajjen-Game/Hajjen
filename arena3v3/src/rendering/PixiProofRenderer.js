@@ -132,6 +132,69 @@ function priestDruidSpellProfile(spellId) {
   return profiles[spellId] || null;
 }
 
+function paladinDkSpellProfile(spellId) {
+  const profiles = {
+    "paladin-holy-shock": {
+      family: "paladin", kind: "holy-shock",
+      main: 0xe7c760, core: 0xfff7c7, accent: 0xc8913d,
+    },
+    "paladin-flash-light": {
+      family: "paladin", kind: "flash-light",
+      main: 0xe9cf76, core: 0xfffbe0, accent: 0xc99b48,
+    },
+    "paladin-holy-light": {
+      family: "paladin", kind: "holy-light",
+      main: 0xe5c76f, core: 0xfffce3, accent: 0xc18e3f,
+    },
+    "paladin-blessing": {
+      family: "paladin", kind: "blessing",
+      main: 0xe7cd79, core: 0xfff8cf, accent: 0xa97835,
+    },
+    "paladin-hammer": {
+      family: "paladin", kind: "hammer",
+      main: 0xe5bd58, core: 0xfff2ad, accent: 0xb97b2e,
+    },
+    "paladin-word-of-glory": {
+      family: "paladin", kind: "word-glory",
+      main: 0xf0d57e, core: 0xfffbe0, accent: 0xc69745,
+    },
+    "paladin-judgment": {
+      family: "paladin", kind: "judgment",
+      main: 0xe1b84f, core: 0xfff4ae, accent: 0xb7772d,
+    },
+
+    "dk-fever": {
+      family: "dk", kind: "fever",
+      main: 0x6fb9d5, core: 0xd9f5ff, accent: 0x486c8d,
+    },
+    "dk-death-strike": {
+      family: "dk", kind: "death-strike",
+      main: 0x9f454b, core: 0xe8a4aa, accent: 0x4e2329,
+    },
+    "dk-obliterate": {
+      family: "dk", kind: "obliterate",
+      main: 0x74bad8, core: 0xe3f8ff, accent: 0x4f7291,
+    },
+    "dk-chains": {
+      family: "dk", kind: "chains",
+      main: 0x75bcd8, core: 0xe3f8ff, accent: 0x536e86,
+    },
+    "dk-mind-freeze": {
+      family: "dk", kind: "mind-freeze",
+      main: 0x6fb6d4, core: 0xe4f9ff, accent: 0x445f7c,
+    },
+    "dk-frost-strike": {
+      family: "dk", kind: "frost-strike",
+      main: 0x75bcd8, core: 0xe8fbff, accent: 0x54728f,
+    },
+    "dk-rune-tap": {
+      family: "dk", kind: "rune-tap",
+      main: 0xa34b51, core: 0xddb0b4, accent: 0x513039,
+    },
+  };
+  return profiles[spellId] || null;
+}
+
 function commonCasterSpellProfile(spellId) {
   const profiles = {
     "mage-living-bomb": {
@@ -1050,6 +1113,10 @@ export class PixiProofRenderer {
     priestDruidSpellFx.visible = false;
     root.addChild(priestDruidSpellFx);
 
+    const paladinDkSpellFx = new Graphics();
+    paladinDkSpellFx.visible = false;
+    root.addChild(paladinDkSpellFx);
+
     const commonCasterSpellFx = new Graphics();
     commonCasterSpellFx.visible = false;
     root.addChild(commonCasterSpellFx);
@@ -1164,6 +1231,7 @@ export class PixiProofRenderer {
       chainSparkFx,
       priestHealSpellFx,
       priestDruidSpellFx,
+      paladinDkSpellFx,
       commonCasterSpellFx,
       playerGlow,
       playerRing,
@@ -2876,6 +2944,575 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativePaladinDkSpellVfx(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+
+    const transformPoint = (cx, cy, x, y, angle) => {
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      return {
+        x: cx + x * ca - y * sa,
+        y: cy + x * sa + y * ca,
+      };
+    };
+
+    const drawPolygon = (graphics, points, style, fill = false) => {
+      if (!points?.length || style.alpha <= 0) return;
+      graphics.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        graphics.lineTo(points[i].x, points[i].y);
+      }
+      graphics.lineTo(points[0].x, points[0].y);
+      if (fill) graphics.fill(style);
+      else graphics.stroke(style);
+    };
+
+    const paladinSourceCue = (graphics, source, profile, phase) => {
+      const p = clamp01(phase);
+      const fade = 1 - p;
+      if (!source || fade <= 0) return;
+      const rotation = p * .45;
+
+      for (let i = 0; i < 4; i += 1) {
+        const a = i * Math.PI / 2 + rotation;
+        const inner = source.radius + 7;
+        const outer = source.radius + 20;
+        graphics
+          .moveTo(Math.cos(a) * inner, Math.sin(a) * inner)
+          .lineTo(Math.cos(a) * outer, Math.sin(a) * outer)
+          .stroke({
+            color: profile.main,
+            width: 1.8,
+            alpha: fade * .64,
+          });
+      }
+
+      const r = 8;
+      const diamond = [];
+      for (let i = 0; i < 4; i += 1) {
+        const a = Math.PI / 4 + i * Math.PI / 2 + rotation;
+        diamond.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
+      }
+      drawPolygon(graphics, diamond, {
+        color: profile.core,
+        width: 1.4,
+        alpha: fade * .44,
+      });
+    };
+
+    const dkSourceCue = (graphics, source, profile, phase) => {
+      const p = clamp01(phase);
+      const fade = 1 - p;
+      if (!source || fade <= 0) return;
+      const rotation = -p * .8;
+
+      for (let i = 0; i < 3; i += 1) {
+        const a = i * Math.PI * 2 / 3 + rotation;
+        const p0 = {
+          x: Math.cos(a) * (source.radius + 6),
+          y: Math.sin(a) * (source.radius + 6),
+        };
+        const p1 = {
+          x: Math.cos(a + .36) * (source.radius + 18),
+          y: Math.sin(a + .36) * (source.radius + 18),
+        };
+        const p2 = {
+          x: Math.cos(a + .72) * (source.radius + 9),
+          y: Math.sin(a + .72) * (source.radius + 9),
+        };
+        graphics
+          .moveTo(p0.x, p0.y)
+          .lineTo(p1.x, p1.y)
+          .lineTo(p2.x, p2.y)
+          .stroke({
+            color: profile.main,
+            width: 1.7,
+            alpha: fade * .60,
+          });
+      }
+    };
+
+    const drawSlash = (
+      graphics,
+      cx,
+      cy,
+      profile,
+      p,
+      seed,
+      doubleSlash = false,
+      frost = false,
+    ) => {
+      const fade = 1 - clamp01((p - .68) / .32);
+      const count = doubleSlash ? 2 : 1;
+      for (let i = 0; i < count; i += 1) {
+        const angle =
+          (i ? -.72 : .72)
+          + Math.sin(seed * .17 + i * 2.3) * .06;
+        const a = transformPoint(cx, cy, -34 + easeOut(p) * 8, -6, angle);
+        const m = transformPoint(cx, cy, 0, -2, angle);
+        const b = transformPoint(cx, cy, 34, 6, angle);
+        graphics
+          .moveTo(a.x, a.y)
+          .lineTo(m.x, m.y)
+          .lineTo(b.x, b.y)
+          .stroke({
+            color: i ? profile.core : profile.main,
+            width: i ? 3.2 : 5,
+            alpha: fade * (.72 + i * .10),
+          });
+      }
+
+      if (frost) {
+        for (let i = 0; i < 7; i += 1) {
+          const a = i / 7 * Math.PI * 2 + seed * .019;
+          const rr = 9 + easeOut(p) * (18 + (i % 3) * 7);
+          graphics
+            .circle(
+              cx + Math.cos(a) * rr,
+              cy + Math.sin(a) * rr,
+              1.4 + (i % 2) * .45,
+            )
+            .fill({
+              color: profile.core,
+              alpha: fade * .56,
+            });
+        }
+      }
+    };
+
+    for (const view of this.actorViews.values()) {
+      view.paladinDkSpellFx.clear();
+      view.paladinDkSpellFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+
+      const profile = paladinDkSpellProfile(effect.spellId);
+      if (!profile) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX ?? source.x;
+      const targetY = target?.y ?? effect.targetY ?? source.y;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const missed = Boolean(effect.missed);
+      const dx = targetX - source.x;
+      const dy = targetY - source.y;
+      const g = view.paladinDkSpellFx;
+      const missSign = Math.sin(seed * .91) >= 0 ? 1 : -1;
+      const missX = dx + missSign * 44;
+      const missY = dy - 10;
+
+      g.visible = true;
+
+      if (
+        profile.kind === "holy-shock"
+        || profile.kind === "flash-light"
+        || profile.kind === "holy-light"
+      ) {
+        const strong = profile.kind === "holy-light";
+        const burst = profile.kind === "holy-shock";
+        const fade = 1 - clamp01((p - .68) / .32);
+        paladinSourceCue(g, source, profile, p / .18);
+        const radius = 10 + easeOut(p) * (burst ? 28 : strong ? 34 : 25);
+        const scale = burst ? 1.15 : strong ? 1.32 : 1;
+
+        for (let i = 0; i < 8; i += 1) {
+          const a = i / 8 * Math.PI * 2 + (burst ? -p * 1.5 : p * .45);
+          g
+            .moveTo(
+              dx + Math.cos(a) * radius * .48,
+              dy + Math.sin(a) * radius * .48,
+            )
+            .lineTo(
+              dx + Math.cos(a) * radius * scale,
+              dy + Math.sin(a) * radius * scale,
+            )
+            .stroke({
+              color: profile.main,
+              width: strong ? 2.7 : 2,
+              alpha: alpha * fade * .72,
+            });
+        }
+
+        const diamond = [];
+        const spin = Math.PI / 4 + p * .2;
+        for (let i = 0; i < 4; i += 1) {
+          const a = i * Math.PI / 2 + spin;
+          diamond.push({
+            x: dx + Math.cos(a) * radius * .58,
+            y: dy + Math.sin(a) * radius * .58,
+          });
+        }
+        drawPolygon(g, diamond, {
+          color: profile.core,
+          width: 1.6,
+          alpha: alpha * fade * .52,
+        });
+
+        g.circle(dx, dy, strong ? 6.5 : 5).fill({
+          color: profile.core,
+          alpha: alpha * fade * .68,
+        });
+        continue;
+      }
+
+      if (profile.kind === "blessing") {
+        paladinSourceCue(g, source, profile, p / .18);
+        const fade = 1 - clamp01((p - .72) / .28);
+        const radius = 22 + easeOut(p) * 8;
+
+        for (let i = 0; i < 4; i += 1) {
+          const a = i * Math.PI / 2 + p * .28;
+          const cx = dx + Math.cos(a) * radius;
+          const cy = dy + Math.sin(a) * radius;
+          const plate = [
+            [-7, -7],
+            [7, -7],
+            [10, 3],
+            [0, 10],
+            [-10, 3],
+          ].map(([x, y]) => transformPoint(cx, cy, x, y, a));
+          drawPolygon(g, plate, {
+            color: profile.main,
+            width: 3,
+            alpha: alpha * fade * .80,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "hammer") {
+        paladinSourceCue(g, source, profile, p / .16);
+        const fade = 1 - clamp01((p - .72) / .28);
+        const travel = easeOut(p / .44);
+        const hx = dx * travel;
+        const hy = dy * travel;
+        const angle = Math.atan2(dy, dx) + p * 2.8;
+        const handleA = transformPoint(hx, hy, 0, -15, angle);
+        const handleB = transformPoint(hx, hy, 0, 9, angle);
+        g
+          .moveTo(handleA.x, handleA.y)
+          .lineTo(handleB.x, handleB.y)
+          .stroke({
+            color: profile.main,
+            width: 6.5,
+            alpha: alpha * fade * .80,
+          });
+
+        const head = [
+          [-13, -19],
+          [13, -19],
+          [13, -10],
+          [-13, -10],
+        ].map(([x,y]) => transformPoint(hx, hy, x, y, angle));
+        drawPolygon(g, head, {
+          color: profile.core,
+          width: 2,
+          alpha: alpha * fade * .84,
+        });
+
+        if (p > .38) {
+          const hit = clamp01((p - .38) / .45);
+          g.circle(dx, dy, 10 + hit * 36).stroke({
+            color: profile.main,
+            width: 2.4,
+            alpha: alpha * (1 - hit) * .70,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "word-glory") {
+        paladinSourceCue(g, source, profile, p / .16);
+        const fade = 1 - clamp01((p - .70) / .30);
+        const rise = 18 + easeOut(p) * 12;
+        g
+          .moveTo(dx - 20, dy - rise)
+          .lineTo(dx - 11, dy - rise - 13)
+          .lineTo(dx, dy - rise - 4)
+          .lineTo(dx + 11, dy - rise - 13)
+          .lineTo(dx + 20, dy - rise)
+          .stroke({
+            color: profile.main,
+            width: 2.2,
+            alpha: alpha * fade * .74,
+          })
+          .moveTo(dx - 17, dy - rise + 4)
+          .lineTo(dx + 17, dy - rise + 4)
+          .stroke({
+            color: profile.core,
+            width: 1.5,
+            alpha: alpha * fade * .68,
+          });
+
+        for (let i = 0; i < 5; i += 1) {
+          g.circle(
+            dx + (i - 2) * 7,
+            dy - rise + 8 + p * 9,
+            1.8,
+          ).fill({
+            color: i === 2 ? profile.core : profile.main,
+            alpha: alpha * fade * .60,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "judgment") {
+        paladinSourceCue(g, source, profile, p / .20);
+        const vx = missed ? missX + (Math.abs(missX - dx) < 1 ? missSign * 4 : 0) : dx;
+        const vy = missed ? dy - 10 : dy;
+        const strike = clamp01((p - .10) / .55);
+        const fade = 1 - clamp01((p - .72) / .28);
+        const topY = vy - 128;
+        const headY = topY + easeOut(strike) * 122;
+
+        g
+          .moveTo(vx, topY)
+          .lineTo(vx, headY)
+          .stroke({
+            color: profile.core,
+            width: 4,
+            alpha: alpha * fade * .72,
+          });
+
+        const angle = .18;
+        g
+          .moveTo(...Object.values(transformPoint(vx, headY, 0, -20, angle)))
+          .lineTo(...Object.values(transformPoint(vx, headY, 0, 7, angle)))
+          .stroke({
+            color: profile.main,
+            width: 7,
+            alpha: alpha * fade * .80,
+          });
+
+        const h0 = transformPoint(vx, headY, -15, -24, angle);
+        const h1 = transformPoint(vx, headY, 15, -24, angle);
+        g.moveTo(h0.x,h0.y).lineTo(h1.x,h1.y).stroke({
+          color: profile.main,
+          width: 7,
+          alpha: alpha * fade * .80,
+        });
+
+        if (!missed && strike > .58) {
+          const hit = (strike - .58) / .42;
+          for (let i = 0; i < 8; i += 1) {
+            const a = i / 8 * Math.PI * 2;
+            const rr = 9 + easeOut(hit) * (25 + (i % 2) * 9);
+            g.circle(
+              dx + Math.cos(a) * rr,
+              dy + Math.sin(a) * rr,
+              1.8,
+            ).fill({
+              color: i % 2 ? profile.main : profile.core,
+              alpha: alpha * (1 - hit) * .70,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "fever") {
+        dkSourceCue(g, source, profile, p / .18);
+        const vx = missed ? missX : dx;
+        const vy = missed ? dy - 12 : dy;
+        const fade = 1 - clamp01((p - .62) / .38);
+        const radius = 9 + easeOut(p) * 24;
+
+        for (let i = 0; i < 6; i += 1) {
+          const a = i / 6 * Math.PI * 2 + p * .35;
+          g
+            .moveTo(
+              vx + Math.cos(a) * radius * .35,
+              vy + Math.sin(a) * radius * .35,
+            )
+            .lineTo(
+              vx + Math.cos(a + .14) * radius,
+              vy + Math.sin(a + .14) * radius,
+            )
+            .stroke({
+              color: profile.main,
+              width: 1.8,
+              alpha: alpha * fade * .72,
+            });
+        }
+
+        for (let i = 0; i < 7; i += 1) {
+          const a = i / 7 * Math.PI * 2 + seed * .014;
+          const rr = 8 + p * (15 + (i % 4) * 4);
+          g.circle(
+            vx + Math.cos(a) * rr,
+            vy + Math.sin(a) * rr - p * 9,
+            1.5,
+          ).fill({
+            color: profile.core,
+            alpha: alpha * fade * .44,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "death-strike") {
+        dkSourceCue(g, source, profile, p / .15);
+        const vx = missed ? missX : dx;
+        const vy = missed ? missY : dy;
+        drawSlash(g, vx, vy, profile, p, seed, true, false);
+
+        if (!missed && p > .28) {
+          const t = clamp01((p - .28) / .48);
+          const fade = 1 - clamp01((p - .75) / .25);
+          const q = 1 - easeOut(t);
+          const qx = dx * q;
+          const qy = dy * q;
+          const length = Math.max(1, Math.hypot(dx,dy));
+          const nx = -dy / length;
+          const ny = dx / length;
+          g
+            .moveTo(dx,dy)
+            .lineTo(dx * .52 + nx * 12, dy * .52 + ny * 12)
+            .lineTo(qx,qy)
+            .stroke({
+              color: profile.main,
+              width: 2,
+              alpha: alpha * fade * .54,
+            })
+            .circle(qx,qy,3.2)
+            .fill({
+              color: profile.core,
+              alpha: alpha * fade * .68,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "obliterate") {
+        dkSourceCue(g, source, profile, p / .20);
+        const vx = missed ? missX : dx;
+        const vy = missed ? missY : dy;
+        drawSlash(g, vx, vy, profile, p, seed, true, !missed);
+        if (missed) continue;
+
+        const hit = clamp01((p - .22) / .62);
+        const fade = 1 - clamp01((p - .72) / .28);
+        for (let i = 0; i < 8; i += 1) {
+          const a = i / 8 * Math.PI * 2 + Math.sin(seed * .09 + i) * .20;
+          g
+            .moveTo(dx + Math.cos(a) * 8, dy + Math.sin(a) * 8)
+            .lineTo(
+              dx + Math.cos(a) * (18 + hit * 28),
+              dy + Math.sin(a) * (18 + hit * 28),
+            )
+            .stroke({
+              color: profile.main,
+              width: 1.8,
+              alpha: alpha * fade * .66,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "chains") {
+        dkSourceCue(g, source, profile, p / .16);
+        const fade = 1 - clamp01((p - .72) / .28);
+        for (let i = 0; i < 7; i += 1) {
+          const a = i / 7 * Math.PI * 2 + p * .8;
+          const rr = 19 + (i % 2) * 4;
+          const yOff = 18 - easeOut(p) * (8 + (i % 3) * 6);
+          const cx = dx + Math.cos(a) * rr;
+          const cy = dy + yOff + Math.sin(a) * rr * .35;
+          g.ellipse(cx,cy,6,3).stroke({
+            color: profile.main,
+            width: 2.2,
+            alpha: alpha * fade * .78,
+          });
+        }
+        g.circle(dx,dy,16 + easeOut(p) * 13).stroke({
+          color: profile.core,
+          width: 1.4,
+          alpha: alpha * fade * .40,
+        });
+        continue;
+      }
+
+      if (profile.kind === "mind-freeze") {
+        dkSourceCue(g, source, profile, p / .12);
+        const fade = 1 - clamp01((p - .58) / .42);
+        const close = 1 - easeOut(p);
+        for (const sign of [-1,1]) {
+          g
+            .moveTo(dx + sign * (28 + close * 12), dy - 16)
+            .lineTo(dx + sign * (11 + close * 5), dy)
+            .lineTo(dx + sign * (28 + close * 12), dy + 16)
+            .stroke({
+              color: profile.core,
+              width: 2.7,
+              alpha: alpha * fade * .84,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "frost-strike") {
+        dkSourceCue(g, source, profile, p / .12);
+        const vx = missed ? missX : dx;
+        const vy = missed ? missY : dy;
+        drawSlash(g, vx, vy, profile, p, seed, false, !missed);
+        if (!missed) {
+          const fade = 1 - clamp01((p - .68) / .32);
+          g.circle(dx,dy,10 + easeOut(p) * 27).stroke({
+            color: profile.main,
+            width: 1.5,
+            alpha: alpha * fade * .34,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "rune-tap") {
+        dkSourceCue(g, source, profile, p / .12);
+        const fade = 1 - clamp01((p - .74) / .26);
+        const rotation = -p * .7;
+
+        for (let i = 0; i < 4; i += 1) {
+          const a = i * Math.PI / 2 + rotation;
+          const p0 = transformPoint(0,0,-7,-source.radius-9,a);
+          const p1 = transformPoint(0,0,0,-source.radius-18,a);
+          const p2 = transformPoint(0,0,7,-source.radius-9,a);
+          g.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).lineTo(p2.x,p2.y).stroke({
+            color: profile.main,
+            width: 2.8,
+            alpha: alpha * fade * .72,
+          });
+        }
+
+        const rune = [
+          [-10,-10],[10,-10],[10,10],[-10,10],
+        ].map(([x,y]) => transformPoint(0,0,x,y,rotation));
+        drawPolygon(g,rune,{
+          color: profile.core,
+          width: 1.4,
+          alpha: alpha * fade * .62,
+        });
+        continue;
+      }
+    }
+  }
+
   updateNativeCommonCasterSpellVfx(game) {
     for (const view of this.actorViews.values()) {
       view.commonCasterSpellFx.clear();
@@ -3597,6 +4234,7 @@ export class PixiProofRenderer {
     this.updateNativeChainVfx(game);
     this.updateNativePriestHealSpellVfx(game);
     this.updateNativePriestDruidSpellVfx(game);
+    this.updateNativePaladinDkSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
 
     this.app.render();

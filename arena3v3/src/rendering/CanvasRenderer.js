@@ -130,11 +130,7 @@ export class CanvasRenderer {
     if (playerActor) this.drawActor(ctx, playerActor, game);
 
     this.drawOverlapReadability(ctx, game, livingActors);
-    this.drawVfx(ctx, game, {
-      skipBurstVfx,
-      skipSlashVfx,
-      skipRingVfx,
-    });
+    this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
 
@@ -236,7 +232,11 @@ export class CanvasRenderer {
       );
     }
 
-    this.drawVfx(ctx, game);
+    this.drawVfx(ctx, game, {
+      skipBurstVfx,
+      skipSlashVfx,
+      skipRingVfx,
+    });
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
 

@@ -3580,14 +3580,16 @@ export class AISystem {
 
   steer(actor, target, toward = 1) {
     const direct = normalize((target.x - actor.x) * toward, (target.y - actor.y) * toward);
-    const arena = this.game.arena;
 
-    // Look farther ahead than a single movement frame. Previously an AI could
-    // choose a direction that was clear for ~15px, walk right up to a pillar,
-    // then spend several route flips hugging the same corner. Starting the
-    // detour before contact makes caster/healer repositioning much smoother.
-    const directProbe = Math.max(56, actor.radius * 2.8);
-    if (!this.movement.wouldCollide(actor, direct, directProbe, arena)) {
+    // Return to the short obstacle probe used before the early-routing change.
+    // The deeper MovementSystem progress watchdog still handles real pillar
+    // deadlocks, so normal steering no longer takes wide detours pre-emptively.
+    if (!this.movement.wouldCollide(
+      actor,
+      direct,
+      Math.max(14, actor.radius * 0.8),
+      this.game.arena,
+    )) {
       return direct;
     }
 
@@ -3597,44 +3599,25 @@ export class AISystem {
     const side = { x: -direct.y * sign, y: direct.x * sign };
 
     const candidates = [
-      normalize(direct.x * 0.55 + side.x * 0.85, direct.y * 0.55 + side.y * 0.85),
-      normalize(direct.x * 0.55 - side.x * 0.85, direct.y * 0.55 - side.y * 0.85),
-      normalize(direct.x * 0.20 + side.x, direct.y * 0.20 + side.y),
-      normalize(direct.x * 0.20 - side.x, direct.y * 0.20 - side.y),
+      normalize(direct.x * 0.25 + side.x, direct.y * 0.25 + side.y),
+      normalize(direct.x * 0.25 - side.x, direct.y * 0.25 - side.y),
       side,
       { x: -side.x, y: -side.y },
     ];
 
-    const lookahead = [32, 58, 86];
-    const scored = candidates.map((candidate, index) => {
-      let clearSamples = 0;
-      let firstBlockedAt = 110;
-
-      for (const probe of lookahead) {
-        if (this.movement.wouldCollide(actor, candidate, probe, arena)) {
-          firstBlockedAt = probe;
-          break;
-        }
-        clearSamples += 1;
-      }
-
-      // Prefer a route that stays clear for several actor diameters. The tiny
-      // index bias preserves the actor's stable avoidance side when routes are
-      // otherwise equivalent, preventing left/right jitter at pillar corners.
-      return {
+    for (const candidate of candidates) {
+      if (!this.movement.wouldCollide(
+        actor,
         candidate,
-        score: clearSamples * 100 + firstBlockedAt - index * 0.25,
-      };
-    });
-
-    scored.sort((a, b) => b.score - a.score);
-
-    if (scored[0]?.score >= 132) {
-      return scored[0].candidate;
+        Math.max(16, actor.radius * 0.9),
+        this.game.arena,
+      )) {
+        return candidate;
+      }
     }
 
-    // Do not give up here. A zero vector means moveAI never runs, so its
-    // alternate-angle and stuck-recovery logic cannot help at a pillar corner.
+    // Let moveAI's alternate-angle and progress watchdog recovery take over
+    // instead of returning a zero vector at a difficult pillar corner.
     return direct;
   }
 }

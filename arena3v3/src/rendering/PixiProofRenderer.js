@@ -1,6 +1,7 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { classIconUrlFor } from "./ClassIconRegistry.js";
+import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
 
@@ -280,18 +281,25 @@ export class PixiProofRenderer {
     root.addChild(resourceFill);
 
     const castBg = new Graphics()
-      .rect(0, 0, 80, 5)
-      .fill({ color: 0x090807, alpha: .92 });
-    castBg.position.set(-40, actor.radius + 8);
+      .rect(0, 0, 86, 8)
+      .fill({ color: 0x0b0806, alpha: .95 });
+    castBg.position.set(-43, -actor.radius - 49);
     castBg.visible = false;
     root.addChild(castBg);
 
     const castFill = new Graphics()
-      .rect(0, 0, 78, 3)
+      .rect(0, 0, 84, 6)
       .fill(0xc9a36a);
-    castFill.position.set(-39, actor.radius + 9);
+    castFill.position.set(-42, -actor.radius - 48);
     castFill.visible = false;
     root.addChild(castFill);
+
+    const castBorder = new Graphics()
+      .rect(0, 0, 86, 8)
+      .stroke({ color: 0xd6c69e, width: 1, alpha: 1 });
+    castBorder.position.set(-43, -actor.radius - 49);
+    castBorder.visible = false;
+    root.addChild(castBorder);
 
     this.app.stage.addChild(root);
 
@@ -306,6 +314,8 @@ export class PixiProofRenderer {
       resourceFill,
       castBg,
       castFill,
+      castBorder,
+      castSpellId: null,
     };
     this.actorViews.set(actor.id, view);
     return view;
@@ -344,10 +354,42 @@ export class PixiProofRenderer {
     const casting = Boolean(actor.cast) && !isPlayer;
     view.castBg.visible = casting;
     view.castFill.visible = casting;
+    view.castBorder.visible = casting;
 
     if (casting) {
       const progress = 1 - actor.cast.remainingMs / Math.max(1, actor.cast.totalMs);
       view.castFill.scale.x = Math.max(0, Math.min(1, progress));
+
+      const spellId = actor.cast.spellId;
+      if (view.castSpellId !== spellId) {
+        const palette = castBarPaletteFor(actor, {
+          start: "#c9a36a",
+          end: "#d8ba80",
+          glow: "#c9a36a",
+          border: "#d6c69e",
+        });
+        const spell = actor.getSpell(spellId);
+        const uninterruptible = spell?.interruptible === false;
+
+        view.castFill.clear()
+          .rect(0, 0, 84, 6)
+          .fill(hexNumber(palette.start, 0xc9a36a));
+
+        view.castBorder.clear()
+          .rect(0, 0, 86, 8)
+          .stroke({
+            color: hexNumber(
+              uninterruptible ? "#e7bd63" : palette.border,
+              0xd6c69e,
+            ),
+            width: uninterruptible ? 1.8 : 1,
+            alpha: 1,
+          });
+
+        view.castSpellId = spellId;
+      }
+    } else {
+      view.castSpellId = null;
     }
   }
 

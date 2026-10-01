@@ -413,6 +413,53 @@ function commonCasterSpellProfile(spellId) {
   return profiles[spellId] || null;
 }
 
+const PROJECTILE_VFX2_SPELLS = new Set([
+  "mage-frostbolt",
+  "mage-pyroblast",
+  "mage-frostfire-bolt",
+  "mage-arcane-barrage",
+  "shaman-lava-burst",
+  "shaman-elemental-blast",
+  "warlock-shadow-bolt",
+  "warlock-chaos-bolt",
+  "paladin-hammer",
+]);
+
+function projectileVfx2Spec(spellId) {
+  const profile = spellPolishProfile(spellId);
+  const specs = {
+    "mage-frostbolt": {
+      shape: "frost-spear", travelEnd: .46, size: 9, tail: 66,
+    },
+    "mage-pyroblast": {
+      shape: "pyro", travelEnd: .49, size: 14, tail: 82, heavy: true,
+    },
+    "mage-frostfire-bolt": {
+      shape: "frostfire", travelEnd: .49, size: 13, tail: 78, heavy: true,
+    },
+    "mage-arcane-barrage": {
+      shape: "arcane", travelEnd: .44, size: 10, tail: 60,
+    },
+    "shaman-lava-burst": {
+      shape: "lava-rock", travelEnd: .52, size: 14, tail: 66, heavy: true, arc: 24,
+    },
+    "shaman-elemental-blast": {
+      shape: "elemental", travelEnd: .50, size: 10, tail: 60, heavy: true,
+    },
+    "warlock-shadow-bolt": {
+      shape: "shadow", travelEnd: .48, size: 10, tail: 68,
+    },
+    "warlock-chaos-bolt": {
+      shape: "chaos", travelEnd: .52, size: 13, tail: 78, heavy: true,
+    },
+    "paladin-hammer": {
+      shape: "hammer", travelEnd: .44, size: 13, tail: 48,
+    },
+  };
+  const spec = specs[spellId];
+  return spec ? { ...profile, ...spec } : null;
+}
+
 const POLISH_PROJECTILE_SPELLS = new Set([
   "priest-smite",
   "priest-holy-fire",
@@ -1324,6 +1371,14 @@ export class PixiProofRenderer {
     commonCasterSpellFx.visible = false;
     root.addChild(commonCasterSpellFx);
 
+    const projectileVfx2GlowFx = new Graphics();
+    projectileVfx2GlowFx.visible = false;
+    root.addChild(projectileVfx2GlowFx);
+
+    const projectileVfx2CoreFx = new Graphics();
+    projectileVfx2CoreFx.visible = false;
+    root.addChild(projectileVfx2CoreFx);
+
     const spellPolishGlowFx = new Graphics();
     spellPolishGlowFx.visible = false;
     root.addChild(spellPolishGlowFx);
@@ -1333,6 +1388,12 @@ export class PixiProofRenderer {
     root.addChild(spellPolishCoreFx);
 
     const { BlurFilter } = this.PIXI;
+
+    projectileVfx2GlowFx.blendMode = "screen";
+    projectileVfx2GlowFx.filters = [
+      new BlurFilter({ strength: 5.4, quality: 1 }),
+    ];
+    projectileVfx2CoreFx.blendMode = "screen";
 
     // One shared actor-local glow pass gives every class a stronger release,
     // projectile trail and impact without creating stage-level filter stacks.
@@ -1464,6 +1525,8 @@ export class PixiProofRenderer {
       paladinDkSpellFx,
       warriorRogueSpellFx,
       commonCasterSpellFx,
+      projectileVfx2GlowFx,
+      projectileVfx2CoreFx,
       spellPolishGlowFx,
       spellPolishCoreFx,
       playerGlow,
@@ -4993,6 +5056,7 @@ export class PixiProofRenderer {
 
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell") continue;
+      if (PROJECTILE_VFX2_SPELLS.has(effect.spellId)) continue;
 
       const profile = commonCasterSpellProfile(effect.spellId);
       if (!profile) continue;
@@ -5658,6 +5722,686 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeProjectileVfx2(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const poly = (g, points, style, fill = false) => {
+      if (!points.length || style.alpha <= 0) return;
+      g.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        g.lineTo(points[i].x, points[i].y);
+      }
+      g.lineTo(points[0].x, points[0].y);
+      if (fill) g.fill(style);
+      else g.stroke(style);
+    };
+
+    const transformed = (cx, cy, x, y, angle) => {
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      return {
+        x: cx + x * ca - y * sa,
+        y: cy + x * sa + y * ca,
+      };
+    };
+
+    const jaggedLine = (
+      g,
+      ax,
+      ay,
+      bx,
+      by,
+      seed,
+      wobble,
+      segments,
+      style,
+      phase = 0,
+    ) => {
+      const dx = bx - ax;
+      const dy = by - ay;
+      const length = Math.max(1, Math.hypot(dx, dy));
+      const nx = -dy / length;
+      const ny = dx / length;
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const edgeFade = Math.sin(t * Math.PI);
+        const noise =
+          Math.sin(seed * .073 + i * 2.731 + phase * 7.1)
+          * wobble
+          * edgeFade;
+        const x = ax + dx * t + nx * noise;
+        const y = ay + dy * t + ny * noise;
+        if (i === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.stroke(style);
+    };
+
+    for (const view of this.actorViews.values()) {
+      view.projectileVfx2GlowFx.clear();
+      view.projectileVfx2GlowFx.visible = false;
+      view.projectileVfx2CoreFx.clear();
+      view.projectileVfx2CoreFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+      if (!PROJECTILE_VFX2_SPELLS.has(effect.spellId)) continue;
+
+      const spec = projectileVfx2Spec(effect.spellId);
+      if (!spec) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX;
+      const targetY = target?.y ?? effect.targetY;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const missed = Boolean(effect.missed);
+
+      const dx0 = targetX - source.x;
+      const dy0 = targetY - source.y;
+      const length0 = Math.max(1, Math.hypot(dx0, dy0));
+      const tx0 = dx0 / length0;
+      const ty0 = dy0 / length0;
+      const nx0 = -ty0;
+      const ny0 = tx0;
+      const missSign = Math.sin(seed * .89) >= 0 ? 1 : -1;
+
+      const endX =
+        dx0
+        + (missed ? nx0 * missSign * (spec.heavy ? 52 : 42) + tx0 * 14 : 0);
+      const endY =
+        dy0
+        + (missed ? ny0 * missSign * (spec.heavy ? 52 : 42) + ty0 * 14 - 5 : 0);
+
+      const endLen = Math.max(1, Math.hypot(endX, endY));
+      const tx = endX / endLen;
+      const ty = endY / endLen;
+      const nx = -ty;
+      const ny = tx;
+      const angle = Math.atan2(endY, endX);
+
+      const travelT = easeOut((p - .035) / Math.max(.08, spec.travelEnd - .035));
+      const travelFade =
+        p > spec.travelEnd
+          ? clamp01(1 - (p - spec.travelEnd) / .085)
+          : 1;
+
+      let px = endX * travelT;
+      let py = endY * travelT;
+
+      if (spec.arc) {
+        py -= Math.sin(travelT * Math.PI) * spec.arc;
+      }
+
+      if (spec.shape === "shadow") {
+        const curl = Math.sin(p * 13 + seed * .07) * 7;
+        px += nx * curl;
+        py += ny * curl;
+      } else if (spec.shape === "chaos") {
+        const curl = Math.sin(p * 17 + seed * .05) * 5;
+        px += nx * curl;
+        py += ny * curl;
+      }
+
+      const glow = view.projectileVfx2GlowFx;
+      const core = view.projectileVfx2CoreFx;
+      glow.visible = true;
+      core.visible = true;
+
+      // Release snap: short, bright and directional.
+      const releaseP = clamp01(p / .14);
+      const releaseFade = 1 - releaseP;
+      if (releaseFade > 0) {
+        glow.circle(0,0,source.radius + 11 + releaseP * 13).stroke({
+          color: spec.main,
+          width: spec.heavy ? 8 : 6,
+          alpha: alpha * releaseFade * .20,
+        });
+        core.circle(0,0,source.radius + 9 + releaseP * 11).stroke({
+          color: spec.core,
+          width: spec.heavy ? 2.2 : 1.6,
+          alpha: alpha * releaseFade * .50,
+        });
+        for (let i = 0; i < (spec.heavy ? 7 : 5); i += 1) {
+          const a = i / (spec.heavy ? 7 : 5) * Math.PI * 2 + seed * .011;
+          core
+            .moveTo(Math.cos(a) * (source.radius + 4), Math.sin(a) * (source.radius + 4))
+            .lineTo(
+              Math.cos(a) * (source.radius + 16 + releaseP * 10),
+              Math.sin(a) * (source.radius + 16 + releaseP * 10),
+            )
+            .stroke({
+              color: i % 3 === 0 ? spec.core : spec.main,
+              width: 1.2,
+              alpha: alpha * releaseFade * .42,
+            });
+        }
+      }
+
+      if (travelFade > 0 && travelT > 0) {
+        // Long continuous tail, closer to the old Canvas look than the generic
+        // chain of small dots.
+        const tailLen = Math.min(spec.tail, Math.max(30, endLen * .22));
+        const tailScale = .45 + travelT * .55;
+        const tailX = px - tx * tailLen * tailScale;
+        const tailY =
+          py
+          - ty * tailLen * tailScale
+          + (spec.arc
+            ? Math.sin(Math.max(0, travelT - .12) * Math.PI) * -spec.arc
+              - Math.sin(travelT * Math.PI) * -spec.arc
+            : 0);
+
+        if (spec.shape === "shadow" || spec.shape === "chaos") {
+          jaggedLine(
+            glow, tailX, tailY, px, py, seed,
+            spec.shape === "chaos" ? 8 : 6,
+            spec.shape === "chaos" ? 8 : 7,
+            {
+              color: spec.main,
+              width: spec.shape === "chaos" ? 13 : 10,
+              alpha: alpha * travelFade * .24,
+            },
+            p,
+          );
+          jaggedLine(
+            core, tailX, tailY, px, py, seed + 19,
+            spec.shape === "chaos" ? 6 : 5,
+            7,
+            {
+              color: spec.core,
+              width: spec.shape === "chaos" ? 3.5 : 2.8,
+              alpha: alpha * travelFade * .82,
+            },
+            p * 1.2,
+          );
+        } else {
+          glow.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.main,
+            width: spec.heavy ? 14 : 10,
+            alpha: alpha * travelFade * .22,
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.core,
+            width: spec.heavy ? 4.2 : 3,
+            alpha: alpha * travelFade * .76,
+          });
+        }
+
+        // Offset motes make the tail turbulent instead of laser-straight.
+        const moteCount = spec.heavy ? 9 : 7;
+        for (let i = 0; i < moteCount; i += 1) {
+          const lag = Math.max(0, travelT - .033 * (i + 1));
+          let qx = endX * lag;
+          let qy = endY * lag;
+          if (spec.arc) qy -= Math.sin(lag * Math.PI) * spec.arc;
+          const wobble =
+            Math.sin(seed * .17 + i * 1.93 + p * 10)
+            * (4 + i * .65);
+          qx += nx * wobble;
+          qy += ny * wobble;
+          core.circle(
+            qx,
+            qy,
+            Math.max(1.1, (spec.heavy ? 3.4 : 2.8) - i * .24),
+          ).fill({
+            color: i % 3 === 0 ? spec.accent : spec.main,
+            alpha: alpha * travelFade * Math.max(.10,.55 - i * .05),
+          });
+        }
+
+        // Spell-specific moving silhouette.
+        if (spec.shape === "frost-spear") {
+          const pts=[
+            transformed(px,py,19,0,angle),
+            transformed(px,py,-4,-8,angle),
+            transformed(px,py,-1,-2.5,angle),
+            transformed(px,py,-14,0,angle),
+            transformed(px,py,-1,2.5,angle),
+            transformed(px,py,-4,8,angle),
+          ];
+          poly(glow,pts,{color:spec.main,alpha:alpha*travelFade*.26},true);
+          poly(core,pts,{color:spec.main,alpha:alpha*travelFade*.92},true);
+          poly(core,pts,{color:spec.core,width:1.6,alpha:alpha*travelFade*.94});
+          for(let i=0;i<4;i++){
+            const a=angle+Math.PI+(i-1.5)*.32;
+            core
+              .moveTo(px-tx*4,py-ty*4)
+              .lineTo(px+Math.cos(a)*17,py+Math.sin(a)*17)
+              .stroke({
+                color:i%2?spec.core:spec.accent,
+                width:1.2,
+                alpha:alpha*travelFade*.55,
+              });
+          }
+        } else if (spec.shape === "pyro") {
+          const flamePts=[];
+          for(let i=0;i<12;i++){
+            const a=i/12*Math.PI*2+p*4.5;
+            const rr=i%2?spec.size*.72:spec.size*1.18;
+            flamePts.push({x:px+Math.cos(a)*rr,y:py+Math.sin(a)*rr});
+          }
+          poly(glow,flamePts,{color:spec.main,alpha:alpha*travelFade*.32},true);
+          poly(core,flamePts,{color:spec.main,alpha:alpha*travelFade*.95},true);
+          core.circle(px,py,spec.size*.52).fill({
+            color:spec.core,alpha:alpha*travelFade*.98
+          });
+          for(let i=0;i<6;i++){
+            const a=angle+Math.PI+(i-2.5)*.20+Math.sin(p*9+i)*.08;
+            core
+              .moveTo(px-tx*5,py-ty*5)
+              .lineTo(px+Math.cos(a)*(18+(i%3)*5),py+Math.sin(a)*(18+(i%3)*5))
+              .stroke({
+                color:i%2?spec.core:spec.accent,
+                width:1.4,
+                alpha:alpha*travelFade*.60,
+              });
+          }
+        } else if (spec.shape === "frostfire") {
+          const diamond=[
+            transformed(px,py,20,0,angle),
+            transformed(px,py,-4,-10,angle),
+            transformed(px,py,-15,0,angle),
+            transformed(px,py,-4,10,angle),
+          ];
+          poly(glow,diamond,{color:spec.main,alpha:alpha*travelFade*.30},true);
+          poly(core,diamond,{color:spec.main,alpha:alpha*travelFade*.90},true);
+          poly(core,diamond,{color:spec.core,width:2,alpha:alpha*travelFade*.90});
+          core.circle(px-tx*2,py-ty*2,6).fill({
+            color:spec.accent,alpha:alpha*travelFade*.72
+          });
+          for(const sign of [-1,1]){
+            core
+              .moveTo(px-tx*4,py-ty*4)
+              .lineTo(
+                px-tx*22+nx*sign*12,
+                py-ty*22+ny*sign*12
+              )
+              .stroke({
+                color:sign>0?spec.core:spec.accent,
+                width:1.8,
+                alpha:alpha*travelFade*.62,
+              });
+          }
+        } else if (spec.shape === "arcane") {
+          glow.circle(px,py,spec.size+6).fill({
+            color:spec.main,alpha:alpha*travelFade*.24
+          });
+          core.circle(px,py,spec.size*.55).fill({
+            color:spec.core,alpha:alpha*travelFade*.94
+          });
+          for(let i=0;i<3;i++){
+            const r=8+i*4;
+            const a0=-1.1+i*.75+p*7*(i%2?1:-1);
+            const segs=6;
+            for(let j=0;j<=segs;j++){
+              const q=a0+j/segs*2.2;
+              const x=px+Math.cos(q)*r;
+              const y=py+Math.sin(q)*r;
+              if(j===0) core.moveTo(x,y); else core.lineTo(x,y);
+            }
+            core.stroke({
+              color:i===1?spec.core:spec.main,
+              width:1.8,
+              alpha:alpha*travelFade*.74,
+            });
+          }
+        } else if (spec.shape === "lava-rock") {
+          const pts=[];
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2+p*11+seed*.01;
+            const rr=i%2?9:14;
+            pts.push({x:px+Math.cos(a)*rr,y:py+Math.sin(a)*rr});
+          }
+          poly(glow,pts,{color:spec.main,alpha:alpha*travelFade*.32},true);
+          poly(core,pts,{color:0x6b3426,alpha:alpha*travelFade*.98},true);
+          poly(core,pts,{color:spec.main,width:2.6,alpha:alpha*travelFade*.88});
+          for(let i=0;i<3;i++){
+            const a=i*2.1+p*4;
+            core
+              .moveTo(px+Math.cos(a)*3,py+Math.sin(a)*3)
+              .lineTo(px+Math.cos(a+.45)*10,py+Math.sin(a+.45)*10)
+              .stroke({
+                color:spec.core,width:1.6,alpha:alpha*travelFade*.84
+              });
+          }
+        } else if (spec.shape === "elemental") {
+          glow.circle(px,py,13).fill({
+            color:spec.core,alpha:alpha*travelFade*.22
+          });
+          core.circle(px,py,7).fill({
+            color:spec.core,alpha:alpha*travelFade*.96
+          });
+          const colors=[spec.main,spec.accent,0x87b978];
+          for(let i=0;i<3;i++){
+            const a=p*15*(i%2?-1:1)+i*Math.PI*2/3;
+            const rr=11+(i%2)*4;
+            const sx=px+Math.cos(a)*rr;
+            const sy=py+Math.sin(a)*rr;
+            glow.circle(sx,sy,5).fill({
+              color:colors[i],alpha:alpha*travelFade*.25
+            });
+            core.circle(sx,sy,3.1).fill({
+              color:colors[i],alpha:alpha*travelFade*.82
+            });
+            core.moveTo(px,py).lineTo(sx,sy).stroke({
+              color:colors[i],width:1.2,alpha:alpha*travelFade*.38
+            });
+          }
+          const backX=px-tx*28;
+          const backY=py-ty*28;
+          jaggedLine(
+            core,backX,backY,px,py,seed+71,4.5,6,
+            {color:spec.main,width:2,alpha:alpha*travelFade*.70},p*4
+          );
+        } else if (spec.shape === "shadow") {
+          glow.circle(px,py,spec.size+7).fill({
+            color:spec.main,alpha:alpha*travelFade*.18
+          });
+          core.circle(px,py,8.5).fill({
+            color:spec.main,alpha:alpha*travelFade*.88
+          });
+          core.circle(px-tx*2,py-ty*2,4).fill({
+            color:spec.core,alpha:alpha*travelFade*.75
+          });
+          for(let i=0;i<5;i++){
+            const a=p*6+i*Math.PI*2/5+seed*.013;
+            const rr=10+(i%2)*5;
+            core.circle(
+              px+Math.cos(a)*rr,
+              py+Math.sin(a)*rr,
+              1.5+(i%2)*.5
+            ).fill({
+              color:i%2?spec.core:spec.main,
+              alpha:alpha*travelFade*.50,
+            });
+          }
+        } else if (spec.shape === "chaos") {
+          glow.circle(px,py,spec.size+8).fill({
+            color:spec.main,alpha:alpha*travelFade*.20
+          });
+          core.circle(px,py,7).fill({
+            color:spec.core,alpha:alpha*travelFade*.96
+          });
+
+          const backX=px-tx*31;
+          const backY=py-ty*31;
+          for(const sign of [-1,1]){
+            const midX=px-tx*18+nx*sign*15;
+            const midY=py-ty*18+ny*sign*15;
+            const endForkX=px-tx*29+nx*sign*23;
+            const endForkY=py-ty*29+ny*sign*23;
+            core
+              .moveTo(px-tx*6,py-ty*6)
+              .lineTo(midX,midY)
+              .lineTo(endForkX,endForkY)
+              .stroke({
+                color:spec.main,
+                width:2.3,
+                alpha:alpha*travelFade*.84,
+              });
+            glow
+              .moveTo(px-tx*6,py-ty*6)
+              .lineTo(midX,midY)
+              .lineTo(endForkX,endForkY)
+              .stroke({
+                color:spec.main,
+                width:7,
+                alpha:alpha*travelFade*.15,
+              });
+          }
+          jaggedLine(
+            core,backX,backY,px,py,seed+19,6,7,
+            {color:spec.core,width:3.2,alpha:alpha*travelFade*.88},p*12
+          );
+        } else if (spec.shape === "hammer") {
+          const hammerAngle=angle+p*2.8;
+          const handle=[
+            transformed(px,py,-4,-14,hammerAngle),
+            transformed(px,py,4,-14,hammerAngle),
+            transformed(px,py,4,11,hammerAngle),
+            transformed(px,py,-4,11,hammerAngle),
+          ];
+          const head=[
+            transformed(px,py,-14,-19,hammerAngle),
+            transformed(px,py,14,-19,hammerAngle),
+            transformed(px,py,14,-10,hammerAngle),
+            transformed(px,py,-14,-10,hammerAngle),
+          ];
+          poly(glow,handle,{color:spec.main,alpha:alpha*travelFade*.25},true);
+          poly(glow,head,{color:spec.main,alpha:alpha*travelFade*.25},true);
+          poly(core,handle,{color:spec.main,alpha:alpha*travelFade*.92},true);
+          poly(core,head,{color:spec.main,alpha:alpha*travelFade*.92},true);
+          poly(core,head,{color:spec.core,width:1.6,alpha:alpha*travelFade*.86});
+        }
+      }
+
+      // Impact language stays spell-specific instead of reverting to the generic
+      // "one expanding circle" look.
+      if (p >= spec.travelEnd) {
+        const hit = clamp01((p - spec.travelEnd) / .36);
+        const fade = 1 - smooth(hit);
+        const ix = endX;
+        const iy = endY;
+
+        if (missed) {
+          for(let i=0;i<6;i++){
+            const a=angle+(i-2.5)*.36;
+            const rr=8+easeOut(hit)*(18+(i%3)*6);
+            core.circle(
+              ix+Math.cos(a)*rr,
+              iy+Math.sin(a)*rr,
+              1.2+(i%2)*.5
+            ).fill({
+              color:i%2?spec.main:spec.core,
+              alpha:alpha*fade*.40,
+            });
+          }
+          continue;
+        }
+
+        if (spec.shape === "frost-spear") {
+          for(let i=0;i<9;i++){
+            const a=i/9*Math.PI*2+seed*.013;
+            const inner=7;
+            const outer=14+easeOut(hit)*(22+(i%3)*7);
+            core
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:i%3===0?spec.core:spec.main,
+                width:i%3===0?2.2:1.4,
+                alpha:alpha*fade*.62,
+              });
+          }
+          glow.circle(ix,iy,10+hit*28).stroke({
+            color:spec.main,width:7,alpha:alpha*fade*.16
+          });
+        } else if (spec.shape === "pyro") {
+          glow.circle(ix,iy,12+hit*40).fill({
+            color:spec.main,alpha:alpha*fade*.14
+          });
+          core.circle(ix,iy,7+hit*26).stroke({
+            color:spec.core,width:2.2,alpha:alpha*fade*.52
+          });
+          for(let i=0;i<12;i++){
+            const a=i/12*Math.PI*2+seed*.019;
+            const rr=9+easeOut(hit)*(28+(i%4)*6);
+            core.circle(
+              ix+Math.cos(a)*rr,
+              iy+Math.sin(a)*rr-hit*8,
+              1.5+(i%3)*.65
+            ).fill({
+              color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+              alpha:alpha*fade*.66,
+            });
+          }
+        } else if (spec.shape === "frostfire") {
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2+seed*.01;
+            const outer=15+easeOut(hit)*(24+(i%3)*7);
+            core
+              .moveTo(ix+Math.cos(a)*6,iy+Math.sin(a)*6)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:i%2?spec.main:spec.accent,
+                width:1.7,
+                alpha:alpha*fade*.56,
+              });
+          }
+          core.circle(ix,iy,8+hit*20).stroke({
+            color:spec.core,width:2,alpha:alpha*fade*.46
+          });
+        } else if (spec.shape === "arcane") {
+          for(let ring=0;ring<3;ring++){
+            const r=10+hit*(17+ring*7);
+            const offset=hit*(ring%2?2.8:-2.4);
+            for(let seg=0;seg<4;seg++){
+              const a0=seg*Math.PI/2+.15+offset;
+              const a1=a0+.62;
+              for(let j=0;j<=5;j++){
+                const a=a0+(a1-a0)*j/5;
+                const x=ix+Math.cos(a)*r;
+                const y=iy+Math.sin(a)*r;
+                if(j===0) core.moveTo(x,y); else core.lineTo(x,y);
+              }
+              core.stroke({
+                color:ring===1?spec.core:spec.main,
+                width:1.5,
+                alpha:alpha*fade*(.52-ring*.08),
+              });
+            }
+          }
+        } else if (spec.shape === "lava-rock") {
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2+seed*.017;
+            const rr=8+easeOut(hit)*(22+(i%4)*7);
+            core.circle(
+              ix+Math.cos(a)*rr,
+              iy+Math.sin(a)*rr-hit*8,
+              1.5+(i%3)*.7
+            ).fill({
+              color:i%3===0?spec.core:spec.main,
+              alpha:alpha*fade*.68,
+            });
+          }
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+seed*.011;
+            core
+              .moveTo(ix+Math.cos(a)*6,iy+Math.sin(a)*6)
+              .lineTo(
+                ix+Math.cos(a)*(18+hit*26),
+                iy+Math.sin(a)*(18+hit*26)
+              )
+              .stroke({
+                color:0x8b4b31,width:1.8,alpha:alpha*fade*.56
+              });
+          }
+        } else if (spec.shape === "elemental") {
+          const colors=[spec.main,spec.accent,0x87b978];
+          for(let i=0;i<12;i++){
+            const a=i/12*Math.PI*2+seed*.015;
+            const inner=6+hit*3;
+            const outer=17+easeOut(hit)*(28+(i%4)*5);
+            core
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:colors[i%3],
+                width:1.8,
+                alpha:alpha*fade*.62,
+              });
+          }
+          glow.circle(ix,iy,9+hit*30).fill({
+            color:spec.core,alpha:alpha*fade*.11
+          });
+        } else if (spec.shape === "shadow") {
+          const collapse=1-easeOut(hit);
+          glow.circle(ix,iy,9+collapse*17).fill({
+            color:spec.main,alpha:alpha*fade*.14
+          });
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2-hit*(i%2?1.7:-1.4)+seed*.01;
+            const rr=7+easeOut(hit)*(24+(i%3)*7);
+            core.circle(
+              ix+Math.cos(a)*rr,
+              iy+Math.sin(a)*rr,
+              1.4+(i%2)*.5
+            ).fill({
+              color:i%3===0?spec.core:spec.main,
+              alpha:alpha*fade*.54,
+            });
+          }
+          core.circle(ix,iy,5+collapse*4).fill({
+            color:spec.core,alpha:alpha*fade*.70
+          });
+        } else if (spec.shape === "chaos") {
+          for(let i=0;i<9;i++){
+            const a=i/9*Math.PI*2+seed*.013;
+            const inner=7;
+            const mid=16+hit*10;
+            const outer=22+easeOut(hit)*(24+(i%3)*8);
+            const bend=a+(i%2?.22:-.22);
+            core
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ix+Math.cos(bend)*mid,iy+Math.sin(bend)*mid)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:i%3===0?spec.core:spec.main,
+                width:2,
+                alpha:alpha*fade*.66,
+              });
+          }
+          glow.circle(ix,iy,10+hit*33).stroke({
+            color:spec.main,width:8,alpha:alpha*fade*.14
+          });
+          core.circle(ix,iy,7*(1-hit*.35)).fill({
+            color:spec.core,alpha:alpha*fade*.74
+          });
+        } else if (spec.shape === "hammer") {
+          glow.circle(ix,iy,10+hit*34).stroke({
+            color:spec.main,width:7,alpha:alpha*fade*.14
+          });
+          core.circle(ix,iy,10+hit*36).stroke({
+            color:spec.main,width:2.2,alpha:alpha*fade*.52
+          });
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2;
+            core
+              .moveTo(ix+Math.cos(a)*8,iy+Math.sin(a)*8)
+              .lineTo(
+                ix+Math.cos(a)*(18+hit*28),
+                iy+Math.sin(a)*(18+hit*28)
+              )
+              .stroke({
+                color:i%2?spec.main:spec.core,
+                width:1.6,
+                alpha:alpha*fade*.58,
+              });
+          }
+        }
+      }
+    }
+  }
+
   updateNativeSpellAnimationPolish(game) {
     const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
     const smooth = value => {
@@ -5775,6 +6519,7 @@ export class PixiProofRenderer {
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell") continue;
       if (POLISH_ALREADY_FINAL.has(effect.spellId)) continue;
+      if (PROJECTILE_VFX2_SPELLS.has(effect.spellId)) continue;
 
       const source = game.getActor(effect.sourceId);
       const target = game.getActor(effect.targetId);
@@ -6335,6 +7080,7 @@ export class PixiProofRenderer {
     this.updateNativePaladinDkSpellVfx(game);
     this.updateNativeWarriorRogueSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
+    this.updateNativeProjectileVfx2(game);
     this.updateNativeSpellAnimationPolish(game);
     this.updateNativeFloatingCombatText(game);
 

@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi32";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi33";
 
 
 

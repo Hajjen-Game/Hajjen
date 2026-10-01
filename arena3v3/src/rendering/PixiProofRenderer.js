@@ -65,6 +65,27 @@ function paintFallbackArena(ctx, arena) {
   }
 }
 
+function makeSharpIconTexture(PIXI, sourceTexture, size = 128) {
+  const resource = sourceTexture?.source?.resource;
+  if (!resource || typeof document === "undefined") return sourceTexture;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return sourceTexture;
+
+  ctx.clearRect(0, 0, size, size);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(resource, 0, 0, size, size);
+
+  const texture = PIXI.Texture.from(canvas);
+  texture.source.scaleMode = "linear";
+  texture.source.autoGenerateMipmaps = false;
+  return texture;
+}
+
 function makeArenaCanvas(arena) {
   const canvas = document.createElement("canvas");
   canvas.width = GAME_WIDTH;
@@ -95,6 +116,7 @@ export class PixiProofRenderer {
     this.terrainTexture = null;
     this.renderedArenaId = "";
     this.iconTextures = new Map();
+    this.ownedIconTextures = new Set();
     this.actorViews = new Map();
     this.arenaBuildPromise = null;
     this.atmosphere = null;
@@ -131,7 +153,7 @@ export class PixiProofRenderer {
       antialias: true,
       autoStart: false,
       preference: "webgl",
-      resolution: 1,
+      resolution: Math.min(2, Math.max(1.5, Number(window.devicePixelRatio) || 1)),
     });
     this.app = app;
 
@@ -177,7 +199,10 @@ export class PixiProofRenderer {
       if (!url) return;
 
       try {
-        const texture = await Assets.load(url);
+        const sourceTexture = await Assets.load(url);
+        const texture = makeSharpIconTexture(this.PIXI, sourceTexture, 128);
+
+        if (texture !== sourceTexture) this.ownedIconTextures.add(texture);
         this.iconTextures.set(classId, texture);
       } catch (error) {
         console.warn("[Pixi preview] icon failed to load", classId, error);
@@ -656,6 +681,12 @@ export class PixiProofRenderer {
       this.inputCanvas.style.background = "";
       this.inputCanvas.style.zIndex = "";
     }
+
+    for (const texture of this.ownedIconTextures) {
+      texture.destroy?.(true);
+    }
+    this.ownedIconTextures.clear();
+    this.iconTextures.clear();
 
     if (this.app?.renderer) {
       try {

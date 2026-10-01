@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi27";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi28";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",
@@ -33,6 +33,22 @@ const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "dk-mind-freeze",
   "dk-frost-strike",
   "dk-rune-tap",
+
+  "warrior-rend",
+  "warrior-mortal-strike",
+  "warrior-slam",
+  "warrior-charge",
+  "warrior-pummel",
+  "warrior-overpower",
+  "warrior-bloodthirst",
+
+  "rogue-garrote",
+  "rogue-sinister",
+  "rogue-eviscerate",
+  "rogue-kidney",
+  "rogue-kick",
+  "rogue-mutilate",
+  "rogue-shadowstep",
 
   "mage-living-bomb",
   "mage-frostbolt",

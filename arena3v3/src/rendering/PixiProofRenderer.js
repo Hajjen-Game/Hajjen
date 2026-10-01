@@ -195,6 +195,69 @@ function paladinDkSpellProfile(spellId) {
   return profiles[spellId] || null;
 }
 
+function warriorRogueSpellProfile(spellId) {
+  const profiles = {
+    "warrior-rend": {
+      family: "warrior", kind: "rend",
+      main: 0xb76955, core: 0xe0b69b, accent: 0x9a9b98,
+    },
+    "warrior-mortal-strike": {
+      family: "warrior", kind: "mortal",
+      main: 0xbf755b, core: 0xeee0c8, accent: 0xa7a6a1,
+    },
+    "warrior-slam": {
+      family: "warrior", kind: "slam",
+      main: 0xba815d, core: 0xe9d7ba, accent: 0x9b9b96,
+    },
+    "warrior-charge": {
+      family: "warrior", kind: "charge",
+      main: 0xaa8a68, core: 0xd7c7a7, accent: 0x8c8a84,
+    },
+    "warrior-pummel": {
+      family: "warrior", kind: "pummel",
+      main: 0xa9795c, core: 0xe1d1b5, accent: 0x999894,
+    },
+    "warrior-overpower": {
+      family: "warrior", kind: "overpower",
+      main: 0xc48a61, core: 0xefe1c6, accent: 0xa5a49f,
+    },
+    "warrior-bloodthirst": {
+      family: "warrior", kind: "bloodthirst",
+      main: 0xa94d48, core: 0xdf9a89, accent: 0x8e8e89,
+    },
+
+    "rogue-garrote": {
+      family: "rogue", kind: "garrote",
+      main: 0xa5a35c, core: 0xe2dda0, accent: 0x514666,
+    },
+    "rogue-sinister": {
+      family: "rogue", kind: "sinister",
+      main: 0xc2b867, core: 0xeee4aa, accent: 0x594c6c,
+    },
+    "rogue-eviscerate": {
+      family: "rogue", kind: "eviscerate",
+      main: 0xc6b95e, core: 0xf4e6a4, accent: 0x5a4a69,
+    },
+    "rogue-kidney": {
+      family: "rogue", kind: "kidney",
+      main: 0xa18a64, core: 0xe1d29b, accent: 0x6a537b,
+    },
+    "rogue-kick": {
+      family: "rogue", kind: "kick",
+      main: 0xaaa067, core: 0xeee1a3, accent: 0x5d4e70,
+    },
+    "rogue-mutilate": {
+      family: "rogue", kind: "mutilate",
+      main: 0xb7ad61, core: 0xf0e2a0, accent: 0x684f78,
+    },
+    "rogue-shadowstep": {
+      family: "rogue", kind: "shadowstep",
+      main: 0x8f76a8, core: 0xcbb5df, accent: 0x43384f,
+    },
+  };
+  return profiles[spellId] || null;
+}
+
 function commonCasterSpellProfile(spellId) {
   const profiles = {
     "mage-living-bomb": {
@@ -1117,6 +1180,10 @@ export class PixiProofRenderer {
     paladinDkSpellFx.visible = false;
     root.addChild(paladinDkSpellFx);
 
+    const warriorRogueSpellFx = new Graphics();
+    warriorRogueSpellFx.visible = false;
+    root.addChild(warriorRogueSpellFx);
+
     const commonCasterSpellFx = new Graphics();
     commonCasterSpellFx.visible = false;
     root.addChild(commonCasterSpellFx);
@@ -1232,6 +1299,7 @@ export class PixiProofRenderer {
       priestHealSpellFx,
       priestDruidSpellFx,
       paladinDkSpellFx,
+      warriorRogueSpellFx,
       commonCasterSpellFx,
       playerGlow,
       playerRing,
@@ -3513,6 +3581,703 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeWarriorRogueSpellVfx(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const transformPoint = (cx, cy, x, y, angle) => {
+      const ca = Math.cos(angle);
+      const sa = Math.sin(angle);
+      return {
+        x: cx + x * ca - y * sa,
+        y: cy + x * sa + y * ca,
+      };
+    };
+
+    const strokeArc = (graphics, cx, cy, radius, start, end, style, segments = 6) => {
+      if (style.alpha <= 0) return;
+      let first = true;
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const a = start + (end - start) * t;
+        const x = cx + Math.cos(a) * radius;
+        const y = cy + Math.sin(a) * radius;
+        if (first) {
+          graphics.moveTo(x, y);
+          first = false;
+        } else {
+          graphics.lineTo(x, y);
+        }
+      }
+      graphics.stroke(style);
+    };
+
+    const weaponSlash = (
+      graphics,
+      cx,
+      cy,
+      angle,
+      length,
+      profile,
+      alpha,
+      width = 4,
+      bend = 0,
+      rogue = false,
+    ) => {
+      if (alpha <= 0) return;
+      const a = transformPoint(cx, cy, -length * .52, -bend, angle);
+      const m = transformPoint(cx, cy, 0, bend, angle);
+      const b = transformPoint(cx, cy, length * .52, bend * .15, angle);
+
+      graphics
+        .moveTo(a.x, a.y)
+        .lineTo(m.x, m.y)
+        .lineTo(b.x, b.y)
+        .stroke({
+          color: profile.core,
+          width,
+          alpha,
+        });
+
+      graphics
+        .moveTo(a.x, a.y)
+        .lineTo(m.x, m.y)
+        .lineTo(b.x, b.y)
+        .stroke({
+          color: rogue ? profile.accent : profile.accent,
+          width: Math.max(1, width + 3.5),
+          alpha: alpha * .18,
+        });
+    };
+
+    const warriorCue = (graphics, source, profile, phase, heavy = false) => {
+      const p = clamp01(phase);
+      const fade = 1 - p;
+      if (!source || fade <= 0) return;
+      const count = heavy ? 5 : 3;
+
+      for (let i = 0; i < count; i += 1) {
+        const a = -.95 + i * (heavy ? .48 : .72);
+        const inner = source.radius + 5;
+        const outer = source.radius + 13 + i * 2 + p * 8;
+        graphics
+          .moveTo(Math.cos(a) * inner, Math.sin(a) * inner)
+          .lineTo(Math.cos(a) * outer, Math.sin(a) * outer)
+          .stroke({
+            color: profile.accent,
+            width: heavy ? 2.4 : 1.6,
+            alpha: fade * (heavy ? .56 : .38),
+          });
+      }
+    };
+
+    const rogueCue = (graphics, source, profile, phase) => {
+      const p = clamp01(phase);
+      const fade = 1 - p;
+      if (!source || fade <= 0) return;
+
+      for (let i = 0; i < 3; i += 1) {
+        const a = i * Math.PI * 2 / 3 - p * 1.8;
+        const radius = source.radius + 7 + i * 3;
+        strokeArc(
+          graphics,
+          0,
+          0,
+          radius,
+          a,
+          a + .72,
+          {
+            color: profile.accent,
+            width: 1.4,
+            alpha: fade * .38,
+          },
+          5,
+        );
+      }
+    };
+
+    const effectApplied = (target, spellId, kind) =>
+      Boolean(target?.effects?.some(active =>
+        active.remainingMs > 0
+        && active.spellId === spellId
+        && active.kind === kind
+      ));
+
+    for (const view of this.actorViews.values()) {
+      view.warriorRogueSpellFx.clear();
+      view.warriorRogueSpellFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+
+      const profile = warriorRogueSpellProfile(effect.spellId);
+      if (!profile) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX ?? source.x;
+      const targetY = target?.y ?? effect.targetY ?? source.y;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const missed = Boolean(effect.missed);
+      const dx = targetX - source.x;
+      const dy = targetY - source.y;
+      const missSign = Math.sin(seed * .83) >= 0 ? 1 : -1;
+      const missX = dx + missSign * 43;
+      const missY = dy - 8;
+      const g = view.warriorRogueSpellFx;
+      g.visible = true;
+
+      if (profile.kind === "rend") {
+        warriorCue(g, source, profile, p / .14);
+        const vx = missed ? missX : dx;
+        const vy = missed ? missY : dy;
+        const fade = 1 - clamp01((p - .62) / .38);
+
+        for (let i = 0; i < 3; i += 1) {
+          const local = smooth((p - i * .055) / .30);
+          if (local <= 0) continue;
+          weaponSlash(
+            g,
+            vx + (i - 1) * 5,
+            vy + (i - 1) * 2,
+            -.84 + i * .07,
+            37 + i * 4,
+            profile,
+            alpha * fade * local * .68,
+            2.2,
+            5,
+          );
+        }
+
+        if (!missed) {
+          for (let i = 0; i < 4; i += 1) {
+            const a = -.4 + i * .28;
+            g.circle(
+              dx + Math.cos(a) * (11 + p * 15),
+              dy + Math.sin(a) * (9 + p * 12),
+              1.2 + (i % 2) * .5,
+            ).fill({
+              color: profile.main,
+              alpha: alpha * fade * .42,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "mortal") {
+        warriorCue(g, source, profile, p / .14, true);
+        const vx = missed ? dx + missSign * 45 : dx;
+        const vy = missed ? dy - 9 : dy;
+        const fade = 1 - clamp01((p - .68) / .32);
+        weaponSlash(
+          g,
+          vx,
+          vy,
+          -.66,
+          58,
+          profile,
+          alpha * fade * smooth(p / .34) * .90,
+          5.5,
+          11,
+        );
+
+        if (!missed && p > .23) {
+          const t = clamp01((p - .23) / .52);
+          for (let i = 0; i < 3; i += 1) {
+            const a = i * Math.PI * 2 / 3 + .2;
+            strokeArc(
+              g,
+              dx,
+              dy,
+              17 + t * 14,
+              a,
+              a + .72,
+              {
+                color: profile.main,
+                width: 2,
+                alpha: alpha * (1 - t) * .50,
+              },
+              5,
+            );
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "slam") {
+        warriorCue(g, source, profile, p / .18, true);
+        const vx = missed ? dx + missSign * 47 : dx;
+        const vy = dy;
+        const impact = smooth(p / .36);
+        const fade = 1 - clamp01((p - .72) / .28);
+
+        g
+          .moveTo(vx - 10, vy - 42 + impact * 18)
+          .lineTo(vx + 5, vy + 12)
+          .stroke({
+            color: profile.core,
+            width: 5,
+            alpha: alpha * fade * impact * .82,
+          });
+
+        if (!missed && p > .20) {
+          const shock = clamp01((p - .20) / .58);
+          g.ellipse(
+            dx,
+            dy + 13,
+            10 + easeOut(shock) * 38,
+            4 + easeOut(shock) * 10,
+          ).stroke({
+            color: profile.main,
+            width: 2.4,
+            alpha: alpha * (1 - shock) * .62,
+          });
+
+          for (let i = 0; i < 6; i += 1) {
+            const a = -.15 + i * Math.PI / 5;
+            const len = 10 + shock * (15 + (i % 3) * 6);
+            g
+              .moveTo(dx + Math.cos(a) * 7, dy + 12 + Math.sin(a) * 3)
+              .lineTo(
+                dx + Math.cos(a) * len,
+                dy + 12 + Math.sin(a) * len * .38,
+              )
+              .stroke({
+                color: profile.main,
+                width: 1.4,
+                alpha: alpha * (1 - shock) * .48,
+              });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "charge") {
+        const originX = Number.isFinite(effect.sourceX) ? effect.sourceX - source.x : 0;
+        const originY = Number.isFinite(effect.sourceY) ? effect.sourceY - source.y : 0;
+        const moved = Math.hypot(originX, originY) > 5;
+        const fade = 1 - clamp01((p - .72) / .28);
+
+        if (moved) {
+          const length = Math.max(1, Math.hypot(originX, originY));
+          const tx = -originX / length;
+          const ty = -originY / length;
+          const nx = -ty;
+          const ny = tx;
+          const tailLen = Math.min(42, length);
+          const tailX = -tx * tailLen;
+          const tailY = -ty * tailLen;
+
+          for (let i = 0; i < 4; i += 1) {
+            const off = (i - 1.5) * 4;
+            g
+              .moveTo(tailX + nx * off, tailY + ny * off)
+              .lineTo(-tx * 7 + nx * off * .5, -ty * 7 + ny * off * .5)
+              .stroke({
+                color: i % 2 ? profile.core : profile.main,
+                width: 1.2 + i * .35,
+                alpha: alpha * fade * (.16 + i * .05),
+              });
+          }
+
+          for (let i = 0; i < 5; i += 1) {
+            const lag = 5 + i * 7;
+            g.circle(
+              -tx * lag + nx * Math.sin(seed * .13 + i * 2.1) * 5,
+              -ty * lag + ny * Math.sin(seed * .13 + i * 2.1) * 5,
+              1.3 + (i % 2) * .5,
+            ).fill({
+              color: profile.main,
+              alpha: alpha * fade * (.44 - i * .05),
+            });
+          }
+        } else {
+          warriorCue(g, source, profile, p / .40, true);
+        }
+
+        if (target && p > .44) {
+          const hit = clamp01((p - .44) / .44);
+          g.ellipse(
+            0,
+            source.radius * .65,
+            10 + hit * 24,
+            4 + hit * 7,
+          ).stroke({
+            color: profile.core,
+            width: 2,
+            alpha: alpha * (1 - hit) * .40,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "pummel") {
+        warriorCue(g, source, profile, p / .12);
+        const successful = effectApplied(target, effect.spellId, "schoolLock");
+        const cx = successful ? dx : 0;
+        const cy = successful ? dy : 0;
+        const fade = 1 - clamp01((p - .62) / .38);
+        const close = successful ? 1 - easeOut(p) : 1;
+
+        for (const sign of [-1, 1]) {
+          g
+            .moveTo(cx + sign * (27 + close * 5), cy - 11)
+            .lineTo(cx + sign * (10 + close * 3), cy)
+            .lineTo(cx + sign * (27 + close * 5), cy + 11)
+            .stroke({
+              color: profile.core,
+              width: 3.4,
+              alpha: alpha * fade * .76,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "overpower") {
+        warriorCue(g, source, profile, p / .12);
+        const vx = missed ? missX : dx;
+        const vy = missed ? missY : dy;
+        const fade = 1 - clamp01((p - .66) / .34);
+
+        weaponSlash(
+          g,
+          vx,
+          vy,
+          .78,
+          52,
+          profile,
+          alpha * fade * smooth(p / .30) * .86,
+          4.3,
+          -12,
+        );
+
+        if (!missed && p > .22) {
+          const hit = clamp01((p - .22) / .48);
+          for (let i = 0; i < 5; i += 1) {
+            const a = -.9 + i * .28;
+            g.circle(
+              dx + Math.cos(a) * (13 + hit * 20),
+              dy + Math.sin(a) * (13 + hit * 20),
+              1.4,
+            ).fill({
+              color: profile.main,
+              alpha: alpha * (1 - hit) * .46,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "bloodthirst") {
+        warriorCue(g, source, profile, p / .12);
+        const vx = missed ? missX : dx;
+        const vy = missed ? dy : dy;
+        const fade = 1 - clamp01((p - .66) / .34);
+
+        for (let i = 0; i < 3; i += 1) {
+          const local = smooth((p - i * .045) / .28);
+          weaponSlash(
+            g,
+            vx + (i - 1) * 3,
+            vy,
+            -.5 + i * .5,
+            36 + i * 3,
+            profile,
+            alpha * fade * local * .62,
+            2.8,
+            5,
+          );
+        }
+
+        if (!missed && p > .28) {
+          const t = clamp01((p - .28) / .48);
+          const length = Math.max(1, Math.hypot(dx,dy));
+          const nx = -dy / length;
+          const ny = dx / length;
+          for (let i = 0; i < 5; i += 1) {
+            const local = clamp01(t - i * .08);
+            const travel = easeOut(local);
+            const qx = dx * (1 - travel);
+            const qy = dy * (1 - travel);
+            const wobble = Math.sin(i + p * 10) * 4;
+            g.circle(
+              qx + nx * wobble,
+              qy + ny * wobble,
+              1.5 + (i % 2) * .4,
+            ).fill({
+              color: profile.main,
+              alpha: alpha * fade * .46,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "garrote") {
+        rogueCue(g, source, profile, p / .10);
+        const vx = missed ? dx + missSign * 39 : dx;
+        const vy = missed ? dy - 7 : dy;
+        const fade = 1 - clamp01((p - .62) / .38);
+
+        for (let i = 0; i < 2; i += 1) {
+          const y = vy - 5 + i * 9;
+          g
+            .moveTo(vx - 18, y - 5)
+            .lineTo(vx, y + (i ? -6 : 6))
+            .lineTo(vx + 18, y + 4)
+            .stroke({
+              color: profile.core,
+              width: 1.8,
+              alpha: alpha * fade * .70,
+            });
+        }
+
+        if (!missed) {
+          for (let i = 0; i < 3; i += 1) {
+            g.circle(dx - 9 + i * 9, dy + 9 + p * 8, 1.2).fill({
+              color: 0x8e5b55,
+              alpha: alpha * fade * .34,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "sinister") {
+        rogueCue(g, source, profile, p / .08);
+        const vx = missed ? dx + missSign * 40 : dx;
+        const vy = missed ? dy - 7 : dy;
+        const fade = 1 - clamp01((p - .58) / .42);
+
+        weaponSlash(
+          g,
+          vx,
+          vy,
+          -.72,
+          42,
+          profile,
+          alpha * fade * smooth(p / .22) * .72,
+          2.2,
+          8,
+          true,
+        );
+
+        if (!missed) {
+          strokeArc(
+            g,
+            dx,
+            dy,
+            15 + p * 17,
+            -.7,
+            .45,
+            {
+              color: profile.accent,
+              width: 1.4,
+              alpha: alpha * fade * .26,
+            },
+            6,
+          );
+        }
+        continue;
+      }
+
+      if (profile.kind === "eviscerate") {
+        rogueCue(g, source, profile, p / .10);
+        const vx = missed ? dx + missSign * 43 : dx;
+        const vy = missed ? dy - 6 : dy;
+        const fade = 1 - clamp01((p - .70) / .30);
+
+        for (let i = 0; i < 3; i += 1) {
+          const local = smooth((p - i * .07) / .22);
+          weaponSlash(
+            g,
+            vx + (i - 1) * 4,
+            vy + (1 - i) * 4,
+            -.95 + i * .88,
+            43,
+            profile,
+            alpha * fade * local * .76,
+            2,
+            4,
+            true,
+          );
+        }
+
+        if (!missed && p > .25) {
+          const hit = clamp01((p - .25) / .40);
+          g.circle(dx,dy,Math.max(1.5,4 * (1 - hit * .5))).fill({
+            color: profile.core,
+            alpha: alpha * (1 - hit) * .56,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "kidney") {
+        rogueCue(g, source, profile, p / .09);
+        const successful = effectApplied(target, effect.spellId, "stun");
+        const fade = 1 - clamp01((p - .66) / .34);
+
+        for (let i = 0; i < 3; i += 1) {
+          const a = -.45 + i * .45;
+          g
+            .moveTo(dx + Math.cos(a) * 25, dy + Math.sin(a) * 25)
+            .lineTo(dx + Math.cos(a) * 7, dy + Math.sin(a) * 7)
+            .stroke({
+              color: successful ? profile.core : profile.main,
+              width: 2.2,
+              alpha: alpha * fade * .66,
+            });
+        }
+
+        if (successful) {
+          g.circle(dx,dy,10 + easeOut(p) * 15).stroke({
+            color: profile.accent,
+            width: 1.4,
+            alpha: alpha * fade * .34,
+          });
+        }
+        continue;
+      }
+
+      if (profile.kind === "kick") {
+        rogueCue(g, source, profile, p / .08);
+        const successful = effectApplied(target, effect.spellId, "schoolLock");
+        const cx = successful ? dx : 0;
+        const cy = successful ? dy : 0;
+        const fade = 1 - clamp01((p - .58) / .42);
+        const angle = -.52;
+
+        const p0 = transformPoint(cx,cy,-24,9,angle);
+        const p1 = transformPoint(cx,cy,8,-5,angle);
+        const p2 = transformPoint(cx,cy,23,-13,angle);
+        g
+          .moveTo(p0.x,p0.y)
+          .lineTo(p1.x,p1.y)
+          .lineTo(p2.x,p2.y)
+          .stroke({
+            color: profile.core,
+            width: 2.8,
+            alpha: alpha * fade * .74,
+          });
+
+        if (successful) {
+          for (let i = 0; i < 3; i += 1) {
+            const a = transformPoint(cx,cy,7 + i * 5,-3 - i * 3,angle);
+            const b = transformPoint(cx,cy,15 + i * 6,3 - i * 2,angle);
+            g.moveTo(a.x,a.y).lineTo(b.x,b.y).stroke({
+              color: profile.accent,
+              width: 1.3,
+              alpha: alpha * fade * .52,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "mutilate") {
+        rogueCue(g, source, profile, p / .09);
+        const vx = missed ? missX : dx;
+        const vy = missed ? missY : dy;
+        const fade = 1 - clamp01((p - .68) / .32);
+        const left = smooth(p / .25);
+        const right = smooth((p - .075) / .25);
+
+        weaponSlash(
+          g,vx - 3,vy,.72,44,profile,
+          alpha * fade * left * .78,2.2,-5,true,
+        );
+        weaponSlash(
+          g,vx + 3,vy,-.72,44,profile,
+          alpha * fade * right * .78,2.2,5,true,
+        );
+
+        if (!missed && p > .25) {
+          const hit = clamp01((p - .25) / .42);
+          for (let i = 0; i < 4; i += 1) {
+            const a = Math.PI / 4 + i * Math.PI / 2;
+            g.circle(
+              dx + Math.cos(a) * (8 + hit * 14),
+              dy + Math.sin(a) * (8 + hit * 14),
+              1.4,
+            ).fill({
+              color: i % 2 ? profile.main : profile.accent,
+              alpha: alpha * (1 - hit) * .46,
+            });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "shadowstep") {
+        const originX = Number.isFinite(effect.sourceX) ? effect.sourceX - source.x : 0;
+        const originY = Number.isFinite(effect.sourceY) ? effect.sourceY - source.y : 0;
+        const moved = Math.hypot(originX,originY) > 12;
+        const fadeOut = 1 - clamp01(p / .52);
+
+        g.circle(originX,originY,9 + p * 22).stroke({
+          color: profile.accent,
+          width: 1.5,
+          alpha: alpha * fadeOut * .44,
+        });
+
+        for (let i = 0; i < 6; i += 1) {
+          const a = i / 6 * Math.PI * 2 + p * 2.4 + seed * .017;
+          const rr = 5 + p * (15 + (i % 3) * 6);
+          g.circle(
+            originX + Math.cos(a) * rr,
+            originY + Math.sin(a) * rr,
+            1.4 + (i % 2) * .5,
+          ).fill({
+            color: profile.accent,
+            alpha: alpha * fadeOut * .44,
+          });
+        }
+
+        if (moved && p > .08) {
+          const arrive = clamp01((p - .08) / .55);
+          const fade = 1 - clamp01((p - .70) / .30);
+          for (let i = 0; i < 7; i += 1) {
+            const a = i / 7 * Math.PI * 2 - arrive * 1.7;
+            const rr = 29 * (1 - arrive * .62) + (i % 2) * 4;
+            g.circle(
+              Math.cos(a) * rr,
+              Math.sin(a) * rr,
+              1.3 + (i % 3) * .45,
+            ).fill({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              alpha: alpha * fade * .50,
+            });
+          }
+          g.circle(0,0,25 - arrive * 11).stroke({
+            color: profile.main,
+            width: 1.3,
+            alpha: alpha * fade * .28,
+          });
+        }
+        continue;
+      }
+    }
+  }
+
   updateNativeCommonCasterSpellVfx(game) {
     for (const view of this.actorViews.values()) {
       view.commonCasterSpellFx.clear();
@@ -4235,6 +5000,7 @@ export class PixiProofRenderer {
     this.updateNativePriestHealSpellVfx(game);
     this.updateNativePriestDruidSpellVfx(game);
     this.updateNativePaladinDkSpellVfx(game);
+    this.updateNativeWarriorRogueSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
 
     this.app.render();

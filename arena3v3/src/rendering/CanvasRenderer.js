@@ -140,6 +140,9 @@ export class CanvasRenderer {
 
     // In Pixi preview mode this canvas sits above the WebGL scene and is kept
     // transparent. Reuse the mature Canvas VFX while arena/actors migrate.
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);

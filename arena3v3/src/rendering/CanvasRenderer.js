@@ -6,7 +6,7 @@ import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
 import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
-import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring6";
+import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import {
   drawMageShamanCastVfx,
   drawMageShamanSpellVfx,

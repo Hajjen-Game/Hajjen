@@ -1,79 +1,7 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi22";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
 import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi31";
 
-const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
-  "priest-renew",
-  "priest-flash-heal",
-  "priest-greater-heal",
-  "priest-pain-suppression",
-  "priest-psychic-scream",
-  "priest-smite",
-  "priest-holy-fire",
 
-  "druid-rejuvenation",
-  "druid-swiftmend",
-  "druid-regrowth",
-  "druid-ironbark",
-  "druid-cyclone",
-  "druid-lifebloom",
-  "druid-moonfire",
-
-  "paladin-holy-shock",
-  "paladin-flash-light",
-  "paladin-holy-light",
-  "paladin-blessing",
-  "paladin-hammer",
-  "paladin-word-of-glory",
-  "paladin-judgment",
-
-  "dk-fever",
-  "dk-death-strike",
-  "dk-obliterate",
-  "dk-chains",
-  "dk-mind-freeze",
-  "dk-frost-strike",
-  "dk-rune-tap",
-
-  "warrior-rend",
-  "warrior-mortal-strike",
-  "warrior-slam",
-  "warrior-charge",
-  "warrior-pummel",
-  "warrior-overpower",
-  "warrior-bloodthirst",
-
-  "rogue-garrote",
-  "rogue-sinister",
-  "rogue-eviscerate",
-  "rogue-kidney",
-  "rogue-kick",
-  "rogue-mutilate",
-  "rogue-shadowstep",
-
-  "mage-living-bomb",
-  "mage-frostbolt",
-  "mage-pyroblast",
-  "mage-frost-nova",
-  "mage-polymorph",
-  "mage-frostfire-bolt",
-  "mage-arcane-barrage",
-
-  "shaman-flame-shock",
-  "shaman-chain-lightning",
-  "shaman-lava-burst",
-  "shaman-hex",
-  "shaman-astral-shift",
-  "shaman-elemental-blast",
-  "shaman-stormstrike",
-
-  "warlock-corruption",
-  "warlock-shadow-bolt",
-  "warlock-chaos-bolt",
-  "warlock-resolve",
-  "warlock-fear",
-  "warlock-drain-life",
-  "warlock-conflagrate",
-]);
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";
@@ -88,6 +16,7 @@ export class RendererBridge {
     this.canvasRenderer = new CanvasRenderer(canvas, arena);
     this.mode = requestedRenderer();
     this.pixiRenderer = null;
+    this.pixiSurfacePrepared = false;
 
     if (this.mode === "pixi") {
       this.pixiRenderer = new PixiProofRenderer(canvas, arena);
@@ -95,6 +24,7 @@ export class RendererBridge {
         console.error("[Pixi preview] initialization failed; using Canvas fallback.", error);
         this.pixiRenderer?.destroy?.();
         this.pixiRenderer = null;
+        this.pixiSurfacePrepared = false;
         this.mode = "canvas";
         this.canvas.style.background = "";
         this.canvas.style.zIndex = "";
@@ -114,18 +44,18 @@ export class RendererBridge {
 
   render(game) {
     if (this.pixiRenderer?.ready) {
+      if (!this.pixiSurfacePrepared) {
+        const ctx = this.canvas.getContext("2d");
+        if (ctx) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.globalAlpha = 1;
+          ctx.globalCompositeOperation = "source-over";
+          ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        this.pixiSurfacePrepared = true;
+      }
+
       this.pixiRenderer.render(game);
-      this.canvasRenderer.renderEffectsOverlay(game, {
-        skipBurstVfx: true,
-        skipSlashVfx: true,
-        skipRingVfx: true,
-        skipBeamVfx: true,
-        skipChainVfx: true,
-        skipCastVfx: true,
-        skipTargetMarker: true,
-        skipFloatingTexts: true,
-        skipSpellVfxIds: PIXI_NATIVE_SPELL_VFX_IDS,
-      });
       return;
     }
 
@@ -144,6 +74,7 @@ export class RendererBridge {
     }
 
     this.pixiRenderer = null;
+    this.pixiSurfacePrepared = false;
     this.mode = "canvas";
     this.canvas.style.background = "";
     this.canvas.style.zIndex = "";

@@ -291,7 +291,7 @@ export function isGrandRingEnvironment(arena) {
   return arena?.id === GRAND_RING_ID;
 }
 
-export function drawGrandRingEnvironment(ctx, arena, width, height) {
+function paintGrandRingEnvironment(ctx, arena, width, height) {
   if (!isGrandRingEnvironment(arena)) return false;
 
   // Outside the playable walls remains dark earth so the ring still reads
@@ -412,4 +412,34 @@ export function drawGrandRingEnvironment(ctx, arena, width, height) {
   for (const obstacle of arena.obstacles) drawNaturalPillar(ctx, obstacle);
 
   return true;
+}
+
+let cachedTerrain = null;
+let cachedTerrainKey = "";
+
+export function drawGrandRingEnvironment(ctx, arena, width, height) {
+  if (!isGrandRingEnvironment(arena)) return false;
+
+  const cacheKey = arena.id + ":" + width + "x" + height;
+  const canCache = typeof document !== "undefined" && typeof document.createElement === "function";
+
+  if (canCache && (!cachedTerrain || cachedTerrainKey !== cacheKey)) {
+    const buffer = document.createElement("canvas");
+    buffer.width = width;
+    buffer.height = height;
+    const bufferCtx = buffer.getContext("2d");
+
+    if (bufferCtx) {
+      paintGrandRingEnvironment(bufferCtx, arena, width, height);
+      cachedTerrain = buffer;
+      cachedTerrainKey = cacheKey;
+    }
+  }
+
+  if (cachedTerrain && cachedTerrainKey === cacheKey) {
+    ctx.drawImage(cachedTerrain, 0, 0);
+    return true;
+  }
+
+  return paintGrandRingEnvironment(ctx, arena, width, height);
 }

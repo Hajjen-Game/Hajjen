@@ -793,6 +793,10 @@ export class PixiProofRenderer {
     beamFx.visible = false;
     root.addChild(beamFx);
 
+    const chainFx = new Graphics();
+    chainFx.visible = false;
+    root.addChild(chainFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -891,6 +895,7 @@ export class PixiProofRenderer {
       slashFx,
       ringFx,
       beamFx,
+      chainFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -1292,6 +1297,129 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeChainVfx(game) {
+    for (const view of this.actorViews.values()) {
+      view.chainFx.clear();
+      view.chainFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "chain") continue;
+
+      const actors = (effect.actorIds || [])
+        .map(id => game.getActor(id))
+        .filter(Boolean);
+      if (actors.length < 2) continue;
+
+      const source = actors[0];
+      const view = this.actorViews.get(source.id);
+      if (!view || !view.root.visible) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const [main, core] = burstColors(effect.style || "lightning");
+      const specialChainLightning = effect.spellId === "shaman-chain-lightning";
+
+      view.chainFx.visible = true;
+
+      for (let segmentIndex = 0; segmentIndex < actors.length - 1; segmentIndex += 1) {
+        const fromActor = actors[segmentIndex];
+        const toActor = actors[segmentIndex + 1];
+        const localProgress = specialChainLightning
+          ? Math.max(0, Math.min(1, (progress - segmentIndex * .10) / .66))
+          : progress;
+        if (localProgress <= 0) continue;
+
+        const fade = specialChainLightning
+          ? 1 - Math.max(0, Math.min(1, (localProgress - .54) / .46))
+          : alpha;
+
+        const reveal = specialChainLightning
+          ? Math.max(0, Math.min(1, localProgress / .34))
+          : 1;
+        const easedReveal = 1 - Math.pow(1 - reveal, 3);
+
+        const from = {
+          x: fromActor.x - source.x,
+          y: fromActor.y - source.y,
+        };
+        const fullTo = {
+          x: toActor.x - source.x,
+          y: toActor.y - source.y,
+        };
+        const to = {
+          x: from.x + (fullTo.x - from.x) * easedReveal,
+          y: from.y + (fullTo.y - from.y) * easedReveal,
+        };
+
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const length = Math.max(1, Math.hypot(dx, dy));
+        const px = -dy / length;
+        const py = dx / length;
+        const segments = Math.max(6, Math.min(9, Math.round(length / 34)));
+        const seed = Number(effect.seed || 1) + segmentIndex * 47;
+        const phase = localProgress * 5;
+
+        const points = [{ x: from.x, y: from.y }];
+        for (let i = 1; i < segments; i += 1) {
+          const t = i / segments;
+          const baseX = from.x + dx * t;
+          const baseY = from.y + dy * t;
+          const wave =
+            Math.sin(seed * .37 + i * 2.31 + phase * 1.8) * 7
+            + Math.sin(seed * .17 + i * 4.2 - phase * 2.1) * 2.5;
+          points.push({
+            x: baseX + px * wave,
+            y: baseY + py * wave,
+          });
+        }
+        points.push(to);
+
+        view.chainFx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i += 1) {
+          view.chainFx.lineTo(points[i].x, points[i].y);
+        }
+        view.chainFx.stroke({
+          color: main,
+          width: specialChainLightning ? 5.4 : 4.6,
+          alpha: alpha * fade * .46,
+        });
+
+        view.chainFx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i += 1) {
+          view.chainFx.lineTo(points[i].x, points[i].y);
+        }
+        view.chainFx.stroke({
+          color: core,
+          width: specialChainLightning ? 1.8 : 1.4,
+          alpha: alpha * fade * .96,
+        });
+
+        if (specialChainLightning && localProgress > .28) {
+          const impactProgress = Math.max(0, Math.min(1, (localProgress - .28) / .62));
+          const impactRadius = 7 + impactProgress * 20;
+          view.chainFx
+            .circle(fullTo.x, fullTo.y, impactRadius)
+            .stroke({
+              color: main,
+              width: 2.1,
+              alpha: alpha * fade * .56,
+            });
+          view.chainFx
+            .circle(fullTo.x, fullTo.y, Math.max(4, impactRadius - 5))
+            .stroke({
+              color: core,
+              width: 1,
+              alpha: alpha * fade * .74,
+            });
+        }
+      }
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1337,6 +1465,7 @@ export class PixiProofRenderer {
     this.updateNativeSlashVfx(game);
     this.updateNativeRingVfx(game);
     this.updateNativeBeamVfx(game);
+    this.updateNativeChainVfx(game);
 
     this.app.render();
   }

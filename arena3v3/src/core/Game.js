@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20260930-vfx2e";
 import { AISystem } from "../systems/AISystem.js?v=20260929-manarecovery2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { RendererBridge } from "../rendering/RendererBridge.js?v=20261001-pixi2";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261001-pixi3";
 import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
 import { buildMatchReport } from "./MatchReport.js?v=20260929-manarecovery2";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";

@@ -1,5 +1,6 @@
 const TAU = Math.PI * 2;
 const GRAND_RING_ID = "four-pillar-ring";
+const TERRAIN_VERSION = "grand-ring-v2-noise";
 
 function seededRandom(seed = 1) {
   let state = seed >>> 0;
@@ -9,6 +10,64 @@ function seededRandom(seed = 1) {
   };
 }
 
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function smoothstep(edge0, edge1, value) {
+  const t = clamp01((value - edge0) / Math.max(.0001, edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
+
+function hash2(x, y, seed) {
+  let h = Math.imul(x | 0, 374761393)
+    + Math.imul(y | 0, 668265263)
+    + Math.imul(seed | 0, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967295;
+}
+
+function valueNoise2d(x, y, seed) {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = x - x0;
+  const fy = y - y0;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+
+  const n00 = hash2(x0, y0, seed);
+  const n10 = hash2(x0 + 1, y0, seed);
+  const n01 = hash2(x0, y0 + 1, seed);
+  const n11 = hash2(x0 + 1, y0 + 1, seed);
+
+  return lerp(
+    lerp(n00, n10, sx),
+    lerp(n01, n11, sx),
+    sy,
+  );
+}
+
+function fbm(x, y, seed, octaves = 4) {
+  let sum = 0;
+  let amp = .55;
+  let frequency = 1;
+  let norm = 0;
+
+  for (let i = 0; i < octaves; i += 1) {
+    sum += valueNoise2d(x * frequency, y * frequency, seed + i * 131) * amp;
+    norm += amp;
+    amp *= .5;
+    frequency *= 2.03;
+  }
+
+  return norm > 0 ? sum / norm : 0;
+}
+
 function insideExpandedObstacle(x, y, obstacles, padding = 0) {
   return obstacles.some(rect =>
     x >= rect.x - padding
@@ -16,6 +75,133 @@ function insideExpandedObstacle(x, y, obstacles, padding = 0) {
     && y >= rect.y - padding
     && y <= rect.y + rect.h + padding
   );
+}
+
+const DIRT_FIELDS = Object.freeze([
+  { x: 145, y: 155, rx: 185, ry: 92, strength: .62 },
+  { x: 490, y: 145, rx: 220, ry: 100, strength: .46 },
+  { x: 830, y: 190, rx: 170, ry: 98, strength: .38 },
+  { x: 1090, y: 220, rx: 165, ry: 110, strength: .52 },
+  { x: 420, y: 365, rx: 250, ry: 110, strength: .50 },
+  { x: 760, y: 365, rx: 235, ry: 110, strength: .34 },
+  { x: 1080, y: 475, rx: 185, ry: 100, strength: .49 },
+  { x: 190, y: 535, rx: 175, ry: 105, strength: .47 },
+  { x: 620, y: 555, rx: 250, ry: 95, strength: .40 },
+]);
+
+const VEGETATION_CLUSTERS = Object.freeze([
+  { x: 135, y: 245, rx: 70, ry: 48 },
+  { x: 430, y: 190, rx: 74, ry: 45 },
+  { x: 720, y: 150, rx: 58, ry: 42 },
+  { x: 1080, y: 155, rx: 64, ry: 48 },
+  { x: 510, y: 475, rx: 78, ry: 52 },
+  { x: 810, y: 520, rx: 74, ry: 48 },
+  { x: 1110, y: 540, rx: 62, ry: 46 },
+  { x: 160, y: 560, rx: 65, ry: 46 },
+]);
+
+function dirtFieldAt(x, y) {
+  let strongest = 0;
+
+  for (const patch of DIRT_FIELDS) {
+    const dx = (x - patch.x) / patch.rx;
+    const dy = (y - patch.y) / patch.ry;
+    const distance = dx * dx + dy * dy;
+
+    if (distance >= 1.7) continue;
+    const influence = Math.exp(-distance * 2.15) * patch.strength;
+    strongest = Math.max(strongest, influence);
+  }
+
+  return strongest;
+}
+
+function mixRgb(a, b, t) {
+  return [
+    lerp(a[0], b[0], t),
+    lerp(a[1], b[1], t),
+    lerp(a[2], b[2], t),
+  ];
+}
+
+function buildTerrainTexture(arena) {
+  if (
+    typeof document === "undefined"
+    || typeof document.createElement !== "function"
+  ) return null;
+
+  const b = arena.bounds;
+  const scale = 4;
+  const texture = document.createElement("canvas");
+  texture.width = Math.max(1, Math.ceil(b.w / scale));
+  texture.height = Math.max(1, Math.ceil(b.h / scale));
+
+  const ctx = texture.getContext("2d");
+  if (!ctx) return null;
+
+  const image = ctx.createImageData(texture.width, texture.height);
+  const pixels = image.data;
+
+  const grassDark = [72, 91, 46];
+  const grassLight = [103, 115, 59];
+  const moss = [63, 91, 48];
+  const dryGrass = [121, 118, 65];
+  const dirt = [116, 91, 57];
+  const warmDirt = [132, 105, 65];
+
+  for (let py = 0; py < texture.height; py += 1) {
+    for (let px = 0; px < texture.width; px += 1) {
+      const worldX = b.x + (px + .5) / texture.width * b.w;
+      const worldY = b.y + (py + .5) / texture.height * b.h;
+
+      const macro = fbm(worldX * .0042, worldY * .0042, 19, 4);
+      const middle = fbm(worldX * .011, worldY * .011, 47, 4);
+      const fine = fbm(worldX * .031, worldY * .031, 83, 3);
+      const dirtNoise = fbm(worldX * .0054 + 17.3, worldY * .0054 - 8.1, 113, 5);
+      const mossNoise = fbm(worldX * .0062 - 12.7, worldY * .0062 + 5.4, 151, 4);
+      const dryNoise = fbm(worldX * .0048 + 4.2, worldY * .0048 + 16.9, 181, 4);
+
+      let color = mixRgb(grassDark, grassLight, clamp01(.18 + macro * .72));
+      color = mixRgb(color, grassLight, (middle - .5) * .20 + .10);
+
+      const authoredDirt = dirtFieldAt(worldX, worldY);
+      const dirtSignal = dirtNoise * .67 + authoredDirt * .54 + dryNoise * .11;
+      const dirtAmount = smoothstep(.49, .69, dirtSignal);
+      const dirtColor = mixRgb(dirt, warmDirt, clamp01(.2 + dryNoise * .62));
+      color = mixRgb(color, dirtColor, dirtAmount * .84);
+
+      const mossAmount = smoothstep(.61, .82, mossNoise)
+        * (1 - dirtAmount)
+        * (.34 + middle * .34);
+      color = mixRgb(color, moss, mossAmount);
+
+      const dryAmount = smoothstep(.64, .85, dryNoise)
+        * (1 - dirtAmount * .62)
+        * .34;
+      color = mixRgb(color, dryGrass, dryAmount);
+
+      const grain = (fine - .5) * 8.5 + (hash2(px, py, 229) - .5) * 3.2;
+      const shade = .91 + macro * .13;
+
+      const index = (py * texture.width + px) * 4;
+      pixels[index] = Math.max(0, Math.min(255, color[0] * shade + grain));
+      pixels[index + 1] = Math.max(0, Math.min(255, color[1] * shade + grain));
+      pixels[index + 2] = Math.max(0, Math.min(255, color[2] * shade + grain * .62));
+      pixels[index + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(image, 0, 0);
+  return texture;
+}
+
+function clusteredPoint(random, cluster) {
+  const angle = random() * TAU;
+  const radius = Math.sqrt(random());
+  return {
+    x: cluster.x + Math.cos(angle) * cluster.rx * radius,
+    y: cluster.y + Math.sin(angle) * cluster.ry * radius,
+  };
 }
 
 function buildDecor() {
@@ -28,125 +214,93 @@ function buildDecor() {
     { x: 930, y: 435, w: 100, h: 140 },
   ];
 
-  const sample = (count, padding, make) => {
+  const valid = (point, padding) =>
+    point.x >= bounds.x + 10
+    && point.x <= bounds.x + bounds.w - 10
+    && point.y >= bounds.y + 10
+    && point.y <= bounds.y + bounds.h - 10
+    && !insideExpandedObstacle(point.x, point.y, obstacles, padding);
+
+  const clusteredSample = (count, padding, make) => {
     const out = [];
-    let guard = count * 18;
+    let guard = count * 30;
+
     while (out.length < count && guard-- > 0) {
-      const x = bounds.x + 14 + random() * (bounds.w - 28);
-      const y = bounds.y + 14 + random() * (bounds.h - 28);
-      if (insideExpandedObstacle(x, y, obstacles, padding)) continue;
-      out.push(make(x, y, random));
+      const cluster = VEGETATION_CLUSTERS[Math.floor(random() * VEGETATION_CLUSTERS.length)];
+      const point = clusteredPoint(random, cluster);
+      if (!valid(point, padding)) continue;
+      out.push(make(point.x, point.y, random));
     }
+
     return out;
   };
 
-  const pebbles = sample(66, 8, (x, y, r) => ({
+  const freeSample = (count, padding, make) => {
+    const out = [];
+    let guard = count * 30;
+
+    while (out.length < count && guard-- > 0) {
+      const point = {
+        x: bounds.x + 18 + random() * (bounds.w - 36),
+        y: bounds.y + 18 + random() * (bounds.h - 36),
+      };
+      if (!valid(point, padding)) continue;
+      out.push(make(point.x, point.y, random));
+    }
+
+    return out;
+  };
+
+  // Much fewer stones than v1. They are larger, softer and more deliberate.
+  const pebbles = freeSample(24, 8, (x, y, r) => ({
     x,
     y,
-    rx: 1.8 + r() * 4.8,
-    ry: 1.3 + r() * 3.1,
+    rx: 3.4 + r() * 5.8,
+    ry: 2.3 + r() * 3.8,
     angle: r() * TAU,
     tone: r(),
   }));
 
-  const grass = sample(72, 5, (x, y, r) => ({
+  const grass = clusteredSample(54, 6, (x, y, r) => ({
     x,
     y,
-    size: 2.5 + r() * 5.5,
+    size: 3.2 + r() * 5.3,
     angle: r() * TAU,
     tone: r(),
   }));
 
-  const clover = sample(27, 7, (x, y, r) => ({
+  const clover = clusteredSample(22, 8, (x, y, r) => ({
     x,
     y,
-    size: 3.7 + r() * 4.2,
+    size: 4.2 + r() * 4.3,
     angle: r() * TAU,
     tone: r(),
   }));
 
-  const tinyDirt = sample(31, 0, (x, y, r) => ({
-    x,
-    y,
-    rx: 18 + r() * 35,
-    ry: 10 + r() * 24,
-    angle: r() * TAU,
-    alpha: .025 + r() * .055,
-  }));
-
-  return { pebbles, grass, clover, tinyDirt };
+  return { pebbles, grass, clover };
 }
 
 const DECOR = buildDecor();
 
-const LARGE_DIRT_PATCHES = Object.freeze([
-  { x: 165, y: 170, rx: 150, ry: 76, angle: -.20, seed: 2, alpha: .34 },
-  { x: 505, y: 132, rx: 175, ry: 67, angle: .10, seed: 8, alpha: .27 },
-  { x: 830, y: 162, rx: 142, ry: 74, angle: -.08, seed: 14, alpha: .26 },
-  { x: 1110, y: 215, rx: 128, ry: 72, angle: .22, seed: 20, alpha: .32 },
-  { x: 405, y: 365, rx: 210, ry: 82, angle: -.06, seed: 26, alpha: .30 },
-  { x: 735, y: 350, rx: 195, ry: 72, angle: .10, seed: 32, alpha: .22 },
-  { x: 1085, y: 450, rx: 150, ry: 82, angle: -.14, seed: 38, alpha: .32 },
-  { x: 185, y: 525, rx: 135, ry: 75, angle: .15, seed: 44, alpha: .29 },
-  { x: 600, y: 555, rx: 205, ry: 76, angle: -.08, seed: 50, alpha: .25 },
-]);
-
-function irregularBlobPath(ctx, patch) {
-  const random = seededRandom(patch.seed * 9187 + 73);
-  const points = [];
-  const count = 14;
-
-  for (let i = 0; i < count; i += 1) {
-    const angle = i / count * TAU;
-    const jitter = .82 + random() * .31;
-    const x = Math.cos(angle) * patch.rx * jitter;
-    const y = Math.sin(angle) * patch.ry * (.84 + random() * .28);
-    points.push({ x, y });
-  }
-
-  ctx.save();
-  ctx.translate(patch.x, patch.y);
-  ctx.rotate(patch.angle);
-
-  ctx.beginPath();
-  const first = points[0];
-  const last = points[points.length - 1];
-  ctx.moveTo((last.x + first.x) * .5, (last.y + first.y) * .5);
-
-  for (let i = 0; i < points.length; i += 1) {
-    const current = points[i];
-    const next = points[(i + 1) % points.length];
-    ctx.quadraticCurveTo(
-      current.x,
-      current.y,
-      (current.x + next.x) * .5,
-      (current.y + next.y) * .5,
-    );
-  }
-
-  ctx.closePath();
-  ctx.restore();
-}
-
 function drawGrassBlade(ctx, tuft) {
-  const main = tuft.tone > .5 ? "#6f8341" : "#60753b";
-  const light = tuft.tone > .68 ? "#82984a" : "#718641";
+  const main = tuft.tone > .5 ? "#617a40" : "#536c39";
+  const light = tuft.tone > .68 ? "#78934c" : "#6a8545";
 
   ctx.save();
   ctx.translate(tuft.x, tuft.y);
   ctx.rotate(tuft.angle);
   ctx.lineCap = "round";
-  ctx.globalAlpha = .31;
+  ctx.globalAlpha = .25;
 
   for (let i = -1; i <= 1; i += 1) {
     const sway = i * tuft.size * .42;
     ctx.strokeStyle = i === 0 ? light : main;
-    ctx.lineWidth = Math.max(.65, tuft.size * .16);
+    ctx.lineWidth = Math.max(.65, tuft.size * .15);
     ctx.beginPath();
-    ctx.moveTo(i * tuft.size * .18, tuft.size * .35);
+    ctx.moveTo(i * tuft.size * .17, tuft.size * .30);
     ctx.quadraticCurveTo(
-      sway * .45,
-      -tuft.size * .22,
+      sway * .42,
+      -tuft.size * .18,
       sway,
       -tuft.size,
     );
@@ -157,24 +311,24 @@ function drawGrassBlade(ctx, tuft) {
 }
 
 function drawClover(ctx, plant) {
-  const dark = plant.tone > .55 ? "#567738" : "#4b6e34";
-  const light = plant.tone > .62 ? "#78984b" : "#698a43";
+  const dark = plant.tone > .55 ? "#52743d" : "#476837";
+  const light = plant.tone > .62 ? "#70904b" : "#638344";
 
   ctx.save();
   ctx.translate(plant.x, plant.y);
   ctx.rotate(plant.angle);
-  ctx.globalAlpha = .34;
+  ctx.globalAlpha = .29;
 
   for (let i = 0; i < 3; i += 1) {
     const a = i * TAU / 3;
-    const x = Math.cos(a) * plant.size * .46;
-    const y = Math.sin(a) * plant.size * .46;
+    const x = Math.cos(a) * plant.size * .45;
+    const y = Math.sin(a) * plant.size * .45;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(a);
     ctx.fillStyle = i === 0 ? light : dark;
     ctx.beginPath();
-    ctx.ellipse(plant.size * .24, 0, plant.size * .58, plant.size * .36, 0, 0, TAU);
+    ctx.ellipse(plant.size * .23, 0, plant.size * .56, plant.size * .35, 0, 0, TAU);
     ctx.fill();
     ctx.restore();
   }
@@ -187,118 +341,187 @@ function drawPebble(ctx, stone) {
   ctx.translate(stone.x, stone.y);
   ctx.rotate(stone.angle);
 
-  ctx.globalAlpha = .34;
-  ctx.fillStyle = "rgba(19,18,13,.62)";
+  ctx.globalAlpha = .22;
+  ctx.fillStyle = "#1e2119";
   ctx.beginPath();
-  ctx.ellipse(1.2, 1.6, stone.rx * 1.08, stone.ry * 1.1, 0, 0, TAU);
+  ctx.ellipse(
+    2.2,
+    2.6,
+    stone.rx * 1.15,
+    stone.ry * 1.16,
+    0,
+    0,
+    TAU,
+  );
   ctx.fill();
 
-  const gradient = ctx.createLinearGradient(-stone.rx, -stone.ry, stone.rx, stone.ry);
-  const light = stone.tone > .55 ? "#9a8c69" : "#85785c";
-  const dark = stone.tone > .55 ? "#5d5545" : "#50493c";
+  const gradient = ctx.createLinearGradient(
+    -stone.rx,
+    -stone.ry,
+    stone.rx,
+    stone.ry,
+  );
+  const light = stone.tone > .55 ? "#9d967a" : "#8c856d";
+  const middle = stone.tone > .55 ? "#77715d" : "#6c6655";
+  const dark = stone.tone > .55 ? "#575346" : "#4e4b40";
   gradient.addColorStop(0, light);
-  gradient.addColorStop(.52, "#756a53");
+  gradient.addColorStop(.48, middle);
   gradient.addColorStop(1, dark);
 
-  ctx.globalAlpha = .48;
+  ctx.globalAlpha = .52;
   ctx.fillStyle = gradient;
   ctx.beginPath();
   ctx.ellipse(0, 0, stone.rx, stone.ry, 0, 0, TAU);
   ctx.fill();
 
-  ctx.globalAlpha = .18;
-  ctx.fillStyle = "#d7c89c";
+  ctx.globalAlpha = .16;
+  ctx.fillStyle = "#e1d9bb";
   ctx.beginPath();
-  ctx.ellipse(-stone.rx * .28, -stone.ry * .32, stone.rx * .38, stone.ry * .22, -.25, 0, TAU);
+  ctx.ellipse(
+    -stone.rx * .27,
+    -stone.ry * .30,
+    stone.rx * .34,
+    stone.ry * .20,
+    -.22,
+    0,
+    TAU,
+  );
   ctx.fill();
 
   ctx.restore();
 }
 
-function drawNaturalPillar(ctx, rect) {
+function chamferedRectPath(ctx, x, y, w, h, cut = 10) {
+  const c = Math.min(cut, w * .18, h * .18);
+  ctx.beginPath();
+  ctx.moveTo(x + c, y);
+  ctx.lineTo(x + w - c, y);
+  ctx.lineTo(x + w, y + c);
+  ctx.lineTo(x + w, y + h - c);
+  ctx.lineTo(x + w - c, y + h);
+  ctx.lineTo(x + c, y + h);
+  ctx.lineTo(x, y + h - c);
+  ctx.lineTo(x, y + c);
+  ctx.closePath();
+}
+
+function drawStonePillar(ctx, rect) {
   ctx.save();
 
-  // A broad soft shadow gives the top-down block a little volume without
-  // changing the game's camera angle or collision footprint.
-  ctx.shadowColor = "rgba(22,18,12,.46)";
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetX = 6;
-  ctx.shadowOffsetY = 10;
-  ctx.fillStyle = "#5e5543";
-  ctx.beginPath();
-  ctx.roundRect(rect.x, rect.y, rect.w, rect.h, 17);
+  // Broad ground shadow — visual only, collision remains the original rect.
+  ctx.shadowColor = "rgba(23,24,18,.42)";
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetX = 8;
+  ctx.shadowOffsetY = 11;
+  ctx.fillStyle = "#4b4b40";
+  chamferedRectPath(ctx, rect.x, rect.y, rect.w, rect.h, 12);
   ctx.fill();
 
   ctx.shadowColor = "transparent";
-  const body = ctx.createLinearGradient(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
-  body.addColorStop(0, "#887b5f");
-  body.addColorStop(.42, "#756a53");
-  body.addColorStop(1, "#514b3d");
+
+  const body = ctx.createLinearGradient(
+    rect.x,
+    rect.y,
+    rect.x + rect.w,
+    rect.y + rect.h,
+  );
+  body.addColorStop(0, "#898474");
+  body.addColorStop(.45, "#726e61");
+  body.addColorStop(1, "#555348");
   ctx.fillStyle = body;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4, 15);
+  chamferedRectPath(ctx, rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2, 11);
   ctx.fill();
 
-  // Bright top slab, like a chunky carved arena stone rather than a UI panel.
-  const topH = Math.min(32, rect.h * .24);
-  const top = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + topH);
-  top.addColorStop(0, "#b4a27f");
-  top.addColorStop(1, "#918064");
+  // Distinct top slab and side face make the pillar read as a block of stone.
+  const topH = Math.min(34, rect.h * .25);
+  const top = ctx.createLinearGradient(
+    rect.x,
+    rect.y,
+    rect.x,
+    rect.y + topH,
+  );
+  top.addColorStop(0, "#b8b09b");
+  top.addColorStop(.55, "#a39a83");
+  top.addColorStop(1, "#89816f");
   ctx.fillStyle = top;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 5, rect.y + 5, rect.w - 10, topH, 11);
-  ctx.fill();
-
-  // Subtle lower face.
-  ctx.globalAlpha = .28;
-  ctx.fillStyle = "#342f27";
-  ctx.beginPath();
-  ctx.roundRect(
-    rect.x + 7,
-    rect.y + rect.h * .62,
-    rect.w - 14,
-    rect.h * .29,
+  chamferedRectPath(
+    ctx,
+    rect.x + 5,
+    rect.y + 5,
+    rect.w - 10,
+    topH,
     8,
   );
   ctx.fill();
 
-  // Moss/lichen stays purely decorative and inside the obstacle.
-  ctx.globalAlpha = .22;
-  ctx.fillStyle = "#66773d";
-  const moss = [
-    [rect.x + 14, rect.y + 22, 10, 5],
-    [rect.x + rect.w - 24, rect.y + topH + 11, 13, 6],
-    [rect.x + 18, rect.y + rect.h - 24, 8, 4],
+  ctx.globalAlpha = .24;
+  ctx.fillStyle = "#393a33";
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.w - 9, rect.y + topH + 9);
+  ctx.lineTo(rect.x + rect.w - 3, rect.y + topH + 4);
+  ctx.lineTo(rect.x + rect.w - 3, rect.y + rect.h - 11);
+  ctx.lineTo(rect.x + rect.w - 12, rect.y + rect.h - 5);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = .19;
+  ctx.fillStyle = "#262820";
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 10, rect.y + rect.h - 31);
+  ctx.lineTo(rect.x + rect.w - 12, rect.y + rect.h - 31);
+  ctx.lineTo(rect.x + rect.w - 5, rect.y + rect.h - 10);
+  ctx.lineTo(rect.x + 10, rect.y + rect.h - 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tiny lichen, not large moss blobs.
+  ctx.globalAlpha = .18;
+  const lichen = [
+    [rect.x + 17, rect.y + 18, 7, 3],
+    [rect.x + rect.w - 20, rect.y + topH + 12, 6, 3],
+    [rect.x + 15, rect.y + rect.h - 20, 5, 2.6],
   ];
-  for (const [x, y, rx, ry] of moss) {
+  for (const [x, y, rx, ry] of lichen) {
+    ctx.fillStyle = "#667548";
     ctx.beginPath();
-    ctx.ellipse(x, y, rx, ry, -.25, 0, TAU);
+    ctx.ellipse(x, y, rx, ry, -.2, 0, TAU);
     ctx.fill();
   }
 
-  ctx.globalAlpha = .24;
-  ctx.strokeStyle = "#d1bd91";
-  ctx.lineWidth = 1.4;
+  ctx.globalAlpha = .22;
+  ctx.strokeStyle = "#d7cfb6";
+  ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.moveTo(rect.x + 10, rect.y + 9);
-  ctx.lineTo(rect.x + rect.w - 11, rect.y + 9);
+  ctx.moveTo(rect.x + 12, rect.y + 7);
+  ctx.lineTo(rect.x + rect.w - 15, rect.y + 7);
   ctx.stroke();
 
   ctx.restore();
 }
 
-export function isGrandRingEnvironment(arena) {
-  return arena?.id === GRAND_RING_ID;
+function drawFallbackTerrain(ctx, arena) {
+  const b = arena.bounds;
+  const grass = ctx.createLinearGradient(b.x, b.y, b.x + b.w, b.y + b.h);
+  grass.addColorStop(0, "#526a3a");
+  grass.addColorStop(.5, "#687640");
+  grass.addColorStop(1, "#53673a");
+  ctx.fillStyle = grass;
+  ctx.fillRect(b.x, b.y, b.w, b.h);
 }
 
 function paintGrandRingEnvironment(ctx, arena, width, height) {
   if (!isGrandRingEnvironment(arena)) return false;
 
-  // Outside the playable walls remains dark earth so the ring still reads
-  // immediately, while the playable floor becomes organic.
-  const outside = ctx.createRadialGradient(width * .5, height * .48, 110, width * .5, height * .5, 760);
-  outside.addColorStop(0, "#3e4829");
-  outside.addColorStop(1, "#25281d");
+  const outside = ctx.createRadialGradient(
+    width * .5,
+    height * .48,
+    100,
+    width * .5,
+    height * .5,
+    760,
+  );
+  outside.addColorStop(0, "#35412a");
+  outside.addColorStop(1, "#20251d");
   ctx.fillStyle = outside;
   ctx.fillRect(0, 0, width, height);
 
@@ -308,70 +531,53 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
   ctx.rect(b.x, b.y, b.w, b.h);
   ctx.clip();
 
-  const grass = ctx.createLinearGradient(b.x, b.y, b.x + b.w, b.y + b.h);
-  grass.addColorStop(0, "#5d7138");
-  grass.addColorStop(.42, "#69783b");
-  grass.addColorStop(1, "#596936");
-  ctx.fillStyle = grass;
-  ctx.fillRect(b.x, b.y, b.w, b.h);
+  const terrain = buildTerrainTexture(arena);
+  if (terrain) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(
+      terrain,
+      0,
+      0,
+      terrain.width,
+      terrain.height,
+      b.x,
+      b.y,
+      b.w,
+      b.h,
+    );
+    ctx.restore();
+  } else {
+    drawFallbackTerrain(ctx, arena);
+  }
 
-  // Broad mottled color masses remove the flat "computer grid" feeling.
-  const masses = [
-    [180, 160, 260, "#435b35", .16],
-    [520, 225, 310, "#798044", .12],
-    [980, 175, 270, "#687940", .14],
-    [325, 545, 250, "#4d6336", .15],
-    [760, 500, 330, "#797344", .11],
-    [1120, 520, 250, "#4b6035", .14],
+  // A few very soft light/shade masses sit on top of the noise so the floor
+  // feels painted rather than like a visible procedural texture.
+  const lightMasses = [
+    [265, 225, 250, "rgba(188,188,97,.12)"],
+    [690, 180, 320, "rgba(201,183,99,.08)"],
+    [970, 480, 300, "rgba(49,76,43,.12)"],
+    [405, 555, 260, "rgba(43,71,39,.10)"],
   ];
 
-  for (const [x, y, radius, color, alpha] of masses) {
-    const g = ctx.createRadialGradient(x, y, 10, x, y, radius);
+  for (const [x, y, radius, color] of lightMasses) {
+    const g = ctx.createRadialGradient(x, y, 12, x, y, radius);
     g.addColorStop(0, color);
     g.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.globalAlpha = alpha;
     ctx.fillStyle = g;
     ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
   }
 
-  // Large irregular earth zones, intentionally soft-edged and desaturated.
-  for (const patch of LARGE_DIRT_PATCHES) {
-    ctx.globalAlpha = patch.alpha;
-    ctx.fillStyle = "#756243";
-    irregularBlobPath(ctx, patch);
-    ctx.fill();
-
-    ctx.globalAlpha = patch.alpha * .34;
-    ctx.strokeStyle = "#9a8457";
-    ctx.lineWidth = 5;
-    irregularBlobPath(ctx, { ...patch, rx: patch.rx * .91, ry: patch.ry * .88 });
-    ctx.stroke();
-  }
-
-  // Tiny earth mottling bridges the large patches so they don't feel like
-  // isolated painted circles.
-  for (const patch of DECOR.tinyDirt) {
-    ctx.save();
-    ctx.translate(patch.x, patch.y);
-    ctx.rotate(patch.angle);
-    ctx.globalAlpha = patch.alpha;
-    ctx.fillStyle = "#8a744b";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, patch.rx, patch.ry, 0, 0, TAU);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // Fine ground grain. Static coordinates mean no frame-to-frame shimmer.
+  // Subtle grounded grain instead of hundreds of visible black dots.
   const grain = seededRandom(0x31f26a);
-  for (let i = 0; i < 430; i += 1) {
+  for (let i = 0; i < 170; i += 1) {
     const x = b.x + grain() * b.w;
     const y = b.y + grain() * b.h;
     if (insideExpandedObstacle(x, y, arena.obstacles, 0)) continue;
-    const light = grain() > .56;
-    ctx.globalAlpha = .055 + grain() * .05;
-    ctx.fillStyle = light ? "#bac078" : "#273622";
-    const size = .6 + grain() * 1.3;
+    ctx.globalAlpha = .025 + grain() * .025;
+    ctx.fillStyle = grain() > .48 ? "#d0ca89" : "#293824";
+    const size = .5 + grain() * .9;
     ctx.fillRect(x, y, size, size);
   }
 
@@ -379,39 +585,44 @@ function paintGrandRingEnvironment(ctx, arena, width, height) {
   for (const plant of DECOR.clover) drawClover(ctx, plant);
   for (const pebble of DECOR.pebbles) drawPebble(ctx, pebble);
 
-  // Very soft center light and edge shade gives depth without a new camera.
-  ctx.globalAlpha = .13;
+  // Soft ambient shading: keep the middle playable and readable while the
+  // edges fall slightly darker like the reference image.
+  ctx.globalAlpha = .12;
   const ambient = ctx.createRadialGradient(
     b.x + b.w * .48,
     b.y + b.h * .45,
-    90,
-    b.x + b.w * .5,
-    b.y + b.h * .5,
-    b.w * .66,
+    100,
+    b.x + b.w * .50,
+    b.y + b.h * .50,
+    b.w * .68,
   );
-  ambient.addColorStop(0, "rgba(229,210,132,.28)");
-  ambient.addColorStop(.62, "rgba(60,66,35,0)");
-  ambient.addColorStop(1, "rgba(21,25,17,.62)");
+  ambient.addColorStop(0, "rgba(222,207,129,.22)");
+  ambient.addColorStop(.66, "rgba(50,62,36,0)");
+  ambient.addColorStop(1, "rgba(17,23,17,.58)");
   ctx.fillStyle = ambient;
   ctx.fillRect(b.x, b.y, b.w, b.h);
 
   ctx.restore();
 
-  // Natural earth rim replaces the old bright technical rectangle.
+  // Muted earth rim. It should frame the arena without looking like a grid.
   ctx.save();
-  ctx.strokeStyle = "#75603d";
-  ctx.lineWidth = 5;
-  ctx.globalAlpha = .76;
+  ctx.strokeStyle = "#695b40";
+  ctx.lineWidth = 4;
+  ctx.globalAlpha = .66;
   ctx.strokeRect(b.x, b.y, b.w, b.h);
-  ctx.strokeStyle = "#a08450";
-  ctx.lineWidth = 1.3;
-  ctx.globalAlpha = .32;
+  ctx.strokeStyle = "#a18a5a";
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = .20;
   ctx.strokeRect(b.x + 3, b.y + 3, b.w - 6, b.h - 6);
   ctx.restore();
 
-  for (const obstacle of arena.obstacles) drawNaturalPillar(ctx, obstacle);
+  for (const obstacle of arena.obstacles) drawStonePillar(ctx, obstacle);
 
   return true;
+}
+
+export function isGrandRingEnvironment(arena) {
+  return arena?.id === GRAND_RING_ID;
 }
 
 let cachedTerrain = null;
@@ -420,8 +631,15 @@ let cachedTerrainKey = "";
 export function drawGrandRingEnvironment(ctx, arena, width, height) {
   if (!isGrandRingEnvironment(arena)) return false;
 
-  const cacheKey = arena.id + ":" + width + "x" + height;
-  const canCache = typeof document !== "undefined" && typeof document.createElement === "function";
+  const cacheKey = [
+    TERRAIN_VERSION,
+    arena.id,
+    width + "x" + height,
+  ].join(":");
+
+  const canCache =
+    typeof document !== "undefined"
+    && typeof document.createElement === "function";
 
   if (canCache && (!cachedTerrain || cachedTerrainKey !== cacheKey)) {
     const buffer = document.createElement("canvas");

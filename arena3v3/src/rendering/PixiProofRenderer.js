@@ -389,11 +389,17 @@ export class PixiProofRenderer {
       this.inputCanvas.style.zIndex = "";
     }
 
-    if (this.app) {
-      this.app.destroy({ removeView: true }, { children: true, texture: false });
+    if (this.app?.renderer) {
+      try {
+        this.app.destroy({ removeView: true }, { children: true, texture: false });
+      } catch (error) {
+        console.warn("[Pixi preview] cleanup after failed init was partial", error);
+        this.view?.remove();
+      }
       this.app = null;
     } else {
       this.view?.remove();
+      this.app = null;
     }
 
     this.view = null;

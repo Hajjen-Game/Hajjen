@@ -61,6 +61,12 @@ function priestHealSpellColors(spellId) {
 
 function commonCasterSpellProfile(spellId) {
   const profiles = {
+    "mage-living-bomb": {
+      kind: "mage-bomb",
+      main: 0xd86b3f,
+      core: 0xffe0a8,
+      accent: 0x9f342b,
+    },
     "mage-frostbolt": {
       kind: "frost",
       main: 0x63c9e7,
@@ -78,11 +84,47 @@ function commonCasterSpellProfile(spellId) {
       size: 11,
       heavy: true,
     },
+    "mage-frost-nova": {
+      kind: "frost-nova",
+      main: 0x67cee8,
+      core: 0xf1fdff,
+      accent: 0x6f9fd7,
+    },
+    "mage-polymorph": {
+      kind: "arcane-control",
+      main: 0xa38ada,
+      core: 0xf4e7ff,
+      accent: 0x6e5aa9,
+    },
+    "mage-frostfire-bolt": {
+      kind: "frostfire",
+      main: 0x75d4e7,
+      core: 0xfff1d1,
+      accent: 0xdd7540,
+      travelEnd: .58,
+      size: 10,
+      heavy: true,
+    },
+    "mage-arcane-barrage": {
+      kind: "arcane",
+      main: 0xa389db,
+      core: 0xf3e5ff,
+      accent: 0x6e5db7,
+      travelEnd: .50,
+      size: 8,
+    },
+
     "shaman-flame-shock": {
       kind: "flame-shock",
       main: 0xd96d3e,
       core: 0xffe0a1,
       accent: 0x9e3e2d,
+    },
+    "shaman-chain-lightning": {
+      kind: "lightning-release",
+      main: 0x63c7dd,
+      core: 0xecfeff,
+      accent: 0x4c91bd,
     },
     "shaman-lava-burst": {
       kind: "lava",
@@ -93,6 +135,34 @@ function commonCasterSpellProfile(spellId) {
       size: 10,
       heavy: true,
     },
+    "shaman-hex": {
+      kind: "nature-control",
+      main: 0x78b89e,
+      core: 0xeaffdf,
+      accent: 0x4d7f68,
+    },
+    "shaman-astral-shift": {
+      kind: "astral",
+      main: 0x78c4d6,
+      core: 0xeffeff,
+      accent: 0x846cb7,
+    },
+    "shaman-elemental-blast": {
+      kind: "elemental",
+      main: 0x66c5dc,
+      core: 0xfff0bc,
+      accent: 0xd97843,
+      travelEnd: .50,
+      size: 9,
+      heavy: true,
+    },
+    "shaman-stormstrike": {
+      kind: "stormstrike",
+      main: 0x65cce0,
+      core: 0xefffff,
+      accent: 0xd19b58,
+    },
+
     "warlock-corruption": {
       kind: "corruption",
       main: 0x9d63c7,
@@ -115,6 +185,30 @@ function commonCasterSpellProfile(spellId) {
       travelEnd: .62,
       size: 12,
       heavy: true,
+    },
+    "warlock-resolve": {
+      kind: "shadow-ward",
+      main: 0x7654a7,
+      core: 0xc7a8ea,
+      accent: 0x251a33,
+    },
+    "warlock-fear": {
+      kind: "shadow-control",
+      main: 0x9a61bf,
+      core: 0xe3c4f3,
+      accent: 0x301b3b,
+    },
+    "warlock-drain-life": {
+      kind: "drain",
+      main: 0x8f5bc1,
+      core: 0xd7b7ee,
+      accent: 0x261730,
+    },
+    "warlock-conflagrate": {
+      kind: "conflagrate",
+      main: 0xd56d43,
+      core: 0xffd59a,
+      accent: 0x512519,
     },
   };
   return profiles[spellId] || null;
@@ -2324,6 +2418,373 @@ export class PixiProofRenderer {
         continue;
       }
 
+      if (profile.kind === "mage-bomb") {
+        const popRaw = Math.max(0, Math.min(1, p / .18));
+        const pop = popRaw * popRaw * (3 - 2 * popRaw);
+        const fade = 1 - Math.max(0, Math.min(1, (p - .58) / .42));
+        const radius = 12 + pop * 20;
+        const spin = p * 2.8;
+        const corners = [];
+
+        for (let i = 0; i < 4; i += 1) {
+          const a = i * Math.PI / 2 + spin;
+          corners.push({
+            x: dxFull + Math.cos(a) * radius,
+            y: dyFull + Math.sin(a) * radius,
+          });
+        }
+        corners.push(corners[0]);
+
+        view.commonCasterSpellFx.moveTo(corners[0].x, corners[0].y);
+        for (let i = 1; i < corners.length; i += 1) {
+          view.commonCasterSpellFx.lineTo(corners[i].x, corners[i].y);
+        }
+        view.commonCasterSpellFx.stroke({
+          color: profile.main,
+          width: 2.2,
+          alpha: alpha * fade * .82,
+        });
+
+        view.commonCasterSpellFx
+          .circle(dxFull, dyFull, radius * .62)
+          .stroke({
+            color: profile.main,
+            width: 1.5,
+            alpha: alpha * fade * .52,
+          })
+          .circle(dxFull, dyFull, 5 + pop * 3)
+          .fill({
+            color: profile.core,
+            alpha: alpha * fade * .52,
+          });
+
+        for (let i = 0; i < 4; i += 1) {
+          const a = i * Math.PI / 2 + Math.PI / 4 - spin * 1.4;
+          view.commonCasterSpellFx
+            .circle(
+              dxFull + Math.cos(a) * radius * .72,
+              dyFull + Math.sin(a) * radius * .72,
+              2.1,
+            )
+            .fill({
+              color: profile.core,
+              alpha: alpha * fade * .68,
+            });
+        }
+        continue;
+      }
+
+      if (
+        profile.kind === "arcane-control"
+        || profile.kind === "nature-control"
+        || profile.kind === "shadow-control"
+      ) {
+        const travelEnd = .30;
+        const travelRaw = Math.max(0, Math.min(1, p / travelEnd));
+        const travel = 1 - Math.pow(1 - travelRaw, 3);
+        const missOffset = missed ? 30 : 0;
+        const destinationX = dxFull + nx * missOffset;
+        const destinationY = dyFull + ny * missOffset - (missed ? 18 : 0);
+        const qx = destinationX * travel;
+        const qy = destinationY * travel;
+        const runeColor =
+          profile.kind === "nature-control" ? profile.core : profile.main;
+
+        view.commonCasterSpellFx
+          .circle(qx, qy, 8 + travel * 6)
+          .stroke({
+            color: runeColor,
+            width: 1.8,
+            alpha: alpha * .66,
+          })
+          .circle(qx, qy, 4.2)
+          .fill({
+            color: profile.core,
+            alpha: alpha * .76,
+          });
+
+        for (let i = 0; i < 5; i += 1) {
+          const lag = Math.max(0, travel - .055 * (i + 1));
+          const wobble = Math.sin(seed * .11 + i * 2.2 + p * 13) * 6;
+          view.commonCasterSpellFx
+            .circle(
+              destinationX * lag + nx * wobble,
+              destinationY * lag + ny * wobble,
+              1.45,
+            )
+            .fill({
+              color: i % 2 ? profile.main : profile.core,
+              alpha: alpha * .36,
+            });
+        }
+
+        if (!missed && p >= travelEnd) {
+          const phase = Math.max(0, Math.min(1, (p - travelEnd) / .55));
+          const fade = 1 - phase;
+          const radius = 12 + phase * 32;
+
+          view.commonCasterSpellFx
+            .circle(dxFull, dyFull, radius)
+            .stroke({
+              color: profile.main,
+              width: 2,
+              alpha: alpha * fade * .58,
+            })
+            .circle(dxFull, dyFull, Math.max(6, radius - 7))
+            .stroke({
+              color: profile.core,
+              width: 1,
+              alpha: alpha * fade * .38,
+            });
+
+          for (let i = 0; i < 6; i += 1) {
+            const a =
+              i / 6 * Math.PI * 2
+              + phase * (profile.kind === "nature-control" ? 1.2 : -1.1);
+            const rr = 11 + phase * 24;
+            view.commonCasterSpellFx
+              .circle(
+                dxFull + Math.cos(a) * rr,
+                dyFull + Math.sin(a) * rr,
+                1.8,
+              )
+              .fill({
+                color: i % 2 ? profile.main : profile.core,
+                alpha: alpha * fade * .52,
+              });
+          }
+        }
+        continue;
+      }
+
+      if (profile.kind === "frost-nova") {
+        const wave = 1 - Math.pow(1 - Math.max(0, Math.min(1, p / .72)), 3);
+        const fade = 1 - Math.max(0, Math.min(1, (p - .50) / .50));
+        const radius = source.radius + 8 + wave * 108;
+
+        view.commonCasterSpellFx
+          .circle(0, 0, radius)
+          .stroke({
+            color: profile.main,
+            width: 3.2,
+            alpha: alpha * fade * .78,
+          })
+          .circle(0, 0, Math.max(source.radius + 4, radius - 12))
+          .stroke({
+            color: profile.core,
+            width: 1.4,
+            alpha: alpha * fade * .36,
+          });
+
+        for (let i = 0; i < 12; i += 1) {
+          const angle =
+            i / 12 * Math.PI * 2 + Math.sin(seed * .17 + i * 2.1) * .13;
+          const rr = source.radius + 4 + wave * (88 + (i % 4) * 7);
+          const x = Math.cos(angle) * rr;
+          const y = Math.sin(angle) * rr;
+          view.commonCasterSpellFx
+            .moveTo(x, y - 5)
+            .lineTo(x + 3.1, y)
+            .lineTo(x, y + 5)
+            .lineTo(x - 3.1, y)
+            .lineTo(x, y - 5)
+            .fill({
+              color: profile.core,
+              alpha: alpha * fade * .64,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "astral" || profile.kind === "shadow-ward") {
+        const appearRaw = Math.max(0, Math.min(1, p / .18));
+        const appear = appearRaw * appearRaw * (3 - 2 * appearRaw);
+        const fade = 1 - Math.max(0, Math.min(1, (p - .68) / .32));
+        const base = source.radius + 10;
+        const ward = profile.kind === "shadow-ward";
+
+        view.commonCasterSpellFx
+          .circle(0, 0, base + 22)
+          .fill({
+            color: ward ? profile.accent : profile.main,
+            alpha: alpha * appear * fade * .08,
+          });
+
+        for (let i = 0; i < 4; i += 1) {
+          const radius = base + i * 5;
+          const start = p * (i % 2 ? -2.3 : 2.1) + i * 1.2;
+          const end = start + 1.15;
+          const segments = 5;
+          for (let s = 0; s < segments; s += 1) {
+            const a0 = start + (end - start) * (s / segments);
+            const a1 = start + (end - start) * ((s + 1) / segments);
+            view.commonCasterSpellFx
+              .moveTo(Math.cos(a0) * radius, Math.sin(a0) * radius)
+              .lineTo(Math.cos(a1) * radius, Math.sin(a1) * radius)
+              .stroke({
+                color: i % 2 ? profile.accent : profile.main,
+                width: 2,
+                alpha: alpha * appear * fade * (.40 + i * .07),
+              });
+          }
+        }
+
+        for (let i = 0; i < 7; i += 1) {
+          const angle =
+            i / 7 * Math.PI * 2 + p * (i % 2 ? 2 : -1.5) + seed * .01;
+          const rr = base + 7 + (i % 3) * 6;
+          view.commonCasterSpellFx
+            .circle(Math.cos(angle) * rr, Math.sin(angle) * rr, 1.5)
+            .fill({
+              color: i % 2 ? profile.main : profile.core,
+              alpha: alpha * appear * fade * .50,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "stormstrike") {
+        const slashRaw = Math.max(0, Math.min(1, p / .26));
+        const slash = slashRaw * slashRaw * (3 - 2 * slashRaw);
+        const fade = 1 - Math.max(0, Math.min(1, (p - .42) / .58));
+        const reach = 24 + slash * 26;
+        const angle = Math.atan2(dyFull, dxFull);
+        const ca = Math.cos(angle);
+        const sa = Math.sin(angle);
+
+        const transform = (x, y) => ({
+          x: dxFull + x * ca - y * sa,
+          y: dyFull + x * sa + y * ca,
+        });
+
+        for (const sign of [-1, 1]) {
+          const a = transform(-reach * .75, -reach * .6 * sign);
+          const m = transform(0, 0);
+          const b = transform(reach * .75, reach * .58 * sign);
+          view.commonCasterSpellFx
+            .moveTo(a.x, a.y)
+            .lineTo(m.x, m.y)
+            .lineTo(b.x, b.y)
+            .stroke({
+              color: sign < 0 ? profile.main : profile.core,
+              width: sign < 0 ? 5 : 2.4,
+              alpha: alpha * fade * .82,
+            });
+        }
+
+        const hit = Math.max(0, Math.min(1, (p - .10) / .52));
+        const hitFade = 1 - hit;
+        view.commonCasterSpellFx
+          .circle(dxFull, dyFull, 9 + hit * 30)
+          .stroke({
+            color: profile.main,
+            width: 2.2,
+            alpha: alpha * hitFade * .58,
+          });
+        continue;
+      }
+
+      if (profile.kind === "lightning-release") {
+        const pulse = 1 - Math.max(0, Math.min(1, (p - .34) / .32));
+        const radius = 12 + p * 24;
+        view.commonCasterSpellFx
+          .circle(0, 0, radius)
+          .stroke({
+            color: profile.main,
+            width: 2,
+            alpha: alpha * pulse * .50,
+          });
+
+        for (let i = 0; i < 5; i += 1) {
+          const a = i / 5 * Math.PI * 2 + p * 4;
+          const qx = Math.cos(a) * (15 + p * 18);
+          const qy = Math.sin(a) * (15 + p * 18);
+          const mx = qx * .52 + Math.sin(seed * .13 + i * 2.2 + p * 9) * 5;
+          const my = qy * .52 + Math.cos(seed * .11 + i * 1.8 + p * 8) * 5;
+          view.commonCasterSpellFx
+            .moveTo(0, 0)
+            .lineTo(mx, my)
+            .lineTo(qx, qy)
+            .stroke({
+              color: profile.core,
+              width: 1.4,
+              alpha: alpha * pulse * .52,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "drain") {
+        const fade = 1 - Math.max(0, Math.min(1, (p - .72) / .28));
+        const waves = 2;
+        for (let line = 0; line < waves; line += 1) {
+          const segments = 10;
+          view.commonCasterSpellFx.moveTo(0, 0);
+          for (let i = 1; i <= segments; i += 1) {
+            const t = i / segments;
+            const bx = dxFull * t;
+            const by = dyFull * t;
+            const wave =
+              Math.sin(t * 10 + p * 13 + line * 2.3 + seed * .03)
+              * 7
+              * Math.sin(t * Math.PI);
+            view.commonCasterSpellFx.lineTo(
+              bx + nx * wave * (line ? -1 : 1),
+              by + ny * wave * (line ? -1 : 1),
+            );
+          }
+          view.commonCasterSpellFx.stroke({
+            color: line ? profile.core : profile.main,
+            width: line ? 1.25 : 3.4,
+            alpha: alpha * fade * (line ? .72 : .52),
+          });
+        }
+
+        for (let i = 0; i < 6; i += 1) {
+          const t = (p * 1.7 + i / 6) % 1;
+          const wobble = Math.sin(i * 2.4 + p * 11) * 5;
+          view.commonCasterSpellFx
+            .circle(
+              dxFull * t + nx * wobble,
+              dyFull * t + ny * wobble,
+              1.5 + (i % 2) * .4,
+            )
+            .fill({
+              color: i % 2 ? profile.core : profile.main,
+              alpha: alpha * fade * .52,
+            });
+        }
+        continue;
+      }
+
+      if (profile.kind === "conflagrate") {
+        const fade = 1 - Math.max(0, Math.min(1, (p - .62) / .38));
+        const eased = 1 - Math.pow(1 - p, 3);
+        for (let i = 0; i < 9; i += 1) {
+          const a = i / 9 * Math.PI * 2 + seed * .021;
+          const rr = 6 + eased * (18 + (i % 4) * 7);
+          view.commonCasterSpellFx
+            .circle(
+              dxFull + Math.cos(a) * rr,
+              dyFull + Math.sin(a) * rr - p * (4 + (i % 3) * 2),
+              1.6 + (i % 3) * .6,
+            )
+            .fill({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              alpha: alpha * fade * .68,
+            });
+        }
+
+        view.commonCasterSpellFx
+          .circle(dxFull, dyFull, 9 + eased * 29)
+          .stroke({
+            color: profile.main,
+            width: 2.5,
+            alpha: alpha * fade * .62,
+          });
+        continue;
+      }
+
       const travelEnd = profile.travelEnd || .56;
       const rawTravel = Math.max(0, Math.min(1, p / travelEnd));
       const travel = 1 - Math.pow(1 - rawTravel, 3);
@@ -2335,6 +2796,33 @@ export class PixiProofRenderer {
       let projectileY = destinationY * travel;
       if (profile.kind === "lava") {
         projectileY -= Math.sin(travel * Math.PI) * 24;
+      } else if (profile.kind === "arcane" || profile.kind === "elemental") {
+        view.commonCasterSpellFx
+          .circle(projectileX, projectileY, size + 2)
+          .fill({ color: profile.main, alpha: alpha * .68 })
+          .circle(projectileX, projectileY, size * .48)
+          .fill({ color: profile.core, alpha: alpha * .94 });
+
+        const satellites = profile.kind === "elemental" ? 3 : 4;
+        for (let i = 0; i < satellites; i += 1) {
+          const a =
+            p * (profile.kind === "elemental" ? 15 : 10) * (i % 2 ? -1 : 1)
+            + i * Math.PI * 2 / satellites;
+          const rr = size + 6 + (i % 2) * 3;
+          view.commonCasterSpellFx
+            .circle(
+              projectileX + Math.cos(a) * rr,
+              projectileY + Math.sin(a) * rr,
+              2.2,
+            )
+            .fill({
+              color:
+                profile.kind === "elemental" && i === 2
+                  ? profile.accent
+                  : (i % 2 ? profile.core : profile.main),
+              alpha: alpha * .62,
+            });
+        }
       } else if (profile.kind === "shadow") {
         projectileX += nx * Math.sin(p * 13 + seed * .07) * 8;
         projectileY += ny * Math.sin(p * 13 + seed * .07) * 8;
@@ -2387,7 +2875,11 @@ export class PixiProofRenderer {
               alpha: alpha * .58,
             });
         }
-      } else if (profile.kind === "fire" || profile.kind === "lava") {
+      } else if (
+        profile.kind === "fire"
+        || profile.kind === "lava"
+        || profile.kind === "frostfire"
+      ) {
         view.commonCasterSpellFx
           .circle(projectileX, projectileY, size + 2)
           .fill({ color: profile.accent, alpha: alpha * .72 })

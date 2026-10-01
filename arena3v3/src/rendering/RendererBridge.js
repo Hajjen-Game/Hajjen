@@ -1,17 +1,34 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi24";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi25";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",
   "priest-flash-heal",
   "priest-greater-heal",
+
+  "mage-living-bomb",
   "mage-frostbolt",
   "mage-pyroblast",
+  "mage-frost-nova",
+  "mage-polymorph",
+  "mage-frostfire-bolt",
+  "mage-arcane-barrage",
+
   "shaman-flame-shock",
+  "shaman-chain-lightning",
   "shaman-lava-burst",
+  "shaman-hex",
+  "shaman-astral-shift",
+  "shaman-elemental-blast",
+  "shaman-stormstrike",
+
   "warlock-corruption",
   "warlock-shadow-bolt",
   "warlock-chaos-bolt",
+  "warlock-resolve",
+  "warlock-fear",
+  "warlock-drain-life",
+  "warlock-conflagrate",
 ]);
 
 function requestedRenderer() {

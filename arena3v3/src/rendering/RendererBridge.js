@@ -1,5 +1,11 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi18";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi18";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi19";
+
+const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
+  "priest-renew",
+  "priest-flash-heal",
+  "priest-greater-heal",
+]);
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";
@@ -47,6 +53,7 @@ export class RendererBridge {
         skipRingVfx: true,
         skipBeamVfx: true,
         skipChainVfx: true,
+        skipSpellVfxIds: PIXI_NATIVE_SPELL_VFX_IDS,
       });
       return;
     }

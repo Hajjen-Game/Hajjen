@@ -50,6 +50,15 @@ function burstColors(style = "damage") {
   return colors[style] || colors.damage;
 }
 
+function priestHealSpellColors(spellId) {
+  const colors = {
+    "priest-renew": [0xe7cf8d, 0xfff7cf, 0xc9a95e],
+    "priest-flash-heal": [0xead38f, 0xfff9dc, 0xc8aa61],
+    "priest-greater-heal": [0xe8d39a, 0xfffce7, 0xc9aa6a],
+  };
+  return colors[spellId] || colors["priest-flash-heal"];
+}
+
 function actorVisualSignature(actor) {
   return [
     actor?.classId || "",
@@ -797,6 +806,10 @@ export class PixiProofRenderer {
     chainFx.visible = false;
     root.addChild(chainFx);
 
+    const priestHealSpellFx = new Graphics();
+    priestHealSpellFx.visible = false;
+    root.addChild(priestHealSpellFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -896,6 +909,7 @@ export class PixiProofRenderer {
       ringFx,
       beamFx,
       chainFx,
+      priestHealSpellFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -1420,6 +1434,168 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativePriestHealSpellVfx(game) {
+    const supported = new Set([
+      "priest-renew",
+      "priest-flash-heal",
+      "priest-greater-heal",
+    ]);
+
+    for (const view of this.actorViews.values()) {
+      view.priestHealSpellFx.clear();
+      view.priestHealSpellFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell" || !supported.has(effect.spellId)) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !target || !view || !view.root.visible) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const [main, core, accent] = priestHealSpellColors(effect.spellId);
+      const dx = target.x - source.x;
+      const dy = target.y - source.y;
+      const seed = Number(effect.seed || effect.id || 1);
+      const random = seededRandom(seed);
+
+      view.priestHealSpellFx.visible = true;
+
+      // Small source release cue, matching the Canvas spell layer.
+      const cueWindow = effect.spellId === "priest-greater-heal" ? .22 : .18;
+      const cueP = Math.max(0, Math.min(1, p / cueWindow));
+      const cueFade = 1 - cueP;
+      if (cueFade > 0) {
+        const cueRadius = source.radius + 9 + cueP * 11;
+        view.priestHealSpellFx
+          .circle(0, 0, cueRadius)
+          .stroke({
+            color: main,
+            width: 2,
+            alpha: alpha * cueFade * .50,
+          });
+
+        for (let i = 0; i < 6; i += 1) {
+          const a = i / 6 * Math.PI * 2;
+          const inner = source.radius + 4;
+          const outer = source.radius + 16 + cueP * 14;
+          view.priestHealSpellFx
+            .moveTo(Math.cos(a) * inner, Math.sin(a) * inner)
+            .lineTo(Math.cos(a) * outer, Math.sin(a) * outer)
+            .stroke({
+              color: i % 2 ? core : main,
+              width: 1.35,
+              alpha: alpha * cueFade * .46,
+            });
+        }
+      }
+
+      if (effect.spellId === "priest-renew") {
+        const fade = 1 - Math.max(0, Math.min(1, (p - .62) / .38));
+        const eased = 1 - Math.pow(1 - p, 3);
+        const radius = 12 + eased * 24;
+
+        view.priestHealSpellFx
+          .circle(dx, dy, 11 + p * 24)
+          .stroke({
+            color: main,
+            width: 1.5,
+            alpha: alpha * fade * .42,
+          });
+
+        for (let i = 0; i < 6; i += 1) {
+          const a = i / 6 * Math.PI * 2 - p * 1.2;
+          view.priestHealSpellFx
+            .circle(
+              dx + Math.cos(a) * radius,
+              dy + Math.sin(a) * radius - p * 5,
+              1.8 + (i % 2) * .7,
+            )
+            .fill({
+              color: i % 2 ? main : core,
+              alpha: alpha * fade * .66,
+            });
+        }
+        continue;
+      }
+
+      const strong = effect.spellId === "priest-greater-heal";
+      const appearRaw = Math.max(0, Math.min(1, p / .18));
+      const appear = appearRaw * appearRaw * (3 - 2 * appearRaw);
+      const fade = 1 - Math.max(0, Math.min(1, (p - .58) / .42));
+      const height = strong ? 118 : 88;
+      const width = strong ? 34 : 24;
+      const topY = dy - height;
+      const rayAlpha = alpha * appear * fade * (strong ? .38 : .30);
+
+      // A visible holy column built only from safe Graphics line primitives.
+      const rays = strong ? 6 : 4;
+      for (let i = 0; i < rays; i += 1) {
+        const lane = rays === 1 ? 0 : i / (rays - 1) - .5;
+        const topX = dx + lane * width;
+        const bottomX = dx + lane * width * 1.35;
+        view.priestHealSpellFx
+          .moveTo(topX, topY)
+          .lineTo(bottomX, dy + 10)
+          .stroke({
+            color: i % 2 ? core : main,
+            width: strong ? 3.2 : 2.5,
+            alpha: rayAlpha * (i % 2 ? .85 : .58),
+          });
+      }
+
+      const eased = 1 - Math.pow(1 - p, 3);
+      const ringRadius = 10 + eased * (strong ? 30 : 22);
+      view.priestHealSpellFx
+        .circle(dx, dy, ringRadius)
+        .stroke({
+          color: main,
+          width: strong ? 2.8 : 2.1,
+          alpha: alpha * fade * .74,
+        })
+        .circle(dx, dy, Math.max(5, ringRadius - 6))
+        .stroke({
+          color: core,
+          width: 1.05,
+          alpha: alpha * fade * .44,
+        });
+
+      const motes = strong ? 9 : 6;
+      for (let i = 0; i < motes; i += 1) {
+        const rx = random();
+        const ry = random();
+        const rr = random();
+        view.priestHealSpellFx
+          .circle(
+            dx + (rx - .5) * width * 1.5,
+            topY + ry * height * .78 + p * 12,
+            1.4 + rr * 1.8,
+          )
+          .fill({
+            color: i % 3 === 0 ? core : (i % 2 ? main : accent),
+            alpha: alpha * fade * .62,
+          });
+      }
+
+      // Stronger landing flash for Greater Heal, deliberately obvious for testing.
+      if (strong && p > .08 && p < .52) {
+        const flashP = Math.max(0, Math.min(1, (p - .08) / .44));
+        const flashFade = 1 - flashP;
+        view.priestHealSpellFx
+          .circle(dx, dy, 5 + flashP * 18)
+          .fill({
+            color: core,
+            alpha: alpha * flashFade * .22,
+          });
+      }
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1466,6 +1642,7 @@ export class PixiProofRenderer {
     this.updateNativeRingVfx(game);
     this.updateNativeBeamVfx(game);
     this.updateNativeChainVfx(game);
+    this.updateNativePriestHealSpellVfx(game);
 
     this.app.render();
   }

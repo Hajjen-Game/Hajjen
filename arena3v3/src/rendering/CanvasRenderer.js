@@ -142,6 +142,7 @@ export class CanvasRenderer {
       skipRingVfx = false,
       skipBeamVfx = false,
       skipChainVfx = false,
+      skipSpellVfxIds = null,
     } = {},
   ) {
     const ctx = this.ctx;
@@ -240,6 +241,7 @@ export class CanvasRenderer {
       skipRingVfx,
       skipBeamVfx,
       skipChainVfx,
+      skipSpellVfxIds,
     });
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
@@ -1380,6 +1382,7 @@ export class CanvasRenderer {
       skipRingVfx = false,
       skipBeamVfx = false,
       skipChainVfx = false,
+      skipSpellVfxIds = null,
     } = {},
   ) {
     for (const effect of game.vfx.effects) {
@@ -1388,6 +1391,11 @@ export class CanvasRenderer {
       if (skipRingVfx && effect.type === "ring") continue;
       if (skipBeamVfx && effect.type === "beam") continue;
       if (skipChainVfx && effect.type === "chain") continue;
+      if (
+        effect.type === "spell"
+        && skipSpellVfxIds
+        && skipSpellVfxIds.includes(effect.spellId)
+      ) continue;
       const progress = 1 - effect.remainingMs / effect.totalMs;
       const alpha = clamp(effect.remainingMs / effect.totalMs, 0, 1);
 

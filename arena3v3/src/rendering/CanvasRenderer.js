@@ -6,6 +6,7 @@ import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
 import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
 import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
+import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring1";
 import {
   drawMageShamanCastVfx,
   drawMageShamanSpellVfx,
@@ -133,6 +134,10 @@ export class CanvasRenderer {
   }
 
   drawArena(ctx) {
+    if (drawGrandRingEnvironment(ctx, this.arena, GAME_WIDTH, GAME_HEIGHT)) {
+      return;
+    }
+
     const gradient = ctx.createRadialGradient(640, 360, 80, 640, 360, 680);
     gradient.addColorStop(0, this.theme.floor2);
     gradient.addColorStop(1, this.theme.floor);

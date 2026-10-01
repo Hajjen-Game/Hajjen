@@ -781,6 +781,10 @@ export class PixiProofRenderer {
     burstFx.visible = false;
     root.addChild(burstFx);
 
+    const slashFx = new Graphics();
+    slashFx.visible = false;
+    root.addChild(slashFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -876,6 +880,7 @@ export class PixiProofRenderer {
       root,
       name,
       burstFx,
+      slashFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -1052,6 +1057,59 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeSlashVfx(game) {
+    for (const view of this.actorViews.values()) {
+      view.slashFx.clear();
+      view.slashFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "slash") continue;
+
+      const view = this.actorViews.get(effect.targetId);
+      if (!view || !view.root.visible) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const progress = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const [main, core] = burstColors(effect.style);
+      const spread = 8 + progress * 18;
+
+      view.slashFx.visible = true;
+
+      view.slashFx
+        .moveTo(-spread, -spread)
+        .lineTo(spread, spread)
+        .moveTo(spread, -spread)
+        .lineTo(-spread, spread)
+        .stroke({
+          color: main,
+          width: 4.6,
+          alpha: alpha * .78,
+        });
+
+      view.slashFx
+        .moveTo(-spread * .9, -spread * .9)
+        .lineTo(spread * .9, spread * .9)
+        .moveTo(spread * .9, -spread * .9)
+        .lineTo(-spread * .9, spread * .9)
+        .stroke({
+          color: core,
+          width: 1.35,
+          alpha: alpha * .90,
+        });
+
+      view.slashFx
+        .circle(0, 0, Math.max(6, spread * .72))
+        .stroke({
+          color: main,
+          width: 1.1,
+          alpha: alpha * .34,
+        });
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1094,6 +1152,7 @@ export class PixiProofRenderer {
     }
 
     this.updateNativeBurstVfx(game);
+    this.updateNativeSlashVfx(game);
 
     this.app.render();
   }

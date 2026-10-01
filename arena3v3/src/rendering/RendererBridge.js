@@ -1,5 +1,5 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi13";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi13";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi14";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi14";
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";
@@ -41,7 +41,10 @@ export class RendererBridge {
   render(game) {
     if (this.pixiRenderer?.ready) {
       this.pixiRenderer.render(game);
-      this.canvasRenderer.renderEffectsOverlay(game, { skipBurstVfx: true });
+      this.canvasRenderer.renderEffectsOverlay(game, {
+        skipBurstVfx: true,
+        skipSlashVfx: true,
+      });
       return;
     }
 

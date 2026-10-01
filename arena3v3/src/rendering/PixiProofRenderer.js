@@ -1535,6 +1535,20 @@ export class PixiProofRenderer {
         const sideArcA = buildArc(19, baseAmplitude * 1.36, .9);
         const sideArcB = buildArc(37, baseAmplitude * 1.22, -1.1);
         const sideArcC = buildArc(61, baseAmplitude * 1.52, 2.2);
+        const secondaryEnvelope =
+          clamp01(reveal / .72)
+          * (1 - clamp01((localProgress - .58) / .26));
+        const afterimageStrength =
+          clamp01((reveal - .18) / .42)
+          * (1 - clamp01((localProgress - .62) / .20));
+        const afterimageArc = mainArc.map((point, index) => {
+          const t = index / Math.max(1, mainArc.length - 1);
+          const trail = 5.5 * Math.sin(t * Math.PI);
+          return {
+            x: point.x - tx * trail + px * 1.6,
+            y: point.y - ty * trail + py * 1.6,
+          };
+        });
 
         if (!specialChainLightning) {
           strokePath(view.chainGlowFx, mainArc, {
@@ -1555,7 +1569,23 @@ export class PixiProofRenderer {
           continue;
         }
 
-        const intensity = alpha * fade * flicker;
+        const hopEnergy = specialChainLightning
+          ? Math.min(1, .96 + segmentIndex * .02)
+          : alpha;
+        const intensity = hopEnergy * fade * flicker;
+
+        // A short offset afterimage helps the bolt read as a fast electrical snap
+        // rather than a bundle of equally persistent lines.
+        strokePath(view.chainGlowFx, afterimageArc, {
+          color: palette.accent,
+          width: 8,
+          alpha: intensity * afterimageStrength * .075,
+        });
+        strokePath(view.chainFx, afterimageArc, {
+          color: palette.main,
+          width: 1.35,
+          alpha: intensity * afterimageStrength * .18,
+        });
 
         // A wider halo gives the bolt actual luminous volume instead of reading
         // as a cyan line. The hot flash occasionally overdrives it for a frame.
@@ -1614,22 +1644,22 @@ export class PixiProofRenderer {
         strokePath(view.chainGlowFx, sideArcA, {
           color: palette.main,
           width: 6.5,
-          alpha: intensity * .10 * secondaryVisibilityA,
+          alpha: intensity * secondaryEnvelope * .10 * secondaryVisibilityA,
         });
         strokePath(view.chainFx, sideArcA, {
           color: palette.main,
           width: 1.85,
-          alpha: intensity * .58 * secondaryVisibilityA,
+          alpha: intensity * secondaryEnvelope * .58 * secondaryVisibilityA,
         });
         strokePath(view.chainFx, sideArcB, {
           color: palette.core,
           width: 1.15,
-          alpha: intensity * .68 * secondaryVisibilityB,
+          alpha: intensity * secondaryEnvelope * .68 * secondaryVisibilityB,
         });
         strokePath(view.chainFx, sideArcC, {
           color: palette.main,
           width: 1.05,
-          alpha: intensity * .42 * secondaryVisibilityC,
+          alpha: intensity * secondaryEnvelope * .42 * secondaryVisibilityC,
         });
 
         // Four short branches jump away from the main channel. Their visibility
@@ -1642,7 +1672,7 @@ export class PixiProofRenderer {
               + seed * .17
               + branchIndex * 1.8,
             ) > -.26;
-          if (!active) continue;
+          if (!active || localProgress > .70) continue;
 
           const t = branchFractions[branchIndex];
           const pathIndex = Math.max(
@@ -1711,7 +1741,7 @@ export class PixiProofRenderer {
         }
 
         // Directional sparks flow along the main channel.
-        const sparkCount = 9;
+        const sparkCount = localProgress < .58 ? 9 : 6;
         for (let i = 0; i < sparkCount; i += 1) {
           const sparkT =
             (progress * 2.8 + i / sparkCount + segmentIndex * .11) % 1;
@@ -1742,8 +1772,8 @@ export class PixiProofRenderer {
 
         // Stronger source discharge on the first hop: an expanding ring, central
         // white flash, radial fingers and tiny orbiting sparks.
-        if (segmentIndex === 0 && localProgress < .58) {
-          const sourcePulse = clamp01(localProgress / .58);
+        if (segmentIndex === 0 && localProgress < .48) {
+          const sourcePulse = clamp01(localProgress / .48);
           const sourceFade = 1 - sourcePulse;
           const sourceRadius = source.radius + 5 + easeOut(sourcePulse) * 23;
           const sourceIntensity = intensity * sourceFade;
@@ -1831,8 +1861,9 @@ export class PixiProofRenderer {
           const impactProgress = clamp01((localProgress - .28) / .62);
           const easedImpact = easeOut(impactProgress);
           const impactFlash = Math.exp(-impactProgress * 10.5);
-          const afterglow = Math.exp(-impactProgress * 2.8);
-          const impactEnvelope = alpha * Math.max(impactFlash, afterglow * .62);
+          const afterglow = Math.exp(-impactProgress * 3.35);
+          const impactEnvelope =
+            hopEnergy * Math.max(impactFlash, afterglow * .60);
           const bodyRadius = Math.max(12, Number(toActor.radius) || 18);
           const hitPulse = Math.sin(Math.min(1, impactProgress * 1.55) * Math.PI);
           const outer = 9 + easedImpact * 44;
@@ -1903,7 +1934,7 @@ export class PixiProofRenderer {
             });
 
           // Electrical fragments get short trails so they read as fast particles.
-          const particleCount = 14;
+          const particleCount = 12;
           for (let i = 0; i < particleCount; i += 1) {
             const angle =
               i / particleCount * Math.PI * 2
@@ -1940,7 +1971,7 @@ export class PixiProofRenderer {
           }
 
           // Brief broken arcs cling to the target after the hit.
-          const clingCount = 7;
+          const clingCount = 5;
           const clingRadius = bodyRadius + 5 + hitPulse * 3;
           for (let i = 0; i < clingCount; i += 1) {
             const angle =
@@ -1978,7 +2009,7 @@ export class PixiProofRenderer {
           }
 
           // Radial hit spikes retain the crisp readability of the old impact.
-          const rayCount = 10;
+          const rayCount = 8;
           for (let i = 0; i < rayCount; i += 1) {
             const angle =
               i / rayCount * Math.PI * 2
@@ -2006,7 +2037,7 @@ export class PixiProofRenderer {
           }
 
           // Small lingering motes survive the initial flash for a short afterglow.
-          const emberCount = 6;
+          const emberCount = 5;
           for (let i = 0; i < emberCount; i += 1) {
             const angle =
               i / emberCount * Math.PI * 2

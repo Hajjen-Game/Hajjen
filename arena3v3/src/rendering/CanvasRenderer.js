@@ -134,6 +134,17 @@ export class CanvasRenderer {
     this.drawFloatingTexts(ctx, game.floatingTexts);
   }
 
+  renderEffectsOverlay(game) {
+    const ctx = this.ctx;
+    this.frameNowMs = performance.now();
+
+    // In Pixi preview mode this canvas sits above the WebGL scene and is kept
+    // transparent. Reuse the mature Canvas VFX while arena/actors migrate.
+    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    this.drawVfx(ctx, game);
+    this.drawFloatingTexts(ctx, game.floatingTexts);
+  }
+
   drawArena(ctx) {
     if (drawGrandRingEnvironment(ctx, this.arena, GAME_WIDTH, GAME_HEIGHT)) {
       return;

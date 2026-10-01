@@ -86,6 +86,77 @@ function makeSharpIconTexture(PIXI, sourceTexture, size = 128) {
   return texture;
 }
 
+const WIND_SCAR_HEAT_VERTEX = `
+in vec2 aPosition;
+
+out vec2 vTextureCoord;
+
+uniform vec4 uInputSize;
+uniform vec4 uOutputFrame;
+uniform vec4 uOutputTexture;
+
+vec4 filterVertexPosition(void)
+{
+  vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
+
+  position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+  position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+
+  return vec4(position, 0.0, 1.0);
+}
+
+vec2 filterTextureCoord(void)
+{
+  return aPosition * (uOutputFrame.zw * uInputSize.zw);
+}
+
+void main(void)
+{
+  gl_Position = filterVertexPosition();
+  vTextureCoord = filterTextureCoord();
+}
+`;
+
+const WIND_SCAR_HEAT_FRAGMENT = `
+in vec2 vTextureCoord;
+
+uniform sampler2D uTexture;
+uniform float uTime;
+uniform float uStrength;
+
+float ellipseMask(vec2 uv, vec2 center, vec2 radius)
+{
+  vec2 d = (uv - center) / radius;
+  float q = dot(d, d);
+  return 1.0 - smoothstep(0.40, 1.0, q);
+}
+
+void main(void)
+{
+  vec2 uv = vTextureCoord;
+
+  float heat = 0.0;
+  heat = max(heat, ellipseMask(uv, vec2(0.168, 0.178), vec2(0.078, 0.060)));
+  heat = max(heat, ellipseMask(uv, vec2(0.570, 0.253), vec2(0.072, 0.054)));
+  heat = max(heat, ellipseMask(uv, vec2(0.832, 0.701), vec2(0.082, 0.063)));
+  heat = max(heat, ellipseMask(uv, vec2(0.383, 0.771), vec2(0.076, 0.055)));
+
+  float waveA = sin(uv.y * 122.0 + uTime * 2.4 + sin(uv.x * 47.0) * 1.6);
+  float waveB = cos(uv.x * 93.0 - uTime * 1.7 + uv.y * 29.0);
+  float shimmer = waveA * 0.62 + waveB * 0.38;
+
+  vec2 offset = vec2(
+    shimmer * 0.00125,
+    (waveB - waveA * 0.35) * 0.00105
+  ) * heat * uStrength;
+
+  vec4 color = texture2D(uTexture, uv + offset);
+
+  color.a *= heat * 0.78;
+  gl_FragColor = color;
+}
+`;
+
 function makeArenaCanvas(arena) {
   const canvas = document.createElement("canvas");
   canvas.width = GAME_WIDTH;
@@ -114,6 +185,7 @@ export class PixiProofRenderer {
     this.badge = null;
     this.terrainSprite = null;
     this.terrainTexture = null;
+    this.heatShimmer = null;
     this.renderedArenaId = "";
     this.iconTextures = new Map();
     this.ownedIconTextures = new Set();
@@ -229,6 +301,8 @@ export class PixiProofRenderer {
     sprite.width = GAME_WIDTH;
     sprite.height = GAME_HEIGHT;
 
+    this.destroyHeatShimmer();
+
     if (this.terrainSprite) {
       this.app.stage.removeChild(this.terrainSprite);
       this.terrainSprite.destroy();
@@ -240,8 +314,86 @@ export class PixiProofRenderer {
     this.terrainTexture = texture;
     this.terrainSprite = sprite;
     this.app.stage.addChildAt(sprite, 0);
+    this.createHeatShimmer(arena, texture);
     this.createAtmosphere(arena);
     this.renderedArenaId = arena.id;
+  }
+
+  destroyHeatShimmer() {
+    if (!this.heatShimmer) return;
+
+    const { container } = this.heatShimmer;
+    if (container?.parent) container.parent.removeChild(container);
+    container?.destroy?.({ children: true, texture: false });
+    this.heatShimmer = null;
+  }
+
+  createHeatShimmer(arena, terrainTexture) {
+    this.destroyHeatShimmer();
+
+    if (
+      arena?.id !== "windscar-proving-grounds"
+      || !terrainTexture
+      || !this.PIXI
+      || !this.app
+    ) return;
+
+    const { Container, Filter, GlProgram, Rectangle, Sprite } = this.PIXI;
+
+    const container = new Container();
+    container.label = "windscar-heat-shimmer";
+    container.eventMode = "none";
+
+    const heatSprite = new Sprite(terrainTexture);
+    heatSprite.width = GAME_WIDTH;
+    heatSprite.height = GAME_HEIGHT;
+    heatSprite.alpha = .90;
+
+    const glProgram = GlProgram.from({
+      vertex: WIND_SCAR_HEAT_VERTEX,
+      fragment: WIND_SCAR_HEAT_FRAGMENT,
+    });
+
+    const heatFilter = new Filter({
+      glProgram,
+      resources: {
+        heatUniforms: {
+          uTime: { value: 0, type: "f32" },
+          uStrength: { value: 1, type: "f32" },
+        },
+      },
+    });
+
+    heatFilter.padding = 3;
+    heatSprite.filters = [heatFilter];
+
+    heatSprite.filterArea = new Rectangle(
+      arena.bounds.x,
+      arena.bounds.y,
+      arena.bounds.w,
+      arena.bounds.h,
+    );
+
+    container.addChild(heatSprite);
+    this.app.stage.addChildAt(container, Math.min(1, this.app.stage.children.length));
+
+    this.heatShimmer = {
+      container,
+      heatSprite,
+      heatFilter,
+    };
+  }
+
+  updateHeatShimmer(game) {
+    const heat = this.heatShimmer;
+    if (!heat || game.arena?.id !== "windscar-proving-grounds") return;
+
+    const t = Number(game.elapsedSeconds) || 0;
+    const uniforms = heat.heatFilter.resources.heatUniforms.uniforms;
+
+    uniforms.uTime = t;
+    uniforms.uStrength = .86 + Math.sin(t * .74) * .10;
+    heat.heatSprite.alpha = .84 + Math.sin(t * .43) * .035;
   }
 
   destroyAtmosphere() {
@@ -331,7 +483,7 @@ export class PixiProofRenderer {
     }
 
     container.addChild(softLight, particleGlow, particleCore);
-    this.app.stage.addChildAt(container, Math.min(1, this.app.stage.children.length));
+    this.app.stage.addChildAt(container, Math.min(2, this.app.stage.children.length));
 
     this.atmosphere = {
       arenaId: arena.id,
@@ -658,6 +810,7 @@ export class PixiProofRenderer {
         });
     }
 
+    this.updateHeatShimmer(game);
     this.updateAtmosphere(game);
 
     const livingIds = new Set(game.actors.map(actor => actor.id));
@@ -692,6 +845,7 @@ export class PixiProofRenderer {
 
   destroy() {
     this.ready = false;
+    this.destroyHeatShimmer();
     this.destroyAtmosphere();
     this.badge?.remove();
     this.badge = null;

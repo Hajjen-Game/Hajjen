@@ -1,10 +1,17 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi19";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi19";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi20";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",
   "priest-flash-heal",
   "priest-greater-heal",
+  "mage-frostbolt",
+  "mage-pyroblast",
+  "shaman-flame-shock",
+  "shaman-lava-burst",
+  "warlock-corruption",
+  "warlock-shadow-bolt",
+  "warlock-chaos-bolt",
 ]);
 
 function requestedRenderer() {

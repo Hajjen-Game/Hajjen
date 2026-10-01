@@ -59,6 +59,67 @@ function priestHealSpellColors(spellId) {
   return colors[spellId] || colors["priest-flash-heal"];
 }
 
+function commonCasterSpellProfile(spellId) {
+  const profiles = {
+    "mage-frostbolt": {
+      kind: "frost",
+      main: 0x63c9e7,
+      core: 0xeffcff,
+      accent: 0x77a9dc,
+      travelEnd: .55,
+      size: 7,
+    },
+    "mage-pyroblast": {
+      kind: "fire",
+      main: 0xd96839,
+      core: 0xffe2aa,
+      accent: 0xa73d2d,
+      travelEnd: .58,
+      size: 11,
+      heavy: true,
+    },
+    "shaman-flame-shock": {
+      kind: "flame-shock",
+      main: 0xd96d3e,
+      core: 0xffe0a1,
+      accent: 0x9e3e2d,
+    },
+    "shaman-lava-burst": {
+      kind: "lava",
+      main: 0xd66a38,
+      core: 0xffe7a4,
+      accent: 0x9d3527,
+      travelEnd: .52,
+      size: 10,
+      heavy: true,
+    },
+    "warlock-corruption": {
+      kind: "corruption",
+      main: 0x9d63c7,
+      core: 0xd9b6f0,
+      accent: 0x38213f,
+    },
+    "warlock-shadow-bolt": {
+      kind: "shadow",
+      main: 0x8a56bd,
+      core: 0xd5b4ee,
+      accent: 0x2b1838,
+      travelEnd: .56,
+      size: 8,
+    },
+    "warlock-chaos-bolt": {
+      kind: "chaos",
+      main: 0x66d45f,
+      core: 0xdcff8a,
+      accent: 0x233629,
+      travelEnd: .62,
+      size: 12,
+      heavy: true,
+    },
+  };
+  return profiles[spellId] || null;
+}
+
 function actorVisualSignature(actor) {
   return [
     actor?.classId || "",
@@ -810,6 +871,10 @@ export class PixiProofRenderer {
     priestHealSpellFx.visible = false;
     root.addChild(priestHealSpellFx);
 
+    const commonCasterSpellFx = new Graphics();
+    commonCasterSpellFx.visible = false;
+    root.addChild(commonCasterSpellFx);
+
     const { BlurFilter } = this.PIXI;
 
     const playerGlow = new Graphics()
@@ -910,6 +975,7 @@ export class PixiProofRenderer {
       beamFx,
       chainFx,
       priestHealSpellFx,
+      commonCasterSpellFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -1596,6 +1662,282 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeCommonCasterSpellVfx(game) {
+    for (const view of this.actorViews.values()) {
+      view.commonCasterSpellFx.clear();
+      view.commonCasterSpellFx.visible = false;
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+
+      const profile = commonCasterSpellProfile(effect.spellId);
+      if (!profile) continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !view || !view.root.visible) continue;
+
+      const targetX = target?.x ?? effect.targetX;
+      const targetY = target?.y ?? effect.targetY;
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = Math.max(0, Math.min(1, 1 - remaining / total));
+      const alpha = Math.max(0, Math.min(1, remaining / total));
+      const seed = Number(effect.seed || effect.id || 1);
+      const dxFull = targetX - source.x;
+      const dyFull = targetY - source.y;
+      const distance = Math.max(1, Math.hypot(dxFull, dyFull));
+      const tx = dxFull / distance;
+      const ty = dyFull / distance;
+      const nx = -ty;
+      const ny = tx;
+      const missed = Boolean(effect.missed);
+
+      view.commonCasterSpellFx.visible = true;
+
+      if (profile.kind === "flame-shock") {
+        const fade = 1 - Math.max(0, Math.min(1, (p - .55) / .45));
+        for (let i = 0; i < 8; i += 1) {
+          const side = Math.sin(seed * .41 + i * 1.91) * 19;
+          const baseX = dxFull + side;
+          const baseY = dyFull + 15 - (i % 3) * 2.5;
+          const rise = (18 + (i % 4) * 8) * (1 - Math.pow(1 - p, 3));
+          const sway = Math.sin(i * 2.2 + p * 10) * 8;
+
+          view.commonCasterSpellFx
+            .moveTo(baseX, baseY)
+            .lineTo(baseX + sway * .45, baseY - rise * .55)
+            .lineTo(baseX + sway, baseY - rise)
+            .stroke({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              width: 1.6 + (i % 3) * .55,
+              alpha: alpha * fade * (.45 + (i % 2) * .18),
+            });
+        }
+
+        view.commonCasterSpellFx
+          .circle(dxFull, dyFull, 8 + p * 22)
+          .stroke({
+            color: profile.accent,
+            width: 1.2,
+            alpha: alpha * fade * .36,
+          });
+        continue;
+      }
+
+      if (profile.kind === "corruption") {
+        const fade = 1 - Math.max(0, Math.min(1, (p - .68) / .32));
+        const outer = 12 + p * 24;
+
+        view.commonCasterSpellFx
+          .circle(dxFull, dyFull, outer)
+          .stroke({
+            color: profile.main,
+            width: 2,
+            alpha: alpha * fade * .46,
+          })
+          .circle(dxFull, dyFull, Math.max(5, outer - 8))
+          .stroke({
+            color: profile.core,
+            width: 1,
+            alpha: alpha * fade * .34,
+          });
+
+        for (let i = 0; i < 7; i += 1) {
+          const a = (i / 7) * Math.PI * 2 + p * (i % 2 ? 1.7 : -1.35);
+          const rr = 8 + p * (18 + (i % 3) * 6);
+          view.commonCasterSpellFx
+            .circle(
+              dxFull + Math.cos(a) * rr,
+              dyFull + Math.sin(a) * rr - p * 7,
+              1.5 + (i % 3) * .5,
+            )
+            .fill({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              alpha: alpha * fade * .58,
+            });
+        }
+        continue;
+      }
+
+      const travelEnd = profile.travelEnd || .56;
+      const rawTravel = Math.max(0, Math.min(1, p / travelEnd));
+      const travel = 1 - Math.pow(1 - rawTravel, 3);
+      const missOffset = missed ? 38 : 0;
+      const destinationX = dxFull + nx * missOffset + tx * (missed ? 10 : 0);
+      const destinationY = dyFull + ny * missOffset + ty * (missed ? 10 : 0);
+
+      let projectileX = destinationX * travel;
+      let projectileY = destinationY * travel;
+      if (profile.kind === "lava") {
+        projectileY -= Math.sin(travel * Math.PI) * 24;
+      } else if (profile.kind === "shadow") {
+        projectileX += nx * Math.sin(p * 13 + seed * .07) * 8;
+        projectileY += ny * Math.sin(p * 13 + seed * .07) * 8;
+      } else if (profile.kind === "chaos") {
+        projectileX += nx * Math.sin(p * 17 + seed * .05) * 5;
+        projectileY += ny * Math.sin(p * 17 + seed * .05) * 5;
+      }
+
+      const size = profile.size || 8;
+
+      // Tail first so the projectile core reads clearly on top.
+      const tailCount = profile.heavy ? 6 : 4;
+      for (let i = 0; i < tailCount; i += 1) {
+        const lag = Math.max(0, travel - .045 * (i + 1));
+        let qx = destinationX * lag;
+        let qy = destinationY * lag;
+        if (profile.kind === "lava") qy -= Math.sin(lag * Math.PI) * 24;
+        const wobble = Math.sin(seed * .13 + i * 2.2 + p * 8) * 4;
+
+        view.commonCasterSpellFx
+          .circle(
+            qx + nx * wobble,
+            qy + ny * wobble,
+            Math.max(1.2, size * .28 - i * .12),
+          )
+          .fill({
+            color: i % 2 ? profile.main : profile.core,
+            alpha: alpha * Math.max(.18, .52 - i * .065),
+          });
+      }
+
+      if (profile.kind === "frost") {
+        view.commonCasterSpellFx
+          .circle(projectileX, projectileY, size)
+          .fill({ color: profile.main, alpha: alpha * .82 })
+          .circle(projectileX, projectileY, size * .48)
+          .fill({ color: profile.core, alpha: alpha * .94 });
+
+        for (let i = 0; i < 4; i += 1) {
+          const a = i / 4 * Math.PI * 2 + p * 7;
+          view.commonCasterSpellFx
+            .moveTo(projectileX, projectileY)
+            .lineTo(
+              projectileX + Math.cos(a) * (size + 5),
+              projectileY + Math.sin(a) * (size + 5),
+            )
+            .stroke({
+              color: profile.accent,
+              width: 1.2,
+              alpha: alpha * .58,
+            });
+        }
+      } else if (profile.kind === "fire" || profile.kind === "lava") {
+        view.commonCasterSpellFx
+          .circle(projectileX, projectileY, size + 2)
+          .fill({ color: profile.accent, alpha: alpha * .72 })
+          .circle(projectileX, projectileY, size)
+          .fill({ color: profile.main, alpha: alpha * .92 })
+          .circle(projectileX, projectileY, size * .42)
+          .fill({ color: profile.core, alpha: alpha * .95 });
+
+        for (let i = 0; i < 5; i += 1) {
+          const a = i / 5 * Math.PI * 2 + p * 9;
+          view.commonCasterSpellFx
+            .moveTo(
+              projectileX + Math.cos(a) * size * .45,
+              projectileY + Math.sin(a) * size * .45,
+            )
+            .lineTo(
+              projectileX + Math.cos(a + .22) * (size + 5),
+              projectileY + Math.sin(a + .22) * (size + 5),
+            )
+            .stroke({
+              color: i % 2 ? profile.core : profile.main,
+              width: 1.3,
+              alpha: alpha * .64,
+            });
+        }
+      } else if (profile.kind === "shadow") {
+        view.commonCasterSpellFx
+          .circle(projectileX, projectileY, size + 3)
+          .fill({ color: profile.accent, alpha: alpha * .52 })
+          .circle(projectileX, projectileY, size)
+          .fill({ color: profile.main, alpha: alpha * .86 })
+          .circle(projectileX, projectileY, size * .4)
+          .fill({ color: profile.core, alpha: alpha * .82 });
+
+        for (let i = 0; i < 4; i += 1) {
+          const a = p * 8 + i * Math.PI / 2;
+          const rr = size + 6;
+          view.commonCasterSpellFx
+            .circle(
+              projectileX + Math.cos(a) * rr,
+              projectileY + Math.sin(a) * rr,
+              1.7,
+            )
+            .fill({
+              color: i % 2 ? profile.core : profile.main,
+              alpha: alpha * .52,
+            });
+        }
+      } else if (profile.kind === "chaos") {
+        view.commonCasterSpellFx
+          .circle(projectileX, projectileY, size + 5)
+          .fill({ color: profile.accent, alpha: alpha * .46 })
+          .circle(projectileX, projectileY, size + 1)
+          .fill({ color: profile.main, alpha: alpha * .88 })
+          .circle(projectileX, projectileY, size * .46)
+          .fill({ color: profile.core, alpha: alpha * .98 });
+
+        for (const sign of [-1, 1]) {
+          const a = p * 12 * sign + seed * .03;
+          view.commonCasterSpellFx
+            .circle(
+              projectileX + Math.cos(a) * (size + 7),
+              projectileY + Math.sin(a) * (size + 7),
+              2.4,
+            )
+            .fill({
+              color: sign > 0 ? profile.core : profile.main,
+              alpha: alpha * .72,
+            });
+        }
+      }
+
+      if (!missed && p >= travelEnd) {
+        const hit = Math.max(0, Math.min(1, (p - travelEnd) / .38));
+        const fade = 1 - hit;
+        const impactRadius = 9 + hit * (profile.heavy ? 36 : 26);
+
+        view.commonCasterSpellFx
+          .circle(dxFull, dyFull, impactRadius)
+          .stroke({
+            color: profile.main,
+            width: profile.heavy ? 3.2 : 2.3,
+            alpha: alpha * fade * .72,
+          })
+          .circle(dxFull, dyFull, Math.max(5, impactRadius - 7))
+          .stroke({
+            color: profile.core,
+            width: 1.15,
+            alpha: alpha * fade * .68,
+          });
+
+        const sparks = profile.heavy ? 9 : 6;
+        for (let i = 0; i < sparks; i += 1) {
+          const a = i / sparks * Math.PI * 2 + seed * .11;
+          const rr = 7 + hit * (18 + (i % 4) * 5);
+          view.commonCasterSpellFx
+            .circle(
+              dxFull + Math.cos(a) * rr,
+              dyFull + Math.sin(a) * rr - hit * 5,
+              1.6 + (i % 3) * .55,
+            )
+            .fill({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              alpha: alpha * fade * .68,
+            });
+        }
+      }
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -1643,6 +1985,7 @@ export class PixiProofRenderer {
     this.updateNativeBeamVfx(game);
     this.updateNativeChainVfx(game);
     this.updateNativePriestHealSpellVfx(game);
+    this.updateNativeCommonCasterSpellVfx(game);
 
     this.app.render();
   }

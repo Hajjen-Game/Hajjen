@@ -1,5 +1,5 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi21";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi30";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi22";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261001-pixi31";
 
 const PIXI_NATIVE_SPELL_VFX_IDS = Object.freeze([
   "priest-renew",
@@ -123,6 +123,7 @@ export class RendererBridge {
         skipChainVfx: true,
         skipCastVfx: true,
         skipTargetMarker: true,
+        skipFloatingTexts: true,
         skipSpellVfxIds: PIXI_NATIVE_SPELL_VFX_IDS,
       });
       return;

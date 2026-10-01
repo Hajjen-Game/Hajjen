@@ -575,6 +575,8 @@ export class PixiProofRenderer {
     this.iconTextures = new Map();
     this.ownedIconTextures = new Set();
     this.actorViews = new Map();
+    this.combatTextLayer = null;
+    this.combatTextViews = new Map();
     this.arenaBuildPromise = null;
     this.atmosphere = null;
   }
@@ -619,6 +621,11 @@ export class PixiProofRenderer {
 
     await this.loadClassIcons();
     await this.rebuildArena(this._arena);
+
+    const combatTextLayer = new PIXI.Container();
+    combatTextLayer.label = "floating-combat-text";
+    this.app.stage.addChild(combatTextLayer);
+    this.combatTextLayer = combatTextLayer;
 
     this.installBadge();
     this.ready = true;
@@ -5509,6 +5516,127 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeFloatingCombatText(game) {
+    const layer = this.combatTextLayer;
+    const { Container, Text } = this.PIXI || {};
+    if (!layer || !Container || !Text) return;
+
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const activeItems = new Set(game.floatingTexts || []);
+
+    for (const [item, view] of this.combatTextViews) {
+      if (activeItems.has(item)) continue;
+      if (view.parent === layer) layer.removeChild(view);
+      view.destroy({ children: true });
+      this.combatTextViews.delete(item);
+    }
+
+    const colors = {
+      damage: "#f05a50",
+      "crit-damage": "#ff6b5d",
+      heal: "#62d77a",
+      "crit-heal": "#86eb91",
+      avoid: "#d8c6a7",
+      buff: "#d9b4e8",
+      cc: "#ffd18a",
+      debuff: "#e18f7e",
+      burst: "#ffc06b",
+    };
+
+    for (const item of game.floatingTexts || []) {
+      const total = Math.max(1, Number(item.totalMs) || 1);
+      const remaining = Math.max(0, Number(item.remainingMs) || 0);
+      const progress = clamp01(1 - remaining / total);
+      const fadeIn = clamp01(progress / .08);
+      const fadeOut = clamp01(remaining / 220);
+      const alpha = Math.min(fadeIn, fadeOut);
+      const isCrit =
+        item.type === "crit-damage"
+        || item.type === "crit-heal";
+      const isDamage =
+        item.type === "damage"
+        || item.type === "crit-damage";
+      const isHeal =
+        item.type === "heal"
+        || item.type === "crit-heal";
+
+      let view = this.combatTextViews.get(item);
+      if (!view) {
+        const container = new Container();
+        container.label = "combat-text:" + (item.type || "text");
+
+        const fill = colors[item.type] || "#f1e8d8";
+        const baseText = new Text({
+          text: String(item.text ?? ""),
+          style: {
+            fontFamily: "system-ui",
+            fontSize: isCrit ? 21 : 17,
+            fontWeight: isCrit ? "950" : "850",
+            fill,
+            stroke: {
+              color: "#130a08",
+              width: isCrit ? 4.5 : 3.5,
+            },
+          },
+        });
+        baseText.anchor.set(.5);
+        container.addChild(baseText);
+
+        // Canvas had a very thin white inner edge on damage/heal crits.
+        // Keep that extra snap without adding glow or blur.
+        if (isCrit && (isDamage || isHeal)) {
+          const accentText = new Text({
+            text: String(item.text ?? ""),
+            style: {
+              fontFamily: "system-ui",
+              fontSize: 21,
+              fontWeight: "950",
+              fill,
+              stroke: {
+                color: "#ffffff",
+                width: 1,
+              },
+            },
+          });
+          accentText.anchor.set(.5);
+          accentText.alpha = .36;
+          container.addChild(accentText);
+        }
+
+        layer.addChild(container);
+        view = container;
+        this.combatTextViews.set(item,view);
+      }
+
+      let scale = 1;
+      if (isCrit) {
+        const popProgress = clamp01(progress / .22);
+        scale = popProgress < .42
+          ? 1 + (popProgress / .42) * .42
+          : 1.42 - ((popProgress - .42) / .58) * .42;
+      }
+
+      const rise = isCrit ? 34 : 28;
+      view.position.set(
+        Number(item.x) || 0,
+        (Number(item.y) || 0) - progress * rise,
+      );
+      view.scale.set(scale);
+      view.alpha = alpha;
+      view.visible = alpha > .001;
+    }
+
+    // Actor roots can be created after this layer. Keep combat text on top
+    // without stage filters or z-index sorting.
+    const children = this.app?.stage?.children || [];
+    if (
+      this.app?.stage
+      && children[children.length - 1] !== layer
+    ) {
+      this.app.stage.addChild(layer);
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.app) return;
 
@@ -5561,6 +5689,7 @@ export class PixiProofRenderer {
     this.updateNativePaladinDkSpellVfx(game);
     this.updateNativeWarriorRogueSpellVfx(game);
     this.updateNativeCommonCasterSpellVfx(game);
+    this.updateNativeFloatingCombatText(game);
 
     this.app.render();
   }
@@ -5569,6 +5698,9 @@ export class PixiProofRenderer {
     this.ready = false;
     this.destroyHeatShimmer();
     this.destroyAtmosphere();
+
+    this.combatTextViews.clear();
+    this.combatTextLayer = null;
     this.badge?.remove();
     this.badge = null;
 

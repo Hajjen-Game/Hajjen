@@ -144,6 +144,7 @@ export class CanvasRenderer {
       skipChainVfx = false,
       skipCastVfx = false,
       skipTargetMarker = false,
+      skipFloatingTexts = false,
       skipSpellVfxIds = null,
     } = {},
   ) {
@@ -248,7 +249,9 @@ export class CanvasRenderer {
       skipChainVfx,
       skipSpellVfxIds,
     });
-    this.drawFloatingTexts(ctx, game.floatingTexts);
+    if (!skipFloatingTexts) {
+      this.drawFloatingTexts(ctx, game.floatingTexts);
+    }
   }
 
   drawArena(ctx) {

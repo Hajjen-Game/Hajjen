@@ -1,0 +1,275 @@
+.player-cc-alert {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  z-index: 9;
+  transform: translate(-50%, -50%);
+  width: 172px;
+  padding: 12px 14px 11px;
+  text-align: center;
+  pointer-events: none;
+  border: 1px solid var(--gold-bright);
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 25%, rgba(93,58,28,.94), rgba(23,14,10,.95) 70%);
+  box-shadow:
+    0 0 0 2px rgba(227,186,114,.15),
+    0 0 34px rgba(0,0,0,.6),
+    inset 0 0 20px rgba(227,186,114,.08);
+  animation: cc-alert-pulse .75s ease-in-out infinite alternate;
+}
+
+.player-cc-alert.hidden {
+  display: none;
+}
+
+.player-cc-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 4px;
+  display: grid;
+  place-items: center;
+}
+
+.cc-alert-svg {
+  width: 58px;
+  height: 58px;
+  fill: none;
+  stroke: #ffe2ad;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 7px rgba(227,186,114,.38));
+}
+
+.player-cc-icon .cc-alert-svg {
+  display: none;
+}
+
+.player-cc-alert.fear #cc-fear-icon,
+.player-cc-alert.incapacitate #cc-incap-icon,
+.player-cc-alert.stun #cc-stun-icon,
+.player-cc-alert.root #cc-root-icon,
+.player-cc-alert.school-lock #cc-lock-icon {
+  display: block;
+}
+
+.player-cc-alert.fear { --cc-alert-color: var(--cc-fear); }
+.player-cc-alert.incapacitate { --cc-alert-color: var(--cc-incap); }
+.player-cc-alert.stun { --cc-alert-color: var(--cc-stun); }
+.player-cc-alert.root { --cc-alert-color: var(--cc-root); }
+.player-cc-alert.school-lock { --cc-alert-color: var(--vfx-interrupt); }
+
+.player-cc-alert.fear,
+.player-cc-alert.incapacitate,
+.player-cc-alert.stun,
+.player-cc-alert.root,
+.player-cc-alert.school-lock {
+  border-color: var(--cc-alert-color);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--cc-alert-color) 18%, transparent),
+    0 0 34px rgba(0,0,0,.6),
+    inset 0 0 20px color-mix(in srgb, var(--cc-alert-color) 10%, transparent);
+}
+
+.player-cc-alert.fear .cc-alert-svg,
+.player-cc-alert.incapacitate .cc-alert-svg,
+.player-cc-alert.stun .cc-alert-svg,
+.player-cc-alert.root .cc-alert-svg,
+.player-cc-alert.school-lock .cc-alert-svg {
+  stroke: var(--cc-alert-color);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--cc-alert-color) 48%, transparent));
+}
+
+.player-cc-alert.stun .player-cc-title { color: #ffd8d0; }
+.player-cc-alert.fear .player-cc-title { color: #ffe2b4; }
+.player-cc-alert.incapacitate .player-cc-title { color: #eadcff; }
+.player-cc-alert.root .player-cc-title { color: #d9f6ff; }
+.player-cc-alert.school-lock .player-cc-title { color: #efe2ff; }
+
+.player-cc-title {
+  color: #fff1d2;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.player-cc-time {
+  margin-top: 5px;
+  color: var(--gold-bright);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.player-cc-source {
+  min-height: 13px;
+  margin-top: 2px;
+  color: var(--cream-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.action-slot.queued {
+  opacity: 1;
+  border-color: var(--gold-bright);
+  background: linear-gradient(180deg, #4a321c, #25170f);
+  box-shadow:
+    0 0 0 2px rgba(227,186,114,.18),
+    0 0 16px rgba(227,186,114,.22);
+}
+
+.action-slot.queued::after {
+  content: "QUEUED";
+  position: absolute;
+  right: 7px;
+  bottom: 5px;
+  color: var(--gold-bright);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .1em;
+  pointer-events: none;
+}
+
+.action-slot.queued .spell-meta {
+  color: #d8bd8a;
+}
+
+@keyframes cc-alert-pulse {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow:
+      0 0 0 2px rgba(227,186,114,.12),
+      0 0 28px rgba(0,0,0,.55),
+      inset 0 0 18px rgba(227,186,114,.06);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.025);
+    box-shadow:
+      0 0 0 3px rgba(227,186,114,.22),
+      0 0 40px rgba(0,0,0,.65),
+      inset 0 0 24px rgba(227,186,114,.12);
+  }
+}
+
+
+.dampening-indicator {
+  min-width: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(18, 12, 9, .64);
+  color: var(--cream-dim);
+  transition: border-color .18s, background .18s, color .18s, box-shadow .18s;
+}
+
+.dampening-indicator.active {
+  border-color: #a76152;
+  background: rgba(71, 34, 28, .74);
+  color: #f0c7b8;
+  box-shadow: inset 0 0 16px rgba(183, 94, 79, .08);
+}
+
+.dampening-icon {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.dampening-copy {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  column-gap: 6px;
+  line-height: 1;
+}
+
+.dampening-label {
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .1em;
+}
+
+#dampening-value {
+  font-size: 15px;
+  color: var(--cream);
+}
+
+.dampening-next {
+  grid-column: 1 / -1;
+  margin-top: 3px;
+  font-size: 8px;
+  color: var(--cream-dim);
+}
+
+
+.roster-card {
+  width: 620px;
+}
+
+.roster-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.roster-section-title {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+.roster-section-title.friendly { color: var(--friendly-bright); }
+.roster-section-title.enemy { color: var(--enemy-bright); }
+
+.roster-field {
+  display: grid;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: rgba(15, 11, 9, .56);
+}
+
+.roster-field span {
+  color: var(--cream-dim);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.roster-field select {
+  width: 100%;
+  color: var(--cream);
+  background: #1b120d;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.roster-note {
+  margin-top: 13px;
+  color: var(--cream-dim);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.roster-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 13px;
+}

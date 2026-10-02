@@ -1,0 +1,60 @@
+:root {
+  --bg-0: #100d0b;
+  --bg-1: #17110d;
+  --panel: #21170f;
+  --panel-2: #2a1d13;
+  --panel-3: #332217;
+  --line: #6e4626;
+  --line-soft: #4d331f;
+  --gold: #c58a43;
+  --gold-bright: #e3ba72;
+  --cream: #e7d6b7;
+  --cream-dim: #a8977f;
+  --friendly: #6f9d97;
+  --friendly-bright: #9bc7bf;
+  --enemy: #a86555;
+  --enemy-bright: #d58c78;
+  --enemy-name: #ef7465;
+  --health: #7e9d70;
+  --health-low: #b75e4f;
+  --cast: #8877a6;
+  --hot: #71927a;
+  --dot: #ad6e59;
+  --mana: #706da6;
+  --energy: #bd8e45;
+  --rage: #b96454;
+  --runic: #5fa9b8;
+  --resource-bg: #15100d;
+  --arena-floor: #3a2c20;
+  --arena-floor-2: #433224;
+  --arena-line: #6b4b2b;
+  --pillar: #5a4532;
+  --pillar-edge: #8a6847;
+  --shadow: rgba(0, 0, 0, .42);
+  --focus: #e7b363;
+
+  --vfx-lightning: #68ddff;
+  --vfx-lightning-core: #f7feff;
+  --vfx-heal: #78dd82;
+  --vfx-damage: #f06e58;
+  --vfx-fear: #eeb357;
+  --vfx-interrupt: #d49cff;
+  --vfx-burst: #ff9c32;
+
+  --cc-fear: #e2a85f;
+  --cc-incap: #b89be8;
+  --cc-stun: #e46f5e;
+  --cc-root: #78c6df;
+
+  --vfx-priest: #ffd85c;
+  --vfx-priest-shadow: #b86be8;
+  --vfx-druid: #63d978;
+  --vfx-paladin: #ffcb3f;
+  --vfx-warrior: #dc8f62;
+  --vfx-rogue: #e3c04f;
+  --vfx-death-knight: #5fd5ef;
+  --vfx-mage: #55c9ff;
+  --vfx-warlock: #bb6ee9;
+  --vfx-warlock-chaos: #55ed61;
+  --vfx-shaman: #46d7ee;
+}

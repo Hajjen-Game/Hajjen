@@ -1,5 +1,5 @@
-import { CharacterRenderer } from "./CharacterRenderer.js";
-import { VfxController } from "./VfxController.js";
+import { CharacterRenderer } from "./CharacterRenderer.js?v=20261002-2250";
+import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;
 

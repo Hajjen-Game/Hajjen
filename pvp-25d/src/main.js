@@ -1,9 +1,9 @@
-import { Game } from "./core/Game.js";
+import { Game } from "./core/Game.js?v=20261002-2250";
 import { InputManager } from "../../arena3v3/src/core/InputManager.js";
 import { CharacterStore } from "../../arena3v3/src/core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "../../arena3v3/src/core/HonorSystem.js";
 import { RatingSystem, migrateExistingRatingsToStartingRating } from "../../arena3v3/src/core/RatingSystem.js";
-import { VERDANT_CRUCIBLE } from "./content/arenas/verdant-crucible/config.js";
+import { VERDANT_CRUCIBLE } from "./content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,

@@ -396,9 +396,9 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
     b.x*sx,b.y*sy,
     (b.x+b.w)*sx,(b.y+b.h)*sy,
   );
-  base.addColorStop(0,"#8d654b");
-  base.addColorStop(.44,"#805a43");
-  base.addColorStop(1,"#684838");
+  base.addColorStop(0,"#7b5742");
+  base.addColorStop(.44,"#704d3b");
+  base.addColorStop(1,"#5a3d31");
   ctx.fillStyle=base;
   ctx.fill();
 
@@ -407,11 +407,11 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
   pathArena();
   ctx.clip();
   const facetPalette=[
-    "rgba(224,162,105,.10)",
-    "rgba(173,113,76,.10)",
-    "rgba(105,70,54,.12)",
-    "rgba(238,181,121,.055)",
-    "rgba(77,49,40,.085)",
+    "rgba(224,162,105,.070)",
+    "rgba(173,113,76,.072)",
+    "rgba(105,70,54,.095)",
+    "rgba(238,181,121,.040)",
+    "rgba(77,49,40,.070)",
   ];
   for(let i=0;i<24;i+=1){
     const gx=(b.x+65+random()*(b.w-130))*sx;
@@ -449,24 +449,37 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
     b.h*.68*sy,
   );
 
-  // Sparse shallow cracks / scuffs.
+  // Sparse worn seams. Keep these subtle so they read as surface wear,
+  // not branches/twigs scattered across the arena.
   ctx.lineCap="round";
-  for(let i=0;i<13;i+=1){
-    let x=(b.x+95+random()*(b.w-190))*sx;
-    let y=(b.y+75+random()*(b.h-150))*sy;
+  for(let i=0;i<5;i+=1){
+    let x=(b.x+130+random()*(b.w-260))*sx;
+    let y=(b.y+105+random()*(b.h-210))*sy;
     const angle=random()*Math.PI*2;
-    const length=(22+random()*58)*sx;
+    const length=(18+random()*42)*sx;
     ctx.beginPath();
     ctx.moveTo(x,y);
-    for(let p=0;p<2+Math.floor(random()*2);p+=1){
-      x+=Math.cos(angle+(random()-.5)*.55)*length/3;
-      y+=Math.sin(angle+(random()-.5)*.55)*length/3;
+    for(let p=0;p<2;p+=1){
+      x+=Math.cos(angle+(random()-.5)*.28)*length/2;
+      y+=Math.sin(angle+(random()-.5)*.28)*length/2;
       ctx.lineTo(x,y);
     }
-    ctx.strokeStyle="rgba(45,29,24,"+(.12+random()*.09)+")";
-    ctx.lineWidth=(.9+random()*.7)*sx;
+    ctx.strokeStyle="rgba(42,28,23,"+(.065+random()*.045)+")";
+    ctx.lineWidth=(.65+random()*.45)*sx;
     ctx.stroke();
   }
+
+  // Gentle interior vignette keeps the middle readable while the perimeter
+  // falls back enough for combat VFX to pop.
+  const combatVignette=ctx.createRadialGradient(
+    cx,cy,Math.min(width,height)*.20,
+    cx,cy,Math.min(width,height)*.66,
+  );
+  combatVignette.addColorStop(0,"rgba(0,0,0,0)");
+  combatVignette.addColorStop(.68,"rgba(35,22,18,.035)");
+  combatVignette.addColorStop(1,"rgba(24,15,13,.14)");
+  ctx.fillStyle=combatVignette;
+  ctx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);
 
   // Warm pools under the two watchfires.
   const firePools=[
@@ -947,19 +960,35 @@ function addWindscarFrontRune(
   materials,
   root,
 ) {
-  const plate=BABYLON.MeshBuilder.CreatePlane(
-    name,
-    {width,height,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+  const z=rect.center.z-rect.depth/2;
+
+  const backing=BABYLON.MeshBuilder.CreatePlane(
+    name+"-backing",
+    {
+      width:width*1.25,
+      height:height*1.22,
+      sideOrientation:BABYLON.Mesh.DOUBLESIDE,
+    },
     scene,
   );
-  plate.position.set(
-    rect.center.x,
-    elevation,
-    rect.center.z-rect.depth/2-.028,
+  backing.position.set(rect.center.x,elevation,z-.026);
+  backing.material=materials.windscarInset;
+  backing.parent=root;
+
+  const rune=BABYLON.MeshBuilder.CreateDisc(
+    name+"-diamond",
+    {
+      radius:Math.min(width,height)*.31,
+      tessellation:4,
+      sideOrientation:BABYLON.Mesh.DOUBLESIDE,
+    },
+    scene,
   );
-  plate.material=materials.windscarRune;
-  plate.parent=root;
-  return plate;
+  rune.position.set(rect.center.x,elevation,z-.032);
+  rune.rotation.z=Math.PI/4;
+  rune.material=materials.windscarRune;
+  rune.parent=root;
+  return rune;
 }
 
 function addWindscarPillar(
@@ -1173,7 +1202,20 @@ function addWindscarCenterWall(
     shadowCasters.push(towerCap);
   }
 
-  // Recessed near-face plate + twin ember slits.
+  // Recessed near-face plate with a warm metal frame and twin ember slits.
+  const frame=BABYLON.MeshBuilder.CreatePlane(
+    "windscar-wall-front-frame",
+    {width:7.72,height:1.72,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  frame.position.set(
+    rect.center.x,
+    2.03,
+    rect.center.z-rect.depth/2-.026,
+  );
+  frame.material=materials.windscarTrim;
+  frame.parent=root;
+
   const plate=BABYLON.MeshBuilder.CreatePlane(
     "windscar-wall-front-plate",
     {width:7.2,height:1.42,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
@@ -1182,7 +1224,7 @@ function addWindscarCenterWall(
   plate.position.set(
     rect.center.x,
     2.03,
-    rect.center.z-rect.depth/2-.030,
+    rect.center.z-rect.depth/2-.032,
   );
   plate.material=materials.windscarInset;
   plate.parent=root;
@@ -1196,7 +1238,7 @@ function addWindscarCenterWall(
     slit.position.set(
       rect.center.x+xOffset,
       2.03,
-      rect.center.z-rect.depth/2-.036,
+      rect.center.z-rect.depth/2-.039,
     );
     slit.material=materials.windscarRune;
     slit.parent=root;
@@ -1789,8 +1831,8 @@ function addWindscarWatchfire(
   );
   light.diffuse=new BABYLON.Color3(1.0,.48,.16);
   light.specular=new BABYLON.Color3(.72,.30,.10);
-  light.intensity=3.15;
-  light.range=37;
+  light.intensity=3.85;
+  light.range=34;
   lights.push(light);
 }
 
@@ -1941,9 +1983,6 @@ function addWindscarScenery(
     );
   });
 
-  addGroundDebris(
-    BABYLON,scene,arena,mapping,materials,root,
-  );
 }
 
 function addTorches(
@@ -2080,7 +2119,8 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     windscarRune:material(
       BABYLON,scene,"mat-windscar-rune","#ff8b37","#5b220b","#ff5c19"
     ),
-    windscarInset:material(BABYLON,scene,"mat-windscar-inset","#3b2922","#160e0b"),
+    windscarInset:material(BABYLON,scene,"mat-windscar-inset","#2f211c","#120c0a"),
+    windscarTrim:material(BABYLON,scene,"mat-windscar-trim","#8d5a32","#3b1d0d","#9c491b"),
     windscarSeam:material(BABYLON,scene,"mat-windscar-seam","#3e3027","#150f0c"),
     windscarRock:material(BABYLON,scene,"mat-windscar-rock","#684c3b","#21160f"),
     windscarRockDark:material(BABYLON,scene,"mat-windscar-rock-dark","#49352c","#18100d"),
@@ -2136,8 +2176,13 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   };
 
   materials.windscarRune.disableLighting=true;
-  materials.windscarRune.alpha=.82;
+  materials.windscarRune.alpha=.94;
   materials.windscarMetal.specularPower=32;
+  materials.windscarStoneTop.emissiveColor=
+    materials.windscarStoneTop.diffuseColor.scale(.035);
+  materials.windscarStoneTopAlt.emissiveColor=
+    materials.windscarStoneTopAlt.diffuseColor.scale(.025);
+  materials.windscarTrim.disableLighting=true;
   materials.seam.alpha=.90;
   materials.seamSoft.alpha=.48;
   materials.flameOuter.disableLighting=true;
@@ -2146,14 +2191,14 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   materials.emberGlow.disableLighting=true;
   materials.emberGlow.alpha=.24;
   materials.floorGlow.disableLighting=true;
-  materials.floorGlow.alpha=.14;
+  materials.floorGlow.alpha=.18;
 
   const softShadow=createSoftShadowTexture(BABYLON,scene);
   ownedTextures.push(softShadow);
   materials.contactShadow.disableLighting=true;
   materials.contactShadow.diffuseColor=new BABYLON.Color3(0,0,0);
   materials.contactShadow.opacityTexture=softShadow;
-  materials.contactShadow.alpha=.16;
+  materials.contactShadow.alpha=.20;
 
   const stoneSurface=createStoneSurfaceTexture(
     BABYLON,scene,
@@ -2277,7 +2322,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
       }
 
       for(let i=0;i<lights.length;i+=1){
-        lights[i].intensity=3.02+Math.sin(timeSeconds*4.0+i*1.7)*.22;
+        lights[i].intensity=3.72+Math.sin(timeSeconds*4.0+i*1.7)*.26;
       }
     },
     dispose() {

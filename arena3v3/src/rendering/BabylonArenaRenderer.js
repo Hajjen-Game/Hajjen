@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon12";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon13";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -160,7 +160,7 @@ export class BabylonArenaRenderer {
     shadows.blurKernel = 32;
     shadows.bias = 0.0008;
     shadows.normalBias = 0.02;
-    shadows.setDarkness?.(.28);
+    shadows.setDarkness?.(.34);
     this.shadowGenerator = shadows;
 
     const fill = new BABYLON.DirectionalLight(
@@ -212,24 +212,24 @@ export class BabylonArenaRenderer {
 
     const isWindscar=arena.id==="windscar-proving-grounds";
     if(isWindscar){
-      this.scene.clearColor=new this.BABYLON.Color4(.052,.036,.028,1);
-      this.scene.ambientColor=new this.BABYLON.Color3(.18,.145,.12);
-      this.scene.imageProcessingConfiguration.exposure=1.08;
-      this.scene.imageProcessingConfiguration.contrast=1.07;
+      this.scene.clearColor=new this.BABYLON.Color4(.038,.026,.022,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.135,.108,.090);
+      this.scene.imageProcessingConfiguration.exposure=.96;
+      this.scene.imageProcessingConfiguration.contrast=1.10;
       if(this.ambientLight){
-        this.ambientLight.intensity=.70;
-        this.ambientLight.diffuse=new this.BABYLON.Color3(.78,.69,.61);
-        this.ambientLight.groundColor=new this.BABYLON.Color3(.12,.075,.055);
+        this.ambientLight.intensity=.57;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.72,.63,.56);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.075,.050,.041);
       }
       if(this.keyLight){
-        this.keyLight.intensity=.72;
+        this.keyLight.intensity=.70;
         this.keyLight.diffuse=new this.BABYLON.Color3(.95,.73,.56);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.42;
-        this.fillLight.diffuse=new this.BABYLON.Color3(.72,.69,.65);
+        this.fillLight.intensity=.29;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.65,.63,.61);
       }
-      this.glowLayer.intensity=.72;
+      this.glowLayer.intensity=.88;
     }else{
       this.scene.imageProcessingConfiguration.exposure=.98;
       this.scene.imageProcessingConfiguration.contrast=1.08;

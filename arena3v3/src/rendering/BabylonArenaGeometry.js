@@ -363,37 +363,67 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
   const b=arena.bounds;
   const cx=(b.x+b.w/2)*sx;
   const cy=(b.y+b.h/2)*sy;
-  const random=seededRandom(0x93af21);
+  const random=seededRandom(0xa47331);
 
-  const base=ctx.createRadialGradient(
-    cx,cy,Math.min(width,height)*.08,
-    cx,cy,Math.min(width,height)*.80,
-  );
-  base.addColorStop(0,"#936a4c");
-  base.addColorStop(.42,"#815b43");
-  base.addColorStop(.76,"#6b4938");
-  base.addColorStop(1,"#52382e");
-  ctx.fillStyle=base;
+  // Dark surrounding pit / staging strip. The playable arena is now a clear
+  // authored shape instead of a full-screen brown rectangle.
+  ctx.fillStyle="#2f211c";
   ctx.fillRect(0,0,width,height);
 
-  const facetPalette=[
-    "rgba(210,147,92,.105)",
-    "rgba(123,79,57,.115)",
-    "rgba(235,174,109,.060)",
-    "rgba(74,47,39,.105)",
-    "rgba(164,103,69,.075)",
+  const bevel=34;
+  const arenaPoly=[
+    [(b.x+bevel)*sx,b.y*sy],
+    [(b.x+b.w-bevel)*sx,b.y*sy],
+    [(b.x+b.w)*sx,(b.y+bevel)*sy],
+    [(b.x+b.w)*sx,(b.y+b.h-bevel)*sy],
+    [(b.x+b.w-bevel)*sx,(b.y+b.h)*sy],
+    [(b.x+bevel)*sx,(b.y+b.h)*sy],
+    [b.x*sx,(b.y+b.h-bevel)*sy],
+    [b.x*sx,(b.y+bevel)*sy],
   ];
-  for(let i=0;i<18;i+=1){
-    const gx=(b.x+70+random()*(b.w-140))*sx;
-    const gy=(b.y+60+random()*(b.h-120))*sy;
-    const radius=(72+random()*145)*sx;
+
+  const pathArena=()=>{
+    ctx.beginPath();
+    ctx.moveTo(arenaPoly[0][0],arenaPoly[0][1]);
+    for(let i=1;i<arenaPoly.length;i+=1){
+      ctx.lineTo(arenaPoly[i][0],arenaPoly[i][1]);
+    }
+    ctx.closePath();
+  };
+
+  pathArena();
+  const base=ctx.createLinearGradient(
+    b.x*sx,b.y*sy,
+    (b.x+b.w)*sx,(b.y+b.h)*sy,
+  );
+  base.addColorStop(0,"#8d654b");
+  base.addColorStop(.44,"#805a43");
+  base.addColorStop(1,"#684838");
+  ctx.fillStyle=base;
+  ctx.fill();
+
+  // Large faceted stone/value planes. No radial target motif.
+  ctx.save();
+  pathArena();
+  ctx.clip();
+  const facetPalette=[
+    "rgba(224,162,105,.10)",
+    "rgba(173,113,76,.10)",
+    "rgba(105,70,54,.12)",
+    "rgba(238,181,121,.055)",
+    "rgba(77,49,40,.085)",
+  ];
+  for(let i=0;i<24;i+=1){
+    const gx=(b.x+65+random()*(b.w-130))*sx;
+    const gy=(b.y+55+random()*(b.h-110))*sy;
+    const radius=(65+random()*145)*sx;
     const sides=5+Math.floor(random()*3);
     ctx.beginPath();
     for(let p=0;p<sides;p+=1){
-      const angle=p/sides*Math.PI*2+(random()-.5)*.20;
-      const rr=radius*(.58+random()*.48);
-      const px=gx+Math.cos(angle)*rr;
-      const py=gy+Math.sin(angle)*rr*(.52+random()*.22);
+      const a=p/sides*Math.PI*2+(random()-.5)*.24;
+      const rr=radius*(.56+random()*.48);
+      const px=gx+Math.cos(a)*rr;
+      const py=gy+Math.sin(a)*rr*(.48+random()*.26);
       if(p===0) ctx.moveTo(px,py);
       else ctx.lineTo(px,py);
     }
@@ -402,54 +432,30 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
     ctx.fill();
   }
 
-  const wearZones=[
-    [b.x+b.w*.50,b.y+b.h*.50,230,.10],
-    [b.x+b.w*.29,b.y+b.h*.35,120,.065],
-    [b.x+b.w*.71,b.y+b.h*.65,120,.065],
-    [b.x+b.w*.16,b.y+b.h*.52,95,.050],
-    [b.x+b.w*.84,b.y+b.h*.48,95,.050],
-  ];
-  for(const [gx,gy,radius,alpha] of wearZones){
-    const x=gx*sx;
-    const y=gy*sy;
-    const r=radius*sx;
-    const g=ctx.createRadialGradient(x,y,0,x,y,r);
-    g.addColorStop(0,"rgba(40,27,22,"+alpha+")");
-    g.addColorStop(.68,"rgba(54,35,27,"+(alpha*.34)+")");
-    g.addColorStop(1,"rgba(0,0,0,0)");
-    ctx.fillStyle=g;
-    ctx.fillRect(x-r,y-r,r*2,r*2);
-  }
+  // Broad worn combat lane through the center, intentionally non-circular.
+  const lane=ctx.createLinearGradient(
+    (b.x+b.w*.24)*sx,(b.y+b.h*.30)*sy,
+    (b.x+b.w*.76)*sx,(b.y+b.h*.70)*sy,
+  );
+  lane.addColorStop(0,"rgba(49,31,25,0)");
+  lane.addColorStop(.35,"rgba(49,31,25,.055)");
+  lane.addColorStop(.65,"rgba(49,31,25,.065)");
+  lane.addColorStop(1,"rgba(49,31,25,0)");
+  ctx.fillStyle=lane;
+  ctx.fillRect(
+    (b.x+b.w*.13)*sx,
+    (b.y+b.h*.16)*sy,
+    b.w*.74*sx,
+    b.h*.68*sy,
+  );
 
-  ctx.save();
-  ctx.translate(cx,cy);
-  ctx.strokeStyle="rgba(223,173,119,.105)";
-  ctx.lineWidth=2.1*sx;
+  // Sparse shallow cracks / scuffs.
   ctx.lineCap="round";
-  const ringR=145*sx;
-  for(const [a0,a1] of [
-    [-2.82,-1.54],
-    [-1.18,.08],
-    [.46,1.60],
-    [1.98,2.66],
-  ]){
-    ctx.beginPath();
-    ctx.arc(0,0,ringR,a0,a1);
-    ctx.stroke();
-  }
-  ctx.strokeStyle="rgba(45,30,24,.12)";
-  ctx.lineWidth=3.6*sx;
-  ctx.beginPath();
-  ctx.arc(0,0,ringR+10*sx,.18,2.18);
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.lineCap="round";
-  for(let i=0;i<11;i+=1){
-    let x=(b.x+105+random()*(b.w-210))*sx;
-    let y=(b.y+80+random()*(b.h-160))*sy;
+  for(let i=0;i<13;i+=1){
+    let x=(b.x+95+random()*(b.w-190))*sx;
+    let y=(b.y+75+random()*(b.h-150))*sy;
     const angle=random()*Math.PI*2;
-    const length=(22+random()*62)*sx;
+    const length=(22+random()*58)*sx;
     ctx.beginPath();
     ctx.moveTo(x,y);
     for(let p=0;p<2+Math.floor(random()*2);p+=1){
@@ -457,52 +463,53 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
       y+=Math.sin(angle+(random()-.5)*.55)*length/3;
       ctx.lineTo(x,y);
     }
-    ctx.strokeStyle="rgba(42,28,23,"+(.13+random()*.10)+")";
-    ctx.lineWidth=(.9+random()*.8)*sx;
+    ctx.strokeStyle="rgba(45,29,24,"+(.12+random()*.09)+")";
+    ctx.lineWidth=(.9+random()*.7)*sx;
     ctx.stroke();
   }
 
+  // Warm pools under the two watchfires.
   const firePools=[
-    [b.x-7,b.y+b.h*.72],
-    [b.x+b.w+7,b.y+b.h*.28],
+    [b.x-8,b.y+b.h*.72],
+    [b.x+b.w+8,b.y+b.h*.28],
   ];
-  ctx.save();
   ctx.globalCompositeOperation="screen";
   for(const [gx,gy] of firePools){
     const x=gx*sx;
     const y=gy*sy;
-    const r=180*sx;
+    const r=185*sx;
     const glow=ctx.createRadialGradient(x,y,0,x,y,r);
-    glow.addColorStop(0,"rgba(255,151,61,.34)");
-    glow.addColorStop(.28,"rgba(245,102,34,.16)");
-    glow.addColorStop(.62,"rgba(195,68,25,.055)");
+    glow.addColorStop(0,"rgba(255,157,69,.38)");
+    glow.addColorStop(.30,"rgba(244,103,37,.18)");
+    glow.addColorStop(.64,"rgba(187,66,27,.055)");
     glow.addColorStop(1,"rgba(0,0,0,0)");
     ctx.fillStyle=glow;
     ctx.fillRect(x-r,y-r,r*2,r*2);
   }
-  ctx.restore();
+  ctx.globalCompositeOperation="source-over";
 
-  for(let i=0;i<1450;i+=1){
-    const alpha=.007+random()*.016;
-    ctx.fillStyle=random()>.56
-      ?"rgba(238,192,145,"+alpha+")"
-      :"rgba(28,18,15,"+alpha+")";
+  for(let i=0;i<1200;i+=1){
+    const alpha=.006+random()*.015;
+    ctx.fillStyle=random()>.58
+      ?"rgba(243,203,157,"+alpha+")"
+      :"rgba(31,20,17,"+alpha+")";
     ctx.fillRect(
-      Math.floor(random()*width),
-      Math.floor(random()*height),
+      Math.floor((b.x+random()*b.w)*sx),
+      Math.floor((b.y+random()*b.h)*sy),
       1,1,
     );
   }
+  ctx.restore();
 
-  const edge=ctx.createRadialGradient(
-    cx,cy,Math.min(width,height)*.32,
-    cx,cy,Math.min(width,height)*.83,
-  );
-  edge.addColorStop(0,"rgba(0,0,0,0)");
-  edge.addColorStop(.72,"rgba(0,0,0,.025)");
-  edge.addColorStop(1,"rgba(17,11,9,.24)");
-  ctx.fillStyle=edge;
-  ctx.fillRect(0,0,width,height);
+  // Strong bevel/rim line defines the combat platform without a giant frame.
+  pathArena();
+  ctx.strokeStyle="rgba(49,31,25,.58)";
+  ctx.lineWidth=4.2*sx;
+  ctx.stroke();
+  pathArena();
+  ctx.strokeStyle="rgba(226,166,110,.10)";
+  ctx.lineWidth=1.25*sx;
+  ctx.stroke();
 
   texture.update(false);
   texture.wrapU=BABYLON.Texture.CLAMP_ADDRESSMODE;
@@ -929,42 +936,271 @@ function addTopCracks(
   }
 }
 
-function addWindscarRunePlate(
+function addWindscarFrontRune(
   BABYLON,
   scene,
   name,
   rect,
   elevation,
-  horizontal,
+  width,
+  height,
   materials,
   root,
 ) {
   const plate=BABYLON.MeshBuilder.CreatePlane(
     name,
-    {
-      width:horizontal?1.6:1.15,
-      height:horizontal?.56:.90,
-      sideOrientation:BABYLON.Mesh.DOUBLESIDE,
-    },
+    {width,height,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
     scene,
   );
-  if(horizontal){
-    plate.position.set(
-      rect.center.x,
-      elevation,
-      rect.center.z-rect.depth/2-.022,
-    );
-  }else{
-    plate.position.set(
-      rect.center.x-rect.width/2-.022,
-      elevation,
-      rect.center.z,
-    );
-    plate.rotation.y=Math.PI/2;
-  }
+  plate.position.set(
+    rect.center.x,
+    elevation,
+    rect.center.z-rect.depth/2-.028,
+  );
   plate.material=materials.windscarRune;
   plate.parent=root;
   return plate;
+}
+
+function addWindscarPillar(
+  BABYLON,
+  scene,
+  obstacle,
+  index,
+  rect,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const height=5.45;
+  const chamfer=Math.min(.84,Math.min(rect.width,rect.depth)*.11);
+
+  const plinth=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-pillar-plinth-"+index,
+    rect.width,
+    .52,
+    rect.depth,
+    chamfer,
+    {x:rect.center.x,y:.26,z:rect.center.z},
+    materials.windscarStoneDark,
+  );
+  plinth.parent=root;
+  plinth.receiveShadows=true;
+  shadowCasters.push(plinth);
+
+  const lower=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-pillar-lower-"+index,
+    rect.width-.42,
+    .48,
+    rect.depth-.42,
+    chamfer*.92,
+    {x:rect.center.x,y:.76,z:rect.center.z},
+    materials.windscarStoneAlt,
+  );
+  lower.parent=root;
+  lower.receiveShadows=true;
+  shadowCasters.push(lower);
+
+  const body=createChamferedFrustum(
+    BABYLON,scene,
+    "windscar-pillar-body-"+index,
+    rect.width-1.00,
+    rect.depth-1.00,
+    rect.width-1.72,
+    rect.depth-1.72,
+    3.35,
+    chamfer*.74,
+    {x:rect.center.x,y:2.55,z:rect.center.z},
+    materials.windscarStone,
+  );
+  body.parent=root;
+  body.receiveShadows=true;
+  shadowCasters.push(body);
+
+  const shoulder=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-pillar-shoulder-"+index,
+    rect.width-1.18,
+    .44,
+    rect.depth-1.18,
+    chamfer*.78,
+    {x:rect.center.x,y:4.38,z:rect.center.z},
+    materials.windscarStoneTopAlt,
+  );
+  shoulder.parent=root;
+  shoulder.receiveShadows=true;
+  shadowCasters.push(shoulder);
+
+  const capital=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-pillar-capital-"+index,
+    rect.width-.72,
+    .38,
+    rect.depth-.72,
+    chamfer*.86,
+    {x:rect.center.x,y:4.79,z:rect.center.z},
+    materials.windscarStoneTop,
+  );
+  capital.parent=root;
+  capital.receiveShadows=true;
+  shadowCasters.push(capital);
+
+  // Babylon 4-sided cone gives a strong arena monument silhouette.
+  const roof=BABYLON.MeshBuilder.CreateCylinder(
+    "windscar-pillar-roof-"+index,
+    {
+      diameterTop:.18,
+      diameterBottom:Math.min(rect.width,rect.depth)-1.72,
+      height:1.10,
+      tessellation:4,
+    },
+    scene,
+  );
+  roof.position.set(rect.center.x,5.53,rect.center.z);
+  roof.rotation.y=Math.PI/4;
+  roof.material=materials.windscarStoneTop;
+  roof.convertToFlatShadedMesh?.();
+  roof.parent=root;
+  roof.receiveShadows=true;
+  shadowCasters.push(roof);
+
+  addWindscarFrontRune(
+    BABYLON,scene,
+    "windscar-pillar-rune-"+index,
+    rect,
+    2.65,
+    1.18,
+    .72,
+    materials,
+    root,
+  );
+}
+
+function addWindscarCenterWall(
+  BABYLON,
+  scene,
+  obstacle,
+  rect,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const wallHeight=3.95;
+  const chamfer=.54;
+
+  const base=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-wall-plinth",
+    rect.width,
+    .50,
+    rect.depth,
+    chamfer,
+    {x:rect.center.x,y:.25,z:rect.center.z},
+    materials.windscarStoneDark,
+  );
+  base.parent=root;
+  base.receiveShadows=true;
+  shadowCasters.push(base);
+
+  const body=createChamferedFrustum(
+    BABYLON,scene,
+    "windscar-wall-body",
+    rect.width-.38,
+    rect.depth-.38,
+    rect.width-.92,
+    rect.depth-.88,
+    2.85,
+    .46,
+    {x:rect.center.x,y:1.87,z:rect.center.z},
+    materials.windscarStone,
+  );
+  body.parent=root;
+  body.receiveShadows=true;
+  shadowCasters.push(body);
+
+  const parapet=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-wall-parapet",
+    rect.width-.56,
+    .40,
+    rect.depth-.62,
+    .42,
+    {x:rect.center.x,y:3.50,z:rect.center.z},
+    materials.windscarStoneTopAlt,
+  );
+  parapet.parent=root;
+  parapet.receiveShadows=true;
+  shadowCasters.push(parapet);
+
+  // Heavy end towers turn the flat collision bar into an arena rampart.
+  const endX=rect.width/2-2.75;
+  for(const side of [-1,1]){
+    const towerX=rect.center.x+side*endX;
+    const tower=createChamferedFrustum(
+      BABYLON,scene,
+      "windscar-wall-tower-"+side,
+      4.90,
+      Math.max(4.7,rect.depth-.42),
+      4.28,
+      Math.max(4.2,rect.depth-.92),
+      1.55,
+      .42,
+      {x:towerX,y:4.15,z:rect.center.z},
+      materials.windscarStoneAlt,
+    );
+    tower.parent=root;
+    tower.receiveShadows=true;
+    shadowCasters.push(tower);
+
+    const towerCap=BABYLON.MeshBuilder.CreateCylinder(
+      "windscar-wall-tower-cap-"+side,
+      {
+        diameterTop:.16,
+        diameterBottom:3.90,
+        height:.82,
+        tessellation:4,
+      },
+      scene,
+    );
+    towerCap.position.set(towerX,5.30,rect.center.z);
+    towerCap.rotation.y=Math.PI/4;
+    towerCap.material=materials.windscarStoneTop;
+    towerCap.convertToFlatShadedMesh?.();
+    towerCap.parent=root;
+    towerCap.receiveShadows=true;
+    shadowCasters.push(towerCap);
+  }
+
+  // Recessed near-face plate + twin ember slits.
+  const plate=BABYLON.MeshBuilder.CreatePlane(
+    "windscar-wall-front-plate",
+    {width:7.2,height:1.42,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  plate.position.set(
+    rect.center.x,
+    2.03,
+    rect.center.z-rect.depth/2-.030,
+  );
+  plate.material=materials.windscarInset;
+  plate.parent=root;
+
+  for(const xOffset of [-1.55,1.55]){
+    const slit=BABYLON.MeshBuilder.CreatePlane(
+      "windscar-wall-ember-slit-"+xOffset,
+      {width:.24,height:.80,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      scene,
+    );
+    slit.position.set(
+      rect.center.x+xOffset,
+      2.03,
+      rect.center.z-rect.depth/2-.036,
+    );
+    slit.material=materials.windscarRune;
+    slit.parent=root;
+  }
 }
 
 function addWindscarObstacle(
@@ -978,204 +1214,26 @@ function addWindscarObstacle(
   shadowCasters,
 ) {
   const rect=mapping.rectToWorld(obstacle);
-  const logicalHeight=babylonObstacleVisualHeight(rect);
-  const isWall=obstacle.id==="center-wall";
-  const height=isWall
-    ? Math.max(4.25,logicalHeight*.72)
-    : Math.max(4.85,logicalHeight*.78);
-  const horizontal=rect.width>=rect.depth;
-  const chamfer=Math.min(.78,Math.min(rect.width,rect.depth)*.12);
 
   addContactShadow(
     BABYLON,scene,
-    "babylon-windscar-shadow-"+(obstacle.id||index),
+    "windscar-los-shadow-"+(obstacle.id||index),
     rect.center,
-    rect.width+2.5,
-    rect.depth+2.65,
+    rect.width+2.75,
+    rect.depth+2.9,
     materials,
     root,
   );
 
-  if(isWall){
-    const base=createChamferedPrism(
-      BABYLON,scene,
-      "babylon-windscar-wall-base",
-      rect.width,
-      .46,
-      rect.depth,
-      chamfer,
-      {x:rect.center.x,y:.23,z:rect.center.z},
-      materials.windscarStoneDark,
+  if(obstacle.id==="center-wall"){
+    addWindscarCenterWall(
+      BABYLON,scene,obstacle,rect,materials,root,shadowCasters,
     );
-    base.parent=root;
-    base.receiveShadows=true;
-    shadowCasters.push(base);
-
-    const count=3;
-    const gap=.10;
-    const longSide=horizontal?rect.width:rect.depth;
-    const moduleLong=(longSide-gap*(count-1))/count;
-    const heights=[height*.91,height,height*.87];
-
-    for(let i=0;i<count;i+=1){
-      const offset=-longSide/2+moduleLong/2+i*(moduleLong+gap);
-      const moduleH=heights[i];
-      const bottomW=horizontal?moduleLong:Math.max(.6,rect.width-.34);
-      const bottomD=horizontal?Math.max(.6,rect.depth-.34):moduleLong;
-      const topW=horizontal?Math.max(.55,moduleLong-.22):Math.max(.55,rect.width-.66);
-      const topD=horizontal?Math.max(.55,rect.depth-.66):Math.max(.55,moduleLong-.22);
-
-      const body=createChamferedFrustum(
-        BABYLON,scene,
-        "babylon-windscar-wall-module-"+i,
-        bottomW,bottomD,
-        topW,topD,
-        moduleH-.78,
-        Math.min(.50,chamfer*.74),
-        {
-          x:rect.center.x+(horizontal?offset:0),
-          y:.46+(moduleH-.78)/2,
-          z:rect.center.z+(horizontal?0:offset),
-        },
-        i===1?materials.windscarStone:materials.windscarStoneAlt,
-      );
-      body.parent=root;
-      body.receiveShadows=true;
-      shadowCasters.push(body);
-
-      const top=createChamferedPrism(
-        BABYLON,scene,
-        "babylon-windscar-wall-cap-"+i,
-        Math.max(.5,topW+.18),
-        .34,
-        Math.max(.5,topD+.18),
-        Math.min(.46,chamfer*.70),
-        {
-          x:rect.center.x+(horizontal?offset:0),
-          y:moduleH-.18,
-          z:rect.center.z+(horizontal?0:offset),
-        },
-        i===1?materials.windscarStoneTop:materials.windscarStoneTopAlt,
-      );
-      top.parent=root;
-      top.receiveShadows=true;
-      shadowCasters.push(top);
-    }
-
-    for(const offset of [-.95,.95]){
-      const plate=BABYLON.MeshBuilder.CreatePlane(
-        "babylon-windscar-wall-ember-"+offset,
-        {
-          width:horizontal?.16:1.12,
-          height:horizontal?1.10:.16,
-          sideOrientation:BABYLON.Mesh.DOUBLESIDE,
-        },
-        scene,
-      );
-      if(horizontal){
-        plate.position.set(
-          rect.center.x+offset*(rect.width*.28),
-          height*.48,
-          rect.center.z-rect.depth/2-.025,
-        );
-      }else{
-        plate.position.set(
-          rect.center.x-rect.width/2-.025,
-          height*.48,
-          rect.center.z+offset*(rect.depth*.28),
-        );
-        plate.rotation.y=Math.PI/2;
-      }
-      plate.material=materials.windscarRune;
-      plate.parent=root;
-    }
     return;
   }
 
-  const base=createChamferedPrism(
-    BABYLON,scene,
-    "babylon-windscar-pillar-base-"+index,
-    rect.width,
-    .52,
-    rect.depth,
-    chamfer,
-    {x:rect.center.x,y:.26,z:rect.center.z},
-    materials.windscarStoneDark,
-  );
-  base.parent=root;
-  base.receiveShadows=true;
-  shadowCasters.push(base);
-
-  const step=createChamferedPrism(
-    BABYLON,scene,
-    "babylon-windscar-pillar-step-"+index,
-    Math.max(.6,rect.width-.34),
-    .42,
-    Math.max(.6,rect.depth-.34),
-    Math.max(.15,chamfer*.84),
-    {x:rect.center.x,y:.73,z:rect.center.z},
-    materials.windscarStoneAlt,
-  );
-  step.parent=root;
-  step.receiveShadows=true;
-  shadowCasters.push(step);
-
-  const bodyHeight=Math.max(2.4,height-1.24);
-  const body=createChamferedFrustum(
-    BABYLON,scene,
-    "babylon-windscar-pillar-body-"+index,
-    Math.max(.6,rect.width-.58),
-    Math.max(.6,rect.depth-.58),
-    Math.max(.55,rect.width-1.06),
-    Math.max(.55,rect.depth-1.06),
-    bodyHeight,
-    Math.max(.16,chamfer*.70),
-    {x:rect.center.x,y:.94+bodyHeight/2,z:rect.center.z},
-    materials.windscarStone,
-  );
-  body.parent=root;
-  body.receiveShadows=true;
-  shadowCasters.push(body);
-
-  const crown=createChamferedPrism(
-    BABYLON,scene,
-    "babylon-windscar-pillar-crown-"+index,
-    Math.max(.6,rect.width-.42),
-    .38,
-    Math.max(.6,rect.depth-.42),
-    Math.max(.15,chamfer*.80),
-    {x:rect.center.x,y:height-.08,z:rect.center.z},
-    materials.windscarStoneTop,
-  );
-  crown.parent=root;
-  crown.receiveShadows=true;
-  shadowCasters.push(crown);
-
-  const keystone=BABYLON.MeshBuilder.CreateCylinder(
-    "babylon-windscar-pillar-keystone-"+index,
-    {
-      diameterTop:1.30,
-      diameterBottom:1.55,
-      height:.24,
-      tessellation:4,
-    },
-    scene,
-  );
-  keystone.position.set(rect.center.x,height+.18,rect.center.z);
-  keystone.rotation.y=Math.PI/4;
-  keystone.material=materials.windscarStoneTopAlt;
-  keystone.parent=root;
-  keystone.receiveShadows=true;
-  shadowCasters.push(keystone);
-
-  addWindscarRunePlate(
-    BABYLON,scene,
-    "babylon-windscar-rune-"+index,
-    rect,
-    height*.47,
-    true,
-    materials,
-    root,
+  addWindscarPillar(
+    BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
   );
 }
 
@@ -1658,19 +1716,13 @@ function addWindscarWatchfire(
 ) {
   const p=mapping.gameToWorld(gameX,gameY,0);
 
-  const plinth=BABYLON.MeshBuilder.CreateCylinder(
+  const plinth=createChamferedPrism(
+    BABYLON,scene,
     name+"-plinth",
-    {
-      diameterTop:3.35,
-      diameterBottom:3.75,
-      height:.72,
-      tessellation:8,
-    },
-    scene,
+    3.55,.54,3.55,.52,
+    {x:p.x,y:.27,z:p.z},
+    materials.windscarStoneDark,
   );
-  plinth.position.set(p.x,.36,p.z);
-  plinth.material=materials.windscarStoneDark;
-  plinth.convertToFlatShadedMesh?.();
   plinth.parent=root;
   plinth.receiveShadows=true;
   shadowCasters.push(plinth);
@@ -1678,34 +1730,29 @@ function addWindscarWatchfire(
   const bowl=BABYLON.MeshBuilder.CreateCylinder(
     name+"-bowl",
     {
-      diameterTop:2.20,
-      diameterBottom:1.45,
-      height:.58,
+      diameterTop:2.18,
+      diameterBottom:1.38,
+      height:.62,
       tessellation:8,
     },
     scene,
   );
-  bowl.position.set(p.x,1.00,p.z);
+  bowl.position.set(p.x,.88,p.z);
   bowl.material=materials.windscarMetal;
   bowl.convertToFlatShadedMesh?.();
   bowl.parent=root;
   shadowCasters.push(bowl);
 
   const defs=[
-    ["outer",1.42,.08,2.25,2.18,materials.flameOuter,.08],
-    ["mid",.96,.06,1.80,2.02,materials.flameMid,-.08],
-    ["inner",.52,.04,1.35,1.86,materials.flameInner,.06],
+    ["outer",1.34,.08,2.18,2.00,materials.flameOuter,.08],
+    ["mid",.90,.06,1.74,1.85,materials.flameMid,-.08],
+    ["inner",.48,.04,1.28,1.70,materials.flameInner,.06],
   ];
   const parts={};
-  for(const [key,bottom,top,height,y,mat,tilt] of defs){
+  for(const [key,bottom,top,h,y,mat,tilt] of defs){
     const flame=BABYLON.MeshBuilder.CreateCylinder(
       name+"-flame-"+key,
-      {
-        diameterTop:top,
-        diameterBottom:bottom,
-        height,
-        tessellation:5,
-      },
+      {diameterTop:top,diameterBottom:bottom,height:h,tessellation:5},
       scene,
     );
     flame.position.set(p.x,y,p.z);
@@ -1721,17 +1768,13 @@ function addWindscarWatchfire(
     mid:parts.mid,
     inner:parts.inner,
     glow:null,
-    baseY:2.13,
+    baseY:1.95,
     phase,
   });
 
   const glow=BABYLON.MeshBuilder.CreateDisc(
     name+"-floor-glow",
-    {
-      radius:5.9,
-      tessellation:40,
-      sideOrientation:BABYLON.Mesh.DOUBLESIDE,
-    },
+    {radius:6.2,tessellation:40,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
     scene,
   );
   glow.position.set(p.x,.025,p.z);
@@ -1741,14 +1784,106 @@ function addWindscarWatchfire(
 
   const light=new BABYLON.PointLight(
     name+"-light",
-    new BABYLON.Vector3(p.x,3.3,p.z),
+    new BABYLON.Vector3(p.x,3.0,p.z),
     scene,
   );
-  light.diffuse=new BABYLON.Color3(1.0,.46,.16);
+  light.diffuse=new BABYLON.Color3(1.0,.48,.16);
   light.specular=new BABYLON.Color3(.72,.30,.10);
-  light.intensity=3.05;
-  light.range=35;
+  light.intensity=3.15;
+  light.range=37;
   lights.push(light);
+}
+
+function addWindscarGatePylon(
+  BABYLON,
+  scene,
+  name,
+  p,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const base=createChamferedPrism(
+    BABYLON,scene,
+    name+"-base",
+    3.15,.46,3.15,.46,
+    {x:p.x,y:.23,z:p.z},
+    materials.windscarStoneDark,
+  );
+  base.parent=root;
+  base.receiveShadows=true;
+  shadowCasters.push(base);
+
+  const body=createChamferedFrustum(
+    BABYLON,scene,
+    name+"-body",
+    2.65,2.65,
+    2.05,2.05,
+    3.20,.38,
+    {x:p.x,y:2.02,z:p.z},
+    materials.windscarStoneAlt,
+  );
+  body.parent=root;
+  body.receiveShadows=true;
+  shadowCasters.push(body);
+
+  const cap=BABYLON.MeshBuilder.CreateCylinder(
+    name+"-cap",
+    {
+      diameterTop:.12,
+      diameterBottom:2.58,
+      height:.78,
+      tessellation:4,
+    },
+    scene,
+  );
+  cap.position.set(p.x,4.00,p.z);
+  cap.rotation.y=Math.PI/4;
+  cap.material=materials.windscarStoneTop;
+  cap.convertToFlatShadedMesh?.();
+  cap.parent=root;
+  cap.receiveShadows=true;
+  shadowCasters.push(cap);
+}
+
+function addWindscarSpawnGate(
+  BABYLON,
+  scene,
+  arena,
+  mapping,
+  side,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const b=arena.bounds;
+  const gx=side<0?b.x-30:b.x+b.w+30;
+  const centerY=b.y+b.h/2;
+  const pA=mapping.gameToWorld(gx,centerY-74,0);
+  const pB=mapping.gameToWorld(gx,centerY+74,0);
+
+  addWindscarGatePylon(
+    BABYLON,scene,
+    "windscar-gate-"+side+"-a",
+    pA,materials,root,shadowCasters,
+  );
+  addWindscarGatePylon(
+    BABYLON,scene,
+    "windscar-gate-"+side+"-b",
+    pB,materials,root,shadowCasters,
+  );
+
+  const mid=mapping.gameToWorld(gx,centerY,0);
+  const lintel=createChamferedPrism(
+    BABYLON,scene,
+    "windscar-gate-"+side+"-lintel",
+    1.50,.42,13.8,.20,
+    {x:mid.x,y:3.78,z:mid.z},
+    materials.windscarStoneTopAlt,
+  );
+  lintel.parent=root;
+  lintel.receiveShadows=true;
+  shadowCasters.push(lintel);
 }
 
 function addWindscarScenery(
@@ -1764,33 +1899,41 @@ function addWindscarScenery(
 ) {
   const b=arena.bounds;
 
+  addWindscarSpawnGate(
+    BABYLON,scene,arena,mapping,-1,
+    materials,root,shadowCasters,
+  );
+  addWindscarSpawnGate(
+    BABYLON,scene,arena,mapping,1,
+    materials,root,shadowCasters,
+  );
+
   addWindscarWatchfire(
     BABYLON,scene,
-    "babylon-windscar-watchfire-west",
-    b.x-27,b.y+b.h*.72,
+    "windscar-watchfire-west",
+    b.x-24,b.y+b.h*.73,
     mapping,materials,root,shadowCasters,lights,flames,.35,
   );
   addWindscarWatchfire(
     BABYLON,scene,
-    "babylon-windscar-watchfire-east",
-    b.x+b.w+27,b.y+b.h*.28,
+    "windscar-watchfire-east",
+    b.x+b.w+24,b.y+b.h*.27,
     mapping,materials,root,shadowCasters,lights,flames,2.65,
   );
 
   const rockPoints=[
-    [b.x-29,b.y+102,2.0,1.25,1.75],
-    [b.x-28,b.y+b.h-102,2.25,1.35,1.90],
-    [b.x+b.w+29,b.y+108,2.15,1.30,1.80],
-    [b.x+b.w+28,b.y+b.h-108,2.35,1.42,2.00],
+    [b.x-30,b.y+92,1.75,1.05,1.55],
+    [b.x-31,b.y+b.h-90,2.05,1.20,1.72],
+    [b.x+b.w+31,b.y+94,1.85,1.10,1.60],
+    [b.x+b.w+30,b.y+b.h-92,2.10,1.22,1.78],
   ];
-
   rockPoints.forEach((entry,index)=>{
     const [gx,gy,sx,sy,sz]=entry;
     const p=mapping.gameToWorld(gx,gy,0);
     addLowPolyRock(
       BABYLON,scene,
-      "babylon-windscar-outcrop-"+index,
-      {x:p.x,y:sy*.46,z:p.z},
+      "windscar-perimeter-rock-"+index,
+      {x:p.x,y:sy*.44,z:p.z},
       {x:sx,y:sy,z:sz},
       index%2?materials.windscarRockDark:materials.windscarRock,
       root,
@@ -1926,17 +2069,18 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const ownedTextures=[];
 
   const materials={
-    floor:material(BABYLON,scene,"mat-floor","#6b4d3b","#1f1915"),
+    floor:material(BABYLON,scene,"mat-floor","#8a6147","#2a1b15"),
     grandFloor:material(BABYLON,scene,"mat-grand-floor","#3c4a36","#172016"),
-    windscarStoneDark:material(BABYLON,scene,"mat-windscar-stone-dark","#4b3a31","#1a120f"),
-    windscarStone:material(BABYLON,scene,"mat-windscar-stone","#765c49","#2a1d15"),
-    windscarStoneTop:material(BABYLON,scene,"mat-windscar-stone-top","#a98265","#3d291b"),
-    windscarStoneAlt:material(BABYLON,scene,"mat-windscar-stone-alt","#6b5242","#251912"),
-    windscarStoneTopAlt:material(BABYLON,scene,"mat-windscar-stone-top-alt","#98745b","#362319"),
-    windscarMetal:material(BABYLON,scene,"mat-windscar-metal","#2d1e19","#714021"),
+    windscarStoneDark:material(BABYLON,scene,"mat-windscar-stone-dark","#4e3b30","#1a120e"),
+    windscarStone:material(BABYLON,scene,"mat-windscar-stone","#846750","#2b1e15"),
+    windscarStoneTop:material(BABYLON,scene,"mat-windscar-stone-top","#b9916e","#422c1d"),
+    windscarStoneAlt:material(BABYLON,scene,"mat-windscar-stone-alt","#735946","#281b14"),
+    windscarStoneTopAlt:material(BABYLON,scene,"mat-windscar-stone-top-alt","#a57e60","#392519"),
+    windscarMetal:material(BABYLON,scene,"mat-windscar-metal","#34221a","#8c4a20"),
     windscarRune:material(
       BABYLON,scene,"mat-windscar-rune","#ff8b37","#5b220b","#ff5c19"
     ),
+    windscarInset:material(BABYLON,scene,"mat-windscar-inset","#3b2922","#160e0b"),
     windscarSeam:material(BABYLON,scene,"mat-windscar-seam","#3e3027","#150f0c"),
     windscarRock:material(BABYLON,scene,"mat-windscar-rock","#684c3b","#21160f"),
     windscarRockDark:material(BABYLON,scene,"mat-windscar-rock-dark","#49352c","#18100d"),
@@ -1993,7 +2137,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
 
   materials.windscarRune.disableLighting=true;
   materials.windscarRune.alpha=.82;
-  materials.windscarMetal.specularPower=22;
+  materials.windscarMetal.specularPower=32;
   materials.seam.alpha=.90;
   materials.seamSoft.alpha=.48;
   materials.flameOuter.disableLighting=true;
@@ -2009,7 +2153,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   materials.contactShadow.disableLighting=true;
   materials.contactShadow.diffuseColor=new BABYLON.Color3(0,0,0);
   materials.contactShadow.opacityTexture=softShadow;
-  materials.contactShadow.alpha=.18;
+  materials.contactShadow.alpha=.16;
 
   const stoneSurface=createStoneSurfaceTexture(
     BABYLON,scene,

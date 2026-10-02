@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon11";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon12";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -203,8 +203,8 @@ export class BabylonArenaRenderer {
 
     this.mapping = createArenaWorldMapping(arena);
     const cameraPose = this.mapping.configureOrthographicCamera(this.camera, {
-      cameraHeight: 96,
-      cameraDepth: 44,
+      cameraHeight: 90,
+      cameraDepth: 50,
       padding: 1,
     });
     this.camera.position.set(0, cameraPose.cameraHeight, -cameraPose.cameraDepth);
@@ -214,10 +214,10 @@ export class BabylonArenaRenderer {
     if(isWindscar){
       this.scene.clearColor=new this.BABYLON.Color4(.052,.036,.028,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.18,.145,.12);
-      this.scene.imageProcessingConfiguration.exposure=1.04;
-      this.scene.imageProcessingConfiguration.contrast=1.055;
+      this.scene.imageProcessingConfiguration.exposure=1.08;
+      this.scene.imageProcessingConfiguration.contrast=1.07;
       if(this.ambientLight){
-        this.ambientLight.intensity=.66;
+        this.ambientLight.intensity=.70;
         this.ambientLight.diffuse=new this.BABYLON.Color3(.78,.69,.61);
         this.ambientLight.groundColor=new this.BABYLON.Color3(.12,.075,.055);
       }
@@ -226,7 +226,7 @@ export class BabylonArenaRenderer {
         this.keyLight.diffuse=new this.BABYLON.Color3(.95,.73,.56);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.38;
+        this.fillLight.intensity=.42;
         this.fillLight.diffuse=new this.BABYLON.Color3(.72,.69,.65);
       }
       this.glowLayer.intensity=.72;
@@ -283,11 +283,9 @@ export class BabylonArenaRenderer {
       const isCenterWall=isWindscar && obstacle.id==="center-wall";
       const baseHeight=babylonObstacleVisualHeight(rect);
       const height=isWindscar
-        ? (isCenterWall
-          ? Math.max(4.25,baseHeight*.72)
-          : Math.max(4.85,baseHeight*.78))
+        ? (isCenterWall?5.72:6.10)
         : baseHeight;
-      const capHeight=isWindscar?.30:.52;
+      const capHeight=isWindscar?.18:.52;
       const topElevation = height + capHeight;
 
       const x0 = Number(obstacle.x);
@@ -315,7 +313,7 @@ export class BabylonArenaRenderer {
         polygons.push({
           points: front,
           depthY: y1,
-          color: 0x3a2118,
+          color: 0x4a3025,
           alpha: .76,
         });
       }
@@ -323,7 +321,7 @@ export class BabylonArenaRenderer {
         polygons.push({
           points: top,
           depthY: y1,
-          color: 0x76503a,
+          color: 0x8b644a,
           alpha: .68,
         });
       }

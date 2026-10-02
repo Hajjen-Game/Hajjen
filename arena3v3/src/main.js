@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20261002-babylon18";
+import { Game } from "./core/Game.js?v=20261002-babylon19";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";

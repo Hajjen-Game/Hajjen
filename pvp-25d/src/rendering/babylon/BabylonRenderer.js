@@ -7,19 +7,45 @@ function color(hex) {
   return BABYLON.Color3.FromHexString(hex);
 }
 
-function pbr(scene, name, hex, { roughness = 0.96, metallic = 0 } = {}) {
+function color4(hex, alpha = 1) {
+  const c = color(hex);
+  return new BABYLON.Color4(c.r, c.g, c.b, alpha);
+}
+
+function pbr(scene, name, hex, roughness = 0.96) {
   const mat = new BABYLON.PBRMaterial(name, scene);
   mat.albedoColor = color(hex);
   mat.roughness = roughness;
-  mat.metallic = metallic;
+  mat.metallic = 0;
   return mat;
 }
 
 function standard(scene, name, hex, emissive = null) {
   const mat = new BABYLON.StandardMaterial(name, scene);
   mat.diffuseColor = color(hex);
+  mat.specularColor = new BABYLON.Color3(0.04, 0.03, 0.02);
   if (emissive) mat.emissiveColor = color(emissive);
   return mat;
+}
+
+function hash01(x, z, seed = 0) {
+  const value = Math.sin(
+    x * 12.9898 + z * 78.233 + seed * 37.719,
+  ) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function mixColor(a, b, t) {
+  return new BABYLON.Color4(
+    lerp(a.r, b.r, t),
+    lerp(a.g, b.g, t),
+    lerp(a.b, b.b, t),
+    1,
+  );
 }
 
 export class BabylonRenderer {
@@ -35,9 +61,11 @@ export class BabylonRenderer {
     });
     this.scene = new BABYLON.Scene(this.engine);
     this.scene.clearColor = BABYLON.Color4.FromHexString(
-      (arena.presentation?.sky || "#24140f") + "ff",
+      (arena.presentation?.sky || "#28150f") + "ff",
     );
-    this.scene.ambientColor = new BABYLON.Color3(0.22, 0.13, 0.09);
+    this.scene.ambientColor = new BABYLON.Color3(0.19, 0.105, 0.075);
+    this.scene.imageProcessingConfiguration.contrast = 1.14;
+    this.scene.imageProcessingConfiguration.exposure = 1.02;
 
     this.gui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       "world-ui",
@@ -66,10 +94,12 @@ export class BabylonRenderer {
 
   buildScene() {
     const a = this.arena;
-    const c = new BABYLON.Vector3(a.width * S * 0.5, 0, a.height * S * 0.5);
+    const c = new BABYLON.Vector3(
+      a.width * S * 0.5,
+      0,
+      a.height * S * 0.5,
+    );
 
-    // High near-top-down tactical camera. The slight forward tilt keeps 2.5D
-    // depth while greatly reducing units being hidden by the LOS ruins.
     this.camera = new BABYLON.FreeCamera(
       "camera",
       new BABYLON.Vector3(c.x, 22.4, c.z - 6.35),
@@ -82,31 +112,32 @@ export class BabylonRenderer {
 
     const hemi = new BABYLON.HemisphericLight(
       "hemi",
-      new BABYLON.Vector3(-0.25, 1, 0.2),
+      new BABYLON.Vector3(-0.28, 1, 0.22),
       this.scene,
     );
-    hemi.intensity = 0.82;
-    hemi.diffuse = new BABYLON.Color3(1.0, 0.72, 0.5);
-    hemi.groundColor = new BABYLON.Color3(0.18, 0.09, 0.065);
+    hemi.intensity = 0.63;
+    hemi.diffuse = new BABYLON.Color3(1.0, 0.76, 0.58);
+    hemi.groundColor = new BABYLON.Color3(0.16, 0.075, 0.055);
 
     this.sun = new BABYLON.DirectionalLight(
       "sun",
-      new BABYLON.Vector3(-0.62, -1, 0.42),
+      new BABYLON.Vector3(-0.64, -1, 0.46),
       this.scene,
     );
-    this.sun.position = new BABYLON.Vector3(c.x + 9, 16, c.z - 10);
-    this.sun.intensity = 1.28;
-    this.sun.diffuse = new BABYLON.Color3(1.0, 0.69, 0.43);
+    this.sun.position = new BABYLON.Vector3(c.x + 11, 18, c.z - 12);
+    this.sun.intensity = 1.56;
+    this.sun.diffuse = new BABYLON.Color3(1.0, 0.69, 0.42);
 
     this.shadowGenerator = new BABYLON.ShadowGenerator(2048, this.sun);
     this.shadowGenerator.useBlurExponentialShadowMap = true;
-    this.shadowGenerator.blurKernel = 24;
-    this.shadowGenerator.bias = 0.0005;
+    this.shadowGenerator.blurKernel = 26;
+    this.shadowGenerator.bias = 0.00055;
+    this.shadowGenerator.normalBias = 0.018;
 
     this.buildGround();
-    this.buildBoundary();
-    this.buildPillars();
-    this.buildScenery();
+    this.buildCanyonPerimeter();
+    this.buildLosFormations();
+    this.buildEdgeDetails();
 
     this.actorRender = new CharacterRenderer(
       this.scene,
@@ -130,80 +161,130 @@ export class BabylonRenderer {
     this.glow = new BABYLON.GlowLayer("glow", this.scene, {
       blurKernelSize: 32,
     });
-    this.glow.intensity = 0.32;
+    this.glow.intensity = 0.30;
+
+    this.installAmbientOcclusion();
+  }
+
+  installAmbientOcclusion() {
+    if (!BABYLON.SSAO2RenderingPipeline) return;
+
+    try {
+      this.ssao = new BABYLON.SSAO2RenderingPipeline(
+        "arena-ssao",
+        this.scene,
+        { ssaoRatio: 0.5, blurRatio: 0.5 },
+        [this.camera],
+      );
+      this.ssao.radius = 1.25;
+      this.ssao.totalStrength = 0.58;
+      this.ssao.base = 0.16;
+      this.ssao.samples = 8;
+      this.ssao.maxZ = 60;
+    } catch {
+      this.ssao = null;
+    }
+  }
+
+  groundHeight(gx, gz, cols, rows) {
+    if (gx === 0 || gz === 0 || gx === cols || gz === rows) return 0;
+
+    const broad =
+      Math.sin(gx * 0.72) * 0.018
+      + Math.cos(gz * 0.81) * 0.015
+      + Math.sin((gx + gz) * 0.43) * 0.011;
+    const jitter = (hash01(gx, gz, 7) - 0.5) * 0.025;
+    return broad + jitter;
   }
 
   buildGround() {
     const a = this.arena;
     const w = a.width * S;
     const h = a.height * S;
-    const center = new BABYLON.Vector3(w * 0.5, 0, h * 0.5);
+    const cols = 16;
+    const rows = 10;
 
-    const ground = BABYLON.MeshBuilder.CreateGround(
-      "arena-ground",
-      { width: w, height: h, subdivisions: 2 },
-      this.scene,
-    );
-    ground.position.copyFrom(center);
-    ground.material = pbr(
-      this.scene,
-      "ground",
-      a.presentation?.ground || "#a9542f",
-    );
+    const positions = [];
+    const indices = [];
+    const colors = [];
+    const normals = [];
+
+    const sand = color4(a.presentation?.ground || "#c87849");
+    const light = color4(a.presentation?.groundLight || "#d58a55");
+    const dark = color4(a.presentation?.groundDark || "#a85a3b");
+
+    let vertexIndex = 0;
+
+    const corner = (gx, gz) => ({
+      x: w * gx / cols,
+      y: this.groundHeight(gx, gz, cols, rows),
+      z: h * gz / rows,
+    });
+
+    const addTriangle = (p0, p1, p2, shade) => {
+      for (const p of [p0, p1, p2]) {
+        positions.push(p.x, p.y, p.z);
+      }
+
+      indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2);
+      vertexIndex += 3;
+
+      const baseMix = shade < 0.5
+        ? mixColor(dark, sand, shade * 2)
+        : mixColor(sand, light, (shade - 0.5) * 2);
+
+      for (let i = 0; i < 3; i += 1) {
+        colors.push(baseMix.r, baseMix.g, baseMix.b, 1);
+      }
+    };
+
+    for (let z = 0; z < rows; z += 1) {
+      for (let x = 0; x < cols; x += 1) {
+        const a0 = corner(x, z);
+        const b0 = corner(x + 1, z);
+        const c0 = corner(x, z + 1);
+        const d0 = corner(x + 1, z + 1);
+
+        const shadeA = 0.34 + hash01(x, z, 3) * 0.34;
+        const shadeB = 0.34 + hash01(x, z, 11) * 0.34;
+        const flip = hash01(x, z, 19) > 0.5;
+
+        if (flip) {
+          addTriangle(a0, b0, d0, shadeA);
+          addTriangle(a0, d0, c0, shadeB);
+        } else {
+          addTriangle(a0, b0, c0, shadeA);
+          addTriangle(b0, d0, c0, shadeB);
+        }
+      }
+    }
+
+    BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+
+    const vertexData = new BABYLON.VertexData();
+    vertexData.positions = positions;
+    vertexData.indices = indices;
+    vertexData.normals = normals;
+    vertexData.colors = colors;
+
+    const ground = new BABYLON.Mesh("arena-ground", this.scene);
+    vertexData.applyToMesh(ground);
+    ground.useVertexColors = true;
+    ground.hasVertexAlpha = false;
+    ground.material = standard(this.scene, "ground-faceted", "#ffffff");
+    ground.material.diffuseColor = new BABYLON.Color3(1, 1, 1);
     ground.receiveShadows = true;
     ground.metadata = { ground: true };
     this.ground = ground;
 
-    const lightMat = pbr(
-      this.scene,
-      "ground-light",
-      a.presentation?.groundLight || "#bf7047",
-    );
-    const darkMat = pbr(
-      this.scene,
-      "ground-dark",
-      a.presentation?.groundDark || "#9e5639",
-    );
-    lightMat.roughness = 1;
-    darkMat.roughness = 1;
-
-    // Keep the floor readable: small, low-contrast sandstone variations instead
-    // of giant polygons that visually split the arena into zones.
-    const patches = [
-      [0.18, 0.18, 1.65, 1.05, 0.20, "light"],
-      [0.38, 0.14, 1.35, 0.85, -0.16, "dark"],
-      [0.64, 0.17, 1.55, 0.90, 0.11, "light"],
-      [0.83, 0.27, 1.30, 0.82, -0.12, "dark"],
-      [0.23, 0.49, 1.45, 0.92, -0.08, "dark"],
-      [0.50, 0.47, 1.65, 1.00, 0.12, "light"],
-      [0.76, 0.53, 1.48, 0.88, 0.18, "light"],
-      [0.16, 0.76, 1.35, 0.86, 0.14, "light"],
-      [0.42, 0.82, 1.50, 0.92, -0.12, "dark"],
-      [0.69, 0.79, 1.60, 0.90, 0.09, "light"],
-      [0.87, 0.72, 1.22, 0.78, -0.18, "dark"],
-    ];
-
-    patches.forEach((p, i) => {
-      const plate = BABYLON.MeshBuilder.CreateCylinder(
-        "floor-plate-" + i,
-        { height: 0.012, diameter: 2, tessellation: 8 + (i % 3) },
-        this.scene,
-      );
-      plate.position.set(w * p[0], 0.009 + i * 0.00015, h * p[1]);
-      plate.scaling.set(p[2], 1, p[3]);
-      plate.rotation.y = p[4];
-      plate.material = p[5] === "light" ? lightMat : darkMat;
-      plate.receiveShadows = true;
-      plate.isPickable = false;
-    });
-
-    const crackColor = color("#7e412d");
+    const crackColor = color("#77412f");
     const crackSets = [
-      [[0.12,0.32],[0.16,0.34],[0.19,0.33],[0.22,0.36]],
-      [[0.43,0.13],[0.45,0.17],[0.49,0.19],[0.50,0.23]],
-      [[0.60,0.68],[0.64,0.66],[0.67,0.69],[0.70,0.70]],
-      [[0.80,0.35],[0.83,0.38],[0.86,0.37],[0.88,0.40]],
-      [[0.32,0.82],[0.35,0.78],[0.38,0.79],[0.40,0.75]],
+      [[0.10,0.29],[0.14,0.31],[0.17,0.30],[0.20,0.34]],
+      [[0.38,0.15],[0.41,0.18],[0.45,0.19],[0.47,0.23]],
+      [[0.56,0.73],[0.60,0.69],[0.64,0.71],[0.68,0.69]],
+      [[0.77,0.34],[0.81,0.37],[0.84,0.36],[0.88,0.40]],
+      [[0.27,0.82],[0.31,0.78],[0.35,0.80],[0.38,0.75]],
+      [[0.48,0.46],[0.51,0.43],[0.54,0.44],[0.57,0.40]],
     ];
 
     crackSets.forEach((set, i) => {
@@ -211,104 +292,218 @@ export class BabylonRenderer {
         "crack-" + i,
         {
           points: set.map(
-            ([x, z]) => new BABYLON.Vector3(w * x, 0.029, h * z),
+            ([x, z]) => new BABYLON.Vector3(w * x, 0.055, h * z),
           ),
         },
         this.scene,
       );
       line.color = crackColor;
-      line.alpha = 0.30;
+      line.alpha = 0.34;
       line.isPickable = false;
     });
 
-    const pebbleMat = pbr(this.scene, "floor-pebbles", "#754332");
-    const pebbles = [
-      [0.12,0.21],[0.16,0.58],[0.24,0.68],[0.34,0.32],[0.43,0.71],
-      [0.55,0.22],[0.61,0.60],[0.72,0.34],[0.79,0.68],[0.88,0.45],
-      [0.31,0.88],[0.66,0.87],
+    const pebbleMat = pbr(this.scene, "floor-pebbles", "#784635", 1);
+    const pebbleSets = [
+      [0.11,0.20,3],[0.15,0.58,2],[0.23,0.68,4],[0.32,0.31,3],
+      [0.42,0.72,2],[0.54,0.22,3],[0.61,0.60,4],[0.72,0.33,2],
+      [0.79,0.69,3],[0.89,0.45,4],[0.31,0.88,2],[0.67,0.87,3],
     ];
-    pebbles.forEach((p, i) => {
-      const pebble = BABYLON.MeshBuilder.CreatePolyhedron(
-        "floor-pebble-" + i,
-        { type: 2, size: 0.09 + (i % 3) * 0.018 },
-        this.scene,
-      );
-      pebble.position.set(w * p[0], 0.055, h * p[1]);
-      pebble.scaling.set(1.25, 0.42, 0.9);
-      pebble.rotation.y = i * 0.81;
-      pebble.material = pebbleMat;
-      pebble.isPickable = false;
+
+    pebbleSets.forEach((p, i) => {
+      for (let j = 0; j < p[2]; j += 1) {
+        const px = w * p[0] + (hash01(i, j, 2) - 0.5) * 0.62;
+        const pz = h * p[1] + (hash01(i, j, 5) - 0.5) * 0.42;
+        const pebble = BABYLON.MeshBuilder.CreatePolyhedron(
+          "floor-pebble-" + i + "-" + j,
+          { type: 2, size: 0.055 + hash01(i, j, 8) * 0.055 },
+          this.scene,
+        );
+        pebble.position.set(px, 0.045, pz);
+        pebble.scaling.set(1.3, 0.38, 0.85);
+        pebble.rotation.y = hash01(i, j, 13) * Math.PI;
+        pebble.material = pebbleMat;
+        pebble.isPickable = false;
+        pebble.receiveShadows = true;
+      }
     });
   }
 
-  buildBoundary() {
+  buildCanyonPerimeter() {
     const a = this.arena;
     const w = a.width * S;
     const h = a.height * S;
     const pad = a.boundaryPadding * S;
-    const wallThickness = Math.max(0.68, pad + 0.12);
 
-    const wallMat = pbr(
+    const cliffDark = pbr(
       this.scene,
-      "canyon-wall",
-      a.presentation?.stoneDark || "#633b2d",
+      "cliff-dark",
+      a.presentation?.stoneDark || "#5e3328",
+      1,
     );
-    const capMat = pbr(
+    const cliff = pbr(
       this.scene,
-      "canyon-wall-cap",
-      a.presentation?.stone || "#a65d3b",
+      "cliff-main",
+      a.presentation?.stone || "#985338",
+      1,
+    );
+    const cliffLight = pbr(
+      this.scene,
+      "cliff-light",
+      a.presentation?.stoneLight || "#c97848",
+      1,
     );
 
-    const walls = [
-      { x: w / 2, z: pad / 2 - 0.08, sx: w + 0.6, sz: wallThickness },
-      { x: w / 2, z: h - pad / 2 + 0.08, sx: w + 0.6, sz: wallThickness },
-      { x: pad / 2 - 0.08, z: h / 2, sx: wallThickness, sz: h + 0.2 },
-      { x: w - pad / 2 + 0.08, z: h / 2, sx: wallThickness, sz: h + 0.2 },
+    // A low dark shelf under the rock ring gives the canyon a continuous base
+    // without showing the old rectangular arena wall.
+    const shelfMat = pbr(this.scene, "canyon-shelf", "#4b271f", 1);
+    const shelf = BABYLON.MeshBuilder.CreateBox(
+      "canyon-shelf",
+      {
+        width: w + 2.4,
+        depth: h + 2.4,
+        height: 0.36,
+      },
+      this.scene,
+    );
+    shelf.position.set(w * 0.5, -0.12, h * 0.5);
+    shelf.material = shelfMat;
+    shelf.receiveShadows = true;
+
+    const inner = {
+      left: pad - 0.05,
+      right: w - pad + 0.05,
+      top: pad - 0.05,
+      bottom: h - pad + 0.05,
+    };
+
+    const segments = [];
+
+    const pushHorizontal = (z, sideSeed, count = 14) => {
+      for (let i = 0; i < count; i += 1) {
+        const t = (i + 0.5) / count;
+        const x = lerp(inner.left, inner.right, t);
+        const outward = sideSeed === 1 ? -1 : 1;
+        const jitter = (hash01(i, sideSeed, 17) - 0.5) * 0.42;
+        segments.push({
+          x,
+          z: z + outward * (0.33 + hash01(i, sideSeed, 7) * 0.24),
+          sx: 0.72 + hash01(i, sideSeed, 2) * 0.72,
+          sz: 0.55 + hash01(i, sideSeed, 3) * 0.50,
+          sy: 0.82 + hash01(i, sideSeed, 4) * 0.96,
+          ry: jitter,
+          seed: i + sideSeed * 31,
+        });
+      }
+    };
+
+    const pushVertical = (x, sideSeed, count = 9) => {
+      for (let i = 0; i < count; i += 1) {
+        const t = (i + 0.5) / count;
+        const z = lerp(inner.top, inner.bottom, t);
+        const outward = sideSeed === 3 ? -1 : 1;
+        const jitter = (hash01(i, sideSeed, 23) - 0.5) * 0.42;
+        segments.push({
+          x: x + outward * (0.33 + hash01(i, sideSeed, 9) * 0.24),
+          z,
+          sx: 0.55 + hash01(i, sideSeed, 10) * 0.50,
+          sz: 0.72 + hash01(i, sideSeed, 11) * 0.72,
+          sy: 0.82 + hash01(i, sideSeed, 12) * 0.96,
+          ry: jitter,
+          seed: i + sideSeed * 31,
+        });
+      }
+    };
+
+    pushHorizontal(inner.top, 1);
+    pushHorizontal(inner.bottom, 2);
+    pushVertical(inner.left, 3);
+    pushVertical(inner.right, 4);
+
+    segments.forEach((s, i) => {
+      const rock = BABYLON.MeshBuilder.CreatePolyhedron(
+        "canyon-rock-" + i,
+        { type: 2, size: 1 },
+        this.scene,
+      );
+      rock.position.set(s.x, s.sy * 0.44, s.z);
+      rock.scaling.set(s.sx, s.sy, s.sz);
+      rock.rotation.set(
+        (hash01(s.seed, 1, 2) - 0.5) * 0.15,
+        s.ry,
+        (hash01(s.seed, 2, 4) - 0.5) * 0.12,
+      );
+      rock.material =
+        i % 5 === 0 ? cliffLight : i % 3 === 0 ? cliffDark : cliff;
+      rock.isPickable = false;
+      rock.receiveShadows = true;
+      this.shadowGenerator.addShadowCaster(rock);
+
+      if (i % 3 === 0) {
+        const upper = rock.clone("canyon-upper-" + i);
+        upper.position.y += s.sy * 0.48;
+        upper.position.x += (hash01(i, 4, 2) - 0.5) * 0.32;
+        upper.position.z += (hash01(i, 4, 8) - 0.5) * 0.28;
+        upper.scaling.scaleInPlace(0.70);
+        upper.rotation.y += 0.34;
+        upper.material = i % 2 === 0 ? cliff : cliffLight;
+        this.shadowGenerator.addShadowCaster(upper);
+      }
+    });
+
+    // Stronger corner masses make the perimeter read as a canyon rather than a
+    // string of separate rocks.
+    const corners = [
+      [inner.left - 0.45, inner.top - 0.42],
+      [inner.right + 0.45, inner.top - 0.42],
+      [inner.left - 0.45, inner.bottom + 0.42],
+      [inner.right + 0.45, inner.bottom + 0.42],
     ];
 
-    for (const edge of walls) {
-      const base = BABYLON.MeshBuilder.CreateBox(
-        "arena-boundary",
-        { width: edge.sx, depth: edge.sz, height: 0.72 },
-        this.scene,
-      );
-      base.position.set(edge.x, 0.28, edge.z);
-      base.material = wallMat;
-      base.receiveShadows = true;
-      this.shadowGenerator.addShadowCaster(base);
-
-      const cap = BABYLON.MeshBuilder.CreateBox(
-        "arena-boundary-cap",
-        {
-          width: Math.max(0.2, edge.sx - 0.08),
-          depth: Math.max(0.2, edge.sz - 0.08),
-          height: 0.16,
-        },
-        this.scene,
-      );
-      cap.position.set(edge.x, 0.69, edge.z);
-      cap.material = capMat;
-      cap.receiveShadows = true;
-      this.shadowGenerator.addShadowCaster(cap);
-    }
+    corners.forEach((c, i) => {
+      for (let j = 0; j < 4; j += 1) {
+        const rock = BABYLON.MeshBuilder.CreatePolyhedron(
+          "corner-mass-" + i + "-" + j,
+          { type: 2, size: 1 },
+          this.scene,
+        );
+        rock.position.set(
+          c[0] + (j % 2 ? 0.32 : -0.22),
+          0.62 + j * 0.17,
+          c[1] + (j > 1 ? 0.27 : -0.20),
+        );
+        rock.scaling.set(
+          0.82 + j * 0.08,
+          1.0 + j * 0.12,
+          0.78 + (3 - j) * 0.08,
+        );
+        rock.rotation.y = i * 0.7 + j * 0.45;
+        rock.material = j % 2 ? cliffLight : cliff;
+        rock.isPickable = false;
+        rock.receiveShadows = true;
+        this.shadowGenerator.addShadowCaster(rock);
+      }
+    });
   }
 
-  buildPillars() {
+  buildLosFormations() {
     const a = this.arena;
-    const stone = pbr(
+    const rock = pbr(
       this.scene,
-      "pillar-stone",
-      a.presentation?.stone || "#a65d3b",
+      "los-rock",
+      a.presentation?.stone || "#985338",
+      1,
     );
-    const stoneLight = pbr(
+    const light = pbr(
       this.scene,
-      "pillar-light",
-      a.presentation?.stoneLight || "#cf8050",
+      "los-rock-light",
+      a.presentation?.stoneLight || "#c97848",
+      1,
     );
-    const stoneDark = pbr(
+    const dark = pbr(
       this.scene,
-      "pillar-dark",
-      a.presentation?.stoneDark || "#633b2d",
+      "los-rock-dark",
+      a.presentation?.stoneDark || "#5e3328",
+      1,
     );
 
     for (const o of a.obstacles) {
@@ -317,229 +512,280 @@ export class BabylonRenderer {
       const x = (o.x + o.w / 2) * S;
       const z = (o.y + o.h / 2) * S;
 
-      // This footprint is deliberately identical to the simulation collider.
-      // The visible ruin is built upward and inward from it.
-      const footprint = BABYLON.MeshBuilder.CreateBox(
+      // Exact collider footprint remains visually represented at ground level.
+      const base = BABYLON.MeshBuilder.CreateBox(
         "los:" + o.id,
-        { width: w, depth: d, height: 0.34 },
+        {
+          width: w,
+          depth: d,
+          height: 0.18,
+        },
         this.scene,
       );
-      footprint.position.set(x, 0.17, z);
-      footprint.material = stoneDark;
-      footprint.receiveShadows = true;
-      footprint.metadata = { obstacleId: o.id };
-      this.shadowGenerator.addShadowCaster(footprint);
+      base.position.set(x, 0.09, z);
+      base.material = dark;
+      base.receiveShadows = true;
+      base.metadata = { obstacleId: o.id };
+      this.shadowGenerator.addShadowCaster(base);
 
-      // Layered irregular sandstone blocks: broad enough to read as real LOS
-      // cover, but low enough that the new camera still shows combat behind it.
-      const blocks = [
-        { ox:-0.23, oz:-0.17, sx:0.48, sz:0.54, h:0.88, ry:-0.035, mat:stone },
-        { ox: 0.19, oz:-0.10, sx:0.43, sz:0.60, h:1.04, ry: 0.030, mat:stoneLight },
-        { ox:-0.12, oz: 0.28, sx:0.56, sz:0.34, h:0.72, ry: 0.018, mat:stone },
-        { ox: 0.30, oz: 0.28, sx:0.30, sz:0.32, h:0.63, ry:-0.050, mat:stoneDark },
+      const chunks = [
+        [-0.25,-0.22,0.34,0.42,0.86],
+        [ 0.18,-0.18,0.39,0.46,1.05],
+        [-0.23, 0.24,0.38,0.34,0.72],
+        [ 0.23, 0.25,0.36,0.35,0.82],
+        [ 0.02, 0.03,0.40,0.38,1.16],
       ];
 
-      blocks.forEach((b, i) => {
-        const rock = BABYLON.MeshBuilder.CreateBox(
-          "ruin-block:" + o.id + ":" + i,
-          {
-            width: w * b.sx,
-            depth: d * b.sz,
-            height: b.h,
-          },
+      chunks.forEach((chunk, i) => {
+        const mesh = BABYLON.MeshBuilder.CreatePolyhedron(
+          "los-chunk:" + o.id + ":" + i,
+          { type: 2, size: 1 },
           this.scene,
         );
-        rock.position.set(
-          x + w * b.ox,
-          0.34 + b.h * 0.5,
-          z + d * b.oz,
+        mesh.position.set(
+          x + w * chunk[0],
+          chunk[4] * 0.48 + 0.14,
+          z + d * chunk[1],
         );
-        rock.rotation.y = b.ry;
-        rock.material = b.mat;
-        rock.receiveShadows = true;
-        rock.isPickable = false;
-        this.shadowGenerator.addShadowCaster(rock);
+        mesh.scaling.set(
+          w * chunk[2],
+          chunk[4],
+          d * chunk[3],
+        );
+        mesh.rotation.set(
+          (hash01(i, 2, 5) - 0.5) * 0.12,
+          (hash01(i, 3, 7) - 0.5) * 0.38,
+          (hash01(i, 4, 9) - 0.5) * 0.08,
+        );
+        mesh.material = i === 4 ? light : i % 3 === 0 ? dark : rock;
+        mesh.isPickable = false;
+        mesh.receiveShadows = true;
+        this.shadowGenerator.addShadowCaster(mesh);
       });
 
-      const topRocks = [
-        [-0.33,-0.30,0.22,0.18],
-        [ 0.30,-0.26,0.20,0.16],
-        [-0.34, 0.31,0.18,0.14],
-        [ 0.34, 0.30,0.19,0.15],
+      const ledge = BABYLON.MeshBuilder.CreateBox(
+        "los-ledge:" + o.id,
+        {
+          width: w * 0.72,
+          depth: d * 0.52,
+          height: 0.12,
+        },
+        this.scene,
+      );
+      ledge.position.set(x - w * 0.04, 0.95, z - d * 0.02);
+      ledge.rotation.y = 0.045;
+      ledge.material = light;
+      ledge.isPickable = false;
+      ledge.receiveShadows = true;
+      this.shadowGenerator.addShadowCaster(ledge);
+
+      const rubble = [
+        [-0.40,-0.38,0.11],[0.41,-0.31,0.09],
+        [-0.39, 0.38,0.08],[0.39, 0.39,0.10],
       ];
-      topRocks.forEach((r, i) => {
-        const chunk = BABYLON.MeshBuilder.CreatePolyhedron(
-          "ruin-chunk:" + o.id + ":" + i,
+      rubble.forEach((r, i) => {
+        const chip = BABYLON.MeshBuilder.CreatePolyhedron(
+          "los-rubble:" + o.id + ":" + i,
           { type: 2, size: r[2] },
           this.scene,
         );
-        chunk.position.set(
+        chip.position.set(
           x + w * r[0],
-          1.03 + (i % 2) * 0.11,
+          0.13,
           z + d * r[1],
         );
-        chunk.scaling.set(1.25, 0.70 + r[3], 1.05);
-        chunk.rotation.set(0.05 * i, 0.65 * i, -0.035 * i);
-        chunk.material = i % 2 ? stoneLight : stone;
-        chunk.isPickable = false;
-        this.shadowGenerator.addShadowCaster(chunk);
+        chip.scaling.set(1.35, 0.58, 1.05);
+        chip.rotation.y = i * 1.07;
+        chip.material = i % 2 ? light : rock;
+        chip.isPickable = false;
+        chip.receiveShadows = true;
       });
-
-      // Thin dark seams add stratification without adding collision or clutter.
-      for (const seamZ of [-0.18, 0.16]) {
-        const seam = BABYLON.MeshBuilder.CreateBox(
-          "ruin-seam:" + o.id + ":" + seamZ,
-          { width: w * 0.82, depth: 0.025, height: 0.035 },
-          this.scene,
-        );
-        seam.position.set(x, 0.69, z + d * seamZ);
-        seam.material = stoneDark;
-        seam.isPickable = false;
-      }
     }
   }
 
-  buildScenery() {
+  buildEdgeDetails() {
     const a = this.arena;
     const w = a.width * S;
     const h = a.height * S;
-    const rockMat = pbr(
-      this.scene,
-      "edge-rock",
-      a.presentation?.stoneDark || "#633b2d",
-    );
-    const rockLight = pbr(
-      this.scene,
-      "edge-rock-light",
-      a.presentation?.stone || "#a65d3b",
-    );
-    const scrubMat = standard(
+    const scrub = standard(
       this.scene,
       "dry-scrub",
-      a.presentation?.scrub || "#89773b",
+      a.presentation?.scrub || "#8d7b37",
+    );
+    const cactus = standard(
+      this.scene,
+      "cactus",
+      a.presentation?.cactus || "#507248",
     );
 
-    const rockPoints = [
-      [0.02,0.08,0.9,0.65],[0.08,0.03,0.65,0.48],[0.18,0.02,0.6,0.42],
-      [0.82,0.02,0.72,0.5],[0.93,0.04,0.9,0.62],[0.98,0.14,0.7,0.55],
-      [0.02,0.86,0.82,0.58],[0.08,0.96,0.68,0.48],[0.20,0.98,0.72,0.52],
-      [0.80,0.98,0.72,0.50],[0.92,0.96,0.9,0.62],[0.98,0.84,0.72,0.52],
-      [0.01,0.38,0.58,0.44],[0.99,0.42,0.62,0.46],[0.01,0.62,0.65,0.48],
-      [0.99,0.67,0.62,0.44],
+    const plants = [
+      [0.08,0.12],[0.16,0.08],[0.28,0.06],[0.74,0.07],[0.88,0.11],
+      [0.94,0.23],[0.06,0.76],[0.13,0.89],[0.28,0.94],[0.74,0.93],
+      [0.88,0.88],[0.94,0.72],
     ];
 
-    rockPoints.forEach((p, i) => {
-      const r = BABYLON.MeshBuilder.CreatePolyhedron(
-        "edge-rock:" + i,
-        { type: 2, size: 1 },
-        this.scene,
-      );
-      r.position.set(w * p[0], p[3], h * p[1]);
-      r.scaling.set(
-        p[2],
-        p[3] * 1.35,
-        p[2] * (0.78 + (i % 3) * 0.09),
-      );
-      r.rotation.set(
-        0.08 * (i % 2),
-        i * 0.61,
-        0.04 * ((i + 1) % 2),
-      );
-      r.material = i % 3 === 0 ? rockLight : rockMat;
-      r.isPickable = false;
-      this.shadowGenerator.addShadowCaster(r);
-    });
-
-    const scrubPoints = [
-      [0.10,0.11],[0.16,0.06],[0.87,0.08],[0.92,0.16],
-      [0.07,0.80],[0.14,0.92],[0.86,0.91],[0.94,0.78],
-      [0.26,0.05],[0.72,0.95],
-    ];
-    scrubPoints.forEach((p, i) => {
+    plants.forEach((p, i) => {
       const root = new BABYLON.TransformNode("scrub:" + i, this.scene);
       root.position.set(w * p[0], 0.03, h * p[1]);
 
-      for (let j = 0; j < 4; j += 1) {
+      for (let j = 0; j < 5; j += 1) {
         const blade = BABYLON.MeshBuilder.CreateBox(
-          "scrub-blade",
+          "scrub-blade:" + i + ":" + j,
           {
-            width: 0.055,
-            height: 0.34 + j * 0.035,
-            depth: 0.055,
+            width: 0.045,
+            height: 0.24 + j * 0.028,
+            depth: 0.045,
           },
           this.scene,
         );
         blade.parent = root;
         blade.position.set(
-          (j - 1.5) * 0.075,
-          0.16,
-          j % 2 ? 0.05 : -0.04,
+          (j - 2) * 0.062,
+          0.12,
+          j % 2 ? 0.04 : -0.035,
         );
-        blade.rotation.z = (j - 1.5) * 0.16;
-        blade.rotation.y = j * 0.7;
-        blade.material = scrubMat;
+        blade.rotation.z = (j - 2) * 0.18;
+        blade.rotation.y = j * 0.84;
+        blade.material = scrub;
         blade.isPickable = false;
       }
     });
 
+    const cactusPoints = [
+      [0.09,0.32,0.78],
+      [0.18,0.91,0.68],
+      [0.83,0.10,0.76],
+      [0.91,0.62,0.72],
+      [0.73,0.91,0.65],
+    ];
+    cactusPoints.forEach((p, i) => {
+      this.createCactus(w * p[0], h * p[1], p[2], cactus, i);
+    });
+
     const torchLocations = [
-      [0.045,0.045],
-      [0.955,0.045],
-      [0.045,0.955],
-      [0.955,0.955],
+      [0.055,0.055],
+      [0.945,0.055],
+      [0.055,0.945],
+      [0.945,0.945],
     ];
     torchLocations.forEach(
       (p, i) => this.createTorch(w * p[0], h * p[1], i),
     );
   }
 
+  createCactus(x, z, scale, material, index) {
+    const root = new BABYLON.TransformNode("cactus:" + index, this.scene);
+    root.position.set(x, 0.02, z);
+    root.scaling.setAll(scale);
+
+    const trunk = BABYLON.MeshBuilder.CreateCylinder(
+      "cactus-trunk:" + index,
+      {
+        height: 0.78,
+        diameter: 0.16,
+        tessellation: 7,
+      },
+      this.scene,
+    );
+    trunk.parent = root;
+    trunk.position.y = 0.39;
+    trunk.material = material;
+    trunk.isPickable = false;
+
+    for (const side of [-1, 1]) {
+      const arm = BABYLON.MeshBuilder.CreateCylinder(
+        "cactus-arm:" + index + ":" + side,
+        {
+          height: 0.37,
+          diameter: 0.11,
+          tessellation: 7,
+        },
+        this.scene,
+      );
+      arm.parent = root;
+      arm.position.set(side * 0.14, 0.43, 0);
+      arm.rotation.z = side * 0.92;
+      arm.material = material;
+      arm.isPickable = false;
+
+      const tip = BABYLON.MeshBuilder.CreateCylinder(
+        "cactus-tip:" + index + ":" + side,
+        {
+          height: 0.28,
+          diameter: 0.11,
+          tessellation: 7,
+        },
+        this.scene,
+      );
+      tip.parent = root;
+      tip.position.set(side * 0.27, 0.56, 0);
+      tip.material = material;
+      tip.isPickable = false;
+    }
+  }
+
   createTorch(x, z, index) {
     const pedestalMat = pbr(
       this.scene,
       "torch-stone-" + index,
-      "#5d3428",
+      "#5a3026",
+      1,
     );
     const emberMat = standard(
       this.scene,
       "torch-ember-" + index,
-      "#ff8b28",
-      "#ff6f1f",
+      "#ff9e32",
+      "#ff6b17",
     );
 
     const pedestal = BABYLON.MeshBuilder.CreateCylinder(
       "torch-pedestal-" + index,
       {
-        height: 0.54,
-        diameterTop: 0.55,
+        height: 0.58,
+        diameterTop: 0.50,
         diameterBottom: 0.72,
         tessellation: 6,
       },
       this.scene,
     );
-    pedestal.position.set(x, 0.27, z);
+    pedestal.position.set(x, 0.29, z);
     pedestal.material = pedestalMat;
     pedestal.receiveShadows = true;
     pedestal.isPickable = false;
     this.shadowGenerator.addShadowCaster(pedestal);
 
-    const flame = BABYLON.MeshBuilder.CreatePolyhedron(
-      "torch-flame-" + index,
-      { type: 1, size: 0.22 },
+    const bowl = BABYLON.MeshBuilder.CreateCylinder(
+      "torch-bowl-" + index,
+      {
+        height: 0.12,
+        diameterTop: 0.48,
+        diameterBottom: 0.30,
+        tessellation: 8,
+      },
       this.scene,
     );
-    flame.position.set(x, 0.73, z);
-    flame.scaling.set(0.65, 1.55, 0.65);
+    bowl.position.set(x, 0.61, z);
+    bowl.material = pedestalMat;
+    bowl.isPickable = false;
+
+    const flame = BABYLON.MeshBuilder.CreatePolyhedron(
+      "torch-flame-" + index,
+      { type: 1, size: 0.24 },
+      this.scene,
+    );
+    flame.position.set(x, 0.84, z);
+    flame.scaling.set(0.68, 1.62, 0.68);
     flame.material = emberMat;
     flame.isPickable = false;
 
     const light = new BABYLON.PointLight(
       "torch-light-" + index,
-      new BABYLON.Vector3(x, 0.86, z),
+      new BABYLON.Vector3(x, 0.92, z),
       this.scene,
     );
-    light.diffuse = new BABYLON.Color3(1, 0.38, 0.09);
-    light.intensity = 0.72;
-    light.range = 4.5;
+    light.diffuse = new BABYLON.Color3(1, 0.35, 0.075);
+    light.intensity = 0.88;
+    light.range = 4.9;
 
     this.torches.push({ flame, light, phase: index * 1.73 });
   }
@@ -564,11 +810,11 @@ export class BabylonRenderer {
   animateTorches(now) {
     const t = now * 0.006;
     for (const torch of this.torches) {
-      const pulse = 1 + Math.sin(t + torch.phase) * 0.09;
-      torch.flame.scaling.y = 1.55 * pulse;
-      torch.flame.rotation.y = t * 0.28 + torch.phase;
+      const pulse = 1 + Math.sin(t + torch.phase) * 0.085;
+      torch.flame.scaling.y = 1.62 * pulse;
+      torch.flame.rotation.y = t * 0.30 + torch.phase;
       torch.light.intensity =
-        0.68 + Math.sin(t * 1.7 + torch.phase) * 0.1;
+        0.82 + Math.sin(t * 1.7 + torch.phase) * 0.12;
     }
   }
 

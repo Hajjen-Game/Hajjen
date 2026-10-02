@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon22";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon23";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -233,7 +233,7 @@ export class BabylonArenaRenderer {
       pipeline.fxaaEnabled=true;
       pipeline.bloomEnabled=true;
       pipeline.bloomThreshold=.82;
-      pipeline.bloomWeight=.18;
+      pipeline.bloomWeight=.20;
       pipeline.bloomKernel=48;
       pipeline.bloomScale=.50;
       pipeline.sharpenEnabled=true;
@@ -255,9 +255,9 @@ export class BabylonArenaRenderer {
           {ssaoRatio:.72,blurRatio:.55},
           [camera],
         );
-        ssao.radius=1.35;
-        ssao.totalStrength=.78;
-        ssao.base=.20;
+        ssao.radius=1.18;
+        ssao.totalStrength=.52;
+        ssao.base=.12;
         ssao.samples=8;
         ssao.maxZ=140;
         ssao.minZAspect=.20;
@@ -300,33 +300,33 @@ export class BabylonArenaRenderer {
     const isBastion=arena.id==="emberwatch-bastion";
     const isWindscar=arena.id==="windscar-proving-grounds";
     if(this.scene.environmentTexture){
-      this.scene.environmentTexture.level=isBastion?.22:.62;
+      this.scene.environmentTexture.level=isBastion?.30:.62;
     }
     if(isBastion){
-      this.scene.clearColor=new this.BABYLON.Color4(.055,.032,.024,1);
-      this.scene.ambientColor=new this.BABYLON.Color3(.16,.115,.090);
+      this.scene.clearColor=new this.BABYLON.Color4(.075,.041,.028,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.20,.14,.10);
       this.scene.imageProcessingConfiguration.vignetteEnabled=true;
-      this.scene.imageProcessingConfiguration.vignetteWeight=.42;
+      this.scene.imageProcessingConfiguration.vignetteWeight=.28;
       this.scene.imageProcessingConfiguration.vignetteStretch=.05;
-      this.scene.imageProcessingConfiguration.exposure=1.10;
-      this.scene.imageProcessingConfiguration.contrast=1.08;
+      this.scene.imageProcessingConfiguration.exposure=1.14;
+      this.scene.imageProcessingConfiguration.contrast=1.07;
       if(this.ambientLight){
-        this.ambientLight.intensity=.26;
-        this.ambientLight.diffuse=new this.BABYLON.Color3(.46,.56,.73);
-        this.ambientLight.groundColor=new this.BABYLON.Color3(.13,.065,.042);
+        this.ambientLight.intensity=.37;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.54,.60,.70);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.18,.085,.050);
       }
       if(this.keyLight){
-        this.keyLight.intensity=1.55;
-        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.70,.41);
-        this.keyLight.direction=new this.BABYLON.Vector3(-.63,-1,.38);
-        this.keyLight.position=new this.BABYLON.Vector3(34,58,-30);
+        this.keyLight.intensity=1.62;
+        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.73,.44);
+        this.keyLight.direction=new this.BABYLON.Vector3(-.58,-1,.46);
+        this.keyLight.position=new this.BABYLON.Vector3(30,56,-36);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.10;
-        this.fillLight.diffuse=new this.BABYLON.Color3(.39,.50,.68);
+        this.fillLight.intensity=.15;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.43,.52,.68);
       }
-      this.glowLayer.intensity=.76;
-      this.shadowGenerator?.setDarkness?.(.46);
+      this.glowLayer.intensity=.82;
+      this.shadowGenerator?.setDarkness?.(.33);
     }else if(isWindscar){
       this.shadowGenerator?.setDarkness?.(.31);
       this.scene.clearColor=new this.BABYLON.Color4(.038,.026,.022,1);
@@ -406,7 +406,7 @@ export class BabylonArenaRenderer {
       const isCenterWall=isWindscar && obstacle.id==="center-wall";
       const baseHeight=babylonObstacleVisualHeight(rect);
       const height=isBastion
-        ? (obstacle.id.includes("rampart")?3.02:4.94)
+        ? (obstacle.id.includes("rampart")?2.72:4.34)
         : isWindscar
           ? (isCenterWall?5.72:6.10)
           : baseHeight;

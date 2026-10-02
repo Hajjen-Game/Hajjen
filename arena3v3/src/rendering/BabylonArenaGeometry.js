@@ -650,9 +650,9 @@ function createEmberwatchFloorTexture(BABYLON,scene,arena,mapping) {
   const sx=width/mapping.width;
   const sy=height/mapping.height;
   const b=arena.bounds;
-  const random=seededRandom(0xe8ba71);
+  const random=seededRandom(0xe8ba83);
 
-  ctx.fillStyle="#5a3829";
+  ctx.fillStyle="#2d211c";
   ctx.fillRect(0,0,width,height);
 
   const bevel=32;
@@ -678,9 +678,9 @@ function createEmberwatchFloorTexture(BABYLON,scene,arena,mapping) {
     b.x*sx,b.y*sy,
     (b.x+b.w)*sx,(b.y+b.h)*sy,
   );
-  base.addColorStop(0,"#b66e42");
-  base.addColorStop(.42,"#98583a");
-  base.addColorStop(1,"#70432f");
+  base.addColorStop(0,"#87563e");
+  base.addColorStop(.46,"#754735");
+  base.addColorStop(1,"#5f3a2d");
   ctx.fillStyle=base;
   ctx.fill();
 
@@ -688,96 +688,75 @@ function createEmberwatchFloorTexture(BABYLON,scene,arena,mapping) {
   arenaPath();
   ctx.clip();
 
-  // Large clean terrain facets. No grout, tile seams, or checker pattern.
-  const facetColors=[
-    "rgba(255,196,118,.090)",
-    "rgba(216,133,73,.100)",
-    "rgba(151,83,51,.105)",
-    "rgba(117,65,45,.080)",
-    "rgba(241,161,88,.072)",
-    "rgba(181,104,61,.070)",
+  const shades=[
+    "rgba(220,149,91,.050)",
+    "rgba(173,104,70,.045)",
+    "rgba(112,67,53,.048)",
+    "rgba(235,171,107,.035)",
+    "rgba(80,52,45,.038)",
   ];
-  for(let i=0;i<22;i+=1){
-    const cx=(b.x+55+random()*(b.w-110))*sx;
-    const cy=(b.y+50+random()*(b.h-100))*sy;
-    const rx=(95+random()*190)*sx;
-    const ry=(65+random()*125)*sy;
+  for(let i=0;i<13;i+=1){
+    const cx=(b.x+70+random()*(b.w-140))*sx;
+    const cy=(b.y+60+random()*(b.h-120))*sy;
+    const rx=(110+random()*170)*sx;
+    const ry=(75+random()*105)*sy;
     const sides=5+Math.floor(random()*3);
     ctx.beginPath();
     for(let p=0;p<sides;p+=1){
-      const a=p/sides*Math.PI*2+(random()-.5)*.22;
-      const rr=.60+random()*.40;
-      const x=cx+Math.cos(a)*rx*rr;
-      const y=cy+Math.sin(a)*ry*rr;
+      const angle=p/sides*Math.PI*2+(random()-.5)*.18;
+      const rr=.64+random()*.34;
+      const x=cx+Math.cos(angle)*rx*rr;
+      const y=cy+Math.sin(angle)*ry*rr;
       if(p===0) ctx.moveTo(x,y);
       else ctx.lineTo(x,y);
     }
     ctx.closePath();
-    ctx.fillStyle=facetColors[i%facetColors.length];
+    ctx.fillStyle=shades[i%shades.length];
     ctx.fill();
   }
 
-  // Broad worn lanes through the center keep the playfield readable.
   const centerX=(b.x+b.w/2)*sx;
   const centerY=(b.y+b.h/2)*sy;
-  const worn=ctx.createRadialGradient(
-    centerX,centerY,25*sx,
-    centerX,centerY,310*sx,
+  const wear=ctx.createRadialGradient(
+    centerX,centerY,24*sx,
+    centerX,centerY,290*sx,
   );
-  worn.addColorStop(0,"rgba(255,204,135,.065)");
-  worn.addColorStop(.50,"rgba(95,55,39,.030)");
-  worn.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.fillStyle=worn;
-  ctx.fillRect(
-    centerX-340*sx,
-    centerY-250*sy,
-    680*sx,
-    500*sy,
-  );
+  wear.addColorStop(0,"rgba(230,168,107,.045)");
+  wear.addColorStop(.56,"rgba(72,44,36,.020)");
+  wear.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=wear;
+  ctx.fillRect(centerX-320*sx,centerY-230*sy,640*sx,460*sy);
 
-  // A few soft low-poly patches instead of cracks/engraving.
-  for(let i=0;i<8;i+=1){
+  for(let i=0;i<6;i+=1){
     const x=(b.x+90+random()*(b.w-180))*sx;
     const y=(b.y+70+random()*(b.h-140))*sy;
-    const r=(20+random()*42)*sx;
+    const len=(14+random()*30)*sx;
+    const angle=random()*Math.PI*2;
     ctx.beginPath();
-    const sides=5+Math.floor(random()*2);
-    for(let p=0;p<sides;p+=1){
-      const a=p/sides*Math.PI*2;
-      const rr=r*(.58+random()*.36);
-      const px=x+Math.cos(a)*rr;
-      const py=y+Math.sin(a)*rr*.62;
-      if(p===0) ctx.moveTo(px,py);
-      else ctx.lineTo(px,py);
-    }
-    ctx.closePath();
-    ctx.fillStyle=random()>.5
-      ?"rgba(255,199,121,.040)"
-      :"rgba(74,42,31,.055)";
-    ctx.fill();
+    ctx.moveTo(x,y);
+    ctx.lineTo(
+      x+Math.cos(angle)*len,
+      y+Math.sin(angle)*len*.72,
+    );
+    ctx.strokeStyle="rgba(43,28,24,.11)";
+    ctx.lineWidth=.75*sx;
+    ctx.stroke();
   }
 
-  // Keep the combat floor clean; corner fire pools come from 3D lights outside
-  // the playable bounds rather than painted circles under the players.
-
-  const edgeShade=ctx.createRadialGradient(
+  const vignette=ctx.createRadialGradient(
     centerX,centerY,Math.min(width,height)*.30,
-    centerX,centerY,Math.min(width,height)*.72,
+    centerX,centerY,Math.min(width,height)*.73,
   );
-  edgeShade.addColorStop(0,"rgba(0,0,0,0)");
-  edgeShade.addColorStop(.76,"rgba(39,23,18,.025)");
-  edgeShade.addColorStop(1,"rgba(25,15,13,.13)");
-  ctx.fillStyle=edgeShade;
+  vignette.addColorStop(0,"rgba(0,0,0,0)");
+  vignette.addColorStop(.78,"rgba(30,19,17,.020)");
+  vignette.addColorStop(1,"rgba(22,14,13,.12)");
+  ctx.fillStyle=vignette;
   ctx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);
   ctx.restore();
 
   arenaPath();
-  ctx.strokeStyle="rgba(43,27,22,.56)";
-  ctx.lineWidth=4.0*sx;
-  ctx.stroke();
-  arenaPath();
-  ctx.strokeStyle="rgba(255,205,139,.10)";
-  ctx.lineWidth=1.1*sx;
+  ctx.strokeStyle="rgba(35,22,20,.34)";
+  ctx.lineWidth=2.1*sx;
   ctx.stroke();
 
   texture.update(false);
@@ -1548,77 +1527,72 @@ function addWindscarObstacle(
 function addBastionSpire(
   BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
 ) {
-  const random=seededRandom(0xc411+index*173);
+  const random=seededRandom(0xd310+index*157);
   const w=rect.width;
   const d=rect.depth;
-  const chamfer=Math.min(.72,Math.min(w,d)*.10);
+  const c=Math.min(.72,Math.min(w,d)*.095);
 
   const layers=[
-    {y:.34,h:.68,ws:1.00,ds:1.00,mat:materials.bastionStoneDark},
-    {y:1.20,h:1.05,ws:.93,ds:.95,mat:materials.bastionStone},
-    {y:2.22,h:1.02,ws:.89,ds:.88,mat:materials.bastionAccentStone},
-    {y:3.22,h:.98,ws:.86,ds:.90,mat:materials.bastionStone},
-    {y:4.20,h:.96,ws:.82,ds:.84,mat:materials.bastionStoneTop},
+    {y:.40,h:.80,ws:1.00,ds:1.00,mat:materials.bastionStoneDark},
+    {y:1.34,h:1.06,ws:.94,ds:.95,mat:materials.bastionStone},
+    {y:2.40,h:1.00,ws:.90,ds:.88,mat:materials.bastionStoneTrim},
+    {y:3.40,h:.98,ws:.86,ds:.90,mat:materials.bastionStone},
+    {y:4.37,h:.92,ws:.82,ds:.83,mat:materials.bastionAccentStone},
   ];
 
-  for(let i=0;i<layers.length;i+=1){
-    const layer=layers[i];
+  layers.forEach((layer,i)=>{
     const block=createChamferedPrism(
       BABYLON,scene,
-      "bastion-stacked-pillar-"+index+"-"+i,
+      "bastion-stone-pillar-"+index+"-"+i,
       w*layer.ws,
       layer.h,
       d*layer.ds,
-      chamfer*(.72+random()*.22),
+      c*(.76+random()*.18),
       {
-        x:rect.center.x+(random()-.5)*.36,
+        x:rect.center.x+(random()-.5)*.24,
         y:layer.y,
-        z:rect.center.z+(random()-.5)*.32,
+        z:rect.center.z+(random()-.5)*.22,
       },
       layer.mat,
     );
-    block.rotation.y=(random()-.5)*.11;
-    block.rotation.z=(random()-.5)*.018;
+    block.rotation.y=(random()-.5)*.075;
     block.parent=root;
     block.receiveShadows=true;
     shadowCasters.push(block);
-  }
+  });
 
-  // One flatter cap slab gives a clear readable top silhouette.
   const cap=createChamferedPrism(
     BABYLON,scene,
-    "bastion-stacked-pillar-cap-"+index,
-    w*.88,
-    .42,
-    d*.88,
-    chamfer*.78,
+    "bastion-stone-pillar-cap-"+index,
+    w*.87,
+    .40,
+    d*.87,
+    c*.80,
     {
-      x:rect.center.x+(random()-.5)*.22,
-      y:4.91,
-      z:rect.center.z+(random()-.5)*.20,
+      x:rect.center.x+(random()-.5)*.16,
+      y:5.03,
+      z:rect.center.z+(random()-.5)*.16,
     },
     materials.bastionStoneTop,
   );
-  cap.rotation.y=(random()-.5)*.10;
+  cap.rotation.y=(random()-.5)*.06;
   cap.parent=root;
   cap.receiveShadows=true;
   shadowCasters.push(cap);
 
-  // A couple of small chips at the foot make it feel placed in a world.
   for(let chip=0;chip<2;chip+=1){
-    const side=chip===0?-1:1;
     addLowPolyRock(
       BABYLON,scene,
       "bastion-pillar-chip-"+index+"-"+chip,
       {
-        x:rect.center.x+side*w*.42+(random()-.5)*.35,
-        y:.20,
-        z:rect.center.z+d*.34+(random()-.5)*.55,
+        x:rect.center.x+(chip?1:-1)*w*.43+(random()-.5)*.22,
+        y:.16,
+        z:rect.center.z+d*.34+(random()-.5)*.30,
       },
       {
-        x:.34+random()*.22,
-        y:.20+random()*.12,
-        z:.30+random()*.24,
+        x:.28+random()*.18,
+        y:.18+random()*.10,
+        z:.26+random()*.16,
       },
       chip?materials.bastionRock:materials.bastionStoneDark,
       root,
@@ -1633,67 +1607,66 @@ function addBastionRampart(
   const horizontal=rect.width>=rect.depth;
   const longSide=horizontal?rect.width:rect.depth;
   const shortSide=horizontal?rect.depth:rect.width;
-  const random=seededRandom(0xa225+index*149);
+  const random=seededRandom(0xaa20+index*181);
 
   const rows=[
-    {y:.72,h:1.42,count:3,inset:0,mat:materials.bastionStoneDark},
-    {y:1.98,h:1.18,count:4,inset:.42,mat:materials.bastionStone},
-    {y:3.03,h:.88,count:3,inset:.82,mat:materials.bastionAccentStone},
+    {y:.70,h:1.38,count:3,inset:0,mat:materials.bastionStoneDark},
+    {y:1.92,h:1.10,count:3,inset:.38,mat:materials.bastionStone},
+    {y:2.93,h:.90,count:3,inset:.72,mat:materials.bastionStoneTrim},
   ];
 
-  for(let row=0;row<rows.length;row+=1){
-    const def=rows[row];
-    const usable=longSide-def.inset*2;
-    const gap=.14;
-    const moduleLong=(usable-gap*(def.count-1))/def.count;
-    for(let i=0;i<def.count;i+=1){
-      const stagger=row===1?moduleLong*.12:0;
-      const offset=
-        -usable/2+moduleLong/2+i*(moduleLong+gap)+
-        (i%2?stagger:-stagger);
-
-      const w=horizontal?moduleLong:Math.max(.72,shortSide-def.inset);
-      const d=horizontal?Math.max(.72,shortSide-def.inset):moduleLong;
+  rows.forEach((row,rowIndex)=>{
+    const usable=longSide-row.inset*2;
+    const gap=.16;
+    const blockLong=(usable-gap*(row.count-1))/row.count;
+    for(let i=0;i<row.count;i+=1){
+      const offset=-usable/2+blockLong/2+i*(blockLong+gap);
+      const shift=rowIndex===1
+        ? (i===1?.10:-.05)
+        : rowIndex===2
+          ? (i===0?.07:i===2?-.07:0)
+          : 0;
+      const width=horizontal?blockLong:Math.max(.8,shortSide-row.inset);
+      const depth=horizontal?Math.max(.8,shortSide-row.inset):blockLong;
       const block=createChamferedPrism(
         BABYLON,scene,
-        "bastion-stacked-wall-"+index+"-"+row+"-"+i,
-        w,
-        def.h*(.94+random()*.11),
-        d,
-        Math.min(.42,Math.min(w,d)*(.08+random()*.025)),
+        "bastion-stone-wall-"+index+"-"+rowIndex+"-"+i,
+        width,
+        row.h*(.96+random()*.08),
+        depth,
+        Math.min(.38,Math.min(width,depth)*.085),
         {
-          x:rect.center.x+(horizontal?offset:0)+(random()-.5)*.12,
-          y:def.y+(random()-.5)*.035,
-          z:rect.center.z+(horizontal?0:offset)+(random()-.5)*.12,
+          x:rect.center.x+(horizontal?offset:shift)+(random()-.5)*.08,
+          y:row.y+(random()-.5)*.025,
+          z:rect.center.z+(horizontal?shift:offset)+(random()-.5)*.08,
         },
-        (i+row)%4===2?materials.bastionStoneTop:def.mat,
+        (i+rowIndex)%4===2?materials.bastionAccentStone:row.mat,
       );
-      block.rotation.y=(random()-.5)*.065;
+      block.rotation.y=(random()-.5)*.045;
       block.parent=root;
       block.receiveShadows=true;
       shadowCasters.push(block);
     }
-  }
+  });
 
-  // Broad uneven top slabs instead of ornaments/tech details.
-  for(const side of [-1,0,1]){
-    const offset=side*longSide*.29;
-    const slabLong=longSide*.28;
+  for(let i=0;i<3;i+=1){
+    const offset=(i-1)*longSide*.29;
+    const slabLong=longSide*.27;
     const slab=createChamferedPrism(
       BABYLON,scene,
-      "bastion-wall-topslab-"+index+"-"+side,
+      "bastion-stone-wall-cap-"+index+"-"+i,
       horizontal?slabLong:shortSide*.72,
       .34,
       horizontal?shortSide*.72:slabLong,
-      .28,
+      .26,
       {
-        x:rect.center.x+(horizontal?offset:0)+(random()-.5)*.10,
-        y:3.63+(random()-.5)*.06,
-        z:rect.center.z+(horizontal?0:offset)+(random()-.5)*.10,
+        x:rect.center.x+(horizontal?offset:0)+(random()-.5)*.07,
+        y:3.56+(random()-.5)*.04,
+        z:rect.center.z+(horizontal?0:offset)+(random()-.5)*.07,
       },
-      side===0?materials.bastionStoneTop:materials.bastionAccentStone,
+      i===1?materials.bastionStoneTop:materials.bastionAccentStone,
     );
-    slab.rotation.y=(random()-.5)*.055;
+    slab.rotation.y=(random()-.5)*.045;
     slab.parent=root;
     slab.receiveShadows=true;
     shadowCasters.push(slab);
@@ -1728,23 +1701,24 @@ function addBastionBrazier(
   const p=mapping.gameToWorld(gx,gy,0);
 
   const random=seededRandom(
-    Math.floor(Math.abs(p.x*73+p.z*41))*13+17,
+    Math.floor(Math.abs(p.x*71+p.z*47))*11+23,
   );
+
   for(let i=0;i<3;i+=1){
     addLowPolyRock(
       BABYLON,scene,
-      name+"-pedestal-rock-"+i,
+      name+"-base-rock-"+i,
       {
-        x:p.x+(i-1)*.48+(random()-.5)*.18,
-        y:.30+i*.08,
-        z:p.z+(random()-.5)*.30,
+        x:p.x+(i-1)*.40+(random()-.5)*.12,
+        y:.24+i*.04,
+        z:p.z+(random()-.5)*.20,
       },
       {
-        x:1.10-(i*.12),
-        y:.42+(i*.05),
-        z:.88+(random()*.18),
+        x:.82-(i*.05),
+        y:.34+(i*.035),
+        z:.68+random()*.12,
       },
-      i===1?materials.bastionStoneTop:materials.bastionStoneDark,
+      i===1?materials.bastionStoneTrim:materials.bastionStoneDark,
       root,
       shadowCasters,
     );
@@ -1752,10 +1726,10 @@ function addBastionBrazier(
 
   const bowl=BABYLON.MeshBuilder.CreateCylinder(
     name+"-bowl",
-    {diameterTop:1.86,diameterBottom:1.10,height:.50,tessellation:7},
+    {diameterTop:1.72,diameterBottom:1.02,height:.48,tessellation:7},
     scene,
   );
-  bowl.position.set(p.x,.92,p.z);
+  bowl.position.set(p.x,.80,p.z);
   bowl.material=materials.bastionMetal;
   bowl.convertToFlatShadedMesh?.();
   bowl.parent=root;
@@ -1790,9 +1764,9 @@ function addBastionBrazier(
   );
   light.diffuse=new BABYLON.Color3(1.0,.50,.19);
   light.specular=new BABYLON.Color3(.78,.33,.12);
-  light.intensity=4.45;
-  light.range=24;
-  light.radius=1.10;
+  light.intensity=4.20;
+  light.range=23;
+  light.radius=1.0;
   lights.push(light);
 
   if(particleTexture && BABYLON.ParticleSystem){
@@ -1862,71 +1836,39 @@ function addBastionPerimeterWall(
   BABYLON,scene,arena,mapping,side,materials,root,shadowCasters,
 ) {
   const b=arena.bounds;
-  const random=seededRandom(side<0?0x7d31:0x7d91);
-  const gy=side<0?b.y-25:b.y+b.h+25;
+  const random=seededRandom(side<0?0x7a31:0x7a51);
+  const segmentCount=9;
+  const segmentW=b.w/segmentCount;
+  const gy=side<0?b.y-22:b.y+b.h+22;
 
-  // Five broad irregular rock shelves rather than a repeating decorative rail.
-  const anchors=[.08,.27,.49,.72,.91];
-  anchors.forEach((t,index)=>{
-    const gx=b.x+b.w*t+(random()-.5)*24;
+  for(let i=0;i<segmentCount;i+=1){
+    const gx=b.x+segmentW*(i+.5)+(random()-.5)*12;
     const p=mapping.gameToWorld(gx,gy,0);
-    const sx=4.2+random()*3.4;
-    const sy=.55+random()*.50;
-    const sz=1.45+random()*.85;
-    addLowPolyRock(
-      BABYLON,scene,
-      "bastion-canyon-shelf-"+side+"-"+index,
-      {x:p.x,y:sy*.58,z:p.z},
-      {x:sx,y:sy,z:sz},
-      index%2?materials.bastionStoneDark:materials.bastionRock,
-      root,
-      shadowCasters,
-    );
+    const long=segmentW*mapping.scale*(.82+random()*.16);
+    const depth=(14+random()*8)*mapping.scale;
+    const h=.72+random()*.55;
 
-    if(index===1||index===3){
-      addLowPolyRock(
-        BABYLON,scene,
-        "bastion-canyon-shelf-upper-"+side+"-"+index,
-        {
-          x:p.x+(random()-.5)*1.5,
-          y:1.05,
-          z:p.z+(side<0?-.25:.25),
-        },
-        {
-          x:1.7+random()*.9,
-          y:.78+random()*.35,
-          z:1.1+random()*.45,
-        },
-        materials.bastionAccentStone,
-        root,
-        shadowCasters,
-      );
-    }
-  });
-}
-
-function addBastionSideOutcrops(
-  BABYLON,scene,arena,mapping,materials,root,shadowCasters,
-) {
-  const b=arena.bounds;
-  const defs=[
-    [b.x-18,b.y+150,1.70,1.00,1.35],
-    [b.x-20,b.y+b.h-155,2.05,1.15,1.45],
-    [b.x+b.w+18,b.y+165,1.95,1.10,1.35],
-    [b.x+b.w+20,b.y+b.h-145,1.65,.95,1.25],
-  ];
-  defs.forEach(([gx,gy,sx,sy,sz],index)=>{
-    const p=mapping.gameToWorld(gx,gy,0);
-    addLowPolyRock(
-      BABYLON,scene,
-      "bastion-side-outcrop-"+index,
-      {x:p.x,y:sy*.58,z:p.z},
-      {x:sx,y:sy,z:sz},
-      index%2?materials.bastionStoneDark:materials.bastionRock,
-      root,
-      shadowCasters,
+    const ledge=BABYLON.MeshBuilder.CreateCylinder(
+      "bastion-canyon-ledge-"+side+"-"+i,
+      {
+        diameterTop:Math.min(long,depth)*.82,
+        diameterBottom:Math.min(long,depth),
+        height:h,
+        tessellation:6,
+      },
+      scene,
     );
-  });
+    const base=Math.max(.01,Math.min(long,depth));
+    ledge.position.set(p.x,h*.50,p.z);
+    ledge.scaling.x=long/base;
+    ledge.scaling.z=depth/base;
+    ledge.rotation.y=(random()-.5)*.20;
+    ledge.material=i%3===0?materials.bastionAccentStone:materials.bastionStoneDark;
+    ledge.convertToFlatShadedMesh?.();
+    ledge.parent=root;
+    ledge.receiveShadows=true;
+    shadowCasters.push(ledge);
+  }
 }
 
 function addBastionScenery(
@@ -1935,36 +1877,61 @@ function addBastionScenery(
 ) {
   const b=arena.bounds;
 
-  addBastionPerimeterWall(
-    BABYLON,scene,arena,mapping,-1,materials,root,shadowCasters,
-  );
-  addBastionPerimeterWall(
-    BABYLON,scene,arena,mapping,1,materials,root,shadowCasters,
-  );
-  addBastionSideOutcrops(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
-  );
-
-  const towers=[
-    ["nw",b.x-8,b.y-10],
-    ["ne",b.x+b.w+8,b.y-10],
-    ["sw",b.x-8,b.y+b.h+10],
-    ["se",b.x+b.w+8,b.y+b.h+10],
+  const clusterDefs=[
+    ["nw",b.x-20,b.y-18,-1,-1],
+    ["ne",b.x+b.w+20,b.y-18,1,-1],
+    ["sw",b.x-20,b.y+b.h+18,-1,1],
+    ["se",b.x+b.w+20,b.y+b.h+18,1,1],
   ];
-  for(const [id,x,y] of towers){
-    addBastionPerimeterTower(
-      BABYLON,scene,"bastion-corner-"+id,
-      x,y,mapping,materials,root,shadowCasters,
-    );
-  }
+  clusterDefs.forEach(([id,gx,gy,sx,sz],clusterIndex)=>{
+    const p=mapping.gameToWorld(gx,gy,0);
+    const random=seededRandom(0x5500+clusterIndex*97);
 
-  // Fire landmarks sit beyond the gameplay rectangle so players can never
-  // overlap or stand on them.
+    for(let i=0;i<4;i+=1){
+      addLowPolyRock(
+        BABYLON,scene,
+        "bastion-corner-rock-"+id+"-"+i,
+        {
+          x:p.x+sx*(.3+i*.42)+(random()-.5)*.34,
+          y:.32+i*.15,
+          z:p.z+sz*(.18+(i%2)*.38)+(random()-.5)*.34,
+        },
+        {
+          x:.82+random()*.60,
+          y:.52+random()*.52,
+          z:.72+random()*.52,
+        },
+        i===2?materials.bastionAccentStone:materials.bastionRock,
+        root,
+        shadowCasters,
+      );
+    }
+  });
+
+  const sideRocks=[
+    [b.x-18,b.y+b.h*.34,1.20,.72,1.00],
+    [b.x-20,b.y+b.h*.72,.95,.58,.86],
+    [b.x+b.w+18,b.y+b.h*.30,1.05,.66,.92],
+    [b.x+b.w+20,b.y+b.h*.70,1.30,.74,1.04],
+  ];
+  sideRocks.forEach(([gx,gy,sx,sy,sz],i)=>{
+    const p=mapping.gameToWorld(gx,gy,0);
+    addLowPolyRock(
+      BABYLON,scene,
+      "bastion-side-rock-"+i,
+      {x:p.x,y:sy*.42,z:p.z},
+      {x:sx,y:sy,z:sz},
+      i%2?materials.bastionStoneDark:materials.bastionRock,
+      root,
+      shadowCasters,
+    );
+  });
+
   const fires=[
-    ["nw",b.x-18,b.y-18,.2],
-    ["ne",b.x+b.w+18,b.y-18,1.6],
-    ["sw",b.x-18,b.y+b.h+18,2.8],
-    ["se",b.x+b.w+18,b.y+b.h+18,4.0],
+    ["nw",b.x-24,b.y-24,.2],
+    ["ne",b.x+b.w+24,b.y-24,1.6],
+    ["sw",b.x-24,b.y+b.h+24,2.8],
+    ["se",b.x+b.w+24,b.y+b.h+24,4.0],
   ];
   for(const [id,x,y,phase] of fires){
     addBastionBrazier(
@@ -1973,30 +1940,6 @@ function addBastionScenery(
       lights,flames,particleSystems,particleTexture,phase,
     );
   }
-
-  // Low-poly rubble clusters live in the non-playable apron and help the
-  // fortress read as a place, not a clean test chamber.
-  const rubble=[
-    [b.x+115,b.y-4,1.2,.70,1.0],
-    [b.x+180,b.y-7,.75,.48,.62],
-    [b.x+b.w-120,b.y-5,1.15,.72,.95],
-    [b.x+b.w-188,b.y-8,.72,.46,.60],
-    [b.x+132,b.y+b.h+5,1.08,.66,.90],
-    [b.x+b.w-142,b.y+b.h+6,1.20,.74,1.0],
-  ];
-  rubble.forEach((entry,index)=>{
-    const [gx,gy,sx,sy,sz]=entry;
-    const p=mapping.gameToWorld(gx,gy,0);
-    addLowPolyRock(
-      BABYLON,scene,
-      "bastion-rubble-"+index,
-      {x:p.x,y:sy*.42,z:p.z},
-      {x:sx,y:sy,z:sz},
-      materials.bastionRock,
-      root,
-      shadowCasters,
-    );
-  });
 }
 
 
@@ -2890,19 +2833,19 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const ownedTextures=[];
 
   const materials={
-    bastionFloor:pbrMaterial(BABYLON,scene,"mat-bastion-floor","#8a4f35",{
+    bastionFloor:pbrMaterial(BABYLON,scene,"mat-bastion-floor","#76503d",{
       metallic:0,roughness:.93,environmentIntensity:.34,directIntensity:1.08,
     }),
-    bastionStoneDark:pbrMaterial(BABYLON,scene,"mat-bastion-stone-dark","#633927",{
+    bastionStoneDark:pbrMaterial(BABYLON,scene,"mat-bastion-stone-dark","#50372e",{
       metallic:0,roughness:.90,environmentIntensity:.31,directIntensity:1.08,
     }),
-    bastionStone:pbrMaterial(BABYLON,scene,"mat-bastion-stone","#915033",{
+    bastionStone:pbrMaterial(BABYLON,scene,"mat-bastion-stone","#72503f",{
       metallic:0,roughness:.80,environmentIntensity:.42,directIntensity:1.12,
     }),
-    bastionStoneTrim:pbrMaterial(BABYLON,scene,"mat-bastion-stone-trim","#a65c38",{
+    bastionStoneTrim:pbrMaterial(BABYLON,scene,"mat-bastion-stone-trim","#855e47",{
       metallic:.04,roughness:.72,environmentIntensity:.48,directIntensity:1.15,
     }),
-    bastionStoneTop:pbrMaterial(BABYLON,scene,"mat-bastion-stone-top","#b96f43",{
+    bastionStoneTop:pbrMaterial(BABYLON,scene,"mat-bastion-stone-top","#956b4f",{
       metallic:.02,roughness:.67,environmentIntensity:.52,directIntensity:1.16,
     }),
     bastionMetal:pbrMaterial(BABYLON,scene,"mat-bastion-metal","#684025",{
@@ -2914,10 +2857,10 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     ),
     bastionBanner:material(BABYLON,scene,"mat-bastion-banner","#651f25","#15090b"),
     bastionBannerTrim:material(BABYLON,scene,"mat-bastion-banner-trim","#d9a55b","#39210d"),
-    bastionRock:pbrMaterial(BABYLON,scene,"mat-bastion-rock","#74402e",{
+    bastionRock:pbrMaterial(BABYLON,scene,"mat-bastion-rock","#604136",{
       metallic:0,roughness:.96,environmentIntensity:.28,directIntensity:1.05,
     }),
-    bastionAccentStone:pbrMaterial(BABYLON,scene,"mat-bastion-accent-stone","#aa623a",{
+    bastionAccentStone:pbrMaterial(BABYLON,scene,"mat-bastion-accent-stone","#a06c4b",{
       metallic:.02,roughness:.72,environmentIntensity:.48,directIntensity:1.16,
     }),
     bastionBronze:pbrMaterial(BABYLON,scene,"mat-bastion-bronze","#7c4d28",{

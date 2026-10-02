@@ -67,7 +67,6 @@ export class BabylonArenaRenderer {
     this.environment = null;
     this.shadowGenerator = null;
     this.glowLayer = null;
-    this.ssaoPipeline = null;
     this.ready = false;
     this.renderedArenaId = "";
   }
@@ -166,26 +165,6 @@ export class BabylonArenaRenderer {
     });
     glowLayer.intensity=.62;
     this.glowLayer=glowLayer;
-
-    // Low-cost ambient occlusion helps the stacked stone read as one environment
-    // instead of disconnected primitives. Keep it optional for compatibility.
-    try {
-      if (BABYLON.SSAO2RenderingPipeline) {
-        const ssao=new BABYLON.SSAO2RenderingPipeline(
-          "arena-ssao",
-          scene,
-          {ssaoRatio:.50,combineRatio:1.0},
-          [camera],
-        );
-        ssao.radius=2.0;
-        ssao.totalStrength=.85;
-        ssao.base=.10;
-        ssao.expensiveBlur=false;
-        this.ssaoPipeline=ssao;
-      }
-    } catch (error) {
-      console.warn("[Babylon preview] SSAO unavailable; continuing without it.",error);
-    }
 
     await this.rebuildArena(this._arena);
     this.ready = true;
@@ -309,8 +288,6 @@ export class BabylonArenaRenderer {
     this.shadowGenerator = null;
     this.glowLayer?.dispose?.();
     this.glowLayer = null;
-    this.ssaoPipeline?.dispose?.();
-    this.ssaoPipeline = null;
     this.scene?.dispose?.();
     this.scene = null;
     this.engine?.dispose?.();

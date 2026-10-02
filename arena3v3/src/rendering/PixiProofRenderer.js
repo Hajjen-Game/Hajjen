@@ -8902,7 +8902,7 @@ export class PixiProofRenderer {
           });
         }
 
-        // The eye closes, then ruptures outward.
+        // The eye closes into a compact psychic implosion.
         const eyeW=24*(1-gather*.46)+pulse*2;
         const eyeH=10*(1-gather*.58)+pulse;
         glow.ellipse(dx,dy,eyeW+9,eyeH+7).stroke({
@@ -8936,51 +8936,6 @@ export class PixiProofRenderer {
             alpha:ruptureFade*.12,
           });
 
-          for(let i=0;i<10;i++){
-            const ang=i/10*Math.PI*2+seed*.013;
-            const inner=8+rupture*4;
-            const mid=18+easeOut(rupture)*(15+(i%3)*4);
-            const outer=24+easeOut(rupture)*(30+(i%4)*7);
-            const bend=ang+(i%2?.30:-.26);
-            core
-              .moveTo(
-                dx+Math.cos(ang)*inner,
-                dy+Math.sin(ang)*inner
-              )
-              .lineTo(
-                dx+Math.cos(bend)*mid,
-                dy+Math.sin(bend)*mid
-              )
-              .lineTo(
-                dx+Math.cos(ang)*outer,
-                dy+Math.sin(ang)*outer
-              )
-              .stroke({
-                color:i%3===0?profile.core:profile.main,
-                width:i%3===0?2.8:2.0,
-                alpha:ruptureFade*(.64+.12*pulse),
-              });
-          }
-
-          // Secondary inner fracture makes the implosion feel like the target's
-          // mind is cracking rather than a generic purple explosion.
-          for(let i=0;i<5;i++){
-            const a=-1.05+i*.52+seed*.002;
-            const start=7;
-            const end=20+rupture*(13+(i%3)*5);
-            core
-              .moveTo(dx+Math.cos(a)*start,dy+Math.sin(a)*start)
-              .lineTo(
-                dx+Math.cos(a+.18)*end*.60,
-                dy+Math.sin(a+.18)*end*.60
-              )
-              .lineTo(dx+Math.cos(a)*end,dy+Math.sin(a)*end)
-              .stroke({
-                color:profile.core,
-                width:1.5,
-                alpha:ruptureFade*.55,
-              });
-          }
         } else if(missed && p>.34){
           const dissipate=clamp01((p-.34)/.50);
           for(let i=0;i<9;i++){

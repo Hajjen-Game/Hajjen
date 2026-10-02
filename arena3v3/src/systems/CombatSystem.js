@@ -661,9 +661,13 @@ export class CombatSystem {
 
     healTarget.health = Math.min(healTarget.maxHealth, healTarget.health + actual);
     this.game.recordHealing(source, healTarget, actual, false);
-    // Atonement is passive conversion: keep the green combat text but avoid a
-    // direct-heal beam/burst that makes it look like the Priest cast a heal.
-    this.emitHealFeedback(source, healTarget, actual, false, "priest", false, true);
+
+    // Atonement is passive conversion. Its healing number must always use the
+    // normal green player combat text, but it must not create a heal beam/burst.
+    if (source?.control === "player" || source?.id === this.game.player?.id) {
+      this.game.addFloatingText(healTarget, "+" + actual, "heal");
+    }
+
     this.game.log(
       this.game.combatantLabel(source) + "'s Atonement heals " + this.game.combatantLabel(healTarget) + " for " + actual + ".",
     );
@@ -672,8 +676,9 @@ export class CombatSystem {
   emitHealFeedback(source, target, actual, crit, visualStyle = "heal", periodic = false, suppressLegacyVisual = false) {
     if (actual <= 0) return;
 
-    // All direct player healing, including Atonement, deliberately uses the
-    // exact same green scrolling combat text path.
+    // Direct player healing uses the shared green scrolling combat text path.
+    // Atonement is emitted explicitly at its conversion site so it can stay
+    // text-only without accidentally reintroducing a heal beam/burst.
     this.game.addActionFloatingText(
       source,
       target,

@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon13";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon14";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -70,6 +70,8 @@ export class BabylonArenaRenderer {
     this.environment = null;
     this.shadowGenerator = null;
     this.glowLayer = null;
+    this.defaultPipeline = null;
+    this.environmentHelper = null;
     this.ready = false;
     this.renderedArenaId = "";
   }
@@ -114,8 +116,17 @@ export class BabylonArenaRenderer {
     scene.clearColor = new BABYLON.Color4(0.055, 0.045, 0.038, 1);
     scene.ambientColor = new BABYLON.Color3(0.20, 0.18, 0.16);
     scene.skipPointerMovePicking = true;
-    scene.imageProcessingConfiguration.exposure = .98;
-    scene.imageProcessingConfiguration.contrast = 1.08;
+    scene.imageProcessingConfiguration.exposure = .92;
+    scene.imageProcessingConfiguration.contrast = 1.10;
+    scene.imageProcessingConfiguration.vignetteEnabled = true;
+    scene.imageProcessingConfiguration.vignetteWeight = 1.34;
+    scene.imageProcessingConfiguration.vignetteStretch = .18;
+    scene.imageProcessingConfiguration.vignetteColor =
+      new BABYLON.Color4(.09,.045,.028,1);
+    scene.imageProcessingConfiguration.vignetteBlendMode =
+      BABYLON.ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
+    scene.imageProcessingConfiguration.ditheringEnabled = true;
+    scene.imageProcessingConfiguration.ditheringIntensity = .035;
     if (BABYLON.ImageProcessingConfiguration?.TONEMAPPING_ACES != null) {
       scene.imageProcessingConfiguration.toneMappingEnabled = true;
       scene.imageProcessingConfiguration.toneMappingType =
@@ -155,12 +166,20 @@ export class BabylonArenaRenderer {
     key.diffuse = new BABYLON.Color3(0.93, 0.79, 0.67);
     this.keyLight = key;
 
-    const shadows = new BABYLON.ShadowGenerator(1024, key);
-    shadows.useBlurExponentialShadowMap = true;
-    shadows.blurKernel = 32;
-    shadows.bias = 0.0008;
-    shadows.normalBias = 0.02;
-    shadows.setDarkness?.(.34);
+    const shadows = new BABYLON.ShadowGenerator(2048, key);
+    shadows.bias = 0.00065;
+    shadows.normalBias = 0.018;
+    shadows.setDarkness?.(.31);
+    if(
+      engine.webGLVersion > 1 &&
+      "useContactHardeningShadow" in shadows
+    ){
+      shadows.useContactHardeningShadow = true;
+      shadows.contactHardeningLightSizeUVRatio = .045;
+    }else{
+      shadows.useBlurExponentialShadowMap = true;
+      shadows.blurKernel = 32;
+    }
     this.shadowGenerator = shadows;
 
     const fill = new BABYLON.DirectionalLight(
@@ -179,8 +198,51 @@ export class BabylonArenaRenderer {
       blurKernelSize:32,
       mainTextureRatio:.50,
     });
-    glowLayer.intensity=.62;
+    glowLayer.intensity=.48;
     this.glowLayer=glowLayer;
+
+    // Babylon's default environment provides the IBL that PBR materials need.
+    // No skybox or helper ground is rendered; this only lights/refines materials.
+    try{
+      this.environmentHelper=scene.createDefaultEnvironment?.({
+        createGround:false,
+        createSkybox:false,
+      })||null;
+      if(scene.environmentTexture){
+        scene.environmentTexture.level=.62;
+      }
+    }catch(error){
+      console.warn("[Babylon preview] environment IBL unavailable",error);
+      this.environmentHelper=null;
+    }
+
+    // Use Babylon's HDR post-processing stack instead of relying only on
+    // StandardMaterial + GlowLayer.
+    if(BABYLON.DefaultRenderingPipeline){
+      const pipeline=new BABYLON.DefaultRenderingPipeline(
+        "arena-default-pipeline",
+        true,
+        scene,
+        [camera],
+      );
+      pipeline.samples=Math.max(
+        1,
+        Math.min(4,engine.getCaps?.().maxMSAASamples||1),
+      );
+      pipeline.fxaaEnabled=true;
+      pipeline.bloomEnabled=true;
+      pipeline.bloomThreshold=.82;
+      pipeline.bloomWeight=.18;
+      pipeline.bloomKernel=48;
+      pipeline.bloomScale=.50;
+      pipeline.sharpenEnabled=true;
+      if(pipeline.sharpen){
+        pipeline.sharpen.edgeAmount=.16;
+        pipeline.sharpen.colorAmount=.85;
+      }
+      pipeline.imageProcessingEnabled=true;
+      this.defaultPipeline=pipeline;
+    }
 
     await this.rebuildArena(this._arena);
     this.ready = true;
@@ -214,23 +276,27 @@ export class BabylonArenaRenderer {
     if(isWindscar){
       this.scene.clearColor=new this.BABYLON.Color4(.038,.026,.022,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.135,.108,.090);
-      this.scene.imageProcessingConfiguration.exposure=.96;
-      this.scene.imageProcessingConfiguration.contrast=1.10;
+      this.scene.imageProcessingConfiguration.vignetteEnabled=true;
+      this.scene.imageProcessingConfiguration.vignetteWeight=1.34;
+      this.scene.imageProcessingConfiguration.vignetteStretch=.18;
+      this.scene.imageProcessingConfiguration.exposure=.91;
+      this.scene.imageProcessingConfiguration.contrast=1.12;
       if(this.ambientLight){
-        this.ambientLight.intensity=.57;
-        this.ambientLight.diffuse=new this.BABYLON.Color3(.72,.63,.56);
-        this.ambientLight.groundColor=new this.BABYLON.Color3(.075,.050,.041);
+        this.ambientLight.intensity=.44;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.67,.59,.53);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.055,.038,.033);
       }
       if(this.keyLight){
-        this.keyLight.intensity=.70;
+        this.keyLight.intensity=.94;
         this.keyLight.diffuse=new this.BABYLON.Color3(.95,.73,.56);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.29;
-        this.fillLight.diffuse=new this.BABYLON.Color3(.65,.63,.61);
+        this.fillLight.intensity=.20;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.60,.59,.58);
       }
-      this.glowLayer.intensity=.88;
+      this.glowLayer.intensity=.56;
     }else{
+      this.scene.imageProcessingConfiguration.vignetteEnabled=false;
       this.scene.imageProcessingConfiguration.exposure=.98;
       this.scene.imageProcessingConfiguration.contrast=1.08;
       this.scene.clearColor=new this.BABYLON.Color4(.027,.038,.028,1);
@@ -348,6 +414,10 @@ export class BabylonArenaRenderer {
     this.environment = null;
     this.shadowGenerator?.dispose?.();
     this.shadowGenerator = null;
+    this.defaultPipeline?.dispose?.();
+    this.defaultPipeline = null;
+    this.environmentHelper?.dispose?.();
+    this.environmentHelper = null;
     this.glowLayer?.dispose?.();
     this.glowLayer = null;
     this.scene?.dispose?.();

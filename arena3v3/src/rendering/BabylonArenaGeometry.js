@@ -18,6 +18,31 @@ function material(
   return mat;
 }
 
+function pbrMaterial(
+  BABYLON,
+  scene,
+  name,
+  albedo,
+  {
+    metallic=0,
+    roughness=.86,
+    environmentIntensity=.32,
+    directIntensity=1,
+    emissive=null,
+  }={},
+) {
+  const mat=new BABYLON.PBRMaterial(name,scene);
+  mat.albedoColor=color3(BABYLON,albedo);
+  mat.metallic=metallic;
+  mat.roughness=roughness;
+  mat.environmentIntensity=environmentIntensity;
+  mat.directIntensity=directIntensity;
+  mat.enableSpecularAntiAliasing=true;
+  mat.forceIrradianceInFragment=true;
+  if(emissive) mat.emissiveColor=color3(BABYLON,emissive);
+  return mat;
+}
+
 function seededRandom(seed = 1) {
   let state = seed >>> 0;
   return () => {
@@ -105,6 +130,7 @@ function createChamferedPrism(
 
   mesh.position.set(position.x,position.y,position.z);
   mesh.material = mat;
+  mesh.convertToFlatShadedMesh?.();
   return mesh;
 }
 
@@ -170,6 +196,7 @@ function createChamferedFrustum(
   data.applyToMesh(mesh);
   mesh.position.set(position.x,position.y,position.z);
   mesh.material=mat;
+  mesh.convertToFlatShadedMesh?.();
   return mesh;
 }
 
@@ -345,6 +372,85 @@ function createStoneSurfaceTexture(BABYLON,scene,name,seed=1) {
   texture.uScale=1.65;
   texture.vScale=1.65;
   texture.anisotropicFilteringLevel=8;
+  return texture;
+}
+
+function createStoneNormalTexture(BABYLON,scene,name,seed=1) {
+  const size=256;
+  const texture=new BABYLON.DynamicTexture(
+    name,
+    {width:size,height:size},
+    scene,
+    false,
+  );
+  const ctx=texture.getContext();
+  const image=ctx.createImageData(size,size);
+  const phase=(seed%97)*.137;
+
+  const heightAt=(x,y)=>{
+    const nx=x/size;
+    const ny=y/size;
+    return (
+      Math.sin(nx*Math.PI*7.0+phase)*.30+
+      Math.sin(ny*Math.PI*5.2-phase*.7)*.24+
+      Math.sin((nx+ny)*Math.PI*10.5+phase*.4)*.18+
+      Math.sin((nx*.55-ny)*Math.PI*15.0-phase)*.10
+    );
+  };
+
+  const strength=1.55;
+  for(let y=0;y<size;y+=1){
+    for(let x=0;x<size;x+=1){
+      const dx=(heightAt(x+1,y)-heightAt(x-1,y))*strength;
+      const dy=(heightAt(x,y+1)-heightAt(x,y-1))*strength;
+      let nx=-dx;
+      let ny=-dy;
+      let nz=1;
+      const inv=1/Math.hypot(nx,ny,nz);
+      nx*=inv;
+      ny*=inv;
+      nz*=inv;
+      const i=(y*size+x)*4;
+      image.data[i]=Math.round((nx*.5+.5)*255);
+      image.data[i+1]=Math.round((ny*.5+.5)*255);
+      image.data[i+2]=Math.round((nz*.5+.5)*255);
+      image.data[i+3]=255;
+    }
+  }
+
+  ctx.putImageData(image,0,0);
+  texture.update(false);
+  texture.gammaSpace=false;
+  texture.wrapU=BABYLON.Texture.WRAP_ADDRESSMODE;
+  texture.wrapV=BABYLON.Texture.WRAP_ADDRESSMODE;
+  texture.uScale=3.2;
+  texture.vScale=3.2;
+  texture.anisotropicFilteringLevel=8;
+  return texture;
+}
+
+function createEmberParticleTexture(BABYLON,scene) {
+  const size=64;
+  const texture=new BABYLON.DynamicTexture(
+    "windscar-ember-particle",
+    {width:size,height:size},
+    scene,
+    false,
+  );
+  const ctx=texture.getContext();
+  ctx.clearRect(0,0,size,size);
+  const g=ctx.createRadialGradient(
+    size*.5,size*.5,0,
+    size*.5,size*.5,size*.48,
+  );
+  g.addColorStop(0,"rgba(255,255,236,1)");
+  g.addColorStop(.18,"rgba(255,209,105,.95)");
+  g.addColorStop(.52,"rgba(255,96,24,.58)");
+  g.addColorStop(1,"rgba(255,55,0,0)");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,size,size);
+  texture.update(false);
+  texture.hasAlpha=true;
   return texture;
 }
 
@@ -585,9 +691,14 @@ function addFloor(BABYLON,scene,arena,mapping,materials,root,ownedTextures) {
   const floorMat=arena.id==="windscar-proving-grounds"
     ? materials.floor
     : materials.grandFloor;
-  floorMat.diffuseTexture=floorTexture;
-  floorMat.diffuseColor=new BABYLON.Color3(1,1,1);
-  floorMat.specularColor=new BABYLON.Color3(.035,.03,.025);
+  if(floorMat instanceof BABYLON.PBRMaterial){
+    floorMat.albedoTexture=floorTexture;
+    floorMat.albedoColor=new BABYLON.Color3(1,1,1);
+  }else{
+    floorMat.diffuseTexture=floorTexture;
+    floorMat.diffuseColor=new BABYLON.Color3(1,1,1);
+    floorMat.specularColor=new BABYLON.Color3(.035,.03,.025);
+  }
 
   const ground=BABYLON.MeshBuilder.CreateGround(
     "babylon-arena-floor",
@@ -1754,6 +1865,8 @@ function addWindscarWatchfire(
   shadowCasters,
   lights,
   flames,
+  particleSystems,
+  particleTexture,
   phase,
 ) {
   const p=mapping.gameToWorld(gameX,gameY,0);
@@ -1833,7 +1946,33 @@ function addWindscarWatchfire(
   light.specular=new BABYLON.Color3(.72,.30,.10);
   light.intensity=3.85;
   light.range=34;
+  light.radius=.85;
   lights.push(light);
+
+  if(particleTexture && BABYLON.ParticleSystem){
+    const sparks=new BABYLON.ParticleSystem(name+"-embers",70,scene);
+    sparks.particleTexture=particleTexture;
+    sparks.emitter=new BABYLON.Vector3(p.x,1.35,p.z);
+    sparks.minEmitBox=new BABYLON.Vector3(-.34,0,-.34);
+    sparks.maxEmitBox=new BABYLON.Vector3(.34,.18,.34);
+    sparks.color1=new BABYLON.Color4(1,.46,.10,1);
+    sparks.color2=new BABYLON.Color4(1,.78,.22,.92);
+    sparks.colorDead=new BABYLON.Color4(.38,.08,.01,0);
+    sparks.minSize=.08;
+    sparks.maxSize=.20;
+    sparks.minLifeTime=.32;
+    sparks.maxLifeTime=.82;
+    sparks.emitRate=24;
+    sparks.blendMode=BABYLON.ParticleSystem.BLENDMODE_ADD;
+    sparks.direction1=new BABYLON.Vector3(-.18,1.55,-.18);
+    sparks.direction2=new BABYLON.Vector3(.18,2.35,.18);
+    sparks.minEmitPower=.65;
+    sparks.maxEmitPower=1.15;
+    sparks.updateSpeed=.017;
+    sparks.gravity=new BABYLON.Vector3(0,.18,0);
+    sparks.start();
+    particleSystems.push(sparks);
+  }
 }
 
 function addWindscarGatePylon(
@@ -1926,6 +2065,34 @@ function addWindscarSpawnGate(
   lintel.parent=root;
   lintel.receiveShadows=true;
   shadowCasters.push(lintel);
+
+  const banner=BABYLON.MeshBuilder.CreatePlane(
+    "windscar-gate-"+side+"-banner",
+    {width:3.05,height:5.4,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  banner.position.set(
+    mid.x+(side<0?.34:-.34),
+    2.35,
+    mid.z,
+  );
+  banner.rotation.y=side<0?Math.PI/2:-Math.PI/2;
+  banner.material=materials.windscarBanner;
+  banner.parent=root;
+
+  const stripe=BABYLON.MeshBuilder.CreatePlane(
+    "windscar-gate-"+side+"-banner-stripe",
+    {width:.52,height:3.9,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  stripe.position.set(
+    mid.x+(side<0?.325:-.325),
+    2.48,
+    mid.z,
+  );
+  stripe.rotation.y=side<0?Math.PI/2:-Math.PI/2;
+  stripe.material=materials.windscarBannerTrim;
+  stripe.parent=root;
 }
 
 function addWindscarScenery(
@@ -1938,6 +2105,8 @@ function addWindscarScenery(
   shadowCasters,
   lights,
   flames,
+  particleSystems,
+  particleTexture,
 ) {
   const b=arena.bounds;
 
@@ -1954,13 +2123,15 @@ function addWindscarScenery(
     BABYLON,scene,
     "windscar-watchfire-west",
     b.x-24,b.y+b.h*.73,
-    mapping,materials,root,shadowCasters,lights,flames,.35,
+    mapping,materials,root,shadowCasters,lights,flames,
+    particleSystems,particleTexture,.35,
   );
   addWindscarWatchfire(
     BABYLON,scene,
     "windscar-watchfire-east",
     b.x+b.w+24,b.y+b.h*.27,
-    mapping,materials,root,shadowCasters,lights,flames,2.65,
+    mapping,materials,root,shadowCasters,lights,flames,
+    particleSystems,particleTexture,2.65,
   );
 
   const rockPoints=[
@@ -2105,25 +2276,46 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const shadowCasters=[];
   const lights=[];
   const flames=[];
+  const particleSystems=[];
   const ownedTextures=[];
 
   const materials={
-    floor:material(BABYLON,scene,"mat-floor","#8a6147","#2a1b15"),
+    floor:pbrMaterial(BABYLON,scene,"mat-floor","#76513d",{
+      metallic:0,roughness:.96,environmentIntensity:.22,directIntensity:1.08,
+    }),
     grandFloor:material(BABYLON,scene,"mat-grand-floor","#3c4a36","#172016"),
-    windscarStoneDark:material(BABYLON,scene,"mat-windscar-stone-dark","#4e3b30","#1a120e"),
-    windscarStone:material(BABYLON,scene,"mat-windscar-stone","#846750","#2b1e15"),
-    windscarStoneTop:material(BABYLON,scene,"mat-windscar-stone-top","#b9916e","#422c1d"),
-    windscarStoneAlt:material(BABYLON,scene,"mat-windscar-stone-alt","#735946","#281b14"),
-    windscarStoneTopAlt:material(BABYLON,scene,"mat-windscar-stone-top-alt","#a57e60","#392519"),
-    windscarMetal:material(BABYLON,scene,"mat-windscar-metal","#34221a","#8c4a20"),
+    windscarStoneDark:pbrMaterial(BABYLON,scene,"mat-windscar-stone-dark","#4b382f",{
+      metallic:0,roughness:.93,environmentIntensity:.24,directIntensity:1.08,
+    }),
+    windscarStone:pbrMaterial(BABYLON,scene,"mat-windscar-stone","#81634d",{
+      metallic:0,roughness:.86,environmentIntensity:.30,directIntensity:1.10,
+    }),
+    windscarStoneTop:pbrMaterial(BABYLON,scene,"mat-windscar-stone-top","#ae8465",{
+      metallic:0,roughness:.78,environmentIntensity:.36,directIntensity:1.12,
+    }),
+    windscarStoneAlt:pbrMaterial(BABYLON,scene,"mat-windscar-stone-alt","#6f5544",{
+      metallic:0,roughness:.89,environmentIntensity:.28,directIntensity:1.08,
+    }),
+    windscarStoneTopAlt:pbrMaterial(BABYLON,scene,"mat-windscar-stone-top-alt","#987259",{
+      metallic:0,roughness:.82,environmentIntensity:.34,directIntensity:1.10,
+    }),
+    windscarMetal:pbrMaterial(BABYLON,scene,"mat-windscar-metal","#3f291e",{
+      metallic:.62,roughness:.42,environmentIntensity:.62,directIntensity:1.15,
+    }),
     windscarRune:material(
       BABYLON,scene,"mat-windscar-rune","#ff8b37","#5b220b","#ff5c19"
     ),
     windscarInset:material(BABYLON,scene,"mat-windscar-inset","#2f211c","#120c0a"),
     windscarTrim:material(BABYLON,scene,"mat-windscar-trim","#8d5a32","#3b1d0d","#9c491b"),
+    windscarBanner:material(BABYLON,scene,"mat-windscar-banner","#5a2018","#120908"),
+    windscarBannerTrim:material(BABYLON,scene,"mat-windscar-banner-trim","#a3652b","#26150a"),
     windscarSeam:material(BABYLON,scene,"mat-windscar-seam","#3e3027","#150f0c"),
-    windscarRock:material(BABYLON,scene,"mat-windscar-rock","#684c3b","#21160f"),
-    windscarRockDark:material(BABYLON,scene,"mat-windscar-rock-dark","#49352c","#18100d"),
+    windscarRock:pbrMaterial(BABYLON,scene,"mat-windscar-rock","#5f4638",{
+      metallic:0,roughness:.96,environmentIntensity:.22,directIntensity:1.05,
+    }),
+    windscarRockDark:pbrMaterial(BABYLON,scene,"mat-windscar-rock-dark","#44312a",{
+      metallic:0,roughness:.98,environmentIntensity:.20,directIntensity:1.04,
+    }),
     grandStone:material(BABYLON,scene,"mat-grand-stone","#65705c","#1d251b"),
     grandStoneTop:material(BABYLON,scene,"mat-grand-stone-top","#849079","#293126"),
     floorLift:material(BABYLON,scene,"mat-floor-lift","#907662","#2a211a"),
@@ -2177,12 +2369,13 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
 
   materials.windscarRune.disableLighting=true;
   materials.windscarRune.alpha=.94;
-  materials.windscarMetal.specularPower=32;
   materials.windscarStoneTop.emissiveColor=
-    materials.windscarStoneTop.diffuseColor.scale(.035);
+    materials.windscarStoneTop.albedoColor.scale(.020);
   materials.windscarStoneTopAlt.emissiveColor=
-    materials.windscarStoneTopAlt.diffuseColor.scale(.025);
+    materials.windscarStoneTopAlt.albedoColor.scale(.014);
   materials.windscarTrim.disableLighting=true;
+  materials.windscarBanner.specularColor=new BABYLON.Color3(.05,.018,.012);
+  materials.windscarBannerTrim.specularColor=new BABYLON.Color3(.16,.085,.028);
   materials.seam.alpha=.90;
   materials.seamSoft.alpha=.48;
   materials.flameOuter.disableLighting=true;
@@ -2206,6 +2399,14 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     arena.id==="windscar-proving-grounds"?0x2177:0x7712,
   );
   ownedTextures.push(stoneSurface);
+
+  const stoneNormal=createStoneNormalTexture(
+    BABYLON,scene,
+    "babylon-windscar-stone-normal",
+    arena.id==="windscar-proving-grounds"?0x43a1:0x8122,
+  );
+  ownedTextures.push(stoneNormal);
+
   [
     materials.windscarStoneDark,
     materials.windscarStone,
@@ -2214,6 +2415,16 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     materials.windscarStoneTopAlt,
     materials.windscarRock,
     materials.windscarRockDark,
+  ].forEach(mat=>{
+    mat.albedoTexture=stoneSurface;
+    mat.bumpTexture=stoneNormal;
+    mat.forceIrradianceInFragment=true;
+  });
+
+  materials.floor.bumpTexture=stoneNormal;
+  materials.floor.forceIrradianceInFragment=true;
+
+  [
     materials.stoneBase,
     materials.stoneSide,
     materials.stoneSideAlt,
@@ -2245,7 +2456,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     materials.windscarRock,
     materials.windscarRockDark,
   ].forEach(mat=>{
-    mat.emissiveColor=mat.diffuseColor.scale(.045);
+    mat.emissiveColor=mat.albedoColor.scale(.012);
   });
 
   [
@@ -2270,7 +2481,11 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     BABYLON,scene,arena,mapping,materials,root,ownedTextures,
   );
 
+  let emberParticleTexture=null;
   if(arena.id==="windscar-proving-grounds"){
+    emberParticleTexture=createEmberParticleTexture(BABYLON,scene);
+    ownedTextures.push(emberParticleTexture);
+
     // Windscar is the only arena receiving the new stylized desert/stone art
     // direction. Keep scenery outside gameplay bounds.
     for(let index=0;index<arena.obstacles.length;index+=1){
@@ -2281,6 +2496,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     }
     addWindscarScenery(
       BABYLON,scene,arena,mapping,materials,root,shadowCasters,lights,flames,
+      particleSystems,emberParticleTexture,
     );
   }else{
     // The Grand Ring intentionally stays a separate green placeholder theme.
@@ -2302,6 +2518,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     shadowCasters,
     lights,
     flames,
+    particleSystems,
     animate(timeSeconds=0) {
       for(const flame of flames){
         const t=timeSeconds+flame.phase;
@@ -2326,6 +2543,10 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
       }
     },
     dispose() {
+      for(const system of particleSystems) {
+        system?.stop?.();
+        system?.dispose?.();
+      }
       for(const light of lights) light?.dispose?.();
       root.dispose(false,true);
       for(const texture of ownedTextures) texture?.dispose?.();

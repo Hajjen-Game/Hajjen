@@ -306,15 +306,42 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
     cx,cy,Math.min(width,height)*.05,
     cx,cy,Math.min(width,height)*.78,
   );
-  base.addColorStop(0,"#765945");
-  base.addColorStop(.48,"#694b39");
-  base.addColorStop(.82,"#5b4032");
-  base.addColorStop(1,"#4c362c");
+  base.addColorStop(0,"#80614b");
+  base.addColorStop(.48,"#72513d");
+  base.addColorStop(.82,"#634536");
+  base.addColorStop(1,"#52392e");
   ctx.fillStyle=base;
   ctx.fillRect(0,0,width,height);
 
+  // Large low-poly value planes are what give the simpler target style its
+  // readable, authored ground. They are broad and subtle rather than tile-like.
+  const facetPalette=[
+    "rgba(151,103,72,.11)",
+    "rgba(116,77,58,.10)",
+    "rgba(188,128,78,.065)",
+    "rgba(66,44,36,.10)",
+  ];
+  for(let i=0;i<14;i+=1){
+    const gx=(b.x+70+random()*(b.w-140))*sx;
+    const gy=(b.y+60+random()*(b.h-120))*sy;
+    const radius=(85+random()*150)*sx;
+    const sides=5+Math.floor(random()*3);
+    ctx.beginPath();
+    for(let p=0;p<sides;p+=1){
+      const a=p/sides*Math.PI*2+random()*.22;
+      const rr=radius*(.58+random()*.48);
+      const x=gx+Math.cos(a)*rr;
+      const y=gy+Math.sin(a)*rr*(.55+random()*.18);
+      if(p===0) ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.fillStyle=facetPalette[i%facetPalette.length];
+    ctx.fill();
+  }
+
   // Large soft painted patches give the floor hand-authored value variation.
-  for(let i=0;i<30;i+=1){
+  for(let i=0;i<22;i+=1){
     const x=(b.x+40+random()*(b.w-80))*sx;
     const y=(b.y+35+random()*(b.h-70))*sy;
     const r=(70+random()*190)*sx;
@@ -682,7 +709,7 @@ function addCornerArchitecture(
         BABYLON,scene,
         "babylon-corner-terrace-"+corner.id+"-"+index,
         spec.w,spec.h,spec.d,
-        .42,
+        .52,
         {x:p.x,y:spec.y,z:p.z},
         index===2?materials.shrineTop:materials.shrineStone,
       );
@@ -827,7 +854,7 @@ function addWindscarObstacle(
   shadowCasters,
 ) {
   const rect=mapping.rectToWorld(obstacle);
-  const height=babylonObstacleVisualHeight(rect);
+  const height=Math.max(3.85,babylonObstacleVisualHeight(rect)*.72);
   const longWall=Math.max(rect.width,rect.depth)/Math.max(.01,Math.min(rect.width,rect.depth))>2;
   const chamfer=Math.min(.95,Math.min(rect.width,rect.depth)*.13);
 
@@ -845,10 +872,10 @@ function addWindscarObstacle(
     BABYLON,scene,
     "babylon-windscar-base-"+(obstacle.id||index),
     rect.width,
-    .58,
+    .38,
     rect.depth,
     chamfer,
-    {x:rect.center.x,y:.29,z:rect.center.z},
+    {x:rect.center.x,y:.19,z:rect.center.z},
     materials.windscarStoneDark,
   );
   base.parent=root;
@@ -859,10 +886,10 @@ function addWindscarObstacle(
     BABYLON,scene,
     "babylon-windscar-body-"+(obstacle.id||index),
     Math.max(.5,rect.width-.24),
-    Math.max(1.2,height-.95),
+    Math.max(1.2,height-.64),
     Math.max(.5,rect.depth-.24),
     Math.max(.18,chamfer*.78),
-    {x:rect.center.x,y:.58+(height-.95)/2,z:rect.center.z},
+    {x:rect.center.x,y:.38+(height-.64)/2,z:rect.center.z},
     materials.windscarStone,
   );
   body.parent=root;
@@ -876,7 +903,7 @@ function addWindscarObstacle(
     .42,
     Math.max(.5,rect.depth-.12),
     Math.max(.16,chamfer*.86),
-    {x:rect.center.x,y:height+.21,z:rect.center.z},
+    {x:rect.center.x,y:height+.26,z:rect.center.z},
     materials.windscarStoneTop,
   );
   top.parent=root;
@@ -1255,34 +1282,62 @@ function addTorchPedestal(
   bowl.parent=root;
   shadowCasters.push(bowl);
 
-  const outer=createFlameMesh(
-    BABYLON,scene,
+  const outer=BABYLON.MeshBuilder.CreateCylinder(
     name+"-flame-outer",
-    3.4,5.0,
-    {x:baseWorld.x,y:5.22,z:baseWorld.z},
-    materials.flameOuter,
+    {
+      diameterTop:.12,
+      diameterBottom:2.05,
+      height:3.35,
+      tessellation:5,
+    },
+    scene,
   );
+  outer.position.set(baseWorld.x,6.55,baseWorld.z);
+  outer.rotation.z=.08;
+  outer.material=materials.flameOuter;
+  outer.convertToFlatShadedMesh?.();
   outer.parent=root;
 
-  const midFlame=createFlameMesh(
-    BABYLON,scene,
+  const midFlame=BABYLON.MeshBuilder.CreateCylinder(
     name+"-flame-mid",
-    2.45,4.05,
-    {x:baseWorld.x-.14,y:5.25,z:baseWorld.z-.02},
-    materials.flameMid,
+    {
+      diameterTop:.08,
+      diameterBottom:1.42,
+      height:2.70,
+      tessellation:5,
+    },
+    scene,
   );
-  midFlame.position.z-=.025;
+  midFlame.position.set(baseWorld.x-.12,6.38,baseWorld.z-.08);
+  midFlame.rotation.z=-.10;
+  midFlame.material=materials.flameMid;
+  midFlame.convertToFlatShadedMesh?.();
   midFlame.parent=root;
 
-  const inner=createFlameMesh(
-    BABYLON,scene,
+  const inner=BABYLON.MeshBuilder.CreateCylinder(
     name+"-flame-inner",
-    1.45,3.05,
-    {x:baseWorld.x+.10,y:5.29,z:baseWorld.z-.05},
-    materials.flameInner,
+    {
+      diameterTop:.05,
+      diameterBottom:.82,
+      height:2.10,
+      tessellation:5,
+    },
+    scene,
   );
-  inner.position.z-=.050;
+  inner.position.set(baseWorld.x+.10,6.20,baseWorld.z-.15);
+  inner.rotation.z=.07;
+  inner.material=materials.flameInner;
+  inner.convertToFlatShadedMesh?.();
   inner.parent=root;
+
+  flames.push({
+    outer,
+    mid:midFlame,
+    inner,
+    glow:null,
+    baseY:6.45,
+    phase,
+  });
 
   const emberGlow=BABYLON.MeshBuilder.CreateDisc(
     name+"-ember-glow",
@@ -1293,15 +1348,6 @@ function addTorchPedestal(
   emberGlow.rotation.x=Math.PI/2;
   emberGlow.material=materials.emberGlow;
   emberGlow.parent=root;
-
-  flames.push({
-    outer,
-    mid:midFlame,
-    inner,
-    glow:emberGlow,
-    baseY:5.22,
-    phase,
-  });
 
   const light=new BABYLON.PointLight(
     name+"-light",
@@ -1364,13 +1410,11 @@ function addWindscarScenery(
 ) {
   const b=arena.bounds;
   const rockPoints=[
-    [b.x-28,b.y+82,3.1,2.0,2.7],
-    [b.x-22,b.y+b.h-96,3.7,2.4,3.0],
-    [b.x+b.w+26,b.y+92,3.4,2.2,2.8],
-    [b.x+b.w+24,b.y+b.h-100,4.0,2.4,3.2],
-    [b.x+165,b.y-30,2.8,1.7,2.3],
-    [b.x+b.w-175,b.y+b.h+28,3.1,1.8,2.5],
-  ];
+    [b.x-24,b.y+98,2.7,1.65,2.35],
+    [b.x-20,b.y+b.h-112,3.0,1.85,2.55],
+    [b.x+b.w+22,b.y+112,2.85,1.72,2.45],
+    [b.x+b.w+20,b.y+b.h-116,3.15,1.90,2.65],
+  ]
 
   rockPoints.forEach((entry,index)=>{
     const [gx,gy,sx,sy,sz]=entry;
@@ -1524,12 +1568,12 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const materials={
     floor:material(BABYLON,scene,"mat-floor","#6b4d3b","#1f1915"),
     grandFloor:material(BABYLON,scene,"mat-grand-floor","#3c4a36","#172016"),
-    windscarStoneDark:material(BABYLON,scene,"mat-windscar-stone-dark","#3f332b","#17110e"),
-    windscarStone:material(BABYLON,scene,"mat-windscar-stone","#5b493b","#201712"),
-    windscarStoneTop:material(BABYLON,scene,"mat-windscar-stone-top","#806653","#302117"),
+    windscarStoneDark:material(BABYLON,scene,"mat-windscar-stone-dark","#55463b","#1b1410"),
+    windscarStone:material(BABYLON,scene,"mat-windscar-stone","#715b49","#281c15"),
+    windscarStoneTop:material(BABYLON,scene,"mat-windscar-stone-top","#9a785f","#392519"),
     windscarSeam:material(BABYLON,scene,"mat-windscar-seam","#3e3027","#150f0c"),
-    windscarRock:material(BABYLON,scene,"mat-windscar-rock","#4c3d32","#18110e"),
-    windscarRockDark:material(BABYLON,scene,"mat-windscar-rock-dark","#362b24","#120d0b"),
+    windscarRock:material(BABYLON,scene,"mat-windscar-rock","#634b3b","#21160f"),
+    windscarRockDark:material(BABYLON,scene,"mat-windscar-rock-dark","#503b30","#1a120e"),
     grandStone:material(BABYLON,scene,"mat-grand-stone","#65705c","#1d251b"),
     grandStoneTop:material(BABYLON,scene,"mat-grand-stone-top","#849079","#293126"),
     floorLift:material(BABYLON,scene,"mat-floor-lift","#907662","#2a211a"),
@@ -1694,19 +1738,22 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
       for(const flame of flames){
         const t=timeSeconds+flame.phase;
         const sway=Math.sin(t*3.1)*.09+Math.sin(t*5.7)*.035;
-        const pulse=1+Math.sin(t*4.6)*.07;
+        const pulse=1+Math.sin(t*4.6)*.06;
         flame.outer.scaling.x=pulse;
+        flame.outer.scaling.z=pulse;
         flame.outer.scaling.y=1+Math.sin(t*3.8)*.08;
-        flame.outer.position.y=flame.baseY+Math.sin(t*4.2)*.09;
-        flame.outer.rotation.z=sway;
-        flame.mid.scaling.x=1+Math.sin(t*5.1+1)*.07;
-        flame.mid.scaling.y=1+Math.sin(t*4.9)*.10;
-        flame.mid.position.y=flame.baseY+.03+Math.sin(t*4.8+.8)*.07;
-        flame.inner.scaling.x=1+Math.sin(t*5.7+.2)*.05;
-        flame.inner.scaling.y=1+Math.sin(t*6.1+.4)*.11;
-        flame.inner.position.y=flame.baseY+.07+Math.sin(t*5.3)*.06;
-        flame.glow.scaling.x=1+Math.sin(t*3.6)*.08;
-        flame.glow.scaling.y=1+Math.sin(t*3.6)*.08;
+        flame.outer.position.y=flame.baseY+Math.sin(t*4.2)*.08;
+        flame.outer.rotation.z=.08+Math.sin(t*3.1)*.06;
+        flame.mid.scaling.x=1+Math.sin(t*5.1+1)*.05;
+        flame.mid.scaling.z=1+Math.sin(t*4.4+.7)*.05;
+        flame.mid.scaling.y=1+Math.sin(t*4.9)*.09;
+        flame.mid.position.y=flame.baseY-.16+Math.sin(t*4.8+.8)*.06;
+        flame.inner.scaling.y=1+Math.sin(t*6.1+.4)*.08;
+        flame.inner.position.y=flame.baseY-.35+Math.sin(t*5.3)*.05;
+        if(flame.glow){
+          flame.glow.scaling.x=1+Math.sin(t*3.6)*.08;
+          flame.glow.scaling.y=1+Math.sin(t*3.6)*.08;
+        }
       }
       for(let i=0;i<lights.length;i+=1){
         const light=lights[i];

@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon9";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon10";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -215,19 +215,19 @@ export class BabylonArenaRenderer {
       this.scene.clearColor=new this.BABYLON.Color4(.045,.030,.024,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.16,.13,.11);
       if(this.ambientLight){
-        this.ambientLight.intensity=.48;
+        this.ambientLight.intensity=.58;
         this.ambientLight.diffuse=new this.BABYLON.Color3(.74,.66,.60);
         this.ambientLight.groundColor=new this.BABYLON.Color3(.10,.065,.050);
       }
       if(this.keyLight){
-        this.keyLight.intensity=.74;
+        this.keyLight.intensity=.68;
         this.keyLight.diffuse=new this.BABYLON.Color3(.91,.70,.55);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.20;
+        this.fillLight.intensity=.30;
         this.fillLight.diffuse=new this.BABYLON.Color3(.68,.66,.63);
       }
-      this.glowLayer.intensity=.72;
+      this.glowLayer.intensity=.78;
     }else{
       this.scene.clearColor=new this.BABYLON.Color4(.027,.038,.028,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.12,.17,.12);

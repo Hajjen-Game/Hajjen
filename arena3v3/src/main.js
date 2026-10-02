@@ -1,9 +1,9 @@
-import { Game } from "./core/Game.js?v=20261002-babylon16";
+import { Game } from "./core/Game.js?v=20261002-babylon17";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem, migrateExistingRatingsToStartingRating } from "./core/RatingSystem.js?v=20260928-rating1000";
-import { DEFAULT_ARENA, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";
+import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,
@@ -32,6 +32,10 @@ const gameShell = document.querySelector("#game-shell");
 const input = new InputManager();
 const characters = new CharacterStore();
 const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "death-knight", "mage", "warlock", "shaman"]);
+const QUERY_PARAMS = new URLSearchParams(window.location.search);
+const BABYLON_PREVIEW_LOCKED_TO_WINDSCAR =
+  (QUERY_PARAMS.get("renderer") || "").toLowerCase() === "babylon";
+const BABYLON_PREVIEW_ARENA = arenaById("windscar-proving-grounds");
 
 let game = null;
 let activeCharacter = null;
@@ -43,7 +47,9 @@ let roster = {
 };
 let lastEnemyKey = "";
 let lastPlayedArenaId = null;
-let pendingArena = DEFAULT_ARENA;
+let pendingArena = BABYLON_PREVIEW_LOCKED_TO_WINDSCAR
+  ? BABYLON_PREVIEW_ARENA
+  : DEFAULT_ARENA;
 let setupRequired = true;
 let resumeAfterCancel = false;
 let canReturnToMatch = false;
@@ -153,6 +159,10 @@ function rollOpponent() {
 }
 
 function rollArena() {
+  if (BABYLON_PREVIEW_LOCKED_TO_WINDSCAR) {
+    pendingArena = BABYLON_PREVIEW_ARENA;
+    return;
+  }
   pendingArena = randomArena(lastPlayedArenaId);
 }
 
@@ -633,7 +643,7 @@ window.addEventListener("arena3v3:request-match-setup", () => {
   enterArenaLobby({ reset: true });
 });
 
-syncArenaName(DEFAULT_ARENA);
+syncArenaName(pendingArena);
 fitArenaStage();
 
 if ("ResizeObserver" in window) {
@@ -656,7 +666,7 @@ const placeholderRoster = randomizeEnemyRoster({
 game = new Game({
   canvas,
   input,
-  arena: DEFAULT_ARENA,
+  arena: pendingArena,
   characterConfigs: buildRosterConfigs(placeholderRoster),
 });
 

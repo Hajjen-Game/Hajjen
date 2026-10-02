@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon17";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon18";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -256,8 +256,8 @@ export class BabylonArenaRenderer {
           [camera],
         );
         ssao.radius=1.65;
-        ssao.totalStrength=1.05;
-        ssao.base=.12;
+        ssao.totalStrength=.72;
+        ssao.base=.18;
         ssao.samples=8;
         ssao.maxZ=140;
         ssao.minZAspect=.20;
@@ -300,30 +300,30 @@ export class BabylonArenaRenderer {
     const isBastion=arena.id==="emberwatch-bastion";
     const isWindscar=arena.id==="windscar-proving-grounds";
     if(this.scene.environmentTexture){
-      this.scene.environmentTexture.level=isBastion?.62:.62;
+      this.scene.environmentTexture.level=isBastion?.55:.62;
     }
     if(isBastion){
-      this.scene.clearColor=new this.BABYLON.Color4(.034,.025,.021,1);
-      this.scene.ambientColor=new this.BABYLON.Color3(.145,.118,.098);
+      this.scene.clearColor=new this.BABYLON.Color4(.055,.034,.026,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.18,.135,.105);
       this.scene.imageProcessingConfiguration.vignetteEnabled=true;
-      this.scene.imageProcessingConfiguration.vignetteWeight=.90;
+      this.scene.imageProcessingConfiguration.vignetteWeight=.62;
       this.scene.imageProcessingConfiguration.vignetteStretch=.05;
-      this.scene.imageProcessingConfiguration.exposure=1.00;
-      this.scene.imageProcessingConfiguration.contrast=1.115;
+      this.scene.imageProcessingConfiguration.exposure=1.07;
+      this.scene.imageProcessingConfiguration.contrast=1.08;
       if(this.ambientLight){
-        this.ambientLight.intensity=.50;
-        this.ambientLight.diffuse=new this.BABYLON.Color3(.68,.59,.52);
-        this.ambientLight.groundColor=new this.BABYLON.Color3(.050,.037,.032);
+        this.ambientLight.intensity=.57;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.76,.64,.54);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.070,.050,.040);
       }
       if(this.keyLight){
-        this.keyLight.intensity=1.08;
-        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.70,.47);
+        this.keyLight.intensity=1.16;
+        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.73,.49);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.22;
-        this.fillLight.diffuse=new this.BABYLON.Color3(.45,.50,.58);
+        this.fillLight.intensity=.25;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.50,.56,.64);
       }
-      this.glowLayer.intensity=.74;
+      this.glowLayer.intensity=.68;
     }else if(isWindscar){
       this.scene.clearColor=new this.BABYLON.Color4(.038,.026,.022,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.135,.108,.090);
@@ -401,7 +401,7 @@ export class BabylonArenaRenderer {
       const isCenterWall=isWindscar && obstacle.id==="center-wall";
       const baseHeight=babylonObstacleVisualHeight(rect);
       const height=isBastion
-        ? (obstacle.id.includes("rampart")?4.15:5.88)
+        ? (obstacle.id.includes("rampart")?3.86:5.58)
         : isWindscar
           ? (isCenterWall?5.72:6.10)
           : baseHeight;

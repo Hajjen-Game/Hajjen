@@ -3887,6 +3887,7 @@ export class PixiProofRenderer {
 
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell" || !supported.has(effect.spellId)) continue;
+      if (COMBAT_VFX2_SPELLS.has(effect.spellId)) continue;
 
       const source = game.getActor(effect.sourceId);
       const target = game.getActor(effect.targetId);
@@ -4153,6 +4154,10 @@ export class PixiProofRenderer {
 
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell") continue;
+      if (
+        COMBAT_VFX2_SPELLS.has(effect.spellId)
+        || PROJECTILE_VFX2_SPELLS.has(effect.spellId)
+      ) continue;
       const profile = priestDruidSpellProfile(effect.spellId);
       if (!profile) continue;
 
@@ -4664,6 +4669,10 @@ export class PixiProofRenderer {
 
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell") continue;
+      if (
+        COMBAT_VFX2_SPELLS.has(effect.spellId)
+        || PROJECTILE_VFX2_SPELLS.has(effect.spellId)
+      ) continue;
 
       const profile = paladinDkSpellProfile(effect.spellId);
       if (!profile) continue;
@@ -5222,6 +5231,10 @@ export class PixiProofRenderer {
 
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell") continue;
+      if (
+        COMBAT_VFX2_SPELLS.has(effect.spellId)
+        || PROJECTILE_VFX2_SPELLS.has(effect.spellId)
+      ) continue;
 
       const profile = warriorRogueSpellProfile(effect.spellId);
       if (!profile) continue;
@@ -5791,7 +5804,10 @@ export class PixiProofRenderer {
 
     for (const effect of game.vfx?.effects || []) {
       if (effect.type !== "spell") continue;
-      if (PROJECTILE_VFX2_SPELLS.has(effect.spellId)) continue;
+      if (
+        PROJECTILE_VFX2_SPELLS.has(effect.spellId)
+        || COMBAT_VFX2_SPELLS.has(effect.spellId)
+      ) continue;
 
       const profile = commonCasterSpellProfile(effect.spellId);
       if (!profile) continue;
@@ -8733,6 +8749,131 @@ export class PixiProofRenderer {
     }
   }
 
+  updateCombatReadability(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const effects = game.vfx?.effects || [];
+
+    const activeVisuals = effects.filter(effect =>
+      ["spell", "chain", "beam", "burst", "ring", "slash"].includes(effect.type)
+    );
+    const activeCasts = (game.actors || []).filter(actor =>
+      actor.alive && actor.cast
+    ).length;
+
+    // A few simultaneous effects are normal in 3v3. Compression begins only
+    // once the screen is genuinely busy.
+    const globalLoad = activeVisuals.length + activeCasts * .65;
+    const globalDensity = clamp01((globalLoad - 3.2) / 7.2);
+
+    // Quiet ambient haze/particles during burst windows so combat silhouettes
+    // gain contrast without dimming the spell cores themselves.
+    if (this.atmosphere) {
+      const quiet = 1 - globalDensity * .28;
+      if (this.atmosphere.particleGlow) {
+        this.atmosphere.particleGlow.alpha *= quiet;
+      }
+      if (this.atmosphere.particleCore) {
+        this.atmosphere.particleCore.alpha *= 1 - globalDensity * .14;
+      }
+      if (this.atmosphere.ashDust) {
+        this.atmosphere.ashDust.alpha *= 1 - globalDensity * .20;
+      }
+      if (this.atmosphere.hazeVeil) {
+        this.atmosphere.hazeVeil.alpha *= 1 - globalDensity * .18;
+      }
+    }
+
+    for (const actor of game.actors || []) {
+      const view = this.actorViews.get(actor.id);
+      if (!view) continue;
+
+      let localLoad = 0;
+      let actorHasChain = false;
+
+      for (const effect of activeVisuals) {
+        if (effect.sourceId === actor.id || effect.targetId === actor.id) {
+          localLoad += 1;
+          continue;
+        }
+
+        if (
+          effect.type === "chain"
+          && Array.isArray(effect.actorIds)
+          && effect.actorIds.includes(actor.id)
+        ) {
+          localLoad += 1;
+          actorHasChain = true;
+        }
+      }
+
+      const localDensity = clamp01((localLoad - 1.5) / 4.5);
+      const isPlayer = actor.id === game.player?.id;
+      const selected = actor.id === game.player?.targetId;
+      const hasCc = (actor.effects || []).some(effect =>
+        effect.remainingMs > 0
+        && ["stun", "fear", "incapacitate", "root", "schoolLock"].includes(effect.kind)
+      );
+
+      const focusLift = isPlayer || selected ? .055 : 0;
+      const ccLift = hasCc ? .035 : 0;
+
+      // Glow is what turns into visual fog first. Preserve sharp geometry.
+      view.combatVfx2GlowFx.alpha = Math.max(
+        .54,
+        .90 - globalDensity * .20 - localDensity * .10 + focusLift,
+      );
+      view.projectileVfx2GlowFx.alpha = Math.max(
+        .62,
+        .94 - globalDensity * .16 - localDensity * .07 + focusLift,
+      );
+      view.spellPolishGlowFx.alpha = Math.max(
+        .48,
+        .76 - globalDensity * .20 - localDensity * .08 + focusLift,
+      );
+      view.chainGlowFx.alpha = Math.max(
+        .64,
+        .96 - globalDensity * .14 - localDensity * .06
+          + (actorHasChain ? .04 : 0)
+          + focusLift,
+      );
+
+      const coreCompression = globalDensity * .045 + localDensity * .025;
+      const coreAlpha = Math.min(
+        1,
+        Math.max(.90, 1 - coreCompression + focusLift + ccLift),
+      );
+
+      view.combatVfx2CoreFx.alpha = coreAlpha;
+      view.projectileVfx2CoreFx.alpha = coreAlpha;
+      view.spellPolishCoreFx.alpha = Math.max(.88, coreAlpha - .025);
+      view.chainFx.alpha = Math.max(.92, coreAlpha);
+      view.chainSparkFx.alpha = Math.max(.90, coreAlpha - .02);
+
+      // Generic primitives stay useful but should never dominate VFX2.
+      const primitiveAlpha = Math.max(
+        .66,
+        1 - globalDensity * .18 - localDensity * .08,
+      );
+      view.burstFx.alpha = primitiveAlpha;
+      view.slashFx.alpha = primitiveAlpha;
+      view.ringFx.alpha = primitiveAlpha;
+      view.beamFx.alpha = Math.max(.74, primitiveAlpha);
+
+      // Gameplay readability stays strong regardless of effect density.
+      view.castWindupFx.alpha = Math.min(1, .96 + focusLift + ccLift);
+      view.actorMotionFx.alpha = Math.min(1, .95 + focusLift);
+
+      view.name.alpha = 1;
+      view.healthBg.alpha = 1;
+      view.healthFill.alpha = 1;
+      view.resourceBg.alpha = 1;
+      view.resourceFill.alpha = 1;
+      view.castBg.alpha = 1;
+      view.castFill.alpha = 1;
+      view.castBorder.alpha = 1;
+    }
+  }
+
   updateNativeFloatingCombatText(game) {
     const layer = this.combatTextLayer;
     const { Container, Text } = this.PIXI || {};
@@ -8910,6 +9051,7 @@ export class PixiProofRenderer {
     this.updateNativeCombatVfx2(game);
     this.updateNativeProjectileVfx2(game);
     this.updateNativeSpellAnimationPolish(game);
+    this.updateCombatReadability(game);
     this.updateNativeFloatingCombatText(game);
 
     this.app.render();

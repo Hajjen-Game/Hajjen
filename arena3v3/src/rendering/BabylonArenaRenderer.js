@@ -213,7 +213,7 @@ export class BabylonArenaRenderer {
     for (const obstacle of this._arena.obstacles || []) {
       const rect = this.mapping.rectToWorld(obstacle);
       const height = babylonObstacleVisualHeight(rect);
-      const capHeight = 0.48;
+      const capHeight = 0.52;
       const topElevation = height + capHeight;
 
       const x0 = Number(obstacle.x);

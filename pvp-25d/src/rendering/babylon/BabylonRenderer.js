@@ -84,58 +84,76 @@ export class BabylonRenderer {
   }
 
   async initialize() {
-    let engine = null;
+    const params = new URLSearchParams(location.search);
+    const forcedByQuery = params.get("renderer") === "webgl";
+    const webGpuFailedThisSession =
+      sessionStorage.getItem("pvp25d-webgpu-broken") === "1";
+    const forceWebGL = forcedByQuery || webGpuFailedThisSession;
 
-    try {
-      const webGpuSupported = Boolean(
+    if (!forceWebGL) {
+      const supported = Boolean(
         BABYLON.WebGPUEngine
         && await BABYLON.WebGPUEngine.IsSupportedAsync
       );
 
-      if (webGpuSupported) {
-        const webGpuEngine = new BABYLON.WebGPUEngine(
-          this.canvas,
-          {
-            antialias: true,
-            adaptToDeviceRatio: true,
-          },
-        );
-        await webGpuEngine.initAsync();
-        engine = webGpuEngine;
-        this.backend = "WebGPU";
+      if (supported) {
+        try {
+          const webGpuEngine = new BABYLON.WebGPUEngine(
+            this.canvas,
+            {
+              antialias: true,
+              adaptToDeviceRatio: true,
+            },
+          );
+
+          await webGpuEngine.initAsync();
+          await this.initializeRuntime(webGpuEngine, "WebGPU");
+          return;
+        } catch (error) {
+          this.webGpuError = error;
+          console.warn(
+            "WebGPU runtime failed. Reloading once with WebGL fallback.",
+            error,
+          );
+
+          // Once a canvas has acquired a WebGPU context, browsers cannot
+          // reliably switch that same canvas to WebGL. Mark this tab/session
+          // and reload once so the next initialization starts cleanly on
+          // WebGL instead of leaving the arena blank.
+          sessionStorage.setItem("pvp25d-webgpu-broken", "1");
+          location.reload();
+          return;
+        }
       }
-    } catch (error) {
-      this.webGpuError = error;
-      console.warn(
-        "WebGPU initialization failed; falling back to WebGL.",
-        error,
-      );
     }
 
-    if (!engine) {
-      engine = new BABYLON.Engine(
-        this.canvas,
-        true,
-        {
-          stencil: true,
-          antialias: true,
-          adaptToDeviceRatio: true,
-        },
-      );
-      this.backend = Number(engine.webGLVersion) >= 2
-        ? "WebGL2"
-        : "WebGL1";
-    }
+    const webGlEngine = new BABYLON.Engine(
+      this.canvas,
+      true,
+      {
+        stencil: true,
+        antialias: true,
+        adaptToDeviceRatio: true,
+      },
+    );
 
+    const backend = Number(webGlEngine.webGLVersion) >= 2
+      ? "WebGL2"
+      : "WebGL1";
+
+    await this.initializeRuntime(webGlEngine, backend);
+  }
+
+  async initializeRuntime(engine, backend) {
     this.engine = engine;
+    this.backend = backend;
     this.scene = new BABYLON.Scene(this.engine);
     this.scene.clearColor = BABYLON.Color4.FromHexString(
       (this.arena.presentation?.sky || "#28150f") + "ff",
     );
     this.scene.ambientColor = new BABYLON.Color3(0.15, 0.085, 0.06);
 
-    // Keep the warm canyon look while avoiding the blown-out whites visible
-    // on the old placeholder characters.
+    // Keep the warm canyon look while avoiding blown-out character whites.
     this.scene.imageProcessingConfiguration.contrast = 1.08;
     this.scene.imageProcessingConfiguration.exposure = 0.90;
 
@@ -147,6 +165,7 @@ export class BabylonRenderer {
 
     this.buildScene();
     this.ready = true;
+    this.initError = null;
     this.lastTime = performance.now();
     this.engine.resize();
   }
@@ -986,6 +1005,7 @@ export class BabylonRenderer {
 
     this.debugPanel.textContent =
       "Backend " + this.backend
+      + (this.webGpuError ? " (WebGPU fallback)" : "")
       + "\nFPS " + this.engine.getFps().toFixed(0)
       + "\nActors " + game.actors.length
       + "\nMeshes " + this.scene.getActiveMeshes().length

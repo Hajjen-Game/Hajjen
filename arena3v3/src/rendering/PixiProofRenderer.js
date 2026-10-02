@@ -11031,92 +11031,61 @@ export class PixiProofRenderer {
   updateEnvironmentOcclusion(game) {
     const polygons = this.environmentOcclusionPolygons || [];
 
-    const clipAgainst = (points, inside, intersect) => {
-      if (!points.length) return [];
-      const output = [];
-      let previous = points[points.length - 1];
-      let previousInside = inside(previous);
+    const pointInPolygon = (point, points) => {
+      let inside = false;
+      for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+        const xi = points[i].x;
+        const yi = points[i].y;
+        const xj = points[j].x;
+        const yj = points[j].y;
 
-      for (const current of points) {
-        const currentInside = inside(current);
+        const intersects =
+          ((yi > point.y) !== (yj > point.y))
+          && (
+            point.x
+            < (xj - xi) * (point.y - yi) / Math.max(.0001, yj - yi) + xi
+          );
 
-        if (currentInside) {
-          if (!previousInside) output.push(intersect(previous, current));
-          output.push(current);
-        } else if (previousInside) {
-          output.push(intersect(previous, current));
-        }
-
-        previous = current;
-        previousInside = currentInside;
+        if (intersects) inside = !inside;
       }
-
-      return output;
+      return inside;
     };
 
-    const clipToRect = (points, left, top, right, bottom) => {
-      let out = points;
-
-      out = clipAgainst(
-        out,
-        point => point.x >= left,
-        (a,b) => {
-          const dx=b.x-a.x;
-          const t=Math.abs(dx)<.0001?0:(left-a.x)/dx;
-          return {x:left,y:a.y+(b.y-a.y)*t};
-        },
-      );
-      out = clipAgainst(
-        out,
-        point => point.x <= right,
-        (a,b) => {
-          const dx=b.x-a.x;
-          const t=Math.abs(dx)<.0001?0:(right-a.x)/dx;
-          return {x:right,y:a.y+(b.y-a.y)*t};
-        },
-      );
-      out = clipAgainst(
-        out,
-        point => point.y >= top,
-        (a,b) => {
-          const dy=b.y-a.y;
-          const t=Math.abs(dy)<.0001?0:(top-a.y)/dy;
-          return {x:a.x+(b.x-a.x)*t,y:top};
-        },
-      );
-      out = clipAgainst(
-        out,
-        point => point.y <= bottom,
-        (a,b) => {
-          const dy=b.y-a.y;
-          const t=Math.abs(dy)<.0001?0:(bottom-a.y)/dy;
-          return {x:a.x+(b.x-a.x)*t,y:bottom};
-        },
-      );
-
-      return out;
+    const bodySamplesFor = actor => {
+      const r = Math.max(8, actor.radius * .78);
+      return [
+        { x: actor.x, y: actor.y },
+        { x: actor.x - r, y: actor.y },
+        { x: actor.x + r, y: actor.y },
+        { x: actor.x, y: actor.y - r },
+        { x: actor.x, y: actor.y + r },
+      ];
     };
 
     for (const actor of game.actors || []) {
       const view = this.actorViews.get(actor.id);
-      const cover = view?.depthOcclusionFx;
-      if (!cover) continue;
+      if (!view) continue;
 
-      cover.clear();
-      cover.visible = false;
-      if (!actor.alive || !polygons.length) continue;
+      // The old prototype painted a clipped brown obstacle polygon over the
+      // actor. It proved the depth ordering, but read like a rectangular patch.
+      // Keep that layer disabled and use a soft body fade instead.
+      if (view.depthOcclusionFx) {
+        view.depthOcclusionFx.clear();
+        view.depthOcclusionFx.visible = false;
+      }
 
-      // Clip every obstacle face to this actor's body footprint. Previously a
-      // behind-player could draw the whole obstacle from inside its actor root,
-      // which let one unit's occlusion cover other units and nameplates.
-      const bodyHalf = Math.max(8, actor.radius * 1.10);
-      const left = actor.x - bodyHalf;
-      const right = actor.x + bodyHalf;
-      const top = actor.y - bodyHalf;
-      const bottom = actor.y + bodyHalf;
+      if (!actor.alive || !polygons.length) {
+        view.body.alpha = 1;
+        if (view.motionGhostA) view.motionGhostA.alpha *= 1;
+        if (view.motionGhostB) view.motionGhostB.alpha *= 1;
+        view.ring.alpha = 1;
+        continue;
+      }
+
+      const samples = bodySamplesFor(actor);
+      let strongestCover = 0;
 
       for (const polygon of polygons) {
-        // Painter-style depth test: larger game Y is closer to the camera.
         if (
           Number.isFinite(polygon?.depthY)
           && actor.y >= polygon.depthY
@@ -11127,33 +11096,54 @@ export class PixiProofRenderer {
         );
         if (points.length < 3) continue;
 
-        const clipped = clipToRect(points,left,top,right,bottom);
-        if (clipped.length < 3) continue;
-
-        cover.visible = true;
-        cover.moveTo(
-          clipped[0].x - actor.x,
-          clipped[0].y - actor.y,
-        );
-        for (let i = 1; i < clipped.length; i += 1) {
-          cover.lineTo(
-            clipped[i].x - actor.x,
-            clipped[i].y - actor.y,
-          );
+        let covered = 0;
+        for (const sample of samples) {
+          if (pointInPolygon(sample, points)) covered += 1;
         }
-        cover.lineTo(
-          clipped[0].x - actor.x,
-          clipped[0].y - actor.y,
-        );
-        cover.fill({
-          color: Number.isFinite(polygon.color)
-            ? polygon.color
-            : 0x4c2b20,
-          alpha: Number.isFinite(polygon.alpha)
-            ? polygon.alpha
-            : .72,
-        });
+        strongestCover = Math.max(strongestCover, covered / samples.length);
       }
+
+      if (strongestCover <= 0) {
+        view.body.alpha = 1;
+        view.ring.alpha = 1;
+        continue;
+      }
+
+      // Keep the unit visible enough to read position/class, but clearly behind
+      // stone. More of the body covered => slightly stronger fade.
+      const bodyAlpha = 0.62 - strongestCover * 0.16;
+      view.body.alpha = Math.max(.42, bodyAlpha);
+      view.ring.alpha = Math.max(.46, .72 - strongestCover * .18);
+
+      // World-space spell/body effects should also recede a little while
+      // gameplay UI (name, bars, cast, CC, target indicators) stays untouched.
+      const worldFxAlpha = Math.max(.50, .78 - strongestCover * .16);
+      view.actorMotionFx.alpha *= worldFxAlpha;
+      view.stateWorldGlowFx.alpha *= worldFxAlpha;
+      view.stateWorldFx.alpha *= worldFxAlpha;
+      view.secondaryGlowFx.alpha *= worldFxAlpha;
+      view.secondaryFx.alpha *= worldFxAlpha;
+      view.ccWorldGlowFx.alpha *= worldFxAlpha;
+      view.ccWorldFx.alpha *= worldFxAlpha;
+      view.castWindupFx.alpha *= worldFxAlpha;
+      view.burstFx.alpha *= worldFxAlpha;
+      view.slashFx.alpha *= worldFxAlpha;
+      view.ringFx.alpha *= worldFxAlpha;
+      view.beamFx.alpha *= worldFxAlpha;
+      view.chainGlowFx.alpha *= worldFxAlpha;
+      view.chainFx.alpha *= worldFxAlpha;
+      view.chainSparkFx.alpha *= worldFxAlpha;
+      view.priestHealSpellFx.alpha *= worldFxAlpha;
+      view.priestDruidSpellFx.alpha *= worldFxAlpha;
+      view.paladinDkSpellFx.alpha *= worldFxAlpha;
+      view.warriorRogueSpellFx.alpha *= worldFxAlpha;
+      view.commonCasterSpellFx.alpha *= worldFxAlpha;
+      view.combatVfx2GlowFx.alpha *= worldFxAlpha;
+      view.combatVfx2CoreFx.alpha *= worldFxAlpha;
+      view.projectileVfx2GlowFx.alpha *= worldFxAlpha;
+      view.projectileVfx2CoreFx.alpha *= worldFxAlpha;
+      view.spellPolishGlowFx.alpha *= worldFxAlpha;
+      view.spellPolishCoreFx.alpha *= worldFxAlpha;
     }
   }
 

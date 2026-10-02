@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon15";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon16";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -71,6 +71,7 @@ export class BabylonArenaRenderer {
     this.shadowGenerator = null;
     this.glowLayer = null;
     this.defaultPipeline = null;
+    this.ssaoPipeline = null;
     this.environmentHelper = null;
     this.ready = false;
     this.renderedArenaId = "";
@@ -126,7 +127,7 @@ export class BabylonArenaRenderer {
     scene.imageProcessingConfiguration.vignetteBlendMode =
       BABYLON.ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
     scene.imageProcessingConfiguration.ditheringEnabled = true;
-    scene.imageProcessingConfiguration.ditheringIntensity = .035;
+    scene.imageProcessingConfiguration.ditheringIntensity = .012;
     if (BABYLON.ImageProcessingConfiguration?.TONEMAPPING_ACES != null) {
       scene.imageProcessingConfiguration.toneMappingEnabled = true;
       scene.imageProcessingConfiguration.toneMappingType =
@@ -231,8 +232,8 @@ export class BabylonArenaRenderer {
       );
       pipeline.fxaaEnabled=true;
       pipeline.bloomEnabled=true;
-      pipeline.bloomThreshold=.82;
-      pipeline.bloomWeight=.18;
+      pipeline.bloomThreshold=.76;
+      pipeline.bloomWeight=.22;
       pipeline.bloomKernel=48;
       pipeline.bloomScale=.50;
       pipeline.sharpenEnabled=true;
@@ -242,6 +243,30 @@ export class BabylonArenaRenderer {
       }
       pipeline.imageProcessingEnabled=true;
       this.defaultPipeline=pipeline;
+    }
+
+    // SSAO gives the low-poly masonry real contact depth between plinths,
+    // buttresses, battlements and the floor. Keep it moderate for readability.
+    if(BABYLON.SSAO2RenderingPipeline){
+      try{
+        const ssao=new BABYLON.SSAO2RenderingPipeline(
+          "arena-ssao",
+          scene,
+          {ssaoRatio:.72,blurRatio:.55},
+          [camera],
+        );
+        ssao.radius=1.65;
+        ssao.totalStrength=1.05;
+        ssao.base=.12;
+        ssao.samples=8;
+        ssao.maxZ=140;
+        ssao.minZAspect=.20;
+        ssao.expensiveBlur=true;
+        this.ssaoPipeline=ssao;
+      }catch(error){
+        console.warn("[Babylon preview] SSAO unavailable",error);
+        this.ssaoPipeline=null;
+      }
     }
 
     await this.rebuildArena(this._arena);
@@ -274,28 +299,31 @@ export class BabylonArenaRenderer {
 
     const isBastion=arena.id==="emberwatch-bastion";
     const isWindscar=arena.id==="windscar-proving-grounds";
+    if(this.scene.environmentTexture){
+      this.scene.environmentTexture.level=isBastion?.72:.62;
+    }
     if(isBastion){
-      this.scene.clearColor=new this.BABYLON.Color4(.022,.025,.032,1);
-      this.scene.ambientColor=new this.BABYLON.Color3(.10,.115,.135);
+      this.scene.clearColor=new this.BABYLON.Color4(.028,.025,.027,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.145,.135,.130);
       this.scene.imageProcessingConfiguration.vignetteEnabled=true;
-      this.scene.imageProcessingConfiguration.vignetteWeight=1.18;
-      this.scene.imageProcessingConfiguration.vignetteStretch=.12;
-      this.scene.imageProcessingConfiguration.exposure=.98;
-      this.scene.imageProcessingConfiguration.contrast=1.12;
+      this.scene.imageProcessingConfiguration.vignetteWeight=.78;
+      this.scene.imageProcessingConfiguration.vignetteStretch=.05;
+      this.scene.imageProcessingConfiguration.exposure=1.06;
+      this.scene.imageProcessingConfiguration.contrast=1.10;
       if(this.ambientLight){
-        this.ambientLight.intensity=.47;
-        this.ambientLight.diffuse=new this.BABYLON.Color3(.54,.61,.70);
-        this.ambientLight.groundColor=new this.BABYLON.Color3(.035,.045,.060);
+        this.ambientLight.intensity=.56;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.64,.60,.57);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.055,.045,.045);
       }
       if(this.keyLight){
-        this.keyLight.intensity=1.02;
-        this.keyLight.diffuse=new this.BABYLON.Color3(.98,.78,.58);
+        this.keyLight.intensity=1.10;
+        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.76,.53);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.24;
-        this.fillLight.diffuse=new this.BABYLON.Color3(.46,.55,.67);
+        this.fillLight.intensity=.28;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.48,.56,.67);
       }
-      this.glowLayer.intensity=.62;
+      this.glowLayer.intensity=.70;
     }else if(isWindscar){
       this.scene.clearColor=new this.BABYLON.Color4(.038,.026,.022,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.135,.108,.090);
@@ -440,6 +468,8 @@ export class BabylonArenaRenderer {
     this.environment = null;
     this.shadowGenerator?.dispose?.();
     this.shadowGenerator = null;
+    this.ssaoPipeline?.dispose?.();
+    this.ssaoPipeline = null;
     this.defaultPipeline?.dispose?.();
     this.defaultPipeline = null;
     this.environmentHelper?.dispose?.();

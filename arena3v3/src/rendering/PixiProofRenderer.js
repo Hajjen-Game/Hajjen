@@ -3844,8 +3844,88 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Priest: holy/shadow motes pull toward the body plus a compact ring.
+      // Priest: Mind Blast gets a dedicated psychic aperture. Other Priest
+      // casts keep the holy/shadow gather language.
       if (classId === "priest" && profile) {
+        if (spellId === "priest-smite") {
+          const pulse = .5 + .5 * Math.sin(time * 17);
+          const squeeze = smooth(p);
+
+          // Broken psychic halos collapse toward the caster.
+          for (let ring = 0; ring < 3; ring += 1) {
+            const rr = actor.radius + 28 + ring * 8 - squeeze * (12 + ring * 3);
+            const phase = (ring % 2 ? -1 : 1) * p * .52;
+            for (let seg = 0; seg < 3; seg += 1) {
+              const a0 = seg * Math.PI * 2 / 3 + .22 + phase;
+              strokeArc(
+                g,
+                rr,
+                a0,
+                a0 + .72,
+                {
+                  color: ring === 1 ? profile.core : profile.main,
+                  width: 1.7 + p * .65,
+                  alpha: .28 + p * (.28 + ring * .06),
+                },
+                6,
+              );
+            }
+          }
+
+          // Purple shards are visibly sucked inward as the cast completes.
+          for (let i = 0; i < 9; i += 1) {
+            const a =
+              i / 9 * Math.PI * 2
+              + (i % 2 ? -.34 : .28) * time
+              + i * .13;
+            const start = actor.radius + 42 + (i % 3) * 7;
+            const rr = start * (1 - squeeze * .66);
+            g.circle(
+              Math.cos(a) * rr,
+              Math.sin(a) * rr,
+              1.7 + (i % 3) * .55,
+            ).fill({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              alpha: .28 + p * .52,
+            });
+          }
+
+          // A narrow "mind eye" closes around the Priest before the snap.
+          const eyeW = actor.radius + 13 - squeeze * 5;
+          const eyeH = 8 + pulse * 2 - squeeze * 2;
+          g.ellipse(0, 0, eyeW, eyeH).stroke({
+            color: profile.core,
+            width: 1.8 + p * .8,
+            alpha: .30 + p * .48,
+          });
+          g.circle(0,0,2.8 + p * 4.8).fill({
+            color: profile.core,
+            alpha: .22 + p * .56,
+          });
+
+          if (p > .72) {
+            const finalP = smooth((p - .72) / .28);
+            for (let i = 0; i < 6; i += 1) {
+              const a = i / 6 * Math.PI * 2;
+              g
+                .moveTo(
+                  Math.cos(a) * (actor.radius + 14),
+                  Math.sin(a) * (actor.radius + 14),
+                )
+                .lineTo(
+                  Math.cos(a) * (actor.radius + 5),
+                  Math.sin(a) * (actor.radius + 5),
+                )
+                .stroke({
+                  color: i % 2 ? profile.core : profile.main,
+                  width: 1.4,
+                  alpha: finalP * .58,
+                });
+            }
+          }
+          continue;
+        }
+
         const shadow =
           profile.kind === "mind-implosion"
           || profile.kind === "shadow-wave";
@@ -8539,6 +8619,151 @@ export class PixiProofRenderer {
       // SKY STRIKES: Holy Fire, Moonfire, Judgment.
       // ---------------------------------------------------------------------
       if (COMBAT_VFX2_SKY.has(effect.spellId)) {
+        if (effect.spellId === "priest-holy-fire") {
+          const strike = clamp01((p - .035) / .50);
+          const visibility = 1 - smooth((p - .86) / .14);
+          const top = dy - 166;
+          const headY = top + easeOut(strike) * 160;
+          const hit = clamp01((strike - .53) / .47);
+          const hitFade = 1 - smooth((hit - .62) / .38);
+          const pulse = .5 + .5 * Math.sin(seed * .019 + p * 18);
+
+          // Wide warm column gives Holy Fire the screen presence Canvas had.
+          glow.moveTo(dx,top).lineTo(dx,headY).stroke({
+            color:profile.main,
+            width:24,
+            alpha:visibility*.17,
+          });
+          glow.moveTo(dx-7,top+12).lineTo(dx-2,headY).stroke({
+            color:profile.accent,
+            width:12,
+            alpha:visibility*.12,
+          });
+          glow.moveTo(dx+7,top+5).lineTo(dx+2,headY).stroke({
+            color:profile.main,
+            width:10,
+            alpha:visibility*.10,
+          });
+
+          core.moveTo(dx,top).lineTo(dx,headY).stroke({
+            color:profile.core,
+            width:5.2,
+            alpha:visibility*.92,
+          });
+          core.moveTo(dx-8,top+28).lineTo(dx-3,headY-4).stroke({
+            color:profile.main,
+            width:2.3,
+            alpha:visibility*.65,
+          });
+          core.moveTo(dx+9,top+18).lineTo(dx+3,headY-7).stroke({
+            color:profile.accent,
+            width:2.0,
+            alpha:visibility*.58,
+          });
+
+          // Small descending holy motes make the pillar feel volumetric.
+          for(let i=0;i<8;i++){
+            const lane=(i-3.5)*3.8;
+            const travel=((p*1.65+i/8)%1);
+            const y=top+travel*150;
+            const sway=Math.sin(seed*.021+i*1.7+p*8)*3;
+            core.circle(
+              dx+lane+sway,
+              y,
+              1.3+(i%3)*.45
+            ).fill({
+              color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+              alpha:visibility*(.36+(i%2)*.16),
+            });
+          }
+
+          if (!missed && hit > 0) {
+            // Two broad concentric impact rings plus a four-point holy seal.
+            glow.circle(dx,dy,14+easeOut(hit)*48).fill({
+              color:profile.main,
+              alpha:hitFade*.12,
+            });
+            glow.circle(dx,dy,18+easeOut(hit)*51).stroke({
+              color:profile.main,
+              width:10,
+              alpha:hitFade*.12,
+            });
+
+            core.circle(dx,dy,12+easeOut(hit)*48).stroke({
+              color:profile.main,
+              width:3.0,
+              alpha:hitFade*.78,
+            });
+            core.circle(dx,dy,7+easeOut(hit)*29).stroke({
+              color:profile.core,
+              width:1.6,
+              alpha:hitFade*.64,
+            });
+
+            const sealR=11+easeOut(hit)*17;
+            for(let i=0;i<8;i++){
+              const a=i/8*Math.PI*2;
+              const inner=sealR*.45;
+              const outer=sealR*(i%2?1.18:1.46);
+              core
+                .moveTo(
+                  dx+Math.cos(a)*inner,
+                  dy+Math.sin(a)*inner
+                )
+                .lineTo(
+                  dx+Math.cos(a)*outer,
+                  dy+Math.sin(a)*outer
+                )
+                .stroke({
+                  color:i%2?profile.main:profile.core,
+                  width:i%2?1.7:2.3,
+                  alpha:hitFade*(.56+.14*pulse),
+                });
+            }
+
+            // Fire tongues and embers rise from the holy impact.
+            for(let i=0;i<12;i++){
+              const a=i/12*Math.PI*2+seed*.011;
+              const rr=8+easeOut(hit)*(27+(i%4)*7);
+              const ex=dx+Math.cos(a)*rr;
+              const ey=dy+Math.sin(a)*rr-hit*(8+(i%3)*4);
+              core.circle(ex,ey,1.5+(i%3)*.55).fill({
+                color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+                alpha:hitFade*.70,
+              });
+            }
+
+            for(let i=0;i<5;i++){
+              const x=dx+(i-2)*8;
+              const rise=16+hit*(18+(i%3)*5);
+              core
+                .moveTo(x,dy+8)
+                .lineTo(x+Math.sin(i+p*8)*5,dy+8-rise*.52)
+                .lineTo(x+Math.sin(i*1.7+p*9)*3,dy+8-rise)
+                .stroke({
+                  color:i%2?profile.main:profile.accent,
+                  width:1.8,
+                  alpha:hitFade*.58,
+                });
+            }
+          } else if (missed && strike > .58) {
+            const missP=clamp01((strike-.58)/.42);
+            for(let i=0;i<8;i++){
+              const a=i/8*Math.PI*2;
+              const rr=10+missP*(20+(i%3)*5);
+              core.circle(
+                dx+Math.cos(a)*rr,
+                dy+Math.sin(a)*rr-missP*7,
+                1.3+(i%2)*.4
+              ).fill({
+                color:i%2?profile.main:profile.core,
+                alpha:(1-missP)*.48,
+              });
+            }
+          }
+          continue;
+        }
+
         const strike=clamp01((p-.08)/.58);
         const fade=1-smooth((p-.70)/.30);
         const top=dy-(effect.spellId==="druid-moonfire"?145:130);
@@ -8600,39 +8825,176 @@ export class PixiProofRenderer {
       // SPECIALS: Smite mind implosion, Drain Life, Conflagrate.
       // ---------------------------------------------------------------------
       if (effect.spellId==="priest-smite") {
-        const gather=smooth(p/.44);
-        const burst=clamp01((p-.34)/.54);
-        const fade=1-smooth((p-.70)/.30);
-        for(let i=0;i<9;i++){
-          const ang=i/9*Math.PI*2+p*(i%2?1.7:-1.4)+seed*.011;
-          const start=38+(i%4)*5;
-          const rr=start*(1-gather*.80);
-          core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,1.4+(i%3)*.45).fill({
-            color:i%3===0?profile.core:profile.main,
-            alpha:alpha*(.24+gather*.48),
+        const gather=smooth(p/.38);
+        const snap=clamp01((p-.08)/.30);
+        const rupture=clamp01((p-.34)/.52);
+        const visibility=1-smooth((p-.88)/.12);
+        const ruptureFade=1-smooth((rupture-.68)/.32);
+        const pulse=.5+.5*Math.sin(seed*.031+p*20);
+
+        // Brief psychic connection: not a projectile, more like the caster and
+        // target are snapped together for a fraction of a second.
+        if(p<.42){
+          const tetherFade=1-smooth(p/.42);
+          const length=Math.max(1,Math.hypot(dx,dy));
+          const dirX=dx/length, dirY=dy/length;
+          const normalX=-dirY, normalY=dirX;
+
+          for(let lane=-1;lane<=1;lane++){
+            const laneOffset=lane*4.5;
+            const segments=7;
+            for(let i=0;i<=segments;i++){
+              const q=i/segments;
+              const wave=Math.sin(q*Math.PI*3+seed*.017+lane*1.7+p*14)
+                * (4.5+Math.abs(lane)*1.5)
+                * Math.sin(q*Math.PI);
+              const x=dx*q+normalX*(laneOffset+wave);
+              const y=dy*q+normalY*(laneOffset+wave);
+              if(i===0) core.moveTo(x,y); else core.lineTo(x,y);
+            }
+            core.stroke({
+              color:lane===0?profile.core:profile.main,
+              width:lane===0?2.0:1.15,
+              alpha:tetherFade*(lane===0?.52:.30),
+            });
+          }
+        }
+
+        // Large broken psychic aperture collapses around the target.
+        for(let ring=0;ring<3;ring++){
+          const base=54+ring*10;
+          const rr=base*(1-gather*.68);
+          const phase=(ring%2?-.58:.48)*p+seed*.003;
+          for(let seg=0;seg<3;seg++){
+            const a0=seg*Math.PI*2/3+.18+phase;
+            arc(
+              core,
+              dx,
+              dy,
+              rr,
+              a0,
+              a0+.78,
+              {
+                color:ring===1?profile.core:profile.main,
+                width:1.7+ring*.35,
+                alpha:visibility*(.34+gather*.24-ring*.03),
+              },
+              7,
+            );
+          }
+        }
+
+        // Dense motes spiral inward so the target is impossible to miss.
+        for(let i=0;i<14;i++){
+          const ang=
+            i/14*Math.PI*2
+            +p*(i%2?2.2:-1.8)
+            +seed*.009;
+          const start=50+(i%5)*7;
+          const rr=start*(1-gather*.78);
+          core.circle(
+            dx+Math.cos(ang)*rr,
+            dy+Math.sin(ang)*rr,
+            1.5+(i%4)*.48
+          ).fill({
+            color:i%4===0?profile.core:(i%3===0?profile.accent:profile.main),
+            alpha:visibility*(.32+gather*.48),
           });
         }
-        if(p>.30 && !missed){
-          for(let i=0;i<6;i++){
-            const ang=i/6*Math.PI*2+seed*.013;
-            const inner=7+burst*3;
-            const outer=13+easeOut(burst)*(28+(i%3)*6);
-            const midAng=ang+.35;
+
+        // The eye closes, then ruptures outward.
+        const eyeW=24*(1-gather*.46)+pulse*2;
+        const eyeH=10*(1-gather*.58)+pulse;
+        glow.ellipse(dx,dy,eyeW+9,eyeH+7).stroke({
+          color:profile.main,
+          width:9,
+          alpha:visibility*(.10+.06*gather),
+        });
+        core.ellipse(dx,dy,eyeW,eyeH).stroke({
+          color:profile.core,
+          width:2.1,
+          alpha:visibility*(.48+.30*gather),
+        });
+        core.circle(dx,dy,4.2+gather*3.8).fill({
+          color:profile.accent,
+          alpha:visibility*(.45+.28*gather),
+        });
+        core.circle(dx,dy,2.4+gather*2.6).fill({
+          color:profile.core,
+          alpha:visibility*(.58+.32*gather),
+        });
+
+        if(!missed && snap>.34){
+          const blast=clamp01((snap-.34)/.66);
+          glow.circle(dx,dy,12+easeOut(blast)*46).fill({
+            color:profile.main,
+            alpha:(1-blast)*.14+ruptureFade*.06,
+          });
+          glow.circle(dx,dy,14+easeOut(rupture)*52).stroke({
+            color:profile.main,
+            width:10,
+            alpha:ruptureFade*.12,
+          });
+
+          for(let i=0;i<10;i++){
+            const ang=i/10*Math.PI*2+seed*.013;
+            const inner=8+rupture*4;
+            const mid=18+easeOut(rupture)*(15+(i%3)*4);
+            const outer=24+easeOut(rupture)*(30+(i%4)*7);
+            const bend=ang+(i%2?.30:-.26);
             core
-              .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
-              .lineTo(dx+Math.cos(midAng)*outer*.60,dy+Math.sin(midAng)*outer*.60)
-              .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .moveTo(
+                dx+Math.cos(ang)*inner,
+                dy+Math.sin(ang)*inner
+              )
+              .lineTo(
+                dx+Math.cos(bend)*mid,
+                dy+Math.sin(bend)*mid
+              )
+              .lineTo(
+                dx+Math.cos(ang)*outer,
+                dy+Math.sin(ang)*outer
+              )
               .stroke({
-                color:i%2?profile.main:profile.core,
-                width:2.1,alpha:alpha*fade*.70
+                color:i%3===0?profile.core:profile.main,
+                width:i%3===0?2.8:2.0,
+                alpha:ruptureFade*(.64+.12*pulse),
               });
           }
-          glow.circle(dx,dy,10+burst*26).fill({
-            color:profile.main,alpha:alpha*fade*.10
-          });
-          core.circle(dx,dy,7*(1-burst*.35)).fill({
-            color:profile.core,alpha:alpha*fade*.76
-          });
+
+          // Secondary inner fracture makes the implosion feel like the target's
+          // mind is cracking rather than a generic purple explosion.
+          for(let i=0;i<5;i++){
+            const a=-1.05+i*.52+seed*.002;
+            const start=7;
+            const end=20+rupture*(13+(i%3)*5);
+            core
+              .moveTo(dx+Math.cos(a)*start,dy+Math.sin(a)*start)
+              .lineTo(
+                dx+Math.cos(a+.18)*end*.60,
+                dy+Math.sin(a+.18)*end*.60
+              )
+              .lineTo(dx+Math.cos(a)*end,dy+Math.sin(a)*end)
+              .stroke({
+                color:profile.core,
+                width:1.5,
+                alpha:ruptureFade*.55,
+              });
+          }
+        } else if(missed && p>.34){
+          const dissipate=clamp01((p-.34)/.50);
+          for(let i=0;i<9;i++){
+            const a=i/9*Math.PI*2+seed*.011;
+            const rr=14+dissipate*(24+(i%3)*6);
+            core.circle(
+              dx+Math.cos(a)*rr,
+              dy+Math.sin(a)*rr-dissipate*7,
+              1.3+(i%2)*.5
+            ).fill({
+              color:i%2?profile.main:profile.core,
+              alpha:(1-dissipate)*.45,
+            });
+          }
         }
         continue;
       }

@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon7";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon8";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -137,7 +137,7 @@ export class BabylonArenaRenderer {
       new BABYLON.Vector3(0, 1, 0),
       scene,
     );
-    ambient.intensity = 0.58;
+    ambient.intensity = 0.56;
     ambient.diffuse = new BABYLON.Color3(0.76, 0.72, 0.68);
     ambient.groundColor = new BABYLON.Color3(0.12, 0.09, 0.075);
 
@@ -147,15 +147,25 @@ export class BabylonArenaRenderer {
       scene,
     );
     key.position = new BABYLON.Vector3(18, 46, -28);
-    key.intensity = 0.78;
+    key.intensity = 0.72;
     key.diffuse = new BABYLON.Color3(0.93, 0.79, 0.67);
 
     const shadows = new BABYLON.ShadowGenerator(1024, key);
     shadows.useBlurExponentialShadowMap = true;
-    shadows.blurKernel = 24;
+    shadows.blurKernel = 32;
     shadows.bias = 0.0008;
     shadows.normalBias = 0.02;
+    shadows.setDarkness?.(.28);
     this.shadowGenerator = shadows;
+
+    const fill = new BABYLON.DirectionalLight(
+      "arena-camera-fill",
+      new BABYLON.Vector3(0.22,-1,-0.38),
+      scene,
+    );
+    fill.position = new BABYLON.Vector3(-12,36,26);
+    fill.intensity = .24;
+    fill.diffuse = new BABYLON.Color3(.72,.72,.70);
 
     // Emissive flame materials finally get a soft bloom halo instead of reading
     // as flat orange discs.

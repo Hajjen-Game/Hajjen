@@ -635,6 +635,141 @@ function addBorder(
   }
 }
 
+function addOuterWallArchitecture(
+  BABYLON,
+  scene,
+  arena,
+  mapping,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const b=arena.bounds;
+  const wallHeight=4.15;
+  const capHeight=.40;
+  const depthPx=20;
+
+  const addSegment=(name,gx,gy,wPx,dPx,index)=>{
+    const bodyPos=mapping.gameToWorld(gx,gy,wallHeight/2);
+    const body=createChamferedPrism(
+      BABYLON,scene,
+      name+"-body",
+      wPx*mapping.scale,
+      wallHeight,
+      dPx*mapping.scale,
+      .30,
+      bodyPos,
+      index%3===1?materials.outerWallAlt:materials.outerWall,
+    );
+    body.parent=root;
+    body.receiveShadows=true;
+    shadowCasters.push(body);
+
+    const capPos=mapping.gameToWorld(gx,gy,wallHeight+capHeight/2);
+    const cap=createChamferedPrism(
+      BABYLON,scene,
+      name+"-cap",
+      Math.max(.4,wPx*mapping.scale-.15),
+      capHeight,
+      Math.max(.4,dPx*mapping.scale-.15),
+      .22,
+      capPos,
+      index%2?materials.outerWallTopAlt:materials.outerWallTop,
+    );
+    cap.parent=root;
+    cap.receiveShadows=true;
+    shadowCasters.push(cap);
+  };
+
+  const horizontalSegments=8;
+  const hSegW=b.w/horizontalSegments;
+  for(let i=0;i<horizontalSegments;i+=1){
+    const gx=b.x+hSegW*(i+.5);
+    addSegment(
+      "babylon-outer-top-"+i,
+      gx,
+      b.y-depthPx/2-4,
+      hSegW-4,
+      depthPx,
+      i,
+    );
+    addSegment(
+      "babylon-outer-bottom-"+i,
+      gx,
+      b.y+b.h+depthPx/2+4,
+      hSegW-4,
+      depthPx,
+      i+10,
+    );
+  }
+
+  const verticalSegments=4;
+  const vSegH=b.h/verticalSegments;
+  for(let i=0;i<verticalSegments;i+=1){
+    const gy=b.y+vSegH*(i+.5);
+    addSegment(
+      "babylon-outer-left-"+i,
+      b.x-depthPx/2-5,
+      gy,
+      depthPx,
+      vSegH-5,
+      i+20,
+    );
+    addSegment(
+      "babylon-outer-right-"+i,
+      b.x+b.w+depthPx/2+5,
+      gy,
+      depthPx,
+      vSegH-5,
+      i+30,
+    );
+  }
+}
+
+function addGroundDebris(
+  BABYLON,
+  scene,
+  arena,
+  mapping,
+  materials,
+  root,
+) {
+  const b=arena.bounds;
+  const random=seededRandom(
+    arena.id==="windscar-proving-grounds"?0x6bc22:0x9231a,
+  );
+  const anchors=[
+    [b.x+170,b.y+105],
+    [b.x+b.w-185,b.y+112],
+    [b.x+225,b.y+b.h-105],
+    [b.x+b.w-235,b.y+b.h-102],
+    [b.x+370,b.y+70],
+    [b.x+b.w-390,b.y+b.h-72],
+  ];
+
+  let index=0;
+  for(const [ax,ay] of anchors){
+    const pieces=2+Math.floor(random()*2);
+    for(let i=0;i<pieces;i+=1){
+      const p=mapping.gameToWorld(
+        ax+(random()-.5)*34,
+        ay+(random()-.5)*22,
+        0,
+      );
+      const length=1.6+random()*2.5;
+      const timber=createChamferedPrism(
+        BABYLON,scene,
+        "babylon-ground-timber-"+index++,
+        .15,.07,length,.035,
+        {x:p.x,y:.045,z:p.z},
+        materials.timber,
+      );
+      timber.rotation.y=random()*Math.PI;
+      timber.parent=root;
+    }
+  }
+}
+
 function addCornerArchitecture(
   BABYLON,
   scene,
@@ -911,7 +1046,6 @@ function addObstacle(
         );
         block.parent=root;
         block.receiveShadows=true;
-        shadowCasters.push(block);
       }
     }else{
       // Square pillars use broad stacked stones with tiny offsets so the
@@ -934,7 +1068,6 @@ function addObstacle(
       );
       block.parent=root;
       block.receiveShadows=true;
-      shadowCasters.push(block);
     }
   }
 
@@ -1151,8 +1284,8 @@ function addTorchPedestal(
   );
   light.diffuse=new BABYLON.Color3(1.0,.43,.13);
   light.specular=new BABYLON.Color3(.62,.28,.10);
-  light.intensity=3.10;
-  light.range=42;
+  light.intensity=3.25;
+  light.range=46;
   lights.push(light);
 
   const glowDisc=BABYLON.MeshBuilder.CreateDisc(
@@ -1180,7 +1313,7 @@ function addTorches(
   const b=arena.bounds;
   // Keep the braziers just outside gameplay bounds but well inside the visual
   // frame, so their flames are a major composition element like the reference.
-  const margin=31;
+  const margin=24;
   const points=[
     ["nw",b.x-margin,b.y-margin,0.0],
     ["ne",b.x+b.w+margin,b.y-margin,1.4],
@@ -1307,6 +1440,11 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     shrineDark:material(BABYLON,scene,"mat-shrine-dark","#49423d","#171310"),
     shrineStone:material(BABYLON,scene,"mat-shrine-stone","#655b52","#201a16"),
     shrineTop:material(BABYLON,scene,"mat-shrine-top","#8b7a69","#30251e"),
+    outerWall:material(BABYLON,scene,"mat-outer-wall","#665c53","#211b17"),
+    outerWallAlt:material(BABYLON,scene,"mat-outer-wall-alt","#70645a","#251f1a"),
+    outerWallTop:material(BABYLON,scene,"mat-outer-wall-top","#9b8876","#342920"),
+    outerWallTopAlt:material(BABYLON,scene,"mat-outer-wall-top-alt","#8e7c6c","#30261f"),
+    timber:material(BABYLON,scene,"mat-timber","#34231c","#120b08"),
     torchBase:material(BABYLON,scene,"mat-torch-base","#504740","#181411"),
     torchStone:material(BABYLON,scene,"mat-torch-stone","#76685c","#211b17"),
     brazier:material(BABYLON,scene,"mat-brazier","#33231a","#7a3c16"),
@@ -1342,14 +1480,14 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   materials.emberGlow.disableLighting=true;
   materials.emberGlow.alpha=.24;
   materials.floorGlow.disableLighting=true;
-  materials.floorGlow.alpha=.075;
+  materials.floorGlow.alpha=.11;
 
   const softShadow=createSoftShadowTexture(BABYLON,scene);
   ownedTextures.push(softShadow);
   materials.contactShadow.disableLighting=true;
   materials.contactShadow.diffuseColor=new BABYLON.Color3(0,0,0);
   materials.contactShadow.opacityTexture=softShadow;
-  materials.contactShadow.alpha=.32;
+  materials.contactShadow.alpha=.22;
 
   const stoneSurface=createStoneSurfaceTexture(
     BABYLON,scene,
@@ -1370,6 +1508,10 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     materials.shrineDark,
     materials.shrineStone,
     materials.shrineTop,
+    materials.outerWall,
+    materials.outerWallAlt,
+    materials.outerWallTop,
+    materials.outerWallTopAlt,
     materials.torchBase,
     materials.torchStone,
     materials.rubble,
@@ -1377,11 +1519,30 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   ].forEach(mat=>{
     mat.diffuseTexture=stoneSurface;
   });
+
+  [
+    materials.stoneBase,
+    materials.stoneSide,
+    materials.stoneSideAlt,
+    materials.stoneShoulder,
+    materials.outerWall,
+    materials.outerWallAlt,
+    materials.shrineDark,
+    materials.shrineStone,
+    materials.torchBase,
+    materials.torchStone,
+  ].forEach(mat=>{
+    mat.emissiveColor=mat.diffuseColor.scale(.055);
+  });
+
   materials.banner.specularColor=new BABYLON.Color3(.08,.03,.02);
   materials.bannerGold.specularColor=new BABYLON.Color3(.18,.10,.04);
 
   const ground=addFloor(
     BABYLON,scene,arena,mapping,materials,root,ownedTextures,
+  );
+  addOuterWallArchitecture(
+    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
   );
   addBorder(
     BABYLON,scene,arena,mapping,materials,root,shadowCasters,
@@ -1399,6 +1560,9 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
 
   addRubble(
     BABYLON,scene,arena,mapping,materials,root,shadowCasters,
+  );
+  addGroundDebris(
+    BABYLON,scene,arena,mapping,materials,root,
   );
   addBanners(
     BABYLON,scene,arena,mapping,materials,root,
@@ -1433,7 +1597,7 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
       }
       for(let i=0;i<lights.length;i+=1){
         const light=lights[i];
-        light.intensity=3.00+Math.sin(timeSeconds*4.2+i*1.7)*.24;
+        light.intensity=3.16+Math.sin(timeSeconds*4.2+i*1.7)*.26;
       }
     },
     dispose() {

@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon18";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon19";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -300,31 +300,33 @@ export class BabylonArenaRenderer {
     const isBastion=arena.id==="emberwatch-bastion";
     const isWindscar=arena.id==="windscar-proving-grounds";
     if(this.scene.environmentTexture){
-      this.scene.environmentTexture.level=isBastion?.55:.62;
+      this.scene.environmentTexture.level=isBastion?.43:.62;
     }
     if(isBastion){
-      this.scene.clearColor=new this.BABYLON.Color4(.055,.034,.026,1);
-      this.scene.ambientColor=new this.BABYLON.Color3(.18,.135,.105);
+      this.scene.clearColor=new this.BABYLON.Color4(.050,.031,.024,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.15,.115,.10);
       this.scene.imageProcessingConfiguration.vignetteEnabled=true;
-      this.scene.imageProcessingConfiguration.vignetteWeight=.62;
+      this.scene.imageProcessingConfiguration.vignetteWeight=.54;
       this.scene.imageProcessingConfiguration.vignetteStretch=.05;
-      this.scene.imageProcessingConfiguration.exposure=1.07;
-      this.scene.imageProcessingConfiguration.contrast=1.08;
+      this.scene.imageProcessingConfiguration.exposure=1.03;
+      this.scene.imageProcessingConfiguration.contrast=1.11;
       if(this.ambientLight){
-        this.ambientLight.intensity=.57;
-        this.ambientLight.diffuse=new this.BABYLON.Color3(.76,.64,.54);
-        this.ambientLight.groundColor=new this.BABYLON.Color3(.070,.050,.040);
+        this.ambientLight.intensity=.40;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.56,.63,.74);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.12,.065,.045);
       }
       if(this.keyLight){
-        this.keyLight.intensity=1.16;
-        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.73,.49);
+        this.keyLight.intensity=1.30;
+        this.keyLight.diffuse=new this.BABYLON.Color3(1.0,.68,.42);
       }
       if(this.fillLight){
-        this.fillLight.intensity=.25;
-        this.fillLight.diffuse=new this.BABYLON.Color3(.50,.56,.64);
+        this.fillLight.intensity=.16;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.42,.52,.66);
       }
       this.glowLayer.intensity=.68;
+      this.shadowGenerator?.setDarkness?.(.39);
     }else if(isWindscar){
+      this.shadowGenerator?.setDarkness?.(.31);
       this.scene.clearColor=new this.BABYLON.Color4(.038,.026,.022,1);
       this.scene.ambientColor=new this.BABYLON.Color3(.135,.108,.090);
       this.scene.imageProcessingConfiguration.vignetteEnabled=true;
@@ -347,6 +349,7 @@ export class BabylonArenaRenderer {
       }
       this.glowLayer.intensity=.56;
     }else{
+      this.shadowGenerator?.setDarkness?.(.31);
       this.scene.imageProcessingConfiguration.vignetteEnabled=false;
       this.scene.imageProcessingConfiguration.exposure=.98;
       this.scene.imageProcessingConfiguration.contrast=1.08;
@@ -401,7 +404,7 @@ export class BabylonArenaRenderer {
       const isCenterWall=isWindscar && obstacle.id==="center-wall";
       const baseHeight=babylonObstacleVisualHeight(rect);
       const height=isBastion
-        ? (obstacle.id.includes("rampart")?3.86:5.58)
+        ? (obstacle.id.includes("rampart")?3.82:5.20)
         : isWindscar
           ? (isCenterWall?5.72:6.10)
           : baseHeight;

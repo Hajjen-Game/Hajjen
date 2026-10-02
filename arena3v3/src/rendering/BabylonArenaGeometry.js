@@ -109,192 +109,220 @@ function createChamferedPrism(
 }
 
 function createFloorTexture(BABYLON,scene,arena,mapping) {
-  const width = 1024;
-  const height = Math.max(512,Math.round(width * mapping.height / mapping.width));
-  const texture = new BABYLON.DynamicTexture(
+  const width=1280;
+  const height=Math.max(576,Math.round(width*mapping.height/mapping.width));
+  const texture=new BABYLON.DynamicTexture(
     "babylon-stone-floor-texture",
     {width,height},
     scene,
     false,
   );
-  const ctx = texture.getContext();
-  const sx = width / mapping.width;
-  const sy = height / mapping.height;
-  const b = arena.bounds;
-  const cx = (b.x + b.w / 2) * sx;
-  const cy = (b.y + b.h / 2) * sy;
-  const minLogical = Math.min(b.w,b.h);
-  const random = seededRandom(
-    arena.id === "windscar-proving-grounds" ? 0x51a7c3 : 0x736f6c,
+  const ctx=texture.getContext();
+  const sx=width/mapping.width;
+  const sy=height/mapping.height;
+  const b=arena.bounds;
+  const cx=(b.x+b.w/2)*sx;
+  const cy=(b.y+b.h/2)*sy;
+  const random=seededRandom(
+    arena.id==="windscar-proving-grounds"?0x51a7c3:0x736f6c,
   );
 
-  const radial = ctx.createRadialGradient(
+  const palette=[
+    "#665141","#6c5543","#715a47","#604b3d",
+    "#755c48","#59463a","#6a5140","#625044",
+  ];
+  const grout="#342820";
+
+  // Start from neutral brown-grey stone. Warmth should come mainly from the
+  // braziers, not from tinting the entire arena orange.
+  const radial=ctx.createRadialGradient(
     cx,cy,0,
-    cx,cy,Math.max(width,height) * .68,
+    cx,cy,Math.max(width,height)*.72,
   );
-  radial.addColorStop(0,"#77513a");
-  radial.addColorStop(.42,"#68442f");
-  radial.addColorStop(.78,"#563727");
-  radial.addColorStop(1,"#3d281e");
-  ctx.fillStyle = radial;
+  radial.addColorStop(0,"#735b48");
+  radial.addColorStop(.42,"#665141");
+  radial.addColorStop(.78,"#57463a");
+  radial.addColorStop(1,"#44372f");
+  ctx.fillStyle=radial;
   ctx.fillRect(0,0,width,height);
 
-  // Large, cloudy stone variation.
-  for(let i=0;i<150;i+=1){
-    const x=random()*width;
-    const y=random()*height;
-    const rx=24+random()*88;
-    const ry=18+random()*58;
-    const warm=random()>.5;
-    const g=ctx.createRadialGradient(x,y,0,x,y,rx);
-    g.addColorStop(
-      0,
-      warm
-        ? "rgba(177,111,63,"+(0.018+random()*.035)+")"
-        : "rgba(33,23,19,"+(0.025+random()*.040)+")",
-    );
-    g.addColorStop(1,"rgba(0,0,0,0)");
-    ctx.save();
-    ctx.translate(x,y);
-    ctx.scale(1,ry/rx);
-    ctx.translate(-x,-y);
-    ctx.fillStyle=g;
-    ctx.beginPath();
-    ctx.arc(x,y,rx,0,Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-  }
+  // Large irregular masonry in the outer field. Variable row heights, widths
+  // and corner jitter avoid the wallpaper/grid look from Milestone 2A.
+  let logicalY=b.y-40;
+  let row=0;
+  while(logicalY<b.y+b.h+50){
+    const rowH=58+random()*42;
+    let logicalX=b.x-75-(row%2)*(35+random()*25);
+    while(logicalX<b.x+b.w+80){
+      const tileW=78+random()*76;
+      const jitter=7+random()*8;
+      const x0=logicalX*sx;
+      const y0=logicalY*sy;
+      const x1=(logicalX+tileW)*sx;
+      const y1=(logicalY+rowH)*sy;
 
-  // Fine stone grain.
-  for(let i=0;i<4200;i+=1){
-    const light=random()>.54;
-    const alpha=.018+random()*.035;
-    ctx.fillStyle=light
-      ? "rgba(225,170,118,"+alpha+")"
-      : "rgba(23,15,12,"+alpha+")";
-    const x=Math.floor(random()*width);
-    const y=Math.floor(random()*height);
-    const s=random()<.9?1:2;
-    ctx.fillRect(x,y,s,s);
-  }
+      const centerLX=logicalX+tileW/2;
+      const centerLY=logicalY+rowH/2;
+      const dist=Math.hypot(centerLX-(b.x+b.w/2),centerLY-(b.y+b.h/2));
 
-  // Subtle large rectangular masonry outside the central ring.
-  const tileW = 82 * sx;
-  const tileH = 64 * sy;
-  ctx.lineWidth=Math.max(1.1,2.2*sx);
-  ctx.strokeStyle="rgba(38,24,18,.40)";
-  for(let row=-1;row<Math.ceil(height/tileH)+1;row+=1){
-    const offset=(row&1)?tileW*.48:0;
-    for(let col=-1;col<Math.ceil(width/tileW)+1;col+=1){
-      const x=col*tileW-offset;
-      const y=row*tileH;
-      const px=x+tileW*.06;
-      const py=y+tileH*.08;
-      const pw=tileW*.88;
-      const ph=tileH*.84;
-      ctx.beginPath();
-      ctx.roundRect(px,py,pw,ph,Math.min(8*sx,7));
-      ctx.stroke();
+      // Leave the central authored ring zone for radial masonry.
+      if(dist>350){
+        ctx.beginPath();
+        ctx.moveTo(x0+(random()-.5)*jitter*sx,y0+(random()-.5)*jitter*sy);
+        ctx.lineTo(x1+(random()-.5)*jitter*sx,y0+(random()-.5)*jitter*sy);
+        ctx.lineTo(x1+(random()-.5)*jitter*sx,y1+(random()-.5)*jitter*sy);
+        ctx.lineTo(x0+(random()-.5)*jitter*sx,y1+(random()-.5)*jitter*sy);
+        ctx.closePath();
+        ctx.fillStyle=palette[Math.floor(random()*palette.length)];
+        ctx.globalAlpha=.40+random()*.18;
+        ctx.fill();
+        ctx.globalAlpha=1;
+        ctx.strokeStyle="rgba(43,32,26,.66)";
+        ctx.lineWidth=(2.2+random()*1.6)*sx;
+        ctx.stroke();
+
+        // One soft worn edge per some slabs.
+        if(random()>.56){
+          ctx.strokeStyle="rgba(160,132,104,.11)";
+          ctx.lineWidth=1.2*sx;
+          ctx.beginPath();
+          ctx.moveTo(x0+7*sx,y0+7*sy);
+          ctx.lineTo(x1-7*sx,y0+7*sy);
+          ctx.stroke();
+        }
+      }
+
+      logicalX+=tileW-4+random()*9;
     }
+    logicalY+=rowH-3+random()*7;
+    row+=1;
   }
 
-  // Central ring masonry, much closer to the reference image than the former
-  // five thin vector circles.
-  const ringLogical=[68,122,184,248,316];
-  ctx.lineCap="round";
-  for(let rIndex=0;rIndex<ringLogical.length;rIndex+=1){
-    const logicalR=ringLogical[rIndex];
-    const rx=logicalR*sx;
-    const ry=logicalR*sy;
-    ctx.strokeStyle=rIndex<2
-      ?"rgba(39,24,18,.72)"
-      :"rgba(42,26,19,.58)";
-    ctx.lineWidth=(rIndex<2?4.4:3.2)*sx;
-    ctx.beginPath();
-    ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
-    ctx.stroke();
+  // Radial stone bands. Each wedge is filled separately so the ring floor reads
+  // like heavy cut slabs rather than circles painted on top of a grid.
+  const rings=[0,72,132,202,278,352];
+  for(let band=0;band<rings.length-1;band+=1){
+    const inner=rings[band];
+    const outer=rings[band+1];
+    const count=band===0?10:12+band*4;
+    const phase=(band%2?0.5:0)/count*Math.PI*2;
 
-    const previous=rIndex===0?0:ringLogical[rIndex-1];
-    const segmentCount=10+rIndex*4;
-    const offset=(rIndex&1)?Math.PI/segmentCount:0;
-    for(let i=0;i<segmentCount;i+=1){
-      const a=i/segmentCount*Math.PI*2+offset;
-      const inner=(previous+8);
-      const outer=(logicalR-7);
-      if(outer<=inner) continue;
-      ctx.strokeStyle="rgba(45,27,20,.44)";
-      ctx.lineWidth=2*sx;
+    for(let i=0;i<count;i+=1){
+      const a0=i/count*Math.PI*2+phase;
+      const a1=(i+1)/count*Math.PI*2+phase;
+      const insetA=.012+random()*.015;
+      const innerJ=inner+(band===0?0:4+random()*5);
+      const outerJ=outer-(4+random()*5);
+
       ctx.beginPath();
       ctx.moveTo(
-        cx+Math.cos(a)*inner*sx,
-        cy+Math.sin(a)*inner*sy,
+        cx+Math.cos(a0+insetA)*innerJ*sx,
+        cy+Math.sin(a0+insetA)*innerJ*sy,
       );
       ctx.lineTo(
-        cx+Math.cos(a)*outer*sx,
-        cy+Math.sin(a)*outer*sy,
+        cx+Math.cos(a1-insetA)*innerJ*sx,
+        cy+Math.sin(a1-insetA)*innerJ*sy,
       );
+      ctx.lineTo(
+        cx+Math.cos(a1-insetA*.65)*outerJ*sx,
+        cy+Math.sin(a1-insetA*.65)*outerJ*sy,
+      );
+      ctx.lineTo(
+        cx+Math.cos(a0+insetA*.65)*outerJ*sx,
+        cy+Math.sin(a0+insetA*.65)*outerJ*sy,
+      );
+      ctx.closePath();
+
+      const baseIndex=(band*2+i)%palette.length;
+      ctx.fillStyle=palette[baseIndex];
+      ctx.globalAlpha=.48+random()*.18;
+      ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle="rgba(45,33,27,.72)";
+      ctx.lineWidth=(2.1+(band<2?.8:0))*sx;
       ctx.stroke();
     }
   }
 
-  // Center medallion and inner plate seams.
-  ctx.fillStyle="rgba(126,79,50,.40)";
-  ctx.beginPath();
-  ctx.ellipse(cx,cy,56*sx,56*sy,0,0,Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle="rgba(39,24,18,.72)";
-  ctx.lineWidth=4*sx;
-  ctx.stroke();
-  for(let i=0;i<8;i+=1){
-    const a=i/8*Math.PI*2;
-    ctx.strokeStyle="rgba(47,28,20,.40)";
-    ctx.lineWidth=1.7*sx;
+  // Fewer, stronger ring joints than before.
+  ctx.strokeStyle="rgba(45,32,25,.78)";
+  ctx.lineWidth=4.3*sx;
+  for(const r of [72,132,202,278,352]){
     ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.lineTo(
-      cx+Math.cos(a)*54*sx,
-      cy+Math.sin(a)*54*sy,
-    );
+    ctx.ellipse(cx,cy,r*sx,r*sy,0,0,Math.PI*2);
     ctx.stroke();
   }
 
-  // Authored cracks mostly in the quieter outer area.
+  // Center disc with broad slabs.
+  ctx.fillStyle="#745a46";
+  ctx.globalAlpha=.76;
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,58*sx,58*sy,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.strokeStyle="rgba(42,30,24,.84)";
+  ctx.lineWidth=4.4*sx;
+  ctx.stroke();
+
+  // Sparse authored cracks instead of noisy linework everywhere.
   ctx.lineCap="round";
-  for(let i=0;i<12;i+=1){
+  for(let i=0;i<14;i+=1){
     const a=random()*Math.PI*2;
-    const radius=(365+random()*150);
+    const radius=(370+random()*155);
     const startX=cx+Math.cos(a)*radius*sx;
     const startY=cy+Math.sin(a)*radius*sy;
-    const angle=a+(random()-.5)*1.5;
-    const length=(26+random()*58)*sx;
-    ctx.strokeStyle="rgba(31,19,15,"+(.38+random()*.22)+")";
-    ctx.lineWidth=(1.2+random()*1.2)*sx;
+    const angle=a+(random()-.5)*1.35;
+    const length=(28+random()*54)*sx;
+    ctx.strokeStyle="rgba(37,26,21,"+(.46+random()*.20)+")";
+    ctx.lineWidth=(1.5+random()*1.3)*sx;
     ctx.beginPath();
     ctx.moveTo(startX,startY);
-    let x=startX;
-    let y=startY;
+    let px=startX;
+    let py=startY;
     for(let p=1;p<=3;p+=1){
-      x+=Math.cos(angle+(random()-.5)*.45)*length/3;
-      y+=Math.sin(angle+(random()-.5)*.45)*length/3;
-      ctx.lineTo(x,y);
+      px+=Math.cos(angle+(random()-.5)*.42)*length/3;
+      py+=Math.sin(angle+(random()-.5)*.42)*length/3;
+      ctx.lineTo(px,py);
     }
     ctx.stroke();
   }
 
-  // Dark inner frame shadow printed into the ground texture.
-  ctx.strokeStyle="rgba(28,18,14,.54)";
-  ctx.lineWidth=10*sx;
+  // Fine material noise is deliberately subtle.
+  for(let i=0;i<3000;i+=1){
+    const bright=random()>.58;
+    const alpha=.012+random()*.026;
+    ctx.fillStyle=bright
+      ?"rgba(213,184,150,"+alpha+")"
+      :"rgba(23,18,15,"+alpha+")";
+    const x=Math.floor(random()*width);
+    const y=Math.floor(random()*height);
+    ctx.fillRect(x,y,random()>.93?2:1,1);
+  }
+
+  // Soft edge darkening inside the combat boundary.
+  const vignette=ctx.createRadialGradient(
+    cx,cy,Math.min(width,height)*.24,
+    cx,cy,Math.min(width,height)*.73,
+  );
+  vignette.addColorStop(0,"rgba(0,0,0,0)");
+  vignette.addColorStop(.72,"rgba(0,0,0,.04)");
+  vignette.addColorStop(1,"rgba(18,12,10,.34)");
+  ctx.fillStyle=vignette;
+  ctx.fillRect(0,0,width,height);
+
+  ctx.strokeStyle="rgba(28,21,18,.70)";
+  ctx.lineWidth=8*sx;
   ctx.strokeRect(
-    (b.x+5)*sx,
-    (b.y+5)*sy,
-    (b.w-10)*sx,
-    (b.h-10)*sy,
+    (b.x+7)*sx,
+    (b.y+7)*sy,
+    (b.w-14)*sx,
+    (b.h-14)*sy,
   );
 
   texture.update(false);
-  texture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-  texture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-  texture.anisotropicFilteringLevel = 8;
+  texture.wrapU=BABYLON.Texture.CLAMP_ADDRESSMODE;
+  texture.wrapV=BABYLON.Texture.CLAMP_ADDRESSMODE;
+  texture.anisotropicFilteringLevel=8;
   return texture;
 }
 
@@ -364,9 +392,9 @@ function addBorder(
   shadowCasters,
 ) {
   const b=arena.bounds;
-  const borderPx=22;
+  const borderPx=17;
   const borderWorld=borderPx*mapping.scale;
-  const wallHeight=3.1;
+  const wallHeight=2.15;
   const centerX=b.x+b.w/2;
   const centerY=b.y+b.h/2;
   const defs=[
@@ -384,7 +412,7 @@ function addBorder(
       edge.w*mapping.scale,
       wallHeight,
       edge.h*mapping.scale,
-      .42,
+      .30,
       p,
       materials.border,
     );
@@ -392,14 +420,14 @@ function addBorder(
     base.receiveShadows=true;
     shadowCasters.push(base);
 
-    const capP=mapping.gameToWorld(edge.x,edge.y,wallHeight+.18);
+    const capP=mapping.gameToWorld(edge.x,edge.y,wallHeight+.12);
     const cap=createChamferedPrism(
       BABYLON,scene,
       "babylon-border-cap-"+edge.id,
-      Math.max(.3,edge.w*mapping.scale-.18),
-      .36,
-      Math.max(.3,edge.h*mapping.scale-.18),
-      .32,
+      Math.max(.3,edge.w*mapping.scale-.12),
+      .24,
+      Math.max(.3,edge.h*mapping.scale-.12),
+      .24,
       capP,
       materials.borderCap,
     );
@@ -408,47 +436,48 @@ function addBorder(
     shadowCasters.push(cap);
   }
 
-  // Low inner lip catches warm light and separates the combat floor from the
-  // heavy outer architecture.
-  const lipPx=10;
-  const lipHeight=.62;
-  const lipDefs=[
-    {id:"top",x:centerX,y:b.y+lipPx/2,w:b.w,h:lipPx},
-    {id:"bottom",x:centerX,y:b.y+b.h-lipPx/2,w:b.w,h:lipPx},
-    {id:"left",x:b.x+lipPx/2,y:centerY,w:lipPx,h:b.h},
-    {id:"right",x:b.x+b.w-lipPx/2,y:centerY,w:lipPx,h:b.h},
+  // Low warm inner curb, much less visually dominant than the former black rail.
+  const curbPx=7;
+  const curbHeight=.42;
+  const curbs=[
+    {id:"top",x:centerX,y:b.y+curbPx/2,w:b.w,h:curbPx},
+    {id:"bottom",x:centerX,y:b.y+b.h-curbPx/2,w:b.w,h:curbPx},
+    {id:"left",x:b.x+curbPx/2,y:centerY,w:curbPx,h:b.h},
+    {id:"right",x:b.x+b.w-curbPx/2,y:centerY,w:curbPx,h:b.h},
   ];
-  for(const edge of lipDefs){
-    const p=mapping.gameToWorld(edge.x,edge.y,lipHeight/2+.03);
-    const lip=createBox(
+  for(const edge of curbs){
+    const p=mapping.gameToWorld(edge.x,edge.y,curbHeight/2+.03);
+    const curb=createBox(
       BABYLON,scene,
-      "babylon-inner-lip-"+edge.id,
+      "babylon-inner-curb-"+edge.id,
       edge.w*mapping.scale,
-      lipHeight,
+      curbHeight,
       edge.h*mapping.scale,
       p,
       materials.innerLip,
     );
-    lip.parent=root;
-    lip.receiveShadows=true;
+    curb.parent=root;
+    curb.receiveShadows=true;
   }
 
-  const cornerSize=borderWorld*2.65;
+  // Chunky corner architecture is now concentrated near the braziers instead
+  // of turning the whole arena into a heavy rectangular frame.
+  const cornerSize=borderWorld*3.55;
   const corners=[
-    [b.x-borderPx,b.y-borderPx],
-    [b.x+b.w+borderPx,b.y-borderPx],
-    [b.x-borderPx,b.y+b.h+borderPx],
-    [b.x+b.w+borderPx,b.y+b.h+borderPx],
+    [b.x-6,b.y-6],
+    [b.x+b.w+6,b.y-6],
+    [b.x-6,b.y+b.h+6],
+    [b.x+b.w+6,b.y+b.h+6],
   ];
   corners.forEach(([x,y],index)=>{
-    const p=mapping.gameToWorld(x,y,wallHeight*.88);
+    const p=mapping.gameToWorld(x,y,2.55);
     const tower=createChamferedPrism(
       BABYLON,scene,
-      "babylon-corner-tower-"+index,
+      "babylon-corner-buttress-"+index,
       cornerSize,
-      wallHeight*1.76,
+      5.1,
       cornerSize,
-      cornerSize*.16,
+      cornerSize*.18,
       p,
       materials.borderTower,
     );
@@ -456,20 +485,20 @@ function addBorder(
     tower.receiveShadows=true;
     shadowCasters.push(tower);
 
-    const topP=mapping.gameToWorld(x,y,wallHeight*1.76+.22);
-    const top=createChamferedPrism(
+    const stepP=mapping.gameToWorld(x,y,5.28);
+    const step=createChamferedPrism(
       BABYLON,scene,
-      "babylon-corner-top-"+index,
-      cornerSize*.82,
-      .44,
-      cornerSize*.82,
+      "babylon-corner-step-"+index,
+      cornerSize*.78,
+      .48,
+      cornerSize*.78,
       cornerSize*.12,
-      topP,
+      stepP,
       materials.borderCap,
     );
-    top.parent=root;
-    top.receiveShadows=true;
-    shadowCasters.push(top);
+    step.parent=root;
+    step.receiveShadows=true;
+    shadowCasters.push(step);
   });
 }
 
@@ -690,13 +719,15 @@ function addTorchPedestal(
   root,
   shadowCasters,
   lights,
+  flames,
+  phase,
 ) {
   const baseWorld=mapping.gameToWorld(gameX,gameY,0);
   const pedestal=createChamferedPrism(
     BABYLON,scene,
     name+"-base",
-    4.4,2.5,4.4,.72,
-    {x:baseWorld.x,y:1.25,z:baseWorld.z},
+    6.4,2.35,6.4,1.0,
+    {x:baseWorld.x,y:1.18,z:baseWorld.z},
     materials.torchBase,
   );
   pedestal.parent=root;
@@ -706,58 +737,87 @@ function addTorchPedestal(
   const mid=createChamferedPrism(
     BABYLON,scene,
     name+"-mid",
-    3.45,1.7,3.45,.54,
-    {x:baseWorld.x,y:3.1,z:baseWorld.z},
+    4.8,2.1,4.8,.76,
+    {x:baseWorld.x,y:3.02,z:baseWorld.z},
     materials.torchStone,
   );
   mid.parent=root;
   mid.receiveShadows=true;
   shadowCasters.push(mid);
 
+  const crown=createChamferedPrism(
+    BABYLON,scene,
+    name+"-crown",
+    5.35,.58,5.35,.72,
+    {x:baseWorld.x,y:4.25,z:baseWorld.z},
+    materials.stoneTop,
+  );
+  crown.parent=root;
+  crown.receiveShadows=true;
+  shadowCasters.push(crown);
+
   const bowl=BABYLON.MeshBuilder.CreateCylinder(
     name+"-bowl",
     {
-      diameterTop:2.45,
-      diameterBottom:1.65,
-      height:.8,
+      diameterTop:3.25,
+      diameterBottom:2.05,
+      height:1.05,
       tessellation:8,
     },
     scene,
   );
-  bowl.position.set(baseWorld.x,4.35,baseWorld.z);
+  bowl.position.set(baseWorld.x,5.08,baseWorld.z);
   bowl.material=materials.brazier;
   bowl.parent=root;
   shadowCasters.push(bowl);
 
-  const flameOuter=BABYLON.MeshBuilder.CreateSphere(
+  const outer=BABYLON.MeshBuilder.CreateSphere(
     name+"-flame-outer",
-    {diameter:1.7,segments:12},
+    {diameter:3.25,segments:12},
     scene,
   );
-  flameOuter.position.set(baseWorld.x,5.55,baseWorld.z);
-  flameOuter.scaling.set(.68,1.25,.68);
-  flameOuter.material=materials.flameOuter;
-  flameOuter.parent=root;
+  outer.position.set(baseWorld.x,6.72,baseWorld.z);
+  outer.scaling.set(.60,1.28,.60);
+  outer.material=materials.flameOuter;
+  outer.parent=root;
 
-  const flameInner=BABYLON.MeshBuilder.CreateSphere(
-    name+"-flame-inner",
-    {diameter:1.05,segments:10},
+  const midFlame=BABYLON.MeshBuilder.CreateSphere(
+    name+"-flame-mid",
+    {diameter:2.30,segments:11},
     scene,
   );
-  flameInner.position.set(baseWorld.x,5.50,baseWorld.z);
-  flameInner.scaling.set(.62,1.18,.62);
-  flameInner.material=materials.flameInner;
-  flameInner.parent=root;
+  midFlame.position.set(baseWorld.x-.12,6.62,baseWorld.z+.08);
+  midFlame.scaling.set(.56,1.36,.56);
+  midFlame.material=materials.flameMid;
+  midFlame.parent=root;
+
+  const inner=BABYLON.MeshBuilder.CreateSphere(
+    name+"-flame-inner",
+    {diameter:1.35,segments:10},
+    scene,
+  );
+  inner.position.set(baseWorld.x+.10,6.55,baseWorld.z-.06);
+  inner.scaling.set(.52,1.42,.52);
+  inner.material=materials.flameInner;
+  inner.parent=root;
+
+  flames.push({
+    outer,
+    mid:midFlame,
+    inner,
+    baseY:6.62,
+    phase,
+  });
 
   const light=new BABYLON.PointLight(
     name+"-light",
-    new BABYLON.Vector3(baseWorld.x,6.2,baseWorld.z),
+    new BABYLON.Vector3(baseWorld.x,7.15,baseWorld.z),
     scene,
   );
   light.diffuse=new BABYLON.Color3(1.0,.43,.13);
-  light.specular=new BABYLON.Color3(.48,.20,.08);
-  light.intensity=1.25;
-  light.range=23;
+  light.specular=new BABYLON.Color3(.62,.28,.10);
+  light.intensity=2.15;
+  light.range=31;
   lights.push(light);
 }
 
@@ -770,21 +830,109 @@ function addTorches(
   root,
   shadowCasters,
   lights,
+  flames,
 ) {
   const b=arena.bounds;
-  const margin=27;
+  // Keep the braziers just outside gameplay bounds but well inside the visual
+  // frame, so their flames are a major composition element like the reference.
+  const margin=7;
   const points=[
-    ["nw",b.x-margin,b.y-margin],
-    ["ne",b.x+b.w+margin,b.y-margin],
-    ["sw",b.x-margin,b.y+b.h+margin],
-    ["se",b.x+b.w+margin,b.y+b.h+margin],
+    ["nw",b.x-margin,b.y-margin,0.0],
+    ["ne",b.x+b.w+margin,b.y-margin,1.4],
+    ["sw",b.x-margin,b.y+b.h+margin,2.5],
+    ["se",b.x+b.w+margin,b.y+b.h+margin,3.7],
   ];
-  for(const [id,x,y] of points){
+  for(const [id,x,y,phase] of points){
     addTorchPedestal(
       BABYLON,scene,
       "babylon-torch-"+id,
-      x,y,mapping,materials,root,shadowCasters,lights,
+      x,y,mapping,materials,root,shadowCasters,lights,flames,phase,
     );
+  }
+}
+
+function addBanners(BABYLON,scene,arena,mapping,materials,root) {
+  const b=arena.bounds;
+  const placements=[
+    ["left-upper",b.x-10,b.y+118,-Math.PI/2],
+    ["left-lower",b.x-10,b.y+b.h-118,-Math.PI/2],
+    ["right-upper",b.x+b.w+10,b.y+118,Math.PI/2],
+    ["right-lower",b.x+b.w+10,b.y+b.h-118,Math.PI/2],
+  ];
+
+  for(const [id,x,y,rotationY] of placements){
+    const p=mapping.gameToWorld(x,y,3.7);
+    const cloth=BABYLON.MeshBuilder.CreatePlane(
+      "babylon-banner-"+id,
+      {width:4.2,height:6.7,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      scene,
+    );
+    cloth.position.set(p.x,3.7,p.z);
+    cloth.rotation.y=rotationY;
+    cloth.material=materials.banner;
+    cloth.parent=root;
+
+    const stripe=BABYLON.MeshBuilder.CreatePlane(
+      "babylon-banner-stripe-"+id,
+      {width:1.0,height:4.7,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      scene,
+    );
+    stripe.position.set(
+      p.x+(rotationY<0?.035:-.035),
+      3.8,
+      p.z+(Math.abs(rotationY)>.1?0:.035),
+    );
+    stripe.rotation.y=rotationY;
+    stripe.material=materials.bannerGold;
+    stripe.parent=root;
+  }
+}
+
+function addRubble(
+  BABYLON,
+  scene,
+  arena,
+  mapping,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const b=arena.bounds;
+  const random=seededRandom(
+    arena.id==="windscar-proving-grounds"?0x88c125:0x5f22ab,
+  );
+  const clusters=[
+    [b.x+42,b.y+46],
+    [b.x+b.w-42,b.y+46],
+    [b.x+42,b.y+b.h-46],
+    [b.x+b.w-42,b.y+b.h-46],
+  ];
+
+  let rubbleIndex=0;
+  for(const [cx,cy] of clusters){
+    const pieces=6+Math.floor(random()*4);
+    for(let i=0;i<pieces;i+=1){
+      const angle=random()*Math.PI*2;
+      const radius=14+random()*62;
+      const gx=cx+Math.cos(angle)*radius;
+      const gy=cy+Math.sin(angle)*radius;
+      const p=mapping.gameToWorld(gx,gy,0);
+      const w=.55+random()*1.30;
+      const d=.55+random()*1.15;
+      const h=.28+random()*.72;
+      const rock=createChamferedPrism(
+        BABYLON,scene,
+        "babylon-rubble-"+rubbleIndex++,
+        w,h,d,
+        Math.min(.18,w*.16,d*.16),
+        {x:p.x,y:h/2,z:p.z},
+        random()>.52?materials.rubble:materials.rubbleDark,
+      );
+      rock.rotation.y=random()*Math.PI;
+      rock.parent=root;
+      rock.receiveShadows=true;
+      if(h>.55) shadowCasters.push(rock);
+    }
   }
 }
 
@@ -792,38 +940,49 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const root=new BABYLON.TransformNode("babylon-arena-root",scene);
   const shadowCasters=[];
   const lights=[];
+  const flames=[];
   const ownedTextures=[];
 
   const materials={
-    floor:material(BABYLON,scene,"mat-floor","#6b4631","#1a100c"),
-    floorLift:material(BABYLON,scene,"mat-floor-lift","#855a3d","#25160f"),
-    seam:material(BABYLON,scene,"mat-floor-seam","#2a1812","#120b08"),
-    seamSoft:material(BABYLON,scene,"mat-floor-seam-soft","#40281d","#120b08"),
-    crack:material(BABYLON,scene,"mat-crack","#21120e","#090605"),
-    stoneBase:material(BABYLON,scene,"mat-stone-base","#2f211b","#120c09"),
-    stoneSide:material(BABYLON,scene,"mat-stone-side","#574033","#1b120d"),
-    stoneShoulder:material(BABYLON,scene,"mat-stone-shoulder","#674b3a","#21150f"),
-    stoneTop:material(BABYLON,scene,"mat-stone-top","#80604a","#2c1c14"),
-    stoneTopAlt:material(BABYLON,scene,"mat-stone-top-alt","#735440","#281a13"),
-    border:material(BABYLON,scene,"mat-border","#34231d","#120c09"),
-    borderCap:material(BABYLON,scene,"mat-border-cap","#624535","#21150f"),
-    borderTower:material(BABYLON,scene,"mat-border-tower","#3d2a22","#150e0b"),
-    innerLip:material(BABYLON,scene,"mat-inner-lip","#493125","#160e0a"),
-    torchBase:material(BABYLON,scene,"mat-torch-base","#30221c","#120c09"),
-    torchStone:material(BABYLON,scene,"mat-torch-stone","#5a4032","#1b120d"),
-    brazier:material(BABYLON,scene,"mat-brazier","#261a15","#28170e"),
+    floor:material(BABYLON,scene,"mat-floor","#675344","#17120f"),
+    floorLift:material(BABYLON,scene,"mat-floor-lift","#79614c","#201914"),
+    seam:material(BABYLON,scene,"mat-floor-seam","#30251f","#100c0a"),
+    seamSoft:material(BABYLON,scene,"mat-floor-seam-soft","#49382d","#15100d"),
+    crack:material(BABYLON,scene,"mat-crack","#211a16","#090706"),
+    stoneBase:material(BABYLON,scene,"mat-stone-base","#3a312c","#11100e"),
+    stoneSide:material(BABYLON,scene,"mat-stone-side","#5a5049","#171411"),
+    stoneShoulder:material(BABYLON,scene,"mat-stone-shoulder","#695c52","#1c1713"),
+    stoneTop:material(BABYLON,scene,"mat-stone-top","#897767","#2b211a"),
+    stoneTopAlt:material(BABYLON,scene,"mat-stone-top-alt","#7b695b","#261d18"),
+    border:material(BABYLON,scene,"mat-border","#372f2b","#100d0b"),
+    borderCap:material(BABYLON,scene,"mat-border-cap","#68584b","#211913"),
+    borderTower:material(BABYLON,scene,"mat-border-tower","#403731","#13100e"),
+    innerLip:material(BABYLON,scene,"mat-inner-lip","#4b3e34","#15110e"),
+    torchBase:material(BABYLON,scene,"mat-torch-base","#37302b","#110e0c"),
+    torchStone:material(BABYLON,scene,"mat-torch-stone","#62554b","#1c1713"),
+    brazier:material(BABYLON,scene,"mat-brazier","#241b16","#4a2814"),
+    rubble:material(BABYLON,scene,"mat-rubble","#66584d","#1c1713"),
+    rubbleDark:material(BABYLON,scene,"mat-rubble-dark","#4b4139","#15120f"),
+    banner:material(BABYLON,scene,"mat-banner","#5e1f18","#160a08"),
+    bannerGold:material(BABYLON,scene,"mat-banner-gold","#a56629","#26160b"),
     flameOuter:material(
-      BABYLON,scene,"mat-flame-outer","#ff6b1b","#331307","#ff4e0c"
+      BABYLON,scene,"mat-flame-outer","#ff5b10","#3b1506","#ff3f08"
+    ),
+    flameMid:material(
+      BABYLON,scene,"mat-flame-mid","#ff9426","#4a2207","#ff7b13"
     ),
     flameInner:material(
-      BABYLON,scene,"mat-flame-inner","#ffd268","#4a2408","#ffb52e"
+      BABYLON,scene,"mat-flame-inner","#ffe08a","#5a300b","#ffc84c"
     ),
   };
 
   materials.seam.alpha=.90;
   materials.seamSoft.alpha=.48;
   materials.flameOuter.disableLighting=true;
+  materials.flameMid.disableLighting=true;
   materials.flameInner.disableLighting=true;
+  materials.banner.specularColor=new BABYLON.Color3(.08,.03,.02);
+  materials.bannerGold.specularColor=new BABYLON.Color3(.18,.10,.04);
 
   const ground=addFloor(
     BABYLON,scene,arena,mapping,materials,root,ownedTextures,
@@ -839,8 +998,14 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     );
   }
 
+  addRubble(
+    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
+  );
+  addBanners(
+    BABYLON,scene,arena,mapping,materials,root,
+  );
   addTorches(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,lights,
+    BABYLON,scene,arena,mapping,materials,root,shadowCasters,lights,flames,
   );
 
   return {
@@ -848,6 +1013,29 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     ground,
     shadowCasters,
     lights,
+    flames,
+    animate(timeSeconds=0) {
+      for(const flame of flames){
+        const t=timeSeconds+flame.phase;
+        const sway=Math.sin(t*3.1)*.09+Math.sin(t*5.7)*.035;
+        const pulse=1+Math.sin(t*4.6)*.07;
+        flame.outer.scaling.x=.60*pulse;
+        flame.outer.scaling.z=.60*pulse;
+        flame.outer.scaling.y=1.28*(1+Math.sin(t*3.8)*.08);
+        flame.outer.position.y=flame.baseY+.10+Math.sin(t*4.2)*.08;
+        flame.outer.rotation.z=sway;
+        flame.mid.scaling.x=.56*(1+Math.sin(t*5.1+1)*.06);
+        flame.mid.scaling.z=.56*(1+Math.sin(t*4.4+.7)*.06);
+        flame.mid.scaling.y=1.36*(1+Math.sin(t*4.9)*.09);
+        flame.mid.position.y=flame.baseY+Math.sin(t*4.8+.8)*.07;
+        flame.inner.scaling.y=1.42*(1+Math.sin(t*6.1+.4)*.08);
+        flame.inner.position.y=flame.baseY-.07+Math.sin(t*5.3)*.06;
+      }
+      for(let i=0;i<lights.length;i+=1){
+        const light=lights[i];
+        light.intensity=2.05+Math.sin(timeSeconds*4.2+i*1.7)*.16;
+      }
+    },
     dispose() {
       for(const light of lights) light?.dispose?.();
       root.dispose(false,true);

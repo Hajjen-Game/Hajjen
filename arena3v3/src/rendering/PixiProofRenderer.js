@@ -8350,96 +8350,106 @@ export class PixiProofRenderer {
           }
 
           if(effect.spellId==="priest-flash-heal"){
-            const collapse=1-eased;
-            const outer=29+collapse*15;
-            const inner=7+eased*3;
+            const top=dy-58;
+            const beamFade=alpha*fade*appear;
 
-            glow.circle(dx,dy,10+eased*20).fill({
-              color:profile.main,alpha:alpha*fade*.08
-            });
+            // Flash Heal lands as a short, broad blessing of light. It is much
+            // softer and shorter than Holy Fire, but still has the clear
+            // "light comes down and healing happens" read the old version had.
+            glow
+              .moveTo(dx,top)
+              .lineTo(dx,dy+8)
+              .stroke({
+                color:profile.main,
+                width:28,
+                alpha:beamFade*.11,
+              });
 
-            for(let i=0;i<4;i++){
-              const a=Math.PI/4+i*Math.PI/2;
-              const startR=outer;
-              const endR=inner;
+            for(let i=0;i<5;i++){
+              const lane=i/4-.5;
               core
-                .moveTo(
-                  dx+Math.cos(a)*startR,
-                  dy+Math.sin(a)*startR
-                )
-                .lineTo(
-                  dx+Math.cos(a)*endR,
-                  dy+Math.sin(a)*endR
-                )
+                .moveTo(dx+lane*24,top+(i%2)*4)
+                .lineTo(dx+lane*9,dy+6)
                 .stroke({
-                  color:i%2?profile.core:profile.main,
-                  width:1.7,
-                  alpha:alpha*fade*(.36+.28*appear),
+                  color:i===2?profile.core:profile.main,
+                  width:i===2?2.8:1.8,
+                  alpha:beamFade*(i===2?.62:.38),
                 });
             }
 
-            core.circle(dx,dy,8+eased*17).stroke({
-              color:profile.main,width:1.9,alpha:alpha*fade*.58
+            for(let i=0;i<8;i++){
+              const side=(i-3.5)*6;
+              const fall=(p*26+(i%4)*9)%54;
+              core.circle(
+                dx+side+Math.sin(seed*.03+i+p*6)*2.5,
+                top+8+fall,
+                1.2+(i%3)*.4
+              ).fill({
+                color:i%3===0?profile.core:profile.main,
+                alpha:alpha*fade*.48,
+              });
+            }
+
+            core.circle(dx,dy,9+eased*22).stroke({
+              color:profile.main,width:2.1,alpha:alpha*fade*.60
             });
-            core.circle(dx,dy,3.5+appear*3.5).fill({
-              color:profile.core,alpha:alpha*fade*.68
+            core.circle(dx,dy,4+appear*3.5).fill({
+              color:profile.core,alpha:alpha*fade*.66
             });
             continue;
           }
 
-          // Greater Heal has a broader ceremonial restoration seal rather than
-          // a sky strike: three expanding halos plus light rising from the ally.
-          const baseRadius=10+eased*30*power;
-          glow.circle(dx,dy,baseRadius*.92).fill({
-            color:profile.main,alpha:alpha*fade*.09
-          });
+          // Greater Heal keeps the same restorative language as Flash Heal,
+          // but with a broader, longer blessing and denser falling particles.
+          const top=dy-84;
+          const beamFade=alpha*fade*appear;
 
-          for(let ring=0;ring<3;ring++){
-            core.circle(
-              dx,
-              dy,
-              baseRadius+ring*7
-            ).stroke({
-              color:ring===1?profile.core:profile.main,
-              width:ring===1?1.8:1.35,
-              alpha:alpha*fade*(.56-ring*.10),
+          glow
+            .moveTo(dx,top)
+            .lineTo(dx,dy+10)
+            .stroke({
+              color:profile.main,
+              width:40,
+              alpha:beamFade*.13,
             });
-          }
 
-          for(let i=0;i<8;i++){
-            const a=i/8*Math.PI*2+seed*.003;
-            const inner=10+eased*6;
-            const outer=22+eased*(18+(i%2)*5);
+          for(let i=0;i<7;i++){
+            const lane=i/6-.5;
             core
-              .moveTo(
-                dx+Math.cos(a)*inner,
-                dy+Math.sin(a)*inner
-              )
-              .lineTo(
-                dx+Math.cos(a)*outer,
-                dy+Math.sin(a)*outer
-              )
+              .moveTo(dx+lane*36,top+(i%3)*4)
+              .lineTo(dx+lane*12,dy+7)
               .stroke({
-                color:i%2?profile.core:profile.main,
-                width:1.4,
-                alpha:alpha*fade*.42,
+                color:i%3===0?profile.core:profile.main,
+                width:i===3?3.4:2.0,
+                alpha:beamFade*(i===3?.68:.42),
               });
           }
 
-          for(let i=0;i<8;i++){
-            const side=(i-3.5)*5.2;
+          for(let i=0;i<13;i++){
+            const lane=(i-6)*5.2;
+            const fall=(p*34+(i%5)*11)%76;
             core.circle(
-              dx+side+Math.sin(seed*.04+i+p*6)*2.5,
-              dy+13-p*(27+(i%3)*5),
-              1.15+(i%3)*.4
+              dx+lane+Math.sin(seed*.037+i*1.7+p*7)*3.2,
+              top+8+fall,
+              1.2+(i%3)*.45
             ).fill({
               color:i%3===0?profile.core:profile.main,
-              alpha:alpha*fade*.50,
+              alpha:alpha*fade*.52,
             });
           }
 
-          core.circle(dx,dy,4+appear*4).fill({
-            color:profile.core,alpha:alpha*fade*.68
+          const baseRadius=11+eased*31*power;
+          glow.circle(dx,dy,baseRadius*.88).fill({
+            color:profile.main,alpha:alpha*fade*.08
+          });
+          core.circle(dx,dy,baseRadius).stroke({
+            color:profile.main,width:2.5,alpha:alpha*fade*.62
+          });
+          core.circle(dx,dy,Math.max(7,baseRadius-8)).stroke({
+            color:profile.core,width:1.35,alpha:alpha*fade*.44
+          });
+          core.circle(dx,dy,4.5+appear*4).fill({
+            color:profile.core,alpha:alpha*fade*.70
           });
           continue;
         }

@@ -171,6 +171,32 @@ function addBorder(BABYLON, scene, arena, mapping, materials, root, shadowCaster
   });
 }
 
+export function babylonObstacleVisualHeight(rect) {
+  const longSide = Math.max(
+    0.01,
+    Number(rect?.width) || 0,
+    Number(rect?.depth) || 0,
+  );
+  const shortSide = Math.max(
+    0.01,
+    Math.min(
+      Number(rect?.width) || longSide,
+      Number(rect?.depth) || longSide,
+    ),
+  );
+  const aspect = longSide / shortSide;
+  const baseHeight = 8.4 + Math.min(2.2, longSide * 0.035);
+
+  // Long LOS walls should read lower than square pillars. Besides looking more
+  // natural, this prevents their broad roof plane from swallowing characters
+  // more aggressively than the square pillars in the 2.5D composition.
+  const wallScale = aspect > 2
+    ? Math.max(.68, 1 - (aspect - 2) * .17)
+    : 1;
+
+  return baseHeight * wallScale;
+}
+
 function addObstacle(
   BABYLON,
   scene,
@@ -182,7 +208,7 @@ function addObstacle(
   shadowCasters,
 ) {
   const rect = mapping.rectToWorld(obstacle);
-  const height = 8.4 + Math.min(2.2, Math.max(rect.width, rect.depth) * 0.035);
+  const height = babylonObstacleVisualHeight(rect);
   const baseCenter = {
     x: rect.center.x,
     y: height / 2,

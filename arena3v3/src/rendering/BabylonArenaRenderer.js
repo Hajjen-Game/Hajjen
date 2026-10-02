@@ -1,6 +1,9 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babylon1";
-import { buildBabylonArenaGeometry } from "./BabylonArenaGeometry.js?v=20261002-babylon1";
+import {
+  babylonObstacleVisualHeight,
+  buildBabylonArenaGeometry,
+} from "./BabylonArenaGeometry.js?v=20261002-babylon2";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -201,9 +204,7 @@ export class BabylonArenaRenderer {
 
     for (const obstacle of this._arena.obstacles || []) {
       const rect = this.mapping.rectToWorld(obstacle);
-      const height =
-        8.4
-        + Math.min(2.2, Math.max(rect.width, rect.depth) * 0.035);
+      const height = babylonObstacleVisualHeight(rect);
       const capHeight = 0.48;
       const topElevation = height + capHeight;
 

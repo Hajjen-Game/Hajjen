@@ -1,9 +1,9 @@
-import { Game } from "./core/Game.js?v=20261002-babylon21";
+import { Game } from "./core/Game.js?v=20261002-babylon22";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem, migrateExistingRatingsToStartingRating } from "./core/RatingSystem.js?v=20260928-rating1000";
-import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20260925-windscar2";
+import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20261002-bastion1";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,
@@ -33,9 +33,9 @@ const input = new InputManager();
 const characters = new CharacterStore();
 const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "death-knight", "mage", "warlock", "shaman"]);
 const QUERY_PARAMS = new URLSearchParams(window.location.search);
-const BABYLON_PREVIEW_LOCKED_TO_WINDSCAR =
+const BABYLON_PREVIEW_LOCKED_TO_SHOWCASE =
   (QUERY_PARAMS.get("renderer") || "").toLowerCase() === "babylon";
-const BABYLON_PREVIEW_ARENA = arenaById("windscar-proving-grounds");
+const BABYLON_PREVIEW_ARENA = arenaById("emberwatch-bastion");
 
 let game = null;
 let activeCharacter = null;

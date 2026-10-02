@@ -637,6 +637,158 @@ function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
   return texture;
 }
 
+function createEmberwatchFloorTexture(BABYLON,scene,arena,mapping) {
+  const width=1280;
+  const height=Math.max(576,Math.round(width*mapping.height/mapping.width));
+  const texture=new BABYLON.DynamicTexture(
+    "babylon-emberwatch-floor-texture",
+    {width,height},
+    scene,
+    false,
+  );
+  const ctx=texture.getContext();
+  const sx=width/mapping.width;
+  const sy=height/mapping.height;
+  const b=arena.bounds;
+  const random=seededRandom(0xe8ba57);
+
+  ctx.fillStyle="#17191d";
+  ctx.fillRect(0,0,width,height);
+
+  const bevel=30;
+  const poly=[
+    [(b.x+bevel)*sx,b.y*sy],
+    [(b.x+b.w-bevel)*sx,b.y*sy],
+    [(b.x+b.w)*sx,(b.y+bevel)*sy],
+    [(b.x+b.w)*sx,(b.y+b.h-bevel)*sy],
+    [(b.x+b.w-bevel)*sx,(b.y+b.h)*sy],
+    [(b.x+bevel)*sx,(b.y+b.h)*sy],
+    [b.x*sx,(b.y+b.h-bevel)*sy],
+    [b.x*sx,(b.y+bevel)*sy],
+  ];
+  const arenaPath=()=>{
+    ctx.beginPath();
+    ctx.moveTo(poly[0][0],poly[0][1]);
+    for(let i=1;i<poly.length;i+=1) ctx.lineTo(poly[i][0],poly[i][1]);
+    ctx.closePath();
+  };
+
+  arenaPath();
+  const base=ctx.createLinearGradient(
+    b.x*sx,b.y*sy,
+    (b.x+b.w)*sx,(b.y+b.h)*sy,
+  );
+  base.addColorStop(0,"#49505a");
+  base.addColorStop(.42,"#3f4650");
+  base.addColorStop(1,"#323943");
+  ctx.fillStyle=base;
+  ctx.fill();
+
+  ctx.save();
+  arenaPath();
+  ctx.clip();
+
+  // Big low-poly floor plates: clean enough for combat, authored enough to
+  // read as a fantasy fortress courtyard.
+  const platePalette=[
+    "rgba(134,145,154,.12)",
+    "rgba(84,94,105,.14)",
+    "rgba(157,137,112,.055)",
+    "rgba(42,49,59,.16)",
+  ];
+  const cols=7;
+  const rows=4;
+  const cellW=b.w/cols;
+  const cellH=b.h/rows;
+  for(let row=0;row<rows;row+=1){
+    for(let col=0;col<cols;col+=1){
+      const x0=(b.x+col*cellW)*sx;
+      const y0=(b.y+row*cellH)*sy;
+      const x1=(b.x+(col+1)*cellW)*sx;
+      const y1=(b.y+(row+1)*cellH)*sy;
+      const j=9*sx;
+      ctx.beginPath();
+      ctx.moveTo(x0+(random()-.5)*j,y0+(random()-.5)*j);
+      ctx.lineTo(x1+(random()-.5)*j,y0+(random()-.5)*j);
+      ctx.lineTo(x1+(random()-.5)*j,y1+(random()-.5)*j);
+      ctx.lineTo(x0+(random()-.5)*j,y1+(random()-.5)*j);
+      ctx.closePath();
+      ctx.fillStyle=platePalette[(row*cols+col)%platePalette.length];
+      ctx.fill();
+      ctx.strokeStyle="rgba(19,23,29,.16)";
+      ctx.lineWidth=1.1*sx;
+      ctx.stroke();
+    }
+  }
+
+  // Angular central crest / lane marker – explicitly not a circle.
+  const cx=(b.x+b.w/2)*sx;
+  const cy=(b.y+b.h/2)*sy;
+  ctx.strokeStyle="rgba(193,154,99,.13)";
+  ctx.lineWidth=2.1*sx;
+  ctx.beginPath();
+  ctx.moveTo(cx-118*sx,cy);
+  ctx.lineTo(cx-42*sx,cy-54*sy);
+  ctx.lineTo(cx,cy-20*sy);
+  ctx.lineTo(cx+42*sx,cy-54*sy);
+  ctx.lineTo(cx+118*sx,cy);
+  ctx.lineTo(cx+42*sx,cy+54*sy);
+  ctx.lineTo(cx,cy+20*sy);
+  ctx.lineTo(cx-42*sx,cy+54*sy);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Local warm pools at corner braziers.
+  ctx.globalCompositeOperation="screen";
+  const lights=[
+    [b.x+42,b.y+44],
+    [b.x+b.w-42,b.y+44],
+    [b.x+42,b.y+b.h-44],
+    [b.x+b.w-42,b.y+b.h-44],
+  ];
+  for(const [gx,gy] of lights){
+    const x=gx*sx;
+    const y=gy*sy;
+    const r=120*sx;
+    const g=ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,"rgba(255,138,54,.23)");
+    g.addColorStop(.34,"rgba(232,91,33,.095)");
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;
+    ctx.fillRect(x-r,y-r,r*2,r*2);
+  }
+  ctx.globalCompositeOperation="source-over";
+
+  // Sparse chips only.
+  for(let i=0;i<50;i+=1){
+    const x=(b.x+45+random()*(b.w-90))*sx;
+    const y=(b.y+42+random()*(b.h-84))*sy;
+    const r=(1.2+random()*3.8)*sx;
+    ctx.fillStyle=random()>.5
+      ?"rgba(202,180,145,.10)"
+      :"rgba(19,24,30,.18)";
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  arenaPath();
+  ctx.strokeStyle="rgba(12,15,20,.72)";
+  ctx.lineWidth=5*sx;
+  ctx.stroke();
+  arenaPath();
+  ctx.strokeStyle="rgba(188,158,116,.10)";
+  ctx.lineWidth=1.2*sx;
+  ctx.stroke();
+
+  texture.update(false);
+  texture.wrapU=BABYLON.Texture.CLAMP_ADDRESSMODE;
+  texture.wrapV=BABYLON.Texture.CLAMP_ADDRESSMODE;
+  texture.anisotropicFilteringLevel=8;
+  return texture;
+}
+
 function createGrandRingFloorTexture(BABYLON,scene,arena,mapping) {
   const width=1024;
   const height=Math.max(512,Math.round(width*mapping.height/mapping.width));
@@ -679,6 +831,9 @@ function createGrandRingFloorTexture(BABYLON,scene,arena,mapping) {
 }
 
 function createFloorTexture(BABYLON,scene,arena,mapping) {
+  if(arena.id==="emberwatch-bastion"){
+    return createEmberwatchFloorTexture(BABYLON,scene,arena,mapping);
+  }
   return arena.id==="windscar-proving-grounds"
     ? createWindscarFloorTexture(BABYLON,scene,arena,mapping)
     : createGrandRingFloorTexture(BABYLON,scene,arena,mapping);
@@ -688,9 +843,11 @@ function addFloor(BABYLON,scene,arena,mapping,materials,root,ownedTextures) {
   const floorTexture=createFloorTexture(BABYLON,scene,arena,mapping);
   ownedTextures.push(floorTexture);
 
-  const floorMat=arena.id==="windscar-proving-grounds"
-    ? materials.floor
-    : materials.grandFloor;
+  const floorMat=arena.id==="emberwatch-bastion"
+    ? materials.bastionFloor
+    : arena.id==="windscar-proving-grounds"
+      ? materials.floor
+      : materials.grandFloor;
   if(floorMat instanceof BABYLON.PBRMaterial){
     floorMat.albedoTexture=floorTexture;
     floorMat.albedoColor=new BABYLON.Color3(1,1,1);
@@ -1388,6 +1545,363 @@ function addWindscarObstacle(
   addWindscarPillar(
     BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
   );
+}
+
+function addBastionSpire(
+  BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
+) {
+  const h=6.15;
+  const c=Math.min(.75,Math.min(rect.width,rect.depth)*.11);
+
+  const base=createChamferedPrism(
+    BABYLON,scene,"bastion-spire-base-"+index,
+    rect.width,.52,rect.depth,c,
+    {x:rect.center.x,y:.26,z:rect.center.z},
+    materials.bastionStoneDark,
+  );
+  base.parent=root; base.receiveShadows=true; shadowCasters.push(base);
+
+  const step=createChamferedPrism(
+    BABYLON,scene,"bastion-spire-step-"+index,
+    rect.width-.34,.42,rect.depth-.34,c*.9,
+    {x:rect.center.x,y:.73,z:rect.center.z},
+    materials.bastionStoneTrim,
+  );
+  step.parent=root; step.receiveShadows=true; shadowCasters.push(step);
+
+  const body=createChamferedFrustum(
+    BABYLON,scene,"bastion-spire-body-"+index,
+    rect.width-.78,rect.depth-.78,
+    rect.width-1.72,rect.depth-1.72,
+    3.58,c*.72,
+    {x:rect.center.x,y:2.63,z:rect.center.z},
+    materials.bastionStone,
+  );
+  body.parent=root; body.receiveShadows=true; shadowCasters.push(body);
+
+  // Four sloped buttresses around the lower body.
+  const offsets=[
+    [-rect.width*.31,0,1.20,2.5],
+    [rect.width*.31,0,1.20,2.5],
+    [0,-rect.depth*.31,2.5,1.20],
+    [0,rect.depth*.31,2.5,1.20],
+  ];
+  offsets.forEach(([ox,oz,w,d],i)=>{
+    const buttress=createChamferedFrustum(
+      BABYLON,scene,"bastion-spire-buttress-"+index+"-"+i,
+      w,d,w*.72,d*.72,
+      2.0,.20,
+      {x:rect.center.x+ox,y:1.55,z:rect.center.z+oz},
+      materials.bastionStoneDark,
+    );
+    buttress.parent=root;
+    buttress.receiveShadows=true;
+    shadowCasters.push(buttress);
+  });
+
+  const capital=createChamferedPrism(
+    BABYLON,scene,"bastion-spire-capital-"+index,
+    rect.width-1.05,.44,rect.depth-1.05,c*.78,
+    {x:rect.center.x,y:4.72,z:rect.center.z},
+    materials.bastionStoneTop,
+  );
+  capital.parent=root; capital.receiveShadows=true; shadowCasters.push(capital);
+
+  const roof=BABYLON.MeshBuilder.CreateCylinder(
+    "bastion-spire-roof-"+index,
+    {
+      diameterTop:.12,
+      diameterBottom:Math.min(rect.width,rect.depth)-1.28,
+      height:1.42,
+      tessellation:4,
+    },
+    scene,
+  );
+  roof.position.set(rect.center.x,5.66,rect.center.z);
+  roof.rotation.y=Math.PI/4;
+  roof.material=materials.bastionStoneTop;
+  roof.convertToFlatShadedMesh?.();
+  roof.parent=root; roof.receiveShadows=true; shadowCasters.push(roof);
+
+  const rune=BABYLON.MeshBuilder.CreateDisc(
+    "bastion-spire-rune-"+index,
+    {radius:.42,tessellation:4,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  rune.position.set(rect.center.x,2.85,rect.center.z-rect.depth/2-.03);
+  rune.rotation.z=Math.PI/4;
+  rune.material=materials.bastionRune;
+  rune.parent=root;
+}
+
+function addBastionRampart(
+  BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
+) {
+  const horizontal=rect.width>=rect.depth;
+  const h=4.35;
+  const c=.40;
+
+  const base=createChamferedPrism(
+    BABYLON,scene,"bastion-rampart-base-"+index,
+    rect.width,.48,rect.depth,c,
+    {x:rect.center.x,y:.24,z:rect.center.z},
+    materials.bastionStoneDark,
+  );
+  base.parent=root; base.receiveShadows=true; shadowCasters.push(base);
+
+  const main=createChamferedFrustum(
+    BABYLON,scene,"bastion-rampart-main-"+index,
+    rect.width-.32,rect.depth-.32,
+    rect.width-.76,rect.depth-.72,
+    2.68,c*.86,
+    {x:rect.center.x,y:1.80,z:rect.center.z},
+    materials.bastionStone,
+  );
+  main.parent=root; main.receiveShadows=true; shadowCasters.push(main);
+
+  const longSide=horizontal?rect.width:rect.depth;
+  const endOffset=longSide/2-2.30;
+  for(const side of [-1,1]){
+    const px=rect.center.x+(horizontal?side*endOffset:0);
+    const pz=rect.center.z+(horizontal?0:side*endOffset);
+    const tower=createChamferedFrustum(
+      BABYLON,scene,"bastion-rampart-tower-"+index+"-"+side,
+      horizontal?3.7:rect.width-.52,
+      horizontal?rect.depth-.52:3.7,
+      horizontal?3.15:rect.width-.90,
+      horizontal?rect.depth-.90:3.15,
+      1.58,.34,
+      {x:px,y:3.42,z:pz},
+      materials.bastionStoneTrim,
+    );
+    tower.parent=root; tower.receiveShadows=true; shadowCasters.push(tower);
+
+    const roof=BABYLON.MeshBuilder.CreateCylinder(
+      "bastion-rampart-roof-"+index+"-"+side,
+      {diameterTop:.10,diameterBottom:2.85,height:.76,tessellation:4},
+      scene,
+    );
+    roof.position.set(px,4.58,pz);
+    roof.rotation.y=Math.PI/4;
+    roof.material=materials.bastionStoneTop;
+    roof.convertToFlatShadedMesh?.();
+    roof.parent=root; roof.receiveShadows=true; shadowCasters.push(roof);
+  }
+
+  const inset=BABYLON.MeshBuilder.CreatePlane(
+    "bastion-rampart-inset-"+index,
+    {
+      width:horizontal?Math.min(6.6,rect.width-5.0):1.28,
+      height:horizontal?1.12:Math.min(6.6,rect.depth-5.0),
+      sideOrientation:BABYLON.Mesh.DOUBLESIDE,
+    },
+    scene,
+  );
+  if(horizontal){
+    inset.position.set(rect.center.x,1.92,rect.center.z-rect.depth/2-.03);
+  }else{
+    inset.position.set(rect.center.x-rect.width/2-.03,1.92,rect.center.z);
+    inset.rotation.y=Math.PI/2;
+  }
+  inset.material=materials.bastionInset;
+  inset.parent=root;
+}
+
+function addBastionObstacle(
+  BABYLON,scene,obstacle,index,mapping,materials,root,shadowCasters,
+) {
+  const rect=mapping.rectToWorld(obstacle);
+  addContactShadow(
+    BABYLON,scene,
+    "bastion-los-shadow-"+(obstacle.id||index),
+    rect.center,rect.width+2.8,rect.depth+3.0,
+    materials,root,
+  );
+  if(obstacle.id.includes("rampart")){
+    addBastionRampart(
+      BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
+    );
+  }else{
+    addBastionSpire(
+      BABYLON,scene,obstacle,index,rect,materials,root,shadowCasters,
+    );
+  }
+}
+
+function addBastionBrazier(
+  BABYLON,scene,name,gx,gy,mapping,materials,root,shadowCasters,
+  lights,flames,particleSystems,particleTexture,phase,
+) {
+  const p=mapping.gameToWorld(gx,gy,0);
+
+  const dais=BABYLON.MeshBuilder.CreateCylinder(
+    name+"-dais",
+    {diameterTop:3.55,diameterBottom:4.15,height:.62,tessellation:8},
+    scene,
+  );
+  dais.position.set(p.x,.31,p.z);
+  dais.material=materials.bastionStoneDark;
+  dais.convertToFlatShadedMesh?.();
+  dais.parent=root; dais.receiveShadows=true; shadowCasters.push(dais);
+
+  const bowl=BABYLON.MeshBuilder.CreateCylinder(
+    name+"-bowl",
+    {diameterTop:2.0,diameterBottom:1.25,height:.56,tessellation:8},
+    scene,
+  );
+  bowl.position.set(p.x,.90,p.z);
+  bowl.material=materials.bastionMetal;
+  bowl.convertToFlatShadedMesh?.();
+  bowl.parent=root; shadowCasters.push(bowl);
+
+  const defs=[
+    ["outer",1.26,.07,2.02,1.95,materials.flameOuter,.07],
+    ["mid",.84,.05,1.62,1.80,materials.flameMid,-.07],
+    ["inner",.44,.03,1.18,1.67,materials.flameInner,.05],
+  ];
+  const parts={};
+  for(const [key,bottom,top,height,y,mat,tilt] of defs){
+    const flame=BABYLON.MeshBuilder.CreateCylinder(
+      name+"-flame-"+key,
+      {diameterTop:top,diameterBottom:bottom,height,tessellation:5},
+      scene,
+    );
+    flame.position.set(p.x,y,p.z);
+    flame.rotation.z=tilt;
+    flame.material=mat;
+    flame.convertToFlatShadedMesh?.();
+    flame.parent=root;
+    parts[key]=flame;
+  }
+  flames.push({
+    outer:parts.outer,mid:parts.mid,inner:parts.inner,
+    glow:null,baseY:1.90,phase,
+  });
+
+  const glow=BABYLON.MeshBuilder.CreateDisc(
+    name+"-glow",
+    {radius:5.1,tessellation:32,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  glow.position.set(p.x,.025,p.z);
+  glow.rotation.x=Math.PI/2;
+  glow.material=materials.floorGlow;
+  glow.parent=root;
+
+  const light=new BABYLON.PointLight(
+    name+"-light",new BABYLON.Vector3(p.x,3.0,p.z),scene,
+  );
+  light.diffuse=new BABYLON.Color3(1.0,.48,.18);
+  light.specular=new BABYLON.Color3(.72,.31,.12);
+  light.intensity=3.45;
+  light.range=30;
+  light.radius=.75;
+  lights.push(light);
+
+  if(particleTexture && BABYLON.ParticleSystem){
+    const sparks=new BABYLON.ParticleSystem(name+"-embers",55,scene);
+    sparks.particleTexture=particleTexture;
+    sparks.emitter=new BABYLON.Vector3(p.x,1.35,p.z);
+    sparks.minEmitBox=new BABYLON.Vector3(-.25,0,-.25);
+    sparks.maxEmitBox=new BABYLON.Vector3(.25,.12,.25);
+    sparks.color1=new BABYLON.Color4(1,.47,.10,1);
+    sparks.color2=new BABYLON.Color4(1,.78,.28,.9);
+    sparks.colorDead=new BABYLON.Color4(.25,.05,.01,0);
+    sparks.minSize=.07; sparks.maxSize=.18;
+    sparks.minLifeTime=.30; sparks.maxLifeTime=.72;
+    sparks.emitRate=18;
+    sparks.blendMode=BABYLON.ParticleSystem.BLENDMODE_ADD;
+    sparks.direction1=new BABYLON.Vector3(-.15,1.45,-.15);
+    sparks.direction2=new BABYLON.Vector3(.15,2.15,.15);
+    sparks.minEmitPower=.6; sparks.maxEmitPower=1.0;
+    sparks.updateSpeed=.017;
+    sparks.start();
+    particleSystems.push(sparks);
+  }
+}
+
+function addBastionPerimeterTower(
+  BABYLON,scene,name,gx,gy,mapping,materials,root,shadowCasters,
+) {
+  const p=mapping.gameToWorld(gx,gy,0);
+  const body=createChamferedFrustum(
+    BABYLON,scene,name+"-body",
+    3.8,3.8,3.15,3.15,
+    3.4,.45,
+    {x:p.x,y:1.7,z:p.z},
+    materials.bastionStoneTrim,
+  );
+  body.parent=root; body.receiveShadows=true; shadowCasters.push(body);
+
+  const cap=BABYLON.MeshBuilder.CreateCylinder(
+    name+"-cap",
+    {diameterTop:.16,diameterBottom:3.65,height:1.15,tessellation:4},
+    scene,
+  );
+  cap.position.set(p.x,3.95,p.z);
+  cap.rotation.y=Math.PI/4;
+  cap.material=materials.bastionStoneTop;
+  cap.convertToFlatShadedMesh?.();
+  cap.parent=root; cap.receiveShadows=true; shadowCasters.push(cap);
+}
+
+function addBastionScenery(
+  BABYLON,scene,arena,mapping,materials,root,shadowCasters,
+  lights,flames,particleSystems,particleTexture,
+) {
+  const b=arena.bounds;
+
+  const towers=[
+    ["nw",b.x-26,b.y-22],
+    ["ne",b.x+b.w+26,b.y-22],
+    ["sw",b.x-26,b.y+b.h+22],
+    ["se",b.x+b.w+26,b.y+b.h+22],
+  ];
+  for(const [id,x,y] of towers){
+    addBastionPerimeterTower(
+      BABYLON,scene,"bastion-corner-"+id,
+      x,y,mapping,materials,root,shadowCasters,
+    );
+  }
+
+  const fires=[
+    ["nw",b.x+44,b.y+42,.2],
+    ["ne",b.x+b.w-44,b.y+42,1.6],
+    ["sw",b.x+44,b.y+b.h-42,2.8],
+    ["se",b.x+b.w-44,b.y+b.h-42,4.0],
+  ];
+  for(const [id,x,y,phase] of fires){
+    addBastionBrazier(
+      BABYLON,scene,"bastion-brazier-"+id,
+      x,y,mapping,materials,root,shadowCasters,
+      lights,flames,particleSystems,particleTexture,phase,
+    );
+  }
+
+  // Side banners create faction-arena framing without entering playable space.
+  for(const side of [-1,1]){
+    const gx=side<0?b.x-18:b.x+b.w+18;
+    const p=mapping.gameToWorld(gx,b.y+b.h/2,2.9);
+    const banner=BABYLON.MeshBuilder.CreatePlane(
+      "bastion-side-banner-"+side,
+      {width:3.2,height:6.6,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      scene,
+    );
+    banner.position.set(p.x,3.0,p.z);
+    banner.rotation.y=side<0?Math.PI/2:-Math.PI/2;
+    banner.material=materials.bastionBanner;
+    banner.parent=root;
+
+    const trim=BABYLON.MeshBuilder.CreatePlane(
+      "bastion-side-banner-trim-"+side,
+      {width:.58,height:5.0,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      scene,
+    );
+    trim.position.set(p.x+(side<0?.025:-.025),3.08,p.z);
+    trim.rotation.y=banner.rotation.y;
+    trim.material=materials.bastionBannerTrim;
+    trim.parent=root;
+  }
 }
 
 function addGrandRingObstacle(
@@ -2280,6 +2794,33 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const ownedTextures=[];
 
   const materials={
+    bastionFloor:pbrMaterial(BABYLON,scene,"mat-bastion-floor","#46505a",{
+      metallic:0,roughness:.93,environmentIntensity:.34,directIntensity:1.08,
+    }),
+    bastionStoneDark:pbrMaterial(BABYLON,scene,"mat-bastion-stone-dark","#303740",{
+      metallic:0,roughness:.90,environmentIntensity:.31,directIntensity:1.08,
+    }),
+    bastionStone:pbrMaterial(BABYLON,scene,"mat-bastion-stone","#505966",{
+      metallic:0,roughness:.80,environmentIntensity:.42,directIntensity:1.12,
+    }),
+    bastionStoneTrim:pbrMaterial(BABYLON,scene,"mat-bastion-stone-trim","#6d675f",{
+      metallic:.04,roughness:.72,environmentIntensity:.48,directIntensity:1.15,
+    }),
+    bastionStoneTop:pbrMaterial(BABYLON,scene,"mat-bastion-stone-top","#827766",{
+      metallic:.02,roughness:.67,environmentIntensity:.52,directIntensity:1.16,
+    }),
+    bastionMetal:pbrMaterial(BABYLON,scene,"mat-bastion-metal","#59402c",{
+      metallic:.70,roughness:.34,environmentIntensity:.72,directIntensity:1.18,
+    }),
+    bastionInset:material(BABYLON,scene,"mat-bastion-inset","#1c2229","#090c10"),
+    bastionRune:material(
+      BABYLON,scene,"mat-bastion-rune","#ff9b42","#5f2c10","#ff7228"
+    ),
+    bastionBanner:material(BABYLON,scene,"mat-bastion-banner","#482139","#110812"),
+    bastionBannerTrim:material(BABYLON,scene,"mat-bastion-banner-trim","#c18b43","#2d1b0b"),
+    bastionRock:pbrMaterial(BABYLON,scene,"mat-bastion-rock","#39414b",{
+      metallic:0,roughness:.96,environmentIntensity:.28,directIntensity:1.05,
+    }),
     floor:pbrMaterial(BABYLON,scene,"mat-floor","#76513d",{
       metallic:0,roughness:.96,environmentIntensity:.22,directIntensity:1.08,
     }),
@@ -2367,6 +2908,11 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     ),
   };
 
+  materials.bastionRune.disableLighting=true;
+  materials.bastionRune.alpha=.96;
+  materials.bastionInset.specularColor=new BABYLON.Color3(.03,.04,.05);
+  materials.bastionBanner.specularColor=new BABYLON.Color3(.04,.02,.035);
+  materials.bastionBannerTrim.specularColor=new BABYLON.Color3(.16,.11,.04);
   materials.windscarRune.disableLighting=true;
   materials.windscarRune.alpha=.94;
   materials.windscarStoneTop.emissiveColor=
@@ -2408,6 +2954,11 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   ownedTextures.push(stoneNormal);
 
   [
+    materials.bastionStoneDark,
+    materials.bastionStone,
+    materials.bastionStoneTrim,
+    materials.bastionStoneTop,
+    materials.bastionRock,
     materials.windscarStoneDark,
     materials.windscarStone,
     materials.windscarStoneAlt,
@@ -2421,6 +2972,8 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     mat.forceIrradianceInFragment=true;
   });
 
+  materials.bastionFloor.bumpTexture=stoneNormal;
+  materials.bastionFloor.forceIrradianceInFragment=true;
   materials.floor.bumpTexture=stoneNormal;
   materials.floor.forceIrradianceInFragment=true;
 
@@ -2482,12 +3035,24 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   );
 
   let emberParticleTexture=null;
-  if(arena.id==="windscar-proving-grounds"){
+  if(arena.id==="emberwatch-bastion"){
     emberParticleTexture=createEmberParticleTexture(BABYLON,scene);
     ownedTextures.push(emberParticleTexture);
 
-    // Windscar is the only arena receiving the new stylized desert/stone art
-    // direction. Keep scenery outside gameplay bounds.
+    for(let index=0;index<arena.obstacles.length;index+=1){
+      addBastionObstacle(
+        BABYLON,scene,arena.obstacles[index],index,
+        mapping,materials,root,shadowCasters,
+      );
+    }
+    addBastionScenery(
+      BABYLON,scene,arena,mapping,materials,root,shadowCasters,
+      lights,flames,particleSystems,emberParticleTexture,
+    );
+  }else if(arena.id==="windscar-proving-grounds"){
+    emberParticleTexture=createEmberParticleTexture(BABYLON,scene);
+    ownedTextures.push(emberParticleTexture);
+
     for(let index=0;index<arena.obstacles.length;index+=1){
       addWindscarObstacle(
         BABYLON,scene,arena.obstacles[index],index,

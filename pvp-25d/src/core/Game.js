@@ -660,7 +660,14 @@ export class Game {
         this.movement.move(actor, this.cc.forcedFearVector(actor), deltaSeconds, this.arena);
       }
 
-      const keyboardMove = this.input.movementVector();
+      const rawKeyboardMove = this.input.movementVector();
+      // Original 2D screen-up is negative Y. Babylon maps simulation Y to
+      // world +Z, so flip keyboard forward/back here while leaving mouse
+      // steering and all shared arena3v3 input logic untouched.
+      const keyboardMove = {
+        x: rawKeyboardMove.x,
+        y: -rawKeyboardMove.y,
+      };
       const mouseMove = this.mouseSteeringVector();
       const move = this.mouseSteering.active ? mouseMove : keyboardMove;
       const moving = move.x !== 0 || move.y !== 0;

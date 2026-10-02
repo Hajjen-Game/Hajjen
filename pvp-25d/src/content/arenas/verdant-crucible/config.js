@@ -1,1 +1,35 @@
-export const VERDANT_CRUCIBLE={id:"verdant-crucible",name:"Verdant Crucible",description:"A stylized four-ruin arena built for clear LOS routes, kiting lanes and readable 3v3 combat.",width:1000,height:620,boundaryPadding:28,bounds:{x:28,y:28,w:944,h:564},obstacles:[{id:"nw-ruin",x:270,y:155,w:92,h:110},{id:"sw-ruin",x:270,y:355,w:92,h:110},{id:"ne-ruin",x:638,y:155,w:92,h:110},{id:"se-ruin",x:638,y:355,w:92,h:110}],spawns:{"friendly-healer":{x:105,y:310,facing:0},"friendly-melee":{x:145,y:250,facing:0},"friendly-caster":{x:145,y:370,facing:0},"enemy-healer":{x:895,y:310,facing:Math.PI},"enemy-melee":{x:855,y:250,facing:Math.PI},"enemy-caster":{x:855,y:370,facing:Math.PI}},presentation:{biome:"mossy-highland-ruins",sky:"#17282b",ground:"#365747",stone:"#69766a",stoneDark:"#3b4741",moss:"#4f7450",accent:"#d59d56"}};
+export const VERDANT_CRUCIBLE = {
+  id: "verdant-crucible",
+  name: "Verdant Crucible",
+  description: "A broad four-ruin canyon arena built for clear LOS routes, kiting lanes and readable 3v3 combat.",
+  width: 1180,
+  height: 720,
+  boundaryPadding: 32,
+  bounds: { x: 32, y: 32, w: 1116, h: 656 },
+  obstacles: [
+    { id: "nw-ruin", x: 300, y: 175, w: 100, h: 120 },
+    { id: "sw-ruin", x: 300, y: 425, w: 100, h: 120 },
+    { id: "ne-ruin", x: 780, y: 175, w: 100, h: 120 },
+    { id: "se-ruin", x: 780, y: 425, w: 100, h: 120 },
+  ],
+  spawns: {
+    "friendly-healer": { x: 115, y: 360, facing: 0 },
+    "friendly-melee": { x: 170, y: 290, facing: 0 },
+    "friendly-caster": { x: 170, y: 430, facing: 0 },
+    "enemy-healer": { x: 1065, y: 360, facing: Math.PI },
+    "enemy-melee": { x: 1010, y: 290, facing: Math.PI },
+    "enemy-caster": { x: 1010, y: 430, facing: Math.PI },
+  },
+  presentation: {
+    biome: "sunbaked-canyon-ruins",
+    sky: "#24140f",
+    ground: "#a9542f",
+    groundLight: "#c36b39",
+    groundDark: "#81402a",
+    stone: "#a65d3b",
+    stoneLight: "#cf8050",
+    stoneDark: "#633b2d",
+    scrub: "#89773b",
+    accent: "#efaa4b",
+  },
+};

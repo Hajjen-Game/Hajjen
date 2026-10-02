@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PvP-2.5D</title>
+  <link rel="stylesheet" href="./src/styles/game.css">
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div><div class="eyebrow">BABYLON COMBAT PROTOTYPE</div><h1>PvP-2.5D</h1></div>
+      <div class="match-state"><span id="arena-name">Verdant Crucible</span><span class="dot">•</span><span id="match-clock">0:00</span><span class="dot">•</span><span>Dampening <strong id="dampening-value">0%</strong></span></div>
+      <div class="top-actions"><select id="player-class" aria-label="Player class"></select><button id="restart-match" type="button">New match</button></div>
+    </header>
+    <main class="game-grid">
+      <aside class="side-panel"><div class="panel-title">YOUR TEAM</div><div id="team-frames" class="unit-frames"></div></aside>
+      <section class="arena-shell">
+        <canvas id="arena" tabindex="0"></canvas>
+        <div id="toast" class="toast" aria-live="polite"></div>
+        <div id="match-result" class="match-result hidden"><div id="match-result-title" class="match-result-title">VICTORY</div><div id="match-result-subtitle"></div><button id="match-result-next" type="button">Next match</button></div>
+        <div id="debug-panel" class="debug-panel hidden"></div>
+      </section>
+      <aside class="side-panel"><div class="panel-title">ENEMY TEAM</div><div id="enemy-frames" class="unit-frames"></div><div class="meter-card"><div class="panel-title small">DAMAGE / HEALING</div><div id="damage-meter"></div></div></aside>
+    </main>
+    <footer class="bottom-hud"><div id="action-bar" class="action-bar"></div><div class="control-hint">WASD or both mouse buttons • F1/F2/F3 party • Tab enemies • 1–7 abilities</div></footer>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

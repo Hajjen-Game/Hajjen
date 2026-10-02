@@ -835,6 +835,8 @@ export class PixiProofRenderer {
     this.actorViews = new Map();
     this.combatTextLayer = null;
     this.combatTextViews = new Map();
+    this.environmentOcclusionLayer = null;
+    this.environmentOcclusionPolygons = [];
     this.arenaBuildPromise = null;
     this.atmosphere = null;
   }
@@ -879,6 +881,13 @@ export class PixiProofRenderer {
 
     await this.loadClassIcons();
     await this.rebuildArena(this._arena);
+
+    const environmentOcclusionLayer = new PIXI.Graphics();
+    environmentOcclusionLayer.label = "babylon-environment-occlusion";
+    environmentOcclusionLayer.visible = false;
+    environmentOcclusionLayer.eventMode = "none";
+    this.app.stage.addChild(environmentOcclusionLayer);
+    this.environmentOcclusionLayer = environmentOcclusionLayer;
 
     const combatTextLayer = new PIXI.Container();
     combatTextLayer.label = "floating-combat-text";
@@ -8311,43 +8320,127 @@ export class PixiProofRenderer {
         const power=strong?1.28:1;
 
         if (effect.spellId.startsWith("priest-")) {
-          const top=dy-72*(strong?1.18:1);
-          const appear=easeOut(p/.30);
-          glow
-            .moveTo(dx,top)
-            .lineTo(dx,dy+8)
-            .stroke({
-              color:profile.main,
-              width:strong?16:11,
-              alpha:alpha*fade*.10,
+          const eased=easeOut(p);
+          const appear=easeOut(p/.24);
+
+          // Priest healing deliberately avoids the tall descending beam used by
+          // Holy Fire. Heals read as target-centered restoration: soft halos,
+          // converging light and upward motes.
+          if(effect.spellId==="priest-renew"){
+            const radius=8+eased*22;
+            glow.circle(dx,dy,radius*.82).fill({
+              color:profile.main,alpha:alpha*fade*.07
             });
-          core
-            .moveTo(dx,top)
-            .lineTo(dx,dy+5)
-            .stroke({
-              color:profile.core,
-              width:strong?3.8:2.6,
-              alpha:alpha*fade*(.44+.24*appear),
+            core.circle(dx,dy,radius).stroke({
+              color:profile.main,width:1.6,alpha:alpha*fade*.48
+            });
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2-p*.8+seed*.004;
+              const rr=9+eased*(13+(i%2)*4);
+              core.circle(
+                dx+Math.cos(a)*rr,
+                dy+Math.sin(a)*rr-p*5,
+                1.2+(i%2)*.45
+              ).fill({
+                color:i%2?profile.core:profile.main,
+                alpha:alpha*fade*.52,
+              });
+            }
+            continue;
+          }
+
+          if(effect.spellId==="priest-flash-heal"){
+            const collapse=1-eased;
+            const outer=29+collapse*15;
+            const inner=7+eased*3;
+
+            glow.circle(dx,dy,10+eased*20).fill({
+              color:profile.main,alpha:alpha*fade*.08
             });
 
-          for(let i=0;i<(strong?10:7);i++){
-            const side=(i-(strong?4.5:3))*5.4;
-            const y=top+(i%4)*14+p*17;
-            core.circle(dx+side+Math.sin(seed*.03+i+p*7)*4,y,1.2+(i%3)*.45).fill({
-              color:i%3===0?profile.core:profile.main,
-              alpha:alpha*fade*.52,
+            for(let i=0;i<4;i++){
+              const a=Math.PI/4+i*Math.PI/2;
+              const startR=outer;
+              const endR=inner;
+              core
+                .moveTo(
+                  dx+Math.cos(a)*startR,
+                  dy+Math.sin(a)*startR
+                )
+                .lineTo(
+                  dx+Math.cos(a)*endR,
+                  dy+Math.sin(a)*endR
+                )
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.7,
+                  alpha:alpha*fade*(.36+.28*appear),
+                });
+            }
+
+            core.circle(dx,dy,8+eased*17).stroke({
+              color:profile.main,width:1.9,alpha:alpha*fade*.58
+            });
+            core.circle(dx,dy,3.5+appear*3.5).fill({
+              color:profile.core,alpha:alpha*fade*.68
+            });
+            continue;
+          }
+
+          // Greater Heal has a broader ceremonial restoration seal rather than
+          // a sky strike: three expanding halos plus light rising from the ally.
+          const baseRadius=10+eased*30*power;
+          glow.circle(dx,dy,baseRadius*.92).fill({
+            color:profile.main,alpha:alpha*fade*.09
+          });
+
+          for(let ring=0;ring<3;ring++){
+            core.circle(
+              dx,
+              dy,
+              baseRadius+ring*7
+            ).stroke({
+              color:ring===1?profile.core:profile.main,
+              width:ring===1?1.8:1.35,
+              alpha:alpha*fade*(.56-ring*.10),
             });
           }
 
-          core.circle(dx,dy,9+easeOut(p)*29*power).stroke({
-            color:profile.main,width:strong?2.5:1.7,alpha:alpha*fade*.54
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+seed*.003;
+            const inner=10+eased*6;
+            const outer=22+eased*(18+(i%2)*5);
+            core
+              .moveTo(
+                dx+Math.cos(a)*inner,
+                dy+Math.sin(a)*inner
+              )
+              .lineTo(
+                dx+Math.cos(a)*outer,
+                dy+Math.sin(a)*outer
+              )
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:1.4,
+                alpha:alpha*fade*.42,
+              });
+          }
+
+          for(let i=0;i<8;i++){
+            const side=(i-3.5)*5.2;
+            core.circle(
+              dx+side+Math.sin(seed*.04+i+p*6)*2.5,
+              dy+13-p*(27+(i%3)*5),
+              1.15+(i%3)*.4
+            ).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.50,
+            });
+          }
+
+          core.circle(dx,dy,4+appear*4).fill({
+            color:profile.core,alpha:alpha*fade*.68
           });
-          arc(core,dx,dy,17+easeOut(p)*21,0.15,1.05,{
-            color:profile.core,width:1.4,alpha:alpha*fade*.44
-          },6);
-          arc(core,dx,dy,17+easeOut(p)*21,Math.PI+.15,Math.PI+1.05,{
-            color:profile.core,width:1.4,alpha:alpha*fade*.44
-          },6);
           continue;
         }
 
@@ -10919,6 +11012,48 @@ export class PixiProofRenderer {
     }
   }
 
+  setEnvironmentOcclusion(polygons = []) {
+    this.environmentOcclusionPolygons = Array.isArray(polygons)
+      ? polygons
+      : [];
+  }
+
+  updateEnvironmentOcclusion() {
+    const layer = this.environmentOcclusionLayer;
+    if (!layer || !this.app?.stage) return;
+
+    layer.clear();
+
+    const polygons = this.environmentOcclusionPolygons || [];
+    if (!polygons.length) {
+      layer.visible = false;
+      return;
+    }
+
+    layer.visible = true;
+
+    for (const polygon of polygons) {
+      const points = (polygon?.points || []).filter(point =>
+        Number.isFinite(point?.x) && Number.isFinite(point?.y)
+      );
+      if (points.length < 3) continue;
+
+      layer.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        layer.lineTo(points[i].x, points[i].y);
+      }
+      layer.lineTo(points[0].x, points[0].y);
+      layer.fill({
+        color: Number.isFinite(polygon.color) ? polygon.color : 0x4c2b20,
+        alpha: Number.isFinite(polygon.alpha) ? polygon.alpha : .94,
+      });
+    }
+
+    // Actor roots are created dynamically after init. Move the occlusion proxy
+    // above them every frame; floating combat text is promoted again afterwards.
+    this.app.stage.addChild(layer);
+  }
+
   updateNativeFloatingCombatText(game) {
     const layer = this.combatTextLayer;
     const { Container, Text } = this.PIXI || {};
@@ -11101,6 +11236,7 @@ export class PixiProofRenderer {
     this.updateNativeProjectileVfx2(game);
     this.updateNativeSpellAnimationPolish(game);
     this.updateCombatReadability(game);
+    this.updateEnvironmentOcclusion();
     this.updateNativeFloatingCombatText(game);
 
     this.app.render();
@@ -11113,6 +11249,8 @@ export class PixiProofRenderer {
 
     this.combatTextViews.clear();
     this.combatTextLayer = null;
+    this.environmentOcclusionPolygons = [];
+    this.environmentOcclusionLayer = null;
     this.badge?.remove();
     this.badge = null;
 

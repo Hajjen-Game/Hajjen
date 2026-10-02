@@ -1,6 +1,6 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261002-babylon1";
-import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon1";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261002-babylon2";
+import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon2";
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";
@@ -105,6 +105,9 @@ export class RendererBridge {
     if (this.mode === "babylon") {
       if (this.babylonRenderer?.ready && this.pixiRenderer?.ready) {
         this.prepareGpuSurface();
+        this.pixiRenderer.setEnvironmentOcclusion(
+          this.babylonRenderer.getOcclusionPolygons(),
+        );
         this.babylonRenderer.render(game);
         this.pixiRenderer.render(game);
         return;

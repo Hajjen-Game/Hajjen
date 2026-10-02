@@ -194,6 +194,59 @@ export class BabylonArenaRenderer {
     this.scene.render();
   }
 
+  getOcclusionPolygons() {
+    if (!this.ready || !this.mapping || !this._arena) return [];
+
+    const polygons = [];
+
+    for (const obstacle of this._arena.obstacles || []) {
+      const rect = this.mapping.rectToWorld(obstacle);
+      const height =
+        8.4
+        + Math.min(2.2, Math.max(rect.width, rect.depth) * 0.035);
+      const capHeight = 0.48;
+      const topElevation = height + capHeight;
+
+      const x0 = Number(obstacle.x);
+      const x1 = x0 + Number(obstacle.w);
+      const y0 = Number(obstacle.y);
+      const y1 = y0 + Number(obstacle.h);
+
+      const top = [
+        this.projectGamePoint(x0, y0, topElevation),
+        this.projectGamePoint(x1, y0, topElevation),
+        this.projectGamePoint(x1, y1, topElevation),
+        this.projectGamePoint(x0, y1, topElevation),
+      ];
+
+      // The camera sits on the negative world-Z side. In game coordinates that
+      // makes the obstacle's larger-Y edge the near/front vertical face.
+      const front = [
+        this.projectGamePoint(x0, y1, 0),
+        this.projectGamePoint(x1, y1, 0),
+        this.projectGamePoint(x1, y1, topElevation),
+        this.projectGamePoint(x0, y1, topElevation),
+      ];
+
+      if (front.every(Boolean)) {
+        polygons.push({
+          points: front,
+          color: 0x3a2118,
+          alpha: .96,
+        });
+      }
+      if (top.every(Boolean)) {
+        polygons.push({
+          points: top,
+          color: 0x76503a,
+          alpha: .93,
+        });
+      }
+    }
+
+    return polygons;
+  }
+
   projectGamePoint(x, y, elevation = 0) {
     if (!this.mapping) return null;
     const world = this.mapping.gameToWorld(x, y, elevation);

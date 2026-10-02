@@ -814,9 +814,12 @@ function makeArenaCanvas(arena) {
 }
 
 export class PixiProofRenderer {
-  constructor(inputCanvas, arena) {
+  constructor(inputCanvas, arena, options = {}) {
     this.inputCanvas = inputCanvas;
     this._arena = arena;
+    this.renderEnvironment = options.renderEnvironment !== false;
+    this.showBadge = options.showBadge !== false;
+    this.badgeText = options.badgeText || "PIXIJS 8.21 · GPU FX PREVIEW";
     this.ready = false;
     this.failed = false;
     this.PIXI = null;
@@ -882,7 +885,7 @@ export class PixiProofRenderer {
     this.app.stage.addChild(combatTextLayer);
     this.combatTextLayer = combatTextLayer;
 
-    this.installBadge();
+    if (this.showBadge) this.installBadge();
     this.ready = true;
   }
 
@@ -891,7 +894,7 @@ export class PixiProofRenderer {
     if (!host) return;
 
     const badge = document.createElement("div");
-    badge.textContent = "PIXIJS 8.21 · GPU FX PREVIEW";
+    badge.textContent = this.badgeText;
     badge.setAttribute("aria-hidden", "true");
     Object.assign(badge.style, {
       position: "absolute",
@@ -941,22 +944,32 @@ export class PixiProofRenderer {
   async rebuildArena(arena) {
     if (!arena || !this.PIXI || !this.app) return;
 
+    this.destroyHeatShimmer();
+    this.destroyAtmosphere();
+
+    if (this.terrainSprite) {
+      this.app.stage.removeChild(this.terrainSprite);
+      this.terrainSprite.destroy();
+      this.terrainSprite = null;
+    }
+    if (this.terrainTexture) {
+      this.terrainTexture.destroy(true);
+      this.terrainTexture = null;
+    }
+
+    // Babylon mode keeps every Pixi actor/VFX layer but deliberately removes
+    // Pixi's arena art so the 3D environment can sit underneath it.
+    if (!this.renderEnvironment) {
+      this.renderedArenaId = arena.id;
+      return;
+    }
+
     const { Sprite, Texture } = this.PIXI;
     const arenaCanvas = makeArenaCanvas(arena);
     const texture = Texture.from(arenaCanvas);
     const sprite = new Sprite(texture);
     sprite.width = GAME_WIDTH;
     sprite.height = GAME_HEIGHT;
-
-    this.destroyHeatShimmer();
-
-    if (this.terrainSprite) {
-      this.app.stage.removeChild(this.terrainSprite);
-      this.terrainSprite.destroy();
-    }
-    if (this.terrainTexture) {
-      this.terrainTexture.destroy(true);
-    }
 
     this.terrainTexture = texture;
     this.terrainSprite = sprite;

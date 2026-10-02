@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
 import { AISystem } from "../systems/AISystem.js?v=20261001-wallfollow1";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { RendererBridge } from "../rendering/RendererBridge.js?v=20261002-pixi44";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261002-babylon1";
 import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
 import { buildMatchReport } from "./MatchReport.js?v=20261001-wallfollow1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
@@ -694,10 +694,14 @@ export class Game {
     const rawDeltaMs = Math.max(0, time - this.lastFrame);
     this.lastFrame = time;
 
-    if (this.renderer?.mode === "pixi") {
+    if (
+      this.renderer?.mode === "pixi"
+      || this.renderer?.mode === "babylon"
+    ) {
       this.updatePixiSimulation(rawDeltaMs);
     } else {
-      // Keep the normal Canvas URL behavior untouched while Pixi timing is tested.
+      // Keep the normal Canvas URL behavior untouched while GPU renderer paths
+      // use the fixed simulation clock.
       const deltaMs = Math.min(50, rawDeltaMs);
       this.update(deltaMs);
     }

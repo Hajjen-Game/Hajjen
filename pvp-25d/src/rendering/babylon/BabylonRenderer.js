@@ -184,32 +184,34 @@ export class BabylonRenderer {
     const centerZ = a.height * S * 0.5 + 0.6;
     const renderWidth = Math.max(
       1,
-      Number(this.engine.getRenderWidth?.()) || this.canvas.clientWidth || 1,
+      Number(this.engine.getRenderWidth?.())
+        || this.canvas.clientWidth
+        || 1,
     );
     const renderHeight = Math.max(
       1,
-      Number(this.engine.getRenderHeight?.()) || this.canvas.clientHeight || 1,
+      Number(this.engine.getRenderHeight?.())
+        || this.canvas.clientHeight
+        || 1,
     );
     const aspect = renderWidth / renderHeight;
 
-    // The authored desktop composition is based around a ~1.55:1 viewport.
-    // Keep it exactly as authored at normal desktop ratios. If the canvas
-    // becomes unusually narrow, move the same perspective camera away from
-    // the target instead of cropping the arena horizontally.
     const referenceAspect = 1.55;
     const framingScale = Math.max(1, referenceAspect / aspect);
-    const baseHeight = 22.4;
-    const baseBack = 6.95;
+    const baseRadius = 23.45;
 
-    this.camera.position.set(
-      centerX,
-      baseHeight * framingScale,
-      centerZ - baseBack * framingScale,
-    );
-    this.camera.setTarget(
-      new BABYLON.Vector3(centerX, 0, centerZ),
-    );
+    this.camera.target.set(centerX, 0, centerZ);
+    this.camera.alpha = -Math.PI / 2;
+    this.camera.beta = 0.30;
+    this.camera.radius = baseRadius * framingScale;
     this.camera.fov = 0.72;
+    this.camera.minZ = 0.1;
+    this.camera.maxZ = 140;
+
+    // Force matrices to update immediately after resize/backend changes.
+    this.scene.activeCamera = this.camera;
+    this.camera.getViewMatrix(true);
+    this.camera.getProjectionMatrix(true);
   }
 
   setArena(arena) {
@@ -224,14 +226,18 @@ export class BabylonRenderer {
       a.height * S * 0.5,
     );
 
-    this.camera = new BABYLON.FreeCamera(
+    this.camera = new BABYLON.ArcRotateCamera(
       "camera",
-      new BABYLON.Vector3(c.x, 22.4, c.z - 6.35),
+      -Math.PI / 2,
+      0.30,
+      23.45,
+      new BABYLON.Vector3(c.x, 0, c.z + 0.6),
       this.scene,
     );
-    this.camera.fov = 0.72;
-    this.camera.minZ = 0.1;
     this.camera.inputs.clear();
+    this.camera.panningSensibility = 0;
+    this.camera.wheelPrecision = 0;
+    this.scene.activeCamera = this.camera;
     this.fitCameraToCanvas();
 
     const hemi = new BABYLON.HemisphericLight(
@@ -1055,7 +1061,10 @@ export class BabylonRenderer {
       ).toFixed(2)
       + "\nFPS " + this.engine.getFps().toFixed(0)
       + "\nActors " + game.actors.length
-      + "\nMeshes " + this.scene.getActiveMeshes().length
+      + "\nActiveMeshes " + this.scene.getActiveMeshes().length
+      + "\nTotalMeshes " + this.scene.meshes.length
+      + "\nCamera "
+      + (this.scene.activeCamera ? this.scene.activeCamera.getClassName() : "none")
       + "\nVFX " + this.vfx.active.length
       + "\nTime " + game.elapsedSeconds.toFixed(1) + "s";
   }

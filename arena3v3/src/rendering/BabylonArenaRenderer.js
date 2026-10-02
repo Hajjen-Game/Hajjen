@@ -231,6 +231,7 @@ export class BabylonArenaRenderer {
       if (front.every(Boolean)) {
         polygons.push({
           points: front,
+          depthY: y1,
           color: 0x3a2118,
           alpha: .96,
         });
@@ -238,6 +239,7 @@ export class BabylonArenaRenderer {
       if (top.every(Boolean)) {
         polygons.push({
           points: top,
+          depthY: y1,
           color: 0x76503a,
           alpha: .93,
         });

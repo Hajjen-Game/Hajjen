@@ -835,7 +835,6 @@ export class PixiProofRenderer {
     this.actorViews = new Map();
     this.combatTextLayer = null;
     this.combatTextViews = new Map();
-    this.environmentOcclusionLayer = null;
     this.environmentOcclusionPolygons = [];
     this.arenaBuildPromise = null;
     this.atmosphere = null;
@@ -881,13 +880,6 @@ export class PixiProofRenderer {
 
     await this.loadClassIcons();
     await this.rebuildArena(this._arena);
-
-    const environmentOcclusionLayer = new PIXI.Graphics();
-    environmentOcclusionLayer.label = "babylon-environment-occlusion";
-    environmentOcclusionLayer.visible = false;
-    environmentOcclusionLayer.eventMode = "none";
-    this.app.stage.addChild(environmentOcclusionLayer);
-    this.environmentOcclusionLayer = environmentOcclusionLayer;
 
     const combatTextLayer = new PIXI.Container();
     combatTextLayer.label = "floating-combat-text";
@@ -1551,6 +1543,13 @@ export class PixiProofRenderer {
     spellPolishCoreFx.visible = false;
     root.addChild(spellPolishCoreFx);
 
+    // Babylon-only 2.5D cover. This sits above the actor body/world VFX but
+    // below selection rings and UI, so geometry can hide the character without
+    // sacrificing targeting, names, bars or CC readability.
+    const depthOcclusionFx = new Graphics();
+    depthOcclusionFx.visible = false;
+    root.addChild(depthOcclusionFx);
+
     const { BlurFilter } = this.PIXI;
 
     stateWorldGlowFx.blendMode = "screen";
@@ -1794,6 +1793,7 @@ export class PixiProofRenderer {
       projectileVfx2CoreFx,
       spellPolishGlowFx,
       spellPolishCoreFx,
+      depthOcclusionFx,
       playerGlow,
       playerRing,
       targetGlow,
@@ -8307,7 +8307,7 @@ export class PixiProofRenderer {
       core.visible = true;
 
       // ---------------------------------------------------------------------
-      // HEALING: Priest = falling holy light, Druid = living foliage,
+      // HEALING: Priest = restorative seals/convergence, Druid = living foliage,
       // Paladin = angular sun seals/crown. Same purpose, distinct language.
       // ---------------------------------------------------------------------
       if (COMBAT_VFX2_HEALS.has(effect.spellId)) {
@@ -11018,40 +11018,57 @@ export class PixiProofRenderer {
       : [];
   }
 
-  updateEnvironmentOcclusion() {
-    const layer = this.environmentOcclusionLayer;
-    if (!layer || !this.app?.stage) return;
-
-    layer.clear();
-
+  updateEnvironmentOcclusion(game) {
     const polygons = this.environmentOcclusionPolygons || [];
-    if (!polygons.length) {
-      layer.visible = false;
-      return;
-    }
 
-    layer.visible = true;
+    for (const actor of game.actors || []) {
+      const view = this.actorViews.get(actor.id);
+      const cover = view?.depthOcclusionFx;
+      if (!cover) continue;
 
-    for (const polygon of polygons) {
-      const points = (polygon?.points || []).filter(point =>
-        Number.isFinite(point?.x) && Number.isFinite(point?.y)
-      );
-      if (points.length < 3) continue;
+      cover.clear();
+      cover.visible = false;
+      if (!actor.alive || !polygons.length) continue;
 
-      layer.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i += 1) {
-        layer.lineTo(points[i].x, points[i].y);
+      for (const polygon of polygons) {
+        // Painter-style depth test: larger game Y is closer to the camera.
+        // Only actors whose center is behind the obstacle's near edge receive
+        // that obstacle as a foreground cover.
+        if (
+          Number.isFinite(polygon?.depthY)
+          && actor.y >= polygon.depthY
+        ) continue;
+
+        const points = (polygon?.points || []).filter(point =>
+          Number.isFinite(point?.x) && Number.isFinite(point?.y)
+        );
+        if (points.length < 3) continue;
+
+        cover.visible = true;
+        cover.moveTo(
+          points[0].x - actor.x,
+          points[0].y - actor.y,
+        );
+        for (let i = 1; i < points.length; i += 1) {
+          cover.lineTo(
+            points[i].x - actor.x,
+            points[i].y - actor.y,
+          );
+        }
+        cover.lineTo(
+          points[0].x - actor.x,
+          points[0].y - actor.y,
+        );
+        cover.fill({
+          color: Number.isFinite(polygon.color)
+            ? polygon.color
+            : 0x4c2b20,
+          alpha: Number.isFinite(polygon.alpha)
+            ? polygon.alpha
+            : .94,
+        });
       }
-      layer.lineTo(points[0].x, points[0].y);
-      layer.fill({
-        color: Number.isFinite(polygon.color) ? polygon.color : 0x4c2b20,
-        alpha: Number.isFinite(polygon.alpha) ? polygon.alpha : .94,
-      });
     }
-
-    // Actor roots are created dynamically after init. Move the occlusion proxy
-    // above them every frame; floating combat text is promoted again afterwards.
-    this.app.stage.addChild(layer);
   }
 
   updateNativeFloatingCombatText(game) {
@@ -11236,7 +11253,7 @@ export class PixiProofRenderer {
     this.updateNativeProjectileVfx2(game);
     this.updateNativeSpellAnimationPolish(game);
     this.updateCombatReadability(game);
-    this.updateEnvironmentOcclusion();
+    this.updateEnvironmentOcclusion(game);
     this.updateNativeFloatingCombatText(game);
 
     this.app.render();
@@ -11250,7 +11267,6 @@ export class PixiProofRenderer {
     this.combatTextViews.clear();
     this.combatTextLayer = null;
     this.environmentOcclusionPolygons = [];
-    this.environmentOcclusionLayer = null;
     this.badge?.remove();
     this.badge = null;
 

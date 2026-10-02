@@ -1,6 +1,6 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261002-babylon2";
-import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon2";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261002-babylon3";
+import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon3";
 
 function requestedRenderer() {
   if (typeof window === "undefined") return "canvas";

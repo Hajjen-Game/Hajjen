@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20261002-pixi42";
+import { Game } from "./core/Game.js?v=20261002-pixi43";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";

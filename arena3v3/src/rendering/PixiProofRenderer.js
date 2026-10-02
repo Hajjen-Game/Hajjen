@@ -1994,82 +1994,6 @@ export class PixiProofRenderer {
       g.stroke(style);
     };
 
-    const nowMs=typeof performance!=="undefined"?performance.now():Date.now();
-
-    const drawExit=(view,actor,exit)=>{
-      const duration=280;
-      const q=Math.max(0,Math.min(1,(nowMs-exit.startMs)/duration));
-      if(q>=1) return false;
-
-      const glow=view.ccWorldGlowFx;
-      const core=view.ccWorldFx;
-      const palette=paletteFor(exit);
-      const fade=1-q;
-      glow.visible=true;
-      core.visible=true;
-
-      if(exit.spellId==="mage-frost-nova"){
-        for(let i=0;i<10;i++){
-          const a=i/10*Math.PI*2;
-          const inner=actor.radius+4+q*4;
-          const outer=actor.radius+12+q*(20+(i%3)*4);
-          core
-            .moveTo(
-              Math.cos(a)*inner,
-              actor.radius*.55+Math.sin(a)*4
-            )
-            .lineTo(
-              Math.cos(a)*outer,
-              actor.radius*.55+Math.sin(a)*9-q*7
-            )
-            .stroke({
-              color:i%3===0?palette.core:palette.main,
-              width:1.4+(i%3===0?.6:0),
-              alpha:fade*.62,
-            });
-        }
-        glow.ellipse(0,actor.radius*.56,actor.radius+10+q*16,7+q*3).stroke({
-          color:palette.main,width:7,alpha:fade*.10
-        });
-        return true;
-      }
-
-      if(exit.spellId==="druid-cyclone"){
-        for(let layer=0;layer<4;layer++){
-          const rr=actor.radius+8+layer*5+q*(15+layer*2);
-          core.ellipse(0,8-layer*6-q*7,rr,5+layer).stroke({
-            color:layer%2?palette.core:palette.main,
-            width:1.4,
-            alpha:fade*(.46-layer*.06),
-          });
-        }
-        return true;
-      }
-
-      for(let i=0;i<7;i++){
-        const a=i/7*Math.PI*2+(exit.kind==="fear"?.25:0);
-        const inner=actor.radius+5;
-        const outer=actor.radius+10+q*(17+(i%3)*5);
-        core.circle(
-          Math.cos(a)*outer,
-          Math.sin(a)*outer-q*5,
-          1.2+(i%2)*.35
-        ).fill({
-          color:i%2?palette.core:palette.main,
-          alpha:fade*.46,
-        });
-        core
-          .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
-          .lineTo(Math.cos(a)*outer,Math.sin(a)*outer-q*5)
-          .stroke({
-            color:palette.main,width:1,alpha:fade*.24
-          });
-      }
-      glow.circle(0,0,actor.radius+10+q*14).stroke({
-        color:palette.main,width:6,alpha:fade*.07
-      });
-      return true;
-    };
 
     for (const actor of game.actors || []) {
       const view=this.actorViews.get(actor.id);
@@ -2498,6 +2422,84 @@ export class PixiProofRenderer {
       }
       g.stroke(style);
     };
+
+    const nowMs=typeof performance!=="undefined"?performance.now():Date.now();
+
+    const drawExit=(view,actor,exit)=>{
+      const duration=280;
+      const q=Math.max(0,Math.min(1,(nowMs-exit.startMs)/duration));
+      if(q>=1) return false;
+
+      const glow=view.ccWorldGlowFx;
+      const core=view.ccWorldFx;
+      const palette=paletteFor(exit);
+      const fade=1-q;
+      glow.visible=true;
+      core.visible=true;
+
+      if(exit.spellId==="mage-frost-nova"){
+        for(let i=0;i<10;i++){
+          const a=i/10*Math.PI*2;
+          const inner=actor.radius+4+q*4;
+          const outer=actor.radius+12+q*(20+(i%3)*4);
+          core
+            .moveTo(
+              Math.cos(a)*inner,
+              actor.radius*.55+Math.sin(a)*4
+            )
+            .lineTo(
+              Math.cos(a)*outer,
+              actor.radius*.55+Math.sin(a)*9-q*7
+            )
+            .stroke({
+              color:i%3===0?palette.core:palette.main,
+              width:1.4+(i%3===0?.6:0),
+              alpha:fade*.62,
+            });
+        }
+        glow.ellipse(0,actor.radius*.56,actor.radius+10+q*16,7+q*3).stroke({
+          color:palette.main,width:7,alpha:fade*.10
+        });
+        return true;
+      }
+
+      if(exit.spellId==="druid-cyclone"){
+        for(let layer=0;layer<4;layer++){
+          const rr=actor.radius+8+layer*5+q*(15+layer*2);
+          core.ellipse(0,8-layer*6-q*7,rr,5+layer).stroke({
+            color:layer%2?palette.core:palette.main,
+            width:1.4,
+            alpha:fade*(.46-layer*.06),
+          });
+        }
+        return true;
+      }
+
+      for(let i=0;i<7;i++){
+        const a=i/7*Math.PI*2+(exit.kind==="fear"?.25:0);
+        const inner=actor.radius+5;
+        const outer=actor.radius+10+q*(17+(i%3)*5);
+        core.circle(
+          Math.cos(a)*outer,
+          Math.sin(a)*outer-q*5,
+          1.2+(i%2)*.35
+        ).fill({
+          color:i%2?palette.core:palette.main,
+          alpha:fade*.46,
+        });
+        core
+          .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+          .lineTo(Math.cos(a)*outer,Math.sin(a)*outer-q*5)
+          .stroke({
+            color:palette.main,width:1,alpha:fade*.24
+          });
+      }
+      glow.circle(0,0,actor.radius+10+q*14).stroke({
+        color:palette.main,width:6,alpha:fade*.07
+      });
+      return true;
+    };
+
 
     for (const actor of game.actors || []) {
       const view = this.actorViews.get(actor.id);

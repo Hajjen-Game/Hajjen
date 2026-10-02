@@ -72,11 +72,11 @@ export class BabylonRenderer {
     // depth while greatly reducing units being hidden by the LOS ruins.
     this.camera = new BABYLON.FreeCamera(
       "camera",
-      new BABYLON.Vector3(c.x, 25.5, c.z - 3.8),
+      new BABYLON.Vector3(c.x, 22.4, c.z - 6.35),
       this.scene,
     );
-    this.camera.setTarget(new BABYLON.Vector3(c.x, 0, c.z + 0.45));
-    this.camera.fov = 0.68;
+    this.camera.setTarget(new BABYLON.Vector3(c.x, 0, c.z + 0.6));
+    this.camera.fov = 0.72;
     this.camera.minZ = 0.1;
     this.camera.inputs.clear();
 
@@ -119,7 +119,7 @@ export class BabylonRenderer {
     this.targetMat.disableLighting = true;
     this.target = BABYLON.MeshBuilder.CreateTorus(
       "target",
-      { diameter: 1.45, thickness: 0.085, tessellation: 48 },
+      { diameter: 1.68, thickness: 0.09, tessellation: 48 },
       this.scene,
     );
     this.target.position.y = 0.18;
@@ -157,35 +157,39 @@ export class BabylonRenderer {
     const lightMat = pbr(
       this.scene,
       "ground-light",
-      a.presentation?.groundLight || "#c36b39",
+      a.presentation?.groundLight || "#bf7047",
     );
     const darkMat = pbr(
       this.scene,
       "ground-dark",
-      a.presentation?.groundDark || "#81402a",
+      a.presentation?.groundDark || "#9e5639",
     );
     lightMat.roughness = 1;
     darkMat.roughness = 1;
 
+    // Keep the floor readable: small, low-contrast sandstone variations instead
+    // of giant polygons that visually split the arena into zones.
     const patches = [
-      [0.20, 0.18, 3.8, 2.2, 0.18, "light"],
-      [0.47, 0.24, 4.7, 2.7, -0.12, "dark"],
-      [0.76, 0.19, 4.0, 2.0, 0.08, "light"],
-      [0.28, 0.51, 5.0, 2.5, -0.06, "light"],
-      [0.61, 0.48, 4.2, 2.4, 0.16, "dark"],
-      [0.83, 0.58, 3.9, 2.3, -0.18, "light"],
-      [0.14, 0.77, 3.2, 1.9, 0.12, "dark"],
-      [0.43, 0.80, 4.8, 2.2, -0.09, "light"],
-      [0.70, 0.82, 4.3, 2.1, 0.14, "dark"],
+      [0.18, 0.18, 1.65, 1.05, 0.20, "light"],
+      [0.38, 0.14, 1.35, 0.85, -0.16, "dark"],
+      [0.64, 0.17, 1.55, 0.90, 0.11, "light"],
+      [0.83, 0.27, 1.30, 0.82, -0.12, "dark"],
+      [0.23, 0.49, 1.45, 0.92, -0.08, "dark"],
+      [0.50, 0.47, 1.65, 1.00, 0.12, "light"],
+      [0.76, 0.53, 1.48, 0.88, 0.18, "light"],
+      [0.16, 0.76, 1.35, 0.86, 0.14, "light"],
+      [0.42, 0.82, 1.50, 0.92, -0.12, "dark"],
+      [0.69, 0.79, 1.60, 0.90, 0.09, "light"],
+      [0.87, 0.72, 1.22, 0.78, -0.18, "dark"],
     ];
 
     patches.forEach((p, i) => {
       const plate = BABYLON.MeshBuilder.CreateCylinder(
         "floor-plate-" + i,
-        { height: 0.018, diameter: 2, tessellation: 7 + (i % 2) },
+        { height: 0.012, diameter: 2, tessellation: 8 + (i % 3) },
         this.scene,
       );
-      plate.position.set(w * p[0], 0.012 + i * 0.0002, h * p[1]);
+      plate.position.set(w * p[0], 0.009 + i * 0.00015, h * p[1]);
       plate.scaling.set(p[2], 1, p[3]);
       plate.rotation.y = p[4];
       plate.material = p[5] === "light" ? lightMat : darkMat;
@@ -193,13 +197,13 @@ export class BabylonRenderer {
       plate.isPickable = false;
     });
 
-    const crackColor = color("#6f3828");
+    const crackColor = color("#7e412d");
     const crackSets = [
-      [[0.12,0.32],[0.18,0.35],[0.22,0.33],[0.27,0.37]],
-      [[0.42,0.12],[0.44,0.18],[0.49,0.21],[0.50,0.26]],
-      [[0.58,0.68],[0.63,0.65],[0.66,0.70],[0.71,0.72]],
-      [[0.78,0.35],[0.82,0.39],[0.86,0.38],[0.89,0.43]],
-      [[0.31,0.82],[0.35,0.77],[0.39,0.78],[0.42,0.73]],
+      [[0.12,0.32],[0.16,0.34],[0.19,0.33],[0.22,0.36]],
+      [[0.43,0.13],[0.45,0.17],[0.49,0.19],[0.50,0.23]],
+      [[0.60,0.68],[0.64,0.66],[0.67,0.69],[0.70,0.70]],
+      [[0.80,0.35],[0.83,0.38],[0.86,0.37],[0.88,0.40]],
+      [[0.32,0.82],[0.35,0.78],[0.38,0.79],[0.40,0.75]],
     ];
 
     crackSets.forEach((set, i) => {
@@ -207,14 +211,33 @@ export class BabylonRenderer {
         "crack-" + i,
         {
           points: set.map(
-            ([x, z]) => new BABYLON.Vector3(w * x, 0.035, h * z),
+            ([x, z]) => new BABYLON.Vector3(w * x, 0.029, h * z),
           ),
         },
         this.scene,
       );
       line.color = crackColor;
-      line.alpha = 0.48;
+      line.alpha = 0.30;
       line.isPickable = false;
+    });
+
+    const pebbleMat = pbr(this.scene, "floor-pebbles", "#754332");
+    const pebbles = [
+      [0.12,0.21],[0.16,0.58],[0.24,0.68],[0.34,0.32],[0.43,0.71],
+      [0.55,0.22],[0.61,0.60],[0.72,0.34],[0.79,0.68],[0.88,0.45],
+      [0.31,0.88],[0.66,0.87],
+    ];
+    pebbles.forEach((p, i) => {
+      const pebble = BABYLON.MeshBuilder.CreatePolyhedron(
+        "floor-pebble-" + i,
+        { type: 2, size: 0.09 + (i % 3) * 0.018 },
+        this.scene,
+      );
+      pebble.position.set(w * p[0], 0.055, h * p[1]);
+      pebble.scaling.set(1.25, 0.42, 0.9);
+      pebble.rotation.y = i * 0.81;
+      pebble.material = pebbleMat;
+      pebble.isPickable = false;
     });
   }
 
@@ -294,70 +317,85 @@ export class BabylonRenderer {
       const x = (o.x + o.w / 2) * S;
       const z = (o.y + o.h / 2) * S;
 
-      const base = BABYLON.MeshBuilder.CreateBox(
+      // This footprint is deliberately identical to the simulation collider.
+      // The visible ruin is built upward and inward from it.
+      const footprint = BABYLON.MeshBuilder.CreateBox(
         "los:" + o.id,
-        { width: w, depth: d, height: 1.55 },
+        { width: w, depth: d, height: 0.34 },
         this.scene,
       );
-      base.position.set(x, 0.75, z);
-      base.material = stone;
-      base.receiveShadows = true;
-      base.metadata = { obstacleId: o.id };
-      this.shadowGenerator.addShadowCaster(base);
+      footprint.position.set(x, 0.17, z);
+      footprint.material = stoneDark;
+      footprint.receiveShadows = true;
+      footprint.metadata = { obstacleId: o.id };
+      this.shadowGenerator.addShadowCaster(footprint);
 
-      const plinth = BABYLON.MeshBuilder.CreateBox(
-        "plinth:" + o.id,
-        { width: w, depth: d, height: 0.16 },
-        this.scene,
-      );
-      plinth.position.set(x, 0.08, z);
-      plinth.material = stoneDark;
-      plinth.receiveShadows = true;
+      // Layered irregular sandstone blocks: broad enough to read as real LOS
+      // cover, but low enough that the new camera still shows combat behind it.
+      const blocks = [
+        { ox:-0.23, oz:-0.17, sx:0.48, sz:0.54, h:0.88, ry:-0.035, mat:stone },
+        { ox: 0.19, oz:-0.10, sx:0.43, sz:0.60, h:1.04, ry: 0.030, mat:stoneLight },
+        { ox:-0.12, oz: 0.28, sx:0.56, sz:0.34, h:0.72, ry: 0.018, mat:stone },
+        { ox: 0.30, oz: 0.28, sx:0.30, sz:0.32, h:0.63, ry:-0.050, mat:stoneDark },
+      ];
 
-      const slabWidth = w * 0.29;
-      const slabGap = w * 0.015;
-      for (let i = -1; i <= 1; i += 1) {
-        const slab = BABYLON.MeshBuilder.CreateBox(
-          "ruin-slab:" + o.id + ":" + i,
+      blocks.forEach((b, i) => {
+        const rock = BABYLON.MeshBuilder.CreateBox(
+          "ruin-block:" + o.id + ":" + i,
           {
-            width: slabWidth,
-            depth: d * (0.86 - Math.abs(i) * 0.05),
-            height: 0.24 + (i === 0 ? 0.08 : 0),
+            width: w * b.sx,
+            depth: d * b.sz,
+            height: b.h,
           },
           this.scene,
         );
-        slab.position.set(
-          x + i * (slabWidth + slabGap),
-          1.62 + (i === 0 ? 0.035 : 0),
-          z + i * 0.03,
+        rock.position.set(
+          x + w * b.ox,
+          0.34 + b.h * 0.5,
+          z + d * b.oz,
         );
-        slab.rotation.y = i * 0.025;
-        slab.material = i === 0 ? stoneLight : stone;
-        slab.receiveShadows = true;
-        this.shadowGenerator.addShadowCaster(slab);
-      }
+        rock.rotation.y = b.ry;
+        rock.material = b.mat;
+        rock.receiveShadows = true;
+        rock.isPickable = false;
+        this.shadowGenerator.addShadowCaster(rock);
+      });
 
-      const chipOffsets = [
-        [-0.38, -0.32, 0.18],
-        [0.36, 0.30, 0.14],
+      const topRocks = [
+        [-0.33,-0.30,0.22,0.18],
+        [ 0.30,-0.26,0.20,0.16],
+        [-0.34, 0.31,0.18,0.14],
+        [ 0.34, 0.30,0.19,0.15],
       ];
-      chipOffsets.forEach((entry, i) => {
-        const chip = BABYLON.MeshBuilder.CreatePolyhedron(
-          "pillar-chip:" + o.id + ":" + i,
-          { type: 2, size: entry[2] },
+      topRocks.forEach((r, i) => {
+        const chunk = BABYLON.MeshBuilder.CreatePolyhedron(
+          "ruin-chunk:" + o.id + ":" + i,
+          { type: 2, size: r[2] },
           this.scene,
         );
-        chip.position.set(
-          x + entry[0] * w,
-          1.72,
-          z + entry[1] * d,
+        chunk.position.set(
+          x + w * r[0],
+          1.03 + (i % 2) * 0.11,
+          z + d * r[1],
         );
-        chip.scaling.set(1.2, 0.72, 1.05);
-        chip.rotation.y = (i + 1) * 0.72;
-        chip.material = stoneLight;
-        chip.isPickable = false;
-        this.shadowGenerator.addShadowCaster(chip);
+        chunk.scaling.set(1.25, 0.70 + r[3], 1.05);
+        chunk.rotation.set(0.05 * i, 0.65 * i, -0.035 * i);
+        chunk.material = i % 2 ? stoneLight : stone;
+        chunk.isPickable = false;
+        this.shadowGenerator.addShadowCaster(chunk);
       });
+
+      // Thin dark seams add stratification without adding collision or clutter.
+      for (const seamZ of [-0.18, 0.16]) {
+        const seam = BABYLON.MeshBuilder.CreateBox(
+          "ruin-seam:" + o.id + ":" + seamZ,
+          { width: w * 0.82, depth: 0.025, height: 0.035 },
+          this.scene,
+        );
+        seam.position.set(x, 0.69, z + d * seamZ);
+        seam.material = stoneDark;
+        seam.isPickable = false;
+      }
     }
   }
 

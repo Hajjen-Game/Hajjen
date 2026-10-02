@@ -164,6 +164,81 @@ function createFlameMesh(
   return mesh;
 }
 
+function createStoneSurfaceTexture(BABYLON,scene,name,seed=1) {
+  const size=512;
+  const texture=new BABYLON.DynamicTexture(
+    name,
+    {width:size,height:size},
+    scene,
+    false,
+  );
+  const ctx=texture.getContext();
+  const random=seededRandom(seed);
+
+  ctx.fillStyle="#d0c6b9";
+  ctx.fillRect(0,0,size,size);
+
+  // Large cloudy variation first so the stone reads painted rather than noisy.
+  for(let i=0;i<90;i+=1){
+    const x=random()*size;
+    const y=random()*size;
+    const radius=24+random()*94;
+    const dark=random()>.48;
+    const gradient=ctx.createRadialGradient(x,y,0,x,y,radius);
+    gradient.addColorStop(
+      0,
+      dark
+        ? "rgba(72,61,53,"+(.035+random()*.075)+")"
+        : "rgba(255,244,220,"+(.028+random()*.055)+")",
+    );
+    gradient.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=gradient;
+    ctx.beginPath();
+    ctx.arc(x,y,radius,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // Sparse pores and worn flecks.
+  for(let i=0;i<1500;i+=1){
+    const bright=random()>.62;
+    const alpha=.015+random()*.040;
+    ctx.fillStyle=bright
+      ? "rgba(255,249,230,"+alpha+")"
+      : "rgba(48,40,35,"+alpha+")";
+    const x=Math.floor(random()*size);
+    const y=Math.floor(random()*size);
+    const s=random()>.94?2:1;
+    ctx.fillRect(x,y,s,s);
+  }
+
+  // A few soft cracks; never enough to look like a procedural crack wallpaper.
+  ctx.lineCap="round";
+  for(let i=0;i<7;i+=1){
+    let x=40+random()*(size-80);
+    let y=40+random()*(size-80);
+    const angle=random()*Math.PI*2;
+    const length=35+random()*72;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    for(let p=0;p<3;p+=1){
+      x+=Math.cos(angle+(random()-.5)*.55)*length/3;
+      y+=Math.sin(angle+(random()-.5)*.55)*length/3;
+      ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle="rgba(48,39,34,"+(.08+random()*.08)+")";
+    ctx.lineWidth=.8+random()*.9;
+    ctx.stroke();
+  }
+
+  texture.update(false);
+  texture.wrapU=BABYLON.Texture.WRAP_ADDRESSMODE;
+  texture.wrapV=BABYLON.Texture.WRAP_ADDRESSMODE;
+  texture.uScale=1.65;
+  texture.vScale=1.65;
+  texture.anisotropicFilteringLevel=8;
+  return texture;
+}
+
 function createFloorTexture(BABYLON,scene,arena,mapping) {
   const width=1280;
   const height=Math.max(576,Math.round(width*mapping.height/mapping.width));
@@ -556,6 +631,94 @@ function addBorder(
   });
 }
 
+function addCornerArchitecture(
+  BABYLON,
+  scene,
+  arena,
+  mapping,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const b=arena.bounds;
+  const corners=[
+    {id:"nw",x:b.x+34,y:b.y+34,sx:1,sy:1},
+    {id:"ne",x:b.x+b.w-34,y:b.y+34,sx:-1,sy:1},
+    {id:"sw",x:b.x+34,y:b.y+b.h-34,sx:1,sy:-1},
+    {id:"se",x:b.x+b.w-34,y:b.y+b.h-34,sx:-1,sy:-1},
+  ];
+
+  for(const corner of corners){
+    const p=mapping.gameToWorld(corner.x,corner.y,0);
+
+    // Three broad terraces make the corner read like a built shrine rather
+    // than a post sitting on the arena border.
+    const terraceSpecs=[
+      {w:12.8,d:10.2,h:.42,y:.21,offset:0},
+      {w:10.7,d:8.4,h:.54,y:.69,offset:1.2},
+      {w:8.4,d:6.6,h:.62,y:1.27,offset:2.1},
+    ];
+    terraceSpecs.forEach((spec,index)=>{
+      const terrace=createChamferedPrism(
+        BABYLON,scene,
+        "babylon-corner-terrace-"+corner.id+"-"+index,
+        spec.w,spec.h,spec.d,
+        .55,
+        {
+          x:p.x+corner.sx*spec.offset*.25,
+          y:spec.y,
+          z:p.z-corner.sy*spec.offset*.20,
+        },
+        index===2?materials.shrineTop:materials.shrineStone,
+      );
+      terrace.parent=root;
+      terrace.receiveShadows=true;
+      shadowCasters.push(terrace);
+    });
+
+    // Side buttresses give every shrine a chunky silhouette.
+    for(const side of [-1,1]){
+      const brace=createChamferedPrism(
+        BABYLON,scene,
+        "babylon-corner-brace-"+corner.id+"-"+side,
+        2.25,3.1,5.4,
+        .38,
+        {
+          x:p.x+side*4.3,
+          y:1.75,
+          z:p.z+.25,
+        },
+        materials.shrineDark,
+      );
+      brace.rotation.y=side*.055;
+      brace.parent=root;
+      brace.receiveShadows=true;
+      shadowCasters.push(brace);
+    }
+
+    // Small decorative stone fins, echoing the chunky carved geometry from
+    // the reference without copying its exact shape.
+    for(let i=0;i<3;i+=1){
+      const fin=createChamferedPrism(
+        BABYLON,scene,
+        "babylon-corner-fin-"+corner.id+"-"+i,
+        1.0,1.35+i*.16,3.4-i*.25,
+        .20,
+        {
+          x:p.x+corner.sx*(5.0+i*.75),
+          y:.70+i*.12,
+          z:p.z-corner.sy*(2.0+i*.66),
+        },
+        i===1?materials.shrineTop:materials.shrineStone,
+      );
+      fin.rotation.y=corner.sx*corner.sy*(.10+i*.035);
+      fin.parent=root;
+      fin.receiveShadows=true;
+      shadowCasters.push(fin);
+    }
+  }
+}
+
 export function babylonObstacleVisualHeight(rect) {
   const longSide=Math.max(
     .01,
@@ -672,17 +835,20 @@ function addObstacle(
 ) {
   const rect=mapping.rectToWorld(obstacle);
   const height=babylonObstacleVisualHeight(rect);
+  const horizontal=rect.width>=rect.depth;
+  const longSide=Math.max(rect.width,rect.depth);
   const shortSide=Math.min(rect.width,rect.depth);
+  const aspect=longSide/Math.max(.01,shortSide);
   const chamfer=Math.min(1.05,shortSide*.11);
-  const baseHeight=.82;
+  const baseHeight=.86;
 
-  const base=createChamferedPrism(
+  const plinth=createChamferedPrism(
     BABYLON,scene,
-    "babylon-los-base-"+(obstacle.id||index),
+    "babylon-los-plinth-"+(obstacle.id||index),
     rect.width,
     baseHeight,
     rect.depth,
-    chamfer*.82,
+    chamfer*.86,
     {
       x:rect.center.x,
       y:baseHeight/2,
@@ -690,57 +856,119 @@ function addObstacle(
     },
     materials.stoneBase,
   );
-  base.parent=root;
-  base.receiveShadows=true;
-  shadowCasters.push(base);
+  plinth.parent=root;
+  plinth.receiveShadows=true;
+  shadowCasters.push(plinth);
 
-  const bodyInset=.34;
-  const body=createChamferedPrism(
+  const foot=createChamferedPrism(
     BABYLON,scene,
-    "babylon-los-body-"+(obstacle.id||index),
-    Math.max(.5,rect.width-bodyInset),
-    Math.max(.5,height-.28),
-    Math.max(.5,rect.depth-bodyInset),
-    Math.max(.12,chamfer*.72),
+    "babylon-los-foot-"+(obstacle.id||index),
+    Math.max(.6,rect.width-.22),
+    .48,
+    Math.max(.6,rect.depth-.22),
+    Math.max(.14,chamfer*.76),
     {
       x:rect.center.x,
-      y:baseHeight*.38+(height-.28)/2,
-      z:rect.center.z,
-    },
-    materials.stoneSide,
-  );
-  body.parent=root;
-  body.receiveShadows=true;
-  shadowCasters.push(body);
-
-  // Shoulder band gives the block a built, stacked silhouette.
-  const shoulderHeight=.42;
-  const shoulder=createChamferedPrism(
-    BABYLON,scene,
-    "babylon-los-shoulder-"+(obstacle.id||index),
-    Math.max(.5,rect.width-.14),
-    shoulderHeight,
-    Math.max(.5,rect.depth-.14),
-    Math.max(.12,chamfer*.84),
-    {
-      x:rect.center.x,
-      y:height-1.05,
+      y:baseHeight+.24,
       z:rect.center.z,
     },
     materials.stoneShoulder,
   );
-  shoulder.parent=root;
-  shoulder.receiveShadows=true;
-  shadowCasters.push(shoulder);
+  foot.parent=root;
+  foot.receiveShadows=true;
+  shadowCasters.push(foot);
 
-  const capHeight=.48;
+  const bodyBottom=baseHeight+.48;
+  const capReserve=1.18;
+  const bodyHeight=Math.max(1.2,height-bodyBottom-capReserve);
+  const courseCount=aspect>2.05?3:4;
+  const courseGap=.10;
+  const courseHeight=(bodyHeight-courseGap*(courseCount-1))/courseCount;
+
+  for(let course=0;course<courseCount;course+=1){
+    const courseY=bodyBottom+courseHeight/2+course*(courseHeight+courseGap);
+    const alternate=course%2===1;
+    const inset=.38+(alternate?.11:0);
+    const mat=course%3===1?materials.stoneSideAlt:materials.stoneSide;
+
+    if(aspect>2.05){
+      // Long walls are composed from 3–5 visible masonry blocks per course.
+      const segments=Math.max(3,Math.min(5,Math.round(longSide/7.0)));
+      const segmentGap=.12;
+      const segmentLong=(longSide-.58-segmentGap*(segments-1))/segments;
+
+      for(let seg=0;seg<segments;seg+=1){
+        const offset=-longSide/2+.29+segmentLong/2+seg*(segmentLong+segmentGap);
+        const shift=(alternate?(seg%2?.07:-.07):0);
+        const w=horizontal?segmentLong:Math.max(.6,rect.width-inset);
+        const d=horizontal?Math.max(.6,rect.depth-inset):segmentLong;
+        const block=createChamferedPrism(
+          BABYLON,scene,
+          "babylon-los-course-"+(obstacle.id||index)+"-"+course+"-"+seg,
+          w,
+          courseHeight,
+          d,
+          Math.min(.30,Math.min(w,d)*.075),
+          {
+            x:rect.center.x+(horizontal?offset:shift),
+            y:courseY,
+            z:rect.center.z+(horizontal?shift:offset),
+          },
+          (seg+course)%4===2?materials.stoneSideAlt:mat,
+        );
+        block.parent=root;
+        block.receiveShadows=true;
+        shadowCasters.push(block);
+      }
+    }else{
+      // Square pillars use broad stacked stones with tiny offsets so the
+      // silhouette feels hand-laid rather than extruded from one primitive.
+      const offsetX=(course===1?.10:course===2?-.08:0);
+      const offsetZ=(course===2?.08:course===3?-.07:0);
+      const block=createChamferedPrism(
+        BABYLON,scene,
+        "babylon-los-course-"+(obstacle.id||index)+"-"+course,
+        Math.max(.6,rect.width-inset),
+        courseHeight,
+        Math.max(.6,rect.depth-inset),
+        Math.max(.16,chamfer*.72),
+        {
+          x:rect.center.x+offsetX,
+          y:courseY,
+          z:rect.center.z+offsetZ,
+        },
+        mat,
+      );
+      block.parent=root;
+      block.receiveShadows=true;
+      shadowCasters.push(block);
+    }
+  }
+
+  // Broad shoulder/cornice separates wall body from the top stones.
+  const corniceY=height-.72;
+  const cornice=createChamferedPrism(
+    BABYLON,scene,
+    "babylon-los-cornice-"+(obstacle.id||index),
+    Math.max(.5,rect.width-.10),
+    .55,
+    Math.max(.5,rect.depth-.10),
+    Math.max(.15,chamfer*.90),
+    {x:rect.center.x,y:corniceY,z:rect.center.z},
+    materials.stoneShoulder,
+  );
+  cornice.parent=root;
+  cornice.receiveShadows=true;
+  shadowCasters.push(cornice);
+
+  const capHeight=.52;
   const cap=createChamferedPrism(
     BABYLON,scene,
     "babylon-los-cap-"+(obstacle.id||index),
-    Math.max(.5,rect.width-.08),
+    Math.max(.5,rect.width-.03),
     capHeight,
-    Math.max(.5,rect.depth-.08),
-    Math.max(.12,chamfer*.90),
+    Math.max(.5,rect.depth-.03),
+    Math.max(.16,chamfer*.94),
     {
       x:rect.center.x,
       y:height+capHeight/2,
@@ -760,6 +988,31 @@ function addObstacle(
     BABYLON,scene,obstacle,index,rect,height,
     materials,root,
   );
+
+  // Small fallen chips near the obstacle base add asymmetry without altering
+  // the logical collision footprint.
+  const random=seededRandom(0xa21f+index*91);
+  const chipCount=aspect>2.05?3:2;
+  for(let i=0;i<chipCount;i+=1){
+    const edge=(i%2?1:-1);
+    const chipW=.45+random()*.52;
+    const chipD=.38+random()*.46;
+    const chipH=.22+random()*.34;
+    const chip=createChamferedPrism(
+      BABYLON,scene,
+      "babylon-los-chip-"+(obstacle.id||index)+"-"+i,
+      chipW,chipH,chipD,.10,
+      {
+        x:rect.center.x+(horizontal?(random()-.5)*(rect.width*.68):edge*(rect.width*.34)),
+        y:chipH/2,
+        z:rect.center.z+(horizontal?edge*(rect.depth*.34):(random()-.5)*(rect.depth*.68)),
+      },
+      i%2?materials.rubble:materials.rubbleDark,
+    );
+    chip.rotation.y=random()*Math.PI;
+    chip.parent=root;
+    chip.receiveShadows=true;
+  }
 }
 
 function addTorchPedestal(
@@ -777,6 +1030,31 @@ function addTorchPedestal(
   phase,
 ) {
   const baseWorld=mapping.gameToWorld(gameX,gameY,0);
+
+  const backplate=createChamferedPrism(
+    BABYLON,scene,
+    name+"-backplate",
+    7.8,4.3,2.0,.58,
+    {x:baseWorld.x,y:2.15,z:baseWorld.z+1.55},
+    materials.shrineDark,
+  );
+  backplate.parent=root;
+  backplate.receiveShadows=true;
+  shadowCasters.push(backplate);
+
+  for(const side of [-1,1]){
+    const sideBlock=createChamferedPrism(
+      BABYLON,scene,
+      name+"-side-"+side,
+      2.05,3.45,3.55,.42,
+      {x:baseWorld.x+side*3.55,y:1.73,z:baseWorld.z+.65},
+      materials.shrineStone,
+    );
+    sideBlock.parent=root;
+    sideBlock.receiveShadows=true;
+    shadowCasters.push(sideBlock);
+  }
+
   const pedestal=createChamferedPrism(
     BABYLON,scene,
     name+"-base",
@@ -883,6 +1161,16 @@ function addTorchPedestal(
   light.intensity=3.10;
   light.range=42;
   lights.push(light);
+
+  const glowDisc=BABYLON.MeshBuilder.CreateDisc(
+    name+"-floor-glow",
+    {radius:8.6,tessellation:48,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+    scene,
+  );
+  glowDisc.position.set(baseWorld.x,.035,baseWorld.z-1.2);
+  glowDisc.rotation.x=Math.PI/2;
+  glowDisc.material=materials.floorGlow;
+  glowDisc.parent=root;
 }
 
 function addTorches(
@@ -1014,14 +1302,18 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     seamSoft:material(BABYLON,scene,"mat-floor-seam-soft","#675448","#1d1713"),
     crack:material(BABYLON,scene,"mat-crack","#211a16","#090706"),
     stoneBase:material(BABYLON,scene,"mat-stone-base","#4e4640","#181512"),
-    stoneSide:material(BABYLON,scene,"mat-stone-side","#71665c","#201a16"),
-    stoneShoulder:material(BABYLON,scene,"mat-stone-shoulder","#807266","#261f1a"),
+    stoneSide:material(BABYLON,scene,"mat-stone-side","#6c625a","#201a16"),
+    stoneSideAlt:material(BABYLON,scene,"mat-stone-side-alt","#786d63","#241d18"),
+    stoneShoulder:material(BABYLON,scene,"mat-stone-shoulder","#817366","#261f1a"),
     stoneTop:material(BABYLON,scene,"mat-stone-top","#a18c77","#35291f"),
     stoneTopAlt:material(BABYLON,scene,"mat-stone-top-alt","#927d6b","#30251e"),
     border:material(BABYLON,scene,"mat-border","#4d433c","#171310"),
     borderCap:material(BABYLON,scene,"mat-border-cap","#7e6c5b","#261e18"),
     borderTower:material(BABYLON,scene,"mat-border-tower","#554b43","#181512"),
-    innerLip:material(BABYLON,scene,"mat-inner-lip","#675548","#1c1713"),
+    innerLip:material(BABYLON,scene,"mat-inner-lip","#5f5146","#1c1713"),
+    shrineDark:material(BABYLON,scene,"mat-shrine-dark","#49423d","#171310"),
+    shrineStone:material(BABYLON,scene,"mat-shrine-stone","#655b52","#201a16"),
+    shrineTop:material(BABYLON,scene,"mat-shrine-top","#8b7a69","#30251e"),
     torchBase:material(BABYLON,scene,"mat-torch-base","#504740","#181411"),
     torchStone:material(BABYLON,scene,"mat-torch-stone","#76685c","#211b17"),
     brazier:material(BABYLON,scene,"mat-brazier","#33231a","#7a3c16"),
@@ -1041,6 +1333,9 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     emberGlow:material(
       BABYLON,scene,"mat-ember-glow","#ff8b1f","#311206","#ff6a12"
     ),
+    floorGlow:material(
+      BABYLON,scene,"mat-floor-glow","#ff8a2c","#2b1208","#ff7130"
+    ),
   };
 
   materials.seam.alpha=.90;
@@ -1050,6 +1345,35 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   materials.flameInner.disableLighting=true;
   materials.emberGlow.disableLighting=true;
   materials.emberGlow.alpha=.24;
+  materials.floorGlow.disableLighting=true;
+  materials.floorGlow.alpha=.075;
+
+  const stoneSurface=createStoneSurfaceTexture(
+    BABYLON,scene,
+    "babylon-handbuilt-stone-surface",
+    arena.id==="windscar-proving-grounds"?0x2177:0x7712,
+  );
+  ownedTextures.push(stoneSurface);
+  [
+    materials.stoneBase,
+    materials.stoneSide,
+    materials.stoneSideAlt,
+    materials.stoneShoulder,
+    materials.stoneTop,
+    materials.stoneTopAlt,
+    materials.border,
+    materials.borderCap,
+    materials.borderTower,
+    materials.shrineDark,
+    materials.shrineStone,
+    materials.shrineTop,
+    materials.torchBase,
+    materials.torchStone,
+    materials.rubble,
+    materials.rubbleDark,
+  ].forEach(mat=>{
+    mat.diffuseTexture=stoneSurface;
+  });
   materials.banner.specularColor=new BABYLON.Color3(.08,.03,.02);
   materials.bannerGold.specularColor=new BABYLON.Color3(.18,.10,.04);
 
@@ -1057,6 +1381,9 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
     BABYLON,scene,arena,mapping,materials,root,ownedTextures,
   );
   addBorder(
+    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
+  );
+  addCornerArchitecture(
     BABYLON,scene,arena,mapping,materials,root,shadowCasters,
   );
 

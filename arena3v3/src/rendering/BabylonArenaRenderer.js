@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon5";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon6";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -110,8 +110,8 @@ export class BabylonArenaRenderer {
     scene.clearColor = new BABYLON.Color4(0.055, 0.045, 0.038, 1);
     scene.ambientColor = new BABYLON.Color3(0.20, 0.18, 0.16);
     scene.skipPointerMovePicking = true;
-    scene.imageProcessingConfiguration.exposure = 1.10;
-    scene.imageProcessingConfiguration.contrast = 1.04;
+    scene.imageProcessingConfiguration.exposure = 1.02;
+    scene.imageProcessingConfiguration.contrast = 1.07;
     if (BABYLON.ImageProcessingConfiguration?.TONEMAPPING_ACES != null) {
       scene.imageProcessingConfiguration.toneMappingEnabled = true;
       scene.imageProcessingConfiguration.toneMappingType =
@@ -136,9 +136,9 @@ export class BabylonArenaRenderer {
       new BABYLON.Vector3(0, 1, 0),
       scene,
     );
-    ambient.intensity = 0.70;
-    ambient.diffuse = new BABYLON.Color3(0.78, 0.74, 0.69);
-    ambient.groundColor = new BABYLON.Color3(0.14, 0.10, 0.08);
+    ambient.intensity = 0.60;
+    ambient.diffuse = new BABYLON.Color3(0.76, 0.72, 0.68);
+    ambient.groundColor = new BABYLON.Color3(0.12, 0.09, 0.075);
 
     const key = new BABYLON.DirectionalLight(
       "arena-key",
@@ -146,8 +146,8 @@ export class BabylonArenaRenderer {
       scene,
     );
     key.position = new BABYLON.Vector3(18, 46, -28);
-    key.intensity = 0.96;
-    key.diffuse = new BABYLON.Color3(0.95, 0.80, 0.66);
+    key.intensity = 0.82;
+    key.diffuse = new BABYLON.Color3(0.93, 0.79, 0.67);
 
     const shadows = new BABYLON.ShadowGenerator(1024, key);
     shadows.useBlurExponentialShadowMap = true;

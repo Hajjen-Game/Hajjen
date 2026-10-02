@@ -1426,6 +1426,14 @@ export class PixiProofRenderer {
     actorMotionFx.blendMode = "screen";
     root.addChild(actorMotionFx);
 
+    const ccWorldGlowFx = new Graphics();
+    ccWorldGlowFx.visible = false;
+    root.addChild(ccWorldGlowFx);
+
+    const ccWorldFx = new Graphics();
+    ccWorldFx.visible = false;
+    root.addChild(ccWorldFx);
+
     const castWindupFx = new Graphics();
     castWindupFx.visible = false;
     castWindupFx.blendMode = "screen";
@@ -1506,6 +1514,12 @@ export class PixiProofRenderer {
     root.addChild(spellPolishCoreFx);
 
     const { BlurFilter } = this.PIXI;
+
+    ccWorldGlowFx.blendMode = "screen";
+    ccWorldGlowFx.filters = [
+      new BlurFilter({ strength: 4.6, quality: 1 }),
+    ];
+    ccWorldFx.blendMode = "screen";
 
     combatVfx2GlowFx.blendMode = "screen";
     combatVfx2GlowFx.filters = [
@@ -1631,6 +1645,38 @@ export class PixiProofRenderer {
     castBorder.visible = false;
     root.addChild(castBorder);
 
+    const ccBadge = new Container();
+    ccBadge.label = "cc-badge:" + actor.id;
+    ccBadge.visible = false;
+
+    const ccBadgeGlow = new Graphics();
+    ccBadgeGlow.blendMode = "screen";
+    ccBadgeGlow.filters = [new BlurFilter({ strength: 4.5, quality: 1 })];
+    ccBadge.addChild(ccBadgeGlow);
+
+    const ccBadgeBg = new Graphics();
+    ccBadge.addChild(ccBadgeBg);
+
+    const ccBadgeGlyph = new Graphics();
+    ccBadge.addChild(ccBadgeGlyph);
+
+    const ccBadgeTimer = new Text({
+      text: "",
+      style: {
+        fontFamily: "system-ui",
+        fontSize: 10,
+        fontWeight: "900",
+        fill: "#f4eadc",
+        stroke: { color: "#080605", width: 3 },
+      },
+    });
+    ccBadgeTimer.anchor.set(.5);
+    ccBadgeTimer.position.set(0, 10.5);
+    ccBadge.addChild(ccBadgeTimer);
+
+    // Added last so it always sits above spells, actor motion and target rings.
+    root.addChild(ccBadge);
+
     this.app.stage.addChild(root);
 
     const view = {
@@ -1645,6 +1691,15 @@ export class PixiProofRenderer {
       ghostBaseScaleX: motionGhostA?.scale.x || 1,
       ghostBaseScaleY: motionGhostA?.scale.y || 1,
       actorMotionFx,
+      ccWorldGlowFx,
+      ccWorldFx,
+      ccBadge,
+      ccBadgeGlow,
+      ccBadgeBg,
+      ccBadgeGlyph,
+      ccBadgeTimer,
+      ccBadgeKind: null,
+      ccBadgeSpellId: null,
       motion: {
         previousAlive: actor.alive,
         previousHealth: actor.health,
@@ -1812,7 +1867,7 @@ export class PixiProofRenderer {
       view.targetMarker.scale.set(markerScale);
       view.targetMarkerGlow.scale.set(markerScale);
 
-      const ccKinds = new Set(["stun", "fear", "incapacitate", "root"]);
+      const ccKinds = new Set(["stun", "fear", "incapacitate", "root", "schoolLock"]);
       const hasCrowdControl = actor.effects.some(effect =>
         effect.remainingMs > 0 && ccKinds.has(effect.kind)
       );
@@ -1885,6 +1940,462 @@ export class PixiProofRenderer {
       }
     } else {
       view.castSpellId = null;
+    }
+  }
+
+  updatePersistentCrowdControlVfx(game) {
+    const priority = {
+      stun: 0,
+      fear: 1,
+      incapacitate: 2,
+      root: 3,
+      schoolLock: 4,
+    };
+    const time = Number(game.elapsedSeconds) || 0;
+
+    const activeControlFor = actor => (actor.effects || [])
+      .filter(effect =>
+        effect.remainingMs > 0
+        && Object.prototype.hasOwnProperty.call(priority, effect.kind)
+      )
+      .sort((a,b) => priority[a.kind] - priority[b.kind])[0] || null;
+
+    const paletteFor = effect => {
+      if (!effect) return { main:0xd6c69e, core:0xffffff };
+      if (effect.kind === "stun") return { main:0xe46f5e, core:0xffe2dd };
+      if (effect.kind === "fear") return { main:0xa86ee8, core:0xeadbff };
+      if (effect.kind === "incapacitate") {
+        if (effect.spellId === "druid-cyclone") return { main:0x71c88a, core:0xd9f2d4 };
+        if (effect.spellId === "shaman-hex") return { main:0x66b88a, core:0xd6f3c9 };
+        return { main:0x9b79d1, core:0xeee3ff };
+      }
+      if (effect.kind === "root") {
+        if (effect.spellId === "dk-chains") return { main:0x75b9d8, core:0xe1f8ff };
+        return { main:0x62bfe9, core:0xe5f9ff };
+      }
+      return { main:0x9d86bf, core:0xf1e8ff };
+    };
+
+    const arc = (g,cx,cy,radius,start,end,style,segments=7) => {
+      for(let i=0;i<=segments;i++){
+        const t=i/segments;
+        const a=start+(end-start)*t;
+        const x=cx+Math.cos(a)*radius;
+        const y=cy+Math.sin(a)*radius;
+        if(i===0) g.moveTo(x,y); else g.lineTo(x,y);
+      }
+      g.stroke(style);
+    };
+
+    for (const actor of game.actors || []) {
+      const view = this.actorViews.get(actor.id);
+      if (!view) continue;
+
+      const glow = view.ccWorldGlowFx;
+      const core = view.ccWorldFx;
+      glow.clear();
+      core.clear();
+      glow.visible = false;
+      core.visible = false;
+
+      const effect = activeControlFor(actor);
+      if (!actor.alive || !effect) continue;
+
+      const palette = paletteFor(effect);
+      const pulse = .5 + .5 * Math.sin(time * 7.2 + actor.x * .012);
+      const radius = actor.radius + 7;
+      glow.visible = true;
+      core.visible = true;
+
+      // Frost Nova: obvious frozen floor ring + crystalline ice shards.
+      if (effect.kind === "root" && effect.spellId === "mage-frost-nova") {
+        glow.ellipse(0,actor.radius*.58,radius+10,7.5).stroke({
+          color:palette.main,width:8,alpha:.16+pulse*.035
+        });
+        core.ellipse(0,actor.radius*.58,radius+8,6).stroke({
+          color:palette.main,width:2.2,alpha:.72
+        });
+
+        for(let i=0;i<10;i++){
+          const a=i/10*Math.PI*2;
+          const baseX=Math.cos(a)*(actor.radius+3);
+          const baseY=actor.radius*.58+Math.sin(a)*4.2;
+          const tipR=actor.radius+12+(i%3)*4+pulse*2;
+          const tipX=Math.cos(a)*tipR;
+          const tipY=actor.radius*.58+Math.sin(a)*7.5-(i%2)*2;
+          core
+            .moveTo(baseX,baseY)
+            .lineTo(tipX,tipY)
+            .stroke({
+              color:i%3===0?palette.core:palette.main,
+              width:i%3===0?2.3:1.5,
+              alpha:.68,
+            });
+        }
+
+        for(let i=0;i<5;i++){
+          const x=(i-2)*8;
+          core
+            .moveTo(x-3,actor.radius*.40)
+            .lineTo(x,actor.radius*.18-(i%2)*4)
+            .lineTo(x+3,actor.radius*.40)
+            .stroke({
+              color:palette.core,width:1.3,alpha:.48
+            });
+        }
+        continue;
+      }
+
+      // Chains of Ice: persistent linked chain wrapping the lower body.
+      if (effect.kind === "root" && effect.spellId === "dk-chains") {
+        glow.ellipse(0,actor.radius*.42,radius+9,10).stroke({
+          color:palette.main,width:7,alpha:.12
+        });
+        const links=9;
+        for(let i=0;i<links;i++){
+          const a=i/links*Math.PI*2+time*.28;
+          const rr=actor.radius+4+(i%2)*2;
+          const x=Math.cos(a)*rr;
+          const y=actor.radius*.32+Math.sin(a)*6;
+          core.ellipse(x,y,5.8,2.7).stroke({
+            color:i%2?palette.main:palette.core,
+            width:1.8,alpha:.74
+          });
+        }
+        core.ellipse(0,actor.radius*.42,radius+5,7).stroke({
+          color:palette.main,width:1.3,alpha:.44
+        });
+        continue;
+      }
+
+      // Cyclone persists as layered wind bands around the controlled player.
+      if (
+        effect.kind === "incapacitate"
+        && effect.spellId === "druid-cyclone"
+      ) {
+        for(let layer=0;layer<5;layer++){
+          const y=14-layer*7.5;
+          const rx=actor.radius+5+layer*3+pulse*1.5;
+          const ry=4.5+layer*.9;
+          core.ellipse(0,y,rx,ry).stroke({
+            color:layer%2?palette.core:palette.main,
+            width:1.4+layer*.12,
+            alpha:.30+layer*.075,
+          });
+        }
+        for(let i=0;i<6;i++){
+          const a=i/6*Math.PI*2+time*(i%2?.9:-.75);
+          const rr=actor.radius+8+(i%3)*4;
+          core.circle(
+            Math.cos(a)*rr,
+            Math.sin(a)*rr*.45-5,
+            1.1+(i%2)*.35
+          ).fill({
+            color:palette.core,alpha:.40
+          });
+        }
+        glow.ellipse(0,2,actor.radius+15,actor.radius+5).stroke({
+          color:palette.main,width:8,alpha:.09
+        });
+        continue;
+      }
+
+      // Polymorph: arcane spiral/runes remain around the target while incapacitated.
+      if (
+        effect.kind === "incapacitate"
+        && effect.spellId === "mage-polymorph"
+      ) {
+        for(let ring=0;ring<3;ring++){
+          const rr=actor.radius+6+ring*7;
+          for(let seg=0;seg<4;seg++){
+            const a0=seg*Math.PI/2+.15+time*(ring%2?-.28:.22);
+            arc(core,0,0,rr,a0,a0+.65,{
+              color:ring===1?palette.core:palette.main,
+              width:1.5,
+              alpha:.48-ring*.07,
+            },5);
+          }
+        }
+        for(let i=0;i<5;i++){
+          const a=i/5*Math.PI*2+time*.8;
+          const rr=actor.radius+13+(i%2)*4;
+          core.circle(Math.cos(a)*rr,Math.sin(a)*rr,1.5).fill({
+            color:palette.core,alpha:.48
+          });
+        }
+        glow.circle(0,0,actor.radius+15).stroke({
+          color:palette.main,width:7,alpha:.08
+        });
+        continue;
+      }
+
+      // Hex: stable green hex seal with small rotating nature runes.
+      if (
+        effect.kind === "incapacitate"
+        && effect.spellId === "shaman-hex"
+      ) {
+        const pts=[];
+        for(let i=0;i<6;i++){
+          const a=-Math.PI/2+i*Math.PI/3;
+          pts.push({
+            x:Math.cos(a)*(actor.radius+11),
+            y:Math.sin(a)*(actor.radius+11)
+          });
+        }
+        core.moveTo(pts[0].x,pts[0].y);
+        for(let i=1;i<pts.length;i++) core.lineTo(pts[i].x,pts[i].y);
+        core.lineTo(pts[0].x,pts[0].y).stroke({
+          color:palette.main,width:2,alpha:.62
+        });
+
+        for(let i=0;i<3;i++){
+          const a=time*.65+i*Math.PI*2/3;
+          const rr=actor.radius+17;
+          core.circle(Math.cos(a)*rr,Math.sin(a)*rr,2).fill({
+            color:palette.core,alpha:.54
+          });
+        }
+        glow.circle(0,0,actor.radius+13).stroke({
+          color:palette.main,width:7,alpha:.09
+        });
+        continue;
+      }
+
+      // Fear: distinguish Warlock's shadow hooks from Priest's psychic waves.
+      if (effect.kind === "fear") {
+        if (effect.spellId === "priest-psychic-scream") {
+          for(let layer=0;layer<3;layer++){
+            const rr=actor.radius+8+layer*7+pulse*2;
+            for(let seg=0;seg<3;seg++){
+              const a0=seg*Math.PI*2/3+time*(layer%2?.22:-.18);
+              arc(core,0,0,rr,a0,a0+.78,{
+                color:layer===1?palette.core:palette.main,
+                width:1.6,
+                alpha:.42-layer*.06,
+              },5);
+            }
+          }
+        } else {
+          for(let i=0;i<5;i++){
+            const a=i/5*Math.PI*2+time*(i%2?.48:-.38);
+            const outer=actor.radius+18+(i%2)*4;
+            const inner=actor.radius+5;
+            const midA=a+.34;
+            core
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(midA)*(outer*.72),Math.sin(midA)*(outer*.72))
+              .lineTo(Math.cos(a+.70)*inner,Math.sin(a+.70)*inner)
+              .stroke({
+                color:i%2?palette.core:palette.main,
+                width:1.7,
+                alpha:.46,
+              });
+          }
+        }
+        glow.circle(0,0,actor.radius+13+pulse*2).stroke({
+          color:palette.main,width:7,alpha:.10
+        });
+        continue;
+      }
+
+      // Stun: hard angular sparks around the head/body.
+      if (effect.kind === "stun") {
+        for(let i=0;i<7;i++){
+          const a=i/7*Math.PI*2+time*.42;
+          const inner=actor.radius+5;
+          const outer=actor.radius+13+(i%3)*3+pulse*2;
+          core
+            .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+            .lineTo(Math.cos(a+.08)*outer,Math.sin(a+.08)*outer)
+            .stroke({
+              color:i%2?palette.core:palette.main,
+              width:i%2?1.5:2,
+              alpha:.56,
+            });
+        }
+        core.circle(0,0,actor.radius+8).stroke({
+          color:palette.main,width:1.5,alpha:.42
+        });
+        glow.circle(0,0,actor.radius+11).stroke({
+          color:palette.main,width:7,alpha:.10
+        });
+        continue;
+      }
+
+      // Generic root fallback.
+      if (effect.kind === "root") {
+        core.ellipse(0,actor.radius*.55,radius+7,6).stroke({
+          color:palette.main,width:2,alpha:.62
+        });
+        for(let i=0;i<7;i++){
+          const a=i/7*Math.PI*2;
+          core
+            .moveTo(Math.cos(a)*(actor.radius+1),actor.radius*.50+Math.sin(a)*3)
+            .lineTo(Math.cos(a)*(actor.radius+10),actor.radius*.50+Math.sin(a)*6)
+            .stroke({
+              color:i%2?palette.core:palette.main,
+              width:1.5,alpha:.50
+            });
+        }
+        continue;
+      }
+
+      // School lock / interrupt: restrained purple lock-cross effect.
+      if (effect.kind === "schoolLock") {
+        const r=actor.radius+9;
+        for(const sign of [-1,1]){
+          core
+            .moveTo(-r*sign,-r*.60)
+            .lineTo(r*sign,r*.60)
+            .stroke({
+              color:palette.core,width:2,alpha:.48
+            });
+        }
+        glow.circle(0,0,r+4).stroke({
+          color:palette.main,width:6,alpha:.08
+        });
+      }
+    }
+  }
+
+  updateCrowdControlBadges(game) {
+    const priority = {
+      stun: 0,
+      fear: 1,
+      incapacitate: 2,
+      root: 3,
+      schoolLock: 4,
+    };
+
+    const colorFor = effect => {
+      if (effect?.kind === "stun") return 0xe46f5e;
+      if (effect?.kind === "fear") return 0xe2a85f;
+      if (effect?.kind === "incapacitate") return 0xb89be8;
+      if (effect?.kind === "root") return 0x78c6df;
+      return 0xb29ad1;
+    };
+
+    const drawGlyph = (g,effect,color) => {
+      const kind=effect.kind;
+      const spellId=effect.spellId || "";
+
+      if(kind==="stun"){
+        g.circle(0,-6,2.4).fill({color,alpha:.96});
+        for(let i=0;i<4;i++){
+          const a=i*Math.PI/2+.15;
+          g.moveTo(Math.cos(a)*5, -6+Math.sin(a)*5)
+            .lineTo(Math.cos(a)*9,-6+Math.sin(a)*9)
+            .stroke({color,width:1.8,alpha:.94});
+        }
+        return;
+      }
+
+      if(kind==="fear"){
+        g.circle(-4,-7,1.4).fill({color,alpha:.96});
+        g.circle(4,-7,1.4).fill({color,alpha:.96});
+        g.moveTo(-6,-1).lineTo(0,-4).lineTo(6,-1).stroke({
+          color,width:1.6,alpha:.94
+        });
+        return;
+      }
+
+      if(kind==="incapacitate"){
+        const spiralColor=color;
+        const steps=18;
+        for(let i=0;i<=steps;i++){
+          const t=i/steps;
+          const a=t*Math.PI*4.2;
+          const rr=1+t*7;
+          const x=Math.cos(a)*rr;
+          const y=-6+Math.sin(a)*rr;
+          if(i===0) g.moveTo(x,y); else g.lineTo(x,y);
+        }
+        g.stroke({color:spiralColor,width:1.5,alpha:.94});
+        return;
+      }
+
+      if(kind==="root"){
+        if(spellId==="mage-frost-nova"){
+          for(let i=0;i<6;i++){
+            const a=i*Math.PI/3;
+            g.moveTo(0,-6).lineTo(Math.cos(a)*7,-6+Math.sin(a)*7).stroke({
+              color,width:1.5,alpha:.94
+            });
+          }
+          return;
+        }
+        g.moveTo(0,-13).lineTo(0,0)
+          .moveTo(0,-8).lineTo(-6,-12)
+          .moveTo(0,-5).lineTo(6,-10)
+          .moveTo(0,-1).lineTo(-6,3)
+          .moveTo(0,-1).lineTo(6,3)
+          .stroke({color,width:1.6,alpha:.94});
+        return;
+      }
+
+      // School lock icon.
+      g.rect(-5,-8,10,9).stroke({color,width:1.6,alpha:.94});
+      g.moveTo(-4,-8).lineTo(-4,-12).lineTo(4,-12).lineTo(4,-8).stroke({
+        color,width:1.6,alpha:.94
+      });
+      g.moveTo(-7,-14).lineTo(7,1)
+        .moveTo(7,-14).lineTo(-7,1)
+        .stroke({color,width:1.2,alpha:.72});
+    };
+
+    for(const actor of game.actors || []){
+      const view=this.actorViews.get(actor.id);
+      if(!view) continue;
+
+      const badge=view.ccBadge;
+      const bg=view.ccBadgeBg;
+      const glow=view.ccBadgeGlow;
+      const glyph=view.ccBadgeGlyph;
+
+      const effect=(actor.effects || [])
+        .filter(item =>
+          item.remainingMs>0
+          && Object.prototype.hasOwnProperty.call(priority,item.kind)
+        )
+        .sort((a,b)=>priority[a.kind]-priority[b.kind])[0];
+
+      if(!actor.alive || !effect){
+        badge.visible=false;
+        view.ccBadgeKind=null;
+        view.ccBadgeSpellId=null;
+        continue;
+      }
+
+      badge.visible=true;
+      badge.position.set(0,-actor.radius-73.5);
+
+      const color=colorFor(effect);
+      if(
+        view.ccBadgeKind!==effect.kind
+        || view.ccBadgeSpellId!==effect.spellId
+      ){
+        bg.clear()
+          .rect(-16,-19,32,38)
+          .fill({color:0x0e0907,alpha:.95})
+          .rect(-16,-19,32,38)
+          .stroke({color,width:2,alpha:.96});
+
+        glow.clear()
+          .rect(-16,-19,32,38)
+          .stroke({color,width:5.5,alpha:.22});
+
+        glyph.clear();
+        drawGlyph(glyph,effect,color);
+
+        view.ccBadgeKind=effect.kind;
+        view.ccBadgeSpellId=effect.spellId;
+      }
+
+      const seconds=Math.max(0,effect.remainingMs/1000).toFixed(1);
+      view.ccBadgeTimer.text=seconds;
+      const badgePulse=1+Math.sin(game.elapsedSeconds*7.5+actor.x*.01)*.025;
+      badge.scale.set(badgePulse);
+      glow.alpha=.78+.16*(.5+.5*Math.sin(game.elapsedSeconds*6.2));
     }
   }
 
@@ -2032,6 +2543,9 @@ export class PixiProofRenderer {
         view.targetRing.visible = false;
         view.targetMarker.visible = false;
         view.targetMarkerGlow.visible = false;
+        view.ccBadge.visible = false;
+        view.ccWorldGlowFx.visible = false;
+        view.ccWorldFx.visible = false;
         view.ring.visible = false;
 
         if (deathP < 1) {
@@ -2630,51 +3144,112 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Shaman: broken electrical strands collapse inward toward the caster.
+      // Shaman: Chain Lightning gets a stable storm-sigil buildup instead of
+      // orbiting random strands. Other shaman casts keep the elemental gather.
       if (classId === "shaman" && profile) {
-        const pulse = .5 + .5 * Math.sin(time * 19);
-        const count = profile.heavy ? 8 : 6;
+        const pulse = .5 + .5 * Math.sin(time * 15);
 
+        if (spellId === "shaman-chain-lightning") {
+          const settle = smooth(p);
+          const ringRadius = actor.radius + 18 - settle * 3;
+          const outerRadius = ringRadius + 8;
+          const phase = actor.id?.length ? actor.id.length * .17 : .4;
+
+          // Six fixed storm-rune segments: shape stays readable while intensity
+          // builds, rather than lines visibly orbiting the character.
+          for (let i = 0; i < 6; i += 1) {
+            const center = phase + i * Math.PI / 3;
+            strokeArc(
+              g,
+              ringRadius,
+              center - .30,
+              center + .30,
+              {
+                color: i % 2 ? profile.main : profile.core,
+                width: 1.55 + p * .70,
+                alpha: .28 + p * .48,
+              },
+              5,
+            );
+
+            const nodeX = Math.cos(center) * outerRadius;
+            const nodeY = Math.sin(center) * outerRadius;
+            g.circle(nodeX,nodeY,1.8 + p * 1.1).fill({
+              color: i % 2 ? profile.core : profile.main,
+              alpha: .38 + p * .52,
+            });
+          }
+
+          // Three stationary fork channels point inward. Only their brightness
+          // and tiny electrical kink change, so the buildup feels charged rather
+          // than like loose strokes moving around the icon.
+          for (let i = 0; i < 3; i += 1) {
+            const a = phase + i * Math.PI * 2 / 3;
+            const outer = actor.radius + 24;
+            const inner = actor.radius + 5;
+            const kink = Math.sin(time * 22 + i * 2.4) * (1.2 + p * 1.8);
+            const x1 = Math.cos(a) * outer;
+            const y1 = Math.sin(a) * outer;
+            const xm = Math.cos(a) * (outer * .58 + inner * .42)
+              + Math.cos(a + Math.PI/2) * kink;
+            const ym = Math.sin(a) * (outer * .58 + inner * .42)
+              + Math.sin(a + Math.PI/2) * kink;
+            const x2 = Math.cos(a) * inner;
+            const y2 = Math.sin(a) * inner;
+
+            g.moveTo(x1,y1).lineTo(xm,ym).lineTo(x2,y2).stroke({
+              color: profile.core,
+              width: 1.3 + p * .65,
+              alpha: (.20 + p * .52) * (.86 + pulse * .14),
+            });
+          }
+
+          // Final charge compresses into the caster just before release.
+          if (p > .72) {
+            const finalP = smooth((p - .72) / .28);
+            g.circle(0,0,actor.radius + 8 - finalP * 3).stroke({
+              color: profile.core,
+              width: 1.4 + finalP * 1.2,
+              alpha: .22 + finalP * .54,
+            });
+            g.circle(0,0,3 + finalP * 5).fill({
+              color: profile.core,
+              alpha: finalP * .55,
+            });
+          }
+          continue;
+        }
+
+        const count = profile.heavy ? 7 : 5;
         for (let i = 0; i < count; i += 1) {
           const base =
             i / count * Math.PI * 2
-            + time * 1.1 * (i % 2 ? 1 : -1)
-            + Math.sin(actor.x * .013 + actor.y * .017 + i * 2.1) * .24;
-          const start =
-            actor.radius + 29 + ((i * 17 + actor.radius * 3) % 18);
+            + time * .55 * (i % 2 ? 1 : -1);
+          const start = actor.radius + 27 + (i % 3) * 6;
           const end = Math.max(actor.radius + 7,start * (1 - p * .58));
           const x1 = Math.cos(base) * start;
           const y1 = Math.sin(base) * start;
-          const bendA = base + .16 * Math.sin(i + p * 8);
-          const x2 = Math.cos(bendA) * end;
-          const y2 = Math.sin(bendA) * end;
-          const bendX =
-            (Math.sin(actor.y * .071 + i * 4.3) * .5) * 13;
-          const bendY =
-            (Math.cos(actor.x * .063 + i * 3.7) * .5) * 13;
+          const x2 = Math.cos(base) * end;
+          const y2 = Math.sin(base) * end;
 
-          g
-            .moveTo(x1,y1)
-            .lineTo((x1+x2) * .5 + bendX,(y1+y2) * .5 + bendY)
-            .lineTo(x2,y2)
-            .stroke({
-              color: i % 3 === 0 ? profile.core : profile.main,
-              width: 1.2 + (i % 2) * .8,
-              alpha: .18 + p * .42,
-            });
+          g.moveTo(x1,y1).lineTo(x2,y2).stroke({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            width: 1.2 + (i % 2) * .55,
+            alpha: .16 + p * .40,
+          });
         }
 
         if (p > .68) {
           const flicker = (p - .68) / .32;
           for (let i = 0; i < 4; i += 1) {
-            const a = i / 4 * Math.PI * 2 + time * 2;
+            const a = i / 4 * Math.PI * 2;
             g.circle(
               Math.cos(a) * (actor.radius + 5),
               Math.sin(a) * (actor.radius + 5),
-              1.7 + pulse,
+              1.5 + pulse * .7,
             ).fill({
               color: i % 2 ? profile.core : profile.main,
-              alpha: flicker * .65,
+              alpha: flicker * .60,
             });
           }
         }
@@ -8862,6 +9437,9 @@ export class PixiProofRenderer {
       // Gameplay readability stays strong regardless of effect density.
       view.castWindupFx.alpha = Math.min(1, .96 + focusLift + ccLift);
       view.actorMotionFx.alpha = Math.min(1, .95 + focusLift);
+      view.ccWorldGlowFx.alpha = 1;
+      view.ccWorldFx.alpha = 1;
+      view.ccBadge.alpha = 1;
 
       view.name.alpha = 1;
       view.healthBg.alpha = 1;
@@ -9037,6 +9615,8 @@ export class PixiProofRenderer {
     }
 
     this.updateActorMotionV2(game);
+    this.updatePersistentCrowdControlVfx(game);
+    this.updateCrowdControlBadges(game);
     this.updateNativeCastWindupVfx(game);
     this.updateNativeBurstVfx(game);
     this.updateNativeSlashVfx(game);

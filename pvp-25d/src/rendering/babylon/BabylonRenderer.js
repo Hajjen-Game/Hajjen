@@ -76,9 +76,9 @@ export class BabylonRenderer {
       console.error("PvP-2.5D renderer initialization failed", error);
     });
 
-    window.addEventListener("resize", () => this.engine?.resize());
+    window.addEventListener("resize", () => this.handleResize());
     if ("ResizeObserver" in window) {
-      this.resizeObserver = new ResizeObserver(() => this.engine?.resize());
+      this.resizeObserver = new ResizeObserver(() => this.handleResize());
       this.resizeObserver.observe(canvas.parentElement || canvas);
     }
   }
@@ -168,6 +168,48 @@ export class BabylonRenderer {
     this.initError = null;
     this.lastTime = performance.now();
     this.engine.resize();
+    this.fitCameraToCanvas();
+  }
+
+  handleResize() {
+    this.engine?.resize();
+    this.fitCameraToCanvas();
+  }
+
+  fitCameraToCanvas() {
+    if (!this.camera || !this.engine) return;
+
+    const a = this.arena;
+    const centerX = a.width * S * 0.5;
+    const centerZ = a.height * S * 0.5 + 0.6;
+    const renderWidth = Math.max(
+      1,
+      Number(this.engine.getRenderWidth?.()) || this.canvas.clientWidth || 1,
+    );
+    const renderHeight = Math.max(
+      1,
+      Number(this.engine.getRenderHeight?.()) || this.canvas.clientHeight || 1,
+    );
+    const aspect = renderWidth / renderHeight;
+
+    // The authored desktop composition is based around a ~1.55:1 viewport.
+    // Keep it exactly as authored at normal desktop ratios. If the canvas
+    // becomes unusually narrow, move the same perspective camera away from
+    // the target instead of cropping the arena horizontally.
+    const referenceAspect = 1.55;
+    const framingScale = Math.max(1, referenceAspect / aspect);
+    const baseHeight = 22.4;
+    const baseBack = 6.95;
+
+    this.camera.position.set(
+      centerX,
+      baseHeight * framingScale,
+      centerZ - baseBack * framingScale,
+    );
+    this.camera.setTarget(
+      new BABYLON.Vector3(centerX, 0, centerZ),
+    );
+    this.camera.fov = 0.72;
   }
 
   setArena(arena) {
@@ -187,10 +229,10 @@ export class BabylonRenderer {
       new BABYLON.Vector3(c.x, 22.4, c.z - 6.35),
       this.scene,
     );
-    this.camera.setTarget(new BABYLON.Vector3(c.x, 0, c.z + 0.6));
     this.camera.fov = 0.72;
     this.camera.minZ = 0.1;
     this.camera.inputs.clear();
+    this.fitCameraToCanvas();
 
     const hemi = new BABYLON.HemisphericLight(
       "hemi",
@@ -1006,6 +1048,11 @@ export class BabylonRenderer {
     this.debugPanel.textContent =
       "Backend " + this.backend
       + (this.webGpuError ? " (WebGPU fallback)" : "")
+      + "\nAspect "
+      + (
+        this.engine.getRenderWidth()
+        / Math.max(1, this.engine.getRenderHeight())
+      ).toFixed(2)
       + "\nFPS " + this.engine.getFps().toFixed(0)
       + "\nActors " + game.actors.length
       + "\nMeshes " + this.scene.getActiveMeshes().length

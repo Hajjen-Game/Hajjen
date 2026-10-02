@@ -47,7 +47,7 @@ let roster = {
 };
 let lastEnemyKey = "";
 let lastPlayedArenaId = null;
-let pendingArena = BABYLON_PREVIEW_LOCKED_TO_WINDSCAR
+let pendingArena = BABYLON_PREVIEW_LOCKED_TO_SHOWCASE
   ? BABYLON_PREVIEW_ARENA
   : DEFAULT_ARENA;
 let setupRequired = true;
@@ -159,7 +159,7 @@ function rollOpponent() {
 }
 
 function rollArena() {
-  if (BABYLON_PREVIEW_LOCKED_TO_WINDSCAR) {
+  if (BABYLON_PREVIEW_LOCKED_TO_SHOWCASE) {
     pendingArena = BABYLON_PREVIEW_ARENA;
     return;
   }

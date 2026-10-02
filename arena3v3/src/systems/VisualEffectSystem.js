@@ -66,6 +66,17 @@ export class VisualEffectSystem {
     }, durationMs);
   }
 
+  secondary(source, target, spellId, style = "damage", durationMs = 420) {
+    if (!source || !target || !spellId) return;
+    this.add("secondary", {
+      sourceId: source.id,
+      targetId: target.id,
+      spellId,
+      style,
+      seed: this.nextId * 29,
+    }, durationMs);
+  }
+
   ownsImpact(spellId = "") {
     return ownsCasterVfx2Impact(spellId);
   }

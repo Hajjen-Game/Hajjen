@@ -3,12 +3,12 @@ import { MovementSystem } from "../systems/MovementSystem.js?v=20261001-wallfoll
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
-import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20260930-vfx2e";
+import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261002-secondary1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
-import { CombatSystem } from "../systems/CombatSystem.js?v=20260930-vfx2e";
+import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary1";
 import { AISystem } from "../systems/AISystem.js?v=20261001-wallfollow1";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { RendererBridge } from "../rendering/RendererBridge.js?v=20261002-pixi38";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261002-pixi39";
 import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
 import { buildMatchReport } from "./MatchReport.js?v=20261001-wallfollow1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";

@@ -661,7 +661,9 @@ export class CombatSystem {
 
     healTarget.health = Math.min(healTarget.maxHealth, healTarget.health + actual);
     this.game.recordHealing(source, healTarget, actual, false);
-    this.emitHealFeedback(source, healTarget, actual, false, "priest", false);
+    // Atonement is passive conversion: keep the green combat text but avoid a
+    // direct-heal beam/burst that makes it look like the Priest cast a heal.
+    this.emitHealFeedback(source, healTarget, actual, false, "priest", false, true);
     this.game.log(
       this.game.combatantLabel(source) + "'s Atonement heals " + this.game.combatantLabel(healTarget) + " for " + actual + ".",
     );
@@ -710,6 +712,20 @@ export class CombatSystem {
         periodic,
         this.game.vfx.ownsImpact(spellId),
       );
+
+      if (
+        !periodic
+        && source.id === target.id
+        && ["warrior-bloodthirst", "dk-death-strike"].includes(spellId)
+      ) {
+        this.game.vfx.secondary(
+          source,
+          target,
+          spellId,
+          visualStyle,
+          crit ? 520 : 440,
+        );
+      }
 
       this.game.log(
         this.game.combatantLabel(source) + " heals " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",

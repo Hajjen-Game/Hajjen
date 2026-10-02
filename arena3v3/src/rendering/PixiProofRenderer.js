@@ -1426,6 +1426,22 @@ export class PixiProofRenderer {
     actorMotionFx.blendMode = "screen";
     root.addChild(actorMotionFx);
 
+    const stateWorldGlowFx = new Graphics();
+    stateWorldGlowFx.visible = false;
+    root.addChild(stateWorldGlowFx);
+
+    const stateWorldFx = new Graphics();
+    stateWorldFx.visible = false;
+    root.addChild(stateWorldFx);
+
+    const secondaryGlowFx = new Graphics();
+    secondaryGlowFx.visible = false;
+    root.addChild(secondaryGlowFx);
+
+    const secondaryFx = new Graphics();
+    secondaryFx.visible = false;
+    root.addChild(secondaryFx);
+
     const ccWorldGlowFx = new Graphics();
     ccWorldGlowFx.visible = false;
     root.addChild(ccWorldGlowFx);
@@ -1514,6 +1530,18 @@ export class PixiProofRenderer {
     root.addChild(spellPolishCoreFx);
 
     const { BlurFilter } = this.PIXI;
+
+    stateWorldGlowFx.blendMode = "screen";
+    stateWorldGlowFx.filters = [
+      new BlurFilter({ strength: 4.4, quality: 1 }),
+    ];
+    stateWorldFx.blendMode = "screen";
+
+    secondaryGlowFx.blendMode = "screen";
+    secondaryGlowFx.filters = [
+      new BlurFilter({ strength: 4.8, quality: 1 }),
+    ];
+    secondaryFx.blendMode = "screen";
 
     ccWorldGlowFx.blendMode = "screen";
     ccWorldGlowFx.filters = [
@@ -1691,6 +1719,10 @@ export class PixiProofRenderer {
       ghostBaseScaleX: motionGhostA?.scale.x || 1,
       ghostBaseScaleY: motionGhostA?.scale.y || 1,
       actorMotionFx,
+      stateWorldGlowFx,
+      stateWorldFx,
+      secondaryGlowFx,
+      secondaryFx,
       ccWorldGlowFx,
       ccWorldFx,
       ccBadge,
@@ -1700,6 +1732,11 @@ export class PixiProofRenderer {
       ccBadgeTimer,
       ccBadgeKind: null,
       ccBadgeSpellId: null,
+      ccTransition: {
+        lastKind: null,
+        lastSpellId: null,
+        exit: null,
+      },
       motion: {
         previousAlive: actor.alive,
         previousHealth: actor.health,
@@ -1943,6 +1980,481 @@ export class PixiProofRenderer {
     }
   }
 
+  updatePersistentCombatStateVfx(game) {
+    const time = Number(game.elapsedSeconds) || 0;
+
+    const arc = (g,cx,cy,radius,start,end,style,segments=7) => {
+      for(let i=0;i<=segments;i++){
+        const t=i/segments;
+        const a=start+(end-start)*t;
+        const x=cx+Math.cos(a)*radius;
+        const y=cy+Math.sin(a)*radius;
+        if(i===0) g.moveTo(x,y); else g.lineTo(x,y);
+      }
+      g.stroke(style);
+    };
+
+    const nowMs=typeof performance!=="undefined"?performance.now():Date.now();
+
+    const drawExit=(view,actor,exit)=>{
+      const duration=280;
+      const q=Math.max(0,Math.min(1,(nowMs-exit.startMs)/duration));
+      if(q>=1) return false;
+
+      const glow=view.ccWorldGlowFx;
+      const core=view.ccWorldFx;
+      const palette=paletteFor(exit);
+      const fade=1-q;
+      glow.visible=true;
+      core.visible=true;
+
+      if(exit.spellId==="mage-frost-nova"){
+        for(let i=0;i<10;i++){
+          const a=i/10*Math.PI*2;
+          const inner=actor.radius+4+q*4;
+          const outer=actor.radius+12+q*(20+(i%3)*4);
+          core
+            .moveTo(
+              Math.cos(a)*inner,
+              actor.radius*.55+Math.sin(a)*4
+            )
+            .lineTo(
+              Math.cos(a)*outer,
+              actor.radius*.55+Math.sin(a)*9-q*7
+            )
+            .stroke({
+              color:i%3===0?palette.core:palette.main,
+              width:1.4+(i%3===0?.6:0),
+              alpha:fade*.62,
+            });
+        }
+        glow.ellipse(0,actor.radius*.56,actor.radius+10+q*16,7+q*3).stroke({
+          color:palette.main,width:7,alpha:fade*.10
+        });
+        return true;
+      }
+
+      if(exit.spellId==="druid-cyclone"){
+        for(let layer=0;layer<4;layer++){
+          const rr=actor.radius+8+layer*5+q*(15+layer*2);
+          core.ellipse(0,8-layer*6-q*7,rr,5+layer).stroke({
+            color:layer%2?palette.core:palette.main,
+            width:1.4,
+            alpha:fade*(.46-layer*.06),
+          });
+        }
+        return true;
+      }
+
+      for(let i=0;i<7;i++){
+        const a=i/7*Math.PI*2+(exit.kind==="fear"?.25:0);
+        const inner=actor.radius+5;
+        const outer=actor.radius+10+q*(17+(i%3)*5);
+        core.circle(
+          Math.cos(a)*outer,
+          Math.sin(a)*outer-q*5,
+          1.2+(i%2)*.35
+        ).fill({
+          color:i%2?palette.core:palette.main,
+          alpha:fade*.46,
+        });
+        core
+          .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+          .lineTo(Math.cos(a)*outer,Math.sin(a)*outer-q*5)
+          .stroke({
+            color:palette.main,width:1,alpha:fade*.24
+          });
+      }
+      glow.circle(0,0,actor.radius+10+q*14).stroke({
+        color:palette.main,width:6,alpha:fade*.07
+      });
+      return true;
+    };
+
+    for (const actor of game.actors || []) {
+      const view=this.actorViews.get(actor.id);
+      if(!view) continue;
+
+      const glow=view.stateWorldGlowFx;
+      const core=view.stateWorldFx;
+      glow.clear();
+      core.clear();
+      glow.visible=false;
+      core.visible=false;
+
+      if(!actor.alive) continue;
+
+      const active=(actor.effects || []).filter(effect=>effect.remainingMs>0);
+      const burst=active.find(effect=>effect.kind==="offensiveCooldown");
+      const defensive=active.find(effect=>effect.kind==="damageReduction");
+      const slow=active.find(effect=>effect.kind==="slow");
+      const mortal=active.find(effect=>effect.kind==="healingReduction");
+
+      if(!burst && !defensive && !slow && !mortal) continue;
+      glow.visible=true;
+      core.visible=true;
+
+      if(burst){
+        const profile=spellPolishProfile(burst.spellId,burst.visualStyle);
+        const life=Math.max(0,Math.min(1,burst.remainingMs/Math.max(1,burst.durationMs||2400)));
+        const pulse=.5+.5*Math.sin(time*9.2+actor.x*.01);
+        const r=actor.radius+11+pulse*2;
+
+        glow.circle(0,0,r+5).stroke({
+          color:profile.main,width:8,alpha:.10+.04*pulse
+        });
+
+        if(burst.spellId==="mage-pyroblast"){
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+time*.35;
+            const inner=actor.radius+5;
+            const outer=actor.radius+15+(i%3)*4+pulse*3;
+            core
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.12)*outer,Math.sin(a+.12)*outer-3)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:1.7+(i%2)*.4,
+                alpha:.42+.16*pulse,
+              });
+          }
+        } else if(burst.spellId==="warlock-chaos-bolt"){
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2-time*.22;
+            const outer=actor.radius+18+(i%2)*5;
+            const mid=actor.radius+10;
+            const inner=actor.radius+4;
+            core
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(a+.30)*mid,Math.sin(a+.30)*mid)
+              .lineTo(Math.cos(a+.62)*inner,Math.sin(a+.62)*inner)
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:1.8,alpha:.52,
+              });
+          }
+        } else if(burst.spellId==="shaman-lava-burst"){
+          for(let i=0;i<9;i++){
+            const a=i/9*Math.PI*2+time*.50;
+            const rr=actor.radius+9+(i%4)*4;
+            core.circle(
+              Math.cos(a)*rr,
+              Math.sin(a)*rr-pulse*2,
+              1.4+(i%3)*.45
+            ).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:.52,
+            });
+          }
+        } else if(burst.spellId==="warrior-slam"){
+          for(let i=0;i<6;i++){
+            const a=-.35+i*Math.PI/5;
+            core
+              .moveTo(Math.cos(a)*(actor.radius+3),actor.radius*.55)
+              .lineTo(
+                Math.cos(a)*(actor.radius+15+(i%3)*4),
+                actor.radius*.55+Math.sin(a)*8
+              )
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:1.8,alpha:.48,
+              });
+          }
+        } else if(burst.spellId==="rogue-eviscerate"){
+          for(let i=0;i<3;i++){
+            const a=-.85+i*.85+Math.sin(time*2+i)*.08;
+            arc(core,0,0,actor.radius+10+i*4,a,a+.72,{
+              color:i===1?profile.core:profile.main,
+              width:2,alpha:.50,
+            },6);
+          }
+        } else if(burst.spellId==="dk-obliterate"){
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2;
+            core
+              .moveTo(
+                Math.cos(a)*(actor.radius+4),
+                Math.sin(a)*(actor.radius+4)
+              )
+              .lineTo(
+                Math.cos(a)*(actor.radius+15+(i%3)*4),
+                Math.sin(a)*(actor.radius+15+(i%3)*4)
+              )
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:1.7,alpha:.54,
+              });
+          }
+        } else {
+          core.circle(0,0,r).stroke({
+            color:profile.main,width:2,alpha:.50
+          });
+        }
+
+        core.circle(0,0,actor.radius+7).stroke({
+          color:profile.core,width:1.2,alpha:.28+.14*(1-life)
+        });
+      }
+
+      if(defensive){
+        const profile=spellPolishProfile(defensive.spellId,defensive.visualStyle);
+        const pulse=.5+.5*Math.sin(time*5.4+actor.y*.015);
+        const r=actor.radius+8;
+
+        if(defensive.spellId==="druid-ironbark"){
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2;
+            const rr=r+3+(i%2)*3;
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr;
+            core
+              .moveTo(x-4,y-7)
+              .lineTo(x+5,y-5)
+              .lineTo(x+6,y+6)
+              .lineTo(x-4,y+8)
+              .lineTo(x-4,y-7)
+              .stroke({
+                color:profile.accent,width:2.8,alpha:.54+.08*pulse
+              });
+          }
+        } else if(defensive.spellId==="paladin-blessing"){
+          for(let i=0;i<4;i++){
+            const a=i*Math.PI/2+time*.10;
+            const rr=r+4;
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr;
+            core
+              .moveTo(x,y-6)
+              .lineTo(x+5,y)
+              .lineTo(x,y+7)
+              .lineTo(x-5,y)
+              .lineTo(x,y-6)
+              .stroke({
+                color:profile.main,width:2.2,alpha:.60
+              });
+          }
+        } else if(defensive.spellId==="shaman-astral-shift"){
+          const colors=[profile.main,profile.core,profile.accent];
+          for(let i=0;i<3;i++){
+            const a=time*(i%2?.75:-.65)+i*Math.PI*2/3;
+            const rr=r+4+i*4;
+            core.circle(Math.cos(a)*rr,Math.sin(a)*rr,2.5).fill({
+              color:colors[i],alpha:.62
+            });
+          }
+        } else if(defensive.spellId==="warlock-resolve"){
+          for(let i=0;i<5;i++){
+            const a=i/5*Math.PI*2-time*.12;
+            core
+              .moveTo(Math.cos(a)*(r+8),Math.sin(a)*(r+8))
+              .lineTo(Math.cos(a+.44)*r,Math.sin(a+.44)*r)
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:2.1,alpha:.55,
+              });
+          }
+        } else if(defensive.spellId==="dk-rune-tap"){
+          const rot=-time*.15;
+          for(let i=0;i<4;i++){
+            const a=i*Math.PI/2+rot;
+            const outer=r+8, inner=r-1;
+            core
+              .moveTo(Math.cos(a-.18)*inner,Math.sin(a-.18)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(a+.18)*inner,Math.sin(a+.18)*inner)
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:2,alpha:.56,
+              });
+          }
+        } else {
+          // Pain Suppression / fallback: segmented ward shield.
+          for(let i=0;i<4;i++){
+            const a=i*Math.PI/2+.18;
+            arc(core,0,0,r+4,a,a+.95,{
+              color:i%2?profile.core:profile.main,
+              width:2.2,alpha:.58,
+            },6);
+          }
+        }
+
+        glow.circle(0,0,r+6).stroke({
+          color:profile.main,width:8,alpha:.09+.025*pulse
+        });
+      }
+
+      if(slow){
+        const spellId=slow.spellId || "";
+        let main=0x76c5df, coreColor=0xe4f8ff;
+        if(spellId==="warlock-shadow-bolt"){
+          main=0x9669c8; coreColor=0xe0c9f4;
+        } else if(spellId==="shaman-chain-lightning"){
+          main=0x63c7dd; coreColor=0xecfeff;
+        }
+
+        const pulse=.5+.5*Math.sin(time*6.2);
+        core.ellipse(0,actor.radius*.63,actor.radius+7,5.2).stroke({
+          color:main,width:1.6,alpha:.42
+        });
+
+        if(spellId==="mage-frostbolt"){
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2;
+            core
+              .moveTo(
+                Math.cos(a)*(actor.radius-1),
+                actor.radius*.58+Math.sin(a)*3
+              )
+              .lineTo(
+                Math.cos(a)*(actor.radius+7+pulse*2),
+                actor.radius*.58+Math.sin(a)*6
+              )
+              .stroke({
+                color:i%2?coreColor:main,width:1.3,alpha:.45
+              });
+          }
+        } else if(spellId==="warlock-shadow-bolt"){
+          for(let i=0;i<4;i++){
+            const a=i/4*Math.PI*2+time*.22;
+            arc(core,0,actor.radius*.44,actor.radius+6+(i%2)*3,a,a+.62,{
+              color:i%2?coreColor:main,width:1.3,alpha:.38
+            },5);
+          }
+        } else {
+          for(let i=0;i<4;i++){
+            const a=i/4*Math.PI*2+time*.45;
+            const rr=actor.radius+6;
+            core.circle(Math.cos(a)*rr,actor.radius*.50+Math.sin(a)*4,1.3).fill({
+              color:i%2?coreColor:main,alpha:.48
+            });
+          }
+        }
+
+        glow.ellipse(0,actor.radius*.63,actor.radius+9,7).stroke({
+          color:main,width:6,alpha:.07
+        });
+      }
+
+      if(mortal){
+        const pulse=.5+.5*Math.sin(time*4.8+actor.x*.01);
+        const main=0xc6544e, coreColor=0xf0b1a6;
+        const r=actor.radius+10;
+
+        // Broken crimson wound-ring: readable as a debuff without looking like CC.
+        for(let seg=0;seg<4;seg++){
+          const a0=seg*Math.PI/2+.12;
+          arc(core,0,0,r,a0,a0+.78,{
+            color:seg%2?coreColor:main,width:2,alpha:.48+.10*pulse
+          },6);
+        }
+        core
+          .moveTo(-7,-4)
+          .lineTo(-1,2)
+          .lineTo(-5,7)
+          .lineTo(5,1)
+          .lineTo(1,-5)
+          .lineTo(7,-9)
+          .stroke({
+            color:coreColor,width:1.6,alpha:.48
+          });
+        glow.circle(0,0,r+3).stroke({
+          color:main,width:7,alpha:.08
+        });
+      }
+    }
+  }
+
+  updateNativeSecondaryCombatVfx(game) {
+    const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
+    const easeOut=value=>{
+      const t=clamp01(value);
+      return 1-Math.pow(1-t,3);
+    };
+
+    for(const view of this.actorViews.values()){
+      view.secondaryGlowFx.clear();
+      view.secondaryGlowFx.visible=false;
+      view.secondaryFx.clear();
+      view.secondaryFx.visible=false;
+    }
+
+    for(const effect of game.vfx?.effects || []){
+      if(effect.type!=="secondary") continue;
+      if(!["warrior-bloodthirst","dk-death-strike"].includes(effect.spellId)) continue;
+
+      const actor=game.getActor(effect.targetId);
+      const view=this.actorViews.get(effect.targetId);
+      if(!actor?.alive || !view) continue;
+
+      const total=Math.max(1,Number(effect.totalMs)||1);
+      const remaining=Math.max(0,Number(effect.remainingMs)||0);
+      const p=clamp01(1-remaining/total);
+      const fade=1-clamp01((p-.56)/.44);
+      const seed=Number(effect.seed||effect.id||1);
+      const glow=view.secondaryGlowFx;
+      const core=view.secondaryFx;
+      glow.visible=true;
+      core.visible=true;
+
+      if(effect.spellId==="warrior-bloodthirst"){
+        for(let i=0;i<8;i++){
+          const a=i/8*Math.PI*2+seed*.007;
+          const start=actor.radius+22+(i%3)*5;
+          const rr=start*(1-easeOut(p)*.78);
+          const x=Math.cos(a)*rr;
+          const y=Math.sin(a)*rr;
+          core.circle(x,y,1.5+(i%3)*.45).fill({
+            color:i%3===0?0xf0b0a1:0xb84d48,
+            alpha:fade*(.42+(i%2)*.14),
+          });
+          if(i<5){
+            core
+              .moveTo(Math.cos(a)*start,Math.sin(a)*start)
+              .lineTo(x,y)
+              .stroke({
+                color:0xc85c55,width:1.2,alpha:fade*.28
+              });
+          }
+        }
+        core.circle(0,0,actor.radius+5+easeOut(p)*7).stroke({
+          color:0xe09a89,width:1.7,alpha:fade*.52
+        });
+        glow.circle(0,0,actor.radius+9+easeOut(p)*8).stroke({
+          color:0xb84d48,width:8,alpha:fade*.10
+        });
+      } else {
+        const rot=-p*1.4;
+        for(let i=0;i<6;i++){
+          const a=i/6*Math.PI*2+rot;
+          const start=actor.radius+24+(i%2)*5;
+          const rr=start*(1-easeOut(p)*.72);
+          core
+            .moveTo(Math.cos(a)*start,Math.sin(a)*start)
+            .lineTo(Math.cos(a+.12)*rr,Math.sin(a+.12)*rr)
+            .stroke({
+              color:i%2?0xe5b3b5:0x82c8df,
+              width:1.6,alpha:fade*.48,
+            });
+        }
+        for(let i=0;i<4;i++){
+          const a=i*Math.PI/2+rot;
+          const r=actor.radius+6+easeOut(p)*3;
+          core
+            .moveTo(Math.cos(a-.18)*r,Math.sin(a-.18)*r)
+            .lineTo(Math.cos(a)*(r+7),Math.sin(a)*(r+7))
+            .lineTo(Math.cos(a+.18)*r,Math.sin(a+.18)*r)
+            .stroke({
+              color:i%2?0xe3f8ff:0xe8a4aa,
+              width:1.7,alpha:fade*.56,
+            });
+        }
+        glow.circle(0,0,actor.radius+10+easeOut(p)*6).stroke({
+          color:0x9f454b,width:8,alpha:fade*.09
+        });
+      }
+    }
+  }
+
   updatePersistentCrowdControlVfx(game) {
     const priority = {
       stun: 0,
@@ -1999,7 +2511,37 @@ export class PixiProofRenderer {
       core.visible = false;
 
       const effect = activeControlFor(actor);
-      if (!actor.alive || !effect) continue;
+      const transition=view.ccTransition;
+
+      if(!actor.alive){
+        transition.lastKind=null;
+        transition.lastSpellId=null;
+        transition.exit=null;
+        continue;
+      }
+
+      if(effect){
+        transition.lastKind=effect.kind;
+        transition.lastSpellId=effect.spellId || "";
+        transition.exit=null;
+      } else {
+        if(!transition.exit && transition.lastKind){
+          transition.exit={
+            kind:transition.lastKind,
+            spellId:transition.lastSpellId,
+            startMs:nowMs,
+          };
+          transition.lastKind=null;
+          transition.lastSpellId=null;
+        }
+
+        if(transition.exit){
+          if(!drawExit(view,actor,transition.exit)){
+            transition.exit=null;
+          }
+        }
+        continue;
+      }
 
       const palette = paletteFor(effect);
       const pulse = .5 + .5 * Math.sin(time * 7.2 + actor.x * .012);
@@ -2544,6 +3086,10 @@ export class PixiProofRenderer {
         view.targetMarker.visible = false;
         view.targetMarkerGlow.visible = false;
         view.ccBadge.visible = false;
+        view.stateWorldGlowFx.visible = false;
+        view.stateWorldFx.visible = false;
+        view.secondaryGlowFx.visible = false;
+        view.secondaryFx.visible = false;
         view.ccWorldGlowFx.visible = false;
         view.ccWorldFx.visible = false;
         view.ring.visible = false;
@@ -9329,7 +9875,7 @@ export class PixiProofRenderer {
     const effects = game.vfx?.effects || [];
 
     const activeVisuals = effects.filter(effect =>
-      ["spell", "chain", "beam", "burst", "ring", "slash"].includes(effect.type)
+      ["spell", "chain", "beam", "burst", "ring", "slash", "secondary"].includes(effect.type)
     );
     const activeCasts = (game.actors || []).filter(actor =>
       actor.alive && actor.cast
@@ -9437,6 +9983,10 @@ export class PixiProofRenderer {
       // Gameplay readability stays strong regardless of effect density.
       view.castWindupFx.alpha = Math.min(1, .96 + focusLift + ccLift);
       view.actorMotionFx.alpha = Math.min(1, .95 + focusLift);
+      view.stateWorldGlowFx.alpha = 1;
+      view.stateWorldFx.alpha = 1;
+      view.secondaryGlowFx.alpha = 1;
+      view.secondaryFx.alpha = 1;
       view.ccWorldGlowFx.alpha = 1;
       view.ccWorldFx.alpha = 1;
       view.ccBadge.alpha = 1;
@@ -9615,6 +10165,8 @@ export class PixiProofRenderer {
     }
 
     this.updateActorMotionV2(game);
+    this.updatePersistentCombatStateVfx(game);
+    this.updateNativeSecondaryCombatVfx(game);
     this.updatePersistentCrowdControlVfx(game);
     this.updateCrowdControlBadges(game);
     this.updateNativeCastWindupVfx(game);

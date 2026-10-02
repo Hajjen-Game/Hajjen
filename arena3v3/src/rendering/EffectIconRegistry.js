@@ -21,7 +21,7 @@ const SPELL_ICON_KEYS = Object.freeze({
   "shaman-flame-shock": "flame",
   "shaman-hex": "spiral",
   "shaman-astral-shift": "shield-bolt",
-  "dk-frost-fever": "frost",
+  "dk-fever": "frost",
   "dk-rune-tap": "shield",
 });
 
@@ -50,7 +50,7 @@ const SPELL_PALETTES = Object.freeze({
   "warlock-corruption": { color: "#eadbff", background: "#4e3567", border: "#a86ee8" },
   "shaman-flame-shock": { color: "#ffe0c2", background: "#71391f", border: "#e77b40" },
   "mage-living-bomb": { color: "#ffe5c7", background: "#70401f", border: "#ef8a43" },
-  "dk-frost-fever": { color: "#e0f6ff", background: "#315c72", border: "#6fc8ee" },
+  "dk-fever": { color: "#e0f6ff", background: "#315c72", border: "#6fc8ee" },
 });
 
 function escapeHtml(value) {

@@ -11117,7 +11117,7 @@ export class PixiProofRenderer {
 
       // World-space spell/body effects should also recede a little while
       // gameplay UI (name, bars, cast, CC, target indicators) stays untouched.
-      const worldFxAlpha = Math.max(.50, .78 - strongestCover * .16);
+      const worldFxAlpha = 1;
       view.actorMotionFx.alpha *= worldFxAlpha;
       view.stateWorldGlowFx.alpha *= worldFxAlpha;
       view.stateWorldFx.alpha *= worldFxAlpha;

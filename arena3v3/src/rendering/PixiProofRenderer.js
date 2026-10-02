@@ -3754,7 +3754,7 @@ export class PixiProofRenderer {
           for(let i=0;i<8;i++){
             const ice=i%2===0;
             const side=ice?1:-1;
-            const a=(i/8*Math.PI*2)+time*(ice?.9:-1.1);
+            const a=(i/8*Math.PI*2)+time * (ice ? .9 : -1.1);
             const start=actor.radius+42+(i%3)*5;
             const r=start*(1-charge*.62);
             const x=Math.abs(Math.cos(a)*r)*side;
@@ -9499,6 +9499,28 @@ export class PixiProofRenderer {
     const smooth = value => {
       const t = clamp01(value);
       return t * t * (3 - 2 * t);
+    };
+
+    const strokeArc = (
+      graphics,
+      radius,
+      start,
+      end,
+      style,
+      segments = 7,
+      cx = 0,
+      cy = 0,
+    ) => {
+      if (style.alpha <= 0) return;
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const a = start + (end - start) * t;
+        const x = cx + Math.cos(a) * radius;
+        const y = cy + Math.sin(a) * radius;
+        if (i === 0) graphics.moveTo(x, y);
+        else graphics.lineTo(x, y);
+      }
+      graphics.stroke(style);
     };
 
     const poly = (g, points, style, fill = false) => {

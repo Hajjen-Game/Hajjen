@@ -54,24 +54,15 @@ export class BabylonRenderer {
 
     this.canvas = canvas;
     this.arena = arena;
-    this.engine = new BABYLON.Engine(canvas, true, {
-      stencil: true,
-      antialias: true,
-      adaptToDeviceRatio: true,
-    });
-    this.scene = new BABYLON.Scene(this.engine);
-    this.scene.clearColor = BABYLON.Color4.FromHexString(
-      (arena.presentation?.sky || "#28150f") + "ff",
-    );
-    this.scene.ambientColor = new BABYLON.Color3(0.19, 0.105, 0.075);
-    this.scene.imageProcessingConfiguration.contrast = 1.14;
-    this.scene.imageProcessingConfiguration.exposure = 1.02;
-
-    this.gui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-      "world-ui",
-      true,
-      this.scene,
-    );
+    this.engine = null;
+    this.scene = null;
+    this.gui = null;
+    this.actorRender = null;
+    this.vfx = null;
+    this.backend = "initializing";
+    this.ready = false;
+    this.initError = null;
+    this.webGpuError = null;
     this.textControls = new Map();
     this.torches = [];
     this.debug = new URLSearchParams(location.search).has("debug");
@@ -79,13 +70,85 @@ export class BabylonRenderer {
     this.debugPanel?.classList.toggle("hidden", !this.debug);
     this.lastTime = performance.now();
 
-    this.buildScene();
+    this.initialize().catch(error => {
+      this.initError = error;
+      this.backend = "failed";
+      console.error("PvP-2.5D renderer initialization failed", error);
+    });
 
-    window.addEventListener("resize", () => this.engine.resize());
+    window.addEventListener("resize", () => this.engine?.resize());
     if ("ResizeObserver" in window) {
-      this.resizeObserver = new ResizeObserver(() => this.engine.resize());
+      this.resizeObserver = new ResizeObserver(() => this.engine?.resize());
       this.resizeObserver.observe(canvas.parentElement || canvas);
     }
+  }
+
+  async initialize() {
+    let engine = null;
+
+    try {
+      const webGpuSupported = Boolean(
+        BABYLON.WebGPUEngine
+        && await BABYLON.WebGPUEngine.IsSupportedAsync
+      );
+
+      if (webGpuSupported) {
+        const webGpuEngine = new BABYLON.WebGPUEngine(
+          this.canvas,
+          {
+            antialias: true,
+            adaptToDeviceRatio: true,
+          },
+        );
+        await webGpuEngine.initAsync();
+        engine = webGpuEngine;
+        this.backend = "WebGPU";
+      }
+    } catch (error) {
+      this.webGpuError = error;
+      console.warn(
+        "WebGPU initialization failed; falling back to WebGL.",
+        error,
+      );
+    }
+
+    if (!engine) {
+      engine = new BABYLON.Engine(
+        this.canvas,
+        true,
+        {
+          stencil: true,
+          antialias: true,
+          adaptToDeviceRatio: true,
+        },
+      );
+      this.backend = Number(engine.webGLVersion) >= 2
+        ? "WebGL2"
+        : "WebGL1";
+    }
+
+    this.engine = engine;
+    this.scene = new BABYLON.Scene(this.engine);
+    this.scene.clearColor = BABYLON.Color4.FromHexString(
+      (this.arena.presentation?.sky || "#28150f") + "ff",
+    );
+    this.scene.ambientColor = new BABYLON.Color3(0.15, 0.085, 0.06);
+
+    // Keep the warm canyon look while avoiding the blown-out whites visible
+    // on the old placeholder characters.
+    this.scene.imageProcessingConfiguration.contrast = 1.08;
+    this.scene.imageProcessingConfiguration.exposure = 0.90;
+
+    this.gui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      "world-ui",
+      true,
+      this.scene,
+    );
+
+    this.buildScene();
+    this.ready = true;
+    this.lastTime = performance.now();
+    this.engine.resize();
   }
 
   setArena(arena) {
@@ -115,7 +178,7 @@ export class BabylonRenderer {
       new BABYLON.Vector3(-0.28, 1, 0.22),
       this.scene,
     );
-    hemi.intensity = 0.63;
+    hemi.intensity = 0.48;
     hemi.diffuse = new BABYLON.Color3(1.0, 0.76, 0.58);
     hemi.groundColor = new BABYLON.Color3(0.16, 0.075, 0.055);
 
@@ -125,7 +188,7 @@ export class BabylonRenderer {
       this.scene,
     );
     this.sun.position = new BABYLON.Vector3(c.x + 11, 18, c.z - 12);
-    this.sun.intensity = 1.56;
+    this.sun.intensity = 1.12;
     this.sun.diffuse = new BABYLON.Color3(1.0, 0.69, 0.42);
 
     this.shadowGenerator = new BABYLON.ShadowGenerator(2048, this.sun);
@@ -161,7 +224,7 @@ export class BabylonRenderer {
     this.glow = new BABYLON.GlowLayer("glow", this.scene, {
       blurKernelSize: 32,
     });
-    this.glow.intensity = 0.30;
+    this.glow.intensity = 0.18;
 
     this.installAmbientOcclusion();
   }
@@ -791,6 +854,17 @@ export class BabylonRenderer {
   }
 
   render(game) {
+    if (!this.ready || !this.scene || !this.actorRender || !this.vfx) {
+      if (this.debug && this.debugPanel) {
+        const detail = this.initError
+          ? " · " + (this.initError.message || "initialization failed")
+          : "";
+        this.debugPanel.textContent =
+          "Backend " + this.backend + detail;
+      }
+      return;
+    }
+
     const now = performance.now();
     const dt = Math.min(50, now - this.lastTime);
     this.lastTime = now;
@@ -878,6 +952,8 @@ export class BabylonRenderer {
   }
 
   targetHitScore(actor, game, x, y) {
+    if (!this.ready || !this.scene) return null;
+
     const pick = this.scene.pick(
       x,
       y,
@@ -890,6 +966,8 @@ export class BabylonRenderer {
   }
 
   screenToWorld(x, y) {
+    if (!this.ready || !this.scene || !this.ground) return null;
+
     const pick = this.scene.pick(
       x,
       y,
@@ -907,7 +985,8 @@ export class BabylonRenderer {
     if (!this.debug || !this.debugPanel) return;
 
     this.debugPanel.textContent =
-      "FPS " + this.engine.getFps().toFixed(0)
+      "Backend " + this.backend
+      + "\nFPS " + this.engine.getFps().toFixed(0)
       + "\nActors " + game.actors.length
       + "\nMeshes " + this.scene.getActiveMeshes().length
       + "\nVFX " + this.vfx.active.length

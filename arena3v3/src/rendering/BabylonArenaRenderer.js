@@ -234,7 +234,7 @@ export class BabylonArenaRenderer {
           points: front,
           depthY: y1,
           color: 0x3a2118,
-          alpha: .96,
+          alpha: .76,
         });
       }
       if (top.every(Boolean)) {
@@ -242,7 +242,7 @@ export class BabylonArenaRenderer {
           points: top,
           depthY: y1,
           color: 0x76503a,
-          alpha: .93,
+          alpha: .68,
         });
       }
     }

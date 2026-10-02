@@ -11031,6 +11031,72 @@ export class PixiProofRenderer {
   updateEnvironmentOcclusion(game) {
     const polygons = this.environmentOcclusionPolygons || [];
 
+    const clipAgainst = (points, inside, intersect) => {
+      if (!points.length) return [];
+      const output = [];
+      let previous = points[points.length - 1];
+      let previousInside = inside(previous);
+
+      for (const current of points) {
+        const currentInside = inside(current);
+
+        if (currentInside) {
+          if (!previousInside) output.push(intersect(previous, current));
+          output.push(current);
+        } else if (previousInside) {
+          output.push(intersect(previous, current));
+        }
+
+        previous = current;
+        previousInside = currentInside;
+      }
+
+      return output;
+    };
+
+    const clipToRect = (points, left, top, right, bottom) => {
+      let out = points;
+
+      out = clipAgainst(
+        out,
+        point => point.x >= left,
+        (a,b) => {
+          const dx=b.x-a.x;
+          const t=Math.abs(dx)<.0001?0:(left-a.x)/dx;
+          return {x:left,y:a.y+(b.y-a.y)*t};
+        },
+      );
+      out = clipAgainst(
+        out,
+        point => point.x <= right,
+        (a,b) => {
+          const dx=b.x-a.x;
+          const t=Math.abs(dx)<.0001?0:(right-a.x)/dx;
+          return {x:right,y:a.y+(b.y-a.y)*t};
+        },
+      );
+      out = clipAgainst(
+        out,
+        point => point.y >= top,
+        (a,b) => {
+          const dy=b.y-a.y;
+          const t=Math.abs(dy)<.0001?0:(top-a.y)/dy;
+          return {x:a.x+(b.x-a.x)*t,y:top};
+        },
+      );
+      out = clipAgainst(
+        out,
+        point => point.y <= bottom,
+        (a,b) => {
+          const dy=b.y-a.y;
+          const t=Math.abs(dy)<.0001?0:(bottom-a.y)/dy;
+          return {x:a.x+(b.x-a.x)*t,y:bottom};
+        },
+      );
+
+      return out;
+    };
+
     for (const actor of game.actors || []) {
       const view = this.actorViews.get(actor.id);
       const cover = view?.depthOcclusionFx;
@@ -11040,10 +11106,17 @@ export class PixiProofRenderer {
       cover.visible = false;
       if (!actor.alive || !polygons.length) continue;
 
+      // Clip every obstacle face to this actor's body footprint. Previously a
+      // behind-player could draw the whole obstacle from inside its actor root,
+      // which let one unit's occlusion cover other units and nameplates.
+      const bodyHalf = Math.max(8, actor.radius * 1.10);
+      const left = actor.x - bodyHalf;
+      const right = actor.x + bodyHalf;
+      const top = actor.y - bodyHalf;
+      const bottom = actor.y + bodyHalf;
+
       for (const polygon of polygons) {
         // Painter-style depth test: larger game Y is closer to the camera.
-        // Only actors whose center is behind the obstacle's near edge receive
-        // that obstacle as a foreground cover.
         if (
           Number.isFinite(polygon?.depthY)
           && actor.y >= polygon.depthY
@@ -11054,20 +11127,23 @@ export class PixiProofRenderer {
         );
         if (points.length < 3) continue;
 
+        const clipped = clipToRect(points,left,top,right,bottom);
+        if (clipped.length < 3) continue;
+
         cover.visible = true;
         cover.moveTo(
-          points[0].x - actor.x,
-          points[0].y - actor.y,
+          clipped[0].x - actor.x,
+          clipped[0].y - actor.y,
         );
-        for (let i = 1; i < points.length; i += 1) {
+        for (let i = 1; i < clipped.length; i += 1) {
           cover.lineTo(
-            points[i].x - actor.x,
-            points[i].y - actor.y,
+            clipped[i].x - actor.x,
+            clipped[i].y - actor.y,
           );
         }
         cover.lineTo(
-          points[0].x - actor.x,
-          points[0].y - actor.y,
+          clipped[0].x - actor.x,
+          clipped[0].y - actor.y,
         );
         cover.fill({
           color: Number.isFinite(polygon.color)
@@ -11075,7 +11151,7 @@ export class PixiProofRenderer {
             : 0x4c2b20,
           alpha: Number.isFinite(polygon.alpha)
             ? polygon.alpha
-            : .94,
+            : .72,
         });
       }
     }

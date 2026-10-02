@@ -108,6 +108,62 @@ function createChamferedPrism(
   return mesh;
 }
 
+function createFlameMesh(
+  BABYLON,
+  scene,
+  name,
+  width,
+  height,
+  position,
+  mat,
+) {
+  const w=width/2;
+  const h=height;
+  const positions=[
+    -w,0,0,
+    -w*.62,h*.34,0,
+    -w*.28,h*.62,0,
+    0,h,0,
+    w*.30,h*.63,0,
+    w*.66,h*.34,0,
+    w,0,0,
+    0,h*.14,0,
+  ];
+  const indices=[
+    0,1,7,
+    1,2,7,
+    2,3,7,
+    3,4,7,
+    4,5,7,
+    5,6,7,
+  ];
+  const normals=[];
+  const uvs=[
+    0,.95,
+    .18,.66,
+    .36,.37,
+    .50,0,
+    .65,.37,
+    .82,.66,
+    1,.95,
+    .50,.82,
+  ];
+  BABYLON.VertexData.ComputeNormals(positions,indices,normals);
+
+  const mesh=new BABYLON.Mesh(name,scene);
+  const data=new BABYLON.VertexData();
+  data.positions=positions;
+  data.indices=indices;
+  data.normals=normals;
+  data.uvs=uvs;
+  data.applyToMesh(mesh);
+
+  mesh.position.set(position.x,position.y,position.z);
+  mesh.material=mat;
+  mesh.billboardMode=BABYLON.Mesh.BILLBOARDMODE_Y;
+  return mesh;
+}
+
 function createFloorTexture(BABYLON,scene,arena,mapping) {
   const width=1280;
   const height=Math.max(576,Math.round(width*mapping.height/mapping.width));
@@ -128,8 +184,8 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
   );
 
   const palette=[
-    "#665141","#6c5543","#715a47","#604b3d",
-    "#755c48","#59463a","#6a5140","#625044",
+    "#7d6958","#846e5b","#8a725e","#746151",
+    "#907762","#6f5c4e","#816a58","#796555",
   ];
   const grout="#342820";
 
@@ -139,10 +195,10 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
     cx,cy,0,
     cx,cy,Math.max(width,height)*.72,
   );
-  radial.addColorStop(0,"#735b48");
-  radial.addColorStop(.42,"#665141");
-  radial.addColorStop(.78,"#57463a");
-  radial.addColorStop(1,"#44372f");
+  radial.addColorStop(0,"#8a735f");
+  radial.addColorStop(.42,"#786452");
+  radial.addColorStop(.78,"#665448");
+  radial.addColorStop(1,"#50443b");
   ctx.fillStyle=radial;
   ctx.fillRect(0,0,width,height);
 
@@ -177,8 +233,8 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
         ctx.globalAlpha=.40+random()*.18;
         ctx.fill();
         ctx.globalAlpha=1;
-        ctx.strokeStyle="rgba(43,32,26,.66)";
-        ctx.lineWidth=(2.2+random()*1.6)*sx;
+        ctx.strokeStyle="rgba(49,39,33,.42)";
+        ctx.lineWidth=(1.35+random()*.9)*sx;
         ctx.stroke();
 
         // One soft worn edge per some slabs.
@@ -238,15 +294,15 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
       ctx.globalAlpha=.48+random()*.18;
       ctx.fill();
       ctx.globalAlpha=1;
-      ctx.strokeStyle="rgba(45,33,27,.72)";
-      ctx.lineWidth=(2.1+(band<2?.8:0))*sx;
+      ctx.strokeStyle="rgba(52,41,34,.50)";
+      ctx.lineWidth=(1.35+(band<2?.45:0))*sx;
       ctx.stroke();
     }
   }
 
   // Fewer, stronger ring joints than before.
-  ctx.strokeStyle="rgba(45,32,25,.78)";
-  ctx.lineWidth=4.3*sx;
+  ctx.strokeStyle="rgba(50,39,32,.52)";
+  ctx.lineWidth=2.45*sx;
   for(const r of [72,132,202,278,352]){
     ctx.beginPath();
     ctx.ellipse(cx,cy,r*sx,r*sy,0,0,Math.PI*2);
@@ -254,14 +310,14 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
   }
 
   // Center disc with broad slabs.
-  ctx.fillStyle="#745a46";
+  ctx.fillStyle="#88705c";
   ctx.globalAlpha=.76;
   ctx.beginPath();
   ctx.ellipse(cx,cy,58*sx,58*sy,0,0,Math.PI*2);
   ctx.fill();
   ctx.globalAlpha=1;
-  ctx.strokeStyle="rgba(42,30,24,.84)";
-  ctx.lineWidth=4.4*sx;
+  ctx.strokeStyle="rgba(50,39,32,.58)";
+  ctx.lineWidth=2.7*sx;
   ctx.stroke();
 
   // Sparse authored cracks instead of noisy linework everywhere.
@@ -306,12 +362,12 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
   );
   vignette.addColorStop(0,"rgba(0,0,0,0)");
   vignette.addColorStop(.72,"rgba(0,0,0,.04)");
-  vignette.addColorStop(1,"rgba(18,12,10,.34)");
+  vignette.addColorStop(1,"rgba(18,14,12,.18)");
   ctx.fillStyle=vignette;
   ctx.fillRect(0,0,width,height);
 
-  ctx.strokeStyle="rgba(28,21,18,.70)";
-  ctx.lineWidth=8*sx;
+  ctx.strokeStyle="rgba(34,28,24,.44)";
+  ctx.lineWidth=4.5*sx;
   ctx.strokeRect(
     (b.x+7)*sx,
     (b.y+7)*sy,
@@ -362,22 +418,20 @@ function addFloor(BABYLON,scene,arena,mapping,materials,root,ownedTextures) {
   centerDisc.receiveShadows=true;
   centerDisc.parent=root;
 
-  // Small raised lips give the floor some actual 3D read without creating
-  // gameplay-affecting height.
-  [0.34,0.53,0.72].forEach((ratio,index)=>{
-    const ring=BABYLON.MeshBuilder.CreateTorus(
-      "babylon-floor-lip-"+index,
-      {
-        diameter:maxRing*ratio,
-        thickness:index===0?.11:.08,
-        tessellation:96,
-      },
-      scene,
-    );
-    ring.position.y=.07;
-    ring.material=index===0?materials.seam:materials.seamSoft;
-    ring.parent=root;
-  });
+  // Keep physical relief restrained. The masonry pattern should read from
+  // slab value and lighting, not from thick black rings.
+  const centerLip=BABYLON.MeshBuilder.CreateTorus(
+    "babylon-center-lip",
+    {
+      diameter:maxRing*.165,
+      thickness:.055,
+      tessellation:72,
+    },
+    scene,
+  );
+  centerLip.position.y=.075;
+  centerLip.material=materials.seamSoft;
+  centerLip.parent=root;
 
   return ground;
 }
@@ -394,7 +448,7 @@ function addBorder(
   const b=arena.bounds;
   const borderPx=17;
   const borderWorld=borderPx*mapping.scale;
-  const wallHeight=2.15;
+  const wallHeight=1.32;
   const centerX=b.x+b.w/2;
   const centerY=b.y+b.h/2;
   const defs=[
@@ -438,7 +492,7 @@ function addBorder(
 
   // Low warm inner curb, much less visually dominant than the former black rail.
   const curbPx=7;
-  const curbHeight=.42;
+  const curbHeight=.26;
   const curbs=[
     {id:"top",x:centerX,y:b.y+curbPx/2,w:b.w,h:curbPx},
     {id:"bottom",x:centerX,y:b.y+b.h-curbPx/2,w:b.w,h:curbPx},
@@ -462,7 +516,7 @@ function addBorder(
 
   // Chunky corner architecture is now concentrated near the braziers instead
   // of turning the whole arena into a heavy rectangular frame.
-  const cornerSize=borderWorld*3.55;
+  const cornerSize=borderWorld*3.95;
   const corners=[
     [b.x-6,b.y-6],
     [b.x+b.w+6,b.y-6],
@@ -470,12 +524,12 @@ function addBorder(
     [b.x+b.w+6,b.y+b.h+6],
   ];
   corners.forEach(([x,y],index)=>{
-    const p=mapping.gameToWorld(x,y,2.55);
+    const p=mapping.gameToWorld(x,y,2.18);
     const tower=createChamferedPrism(
       BABYLON,scene,
       "babylon-corner-buttress-"+index,
       cornerSize,
-      5.1,
+      4.35,
       cornerSize,
       cornerSize*.18,
       p,
@@ -485,7 +539,7 @@ function addBorder(
     tower.receiveShadows=true;
     shadowCasters.push(tower);
 
-    const stepP=mapping.gameToWorld(x,y,5.28);
+    const stepP=mapping.gameToWorld(x,y,4.56);
     const step=createChamferedPrism(
       BABYLON,scene,
       "babylon-corner-step-"+index,
@@ -771,41 +825,51 @@ function addTorchPedestal(
   bowl.parent=root;
   shadowCasters.push(bowl);
 
-  const outer=BABYLON.MeshBuilder.CreateSphere(
+  const outer=createFlameMesh(
+    BABYLON,scene,
     name+"-flame-outer",
-    {diameter:3.25,segments:12},
-    scene,
+    3.4,5.0,
+    {x:baseWorld.x,y:5.22,z:baseWorld.z},
+    materials.flameOuter,
   );
-  outer.position.set(baseWorld.x,6.72,baseWorld.z);
-  outer.scaling.set(.60,1.28,.60);
-  outer.material=materials.flameOuter;
   outer.parent=root;
 
-  const midFlame=BABYLON.MeshBuilder.CreateSphere(
+  const midFlame=createFlameMesh(
+    BABYLON,scene,
     name+"-flame-mid",
-    {diameter:2.30,segments:11},
-    scene,
+    2.45,4.05,
+    {x:baseWorld.x-.14,y:5.25,z:baseWorld.z-.02},
+    materials.flameMid,
   );
-  midFlame.position.set(baseWorld.x-.12,6.62,baseWorld.z+.08);
-  midFlame.scaling.set(.56,1.36,.56);
-  midFlame.material=materials.flameMid;
+  midFlame.position.z-=.025;
   midFlame.parent=root;
 
-  const inner=BABYLON.MeshBuilder.CreateSphere(
+  const inner=createFlameMesh(
+    BABYLON,scene,
     name+"-flame-inner",
-    {diameter:1.35,segments:10},
+    1.45,3.05,
+    {x:baseWorld.x+.10,y:5.29,z:baseWorld.z-.05},
+    materials.flameInner,
+  );
+  inner.position.z-=.050;
+  inner.parent=root;
+
+  const emberGlow=BABYLON.MeshBuilder.CreateDisc(
+    name+"-ember-glow",
+    {radius:2.4,tessellation:32,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
     scene,
   );
-  inner.position.set(baseWorld.x+.10,6.55,baseWorld.z-.06);
-  inner.scaling.set(.52,1.42,.52);
-  inner.material=materials.flameInner;
-  inner.parent=root;
+  emberGlow.position.set(baseWorld.x,5.32,baseWorld.z+.05);
+  emberGlow.rotation.x=Math.PI/2;
+  emberGlow.material=materials.emberGlow;
+  emberGlow.parent=root;
 
   flames.push({
     outer,
     mid:midFlame,
     inner,
-    baseY:6.62,
+    glow:emberGlow,
+    baseY:5.22,
     phase,
   });
 
@@ -816,8 +880,8 @@ function addTorchPedestal(
   );
   light.diffuse=new BABYLON.Color3(1.0,.43,.13);
   light.specular=new BABYLON.Color3(.62,.28,.10);
-  light.intensity=2.15;
-  light.range=31;
+  light.intensity=3.10;
+  light.range=42;
   lights.push(light);
 }
 
@@ -835,7 +899,7 @@ function addTorches(
   const b=arena.bounds;
   // Keep the braziers just outside gameplay bounds but well inside the visual
   // frame, so their flames are a major composition element like the reference.
-  const margin=7;
+  const margin=-18;
   const points=[
     ["nw",b.x-margin,b.y-margin,0.0],
     ["ne",b.x+b.w+margin,b.y-margin,1.4],
@@ -944,25 +1008,25 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const ownedTextures=[];
 
   const materials={
-    floor:material(BABYLON,scene,"mat-floor","#675344","#17120f"),
-    floorLift:material(BABYLON,scene,"mat-floor-lift","#79614c","#201914"),
-    seam:material(BABYLON,scene,"mat-floor-seam","#30251f","#100c0a"),
-    seamSoft:material(BABYLON,scene,"mat-floor-seam-soft","#49382d","#15100d"),
+    floor:material(BABYLON,scene,"mat-floor","#7c6857","#1f1915"),
+    floorLift:material(BABYLON,scene,"mat-floor-lift","#907662","#2a211a"),
+    seam:material(BABYLON,scene,"mat-floor-seam","#4a3b31","#17120f"),
+    seamSoft:material(BABYLON,scene,"mat-floor-seam-soft","#675448","#1d1713"),
     crack:material(BABYLON,scene,"mat-crack","#211a16","#090706"),
-    stoneBase:material(BABYLON,scene,"mat-stone-base","#3a312c","#11100e"),
-    stoneSide:material(BABYLON,scene,"mat-stone-side","#5a5049","#171411"),
-    stoneShoulder:material(BABYLON,scene,"mat-stone-shoulder","#695c52","#1c1713"),
-    stoneTop:material(BABYLON,scene,"mat-stone-top","#897767","#2b211a"),
-    stoneTopAlt:material(BABYLON,scene,"mat-stone-top-alt","#7b695b","#261d18"),
-    border:material(BABYLON,scene,"mat-border","#372f2b","#100d0b"),
-    borderCap:material(BABYLON,scene,"mat-border-cap","#68584b","#211913"),
-    borderTower:material(BABYLON,scene,"mat-border-tower","#403731","#13100e"),
-    innerLip:material(BABYLON,scene,"mat-inner-lip","#4b3e34","#15110e"),
-    torchBase:material(BABYLON,scene,"mat-torch-base","#37302b","#110e0c"),
-    torchStone:material(BABYLON,scene,"mat-torch-stone","#62554b","#1c1713"),
-    brazier:material(BABYLON,scene,"mat-brazier","#241b16","#4a2814"),
-    rubble:material(BABYLON,scene,"mat-rubble","#66584d","#1c1713"),
-    rubbleDark:material(BABYLON,scene,"mat-rubble-dark","#4b4139","#15120f"),
+    stoneBase:material(BABYLON,scene,"mat-stone-base","#4e4640","#181512"),
+    stoneSide:material(BABYLON,scene,"mat-stone-side","#71665c","#201a16"),
+    stoneShoulder:material(BABYLON,scene,"mat-stone-shoulder","#807266","#261f1a"),
+    stoneTop:material(BABYLON,scene,"mat-stone-top","#a18c77","#35291f"),
+    stoneTopAlt:material(BABYLON,scene,"mat-stone-top-alt","#927d6b","#30251e"),
+    border:material(BABYLON,scene,"mat-border","#4d433c","#171310"),
+    borderCap:material(BABYLON,scene,"mat-border-cap","#7e6c5b","#261e18"),
+    borderTower:material(BABYLON,scene,"mat-border-tower","#554b43","#181512"),
+    innerLip:material(BABYLON,scene,"mat-inner-lip","#675548","#1c1713"),
+    torchBase:material(BABYLON,scene,"mat-torch-base","#504740","#181411"),
+    torchStone:material(BABYLON,scene,"mat-torch-stone","#76685c","#211b17"),
+    brazier:material(BABYLON,scene,"mat-brazier","#33231a","#7a3c16"),
+    rubble:material(BABYLON,scene,"mat-rubble","#7c6b5d","#221b16"),
+    rubbleDark:material(BABYLON,scene,"mat-rubble-dark","#5d524a","#181512"),
     banner:material(BABYLON,scene,"mat-banner","#5e1f18","#160a08"),
     bannerGold:material(BABYLON,scene,"mat-banner-gold","#a56629","#26160b"),
     flameOuter:material(
@@ -972,7 +1036,10 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
       BABYLON,scene,"mat-flame-mid","#ff9426","#4a2207","#ff7b13"
     ),
     flameInner:material(
-      BABYLON,scene,"mat-flame-inner","#ffe08a","#5a300b","#ffc84c"
+      BABYLON,scene,"mat-flame-inner","#fff0a8","#6a370d","#ffd85a"
+    ),
+    emberGlow:material(
+      BABYLON,scene,"mat-ember-glow","#ff8b1f","#311206","#ff6a12"
     ),
   };
 
@@ -981,6 +1048,8 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   materials.flameOuter.disableLighting=true;
   materials.flameMid.disableLighting=true;
   materials.flameInner.disableLighting=true;
+  materials.emberGlow.disableLighting=true;
+  materials.emberGlow.alpha=.24;
   materials.banner.specularColor=new BABYLON.Color3(.08,.03,.02);
   materials.bannerGold.specularColor=new BABYLON.Color3(.18,.10,.04);
 
@@ -1019,21 +1088,22 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
         const t=timeSeconds+flame.phase;
         const sway=Math.sin(t*3.1)*.09+Math.sin(t*5.7)*.035;
         const pulse=1+Math.sin(t*4.6)*.07;
-        flame.outer.scaling.x=.60*pulse;
-        flame.outer.scaling.z=.60*pulse;
-        flame.outer.scaling.y=1.28*(1+Math.sin(t*3.8)*.08);
-        flame.outer.position.y=flame.baseY+.10+Math.sin(t*4.2)*.08;
+        flame.outer.scaling.x=pulse;
+        flame.outer.scaling.y=1+Math.sin(t*3.8)*.08;
+        flame.outer.position.y=flame.baseY+Math.sin(t*4.2)*.09;
         flame.outer.rotation.z=sway;
-        flame.mid.scaling.x=.56*(1+Math.sin(t*5.1+1)*.06);
-        flame.mid.scaling.z=.56*(1+Math.sin(t*4.4+.7)*.06);
-        flame.mid.scaling.y=1.36*(1+Math.sin(t*4.9)*.09);
-        flame.mid.position.y=flame.baseY+Math.sin(t*4.8+.8)*.07;
-        flame.inner.scaling.y=1.42*(1+Math.sin(t*6.1+.4)*.08);
-        flame.inner.position.y=flame.baseY-.07+Math.sin(t*5.3)*.06;
+        flame.mid.scaling.x=1+Math.sin(t*5.1+1)*.07;
+        flame.mid.scaling.y=1+Math.sin(t*4.9)*.10;
+        flame.mid.position.y=flame.baseY+.03+Math.sin(t*4.8+.8)*.07;
+        flame.inner.scaling.x=1+Math.sin(t*5.7+.2)*.05;
+        flame.inner.scaling.y=1+Math.sin(t*6.1+.4)*.11;
+        flame.inner.position.y=flame.baseY+.07+Math.sin(t*5.3)*.06;
+        flame.glow.scaling.x=1+Math.sin(t*3.6)*.08;
+        flame.glow.scaling.y=1+Math.sin(t*3.6)*.08;
       }
       for(let i=0;i<lights.length;i+=1){
         const light=lights[i];
-        light.intensity=2.05+Math.sin(timeSeconds*4.2+i*1.7)*.16;
+        light.intensity=3.00+Math.sin(timeSeconds*4.2+i*1.7)*.24;
       }
     },
     dispose() {

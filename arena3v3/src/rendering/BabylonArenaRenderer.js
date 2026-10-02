@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon6";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon7";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -66,6 +66,8 @@ export class BabylonArenaRenderer {
     this.mapping = null;
     this.environment = null;
     this.shadowGenerator = null;
+    this.glowLayer = null;
+    this.ssaoPipeline = null;
     this.ready = false;
     this.renderedArenaId = "";
   }
@@ -110,8 +112,8 @@ export class BabylonArenaRenderer {
     scene.clearColor = new BABYLON.Color4(0.055, 0.045, 0.038, 1);
     scene.ambientColor = new BABYLON.Color3(0.20, 0.18, 0.16);
     scene.skipPointerMovePicking = true;
-    scene.imageProcessingConfiguration.exposure = 1.02;
-    scene.imageProcessingConfiguration.contrast = 1.07;
+    scene.imageProcessingConfiguration.exposure = .98;
+    scene.imageProcessingConfiguration.contrast = 1.08;
     if (BABYLON.ImageProcessingConfiguration?.TONEMAPPING_ACES != null) {
       scene.imageProcessingConfiguration.toneMappingEnabled = true;
       scene.imageProcessingConfiguration.toneMappingType =
@@ -136,7 +138,7 @@ export class BabylonArenaRenderer {
       new BABYLON.Vector3(0, 1, 0),
       scene,
     );
-    ambient.intensity = 0.60;
+    ambient.intensity = 0.58;
     ambient.diffuse = new BABYLON.Color3(0.76, 0.72, 0.68);
     ambient.groundColor = new BABYLON.Color3(0.12, 0.09, 0.075);
 
@@ -146,7 +148,7 @@ export class BabylonArenaRenderer {
       scene,
     );
     key.position = new BABYLON.Vector3(18, 46, -28);
-    key.intensity = 0.82;
+    key.intensity = 0.78;
     key.diffuse = new BABYLON.Color3(0.93, 0.79, 0.67);
 
     const shadows = new BABYLON.ShadowGenerator(1024, key);
@@ -155,6 +157,35 @@ export class BabylonArenaRenderer {
     shadows.bias = 0.0008;
     shadows.normalBias = 0.02;
     this.shadowGenerator = shadows;
+
+    // Emissive flame materials finally get a soft bloom halo instead of reading
+    // as flat orange discs.
+    const glowLayer=new BABYLON.GlowLayer("arena-fire-glow",scene,{
+      blurKernelSize:32,
+      mainTextureRatio:.50,
+    });
+    glowLayer.intensity=.62;
+    this.glowLayer=glowLayer;
+
+    // Low-cost ambient occlusion helps the stacked stone read as one environment
+    // instead of disconnected primitives. Keep it optional for compatibility.
+    try {
+      if (BABYLON.SSAO2RenderingPipeline) {
+        const ssao=new BABYLON.SSAO2RenderingPipeline(
+          "arena-ssao",
+          scene,
+          {ssaoRatio:.50,combineRatio:1.0},
+          [camera],
+        );
+        ssao.radius=2.0;
+        ssao.totalStrength=.85;
+        ssao.base=.10;
+        ssao.expensiveBlur=false;
+        this.ssaoPipeline=ssao;
+      }
+    } catch (error) {
+      console.warn("[Babylon preview] SSAO unavailable; continuing without it.",error);
+    }
 
     await this.rebuildArena(this._arena);
     this.ready = true;
@@ -276,6 +307,10 @@ export class BabylonArenaRenderer {
     this.environment = null;
     this.shadowGenerator?.dispose?.();
     this.shadowGenerator = null;
+    this.glowLayer?.dispose?.();
+    this.glowLayer = null;
+    this.ssaoPipeline?.dispose?.();
+    this.ssaoPipeline = null;
     this.scene?.dispose?.();
     this.scene = null;
     this.engine?.dispose?.();

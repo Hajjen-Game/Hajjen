@@ -1388,7 +1388,28 @@ export class PixiProofRenderer {
 
     const texture = this.iconTextures.get(actor.classId);
     let body;
+    let motionGhostA = null;
+    let motionGhostB = null;
+
     if (texture) {
+      motionGhostB = new Sprite(texture);
+      motionGhostB.anchor.set(.5);
+      motionGhostB.width = actor.radius * 2.18;
+      motionGhostB.height = actor.radius * 2.18;
+      motionGhostB.alpha = 0;
+      motionGhostB.visible = false;
+      motionGhostB.blendMode = "screen";
+      root.addChild(motionGhostB);
+
+      motionGhostA = new Sprite(texture);
+      motionGhostA.anchor.set(.5);
+      motionGhostA.width = actor.radius * 2.18;
+      motionGhostA.height = actor.radius * 2.18;
+      motionGhostA.alpha = 0;
+      motionGhostA.visible = false;
+      motionGhostA.blendMode = "screen";
+      root.addChild(motionGhostA);
+
       body = new Sprite(texture);
       body.anchor.set(.5);
       body.width = actor.radius * 2.18;
@@ -1399,6 +1420,11 @@ export class PixiProofRenderer {
         .fill(hexNumber(classColorFor(actor), 0x888888));
     }
     root.addChild(body);
+
+    const actorMotionFx = new Graphics();
+    actorMotionFx.visible = false;
+    actorMotionFx.blendMode = "screen";
+    root.addChild(actorMotionFx);
 
     const castWindupFx = new Graphics();
     castWindupFx.visible = false;
@@ -1609,6 +1635,31 @@ export class PixiProofRenderer {
 
     const view = {
       root,
+      shadow,
+      ring,
+      body,
+      bodyBaseScaleX: body.scale.x,
+      bodyBaseScaleY: body.scale.y,
+      motionGhostA,
+      motionGhostB,
+      ghostBaseScaleX: motionGhostA?.scale.x || 1,
+      ghostBaseScaleY: motionGhostA?.scale.y || 1,
+      actorMotionFx,
+      motion: {
+        previousAlive: actor.alive,
+        previousHealth: actor.health,
+        previousX: actor.x,
+        previousY: actor.y,
+        lastActionEffectId: null,
+        action: null,
+        hitStartMs: -1,
+        hitDurationMs: 0,
+        hitPower: 0,
+        hitDirX: 0,
+        hitDirY: 0,
+        hitCrit: false,
+        deathStartedMs: null,
+      },
       name,
       castWindupFx,
       burstFx,
@@ -1834,6 +1885,590 @@ export class PixiProofRenderer {
       }
     } else {
       view.castSpellId = null;
+    }
+  }
+
+  updateActorMotionV2(game) {
+    const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+    const pulse = value => Math.sin(clamp01(value) * Math.PI);
+
+    const latestSpellBySource = new Map();
+    const latestHitSourceByTarget = new Map();
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type === "spell" && effect.sourceId) {
+        const previous = latestSpellBySource.get(effect.sourceId);
+        if (!previous || Number(effect.id) > Number(previous.id)) {
+          latestSpellBySource.set(effect.sourceId, effect);
+        }
+
+        if (effect.targetId) {
+          const hitPrevious = latestHitSourceByTarget.get(effect.targetId);
+          if (!hitPrevious || Number(effect.id) > Number(hitPrevious.id)) {
+            latestHitSourceByTarget.set(effect.targetId, effect);
+          }
+        }
+      }
+
+      if (
+        effect.type === "chain"
+        && Array.isArray(effect.actorIds)
+        && effect.actorIds.length > 1
+      ) {
+        const sourceId = effect.actorIds[0];
+        for (const targetId of effect.actorIds.slice(1)) {
+          latestHitSourceByTarget.set(targetId, {
+            id: effect.id,
+            sourceId,
+            targetId,
+            spellId: effect.spellId || "shaman-chain-lightning",
+          });
+        }
+      }
+    }
+
+    const actorById = new Map(game.actors.map(actor => [actor.id, actor]));
+    const ccKinds = new Set(["stun", "fear", "incapacitate", "root"]);
+
+    for (const actor of game.actors) {
+      const view = this.actorViews.get(actor.id);
+      if (!view) continue;
+
+      const motion = view.motion;
+      const body = view.body;
+      const motionFx = view.actorMotionFx;
+      const ghostA = view.motionGhostA;
+      const ghostB = view.motionGhostB;
+
+      motionFx.clear();
+      motionFx.visible = false;
+
+      if (ghostA) {
+        ghostA.visible = false;
+        ghostA.alpha = 0;
+      }
+      if (ghostB) {
+        ghostB.visible = false;
+        ghostB.alpha = 0;
+      }
+
+      const setBodyScale = (x = 1, y = x) => {
+        body.scale.set(
+          view.bodyBaseScaleX * x,
+          view.bodyBaseScaleY * y,
+        );
+      };
+
+      const setGhost = (ghost, x, y, alpha, scale = 1, rotation = 0) => {
+        if (!ghost || alpha <= .001) return;
+        ghost.visible = true;
+        ghost.position.set(x, y);
+        ghost.alpha = alpha;
+        ghost.rotation = rotation;
+        ghost.scale.set(
+          view.ghostBaseScaleX * scale,
+          view.ghostBaseScaleY * scale,
+        );
+      };
+
+      const resetLivingVisuals = () => {
+        body.visible = true;
+        body.alpha = 1;
+        body.position.set(0, 0);
+        body.rotation = 0;
+        if ("tint" in body) body.tint = 0xffffff;
+        setBodyScale(1, 1);
+
+        view.shadow.visible = true;
+        view.shadow.alpha = 1;
+        view.shadow.position.set(0, 0);
+        view.shadow.scale.set(1, 1);
+        view.ring.visible = true;
+        view.ring.alpha = 1;
+
+        view.name.alpha = 1;
+      };
+
+      // Detect death transition before the normal body reset.
+      if (motion.previousAlive && !actor.alive) {
+        motion.deathStartedMs = nowMs;
+      }
+
+      // Death has its own visual clock so the animation completes even when
+      // the match simulation has already stopped.
+      if (!actor.alive) {
+        const start = Number(motion.deathStartedMs);
+        const duration = 560;
+
+        if (!Number.isFinite(start)) {
+          motion.deathStartedMs = nowMs;
+        }
+
+        const deathP = clamp01(
+          (nowMs - Number(motion.deathStartedMs || nowMs)) / duration,
+        );
+
+        view.root.visible = deathP < 1;
+        view.name.visible = false;
+        view.healthBg.visible = false;
+        view.healthFill.visible = false;
+        view.resourceBg.visible = false;
+        view.resourceFill.visible = false;
+        view.castBg.visible = false;
+        view.castFill.visible = false;
+        view.castBorder.visible = false;
+        view.playerGlow.visible = false;
+        view.playerRing.visible = false;
+        view.targetGlow.visible = false;
+        view.targetRing.visible = false;
+        view.targetMarker.visible = false;
+        view.targetMarkerGlow.visible = false;
+        view.ring.visible = false;
+
+        if (deathP < 1) {
+          body.visible = true;
+
+          const collapse = easeOut(deathP);
+          const fade = 1 - smooth((deathP - .18) / .82);
+          const fallSign = Math.abs(motion.hitDirX) > .05
+            ? Math.sign(motion.hitDirX)
+            : (String(actor.id).length % 2 ? 1 : -1);
+
+          body.position.set(
+            fallSign * collapse * 7,
+            collapse * 13,
+          );
+          body.rotation = fallSign * collapse * .17;
+          body.alpha = fade;
+          setBodyScale(
+            1 + collapse * .08,
+            1 - collapse * .30,
+          );
+
+          view.shadow.visible = true;
+          view.shadow.alpha = (1 - collapse) * .62;
+          view.shadow.scale.set(
+            1 + collapse * .20,
+            Math.max(.35, 1 - collapse * .52),
+          );
+
+          if (deathP < .54) {
+            motionFx.visible = true;
+            const burst = 1 - clamp01(deathP / .54);
+            const radius = actor.radius + 7 + deathP * 24;
+
+            motionFx.circle(0, 0, radius).stroke({
+              color: actor.team === "friendly" ? 0xb7d5c0 : 0xd9aaa4,
+              width: 1.5,
+              alpha: burst * .28,
+            });
+
+            for (let i = 0; i < 5; i += 1) {
+              const a = i / 5 * Math.PI * 2 + deathP * 2.1;
+              const rr = actor.radius + 5 + deathP * (15 + i * 2);
+              motionFx.circle(
+                Math.cos(a) * rr,
+                Math.sin(a) * rr - deathP * 8,
+                1.2 + (i % 2) * .4,
+              ).fill({
+                color: 0xd7c9bd,
+                alpha: burst * .30,
+              });
+            }
+          }
+        }
+
+        motion.previousAlive = false;
+        motion.previousHealth = actor.health;
+        motion.previousX = actor.x;
+        motion.previousY = actor.y;
+        continue;
+      }
+
+      // Alive again (new round/reused actor slot).
+      if (!motion.previousAlive && actor.alive) {
+        motion.deathStartedMs = null;
+        motion.action = null;
+        motion.hitStartMs = -1;
+        motion.lastActionEffectId = null;
+      }
+
+      view.root.visible = true;
+      resetLivingVisuals();
+
+      // -------------------------------------------------------------------
+      // Detect new spell release / instant action.
+      // -------------------------------------------------------------------
+      const latestAction = latestSpellBySource.get(actor.id);
+      if (
+        latestAction
+        && latestAction.id !== motion.lastActionEffectId
+      ) {
+        motion.lastActionEffectId = latestAction.id;
+
+        const target = actorById.get(latestAction.targetId);
+        const rawDx = (target?.x ?? latestAction.targetX ?? actor.x) - actor.x;
+        const rawDy = (target?.y ?? latestAction.targetY ?? actor.y) - actor.y;
+        const len = Math.max(1, Math.hypot(rawDx, rawDy));
+        const dirX = rawDx / len;
+        const dirY = rawDy / len;
+        const spellId = latestAction.spellId || "";
+        const heavy =
+          POLISH_HEAVY_SPELLS.has(spellId)
+          || ["warrior-mortal-strike","warrior-slam","dk-obliterate"].includes(spellId);
+
+        let kind = "spell";
+        if (spellId === "warrior-charge") kind = "charge";
+        else if (spellId === "rogue-shadowstep") kind = "shadowstep";
+        else if (COMBAT_VFX2_MELEE.has(spellId)) kind = "melee";
+        else if (PROJECTILE_VFX2_SPELLS.has(spellId)) kind = "projectile";
+        else if (COMBAT_VFX2_HEALS.has(spellId)) kind = "heal";
+        else if (COMBAT_VFX2_CC.has(spellId)) kind = "control";
+        else if (COMBAT_VFX2_DEFENSIVES.has(spellId)) kind = "defensive";
+
+        motion.action = {
+          id: latestAction.id,
+          spellId,
+          kind,
+          heavy,
+          startMs: nowMs,
+          dirX,
+          dirY,
+        };
+      }
+
+      // -------------------------------------------------------------------
+      // Detect actual damage taken from HP delta.
+      // -------------------------------------------------------------------
+      const previousHealth = Number(motion.previousHealth);
+      if (
+        Number.isFinite(previousHealth)
+        && actor.health < previousHealth - .01
+      ) {
+        const damage = previousHealth - actor.health;
+        const fraction = damage / Math.max(1, actor.maxHealth);
+        const sourceEffect = latestHitSourceByTarget.get(actor.id);
+        const sourceActor = sourceEffect
+          ? actorById.get(sourceEffect.sourceId)
+          : null;
+
+        let hitDx = sourceActor ? actor.x - sourceActor.x : -Math.cos(actor.facing || 0);
+        let hitDy = sourceActor ? actor.y - sourceActor.y : -Math.sin(actor.facing || 0);
+        const hitLen = Math.max(1, Math.hypot(hitDx, hitDy));
+        hitDx /= hitLen;
+        hitDy /= hitLen;
+
+        const recentCrit = (game.floatingTexts || []).some(item =>
+          item.actorId === actor.id
+          && item.type === "crit-damage"
+          && item.remainingMs > 650
+        );
+
+        motion.hitStartMs = nowMs;
+        motion.hitCrit = recentCrit || fraction >= .18;
+        motion.hitPower = clamp01(.30 + fraction / .18);
+        motion.hitDurationMs = motion.hitCrit ? 230 : 160;
+        motion.hitDirX = hitDx;
+        motion.hitDirY = hitDy;
+      }
+
+      // -------------------------------------------------------------------
+      // Movement: tiny body-only weight. World position remains exact.
+      // -------------------------------------------------------------------
+      const moveX = Number(actor.lastMove?.x) || 0;
+      const moveY = Number(actor.lastMove?.y) || 0;
+      const moving = Math.hypot(moveX, moveY) > .15 && !actor.cast;
+      const phaseSeed = String(actor.id || "").length * .73;
+      const moveWave = moving
+        ? Math.sin(nowMs * .0105 + phaseSeed)
+        : 0;
+
+      let offsetX = moving ? moveX * 1.25 : 0;
+      let offsetY = moving ? moveWave * 1.05 + Math.abs(moveY) * .30 : 0;
+      let rotation = moving ? moveX * .020 + moveWave * .004 : 0;
+      let scaleX = moving ? 1 + Math.abs(moveWave) * .012 : 1;
+      let scaleY = moving ? 1 - Math.abs(moveWave) * .009 : 1;
+
+      view.shadow.scale.set(
+        moving ? 1 + Math.abs(moveWave) * .035 : 1,
+        moving ? 1 - Math.abs(moveWave) * .025 : 1,
+      );
+      view.shadow.alpha = moving ? .88 : 1;
+
+      // -------------------------------------------------------------------
+      // Cast anticipation: body braces as power gathers.
+      // -------------------------------------------------------------------
+      if (actor.cast) {
+        const total = Math.max(1, Number(actor.cast.totalMs) || 1);
+        const castP = clamp01(1 - actor.cast.remainingMs / total);
+        const target = actorById.get(actor.cast.targetId);
+        const tdx = target ? target.x - actor.x : Math.cos(actor.facing || 0);
+        const tdy = target ? target.y - actor.y : Math.sin(actor.facing || 0);
+        const tlen = Math.max(1, Math.hypot(tdx,tdy));
+        const ctx = tdx / tlen;
+        const cty = tdy / tlen;
+        const gather = smooth(castP);
+        const finalBrace = smooth((castP - .72) / .28);
+
+        offsetX -= ctx * (gather * .75 + finalBrace * 1.3);
+        offsetY -= cty * (gather * .45 + finalBrace * .75);
+        scaleX *= 1 + gather * .018 + finalBrace * .018;
+        scaleY *= 1 - gather * .020 - finalBrace * .018;
+        rotation += ctx * .010 * gather;
+
+        if (finalBrace > 0) {
+          motionFx.visible = true;
+          const profile = spellPolishProfile(actor.cast.spellId);
+          const radius = actor.radius + 5 + (1 - finalBrace) * 10;
+          motionFx.circle(0,0,radius).stroke({
+            color: profile.core,
+            width: 1.2 + finalBrace * .8,
+            alpha: finalBrace * .22,
+          });
+        }
+      }
+
+      // -------------------------------------------------------------------
+      // Release / attack choreography.
+      // -------------------------------------------------------------------
+      const action = motion.action;
+      if (action) {
+        const duration =
+          action.kind === "charge" || action.kind === "shadowstep"
+            ? 390
+            : action.kind === "melee"
+              ? (action.heavy ? 340 : 270)
+              : action.kind === "projectile"
+                ? (action.heavy ? 290 : 230)
+                : 240;
+
+        const q = clamp01((nowMs - action.startMs) / duration);
+        const hitPulse = pulse(q);
+        const snap = 1 - easeOut(q);
+        const dirX = action.dirX;
+        const dirY = action.dirY;
+
+        if (action.kind === "melee") {
+          const lunge = hitPulse * (action.heavy ? 8.5 : 6);
+          offsetX += dirX * lunge;
+          offsetY += dirY * lunge;
+          rotation += dirY * dirX * (action.heavy ? .035 : .022);
+          scaleX *= 1 + hitPulse * (action.heavy ? .055 : .035);
+          scaleY *= 1 - hitPulse * (action.heavy ? .035 : .022);
+
+          setGhost(
+            ghostA,
+            -dirX * (5 + hitPulse * 4),
+            -dirY * (5 + hitPulse * 4),
+            (1-q) * (action.heavy ? .22 : .15),
+            .98,
+            rotation * .55,
+          );
+          setGhost(
+            ghostB,
+            -dirX * (10 + hitPulse * 6),
+            -dirY * (10 + hitPulse * 6),
+            (1-q) * (action.heavy ? .13 : .09),
+            .96,
+            rotation * .35,
+          );
+        } else if (action.kind === "charge" || action.kind === "shadowstep") {
+          const speedKick = hitPulse * (action.kind === "charge" ? 5 : 3.5);
+          offsetX += dirX * speedKick;
+          offsetY += dirY * speedKick;
+          scaleX *= 1 + hitPulse * .05;
+          scaleY *= 1 - hitPulse * .025;
+
+          const ghostAlpha = action.kind === "shadowstep" ? .25 : .18;
+          setGhost(
+            ghostA,
+            -dirX * (10 + hitPulse * 8),
+            -dirY * (10 + hitPulse * 8),
+            (1-q) * ghostAlpha,
+            .97,
+            -dirX * .025,
+          );
+          setGhost(
+            ghostB,
+            -dirX * (18 + hitPulse * 10),
+            -dirY * (18 + hitPulse * 10),
+            (1-q) * ghostAlpha * .58,
+            .94,
+            -dirX * .018,
+          );
+        } else if (action.kind === "projectile") {
+          const recoil = snap * (action.heavy ? 5 : 3.2);
+          offsetX -= dirX * recoil;
+          offsetY -= dirY * recoil;
+          scaleX *= 1 + snap * (action.heavy ? .045 : .025);
+          scaleY *= 1 - snap * (action.heavy ? .038 : .022);
+          rotation -= dirX * snap * (action.heavy ? .025 : .015);
+        } else if (action.kind === "heal") {
+          offsetY -= hitPulse * (action.heavy ? 2.6 : 1.7);
+          scaleX *= 1 + hitPulse * .025;
+          scaleY *= 1 + hitPulse * .025;
+        } else if (action.kind === "control") {
+          rotation += Math.sin(q * Math.PI * 2) * .016 * (1-q);
+          scaleX *= 1 + hitPulse * .022;
+          scaleY *= 1 - hitPulse * .014;
+        } else if (action.kind === "defensive") {
+          scaleX *= 1 + hitPulse * .030;
+          scaleY *= 1 + hitPulse * .030;
+        } else {
+          const recoil = snap * 2.2;
+          offsetX -= dirX * recoil;
+          offsetY -= dirY * recoil;
+          scaleX *= 1 + hitPulse * .018;
+          scaleY *= 1 + hitPulse * .018;
+        }
+
+        if (q < 1) {
+          motionFx.visible = true;
+          const profile = spellPolishProfile(action.spellId);
+          const release = 1 - q;
+
+          if (action.kind === "melee") {
+            const sideX = -dirY;
+            const sideY = dirX;
+            for (let i = 0; i < (action.heavy ? 4 : 3); i += 1) {
+              const spread = (i - 1.5) * 4;
+              motionFx
+                .moveTo(
+                  dirX * (actor.radius - 2) + sideX * spread,
+                  dirY * (actor.radius - 2) + sideY * spread,
+                )
+                .lineTo(
+                  dirX * (actor.radius + 11 + hitPulse * 8) + sideX * spread,
+                  dirY * (actor.radius + 11 + hitPulse * 8) + sideY * spread,
+                )
+                .stroke({
+                  color: i % 2 ? profile.core : profile.main,
+                  width: action.heavy ? 1.6 : 1.1,
+                  alpha: release * (action.heavy ? .34 : .24),
+                });
+            }
+          } else if (q < .42) {
+            const radius = actor.radius + 6 + q * (action.heavy ? 18 : 12);
+            motionFx.circle(0,0,radius).stroke({
+              color: profile.core,
+              width: action.heavy ? 2 : 1.3,
+              alpha: (1-q/.42) * (action.heavy ? .34 : .24),
+            });
+          }
+        } else {
+          motion.action = null;
+        }
+      }
+
+      // -------------------------------------------------------------------
+      // Damage reaction: directional kick + squash, stronger on crit/heavy hit.
+      // -------------------------------------------------------------------
+      if (motion.hitStartMs >= 0) {
+        const hitP = clamp01(
+          (nowMs - motion.hitStartMs) / Math.max(1, motion.hitDurationMs),
+        );
+
+        if (hitP < 1) {
+          const kickPulse = Math.sin(hitP * Math.PI);
+          const power = motion.hitPower * (motion.hitCrit ? 1.24 : 1);
+          const kick = kickPulse * (motion.hitCrit ? 5.5 : 3.4) * power;
+
+          offsetX += motion.hitDirX * kick;
+          offsetY += motion.hitDirY * kick;
+          rotation += motion.hitDirX * kickPulse * (motion.hitCrit ? .045 : .026);
+          scaleX *= 1 + kickPulse * .045 * power;
+          scaleY *= 1 - kickPulse * .050 * power;
+
+          if ("tint" in body) {
+            body.tint = hitP < .28
+              ? (motion.hitCrit ? 0xfff1d6 : 0xffd8d2)
+              : 0xffffff;
+          }
+
+          motionFx.visible = true;
+          const fade = 1 - hitP;
+          const incomingAngle = Math.atan2(motion.hitDirY,motion.hitDirX) + Math.PI;
+          const ticks = motion.hitCrit ? 5 : 3;
+
+          for (let i = 0; i < ticks; i += 1) {
+            const a = incomingAngle + (i-(ticks-1)/2) * .22;
+            const inner = actor.radius + 2;
+            const outer = inner + (motion.hitCrit ? 14 : 9) * (1+kickPulse*.25);
+            motionFx
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({
+                color: motion.hitCrit ? 0xffefd1 : 0xffb0a7,
+                width: motion.hitCrit ? 1.8 : 1.3,
+                alpha: fade * (motion.hitCrit ? .62 : .40),
+              });
+          }
+
+          if (motion.hitCrit) {
+            motionFx.circle(0,0,actor.radius+5+hitP*10).stroke({
+              color:0xffe0bd,
+              width:1.4,
+              alpha:fade*.35,
+            });
+          }
+        } else {
+          motion.hitStartMs = -1;
+          motion.hitCrit = false;
+        }
+      }
+
+      // -------------------------------------------------------------------
+      // Physical CC feedback. Deliberately subtle: icon remains readable and
+      // the existing CC marker still carries the gameplay information.
+      // -------------------------------------------------------------------
+      const activeCc = (actor.effects || []).find(effect =>
+        effect.remainingMs > 0 && ccKinds.has(effect.kind)
+      );
+      const schoolLocked = (actor.effects || []).some(effect =>
+        effect.remainingMs > 0 && effect.kind === "schoolLock"
+      );
+
+      if (activeCc?.kind === "fear") {
+        const shake = Math.sin(nowMs * .038 + phaseSeed);
+        offsetX += shake * 1.55;
+        rotation += shake * .020;
+      } else if (activeCc?.kind === "stun") {
+        const throb = .5 + .5 * Math.sin(nowMs * .026 + phaseSeed);
+        scaleX *= 1 + throb * .018;
+        scaleY *= 1 - throb * .022;
+        rotation += Math.sin(nowMs * .045 + phaseSeed) * .008;
+      } else if (activeCc?.kind === "root") {
+        const compression = .5 + .5 * Math.sin(nowMs * .016 + phaseSeed);
+        scaleX *= 1 + compression * .014;
+        scaleY *= 1 - compression * .018;
+      } else if (activeCc?.kind === "incapacitate") {
+        rotation += Math.sin(nowMs * .010 + phaseSeed) * .014;
+        offsetY += Math.sin(nowMs * .012 + phaseSeed) * .45;
+      }
+
+      if (schoolLocked) {
+        const lockPulse = .5 + .5 * Math.sin(nowMs * .022 + phaseSeed);
+        scaleX *= 1 - lockPulse * .010;
+        scaleY *= 1 - lockPulse * .010;
+      }
+
+      body.position.set(offsetX,offsetY);
+      body.rotation = rotation;
+      setBodyScale(scaleX,scaleY);
+
+      motion.previousAlive = actor.alive;
+      motion.previousHealth = actor.health;
+      motion.previousX = actor.x;
+      motion.previousY = actor.y;
     }
   }
 
@@ -8260,6 +8895,7 @@ export class PixiProofRenderer {
       this.updateActorView(view, actor, game);
     }
 
+    this.updateActorMotionV2(game);
     this.updateNativeCastWindupVfx(game);
     this.updateNativeBurstVfx(game);
     this.updateNativeSlashVfx(game);

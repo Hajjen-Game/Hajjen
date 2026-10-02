@@ -283,11 +283,11 @@ function createStoneSurfaceTexture(BABYLON,scene,name,seed=1) {
   return texture;
 }
 
-function createFloorTexture(BABYLON,scene,arena,mapping) {
+function createWindscarFloorTexture(BABYLON,scene,arena,mapping) {
   const width=1280;
   const height=Math.max(576,Math.round(width*mapping.height/mapping.width));
   const texture=new BABYLON.DynamicTexture(
-    "babylon-stone-floor-texture",
+    "babylon-windscar-floor-texture",
     {width,height},
     scene,
     false,
@@ -298,241 +298,96 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
   const b=arena.bounds;
   const cx=(b.x+b.w/2)*sx;
   const cy=(b.y+b.h/2)*sy;
-  const random=seededRandom(
-    arena.id==="windscar-proving-grounds"?0x51a7c3:0x736f6c,
+  const random=seededRandom(0x31d5aa);
+
+  // Image-3 direction: broad matte ground, large value shapes, almost no
+  // technical linework.
+  const base=ctx.createRadialGradient(
+    cx,cy,Math.min(width,height)*.05,
+    cx,cy,Math.min(width,height)*.78,
   );
-
-  const palette=[
-    "#765f4c","#806754","#6d5848","#876c57",
-    "#715b4a","#7b6350","#685447","#826955",
-  ];
-
-  const polygonPath=points=>{
-    ctx.beginPath();
-    ctx.moveTo(points[0][0],points[0][1]);
-    for(let i=1;i<points.length;i+=1){
-      ctx.lineTo(points[i][0],points[i][1]);
-    }
-    ctx.closePath();
-  };
-
-  const paintSlab=(points,baseColor,edgeStrength=.34)=>{
-    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-    for(const [x,y] of points){
-      minX=Math.min(minX,x); minY=Math.min(minY,y);
-      maxX=Math.max(maxX,x); maxY=Math.max(maxY,y);
-    }
-
-    polygonPath(points);
-    ctx.fillStyle=baseColor;
-    ctx.fill();
-
-    // Soft painted light from upper-left and shade toward lower-right.
-    const shade=ctx.createLinearGradient(minX,minY,maxX,maxY);
-    shade.addColorStop(0,"rgba(255,220,177,.115)");
-    shade.addColorStop(.44,"rgba(255,255,255,.018)");
-    shade.addColorStop(1,"rgba(30,20,15,.16)");
-    polygonPath(points);
-    ctx.fillStyle=shade;
-    ctx.fill();
-
-    polygonPath(points);
-    ctx.strokeStyle="rgba(48,35,28,"+edgeStrength+")";
-    ctx.lineWidth=1.45*sx;
-    ctx.stroke();
-
-    // Selective warm edge catches, not a full technical outline.
-    if(random()>.34){
-      ctx.beginPath();
-      ctx.moveTo(points[0][0]+2*sx,points[0][1]+2*sy);
-      ctx.lineTo(points[1][0]-2*sx,points[1][1]+2*sy);
-      ctx.strokeStyle="rgba(226,188,143,.075)";
-      ctx.lineWidth=.9*sx;
-      ctx.stroke();
-    }
-  };
-
-  // Deep stone base.
-  const baseGradient=ctx.createRadialGradient(
-    cx,cy,0,
-    cx,cy,Math.max(width,height)*.72,
-  );
-  baseGradient.addColorStop(0,"#735e4c");
-  baseGradient.addColorStop(.48,"#685343");
-  baseGradient.addColorStop(.82,"#58473b");
-  baseGradient.addColorStop(1,"#493c33");
-  ctx.fillStyle=baseGradient;
+  base.addColorStop(0,"#765945");
+  base.addColorStop(.48,"#694b39");
+  base.addColorStop(.82,"#5b4032");
+  base.addColorStop(1,"#4c362c");
+  ctx.fillStyle=base;
   ctx.fillRect(0,0,width,height);
 
-  // Broad irregular field slabs. These are deliberately larger and less
-  // repetitive than the previous generated grid.
-  let logicalY=b.y-52;
-  let row=0;
-  while(logicalY<b.y+b.h+60){
-    const rowH=72+random()*54;
-    let logicalX=b.x-100-(row%2)*(42+random()*36);
-    while(logicalX<b.x+b.w+110){
-      const tileW=110+random()*105;
-      const jitter=8+random()*14;
-      const centerLX=logicalX+tileW/2;
-      const centerLY=logicalY+rowH/2;
-      const dist=Math.hypot(
-        centerLX-(b.x+b.w/2),
-        centerLY-(b.y+b.h/2),
-      );
-
-      if(dist>330){
-        const x0=logicalX*sx;
-        const y0=logicalY*sy;
-        const x1=(logicalX+tileW)*sx;
-        const y1=(logicalY+rowH)*sy;
-        const points=[
-          [x0+(random()-.5)*jitter*sx,y0+(random()-.5)*jitter*sy],
-          [x1+(random()-.5)*jitter*sx,y0+(random()-.5)*jitter*sy],
-          [x1+(random()-.5)*jitter*sx,y1+(random()-.5)*jitter*sy],
-          [x0+(random()-.5)*jitter*sx,y1+(random()-.5)*jitter*sy],
-        ];
-        paintSlab(
-          points,
-          palette[Math.floor(random()*palette.length)],
-          .24+random()*.11,
-        );
-      }
-
-      logicalX+=tileW-8+random()*14;
-    }
-    logicalY+=rowH-5+random()*9;
-    row+=1;
+  // Large soft painted patches give the floor hand-authored value variation.
+  for(let i=0;i<30;i+=1){
+    const x=(b.x+40+random()*(b.w-80))*sx;
+    const y=(b.y+35+random()*(b.h-70))*sy;
+    const r=(70+random()*190)*sx;
+    const warm=random()>.54;
+    const patch=ctx.createRadialGradient(x,y,0,x,y,r);
+    patch.addColorStop(
+      0,
+      warm
+        ?"rgba(173,112,70,"+(.025+random()*.045)+")"
+        :"rgba(36,26,22,"+(.025+random()*.045)+")",
+    );
+    patch.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=patch;
+    ctx.fillRect(x-r,y-r,r*2,r*2);
   }
 
-  // Central masonry: four broad rings rather than a dense target/grid.
-  const rings=[0,82,158,246,340];
-  for(let band=0;band<rings.length-1;band+=1){
-    const inner=rings[band];
-    const outer=rings[band+1];
-    const count=band===0?9:12+band*4;
-    const phase=(band%2?.46:0)/count*Math.PI*2;
-
-    for(let i=0;i<count;i+=1){
-      const a0=i/count*Math.PI*2+phase;
-      const a1=(i+1)/count*Math.PI*2+phase;
-      const gap=.016+random()*.016;
-      const innerJ=inner+(band===0?0:5+random()*6);
-      const outerJ=outer-(5+random()*7);
-
-      const points=[
-        [
-          cx+Math.cos(a0+gap)*innerJ*sx,
-          cy+Math.sin(a0+gap)*innerJ*sy,
-        ],
-        [
-          cx+Math.cos(a1-gap)*innerJ*sx,
-          cy+Math.sin(a1-gap)*innerJ*sy,
-        ],
-        [
-          cx+Math.cos(a1-gap*.62)*outerJ*sx,
-          cy+Math.sin(a1-gap*.62)*outerJ*sy,
-        ],
-        [
-          cx+Math.cos(a0+gap*.62)*outerJ*sx,
-          cy+Math.sin(a0+gap*.62)*outerJ*sy,
-        ],
-      ];
-
-      paintSlab(
-        points,
-        palette[(band*3+i)%palette.length],
-        band<2?.34:.27,
-      );
-    }
-  }
-
-  // Soft circular joints, intentionally lower contrast than individual slabs.
-  ctx.strokeStyle="rgba(50,37,30,.28)";
-  ctx.lineWidth=1.55*sx;
-  for(const r of [82,158,246,340]){
-    ctx.beginPath();
-    ctx.ellipse(cx,cy,r*sx,r*sy,0,0,Math.PI*2);
-    ctx.stroke();
-  }
-
-  // Center medallion.
-  const medallion=ctx.createRadialGradient(cx,cy,4,cx,cy,62*sx);
-  medallion.addColorStop(0,"#96785f");
-  medallion.addColorStop(.72,"#816650");
-  medallion.addColorStop(1,"#655041");
-  ctx.fillStyle=medallion;
-  ctx.beginPath();
-  ctx.ellipse(cx,cy,60*sx,60*sy,0,0,Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle="rgba(48,34,27,.38)";
-  ctx.lineWidth=2*sx;
-  ctx.stroke();
-
-  // Sparse authored cracks, placed away from the center.
+  // Very sparse worn cracks / scars.
   ctx.lineCap="round";
-  for(let i=0;i<11;i+=1){
+  for(let i=0;i<10;i+=1){
+    let x=(b.x+90+random()*(b.w-180))*sx;
+    let y=(b.y+80+random()*(b.h-160))*sy;
     const a=random()*Math.PI*2;
-    const radius=360+random()*165;
-    let x=cx+Math.cos(a)*radius*sx;
-    let y=cy+Math.sin(a)*radius*sy;
-    const angle=a+(random()-.5)*1.3;
-    const length=(26+random()*64)*sx;
+    const length=(28+random()*72)*sx;
     ctx.beginPath();
     ctx.moveTo(x,y);
     for(let p=0;p<3;p+=1){
-      x+=Math.cos(angle+(random()-.5)*.48)*length/3;
-      y+=Math.sin(angle+(random()-.5)*.48)*length/3;
+      x+=Math.cos(a+(random()-.5)*.5)*length/3;
+      y+=Math.sin(a+(random()-.5)*.5)*length/3;
       ctx.lineTo(x,y);
     }
-    ctx.strokeStyle="rgba(39,28,23,"+(.30+random()*.16)+")";
-    ctx.lineWidth=(1.15+random()*1.15)*sx;
+    ctx.strokeStyle="rgba(45,31,25,"+(.16+random()*.12)+")";
+    ctx.lineWidth=(1.0+random()*.9)*sx;
     ctx.stroke();
   }
 
-  // Painted torch pools. Real lights are still present in Babylon, but this
-  // guarantees the broad warm pools seen in the reference.
+  // Broad warm pools where the two main braziers sit.
   const lightPoints=[
-    [b.x+46,b.y+50],
-    [b.x+b.w-46,b.y+50],
-    [b.x+46,b.y+b.h-50],
-    [b.x+b.w-46,b.y+b.h-50],
+    [b.x-4,b.y+b.h*.68],
+    [b.x+b.w+4,b.y+b.h*.32],
   ];
   ctx.save();
   ctx.globalCompositeOperation="screen";
   for(const [gx,gy] of lightPoints){
     const x=gx*sx;
     const y=gy*sy;
-    const r=145*sx;
+    const r=190*sx;
     const glow=ctx.createRadialGradient(x,y,0,x,y,r);
-    glow.addColorStop(0,"rgba(255,129,43,.23)");
-    glow.addColorStop(.34,"rgba(228,92,28,.105)");
+    glow.addColorStop(0,"rgba(255,126,45,.28)");
+    glow.addColorStop(.32,"rgba(228,87,28,.12)");
     glow.addColorStop(1,"rgba(0,0,0,0)");
     ctx.fillStyle=glow;
     ctx.fillRect(x-r,y-r,r*2,r*2);
   }
   ctx.restore();
 
-  // Subtle material grain.
-  for(let i=0;i<2300;i+=1){
-    const bright=random()>.60;
-    const alpha=.010+random()*.022;
-    ctx.fillStyle=bright
-      ?"rgba(229,198,159,"+alpha+")"
-      :"rgba(28,21,18,"+alpha+")";
+  // A little matte grain; much less than the prior stone-grid approach.
+  for(let i=0;i<1700;i+=1){
+    const alpha=.008+random()*.018;
+    ctx.fillStyle=random()>.60
+      ?"rgba(225,179,133,"+alpha+")"
+      :"rgba(24,17,14,"+alpha+")";
     const x=Math.floor(random()*width);
     const y=Math.floor(random()*height);
-    ctx.fillRect(x,y,random()>.955?2:1,1);
+    ctx.fillRect(x,y,1,1);
   }
 
-  // Edge falloff.
   const vignette=ctx.createRadialGradient(
-    cx,cy,Math.min(width,height)*.27,
-    cx,cy,Math.min(width,height)*.76,
+    cx,cy,Math.min(width,height)*.30,
+    cx,cy,Math.min(width,height)*.80,
   );
   vignette.addColorStop(0,"rgba(0,0,0,0)");
   vignette.addColorStop(.72,"rgba(0,0,0,.025)");
-  vignette.addColorStop(1,"rgba(17,12,10,.20)");
+  vignette.addColorStop(1,"rgba(19,13,11,.25)");
   ctx.fillStyle=vignette;
   ctx.fillRect(0,0,width,height);
 
@@ -543,12 +398,63 @@ function createFloorTexture(BABYLON,scene,arena,mapping) {
   return texture;
 }
 
+function createGrandRingFloorTexture(BABYLON,scene,arena,mapping) {
+  const width=1024;
+  const height=Math.max(512,Math.round(width*mapping.height/mapping.width));
+  const texture=new BABYLON.DynamicTexture(
+    "babylon-grand-ring-placeholder-floor",
+    {width,height},
+    scene,
+    false,
+  );
+  const ctx=texture.getContext();
+  const random=seededRandom(0x4a77c1);
+
+  const g=ctx.createLinearGradient(0,0,width,height);
+  g.addColorStop(0,"#42513b");
+  g.addColorStop(.48,"#3a4936");
+  g.addColorStop(1,"#303d30");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,width,height);
+
+  for(let i=0;i<38;i+=1){
+    const x=random()*width;
+    const y=random()*height;
+    const r=30+random()*120;
+    const patch=ctx.createRadialGradient(x,y,0,x,y,r);
+    patch.addColorStop(
+      0,
+      random()>.5
+        ?"rgba(103,122,77,.06)"
+        :"rgba(28,35,27,.07)",
+    );
+    patch.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=patch;
+    ctx.fillRect(x-r,y-r,r*2,r*2);
+  }
+
+  texture.update(false);
+  texture.wrapU=BABYLON.Texture.CLAMP_ADDRESSMODE;
+  texture.wrapV=BABYLON.Texture.CLAMP_ADDRESSMODE;
+  return texture;
+}
+
+function createFloorTexture(BABYLON,scene,arena,mapping) {
+  return arena.id==="windscar-proving-grounds"
+    ? createWindscarFloorTexture(BABYLON,scene,arena,mapping)
+    : createGrandRingFloorTexture(BABYLON,scene,arena,mapping);
+}
+
 function addFloor(BABYLON,scene,arena,mapping,materials,root,ownedTextures) {
   const floorTexture=createFloorTexture(BABYLON,scene,arena,mapping);
   ownedTextures.push(floorTexture);
-  materials.floor.diffuseTexture=floorTexture;
-  materials.floor.diffuseColor=new BABYLON.Color3(1,1,1);
-  materials.floor.specularColor=new BABYLON.Color3(.055,.038,.03);
+
+  const floorMat=arena.id==="windscar-proving-grounds"
+    ? materials.floor
+    : materials.grandFloor;
+  floorMat.diffuseTexture=floorTexture;
+  floorMat.diffuseColor=new BABYLON.Color3(1,1,1);
+  floorMat.specularColor=new BABYLON.Color3(.035,.03,.025);
 
   const ground=BABYLON.MeshBuilder.CreateGround(
     "babylon-arena-floor",
@@ -560,40 +466,9 @@ function addFloor(BABYLON,scene,arena,mapping,materials,root,ownedTextures) {
     scene,
   );
   ground.position.y=0;
-  ground.material=materials.floor;
+  ground.material=floorMat;
   ground.receiveShadows=true;
   ground.parent=root;
-
-  const maxRing=Math.min(mapping.worldWidth,mapping.worldHeight);
-  const centerDisc=BABYLON.MeshBuilder.CreateCylinder(
-    "babylon-center-medallion",
-    {
-      diameter:maxRing*.155,
-      height:.12,
-      tessellation:64,
-    },
-    scene,
-  );
-  centerDisc.position.y=.06;
-  centerDisc.material=materials.floorLift;
-  centerDisc.receiveShadows=true;
-  centerDisc.parent=root;
-
-  // Keep physical relief restrained. The masonry pattern should read from
-  // slab value and lighting, not from thick black rings.
-  const centerLip=BABYLON.MeshBuilder.CreateTorus(
-    "babylon-center-lip",
-    {
-      diameter:maxRing*.165,
-      thickness:.055,
-      tessellation:72,
-    },
-    scene,
-  );
-  centerLip.position.y=.075;
-  centerLip.material=materials.seamSoft;
-  centerLip.parent=root;
-
   return ground;
 }
 
@@ -941,6 +816,150 @@ function addTopCracks(
   }
 }
 
+function addWindscarObstacle(
+  BABYLON,
+  scene,
+  obstacle,
+  index,
+  mapping,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const rect=mapping.rectToWorld(obstacle);
+  const height=babylonObstacleVisualHeight(rect);
+  const longWall=Math.max(rect.width,rect.depth)/Math.max(.01,Math.min(rect.width,rect.depth))>2;
+  const chamfer=Math.min(.95,Math.min(rect.width,rect.depth)*.13);
+
+  addContactShadow(
+    BABYLON,scene,
+    "babylon-windscar-shadow-"+(obstacle.id||index),
+    rect.center,
+    rect.width+2.8,
+    rect.depth+3.0,
+    materials,
+    root,
+  );
+
+  const base=createChamferedPrism(
+    BABYLON,scene,
+    "babylon-windscar-base-"+(obstacle.id||index),
+    rect.width,
+    .58,
+    rect.depth,
+    chamfer,
+    {x:rect.center.x,y:.29,z:rect.center.z},
+    materials.windscarStoneDark,
+  );
+  base.parent=root;
+  base.receiveShadows=true;
+  shadowCasters.push(base);
+
+  const body=createChamferedPrism(
+    BABYLON,scene,
+    "babylon-windscar-body-"+(obstacle.id||index),
+    Math.max(.5,rect.width-.24),
+    Math.max(1.2,height-.95),
+    Math.max(.5,rect.depth-.24),
+    Math.max(.18,chamfer*.78),
+    {x:rect.center.x,y:.58+(height-.95)/2,z:rect.center.z},
+    materials.windscarStone,
+  );
+  body.parent=root;
+  body.receiveShadows=true;
+  shadowCasters.push(body);
+
+  const top=createChamferedPrism(
+    BABYLON,scene,
+    "babylon-windscar-top-"+(obstacle.id||index),
+    Math.max(.5,rect.width-.12),
+    .42,
+    Math.max(.5,rect.depth-.12),
+    Math.max(.16,chamfer*.86),
+    {x:rect.center.x,y:height+.21,z:rect.center.z},
+    materials.windscarStoneTop,
+  );
+  top.parent=root;
+  top.receiveShadows=true;
+  shadowCasters.push(top);
+
+  // The center wall gets only a couple of broad seams, not stacked bands.
+  if(longWall){
+    const horizontal=rect.width>=rect.depth;
+    const count=3;
+    for(let i=1;i<count;i+=1){
+      const t=i/count-.5;
+      const seam=createBox(
+        BABYLON,scene,
+        "babylon-windscar-wall-seam-"+i+"-"+index,
+        horizontal?.055:Math.max(.45,rect.width-.40),
+        .035,
+        horizontal?Math.max(.45,rect.depth-.40):.055,
+        {
+          x:rect.center.x+(horizontal?t*(rect.width-.4):0),
+          y:height+.435,
+          z:rect.center.z+(horizontal?0:t*(rect.depth-.4)),
+        },
+        materials.windscarSeam,
+      );
+      seam.parent=root;
+    }
+  }
+}
+
+function addGrandRingObstacle(
+  BABYLON,
+  scene,
+  obstacle,
+  index,
+  mapping,
+  materials,
+  root,
+  shadowCasters,
+) {
+  const rect=mapping.rectToWorld(obstacle);
+  const height=Math.max(4.2,babylonObstacleVisualHeight(rect)*.82);
+  const chamfer=Math.min(.85,Math.min(rect.width,rect.depth)*.12);
+
+  addContactShadow(
+    BABYLON,scene,
+    "babylon-grand-shadow-"+(obstacle.id||index),
+    rect.center,
+    rect.width+2.2,
+    rect.depth+2.4,
+    materials,
+    root,
+  );
+
+  const body=createChamferedPrism(
+    BABYLON,scene,
+    "babylon-grand-body-"+(obstacle.id||index),
+    rect.width,
+    height,
+    rect.depth,
+    chamfer,
+    {x:rect.center.x,y:height/2,z:rect.center.z},
+    materials.grandStone,
+  );
+  body.parent=root;
+  body.receiveShadows=true;
+  shadowCasters.push(body);
+
+  const top=createChamferedPrism(
+    BABYLON,scene,
+    "babylon-grand-top-"+(obstacle.id||index),
+    Math.max(.5,rect.width-.10),
+    .34,
+    Math.max(.5,rect.depth-.10),
+    Math.max(.12,chamfer*.8),
+    {x:rect.center.x,y:height+.17,z:rect.center.z},
+    materials.grandStoneTop,
+  );
+  top.parent=root;
+  top.receiveShadows=true;
+  shadowCasters.push(top);
+}
+
 function addObstacle(
   BABYLON,
   scene,
@@ -982,6 +1001,13 @@ function addObstacle(
       y:baseHeight/2,
       z:rect.center.z,
     },
+    materials.windscarStoneDark,
+    materials.windscarStone,
+    materials.windscarStoneTop,
+    materials.windscarRock,
+    materials.windscarRockDark,
+    materials.grandStone,
+    materials.grandStoneTop,
     materials.stoneBase,
   );
   plinth.parent=root;
@@ -1299,6 +1325,80 @@ function addTorchPedestal(
   glowDisc.parent=root;
 }
 
+function addLowPolyRock(
+  BABYLON,
+  scene,
+  name,
+  position,
+  scale,
+  mat,
+  root,
+  shadowCasters,
+) {
+  const rock=BABYLON.MeshBuilder.CreateSphere(
+    name,
+    {diameter:2,segments:5},
+    scene,
+  );
+  rock.position.set(position.x,position.y,position.z);
+  rock.scaling.set(scale.x,scale.y,scale.z);
+  rock.rotation.y=(scale.x+scale.z)*.63;
+  rock.material=mat;
+  rock.convertToFlatShadedMesh?.();
+  rock.parent=root;
+  rock.receiveShadows=true;
+  shadowCasters.push(rock);
+  return rock;
+}
+
+function addWindscarScenery(
+  BABYLON,
+  scene,
+  arena,
+  mapping,
+  materials,
+  root,
+  shadowCasters,
+  lights,
+  flames,
+) {
+  const b=arena.bounds;
+  const rockPoints=[
+    [b.x-28,b.y+82,3.1,2.0,2.7],
+    [b.x-22,b.y+b.h-96,3.7,2.4,3.0],
+    [b.x+b.w+26,b.y+92,3.4,2.2,2.8],
+    [b.x+b.w+24,b.y+b.h-100,4.0,2.4,3.2],
+    [b.x+165,b.y-30,2.8,1.7,2.3],
+    [b.x+b.w-175,b.y+b.h+28,3.1,1.8,2.5],
+  ];
+
+  rockPoints.forEach((entry,index)=>{
+    const [gx,gy,sx,sy,sz]=entry;
+    const p=mapping.gameToWorld(gx,gy,0);
+    addLowPolyRock(
+      BABYLON,scene,
+      "babylon-windscar-rock-"+index,
+      {x:p.x,y:sy*.42,z:p.z},
+      {x:sx,y:sy,z:sz},
+      index%2?materials.windscarRockDark:materials.windscarRock,
+      root,
+      shadowCasters,
+    );
+  });
+
+  const torchPoints=[
+    ["west",b.x-24,b.y+b.h*.68,.5],
+    ["east",b.x+b.w+24,b.y+b.h*.32,2.7],
+  ];
+  for(const [id,x,y,phase] of torchPoints){
+    addTorchPedestal(
+      BABYLON,scene,
+      "babylon-windscar-torch-"+id,
+      x,y,mapping,materials,root,shadowCasters,lights,flames,phase,
+    );
+  }
+}
+
 function addTorches(
   BABYLON,
   scene,
@@ -1422,7 +1522,16 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const ownedTextures=[];
 
   const materials={
-    floor:material(BABYLON,scene,"mat-floor","#7c6857","#1f1915"),
+    floor:material(BABYLON,scene,"mat-floor","#6b4d3b","#1f1915"),
+    grandFloor:material(BABYLON,scene,"mat-grand-floor","#3c4a36","#172016"),
+    windscarStoneDark:material(BABYLON,scene,"mat-windscar-stone-dark","#3f332b","#17110e"),
+    windscarStone:material(BABYLON,scene,"mat-windscar-stone","#5b493b","#201712"),
+    windscarStoneTop:material(BABYLON,scene,"mat-windscar-stone-top","#806653","#302117"),
+    windscarSeam:material(BABYLON,scene,"mat-windscar-seam","#3e3027","#150f0c"),
+    windscarRock:material(BABYLON,scene,"mat-windscar-rock","#4c3d32","#18110e"),
+    windscarRockDark:material(BABYLON,scene,"mat-windscar-rock-dark","#362b24","#120d0b"),
+    grandStone:material(BABYLON,scene,"mat-grand-stone","#65705c","#1d251b"),
+    grandStoneTop:material(BABYLON,scene,"mat-grand-stone-top","#849079","#293126"),
     floorLift:material(BABYLON,scene,"mat-floor-lift","#907662","#2a211a"),
     seam:material(BABYLON,scene,"mat-floor-seam","#4a3b31","#17120f"),
     seamSoft:material(BABYLON,scene,"mat-floor-seam-soft","#675448","#1d1713"),
@@ -1496,6 +1605,10 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   );
   ownedTextures.push(stoneSurface);
   [
+    materials.windscarStoneDark,
+    materials.windscarStone,
+    materials.windscarRock,
+    materials.windscarRockDark,
     materials.stoneBase,
     materials.stoneSide,
     materials.stoneSideAlt,
@@ -1541,35 +1654,35 @@ export function buildBabylonArenaGeometry(BABYLON,scene,arena,mapping) {
   const ground=addFloor(
     BABYLON,scene,arena,mapping,materials,root,ownedTextures,
   );
-  addOuterWallArchitecture(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
-  );
-  addBorder(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
-  );
-  addCornerArchitecture(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
-  );
 
-  for(let index=0;index<arena.obstacles.length;index+=1){
-    addObstacle(
-      BABYLON,scene,arena.obstacles[index],index,
-      mapping,materials,root,shadowCasters,
+  if(arena.id==="windscar-proving-grounds"){
+    // Windscar is the only arena receiving the new stylized desert/stone art
+    // direction. Keep scenery outside gameplay bounds.
+    for(let index=0;index<arena.obstacles.length;index+=1){
+      addWindscarObstacle(
+        BABYLON,scene,arena.obstacles[index],index,
+        mapping,materials,root,shadowCasters,
+      );
+    }
+    addWindscarScenery(
+      BABYLON,scene,arena,mapping,materials,root,shadowCasters,lights,flames,
     );
+    addGroundDebris(
+      BABYLON,scene,arena,mapping,materials,root,
+    );
+  }else{
+    // The Grand Ring intentionally stays a separate green placeholder theme.
+    // Do not let future Windscar art passes leak into it.
+    addBorder(
+      BABYLON,scene,arena,mapping,materials,root,shadowCasters,
+    );
+    for(let index=0;index<arena.obstacles.length;index+=1){
+      addGrandRingObstacle(
+        BABYLON,scene,arena.obstacles[index],index,
+        mapping,materials,root,shadowCasters,
+      );
+    }
   }
-
-  addRubble(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,
-  );
-  addGroundDebris(
-    BABYLON,scene,arena,mapping,materials,root,
-  );
-  addBanners(
-    BABYLON,scene,arena,mapping,materials,root,
-  );
-  addTorches(
-    BABYLON,scene,arena,mapping,materials,root,shadowCasters,lights,flames,
-  );
 
   return {
     root,

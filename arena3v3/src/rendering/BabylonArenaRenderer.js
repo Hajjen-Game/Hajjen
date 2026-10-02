@@ -3,7 +3,7 @@ import { createArenaWorldMapping } from "./ArenaWorldMapping.js?v=20261002-babyl
 import {
   babylonObstacleVisualHeight,
   buildBabylonArenaGeometry,
-} from "./BabylonArenaGeometry.js?v=20261002-babylon8";
+} from "./BabylonArenaGeometry.js?v=20261002-babylon9";
 
 const BABYLON_CDN_URL =
   "https://cdn.jsdelivr.net/npm/babylonjs@9.28.0/babylon.js";
@@ -64,6 +64,9 @@ export class BabylonArenaRenderer {
     this.scene = null;
     this.camera = null;
     this.mapping = null;
+    this.ambientLight = null;
+    this.keyLight = null;
+    this.fillLight = null;
     this.environment = null;
     this.shadowGenerator = null;
     this.glowLayer = null;
@@ -140,6 +143,7 @@ export class BabylonArenaRenderer {
     ambient.intensity = 0.56;
     ambient.diffuse = new BABYLON.Color3(0.76, 0.72, 0.68);
     ambient.groundColor = new BABYLON.Color3(0.12, 0.09, 0.075);
+    this.ambientLight = ambient;
 
     const key = new BABYLON.DirectionalLight(
       "arena-key",
@@ -149,6 +153,7 @@ export class BabylonArenaRenderer {
     key.position = new BABYLON.Vector3(18, 46, -28);
     key.intensity = 0.72;
     key.diffuse = new BABYLON.Color3(0.93, 0.79, 0.67);
+    this.keyLight = key;
 
     const shadows = new BABYLON.ShadowGenerator(1024, key);
     shadows.useBlurExponentialShadowMap = true;
@@ -166,6 +171,7 @@ export class BabylonArenaRenderer {
     fill.position = new BABYLON.Vector3(-12,36,26);
     fill.intensity = .24;
     fill.diffuse = new BABYLON.Color3(.72,.72,.70);
+    this.fillLight = fill;
 
     // Emissive flame materials finally get a soft bloom halo instead of reading
     // as flat orange discs.
@@ -203,6 +209,43 @@ export class BabylonArenaRenderer {
     });
     this.camera.position.set(0, cameraPose.cameraHeight, -cameraPose.cameraDepth);
     this.camera.setTarget(this.BABYLON.Vector3.Zero());
+
+    const isWindscar=arena.id==="windscar-proving-grounds";
+    if(isWindscar){
+      this.scene.clearColor=new this.BABYLON.Color4(.045,.030,.024,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.16,.13,.11);
+      if(this.ambientLight){
+        this.ambientLight.intensity=.48;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.74,.66,.60);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.10,.065,.050);
+      }
+      if(this.keyLight){
+        this.keyLight.intensity=.74;
+        this.keyLight.diffuse=new this.BABYLON.Color3(.91,.70,.55);
+      }
+      if(this.fillLight){
+        this.fillLight.intensity=.20;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.68,.66,.63);
+      }
+      this.glowLayer.intensity=.72;
+    }else{
+      this.scene.clearColor=new this.BABYLON.Color4(.027,.038,.028,1);
+      this.scene.ambientColor=new this.BABYLON.Color3(.12,.17,.12);
+      if(this.ambientLight){
+        this.ambientLight.intensity=.56;
+        this.ambientLight.diffuse=new this.BABYLON.Color3(.66,.75,.64);
+        this.ambientLight.groundColor=new this.BABYLON.Color3(.07,.10,.07);
+      }
+      if(this.keyLight){
+        this.keyLight.intensity=.66;
+        this.keyLight.diffuse=new this.BABYLON.Color3(.78,.82,.70);
+      }
+      if(this.fillLight){
+        this.fillLight.intensity=.18;
+        this.fillLight.diffuse=new this.BABYLON.Color3(.68,.72,.66);
+      }
+      this.glowLayer.intensity=.35;
+    }
 
     const environment = buildBabylonArenaGeometry(
       this.BABYLON,

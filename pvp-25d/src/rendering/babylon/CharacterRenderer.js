@@ -9,22 +9,24 @@ const CHARACTER_ROOT = KAYKIT_BASE + "Characters/gltf/";
 const ASSET_ROOT = KAYKIT_BASE + "Assets/gltf/";
 
 const MODEL_BY_CLASS = Object.freeze({
-  priest: "Mage.glb",
-  mage: "Mage.glb",
-  warlock: "Mage.glb",
-  druid: "Mage.glb",
+  // Use the open-headed Rogue body as the clean caster/light template.
+  // Mage.glb and Rogue_Hooded.glb read mostly as headgear from our high
+  // arena camera, so they are deliberately avoided for gameplay silhouettes.
+  priest: "Rogue.glb",
+  mage: "Rogue.glb",
+  warlock: "Rogue.glb",
+  druid: "Barbarian.glb",
   warrior: "Knight.glb",
   paladin: "Knight.glb",
   "death-knight": "Barbarian.glb",
-  rogue: "Rogue_Hooded.glb",
-  hunter: "Rogue_Hooded.glb",
+  rogue: "Rogue.glb",
+  hunter: "Rogue.glb",
   shaman: "Barbarian.glb",
 });
 
 const MODEL_FILES = Object.freeze([
   "Knight.glb",
-  "Mage.glb",
-  "Rogue_Hooded.glb",
+  "Rogue.glb",
   "Barbarian.glb",
 ]);
 
@@ -45,96 +47,116 @@ const CLASS_STYLE = Object.freeze({
   priest: {
     tint: "#fff1cf",
     accent: "#e8c663",
-    tintStrength: 0.22,
-    scale: 1.02,
+    tintStrength: 0.34,
+    scale: 1.03,
+    width: 0.95,
+    depth: 0.95,
     props: [
-      { file: "staff.gltf", pos: [0.48, 0.82, 0.10], scale: 0.63, rot: [0, 0, -0.12] },
-      { file: "spellbook_open.gltf", pos: [-0.43, 1.00, 0.18], scale: 0.54, rot: [-0.45, 0, -0.12] },
+      { file: "staff.gltf", pos: [0.43, 0.78, 0.08], scale: 0.48, rot: [0, 0, -0.10] },
+      { file: "spellbook_open.gltf", pos: [-0.34, 0.96, 0.16], scale: 0.36, rot: [-0.40, 0, -0.08] },
     ],
   },
   mage: {
-    tint: "#8cc6ff",
-    accent: "#7e87ff",
-    tintStrength: 0.24,
-    scale: 1.01,
+    tint: "#75b8ff",
+    accent: "#796df0",
+    tintStrength: 0.38,
+    scale: 1.02,
+    width: 0.93,
+    depth: 0.94,
     props: [
-      { file: "staff.gltf", pos: [0.48, 0.82, 0.10], scale: 0.64, rot: [0, 0, -0.12] },
+      { file: "staff.gltf", pos: [0.42, 0.78, 0.08], scale: 0.48, rot: [0, 0, -0.10] },
     ],
   },
   warlock: {
-    tint: "#b78adf",
-    accent: "#8a4fc8",
-    tintStrength: 0.32,
+    tint: "#a66ed0",
+    accent: "#6f3ca8",
+    tintStrength: 0.43,
     scale: 1.02,
+    width: 0.94,
+    depth: 0.95,
     props: [
-      { file: "wand.gltf", pos: [0.46, 0.90, 0.13], scale: 0.66, rot: [0, 0, -0.35] },
-      { file: "spellbook_open.gltf", pos: [-0.42, 1.00, 0.15], scale: 0.52, rot: [-0.42, 0, 0.10] },
+      { file: "wand.gltf", pos: [0.38, 0.87, 0.11], scale: 0.48, rot: [0, 0, -0.30] },
+      { file: "spellbook_open.gltf", pos: [-0.34, 0.96, 0.14], scale: 0.35, rot: [-0.38, 0, 0.08] },
     ],
   },
   druid: {
-    tint: "#b58a58",
-    accent: "#75a35c",
-    tintStrength: 0.25,
-    scale: 1.03,
+    tint: "#9c7449",
+    accent: "#72a654",
+    tintStrength: 0.34,
+    scale: 1.04,
+    width: 1.00,
+    depth: 1.00,
     props: [
       { file: "staff.gltf", pos: [0.48, 0.82, 0.10], scale: 0.64, rot: [0, 0, -0.12] },
     ],
   },
   warrior: {
-    tint: "#b66c55",
-    accent: "#d39b66",
-    tintStrength: 0.24,
-    scale: 1.08,
+    tint: "#a95d49",
+    accent: "#d29b63",
+    tintStrength: 0.34,
+    scale: 1.10,
+    width: 1.10,
+    depth: 1.04,
     props: [
-      { file: "sword_2handed.gltf", pos: [0.50, 0.72, 0.04], scale: 0.52, rot: [0, 0, -0.53] },
+      { file: "sword_2handed.gltf", pos: [0.44, 0.70, 0.03], scale: 0.41, rot: [0, 0, -0.50] },
     ],
   },
   paladin: {
-    tint: "#f0b2cf",
-    accent: "#edc968",
-    tintStrength: 0.22,
-    scale: 1.07,
+    tint: "#e5a8c6",
+    accent: "#e8c462",
+    tintStrength: 0.30,
+    scale: 1.09,
+    width: 1.08,
+    depth: 1.04,
     props: [
-      { file: "sword_1handed.gltf", pos: [0.45, 0.80, 0.15], scale: 0.58, rot: [0, 0, -0.52] },
-      { file: "shield_badge.gltf", pos: [-0.48, 0.90, 0.22], scale: 0.75, rot: [0, 0.05, 0.08] },
+      { file: "sword_1handed.gltf", pos: [0.39, 0.78, 0.12], scale: 0.43, rot: [0, 0, -0.48] },
+      { file: "shield_badge.gltf", pos: [-0.39, 0.87, 0.18], scale: 0.54, rot: [0, 0.05, 0.06] },
     ],
   },
   "death-knight": {
-    tint: "#71566f",
-    accent: "#76b5d6",
-    tintStrength: 0.30,
-    scale: 1.10,
+    tint: "#5c445e",
+    accent: "#6eb1d6",
+    tintStrength: 0.40,
+    scale: 1.11,
+    width: 1.08,
+    depth: 1.04,
     props: [
-      { file: "sword_2handed.gltf", pos: [0.52, 0.72, 0.05], scale: 0.55, rot: [0, 0, -0.50] },
+      { file: "sword_2handed.gltf", pos: [0.44, 0.70, 0.04], scale: 0.43, rot: [0, 0, -0.48] },
     ],
   },
   rogue: {
-    tint: "#d2bb58",
-    accent: "#e2c969",
-    tintStrength: 0.23,
-    scale: 0.96,
+    tint: "#c3aa43",
+    accent: "#e0c863",
+    tintStrength: 0.34,
+    scale: 0.98,
+    width: 0.90,
+    depth: 0.92,
     props: [
-      { file: "dagger.gltf", pos: [-0.39, 0.73, 0.14], scale: 0.56, rot: [0, 0, 0.52] },
-      { file: "dagger.gltf", pos: [0.39, 0.73, 0.14], scale: 0.56, rot: [0, 0, -0.52] },
+      { file: "dagger.gltf", pos: [-0.32, 0.72, 0.12], scale: 0.39, rot: [0, 0, 0.48] },
+      { file: "dagger.gltf", pos: [0.32, 0.72, 0.12], scale: 0.39, rot: [0, 0, -0.48] },
     ],
   },
   shaman: {
-    tint: "#6aa7da",
-    accent: "#55c0b6",
-    tintStrength: 0.30,
-    scale: 1.04,
+    tint: "#5597cc",
+    accent: "#4fb7ad",
+    tintStrength: 0.39,
+    scale: 1.05,
+    width: 1.02,
+    depth: 1.00,
     props: [
-      { file: "axe_1handed.gltf", pos: [0.44, 0.80, 0.14], scale: 0.60, rot: [0, 0, -0.48] },
-      { file: "shield_round.gltf", pos: [-0.47, 0.89, 0.22], scale: 0.74, rot: [0, 0.05, 0.06] },
+      { file: "axe_1handed.gltf", pos: [0.37, 0.78, 0.12], scale: 0.43, rot: [0, 0, -0.45] },
+      { file: "shield_round.gltf", pos: [-0.38, 0.86, 0.18], scale: 0.52, rot: [0, 0.05, 0.05] },
     ],
   },
   hunter: {
-    tint: "#7f9b5b",
-    accent: "#bda55c",
-    tintStrength: 0.26,
-    scale: 0.98,
+    tint: "#6f8f4d",
+    accent: "#b79b51",
+    tintStrength: 0.34,
+    scale: 0.99,
+    width: 0.94,
+    depth: 0.96,
     props: [
-      { file: "crossbow_2handed.gltf", pos: [0.18, 0.96, -0.20], scale: 0.53, rot: [0.10, 0, -0.82] },
+      { file: "crossbow_2handed.gltf", pos: [0.14, 0.92, -0.16], scale: 0.40, rot: [0.10, 0, -0.78] },
     ],
   },
 });
@@ -144,6 +166,8 @@ const DEFAULT_STYLE = Object.freeze({
   accent: "#c6b98a",
   tintStrength: 0.16,
   scale: 1,
+  width: 1,
+  depth: 1,
   props: [],
 });
 
@@ -320,7 +344,7 @@ export class CharacterRenderer {
       mesh.receiveShadows = true;
       mesh.renderOutline = true;
       mesh.outlineColor = new BABYLON.Color3(0.07, 0.055, 0.05);
-      mesh.outlineWidth = 0.018;
+      mesh.outlineWidth = 0.022;
       this.shadowGenerator?.addShadowCaster(mesh);
 
       const original = mesh.material;
@@ -361,9 +385,13 @@ export class CharacterRenderer {
     const height = maxY - minY;
     if (!Number.isFinite(height) || height <= 0.001) return;
 
-    const targetHeight = 1.78 * (entry.style.scale || 1);
+    const targetHeight = 1.86 * (entry.style.scale || 1);
     const uniform = targetHeight / height;
-    entry.modelPivot.scaling.setAll(uniform);
+    entry.modelPivot.scaling.set(
+      uniform * (entry.style.width || 1),
+      uniform,
+      uniform * (entry.style.depth || 1),
+    );
 
     for (const mesh of meshes) mesh.computeWorldMatrix(true);
     minY = Number.POSITIVE_INFINITY;
@@ -486,7 +514,7 @@ export class CharacterRenderer {
     ringMat.diffuseColor = color(entry.style.accent);
     ringMat.emissiveColor = color(entry.style.accent).scale(0.10);
     ringMat.specularColor = BABYLON.Color3.Black();
-    ringMat.alpha = 0.23;
+    ringMat.alpha = 0.13;
     ringMat.disableLighting = true;
 
     const ring = BABYLON.MeshBuilder.CreateTorus(
@@ -530,7 +558,7 @@ export class CharacterRenderer {
       this.scene,
     );
     barRoot.parent = entry.root;
-    barRoot.position.y = 2.24;
+    barRoot.position.y = 2.38;
 
     const hpBack = BABYLON.MeshBuilder.CreatePlane(
       "hpBack:" + actor.id,
@@ -716,7 +744,7 @@ export class CharacterRenderer {
         entry.hp.material.diffuseColor.scale(health < 0.20 ? 0.08 : 0.03);
 
       if (entry.accentRing) {
-        entry.accentRing.visibility = actor.cast ? 0.72 : 0.42;
+        entry.accentRing.visibility = actor.cast ? 0.48 : 0.22;
         const pulse = actor.cast
           ? 1 + Math.sin(time * 0.015) * 0.08
           : 1;

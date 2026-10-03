@@ -1,9 +1,9 @@
-import { Game } from "./core/Game.js?v=20261002-babylon30";
+import { Game } from "./core/Game.js?v=20261003-pixiimage1";
 import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem, migrateExistingRatingsToStartingRating } from "./core/RatingSystem.js?v=20260928-rating1000";
-import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20261002-bastion1";
+import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20261003-pixiimage1";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,
@@ -33,9 +33,11 @@ const input = new InputManager();
 const characters = new CharacterStore();
 const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "death-knight", "mage", "warlock", "shaman"]);
 const QUERY_PARAMS = new URLSearchParams(window.location.search);
-const BABYLON_PREVIEW_LOCKED_TO_SHOWCASE =
-  (QUERY_PARAMS.get("renderer") || "").toLowerCase() === "babylon";
+const RENDERER_MODE = (QUERY_PARAMS.get("renderer") || "").toLowerCase();
+const BABYLON_PREVIEW_LOCKED_TO_SHOWCASE = RENDERER_MODE === "babylon";
+const PIXI_PREVIEW_LOCKED_TO_IMAGE_ARENA = RENDERER_MODE === "pixi";
 const BABYLON_PREVIEW_ARENA = arenaById("emberwatch-bastion");
+const PIXI_PREVIEW_ARENA = arenaById("sunscar-canyon-test");
 
 let game = null;
 let activeCharacter = null;
@@ -49,10 +51,63 @@ let lastEnemyKey = "";
 let lastPlayedArenaId = null;
 let pendingArena = BABYLON_PREVIEW_LOCKED_TO_SHOWCASE
   ? BABYLON_PREVIEW_ARENA
-  : DEFAULT_ARENA;
+  : PIXI_PREVIEW_LOCKED_TO_IMAGE_ARENA
+    ? PIXI_PREVIEW_ARENA
+    : DEFAULT_ARENA;
 let setupRequired = true;
 let resumeAfterCancel = false;
 let canReturnToMatch = false;
+let pixiBackgroundArenaId = "";
+let pixiBackgroundLoadToken = 0;
+
+async function syncPixiImageArenaBackground(arena) {
+  if (!arenaStage) return;
+
+  const chunkUrls = Array.isArray(arena?.pixiBackgroundChunks)
+    ? arena.pixiBackgroundChunks
+    : [];
+
+  if (RENDERER_MODE !== "pixi" || chunkUrls.length === 0) {
+    pixiBackgroundLoadToken += 1;
+    pixiBackgroundArenaId = "";
+    arenaStage.style.backgroundImage = "";
+    arenaStage.style.backgroundSize = "";
+    arenaStage.style.backgroundPosition = "";
+    arenaStage.style.backgroundRepeat = "";
+    return;
+  }
+
+  if (pixiBackgroundArenaId === arena.id) return;
+
+  const loadToken = ++pixiBackgroundLoadToken;
+
+  try {
+    const encodedParts = await Promise.all(
+      chunkUrls.map(async url => {
+        const response = await fetch(url, { cache: "force-cache" });
+        if (!response.ok) {
+          throw new Error("Arena background request failed: " + response.status);
+        }
+        return (await response.text()).trim();
+      }),
+    );
+
+    if (loadToken !== pixiBackgroundLoadToken) return;
+
+    const mime = arena.pixiBackgroundMime || "image/webp";
+    arenaStage.style.backgroundImage =
+      'url("data:' + mime + ';base64,' + encodedParts.join("") + '")';
+    arenaStage.style.backgroundSize = "100% 100%";
+    arenaStage.style.backgroundPosition = "center";
+    arenaStage.style.backgroundRepeat = "no-repeat";
+    pixiBackgroundArenaId = arena.id;
+  } catch (error) {
+    if (loadToken !== pixiBackgroundLoadToken) return;
+    pixiBackgroundArenaId = "";
+    console.error("[Pixi image arena] background load failed", error);
+  }
+}
+
 
 function fitArenaStage() {
   if (!arenaWrap || !arenaStage) return;
@@ -163,6 +218,10 @@ function rollArena() {
     pendingArena = BABYLON_PREVIEW_ARENA;
     return;
   }
+  if (PIXI_PREVIEW_LOCKED_TO_IMAGE_ARENA) {
+    pendingArena = PIXI_PREVIEW_ARENA;
+    return;
+  }
   pendingArena = randomArena(lastPlayedArenaId);
 }
 
@@ -208,6 +267,7 @@ function syncArenaName(arena = pendingArena || game?.arena || DEFAULT_ARENA) {
 }
 
 function renderArenaPreview() {
+  syncPixiImageArenaBackground(pendingArena);
   document.querySelector("#setup-arena-name").textContent = pendingArena.name;
   document.querySelector("#setup-arena-description").textContent =
     pendingArena.description || "Arena layout selected for this match.";
@@ -644,6 +704,7 @@ window.addEventListener("arena3v3:request-match-setup", () => {
 });
 
 syncArenaName(pendingArena);
+syncPixiImageArenaBackground(pendingArena);
 fitArenaStage();
 
 if ("ResizeObserver" in window) {

@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261002-babylon7";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261003-pixiimage1";
 import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon30";
 
 function requestedRenderer() {
@@ -28,7 +28,11 @@ export class RendererBridge {
   }
 
   initializePixi() {
-    this.pixiRenderer = new PixiProofRenderer(this.canvas, this._arena);
+    this.pixiRenderer = new PixiProofRenderer(this.canvas, this._arena, {
+      // Image-backed test arenas provide their own untouched background below
+      // the transparent Pixi combat canvas.
+      renderEnvironment: !this._arena?.pixiBackgroundChunks,
+    });
     this.pixiRenderer.init().catch(error => {
       console.error("[Pixi preview] initialization failed; using Canvas fallback.", error);
       this.fallbackToCanvas();

@@ -1,108 +1,136 @@
 const CLASS_STYLES = Object.freeze({
   priest: {
-    primary: "#cbbf9d",
-    secondary: "#efe2bf",
-    accent: "#d7b85c",
-    dark: "#5c5042",
+    primary: "#d6c9a6",
+    secondary: "#f0e6c8",
+    accent: "#d9b958",
+    dark: "#50483f",
+    trim: "#88713d",
     archetype: "robe",
     headgear: "hood",
-    weapon: "staff",
+    weapon: "sun-staff",
+    scale: 1.02,
   },
   druid: {
-    primary: "#8d6038",
-    secondary: "#b8844d",
-    accent: "#71955c",
-    dark: "#46372d",
+    primary: "#7c5a38",
+    secondary: "#a77a48",
+    accent: "#73945a",
+    dark: "#40362b",
+    trim: "#9b7e48",
     archetype: "robe",
-    headgear: "cowl",
-    weapon: "staff",
+    headgear: "antler-cowl",
+    weapon: "nature-staff",
+    scale: 1.04,
   },
   paladin: {
     primary: "#b86f8f",
-    secondary: "#dba9bd",
-    accent: "#e6c36a",
-    dark: "#5c3e4c",
-    archetype: "plate",
-    headgear: "helm",
+    secondary: "#d4a7b8",
+    accent: "#e0bc62",
+    dark: "#493943",
+    trim: "#8b6049",
+    archetype: "heavy",
+    headgear: "crowned-helm",
     weapon: "hammer-shield",
+    scale: 1.08,
   },
   warrior: {
-    primary: "#9c5d43",
-    secondary: "#bd7f57",
-    accent: "#c9a16d",
-    dark: "#47332c",
-    archetype: "plate",
-    headgear: "helm",
+    primary: "#8d4f3e",
+    secondary: "#b27150",
+    accent: "#c9a06b",
+    dark: "#42322c",
+    trim: "#6f4637",
+    archetype: "heavy",
+    headgear: "war-helm",
     weapon: "sword-shield",
+    scale: 1.08,
   },
   rogue: {
-    primary: "#b09537",
-    secondary: "#d2b750",
-    accent: "#e1cf78",
-    dark: "#342f28",
-    archetype: "leather",
-    headgear: "hood",
+    primary: "#9a8431",
+    secondary: "#c3a743",
+    accent: "#e0c768",
+    dark: "#2f2c28",
+    trim: "#5d512b",
+    archetype: "light",
+    headgear: "deep-hood",
     weapon: "dual",
+    scale: 0.96,
   },
   "death-knight": {
-    primary: "#66373b",
-    secondary: "#8e4a4f",
-    accent: "#b45b60",
-    dark: "#252831",
-    archetype: "plate",
-    headgear: "horned",
+    primary: "#5d343a",
+    secondary: "#82464b",
+    accent: "#b15459",
+    dark: "#242831",
+    trim: "#59323a",
+    archetype: "heavy",
+    headgear: "horned-helm",
     weapon: "greatsword",
+    scale: 1.10,
   },
   mage: {
-    primary: "#416d9e",
-    secondary: "#629bc4",
-    accent: "#79b5d7",
-    dark: "#26374d",
+    primary: "#3f5f91",
+    secondary: "#6b75ad",
+    accent: "#8670be",
+    dark: "#272d4a",
+    trim: "#4d4778",
     archetype: "robe",
-    headgear: "mage-hood",
-    weapon: "staff",
+    headgear: "pointed-hood",
+    weapon: "arcane-staff",
+    scale: 0.99,
   },
   warlock: {
-    primary: "#624a79",
-    secondary: "#80649a",
-    accent: "#a078bd",
-    dark: "#30283c",
+    primary: "#57406c",
+    secondary: "#77568f",
+    accent: "#9e6fbc",
+    dark: "#2b2638",
+    trim: "#563b65",
     archetype: "robe",
-    headgear: "hood",
-    weapon: "staff",
+    headgear: "fel-hood",
+    weapon: "fel-staff",
+    scale: 1.00,
   },
   shaman: {
-    primary: "#345d91",
-    secondary: "#4f7aad",
-    accent: "#58a5a8",
-    dark: "#293a4a",
+    primary: "#315b86",
+    secondary: "#4b7897",
+    accent: "#5ba3a1",
+    dark: "#293945",
+    trim: "#7f6e42",
     archetype: "mail",
-    headgear: "crest",
+    headgear: "totem-crest",
     weapon: "mace-shield",
+    scale: 1.04,
   },
   hunter: {
-    primary: "#627548",
-    secondary: "#81945c",
-    accent: "#b19d58",
-    dark: "#30382b",
-    archetype: "leather",
-    headgear: "hood",
+    primary: "#5b7042",
+    secondary: "#7d9256",
+    accent: "#b39751",
+    dark: "#30372b",
+    trim: "#6e5735",
+    archetype: "light",
+    headgear: "ranger-hood",
     weapon: "bow",
+    scale: 0.99,
   },
 });
+
+const OUTLINE = BABYLON.Color3.FromHexString("#251d19");
 
 function c3(hex) {
   return BABYLON.Color3.FromHexString(hex);
 }
 
-function makeMaterial(scene, name, hex, emissive = 0) {
+function makeMaterial(scene, name, hex, options = {}) {
   const material = new BABYLON.StandardMaterial(name, scene);
   material.diffuseColor = c3(hex);
-  material.specularColor = new BABYLON.Color3(0.035, 0.035, 0.03);
-  material.ambientColor = c3(hex).scale(0.16);
-  if (emissive > 0) {
-    material.emissiveColor = c3(hex).scale(emissive);
-  }
+  material.ambientColor = c3(hex).scale(options.ambient ?? 0.12);
+  material.specularColor = new BABYLON.Color3(
+    options.specular ?? 0.025,
+    options.specular ?? 0.025,
+    options.specular ?? 0.022,
+  );
+  material.emissiveColor = options.emissive
+    ? c3(hex).scale(options.emissive)
+    : BABYLON.Color3.Black();
+  material.alpha = options.alpha ?? 1;
+  if (options.disableLighting) material.disableLighting = true;
   return material;
 }
 
@@ -115,52 +143,65 @@ export class CharacterRenderer {
     this.materials = new Map();
   }
 
-  getMaterial(key, hex, emissive = 0) {
-    const id = key + ":" + hex + ":" + emissive;
-    if (!this.materials.has(id)) {
-      this.materials.set(
-        id,
-        makeMaterial(this.scene, id, hex, emissive),
-      );
-    }
-    return this.materials.get(id);
-  }
-
   styleFor(actor) {
     return CLASS_STYLES[actor.classId] || {
-      primary: "#667a78",
-      secondary: "#899b95",
-      accent: "#b2b69d",
-      dark: "#303b3a",
-      archetype: actor.role === "melee" ? "plate" : "robe",
-      headgear: "hood",
-      weapon: actor.role === "melee" ? "sword-shield" : "staff",
+      primary: "#62736f",
+      secondary: "#83908a",
+      accent: "#b1ad84",
+      dark: "#303936",
+      trim: "#555f56",
+      archetype: actor.role === "melee" ? "heavy" : "robe",
+      headgear: actor.role === "melee" ? "war-helm" : "hood",
+      weapon: actor.role === "melee" ? "sword-shield" : "arcane-staff",
+      scale: 1,
     };
   }
 
-  tag(mesh, actor, pickable = true) {
+  material(key, hex, options = {}) {
+    const signature = [
+      key,
+      hex,
+      options.emissive || 0,
+      options.alpha ?? 1,
+      options.specular ?? 0.025,
+    ].join(":");
+
+    if (!this.materials.has(signature)) {
+      this.materials.set(
+        signature,
+        makeMaterial(this.scene, signature, hex, options),
+      );
+    }
+
+    return this.materials.get(signature);
+  }
+
+  tag(mesh, actor, { outline = false, shadow = true } = {}) {
     mesh.metadata = {
       ...(mesh.metadata || {}),
       actorId: actor.id,
     };
-    mesh.isPickable = pickable;
+    mesh.isPickable = true;
 
-    if (pickable) {
-      this.shadowGenerator?.addShadowCaster(mesh);
+    if (outline) {
+      mesh.renderOutline = true;
+      mesh.outlineColor = OUTLINE;
+      mesh.outlineWidth = 0.025;
     }
 
+    if (shadow) this.shadowGenerator?.addShadowCaster(mesh);
     return mesh;
   }
 
-  createBox(name, options, parent, position, material, actor) {
+  box(name, options, parent, position, material, actor, extras = {}) {
     const mesh = BABYLON.MeshBuilder.CreateBox(name, options, this.scene);
     mesh.parent = parent;
     mesh.position.set(...position);
     mesh.material = material;
-    return this.tag(mesh, actor);
+    return this.tag(mesh, actor, extras);
   }
 
-  createCylinder(name, options, parent, position, material, actor) {
+  cylinder(name, options, parent, position, material, actor, extras = {}) {
     const mesh = BABYLON.MeshBuilder.CreateCylinder(
       name,
       options,
@@ -169,18 +210,18 @@ export class CharacterRenderer {
     mesh.parent = parent;
     mesh.position.set(...position);
     mesh.material = material;
-    return this.tag(mesh, actor);
+    return this.tag(mesh, actor, extras);
   }
 
-  createSphere(name, options, parent, position, material, actor) {
+  sphere(name, options, parent, position, material, actor, extras = {}) {
     const mesh = BABYLON.MeshBuilder.CreateSphere(name, options, this.scene);
     mesh.parent = parent;
     mesh.position.set(...position);
     mesh.material = material;
-    return this.tag(mesh, actor);
+    return this.tag(mesh, actor, extras);
   }
 
-  createPoly(name, options, parent, position, material, actor) {
+  poly(name, options, parent, position, material, actor, extras = {}) {
     const mesh = BABYLON.MeshBuilder.CreatePolyhedron(
       name,
       options,
@@ -189,7 +230,7 @@ export class CharacterRenderer {
     mesh.parent = parent;
     mesh.position.set(...position);
     mesh.material = material;
-    return this.tag(mesh, actor);
+    return this.tag(mesh, actor, extras);
   }
 
   create(actor) {
@@ -201,86 +242,77 @@ export class CharacterRenderer {
     );
     visual.parent = root;
 
-    const primary = this.getMaterial("primary", style.primary);
-    const secondary = this.getMaterial("secondary", style.secondary);
-    const accent = this.getMaterial("accent", style.accent);
-    const dark = this.getMaterial("dark", style.dark);
-    const skin = this.getMaterial("skin", "#b98063");
-    const metal = this.getMaterial("metal", "#776f63");
+    const mats = {
+      primary: this.material("primary", style.primary),
+      secondary: this.material("secondary", style.secondary),
+      accent: this.material("accent", style.accent),
+      dark: this.material("dark", style.dark),
+      trim: this.material("trim", style.trim),
+      skin: this.material("skin", "#b98262"),
+      metal: this.material("metal", "#8f887a", { specular: 0.055 }),
+      leather: this.material("leather", "#4a362a"),
+      black: this.material("black", "#171715"),
+    };
 
     const parts = {
       visual,
       feet: [],
-      weaponParts: [],
+      arms: [],
+      weaponRigs: [],
       animated: [],
+      classDetail: [],
     };
 
-    this.createFeet(actor, visual, dark, parts);
-    this.createBody(
-      actor,
-      style,
-      visual,
-      { primary, secondary, accent, dark, skin, metal },
-      parts,
-    );
-    this.createHead(
-      actor,
-      style,
-      visual,
-      { primary, secondary, accent, dark, skin, metal },
-      parts,
-    );
-    this.createWeapon(
-      actor,
-      style,
-      visual,
-      { primary, secondary, accent, dark, skin, metal },
-      parts,
-    );
+    this.createGrounding(actor, root);
+    this.createFeet(actor, style, visual, mats, parts);
+    this.createBody(actor, style, visual, mats, parts);
+    this.createArms(actor, style, visual, mats, parts);
+    this.createHead(actor, style, visual, mats, parts);
+    this.createClassDetails(actor, style, visual, mats, parts);
+    this.createWeapon(actor, style, visual, mats, parts);
 
-    const castMat = this.getMaterial(
-      "cast",
-      style.accent,
-      0.14,
-    );
-    const castOrb = this.createSphere(
+    const castMat = this.material("cast:" + actor.classId, style.accent, {
+      emissive: 0.10,
+      specular: 0,
+    });
+    const castOrb = this.sphere(
       "cast:" + actor.id,
-      { diameter: 0.20, segments: 7 },
+      { diameter: 0.18, segments: 7 },
       visual,
-      [0, 2.05, 0],
+      [0.52, 1.20, 0.40],
       castMat,
       actor,
+      { shadow: false },
     );
     castOrb.isVisible = false;
     castOrb.isPickable = false;
-    parts.castOrb = castOrb;
 
     const barRoot = new BABYLON.TransformNode(
       "status:" + actor.id,
       this.scene,
     );
     barRoot.parent = root;
-    barRoot.position.y = 2.35;
+    barRoot.position.y = 2.28;
 
     const hpBack = BABYLON.MeshBuilder.CreatePlane(
       "hpBack:" + actor.id,
       {
-        width: 1.42,
-        height: 0.105,
+        width: 1.30,
+        height: 0.115,
         sideOrientation: BABYLON.Mesh.DOUBLESIDE,
       },
       this.scene,
     );
     hpBack.parent = barRoot;
     hpBack.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-    hpBack.material = this.getMaterial("hpBack", "#171613");
+    hpBack.material = this.material("hpBack", "#171412");
     hpBack.isPickable = false;
 
     const hp = BABYLON.MeshBuilder.CreatePlane(
       "hp:" + actor.id,
       {
-        width: 1.36,
-        height: 0.065,
+        width: 1.24,
+        height: 0.072,
         sideOrientation: BABYLON.Mesh.DOUBLESIDE,
       },
       this.scene,
@@ -288,42 +320,72 @@ export class CharacterRenderer {
     hp.parent = barRoot;
     hp.position.z = -0.012;
     hp.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-    hp.material = this.getMaterial(
-      "hp",
-      actor.team === "friendly" ? "#4eae78" : "#c45750",
+    hp.material = this.material(
+      "hp:" + actor.team,
+      actor.team === "friendly" ? "#5cbc68" : "#dd5d50",
+      { emissive: 0.02, specular: 0 },
     );
     hp.isPickable = false;
 
-    this.entries.set(actor.id, {
+    const entry = {
       root,
       visual,
       body: parts.body,
       head: parts.head,
       feet: parts.feet,
-      weaponParts: parts.weaponParts,
+      arms: parts.arms,
+      weaponRigs: parts.weaponRigs,
       animated: parts.animated,
+      classDetail: parts.classDetail,
       castOrb,
       hp,
       hpBack,
       barRoot,
       classId: actor.classId,
       role: actor.role,
-      baseBodyY: parts.baseBodyY,
-      baseHeadY: parts.baseHeadY,
-    });
+      style,
+    };
 
-    return this.entries.get(actor.id);
+    this.entries.set(actor.id, entry);
+    return entry;
   }
 
-  createFeet(actor, parent, material, parts) {
+  createGrounding(actor, root) {
+    const shadowMat = this.material("contact-shadow", "#16100d", {
+      alpha: 0.22,
+      disableLighting: true,
+      specular: 0,
+    });
+
+    const shadow = BABYLON.MeshBuilder.CreateCylinder(
+      "contact-shadow:" + actor.id,
+      {
+        height: 0.012,
+        diameter: 1.00,
+        tessellation: 18,
+      },
+      this.scene,
+    );
+    shadow.parent = root;
+    shadow.position.y = 0.012;
+    shadow.scaling.set(1.18, 1, 0.78);
+    shadow.material = shadowMat;
+    shadow.isPickable = false;
+  }
+
+  createFeet(actor, style, parent, mats, parts) {
+    const width = style.archetype === "heavy" ? 0.24 : 0.20;
+    const depth = style.archetype === "robe" ? 0.25 : 0.31;
+
     for (const side of [-1, 1]) {
-      const foot = this.createBox(
+      const foot = this.box(
         "foot:" + actor.id + ":" + side,
-        { width: 0.25, height: 0.22, depth: 0.36 },
+        { width, height: 0.18, depth },
         parent,
-        [side * 0.19, 0.20, 0.055],
-        material,
+        [side * 0.18, 0.19, 0.08],
+        style.archetype === "heavy" ? mats.dark : mats.leather,
         actor,
+        { outline: true },
       );
       foot.rotation.y = side * 0.08;
       parts.feet.push(foot);
@@ -332,399 +394,782 @@ export class CharacterRenderer {
 
   createBody(actor, style, parent, mats, parts) {
     if (style.archetype === "robe") {
-      const body = this.createCylinder(
-        "body:" + actor.id,
+      const skirt = this.cylinder(
+        "robe:" + actor.id,
         {
-          height: 0.88,
-          diameterTop: 0.58,
-          diameterBottom: 0.92,
-          tessellation: 7,
+          height: 0.76,
+          diameterTop: 0.50,
+          diameterBottom: 0.84,
+          tessellation: 8,
         },
         parent,
-        [0, 0.82, 0],
+        [0, 0.62, 0],
         mats.primary,
         actor,
+        { outline: true },
       );
-      parts.body = body;
-      parts.baseBodyY = 0.82;
 
-      const mantle = this.createCylinder(
+      const torso = this.cylinder(
+        "torso:" + actor.id,
+        {
+          height: 0.48,
+          diameterTop: 0.55,
+          diameterBottom: 0.62,
+          tessellation: 8,
+        },
+        parent,
+        [0, 1.08, 0],
+        mats.secondary,
+        actor,
+        { outline: true },
+      );
+
+      const mantle = this.cylinder(
         "mantle:" + actor.id,
         {
-          height: 0.22,
-          diameterTop: 0.72,
+          height: 0.15,
+          diameterTop: 0.68,
           diameterBottom: 0.62,
+          tessellation: 8,
+        },
+        parent,
+        [0, 1.30, 0],
+        mats.dark,
+        actor,
+        { outline: true },
+      );
+
+      const belt = this.cylinder(
+        "belt:" + actor.id,
+        {
+          height: 0.10,
+          diameterTop: 0.64,
+          diameterBottom: 0.64,
+          tessellation: 8,
+        },
+        parent,
+        [0, 0.88, 0],
+        mats.trim,
+        actor,
+      );
+
+      parts.body = torso;
+      parts.animated.push(skirt, mantle, belt);
+      return;
+    }
+
+    if (style.archetype === "heavy") {
+      const hips = this.cylinder(
+        "hips:" + actor.id,
+        {
+          height: 0.36,
+          diameterTop: 0.60,
+          diameterBottom: 0.68,
           tessellation: 7,
         },
         parent,
-        [0, 1.25, 0],
-        mats.secondary,
+        [0, 0.58, 0],
+        mats.dark,
         actor,
+        { outline: true },
       );
-      parts.animated.push(mantle);
 
-      const sash = this.createBox(
-        "sash:" + actor.id,
-        { width: 0.64, height: 0.12, depth: 0.62 },
+      const torso = this.poly(
+        "torso:" + actor.id,
+        { type: 2, size: 0.50 },
         parent,
-        [0, 0.83, -0.02],
-        mats.accent,
-        actor,
-      );
-      parts.animated.push(sash);
-      return;
-    }
-
-    if (style.archetype === "plate") {
-      const body = this.createBox(
-        "body:" + actor.id,
-        { width: 0.72, height: 0.72, depth: 0.58 },
-        parent,
-        [0, 0.94, 0],
+        [0, 1.04, 0],
         mats.primary,
         actor,
+        { outline: true },
       );
-      body.rotation.y = Math.PI / 4;
-      parts.body = body;
-      parts.baseBodyY = 0.94;
+      torso.scaling.set(0.92, 0.88, 0.72);
 
-      const chest = this.createBox(
-        "chest:" + actor.id,
-        { width: 0.54, height: 0.48, depth: 0.50 },
+      const chest = this.box(
+        "chest-plate:" + actor.id,
+        { width: 0.60, height: 0.42, depth: 0.18 },
         parent,
-        [0, 1.03, -0.01],
+        [0, 1.10, 0.31],
         mats.secondary,
         actor,
+        { outline: true },
       );
-      chest.rotation.y = Math.PI / 4;
-      parts.animated.push(chest);
+      chest.rotation.x = -0.08;
 
       for (const side of [-1, 1]) {
-        const shoulder = this.createSphere(
-          "shoulder:" + actor.id + ":" + side,
-          { diameter: 0.34, segments: 5 },
+        const shoulder = this.poly(
+          "pauldron:" + actor.id + ":" + side,
+          { type: 2, size: 0.25 },
           parent,
-          [side * 0.43, 1.22, 0],
-          side === -1 ? mats.dark : mats.accent,
+          [side * 0.43, 1.28, 0],
+          side < 0 ? mats.dark : mats.accent,
           actor,
+          { outline: true },
         );
-        shoulder.scaling.set(1.12, 0.75, 1.05);
+        shoulder.scaling.set(1.10, 0.72, 0.94);
         parts.animated.push(shoulder);
       }
+
+      parts.body = torso;
+      parts.animated.push(hips, chest);
       return;
     }
 
-    const body = this.createCylinder(
-      "body:" + actor.id,
+    if (style.archetype === "mail") {
+      const hips = this.cylinder(
+        "mail-skirt:" + actor.id,
+        {
+          height: 0.46,
+          diameterTop: 0.58,
+          diameterBottom: 0.70,
+          tessellation: 8,
+        },
+        parent,
+        [0, 0.58, 0],
+        mats.dark,
+        actor,
+        { outline: true },
+      );
+
+      const torso = this.cylinder(
+        "mail-torso:" + actor.id,
+        {
+          height: 0.58,
+          diameterTop: 0.61,
+          diameterBottom: 0.66,
+          tessellation: 8,
+        },
+        parent,
+        [0, 1.03, 0],
+        mats.primary,
+        actor,
+        { outline: true },
+      );
+
+      for (const side of [-1, 1]) {
+        const shoulder = this.poly(
+          "totem-shoulder:" + actor.id + ":" + side,
+          { type: 1, size: 0.24 },
+          parent,
+          [side * 0.40, 1.29, 0],
+          side < 0 ? mats.accent : mats.secondary,
+          actor,
+          { outline: true },
+        );
+        shoulder.scaling.set(1.05, 0.76, 0.95);
+        parts.animated.push(shoulder);
+      }
+
+      parts.body = torso;
+      parts.animated.push(hips);
+      return;
+    }
+
+    const hips = this.cylinder(
+      "light-hips:" + actor.id,
       {
-        height: 0.78,
-        diameterTop: 0.60,
-        diameterBottom: 0.72,
-        tessellation: 7,
+        height: 0.38,
+        diameterTop: 0.53,
+        diameterBottom: 0.60,
+        tessellation: 8,
       },
       parent,
-      [0, 0.88, 0],
+      [0, 0.58, 0],
+      mats.dark,
+      actor,
+      { outline: true },
+    );
+
+    const torso = this.cylinder(
+      "light-torso:" + actor.id,
+      {
+        height: 0.54,
+        diameterTop: 0.54,
+        diameterBottom: 0.60,
+        tessellation: 8,
+      },
+      parent,
+      [0, 1.00, 0],
       mats.primary,
       actor,
+      { outline: true },
     );
-    parts.body = body;
-    parts.baseBodyY = 0.88;
+
+    const scarf = this.box(
+      "scarf:" + actor.id,
+      { width: 0.58, height: 0.12, depth: 0.15 },
+      parent,
+      [0, 1.22, 0.28],
+      mats.accent,
+      actor,
+      { outline: true },
+    );
+
+    parts.body = torso;
+    parts.animated.push(hips, scarf);
+  }
+
+  createArms(actor, style, parent, mats, parts) {
+    const armor = style.archetype === "heavy" || style.archetype === "mail";
+    const armMat = armor ? mats.secondary : mats.primary;
+    const armLength = style.archetype === "heavy" ? 0.50 : 0.46;
 
     for (const side of [-1, 1]) {
-      const shoulder = this.createBox(
-        "leather-shoulder:" + actor.id + ":" + side,
-        { width: 0.25, height: 0.17, depth: 0.35 },
+      const arm = this.cylinder(
+        "arm:" + actor.id + ":" + side,
+        {
+          height: armLength,
+          diameter: armor ? 0.18 : 0.15,
+          tessellation: 7,
+        },
         parent,
-        [side * 0.39, 1.18, 0],
-        mats.secondary,
+        [side * 0.39, 0.98, 0.06],
+        armMat,
+        actor,
+        { outline: true },
+      );
+      arm.rotation.z = side * 0.25;
+      arm.rotation.x = 0.08;
+      parts.arms.push(arm);
+
+      const hand = this.sphere(
+        "hand:" + actor.id + ":" + side,
+        { diameter: 0.18, segments: 6 },
+        parent,
+        [side * 0.45, 0.75, 0.10],
+        mats.skin,
         actor,
       );
-      shoulder.rotation.z = side * 0.16;
-      parts.animated.push(shoulder);
+      hand.scaling.set(0.85, 0.85, 0.85);
+      parts.animated.push(hand);
     }
   }
 
   createHead(actor, style, parent, mats, parts) {
-    const head = this.createSphere(
+    const headY = 1.62;
+    const head = this.sphere(
       "head:" + actor.id,
-      { diameter: 0.62, segments: 7 },
+      { diameter: 0.66, segments: 8 },
       parent,
-      [0, 1.61, -0.015],
+      [0, headY, 0.03],
       mats.skin,
       actor,
+      { outline: true },
     );
-    head.scaling.set(1, 0.93, 0.96);
+    head.scaling.set(1.02, 0.94, 0.98);
     parts.head = head;
-    parts.baseHeadY = 1.61;
 
-    if (style.headgear === "helm" || style.headgear === "horned") {
-      const helm = this.createCylinder(
+    if (
+      style.headgear === "war-helm"
+      || style.headgear === "crowned-helm"
+      || style.headgear === "horned-helm"
+    ) {
+      const helm = this.cylinder(
         "helm:" + actor.id,
         {
-          height: 0.42,
-          diameterTop: 0.48,
-          diameterBottom: 0.62,
-          tessellation: 6,
-        },
-        parent,
-        [0, 1.73, -0.02],
-        mats.dark,
-        actor,
-      );
-      helm.rotation.y = Math.PI / 6;
-
-      const brow = this.createBox(
-        "helm-brow:" + actor.id,
-        { width: 0.55, height: 0.14, depth: 0.16 },
-        parent,
-        [0, 1.64, -0.28],
-        mats.accent,
-        actor,
-      );
-      brow.rotation.y = 0;
-
-      if (style.headgear === "horned") {
-        for (const side of [-1, 1]) {
-          const horn = this.createCylinder(
-            "horn:" + actor.id + ":" + side,
-            {
-              height: 0.42,
-              diameterTop: 0.035,
-              diameterBottom: 0.12,
-              tessellation: 6,
-            },
-            parent,
-            [side * 0.25, 2.02, -0.02],
-            mats.accent,
-            actor,
-          );
-          horn.rotation.z = side * 0.52;
-        }
-      }
-      return;
-    }
-
-    if (style.headgear === "crest") {
-      const cowl = this.createCylinder(
-        "crest-cowl:" + actor.id,
-        {
-          height: 0.34,
-          diameterTop: 0.45,
-          diameterBottom: 0.65,
+          height: 0.44,
+          diameterTop: 0.46,
+          diameterBottom: 0.67,
           tessellation: 7,
         },
         parent,
-        [0, 1.74, 0],
+        [0, 1.76, 0.02],
         mats.dark,
         actor,
+        { outline: true },
       );
 
-      const crest = this.createPoly(
-        "crest:" + actor.id,
-        { type: 1, size: 0.23 },
+      const visor = this.box(
+        "visor:" + actor.id,
+        { width: 0.48, height: 0.13, depth: 0.10 },
         parent,
-        [0, 2.03, 0.02],
+        [0, 1.65, 0.31],
         mats.accent,
         actor,
+        { outline: true },
       );
-      crest.scaling.set(0.52, 1.5, 0.72);
+
+      if (style.headgear === "crowned-helm") {
+        for (const side of [-1, 0, 1]) {
+          const crown = this.poly(
+            "crown:" + actor.id + ":" + side,
+            { type: 1, size: 0.12 },
+            parent,
+            [side * 0.17, 2.00 + Math.abs(side) * 0.02, 0.03],
+            mats.accent,
+            actor,
+            { outline: true },
+          );
+          crown.scaling.set(0.52, 1.22, 0.58);
+        }
+      }
+
+      if (style.headgear === "horned-helm") {
+        for (const side of [-1, 1]) {
+          const horn = this.cylinder(
+            "horn:" + actor.id + ":" + side,
+            {
+              height: 0.42,
+              diameterTop: 0.03,
+              diameterBottom: 0.11,
+              tessellation: 6,
+            },
+            parent,
+            [side * 0.28, 1.99, 0.03],
+            mats.accent,
+            actor,
+            { outline: true },
+          );
+          horn.rotation.z = side * 0.58;
+        }
+      }
+
+      parts.classDetail.push(helm, visor);
       return;
     }
 
-    const hood = this.createCylinder(
-      "hood:" + actor.id,
-      {
-        height: 0.42,
-        diameterTop:
-          style.headgear === "mage-hood" ? 0.28 : 0.42,
-        diameterBottom: 0.70,
-        tessellation: 7,
-      },
-      parent,
-      [0, 1.76, 0],
-      mats.dark,
-      actor,
-    );
-
-    if (style.headgear === "mage-hood") {
-      hood.position.y = 1.82;
-      hood.scaling.y = 1.22;
-      const tip = this.createPoly(
-        "hood-tip:" + actor.id,
-        { type: 1, size: 0.20 },
+    if (style.headgear === "pointed-hood") {
+      const hood = this.cylinder(
+        "mage-hood:" + actor.id,
+        {
+          height: 0.50,
+          diameterTop: 0.08,
+          diameterBottom: 0.72,
+          tessellation: 8,
+        },
         parent,
-        [0.10, 2.09, 0.04],
+        [0, 1.83, 0.01],
+        mats.dark,
+        actor,
+        { outline: true },
+      );
+      hood.rotation.z = -0.08;
+
+      const tip = this.poly(
+        "mage-hood-tip:" + actor.id,
+        { type: 1, size: 0.17 },
+        parent,
+        [0.11, 2.08, 0.02],
         mats.primary,
         actor,
+        { outline: true },
       );
-      tip.scaling.set(0.56, 1.35, 0.64);
-      tip.rotation.z = -0.22;
+      tip.scaling.set(0.55, 1.10, 0.60);
+      tip.rotation.z = -0.27;
+
+      this.createFaceWindow(actor, parent, mats);
+      parts.classDetail.push(hood, tip);
+      return;
     }
 
-    if (style.headgear === "cowl") {
-      const antlers = [-1, 1].map(side => {
-        const antler = this.createCylinder(
+    const hood = this.sphere(
+      "hood:" + actor.id,
+      { diameter: 0.76, segments: 8 },
+      parent,
+      [0, 1.69, 0.01],
+      mats.dark,
+      actor,
+      { outline: true },
+    );
+    hood.scaling.set(1.03, 0.97, 1.04);
+    this.createFaceWindow(actor, parent, mats);
+
+    if (style.headgear === "antler-cowl") {
+      for (const side of [-1, 1]) {
+        const antler = this.cylinder(
           "antler:" + actor.id + ":" + side,
           {
             height: 0.36,
-            diameterTop: 0.035,
+            diameterTop: 0.03,
             diameterBottom: 0.075,
             tessellation: 6,
           },
           parent,
-          [side * 0.25, 2.00, 0.01],
+          [side * 0.25, 2.00, 0.02],
           mats.accent,
           actor,
+          { outline: true },
         );
-        antler.rotation.z = side * 0.47;
-        return antler;
-      });
-      void antlers;
+        antler.rotation.z = side * 0.52;
+      }
+    }
+
+    if (style.headgear === "fel-hood") {
+      for (const side of [-1, 1]) {
+        const horn = this.poly(
+          "fel-horn:" + actor.id + ":" + side,
+          { type: 1, size: 0.12 },
+          parent,
+          [side * 0.24, 1.98, 0.00],
+          mats.accent,
+          actor,
+          { outline: true },
+        );
+        horn.scaling.set(0.45, 1.12, 0.48);
+        horn.rotation.z = side * 0.42;
+      }
+    }
+
+    if (style.headgear === "totem-crest") {
+      const crest = this.poly(
+        "totem-crest:" + actor.id,
+        { type: 1, size: 0.16 },
+        parent,
+        [0, 2.03, -0.02],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      crest.scaling.set(0.52, 1.35, 0.72);
+    }
+
+    parts.classDetail.push(hood);
+  }
+
+  createFaceWindow(actor, parent, mats) {
+    const face = this.sphere(
+      "face-window:" + actor.id,
+      { diameter: 0.45, segments: 7 },
+      parent,
+      [0, 1.62, 0.29],
+      mats.skin,
+      actor,
+      { outline: true },
+    );
+    face.scaling.set(0.92, 0.72, 0.42);
+
+    const brow = this.box(
+      "hood-brow:" + actor.id,
+      { width: 0.42, height: 0.07, depth: 0.06 },
+      parent,
+      [0, 1.78, 0.38],
+      mats.dark,
+      actor,
+    );
+    brow.rotation.x = -0.12;
+  }
+
+  createClassDetails(actor, style, parent, mats, parts) {
+    if (actor.classId === "priest") {
+      const tabard = this.box(
+        "priest-tabard:" + actor.id,
+        { width: 0.22, height: 0.66, depth: 0.06 },
+        parent,
+        [0, 0.92, 0.38],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      parts.classDetail.push(tabard);
+    }
+
+    if (actor.classId === "paladin") {
+      const tabard = this.box(
+        "paladin-tabard:" + actor.id,
+        { width: 0.26, height: 0.54, depth: 0.07 },
+        parent,
+        [0, 0.98, 0.39],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      parts.classDetail.push(tabard);
+    }
+
+    if (actor.classId === "warrior") {
+      const sash = this.box(
+        "warrior-sash:" + actor.id,
+        { width: 0.16, height: 0.56, depth: 0.06 },
+        parent,
+        [-0.13, 0.92, 0.39],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      sash.rotation.z = -0.18;
+      parts.classDetail.push(sash);
+    }
+
+    if (actor.classId === "rogue") {
+      const tail = this.box(
+        "rogue-scarf-tail:" + actor.id,
+        { width: 0.14, height: 0.52, depth: 0.09 },
+        parent,
+        [-0.24, 1.10, -0.31],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      tail.rotation.z = -0.36;
+      parts.classDetail.push(tail);
+    }
+
+    if (actor.classId === "shaman") {
+      for (const side of [-1, 1]) {
+        const bead = this.poly(
+          "shaman-bead:" + actor.id + ":" + side,
+          { type: 2, size: 0.10 },
+          parent,
+          [side * 0.31, 1.37, 0.28],
+          mats.accent,
+          actor,
+          { outline: true },
+        );
+        parts.classDetail.push(bead);
+      }
+    }
+
+    if (actor.classId === "hunter") {
+      const quiver = this.cylinder(
+        "hunter-quiver:" + actor.id,
+        {
+          height: 0.64,
+          diameterTop: 0.16,
+          diameterBottom: 0.18,
+          tessellation: 7,
+        },
+        parent,
+        [-0.35, 1.02, -0.25],
+        mats.leather,
+        actor,
+        { outline: true },
+      );
+      quiver.rotation.z = -0.32;
+      parts.classDetail.push(quiver);
     }
   }
 
   createWeapon(actor, style, parent, mats, parts) {
-    const makeBlade = (name, side, length = 0.72) => {
-      const blade = this.createBox(
+    const rightRig = new BABYLON.TransformNode(
+      "weapon-rig-right:" + actor.id,
+      this.scene,
+    );
+    rightRig.parent = parent;
+    parts.weaponRigs.push(rightRig);
+
+    const leftRig = new BABYLON.TransformNode(
+      "weapon-rig-left:" + actor.id,
+      this.scene,
+    );
+    leftRig.parent = parent;
+    parts.weaponRigs.push(leftRig);
+
+    const blade = (name, rig, side, length = 0.68) => {
+      const weapon = this.box(
         name,
-        { width: 0.075, height: length, depth: 0.11 },
-        parent,
-        [side * 0.48, 0.91, -0.02],
+        { width: 0.075, height: length, depth: 0.10 },
+        rig,
+        [side * 0.50, 0.90, 0.12],
         mats.metal,
         actor,
+        { outline: true },
       );
-      blade.rotation.z = side * -0.55;
-      parts.weaponParts.push(blade);
-      return blade;
+      weapon.rotation.z = side * -0.55;
+
+      const grip = this.box(
+        name + ":grip",
+        { width: 0.11, height: 0.24, depth: 0.12 },
+        rig,
+        [side * 0.37, 0.67, 0.09],
+        mats.leather,
+        actor,
+      );
+      grip.rotation.z = side * -0.55;
+      return weapon;
     };
 
     if (style.weapon === "dual") {
-      makeBlade("blade-left:" + actor.id, -1, 0.66);
-      makeBlade("blade-right:" + actor.id, 1, 0.66);
+      blade("dagger-left:" + actor.id, leftRig, -1, 0.54);
+      blade("dagger-right:" + actor.id, rightRig, 1, 0.54);
       return;
     }
 
     if (style.weapon === "greatsword") {
-      const sword = makeBlade("greatsword:" + actor.id, 1, 1.20);
-      sword.position.set(0.52, 1.04, 0.03);
+      const sword = blade(
+        "greatsword:" + actor.id,
+        rightRig,
+        1,
+        1.08,
+      );
+      sword.position.set(0.53, 1.02, 0.02);
       sword.scaling.x = 1.35;
+
+      const rune = this.box(
+        "greatsword-rune:" + actor.id,
+        { width: 0.18, height: 0.18, depth: 0.12 },
+        rightRig,
+        [0.61, 1.35, 0.03],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      rune.rotation.z = -0.50;
       return;
     }
 
-    if (style.weapon.includes("shield")) {
-      const handWeapon = this.createCylinder(
-        "hand-weapon:" + actor.id,
+    if (
+      style.weapon === "sword-shield"
+      || style.weapon === "hammer-shield"
+      || style.weapon === "mace-shield"
+    ) {
+      const handle = this.cylinder(
+        "handle:" + actor.id,
         {
-          height: style.weapon.startsWith("hammer") ? 0.74 : 0.86,
-          diameter: 0.075,
+          height: 0.70,
+          diameter: 0.07,
           tessellation: 6,
         },
-        parent,
-        [0.48, 0.84, -0.02],
-        mats.dark,
+        rightRig,
+        [0.48, 0.88, 0.10],
+        mats.leather,
         actor,
       );
-      handWeapon.rotation.z = -0.48;
-      parts.weaponParts.push(handWeapon);
+      handle.rotation.z = -0.48;
 
-      if (style.weapon.startsWith("hammer")) {
-        const hammer = this.createBox(
-          "hammer-head:" + actor.id,
-          { width: 0.36, height: 0.20, depth: 0.22 },
-          parent,
-          [0.66, 1.13, -0.02],
-          mats.accent,
-          actor,
-        );
-        hammer.rotation.z = -0.18;
-        parts.weaponParts.push(hammer);
-      } else if (style.weapon.startsWith("mace")) {
-        const mace = this.createPoly(
-          "mace-head:" + actor.id,
-          { type: 1, size: 0.19 },
-          parent,
-          [0.64, 1.13, -0.02],
-          mats.accent,
-          actor,
-        );
-        parts.weaponParts.push(mace);
-      } else {
-        const blade = this.createBox(
-          "sword-blade:" + actor.id,
-          { width: 0.09, height: 0.60, depth: 0.10 },
-          parent,
-          [0.66, 1.16, -0.02],
+      if (style.weapon === "sword-shield") {
+        const sword = this.box(
+          "sword:" + actor.id,
+          { width: 0.09, height: 0.58, depth: 0.10 },
+          rightRig,
+          [0.65, 1.15, 0.10],
           mats.metal,
           actor,
+          { outline: true },
         );
-        blade.rotation.z = -0.48;
-        parts.weaponParts.push(blade);
+        sword.rotation.z = -0.48;
+      } else if (style.weapon === "hammer-shield") {
+        const hammer = this.box(
+          "hammer:" + actor.id,
+          { width: 0.36, height: 0.20, depth: 0.23 },
+          rightRig,
+          [0.66, 1.16, 0.10],
+          mats.accent,
+          actor,
+          { outline: true },
+        );
+        hammer.rotation.z = -0.18;
+      } else {
+        const mace = this.poly(
+          "mace:" + actor.id,
+          { type: 1, size: 0.19 },
+          rightRig,
+          [0.65, 1.16, 0.10],
+          mats.accent,
+          actor,
+          { outline: true },
+        );
       }
 
-      const shield = this.createCylinder(
+      const shield = this.cylinder(
         "shield:" + actor.id,
         {
-          height: 0.15,
-          diameterTop: 0.48,
-          diameterBottom: 0.48,
-          tessellation: 6,
+          height: 0.13,
+          diameterTop: 0.52,
+          diameterBottom: 0.52,
+          tessellation: 8,
         },
-        parent,
-        [-0.49, 0.99, -0.03],
+        leftRig,
+        [-0.50, 0.98, 0.14],
         mats.secondary,
         actor,
+        { outline: true },
       );
       shield.rotation.z = Math.PI / 2;
       shield.rotation.y = Math.PI / 2;
-      shield.scaling.set(1.0, 1.0, 1.14);
-      parts.weaponParts.push(shield);
+      shield.scaling.set(1.04, 1, 1.14);
+
+      const boss = this.poly(
+        "shield-boss:" + actor.id,
+        { type: 2, size: 0.13 },
+        leftRig,
+        [-0.54, 0.99, 0.39],
+        mats.accent,
+        actor,
+        { outline: true },
+      );
+      boss.scaling.set(0.90, 0.90, 0.55);
       return;
     }
 
     if (style.weapon === "bow") {
-      const upper = this.createCylinder(
+      const upper = this.cylinder(
         "bow-upper:" + actor.id,
-        { height: 0.62, diameter: 0.06, tessellation: 6 },
-        parent,
-        [0.52, 1.12, 0],
+        {
+          height: 0.60,
+          diameter: 0.055,
+          tessellation: 6,
+        },
+        rightRig,
+        [0.48, 1.14, 0.12],
         mats.accent,
         actor,
+        { outline: true },
       );
       upper.rotation.z = -0.38;
-      const lower = this.createCylinder(
+
+      const lower = this.cylinder(
         "bow-lower:" + actor.id,
-        { height: 0.62, diameter: 0.06, tessellation: 6 },
-        parent,
-        [0.50, 0.63, 0],
+        {
+          height: 0.60,
+          diameter: 0.055,
+          tessellation: 6,
+        },
+        rightRig,
+        [0.47, 0.68, 0.12],
         mats.accent,
         actor,
+        { outline: true },
       );
       lower.rotation.z = 0.38;
-      parts.weaponParts.push(upper, lower);
       return;
     }
 
-    const staff = this.createCylinder(
+    const staff = this.cylinder(
       "staff:" + actor.id,
-      { height: 1.42, diameter: 0.075, tessellation: 6 },
-      parent,
-      [0.49, 0.94, 0],
+      {
+        height: 1.35,
+        diameter: 0.07,
+        tessellation: 7,
+      },
+      rightRig,
+      [0.51, 1.02, 0.08],
       mats.dark,
       actor,
+      { outline: true },
     );
     staff.rotation.z = -0.14;
-    parts.weaponParts.push(staff);
 
-    const focus = this.createPoly(
+    const focus = this.poly(
       "staff-focus:" + actor.id,
-      { type: 1, size: 0.18 },
-      parent,
-      [0.60, 1.66, 0],
+      { type: style.weapon === "sun-staff" ? 1 : 2, size: 0.18 },
+      rightRig,
+      [0.61, 1.69, 0.08],
       mats.accent,
       actor,
+      { outline: true },
     );
-    focus.scaling.set(0.82, 1.06, 0.82);
-    parts.weaponParts.push(focus);
+    focus.scaling.set(0.88, 1.08, 0.88);
+
+    if (style.weapon === "nature-staff") {
+      for (const side of [-1, 1]) {
+        const leaf = this.poly(
+          "leaf:" + actor.id + ":" + side,
+          { type: 1, size: 0.09 },
+          rightRig,
+          [0.61 + side * 0.13, 1.68, 0.08],
+          mats.accent,
+          actor,
+          { outline: true },
+        );
+        leaf.scaling.set(0.50, 1.05, 0.45);
+        leaf.rotation.z = side * 0.52;
+      }
+    }
+
+    if (style.weapon === "fel-staff") {
+      focus.scaling.set(0.72, 1.34, 0.72);
+      focus.rotation.z = 0.32;
+    }
   }
 
   sync(game, time) {
@@ -755,10 +1200,11 @@ export class CharacterRenderer {
       entry.root.setEnabled(actor.alive);
       if (!actor.alive) continue;
 
-      entry.root.scaling.setAll(1.17);
+      const styleScale = entry.style.scale || 1;
+      entry.root.scaling.setAll(1.11 * styleScale);
       entry.root.position.set(
         actor.x * this.scale,
-        0.19,
+        0.18,
         actor.y * this.scale,
       );
 
@@ -772,43 +1218,65 @@ export class CharacterRenderer {
         );
       }
 
-      const phase = time * 0.011;
-      const bob = moving
-        ? Math.sin(phase) * 0.040
-        : Math.sin(time * 0.0025) * 0.012;
+      const phase = time * 0.0105;
+      const idle = Math.sin(time * 0.0023) * 0.010;
+      const bob = moving ? Math.sin(phase * 2) * 0.035 : idle;
 
-      entry.body.position.y = entry.baseBodyY + bob;
-      entry.head.position.y = entry.baseHeadY + bob * 0.48;
+      entry.visual.position.y = bob;
       entry.visual.rotation.z = moving
-        ? Math.sin(phase) * 0.025
+        ? Math.sin(phase) * 0.022
         : 0;
 
       if (entry.feet[0] && entry.feet[1]) {
-        const step = moving ? Math.sin(phase) * 0.10 : 0;
-        entry.feet[0].position.z = 0.055 + step;
-        entry.feet[1].position.z = 0.055 - step;
+        const step = moving ? Math.sin(phase * 2) * 0.09 : 0;
+        entry.feet[0].position.z = 0.08 + step;
+        entry.feet[1].position.z = 0.08 - step;
       }
+
+      entry.arms.forEach((arm, index) => {
+        const side = index === 0 ? -1 : 1;
+        arm.rotation.z =
+          side * 0.25
+          + (moving ? side * Math.sin(phase * 2) * 0.06 : 0);
+      });
+
+      entry.weaponRigs.forEach((rig, index) => {
+        const side = index === 0 ? 1 : -1;
+        rig.rotation.z = moving
+          ? side * Math.sin(phase * 2) * 0.018
+          : 0;
+      });
 
       entry.castOrb.isVisible = Boolean(actor.cast);
       if (actor.cast) {
-        const pulse = 0.90 + Math.sin(time * 0.012) * 0.10;
+        const pulse = 0.90 + Math.sin(time * 0.014) * 0.12;
         entry.castOrb.scaling.setAll(pulse);
-        entry.castOrb.rotation.y += 0.06;
+        entry.castOrb.rotation.y += 0.08;
+
+        if (entry.arms[0]) entry.arms[0].rotation.x = -0.40;
+        if (entry.arms[1]) entry.arms[1].rotation.x = -0.48;
+      } else {
+        entry.arms.forEach(arm => {
+          arm.rotation.x = 0.08;
+        });
       }
 
       const health = Math.max(0, Math.min(1, actor.healthPct));
       entry.hp.scaling.x = health;
-      entry.hp.position.x = -0.68 * (1 - health);
+      entry.hp.position.x = -0.62 * (1 - health);
 
       const critical = health < 0.20;
-      entry.hp.material = this.getMaterial(
-        critical ? "critical-hp" : "hp",
+      entry.hp.material = this.material(
+        critical ? "critical-hp" : "hp:" + actor.team,
         critical
-          ? "#d9473f"
+          ? "#e24d43"
           : actor.team === "friendly"
-            ? "#4eae78"
-            : "#c45750",
-        critical ? 0.04 : 0,
+            ? "#5cbc68"
+            : "#dd5d50",
+        {
+          emissive: critical ? 0.035 : 0.015,
+          specular: 0,
+        },
       );
     }
   }
@@ -821,7 +1289,7 @@ export class CharacterRenderer {
     return this.entries.get(id)?.root || null;
   }
 
-  worldPosition(id, y = 1.25) {
+  worldPosition(id, y = 1.20) {
     const root = this.rootForActor(id);
     return root
       ? new BABYLON.Vector3(

@@ -90,7 +90,27 @@ export class BabylonRenderer {
     const forcedByQuery = params.get("renderer") === "webgl";
     const webGpuFailedThisSession =
       sessionStorage.getItem("pvp25d-webgpu-broken") === "1";
-    const forceWebGL = forcedByQuery || webGpuFailedThisSession;
+    const isMobileBrowser = Boolean(
+      navigator.userAgentData?.mobile
+      || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent),
+    );
+
+    // Desktop is our target platform and stays WebGPU-first. Mobile is only
+    // used for quick visual checks, and this browser currently reports a
+    // healthy WebGPU pipeline while presenting only the clear color. Skip
+    // that unreliable path entirely and use WebGL there.
+    const forceWebGL =
+      forcedByQuery
+      || webGpuFailedThisSession
+      || isMobileBrowser;
+
+    this.backendReason = forcedByQuery
+      ? "query override"
+      : webGpuFailedThisSession
+        ? "WebGPU session fallback"
+        : isMobileBrowser
+          ? "mobile WebGL safeguard"
+          : "";
 
     if (!forceWebGL) {
       const supported = Boolean(
@@ -1104,6 +1124,7 @@ export class BabylonRenderer {
     this.debugPanel.textContent =
       "Backend " + this.backend
       + (this.webGpuError ? " (WebGPU fallback)" : "")
+      + (this.backendReason ? " · " + this.backendReason : "")
       + "\nAspect "
       + (
         this.engine.getRenderWidth()

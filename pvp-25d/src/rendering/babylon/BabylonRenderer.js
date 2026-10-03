@@ -69,6 +69,8 @@ export class BabylonRenderer {
     this.debugPanel = document.querySelector("#debug-panel");
     this.debugPanel?.classList.toggle("hidden", !this.debug);
     this.lastTime = performance.now();
+    this.renderHealthFrames = 0;
+    this.webGpuHealthChecked = false;
 
     this.initialize().catch(error => {
       this.initError = error;
@@ -297,6 +299,10 @@ export class BabylonRenderer {
   }
 
   installAmbientOcclusion() {
+    // SSAO2 has shown unreliable output on some WebGPU/browser combinations.
+    // Keep WebGPU for the main renderer and VFX, but only enable this optional
+    // post-process on the mature WebGL path for now.
+    if (this.backend === "WebGPU") return;
     if (!BABYLON.SSAO2RenderingPipeline) return;
 
     try {
@@ -946,6 +952,50 @@ export class BabylonRenderer {
     this.syncText(game);
     this.syncDebug(game);
     this.scene.render();
+    this.checkWebGpuRenderHealth();
+  }
+
+  checkWebGpuRenderHealth() {
+    if (
+      this.backend !== "WebGPU"
+      || this.webGpuHealthChecked
+      || !this.scene
+      || !this.engine
+    ) return;
+
+    this.renderHealthFrames += 1;
+    if (this.renderHealthFrames < 8) return;
+
+    const activeMeshes = this.scene.getActiveMeshes().length;
+    const totalMeshes = this.scene.meshes.length;
+
+    const drawCounter =
+      this.engine._drawCalls?.current
+      ?? this.engine._drawCalls?.lastSecAverage
+      ?? this.engine._drawCalls
+      ?? null;
+
+    const numericDrawCalls = Number(drawCounter);
+    const hasReliableDrawCounter = Number.isFinite(numericDrawCalls);
+    const looksBlank =
+      totalMeshes > 50
+      && activeMeshes > 20
+      && hasReliableDrawCounter
+      && numericDrawCalls <= 1;
+
+    if (looksBlank) {
+      console.warn(
+        "WebGPU scene has active meshes but no healthy draw output. "
+        + "Reloading with WebGL fallback.",
+      );
+      sessionStorage.setItem("pvp25d-webgpu-broken", "1");
+      location.reload();
+      return;
+    }
+
+    // If Babylon does not expose a usable draw counter on this version,
+    // do not punish a healthy WebGPU desktop renderer.
+    this.webGpuHealthChecked = true;
   }
 
   animateTorches(now) {
@@ -1065,6 +1115,13 @@ export class BabylonRenderer {
       + "\nTotalMeshes " + this.scene.meshes.length
       + "\nCamera "
       + (this.scene.activeCamera ? this.scene.activeCamera.getClassName() : "none")
+      + "\nDrawCalls "
+      + String(
+        this.engine._drawCalls?.current
+        ?? this.engine._drawCalls?.lastSecAverage
+        ?? this.engine._drawCalls
+        ?? "n/a"
+      )
       + "\nVFX " + this.vfx.active.length
       + "\nTime " + game.elapsedSeconds.toFixed(1) + "s";
   }

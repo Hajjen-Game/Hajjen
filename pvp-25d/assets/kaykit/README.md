@@ -20,3 +20,14 @@ License: CC0 1.0 Universal (see LICENSE.txt).
 The remote load is intentionally temporary. If the KayKit direction is approved,
 the next asset-pipeline step is to vendor the chosen GLBs locally in pvp-25d so
 the game no longer depends on raw.githubusercontent.com at runtime.
+
+
+## Class readability pass
+
+The runtime now also loads selected KayKit accessory glTFs from the same pinned
+CC0 repository. They are used as top-down silhouette props around the rigged
+character models (staffs, books, swords, shields, daggers, axes and crossbows).
+
+The character meshes remain fully rigged and animated. Props deliberately use
+stable actor-relative placement rather than uncertain bone names, so animation
+compatibility is preserved while each class gains a clearer arena silhouette.

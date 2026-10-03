@@ -87,32 +87,17 @@ export class BabylonRenderer {
 
   async initialize() {
     const params = new URLSearchParams(location.search);
-    const forcedByQuery = params.get("renderer") === "webgl";
-    const webGpuFailedThisSession =
-      sessionStorage.getItem("pvp25d-webgpu-broken") === "1";
-    const isMobileBrowser = Boolean(
-      navigator.userAgentData?.mobile
-      || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent),
-    );
+    const requestedRenderer = params.get("renderer");
+    const wantsWebGPU = requestedRenderer === "webgpu";
 
-    // Desktop is our target platform and stays WebGPU-first. Mobile is only
-    // used for quick visual checks, and this browser currently reports a
-    // healthy WebGPU pipeline while presenting only the clear color. Skip
-    // that unreliable path entirely and use WebGL there.
-    const forceWebGL =
-      forcedByQuery
-      || webGpuFailedThisSession
-      || isMobileBrowser;
+    // WebGL2 is the stable default while we isolate a presentation issue in
+    // Babylon's WebGPU path on the user's current browsers. WebGPU remains
+    // available explicitly for A/B testing through ?renderer=webgpu.
+    this.backendReason = wantsWebGPU
+      ? "explicit WebGPU test"
+      : "stable WebGL default";
 
-    this.backendReason = forcedByQuery
-      ? "query override"
-      : webGpuFailedThisSession
-        ? "WebGPU session fallback"
-        : isMobileBrowser
-          ? "mobile WebGL safeguard"
-          : "";
-
-    if (!forceWebGL) {
+    if (wantsWebGPU) {
       const supported = Boolean(
         BABYLON.WebGPUEngine
         && await BABYLON.WebGPUEngine.IsSupportedAsync
@@ -133,19 +118,14 @@ export class BabylonRenderer {
           return;
         } catch (error) {
           this.webGpuError = error;
+          this.backendReason = "WebGPU failed → WebGL fallback";
           console.warn(
-            "WebGPU runtime failed. Reloading once with WebGL fallback.",
+            "Explicit WebGPU test failed; falling back to WebGL.",
             error,
           );
-
-          // Once a canvas has acquired a WebGPU context, browsers cannot
-          // reliably switch that same canvas to WebGL. Mark this tab/session
-          // and reload once so the next initialization starts cleanly on
-          // WebGL instead of leaving the arena blank.
-          sessionStorage.setItem("pvp25d-webgpu-broken", "1");
-          location.reload();
-          return;
         }
+      } else {
+        this.backendReason = "WebGPU unsupported → WebGL fallback";
       }
     }
 
@@ -1008,8 +988,10 @@ export class BabylonRenderer {
         "WebGPU scene has active meshes but no healthy draw output. "
         + "Reloading with WebGL fallback.",
       );
-      sessionStorage.setItem("pvp25d-webgpu-broken", "1");
-      location.reload();
+      this.webGpuHealthChecked = true;
+      console.warn(
+        "WebGPU test appears unhealthy; use the default URL for stable WebGL.",
+      );
       return;
     }
 
@@ -1123,8 +1105,8 @@ export class BabylonRenderer {
 
     this.debugPanel.textContent =
       "Backend " + this.backend
-      + (this.webGpuError ? " (WebGPU fallback)" : "")
       + (this.backendReason ? " · " + this.backendReason : "")
+      + (this.webGpuError ? " (WebGPU error)" : "")
       + "\nAspect "
       + (
         this.engine.getRenderWidth()

@@ -3,7 +3,7 @@ import { InputManager } from "./core/InputManager.js?v=20260925-keycapture1";
 import { CharacterStore } from "./core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "./core/HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem, migrateExistingRatingsToStartingRating } from "./core/RatingSystem.js?v=20260928-rating1000";
-import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20261003-pixiimage1";
+import { DEFAULT_ARENA, arenaById, randomArena } from "./content/arena/registry.js?v=20261004-sunscar-png1";
 import {
   CLASS_REGISTRY,
   CLASS_IDS_BY_ROLE,
@@ -63,11 +63,12 @@ let pixiBackgroundLoadToken = 0;
 async function syncPixiImageArenaBackground(arena) {
   if (!arenaStage) return;
 
-  const chunkUrls = Array.isArray(arena?.pixiBackgroundChunks)
-    ? arena.pixiBackgroundChunks
-    : [];
+  const imageUrl =
+    typeof arena?.pixiBackgroundImage === "string"
+      ? arena.pixiBackgroundImage
+      : "";
 
-  if (RENDERER_MODE !== "pixi" || chunkUrls.length === 0) {
+  if (RENDERER_MODE !== "pixi" || !imageUrl) {
     pixiBackgroundLoadToken += 1;
     pixiBackgroundArenaId = "";
     arenaStage.style.backgroundImage = "";
@@ -82,21 +83,16 @@ async function syncPixiImageArenaBackground(arena) {
   const loadToken = ++pixiBackgroundLoadToken;
 
   try {
-    const encodedParts = await Promise.all(
-      chunkUrls.map(async url => {
-        const response = await fetch(url, { cache: "force-cache" });
-        if (!response.ok) {
-          throw new Error("Arena background request failed: " + response.status);
-        }
-        return (await response.text()).trim();
-      }),
-    );
+    await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("Arena background image failed to load"));
+      image.src = imageUrl;
+    });
 
     if (loadToken !== pixiBackgroundLoadToken) return;
 
-    const mime = arena.pixiBackgroundMime || "image/webp";
-    arenaStage.style.backgroundImage =
-      'url("data:' + mime + ';base64,' + encodedParts.join("") + '")';
+    arenaStage.style.backgroundImage = 'url("' + imageUrl + '")';
     arenaStage.style.backgroundSize = "100% 100%";
     arenaStage.style.backgroundPosition = "center";
     arenaStage.style.backgroundRepeat = "no-repeat";
@@ -107,7 +103,6 @@ async function syncPixiImageArenaBackground(arena) {
     console.error("[Pixi image arena] background load failed", error);
   }
 }
-
 
 function fitArenaStage() {
   if (!arenaWrap || !arenaStage) return;

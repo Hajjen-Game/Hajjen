@@ -1097,6 +1097,7 @@ export class PixiProofRenderer {
     this._arena = arena;
     this.renderEnvironment = options.renderEnvironment !== false;
     this.showBadge = options.showBadge !== false;
+    this.livingCircleUnits = options.livingCircleUnits !== false;
     this.badgeText = options.badgeText || "PIXIJS 8.21 · GPU FX PREVIEW";
     this.ready = false;
     this.failed = false;
@@ -1672,18 +1673,66 @@ export class PixiProofRenderer {
       .fill({ color: 0x000000, alpha: .28 });
     root.addChild(shadow);
 
-    const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
+    const teamColor = actor.team === "friendly" ? 0x52e07a : 0xff5757;
     const ring = new Graphics()
-      .circle(0, 0, actor.radius + 3)
-      .stroke({ color: teamColor, width: 2, alpha: .72 });
+      .circle(0, 0, actor.radius + 4)
+      .stroke({
+        color: teamColor,
+        width: this.livingCircleUnits ? 3.2 : 2,
+        alpha: this.livingCircleUnits ? .96 : .72,
+      });
     root.addChild(ring);
+
+    const teamPips = new Graphics();
+    if (this.livingCircleUnits) {
+      const pipR = actor.radius + 7;
+      const pipHalf = 4.6;
+      teamPips
+        .moveTo(-pipHalf,-pipR).lineTo(pipHalf,-pipR)
+        .moveTo(-pipHalf,pipR).lineTo(pipHalf,pipR)
+        .moveTo(-pipR,-pipHalf).lineTo(-pipR,pipHalf)
+        .moveTo(pipR,-pipHalf).lineTo(pipR,pipHalf)
+        .stroke({ color:teamColor, width:2.4, alpha:.92 });
+    }
+    root.addChild(teamPips);
 
     const texture = this.iconTextures.get(actor.classId);
     let body;
+    let classSigil = null;
     let motionGhostA = null;
     let motionGhostB = null;
 
-    if (texture) {
+    if (this.livingCircleUnits) {
+      const bodyColor = hexNumber(classColorFor(actor),0x888888);
+
+      motionGhostB = new Graphics()
+        .circle(0,0,actor.radius*.88)
+        .fill({ color:bodyColor, alpha:.55 });
+      motionGhostB.alpha = 0;
+      motionGhostB.visible = false;
+      motionGhostB.blendMode = "screen";
+      root.addChild(motionGhostB);
+
+      motionGhostA = new Graphics()
+        .circle(0,0,actor.radius*.90)
+        .fill({ color:bodyColor, alpha:.68 });
+      motionGhostA.alpha = 0;
+      motionGhostA.visible = false;
+      motionGhostA.blendMode = "screen";
+      root.addChild(motionGhostA);
+
+      body = new Graphics();
+      drawLivingBodyShape(body,actor,{
+        mode:"idle",
+        dirX:Math.cos(actor.facing || 0),
+        dirY:Math.sin(actor.facing || 0),
+        intensity:0,
+      },0);
+
+      classSigil = new Graphics();
+      drawLivingClassSigil(classSigil,actor.classId,actor.radius);
+      body.addChild(classSigil);
+    } else if (texture) {
       motionGhostB = new Sprite(texture);
       motionGhostB.anchor.set(.5);
       motionGhostB.width = actor.radius * 2.18;
@@ -2019,7 +2068,10 @@ export class PixiProofRenderer {
       root,
       shadow,
       ring,
+      teamPips,
       body,
+      classSigil,
+      livingCircleUnits: this.livingCircleUnits,
       bodyBaseScaleX: body.scale.x,
       bodyBaseScaleY: body.scale.y,
       motionGhostA,

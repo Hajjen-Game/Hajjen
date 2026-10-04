@@ -193,11 +193,44 @@ function drawLivingRingAccent(
   graphics.visible = true;
 
   if (mode === "idle") {
-    // Barely-there travelling glint: enough to stop a stationary ring feeling dead.
-    const a = t * .42 + String(actor.id || "").length * .61;
-    strokeLivingArc(graphics,radius+1.1,a-.18,a+.18,{
-      color:brightTeam,width:1.25,alpha:.13,
-    },5);
+    // Idle should still feel alive: a slow asymmetric orbit, breathing echo
+    // and two tiny travelling motes. The center remains completely empty.
+    const idPhase = String(actor.id || "")
+      .split("")
+      .reduce((sum, char) => sum + char.charCodeAt(0), 0) * .017;
+    const breathe = .5 + .5 * Math.sin(t * 1.65 + idPhase);
+    const a = t * .46 + idPhase;
+
+    strokeLivingArc(graphics,radius+1.15,a-.34,a+.34,{
+      color:brightTeam,width:1.65,alpha:.18+.11*breathe,
+    },7);
+    strokeLivingArc(
+      graphics,
+      radius+4.1,
+      a+Math.PI-.27,
+      a+Math.PI+.27,
+      { color:teamColor,width:1.15,alpha:.08+.07*(1-breathe) },
+      6,
+    );
+
+    graphics.circle(0,0,radius+3.1+breathe*1.25).stroke({
+      color:teamColor,
+      width:.9,
+      alpha:.045+.04*breathe,
+    });
+
+    for (let i=0;i<2;i+=1) {
+      const moteA = a + (i ? Math.PI * 1.18 : -.18);
+      const moteR = radius + 5.3 + (i ? 1.2 : 0);
+      graphics.circle(
+        Math.cos(moteA)*moteR,
+        Math.sin(moteA)*moteR,
+        i ? .75 : 1.05,
+      ).fill({
+        color:i ? teamColor : brightTeam,
+        alpha:(i ? .11 : .18)+breathe*(i ? .04 : .08),
+      });
+    }
     return;
   }
 
@@ -1071,6 +1104,20 @@ function actorVisualSignature(actor) {
     actor?.resource?.type || "",
     Number(actor?.radius) || 0,
   ].join("|");
+}
+
+function visualActorCenter(actorViews, actor, fallbackX = 0, fallbackY = 0) {
+  if (!actor) return { x: fallbackX, y: fallbackY };
+
+  const view = actorViews?.get?.(actor.id);
+  const position = view?.body?.position;
+  const offsetX = Number(position?.x) || 0;
+  const offsetY = Number(position?.y) || 0;
+
+  return {
+    x: (Number(actor.x) || 0) + offsetX,
+    y: (Number(actor.y) || 0) + offsetY,
+  };
 }
 
 function seededRandom(seed = 1) {
@@ -5580,6 +5627,9 @@ export class PixiProofRenderer {
       view.chainGlowFx.visible = false;
       view.chainFx.visible = false;
       view.chainSparkFx.visible = false;
+      view.chainGlowFx.position.set(0,0);
+      view.chainFx.position.set(0,0);
+      view.chainSparkFx.position.set(0,0);
     }
 
     for (const effect of game.vfx?.effects || []) {
@@ -5593,6 +5643,13 @@ export class PixiProofRenderer {
       const source = actors[0];
       const view = this.actorViews.get(source.id);
       if (!view || !view.root.visible) continue;
+
+      const sourceCenter = visualActorCenter(this.actorViews, source, source.x, source.y);
+      const sourceOffsetX = sourceCenter.x - source.x;
+      const sourceOffsetY = sourceCenter.y - source.y;
+      view.chainGlowFx.position.set(sourceOffsetX,sourceOffsetY);
+      view.chainFx.position.set(sourceOffsetX,sourceOffsetY);
+      view.chainSparkFx.position.set(sourceOffsetX,sourceOffsetY);
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
       const remaining = Math.max(0, Number(effect.remainingMs) || 0);
@@ -5628,13 +5685,25 @@ export class PixiProofRenderer {
           : 1;
         const easedReveal = easeOut(reveal);
 
+        const fromCenter = visualActorCenter(
+          this.actorViews,
+          fromActor,
+          fromActor.x,
+          fromActor.y,
+        );
+        const toCenter = visualActorCenter(
+          this.actorViews,
+          toActor,
+          toActor.x,
+          toActor.y,
+        );
         const from = {
-          x: fromActor.x - source.x,
-          y: fromActor.y - source.y,
+          x: fromCenter.x - sourceCenter.x,
+          y: fromCenter.y - sourceCenter.y,
         };
         const fullTo = {
-          x: toActor.x - source.x,
-          y: toActor.y - source.y,
+          x: toCenter.x - sourceCenter.x,
+          y: toCenter.y - sourceCenter.y,
         };
         const to = {
           x: from.x + (fullTo.x - from.x) * easedReveal,
@@ -6516,8 +6585,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX ?? source.x;
-      const targetY = target?.y ?? effect.targetY ?? source.y;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX ?? source.x;
+      const targetY = targetCenter?.y ?? effect.targetY ?? source.y;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
@@ -7032,8 +7104,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX ?? source.x;
-      const targetY = target?.y ?? effect.targetY ?? source.y;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX ?? source.x;
+      const targetY = targetCenter?.y ?? effect.targetY ?? source.y;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
@@ -7594,8 +7669,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX ?? source.x;
-      const targetY = target?.y ?? effect.targetY ?? source.y;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX ?? source.x;
+      const targetY = targetCenter?.y ?? effect.targetY ?? source.y;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
@@ -8167,8 +8245,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX;
-      const targetY = target?.y ?? effect.targetY;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX;
+      const targetY = targetCenter?.y ?? effect.targetY;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
@@ -8916,8 +8997,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX ?? source.x;
-      const targetY = target?.y ?? effect.targetY ?? source.y;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX ?? source.x;
+      const targetY = targetCenter?.y ?? effect.targetY ?? source.y;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const profile = spellPolishProfile(effect.spellId, effect.style);
@@ -10332,8 +10416,10 @@ export class PixiProofRenderer {
     for (const view of this.actorViews.values()) {
       view.projectileVfx2GlowFx.clear();
       view.projectileVfx2GlowFx.visible = false;
+      view.projectileVfx2GlowFx.position.set(0,0);
       view.projectileVfx2CoreFx.clear();
       view.projectileVfx2CoreFx.visible = false;
+      view.projectileVfx2CoreFx.position.set(0,0);
     }
 
     for (const effect of game.vfx?.effects || []) {
@@ -10348,8 +10434,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX;
-      const targetY = target?.y ?? effect.targetY;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX;
+      const targetY = targetCenter?.y ?? effect.targetY;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const total = Math.max(1, Number(effect.totalMs) || 1);
@@ -10359,8 +10448,19 @@ export class PixiProofRenderer {
       const seed = Number(effect.seed || effect.id || 1);
       const missed = Boolean(effect.missed);
 
-      const dx0 = targetX - source.x;
-      const dy0 = targetY - source.y;
+      const sourceCenter = visualActorCenter(
+        this.actorViews,
+        source,
+        source.x,
+        source.y,
+      );
+      const sourceOffsetX = sourceCenter.x - source.x;
+      const sourceOffsetY = sourceCenter.y - source.y;
+      view.projectileVfx2GlowFx.position.set(sourceOffsetX,sourceOffsetY);
+      view.projectileVfx2CoreFx.position.set(sourceOffsetX,sourceOffsetY);
+
+      const dx0 = targetX - sourceCenter.x;
+      const dy0 = targetY - sourceCenter.y;
       const length0 = Math.max(1, Math.hypot(dx0, dy0));
       const tx0 = dx0 / length0;
       const ty0 = dy0 / length0;
@@ -11482,8 +11582,10 @@ export class PixiProofRenderer {
     for (const view of this.actorViews.values()) {
       view.spellPolishGlowFx.clear();
       view.spellPolishGlowFx.visible = false;
+      view.spellPolishGlowFx.position.set(0,0);
       view.spellPolishCoreFx.clear();
       view.spellPolishCoreFx.visible = false;
+      view.spellPolishCoreFx.position.set(0,0);
     }
 
     const time = Number(game.elapsedSeconds) || 0;
@@ -11571,8 +11673,11 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(effect.sourceId);
       if (!source || !view || !view.root.visible) continue;
 
-      const targetX = target?.x ?? effect.targetX ?? source.x;
-      const targetY = target?.y ?? effect.targetY ?? source.y;
+      const targetCenter = target
+        ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+        : null;
+      const targetX = targetCenter?.x ?? effect.targetX ?? source.x;
+      const targetY = targetCenter?.y ?? effect.targetY ?? source.y;
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
 
       const profile = spellPolishProfile(effect.spellId, effect.style);
@@ -11589,8 +11694,18 @@ export class PixiProofRenderer {
       const isProjectile = POLISH_PROJECTILE_SPELLS.has(effect.spellId);
       const missed = Boolean(effect.missed);
 
-      let dx = targetX - source.x;
-      let dy = targetY - source.y;
+      const sourceCenter = isProjectile
+        ? visualActorCenter(this.actorViews, source, source.x, source.y)
+        : { x: source.x, y: source.y };
+      const sourceOffsetX = sourceCenter.x - source.x;
+      const sourceOffsetY = sourceCenter.y - source.y;
+      if (isProjectile) {
+        view.spellPolishGlowFx.position.set(sourceOffsetX,sourceOffsetY);
+        view.spellPolishCoreFx.position.set(sourceOffsetX,sourceOffsetY);
+      }
+
+      let dx = targetX - sourceCenter.x;
+      let dy = targetY - sourceCenter.y;
       const baseDistance = Math.max(1, Math.hypot(dx, dy));
       const tx = dx / baseDistance;
       const ty = dy / baseDistance;

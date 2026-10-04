@@ -11271,6 +11271,17 @@ export class PixiProofRenderer {
       const range = Number(spell?.range) || 0;
       if (range < 250 || spell?.target === "self") continue;
 
+      // Keep pure DoT/HoT applications visually quiet. Their combat readability
+      // already comes from icons/combat text, and the user explicitly does not
+      // want periodic effects turned into projectile spam.
+      const spellEffects = Array.isArray(spell?.effects) ? spell.effects : [];
+      const periodicOnly =
+        spellEffects.length > 0
+        && spellEffects.every(item =>
+          item?.kind === "dot" || item?.kind === "hot"
+        );
+      if (periodicOnly) continue;
+
       const profile = spellPolishProfile(effect.spellId, effect.style);
       const total = Math.max(1, Number(effect.totalMs) || 1);
       const remaining = Math.max(0, Number(effect.remainingMs) || 0);

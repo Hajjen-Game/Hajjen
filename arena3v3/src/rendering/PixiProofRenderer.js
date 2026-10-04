@@ -9817,15 +9817,9 @@ export class PixiProofRenderer {
         py -= Math.sin(travelT * Math.PI) * spec.arc;
       }
 
-      if (spec.shape === "shadow") {
-        const curl = Math.sin(p * 13 + seed * .07) * 7;
-        px += nx * curl;
-        py += ny * curl;
-      } else if (spec.shape === "chaos") {
-        const curl = Math.sin(p * 17 + seed * .05) * 5;
-        px += nx * curl;
-        py += ny * curl;
-      }
+      // Keep the projectile head itself on a clean trajectory. Shadow/chaos
+      // character now lives in their animated trails instead of making the
+      // whole bolt wobble side-to-side on the way to the target.
 
       const glow = view.projectileVfx2GlowFx;
       const core = view.projectileVfx2CoreFx;
@@ -9962,16 +9956,6 @@ export class PixiProofRenderer {
 
         if (spec.arc) {
           tailY -= Math.sin(tailStartT * Math.PI) * spec.arc;
-        }
-
-        if (spec.shape === "shadow") {
-          const tailCurl = Math.sin(tailStartT * 13 + seed * .07) * 7;
-          tailX += nx * tailCurl;
-          tailY += ny * tailCurl;
-        } else if (spec.shape === "chaos") {
-          const tailCurl = Math.sin(tailStartT * 17 + seed * .05) * 5;
-          tailX += nx * tailCurl;
-          tailY += ny * tailCurl;
         }
 
         const trailPoint = (fraction, lateral = 0) => ({
@@ -11520,10 +11504,9 @@ export class PixiProofRenderer {
         const py = dy * q;
         const bx = dx * qPrev;
         const by = dy * qPrev;
-        const wobble = Math.sin(p * 18 + seed * .037) * (utility ? 5 : 8);
 
         glow
-          .moveTo(bx + nx*wobble,by + ny*wobble)
+          .moveTo(bx,by)
           .lineTo(px,py)
           .stroke({
             color: profile.main,
@@ -11531,14 +11514,14 @@ export class PixiProofRenderer {
             alpha: alpha * .16 * strength,
           });
         core
-          .moveTo(bx + nx*wobble,by + ny*wobble)
+          .moveTo(bx,by)
           .lineTo(px,py)
           .stroke({
             color: profile.main,
             width: heavy ? 5.4 : 4.0,
             alpha: alpha * .66 * strength,
           })
-          .moveTo(bx + nx*wobble,by + ny*wobble)
+          .moveTo(bx,by)
           .lineTo(px,py)
           .stroke({
             color: profile.core,

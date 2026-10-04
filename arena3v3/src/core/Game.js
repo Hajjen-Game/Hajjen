@@ -1,5 +1,5 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-wallroute2";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-cornerroute1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";

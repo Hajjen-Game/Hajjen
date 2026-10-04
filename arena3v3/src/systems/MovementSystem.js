@@ -1,6 +1,6 @@
 import { clamp, normalize } from "../core/utils.js";
 
-const AI_COLLISION_GRACE_MS = 160;
+const AI_COLLISION_GRACE_MS = 220;
 
 function circleHitsRect(x, y, radius, rect) {
   const closestX = clamp(x, rect.x, rect.x + rect.w);
@@ -96,12 +96,44 @@ function signedAngleDegrees(from, to) {
   return Math.atan2(cross, dot) * 180 / Math.PI;
 }
 
+function obstacleRouteGeometry(actor, blocker) {
+  if (blocker?.type !== "obstacle" || !blocker.rect) return null;
+
+  const rect = blocker.rect;
+  const collisionMargin = actor.radius + 3;
+  const clearance = clamp(actor.radius * 0.35, 6, 10);
+  const collision = {
+    left: rect.x - collisionMargin,
+    right: rect.x + rect.w + collisionMargin,
+    top: rect.y - collisionMargin,
+    bottom: rect.y + rect.h + collisionMargin,
+  };
+  const route = {
+    left: collision.left - clearance,
+    right: collision.right + clearance,
+    top: collision.top - clearance,
+    bottom: collision.bottom + clearance,
+  };
+
+  const faceDistances = [
+    { face: "left", distance: Math.abs(actor.x - collision.left) },
+    { face: "right", distance: Math.abs(actor.x - collision.right) },
+    { face: "top", distance: Math.abs(actor.y - collision.top) },
+    { face: "bottom", distance: Math.abs(actor.y - collision.bottom) },
+  ].sort((a, b) => a.distance - b.distance);
+
+  return {
+    face: faceDistances[0]?.face || null,
+    collision,
+    route,
+    clearance,
+  };
+}
+
 function collisionTangent(actor, blocker, sign) {
   if (!blocker) return null;
 
   // Keep one stable clockwise/counter-clockwise route for the whole contact.
-  // The previous implementation derived tangent direction from the live target
-  // vector, so a small target movement could reverse the tangent every frame.
   const routeSign = sign === -1 ? -1 : 1;
 
   if (blocker.type === "boundary") {
@@ -131,25 +163,12 @@ function collisionTangent(actor, blocker, sign) {
     return null;
   }
 
-  if (blocker.type !== "obstacle" || !blocker.rect) return null;
-
-  const rect = blocker.rect;
-  const margin = actor.radius + 3;
-  const left = rect.x - margin;
-  const right = rect.x + rect.w + margin;
-  const top = rect.y - margin;
-  const bottom = rect.y + rect.h + margin;
-
-  const faceDistances = [
-    { face: "left", distance: Math.abs(actor.x - left) },
-    { face: "right", distance: Math.abs(actor.x - right) },
-    { face: "top", distance: Math.abs(actor.y - top) },
-    { face: "bottom", distance: Math.abs(actor.y - bottom) },
-  ].sort((a, b) => a.distance - b.distance);
+  const geometry = obstacleRouteGeometry(actor, blocker);
+  if (!geometry?.face) return null;
 
   // routeSign +1 follows the expanded rectangle clockwise:
   // top -> right -> bottom -> left. -1 follows it counter-clockwise.
-  switch (faceDistances[0]?.face) {
+  switch (geometry.face) {
     case "top":
       return { x: routeSign, y: 0 };
     case "right":
@@ -161,6 +180,85 @@ function collisionTangent(actor, blocker, sign) {
     default:
       return null;
   }
+}
+
+function nextObstacleRouteFace(face, sign) {
+  const clockwise = {
+    top: "right",
+    right: "bottom",
+    bottom: "left",
+    left: "top",
+  };
+  const counterClockwise = {
+    top: "left",
+    left: "bottom",
+    bottom: "right",
+    right: "top",
+  };
+
+  return (sign === -1 ? counterClockwise : clockwise)[face] || face;
+}
+
+function obstacleRouteWaypoint(face, sign, route) {
+  const routeSign = sign === -1 ? -1 : 1;
+
+  if (routeSign === 1) {
+    if (face === "top") return { x: route.right, y: route.top };
+    if (face === "right") return { x: route.right, y: route.bottom };
+    if (face === "bottom") return { x: route.left, y: route.bottom };
+    if (face === "left") return { x: route.left, y: route.top };
+  } else {
+    if (face === "top") return { x: route.left, y: route.top };
+    if (face === "left") return { x: route.left, y: route.bottom };
+    if (face === "bottom") return { x: route.right, y: route.bottom };
+    if (face === "right") return { x: route.right, y: route.top };
+  }
+
+  return null;
+}
+
+function collisionRouteDirection(actor, blocker, sign) {
+  if (!blocker) return null;
+  if (blocker.type !== "obstacle") return collisionTangent(actor, blocker, sign);
+
+  const geometry = obstacleRouteGeometry(actor, blocker);
+  if (!geometry?.face) return collisionTangent(actor, blocker, sign);
+
+  let face = geometry.face;
+  let waypoint = obstacleRouteWaypoint(face, sign, geometry.route);
+  if (!waypoint) return collisionTangent(actor, blocker, sign);
+
+  // Once we reach a corner, immediately aim for the next corner instead of
+  // letting nearest-face ties flip the steering back along the edge we came from.
+  const cornerReach = Math.max(8, geometry.clearance + 3);
+  if (Math.hypot(waypoint.x - actor.x, waypoint.y - actor.y) <= cornerReach) {
+    face = nextObstacleRouteFace(face, sign);
+    waypoint = obstacleRouteWaypoint(face, sign, geometry.route);
+  }
+
+  if (!waypoint) return collisionTangent(actor, blocker, sign);
+  return normalize(waypoint.x - actor.x, waypoint.y - actor.y);
+}
+
+function collisionEscapeDirection(actor, blocker, sign) {
+  const geometry = obstacleRouteGeometry(actor, blocker);
+  if (!geometry?.face) return null;
+
+  const tangent = collisionTangent(actor, blocker, sign);
+  if (!tangent) return null;
+
+  let normal = { x: 0, y: 0 };
+  if (geometry.face === "top") normal = { x: 0, y: -1 };
+  if (geometry.face === "right") normal = { x: 1, y: 0 };
+  if (geometry.face === "bottom") normal = { x: 0, y: 1 };
+  if (geometry.face === "left") normal = { x: -1, y: 0 };
+
+  // A small outward bias guarantees that a route candidate can leave a
+  // collision-grazing tangent line instead of being rejected every frame.
+  return normalize(
+    tangent.x + normal.x * 0.55,
+    tangent.y + normal.y * 0.55,
+  );
 }
 
 function blockerKey(blocker) {
@@ -485,12 +583,29 @@ export class MovementSystem {
       directBlocker
       || (actor.aiObstacleContactActive ? actor.aiCollisionBlocker : null);
 
-    // Follow one stable side around the same rectangular collider. Keep doing it
-    // for the short post-contact grace window so clearing a corner by one pixel
-    // does not immediately pull the actor straight back into that corner.
+    // Follow a route contour just outside obstacle collision instead of trying
+    // to balance exactly on the collision tangent. The corner waypoint gives the
+    // AI a stable next destination, while the outward-biased escape direction is
+    // a safe fallback if the actor is grazing the collider by a fraction.
     if (steeringBlocker && (directBlocked || collisionGraceActive)) {
-      const tangent = collisionTangent(actor, steeringBlocker, sign);
-      if (tangent) directions.push(tangent);
+      if (steeringBlocker.type === "obstacle") {
+        const routeDirection = collisionRouteDirection(
+          actor,
+          steeringBlocker,
+          sign,
+        );
+        if (routeDirection) directions.push(routeDirection);
+
+        const escapeDirection = collisionEscapeDirection(
+          actor,
+          steeringBlocker,
+          sign,
+        );
+        if (escapeDirection) directions.push(escapeDirection);
+      } else {
+        const tangent = collisionTangent(actor, steeringBlocker, sign);
+        if (tangent) directions.push(tangent);
+      }
     }
 
     if (!forcedDetour && !collisionGraceActive) directions.push(desired);

@@ -24,6 +24,233 @@ function hexNumber(cssColor, fallback = 0xffffff) {
   return match ? Number.parseInt(match[1], 16) : fallback;
 }
 
+
+function drawLivingClassSigil(graphics, classId, radius) {
+  const r = Math.max(8, radius * .52);
+  const c = 0xf5ead8;
+  const a = .72;
+  const soft = .28;
+
+  graphics.clear();
+
+  if (classId === "priest") {
+    graphics.circle(0,0,r*.82).stroke({ color:c, width:1.25, alpha:soft });
+    graphics
+      .moveTo(0,-r*.78).lineTo(0,r*.78)
+      .moveTo(-r*.54,0).lineTo(r*.54,0)
+      .stroke({ color:c, width:1.55, alpha:a });
+    return;
+  }
+
+  if (classId === "warrior") {
+    graphics
+      .moveTo(-r*.62,r*.68).lineTo(r*.45,-r*.66)
+      .moveTo(r*.62,r*.68).lineTo(-r*.45,-r*.66)
+      .stroke({ color:c, width:1.65, alpha:a });
+    graphics
+      .moveTo(-r*.7,-r*.48).lineTo(-r*.35,-r*.78).lineTo(-r*.16,-r*.42)
+      .moveTo(r*.7,-r*.48).lineTo(r*.35,-r*.78).lineTo(r*.16,-r*.42)
+      .stroke({ color:c, width:1.15, alpha:soft+.16 });
+    return;
+  }
+
+  if (classId === "mage") {
+    for (let i=0;i<6;i+=1) {
+      const a0=i/6*Math.PI*2;
+      graphics
+        .moveTo(Math.cos(a0)*r*.18,Math.sin(a0)*r*.18)
+        .lineTo(Math.cos(a0)*r*.82,Math.sin(a0)*r*.82)
+        .stroke({ color:c, width:1.25, alpha:a });
+    }
+    graphics.circle(0,0,r*.23).fill({ color:c, alpha:.48 });
+    return;
+  }
+
+  if (classId === "shaman") {
+    graphics
+      .moveTo(-r*.15,-r*.82)
+      .lineTo(r*.42,-r*.12)
+      .lineTo(r*.06,-r*.06)
+      .lineTo(r*.36,r*.82)
+      .lineTo(-r*.42,r*.08)
+      .lineTo(-r*.04,0)
+      .lineTo(-r*.15,-r*.82)
+      .stroke({ color:c, width:1.6, alpha:a });
+    return;
+  }
+
+  if (classId === "death-knight") {
+    graphics.circle(0,0,r*.72).stroke({ color:c, width:1.2, alpha:soft+.06 });
+    graphics
+      .moveTo(0,-r*.84).lineTo(0,r*.84)
+      .moveTo(-r*.72,-r*.42).lineTo(r*.72,r*.42)
+      .moveTo(r*.72,-r*.42).lineTo(-r*.72,r*.42)
+      .stroke({ color:c, width:1.35, alpha:a });
+    return;
+  }
+
+  if (classId === "warlock") {
+    graphics.circle(0,0,r*.78).stroke({ color:c, width:1.2, alpha:soft });
+    graphics
+      .moveTo(-r*.55,-r*.55)
+      .bezierCurveTo(r*.66,-r*.74,r*.72,r*.44,-r*.18,r*.66)
+      .bezierCurveTo(r*.22,r*.22,r*.18,-r*.22,-r*.55,-r*.55)
+      .stroke({ color:c, width:1.45, alpha:a });
+    return;
+  }
+
+  if (classId === "paladin") {
+    graphics.circle(0,0,r*.78).stroke({ color:c, width:1.2, alpha:soft+.04 });
+    graphics
+      .moveTo(0,-r*.78).lineTo(0,r*.78)
+      .moveTo(-r*.78,0).lineTo(r*.78,0)
+      .moveTo(-r*.5,-r*.5).lineTo(r*.5,r*.5)
+      .moveTo(r*.5,-r*.5).lineTo(-r*.5,r*.5)
+      .stroke({ color:c, width:1.25, alpha:a*.9 });
+    return;
+  }
+
+  if (classId === "druid") {
+    graphics
+      .moveTo(-r*.68,r*.62)
+      .bezierCurveTo(-r*.42,-r*.38,r*.2,-r*.78,r*.72,-r*.72)
+      .bezierCurveTo(r*.7,-r*.02,r*.26,r*.64,-r*.68,r*.62)
+      .stroke({ color:c, width:1.45, alpha:a });
+    graphics
+      .moveTo(-r*.6,r*.55).lineTo(r*.5,-r*.52)
+      .stroke({ color:c, width:1.05, alpha:soft+.22 });
+    return;
+  }
+
+  if (classId === "rogue") {
+    graphics
+      .moveTo(-r*.56,r*.72).lineTo(-r*.12,-r*.78)
+      .moveTo(r*.08,r*.74).lineTo(r*.5,-r*.7)
+      .moveTo(r*.38,r*.58).lineTo(r*.72,-r*.18)
+      .stroke({ color:c, width:1.5, alpha:a });
+    return;
+  }
+
+  graphics.circle(0,0,r*.7).stroke({ color:c, width:1.2, alpha:a });
+}
+
+function drawLivingBodyShape(graphics, actor, state, nowMs) {
+  const radius = Math.max(8, Number(actor.radius) || 18) * .92;
+  const bodyColor = hexNumber(classColorFor(actor), 0x888888);
+  const mode = state?.mode || "idle";
+  const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
+  let dx = Number(state?.dirX) || Math.cos(actor.facing || 0);
+  let dy = Number(state?.dirY) || Math.sin(actor.facing || 0);
+  const len = Math.max(.0001, Math.hypot(dx,dy));
+  dx /= len;
+  dy /= len;
+  const sx = -dy;
+  const sy = dx;
+  const breathe = .5 + .5 * Math.sin((nowMs || 0) * .0043 + String(actor.id || "").length);
+  const points = [];
+  const count = 28;
+
+  let forwardStretch = 0;
+  let sideCompress = 0;
+  let radialWave = 0;
+  let rearCompress = 0;
+
+  if (mode === "move") {
+    forwardStretch = .10 + intensity * .08;
+    sideCompress = .035 + intensity * .035;
+  } else if (mode === "cast") {
+    radialWave = .045 + intensity * .055;
+    sideCompress = .015;
+  } else if (mode === "projectile" || mode === "spell") {
+    forwardStretch = .13 + intensity * .12;
+    rearCompress = .06 + intensity * .06;
+    sideCompress = .035;
+  } else if (mode === "melee") {
+    forwardStretch = .17 + intensity * .16;
+    rearCompress = .05;
+    sideCompress = .07 + intensity * .03;
+  } else if (mode === "charge" || mode === "shadowstep") {
+    forwardStretch = .20 + intensity * .20;
+    rearCompress = .08;
+    sideCompress = .09;
+  } else if (mode === "heal") {
+    radialWave = .035 + intensity * .04;
+  } else if (mode === "defensive") {
+    radialWave = .055 + intensity * .035;
+  } else if (mode === "hit") {
+    forwardStretch = -.12 * intensity;
+    rearCompress = -.03;
+    sideCompress = .075 * intensity;
+  } else if (mode === "fear") {
+    radialWave = .07 + intensity * .055;
+  } else if (mode === "stun") {
+    radialWave = .085;
+    sideCompress = .045;
+  } else if (mode === "root") {
+    sideCompress = .10;
+    forwardStretch = .035;
+  } else if (mode === "incapacitate") {
+    radialWave = .035;
+  }
+
+  for (let i=0;i<count;i+=1) {
+    const a = i / count * Math.PI * 2;
+    const alongDir = Math.cos(a);
+    const sideDir = Math.sin(a);
+    let alongScale = 1 + forwardStretch * Math.max(0,alongDir)
+      - rearCompress * Math.max(0,-alongDir);
+    let sideScale = 1 - sideCompress;
+
+    let localRadius = radius * (1 + (breathe-.5) * .018);
+    if (mode === "cast") {
+      localRadius *= 1 + Math.cos(a * 6) * radialWave;
+    } else if (mode === "fear") {
+      localRadius *= 1 + Math.sin(a * 7 + nowMs * .026) * radialWave;
+    } else if (mode === "stun") {
+      localRadius *= 1 + Math.cos(a * 4) * radialWave;
+    } else if (mode === "defensive") {
+      localRadius *= 1 + Math.cos(a * 8) * radialWave * .55;
+    } else if (mode === "heal") {
+      localRadius *= 1 + Math.sin(a * 5 + nowMs * .008) * radialWave * .45;
+    }
+
+    if (mode === "root" && sideDir > .15) {
+      sideScale *= .92;
+    }
+
+    const along = alongDir * localRadius * alongScale;
+    const side = sideDir * localRadius * sideScale;
+    points.push({
+      x: dx * along + sx * side,
+      y: dy * along + sy * side,
+    });
+  }
+
+  graphics.clear();
+  if (!points.length) return;
+  graphics.moveTo(points[0].x,points[0].y);
+  for (let i=1;i<points.length;i+=1) {
+    graphics.lineTo(points[i].x,points[i].y);
+  }
+  graphics.lineTo(points[0].x,points[0].y);
+  graphics.fill({ color: bodyColor, alpha: .96 });
+  graphics.stroke({ color: 0x080807, width: 2.2, alpha: .72 });
+
+  graphics.circle(
+    -dx * radius * .18 - sx * radius * .13,
+    -dy * radius * .18 - sy * radius * .13,
+    radius * .34,
+  ).fill({ color: 0xffffff, alpha: .055 });
+
+  if (mode === "cast" || mode === "heal" || mode === "defensive") {
+    graphics.circle(0,0,radius*.72).stroke({
+      color: 0xffffff,
+      width: 1.1,
+      alpha: .11 + intensity * .11,
+    });
+  }
+}
+
 function resourceColor(type) {
   if (type === "mana") return 0x7464b8;
   if (type === "energy") return 0xc5a34a;

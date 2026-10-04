@@ -2,6 +2,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { classIconUrlFor } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
+import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
 
@@ -159,6 +160,267 @@ function strokeLivingArc(
     else graphics.lineTo(x,y);
   }
   graphics.stroke(style);
+}
+
+function talentBranchVisuals(actor, game) {
+  const tree = TALENT_TREE_REGISTRY[actor?.classId];
+  if (!tree?.branches?.length) return [];
+
+  let branchPoints = null;
+
+  if (actor?.control === "player" && typeof game?.talentStatus === "function") {
+    branchPoints = game.talentStatus()?.branchPoints || null;
+  }
+
+  if (!branchPoints) {
+    branchPoints =
+      actor?.config?.aiProgression?.branchPoints
+      || actor?.config?.enemyProgression?.branchPoints
+      || {};
+  }
+
+  const spent = tree.branches.reduce(
+    (sum, branch) => sum + Math.max(0, Number(branchPoints?.[branch.id]) || 0),
+    0,
+  );
+
+  return tree.branches.map((branch, index) => {
+    const points = Math.max(0, Number(branchPoints?.[branch.id]) || 0);
+    return {
+      id: branch.id,
+      name: branch.name,
+      index,
+      points,
+      share: spent > 0 ? points / spent : 0,
+      development: Math.max(0, Math.min(1, points / 10)),
+      color: hexNumber(branch.accent, classColorFor(actor)),
+    };
+  });
+}
+
+function drawIdentityTick(graphics, angle, inner, outer, style) {
+  const ca = Math.cos(angle);
+  const sa = Math.sin(angle);
+  graphics
+    .moveTo(ca * inner, sa * inner)
+    .lineTo(ca * outer, sa * outer)
+    .stroke(style);
+}
+
+function drawClassIdentitySigil(
+  graphics,
+  actor,
+  state,
+  nowMs,
+  game,
+) {
+  graphics.clear();
+  graphics.visible = false;
+  if (!actor?.alive) return;
+
+  const classId = actor.classId || "";
+  const base = hexNumber(classColorFor(actor), 0xffffff);
+  const mode = state?.mode || "idle";
+  const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
+  const progress = Math.max(0, Math.min(1, Number(state?.progress) || 0));
+  const t = (Number(nowMs) || 0) * .001;
+  const seed = String(actor.id || "")
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const phase = seed * .021;
+
+  const ringRadius = Math.max(8, Number(actor.radius) || 18) + 3;
+  const innerR = Math.max(9, ringRadius - 4.4);
+  const deepR = Math.max(7, innerR - 3.5);
+  const breathe = .5 + .5 * Math.sin(t * 1.45 + phase);
+  const active =
+    mode === "idle"
+      ? .26 + breathe * .06
+      : .32 + intensity * .22;
+  const castBoost = mode === "cast" ? .10 + progress * .12 : 0;
+  const alpha = Math.min(.64, active + castBoost);
+
+  graphics.visible = true;
+
+  const arc = (radius, center, halfWidth, width = 1.25, a = alpha) => {
+    strokeLivingArc(
+      graphics,
+      radius,
+      center - halfWidth,
+      center + halfWidth,
+      { color: base, width, alpha: a },
+      7,
+    );
+  };
+
+  // Class identity lives only in the band just inside the team ring.
+  // No line is allowed to cross the center; melee/spell impacts remain readable.
+  if (classId === "priest") {
+    for (let i = 0; i < 3; i += 1) {
+      const a = -Math.PI / 2 + i * Math.PI * 2 / 3;
+      arc(innerR, a, .31, 1.35, alpha);
+      graphics.circle(
+        Math.cos(a) * deepR,
+        Math.sin(a) * deepR,
+        .8,
+      ).fill({ color: base, alpha: alpha * .72 });
+    }
+  } else if (classId === "mage") {
+    for (let i = 0; i < 6; i += 1) {
+      const a = -Math.PI / 2 + i * Math.PI / 3;
+      arc(innerR, a, .19, 1.3, alpha);
+      drawIdentityTick(
+        graphics,
+        a,
+        innerR - 3.2,
+        innerR - .7,
+        { color: base, width: 1.05, alpha: alpha * .62 },
+      );
+    }
+  } else if (classId === "warlock") {
+    for (let i = 0; i < 5; i += 1) {
+      const a = -.55 + i * Math.PI * 2 / 5 + Math.sin(i * 2.1) * .06;
+      arc(innerR - (i % 2) * .8, a, .22, 1.35, alpha);
+      const hookA = a + .23;
+      drawIdentityTick(
+        graphics,
+        hookA,
+        innerR - 4.0,
+        innerR - 1.3,
+        { color: base, width: 1.05, alpha: alpha * .58 },
+      );
+    }
+  } else if (classId === "druid") {
+    for (let i = 0; i < 3; i += 1) {
+      const a = .25 + i * Math.PI * 2 / 3;
+      arc(innerR, a, .38, 1.25, alpha);
+      strokeLivingArc(
+        graphics,
+        deepR,
+        a + .05,
+        a + .48,
+        { color: base, width: .95, alpha: alpha * .55 },
+        5,
+      );
+    }
+  } else if (classId === "shaman") {
+    for (let i = 0; i < 4; i += 1) {
+      const a = -Math.PI / 2 + i * Math.PI / 2;
+      arc(innerR, a, .25, 1.4, alpha);
+      drawIdentityTick(
+        graphics,
+        a - .13,
+        innerR - 3.4,
+        innerR - .9,
+        { color: base, width: 1.0, alpha: alpha * .60 },
+      );
+      drawIdentityTick(
+        graphics,
+        a + .13,
+        innerR - 3.4,
+        innerR - .9,
+        { color: base, width: 1.0, alpha: alpha * .60 },
+      );
+    }
+  } else if (classId === "paladin") {
+    for (let i = 0; i < 4; i += 1) {
+      const a = i * Math.PI / 2;
+      arc(innerR, a, .27, 1.45, alpha);
+      graphics.circle(
+        Math.cos(a + Math.PI / 4) * deepR,
+        Math.sin(a + Math.PI / 4) * deepR,
+        .72,
+      ).fill({ color: base, alpha: alpha * .60 });
+    }
+  } else if (classId === "warrior") {
+    const facing = Math.atan2(
+      Number(state?.dirY) || Math.sin(actor.facing || 0),
+      Number(state?.dirX) || Math.cos(actor.facing || 0),
+    );
+    for (let i = -1; i <= 1; i += 1) {
+      const a = facing + i * .46;
+      arc(innerR, a, .22, 1.6, alpha);
+      drawIdentityTick(
+        graphics,
+        a,
+        innerR - 3.1,
+        innerR - .5,
+        { color: base, width: 1.25, alpha: alpha * .66 },
+      );
+    }
+  } else if (classId === "rogue") {
+    const facing = Math.atan2(
+      Number(state?.dirY) || Math.sin(actor.facing || 0),
+      Number(state?.dirX) || Math.cos(actor.facing || 0),
+    );
+    arc(innerR, facing + .50, .42, 1.25, alpha);
+    arc(innerR, facing - .50 + Math.PI, .42, 1.25, alpha);
+    for (const offset of [-.24, .24]) {
+      drawIdentityTick(
+        graphics,
+        facing + offset,
+        innerR - 3.4,
+        innerR - .6,
+        { color: base, width: 1.05, alpha: alpha * .62 },
+      );
+    }
+  } else if (classId === "death-knight") {
+    for (let i = 0; i < 6; i += 1) {
+      const a = -.18 + i * Math.PI / 3;
+      arc(innerR - (i % 2) * 1.0, a, .16, 1.35, alpha);
+      drawIdentityTick(
+        graphics,
+        a + .08,
+        innerR - 3.9,
+        innerR - 1.1,
+        { color: base, width: 1.05, alpha: alpha * .58 },
+      );
+    }
+  } else {
+    for (let i = 0; i < 4; i += 1) {
+      arc(innerR, i * Math.PI / 2, .22, 1.2, alpha);
+    }
+  }
+
+  // Real talent allocation is encoded as up to two colored inner arcs.
+  // More points = a longer, brighter segment; hybrid builds show both colors.
+  const branches = talentBranchVisuals(actor, game);
+  const activeBranches = branches.filter(branch => branch.points > 0);
+
+  for (const branch of activeBranches) {
+    const branchIndex = branch.index % 2;
+    const baseAngle = branchIndex === 0 ? -2.55 : .58;
+    const drift = Math.sin(t * .22 + phase + branchIndex * 1.7) * .035;
+    const span = .34 + branch.share * .72 + branch.development * .16;
+    const rr = innerR - 2.0 - branchIndex * 1.8;
+    const branchAlpha =
+      .20
+      + branch.development * .28
+      + (mode === "cast" ? progress * .10 : 0);
+
+    strokeLivingArc(
+      graphics,
+      rr,
+      baseAngle + drift,
+      baseAngle + drift + span,
+      {
+        color: branch.color,
+        width: 1.15 + branch.development * .65,
+        alpha: Math.min(.62, branchAlpha),
+      },
+      8,
+    );
+
+    const endA = baseAngle + drift + span;
+    graphics.circle(
+      Math.cos(endA) * rr,
+      Math.sin(endA) * rr,
+      .78 + branch.development * .35,
+    ).fill({
+      color: branch.color,
+      alpha: Math.min(.72, branchAlpha + .10),
+    });
+  }
 }
 
 function drawLivingRingAccent(
@@ -1950,6 +2212,11 @@ export class PixiProofRenderer {
       .stroke({ color: teamColor, width: 2, alpha: .72 });
     root.addChild(ring);
 
+    const classIdentityFx = new Graphics();
+    classIdentityFx.visible = false;
+    classIdentityFx.blendMode = "screen";
+    root.addChild(classIdentityFx);
+
     const livingRingAccentFx = new Graphics();
     livingRingAccentFx.visible = false;
     livingRingAccentFx.blendMode = "screen";
@@ -2317,6 +2584,7 @@ export class PixiProofRenderer {
       shadow,
       ringGlow,
       ring,
+      classIdentityFx,
       livingRingAccentFx,
       body,
       livingCircleUnits: this.livingCircleUnits,
@@ -3665,6 +3933,13 @@ export class PixiProofRenderer {
           view.ringGlow.rotation = 0;
           view.ringGlow.scale.set(1,1);
         }
+        if (view.classIdentityFx) {
+          view.classIdentityFx.clear();
+          view.classIdentityFx.visible = false;
+          view.classIdentityFx.position.set(0,0);
+          view.classIdentityFx.rotation = 0;
+          view.classIdentityFx.scale.set(1,1);
+        }
         if (view.livingRingAccentFx) {
           view.livingRingAccentFx.clear();
           view.livingRingAccentFx.visible = false;
@@ -4212,6 +4487,18 @@ export class PixiProofRenderer {
           view.ringGlow.position.set(offsetX,offsetY);
           view.ringGlow.rotation = rotation;
           view.ringGlow.scale.set(scaleX,scaleY);
+        }
+        if (view.classIdentityFx) {
+          drawClassIdentitySigil(
+            view.classIdentityFx,
+            actor,
+            livingState,
+            nowMs,
+            game,
+          );
+          view.classIdentityFx.position.set(offsetX,offsetY);
+          view.classIdentityFx.rotation = rotation;
+          view.classIdentityFx.scale.set(scaleX,scaleY);
         }
         if (view.livingRingAccentFx) {
           const accentProfile = livingSpellId
@@ -11601,6 +11888,11 @@ export class PixiProofRenderer {
       const spell = actor.getSpell(actor.cast.spellId);
       const spellId = spell?.id || actor.cast.spellId;
       if (POLISH_ALREADY_FINAL.has(spellId)) continue;
+
+      // The old shared compression overlay drew the same radial spokes/center
+      // point on every class. In living-circle mode that read as a cheap cross.
+      // Class/talent identity now provides the anticipation instead.
+      if (this.livingCircleUnits) continue;
 
       const profile = spellPolishProfile(spellId, spell?.visualStyle);
       const total = Math.max(1, Number(actor.cast.totalMs) || 1);

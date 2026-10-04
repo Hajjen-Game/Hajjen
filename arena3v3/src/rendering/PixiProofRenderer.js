@@ -193,7 +193,7 @@ function talentBranchVisuals(actor, game) {
       points,
       share: spent > 0 ? points / spent : 0,
       development: Math.max(0, Math.min(1, points / 10)),
-      color: hexNumber(branch.accent, classColorFor(actor)),
+      color: hexNumber(branch.accent, hexNumber(classColorFor(actor), 0xffffff)),
     };
   });
 }

@@ -162,22 +162,67 @@ function strokeLivingArc(
   graphics.stroke(style);
 }
 
+function talentAllocationSnapshot(actor, game, tree) {
+  const ranks = {};
+  let branchPoints = null;
+
+  if (actor?.control === "player" && typeof game?.talentStatus === "function") {
+    const status = game.talentStatus();
+    branchPoints = status?.branchPoints || null;
+    Object.assign(ranks, status?.allocations || {});
+  }
+
+  if (!branchPoints) {
+    const progression =
+      actor?.config?.aiProgression
+      || actor?.config?.enemyProgression
+      || null;
+
+    branchPoints = progression?.branchPoints || {};
+
+    for (const entry of progression?.entries || []) {
+      if (!entry?.id) continue;
+      ranks[entry.id] = Math.max(0, Number(entry.rank) || 0);
+    }
+  }
+
+  if (!branchPoints) branchPoints = {};
+
+  // Reconstruct branch totals if a future progression snapshot contains
+  // allocations but omits branchPoints.
+  if (tree?.branches?.length && Object.keys(branchPoints).length === 0) {
+    branchPoints = {};
+    for (const branch of tree.branches) {
+      branchPoints[branch.id] = (branch.talents || []).reduce(
+        (sum, talent) => sum + Math.max(0, Number(ranks[talent.id]) || 0),
+        0,
+      );
+    }
+  }
+
+  return { branchPoints, ranks };
+}
+
+function mageFrostfireTalentColor(ranks, fallback) {
+  const fireWeight =
+    (Number(ranks["mage-burning-ice"]) || 0)
+    + (Number(ranks["mage-hot-streak"]) || 0) * 1.6
+    + (Number(ranks["mage-elemental-fusion"]) || 0) * 1.35;
+
+  const frostWeight =
+    (Number(ranks["mage-shatter"]) || 0)
+    + (Number(ranks["mage-frostbite"]) || 0)
+    + (Number(ranks["mage-piercing-cold"]) || 0);
+
+  if (fireWeight >= Math.max(2.5, frostWeight * .72)) return 0xf1845f;
+  return fallback;
+}
+
 function talentBranchVisuals(actor, game) {
   const tree = TALENT_TREE_REGISTRY[actor?.classId];
   if (!tree?.branches?.length) return [];
 
-  let branchPoints = null;
-
-  if (actor?.control === "player" && typeof game?.talentStatus === "function") {
-    branchPoints = game.talentStatus()?.branchPoints || null;
-  }
-
-  if (!branchPoints) {
-    branchPoints =
-      actor?.config?.aiProgression?.branchPoints
-      || actor?.config?.enemyProgression?.branchPoints
-      || {};
-  }
+  const { branchPoints, ranks } = talentAllocationSnapshot(actor, game, tree);
 
   const spent = tree.branches.reduce(
     (sum, branch) => sum + Math.max(0, Number(branchPoints?.[branch.id]) || 0),
@@ -186,6 +231,16 @@ function talentBranchVisuals(actor, game) {
 
   return tree.branches.map((branch, index) => {
     const points = Math.max(0, Number(branchPoints?.[branch.id]) || 0);
+    const fallback = hexNumber(
+      branch.accent,
+      hexNumber(classColorFor(actor), 0xffffff),
+    );
+
+    let color = fallback;
+    if (actor?.classId === "mage" && branch.id === "frostfire") {
+      color = mageFrostfireTalentColor(ranks, fallback);
+    }
+
     return {
       id: branch.id,
       name: branch.name,
@@ -193,7 +248,7 @@ function talentBranchVisuals(actor, game) {
       points,
       share: spent > 0 ? points / spent : 0,
       development: Math.max(0, Math.min(1, points / 10)),
-      color: hexNumber(branch.accent, hexNumber(classColorFor(actor), 0xffffff)),
+      color,
     };
   });
 }
@@ -205,6 +260,14 @@ function drawIdentityTick(graphics, angle, inner, outer, style) {
     .moveTo(ca * inner, sa * inner)
     .lineTo(ca * outer, sa * outer)
     .stroke(style);
+}
+
+function drawIdentityNode(graphics, angle, radius, size, color, alpha) {
+  graphics.circle(
+    Math.cos(angle) * radius,
+    Math.sin(angle) * radius,
+    size,
+  ).fill({ color, alpha });
 }
 
 function drawClassIdentitySigil(
@@ -230,122 +293,219 @@ function drawClassIdentitySigil(
   const phase = seed * .021;
 
   const ringRadius = Math.max(8, Number(actor.radius) || 18) + 3;
-  const innerR = Math.max(9, ringRadius - 4.4);
-  const deepR = Math.max(7, innerR - 3.5);
-  const breathe = .5 + .5 * Math.sin(t * 1.45 + phase);
-  const active =
-    mode === "idle"
-      ? .26 + breathe * .06
-      : .32 + intensity * .22;
-  const castBoost = mode === "cast" ? .10 + progress * .12 : 0;
-  const alpha = Math.min(.64, active + castBoost);
+  const motifR = Math.max(9, ringRadius - 5.0);
+  const innerR = Math.max(7, motifR - 3.4);
+  const breathe = .5 + .5 * Math.sin(t * 1.35 + phase);
+
+  const actionMode = [
+    "projectile",
+    "spell",
+    "melee",
+    "charge",
+    "shadowstep",
+    "hit",
+  ].includes(mode);
+  const softActionMode = ["heal", "defensive", "control"].includes(mode);
+  const combatFade = actionMode ? .46 : softActionMode ? .62 : 1;
+
+  const idleAlpha = .38 + breathe * .08;
+  const moveAlpha = .43 + intensity * .08;
+  const castAlpha = .50 + progress * .18;
+  const rawAlpha =
+    mode === "cast"
+      ? castAlpha
+      : mode === "idle"
+        ? idleAlpha
+        : moveAlpha;
+  const alpha = Math.min(.72, rawAlpha * combatFade);
 
   graphics.visible = true;
 
-  const arc = (radius, center, halfWidth, width = 1.25, a = alpha) => {
+  let motifAngle = 0;
+  if (classId === "mage") {
+    motifAngle = t * .15 + phase;
+  } else if (classId === "warlock") {
+    motifAngle = -t * .09 + Math.sin(t * .52 + phase) * .08 + phase;
+  } else if (classId === "druid") {
+    motifAngle = Math.sin(t * .34 + phase) * .12;
+  } else if (classId === "shaman") {
+    motifAngle = phase * .35;
+  } else if (classId === "paladin") {
+    motifAngle = Math.sin(t * .22 + phase) * .025;
+  } else if (classId === "rogue") {
+    motifAngle = t * .10 + phase;
+  } else if (classId === "death-knight") {
+    motifAngle = -t * .065 + phase;
+  } else if (classId === "priest") {
+    motifAngle = Math.sin(t * .28 + phase) * .035;
+  }
+
+  const arc = (
+    radius,
+    center,
+    halfWidth,
+    width = 1.8,
+    a = alpha,
+    color = base,
+    segments = 8,
+  ) => {
     strokeLivingArc(
       graphics,
       radius,
       center - halfWidth,
       center + halfWidth,
-      { color: base, width, alpha: a },
-      7,
+      { color, width, alpha: a },
+      segments,
     );
   };
 
-  // Class identity lives only in the band just inside the team ring.
-  // No line is allowed to cross the center; melee/spell impacts remain readable.
+  // Fewer, larger shapes make the class readable at actual arena scale.
+  // Everything stays in the inner band so the center is still available for
+  // melee swings, impact flashes and spell travel.
   if (classId === "priest") {
+    const haloPulse = 1 + (breathe - .5) * .025;
     for (let i = 0; i < 3; i += 1) {
-      const a = -Math.PI / 2 + i * Math.PI * 2 / 3;
-      arc(innerR, a, .31, 1.35, alpha);
-      graphics.circle(
-        Math.cos(a) * deepR,
-        Math.sin(a) * deepR,
-        .8,
-      ).fill({ color: base, alpha: alpha * .72 });
+      const a = motifAngle - Math.PI / 2 + i * Math.PI * 2 / 3;
+      arc(
+        motifR * haloPulse,
+        a,
+        .44,
+        2.0,
+        alpha,
+        base,
+        9,
+      );
+      drawIdentityNode(
+        graphics,
+        a + .48,
+        innerR,
+        .95,
+        base,
+        alpha * .78,
+      );
     }
   } else if (classId === "mage") {
-    for (let i = 0; i < 6; i += 1) {
-      const a = -Math.PI / 2 + i * Math.PI / 3;
-      arc(innerR, a, .19, 1.3, alpha);
-      drawIdentityTick(
-        graphics,
-        a,
-        innerR - 3.2,
-        innerR - .7,
-        { color: base, width: 1.05, alpha: alpha * .62 },
-      );
-    }
-  } else if (classId === "warlock") {
-    for (let i = 0; i < 5; i += 1) {
-      const a = -.55 + i * Math.PI * 2 / 5 + Math.sin(i * 2.1) * .06;
-      arc(innerR - (i % 2) * .8, a, .22, 1.35, alpha);
-      const hookA = a + .23;
-      drawIdentityTick(
-        graphics,
-        hookA,
-        innerR - 4.0,
-        innerR - 1.3,
-        { color: base, width: 1.05, alpha: alpha * .58 },
-      );
-    }
-  } else if (classId === "druid") {
-    for (let i = 0; i < 3; i += 1) {
-      const a = .25 + i * Math.PI * 2 / 3;
-      arc(innerR, a, .38, 1.25, alpha);
-      strokeLivingArc(
-        graphics,
-        deepR,
-        a + .05,
-        a + .48,
-        { color: base, width: .95, alpha: alpha * .55 },
+    for (let i = 0; i < 4; i += 1) {
+      const a = motifAngle + Math.PI / 4 + i * Math.PI / 2;
+      arc(motifR, a, .34, 1.9, alpha, base, 8);
+      arc(
+        innerR,
+        a + .14,
+        .16,
+        1.15,
+        alpha * .62,
+        base,
         5,
       );
     }
-  } else if (classId === "shaman") {
-    for (let i = 0; i < 4; i += 1) {
-      const a = -Math.PI / 2 + i * Math.PI / 2;
-      arc(innerR, a, .25, 1.4, alpha);
-      drawIdentityTick(
-        graphics,
-        a - .13,
-        innerR - 3.4,
-        innerR - .9,
-        { color: base, width: 1.0, alpha: alpha * .60 },
+  } else if (classId === "warlock") {
+    for (let i = 0; i < 3; i += 1) {
+      const a = motifAngle - .35 + i * Math.PI * 2 / 3;
+      arc(
+        motifR - (i === 1 ? .7 : 0),
+        a,
+        .43,
+        2.05,
+        alpha,
+        base,
+        8,
       );
       drawIdentityTick(
         graphics,
-        a + .13,
-        innerR - 3.4,
-        innerR - .9,
-        { color: base, width: 1.0, alpha: alpha * .60 },
+        a + .37,
+        innerR - .3,
+        motifR - .6,
+        { color: base, width: 1.35, alpha: alpha * .62 },
+      );
+    }
+  } else if (classId === "druid") {
+    const growth = 1 + (breathe - .5) * .055;
+    arc(
+      motifR * growth,
+      motifAngle + .18,
+      .88,
+      2.0,
+      alpha,
+      base,
+      12,
+    );
+    arc(
+      motifR * growth,
+      motifAngle + Math.PI + .18,
+      .88,
+      2.0,
+      alpha * .88,
+      base,
+      12,
+    );
+    arc(
+      innerR,
+      motifAngle + 1.15,
+      .52,
+      1.15,
+      alpha * .58,
+      base,
+      8,
+    );
+  } else if (classId === "shaman") {
+    const activeNode = Math.floor(t * 1.45 + phase) % 4;
+    for (let i = 0; i < 4; i += 1) {
+      const a = motifAngle - Math.PI / 2 + i * Math.PI / 2;
+      const nodeBoost = i === activeNode ? 1 : .72;
+      arc(
+        motifR,
+        a,
+        .31,
+        1.9,
+        alpha * (.84 + nodeBoost * .16),
+        base,
+        7,
+      );
+      drawIdentityNode(
+        graphics,
+        a,
+        innerR,
+        i === activeNode ? 1.25 : .88,
+        base,
+        alpha * nodeBoost,
       );
     }
   } else if (classId === "paladin") {
     for (let i = 0; i < 4; i += 1) {
-      const a = i * Math.PI / 2;
-      arc(innerR, a, .27, 1.45, alpha);
-      graphics.circle(
-        Math.cos(a + Math.PI / 4) * deepR,
-        Math.sin(a + Math.PI / 4) * deepR,
-        .72,
-      ).fill({ color: base, alpha: alpha * .60 });
+      const a = motifAngle + i * Math.PI / 2;
+      arc(motifR, a, .39, 2.15, alpha, base, 8);
+      arc(
+        innerR,
+        a + Math.PI / 4,
+        .18,
+        1.05,
+        alpha * .50,
+        base,
+        5,
+      );
     }
   } else if (classId === "warrior") {
     const facing = Math.atan2(
       Number(state?.dirY) || Math.sin(actor.facing || 0),
       Number(state?.dirX) || Math.cos(actor.facing || 0),
     );
-    for (let i = -1; i <= 1; i += 1) {
-      const a = facing + i * .46;
-      arc(innerR, a, .22, 1.6, alpha);
+    arc(motifR, facing, .72, 2.5, alpha, base, 11);
+    arc(
+      motifR - 1.7,
+      facing + Math.PI,
+      .38,
+      1.65,
+      alpha * .58,
+      base,
+      7,
+    );
+    for (const offset of [-.48, .48]) {
       drawIdentityTick(
         graphics,
-        a,
-        innerR - 3.1,
-        innerR - .5,
-        { color: base, width: 1.25, alpha: alpha * .66 },
+        facing + offset,
+        innerR,
+        motifR - .4,
+        { color: base, width: 1.45, alpha: alpha * .64 },
       );
     }
   } else if (classId === "rogue") {
@@ -353,73 +513,115 @@ function drawClassIdentitySigil(
       Number(state?.dirY) || Math.sin(actor.facing || 0),
       Number(state?.dirX) || Math.cos(actor.facing || 0),
     );
-    arc(innerR, facing + .50, .42, 1.25, alpha);
-    arc(innerR, facing - .50 + Math.PI, .42, 1.25, alpha);
-    for (const offset of [-.24, .24]) {
-      drawIdentityTick(
-        graphics,
-        facing + offset,
-        innerR - 3.4,
-        innerR - .6,
-        { color: base, width: 1.05, alpha: alpha * .62 },
-      );
-    }
+    const spin = motifAngle + facing;
+    arc(motifR, spin + .46, .66, 2.0, alpha, base, 10);
+    arc(
+      motifR - 1.8,
+      spin + Math.PI - .46,
+      .66,
+      1.65,
+      alpha * .76,
+      base,
+      10,
+    );
+    drawIdentityNode(
+      graphics,
+      spin + .46,
+      innerR,
+      .82,
+      base,
+      alpha * .66,
+    );
   } else if (classId === "death-knight") {
-    for (let i = 0; i < 6; i += 1) {
-      const a = -.18 + i * Math.PI / 3;
-      arc(innerR - (i % 2) * 1.0, a, .16, 1.35, alpha);
-      drawIdentityTick(
-        graphics,
-        a + .08,
-        innerR - 3.9,
-        innerR - 1.1,
-        { color: base, width: 1.05, alpha: alpha * .58 },
+    for (let i = 0; i < 3; i += 1) {
+      const a = motifAngle - Math.PI / 2 + i * Math.PI * 2 / 3;
+      arc(
+        motifR - (i % 2) * .65,
+        a,
+        .43,
+        2.05,
+        alpha,
+        base,
+        8,
       );
+      for (const offset of [-.18, .18]) {
+        drawIdentityTick(
+          graphics,
+          a + offset,
+          innerR - .5,
+          motifR - .7,
+          { color: base, width: 1.1, alpha: alpha * .54 },
+        );
+      }
     }
   } else {
-    for (let i = 0; i < 4; i += 1) {
-      arc(innerR, i * Math.PI / 2, .22, 1.2, alpha);
+    for (let i = 0; i < 3; i += 1) {
+      arc(motifR, motifAngle + i * Math.PI * 2 / 3, .38, 1.8, alpha);
     }
   }
 
-  // Real talent allocation is encoded as up to two colored inner arcs.
-  // More points = a longer, brighter segment; hybrid builds show both colors.
+  // Talent identity is now a real visual layer rather than tiny decorative
+  // pips. Each invested branch occupies roughly 20-35% of the inner ring.
+  // A hybrid build therefore reads as two distinct colors immediately.
   const branches = talentBranchVisuals(actor, game);
   const activeBranches = branches.filter(branch => branch.points > 0);
 
   for (const branch of activeBranches) {
     const branchIndex = branch.index % 2;
-    const baseAngle = branchIndex === 0 ? -2.55 : .58;
-    const drift = Math.sin(t * .22 + phase + branchIndex * 1.7) * .035;
-    const span = .34 + branch.share * .72 + branch.development * .16;
-    const rr = innerR - 2.0 - branchIndex * 1.8;
-    const branchAlpha =
-      .20
-      + branch.development * .28
-      + (mode === "cast" ? progress * .10 : 0);
+    const baseAngle = branchIndex === 0 ? -2.72 : .34;
+    const drift = Math.sin(t * .18 + phase + branchIndex * 1.9) * .025;
+    const span =
+      1.05
+      + branch.share * .80
+      + branch.development * .25;
+    const rr = ringRadius - 1.85 - branchIndex * 2.25;
+    const branchAlpha = Math.min(
+      .72,
+      (
+        .34
+        + branch.development * .30
+        + (mode === "cast" ? progress * .10 : 0)
+      ) * combatFade,
+    );
+    const width = 1.85 + branch.development * .85;
+    const from = baseAngle + drift;
+    const to = from + span;
 
+    // Soft under-stroke gives the build color presence without turning it
+    // into a neon HUD element.
     strokeLivingArc(
       graphics,
       rr,
-      baseAngle + drift,
-      baseAngle + drift + span,
+      from,
+      to,
       {
         color: branch.color,
-        width: 1.15 + branch.development * .65,
-        alpha: Math.min(.62, branchAlpha),
+        width: width + 2.8,
+        alpha: branchAlpha * .16,
       },
-      8,
+      12,
+    );
+    strokeLivingArc(
+      graphics,
+      rr,
+      from,
+      to,
+      {
+        color: branch.color,
+        width,
+        alpha: branchAlpha,
+      },
+      12,
     );
 
-    const endA = baseAngle + drift + span;
-    graphics.circle(
-      Math.cos(endA) * rr,
-      Math.sin(endA) * rr,
-      .78 + branch.development * .35,
-    ).fill({
-      color: branch.color,
-      alpha: Math.min(.72, branchAlpha + .10),
-    });
+    drawIdentityNode(
+      graphics,
+      to,
+      rr,
+      .95 + branch.development * .35,
+      branch.color,
+      Math.min(.78, branchAlpha + .12),
+    );
   }
 }
 
@@ -455,44 +657,26 @@ function drawLivingRingAccent(
   graphics.visible = true;
 
   if (mode === "idle") {
-    // Idle should still feel alive: a slow asymmetric orbit, breathing echo
-    // and two tiny travelling motes. The center remains completely empty.
+    // Keep team ownership readable, but let the class/talent layer do the
+    // interesting work. One restrained glint is enough outside the body.
     const idPhase = String(actor.id || "")
       .split("")
       .reduce((sum, char) => sum + char.charCodeAt(0), 0) * .017;
-    const breathe = .5 + .5 * Math.sin(t * 1.65 + idPhase);
-    const a = t * .46 + idPhase;
+    const breathe = .5 + .5 * Math.sin(t * 1.55 + idPhase);
+    const a = t * .36 + idPhase;
 
-    strokeLivingArc(graphics,radius+1.15,a-.34,a+.34,{
-      color:brightTeam,width:1.65,alpha:.18+.11*breathe,
-    },7);
     strokeLivingArc(
       graphics,
-      radius+4.1,
-      a+Math.PI-.27,
-      a+Math.PI+.27,
-      { color:teamColor,width:1.15,alpha:.08+.07*(1-breathe) },
-      6,
+      radius + 1.25,
+      a - .28,
+      a + .28,
+      {
+        color: brightTeam,
+        width: 1.45,
+        alpha: .13 + .08 * breathe,
+      },
+      7,
     );
-
-    graphics.circle(0,0,radius+3.1+breathe*1.25).stroke({
-      color:teamColor,
-      width:.9,
-      alpha:.045+.04*breathe,
-    });
-
-    for (let i=0;i<2;i+=1) {
-      const moteA = a + (i ? Math.PI * 1.18 : -.18);
-      const moteR = radius + 5.3 + (i ? 1.2 : 0);
-      graphics.circle(
-        Math.cos(moteA)*moteR,
-        Math.sin(moteA)*moteR,
-        i ? .75 : 1.05,
-      ).fill({
-        color:i ? teamColor : brightTeam,
-        alpha:(i ? .11 : .18)+breathe*(i ? .04 : .08),
-      });
-    }
     return;
   }
 

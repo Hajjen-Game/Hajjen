@@ -35,9 +35,9 @@ const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rog
 const QUERY_PARAMS = new URLSearchParams(window.location.search);
 const RENDERER_MODE = (QUERY_PARAMS.get("renderer") || "").toLowerCase();
 const BABYLON_PREVIEW_LOCKED_TO_SHOWCASE = RENDERER_MODE === "babylon";
-const PIXI_PREVIEW_LOCKED_TO_IMAGE_ARENA = RENDERER_MODE === "pixi";
+const PIXI_PREVIEW_LOCKED_TO_GRAND_RING = RENDERER_MODE === "pixi";
 const BABYLON_PREVIEW_ARENA = arenaById("emberwatch-bastion");
-const PIXI_PREVIEW_ARENA = arenaById("sunscar-canyon-test");
+const PIXI_PREVIEW_ARENA = arenaById("four-pillar-ring");
 
 let game = null;
 let activeCharacter = null;
@@ -51,7 +51,7 @@ let lastEnemyKey = "";
 let lastPlayedArenaId = null;
 let pendingArena = BABYLON_PREVIEW_LOCKED_TO_SHOWCASE
   ? BABYLON_PREVIEW_ARENA
-  : PIXI_PREVIEW_LOCKED_TO_IMAGE_ARENA
+  : PIXI_PREVIEW_LOCKED_TO_GRAND_RING
     ? PIXI_PREVIEW_ARENA
     : DEFAULT_ARENA;
 let setupRequired = true;
@@ -213,7 +213,7 @@ function rollArena() {
     pendingArena = BABYLON_PREVIEW_ARENA;
     return;
   }
-  if (PIXI_PREVIEW_LOCKED_TO_IMAGE_ARENA) {
+  if (PIXI_PREVIEW_LOCKED_TO_GRAND_RING) {
     pendingArena = PIXI_PREVIEW_ARENA;
     return;
   }

@@ -9937,8 +9937,66 @@ export class PixiProofRenderer {
           });
         }
 
+        // Showcase energy envelope: every ranged projectile gets the same
+        // multi-layer readability standard as Chain Lightning — a broad aura,
+        // saturated body and razor-hot center — while keeping its own shape.
+        const travelPulse =
+          .82 + (.5 + .5 * Math.sin(p * 34 + seed * .071)) * .18;
+
+        if (spec.shape === "shadow" || spec.shape === "chaos") {
+          jaggedLine(
+            glow, tailX, tailY, px, py, seed + 101,
+            spec.shape === "chaos" ? 9 : 7,
+            spec.shape === "chaos" ? 8 : 7,
+            {
+              color: spec.main,
+              width: spec.heavy ? 24 : 19,
+              alpha: alpha * travelFade * .16 * travelPulse,
+            },
+            p * 1.7,
+          );
+        } else {
+          glow.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.main,
+            width: spec.heavy ? 24 : 19,
+            alpha: alpha * travelFade * .15 * travelPulse,
+          });
+        }
+
+        core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+          color: spec.main,
+          width: spec.heavy ? 6.4 : 5.0,
+          alpha: alpha * travelFade * .62,
+        });
+        core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+          color: spec.core,
+          width: spec.heavy ? 1.65 : 1.25,
+          alpha: alpha * travelFade * .96,
+        });
+
+        const satelliteCount = spec.heavy ? 4 : 3;
+        for (let i = 0; i < satelliteCount; i += 1) {
+          const orbit =
+            p * (spec.heavy ? 17 : 14) * (i % 2 ? -1 : 1)
+            + i * Math.PI * 2 / satelliteCount
+            + seed * .013;
+          const rr = (spec.size || 9) + 7 + (i % 2) * 4;
+          const sx = px + nx * Math.cos(orbit) * rr - tx * (i * 2.2);
+          const sy = py + ny * Math.cos(orbit) * rr - ty * (i * 2.2)
+            + Math.sin(orbit) * 2.5;
+
+          glow.circle(sx,sy,spec.heavy ? 5.2 : 4.1).fill({
+            color: i % 2 ? spec.core : spec.main,
+            alpha: alpha * travelFade * .18,
+          });
+          core.circle(sx,sy,spec.heavy ? 2.0 : 1.55).fill({
+            color: i % 2 ? spec.core : spec.accent,
+            alpha: alpha * travelFade * .72,
+          });
+        }
+
         // Offset motes make the tail turbulent instead of laser-straight.
-        const moteCount = spec.heavy ? 9 : 7;
+        const moteCount = spec.heavy ? 13 : 10;
         for (let i = 0; i < moteCount; i += 1) {
           const lag = Math.max(0, travelT - .033 * (i + 1));
           let qx = endX * lag;
@@ -10207,6 +10265,60 @@ export class PixiProofRenderer {
             });
           }
           continue;
+        }
+
+        // Shared premium hit beat. Chain Lightning feels strong because the
+        // connection and the detonation are separate events; projectiles now
+        // get that same two-stage payoff before their bespoke impact geometry.
+        const impactFlash = Math.exp(-hit * 10.5);
+        const impactAfterglow = Math.exp(-hit * 3.2);
+        const impactPulse = Math.sin(Math.min(1, hit * 1.65) * Math.PI);
+        const showcaseRadius =
+          14 + easeOut(hit) * (spec.heavy ? 48 : 37);
+
+        glow
+          .circle(ix,iy,22 + impactPulse * (spec.heavy ? 22 : 16))
+          .fill({
+            color: spec.core,
+            alpha: alpha * (.09 + impactFlash * (spec.heavy ? .28 : .22)),
+          })
+          .circle(ix,iy,showcaseRadius)
+          .stroke({
+            color: spec.main,
+            width: spec.heavy ? 12 : 9,
+            alpha: alpha * impactAfterglow * .18,
+          });
+
+        core
+          .circle(ix,iy,4 + (1-hit) * (spec.heavy ? 6 : 4))
+          .fill({
+            color: spec.core,
+            alpha: alpha * Math.min(1, .70 + impactFlash * .35),
+          })
+          .circle(ix,iy,showcaseRadius * .72)
+          .stroke({
+            color: spec.core,
+            width: spec.heavy ? 2.3 : 1.8,
+            alpha: alpha * impactAfterglow * .52,
+          });
+
+        const showcaseSparks = spec.heavy ? 14 : 10;
+        for (let i = 0; i < showcaseSparks; i += 1) {
+          const a =
+            i / showcaseSparks * Math.PI * 2
+            + seed * .017
+            + hit * (i % 2 ? 1.4 : -1.2);
+          const inner = 7 + (i % 3);
+          const outer =
+            18 + easeOut(hit) * (spec.heavy ? 38 : 28) + (i % 4) * 3;
+          core
+            .moveTo(ix + Math.cos(a) * inner, iy + Math.sin(a) * inner)
+            .lineTo(ix + Math.cos(a) * outer, iy + Math.sin(a) * outer)
+            .stroke({
+              color: i % 4 === 0 ? spec.core : (i % 2 ? spec.main : spec.accent),
+              width: spec.heavy ? 1.8 : 1.35,
+              alpha: alpha * impactAfterglow * (spec.heavy ? .68 : .54),
+            });
         }
 
         if (spec.shape === "frost-spear") {
@@ -10899,6 +11011,225 @@ export class PixiProofRenderer {
     }
   }
 
+  updateNativeRangedShowcaseVfx(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type !== "spell") continue;
+      if (effect.spellId === "shaman-chain-lightning") continue;
+
+      const source = game.getActor(effect.sourceId);
+      const target = game.getActor(effect.targetId);
+      const view = this.actorViews.get(effect.sourceId);
+      if (!source || !target || !view || !view.root.visible) continue;
+
+      const spell = source.getSpell?.(effect.spellId);
+      const range = Number(spell?.range) || 0;
+      if (range < 250 || spell?.target === "self") continue;
+
+      const profile = spellPolishProfile(effect.spellId, effect.style);
+      const total = Math.max(1, Number(effect.totalMs) || 1);
+      const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+      const p = clamp01(1 - remaining / total);
+      const alpha = clamp01(remaining / total);
+      const seed = Number(effect.seed || effect.id || 1);
+      const heavy =
+        POLISH_HEAVY_SPELLS.has(effect.spellId)
+        || spell?.aiRole === "bigDamage"
+        || spell?.aiRole === "bigHeal";
+      const allyTarget = spell?.target === "ally";
+      const utility = Boolean(spell?.utility);
+      const strength = allyTarget ? .76 : utility ? .88 : 1;
+      const dx = target.x - source.x;
+      const dy = target.y - source.y;
+      const distance = Math.max(1, Math.hypot(dx,dy));
+      const tx = dx / distance;
+      const ty = dy / distance;
+      const nx = -ty;
+      const ny = tx;
+      const glow = view.secondaryGlowFx;
+      const core = view.secondaryFx;
+      const pulse =
+        .82 + (.5 + .5 * Math.sin(game.elapsedSeconds * 24 + seed * .11)) * .18;
+
+      glow.visible = true;
+      core.visible = true;
+
+      // All ranged spells get a compact source discharge. The shape/color still
+      // comes from the class-specific profile underneath this polish layer.
+      const releaseP = clamp01(p / .16);
+      const releaseFade = 1 - smooth(releaseP);
+      if (releaseFade > 0) {
+        const rr = source.radius + 7 + easeOut(releaseP) * (heavy ? 25 : 18);
+
+        glow.circle(0,0,rr + 5).stroke({
+          color: profile.main,
+          width: heavy ? 11 : 8,
+          alpha: alpha * releaseFade * .18 * strength,
+        });
+        core.circle(0,0,rr).stroke({
+          color: profile.core,
+          width: heavy ? 2.5 : 1.9,
+          alpha: alpha * releaseFade * .72 * strength,
+        });
+        core.circle(0,0,3.4 + (1-releaseP) * (heavy ? 4.5 : 3)).fill({
+          color: profile.core,
+          alpha: alpha * releaseFade * .92 * strength,
+        });
+
+        const fingers = heavy ? 10 : 7;
+        for (let i = 0; i < fingers; i += 1) {
+          const a =
+            i / fingers * Math.PI * 2
+            + seed * .013
+            + releaseP * (i % 2 ? -.55 : .48);
+          const inner = source.radius + 3;
+          const outer = inner + 10 + releaseP * (heavy ? 22 : 15) + (i % 3) * 3;
+          core
+            .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+            .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+            .stroke({
+              color: i % 3 === 0 ? profile.core : profile.main,
+              width: heavy ? 1.7 : 1.2,
+              alpha: alpha * releaseFade * .54 * strength,
+            });
+        }
+      }
+
+      const projectileSpec = PROJECTILE_VFX2_SPELLS.has(effect.spellId)
+        ? projectileVfx2Spec(effect.spellId)
+        : null;
+      const skySpell = COMBAT_VFX2_SKY.has(effect.spellId);
+      const travelEnd = projectileSpec?.travelEnd || (skySpell ? .08 : .27);
+
+      // Non-projectile ranged spells still need a visible "spell happened"
+      // connection. Keep it brief so instant DoTs/CC do not look mechanically
+      // delayed; it reads as an energy snap, not literal travel time.
+      if (!projectileSpec && !skySpell && p < travelEnd + .08) {
+        const q = easeOut(p / Math.max(.08,travelEnd));
+        const qPrev = Math.max(0,q - .18);
+        const px = dx * q;
+        const py = dy * q;
+        const bx = dx * qPrev;
+        const by = dy * qPrev;
+        const wobble = Math.sin(p * 18 + seed * .037) * (utility ? 5 : 8);
+
+        glow
+          .moveTo(bx + nx*wobble,by + ny*wobble)
+          .lineTo(px,py)
+          .stroke({
+            color: profile.main,
+            width: heavy ? 18 : 14,
+            alpha: alpha * .16 * strength,
+          });
+        core
+          .moveTo(bx + nx*wobble,by + ny*wobble)
+          .lineTo(px,py)
+          .stroke({
+            color: profile.main,
+            width: heavy ? 5.4 : 4.0,
+            alpha: alpha * .66 * strength,
+          })
+          .moveTo(bx + nx*wobble,by + ny*wobble)
+          .lineTo(px,py)
+          .stroke({
+            color: profile.core,
+            width: heavy ? 1.5 : 1.05,
+            alpha: alpha * .94 * strength,
+          });
+
+        for (let i = 0; i < (heavy ? 5 : 3); i += 1) {
+          const orbit = p * 16 + i * 2.1 + seed * .021;
+          const rr = 7 + (i % 2) * 4;
+          core.circle(
+            px + nx * Math.cos(orbit) * rr - tx * i * 2,
+            py + ny * Math.cos(orbit) * rr - ty * i * 2,
+            1.2 + (i % 2) * .45,
+          ).fill({
+            color: i % 2 ? profile.core : profile.main,
+            alpha: alpha * .68 * strength,
+          });
+        }
+      }
+
+      const impactStart = projectileSpec?.travelEnd || (skySpell ? .04 : .16);
+      const hit = clamp01((p - impactStart) / Math.max(.18,1-impactStart));
+      if (hit <= 0 || effect.missed) continue;
+
+      const hitFade = 1 - smooth((hit - .18) / .82);
+      const hitFlash = Math.exp(-hit * 9.5);
+      const hitPulse = Math.sin(Math.min(1,hit * 1.6) * Math.PI);
+      const radius =
+        14 + easeOut(hit) * (heavy ? 47 : utility ? 34 : 39);
+      const glowPower = strength * (heavy ? 1.08 : 1);
+
+      glow
+        .circle(dx,dy,20 + hitPulse * (heavy ? 22 : 16))
+        .fill({
+          color: profile.main,
+          alpha: alpha * hitFade * .13 * glowPower,
+        })
+        .circle(dx,dy,radius)
+        .stroke({
+          color: profile.main,
+          width: heavy ? 11 : 8,
+          alpha: alpha * hitFade * .17 * glowPower,
+        });
+
+      core
+        .circle(dx,dy,4 + (1-hit) * (heavy ? 6 : 4))
+        .fill({
+          color: profile.core,
+          alpha: alpha * Math.min(1,.66 + hitFlash * .42) * strength,
+        })
+        .circle(dx,dy,radius * .70)
+        .stroke({
+          color: profile.core,
+          width: heavy ? 2.2 : 1.65,
+          alpha: alpha * hitFade * .50 * strength,
+        });
+
+      const particles = heavy ? 13 : utility ? 8 : 10;
+      for (let i = 0; i < particles; i += 1) {
+        const a =
+          i / particles * Math.PI * 2
+          + seed * .019
+          + hit * (i % 2 ? 1.5 : -1.25);
+        const inner = 7 + (i % 2) * 2;
+        const outer =
+          17 + easeOut(hit) * (heavy ? 37 : 28) + (i % 4) * 3;
+
+        if (allyTarget) {
+          core.circle(
+            dx + Math.cos(a)*outer*.62,
+            dy + Math.sin(a)*outer*.40 - hit*(heavy?28:21),
+            1.2 + (i%3)*.35,
+          ).fill({
+            color: i % 3 === 0 ? profile.core : profile.main,
+            alpha: alpha * hitFade * .58 * strength,
+          });
+        } else {
+          core
+            .moveTo(dx + Math.cos(a)*inner,dy + Math.sin(a)*inner)
+            .lineTo(dx + Math.cos(a)*outer,dy + Math.sin(a)*outer)
+            .stroke({
+              color: i % 4 === 0 ? profile.core : (i % 2 ? profile.main : profile.accent),
+              width: heavy ? 1.75 : 1.25,
+              alpha: alpha * hitFade * .60 * strength * pulse,
+            });
+        }
+      }
+    }
+  }
+
   updateCombatReadability(game) {
     const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
     const effects = game.vfx?.effects || [];
@@ -11338,6 +11669,7 @@ export class PixiProofRenderer {
     this.updateNativeCombatVfx2(game);
     this.updateNativeProjectileVfx2(game);
     this.updateNativeSpellAnimationPolish(game);
+    this.updateNativeRangedShowcaseVfx(game);
     this.updateCombatReadability(game);
     this.updateEnvironmentOcclusion(game);
     this.updateNativeFloatingCombatText(game);

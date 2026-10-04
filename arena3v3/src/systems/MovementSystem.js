@@ -1,6 +1,8 @@
 import { clamp, normalize } from "../core/utils.js";
 
 const AI_COLLISION_GRACE_MS = 220;
+const AI_ROUTE_RELEASE_MS = 180;
+const AI_ROUTE_SIGN_MEMORY_MS = 1200;
 
 function circleHitsRect(x, y, radius, rect) {
   const closestX = clamp(x, rect.x, rect.x + rect.w);
@@ -266,6 +268,34 @@ function blockerKey(blocker) {
   return String(blocker.type || "") + ":" + String(blocker.id || "");
 }
 
+function collisionDescriptorAlongDirection(
+  actor,
+  direction,
+  maxDistance,
+  arena,
+  expectedBlockerKey = "",
+) {
+  const unit = normalize(direction.x, direction.y);
+  if (unit.x === 0 && unit.y === 0) return null;
+
+  const sampleStep = 8;
+  for (let distance = sampleStep; distance <= maxDistance; distance += sampleStep) {
+    const blocker = collisionDescriptor(
+      actor,
+      actor.x + unit.x * distance,
+      actor.y + unit.y * distance,
+      arena,
+    );
+
+    if (!blocker) continue;
+    if (!expectedBlockerKey || blockerKey(blocker) === expectedBlockerKey) {
+      return blocker;
+    }
+  }
+
+  return null;
+}
+
 function chooseCollisionRouteSign(actor, desired, blocker, fallbackSign) {
   const positive = collisionTangent(actor, blocker, 1);
   const negative = collisionTangent(actor, blocker, -1);
@@ -345,6 +375,7 @@ export class MovementSystem {
           actor.aiProgressWindowMs = 0;
           actor.aiForcedDetourMs = 0;
           actor.aiCollisionGraceMs = 0;
+          actor.aiCollisionClearCandidateMs = 0;
           this.debug(actor, "embedded-recovery", {
             from: { x: originX, y: originY },
             to: { x, y },
@@ -449,6 +480,25 @@ export class MovementSystem {
       arena,
     );
     const directBlocked = Boolean(directBlocker);
+    const activeCollisionBlocker = actor.aiObstacleContactActive
+      ? actor.aiCollisionBlocker
+      : null;
+    const activeCollisionKey = blockerKey(activeCollisionBlocker);
+    const obstacleLookaheadDistance = Math.max(
+      110,
+      actor.radius * 5,
+      actor.moveSpeed * 0.55,
+    );
+    const activeObstacleStillAhead = Boolean(
+      activeCollisionBlocker?.type === "obstacle"
+      && collisionDescriptorAlongDirection(
+        actor,
+        desired,
+        obstacleLookaheadDistance,
+        arena,
+        activeCollisionKey,
+      )
+    );
 
     let sign = avoidanceSign(actor);
 
@@ -460,6 +510,7 @@ export class MovementSystem {
         actor.aiCollisionGraceMs || 0,
         AI_COLLISION_GRACE_MS,
       );
+      actor.aiCollisionClearCandidateMs = 0;
 
       const changedBlocker =
         actor.aiObstacleContactActive
@@ -469,12 +520,27 @@ export class MovementSystem {
         actor.aiObstacleDetours = (actor.aiObstacleDetours || 0) + 1;
         actor.aiCollisionSampleMs = 999;
         actor.aiCollisionBlocker = directBlocker;
-        actor.aiCollisionRouteSign = chooseCollisionRouteSign(
-          actor,
-          desired,
-          directBlocker,
-          sign,
-        );
+
+        const nowMs = actor.aiMovementDebugClockMs || 0;
+        const directKey = blockerKey(directBlocker);
+        const reuseRecentRouteSign =
+          directKey
+          && directKey === actor.aiLastClearedCollisionKey
+          && nowMs - (actor.aiLastClearedCollisionAtMs || -Infinity)
+            <= AI_ROUTE_SIGN_MEMORY_MS
+          && (
+            actor.aiLastClearedCollisionSign === 1
+            || actor.aiLastClearedCollisionSign === -1
+          );
+
+        actor.aiCollisionRouteSign = reuseRecentRouteSign
+          ? actor.aiLastClearedCollisionSign
+          : chooseCollisionRouteSign(
+            actor,
+            desired,
+            directBlocker,
+            sign,
+          );
         actor.aiProgressAnchorX = actor.x;
         actor.aiProgressAnchorY = actor.y;
         actor.aiProgressWindowMs = 0;
@@ -486,34 +552,58 @@ export class MovementSystem {
           desired,
           blocker: directBlocker,
           avoidanceSign: actor.aiCollisionRouteSign,
+          reusedRouteSign: reuseRecentRouteSign,
         });
       } else {
         actor.aiCollisionBlocker = directBlocker;
       }
 
       actor.aiObstacleContactActive = true;
-    } else if (
-      actor.aiObstacleContactActive
-      && (actor.aiCollisionGraceMs || 0) <= 0
-    ) {
-      this.debug(actor, "collision-clear", {
-        position: { x: actor.x, y: actor.y },
-        contactMs: actor.aiAvoidanceMs || 0,
-        avoidanceSign: actor.aiCollisionRouteSign || sign,
-        blocker: actor.aiCollisionBlocker || null,
-      });
+    } else if (actor.aiObstacleContactActive) {
+      if (activeObstacleStillAhead) {
+        actor.aiCollisionClearCandidateMs = 0;
+        actor.aiCollisionGraceMs = Math.max(
+          actor.aiCollisionGraceMs || 0,
+          AI_COLLISION_GRACE_MS,
+        );
+      } else {
+        actor.aiCollisionClearCandidateMs =
+          (actor.aiCollisionClearCandidateMs || 0) + deltaSeconds * 1000;
+      }
 
-      actor.aiAvoidanceMs = 0;
-      actor.aiCollisionSampleMs = 0;
-      actor.aiCollisionBlocker = null;
-      actor.aiCollisionRouteSign = null;
-      actor.aiLastCollisionChosenSide = 0;
-      actor.aiLastCollisionChosenDirection = null;
-      actor.aiLastCollisionChosenAtMs = 0;
-      actor.aiObstacleContactActive = false;
-      actor.aiProgressAnchorX = actor.x;
-      actor.aiProgressAnchorY = actor.y;
-      actor.aiProgressWindowMs = 0;
+      const canReleaseRoute =
+        !activeObstacleStillAhead
+        && (actor.aiCollisionGraceMs || 0) <= 0
+        && (actor.aiCollisionClearCandidateMs || 0) >= AI_ROUTE_RELEASE_MS;
+
+      if (canReleaseRoute) {
+        const clearedBlocker = actor.aiCollisionBlocker || null;
+        const clearedSign = actor.aiCollisionRouteSign || sign;
+        const nowMs = actor.aiMovementDebugClockMs || 0;
+
+        this.debug(actor, "collision-clear", {
+          position: { x: actor.x, y: actor.y },
+          contactMs: actor.aiAvoidanceMs || 0,
+          avoidanceSign: clearedSign,
+          blocker: clearedBlocker,
+        });
+
+        actor.aiLastClearedCollisionKey = blockerKey(clearedBlocker);
+        actor.aiLastClearedCollisionSign = clearedSign;
+        actor.aiLastClearedCollisionAtMs = nowMs;
+        actor.aiAvoidanceMs = 0;
+        actor.aiCollisionSampleMs = 0;
+        actor.aiCollisionBlocker = null;
+        actor.aiCollisionRouteSign = null;
+        actor.aiCollisionClearCandidateMs = 0;
+        actor.aiLastCollisionChosenSide = 0;
+        actor.aiLastCollisionChosenDirection = null;
+        actor.aiLastCollisionChosenAtMs = 0;
+        actor.aiObstacleContactActive = false;
+        actor.aiProgressAnchorX = actor.x;
+        actor.aiProgressAnchorY = actor.y;
+        actor.aiProgressWindowMs = 0;
+      }
     }
 
     if (
@@ -587,7 +677,14 @@ export class MovementSystem {
     // to balance exactly on the collision tangent. The corner waypoint gives the
     // AI a stable next destination, while the outward-biased escape direction is
     // a safe fallback if the actor is grazing the collider by a fraction.
-    if (steeringBlocker && (directBlocked || collisionGraceActive)) {
+    const obstacleRouteCommitted =
+      actor.aiObstacleContactActive
+      && steeringBlocker?.type === "obstacle";
+
+    if (
+      steeringBlocker
+      && (directBlocked || collisionGraceActive || obstacleRouteCommitted)
+    ) {
       if (steeringBlocker.type === "obstacle") {
         const routeDirection = collisionRouteDirection(
           actor,
@@ -608,7 +705,11 @@ export class MovementSystem {
       }
     }
 
-    if (!forcedDetour && !collisionGraceActive) directions.push(desired);
+    if (
+      !forcedDetour
+      && !collisionGraceActive
+      && !obstacleRouteCommitted
+    ) directions.push(desired);
 
     for (const degreesAway of preferredAngles) {
       directions.push(
@@ -616,7 +717,11 @@ export class MovementSystem {
       );
     }
 
-    if (collisionGraceActive && !directBlocked) directions.push(desired);
+    if (
+      collisionGraceActive
+      && !directBlocked
+      && !obstacleRouteCommitted
+    ) directions.push(desired);
 
     for (const degreesAway of preferredAngles) {
       directions.push(
@@ -624,7 +729,11 @@ export class MovementSystem {
       );
     }
 
-    if (forcedDetour && !collisionGraceActive) directions.push(desired);
+    if (
+      forcedDetour
+      && !collisionGraceActive
+      && !obstacleRouteCommitted
+    ) directions.push(desired);
 
     if ((actor.aiStuckMs || 0) >= 360) {
       directions.push(rotate(desired, Math.PI));

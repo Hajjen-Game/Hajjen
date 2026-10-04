@@ -227,6 +227,9 @@ export class MovementSystem {
   moveAI(actor, vector, deltaSeconds, arena) {
     if (!actor.alive || actor.activeDash) return false;
 
+    actor.aiMovementDebugClockMs =
+      (actor.aiMovementDebugClockMs || 0) + deltaSeconds * 1000;
+
     // Safety valve for the rare case where an AI ends up microscopically inside
     // a pillar collider. Normal collision movement cannot leave an overlap
     // because every small exit step still counts as colliding.
@@ -281,6 +284,12 @@ export class MovementSystem {
         forcedDetourMs: actor.aiForcedDetourMs,
         progressDistance,
         progressThreshold,
+        blocker: collisionDescriptor(
+          actor,
+          actor.x + desired.x * step,
+          actor.y + desired.y * step,
+          arena,
+        ),
       });
     }
 
@@ -299,6 +308,7 @@ export class MovementSystem {
       if (!actor.aiObstacleContactActive) {
         actor.aiObstacleDetours = (actor.aiObstacleDetours || 0) + 1;
         actor.aiCollisionSampleMs = 999;
+        actor.aiCollisionBlocker = directBlocker;
         this.debug(actor, "collision-start", {
           position: { x: actor.x, y: actor.y },
           desired,
@@ -313,10 +323,14 @@ export class MovementSystem {
           position: { x: actor.x, y: actor.y },
           contactMs: actor.aiAvoidanceMs || 0,
           avoidanceSign: sign,
+          blocker: actor.aiCollisionBlocker || null,
         });
       }
       actor.aiAvoidanceMs = 0;
       actor.aiCollisionSampleMs = 0;
+      actor.aiCollisionBlocker = null;
+      actor.aiLastCollisionChosenSide = 0;
+      actor.aiLastCollisionChosenAtMs = 0;
       actor.aiObstacleContactActive = false;
     }
 
@@ -360,6 +374,41 @@ export class MovementSystem {
       // when an AI continuously recomputes a target on the far side of a wall.
       if (this.tryDirectionStrict(actor, direction, step, arena)) {
         const chosenAngleDeg = signedAngleDegrees(desired, direction);
+
+        if (directBlocked) {
+          const chosenSide = Math.sign(chosenAngleDeg);
+          const nowMs = actor.aiMovementDebugClockMs || 0;
+          const previousSide = actor.aiLastCollisionChosenSide || 0;
+          const previousAtMs = actor.aiLastCollisionChosenAtMs || 0;
+          const switchGapMs = nowMs - previousAtMs;
+
+          if (
+            chosenSide !== 0
+            && previousSide !== 0
+            && chosenSide !== previousSide
+            && switchGapMs <= 280
+            && nowMs - (actor.aiLastRapidDirectionFlipLogMs || -Infinity) >= 120
+          ) {
+            actor.aiRapidDirectionFlips = (actor.aiRapidDirectionFlips || 0) + 1;
+            actor.aiLastRapidDirectionFlipLogMs = nowMs;
+            this.debug(actor, "rapid-direction-flip", {
+              position: { x: actor.x, y: actor.y },
+              blocker: directBlocker,
+              desired,
+              chosen: direction,
+              chosenAngleDeg,
+              previousSide,
+              chosenSide,
+              switchGapMs,
+              avoidanceSign: sign,
+            });
+          }
+
+          if (chosenSide !== 0) {
+            actor.aiLastCollisionChosenSide = chosenSide;
+            actor.aiLastCollisionChosenAtMs = nowMs;
+          }
+        }
 
         if (
           directBlocked

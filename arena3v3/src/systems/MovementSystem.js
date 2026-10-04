@@ -96,37 +96,38 @@ function signedAngleDegrees(from, to) {
   return Math.atan2(cross, dot) * 180 / Math.PI;
 }
 
-function collisionTangent(actor, desired, blocker, sign) {
+function collisionTangent(actor, blocker, sign) {
   if (!blocker) return null;
 
-  const fallbackSign = sign === -1 ? -1 : 1;
-  const tangentialSign = value =>
-    Math.abs(value) >= 0.18 ? Math.sign(value) : fallbackSign;
+  // Keep one stable clockwise/counter-clockwise route for the whole contact.
+  // The previous implementation derived tangent direction from the live target
+  // vector, so a small target movement could reverse the tangent every frame.
+  const routeSign = sign === -1 ? -1 : 1;
 
   if (blocker.type === "boundary") {
     const sides = blocker.sides || [];
-    const horizontalWall = sides.includes("top") || sides.includes("bottom");
-    const verticalWall = sides.includes("left") || sides.includes("right");
+    const hasLeft = sides.includes("left");
+    const hasRight = sides.includes("right");
+    const hasTop = sides.includes("top");
+    const hasBottom = sides.includes("bottom");
 
-    if (verticalWall && !horizontalWall) {
-      return { x: 0, y: tangentialSign(desired.y) };
+    if (hasTop && hasLeft) {
+      return routeSign === 1 ? { x: 1, y: 0 } : { x: 0, y: 1 };
+    }
+    if (hasTop && hasRight) {
+      return routeSign === 1 ? { x: 0, y: 1 } : { x: -1, y: 0 };
+    }
+    if (hasBottom && hasRight) {
+      return routeSign === 1 ? { x: -1, y: 0 } : { x: 0, y: -1 };
+    }
+    if (hasBottom && hasLeft) {
+      return routeSign === 1 ? { x: 0, y: -1 } : { x: 1, y: 0 };
     }
 
-    if (horizontalWall && !verticalWall) {
-      return { x: tangentialSign(desired.x), y: 0 };
-    }
-
-    // At an arena corner choose the inward tangent with the stronger useful
-    // component instead of tracing deeper into the corner.
-    if (verticalWall && horizontalWall) {
-      const inwardX = sides.includes("left") ? 1 : -1;
-      const inwardY = sides.includes("top") ? 1 : -1;
-
-      return Math.abs(desired.x) >= Math.abs(desired.y)
-        ? { x: inwardX, y: 0 }
-        : { x: 0, y: inwardY };
-    }
-
+    if (hasTop) return { x: routeSign, y: 0 };
+    if (hasRight) return { x: 0, y: routeSign };
+    if (hasBottom) return { x: -routeSign, y: 0 };
+    if (hasLeft) return { x: 0, y: -routeSign };
     return null;
   }
 
@@ -146,17 +147,44 @@ function collisionTangent(actor, desired, blocker, sign) {
     { face: "bottom", distance: Math.abs(actor.y - bottom) },
   ].sort((a, b) => a.distance - b.distance);
 
-  const nearestFace = faceDistances[0]?.face;
+  // routeSign +1 follows the expanded rectangle clockwise:
+  // top -> right -> bottom -> left. -1 follows it counter-clockwise.
+  switch (faceDistances[0]?.face) {
+    case "top":
+      return { x: routeSign, y: 0 };
+    case "right":
+      return { x: 0, y: routeSign };
+    case "bottom":
+      return { x: -routeSign, y: 0 };
+    case "left":
+      return { x: 0, y: -routeSign };
+    default:
+      return null;
+  }
+}
 
-  if (nearestFace === "left" || nearestFace === "right") {
-    return { x: 0, y: tangentialSign(desired.y) };
+function blockerKey(blocker) {
+  if (!blocker) return "";
+  return String(blocker.type || "") + ":" + String(blocker.id || "");
+}
+
+function chooseCollisionRouteSign(actor, desired, blocker, fallbackSign) {
+  const positive = collisionTangent(actor, blocker, 1);
+  const negative = collisionTangent(actor, blocker, -1);
+
+  if (!positive || !negative) return fallbackSign === -1 ? -1 : 1;
+
+  const positiveScore = desired.x * positive.x + desired.y * positive.y;
+  const negativeScore = desired.x * negative.x + desired.y * negative.y;
+
+  // Prefer the side that already advances toward the target when that signal is
+  // meaningful. If the target is almost straight through the wall, preserve the
+  // actor's deterministic side so identical situations stay stable.
+  if (Math.abs(positiveScore - negativeScore) >= 0.12) {
+    return positiveScore > negativeScore ? 1 : -1;
   }
 
-  if (nearestFace === "top" || nearestFace === "bottom") {
-    return { x: tangentialSign(desired.x), y: 0 };
-  }
-
-  return null;
+  return fallbackSign === -1 ? -1 : 1;
 }
 
 function separationLocked(actor) {
@@ -299,6 +327,10 @@ export class MovementSystem {
       0,
       (actor.aiCollisionGraceMs || 0) - deltaSeconds * 1000,
     );
+    actor.aiForcedDetourMs = Math.max(
+      0,
+      (actor.aiForcedDetourMs || 0) - deltaSeconds * 1000,
+    );
 
     // Safety valve for the rare case where an AI ends up microscopically inside
     // a pillar collider. Normal collision movement cannot leave an overlap
@@ -312,57 +344,6 @@ export class MovementSystem {
     }
 
     const step = actor.moveSpeed * movementSpeedMultiplier(actor) * deltaSeconds;
-    let sign = avoidanceSign(actor);
-
-    // Progress watchdog: an AI can technically keep moving while oscillating
-    // around the same pillar corner, which means the normal "could not move"
-    // watchdog never fires. Track net displacement across a short window and
-    // force a route-side change if the actor is not making real progress.
-    if (!Number.isFinite(actor.aiProgressAnchorX) || !Number.isFinite(actor.aiProgressAnchorY)) {
-      actor.aiProgressAnchorX = actor.x;
-      actor.aiProgressAnchorY = actor.y;
-      actor.aiProgressWindowMs = 0;
-    }
-
-    actor.aiProgressWindowMs = (actor.aiProgressWindowMs || 0) + deltaSeconds * 1000;
-    actor.aiForcedDetourMs = Math.max(
-      0,
-      (actor.aiForcedDetourMs || 0) - deltaSeconds * 1000,
-    );
-
-    const progressDistance = Math.hypot(
-      actor.x - actor.aiProgressAnchorX,
-      actor.y - actor.aiProgressAnchorY,
-    );
-    const progressThreshold = Math.max(24, actor.radius * 1.3);
-
-    if (progressDistance >= progressThreshold) {
-      actor.aiProgressAnchorX = actor.x;
-      actor.aiProgressAnchorY = actor.y;
-      actor.aiProgressWindowMs = 0;
-    } else if (actor.aiProgressWindowMs >= 1100) {
-      actor.aiAvoidanceSign = -sign;
-      sign = -sign;
-      actor.aiForcedDetourMs = 900;
-      actor.aiProgressAnchorX = actor.x;
-      actor.aiProgressAnchorY = actor.y;
-      actor.aiProgressWindowMs = 0;
-      actor.aiPathReroutes = (actor.aiPathReroutes || 0) + 1;
-      this.debug(actor, "progress-reroute", {
-        position: { x: actor.x, y: actor.y },
-        avoidanceSign: sign,
-        forcedDetourMs: actor.aiForcedDetourMs,
-        progressDistance,
-        progressThreshold,
-        blocker: collisionDescriptor(
-          actor,
-          actor.x + desired.x * step,
-          actor.y + desired.y * step,
-          arena,
-        ),
-      });
-    }
-
     const directBlocker = collisionDescriptor(
       actor,
       actor.x + desired.x * step,
@@ -371,25 +352,47 @@ export class MovementSystem {
     );
     const directBlocked = Boolean(directBlocker);
 
+    let sign = avoidanceSign(actor);
+
     if (directBlocked) {
       actor.aiAvoidanceMs = (actor.aiAvoidanceMs || 0) + deltaSeconds * 1000;
-      actor.aiCollisionSampleMs = (actor.aiCollisionSampleMs || 0) + deltaSeconds * 1000;
+      actor.aiCollisionSampleMs =
+        (actor.aiCollisionSampleMs || 0) + deltaSeconds * 1000;
       actor.aiCollisionGraceMs = Math.max(
         actor.aiCollisionGraceMs || 0,
         AI_COLLISION_GRACE_MS,
       );
 
-      if (!actor.aiObstacleContactActive) {
+      const changedBlocker =
+        actor.aiObstacleContactActive
+        && blockerKey(actor.aiCollisionBlocker) !== blockerKey(directBlocker);
+
+      if (!actor.aiObstacleContactActive || changedBlocker) {
         actor.aiObstacleDetours = (actor.aiObstacleDetours || 0) + 1;
         actor.aiCollisionSampleMs = 999;
         actor.aiCollisionBlocker = directBlocker;
+        actor.aiCollisionRouteSign = chooseCollisionRouteSign(
+          actor,
+          desired,
+          directBlocker,
+          sign,
+        );
+        actor.aiProgressAnchorX = actor.x;
+        actor.aiProgressAnchorY = actor.y;
+        actor.aiProgressWindowMs = 0;
+        actor.aiLastCollisionChosenDirection = null;
+        actor.aiLastCollisionChosenAtMs = 0;
+
         this.debug(actor, "collision-start", {
           position: { x: actor.x, y: actor.y },
           desired,
           blocker: directBlocker,
-          avoidanceSign: sign,
+          avoidanceSign: actor.aiCollisionRouteSign,
         });
+      } else {
+        actor.aiCollisionBlocker = directBlocker;
       }
+
       actor.aiObstacleContactActive = true;
     } else if (
       actor.aiObstacleContactActive
@@ -398,16 +401,78 @@ export class MovementSystem {
       this.debug(actor, "collision-clear", {
         position: { x: actor.x, y: actor.y },
         contactMs: actor.aiAvoidanceMs || 0,
-        avoidanceSign: sign,
+        avoidanceSign: actor.aiCollisionRouteSign || sign,
         blocker: actor.aiCollisionBlocker || null,
       });
 
       actor.aiAvoidanceMs = 0;
       actor.aiCollisionSampleMs = 0;
       actor.aiCollisionBlocker = null;
+      actor.aiCollisionRouteSign = null;
       actor.aiLastCollisionChosenSide = 0;
+      actor.aiLastCollisionChosenDirection = null;
       actor.aiLastCollisionChosenAtMs = 0;
       actor.aiObstacleContactActive = false;
+      actor.aiProgressAnchorX = actor.x;
+      actor.aiProgressAnchorY = actor.y;
+      actor.aiProgressWindowMs = 0;
+    }
+
+    if (
+      actor.aiObstacleContactActive
+      && (actor.aiCollisionRouteSign === 1 || actor.aiCollisionRouteSign === -1)
+    ) {
+      sign = actor.aiCollisionRouteSign;
+    }
+
+    // Progress rerouting only belongs to an active collision contact. Previously
+    // the watchdog ran during ordinary movement too, which could silently flip
+    // the next obstacle side because an actor was casting or maintaining range.
+    if (actor.aiObstacleContactActive || directBlocked) {
+      if (
+        !Number.isFinite(actor.aiProgressAnchorX)
+        || !Number.isFinite(actor.aiProgressAnchorY)
+      ) {
+        actor.aiProgressAnchorX = actor.x;
+        actor.aiProgressAnchorY = actor.y;
+        actor.aiProgressWindowMs = 0;
+      }
+
+      actor.aiProgressWindowMs =
+        (actor.aiProgressWindowMs || 0) + deltaSeconds * 1000;
+
+      const progressDistance = Math.hypot(
+        actor.x - actor.aiProgressAnchorX,
+        actor.y - actor.aiProgressAnchorY,
+      );
+      const progressThreshold = Math.max(24, actor.radius * 1.3);
+
+      if (progressDistance >= progressThreshold) {
+        actor.aiProgressAnchorX = actor.x;
+        actor.aiProgressAnchorY = actor.y;
+        actor.aiProgressWindowMs = 0;
+      } else if (actor.aiProgressWindowMs >= 1100) {
+        sign = -sign;
+        actor.aiCollisionRouteSign = sign;
+        actor.aiForcedDetourMs = 900;
+        actor.aiProgressAnchorX = actor.x;
+        actor.aiProgressAnchorY = actor.y;
+        actor.aiProgressWindowMs = 0;
+        actor.aiPathReroutes = (actor.aiPathReroutes || 0) + 1;
+
+        this.debug(actor, "progress-reroute", {
+          position: { x: actor.x, y: actor.y },
+          avoidanceSign: sign,
+          forcedDetourMs: actor.aiForcedDetourMs,
+          progressDistance,
+          progressThreshold,
+          blocker: directBlocker || actor.aiCollisionBlocker || null,
+        });
+      }
+    } else {
+      actor.aiProgressAnchorX = actor.x;
+      actor.aiProgressAnchorY = actor.y;
+      actor.aiProgressWindowMs = 0;
     }
 
     const collisionGraceActive = (actor.aiCollisionGraceMs || 0) > 0;
@@ -416,30 +481,26 @@ export class MovementSystem {
       ? [90, 118, 150, 68, 45, 24]
       : [24, 45, 68, 90, 118, 150];
     const directions = [];
+    const steeringBlocker =
+      directBlocker
+      || (actor.aiObstacleContactActive ? actor.aiCollisionBlocker : null);
 
-    // When the intended step hits a rectangular collider, first follow the
-    // actual face of that collider. This is much more stable than jumping
-    // between large +/- steering angles while standing on a straight wall.
-    if (directBlocked) {
-      const tangent = collisionTangent(actor, desired, directBlocker, sign);
+    // Follow one stable side around the same rectangular collider. Keep doing it
+    // for the short post-contact grace window so clearing a corner by one pixel
+    // does not immediately pull the actor straight back into that corner.
+    if (steeringBlocker && (directBlocked || collisionGraceActive)) {
+      const tangent = collisionTangent(actor, steeringBlocker, sign);
       if (tangent) directions.push(tangent);
     }
 
-    // Normal travel gets the direct target vector first only when we are not in
-    // the short post-collision grace window. During grace we keep favouring the
-    // same wall side, but every steering candidate is recalculated from the
-    // CURRENT desired vector. Nothing is locked to an old world-space heading.
     if (!forcedDetour && !collisionGraceActive) directions.push(desired);
 
-    // Exhaust the actor's preferred side before trying the opposite side.
     for (const degreesAway of preferredAngles) {
       directions.push(
         rotate(desired, degreesAway * Math.PI / 180 * sign),
       );
     }
 
-    // Once the preferred wall-side candidates have been tried, direct travel is
-    // allowed as a fallback after the actor has technically cleared collision.
     if (collisionGraceActive && !directBlocked) directions.push(desired);
 
     for (const degreesAway of preferredAngles) {
@@ -450,8 +511,6 @@ export class MovementSystem {
 
     if (forcedDetour && !collisionGraceActive) directions.push(desired);
 
-    // A retreat is now a genuine stuck recovery only. Merely travelling beside
-    // a wall for 620ms is not a reason to reverse direction.
     if ((actor.aiStuckMs || 0) >= 360) {
       directions.push(rotate(desired, Math.PI));
     }
@@ -466,16 +525,19 @@ export class MovementSystem {
         const chosenAngleDeg = signedAngleDegrees(desired, direction);
 
         if (directBlocked) {
-          const chosenSide = Math.sign(chosenAngleDeg);
           const nowMs = actor.aiMovementDebugClockMs || 0;
-          const previousSide = actor.aiLastCollisionChosenSide || 0;
+          const previousDirection = actor.aiLastCollisionChosenDirection;
           const previousAtMs = actor.aiLastCollisionChosenAtMs || 0;
           const switchGapMs = nowMs - previousAtMs;
+          const actualDirectionDot = previousDirection
+            ? previousDirection.x * direction.x + previousDirection.y * direction.y
+            : 1;
 
+          // Count an actual movement reversal, not a sign change relative to a
+          // target vector that may itself have moved between simulation ticks.
           if (
-            chosenSide !== 0
-            && previousSide !== 0
-            && chosenSide !== previousSide
+            previousDirection
+            && actualDirectionDot <= -0.35
             && switchGapMs <= 280
             && nowMs - (actor.aiLastRapidDirectionFlipLogMs || -Infinity) >= 120
           ) {
@@ -487,17 +549,16 @@ export class MovementSystem {
               desired,
               chosen: direction,
               chosenAngleDeg,
-              previousSide,
-              chosenSide,
               switchGapMs,
               avoidanceSign: sign,
             });
           }
 
-          if (chosenSide !== 0) {
-            actor.aiLastCollisionChosenSide = chosenSide;
-            actor.aiLastCollisionChosenAtMs = nowMs;
-          }
+          actor.aiLastCollisionChosenDirection = {
+            x: direction.x,
+            y: direction.y,
+          };
+          actor.aiLastCollisionChosenAtMs = nowMs;
         }
 
         if (
@@ -534,12 +595,16 @@ export class MovementSystem {
     actor.aiStuckMs = (actor.aiStuckMs || 0) + deltaSeconds * 1000;
 
     if (actor.aiStuckMs >= 520) {
-      actor.aiAvoidanceSign = -sign;
+      const nextSign = -sign;
+      actor.aiAvoidanceSign = nextSign;
+      if (actor.aiObstacleContactActive) {
+        actor.aiCollisionRouteSign = nextSign;
+      }
       this.debug(actor, "stuck-side-flip", {
         position: { x: actor.x, y: actor.y },
         previousAvoidanceSign: sign,
-        nextAvoidanceSign: -sign,
-        blocker: directBlocker,
+        nextAvoidanceSign: nextSign,
+        blocker: directBlocker || actor.aiCollisionBlocker || null,
         stuckMs: actor.aiStuckMs,
       });
       actor.aiStuckMs = 300;
@@ -550,13 +615,8 @@ export class MovementSystem {
       this.debug(actor, "no-route", {
         position: { x: actor.x, y: actor.y },
         desired,
-        blocker: collisionDescriptor(
-          actor,
-          actor.x + desired.x * step,
-          actor.y + desired.y * step,
-          arena,
-        ),
-        avoidanceSign: actor.aiAvoidanceSign,
+        blocker: directBlocker || actor.aiCollisionBlocker || null,
+        avoidanceSign: actor.aiCollisionRouteSign || actor.aiAvoidanceSign,
       });
     }
 

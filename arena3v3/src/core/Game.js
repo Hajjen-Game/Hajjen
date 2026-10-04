@@ -1,12 +1,12 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-collisiongrace1";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-sunscar-nav1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261002-secondary1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
-import { AISystem } from "../systems/AISystem.js?v=20261001-wallfollow1";
+import { AISystem } from "../systems/AISystem.js?v=20261004-sunscar-nav1";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { RendererBridge } from "../rendering/RendererBridge.js?v=20261004-sunscar-png2";
 import { UIManager } from "../ui/UIManager.js?v=20261004-movementlog2";

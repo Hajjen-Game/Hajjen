@@ -136,9 +136,237 @@ function drawLivingBodyShape(
   graphics.lineTo(points[0].x,points[0].y);
   graphics.stroke({
     color: teamColor,
-    width: glow ? 6.2 : 2.0,
-    alpha: glow ? .22 : .80,
+    width: glow ? 6.8 : 2.0,
+    alpha: glow ? .27 : .80,
   });
+}
+
+function strokeLivingArc(
+  graphics,
+  radius,
+  start,
+  end,
+  style,
+  segments = 10,
+) {
+  if (!graphics || style?.alpha <= 0) return;
+  for (let i = 0; i <= segments; i += 1) {
+    const t = i / segments;
+    const a = start + (end - start) * t;
+    const x = Math.cos(a) * radius;
+    const y = Math.sin(a) * radius;
+    if (i === 0) graphics.moveTo(x,y);
+    else graphics.lineTo(x,y);
+  }
+  graphics.stroke(style);
+}
+
+function drawLivingRingAccent(
+  graphics,
+  actor,
+  state,
+  nowMs,
+  profile = null,
+) {
+  graphics.clear();
+  graphics.visible = false;
+  if (!actor?.alive) return;
+
+  const mode = state?.mode || "idle";
+  const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
+  const progress = Math.max(0, Math.min(1, Number(state?.progress) || 0));
+  const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
+  const brightTeam = actor.team === "friendly" ? 0x9bd9aa : 0xe8a09a;
+  const main = profile?.main ?? teamColor;
+  const core = profile?.core ?? brightTeam;
+  const accent = profile?.accent ?? main;
+  const radius = Math.max(8, Number(actor.radius) || 18) + 3;
+  const t = (Number(nowMs) || 0) * .001;
+
+  let dx = Number(state?.dirX) || Math.cos(actor.facing || 0);
+  let dy = Number(state?.dirY) || Math.sin(actor.facing || 0);
+  const len = Math.max(.0001,Math.hypot(dx,dy));
+  dx /= len;
+  dy /= len;
+  const angle = Math.atan2(dy,dx);
+
+  graphics.visible = true;
+
+  if (mode === "idle") {
+    // Barely-there travelling glint: enough to stop a stationary ring feeling dead.
+    const a = t * .42 + String(actor.id || "").length * .61;
+    strokeLivingArc(graphics,radius+1.1,a-.18,a+.18,{
+      color:brightTeam,width:1.25,alpha:.13,
+    },5);
+    return;
+  }
+
+  if (mode === "move") {
+    // Strong leading edge + a faint open rear arc gives clear direction without
+    // putting anything inside the unit.
+    strokeLivingArc(graphics,radius+1.1,angle-.72,angle+.72,{
+      color:brightTeam,width:2.15,alpha:.32+.18*intensity,
+    },9);
+    strokeLivingArc(graphics,radius+4.0,angle+Math.PI-.66,angle+Math.PI+.66,{
+      color:teamColor,width:1.35,alpha:.12+.12*intensity,
+    },8);
+    return;
+  }
+
+  if (mode === "cast") {
+    // Spell-school arcs orbit outside the permanent team ring. They tighten
+    // toward release but leave the center fully transparent.
+    const spin = t * (1.15 + intensity*.55);
+    const tighten = progress * 2.4;
+    for (let i=0;i<3;i+=1) {
+      const a = spin + i * (Math.PI * 2 / 3);
+      const rr = radius + 7.5 - tighten + i*.8;
+      strokeLivingArc(graphics,rr,a-.42,a+.42,{
+        color:i===1 ? core : (i===2 ? accent : main),
+        width:i===1 ? 1.9 : 1.45,
+        alpha:.24 + intensity*(i===1 ? .34 : .24),
+      },7);
+    }
+    strokeLivingArc(
+      graphics,
+      Math.max(radius+2.5,radius+5.5-progress*2.2),
+      angle-.50,
+      angle+.50,
+      { color:core,width:2.1,alpha:.20+intensity*.34 },
+      8,
+    );
+    return;
+  }
+
+  if (mode === "projectile" || mode === "spell") {
+    // A muzzle-like front wedge makes the projectile visibly leave the ring.
+    const release = 1-progress;
+    const tipR = radius + 6 + release * 5;
+    const sideA = .34;
+    const x1 = Math.cos(angle-sideA)*(radius+.5);
+    const y1 = Math.sin(angle-sideA)*(radius+.5);
+    const x2 = Math.cos(angle+sideA)*(radius+.5);
+    const y2 = Math.sin(angle+sideA)*(radius+.5);
+    const tx = Math.cos(angle)*tipR;
+    const ty = Math.sin(angle)*tipR;
+
+    strokeLivingArc(graphics,radius+1.2,angle-.66,angle+.66,{
+      color:core,width:2.35,alpha:.30+.34*release,
+    },8);
+    graphics
+      .moveTo(x1,y1).lineTo(tx,ty).lineTo(x2,y2)
+      .stroke({
+        color:main,
+        width:1.45,
+        alpha:.22+.42*release,
+      });
+
+    if (progress < .55) {
+      strokeLivingArc(
+        graphics,
+        radius+5+progress*7,
+        angle-.82,
+        angle+.82,
+        { color:core,width:1.1,alpha:(1-progress/.55)*.24 },
+        8,
+      );
+    }
+    return;
+  }
+
+  if (mode === "melee") {
+    // A bright outer crescent follows the attack side. It frames the existing
+    // melee VFX rather than drawing over the transparent center.
+    const swing = Math.sin(progress*Math.PI);
+    strokeLivingArc(graphics,radius+2.2,angle-1.0,angle+.88,{
+      color:core,width:2.6,alpha:.28+.36*swing,
+    },10);
+    strokeLivingArc(graphics,radius+6.2,angle-.72,angle+.58,{
+      color:main,width:1.55,alpha:.14+.28*swing,
+    },8);
+    return;
+  }
+
+  if (mode === "charge" || mode === "shadowstep") {
+    const rear = angle + Math.PI;
+    for (let i=0;i<2;i+=1) {
+      strokeLivingArc(
+        graphics,
+        radius+3+i*4,
+        rear-.72-i*.08,
+        rear+.72+i*.08,
+        {
+          color:mode === "shadowstep" ? accent : teamColor,
+          width:1.55-i*.25,
+          alpha:(.30-i*.08)*(1-progress*.55),
+        },
+        8,
+      );
+    }
+    strokeLivingArc(graphics,radius+1.2,angle-.48,angle+.48,{
+      color:brightTeam,width:2.25,alpha:.38,
+    },7);
+    return;
+  }
+
+  if (mode === "hit") {
+    // Brief impact notch/ripple on the incoming side.
+    const hitPulse = Math.sin(progress*Math.PI);
+    strokeLivingArc(graphics,radius+1,angle-.52,angle+.52,{
+      color:0xffd5cc,width:2.6,alpha:.26+.34*intensity,
+    },7);
+    strokeLivingArc(graphics,radius+4+hitPulse*5,angle-.72,angle+.72,{
+      color:teamColor,width:1.35,alpha:(1-progress)*.30,
+    },8);
+    return;
+  }
+
+  if (mode === "defensive") {
+    const pulse = .5+.5*Math.sin(t*7.5);
+    graphics.circle(0,0,radius+4.2).stroke({
+      color:main,width:1.55,alpha:.25+.18*pulse,
+    });
+    graphics.circle(0,0,radius+8.0).stroke({
+      color:core,width:1.15,alpha:.14+.13*pulse,
+    });
+    return;
+  }
+
+  if (mode === "heal") {
+    const a=t*.75;
+    strokeLivingArc(graphics,radius+4,a-.82,a+.82,{
+      color:main,width:1.65,alpha:.22+.20*intensity,
+    },9);
+    strokeLivingArc(graphics,radius+7,a+Math.PI-.58,a+Math.PI+.58,{
+      color:core,width:1.25,alpha:.16+.16*intensity,
+    },8);
+    return;
+  }
+
+  if (mode === "control") {
+    const a=t*1.2;
+    strokeLivingArc(graphics,radius+5,a-.62,a+.62,{
+      color:main,width:1.7,alpha:.28,
+    },8);
+    strokeLivingArc(graphics,radius+5,a+Math.PI-.62,a+Math.PI+.62,{
+      color:core,width:1.35,alpha:.22,
+    },8);
+    return;
+  }
+
+  // CC body states already have dedicated world VFX. Keep this layer restrained.
+  if (["fear","stun","root","incapacitate"].includes(mode)) {
+    const sections = mode === "stun" ? 4 : 3;
+    for (let i=0;i<sections;i+=1) {
+      const a=t*.45+i*Math.PI*2/sections;
+      strokeLivingArc(graphics,radius+3.5,a-.24,a+.24,{
+        color:brightTeam,width:1.4,alpha:.18+.12*intensity,
+      },5);
+    }
+    return;
+  }
+
+  graphics.visible = false;
 }
 
 function resourceColor(type) {
@@ -1593,6 +1821,11 @@ export class PixiProofRenderer {
       .stroke({ color: teamColor, width: 2, alpha: .72 });
     root.addChild(ring);
 
+    const livingRingAccentFx = new Graphics();
+    livingRingAccentFx.visible = false;
+    livingRingAccentFx.blendMode = "screen";
+    root.addChild(livingRingAccentFx);
+
     const texture = this.iconTextures.get(actor.classId);
     let body;
     let motionGhostA = null;
@@ -1955,6 +2188,7 @@ export class PixiProofRenderer {
       shadow,
       ringGlow,
       ring,
+      livingRingAccentFx,
       body,
       livingCircleUnits: this.livingCircleUnits,
       bodyBaseScaleX: body.scale.x,
@@ -3302,6 +3536,13 @@ export class PixiProofRenderer {
           view.ringGlow.rotation = 0;
           view.ringGlow.scale.set(1,1);
         }
+        if (view.livingRingAccentFx) {
+          view.livingRingAccentFx.clear();
+          view.livingRingAccentFx.visible = false;
+          view.livingRingAccentFx.position.set(0,0);
+          view.livingRingAccentFx.rotation = 0;
+          view.livingRingAccentFx.scale.set(1,1);
+        }
 
         view.name.alpha = 1;
       };
@@ -3349,6 +3590,7 @@ export class PixiProofRenderer {
         view.ccWorldFx.visible = false;
         view.ring.visible = false;
         if (view.ringGlow) view.ringGlow.visible = false;
+        if (view.livingRingAccentFx) view.livingRingAccentFx.visible = false;
 
         if (deathP < 1) {
           body.visible = true;
@@ -3518,6 +3760,9 @@ export class PixiProofRenderer {
       let livingIntensity = moving ? .72 : .12;
       let livingDirX = moving ? moveX : Math.cos(actor.facing || 0);
       let livingDirY = moving ? moveY : Math.sin(actor.facing || 0);
+      let livingProgress = moving ? .5 : 0;
+      let livingSpellId = "";
+      let livingHeavy = false;
 
       view.shadow.scale.set(
         moving ? 1 + Math.abs(moveWave) * .035 : 1,
@@ -3544,6 +3789,8 @@ export class PixiProofRenderer {
         livingIntensity = .35 + gather * .65;
         livingDirX = ctx;
         livingDirY = cty;
+        livingProgress = castP;
+        livingSpellId = actor.cast.spellId || "";
 
         offsetX -= ctx * (gather * .75 + finalBrace * 1.3);
         offsetY -= cty * (gather * .45 + finalBrace * .75);
@@ -3587,6 +3834,9 @@ export class PixiProofRenderer {
         livingIntensity = Math.max(.25, hitPulse);
         livingDirX = dirX;
         livingDirY = dirY;
+        livingProgress = q;
+        livingSpellId = action.spellId || "";
+        livingHeavy = Boolean(action.heavy);
 
         if (action.kind === "melee") {
           const lunge = hitPulse * (action.heavy ? 8.5 : 6);
@@ -3717,6 +3967,8 @@ export class PixiProofRenderer {
           livingIntensity = Math.max(.35,kickPulse * power);
           livingDirX = -motion.hitDirX;
           livingDirY = -motion.hitDirY;
+          livingProgress = hitP;
+          livingSpellId = "";
 
           offsetX += motion.hitDirX * kick;
           offsetY += motion.hitDirY * kick;
@@ -3776,12 +4028,14 @@ export class PixiProofRenderer {
       if (activeCc?.kind === "fear") {
         livingMode = "fear";
         livingIntensity = .9;
+        livingSpellId = activeCc.spellId || "";
         const shake = Math.sin(nowMs * .038 + phaseSeed);
         offsetX += shake * 1.55;
         rotation += shake * .020;
       } else if (activeCc?.kind === "stun") {
         livingMode = "stun";
         livingIntensity = .9;
+        livingSpellId = activeCc.spellId || "";
         const throb = .5 + .5 * Math.sin(nowMs * .026 + phaseSeed);
         scaleX *= 1 + throb * .018;
         scaleY *= 1 - throb * .022;
@@ -3789,12 +4043,14 @@ export class PixiProofRenderer {
       } else if (activeCc?.kind === "root") {
         livingMode = "root";
         livingIntensity = .85;
+        livingSpellId = activeCc.spellId || "";
         const compression = .5 + .5 * Math.sin(nowMs * .016 + phaseSeed);
         scaleX *= 1 + compression * .014;
         scaleY *= 1 - compression * .018;
       } else if (activeCc?.kind === "incapacitate") {
         livingMode = "incapacitate";
         livingIntensity = .72;
+        livingSpellId = activeCc.spellId || "";
         rotation += Math.sin(nowMs * .010 + phaseSeed) * .014;
         offsetY += Math.sin(nowMs * .012 + phaseSeed) * .45;
       }
@@ -3811,6 +4067,9 @@ export class PixiProofRenderer {
           intensity:livingIntensity,
           dirX:livingDirX,
           dirY:livingDirY,
+          progress:livingProgress,
+          spellId:livingSpellId,
+          heavy:livingHeavy,
         };
         drawLivingBodyShape(body,actor,livingState,nowMs);
         if (view.ringGlow) {
@@ -3824,6 +4083,21 @@ export class PixiProofRenderer {
           view.ringGlow.position.set(offsetX,offsetY);
           view.ringGlow.rotation = rotation;
           view.ringGlow.scale.set(scaleX,scaleY);
+        }
+        if (view.livingRingAccentFx) {
+          const accentProfile = livingSpellId
+            ? spellPolishProfile(livingSpellId)
+            : null;
+          drawLivingRingAccent(
+            view.livingRingAccentFx,
+            actor,
+            livingState,
+            nowMs,
+            accentProfile,
+          );
+          view.livingRingAccentFx.position.set(offsetX,offsetY);
+          view.livingRingAccentFx.rotation = rotation;
+          view.livingRingAccentFx.scale.set(scaleX,scaleY);
         }
       }
 

@@ -1081,6 +1081,87 @@ function seededRandom(seed = 1) {
   };
 }
 
+function roundedArenaRect(ctx, x, y, w, h, radius) {
+  const r = Math.min(radius, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+}
+
+function paintLegacyGrandRing(ctx, arena) {
+  if (arena?.id !== "four-pillar-ring") return false;
+
+  // Exact pre-environment Grand Ring look from the old Canvas renderer:
+  // dark brown radial floor, subtle gold grid and four rounded LOS pillars.
+  const gradient = ctx.createRadialGradient(640, 360, 80, 640, 360, 680);
+  gradient.addColorStop(0, "#433224");
+  gradient.addColorStop(1, "#3a2c20");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+  ctx.strokeStyle = "#6b4b2b";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(
+    arena.bounds.x,
+    arena.bounds.y,
+    arena.bounds.w,
+    arena.bounds.h,
+  );
+
+  ctx.save();
+  ctx.globalAlpha = 0.13;
+  ctx.strokeStyle = "#c58a43";
+  ctx.lineWidth = 1;
+
+  for (let x = 120; x < GAME_WIDTH; x += 80) {
+    ctx.beginPath();
+    ctx.moveTo(x, arena.bounds.y);
+    ctx.lineTo(x, arena.bounds.y + arena.bounds.h);
+    ctx.stroke();
+  }
+
+  for (let y = 90; y < GAME_HEIGHT; y += 80) {
+    ctx.beginPath();
+    ctx.moveTo(arena.bounds.x, y);
+    ctx.lineTo(arena.bounds.x + arena.bounds.w, y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
+  for (const rect of arena.obstacles) {
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,.45)";
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 8;
+
+    roundedArenaRect(ctx, rect.x, rect.y, rect.w, rect.h, 16);
+    ctx.fillStyle = "#5a4532";
+    ctx.fill();
+
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "#8a6847";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    roundedArenaRect(
+      ctx,
+      rect.x + 12,
+      rect.y + 12,
+      rect.w - 24,
+      rect.h - 24,
+      10,
+    );
+    ctx.strokeStyle = "rgba(230,189,127,.16)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  return true;
+}
+
 function paintFallbackArena(ctx, arena) {
   ctx.fillStyle = "#33281f";
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -1202,7 +1283,8 @@ function makeArenaCanvas(arena) {
   if (!ctx) return canvas;
 
   const handled =
-    drawGrandRingEnvironment(ctx, arena, GAME_WIDTH, GAME_HEIGHT)
+    paintLegacyGrandRing(ctx, arena)
+    || drawGrandRingEnvironment(ctx, arena, GAME_WIDTH, GAME_HEIGHT)
     || drawWindscarEnvironment(ctx, arena, GAME_WIDTH, GAME_HEIGHT);
 
   if (!handled) paintFallbackArena(ctx, arena);

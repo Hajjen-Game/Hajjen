@@ -11510,8 +11510,9 @@ export class PixiProofRenderer {
       const travelEnd = projectileSpec?.travelEnd
         || (talentTrail === "drain" ? .58 : talentTrail ? .42 : .27);
 
-      // Non-projectile ranged spells still need a visible connection. Talent
-      // spells get their own identity instead of falling back to one generic ray.
+      // Non-projectile ranged spells still get a visible moving release segment,
+      // but only Drain Life is allowed to remain tethered caster-to-target.
+      // Every other ranged effect must travel detached from the caster.
       if (!projectileSpec && p < travelEnd + .08) {
         const q = easeOut(p / Math.max(.08,travelEnd));
         const qPrev = Math.max(0,q - .18);
@@ -11636,10 +11637,10 @@ export class PixiProofRenderer {
         } else if (talentTrail === "conflagrate") {
           const emberCount = 10;
           for (let i = 0; i < emberCount; i += 1) {
-            const f = (i+.5)/emberCount;
+            const localF = (i+.5)/emberCount;
             const side = Math.sin(i*1.8+p*15+seed*.02)*(5+(i%3)*2);
-            const ex = dx*f + nx*side;
-            const ey = dy*f + ny*side - Math.sin(f*Math.PI)*5;
+            const ex = bx + (px-bx)*localF + nx*side;
+            const ey = by + (py-by)*localF + ny*side - Math.sin(localF*Math.PI)*5;
             glow.circle(ex,ey,4.2).fill({
               color: profile.main,
               alpha: alpha * .11,
@@ -11652,10 +11653,11 @@ export class PixiProofRenderer {
         } else if (talentTrail === "word-glory") {
           const motes = 8;
           for (let i = 0; i < motes; i += 1) {
-            const f = (i+.5)/motes;
+            const localF = (i+.5)/motes;
             const a = p*8+i*.9+seed*.014;
-            const ex = dx*f + nx*Math.sin(a)*6;
-            const ey = dy*f + ny*Math.sin(a)*6 - Math.sin(f*Math.PI)*7;
+            const ex = bx + (px-bx)*localF + nx*Math.sin(a)*6;
+            const ey = by + (py-by)*localF + ny*Math.sin(a)*6
+              - Math.sin(localF*Math.PI)*7;
             core
               .moveTo(ex-2.5,ey)
               .lineTo(ex+2.5,ey)

@@ -154,12 +154,56 @@ function glyphMarkup(key) {
   }
 }
 
+function effectClassFamily(effect) {
+  const spellId = String(effect?.spellId || "");
+  if (spellId.startsWith("dk-")) return "death-knight";
+  const family = spellId.split("-")[0];
+  return [
+    "priest",
+    "warrior",
+    "mage",
+    "shaman",
+    "warlock",
+    "paladin",
+    "druid",
+    "rogue",
+  ].includes(family) ? family : "";
+}
+
+function effectFamilyMarkMarkup(family) {
+  switch (family) {
+    case "priest":
+      return '<g class="effect-family-mark"><circle cx="20" cy="20" r="17"/><path d="M20 4v8M20 28v8M4 20h8M28 20h8"/></g>';
+    case "warrior":
+      return '<g class="effect-family-mark"><path d="M5 11l9-6M5 20l12-8M6 30l13-9M35 11l-9-6M35 20l-12-8M34 30l-13-9"/></g>';
+    case "mage":
+      return '<g class="effect-family-mark"><circle cx="20" cy="20" r="17"/><circle cx="20" cy="20" r="12"/><path d="m20 4 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g>';
+    case "shaman":
+      return '<g class="effect-family-mark"><path d="m20 4 4 10 9-4-6 9 9 3-10 3 4 10-10-6-10 6 4-10-10-3 9-3-6-9 9 4Z"/></g>';
+    case "death-knight":
+      return '<g class="effect-family-mark"><path d="M20 3v34M4 10l32 20M36 10 4 30"/><circle cx="20" cy="20" r="14"/></g>';
+    case "warlock":
+      return '<g class="effect-family-mark"><circle cx="20" cy="20" r="17"/><path d="M11 8c13-4 23 5 21 17-2 9-11 13-19 9 8-1 13-6 13-13 0-7-5-11-15-13Z"/></g>';
+    case "paladin":
+      return '<g class="effect-family-mark"><circle cx="20" cy="20" r="16"/><path d="M20 4v32M4 20h32M8 8l24 24M32 8 8 32"/></g>';
+    case "druid":
+      return '<g class="effect-family-mark"><path d="M7 31C9 17 20 6 34 5c0 14-7 27-21 31Z"/><path d="M9 33c8-8 16-17 24-26"/></g>';
+    case "rogue":
+      return '<g class="effect-family-mark"><path d="M6 34 18 5M15 36 27 8M25 35 35 12"/></g>';
+    default:
+      return "";
+  }
+}
+
 export function effectIconMarkup(effect, extraClass = "") {
   const key = effectIconKey(effect);
   const palette = effectPalette(effect);
-  return '<svg class="effect-svg ' + escapeHtml(extraClass)
+  const family = effectClassFamily(effect);
+  const familyClass = family ? " effect-family-" + family : "";
+  return '<svg class="effect-svg ' + escapeHtml(extraClass) + familyClass
     + '" viewBox="0 0 40 40" aria-hidden="true"'
     + ' style="--effect-icon-color:' + palette.color + '">'
+    + effectFamilyMarkMarkup(family)
     + '<g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">'
     + glyphMarkup(key)
     + '</g></svg>';

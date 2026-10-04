@@ -175,6 +175,7 @@ export class UIManager {
     });
 
     document.querySelector("#copy-report-button").addEventListener("click", () => this.copyRunReport());
+    document.querySelector("#copy-ai-movement-button")?.addEventListener("click", () => this.copyAiMovementReport());
 
     this.buildFrames();
     this.buildDamageMeter();
@@ -2222,6 +2223,25 @@ export class UIManager {
       document.execCommand("copy");
       textarea.remove();
       this.toast("Run report copied");
+    }
+  }
+
+  async copyAiMovementReport() {
+    const report = this.game.buildAiMovementReport();
+
+    try {
+      await navigator.clipboard.writeText(report);
+      this.toast("AI movement log copied");
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = report;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+      this.toast("AI movement log copied");
     }
   }
 

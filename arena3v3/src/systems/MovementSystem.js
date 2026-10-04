@@ -284,12 +284,13 @@ export class MovementSystem {
       });
     }
 
-    const directBlocked = collides(
+    const directBlocker = collisionDescriptor(
       actor,
       actor.x + desired.x * step,
       actor.y + desired.y * step,
       arena,
     );
+    const directBlocked = Boolean(directBlocker);
 
     if (directBlocked) {
       actor.aiAvoidanceMs = (actor.aiAvoidanceMs || 0) + deltaSeconds * 1000;
@@ -301,12 +302,7 @@ export class MovementSystem {
         this.debug(actor, "collision-start", {
           position: { x: actor.x, y: actor.y },
           desired,
-          blocker: collisionDescriptor(
-            actor,
-            actor.x + desired.x * step,
-            actor.y + desired.y * step,
-            arena,
-          ),
+          blocker: directBlocker,
           avoidanceSign: sign,
         });
       }
@@ -367,10 +363,7 @@ export class MovementSystem {
 
         if (
           directBlocked
-          && (
-            (actor.aiCollisionSampleMs || 0) >= 400
-            || Math.abs(chosenAngleDeg) >= 100
-          )
+          && (actor.aiCollisionSampleMs || 0) >= 400
         ) {
           this.debug(actor, "collision-nav", {
             position: { x: actor.x, y: actor.y },
@@ -380,14 +373,18 @@ export class MovementSystem {
             avoidanceSign: sign,
             forcedDetour,
             contactMs: actor.aiAvoidanceMs || 0,
-            blocker: collisionDescriptor(
-              actor,
-              actor.x + desired.x * step,
-              actor.y + desired.y * step,
-              arena,
-            ),
+            blocker: directBlocker,
           });
           actor.aiCollisionSampleMs = 0;
+        }
+
+        if (actor.aiNoRouteActive) {
+          this.debug(actor, "route-recovered", {
+            position: { x: actor.x, y: actor.y },
+            chosen: direction,
+            chosenAngleDeg,
+          });
+          actor.aiNoRouteActive = false;
         }
 
         actor.aiStuckMs = 0;
@@ -403,12 +400,7 @@ export class MovementSystem {
         position: { x: actor.x, y: actor.y },
         previousAvoidanceSign: sign,
         nextAvoidanceSign: -sign,
-        blocker: collisionDescriptor(
-          actor,
-          actor.x + desired.x * step,
-          actor.y + desired.y * step,
-          arena,
-        ),
+        blocker: directBlocker,
         stuckMs: actor.aiStuckMs,
       });
       actor.aiStuckMs = 300;

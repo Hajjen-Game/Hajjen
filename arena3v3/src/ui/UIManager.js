@@ -1,13 +1,13 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20260929-enemyintel1";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20261004-iconart2";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
 import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
 import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
-import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20260929-auricons1";
+import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20261004-iconart2";
 import { createHealthPresentation, updateHealthPresentation } from "../rendering/HealthPresentation.js?v=20260929-healthfeedback1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";

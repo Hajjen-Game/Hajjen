@@ -1571,12 +1571,21 @@ export class UIManager {
       }
 
       if (cooldown > 0) {
+        const cooldownRatio = spell.cooldownMs > 0
+          ? clamp(cooldown / spell.cooldownMs, 0, 1)
+          : 0;
         overlay.classList.add("active");
+        overlay.style.setProperty(
+          "--cooldown-angle",
+          (cooldownRatio * 360).toFixed(2) + "deg",
+        );
         overlay.textContent = (cooldown / 1000).toFixed(cooldown > 9500 ? 0 : 1);
       } else {
         overlay.classList.remove("active");
+        overlay.style.setProperty("--cooldown-angle", "0deg");
         overlay.textContent = "";
       }
+      slot.classList.toggle("on-cooldown", cooldown > 0);
 
       const gcdActive =
         !spell.ignoreGcd
@@ -1589,10 +1598,13 @@ export class UIManager {
           Math.min(1, this.game.player.gcdRemaining / this.game.player.gcdTotalMs),
         );
         gcdSweep.classList.add("active");
-        gcdSweep.style.transform = "scaleY(" + gcdRatio.toFixed(4) + ")";
+        gcdSweep.style.setProperty(
+          "--gcd-angle",
+          (gcdRatio * 360).toFixed(2) + "deg",
+        );
       } else {
         gcdSweep.classList.remove("active");
-        gcdSweep.style.transform = "scaleY(0)";
+        gcdSweep.style.setProperty("--gcd-angle", "0deg");
       }
 
       const selectedTarget = this.game.getActor(this.game.player.targetId);
@@ -1605,11 +1617,21 @@ export class UIManager {
       const controlled = this.game.cc.isHardControlled(this.game.player);
       const schoolLocked = this.game.cc.isSchoolLocked(this.game.player, spell);
 
-      slot.classList.toggle(
-        "disabled",
-        invalidTarget || noResource || controlled || schoolLocked || !this.game.player.alive,
-      );
+      const playerDead = !this.game.player.alive;
+      const disabled =
+        invalidTarget || noResource || controlled || schoolLocked || playerDead;
+
+      slot.classList.toggle("disabled", disabled);
+      slot.classList.toggle("invalid-target", invalidTarget);
+      slot.classList.toggle("no-resource", noResource);
+      slot.classList.toggle("controlled", controlled);
+      slot.classList.toggle("school-locked", schoolLocked);
+      slot.classList.toggle("player-dead", playerDead);
       slot.classList.toggle("out-of-range", outOfRange);
+      slot.classList.toggle(
+        "available",
+        !disabled && !outOfRange && cooldown <= 0,
+      );
       slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === spellIndex);
     });
 
@@ -1835,7 +1857,8 @@ export class UIManager {
 
       const icon = document.createElement("span");
       icon.className = "effect-icon effect-" + effect.kind
-        + (effectIsImportant(effect) ? " important" : "");
+        + (effectIsImportant(effect) ? " important" : "")
+        + (effect.remainingMs <= 3000 ? " expiring" : "");
       icon.style.setProperty("--effect-color", palette.color);
       icon.style.setProperty("--effect-bg", palette.background);
       icon.style.setProperty("--effect-border", palette.border);

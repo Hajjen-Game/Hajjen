@@ -1,5 +1,5 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20261001-wallfollow1";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-movementlog1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
@@ -9,8 +9,9 @@ import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
 import { AISystem } from "../systems/AISystem.js?v=20261001-wallfollow1";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { RendererBridge } from "../rendering/RendererBridge.js?v=20261004-sunscar-png2";
-import { UIManager } from "../ui/UIManager.js?v=20260929-enemyintel1";
+import { UIManager } from "../ui/UIManager.js?v=20261004-movementlog1";
 import { buildMatchReport } from "./MatchReport.js?v=20261001-wallfollow1";
+import { buildAiMovementReport } from "./AiMovementReport.js?v=20261004-movementlog1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";
@@ -31,7 +32,9 @@ export class Game {
     this.characterConfigs = characterConfigs;
     this.waitingForStart = true;
 
-    this.movement = new MovementSystem();
+    this.movement = new MovementSystem((actor, event) => {
+      this.recordAiMovementEvent(actor, event);
+    });
     this.resources = new ResourceSystem();
     this.vfx = new VisualEffectSystem();
     this.activeCharacterId = null;
@@ -422,6 +425,8 @@ export class Game {
 
     this.runLog = [];
     this.deathEvents = [];
+    this.aiMovementEvents = [];
+    this.aiMovementEventsDropped = 0;
   }
 
   getActor(id) {
@@ -951,6 +956,46 @@ export class Game {
 
   buildRunReport() {
     return buildMatchReport(this);
+  }
+
+  recordAiMovementEvent(actor, event = {}) {
+    if (!actor || actor.control === "player") return;
+
+    const intent = actor.aiIntent || null;
+    const intentTarget = this.getActor(intent?.targetId || actor.aiTargetId);
+    const plan = this.ai?.teamPlan?.(actor.team) || null;
+
+    const entry = {
+      time: Number(this.elapsedSeconds) || 0,
+      type: event.type || "movement",
+      actorId: actor.id,
+      actorName: actor.name,
+      className: actor.className,
+      classId: actor.classId,
+      role: actor.role,
+      team: actor.team,
+      position: event.position || { x: actor.x, y: actor.y },
+      intentType: intent?.type || null,
+      intentTargetName: intent?.targetName
+        || (intentTarget ? this.combatantLabel(intentTarget) : null),
+      intentReason: intent?.reason || null,
+      teamPlanState: plan?.state || null,
+      teamPlanTargetName: plan?.primaryTargetName || null,
+      ...event,
+    };
+
+    this.aiMovementEvents.push(entry);
+
+    const maxEvents = 2400;
+    if (this.aiMovementEvents.length > maxEvents) {
+      const removeCount = this.aiMovementEvents.length - maxEvents;
+      this.aiMovementEvents.splice(0, removeCount);
+      this.aiMovementEventsDropped += removeCount;
+    }
+  }
+
+  buildAiMovementReport() {
+    return buildAiMovementReport(this);
   }
 
   restorePreviousRunDiagnostic() {

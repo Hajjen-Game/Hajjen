@@ -8,7 +8,7 @@ import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
 import { AISystem } from "../systems/AISystem.js?v=20261004-sunscar-nav1";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { RendererBridge } from "../rendering/RendererBridge.js?v=20261004-detachedtails1";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261004-detachedtails2";
 import { UIManager } from "../ui/UIManager.js?v=20261004-movementlog2";
 import { buildMatchReport } from "./MatchReport.js?v=20261001-wallfollow1";
 import { buildAiMovementReport } from "./AiMovementReport.js?v=20261004-movementlog2";

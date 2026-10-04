@@ -3410,6 +3410,10 @@ export class PixiProofRenderer {
         view.shadow.scale.set(1, 1);
         view.ring.visible = true;
         view.ring.alpha = 1;
+        if (view.teamPips) {
+          view.teamPips.visible = true;
+          view.teamPips.alpha = 1;
+        }
 
         view.name.alpha = 1;
       };
@@ -3456,6 +3460,7 @@ export class PixiProofRenderer {
         view.ccWorldGlowFx.visible = false;
         view.ccWorldFx.visible = false;
         view.ring.visible = false;
+        if (view.teamPips) view.teamPips.visible = false;
 
         if (deathP < 1) {
           body.visible = true;
@@ -3621,6 +3626,11 @@ export class PixiProofRenderer {
       let scaleX = moving ? 1 + Math.abs(moveWave) * .012 : 1;
       let scaleY = moving ? 1 - Math.abs(moveWave) * .009 : 1;
 
+      let livingMode = moving ? "move" : "idle";
+      let livingIntensity = moving ? .72 : .12;
+      let livingDirX = moving ? moveX : Math.cos(actor.facing || 0);
+      let livingDirY = moving ? moveY : Math.sin(actor.facing || 0);
+
       view.shadow.scale.set(
         moving ? 1 + Math.abs(moveWave) * .035 : 1,
         moving ? 1 - Math.abs(moveWave) * .025 : 1,
@@ -3641,6 +3651,11 @@ export class PixiProofRenderer {
         const cty = tdy / tlen;
         const gather = smooth(castP);
         const finalBrace = smooth((castP - .72) / .28);
+
+        livingMode = "cast";
+        livingIntensity = .35 + gather * .65;
+        livingDirX = ctx;
+        livingDirY = cty;
 
         offsetX -= ctx * (gather * .75 + finalBrace * 1.3);
         offsetY -= cty * (gather * .45 + finalBrace * .75);
@@ -3679,6 +3694,11 @@ export class PixiProofRenderer {
         const snap = 1 - easeOut(q);
         const dirX = action.dirX;
         const dirY = action.dirY;
+
+        livingMode = action.kind;
+        livingIntensity = Math.max(.25, hitPulse);
+        livingDirX = dirX;
+        livingDirY = dirY;
 
         if (action.kind === "melee") {
           const lunge = hitPulse * (action.heavy ? 8.5 : 6);
@@ -3805,6 +3825,11 @@ export class PixiProofRenderer {
           const power = motion.hitPower * (motion.hitCrit ? 1.24 : 1);
           const kick = kickPulse * (motion.hitCrit ? 5.5 : 3.4) * power;
 
+          livingMode = "hit";
+          livingIntensity = Math.max(.35,kickPulse * power);
+          livingDirX = -motion.hitDirX;
+          livingDirY = -motion.hitDirY;
+
           offsetX += motion.hitDirX * kick;
           offsetY += motion.hitDirY * kick;
           rotation += motion.hitDirX * kickPulse * (motion.hitCrit ? .045 : .026);
@@ -3861,19 +3886,27 @@ export class PixiProofRenderer {
       );
 
       if (activeCc?.kind === "fear") {
+        livingMode = "fear";
+        livingIntensity = .9;
         const shake = Math.sin(nowMs * .038 + phaseSeed);
         offsetX += shake * 1.55;
         rotation += shake * .020;
       } else if (activeCc?.kind === "stun") {
+        livingMode = "stun";
+        livingIntensity = .9;
         const throb = .5 + .5 * Math.sin(nowMs * .026 + phaseSeed);
         scaleX *= 1 + throb * .018;
         scaleY *= 1 - throb * .022;
         rotation += Math.sin(nowMs * .045 + phaseSeed) * .008;
       } else if (activeCc?.kind === "root") {
+        livingMode = "root";
+        livingIntensity = .85;
         const compression = .5 + .5 * Math.sin(nowMs * .016 + phaseSeed);
         scaleX *= 1 + compression * .014;
         scaleY *= 1 - compression * .018;
       } else if (activeCc?.kind === "incapacitate") {
+        livingMode = "incapacitate";
+        livingIntensity = .72;
         rotation += Math.sin(nowMs * .010 + phaseSeed) * .014;
         offsetY += Math.sin(nowMs * .012 + phaseSeed) * .45;
       }
@@ -3882,6 +3915,15 @@ export class PixiProofRenderer {
         const lockPulse = .5 + .5 * Math.sin(nowMs * .022 + phaseSeed);
         scaleX *= 1 - lockPulse * .010;
         scaleY *= 1 - lockPulse * .010;
+      }
+
+      if (view.livingCircleUnits && typeof body.clear === "function") {
+        drawLivingBodyShape(body,actor,{
+          mode:livingMode,
+          intensity:livingIntensity,
+          dirX:livingDirX,
+          dirY:livingDirY,
+        },nowMs);
       }
 
       body.position.set(offsetX,offsetY);

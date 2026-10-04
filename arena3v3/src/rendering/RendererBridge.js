@@ -31,7 +31,7 @@ export class RendererBridge {
     this.pixiRenderer = new PixiProofRenderer(this.canvas, this._arena, {
       // Image-backed test arenas provide their own untouched background below
       // the transparent Pixi combat canvas.
-      renderEnvironment: !this._arena?.pixiBackgroundChunks,
+      renderEnvironment: !this._arena?.pixiBackgroundImage,
     });
     this.pixiRenderer.init().catch(error => {
       console.error("[Pixi preview] initialization failed; using Canvas fallback.", error);

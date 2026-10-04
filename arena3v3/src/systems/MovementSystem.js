@@ -96,6 +96,69 @@ function signedAngleDegrees(from, to) {
   return Math.atan2(cross, dot) * 180 / Math.PI;
 }
 
+function collisionTangent(actor, desired, blocker, sign) {
+  if (!blocker) return null;
+
+  const fallbackSign = sign === -1 ? -1 : 1;
+  const tangentialSign = value =>
+    Math.abs(value) >= 0.18 ? Math.sign(value) : fallbackSign;
+
+  if (blocker.type === "boundary") {
+    const sides = blocker.sides || [];
+    const horizontalWall = sides.includes("top") || sides.includes("bottom");
+    const verticalWall = sides.includes("left") || sides.includes("right");
+
+    if (verticalWall && !horizontalWall) {
+      return { x: 0, y: tangentialSign(desired.y) };
+    }
+
+    if (horizontalWall && !verticalWall) {
+      return { x: tangentialSign(desired.x), y: 0 };
+    }
+
+    // At an arena corner choose the inward tangent with the stronger useful
+    // component instead of tracing deeper into the corner.
+    if (verticalWall && horizontalWall) {
+      const inwardX = sides.includes("left") ? 1 : -1;
+      const inwardY = sides.includes("top") ? 1 : -1;
+
+      return Math.abs(desired.x) >= Math.abs(desired.y)
+        ? { x: inwardX, y: 0 }
+        : { x: 0, y: inwardY };
+    }
+
+    return null;
+  }
+
+  if (blocker.type !== "obstacle" || !blocker.rect) return null;
+
+  const rect = blocker.rect;
+  const margin = actor.radius + 3;
+  const left = rect.x - margin;
+  const right = rect.x + rect.w + margin;
+  const top = rect.y - margin;
+  const bottom = rect.y + rect.h + margin;
+
+  const faceDistances = [
+    { face: "left", distance: Math.abs(actor.x - left) },
+    { face: "right", distance: Math.abs(actor.x - right) },
+    { face: "top", distance: Math.abs(actor.y - top) },
+    { face: "bottom", distance: Math.abs(actor.y - bottom) },
+  ].sort((a, b) => a.distance - b.distance);
+
+  const nearestFace = faceDistances[0]?.face;
+
+  if (nearestFace === "left" || nearestFace === "right") {
+    return { x: 0, y: tangentialSign(desired.y) };
+  }
+
+  if (nearestFace === "top" || nearestFace === "bottom") {
+    return { x: tangentialSign(desired.x), y: 0 };
+  }
+
+  return null;
+}
+
 function separationLocked(actor) {
   if (actor.activeDash) return true;
 
@@ -353,6 +416,14 @@ export class MovementSystem {
       ? [90, 118, 150, 68, 45, 24]
       : [24, 45, 68, 90, 118, 150];
     const directions = [];
+
+    // When the intended step hits a rectangular collider, first follow the
+    // actual face of that collider. This is much more stable than jumping
+    // between large +/- steering angles while standing on a straight wall.
+    if (directBlocked) {
+      const tangent = collisionTangent(actor, desired, directBlocker, sign);
+      if (tangent) directions.push(tangent);
+    }
 
     // Normal travel gets the direct target vector first only when we are not in
     // the short post-collision grace window. During grace we keep favouring the

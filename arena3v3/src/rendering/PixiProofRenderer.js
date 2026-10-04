@@ -4329,10 +4329,17 @@ export class PixiProofRenderer {
 
       // -------------------------------------------------------------------
       // Movement: tiny body-only weight. World position remains exact.
+      // Use real world displacement, not actor.lastMove intent. AI can deliberately
+      // stop inside its range band while lastMove still contains the previous
+      // steering direction; treating that stale intent as movement made a stationary
+      // caster visibly "shake" in place.
       // -------------------------------------------------------------------
-      const moveX = Number(actor.lastMove?.x) || 0;
-      const moveY = Number(actor.lastMove?.y) || 0;
-      const moving = Math.hypot(moveX, moveY) > .15 && !actor.cast;
+      const worldDx = actor.x - (Number(motion.previousX) || actor.x);
+      const worldDy = actor.y - (Number(motion.previousY) || actor.y);
+      const worldStep = Math.hypot(worldDx, worldDy);
+      const moving = worldStep > .16 && !actor.cast;
+      const moveX = moving ? worldDx / worldStep : 0;
+      const moveY = moving ? worldDy / worldStep : 0;
       const phaseSeed = String(actor.id || "").length * .73;
       const moveWave = moving
         ? Math.sin(nowMs * .0105 + phaseSeed)

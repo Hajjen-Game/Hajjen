@@ -1600,10 +1600,14 @@ export class AISystem {
         this.think(actor);
       }
 
-      if (actor.cast || this.game.cc.isRooted(actor)) continue;
+      if (actor.cast || this.game.cc.isRooted(actor)) {
+        actor.lastMove = { x: 0, y: 0 };
+        continue;
+      }
 
       const target = this.game.getActor(actor.aiTargetId);
       if (target?.alive) this.moveForRole(actor, target, deltaSeconds);
+      else actor.lastMove = { x: 0, y: 0 };
     }
   }
 
@@ -3222,6 +3226,7 @@ export class AISystem {
           actor.aiSafeTurretEntries = (actor.aiSafeTurretEntries || 0) + 1;
         }
         actor.aiSafeTurretActive = true;
+        actor.lastMove = { x: 0, y: 0 };
 
         if (recoveringMana) {
           this.markManaRecoveryMode(actor, "stationary");
@@ -3290,6 +3295,10 @@ export class AISystem {
 
     if (vector.x !== 0 || vector.y !== 0) {
       this.movement.moveAI(actor, vector, deltaSeconds, this.game.arena);
+    } else {
+      // Intentional range/LOS hold. Clear the previous steering direction so
+      // render/diagnostic state cannot mistake a stationary caster for a mover.
+      actor.lastMove = { x: 0, y: 0 };
     }
   }
 

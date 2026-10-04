@@ -1,7 +1,7 @@
 import { arenaConfig as grandRingArena } from "./nagrand-inspired/config.js";
 import { windscarProvingGroundsArena } from "./windscar-proving-grounds/config.js?v=20260925-windscar2";
 import { emberwatchBastionArena } from "./emberwatch-bastion/config.js?v=20261002-bastion1";
-import { sunscarCanyonArena } from "./sunscar-canyon/config.js?v=20261003-pixiimage1";
+import { sunscarCanyonArena } from "./sunscar-canyon/config.js?v=20261004-sunscar-png1";
 
 export const ARENA_REGISTRY = Object.freeze({
   [grandRingArena.id]: grandRingArena,

@@ -3265,8 +3265,26 @@ export class AISystem {
     } else if (actor.role === "healer") {
       const selfPreservation = this.behavior(actor, "healerSelfPreservation", 0.68);
       const comfortDistance = 92 + selfPreservation * 58;
+
       if (dist < comfortDistance) {
-        vector = this.steer(actor, target, -0.35);
+        const retreat = this.steer(actor, target, -0.35);
+        const retreatProbe = Math.max(44, actor.radius * 2.3);
+
+        // Do not turn harmless ally proximity into wall-following. This was
+        // especially visible on Sunscar: the enemy healer spawned near its
+        // caster, tried to create spacing by backing outward, hit the arena
+        // boundary and then traced that wall for several seconds.
+        if (
+          (retreat.x !== 0 || retreat.y !== 0)
+          && !this.movement.wouldCollide(
+            actor,
+            retreat,
+            retreatProbe,
+            this.game.arena,
+          )
+        ) {
+          vector = retreat;
+        }
       }
     }
 

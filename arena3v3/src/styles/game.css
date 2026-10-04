@@ -3906,3 +3906,393 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     max-height: calc(50% - 145px);
   }
 }
+
+
+/* === HUD COMBAT POLISH 2026-10-04 =========================================
+   Keep the HUD in DOM/SVG, but give action and aura icons a more premium,
+   readable combat presentation without changing their layout footprint. */
+
+.action-slot {
+  isolation: isolate;
+}
+
+.action-slot.has-spell-icon {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    inset 0 -1px 0 rgba(0,0,0,.38),
+    0 2px 7px rgba(0,0,0,.24);
+}
+
+.spell-icon {
+  z-index: 2;
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--spell-accent) 82%, #7d5430);
+  background:
+    radial-gradient(circle at 38% 30%,
+      color-mix(in srgb, var(--spell-accent-2) 16%, transparent),
+      transparent 35%),
+    radial-gradient(circle at 50% 60%,
+      color-mix(in srgb, var(--spell-accent) 18%, transparent),
+      rgba(15,10,8,.92) 72%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    inset 0 -5px 10px rgba(0,0,0,.30),
+    0 0 0 1px rgba(6,4,3,.72),
+    0 0 10px color-mix(in srgb, var(--spell-accent) 18%, transparent);
+  transition:
+    filter .12s ease,
+    box-shadow .12s ease,
+    border-color .12s ease,
+    transform .10s ease;
+}
+
+.spell-icon::before,
+.spell-icon::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.spell-icon::before {
+  inset: 2px;
+  z-index: 3;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: inset 0 1px 3px rgba(255,255,255,.06);
+}
+
+.spell-icon::after {
+  inset: 0;
+  z-index: 4;
+  background:
+    linear-gradient(
+      150deg,
+      rgba(255,255,255,.12) 0%,
+      rgba(255,255,255,.025) 28%,
+      transparent 46%
+    );
+}
+
+.action-slot.available:not(.on-cooldown):hover .spell-icon {
+  transform: scale(1.035);
+  border-color: color-mix(in srgb, var(--spell-accent-2) 74%, var(--spell-accent));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    inset 0 -5px 10px rgba(0,0,0,.27),
+    0 0 0 1px rgba(6,4,3,.70),
+    0 0 14px color-mix(in srgb, var(--spell-accent) 34%, transparent);
+}
+
+.action-slot.available:not(.on-cooldown):hover {
+  border-color: color-mix(in srgb, var(--spell-accent) 54%, var(--gold));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    inset 0 0 16px color-mix(in srgb, var(--spell-accent) 5%, transparent),
+    0 0 12px color-mix(in srgb, var(--spell-accent) 11%, transparent);
+}
+
+/* Radial GCD and cooldown presentation is icon-local when SVG spell art exists. */
+.action-slot.has-spell-icon .gcd-sweep {
+  --gcd-angle: 0deg;
+  inset: 13px auto auto 10px;
+  width: 46px;
+  height: 46px;
+  z-index: 3;
+  transform: none !important;
+  transform-origin: center;
+  border-radius: 50%;
+  opacity: 0;
+  background:
+    conic-gradient(
+      from -90deg,
+      rgba(9,7,6,.62) 0 var(--gcd-angle),
+      rgba(9,7,6,.08) var(--gcd-angle) 360deg
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(246,218,167,.15),
+    inset 0 0 9px rgba(0,0,0,.36);
+  transition: opacity .04s linear;
+}
+
+.action-slot.has-spell-icon .gcd-sweep.active {
+  opacity: 1;
+}
+
+.action-slot.has-spell-icon .cooldown {
+  --cooldown-angle: 0deg;
+  inset: 13px auto auto 10px;
+  width: 46px;
+  height: 46px;
+  z-index: 4;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(8,6,5,.18) 0 38%, rgba(8,6,5,.44) 74%),
+    conic-gradient(
+      from -90deg,
+      rgba(4,3,3,.82) 0 var(--cooldown-angle),
+      rgba(4,3,3,.20) var(--cooldown-angle) 360deg
+    );
+  border: 1px solid rgba(0,0,0,.58);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.035),
+    0 1px 4px rgba(0,0,0,.52);
+  color: #fff6e5;
+  font-size: 13px;
+  line-height: 1;
+  text-shadow:
+    0 1px 2px #000,
+    0 0 4px rgba(0,0,0,.92);
+}
+
+.action-slot.on-cooldown .spell-icon {
+  filter: saturate(.72) brightness(.78);
+}
+
+/* Disabled states communicate WHY instead of becoming the same flat grey. */
+.action-slot.disabled {
+  opacity: 1;
+}
+
+.action-slot.disabled .spell-icon,
+.action-slot.disabled .spell-name,
+.action-slot.disabled .spell-meta {
+  filter: saturate(.42) brightness(.72);
+}
+
+.action-slot.invalid-target {
+  opacity: .60;
+}
+
+.action-slot.invalid-target .spell-icon {
+  filter: grayscale(.48) saturate(.32) brightness(.66);
+}
+
+.action-slot.no-resource:not(.invalid-target) {
+  border-color: rgba(88,118,158,.62);
+  box-shadow: inset 0 0 14px rgba(56,91,139,.08);
+}
+
+.action-slot.no-resource:not(.invalid-target) .spell-icon {
+  border-color: rgba(99,145,196,.66);
+  filter: saturate(.55) brightness(.70);
+}
+
+.action-slot.school-locked {
+  border-color: rgba(170,92,190,.64);
+  box-shadow:
+    inset 0 0 14px rgba(126,55,151,.16),
+    0 0 8px rgba(172,82,204,.10);
+}
+
+.action-slot.school-locked .spell-icon {
+  border-color: rgba(205,122,224,.70);
+  filter: saturate(.34) brightness(.66);
+}
+
+.action-slot.controlled {
+  border-color: rgba(177,82,77,.62);
+  box-shadow: inset 0 0 13px rgba(137,45,42,.12);
+}
+
+.action-slot.out-of-range:not(.disabled) {
+  opacity: .72;
+  filter: none;
+  border-color: rgba(166,76,64,.62);
+  box-shadow: inset 0 0 11px rgba(154,57,47,.09);
+}
+
+.action-slot.out-of-range:not(.disabled) .spell-icon {
+  border-color: rgba(190,91,73,.74);
+  filter: saturate(.48) brightness(.72);
+}
+
+.action-slot.out-of-range:not(.disabled) .spell-name {
+  color: rgba(237,204,191,.72);
+}
+
+.action-slot.out-of-range:not(.disabled) .spell-meta {
+  color: rgba(202,178,163,.58);
+}
+
+.action-slot.cooldown-ready .spell-icon {
+  animation: hud-icon-ready-pop .48s ease-out;
+}
+
+@keyframes hud-icon-ready-pop {
+  0% {
+    transform: scale(.92);
+    box-shadow: 0 0 0 rgba(255,219,145,0);
+  }
+  28% {
+    transform: scale(1.075);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.12),
+      0 0 18px color-mix(in srgb, var(--spell-accent-2) 58%, transparent);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.06),
+      0 0 10px color-mix(in srgb, var(--spell-accent) 18%, transparent);
+  }
+}
+
+/* Aura / HoT / DoT / defensive icons: clearer silhouette and premium rim. */
+.effect-icon {
+  border-color: color-mix(in srgb, var(--effect-border) 88%, #1e1510);
+  background:
+    radial-gradient(circle at 36% 28%, rgba(255,255,255,.09), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.13) 52%),
+    var(--effect-bg);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.055),
+    inset 0 -5px 8px rgba(0,0,0,.20),
+    0 0 0 1px rgba(6,4,3,.58),
+    0 2px 4px rgba(0,0,0,.46);
+}
+
+.effect-icon::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 2px;
+  pointer-events: none;
+  border-radius: 2px;
+  border: 1px solid rgba(255,255,255,.055);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.07), transparent 38%);
+}
+
+.effect-icon.important {
+  border-width: 2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.07),
+    inset 0 -5px 8px rgba(0,0,0,.18),
+    0 0 0 1px rgba(6,4,3,.58),
+    0 0 10px color-mix(in srgb, var(--effect-border) 40%, transparent),
+    0 2px 4px rgba(0,0,0,.46);
+}
+
+.effect-icon-art {
+  inset: 4px;
+}
+
+.effect-svg {
+  filter:
+    drop-shadow(0 1px 1px rgba(0,0,0,.88))
+    drop-shadow(0 0 2px color-mix(in srgb, var(--effect-color) 28%, transparent));
+}
+
+.effect-icon.effect-hot {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.055),
+    0 0 7px rgba(100,190,115,.12),
+    0 2px 4px rgba(0,0,0,.46);
+}
+
+.effect-icon.effect-dot {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.055),
+    0 0 7px rgba(185,78,69,.12),
+    0 2px 4px rgba(0,0,0,.46);
+}
+
+.effect-icon.effect-damageReduction,
+.effect-icon.effect-offensiveCooldown {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.065),
+    0 0 9px color-mix(in srgb, var(--effect-border) 28%, transparent),
+    0 2px 4px rgba(0,0,0,.46);
+}
+
+.effect-icon.important.expiring {
+  animation: hud-important-aura-expiring .72s ease-in-out infinite alternate;
+}
+
+@keyframes hud-important-aura-expiring {
+  from {
+    filter: brightness(.94);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.06),
+      0 0 6px color-mix(in srgb, var(--effect-border) 25%, transparent),
+      0 2px 4px rgba(0,0,0,.46);
+  }
+  to {
+    filter: brightness(1.13);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.10),
+      0 0 13px color-mix(in srgb, var(--effect-border) 52%, transparent),
+      0 2px 4px rgba(0,0,0,.46);
+  }
+}
+
+.effect-duration {
+  right: 2px;
+  bottom: 1px;
+  padding: 1px 1px 0 2px;
+  border-radius: 2px 0 0 0;
+  background: rgba(4,3,3,.52);
+  font-size: 8px;
+}
+
+/* Major CC should read instantly, but remain steady rather than shaking. */
+.frame-major-cc {
+  border-width: 2px;
+  box-shadow:
+    inset 0 0 0 2px rgba(8,5,4,.78),
+    inset 0 0 12px color-mix(in srgb, var(--major-cc-border) 18%, transparent),
+    0 0 13px color-mix(in srgb, var(--major-cc-border) 58%, transparent);
+  animation: hud-major-cc-breathe 1.05s ease-in-out infinite alternate;
+}
+
+@keyframes hud-major-cc-breathe {
+  from { filter: brightness(.96); }
+  to { filter: brightness(1.10); }
+}
+
+.major-cc-glyph {
+  inset: 7px;
+}
+
+.major-cc-glyph .effect-svg {
+  filter:
+    drop-shadow(0 1px 1px rgba(0,0,0,.96))
+    drop-shadow(0 0 4px color-mix(in srgb, var(--major-cc-border) 58%, transparent));
+}
+
+.major-cc-time {
+  bottom: 2px;
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: rgba(3,2,2,.62);
+}
+
+/* DR icons get the same material treatment as the aura row. */
+.dr-icon {
+  border-color: color-mix(in srgb, var(--dr-border) 90%, #1d1410);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.08), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.12) 52%),
+    var(--dr-bg);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.055),
+    0 0 0 1px rgba(6,4,3,.55),
+    0 2px 4px rgba(0,0,0,.46);
+}
+
+.dr-icon.active {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.07),
+    0 0 10px color-mix(in srgb, var(--dr-border) 45%, transparent),
+    0 2px 4px rgba(0,0,0,.48);
+}
+
+/* Respect reduced motion for the two HUD attention pulses. */
+@media (prefers-reduced-motion: reduce) {
+  .action-slot.cooldown-ready .spell-icon,
+  .effect-icon.important.expiring,
+  .frame-major-cc {
+    animation: none !important;
+  }
+}

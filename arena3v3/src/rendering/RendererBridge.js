@@ -10,6 +10,11 @@ function requestedRenderer() {
   return "canvas";
 }
 
+function requestedLivingCircleUnits() {
+  if (typeof window === "undefined") return true;
+  return new URLSearchParams(window.location.search).get("unitstyle") !== "icons";
+}
+
 export class RendererBridge {
   constructor(canvas, arena) {
     this.canvas = canvas;
@@ -32,6 +37,7 @@ export class RendererBridge {
       // Image-backed test arenas provide their own untouched background below
       // the transparent Pixi combat canvas.
       renderEnvironment: !this._arena?.pixiBackgroundImage,
+      livingCircleUnits: requestedLivingCircleUnits(),
     });
     this.pixiRenderer.init().catch(error => {
       console.error("[Pixi preview] initialization failed; using Canvas fallback.", error);
@@ -43,6 +49,7 @@ export class RendererBridge {
     this.babylonRenderer = new BabylonArenaRenderer(this.canvas, this._arena);
     this.pixiRenderer = new PixiProofRenderer(this.canvas, this._arena, {
       renderEnvironment: false,
+      livingCircleUnits: requestedLivingCircleUnits(),
       badgeText: "BABYLON ENV · PIXI COMBAT",
     });
 

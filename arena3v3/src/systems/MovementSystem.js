@@ -1,6 +1,6 @@
 import { clamp, normalize } from "../core/utils.js";
 
-const AI_COLLISION_COMMIT_MS = 180;
+const AI_COLLISION_GRACE_MS = 160;
 
 function circleHitsRect(x, y, radius, rect) {
   const closestX = clamp(x, rect.x, rect.x + rect.w);
@@ -155,8 +155,7 @@ export class MovementSystem {
           actor.aiProgressAnchorY = y;
           actor.aiProgressWindowMs = 0;
           actor.aiForcedDetourMs = 0;
-          actor.aiCollisionCommitMs = 0;
-          actor.aiCollisionCommittedDirection = null;
+          actor.aiCollisionGraceMs = 0;
           this.debug(actor, "embedded-recovery", {
             from: { x: originX, y: originY },
             to: { x, y },
@@ -233,9 +232,9 @@ export class MovementSystem {
 
     actor.aiMovementDebugClockMs =
       (actor.aiMovementDebugClockMs || 0) + deltaSeconds * 1000;
-    actor.aiCollisionCommitMs = Math.max(
+    actor.aiCollisionGraceMs = Math.max(
       0,
-      (actor.aiCollisionCommitMs || 0) - deltaSeconds * 1000,
+      (actor.aiCollisionGraceMs || 0) - deltaSeconds * 1000,
     );
 
     // Safety valve for the rare case where an AI ends up microscopically inside
@@ -312,9 +311,9 @@ export class MovementSystem {
     if (directBlocked) {
       actor.aiAvoidanceMs = (actor.aiAvoidanceMs || 0) + deltaSeconds * 1000;
       actor.aiCollisionSampleMs = (actor.aiCollisionSampleMs || 0) + deltaSeconds * 1000;
-      actor.aiCollisionCommitMs = Math.max(
-        actor.aiCollisionCommitMs || 0,
-        AI_COLLISION_COMMIT_MS,
+      actor.aiCollisionGraceMs = Math.max(
+        actor.aiCollisionGraceMs || 0,
+        AI_COLLISION_GRACE_MS,
       );
 
       if (!actor.aiObstacleContactActive) {
@@ -331,7 +330,7 @@ export class MovementSystem {
       actor.aiObstacleContactActive = true;
     } else if (
       actor.aiObstacleContactActive
-      && (actor.aiCollisionCommitMs || 0) <= 0
+      && (actor.aiCollisionGraceMs || 0) <= 0
     ) {
       this.debug(actor, "collision-clear", {
         position: { x: actor.x, y: actor.y },
@@ -343,47 +342,34 @@ export class MovementSystem {
       actor.aiAvoidanceMs = 0;
       actor.aiCollisionSampleMs = 0;
       actor.aiCollisionBlocker = null;
-      actor.aiCollisionCommittedDirection = null;
       actor.aiLastCollisionChosenSide = 0;
       actor.aiLastCollisionChosenAtMs = 0;
       actor.aiObstacleContactActive = false;
     }
 
-    const collisionCommitActive = (actor.aiCollisionCommitMs || 0) > 0;
+    const collisionGraceActive = (actor.aiCollisionGraceMs || 0) > 0;
     const forcedDetour = (actor.aiForcedDetourMs || 0) > 0;
     const preferredAngles = forcedDetour
       ? [90, 118, 150, 68, 45, 24]
       : [24, 45, 68, 90, 118, 150];
     const directions = [];
 
-    // Once collision has forced a detour, keep the last successful world-space
-    // heading briefly. This stops the AI from clearing the collider by a pixel,
-    // immediately recomputing toward its target, and stepping straight back into
-    // the same wall on the next 60 Hz simulation tick.
-    if (
-      collisionCommitActive
-      && actor.aiCollisionCommittedDirection
-    ) {
-      directions.push(actor.aiCollisionCommittedDirection);
-    }
+    // Normal travel gets the direct target vector first only when we are not in
+    // the short post-collision grace window. During grace we keep favouring the
+    // same wall side, but every steering candidate is recalculated from the
+    // CURRENT desired vector. Nothing is locked to an old world-space heading.
+    if (!forcedDetour && !collisionGraceActive) directions.push(desired);
 
-    // Normal travel gets the intended direction first only when there is no
-    // active collision commitment. During a detour, preserve wall-side intent.
-    if (!forcedDetour && !collisionCommitActive) directions.push(desired);
-
-    // Important: exhaust the actor's preferred side before trying the opposite
-    // side. The old interleaved ordering (+24, -24, +45, -45...) could make a
-    // character visibly ping-pong along the same wall from one frame to the next.
+    // Exhaust the actor's preferred side before trying the opposite side.
     for (const degreesAway of preferredAngles) {
       directions.push(
         rotate(desired, degreesAway * Math.PI / 180 * sign),
       );
     }
 
-    // If the actor has already cleared the collider but is still inside the
-    // short commitment window, direct travel is a fallback after continuing
-    // around the chosen side rather than the first choice.
-    if (collisionCommitActive && !directBlocked) directions.push(desired);
+    // Once the preferred wall-side candidates have been tried, direct travel is
+    // allowed as a fallback after the actor has technically cleared collision.
+    if (collisionGraceActive && !directBlocked) directions.push(desired);
 
     for (const degreesAway of preferredAngles) {
       directions.push(
@@ -391,7 +377,7 @@ export class MovementSystem {
       );
     }
 
-    if (forcedDetour && !collisionCommitActive) directions.push(desired);
+    if (forcedDetour && !collisionGraceActive) directions.push(desired);
 
     // A retreat is now a genuine stuck recovery only. Merely travelling beside
     // a wall for 620ms is not a reason to reverse direction.
@@ -407,13 +393,6 @@ export class MovementSystem {
       // when an AI continuously recomputes a target on the far side of a wall.
       if (this.tryDirectionStrict(actor, direction, step, arena)) {
         const chosenAngleDeg = signedAngleDegrees(desired, direction);
-
-        if (directBlocked || collisionCommitActive) {
-          actor.aiCollisionCommittedDirection = {
-            x: direction.x,
-            y: direction.y,
-          };
-        }
 
         if (directBlocked) {
           const chosenSide = Math.sign(chosenAngleDeg);

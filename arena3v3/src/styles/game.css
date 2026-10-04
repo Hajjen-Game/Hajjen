@@ -4296,3 +4296,171 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
     animation: none !important;
   }
 }
+
+
+/* === ACTION ICON ART PASS 2 · NINE CLASS COVERAGE ======================= */
+.icon-class-sigil {
+  fill: none;
+  stroke: var(--class-icon-accent, var(--spell-accent));
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .18;
+  pointer-events: none;
+}
+
+.action-slot[class*="spell-priest-"] {
+  --class-icon-accent: #f0d98a;
+}
+.action-slot[class*="spell-warrior-"] {
+  --class-icon-accent: #c58456;
+}
+.action-slot[class*="spell-rogue-"] {
+  --class-icon-accent: #d7c169;
+}
+
+.action-slot[class*="spell-mage-"] {
+  --spell-accent: #6aa7d9;
+  --spell-accent-2: #d8efff;
+  --class-icon-accent: #8fc8ff;
+}
+.action-slot[class*="spell-shaman-"] {
+  --spell-accent: #4daebc;
+  --spell-accent-2: #d2fbff;
+  --class-icon-accent: #69d4e4;
+}
+.action-slot[class*="spell-dk-"] {
+  --spell-accent: #78a9bd;
+  --spell-accent-2: #e0f6ff;
+  --class-icon-accent: #89d2ea;
+}
+.action-slot[class*="spell-warlock-"] {
+  --spell-accent: #8f67b6;
+  --spell-accent-2: #eadcff;
+  --class-icon-accent: #b382df;
+}
+.action-slot[class*="spell-paladin-"] {
+  --spell-accent: #d4b458;
+  --spell-accent-2: #fff2ad;
+  --class-icon-accent: #f0cf71;
+}
+.action-slot[class*="spell-druid-"] {
+  --spell-accent: #78a96a;
+  --spell-accent-2: #dcf4c9;
+  --class-icon-accent: #8bc67b;
+}
+
+/* Spell-school accents inside class families. */
+.action-slot.spell-mage-pyroblast,
+.action-slot.spell-mage-living-bomb {
+  --spell-accent: #c86f3d;
+  --spell-accent-2: #ffd6a7;
+}
+.action-slot.spell-mage-frostbolt,
+.action-slot.spell-mage-frost-nova {
+  --spell-accent: #6eaed5;
+  --spell-accent-2: #e1f6ff;
+}
+.action-slot.spell-mage-frostfire-bolt {
+  --spell-accent: #9f7fae;
+  --spell-accent-2: #efe1ff;
+}
+.action-slot.spell-mage-arcane-barrage {
+  --spell-accent: #8567c7;
+  --spell-accent-2: #e8dcff;
+}
+
+.action-slot.spell-shaman-flame-shock,
+.action-slot.spell-shaman-lava-burst {
+  --spell-accent: #b76d3c;
+  --spell-accent-2: #ffd8b1;
+}
+.action-slot.spell-shaman-chain-lightning,
+.action-slot.spell-shaman-elemental-blast {
+  --spell-accent: #58abc9;
+  --spell-accent-2: #d7f5ff;
+}
+.action-slot.spell-shaman-astral-shift {
+  --spell-accent: #5e8fa4;
+  --spell-accent-2: #d7f2f8;
+}
+
+.action-slot.spell-dk-fever,
+.action-slot.spell-dk-mind-freeze,
+.action-slot.spell-dk-frost-strike {
+  --spell-accent: #6ea8c4;
+  --spell-accent-2: #dff7ff;
+}
+.action-slot.spell-dk-death-strike,
+.action-slot.spell-dk-obliterate {
+  --spell-accent: #8d6d78;
+  --spell-accent-2: #e7d4da;
+}
+
+.action-slot.spell-warlock-chaos-bolt,
+.action-slot.spell-warlock-conflagrate {
+  --spell-accent: #7c9d54;
+  --spell-accent-2: #d9efb7;
+}
+.action-slot.spell-warlock-shadow-bolt,
+.action-slot.spell-warlock-corruption,
+.action-slot.spell-warlock-drain-life,
+.action-slot.spell-warlock-fear {
+  --spell-accent: #8d64af;
+  --spell-accent-2: #e9dbff;
+}
+
+.action-slot.spell-paladin-holy-shock,
+.action-slot.spell-paladin-flash-light,
+.action-slot.spell-paladin-holy-light,
+.action-slot.spell-paladin-word-of-glory,
+.action-slot.spell-paladin-judgment {
+  --spell-accent: #d4b45a;
+  --spell-accent-2: #fff1a9;
+}
+
+.action-slot.spell-druid-moonfire {
+  --spell-accent: #7893bd;
+  --spell-accent-2: #e2eaff;
+}
+.action-slot.spell-druid-ironbark {
+  --spell-accent: #70875d;
+  --spell-accent-2: #d9e8c9;
+}
+.action-slot.spell-druid-cyclone {
+  --spell-accent: #8ba89f;
+  --spell-accent-2: #e4f2ee;
+}
+
+/* Give class sigils enough room to read behind the primary spell glyph. */
+.spell-icon .icon-class-sigil + .icon-ring,
+.spell-icon .icon-class-sigil + .icon-line,
+.spell-icon .icon-class-sigil + .icon-fill,
+.spell-icon .icon-class-sigil + .icon-secondary,
+.spell-icon .icon-class-sigil + .icon-shield {
+  position: relative;
+}
+
+/* Small frame icons inherit class family through SVG class names. */
+.effect-svg[class*="effect-family-"] .effect-family-mark {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  opacity: .20;
+}
+
+.effect-svg.effect-family-priest { --effect-family-glow: #f0d98a; }
+.effect-svg.effect-family-warrior { --effect-family-glow: #c58456; }
+.effect-svg.effect-family-mage { --effect-family-glow: #8fc8ff; }
+.effect-svg.effect-family-shaman { --effect-family-glow: #69d4e4; }
+.effect-svg.effect-family-death-knight { --effect-family-glow: #89d2ea; }
+.effect-svg.effect-family-warlock { --effect-family-glow: #b382df; }
+.effect-svg.effect-family-paladin { --effect-family-glow: #f0cf71; }
+.effect-svg.effect-family-druid { --effect-family-glow: #8bc67b; }
+.effect-svg.effect-family-rogue { --effect-family-glow: #d7c169; }
+
+.effect-icon .effect-svg[class*="effect-family-"] {
+  filter:
+    drop-shadow(0 1px 1px rgba(0,0,0,.88))
+    drop-shadow(0 0 2px color-mix(in srgb, var(--effect-family-glow, var(--effect-color)) 34%, transparent));
+}

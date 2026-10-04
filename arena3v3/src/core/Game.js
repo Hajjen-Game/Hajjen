@@ -1,5 +1,5 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-movementlog1";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20261004-movementlog2";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
@@ -9,9 +9,9 @@ import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
 import { AISystem } from "../systems/AISystem.js?v=20261001-wallfollow1";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { RendererBridge } from "../rendering/RendererBridge.js?v=20261004-sunscar-png2";
-import { UIManager } from "../ui/UIManager.js?v=20261004-movementlog1";
+import { UIManager } from "../ui/UIManager.js?v=20261004-movementlog2";
 import { buildMatchReport } from "./MatchReport.js?v=20261001-wallfollow1";
-import { buildAiMovementReport } from "./AiMovementReport.js?v=20261004-movementlog1";
+import { buildAiMovementReport } from "./AiMovementReport.js?v=20261004-movementlog2";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";

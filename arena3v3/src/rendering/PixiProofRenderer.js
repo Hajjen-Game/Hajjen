@@ -1473,18 +1473,22 @@ export class PixiProofRenderer {
     // No extra stage container or filter is used in this migration step.
     const burstFx = new Graphics();
     burstFx.visible = false;
+    burstFx.blendMode = "screen";
     root.addChild(burstFx);
 
     const slashFx = new Graphics();
     slashFx.visible = false;
+    slashFx.blendMode = "screen";
     root.addChild(slashFx);
 
     const ringFx = new Graphics();
     ringFx.visible = false;
+    ringFx.blendMode = "screen";
     root.addChild(ringFx);
 
     const beamFx = new Graphics();
     beamFx.visible = false;
+    beamFx.blendMode = "screen";
     root.addChild(beamFx);
 
     const chainGlowFx = new Graphics();
@@ -1501,22 +1505,27 @@ export class PixiProofRenderer {
 
     const priestHealSpellFx = new Graphics();
     priestHealSpellFx.visible = false;
+    priestHealSpellFx.blendMode = "screen";
     root.addChild(priestHealSpellFx);
 
     const priestDruidSpellFx = new Graphics();
     priestDruidSpellFx.visible = false;
+    priestDruidSpellFx.blendMode = "screen";
     root.addChild(priestDruidSpellFx);
 
     const paladinDkSpellFx = new Graphics();
     paladinDkSpellFx.visible = false;
+    paladinDkSpellFx.blendMode = "screen";
     root.addChild(paladinDkSpellFx);
 
     const warriorRogueSpellFx = new Graphics();
     warriorRogueSpellFx.visible = false;
+    warriorRogueSpellFx.blendMode = "screen";
     root.addChild(warriorRogueSpellFx);
 
     const commonCasterSpellFx = new Graphics();
     commonCasterSpellFx.visible = false;
+    commonCasterSpellFx.blendMode = "screen";
     root.addChild(commonCasterSpellFx);
 
     const combatVfx2GlowFx = new Graphics();
@@ -1554,46 +1563,46 @@ export class PixiProofRenderer {
 
     stateWorldGlowFx.blendMode = "screen";
     stateWorldGlowFx.filters = [
-      new BlurFilter({ strength: 4.4, quality: 1 }),
+      new BlurFilter({ strength: 5.2, quality: 1 }),
     ];
     stateWorldFx.blendMode = "screen";
 
     secondaryGlowFx.blendMode = "screen";
     secondaryGlowFx.filters = [
-      new BlurFilter({ strength: 4.8, quality: 1 }),
+      new BlurFilter({ strength: 5.8, quality: 1 }),
     ];
     secondaryFx.blendMode = "screen";
 
     ccWorldGlowFx.blendMode = "screen";
     ccWorldGlowFx.filters = [
-      new BlurFilter({ strength: 4.6, quality: 1 }),
+      new BlurFilter({ strength: 5.4, quality: 1 }),
     ];
     ccWorldFx.blendMode = "screen";
 
     combatVfx2GlowFx.blendMode = "screen";
     combatVfx2GlowFx.filters = [
-      new BlurFilter({ strength: 4.8, quality: 1 }),
+      new BlurFilter({ strength: 6.4, quality: 1 }),
     ];
     combatVfx2CoreFx.blendMode = "screen";
 
     projectileVfx2GlowFx.blendMode = "screen";
     projectileVfx2GlowFx.filters = [
-      new BlurFilter({ strength: 5.4, quality: 1 }),
+      new BlurFilter({ strength: 7.0, quality: 1 }),
     ];
     projectileVfx2CoreFx.blendMode = "screen";
 
-    // One shared actor-local glow pass gives every class a stronger release,
-    // projectile trail and impact without creating stage-level filter stacks.
+    // Broad, soft halos keep spell silhouettes visible over detailed arena art.
+    // Quality stays at 1 so the extra punch does not undo Pixi's performance win.
     spellPolishGlowFx.blendMode = "screen";
     spellPolishGlowFx.filters = [
-      new BlurFilter({ strength: 4.2, quality: 1 }),
+      new BlurFilter({ strength: 5.8, quality: 1 }),
     ];
     spellPolishCoreFx.blendMode = "screen";
 
-    // Chain Lightning uses three actor-local layers. The glow layer gets the
-    // same lightweight blur family already proven on player/target glows.
+    // Chain Lightning keeps its bespoke geometry; only the surrounding energy
+    // halo is widened by this global combat-pop pass.
     chainGlowFx.blendMode = "screen";
-    chainGlowFx.filters = [new BlurFilter({ strength: 5.5, quality: 1 })];
+    chainGlowFx.filters = [new BlurFilter({ strength: 6.6, quality: 1 })];
     chainFx.blendMode = "screen";
     chainSparkFx.blendMode = "screen";
 
@@ -4658,25 +4667,25 @@ export class PixiProofRenderer {
       const alpha = Math.max(0, Math.min(1, remaining / total));
       const [main, core] = burstColors(effect.style);
       const healing = ["heal", "priest", "druid", "paladin"].includes(effect.style);
-      const outer = 8 + progress * (healing ? 38 : 30);
-      const inner = 5 + progress * (healing ? 23 : 18);
+      const outer = 9 + progress * (healing ? 43 : 35);
+      const inner = 5 + progress * (healing ? 27 : 21);
 
       view.burstFx.visible = true;
       view.burstFx
         .circle(0, 0, outer)
         .stroke({
           color: main,
-          width: healing ? 3.4 : 2.7,
-          alpha: alpha * .88,
+          width: healing ? 4.2 : 3.4,
+          alpha: alpha * .96,
         })
         .circle(0, 0, inner)
         .stroke({
           color: core,
-          width: 1.2,
-          alpha: alpha * .72,
+          width: 1.6,
+          alpha: alpha * .86,
         });
 
-      const motes = healing ? 7 : 5;
+      const motes = healing ? 9 : 7;
       for (let i = 0; i < motes; i += 1) {
         const angle = (i / motes) * Math.PI * 2 + progress * 1.25;
         const radius = 8 + progress * (healing ? 27 : 21);
@@ -4688,7 +4697,7 @@ export class PixiProofRenderer {
           )
           .fill({
             color: i % 2 ? core : main,
-            alpha: alpha * .62,
+            alpha: alpha * .76,
           });
       }
     }
@@ -4722,8 +4731,8 @@ export class PixiProofRenderer {
         .lineTo(-spread, spread)
         .stroke({
           color: main,
-          width: 4.6,
-          alpha: alpha * .78,
+          width: 5.6,
+          alpha: alpha * .90,
         });
 
       view.slashFx
@@ -4733,16 +4742,16 @@ export class PixiProofRenderer {
         .lineTo(-spread * .9, spread * .9)
         .stroke({
           color: core,
-          width: 1.35,
-          alpha: alpha * .90,
+          width: 1.7,
+          alpha: alpha * .98,
         });
 
       view.slashFx
         .circle(0, 0, Math.max(6, spread * .72))
         .stroke({
           color: main,
-          width: 1.1,
-          alpha: alpha * .34,
+          width: 1.5,
+          alpha: alpha * .48,
         });
     }
   }
@@ -4774,16 +4783,16 @@ export class PixiProofRenderer {
         .circle(0, 0, radius)
         .stroke({
           color: main,
-          width: healing ? 3.6 - progress * .8 : 3.8 - progress * 1.0,
-          alpha: alpha * .86,
+          width: healing ? 4.3 - progress * .8 : 4.6 - progress * 1.0,
+          alpha: alpha * .95,
         });
 
       view.ringFx
         .circle(0, 0, Math.max(4, radius - 7))
         .stroke({
           color: core,
-          width: 1.15,
-          alpha: alpha * (healing ? .56 : .40),
+          width: 1.5,
+          alpha: alpha * (healing ? .70 : .55),
         });
 
       if (healing) {
@@ -4799,7 +4808,7 @@ export class PixiProofRenderer {
             )
             .fill({
               color: i % 2 ? core : main,
-              alpha: alpha * .62,
+              alpha: alpha * .76,
             });
         }
       }
@@ -4858,16 +4867,16 @@ export class PixiProofRenderer {
             .lineTo(point.x, point.y)
             .stroke({
               color: main,
-              width: effect.style === "paladin" ? 5.2 : 4.4,
-              alpha: alpha * .84,
+              width: effect.style === "paladin" ? 6.2 : 5.3,
+              alpha: alpha * .92,
             });
           view.beamFx
             .moveTo(previous.x, previous.y)
             .lineTo(point.x, point.y)
             .stroke({
               color: core,
-              width: 1.25,
-              alpha: alpha * .88,
+              width: 1.55,
+              alpha: alpha * .96,
             });
           previous = point;
         }
@@ -4894,8 +4903,8 @@ export class PixiProofRenderer {
           .circle(dx, dy, impactRadius)
           .stroke({
             color: core,
-            width: 1.7,
-            alpha: alpha * .68,
+            width: 2.1,
+            alpha: alpha * .80,
           });
       } else {
         view.beamFx
@@ -4903,8 +4912,8 @@ export class PixiProofRenderer {
           .lineTo(dx, dy)
           .stroke({
             color: main,
-            width: 3.2,
-            alpha: alpha * .82,
+            width: 4.0,
+            alpha: alpha * .92,
           });
 
         view.beamFx
@@ -4912,8 +4921,8 @@ export class PixiProofRenderer {
           .lineTo(dx, dy)
           .stroke({
             color: core,
-            width: 1.0,
-            alpha: alpha * .72,
+            width: 1.4,
+            alpha: alpha * .88,
           });
       }
     }
@@ -5078,18 +5087,18 @@ export class PixiProofRenderer {
         if (!specialChainLightning) {
           strokePath(view.chainGlowFx, mainArc, {
             color: palette.main,
-            width: 8,
-            alpha: alpha * fade * .22,
+            width: 10,
+            alpha: alpha * fade * .28,
           });
           strokePath(view.chainFx, mainArc, {
             color: palette.main,
-            width: 4.5,
-            alpha: alpha * fade * .60,
+            width: 5.2,
+            alpha: alpha * fade * .72,
           });
           strokePath(view.chainFx, mainArc, {
             color: palette.core,
-            width: 1.5,
-            alpha: alpha * fade * .92,
+            width: 1.8,
+            alpha: alpha * fade * .98,
           });
           continue;
         }
@@ -10960,40 +10969,41 @@ export class PixiProofRenderer {
 
       // Glow is what turns into visual fog first. Preserve sharp geometry.
       view.combatVfx2GlowFx.alpha = Math.max(
-        .54,
-        .90 - globalDensity * .20 - localDensity * .10 + focusLift,
+        .72,
+        .98 - globalDensity * .13 - localDensity * .06 + focusLift,
       );
       view.projectileVfx2GlowFx.alpha = Math.max(
-        .62,
-        .94 - globalDensity * .16 - localDensity * .07 + focusLift,
+        .78,
+        1 - globalDensity * .11 - localDensity * .05 + focusLift,
       );
       view.spellPolishGlowFx.alpha = Math.max(
-        .48,
-        .76 - globalDensity * .20 - localDensity * .08 + focusLift,
+        .66,
+        .90 - globalDensity * .13 - localDensity * .055 + focusLift,
       );
       view.chainGlowFx.alpha = Math.max(
-        .64,
-        .96 - globalDensity * .14 - localDensity * .06
+        .78,
+        1 - globalDensity * .09 - localDensity * .04
           + (actorHasChain ? .04 : 0)
           + focusLift,
       );
 
-      const coreCompression = globalDensity * .045 + localDensity * .025;
+      const coreCompression = globalDensity * .025 + localDensity * .015;
       const coreAlpha = Math.min(
         1,
-        Math.max(.90, 1 - coreCompression + focusLift + ccLift),
+        Math.max(.95, 1 - coreCompression + focusLift + ccLift),
       );
 
       view.combatVfx2CoreFx.alpha = coreAlpha;
       view.projectileVfx2CoreFx.alpha = coreAlpha;
-      view.spellPolishCoreFx.alpha = Math.max(.88, coreAlpha - .025);
-      view.chainFx.alpha = Math.max(.92, coreAlpha);
-      view.chainSparkFx.alpha = Math.max(.90, coreAlpha - .02);
+      view.spellPolishCoreFx.alpha = Math.max(.94, coreAlpha - .015);
+      view.chainFx.alpha = Math.max(.96, coreAlpha);
+      view.chainSparkFx.alpha = Math.max(.95, coreAlpha - .01);
 
-      // Generic primitives stay useful but should never dominate VFX2.
+      // Generic primitives are a little hotter too, but still yield first when
+      // a full 3v3 burst window fills the screen.
       const primitiveAlpha = Math.max(
-        .66,
-        1 - globalDensity * .18 - localDensity * .08,
+        .78,
+        1 - globalDensity * .11 - localDensity * .05,
       );
       view.burstFx.alpha = primitiveAlpha;
       view.slashFx.alpha = primitiveAlpha;

@@ -1,14 +1,7 @@
-const backgroundChunkUrls = Object.freeze([
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part01.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part02.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part03.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part04.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part05.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part06.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part07.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part08.b64", import.meta.url).href,
-  new URL("../../../../assets/arenas/sunscar-canyon/background.part09.b64", import.meta.url).href,
-]);
+const backgroundImageUrl = new URL(
+  "../../../../assets/arenas/sunscar-canyon/background.png",
+  import.meta.url,
+).href;
 
 export const sunscarCanyonArena = {
   id: "sunscar-canyon-test",
@@ -18,8 +11,7 @@ export const sunscarCanyonArena = {
   height: 720,
   previewOnly: true,
   pixiOnly: true,
-  pixiBackgroundMime: "image/webp",
-  pixiBackgroundChunks: backgroundChunkUrls,
+  pixiBackgroundImage: backgroundImageUrl,
 
   // First-pass collision follows the inner canyon edge rather than the full
   // decorative rock mass, preserving as much usable combat space as possible.

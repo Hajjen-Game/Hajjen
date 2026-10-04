@@ -23,6 +23,14 @@ export const sunscarCanyonArena = {
     { id: "northeast-wall", x: 700, y: 165, w: 220, h: 100 },
     { id: "southwest-wall", x: 400, y: 395, w: 200, h: 100 },
     { id: "southeast-rock", x: 825, y: 410, w: 135, h: 150 },
+
+    // The four brazier / faux-pillar structures are visibly solid in the
+    // background art. Keep their footprints out of the playable corner space
+    // so actors cannot stand inside the fire/pillar artwork.
+    { id: "northwest-brazier", x: 145, y: 70, w: 82, h: 58 },
+    { id: "northeast-brazier", x: 1055, y: 70, w: 82, h: 58 },
+    { id: "southwest-brazier", x: 140, y: 570, w: 88, h: 80 },
+    { id: "southeast-brazier", x: 1052, y: 565, w: 93, h: 85 },
   ],
 
   spawns: {

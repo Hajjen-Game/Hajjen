@@ -78,6 +78,9 @@ function eventDetails(event) {
   if (Number.isFinite(event.stuckMs)) {
     details.push("stuck " + fixed(event.stuckMs, 0) + "ms");
   }
+  if (Number.isFinite(event.switchGapMs)) {
+    details.push("flip-gap " + fixed(event.switchGapMs, 0) + "ms");
+  }
   if (Number.isFinite(event.progressDistance)) {
     details.push(
       "progress " + fixed(event.progressDistance, 1)
@@ -145,6 +148,7 @@ export function buildAiMovementReport(game) {
       + " | nav samples " + (counts["collision-nav"] || 0)
       + " | progress reroutes " + (counts["progress-reroute"] || 0)
       + " | stuck side flips " + (counts["stuck-side-flip"] || 0)
+      + " | rapid direction flips " + (counts["rapid-direction-flip"] || 0)
       + " | no-route " + (counts["no-route"] || 0)
       + " | embedded recoveries " + (counts["embedded-recovery"] || 0)
       + " | engine route flips " + (actor.aiPathReroutes || 0)
@@ -168,6 +172,7 @@ export function buildAiMovementReport(game) {
       nav: 0,
       reroutes: 0,
       flips: 0,
+      rapidFlips: 0,
       noRoute: 0,
       recoveries: 0,
       actors: new Set(),
@@ -179,6 +184,7 @@ export function buildAiMovementReport(game) {
     if (event.type === "collision-nav") current.nav += 1;
     if (event.type === "progress-reroute") current.reroutes += 1;
     if (event.type === "stuck-side-flip") current.flips += 1;
+    if (event.type === "rapid-direction-flip") current.rapidFlips += 1;
     if (event.type === "no-route") current.noRoute += 1;
     if (event.type === "embedded-recovery") current.recoveries += 1;
     hotspots.set(key, current);
@@ -186,8 +192,8 @@ export function buildAiMovementReport(game) {
 
   const rankedHotspots = [...hotspots.values()]
     .sort((a, b) =>
-      (b.flips * 8 + b.noRoute * 6 + b.reroutes * 4 + b.starts * 2 + b.nav)
-      - (a.flips * 8 + a.noRoute * 6 + a.reroutes * 4 + a.starts * 2 + a.nav)
+      (b.rapidFlips * 10 + b.flips * 8 + b.noRoute * 6 + b.reroutes * 4 + b.starts * 2 + b.nav)
+      - (a.rapidFlips * 10 + a.flips * 8 + a.noRoute * 6 + a.reroutes * 4 + a.starts * 2 + a.nav)
     );
 
   if (rankedHotspots.length === 0) {
@@ -200,6 +206,7 @@ export function buildAiMovementReport(game) {
         + " | nav samples " + hotspot.nav
         + " | reroutes " + hotspot.reroutes
         + " | side flips " + hotspot.flips
+        + " | RAPID flips " + hotspot.rapidFlips
         + " | no-route " + hotspot.noRoute
         + " | embedded recoveries " + hotspot.recoveries
         + " | actors " + [...hotspot.actors].join(", "),
@@ -255,6 +262,7 @@ export function buildAiMovementReport(game) {
     "COLLISION_NAV = sampled steering choice while direct movement remained blocked.",
     "PROGRESS_REROUTE = 1.1s progress watchdog changed preferred wall side.",
     "STUCK_SIDE_FLIP = no candidate route succeeded long enough to flip wall side.",
+    "RAPID_DIRECTION_FLIP = AI alternated detour direction within 280ms while touching collision.",
     "NO_ROUTE = every tested steering direction was blocked for that movement tick.",
     "EMBEDDED_RECOVERY = actor was already overlapping collision and was moved to nearest valid point.",
   );

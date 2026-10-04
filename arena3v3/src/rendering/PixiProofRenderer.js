@@ -416,7 +416,10 @@ function commonCasterSpellProfile(spellId) {
 const PROJECTILE_VFX2_SPELLS = new Set([
   "mage-frostbolt",
   "mage-pyroblast",
+  "mage-frostfire-bolt",
+  "mage-arcane-barrage",
   "shaman-lava-burst",
+  "shaman-elemental-blast",
   "warlock-shadow-bolt",
   "warlock-chaos-bolt",
   "paladin-hammer",
@@ -442,6 +445,23 @@ function projectileVfx2Spec(spellId) {
       trailReach: .94,
       heavy: true,
     },
+    "mage-frostfire-bolt": {
+      shape: "frostfire",
+      trailStyle: "frostfire",
+      travelEnd: .49,
+      size: 13,
+      tail: 122,
+      trailReach: .95,
+      heavy: true,
+    },
+    "mage-arcane-barrage": {
+      shape: "arcane",
+      trailStyle: "arcane",
+      travelEnd: .44,
+      size: 10,
+      tail: 106,
+      trailReach: .92,
+    },
     "shaman-lava-burst": {
       shape: "lava-rock",
       trailStyle: "magma",
@@ -451,6 +471,15 @@ function projectileVfx2Spec(spellId) {
       trailReach: .91,
       heavy: true,
       arc: 24,
+    },
+    "shaman-elemental-blast": {
+      shape: "elemental",
+      trailStyle: "elemental",
+      travelEnd: .50,
+      size: 11,
+      tail: 118,
+      trailReach: .94,
+      heavy: true,
     },
     "warlock-shadow-bolt": {
       shape: "shadow",
@@ -10167,6 +10196,115 @@ export class PixiProofRenderer {
                 });
             }
           }
+        } else if (spec.trailStyle === "frostfire") {
+          const beads = 12;
+          for (let i = 0; i < beads; i += 1) {
+            const f = (i + .45) / beads;
+            const phase = f * Math.PI * 5 + p * 15 + seed * .021;
+            const radius = 5 + (i % 3) * 1.6;
+            const cold = trailPoint(f, Math.sin(phase) * radius);
+            const hot = trailPoint(f, -Math.sin(phase) * radius);
+
+            glow.circle(cold.x,cold.y,4.4).fill({
+              color: spec.main,
+              alpha: alpha * travelFade * .11,
+            });
+            glow.circle(hot.x,hot.y,4.4).fill({
+              color: spec.accent,
+              alpha: alpha * travelFade * .11,
+            });
+            core.circle(cold.x,cold.y,1.45).fill({
+              color: i % 3 === 0 ? spec.core : spec.main,
+              alpha: alpha * travelFade * .74,
+            });
+            core.circle(hot.x,hot.y,1.45).fill({
+              color: i % 3 === 0 ? spec.core : spec.accent,
+              alpha: alpha * travelFade * .74,
+            });
+
+            if (i % 3 === 0) {
+              const r = 1.8 + (i % 2) * .5;
+              for (let arm = 0; arm < 3; arm += 1) {
+                const a = phase + arm * Math.PI / 3;
+                const ax = Math.cos(a) * r;
+                const ay = Math.sin(a) * r;
+                core
+                  .moveTo(cold.x-ax,cold.y-ay)
+                  .lineTo(cold.x+ax,cold.y+ay)
+                  .stroke({
+                    color: spec.core,
+                    width: .8,
+                    alpha: alpha * travelFade * .62,
+                  });
+              }
+            }
+          }
+        } else if (spec.trailStyle === "arcane") {
+          const sigils = 8;
+          for (let i = 0; i < sigils; i += 1) {
+            const f = (i + .5) / sigils;
+            const phase = p * 10 * (i % 2 ? -1 : 1) + i * .91 + seed * .015;
+            const point = trailPoint(
+              f,
+              Math.sin(phase) * (6 + (i % 2) * 3),
+            );
+            const r = 3.2 + (i % 3) * .8;
+
+            glow.circle(point.x,point.y,r*2.5).fill({
+              color: spec.main,
+              alpha: alpha * travelFade * .10,
+            });
+            strokeArc(core,r,phase,phase+Math.PI*1.45,{
+              color: i%3===0 ? spec.core : spec.main,
+              width: 1.2,
+              alpha: alpha * travelFade * .72,
+            },5,point.x,point.y);
+
+            if (i % 2 === 0) {
+              const a = phase + .6;
+              core
+                .moveTo(point.x+Math.cos(a)*2,point.y+Math.sin(a)*2)
+                .lineTo(point.x+Math.cos(a)*7,point.y+Math.sin(a)*7)
+                .stroke({
+                  color: spec.core,
+                  width: .9,
+                  alpha: alpha * travelFade * .55,
+                });
+            }
+          }
+        } else if (spec.trailStyle === "elemental") {
+          const colors = [spec.main, spec.accent, 0x8bcf8b];
+          const motes = 12;
+          for (let i = 0; i < motes; i += 1) {
+            const f = (i + .5) / motes;
+            const phase = p * 14 + i * 1.17 + seed * .018;
+            const side = Math.sin(phase) * (6 + (i % 3) * 2);
+            const point = trailPoint(f,side);
+            const color = colors[i % colors.length];
+
+            glow.circle(point.x,point.y,4.2+(i%2)).fill({
+              color,
+              alpha: alpha * travelFade * .10,
+            });
+            core.circle(point.x,point.y,1.4+(i%3)*.25).fill({
+              color: i%4===0 ? spec.core : color,
+              alpha: alpha * travelFade * .78,
+            });
+
+            if (i % 3 === 0) {
+              core
+                .moveTo(point.x-tx*4,point.y-ty*4)
+                .lineTo(
+                  point.x+tx*5+nx*(i%2?5:-5),
+                  point.y+ty*5+ny*(i%2?5:-5),
+                )
+                .stroke({
+                  color: spec.core,
+                  width: 1,
+                  alpha: alpha * travelFade * .55,
+                });
+            }
+          }
         } else if (spec.trailStyle === "void") {
           const wisps = 9;
           for (let i = 0; i < wisps; i += 1) {
@@ -11282,6 +11420,10 @@ export class PixiProofRenderer {
         );
       if (periodicOnly) continue;
 
+      // Holy Fire, Moonfire and Judgment already have authored vertical
+      // sky-strikes. Do not add caster-to-target ribbons to those spells.
+      if (COMBAT_VFX2_SKY.has(effect.spellId)) continue;
+
       const profile = spellPolishProfile(effect.spellId, effect.style);
       const total = Math.max(1, Number(effect.totalMs) || 1);
       const remaining = Math.max(0, Number(effect.remainingMs) || 0);
@@ -11354,13 +11496,18 @@ export class PixiProofRenderer {
       const projectileSpec = PROJECTILE_VFX2_SPELLS.has(effect.spellId)
         ? projectileVfx2Spec(effect.spellId)
         : null;
-      const skySpell = COMBAT_VFX2_SKY.has(effect.spellId);
-      const travelEnd = projectileSpec?.travelEnd || (skySpell ? .08 : .27);
+      const talentTrail =
+        effect.spellId === "priest-smite" ? "psionic"
+        : effect.spellId === "warlock-drain-life" ? "drain"
+        : effect.spellId === "warlock-conflagrate" ? "conflagrate"
+        : effect.spellId === "paladin-word-of-glory" ? "word-glory"
+        : null;
+      const travelEnd = projectileSpec?.travelEnd
+        || (talentTrail === "drain" ? .58 : talentTrail ? .42 : .27);
 
-      // Non-projectile ranged spells still need a visible "spell happened"
-      // connection. Keep it brief so instant DoTs/CC do not look mechanically
-      // delayed; it reads as an energy snap, not literal travel time.
-      if (!projectileSpec && !skySpell && p < travelEnd + .08) {
+      // Non-projectile ranged spells still need a visible connection. Talent
+      // spells get their own identity instead of falling back to one generic ray.
+      if (!projectileSpec && p < travelEnd + .08) {
         const q = easeOut(p / Math.max(.08,travelEnd));
         const qPrev = Math.max(0,q - .18);
         const px = dx * q;
@@ -11405,9 +11552,87 @@ export class PixiProofRenderer {
             alpha: alpha * .68 * strength,
           });
         }
+
+        if (talentTrail === "psionic") {
+          const strands = 3;
+          for (let strand = 0; strand < strands; strand += 1) {
+            const offset = (strand - 1) * 7;
+            const phase = p * 11 + strand * 2.1 + seed * .017;
+            const mx = (bx + px) * .5 + nx * (offset + Math.sin(phase)*7);
+            const my = (by + py) * .5 + ny * (offset + Math.sin(phase)*7);
+
+            glow
+              .moveTo(bx,by)
+              .lineTo(mx,my)
+              .lineTo(px,py)
+              .stroke({
+                color: profile.main,
+                width: 5,
+                alpha: alpha * .09,
+              });
+            core
+              .moveTo(bx,by)
+              .lineTo(mx,my)
+              .lineTo(px,py)
+              .stroke({
+                color: strand === 1 ? profile.core : profile.main,
+                width: strand === 1 ? 1.5 : 1.0,
+                alpha: alpha * .65,
+              });
+          }
+        } else if (talentTrail === "drain") {
+          const soulCount = 7;
+          for (let i = 0; i < soulCount; i += 1) {
+            const f = (p * 2.2 + i / soulCount) % 1;
+            const sx = dx * (1-f) + nx * Math.sin(f*12+seed*.03+i)*7;
+            const sy = dy * (1-f) + ny * Math.sin(f*12+seed*.03+i)*7;
+            glow.circle(sx,sy,5.2).fill({
+              color: profile.main,
+              alpha: alpha * .10,
+            });
+            core.circle(sx,sy,1.7+(i%2)*.45).fill({
+              color: i%3===0 ? profile.core : profile.main,
+              alpha: alpha * .68,
+            });
+          }
+        } else if (talentTrail === "conflagrate") {
+          const emberCount = 10;
+          for (let i = 0; i < emberCount; i += 1) {
+            const f = (i+.5)/emberCount;
+            const side = Math.sin(i*1.8+p*15+seed*.02)*(5+(i%3)*2);
+            const ex = dx*f + nx*side;
+            const ey = dy*f + ny*side - Math.sin(f*Math.PI)*5;
+            glow.circle(ex,ey,4.2).fill({
+              color: profile.main,
+              alpha: alpha * .11,
+            });
+            core.circle(ex,ey,1.35+(i%3)*.35).fill({
+              color: i%3===0 ? profile.core : profile.accent,
+              alpha: alpha * .76,
+            });
+          }
+        } else if (talentTrail === "word-glory") {
+          const motes = 8;
+          for (let i = 0; i < motes; i += 1) {
+            const f = (i+.5)/motes;
+            const a = p*8+i*.9+seed*.014;
+            const ex = dx*f + nx*Math.sin(a)*6;
+            const ey = dy*f + ny*Math.sin(a)*6 - Math.sin(f*Math.PI)*7;
+            core
+              .moveTo(ex-2.5,ey)
+              .lineTo(ex+2.5,ey)
+              .moveTo(ex,ey-2.5)
+              .lineTo(ex,ey+2.5)
+              .stroke({
+                color: i%3===0 ? profile.core : profile.main,
+                width: .95,
+                alpha: alpha * .66,
+              });
+          }
+        }
       }
 
-      const impactStart = projectileSpec?.travelEnd || (skySpell ? .04 : .16);
+      const impactStart = projectileSpec?.travelEnd || (talentTrail ? .20 : .16);
       const hit = clamp01((p - impactStart) / Math.max(.18,1-impactStart));
       if (hit <= 0 || effect.missed) continue;
 

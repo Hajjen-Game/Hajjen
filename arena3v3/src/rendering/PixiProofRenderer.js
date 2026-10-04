@@ -9939,16 +9939,24 @@ export class PixiProofRenderer {
       }
 
       if (travelFade > 0 && travelT > 0) {
-        // Keep most of the travelled path alive behind the projectile. This is
-        // the main lesson from Chain Lightning: the eye should read one connected
-        // spell gesture from caster toward target, not a lone moving dot.
+        // Projectile trails are detached from the caster. Keep only a recent
+        // slice of the travelled path alive behind the projectile; otherwise
+        // bolts read like harpoons/tethers instead of released projectiles.
         const travelledDistance = Math.max(1, Math.hypot(px,py));
-        const trailReach = spec.trailReach ?? (spec.heavy ? .92 : .88);
-        const tailLen = Math.min(
-          travelledDistance * trailReach,
-          spec.tail + endLen * (spec.heavy ? .62 : .55),
+        const desiredTailLen = Math.min(
+          spec.tail,
+          travelledDistance * (spec.heavy ? .78 : .72),
         );
-        const tailStartT = Math.max(0, travelT - tailLen / endLen);
+        const minimumSourceGap = source.radius + 14;
+        const rawTailStartDistance = travelledDistance - desiredTailLen;
+        const tailStartDistance = Math.min(
+          Math.max(minimumSourceGap, rawTailStartDistance),
+          Math.max(0, travelledDistance - 7),
+        );
+        const tailStartT = Math.max(
+          0,
+          Math.min(travelT, tailStartDistance / endLen),
+        );
         let tailX = endX * tailStartT;
         let tailY = endY * tailStartT;
 
@@ -10065,21 +10073,18 @@ export class PixiProofRenderer {
           });
         }
 
-        // Offset motes make the tail turbulent instead of laser-straight.
+        // Motes live only inside the detached trail. They no longer sample
+        // absolute travel history, so none can remain parked on the caster.
         const moteCount = spec.heavy ? 13 : 10;
         for (let i = 0; i < moteCount; i += 1) {
-          const lag = Math.max(0, travelT - .033 * (i + 1));
-          let qx = endX * lag;
-          let qy = endY * lag;
-          if (spec.arc) qy -= Math.sin(lag * Math.PI) * spec.arc;
+          const f = 1 - (i + .65) / (moteCount + 1);
           const wobble =
             Math.sin(seed * .17 + i * 1.93 + p * 10)
-            * (4 + i * .65);
-          qx += nx * wobble;
-          qy += ny * wobble;
+            * (4 + i * .55);
+          const point = trailPoint(Math.max(.03,f),wobble);
           core.circle(
-            qx,
-            qy,
+            point.x,
+            point.y,
             Math.max(1.1, (spec.heavy ? 3.4 : 2.8) - i * .24),
           ).fill({
             color: i % 3 === 0 ? spec.accent : spec.main,
@@ -11581,9 +11586,42 @@ export class PixiProofRenderer {
               });
           }
         } else if (talentTrail === "drain") {
-          const soulCount = 7;
+          // Drain Life is intentionally a tether/channel, like Chain Lightning:
+          // the visual connection itself communicates the ongoing drain.
+          const drainSegments = 12;
+          for (let i = 0; i < drainSegments; i += 1) {
+            const f0 = i / drainSegments;
+            const f1 = (i + 1) / drainSegments;
+            const wobble0 =
+              Math.sin(f0 * Math.PI * 5 + p * 9 + seed * .031) * 6;
+            const wobble1 =
+              Math.sin(f1 * Math.PI * 5 + p * 9 + seed * .031) * 6;
+            const x0 = dx * f0 + nx * wobble0;
+            const y0 = dy * f0 + ny * wobble0;
+            const x1 = dx * f1 + nx * wobble1;
+            const y1 = dy * f1 + ny * wobble1;
+
+            glow
+              .moveTo(x0,y0)
+              .lineTo(x1,y1)
+              .stroke({
+                color: profile.main,
+                width: 11,
+                alpha: alpha * .09,
+              });
+            core
+              .moveTo(x0,y0)
+              .lineTo(x1,y1)
+              .stroke({
+                color: i % 3 === 0 ? profile.core : profile.main,
+                width: i % 3 === 0 ? 2.0 : 1.45,
+                alpha: alpha * .66,
+              });
+          }
+
+          const soulCount = 9;
           for (let i = 0; i < soulCount; i += 1) {
-            const f = (p * 2.2 + i / soulCount) % 1;
+            const f = (p * 2.5 + i / soulCount) % 1;
             const sx = dx * (1-f) + nx * Math.sin(f*12+seed*.03+i)*7;
             const sy = dy * (1-f) + ny * Math.sin(f*12+seed*.03+i)*7;
             glow.circle(sx,sy,5.2).fill({
@@ -11592,7 +11630,7 @@ export class PixiProofRenderer {
             });
             core.circle(sx,sy,1.7+(i%2)*.45).fill({
               color: i%3===0 ? profile.core : profile.main,
-              alpha: alpha * .68,
+              alpha: alpha * .72,
             });
           }
         } else if (talentTrail === "conflagrate") {

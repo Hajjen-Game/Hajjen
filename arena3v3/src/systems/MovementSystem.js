@@ -53,6 +53,47 @@ function collides(actor, x, y, arena) {
   return arena.obstacles.some(rect => circleHitsRect(x, y, actor.radius + 3, rect));
 }
 
+function collisionDescriptor(actor, x, y, arena) {
+  const b = arena.bounds;
+  const sides = [];
+
+  if (x - actor.radius < b.x) sides.push("left");
+  if (x + actor.radius > b.x + b.w) sides.push("right");
+  if (y - actor.radius < b.y) sides.push("top");
+  if (y + actor.radius > b.y + b.h) sides.push("bottom");
+
+  if (sides.length > 0) {
+    return {
+      type: "boundary",
+      id: "arena-" + sides.join("+"),
+      sides,
+      rect: { x: b.x, y: b.y, w: b.w, h: b.h },
+    };
+  }
+
+  const obstacleIndex = arena.obstacles.findIndex(rect =>
+    circleHitsRect(x, y, actor.radius + 3, rect)
+  );
+
+  if (obstacleIndex >= 0) {
+    const rect = arena.obstacles[obstacleIndex];
+    return {
+      type: "obstacle",
+      id: rect.id || ("obstacle-" + obstacleIndex),
+      obstacleIndex,
+      rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h },
+    };
+  }
+
+  return null;
+}
+
+function signedAngleDegrees(from, to) {
+  const cross = from.x * to.y - from.y * to.x;
+  const dot = from.x * to.x + from.y * to.y;
+  return Math.atan2(cross, dot) * 180 / Math.PI;
+}
+
 function separationLocked(actor) {
   if (actor.activeDash) return true;
 
@@ -74,6 +115,20 @@ function deterministicPairDirection(a, b) {
 }
 
 export class MovementSystem {
+  constructor(debugSink = null) {
+    this.debugSink = typeof debugSink === "function" ? debugSink : null;
+  }
+
+  debug(actor, type, data = {}) {
+    if (!this.debugSink || actor?.control === "player") return;
+
+    try {
+      this.debugSink(actor, { type, ...data });
+    } catch {
+      // Movement diagnostics must never affect gameplay.
+    }
+  }
+
   recoverIfEmbedded(actor, arena) {
     if (!collides(actor, actor.x, actor.y, arena)) return false;
 
@@ -98,6 +153,11 @@ export class MovementSystem {
           actor.aiProgressAnchorY = y;
           actor.aiProgressWindowMs = 0;
           actor.aiForcedDetourMs = 0;
+          this.debug(actor, "embedded-recovery", {
+            from: { x: originX, y: originY },
+            to: { x, y },
+            blocker: collisionDescriptor(actor, originX, originY, arena),
+          });
           return true;
         }
       }
@@ -215,6 +275,13 @@ export class MovementSystem {
       actor.aiProgressAnchorY = actor.y;
       actor.aiProgressWindowMs = 0;
       actor.aiPathReroutes = (actor.aiPathReroutes || 0) + 1;
+      this.debug(actor, "progress-reroute", {
+        position: { x: actor.x, y: actor.y },
+        avoidanceSign: sign,
+        forcedDetourMs: actor.aiForcedDetourMs,
+        progressDistance,
+        progressThreshold,
+      });
     }
 
     const directBlocked = collides(
@@ -226,13 +293,34 @@ export class MovementSystem {
 
     if (directBlocked) {
       actor.aiAvoidanceMs = (actor.aiAvoidanceMs || 0) + deltaSeconds * 1000;
+      actor.aiCollisionSampleMs = (actor.aiCollisionSampleMs || 0) + deltaSeconds * 1000;
 
       if (!actor.aiObstacleContactActive) {
         actor.aiObstacleDetours = (actor.aiObstacleDetours || 0) + 1;
+        actor.aiCollisionSampleMs = 999;
+        this.debug(actor, "collision-start", {
+          position: { x: actor.x, y: actor.y },
+          desired,
+          blocker: collisionDescriptor(
+            actor,
+            actor.x + desired.x * step,
+            actor.y + desired.y * step,
+            arena,
+          ),
+          avoidanceSign: sign,
+        });
       }
       actor.aiObstacleContactActive = true;
     } else {
+      if (actor.aiObstacleContactActive) {
+        this.debug(actor, "collision-clear", {
+          position: { x: actor.x, y: actor.y },
+          contactMs: actor.aiAvoidanceMs || 0,
+          avoidanceSign: sign,
+        });
+      }
       actor.aiAvoidanceMs = 0;
+      actor.aiCollisionSampleMs = 0;
       actor.aiObstacleContactActive = false;
     }
 
@@ -275,6 +363,33 @@ export class MovementSystem {
       // useful for direct player controls but looks like rapid wall-bouncing
       // when an AI continuously recomputes a target on the far side of a wall.
       if (this.tryDirectionStrict(actor, direction, step, arena)) {
+        const chosenAngleDeg = signedAngleDegrees(desired, direction);
+
+        if (
+          directBlocked
+          && (
+            (actor.aiCollisionSampleMs || 0) >= 400
+            || Math.abs(chosenAngleDeg) >= 100
+          )
+        ) {
+          this.debug(actor, "collision-nav", {
+            position: { x: actor.x, y: actor.y },
+            desired,
+            chosen: direction,
+            chosenAngleDeg,
+            avoidanceSign: sign,
+            forcedDetour,
+            contactMs: actor.aiAvoidanceMs || 0,
+            blocker: collisionDescriptor(
+              actor,
+              actor.x + desired.x * step,
+              actor.y + desired.y * step,
+              arena,
+            ),
+          });
+          actor.aiCollisionSampleMs = 0;
+        }
+
         actor.aiStuckMs = 0;
         return true;
       }
@@ -284,7 +399,34 @@ export class MovementSystem {
 
     if (actor.aiStuckMs >= 520) {
       actor.aiAvoidanceSign = -sign;
+      this.debug(actor, "stuck-side-flip", {
+        position: { x: actor.x, y: actor.y },
+        previousAvoidanceSign: sign,
+        nextAvoidanceSign: -sign,
+        blocker: collisionDescriptor(
+          actor,
+          actor.x + desired.x * step,
+          actor.y + desired.y * step,
+          arena,
+        ),
+        stuckMs: actor.aiStuckMs,
+      });
       actor.aiStuckMs = 300;
+    }
+
+    if (!actor.aiNoRouteActive) {
+      actor.aiNoRouteActive = true;
+      this.debug(actor, "no-route", {
+        position: { x: actor.x, y: actor.y },
+        desired,
+        blocker: collisionDescriptor(
+          actor,
+          actor.x + desired.x * step,
+          actor.y + desired.y * step,
+          arena,
+        ),
+        avoidanceSign: actor.aiAvoidanceSign,
+      });
     }
 
     actor.lastMove = { x: 0, y: 0 };

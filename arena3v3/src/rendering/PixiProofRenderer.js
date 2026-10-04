@@ -25,9 +25,17 @@ function hexNumber(cssColor, fallback = 0xffffff) {
 }
 
 
-function drawLivingBodyShape(graphics, actor, state, nowMs) {
-  const radius = Math.max(8, Number(actor.radius) || 18) * .92;
-  const bodyColor = hexNumber(classColorFor(actor), 0x888888);
+function drawLivingBodyShape(
+  graphics,
+  actor,
+  state,
+  nowMs,
+  { glow = false } = {},
+) {
+  // Living-circle mode deliberately preserves the old battlefield silhouette:
+  // a hollow friendly/enemy ring. Only the ring contour deforms.
+  const radius = Math.max(8, Number(actor.radius) || 18) + 3;
+  const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
   const mode = state?.mode || "idle";
   const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
   let dx = Number(state?.dirX) || Math.cos(actor.facing || 0);
@@ -37,9 +45,11 @@ function drawLivingBodyShape(graphics, actor, state, nowMs) {
   dy /= len;
   const sx = -dy;
   const sy = dx;
-  const breathe = .5 + .5 * Math.sin((nowMs || 0) * .0043 + String(actor.id || "").length);
+  const breathe = .5 + .5 * Math.sin(
+    (nowMs || 0) * .0043 + String(actor.id || "").length
+  );
   const points = [];
-  const count = 28;
+  const count = 32;
 
   let forwardStretch = 0;
   let sideCompress = 0;
@@ -47,52 +57,54 @@ function drawLivingBodyShape(graphics, actor, state, nowMs) {
   let rearCompress = 0;
 
   if (mode === "move") {
-    forwardStretch = .10 + intensity * .08;
-    sideCompress = .035 + intensity * .035;
+    forwardStretch = .045 + intensity * .045;
+    sideCompress = .018 + intensity * .020;
   } else if (mode === "cast") {
-    radialWave = .045 + intensity * .055;
-    sideCompress = .015;
+    radialWave = .020 + intensity * .035;
+    sideCompress = .008;
   } else if (mode === "projectile" || mode === "spell") {
-    forwardStretch = .13 + intensity * .12;
-    rearCompress = .06 + intensity * .06;
-    sideCompress = .035;
+    forwardStretch = .065 + intensity * .075;
+    rearCompress = .028 + intensity * .035;
+    sideCompress = .018;
   } else if (mode === "melee") {
-    forwardStretch = .17 + intensity * .16;
-    rearCompress = .05;
-    sideCompress = .07 + intensity * .03;
+    forwardStretch = .085 + intensity * .095;
+    rearCompress = .025;
+    sideCompress = .035 + intensity * .025;
   } else if (mode === "charge" || mode === "shadowstep") {
-    forwardStretch = .20 + intensity * .20;
-    rearCompress = .08;
-    sideCompress = .09;
-  } else if (mode === "heal") {
-    radialWave = .035 + intensity * .04;
-  } else if (mode === "defensive") {
-    radialWave = .055 + intensity * .035;
-  } else if (mode === "hit") {
-    forwardStretch = -.12 * intensity;
-    rearCompress = -.03;
-    sideCompress = .075 * intensity;
-  } else if (mode === "fear") {
-    radialWave = .07 + intensity * .055;
-  } else if (mode === "stun") {
-    radialWave = .085;
+    forwardStretch = .11 + intensity * .11;
+    rearCompress = .04;
     sideCompress = .045;
+  } else if (mode === "heal") {
+    radialWave = .016 + intensity * .022;
+  } else if (mode === "defensive") {
+    radialWave = .025 + intensity * .022;
+  } else if (mode === "hit") {
+    forwardStretch = -.07 * intensity;
+    rearCompress = -.018;
+    sideCompress = .045 * intensity;
+  } else if (mode === "fear") {
+    radialWave = .030 + intensity * .030;
+  } else if (mode === "stun") {
+    radialWave = .038;
+    sideCompress = .020;
   } else if (mode === "root") {
-    sideCompress = .10;
-    forwardStretch = .035;
+    sideCompress = .050;
+    forwardStretch = .018;
   } else if (mode === "incapacitate") {
-    radialWave = .035;
+    radialWave = .018;
   }
 
   for (let i=0;i<count;i+=1) {
     const a = i / count * Math.PI * 2;
     const alongDir = Math.cos(a);
     const sideDir = Math.sin(a);
-    let alongScale = 1 + forwardStretch * Math.max(0,alongDir)
+    const alongScale =
+      1
+      + forwardStretch * Math.max(0,alongDir)
       - rearCompress * Math.max(0,-alongDir);
     let sideScale = 1 - sideCompress;
 
-    let localRadius = radius * (1 + (breathe-.5) * .018);
+    let localRadius = radius * (1 + (breathe-.5) * .010);
     if (mode === "cast") {
       localRadius *= 1 + Math.cos(a * 6) * radialWave;
     } else if (mode === "fear") {
@@ -105,9 +117,7 @@ function drawLivingBodyShape(graphics, actor, state, nowMs) {
       localRadius *= 1 + Math.sin(a * 5 + nowMs * .008) * radialWave * .45;
     }
 
-    if (mode === "root" && sideDir > .15) {
-      sideScale *= .92;
-    }
+    if (mode === "root" && sideDir > .15) sideScale *= .96;
 
     const along = alongDir * localRadius * alongScale;
     const side = sideDir * localRadius * sideScale;
@@ -124,22 +134,11 @@ function drawLivingBodyShape(graphics, actor, state, nowMs) {
     graphics.lineTo(points[i].x,points[i].y);
   }
   graphics.lineTo(points[0].x,points[0].y);
-  graphics.fill({ color: bodyColor, alpha: .96 });
-  graphics.stroke({ color: 0x080807, width: 2.2, alpha: .72 });
-
-  graphics.circle(
-    -dx * radius * .18 - sx * radius * .13,
-    -dy * radius * .18 - sy * radius * .13,
-    radius * .34,
-  ).fill({ color: 0xffffff, alpha: .055 });
-
-  if (mode === "cast" || mode === "heal" || mode === "defensive") {
-    graphics.circle(0,0,radius*.72).stroke({
-      color: 0xffffff,
-      width: 1.1,
-      alpha: .11 + intensity * .11,
-    });
-  }
+  graphics.stroke({
+    color: teamColor,
+    width: glow ? 6.2 : 2.0,
+    alpha: glow ? .22 : .80,
+  });
 }
 
 function resourceColor(type) {
@@ -1564,16 +1563,34 @@ export class PixiProofRenderer {
       .fill({ color: 0x000000, alpha: .28 });
     root.addChild(shadow);
 
-    // Keep the original muted team colors. Living-circle mode only strengthens
-    // the familiar ring slightly; no neon hues or extra team markers.
     const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
+
+    const ringGlow = new Graphics();
+    if (this.livingCircleUnits) {
+      drawLivingBodyShape(
+        ringGlow,
+        actor,
+        {
+          mode:"idle",
+          dirX:Math.cos(actor.facing || 0),
+          dirY:Math.sin(actor.facing || 0),
+          intensity:0,
+        },
+        0,
+        { glow:true },
+      );
+      ringGlow.blendMode = "screen";
+      ringGlow.filters = [
+        new this.PIXI.BlurFilter({ strength: 4.2, quality: 1 }),
+      ];
+    } else {
+      ringGlow.visible = false;
+    }
+    root.addChild(ringGlow);
+
     const ring = new Graphics()
       .circle(0, 0, actor.radius + 3)
-      .stroke({
-        color: teamColor,
-        width: this.livingCircleUnits ? 2.65 : 2,
-        alpha: this.livingCircleUnits ? .88 : .72,
-      });
+      .stroke({ color: teamColor, width: 2, alpha: .72 });
     root.addChild(ring);
 
     const texture = this.iconTextures.get(actor.classId);
@@ -1582,31 +1599,25 @@ export class PixiProofRenderer {
     let motionGhostB = null;
 
     if (this.livingCircleUnits) {
-      const bodyColor = hexNumber(classColorFor(actor),0x888888);
+      // No replacement "body": the old team ring itself is the living unit.
+      // The center stays fully transparent.
+      body = ring;
 
       motionGhostB = new Graphics()
-        .circle(0,0,actor.radius*.88)
-        .fill({ color:bodyColor, alpha:.55 });
+        .circle(0,0,actor.radius+3)
+        .stroke({ color:teamColor, width:1.4, alpha:.28 });
       motionGhostB.alpha = 0;
       motionGhostB.visible = false;
       motionGhostB.blendMode = "screen";
       root.addChild(motionGhostB);
 
       motionGhostA = new Graphics()
-        .circle(0,0,actor.radius*.90)
-        .fill({ color:bodyColor, alpha:.68 });
+        .circle(0,0,actor.radius+3)
+        .stroke({ color:teamColor, width:1.6, alpha:.38 });
       motionGhostA.alpha = 0;
       motionGhostA.visible = false;
       motionGhostA.blendMode = "screen";
       root.addChild(motionGhostA);
-
-      body = new Graphics();
-      drawLivingBodyShape(body,actor,{
-        mode:"idle",
-        dirX:Math.cos(actor.facing || 0),
-        dirY:Math.sin(actor.facing || 0),
-        intensity:0,
-      },0);
     } else if (texture) {
       motionGhostB = new Sprite(texture);
       motionGhostB.anchor.set(.5);
@@ -1635,7 +1646,7 @@ export class PixiProofRenderer {
         .circle(0, 0, actor.radius)
         .fill(hexNumber(classColorFor(actor), 0x888888));
     }
-    root.addChild(body);
+    if (body !== ring) root.addChild(body);
 
     const actorMotionFx = new Graphics();
     actorMotionFx.visible = false;
@@ -1942,6 +1953,7 @@ export class PixiProofRenderer {
     const view = {
       root,
       shadow,
+      ringGlow,
       ring,
       body,
       livingCircleUnits: this.livingCircleUnits,
@@ -3283,6 +3295,13 @@ export class PixiProofRenderer {
         view.shadow.scale.set(1, 1);
         view.ring.visible = true;
         view.ring.alpha = 1;
+        if (view.ringGlow) {
+          view.ringGlow.visible = view.livingCircleUnits;
+          view.ringGlow.alpha = 1;
+          view.ringGlow.position.set(0,0);
+          view.ringGlow.rotation = 0;
+          view.ringGlow.scale.set(1,1);
+        }
 
         view.name.alpha = 1;
       };
@@ -3329,6 +3348,7 @@ export class PixiProofRenderer {
         view.ccWorldGlowFx.visible = false;
         view.ccWorldFx.visible = false;
         view.ring.visible = false;
+        if (view.ringGlow) view.ringGlow.visible = false;
 
         if (deathP < 1) {
           body.visible = true;
@@ -3786,12 +3806,25 @@ export class PixiProofRenderer {
       }
 
       if (view.livingCircleUnits && typeof body.clear === "function") {
-        drawLivingBodyShape(body,actor,{
+        const livingState = {
           mode:livingMode,
           intensity:livingIntensity,
           dirX:livingDirX,
           dirY:livingDirY,
-        },nowMs);
+        };
+        drawLivingBodyShape(body,actor,livingState,nowMs);
+        if (view.ringGlow) {
+          drawLivingBodyShape(
+            view.ringGlow,
+            actor,
+            livingState,
+            nowMs,
+            { glow:true },
+          );
+          view.ringGlow.position.set(offsetX,offsetY);
+          view.ringGlow.rotation = rotation;
+          view.ringGlow.scale.set(scaleX,scaleY);
+        }
       }
 
       body.position.set(offsetX,offsetY);

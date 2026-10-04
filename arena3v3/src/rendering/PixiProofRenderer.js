@@ -25,6 +25,123 @@ function hexNumber(cssColor, fallback = 0xffffff) {
 }
 
 
+function drawLivingBodyShape(graphics, actor, state, nowMs) {
+  const radius = Math.max(8, Number(actor.radius) || 18) * .92;
+  const bodyColor = hexNumber(classColorFor(actor), 0x888888);
+  const mode = state?.mode || "idle";
+  const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
+  let dx = Number(state?.dirX) || Math.cos(actor.facing || 0);
+  let dy = Number(state?.dirY) || Math.sin(actor.facing || 0);
+  const len = Math.max(.0001, Math.hypot(dx,dy));
+  dx /= len;
+  dy /= len;
+  const sx = -dy;
+  const sy = dx;
+  const breathe = .5 + .5 * Math.sin((nowMs || 0) * .0043 + String(actor.id || "").length);
+  const points = [];
+  const count = 28;
+
+  let forwardStretch = 0;
+  let sideCompress = 0;
+  let radialWave = 0;
+  let rearCompress = 0;
+
+  if (mode === "move") {
+    forwardStretch = .10 + intensity * .08;
+    sideCompress = .035 + intensity * .035;
+  } else if (mode === "cast") {
+    radialWave = .045 + intensity * .055;
+    sideCompress = .015;
+  } else if (mode === "projectile" || mode === "spell") {
+    forwardStretch = .13 + intensity * .12;
+    rearCompress = .06 + intensity * .06;
+    sideCompress = .035;
+  } else if (mode === "melee") {
+    forwardStretch = .17 + intensity * .16;
+    rearCompress = .05;
+    sideCompress = .07 + intensity * .03;
+  } else if (mode === "charge" || mode === "shadowstep") {
+    forwardStretch = .20 + intensity * .20;
+    rearCompress = .08;
+    sideCompress = .09;
+  } else if (mode === "heal") {
+    radialWave = .035 + intensity * .04;
+  } else if (mode === "defensive") {
+    radialWave = .055 + intensity * .035;
+  } else if (mode === "hit") {
+    forwardStretch = -.12 * intensity;
+    rearCompress = -.03;
+    sideCompress = .075 * intensity;
+  } else if (mode === "fear") {
+    radialWave = .07 + intensity * .055;
+  } else if (mode === "stun") {
+    radialWave = .085;
+    sideCompress = .045;
+  } else if (mode === "root") {
+    sideCompress = .10;
+    forwardStretch = .035;
+  } else if (mode === "incapacitate") {
+    radialWave = .035;
+  }
+
+  for (let i=0;i<count;i+=1) {
+    const a = i / count * Math.PI * 2;
+    const alongDir = Math.cos(a);
+    const sideDir = Math.sin(a);
+    let alongScale = 1 + forwardStretch * Math.max(0,alongDir)
+      - rearCompress * Math.max(0,-alongDir);
+    let sideScale = 1 - sideCompress;
+
+    let localRadius = radius * (1 + (breathe-.5) * .018);
+    if (mode === "cast") {
+      localRadius *= 1 + Math.cos(a * 6) * radialWave;
+    } else if (mode === "fear") {
+      localRadius *= 1 + Math.sin(a * 7 + nowMs * .026) * radialWave;
+    } else if (mode === "stun") {
+      localRadius *= 1 + Math.cos(a * 4) * radialWave;
+    } else if (mode === "defensive") {
+      localRadius *= 1 + Math.cos(a * 8) * radialWave * .55;
+    } else if (mode === "heal") {
+      localRadius *= 1 + Math.sin(a * 5 + nowMs * .008) * radialWave * .45;
+    }
+
+    if (mode === "root" && sideDir > .15) {
+      sideScale *= .92;
+    }
+
+    const along = alongDir * localRadius * alongScale;
+    const side = sideDir * localRadius * sideScale;
+    points.push({
+      x: dx * along + sx * side,
+      y: dy * along + sy * side,
+    });
+  }
+
+  graphics.clear();
+  if (!points.length) return;
+  graphics.moveTo(points[0].x,points[0].y);
+  for (let i=1;i<points.length;i+=1) {
+    graphics.lineTo(points[i].x,points[i].y);
+  }
+  graphics.lineTo(points[0].x,points[0].y);
+  graphics.fill({ color: bodyColor, alpha: .96 });
+  graphics.stroke({ color: 0x080807, width: 2.2, alpha: .72 });
+
+  graphics.circle(
+    -dx * radius * .18 - sx * radius * .13,
+    -dy * radius * .18 - sy * radius * .13,
+    radius * .34,
+  ).fill({ color: 0xffffff, alpha: .055 });
+
+  if (mode === "cast" || mode === "heal" || mode === "defensive") {
+    graphics.circle(0,0,radius*.72).stroke({
+      color: 0xffffff,
+      width: 1.1,
+      alpha: .11 + intensity * .11,
+    });
+  }
+}
+
 function resourceColor(type) {
   if (type === "mana") return 0x7464b8;
   if (type === "energy") return 0xc5a34a;

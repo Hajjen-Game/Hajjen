@@ -416,10 +416,7 @@ function commonCasterSpellProfile(spellId) {
 const PROJECTILE_VFX2_SPELLS = new Set([
   "mage-frostbolt",
   "mage-pyroblast",
-  "mage-frostfire-bolt",
-  "mage-arcane-barrage",
   "shaman-lava-burst",
-  "shaman-elemental-blast",
   "warlock-shadow-bolt",
   "warlock-chaos-bolt",
   "paladin-hammer",
@@ -429,31 +426,56 @@ function projectileVfx2Spec(spellId) {
   const profile = spellPolishProfile(spellId);
   const specs = {
     "mage-frostbolt": {
-      shape: "frost-spear", travelEnd: .46, size: 9, tail: 66,
+      shape: "frost-spear",
+      trailStyle: "snow",
+      travelEnd: .46,
+      size: 9,
+      tail: 96,
+      trailReach: .90,
     },
     "mage-pyroblast": {
-      shape: "pyro", travelEnd: .49, size: 14, tail: 82, heavy: true,
-    },
-    "mage-frostfire-bolt": {
-      shape: "frostfire", travelEnd: .49, size: 13, tail: 78, heavy: true,
-    },
-    "mage-arcane-barrage": {
-      shape: "arcane", travelEnd: .44, size: 10, tail: 60,
+      shape: "pyro",
+      trailStyle: "fire",
+      travelEnd: .49,
+      size: 14,
+      tail: 118,
+      trailReach: .94,
+      heavy: true,
     },
     "shaman-lava-burst": {
-      shape: "lava-rock", travelEnd: .52, size: 14, tail: 66, heavy: true, arc: 24,
-    },
-    "shaman-elemental-blast": {
-      shape: "elemental", travelEnd: .50, size: 10, tail: 60, heavy: true,
+      shape: "lava-rock",
+      trailStyle: "magma",
+      travelEnd: .52,
+      size: 14,
+      tail: 110,
+      trailReach: .91,
+      heavy: true,
+      arc: 24,
     },
     "warlock-shadow-bolt": {
-      shape: "shadow", travelEnd: .48, size: 10, tail: 68,
+      shape: "shadow",
+      trailStyle: "void",
+      travelEnd: .48,
+      size: 10,
+      tail: 100,
+      trailReach: .90,
     },
     "warlock-chaos-bolt": {
-      shape: "chaos", travelEnd: .52, size: 13, tail: 78, heavy: true,
+      shape: "chaos",
+      trailStyle: "fel",
+      travelEnd: .52,
+      size: 13,
+      tail: 124,
+      trailReach: .95,
+      heavy: true,
     },
     "paladin-hammer": {
-      shape: "hammer", travelEnd: .44, size: 13, tail: 48,
+      shape: "hammer",
+      trailStyle: "holy",
+      travelEnd: .44,
+      size: 13,
+      tail: 62,
+      trailReach: .72,
     },
   };
   const spec = specs[spellId];
@@ -9888,18 +9910,37 @@ export class PixiProofRenderer {
       }
 
       if (travelFade > 0 && travelT > 0) {
-        // Long continuous tail, closer to the old Canvas look than the generic
-        // chain of small dots.
-        const tailLen = Math.min(spec.tail, Math.max(30, endLen * .22));
-        const tailScale = .45 + travelT * .55;
-        const tailX = px - tx * tailLen * tailScale;
-        const tailY =
-          py
-          - ty * tailLen * tailScale
-          + (spec.arc
-            ? Math.sin(Math.max(0, travelT - .12) * Math.PI) * -spec.arc
-              - Math.sin(travelT * Math.PI) * -spec.arc
-            : 0);
+        // Keep most of the travelled path alive behind the projectile. This is
+        // the main lesson from Chain Lightning: the eye should read one connected
+        // spell gesture from caster toward target, not a lone moving dot.
+        const travelledDistance = Math.max(1, Math.hypot(px,py));
+        const trailReach = spec.trailReach ?? (spec.heavy ? .92 : .88);
+        const tailLen = Math.min(
+          travelledDistance * trailReach,
+          spec.tail + endLen * (spec.heavy ? .62 : .55),
+        );
+        const tailStartT = Math.max(0, travelT - tailLen / endLen);
+        let tailX = endX * tailStartT;
+        let tailY = endY * tailStartT;
+
+        if (spec.arc) {
+          tailY -= Math.sin(tailStartT * Math.PI) * spec.arc;
+        }
+
+        if (spec.shape === "shadow") {
+          const tailCurl = Math.sin(tailStartT * 13 + seed * .07) * 7;
+          tailX += nx * tailCurl;
+          tailY += ny * tailCurl;
+        } else if (spec.shape === "chaos") {
+          const tailCurl = Math.sin(tailStartT * 17 + seed * .05) * 5;
+          tailX += nx * tailCurl;
+          tailY += ny * tailCurl;
+        }
+
+        const trailPoint = (fraction, lateral = 0) => ({
+          x: tailX + (px - tailX) * fraction + nx * lateral,
+          y: tailY + (py - tailY) * fraction + ny * lateral,
+        });
 
         if (spec.shape === "shadow" || spec.shape === "chaos") {
           jaggedLine(
@@ -10015,6 +10056,201 @@ export class PixiProofRenderer {
             color: i % 3 === 0 ? spec.accent : spec.main,
             alpha: alpha * travelFade * Math.max(.10,.55 - i * .05),
           });
+        }
+
+        // Spell-specific trail language. The base ribbon above gives every
+        // projectile continuity; these details make each class readable at a
+        // glance instead of recoloring the same effect.
+        if (spec.trailStyle === "snow") {
+          const flakes = 9;
+          for (let i = 0; i < flakes; i += 1) {
+            const f = (i + .55) / flakes;
+            const drift =
+              Math.sin(seed * .031 + i * 2.17 + p * 13) * (5 + (i % 3) * 2);
+            const point = trailPoint(f, drift);
+            const r = 2.2 + (i % 3) * .55;
+            const spin = p * 5.5 + i * .83;
+
+            glow.circle(point.x,point.y,r * 2.4).fill({
+              color: spec.main,
+              alpha: alpha * travelFade * .09,
+            });
+
+            for (let arm = 0; arm < 3; arm += 1) {
+              const a = spin + arm * Math.PI / 3;
+              const ax = Math.cos(a) * r;
+              const ay = Math.sin(a) * r;
+              core
+                .moveTo(point.x-ax,point.y-ay)
+                .lineTo(point.x+ax,point.y+ay)
+                .stroke({
+                  color: arm === 0 ? spec.core : spec.main,
+                  width: .9,
+                  alpha: alpha * travelFade * .72,
+                });
+            }
+          }
+
+          for (let i = 0; i < 6; i += 1) {
+            const f = (i + .35) / 6;
+            const point = trailPoint(
+              f,
+              Math.sin(i * 2.4 + p * 9 + seed * .04) * 9,
+            );
+            core
+              .moveTo(point.x-tx*2.5,point.y-ty*2.5)
+              .lineTo(point.x+tx*4.5,point.y+ty*4.5)
+              .stroke({
+                color: i % 2 ? spec.core : spec.accent,
+                width: 1.15,
+                alpha: alpha * travelFade * .48,
+              });
+          }
+        } else if (spec.trailStyle === "fire") {
+          const embers = 14;
+          for (let i = 0; i < embers; i += 1) {
+            const f = (i + .4) / embers;
+            const side =
+              Math.sin(i * 1.71 + p * 18 + seed * .025) * (5 + (i % 4) * 2.2);
+            const point = trailPoint(f, side);
+            const emberR = 1.2 + (i % 3) * .45;
+            const lift = (1-f) * 5 + Math.sin(p*10+i) * 2;
+
+            glow.circle(point.x,point.y-lift,emberR*3.2).fill({
+              color: spec.main,
+              alpha: alpha * travelFade * .13,
+            });
+            core.circle(point.x,point.y-lift,emberR).fill({
+              color: i % 3 === 0 ? spec.core : spec.accent,
+              alpha: alpha * travelFade * .78,
+            });
+
+            if (i % 3 === 0) {
+              core
+                .moveTo(point.x,point.y)
+                .lineTo(
+                  point.x-tx*(8+(i%2)*4)+nx*side*.18,
+                  point.y-ty*(8+(i%2)*4)+ny*side*.18-3,
+                )
+                .stroke({
+                  color: spec.core,
+                  width: 1.2,
+                  alpha: alpha * travelFade * .50,
+                });
+            }
+          }
+        } else if (spec.trailStyle === "magma") {
+          const chunks = 11;
+          for (let i = 0; i < chunks; i += 1) {
+            const f = (i + .5) / chunks;
+            const side =
+              Math.sin(seed*.043+i*2.3+p*12) * (6+(i%3)*2.5);
+            const point = trailPoint(f,side);
+            const rr = 1.7 + (i % 3) * .65;
+
+            glow.circle(point.x,point.y,rr*3.1).fill({
+              color: spec.main,
+              alpha: alpha * travelFade * .12,
+            });
+            core.circle(point.x,point.y,rr).fill({
+              color: i % 4 === 0 ? spec.core : 0x8a3f27,
+              alpha: alpha * travelFade * .88,
+            });
+            if (i % 2 === 0) {
+              core
+                .moveTo(point.x-tx*3,point.y-ty*3)
+                .lineTo(point.x+tx*5,point.y+ty*5)
+                .stroke({
+                  color: spec.core,
+                  width: 1,
+                  alpha: alpha * travelFade * .58,
+                });
+            }
+          }
+        } else if (spec.trailStyle === "void") {
+          const wisps = 9;
+          for (let i = 0; i < wisps; i += 1) {
+            const f = (i + .45) / wisps;
+            const wave =
+              Math.sin(f * Math.PI * 4 + p * 8 + seed * .029) * (7+(i%2)*4);
+            const point = trailPoint(f,wave);
+            const radius = 3.4 + (i % 3) * 1.2;
+            const phase = p*3 + i*.7;
+
+            strokeArc(glow,radius*1.8,phase,phase+Math.PI*1.25,{
+              color: spec.main,
+              width: 5,
+              alpha: alpha * travelFade * .08,
+            },5,point.x,point.y);
+            strokeArc(core,radius,phase,phase+Math.PI*1.25,{
+              color: i%3===0 ? spec.core : spec.main,
+              width: 1.25,
+              alpha: alpha * travelFade * .62,
+            },5,point.x,point.y);
+          }
+        } else if (spec.trailStyle === "fel") {
+          const forks = 8;
+          for (let i = 0; i < forks; i += 1) {
+            const f = (i + .5) / forks;
+            const sideSign = i % 2 ? -1 : 1;
+            const point = trailPoint(
+              f,
+              Math.sin(i*2.1+p*15+seed*.02) * 5,
+            );
+            const sideLen = 9 + (i % 3) * 5;
+            const ex = point.x + nx * sideSign * sideLen - tx * 4;
+            const ey = point.y + ny * sideSign * sideLen - ty * 4;
+
+            glow
+              .moveTo(point.x,point.y)
+              .lineTo(ex,ey)
+              .stroke({
+                color: spec.main,
+                width: 6,
+                alpha: alpha * travelFade * .10,
+              });
+            core
+              .moveTo(point.x,point.y)
+              .lineTo(
+                point.x + nx*sideSign*(sideLen*.52) - tx*2,
+                point.y + ny*sideSign*(sideLen*.52) - ty*2,
+              )
+              .lineTo(ex,ey)
+              .stroke({
+                color: i%3===0 ? spec.core : spec.main,
+                width: 1.65,
+                alpha: alpha * travelFade * .72,
+              });
+            core.circle(ex,ey,1.4+(i%2)*.4).fill({
+              color: spec.core,
+              alpha: alpha * travelFade * .68,
+            });
+          }
+        } else if (spec.trailStyle === "holy") {
+          const sparks = 7;
+          for (let i = 0; i < sparks; i += 1) {
+            const f = (i + .5) / sparks;
+            const point = trailPoint(
+              f,
+              Math.sin(i*1.8+p*8+seed*.03) * 5,
+            );
+            const r = 2.2 + (i%2)*.7;
+
+            glow.circle(point.x,point.y,r*2.8).fill({
+              color: spec.main,
+              alpha: alpha * travelFade * .10,
+            });
+            core
+              .moveTo(point.x-r*1.8,point.y)
+              .lineTo(point.x+r*1.8,point.y)
+              .moveTo(point.x,point.y-r*1.8)
+              .lineTo(point.x,point.y+r*1.8)
+              .stroke({
+                color: i%3===0 ? spec.core : spec.main,
+                width: 1,
+                alpha: alpha * travelFade * .68,
+              });
+          }
         }
 
         // Spell-specific moving silhouette.

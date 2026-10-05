@@ -9675,6 +9675,7 @@ export class PixiProofRenderer {
 
     const weaponSlash = (
       g,
+      glowG,
       cx,
       cy,
       angle,
@@ -9688,11 +9689,34 @@ export class PixiProofRenderer {
       const a=point(cx,cy,-length*.52,-bend,angle);
       const m=point(cx,cy,0,bend,angle);
       const b=point(cx,cy,length*.52,bend*.15,angle);
+
+      // Broad class-colored aura: the blur layer carries the scale, while the
+      // core layer keeps the weapon path sharp enough to read in a melee pile.
+      glowG.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
+        color:profile.main,
+        width:width+13,
+        alpha:alpha*.20,
+      });
+      glowG.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
+        color:profile.core,
+        width:width+7,
+        alpha:alpha*.16,
+      });
+
       g.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
-        color:profile.core,width,alpha
+        color:profile.accent,
+        width:width+5,
+        alpha:alpha*.28,
       });
       g.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
-        color:profile.accent,width:width+4,alpha:alpha*.16
+        color:profile.main,
+        width:Math.max(2,width+1.7),
+        alpha:alpha*.78,
+      });
+      g.moveTo(a.x,a.y).lineTo(m.x,m.y).lineTo(b.x,b.y).stroke({
+        color:profile.core,
+        width:Math.max(1.4,width*.48),
+        alpha:Math.min(1,alpha*1.06),
       });
     };
 
@@ -10397,6 +10421,28 @@ export class PixiProofRenderer {
           glow.ellipse(0,source.radius*.65,14+p*30,5+p*8).stroke({
             color:profile.main,width:7,alpha:alpha*fade*.10
           });
+          if(!missed){
+            const hit=clamp01((p-.12)/.62);
+            const hf=1-smooth((hit-.70)/.30);
+            const ex=easeOut(hit);
+            glow.circle(dx0,dy0,15+ex*39).stroke({
+              color:profile.main,width:13,alpha:alpha*hf*.18
+            });
+            core.circle(dx0,dy0,8+ex*18).stroke({
+              color:profile.core,width:2.5,alpha:alpha*hf*.76
+            });
+            for(let i=0;i<10;i++){
+              const a=i*Math.PI*2/10;
+              core
+                .moveTo(dx0+Math.cos(a)*8,dy0+Math.sin(a)*8)
+                .lineTo(dx0+Math.cos(a)*(22+ex*(13+(i%3)*5)),dy0+Math.sin(a)*(22+ex*(13+(i%3)*5)))
+                .stroke({
+                  color:i%3===0?profile.core:profile.main,
+                  width:1.7,
+                  alpha:alpha*hf*.62,
+                });
+            }
+          }
           continue;
         }
 
@@ -10429,26 +10475,76 @@ export class PixiProofRenderer {
 
         if(effect.spellId==="warrior-slam"){
           const impact=smooth(p/.34);
-          core
-            .moveTo(dx-11,dy-45+impact*18)
-            .lineTo(dx+5,dy+13)
+
+          glow
+            .moveTo(dx-15,dy-58+impact*20)
+            .lineTo(dx+6,dy+15)
             .stroke({
-              color:profile.core,width:6,alpha:alpha*fade*impact*.88
+              color:profile.main,width:18,alpha:alpha*fade*impact*.18
             });
-          const shock=clamp01((p-.20)/.58);
+          glow
+            .moveTo(dx-12,dy-54+impact*20)
+            .lineTo(dx+6,dy+15)
+            .stroke({
+              color:profile.core,width:10,alpha:alpha*fade*impact*.14
+            });
+          core
+            .moveTo(dx-13,dy-56+impact*20)
+            .lineTo(dx+6,dy+15)
+            .stroke({
+              color:profile.main,width:8.2,alpha:alpha*fade*impact*.72
+            });
+          core
+            .moveTo(dx-11,dy-53+impact*20)
+            .lineTo(dx+6,dy+15)
+            .stroke({
+              color:profile.core,width:3.4,alpha:alpha*fade*impact*.98
+            });
+
+          const shock=clamp01((p-.18)/.62);
           if(shock>0 && !missed){
-            core.ellipse(dx,dy+13,10+easeOut(shock)*42,4+easeOut(shock)*11).stroke({
-              color:profile.main,width:2.6,alpha:alpha*(1-shock)*.66
+            const shockFade=(1-shock);
+            const expand=easeOut(shock);
+
+            glow.ellipse(
+              dx,dy+14,
+              19+expand*64,
+              7+expand*20
+            ).stroke({
+              color:profile.main,width:13,alpha:alpha*shockFade*.18
             });
-            for(let i=0;i<8;i++){
-              const ang=-.25+i*Math.PI/7;
-              const len=11+shock*(17+(i%3)*6);
+            core.ellipse(
+              dx,dy+14,
+              14+expand*56,
+              5+expand*16
+            ).stroke({
+              color:profile.main,width:3.4,alpha:alpha*shockFade*.82
+            });
+            core.ellipse(
+              dx,dy+14,
+              9+expand*39,
+              3+expand*10
+            ).stroke({
+              color:profile.core,width:1.8,alpha:alpha*shockFade*.70
+            });
+
+            glow.circle(dx,dy,14+expand*32).fill({
+              color:profile.main,alpha:alpha*shockFade*.10
+            });
+            core.circle(dx,dy,6+expand*13).stroke({
+              color:profile.core,width:2.3,alpha:alpha*shockFade*.72
+            });
+
+            for(let i=0;i<12;i++){
+              const ang=-.35+i*Math.PI/11;
+              const len=14+shock*(25+(i%4)*8);
               core
-                .moveTo(dx+Math.cos(ang)*7,dy+13+Math.sin(ang)*3)
-                .lineTo(dx+Math.cos(ang)*len,dy+13+Math.sin(ang)*len*.40)
+                .moveTo(dx+Math.cos(ang)*8,dy+13+Math.sin(ang)*4)
+                .lineTo(dx+Math.cos(ang)*len,dy+13+Math.sin(ang)*len*.44)
                 .stroke({
                   color:i%3===0?profile.core:profile.main,
-                  width:1.5,alpha:alpha*(1-shock)*.50
+                  width:1.7+(i%3===0?.7:0),
+                  alpha:alpha*shockFade*.64
                 });
             }
           }
@@ -10458,15 +10554,15 @@ export class PixiProofRenderer {
         let slashCount=1;
         let slashLength=48;
         let slashWidth=3.8;
-        if(effect.spellId==="warrior-rend"){slashCount=3;slashLength=50;slashWidth=2.8;}
-        if(effect.spellId==="warrior-mortal-strike"){slashLength=74;slashWidth=6.6;}
-        if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=48;slashWidth=3.4;}
-        if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=56;slashWidth=2.7;}
-        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=58;slashWidth=3.0;}
-        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=72;slashWidth=5.5;}
-        if(effect.spellId==="dk-death-strike"){slashLength=68;slashWidth=5.0;}
-        if(effect.spellId==="dk-frost-strike"){slashLength=62;slashWidth=4.6;}
-        if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=66;slashWidth=4.8;}
+        if(effect.spellId==="warrior-rend"){slashCount=3;slashLength=58;slashWidth=3.2;}
+        if(effect.spellId==="warrior-mortal-strike"){slashLength=86;slashWidth=7.4;}
+        if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=56;slashWidth=3.9;}
+        if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=66;slashWidth=3.2;}
+        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=68;slashWidth=3.5;}
+        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=84;slashWidth=6.2;}
+        if(effect.spellId==="dk-death-strike"){slashLength=78;slashWidth=5.6;}
+        if(effect.spellId==="dk-frost-strike"){slashLength=72;slashWidth=5.2;}
+        if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=78;slashWidth=5.5;}
 
         for(let i=0;i<slashCount;i++){
           const delay=i*(slashCount>1?.055:0);
@@ -10482,6 +10578,7 @@ export class PixiProofRenderer {
                   : (-.72+i*.48);
           weaponSlash(
             core,
+            glow,
             dx+(i-(slashCount-1)/2)*4,
             dy+(i-(slashCount-1)/2)*2,
             baseAngle,
@@ -10494,55 +10591,137 @@ export class PixiProofRenderer {
         }
 
         if(!missed){
-          const hit=clamp01((p-.20)/.50);
+          const hit=clamp01((p-.18)/.54);
+          const hitFade=1-smooth((hit-.72)/.28);
+          const expand=easeOut(hit);
+          const heavyImpact=
+            effect.spellId==="warrior-mortal-strike"
+            || effect.spellId==="dk-obliterate"
+            || effect.spellId==="shaman-stormstrike";
+          const rogueImpact=
+            effect.spellId==="rogue-eviscerate"
+            || effect.spellId==="rogue-mutilate";
+
+          // Shared impact flash: large enough to be felt, but tinted entirely
+          // by the attack profile so Warrior, Rogue, DK and Shaman stay distinct.
+          glow.circle(dx,dy,15+expand*(heavyImpact?47:36)).stroke({
+            color:profile.main,
+            width:heavyImpact?15:11,
+            alpha:alpha*hitFade*(heavyImpact?.21:.17),
+          });
+          glow.circle(dx,dy,9+expand*(heavyImpact?29:23)).fill({
+            color:profile.accent,
+            alpha:alpha*hitFade*(heavyImpact?.13:.10),
+          });
+          core.circle(dx,dy,7+expand*(heavyImpact?19:15)).stroke({
+            color:profile.core,
+            width:heavyImpact?2.8:2.2,
+            alpha:alpha*hitFade*.82,
+          });
+
           const shards=
             effect.spellId==="dk-obliterate"
               || effect.spellId==="shaman-stormstrike"
-              ? 10 : 7;
+              ? 16
+              : rogueImpact ? 13 : 11;
           for(let i=0;i<shards;i++){
             const ang=i/shards*Math.PI*2+seed*.009;
-            const inner=7+(i%2)*2;
-            const outer=14+easeOut(hit)*(18+(i%4)*5);
+            const inner=8+(i%2)*3;
+            const outer=
+              18+expand*
+              (
+                heavyImpact
+                  ? 34+(i%4)*9
+                  : rogueImpact
+                    ? 28+(i%4)*7
+                    : 27+(i%4)*7
+              );
             core
               .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
               .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
               .stroke({
                 color:
                   effect.spellId==="shaman-stormstrike" && i%2
-                    ? 0x65cce0
-                    : (i%3===0?profile.core:profile.main),
-                width:1.4+(i%3===0?.8:0),
-                alpha:alpha*(1-hit)*.64,
+                    ? 0x78e6ff
+                    : (i%3===0?profile.core:(i%2?profile.main:profile.accent)),
+                width:1.8+(i%3===0?1.15:.25),
+                alpha:alpha*hitFade*.76,
               });
           }
 
+          // Warrior: broad red/gold cleave rings that feel like the target was
+          // struck by force, not merely decorated by sparks.
           if(effect.spellId==="warrior-mortal-strike"){
             for(let i=0;i<3;i++){
-              const a0=i*Math.PI*2/3+.2;
-              arc(core,dx,dy,18+hit*15,a0,a0+.72,{
-                color:profile.main,width:2,alpha:alpha*(1-hit)*.52
-              },6);
+              const a0=i*Math.PI*2/3+.2-hit*.18;
+              arc(core,dx,dy,23+expand*24,a0,a0+.90,{
+                color:i===1?profile.core:profile.main,
+                width:2.8,
+                alpha:alpha*hitFade*.72
+              },8);
             }
-          }
-
-          if(effect.spellId==="dk-obliterate" || effect.spellId==="dk-frost-strike"){
-            glow.circle(dx,dy,11+hit*29).stroke({
-              color:profile.main,width:7,alpha:alpha*(1-hit)*.12
+            glow.circle(dx,dy,19+expand*32).stroke({
+              color:profile.main,width:10,alpha:alpha*hitFade*.14
             });
           }
 
-          if(effect.spellId==="shaman-stormstrike"){
-            for(let i=0;i<4;i++){
-              const sign=i%2?1:-1;
-              const bx=dx+sign*(7+i*3);
+          // Rogue: several razor-thin secondary cuts appear just after the main
+          // slash. They are fast/bright rather than heavy.
+          if(rogueImpact){
+            for(let i=0;i<5;i++){
+              const a=-1.10+i*.48+(effect.spellId==="rogue-mutilate"?i*.10:0);
+              const inner=9+(i%2)*2;
+              const outer=31+expand*(12+(i%3)*5);
               core
-                .moveTo(bx,dy-24)
-                .lineTo(dx-sign*5,dy-5)
-                .lineTo(dx+sign*11,dy+11)
+                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                .stroke({
+                  color:i%2?profile.core:profile.accent,
+                  width:1.6+(i%2)*.35,
+                  alpha:alpha*hitFade*.78,
+                });
+            }
+            glow.circle(dx,dy,13+expand*27).stroke({
+              color:profile.accent,width:8,alpha:alpha*hitFade*.13
+            });
+          }
+
+          // DK: cold runic/frost fracture around the victim.
+          if(effect.spellId==="dk-obliterate" || effect.spellId==="dk-frost-strike"){
+            glow.circle(dx,dy,16+expand*42).stroke({
+              color:profile.main,width:12,alpha:alpha*hitFade*.19
+            });
+            for(let i=0;i<7;i++){
+              const a=i*Math.PI*2/7+hit*.42;
+              const r0=10+(i%2)*2;
+              const r1=28+expand*(17+(i%3)*5);
+              core
+                .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+                .lineTo(dx+Math.cos(a+.08*(i%2?1:-1))*r1,dy+Math.sin(a+.08*(i%2?1:-1))*r1)
                 .stroke({
                   color:i%2?profile.core:profile.main,
-                  width:1.8,
-                  alpha:alpha*(1-hit)*.62,
+                  width:2.0+(i%3===0?.7:0),
+                  alpha:alpha*hitFade*.68,
+                });
+            }
+          }
+
+          // Stormstrike: thick electric forks flash directly on the victim.
+          if(effect.spellId==="shaman-stormstrike"){
+            glow.circle(dx,dy,18+expand*37).stroke({
+              color:0x78e6ff,width:13,alpha:alpha*hitFade*.20
+            });
+            for(let i=0;i<6;i++){
+              const sign=i%2?1:-1;
+              const lane=(i-2.5)*5;
+              core
+                .moveTo(dx+sign*(22+Math.abs(lane)),dy-30+lane*.25)
+                .lineTo(dx-sign*(5+Math.abs(lane)*.15),dy-7)
+                .lineTo(dx+sign*(12+Math.abs(lane)*.25),dy+14+lane*.18)
+                .stroke({
+                  color:i%2?profile.core:0x78e6ff,
+                  width:2.1+(i%3)*.35,
+                  alpha:alpha*hitFade*.84,
                 });
             }
           }

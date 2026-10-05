@@ -87,6 +87,29 @@ function eventDetails(event) {
       + "/" + fixed(event.progressThreshold, 1),
     );
   }
+  if (Number.isFinite(event.pathDistance)) {
+    details.push("path " + fixed(event.pathDistance, 1));
+  }
+  if (Number.isFinite(event.netDistance)) {
+    details.push("net " + fixed(event.netDistance, 1));
+  }
+  if (Number.isFinite(event.reversals)) {
+    details.push("reversals " + fixed(event.reversals, 0));
+  }
+  if (event.lastMove) details.push("lastMove " + vectorText(event.lastMove));
+  if (event.separation) details.push("separation " + vectorText(event.separation));
+  if (event.targetName) {
+    details.push(
+      "target " + event.targetName
+      + (Number.isFinite(event.targetDistance)
+        ? " @" + fixed(event.targetDistance, 1)
+        : ""),
+    );
+  }
+  if (event.castSpellId) details.push("cast " + event.castSpellId);
+  if (event.safeTurret) details.push("safe-turret");
+  if (event.manaRecovery) details.push("mana-recovery");
+  if (event.collisionActive === false) details.push("open-field");
   if (event.forcedDetour) details.push("forced-detour");
   if (event.from || event.to) {
     details.push("recover " + positionText(event.from) + " -> " + positionText(event.to));
@@ -103,7 +126,7 @@ export function buildAiMovementReport(game) {
 
   const lines = [
     "3V3 ARENA — AI MOVEMENT / COLLISION LOG",
-    "Report schema: ai-movement-v1",
+    "Report schema: ai-movement-v2",
     "Arena: " + (game.arena?.name || "Unknown")
       + " [" + (game.arena?.id || "unknown") + "]",
     "Duration: " + fixed(game.elapsedSeconds, 1) + "s",
@@ -149,6 +172,10 @@ export function buildAiMovementReport(game) {
       + " | progress reroutes " + (counts["progress-reroute"] || 0)
       + " | stuck side flips " + (counts["stuck-side-flip"] || 0)
       + " | rapid direction flips " + (counts["rapid-direction-flip"] || 0)
+      + " | open-field jitter " + (counts["open-field-jitter"] || 0)
+      + " | open-field stalls " + (counts["open-field-stall"] || 0)
+      + " | movement jitter " + (counts["movement-jitter"] || 0)
+      + " | movement stalls " + (counts["movement-stall"] || 0)
       + " | no-route " + (counts["no-route"] || 0)
       + " | embedded recoveries " + (counts["embedded-recovery"] || 0)
       + " | engine route flips " + (actor.aiPathReroutes || 0)
@@ -237,6 +264,55 @@ export function buildAiMovementReport(game) {
     }
   }
 
+  lines.push("", "=== DETAILED MOVEMENT TRACE — LAST 8 SECONDS ===");
+
+  const samples = Array.isArray(game.aiMovementSamples)
+    ? game.aiMovementSamples
+    : [];
+  const traceStart = Math.max(0, (Number(game.elapsedSeconds) || 0) - 8);
+  const recentSamples = samples.filter(sample => sample.time >= traceStart);
+
+  if (recentSamples.length === 0) {
+    lines.push("No detailed movement samples recorded.");
+  } else {
+    for (const sample of recentSamples) {
+      const state = [];
+      if (sample.castSpellId) state.push("cast=" + sample.castSpellId);
+      if (sample.hardControlled) state.push("hard-CC");
+      if (sample.rooted) state.push("rooted");
+      if (sample.safeTurret) state.push("safe-turret");
+      if (sample.manaRecovery) state.push("mana-recovery");
+      if (sample.activeDash) state.push("dash");
+      if (sample.collisionActive) state.push("collision");
+      if (sample.intentType) state.push("intent=" + sample.intentType);
+
+      lines.push(
+        fixed(sample.time, 3) + "s"
+        + " | " + (sample.actorName || sample.actorId || "AI")
+        + " [" + (sample.className || "Unknown") + "]"
+        + " | pos " + positionText(sample.position)
+        + " | Δ " + vectorText(sample.delta)
+        + " | speed " + fixed(sample.speed, 1) + "px/s"
+        + " | lastMove " + vectorText(sample.lastMove)
+        + " | separation " + vectorText(sample.separation)
+        + (sample.targetName
+          ? " | target " + sample.targetName
+            + (Number.isFinite(sample.targetDistance)
+              ? " @" + fixed(sample.targetDistance, 1)
+              : "")
+          : "")
+        + (state.length ? " | " + state.join(", ") : ""),
+      );
+    }
+  }
+
+  lines.push(
+    "Samples stored: " + samples.length
+    + (game.aiMovementSamplesDropped
+      ? " | oldest dropped: " + game.aiMovementSamplesDropped
+      : ""),
+  );
+
   lines.push("", "=== COLLISION / MOVEMENT EVENT TIMELINE ===");
 
   if (events.length === 0) {
@@ -263,6 +339,10 @@ export function buildAiMovementReport(game) {
     "PROGRESS_REROUTE = 1.1s progress watchdog changed preferred wall side.",
     "STUCK_SIDE_FLIP = no candidate route succeeded long enough to flip wall side.",
     "RAPID_DIRECTION_FLIP = AI alternated detour direction within 280ms while touching collision.",
+    "OPEN_FIELD_JITTER = actor repeatedly reversed real movement while making little net progress away from collision.",
+    "OPEN_FIELD_STALL = actor reported movement intent but made almost no real movement away from collision.",
+    "MOVEMENT_JITTER / MOVEMENT_STALL = same detectors while collision contact was active.",
+    "DETAILED MOVEMENT TRACE = 200ms samples of real position, lastMove, separation push, target distance and AI state for the final 8 seconds.",
     "NO_ROUTE = every tested steering direction was blocked for that movement tick.",
     "EMBEDDED_RECOVERY = actor was already overlapping collision and was moved to nearest valid point.",
   );

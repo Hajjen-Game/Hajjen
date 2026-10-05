@@ -14,9 +14,9 @@ export const shamanGear = Object.freeze({
       },
       {
         pieces: 4,
-        description: "Wind Shear cooldown reduced by 1.5s.",
+        description: "Astral Shift cooldown reduced by 3s.",
         effects: [
-          { type: "spellFieldAdd", spellId: "shaman-wind-shear", field: "cooldownMs", amount: -1500, min: 3500 },
+          { type: "spellFieldAdd", spellId: "shaman-astral-shift", field: "cooldownMs", amount: -3000, min: 12000 },
         ],
       },
       {

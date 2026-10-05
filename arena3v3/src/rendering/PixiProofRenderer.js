@@ -86,9 +86,11 @@ function drawLivingBodyShape(
     rearCompress = .028 + intensity * .035;
     sideCompress = .018;
   } else if (mode === "melee") {
-    forwardStretch = .085 + intensity * .095;
-    rearCompress = .025;
-    sideCompress = .035 + intensity * .025;
+    // Melee should feel like the ring itself commits to the strike: a much
+    // stronger forward spear/stretch, compressed rear edge and tighter sides.
+    forwardStretch = .14 + intensity * .16;
+    rearCompress = .045 + intensity * .020;
+    sideCompress = .050 + intensity * .040;
   } else if (mode === "charge" || mode === "shadowstep") {
     forwardStretch = .11 + intensity * .11;
     rearCompress = .04;
@@ -789,15 +791,32 @@ function drawLivingRingAccent(
   }
 
   if (mode === "melee") {
-    // A bright outer crescent follows the attack side. It frames the existing
-    // melee VFX rather than drawing over the transparent center.
+    // Melee 2.0: the living circle becomes part of the attack. Layered
+    // crescents travel around the striking side while a rear wake peels away.
     const swing = Math.sin(progress*Math.PI);
-    strokeLivingArc(graphics,radius+2.2,angle-1.0,angle+.88,{
-      color:core,width:2.6,alpha:.28+.36*swing,
+    const snap = 1-Math.min(1,progress/.58);
+    const sweep = angle + (progress-.5) * 1.05;
+
+    strokeLivingArc(graphics,radius+2.4,sweep-1.12,sweep+.96,{
+      color:core,width:3.25,alpha:.34+.46*swing,
+    },12);
+    strokeLivingArc(graphics,radius+7.0,sweep-.82,sweep+.70,{
+      color:main,width:2.10,alpha:.20+.38*swing,
     },10);
-    strokeLivingArc(graphics,radius+6.2,angle-.72,angle+.58,{
-      color:main,width:1.55,alpha:.14+.28*swing,
+    strokeLivingArc(graphics,radius+11.0,sweep-.48,sweep+.42,{
+      color:accent,width:1.35,alpha:.12+.28*swing,
     },8);
+
+    const rear=sweep+Math.PI;
+    strokeLivingArc(graphics,radius+5.0+progress*5,rear-.66,rear+.66,{
+      color:teamColor,width:1.35,alpha:snap*.24,
+    },8);
+
+    if (state?.heavy) {
+      strokeLivingArc(graphics,radius+14.0,sweep-.58,sweep+.52,{
+        color:core,width:1.45,alpha:.10+.26*swing,
+      },8);
+    }
     return;
   }
 
@@ -4529,7 +4548,13 @@ export class PixiProofRenderer {
           action.kind === "charge" || action.kind === "shadowstep"
             ? 390
             : action.kind === "melee"
-              ? (action.heavy ? 340 : 270)
+              ? (
+                  action.spellId?.startsWith?.("rogue-")
+                    ? (action.heavy ? 330 : 270)
+                    : action.spellId === "shaman-stormstrike"
+                      ? 340
+                      : (action.heavy ? 410 : 330)
+                )
               : action.kind === "projectile"
                 ? (action.heavy ? 290 : 230)
                 : 240;
@@ -4549,28 +4574,80 @@ export class PixiProofRenderer {
         livingHeavy = Boolean(action.heavy);
 
         if (action.kind === "melee") {
-          const lunge = hitPulse * (action.heavy ? 8.5 : 6);
-          offsetX += dirX * lunge;
-          offsetY += dirY * lunge;
-          rotation += dirY * dirX * (action.heavy ? .035 : .022);
-          scaleX *= 1 + hitPulse * (action.heavy ? .055 : .035);
-          scaleY *= 1 - hitPulse * (action.heavy ? .035 : .022);
+          const warrior=action.spellId?.startsWith?.("warrior-");
+          const rogue=action.spellId?.startsWith?.("rogue-");
+          const dk=action.spellId?.startsWith?.("dk-");
+          const storm=action.spellId==="shaman-stormstrike";
+          const sideX=-dirY;
+          const sideY=dirX;
 
+          // A quick "coil -> commit -> recover" curve reads much more like an
+          // attack than a symmetric bob. It is visual-only: gameplay position,
+          // hitboxes, LOS and collision stay untouched.
+          const commit=smooth((q-.035)/.24) * (1-smooth((q-.56)/.40));
+          const recoil=(1-smooth(q/.14))*(action.heavy?3.2:2.0);
+          const lungeBase=
+            rogue ? (action.heavy?12.5:10.5)
+            : warrior ? (action.heavy?17.5:13.5)
+            : dk ? (action.heavy?15.5:12.5)
+            : storm ? 13.5
+            : (action.heavy?14.0:11.0);
+          const lunge=commit*lungeBase;
+
+          // Rogue slices across the target; Warrior drives straight through;
+          // DK feels heavy; Stormstrike gets a small electrical side snap.
+          let lateral=0;
+          if(rogue) lateral=Math.sin(q*Math.PI*2.15)*commit*(action.heavy?6.2:4.8);
+          else if(storm) lateral=Math.sin(q*Math.PI*4.2)*commit*2.4;
+          else if(dk) lateral=Math.sin(q*Math.PI)*commit*1.8;
+
+          offsetX += dirX*(lunge-recoil) + sideX*lateral;
+          offsetY += dirY*(lunge-recoil) + sideY*lateral;
+
+          const turn=
+            rogue ? .080
+            : warrior ? (action.heavy?.058:.042)
+            : dk ? .036
+            : storm ? .052
+            : .038;
+          rotation += (dirX*sideY-dirY*sideX)*0 + (rogue?-1:1)*commit*turn;
+
+          const stretch=
+            rogue ? .105
+            : warrior ? (action.heavy?.145:.105)
+            : dk ? .110
+            : storm ? .120
+            : .095;
+          scaleX *= 1 + commit*stretch;
+          scaleY *= 1 - commit*(stretch*.58);
+
+          // The shadow stays grounded while the ring lunges, selling the
+          // movement as force rather than teleportation.
+          view.shadow.position.set(
+            dirX*commit*(rogue?2.2:3.0),
+            dirY*commit*(rogue?1.4:2.0),
+          );
+          view.shadow.scale.set(
+            1+commit*(action.heavy?.16:.10),
+            1-commit*(action.heavy?.10:.07),
+          );
+
+          const ghostBoost=rogue?1.18:(action.heavy?1.0:.88);
           setGhost(
             ghostA,
-            -dirX * (5 + hitPulse * 4),
-            -dirY * (5 + hitPulse * 4),
-            (1-q) * (action.heavy ? .22 : .15),
-            .98,
-            rotation * .55,
+            -dirX*(9+commit*9)-sideX*lateral*.35,
+            -dirY*(9+commit*9)-sideY*lateral*.35,
+            (1-q)*(action.heavy?.34:.25)*ghostBoost,
+            .99+commit*.03,
+            rotation*.72,
           );
           setGhost(
             ghostB,
-            -dirX * (10 + hitPulse * 6),
-            -dirY * (10 + hitPulse * 6),
-            (1-q) * (action.heavy ? .13 : .09),
+            -dirX*(18+commit*13)-sideX*lateral*.55,
+            -dirY*(18+commit*13)-sideY*lateral*.55,
+            (1-q)*(action.heavy?.22:.16)*ghostBoost,
             .96,
-            rotation * .35,
+            rotation*.46,
           );
         } else if (action.kind === "charge" || action.kind === "shadowstep") {
           const speedKick = hitPulse * (action.kind === "charge" ? 5 : 3.5);
@@ -4630,22 +4707,55 @@ export class PixiProofRenderer {
           if (action.kind === "melee") {
             const sideX = -dirY;
             const sideY = dirX;
-            for (let i = 0; i < (action.heavy ? 4 : 3); i += 1) {
-              const spread = (i - 1.5) * 4;
+            const rogue=action.spellId?.startsWith?.("rogue-");
+            const warrior=action.spellId?.startsWith?.("warrior-");
+            const dk=action.spellId?.startsWith?.("dk-");
+            const storm=action.spellId==="shaman-stormstrike";
+            const strands=action.heavy?7:5;
+
+            for (let i = 0; i < strands; i += 1) {
+              const spread=(i-(strands-1)/2)*(rogue?4.4:3.7);
+              const rear=actor.radius+4+(i%3)*3;
+              const front=actor.radius+18+hitPulse*(action.heavy?19:14)+(i%2)*4;
               motionFx
                 .moveTo(
-                  dirX * (actor.radius - 2) + sideX * spread,
-                  dirY * (actor.radius - 2) + sideY * spread,
+                  -dirX*rear + sideX*spread,
+                  -dirY*rear + sideY*spread,
                 )
                 .lineTo(
-                  dirX * (actor.radius + 11 + hitPulse * 8) + sideX * spread,
-                  dirY * (actor.radius + 11 + hitPulse * 8) + sideY * spread,
+                  dirX*front + sideX*spread*(rogue?.25:.55),
+                  dirY*front + sideY*spread*(rogue?.25:.55),
                 )
                 .stroke({
-                  color: i % 2 ? profile.core : profile.main,
-                  width: action.heavy ? 1.6 : 1.1,
-                  alpha: release * (action.heavy ? .34 : .24),
+                  color:
+                    storm && i%2 ? 0x78e6ff
+                    : i%3===0 ? profile.core
+                    : i%2 ? profile.main
+                    : profile.accent,
+                  width:action.heavy?(2.25+i*.05):(1.35+i*.04),
+                  alpha:release*(action.heavy?.44:.31)*(1-i*.055),
                 });
+            }
+
+            // Expanding broken aura around the attacker at the commitment
+            // moment gives the hit a readable "beat" even in a melee pile.
+            const ringP=Math.min(1,q/.62);
+            const auraR=actor.radius+5+ringP*(action.heavy?19:13);
+            const segs=rogue?4:(warrior?3:(dk?5:4));
+            for(let i=0;i<segs;i++){
+              const a=i*Math.PI*2/segs + (rogue?-q*.9:q*.55);
+              strokeLivingArc(
+                motionFx,
+                auraR,
+                a-.34,
+                a+.34,
+                {
+                  color:i%2?profile.main:profile.core,
+                  width:action.heavy?1.85:1.35,
+                  alpha:(1-ringP)*(action.heavy?.38:.27),
+                },
+                5,
+              );
             }
           } else if (q < .42) {
             const radius = actor.radius + 6 + q * (action.heavy ? 18 : 12);
@@ -10348,15 +10458,15 @@ export class PixiProofRenderer {
         let slashCount=1;
         let slashLength=48;
         let slashWidth=3.8;
-        if(effect.spellId==="warrior-rend"){slashCount=3;slashLength=42;slashWidth=2.4;}
-        if(effect.spellId==="warrior-mortal-strike"){slashLength=62;slashWidth=5.8;}
-        if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=40;slashWidth=3;}
-        if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=46;slashWidth=2.3;}
-        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=48;slashWidth=2.6;}
-        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=60;slashWidth=4.8;}
-        if(effect.spellId==="dk-death-strike"){slashLength=57;slashWidth=4.4;}
-        if(effect.spellId==="dk-frost-strike"){slashLength=51;slashWidth=4;}
-        if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=54;slashWidth=4.2;}
+        if(effect.spellId==="warrior-rend"){slashCount=3;slashLength=50;slashWidth=2.8;}
+        if(effect.spellId==="warrior-mortal-strike"){slashLength=74;slashWidth=6.6;}
+        if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=48;slashWidth=3.4;}
+        if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=56;slashWidth=2.7;}
+        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=58;slashWidth=3.0;}
+        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=72;slashWidth=5.5;}
+        if(effect.spellId==="dk-death-strike"){slashLength=68;slashWidth=5.0;}
+        if(effect.spellId==="dk-frost-strike"){slashLength=62;slashWidth=4.6;}
+        if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=66;slashWidth=4.8;}
 
         for(let i=0;i<slashCount;i++){
           const delay=i*(slashCount>1?.055:0);
@@ -10402,7 +10512,7 @@ export class PixiProofRenderer {
                     ? 0x65cce0
                     : (i%3===0?profile.core:profile.main),
                 width:1.4+(i%3===0?.8:0),
-                alpha:alpha*(1-hit)*.50,
+                alpha:alpha*(1-hit)*.64,
               });
           }
 

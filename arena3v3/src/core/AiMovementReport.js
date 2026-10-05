@@ -107,6 +107,23 @@ function eventDetails(event) {
         : ""),
     );
   }
+  if (event.healerName) {
+    details.push(
+      "healer " + event.healerName
+      + (Number.isFinite(event.healerDistance)
+        ? " @" + fixed(event.healerDistance, 1)
+        : "")
+      + (Number.isFinite(event.healerSupportRange)
+        ? "/range " + fixed(event.healerSupportRange, 0)
+        : "")
+      + (event.healerSupported === true
+        ? " supported"
+        : event.healerSupported === false
+          ? " UNSUPPORTED"
+          : "")
+      + (event.healerSupportRecovery ? " recovery-latched" : ""),
+    );
+  }
   if (event.castSpellId) details.push("cast " + event.castSpellId);
   if (event.safeTurret) details.push("safe-turret");
   if (event.manaRecovery) details.push("mana-recovery");
@@ -303,6 +320,21 @@ export function buildAiMovementReport(game) {
               ? " @" + fixed(sample.targetDistance, 1)
               : "")
           : "")
+        + (sample.healerName
+          ? " | healer " + sample.healerName
+            + (Number.isFinite(sample.healerDistance)
+              ? " @" + fixed(sample.healerDistance, 1)
+              : "")
+            + (Number.isFinite(sample.healerSupportRange)
+              ? "/range " + fixed(sample.healerSupportRange, 0)
+              : "")
+            + (sample.healerSupported === true
+              ? " supported"
+              : sample.healerSupported === false
+                ? " UNSUPPORTED"
+                : "")
+            + (sample.healerSupportRecovery ? " recovery-latched" : "")
+          : "")
         + (state.length ? " | " + state.join(", ") : ""),
       );
     }
@@ -345,6 +377,7 @@ export function buildAiMovementReport(game) {
     "OPEN_FIELD_STALL = actor reported movement intent but made almost no real movement away from collision.",
     "MOVEMENT_JITTER / MOVEMENT_STALL = same detectors while collision contact was active.",
     "DETAILED MOVEMENT TRACE = 200ms samples of real position, lastMove, separation push, target distance and AI state for the final 8 seconds.",
+    "Caster samples also show healer distance/range plus whether healer-support recovery is latched.",
     "NO_ROUTE = every tested steering direction was blocked for that movement tick.",
     "EMBEDDED_RECOVERY = actor was already overlapping collision and was moved to nearest valid point.",
   );

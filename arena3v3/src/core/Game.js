@@ -15,7 +15,7 @@ import { buildAiMovementReport } from "./AiMovementReport.js?v=20261004-movement
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20260927-rank20rating2";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";
-import { GearSystem } from "./GearSystem.js?v=20260927-rank20rating2";
+import { GearSystem } from "./GearSystem.js?v=20261005-astralgear1";
 
 const PIXI_FIXED_STEP_MS = 1000 / 60;
 const PIXI_MAX_CATCHUP_MS = 200;

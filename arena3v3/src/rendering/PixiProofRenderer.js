@@ -344,29 +344,31 @@ function drawClassIdentitySigil(
   // The direction is deterministic per actor so a team does not look like one
   // synchronized HUD animation.
   const orbitDirection = seed % 2 === 0 ? 1 : -1;
+  // Deliberately fast enough to read as an active magical orbit at gameplay
+  // scale. Previous values were so slow that the pattern still looked static.
   const universalOrbit =
-    orbitDirection * t * (.20 + (seed % 4) * .018)
+    orbitDirection * t * (.82 + (seed % 4) * .045)
     + phase * .20;
 
   let motifAngle = universalOrbit;
   if (classId === "mage") {
-    motifAngle = universalOrbit * 1.18;
+    motifAngle = universalOrbit * 1.16;
   } else if (classId === "warlock") {
-    motifAngle = universalOrbit * .82 + Math.sin(t * .52 + phase) * .07;
+    motifAngle = universalOrbit * .94 + Math.sin(t * .72 + phase) * .07;
   } else if (classId === "druid") {
-    motifAngle = universalOrbit * .55 + Math.sin(t * .34 + phase) * .09;
+    motifAngle = universalOrbit * .86 + Math.sin(t * .58 + phase) * .09;
   } else if (classId === "shaman") {
-    motifAngle = universalOrbit * .92;
+    motifAngle = universalOrbit * 1.02;
   } else if (classId === "paladin") {
-    motifAngle = universalOrbit * .48;
+    motifAngle = universalOrbit * .84;
   } else if (classId === "rogue") {
-    motifAngle = universalOrbit * 1.22;
+    motifAngle = universalOrbit * 1.24;
   } else if (classId === "death-knight") {
-    motifAngle = universalOrbit * .72;
+    motifAngle = universalOrbit * .90;
   } else if (classId === "priest") {
-    motifAngle = universalOrbit * .58;
+    motifAngle = universalOrbit * .88;
   } else if (classId === "warrior") {
-    motifAngle = universalOrbit * .42;
+    motifAngle = universalOrbit * .92;
   }
 
   const arc = (
@@ -596,7 +598,7 @@ function drawClassIdentitySigil(
   const activeBranches = branches.filter(branch => branch.points > 0);
 
   const talentOrbit =
-    -orbitDirection * t * (.13 + (seed % 3) * .012)
+    -orbitDirection * t * (.56 + (seed % 3) * .038)
     + phase * .10;
 
   for (const branch of activeBranches) {

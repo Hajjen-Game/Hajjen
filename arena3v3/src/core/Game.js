@@ -1084,6 +1084,7 @@ export class Game {
             : { x: 0, y: 0 },
           separation: { x: separation.x || 0, y: separation.y || 0 },
           targetName: target ? this.combatantLabel(target) : null,
+          targetAlive: Boolean(target?.alive),
           targetDistance,
           healerName: healer ? this.combatantLabel(healer) : null,
           healerDistance,
@@ -1149,6 +1150,7 @@ export class Game {
               : { x: 0, y: 0 },
             separation: { x: separation.x || 0, y: separation.y || 0 },
             targetName: target ? this.combatantLabel(target) : null,
+            targetAlive: Boolean(target?.alive),
             targetDistance,
             healerName: healer ? this.combatantLabel(healer) : null,
             healerDistance,
@@ -1171,7 +1173,39 @@ export class Game {
           && lastMoveMagnitude > .25
           && trace.pathDistance < 1.2;
 
-        if (stalled && now - trace.lastStallAt >= 1.2) {
+        const liveEnemies = this.actors.some(candidate =>
+          candidate?.alive && candidate.team !== actor.team
+        );
+        const deadTargetIdle =
+          liveEnemies
+          && !target?.alive
+          && !actor.cast
+          && !this.cc.isHardControlled(actor)
+          && !this.cc.isRooted(actor)
+          && !actor.activeDash
+          && trace.pathDistance < 1.2;
+
+        if (deadTargetIdle && now - trace.lastStallAt >= 1.2) {
+          this.recordAiMovementEvent(actor, {
+            type: "dead-target-idle",
+            position: { x: actor.x, y: actor.y },
+            pathDistance: trace.pathDistance,
+            netDistance,
+            reversals: trace.reversals,
+            movementMode: actor.aiMovementMode || null,
+            lastMove: actor.lastMove
+              ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
+              : { x: 0, y: 0 },
+            targetName: target ? this.combatantLabel(target) : null,
+            targetAlive: Boolean(target?.alive),
+            healerName: healer ? this.combatantLabel(healer) : null,
+            healerDistance,
+            healerSupportRange,
+            healerSupported,
+            healerSupportRecovery: Boolean(actor.aiHealerSupportRecoveryActive),
+          });
+          trace.lastStallAt = now;
+        } else if (stalled && now - trace.lastStallAt >= 1.2) {
           this.recordAiMovementEvent(actor, {
             type: actor.aiObstacleContactActive
               ? "movement-stall"
@@ -1186,6 +1220,7 @@ export class Game {
             separation: { x: separation.x || 0, y: separation.y || 0 },
             separationDistance,
             targetName: target ? this.combatantLabel(target) : null,
+            targetAlive: Boolean(target?.alive),
             targetDistance,
             healerName: healer ? this.combatantLabel(healer) : null,
             healerDistance,

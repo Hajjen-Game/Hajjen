@@ -1045,6 +1045,18 @@ export class Game {
       const targetDistance = target?.alive
         ? Math.hypot(target.x - actor.x, target.y - actor.y)
         : null;
+      const healer = actor.role === "caster"
+        ? this.ai?.getTeamHealer?.(actor)
+        : null;
+      const healerDistance = healer?.alive
+        ? Math.hypot(healer.x - actor.x, healer.y - actor.y)
+        : null;
+      const healerSupportRange = healer?.alive
+        ? this.ai?.healerSupportRange?.(healer)
+        : null;
+      const healerSupported = healer?.alive
+        ? this.ai?.hasHealerSupport?.(actor, healer)
+        : null;
       const separation = actor.aiSeparationDelta || { x: 0, y: 0 };
 
       if (trace.sampleMs >= sampleEveryMs) {
@@ -1073,6 +1085,11 @@ export class Game {
           separation: { x: separation.x || 0, y: separation.y || 0 },
           targetName: target ? this.combatantLabel(target) : null,
           targetDistance,
+          healerName: healer ? this.combatantLabel(healer) : null,
+          healerDistance,
+          healerSupportRange,
+          healerSupported,
+          healerSupportRecovery: Boolean(actor.aiHealerSupportRecoveryActive),
           castSpellId: actor.cast?.spellId || null,
           hardControlled: this.cc.isHardControlled(actor),
           rooted: this.cc.isRooted(actor),
@@ -1127,13 +1144,17 @@ export class Game {
             netDistance,
             reversals: trace.reversals,
             movementMode: actor.aiMovementMode || null,
-            movementMode: actor.aiMovementMode || null,
             lastMove: actor.lastMove
               ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
               : { x: 0, y: 0 },
             separation: { x: separation.x || 0, y: separation.y || 0 },
             targetName: target ? this.combatantLabel(target) : null,
             targetDistance,
+            healerName: healer ? this.combatantLabel(healer) : null,
+            healerDistance,
+            healerSupportRange,
+            healerSupported,
+            healerSupportRecovery: Boolean(actor.aiHealerSupportRecoveryActive),
             castSpellId: actor.cast?.spellId || null,
             safeTurret: Boolean(actor.aiSafeTurretActive),
             manaRecovery: Boolean(actor.aiManaRecoveryActive),
@@ -1166,6 +1187,11 @@ export class Game {
             separationDistance,
             targetName: target ? this.combatantLabel(target) : null,
             targetDistance,
+            healerName: healer ? this.combatantLabel(healer) : null,
+            healerDistance,
+            healerSupportRange,
+            healerSupported,
+            healerSupportRecovery: Boolean(actor.aiHealerSupportRecoveryActive),
             safeTurret: Boolean(actor.aiSafeTurretActive),
             manaRecovery: Boolean(actor.aiManaRecoveryActive),
             collisionActive: Boolean(actor.aiObstacleContactActive),

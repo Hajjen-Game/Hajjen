@@ -8,25 +8,27 @@ export const HONOR_REWARDS = Object.freeze({
 });
 
 export const HONOR_RANKS = Object.freeze([
+  // Smooth lifetime-Honor curve. Each rank costs more than the previous one,
+  // while Rank 20 intentionally stays at the existing 35,500 total Honor.
   { rank: 1, requiredHonor: 0, talentPointsAward: 0, totalTalentPoints: 0 },
   { rank: 2, requiredHonor: 150, talentPointsAward: 1, totalTalentPoints: 1 },
-  { rank: 3, requiredHonor: 300, talentPointsAward: 1, totalTalentPoints: 2 },
-  { rank: 4, requiredHonor: 550, talentPointsAward: 1, totalTalentPoints: 3 },
-  { rank: 5, requiredHonor: 800, talentPointsAward: 1, totalTalentPoints: 4 },
-  { rank: 6, requiredHonor: 1200, talentPointsAward: 1, totalTalentPoints: 5 },
-  { rank: 7, requiredHonor: 1600, talentPointsAward: 1, totalTalentPoints: 6 },
-  { rank: 8, requiredHonor: 2700, talentPointsAward: 1, totalTalentPoints: 7 },
-  { rank: 9, requiredHonor: 3450, talentPointsAward: 1, totalTalentPoints: 8 },
-  { rank: 10, requiredHonor: 4200, talentPointsAward: 1, totalTalentPoints: 9 },
-  { rank: 11, requiredHonor: 6100, talentPointsAward: 1, totalTalentPoints: 10 },
-  { rank: 12, requiredHonor: 7300, talentPointsAward: 1, totalTalentPoints: 11 },
-  { rank: 13, requiredHonor: 8500, talentPointsAward: 1, totalTalentPoints: 12 },
-  { rank: 14, requiredHonor: 11500, talentPointsAward: 1, totalTalentPoints: 13 },
-  { rank: 15, requiredHonor: 15100, talentPointsAward: 1, totalTalentPoints: 14 },
-  { rank: 16, requiredHonor: 17200, talentPointsAward: 1, totalTalentPoints: 15 },
-  { rank: 17, requiredHonor: 19300, talentPointsAward: 1, totalTalentPoints: 16 },
+  { rank: 3, requiredHonor: 350, talentPointsAward: 1, totalTalentPoints: 2 },
+  { rank: 4, requiredHonor: 600, talentPointsAward: 1, totalTalentPoints: 3 },
+  { rank: 5, requiredHonor: 900, talentPointsAward: 1, totalTalentPoints: 4 },
+  { rank: 6, requiredHonor: 1300, talentPointsAward: 1, totalTalentPoints: 5 },
+  { rank: 7, requiredHonor: 1800, talentPointsAward: 1, totalTalentPoints: 6 },
+  { rank: 8, requiredHonor: 2450, talentPointsAward: 1, totalTalentPoints: 7 },
+  { rank: 9, requiredHonor: 3250, talentPointsAward: 1, totalTalentPoints: 8 },
+  { rank: 10, requiredHonor: 4250, talentPointsAward: 1, totalTalentPoints: 9 },
+  { rank: 11, requiredHonor: 5500, talentPointsAward: 1, totalTalentPoints: 10 },
+  { rank: 12, requiredHonor: 7000, talentPointsAward: 1, totalTalentPoints: 11 },
+  { rank: 13, requiredHonor: 8800, talentPointsAward: 1, totalTalentPoints: 12 },
+  { rank: 14, requiredHonor: 10900, talentPointsAward: 1, totalTalentPoints: 13 },
+  { rank: 15, requiredHonor: 13400, talentPointsAward: 1, totalTalentPoints: 14 },
+  { rank: 16, requiredHonor: 16400, talentPointsAward: 1, totalTalentPoints: 15 },
+  { rank: 17, requiredHonor: 19900, talentPointsAward: 1, totalTalentPoints: 16 },
   { rank: 18, requiredHonor: 24100, talentPointsAward: 1, totalTalentPoints: 17 },
-  { rank: 19, requiredHonor: 29500, talentPointsAward: 1, totalTalentPoints: 18 },
+  { rank: 19, requiredHonor: 29100, talentPointsAward: 1, totalTalentPoints: 18 },
   { rank: 20, requiredHonor: 35500, talentPointsAward: 1, totalTalentPoints: 19 },
 ]);
 
@@ -76,9 +78,12 @@ function rankForHonor(honor) {
   return current;
 }
 
+function rankEntry(rank) {
+  return HONOR_RANKS.find(item => item.rank === rank) || HONOR_RANKS[0];
+}
+
 export function talentPointsForRank(rank) {
-  const entry = HONOR_RANKS.find(item => item.rank === rank) || HONOR_RANKS[0];
-  return entry.totalTalentPoints || 0;
+  return rankEntry(rank).totalTalentPoints || 0;
 }
 
 export function legacyHonorAvailable() {
@@ -137,7 +142,10 @@ export class HonorSystem {
   }
 
   reconcileRank() {
-    const current = rankForHonor(this.state.lifetimeHonor);
+    const earned = rankForHonor(this.state.lifetimeHonor);
+    // Never demote an existing character when the progression curve is tuned.
+    // Their already-earned rank and Talent Points remain grandfathered.
+    const current = rankEntry(Math.max(this.state.rank, earned.rank));
     this.state.rank = current.rank;
     this.state.talentPoints = Math.max(
       this.state.talentPoints,
@@ -152,14 +160,16 @@ export class HonorSystem {
     const gain = HONOR_REWARDS[result];
     if (!gain) return null;
 
-    const before = rankForHonor(this.state.lifetimeHonor);
+    const beforeEarned = rankForHonor(this.state.lifetimeHonor);
+    const before = rankEntry(Math.max(this.state.rank, beforeEarned.rank));
     this.state.lifetimeHonor += gain;
     this.state.honorPoints += gain;
 
     if (result === "VICTORY") this.state.wins += 1;
     else this.state.losses += 1;
 
-    const after = rankForHonor(this.state.lifetimeHonor);
+    const afterEarned = rankForHonor(this.state.lifetimeHonor);
+    const after = rankEntry(Math.max(before.rank, afterEarned.rank));
     const ranksGained = Math.max(0, after.rank - before.rank);
     const talentPointsGained = Math.max(
       0,
@@ -200,7 +210,8 @@ export class HonorSystem {
   }
 
   status() {
-    const current = rankForHonor(this.state.lifetimeHonor);
+    const earned = rankForHonor(this.state.lifetimeHonor);
+    const current = rankEntry(Math.max(this.state.rank, earned.rank));
     const next = HONOR_RANKS.find(item => item.rank === current.rank + 1) || null;
 
     let progress = 1;
@@ -210,7 +221,10 @@ export class HonorSystem {
     if (next) {
       const currentFloor = current.requiredHonor;
       const span = next.requiredHonor - currentFloor;
-      progressHonor = this.state.lifetimeHonor - currentFloor;
+      // A grandfathered character can temporarily have less lifetime Honor
+      // than the new floor for their existing rank. Show 0% instead of a
+      // negative progress value until they catch up.
+      progressHonor = Math.max(0, this.state.lifetimeHonor - currentFloor);
       neededHonor = span;
       progress = Math.max(0, Math.min(1, progressHonor / span));
     }

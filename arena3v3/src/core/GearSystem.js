@@ -1,6 +1,6 @@
 import { rogueGear } from "../content/gear/rogue.js";
 import { warriorGear } from "../content/gear/warrior.js";
-import { shamanGear } from "../content/gear/shaman.js";
+import { shamanGear } from "../content/gear/shaman.js?v=20261005-astralgear1";
 import { priestGear } from "../content/gear/priest.js";
 import { druidGear } from "../content/gear/druid.js";
 import { mageGear } from "../content/gear/mage.js";

@@ -25,6 +25,24 @@ function hexNumber(cssColor, fallback = 0xffffff) {
   return match ? Number.parseInt(match[1], 16) : fallback;
 }
 
+function boostRingColor(color, saturation = 1.18, brightness = 1.10) {
+  const value = Number(color) || 0xffffff;
+  const r = (value >> 16) & 0xff;
+  const g = (value >> 8) & 0xff;
+  const b = value & 0xff;
+  const gray = (r + g + b) / 3;
+
+  const channel = input => Math.max(
+    0,
+    Math.min(
+      255,
+      Math.round((gray + (input - gray) * saturation) * brightness + 4),
+    ),
+  );
+
+  return (channel(r) << 16) | (channel(g) << 8) | channel(b);
+}
+
 
 function drawLivingBodyShape(
   graphics,
@@ -36,7 +54,7 @@ function drawLivingBodyShape(
   // Living-circle mode deliberately preserves the old battlefield silhouette:
   // a hollow friendly/enemy ring. Only the ring contour deforms.
   const radius = Math.max(8, Number(actor.radius) || 18) + 3;
-  const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
+  const teamColor = actor.team === "friendly" ? 0x60e58c : 0xef6868;
   const mode = state?.mode || "idle";
   const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
   let dx = Number(state?.dirX) || Math.cos(actor.facing || 0);
@@ -137,8 +155,8 @@ function drawLivingBodyShape(
   graphics.lineTo(points[0].x,points[0].y);
   graphics.stroke({
     color: teamColor,
-    width: glow ? 6.8 : 2.0,
-    alpha: glow ? .27 : .80,
+    width: glow ? 9.2 : 2.35,
+    alpha: glow ? .42 : .94,
   });
 }
 
@@ -240,6 +258,7 @@ function talentBranchVisuals(actor, game) {
     if (actor?.classId === "mage" && branch.id === "frostfire") {
       color = mageFrostfireTalentColor(ranks, fallback);
     }
+    color = boostRingColor(color, 1.24, 1.12);
 
     return {
       id: branch.id,
@@ -282,7 +301,7 @@ function drawClassIdentitySigil(
   if (!actor?.alive) return;
 
   const classId = actor.classId || "";
-  const base = hexNumber(classColorFor(actor), 0xffffff);
+  const base = boostRingColor(hexNumber(classColorFor(actor), 0xffffff), 1.20, 1.12);
   const mode = state?.mode || "idle";
   const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
   const progress = Math.max(0, Math.min(1, Number(state?.progress) || 0));
@@ -308,36 +327,46 @@ function drawClassIdentitySigil(
   const softActionMode = ["heal", "defensive", "control"].includes(mode);
   const combatFade = actionMode ? .46 : softActionMode ? .62 : 1;
 
-  const idleAlpha = .38 + breathe * .08;
-  const moveAlpha = .43 + intensity * .08;
-  const castAlpha = .50 + progress * .18;
+  const idleAlpha = .50 + breathe * .10;
+  const moveAlpha = .54 + intensity * .10;
+  const castAlpha = .62 + progress * .18;
   const rawAlpha =
     mode === "cast"
       ? castAlpha
       : mode === "idle"
         ? idleAlpha
         : moveAlpha;
-  const alpha = Math.min(.72, rawAlpha * combatFade);
+  const alpha = Math.min(.88, rawAlpha * combatFade);
 
   graphics.visible = true;
 
-  let motifAngle = 0;
+  // Every class now has a real orbit instead of static decorations.
+  // The direction is deterministic per actor so a team does not look like one
+  // synchronized HUD animation.
+  const orbitDirection = seed % 2 === 0 ? 1 : -1;
+  const universalOrbit =
+    orbitDirection * t * (.20 + (seed % 4) * .018)
+    + phase * .20;
+
+  let motifAngle = universalOrbit;
   if (classId === "mage") {
-    motifAngle = t * .15 + phase;
+    motifAngle = universalOrbit * 1.18;
   } else if (classId === "warlock") {
-    motifAngle = -t * .09 + Math.sin(t * .52 + phase) * .08 + phase;
+    motifAngle = universalOrbit * .82 + Math.sin(t * .52 + phase) * .07;
   } else if (classId === "druid") {
-    motifAngle = Math.sin(t * .34 + phase) * .12;
+    motifAngle = universalOrbit * .55 + Math.sin(t * .34 + phase) * .09;
   } else if (classId === "shaman") {
-    motifAngle = phase * .35;
+    motifAngle = universalOrbit * .92;
   } else if (classId === "paladin") {
-    motifAngle = Math.sin(t * .22 + phase) * .025;
+    motifAngle = universalOrbit * .48;
   } else if (classId === "rogue") {
-    motifAngle = t * .10 + phase;
+    motifAngle = universalOrbit * 1.22;
   } else if (classId === "death-knight") {
-    motifAngle = -t * .065 + phase;
+    motifAngle = universalOrbit * .72;
   } else if (classId === "priest") {
-    motifAngle = Math.sin(t * .28 + phase) * .035;
+    motifAngle = universalOrbit * .58;
+  } else if (classId === "warrior") {
+    motifAngle = universalOrbit * .42;
   }
 
   const arc = (
@@ -488,7 +517,7 @@ function drawClassIdentitySigil(
     const facing = Math.atan2(
       Number(state?.dirY) || Math.sin(actor.facing || 0),
       Number(state?.dirX) || Math.cos(actor.facing || 0),
-    );
+    ) + motifAngle;
     arc(motifR, facing, .72, 2.5, alpha, base, 11);
     arc(
       motifR - 1.7,
@@ -566,9 +595,13 @@ function drawClassIdentitySigil(
   const branches = talentBranchVisuals(actor, game);
   const activeBranches = branches.filter(branch => branch.points > 0);
 
+  const talentOrbit =
+    -orbitDirection * t * (.13 + (seed % 3) * .012)
+    + phase * .10;
+
   for (const branch of activeBranches) {
     const branchIndex = branch.index % 2;
-    const baseAngle = branchIndex === 0 ? -2.72 : .34;
+    const baseAngle = (branchIndex === 0 ? -2.72 : .34) + talentOrbit;
     const drift = Math.sin(t * .18 + phase + branchIndex * 1.9) * .025;
     const span =
       1.05
@@ -578,12 +611,12 @@ function drawClassIdentitySigil(
     const branchAlpha = Math.min(
       .72,
       (
-        .34
-        + branch.development * .30
-        + (mode === "cast" ? progress * .10 : 0)
+        .46
+        + branch.development * .34
+        + (mode === "cast" ? progress * .12 : 0)
       ) * combatFade,
     );
-    const width = 1.85 + branch.development * .85;
+    const width = 2.05 + branch.development * .95;
     const from = baseAngle + drift;
     const to = from + span;
 
@@ -597,7 +630,7 @@ function drawClassIdentitySigil(
       {
         color: branch.color,
         width: width + 2.8,
-        alpha: branchAlpha * .16,
+        alpha: branchAlpha * .26,
       },
       12,
     );
@@ -639,11 +672,11 @@ function drawLivingRingAccent(
   const mode = state?.mode || "idle";
   const intensity = Math.max(0, Math.min(1, Number(state?.intensity) || 0));
   const progress = Math.max(0, Math.min(1, Number(state?.progress) || 0));
-  const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
-  const brightTeam = actor.team === "friendly" ? 0x9bd9aa : 0xe8a09a;
-  const main = profile?.main ?? teamColor;
-  const core = profile?.core ?? brightTeam;
-  const accent = profile?.accent ?? main;
+  const teamColor = actor.team === "friendly" ? 0x60e58c : 0xef6868;
+  const brightTeam = actor.team === "friendly" ? 0xb2ffd0 : 0xffb0aa;
+  const main = boostRingColor(profile?.main ?? teamColor, 1.18, 1.10);
+  const core = boostRingColor(profile?.core ?? brightTeam, 1.16, 1.12);
+  const accent = boostRingColor(profile?.accent ?? main, 1.20, 1.10);
   const radius = Math.max(8, Number(actor.radius) || 18) + 3;
   const t = (Number(nowMs) || 0) * .001;
 
@@ -672,8 +705,8 @@ function drawLivingRingAccent(
       a + .28,
       {
         color: brightTeam,
-        width: 1.45,
-        alpha: .13 + .08 * breathe,
+        width: 1.65,
+        alpha: .22 + .14 * breathe,
       },
       7,
     );
@@ -2366,7 +2399,7 @@ export class PixiProofRenderer {
       .fill({ color: 0x000000, alpha: .28 });
     root.addChild(shadow);
 
-    const teamColor = actor.team === "friendly" ? 0x55c878 : 0xd45a5a;
+    const teamColor = actor.team === "friendly" ? 0x60e58c : 0xef6868;
 
     const ringGlow = new Graphics();
     if (this.livingCircleUnits) {
@@ -2384,7 +2417,7 @@ export class PixiProofRenderer {
       );
       ringGlow.blendMode = "screen";
       ringGlow.filters = [
-        new this.PIXI.BlurFilter({ strength: 4.2, quality: 1 }),
+        new this.PIXI.BlurFilter({ strength: 6.3, quality: 2 }),
       ];
     } else {
       ringGlow.visible = false;
@@ -2393,8 +2426,17 @@ export class PixiProofRenderer {
 
     const ring = new Graphics()
       .circle(0, 0, actor.radius + 3)
-      .stroke({ color: teamColor, width: 2, alpha: .72 });
+      .stroke({ color: teamColor, width: 2.35, alpha: .94 });
     root.addChild(ring);
+
+    const classIdentityGlowFx = new Graphics();
+    classIdentityGlowFx.visible = false;
+    classIdentityGlowFx.blendMode = "screen";
+    classIdentityGlowFx.alpha = .72;
+    classIdentityGlowFx.filters = [
+      new this.PIXI.BlurFilter({ strength: 4.6, quality: 1 }),
+    ];
+    root.addChild(classIdentityGlowFx);
 
     const classIdentityFx = new Graphics();
     classIdentityFx.visible = false;
@@ -2768,6 +2810,7 @@ export class PixiProofRenderer {
       shadow,
       ringGlow,
       ring,
+      classIdentityGlowFx,
       classIdentityFx,
       livingRingAccentFx,
       body,
@@ -4117,6 +4160,13 @@ export class PixiProofRenderer {
           view.ringGlow.rotation = 0;
           view.ringGlow.scale.set(1,1);
         }
+        if (view.classIdentityGlowFx) {
+          view.classIdentityGlowFx.clear();
+          view.classIdentityGlowFx.visible = false;
+          view.classIdentityGlowFx.position.set(0,0);
+          view.classIdentityGlowFx.rotation = 0;
+          view.classIdentityGlowFx.scale.set(1,1);
+        }
         if (view.classIdentityFx) {
           view.classIdentityFx.clear();
           view.classIdentityFx.visible = false;
@@ -4178,6 +4228,8 @@ export class PixiProofRenderer {
         view.ccWorldFx.visible = false;
         view.ring.visible = false;
         if (view.ringGlow) view.ringGlow.visible = false;
+        if (view.classIdentityGlowFx) view.classIdentityGlowFx.visible = false;
+        if (view.classIdentityFx) view.classIdentityFx.visible = false;
         if (view.livingRingAccentFx) view.livingRingAccentFx.visible = false;
 
         if (deathP < 1) {
@@ -4678,6 +4730,18 @@ export class PixiProofRenderer {
           view.ringGlow.position.set(offsetX,offsetY);
           view.ringGlow.rotation = rotation;
           view.ringGlow.scale.set(scaleX,scaleY);
+        }
+        if (view.classIdentityGlowFx) {
+          drawClassIdentitySigil(
+            view.classIdentityGlowFx,
+            actor,
+            livingState,
+            nowMs,
+            game,
+          );
+          view.classIdentityGlowFx.position.set(offsetX,offsetY);
+          view.classIdentityGlowFx.rotation = rotation;
+          view.classIdentityGlowFx.scale.set(scaleX,scaleY);
         }
         if (view.classIdentityFx) {
           drawClassIdentitySigil(

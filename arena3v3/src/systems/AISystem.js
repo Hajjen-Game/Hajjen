@@ -3320,7 +3320,10 @@ export class AISystem {
     if (actor.role !== "caster") return false;
 
     const healer = this.getTeamHealer(actor);
-    if (!healer?.alive) return false;
+    if (!healer?.alive) {
+      actor.aiHealerSupportRecoveryActive = false;
+      return false;
+    }
 
     const meleeThreat = this.findCasterMeleeThreat(actor);
     const discipline = this.behavior(actor, "supportDiscipline", 0.68);
@@ -3334,11 +3337,39 @@ export class AISystem {
     const low = actor.healthPct <= healerLosHealthPct;
     const emergency = actor.healthPct <= emergencyHealthPct;
 
+    // Once recovery starts, commit until the caster is comfortably back inside
+    // healer support instead of releasing on the exact range/LOS boundary.
+    // Without this hysteresis the caster can move 2-4px toward the healer,
+    // become "supported", immediately resume pressure in the opposite
+    // direction, then become unsupported again on the next AI tick.
+    if (actor.aiHealerSupportRecoveryActive) {
+      const releaseMargin = actor.config.ai.healerSupportRecoveryMargin ?? 36;
+      const comfortablySupported = this.hasHealerSupport(
+        actor,
+        healer,
+        null,
+        releaseMargin,
+      );
+
+      if (comfortablySupported) {
+        actor.aiHealerSupportRecoveryActive = false;
+        actor.aiHealerSupportRecoveryReleasedAt = this.game.elapsedSeconds;
+        return false;
+      }
+
+      return true;
+    }
+
     if (!pressured && !low) return false;
 
     const supported = this.hasHealerSupport(actor, healer);
     if (supported) return false;
-    if (emergency) return true;
+
+    if (emergency) {
+      actor.aiHealerSupportRecoveryActive = true;
+      actor.aiHealerSupportRecoveryStartedAt = this.game.elapsedSeconds;
+      return true;
+    }
 
     const recoverChance = 0.24
       + discipline * 0.48
@@ -3347,7 +3378,19 @@ export class AISystem {
 
     // Greedy casters occasionally finish pressure from a bad position; more
     // disciplined and higher-rated casters recover healer support sooner.
-    return this.shouldAttempt(actor, "recover-healer-support", recoverChance, 1.5);
+    const recover = this.shouldAttempt(
+      actor,
+      "recover-healer-support",
+      recoverChance,
+      1.5,
+    );
+
+    if (recover) {
+      actor.aiHealerSupportRecoveryActive = true;
+      actor.aiHealerSupportRecoveryStartedAt = this.game.elapsedSeconds;
+    }
+
+    return recover;
   }
 
   findCasterMeleeThreat(actor) {
@@ -3534,12 +3577,22 @@ export class AISystem {
     return selected.candidate;
   }
 
-  hasHealerSupport(actorOrPoint, healer, actorRadius = null) {
+  hasHealerSupport(
+    actorOrPoint,
+    healer,
+    actorRadius = null,
+    inwardMargin = 0,
+  ) {
     if (!healer?.alive) return true;
 
     const radius = actorRadius ?? actorOrPoint.radius ?? 0;
     const supportRange = this.healerSupportRange(healer);
-    const inRange = distance(actorOrPoint, healer) <= supportRange + radius + healer.radius;
+    const safeMargin = Math.max(0, Number(inwardMargin) || 0);
+    const maxDistance = Math.max(
+      radius + healer.radius,
+      supportRange + radius + healer.radius - safeMargin,
+    );
+    const inRange = distance(actorOrPoint, healer) <= maxDistance;
     const los = hasLineOfSight(actorOrPoint, healer, this.game.arena.obstacles);
 
     return inRange && los;

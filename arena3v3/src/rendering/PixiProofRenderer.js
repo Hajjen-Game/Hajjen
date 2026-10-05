@@ -2443,7 +2443,7 @@ export class PixiProofRenderer {
     projectileGroundGlowFx.visible = false;
     projectileGroundGlowFx.blendMode = "screen";
     projectileGroundGlowFx.filters = [
-      new this.PIXI.BlurFilter({ strength: 11.5, quality: 1 }),
+      new this.PIXI.BlurFilter({ strength: 19.0, quality: 1 }),
     ];
     root.addChild(projectileGroundGlowFx);
 
@@ -2451,7 +2451,7 @@ export class PixiProofRenderer {
     projectileGroundCoreFx.visible = false;
     projectileGroundCoreFx.blendMode = "screen";
     projectileGroundCoreFx.filters = [
-      new this.PIXI.BlurFilter({ strength: 3.2, quality: 1 }),
+      new this.PIXI.BlurFilter({ strength: 5.5, quality: 1 }),
     ];
     root.addChild(projectileGroundCoreFx);
 
@@ -10969,32 +10969,42 @@ export class PixiProofRenderer {
 
       // A few overlapping soft pools stretch the reflection slightly opposite
       // travel direction without needing a rotated texture/decal.
-      const trailCount = heavy ? 4 : 3;
+      const trailCount = heavy ? 6 : 5;
       for (let i = 0; i < trailCount; i += 1) {
         const q = i / Math.max(1, trailCount - 1);
-        const back = q * (heavy ? 12 : 8);
+        const back = q * (heavy ? 28 : 20);
         const px = x - tx * back;
         const py = y - ty * back;
         const fade = 1 - q * .48;
         glow.ellipse(
           px,
           py + 2,
-          radius * (1.08 + q * .22),
-          radius * (.52 + q * .07),
+          radius * (1.18 + q * .34),
+          radius * (.66 + q * .10),
         ).fill({
           color,
-          alpha: alpha * fade * .55,
+          alpha: Math.min(1, alpha * fade * .82),
         });
       }
 
       core.ellipse(
         x,
         y + 2,
-        radius * .82,
-        radius * .34,
+        radius * .94,
+        radius * .42,
       ).fill({
         color: coreColor,
-        alpha: alpha * .28,
+        alpha: Math.min(1, alpha * .52),
+      });
+
+      core.ellipse(
+        x,
+        y + 2,
+        radius * .46,
+        radius * .18,
+      ).fill({
+        color: coreColor,
+        alpha: Math.min(1, alpha * .34),
       });
     };
 
@@ -11079,7 +11089,7 @@ export class PixiProofRenderer {
           : 1 - smooth((p - travelEnd) / .09);
         const travelAlpha = fadeIn * fadeOut;
         const size = Number(spec?.size) || (heavy ? 12 : 8);
-        const poolRadius = 10 + size * (heavy ? 1.22 : 1.05);
+        const poolRadius = (10 + size * (heavy ? 1.22 : 1.05)) * (heavy ? 1.58 : 1.42);
 
         if (travelAlpha > .002) {
           drawPool(
@@ -11089,7 +11099,7 @@ export class PixiProofRenderer {
             profile.main,
             profile.core,
             poolRadius,
-            travelAlpha * (heavy ? .34 : .27),
+            travelAlpha * (heavy ? .82 : .66),
             dirX,
             dirY,
             heavy,
@@ -11098,7 +11108,7 @@ export class PixiProofRenderer {
 
         // The moving light expands into a short floor flash at impact.
         if (p >= travelEnd) {
-          const impactP = clamp01((p - travelEnd) / .13);
+          const impactP = clamp01((p - travelEnd) / .18);
           const impactFade = 1 - smooth(impactP);
           if (impactFade > .002) {
             drawPool(
@@ -11107,8 +11117,8 @@ export class PixiProofRenderer {
               endY,
               profile.main,
               profile.core,
-              poolRadius * (1.08 + impactP * .72),
-              impactFade * (heavy ? .40 : .30),
+              poolRadius * (1.18 + impactP * 1.02),
+              impactFade * (heavy ? .96 : .76),
               0,
               0,
               heavy,
@@ -11163,8 +11173,8 @@ export class PixiProofRenderer {
           localY,
           profile.main,
           profile.core,
-          18 + build * 10,
-          build * fade * pulse * .32,
+          26 + build * 16,
+          build * fade * pulse * .72,
           0,
           0,
           true,
@@ -11235,8 +11245,8 @@ export class PixiProofRenderer {
             fy,
             0x59ccef,
             0xf5ffff,
-            15,
-            fade * flicker * .27,
+            23,
+            fade * flicker * .62,
             dx,
             dy,
             false,

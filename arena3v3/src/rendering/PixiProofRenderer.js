@@ -1618,17 +1618,34 @@ function roundedArenaRect(ctx, x, y, w, h, radius) {
 function paintLegacyGrandRing(ctx, arena) {
   if (arena?.id !== "four-pillar-ring") return false;
 
-  // Exact pre-environment Grand Ring look from the old Canvas renderer:
-  // dark brown radial floor, subtle gold grid and four rounded LOS pillars.
-  const gradient = ctx.createRadialGradient(640, 360, 80, 640, 360, 680);
-  gradient.addColorStop(0, "#433224");
-  gradient.addColorStop(1, "#3a2c20");
+  // Clean Living Ring presentation pass:
+  // preserve every arena/pillar coordinate exactly, but remove the old editor
+  // grid and move the art toward the very dark warm-brown reference.
+  const floor = ctx.createRadialGradient(640, 350, 90, 640, 350, 760);
+  floor.addColorStop(0, "#241810");
+  floor.addColorStop(.58, "#20160f");
+  floor.addColorStop(1, "#1a120d");
 
-  ctx.fillStyle = gradient;
+  ctx.fillStyle = floor;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  ctx.strokeStyle = "#6b4b2b";
-  ctx.lineWidth = 3;
+  // Very restrained vignette/depth so the floor is not visually flat.
+  const vignette = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+  vignette.addColorStop(0, "rgba(50,31,19,.10)");
+  vignette.addColorStop(.42, "rgba(0,0,0,0)");
+  vignette.addColorStop(1, "rgba(0,0,0,.12)");
+  ctx.fillStyle = vignette;
+  ctx.fillRect(
+    arena.bounds.x,
+    arena.bounds.y,
+    arena.bounds.w,
+    arena.bounds.h,
+  );
+
+  // Clean arena frame: same exact bounds, just thinner and less debug-like.
+  ctx.save();
+  ctx.strokeStyle = "rgba(122,82,52,.72)";
+  ctx.lineWidth = 2;
   ctx.strokeRect(
     arena.bounds.x,
     arena.bounds.y,
@@ -1636,52 +1653,62 @@ function paintLegacyGrandRing(ctx, arena) {
     arena.bounds.h,
   );
 
-  ctx.save();
-  ctx.globalAlpha = 0.13;
-  ctx.strokeStyle = "#c58a43";
+  ctx.strokeStyle = "rgba(198,139,84,.12)";
   ctx.lineWidth = 1;
-
-  for (let x = 120; x < GAME_WIDTH; x += 80) {
-    ctx.beginPath();
-    ctx.moveTo(x, arena.bounds.y);
-    ctx.lineTo(x, arena.bounds.y + arena.bounds.h);
-    ctx.stroke();
-  }
-
-  for (let y = 90; y < GAME_HEIGHT; y += 80) {
-    ctx.beginPath();
-    ctx.moveTo(arena.bounds.x, y);
-    ctx.lineTo(arena.bounds.x + arena.bounds.w, y);
-    ctx.stroke();
-  }
-
+  ctx.strokeRect(
+    arena.bounds.x + 6,
+    arena.bounds.y + 6,
+    arena.bounds.w - 12,
+    arena.bounds.h - 12,
+  );
   ctx.restore();
 
+  // Pillar geometry is intentionally untouched. Only materials/line weight are
+  // cleaned up to match the new dark arena and brighter Living Ring VFX.
   for (const rect of arena.obstacles) {
     ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,.45)";
-    ctx.shadowBlur = 16;
-    ctx.shadowOffsetY = 8;
+
+    ctx.shadowColor = "rgba(0,0,0,.40)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+
+    const pillarFill = ctx.createLinearGradient(
+      rect.x,
+      rect.y,
+      rect.x,
+      rect.y + rect.h,
+    );
+    pillarFill.addColorStop(0, "#3a291d");
+    pillarFill.addColorStop(1, "#302219");
 
     roundedArenaRect(ctx, rect.x, rect.y, rect.w, rect.h, 16);
-    ctx.fillStyle = "#5a4532";
+    ctx.fillStyle = pillarFill;
     ctx.fill();
 
     ctx.shadowColor = "transparent";
-    ctx.strokeStyle = "#8a6847";
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = "rgba(133,94,62,.82)";
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     roundedArenaRect(
       ctx,
-      rect.x + 12,
-      rect.y + 12,
-      rect.w - 24,
-      rect.h - 24,
+      rect.x + 9,
+      rect.y + 9,
+      rect.w - 18,
+      rect.h - 18,
       10,
     );
-    ctx.strokeStyle = "rgba(230,189,127,.16)";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(207,153,101,.13)";
+    ctx.lineWidth = 1.25;
+    ctx.stroke();
+
+    // One subtle upper edge catches just enough light to define the obstacle
+    // without bringing back the chunky old bevel.
+    ctx.beginPath();
+    ctx.moveTo(rect.x + 18, rect.y + 8);
+    ctx.lineTo(rect.x + rect.w - 18, rect.y + 8);
+    ctx.strokeStyle = "rgba(229,178,124,.08)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.restore();

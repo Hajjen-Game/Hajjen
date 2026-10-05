@@ -1284,6 +1284,19 @@ const PROJECTILE_VFX2_SPELLS = new Set([
   "paladin-hammer",
 ]);
 
+const GROUND_LIGHT_PROJECTILES = new Set([
+  ...PROJECTILE_VFX2_SPELLS,
+  // Priest's current damage spell is presented as the Mind Blast-style
+  // psychic release in the VFX layer even though the content id is "smite".
+  "priest-smite",
+]);
+
+const GROUND_LIGHT_SKY_SPELLS = new Set([
+  "priest-holy-fire",
+  "druid-moonfire",
+  "paladin-judgment",
+]);
+
 function projectileVfx2Spec(spellId) {
   const profile = spellPolishProfile(spellId);
   const specs = {
@@ -2423,6 +2436,25 @@ export class PixiProofRenderer {
     const root = new Container();
     root.label = "actor:" + actor.id;
 
+    // Spell ground-light projection sits underneath characters/rings so it
+    // reads as illumination of the arena floor rather than another projectile
+    // sprite. Each actor owns the lights cast by spells it launches.
+    const projectileGroundGlowFx = new Graphics();
+    projectileGroundGlowFx.visible = false;
+    projectileGroundGlowFx.blendMode = "screen";
+    projectileGroundGlowFx.filters = [
+      new this.PIXI.BlurFilter({ strength: 11.5, quality: 1 }),
+    ];
+    root.addChild(projectileGroundGlowFx);
+
+    const projectileGroundCoreFx = new Graphics();
+    projectileGroundCoreFx.visible = false;
+    projectileGroundCoreFx.blendMode = "screen";
+    projectileGroundCoreFx.filters = [
+      new this.PIXI.BlurFilter({ strength: 3.2, quality: 1 }),
+    ];
+    root.addChild(projectileGroundCoreFx);
+
     const shadow = new Graphics()
       .ellipse(0, actor.radius * .58, actor.radius * .92, actor.radius * .34)
       .fill({ color: 0x000000, alpha: .28 });
@@ -2836,6 +2868,8 @@ export class PixiProofRenderer {
 
     const view = {
       root,
+      projectileGroundGlowFx,
+      projectileGroundCoreFx,
       shadow,
       ringGlow,
       ring,
@@ -10899,6 +10933,319 @@ export class PixiProofRenderer {
     }
   }
 
+  updateProjectileGroundLights(game) {
+    const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
+    const easeOut = value => {
+      const t = clamp01(value);
+      return 1 - Math.pow(1 - t, 3);
+    };
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const drawPool = (
+      view,
+      x,
+      y,
+      color,
+      coreColor,
+      radius,
+      alpha,
+      dirX = 0,
+      dirY = 0,
+      heavy = false,
+    ) => {
+      if (!view || alpha <= .002) return;
+
+      const glow = view.projectileGroundGlowFx;
+      const core = view.projectileGroundCoreFx;
+      glow.visible = true;
+      core.visible = true;
+
+      const length = Math.max(.0001, Math.hypot(dirX, dirY));
+      const tx = dirX / length;
+      const ty = dirY / length;
+
+      // A few overlapping soft pools stretch the reflection slightly opposite
+      // travel direction without needing a rotated texture/decal.
+      const trailCount = heavy ? 4 : 3;
+      for (let i = 0; i < trailCount; i += 1) {
+        const q = i / Math.max(1, trailCount - 1);
+        const back = q * (heavy ? 12 : 8);
+        const px = x - tx * back;
+        const py = y - ty * back;
+        const fade = 1 - q * .48;
+        glow.ellipse(
+          px,
+          py + 2,
+          radius * (1.08 + q * .22),
+          radius * (.52 + q * .07),
+        ).fill({
+          color,
+          alpha: alpha * fade * .55,
+        });
+      }
+
+      core.ellipse(
+        x,
+        y + 2,
+        radius * .82,
+        radius * .34,
+      ).fill({
+        color: coreColor,
+        alpha: alpha * .28,
+      });
+    };
+
+    for (const view of this.actorViews.values()) {
+      view.projectileGroundGlowFx?.clear();
+      if (view.projectileGroundGlowFx) {
+        view.projectileGroundGlowFx.visible = false;
+        view.projectileGroundGlowFx.position.set(0,0);
+      }
+      view.projectileGroundCoreFx?.clear();
+      if (view.projectileGroundCoreFx) {
+        view.projectileGroundCoreFx.visible = false;
+        view.projectileGroundCoreFx.position.set(0,0);
+      }
+    }
+
+    for (const effect of game.vfx?.effects || []) {
+      if (effect.type === "spell" && GROUND_LIGHT_PROJECTILES.has(effect.spellId)) {
+        const source = game.getActor(effect.sourceId);
+        const target = game.getActor(effect.targetId);
+        const view = this.actorViews.get(effect.sourceId);
+        if (!source || !view || !view.root.visible) continue;
+
+        const targetCenter = target
+          ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+          : null;
+        const targetX = targetCenter?.x ?? effect.targetX;
+        const targetY = targetCenter?.y ?? effect.targetY;
+        if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+
+        const profile = spellPolishProfile(effect.spellId, effect.style);
+        const spec = projectileVfx2Spec(effect.spellId);
+        const total = Math.max(1, Number(effect.totalMs) || 1);
+        const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+        const p = clamp01(1 - remaining / total);
+        const seed = Number(effect.seed || effect.id || 1);
+        const missed = Boolean(effect.missed);
+
+        const sourceCenter = visualActorCenter(
+          this.actorViews,
+          source,
+          source.x,
+          source.y,
+        );
+        const sourceOffsetX = sourceCenter.x - source.x;
+        const sourceOffsetY = sourceCenter.y - source.y;
+        view.projectileGroundGlowFx.position.set(sourceOffsetX,sourceOffsetY);
+        view.projectileGroundCoreFx.position.set(sourceOffsetX,sourceOffsetY);
+
+        const dx0 = targetX - sourceCenter.x;
+        const dy0 = targetY - sourceCenter.y;
+        const length0 = Math.max(1, Math.hypot(dx0,dy0));
+        const tx0 = dx0 / length0;
+        const ty0 = dy0 / length0;
+        const nx0 = -ty0;
+        const ny0 = tx0;
+        const missSign = Math.sin(seed * .89) >= 0 ? 1 : -1;
+
+        const heavy = Boolean(spec?.heavy || POLISH_HEAVY_SPELLS.has(effect.spellId));
+        const endX =
+          dx0
+          + (missed ? nx0 * missSign * (heavy ? 52 : 42) + tx0 * 14 : 0);
+        const endY =
+          dy0
+          + (missed ? ny0 * missSign * (heavy ? 52 : 42) + ty0 * 14 - 5 : 0);
+
+        const endLen = Math.max(1,Math.hypot(endX,endY));
+        const dirX = endX / endLen;
+        const dirY = endY / endLen;
+        const travelEnd = spec?.travelEnd
+          || (effect.spellId === "priest-smite" ? .42 : .50);
+
+        const travelT = easeOut(
+          (p - .025) / Math.max(.08, travelEnd - .025),
+        );
+        const gx = endX * travelT;
+        const gy = endY * travelT;
+
+        const fadeIn = smooth(p / .07);
+        const fadeOut = p <= travelEnd
+          ? 1
+          : 1 - smooth((p - travelEnd) / .09);
+        const travelAlpha = fadeIn * fadeOut;
+        const size = Number(spec?.size) || (heavy ? 12 : 8);
+        const poolRadius = 10 + size * (heavy ? 1.22 : 1.05);
+
+        if (travelAlpha > .002) {
+          drawPool(
+            view,
+            gx,
+            gy,
+            profile.main,
+            profile.core,
+            poolRadius,
+            travelAlpha * (heavy ? .34 : .27),
+            dirX,
+            dirY,
+            heavy,
+          );
+        }
+
+        // The moving light expands into a short floor flash at impact.
+        if (p >= travelEnd) {
+          const impactP = clamp01((p - travelEnd) / .13);
+          const impactFade = 1 - smooth(impactP);
+          if (impactFade > .002) {
+            drawPool(
+              view,
+              endX,
+              endY,
+              profile.main,
+              profile.core,
+              poolRadius * (1.08 + impactP * .72),
+              impactFade * (heavy ? .40 : .30),
+              0,
+              0,
+              heavy,
+            );
+          }
+        }
+        continue;
+      }
+
+      // Sky-strike spells do not travel across the floor, but the descending
+      // spell should still illuminate the target area as it approaches/lands.
+      if (effect.type === "spell" && GROUND_LIGHT_SKY_SPELLS.has(effect.spellId)) {
+        const source = game.getActor(effect.sourceId);
+        const target = game.getActor(effect.targetId);
+        const view = this.actorViews.get(effect.sourceId);
+        if (!source || !view || !view.root.visible) continue;
+
+        const targetCenter = target
+          ? visualActorCenter(this.actorViews, target, effect.targetX, effect.targetY)
+          : null;
+        const tx = targetCenter?.x ?? effect.targetX;
+        const ty = targetCenter?.y ?? effect.targetY;
+        if (!Number.isFinite(tx) || !Number.isFinite(ty)) continue;
+
+        const profile = spellPolishProfile(effect.spellId, effect.style);
+        const total = Math.max(1, Number(effect.totalMs) || 1);
+        const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+        const p = clamp01(1 - remaining / total);
+        const sourceCenter = visualActorCenter(
+          this.actorViews,
+          source,
+          source.x,
+          source.y,
+        );
+        view.projectileGroundGlowFx.position.set(
+          sourceCenter.x - source.x,
+          sourceCenter.y - source.y,
+        );
+        view.projectileGroundCoreFx.position.set(
+          sourceCenter.x - source.x,
+          sourceCenter.y - source.y,
+        );
+
+        const localX = tx - sourceCenter.x;
+        const localY = ty - sourceCenter.y;
+        const build = smooth(p / .52);
+        const fade = 1 - smooth((p - .72) / .28);
+        const pulse = .82 + Math.sin(p * 24 + Number(effect.seed || 1)) * .18;
+        drawPool(
+          view,
+          localX,
+          localY,
+          profile.main,
+          profile.core,
+          18 + build * 10,
+          build * fade * pulse * .32,
+          0,
+          0,
+          true,
+        );
+      }
+
+      // Chain Lightning gets a moving floor reflection under the reveal head
+      // of each hop rather than one giant static glow.
+      if (effect.type === "chain" && effect.spellId === "shaman-chain-lightning") {
+        const actors = (effect.actorIds || [])
+          .map(id => game.getActor(id))
+          .filter(Boolean);
+        if (actors.length < 2) continue;
+
+        const source = actors[0];
+        const view = this.actorViews.get(source.id);
+        if (!view || !view.root.visible) continue;
+
+        const sourceCenter = visualActorCenter(
+          this.actorViews,
+          source,
+          source.x,
+          source.y,
+        );
+        view.projectileGroundGlowFx.position.set(
+          sourceCenter.x - source.x,
+          sourceCenter.y - source.y,
+        );
+        view.projectileGroundCoreFx.position.set(
+          sourceCenter.x - source.x,
+          sourceCenter.y - source.y,
+        );
+
+        const total = Math.max(1, Number(effect.totalMs) || 1);
+        const remaining = Math.max(0, Number(effect.remainingMs) || 0);
+        const progress = clamp01(1 - remaining / total);
+
+        for (let i = 0; i < actors.length - 1; i += 1) {
+          const fromCenter = visualActorCenter(
+            this.actorViews,
+            actors[i],
+            actors[i].x,
+            actors[i].y,
+          );
+          const toCenter = visualActorCenter(
+            this.actorViews,
+            actors[i+1],
+            actors[i+1].x,
+            actors[i+1].y,
+          );
+
+          const localP = clamp01((progress - i * .10) / .66);
+          if (localP <= 0) continue;
+          const reveal = clamp01(localP / .34);
+          const head = easeOut(reveal);
+          const fx = fromCenter.x + (toCenter.x - fromCenter.x) * head - sourceCenter.x;
+          const fy = fromCenter.y + (toCenter.y - fromCenter.y) * head - sourceCenter.y;
+          const dx = toCenter.x - fromCenter.x;
+          const dy = toCenter.y - fromCenter.y;
+          const fade = 1 - smooth((localP - .54) / .46);
+          const flicker = .78 + .22 * Math.sin(
+            (Number(effect.seed || 1) + i * 17) * .11 + progress * 45,
+          );
+
+          drawPool(
+            view,
+            fx,
+            fy,
+            0x59ccef,
+            0xf5ffff,
+            15,
+            fade * flicker * .27,
+            dx,
+            dy,
+            false,
+          );
+        }
+      }
+    }
+  }
+
   updateNativeProjectileVfx2(game) {
     const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
     const easeOut = value => {
@@ -13415,6 +13762,7 @@ export class PixiProofRenderer {
     }
 
     this.updateActorMotionV2(game);
+    this.updateProjectileGroundLights(game);
     this.updatePersistentCombatStateVfx(game);
     this.updateNativeSecondaryCombatVfx(game);
     this.updatePersistentCrowdControlVfx(game);

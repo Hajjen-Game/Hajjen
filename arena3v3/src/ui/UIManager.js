@@ -2,7 +2,7 @@ import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
 import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20261004-iconart2";
 import { classColorFor } from "../content/classes/classColors.js";
-import { HONOR_RANKS } from "../core/HonorSystem.js?v=20260927-rank20rating2";
+import { HONOR_RANKS } from "../core/HonorSystem.js?v=20261005-honorcurve1";
 import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";

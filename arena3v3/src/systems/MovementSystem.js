@@ -850,6 +850,14 @@ export class MovementSystem {
 
   resolveActorSeparation(actors, deltaSeconds, arena, playerId = null) {
     const living = (actors || []).filter(actor => actor?.alive);
+
+    // Expose the actual separation contribution for movement diagnostics.
+    // This lets the report distinguish AI steering jitter from two actors
+    // repeatedly nudging each other while standing in open space.
+    for (const actor of living) {
+      actor.aiSeparationDelta = { x: 0, y: 0 };
+    }
+
     if (living.length < 2 || deltaSeconds <= 0) return;
 
     // This is deliberately not hard collision. Actors may still overlap and
@@ -922,21 +930,27 @@ export class MovementSystem {
       const scale = Math.min(1, maxStep / magnitude);
       const dx = push.x * scale;
       const dy = push.y * scale;
+      const beforeX = actor.x;
+      const beforeY = actor.y;
 
       // Prefer the combined nudge, then allow axis-only movement near pillars
       // so separation can never push an actor into arena geometry.
       if (!collides(actor, actor.x + dx, actor.y + dy, arena)) {
         actor.x += dx;
         actor.y += dy;
-        continue;
+      } else {
+        if (!collides(actor, actor.x + dx, actor.y, arena)) {
+          actor.x += dx;
+        }
+        if (!collides(actor, actor.x, actor.y + dy, arena)) {
+          actor.y += dy;
+        }
       }
 
-      if (!collides(actor, actor.x + dx, actor.y, arena)) {
-        actor.x += dx;
-      }
-      if (!collides(actor, actor.x, actor.y + dy, arena)) {
-        actor.y += dy;
-      }
+      actor.aiSeparationDelta = {
+        x: actor.x - beforeX,
+        y: actor.y - beforeY,
+      };
     }
   }
 

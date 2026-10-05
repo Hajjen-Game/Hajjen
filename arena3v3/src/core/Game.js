@@ -1062,7 +1062,11 @@ export class Game {
             x: actor.x - (Number.isFinite(trace.lastSampleX) ? trace.lastSampleX : trace.lastX),
             y: actor.y - (Number.isFinite(trace.lastSampleY) ? trace.lastSampleY : trace.lastY),
           },
-          speed: distanceMoved / Math.max(.001, deltaMs / 1000),
+          speed: Math.hypot(
+            actor.x - (Number.isFinite(trace.lastSampleX) ? trace.lastSampleX : trace.lastX),
+            actor.y - (Number.isFinite(trace.lastSampleY) ? trace.lastSampleY : trace.lastY),
+          ) / elapsed,
+          movementMode: actor.aiMovementMode || null,
           lastMove: actor.lastMove
             ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
             : { x: 0, y: 0 },
@@ -1122,6 +1126,8 @@ export class Game {
             pathDistance: trace.pathDistance,
             netDistance,
             reversals: trace.reversals,
+            movementMode: actor.aiMovementMode || null,
+            movementMode: actor.aiMovementMode || null,
             lastMove: actor.lastMove
               ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
               : { x: 0, y: 0 },

@@ -1047,11 +1047,11 @@ function paladinDkSpellProfile(spellId) {
     },
     "dk-death-strike": {
       family: "dk", kind: "death-strike",
-      main: 0x9f454b, core: 0xe8a4aa, accent: 0x4e2329,
+      main: 0xd85a64, core: 0xffd1d6, accent: 0x7c2836,
     },
     "dk-obliterate": {
       family: "dk", kind: "obliterate",
-      main: 0x74bad8, core: 0xe3f8ff, accent: 0x4f7291,
+      main: 0x63d9f4, core: 0xf2fdff, accent: 0x5f86c8,
     },
     "dk-chains": {
       family: "dk", kind: "chains",
@@ -1063,7 +1063,7 @@ function paladinDkSpellProfile(spellId) {
     },
     "dk-frost-strike": {
       family: "dk", kind: "frost-strike",
-      main: 0x75bcd8, core: 0xe8fbff, accent: 0x54728f,
+      main: 0x69dcf6, core: 0xf5feff, accent: 0x5e88c9,
     },
     "dk-rune-tap": {
       family: "dk", kind: "rune-tap",
@@ -4589,7 +4589,7 @@ export class PixiProofRenderer {
           const lungeBase=
             rogue ? (action.heavy?12.5:10.5)
             : warrior ? (action.heavy?17.5:13.5)
-            : dk ? (action.heavy?15.5:12.5)
+            : dk ? (action.heavy?18.5:15.0)
             : storm ? 13.5
             : (action.heavy?14.0:11.0);
           const lunge=commit*lungeBase;
@@ -4615,7 +4615,7 @@ export class PixiProofRenderer {
           const stretch=
             rogue ? .105
             : warrior ? (action.heavy?.145:.105)
-            : dk ? .110
+            : dk ? (action.heavy?.145:.120)
             : storm ? .120
             : .095;
           scaleX *= 1 + commit*stretch;
@@ -4711,7 +4711,7 @@ export class PixiProofRenderer {
             const warrior=action.spellId?.startsWith?.("warrior-");
             const dk=action.spellId?.startsWith?.("dk-");
             const storm=action.spellId==="shaman-stormstrike";
-            const strands=action.heavy?7:5;
+            const strands=dk?(action.heavy?10:8):(action.heavy?7:5);
 
             for (let i = 0; i < strands; i += 1) {
               const spread=(i-(strands-1)/2)*(rogue?4.4:3.7);
@@ -10551,6 +10551,77 @@ export class PixiProofRenderer {
           continue;
         }
 
+        // Death Knight 2.0: unlike Warrior's physical force or Rogue's
+        // speed, DK attacks gather cold/runic power around the attacker before
+        // the weapon impact. This is intentionally oversized to match the new
+        // melee presentation language.
+        if(dk){
+          const death=effect.spellId==="dk-death-strike";
+          const frost=
+            effect.spellId==="dk-obliterate"
+            || effect.spellId==="dk-frost-strike";
+          const build=easeOut(clamp01(p/.28));
+          const release=1-smooth((p-.52)/.34);
+          const spin=(death?-1:1)*(p*1.35+seed*.003);
+
+          glow.circle(0,0,source.radius+11+build*13).stroke({
+            color:profile.main,
+            width:12,
+            alpha:alpha*release*.15,
+          });
+          core.circle(0,0,source.radius+7+build*10).stroke({
+            color:profile.main,
+            width:2.2,
+            alpha:alpha*release*.62,
+          });
+
+          const runeCount=death?5:7;
+          for(let i=0;i<runeCount;i++){
+            const a=i/runeCount*Math.PI*2+spin;
+            const inner=source.radius+5;
+            const outer=source.radius+17+build*(8+(i%3)*4);
+            const bend=a+(i%2?.13:-.13);
+            core
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(bend)*outer,Math.sin(bend)*outer)
+              .stroke({
+                color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+                width:1.7+(i%3===0?.6:0),
+                alpha:alpha*release*(.44+(i%3)*.08),
+              });
+          }
+
+          if(frost){
+            for(let i=0;i<5;i++){
+              const a=-.85+i*.42+spin*.18;
+              const r0=source.radius+8;
+              const r1=r0+16+build*8;
+              glow
+                .moveTo(Math.cos(a)*r0,Math.sin(a)*r0)
+                .lineTo(Math.cos(a)*r1,Math.sin(a)*r1)
+                .stroke({
+                  color:profile.main,
+                  width:7,
+                  alpha:alpha*release*.10,
+                });
+              core
+                .moveTo(Math.cos(a)*r0,Math.sin(a)*r0)
+                .lineTo(Math.cos(a)*r1,Math.sin(a)*r1)
+                .stroke({
+                  color:profile.core,
+                  width:1.5,
+                  alpha:alpha*release*.58,
+                });
+            }
+          }else if(death){
+            const pulse=.5+.5*Math.sin(p*18+seed*.01);
+            glow.circle(0,0,source.radius+4+build*8).fill({
+              color:profile.main,
+              alpha:alpha*release*(.055+.035*pulse),
+            });
+          }
+        }
+
         let slashCount=1;
         let slashLength=48;
         let slashWidth=3.8;
@@ -10559,9 +10630,9 @@ export class PixiProofRenderer {
         if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=56;slashWidth=3.9;}
         if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=66;slashWidth=3.2;}
         if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=68;slashWidth=3.5;}
-        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=84;slashWidth=6.2;}
-        if(effect.spellId==="dk-death-strike"){slashLength=78;slashWidth=5.6;}
-        if(effect.spellId==="dk-frost-strike"){slashLength=72;slashWidth=5.2;}
+        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=94;slashWidth=7.1;}
+        if(effect.spellId==="dk-death-strike"){slashCount=2;slashLength=88;slashWidth=6.4;}
+        if(effect.spellId==="dk-frost-strike"){slashCount=2;slashLength=82;slashWidth=6.0;}
         if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=78;slashWidth=5.5;}
 
         for(let i=0;i<slashCount;i++){
@@ -10588,6 +10659,46 @@ export class PixiProofRenderer {
             slashWidth,
             (i%2?7:-7)
           );
+        }
+
+        if(dk){
+          const sweepFade=1-smooth((p-.64)/.36);
+          const sweep=easeOut(clamp01(p/.40));
+          const death=effect.spellId==="dk-death-strike";
+          const baseR=death?34:39;
+
+          for(let i=0;i<2;i++){
+            const dir=i?1:-1;
+            const a0=(death?-.92:-.78)+i*1.10-dir*sweep*.30;
+            arc(
+              glow,
+              dx,
+              dy,
+              baseR+sweep*(18+i*7),
+              a0,
+              a0+dir*(1.22+i*.16),
+              {
+                color:i?profile.core:profile.main,
+                width:11-i*2,
+                alpha:alpha*sweepFade*(death?.12:.15),
+              },
+              10,
+            );
+            arc(
+              core,
+              dx,
+              dy,
+              baseR-4+sweep*(15+i*6),
+              a0,
+              a0+dir*(1.18+i*.14),
+              {
+                color:i?profile.core:profile.main,
+                width:2.5+i*.45,
+                alpha:alpha*sweepFade*.70,
+              },
+              10,
+            );
+          }
         }
 
         if(!missed){
@@ -10686,23 +10797,102 @@ export class PixiProofRenderer {
             });
           }
 
-          // DK: cold runic/frost fracture around the victim.
-          if(effect.spellId==="dk-obliterate" || effect.spellId==="dk-frost-strike"){
-            glow.circle(dx,dy,16+expand*42).stroke({
-              color:profile.main,width:12,alpha:alpha*hitFade*.19
+          // DK: all three strikes now get bespoke victim-side impact language.
+          // Obliterate = biggest frost fracture, Frost Strike = sharp icy burst,
+          // Death Strike = red necrotic/rune implosion.
+          if(
+            effect.spellId==="dk-obliterate"
+            || effect.spellId==="dk-frost-strike"
+            || effect.spellId==="dk-death-strike"
+          ){
+            const death=effect.spellId==="dk-death-strike";
+            const obliterate=effect.spellId==="dk-obliterate";
+            const frost=effect.spellId==="dk-frost-strike";
+            const outerBoost=obliterate?52:(death?45:43);
+
+            glow.circle(dx,dy,17+expand*outerBoost).stroke({
+              color:profile.main,
+              width:obliterate?15:(death?14:13),
+              alpha:alpha*hitFade*(obliterate?.23:(death?.21:.20)),
             });
-            for(let i=0;i<7;i++){
-              const a=i*Math.PI*2/7+hit*.42;
-              const r0=10+(i%2)*2;
-              const r1=28+expand*(17+(i%3)*5);
+            glow.circle(dx,dy,11+expand*(death?31:35)).fill({
+              color:death?profile.accent:profile.main,
+              alpha:alpha*hitFade*(death?.13:.10),
+            });
+            core.circle(dx,dy,7+expand*(obliterate?23:19)).stroke({
+              color:profile.core,
+              width:obliterate?3.1:2.7,
+              alpha:alpha*hitFade*.88,
+            });
+
+            const fractures=obliterate?12:(death?10:9);
+            for(let i=0;i<fractures;i++){
+              const a=i*Math.PI*2/fractures+(death?-hit*.34:hit*.46);
+              const r0=9+(i%2)*3;
+              const r1=
+                30+expand*
+                (
+                  obliterate
+                    ? 24+(i%4)*7
+                    : death
+                      ? 20+(i%3)*7
+                      : 19+(i%3)*6
+                );
+              const bend=a+(i%2?.11:-.11)*(death?-1:1);
               core
                 .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
-                .lineTo(dx+Math.cos(a+.08*(i%2?1:-1))*r1,dy+Math.sin(a+.08*(i%2?1:-1))*r1)
+                .lineTo(dx+Math.cos(bend)*r1,dy+Math.sin(bend)*r1)
                 .stroke({
-                  color:i%2?profile.core:profile.main,
-                  width:2.0+(i%3===0?.7:0),
-                  alpha:alpha*hitFade*.68,
+                  color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+                  width:2.1+(i%3===0?.9:.2),
+                  alpha:alpha*hitFade*.76,
                 });
+            }
+
+            if(obliterate){
+              // Crossed frost cleaves make Obliterate unmistakably the DK heavy.
+              for(const a of [-.72,.72]){
+                const p0=point(dx,dy,-34,0,a);
+                const p1=point(dx,dy,34,0,a);
+                glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                  color:profile.main,width:13,alpha:alpha*hitFade*.16
+                });
+                core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                  color:profile.core,width:3.2,alpha:alpha*hitFade*.86
+                });
+              }
+            }else if(death){
+              // Death Strike collapses inward with a red runic crown.
+              for(let i=0;i<5;i++){
+                const a=i*Math.PI*2/5-hit*.55;
+                const outer=38+expand*17;
+                const inner=13+expand*4;
+                core
+                  .moveTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                  .lineTo(dx+Math.cos(a+.28)*inner,dy+Math.sin(a+.28)*inner)
+                  .stroke({
+                    color:i%2?profile.core:profile.main,
+                    width:2.5,
+                    alpha:alpha*hitFade*.80,
+                  });
+              }
+              glow.circle(dx,dy,9+expand*24).fill({
+                color:profile.main,alpha:alpha*hitFade*.14
+              });
+            }else if(frost){
+              for(let i=0;i<5;i++){
+                const a=-1.05+i*.52;
+                const r0=10;
+                const r1=33+expand*(12+(i%2)*6);
+                core
+                  .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+                  .lineTo(dx+Math.cos(a)*r1,dy+Math.sin(a)*r1)
+                  .stroke({
+                    color:i%2?profile.core:profile.main,
+                    width:2.2,
+                    alpha:alpha*hitFade*.74,
+                  });
+              }
             }
           }
 

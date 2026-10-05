@@ -96,6 +96,7 @@ function eventDetails(event) {
   if (Number.isFinite(event.reversals)) {
     details.push("reversals " + fixed(event.reversals, 0));
   }
+  if (event.movementMode) details.push("move-mode " + event.movementMode);
   if (event.lastMove) details.push("lastMove " + vectorText(event.lastMove));
   if (event.separation) details.push("separation " + vectorText(event.separation));
   if (event.targetName) {
@@ -285,6 +286,7 @@ export function buildAiMovementReport(game) {
       if (sample.activeDash) state.push("dash");
       if (sample.collisionActive) state.push("collision");
       if (sample.intentType) state.push("intent=" + sample.intentType);
+      if (sample.movementMode) state.push("move=" + sample.movementMode);
 
       lines.push(
         fixed(sample.time, 3) + "s"

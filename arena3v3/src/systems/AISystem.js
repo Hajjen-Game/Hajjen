@@ -1605,9 +1605,53 @@ export class AISystem {
         continue;
       }
 
-      const target = this.game.getActor(actor.aiTargetId);
-      if (target?.alive) this.moveForRole(actor, target, deltaSeconds);
-      else actor.lastMove = { x: 0, y: 0 };
+      let target = this.game.getActor(actor.aiTargetId);
+
+      if (!target?.alive) {
+        // A kill can happen between think ticks. Force one immediate re-think
+        // so AI never spends seconds standing on a dead target.
+        this.thinkTimers.set(actor.id, 0);
+        this.think(actor);
+        target = this.game.getActor(actor.aiTargetId);
+      }
+
+      if (target?.alive) {
+        this.moveForRole(actor, target, deltaSeconds);
+      } else if (
+        actor.role === "caster"
+        && actor.aiHealerSupportRecoveryActive
+      ) {
+        // Last-resort recovery path: even with no combat target, a caster that
+        // is latched into healer-support recovery must keep moving toward its
+        // healer instead of becoming a motionless deadlock.
+        const healer = this.getTeamHealer(actor);
+        const meleeThreat = this.findCasterMeleeThreat(actor);
+
+        if (healer?.alive) {
+          const recoveryVector = this.healerSupportVector(
+            actor,
+            healer,
+            meleeThreat,
+          );
+
+          if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
+            actor.aiMovementMode = "recover-healer-support-no-target";
+            this.movement.moveAI(
+              actor,
+              recoveryVector,
+              deltaSeconds,
+              this.game.arena,
+            );
+          } else {
+            actor.lastMove = { x: 0, y: 0 };
+          }
+        } else {
+          actor.aiHealerSupportRecoveryActive = false;
+          actor.lastMove = { x: 0, y: 0 };
+        }
+      } else {
+        actor.lastMove = { x: 0, y: 0 };
+      }
     }
   }
 
@@ -2188,13 +2232,41 @@ export class AISystem {
     );
     if (enemies.length === 0) return;
 
-    if (actor.role === "caster" && this.casterMustRecoverHealerSupport(actor)) {
-      return;
-    }
-
     const damageableEnemies = enemies.filter(candidate =>
       !this.game.cc.shouldAvoidBreakingFriendlyCc(actor, candidate)
     );
+
+    if (actor.role === "caster" && this.casterMustRecoverHealerSupport(actor)) {
+      // Healer-support recovery may intentionally suppress offensive casting,
+      // but it must never freeze target acquisition. If the current target
+      // died while recovery was active, immediately keep a live target so the
+      // movement loop can continue recovering instead of idling forever.
+      const current = this.game.getActor(actor.aiTargetId);
+      const currentDamageable = current?.alive
+        && damageableEnemies.some(candidate => candidate.id === current.id)
+        ? current
+        : null;
+
+      if (!currentDamageable && damageableEnemies.length > 0) {
+        const replacement = this.pickPriorityTarget(actor, damageableEnemies);
+        if (replacement) {
+          if (actor.aiIntent?.targetId && actor.aiIntent.targetId !== replacement.id) {
+            this.closeIntent(actor, "target unavailable during healer-support recovery");
+          }
+          actor.aiTargetId = replacement.id;
+          this.setIntent(
+            actor,
+            "RECOVER_SUPPORT",
+            replacement,
+            "recover healer support while maintaining a live combat target",
+            1.8,
+          );
+          actor.aiLastForcedRetargetAt = this.game.elapsedSeconds;
+        }
+      }
+
+      return;
+    }
 
     const skill = this.skill(actor);
     const defensiveGreed = this.behavior(actor, "defensiveGreed", 0.48);

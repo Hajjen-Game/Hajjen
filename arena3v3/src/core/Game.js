@@ -427,6 +427,9 @@ export class Game {
     this.deathEvents = [];
     this.aiMovementEvents = [];
     this.aiMovementEventsDropped = 0;
+    this.aiMovementSamples = [];
+    this.aiMovementSamplesDropped = 0;
+    this.aiMovementTraceState = new Map();
   }
 
   getActor(id) {
@@ -763,6 +766,7 @@ export class Game {
         this.arena,
         this.player?.id,
       );
+      this.recordAiMovementSample(deltaMs);
       this.checkWinCondition();
     }
 
@@ -991,6 +995,189 @@ export class Game {
       const removeCount = this.aiMovementEvents.length - maxEvents;
       this.aiMovementEvents.splice(0, removeCount);
       this.aiMovementEventsDropped += removeCount;
+    }
+  }
+
+  recordAiMovementSample(deltaMs) {
+    const now = Number(this.elapsedSeconds) || 0;
+    const sampleEveryMs = 200;
+    const windowMs = 600;
+
+    for (const actor of this.actors) {
+      if (!actor?.alive || actor.control === "player") continue;
+
+      let trace = this.aiMovementTraceState.get(actor.id);
+      if (!trace) {
+        trace = {
+          lastX: actor.x,
+          lastY: actor.y,
+          lastDx: 0,
+          lastDy: 0,
+          sampleMs: 0,
+          windowMs: 0,
+          windowStartX: actor.x,
+          windowStartY: actor.y,
+          pathDistance: 0,
+          reversals: 0,
+          lastJitterAt: -Infinity,
+          lastStallAt: -Infinity,
+        };
+        this.aiMovementTraceState.set(actor.id, trace);
+      }
+
+      const dx = actor.x - trace.lastX;
+      const dy = actor.y - trace.lastY;
+      const distanceMoved = Math.hypot(dx, dy);
+      const previousDistance = Math.hypot(trace.lastDx, trace.lastDy);
+
+      if (distanceMoved > .08 && previousDistance > .08) {
+        const dot =
+          (dx * trace.lastDx + dy * trace.lastDy)
+          / Math.max(.0001, distanceMoved * previousDistance);
+        if (dot < -.55) trace.reversals += 1;
+      }
+
+      trace.pathDistance += distanceMoved;
+      trace.windowMs += deltaMs;
+      trace.sampleMs += deltaMs;
+
+      const target = this.getActor(actor.aiTargetId);
+      const targetDistance = target?.alive
+        ? Math.hypot(target.x - actor.x, target.y - actor.y)
+        : null;
+      const separation = actor.aiSeparationDelta || { x: 0, y: 0 };
+
+      if (trace.sampleMs >= sampleEveryMs) {
+        const elapsed = Math.max(.001, trace.sampleMs / 1000);
+        this.aiMovementSamples.push({
+          time: now,
+          actorId: actor.id,
+          actorName: actor.name,
+          className: actor.className,
+          classId: actor.classId,
+          role: actor.role,
+          team: actor.team,
+          position: { x: actor.x, y: actor.y },
+          delta: {
+            x: actor.x - (Number.isFinite(trace.lastSampleX) ? trace.lastSampleX : trace.lastX),
+            y: actor.y - (Number.isFinite(trace.lastSampleY) ? trace.lastSampleY : trace.lastY),
+          },
+          speed: distanceMoved / Math.max(.001, deltaMs / 1000),
+          lastMove: actor.lastMove
+            ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
+            : { x: 0, y: 0 },
+          separation: { x: separation.x || 0, y: separation.y || 0 },
+          targetName: target ? this.combatantLabel(target) : null,
+          targetDistance,
+          castSpellId: actor.cast?.spellId || null,
+          hardControlled: this.cc.isHardControlled(actor),
+          rooted: this.cc.isRooted(actor),
+          safeTurret: Boolean(actor.aiSafeTurretActive),
+          manaRecovery: Boolean(actor.aiManaRecoveryActive),
+          collisionActive: Boolean(actor.aiObstacleContactActive),
+          collisionBlocker: actor.aiCollisionBlocker || null,
+          avoidanceSign: actor.aiCollisionRouteSign || actor.aiAvoidanceSign || 0,
+          activeDash: Boolean(actor.activeDash),
+          intentType: actor.aiIntent?.type || null,
+          intentReason: actor.aiIntent?.reason || null,
+        });
+
+        trace.lastSampleX = actor.x;
+        trace.lastSampleY = actor.y;
+        trace.sampleMs = 0;
+
+        const maxSamples = 3600;
+        if (this.aiMovementSamples.length > maxSamples) {
+          const removeCount = this.aiMovementSamples.length - maxSamples;
+          this.aiMovementSamples.splice(0, removeCount);
+          this.aiMovementSamplesDropped += removeCount;
+        }
+      }
+
+      if (trace.windowMs >= windowMs) {
+        const netDistance = Math.hypot(
+          actor.x - trace.windowStartX,
+          actor.y - trace.windowStartY,
+        );
+        const lastMoveMagnitude = Math.hypot(
+          Number(actor.lastMove?.x) || 0,
+          Number(actor.lastMove?.y) || 0,
+        );
+        const separationDistance = Math.hypot(
+          Number(separation.x) || 0,
+          Number(separation.y) || 0,
+        );
+
+        const jittering =
+          trace.reversals >= 5
+          && trace.pathDistance >= 3.0
+          && netDistance <= Math.max(4.0, trace.pathDistance * .34);
+
+        if (jittering && now - trace.lastJitterAt >= .8) {
+          this.recordAiMovementEvent(actor, {
+            type: actor.aiObstacleContactActive
+              ? "movement-jitter"
+              : "open-field-jitter",
+            position: { x: actor.x, y: actor.y },
+            pathDistance: trace.pathDistance,
+            netDistance,
+            reversals: trace.reversals,
+            lastMove: actor.lastMove
+              ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
+              : { x: 0, y: 0 },
+            separation: { x: separation.x || 0, y: separation.y || 0 },
+            targetName: target ? this.combatantLabel(target) : null,
+            targetDistance,
+            castSpellId: actor.cast?.spellId || null,
+            safeTurret: Boolean(actor.aiSafeTurretActive),
+            manaRecovery: Boolean(actor.aiManaRecoveryActive),
+            collisionActive: Boolean(actor.aiObstacleContactActive),
+          });
+          trace.lastJitterAt = now;
+        }
+
+        const stalled =
+          !actor.cast
+          && !this.cc.isHardControlled(actor)
+          && !this.cc.isRooted(actor)
+          && !actor.activeDash
+          && lastMoveMagnitude > .25
+          && trace.pathDistance < 1.2;
+
+        if (stalled && now - trace.lastStallAt >= 1.2) {
+          this.recordAiMovementEvent(actor, {
+            type: actor.aiObstacleContactActive
+              ? "movement-stall"
+              : "open-field-stall",
+            position: { x: actor.x, y: actor.y },
+            pathDistance: trace.pathDistance,
+            netDistance,
+            reversals: trace.reversals,
+            lastMove: actor.lastMove
+              ? { x: actor.lastMove.x || 0, y: actor.lastMove.y || 0 }
+              : { x: 0, y: 0 },
+            separation: { x: separation.x || 0, y: separation.y || 0 },
+            separationDistance,
+            targetName: target ? this.combatantLabel(target) : null,
+            targetDistance,
+            safeTurret: Boolean(actor.aiSafeTurretActive),
+            manaRecovery: Boolean(actor.aiManaRecoveryActive),
+            collisionActive: Boolean(actor.aiObstacleContactActive),
+          });
+          trace.lastStallAt = now;
+        }
+
+        trace.windowMs = 0;
+        trace.windowStartX = actor.x;
+        trace.windowStartY = actor.y;
+        trace.pathDistance = 0;
+        trace.reversals = 0;
+      }
+
+      trace.lastX = actor.x;
+      trace.lastY = actor.y;
+      trace.lastDx = dx;
+      trace.lastDy = dy;
     }
   }
 

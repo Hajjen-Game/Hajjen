@@ -96,7 +96,9 @@ function drawLivingBodyShape(
     rearCompress = .04;
     sideCompress = .045;
   } else if (mode === "heal") {
-    radialWave = .016 + intensity * .022;
+    // Healer 2.0: the ring visibly opens/blooms when a heal is released.
+    radialWave = .030 + intensity * .045;
+    sideCompress = .006;
   } else if (mode === "defensive") {
     radialWave = .025 + intensity * .022;
   } else if (mode === "hit") {
@@ -135,7 +137,18 @@ function drawLivingBodyShape(
     } else if (mode === "defensive") {
       localRadius *= 1 + Math.cos(a * 8) * radialWave * .55;
     } else if (mode === "heal") {
-      localRadius *= 1 + Math.sin(a * 5 + nowMs * .008) * radialWave * .45;
+      const classWave =
+        actor.classId === "priest" ? 6
+        : actor.classId === "paladin" ? 4
+        : 5;
+      const speed =
+        actor.classId === "druid" ? .014
+        : actor.classId === "paladin" ? .009
+        : .011;
+      localRadius *=
+        1
+        + Math.sin(a * classWave + nowMs * speed) * radialWave * .62
+        + Math.cos(a * 2 - nowMs * speed * .45) * radialWave * .16;
     }
 
     if (mode === "root" && sideDir > .15) sideScale *= .96;
@@ -866,12 +879,92 @@ function drawLivingRingAccent(
   }
 
   if (mode === "heal") {
+    const classId=actor.classId || "";
+    const release=Math.sin(progress*Math.PI);
+    const bloom=1-Math.min(1,progress/.88);
+
+    if(classId==="priest"){
+      const spin=t*.95;
+      for(let i=0;i<3;i++){
+        const a=spin+i*Math.PI*2/3;
+        strokeLivingArc(
+          graphics,
+          radius+4+i*2+release*3,
+          a-.58,
+          a+.58,
+          {
+            color:i===1?core:(i===2?accent:main),
+            width:i===1?2.35:1.75,
+            alpha:.28+release*(i===1?.42:.30),
+          },
+          9,
+        );
+      }
+      graphics.circle(0,0,radius+10+release*5).stroke({
+        color:core,width:1.25,alpha:bloom*.18,
+      });
+      return;
+    }
+
+    if(classId==="druid"){
+      const spin=t*1.18;
+      for(let i=0;i<5;i++){
+        const a=spin+i*Math.PI*2/5+(i%2?progress*.55:-progress*.35);
+        strokeLivingArc(
+          graphics,
+          radius+4+(i%2)*4+release*4,
+          a-.34,
+          a+.34,
+          {
+            color:i%3===0?core:(i%2?main:accent),
+            width:1.55+(i%3===0?.55:0),
+            alpha:.24+release*.34,
+          },
+          7,
+        );
+      }
+      return;
+    }
+
+    if(classId==="paladin"){
+      const spin=t*.48+progress*.18;
+      for(let i=0;i<4;i++){
+        const a=spin+i*Math.PI/2;
+        strokeLivingArc(
+          graphics,
+          radius+4+release*3,
+          a-.30,
+          a+.30,
+          {
+            color:i%2?core:main,
+            width:2.2,
+            alpha:.30+release*.42,
+          },
+          6,
+        );
+        const inner=radius+1;
+        const outer=radius+10+release*7;
+        graphics
+          .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+          .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+          .stroke({
+            color:i%2?main:core,
+            width:1.45,
+            alpha:.22+release*.34,
+          });
+      }
+      graphics.circle(0,0,radius+12+release*4).stroke({
+        color:accent,width:1.2,alpha:bloom*.16,
+      });
+      return;
+    }
+
     const a=t*.75;
     strokeLivingArc(graphics,radius+4,a-.82,a+.82,{
-      color:main,width:1.65,alpha:.22+.20*intensity,
+      color:main,width:1.8,alpha:.24+.24*intensity,
     },9);
     strokeLivingArc(graphics,radius+7,a+Math.PI-.58,a+Math.PI+.58,{
-      color:core,width:1.25,alpha:.16+.16*intensity,
+      color:core,width:1.35,alpha:.18+.18*intensity,
     },8);
     return;
   }
@@ -930,9 +1023,9 @@ function burstColors(style = "damage") {
 
 function priestHealSpellColors(spellId) {
   const colors = {
-    "priest-renew": [0xe7cf8d, 0xfff7cf, 0xc9a95e],
-    "priest-flash-heal": [0xead38f, 0xfff9dc, 0xc8aa61],
-    "priest-greater-heal": [0xe8d39a, 0xfffce7, 0xc9aa6a],
+    "priest-renew": [0xffd96f, 0xffffe8, 0xcaa2f3],
+    "priest-flash-heal": [0xffd76a, 0xffffee, 0xd0a8f5],
+    "priest-greater-heal": [0xffdb79, 0xffffff, 0xd6aff7],
   };
   return colors[spellId] || colors["priest-flash-heal"];
 }
@@ -966,21 +1059,21 @@ function priestDruidSpellProfile(spellId) {
 
     "druid-rejuvenation": {
       kind: "leaf-hot",
-      main: 0x72b978,
-      core: 0xdff4a8,
-      accent: 0x4d8255,
+      main: 0x66d97d,
+      core: 0xefffc1,
+      accent: 0x3e9d65,
     },
     "druid-swiftmend": {
       kind: "leaf-burst",
-      main: 0x79bd74,
-      core: 0xeef7b1,
-      accent: 0x4f8b55,
+      main: 0x72e58a,
+      core: 0xf7ffc6,
+      accent: 0x45a76c,
     },
     "druid-regrowth": {
       kind: "regrowth",
-      main: 0x6eb06f,
-      core: 0xe2f2a6,
-      accent: 0x4c7951,
+      main: 0x65d77a,
+      core: 0xf0ffb8,
+      accent: 0x3d9a61,
     },
     "druid-ironbark": {
       kind: "bark-shield",
@@ -996,9 +1089,9 @@ function priestDruidSpellProfile(spellId) {
     },
     "druid-lifebloom": {
       kind: "lifebloom",
-      main: 0x7bc082,
-      core: 0xf0f5b3,
-      accent: 0x5d9264,
+      main: 0x73e28a,
+      core: 0xf7ffc4,
+      accent: 0x4aa96b,
     },
     "druid-moonfire": {
       kind: "moon-sky",
@@ -1014,15 +1107,15 @@ function paladinDkSpellProfile(spellId) {
   const profiles = {
     "paladin-holy-shock": {
       family: "paladin", kind: "holy-shock",
-      main: 0xe7c760, core: 0xfff7c7, accent: 0xc8913d,
+      main: 0xffd85e, core: 0xffffdd, accent: 0xf0a63d,
     },
     "paladin-flash-light": {
       family: "paladin", kind: "flash-light",
-      main: 0xe9cf76, core: 0xfffbe0, accent: 0xc99b48,
+      main: 0xffdc6c, core: 0xffffec, accent: 0xf0ad45,
     },
     "paladin-holy-light": {
       family: "paladin", kind: "holy-light",
-      main: 0xe5c76f, core: 0xfffce3, accent: 0xc18e3f,
+      main: 0xffd968, core: 0xffffff, accent: 0xe9a23d,
     },
     "paladin-blessing": {
       family: "paladin", kind: "blessing",
@@ -1034,7 +1127,7 @@ function paladinDkSpellProfile(spellId) {
     },
     "paladin-word-of-glory": {
       family: "paladin", kind: "word-glory",
-      main: 0xf0d57e, core: 0xfffbe0, accent: 0xc69745,
+      main: 0xffdf76, core: 0xffffff, accent: 0xf0a942,
     },
     "paladin-judgment": {
       family: "paladin", kind: "judgment",
@@ -4681,9 +4774,35 @@ export class PixiProofRenderer {
           scaleY *= 1 - snap * (action.heavy ? .038 : .022);
           rotation -= dirX * snap * (action.heavy ? .025 : .015);
         } else if (action.kind === "heal") {
-          offsetY -= hitPulse * (action.heavy ? 2.6 : 1.7);
-          scaleX *= 1 + hitPulse * .025;
-          scaleY *= 1 + hitPulse * .025;
+          const priest=action.spellId?.startsWith?.("priest-");
+          const druid=action.spellId?.startsWith?.("druid-");
+          const paladin=action.spellId?.startsWith?.("paladin-");
+          const commit=smooth((q-.02)/.36)*(1-smooth((q-.72)/.28));
+
+          if(priest){
+            offsetY -= hitPulse*(action.heavy?5.6:3.8);
+            scaleX *= 1+commit*(action.heavy?.075:.052);
+            scaleY *= 1+commit*(action.heavy?.075:.052);
+            rotation += Math.sin(q*Math.PI*2)*.010*(1-q);
+          }else if(druid){
+            const sway=Math.sin(q*Math.PI*2.2)*commit*(action.heavy?3.0:2.2);
+            const sideX=-dirY, sideY=dirX;
+            offsetX += sideX*sway-dirX*commit*.7;
+            offsetY += sideY*sway-hitPulse*(action.heavy?3.8:2.8);
+            rotation += Math.sin(q*Math.PI*2.4)*commit*.035;
+            scaleX *= 1+commit*(action.heavy?.060:.043);
+            scaleY *= 1+commit*(action.heavy?.045:.034);
+          }else if(paladin){
+            offsetX -= dirX*(1-q)*1.5;
+            offsetY -= hitPulse*(action.heavy?3.2:2.3);
+            scaleX *= 1+commit*(action.heavy?.090:.062);
+            scaleY *= 1+commit*(action.heavy?.090:.062);
+            rotation += Math.sin(q*Math.PI)*.012;
+          }else{
+            offsetY -= hitPulse*(action.heavy?3.2:2.1);
+            scaleX *= 1+hitPulse*.035;
+            scaleY *= 1+hitPulse*.035;
+          }
         } else if (action.kind === "control") {
           rotation += Math.sin(q * Math.PI * 2) * .016 * (1-q);
           scaleX *= 1 + hitPulse * .022;
@@ -4756,6 +4875,75 @@ export class PixiProofRenderer {
                 },
                 5,
               );
+            }
+          } else if (action.kind === "heal") {
+            const priest=action.spellId?.startsWith?.("priest-");
+            const druid=action.spellId?.startsWith?.("druid-");
+            const paladin=action.spellId?.startsWith?.("paladin-");
+            const beat=Math.sin(Math.min(1,q/.88)*Math.PI);
+            const fade=1-smooth((q-.62)/.38);
+
+            if(priest){
+              for(let i=0;i<3;i++){
+                const a=q*1.6+i*Math.PI*2/3;
+                strokeLivingArc(
+                  motionFx,
+                  actor.radius+8+i*4+beat*5,
+                  a-.52,
+                  a+.52,
+                  {
+                    color:i===1?profile.core:(i===2?profile.accent:profile.main),
+                    width:i===1?2.4:1.7,
+                    alpha:fade*(.30+beat*.35),
+                  },
+                  8,
+                );
+              }
+              for(let i=0;i<6;i++){
+                const a=i*Math.PI*2/6+q*.5;
+                const inner=actor.radius+4;
+                const outer=actor.radius+15+beat*(7+(i%2)*3);
+                motionFx
+                  .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+                  .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+                  .stroke({
+                    color:i%2?profile.main:profile.core,
+                    width:1.35,
+                    alpha:fade*(.22+beat*.28),
+                  });
+              }
+            }else if(druid){
+              for(let i=0;i<7;i++){
+                const a=i*Math.PI*2/7+q*(i%2?2.1:-1.7);
+                const rr=actor.radius+8+beat*(8+(i%3)*3);
+                const x=Math.cos(a)*rr, y=Math.sin(a)*rr;
+                const tangent=a+Math.PI/2;
+                motionFx
+                  .moveTo(x-Math.cos(tangent)*4,y-Math.sin(tangent)*4)
+                  .lineTo(x+Math.cos(tangent)*4,y+Math.sin(tangent)*4)
+                  .stroke({
+                    color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+                    width:1.6+(i%3===0?.5:0),
+                    alpha:fade*(.26+beat*.30),
+                  });
+              }
+            }else if(paladin){
+              for(let i=0;i<8;i++){
+                const a=i*Math.PI/4+q*.28;
+                const inner=actor.radius+3;
+                const outer=actor.radius+16+beat*(action.heavy?13:9);
+                motionFx
+                  .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+                  .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+                  .stroke({
+                    color:i%2?profile.core:profile.main,
+                    width:i%2?1.9:1.5,
+                    alpha:fade*(.28+beat*.36),
+                  });
+              }
+              motionFx.circle(0,0,actor.radius+9+beat*8).stroke({
+                color:profile.accent,width:1.5,alpha:fade*.26,
+              });
             }
           } else if (q < .42) {
             const radius = actor.radius + 6 + q * (action.heavy ? 18 : 12);
@@ -9768,243 +9956,308 @@ export class PixiProofRenderer {
       core.visible = true;
 
       // ---------------------------------------------------------------------
-      // HEALING: Priest = restorative seals/convergence, Druid = living foliage,
-      // Paladin = angular sun seals/crown. Same purpose, distinct language.
+      // HEALING 2.0: each healer gets its own visual grammar.
+      // Priest = celestial restoration, Druid = living bloom, Paladin = solar seals.
+      // HoTs only animate on application; there is no persistent HOT animation.
       // ---------------------------------------------------------------------
       if (COMBAT_VFX2_HEALS.has(effect.spellId)) {
-        const fade=1-smooth((p-.62)/.38);
+        const fade=1-smooth((p-.70)/.30);
         const strong=
           effect.spellId==="priest-greater-heal"
           || effect.spellId==="druid-regrowth"
           || effect.spellId==="paladin-holy-light"
           || effect.spellId==="paladin-word-of-glory";
-        const power=strong?1.28:1;
+        const power=strong?1.34:1;
+        const eased=easeOut(p);
+        const appear=easeOut(p/.22);
 
         if (effect.spellId.startsWith("priest-")) {
-          const eased=easeOut(p);
-          const appear=easeOut(p/.24);
-
-          // Priest healing deliberately avoids the tall descending beam used by
-          // Holy Fire. Heals read as target-centered restoration: soft halos,
-          // converging light and upward motes.
           if(effect.spellId==="priest-renew"){
-            const radius=8+eased*22;
-            glow.circle(dx,dy,radius*.82).fill({
-              color:profile.main,alpha:alpha*fade*.07
+            const radius=11+eased*30;
+            glow.circle(dx,dy,radius*.92).stroke({
+              color:profile.main,width:10,alpha:alpha*fade*.13
             });
             core.circle(dx,dy,radius).stroke({
-              color:profile.main,width:1.6,alpha:alpha*fade*.48
+              color:profile.main,width:2.1,alpha:alpha*fade*.66
             });
-            for(let i=0;i<6;i++){
-              const a=i/6*Math.PI*2-p*.8+seed*.004;
-              const rr=9+eased*(13+(i%2)*4);
+            core.circle(dx,dy,Math.max(6,radius-9)).stroke({
+              color:profile.core,width:1.35,alpha:alpha*fade*.46
+            });
+            for(let i=0;i<8;i++){
+              const a=i/8*Math.PI*2-p*1.15+seed*.004;
+              const rr=10+eased*(18+(i%2)*5);
               core.circle(
                 dx+Math.cos(a)*rr,
-                dy+Math.sin(a)*rr-p*5,
-                1.2+(i%2)*.45
+                dy+Math.sin(a)*rr-p*7,
+                1.4+(i%3)*.5
               ).fill({
-                color:i%2?profile.core:profile.main,
-                alpha:alpha*fade*.52,
+                color:i%3===0?profile.accent:(i%2?profile.core:profile.main),
+                alpha:alpha*fade*.62,
               });
             }
             continue;
           }
 
-          if(effect.spellId==="priest-flash-heal"){
-            const top=dy-58;
-            const beamFade=alpha*fade*appear;
+          const greater=effect.spellId==="priest-greater-heal";
+          const top=dy-(greater?118:82);
+          const beamWidth=greater?58:40;
+          const beamAlpha=alpha*fade*appear;
 
-            // Flash Heal lands as a short, broad blessing of light. It is much
-            // softer and shorter than Holy Fire, but still has the clear
-            // "light comes down and healing happens" read the old version had.
-            glow
-              .moveTo(dx,top)
-              .lineTo(dx,dy+8)
-              .stroke({
-                color:profile.main,
-                width:28,
-                alpha:beamFade*.11,
-              });
+          glow.moveTo(dx,top).lineTo(dx,dy+12).stroke({
+            color:profile.main,
+            width:beamWidth,
+            alpha:beamAlpha*(greater?.17:.14),
+          });
+          glow.moveTo(dx,top+5).lineTo(dx,dy+9).stroke({
+            color:profile.core,
+            width:beamWidth*.48,
+            alpha:beamAlpha*(greater?.13:.10),
+          });
 
-            for(let i=0;i<5;i++){
-              const lane=i/4-.5;
-              core
-                .moveTo(dx+lane*24,top+(i%2)*4)
-                .lineTo(dx+lane*9,dy+6)
-                .stroke({
-                  color:i===2?profile.core:profile.main,
-                  width:i===2?2.8:1.8,
-                  alpha:beamFade*(i===2?.62:.38),
-                });
-            }
-
-            for(let i=0;i<8;i++){
-              const side=(i-3.5)*6;
-              const fall=(p*26+(i%4)*9)%54;
-              core.circle(
-                dx+side+Math.sin(seed*.03+i+p*6)*2.5,
-                top+8+fall,
-                1.2+(i%3)*.4
-              ).fill({
-                color:i%3===0?profile.core:profile.main,
-                alpha:alpha*fade*.48,
-              });
-            }
-
-            core.circle(dx,dy,9+eased*22).stroke({
-              color:profile.main,width:2.1,alpha:alpha*fade*.60
-            });
-            core.circle(dx,dy,4+appear*3.5).fill({
-              color:profile.core,alpha:alpha*fade*.66
-            });
-            continue;
-          }
-
-          // Greater Heal keeps the same restorative language as Flash Heal,
-          // but with a broader, longer blessing and denser falling particles.
-          const top=dy-84;
-          const beamFade=alpha*fade*appear;
-
-          glow
-            .moveTo(dx,top)
-            .lineTo(dx,dy+10)
-            .stroke({
-              color:profile.main,
-              width:40,
-              alpha:beamFade*.13,
-            });
-
-          for(let i=0;i<7;i++){
-            const lane=i/6-.5;
+          const lanes=greater?9:6;
+          for(let i=0;i<lanes;i++){
+            const lane=i/Math.max(1,lanes-1)-.5;
             core
-              .moveTo(dx+lane*36,top+(i%3)*4)
-              .lineTo(dx+lane*12,dy+7)
+              .moveTo(dx+lane*beamWidth*.78,top+(i%3)*5)
+              .lineTo(dx+lane*beamWidth*.24,dy+8)
               .stroke({
-                color:i%3===0?profile.core:profile.main,
-                width:i===3?3.4:2.0,
-                alpha:beamFade*(i===3?.68:.42),
+                color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
+                width:i===Math.floor(lanes/2)?3.6:(greater?2.1:1.8),
+                alpha:beamAlpha*(i%3===0?.72:.48),
               });
           }
 
-          for(let i=0;i<13;i++){
-            const lane=(i-6)*5.2;
-            const fall=(p*34+(i%5)*11)%76;
-            core.circle(
-              dx+lane+Math.sin(seed*.037+i*1.7+p*7)*3.2,
-              top+8+fall,
-              1.2+(i%3)*.45
-            ).fill({
-              color:i%3===0?profile.core:profile.main,
-              alpha:alpha*fade*.52,
-            });
+          const haloR=14+eased*(greater?45:33);
+          glow.circle(dx,dy,haloR).stroke({
+            color:profile.main,width:greater?14:10,alpha:alpha*fade*(greater?.15:.12)
+          });
+          core.circle(dx,dy,haloR).stroke({
+            color:profile.main,width:greater?3.0:2.4,alpha:alpha*fade*.78
+          });
+          core.circle(dx,dy,Math.max(8,haloR-11)).stroke({
+            color:profile.core,width:1.55,alpha:alpha*fade*.58
+          });
+
+          const rays=greater?12:8;
+          for(let i=0;i<rays;i++){
+            const a=i/rays*Math.PI*2+p*.22+seed*.002;
+            const inner=9+eased*5;
+            const outer=22+eased*((greater?40:28)+(i%3)*7);
+            core
+              .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+              .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+              .stroke({
+                color:i%4===0?profile.accent:(i%2?profile.core:profile.main),
+                width:i%3===0?2.0:1.35,
+                alpha:alpha*fade*(greater?.62:.52),
+              });
           }
 
-          const baseRadius=11+eased*31*power;
-          glow.circle(dx,dy,baseRadius*.88).fill({
-            color:profile.main,alpha:alpha*fade*.08
-          });
-          core.circle(dx,dy,baseRadius).stroke({
-            color:profile.main,width:2.5,alpha:alpha*fade*.62
-          });
-          core.circle(dx,dy,Math.max(7,baseRadius-8)).stroke({
-            color:profile.core,width:1.35,alpha:alpha*fade*.44
-          });
-          core.circle(dx,dy,4.5+appear*4).fill({
-            color:profile.core,alpha:alpha*fade*.70
-          });
+          const motes=greater?16:10;
+          for(let i=0;i<motes;i++){
+            const a=i/motes*Math.PI*2-p*(i%2?.55:-.38)+seed*.006;
+            const rr=16+eased*(17+(i%4)*6);
+            core.circle(
+              dx+Math.cos(a)*rr,
+              dy+Math.sin(a)*rr-p*(greater?13:8),
+              1.2+(i%3)*.5
+            ).fill({
+              color:i%4===0?profile.accent:(i%2?profile.core:profile.main),
+              alpha:alpha*fade*.62,
+            });
+          }
           continue;
         }
 
         if (effect.spellId.startsWith("druid-")) {
-          const count=effect.spellId==="druid-swiftmend"?12:(strong?10:8);
+          const swift=effect.spellId==="druid-swiftmend";
+          const regrowth=effect.spellId==="druid-regrowth";
+          const lifebloom=effect.spellId==="druid-lifebloom";
+          const count=swift?18:(regrowth?15:(lifebloom?14:11));
+          const bloomR=13+eased*(swift?40:(regrowth?36:29))*power;
 
-          if(effect.spellId==="druid-regrowth"){
-            for(let i=0;i<4;i++){
-              const side=(i-1.5)*8;
+          glow.circle(dx,dy,bloomR*.90).fill({
+            color:profile.main,
+            alpha:alpha*fade*(swift?.13:(regrowth?.11:.08)),
+          });
+          glow.circle(dx,dy,bloomR).stroke({
+            color:profile.main,
+            width:swift?13:(regrowth?11:8),
+            alpha:alpha*fade*(swift?.15:.10),
+          });
+
+          if(regrowth){
+            for(let i=0;i<6;i++){
+              const side=(i-2.5)*8;
+              const sway=Math.sin(i*1.7+p*5.5)*12;
               core
-                .moveTo(dx+side,dy+18)
-                .lineTo(
-                  dx+side+Math.sin(i+p*5)*10,
-                  dy-8-p*17
-                )
-                .lineTo(dx+side*.3,dy-29-p*10)
+                .moveTo(dx+side,dy+20)
+                .lineTo(dx+side+sway*.40,dy-4-p*20)
+                .lineTo(dx+side*.28+sway,dy-35-p*16)
                 .stroke({
-                  color:profile.main,width:2,alpha:alpha*fade*.46
+                  color:i%2?profile.main:profile.core,
+                  width:2.2+(i%3===0?.6:0),
+                  alpha:alpha*fade*.62,
                 });
             }
           }
 
           for(let i=0;i<count;i++){
-            const a=i/count*Math.PI*2+p*(i%2?.9:-.7)+seed*.006;
-            const rr=7+easeOut(p)*(18+(i%4)*4);
+            const a=i/count*Math.PI*2+p*(i%2?1.8:-1.45)+seed*.006;
+            const rr=8+eased*(20+(i%4)*6)*(swift?1.25:1);
             leaf(
               core,
               dx+Math.cos(a)*rr,
-              dy+Math.sin(a)*rr-p*(effect.spellId==="druid-lifebloom"?12:7),
-              a+.4+p,
-              3.4+(i%3)*.7,
-              i%3===0?profile.core:profile.main,
-              alpha*fade*.70
+              dy+Math.sin(a)*rr-p*(lifebloom?16:9),
+              a+.55+p*(i%2?1:-.8),
+              4.0+(i%3)*1.0+(swift?.7:0),
+              i%4===0?profile.core:(i%2?profile.main:profile.accent),
+              alpha*fade*(swift?.82:.72)
             );
           }
 
-          if(effect.spellId==="druid-lifebloom"){
-            for(let i=0;i<6;i++){
-              const a=i/6*Math.PI*2+p*.45;
-              const rr=7+easeOut(p)*10;
-              leaf(core,dx+Math.cos(a)*rr,dy+Math.sin(a)*rr,a,5.3,
-                i%2?profile.main:profile.core,alpha*fade*.75);
+          if(lifebloom){
+            const petals=8;
+            for(let i=0;i<petals;i++){
+              const a=i/petals*Math.PI*2+p*.38;
+              const rr=8+eased*13;
+              leaf(
+                core,
+                dx+Math.cos(a)*rr,
+                dy+Math.sin(a)*rr,
+                a,
+                6.3+(i%2)*.8,
+                i%2?profile.main:profile.core,
+                alpha*fade*.84
+              );
+            }
+            core.circle(dx,dy,4.5+eased*3.5).fill({
+              color:profile.core,alpha:alpha*fade*.82
+            });
+          }
+
+          if(swift){
+            for(let i=0;i<10;i++){
+              const a=i/10*Math.PI*2+seed*.009;
+              const inner=10;
+              const outer=24+eased*(25+(i%3)*6);
+              core
+                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                .stroke({
+                  color:i%3===0?profile.core:profile.main,
+                  width:1.8+(i%3===0?.7:0),
+                  alpha:alpha*fade*.68,
+                });
             }
           }
 
-          glow.circle(dx,dy,12+easeOut(p)*24*power).stroke({
-            color:profile.main,width:7,alpha:alpha*fade*.09
+          core.circle(dx,dy,bloomR).stroke({
+            color:profile.main,width:2.3+(strong?.7:0),alpha:alpha*fade*.68
+          });
+          core.circle(dx,dy,Math.max(7,bloomR-9)).stroke({
+            color:profile.core,width:1.35,alpha:alpha*fade*.48
           });
           continue;
         }
 
-        // Paladin heal language.
-        const radius=10+easeOut(p)*(strong?36:29);
-        glow.circle(dx,dy,radius*.80).fill({
-          color:profile.main,alpha:alpha*fade*.09
+        const holyShock=effect.spellId==="paladin-holy-shock";
+        const holyLight=effect.spellId==="paladin-holy-light";
+        const word=effect.spellId==="paladin-word-of-glory";
+        const radius=13+eased*(holyShock?38:(strong?48:36));
+
+        glow.circle(dx,dy,radius*.88).fill({
+          color:profile.main,
+          alpha:alpha*fade*(holyShock?.15:(strong?.13:.10)),
         });
-        for(let i=0;i<8;i++){
-          const a=i/8*Math.PI*2+(effect.spellId==="paladin-holy-shock"?-p*1.6:p*.45);
+        glow.circle(dx,dy,radius).stroke({
+          color:profile.main,
+          width:strong?14:11,
+          alpha:alpha*fade*(strong?.16:.13),
+        });
+
+        const spokes=holyShock?12:8;
+        for(let i=0;i<spokes;i++){
+          const a=i/spokes*Math.PI*2+(holyShock?-p*2.1:p*.42);
+          const inner=radius*.34;
+          const outer=radius*(holyShock?1.32:(strong?1.28:1.12));
           core
-            .moveTo(dx+Math.cos(a)*radius*.42,dy+Math.sin(a)*radius*.42)
-            .lineTo(dx+Math.cos(a)*radius*(strong?1.24:1),dy+Math.sin(a)*radius*(strong?1.24:1))
+            .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+            .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
             .stroke({
               color:i%2?profile.main:profile.core,
-              width:strong?2.5:1.8,
-              alpha:alpha*fade*.64,
+              width:holyShock?(i%3===0?2.8:1.9):(strong?2.7:2.0),
+              alpha:alpha*fade*(holyShock?.78:.68),
             });
         }
 
-        const rot=Math.PI/4+p*.2;
-        const square=[
-          point(dx,dy,-radius*.42,-radius*.42,rot),
-          point(dx,dy,radius*.42,-radius*.42,rot),
-          point(dx,dy,radius*.42,radius*.42,rot),
-          point(dx,dy,-radius*.42,radius*.42,rot),
-        ];
-        polygon(core,square,{
-          color:profile.core,width:1.6,alpha:alpha*fade*.52
-        });
+        for(let layer=0;layer<2;layer++){
+          const rot=Math.PI/4+(layer?-.32:.28)*p;
+          const rr=radius*(layer?.48:.62);
+          const square=[
+            point(dx,dy,-rr,-rr,rot),
+            point(dx,dy,rr,-rr,rot),
+            point(dx,dy,rr,rr,rot),
+            point(dx,dy,-rr,rr,rot),
+          ];
+          polygon(core,square,{
+            color:layer?profile.core:profile.main,
+            width:layer?1.5:2.0,
+            alpha:alpha*fade*(layer?.46:.62),
+          });
+        }
 
-        if(effect.spellId==="paladin-word-of-glory"){
-          const rise=21+easeOut(p)*13;
-          core
-            .moveTo(dx-21,dy-rise)
-            .lineTo(dx-11,dy-rise-13)
-            .lineTo(dx,dy-rise-4)
-            .lineTo(dx+11,dy-rise-13)
-            .lineTo(dx+21,dy-rise)
+        if(holyLight){
+          const top=dy-96;
+          glow.moveTo(dx,top).lineTo(dx,dy+12).stroke({
+            color:profile.main,width:46,alpha:alpha*fade*appear*.14
+          });
+          core.moveTo(dx,top).lineTo(dx,dy+9).stroke({
+            color:profile.core,width:4.0,alpha:alpha*fade*appear*.72
+          });
+          for(let i=0;i<4;i++){
+            const side=(i-1.5)*10;
+            core
+              .moveTo(dx+side,top+8)
+              .lineTo(dx+side*.30,dy+7)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:1.8,
+                alpha:alpha*fade*.52,
+              });
+          }
+        }
+
+        if(word){
+          const rise=25+eased*18;
+          glow
+            .moveTo(dx-28,dy-rise)
+            .lineTo(dx-14,dy-rise-17)
+            .lineTo(dx,dy-rise-5)
+            .lineTo(dx+14,dy-rise-17)
+            .lineTo(dx+28,dy-rise)
             .stroke({
-              color:profile.main,width:2.3,alpha:alpha*fade*.74
+              color:profile.main,width:10,alpha:alpha*fade*.15
+            });
+          core
+            .moveTo(dx-28,dy-rise)
+            .lineTo(dx-14,dy-rise-17)
+            .lineTo(dx,dy-rise-5)
+            .lineTo(dx+14,dy-rise-17)
+            .lineTo(dx+28,dy-rise)
+            .stroke({
+              color:profile.core,width:2.8,alpha:alpha*fade*.84
             });
         }
-        core.circle(dx,dy,strong?6.5:5).fill({
-          color:profile.core,alpha:alpha*fade*.70
+
+        core.circle(dx,dy,radius).stroke({
+          color:profile.main,width:2.7+(strong?.6:0),alpha:alpha*fade*.76
+        });
+        core.circle(dx,dy,Math.max(8,radius-11)).stroke({
+          color:profile.core,width:1.5,alpha:alpha*fade*.56
+        });
+        core.circle(dx,dy,strong?7.2:5.6).fill({
+          color:profile.core,alpha:alpha*fade*.86
         });
         continue;
       }

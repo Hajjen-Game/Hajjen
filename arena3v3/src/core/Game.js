@@ -11,7 +11,7 @@ import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../system
 import { RendererBridge } from "../rendering/RendererBridge.js?v=20261005-nearblack1";
 import { UIManager } from "../ui/UIManager.js?v=20261005-honorcurve1";
 import { buildMatchReport } from "./MatchReport.js?v=20261001-wallfollow1";
-import { buildAiMovementReport } from "./AiMovementReport.js?v=20261004-movementlog2";
+import { buildAiMovementReport } from "./AiMovementReport.js?v=20261005-openfielddebug1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20261005-honorcurve1";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";

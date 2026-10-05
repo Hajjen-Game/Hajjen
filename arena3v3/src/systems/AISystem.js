@@ -3182,6 +3182,7 @@ export class AISystem {
           if (actor.aiManaRecoveryActive) {
             this.markManaRecoveryMode(actor, "mobile");
           }
+          actor.aiMovementMode = "recover-healer-support";
           this.movement.moveAI(actor, recoveryVector, deltaSeconds, this.game.arena);
           return;
         }
@@ -3202,6 +3203,7 @@ export class AISystem {
               this.markManaRecoveryMode(actor, "mobile");
             }
             actor.aiSafeTurretActive = false;
+            actor.aiMovementMode = "caster-kite";
             this.movement.moveAI(actor, kiteVector, deltaSeconds, this.game.arena);
             return;
           }
@@ -3226,6 +3228,7 @@ export class AISystem {
           actor.aiSafeTurretEntries = (actor.aiSafeTurretEntries || 0) + 1;
         }
         actor.aiSafeTurretActive = true;
+        actor.aiMovementMode = "safe-turret";
         actor.lastMove = { x: 0, y: 0 };
 
         if (recoveringMana) {
@@ -3238,9 +3241,18 @@ export class AISystem {
 
       if (recoveringMana) {
         this.markManaRecoveryMode(actor, "mobile");
-        const recoveryVector = this.casterManaRecoveryVector(actor, target, healer);
+
+        // Mana recovery must never fight melee survival. If a melee is already
+        // on the caster, reuse the boundary-aware kite vector continuously
+        // instead of alternating between "mana strafe" and "kite" decisions.
+        const recoveryVector = meleeThreat
+          ? this.kiteVector(actor, meleeThreat, healer)
+          : this.casterManaRecoveryVector(actor, target, healer);
 
         if (recoveryVector.x !== 0 || recoveryVector.y !== 0) {
+          actor.aiMovementMode = meleeThreat
+            ? "mana-recovery-kite"
+            : "mana-recovery";
           this.movement.moveAI(actor, recoveryVector, deltaSeconds, this.game.arena);
           return;
         }
@@ -3294,10 +3306,12 @@ export class AISystem {
     }
 
     if (vector.x !== 0 || vector.y !== 0) {
+      actor.aiMovementMode = "role-range";
       this.movement.moveAI(actor, vector, deltaSeconds, this.game.arena);
     } else {
       // Intentional range/LOS hold. Clear the previous steering direction so
       // render/diagnostic state cannot mistake a stationary caster for a mover.
+      actor.aiMovementMode = "range-hold";
       actor.lastMove = { x: 0, y: 0 };
     }
   }
@@ -3388,11 +3402,12 @@ export class AISystem {
       { x: -side.x, y: -side.y },
     ];
 
-    // When a healer is being chased against the outer wall, "away from melee"
-    // can keep pointing out of the arena and eventually feed the actor into a
-    // corner. Add inward escape lanes only when the healer is already close to
-    // the boundary so normal pillar kiting remains unchanged.
-    if (actor.role === "healer" && nearBoundary) {
+    // When a ranged unit is being chased against the outer wall, "away from
+    // melee" can keep pointing out of the arena. Casters need the same inward
+    // escape lanes as healers; without them, two equally-good sideways lanes
+    // can win on alternating frames and create visible open-field shaking.
+    const boundaryKiter = actor.role === "healer" || actor.role === "caster";
+    if (boundaryKiter && nearBoundary) {
       rawCandidates.push(
         towardCenter,
         normalize(
@@ -3419,7 +3434,7 @@ export class AISystem {
     // boundary-pinned healer before falling back to the direct-away vector.
     if (candidates.length === 0) {
       if (
-        actor.role === "healer"
+        boundaryKiter
         && nearBoundary
         && !this.movement.wouldCollide(actor, towardCenter, immediateProbe, arena)
       ) {
@@ -3464,11 +3479,18 @@ export class AISystem {
         score -= (58 - futureEdgeClearance) * 4.2;
       }
 
-      if (actor.role === "healer" && nearBoundary) {
+      if (boundaryKiter && nearBoundary) {
         const inwardProgress =
           candidate.x * towardCenter.x + candidate.y * towardCenter.y;
-        score += inwardProgress * 190;
+        score += inwardProgress * (actor.role === "healer" ? 190 : 165);
       }
+
+      // Deterministic lateral preference breaks near-perfect left/right ties.
+      // Safety, LOS and healer-support penalties are much larger, so this only
+      // decides between otherwise equivalent escape lanes.
+      const stableSideProgress =
+        candidate.x * side.x + candidate.y * side.y;
+      score += stableSideProgress * 58;
 
       if (healer?.alive) {
         if (this.hasHealerSupport(probe, healer, actor.radius)) {
@@ -3494,7 +3516,7 @@ export class AISystem {
     scored.sort((a, b) => b.score - a.score);
     const selected = scored[0];
 
-    if (actor.role === "healer") {
+    if (boundaryKiter) {
       const escapingBoundary =
         nearBoundary
         && selected.futureEdgeClearance > currentEdgeClearance + 6;

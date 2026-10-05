@@ -1744,21 +1744,22 @@ function paintLegacyGrandRing(ctx, arena) {
   if (arena?.id !== "four-pillar-ring") return false;
 
   // Clean Living Ring presentation pass:
-  // preserve every arena/pillar coordinate exactly, but remove the old editor
-  // grid and move the art toward the very dark warm-brown reference.
+  // preserve every arena/pillar coordinate exactly. Test a near-black arena
+  // floor so Living Rings and spell colors carry more of the visual identity.
   const floor = ctx.createRadialGradient(640, 350, 90, 640, 350, 760);
-  floor.addColorStop(0, "#241810");
-  floor.addColorStop(.58, "#20160f");
-  floor.addColorStop(1, "#1a120d");
+  floor.addColorStop(0, "#11100f");
+  floor.addColorStop(.58, "#0c0b0b");
+  floor.addColorStop(1, "#070707");
 
   ctx.fillStyle = floor;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  // Very restrained vignette/depth so the floor is not visually flat.
+  // Very restrained neutral vignette/depth so the floor stays almost black
+  // without becoming a completely flat void.
   const vignette = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
-  vignette.addColorStop(0, "rgba(50,31,19,.10)");
+  vignette.addColorStop(0, "rgba(255,255,255,.018)");
   vignette.addColorStop(.42, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,.12)");
+  vignette.addColorStop(1, "rgba(0,0,0,.16)");
   ctx.fillStyle = vignette;
   ctx.fillRect(
     arena.bounds.x,

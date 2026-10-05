@@ -1247,11 +1247,11 @@ function commonCasterSpellProfile(spellId) {
     },
     "mage-pyroblast": {
       kind: "fire",
-      main: 0xd96839,
-      core: 0xffe2aa,
-      accent: 0xa73d2d,
+      main: 0xff6a22,
+      core: 0xffffe8,
+      accent: 0xff3426,
       travelEnd: .58,
-      size: 11,
+      size: 13,
       heavy: true,
     },
     "mage-frost-nova": {
@@ -1423,11 +1423,12 @@ function projectileVfx2Spec(spellId) {
     "mage-pyroblast": {
       shape: "pyro",
       trailStyle: "fire",
-      travelEnd: .49,
-      size: 14,
-      tail: 118,
-      trailReach: .94,
+      travelEnd: .52,
+      size: 18,
+      tail: 158,
+      trailReach: .97,
       heavy: true,
+      showcase: true,
     },
     "mage-frostfire-bolt": {
       shape: "frostfire",
@@ -12074,6 +12075,63 @@ export class PixiProofRenderer {
       g.stroke(style);
     };
 
+    const taperedRibbon = (
+      g,
+      ax,
+      ay,
+      bx,
+      by,
+      seed,
+      phase,
+      {
+        startWidth = 2,
+        endWidth = 10,
+        wobble = 4,
+        segments = 14,
+        color = 0xffffff,
+        alpha = .5,
+      } = {},
+    ) => {
+      if (alpha <= 0) return;
+
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len = Math.max(1, Math.hypot(dx,dy));
+      const tx = dx / len;
+      const ty = dy / len;
+      const nx = -ty;
+      const ny = tx;
+      const left = [];
+      const right = [];
+
+      for (let i = 0; i <= segments; i += 1) {
+        const t = i / segments;
+        const flameNoise =
+          (
+            Math.sin(seed*.031+i*1.77+phase*10.7)
+            + Math.sin(seed*.013+i*.83-phase*6.2)*.48
+          )
+          * wobble
+          * Math.sin(t*Math.PI);
+        const cx = ax + dx*t + nx*flameNoise;
+        const cy = ay + dy*t + ny*flameNoise;
+        const width =
+          startWidth
+          + (endWidth-startWidth)*Math.pow(t,.78)
+          + Math.sin(i*1.9+phase*8+seed*.02)*.8*Math.sin(t*Math.PI);
+
+        left.push({x:cx+nx*width,y:cy+ny*width});
+        right.push({x:cx-nx*width,y:cy-ny*width});
+      }
+
+      poly(
+        g,
+        [...left,...right.reverse()],
+        {color,alpha},
+        true,
+      );
+    };
+
     for (const view of this.actorViews.values()) {
       view.projectileVfx2GlowFx.clear();
       view.projectileVfx2GlowFx.visible = false;
@@ -12209,13 +12267,58 @@ export class PixiProofRenderer {
               });
           }
         } else if (spec.shape === "pyro") {
-          for(let i=0;i<7;i++){
-            const a=i/7*Math.PI*2+seed*.01;
-            const rr=source.radius+10+releaseP*(15+(i%3)*5);
-            core.circle(Math.cos(a)*rr,Math.sin(a)*rr-releaseP*4,1.7+(i%2)*.5).fill({
-              color:i%3===0?spec.core:spec.main,alpha:releaseFade*.55,
+          const bloomR=source.radius+10+releaseP*22;
+          glow.circle(0,0,bloomR+8).stroke({
+            color:spec.main,
+            width:12,
+            alpha:releaseFade*.18,
+          });
+          core.circle(0,0,bloomR).stroke({
+            color:0xffb52f,
+            width:2.6,
+            alpha:releaseFade*.72,
+          });
+
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2+seed*.01+p*(i%2?2.1:-1.7);
+            const outer=source.radius+22+releaseP*(18+(i%3)*6);
+            const inner=source.radius+7+releaseP*5;
+            core
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(
+                Math.cos(a+.08*Math.sin(p*9+i))*inner,
+                Math.sin(a+.08*Math.sin(p*9+i))*inner,
+              )
+              .stroke({
+                color:i%3===0?spec.core:(i%2?0xffb52f:spec.main),
+                width:i%3===0?2.1:1.5,
+                alpha:releaseFade*.66,
+              });
+
+            core.circle(
+              Math.cos(a)*outer,
+              Math.sin(a)*outer-releaseP*(i%3)*2,
+              1.5+(i%3)*.5
+            ).fill({
+              color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+              alpha:releaseFade*.72,
             });
           }
+
+          // Directional launch flare makes the spell feel fired rather than
+          // merely spawned on top of the caster.
+          glow
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+36),ty*(source.radius+36))
+            .stroke({
+              color:spec.main,width:18,alpha:releaseFade*.18
+            });
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+34),ty*(source.radius+34))
+            .stroke({
+              color:spec.core,width:3.2,alpha:releaseFade*.82
+            });
         } else if (spec.shape === "frostfire") {
           strokeArc(core,source.radius+14,-1.2,1.2,{
             color:spec.main,width:2.2,alpha:releaseFade*.58,
@@ -12302,7 +12405,55 @@ export class PixiProofRenderer {
           y: tailY + (py - tailY) * fraction + ny * lateral,
         });
 
-        if (spec.shape === "shadow" || spec.shape === "chaos") {
+        if (spec.shape === "pyro") {
+          // VFX 3.0 showcase: three nested procedural ribbons create the
+          // flowing, almost-liquid fire trail from the reference rather than a
+          // single blurred line.
+          taperedRibbon(
+            glow,tailX,tailY,px,py,seed+3,p,
+            {
+              startWidth:7,
+              endWidth:19,
+              wobble:7.5,
+              segments:18,
+              color:spec.accent,
+              alpha:alpha*travelFade*.13,
+            },
+          );
+          taperedRibbon(
+            glow,tailX,tailY,px,py,seed+11,p*1.12,
+            {
+              startWidth:5,
+              endWidth:15,
+              wobble:5.5,
+              segments:18,
+              color:spec.main,
+              alpha:alpha*travelFade*.23,
+            },
+          );
+          taperedRibbon(
+            core,tailX,tailY,px,py,seed+23,p*.94,
+            {
+              startWidth:2.2,
+              endWidth:8.0,
+              wobble:3.2,
+              segments:18,
+              color:0xffa62a,
+              alpha:alpha*travelFade*.76,
+            },
+          );
+          taperedRibbon(
+            core,tailX,tailY,px,py,seed+37,p*1.25,
+            {
+              startWidth:.8,
+              endWidth:3.5,
+              wobble:1.7,
+              segments:18,
+              color:spec.core,
+              alpha:alpha*travelFade*.92,
+            },
+          );
+        } else if (spec.shape === "shadow" || spec.shape === "chaos") {
           jaggedLine(
             glow, tailX, tailY, px, py, seed,
             spec.shape === "chaos" ? 8 : 6,
@@ -12344,7 +12495,29 @@ export class PixiProofRenderer {
         const travelPulse =
           .82 + (.5 + .5 * Math.sin(p * 34 + seed * .071)) * .18;
 
-        if (spec.shape === "shadow" || spec.shape === "chaos") {
+        if (spec.shape === "pyro") {
+          taperedRibbon(
+            glow,tailX,tailY,px,py,seed+101,p*1.7,
+            {
+              startWidth:9,
+              endWidth:24,
+              wobble:8.5,
+              segments:16,
+              color:spec.main,
+              alpha:alpha*travelFade*.10*travelPulse,
+            },
+          );
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:0xffb633,
+            width:6.8,
+            alpha:alpha*travelFade*.56,
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.core,
+            width:1.8,
+            alpha:alpha*travelFade*.98,
+          });
+        } else if (spec.shape === "shadow" || spec.shape === "chaos") {
           jaggedLine(
             glow, tailX, tailY, px, py, seed + 101,
             spec.shape === "chaos" ? 9 : 7,
@@ -12356,24 +12529,33 @@ export class PixiProofRenderer {
             },
             p * 1.7,
           );
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.main,
+            width: spec.heavy ? 6.4 : 5.0,
+            alpha: alpha * travelFade * .62,
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.core,
+            width: spec.heavy ? 1.65 : 1.25,
+            alpha: alpha * travelFade * .96,
+          });
         } else {
           glow.moveTo(tailX,tailY).lineTo(px,py).stroke({
             color: spec.main,
             width: spec.heavy ? 24 : 19,
             alpha: alpha * travelFade * .15 * travelPulse,
           });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.main,
+            width: spec.heavy ? 6.4 : 5.0,
+            alpha: alpha * travelFade * .62,
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color: spec.core,
+            width: spec.heavy ? 1.65 : 1.25,
+            alpha: alpha * travelFade * .96,
+          });
         }
-
-        core.moveTo(tailX,tailY).lineTo(px,py).stroke({
-          color: spec.main,
-          width: spec.heavy ? 6.4 : 5.0,
-          alpha: alpha * travelFade * .62,
-        });
-        core.moveTo(tailX,tailY).lineTo(px,py).stroke({
-          color: spec.core,
-          width: spec.heavy ? 1.65 : 1.25,
-          alpha: alpha * travelFade * .96,
-        });
 
         const satelliteCount = spec.heavy ? 4 : 3;
         for (let i = 0; i < satelliteCount; i += 1) {
@@ -12464,37 +12646,94 @@ export class PixiProofRenderer {
               });
           }
         } else if (spec.trailStyle === "fire") {
-          const embers = 14;
+          const embers = 24;
           for (let i = 0; i < embers; i += 1) {
-            const f = (i + .4) / embers;
+            const f = (i + .35) / embers;
             const side =
-              Math.sin(i * 1.71 + p * 18 + seed * .025) * (5 + (i % 4) * 2.2);
+              Math.sin(i * 1.71 + p * 20 + seed * .025)
+              * (6 + (i % 5) * 2.4);
             const point = trailPoint(f, side);
-            const emberR = 1.2 + (i % 3) * .45;
-            const lift = (1-f) * 5 + Math.sin(p*10+i) * 2;
+            const emberR = 1.1 + (i % 4) * .43;
+            const lift =
+              (1-f) * 8
+              + Math.sin(p*12+i*1.3) * 3
+              - Math.pow(1-f,1.6)*7;
 
-            glow.circle(point.x,point.y-lift,emberR*3.2).fill({
-              color: spec.main,
-              alpha: alpha * travelFade * .13,
+            glow.circle(point.x,point.y+lift,emberR*4.2).fill({
+              color: i%4===0 ? 0xffb52f : spec.main,
+              alpha: alpha * travelFade * .15,
             });
-            core.circle(point.x,point.y-lift,emberR).fill({
-              color: i % 3 === 0 ? spec.core : spec.accent,
-              alpha: alpha * travelFade * .78,
+            core.circle(point.x,point.y+lift,emberR).fill({
+              color:
+                i % 5 === 0 ? spec.core
+                : i % 2 ? 0xffaa25
+                : spec.accent,
+              alpha: alpha * travelFade * .84,
             });
 
             if (i % 3 === 0) {
               core
-                .moveTo(point.x,point.y)
+                .moveTo(point.x,point.y+lift)
                 .lineTo(
-                  point.x-tx*(8+(i%2)*4)+nx*side*.18,
-                  point.y-ty*(8+(i%2)*4)+ny*side*.18-3,
+                  point.x-tx*(10+(i%3)*5)+nx*side*.20,
+                  point.y+lift-ty*(10+(i%3)*5)-3,
                 )
                 .stroke({
-                  color: spec.core,
-                  width: 1.2,
-                  alpha: alpha * travelFade * .50,
+                  color: i%2 ? spec.core : 0xffa62a,
+                  width: 1.2+(i%4===0?.5:0),
+                  alpha: alpha * travelFade * .56,
                 });
             }
+          }
+
+          // Wavy flame tongues weave around the hot center ribbon.
+          for(let lane=0;lane<4;lane++){
+            const sign=lane%2?1:-1;
+            const lanePhase=p*(13+lane*1.8)+seed*.017+lane*1.7;
+            const segments=11;
+            for(let i=0;i<=segments;i++){
+              const f=i/segments;
+              const center=trailPoint(
+                f,
+                sign*Math.sin(f*Math.PI*3+lanePhase)*(5+lane*2.2)*Math.sin(f*Math.PI)
+              );
+              const backPull=(1-f)*(lane*2.5);
+              const x=center.x-tx*backPull;
+              const y=center.y-ty*backPull;
+              if(i===0) core.moveTo(x,y); else core.lineTo(x,y);
+            }
+            core.stroke({
+              color:lane===0?spec.core:(lane===1?0xffd04a:(lane===2?spec.main:spec.accent)),
+              width:lane===0?2.1:1.35,
+              alpha:alpha*travelFade*(lane===0?.66:.46),
+            });
+          }
+
+          // Rotating heat rings provide the "coiled energy" silhouette visible
+          // in the reference projectiles without requiring a 3D renderer.
+          for(let i=0;i<6;i++){
+            const f=.18+i*.13;
+            const center=trailPoint(f,0);
+            const spin=p*12+i*.9+seed*.009;
+            const along=4+Math.sin(spin)*2;
+            const across=8+(i%3)*2.5;
+            const pts=[];
+            for(let j=0;j<=10;j++){
+              const a=j/10*Math.PI*2;
+              pts.push({
+                x:center.x+tx*Math.cos(a)*along+nx*Math.sin(a)*across,
+                y:center.y+ty*Math.cos(a)*along+ny*Math.sin(a)*across,
+              });
+            }
+            for(let j=0;j<pts.length;j++){
+              if(j===0) core.moveTo(pts[j].x,pts[j].y);
+              else core.lineTo(pts[j].x,pts[j].y);
+            }
+            core.stroke({
+              color:i%2?0xffa52a:spec.main,
+              width:1.15,
+              alpha:alpha*travelFade*.32,
+            });
           }
         } else if (spec.trailStyle === "magma") {
           const chunks = 11;
@@ -12744,26 +12983,56 @@ export class PixiProofRenderer {
               });
           }
         } else if (spec.shape === "pyro") {
-          const flamePts=[];
-          for(let i=0;i<12;i++){
-            const a=i/12*Math.PI*2+p*4.5;
-            const rr=i%2?spec.size*.72:spec.size*1.18;
-            flamePts.push({x:px+Math.cos(a)*rr,y:py+Math.sin(a)*rr});
-          }
-          poly(glow,flamePts,{color:spec.main,alpha:alpha*travelFade*.32},true);
-          poly(core,flamePts,{color:spec.main,alpha:alpha*travelFade*.95},true);
-          core.circle(px,py,spec.size*.52).fill({
+          const flicker=.86+.14*Math.sin(p*42+seed*.09);
+          const outer=[
+            transformed(px,py,28,0,angle),
+            transformed(px,py,8,-12*flicker,angle),
+            transformed(px,py,-8,-13,angle),
+            transformed(px,py,-26,-7,angle),
+            transformed(px,py,-37,0,angle),
+            transformed(px,py,-25,7,angle),
+            transformed(px,py,-8,13,angle),
+            transformed(px,py,8,12*flicker,angle),
+          ];
+          const inner=[
+            transformed(px,py,22,0,angle),
+            transformed(px,py,5,-7,angle),
+            transformed(px,py,-12,-7.5,angle),
+            transformed(px,py,-24,0,angle),
+            transformed(px,py,-12,7.5,angle),
+            transformed(px,py,5,7,angle),
+          ];
+          const hot=[
+            transformed(px,py,15,0,angle),
+            transformed(px,py,1,-3.8,angle),
+            transformed(px,py,-13,0,angle),
+            transformed(px,py,1,3.8,angle),
+          ];
+
+          poly(glow,outer,{color:spec.accent,alpha:alpha*travelFade*.26},true);
+          poly(glow,inner,{color:spec.main,alpha:alpha*travelFade*.34},true);
+          poly(core,outer,{color:spec.main,alpha:alpha*travelFade*.82},true);
+          poly(core,inner,{color:0xffb32d,alpha:alpha*travelFade*.94},true);
+          poly(core,hot,{color:spec.core,alpha:alpha*travelFade*.98},true);
+
+          glow.circle(px+tx*6,py+ty*6,spec.size+8).fill({
+            color:spec.main,alpha:alpha*travelFade*.20
+          });
+          core.circle(px+tx*7,py+ty*7,4.8).fill({
             color:spec.core,alpha:alpha*travelFade*.98
           });
-          for(let i=0;i<6;i++){
-            const a=angle+Math.PI+(i-2.5)*.20+Math.sin(p*9+i)*.08;
+
+          for(let i=0;i<8;i++){
+            const side=(i-3.5)*.15;
+            const a=angle+Math.PI+side+Math.sin(p*12+i)*.07;
+            const len=24+(i%4)*7;
             core
-              .moveTo(px-tx*5,py-ty*5)
-              .lineTo(px+Math.cos(a)*(18+(i%3)*5),py+Math.sin(a)*(18+(i%3)*5))
+              .moveTo(px-tx*10+nx*side*10,py-ty*10+ny*side*10)
+              .lineTo(px+Math.cos(a)*len,py+Math.sin(a)*len)
               .stroke({
-                color:i%2?spec.core:spec.accent,
-                width:1.4,
-                alpha:alpha*travelFade*.60,
+                color:i%4===0?spec.core:(i%2?0xffb52f:spec.accent),
+                width:i%4===0?1.8:1.25,
+                alpha:alpha*travelFade*.62,
               });
           }
         } else if (spec.shape === "frostfire") {
@@ -13041,23 +13310,99 @@ export class PixiProofRenderer {
             color:spec.main,width:7,alpha:alpha*fade*.16
           });
         } else if (spec.shape === "pyro") {
-          glow.circle(ix,iy,12+hit*40).fill({
-            color:spec.main,alpha:alpha*fade*.14
+          const boom=easeOut(hit);
+          const flash=Math.exp(-hit*11);
+          const after=Math.exp(-hit*3.0);
+
+          glow.circle(ix,iy,18+boom*54).fill({
+            color:spec.main,
+            alpha:alpha*(.09+flash*.24)*fade,
           });
-          core.circle(ix,iy,7+hit*26).stroke({
-            color:spec.core,width:2.2,alpha:alpha*fade*.52
+          glow.circle(ix,iy,15+boom*66).stroke({
+            color:spec.accent,
+            width:16,
+            alpha:alpha*after*.18,
           });
-          for(let i=0;i<12;i++){
-            const a=i/12*Math.PI*2+seed*.019;
-            const rr=9+easeOut(hit)*(28+(i%4)*6);
+          glow.circle(ix,iy,10+boom*42).stroke({
+            color:0xffb52f,
+            width:12,
+            alpha:alpha*after*.20,
+          });
+
+          core.circle(ix,iy,10+flash*11).fill({
+            color:spec.core,
+            alpha:alpha*Math.min(1,.76+flash*.26),
+          });
+          core.circle(ix,iy,14+boom*42).stroke({
+            color:0xffc23b,
+            width:3.4,
+            alpha:alpha*after*.82,
+          });
+          core.circle(ix,iy,8+boom*27).stroke({
+            color:spec.core,
+            width:2.1,
+            alpha:alpha*after*.72,
+          });
+
+          const rays=18;
+          for(let i=0;i<rays;i++){
+            const a=i/rays*Math.PI*2+seed*.019+hit*(i%2?.40:-.32);
+            const inner=7+(i%3)*2;
+            const outer=24+boom*(36+(i%5)*8);
+            const bend=a+(i%2?.08:-.08)*Math.sin(hit*Math.PI);
+            core
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(
+                ix+Math.cos(bend)*outer,
+                iy+Math.sin(bend)*outer-hit*(i%3)*4
+              )
+              .stroke({
+                color:
+                  i%5===0?spec.core
+                  :i%2?0xffb52f:spec.accent,
+                width:i%5===0?2.5:1.55,
+                alpha:alpha*after*(i%5===0?.80:.62),
+              });
+          }
+
+          for(let i=0;i<22;i++){
+            const a=i/22*Math.PI*2+seed*.031+i*.17;
+            const rr=14+boom*(26+(i%6)*8);
+            const rise=hit*(6+(i%4)*5);
+            const r=1.2+(i%4)*.55;
+            glow.circle(
+              ix+Math.cos(a)*rr,
+              iy+Math.sin(a)*rr-rise,
+              r*3.2,
+            ).fill({
+              color:i%3===0?0xffc13a:spec.main,
+              alpha:alpha*after*.12,
+            });
             core.circle(
               ix+Math.cos(a)*rr,
-              iy+Math.sin(a)*rr-hit*8,
-              1.5+(i%3)*.65
+              iy+Math.sin(a)*rr-rise,
+              r,
             ).fill({
-              color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
-              alpha:alpha*fade*.66,
+              color:i%5===0?spec.core:(i%2?0xffb52f:spec.accent),
+              alpha:alpha*after*.72,
             });
+          }
+
+          // A short forward cone preserves the projectile's direction through
+          // the detonation and makes the impact feel like momentum, not a
+          // generic circular explosion.
+          for(let i=0;i<5;i++){
+            const spread=(i-2)*.16;
+            const a=angle+spread;
+            const outer=30+boom*(30+(i%2)*10);
+            core
+              .moveTo(ix-tx*3,iy-ty*3)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:i===2?spec.core:(i%2?0xffb52f:spec.main),
+                width:i===2?2.8:1.7,
+                alpha:alpha*after*.68,
+              });
           }
         } else if (spec.shape === "frostfire") {
           for(let i=0;i<10;i++){

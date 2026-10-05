@@ -2443,7 +2443,7 @@ export class PixiProofRenderer {
     projectileGroundGlowFx.visible = false;
     projectileGroundGlowFx.blendMode = "screen";
     projectileGroundGlowFx.filters = [
-      new this.PIXI.BlurFilter({ strength: 19.0, quality: 1 }),
+      new this.PIXI.BlurFilter({ strength: 15.0, quality: 1 }),
     ];
     root.addChild(projectileGroundGlowFx);
 
@@ -2451,7 +2451,7 @@ export class PixiProofRenderer {
     projectileGroundCoreFx.visible = false;
     projectileGroundCoreFx.blendMode = "screen";
     projectileGroundCoreFx.filters = [
-      new this.PIXI.BlurFilter({ strength: 5.5, quality: 1 }),
+      new this.PIXI.BlurFilter({ strength: 4.4, quality: 1 }),
     ];
     root.addChild(projectileGroundCoreFx);
 
@@ -10969,42 +10969,42 @@ export class PixiProofRenderer {
 
       // A few overlapping soft pools stretch the reflection slightly opposite
       // travel direction without needing a rotated texture/decal.
-      const trailCount = heavy ? 6 : 5;
+      const trailCount = heavy ? 5 : 4;
       for (let i = 0; i < trailCount; i += 1) {
         const q = i / Math.max(1, trailCount - 1);
-        const back = q * (heavy ? 28 : 20);
+        const back = q * (heavy ? 22 : 15);
         const px = x - tx * back;
         const py = y - ty * back;
         const fade = 1 - q * .48;
         glow.ellipse(
           px,
           py + 2,
-          radius * (1.18 + q * .34),
-          radius * (.66 + q * .10),
+          radius * (1.12 + q * .26),
+          radius * (.58 + q * .08),
         ).fill({
           color,
-          alpha: Math.min(1, alpha * fade * .82),
+          alpha: Math.min(1, alpha * fade * .57),
         });
       }
 
       core.ellipse(
         x,
         y + 2,
-        radius * .94,
-        radius * .42,
+        radius * .88,
+        radius * .37,
       ).fill({
         color: coreColor,
-        alpha: Math.min(1, alpha * .52),
+        alpha: Math.min(1, alpha * .36),
       });
 
       core.ellipse(
         x,
         y + 2,
-        radius * .46,
-        radius * .18,
+        radius * .40,
+        radius * .15,
       ).fill({
         color: coreColor,
-        alpha: Math.min(1, alpha * .34),
+        alpha: Math.min(1, alpha * .24),
       });
     };
 
@@ -11089,7 +11089,7 @@ export class PixiProofRenderer {
           : 1 - smooth((p - travelEnd) / .09);
         const travelAlpha = fadeIn * fadeOut;
         const size = Number(spec?.size) || (heavy ? 12 : 8);
-        const poolRadius = (10 + size * (heavy ? 1.22 : 1.05)) * (heavy ? 1.58 : 1.42);
+        const poolRadius = (10 + size * (heavy ? 1.22 : 1.05)) * (heavy ? 1.40 : 1.28);
 
         if (travelAlpha > .002) {
           drawPool(
@@ -11099,7 +11099,7 @@ export class PixiProofRenderer {
             profile.main,
             profile.core,
             poolRadius,
-            travelAlpha * (heavy ? .82 : .66),
+            travelAlpha * (heavy ? .57 : .46),
             dirX,
             dirY,
             heavy,
@@ -11117,8 +11117,8 @@ export class PixiProofRenderer {
               endY,
               profile.main,
               profile.core,
-              poolRadius * (1.18 + impactP * 1.02),
-              impactFade * (heavy ? .96 : .76),
+              poolRadius * (1.12 + impactP * .82),
+              impactFade * (heavy ? .67 : .53),
               0,
               0,
               heavy,
@@ -11173,8 +11173,8 @@ export class PixiProofRenderer {
           localY,
           profile.main,
           profile.core,
-          26 + build * 16,
-          build * fade * pulse * .72,
+          23 + build * 13,
+          build * fade * pulse * .50,
           0,
           0,
           true,
@@ -11245,8 +11245,8 @@ export class PixiProofRenderer {
             fy,
             0x59ccef,
             0xf5ffff,
-            23,
-            fade * flicker * .62,
+            19,
+            fade * flicker * .43,
             dx,
             dy,
             false,

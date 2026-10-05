@@ -102,6 +102,7 @@ function eventDetails(event) {
   if (event.targetName) {
     details.push(
       "target " + event.targetName
+      + (event.targetAlive === false ? " [DEAD]" : "")
       + (Number.isFinite(event.targetDistance)
         ? " @" + fixed(event.targetDistance, 1)
         : ""),
@@ -194,6 +195,7 @@ export function buildAiMovementReport(game) {
       + " | open-field stalls " + (counts["open-field-stall"] || 0)
       + " | movement jitter " + (counts["movement-jitter"] || 0)
       + " | movement stalls " + (counts["movement-stall"] || 0)
+      + " | dead-target idle " + (counts["dead-target-idle"] || 0)
       + " | no-route " + (counts["no-route"] || 0)
       + " | embedded recoveries " + (counts["embedded-recovery"] || 0)
       + " | engine route flips " + (actor.aiPathReroutes || 0)
@@ -316,6 +318,7 @@ export function buildAiMovementReport(game) {
         + " | separation " + vectorText(sample.separation)
         + (sample.targetName
           ? " | target " + sample.targetName
+            + (sample.targetAlive === false ? " [DEAD]" : "")
             + (Number.isFinite(sample.targetDistance)
               ? " @" + fixed(sample.targetDistance, 1)
               : "")
@@ -376,6 +379,7 @@ export function buildAiMovementReport(game) {
     "OPEN_FIELD_JITTER = actor repeatedly reversed real movement while making little net progress away from collision.",
     "OPEN_FIELD_STALL = actor reported movement intent but made almost no real movement away from collision.",
     "MOVEMENT_JITTER / MOVEMENT_STALL = same detectors while collision contact was active.",
+    "DEAD_TARGET_IDLE = live enemies remain, but the AI is standing still while still pointing at a dead/unavailable target.",
     "DETAILED MOVEMENT TRACE = 200ms samples of real position, lastMove, separation push, target distance and AI state for the final 8 seconds.",
     "Caster samples also show healer distance/range plus whether healer-support recovery is latched.",
     "NO_ROUTE = every tested steering direction was blocked for that movement tick.",

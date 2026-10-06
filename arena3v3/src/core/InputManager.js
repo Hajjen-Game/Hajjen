@@ -1,7 +1,8 @@
 import { DEFAULT_BINDINGS } from "./constants.js";
 
-const STORAGE_KEY = "arena3v3-bindings-v3";
-const LEGACY_STORAGE_KEY = "arena3v3-bindings-v2";
+const STORAGE_KEY = "arena3v3-bindings-v4";
+const LEGACY_V3_STORAGE_KEY = "arena3v3-bindings-v3";
+const LEGACY_V2_STORAGE_KEY = "arena3v3-bindings-v2";
 
 const MODIFIER_CODES = new Set([
   "ControlLeft",
@@ -93,15 +94,21 @@ export class InputManager {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
       if (stored) return { ...DEFAULT_BINDINGS, ...stored };
 
-      const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "null");
+      const v3 = JSON.parse(localStorage.getItem(LEGACY_V3_STORAGE_KEY) || "null");
+      if (v3) {
+        const migrated = { ...DEFAULT_BINDINGS, ...v3 };
+        if (v3.slot7 === "Digit7") migrated.slot7 = DEFAULT_BINDINGS.slot7;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+        return migrated;
+      }
+
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_V2_STORAGE_KEY) || "null");
       if (!legacy) return { ...DEFAULT_BINDINGS };
 
       const migrated = { ...DEFAULT_BINDINGS };
-
       for (const action of ["moveUp", "moveLeft", "moveDown", "moveRight", "party1", "party2", "party3"]) {
         if (legacy[action]) migrated[action] = legacy[action];
       }
-
       for (let slot = 1; slot <= 5; slot += 1) {
         if (legacy["spell" + slot]) migrated["slot" + slot] = legacy["spell" + slot];
       }

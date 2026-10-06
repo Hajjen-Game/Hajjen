@@ -4,7 +4,7 @@ import { classColorFor } from "../content/classes/classColors.js";
 import { drawClassGlyph } from "./ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
-import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20260929-auricons1";
+import { drawEffectGlyph, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20261006-rankspells1";
 import { createHealthPresentation, updateHealthPresentation } from "./HealthPresentation.js?v=20260929-healthfeedback1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
@@ -116,6 +116,8 @@ export class CanvasRenderer {
 
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     this.drawArena(ctx);
+    this.drawGroundEffects(ctx, game);
+    this.drawGroundTargeting(ctx, game);
     this.drawEffectRings(ctx, game);
 
     const livingActors = game.actors.filter(actor => actor.alive);
@@ -132,6 +134,90 @@ export class CanvasRenderer {
     this.drawOverlapReadability(ctx, game, livingActors);
     this.drawVfx(ctx, game);
     this.drawFloatingTexts(ctx, game.floatingTexts);
+  }
+
+  drawGroundEffects(ctx, game) {
+    const zones = game.groundEffects?.effects || [];
+    if (zones.length === 0) return;
+
+    for (const zone of zones) {
+      if (zone.kind !== "groundBarrier" || zone.remainingMs <= 0) continue;
+
+      const ratio = clamp(zone.remainingMs / Math.max(1, zone.durationMs), 0, 1);
+      const pulse = .5 + .5 * Math.sin(game.elapsedSeconds * 4.8 + zone.id);
+      const radius = zone.radius;
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+
+      const glow = ctx.createRadialGradient(
+        zone.x, zone.y, radius * .16,
+        zone.x, zone.y, radius,
+      );
+      glow.addColorStop(0, "rgba(255,238,177,.12)");
+      glow.addColorStop(.72, "rgba(235,205,116,.055)");
+      glow.addColorStop(1, "rgba(220,179,76,0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(zone.x, zone.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,231,156," + (0.56 * ratio) + ")";
+      ctx.lineWidth = 3 + pulse * 1.2;
+      ctx.beginPath();
+      ctx.arc(zone.x, zone.y, radius * (.96 + pulse * .015), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(241,208,112," + (0.34 * ratio) + ")";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(zone.x, zone.y, radius * .72, 0, Math.PI * 2);
+      ctx.stroke();
+
+      for (let i = 0; i < 8; i += 1) {
+        const a = i / 8 * Math.PI * 2 + game.elapsedSeconds * .12;
+        const inner = radius * .72;
+        const outer = radius * .92;
+        ctx.beginPath();
+        ctx.moveTo(zone.x + Math.cos(a) * inner, zone.y + Math.sin(a) * inner);
+        ctx.lineTo(zone.x + Math.cos(a) * outer, zone.y + Math.sin(a) * outer);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  drawGroundTargeting(ctx, game) {
+    const target = game.groundTargeting;
+    if (!target) return;
+
+    const radius = Math.max(20, Number(target.radius) || 90);
+    const valid = Boolean(target.valid);
+
+    ctx.save();
+    ctx.setLineDash([9, 7]);
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = valid
+      ? "rgba(255,226,135,.94)"
+      : "rgba(235,91,76,.96)";
+    ctx.fillStyle = valid
+      ? "rgba(240,205,103,.10)"
+      : "rgba(220,65,54,.10)";
+    ctx.beginPath();
+    ctx.arc(target.x, target.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(target.x - 11, target.y);
+    ctx.lineTo(target.x + 11, target.y);
+    ctx.moveTo(target.x, target.y - 11);
+    ctx.lineTo(target.x, target.y + 11);
+    ctx.stroke();
+    ctx.restore();
   }
 
   drawArena(ctx) {
@@ -950,6 +1036,7 @@ export class CanvasRenderer {
       "hot",
       "dot",
       "damageReduction",
+      "absorb",
       "healingReduction",
       "offensiveCooldown",
       "schoolLock",

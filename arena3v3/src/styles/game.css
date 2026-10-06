@@ -6,7 +6,7 @@ body { min-width: 1040px; overflow: hidden; }
 #app {
   height: 100vh;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 126px;
+  grid-template-rows: minmax(0, 1fr) 166px;
   gap: 8px;
   padding: 8px;
 }
@@ -4741,4 +4741,94 @@ h1, h2 { margin: 2px 0 0; letter-spacing: .06em; font-size: 22px; }
 .power-up-indicator.hidden,
 .power-up-pickup.hidden {
   display: none;
+}
+
+
+/* === 12-SLOT RANK ACTION BAR · 2 x 6 ===================================== */
+.action-bar {
+  grid-template-columns: repeat(6, 118px);
+  grid-template-rows: repeat(2, 68px);
+  grid-auto-flow: row;
+  gap: 6px;
+}
+
+.bottom-hud > .action-bar .action-slot {
+  width: 118px;
+  min-height: 68px;
+  height: 68px;
+  padding: 6px 7px;
+  border-radius: 8px;
+}
+
+.bottom-hud > .action-bar .action-slot.has-spell-icon {
+  padding-left: 47px;
+}
+
+.bottom-hud > .action-bar .spell-icon {
+  left: 7px;
+  top: 16px;
+  width: 36px;
+  height: 36px;
+}
+
+.bottom-hud > .action-bar .spell-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.bottom-hud > .action-bar .spell-name {
+  padding-right: 20px;
+  font-size: 10px;
+  line-height: 1.08;
+}
+
+.bottom-hud > .action-bar .spell-meta,
+.bottom-hud > .action-bar .drag-handle {
+  display: none;
+}
+
+.bottom-hud > .action-bar .keycap {
+  right: 4px;
+  top: 4px;
+  min-width: 19px;
+  height: 17px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-size: 8px;
+}
+
+.action-slot.ground-targeting-active {
+  border-color: #f3cf6c;
+  box-shadow:
+    inset 0 0 18px rgba(235,199,101,.18),
+    0 0 0 2px rgba(243,207,108,.24),
+    0 0 18px rgba(243,207,108,.34);
+}
+
+#arena.ground-targeting {
+  cursor: crosshair;
+}
+
+.loadout-card {
+  width: min(1180px, 96vw);
+}
+
+.loadout-action-bar {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.action-slot.spell-priest-penance {
+  --spell-accent: #e8c95f;
+  --spell-accent-2: #fff3b9;
+}
+
+.action-slot.spell-priest-life-grip {
+  --spell-accent: #c5a4df;
+  --spell-accent-2: #f1dcff;
+}
+
+.action-slot.spell-priest-power-word-shield,
+.action-slot.spell-priest-power-word-barrier {
+  --spell-accent: #d8bd63;
+  --spell-accent-2: #fff0ad;
 }

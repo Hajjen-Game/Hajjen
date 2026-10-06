@@ -18,6 +18,13 @@ function effectSummary(effect) {
       return "DoT " + effect.amount + " / " + seconds(effect.tickMs) + " · " + seconds(effect.durationMs);
     case "damageReduction":
       return Math.round((effect.value || 0) * 100) + "% less damage · " + seconds(effect.durationMs);
+    case "absorb":
+      return "Absorb " + effect.amount + " · " + seconds(effect.durationMs);
+    case "lifeGrip":
+      return "Pull ally to you";
+    case "groundBarrier":
+      return "Ground barrier · " + Math.round((effect.value || 0) * 100)
+        + "% less damage · " + seconds(effect.durationMs);
     case "healingReduction":
       return Math.round((effect.value || 0) * 100) + "% healing reduction · " + seconds(effect.durationMs);
     case "fear":
@@ -96,6 +103,37 @@ const ACTION_ICONS = Object.freeze({
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path class="icon-fill" d="M34 6 C39 17 49 22 47 35 C46 48 39 57 28 57 C17 57 10 49 12 38 C14 28 23 24 24 13 C29 17 31 22 30 28 C37 23 38 15 34 6 Z"></path>
       <path class="icon-line" d="M31 31 C36 36 36 45 30 49 C24 47 22 42 24 37 C25 34 28 32 31 31 Z"></path>
+    </svg>
+  `,
+  "priest-penance": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="icon-ring icon-soft" cx="18" cy="32" r="8"></circle>
+      <path class="icon-line" d="M24 24 L50 12 M26 32 L55 32 M24 40 L50 52"></path>
+      <circle class="icon-core" cx="52" cy="12" r="4"></circle>
+      <circle class="icon-core" cx="56" cy="32" r="4"></circle>
+      <circle class="icon-core" cx="52" cy="52" r="4"></circle>
+    </svg>
+  `,
+  "priest-life-grip": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="icon-ring icon-soft" cx="32" cy="32" r="22"></circle>
+      <path class="icon-line" d="M10 32 H42 M34 22 L45 32 L34 42"></path>
+      <path class="icon-shield" d="M46 14 L56 19 V29 C56 37 52 43 46 46 C40 43 36 37 36 29 V19 Z"></path>
+    </svg>
+  `,
+  "priest-power-word-shield": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-shield" d="M32 6 L53 15 V31 C53 45 44 55 32 59 C20 55 11 45 11 31 V15 Z"></path>
+      <path class="icon-line" d="M32 17 V47 M18 32 H46"></path>
+      <circle class="icon-ring icon-soft" cx="32" cy="32" r="21"></circle>
+    </svg>
+  `,
+  "priest-power-word-barrier": `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path class="icon-line" d="M8 43 C13 20 22 10 32 10 C42 10 51 20 56 43"></path>
+      <ellipse class="icon-ring" cx="32" cy="44" rx="24" ry="9"></ellipse>
+      <path class="icon-line icon-soft" d="M32 13 V46 M18 24 L46 45 M46 24 L18 45"></path>
+      <circle class="icon-core" cx="32" cy="31" r="4"></circle>
     </svg>
   `,
   "warrior-rend": `

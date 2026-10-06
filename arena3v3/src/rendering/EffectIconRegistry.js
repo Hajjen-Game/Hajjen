@@ -1,6 +1,7 @@
 const SPELL_ICON_KEYS = Object.freeze({
   "priest-renew": "holy-leaf",
   "priest-pain-suppression": "shield",
+  "priest-power-word-shield": "shield",
   "priest-psychic-scream": "fear",
   "druid-rejuvenation": "leaf",
   "druid-regrowth": "leaf",
@@ -33,6 +34,7 @@ const PALETTES = Object.freeze({
   hot: { color: "#bcefc2", background: "#376e45", border: "#74c982" },
   dot: { color: "#ffe0d5", background: "#763f34", border: "#d06a55" },
   damageReduction: { color: "#e6ecff", background: "#504f77", border: "#a79fdb" },
+  absorb: { color: "#fff0bd", background: "#67582d", border: "#efd477" },
   healingReduction: { color: "#ffe2dc", background: "#7c342f", border: "#e35e55" },
   offensiveCooldown: { color: "#ffe0b2", background: "#6f3e19", border: "#efa04a" },
   schoolLock: { color: "#efe2ff", background: "#4d3d66", border: "#b29ad1" },
@@ -49,6 +51,7 @@ const PALETTES = Object.freeze({
 
 const SPELL_PALETTES = Object.freeze({
   "priest-pain-suppression": { color: "#f1d4ff", background: "#603874", border: "#c56cff" },
+  "priest-power-word-shield": { color: "#fff0bd", background: "#6f5d2d", border: "#f0cf70" },
   "druid-ironbark": { color: "#dcf5c4", background: "#386343", border: "#66df76" },
   "paladin-blessing": { color: "#fff2a8", background: "#706027", border: "#ffd447" },
   "warlock-resolve": { color: "#ead4ff", background: "#563870", border: "#b76cff" },
@@ -82,6 +85,7 @@ export function effectIconKey(effect) {
   if (effect.kind === "root") return "root";
   if (effect.kind === "schoolLock") return "lock";
   if (effect.kind === "damageReduction") return "shield";
+  if (effect.kind === "absorb") return "shield";
   if (effect.kind === "healingReduction") return "mortal";
   if (effect.kind === "offensiveCooldown") return "burst";
   if (effect.kind === "hot") return "leaf";
@@ -107,6 +111,7 @@ export function effectPriority(effect) {
     root: 92,
     schoolLock: 88,
     damageReduction: 82,
+    absorb: 84,
     offensiveCooldown: 78,
     healingReduction: 74,
     dot: 62,
@@ -122,6 +127,7 @@ export function effectPriority(effect) {
 export function effectIsImportant(effect) {
   return [
     "damageReduction",
+    "absorb",
     "offensiveCooldown",
     "healingReduction",
     "schoolLock",

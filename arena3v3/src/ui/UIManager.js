@@ -1,17 +1,18 @@
 import { BINDING_LABELS } from "../core/constants.js";
 import { clamp, formatTime } from "../core/utils.js";
-import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20261004-iconart2";
+import { createActionSlot, createEmptyActionSlot, createUnitFrame } from "./components.js?v=20261006-rankspells1";
 import { classColorFor } from "../content/classes/classColors.js";
 import { HONOR_RANKS } from "../core/HonorSystem.js?v=20261005-honorcurve1";
 import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
 import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
-import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20261006-powerups1";
+import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20261006-rankspells1";
 import { createHealthPresentation, updateHealthPresentation } from "../rendering/HealthPresentation.js?v=20260929-healthfeedback1";
+import { rankSpellUnlockForRank, rankSpellUnlocksBetween } from "../core/RankSpellSystem.js?v=20261006-rankspells1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
-const ACTION_BAR_SLOT_COUNT = 7;
+const ACTION_BAR_SLOT_COUNT = 12;
 const ENEMY_CC_KINDS = new Set([
   "fearAoE",
   "fear",
@@ -1099,8 +1100,14 @@ export class UIManager {
         rank.rank === 20 ? "MAX" : "";
       row.querySelector(".honor-rank-requirement").textContent =
         rank.requiredHonor.toLocaleString() + " Honor";
+      const spellUnlock = rankSpellUnlockForRank(
+        this.game.player?.classId,
+        rank.rank,
+      );
       row.querySelector(".honor-rank-reward").textContent =
-        rank.rank === 1 ? "START" : "+1 TP";
+        rank.rank === 1
+          ? "START"
+          : "+1 TP" + (spellUnlock ? " · " + spellUnlock.spell.name.toUpperCase() : "");
 
       this.honorRankList.appendChild(row);
     }
@@ -1616,9 +1623,13 @@ export class UIManager {
       }
 
       const selectedTarget = this.game.getActor(this.game.player.targetId);
+      const groundTargeted = spell.target === "ground";
       const target = spell.target === "self" ? this.game.player : selectedTarget;
-      const invalidTarget = !this.game.combat.canTarget(this.game.player, target, spell);
-      const outOfRange = !invalidTarget
+      const invalidTarget = groundTargeted
+        ? false
+        : !this.game.combat.canTarget(this.game.player, target, spell);
+      const outOfRange = !groundTargeted
+        && !invalidTarget
         && spell.target !== "self"
         && !this.game.combat.spellInRange(this.game.player, target, spell);
       const noResource = !this.game.resources.canPay(this.game.player, spell);
@@ -1641,6 +1652,10 @@ export class UIManager {
         !disabled && !outOfRange && cooldown <= 0,
       );
       slot.classList.toggle("queued", this.game.abilityQueue?.queuedIndex === spellIndex);
+      slot.classList.toggle(
+        "ground-targeting-active",
+        this.game.groundTargeting?.spellId === spell.id,
+      );
     });
 
     this.updateFocusHud();
@@ -2359,10 +2374,21 @@ export class UIManager {
 
       if (honorAward.rankedUp) {
         this.resultRankUp.hidden = false;
+        const unlockedSpells = rankSpellUnlocksBetween(
+          this.game.player?.classId,
+          honorAward.rankBefore,
+          honorAward.rankAfter,
+        );
+        const unlockText = unlockedSpells.length > 0
+          ? " · UNLOCK " + unlockedSpells
+            .map(entry => entry.spell.name.toUpperCase())
+            .join(" + ")
+          : "";
         this.resultRankUp.textContent =
           "RANK UP · RANK " + honorAward.rankAfter
           + " · +" + honorAward.talentPointsGained
-          + " TALENT POINT" + (honorAward.talentPointsGained === 1 ? "" : "S");
+          + " TALENT POINT" + (honorAward.talentPointsGained === 1 ? "" : "S")
+          + unlockText;
       } else {
         this.resultRankUp.hidden = true;
         this.resultRankUp.textContent = "";

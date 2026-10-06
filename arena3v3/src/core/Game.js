@@ -6,17 +6,19 @@ import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261006-missvisual1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { PowerUpSystem } from "../systems/PowerUpSystem.js?v=20261006-powerups1";
-import { CombatSystem } from "../systems/CombatSystem.js?v=20261006-powerups1";
+import { CombatSystem } from "../systems/CombatSystem.js?v=20261006-rankspells1";
 import { AISystem } from "../systems/AISystem.js?v=20261006-supportstable2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { RendererBridge } from "../rendering/RendererBridge.js?v=20261006-personalperiodics1";
-import { UIManager } from "../ui/UIManager.js?v=20261006-powerupbadge1";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261006-rankspells1";
+import { UIManager } from "../ui/UIManager.js?v=20261006-rankspells1";
 import { buildMatchReport } from "./MatchReport.js?v=20261006-powerups1";
 import { buildAiMovementReport } from "./AiMovementReport.js?v=20261005-deadtargetfix1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20261005-honorcurve1";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
 import { TalentSystem } from "./TalentSystem.js?v=20260928-healinghp1";
 import { GearSystem } from "./GearSystem.js?v=20261005-astralgear1";
+import { applyRankSpellUnlocks } from "./RankSpellSystem.js?v=20261006-rankspells1";
+import { GroundEffectSystem } from "../systems/GroundEffectSystem.js?v=20261006-rankspells1";
 
 const PIXI_FIXED_STEP_MS = 1000 / 60;
 const PIXI_MAX_CATCHUP_MS = 200;
@@ -61,6 +63,7 @@ export class Game {
       maxPercent: 100,
     });
     this.powerUps = new PowerUpSystem(this);
+    this.groundEffects = new GroundEffectSystem(this);
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);
@@ -84,6 +87,8 @@ export class Game {
       lastStepCount: 0,
       maxRawFrameMs: 0,
     };
+
+    this.groundTargeting = null;
 
     this.mouseSteering = {
       active: false,
@@ -121,13 +126,24 @@ export class Game {
     });
 
     this.canvas.addEventListener("click", event => this.onCanvasClick(event));
-    this.canvas.addEventListener("contextmenu", event => event.preventDefault());
+    this.canvas.addEventListener("contextmenu", event => {
+      event.preventDefault();
+      if (this.groundTargeting) this.cancelGroundTargeting();
+    });
     this.canvas.addEventListener("pointerdown", event => this.onCanvasPointerDown(event));
     this.canvas.addEventListener("pointermove", event => this.onCanvasPointerMove(event));
     this.canvas.addEventListener("pointerup", event => this.onCanvasPointerUp(event));
     this.canvas.addEventListener("pointercancel", () => this.stopMouseSteering());
     window.addEventListener("pointerup", event => this.onWindowPointerUp(event));
-    window.addEventListener("blur", () => this.stopMouseSteering());
+    window.addEventListener("keydown", event => {
+      if (event.code !== "Escape" || !this.groundTargeting) return;
+      event.preventDefault();
+      this.cancelGroundTargeting();
+    });
+    window.addEventListener("blur", () => {
+      this.stopMouseSteering();
+      this.cancelGroundTargeting(true);
+    });
   }
 
   createActors() {
@@ -139,6 +155,10 @@ export class Game {
       if (config.control === "player") {
         actorConfig = this.talents.applyToConfig(config);
         actorConfig = this.gear.applyToConfig(actorConfig);
+        actorConfig = applyRankSpellUnlocks(
+          actorConfig,
+          this.honor?.status?.().rank || 1,
+        );
       } else if (aiGearProfile) {
         const aiGear = new GearSystem(null, config.classId);
         actorConfig = aiGear.applyProgressionProfileToConfig(actorConfig, aiGearProfile);
@@ -481,6 +501,15 @@ export class Game {
   castPlayerSpell(index) {
     if (!this.player.alive || this.ended || this.waitingForStart) return false;
 
+    const spell = this.player.spells[index];
+    if (!spell) return false;
+
+    if (spell.target === "ground") {
+      const accepted = this.beginGroundTargeting(index);
+      this.ui?.pulseAction(index, accepted);
+      return accepted;
+    }
+
     const result = this.abilityQueue.request(index);
 
     if (result.cast) {
@@ -492,6 +521,105 @@ export class Game {
     }
 
     return result.accepted;
+  }
+
+  beginGroundTargeting(spellIndex) {
+    const spell = this.player?.spells?.[spellIndex];
+    if (!spell || spell.target !== "ground") return false;
+
+    if (this.groundTargeting?.spellId === spell.id) {
+      this.cancelGroundTargeting();
+      return true;
+    }
+
+    const status = this.combat.groundCastReadyStatus(this.player, spell);
+    if (!status.ok) {
+      if (status.reason) this.ui?.toast(status.reason);
+      return false;
+    }
+
+    this.abilityQueue?.clear();
+    this.stopMouseSteering();
+
+    const point = {
+      x: Number(this.player.x) || 0,
+      y: Number(this.player.y) || 0,
+    };
+    const pointStatus = this.combat.groundPointStatus(this.player, spell, point);
+
+    this.groundTargeting = {
+      spellIndex,
+      spellId: spell.id,
+      spellName: spell.name,
+      x: point.x,
+      y: point.y,
+      radius: Number(spell.effects?.find(effect => effect.radius)?.radius) || 90,
+      valid: pointStatus.ok,
+      reason: pointStatus.reason || "",
+    };
+
+    this.canvas.classList.add("ground-targeting");
+    this.ui?.toast("Place " + spell.name + " · left click to cast · right click or Esc to cancel");
+    return true;
+  }
+
+  updateGroundTargeting(point) {
+    if (!this.groundTargeting || !point) return;
+
+    const spell = this.player?.getSpell?.(this.groundTargeting.spellId);
+    if (!spell) {
+      this.cancelGroundTargeting(true);
+      return;
+    }
+
+    const status = this.combat.groundPointStatus(this.player, spell, point);
+    this.groundTargeting.x = point.x;
+    this.groundTargeting.y = point.y;
+    this.groundTargeting.valid = status.ok;
+    this.groundTargeting.reason = status.reason || "";
+  }
+
+  confirmGroundTargeting(point = null) {
+    const targeting = this.groundTargeting;
+    if (!targeting) return false;
+
+    if (point) this.updateGroundTargeting(point);
+
+    const spell = this.player?.getSpell?.(targeting.spellId);
+    if (!spell) {
+      this.cancelGroundTargeting(true);
+      return false;
+    }
+
+    const placed = this.combat.tryCastGround(
+      this.player,
+      spell,
+      { x: targeting.x, y: targeting.y },
+    );
+
+    if (placed) {
+      this.cancelGroundTargeting(true);
+      return true;
+    }
+
+    const status = this.combat.groundPointStatus(
+      this.player,
+      spell,
+      { x: targeting.x, y: targeting.y },
+    );
+    if (!status.ok && status.reason) this.ui?.toast(status.reason);
+    return false;
+  }
+
+  cancelGroundTargeting(silent = false) {
+    if (!this.groundTargeting) return false;
+
+    const name = this.groundTargeting.spellName;
+    this.groundTargeting = null;
+    this.canvas.classList.remove("ground-targeting");
+
+    if (!silent) this.ui?.toast((name || "Ground spell") + " cancelled");
+    return true;
   }
 
   tryCastPlayerSpellNow(index, targetId = null) {
@@ -510,9 +638,14 @@ export class Game {
   onCanvasClick(event) {
     if (performance.now() <= this.mouseSteering.suppressClickUntil) return;
 
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (event.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (event.clientY - rect.top) * (this.canvas.height / rect.height);
+    const point = this.canvasPointFromEvent(event);
+    const x = point.x;
+    const y = point.y;
+
+    if (this.groundTargeting) {
+      this.confirmGroundTargeting(point);
+      return;
+    }
 
     const candidates = this.actors
       .filter(actor => actor.alive)
@@ -560,6 +693,14 @@ export class Game {
   onCanvasPointerDown(event) {
     if (event.button !== 0 && event.button !== 2) return;
 
+    if (this.groundTargeting) {
+      if (event.button === 2) {
+        event.preventDefault();
+        this.cancelGroundTargeting();
+      }
+      return;
+    }
+
     if (event.button === 2) event.preventDefault();
 
     this.mouseSteering.pointerId = event.pointerId;
@@ -573,6 +714,11 @@ export class Game {
   }
 
   onCanvasPointerMove(event) {
+    if (this.groundTargeting) {
+      this.updateGroundTargeting(this.canvasPointFromEvent(event));
+      return;
+    }
+
     if (
       this.mouseSteering.pointerId !== null
       && event.pointerId !== this.mouseSteering.pointerId
@@ -769,6 +915,10 @@ export class Game {
         this.player?.id,
       );
       this.powerUps.update();
+      this.groundEffects.update(deltaMs);
+      if (this.groundTargeting && !this.player?.alive) {
+        this.cancelGroundTargeting(true);
+      }
       this.recordAiMovementSample(deltaMs);
       this.checkWinCondition();
     }
@@ -1354,6 +1504,7 @@ export class Game {
   reset(reason = "unknown internal reset") {
     this.recordResetDiagnostic(reason);
     this.stopMouseSteering();
+    this.cancelGroundTargeting(true);
     this.actors = this.createActors();
     this.player = this.actors.find(actor => actor.control === "player");
     this.player.targetId = null;
@@ -1368,6 +1519,7 @@ export class Game {
       maxPercent: 100,
     });
     this.powerUps = new PowerUpSystem(this);
+    this.groundEffects = new GroundEffectSystem(this);
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);

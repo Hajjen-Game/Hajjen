@@ -37,7 +37,27 @@ export class CombatSystem {
           const spell = actor.getSpell(completed.spellId);
           const target = this.game.getActor(completed.targetId);
 
-          if (spell && target?.alive) {
+          if (
+            spell?.target === "ground"
+            && Number.isFinite(completed.groundX)
+            && Number.isFinite(completed.groundY)
+          ) {
+            const point = { x: completed.groundX, y: completed.groundY };
+            const status = this.groundPointStatus(actor, spell, point);
+
+            if (!status.ok) {
+              if (actor.control === "player") {
+                this.game.ui?.onPlayerCastFailed?.(spell.id);
+                this.game.ui?.toast(status.reason || "Invalid ground target");
+              }
+              this.game.log(
+                this.game.combatantLabel(actor) + "'s " + spell.name
+                + " failed: " + (status.reason || "INVALID GROUND TARGET") + ".",
+              );
+            } else {
+              this.resolveGroundSpell(actor, spell, point);
+            }
+          } else if (spell && target?.alive) {
             const baseRangeOk = this.spellInRange(actor, target, spell);
             const rangeOk = this.completionSpellInRange(actor, target, spell);
             const losOk = this.hasLos(actor, target);
@@ -153,10 +173,13 @@ export class CombatSystem {
 
   canTarget(caster, target, spell) {
     if (!caster.alive || !spell) return false;
+    if (spell.target === "ground") return false;
     if (spell.target === "self") return target?.id === caster.id;
     if (!target?.alive) return false;
+    if (spell.excludeSelf && target.id === caster.id) return false;
     if (spell.target === "ally") return caster.team === target.team;
     if (spell.target === "enemy") return caster.team !== target.team;
+    if (spell.target === "any") return true;
     return false;
   }
 
@@ -236,6 +259,154 @@ export class CombatSystem {
   hasLos(caster, target) {
     if (target?.id === caster.id) return true;
     return hasLineOfSight(caster, target, this.game.arena.obstacles);
+  }
+
+  groundCastReadyStatus(caster, spell) {
+    if (!caster?.alive || this.game.ended || this.game.waitingForStart) {
+      return { ok: false, reason: "Cannot cast right now" };
+    }
+    if (!spell || spell.target !== "ground") {
+      return { ok: false, reason: "Invalid ground spell" };
+    }
+    if (caster.cast) return { ok: false, reason: "Already casting" };
+    if (this.game.cc.isHardControlled(caster)) {
+      return { ok: false, reason: "Crowd controlled" };
+    }
+    if (this.game.cc.isSchoolLocked(caster, spell)) {
+      return { ok: false, reason: "Spell school is locked" };
+    }
+    if (!spell.ignoreGcd && caster.gcdRemaining > 0) {
+      return { ok: false, reason: "Global cooldown" };
+    }
+    if (caster.cooldownFor(spell.id) > 0) {
+      return { ok: false, reason: "Ability is on cooldown" };
+    }
+    if (!this.game.resources.canPay(caster, spell)) {
+      return { ok: false, reason: "Not enough " + caster.resource.type };
+    }
+    return { ok: true, reason: "" };
+  }
+
+  groundPointStatus(caster, spell, point) {
+    if (!caster?.alive || !spell || spell.target !== "ground" || !point) {
+      return { ok: false, reason: "Invalid ground target" };
+    }
+
+    const x = Number(point.x);
+    const y = Number(point.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return { ok: false, reason: "Invalid ground target" };
+    }
+
+    const bounds = this.game.arena?.bounds;
+    if (
+      !bounds
+      || x < bounds.x
+      || x > bounds.x + bounds.w
+      || y < bounds.y
+      || y > bounds.y + bounds.h
+    ) {
+      return { ok: false, reason: "Outside the arena" };
+    }
+
+    const blocked = (this.game.arena?.obstacles || []).some(rect =>
+      x > rect.x - 5
+      && x < rect.x + rect.w + 5
+      && y > rect.y - 5
+      && y < rect.y + rect.h + 5
+    );
+    if (blocked) return { ok: false, reason: "Cannot place on an obstacle" };
+
+    const range = Math.max(0, Number(spell.range) || 0);
+    const distanceToPoint = Math.hypot(x - caster.x, y - caster.y);
+    if (distanceToPoint > range + caster.radius) {
+      return { ok: false, reason: "Ground target out of range" };
+    }
+
+    if (!hasLineOfSight(caster, { x, y }, this.game.arena.obstacles)) {
+      return { ok: false, reason: "Line of sight blocked" };
+    }
+
+    return { ok: true, reason: "" };
+  }
+
+  tryCastGround(caster, spell, point, { silent = false } = {}) {
+    const ready = this.groundCastReadyStatus(caster, spell);
+    if (!ready.ok) {
+      if (!silent && caster?.control === "player" && ready.reason) {
+        this.game.ui?.toast(ready.reason);
+      }
+      return false;
+    }
+
+    const placement = this.groundPointStatus(caster, spell, point);
+    if (!placement.ok) {
+      if (!silent && caster.control === "player" && placement.reason) {
+        this.game.ui?.toast(placement.reason);
+      }
+      return false;
+    }
+
+    if (!spell.ignoreGcd) {
+      const baseGcdMs = spell.gcdMs ?? 1200;
+      const gcdMultiplier = this.game.powerUps?.gcdMultiplierFor?.(caster) ?? 1;
+      const gcdMs = Math.max(0, Math.round(baseGcdMs * gcdMultiplier));
+      caster.gcdRemaining = gcdMs;
+      caster.gcdTotalMs = gcdMs;
+    }
+
+    if (spell.castMs > 0) {
+      const castMultiplier = this.game.powerUps?.castTimeMultiplierFor?.(caster) ?? 1;
+      const castMs = Math.max(1, Math.round(spell.castMs * castMultiplier));
+      caster.cast = {
+        spellId: spell.id,
+        targetId: null,
+        groundX: Number(point.x),
+        groundY: Number(point.y),
+        totalMs: castMs,
+        remainingMs: castMs,
+      };
+
+      if (caster.control === "player") {
+        this.game.ui?.onPlayerCastStarted?.(spell.id);
+      }
+      this.game.log(this.game.combatantLabel(caster) + " begins " + spell.name + ".");
+      return true;
+    }
+
+    return this.resolveGroundSpell(caster, spell, point);
+  }
+
+  resolveGroundSpell(caster, spell, point) {
+    if (!this.game.resources.canPay(caster, spell)) {
+      if (caster.control === "player") {
+        this.game.ui?.toast("Not enough " + caster.resource.type);
+      }
+      return false;
+    }
+
+    if (!this.game.resources.spend(caster, spell)) return false;
+    if (spell.resourceGain) this.game.resources.gain(caster, spell.resourceGain);
+    if (spell.cooldownMs > 0) caster.cooldowns.set(spell.id, spell.cooldownMs);
+
+    this.game.recordCast(caster, spell);
+
+    for (const effect of spell.effects || []) {
+      if (effect.kind === "groundBarrier") {
+        this.game.groundEffects?.add(caster, spell, effect, point);
+        this.game.addFloatingText(caster, "BARRIER", "buff");
+        this.game.log(
+          this.game.combatantLabel(caster)
+          + " places " + spell.name
+          + " at (" + Math.round(point.x) + ", " + Math.round(point.y) + ").",
+        );
+      }
+    }
+
+    if (caster.control === "player") {
+      this.game.ui?.onPlayerSpellSucceeded?.(spell.id);
+    }
+    return true;
   }
 
   tryCast(caster, spell, target, { silent = false } = {}) {
@@ -422,6 +593,29 @@ export class CombatSystem {
         case "slow":
           if (effectTarget.alive) {
             this.applyTimedEffect(caster, effectTarget, spell, effect, style);
+          }
+          break;
+        case "absorb":
+          if (effectTarget.alive) {
+            this.applyAbsorb(caster, effectTarget, spell, effect, style);
+          }
+          break;
+        case "lifeGrip":
+          if (effectTarget.alive && effectTarget.id !== caster.id) {
+            this.game.movement.dashToRange(
+              effectTarget,
+              caster,
+              effect.stopDistance ?? 56,
+              this.game.arena,
+              effect.pullDurationMs ?? 280,
+            );
+            this.game.addFloatingText(effectTarget, "LIFE GRIP", "buff");
+            this.game.log(
+              this.game.combatantLabel(caster)
+              + " pulls "
+              + this.game.combatantLabel(effectTarget)
+              + " with " + spell.name + ".",
+            );
           }
           break;
         case "fearAoE":
@@ -621,22 +815,62 @@ export class CombatSystem {
       this.game.powerUps?.damageMultiplierFor?.(source) ?? 1;
     amount = Math.round(amount * powerUpDamageMultiplier);
 
-    amount = Math.max(1, Math.round(amount * (1 - target.damageReduction())));
+    const personalReduction = target.damageReduction();
+    const groundReduction = this.game.groundEffects?.damageReductionFor?.(target) ?? 0;
+    const totalReduction =
+      1 - (1 - personalReduction) * (1 - groundReduction);
+    amount = Math.max(1, Math.round(amount * (1 - totalReduction)));
 
-    const actual = Math.min(amount, target.health);
-    target.health = Math.max(0, target.health - amount);
+    let remainingDamage = amount;
+    let absorbed = 0;
+    const shields = target.effects
+      .filter(effect =>
+        effect.kind === "absorb"
+        && effect.remainingMs > 0
+        && Number(effect.remainingAbsorb) > 0
+      )
+      .sort((a,b) => a.remainingMs - b.remainingMs);
 
-    this.game.recordDamage(source, target, actual, crit);
-    this.game.addActionFloatingText(source, target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
-    this.applyTalentDamageHealing(source, spellId, actual);
+    for (const shield of shields) {
+      if (remainingDamage <= 0) break;
+      const used = Math.min(remainingDamage, shield.remainingAbsorb);
+      shield.remainingAbsorb -= used;
+      remainingDamage -= used;
+      absorbed += used;
+    }
+
+    if (absorbed > 0) {
+      target.effects = target.effects.filter(effect =>
+        effect.kind !== "absorb"
+        || effect.remainingMs <= 0
+        || Number(effect.remainingAbsorb) > 0
+      );
+      this.game.addFloatingText(target, "ABSORB " + absorbed, "buff");
+    }
+
+    const actual = Math.min(remainingDamage, target.health);
+    target.health = Math.max(0, target.health - remainingDamage);
+
+    if (actual > 0) {
+      this.game.recordDamage(source, target, actual, crit);
+      this.game.addActionFloatingText(source, target, (crit ? "✦ " : "") + "-" + actual, crit ? "crit-damage" : "damage");
+      this.applyTalentDamageHealing(source, spellId, actual);
+    }
 
     if (!periodic && !this.game.vfx.ownsImpact(spellId)) {
       this.game.vfx.burst(target, visualStyle, crit ? 360 : 250);
     }
 
-    this.game.log(
-      this.game.combatantLabel(source) + " hits " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",
-    );
+    if (actual > 0) {
+      this.game.log(
+        this.game.combatantLabel(source) + " hits " + this.game.combatantLabel(target) + " for " + actual + (crit ? " (crit)" : "") + ".",
+      );
+    } else if (absorbed > 0) {
+      this.game.log(
+        this.game.combatantLabel(target) + " absorbs " + absorbed
+        + " from " + this.game.combatantLabel(source) + ".",
+      );
+    }
 
     if (!target.alive) {
       target.cast = null;
@@ -771,6 +1005,43 @@ export class CombatSystem {
       this.game.vfx.ring(target, visualStyle, target.radius + 4, target.radius + 22, 300);
     }
     this.game.log(this.game.combatantLabel(source) + " applies " + spell.name + " to " + this.game.combatantLabel(target) + ".");
+  }
+
+  applyAbsorb(source, target, spell, effect, visualStyle) {
+    target.effects = target.effects.filter(existing =>
+      !(existing.spellId === spell.id
+        && existing.sourceId === source.id
+        && existing.kind === "absorb")
+    );
+
+    const amount = Math.max(1, Math.round(Number(effect.amount) || 1));
+    target.effects.push({
+      kind: "absorb",
+      spellId: spell.id,
+      sourceId: source.id,
+      amount,
+      remainingAbsorb: amount,
+      durationMs: effect.durationMs,
+      remainingMs: effect.durationMs,
+      value: amount,
+      visualStyle,
+    });
+
+    if (!this.game.vfx.ownsImpact(spell.id)) {
+      this.game.vfx.ring(
+        target,
+        visualStyle,
+        target.radius + 3,
+        target.radius + 28,
+        420,
+      );
+    }
+
+    this.game.addFloatingText(target, "SHIELD " + amount, "buff");
+    this.game.log(
+      this.game.combatantLabel(target) + " gains " + spell.name
+      + " (" + amount + " absorb).",
+    );
   }
 
   applyTimedEffect(source, target, spell, effect, visualStyle) {

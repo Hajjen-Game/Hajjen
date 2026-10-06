@@ -2,7 +2,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { classIconUrlFor } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
-import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20261006-powerups1";
+import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20261006-rankspells1";
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
@@ -2086,6 +2086,7 @@ export class PixiProofRenderer {
     this.actorViews = new Map();
     this.combatTextLayer = null;
     this.combatTextViews = new Map();
+    this.groundZoneFx = null;
     this.environmentOcclusionPolygons = [];
     this.arenaBuildPromise = null;
     this.atmosphere = null;
@@ -2131,6 +2132,11 @@ export class PixiProofRenderer {
 
     await this.loadClassIcons();
     await this.rebuildArena(this._arena);
+
+    const groundZoneFx = new PIXI.Graphics();
+    groundZoneFx.label = "ground-targeting-and-zones";
+    this.app.stage.addChild(groundZoneFx);
+    this.groundZoneFx = groundZoneFx;
 
     const combatTextLayer = new PIXI.Container();
     combatTextLayer.label = "floating-combat-text";
@@ -3224,6 +3230,110 @@ export class PixiProofRenderer {
     return view;
   }
 
+  updateGroundTargetingVfx(game) {
+    const g = this.groundZoneFx;
+    if (!g) return;
+
+    g.clear();
+    const zones = game.groundEffects?.effects || [];
+    const targeting = game.groundTargeting;
+
+    if (zones.length === 0 && !targeting) {
+      g.visible = false;
+      return;
+    }
+
+    g.visible = true;
+
+    for (const zone of zones) {
+      if (zone.kind !== "groundBarrier" || zone.remainingMs <= 0) continue;
+
+      const ratio = clamp01(zone.remainingMs / Math.max(1, zone.durationMs));
+      const pulse = .5 + .5 * Math.sin(game.elapsedSeconds * 4.8 + zone.id);
+      const radius = zone.radius;
+      const main = 0xe7c968;
+      const core = 0xffefb7;
+
+      g.circle(zone.x, zone.y, radius).fill({
+        color: main,
+        alpha: .045 * ratio,
+      });
+      g.circle(zone.x, zone.y, radius * (.965 + pulse * .012)).stroke({
+        color: core,
+        width: 3.1 + pulse * 1.1,
+        alpha: .60 * ratio,
+      });
+      g.circle(zone.x, zone.y, radius * .72).stroke({
+        color: main,
+        width: 1.4,
+        alpha: .38 * ratio,
+      });
+
+      for (let i = 0; i < 8; i += 1) {
+        const a = i / 8 * Math.PI * 2 + game.elapsedSeconds * .12;
+        const inner = radius * .72;
+        const outer = radius * .93;
+        g
+          .moveTo(
+            zone.x + Math.cos(a) * inner,
+            zone.y + Math.sin(a) * inner,
+          )
+          .lineTo(
+            zone.x + Math.cos(a) * outer,
+            zone.y + Math.sin(a) * outer,
+          )
+          .stroke({
+            color: i % 2 ? main : core,
+            width: i % 2 ? 1.2 : 1.7,
+            alpha: .36 * ratio,
+          });
+      }
+
+      const cross = radius * .18;
+      g
+        .moveTo(zone.x - cross, zone.y)
+        .lineTo(zone.x + cross, zone.y)
+        .moveTo(zone.x, zone.y - cross)
+        .lineTo(zone.x, zone.y + cross)
+        .stroke({
+          color: core,
+          width: 2,
+          alpha: .30 * ratio,
+        });
+    }
+
+    if (targeting) {
+      const radius = Math.max(20, Number(targeting.radius) || 90);
+      const valid = Boolean(targeting.valid);
+      const color = valid ? 0xffdf82 : 0xeb5b4c;
+
+      g.circle(targeting.x, targeting.y, radius).fill({
+        color,
+        alpha: .075,
+      });
+      g.circle(targeting.x, targeting.y, radius).stroke({
+        color,
+        width: 2.5,
+        alpha: .94,
+      });
+      g.circle(targeting.x, targeting.y, radius * .82).stroke({
+        color,
+        width: 1,
+        alpha: .36,
+      });
+      g
+        .moveTo(targeting.x - 11, targeting.y)
+        .lineTo(targeting.x + 11, targeting.y)
+        .moveTo(targeting.x, targeting.y - 11)
+        .lineTo(targeting.x, targeting.y + 11)
+        .stroke({
+          color,
+          width: 1.6,
+          alpha: .92,
+        });
+    }
+  }
+
   updateActorView(view, actor, game) {
     view.root.visible = actor.alive;
     if (!actor.alive) return;
@@ -3441,7 +3551,9 @@ export class PixiProofRenderer {
 
       const active=(actor.effects || []).filter(effect=>effect.remainingMs>0);
       const burst=active.find(effect=>effect.kind==="offensiveCooldown");
-      const defensive=active.find(effect=>effect.kind==="damageReduction");
+      const defensive=active.find(effect =>
+        effect.kind === "damageReduction" || effect.kind === "absorb"
+      );
       const slow=active.find(effect=>effect.kind==="slow");
       const mortal=active.find(effect=>effect.kind==="healingReduction");
 
@@ -3585,7 +3697,38 @@ export class PixiProofRenderer {
         const pulse=.5+.5*Math.sin(time*5.4+actor.y*.015);
         const r=actor.radius+8;
 
-        if(defensive.spellId==="druid-ironbark"){
+        if(defensive.spellId==="priest-power-word-shield"){
+          const shieldRatio = Math.max(
+            0,
+            Math.min(
+              1,
+              Number(defensive.remainingAbsorb || 0)
+                / Math.max(1, Number(defensive.amount || 1)),
+            ),
+          );
+          glow.circle(0,0,r+13).fill({
+            color:0xe8c96a,alpha:(.04+.018*pulse)*(.45+.55*shieldRatio)
+          });
+          glow.circle(0,0,r+10).stroke({
+            color:0xe8c96a,width:9,alpha:.08+.025*pulse
+          });
+          core.circle(0,0,r+5).stroke({
+            color:0xffefba,width:2.2,alpha:.58+.12*pulse
+          });
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+time*.11;
+            const inner=r+1;
+            const outer=r+9+(i%2)*2;
+            core
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.12)*outer,Math.sin(a+.12)*outer)
+              .stroke({
+                color:i%2?0xffefba:0xdab854,
+                width:i%2?1.5:2,
+                alpha:(.42+.10*pulse)*(.55+.45*shieldRatio),
+              });
+          }
+        } else if(defensive.spellId==="druid-ironbark"){
           glow.circle(0,0,r+13).fill({
             color:profile.main,alpha:.038+.016*pulse
           });
@@ -18766,6 +18909,7 @@ export class PixiProofRenderer {
       this.updateActorView(view, actor, game);
     }
 
+    this.updateGroundTargetingVfx(game);
     this.updateActorMotionV2(game);
     this.updateProjectileGroundLights(game);
     this.updatePersistentCombatStateVfx(game);

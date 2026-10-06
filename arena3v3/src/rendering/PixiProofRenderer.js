@@ -6100,18 +6100,28 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Warlock: smoky motes spiral inward with three broken shadow arcs.
+      // Warlock VFX 3.0 build-ups preserve the existing motion language while
+      // separating soft void/fel bloom from the sharp spell geometry.
       if (classId === "warlock" && profile) {
-        const pulse = .5 + .5 * Math.sin(time * 12);
+        glow.visible = true;
+        const pulse=.5+.5*Math.sin(time*12);
 
-        // Shadow Bolt: broken shadow crescents collapse into a dense dark core.
+        // Shadow Bolt: keep the collapsing crescents and inward motes, but give
+        // the void mass a deeper halo and a denser final compression.
         if (spellId === "warlock-shadow-bolt") {
           const charge=smooth(p);
+          const finalP=smooth((p-.80)/.20);
+
           for(let ring=0;ring<3;ring++){
             const rr=actor.radius+27+ring*7-charge*(9+ring*2);
             const phase=(ring%2?-.42:.36)*p;
             for(let seg=0;seg<2;seg++){
               const a0=seg*Math.PI+phase+ring*.23;
+              strokeArc(glow,rr,a0,a0+1.12,{
+                color:ring===1?profile.core:profile.main,
+                width:8+charge*2,
+                alpha:.045+charge*.075,
+              },7);
               strokeArc(g,rr,a0,a0+1.12,{
                 color:ring===1?profile.core:profile.main,
                 width:1.8+charge*.55,
@@ -6119,136 +6129,256 @@ export class PixiProofRenderer {
               },7);
             }
           }
+
           for(let i=0;i<9;i++){
             const a=i/9*Math.PI*2+time*(i%2?.65:-.58);
-            const start=actor.radius+46+(i%3)*5;
-            const r=start*(1-charge*.68);
-            g.circle(Math.cos(a)*r,Math.sin(a)*r,1.7+(i%3)*.5).fill({
-              color:i%3===0?profile.core:profile.main,
-              alpha:.24+charge*.54,
+            const startR=actor.radius+46+(i%3)*5;
+            const rr=startR*(1-charge*.68);
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr;
+            const color=i%3===0?profile.core:profile.main;
+            const size=1.7+(i%3)*.5;
+
+            glow.circle(x,y,size*3.3).fill({
+              color,alpha:.05+charge*.09
+            });
+            g.circle(x,y,size).fill({
+              color,alpha:.24+charge*.54,
             });
           }
+
+          glow.circle(0,0,8+charge*7+pulse*1.5).fill({
+            color:profile.main,alpha:.055+charge*.10+finalP*.05
+          });
           g.circle(0,0,4+charge*5.5).fill({
             color:profile.core,alpha:.20+charge*.60,
           });
+
+          if(finalP>0){
+            glow.circle(0,0,11+finalP*8).fill({
+              color:profile.core,alpha:finalP*.15
+            });
+            glow.circle(0,0,actor.radius+9-finalP*3).stroke({
+              color:profile.main,width:10,alpha:finalP*.09
+            });
+            g.circle(0,0,actor.radius+5-finalP*2).stroke({
+              color:profile.core,width:1.4+finalP*.6,alpha:finalP*.42
+            });
+          }
           continue;
         }
 
-        // Chaos Bolt: two fel jaws clamp inward while green fractures charge.
+        // Chaos Bolt: preserve the two fel jaws and inward fractures. The VFX
+        // 3.0 lift adds wider fel bloom and a white-green pressure core.
         if (spellId === "warlock-chaos-bolt") {
           const charge=smooth(p);
+          const finalP=smooth((p-.80)/.20);
           const jawR=actor.radius+24-charge*5;
+
           for(const sign of [-1,1]){
             const center=sign>0?0:Math.PI;
+            strokeArc(glow,jawR,center-.82,center+.82,{
+              color:sign>0?profile.core:profile.main,
+              width:12+charge*3,
+              alpha:.06+charge*.09,
+            },9);
             strokeArc(g,jawR,center-.82,center+.82,{
               color:sign>0?profile.core:profile.main,
               width:2.8+charge*1.0,
               alpha:.30+charge*.52,
             },9);
           }
+
           for(let i=0;i<7;i++){
             const a=i/7*Math.PI*2+.2;
             const outer=actor.radius+43+(i%2)*7;
             const inner=actor.radius+8+charge*3;
             const kink=a+(i%2?.18:-.16);
+            const mx=Math.cos(kink)*(outer*.58+inner*.42);
+            const my=Math.sin(kink)*(outer*.58+inner*.42);
+            const ex=Math.cos(a)*inner;
+            const ey=Math.sin(a)*inner;
+
+            glow
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(mx,my)
+              .lineTo(ex,ey)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:7+charge*2,
+                alpha:.045+charge*.075,
+              });
             g
               .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
-              .lineTo(Math.cos(kink)*(outer*.58+inner*.42),Math.sin(kink)*(outer*.58+inner*.42))
-              .lineTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(mx,my)
+              .lineTo(ex,ey)
               .stroke({
                 color:i%3===0?profile.core:profile.main,
                 width:1.5+charge*.65,
                 alpha:.20+charge*.48,
               });
           }
+
+          glow.circle(0,0,10+charge*8+pulse*2).fill({
+            color:profile.main,alpha:.07+charge*.12
+          });
           g.circle(0,0,5+charge*6+pulse).fill({
             color:profile.core,alpha:.24+charge*.66,
           });
+
+          if(finalP>0){
+            glow.circle(0,0,12+finalP*10).fill({
+              color:profile.core,alpha:finalP*.18
+            });
+            glow.circle(0,0,jawR+5).stroke({
+              color:profile.main,width:13,alpha:finalP*.11
+            });
+            g.circle(0,0,jawR).stroke({
+              color:profile.core,width:1.6+finalP*.7,alpha:finalP*.48
+            });
+          }
           continue;
         }
 
-        // Fear: an ominous eye narrows while thorn-like shadow marks close in.
+        // Fear: keep the narrowing eye and inward thorn marks. The upgrade
+        // deepens the shadow halo and creates a brief lock-in at cast finish.
         if (spellId === "warlock-fear") {
           const charge=smooth(p);
+          const finalP=smooth((p-.82)/.18);
           const eyeW=actor.radius+15-charge*5;
           const eyeH=10-charge*3+pulse;
+
+          glow.ellipse(0,0,eyeW+7,eyeH+6).stroke({
+            color:profile.main,width:10,alpha:.05+charge*.08
+          });
           g.ellipse(0,0,eyeW,eyeH).stroke({
             color:profile.core,width:2+charge*.7,alpha:.28+charge*.50,
+          });
+          glow.circle(0,0,7+charge*6).fill({
+            color:profile.main,alpha:.05+charge*.09
           });
           g.circle(0,0,3+charge*4).fill({
             color:profile.main,alpha:.24+charge*.58,
           });
+
           for(let i=0;i<8;i++){
             const a=i/8*Math.PI*2+.18;
             const outer=actor.radius+39-(i%2)*3;
             const inner=actor.radius+13-charge*5;
+            const bend=a+(i%2?.16:-.16);
+
+            glow
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(bend)*inner,Math.sin(bend)*inner)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:6.5+charge*2,
+                alpha:.04+charge*.07,
+              });
             g
               .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
-              .lineTo(Math.cos(a+(i%2?.16:-.16))*inner,Math.sin(a+(i%2?.16:-.16))*inner)
+              .lineTo(Math.cos(bend)*inner,Math.sin(bend)*inner)
               .stroke({
                 color:i%2?profile.main:profile.core,
                 width:1.3+charge*.55,
                 alpha:.18+charge*.42,
               });
           }
+
+          if(finalP>0){
+            glow.ellipse(0,0,eyeW+3,eyeH+2).stroke({
+              color:profile.core,width:11,alpha:finalP*.12
+            });
+            g.circle(0,0,3+finalP*4).fill({
+              color:profile.core,alpha:finalP*.68
+            });
+          }
           continue;
         }
 
-        // Drain Life: three siphon channels tighten around a hollow soul ring.
+        // Drain Life: retain the three siphon channels and hollow soul ring,
+        // adding glow around the same paths and a final intake pulse.
         if (spellId === "warlock-drain-life") {
           const charge=smooth(p);
+          const finalP=smooth((p-.80)/.20);
           const rr=actor.radius+24-charge*5;
+
           for(let i=0;i<3;i++){
             const a=i*Math.PI*2/3+time*(i%2?.38:-.42);
             const outer=actor.radius+45;
             const x1=Math.cos(a)*outer, y1=Math.sin(a)*outer;
             const x2=Math.cos(a+.32)*rr, y2=Math.sin(a+.32)*rr;
+            const color=i===1?profile.core:profile.main;
+
+            glow.moveTo(x1,y1).lineTo(x2,y2).stroke({
+              color,width:8+charge*2,alpha:.05+charge*.08
+            });
             g.moveTo(x1,y1).lineTo(x2,y2).stroke({
-              color:i===1?profile.core:profile.main,
-              width:1.7+charge*.6,
-              alpha:.22+charge*.46,
+              color,width:1.7+charge*.6,alpha:.22+charge*.46,
             });
           }
+
+          glow.circle(0,0,rr+7).stroke({
+            color:profile.main,width:10,alpha:.05+charge*.075
+          });
           g.circle(0,0,rr).stroke({
             color:profile.main,width:1.9+charge*.6,alpha:.24+charge*.46,
           });
           g.circle(0,0,Math.max(4,9-charge*3)).stroke({
             color:profile.core,width:1.5,alpha:.30+charge*.42,
           });
+
+          if(finalP>0){
+            glow.circle(0,0,9+finalP*8).fill({
+              color:profile.core,alpha:finalP*.15
+            });
+            g.circle(0,0,4+finalP*4).fill({
+              color:profile.core,alpha:finalP*.62
+            });
+          }
           continue;
         }
-        for (let i = 0; i < 8; i += 1) {
-          const base =
-            (i / 8) * Math.PI * 2
-            + Math.sin((actor.id?.length || 1) * .7 + i * 3.1) * .45;
-          const angle = base + time * 1.3 * (i % 2 ? 1 : -1);
-          const radius = actor.radius + 38 + (i % 4) * 5;
-          const inward = radius * (1 - p * .68);
-          g.circle(
-            Math.cos(angle) * inward,
-            Math.sin(angle) * inward,
-            1.5 + (i % 3) * .55,
-          ).fill({
-            color: i % 3 === 0 ? profile.core : profile.main,
-            alpha: .25 + p * .5,
+
+        // Future Warlock casts retain the existing inward smoky gather, with a
+        // restrained halo added underneath rather than a new motion pattern.
+        for(let i=0;i<8;i++){
+          const base=
+            i/8*Math.PI*2
+            + Math.sin((actor.id?.length||1)*.7+i*3.1)*.45;
+          const angle=base+time*1.3*(i%2?1:-1);
+          const radius=actor.radius+38+(i%4)*5;
+          const inward=radius*(1-p*.68);
+          const x=Math.cos(angle)*inward;
+          const y=Math.sin(angle)*inward;
+          const color=i%3===0?profile.core:profile.main;
+          const size=1.5+(i%3)*.55;
+
+          glow.circle(x,y,size*3.2).fill({
+            color,alpha:.045+p*.075
+          });
+          g.circle(x,y,size).fill({
+            color,alpha:.25+p*.5,
           });
         }
 
-        for (let i = 0; i < 3; i += 1) {
-          const radius = actor.radius + 11 + i * 5 + pulse * 2;
-          const start =
-            -1.4 + i * 2.1 + time * (i % 2 ? -1 : 1);
-          strokeArc(g,radius,start,start + .9,{
-            color: profile.main,
-            width:2,
-            alpha:.25 + p * .45,
+        for(let i=0;i<3;i++){
+          const radius=actor.radius+11+i*5+pulse*2;
+          const start=-1.4+i*2.1+time*(i%2?-1:1);
+          strokeArc(glow,radius,start,start+.9,{
+            color:profile.main,width:7,alpha:.045+p*.07
+          },6);
+          strokeArc(g,radius,start,start+.9,{
+            color:profile.main,width:2,alpha:.25+p*.45,
           },6);
         }
 
-        if (p > .74) {
-          g.circle(0,0,4 + (p - .74) * 16).fill({
-            color:profile.core,
-            alpha:clamp01((p - .74) * 1.8),
+        if(p>.74){
+          const finalP=smooth((p-.74)/.26);
+          glow.circle(0,0,8+finalP*8).fill({
+            color:profile.core,alpha:finalP*.13
+          });
+          g.circle(0,0,4+finalP*5).fill({
+            color:profile.core,alpha:finalP*.62
           });
         }
         continue;

@@ -1239,11 +1239,11 @@ function commonCasterSpellProfile(spellId) {
     },
     "mage-frostbolt": {
       kind: "frost",
-      main: 0x63c9e7,
-      core: 0xeffcff,
-      accent: 0x77a9dc,
+      main: 0x54d9ff,
+      core: 0xffffff,
+      accent: 0x5b8dff,
       travelEnd: .55,
-      size: 7,
+      size: 10,
     },
     "mage-pyroblast": {
       kind: "fire",
@@ -1415,10 +1415,11 @@ function projectileVfx2Spec(spellId) {
     "mage-frostbolt": {
       shape: "frost-spear",
       trailStyle: "snow",
-      travelEnd: .46,
-      size: 9,
-      tail: 96,
-      trailReach: .90,
+      travelEnd: .48,
+      size: 13,
+      tail: 132,
+      trailReach: .95,
+      showcase: true,
     },
     "mage-pyroblast": {
       shape: "pyro",
@@ -12257,15 +12258,65 @@ export class PixiProofRenderer {
       // bespoke; these cues stop the launch itself from feeling generic.
       if (releaseFade > 0) {
         if (spec.shape === "frost-spear") {
-          for(let i=0;i<6;i++){
-            const a=i/6*Math.PI*2;
+          const chargeR=source.radius+10+releaseP*17;
+
+          glow.circle(0,0,chargeR+6).stroke({
+            color:spec.main,
+            width:10,
+            alpha:releaseFade*.15,
+          });
+          core.circle(0,0,chargeR).stroke({
+            color:spec.core,
+            width:2.0,
+            alpha:releaseFade*.62,
+          });
+
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+p*(i%2?1.8:-1.45);
+            const inner=source.radius+3;
+            const outer=source.radius+17+releaseP*(13+(i%3)*4);
+
             core
-              .moveTo(Math.cos(a)*(source.radius+3),Math.sin(a)*(source.radius+3))
-              .lineTo(Math.cos(a)*(source.radius+13+releaseP*10),Math.sin(a)*(source.radius+13+releaseP*10))
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(
+                Math.cos(a+.05*Math.sin(p*12+i))*inner,
+                Math.sin(a+.05*Math.sin(p*12+i))*inner
+              )
               .stroke({
-                color:i%2?spec.core:spec.main,width:1.3,alpha:releaseFade*.52,
+                color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%3===0?1.9:1.35,
+                alpha:releaseFade*.66,
               });
+
+            if(i%2===0){
+              const crystalR=outer+3;
+              const cx=Math.cos(a)*crystalR;
+              const cy=Math.sin(a)*crystalR;
+              core
+                .moveTo(cx-Math.cos(a)*4,cy-Math.sin(a)*4)
+                .lineTo(cx+Math.cos(a)*4,cy+Math.sin(a)*4)
+                .stroke({
+                  color:spec.core,
+                  width:1.15,
+                  alpha:releaseFade*.70,
+                });
+            }
           }
+
+          // A directional ice-lance flash gives Frostbolt a visible release
+          // snap without making the common spell feel as heavy as Pyroblast.
+          glow
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+31),ty*(source.radius+31))
+            .stroke({
+              color:spec.main,width:15,alpha:releaseFade*.16
+            });
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+31),ty*(source.radius+31))
+            .stroke({
+              color:spec.core,width:2.8,alpha:releaseFade*.84
+            });
         } else if (spec.shape === "pyro") {
           const bloomR=source.radius+10+releaseP*22;
           glow.circle(0,0,bloomR+8).stroke({
@@ -12405,7 +12456,49 @@ export class PixiProofRenderer {
           y: tailY + (py - tailY) * fraction + ny * lateral,
         });
 
-        if (spec.shape === "pyro") {
+        if (spec.shape === "frost-spear") {
+          // VFX 3.0 Frostbolt: a narrow white-hot ice core wrapped in two
+          // translucent blue ribbons. Wobble stays restrained so the bolt
+          // reads as a fast crystalline projectile rather than liquid energy.
+          taperedRibbon(
+            glow,tailX,tailY,px,py,seed+5,p*.92,
+            {
+              startWidth:4.5,
+              endWidth:13.5,
+              wobble:3.8,
+              segments:15,
+              color:spec.accent,
+              alpha:alpha*travelFade*.12,
+            },
+          );
+          taperedRibbon(
+            glow,tailX,tailY,px,py,seed+13,p*1.13,
+            {
+              startWidth:3.2,
+              endWidth:10.5,
+              wobble:2.8,
+              segments:15,
+              color:spec.main,
+              alpha:alpha*travelFade*.22,
+            },
+          );
+          taperedRibbon(
+            core,tailX,tailY,px,py,seed+29,p,
+            {
+              startWidth:1.4,
+              endWidth:5.0,
+              wobble:1.25,
+              segments:15,
+              color:spec.main,
+              alpha:alpha*travelFade*.72,
+            },
+          );
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.core,
+            width:1.45,
+            alpha:alpha*travelFade*.98,
+          });
+        } else if (spec.shape === "pyro") {
           // VFX 3.0 showcase: three nested procedural ribbons create the
           // flowing, almost-liquid fire trail from the reference rather than a
           // single blurred line.
@@ -12495,7 +12588,29 @@ export class PixiProofRenderer {
         const travelPulse =
           .82 + (.5 + .5 * Math.sin(p * 34 + seed * .071)) * .18;
 
-        if (spec.shape === "pyro") {
+        if (spec.shape === "frost-spear") {
+          taperedRibbon(
+            glow,tailX,tailY,px,py,seed+109,p*1.45,
+            {
+              startWidth:6,
+              endWidth:17,
+              wobble:4.2,
+              segments:14,
+              color:spec.main,
+              alpha:alpha*travelFade*.10*travelPulse,
+            },
+          );
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:0x80eaff,
+            width:5.2,
+            alpha:alpha*travelFade*.48,
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.core,
+            width:1.45,
+            alpha:alpha*travelFade*.98,
+          });
+        } else if (spec.shape === "pyro") {
           taperedRibbon(
             glow,tailX,tailY,px,py,seed+101,p*1.7,
             {
@@ -12601,49 +12716,87 @@ export class PixiProofRenderer {
         // projectile continuity; these details make each class readable at a
         // glance instead of recoloring the same effect.
         if (spec.trailStyle === "snow") {
-          const flakes = 9;
+          const flakes = 15;
           for (let i = 0; i < flakes; i += 1) {
-            const f = (i + .55) / flakes;
+            const f = (i + .45) / flakes;
             const drift =
-              Math.sin(seed * .031 + i * 2.17 + p * 13) * (5 + (i % 3) * 2);
-            const point = trailPoint(f, drift);
-            const r = 2.2 + (i % 3) * .55;
-            const spin = p * 5.5 + i * .83;
+              Math.sin(seed*.031+i*2.17+p*14.5)
+              * (5+(i%4)*2.2);
+            const point = trailPoint(f,drift);
+            const r = 1.8+(i%4)*.55;
+            const spin = p*(6.8+(i%3)*.7)+i*.83;
 
-            glow.circle(point.x,point.y,r * 2.4).fill({
-              color: spec.main,
-              alpha: alpha * travelFade * .09,
+            glow.circle(point.x,point.y,r*3.0).fill({
+              color:i%4===0?spec.core:spec.main,
+              alpha:alpha*travelFade*.10,
             });
 
-            for (let arm = 0; arm < 3; arm += 1) {
-              const a = spin + arm * Math.PI / 3;
-              const ax = Math.cos(a) * r;
-              const ay = Math.sin(a) * r;
+            for(let arm=0;arm<3;arm++){
+              const a=spin+arm*Math.PI/3;
+              const ax=Math.cos(a)*r;
+              const ay=Math.sin(a)*r;
               core
                 .moveTo(point.x-ax,point.y-ay)
                 .lineTo(point.x+ax,point.y+ay)
                 .stroke({
-                  color: arm === 0 ? spec.core : spec.main,
-                  width: .9,
-                  alpha: alpha * travelFade * .72,
+                  color:
+                    arm===0?spec.core
+                    :i%2?spec.main:spec.accent,
+                  width:arm===0?1.0:.8,
+                  alpha:alpha*travelFade*.76,
                 });
             }
           }
 
-          for (let i = 0; i < 6; i += 1) {
-            const f = (i + .35) / 6;
-            const point = trailPoint(
-              f,
-              Math.sin(i * 2.4 + p * 9 + seed * .04) * 9,
-            );
-            core
-              .moveTo(point.x-tx*2.5,point.y-ty*2.5)
-              .lineTo(point.x+tx*4.5,point.y+ty*4.5)
+          // Long crystal splinters peel off the ribbon and make the trail read
+          // at arena scale even when Frostbolt is cast repeatedly.
+          for(let i=0;i<10;i++){
+            const f=(i+.30)/10;
+            const sideSign=i%2?1:-1;
+            const side=
+              sideSign*(7+(i%4)*3)
+              +Math.sin(i*1.8+p*10+seed*.04)*3;
+            const point=trailPoint(f,side);
+            const shardLen=5+(i%4)*2.3;
+            const shardAngle=
+              angle+Math.PI+(sideSign*.34)+Math.sin(p*8+i)*.10;
+            const ex=point.x+Math.cos(shardAngle)*shardLen;
+            const ey=point.y+Math.sin(shardAngle)*shardLen;
+
+            glow
+              .moveTo(point.x,point.y)
+              .lineTo(ex,ey)
               .stroke({
-                color: i % 2 ? spec.core : spec.accent,
-                width: 1.15,
-                alpha: alpha * travelFade * .48,
+                color:spec.main,
+                width:3.2,
+                alpha:alpha*travelFade*.10,
               });
+            core
+              .moveTo(point.x,point.y)
+              .lineTo(ex,ey)
+              .stroke({
+                color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%3===0?1.45:1.05,
+                alpha:alpha*travelFade*.66,
+              });
+          }
+
+          // Two thin helix filaments wrap the central ice beam.
+          for(const sign of [-1,1]){
+            for(let i=0;i<=12;i++){
+              const f=i/12;
+              const side=
+                sign*Math.sin(f*Math.PI*3+p*11+seed*.012)
+                * 6.5*Math.sin(f*Math.PI);
+              const point=trailPoint(f,side);
+              if(i===0) core.moveTo(point.x,point.y);
+              else core.lineTo(point.x,point.y);
+            }
+            core.stroke({
+              color:sign>0?spec.core:spec.accent,
+              width:1.05,
+              alpha:alpha*travelFade*.42,
+            });
           }
         } else if (spec.trailStyle === "fire") {
           const embers = 24;
@@ -12960,26 +13113,59 @@ export class PixiProofRenderer {
 
         // Spell-specific moving silhouette.
         if (spec.shape === "frost-spear") {
-          const pts=[
-            transformed(px,py,19,0,angle),
-            transformed(px,py,-4,-8,angle),
-            transformed(px,py,-1,-2.5,angle),
-            transformed(px,py,-14,0,angle),
-            transformed(px,py,-1,2.5,angle),
-            transformed(px,py,-4,8,angle),
+          const pulse=.90+.10*Math.sin(p*36+seed*.07);
+          const outer=[
+            transformed(px,py,27,0,angle),
+            transformed(px,py,5,-10*pulse,angle),
+            transformed(px,py,-8,-8,angle),
+            transformed(px,py,-24,-3.5,angle),
+            transformed(px,py,-31,0,angle),
+            transformed(px,py,-24,3.5,angle),
+            transformed(px,py,-8,8,angle),
+            transformed(px,py,5,10*pulse,angle),
           ];
-          poly(glow,pts,{color:spec.main,alpha:alpha*travelFade*.26},true);
-          poly(core,pts,{color:spec.main,alpha:alpha*travelFade*.92},true);
-          poly(core,pts,{color:spec.core,width:1.6,alpha:alpha*travelFade*.94});
-          for(let i=0;i<4;i++){
-            const a=angle+Math.PI+(i-1.5)*.32;
+          const inner=[
+            transformed(px,py,23,0,angle),
+            transformed(px,py,2,-5.5,angle),
+            transformed(px,py,-17,0,angle),
+            transformed(px,py,2,5.5,angle),
+          ];
+
+          poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.30},true);
+          poly(core,outer,{color:0x75dfff,alpha:alpha*travelFade*.88},true);
+          poly(core,inner,{color:spec.core,alpha:alpha*travelFade*.98},true);
+          poly(core,outer,{color:spec.core,width:1.6,alpha:alpha*travelFade*.88});
+
+          glow.circle(px+tx*5,py+ty*5,spec.size+7).fill({
+            color:spec.main,
+            alpha:alpha*travelFade*.18,
+          });
+
+          // Crystal fins and trailing splinters keep the silhouette clearly
+          // Frostbolt even when the ribbon overlaps other effects.
+          for(const sign of [-1,1]){
+            const fin=[
+              transformed(px,py,-5,sign*5,angle),
+              transformed(px,py,-15,sign*14,angle),
+              transformed(px,py,-19,sign*4,angle),
+            ];
+            poly(core,fin,{
+              color:sign>0?spec.main:spec.accent,
+              alpha:alpha*travelFade*.64,
+            },true);
+          }
+
+          for(let i=0;i<7;i++){
+            const side=(i-3)*.22;
+            const a=angle+Math.PI+side+Math.sin(p*11+i)*.05;
+            const len=20+(i%4)*6;
             core
-              .moveTo(px-tx*4,py-ty*4)
-              .lineTo(px+Math.cos(a)*17,py+Math.sin(a)*17)
+              .moveTo(px-tx*7,py-ty*7)
+              .lineTo(px+Math.cos(a)*len,py+Math.sin(a)*len)
               .stroke({
-                color:i%2?spec.core:spec.accent,
-                width:1.2,
-                alpha:alpha*travelFade*.55,
+                color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%3===0?1.65:1.1,
+                alpha:alpha*travelFade*.60,
               });
           }
         } else if (spec.shape === "pyro") {
@@ -13293,22 +13479,113 @@ export class PixiProofRenderer {
         }
 
         if (spec.shape === "frost-spear") {
-          for(let i=0;i<9;i++){
-            const a=i/9*Math.PI*2+seed*.013;
-            const inner=7;
-            const outer=14+easeOut(hit)*(22+(i%3)*7);
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*12);
+          const after=Math.exp(-hit*3.4);
+
+          glow.circle(ix,iy,14+burst*43).fill({
+            color:spec.main,
+            alpha:alpha*(.07+flash*.22)*fade,
+          });
+          glow.circle(ix,iy,13+burst*55).stroke({
+            color:spec.accent,
+            width:12,
+            alpha:alpha*after*.15,
+          });
+          glow.circle(ix,iy,9+burst*37).stroke({
+            color:spec.main,
+            width:9,
+            alpha:alpha*after*.18,
+          });
+
+          core.circle(ix,iy,7+flash*8).fill({
+            color:spec.core,
+            alpha:alpha*Math.min(1,.78+flash*.22),
+          });
+          core.circle(ix,iy,12+burst*34).stroke({
+            color:0x86e8ff,
+            width:2.8,
+            alpha:alpha*after*.78,
+          });
+
+          const shards=16;
+          for(let i=0;i<shards;i++){
+            const a=i/shards*Math.PI*2+seed*.013+hit*(i%2?.32:-.27);
+            const inner=6+(i%3);
+            const outer=18+burst*(28+(i%5)*7);
+            const bend=a+(i%2?.055:-.055)*Math.sin(hit*Math.PI);
+            const sx=ix+Math.cos(a)*inner;
+            const sy=iy+Math.sin(a)*inner;
+            const ex=ix+Math.cos(bend)*outer;
+            const ey=iy+Math.sin(bend)*outer;
+
+            glow
+              .moveTo(sx,sy)
+              .lineTo(ex,ey)
+              .stroke({
+                color:spec.main,
+                width:i%4===0?5.5:3.2,
+                alpha:alpha*after*.10,
+              });
             core
-              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .moveTo(sx,sy)
+              .lineTo(ex,ey)
+              .stroke({
+                color:i%4===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%4===0?2.3:1.35,
+                alpha:alpha*after*(i%4===0?.78:.60),
+              });
+
+            if(i%2===0){
+              const side=i%4===0?1:-1;
+              const branchA=bend+side*.42;
+              const branchLen=7+(i%3)*3;
+              core
+                .moveTo(ex,ey)
+                .lineTo(
+                  ex+Math.cos(branchA)*branchLen,
+                  ey+Math.sin(branchA)*branchLen
+                )
+                .stroke({
+                  color:spec.core,
+                  width:1.0,
+                  alpha:alpha*after*.52,
+                });
+            }
+          }
+
+          // Ice dust / snowflake halo persists briefly after the spear shatters.
+          for(let i=0;i<14;i++){
+            const a=i/14*Math.PI*2+seed*.027-hit*(i%2?.8:-.6);
+            const rr=12+burst*(20+(i%4)*7);
+            const cx=ix+Math.cos(a)*rr;
+            const cy=iy+Math.sin(a)*rr-hit*(i%3)*3;
+            const r=1.5+(i%3)*.45;
+            glow.circle(cx,cy,r*2.8).fill({
+              color:spec.main,
+              alpha:alpha*after*.10,
+            });
+            core.circle(cx,cy,r).fill({
+              color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+              alpha:alpha*after*.68,
+            });
+          }
+
+          // Directional fracture continues the projectile's momentum through
+          // the target, matching the VFX 3.0 readability standard.
+          for(let i=0;i<4;i++){
+            const spread=(i-1.5)*.13;
+            const a=angle+spread;
+            const outer=26+burst*(24+(i%2)*8);
+            core
+              .moveTo(ix-tx*3,iy-ty*3)
               .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
               .stroke({
-                color:i%3===0?spec.core:spec.main,
-                width:i%3===0?2.2:1.4,
-                alpha:alpha*fade*.62,
+                color:i===1?spec.core:(i%2?spec.main:spec.accent),
+                width:i===1?2.4:1.5,
+                alpha:alpha*after*.64,
               });
           }
-          glow.circle(ix,iy,10+hit*28).stroke({
-            color:spec.main,width:7,alpha:alpha*fade*.16
-          });
         } else if (spec.shape === "pyro") {
           const boom=easeOut(hit);
           const flash=Math.exp(-hit*11);

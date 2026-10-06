@@ -2712,10 +2712,6 @@ export class PixiProofRenderer {
 
     const castWindupGlowFx = new Graphics();
     castWindupGlowFx.visible = false;
-    castWindupGlowFx.blendMode = "screen";
-    castWindupGlowFx.filters = [
-      new BlurFilter({ strength: 6.2, quality: 1 }),
-    ];
     root.addChild(castWindupGlowFx);
 
     const castWindupFx = new Graphics();
@@ -2814,6 +2810,11 @@ export class PixiProofRenderer {
     root.addChild(depthOcclusionFx);
 
     const { BlurFilter } = this.PIXI;
+
+    castWindupGlowFx.blendMode = "screen";
+    castWindupGlowFx.filters = [
+      new BlurFilter({ strength: 6.2, quality: 1 }),
+    ];
 
     stateWorldGlowFx.blendMode = "screen";
     stateWorldGlowFx.filters = [

@@ -834,6 +834,36 @@ export function buildMatchReport(game) {
     });
   }
 
+  lines.push("", "=== RENDERER FALLBACK DIAGNOSTICS ===");
+  const rendererErrors = Array.isArray(game.rendererErrors)
+    ? game.rendererErrors
+    : [];
+  if (rendererErrors.length === 0) {
+    lines.push("None detected.");
+  } else {
+    rendererErrors.forEach(event => {
+      const time = Number(event.elapsedSeconds || 0).toFixed(1);
+      const mode = String(event.mode || "gpu").toUpperCase();
+      lines.push(
+        `${time}s — ${mode} -> Canvas — ${event.message || "unknown renderer error"}`,
+      );
+      if (event.activeCasts?.length) {
+        lines.push(
+          "  Active casts: "
+          + event.activeCasts
+            .map(item => `${item.actor} [${item.classId}] ${item.spellId}`)
+            .join(" | "),
+        );
+      }
+      if (event.activeSpellEffects?.length) {
+        lines.push(
+          "  Active spell VFX: " + event.activeSpellEffects.join(", "),
+        );
+      }
+      if (event.stack) lines.push("  Stack: " + event.stack);
+    });
+  }
+
   lines.push("", "=== COMBAT LOG ===");
   if (game.runLog.length === 0) {
     lines.push("No combat events yet.");

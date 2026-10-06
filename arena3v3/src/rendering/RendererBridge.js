@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261006-magecastvfx3";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261006-magecastvfx3fix1";
 import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon30";
 
 function requestedRenderer() {
@@ -134,6 +134,40 @@ export class RendererBridge {
 
   recoverFromRenderError(error, game) {
     if (this.mode !== "pixi" && this.mode !== "babylon") return false;
+
+    const failedMode = this.mode;
+    const message = error?.message || String(error || "Unknown renderer error");
+    const stack = String(error?.stack || "")
+      .split("\n")
+      .slice(0, 4)
+      .join(" | ");
+    const activeCasts = (game?.actors || [])
+      .filter(actor => actor?.cast)
+      .map(actor => ({
+        actor: actor.name || actor.id,
+        classId: actor.classId,
+        spellId: actor.cast?.spellId || null,
+      }));
+    const activeSpellEffects = (game?.vfx?.effects || [])
+      .filter(effect => effect?.type === "spell")
+      .slice(-12)
+      .map(effect => effect.spellId)
+      .filter(Boolean);
+
+    if (game) {
+      if (!Array.isArray(game.rendererErrors)) game.rendererErrors = [];
+      game.rendererErrors.push({
+        elapsedSeconds: Number(game.elapsedSeconds) || 0,
+        mode: failedMode,
+        message,
+        stack,
+        activeCasts,
+        activeSpellEffects,
+      });
+      if (game.rendererErrors.length > 8) {
+        game.rendererErrors.splice(0, game.rendererErrors.length - 8);
+      }
+    }
 
     console.error(
       "[Renderer] GPU preview failed at runtime; switching to Canvas fallback.",

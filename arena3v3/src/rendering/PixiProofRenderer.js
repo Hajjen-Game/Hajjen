@@ -6753,12 +6753,138 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Death Knight: three cold rune strokes rotate inward. Obliterate adds
-      // five frost motes, matching its heavier windup.
+      // Death Knight VFX 3.0 build-up: Obliterate keeps its inward rotating
+      // frost-rune motion, but gains layered cold bloom and a hard final lock.
       if (classId === "death-knight" && profile) {
-        const rotation = -p * .65;
+        const rotation=-p*.65;
+
+        if(spellId==="dk-obliterate"){
+          glow.visible=true;
+          const charge=smooth(p);
+          const finalP=smooth((p-.72)/.28);
+          const pulse=.5+.5*Math.sin(time*15);
+
+          // Three established rune strokes remain the main movement language.
+          for(let i=0;i<3;i++){
+            const a=i*Math.PI*2/3+rotation;
+            const inner=actor.radius+7;
+            const outer=actor.radius+21-charge*7;
+            const p0={
+              x:Math.cos(a)*inner,
+              y:Math.sin(a)*inner,
+            };
+            const p1={
+              x:Math.cos(a+.4)*outer,
+              y:Math.sin(a+.4)*outer,
+            };
+
+            glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:i===1?profile.core:profile.main,
+              width:9+charge*2,
+              alpha:.05+charge*.08,
+            });
+            g.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:i===1?profile.core:profile.main,
+              width:1.8+charge*.65,
+              alpha:.28+charge*.50,
+            });
+          }
+
+          // Frost motes still rotate inward, but now read as crystalline chunks
+          // with their own bloom instead of simple dots.
+          for(let i=0;i<7;i++){
+            const a=i*Math.PI*2/7+rotation*.4;
+            const startR=actor.radius+33+(i%3)*5;
+            const rr=startR*(1-charge*.55);
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr;
+            const size=1.8+(i%3)*.45;
+
+            glow.circle(x,y,size*3.5).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:.055+charge*.095,
+            });
+            g.circle(x,y,size).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:.34+charge*.48,
+            });
+
+            if(i%2===0){
+              g
+                .moveTo(x-size*2.2,y)
+                .lineTo(x+size*2.2,y)
+                .moveTo(x,y-size*2.2)
+                .lineTo(x,y+size*2.2)
+                .stroke({
+                  color:profile.core,
+                  width:1,
+                  alpha:.22+charge*.34,
+                });
+            }
+          }
+
+          // Crossed weapon lanes foreshadow Obliterate's two-cleave impact.
+          for(const sign of [-1,1]){
+            const a=sign*.72;
+            const inner=actor.radius+4;
+            const outer=actor.radius+23+charge*8;
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({
+                color:profile.main,
+                width:10+charge*2,
+                alpha:.045+charge*.075,
+              });
+            g
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({
+                color:profile.core,
+                width:1.6+charge*.7,
+                alpha:.20+charge*.42,
+              });
+          }
+
+          glow.circle(0,0,actor.radius+10+charge*5+pulse*1.5).stroke({
+            color:profile.main,
+            width:10+charge*2,
+            alpha:.05+charge*.08,
+          });
+          g.circle(0,0,actor.radius+7+charge*3).stroke({
+            color:profile.core,
+            width:1.4+charge*.6,
+            alpha:.22+charge*.38,
+          });
+
+          // Final 28%: the runic halo contracts into a white frost core and
+          // the crossed lanes brighten immediately before release.
+          if(finalP>0){
+            glow.circle(0,0,10+finalP*10).fill({
+              color:profile.core,
+              alpha:finalP*.17,
+            });
+            glow.circle(0,0,actor.radius+10-finalP*3).stroke({
+              color:profile.core,
+              width:12,
+              alpha:finalP*.12,
+            });
+            g.circle(0,0,actor.radius+6-finalP*2).stroke({
+              color:profile.core,
+              width:1.7+finalP*.8,
+              alpha:finalP*.50,
+            });
+            g.circle(0,0,3.5+finalP*5).fill({
+              color:profile.core,
+              alpha:finalP*.70,
+            });
+          }
+          continue;
+        }
+
+        // Future DK casts retain the old concise rune cue.
         for(let i=0;i<3;i++){
-          const a=i*Math.PI*2/3 + rotation;
+          const a=i*Math.PI*2/3+rotation;
           const p0={
             x:Math.cos(a)*(actor.radius+7),
             y:Math.sin(a)*(actor.radius+7),
@@ -6772,20 +6898,6 @@ export class PixiProofRenderer {
             width:1.7,
             alpha:.28+p*.48,
           });
-        }
-
-        if(profile.kind==="obliterate"){
-          for(let i=0;i<5;i++){
-            const a=i*Math.PI*2/5 + rotation*.4;
-            g.circle(
-              Math.cos(a)*(actor.radius+14),
-              Math.sin(a)*(actor.radius+14),
-              1.7,
-            ).fill({
-              color:profile.core,
-              alpha:.35+p*.4,
-            });
-          }
         }
         continue;
       }

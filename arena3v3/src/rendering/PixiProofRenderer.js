@@ -1233,9 +1233,9 @@ function commonCasterSpellProfile(spellId) {
   const profiles = {
     "mage-living-bomb": {
       kind: "mage-bomb",
-      main: 0xd86b3f,
-      core: 0xffe0a8,
-      accent: 0x9f342b,
+      main: 0xff6a2a,
+      core: 0xffffdc,
+      accent: 0xb72820,
     },
     "mage-frostbolt": {
       kind: "frost",
@@ -1256,32 +1256,32 @@ function commonCasterSpellProfile(spellId) {
     },
     "mage-frost-nova": {
       kind: "frost-nova",
-      main: 0x67cee8,
-      core: 0xf1fdff,
-      accent: 0x6f9fd7,
+      main: 0x54d9ff,
+      core: 0xffffff,
+      accent: 0x5b8dff,
     },
     "mage-polymorph": {
       kind: "arcane-control",
-      main: 0xa38ada,
-      core: 0xf4e7ff,
-      accent: 0x6e5aa9,
+      main: 0xb174ff,
+      core: 0xfff5ff,
+      accent: 0x6b3dca,
     },
     "mage-frostfire-bolt": {
       kind: "frostfire",
-      main: 0x75d4e7,
-      core: 0xfff1d1,
-      accent: 0xdd7540,
+      main: 0x56dcff,
+      core: 0xfffff0,
+      accent: 0xff5b2e,
       travelEnd: .58,
-      size: 10,
+      size: 13,
       heavy: true,
     },
     "mage-arcane-barrage": {
       kind: "arcane",
-      main: 0xa389db,
-      core: 0xf3e5ff,
-      accent: 0x6e5db7,
+      main: 0xb36cff,
+      core: 0xffffff,
+      accent: 0x6d34d6,
       travelEnd: .50,
-      size: 8,
+      size: 10,
     },
 
     "shaman-flame-shock": {
@@ -1435,18 +1435,20 @@ function projectileVfx2Spec(spellId) {
       shape: "frostfire",
       trailStyle: "frostfire",
       travelEnd: .49,
-      size: 13,
-      tail: 122,
-      trailReach: .95,
+      size: 15,
+      tail: 148,
+      trailReach: .96,
       heavy: true,
+      showcase: true,
     },
     "mage-arcane-barrage": {
       shape: "arcane",
       trailStyle: "arcane",
       travelEnd: .44,
-      size: 10,
-      tail: 106,
-      trailReach: .92,
+      size: 12,
+      tail: 118,
+      trailReach: .94,
+      showcase: true,
     },
     "shaman-lava-burst": {
       shape: "lava-rock",
@@ -3868,6 +3870,45 @@ export class PixiProofRenderer {
             .stroke({
               color:palette.core,width:1.3,alpha:.48
             });
+        }
+        continue;
+      }
+
+      // Polymorph: restrained orbiting arcane loops remain while the target is
+      // incapacitated, separate from the CC badge above the actor.
+      if (effect.kind === "incapacitate" && effect.spellId === "mage-polymorph") {
+        glow.circle(0,2,radius+13).fill({
+          color:palette.main,alpha:.055+pulse*.018
+        });
+        for(let ring=0;ring<3;ring++){
+          const rr=actor.radius+7+ring*5;
+          const phase=time*(ring%2?.52:-.44)+ring*.7;
+          for(let seg=0;seg<4;seg++){
+            const a0=phase+seg*Math.PI/2+.16;
+            const a1=a0+.58;
+            const steps=5;
+            for(let j=0;j<=steps;j++){
+              const a=a0+(a1-a0)*j/steps;
+              const x=Math.cos(a)*rr;
+              const y=3+Math.sin(a)*rr*.36-ring*2;
+              if(j===0) core.moveTo(x,y); else core.lineTo(x,y);
+            }
+            core.stroke({
+              color:ring===1?palette.core:palette.main,
+              width:ring===1?1.55:1.15,
+              alpha:.34-ring*.05,
+            });
+          }
+        }
+        for(let i=0;i<4;i++){
+          const a=time*.72+i*Math.PI/2;
+          const rr=actor.radius+15+(i%2)*4;
+          const x=Math.cos(a)*rr;
+          const y=-5+Math.sin(a)*rr*.45;
+          core
+            .moveTo(x-2.8,y).lineTo(x+2.8,y)
+            .moveTo(x,y-2.8).lineTo(x,y+2.8)
+            .stroke({color:palette.core,width:1,alpha:.48});
         }
         continue;
       }
@@ -9379,40 +9420,48 @@ export class PixiProofRenderer {
       }
 
       if (profile.kind === "frost-nova") {
-        const wave = 1 - Math.pow(1 - Math.max(0, Math.min(1, p / .72)), 3);
-        const fade = 1 - Math.max(0, Math.min(1, (p - .50) / .50));
-        const radius = source.radius + 8 + wave * 108;
+        const wave=1-Math.pow(1-Math.max(0,Math.min(1,p/.70)),3);
+        const fade=1-Math.max(0,Math.min(1,(p-.50)/.50));
+        const snap=Math.exp(-p*15);
+        const radius=source.radius+7+wave*111;
+
+        view.commonCasterSpellGlowFx
+          .circle(0,0,source.radius+8+snap*24)
+          .fill({color:profile.core,alpha:alpha*fade*snap*.16})
+          .circle(0,0,radius+9)
+          .stroke({color:profile.main,width:10,alpha:alpha*fade*.10});
 
         view.commonCasterSpellFx
-          .circle(0, 0, radius)
-          .stroke({
-            color: profile.main,
-            width: 3.2,
-            alpha: alpha * fade * .78,
-          })
-          .circle(0, 0, Math.max(source.radius + 4, radius - 12))
-          .stroke({
-            color: profile.core,
-            width: 1.4,
-            alpha: alpha * fade * .36,
-          });
+          .circle(0,0,radius)
+          .stroke({color:profile.main,width:3.0,alpha:alpha*fade*.76})
+          .circle(0,0,Math.max(source.radius+4,radius-13))
+          .stroke({color:profile.core,width:1.3,alpha:alpha*fade*.34});
 
-        for (let i = 0; i < 12; i += 1) {
-          const angle =
-            i / 12 * Math.PI * 2 + Math.sin(seed * .17 + i * 2.1) * .13;
-          const rr = source.radius + 4 + wave * (88 + (i % 4) * 7);
-          const x = Math.cos(angle) * rr;
-          const y = Math.sin(angle) * rr;
+        for(let i=0;i<16;i++){
+          const angle=i/16*Math.PI*2+Math.sin(seed*.17+i*2.1)*.10;
+          const inner=source.radius+5+wave*9;
+          const outer=source.radius+10+wave*(91+(i%4)*7);
           view.commonCasterSpellFx
-            .moveTo(x, y - 5)
-            .lineTo(x + 3.1, y)
-            .lineTo(x, y + 5)
-            .lineTo(x - 3.1, y)
-            .lineTo(x, y - 5)
-            .fill({
-              color: profile.core,
-              alpha: alpha * fade * .64,
+            .moveTo(Math.cos(angle)*inner,Math.sin(angle)*inner)
+            .lineTo(Math.cos(angle+(i%2?.04:-.04))*outer,Math.sin(angle+(i%2?.04:-.04))*outer)
+            .stroke({
+              color:i%4===0?profile.core:profile.main,
+              width:i%4===0?2.3:1.35,
+              alpha:alpha*fade*.58,
             });
+
+          if(i%2===0){
+            const rr=outer+5;
+            const x=Math.cos(angle)*rr;
+            const y=Math.sin(angle)*rr;
+            view.commonCasterSpellFx
+              .moveTo(x,y-5.5).lineTo(x+3.2,y)
+              .lineTo(x,y+5.5).lineTo(x-3.2,y).lineTo(x,y-5.5)
+              .fill({
+                color:i%4===0?profile.core:profile.main,
+                alpha:alpha*fade*.62,
+              });
+          }
         }
         continue;
       }
@@ -10465,49 +10514,145 @@ export class PixiProofRenderer {
 
         if(effect.spellId==="mage-frost-nova"){
           const burst=easeOut(p/.46);
-          const radius=10+burst*42;
-          for(let i=0;i<12;i++){
-            const ang=i/12*Math.PI*2+seed*.007;
-            const inner=8+burst*8;
-            const outer=18+burst*(29+(i%3)*5);
-            core
-              .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
-              .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
-              .stroke({
-                color:i%3===0?profile.core:profile.main,
-                width:i%3===0?2.7:1.7,
-                alpha:alpha*fade*.66,
-              });
-          }
+          const snap=Math.exp(-p*16);
+          const ringFade=Math.exp(-p*2.9);
+          const radius=12+burst*48;
+
+          glow.circle(dx,dy,13+snap*24).fill({
+            color:profile.core,
+            alpha:alpha*fade*snap*.22,
+          });
+          glow.circle(dx,dy,radius+12).stroke({
+            color:profile.main,
+            width:11,
+            alpha:alpha*fade*ringFade*.12,
+          });
           core.circle(dx,dy,radius).stroke({
-            color:profile.main,width:1.8,alpha:alpha*fade*.44
+            color:profile.main,
+            width:2.7,
+            alpha:alpha*fade*ringFade*.72,
           });
-          glow.circle(dx,dy,radius*.72).fill({
-            color:profile.main,alpha:alpha*fade*.08
+          core.circle(dx,dy,Math.max(9,radius-13)).stroke({
+            color:profile.core,
+            width:1.25,
+            alpha:alpha*fade*ringFade*.38,
           });
+
+          // Jagged frozen-floor fractures shoot out first; taller crystals sit
+          // on every other branch so the burst has a clear physical silhouette.
+          for(let i=0;i<16;i++){
+            const ang=i/16*Math.PI*2+seed*.007;
+            const branch=18+burst*(29+(i%4)*7);
+            const inner=7+burst*7;
+            const bend=ang+(i%2?.055:-.055);
+            const sx=dx+Math.cos(ang)*inner;
+            const sy=dy+Math.sin(ang)*inner;
+            const ex=dx+Math.cos(bend)*branch;
+            const ey=dy+Math.sin(bend)*branch;
+
+            glow
+              .moveTo(sx,sy)
+              .lineTo(ex,ey)
+              .stroke({
+                color:profile.main,
+                width:i%4===0?5.5:3,
+                alpha:alpha*fade*.08,
+              });
+            core
+              .moveTo(sx,sy)
+              .lineTo(ex,ey)
+              .stroke({
+                color:i%4===0?profile.core:profile.main,
+                width:i%4===0?2.4:1.35,
+                alpha:alpha*fade*.64,
+              });
+
+            if(i%2===0){
+              const shardR=branch+4;
+              const cx=dx+Math.cos(ang)*shardR;
+              const cy=dy+Math.sin(ang)*shardR;
+              const h=5+(i%4)*1.8;
+              core
+                .moveTo(cx,cy-h)
+                .lineTo(cx+3.2,cy)
+                .lineTo(cx,cy+h)
+                .lineTo(cx-3.2,cy)
+                .lineTo(cx,cy-h)
+                .fill({
+                  color:i%4===0?profile.core:profile.main,
+                  alpha:alpha*fade*.68,
+                });
+            }
+          }
           continue;
         }
 
         if(effect.spellId==="mage-polymorph"){
-          const spin=p*4.5;
+          const build=easeOut(p/.32);
+          const snap=Math.exp(-p*11);
+          const spin=p*5.4+seed*.008;
+          const rr=14+build*23;
+
+          glow.circle(dx,dy,12+snap*18).fill({
+            color:profile.main,
+            alpha:alpha*fade*(.05+snap*.18),
+          });
+
+          // Broken counter-rotating rings create an unmistakable arcane
+          // transformation moment without relying on a literal sheep sprite.
           for(let ring=0;ring<3;ring++){
-            const rr=13+ring*8+easeOut(p)*4;
+            const radius=rr+ring*7;
+            const phase=spin*(ring%2?-.62:.48)+ring*.37;
             for(let seg=0;seg<4;seg++){
-              const a0=seg*Math.PI/2+.22+spin*(ring%2?-.35:.28);
-              arc(core,dx,dy,rr,a0,a0+.66,{
-                color:ring===1?profile.core:profile.main,
-                width:1.7,
-                alpha:alpha*fade*(.56-ring*.08),
-              },6);
+              const a0=phase+seg*Math.PI/2+.12;
+              arc(core,dx,dy,radius,a0,a0+.62,{
+                color:ring===1?profile.core:(ring===2?profile.accent:profile.main),
+                width:ring===1?2.1:1.55,
+                alpha:alpha*fade*(.66-ring*.09),
+              },7);
             }
           }
-          for(let i=0;i<7;i++){
-            const ang=i/7*Math.PI*2+p*3+seed*.01;
-            const rr=18+(i%3)*5;
-            core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,1.4+(i%2)*.4).fill({
-              color:i%3===0?profile.core:profile.main,
-              alpha:alpha*fade*.50
+
+          // Central tilted transmutation diamond snaps into place on impact.
+          const diamondR=9+build*7+snap*4;
+          const phase=spin*.32+Math.PI/4;
+          const pts=[];
+          for(let i=0;i<4;i++){
+            const a=phase+i*Math.PI/2;
+            pts.push({x:dx+Math.cos(a)*diamondR,y:dy+Math.sin(a)*diamondR});
+          }
+          pts.push(pts[0]);
+          core.moveTo(pts[0].x,pts[0].y);
+          for(let i=1;i<pts.length;i++) core.lineTo(pts[i].x,pts[i].y);
+          core.stroke({
+            color:profile.core,
+            width:2,
+            alpha:alpha*fade*.80,
+          });
+
+          // Small arcane "puffs" and four-point sparkles keep Polymorph lighter
+          // and more playful than the aggressive Arcane Barrage language.
+          for(let i=0;i<8;i++){
+            const ang=i/8*Math.PI*2-spin*.42;
+            const orbit=19+build*(10+(i%3)*4);
+            const x=dx+Math.cos(ang)*orbit;
+            const y=dy+Math.sin(ang)*orbit-(i%2)*2;
+            glow.circle(x,y,4+(i%2)).fill({
+              color:profile.main,
+              alpha:alpha*fade*.09,
             });
+            core.circle(x,y,1.5+(i%3)*.35).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.60,
+            });
+            if(i%2===0){
+              core
+                .moveTo(x-3,y).lineTo(x+3,y)
+                .moveTo(x,y-3).lineTo(x,y+3)
+                .stroke({
+                  color:profile.core,width:1,alpha:alpha*fade*.55
+                });
+            }
           }
           continue;
         }
@@ -11182,32 +11327,90 @@ export class PixiProofRenderer {
         const fade=1-smooth((p-.58)/.42);
 
         if(effect.spellId==="mage-living-bomb"){
-          const radius=12+easeOut(p)*20;
-          core.circle(dx,dy,radius).stroke({
-            color:profile.main,width:2.2,alpha:alpha*fade*.58
+          const arm=easeOut(p/.24);
+          const snap=Math.exp(-p*13);
+          const pulse=.5+.5*Math.sin(p*24+seed*.021);
+          const radius=11+arm*23;
+          const spin=p*3.4+seed*.006;
+
+          // Brief ignition flash tells the player that the mark has armed.
+          glow.circle(dx,dy,10+snap*20).fill({
+            color:profile.main,
+            alpha:alpha*fade*(.06+snap*.24),
           });
-          for(let i=0;i<6;i++){
-            const ang=i/6*Math.PI*2+p*2.2;
+          core.circle(dx,dy,3.5+snap*5.5).fill({
+            color:profile.core,
+            alpha:alpha*fade*(.44+snap*.42),
+          });
+
+          // Two counter-rotating diamond seals make Living Bomb read as a
+          // deliberate magical explosive rather than another generic DoT ring.
+          for(let layer=0;layer<2;layer++){
+            const rr=radius-layer*7;
+            const phase=spin*(layer===0?1:-1.35)+(layer?Math.PI/4:0);
+            const pts=[];
+            for(let i=0;i<4;i++){
+              const a=phase+i*Math.PI/2;
+              pts.push({x:dx+Math.cos(a)*rr,y:dy+Math.sin(a)*rr});
+            }
+            pts.push(pts[0]);
+            core.moveTo(pts[0].x,pts[0].y);
+            for(let i=1;i<pts.length;i++) core.lineTo(pts[i].x,pts[i].y);
+            core.stroke({
+              color:layer===0?profile.main:profile.core,
+              width:layer===0?2.4:1.45,
+              alpha:alpha*fade*(layer===0?.72:.52),
+            });
+          }
+
+          // Four inward heat channels feed a pulsing ember heart.
+          for(let i=0;i<4;i++){
+            const a=spin*.35+i*Math.PI/2+Math.PI/4;
+            const outer=radius+7+(i%2)*4;
+            const inner=8+pulse*2;
             core
-              .moveTo(dx+Math.cos(ang)*radius*.55,dy+Math.sin(ang)*radius*.55)
-              .lineTo(dx+Math.cos(ang)*radius*1.15,dy+Math.sin(ang)*radius*1.15)
+              .moveTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+              .lineTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
               .stroke({
                 color:i%2?profile.core:profile.accent,
-                width:1.5,alpha:alpha*fade*.54
+                width:i%2?1.5:2.0,
+                alpha:alpha*fade*.62,
               });
           }
-          const fuseA=-Math.PI*.72+p*.8;
-          core
-            .moveTo(dx+Math.cos(fuseA)*radius*.72,dy+Math.sin(fuseA)*radius*.72)
-            .lineTo(dx+Math.cos(fuseA)*radius*1.32,dy+Math.sin(fuseA)*radius*1.32)
-            .stroke({
-              color:profile.core,width:1.8,alpha:alpha*fade*.72
-            });
-          core.circle(
-            dx+Math.cos(fuseA)*radius*1.38,
-            dy+Math.sin(fuseA)*radius*1.38,
-            2.2
-          ).fill({color:profile.core,alpha:alpha*fade*.82});
+
+          glow.circle(dx,dy,8+pulse*4).fill({
+            color:profile.accent,
+            alpha:alpha*fade*.16,
+          });
+          core.circle(dx,dy,4.2+pulse*1.5).fill({
+            color:profile.core,
+            alpha:alpha*fade*.76,
+          });
+
+          // A single moving fuse spark keeps the "bomb" identity obvious.
+          const fuseA=-Math.PI*.72+p*1.25;
+          const fuseR=radius+8;
+          const fx=dx+Math.cos(fuseA)*fuseR;
+          const fy=dy+Math.sin(fuseA)*fuseR;
+          glow.circle(fx,fy,6+pulse*2).fill({
+            color:profile.main,
+            alpha:alpha*fade*.14,
+          });
+          core.circle(fx,fy,2.2+pulse*.8).fill({
+            color:profile.core,
+            alpha:alpha*fade*.90,
+          });
+          for(let i=0;i<3;i++){
+            const a=fuseA+Math.PI+(i-1)*.42;
+            core
+              .moveTo(fx,fy)
+              .lineTo(fx+Math.cos(a)*(6+i*2),fy+Math.sin(a)*(6+i*2))
+              .stroke({
+                color:i===1?profile.core:profile.main,
+                width:i===1?1.3:1,
+                alpha:alpha*fade*.58,
+              });
+          }
           continue;
         }
 
@@ -12371,21 +12574,84 @@ export class PixiProofRenderer {
               color:spec.core,width:3.2,alpha:releaseFade*.82
             });
         } else if (spec.shape === "frostfire") {
-          strokeArc(core,source.radius+14,-1.2,1.2,{
-            color:spec.main,width:2.2,alpha:releaseFade*.58,
-          },8);
-          strokeArc(core,source.radius+14,Math.PI-1.2,Math.PI+1.2,{
-            color:spec.accent,width:2.2,alpha:releaseFade*.58,
-          },8);
+          const rr=source.radius+14+releaseP*9;
+          // Opposed half-runes visually establish the hybrid spell before the
+          // projectile leaves the caster.
+          strokeArc(core,rr,-Math.PI/2+.10,Math.PI/2-.10,{
+            color:spec.main,width:2.8,alpha:releaseFade*.72,
+          },10);
+          strokeArc(core,rr,Math.PI/2+.10,Math.PI*1.5-.10,{
+            color:spec.accent,width:2.8,alpha:releaseFade*.72,
+          },10);
+          glow.circle(0,0,rr+7).stroke({
+            color:spec.core,width:9,alpha:releaseFade*.08
+          });
+
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+p*(i%2?1.4:-1.25);
+            const cold=i%2===0;
+            const outer=source.radius+22+releaseP*(9+(i%3)*4);
+            const inner=source.radius+5;
+            core
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(a+.05*(cold?1:-1))*inner,Math.sin(a+.05*(cold?1:-1))*inner)
+              .stroke({
+                color:cold?spec.main:spec.accent,
+                width:cold?1.7:1.9,
+                alpha:releaseFade*.64,
+              });
+          }
+
+          // Ice and fire launch on opposite sides of a white fusion core.
+          glow
+            .moveTo(tx*source.radius+nx*5,ty*source.radius+ny*5)
+            .lineTo(tx*(source.radius+35)+nx*7,ty*(source.radius+35)+ny*7)
+            .stroke({color:spec.main,width:13,alpha:releaseFade*.15});
+          glow
+            .moveTo(tx*source.radius-nx*5,ty*source.radius-ny*5)
+            .lineTo(tx*(source.radius+35)-nx*7,ty*(source.radius+35)-ny*7)
+            .stroke({color:spec.accent,width:13,alpha:releaseFade*.15});
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+38),ty*(source.radius+38))
+            .stroke({color:spec.core,width:3.0,alpha:releaseFade*.88});
         } else if (spec.shape === "arcane") {
-          const r=source.radius+12+releaseP*8;
-          for(let i=0;i<3;i++){
-            const a=i*Math.PI*2/3+p*4;
-            const b=(i+1)*Math.PI*2/3+p*4;
-            core.moveTo(Math.cos(a)*r,Math.sin(a)*r).lineTo(Math.cos(b)*r,Math.sin(b)*r).stroke({
-              color:i===1?spec.core:spec.main,width:1.7,alpha:releaseFade*.56,
+          const baseR=source.radius+12+releaseP*10;
+          // Three collapsing triangles and bright rune nodes give the instant
+          // Barrage release a precise, high-magic snap.
+          for(let ring=0;ring<2;ring++){
+            const r=baseR+ring*7;
+            const phase=p*(ring? -5.2:4.4)+seed*.004;
+            const pts=[];
+            for(let i=0;i<3;i++){
+              const a=phase+i*Math.PI*2/3-Math.PI/2;
+              pts.push({x:Math.cos(a)*r,y:Math.sin(a)*r});
+            }
+            pts.push(pts[0]);
+            core.moveTo(pts[0].x,pts[0].y);
+            for(let i=1;i<pts.length;i++) core.lineTo(pts[i].x,pts[i].y);
+            core.stroke({
+              color:ring?spec.core:spec.main,
+              width:ring?1.3:2.0,
+              alpha:releaseFade*(ring?.46:.68),
             });
           }
+          for(let i=0;i<3;i++){
+            const a=p*4.4+seed*.004+i*Math.PI*2/3-Math.PI/2;
+            core.circle(Math.cos(a)*baseR,Math.sin(a)*baseR,2.2).fill({
+              color:i===0?spec.core:spec.main,
+              alpha:releaseFade*.78,
+            });
+          }
+
+          glow
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+31),ty*(source.radius+31))
+            .stroke({color:spec.main,width:16,alpha:releaseFade*.14});
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+33),ty*(source.radius+33))
+            .stroke({color:spec.core,width:2.8,alpha:releaseFade*.86});
         } else if (spec.shape === "lava-rock") {
           for(let i=0;i<5;i++){
             const a=i/5*Math.PI*2+.2;
@@ -12917,81 +13183,120 @@ export class PixiProofRenderer {
             }
           }
         } else if (spec.trailStyle === "frostfire") {
-          const beads = 12;
-          for (let i = 0; i < beads; i += 1) {
-            const f = (i + .45) / beads;
-            const phase = f * Math.PI * 5 + p * 15 + seed * .021;
-            const radius = 5 + (i % 3) * 1.6;
-            const cold = trailPoint(f, Math.sin(phase) * radius);
-            const hot = trailPoint(f, -Math.sin(phase) * radius);
+          const beads=16;
+          let prevCold=null;
+          let prevHot=null;
+          for(let i=0;i<beads;i++){
+            const f=(i+.35)/beads;
+            const phase=f*Math.PI*5.5+p*17+seed*.021;
+            const radius=6.5+(i%3)*1.5;
+            const cold=trailPoint(f,Math.sin(phase)*radius);
+            const hot=trailPoint(f,-Math.sin(phase)*radius);
 
-            glow.circle(cold.x,cold.y,4.4).fill({
-              color: spec.main,
-              alpha: alpha * travelFade * .11,
+            if(prevCold){
+              glow.moveTo(prevCold.x,prevCold.y).lineTo(cold.x,cold.y).stroke({
+                color:spec.main,width:7,alpha:alpha*travelFade*.07,
+              });
+              core.moveTo(prevCold.x,prevCold.y).lineTo(cold.x,cold.y).stroke({
+                color:spec.main,width:1.45,alpha:alpha*travelFade*.56,
+              });
+              glow.moveTo(prevHot.x,prevHot.y).lineTo(hot.x,hot.y).stroke({
+                color:spec.accent,width:7,alpha:alpha*travelFade*.07,
+              });
+              core.moveTo(prevHot.x,prevHot.y).lineTo(hot.x,hot.y).stroke({
+                color:spec.accent,width:1.55,alpha:alpha*travelFade*.58,
+              });
+            }
+            prevCold=cold;
+            prevHot=hot;
+
+            glow.circle(cold.x,cold.y,4.6).fill({
+              color:spec.main,alpha:alpha*travelFade*.10,
             });
-            glow.circle(hot.x,hot.y,4.4).fill({
-              color: spec.accent,
-              alpha: alpha * travelFade * .11,
+            glow.circle(hot.x,hot.y,4.6).fill({
+              color:spec.accent,alpha:alpha*travelFade*.10,
             });
-            core.circle(cold.x,cold.y,1.45).fill({
-              color: i % 3 === 0 ? spec.core : spec.main,
-              alpha: alpha * travelFade * .74,
+            core.circle(cold.x,cold.y,1.35).fill({
+              color:i%4===0?spec.core:spec.main,
+              alpha:alpha*travelFade*.76,
             });
-            core.circle(hot.x,hot.y,1.45).fill({
-              color: i % 3 === 0 ? spec.core : spec.accent,
-              alpha: alpha * travelFade * .74,
+            core.circle(hot.x,hot.y,1.35).fill({
+              color:i%4===0?spec.core:spec.accent,
+              alpha:alpha*travelFade*.76,
             });
 
-            if (i % 3 === 0) {
-              const r = 1.8 + (i % 2) * .5;
-              for (let arm = 0; arm < 3; arm += 1) {
-                const a = phase + arm * Math.PI / 3;
-                const ax = Math.cos(a) * r;
-                const ay = Math.sin(a) * r;
-                core
-                  .moveTo(cold.x-ax,cold.y-ay)
-                  .lineTo(cold.x+ax,cold.y+ay)
-                  .stroke({
-                    color: spec.core,
-                    width: .8,
-                    alpha: alpha * travelFade * .62,
-                  });
-              }
+            if(i%4===0){
+              // cold side fractures like ice
+              const a=phase*.55;
+              const len=5+(i%3)*2;
+              core
+                .moveTo(cold.x,cold.y)
+                .lineTo(cold.x+Math.cos(a)*len,cold.y+Math.sin(a)*len)
+                .stroke({color:spec.core,width:1,alpha:alpha*travelFade*.62});
+              // hot side throws a tiny rising ember
+              core.circle(hot.x-tx*2,hot.y-3-(i%2)*2,1.2+(i%3)*.25).fill({
+                color:i%8===0?spec.core:spec.accent,
+                alpha:alpha*travelFade*.66,
+              });
             }
           }
+
+          // White fusion filament through the centre prevents the two halves
+          // from reading as unrelated projectiles.
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.core,
+            width:1.35,
+            alpha:alpha*travelFade*.70,
+          });
         } else if (spec.trailStyle === "arcane") {
-          const sigils = 8;
-          for (let i = 0; i < sigils; i += 1) {
-            const f = (i + .5) / sigils;
-            const phase = p * 10 * (i % 2 ? -1 : 1) + i * .91 + seed * .015;
-            const point = trailPoint(
-              f,
-              Math.sin(phase) * (6 + (i % 2) * 3),
-            );
-            const r = 3.2 + (i % 3) * .8;
+          const sigils=10;
+          for(let i=0;i<sigils;i++){
+            const f=(i+.42)/sigils;
+            const phase=p*11*(i%2?-1:1)+i*.83+seed*.015;
+            const side=Math.sin(phase)*(6+(i%3)*2.4);
+            const point=trailPoint(f,side);
+            const r=3.3+(i%3)*.75;
 
-            glow.circle(point.x,point.y,r*2.5).fill({
-              color: spec.main,
-              alpha: alpha * travelFade * .10,
+            glow.circle(point.x,point.y,r*2.8).fill({
+              color:spec.main,
+              alpha:alpha*travelFade*.10,
             });
-            strokeArc(core,r,phase,phase+Math.PI*1.45,{
-              color: i%3===0 ? spec.core : spec.main,
-              width: 1.2,
-              alpha: alpha * travelFade * .72,
-            },5,point.x,point.y);
 
-            if (i % 2 === 0) {
-              const a = phase + .6;
+            // Each trail mark is an angular broken rune rather than a dot.
+            for(let seg=0;seg<3;seg++){
+              const a0=phase+seg*Math.PI*2/3;
+              const a1=a0+.72;
               core
-                .moveTo(point.x+Math.cos(a)*2,point.y+Math.sin(a)*2)
-                .lineTo(point.x+Math.cos(a)*7,point.y+Math.sin(a)*7)
+                .moveTo(point.x+Math.cos(a0)*r,point.y+Math.sin(a0)*r)
+                .lineTo(point.x+Math.cos(a1)*r,point.y+Math.sin(a1)*r)
                 .stroke({
-                  color: spec.core,
-                  width: .9,
-                  alpha: alpha * travelFade * .55,
+                  color:i%3===0?spec.core:spec.main,
+                  width:i%3===0?1.25:1.0,
+                  alpha:alpha*travelFade*.70,
+                });
+            }
+
+            if(i%2===0){
+              const back=5+(i%3)*2;
+              core
+                .moveTo(point.x-tx*back+nx*3,point.y-ty*back+ny*3)
+                .lineTo(point.x+tx*4,point.y+ty*4)
+                .stroke({
+                  color:spec.core,
+                  width:1,
+                  alpha:alpha*travelFade*.50,
                 });
             }
           }
+
+          // A narrow violet-white energy spine makes Barrage feel faster than
+          // Frostfire while the runes supply its arcane identity.
+          glow.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.main,width:10,alpha:alpha*travelFade*.07
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.core,width:1.25,alpha:alpha*travelFade*.72
+          });
         } else if (spec.trailStyle === "elemental") {
           const colors = [spec.main, spec.accent, 0x8bcf8b];
           const motes = 12;
@@ -13264,52 +13569,109 @@ export class PixiProofRenderer {
               });
           }
         } else if (spec.shape === "frostfire") {
-          const diamond=[
-            transformed(px,py,20,0,angle),
-            transformed(px,py,-4,-10,angle),
-            transformed(px,py,-15,0,angle),
-            transformed(px,py,-4,10,angle),
+          const pulse=.90+.10*Math.sin(p*31+seed*.07);
+          const cold=[
+            transformed(px,py,27,0,angle),
+            transformed(px,py,4,-11*pulse,angle),
+            transformed(px,py,-17,-7,angle),
+            transformed(px,py,-28,-1.5,angle),
+            transformed(px,py,-10,0,angle),
           ];
-          poly(glow,diamond,{color:spec.main,alpha:alpha*travelFade*.30},true);
-          poly(core,diamond,{color:spec.main,alpha:alpha*travelFade*.90},true);
-          poly(core,diamond,{color:spec.core,width:2,alpha:alpha*travelFade*.90});
-          core.circle(px-tx*2,py-ty*2,6).fill({
-            color:spec.accent,alpha:alpha*travelFade*.72
+          const hot=[
+            transformed(px,py,27,0,angle),
+            transformed(px,py,5,10*pulse,angle),
+            transformed(px,py,-15,8,angle),
+            transformed(px,py,-29,1.5,angle),
+            transformed(px,py,-10,0,angle),
+          ];
+          const coreDiamond=[
+            transformed(px,py,23,0,angle),
+            transformed(px,py,1,-4.8,angle),
+            transformed(px,py,-17,0,angle),
+            transformed(px,py,1,4.8,angle),
+          ];
+
+          poly(glow,cold,{color:spec.main,alpha:alpha*travelFade*.27},true);
+          poly(glow,hot,{color:spec.accent,alpha:alpha*travelFade*.24},true);
+          poly(core,cold,{color:spec.main,alpha:alpha*travelFade*.86},true);
+          poly(core,hot,{color:spec.accent,alpha:alpha*travelFade*.84},true);
+          poly(core,coreDiamond,{color:spec.core,alpha:alpha*travelFade*.98},true);
+          poly(core,cold,{color:spec.core,width:1.15,alpha:alpha*travelFade*.70});
+          poly(core,hot,{color:0xffd3a8,width:1.15,alpha:alpha*travelFade*.70});
+
+          glow.circle(px+tx*6,py+ty*6,spec.size+8).fill({
+            color:spec.core,alpha:alpha*travelFade*.12
           });
-          for(const sign of [-1,1]){
+
+          // Ice splinters peel from the cold flank; short flame tongues peel
+          // from the hot flank, keeping the hybrid readable at arena scale.
+          for(let i=0;i<6;i++){
+            const coldSide=(i%2?1:-1);
+            const base=-6-i*2.4;
+            const len=12+(i%3)*5;
+            const ca=angle+Math.PI+(coldSide*.22);
             core
-              .moveTo(px-tx*4,py-ty*4)
-              .lineTo(
-                px-tx*22+nx*sign*12,
-                py-ty*22+ny*sign*12
-              )
+              .moveTo(px+tx*base+nx*5,py+ty*base+ny*5)
+              .lineTo(px+Math.cos(ca)*len,py+Math.sin(ca)*len)
               .stroke({
-                color:sign>0?spec.core:spec.accent,
-                width:1.8,
-                alpha:alpha*travelFade*.62,
+                color:i%3===0?spec.core:spec.main,
+                width:i%3===0?1.5:1.0,
+                alpha:alpha*travelFade*.56,
+              });
+
+            const ha=angle+Math.PI-(coldSide*.18);
+            core
+              .moveTo(px+tx*(base-2)-nx*5,py+ty*(base-2)-ny*5)
+              .lineTo(px+Math.cos(ha)*(len*.82),py+Math.sin(ha)*(len*.82)-2)
+              .stroke({
+                color:i%3===0?spec.core:spec.accent,
+                width:i%3===0?1.45:1.1,
+                alpha:alpha*travelFade*.54,
               });
           }
         } else if (spec.shape === "arcane") {
-          glow.circle(px,py,spec.size+6).fill({
-            color:spec.main,alpha:alpha*travelFade*.24
-          });
-          core.circle(px,py,spec.size*.55).fill({
-            color:spec.core,alpha:alpha*travelFade*.94
-          });
+          const spin=p*10.5+seed*.009;
+          const outer=[
+            transformed(px,py,25,0,angle),
+            transformed(px,py,2,-8,angle),
+            transformed(px,py,-18,-5,angle),
+            transformed(px,py,-27,0,angle),
+            transformed(px,py,-18,5,angle),
+            transformed(px,py,2,8,angle),
+          ];
+          const inner=[
+            transformed(px,py,19,0,angle),
+            transformed(px,py,-1,-3.8,angle),
+            transformed(px,py,-15,0,angle),
+            transformed(px,py,-1,3.8,angle),
+          ];
+
+          poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.28},true);
+          poly(core,outer,{color:spec.main,alpha:alpha*travelFade*.86},true);
+          poly(core,inner,{color:spec.core,alpha:alpha*travelFade*.98},true);
+          poly(core,outer,{color:spec.core,width:1.35,alpha:alpha*travelFade*.72});
+
+          // Three rotating broken crescents orbit a fast central arcane blade.
+          for(let ring=0;ring<3;ring++){
+            const r=10+ring*4.5;
+            const a0=spin*(ring%2?-.72:.58)+ring*.78;
+            strokeArc(core,r,a0,a0+Math.PI*1.05,{
+              color:ring===1?spec.core:spec.main,
+              width:ring===1?1.45:1.1,
+              alpha:alpha*travelFade*(.68-ring*.08),
+            },7,px-tx*(2+ring*2),py-ty*(2+ring*2));
+          }
+
           for(let i=0;i<3;i++){
-            const r=8+i*4;
-            const a0=-1.1+i*.75+p*7*(i%2?1:-1);
-            const segs=6;
-            for(let j=0;j<=segs;j++){
-              const q=a0+j/segs*2.2;
-              const x=px+Math.cos(q)*r;
-              const y=py+Math.sin(q)*r;
-              if(j===0) core.moveTo(x,y); else core.lineTo(x,y);
-            }
-            core.stroke({
-              color:i===1?spec.core:spec.main,
-              width:1.8,
-              alpha:alpha*travelFade*.74,
+            const a=spin+i*Math.PI*2/3;
+            const rr=spec.size+8+(i%2)*3;
+            core.circle(
+              px-tx*4+Math.cos(a)*rr,
+              py-ty*4+Math.sin(a)*rr,
+              1.6+(i===0?.5:0)
+            ).fill({
+              color:i===0?spec.core:spec.accent,
+              alpha:alpha*travelFade*.68,
             });
           }
         } else if (spec.shape === "lava-rock") {
@@ -13502,7 +13864,10 @@ export class PixiProofRenderer {
           });
 
         const showcaseSparks =
-          spec.shape === "frost-spear" ? 4 : (spec.heavy ? 14 : 10);
+          spec.shape === "frost-spear" ? 4
+          : spec.shape === "frostfire" ? 6
+          : spec.shape === "arcane" ? 5
+          : (spec.heavy ? 14 : 10);
         for (let i = 0; i < showcaseSparks; i += 1) {
           const a =
             i / showcaseSparks * Math.PI * 2
@@ -13746,41 +14111,140 @@ export class PixiProofRenderer {
               });
           }
         } else if (spec.shape === "frostfire") {
-          for(let i=0;i<10;i++){
-            const a=i/10*Math.PI*2+seed*.01;
-            const outer=15+easeOut(hit)*(24+(i%3)*7);
-            core
-              .moveTo(ix+Math.cos(a)*6,iy+Math.sin(a)*6)
-              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
-              .stroke({
-                color:i%2?spec.main:spec.accent,
-                width:1.7,
-                alpha:alpha*fade*.56,
-              });
-          }
-          core.circle(ix,iy,8+hit*20).stroke({
-            color:spec.core,width:2,alpha:alpha*fade*.46
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*15);
+          const after=Math.exp(-hit*4.1);
+
+          glow.circle(ix,iy,12+flash*22).fill({
+            color:spec.core,alpha:alpha*flash*.20
           });
-        } else if (spec.shape === "arcane") {
-          for(let ring=0;ring<3;ring++){
-            const r=10+hit*(17+ring*7);
-            const offset=hit*(ring%2?2.8:-2.4);
-            for(let seg=0;seg<4;seg++){
-              const a0=seg*Math.PI/2+.15+offset;
-              const a1=a0+.62;
-              for(let j=0;j<=5;j++){
-                const a=a0+(a1-a0)*j/5;
-                const x=ix+Math.cos(a)*r;
-                const y=iy+Math.sin(a)*r;
-                if(j===0) core.moveTo(x,y); else core.lineTo(x,y);
-              }
-              core.stroke({
-                color:ring===1?spec.core:spec.main,
-                width:1.5,
-                alpha:alpha*fade*(.52-ring*.08),
+          core.circle(ix,iy,5+flash*7).fill({
+            color:spec.core,alpha:alpha*Math.min(1,.72+flash*.30)
+          });
+
+          // Two concentric elemental rings separate before fading: cold outside,
+          // hot inside, with the white fusion core between them.
+          glow.circle(ix,iy,12+burst*43).stroke({
+            color:spec.main,width:10,alpha:alpha*after*.11
+          });
+          core.circle(ix,iy,10+burst*34).stroke({
+            color:spec.main,width:2.0,alpha:alpha*after*.58
+          });
+          core.circle(ix,iy,7+burst*25).stroke({
+            color:spec.accent,width:2.0,alpha:alpha*after*.58
+          });
+
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2+seed*.01+hit*(i%2?.17:-.14);
+            const cold=i%2===0;
+            const inner=6+(i%3);
+            const outer=19+burst*(31+(i%4)*7);
+            const ex=ix+Math.cos(a)*outer;
+            const ey=iy+Math.sin(a)*outer;
+
+            glow
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ex,ey)
+              .stroke({
+                color:cold?spec.main:spec.accent,
+                width:cold?4.5:5.0,
+                alpha:alpha*after*.09,
+              });
+            core
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ex,ey)
+              .stroke({
+                color:i%5===0?spec.core:(cold?spec.main:spec.accent),
+                width:i%5===0?2.4:1.5,
+                alpha:alpha*after*.66,
+              });
+
+            if(cold && i%4===0){
+              const branch=a+.38;
+              core
+                .moveTo(ex,ey)
+                .lineTo(ex+Math.cos(branch)*8,ey+Math.sin(branch)*8)
+                .stroke({color:spec.core,width:1,alpha:alpha*after*.48});
+            }else if(!cold){
+              core.circle(ex,ey-hit*4,1.5+(i%3)*.35).fill({
+                color:i%3===0?spec.core:spec.accent,
+                alpha:alpha*after*.66,
               });
             }
           }
+
+          // Forward fusion fracture preserves projectile momentum.
+          for(let i=0;i<3;i++){
+            const a=angle+(i-1)*.13;
+            const outer=28+burst*(27+(i===1?8:0));
+            core
+              .moveTo(ix-tx*3,iy-ty*3)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:i===1?spec.core:(i===0?spec.main:spec.accent),
+                width:i===1?2.7:1.7,
+                alpha:alpha*after*(i===1?.76:.60),
+              });
+          }
+        } else if (spec.shape === "arcane") {
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*17);
+          const after=Math.exp(-hit*4.8);
+          const collapse=1-burst;
+
+          glow.circle(ix,iy,10+flash*20).fill({
+            color:spec.main,alpha:alpha*flash*.20
+          });
+          core.circle(ix,iy,4+flash*6).fill({
+            color:spec.core,alpha:alpha*Math.min(1,.72+flash*.34)
+          });
+
+          // The runes briefly collapse inward, then snap outward as broken
+          // concentric glyphs. This keeps Barrage precise rather than explosive.
+          for(let ring=0;ring<3;ring++){
+            const r=8+collapse*7+burst*(17+ring*8);
+            const offset=hit*(ring%2?3.4:-2.9)+seed*.004;
+            for(let seg=0;seg<4;seg++){
+              const a0=seg*Math.PI/2+.15+offset;
+              const a1=a0+.58;
+              arc(core,ix,iy,r,a0,a1,{
+                color:ring===1?spec.core:(ring===2?spec.accent:spec.main),
+                width:ring===1?1.9:1.35,
+                alpha:alpha*after*(.68-ring*.09),
+              },6);
+            }
+          }
+
+          // Six angular shards form a star-like punctuation mark at the hit.
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+seed*.013-hit*.22;
+            const inner=7+(i%2)*2;
+            const outer=17+burst*(25+(i%3)*7);
+            const mx=ix+Math.cos(a)*inner;
+            const my=iy+Math.sin(a)*inner;
+            const ex=ix+Math.cos(a)*outer;
+            const ey=iy+Math.sin(a)*outer;
+            core
+              .moveTo(mx,my)
+              .lineTo(ex,ey)
+              .lineTo(
+                ex+Math.cos(a+.72)*(5+(i%2)*2),
+                ey+Math.sin(a+.72)*(5+(i%2)*2)
+              )
+              .stroke({
+                color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%3===0?2.0:1.35,
+                alpha:alpha*after*.64,
+              });
+          }
+
+          // One short forward blade gives the instant spell a decisive finish.
+          core
+            .moveTo(ix-tx*4,iy-ty*4)
+            .lineTo(ix+tx*(31+burst*20),iy+ty*(31+burst*20))
+            .stroke({
+              color:spec.core,width:2.5,alpha:alpha*after*.72
+            });
         } else if (spec.shape === "lava-rock") {
           for(let i=0;i<10;i++){
             const a=i/10*Math.PI*2+seed*.017;

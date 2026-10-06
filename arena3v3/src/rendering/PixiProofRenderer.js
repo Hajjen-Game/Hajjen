@@ -7,6 +7,9 @@ import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-g
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
+// A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
+// Cast, melee, hit, CC and spell reactions remain enabled.
+const LIVING_RING_WALK_MOTION_ENABLED = false;
 const CLASS_IDS = Object.freeze([
   "priest",
   "druid",
@@ -4660,30 +4663,33 @@ export class PixiProofRenderer {
       const moving = worldStep > .16 && !actor.cast;
       const moveX = moving ? worldDx / worldStep : 0;
       const moveY = moving ? worldDy / worldStep : 0;
+      const walkMotion = moving && LIVING_RING_WALK_MOTION_ENABLED;
       const phaseSeed = String(actor.id || "").length * .73;
-      const moveWave = moving
+      const moveWave = walkMotion
         ? Math.sin(nowMs * .0105 + phaseSeed)
         : 0;
 
-      let offsetX = moving ? moveX * 1.25 : 0;
-      let offsetY = moving ? moveWave * 1.05 + Math.abs(moveY) * .30 : 0;
-      let rotation = moving ? moveX * .020 + moveWave * .004 : 0;
-      let scaleX = moving ? 1 + Math.abs(moveWave) * .012 : 1;
-      let scaleY = moving ? 1 - Math.abs(moveWave) * .009 : 1;
+      // Requested glide test: actual world movement is untouched, but the ring
+      // no longer bobs, rotates, stretches or squashes merely because it moves.
+      let offsetX = walkMotion ? moveX * 1.25 : 0;
+      let offsetY = walkMotion ? moveWave * 1.05 + Math.abs(moveY) * .30 : 0;
+      let rotation = walkMotion ? moveX * .020 + moveWave * .004 : 0;
+      let scaleX = walkMotion ? 1 + Math.abs(moveWave) * .012 : 1;
+      let scaleY = walkMotion ? 1 - Math.abs(moveWave) * .009 : 1;
 
-      let livingMode = moving ? "move" : "idle";
-      let livingIntensity = moving ? .72 : .12;
+      let livingMode = walkMotion ? "move" : "idle";
+      let livingIntensity = walkMotion ? .72 : .12;
       let livingDirX = moving ? moveX : Math.cos(actor.facing || 0);
       let livingDirY = moving ? moveY : Math.sin(actor.facing || 0);
-      let livingProgress = moving ? .5 : 0;
+      let livingProgress = walkMotion ? .5 : 0;
       let livingSpellId = "";
       let livingHeavy = false;
 
       view.shadow.scale.set(
-        moving ? 1 + Math.abs(moveWave) * .035 : 1,
-        moving ? 1 - Math.abs(moveWave) * .025 : 1,
+        walkMotion ? 1 + Math.abs(moveWave) * .035 : 1,
+        walkMotion ? 1 - Math.abs(moveWave) * .025 : 1,
       );
-      view.shadow.alpha = moving ? .88 : 1;
+      view.shadow.alpha = walkMotion ? .88 : 1;
 
       // -------------------------------------------------------------------
       // Cast anticipation: body braces as power gathers.

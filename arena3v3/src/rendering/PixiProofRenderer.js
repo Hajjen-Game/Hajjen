@@ -1139,31 +1139,31 @@ function paladinDkSpellProfile(spellId) {
 
     "dk-fever": {
       family: "dk", kind: "fever",
-      main: 0x6fb9d5, core: 0xd9f5ff, accent: 0x486c8d,
+      main: 0x63d8f4, core: 0xf0fdff, accent: 0x45618d,
     },
     "dk-death-strike": {
       family: "dk", kind: "death-strike",
-      main: 0xd85a64, core: 0xffd1d6, accent: 0x7c2836,
+      main: 0xe05b67, core: 0xffd7dc, accent: 0x6e2030,
     },
     "dk-obliterate": {
       family: "dk", kind: "obliterate",
-      main: 0x63d9f4, core: 0xf2fdff, accent: 0x5f86c8,
+      main: 0x55e2ff, core: 0xffffff, accent: 0x5877c9,
     },
     "dk-chains": {
       family: "dk", kind: "chains",
-      main: 0x75bcd8, core: 0xe3f8ff, accent: 0x536e86,
+      main: 0x65d5f2, core: 0xf2fdff, accent: 0x466783,
     },
     "dk-mind-freeze": {
       family: "dk", kind: "mind-freeze",
-      main: 0x6fb6d4, core: 0xe4f9ff, accent: 0x445f7c,
+      main: 0x59d4f2, core: 0xffffff, accent: 0x3e5777,
     },
     "dk-frost-strike": {
       family: "dk", kind: "frost-strike",
-      main: 0x69dcf6, core: 0xf5feff, accent: 0x5e88c9,
+      main: 0x58e0ff, core: 0xffffff, accent: 0x5579c9,
     },
     "dk-rune-tap": {
       family: "dk", kind: "rune-tap",
-      main: 0xa34b51, core: 0xddb0b4, accent: 0x513039,
+      main: 0xc24350, core: 0xffccd2, accent: 0x591b28,
     },
   };
   return profiles[spellId] || null;
@@ -3406,22 +3406,31 @@ export class PixiProofRenderer {
             },6);
           }
         } else if(burst.spellId==="dk-obliterate"){
-          for(let i=0;i<8;i++){
-            const a=i/8*Math.PI*2;
-            core
-              .moveTo(
-                Math.cos(a)*(actor.radius+4),
-                Math.sin(a)*(actor.radius+4)
-              )
-              .lineTo(
-                Math.cos(a)*(actor.radius+15+(i%3)*4),
-                Math.sin(a)*(actor.radius+15+(i%3)*4)
-              )
+          glow.circle(0,0,actor.radius+17+pulse*4).stroke({
+            color:profile.main,width:11,alpha:.11+.03*pulse
+          });
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2-time*.18;
+            const inner=actor.radius+4;
+            const outer=actor.radius+17+(i%3)*5+pulse*3;
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.07)*outer,Math.sin(a+.07)*outer)
               .stroke({
                 color:i%3===0?profile.core:profile.main,
-                width:1.7,alpha:.54,
+                width:7,alpha:.055+.02*pulse
+              });
+            core
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.07)*outer,Math.sin(a+.07)*outer)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:1.7+(i%3===0?.55:0),alpha:.56,
               });
           }
+          core.circle(0,0,actor.radius+8).stroke({
+            color:profile.core,width:1.4,alpha:.34+.10*pulse
+          });
         } else {
           core.circle(0,0,r).stroke({
             color:profile.main,width:2,alpha:.50
@@ -3513,18 +3522,38 @@ export class PixiProofRenderer {
           });
         } else if(defensive.spellId==="dk-rune-tap"){
           const rot=-time*.15;
+          glow.circle(0,0,r+14).fill({
+            color:profile.accent,alpha:.05+.02*pulse
+          });
+          glow.circle(0,0,r+11).stroke({
+            color:profile.main,width:9,alpha:.085
+          });
           for(let i=0;i<4;i++){
             const a=i*Math.PI/2+rot;
-            const outer=r+8, inner=r-1;
-            core
-              .moveTo(Math.cos(a-.18)*inner,Math.sin(a-.18)*inner)
+            const outer=r+10, mid=r+4, inner=r-2;
+            glow
+              .moveTo(Math.cos(a-.20)*inner,Math.sin(a-.20)*inner)
               .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
-              .lineTo(Math.cos(a+.18)*inner,Math.sin(a+.18)*inner)
+              .lineTo(Math.cos(a+.20)*inner,Math.sin(a+.20)*inner)
               .stroke({
                 color:i%2?profile.core:profile.main,
-                width:2,alpha:.56,
+                width:7,alpha:.07
               });
+            core
+              .moveTo(Math.cos(a-.20)*inner,Math.sin(a-.20)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(a+.20)*inner,Math.sin(a+.20)*inner)
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:2.1,alpha:.62+.05*pulse,
+              });
+            core.circle(Math.cos(a)*mid,Math.sin(a)*mid,1.5).fill({
+              color:profile.core,alpha:.50
+            });
           }
+          core.circle(0,0,r+2).stroke({
+            color:profile.core,width:1.2,alpha:.30+.08*pulse
+          });
         } else {
           // Pain Suppression / fallback: segmented ward shield.
           for(let i=0;i<4;i++){
@@ -3697,33 +3726,51 @@ export class PixiProofRenderer {
           color:0xd64b45,width:9,alpha:fade*.11
         });
       } else {
-        const rot=-p*1.4;
-        for(let i=0;i<6;i++){
-          const a=i/6*Math.PI*2+rot;
-          const start=actor.radius+24+(i%2)*5;
-          const rr=start*(1-easeOut(p)*.72);
+        // Death Strike VFX 3.0 secondary: blood/frost soul fragments collapse
+        // into the DK to sell the self-heal without a healer-like beam.
+        const pull=easeOut(p);
+        const rot=-p*1.25;
+        glow.circle(0,0,actor.radius+12+pull*8).fill({
+          color:0x8d2635,alpha:fade*.055
+        });
+        for(let i=0;i<8;i++){
+          const a=i/8*Math.PI*2+rot;
+          const start=actor.radius+28+(i%3)*5;
+          const rr=start*(1-pull*.78);
+          const x=Math.cos(a)*rr;
+          const y=Math.sin(a)*rr;
+          const color=i%3===0?0xe8fbff:(i%2?0xdf6972:0x7fd2ea);
+
+          glow.circle(x,y,4+(i%2)).fill({
+            color,alpha:fade*.07
+          });
+          core.circle(x,y,1.4+(i%3)*.45).fill({
+            color,alpha:fade*.52
+          });
           core
             .moveTo(Math.cos(a)*start,Math.sin(a)*start)
-            .lineTo(Math.cos(a+.12)*rr,Math.sin(a+.12)*rr)
+            .lineTo(x,y)
             .stroke({
-              color:i%2?0xe5b3b5:0x82c8df,
-              width:1.6,alpha:fade*.48,
+              color,width:1.15+(i%3===0?.35:0),alpha:fade*.34
             });
         }
         for(let i=0;i<4;i++){
           const a=i*Math.PI/2+rot;
-          const r=actor.radius+6+easeOut(p)*3;
+          const r=actor.radius+7+pull*3;
           core
             .moveTo(Math.cos(a-.18)*r,Math.sin(a-.18)*r)
-            .lineTo(Math.cos(a)*(r+7),Math.sin(a)*(r+7))
+            .lineTo(Math.cos(a)*(r+8),Math.sin(a)*(r+8))
             .lineTo(Math.cos(a+.18)*r,Math.sin(a+.18)*r)
             .stroke({
-              color:i%2?0xe3f8ff:0xe8a4aa,
-              width:1.7,alpha:fade*.56,
+              color:i%2?0xe8fbff:0xe56a74,
+              width:1.7,alpha:fade*.60,
             });
         }
-        glow.circle(0,0,actor.radius+10+easeOut(p)*6).stroke({
-          color:0x9f454b,width:8,alpha:fade*.09
+        core.circle(0,0,4+(1-pull)*4).fill({
+          color:0xffd7dc,alpha:fade*.58
+        });
+        glow.circle(0,0,actor.radius+11+pull*7).stroke({
+          color:0xc24350,width:9,alpha:fade*.10
         });
       }
     }
@@ -3979,24 +4026,36 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Chains of Ice: persistent linked chain wrapping the lower body.
+      // Chains of Ice VFX 3.0: heavier linked chain plus frozen anchor teeth.
       if (effect.kind === "root" && effect.spellId === "dk-chains") {
-        glow.ellipse(0,actor.radius*.42,radius+9,10).stroke({
-          color:palette.main,width:7,alpha:.12
+        glow.ellipse(0,actor.radius*.42,radius+11,12).stroke({
+          color:palette.main,width:9,alpha:.13
         });
-        const links=9;
+        const links=10;
         for(let i=0;i<links;i++){
-          const a=i/links*Math.PI*2+time*.28;
-          const rr=actor.radius+4+(i%2)*2;
+          const a=i/links*Math.PI*2+time*.22;
+          const rr=actor.radius+5+(i%2)*2;
           const x=Math.cos(a)*rr;
-          const y=actor.radius*.32+Math.sin(a)*6;
-          core.ellipse(x,y,5.8,2.7).stroke({
+          const y=actor.radius*.32+Math.sin(a)*6.5;
+          core.ellipse(x,y,6.1,2.9).stroke({
             color:i%2?palette.main:palette.core,
-            width:1.8,alpha:.74
+            width:1.9,alpha:.78
           });
         }
-        core.ellipse(0,actor.radius*.42,radius+5,7).stroke({
-          color:palette.main,width:1.3,alpha:.44
+        for(let i=0;i<6;i++){
+          const a=i/6*Math.PI*2+.14;
+          const inner=actor.radius+6;
+          const outer=actor.radius+15+(i%2)*4;
+          core
+            .moveTo(Math.cos(a)*inner,actor.radius*.42+Math.sin(a)*4)
+            .lineTo(Math.cos(a)*outer,actor.radius*.42+Math.sin(a)*8)
+            .stroke({
+              color:i%2?palette.core:palette.main,
+              width:1.45,alpha:.54
+            });
+        }
+        core.ellipse(0,actor.radius*.42,radius+6,7.5).stroke({
+          color:palette.core,width:1.35,alpha:.48
         });
         continue;
       }
@@ -11119,28 +11178,46 @@ export class PixiProofRenderer {
           continue;
         }
 
-        // DK Rune Tap.
+        // DK Rune Tap VFX 3.0: blood-rune plates lock into a short defensive ward.
         const rot=-p*.7;
+        const snap=Math.exp(-p*10);
+        const wardR=source.radius+15+appear*4;
+        glow.circle(dx,dy,wardR+11).fill({
+          color:profile.accent,alpha:a*(.07+snap*.05)
+        });
+        glow.circle(dx,dy,wardR+7).stroke({
+          color:profile.main,width:10,alpha:a*.10
+        });
+
         for(let i=0;i<4;i++){
           const ang=i*Math.PI/2+rot;
-          const p0=point(dx,dy,-7,-source.radius-9,ang);
-          const p1=point(dx,dy,0,-source.radius-19,ang);
-          const p2=point(dx,dy,7,-source.radius-9,ang);
+          const inner=source.radius+4;
+          const outer=source.radius+20;
+          const p0=point(dx,dy,-8,-inner,ang);
+          const p1=point(dx,dy,0,-outer,ang);
+          const p2=point(dx,dy,8,-inner,ang);
+
+          glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).lineTo(p2.x,p2.y).stroke({
+            color:i%2?profile.core:profile.main,width:8,alpha:a*.08
+          });
           core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).lineTo(p2.x,p2.y).stroke({
-            color:profile.main,width:2.8,alpha:a*.72
+            color:i%2?profile.core:profile.main,width:2.6,alpha:a*.76
+          });
+          core.circle(p1.x,p1.y,1.8).fill({
+            color:profile.core,alpha:a*.68
           });
         }
+
         const rune=[
-          point(dx,dy,-11,-11,rot),
-          point(dx,dy,11,-11,rot),
-          point(dx,dy,11,11,rot),
-          point(dx,dy,-11,11,rot),
+          point(dx,dy,-12,-12,rot),
+          point(dx,dy,12,-12,rot),
+          point(dx,dy,12,12,rot),
+          point(dx,dy,-12,12,rot),
         ];
-        polygon(core,rune,{
-          color:profile.core,width:1.5,alpha:a*.66
-        });
-        glow.circle(dx,dy,26).stroke({
-          color:profile.main,width:7,alpha:a*.10
+        polygon(glow,rune,{color:profile.main,alpha:a*.08},true);
+        polygon(core,rune,{color:profile.core,width:1.7,alpha:a*.72});
+        core.circle(dx,dy,4+snap*3).fill({
+          color:profile.core,alpha:a*(.46+snap*.26)
         });
         continue;
       }
@@ -11434,50 +11511,124 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="dk-chains"){
-          const links=8;
+          const clamp=easeOut(p/.48);
+          const snap=Math.exp(-p*12);
+          const links=10;
+          const ringR=22+clamp*5;
+
+          glow.circle(dx,dy,12+snap*22).fill({
+            color:profile.main,alpha:alpha*fade*snap*.12
+          });
+          glow.ellipse(dx,dy+8,ringR+10,11).stroke({
+            color:profile.main,width:10,alpha:alpha*fade*.10
+          });
+
           for(let i=0;i<links;i++){
-            const ang=i/links*Math.PI*2+p*.8;
-            const rr=19+(i%2)*4;
-            const yOff=18-easeOut(p)*(8+(i%3)*6);
+            const ang=i/links*Math.PI*2+p*.68;
+            const rr=20+(i%2)*4+clamp*2;
+            const yOff=20-clamp*(9+(i%3)*5);
             const cx=dx+Math.cos(ang)*rr;
-            const cy=dy+yOff+Math.sin(ang)*rr*.35;
-            // Pixi ellipse has no rotation, so cross-paired links imply wrapping.
-            core.ellipse(cx,cy,6,3).stroke({
+            const cy=dy+yOff+Math.sin(ang)*rr*.34;
+
+            glow.ellipse(cx,cy,8,4).stroke({
               color:i%2?profile.main:profile.core,
-              width:2.2,alpha:alpha*fade*.76
+              width:6,alpha:alpha*fade*.07
             });
+            core.ellipse(cx,cy,6.2,3.1).stroke({
+              color:i%2?profile.main:profile.core,
+              width:2.3,alpha:alpha*fade*.80
+            });
+
             if(i>0){
-              const prevAng=(i-1)/links*Math.PI*2+p*.8;
-              const px0=dx+Math.cos(prevAng)*(19+((i-1)%2)*4);
-              const py0=dy+18-easeOut(p)*(8+((i-1)%3)*6)
-                +Math.sin(prevAng)*(19+((i-1)%2)*4)*.35;
+              const prevAng=(i-1)/links*Math.PI*2+p*.68;
+              const prevR=20+((i-1)%2)*4+clamp*2;
+              const px0=dx+Math.cos(prevAng)*prevR;
+              const py0=dy+20-clamp*(9+((i-1)%3)*5)
+                +Math.sin(prevAng)*prevR*.34;
               core.moveTo(px0,py0).lineTo(cx,cy).stroke({
-                color:profile.main,width:1.1,alpha:alpha*fade*.34
+                color:profile.main,width:1.2,alpha:alpha*fade*.38
               });
             }
           }
-          core.circle(dx,dy,16+easeOut(p)*13).stroke({
-            color:profile.core,width:1.5,alpha:alpha*fade*.42
+
+          // Frost anchors bite outward as the chain closes.
+          for(let i=0;i<6;i++){
+            const ang=i/6*Math.PI*2+.2;
+            const inner=14+clamp*4;
+            const outer=27+clamp*(11+(i%3)*4);
+            core
+              .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner+8)
+              .lineTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer+8)
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:1.5+(i%3===0?.5:0),
+                alpha:alpha*fade*.58,
+              });
+          }
+          core.ellipse(dx,dy+8,ringR,8).stroke({
+            color:profile.core,width:1.6,alpha:alpha*fade*.48
           });
           continue;
         }
 
         if(effect.spellId==="dk-mind-freeze"){
-          const close=1-easeOut(p);
+          const snap=easeOut(p/.34);
+          const out=1-smooth((p-.55)/.45);
+          const close=1-snap;
+          const flash=Math.exp(-p*14);
+
+          // Two frost jaws close on the target, then a compact rune shatters.
           for(const sign of [-1,1]){
-            core
-              .moveTo(dx+sign*(29+close*11),dy-16)
-              .lineTo(dx+sign*(11+close*5),dy)
-              .lineTo(dx+sign*(29+close*11),dy+16)
+            const outerX=dx+sign*(31+close*14);
+            const innerX=dx+sign*(9+close*5);
+
+            glow
+              .moveTo(outerX,dy-20)
+              .lineTo(innerX,dy)
+              .lineTo(outerX,dy+20)
               .stroke({
-                color:profile.core,
-                width:2.8,
-                alpha:alpha*fade*.82,
+                color:profile.main,width:10,alpha:alpha*out*.10
+              });
+            core
+              .moveTo(outerX,dy-20)
+              .lineTo(innerX,dy)
+              .lineTo(outerX,dy+20)
+              .stroke({
+                color:sign>0?profile.core:profile.main,
+                width:3.0,
+                alpha:alpha*out*.86,
+              });
+
+            for(let tooth=0;tooth<3;tooth++){
+              const yy=dy-11+tooth*11;
+              core
+                .moveTo(outerX,yy)
+                .lineTo(dx+sign*(15+close*4),yy+(tooth-1)*2)
+                .stroke({
+                  color:profile.core,width:1.2,alpha:alpha*out*.58
+                });
+            }
+          }
+
+          glow.circle(dx,dy,10+flash*20).fill({
+            color:profile.core,alpha:alpha*out*flash*.15
+          });
+          core.circle(dx,dy,7+snap*12).stroke({
+            color:profile.core,width:2.0,alpha:alpha*out*.72
+          });
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+.18;
+            const r0=7;
+            const r1=19+snap*(10+(i%2)*5);
+            core
+              .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+              .lineTo(dx+Math.cos(a+.08)*r1,dy+Math.sin(a+.08)*r1)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:1.3+(i%3===0?.4:0),
+                alpha:alpha*out*.62
               });
           }
-          glow.circle(dx,dy,18+easeOut(p)*9).stroke({
-            color:profile.main,width:6,alpha:alpha*fade*.09
-          });
           continue;
         }
 
@@ -11814,57 +11965,65 @@ export class PixiProofRenderer {
           continue;
         }
 
-        // Death Knight 2.0: unlike Warrior's physical force or Rogue's
-        // speed, DK attacks gather cold/runic power around the attacker before
-        // the weapon impact. This is intentionally oversized to match the new
-        // melee presentation language.
+        // Death Knight VFX 3.0: attacker-side runic pressure stays compact,
+        // but now has a blurred aura beneath crisp frost/blood rune strokes.
         if(dk){
           const death=effect.spellId==="dk-death-strike";
-          const frost=
-            effect.spellId==="dk-obliterate"
-            || effect.spellId==="dk-frost-strike";
+          const obliterate=effect.spellId==="dk-obliterate";
+          const frostStrike=effect.spellId==="dk-frost-strike";
+          const frost=obliterate || frostStrike;
           const build=easeOut(clamp01(p/.28));
           const release=1-smooth((p-.52)/.34);
           const spin=(death?-1:1)*(p*1.35+seed*.003);
+          const auraR=source.radius+11+build*(obliterate?16:12);
 
-          glow.circle(0,0,source.radius+11+build*13).stroke({
+          glow.circle(0,0,auraR+6).stroke({
             color:profile.main,
-            width:12,
-            alpha:alpha*release*.15,
+            width:obliterate?14:11,
+            alpha:alpha*release*(obliterate?.17:.13),
           });
-          core.circle(0,0,source.radius+7+build*10).stroke({
+          core.circle(0,0,auraR).stroke({
             color:profile.main,
-            width:2.2,
-            alpha:alpha*release*.62,
+            width:obliterate?2.4:2.0,
+            alpha:alpha*release*.64,
           });
 
-          const runeCount=death?5:7;
+          const runeCount=death?5:(obliterate?8:6);
           for(let i=0;i<runeCount;i++){
             const a=i/runeCount*Math.PI*2+spin;
             const inner=source.radius+5;
-            const outer=source.radius+17+build*(8+(i%3)*4);
+            const outer=source.radius+17+build*((obliterate?11:8)+(i%3)*4);
             const bend=a+(i%2?.13:-.13);
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(bend)*outer,Math.sin(bend)*outer)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:6.5+(obliterate?1.5:0),
+                alpha:alpha*release*.07
+              });
             core
               .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
               .lineTo(Math.cos(bend)*outer,Math.sin(bend)*outer)
               .stroke({
                 color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
-                width:1.7+(i%3===0?.6:0),
-                alpha:alpha*release*(.44+(i%3)*.08),
+                width:1.6+(i%3===0?.7:0),
+                alpha:alpha*release*(.46+(i%3)*.08),
               });
           }
 
           if(frost){
-            for(let i=0;i<5;i++){
-              const a=-.85+i*.42+spin*.18;
+            const cuts=obliterate?7:5;
+            for(let i=0;i<cuts;i++){
+              const a=-.92+i*(obliterate?.31:.44)+spin*.16;
               const r0=source.radius+8;
-              const r1=r0+16+build*8;
+              const r1=r0+(obliterate?21:16)+build*(obliterate?11:8);
               glow
                 .moveTo(Math.cos(a)*r0,Math.sin(a)*r0)
                 .lineTo(Math.cos(a)*r1,Math.sin(a)*r1)
                 .stroke({
                   color:profile.main,
-                  width:7,
+                  width:obliterate?9:7,
                   alpha:alpha*release*.10,
                 });
               core
@@ -11872,15 +12031,18 @@ export class PixiProofRenderer {
                 .lineTo(Math.cos(a)*r1,Math.sin(a)*r1)
                 .stroke({
                   color:profile.core,
-                  width:1.5,
-                  alpha:alpha*release*.58,
+                  width:obliterate?1.8:1.45,
+                  alpha:alpha*release*.62,
                 });
             }
           }else if(death){
             const pulse=.5+.5*Math.sin(p*18+seed*.01);
             glow.circle(0,0,source.radius+4+build*8).fill({
               color:profile.main,
-              alpha:alpha*release*(.055+.035*pulse),
+              alpha:alpha*release*(.07+.04*pulse),
+            });
+            core.circle(0,0,4+build*3).fill({
+              color:profile.core,alpha:alpha*release*(.34+.18*pulse)
             });
           }
         }
@@ -11894,9 +12056,9 @@ export class PixiProofRenderer {
         if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=60;slashWidth=4.1;}
         if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=66;slashWidth=3.2;}
         if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=68;slashWidth=3.5;}
-        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=94;slashWidth=7.1;}
-        if(effect.spellId==="dk-death-strike"){slashCount=2;slashLength=88;slashWidth=6.4;}
-        if(effect.spellId==="dk-frost-strike"){slashCount=2;slashLength=82;slashWidth=6.0;}
+        if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=102;slashWidth=7.6;}
+        if(effect.spellId==="dk-death-strike"){slashCount=2;slashLength=90;slashWidth=6.5;}
+        if(effect.spellId==="dk-frost-strike"){slashCount=2;slashLength=86;slashWidth=5.6;}
         if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=78;slashWidth=5.5;}
 
         for(let i=0;i<slashCount;i++){
@@ -12161,9 +12323,7 @@ export class PixiProofRenderer {
             });
           }
 
-          // DK: all three strikes now get bespoke victim-side impact language.
-          // Obliterate = biggest frost fracture, Frost Strike = sharp icy burst,
-          // Death Strike = red necrotic/rune implosion.
+          // Death Knight VFX 3.0: each melee strike has its own victim language.
           if(
             effect.spellId==="dk-obliterate"
             || effect.spellId==="dk-frost-strike"
@@ -12172,91 +12332,139 @@ export class PixiProofRenderer {
             const death=effect.spellId==="dk-death-strike";
             const obliterate=effect.spellId==="dk-obliterate";
             const frost=effect.spellId==="dk-frost-strike";
-            const outerBoost=obliterate?52:(death?45:43);
+            const outerBoost=obliterate?58:(death?46:45);
+            const contact=Math.exp(-hit*(obliterate?9:11));
 
+            glow.circle(dx,dy,10+contact*(obliterate?27:20)).fill({
+              color:profile.core,
+              alpha:alpha*hitFade*contact*(obliterate?.18:.14),
+            });
             glow.circle(dx,dy,17+expand*outerBoost).stroke({
               color:profile.main,
-              width:obliterate?15:(death?14:13),
-              alpha:alpha*hitFade*(obliterate?.23:(death?.21:.20)),
+              width:obliterate?16:(death?14:13),
+              alpha:alpha*hitFade*(obliterate?.24:(death?.21:.20)),
             });
-            glow.circle(dx,dy,11+expand*(death?31:35)).fill({
-              color:death?profile.accent:profile.main,
-              alpha:alpha*hitFade*(death?.13:.10),
-            });
-            core.circle(dx,dy,7+expand*(obliterate?23:19)).stroke({
+            core.circle(dx,dy,7+expand*(obliterate?24:19)).stroke({
               color:profile.core,
-              width:obliterate?3.1:2.7,
+              width:obliterate?3.2:2.6,
               alpha:alpha*hitFade*.88,
             });
 
-            const fractures=obliterate?12:(death?10:9);
+            const fractures=obliterate?14:(death?10:9);
             for(let i=0;i<fractures;i++){
               const a=i*Math.PI*2/fractures+(death?-hit*.34:hit*.46);
               const r0=9+(i%2)*3;
-              const r1=
-                30+expand*
-                (
-                  obliterate
-                    ? 24+(i%4)*7
-                    : death
-                      ? 20+(i%3)*7
-                      : 19+(i%3)*6
-                );
+              const r1=30+expand*(
+                obliterate
+                  ? 29+(i%4)*8
+                  : death
+                    ? 20+(i%3)*7
+                    : 20+(i%3)*6
+              );
               const bend=a+(i%2?.11:-.11)*(death?-1:1);
+
+              glow
+                .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+                .lineTo(dx+Math.cos(bend)*r1,dy+Math.sin(bend)*r1)
+                .stroke({
+                  color:i%3===0?profile.core:profile.main,
+                  width:obliterate?7:6,
+                  alpha:alpha*hitFade*.07,
+                });
               core
                 .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
                 .lineTo(dx+Math.cos(bend)*r1,dy+Math.sin(bend)*r1)
                 .stroke({
                   color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
-                  width:2.1+(i%3===0?.9:.2),
+                  width:2.0+(i%3===0?.9:.2),
                   alpha:alpha*hitFade*.76,
                 });
             }
 
             if(obliterate){
-              // Crossed frost cleaves make Obliterate unmistakably the DK heavy.
+              // Massive crossed frost cleaves plus a short inner ice-star.
               for(const a of [-.72,.72]){
-                const p0=point(dx,dy,-34,0,a);
-                const p1=point(dx,dy,34,0,a);
+                const p0=point(dx,dy,-39,0,a);
+                const p1=point(dx,dy,39,0,a);
                 glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-                  color:profile.main,width:13,alpha:alpha*hitFade*.16
+                  color:profile.main,width:15,alpha:alpha*hitFade*.17
                 });
                 core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-                  color:profile.core,width:3.2,alpha:alpha*hitFade*.86
+                  color:profile.core,width:3.4,alpha:alpha*hitFade*.90
                 });
               }
+              for(let i=0;i<6;i++){
+                const a=i/6*Math.PI*2+.12;
+                core
+                  .moveTo(dx+Math.cos(a)*7,dy+Math.sin(a)*7)
+                  .lineTo(dx+Math.cos(a)*27,dy+Math.sin(a)*27)
+                  .stroke({
+                    color:i%2?profile.main:profile.core,
+                    width:1.8,alpha:alpha*hitFade*.66
+                  });
+              }
             }else if(death){
-              // Death Strike collapses inward with a red runic crown.
+              // Death Strike implodes blood runes, then returns a thin red soul trace.
               for(let i=0;i<5;i++){
                 const a=i*Math.PI*2/5-hit*.55;
-                const outer=38+expand*17;
-                const inner=13+expand*4;
+                const outer=40+expand*18;
+                const inner=12+expand*4;
+                glow
+                  .moveTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                  .lineTo(dx+Math.cos(a+.28)*inner,dy+Math.sin(a+.28)*inner)
+                  .stroke({
+                    color:profile.main,width:8,alpha:alpha*hitFade*.08
+                  });
                 core
                   .moveTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
                   .lineTo(dx+Math.cos(a+.28)*inner,dy+Math.sin(a+.28)*inner)
                   .stroke({
                     color:i%2?profile.core:profile.main,
                     width:2.5,
-                    alpha:alpha*hitFade*.80,
+                    alpha:alpha*hitFade*.82,
                   });
               }
-              glow.circle(dx,dy,9+expand*24).fill({
+              glow.circle(dx,dy,9+expand*26).fill({
                 color:profile.main,alpha:alpha*hitFade*.14
               });
+              const returnP=clamp01((hit-.18)/.72);
+              if(returnP>0){
+                const q=1-easeOut(returnP);
+                const qx=dx*q;
+                const qy=dy*q;
+                core
+                  .moveTo(dx,dy)
+                  .lineTo(dx*.56+nx*8,dy*.56+ny*8)
+                  .lineTo(qx,qy)
+                  .stroke({
+                    color:profile.core,width:1.4,alpha:alpha*hitFade*.48
+                  });
+              }
             }else if(frost){
+              // Frost Strike is faster and narrower: five forward ice blades,
+              // not the radial devastation of Obliterate.
               for(let i=0;i<5;i++){
-                const a=-1.05+i*.52;
-                const r0=10;
-                const r1=33+expand*(12+(i%2)*6);
+                const a=-1.12+i*.54+hit*.08;
+                const r0=9;
+                const r1=35+expand*(14+(i%2)*6);
+                glow
+                  .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+                  .lineTo(dx+Math.cos(a)*r1,dy+Math.sin(a)*r1)
+                  .stroke({
+                    color:profile.main,width:8,alpha:alpha*hitFade*.09
+                  });
                 core
                   .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
                   .lineTo(dx+Math.cos(a)*r1,dy+Math.sin(a)*r1)
                   .stroke({
                     color:i%2?profile.core:profile.main,
                     width:2.2,
-                    alpha:alpha*hitFade*.74,
+                    alpha:alpha*hitFade*.78,
                   });
               }
+              core.circle(dx,dy,5+expand*10).fill({
+                color:profile.core,alpha:alpha*hitFade*.64
+              });
             }
           }
 
@@ -12515,25 +12723,56 @@ export class PixiProofRenderer {
           continue;
         }
 
-        // DK Fever.
-        const rr=9+easeOut(p)*24;
-        for(let i=0;i<7;i++){
-          const ang=i/7*Math.PI*2+p*.35;
-          core
-            .moveTo(dx+Math.cos(ang)*rr*.35,dy+Math.sin(ang)*rr*.35)
-            .lineTo(dx+Math.cos(ang+.14)*rr,dy+Math.sin(ang+.14)*rr)
+        // Frost Fever VFX 3.0: a cold disease seal blooms once on application.
+        const spread=easeOut(p/.48);
+        const snap=Math.exp(-p*13);
+        const rr=10+spread*27;
+
+        glow.circle(dx,dy,11+snap*21).fill({
+          color:profile.main,alpha:alpha*fade*snap*.13
+        });
+        glow.circle(dx,dy,rr+9).stroke({
+          color:profile.main,width:10,alpha:alpha*fade*.09
+        });
+
+        for(let i=0;i<8;i++){
+          const ang=i/8*Math.PI*2+p*.30;
+          const inner=rr*.32;
+          const outer=rr+(i%3)*4;
+          glow
+            .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+            .lineTo(dx+Math.cos(ang+.12)*outer,dy+Math.sin(ang+.12)*outer)
             .stroke({
               color:i%3===0?profile.core:profile.main,
-              width:1.8,alpha:alpha*fade*.72
+              width:6,alpha:alpha*fade*.06
+            });
+          core
+            .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+            .lineTo(dx+Math.cos(ang+.12)*outer,dy+Math.sin(ang+.12)*outer)
+            .stroke({
+              color:i%3===0?profile.core:profile.main,
+              width:1.55+(i%3===0?.45:0),
+              alpha:alpha*fade*.66
             });
         }
-        for(let i=0;i<7;i++){
-          const ang=i/7*Math.PI*2+seed*.017;
-          const q=8+p*(15+(i%4)*4);
-          core.circle(dx+Math.cos(ang)*q,dy+Math.sin(ang)*q-p*9,1.4+(i%2)*.3).fill({
-            color:profile.core,alpha:alpha*fade*.44
+
+        for(let i=0;i<8;i++){
+          const ang=i/8*Math.PI*2+seed*.017;
+          const q=9+spread*(17+(i%4)*4);
+          const x=dx+Math.cos(ang)*q;
+          const y=dy+Math.sin(ang)*q-p*(7+(i%3)*2);
+          glow.circle(x,y,4+(i%2)).fill({
+            color:profile.main,alpha:alpha*fade*.06
+          });
+          core.circle(x,y,1.4+(i%2)*.35).fill({
+            color:i%3===0?profile.core:profile.main,
+            alpha:alpha*fade*.50
           });
         }
+
+        core.circle(dx,dy,6+snap*4).stroke({
+          color:profile.core,width:1.5,alpha:alpha*fade*.58
+        });
         continue;
       }
 

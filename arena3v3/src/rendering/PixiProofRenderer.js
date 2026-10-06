@@ -6875,29 +6875,200 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Druid: leaf motes spiral inward, avoiding a mage-like rune ring.
+      // Druid VFX 3.0 build-ups stay organic: no magic runes or square seals.
+      // Regrowth gathers living growth; Cyclone gathers accelerating wind bands.
       if (classId === "druid" && profile) {
-        for (let i = 0; i < 8; i += 1) {
-          const base =
-            i / 8 * Math.PI * 2
-            + Math.sin(actor.x * .011 + actor.y * .019 + i * 2.7) * .38;
-          const a = base + time * (i % 2 ? 1 : -1);
-          const rr = actor.radius + 34 - p * 18 + (i % 3) * 4;
+        glow.visible = true;
+
+        if(spellId==="druid-regrowth"){
+          const charge=smooth(p);
+          const finalP=smooth((p-.72)/.28);
+          const pulse=.5+.5*Math.sin(time*11);
+
+          // Leaves spiral inward at mixed speeds so the gather feels alive.
+          for(let i=0;i<10;i++){
+            const base=
+              i/10*Math.PI*2
+              + Math.sin(actor.x*.011+actor.y*.019+i*2.7)*.38;
+            const a=base+time*(i%2?1.05:-.88);
+            const startR=actor.radius+40+(i%3)*5;
+            const rr=startR*(1-charge*.58);
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr-charge*(5+(i%2)*3);
+            const size=3.0+(i%3)*.7;
+            const color=i%3===0?profile.core:(i%2?profile.main:profile.accent);
+
+            drawLeaf(glow,x,y,a+p,size*1.8,profile.main,.045+charge*.07);
+            drawLeaf(g,x,y,a+p,size,color,.26+charge*.50);
+          }
+
+          // Four vine lanes grow up around the Druid rather than forming a rune.
+          for(let i=0;i<4;i++){
+            const side=(i-1.5)*8;
+            const sway=Math.sin(time*2.2+i*1.7)*6*(.45+charge*.55);
+            glow
+              .moveTo(side,actor.radius+8)
+              .lineTo(side+sway*.35,3)
+              .lineTo(side*.25+sway,-actor.radius-12-charge*8)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:7+charge*2,
+                alpha:.045+charge*.065,
+              });
+            g
+              .moveTo(side,actor.radius+8)
+              .lineTo(side+sway*.35,3)
+              .lineTo(side*.25+sway,-actor.radius-12-charge*8)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:1.5+charge*.6,
+                alpha:.20+charge*.43,
+              });
+          }
+
+          glow.circle(0,0,actor.radius+11+charge*6+pulse*1.5).stroke({
+            color:profile.main,width:9,alpha:.045+charge*.07
+          });
+          g.circle(0,0,actor.radius+7+charge*4).stroke({
+            color:profile.core,width:1.25+charge*.55,alpha:.20+charge*.38
+          });
+
+          if(finalP>0){
+            // Final bloom: growth collapses to the hand/body core immediately
+            // before release, then the target receives the large Regrowth landing.
+            glow.circle(0,0,11+finalP*10).fill({
+              color:profile.core,alpha:finalP*.17
+            });
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2+.18;
+              const inner=actor.radius+14;
+              const outer=actor.radius+5;
+              glow
+                .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+                .lineTo(Math.cos(a+.08)*outer,Math.sin(a+.08)*outer)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:7,alpha:finalP*.075
+                });
+              g
+                .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+                .lineTo(Math.cos(a+.08)*outer,Math.sin(a+.08)*outer)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.4,alpha:finalP*.58
+                });
+            }
+            g.circle(0,0,4+finalP*5).fill({
+              color:profile.core,alpha:finalP*.72
+            });
+          }
+          continue;
+        }
+
+        if(spellId==="druid-cyclone"){
+          const charge=smooth(p);
+          const finalP=smooth((p-.74)/.26);
+          const spin=time*(1.15+charge*1.55);
+
+          // Wind bands tighten and accelerate as the cast approaches release.
+          for(let layer=0;layer<5;layer++){
+            const rr=actor.radius+15+layer*7-charge*(5+layer*1.2);
+            const phase=spin*(layer%2?-.85:1)+layer*.62;
+            const span=.82+charge*.28;
+
+            for(let seg=0;seg<2;seg++){
+              const a0=phase+seg*Math.PI;
+              strokeArc(glow,rr,a0,a0+span,{
+                color:layer%2?profile.core:profile.main,
+                width:8+charge*2,
+                alpha:.045+charge*.07,
+              },8);
+              strokeArc(g,rr,a0,a0+span,{
+                color:layer%2?profile.core:profile.main,
+                width:1.5+charge*.55,
+                alpha:.22+charge*.44,
+              },8);
+            }
+          }
+
+          // Leaves are caught by the forming vortex and move inward/upward.
+          for(let i=0;i<9;i++){
+            const a=i/9*Math.PI*2+spin*(i%2?.72:-.62);
+            const startR=actor.radius+40+(i%3)*6;
+            const rr=startR*(1-charge*.50);
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr*.55-charge*(8+(i%3)*3);
+            const size=2.7+(i%3)*.6;
+            const color=i%3===0?profile.core:profile.main;
+
+            drawLeaf(glow,x,y,a+spin,size*1.8,profile.main,.04+charge*.065);
+            drawLeaf(g,x,y,a+spin,size,color,.24+charge*.45);
+          }
+
+          // Narrow vertical wind spine keeps Cyclone readable as a tornado cast,
+          // not just another circular nature effect.
+          for(let i=0;i<4;i++){
+            const y0=actor.radius+7-i*10;
+            const width=actor.radius+8+i*4-charge*3;
+            glow.ellipse(0,y0,width+5,4+i*.7).stroke({
+              color:i%2?profile.core:profile.main,
+              width:7,alpha:.045+charge*.06
+            });
+            g.ellipse(0,y0,width,3.5+i*.6).stroke({
+              color:i%2?profile.core:profile.main,
+              width:1.35+i*.12,alpha:.22+charge*.38
+            });
+          }
+
+          if(finalP>0){
+            glow.ellipse(0,0,actor.radius+15-finalP*4,actor.radius+8).fill({
+              color:profile.main,alpha:finalP*.08
+            });
+            glow.circle(0,0,9+finalP*8).fill({
+              color:profile.core,alpha:finalP*.13
+            });
+            g.circle(0,0,3+finalP*4).fill({
+              color:profile.core,alpha:finalP*.62
+            });
+          }
+          continue;
+        }
+
+        // Remaining current Druid spells are instant. This only keeps a
+        // restrained future-proof gather for later casted additions.
+        for(let i=0;i<8;i++){
+          const base=
+            i/8*Math.PI*2
+            + Math.sin(actor.x*.011+actor.y*.019+i*2.7)*.38;
+          const a=base+time*(i%2?1:-1);
+          const rr=actor.radius+34-p*18+(i%3)*4;
+          drawLeaf(
+            glow,
+            Math.cos(a)*rr,
+            Math.sin(a)*rr,
+            a+p,
+            5+(i%3),
+            profile.main,
+            .04+p*.06
+          );
           drawLeaf(
             g,
-            Math.cos(a) * rr,
-            Math.sin(a) * rr,
-            a + p,
-            2.8 + (i % 3) * .6,
-            i % 3 === 0 ? profile.core : profile.main,
-            .24 + p * .48,
+            Math.cos(a)*rr,
+            Math.sin(a)*rr,
+            a+p,
+            2.8+(i%3)*.6,
+            i%3===0?profile.core:profile.main,
+            .24+p*.48
           );
         }
 
-        if (p > .74) {
-          g.circle(0,0,4 + (p - .74) * 15).fill({
-            color:profile.core,
-            alpha:clamp01((p - .74) * 1.7),
+        if(p>.74){
+          const finalP=smooth((p-.74)/.26);
+          glow.circle(0,0,8+finalP*7).fill({
+            color:profile.core,alpha:finalP*.12
+          });
+          g.circle(0,0,4+finalP*5).fill({
+            color:profile.core,alpha:finalP*.64
           });
         }
         continue;

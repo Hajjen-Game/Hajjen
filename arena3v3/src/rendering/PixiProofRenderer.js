@@ -1286,51 +1286,51 @@ function commonCasterSpellProfile(spellId) {
 
     "shaman-flame-shock": {
       kind: "flame-shock",
-      main: 0xd96d3e,
-      core: 0xffe0a1,
-      accent: 0x9e3e2d,
+      main: 0xff6a32,
+      core: 0xffffd8,
+      accent: 0xb82e24,
     },
     "shaman-chain-lightning": {
       kind: "lightning-release",
-      main: 0x63c7dd,
-      core: 0xecfeff,
-      accent: 0x4c91bd,
+      main: 0x4fdcff,
+      core: 0xffffff,
+      accent: 0x367fc7,
     },
     "shaman-lava-burst": {
       kind: "lava",
-      main: 0xd66a38,
-      core: 0xffe7a4,
-      accent: 0x9d3527,
+      main: 0xff6330,
+      core: 0xffffcf,
+      accent: 0x9b241d,
       travelEnd: .52,
-      size: 10,
+      size: 14,
       heavy: true,
     },
     "shaman-hex": {
       kind: "nature-control",
-      main: 0x78b89e,
-      core: 0xeaffdf,
-      accent: 0x4d7f68,
+      main: 0x6fcf9b,
+      core: 0xf2ffe0,
+      accent: 0x376b55,
     },
     "shaman-astral-shift": {
       kind: "astral",
-      main: 0x78c4d6,
-      core: 0xeffeff,
-      accent: 0x846cb7,
+      main: 0x63d8ef,
+      core: 0xffffff,
+      accent: 0x8b68d4,
     },
     "shaman-elemental-blast": {
       kind: "elemental",
-      main: 0x66c5dc,
-      core: 0xfff0bc,
-      accent: 0xd97843,
+      main: 0x55d9ff,
+      core: 0xffffe8,
+      accent: 0xff7a3c,
       travelEnd: .50,
-      size: 9,
+      size: 12,
       heavy: true,
     },
     "shaman-stormstrike": {
       kind: "stormstrike",
-      main: 0x65cce0,
-      core: 0xefffff,
-      accent: 0xd19b58,
+      main: 0x4ddcff,
+      core: 0xffffff,
+      accent: 0xb88cff,
     },
 
     "warlock-corruption": {
@@ -1454,20 +1454,22 @@ function projectileVfx2Spec(spellId) {
       shape: "lava-rock",
       trailStyle: "magma",
       travelEnd: .52,
-      size: 14,
-      tail: 110,
-      trailReach: .91,
+      size: 17,
+      tail: 132,
+      trailReach: .94,
       heavy: true,
       arc: 24,
+      showcase: true,
     },
     "shaman-elemental-blast": {
       shape: "elemental",
       trailStyle: "elemental",
       travelEnd: .50,
-      size: 11,
-      tail: 118,
-      trailReach: .94,
+      size: 14,
+      tail: 138,
+      trailReach: .96,
       heavy: true,
+      showcase: true,
     },
     "warlock-shadow-bolt": {
       shape: "shadow",
@@ -3453,13 +3455,22 @@ export class PixiProofRenderer {
           }
         } else if(defensive.spellId==="shaman-astral-shift"){
           const colors=[profile.main,profile.core,profile.accent];
+          glow.circle(0,0,r+13).fill({
+            color:profile.main,alpha:.045+.018*pulse
+          });
           for(let i=0;i<3;i++){
             const a=time*(i%2?.75:-.65)+i*Math.PI*2/3;
-            const rr=r+4+i*4;
-            core.circle(Math.cos(a)*rr,Math.sin(a)*rr,2.5).fill({
-              color:colors[i],alpha:.62
+            const rr=r+4+i*5;
+            arc(core,0,0,rr,a-.50,a+.50,{
+              color:colors[i],width:1.35+(i===1?.3:0),alpha:.36+.06*pulse
+            },6);
+            core.circle(Math.cos(a)*rr,Math.sin(a)*rr,2.3+(i===1?.5:0)).fill({
+              color:colors[i],alpha:.68
             });
           }
+          core.circle(0,0,r+3).stroke({
+            color:profile.core,width:1.15,alpha:.28+.10*pulse
+          });
         } else if(defensive.spellId==="warlock-resolve"){
           for(let i=0;i<5;i++){
             const a=i/5*Math.PI*2-time*.12;
@@ -4006,34 +4017,48 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Hex: stable green hex seal with small rotating nature runes.
+      // Hex: layered nature seal stays readable for the full incap duration.
       if (
         effect.kind === "incapacitate"
         && effect.spellId === "shaman-hex"
       ) {
+        const sealR=actor.radius+11;
         const pts=[];
         for(let i=0;i<6;i++){
           const a=-Math.PI/2+i*Math.PI/3;
-          pts.push({
-            x:Math.cos(a)*(actor.radius+11),
-            y:Math.sin(a)*(actor.radius+11)
-          });
+          pts.push({x:Math.cos(a)*sealR,y:Math.sin(a)*sealR});
         }
         core.moveTo(pts[0].x,pts[0].y);
         for(let i=1;i<pts.length;i++) core.lineTo(pts[i].x,pts[i].y);
         core.lineTo(pts[0].x,pts[0].y).stroke({
-          color:palette.main,width:2,alpha:.62
+          color:palette.main,width:2.0,alpha:.66
         });
 
-        for(let i=0;i<3;i++){
-          const a=time*.65+i*Math.PI*2/3;
-          const rr=actor.radius+17;
-          core.circle(Math.cos(a)*rr,Math.sin(a)*rr,2).fill({
-            color:palette.core,alpha:.54
+        const inner=[];
+        for(let i=0;i<6;i++){
+          const a=Math.PI/6+i*Math.PI/3;
+          inner.push({x:Math.cos(a)*(actor.radius+3),y:Math.sin(a)*(actor.radius+3)});
+        }
+        core.moveTo(inner[0].x,inner[0].y);
+        for(let i=1;i<inner.length;i++) core.lineTo(inner[i].x,inner[i].y);
+        core.lineTo(inner[0].x,inner[0].y).stroke({
+          color:palette.core,width:1.1,alpha:.34
+        });
+
+        for(let i=0;i<6;i++){
+          const a=time*.42+i*Math.PI/3;
+          const rr=actor.radius+18+(i%2)*3;
+          const x=Math.cos(a)*rr;
+          const y=Math.sin(a)*rr;
+          core.circle(x,y,1.6+(i%3===0?.5:0)).fill({
+            color:i%3===0?palette.core:palette.main,alpha:.52
           });
         }
-        glow.circle(0,0,actor.radius+13).stroke({
-          color:palette.main,width:7,alpha:.09
+        glow.circle(0,0,actor.radius+16).stroke({
+          color:palette.main,width:9,alpha:.10+.025*pulse
+        });
+        glow.circle(0,0,actor.radius+6).fill({
+          color:palette.main,alpha:.035+.012*pulse
         });
         continue;
       }
@@ -7135,6 +7160,34 @@ export class PixiProofRenderer {
               color: palette.core,
               alpha: intensity * .94,
             });
+        }
+
+        // VFX 3.0 target contact: a compact electrical corona appears as each
+        // hop finishes, giving the chain a stronger victim-side snap without
+        // changing the established bolt motion.
+        if (reveal > .72) {
+          const contact = clamp01((reveal - .72) / .28);
+          const contactFade = (1 - contact) * intensity;
+          const contactR = 7 + easeOut(contact) * 19;
+          view.chainGlowFx.circle(to.x,to.y,contactR+6).stroke({
+            color:palette.main,width:10,alpha:contactFade*.13
+          });
+          view.chainFx.circle(to.x,to.y,contactR).stroke({
+            color:palette.core,width:1.8,alpha:contactFade*.68
+          });
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+snapFrame*.07;
+            const inner=6;
+            const outer=13+contact*(12+(i%3)*4);
+            view.chainSparkFx
+              .moveTo(to.x+Math.cos(a)*inner,to.y+Math.sin(a)*inner)
+              .lineTo(to.x+Math.cos(a+.06)*outer,to.y+Math.sin(a+.06)*outer)
+              .stroke({
+                color:i%3===0?palette.core:palette.main,
+                width:i%3===0?1.25:.85,
+                alpha:contactFade*.72
+              });
+          }
         }
 
         // Directional sparks flow along the main channel.
@@ -10609,18 +10662,39 @@ export class PixiProofRenderer {
 
         if(effect.spellId==="shaman-astral-shift"){
           const colors=[profile.main,profile.core,profile.accent];
+          const appear=easeOut(p/.20);
+          const snap=Math.exp(-p*10);
+
+          glow.circle(dx,dy,25+appear*12).fill({
+            color:profile.main,alpha:a*(.07+snap*.08)
+          });
+          glow.circle(dx,dy,31+appear*10).stroke({
+            color:profile.accent,width:11,alpha:a*.08
+          });
+
+          // Three offset astral bands phase around the caster, each with a
+          // bright anchor node and a dim trailing afterimage.
           for(let i=0;i<3;i++){
             const ang=p*(i%2?4.2:-3.7)+i*Math.PI*2/3;
-            const rr=18+i*6;
-            core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,3.2).fill({
-              color:colors[i],alpha:a*.72
+            const rr=18+i*7+appear*3;
+            arc(glow,dx,dy,rr,ang-.72,ang+.72,{
+              color:colors[i],width:8,alpha:a*.08
+            },8);
+            arc(core,dx,dy,rr,ang-.62,ang+.62,{
+              color:colors[i],width:1.8,alpha:a*.60
+            },8);
+            core.circle(dx+Math.cos(ang)*rr,dy+Math.sin(ang)*rr,3.0+(i===1?.7:0)).fill({
+              color:colors[i],alpha:a*.82
             });
-            arc(core,dx,dy,rr,ang-.55,ang+.55,{
-              color:colors[i],width:1.4,alpha:a*.44
-            },6);
+            core.circle(
+              dx+Math.cos(ang-.48)*(rr+2),
+              dy+Math.sin(ang-.48)*(rr+2),
+              1.4
+            ).fill({color:profile.core,alpha:a*.42});
           }
-          glow.circle(dx,dy,31).fill({
-            color:profile.main,alpha:a*.07
+
+          core.circle(dx,dy,8+snap*5).stroke({
+            color:profile.core,width:1.4,alpha:a*(.42+snap*.25)
           });
           continue;
         }
@@ -10876,23 +10950,43 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="shaman-hex"){
-          const radius=13+easeOut(p)*24;
-          for(let i=0;i<6;i++){
-            const ang=i/6*Math.PI*2+p*(i%2?2.7:-2.2);
-            arc(core,dx,dy,radius+(i%2)*4,ang,ang+.72,{
-              color:i%3===0?profile.core:profile.main,
-              width:1.8,alpha:alpha*fade*.55
-            },5);
-          }
-          // Narrow eye/diamond at center.
-          const diamond=[
-            {x:dx,y:dy-10},{x:dx+15,y:dy},{x:dx,y:dy+10},{x:dx-15,y:dy},
-          ];
-          polygon(core,diamond,{
-            color:profile.accent,width:1.7,alpha:alpha*fade*.62
+          const build=easeOut(p/.34);
+          const snap=Math.exp(-p*12);
+          const radius=14+build*25;
+          const spin=p*2.4+seed*.006;
+
+          glow.circle(dx,dy,radius+9).stroke({
+            color:profile.main,width:10,alpha:alpha*fade*.10
           });
-          core.circle(dx,dy,3.2).fill({
-            color:profile.core,alpha:alpha*fade*.75
+          glow.circle(dx,dy,11+snap*17).fill({
+            color:profile.core,alpha:alpha*fade*snap*.10
+          });
+
+          // Six broken nature runes lock into a hexagonal seal.
+          for(let i=0;i<6;i++){
+            const center=i/6*Math.PI*2+spin*(i%2?.28:-.22);
+            arc(core,dx,dy,radius+(i%2)*4,center-.34,center+.34,{
+              color:i%3===0?profile.core:profile.main,
+              width:i%3===0?2.2:1.6,
+              alpha:alpha*fade*.64
+            },6);
+            const rr=radius+8+(i%2)*3;
+            core.circle(dx+Math.cos(center)*rr,dy+Math.sin(center)*rr,1.7+(i%3===0?.6:0)).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.66
+            });
+          }
+
+          const hex=[];
+          for(let i=0;i<6;i++){
+            const a=-Math.PI/2+i*Math.PI/3;
+            hex.push({x:dx+Math.cos(a)*15,y:dy+Math.sin(a)*15});
+          }
+          polygon(core,hex,{
+            color:profile.accent,width:1.9,alpha:alpha*fade*.72
+          });
+          core.circle(dx,dy,3.4+snap*2).fill({
+            color:profile.core,alpha:alpha*fade*.82
           });
           continue;
         }
@@ -11515,23 +11609,47 @@ export class PixiProofRenderer {
             }
           }
 
-          // Stormstrike: thick electric forks flash directly on the victim.
+          // Stormstrike VFX 3.0: crossed weapon energy plus a compact thunder
+          // detonation and branching forks on the victim.
           if(effect.spellId==="shaman-stormstrike"){
-            glow.circle(dx,dy,18+expand*37).stroke({
-              color:0x78e6ff,width:13,alpha:alpha*hitFade*.20
+            const thunder=Math.exp(-hit*5.4);
+            glow.circle(dx,dy,18+expand*42).stroke({
+              color:profile.main,width:15,alpha:alpha*hitFade*.22
             });
-            for(let i=0;i<6;i++){
+            glow.circle(dx,dy,10+thunder*21).fill({
+              color:profile.core,alpha:alpha*hitFade*thunder*.16
+            });
+            core.circle(dx,dy,9+expand*25).stroke({
+              color:profile.core,width:2.2,alpha:alpha*hitFade*.72
+            });
+
+            for(let i=0;i<8;i++){
               const sign=i%2?1:-1;
-              const lane=(i-2.5)*5;
-              core
-                .moveTo(dx+sign*(22+Math.abs(lane)),dy-30+lane*.25)
-                .lineTo(dx-sign*(5+Math.abs(lane)*.15),dy-7)
-                .lineTo(dx+sign*(12+Math.abs(lane)*.25),dy+14+lane*.18)
-                .stroke({
-                  color:i%2?profile.core:0x78e6ff,
-                  width:2.1+(i%3)*.35,
-                  alpha:alpha*hitFade*.84,
-                });
+              const lane=(i-3.5)*4.5;
+              const topX=dx+sign*(24+Math.abs(lane)*.75);
+              const topY=dy-34+lane*.22;
+              const midX=dx-sign*(4+Math.abs(lane)*.12);
+              const midY=dy-7+(i%3)*2;
+              const endX=dx+sign*(14+Math.abs(lane)*.22);
+              const endY=dy+17+lane*.16;
+
+              glow.moveTo(topX,topY).lineTo(midX,midY).lineTo(endX,endY).stroke({
+                color:profile.main,width:7,alpha:alpha*hitFade*.10
+              });
+              core.moveTo(topX,topY).lineTo(midX,midY).lineTo(endX,endY).stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:1.8+(i%3)*.35,
+                alpha:alpha*hitFade*.84,
+              });
+
+              if(i%2===0){
+                core
+                  .moveTo(midX,midY)
+                  .lineTo(midX-sign*(8+(i%3)*2),midY+8+(i%3)*2)
+                  .stroke({
+                    color:profile.accent,width:1.15,alpha:alpha*hitFade*.58
+                  });
+              }
             }
           }
         }
@@ -11633,25 +11751,63 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="shaman-flame-shock"){
-          for(let i=0;i<9;i++){
-            const side=Math.sin(seed*.41+i*1.91)*19;
-            const baseX=dx+side;
-            const baseY=dy+16-(i%3)*2;
-            const rise=(18+(i%4)*8)*easeOut(p);
-            const sway=Math.sin(i*2.2+p*10)*8;
-            core
-              .moveTo(baseX,baseY)
-              .lineTo(baseX+sway*.45,baseY-rise*.55)
-              .lineTo(baseX+sway,baseY-rise)
-              .stroke({
-                color:i%3===0?profile.core:profile.main,
-                width:1.7+(i%3)*.5,
-                alpha:alpha*fade*(.46+(i%2)*.16),
-              });
-          }
-          glow.circle(dx,dy,9+p*24).stroke({
-            color:profile.accent,width:7,alpha:alpha*fade*.09
+          const ignite=easeOut(p/.24);
+          const snap=Math.exp(-p*13);
+          const ring=11+ignite*27;
+
+          glow.circle(dx,dy,12+snap*20).fill({
+            color:profile.main,alpha:alpha*fade*(.06+snap*.20)
           });
+          glow.circle(dx,dy,ring+8).stroke({
+            color:profile.main,width:10,alpha:alpha*fade*.11
+          });
+          core.circle(dx,dy,ring).stroke({
+            color:profile.accent,width:1.8,alpha:alpha*fade*.55
+          });
+
+          // Jagged fire tongues rise from a scorched elemental seal.
+          for(let i=0;i<10;i++){
+            const ang=i/10*Math.PI*2+seed*.009;
+            const baseR=8+(i%2)*3;
+            const outer=18+ignite*(18+(i%4)*6);
+            const bx=dx+Math.cos(ang)*baseR;
+            const by=dy+Math.sin(ang)*baseR+10;
+            const mx=dx+Math.cos(ang+.10)*(outer*.65);
+            const my=dy+Math.sin(ang+.10)*(outer*.45)-ignite*(8+(i%3)*3);
+            const ex=dx+Math.cos(ang-.06)*outer;
+            const ey=dy+Math.sin(ang-.06)*outer-ignite*(14+(i%4)*4);
+
+            glow.moveTo(bx,by).lineTo(mx,my).lineTo(ex,ey).stroke({
+              color:i%3===0?profile.core:profile.main,
+              width:6+(i%3),
+              alpha:alpha*fade*.08,
+            });
+            core.moveTo(bx,by).lineTo(mx,my).lineTo(ex,ey).stroke({
+              color:i%3===0?profile.core:profile.main,
+              width:1.5+(i%3)*.45,
+              alpha:alpha*fade*(.52+(i%2)*.12),
+            });
+          }
+
+          // Hot center + ember chips make the application read immediately.
+          glow.circle(dx,dy,7+snap*8).fill({
+            color:profile.accent,alpha:alpha*fade*.15
+          });
+          core.circle(dx,dy,3.5+snap*3.5).fill({
+            color:profile.core,alpha:alpha*fade*.82
+          });
+          for(let i=0;i<7;i++){
+            const a=i/7*Math.PI*2+p*2.3+seed*.013;
+            const rr=13+ignite*(13+(i%3)*4);
+            core.circle(
+              dx+Math.cos(a)*rr,
+              dy+Math.sin(a)*rr-ignite*(i%2?5:2),
+              1.1+(i%3)*.35
+            ).fill({
+              color:i%3===0?profile.core:profile.main,
+              alpha:alpha*fade*.62
+            });
+          }
           continue;
         }
 
@@ -12871,24 +13027,66 @@ export class PixiProofRenderer {
             .lineTo(tx*(source.radius+33),ty*(source.radius+33))
             .stroke({color:spec.core,width:2.8,alpha:releaseFade*.86});
         } else if (spec.shape === "lava-rock") {
-          for(let i=0;i<5;i++){
-            const a=i/5*Math.PI*2+.2;
+          const rr=source.radius+13+releaseP*12;
+          glow.circle(0,0,rr+8).stroke({
+            color:spec.main,width:12,alpha:releaseFade*.15
+          });
+          core.circle(0,0,rr).stroke({
+            color:0xff9a3f,width:2.4,alpha:releaseFade*.68
+          });
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+.2+p*(i%2?1.6:-1.25);
+            const inner=source.radius+4;
+            const outer=source.radius+20+releaseP*(14+(i%3)*5);
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.10)*outer,Math.sin(a+.10)*outer)
+              .stroke({color:spec.main,width:7,alpha:releaseFade*.08});
             core
-              .moveTo(Math.cos(a)*(source.radius+4),Math.sin(a)*(source.radius+4))
-              .lineTo(Math.cos(a+.15)*(source.radius+16+releaseP*9),Math.sin(a+.15)*(source.radius+16+releaseP*9))
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.10)*outer,Math.sin(a+.10)*outer)
               .stroke({
-                color:i%2?spec.main:spec.core,width:1.7,alpha:releaseFade*.54,
+                color:i%3===0?spec.core:(i%2?0xffa33f:spec.main),
+                width:i%3===0?2.0:1.35,
+                alpha:releaseFade*.66,
               });
           }
+          glow
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+37),ty*(source.radius+37))
+            .stroke({color:spec.main,width:18,alpha:releaseFade*.18});
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+35),ty*(source.radius+35))
+            .stroke({color:spec.core,width:3.0,alpha:releaseFade*.84});
         } else if (spec.shape === "elemental") {
-          const colors=[spec.main,spec.accent,0x87b978];
+          const colors=[spec.main,spec.accent,0x80d889];
+          const r=source.radius+14+releaseP*10;
+          glow.circle(0,0,r+7).stroke({
+            color:spec.core,width:10,alpha:releaseFade*.09
+          });
           for(let i=0;i<3;i++){
             const a=i*Math.PI*2/3+p*5;
-            const r=source.radius+12+releaseP*8;
-            core.circle(Math.cos(a)*r,Math.sin(a)*r,2.5).fill({
-              color:colors[i],alpha:releaseFade*.62,
+            const x=Math.cos(a)*r;
+            const y=Math.sin(a)*r;
+            glow.circle(x,y,8).fill({
+              color:colors[i],alpha:releaseFade*.12
             });
+            core.circle(x,y,3.0).fill({
+              color:colors[i],alpha:releaseFade*.78,
+            });
+            core
+              .moveTo(x,y)
+              .lineTo(tx*(source.radius+5),ty*(source.radius+5))
+              .stroke({
+                color:i===0?spec.core:colors[i],
+                width:1.45,
+                alpha:releaseFade*.54,
+              });
           }
+          core.circle(tx*(source.radius+5),ty*(source.radius+5),3.2).fill({
+            color:spec.core,alpha:releaseFade*.90
+          });
         } else if (spec.shape === "shadow") {
           for(let ring=0;ring<2;ring++){
             const r=source.radius+9+ring*7+releaseP*6;
@@ -13893,52 +14091,80 @@ export class PixiProofRenderer {
             });
           }
         } else if (spec.shape === "lava-rock") {
+          const spin=p*10.5+seed*.01;
           const pts=[];
-          for(let i=0;i<10;i++){
-            const a=i/10*Math.PI*2+p*11+seed*.01;
-            const rr=i%2?9:14;
+          for(let i=0;i<12;i++){
+            const a=i/12*Math.PI*2+spin;
+            const rr=i%2?11:17;
             pts.push({x:px+Math.cos(a)*rr,y:py+Math.sin(a)*rr});
           }
-          poly(glow,pts,{color:spec.main,alpha:alpha*travelFade*.32},true);
-          poly(core,pts,{color:0x6b3426,alpha:alpha*travelFade*.98},true);
-          poly(core,pts,{color:spec.main,width:2.6,alpha:alpha*travelFade*.88});
-          for(let i=0;i<3;i++){
-            const a=i*2.1+p*4;
+          poly(glow,pts,{color:spec.main,alpha:alpha*travelFade*.34},true);
+          glow.circle(px,py,spec.size+8).fill({
+            color:spec.main,alpha:alpha*travelFade*.18
+          });
+          poly(core,pts,{color:0x56251f,alpha:alpha*travelFade*.98},true);
+          poly(core,pts,{color:spec.main,width:2.8,alpha:alpha*travelFade*.90});
+
+          // Bright molten fractures move across a darker rock shell.
+          for(let i=0;i<5;i++){
+            const a=i*Math.PI*2/5+spin*.42;
+            const inner=3+(i%2)*2;
+            const outer=11+(i%3)*2.2;
             core
-              .moveTo(px+Math.cos(a)*3,py+Math.sin(a)*3)
-              .lineTo(px+Math.cos(a+.45)*10,py+Math.sin(a+.45)*10)
+              .moveTo(px+Math.cos(a)*inner,py+Math.sin(a)*inner)
+              .lineTo(px+Math.cos(a+.34)*outer,py+Math.sin(a+.34)*outer)
               .stroke({
-                color:spec.core,width:1.6,alpha:alpha*travelFade*.84
+                color:i%2?0xffa33f:spec.core,
+                width:i%2?1.6:2.0,
+                alpha:alpha*travelFade*.88
               });
           }
+          core.circle(px+tx*4,py+ty*4,3.6).fill({
+            color:spec.core,alpha:alpha*travelFade*.88
+          });
         } else if (spec.shape === "elemental") {
-          glow.circle(px,py,13).fill({
-            color:spec.core,alpha:alpha*travelFade*.22
+          const colors=[spec.main,spec.accent,0x80d889];
+          glow.circle(px,py,spec.size+9).fill({
+            color:spec.core,alpha:alpha*travelFade*.20
           });
-          core.circle(px,py,7).fill({
-            color:spec.core,alpha:alpha*travelFade*.96
+          core.circle(px,py,7.5).fill({
+            color:spec.core,alpha:alpha*travelFade*.98
           });
-          const colors=[spec.main,spec.accent,0x87b978];
+
+          // Three elemental satellites stay visually distinct while feeding one
+          // white-hot combined core.
           for(let i=0;i<3;i++){
-            const a=p*15*(i%2?-1:1)+i*Math.PI*2/3;
-            const rr=11+(i%2)*4;
+            const a=p*14.5*(i%2?-1:1)+i*Math.PI*2/3;
+            const rr=13+(i%2)*4;
             const sx=px+Math.cos(a)*rr;
             const sy=py+Math.sin(a)*rr;
-            glow.circle(sx,sy,5).fill({
-              color:colors[i],alpha:alpha*travelFade*.25
+            glow.circle(sx,sy,7).fill({
+              color:colors[i],alpha:alpha*travelFade*.20
             });
-            core.circle(sx,sy,3.1).fill({
-              color:colors[i],alpha:alpha*travelFade*.82
+            core.circle(sx,sy,3.4).fill({
+              color:colors[i],alpha:alpha*travelFade*.88
             });
             core.moveTo(px,py).lineTo(sx,sy).stroke({
-              color:colors[i],width:1.2,alpha:alpha*travelFade*.38
+              color:i===0?spec.core:colors[i],
+              width:1.4,alpha:alpha*travelFade*.48
+            });
+
+            // Short elemental wake from each satellite.
+            const bx=sx-tx*(9+i*2);
+            const by=sy-ty*(9+i*2);
+            core.moveTo(bx,by).lineTo(sx,sy).stroke({
+              color:colors[i],width:1.0,alpha:alpha*travelFade*.48
             });
           }
-          const backX=px-tx*28;
-          const backY=py-ty*28;
+          const backX=px-tx*31;
+          const backY=py-ty*31;
+          jaggedLine(
+            glow,backX,backY,px,py,seed+71,4.5,6,
+            {color:spec.main,width:8,alpha:alpha*travelFade*.08},p*4
+          );
           jaggedLine(
             core,backX,backY,px,py,seed+71,4.5,6,
-            {color:spec.main,width:2,alpha:alpha*travelFade*.70},p*4
+            {color:spec.core,width:1.8,alpha:alpha*travelFade*.72},p*4
           );
         } else if (spec.shape === "shadow") {
           glow.circle(px,py,spec.size+7).fill({
@@ -14464,47 +14690,97 @@ export class PixiProofRenderer {
               color:spec.core,width:2.5,alpha:alpha*after*.72
             });
         } else if (spec.shape === "lava-rock") {
-          for(let i=0;i<10;i++){
-            const a=i/10*Math.PI*2+seed*.017;
-            const rr=8+easeOut(hit)*(22+(i%4)*7);
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*14);
+          const after=Math.exp(-hit*4.0);
+
+          glow.circle(ix,iy,12+flash*25).fill({
+            color:spec.core,alpha:alpha*flash*.16
+          });
+          glow.circle(ix,iy,15+burst*43).stroke({
+            color:spec.main,width:13,alpha:alpha*after*.14
+          });
+          core.circle(ix,iy,10+burst*31).stroke({
+            color:0xff8a35,width:2.3,alpha:alpha*after*.62
+          });
+
+          // Molten fragments and darker rock chunks separate on impact.
+          for(let i=0;i<12;i++){
+            const a=i/12*Math.PI*2+seed*.017;
+            const rr=9+burst*(24+(i%4)*8);
+            const rise=hit*(4+(i%3)*3);
+            glow.circle(ix+Math.cos(a)*rr,iy+Math.sin(a)*rr-rise,4+(i%2)).fill({
+              color:i%3===0?spec.core:spec.main,
+              alpha:alpha*after*.08
+            });
             core.circle(
               ix+Math.cos(a)*rr,
-              iy+Math.sin(a)*rr-hit*8,
-              1.5+(i%3)*.7
+              iy+Math.sin(a)*rr-rise,
+              1.6+(i%3)*.65
             ).fill({
-              color:i%3===0?spec.core:spec.main,
-              alpha:alpha*fade*.68,
+              color:i%4===0?spec.core:(i%2?spec.main:0x6b2b20),
+              alpha:alpha*after*.72,
             });
           }
-          for(let i=0;i<6;i++){
-            const a=i/6*Math.PI*2+seed*.011;
+
+          // Short ground-like fracture spokes sell weight without leaving a
+          // persistent decal.
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+seed*.011;
             core
-              .moveTo(ix+Math.cos(a)*6,iy+Math.sin(a)*6)
+              .moveTo(ix+Math.cos(a)*7,iy+Math.sin(a)*7)
               .lineTo(
-                ix+Math.cos(a)*(18+hit*26),
-                iy+Math.sin(a)*(18+hit*26)
+                ix+Math.cos(a)*(20+burst*(24+(i%3)*7)),
+                iy+Math.sin(a)*(20+burst*(24+(i%3)*7))
               )
               .stroke({
-                color:0x8b4b31,width:1.8,alpha:alpha*fade*.56
+                color:i%3===0?spec.core:0x8b3b28,
+                width:i%3===0?2.1:1.5,
+                alpha:alpha*after*.62
               });
           }
         } else if (spec.shape === "elemental") {
-          const colors=[spec.main,spec.accent,0x87b978];
-          for(let i=0;i<12;i++){
-            const a=i/12*Math.PI*2+seed*.015;
-            const inner=6+hit*3;
-            const outer=17+easeOut(hit)*(28+(i%4)*5);
-            core
-              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
-              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
-              .stroke({
-                color:colors[i%3],
-                width:1.8,
-                alpha:alpha*fade*.62,
-              });
+          const colors=[spec.main,spec.accent,0x80d889];
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*15);
+          const after=Math.exp(-hit*4.4);
+
+          glow.circle(ix,iy,11+flash*24).fill({
+            color:spec.core,alpha:alpha*flash*.18
+          });
+          core.circle(ix,iy,5+flash*7).fill({
+            color:spec.core,alpha:alpha*Math.min(1,.70+flash*.28)
+          });
+
+          // Three elemental sectors burst apart from the fused center.
+          for(let element=0;element<3;element++){
+            const base=element*Math.PI*2/3+seed*.006;
+            for(let lane=-1;lane<=1;lane++){
+              const a=base+lane*.18+hit*(element%2?.18:-.14);
+              const inner=7+Math.abs(lane)*2;
+              const outer=22+burst*(31+(element*4)+Math.abs(lane)*6);
+              glow
+                .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+                .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+                .stroke({
+                  color:colors[element],width:7,alpha:alpha*after*.08
+                });
+              core
+                .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+                .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+                .stroke({
+                  color:lane===0?spec.core:colors[element],
+                  width:lane===0?2.2:1.4,
+                  alpha:alpha*after*.68
+                });
+            }
           }
-          glow.circle(ix,iy,9+hit*30).fill({
-            color:spec.core,alpha:alpha*fade*.11
+
+          glow.circle(ix,iy,13+burst*35).stroke({
+            color:spec.core,width:10,alpha:alpha*after*.08
+          });
+          core.circle(ix,iy,10+burst*25).stroke({
+            color:spec.core,width:1.5,alpha:alpha*after*.46
           });
         } else if (spec.shape === "shadow") {
           const collapse=1-easeOut(hit);

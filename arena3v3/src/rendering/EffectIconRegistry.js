@@ -23,6 +23,10 @@ const SPELL_ICON_KEYS = Object.freeze({
   "shaman-astral-shift": "shield-bolt",
   "dk-fever": "frost",
   "dk-rune-tap": "shield",
+  "powerup-power-damage": "power",
+  "powerup-power-defense": "shield",
+  "powerup-haste": "haste",
+  "powerup-speed": "speed",
 });
 
 const PALETTES = Object.freeze({
@@ -33,6 +37,9 @@ const PALETTES = Object.freeze({
   offensiveCooldown: { color: "#ffe0b2", background: "#6f3e19", border: "#efa04a" },
   schoolLock: { color: "#efe2ff", background: "#4d3d66", border: "#b29ad1" },
   slow: { color: "#d9f5ff", background: "#315b68", border: "#79c4dd" },
+  powerUpDamage: { color: "#ffe0c8", background: "#6d2d22", border: "#ff7848" },
+  powerUpHaste: { color: "#f0dcff", background: "#4d3568", border: "#c98cff" },
+  powerUpSpeed: { color: "#d8f8ff", background: "#245a69", border: "#5ddcff" },
   stun: { color: "#ffe2dd", background: "#73372f", border: "#e46f5e" },
   fear: { color: "#ffe6bd", background: "#73522d", border: "#e2a85f" },
   incapacitate: { color: "#eee3ff", background: "#55456f", border: "#b89be8" },
@@ -51,6 +58,10 @@ const SPELL_PALETTES = Object.freeze({
   "shaman-flame-shock": { color: "#ffe0c2", background: "#71391f", border: "#e77b40" },
   "mage-living-bomb": { color: "#ffe5c7", background: "#70401f", border: "#ef8a43" },
   "dk-fever": { color: "#e0f6ff", background: "#315c72", border: "#6fc8ee" },
+  "powerup-power-damage": { color: "#fff0dd", background: "#7a3424", border: "#ff7b4a" },
+  "powerup-power-defense": { color: "#fff0dd", background: "#684328", border: "#f2b467" },
+  "powerup-haste": { color: "#f3e5ff", background: "#50366b", border: "#c98cff" },
+  "powerup-speed": { color: "#ddf9ff", background: "#285e6d", border: "#61dfff" },
 });
 
 function escapeHtml(value) {
@@ -76,6 +87,9 @@ export function effectIconKey(effect) {
   if (effect.kind === "hot") return "leaf";
   if (effect.kind === "dot") return "flame";
   if (effect.kind === "slow") return "frost";
+  if (effect.kind === "powerUpDamage") return "power";
+  if (effect.kind === "powerUpHaste") return "haste";
+  if (effect.kind === "powerUpSpeed") return "speed";
   return "generic";
 }
 
@@ -98,6 +112,9 @@ export function effectPriority(effect) {
     dot: 62,
     hot: 58,
     slow: 48,
+    powerUpDamage: 86,
+    powerUpHaste: 86,
+    powerUpSpeed: 86,
   };
   return priorities[effect?.kind] || 30;
 }
@@ -108,6 +125,9 @@ export function effectIsImportant(effect) {
     "offensiveCooldown",
     "healingReduction",
     "schoolLock",
+    "powerUpDamage",
+    "powerUpHaste",
+    "powerUpSpeed",
   ].includes(effect?.kind);
 }
 
@@ -147,6 +167,12 @@ function glyphMarkup(key) {
       return '<path d="M20 34 8 22c-6-7 4-16 12-8 8-8 18 1 12 8L20 34Z"/><path d="m22 11-4 8 5 3-6 9"/>';
     case "burst":
       return '<path d="m20 4 4 10 10-5-5 10 9 4-10 3 4 10-9-5-5 9-2-11-11 3 7-8-9-6 11-1-1-11 7 8 6-9Z"/>';
+    case "power":
+      return '<path d="M20 5 31 20 20 35 9 20 20 5Z"/><path d="M20 10v20M13 20h14"/>';
+    case "haste":
+      return '<path d="m23 5-9 16h7l-5 14 11-18h-7l3-12Z"/><path d="M7 11h7M5 20h7M8 29h7"/>';
+    case "speed":
+      return '<path d="m8 12 10 8-10 8M20 12l10 8-10 8"/><path d="M6 34h26"/>';
     case "lock":
       return '<path d="M11 16h18v17H11V16Z"/><path d="M15 16v-4c0-7 10-7 10 0v4"/><path d="m9 8 22 25"/>';
     default:
@@ -257,6 +283,14 @@ export function drawEffectGlyph(ctx, effect, x, y, size, color = null) {
   } else if (key === "hammer") {
     ctx.beginPath(); ctx.moveTo(10,10); ctx.lineTo(21,5); ctx.lineTo(27,11); ctx.lineTo(17,18); ctx.closePath(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(18,18); ctx.lineTo(31,33); ctx.stroke();
+  } else if (key === "power") {
+    ctx.beginPath();ctx.moveTo(20,5);ctx.lineTo(31,20);ctx.lineTo(20,35);ctx.lineTo(9,20);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(20,10);ctx.lineTo(20,30);ctx.moveTo(13,20);ctx.lineTo(27,20);ctx.stroke();
+  } else if (key === "haste") {
+    ctx.beginPath();ctx.moveTo(23,5);ctx.lineTo(14,21);ctx.lineTo(21,21);ctx.lineTo(16,35);ctx.lineTo(27,17);ctx.lineTo(20,17);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(7,11);ctx.lineTo(14,11);ctx.moveTo(5,20);ctx.lineTo(12,20);ctx.moveTo(8,29);ctx.lineTo(15,29);ctx.stroke();
+  } else if (key === "speed") {
+    ctx.beginPath();ctx.moveTo(8,12);ctx.lineTo(18,20);ctx.lineTo(8,28);ctx.moveTo(20,12);ctx.lineTo(30,20);ctx.lineTo(20,28);ctx.moveTo(6,34);ctx.lineTo(32,34);ctx.stroke();
   } else if (key === "stun" || key === "burst") {
     const points=key==="stun"?8:10;
     ctx.beginPath();

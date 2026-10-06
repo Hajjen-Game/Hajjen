@@ -7,7 +7,7 @@ import { describeGearStats } from "../core/GearSystem.js";
 import { drawClassGlyph } from "../rendering/ClassGlyphs.js";
 import { classIconReady, getClassIcon } from "../rendering/ClassIconRegistry.js?v=20260929-unitframes1";
 import { castBarPaletteFor } from "../rendering/CastPalette.js?v=20260928-focusrestyle1";
-import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20261004-iconart2";
+import { effectIconMarkup, effectIsImportant, effectPalette, effectPriority } from "../rendering/EffectIconRegistry.js?v=20261006-powerups1";
 import { createHealthPresentation, updateHealthPresentation } from "../rendering/HealthPresentation.js?v=20260929-healthfeedback1";
 
 const ACTION_BAR_STORAGE_PREFIX = "arena3v3-actionbar-v1:";
@@ -64,6 +64,11 @@ export class UIManager {
     this.dampeningIndicator = document.querySelector("#dampening-indicator");
     this.dampeningValue = document.querySelector("#dampening-value");
     this.dampeningNext = document.querySelector("#dampening-next");
+    this.powerUpIndicator = document.querySelector("#power-up-indicator");
+    this.powerUpTimer = document.querySelector("#power-up-timer");
+    this.powerUpPickup = document.querySelector("#power-up-pickup");
+    this.powerUpGlyph = document.querySelector("#power-up-glyph");
+    this.powerUpName = document.querySelector("#power-up-name");
     this.combatLog = document.querySelector("#combat-log");
     this.toastElement = document.querySelector("#toast");
     this.result = document.querySelector("#match-result");
@@ -1536,6 +1541,7 @@ export class UIManager {
     this.updateEnemyCooldowns();
     this.updatePlayerCcAlert();
     this.updateDampening();
+    this.updatePowerUps();
     this.updateHonorStatus();
 
     this.actionSlotSpellIds.forEach((spellId, slotIndex) => {
@@ -1714,6 +1720,55 @@ export class UIManager {
     }
   }
 
+  updatePowerUps() {
+    const system = this.game.powerUps;
+    if (!system || !this.powerUpIndicator || !this.powerUpTimer) return;
+
+    const inactive = this.game.waitingForStart || this.game.ended;
+    this.powerUpIndicator.classList.toggle("hidden", inactive);
+    if (inactive) {
+      this.powerUpPickup?.classList.add("hidden");
+      return;
+    }
+
+    const seconds = Math.max(0, Math.ceil(system.nextSpawnSeconds()));
+    const minutes = Math.floor(seconds / 60);
+    const remainder = seconds % 60;
+    this.powerUpTimer.textContent =
+      minutes + ":" + String(remainder).padStart(2, "0");
+
+    const pickup = system.activePickup;
+    this.powerUpIndicator.classList.toggle("pickup-live", Boolean(pickup));
+
+    if (!this.powerUpPickup) return;
+    if (!pickup) {
+      this.powerUpPickup.classList.add("hidden");
+      this.powerUpPickup.classList.remove(
+        "power-up-type-power",
+        "power-up-type-haste",
+        "power-up-type-speed",
+      );
+      return;
+    }
+
+    const arena = this.game.arena;
+    const width = Math.max(1, Number(arena?.width) || 1280);
+    const height = Math.max(1, Number(arena?.height) || 720);
+    this.powerUpPickup.classList.remove(
+      "hidden",
+      "power-up-type-power",
+      "power-up-type-haste",
+      "power-up-type-speed",
+    );
+    this.powerUpPickup.classList.add("power-up-type-" + pickup.type);
+    this.powerUpPickup.style.left =
+      (Math.max(0, Math.min(1, pickup.x / width)) * 100).toFixed(3) + "%";
+    this.powerUpPickup.style.top =
+      (Math.max(0, Math.min(1, pickup.y / height)) * 100).toFixed(3) + "%";
+    if (this.powerUpGlyph) this.powerUpGlyph.textContent = pickup.glyph || "◆";
+    if (this.powerUpName) this.powerUpName.textContent = pickup.name || "POWER-UP";
+  }
+
   updatePlayerCcAlert() {
     const supportedKinds = ["stun", "fear", "incapacitate", "root", "schoolLock"];
     const priority = { stun: 0, fear: 1, incapacitate: 2, root: 3, schoolLock: 4 };
@@ -1871,7 +1926,7 @@ export class UIManager {
           : Math.ceil(effect.remainingMs / 1000))
         + '</span>';
 
-      icon.title = (spell?.name || effect.spellId || effect.kind)
+      icon.title = (effect.label || spell?.name || effect.spellId || effect.kind)
         + " · "
         + Math.max(0, effect.remainingMs / 1000).toFixed(1)
         + "s";

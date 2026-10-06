@@ -834,6 +834,59 @@ export function buildMatchReport(game) {
     });
   }
 
+  lines.push("", "=== POWER-UP EVENTS ===");
+  const powerUps = game.powerUps;
+  const powerUpEvents = Array.isArray(powerUps?.events) ? powerUps.events : [];
+  if (!powerUps) {
+    lines.push("Power-up system unavailable.");
+  } else {
+    lines.push(
+      "Rules: first "
+      + Number(powerUps.firstSpawnSeconds || 0).toFixed(0)
+      + "s | interval "
+      + Number(powerUps.intervalSeconds || 0).toFixed(0)
+      + "s | pickup lifetime "
+      + Number(powerUps.pickupLifetimeSeconds || 0).toFixed(0)
+      + "s | buff "
+      + (Number(powerUps.buffDurationMs || 0) / 1000).toFixed(0)
+      + "s"
+    );
+
+    if (powerUpEvents.length === 0) {
+      lines.push("No power-up events.");
+    } else {
+      powerUpEvents.forEach(event => {
+        const time = Number(event.time || 0).toFixed(1);
+        const type = String(event.type || "unknown").toUpperCase();
+
+        if (event.kind === "spawn") {
+          lines.push(
+            time + "s — SPAWN " + type
+            + " @ (" + n(event.x) + ", " + n(event.y) + ")"
+          );
+          return;
+        }
+
+        if (event.kind === "pickup") {
+          lines.push(
+            time + "s — PICKUP " + type
+            + " — " + (event.actorName || event.actorId || "Unknown")
+            + " [" + (event.role || "?") + " / " + (event.team || "?") + "]"
+            + " — " + (event.description || "buff applied")
+          );
+          return;
+        }
+
+        if (event.kind === "expire") {
+          lines.push(
+            time + "s — EXPIRED " + type
+            + " @ (" + n(event.x) + ", " + n(event.y) + ")"
+          );
+        }
+      });
+    }
+  }
+
   lines.push("", "=== RENDERER FALLBACK DIAGNOSTICS ===");
   const rendererErrors = Array.isArray(game.rendererErrors)
     ? game.rendererErrors

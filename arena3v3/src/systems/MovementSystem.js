@@ -35,14 +35,22 @@ function avoidanceSign(actor) {
 }
 
 function movementSpeedMultiplier(actor) {
-  const strongestSlow = (actor.effects || [])
+  const effects = actor.effects || [];
+  const strongestSlow = effects
     .filter(effect => effect.kind === "slow" && effect.remainingMs > 0)
     .reduce(
       (highest, effect) => Math.max(highest, Number(effect.value) || 0),
       0,
     );
+  const powerUpSpeed = effects
+    .filter(effect => effect.kind === "powerUpSpeed" && effect.remainingMs > 0)
+    .reduce(
+      (highest, effect) => Math.max(highest, Number(effect.value) || 0),
+      0,
+    );
 
-  return Math.max(0.10, 1 - Math.min(0.90, strongestSlow));
+  const slowMultiplier = Math.max(0.10, 1 - Math.min(0.90, strongestSlow));
+  return slowMultiplier * (1 + Math.min(0.75, powerUpSpeed));
 }
 
 function collides(actor, x, y, arena) {

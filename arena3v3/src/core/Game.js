@@ -1,16 +1,17 @@
 import { Actor } from "../entities/Actor.js";
-import { MovementSystem } from "../systems/MovementSystem.js?v=20261005-openfielddebug1";
+import { MovementSystem } from "../systems/MovementSystem.js?v=20261006-powerups1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261002-secondary1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
-import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
+import { PowerUpSystem } from "../systems/PowerUpSystem.js?v=20261006-powerups1";
+import { CombatSystem } from "../systems/CombatSystem.js?v=20261006-powerups1";
 import { AISystem } from "../systems/AISystem.js?v=20261006-supportstable2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { RendererBridge } from "../rendering/RendererBridge.js?v=20261006-druidcastvfx3";
-import { UIManager } from "../ui/UIManager.js?v=20261005-honorcurve1";
-import { buildMatchReport } from "./MatchReport.js?v=20261006-druidcastvfx3fix1";
+import { UIManager } from "../ui/UIManager.js?v=20261006-powerups1";
+import { buildMatchReport } from "./MatchReport.js?v=20261006-powerups1";
 import { buildAiMovementReport } from "./AiMovementReport.js?v=20261005-deadtargetfix1";
 import { HonorSystem, talentPointsForRank } from "./HonorSystem.js?v=20261005-honorcurve1";
 import { RatingSystem } from "./RatingSystem.js?v=20260927-rank20rating2";
@@ -59,6 +60,7 @@ export class Game {
       stepPercent: 2,
       maxPercent: 100,
     });
+    this.powerUps = new PowerUpSystem(this);
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);
@@ -766,6 +768,7 @@ export class Game {
         this.arena,
         this.player?.id,
       );
+      this.powerUps.update();
       this.recordAiMovementSample(deltaMs);
       this.checkWinCondition();
     }
@@ -1364,6 +1367,7 @@ export class Game {
       stepPercent: 2,
       maxPercent: 100,
     });
+    this.powerUps = new PowerUpSystem(this);
     this.combat = new CombatSystem(this);
     this.abilityQueue = new PlayerAbilityQueue(this, 400);
     this.ai = new AISystem(this, this.movement);

@@ -285,18 +285,22 @@ export class CombatSystem {
     }
 
     if (!spell.ignoreGcd) {
-      const gcdMs = spell.gcdMs ?? 1200;
+      const baseGcdMs = spell.gcdMs ?? 1200;
+      const gcdMultiplier = this.game.powerUps?.gcdMultiplierFor?.(caster) ?? 1;
+      const gcdMs = Math.max(0, Math.round(baseGcdMs * gcdMultiplier));
       caster.gcdRemaining = gcdMs;
       caster.gcdTotalMs = gcdMs;
     }
 
     if (spell.castMs > 0) {
       const startDiagnostic = this.recordCastStart(caster, target, spell);
+      const castMultiplier = this.game.powerUps?.castTimeMultiplierFor?.(caster) ?? 1;
+      const castMs = Math.max(1, Math.round(spell.castMs * castMultiplier));
       caster.cast = {
         spellId: spell.id,
         targetId: target.id,
-        totalMs: spell.castMs,
-        remainingMs: spell.castMs,
+        totalMs: castMs,
+        remainingMs: castMs,
         startDistance: startDiagnostic.startDistance,
         spellRange: startDiagnostic.spellRange,
         startHadLos: startDiagnostic.startHadLos,
@@ -612,6 +616,11 @@ export class CombatSystem {
     const crit = this.rollCrit(source, spellId, periodic ? "dot" : "damage");
 
     if (crit) amount = Math.round(amount * source.critMultiplier);
+
+    const powerUpDamageMultiplier =
+      this.game.powerUps?.damageMultiplierFor?.(source) ?? 1;
+    amount = Math.round(amount * powerUpDamageMultiplier);
+
     amount = Math.max(1, Math.round(amount * (1 - target.damageReduction())));
 
     const actual = Math.min(amount, target.health);

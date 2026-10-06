@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3v3 Arena — Prototype</title>
   <link rel="stylesheet" href="./src/styles/theme.css?v=20260926-vfxintensity1" />
-  <link rel="stylesheet" href="./src/styles/game.css?v=20261004-iconart2" />
+  <link rel="stylesheet" href="./src/styles/game.css?v=20261006-powerups1" />
   <link rel="stylesheet" href="./src/styles/feedback.css" />
 </head>
 <body>
@@ -93,18 +93,30 @@
 
       <section id="arena-wrap" class="arena-wrap">
         <div class="arena-top-hud" aria-label="Match status">
-          <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
-            <div class="dampening-icon" aria-hidden="true">▼</div>
-            <div class="dampening-copy">
-              <span class="dampening-label">DAMPENING</span>
-              <strong id="dampening-value">0%</strong>
-              <span id="dampening-next" class="dampening-next">starts in 45s</span>
+          <div class="arena-status-stack">
+            <div id="dampening-indicator" class="dampening-indicator" title="Reduces all healing received as the match continues">
+              <div class="dampening-icon" aria-hidden="true">▼</div>
+              <div class="dampening-copy">
+                <span class="dampening-label">DAMPENING</span>
+                <strong id="dampening-value">0%</strong>
+                <span id="dampening-next" class="dampening-next">starts in 45s</span>
+              </div>
+            </div>
+            <div id="power-up-indicator" class="power-up-indicator hidden" title="Time until the next arena power-up">
+              <span class="power-up-label">NEXT POWER-UP</span>
+              <strong id="power-up-timer" class="power-up-timer">0:30</strong>
             </div>
           </div>
           <div id="match-clock" class="clock arena-clock" aria-label="Match time">00:00</div>
         </div>
         <div id="arena-stage" class="arena-stage">
           <canvas id="arena" width="1280" height="720" aria-label="3v3 arena"></canvas>
+          <div id="power-up-pickup" class="power-up-pickup hidden" aria-hidden="true">
+            <div class="power-up-orb">
+              <span id="power-up-glyph" class="power-up-glyph">◆</span>
+            </div>
+            <div id="power-up-name" class="power-up-name">POWER</div>
+          </div>
           <div id="combat-log" class="combat-log" aria-live="polite"></div>
           <div id="toast" class="toast" aria-live="polite"></div>
 
@@ -600,6 +612,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/main.js?v=20261006-druidcastvfx3"></script>
+  <script type="module" src="./src/main.js?v=20261006-powerups1"></script>
 </body>
 </html>

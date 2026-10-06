@@ -10354,38 +10354,28 @@ export class PixiProofRenderer {
 
       if (profile.kind === "mortal") {
         warriorCue(g, source, profile, p / .14, true);
-        const vx = missed ? dx + missSign * 45 : dx;
-        const vy = missed ? dy - 9 : dy;
-        const fade = 1 - clamp01((p - .68) / .32);
-        weaponSlash(
-          g,
-          vx,
-          vy,
-          -.66,
-          58,
-          profile,
-          alpha * fade * smooth(p / .34) * .90,
-          5.5,
-          11,
-        );
 
-        if (!missed && p > .23) {
-          const t = clamp01((p - .23) / .52);
+        // VFX 3.0 owns the weapon silhouette/sweep. This older layer only keeps
+        // the small broken anti-heal seal so two different weapon slashes do not
+        // fight each other visually.
+        if (p > .30) {
+          const t = clamp01((p - .30) / .50);
+          const out = 1 - smooth((t - .68) / .32);
           for (let i = 0; i < 3; i += 1) {
-            const a = i * Math.PI * 2 / 3 + .2;
+            const a = i * Math.PI * 2 / 3 + .2 - t * .18;
             strokeArc(
               g,
               dx,
               dy,
-              17 + t * 14,
+              18 + smooth(t) * 25,
               a,
-              a + .72,
+              a + .90,
               {
-                color: profile.main,
-                width: 2,
-                alpha: alpha * (1 - t) * .50,
+                color: i === 1 ? profile.core : profile.main,
+                width: i === 1 ? 2.2 : 1.8,
+                alpha: alpha * out * .42,
               },
-              5,
+              7,
             );
           }
         }
@@ -13393,11 +13383,182 @@ export class PixiProofRenderer {
           }
         }
 
+        if(effect.spellId==="warrior-mortal-strike"){
+          // VFX 3.0+ signature swing: a real spectral greatsword rotates through
+          // exactly 180 degrees around the Warrior and crosses the target at the
+          // middle of the sweep. The broad trail gives spell-level readability,
+          // while the blade silhouette keeps it unmistakably physical.
+          const facing=Math.atan2(dy0,dx0);
+          const swing=smooth((p-.08)/.38);
+          const reveal=easeOut(p/.12);
+          const swingFade=1-smooth((p-.54)/.30);
+          const swordAlpha=alpha*reveal*swingFade;
+          const startAngle=facing-Math.PI*.58;
+          const endAngle=facing+Math.PI*.42;
+          const swordAngle=startAngle+(endAngle-startAngle)*swing;
+          const swordLength=Math.max(62,Math.min(94,len0+18));
+          const arcRadius=Math.max(
+            source.radius+31,
+            Math.min(swordLength*.82,len0*.82+16)
+          );
+
+          // Attacker-side load: short steel/copper pressure before the blade
+          // reaches the target direction.
+          const build=1-smooth((p-.16)/.18);
+          for(let i=0;i<4;i++){
+            const a=facing-Math.PI*.72+i*.48+swing*.20;
+            const inner=source.radius+5;
+            const outer=source.radius+15+(i%2)*5;
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.06)*outer,Math.sin(a+.06)*outer)
+              .stroke({
+                color:i===2?profile.core:profile.main,
+                width:7+(i===2?2:0),
+                alpha:alpha*build*.065,
+              });
+            core
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a+.06)*outer,Math.sin(a+.06)*outer)
+              .stroke({
+                color:i===2?profile.core:profile.accent,
+                width:1.5+(i===2?.7:0),
+                alpha:alpha*build*.52,
+              });
+          }
+
+          // The 180° completed sweep remains behind the sword as a layered
+          // copper/white crescent rather than one flat slash line.
+          if(swing>.002){
+            arc(glow,0,0,arcRadius,startAngle,swordAngle,{
+              color:profile.main,
+              width:18,
+              alpha:swordAlpha*.10,
+            },20);
+            arc(glow,0,0,arcRadius-2,startAngle,swordAngle,{
+              color:profile.core,
+              width:10,
+              alpha:swordAlpha*.055,
+            },20);
+            arc(core,0,0,arcRadius,startAngle,swordAngle,{
+              color:profile.main,
+              width:5.0,
+              alpha:swordAlpha*.62,
+            },20);
+            arc(
+              core,
+              0,
+              0,
+              arcRadius-2,
+              Math.max(startAngle,swordAngle-1.02),
+              swordAngle,
+              {
+                color:profile.core,
+                width:2.1,
+                alpha:swordAlpha*.92,
+              },
+              12
+            );
+          }
+
+          const root=source.radius+4;
+          const tip=swordLength;
+          const blade=[
+            point(0,0,root,-5.0,swordAngle),
+            point(0,0,tip-12,-3.6,swordAngle),
+            point(0,0,tip,0,swordAngle),
+            point(0,0,tip-12,3.6,swordAngle),
+            point(0,0,root,5.0,swordAngle),
+          ];
+
+          // Two translucent afterimages sell rotational speed without making
+          // the main blade fuzzy.
+          for(let echo=2;echo>=1;echo--){
+            const echoAngle=swordAngle-echo*.12;
+            const echoBlade=[
+              point(0,0,root,-4.2,echoAngle),
+              point(0,0,tip-13,-3.0,echoAngle),
+              point(0,0,tip,0,echoAngle),
+              point(0,0,tip-13,3.0,echoAngle),
+              point(0,0,root,4.2,echoAngle),
+            ];
+            polygon(glow,echoBlade,{
+              color:echo===1?profile.main:profile.accent,
+              alpha:swordAlpha*(echo===1?.07:.04),
+            },true);
+          }
+
+          // Broad glow body beneath a crisp tapered sword.
+          polygon(glow,blade,{
+            color:profile.main,
+            alpha:swordAlpha*.12,
+          },true);
+          glow
+            .moveTo(blade[0].x,blade[0].y)
+            .lineTo(blade[2].x,blade[2].y)
+            .stroke({
+              color:profile.core,
+              width:13,
+              alpha:swordAlpha*.08,
+            });
+
+          polygon(core,blade,{
+            color:profile.main,
+            alpha:swordAlpha*.34,
+          },true);
+          polygon(core,blade,{
+            color:profile.core,
+            width:1.8,
+            alpha:swordAlpha*.96,
+          },false);
+
+          // Crossguard, grip and pommel make the silhouette read as a weapon
+          // even when the fight is visually busy.
+          const guardA=point(0,0,root-1,-11,swordAngle);
+          const guardB=point(0,0,root-1,11,swordAngle);
+          core
+            .moveTo(guardA.x,guardA.y)
+            .lineTo(guardB.x,guardB.y)
+            .stroke({
+              color:profile.core,
+              width:3.0,
+              alpha:swordAlpha*.84,
+            });
+          const gripA=point(0,0,Math.max(4,root-14),0,swordAngle);
+          const gripB=point(0,0,root+2,0,swordAngle);
+          core
+            .moveTo(gripA.x,gripA.y)
+            .lineTo(gripB.x,gripB.y)
+            .stroke({
+              color:profile.accent,
+              width:4.2,
+              alpha:swordAlpha*.72,
+            });
+          core.circle(gripA.x,gripA.y,2.8).fill({
+            color:profile.core,
+            alpha:swordAlpha*.72,
+          });
+
+          // Contact pulse happens exactly when the rotating blade crosses the
+          // target-facing direction (about 58% through the 180° sweep).
+          const contact=Math.exp(-Math.pow((swing-.58)/.105,2));
+          if(contact>.01){
+            glow.circle(dx0,dy0,10+contact*22).fill({
+              color:profile.core,
+              alpha:alpha*contact*.14,
+            });
+            core.circle(dx0,dy0,5+contact*8).fill({
+              color:profile.core,
+              alpha:alpha*contact*.66,
+            });
+          }
+        }
+
         let slashCount=1;
         let slashLength=48;
         let slashWidth=3.8;
         if(effect.spellId==="warrior-rend"){slashCount=3;slashLength=62;slashWidth=3.4;}
-        if(effect.spellId==="warrior-mortal-strike"){slashLength=92;slashWidth=7.8;}
+        if(effect.spellId==="warrior-mortal-strike"){slashCount=0;slashLength=92;slashWidth=7.8;}
         if(effect.spellId==="warrior-overpower"){slashCount=1;slashLength=78;slashWidth=4.8;}
         if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=60;slashWidth=4.1;}
         if(effect.spellId==="rogue-garrote"){slashCount=1;slashLength=58;slashWidth=2.6;}
@@ -13486,7 +13647,9 @@ export class PixiProofRenderer {
         }
 
         if(!missed){
-          const hit=clamp01((p-.18)/.54);
+          const hitStart=effect.spellId==="warrior-mortal-strike"?.30:.18;
+          const hitSpan=effect.spellId==="warrior-mortal-strike"?.50:.54;
+          const hit=clamp01((p-hitStart)/hitSpan);
           const hitFade=1-smooth((hit-.72)/.28);
           const expand=easeOut(hit);
           const heavyImpact=
@@ -13564,15 +13727,17 @@ export class PixiProofRenderer {
             glow.circle(dx,dy,19+expand*36).stroke({
               color:profile.main,width:12,alpha:alpha*hitFade*.15
             });
-            // One massive diagonal weapon echo keeps Mortal Strike readable
-            // above the shared melee sparks.
-            const p0=point(dx,dy,-38,-7,-.72);
-            const p1=point(dx,dy,39,7,-.72);
+            // Terminal blade echo follows the actual Warrior -> target line,
+            // so the impact reads as the end of the 180° sweep rather than a
+            // separate fixed diagonal slash.
+            const hitAngle=Math.atan2(dy0,dx0);
+            const p0=point(dx,dy,-42,-5,hitAngle);
+            const p1=point(dx,dy,45,5,hitAngle);
             glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
               color:profile.main,width:15,alpha:alpha*hitFade*.13
             });
             core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-              color:profile.core,width:3.4,alpha:alpha*hitFade*.80
+              color:profile.core,width:3.4,alpha:alpha*hitFade*.82
             });
             glow.circle(dx,dy,9+flash*17).fill({
               color:profile.core,alpha:alpha*hitFade*flash*.14

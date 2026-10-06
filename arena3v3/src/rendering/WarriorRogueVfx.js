@@ -147,28 +147,153 @@ function drawRend(ctx, source, target, profile, p, seed, missed) {
 
 function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .14), true);
-  const side = missed ? (seeded(seed, 1) > .5 ? 45 : -45) : 0;
-  const to = { x: target.x + side, y: target.y - (missed ? 9 : 0) };
-  const strike = smooth(p / .34);
-  const fade = 1 - clamp01((p - .68) / .32);
-  weaponSlash(ctx, to, -.66, 58, profile, fade * strike * .9, 5.5, 11);
-  if (!missed && p > .23) {
-    const t = clamp01((p - .23) / .52);
+
+  // VFX 3.0+: Mortal Strike is a weapon ability that reads like a signature
+  // spell. A spectral greatsword performs a full 180° sweep through the target,
+  // followed by a compact anti-heal wound seal. Misses still aim at the actor;
+  // combat text is the authority for MISS/DODGE.
+  const dx = target.x - source.x;
+  const dy = target.y - source.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const facing = Math.atan2(dy, dx);
+  const swing = smooth((p - .08) / .38);
+  const reveal = smooth(p / .12);
+  const swingFade = 1 - clamp01((p - .54) / .30);
+  const startAngle = facing - Math.PI * .58;
+  const endAngle = facing + Math.PI * .42;
+  const swordAngle = startAngle + (endAngle - startAngle) * swing;
+  const swordLength = Math.max(62, Math.min(94, distance + 18));
+  const arcRadius = Math.max(source.radius + 31, Math.min(swordLength * .82, distance * .82 + 16));
+  const swordAlpha = reveal * swingFade;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.translate(source.x, source.y);
+
+  // Wide completed sweep trail: blurred warm metal outside, white-hot edge inside.
+  ctx.lineCap = "round";
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 14;
+  ctx.strokeStyle = profile.main;
+  ctx.lineWidth = 14;
+  ctx.globalAlpha = swordAlpha * .11;
+  ctx.beginPath();
+  ctx.arc(0, 0, arcRadius, startAngle, swordAngle);
+  ctx.stroke();
+
+  ctx.shadowBlur = 7;
+  ctx.lineWidth = 5.2;
+  ctx.globalAlpha = swordAlpha * .58;
+  ctx.beginPath();
+  ctx.arc(0, 0, arcRadius, startAngle, swordAngle);
+  ctx.stroke();
+
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = swordAlpha * .86;
+  ctx.beginPath();
+  ctx.arc(0, 0, arcRadius - 2, Math.max(startAngle, swordAngle - 1.02), swordAngle);
+  ctx.stroke();
+
+  const localPoint = (x, y) => ({
+    x: x * Math.cos(swordAngle) - y * Math.sin(swordAngle),
+    y: x * Math.sin(swordAngle) + y * Math.cos(swordAngle),
+  });
+
+  const root = source.radius + 4;
+  const tip = swordLength;
+  const blade = [
+    localPoint(root, -5),
+    localPoint(tip - 12, -3.5),
+    localPoint(tip, 0),
+    localPoint(tip - 12, 3.5),
+    localPoint(root, 5),
+  ];
+
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = profile.main;
+  ctx.globalAlpha = swordAlpha * .16;
+  ctx.beginPath();
+  ctx.moveTo(blade[0].x, blade[0].y);
+  for (let i = 1; i < blade.length; i += 1) ctx.lineTo(blade[i].x, blade[i].y);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 6;
+  ctx.fillStyle = profile.main;
+  ctx.globalAlpha = swordAlpha * .36;
+  ctx.fill();
+
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 1.8;
+  ctx.globalAlpha = swordAlpha * .96;
+  ctx.stroke();
+
+  // Crossguard and grip keep the effect readable as a sword instead of a laser.
+  const guardA = localPoint(root - 1, -11);
+  const guardB = localPoint(root - 1, 11);
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = swordAlpha * .82;
+  ctx.beginPath();
+  ctx.moveTo(guardA.x, guardA.y);
+  ctx.lineTo(guardB.x, guardB.y);
+  ctx.stroke();
+
+  const gripA = localPoint(Math.max(4, root - 14), 0);
+  const gripB = localPoint(root + 2, 0);
+  ctx.strokeStyle = profile.steel || profile.main;
+  ctx.lineWidth = 4;
+  ctx.globalAlpha = swordAlpha * .72;
+  ctx.beginPath();
+  ctx.moveTo(gripA.x, gripA.y);
+  ctx.lineTo(gripB.x, gripB.y);
+  ctx.stroke();
+
+  ctx.restore();
+
+  if (p > .30) {
+    const t = clamp01((p - .30) / .50);
+    const hitFade = 1 - smooth((t - .68) / .32);
+    const expand = smooth(t);
+
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(target.x, target.y);
+
+    // Impact flash and broken wound seal sell the Mortal Strike healing debuff.
+    ctx.fillStyle = profile.core;
+    ctx.globalAlpha = hitFade * Math.exp(-t * 11) * .22;
+    ctx.beginPath();
+    ctx.arc(0, 0, 11 + (1 - t) * 9, 0, TAU);
+    ctx.fill();
+
     ctx.strokeStyle = profile.main;
     ctx.shadowColor = profile.main;
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = (1 - t) * .52;
-    // Broken wound seal hints at healing reduction without another aura ring.
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 2.6;
+    ctx.globalAlpha = hitFade * .66;
     for (let i = 0; i < 3; i += 1) {
-      const a = i * TAU / 3 + .2;
+      const a = i * TAU / 3 + .2 - t * .18;
       ctx.beginPath();
-      ctx.arc(0, 0, 17 + t * 14, a, a + .72);
+      ctx.arc(0, 0, 18 + expand * 25, a, a + .90);
       ctx.stroke();
     }
+
+    ctx.strokeStyle = profile.core;
+    ctx.lineWidth = 1.4;
+    ctx.globalAlpha = hitFade * .72;
+    for (let i = 0; i < 7; i += 1) {
+      const a = i * TAU / 7 + seed * .006;
+      const inner = 8;
+      const outer = 22 + expand * (11 + (i % 3) * 5);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+      ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 }

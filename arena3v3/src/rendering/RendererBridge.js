@@ -1,5 +1,5 @@
-import { CanvasRenderer } from "./CanvasRenderer.js?v=20261006-rankspells1";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261006-rankspells1";
+import { CanvasRenderer } from "./CanvasRenderer.js?v=20261006-mortalstrikevfx4";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261006-mortalstrikevfx4";
 import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon30";
 
 function requestedRenderer() {

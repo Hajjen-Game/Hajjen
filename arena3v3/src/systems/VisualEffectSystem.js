@@ -138,7 +138,11 @@ export class VisualEffectSystem {
       targetY: target.y,
       spellId,
       style,
-      missed,
+      // Combat already resolved the miss/dodge before the VFX is emitted.
+      // Keep the full spell/melee animation aimed at the target so misses read
+      // through floating MISS/DODGE text instead of looking like bad aim.
+      missed: false,
+      outcomeMissed: Boolean(missed),
       seed: this.nextId * 37,
     }, visualDuration);
   }

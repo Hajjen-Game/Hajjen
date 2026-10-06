@@ -2710,6 +2710,14 @@ export class PixiProofRenderer {
     ccWorldFx.visible = false;
     root.addChild(ccWorldFx);
 
+    const castWindupGlowFx = new Graphics();
+    castWindupGlowFx.visible = false;
+    castWindupGlowFx.blendMode = "screen";
+    castWindupGlowFx.filters = [
+      new BlurFilter({ strength: 6.2, quality: 1 }),
+    ];
+    root.addChild(castWindupGlowFx);
+
     const castWindupFx = new Graphics();
     castWindupFx.visible = false;
     castWindupFx.blendMode = "screen";
@@ -3036,6 +3044,7 @@ export class PixiProofRenderer {
         deathStartedMs: null,
       },
       name,
+      castWindupGlowFx,
       castWindupFx,
       burstFx,
       slashFx,
@@ -5267,6 +5276,8 @@ export class PixiProofRenderer {
       || warriorRogueSpellProfile(spellId);
 
     for (const view of this.actorViews.values()) {
+      view.castWindupGlowFx.clear();
+      view.castWindupGlowFx.visible = false;
       view.castWindupFx.clear();
       view.castWindupFx.visible = false;
     }
@@ -5287,233 +5298,438 @@ export class PixiProofRenderer {
       const profile = profileFor(spellId);
       const classId = actor.classId;
       const g = view.castWindupFx;
+      const glow = view.castWindupGlowFx;
       g.visible = true;
 
-      // Mage: tightening elemental motes around a segmented rune ring.
+      // Mage VFX 3.0 build-ups keep the established motion language, but split
+      // soft bloom from crisp rune/crystal geometry for better depth and punch.
       if (classId === "mage" && profile) {
-        // Frostbolt: a compact ice lattice forms, then collapses into a spear.
-        if (spellId === "mage-frostbolt") {
-          const charge = smooth(p);
-          const pulse = .5 + .5 * Math.sin(time * 18);
-          const cageR = actor.radius + 26 - charge * 9;
+        glow.visible = true;
 
-          for (let i = 0; i < 6; i += 1) {
-            const a = i / 6 * Math.PI * 2 + .18;
-            const x = Math.cos(a) * cageR;
-            const y = Math.sin(a) * cageR;
+        // Frostbolt: same compact lattice/collapse motion, now with a cold aura
+        // layer and a brighter compressed core in the final part of the cast.
+        if (spellId === "mage-frostbolt") {
+          const charge=smooth(p);
+          const pulse=.5+.5*Math.sin(time*18);
+          const finalP=smooth((p-.82)/.18);
+          const cageR=actor.radius+26-charge*9;
+
+          glow.circle(0,0,cageR+8).stroke({
+            color:profile.main,
+            width:10+charge*3,
+            alpha:.055+charge*.085,
+          });
+          glow.circle(0,0,10+charge*7-finalP*3).fill({
+            color:profile.main,
+            alpha:.045+charge*.095+finalP*.07,
+          });
+
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+.18;
+            const x=Math.cos(a)*cageR;
+            const y=Math.sin(a)*cageR;
+            const size=2.8+(i%2)*.7+charge*.8;
+
             drawDiamond(
-              g, x, y, 2.8 + (i % 2) * .7 + charge * .8,
-              a, i % 2 ? profile.core : profile.main, .30 + charge * .54,
+              glow,x,y,size*2.15,a,
+              i%2?profile.core:profile.main,
+              .07+charge*.11,
+            );
+            glow
+              .moveTo(Math.cos(a)*(actor.radius+7),Math.sin(a)*(actor.radius+7))
+              .lineTo(x,y)
+              .stroke({
+                color:profile.main,
+                width:5.2+charge*1.8,
+                alpha:.045+charge*.075,
+              });
+
+            drawDiamond(
+              g,x,y,size,a,
+              i%2?profile.core:profile.main,
+              .30+charge*.54,
             );
             g
-              .moveTo(Math.cos(a) * (actor.radius + 7), Math.sin(a) * (actor.radius + 7))
-              .lineTo(x, y)
+              .moveTo(Math.cos(a)*(actor.radius+7),Math.sin(a)*(actor.radius+7))
+              .lineTo(x,y)
               .stroke({
-                color: i % 2 ? profile.core : profile.main,
-                width: 1.1 + charge * .6,
-                alpha: .18 + charge * .34,
+                color:i%2?profile.core:profile.main,
+                width:1.1+charge*.6,
+                alpha:.18+charge*.34,
               });
           }
 
-          // Two opposing crescents squeeze the frost into a narrow launch point.
-          for (const sign of [-1, 1]) {
-            strokeArc(
-              g,
-              actor.radius + 15 - charge * 3,
-              sign > 0 ? -.95 : 2.19,
-              sign > 0 ? .95 : 4.09,
-              {
-                color: sign > 0 ? profile.core : profile.main,
-                width: 1.8 + charge * .7,
-                alpha: .28 + charge * .48,
-              },
-              8,
-            );
+          for(const sign of [-1,1]){
+            const r=actor.radius+15-charge*3;
+            const a0=sign>0?-.95:2.19;
+            const a1=sign>0?.95:4.09;
+            strokeArc(glow,r,a0,a1,{
+              color:sign>0?profile.core:profile.main,
+              width:8+charge*2.5,
+              alpha:.06+charge*.08,
+            },8);
+            strokeArc(g,r,a0,a1,{
+              color:sign>0?profile.core:profile.main,
+              width:1.8+charge*.7,
+              alpha:.28+charge*.48,
+            },8);
           }
 
-          g.circle(0,0,3 + charge * 5 + pulse).fill({
-            color: profile.core,
-            alpha: .24 + charge * .56,
+          if(finalP>0){
+            glow.circle(0,0,actor.radius+8-finalP*3).stroke({
+              color:profile.core,
+              width:11,
+              alpha:finalP*.14,
+            });
+            g.circle(0,0,actor.radius+5-finalP*2).stroke({
+              color:profile.core,
+              width:1.4+finalP*.8,
+              alpha:finalP*.46,
+            });
+          }
+
+          glow.circle(0,0,7+charge*7+pulse*1.8).fill({
+            color:profile.main,
+            alpha:.07+charge*.11+finalP*.08,
+          });
+          g.circle(0,0,3+charge*5+pulse).fill({
+            color:profile.core,
+            alpha:.24+charge*.56,
           });
           continue;
         }
 
-        // Pyroblast: embers orbit a growing furnace core before the heavy release.
+        // Pyroblast: keep the orbiting embers/furnace motion but add temperature
+        // layering from deep red through orange to a near-white final core.
         if (spellId === "mage-pyroblast") {
-          const charge = smooth(p);
-          const pulse = .5 + .5 * Math.sin(time * 13);
-          const furnaceR = actor.radius + 11 + charge * 5;
+          const charge=smooth(p);
+          const pulse=.5+.5*Math.sin(time*13);
+          const finalP=smooth((p-.80)/.20);
+          const furnaceR=actor.radius+11+charge*5;
 
-          g.circle(0,0,furnaceR + 7 + pulse * 2).fill({
-            color: profile.main,
-            alpha: .07 + charge * .10,
+          glow.circle(0,0,furnaceR+13+pulse*3).fill({
+            color:profile.accent,
+            alpha:.045+charge*.075,
+          });
+          glow.circle(0,0,furnaceR+7+pulse*2).stroke({
+            color:profile.main,
+            width:13+charge*4,
+            alpha:.07+charge*.10,
+          });
+
+          g.circle(0,0,furnaceR+7+pulse*2).fill({
+            color:profile.main,
+            alpha:.07+charge*.10,
           });
           g.circle(0,0,furnaceR).stroke({
-            color: profile.main,
-            width: 2.4 + charge * 1.3,
-            alpha: .30 + charge * .50,
+            color:profile.main,
+            width:2.4+charge*1.3,
+            alpha:.30+charge*.50,
+          });
+          g.circle(0,0,Math.max(5,furnaceR-7)).stroke({
+            color:0xffb52f,
+            width:1.25+charge*.55,
+            alpha:.16+charge*.32+finalP*.16,
           });
 
-          for (let i = 0; i < 10; i += 1) {
-            const a = i / 10 * Math.PI * 2 + time * (i % 2 ? 1.65 : -1.3);
-            const start = actor.radius + 48 + (i % 3) * 6;
-            const rr = start * (1 - charge * .63);
-            const emberX = Math.cos(a) * rr;
-            const emberY = Math.sin(a) * rr - charge * (i % 2 ? 2 : 5);
-            g.circle(emberX,emberY,1.7 + (i % 3) * .6 + charge).fill({
-              color: i % 3 === 0 ? profile.core : (i % 2 ? profile.main : profile.accent),
-              alpha: .24 + charge * .58,
+          for(let i=0;i<10;i++){
+            const a=i/10*Math.PI*2+time*(i%2?1.65:-1.3);
+            const startR=actor.radius+48+(i%3)*6;
+            const rr=startR*(1-charge*.63);
+            const emberX=Math.cos(a)*rr;
+            const emberY=Math.sin(a)*rr-charge*(i%2?2:5);
+            const emberColor=i%3===0?profile.core:(i%2?profile.main:profile.accent);
+            const emberSize=1.7+(i%3)*.6+charge;
+
+            glow.circle(emberX,emberY,emberSize*3.2).fill({
+              color:emberColor,
+              alpha:.055+charge*.10,
+            });
+            g.circle(emberX,emberY,emberSize).fill({
+              color:emberColor,
+              alpha:.24+charge*.58,
             });
           }
 
-          // Three flame tongues make the charge feel tall and volatile.
-          for (let i = 0; i < 3; i += 1) {
-            const x = (i - 1) * 8;
-            const rise = 12 + charge * (18 + i * 4);
-            g
-              .moveTo(x,actor.radius + 5)
-              .lineTo(x + Math.sin(time * 7 + i) * 4, actor.radius + 5 - rise * .55)
-              .lineTo(x + Math.sin(time * 8.5 + i * 1.8) * 3, actor.radius + 5 - rise)
+          for(let i=0;i<3;i++){
+            const x=(i-1)*8;
+            const rise=12+charge*(18+i*4);
+            const midX=x+Math.sin(time*7+i)*4;
+            const tipX=x+Math.sin(time*8.5+i*1.8)*3;
+            const baseY=actor.radius+5;
+
+            glow
+              .moveTo(x,baseY)
+              .lineTo(midX,baseY-rise*.55)
+              .lineTo(tipX,baseY-rise)
               .stroke({
-                color: i === 1 ? profile.core : profile.main,
-                width: 1.8 + charge * .8,
-                alpha: .24 + charge * .46,
+                color:i===1?profile.core:profile.main,
+                width:7+charge*2,
+                alpha:.055+charge*.075,
+              });
+            g
+              .moveTo(x,baseY)
+              .lineTo(midX,baseY-rise*.55)
+              .lineTo(tipX,baseY-rise)
+              .stroke({
+                color:i===1?profile.core:profile.main,
+                width:1.8+charge*.8,
+                alpha:.24+charge*.46,
               });
           }
 
-          if (p > .68) {
-            const finalP = smooth((p - .68) / .32);
-            g.circle(0,0,4 + finalP * 7).fill({
-              color: profile.core,
-              alpha: finalP * .72,
+          if(finalP>0){
+            glow.circle(0,0,8+finalP*8).fill({
+              color:profile.core,
+              alpha:finalP*.17,
+            });
+            glow.circle(0,0,furnaceR+3).stroke({
+              color:0xffb52f,
+              width:10,
+              alpha:finalP*.10,
+            });
+            g.circle(0,0,4+finalP*7).fill({
+              color:profile.core,
+              alpha:finalP*.78,
             });
           }
           continue;
         }
 
-        // Frostfire Bolt: blue ice and orange fire occupy opposite halves, then
-        // lock into one bright hybrid core right before release.
+        // Frostfire Bolt: retain the left/right elemental split and convergence,
+        // while giving each half its own bloom and a cleaner white fusion core.
         if (spellId === "mage-frostfire-bolt") {
-          const charge = smooth(p);
-          const pulse = .5 + .5 * Math.sin(time * 15);
-          const rr = actor.radius + 19 - charge * 3;
+          const charge=smooth(p);
+          const pulse=.5+.5*Math.sin(time*15);
+          const finalP=smooth((p-.80)/.20);
+          const rr=actor.radius+19-charge*3;
+
+          strokeArc(glow,rr+2,-Math.PI/2+.12,Math.PI/2-.12,{
+            color:profile.main,
+            width:10+charge*3,
+            alpha:.06+charge*.085,
+          },10);
+          strokeArc(glow,rr+2,Math.PI/2+.12,Math.PI*1.5-.12,{
+            color:profile.accent,
+            width:10+charge*3,
+            alpha:.06+charge*.085,
+          },10);
 
           strokeArc(g,rr,-Math.PI/2+.12,Math.PI/2-.12,{
-            color:profile.main,width:2.6 + charge*.8,alpha:.30 + charge*.48,
+            color:profile.main,width:2.6+charge*.8,alpha:.30+charge*.48,
           },10);
           strokeArc(g,rr,Math.PI/2+.12,Math.PI*1.5-.12,{
-            color:profile.accent,width:2.6 + charge*.8,alpha:.30 + charge*.48,
+            color:profile.accent,width:2.6+charge*.8,alpha:.30+charge*.48,
           },10);
 
           for(let i=0;i<8;i++){
             const ice=i%2===0;
             const side=ice?1:-1;
-            const a=(i/8*Math.PI*2)+time * (ice ? .9 : -1.1);
-            const start=actor.radius+42+(i%3)*5;
-            const r=start*(1-charge*.62);
+            const a=(i/8*Math.PI*2)+time*(ice?.9:-1.1);
+            const startR=actor.radius+42+(i%3)*5;
+            const r=startR*(1-charge*.62);
             const x=Math.abs(Math.cos(a)*r)*side;
             const y=Math.sin(a)*r;
+            const color=ice?profile.main:(i%3===0?profile.core:profile.accent);
+
             if(ice){
+              drawDiamond(glow,x,y,(2.3+(i%3)*.5)*2.2,a,profile.main,.06+charge*.10);
               drawDiamond(g,x,y,2.3+(i%3)*.5,a,profile.main,.28+charge*.50);
             }else{
+              glow.circle(x,y,(1.8+(i%3)*.55)*3.4).fill({
+                color,
+                alpha:.06+charge*.10,
+              });
               g.circle(x,y,1.8+(i%3)*.55).fill({
-                color:i%3===0?profile.core:profile.accent,
+                color,
                 alpha:.28+charge*.50,
               });
             }
           }
 
+          // Final fusion doesn't alter the established convergence; it simply
+          // makes the already-converged centre read hotter and denser.
+          if(finalP>0){
+            glow.circle(0,0,10+finalP*8).fill({
+              color:profile.core,
+              alpha:finalP*.16,
+            });
+            glow.circle(0,0,actor.radius+7-finalP*2).stroke({
+              color:profile.core,
+              width:10,
+              alpha:finalP*.08,
+            });
+            g.circle(0,0,actor.radius+4-finalP*2).stroke({
+              color:profile.core,
+              width:1.45+finalP*.55,
+              alpha:finalP*.40,
+            });
+          }
+
+          glow.circle(0,0,8+charge*7+pulse*1.7).fill({
+            color:profile.core,
+            alpha:.055+charge*.10+finalP*.06,
+          });
           g.circle(0,0,3.4+charge*5.6+pulse).fill({
-            color:profile.core,alpha:.24+charge*.58,
+            color:profile.core,
+            alpha:.24+charge*.58,
           });
           continue;
         }
 
-        // Polymorph: playful arcane diamonds assemble into a tilted control sigil.
+        // Polymorph: preserve the playful diamond assembly/tilted sigil motion,
+        // but separate violet bloom, sharp glyphs and the final lock-in flash.
         if (spellId === "mage-polymorph") {
           const charge=smooth(p);
+          const finalP=smooth((p-.82)/.18);
           const rotation=time*.45;
           const sigilR=actor.radius+18-charge*4;
+
+          glow.circle(0,0,sigilR+10).stroke({
+            color:profile.main,
+            width:10+charge*2,
+            alpha:.045+charge*.075,
+          });
+
           for(let i=0;i<5;i++){
             const a=i/5*Math.PI*2+rotation;
-            const start=actor.radius+43+(i%2)*7;
-            const rr=start*(1-charge*.58);
+            const startR=actor.radius+43+(i%2)*7;
+            const rr=startR*(1-charge*.58);
+            const size=2.6+(i%2)*.8;
+
+            drawDiamond(
+              glow,
+              Math.cos(a)*rr,
+              Math.sin(a)*rr,
+              size*2.3,
+              a+rotation,
+              i%2?profile.core:profile.main,
+              .055+charge*.10,
+            );
             drawDiamond(
               g,
               Math.cos(a)*rr,
               Math.sin(a)*rr,
-              2.6+(i%2)*.8,
+              size,
               a+rotation,
               i%2?profile.core:profile.main,
               .26+charge*.52,
             );
           }
+
           for(let i=0;i<4;i++){
             const a=rotation+i*Math.PI/2;
-            const x=Math.cos(a)*sigilR, y=Math.sin(a)*sigilR;
+            const x=Math.cos(a)*sigilR;
+            const y=Math.sin(a)*sigilR;
             const b=rotation+(i+1)*Math.PI/2;
-            g.moveTo(x,y).lineTo(Math.cos(b)*sigilR,Math.sin(b)*sigilR).stroke({
+            const bx=Math.cos(b)*sigilR;
+            const by=Math.sin(b)*sigilR;
+
+            glow.moveTo(x,y).lineTo(bx,by).stroke({
+              color:i%2?profile.core:profile.main,
+              width:6.5+charge*2,
+              alpha:.05+charge*.075,
+            });
+            g.moveTo(x,y).lineTo(bx,by).stroke({
               color:i%2?profile.core:profile.main,
               width:1.5+charge*.6,
               alpha:.24+charge*.46,
             });
           }
+
+          if(finalP>0){
+            const lockR=sigilR*(1-finalP*.10);
+            glow.circle(0,0,lockR+5).stroke({
+              color:profile.core,
+              width:11,
+              alpha:finalP*.12,
+            });
+            for(let i=0;i<4;i++){
+              const a=rotation+i*Math.PI/2;
+              g.circle(Math.cos(a)*lockR,Math.sin(a)*lockR,1.8+finalP*.8).fill({
+                color:profile.core,
+                alpha:finalP*.66,
+              });
+            }
+          }
+
+          glow.circle(0,0,8+charge*6).fill({
+            color:profile.main,
+            alpha:.055+charge*.10+finalP*.05,
+          });
           g.circle(0,0,3+charge*4.5).fill({
-            color:profile.core,alpha:.22+charge*.56,
+            color:profile.core,
+            alpha:.22+charge*.56,
           });
           continue;
         }
 
-        const swell = smooth(p);
-        const pulse = .5 + .5 * Math.sin(time * 12 + actor.x * .01);
-        const radius =
-          actor.radius + 10 + swell * (profile.heavy ? 16 : 10);
-        const ringAlpha = .32 + p * .48;
+        // Any future Mage cast keeps the original motion, with a restrained
+        // two-layer VFX 3.0 treatment instead of falling back to flat geometry.
+        const swell=smooth(p);
+        const pulse=.5+.5*Math.sin(time*12+actor.x*.01);
+        const finalP=smooth((p-.82)/.18);
+        const radius=actor.radius+10+swell*(profile.heavy?16:10);
+        const ringAlpha=.32+p*.48;
 
-        g.circle(0,0,radius + pulse * 2).stroke({
-          color: profile.main,
-          width: 2 + p * 1.1,
-          alpha: ringAlpha,
+        glow.circle(0,0,radius+pulse*2+5).stroke({
+          color:profile.main,
+          width:9+p*3,
+          alpha:.05+p*.08,
+        });
+        g.circle(0,0,radius+pulse*2).stroke({
+          color:profile.main,
+          width:2+p*1.1,
+          alpha:ringAlpha,
         });
 
-        const runeRadius = radius + 6;
-        const runePhase = time * 1.7 * .55;
-        for (let i = 0; i < 4; i += 1) {
-          const start = i * Math.PI / 2 + .16 + runePhase;
-          strokeArc(g,runeRadius,start,start + .62,{
-            color: profile.core,
-            width: 1.8,
-            alpha: .30 + p * .48,
+        const runeRadius=radius+6;
+        const runePhase=time*1.7*.55;
+        for(let i=0;i<4;i++){
+          const a0=i*Math.PI/2+.16+runePhase;
+          strokeArc(glow,runeRadius,a0,a0+.62,{
+            color:profile.core,
+            width:7,
+            alpha:.045+p*.07,
+          },6);
+          strokeArc(g,runeRadius,a0,a0+.62,{
+            color:profile.core,
+            width:1.8,
+            alpha:.30+p*.48,
           },6);
         }
 
-        const count = profile.heavy ? 9 : 7;
-        const fireLike =
-          profile.kind?.includes?.("fire")
-          || profile.kind === "lava";
-        for (let i = 0; i < count; i += 1) {
-          const base = i / count * Math.PI * 2;
-          const spin = time * (fireLike ? 2.1 : 1.5);
-          const angle = base + spin * (i % 2 ? 1 : -1);
-          const startRadius = actor.radius + 34 + (i % 3) * 7;
-          const rr = startRadius * (1 - p * .58);
-          const x = Math.cos(angle) * rr;
-          const y = Math.sin(angle) * rr;
-          const size = 1.6 + (i % 3) * .55 + p * .8;
-          const moteAlpha = .22 + p * .52;
-          const color = i % 3 === 0 ? profile.core : profile.main;
+        const count=profile.heavy?9:7;
+        const fireLike=profile.kind?.includes?.("fire")||profile.kind==="lava";
+        for(let i=0;i<count;i++){
+          const base=i/count*Math.PI*2;
+          const spin=time*(fireLike?2.1:1.5);
+          const angle=base+spin*(i%2?1:-1);
+          const startRadius=actor.radius+34+(i%3)*7;
+          const rr=startRadius*(1-p*.58);
+          const x=Math.cos(angle)*rr;
+          const y=Math.sin(angle)*rr;
+          const size=1.6+(i%3)*.55+p*.8;
+          const moteAlpha=.22+p*.52;
+          const color=i%3===0?profile.core:profile.main;
 
-          if (profile.kind === "frost" || profile.kind === "frost-nova") {
+          if(profile.kind==="frost"||profile.kind==="frost-nova"){
+            drawDiamond(glow,x,y,size*2.2,angle,color,.05+p*.08);
             drawDiamond(g,x,y,size,angle,color,moteAlpha);
-          } else {
-            g.circle(x,y,size).fill({ color, alpha:moteAlpha });
+          }else{
+            glow.circle(x,y,size*3.2).fill({color,alpha:.05+p*.08});
+            g.circle(x,y,size).fill({color,alpha:moteAlpha});
           }
         }
 
-        if (p > .72) {
-          g.circle(0,0,5 + (p - .72) * 15).fill({
-            color: profile.core,
-            alpha: clamp01((p - .72) * 1.7),
+        if(finalP>0){
+          glow.circle(0,0,8+finalP*8).fill({
+            color:profile.core,
+            alpha:finalP*.14,
+          });
+          g.circle(0,0,5+finalP*10).fill({
+            color:profile.core,
+            alpha:clamp01(finalP*.72),
           });
         }
         continue;
@@ -5522,6 +5738,7 @@ export class PixiProofRenderer {
       // Shaman: Chain Lightning gets a stable storm-sigil buildup instead of
       // orbiting random strands. Other shaman casts keep the elemental gather.
       if (classId === "shaman" && profile) {
+        glow.visible = false;
         const pulse = .5 + .5 * Math.sin(time * 15);
 
         if (spellId === "shaman-chain-lightning") {

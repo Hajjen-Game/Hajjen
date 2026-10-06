@@ -69,6 +69,8 @@ export class UIManager {
     this.powerUpPickup = document.querySelector("#power-up-pickup");
     this.powerUpGlyph = document.querySelector("#power-up-glyph");
     this.powerUpName = document.querySelector("#power-up-name");
+    this.powerUpActorLayer = null;
+    this.powerUpActorBadges = new Map();
     this.combatLog = document.querySelector("#combat-log");
     this.toastElement = document.querySelector("#toast");
     this.result = document.querySelector("#match-result");
@@ -1720,9 +1722,134 @@ export class UIManager {
     }
   }
 
+  ensurePowerUpActorLayer() {
+    if (this.powerUpActorLayer?.isConnected) return this.powerUpActorLayer;
+
+    const arenaStage = document.querySelector("#arena-stage");
+    if (!arenaStage) return null;
+
+    const layer = document.createElement("div");
+    layer.className = "actor-power-up-layer";
+    layer.setAttribute("aria-hidden", "true");
+    arenaStage.appendChild(layer);
+    this.powerUpActorLayer = layer;
+    return layer;
+  }
+
+  clearPowerUpActorBadges() {
+    for (const badge of this.powerUpActorBadges.values()) {
+      badge.element.remove();
+    }
+    this.powerUpActorBadges.clear();
+  }
+
+  updateActorPowerUpBadges(system) {
+    const layer = this.ensurePowerUpActorLayer();
+    if (!layer) return;
+
+    if (this.game.waitingForStart || this.game.ended) {
+      this.clearPowerUpActorBadges();
+      return;
+    }
+
+    const arena = this.game.arena;
+    const width = Math.max(1, Number(arena?.width) || 1280);
+    const height = Math.max(1, Number(arena?.height) || 720);
+    const stageHeight = layer.getBoundingClientRect().height || height;
+    const scaleY = stageHeight / height;
+    const playerId = this.game.player?.id;
+    const selectedId = this.game.player?.targetId;
+    const ccKinds = new Set(["stun", "fear", "incapacitate", "root", "schoolLock"]);
+    const activeActorIds = new Set();
+
+    for (const actor of this.game.actors || []) {
+      if (!actor?.alive) continue;
+
+      const effect =
+        system.activePowerUpEffect?.(actor)
+        || (actor.effects || []).find(item =>
+          item.powerUp === true && item.remainingMs > 0
+        );
+      if (!effect) continue;
+
+      activeActorIds.add(actor.id);
+
+      let badge = this.powerUpActorBadges.get(actor.id);
+      if (!badge) {
+        const element = document.createElement("div");
+        element.className = "actor-power-up-badge";
+        element.setAttribute("aria-hidden", "true");
+
+        const orb = document.createElement("div");
+        orb.className = "power-up-orb actor-power-up-orb";
+
+        const glyph = document.createElement("span");
+        glyph.className = "power-up-glyph actor-power-up-glyph";
+        orb.appendChild(glyph);
+        element.appendChild(orb);
+        layer.appendChild(element);
+
+        badge = { element, glyph, type: null };
+        this.powerUpActorBadges.set(actor.id, badge);
+      }
+
+      const meta = system.metaFor?.(effect.powerUpType) || {
+        id: effect.powerUpType || "power",
+        glyph: "◆",
+      };
+      const type = meta.id || effect.powerUpType || "power";
+
+      if (badge.type !== type) {
+        badge.element.classList.remove(
+          "power-up-type-power",
+          "power-up-type-haste",
+          "power-up-type-speed",
+        );
+        badge.element.classList.add("power-up-type-" + type);
+        badge.type = type;
+      }
+      badge.glyph.textContent = meta.glyph || "◆";
+
+      const hasCrowdControl = (actor.effects || []).some(item =>
+        item.remainingMs > 0 && ccKinds.has(item.kind)
+      );
+      const selected =
+        actor.id !== playerId
+        && actor.id === selectedId;
+
+      let liftWorld = (Number(actor.radius) || 18) + 70;
+      if (hasCrowdControl && selected) {
+        liftWorld = (Number(actor.radius) || 18) + 158;
+      } else if (hasCrowdControl) {
+        liftWorld = (Number(actor.radius) || 18) + 122;
+      } else if (selected) {
+        liftWorld = (Number(actor.radius) || 18) + 108;
+      }
+
+      badge.element.style.left =
+        (clamp((Number(actor.x) || 0) / width, 0, 1) * 100).toFixed(3) + "%";
+      badge.element.style.top =
+        (clamp((Number(actor.y) || 0) / height, 0, 1) * 100).toFixed(3) + "%";
+      badge.element.style.setProperty(
+        "--actor-power-up-lift",
+        (liftWorld * scaleY).toFixed(2) + "px",
+      );
+    }
+
+    for (const [actorId, badge] of this.powerUpActorBadges) {
+      if (activeActorIds.has(actorId)) continue;
+      badge.element.remove();
+      this.powerUpActorBadges.delete(actorId);
+    }
+  }
+
   updatePowerUps() {
     const system = this.game.powerUps;
-    if (!system || !this.powerUpIndicator || !this.powerUpTimer) return;
+    if (!system) return;
+
+    this.updateActorPowerUpBadges(system);
+
+    if (!this.powerUpIndicator || !this.powerUpTimer) return;
 
     const inactive = this.game.waitingForStart || this.game.ended;
     this.powerUpIndicator.classList.toggle("hidden", inactive);

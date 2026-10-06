@@ -6498,214 +6498,355 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Priest: Mind Blast gets a dedicated psychic aperture. Other Priest
-      // casts keep the holy/shadow gather language.
+      // Priest VFX 3.0 build-ups preserve the existing spell motions while
+      // splitting soft holy/psychic bloom from crisp spell geometry.
       if (classId === "priest" && profile) {
-        if (spellId === "priest-smite") {
-          const pulse = .5 + .5 * Math.sin(time * 17);
-          const squeeze = smooth(p);
+        glow.visible = true;
 
-          // Broken psychic halos collapse toward the caster.
-          for (let ring = 0; ring < 3; ring += 1) {
-            const rr = actor.radius + 28 + ring * 8 - squeeze * (12 + ring * 3);
-            const phase = (ring % 2 ? -1 : 1) * p * .52;
-            for (let seg = 0; seg < 3; seg += 1) {
-              const a0 = seg * Math.PI * 2 / 3 + .22 + phase;
-              strokeArc(
-                g,
-                rr,
-                a0,
-                a0 + .72,
-                {
-                  color: ring === 1 ? profile.core : profile.main,
-                  width: 1.7 + p * .65,
-                  alpha: .28 + p * (.28 + ring * .06),
-                },
-                6,
-              );
+        if (spellId === "priest-smite") {
+          const pulse=.5+.5*Math.sin(time*17);
+          const squeeze=smooth(p);
+          const finalP=smooth((p-.72)/.28);
+
+          for(let ring=0;ring<3;ring++){
+            const rr=actor.radius+28+ring*8-squeeze*(12+ring*3);
+            const phase=(ring%2?-1:1)*p*.52;
+            for(let seg=0;seg<3;seg++){
+              const a0=seg*Math.PI*2/3+.22+phase;
+              strokeArc(glow,rr,a0,a0+.72,{
+                color:ring===1?profile.core:profile.main,
+                width:8+ring,
+                alpha:.045+p*.075,
+              },7);
+              strokeArc(g,rr,a0,a0+.72,{
+                color:ring===1?profile.core:profile.main,
+                width:1.7+p*.65,
+                alpha:.28+p*(.30+ring*.06),
+              },7);
             }
           }
 
-          // Purple shards are visibly sucked inward as the cast completes.
-          for (let i = 0; i < 9; i += 1) {
-            const a =
-              i / 9 * Math.PI * 2
-              + (i % 2 ? -.34 : .28) * time
-              + i * .13;
-            const start = actor.radius + 42 + (i % 3) * 7;
-            const rr = start * (1 - squeeze * .66);
-            g.circle(
-              Math.cos(a) * rr,
-              Math.sin(a) * rr,
-              1.7 + (i % 3) * .55,
-            ).fill({
-              color: i % 3 === 0 ? profile.core : profile.main,
-              alpha: .28 + p * .52,
+          for(let i=0;i<9;i++){
+            const a=
+              i/9*Math.PI*2
+              +(i%2?-.34:.28)*time
+              +i*.13;
+            const startR=actor.radius+42+(i%3)*7;
+            const rr=startR*(1-squeeze*.66);
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr;
+            const color=i%3===0?profile.core:profile.main;
+            const size=1.7+(i%3)*.55;
+
+            glow.circle(x,y,size*3.4).fill({
+              color,alpha:.05+p*.09
+            });
+            g.circle(x,y,size).fill({
+              color,alpha:.28+p*.54,
             });
           }
 
-          // A narrow "mind eye" closes around the Priest before the snap.
-          const eyeW = actor.radius + 13 - squeeze * 5;
-          const eyeH = 8 + pulse * 2 - squeeze * 2;
-          g.ellipse(0, 0, eyeW, eyeH).stroke({
-            color: profile.core,
-            width: 1.8 + p * .8,
-            alpha: .30 + p * .48,
+          const eyeW=actor.radius+13-squeeze*5;
+          const eyeH=8+pulse*2-squeeze*2;
+          glow.ellipse(0,0,eyeW+7,eyeH+6).stroke({
+            color:profile.main,width:10,alpha:.055+p*.085
           });
-          g.circle(0,0,2.8 + p * 4.8).fill({
-            color: profile.core,
-            alpha: .22 + p * .56,
+          g.ellipse(0,0,eyeW,eyeH).stroke({
+            color:profile.core,width:1.9+p*.8,alpha:.32+p*.50,
+          });
+          glow.circle(0,0,7+p*7).fill({
+            color:profile.main,alpha:.05+p*.09
+          });
+          g.circle(0,0,2.8+p*4.8).fill({
+            color:profile.core,alpha:.24+p*.58,
           });
 
-          if (p > .72) {
-            const finalP = smooth((p - .72) / .28);
-            for (let i = 0; i < 6; i += 1) {
-              const a = i / 6 * Math.PI * 2;
-              g
+          if(finalP>0){
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2;
+              glow
                 .moveTo(
-                  Math.cos(a) * (actor.radius + 14),
-                  Math.sin(a) * (actor.radius + 14),
+                  Math.cos(a)*(actor.radius+15),
+                  Math.sin(a)*(actor.radius+15)
                 )
                 .lineTo(
-                  Math.cos(a) * (actor.radius + 5),
-                  Math.sin(a) * (actor.radius + 5),
+                  Math.cos(a)*(actor.radius+5),
+                  Math.sin(a)*(actor.radius+5)
                 )
                 .stroke({
-                  color: i % 2 ? profile.core : profile.main,
-                  width: 1.4,
-                  alpha: finalP * .58,
+                  color:i%2?profile.core:profile.main,
+                  width:7,
+                  alpha:finalP*.08,
+                });
+              g
+                .moveTo(
+                  Math.cos(a)*(actor.radius+14),
+                  Math.sin(a)*(actor.radius+14)
+                )
+                .lineTo(
+                  Math.cos(a)*(actor.radius+5),
+                  Math.sin(a)*(actor.radius+5)
+                )
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.45,
+                  alpha:finalP*.62,
                 });
             }
+            glow.circle(0,0,10+finalP*8).fill({
+              color:profile.core,alpha:finalP*.16
+            });
+            g.circle(0,0,3+finalP*5).fill({
+              color:profile.core,alpha:finalP*.70
+            });
           }
           continue;
         }
 
-        // Holy Fire: a miniature sun seal ignites around the Priest before
-        // the sky-strike lands on the target.
+        // Holy Fire keeps its miniature sun seal, now with broad warm bloom and
+        // a stronger white-gold ignition just before the sky strike releases.
         if (spellId === "priest-holy-fire") {
           const charge=smooth(p);
           const pulse=.5+.5*Math.sin(time*15);
+          const finalP=smooth((p-.78)/.22);
           const rr=actor.radius+18-charge*3;
 
-          g.circle(0,0,rr+6+pulse*2).stroke({
-            color:profile.main,width:2.3+charge*.8,alpha:.28+charge*.50,
+          glow.circle(0,0,rr+9+pulse*2).stroke({
+            color:profile.main,width:11+charge*3,alpha:.055+charge*.085
           });
+          g.circle(0,0,rr+6+pulse*2).stroke({
+            color:profile.main,width:2.3+charge*.8,alpha:.28+charge*.52,
+          });
+
           for(let i=0;i<8;i++){
             const a=i/8*Math.PI*2;
             const inner=rr*.62;
             const outer=rr+(i%2?8:14)+charge*4;
+
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:7+charge*2,
+                alpha:.045+charge*.07,
+              });
             g
               .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
               .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
               .stroke({
                 color:i%2?profile.main:profile.core,
                 width:i%2?1.5:2.0,
-                alpha:.22+charge*.46,
+                alpha:.22+charge*.48,
               });
           }
+
           for(let i=0;i<8;i++){
             const a=i/8*Math.PI*2+time*(i%2?.65:-.55);
-            const start=actor.radius+44+(i%3)*5;
-            const r=start*(1-charge*.64);
-            g.circle(Math.cos(a)*r,Math.sin(a)*r,1.5+(i%3)*.5).fill({
-              color:i%3===0?profile.core:profile.main,
-              alpha:.24+charge*.50,
+            const startR=actor.radius+44+(i%3)*5;
+            const r=startR*(1-charge*.64);
+            const x=Math.cos(a)*r;
+            const y=Math.sin(a)*r;
+            const color=i%3===0?profile.core:profile.main;
+            const size=1.5+(i%3)*.5;
+
+            glow.circle(x,y,size*3.5).fill({
+              color,alpha:.05+charge*.09
+            });
+            g.circle(x,y,size).fill({
+              color,alpha:.24+charge*.52,
             });
           }
-          g.circle(0,0,4+charge*5).fill({
-            color:profile.core,alpha:.24+charge*.62,
+
+          glow.circle(0,0,8+charge*7).fill({
+            color:profile.main,alpha:.055+charge*.10
           });
+          g.circle(0,0,4+charge*5).fill({
+            color:profile.core,alpha:.24+charge*.64,
+          });
+
+          if(finalP>0){
+            glow.circle(0,0,11+finalP*10).fill({
+              color:profile.core,alpha:finalP*.18
+            });
+            glow.circle(0,0,rr+3).stroke({
+              color:profile.core,width:11,alpha:finalP*.10
+            });
+            g.circle(0,0,rr).stroke({
+              color:profile.core,width:1.6+finalP*.7,alpha:finalP*.46
+            });
+          }
           continue;
         }
 
-        // Flash Heal: quick four-point convergence, intentionally compact.
+        // Flash Heal stays compact and fast: four holy points collapse inward
+        // with just enough glow to read cleanly over the arena floor.
         if (spellId === "priest-flash-heal") {
           const charge=smooth(p);
+          const finalP=smooth((p-.76)/.24);
           const rr=actor.radius+26-charge*10;
+
+          glow.circle(0,0,actor.radius+10+charge*4).stroke({
+            color:profile.main,width:9,alpha:.045+charge*.07
+          });
+
           for(let i=0;i<4;i++){
             const a=i*Math.PI/2+Math.PI/4;
-            const x=Math.cos(a)*rr, y=Math.sin(a)*rr;
-            g.circle(x,y,2.2+charge*.8).fill({
-              color:i%2?profile.core:profile.main,
-              alpha:.28+charge*.52,
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr;
+            const color=i%2?profile.core:profile.main;
+
+            glow.circle(x,y,7+charge*2).fill({
+              color,alpha:.055+charge*.09
             });
-            g.moveTo(x,y).lineTo(Math.cos(a)*(actor.radius+6),Math.sin(a)*(actor.radius+6)).stroke({
-              color:i%2?profile.core:profile.main,
-              width:1.4+charge*.5,
-              alpha:.20+charge*.40,
+            g.circle(x,y,2.2+charge*.8).fill({
+              color,alpha:.30+charge*.54,
+            });
+
+            glow
+              .moveTo(x,y)
+              .lineTo(Math.cos(a)*(actor.radius+6),Math.sin(a)*(actor.radius+6))
+              .stroke({
+                color,width:7+charge*2,alpha:.045+charge*.065
+              });
+            g
+              .moveTo(x,y)
+              .lineTo(Math.cos(a)*(actor.radius+6),Math.sin(a)*(actor.radius+6))
+              .stroke({
+                color,width:1.4+charge*.5,alpha:.20+charge*.42,
+              });
+          }
+
+          g.circle(0,0,3+charge*4.5).fill({
+            color:profile.core,alpha:.24+charge*.62,
+          });
+
+          if(finalP>0){
+            glow.circle(0,0,9+finalP*7).fill({
+              color:profile.core,alpha:finalP*.14
+            });
+            g.circle(0,0,3+finalP*4).fill({
+              color:profile.core,alpha:finalP*.68
             });
           }
-          g.circle(0,0,3+charge*4.5).fill({
-            color:profile.core,alpha:.24+charge*.60,
-          });
           continue;
         }
 
-        // Greater Heal: broad layered holy halos make the long cast feel weighty.
+        // Greater Heal is the Priest's premium healing cast: broad celestial
+        // halos, outward rays and a strong compression into the release core.
         if (spellId === "priest-greater-heal") {
           const charge=smooth(p);
           const pulse=.5+.5*Math.sin(time*11);
+          const finalP=smooth((p-.70)/.30);
+
           for(let ring=0;ring<3;ring++){
             const rr=actor.radius+14+ring*9+charge*(5-ring*1.5);
+            glow.circle(0,0,rr+pulse*(ring===2?2:1)+6).stroke({
+              color:ring===1?profile.core:profile.main,
+              width:9+ring*2,
+              alpha:.045+charge*(.055+ring*.01),
+            });
             g.circle(0,0,rr+pulse*(ring===2?2:1)).stroke({
               color:ring===1?profile.core:profile.main,
               width:1.6+ring*.35+charge*.5,
-              alpha:.20+charge*(.38+ring*.04),
+              alpha:.20+charge*(.40+ring*.04),
             });
           }
+
           for(let i=0;i<6;i++){
             const a=i/6*Math.PI*2;
             const inner=actor.radius+5;
             const outer=actor.radius+32+charge*12+(i%2)*6;
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({
+                color:i%2?profile.core:profile.main,
+                width:8+charge*2,
+                alpha:.045+charge*.07,
+              });
             g
               .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
               .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
               .stroke({
                 color:i%2?profile.core:profile.main,
                 width:1.5+charge*.7,
-                alpha:.18+charge*.42,
+                alpha:.18+charge*.44,
               });
           }
-          if(p>.62){
-            const finalP=smooth((p-.62)/.38);
-            g.circle(0,0,4+finalP*8).fill({
-              color:profile.core,alpha:finalP*.66,
+
+          // Six descending motes imply a celestial column without drawing a
+          // target beam during the cast itself.
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+time*.18*(i%2?1:-1);
+            const rr=actor.radius+23+(i%2)*8;
+            const yBias=-8-charge*(10+(i%3)*4);
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr*.55+yBias;
+            glow.circle(x,y,6+(i%2)).fill({
+              color:i%2?profile.core:profile.main,
+              alpha:.05+charge*.08
+            });
+            g.circle(x,y,1.7+(i%3)*.45).fill({
+              color:i%2?profile.core:profile.main,
+              alpha:.26+charge*.48
+            });
+          }
+
+          if(finalP>0){
+            glow.circle(0,0,12+finalP*10).fill({
+              color:profile.core,alpha:finalP*.19
+            });
+            glow.circle(0,0,actor.radius+10-finalP*2).stroke({
+              color:profile.core,width:13,alpha:finalP*.11
+            });
+            g.circle(0,0,actor.radius+6-finalP*2).stroke({
+              color:profile.core,width:1.7+finalP*.8,alpha:finalP*.48
+            });
+            g.circle(0,0,4+finalP*6).fill({
+              color:profile.core,alpha:finalP*.74
             });
           }
           continue;
         }
 
-        const shadow =
-          profile.kind === "mind-implosion"
-          || profile.kind === "shadow-wave";
-        const count = shadow ? 5 : 7;
-        const pulse = .5 + .5 * Math.sin(time * 14);
+        // Future Priest casts keep the old holy/shadow gather with a restrained
+        // glow layer so they inherit the class material without fake new motion.
+        const shadow=
+          profile.kind==="mind-implosion"
+          || profile.kind==="shadow-wave";
+        const count=shadow?5:7;
+        const pulse=.5+.5*Math.sin(time*14);
 
-        for (let i = 0; i < count; i += 1) {
-          const a =
-            i / count * Math.PI * 2
-            + time * 1.2 * (i % 2 ? 1 : -1);
-          const rr = actor.radius + 28 - p * 14 + (i % 2) * 5;
-          g.circle(
-            Math.cos(a) * rr,
-            Math.sin(a) * rr,
-            1.5 + p * 1.1,
-          ).fill({
-            color:i % 3 === 0 ? profile.core : profile.main,
-            alpha:.24 + p * .48,
+        for(let i=0;i<count;i++){
+          const a=i/count*Math.PI*2+time*1.2*(i%2?1:-1);
+          const rr=actor.radius+28-p*14+(i%2)*5;
+          const x=Math.cos(a)*rr;
+          const y=Math.sin(a)*rr;
+          const color=i%3===0?profile.core:profile.main;
+
+          glow.circle(x,y,5+p*2).fill({
+            color,alpha:.045+p*.07
+          });
+          g.circle(x,y,1.5+p*1.1).fill({
+            color,alpha:.24+p*.48,
           });
         }
 
-        g.circle(0,0,actor.radius + 10 + p * 8 + pulse * 2).stroke({
-          color:profile.main,
-          width:1.8,
-          alpha:.28 + p * .36,
+        glow.circle(0,0,actor.radius+13+p*8+pulse*2).stroke({
+          color:profile.main,width:8,alpha:.045+p*.07
+        });
+        g.circle(0,0,actor.radius+10+p*8+pulse*2).stroke({
+          color:profile.main,width:1.8,alpha:.28+p*.36,
         });
 
-        if (p > .74) {
-          g.circle(0,0,4 + (p - .74) * 15).fill({
-            color:profile.core,
-            alpha:clamp01((p - .74) * 1.7),
+        if(p>.74){
+          const finalP=smooth((p-.74)/.26);
+          glow.circle(0,0,8+finalP*8).fill({
+            color:profile.core,alpha:finalP*.13
+          });
+          g.circle(0,0,4+finalP*5).fill({
+            color:profile.core,alpha:finalP*.64
           });
         }
         continue;

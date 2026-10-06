@@ -6,7 +6,7 @@ import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261002-secondary1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20261002-secondary2";
-import { AISystem } from "../systems/AISystem.js?v=20261005-deadtargetfix1";
+import { AISystem } from "../systems/AISystem.js?v=20261006-supportstable2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
 import { RendererBridge } from "../rendering/RendererBridge.js?v=20261005-pyroshowcase1";
 import { UIManager } from "../ui/UIManager.js?v=20261005-honorcurve1";

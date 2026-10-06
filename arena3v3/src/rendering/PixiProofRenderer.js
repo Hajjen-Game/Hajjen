@@ -2,6 +2,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../core/constants.js";
 import { classColorFor } from "../content/classes/classColors.js";
 import { classIconUrlFor } from "./ClassIconRegistry.js";
 import { castBarPaletteFor } from "./CastPalette.js?v=20260928-focusrestyle1";
+import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegistry.js?v=20261006-powerups1";
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
@@ -44,6 +45,84 @@ function boostRingColor(color, saturation = 1.18, brightness = 1.10) {
   );
 
   return (channel(r) << 16) | (channel(g) << 8) | channel(b);
+}
+
+function drawPixiPeriodicEffectGlyph(g, key, color) {
+  const c = color;
+
+  if (key === "leaf" || key === "holy-leaf") {
+    g
+      .moveTo(-7, 6)
+      .quadraticCurveTo(-6, -7, 7, -9)
+      .quadraticCurveTo(8, 4, -2, 8)
+      .lineTo(-7, 6)
+      .stroke({ color:c, width:1.7, alpha:.96 })
+      .moveTo(-6, 6)
+      .lineTo(5, -6)
+      .stroke({ color:c, width:1.35, alpha:.90 });
+    if (key === "holy-leaf") {
+      g
+        .moveTo(7, 3).lineTo(7, 10)
+        .moveTo(3.5, 6.5).lineTo(10.5, 6.5)
+        .stroke({ color:c, width:1.55, alpha:.94 });
+    }
+    return;
+  }
+
+  if (key === "flame") {
+    g
+      .moveTo(1, -10)
+      .quadraticCurveTo(4, -3, 1, 1)
+      .quadraticCurveTo(7, -2, 8, 5)
+      .quadraticCurveTo(8, 11, 0, 11)
+      .quadraticCurveTo(-8, 11, -8, 4)
+      .quadraticCurveTo(-7, -2, -2, -6)
+      .quadraticCurveTo(-2, -1, 1, -10)
+      .stroke({ color:c, width:1.75, alpha:.98 });
+    return;
+  }
+
+  if (key === "shadow") {
+    g
+      .circle(0, 0, 9)
+      .stroke({ color:c, width:1.6, alpha:.92 })
+      .moveTo(-5, -2)
+      .quadraticCurveTo(2, -8, 7, -2)
+      .quadraticCurveTo(2, -4, 1, 1)
+      .quadraticCurveTo(0, 6, 6, 8)
+      .quadraticCurveTo(-4, 9, -5, -2)
+      .stroke({ color:c, width:1.35, alpha:.92 });
+    return;
+  }
+
+  if (key === "frost") {
+    for (let i = 0; i < 3; i += 1) {
+      const a = i * Math.PI / 3;
+      const dx = Math.cos(a) * 9;
+      const dy = Math.sin(a) * 9;
+      g
+        .moveTo(-dx, -dy)
+        .lineTo(dx, dy)
+        .stroke({ color:c, width:1.5, alpha:.96 });
+    }
+    return;
+  }
+
+  if (key === "slashes") {
+    g
+      .moveTo(-8, 8).lineTo(-1, -9)
+      .moveTo(-1, 9).lineTo(6, -7)
+      .moveTo(6, 8).lineTo(9, 0)
+      .stroke({ color:c, width:1.8, alpha:.96 });
+    return;
+  }
+
+  g
+    .circle(0, 0, 7)
+    .stroke({ color:c, width:1.6, alpha:.92 })
+    .moveTo(0, -4).lineTo(0, 2)
+    .moveTo(0, 6).lineTo(.1, 6)
+    .stroke({ color:c, width:1.6, alpha:.92 });
 }
 
 
@@ -2966,6 +3045,54 @@ export class PixiProofRenderer {
     castBorder.visible = false;
     root.addChild(castBorder);
 
+    const periodicEffectLayer = new Container();
+    periodicEffectLayer.label = "periodic-effects:" + actor.id;
+    periodicEffectLayer.position.set(0, actor.radius + 10);
+
+    const periodicEffectSlots = [];
+    for (let i = 0; i < 5; i += 1) {
+      const slot = new Container();
+      slot.visible = false;
+
+      const glow = new Graphics();
+      glow.blendMode = "screen";
+      glow.filters = [new BlurFilter({ strength: 2.8, quality: 1 })];
+      slot.addChild(glow);
+
+      const background = new Graphics();
+      slot.addChild(background);
+
+      const glyph = new Graphics();
+      slot.addChild(glyph);
+
+      const timer = new Text({
+        text: "",
+        style: {
+          fontFamily: "system-ui",
+          fontSize: 8,
+          fontWeight: "900",
+          fill: "#f4eadc",
+          stroke: { color: "#080605", width: 2.2 },
+        },
+      });
+      timer.anchor.set(.5);
+      timer.position.set(0, 15);
+      slot.addChild(timer);
+
+      periodicEffectLayer.addChild(slot);
+      periodicEffectSlots.push({
+        slot,
+        glow,
+        background,
+        glyph,
+        timer,
+        signature: null,
+      });
+    }
+
+    // Added after actor VFX so HoT/DoT icons stay readable in melee stacks.
+    root.addChild(periodicEffectLayer);
+
     const ccBadge = new Container();
     ccBadge.label = "cc-badge:" + actor.id;
     ccBadge.visible = false;
@@ -3025,6 +3152,8 @@ export class PixiProofRenderer {
       secondaryFx,
       ccWorldGlowFx,
       ccWorldFx,
+      periodicEffectLayer,
+      periodicEffectSlots,
       ccBadge,
       ccBadgeGlow,
       ccBadgeBg,
@@ -4304,6 +4433,89 @@ export class PixiProofRenderer {
         glow.circle(0,0,r+4).stroke({
           color:palette.main,width:6,alpha:.08
         });
+      }
+    }
+  }
+
+  updatePeriodicEffectIcons(game) {
+    const visibleKinds = new Set(["dot", "hot"]);
+    const slotSize = 20;
+    const gap = 3;
+
+    for (const actor of game.actors || []) {
+      const view = this.actorViews.get(actor.id);
+      if (!view?.periodicEffectSlots) continue;
+
+      const effects = (actor.effects || [])
+        .filter(effect =>
+          effect.remainingMs > 0
+          && visibleKinds.has(effect.kind)
+        )
+        .sort((a,b) => {
+          const priority = effectPriority(b) - effectPriority(a);
+          return priority || a.remainingMs - b.remainingMs;
+        })
+        .slice(0, view.periodicEffectSlots.length);
+
+      view.periodicEffectLayer.position.set(0, actor.radius + 10);
+      const totalWidth =
+        effects.length > 0
+          ? effects.length * slotSize + (effects.length - 1) * gap
+          : 0;
+      const startX = -totalWidth / 2 + slotSize / 2;
+
+      for (let i = 0; i < view.periodicEffectSlots.length; i += 1) {
+        const slotView = view.periodicEffectSlots[i];
+        const effect = effects[i];
+
+        if (!actor.alive || !effect) {
+          slotView.slot.visible = false;
+          slotView.signature = null;
+          continue;
+        }
+
+        slotView.slot.visible = true;
+        slotView.slot.position.set(startX + i * (slotSize + gap), 0);
+
+        const palette = effectPalette(effect);
+        const key = effectIconKey(effect);
+        const signature =
+          String(effect.spellId || "")
+          + "|" + String(effect.kind || "")
+          + "|" + key;
+        const color = hexNumber(palette.color, 0xf2e6d2);
+        const background = hexNumber(palette.background, 0x4f3c2b);
+        const border = hexNumber(palette.border, 0xa77a4e);
+
+        if (slotView.signature !== signature) {
+          slotView.glow.clear()
+            .roundRect(-10.5, -10.5, 21, 21, 4.5)
+            .stroke({ color:border, width:4.6, alpha:.20 });
+
+          slotView.background.clear()
+            .roundRect(-10, -10, 20, 20, 4)
+            .fill({ color:0x0a0705, alpha:.96 })
+            .roundRect(-8.5, -8.5, 17, 17, 3)
+            .fill({ color:background, alpha:.97 })
+            .roundRect(-9.5, -9.5, 19, 19, 3.5)
+            .stroke({ color:border, width:1.25, alpha:.98 });
+
+          slotView.glyph.clear();
+          drawPixiPeriodicEffectGlyph(slotView.glyph, key, color);
+          slotView.signature = signature;
+        }
+
+        const expiryAlpha =
+          effect.remainingMs < 700
+            ? Math.max(.30, Math.min(1, effect.remainingMs / 700))
+            : 1;
+        slotView.slot.alpha = expiryAlpha;
+        slotView.glow.alpha =
+          .68 + .16 * (.5 + .5 * Math.sin(game.elapsedSeconds * 5.6 + i));
+
+        const seconds = Math.max(0, effect.remainingMs / 1000);
+        slotView.timer.text =
+          seconds < 10 ? seconds.toFixed(1) : String(Math.ceil(seconds));
       }
     }
   }
@@ -18554,6 +18766,7 @@ export class PixiProofRenderer {
     this.updatePersistentCombatStateVfx(game);
     this.updateNativeSecondaryCombatVfx(game);
     this.updatePersistentCrowdControlVfx(game);
+    this.updatePeriodicEffectIcons(game);
     this.updateCrowdControlBadges(game);
     this.updateNativeCastWindupVfx(game);
     this.updateNativeBurstVfx(game);

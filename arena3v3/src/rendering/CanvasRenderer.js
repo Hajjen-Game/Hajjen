@@ -955,8 +955,13 @@ export class CanvasRenderer {
       "schoolLock",
       "slow",
     ]);
+    const playerId = game.player?.id;
     const effects = actor.effects
-      .filter(effect => effect.remainingMs > 0 && visibleKinds.has(effect.kind))
+      .filter(effect => {
+        if (effect.remainingMs <= 0 || !visibleKinds.has(effect.kind)) return false;
+        if (effect.kind !== "hot" && effect.kind !== "dot") return true;
+        return actor.id === playerId || effect.sourceId === playerId;
+      })
       .sort((a, b) => {
         const priority = effectPriority(b) - effectPriority(a);
         return priority || a.remainingMs - b.remainingMs;

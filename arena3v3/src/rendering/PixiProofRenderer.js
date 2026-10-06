@@ -4446,10 +4446,15 @@ export class PixiProofRenderer {
       const view = this.actorViews.get(actor.id);
       if (!view?.periodicEffectSlots) continue;
 
+      const playerId = game.player?.id;
       const effects = (actor.effects || [])
         .filter(effect =>
           effect.remainingMs > 0
           && visibleKinds.has(effect.kind)
+          && (
+            actor.id === playerId
+            || effect.sourceId === playerId
+          )
         )
         .sort((a,b) => {
           const priority = effectPriority(b) - effectPriority(a);

@@ -3394,6 +3394,7 @@ export class AISystem {
     const healer = this.getTeamHealer(actor);
     if (!healer?.alive) {
       actor.aiHealerSupportRecoveryActive = false;
+      actor.aiHealerSupportComfortSince = null;
       return false;
     }
 
@@ -3409,13 +3410,26 @@ export class AISystem {
     const low = actor.healthPct <= healerLosHealthPct;
     const emergency = actor.healthPct <= emergencyHealthPct;
 
-    // Once recovery starts, commit until the caster is comfortably back inside
-    // healer support instead of releasing on the exact range/LOS boundary.
-    // Without this hysteresis the caster can move 2-4px toward the healer,
-    // become "supported", immediately resume pressure in the opposite
-    // direction, then become unsupported again on the next AI tick.
+    // Once recovery starts, do not release it on a single "good" frame.
+    // A caster can sit on the edge of healer range/LOS and alternate between
+    // recover-healer-support and role-range every few frames. That produces
+    // the slower back-and-forth pendulum seen in movement logs even though the
+    // broad OPEN_FIELD_JITTER detector may not fire.
+    //
+    // Recovery now needs BOTH:
+    //   1) a minimum commitment window, and
+    //   2) continuously comfortable healer support for a short stable window.
+    //
+    // This handles both range-edge and LOS-edge flicker without changing the
+    // caster's normal pressure/kite logic once recovery genuinely finishes.
     if (actor.aiHealerSupportRecoveryActive) {
-      const releaseMargin = actor.config.ai.healerSupportRecoveryMargin ?? 36;
+      const now = this.game.elapsedSeconds;
+      const releaseMargin = actor.config.ai.healerSupportRecoveryMargin ?? 44;
+      const minimumCommitSeconds =
+        actor.config.ai.healerSupportRecoveryMinSeconds ?? 0.72;
+      const stableSupportSeconds =
+        actor.config.ai.healerSupportRecoveryStableSeconds ?? 0.62;
+
       const comfortablySupported = this.hasHealerSupport(
         actor,
         healer,
@@ -3423,9 +3437,26 @@ export class AISystem {
         releaseMargin,
       );
 
-      if (comfortablySupported) {
+      if (!comfortablySupported) {
+        actor.aiHealerSupportComfortSince = null;
+        return true;
+      }
+
+      if (!Number.isFinite(actor.aiHealerSupportComfortSince)) {
+        actor.aiHealerSupportComfortSince = now;
+      }
+
+      const startedAt = Number.isFinite(actor.aiHealerSupportRecoveryStartedAt)
+        ? actor.aiHealerSupportRecoveryStartedAt
+        : now;
+      const committedLongEnough = now - startedAt >= minimumCommitSeconds;
+      const supportStableLongEnough =
+        now - actor.aiHealerSupportComfortSince >= stableSupportSeconds;
+
+      if (committedLongEnough && supportStableLongEnough) {
         actor.aiHealerSupportRecoveryActive = false;
-        actor.aiHealerSupportRecoveryReleasedAt = this.game.elapsedSeconds;
+        actor.aiHealerSupportRecoveryReleasedAt = now;
+        actor.aiHealerSupportComfortSince = null;
         return false;
       }
 
@@ -3440,6 +3471,7 @@ export class AISystem {
     if (emergency) {
       actor.aiHealerSupportRecoveryActive = true;
       actor.aiHealerSupportRecoveryStartedAt = this.game.elapsedSeconds;
+      actor.aiHealerSupportComfortSince = null;
       return true;
     }
 
@@ -3460,6 +3492,7 @@ export class AISystem {
     if (recover) {
       actor.aiHealerSupportRecoveryActive = true;
       actor.aiHealerSupportRecoveryStartedAt = this.game.elapsedSeconds;
+      actor.aiHealerSupportComfortSince = null;
     }
 
     return recover;

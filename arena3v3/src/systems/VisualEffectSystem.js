@@ -1,5 +1,22 @@
 import { ownsCasterVfx2Impact, vfx2DurationFor } from "./MageShamanVfxProfile.js?v=20260930-vfx2e";
 
+// Ranged projectiles were visually crossing the arena too quickly to read the
+// VFX 3.0 silhouettes/trails. Keep casts, melee, sky spells and CC timing as-is;
+// only true travelling projectiles get a longer visual flight on this pass.
+const SHOWCASE_PROJECTILE_SPELLS = new Set([
+  "mage-frostbolt",
+  "mage-pyroblast",
+  "mage-frostfire-bolt",
+  "mage-arcane-barrage",
+  "shaman-lava-burst",
+  "shaman-elemental-blast",
+  "warlock-shadow-bolt",
+  "warlock-chaos-bolt",
+  "paladin-hammer",
+]);
+
+const SHOWCASE_PROJECTILE_DURATION_MULTIPLIER = 1.35;
+
 export class VisualEffectSystem {
   constructor() {
     this.effects = [];
@@ -107,6 +124,11 @@ export class VisualEffectSystem {
       ? vfx2DurationFor(spellId)
       : null;
 
+    const baseDuration = layeredDuration || durations[spellId] || 520;
+    const visualDuration = SHOWCASE_PROJECTILE_SPELLS.has(spellId)
+      ? Math.round(baseDuration * SHOWCASE_PROJECTILE_DURATION_MULTIPLIER)
+      : baseDuration;
+
     this.add("spell", {
       sourceId: source.id,
       targetId: target.id,
@@ -118,6 +140,6 @@ export class VisualEffectSystem {
       style,
       missed,
       seed: this.nextId * 37,
-    }, layeredDuration || durations[spellId] || 520);
+    }, visualDuration);
   }
 }

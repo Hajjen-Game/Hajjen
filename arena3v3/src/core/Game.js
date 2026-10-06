@@ -3,7 +3,7 @@ import { MovementSystem } from "../systems/MovementSystem.js?v=20261006-powerups
 import { ResourceSystem } from "../systems/ResourceSystem.js";
 import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20260930-vfx2d1";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
-import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261002-secondary1";
+import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261006-projectileslow1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
 import { PowerUpSystem } from "../systems/PowerUpSystem.js?v=20261006-powerups1";
 import { CombatSystem } from "../systems/CombatSystem.js?v=20261006-powerups1";

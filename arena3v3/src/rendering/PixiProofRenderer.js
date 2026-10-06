@@ -1062,45 +1062,45 @@ function priestDruidSpellProfile(spellId) {
 
     "druid-rejuvenation": {
       kind: "leaf-hot",
-      main: 0x66d97d,
-      core: 0xefffc1,
-      accent: 0x3e9d65,
+      main: 0x5ee67b,
+      core: 0xf5ffd0,
+      accent: 0x2f9b5b,
     },
     "druid-swiftmend": {
       kind: "leaf-burst",
-      main: 0x72e58a,
-      core: 0xf7ffc6,
-      accent: 0x45a76c,
+      main: 0x66ef84,
+      core: 0xfbffd6,
+      accent: 0x35ae63,
     },
     "druid-regrowth": {
       kind: "regrowth",
-      main: 0x65d77a,
-      core: 0xf0ffb8,
-      accent: 0x3d9a61,
+      main: 0x59df76,
+      core: 0xf5ffc7,
+      accent: 0x329759,
     },
     "druid-ironbark": {
       kind: "bark-shield",
-      main: 0x7ea46a,
-      core: 0xd6e6a2,
-      accent: 0x70563a,
+      main: 0x86b26e,
+      core: 0xe3efb0,
+      accent: 0x6a4a2f,
     },
     "druid-cyclone": {
       kind: "cyclone",
-      main: 0x91b98a,
-      core: 0xeaf1ca,
-      accent: 0x6d8c72,
+      main: 0x8fcf99,
+      core: 0xf1f7d9,
+      accent: 0x587c65,
     },
     "druid-lifebloom": {
       kind: "lifebloom",
-      main: 0x73e28a,
-      core: 0xf7ffc4,
-      accent: 0x4aa96b,
+      main: 0x69ec8a,
+      core: 0xfbffd3,
+      accent: 0x3aad68,
     },
     "druid-moonfire": {
       kind: "moon-sky",
-      main: 0x8aa8d8,
-      core: 0xeef3ff,
-      accent: 0x7690ba,
+      main: 0x8eaee9,
+      core: 0xf8fbff,
+      accent: 0x6d76c9,
     },
   };
   return profiles[spellId] || null;
@@ -3457,21 +3457,24 @@ export class PixiProofRenderer {
         const r=actor.radius+8;
 
         if(defensive.spellId==="druid-ironbark"){
-          for(let i=0;i<6;i++){
-            const a=i/6*Math.PI*2;
-            const rr=r+3+(i%2)*3;
+          glow.circle(0,0,r+13).fill({
+            color:profile.main,alpha:.038+.016*pulse
+          });
+          for(let i=0;i<7;i++){
+            const a=i/7*Math.PI*2+time*.035;
+            const rr=r+4+(i%2)*3;
             const x=Math.cos(a)*rr;
             const y=Math.sin(a)*rr;
-            core
-              .moveTo(x-4,y-7)
-              .lineTo(x+5,y-5)
-              .lineTo(x+6,y+6)
-              .lineTo(x-4,y+8)
-              .lineTo(x-4,y-7)
-              .stroke({
-                color:profile.accent,width:2.8,alpha:.54+.08*pulse
-              });
+            glow.moveTo(x-5,y-8).lineTo(x+6,y-6).lineTo(x+7,y+7)
+              .lineTo(x-5,y+9).lineTo(x-5,y-8)
+              .stroke({color:profile.main,width:6,alpha:.055});
+            core.moveTo(x-5,y-8).lineTo(x+6,y-6).lineTo(x+7,y+7)
+              .lineTo(x-5,y+9).lineTo(x-5,y-8)
+              .stroke({color:profile.accent,width:2.7,alpha:.58+.07*pulse});
           }
+          core.circle(0,0,r+2).stroke({
+            color:profile.core,width:1.1,alpha:.24+.08*pulse
+          });
         } else if(defensive.spellId==="paladin-blessing"){
           glow.circle(0,0,r+13).fill({
             color:profile.main,alpha:.045+.018*pulse
@@ -3839,7 +3842,7 @@ export class PixiProofRenderer {
       if (effect.kind === "stun") return { main:0xe46f5e, core:0xffe2dd };
       if (effect.kind === "fear") return { main:0xa86ee8, core:0xeadbff };
       if (effect.kind === "incapacitate") {
-        if (effect.spellId === "druid-cyclone") return { main:0x71c88a, core:0xd9f2d4 };
+        if (effect.spellId === "druid-cyclone") return { main:0x8fcf99, core:0xf1f7d9 };
         if (effect.spellId === "shaman-hex") return { main:0x66b88a, core:0xd6f3c9 };
         return { main:0x9b79d1, core:0xeee3ff };
       }
@@ -4101,35 +4104,35 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Cyclone persists as layered wind bands around the controlled player.
+      // Cyclone VFX 3.0 persists as a true layered mini-tornado.
       if (
         effect.kind === "incapacitate"
         && effect.spellId === "druid-cyclone"
       ) {
-        for(let layer=0;layer<5;layer++){
-          const y=14-layer*7.5;
-          const rx=actor.radius+5+layer*3+pulse*1.5;
-          const ry=4.5+layer*.9;
-          core.ellipse(0,y,rx,ry).stroke({
-            color:layer%2?palette.core:palette.main,
-            width:1.4+layer*.12,
-            alpha:.30+layer*.075,
-          });
-        }
-        for(let i=0;i<6;i++){
-          const a=i/6*Math.PI*2+time*(i%2?.9:-.75);
-          const rr=actor.radius+8+(i%3)*4;
-          core.circle(
-            Math.cos(a)*rr,
-            Math.sin(a)*rr*.45-5,
-            1.1+(i%2)*.35
-          ).fill({
-            color:palette.core,alpha:.40
-          });
-        }
-        glow.ellipse(0,2,actor.radius+15,actor.radius+5).stroke({
-          color:palette.main,width:8,alpha:.09
+        glow.ellipse(0,2,actor.radius+18,actor.radius+8).fill({
+          color:palette.main,alpha:.035+.012*pulse
         });
+        for(let layer=0;layer<6;layer++){
+          const y=16-layer*7.3;
+          const rx=actor.radius+5+layer*3.2+pulse*1.5;
+          const ry=4.4+layer*.9;
+          glow.ellipse(0,y,rx+3,ry+2).stroke({
+            color:layer%2?palette.core:palette.main,width:6+layer*.25,alpha:.05
+          });
+          core.ellipse(0,y,rx,ry).stroke({
+            color:layer%2?palette.core:palette.main,width:1.35+layer*.12,
+            alpha:.31+layer*.068
+          });
+        }
+        for(let i=0;i<8;i++){
+          const a=i/8*Math.PI*2+time*(i%2?.95:-.78);
+          const rr=actor.radius+9+(i%3)*5;
+          const x=Math.cos(a)*rr;
+          const y=Math.sin(a)*rr*.45-6-(i%2)*4;
+          core.moveTo(x-2,y-1).lineTo(x+2,y-3).lineTo(x+3,y+1)
+            .lineTo(x,y+3).lineTo(x-2,y-1)
+            .stroke({color:i%3===0?palette.core:palette.main,width:1.0,alpha:.42});
+        }
         continue;
       }
 
@@ -11333,90 +11336,121 @@ export class PixiProofRenderer {
           const swift=effect.spellId==="druid-swiftmend";
           const regrowth=effect.spellId==="druid-regrowth";
           const lifebloom=effect.spellId==="druid-lifebloom";
-          const count=swift?18:(regrowth?15:(lifebloom?14:11));
-          const bloomR=13+eased*(swift?40:(regrowth?36:29))*power;
+          const rejuvenation=effect.spellId==="druid-rejuvenation";
+          const contact=Math.exp(-p*(swift?13:(regrowth?8:10)));
+          const count=swift?18:(regrowth?16:(lifebloom?14:10));
+          const bloomR=13+eased*(swift?42:(regrowth?39:(lifebloom?32:27)))*power;
 
+          // Druid VFX 3.0 healing = living growth. HoTs still only animate on application.
           glow.circle(dx,dy,bloomR*.90).fill({
-            color:profile.main,
-            alpha:alpha*fade*(swift?.13:(regrowth?.11:.08)),
+            color:profile.main,alpha:alpha*fade*(swift?.15:(regrowth?.12:.08))
           });
-          glow.circle(dx,dy,bloomR).stroke({
-            color:profile.main,
-            width:swift?13:(regrowth?11:8),
-            alpha:alpha*fade*(swift?.15:.10),
+          glow.circle(dx,dy,bloomR+5).stroke({
+            color:profile.main,width:swift?14:(regrowth?12:9),
+            alpha:alpha*fade*(swift?.16:(regrowth?.12:.09))
           });
+
+          if(rejuvenation){
+            for(let i=0;i<8;i++){
+              const a=i/8*Math.PI*2-p*.72+seed*.004;
+              const rr=12+eased*(17+(i%2)*4);
+              const x=dx+Math.cos(a)*rr;
+              const y=dy+Math.sin(a)*rr-p*6;
+              leaf(glow,x,y,a+.45+p*.45,7+(i%2),profile.main,alpha*fade*.07);
+              leaf(core,x,y,a+.45+p*.45,4.2+(i%2)*.7,
+                i%3===0?profile.core:profile.main,alpha*fade*.66);
+            }
+            core.circle(dx,dy,Math.max(6,bloomR-10)).stroke({
+              color:profile.core,width:1.3,alpha:alpha*fade*.42
+            });
+            continue;
+          }
 
           if(regrowth){
-            for(let i=0;i<6;i++){
-              const side=(i-2.5)*8;
-              const sway=Math.sin(i*1.7+p*5.5)*12;
-              core
-                .moveTo(dx+side,dy+20)
+            for(let i=0;i<7;i++){
+              const side=(i-3)*7;
+              const sway=Math.sin(i*1.7+p*5.5)*13;
+              glow.moveTo(dx+side,dy+22)
                 .lineTo(dx+side+sway*.40,dy-4-p*20)
-                .lineTo(dx+side*.28+sway,dy-35-p*16)
-                .stroke({
-                  color:i%2?profile.main:profile.core,
-                  width:2.2+(i%3===0?.6:0),
-                  alpha:alpha*fade*.62,
-                });
+                .lineTo(dx+side*.28+sway,dy-38-p*18)
+                .stroke({color:i%2?profile.main:profile.core,width:7+(i%3===0?2:0),alpha:alpha*fade*.065});
+              core.moveTo(dx+side,dy+22)
+                .lineTo(dx+side+sway*.40,dy-4-p*20)
+                .lineTo(dx+side*.28+sway,dy-38-p*18)
+                .stroke({color:i%2?profile.main:profile.core,width:2.1+(i%3===0?.7:0),alpha:alpha*fade*.66});
             }
           }
 
           for(let i=0;i<count;i++){
-            const a=i/count*Math.PI*2+p*(i%2?1.8:-1.45)+seed*.006;
-            const rr=8+eased*(20+(i%4)*6)*(swift?1.25:1);
-            leaf(
-              core,
-              dx+Math.cos(a)*rr,
-              dy+Math.sin(a)*rr-p*(lifebloom?16:9),
-              a+.55+p*(i%2?1:-.8),
-              4.0+(i%3)*1.0+(swift?.7:0),
-              i%4===0?profile.core:(i%2?profile.main:profile.accent),
-              alpha*fade*(swift?.82:.72)
-            );
+            const a=i/count*Math.PI*2+p*(i%2?1.75:-1.42)+seed*.006;
+            const rr=8+eased*(21+(i%4)*6)*(swift?1.28:1);
+            const x=dx+Math.cos(a)*rr;
+            const y=dy+Math.sin(a)*rr-p*(lifebloom?16:9);
+            const color=i%4===0?profile.core:(i%2?profile.main:profile.accent);
+            const size=4.1+(i%3)*1.0+(swift?.8:0);
+            leaf(glow,x,y,a+.55+p*(i%2?1:-.8),size*1.6,profile.main,alpha*fade*.06);
+            leaf(core,x,y,a+.55+p*(i%2?1:-.8),size,color,alpha*fade*(swift?.84:.74));
           }
 
           if(lifebloom){
-            const petals=8;
-            for(let i=0;i<petals;i++){
-              const a=i/petals*Math.PI*2+p*.38;
-              const rr=8+eased*13;
-              leaf(
-                core,
-                dx+Math.cos(a)*rr,
-                dy+Math.sin(a)*rr,
-                a,
-                6.3+(i%2)*.8,
-                i%2?profile.main:profile.core,
-                alpha*fade*.84
-              );
+            for(let i=0;i<10;i++){
+              const a=i/10*Math.PI*2+p*.38;
+              const rr=7+eased*15;
+              const x=dx+Math.cos(a)*rr;
+              const y=dy+Math.sin(a)*rr;
+              leaf(glow,x,y,a,10+(i%2),profile.main,alpha*fade*.07);
+              leaf(core,x,y,a,6.5+(i%2)*.9,i%2?profile.main:profile.core,alpha*fade*.86);
             }
-            core.circle(dx,dy,4.5+eased*3.5).fill({
-              color:profile.core,alpha:alpha*fade*.82
+            glow.circle(dx,dy,8+contact*16).fill({
+              color:profile.core,alpha:alpha*fade*contact*.12
+            });
+            core.circle(dx,dy,4.8+eased*3.8).fill({
+              color:profile.core,alpha:alpha*fade*.86
             });
           }
 
           if(swift){
-            for(let i=0;i<10;i++){
-              const a=i/10*Math.PI*2+seed*.009;
-              const inner=10;
-              const outer=24+eased*(25+(i%3)*6);
-              core
-                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+            for(let i=0;i<12;i++){
+              const a=i/12*Math.PI*2+seed*.009;
+              const inner=9;
+              const outer=24+eased*(28+(i%3)*6);
+              glow.moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
                 .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
-                .stroke({
-                  color:i%3===0?profile.core:profile.main,
-                  width:1.8+(i%3===0?.7:0),
-                  alpha:alpha*fade*.68,
-                });
+                .stroke({color:i%3===0?profile.core:profile.main,width:7,alpha:alpha*fade*.065});
+              core.moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                .stroke({color:i%3===0?profile.core:profile.main,width:1.8+(i%3===0?.7:0),alpha:alpha*fade*.72});
+            }
+            glow.circle(dx,dy,9+contact*23).fill({
+              color:profile.core,alpha:alpha*fade*contact*.16
+            });
+            core.circle(dx,dy,4+contact*7).fill({
+              color:profile.core,alpha:alpha*fade*(.56+contact*.32)
+            });
+          }
+
+          if(regrowth){
+            glow.circle(dx,dy,10+contact*26).fill({
+              color:profile.core,alpha:alpha*fade*contact*.16
+            });
+            core.circle(dx,dy,5+contact*8).fill({
+              color:profile.core,alpha:alpha*fade*(.58+contact*.32)
+            });
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2+.16;
+              const inner=10;
+              const outer=22+eased*(17+(i%2)*6);
+              core.moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a+.09)*outer,dy+Math.sin(a+.09)*outer)
+                .stroke({color:i%2?profile.core:profile.main,width:1.6+(i%3===0?.5:0),alpha:alpha*fade*.58});
             }
           }
 
           core.circle(dx,dy,bloomR).stroke({
-            color:profile.main,width:2.3+(strong?.7:0),alpha:alpha*fade*.68
+            color:profile.main,width:2.3+(strong?.7:0),alpha:alpha*fade*.70
           });
           core.circle(dx,dy,Math.max(7,bloomR-9)).stroke({
-            color:profile.core,width:1.35,alpha:alpha*fade*.48
+            color:profile.core,width:1.35,alpha:alpha*fade*.50
           });
           continue;
         }
@@ -11660,23 +11694,42 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="druid-ironbark"){
-          for(let i=0;i<6;i++){
-            const ang=i/6*Math.PI*2+.18*Math.sin(i+p*3);
-            const rr=25+(i%2)*4;
+          const snap=Math.exp(-p*10);
+          const barkR=25+easeOut(p)*6;
+          glow.circle(dx,dy,barkR+12).fill({
+            color:profile.main,alpha:a*(.045+snap*.04)
+          });
+          glow.circle(dx,dy,barkR+8).stroke({
+            color:profile.main,width:9,alpha:a*.09
+          });
+          for(let i=0;i<7;i++){
+            const ang=i/7*Math.PI*2+.16*Math.sin(i+p*3);
+            const rr=barkR+(i%2)*3;
             const cx=dx+Math.cos(ang)*rr;
             const cy=dy+Math.sin(ang)*rr;
             const plate=[
-              point(cx,cy,-6,-10,ang+Math.PI/2),
-              point(cx,cy,6,-8,ang+Math.PI/2),
-              point(cx,cy,8,8,ang+Math.PI/2),
-              point(cx,cy,-6,10,ang+Math.PI/2),
+              point(cx,cy,-7,-11,ang+Math.PI/2),
+              point(cx,cy,6,-9,ang+Math.PI/2),
+              point(cx,cy,9,2,ang+Math.PI/2),
+              point(cx,cy,5,10,ang+Math.PI/2),
+              point(cx,cy,-7,9,ang+Math.PI/2),
             ];
-            polygon(core,plate,{
-              color:profile.accent,width:3.5,alpha:a*(.58+(i%2)*.12)
-            });
+            polygon(glow,plate,{color:profile.main,alpha:a*.065},true);
+            polygon(core,plate,{color:profile.accent,width:3.0,alpha:a*(.62+(i%2)*.10)});
+            core.moveTo(cx+Math.cos(ang)*-3,cy+Math.sin(ang)*-3)
+              .lineTo(cx+Math.cos(ang)*5,cy+Math.sin(ang)*5)
+              .stroke({color:profile.core,width:1,alpha:a*.34});
           }
-          glow.circle(dx,dy,30).stroke({
-            color:profile.main,width:7,alpha:a*.08
+          for(let i=0;i<5;i++){
+            const ang=i/5*Math.PI*2+p*.12;
+            const inner=11;
+            const outer=20+easeOut(p)*8;
+            core.moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+              .lineTo(dx+Math.cos(ang+.13)*outer,dy+Math.sin(ang+.13)*outer)
+              .stroke({color:i%2?profile.main:profile.core,width:1.4,alpha:a*.46});
+          }
+          core.circle(dx,dy,4+snap*3).fill({
+            color:profile.core,alpha:a*(.40+snap*.24)
           });
           continue;
         }
@@ -11924,30 +11977,34 @@ export class PixiProofRenderer {
 
         if(effect.spellId==="druid-cyclone"){
           const build=easeOut((p-.08)/.68);
-          for(let layer=0;layer<6;layer++){
-            const yOff=20-layer*8.5;
-            const rx=12+layer*5+build*11;
-            const ry=5+layer*1.55;
-            core.ellipse(dx,dy+yOff,rx,ry).stroke({
-              color:layer%2?profile.core:profile.main,
-              width:1.8+layer*.16,
-              alpha:alpha*fade*(.25+layer*.075),
-            });
-          }
-          for(let i=0;i<9;i++){
-            const ang=i/9*Math.PI*2+p*(i%2?8:-7)+seed*.01;
-            const rr=13+(i%4)*7;
-            core.circle(
-              dx+Math.cos(ang)*rr,
-              dy+Math.sin(ang)*rr*.42-p*8,
-              1.1+(i%3)*.45
-            ).fill({
-              color:profile.core,alpha:alpha*fade*.40
-            });
-          }
-          glow.ellipse(dx,dy+2,29+build*15,20+build*11).stroke({
-            color:profile.main,width:8,alpha:alpha*fade*.08
+          const snap=Math.exp(-p*11);
+          glow.ellipse(dx,dy+2,31+build*17,22+build*12).fill({
+            color:profile.main,alpha:alpha*fade*.045
           });
+          glow.circle(dx,dy,9+snap*18).fill({
+            color:profile.core,alpha:alpha*fade*snap*.08
+          });
+          for(let layer=0;layer<7;layer++){
+            const yOff=22-layer*8.2;
+            const rx=12+layer*5.2+build*12;
+            const ry=5+layer*1.5;
+            glow.ellipse(dx,dy+yOff,rx+3,ry+2).stroke({
+              color:layer%2?profile.core:profile.main,width:7+layer*.3,alpha:alpha*fade*.055
+            });
+            core.ellipse(dx,dy+yOff,rx,ry).stroke({
+              color:layer%2?profile.core:profile.main,width:1.7+layer*.16,
+              alpha:alpha*fade*(.27+layer*.07)
+            });
+          }
+          for(let i=0;i<11;i++){
+            const ang=i/11*Math.PI*2+p*(i%2?8.5:-7.4)+seed*.01;
+            const rr=14+(i%4)*7+build*5;
+            const x=dx+Math.cos(ang)*rr;
+            const y=dy+Math.sin(ang)*rr*.42-p*(9+(i%3)*2);
+            leaf(glow,x,y,ang+p,6+(i%2),profile.main,alpha*fade*.05);
+            leaf(core,x,y,ang+p,3.2+(i%3)*.55,
+              i%3===0?profile.core:profile.main,alpha*fade*.48);
+          }
           continue;
         }
 
@@ -13828,19 +13885,31 @@ export class PixiProofRenderer {
           polygon(core,inset,{color:profile.core,alpha:alpha*fade*.86},true);
           polygon(core,head,{color:profile.core,width:1.6,alpha:alpha*fade*.78});
         } else {
-          const beamWidth=effect.spellId==="druid-moonfire"?15:11;
+          const moon=effect.spellId==="druid-moonfire";
+          const beamWidth=moon?20:11;
           glow.moveTo(dx,top).lineTo(dx,headY).stroke({
-            color:profile.main,width:beamWidth,alpha:alpha*fade*.12
+            color:profile.main,width:beamWidth,alpha:alpha*fade*(moon?.15:.12)
           });
+          if(moon){
+            glow.moveTo(dx,top+4).lineTo(dx,headY).stroke({
+              color:profile.core,width:9,alpha:alpha*fade*.08
+            });
+          }
           core.moveTo(dx,top).lineTo(dx,headY).stroke({
-            color:profile.core,width:effect.spellId==="druid-moonfire"?3.2:4.2,
-            alpha:alpha*fade*.76
+            color:profile.core,width:moon?3.5:4.2,
+            alpha:alpha*fade*(moon?.82:.76)
           });
-
-          if(effect.spellId==="druid-moonfire" && p<.35){
-            arc(core,0,-source.radius-14,10,-.95,1.20,{
-              color:profile.core,width:2.2,alpha:alpha*(1-p/.35)*.62
-            },7);
+          if(moon && p<.35){
+            const crescentFade=alpha*(1-p/.35);
+            arc(glow,0,-source.radius-14,13,-1.05,1.30,{
+              color:profile.main,width:7,alpha:crescentFade*.08
+            },9);
+            arc(core,0,-source.radius-14,11,-1.00,1.25,{
+              color:profile.core,width:2.2,alpha:crescentFade*.68
+            },9);
+            core.circle(4,-source.radius-14,2.2).fill({
+              color:profile.core,alpha:crescentFade*.62
+            });
           }
         }
 
@@ -13894,6 +13963,34 @@ export class PixiProofRenderer {
                 alpha:alpha*hitFade*(layer?.48:.58)
               });
             }
+          } else if(effect.spellId==="druid-moonfire") {
+            glow.circle(dx,dy,9+contact*23).fill({
+              color:profile.core,alpha:alpha*hitFade*contact*.16
+            });
+            glow.circle(dx,dy,13+burst*45).stroke({
+              color:profile.main,width:11,alpha:alpha*hitFade*.14
+            });
+            core.circle(dx,dy,8+burst*39).stroke({
+              color:profile.main,width:2.3,alpha:alpha*hitFade*.68
+            });
+            core.circle(dx,dy,4+contact*6).fill({
+              color:profile.core,alpha:alpha*hitFade*(.58+contact*.30)
+            });
+            for(let i=0;i<9;i++){
+              const ang=i/9*Math.PI*2+seed*.009;
+              const inner=8;
+              const outer=22+burst*(23+(i%3)*6);
+              core.moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+                .lineTo(dx+Math.cos(ang+.08)*outer,dy+Math.sin(ang+.08)*outer)
+                .stroke({color:i%3===0?profile.core:profile.main,
+                  width:1.5+(i%3===0?.5:0),alpha:alpha*hitFade*.60});
+            }
+            arc(glow,dx,dy,22+burst*20,-1.05,1.35,{
+              color:profile.main,width:8,alpha:alpha*hitFade*.08
+            },10);
+            arc(core,dx,dy,20+burst*18,-1.00,1.30,{
+              color:profile.core,width:1.8,alpha:alpha*hitFade*.56
+            },10);
           } else {
             core.circle(dx,dy,9+burst*42).stroke({
               color:profile.main,width:2.3,alpha:alpha*hitFade*.68

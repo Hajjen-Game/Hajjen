@@ -14564,19 +14564,19 @@ export class PixiProofRenderer {
         const seed = Number(effect.seed || effect.id || 1);
         const missed = Boolean(effect.missed);
 
-        const sourceCenter = visualActorCenter(
-          this.actorViews,
-          source,
-          source.x,
-          source.y,
-        );
-        const sourceOffsetX = sourceCenter.x - source.x;
-        const sourceOffsetY = sourceCenter.y - source.y;
+        // Freeze the projectile launch point at cast completion. The Pixi
+        // graphics live inside the caster's actor container, so compensate for
+        // any movement after release instead of dragging the trail with them.
+        const launchX = Number.isFinite(effect.sourceX) ? effect.sourceX : source.x;
+        const launchY = Number.isFinite(effect.sourceY) ? effect.sourceY : source.y;
+        const sourceCenter = { x: launchX, y: launchY };
+        const sourceOffsetX = launchX - source.x;
+        const sourceOffsetY = launchY - source.y;
         view.projectileGroundGlowFx.position.set(sourceOffsetX,sourceOffsetY);
         view.projectileGroundCoreFx.position.set(sourceOffsetX,sourceOffsetY);
 
-        const dx0 = targetX - sourceCenter.x;
-        const dy0 = targetY - sourceCenter.y;
+        const dx0 = targetX - launchX;
+        const dy0 = targetY - launchY;
         const length0 = Math.max(1, Math.hypot(dx0,dy0));
         const tx0 = dx0 / length0;
         const ty0 = dy0 / length0;
@@ -14954,19 +14954,19 @@ export class PixiProofRenderer {
       const seed = Number(effect.seed || effect.id || 1);
       const missed = Boolean(effect.missed);
 
-      const sourceCenter = visualActorCenter(
-        this.actorViews,
-        source,
-        source.x,
-        source.y,
-      );
-      const sourceOffsetX = sourceCenter.x - source.x;
-      const sourceOffsetY = sourceCenter.y - source.y;
+      // A released projectile must be detached from its caster. Because these
+      // Pixi layers are children of the moving actor container, offset them back
+      // to the cast-completion position stored on the VFX event every frame.
+      const launchX = Number.isFinite(effect.sourceX) ? effect.sourceX : source.x;
+      const launchY = Number.isFinite(effect.sourceY) ? effect.sourceY : source.y;
+      const sourceCenter = { x: launchX, y: launchY };
+      const sourceOffsetX = launchX - source.x;
+      const sourceOffsetY = launchY - source.y;
       view.projectileVfx2GlowFx.position.set(sourceOffsetX,sourceOffsetY);
       view.projectileVfx2CoreFx.position.set(sourceOffsetX,sourceOffsetY);
 
-      const dx0 = targetX - sourceCenter.x;
-      const dy0 = targetY - sourceCenter.y;
+      const dx0 = targetX - launchX;
+      const dy0 = targetY - launchY;
       const length0 = Math.max(1, Math.hypot(dx0, dy0));
       const tx0 = dx0 / length0;
       const ty0 = dy0 / length0;

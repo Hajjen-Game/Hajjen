@@ -5761,96 +5761,126 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Shaman: Chain Lightning gets a stable storm-sigil buildup instead of
-      // orbiting random strands. Other shaman casts keep the elemental gather.
+      // Shaman VFX 3.0 build-ups preserve the existing motion language while
+      // splitting soft elemental bloom from crisp runes, motes and charge cores.
       if (classId === "shaman" && profile) {
-        glow.visible = false;
-        const pulse = .5 + .5 * Math.sin(time * 15);
+        glow.visible = true;
+        const pulse=.5+.5*Math.sin(time*15);
 
+        // Chain Lightning: same stable storm-sigil geometry, now with layered
+        // electric bloom and a denser final charge before the bolt releases.
         if (spellId === "shaman-chain-lightning") {
-          const settle = smooth(p);
-          const ringRadius = actor.radius + 18 - settle * 3;
-          const outerRadius = ringRadius + 8;
-          const phase = actor.id?.length ? actor.id.length * .17 : .4;
+          const settle=smooth(p);
+          const finalP=smooth((p-.74)/.26);
+          const ringRadius=actor.radius+18-settle*3;
+          const outerRadius=ringRadius+8;
+          const phase=actor.id?.length?actor.id.length*.17:.4;
 
-          // Six fixed storm-rune segments: shape stays readable while intensity
-          // builds, rather than lines visibly orbiting the character.
-          for (let i = 0; i < 6; i += 1) {
-            const center = phase + i * Math.PI / 3;
-            strokeArc(
-              g,
-              ringRadius,
-              center - .30,
-              center + .30,
-              {
-                color: i % 2 ? profile.main : profile.core,
-                width: 1.55 + p * .70,
-                alpha: .28 + p * .48,
-              },
-              5,
-            );
+          glow.circle(0,0,ringRadius+7).stroke({
+            color:profile.main,
+            width:10+p*2.5,
+            alpha:.05+p*.085,
+          });
 
-            const nodeX = Math.cos(center) * outerRadius;
-            const nodeY = Math.sin(center) * outerRadius;
-            g.circle(nodeX,nodeY,1.8 + p * 1.1).fill({
-              color: i % 2 ? profile.core : profile.main,
-              alpha: .38 + p * .52,
+          for(let i=0;i<6;i++){
+            const center=phase+i*Math.PI/3;
+            strokeArc(glow,ringRadius,center-.30,center+.30,{
+              color:i%2?profile.main:profile.core,
+              width:7+p*2,
+              alpha:.045+p*.075,
+            },5);
+            strokeArc(g,ringRadius,center-.30,center+.30,{
+              color:i%2?profile.main:profile.core,
+              width:1.55+p*.70,
+              alpha:.28+p*.48,
+            },5);
+
+            const nodeX=Math.cos(center)*outerRadius;
+            const nodeY=Math.sin(center)*outerRadius;
+            glow.circle(nodeX,nodeY,6+p*2).fill({
+              color:i%2?profile.core:profile.main,
+              alpha:.055+p*.10,
+            });
+            g.circle(nodeX,nodeY,1.8+p*1.1).fill({
+              color:i%2?profile.core:profile.main,
+              alpha:.38+p*.52,
             });
           }
 
-          // Three stationary fork channels point inward. Only their brightness
-          // and tiny electrical kink change, so the buildup feels charged rather
-          // than like loose strokes moving around the icon.
-          for (let i = 0; i < 3; i += 1) {
-            const a = phase + i * Math.PI * 2 / 3;
-            const outer = actor.radius + 24;
-            const inner = actor.radius + 5;
-            const kink = Math.sin(time * 22 + i * 2.4) * (1.2 + p * 1.8);
-            const x1 = Math.cos(a) * outer;
-            const y1 = Math.sin(a) * outer;
-            const xm = Math.cos(a) * (outer * .58 + inner * .42)
-              + Math.cos(a + Math.PI/2) * kink;
-            const ym = Math.sin(a) * (outer * .58 + inner * .42)
-              + Math.sin(a + Math.PI/2) * kink;
-            const x2 = Math.cos(a) * inner;
-            const y2 = Math.sin(a) * inner;
+          for(let i=0;i<3;i++){
+            const a=phase+i*Math.PI*2/3;
+            const outer=actor.radius+24;
+            const inner=actor.radius+5;
+            const kink=Math.sin(time*22+i*2.4)*(1.2+p*1.8);
+            const x1=Math.cos(a)*outer;
+            const y1=Math.sin(a)*outer;
+            const xm=Math.cos(a)*(outer*.58+inner*.42)+Math.cos(a+Math.PI/2)*kink;
+            const ym=Math.sin(a)*(outer*.58+inner*.42)+Math.sin(a+Math.PI/2)*kink;
+            const x2=Math.cos(a)*inner;
+            const y2=Math.sin(a)*inner;
 
+            glow.moveTo(x1,y1).lineTo(xm,ym).lineTo(x2,y2).stroke({
+              color:profile.main,
+              width:7+p*2,
+              alpha:(.045+p*.075)*(.86+pulse*.14),
+            });
             g.moveTo(x1,y1).lineTo(xm,ym).lineTo(x2,y2).stroke({
-              color: profile.core,
-              width: 1.3 + p * .65,
-              alpha: (.20 + p * .52) * (.86 + pulse * .14),
+              color:profile.core,
+              width:1.3+p*.65,
+              alpha:(.20+p*.52)*(.86+pulse*.14),
             });
           }
 
-          // Final charge compresses into the caster just before release.
-          if (p > .72) {
-            const finalP = smooth((p - .72) / .28);
-            g.circle(0,0,actor.radius + 8 - finalP * 3).stroke({
-              color: profile.core,
-              width: 1.4 + finalP * 1.2,
-              alpha: .22 + finalP * .54,
+          if(finalP>0){
+            glow.circle(0,0,actor.radius+10-finalP*4).stroke({
+              color:profile.core,
+              width:12,
+              alpha:finalP*.14,
             });
-            g.circle(0,0,3 + finalP * 5).fill({
-              color: profile.core,
-              alpha: finalP * .55,
+            glow.circle(0,0,8+finalP*7).fill({
+              color:profile.main,
+              alpha:finalP*.12,
+            });
+            g.circle(0,0,actor.radius+8-finalP*3).stroke({
+              color:profile.core,
+              width:1.4+finalP*1.2,
+              alpha:.22+finalP*.54,
+            });
+            g.circle(0,0,3+finalP*5).fill({
+              color:profile.core,
+              alpha:finalP*.62,
             });
           }
           continue;
         }
 
-        // Lava Burst: molten stones rise around a tightening volcanic ring.
+        // Lava Burst: retain the rising molten stones and tightening volcanic
+        // ring, but add heat bloom, molten cores and a white-hot final furnace.
         if (spellId === "shaman-lava-burst") {
           const charge=smooth(p);
-          const pulse=.5+.5*Math.sin(time*14);
+          const finalP=smooth((p-.80)/.20);
           const rr=actor.radius+20-charge*4;
+
+          glow.circle(0,0,rr+10).stroke({
+            color:profile.main,width:12+charge*3,alpha:.055+charge*.085
+          });
 
           for(let i=0;i<6;i++){
             const a=i/6*Math.PI*2+.17;
             const inner=actor.radius+7;
             const outer=rr+(i%2)*5;
+            const bend=a+.12*(i%2?1:-1);
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(bend)*outer,Math.sin(bend)*outer)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:7+charge*2,
+                alpha:.05+charge*.07,
+              });
             g
               .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
-              .lineTo(Math.cos(a+.12*(i%2?1:-1))*outer,Math.sin(a+.12*(i%2?1:-1))*outer)
+              .lineTo(Math.cos(bend)*outer,Math.sin(bend)*outer)
               .stroke({
                 color:i%2?profile.main:profile.core,
                 width:1.6+charge*.7,
@@ -5860,34 +5890,64 @@ export class PixiProofRenderer {
 
           for(let i=0;i<8;i++){
             const a=i/8*Math.PI*2+time*(i%2?.75:-.55);
-            const start=actor.radius+45+(i%3)*6;
-            const r=start*(1-charge*.64);
+            const startR=actor.radius+45+(i%3)*6;
+            const r=startR*(1-charge*.64);
             const x=Math.cos(a)*r;
             const y=Math.sin(a)*r-charge*(5+(i%3)*3);
-            g.circle(x,y,2+(i%3)*.65).fill({
-              color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
-              alpha:.24+charge*.54,
+            const color=i%3===0?profile.core:(i%2?profile.main:profile.accent);
+            const size=2+(i%3)*.65;
+
+            glow.circle(x,y,size*3.4).fill({
+              color,alpha:.055+charge*.095
+            });
+            g.circle(x,y,size).fill({
+              color,alpha:.24+charge*.54,
             });
           }
 
+          if(finalP>0){
+            glow.circle(0,0,10+finalP*9).fill({
+              color:profile.core,alpha:finalP*.17
+            });
+            glow.circle(0,0,rr+3).stroke({
+              color:0xff9a3f,width:11,alpha:finalP*.10
+            });
+            g.circle(0,0,rr).stroke({
+              color:profile.core,width:1.4+finalP*.7,alpha:finalP*.42
+            });
+          }
+
+          glow.circle(0,0,8+charge*7+pulse*1.7).fill({
+            color:profile.main,alpha:.06+charge*.10+finalP*.05
+          });
           g.circle(0,0,4+charge*6+pulse).fill({
             color:profile.core,alpha:.22+charge*.60,
           });
           continue;
         }
 
-        // Elemental Blast: lightning, fire and nature satellites visibly merge.
+        // Elemental Blast: keep the three satellites and their merge path, but
+        // let lightning/fire/nature each carry a soft halo around the sharp core.
         if (spellId === "shaman-elemental-blast") {
           const charge=smooth(p);
-          const colors=[profile.main,profile.accent,0x86bd78];
+          const finalP=smooth((p-.80)/.20);
+          const colors=[profile.main,profile.accent,0x80d889];
+
           for(let i=0;i<3;i++){
             const a=i*Math.PI*2/3+time*(i%2?-.75:.85);
-            const start=actor.radius+42;
-            const r=start*(1-charge*.58);
+            const startR=actor.radius+42;
+            const r=startR*(1-charge*.58);
             const x=Math.cos(a)*r;
             const y=Math.sin(a)*r;
+
+            glow.circle(x,y,10+charge*3).fill({
+              color:colors[i],alpha:.055+charge*.10
+            });
             g.circle(x,y,4.2+charge*1.8).fill({
               color:colors[i],alpha:.28+charge*.50,
+            });
+            glow.moveTo(x,y).lineTo(0,0).stroke({
+              color:colors[i],width:7+charge*2,alpha:.04+charge*.065
             });
             g.moveTo(x,y).lineTo(0,0).stroke({
               color:colors[i],width:1.3+charge*.6,alpha:.18+charge*.34,
@@ -5899,12 +5959,26 @@ export class PixiProofRenderer {
             const phase=(ring?-.35:.4)*p;
             for(let seg=0;seg<3;seg++){
               const a0=seg*Math.PI*2/3+.2+phase;
+              const color=colors[(seg+ring)%3];
+              strokeArc(glow,rr,a0,a0+.68,{
+                color,width:7+charge*1.5,alpha:.045+charge*.07
+              },6);
               strokeArc(g,rr,a0,a0+.68,{
-                color:colors[(seg+ring)%3],
-                width:1.6+charge*.5,
-                alpha:.20+charge*.42,
+                color,width:1.6+charge*.5,alpha:.20+charge*.42,
               },6);
             }
+          }
+
+          if(finalP>0){
+            glow.circle(0,0,9+finalP*9).fill({
+              color:profile.core,alpha:finalP*.17
+            });
+            glow.circle(0,0,actor.radius+9-finalP*3).stroke({
+              color:profile.core,width:11,alpha:finalP*.10
+            });
+            g.circle(0,0,actor.radius+5-finalP*2).stroke({
+              color:profile.core,width:1.5+finalP*.6,alpha:finalP*.44
+            });
           }
 
           g.circle(0,0,3.5+charge*6).fill({
@@ -5913,66 +5987,99 @@ export class PixiProofRenderer {
           continue;
         }
 
-        // Hex: a green nature seal closes around the Shaman instead of using
-        // generic elemental streaks.
+        // Hex: preserve the green diamond seal and inward nature channels; a
+        // restrained bloom makes the runes read clearly over arena art.
         if (spellId === "shaman-hex") {
           const charge=smooth(p);
+          const finalP=smooth((p-.82)/.18);
           const rr=actor.radius+20-charge*5;
           const phase=time*.32;
+
+          glow.ellipse(0,0,actor.radius+12-charge*2,11-charge).stroke({
+            color:profile.main,width:9,alpha:.045+charge*.075
+          });
 
           for(let i=0;i<6;i++){
             const a=i/6*Math.PI*2+phase;
             const x=Math.cos(a)*rr;
             const y=Math.sin(a)*rr;
-            drawDiamond(g,x,y,2.2+(i%2)*.6,a, i%2?profile.core:profile.main,.25+charge*.48);
+            const color=i%2?profile.core:profile.main;
+            drawDiamond(glow,x,y,(2.2+(i%2)*.6)*2.3,a,color,.05+charge*.09);
+            drawDiamond(g,x,y,2.2+(i%2)*.6,a,color,.25+charge*.48);
           }
+
           for(let i=0;i<3;i++){
             const a=i*Math.PI*2/3+phase*.4;
+            const inner=actor.radius+7;
+            const outer=actor.radius+27-charge*7;
+            glow
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({
+                color:i===1?profile.core:profile.main,
+                width:7+charge*2,
+                alpha:.045+charge*.07,
+              });
             g
-              .moveTo(Math.cos(a)*(actor.radius+7),Math.sin(a)*(actor.radius+7))
-              .lineTo(Math.cos(a)*(actor.radius+27-charge*7),Math.sin(a)*(actor.radius+27-charge*7))
+              .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
               .stroke({
                 color:i===1?profile.core:profile.main,
                 width:1.5+charge*.5,
                 alpha:.22+charge*.44,
               });
           }
+
           g.ellipse(0,0,actor.radius+5-charge*2,7-charge).stroke({
             color:profile.core,width:1.7+charge*.6,alpha:.24+charge*.50,
           });
+
+          if(finalP>0){
+            glow.circle(0,0,9+finalP*7).fill({
+              color:profile.core,alpha:finalP*.13
+            });
+            g.circle(0,0,3+finalP*4).fill({
+              color:profile.core,alpha:finalP*.60
+            });
+          }
           continue;
         }
 
-        const count = profile.heavy ? 7 : 5;
-        for (let i = 0; i < count; i += 1) {
-          const base =
-            i / count * Math.PI * 2
-            + time * .55 * (i % 2 ? 1 : -1);
-          const start = actor.radius + 27 + (i % 3) * 6;
-          const end = Math.max(actor.radius + 7,start * (1 - p * .58));
-          const x1 = Math.cos(base) * start;
-          const y1 = Math.sin(base) * start;
-          const x2 = Math.cos(base) * end;
-          const y2 = Math.sin(base) * end;
+        // Any future casted Shaman spell keeps the old inward elemental gather,
+        // but gets the same soft-halo/sharp-core separation.
+        const count=profile.heavy?7:5;
+        for(let i=0;i<count;i++){
+          const base=i/count*Math.PI*2+time*.55*(i%2?1:-1);
+          const startR=actor.radius+27+(i%3)*6;
+          const endR=Math.max(actor.radius+7,startR*(1-p*.58));
+          const x1=Math.cos(base)*startR;
+          const y1=Math.sin(base)*startR;
+          const x2=Math.cos(base)*endR;
+          const y2=Math.sin(base)*endR;
 
+          glow.moveTo(x1,y1).lineTo(x2,y2).stroke({
+            color:i%3===0?profile.core:profile.main,
+            width:6+(i%2)*2,
+            alpha:.04+p*.07,
+          });
           g.moveTo(x1,y1).lineTo(x2,y2).stroke({
-            color: i % 3 === 0 ? profile.core : profile.main,
-            width: 1.2 + (i % 2) * .55,
-            alpha: .16 + p * .40,
+            color:i%3===0?profile.core:profile.main,
+            width:1.2+(i%2)*.55,
+            alpha:.16+p*.40,
           });
         }
 
-        if (p > .68) {
-          const flicker = (p - .68) / .32;
-          for (let i = 0; i < 4; i += 1) {
-            const a = i / 4 * Math.PI * 2;
-            g.circle(
-              Math.cos(a) * (actor.radius + 5),
-              Math.sin(a) * (actor.radius + 5),
-              1.5 + pulse * .7,
-            ).fill({
-              color: i % 2 ? profile.core : profile.main,
-              alpha: flicker * .60,
+        if(p>.68){
+          const flicker=(p-.68)/.32;
+          for(let i=0;i<4;i++){
+            const a=i/4*Math.PI*2;
+            const x=Math.cos(a)*(actor.radius+5);
+            const y=Math.sin(a)*(actor.radius+5);
+            glow.circle(x,y,5+pulse*1.2).fill({
+              color:i%2?profile.core:profile.main,alpha:flicker*.08
+            });
+            g.circle(x,y,1.5+pulse*.7).fill({
+              color:i%2?profile.core:profile.main,alpha:flicker*.60,
             });
           }
         }

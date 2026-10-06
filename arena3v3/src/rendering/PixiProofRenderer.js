@@ -1416,7 +1416,7 @@ function projectileVfx2Spec(spellId) {
       shape: "frost-spear",
       trailStyle: "snow",
       travelEnd: .48,
-      size: 13,
+      size: 15,
       tail: 132,
       trailReach: .95,
       showcase: true,
@@ -13113,45 +13113,87 @@ export class PixiProofRenderer {
 
         // Spell-specific moving silhouette.
         if (spec.shape === "frost-spear") {
-          const pulse=.90+.10*Math.sin(p*36+seed*.07);
+          // Final weight pass: Frostbolt keeps its fast spear identity, but the
+          // head now has a broader shoulder, asymmetrical facets and a denser
+          // white core so it reads as a chunk of ice instead of an Ice Lance.
+          const pulse=.92+.08*Math.sin(p*36+seed*.07);
+          const shoulder=11.8*pulse;
           const outer=[
-            transformed(px,py,27,0,angle),
-            transformed(px,py,5,-10*pulse,angle),
-            transformed(px,py,-8,-8,angle),
-            transformed(px,py,-24,-3.5,angle),
-            transformed(px,py,-31,0,angle),
-            transformed(px,py,-24,3.5,angle),
-            transformed(px,py,-8,8,angle),
-            transformed(px,py,5,10*pulse,angle),
+            transformed(px,py,31,0,angle),
+            transformed(px,py,9,-7.2,angle),
+            transformed(px,py,2,-shoulder,angle),
+            transformed(px,py,-10,-9.2,angle),
+            transformed(px,py,-25,-4.4,angle),
+            transformed(px,py,-34,0,angle),
+            transformed(px,py,-24,4.0,angle),
+            transformed(px,py,-7,8.2,angle),
+            transformed(px,py,6,10.7*pulse,angle),
           ];
           const inner=[
-            transformed(px,py,23,0,angle),
-            transformed(px,py,2,-5.5,angle),
-            transformed(px,py,-17,0,angle),
-            transformed(px,py,2,5.5,angle),
+            transformed(px,py,26,0,angle),
+            transformed(px,py,7,-5.7,angle),
+            transformed(px,py,-3,-6.5,angle),
+            transformed(px,py,-22,-1.8,angle),
+            transformed(px,py,-25,0,angle),
+            transformed(px,py,-18,2.7,angle),
+            transformed(px,py,-1,6.0,angle),
+            transformed(px,py,8,4.8,angle),
+          ];
+          const frontFacet=[
+            transformed(px,py,27,0,angle),
+            transformed(px,py,8,-6.0,angle),
+            transformed(px,py,-3,-1.8,angle),
+            transformed(px,py,8,4.4,angle),
           ];
 
-          poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.30},true);
-          poly(core,outer,{color:0x75dfff,alpha:alpha*travelFade*.88},true);
+          poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.34},true);
+          poly(core,outer,{color:0x75dfff,alpha:alpha*travelFade*.90},true);
           poly(core,inner,{color:spec.core,alpha:alpha*travelFade*.98},true);
-          poly(core,outer,{color:spec.core,width:1.6,alpha:alpha*travelFade*.88});
+          poly(core,frontFacet,{color:0xcdf7ff,alpha:alpha*travelFade*.90},true);
+          poly(core,outer,{color:spec.core,width:1.75,alpha:alpha*travelFade*.90});
 
-          glow.circle(px+tx*5,py+ty*5,spec.size+7).fill({
+          glow.circle(px+tx*6,py+ty*6,spec.size+9).fill({
             color:spec.main,
-            alpha:alpha*travelFade*.18,
+            alpha:alpha*travelFade*.20,
+          });
+          core.circle(px+tx*10,py+ty*10,3.3).fill({
+            color:spec.core,
+            alpha:alpha*travelFade*.92,
           });
 
-          // Crystal fins and trailing splinters keep the silhouette clearly
-          // Frostbolt even when the ribbon overlaps other effects.
+          // Uneven shoulder crystals make the silhouette less perfectly
+          // symmetrical and give the projectile more physical ice mass.
+          const upperShoulder=[
+            transformed(px,py,1,-7,angle),
+            transformed(px,py,-8,-16,angle),
+            transformed(px,py,-13,-5.2,angle),
+          ];
+          const lowerShoulder=[
+            transformed(px,py,-2,6,angle),
+            transformed(px,py,-8,13,angle),
+            transformed(px,py,-15,4.2,angle),
+          ];
+          poly(core,upperShoulder,{
+            color:spec.accent,
+            alpha:alpha*travelFade*.66,
+          },true);
+          poly(core,lowerShoulder,{
+            color:spec.main,
+            alpha:alpha*travelFade*.58,
+          },true);
+
+          // Crystal fins and trailing splinters preserve the established
+          // Frostbolt motion language while the head carries more weight.
           for(const sign of [-1,1]){
+            const finScale=sign>0?1:.88;
             const fin=[
-              transformed(px,py,-5,sign*5,angle),
-              transformed(px,py,-15,sign*14,angle),
-              transformed(px,py,-19,sign*4,angle),
+              transformed(px,py,-7,sign*5,angle),
+              transformed(px,py,-17,sign*14*finScale,angle),
+              transformed(px,py,-21,sign*4,angle),
             ];
             poly(core,fin,{
               color:sign>0?spec.main:spec.accent,
-              alpha:alpha*travelFade*.64,
+              alpha:alpha*travelFade*.62,
             },true);
           }
 
@@ -13160,12 +13202,12 @@ export class PixiProofRenderer {
             const a=angle+Math.PI+side+Math.sin(p*11+i)*.05;
             const len=20+(i%4)*6;
             core
-              .moveTo(px-tx*7,py-ty*7)
+              .moveTo(px-tx*8,py-ty*8)
               .lineTo(px+Math.cos(a)*len,py+Math.sin(a)*len)
               .stroke({
                 color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
                 width:i%3===0?1.65:1.1,
-                alpha:alpha*travelFade*.60,
+                alpha:alpha*travelFade*.58,
               });
           }
         } else if (spec.shape === "pyro") {
@@ -13459,7 +13501,8 @@ export class PixiProofRenderer {
             alpha: alpha * impactAfterglow * .52,
           });
 
-        const showcaseSparks = spec.heavy ? 14 : 10;
+        const showcaseSparks =
+          spec.shape === "frost-spear" ? 4 : (spec.heavy ? 14 : 10);
         for (let i = 0; i < showcaseSparks; i += 1) {
           const a =
             i / showcaseSparks * Math.PI * 2
@@ -13480,40 +13523,53 @@ export class PixiProofRenderer {
 
         if (spec.shape === "frost-spear") {
           const burst=easeOut(hit);
-          const flash=Math.exp(-hit*12);
-          const after=Math.exp(-hit*3.4);
+          const flash=Math.exp(-hit*18);
+          const crack=Math.exp(-hit*7.5);
+          const after=Math.exp(-hit*4.6);
 
-          glow.circle(ix,iy,14+burst*43).fill({
+          // Tight contact flash: bright and extremely short so repeated
+          // Frostbolts feel crisp without washing out the arena.
+          glow.circle(ix,iy,11+flash*19).fill({
             color:spec.main,
-            alpha:alpha*(.07+flash*.22)*fade,
+            alpha:alpha*(.05+flash*.31)*fade,
           });
-          glow.circle(ix,iy,13+burst*55).stroke({
-            color:spec.accent,
-            width:12,
-            alpha:alpha*after*.15,
-          });
-          glow.circle(ix,iy,9+burst*37).stroke({
-            color:spec.main,
-            width:9,
-            alpha:alpha*after*.18,
-          });
-
-          core.circle(ix,iy,7+flash*8).fill({
+          core.circle(ix,iy,6+flash*9).fill({
             color:spec.core,
-            alpha:alpha*Math.min(1,.78+flash*.22),
-          });
-          core.circle(ix,iy,12+burst*34).stroke({
-            color:0x86e8ff,
-            width:2.8,
-            alpha:alpha*after*.78,
+            alpha:alpha*Math.min(1,.72+flash*.35),
           });
 
-          const shards=16;
+          const flashDiamond=[
+            transformed(ix,iy,19+flash*10,0,angle),
+            transformed(ix,iy,0,-7-flash*3.5,angle),
+            transformed(ix,iy,-13,0,angle),
+            transformed(ix,iy,0,7+flash*3.5,angle),
+          ];
+          poly(core,flashDiamond,{
+            color:spec.core,
+            alpha:alpha*flash*.82,
+          },true);
+
+          // A compact crack ring gives the hit a readable "snap" rather than
+          // another large generic explosion.
+          glow.circle(ix,iy,9+burst*38).stroke({
+            color:spec.main,
+            width:8,
+            alpha:alpha*after*.13,
+          });
+          core.circle(ix,iy,10+burst*29).stroke({
+            color:0x9cf0ff,
+            width:2.4,
+            alpha:alpha*crack*.72,
+          });
+
+          // Six large shards are deliberately readable. The previous dense
+          // shard halo looked energetic but lost the physical ice-break beat.
+          const shards=6;
           for(let i=0;i<shards;i++){
-            const a=i/shards*Math.PI*2+seed*.013+hit*(i%2?.32:-.27);
-            const inner=6+(i%3);
-            const outer=18+burst*(28+(i%5)*7);
-            const bend=a+(i%2?.055:-.055)*Math.sin(hit*Math.PI);
+            const a=i/shards*Math.PI*2+seed*.013+hit*(i%2?.20:-.17);
+            const inner=6+(i%2)*2;
+            const outer=20+burst*(33+(i%3)*8);
+            const bend=a+(i%2?.045:-.045)*Math.sin(hit*Math.PI);
             const sx=ix+Math.cos(a)*inner;
             const sy=iy+Math.sin(a)*inner;
             const ex=ix+Math.cos(bend)*outer;
@@ -13524,22 +13580,22 @@ export class PixiProofRenderer {
               .lineTo(ex,ey)
               .stroke({
                 color:spec.main,
-                width:i%4===0?5.5:3.2,
-                alpha:alpha*after*.10,
+                width:i%3===0?6.0:4.0,
+                alpha:alpha*after*.12,
               });
             core
               .moveTo(sx,sy)
               .lineTo(ex,ey)
               .stroke({
-                color:i%4===0?spec.core:(i%2?spec.main:spec.accent),
-                width:i%4===0?2.3:1.35,
-                alpha:alpha*after*(i%4===0?.78:.60),
+                color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%3===0?2.8:1.8,
+                alpha:alpha*after*(i%3===0?.84:.68),
               });
 
             if(i%2===0){
               const side=i%4===0?1:-1;
-              const branchA=bend+side*.42;
-              const branchLen=7+(i%3)*3;
+              const branchA=bend+side*.38;
+              const branchLen=7+(i%3)*2.5;
               core
                 .moveTo(ex,ey)
                 .lineTo(
@@ -13548,42 +13604,50 @@ export class PixiProofRenderer {
                 )
                 .stroke({
                   color:spec.core,
-                  width:1.0,
-                  alpha:alpha*after*.52,
+                  width:1.05,
+                  alpha:alpha*after*.50,
                 });
             }
           }
 
-          // Ice dust / snowflake halo persists briefly after the spear shatters.
-          for(let i=0;i<14;i++){
-            const a=i/14*Math.PI*2+seed*.027-hit*(i%2?.8:-.6);
-            const rr=12+burst*(20+(i%4)*7);
+          // Small chips carry the cold texture for a fraction longer than the
+          // white flash, without creating a persistent particle cloud.
+          const chips=8;
+          for(let i=0;i<chips;i++){
+            const a=i/chips*Math.PI*2+seed*.027-hit*(i%2?.55:-.43);
+            const rr=11+burst*(19+(i%4)*5);
             const cx=ix+Math.cos(a)*rr;
-            const cy=iy+Math.sin(a)*rr-hit*(i%3)*3;
-            const r=1.5+(i%3)*.45;
-            glow.circle(cx,cy,r*2.8).fill({
+            const cy=iy+Math.sin(a)*rr-hit*(i%3)*2.5;
+            const len=3.5+(i%3)*1.8;
+            const ca=a+(i%2?.55:-.48);
+
+            glow.circle(cx,cy,2.4+(i%2)).fill({
               color:spec.main,
-              alpha:alpha*after*.10,
+              alpha:alpha*after*.07,
             });
-            core.circle(cx,cy,r).fill({
-              color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
-              alpha:alpha*after*.68,
-            });
+            core
+              .moveTo(cx-Math.cos(ca)*len*.45,cy-Math.sin(ca)*len*.45)
+              .lineTo(cx+Math.cos(ca)*len,cy+Math.sin(ca)*len)
+              .stroke({
+                color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
+                width:i%3===0?1.35:1.0,
+                alpha:alpha*after*.58,
+              });
           }
 
-          // Directional fracture continues the projectile's momentum through
-          // the target, matching the VFX 3.0 readability standard.
-          for(let i=0;i<4;i++){
-            const spread=(i-1.5)*.13;
+          // The central fracture continues Frostbolt's momentum through the
+          // target and makes a successful hit feel heavier than the trail.
+          for(let i=0;i<3;i++){
+            const spread=(i-1)*.13;
             const a=angle+spread;
-            const outer=26+burst*(24+(i%2)*8);
+            const outer=27+burst*(30+(i===1?8:0));
             core
-              .moveTo(ix-tx*3,iy-ty*3)
+              .moveTo(ix-tx*4,iy-ty*4)
               .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
               .stroke({
-                color:i===1?spec.core:(i%2?spec.main:spec.accent),
-                width:i===1?2.4:1.5,
-                alpha:alpha*after*.64,
+                color:i===1?spec.core:(i===0?spec.main:spec.accent),
+                width:i===1?2.9:1.7,
+                alpha:alpha*after*(i===1?.78:.62),
               });
           }
         } else if (spec.shape === "pyro") {

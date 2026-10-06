@@ -6900,36 +6900,179 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Paladin: rotating angular seal and four holy rays.
+      // Paladin VFX 3.0 build-ups: angular solar seals rather than Priest-like
+      // celestial halos. Flash of Light stays compact; Holy Light feels heavier.
       if (classId === "paladin" && profile) {
-        const pulse = .5 + .5 * Math.sin(time * 15);
-        const rotation = p * .35;
-        const r = actor.radius + 12 + p * 10 + pulse * 2;
-        const half = r * .62;
-        const corners = [
+        glow.visible = true;
+        const pulse=.5+.5*Math.sin(time*15);
+        const rotation=p*.35;
+
+        if(spellId==="paladin-flash-light"){
+          const charge=smooth(p);
+          const finalP=smooth((p-.76)/.24);
+          const r=actor.radius+12+charge*7+pulse*1.5;
+          const half=r*.58;
+          const corners=[
+            [-half,-half],[half,-half],[half,half],[-half,half],
+          ].map(([x,y])=>{
+            const ca=Math.cos(rotation), sa=Math.sin(rotation);
+            return {x:x*ca-y*sa,y:x*sa+y*ca};
+          });
+
+          glow.moveTo(corners[0].x,corners[0].y);
+          for(let i=1;i<corners.length;i++) glow.lineTo(corners[i].x,corners[i].y);
+          glow.lineTo(corners[0].x,corners[0].y).stroke({
+            color:profile.main,width:9,alpha:.05+charge*.075
+          });
+
+          g.moveTo(corners[0].x,corners[0].y);
+          for(let i=1;i<corners.length;i++) g.lineTo(corners[i].x,corners[i].y);
+          g.lineTo(corners[0].x,corners[0].y).stroke({
+            color:profile.main,width:1.8+charge*.7,alpha:.30+charge*.48
+          });
+
+          for(let i=0;i<4;i++){
+            const a=i*Math.PI/2+rotation;
+            const inner=r*.48;
+            const outer=r+6+charge*5;
+            const color=i%2?profile.core:profile.main;
+            glow.moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({color,width:7,alpha:.045+charge*.065});
+            g.moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({color,width:1.7+charge*.5,alpha:.24+charge*.42});
+          }
+
+          glow.circle(0,0,7+charge*6).fill({
+            color:profile.main,alpha:.045+charge*.08
+          });
+          g.circle(0,0,3+charge*4).fill({
+            color:profile.core,alpha:.24+charge*.60
+          });
+
+          if(finalP>0){
+            glow.circle(0,0,9+finalP*8).fill({
+              color:profile.core,alpha:finalP*.15
+            });
+            g.circle(0,0,3+finalP*4).fill({
+              color:profile.core,alpha:finalP*.70
+            });
+          }
+          continue;
+        }
+
+        if(spellId==="paladin-holy-light"){
+          const charge=smooth(p);
+          const finalP=smooth((p-.70)/.30);
+          const outerR=actor.radius+19+charge*10+pulse*2;
+
+          for(let layer=0;layer<3;layer++){
+            const rr=outerR-layer*6;
+            const half=rr*.60;
+            const rot=rotation*(layer%2?-.85:1)+(layer*Math.PI/8);
+            const corners=[
+              [-half,-half],[half,-half],[half,half],[-half,half],
+            ].map(([x,y])=>{
+              const ca=Math.cos(rot), sa=Math.sin(rot);
+              return {x:x*ca-y*sa,y:x*sa+y*ca};
+            });
+
+            glow.moveTo(corners[0].x,corners[0].y);
+            for(let i=1;i<corners.length;i++) glow.lineTo(corners[i].x,corners[i].y);
+            glow.lineTo(corners[0].x,corners[0].y).stroke({
+              color:layer===1?profile.core:profile.main,
+              width:10-layer,
+              alpha:.045+charge*(.055+layer*.01)
+            });
+
+            g.moveTo(corners[0].x,corners[0].y);
+            for(let i=1;i<corners.length;i++) g.lineTo(corners[i].x,corners[i].y);
+            g.lineTo(corners[0].x,corners[0].y).stroke({
+              color:layer===1?profile.core:profile.main,
+              width:1.7+charge*.6,
+              alpha:.22+charge*(.38+layer*.04)
+            });
+          }
+
+          for(let i=0;i<8;i++){
+            const a=i/8*Math.PI*2+rotation*.55;
+            const inner=actor.radius+6;
+            const outer=actor.radius+30+charge*(14+(i%2)*5);
+            const color=i%2?profile.core:profile.main;
+            glow.moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({color,width:8+charge*2,alpha:.045+charge*.07});
+            g.moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
+              .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .stroke({color,width:1.6+charge*.7,alpha:.18+charge*.44});
+          }
+
+          for(let i=0;i<6;i++){
+            const a=i/6*Math.PI*2+time*.16*(i%2?1:-1);
+            const rr=actor.radius+24+(i%2)*7;
+            const x=Math.cos(a)*rr;
+            const y=Math.sin(a)*rr*.55-8-charge*(8+(i%3)*4);
+            const color=i%2?profile.core:profile.main;
+            glow.circle(x,y,6+(i%2)).fill({
+              color,alpha:.05+charge*.08
+            });
+            g.circle(x,y,1.7+(i%3)*.45).fill({
+              color,alpha:.26+charge*.50
+            });
+          }
+
+          glow.circle(0,0,9+charge*7).fill({
+            color:profile.main,alpha:.05+charge*.09
+          });
+          g.circle(0,0,4+charge*5).fill({
+            color:profile.core,alpha:.24+charge*.64
+          });
+
+          if(finalP>0){
+            glow.circle(0,0,12+finalP*10).fill({
+              color:profile.core,alpha:finalP*.19
+            });
+            glow.circle(0,0,actor.radius+11-finalP*2).stroke({
+              color:profile.core,width:13,alpha:finalP*.11
+            });
+            g.circle(0,0,actor.radius+7-finalP*2).stroke({
+              color:profile.core,width:1.7+finalP*.8,alpha:finalP*.50
+            });
+            g.circle(0,0,4+finalP*6).fill({
+              color:profile.core,alpha:finalP*.76
+            });
+          }
+          continue;
+        }
+
+        const r=actor.radius+12+p*10+pulse*2;
+        const half=r*.62;
+        const corners=[
           [-half,-half],[half,-half],[half,half],[-half,half],
-        ].map(([x,y]) => {
+        ].map(([x,y])=>{
           const ca=Math.cos(rotation), sa=Math.sin(rotation);
           return {x:x*ca-y*sa,y:x*sa+y*ca};
+        });
+
+        glow.moveTo(corners[0].x,corners[0].y);
+        for(let i=1;i<corners.length;i++) glow.lineTo(corners[i].x,corners[i].y);
+        glow.lineTo(corners[0].x,corners[0].y).stroke({
+          color:profile.main,width:8,alpha:.045+p*.065
         });
 
         g.moveTo(corners[0].x,corners[0].y);
         for(let i=1;i<corners.length;i++) g.lineTo(corners[i].x,corners[i].y);
         g.lineTo(corners[0].x,corners[0].y).stroke({
-          color:profile.main,
-          width:1.8 + p * .7,
-          alpha:.28 + p * .48,
+          color:profile.main,width:1.8+p*.7,alpha:.28+p*.48
         });
 
         for(let i=0;i<4;i++){
-          const a=i*Math.PI/2 + rotation;
-          g
-            .moveTo(Math.cos(a)*r*.55,Math.sin(a)*r*.55)
+          const a=i*Math.PI/2+rotation;
+          g.moveTo(Math.cos(a)*r*.55,Math.sin(a)*r*.55)
             .lineTo(Math.cos(a)*r,Math.sin(a)*r)
             .stroke({
-              color:profile.main,
-              width:1.8 + p*.7,
-              alpha:.28 + p*.48,
+              color:profile.main,width:1.8+p*.7,alpha:.28+p*.48
             });
         }
         continue;

@@ -1026,9 +1026,9 @@ function burstColors(style = "damage") {
 
 function priestHealSpellColors(spellId) {
   const colors = {
-    "priest-renew": [0xffd96f, 0xffffe8, 0xcaa2f3],
-    "priest-flash-heal": [0xffd76a, 0xffffee, 0xd0a8f5],
-    "priest-greater-heal": [0xffdb79, 0xffffff, 0xd6aff7],
+    "priest-renew": [0xffdf73, 0xfffff2, 0xcaa2f3],
+    "priest-flash-heal": [0xffdc68, 0xffffff, 0xd7adff],
+    "priest-greater-heal": [0xffe07a, 0xffffff, 0xe0bbff],
   };
   return colors[spellId] || colors["priest-flash-heal"];
 }
@@ -1037,27 +1037,27 @@ function priestDruidSpellProfile(spellId) {
   const profiles = {
     "priest-pain-suppression": {
       kind: "holy-shield",
-      main: 0xd9c78f,
-      core: 0xfff8d6,
-      accent: 0x8d78b4,
+      main: 0xe6cc82,
+      core: 0xffffe8,
+      accent: 0x9b7ac5,
     },
     "priest-psychic-scream": {
       kind: "shadow-wave",
-      main: 0x8865b4,
-      core: 0xceb5e8,
-      accent: 0x473158,
+      main: 0x9a63d0,
+      core: 0xead7ff,
+      accent: 0x3d224f,
     },
     "priest-smite": {
       kind: "mind-implosion",
-      main: 0x8d64bd,
-      core: 0xd8b8ef,
-      accent: 0x4d315e,
+      main: 0xa05bd6,
+      core: 0xf0ddff,
+      accent: 0x4b245f,
     },
     "priest-holy-fire": {
       kind: "holy-sky",
-      main: 0xe3b95e,
-      core: 0xfff5c2,
-      accent: 0xcc7440,
+      main: 0xf2bf57,
+      core: 0xffffdd,
+      accent: 0xe8753c,
     },
 
     "druid-rejuvenation": {
@@ -3563,17 +3563,30 @@ export class PixiProofRenderer {
             color:profile.core,width:1.2,alpha:.30+.08*pulse
           });
         } else {
-          // Pain Suppression / fallback: segmented ward shield.
+          // Pain Suppression / fallback: layered segmented holy ward.
+          glow.circle(0,0,r+12).fill({
+            color:profile.accent,alpha:.038+.014*pulse
+          });
           for(let i=0;i<4;i++){
-            const a=i*Math.PI/2+.18;
+            const a=i*Math.PI/2+.18+time*.08;
+            arc(glow,0,0,r+7,a,a+.95,{
+              color:i%2?profile.core:profile.main,
+              width:7,alpha:.06
+            },7);
             arc(core,0,0,r+4,a,a+.95,{
               color:i%2?profile.core:profile.main,
-              width:2.2,alpha:.58,
-            },6);
+              width:2.1,alpha:.60+.04*pulse,
+            },7);
           }
+          core
+            .moveTo(0,-r+2).lineTo(0,r-2)
+            .moveTo(-r*.55,0).lineTo(r*.55,0)
+            .stroke({
+              color:profile.core,width:1.15,alpha:.24+.07*pulse
+            });
         }
 
-        glow.circle(0,0,r+6).stroke({
+        glow.circle(0,0,r+7).stroke({
           color:profile.main,width:8,alpha:.09+.025*pulse
         });
       }
@@ -10851,83 +10864,118 @@ export class PixiProofRenderer {
 
         if (effect.spellId.startsWith("priest-")) {
           if(effect.spellId==="priest-renew"){
-            const radius=11+eased*30;
-            glow.circle(dx,dy,radius*.92).stroke({
+            const snap=Math.exp(-p*11);
+            const radius=11+eased*31;
+
+            glow.circle(dx,dy,11+snap*18).fill({
+              color:profile.core,alpha:alpha*fade*snap*.10
+            });
+            glow.circle(dx,dy,radius+8).stroke({
               color:profile.main,width:10,alpha:alpha*fade*.13
             });
             core.circle(dx,dy,radius).stroke({
-              color:profile.main,width:2.1,alpha:alpha*fade*.66
+              color:profile.main,width:2.1,alpha:alpha*fade*.68
             });
             core.circle(dx,dy,Math.max(6,radius-9)).stroke({
-              color:profile.core,width:1.35,alpha:alpha*fade*.46
+              color:profile.core,width:1.35,alpha:alpha*fade*.48
             });
+
+            // Gentle holy motes orbit upward; Renew stays visually restrained.
             for(let i=0;i<8;i++){
-              const a=i/8*Math.PI*2-p*1.15+seed*.004;
+              const a=i/8*Math.PI*2-p*1.10+seed*.004;
               const rr=10+eased*(18+(i%2)*5);
-              core.circle(
-                dx+Math.cos(a)*rr,
-                dy+Math.sin(a)*rr-p*7,
-                1.4+(i%3)*.5
-              ).fill({
-                color:i%3===0?profile.accent:(i%2?profile.core:profile.main),
-                alpha:alpha*fade*.62,
+              const x=dx+Math.cos(a)*rr;
+              const y=dy+Math.sin(a)*rr-p*7;
+              glow.circle(x,y,4+(i%2)).fill({
+                color:i%3===0?profile.accent:profile.main,
+                alpha:alpha*fade*.055
               });
+              core.circle(x,y,1.4+(i%3)*.5).fill({
+                color:i%3===0?profile.accent:(i%2?profile.core:profile.main),
+                alpha:alpha*fade*.64,
+              });
+            }
+
+            for(let i=0;i<4;i++){
+              const a=i*Math.PI/2+.22-p*.22;
+              const inner=8;
+              const outer=17+eased*11;
+              core
+                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.25,alpha:alpha*fade*.42
+                });
             }
             continue;
           }
 
           const greater=effect.spellId==="priest-greater-heal";
-          const top=dy-(greater?118:82);
-          const beamWidth=greater?58:40;
+          const top=dy-(greater?126:84);
+          const beamWidth=greater?64:40;
           const beamAlpha=alpha*fade*appear;
+          const contact=Math.exp(-p*(greater?8:12));
 
+          // Vertical celestial column. Greater Heal is broader and slower;
+          // Flash Heal stays compact and immediate.
           glow.moveTo(dx,top).lineTo(dx,dy+12).stroke({
             color:profile.main,
             width:beamWidth,
-            alpha:beamAlpha*(greater?.17:.14),
+            alpha:beamAlpha*(greater?.19:.14),
           });
           glow.moveTo(dx,top+5).lineTo(dx,dy+9).stroke({
             color:profile.core,
             width:beamWidth*.48,
-            alpha:beamAlpha*(greater?.13:.10),
+            alpha:beamAlpha*(greater?.15:.10),
           });
 
-          const lanes=greater?9:6;
+          const lanes=greater?10:6;
           for(let i=0;i<lanes;i++){
             const lane=i/Math.max(1,lanes-1)-.5;
+            const topX=dx+lane*beamWidth*.80;
+            const bottomX=dx+lane*beamWidth*.22;
             core
-              .moveTo(dx+lane*beamWidth*.78,top+(i%3)*5)
-              .lineTo(dx+lane*beamWidth*.24,dy+8)
+              .moveTo(topX,top+(i%3)*5)
+              .lineTo(bottomX,dy+8)
               .stroke({
                 color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
-                width:i===Math.floor(lanes/2)?3.6:(greater?2.1:1.8),
-                alpha:beamAlpha*(i%3===0?.72:.48),
+                width:i===Math.floor(lanes/2)?3.8:(greater?2.2:1.8),
+                alpha:beamAlpha*(i%3===0?.76:.50),
               });
           }
 
-          const haloR=14+eased*(greater?45:33);
-          glow.circle(dx,dy,haloR).stroke({
-            color:profile.main,width:greater?14:10,alpha:alpha*fade*(greater?.15:.12)
+          const haloR=14+eased*(greater?48:33);
+          glow.circle(dx,dy,haloR+6).stroke({
+            color:profile.main,width:greater?15:10,alpha:alpha*fade*(greater?.16:.12)
           });
           core.circle(dx,dy,haloR).stroke({
-            color:profile.main,width:greater?3.0:2.4,alpha:alpha*fade*.78
+            color:profile.main,width:greater?3.1:2.4,alpha:alpha*fade*.80
           });
           core.circle(dx,dy,Math.max(8,haloR-11)).stroke({
-            color:profile.core,width:1.55,alpha:alpha*fade*.58
+            color:profile.core,width:1.55,alpha:alpha*fade*.60
           });
 
           const rays=greater?12:8;
           for(let i=0;i<rays;i++){
-            const a=i/rays*Math.PI*2+p*.22+seed*.002;
+            const a=i/rays*Math.PI*2+p*.20+seed*.002;
             const inner=9+eased*5;
-            const outer=22+eased*((greater?40:28)+(i%3)*7);
+            const outer=22+eased*((greater?43:28)+(i%3)*7);
+            glow
+              .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+              .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+              .stroke({
+                color:i%4===0?profile.accent:profile.main,
+                width:6+(i%3===0?2:0),
+                alpha:alpha*fade*.055
+              });
             core
               .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
               .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
               .stroke({
                 color:i%4===0?profile.accent:(i%2?profile.core:profile.main),
                 width:i%3===0?2.0:1.35,
-                alpha:alpha*fade*(greater?.62:.52),
+                alpha:alpha*fade*(greater?.64:.54),
               });
           }
 
@@ -10935,14 +10983,44 @@ export class PixiProofRenderer {
           for(let i=0;i<motes;i++){
             const a=i/motes*Math.PI*2-p*(i%2?.55:-.38)+seed*.006;
             const rr=16+eased*(17+(i%4)*6);
-            core.circle(
-              dx+Math.cos(a)*rr,
-              dy+Math.sin(a)*rr-p*(greater?13:8),
-              1.2+(i%3)*.5
-            ).fill({
-              color:i%4===0?profile.accent:(i%2?profile.core:profile.main),
-              alpha:alpha*fade*.62,
+            const x=dx+Math.cos(a)*rr;
+            const y=dy+Math.sin(a)*rr-p*(greater?13:8);
+            glow.circle(x,y,4+(i%2)).fill({
+              color:i%4===0?profile.accent:profile.main,
+              alpha:alpha*fade*.06
             });
+            core.circle(x,y,1.2+(i%3)*.5).fill({
+              color:i%4===0?profile.accent:(i%2?profile.core:profile.main),
+              alpha:alpha*fade*.64,
+            });
+          }
+
+          // Strong landing beat fixes Greater Heal's previously weak target
+          // contact. Flash Heal receives the same grammar at smaller scale.
+          glow.circle(dx,dy,9+contact*(greater?27:18)).fill({
+            color:profile.core,
+            alpha:alpha*fade*contact*(greater?.18:.13)
+          });
+          core.circle(dx,dy,4+contact*(greater?8:5)).fill({
+            color:profile.core,
+            alpha:alpha*fade*(.56+contact*.34)
+          });
+
+          if(greater){
+            const land=easeOut(p/.42);
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2+.10;
+              const inner=10;
+              const outer=24+land*(18+(i%2)*7);
+              core
+                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:1.7+(i%3===0?.5:0),
+                  alpha:alpha*fade*.62
+                });
+            }
           }
           continue;
         }
@@ -11149,23 +11227,45 @@ export class PixiProofRenderer {
         const a=alpha*appear*fade;
 
         if(effect.spellId==="priest-pain-suppression"){
-          for(let i=0;i<4;i++){
-            const start=i*Math.PI/2+.16+p*.38;
-            arc(core,dx,dy,27+(i%2)*5,start,start+.92,{
-              color:i===2?profile.core:profile.main,
-              width:2.6,
-              alpha:a*(.54+i*.04),
-            },7);
-          }
-          const shield=[
-            {x:dx,y:dy-25},{x:dx+15,y:dy-7},{x:dx+11,y:dy+18},
-            {x:dx,y:dy+26},{x:dx-11,y:dy+18},{x:dx-15,y:dy-7},
-          ];
-          polygon(core,shield,{
-            color:profile.accent,width:1.8,alpha:a*.78
+          const snap=Math.exp(-p*10);
+          const wardR=28+appear*5;
+
+          glow.circle(dx,dy,wardR+10).fill({
+            color:profile.accent,alpha:a*(.055+snap*.04)
           });
-          glow.circle(dx,dy,31).stroke({
-            color:profile.main,width:8,alpha:a*.10
+          glow.circle(dx,dy,wardR+7).stroke({
+            color:profile.main,width:11,alpha:a*.11
+          });
+
+          for(let i=0;i<4;i++){
+            const start=i*Math.PI/2+.16+p*.32;
+            arc(glow,dx,dy,wardR+(i%2)*4,start,start+.92,{
+              color:i===2?profile.core:profile.main,
+              width:8,alpha:a*.07
+            },8);
+            arc(core,dx,dy,wardR+(i%2)*4,start,start+.92,{
+              color:i===2?profile.core:profile.main,
+              width:2.5+(i===2?.4:0),
+              alpha:a*(.58+i*.04),
+            },8);
+          }
+
+          const shield=[
+            {x:dx,y:dy-27},{x:dx+16,y:dy-8},{x:dx+12,y:dy+19},
+            {x:dx,y:dy+28},{x:dx-12,y:dy+19},{x:dx-16,y:dy-8},
+          ];
+          polygon(glow,shield,{color:profile.main,alpha:a*.08},true);
+          polygon(core,shield,{
+            color:profile.accent,width:2.0,alpha:a*.82
+          });
+
+          // Inner cross/ward motif makes the defensive readable at a glance.
+          core
+            .moveTo(dx,dy-15).lineTo(dx,dy+15)
+            .moveTo(dx-10,dy).lineTo(dx+10,dy)
+            .stroke({color:profile.core,width:1.7,alpha:a*.58});
+          core.circle(dx,dy,4+snap*3).fill({
+            color:profile.core,alpha:a*(.42+snap*.28)
           });
           continue;
         }
@@ -11352,11 +11452,34 @@ export class PixiProofRenderer {
 
         if(effect.spellId==="priest-psychic-scream"){
           const wave=easeOut(p/.72);
+          const snap=Math.exp(-p*12);
+
+          glow.circle(0,0,source.radius+13+wave*58).fill({
+            color:profile.accent,alpha:alpha*fade*.045
+          });
+          glow.circle(0,0,source.radius+10+snap*18).fill({
+            color:profile.core,alpha:alpha*fade*snap*.09
+          });
+
           for(let layer=0;layer<3;layer++){
-            const radius=source.radius+12+wave*(80+layer*16);
-            for(let i=0;i<=28;i++){
-              const ang=i/28*Math.PI*2;
-              const wobble=Math.sin(ang*5+p*10+layer)*(3+layer);
+            const radius=source.radius+12+wave*(82+layer*17);
+            for(let i=0;i<=32;i++){
+              const ang=i/32*Math.PI*2;
+              const wobble=Math.sin(ang*5+p*10+layer)*(3.5+layer);
+              const rr=radius+wobble;
+              const x=Math.cos(ang)*rr;
+              const y=Math.sin(ang)*rr;
+              if(i===0) glow.moveTo(x,y); else glow.lineTo(x,y);
+            }
+            glow.stroke({
+              color:layer===1?profile.core:profile.main,
+              width:9-layer,
+              alpha:alpha*fade*(.06-layer*.01),
+            });
+
+            for(let i=0;i<=32;i++){
+              const ang=i/32*Math.PI*2;
+              const wobble=Math.sin(ang*5+p*10+layer)*(3.5+layer);
               const rr=radius+wobble;
               const x=Math.cos(ang)*rr;
               const y=Math.sin(ang)*rr;
@@ -11365,8 +11488,23 @@ export class PixiProofRenderer {
             core.stroke({
               color:layer===1?profile.core:profile.main,
               width:2.7-layer*.45,
-              alpha:alpha*fade*(.52-layer*.10),
+              alpha:alpha*fade*(.56-layer*.10),
             });
+          }
+
+          // Brief psychic thorns around the Priest sell the violent fear pulse.
+          for(let i=0;i<8;i++){
+            const ang=i/8*Math.PI*2+.16;
+            const inner=source.radius+5;
+            const outer=source.radius+18+wave*(15+(i%3)*5);
+            core
+              .moveTo(Math.cos(ang)*inner,Math.sin(ang)*inner)
+              .lineTo(Math.cos(ang+.10)*outer,Math.sin(ang+.10)*outer)
+              .stroke({
+                color:i%3===0?profile.core:profile.main,
+                width:1.5+(i%3===0?.4:0),
+                alpha:alpha*fade*.50
+              });
           }
           continue;
         }
@@ -13099,8 +13237,8 @@ export class PixiProofRenderer {
           // Wide warm column gives Holy Fire the screen presence Canvas had.
           glow.moveTo(dx,top).lineTo(dx,headY).stroke({
             color:profile.main,
-            width:24,
-            alpha:visibility*.17,
+            width:28,
+            alpha:visibility*.19,
           });
           glow.moveTo(dx-7,top+12).lineTo(dx-2,headY).stroke({
             color:profile.accent,
@@ -13115,8 +13253,8 @@ export class PixiProofRenderer {
 
           core.moveTo(dx,top).lineTo(dx,headY).stroke({
             color:profile.core,
-            width:5.2,
-            alpha:visibility*.92,
+            width:5.8,
+            alpha:visibility*.96,
           });
           core.moveTo(dx-8,top+28).lineTo(dx-3,headY-4).stroke({
             color:profile.main,
@@ -13146,10 +13284,19 @@ export class PixiProofRenderer {
           }
 
           if (!missed && hit > 0) {
+            const contact=Math.exp(-hit*14);
             // Two broad concentric impact rings plus a four-point holy seal.
+            glow.circle(dx,dy,10+contact*23).fill({
+              color:profile.core,
+              alpha:hitFade*contact*.18,
+            });
+            core.circle(dx,dy,4+contact*7).fill({
+              color:profile.core,
+              alpha:hitFade*(.60+contact*.32),
+            });
             glow.circle(dx,dy,14+easeOut(hit)*48).fill({
               color:profile.main,
-              alpha:hitFade*.12,
+              alpha:hitFade*.13,
             });
             glow.circle(dx,dy,18+easeOut(hit)*51).stroke({
               color:profile.main,
@@ -13336,6 +13483,20 @@ export class PixiProofRenderer {
           for(let seg=0;seg<3;seg++){
             const a0=seg*Math.PI*2/3+.18+phase;
             arc(
+              glow,
+              dx,
+              dy,
+              rr,
+              a0,
+              a0+.78,
+              {
+                color:ring===1?profile.core:profile.main,
+                width:8+ring,
+                alpha:visibility*(.05+gather*.05),
+              },
+              7,
+            );
+            arc(
               core,
               dx,
               dy,
@@ -13345,7 +13506,7 @@ export class PixiProofRenderer {
               {
                 color:ring===1?profile.core:profile.main,
                 width:1.7+ring*.35,
-                alpha:visibility*(.34+gather*.24-ring*.03),
+                alpha:visibility*(.36+gather*.26-ring*.03),
               },
               7,
             );
@@ -13360,13 +13521,19 @@ export class PixiProofRenderer {
             +seed*.009;
           const start=50+(i%5)*7;
           const rr=start*(1-gather*.78);
+          const mx=dx+Math.cos(ang)*rr;
+          const my=dy+Math.sin(ang)*rr;
+          glow.circle(mx,my,4+(i%3)).fill({
+            color:i%4===0?profile.core:profile.main,
+            alpha:visibility*(.045+gather*.065),
+          });
           core.circle(
-            dx+Math.cos(ang)*rr,
-            dy+Math.sin(ang)*rr,
+            mx,
+            my,
             1.5+(i%4)*.48
           ).fill({
             color:i%4===0?profile.core:(i%3===0?profile.accent:profile.main),
-            alpha:visibility*(.32+gather*.48),
+            alpha:visibility*(.34+gather*.50),
           });
         }
 
@@ -13394,9 +13561,18 @@ export class PixiProofRenderer {
 
         if(!missed && snap>.34){
           const blast=clamp01((snap-.34)/.66);
-          glow.circle(dx,dy,12+easeOut(blast)*46).fill({
+          const contact=Math.exp(-blast*13);
+          glow.circle(dx,dy,9+contact*22).fill({
+            color:profile.core,
+            alpha:contact*.17,
+          });
+          core.circle(dx,dy,4+contact*6).fill({
+            color:profile.core,
+            alpha:.54+contact*.34,
+          });
+          glow.circle(dx,dy,12+easeOut(blast)*48).fill({
             color:profile.main,
-            alpha:(1-blast)*.14+ruptureFade*.06,
+            alpha:(1-blast)*.15+ruptureFade*.06,
           });
           glow.circle(dx,dy,14+easeOut(rupture)*52).stroke({
             color:profile.main,

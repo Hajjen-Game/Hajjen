@@ -1,5 +1,5 @@
 import { CanvasRenderer } from "./CanvasRenderer.js?v=20261001-pixi23";
-import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261006-roguevfx3";
+import { PixiProofRenderer } from "./PixiProofRenderer.js?v=20261006-priestvfx3";
 import { BabylonArenaRenderer } from "./BabylonArenaRenderer.js?v=20261002-babylon30";
 
 function requestedRenderer() {

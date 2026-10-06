@@ -15278,11 +15278,11 @@ export class PixiProofRenderer {
             const phase=hit*(ring%2?-2.0:1.65)+seed*.006;
             for(let seg=0;seg<3;seg++){
               const a0=seg*Math.PI*2/3+.18+phase;
-              arc(core,ix,iy,r,a0,a0+.58,{
+              strokeArc(core,r,a0,a0+.58,{
                 color:ring===1?spec.core:spec.main,
                 width:ring===1?1.8:1.3,
                 alpha:alpha*after*(.64-ring*.08)
-              },6);
+              },6,ix,iy);
             }
           }
 

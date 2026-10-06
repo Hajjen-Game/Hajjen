@@ -1335,50 +1335,50 @@ function commonCasterSpellProfile(spellId) {
 
     "warlock-corruption": {
       kind: "corruption",
-      main: 0x9d63c7,
-      core: 0xd9b6f0,
-      accent: 0x38213f,
+      main: 0xa855d6,
+      core: 0xefd7ff,
+      accent: 0x32153f,
     },
     "warlock-shadow-bolt": {
       kind: "shadow",
-      main: 0x8a56bd,
-      core: 0xd5b4ee,
-      accent: 0x2b1838,
+      main: 0x9854d8,
+      core: 0xf1ddff,
+      accent: 0x24102f,
       travelEnd: .56,
-      size: 8,
+      size: 11,
     },
     "warlock-chaos-bolt": {
       kind: "chaos",
-      main: 0x66d45f,
-      core: 0xdcff8a,
-      accent: 0x233629,
+      main: 0x66e05e,
+      core: 0xf1ff9a,
+      accent: 0x173521,
       travelEnd: .62,
-      size: 12,
+      size: 16,
       heavy: true,
     },
     "warlock-resolve": {
       kind: "shadow-ward",
-      main: 0x7654a7,
-      core: 0xc7a8ea,
-      accent: 0x251a33,
+      main: 0x8558bd,
+      core: 0xe5c9ff,
+      accent: 0x251331,
     },
     "warlock-fear": {
       kind: "shadow-control",
-      main: 0x9a61bf,
-      core: 0xe3c4f3,
-      accent: 0x301b3b,
+      main: 0xa45cce,
+      core: 0xf0d6ff,
+      accent: 0x2a1236,
     },
     "warlock-drain-life": {
       kind: "drain",
-      main: 0x8f5bc1,
-      core: 0xd7b7ee,
-      accent: 0x261730,
+      main: 0x9857c8,
+      core: 0xefd6ff,
+      accent: 0x25122f,
     },
     "warlock-conflagrate": {
       kind: "conflagrate",
-      main: 0xd56d43,
-      core: 0xffd59a,
-      accent: 0x512519,
+      main: 0xff6a35,
+      core: 0xffffc7,
+      accent: 0x9d2b20,
     },
   };
   return profiles[spellId] || null;
@@ -1475,18 +1475,20 @@ function projectileVfx2Spec(spellId) {
       shape: "shadow",
       trailStyle: "void",
       travelEnd: .48,
-      size: 10,
-      tail: 100,
-      trailReach: .90,
+      size: 13,
+      tail: 122,
+      trailReach: .94,
+      showcase: true,
     },
     "warlock-chaos-bolt": {
       shape: "chaos",
       trailStyle: "fel",
       travelEnd: .52,
-      size: 13,
-      tail: 124,
-      trailReach: .95,
+      size: 18,
+      tail: 154,
+      trailReach: .97,
       heavy: true,
+      showcase: true,
     },
     "paladin-hammer": {
       shape: "hammer",
@@ -3472,16 +3474,28 @@ export class PixiProofRenderer {
             color:profile.core,width:1.15,alpha:.28+.10*pulse
           });
         } else if(defensive.spellId==="warlock-resolve"){
+          glow.circle(0,0,r+14).fill({
+            color:profile.accent,alpha:.045+.018*pulse
+          });
+          glow.circle(0,0,r+11).stroke({
+            color:profile.main,width:8,alpha:.075
+          });
           for(let i=0;i<5;i++){
             const a=i/5*Math.PI*2-time*.12;
+            const outer=r+10+(i%2)*2;
+            const inner=r-1;
             core
-              .moveTo(Math.cos(a)*(r+8),Math.sin(a)*(r+8))
-              .lineTo(Math.cos(a+.44)*r,Math.sin(a+.44)*r)
+              .moveTo(Math.cos(a)*outer,Math.sin(a)*outer)
+              .lineTo(Math.cos(a+.24)*(r+4),Math.sin(a+.24)*(r+4))
+              .lineTo(Math.cos(a+.48)*inner,Math.sin(a+.48)*inner)
               .stroke({
                 color:i%2?profile.core:profile.main,
-                width:2.1,alpha:.55,
+                width:2.0,alpha:.58+.05*pulse,
               });
           }
+          core.circle(0,0,r+2).stroke({
+            color:profile.core,width:1.1,alpha:.28+.08*pulse
+          });
         } else if(defensive.spellId==="dk-rune-tap"){
           const rot=-time*.15;
           for(let i=0;i<4;i++){
@@ -10807,24 +10821,47 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="warlock-resolve"){
+          const appear=easeOut(p/.20);
+          const snap=Math.exp(-p*10);
+          const wardR=22+appear*10;
+
+          glow.circle(dx,dy,wardR+11).fill({
+            color:profile.accent,alpha:a*(.08+snap*.06)
+          });
+          glow.circle(dx,dy,wardR+7).stroke({
+            color:profile.main,width:11,alpha:a*.10
+          });
+
           for(let i=0;i<5;i++){
-            const ang=i/5*Math.PI*2-p*.65;
-            const outer=31+(i%2)*4;
-            const inner=18;
+            const ang=i/5*Math.PI*2-p*.42;
+            const outer=wardR+7+(i%2)*3;
+            const mid=wardR;
+            const inner=wardR-10;
+            glow
+              .moveTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .lineTo(dx+Math.cos(ang+.26)*mid,dy+Math.sin(ang+.26)*mid)
+              .lineTo(dx+Math.cos(ang+.50)*inner,dy+Math.sin(ang+.50)*inner)
+              .stroke({
+                color:i%2?profile.main:profile.core,
+                width:8,
+                alpha:a*.08,
+              });
             core
               .moveTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
-              .lineTo(
-                dx+Math.cos(ang+.48)*inner,
-                dy+Math.sin(ang+.48)*inner
-              )
+              .lineTo(dx+Math.cos(ang+.26)*mid,dy+Math.sin(ang+.26)*mid)
+              .lineTo(dx+Math.cos(ang+.50)*inner,dy+Math.sin(ang+.50)*inner)
               .stroke({
                 color:i%2?profile.main:profile.core,
                 width:2.2,
-                alpha:a*.66,
+                alpha:a*.72,
               });
           }
-          glow.circle(dx,dy,28).fill({
-            color:profile.accent,alpha:a*.12
+
+          core.circle(dx,dy,wardR-4).stroke({
+            color:profile.core,width:1.35,alpha:a*.44
+          });
+          core.circle(dx,dy,5+snap*4).fill({
+            color:profile.core,alpha:a*(.42+snap*.30)
           });
           continue;
         }
@@ -11099,28 +11136,46 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="warlock-fear"){
-          const radius=12+easeOut(p)*39;
+          const burst=easeOut(p/.72);
+          const snap=Math.exp(-p*11);
+          const radius=13+burst*40;
+
+          glow.circle(dx,dy,radius+10).stroke({
+            color:profile.main,width:10,alpha:alpha*fade*.10
+          });
+          glow.circle(dx,dy,11+snap*18).fill({
+            color:profile.accent,alpha:alpha*fade*snap*.12
+          });
+
           for(let i=0;i<3;i++){
-            const start=Math.PI*(1.02+i*.47)+p*(i%2?1.4:-1.1);
+            const start=Math.PI*(1.02+i*.47)+p*(i%2?1.25:-1.0);
+            arc(glow,dx,dy,radius+i*5,start,start+1.05,{
+              color:i===1?profile.core:profile.main,
+              width:8,
+              alpha:alpha*fade*.07,
+            },8);
             arc(core,dx,dy,radius+i*5,start,start+1.05,{
               color:i===1?profile.core:profile.main,
-              width:2.4,
-              alpha:alpha*fade*(.68-i*.09),
-            },7);
+              width:2.2+(i===1?.35:0),
+              alpha:alpha*fade*(.70-i*.08),
+            },8);
           }
-          // Collapsing eye.
-          const eyeW=17*(1-p*.38), eyeH=7*(1-p*.55);
+
+          const eyeW=18*(1-p*.40), eyeH=7.5*(1-p*.58);
           const eye=[
             {x:dx-eyeW,y:dy},
             {x:dx,y:dy-eyeH},
             {x:dx+eyeW,y:dy},
             {x:dx,y:dy+eyeH},
           ];
+          polygon(glow,eye,{
+            color:profile.main,alpha:alpha*fade*.09
+          },true);
           polygon(core,eye,{
-            color:profile.core,width:1.8,alpha:alpha*fade*.60
+            color:profile.core,width:2.0,alpha:alpha*fade*.72
           });
-          core.circle(dx,dy,2.8).fill({
-            color:profile.core,alpha:alpha*fade*.72
+          core.circle(dx,dy,3.0+snap*1.5).fill({
+            color:profile.core,alpha:alpha*fade*.84
           });
           continue;
         }
@@ -11920,24 +11975,53 @@ export class PixiProofRenderer {
 
         if(effect.spellId==="warlock-corruption"){
           const appear=easeOut(p/.22);
+          const snap=Math.exp(-p*12);
+          const sealR=12+appear*22;
+
+          glow.circle(dx,dy,13+snap*20).fill({
+            color:profile.main,alpha:alpha*fade*(.05+snap*.18)
+          });
+          glow.circle(dx,dy,sealR+10).stroke({
+            color:profile.main,width:10,alpha:alpha*fade*.10
+          });
+
+          // Eight hooked shadow tendrils close inward like an infection taking
+          // hold, keeping Corruption distinct from Fear's eye language.
           for(let i=0;i<8;i++){
-            const ang=i/8*Math.PI*2+p*(i%2?1.5:-1.2)+seed*.011;
-            const outer=31+(i%3)*6;
-            const inner=9+(1-appear)*18;
+            const ang=i/8*Math.PI*2+p*(i%2?1.25:-1.05)+seed*.011;
+            const outer=33+(i%3)*6;
+            const inner=8+(1-appear)*19;
             const sx=dx+Math.cos(ang)*outer;
             const sy=dy+Math.sin(ang)*outer;
-            const ex=dx+Math.cos(ang+.8)*inner;
-            const ey=dy+Math.sin(ang+.8)*inner;
-            const mx=dx+Math.cos(ang+.42)*outer*.48;
-            const my=dy+Math.sin(ang+.42)*outer*.48;
+            const mx=dx+Math.cos(ang+.38)*(outer*.56);
+            const my=dy+Math.sin(ang+.38)*(outer*.56);
+            const ex=dx+Math.cos(ang+.78)*inner;
+            const ey=dy+Math.sin(ang+.78)*inner;
+
+            glow.moveTo(sx,sy).lineTo(mx,my).lineTo(ex,ey).stroke({
+              color:profile.main,width:6+(i%3),alpha:alpha*fade*.07
+            });
             core.moveTo(sx,sy).lineTo(mx,my).lineTo(ex,ey).stroke({
               color:i%3===0?profile.core:profile.main,
-              width:1.5+(i%3)*.4,
-              alpha:alpha*fade*(.40+(i%3)*.10),
+              width:1.5+(i%3)*.45,
+              alpha:alpha*fade*(.46+(i%3)*.08),
             });
           }
-          glow.circle(dx,dy,15+appear*5).fill({
-            color:profile.accent,alpha:alpha*fade*.12
+
+          for(let seg=0;seg<4;seg++){
+            const a0=seg*Math.PI/2+.18-p*.55;
+            arc(core,dx,dy,sealR,a0,a0+.72,{
+              color:seg%2?profile.core:profile.main,
+              width:1.55,
+              alpha:alpha*fade*.55,
+            },6);
+          }
+
+          glow.circle(dx,dy,8+snap*7).fill({
+            color:profile.accent,alpha:alpha*fade*.15
+          });
+          core.circle(dx,dy,3.4+snap*3).fill({
+            color:profile.core,alpha:alpha*fade*.78
           });
           continue;
         }
@@ -12304,50 +12388,114 @@ export class PixiProofRenderer {
       }
 
       if (effect.spellId==="warlock-drain-life") {
-        // Reverse-flow wisps from target back to caster.
-        const fade=1-smooth((p-.78)/.22);
-        const pulses=8;
+        const fade=1-smooth((p-.80)/.20);
+        const pulses=10;
+
+        glow.moveTo(dx,dy).lineTo(0,0).stroke({
+          color:profile.main,width:13,alpha:alpha*fade*.09
+        });
+        core.moveTo(dx,dy).lineTo(0,0).stroke({
+          color:profile.main,width:1.5,alpha:alpha*fade*.24
+        });
+
         for(let i=0;i<pulses;i++){
-          const q=((p*1.75+i/pulses)%1);
+          const q=((p*1.85+i/pulses)%1);
           const eased=smooth(q);
           const cx=dx*(1-eased);
           const cy=dy*(1-eased);
-          const wobble=Math.sin(seed*.05+i*1.7+p*10)*9;
-          core.circle(cx+nx*wobble,cy+ny*wobble,1.4+(i%3)*.55).fill({
+          const wobble=Math.sin(seed*.05+i*1.7+p*10)*10*(1-q*.35);
+          const x=cx+nx*wobble;
+          const y=cy+ny*wobble;
+          const radius=1.5+(i%3)*.55;
+
+          glow.circle(x,y,radius*3.8).fill({
             color:i%3===0?profile.core:profile.main,
-            alpha:alpha*fade*(.36+(1-q)*.32),
+            alpha:alpha*fade*(.06+(1-q)*.08)
           });
+          core.circle(x,y,radius).fill({
+            color:i%3===0?profile.core:profile.main,
+            alpha:alpha*fade*(.42+(1-q)*.34),
+          });
+
+          if(i%3===0){
+            const ahead=Math.min(1,q+.08);
+            const ax=dx*(1-smooth(ahead));
+            const ay=dy*(1-smooth(ahead));
+            core.moveTo(x,y).lineTo(ax,ay).stroke({
+              color:profile.core,width:1,alpha:alpha*fade*.42
+            });
+          }
         }
-        core.moveTo(dx,dy).lineTo(0,0).stroke({
-          color:profile.main,width:1.6,alpha:alpha*fade*.22
+
+        const victimPulse=.5+.5*Math.sin(p*18+seed*.01);
+        glow.circle(dx,dy,14+victimPulse*4).stroke({
+          color:profile.main,width:8,alpha:alpha*fade*.09
         });
-        glow.moveTo(dx,dy).lineTo(0,0).stroke({
-          color:profile.main,width:8,alpha:alpha*fade*.07
+        core.circle(dx,dy,11+victimPulse*3).stroke({
+          color:profile.core,width:1.5,alpha:alpha*fade*.46
+        });
+        glow.circle(0,0,10+(1-victimPulse)*4).fill({
+          color:profile.main,alpha:alpha*fade*.10
+        });
+        core.circle(0,0,3.5+(1-victimPulse)*2).fill({
+          color:profile.core,alpha:alpha*fade*.66
         });
         continue;
       }
 
-      // Conflagrate: compact violent burst, no traveling orb.
+      // Conflagrate VFX 3.0: instant, compact and violent.
       const hit=easeOut(p/.52);
       const fade=1-smooth((p-.58)/.42);
-      glow.circle(dx,dy,8+hit*35).fill({
-        color:profile.main,alpha:alpha*fade*.12
+      const flash=Math.exp(-p*14);
+
+      glow.circle(dx,dy,10+flash*22).fill({
+        color:profile.core,alpha:alpha*fade*flash*.18
       });
+      glow.circle(dx,dy,10+hit*39).stroke({
+        color:profile.main,width:13,alpha:alpha*fade*.14
+      });
+      core.circle(dx,dy,8+hit*28).stroke({
+        color:0xff9b3d,width:2.4,alpha:alpha*fade*.68
+      });
+
       for(let i=0;i<12;i++){
         const ang=i/12*Math.PI*2+seed*.013;
         const inner=5+(i%2)*2;
-        const outer=14+hit*(24+(i%4)*5);
+        const outer=15+hit*(27+(i%4)*6);
+        const bend=ang+.10*Math.sin(i);
+        glow
+          .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+          .lineTo(dx+Math.cos(bend)*outer,dy+Math.sin(bend)*outer)
+          .stroke({
+            color:i%3===0?profile.core:profile.main,
+            width:6+(i%3),
+            alpha:alpha*fade*.08,
+          });
         core
           .moveTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
-          .lineTo(dx+Math.cos(ang+.10*Math.sin(i))*outer,dy+Math.sin(ang+.10*Math.sin(i))*outer)
+          .lineTo(dx+Math.cos(bend)*outer,dy+Math.sin(bend)*outer)
           .stroke({
             color:i%3===0?profile.core:(i%2?profile.main:profile.accent),
-            width:1.5+(i%3===0?.7:0),
-            alpha:alpha*fade*.62,
+            width:1.55+(i%3===0?.75:0),
+            alpha:alpha*fade*.68,
           });
       }
-      core.circle(dx,dy,6+hit*8).fill({
-        color:profile.core,alpha:alpha*fade*.72
+
+      for(let i=0;i<8;i++){
+        const a=i/8*Math.PI*2+seed*.021+p*.7;
+        const rr=12+hit*(18+(i%3)*6);
+        core.circle(
+          dx+Math.cos(a)*rr,
+          dy+Math.sin(a)*rr-hit*(i%2?6:3),
+          1.2+(i%3)*.4
+        ).fill({
+          color:i%3===0?profile.core:(i%2?0xff9b3d:profile.main),
+          alpha:alpha*fade*.66
+        });
+      }
+
+      core.circle(dx,dy,5+flash*7).fill({
+        color:profile.core,alpha:alpha*fade*.86
       });
     }
   }
@@ -13195,22 +13343,59 @@ export class PixiProofRenderer {
             color:spec.core,alpha:releaseFade*.90
           });
         } else if (spec.shape === "shadow") {
-          for(let ring=0;ring<2;ring++){
-            const r=source.radius+9+ring*7+releaseP*6;
-            strokeArc(core,r,.25+ring,2.6+ring,{
-              color:ring?spec.core:spec.main,width:1.8,alpha:releaseFade*.52,
-            },7);
+          const baseR=source.radius+10+releaseP*7;
+          for(let ring=0;ring<3;ring++){
+            const r=baseR+ring*6;
+            const phase=(ring%2?-.55:.45)*p+ring*.55;
+            strokeArc(glow,r,.20+phase,2.65+phase,{
+              color:ring===1?spec.core:spec.main,width:8,alpha:releaseFade*.07,
+            },8);
+            strokeArc(core,r,.25+phase,2.60+phase,{
+              color:ring===1?spec.core:spec.main,
+              width:ring===1?2.0:1.55,
+              alpha:releaseFade*(ring===1?.66:.52),
+            },8);
           }
+          glow
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+30),ty*(source.radius+30))
+            .stroke({color:spec.main,width:14,alpha:releaseFade*.13});
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+31),ty*(source.radius+31))
+            .stroke({color:spec.core,width:2.5,alpha:releaseFade*.78});
         } else if (spec.shape === "chaos") {
+          const jawR=source.radius+13+releaseP*8;
           for(const sign of [-1,1]){
-            const a=sign*.65;
+            const center=sign>0?0:Math.PI;
+            strokeArc(glow,jawR,center-.76,center+.76,{
+              color:sign>0?spec.core:spec.main,width:10,alpha:releaseFade*.10
+            },8);
+            strokeArc(core,jawR,center-.72,center+.72,{
+              color:sign>0?spec.core:spec.main,width:2.5,alpha:releaseFade*.72
+            },8);
+
+            const a=sign*.62;
+            glow
+              .moveTo(Math.cos(a)*(source.radius+4),Math.sin(a)*(source.radius+4))
+              .lineTo(Math.cos(a)*(source.radius+28+releaseP*10),Math.sin(a)*(source.radius+28+releaseP*10))
+              .stroke({color:spec.main,width:9,alpha:releaseFade*.09});
             core
-              .moveTo(Math.cos(a)*(source.radius+5),Math.sin(a)*(source.radius+5))
-              .lineTo(Math.cos(a)*(source.radius+22+releaseP*9),Math.sin(a)*(source.radius+22+releaseP*9))
+              .moveTo(Math.cos(a)*(source.radius+4),Math.sin(a)*(source.radius+4))
+              .lineTo(Math.cos(a)*(source.radius+28+releaseP*10),Math.sin(a)*(source.radius+28+releaseP*10))
               .stroke({
-                color:sign>0?spec.core:spec.main,width:2.1,alpha:releaseFade*.62,
+                color:sign>0?spec.core:spec.main,width:2.1,alpha:releaseFade*.68,
               });
           }
+
+          glow
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+40),ty*(source.radius+40))
+            .stroke({color:spec.main,width:20,alpha:releaseFade*.17});
+          core
+            .moveTo(tx*source.radius,ty*source.radius)
+            .lineTo(tx*(source.radius+38),ty*(source.radius+38))
+            .stroke({color:spec.core,width:3.2,alpha:releaseFade*.86});
         }
       }
 
@@ -13854,27 +14039,39 @@ export class PixiProofRenderer {
             }
           }
         } else if (spec.trailStyle === "void") {
-          const wisps = 9;
-          for (let i = 0; i < wisps; i += 1) {
-            const f = (i + .45) / wisps;
-            const wave =
-              Math.sin(f * Math.PI * 4 + p * 8 + seed * .029) * (7+(i%2)*4);
-            const point = trailPoint(f,wave);
-            const radius = 3.4 + (i % 3) * 1.2;
-            const phase = p*3 + i*.7;
+          const wisps=11;
+          for(let i=0;i<wisps;i++){
+            const f=(i+.40)/wisps;
+            const wave=Math.sin(f*Math.PI*4+p*8+seed*.029)*(7+(i%2)*4);
+            const point=trailPoint(f,wave);
+            const radius=3.4+(i%3)*1.15;
+            const phase=p*3+i*.7;
 
-            strokeArc(glow,radius*1.8,phase,phase+Math.PI*1.25,{
-              color: spec.main,
-              width: 5,
-              alpha: alpha * travelFade * .08,
-            },5,point.x,point.y);
-            strokeArc(core,radius,phase,phase+Math.PI*1.25,{
-              color: i%3===0 ? spec.core : spec.main,
-              width: 1.25,
-              alpha: alpha * travelFade * .62,
-            },5,point.x,point.y);
+            strokeArc(glow,radius*2.2,phase,phase+Math.PI*1.32,{
+              color:spec.main,width:6,alpha:alpha*travelFade*.09
+            },6,point.x,point.y);
+            strokeArc(core,radius,phase,phase+Math.PI*1.28,{
+              color:i%3===0?spec.core:spec.main,
+              width:i%3===0?1.45:1.15,
+              alpha:alpha*travelFade*.66
+            },6,point.x,point.y);
+
+            if(i%3===0){
+              core.circle(point.x,point.y,1.5+(i%2)*.4).fill({
+                color:spec.core,alpha:alpha*travelFade*.60
+              });
+            }
           }
+          glow.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.main,width:9,alpha:alpha*travelFade*.055
+          });
         } else if (spec.trailStyle === "fel") {
+          glow.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.main,width:12,alpha:alpha*travelFade*.075
+          });
+          core.moveTo(tailX,tailY).lineTo(px,py).stroke({
+            color:spec.core,width:1.4,alpha:alpha*travelFade*.58
+          });
           const forks = 8;
           for (let i = 0; i < forks; i += 1) {
             const f = (i + .5) / forks;
@@ -14274,64 +14471,107 @@ export class PixiProofRenderer {
             {color:spec.core,width:1.8,alpha:alpha*travelFade*.72},p*4
           );
         } else if (spec.shape === "shadow") {
-          glow.circle(px,py,spec.size+7).fill({
-            color:spec.main,alpha:alpha*travelFade*.18
+          const pulse=.88+.12*Math.sin(p*24+seed*.07);
+          const shell=[
+            transformed(px,py,20,0,angle),
+            transformed(px,py,7,-9*pulse,angle),
+            transformed(px,py,-9,-10,angle),
+            transformed(px,py,-22,-4,angle),
+            transformed(px,py,-28,0,angle),
+            transformed(px,py,-20,6,angle),
+            transformed(px,py,-7,10,angle),
+            transformed(px,py,7,8*pulse,angle),
+          ];
+          const inner=[
+            transformed(px,py,15,0,angle),
+            transformed(px,py,2,-5,angle),
+            transformed(px,py,-15,0,angle),
+            transformed(px,py,2,5,angle),
+          ];
+
+          poly(glow,shell,{color:spec.main,alpha:alpha*travelFade*.25},true);
+          poly(core,shell,{color:spec.accent,alpha:alpha*travelFade*.96},true);
+          poly(core,inner,{color:spec.main,alpha:alpha*travelFade*.92},true);
+          poly(core,shell,{color:spec.main,width:1.8,alpha:alpha*travelFade*.74});
+          core.circle(px+tx*6,py+ty*6,3.7).fill({
+            color:spec.core,alpha:alpha*travelFade*.90
           });
-          core.circle(px,py,8.5).fill({
-            color:spec.main,alpha:alpha*travelFade*.88
-          });
-          core.circle(px-tx*2,py-ty*2,4).fill({
-            color:spec.core,alpha:alpha*travelFade*.75
-          });
-          for(let i=0;i<5;i++){
-            const a=p*6+i*Math.PI*2/5+seed*.013;
-            const rr=10+(i%2)*5;
+
+          for(let i=0;i<6;i++){
+            const a=p*6+i*Math.PI*2/6+seed*.013;
+            const rr=spec.size+5+(i%2)*4;
+            glow.circle(px+Math.cos(a)*rr,py+Math.sin(a)*rr,4).fill({
+              color:spec.main,alpha:alpha*travelFade*.10
+            });
             core.circle(
               px+Math.cos(a)*rr,
               py+Math.sin(a)*rr,
-              1.5+(i%2)*.5
+              1.3+(i%2)*.45
             ).fill({
-              color:i%2?spec.core:spec.main,
-              alpha:alpha*travelFade*.50,
+              color:i%3===0?spec.core:spec.main,
+              alpha:alpha*travelFade*.58,
             });
           }
         } else if (spec.shape === "chaos") {
-          glow.circle(px,py,spec.size+8).fill({
-            color:spec.main,alpha:alpha*travelFade*.20
-          });
-          core.circle(px,py,7).fill({
-            color:spec.core,alpha:alpha*travelFade*.96
+          const pulse=.90+.10*Math.sin(p*31+seed*.05);
+          const outer=[
+            transformed(px,py,29,0,angle),
+            transformed(px,py,10,-13*pulse,angle),
+            transformed(px,py,-8,-15,angle),
+            transformed(px,py,-27,-9,angle),
+            transformed(px,py,-39,0,angle),
+            transformed(px,py,-27,9,angle),
+            transformed(px,py,-8,15,angle),
+            transformed(px,py,10,13*pulse,angle),
+          ];
+          const inner=[
+            transformed(px,py,22,0,angle),
+            transformed(px,py,4,-7,angle),
+            transformed(px,py,-18,-7,angle),
+            transformed(px,py,-29,0,angle),
+            transformed(px,py,-18,7,angle),
+            transformed(px,py,4,7,angle),
+          ];
+
+          poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.28},true);
+          poly(core,outer,{color:0x244027,alpha:alpha*travelFade*.98},true);
+          poly(core,inner,{color:spec.main,alpha:alpha*travelFade*.92},true);
+          poly(core,outer,{color:spec.core,width:1.6,alpha:alpha*travelFade*.76});
+          core.circle(px+tx*8,py+ty*8,5).fill({
+            color:spec.core,alpha:alpha*travelFade*.98
           });
 
-          const backX=px-tx*31;
-          const backY=py-ty*31;
+          const backX=px-tx*35;
+          const backY=py-ty*35;
           for(const sign of [-1,1]){
-            const midX=px-tx*18+nx*sign*15;
-            const midY=py-ty*18+ny*sign*15;
-            const endForkX=px-tx*29+nx*sign*23;
-            const endForkY=py-ty*29+ny*sign*23;
-            core
-              .moveTo(px-tx*6,py-ty*6)
-              .lineTo(midX,midY)
-              .lineTo(endForkX,endForkY)
-              .stroke({
-                color:spec.main,
-                width:2.3,
-                alpha:alpha*travelFade*.84,
-              });
+            const midX=px-tx*18+nx*sign*17;
+            const midY=py-ty*18+ny*sign*17;
+            const endForkX=px-tx*32+nx*sign*25;
+            const endForkY=py-ty*32+ny*sign*25;
             glow
-              .moveTo(px-tx*6,py-ty*6)
+              .moveTo(px-tx*5,py-ty*5)
               .lineTo(midX,midY)
               .lineTo(endForkX,endForkY)
               .stroke({
-                color:spec.main,
-                width:7,
-                alpha:alpha*travelFade*.15,
+                color:spec.main,width:10,alpha:alpha*travelFade*.13
+              });
+            core
+              .moveTo(px-tx*5,py-ty*5)
+              .lineTo(midX,midY)
+              .lineTo(endForkX,endForkY)
+              .stroke({
+                color:sign>0?spec.core:spec.main,
+                width:2.2,
+                alpha:alpha*travelFade*.82,
               });
           }
           jaggedLine(
+            glow,backX,backY,px,py,seed+19,6.5,7,
+            {color:spec.main,width:10,alpha:alpha*travelFade*.09},p*12
+          );
+          jaggedLine(
             core,backX,backY,px,py,seed+19,6,7,
-            {color:spec.core,width:3.2,alpha:alpha*travelFade*.88},p*12
+            {color:spec.core,width:2.6,alpha:alpha*travelFade*.88},p*12
           );
         } else if (spec.shape === "hammer") {
           const hammerAngle=angle+p*2.8;
@@ -14418,6 +14658,8 @@ export class PixiProofRenderer {
           spec.shape === "frost-spear" ? 4
           : spec.shape === "frostfire" ? 6
           : spec.shape === "arcane" ? 5
+          : spec.shape === "shadow" ? 5
+          : spec.shape === "chaos" ? 7
           : (spec.heavy ? 14 : 10);
         for (let i = 0; i < showcaseSparks; i += 1) {
           const a =
@@ -14890,48 +15132,96 @@ export class PixiProofRenderer {
             color:spec.core,width:1.5,alpha:alpha*after*.46
           });
         } else if (spec.shape === "shadow") {
-          const collapse=1-easeOut(hit);
-          glow.circle(ix,iy,9+collapse*17).fill({
-            color:spec.main,alpha:alpha*fade*.14
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*16);
+          const after=Math.exp(-hit*4.7);
+
+          glow.circle(ix,iy,11+flash*22).fill({
+            color:spec.main,alpha:alpha*flash*.18
           });
-          for(let i=0;i<8;i++){
-            const a=i/8*Math.PI*2-hit*(i%2?1.7:-1.4)+seed*.01;
-            const rr=7+easeOut(hit)*(24+(i%3)*7);
-            core.circle(
-              ix+Math.cos(a)*rr,
-              iy+Math.sin(a)*rr,
-              1.4+(i%2)*.5
-            ).fill({
-              color:i%3===0?spec.core:spec.main,
-              alpha:alpha*fade*.54,
-            });
+          core.circle(ix,iy,5+flash*6).fill({
+            color:spec.core,alpha:alpha*Math.min(1,.70+flash*.28)
+          });
+
+          for(let ring=0;ring<3;ring++){
+            const r=9+burst*(17+ring*8);
+            const phase=hit*(ring%2?-2.0:1.65)+seed*.006;
+            for(let seg=0;seg<3;seg++){
+              const a0=seg*Math.PI*2/3+.18+phase;
+              arc(core,ix,iy,r,a0,a0+.58,{
+                color:ring===1?spec.core:spec.main,
+                width:ring===1?1.8:1.3,
+                alpha:alpha*after*(.64-ring*.08)
+              },6);
+            }
           }
-          core.circle(ix,iy,5+collapse*4).fill({
-            color:spec.core,alpha:alpha*fade*.70
-          });
+
+          for(let i=0;i<7;i++){
+            const a=i/7*Math.PI*2+seed*.01-hit*(i%2?1.1:-.9);
+            const inner=7+(i%2)*2;
+            const outer=18+burst*(26+(i%3)*7);
+            const mid=outer*.62;
+            core
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ix+Math.cos(a+.28)*mid,iy+Math.sin(a+.28)*mid)
+              .lineTo(ix+Math.cos(a+.54)*outer,iy+Math.sin(a+.54)*outer)
+              .stroke({
+                color:i%3===0?spec.core:spec.main,
+                width:i%3===0?1.9:1.3,
+                alpha:alpha*after*.62,
+              });
+          }
         } else if (spec.shape === "chaos") {
-          for(let i=0;i<9;i++){
-            const a=i/9*Math.PI*2+seed*.013;
-            const inner=7;
-            const mid=16+hit*10;
-            const outer=22+easeOut(hit)*(24+(i%3)*8);
-            const bend=a+(i%2?.22:-.22);
+          const burst=easeOut(hit);
+          const flash=Math.exp(-hit*13);
+          const after=Math.exp(-hit*3.9);
+
+          glow.circle(ix,iy,15+flash*27).fill({
+            color:spec.core,alpha:alpha*flash*.18
+          });
+          glow.circle(ix,iy,16+burst*50).stroke({
+            color:spec.main,width:15,alpha:alpha*after*.16
+          });
+          core.circle(ix,iy,11+burst*36).stroke({
+            color:spec.main,width:2.5,alpha:alpha*after*.68
+          });
+
+          for(let i=0;i<11;i++){
+            const a=i/11*Math.PI*2+seed*.013;
+            const inner=7+(i%2)*2;
+            const mid=18+burst*(10+(i%3)*3);
+            const outer=24+burst*(35+(i%4)*8);
+            const bend=a+(i%2?.24:-.24);
+            glow
+              .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
+              .lineTo(ix+Math.cos(bend)*mid,iy+Math.sin(bend)*mid)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:spec.main,width:7,alpha:alpha*after*.08
+              });
             core
               .moveTo(ix+Math.cos(a)*inner,iy+Math.sin(a)*inner)
               .lineTo(ix+Math.cos(bend)*mid,iy+Math.sin(bend)*mid)
               .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
               .stroke({
                 color:i%3===0?spec.core:spec.main,
-                width:2,
-                alpha:alpha*fade*.66,
+                width:i%3===0?2.4:1.65,
+                alpha:alpha*after*.70,
               });
           }
-          glow.circle(ix,iy,10+hit*33).stroke({
-            color:spec.main,width:8,alpha:alpha*fade*.14
-          });
-          core.circle(ix,iy,7*(1-hit*.35)).fill({
-            color:spec.core,alpha:alpha*fade*.74
-          });
+
+          for(let i=0;i<3;i++){
+            const a=angle+(i-1)*.15;
+            const outer=34+burst*(34+(i===1?12:0));
+            core
+              .moveTo(ix-tx*5,iy-ty*5)
+              .lineTo(ix+Math.cos(a)*outer,iy+Math.sin(a)*outer)
+              .stroke({
+                color:i===1?spec.core:spec.main,
+                width:i===1?3.0:1.8,
+                alpha:alpha*after*(i===1?.80:.64),
+              });
+          }
         } else if (spec.shape === "hammer") {
           glow.circle(ix,iy,10+hit*34).stroke({
             color:spec.main,width:7,alpha:alpha*fade*.14

@@ -1202,31 +1202,31 @@ function warriorRogueSpellProfile(spellId) {
 
     "rogue-garrote": {
       family: "rogue", kind: "garrote",
-      main: 0xa5a35c, core: 0xe2dda0, accent: 0x514666,
+      main: 0xc65d58, core: 0xffcfc0, accent: 0x5d384f,
     },
     "rogue-sinister": {
       family: "rogue", kind: "sinister",
-      main: 0xc2b867, core: 0xeee4aa, accent: 0x594c6c,
+      main: 0xd2c36f, core: 0xfff3bd, accent: 0x5d4b71,
     },
     "rogue-eviscerate": {
       family: "rogue", kind: "eviscerate",
-      main: 0xc6b95e, core: 0xf4e6a4, accent: 0x5a4a69,
+      main: 0xe1ca63, core: 0xfff6c8, accent: 0x65497a,
     },
     "rogue-kidney": {
       family: "rogue", kind: "kidney",
-      main: 0xa18a64, core: 0xe1d29b, accent: 0x6a537b,
+      main: 0xc39a62, core: 0xffe7b8, accent: 0x72538a,
     },
     "rogue-kick": {
       family: "rogue", kind: "kick",
-      main: 0xaaa067, core: 0xeee1a3, accent: 0x5d4e70,
+      main: 0xcdb66a, core: 0xffefba, accent: 0x665177,
     },
     "rogue-mutilate": {
       family: "rogue", kind: "mutilate",
-      main: 0xb7ad61, core: 0xf0e2a0, accent: 0x684f78,
+      main: 0xd2be67, core: 0xfff1b9, accent: 0x76518b,
     },
     "rogue-shadowstep": {
       family: "rogue", kind: "shadowstep",
-      main: 0x8f76a8, core: 0xcbb5df, accent: 0x43384f,
+      main: 0xa583c0, core: 0xe8d7f8, accent: 0x3c2d4a,
     },
   };
   return profiles[spellId] || null;
@@ -3398,13 +3398,21 @@ export class PixiProofRenderer {
             color:profile.core,width:1.25,alpha:.30+.10*pulse
           });
         } else if(burst.spellId==="rogue-eviscerate"){
-          for(let i=0;i<3;i++){
-            const a=-.85+i*.85+Math.sin(time*2+i)*.08;
-            arc(core,0,0,actor.radius+10+i*4,a,a+.72,{
-              color:i===1?profile.core:profile.main,
-              width:2,alpha:.50,
-            },6);
+          for(let i=0;i<4;i++){
+            const a=-1.02+i*.70+Math.sin(time*2.4+i)*.07;
+            const rr=actor.radius+10+i*3;
+            arc(glow,0,0,rr,a,a+.62,{
+              color:i%2?profile.core:profile.main,
+              width:7,alpha:.055+.018*pulse
+            },7);
+            arc(core,0,0,rr,a,a+.62,{
+              color:i%2?profile.core:profile.main,
+              width:1.7+(i===2?.4:0),alpha:.52,
+            },7);
           }
+          core.circle(0,0,actor.radius+6).stroke({
+            color:profile.core,width:1.1,alpha:.26+.09*pulse
+          });
         } else if(burst.spellId==="dk-obliterate"){
           glow.circle(0,0,actor.radius+17+pulse*4).stroke({
             color:profile.main,width:11,alpha:.11+.03*pulse
@@ -7030,6 +7038,8 @@ export class PixiProofRenderer {
       }
 
       if (classId === "rogue" && profile) {
+        // Current Rogue kit is fully instant. Keep only a minimal future-proof
+        // cue here so no artificial pre-cast animation delays instant attacks.
         const cueP=Math.max(0,1-p);
         const fade=1-clamp01(cueP);
         for(let i=0;i<3;i++){
@@ -11797,34 +11807,90 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="rogue-kidney"){
+          const snap=easeOut(p/.30);
+          const out=1-smooth((p-.54)/.46);
+          const contact=Math.exp(-p*14);
+
+          glow.circle(dx,dy,9+contact*19).fill({
+            color:profile.core,alpha:alpha*out*contact*.14
+          });
+          glow.circle(dx,dy,11+snap*25).stroke({
+            color:profile.accent,width:9,alpha:alpha*out*.10
+          });
+
+          // Three short body-shot lanes collapse into the target, followed by
+          // a tight stun snap. No oversized explosion: this is control.
           for(let i=0;i<3;i++){
-            const ang=-.45+i*.45;
-            core
-              .moveTo(dx+Math.cos(ang)*27,dy+Math.sin(ang)*27)
-              .lineTo(dx+Math.cos(ang)*6,dy+Math.sin(ang)*6)
+            const ang=-.48+i*.48;
+            const outer=31+(i===1?5:0);
+            const inner=6+snap*2;
+            glow
+              .moveTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .lineTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
               .stroke({
-                color:profile.core,width:2.4,alpha:alpha*fade*.72
+                color:i===1?profile.core:profile.main,
+                width:7,alpha:alpha*out*.07
+              });
+            core
+              .moveTo(dx+Math.cos(ang)*outer,dy+Math.sin(ang)*outer)
+              .lineTo(dx+Math.cos(ang)*inner,dy+Math.sin(ang)*inner)
+              .stroke({
+                color:i===1?profile.core:profile.main,
+                width:2.2+(i===1?.5:0),
+                alpha:alpha*out*.76
               });
           }
-          core.circle(dx,dy,10+easeOut(p)*16).stroke({
-            color:profile.accent,width:1.4,alpha:alpha*fade*.38
+
+          core.circle(dx,dy,8+snap*15).stroke({
+            color:profile.core,width:1.7,alpha:alpha*out*.56
           });
+          for(let i=0;i<5;i++){
+            const a=i/5*Math.PI*2+.22;
+            const r0=8;
+            const r1=19+snap*(8+(i%2)*4);
+            core
+              .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+              .lineTo(dx+Math.cos(a)*r1,dy+Math.sin(a)*r1)
+              .stroke({
+                color:i%2?profile.accent:profile.core,
+                width:1.2+(i===2?.4:0),
+                alpha:alpha*out*.52
+              });
+          }
           continue;
         }
 
-        // Rogue Kick.
+        // Rogue Kick VFX 3.0: one fast diagonal interrupt lane with a compact
+        // heel-snap and three tiny follow-through cuts.
         const kickAngle=-.52;
-        const ka=point(dx,dy,-25,9,kickAngle);
+        const snap=easeOut(p/.32);
+        const out=1-smooth((p-.54)/.46);
+        const contact=Math.exp(-p*14);
+        const ka=point(dx,dy,-29,11,kickAngle);
         const km=point(dx,dy,8,-5,kickAngle);
-        const kb=point(dx,dy,24,-13,kickAngle);
-        core.moveTo(ka.x,ka.y).lineTo(km.x,km.y).lineTo(kb.x,kb.y).stroke({
-          color:profile.core,width:3,alpha:alpha*fade*.78
+        const kb=point(dx,dy,29,-15,kickAngle);
+
+        glow.moveTo(ka.x,ka.y).lineTo(km.x,km.y).lineTo(kb.x,kb.y).stroke({
+          color:profile.main,width:10,alpha:alpha*out*.09
         });
+        core.moveTo(ka.x,ka.y).lineTo(km.x,km.y).lineTo(kb.x,kb.y).stroke({
+          color:profile.core,width:3.1,alpha:alpha*out*.84
+        });
+
+        glow.circle(dx,dy,8+contact*16).fill({
+          color:profile.core,alpha:alpha*out*contact*.13
+        });
+        core.circle(dx,dy,5+snap*9).stroke({
+          color:profile.accent,width:1.5,alpha:alpha*out*.50
+        });
+
         for(let i=0;i<3;i++){
-          const s=point(dx,dy,7+i*5,-3-i*3,kickAngle);
-          const e=point(dx,dy,15+i*6,3-i*2,kickAngle);
+          const s=point(dx,dy,8+i*5,-4-i*3,kickAngle);
+          const e=point(dx,dy,18+i*6,4-i*2,kickAngle);
           core.moveTo(s.x,s.y).lineTo(e.x,e.y).stroke({
-            color:profile.accent,width:1.4,alpha:alpha*fade*.50
+            color:i===1?profile.core:profile.accent,
+            width:1.35+(i===1?.3:0),
+            alpha:alpha*out*.56
           });
         }
         continue;
@@ -11953,25 +12019,54 @@ export class PixiProofRenderer {
         if(effect.spellId==="rogue-shadowstep"){
           const ox=Number.isFinite(effect.sourceX)?effect.sourceX-source.x:0;
           const oy=Number.isFinite(effect.sourceY)?effect.sourceY-source.y:0;
-          const out=1-clamp01(p/.52);
-          core.circle(ox,oy,9+p*23).stroke({
-            color:profile.accent,width:1.7,alpha:alpha*out*.48
+          const out=1-clamp01(p/.50);
+          const arrive=clamp01((p-.06)/.54);
+          const vanishFlash=Math.exp(-p*13);
+
+          // Vanish point: narrow shadow aperture and fragments pulled away.
+          glow.circle(ox,oy,10+p*25).stroke({
+            color:profile.accent,width:10,alpha:alpha*out*.09
           });
-          for(let i=0;i<8;i++){
-            const ang=i/8*Math.PI*2+p*2.5+seed*.01;
-            const rr=6+p*(15+(i%4)*5);
-            core.circle(ox+Math.cos(ang)*rr,oy+Math.sin(ang)*rr,1.2+(i%3)*.4).fill({
+          core.circle(ox,oy,8+p*21).stroke({
+            color:profile.accent,width:1.6,alpha:alpha*out*.50
+          });
+          glow.circle(ox,oy,7+vanishFlash*13).fill({
+            color:profile.core,alpha:alpha*out*vanishFlash*.10
+          });
+          for(let i=0;i<9;i++){
+            const ang=i/9*Math.PI*2+p*2.35+seed*.01;
+            const rr=7+p*(17+(i%4)*5);
+            const x=ox+Math.cos(ang)*rr;
+            const y=oy+Math.sin(ang)*rr;
+            core.circle(x,y,1.1+(i%3)*.4).fill({
               color:i%3===0?profile.core:profile.accent,
-              alpha:alpha*out*.46
+              alpha:alpha*out*.50
             });
           }
-          const arrive=clamp01((p-.08)/.55);
-          for(let i=0;i<8;i++){
-            const ang=i/8*Math.PI*2-arrive*1.8;
-            const rr=31*(1-arrive*.65)+(i%2)*4;
-            core.circle(Math.cos(ang)*rr,Math.sin(ang)*rr,1.3+(i%3)*.4).fill({
+
+          // Arrival: fragments collapse inward around the new position and two
+          // narrow dagger echoes point toward the target.
+          for(let i=0;i<10;i++){
+            const ang=i/10*Math.PI*2-arrive*1.65;
+            const rr=34*(1-arrive*.70)+(i%2)*4;
+            const x=Math.cos(ang)*rr;
+            const y=Math.sin(ang)*rr;
+            glow.circle(x,y,4+(i%2)).fill({
+              color:profile.main,alpha:alpha*fade*.06
+            });
+            core.circle(x,y,1.2+(i%3)*.4).fill({
               color:i%3===0?profile.core:profile.main,
-              alpha:alpha*fade*.54
+              alpha:alpha*fade*.58
+            });
+          }
+
+          for(const a of [-.62,.62]){
+            const p0=point(0,0,-18,0,a);
+            const p1=point(0,0,24,0,a);
+            core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:a<0?profile.main:profile.core,
+              width:1.7,
+              alpha:alpha*fade*arrive*.58
             });
           }
           continue;
@@ -12166,8 +12261,10 @@ export class PixiProofRenderer {
         if(effect.spellId==="warrior-mortal-strike"){slashLength=92;slashWidth=7.8;}
         if(effect.spellId==="warrior-overpower"){slashCount=1;slashLength=78;slashWidth=4.8;}
         if(effect.spellId==="warrior-bloodthirst"){slashCount=3;slashLength=60;slashWidth=4.1;}
-        if(effect.spellId==="rogue-eviscerate"){slashCount=3;slashLength=66;slashWidth=3.2;}
-        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=68;slashWidth=3.5;}
+        if(effect.spellId==="rogue-garrote"){slashCount=1;slashLength=58;slashWidth=2.6;}
+        if(effect.spellId==="rogue-sinister"){slashCount=1;slashLength=72;slashWidth=3.2;}
+        if(effect.spellId==="rogue-eviscerate"){slashCount=4;slashLength=74;slashWidth=3.0;}
+        if(effect.spellId==="rogue-mutilate"){slashCount=2;slashLength=76;slashWidth=3.8;}
         if(effect.spellId==="dk-obliterate"){slashCount=2;slashLength=102;slashWidth=7.6;}
         if(effect.spellId==="dk-death-strike"){slashCount=2;slashLength=90;slashWidth=6.5;}
         if(effect.spellId==="dk-frost-strike"){slashCount=2;slashLength=86;slashWidth=5.6;}
@@ -12179,7 +12276,15 @@ export class PixiProofRenderer {
           if(local<=0) continue;
           const baseAngle=
             rogue
-              ? (-.92+i*(slashCount===2?1.55:.86))
+              ? (
+                  effect.spellId==="rogue-garrote"
+                    ? -.16
+                    : effect.spellId==="rogue-sinister"
+                      ? -.66
+                      : effect.spellId==="rogue-mutilate"
+                        ? (-.88+i*1.76)
+                        : (-1.02+i*.68)
+                )
               : dk
                 ? (-.70+i*.92)
                 : effect.spellId==="shaman-stormstrike"
@@ -12414,25 +12519,115 @@ export class PixiProofRenderer {
             });
           }
 
-          // Rogue: several razor-thin secondary cuts appear just after the main
-          // slash. They are fast/bright rather than heavy.
-          if(rogueImpact){
+          // Rogue VFX 3.0: speed and precision over mass. Each strike has a
+          // distinct cut pattern instead of sharing the same spark burst.
+          if(effect.spellId==="rogue-garrote"){
+            const snap=Math.exp(-hit*11);
+            // One near-horizontal throat cut plus three restrained bleed flecks.
+            const p0=point(dx,dy,-31,0,-.14);
+            const p1=point(dx,dy,33,0,-.14);
+            glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:profile.main,width:9,alpha:alpha*hitFade*.10
+            });
+            core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:profile.core,width:2.4,alpha:alpha*hitFade*.82
+            });
             for(let i=0;i<5;i++){
-              const a=-1.10+i*.48+(effect.spellId==="rogue-mutilate"?i*.10:0);
-              const inner=9+(i%2)*2;
-              const outer=31+expand*(12+(i%3)*5);
+              const a=-.55+i*.28;
+              const rr=13+expand*(10+(i%2)*4);
+              core.circle(
+                dx+Math.cos(a)*rr,
+                dy+Math.sin(a)*rr+hit*(i%2?3:1),
+                1.0+(i%2)*.35
+              ).fill({
+                color:i===2?profile.core:profile.main,
+                alpha:alpha*hitFade*.58
+              });
+            }
+            glow.circle(dx,dy,7+snap*12).fill({
+              color:profile.main,alpha:alpha*hitFade*snap*.10
+            });
+          }
+
+          if(effect.spellId==="rogue-sinister"){
+            // Sinister Strike is the clean filler: one fast cut with a small
+            // opposite afterimage and almost no radial clutter.
+            for(let layer=0;layer<2;layer++){
+              const a=layer===0?-.66:.46;
+              const len=layer===0?38:24;
+              const p0=point(dx,dy,-len,0,a);
+              const p1=point(dx,dy,len,0,a);
+              if(layer===0){
+                glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                  color:profile.main,width:8,alpha:alpha*hitFade*.08
+                });
+              }
+              core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                color:layer===0?profile.core:profile.accent,
+                width:layer===0?2.2:1.35,
+                alpha:alpha*hitFade*(layer===0?.78:.48)
+              });
+            }
+          }
+
+          if(effect.spellId==="rogue-eviscerate"){
+            // Eviscerate is the finisher: four long sequential razor lanes and
+            // a tight violet/gold closing crescent.
+            for(let i=0;i<6;i++){
+              const a=-1.18+i*.43+hit*.08;
+              const inner=8+(i%2)*2;
+              const outer=32+expand*(17+(i%3)*6);
+              glow
+                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
+                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
+                .stroke({
+                  color:i%2?profile.core:profile.main,
+                  width:6,alpha:alpha*hitFade*.07
+                });
               core
                 .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
                 .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
                 .stroke({
                   color:i%2?profile.core:profile.accent,
-                  width:1.6+(i%2)*.35,
-                  alpha:alpha*hitFade*.78,
+                  width:1.55+(i%3===0?.45:0),
+                  alpha:alpha*hitFade*.80,
                 });
             }
-            glow.circle(dx,dy,13+expand*27).stroke({
-              color:profile.accent,width:8,alpha:alpha*hitFade*.13
-            });
+            arc(glow,dx,dy,28+expand*20,-1.48,.35,{
+              color:profile.accent,width:9,alpha:alpha*hitFade*.10
+            },10);
+            arc(core,dx,dy,26+expand*18,-1.48,.35,{
+              color:profile.core,width:2.2,alpha:alpha*hitFade*.70
+            },10);
+          }
+
+          if(effect.spellId==="rogue-mutilate"){
+            // Mutilate: unmistakable dual-dagger X, followed by small puncture
+            // splinters instead of Eviscerate's sweeping finisher pattern.
+            for(const a of [-.78,.78]){
+              const p0=point(dx,dy,-36,0,a);
+              const p1=point(dx,dy,36,0,a);
+              glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                color:profile.main,width:10,alpha:alpha*hitFade*.10
+              });
+              core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                color:a<0?profile.core:profile.main,
+                width:2.8,alpha:alpha*hitFade*.84
+              });
+            }
+            for(let i=0;i<6;i++){
+              const a=i/6*Math.PI*2+.18;
+              const r0=7;
+              const r1=19+expand*(9+(i%2)*4);
+              core
+                .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
+                .lineTo(dx+Math.cos(a)*r1,dy+Math.sin(a)*r1)
+                .stroke({
+                  color:i%2?profile.core:profile.accent,
+                  width:1.35+(i%3===0?.4:0),
+                  alpha:alpha*hitFade*.58
+                });
+            }
           }
 
           // Death Knight VFX 3.0: each melee strike has its own victim language.

@@ -6731,15 +6731,119 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // Warrior/Rogue are mostly instant. Slam is the current visible melee
-      // cast and should feel like weapon weight rather than caster magic.
+      // Warrior VFX 3.0 build-up: Slam is the one true melee wind-up.
+      // Keep the existing downward weapon-weight language, but separate soft
+      // force bloom from the sharp steel/gold cues and compress hard at release.
       if (classId === "warrior" && profile) {
         const heavy = spellId === "warrior-slam";
         const cueP = Math.max(0,1-p);
         const fade = 1-clamp01(cueP);
-        const count = heavy ? 5 : 3;
-        for(let i=0;i<count;i++){
-          const a=-.95+i*(heavy?.48:.72);
+
+        if(heavy){
+          glow.visible = true;
+          const finalP=smooth((p-.72)/.28);
+          const pulse=.5+.5*Math.sin(time*13);
+
+          // Existing fan of weight lines, now with a broad blurred under-layer.
+          for(let i=0;i<5;i++){
+            const a=-.95+i*.48;
+            const inner=actor.radius+5;
+            const outer=actor.radius+13+i*2+cueP*8;
+            const ix=Math.cos(a)*inner;
+            const iy=Math.sin(a)*inner;
+            const ox=Math.cos(a)*outer;
+            const oy=Math.sin(a)*outer;
+
+            glow
+              .moveTo(ix,iy)
+              .lineTo(ox,oy)
+              .stroke({
+                color:i===2?profile.core:profile.main,
+                width:8+p*2,
+                alpha:.045+p*.075,
+              });
+            g
+              .moveTo(ix,iy)
+              .lineTo(ox,oy)
+              .stroke({
+                color:i===2?profile.core:profile.accent,
+                width:2.3+(i===2?.6:0),
+                alpha:fade*(i===2?.68:.56),
+              });
+          }
+
+          // Preserve the original overhead arc, but give it more mass.
+          const arcR=actor.radius+11+p*8;
+          strokeArc(
+            glow,
+            arcR,
+            -2.5,
+            -.5,
+            {
+              color:profile.main,
+              width:11+p*3,
+              alpha:.055+p*.085,
+            },
+            9,
+          );
+          strokeArc(
+            g,
+            arcR,
+            -2.5,
+            -.5,
+            {
+              color:profile.core,
+              width:2.1+p*1.7,
+              alpha:.25+p*.48,
+            },
+            9,
+          );
+
+          // Ground brace stays physical: a compressed ellipse and two short
+          // stress fractures under the Warrior rather than a magic rune.
+          const braceY=actor.radius*.58;
+          glow.ellipse(0,braceY,actor.radius+10+p*9,6+p*3).stroke({
+            color:profile.main,width:9,alpha:.045+p*.07
+          });
+          g.ellipse(0,braceY,actor.radius+7+p*7,4+p*2).stroke({
+            color:profile.accent,width:1.5+p*.5,alpha:.20+p*.34
+          });
+
+          for(const sign of [-1,1]){
+            const x0=sign*5;
+            const x1=sign*(15+p*8);
+            glow.moveTo(x0,braceY).lineTo(x1,braceY+5+p*3).stroke({
+              color:profile.main,width:6,alpha:.04+p*.06
+            });
+            g.moveTo(x0,braceY).lineTo(x1,braceY+5+p*3).stroke({
+              color:profile.core,width:1.2+p*.4,alpha:.18+p*.34
+            });
+          }
+
+          // Last 28%: weapon energy compacts toward the front/ground contact
+          // point so Slam has a clear "about to land" moment.
+          if(finalP>0){
+            const contactY=actor.radius*.52;
+            glow.circle(0,contactY,8+finalP*9+pulse*1.5).fill({
+              color:profile.core,alpha:finalP*.14
+            });
+            glow.ellipse(0,braceY,actor.radius+9-finalP*2,6).stroke({
+              color:profile.core,width:10,alpha:finalP*.10
+            });
+            g.circle(0,contactY,3+finalP*4).fill({
+              color:profile.core,alpha:finalP*.68
+            });
+            g.ellipse(0,braceY,actor.radius+5-finalP*2,3.5).stroke({
+              color:profile.core,width:1.4+finalP*.7,alpha:finalP*.46
+            });
+          }
+          continue;
+        }
+
+        // Future Warrior casts keep the old simple physical cue, without
+        // inheriting Slam's heavy presentation.
+        for(let i=0;i<3;i++){
+          const a=-.95+i*.72;
           const inner=actor.radius+5;
           const outer=actor.radius+13+i*2+cueP*8;
           g
@@ -6747,24 +6851,9 @@ export class PixiProofRenderer {
             .lineTo(Math.cos(a)*outer,Math.sin(a)*outer)
             .stroke({
               color:profile.accent,
-              width:heavy?2.4:1.6,
-              alpha:fade*(heavy?.58:.38),
+              width:1.6,
+              alpha:fade*.38,
             });
-        }
-
-        if(heavy){
-          strokeArc(
-            g,
-            actor.radius+11+p*8,
-            -2.5,
-            -.5,
-            {
-              color:profile.core,
-              width:2+p*1.6,
-              alpha:.25+p*.45,
-            },
-            7,
-          );
         }
         continue;
       }

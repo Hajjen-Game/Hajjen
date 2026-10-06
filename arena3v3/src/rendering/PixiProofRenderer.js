@@ -9425,11 +9425,11 @@ export class PixiProofRenderer {
         const snap=Math.exp(-p*15);
         const radius=source.radius+7+wave*111;
 
-        view.commonCasterSpellGlowFx
+        view.commonCasterSpellFx
           .circle(0,0,source.radius+8+snap*24)
-          .fill({color:profile.core,alpha:alpha*fade*snap*.16})
+          .fill({color:profile.core,alpha:alpha*fade*snap*.12})
           .circle(0,0,radius+9)
-          .stroke({color:profile.main,width:10,alpha:alpha*fade*.10});
+          .stroke({color:profile.main,width:8,alpha:alpha*fade*.08});
 
         view.commonCasterSpellFx
           .circle(0,0,radius)
@@ -14207,11 +14207,11 @@ export class PixiProofRenderer {
             for(let seg=0;seg<4;seg++){
               const a0=seg*Math.PI/2+.15+offset;
               const a1=a0+.58;
-              arc(core,ix,iy,r,a0,a1,{
+              strokeArc(core,r,a0,a1,{
                 color:ring===1?spec.core:(ring===2?spec.accent:spec.main),
                 width:ring===1?1.9:1.35,
                 alpha:alpha*after*(.68-ring*.09),
-              },6);
+              },6,ix,iy);
             }
           }
 

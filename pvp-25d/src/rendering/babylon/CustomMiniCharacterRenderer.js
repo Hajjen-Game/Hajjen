@@ -50,15 +50,10 @@ export class CustomMiniCharacterRenderer{
   fileFor(actor){return MODEL_BY_CLASS[actor.classId]||"minihero-caster.glb";}
 
   async preload(){
-    if(!BABYLON.SceneLoader) return;
-    await Promise.all(MODEL_FILES.map(async file=>{
-      try{
-        const c=await BABYLON.SceneLoader.LoadAssetContainerAsync(MODEL_ROOT,file,this.scene);
-        this.containers.set(file,c);
-      }catch(error){
-        console.error("Custom mini hero load failed",file,error);
-      }
-    }));
+    // Intentional 071ff visual baseline:
+    // before the generated GLBs existed, this renderer displayed its
+    // procedural fallback miniatures. That is the look we are keeping.
+    return;
   }
 
   create(actor){
@@ -70,7 +65,7 @@ export class CustomMiniCharacterRenderer{
     const entry={
       root,visualRoot,
       classId:actor.classId,role:actor.role,
-      style:this.styleFor(actor),modelFile:this.fileFor(actor),
+      style:this.styleFor(actor),modelFile:null,
       meshes:[],ownedMaterials:[],modelAttached:false,
       hp:null,hpBack:null,barRoot:null,classRing:null,
       baseVisualY:0,
@@ -123,33 +118,10 @@ export class CustomMiniCharacterRenderer{
   }
 
   async attach(actor,entry){
-    await this.loadingPromise;
+    // Intentionally use the original procedural Mini Hero fallback shape.
+    // This reproduces the visual baseline seen before commit 071ff added GLBs.
     if(!this.entries.has(actor.id)||entry.modelAttached) return;
-    const container=this.containers.get(entry.modelFile);
-    if(!container){this.createFallback(actor,entry);return;}
-
-    try{
-      const inst=container.instantiateModelsToScene(n=>actor.id+":"+n,false);
-      for(const node of inst.rootNodes||[]) node.parent=entry.visualRoot;
-      entry.meshes=entry.visualRoot.getChildMeshes(false);
-
-      for(const mesh of entry.meshes){
-        mesh.metadata={...(mesh.metadata||{}),actorId:actor.id,customMiniHero:true};
-        mesh.isPickable=true;
-        mesh.receiveShadows=true;
-        mesh.renderOutline=true;
-        mesh.outlineColor=new BABYLON.Color3(0.04,0.032,0.028);
-        mesh.outlineWidth=0.020;
-        this.shadowGenerator?.addShadowCaster(mesh);
-        if(mesh.material) mesh.material=this.tintMaterial(mesh.material,actor,entry);
-      }
-
-      this.normalize(entry);
-      entry.modelAttached=true;
-    }catch(error){
-      console.error("Custom mini hero instantiate failed",entry.modelFile,error);
-      this.createFallback(actor,entry);
-    }
+    this.createFallback(actor,entry);
   }
 
   normalize(entry){

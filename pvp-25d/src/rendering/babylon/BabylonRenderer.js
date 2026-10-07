@@ -1,4 +1,5 @@
-import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-warrior-arms-axe-2";
+import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v1";
+import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261007-orbs-v1";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;
@@ -54,6 +55,7 @@ export class BabylonRenderer {
 
     this.canvas = canvas;
     this.arena = arena;
+    this.orbMode = window.location.pathname.toLowerCase().endsWith("/orbs.html");
     this.engine = null;
     this.scene = null;
     this.gui = null;
@@ -200,11 +202,11 @@ export class BabylonRenderer {
 
     const referenceAspect = 1.55;
     const framingScale = Math.max(1, referenceAspect / aspect);
-    const baseRadius = 23.45;
+    const baseRadius = this.orbMode ? 24.10 : 23.45;
 
     this.camera.target.set(centerX, 0, centerZ);
     this.camera.alpha = -Math.PI / 2;
-    this.camera.beta = 0.30;
+    this.camera.beta = this.orbMode ? 0.43 : 0.30;
     this.camera.radius = baseRadius * framingScale;
     this.camera.fov = 0.72;
     this.camera.minZ = 0.1;
@@ -231,8 +233,8 @@ export class BabylonRenderer {
     this.camera = new BABYLON.ArcRotateCamera(
       "camera",
       -Math.PI / 2,
-      0.30,
-      23.45,
+      this.orbMode ? 0.43 : 0.30,
+      this.orbMode ? 24.10 : 23.45,
       new BABYLON.Vector3(c.x, 0, c.z + 0.6),
       this.scene,
     );
@@ -266,14 +268,20 @@ export class BabylonRenderer {
     this.shadowGenerator.bias = 0.00055;
     this.shadowGenerator.normalBias = 0.018;
 
-    this.buildGround();
-    this.buildCanyonPerimeter();
-    this.buildLosFormations();
-    this.buildEdgeDetails();
+    if (this.orbMode) {
+      this.buildOrbArena();
+    } else {
+      this.buildGround();
+      this.buildCanyonPerimeter();
+      this.buildLosFormations();
+      this.buildEdgeDetails();
+    }
 
     const params = new URLSearchParams(window.location.search);
     const path = window.location.pathname.toLowerCase();
-    const ActorRenderer = CustomMiniCharacterRenderer;
+    const ActorRenderer = this.orbMode
+      ? OrbCharacterRenderer
+      : CustomMiniCharacterRenderer;
 
     this.actorRender = new ActorRenderer(
       this.scene,
@@ -335,6 +343,110 @@ export class BabylonRenderer {
       + Math.sin((gx + gz) * 0.43) * 0.011;
     const jitter = (hash01(gx, gz, 7) - 0.5) * 0.025;
     return broad + jitter;
+  }
+
+  buildOrbArena() {
+    const a = this.arena;
+    const w = a.width * S;
+    const h = a.height * S;
+
+    this.scene.clearColor = BABYLON.Color4.FromHexString("#090b10ff");
+    this.scene.ambientColor = new BABYLON.Color3(0.075,0.085,0.11);
+    this.scene.imageProcessingConfiguration.contrast = 1.12;
+    this.scene.imageProcessingConfiguration.exposure = 0.82;
+
+    const groundMat = pbr(this.scene, "orb-arena-ground-mat", "#171b22", 0.94);
+    groundMat.albedoColor = new BABYLON.Color3(0.055,0.065,0.085);
+
+    const ground = BABYLON.MeshBuilder.CreateBox(
+      "orb-arena-ground",
+      {width:w,depth:h,height:0.10},
+      this.scene,
+    );
+    ground.position.set(w*0.5,-0.05,h*0.5);
+    ground.material = groundMat;
+    ground.receiveShadows = true;
+    ground.metadata = {ground:true};
+    this.ground = ground;
+
+    const borderMat = pbr(this.scene, "orb-arena-border-mat", "#2a3038", 0.91);
+    borderMat.albedoColor = new BABYLON.Color3(0.11,0.125,0.15);
+
+    const pad = a.boundaryPadding * S;
+    const borderHeight = 0.22;
+    const borderThickness = 0.13;
+    const innerW = w - pad*2;
+    const innerH = h - pad*2;
+
+    const borders = [
+      {x:w*0.5,z:pad,width:innerW,depth:borderThickness},
+      {x:w*0.5,z:h-pad,width:innerW,depth:borderThickness},
+      {x:pad,z:h*0.5,width:borderThickness,depth:innerH},
+      {x:w-pad,z:h*0.5,width:borderThickness,depth:innerH},
+    ];
+
+    borders.forEach((b,i)=>{
+      const mesh = BABYLON.MeshBuilder.CreateBox(
+        "orb-arena-border:"+i,
+        {width:b.width,depth:b.depth,height:borderHeight},
+        this.scene,
+      );
+      mesh.position.set(b.x,borderHeight*0.5,b.z);
+      mesh.material=borderMat;
+      mesh.receiveShadows=true;
+      mesh.isPickable=false;
+      this.shadowGenerator.addShadowCaster(mesh);
+    });
+
+    const obstacleMat = pbr(this.scene, "orb-los-mat", "#262c36", 0.88);
+    obstacleMat.albedoColor = new BABYLON.Color3(0.12,0.14,0.17);
+    const topMat = pbr(this.scene, "orb-los-top-mat", "#343c48", 0.86);
+    topMat.albedoColor = new BABYLON.Color3(0.17,0.19,0.23);
+
+    for (const o of a.obstacles) {
+      const ow = o.w * S;
+      const od = o.h * S;
+      const x = (o.x + o.w*0.5) * S;
+      const z = (o.y + o.h*0.5) * S;
+
+      const body = BABYLON.MeshBuilder.CreateBox(
+        "orb-los:"+o.id,
+        {width:ow,depth:od,height:1.28},
+        this.scene,
+      );
+      body.position.set(x,0.64,z);
+      body.material=obstacleMat;
+      body.receiveShadows=true;
+      body.metadata={obstacleId:o.id};
+      body.isPickable=false;
+      this.shadowGenerator.addShadowCaster(body);
+
+      const top = BABYLON.MeshBuilder.CreateBox(
+        "orb-los-top:"+o.id,
+        {width:ow*0.90,depth:od*0.90,height:0.08},
+        this.scene,
+      );
+      top.position.set(x,1.32,z);
+      top.material=topMat;
+      top.receiveShadows=true;
+      top.isPickable=false;
+      this.shadowGenerator.addShadowCaster(top);
+    }
+
+    const lineMat = new BABYLON.StandardMaterial("orb-floor-line-mat", this.scene);
+    lineMat.diffuseColor = new BABYLON.Color3(0.16,0.19,0.24);
+    lineMat.emissiveColor = new BABYLON.Color3(0.025,0.03,0.04);
+    lineMat.alpha = 0.34;
+    lineMat.disableLighting = true;
+
+    const center = BABYLON.MeshBuilder.CreateTorus(
+      "orb-arena-center",
+      {diameter:2.7,thickness:0.025,tessellation:64},
+      this.scene,
+    );
+    center.position.set(w*0.5,0.012,h*0.5);
+    center.material=lineMat;
+    center.isPickable=false;
   }
 
   buildGround() {

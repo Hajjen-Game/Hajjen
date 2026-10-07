@@ -1,4 +1,4 @@
-name: Build Tiby PvP 2.5D character
+name: Build Tiby PvP 2.5D characters
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y blender unzip curl python3-numpy
 
-      - name: Download CC0 Tiby source
+      - name: Download verified CC0 Tiby source
         shell: bash
         run: |
           set -euxo pipefail
@@ -41,8 +41,6 @@ jobs:
             | sha256sum -c -
           sha256sum /tmp/Tiby_Character_MnF_0.zip | tee /tmp/tiby-source-sha256.txt
           unzip -q /tmp/Tiby_Character_MnF_0.zip -d /tmp/tiby-source
-          echo "Tiby source contents:"
-          find /tmp/tiby-source -maxdepth 3 -type f -printf "%p\n" | sort
 
       - name: Choose neutral Blender source
         id: source
@@ -54,8 +52,6 @@ jobs:
             echo "No .blend source found" >&2
             exit 1
           fi
-
-          # Prefer a non-female, non-long-hair source when filenames expose it.
           selected=""
           for file in "${blends[@]}"; do
             lower="$(echo "$file" | tr '[:upper:]' '[:lower:]')"
@@ -67,29 +63,35 @@ jobs:
           if [ -z "$selected" ]; then
             selected="${blends[0]}"
           fi
-
           echo "Using source: $selected"
           echo "path=$selected" >> "$GITHUB_OUTPUT"
 
-      - name: Export Babylon GLB
+      - name: Export PvP 2.5D archetype GLBs
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p pvp-25d/assets/characters/tiby
-          blender -b "${{ steps.source.outputs.path }}" \
-            --python pvp-25d/tools/tiby/export_tiby.py \
-            -- "$PWD/pvp-25d/assets/characters/tiby/tiby-base.glb"
-          test -s pvp-25d/assets/characters/tiby/tiby-base.glb
-          cp /tmp/tiby-source-sha256.txt \
-            pvp-25d/assets/characters/tiby/SOURCE_SHA256.txt
-          ls -lh pvp-25d/assets/characters/tiby/
+          out="$PWD/pvp-25d/assets/characters/tiby"
+          mkdir -p "$out"
 
-      - name: Commit generated GLB
+          for variant in base caster rogue warrior; do
+            blender -b "${{ steps.source.outputs.path }}" \
+              --python pvp-25d/tools/tiby/export_tiby.py \
+              -- "$variant" "$out/tiby-$variant.glb"
+            test -s "$out/tiby-$variant.glb"
+          done
+
+          cp /tmp/tiby-source-sha256.txt "$out/SOURCE_SHA256.txt"
+          ls -lh "$out"
+
+      - name: Commit generated GLBs
         shell: bash
         run: |
           set -euo pipefail
           git add \
             pvp-25d/assets/characters/tiby/tiby-base.glb \
+            pvp-25d/assets/characters/tiby/tiby-caster.glb \
+            pvp-25d/assets/characters/tiby/tiby-rogue.glb \
+            pvp-25d/assets/characters/tiby/tiby-warrior.glb \
             pvp-25d/assets/characters/tiby/SOURCE_SHA256.txt
 
           if git diff --cached --quiet; then
@@ -99,5 +101,5 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Generate Tiby GLB for PvP 2.5D"
+          git commit -m "Generate Tiby archetype GLBs for PvP 2.5D"
           git push

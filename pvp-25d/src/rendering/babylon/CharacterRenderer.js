@@ -1,5 +1,18 @@
 const TIBY_ROOT = "./assets/characters/tiby/";
-const TIBY_FILE = "tiby-base.glb";
+
+const BODY_FILE_BY_CLASS = Object.freeze({
+  priest: "tiby-caster.glb",
+  mage: "tiby-caster.glb",
+  rogue: "tiby-rogue.glb",
+  warrior: "tiby-warrior.glb",
+});
+
+const BODY_FILES = Object.freeze([
+  "tiby-base.glb",
+  "tiby-caster.glb",
+  "tiby-rogue.glb",
+  "tiby-warrior.glb",
+]);
 
 const KAYKIT_COMMIT = "672074b73ba276876a19e8816ecdc5241817ab47";
 const KAYKIT_ASSET_ROOT =
@@ -23,106 +36,96 @@ const ACCESSORY_FILES = Object.freeze([
 
 const CLASS_STYLE = Object.freeze({
   priest: {
-    archetype: "caster",
     primary: "#eee1bd",
     secondary: "#b89848",
     accent: "#e7c85e",
-    scale: 1.13,
-    width: 0.90,
-    depth: 0.94,
+    scale: 1.05,
     props: [
-      { file: "staff.gltf", pos: [0.51, 0.86, 0.10], scale: 0.70, rot: [0, 0, -0.14] },
-      { file: "spellbook_open.gltf", pos: [-0.36, 0.98, 0.18], scale: 0.40, rot: [-0.38, 0, -0.06] },
+      { file: "staff.gltf", pos: [0.48, 0.84, 0.10], scale: 0.62, rot: [0, 0, -0.13] },
+      { file: "spellbook_open.gltf", pos: [-0.34, 0.96, 0.17], scale: 0.35, rot: [-0.38, 0, -0.06] },
     ],
   },
   mage: {
-    archetype: "caster",
     primary: "#5b9fe8",
     secondary: "#51449f",
     accent: "#8874ef",
-    scale: 1.12,
-    width: 0.88,
-    depth: 0.93,
+    scale: 1.04,
     props: [
-      { file: "staff.gltf", pos: [0.50, 0.86, 0.10], scale: 0.70, rot: [0, 0, -0.14] },
+      { file: "staff.gltf", pos: [0.47, 0.84, 0.10], scale: 0.62, rot: [0, 0, -0.13] },
     ],
   },
   warlock: {
+    primary: "#8f69b0",
+    secondary: "#4f365f",
     accent: "#9b69c7",
-    scale: 1.01,
-    width: 0.94,
-    depth: 0.96,
+    scale: 1.00,
     props: [
       { file: "wand.gltf", pos: [0.34, 0.83, 0.10], scale: 0.43, rot: [0, 0, -0.28] },
       { file: "spellbook_open.gltf", pos: [-0.29, 0.91, 0.13], scale: 0.30, rot: [-0.36, 0, 0.06] },
     ],
   },
   druid: {
+    primary: "#8c714f",
+    secondary: "#587a46",
     accent: "#72a65b",
-    scale: 1.03,
-    width: 1.00,
-    depth: 1.00,
+    scale: 1.00,
     props: [
       { file: "staff.gltf", pos: [0.39, 0.76, 0.08], scale: 0.43, rot: [0, 0, -0.10] },
     ],
   },
   warrior: {
-    archetype: "heavy",
     primary: "#9f5848",
     secondary: "#848a91",
     accent: "#d08a63",
-    scale: 1.20,
-    width: 1.24,
-    depth: 1.10,
+    scale: 1.08,
     props: [
-      { file: "sword_2handed.gltf", pos: [0.54, 0.72, 0.04], scale: 0.66, rot: [0, 0, -0.52] },
+      { file: "sword_2handed.gltf", pos: [0.52, 0.72, 0.04], scale: 0.61, rot: [0, 0, -0.52] },
     ],
   },
   paladin: {
+    primary: "#c78ba6",
+    secondary: "#d2b85c",
     accent: "#e7b6cd",
-    scale: 1.07,
-    width: 1.08,
-    depth: 1.04,
+    scale: 1.04,
     props: [
       { file: "sword_1handed.gltf", pos: [0.35, 0.74, 0.11], scale: 0.38, rot: [0, 0, -0.46] },
       { file: "shield_badge.gltf", pos: [-0.35, 0.82, 0.16], scale: 0.48, rot: [0, 0.04, 0.05] },
     ],
   },
   "death-knight": {
+    primary: "#55475d",
+    secondary: "#6c8490",
     accent: "#6fa8c7",
-    scale: 1.09,
-    width: 1.08,
+    scale: 1.05,
     props: [
-      { file: "sword_2handed.gltf", pos: [0.40, 0.66, 0.03], scale: 0.39, rot: [0, 0, -0.47] },
+      { file: "sword_2handed.gltf", pos: [0.40, 0.66, 0.03], scale: 0.42, rot: [0, 0, -0.47] },
     ],
   },
   rogue: {
-    archetype: "light",
     primary: "#a08b31",
     secondary: "#403a28",
     accent: "#dec85b",
-    scale: 1.07,
-    width: 0.82,
-    depth: 0.88,
+    scale: 1.00,
     props: [
-      { file: "dagger.gltf", pos: [-0.40, 0.72, 0.13], scale: 0.58, rot: [0, 0, 0.52] },
-      { file: "dagger.gltf", pos: [0.40, 0.72, 0.13], scale: 0.58, rot: [0, 0, -0.52] },
+      { file: "dagger.gltf", pos: [-0.36, 0.70, 0.12], scale: 0.51, rot: [0, 0, 0.50] },
+      { file: "dagger.gltf", pos: [0.36, 0.70, 0.12], scale: 0.51, rot: [0, 0, -0.50] },
     ],
   },
   shaman: {
+    primary: "#557fa5",
+    secondary: "#4c8d87",
     accent: "#58aaa8",
-    scale: 1.03,
-    width: 1.02,
-    depth: 1.00,
+    scale: 1.00,
     props: [
       { file: "axe_1handed.gltf", pos: [0.33, 0.73, 0.11], scale: 0.38, rot: [0, 0, -0.42] },
       { file: "shield_round.gltf", pos: [-0.34, 0.81, 0.16], scale: 0.46, rot: [0, 0.04, 0.04] },
     ],
   },
   hunter: {
+    primary: "#6c8150",
+    secondary: "#78673f",
     accent: "#8da75e",
     scale: 0.98,
-    width: 0.94,
     props: [
       { file: "crossbow_2handed.gltf", pos: [0.12, 0.87, -0.14], scale: 0.35, rot: [0.08, 0, -0.72] },
     ],
@@ -130,13 +133,10 @@ const CLASS_STYLE = Object.freeze({
 });
 
 const DEFAULT_STYLE = Object.freeze({
-  archetype: null,
   primary: "#8f8171",
   secondary: "#5b534a",
   accent: "#c9b888",
   scale: 1,
-  width: 1,
-  depth: 1,
   props: [],
 });
 
@@ -158,7 +158,7 @@ export class CharacterRenderer {
     this.shadowGenerator = shadowGenerator;
     this.scale = scale;
     this.entries = new Map();
-    this.bodyContainer = null;
+    this.bodyContainers = new Map();
     this.accessoryContainers = new Map();
     this.loadingPromise = this.preloadAssets();
   }
@@ -167,20 +167,27 @@ export class CharacterRenderer {
     return CLASS_STYLE[actor.classId] || DEFAULT_STYLE;
   }
 
+  bodyFileFor(actor) {
+    return BODY_FILE_BY_CLASS[actor.classId] || "tiby-base.glb";
+  }
+
   async preloadAssets() {
     if (!BABYLON.SceneLoader) {
       console.error("Babylon SceneLoader is unavailable.");
       return;
     }
 
-    const bodyPromise = BABYLON.SceneLoader.LoadAssetContainerAsync(
-      TIBY_ROOT,
-      TIBY_FILE,
-      this.scene,
-    ).then(container => {
-      this.bodyContainer = container;
-    }).catch(error => {
-      console.error("Failed to load local Tiby body", error);
+    const bodyPromises = BODY_FILES.map(async file => {
+      try {
+        const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(
+          TIBY_ROOT,
+          file,
+          this.scene,
+        );
+        this.bodyContainers.set(file, container);
+      } catch (error) {
+        console.error("Failed to load local Tiby body", file, error);
+      }
     });
 
     const accessoryPromises = ACCESSORY_FILES.map(async file => {
@@ -196,7 +203,7 @@ export class CharacterRenderer {
       }
     });
 
-    await Promise.all([bodyPromise, ...accessoryPromises]);
+    await Promise.all([...bodyPromises, ...accessoryPromises]);
   }
 
   create(actor) {
@@ -208,13 +215,6 @@ export class CharacterRenderer {
     visualRoot.parent = root;
     visualRoot.rotation.y = Math.PI;
 
-    const silhouetteRoot = new BABYLON.TransformNode(
-      "archetype-silhouette:" + actor.id,
-      this.scene,
-    );
-    silhouetteRoot.parent = root;
-    silhouetteRoot.rotation.y = Math.PI;
-
     const propRoot = new BABYLON.TransformNode(
       "class-props:" + actor.id,
       this.scene,
@@ -225,15 +225,14 @@ export class CharacterRenderer {
     const entry = {
       root,
       visualRoot,
-      silhouetteRoot,
       propRoot,
       classId: actor.classId,
       role: actor.role,
       style: this.styleFor(actor),
+      modelFile: this.bodyFileFor(actor),
       modelAttached: false,
       modelMeshes: [],
       propMeshes: [],
-      silhouetteMeshes: [],
       ownedMaterials: [],
       animationGroups: [],
       animationState: null,
@@ -256,13 +255,14 @@ export class CharacterRenderer {
     await this.loadingPromise;
     if (!this.entries.has(actor.id) || entry.modelAttached) return;
 
-    if (!this.bodyContainer) {
+    const container = this.bodyContainers.get(entry.modelFile);
+    if (!container) {
       this.createFallbackMarker(actor, entry);
       return;
     }
 
     try {
-      const instance = this.bodyContainer.instantiateModelsToScene(
+      const instance = container.instantiateModelsToScene(
         sourceName => actor.id + ":" + sourceName,
         false,
       );
@@ -276,18 +276,18 @@ export class CharacterRenderer {
 
       this.prepareBody(actor, entry);
       this.normalizeBody(entry);
-      this.createArchetypeSilhouette(actor, entry);
       this.attachClassProps(actor, entry);
       entry.modelAttached = true;
       this.setAnimation(entry, "idle", true);
     } catch (error) {
-      console.error("Failed to instantiate Tiby character", error);
+      console.error("Failed to instantiate Tiby character", entry.modelFile, error);
       this.createFallbackMarker(actor, entry);
     }
   }
 
   prepareBody(actor, entry) {
-    const primary = color(entry.style.primary || entry.style.accent);
+    const primary = color(entry.style.primary);
+    const secondary = color(entry.style.secondary);
     const accent = color(entry.style.accent);
 
     for (const mesh of entry.modelMeshes) {
@@ -299,8 +299,8 @@ export class CharacterRenderer {
       mesh.isPickable = true;
       mesh.receiveShadows = true;
       mesh.renderOutline = true;
-      mesh.outlineColor = new BABYLON.Color3(0.05, 0.04, 0.035);
-      mesh.outlineWidth = 0.024;
+      mesh.outlineColor = new BABYLON.Color3(0.048, 0.038, 0.033);
+      mesh.outlineWidth = 0.022;
       this.shadowGenerator?.addShadowCaster(mesh);
 
       const original = mesh.material;
@@ -312,33 +312,47 @@ export class CharacterRenderer {
       mesh.material = material;
       entry.ownedMaterials.push(material);
 
-      const materialName = String(original.name || "").toLowerCase();
-      const looksLikeSkin =
-        materialName.includes("skin")
-        || materialName.includes("face")
-        || materialName.includes("head");
+      const meshName = String(mesh.name || "").toUpperCase();
+      const originalName = String(original.name || "").toLowerCase();
+      let tint = null;
+      let tintStrength = 0;
 
-      // The source often uses broad/simple materials, so use a strong tint for
-      // arena readability. Named skin/face materials keep more of the source.
-      const tintStrength = looksLikeSkin ? 0.18 : 0.58;
+      if (meshName.includes("PVP_GEAR_PRIMARY")) {
+        tint = primary;
+        tintStrength = 1;
+      } else if (meshName.includes("PVP_GEAR_SECONDARY")) {
+        tint = secondary;
+        tintStrength = 1;
+      } else {
+        const looksLikeSkin =
+          originalName.includes("skin")
+          || originalName.includes("face")
+          || originalName.includes("head");
+        tint = primary;
+        tintStrength = looksLikeSkin ? 0.05 : 0.12;
+      }
 
       if (material.albedoColor) {
         material.albedoColor = BABYLON.Color3.Lerp(
           material.albedoColor,
-          primary,
+          tint,
           tintStrength,
         );
-        material.emissiveColor = accent.scale(0.018);
-        if ("roughness" in material) material.roughness = 0.84;
+        material.emissiveColor = accent.scale(
+          meshName.includes("PVP_GEAR") ? 0.012 : 0.004,
+        );
+        if ("roughness" in material) material.roughness = 0.86;
         if ("metallic" in material) material.metallic = 0;
       } else if (material.diffuseColor) {
         material.diffuseColor = BABYLON.Color3.Lerp(
           material.diffuseColor,
-          primary,
+          tint,
           tintStrength,
         );
-        material.emissiveColor = accent.scale(0.016);
-        material.specularColor = new BABYLON.Color3(0.025, 0.025, 0.022);
+        material.emissiveColor = accent.scale(
+          meshName.includes("PVP_GEAR") ? 0.010 : 0.003,
+        );
+        material.specularColor = new BABYLON.Color3(0.02, 0.02, 0.018);
       }
     }
   }
@@ -362,12 +376,8 @@ export class CharacterRenderer {
     const height = maxY - minY;
     if (!Number.isFinite(height) || height <= 0.001) return;
 
-    const uniform = (2.08 * (entry.style.scale || 1)) / height;
-    entry.visualRoot.scaling.set(
-      uniform * (entry.style.width || 1),
-      uniform,
-      uniform * (entry.style.depth || 1),
-    );
+    const uniform = (2.04 * (entry.style.scale || 1)) / height;
+    entry.visualRoot.scaling.setAll(uniform);
 
     for (const mesh of meshes) mesh.computeWorldMatrix(true);
     minY = Number.POSITIVE_INFINITY;
@@ -380,246 +390,6 @@ export class CharacterRenderer {
       entry.visualRoot.position.y -= minY;
     }
     entry.baseVisualY = entry.visualRoot.position.y;
-  }
-
-  createVisualMaterial(entry, name, hex) {
-    const material = new BABYLON.StandardMaterial(
-      name + ":" + entry.classId,
-      this.scene,
-    );
-    material.diffuseColor = color(hex);
-    material.ambientColor = color(hex).scale(0.12);
-    material.emissiveColor = color(hex).scale(0.012);
-    material.specularColor = new BABYLON.Color3(0.035, 0.035, 0.03);
-    entry.ownedMaterials.push(material);
-    return material;
-  }
-
-  registerSilhouetteMesh(actor, entry, mesh, material) {
-    mesh.parent = entry.silhouetteRoot;
-    mesh.material = material;
-    mesh.metadata = {
-      ...(mesh.metadata || {}),
-      actorId: actor.id,
-      archetypeSilhouette: true,
-    };
-    mesh.isPickable = true;
-    mesh.receiveShadows = true;
-    mesh.renderOutline = true;
-    mesh.outlineColor = new BABYLON.Color3(0.06, 0.047, 0.04);
-    mesh.outlineWidth = 0.018;
-    this.shadowGenerator?.addShadowCaster(mesh);
-    entry.silhouetteMeshes.push(mesh);
-    return mesh;
-  }
-
-  createArchetypeSilhouette(actor, entry) {
-    const archetype = entry.style.archetype;
-    if (!archetype) return;
-
-    const primary = this.createVisualMaterial(
-      entry,
-      "archetype-primary:" + actor.id,
-      entry.style.primary,
-    );
-    const secondary = this.createVisualMaterial(
-      entry,
-      "archetype-secondary:" + actor.id,
-      entry.style.secondary,
-    );
-
-    if (archetype === "caster") {
-      // A broad robe is the dominant silhouette. It deliberately hides much
-      // of Tiby's neutral lower body so the unit reads as caster from range.
-      const robe = BABYLON.MeshBuilder.CreateCylinder(
-        "caster-robe:" + actor.id,
-        {
-          height: 1.06,
-          diameterTop: 0.52,
-          diameterBottom: 1.02,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      robe.position.set(0, 0.54, 0);
-      this.registerSilhouetteMesh(actor, entry, robe, primary);
-
-      const upperRobe = BABYLON.MeshBuilder.CreateCylinder(
-        "caster-upper:" + actor.id,
-        {
-          height: 0.50,
-          diameterTop: 0.62,
-          diameterBottom: 0.70,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      upperRobe.position.set(0, 1.13, 0);
-      this.registerSilhouetteMesh(actor, entry, upperRobe, primary);
-
-      const mantle = BABYLON.MeshBuilder.CreateCylinder(
-        "caster-mantle:" + actor.id,
-        {
-          height: 0.20,
-          diameterTop: 0.86,
-          diameterBottom: 0.76,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      mantle.position.set(0, 1.37, 0);
-      this.registerSilhouetteMesh(actor, entry, mantle, secondary);
-
-      const tabard = BABYLON.MeshBuilder.CreateBox(
-        "caster-tabard:" + actor.id,
-        { width: 0.24, height: 0.78, depth: 0.08 },
-        this.scene,
-      );
-      tabard.position.set(0, 0.88, 0.46);
-      tabard.rotation.z = actor.classId === "mage" ? 0.10 : -0.06;
-      this.registerSilhouetteMesh(actor, entry, tabard, secondary);
-
-      // Small collar fins create a clear shoulder line without another hat.
-      for (const side of [-1, 1]) {
-        const collar = BABYLON.MeshBuilder.CreatePolyhedron(
-          "caster-collar:" + actor.id + ":" + side,
-          { type: 2, size: 0.18 },
-          this.scene,
-        );
-        collar.position.set(side * 0.38, 1.40, 0);
-        collar.scaling.set(1.10, 0.60, 0.82);
-        this.registerSilhouetteMesh(actor, entry, collar, secondary);
-      }
-      return;
-    }
-
-    if (archetype === "light") {
-      // Keep the rogue narrow through the torso but create a sharp triangular
-      // read using vest, scarf and oversized daggers.
-      const vest = BABYLON.MeshBuilder.CreateCylinder(
-        "light-vest:" + actor.id,
-        {
-          height: 0.72,
-          diameterTop: 0.48,
-          diameterBottom: 0.60,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      vest.position.set(0, 1.00, 0);
-      this.registerSilhouetteMesh(actor, entry, vest, secondary);
-
-      const belt = BABYLON.MeshBuilder.CreateCylinder(
-        "light-belt:" + actor.id,
-        {
-          height: 0.13,
-          diameterTop: 0.64,
-          diameterBottom: 0.64,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      belt.position.set(0, 0.67, 0);
-      this.registerSilhouetteMesh(actor, entry, belt, primary);
-
-      const scarf = BABYLON.MeshBuilder.CreateBox(
-        "light-scarf:" + actor.id,
-        { width: 0.54, height: 0.16, depth: 0.12 },
-        this.scene,
-      );
-      scarf.position.set(0, 1.31, 0.30);
-      scarf.rotation.z = -0.10;
-      this.registerSilhouetteMesh(actor, entry, scarf, primary);
-
-      const scarfTail = BABYLON.MeshBuilder.CreateBox(
-        "light-scarf-tail:" + actor.id,
-        { width: 0.16, height: 0.62, depth: 0.09 },
-        this.scene,
-      );
-      scarfTail.position.set(-0.26, 1.05, -0.28);
-      scarfTail.rotation.z = -0.44;
-      this.registerSilhouetteMesh(actor, entry, scarfTail, primary);
-
-      for (const side of [-1, 1]) {
-        const shoulder = BABYLON.MeshBuilder.CreatePolyhedron(
-          "light-shoulder:" + actor.id + ":" + side,
-          { type: 2, size: 0.14 },
-          this.scene,
-        );
-        shoulder.position.set(side * 0.32, 1.30, 0);
-        shoulder.scaling.set(0.92, 0.58, 0.80);
-        this.registerSilhouetteMesh(actor, entry, shoulder, primary);
-      }
-      return;
-    }
-
-    if (archetype === "heavy") {
-      // Warrior intentionally exaggerates width. The pauldrons should remain
-      // readable even at full arena zoom.
-      const chest = BABYLON.MeshBuilder.CreateBox(
-        "heavy-chest:" + actor.id,
-        { width: 1.08, height: 0.72, depth: 0.58 },
-        this.scene,
-      );
-      chest.position.set(0, 1.08, 0.03);
-      chest.rotation.x = -0.05;
-      this.registerSilhouetteMesh(actor, entry, chest, primary);
-
-      const breastplate = BABYLON.MeshBuilder.CreateBox(
-        "heavy-front-plate:" + actor.id,
-        { width: 0.66, height: 0.56, depth: 0.10 },
-        this.scene,
-      );
-      breastplate.position.set(0, 1.09, 0.35);
-      this.registerSilhouetteMesh(actor, entry, breastplate, secondary);
-
-      const waist = BABYLON.MeshBuilder.CreateCylinder(
-        "heavy-waist:" + actor.id,
-        {
-          height: 0.42,
-          diameterTop: 0.76,
-          diameterBottom: 0.86,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      waist.position.set(0, 0.62, 0);
-      this.registerSilhouetteMesh(actor, entry, waist, primary);
-
-      for (const side of [-1, 1]) {
-        const pauldron = BABYLON.MeshBuilder.CreatePolyhedron(
-          "heavy-pauldron:" + actor.id + ":" + side,
-          { type: 2, size: 0.39 },
-          this.scene,
-        );
-        pauldron.position.set(side * 0.66, 1.43, 0);
-        pauldron.scaling.set(1.28, 0.78, 1.00);
-        pauldron.rotation.z = side * 0.12;
-        this.registerSilhouetteMesh(actor, entry, pauldron, secondary);
-
-        const armGuard = BABYLON.MeshBuilder.CreateBox(
-          "heavy-armguard:" + actor.id + ":" + side,
-          { width: 0.22, height: 0.46, depth: 0.28 },
-          this.scene,
-        );
-        armGuard.position.set(side * 0.61, 1.02, 0);
-        armGuard.rotation.z = side * 0.10;
-        this.registerSilhouetteMesh(actor, entry, armGuard, primary);
-      }
-
-      const belt = BABYLON.MeshBuilder.CreateCylinder(
-        "heavy-belt:" + actor.id,
-        {
-          height: 0.15,
-          diameterTop: 0.88,
-          diameterBottom: 0.88,
-          tessellation: 8,
-        },
-        this.scene,
-      );
-      belt.position.set(0, 0.72, 0);
-      this.registerSilhouetteMesh(actor, entry, belt, secondary);
-    }
   }
 
   attachClassProps(actor, entry) {
@@ -656,7 +426,7 @@ export class CharacterRenderer {
           mesh.isPickable = true;
           mesh.receiveShadows = true;
           mesh.renderOutline = true;
-          mesh.outlineColor = new BABYLON.Color3(0.065, 0.052, 0.045);
+          mesh.outlineColor = new BABYLON.Color3(0.055, 0.043, 0.037);
           mesh.outlineWidth = 0.015;
           this.shadowGenerator?.addShadowCaster(mesh);
         }
@@ -679,12 +449,12 @@ export class CharacterRenderer {
 
     const shadow = BABYLON.MeshBuilder.CreateCylinder(
       "contact-shadow:" + actor.id,
-      { height: 0.010, diameter: 0.90, tessellation: 20 },
+      { height: 0.010, diameter: 0.92, tessellation: 20 },
       this.scene,
     );
     shadow.parent = entry.root;
     shadow.position.y = 0.010;
-    shadow.scaling.set(1.16, 1, 0.74);
+    shadow.scaling.set(1.18, 1, 0.74);
     shadow.material = shadowMat;
     shadow.isPickable = false;
     entry.contactShadow = shadow;
@@ -694,14 +464,14 @@ export class CharacterRenderer {
       this.scene,
     );
     ringMat.diffuseColor = color(entry.style.accent);
-    ringMat.emissiveColor = color(entry.style.accent).scale(0.06);
+    ringMat.emissiveColor = color(entry.style.accent).scale(0.05);
     ringMat.specularColor = BABYLON.Color3.Black();
-    ringMat.alpha = 0.16;
+    ringMat.alpha = 0.12;
     ringMat.disableLighting = true;
 
     const ring = BABYLON.MeshBuilder.CreateTorus(
       "class-ring:" + actor.id,
-      { diameter: 0.82, thickness: 0.020, tessellation: 30 },
+      { diameter: 0.84, thickness: 0.018, tessellation: 30 },
       this.scene,
     );
     ring.parent = entry.root;
@@ -733,7 +503,7 @@ export class CharacterRenderer {
 
     const barRoot = new BABYLON.TransformNode("status:" + actor.id, this.scene);
     barRoot.parent = entry.root;
-    barRoot.position.y = 2.72;
+    barRoot.position.y = 2.56;
 
     const hpBack = BABYLON.MeshBuilder.CreatePlane(
       "hpBack:" + actor.id,
@@ -857,13 +627,10 @@ export class CharacterRenderer {
       else if (moving) this.setAnimation(entry, "run");
       else this.setAnimation(entry, "idle");
 
-      // Tiby has a rig but may export without authored clips. Keep a subtle
-      // miniature-style procedural pose so the arena does not feel static.
       const bob = moving
-        ? Math.sin(time * 0.012) * 0.028
-        : Math.sin(time * 0.0024) * 0.008;
+        ? Math.sin(time * 0.012) * 0.024
+        : Math.sin(time * 0.0024) * 0.007;
       entry.visualRoot.position.y = entry.baseVisualY + bob;
-      entry.silhouetteRoot.position.y = bob;
       entry.propRoot.position.y = bob;
 
       const health = Math.max(0, Math.min(1, actor.healthPct));
@@ -879,7 +646,7 @@ export class CharacterRenderer {
       entry.hp.material.emissiveColor =
         entry.hp.material.diffuseColor.scale(health < 0.20 ? 0.07 : 0.025);
 
-      entry.classRing.visibility = actor.cast ? 0.34 : 0.16;
+      entry.classRing.visibility = actor.cast ? 0.30 : 0.12;
     }
   }
 

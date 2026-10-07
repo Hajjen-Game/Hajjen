@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-warriorwowfix1";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-warriorwow2";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -14092,18 +14092,18 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="warrior-slam"){
-          // Slam: an obvious overhead wind-up, then one heavy chop aligned
-          // directly through the target. No side-to-side flourish.
+          // WoW-inspired Slam: readable overhead load, then one decisive chop.
+          // It should feel vertical/heavy rather than like another side cleave.
           const facing=Math.atan2(dy0,dx0);
-          const wind=smooth(clamp01(p/.25));
-          const drop=smooth(clamp01((p-.20)/.42));
-          const angle=(facing-1.48)+(1.48*drop);
+          const wind=smooth(clamp01(p/.24));
+          const drop=smooth(clamp01((p-.18)/.38));
+          const angle=(facing-1.58)+(1.58*drop);
           const out=1-smooth((p-.72)/.22);
-          const weaponAlpha=alpha*easeOut(p/.11)*out;
+          const weaponAlpha=alpha*easeOut(p/.10)*out;
 
           const charge=1-drop;
           glow.circle(0,0,source.radius+10+wind*8).stroke({
-            color:profile.main,width:10,alpha:alpha*charge*.075
+            color:profile.main,width:9,alpha:alpha*charge*.065
           });
           core
             .moveTo(
@@ -14115,16 +14115,15 @@ export class PixiProofRenderer {
               Math.sin(angle)*(source.radius+24+wind*8)
             )
             .stroke({
-              color:profile.core,width:1.7,alpha:alpha*charge*.44
+              color:profile.core,width:1.6,alpha:alpha*charge*.40
             });
 
-          if(drop>0){
-            const trailStart=facing-1.48;
-            arc(glow,0,0,source.radius+42,trailStart,angle,{
-              color:profile.main,width:23,alpha:weaponAlpha*.10
+          if(drop>.02){
+            arc(glow,0,0,source.radius+40,facing-1.58,angle,{
+              color:profile.main,width:20,alpha:weaponAlpha*.085
             },16);
-            arc(core,0,0,source.radius+40,trailStart,angle,{
-              color:profile.core,width:3.6,alpha:weaponAlpha*.72
+            arc(core,0,0,source.radius+39,facing-1.58,angle,{
+              color:profile.core,width:3.5,alpha:weaponAlpha*.70
             },16);
           }
 
@@ -14134,137 +14133,183 @@ export class PixiProofRenderer {
             slamAxeLength,15,profile,weaponAlpha
           );
 
-          const contact=Math.exp(-Math.pow((drop-.94)/.11,2));
+          const contact=Math.exp(-Math.pow((drop-.95)/.10,2));
           if(contact>.02){
-            glow.ellipse(dx0,dy0+10,18+contact*22,5+contact*8).stroke({
-              color:profile.main,width:11,alpha:alpha*contact*.10
+            glow.ellipse(dx0,dy0+10,18+contact*28,5+contact*10).stroke({
+              color:profile.main,width:10,alpha:alpha*contact*.09
             });
-            core.ellipse(dx0,dy0+10,12+contact*18,3+contact*6).stroke({
-              color:profile.core,width:2.4,alpha:alpha*contact*.68
+            core.ellipse(dx0,dy0+10,13+contact*24,3+contact*7).stroke({
+              color:profile.core,width:2.5,alpha:alpha*contact*.72
             });
+
+            const nx=-Math.sin(facing), ny=Math.cos(facing);
+            for(let i=0;i<7;i++){
+              const lane=(i-3)*4.5;
+              const sx=dx0+nx*lane;
+              const sy=dy0+ny*lane+8;
+              const forward=16+contact*(12+(i%3)*5);
+              core
+                .moveTo(sx,sy)
+                .lineTo(
+                  sx+Math.cos(facing)*forward+nx*(i%2?3:-3),
+                  sy+Math.sin(facing)*forward+ny*(i%2?3:-3)
+                )
+                .stroke({
+                  color:i===3?profile.core:profile.main,
+                  width:i===3?2.1:1.25,
+                  alpha:alpha*contact*(i===3?.68:.46)
+                });
+            }
           }
         }
 
         if(effect.spellId==="warrior-overpower"){
-          // Overpower: fast reverse counter-swing. Smaller blade, bright edge,
-          // minimal glow; it should read as precision rather than another heavy.
+          // WoW-inspired Overpower: a short precision counter with essentially
+          // no theatrical wind-up. Smaller travel and a hard straight contact.
           const facing=Math.atan2(dy0,dx0);
-          const motion=smooth(clamp01((p-.02)/.46));
-          const a0=facing+.96;
-          const a1=facing-.42;
+          const motion=smooth(clamp01((p-.01)/.32));
+          const a0=facing+.72;
+          const a1=facing-.26;
           const angle=a0+(a1-a0)*motion;
-          const out=1-smooth((p-.62)/.26);
-          const weaponAlpha=alpha*easeOut(p/.08)*out;
+          const out=1-smooth((p-.50)/.24);
+          const weaponAlpha=alpha*easeOut(p/.055)*out;
 
-          arc(glow,0,0,source.radius+32,a0,angle,{
-            color:profile.main,width:11,alpha:weaponAlpha*.055
-          },14);
-          arc(core,0,0,source.radius+31,a0,angle,{
-            color:profile.core,width:3.3,alpha:weaponAlpha*.86
-          },14);
+          arc(glow,0,0,source.radius+29,a0,angle,{
+            color:profile.main,width:8,alpha:weaponAlpha*.042
+          },12);
+          arc(core,0,0,source.radius+28,a0,angle,{
+            color:profile.core,width:2.7,alpha:weaponAlpha*.88
+          },12);
 
-          const overpowerAxeLength=Math.max(46,Math.min(58,len0+3));
+          const overpowerAxeLength=Math.max(46,Math.min(56,len0+3));
           warriorDoubleAxe(
             core,glow,0,0,angle,source.radius+4,
-            overpowerAxeLength,12.5,profile,weaponAlpha
+            overpowerAxeLength,12,profile,weaponAlpha
           );
 
-          const snap=Math.exp(-Math.pow((motion-.70)/.12,2));
+          const snap=Math.exp(-Math.pow((motion-.76)/.10,2));
           if(snap>.03){
-            const crossA=point(dx0,dy0,-19,0,facing-.18);
-            const crossB=point(dx0,dy0,19,0,facing-.18);
-            core.moveTo(crossA.x,crossA.y).lineTo(crossB.x,crossB.y).stroke({
-              color:profile.core,width:2.2,alpha:alpha*snap*.75
+            const p0=point(dx0,dy0,-25,0,facing);
+            const p1=point(dx0,dy0,26,0,facing);
+            core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:profile.core,width:2.8,alpha:alpha*snap*.82
             });
+            const nx=-Math.sin(facing), ny=Math.cos(facing);
+            for(const sign of [-1,1]){
+              core
+                .moveTo(
+                  dx0+nx*sign*5-Math.cos(facing)*7,
+                  dy0+ny*sign*5-Math.sin(facing)*7
+                )
+                .lineTo(
+                  dx0+nx*sign*12+Math.cos(facing)*7,
+                  dy0+ny*sign*12+Math.sin(facing)*7
+                )
+                .stroke({
+                  color:sign<0?profile.main:profile.core,
+                  width:1.4,alpha:alpha*snap*.56
+                });
+            }
           }
         }
 
         if(effect.spellId==="warrior-bloodthirst"){
-          // Bloodthirst uses ONE double-sided axe. It rips through a near-180°
-          // forehand, follows through briefly, then reverses across the victim.
-          // Two readable contacts, one coherent weapon silhouette.
+          // WoW-inspired Bloodthirst: fast savage forehand + short reverse bite,
+          // with visible blood energy pulled back into the Warrior.
           const facing=Math.atan2(dy0,dx0);
-          const start=facing-1.43;
-          const far=facing+1.43;
-          const raw=clamp01((p-.03)/.86);
+          const firstStart=facing-.95;
+          const firstEnd=facing+.48;
+          const secondEnd=facing-.22;
+          const raw=clamp01((p-.02)/.72);
           let angle;
           let segmentStart;
-          let localMotion;
 
-          if(raw<.47){
-            localMotion=smooth(raw/.47);
-            angle=start+(far-start)*localMotion;
-            segmentStart=start;
-          }else if(raw<.56){
-            localMotion=1;
-            angle=far;
-            segmentStart=start;
+          if(raw<.58){
+            const motion=smooth(raw/.58);
+            angle=firstStart+(firstEnd-firstStart)*motion;
+            segmentStart=firstStart;
           }else{
-            localMotion=smooth((raw-.56)/.44);
-            angle=far+(start-far)*localMotion;
-            segmentStart=far;
+            const motion=smooth((raw-.58)/.42);
+            angle=firstEnd+(secondEnd-firstEnd)*motion;
+            segmentStart=firstEnd;
           }
 
-          const out=1-smooth((p-.91)/.09);
-          const weaponAlpha=alpha*easeOut(p/.08)*out;
-          const radius=source.radius+34;
+          const out=1-smooth((p-.82)/.16);
+          const weaponAlpha=alpha*easeOut(p/.06)*out;
+          const radius=source.radius+32;
 
           arc(glow,0,0,radius,segmentStart,angle,{
-            color:profile.main,
-            width:18,
-            alpha:weaponAlpha*.09,
-          },20);
+            color:profile.main,width:15,alpha:weaponAlpha*.075
+          },16);
           arc(core,0,0,radius,segmentStart,angle,{
-            color:profile.main,
-            width:4.7,
-            alpha:weaponAlpha*.64,
-          },20);
+            color:profile.main,width:3.9,alpha:weaponAlpha*.64
+          },16);
 
-          const leadingStart =
+          const leadStart=
             angle>=segmentStart
-              ? Math.max(segmentStart,angle-.72)
-              : Math.min(segmentStart,angle+.72);
-          arc(core,0,0,radius-2,leadingStart,angle,{
-            color:profile.core,
-            width:2.25,
-            alpha:weaponAlpha*.88,
-          },10);
+              ? Math.max(segmentStart,angle-.58)
+              : Math.min(segmentStart,angle+.58);
+          arc(core,0,0,radius-2,leadStart,angle,{
+            color:profile.core,width:2.1,alpha:weaponAlpha*.88
+          },9);
 
           const bloodthirstAxeLength=Math.max(48,Math.min(60,len0+3));
           warriorDoubleAxe(
             core,glow,0,0,angle,source.radius+4,
-            bloodthirstAxeLength,13.5,profile,weaponAlpha
+            bloodthirstAxeLength,13.2,profile,weaponAlpha
           );
 
-          // Contact happens as the axe crosses the target-facing line in each
-          // direction. The small red pullback below remains Bloodthirst's payoff.
-          const contact1=Math.exp(-Math.pow((raw-.235)/.055,2));
-          const contact2=Math.exp(-Math.pow((raw-.78)/.060,2));
+          const contact1=Math.exp(-Math.pow((raw-.39)/.075,2));
+          const contact2=Math.exp(-Math.pow((raw-.82)/.075,2));
           const contact=Math.max(contact1,contact2);
           if(contact>.02){
-            glow.circle(dx0,dy0,9+contact*20).fill({
-              color:profile.main,
-              alpha:alpha*contact*.105,
+            glow.circle(dx0,dy0,7+contact*16).fill({
+              color:profile.main,alpha:alpha*contact*.09
             });
-            core.circle(dx0,dy0,4+contact*7).fill({
-              color:profile.core,
-              alpha:alpha*contact*.68,
+            core.circle(dx0,dy0,3+contact*6).fill({
+              color:profile.core,alpha:alpha*contact*.68
             });
-
-            const hitDir=contact1>=contact2?1:-1;
-            for(let i=0;i<4;i++){
-              const a=facing+hitDir*(-.34+i*.22);
-              const inner=9;
-              const outer=22+contact*(9+(i%2)*5);
+            for(let i=0;i<5;i++){
+              const a=facing+(i-2)*.16;
+              const inner=8;
+              const outer=20+contact*(9+(i%2)*5);
               core
                 .moveTo(dx0+Math.cos(a)*inner,dy0+Math.sin(a)*inner)
                 .lineTo(dx0+Math.cos(a)*outer,dy0+Math.sin(a)*outer)
                 .stroke({
-                  color:i===1||i===2?profile.core:profile.main,
-                  width:i===1||i===2?2.0:1.25,
-                  alpha:alpha*contact*.62,
+                  color:i===2?profile.core:profile.main,
+                  width:i===2?2.0:1.2,
+                  alpha:alpha*contact*.60
                 });
             }
+          }
+
+          if(p>.24){
+            const t=clamp01((p-.24)/.50);
+            const backFade=1-smooth((t-.80)/.20);
+            const pull=easeOut(t);
+            for(let i=0;i<3;i++){
+              const side=(i-1)*5;
+              const sx=dx0+nx*side;
+              const sy=dy0+ny*side;
+              const mx=dx0*.55+nx*side*1.5;
+              const my=dy0*.55+ny*side*1.5;
+              const ex=dx0*(1-pull);
+              const ey=dy0*(1-pull);
+              core
+                .moveTo(sx,sy)
+                .lineTo(mx,my)
+                .lineTo(ex,ey)
+                .stroke({
+                  color:i===1?profile.core:profile.main,
+                  width:i===1?1.8:1.1,
+                  alpha:alpha*backFade*(i===1?.50:.34)
+                });
+            }
+            const healPulse=Math.exp(-Math.pow((t-.76)/.15,2));
+            glow.circle(0,0,5+healPulse*12).fill({
+              color:profile.main,alpha:alpha*backFade*healPulse*.08
+            });
           }
         }
 
@@ -14377,7 +14422,14 @@ export class PixiProofRenderer {
             mortalImpact
             || effect.spellId==="dk-obliterate"
             || effect.spellId==="shaman-stormstrike";
-          const sharedImpactScale=mortalImpact?.48:(rogue?.42:1);
+          const warriorImpactScale=
+            effect.spellId==="warrior-slam"?.52
+            : effect.spellId==="warrior-rend"?.26
+            : effect.spellId==="warrior-overpower"?.20
+            : effect.spellId==="warrior-bloodthirst"?.30
+            : 1;
+          const sharedImpactScale=
+            mortalImpact?.34:(rogue?.42:warriorImpactScale);
           const rogueImpact=
             effect.spellId==="rogue-eviscerate"
             || effect.spellId==="rogue-mutilate";

@@ -1,4 +1,4 @@
-import { CharacterRenderer } from "./CharacterRenderer.js?v=20261007-archetypes1b";
+import { CharacterRenderer } from "./CharacterRenderer.js?v=pass1-ae58568";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;

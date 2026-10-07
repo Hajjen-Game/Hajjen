@@ -1,0 +1,54 @@
+name: Build PvP 2.5D Warrior v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-pvp25d-warrior-v2.yml"
+      - "pvp-25d/tools/miniheroes/build_warrior_v2.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-pvp25d-warrior-v2
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender python3-numpy
+
+      - name: Generate Warrior v2
+        shell: bash
+        run: |
+          set -euxo pipefail
+          out="$PWD/pvp-25d/assets/characters/miniheroes"
+          mkdir -p "$out"
+          blender -b             --python pvp-25d/tools/miniheroes/build_warrior_v2.py             -- "$out/minihero-warrior-v2.glb"
+          test -s "$out/minihero-warrior-v2.glb"
+          ls -lh "$out/minihero-warrior-v2.glb"
+
+      - name: Commit generated Warrior v2
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add pvp-25d/assets/characters/miniheroes/minihero-warrior-v2.glb
+          if git diff --cached --quiet; then
+            echo "Warrior v2 is unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Generate Warrior v2 for PvP 2.5D"
+          git push

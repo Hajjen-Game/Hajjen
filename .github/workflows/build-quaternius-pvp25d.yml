@@ -36,7 +36,7 @@ jobs:
           git clone --depth 1 --filter=blob:none --sparse \
             https://github.com/agentkaerf/FreeModels.git \
             /tmp/quaternius-src
-          git -C /tmp/quaternius-src sparse-checkout set \
+          git -C /tmp/quaternius-src sparse-checkout set --skip-checks \
             "Modular Character Outfits - Fantasy[Standard]/Exports/glTF (Godot-Unreal)/Outfits"
 
       - name: Export Quaternius PvP 2.5D variants

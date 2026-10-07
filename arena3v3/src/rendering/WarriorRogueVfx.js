@@ -167,50 +167,56 @@ function drawWarriorDoubleAxe(
     y: source.y + x * Math.sin(angle) + y * Math.cos(angle),
   });
   const root = source.radius + 4;
-  const handleStart = local(Math.max(3, root - 13), 0);
-  const handleEnd = local(length + 2, 0);
+  const handleStart = local(Math.max(3, root - 14), 0);
+  const handleEnd = local(length + 7, 0);
   const headX = length - 3;
+  const steel = profile.steel || "#a8a8a3";
+  const steelEdge = profile.core || "#eee2cf";
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
+  // Class-colour glow around a visible wooden shaft.
   ctx.shadowColor = profile.main;
   ctx.shadowBlur = 12;
   ctx.strokeStyle = profile.main;
   ctx.lineWidth = 9;
-  ctx.globalAlpha = alpha * .075;
+  ctx.globalAlpha = alpha * .07;
   ctx.beginPath();
   ctx.moveTo(handleStart.x, handleStart.y);
   ctx.lineTo(handleEnd.x, handleEnd.y);
   ctx.stroke();
 
   ctx.shadowBlur = 3;
-  ctx.strokeStyle = profile.accent;
-  ctx.lineWidth = 4.1;
-  ctx.globalAlpha = alpha * .76;
+  ctx.strokeStyle = "#785038";
+  ctx.lineWidth = 5;
+  ctx.globalAlpha = alpha * .92;
   ctx.stroke();
 
-  ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 1.15;
-  ctx.globalAlpha = alpha * .52;
+  ctx.strokeStyle = "#b07b52";
+  ctx.lineWidth = 1.25;
+  ctx.globalAlpha = alpha * .64;
   ctx.stroke();
 
   for (const sign of [-1, 1]) {
     const blade = [
-      local(headX - 9, sign * 2),
-      local(headX - 13, sign * (headSize * .48)),
-      local(headX - 8, sign * (headSize * .92)),
-      local(headX + 3, sign * (headSize * 1.16)),
-      local(headX + 9, sign * (headSize * .72)),
-      local(headX + 5, sign * 3),
+      local(headX - 4, sign * 2.4),
+      local(headX - 13, sign * (headSize * .34)),
+      local(headX - 17, sign * (headSize * .72)),
+      local(headX - 11, sign * (headSize * 1.12)),
+      local(headX - 1, sign * (headSize * 1.42)),
+      local(headX + 10, sign * (headSize * 1.16)),
+      local(headX + 15, sign * (headSize * .72)),
+      local(headX + 10, sign * (headSize * .34)),
+      local(headX + 3, sign * 2.2),
     ];
 
     ctx.shadowColor = profile.main;
     ctx.shadowBlur = 14;
     ctx.fillStyle = profile.main;
-    ctx.globalAlpha = alpha * .18;
+    ctx.globalAlpha = alpha * .16;
     ctx.beginPath();
     ctx.moveTo(blade[0].x, blade[0].y);
     for (let i = 1; i < blade.length; i += 1) {
@@ -220,23 +226,36 @@ function drawWarriorDoubleAxe(
     ctx.fill();
 
     ctx.shadowBlur = 4;
-    ctx.globalAlpha = alpha * .58;
+    ctx.fillStyle = steel;
+    ctx.globalAlpha = alpha * .84;
     ctx.fill();
 
-    ctx.strokeStyle = profile.core;
-    ctx.lineWidth = 2.1;
-    ctx.globalAlpha = Math.min(1, alpha * 1.10);
+    ctx.strokeStyle = steelEdge;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = Math.min(1, alpha * 1.05);
+    ctx.stroke();
+
+    const edgeA = local(headX - 10, sign * (headSize * 1.05));
+    const edgeM = local(headX - 1, sign * (headSize * 1.35));
+    const edgeB = local(headX + 11, sign * (headSize * 1.04));
+    ctx.strokeStyle = steelEdge;
+    ctx.lineWidth = 1.55;
+    ctx.globalAlpha = alpha * .92;
+    ctx.beginPath();
+    ctx.moveTo(edgeA.x, edgeA.y);
+    ctx.lineTo(edgeM.x, edgeM.y);
+    ctx.lineTo(edgeB.x, edgeB.y);
     ctx.stroke();
   }
 
   const socket = [
-    local(headX - 5, -4.4),
-    local(headX + 5, -4.4),
-    local(headX + 5, 4.4),
-    local(headX - 5, 4.4),
+    local(headX - 5, -3.3),
+    local(headX + 5, -3.3),
+    local(headX + 5, 3.3),
+    local(headX - 5, 3.3),
   ];
-  ctx.fillStyle = profile.accent;
-  ctx.globalAlpha = alpha * .84;
+  ctx.fillStyle = steel;
+  ctx.globalAlpha = alpha * .94;
   ctx.beginPath();
   ctx.moveTo(socket[0].x, socket[0].y);
   for (let i = 1; i < socket.length; i += 1) {
@@ -245,9 +264,9 @@ function drawWarriorDoubleAxe(
   ctx.closePath();
   ctx.fill();
 
-  ctx.strokeStyle = profile.core;
+  ctx.strokeStyle = steelEdge;
   ctx.lineWidth = 1.2;
-  ctx.globalAlpha = alpha * .68;
+  ctx.globalAlpha = alpha * .76;
   ctx.stroke();
 
   ctx.restore();

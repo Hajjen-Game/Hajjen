@@ -11724,88 +11724,108 @@ export class PixiProofRenderer {
     ) => {
       if(alpha<=0) return;
 
-      const handleStart=point(cx,cy,Math.max(3,root-13),0,angle);
-      const handleEnd=point(cx,cy,length+2,0,angle);
+      const wood=0x785038;
+      const woodLight=0xb07b52;
+      const steel=profile.steel || 0xa8a8a3;
+      const steelEdge=profile.core || 0xeee2cf;
 
+      const handleStart=point(cx,cy,Math.max(3,root-14),0,angle);
+      const handleEnd=point(cx,cy,length+7,0,angle);
+
+      // Warm class-colour aura around a clearly wooden shaft.
       glowG
         .moveTo(handleStart.x,handleStart.y)
         .lineTo(handleEnd.x,handleEnd.y)
         .stroke({
           color:profile.main,
           width:9,
-          alpha:alpha*.075,
+          alpha:alpha*.07,
         });
       g
         .moveTo(handleStart.x,handleStart.y)
         .lineTo(handleEnd.x,handleEnd.y)
         .stroke({
-          color:profile.accent,
-          width:4.1,
-          alpha:alpha*.76,
+          color:wood,
+          width:5.0,
+          alpha:alpha*.92,
         });
       g
         .moveTo(handleStart.x,handleStart.y)
         .lineTo(handleEnd.x,handleEnd.y)
         .stroke({
-          color:profile.core,
-          width:1.15,
-          alpha:alpha*.52,
+          color:woodLight,
+          width:1.25,
+          alpha:alpha*.64,
         });
 
       const headX=length-3;
       const bladeFor = sign => [
-        point(cx,cy,headX-9,sign*2,angle),
-        point(cx,cy,headX-13,sign*(headSize*.48),angle),
-        point(cx,cy,headX-8,sign*(headSize*.92),angle),
-        point(cx,cy,headX+3,sign*(headSize*1.16),angle),
-        point(cx,cy,headX+9,sign*(headSize*.72),angle),
-        point(cx,cy,headX+5,sign*3,angle),
+        // Narrow throat at the socket, deep concave cut-in, broad crescent
+        // cutting edge. This is deliberately shaped like a battle axe rather
+        // than two rounded mace flanges.
+        point(cx,cy,headX-4, sign*2.4, angle),
+        point(cx,cy,headX-13,sign*(headSize*.34),angle),
+        point(cx,cy,headX-17,sign*(headSize*.72),angle),
+        point(cx,cy,headX-11,sign*(headSize*1.12),angle),
+        point(cx,cy,headX-1, sign*(headSize*1.42),angle),
+        point(cx,cy,headX+10,sign*(headSize*1.16),angle),
+        point(cx,cy,headX+15,sign*(headSize*.72),angle),
+        point(cx,cy,headX+10,sign*(headSize*.34),angle),
+        point(cx,cy,headX+3, sign*2.2, angle),
       ];
 
       for(const sign of [-1,1]){
         const blade=bladeFor(sign);
+
+        // Coloured glow sells the ability, neutral steel sells the weapon.
         polygon(glowG,blade,{
           color:profile.main,
-          alpha:alpha*.16,
+          alpha:alpha*.15,
         },true);
         polygon(g,blade,{
-          color:profile.main,
-          alpha:alpha*.58,
+          color:steel,
+          alpha:alpha*.84,
         },true);
         polygon(g,blade,{
-          color:profile.core,
-          width:2.15,
-          alpha:Math.min(1,alpha*1.10),
+          color:steelEdge,
+          width:2.0,
+          alpha:Math.min(1,alpha*1.05),
         },false);
 
+        // Bright curved-edge suggestion across the outer crescent.
         const edgeA=point(
-          cx,cy,headX-7,sign*(headSize*.88),angle
+          cx,cy,headX-10,sign*(headSize*1.05),angle
+        );
+        const edgeM=point(
+          cx,cy,headX-1,sign*(headSize*1.35),angle
         );
         const edgeB=point(
-          cx,cy,headX+6,sign*(headSize*.72),angle
+          cx,cy,headX+11,sign*(headSize*1.04),angle
         );
         g
           .moveTo(edgeA.x,edgeA.y)
+          .lineTo(edgeM.x,edgeM.y)
           .lineTo(edgeB.x,edgeB.y)
           .stroke({
-            color:profile.core,
-            width:1.45,
-            alpha:alpha*.88,
+            color:steelEdge,
+            width:1.55,
+            alpha:alpha*.92,
           });
       }
 
-      const socketA=point(cx,cy,headX-5,-4.4,angle);
-      const socketB=point(cx,cy,headX+5,-4.4,angle);
-      const socketC=point(cx,cy,headX+5,4.4,angle);
-      const socketD=point(cx,cy,headX-5,4.4,angle);
+      // Narrow metal collar around the shaft, like the reference silhouette.
+      const socketA=point(cx,cy,headX-5,-3.3,angle);
+      const socketB=point(cx,cy,headX+5,-3.3,angle);
+      const socketC=point(cx,cy,headX+5,3.3,angle);
+      const socketD=point(cx,cy,headX-5,3.3,angle);
       polygon(g,[socketA,socketB,socketC,socketD],{
-        color:profile.accent,
-        alpha:alpha*.84,
+        color:steel,
+        alpha:alpha*.94,
       },true);
       polygon(g,[socketA,socketB,socketC,socketD],{
-        color:profile.core,
+        color:steelEdge,
         width:1.2,
-        alpha:alpha*.68,
+        alpha:alpha*.76,
       },false);
     };
 

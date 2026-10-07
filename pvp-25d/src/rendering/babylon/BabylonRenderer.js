@@ -1,4 +1,5 @@
-import { CharacterRenderer } from "./CharacterRenderer.js?v=20261007-archetypes3";
+import { CharacterRenderer } from "./CharacterRenderer.js?v=20261007-quaternius1";
+import { QuaterniusCharacterRenderer } from "./QuaterniusCharacterRenderer.js?v=20261007-quaternius1";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;
@@ -271,7 +272,14 @@ export class BabylonRenderer {
     this.buildLosFormations();
     this.buildEdgeDetails();
 
-    this.actorRender = new CharacterRenderer(
+    const useQuaternius =
+      window.location.pathname.toLowerCase().endsWith("/quaternius.html")
+      || new URLSearchParams(window.location.search).get("characters") === "quaternius";
+    const ActorRenderer = useQuaternius
+      ? QuaterniusCharacterRenderer
+      : CharacterRenderer;
+
+    this.actorRender = new ActorRenderer(
       this.scene,
       this.shadowGenerator,
       S,

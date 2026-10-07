@@ -1,5 +1,4 @@
-import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-custom-only";
-import { WarriorV2CharacterRenderer } from "./WarriorV2CharacterRenderer.js?v=20261007-custom-only";
+import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-071ff-heroes";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;
@@ -272,10 +271,9 @@ export class BabylonRenderer {
     this.buildLosFormations();
     this.buildEdgeDetails();
 
+    const params = new URLSearchParams(window.location.search);
     const path = window.location.pathname.toLowerCase();
-    const ActorRenderer = path.endsWith("/warriorv2.html")
-      ? WarriorV2CharacterRenderer
-      : CustomMiniCharacterRenderer;
+    const ActorRenderer = CustomMiniCharacterRenderer;
 
     this.actorRender = new ActorRenderer(
       this.scene,

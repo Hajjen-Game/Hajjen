@@ -348,35 +348,73 @@ function rogueCue(ctx, source, profile, p) {
 }
 
 function drawRend(ctx, source, target, profile, p, seed, missed) {
-  warriorCue(ctx, source, profile, Math.min(1, p / .14));
+  warriorCue(ctx, source, profile, Math.min(1, p / .12));
   const facing = Math.atan2(target.y - source.y, target.x - source.x);
-  const motion = smooth(clamp01((p - .03) / .54));
-  const fade = 1 - smooth((p - .70) / .24);
-  const a0 = facing - 1.18;
-  const angle = a0 + 1.42 * motion;
-  const strength = easeOut(p / .10) * fade;
+  const motion = smooth(clamp01((p - .02) / .46));
+  const fade = 1 - smooth((p - .64) / .30);
+  const a0 = facing - .94;
+  const angle = a0 + 1.18 * motion;
+  const strength = easeOut(p / .08) * fade;
 
-  drawWarriorSweepArc(ctx, source, source.radius + 35, a0, angle, profile, strength, 4.3);
-  const rendDistance = Math.hypot(target.x - source.x, target.y - source.y);
-  const rendAxeLength = Math.max(48, Math.min(62, rendDistance + 3));
+  // Rend is a committed ripping cut, not a broad heroic cleave.
+  drawWarriorSweepArc(
+    ctx, source, source.radius + 33, a0, angle, profile, strength, 3.5
+  );
+  const distance = Math.hypot(target.x - source.x, target.y - source.y);
+  const axeLength = Math.max(48, Math.min(62, distance + 3));
   drawWarriorDoubleAxe(
-    ctx, source, angle, rendAxeLength, 13.5, profile, strength
+    ctx, source, angle, axeLength, 13.5, profile, strength
   );
 
-  if (!missed) {
-    for (let i = 0; i < 4; i += 1) {
-      const a = -.4 + i * .28;
-      dot(ctx, target.x + Math.cos(a) * (11 + p * 15), target.y + Math.sin(a) * (9 + p * 12), 1.2 + (i % 2) * .5, profile.main, fade * .42);
+  if (!missed && p > .12) {
+    const hit = clamp01((p - .12) / .48);
+    const hitFade = 1 - smooth((hit - .72) / .28);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineCap = "round";
+    ctx.shadowColor = profile.main;
+    ctx.shadowBlur = 7;
+
+    // Three offset lacerations make the bleed identity explicit.
+    for (let i = 0; i < 3; i += 1) {
+      const cutAngle = facing - .30 + i * .12;
+      const side = (i - 1) * 5;
+      const cx = target.x + Math.cos(facing + Math.PI / 2) * side;
+      const cy = target.y + Math.sin(facing + Math.PI / 2) * side;
+      ctx.strokeStyle = i === 1 ? profile.core : profile.main;
+      ctx.lineWidth = i === 1 ? 2.4 : 1.7;
+      ctx.globalAlpha = hitFade * (i === 1 ? .78 : .58);
+      ctx.beginPath();
+      ctx.moveTo(
+        cx - Math.cos(cutAngle) * 22,
+        cy - Math.sin(cutAngle) * 22,
+      );
+      ctx.lineTo(
+        cx + Math.cos(cutAngle) * 23,
+        cy + Math.sin(cutAngle) * 23,
+      );
+      ctx.stroke();
     }
+
+    for (let i = 0; i < 5; i += 1) {
+      const drift = 7 + hit * (8 + i * 2);
+      dot(
+        ctx,
+        target.x + (i - 2) * 3,
+        target.y + drift,
+        1.0 + (i % 2) * .35,
+        i === 2 ? profile.core : profile.main,
+        hitFade * .42,
+      );
+    }
+    ctx.restore();
   }
 }
 
 function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .14), true);
 
-  // VFX 3.0+: Mortal Strike keeps the approved 180° signature sweep, but the
-  // Warrior now carries one spectral double-sided axe. Misses still aim at the
-  // actor; combat text remains the authority for MISS/DODGE.
   const dx = target.x - source.x;
   const dy = target.y - source.y;
   const distance = Math.max(1, Math.hypot(dx, dy));
@@ -390,112 +428,105 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   } else {
     swing = .58 + smooth((rawSwing - .68) / .32) * .42;
   }
+
   const reveal = smooth(p / .10);
   const swingFade = 1 - clamp01((p - .62) / .28);
   const startAngle = facing - Math.PI * .58;
   const endAngle = facing + Math.PI * .42;
-  const swordAngle = startAngle + (endAngle - startAngle) * swing;
-  const swordLength = Math.max(66, Math.min(96, distance + 24));
-  const arcRadius = Math.max(source.radius + 32, Math.min(swordLength * .86, distance * .86 + 18));
-  const swordAlpha = reveal * swingFade;
-
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.translate(source.x, source.y);
-
-  // Wide completed sweep trail: blurred warm metal outside, white-hot edge inside.
-  ctx.lineCap = "round";
-  ctx.shadowColor = profile.main;
-  ctx.shadowBlur = 14;
-  ctx.strokeStyle = profile.main;
-  ctx.lineWidth = 24;
-  ctx.globalAlpha = swordAlpha * .15;
-  ctx.beginPath();
-  ctx.arc(0, 0, arcRadius, startAngle, swordAngle);
-  ctx.stroke();
-
-  ctx.shadowBlur = 7;
-  ctx.lineWidth = 7;
-  ctx.globalAlpha = swordAlpha * .72;
-  ctx.beginPath();
-  ctx.arc(0, 0, arcRadius, startAngle, swordAngle);
-  ctx.stroke();
-
-  ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 4.2;
-  ctx.globalAlpha = Math.min(1, swordAlpha * 1.20);
-  ctx.beginPath();
-  ctx.arc(0, 0, arcRadius - 2, Math.max(startAngle, swordAngle - 1.02), swordAngle);
-  ctx.stroke();
-
-  ctx.restore();
-
+  const axeAngle = startAngle + (endAngle - startAngle) * swing;
   const axeLength = Math.max(50, Math.min(70, distance + 3));
-  drawWarriorDoubleAxe(
-    ctx,
-    source,
-    swordAngle - .11,
-    axeLength,
-    14.5,
-    profile,
-    swordAlpha * .12,
+  const arcRadius = Math.max(
+    source.radius + 32,
+    Math.min(axeLength * .95, distance * .86 + 18),
+  );
+  const weaponAlpha = reveal * swingFade;
+
+  // Keep the approved 180° signature swing. The new pass changes the payoff:
+  // Mortal Strike should visibly leave a vicious wound rather than a generic
+  // radial explosion.
+  drawWarriorSweepArc(
+    ctx, source, arcRadius, startAngle, axeAngle, profile, weaponAlpha, 6.0
   );
   drawWarriorDoubleAxe(
-    ctx,
-    source,
-    swordAngle,
-    axeLength,
-    15,
-    profile,
-    swordAlpha,
+    ctx, source, axeAngle - .11, axeLength, 14.5, profile, weaponAlpha * .12
+  );
+  drawWarriorDoubleAxe(
+    ctx, source, axeAngle, axeLength, 15, profile, weaponAlpha
   );
 
-  if (p > .30) {
-    const t = clamp01((p - .30) / .50);
-    const hitFade = 1 - smooth((t - .68) / .32);
-    const expand = smooth(t);
+  if (!missed && p > .28) {
+    const hit = clamp01((p - .28) / .50);
+    const hitFade = 1 - smooth((hit - .72) / .28);
+    const expand = easeOut(hit);
+    const contact = Math.exp(-hit * 10);
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    ctx.translate(target.x, target.y);
-
-    // Impact flash and broken wound seal sell the Mortal Strike healing debuff.
-    ctx.fillStyle = profile.core;
-    ctx.globalAlpha = hitFade * Math.exp(-t * 11) * .30;
-    ctx.beginPath();
-    ctx.arc(0, 0, 11 + (1 - t) * 9, 0, TAU);
-    ctx.fill();
-
-    ctx.strokeStyle = profile.main;
+    ctx.lineCap = "round";
     ctx.shadowColor = profile.main;
-    ctx.shadowBlur = 10;
-    ctx.lineWidth = 2.6;
-    ctx.globalAlpha = hitFade * .66;
-    for (let i = 0; i < 3; i += 1) {
-      const a = i * TAU / 3 + .2 - t * .18;
+    ctx.shadowBlur = 11;
+
+    // Heavy contact flash where the axe actually enters the target.
+    dot(
+      ctx,
+      target.x,
+      target.y,
+      7 + contact * 12,
+      profile.core,
+      hitFade * (.16 + contact * .20),
+    );
+
+    // One dominant wound lane through the target.
+    ctx.strokeStyle = profile.core;
+    ctx.lineWidth = 4.2;
+    ctx.globalAlpha = hitFade * .88;
+    ctx.beginPath();
+    ctx.moveTo(
+      target.x - Math.cos(facing) * (31 + expand * 8),
+      target.y - Math.sin(facing) * (31 + expand * 8),
+    );
+    ctx.lineTo(
+      target.x + Math.cos(facing) * (34 + expand * 10),
+      target.y + Math.sin(facing) * (34 + expand * 10),
+    );
+    ctx.stroke();
+
+    // Broken "mortal wound" brackets remain around the victim for a beat.
+    for (const sign of [-1, 1]) {
+      const center = facing + sign * Math.PI / 2;
+      const radius = 20 + expand * 22;
+      ctx.strokeStyle = sign < 0 ? profile.main : profile.core;
+      ctx.lineWidth = sign < 0 ? 2.8 : 2.2;
+      ctx.globalAlpha = hitFade * (sign < 0 ? .62 : .72);
       ctx.beginPath();
-      ctx.arc(0, 0, 20 + expand * 31, a, a + 1.02);
+      ctx.arc(
+        target.x,
+        target.y,
+        radius,
+        center - .48,
+        center + .48,
+      );
       ctx.stroke();
     }
 
-    const hitAngle = Math.atan2(dy, dx);
-    ctx.strokeStyle = profile.core;
-    ctx.lineWidth = 4.2;
-    ctx.globalAlpha = hitFade * .86;
-    ctx.beginPath();
-    ctx.arc(0, 0, 30 + expand * 28, hitAngle - .78, hitAngle + .78);
-    ctx.stroke();
-
-    ctx.strokeStyle = profile.core;
-    ctx.lineWidth = 1.4;
-    ctx.globalAlpha = hitFade * .58;
-    for (let i = 0; i < 5; i += 1) {
-      const a = i * TAU / 5 + seed * .006;
-      const inner = 8;
-      const outer = 22 + expand * (10 + (i % 3) * 4);
+    // Short torn fragments point away from the wound, not in every direction.
+    for (let i = 0; i < 6; i += 1) {
+      const spread = (i - 2.5) * .16;
+      const a = facing + spread;
+      const inner = 10;
+      const outer = 23 + expand * (10 + (i % 2) * 6);
+      ctx.strokeStyle = i === 2 || i === 3 ? profile.core : profile.main;
+      ctx.lineWidth = i === 2 || i === 3 ? 2.0 : 1.25;
+      ctx.globalAlpha = hitFade * .54;
       ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
-      ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+      ctx.moveTo(
+        target.x + Math.cos(a) * inner,
+        target.y + Math.sin(a) * inner,
+      );
+      ctx.lineTo(
+        target.x + Math.cos(a) * outer,
+        target.y + Math.sin(a) * outer,
+      );
       ctx.stroke();
     }
 
@@ -504,54 +535,84 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
 }
 
 function drawSlam(ctx, source, target, profile, p, seed, missed) {
-  warriorCue(ctx, source, profile, Math.min(1, p / .18), true);
-  const side = missed ? (seeded(seed, 2) > .5 ? 47 : -47) : 0;
-  const to = { x: target.x + side, y: target.y };
-  const impact = smooth(p / .36);
-  const fade = 1 - clamp01((p - .72) / .28);
+  warriorCue(ctx, source, profile, Math.min(1, p / .20), true);
 
   const facing = Math.atan2(target.y - source.y, target.x - source.x);
-  const drop = smooth(clamp01((p - .20) / .42));
-  const angle = facing - 1.48 + 1.48 * drop;
-  const strength = easeOut(p / .11) * fade;
+  const wind = smooth(clamp01(p / .24));
+  const drop = smooth(clamp01((p - .18) / .38));
+  const fade = 1 - clamp01((p - .72) / .28);
+  const angle = facing - 1.58 + 1.58 * drop;
+  const strength = easeOut(p / .10) * fade;
+  const distance = Math.hypot(target.x - source.x, target.y - source.y);
+  const axeLength = Math.max(50, Math.min(66, distance + 3));
 
-  drawWarriorSweepArc(
-    ctx,
-    source,
-    source.radius + 40,
-    facing - 1.48,
-    angle,
-    profile,
-    strength,
-    4.8,
-  );
-  const slamDistance = Math.hypot(target.x - source.x, target.y - source.y);
-  const slamAxeLength = Math.max(50, Math.min(66, slamDistance + 3));
+  // WoW's Slam is deliberately unsubtle: a clear overhead load followed by
+  // one downward chop. Keep the trail narrow until the weapon commits.
+  if (drop > .02) {
+    drawWarriorSweepArc(
+      ctx,
+      source,
+      source.radius + 40,
+      facing - 1.58,
+      angle,
+      profile,
+      strength,
+      4.4,
+    );
+  }
   drawWarriorDoubleAxe(
-    ctx, source, angle, slamAxeLength, 15, profile, strength
+    ctx, source, angle, axeLength, 15, profile, strength
   );
 
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
+  if (!missed && p > .18) {
+    const hit = clamp01((p - .18) / .54);
+    const hitFade = 1 - smooth((hit - .68) / .32);
+    const expand = easeOut(hit);
+    const nx = -Math.sin(facing);
+    const ny = Math.cos(facing);
 
-  if (!missed && p > .20) {
-    const shock = clamp01((p - .20) / .58);
-    ctx.globalAlpha = (1 - shock) * .65;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineCap = "round";
+    ctx.shadowColor = profile.main;
+    ctx.shadowBlur = 8;
+
+    // Flattened ground compression directly under the chop.
     ctx.strokeStyle = profile.main;
-    ctx.lineWidth = 2.4;
+    ctx.lineWidth = 2.8;
+    ctx.globalAlpha = hitFade * .58;
     ctx.beginPath();
-    ctx.ellipse(target.x, target.y + 13, 10 + easeOut(shock) * 38, 4 + easeOut(shock) * 10, 0, 0, TAU);
+    ctx.ellipse(
+      target.x,
+      target.y + 10,
+      13 + expand * 36,
+      4 + expand * 10,
+      facing,
+      0,
+      TAU,
+    );
     ctx.stroke();
-    for (let i = 0; i < 6; i += 1) {
-      const a = -.15 + i * (Math.PI / 5);
-      const len = 10 + shock * (15 + seeded(seed, i) * 17);
+
+    // Ground cracks fan mostly perpendicular to the weapon direction.
+    for (let i = 0; i < 7; i += 1) {
+      const lane = (i - 3) * 5;
+      const forward = 10 + expand * (17 + (i % 3) * 6);
+      const sx = target.x + nx * lane;
+      const sy = target.y + ny * lane + 8;
+      ctx.strokeStyle = i === 3 ? profile.core : profile.main;
+      ctx.lineWidth = i === 3 ? 2.2 : 1.35;
+      ctx.globalAlpha = hitFade * (i === 3 ? .70 : .48);
       ctx.beginPath();
-      ctx.moveTo(target.x + Math.cos(a) * 7, target.y + 12 + Math.sin(a) * 3);
-      ctx.lineTo(target.x + Math.cos(a) * len, target.y + 12 + Math.sin(a) * len * .38);
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(
+        sx + Math.cos(facing) * forward + nx * (i % 2 ? 4 : -4),
+        sy + Math.sin(facing) * forward + ny * (i % 2 ? 4 : -4),
+      );
       ctx.stroke();
     }
+
+    ctx.restore();
   }
-  ctx.restore();
 }
 
 function drawCharge(ctx, source, effect, target, profile, p, seed) {
@@ -627,90 +688,188 @@ function drawPummel(ctx, source, target, profile, p, successful) {
 }
 
 function drawOverpower(ctx, source, target, profile, p, seed, missed) {
-  warriorCue(ctx, source, profile, Math.min(1, p / .12));
+  warriorCue(ctx, source, profile, Math.min(1, p / .08));
   const facing = Math.atan2(target.y - source.y, target.x - source.x);
-  const motion = smooth(clamp01((p - .02) / .46));
-  const fade = 1 - smooth((p - .62) / .26);
-  const a0 = facing + .96;
-  const angle = a0 - 1.38 * motion;
-  const strength = easeOut(p / .08) * fade;
+  const motion = smooth(clamp01((p - .01) / .32));
+  const fade = 1 - smooth((p - .50) / .24);
+  const a0 = facing + .72;
+  const angle = a0 - .98 * motion;
+  const strength = easeOut(p / .055) * fade;
 
-  drawWarriorSweepArc(ctx, source, source.radius + 31, a0, angle, profile, strength, 3.2);
-  const overpowerDistance = Math.hypot(target.x - source.x, target.y - source.y);
-  const overpowerAxeLength = Math.max(46, Math.min(58, overpowerDistance + 3));
+  // Overpower is a precision counter: short reverse snap, small weapon travel,
+  // almost no theatrical wind-up.
+  drawWarriorSweepArc(
+    ctx, source, source.radius + 29, a0, angle, profile, strength, 2.5
+  );
+  const distance = Math.hypot(target.x - source.x, target.y - source.y);
+  const axeLength = Math.max(46, Math.min(56, distance + 3));
   drawWarriorDoubleAxe(
-    ctx, source, angle, overpowerAxeLength, 12.5, profile, strength
+    ctx, source, angle, axeLength, 12, profile, strength
   );
 
-  if (!missed && p > .22) {
-    const hit = clamp01((p - .22) / .48);
-    for (let i = 0; i < 4; i += 1) {
-      const a = -.75 + i * .31;
-      dot(ctx, target.x + Math.cos(a) * (13 + hit * 18), target.y + Math.sin(a) * (13 + hit * 18), 1.3, profile.main, (1 - hit) * .42);
+  if (!missed && p > .11) {
+    const hit = clamp01((p - .11) / .34);
+    const hitFade = 1 - smooth((hit - .68) / .32);
+    const snap = Math.exp(-hit * 11);
+    const nx = -Math.sin(facing);
+    const ny = Math.cos(facing);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineCap = "round";
+    ctx.shadowColor = profile.core;
+    ctx.shadowBlur = 6;
+
+    // A razor-straight contact lane reads as "you cannot evade this".
+    ctx.strokeStyle = profile.core;
+    ctx.lineWidth = 2.8;
+    ctx.globalAlpha = hitFade * (.64 + snap * .22);
+    ctx.beginPath();
+    ctx.moveTo(
+      target.x - Math.cos(facing) * 25,
+      target.y - Math.sin(facing) * 25,
+    );
+    ctx.lineTo(
+      target.x + Math.cos(facing) * 26,
+      target.y + Math.sin(facing) * 26,
+    );
+    ctx.stroke();
+
+    // Tiny perpendicular lock marks replace generic sparks.
+    for (const sign of [-1, 1]) {
+      ctx.strokeStyle = sign < 0 ? profile.main : profile.core;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = hitFade * .54;
+      ctx.beginPath();
+      ctx.moveTo(
+        target.x + nx * sign * 5 - Math.cos(facing) * 7,
+        target.y + ny * sign * 5 - Math.sin(facing) * 7,
+      );
+      ctx.lineTo(
+        target.x + nx * sign * 12 + Math.cos(facing) * 7,
+        target.y + ny * sign * 12 + Math.sin(facing) * 7,
+      );
+      ctx.stroke();
     }
+
+    ctx.restore();
   }
 }
 
 function drawBloodthirst(ctx, source, target, profile, p, seed, missed) {
-  warriorCue(ctx, source, profile, Math.min(1, p / .12));
+  warriorCue(ctx, source, profile, Math.min(1, p / .09));
+
   const facing = Math.atan2(target.y - source.y, target.x - source.x);
-  const raw = clamp01((p - .03) / .86);
-  const start = facing - 1.43;
-  const far = facing + 1.43;
+  const raw = clamp01((p - .02) / .72);
+  const firstStart = facing - .95;
+  const firstEnd = facing + .48;
+  const secondEnd = facing - .22;
+
   let angle;
   let segmentStart;
-
-  if (raw < .47) {
-    const motion = smooth(raw / .47);
-    angle = start + (far - start) * motion;
-    segmentStart = start;
-  } else if (raw < .56) {
-    angle = far;
-    segmentStart = start;
+  if (raw < .58) {
+    const motion = smooth(raw / .58);
+    angle = firstStart + (firstEnd - firstStart) * motion;
+    segmentStart = firstStart;
   } else {
-    const motion = smooth((raw - .56) / .44);
-    angle = far + (start - far) * motion;
-    segmentStart = far;
+    const motion = smooth((raw - .58) / .42);
+    angle = firstEnd + (secondEnd - firstEnd) * motion;
+    segmentStart = firstEnd;
   }
 
-  const fade = 1 - smooth((p - .91) / .09);
-  const strength = easeOut(p / .08) * fade;
+  const fade = 1 - smooth((p - .82) / .16);
+  const strength = easeOut(p / .06) * fade;
+  const distance = Math.hypot(target.x - source.x, target.y - source.y);
+  const axeLength = Math.max(48, Math.min(60, distance + 3));
 
+  // Fury/Bloodthirst inspiration: fast committed hit plus a savage reverse bite,
+  // not another full heroic 180-degree Arms swing.
   drawWarriorSweepArc(
-    ctx,
-    source,
-    source.radius + 34,
-    segmentStart,
-    angle,
-    profile,
-    strength,
-    4.5,
-  );
-  const bloodthirstDistance = Math.hypot(
-    target.x - source.x,
-    target.y - source.y,
-  );
-  const bloodthirstAxeLength = Math.max(
-    48,
-    Math.min(60, bloodthirstDistance + 3),
+    ctx, source, source.radius + 32, segmentStart, angle, profile, strength, 3.8
   );
   drawWarriorDoubleAxe(
-    ctx,
-    source,
-    angle,
-    bloodthirstAxeLength,
-    13.5,
-    profile,
-    strength,
+    ctx, source, angle, axeLength, 13.2, profile, strength
   );
 
-  if (!missed && source && p > .28) {
-    const t = clamp01((p - .28) / .48);
-    const b = basis(target, source);
-    for (let i = 0; i < 5; i += 1) {
-      const local = clamp01(t - i * .08);
-      const q = along(target, source, easeOut(local));
-      dot(ctx, q.x + b.nx * Math.sin(i + p * 10) * 4, q.y + b.ny * Math.sin(i + p * 10) * 4, 1.5 + (i % 2) * .4, profile.main, fade * .48);
+  if (!missed && source) {
+    const contact1 = Math.exp(-Math.pow((raw - .39) / .075, 2));
+    const contact2 = Math.exp(-Math.pow((raw - .82) / .075, 2));
+    const contact = Math.max(contact1, contact2);
+
+    if (contact > .02) {
+      dot(
+        ctx,
+        target.x,
+        target.y,
+        5 + contact * 8,
+        profile.core,
+        contact * .58,
+      );
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.lineCap = "round";
+      for (let i = 0; i < 5; i += 1) {
+        const spread = (i - 2) * .16;
+        const a = facing + spread;
+        const inner = 8;
+        const outer = 20 + contact * (9 + (i % 2) * 5);
+        ctx.strokeStyle = i === 2 ? profile.core : profile.main;
+        ctx.lineWidth = i === 2 ? 2.1 : 1.25;
+        ctx.globalAlpha = contact * .62;
+        ctx.beginPath();
+        ctx.moveTo(
+          target.x + Math.cos(a) * inner,
+          target.y + Math.sin(a) * inner,
+        );
+        ctx.lineTo(
+          target.x + Math.cos(a) * outer,
+          target.y + Math.sin(a) * outer,
+        );
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // The life-return component is visible as three red strands collapsing back
+    // into the Warrior after the first contact.
+    if (p > .24) {
+      const t = clamp01((p - .24) / .50);
+      const backFade = 1 - smooth((t - .80) / .20);
+      const b = basis(target, source);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.lineCap = "round";
+      for (let i = 0; i < 3; i += 1) {
+        const q = easeOut(clamp01(t - i * .07));
+        const side = (i - 1) * 5;
+        const sx = target.x + b.nx * side;
+        const sy = target.y + b.ny * side;
+        const ex = sx + (source.x - sx) * q;
+        const ey = sy + (source.y - sy) * q;
+        ctx.strokeStyle = i === 1 ? profile.core : profile.main;
+        ctx.lineWidth = i === 1 ? 2.0 : 1.25;
+        ctx.globalAlpha = backFade * (i === 1 ? .54 : .38);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.quadraticCurveTo(
+          (sx + source.x) / 2 + b.nx * (i - 1) * 7,
+          (sy + source.y) / 2 + b.ny * (i - 1) * 7,
+          ex, ey,
+        );
+        ctx.stroke();
+      }
+
+      dot(
+        ctx,
+        source.x,
+        source.y,
+        4 + Math.exp(-Math.pow((t - .76) / .15, 2)) * 6,
+        profile.main,
+        backFade * .34,
+      );
+      ctx.restore();
     }
   }
 }

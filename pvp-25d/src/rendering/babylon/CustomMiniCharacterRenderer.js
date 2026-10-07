@@ -236,77 +236,173 @@ export class CustomMiniCharacterRenderer{
     skinMat.specularColor=BABYLON.Color3.Black();
 
     const handleMat=new BABYLON.StandardMaterial("warrior-axe-handle:"+actor.id,this.scene);
-    handleMat.diffuseColor=BABYLON.Color3.FromHexString("#3b2b22");
+    handleMat.diffuseColor=BABYLON.Color3.FromHexString("#4a3124");
     handleMat.specularColor=BABYLON.Color3.Black();
 
     const axeMat=new BABYLON.StandardMaterial("warrior-axe-head:"+actor.id,this.scene);
-    axeMat.diffuseColor=BABYLON.Color3.FromHexString("#8f969f");
-    axeMat.specularColor=new BABYLON.Color3(0.12,0.12,0.12);
+    axeMat.diffuseColor=BABYLON.Color3.FromHexString("#9aa2aa");
+    axeMat.specularColor=new BABYLON.Color3(0.18,0.18,0.18);
 
     entry.ownedMaterials.push(skinMat,handleMat,axeMat);
 
-    const weaponPivot=new BABYLON.TransformNode("warrior-weapon-pivot:"+actor.id,this.scene);
-    weaponPivot.parent=entry.visualRoot;
-    weaponPivot.position.set(0,0.73,-0.02);
+    // One shared combat rig: arms, hands and axe rotate together during a swing,
+    // so the hands can never visually detach from the weapon.
+    const combatRig=new BABYLON.TransformNode("warrior-combat-rig:"+actor.id,this.scene);
+    combatRig.parent=entry.visualRoot;
+    combatRig.position.set(0,0,0);
 
-    const leftArm=BABYLON.MeshBuilder.CreateBox(
+    const makeTube=(name,path,radius,material)=>{
+      const mesh=BABYLON.MeshBuilder.CreateTube(
+        name,
+        {
+          path:path.map(([x,y,z])=>new BABYLON.Vector3(x,y,z)),
+          radius,
+          tessellation:8,
+          cap:BABYLON.Mesh.CAP_ALL,
+        },
+        this.scene,
+      );
+      mesh.parent=combatRig;
+      mesh.material=material;
+      mesh.metadata={actorId:actor.id};
+      mesh.isPickable=true;
+      this.shadowGenerator?.addShadowCaster(mesh);
+      return mesh;
+    };
+
+    const makeHand=(name,[x,y,z])=>{
+      const hand=BABYLON.MeshBuilder.CreateSphere(
+        name,
+        {diameter:0.18,segments:8},
+        this.scene,
+      );
+      hand.parent=combatRig;
+      hand.position.set(x,y,z);
+      hand.scaling.set(1.0,0.86,0.92);
+      hand.material=skinMat;
+      hand.metadata={actorId:actor.id};
+      hand.isPickable=true;
+      this.shadowGenerator?.addShadowCaster(hand);
+      return hand;
+    };
+
+    // The handle is diagonal in the arena plane. The two grip points below
+    // are literally on this same line, so both hands read as holding it.
+    const handleStart=[-0.23,0.73,-0.26];
+    const gripLeft=[-0.06,0.73,-0.43];
+    const gripRight=[0.10,0.73,-0.59];
+    const handleEnd=[0.43,0.73,-0.92];
+
+    const leftArm=makeTube(
       "warrior-arm-left:"+actor.id,
-      {width:0.15,height:0.15,depth:0.48},
-      this.scene
+      [
+        [-0.27,0.78,-0.04],
+        [-0.25,0.75,-0.25],
+        gripLeft,
+      ],
+      0.070,
+      skinMat,
     );
-    leftArm.parent=entry.visualRoot;
-    leftArm.position.set(-0.25,0.73,-0.18);
-    leftArm.rotation.y=-0.58;
-    leftArm.material=skinMat;
-    leftArm.metadata={actorId:actor.id};
-    this.shadowGenerator?.addShadowCaster(leftArm);
-
-    const rightArm=BABYLON.MeshBuilder.CreateBox(
+    const rightArm=makeTube(
       "warrior-arm-right:"+actor.id,
-      {width:0.15,height:0.15,depth:0.48},
-      this.scene
+      [
+        [0.27,0.78,-0.04],
+        [0.24,0.75,-0.34],
+        gripRight,
+      ],
+      0.070,
+      skinMat,
     );
-    rightArm.parent=entry.visualRoot;
-    rightArm.position.set(0.25,0.73,-0.18);
-    rightArm.rotation.y=0.58;
-    rightArm.material=skinMat;
-    rightArm.metadata={actorId:actor.id};
-    this.shadowGenerator?.addShadowCaster(rightArm);
 
-    const handle=BABYLON.MeshBuilder.CreateBox(
+    const leftHand=makeHand("warrior-hand-left:"+actor.id,gripLeft);
+    const rightHand=makeHand("warrior-hand-right:"+actor.id,gripRight);
+
+    const handle=makeTube(
       "warrior-axe-handle:"+actor.id,
-      {width:0.075,height:0.075,depth:0.92},
-      this.scene
+      [handleStart,handleEnd],
+      0.042,
+      handleMat,
     );
-    handle.parent=weaponPivot;
-    handle.position.set(0.24,0,-0.27);
-    handle.rotation.y=-0.32;
-    handle.material=handleMat;
-    handle.metadata={actorId:actor.id};
-    this.shadowGenerator?.addShadowCaster(handle);
 
-    const axeHead=BABYLON.MeshBuilder.CreateBox(
-      "warrior-axe-head:"+actor.id,
-      {width:0.42,height:0.12,depth:0.24},
-      this.scene
+    // Low-poly wedge-prism axe blade instead of a box.
+    const blade=new BABYLON.Mesh("warrior-axe-blade:"+actor.id,this.scene);
+    blade.parent=combatRig;
+    blade.position.set(handleEnd[0]+0.02,handleEnd[1],handleEnd[2]-0.01);
+    blade.rotation.y=-0.73;
+
+    const shape=[
+      [-0.06,-0.17],
+      [0.18,-0.23],
+      [0.40,-0.18],
+      [0.46,0.02],
+      [0.37,0.24],
+      [0.10,0.18],
+      [-0.06,0.09],
+    ];
+    const halfThickness=0.055;
+    const positions=[];
+    for(const y of [-halfThickness,halfThickness]){
+      for(const [x,z] of shape){
+        positions.push(x,y,z);
+      }
+    }
+
+    const n=shape.length;
+    const indices=[];
+    // Bottom + top faces.
+    for(let i=1;i<n-1;i++){
+      indices.push(0,i+1,i);
+      indices.push(n,n+i,n+i+1);
+    }
+    // Side walls.
+    for(let i=0;i<n;i++){
+      const j=(i+1)%n;
+      indices.push(i,j,n+j,i,n+j,n+i);
+    }
+
+    const normals=[];
+    BABYLON.VertexData.ComputeNormals(positions,indices,normals);
+    const data=new BABYLON.VertexData();
+    data.positions=positions;
+    data.indices=indices;
+    data.normals=normals;
+    data.applyToMesh(blade);
+    blade.material=axeMat;
+    blade.metadata={actorId:actor.id};
+    blade.isPickable=true;
+    this.shadowGenerator?.addShadowCaster(blade);
+
+    // Small rear metal cap helps the head read as attached to the handle
+    // without turning the weapon into a hammer.
+    const socket=BABYLON.MeshBuilder.CreateCylinder(
+      "warrior-axe-socket:"+actor.id,
+      {height:0.16,diameter:0.13,tessellation:8},
+      this.scene,
     );
-    axeHead.parent=weaponPivot;
-    axeHead.position.set(0.38,0,-0.70);
-    axeHead.rotation.y=-0.32;
-    axeHead.material=axeMat;
-    axeHead.metadata={actorId:actor.id};
-    this.shadowGenerator?.addShadowCaster(axeHead);
+    socket.parent=combatRig;
+    socket.position.set(handleEnd[0],handleEnd[1],handleEnd[2]);
+    socket.rotation.z=Math.PI/2;
+    socket.material=axeMat;
+    socket.metadata={actorId:actor.id};
+    this.shadowGenerator?.addShadowCaster(socket);
 
-    entry.weaponPivot=weaponPivot;
+    entry.weaponPivot=combatRig;
     entry.warriorAttackStartedAt=0;
     entry.warriorCooldownSnapshot=new Map([
       ["warrior-rend",actor.cooldownFor("warrior-rend")],
       ["warrior-mortal-strike",actor.cooldownFor("warrior-mortal-strike")],
       ["warrior-slam",actor.cooldownFor("warrior-slam")],
     ]);
-    entry.meshes.push(leftArm,rightArm,handle,axeHead);
+    entry.meshes.push(
+      leftArm,
+      rightArm,
+      leftHand,
+      rightHand,
+      handle,
+      blade,
+      socket,
+    );
   }
-
   createFallback(actor,entry){
     const m=new BABYLON.StandardMaterial("mini-fallback:"+actor.id,this.scene);
     m.diffuseColor=color(entry.style.primary);
@@ -383,13 +479,15 @@ export class CustomMiniCharacterRenderer{
         }
 
         const elapsed=time-(e.warriorAttackStartedAt||0);
-        if(elapsed>=0 && elapsed<320){
-          const t=elapsed/320;
-          const swing=Math.sin(t*Math.PI);
-          e.weaponPivot.rotation.y=-0.52+swing*1.45;
-          e.weaponPivot.rotation.z=-swing*0.16;
+        if(elapsed>=0 && elapsed<360){
+          const t=elapsed/360;
+          const eased=t<0.30
+            ?-(t/0.30)*0.30
+            :Math.sin(((t-0.30)/0.70)*Math.PI)*1.10;
+          e.weaponPivot.rotation.y=-0.10+eased;
+          e.weaponPivot.rotation.z=-Math.max(0,eased)*0.10;
         }else{
-          e.weaponPivot.rotation.y=-0.52;
+          e.weaponPivot.rotation.y=-0.10;
           e.weaponPivot.rotation.z=0;
         }
       }

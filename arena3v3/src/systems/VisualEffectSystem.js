@@ -22,18 +22,10 @@ const SHOWCASE_PROJECTILE_DURATION_MULTIPLIER = 1.35;
 // visual-only; combat resolution, GCDs, cooldowns and damage timing are unchanged.
 const SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIERS = new Map([
   ["warrior-mortal-strike", 1.35],
-  ["warrior-rend", 1.22],
-  ["warrior-slam", 1.18],
-  ["warrior-overpower", 1.22],
-  ["warrior-bloodthirst", 1.20],
-  ["rogue-garrote", 1.22],
-  ["rogue-sinister", 1.25],
-  ["rogue-eviscerate", 1.20],
-  ["rogue-mutilate", 1.20],
-  ["dk-death-strike", 1.16],
-  ["dk-obliterate", 1.12],
-  ["dk-frost-strike", 1.16],
-  ["shaman-stormstrike", 1.18],
+  ["warrior-rend", 1.16],
+  ["warrior-slam", 1.15],
+  ["warrior-overpower", 1.15],
+  ["warrior-bloodthirst", 1.15],
 ]);
 
 export class VisualEffectSystem {

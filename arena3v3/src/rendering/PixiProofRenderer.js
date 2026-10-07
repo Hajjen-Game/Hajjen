@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-meleesizes1";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-warriorbespoke1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -11628,6 +11628,88 @@ export class PixiProofRenderer {
       });
     };
 
+
+    const signatureWeapon = (
+      g,
+      glowG,
+      cx,
+      cy,
+      angle,
+      length,
+      halfWidth,
+      profile,
+      alpha,
+      shape = "sword",
+    ) => {
+      if(alpha<=0) return;
+
+      const root=6;
+      const shoulder=
+        shape==="cleaver"
+          ? length*.66
+          : length-Math.max(10,halfWidth*1.8);
+      const shoulderWidth=
+        shape==="cleaver"
+          ? halfWidth*1.32
+          : halfWidth*.72;
+      const tipExtension=shape==="cleaver"?4:Math.max(5,halfWidth*.8);
+      const tipWidth=shape==="cleaver"?halfWidth*.34:halfWidth*.12;
+      const blade=[
+        point(cx,cy,root,-halfWidth,angle),
+        point(cx,cy,shoulder,-shoulderWidth,angle),
+        point(cx,cy,length,-tipWidth,angle),
+        point(cx,cy,length+tipExtension,0,angle),
+        point(cx,cy,length,tipWidth,angle),
+        point(cx,cy,shoulder,shoulderWidth,angle),
+        point(cx,cy,root,halfWidth,angle),
+      ];
+
+      polygon(glowG,blade,{
+        color:profile.main,
+        alpha:alpha*.13,
+      },true);
+      glowG
+        .moveTo(blade[0].x,blade[0].y)
+        .lineTo(blade[3].x,blade[3].y)
+        .stroke({
+          color:profile.core,
+          width:Math.max(8,halfWidth*2.1),
+          alpha:alpha*.065,
+        });
+
+      polygon(g,blade,{
+        color:profile.main,
+        alpha:alpha*.48,
+      },true);
+      polygon(g,blade,{
+        color:profile.core,
+        width:2.15,
+        alpha:Math.min(1,alpha*1.08),
+      },false);
+
+      const ridgeA=point(cx,cy,root+5,0,angle);
+      const ridgeB=point(cx,cy,length-7,0,angle);
+      g
+        .moveTo(ridgeA.x,ridgeA.y)
+        .lineTo(ridgeB.x,ridgeB.y)
+        .stroke({
+          color:profile.core,
+          width:1.35,
+          alpha:alpha*.92,
+        });
+
+      const guardA=point(cx,cy,root-1,-halfWidth*1.38,angle);
+      const guardB=point(cx,cy,root-1,halfWidth*1.38,angle);
+      g
+        .moveTo(guardA.x,guardA.y)
+        .lineTo(guardB.x,guardB.y)
+        .stroke({
+          color:profile.accent,
+          width:Math.max(1.6,halfWidth*.46),
+          alpha:alpha*.72,
+        });
+    };
+
     for (const view of this.actorViews.values()) {
       view.combatVfx2GlowFx.clear();
       view.combatVfx2GlowFx.visible = false;
@@ -13816,6 +13898,172 @@ export class PixiProofRenderer {
           }
         }
 
+
+        if(effect.spellId==="warrior-rend"){
+          // Rend: one committed ripping cut, then a short reverse tear. The
+          // target lacerations already exist below; this source animation is
+          // deliberately simple and readable rather than "three generic slashes".
+          const facing=Math.atan2(dy0,dx0);
+          const motion=smooth(clamp01((p-.03)/.54));
+          const fadeOut=1-smooth((p-.70)/.24);
+          const a0=facing-1.18;
+          const a1=facing+.24;
+          const angle=a0+(a1-a0)*motion;
+          const weaponAlpha=alpha*easeOut(p/.10)*fadeOut;
+
+          arc(glow,0,0,source.radius+36,a0,angle,{
+            color:profile.main,width:18,alpha:weaponAlpha*.095
+          },16);
+          arc(core,0,0,source.radius+35,a0,angle,{
+            color:profile.main,width:4.6,alpha:weaponAlpha*.62
+          },16);
+          arc(core,0,0,source.radius+32,Math.max(a0,angle-.70),angle,{
+            color:profile.core,width:2.2,alpha:weaponAlpha*.90
+          },10);
+
+          signatureWeapon(core,glow,0,0,angle,70,5.4,profile,weaponAlpha);
+
+          const tear=smooth(clamp01((p-.36)/.30));
+          if(tear>0){
+            for(let i=0;i<3;i++){
+              const ta=facing-.42+i*.16;
+              const start=source.radius+25+i*2;
+              const end=start+14+tear*9;
+              core
+                .moveTo(Math.cos(ta)*start,Math.sin(ta)*start)
+                .lineTo(Math.cos(ta+.05)*end,Math.sin(ta+.05)*end)
+                .stroke({
+                  color:i===1?profile.core:profile.main,
+                  width:i===1?1.7:1.2,
+                  alpha:alpha*(1-tear)*.58,
+                });
+            }
+          }
+        }
+
+        if(effect.spellId==="warrior-slam"){
+          // Slam: an obvious overhead wind-up, then one heavy chop aligned
+          // directly through the target. No side-to-side flourish.
+          const facing=Math.atan2(dy0,dx0);
+          const wind=smooth(clamp01(p/.25));
+          const drop=smooth(clamp01((p-.20)/.42));
+          const angle=(facing-1.48)+(1.48*drop);
+          const out=1-smooth((p-.72)/.22);
+          const weaponAlpha=alpha*easeOut(p/.11)*out;
+
+          const charge=1-drop;
+          glow.circle(0,0,source.radius+10+wind*8).stroke({
+            color:profile.main,width:10,alpha:alpha*charge*.075
+          });
+          core
+            .moveTo(
+              Math.cos(angle)*(source.radius+5),
+              Math.sin(angle)*(source.radius+5)
+            )
+            .lineTo(
+              Math.cos(angle)*(source.radius+24+wind*8),
+              Math.sin(angle)*(source.radius+24+wind*8)
+            )
+            .stroke({
+              color:profile.core,width:1.7,alpha:alpha*charge*.44
+            });
+
+          if(drop>0){
+            const trailStart=facing-1.48;
+            arc(glow,0,0,source.radius+42,trailStart,angle,{
+              color:profile.main,width:23,alpha:weaponAlpha*.10
+            },16);
+            arc(core,0,0,source.radius+40,trailStart,angle,{
+              color:profile.core,width:3.6,alpha:weaponAlpha*.72
+            },16);
+          }
+
+          signatureWeapon(core,glow,0,0,angle,84,7.2,profile,weaponAlpha);
+
+          const contact=Math.exp(-Math.pow((drop-.94)/.11,2));
+          if(contact>.02){
+            glow.ellipse(dx0,dy0+10,18+contact*22,5+contact*8).stroke({
+              color:profile.main,width:11,alpha:alpha*contact*.10
+            });
+            core.ellipse(dx0,dy0+10,12+contact*18,3+contact*6).stroke({
+              color:profile.core,width:2.4,alpha:alpha*contact*.68
+            });
+          }
+        }
+
+        if(effect.spellId==="warrior-overpower"){
+          // Overpower: fast reverse counter-swing. Smaller blade, bright edge,
+          // minimal glow; it should read as precision rather than another heavy.
+          const facing=Math.atan2(dy0,dx0);
+          const motion=smooth(clamp01((p-.02)/.46));
+          const a0=facing+.96;
+          const a1=facing-.42;
+          const angle=a0+(a1-a0)*motion;
+          const out=1-smooth((p-.62)/.26);
+          const weaponAlpha=alpha*easeOut(p/.08)*out;
+
+          arc(glow,0,0,source.radius+32,a0,angle,{
+            color:profile.main,width:11,alpha:weaponAlpha*.055
+          },14);
+          arc(core,0,0,source.radius+31,a0,angle,{
+            color:profile.core,width:3.3,alpha:weaponAlpha*.86
+          },14);
+
+          signatureWeapon(core,glow,0,0,angle,66,4.5,profile,weaponAlpha);
+
+          const snap=Math.exp(-Math.pow((motion-.70)/.12,2));
+          if(snap>.03){
+            const crossA=point(dx0,dy0,-19,0,facing-.18);
+            const crossB=point(dx0,dy0,19,0,facing-.18);
+            core.moveTo(crossA.x,crossA.y).lineTo(crossB.x,crossB.y).stroke({
+              color:profile.core,width:2.2,alpha:alpha*snap*.75
+            });
+          }
+        }
+
+        if(effect.spellId==="warrior-bloodthirst"){
+          // Bloodthirst: two compact cleaver hits that converge on the victim,
+          // then the existing red fragments pull back toward the Warrior.
+          const facing=Math.atan2(dy0,dx0);
+          for(let i=0;i<2;i++){
+            const delay=i*.10;
+            const local=clamp01((p-delay)/.50);
+            if(local<=0) continue;
+            const motion=smooth(local);
+            const out=1-smooth((local-.78)/.22);
+            const sign=i===0?-1:1;
+            const start=facing+sign*.92;
+            const end=facing+sign*.08;
+            const angle=start+(end-start)*motion;
+            const side=sign*3.5;
+            const ox=-Math.sin(facing)*side;
+            const oy=Math.cos(facing)*side;
+            const weaponAlpha=alpha*easeOut(local/.14)*out;
+
+            arc(glow,ox,oy,source.radius+29,start,angle,{
+              color:profile.main,width:14,alpha:weaponAlpha*.075
+            },12);
+            arc(core,ox,oy,source.radius+28,start,angle,{
+              color:i===0?profile.main:profile.core,
+              width:3.4,alpha:weaponAlpha*.68
+            },12);
+
+            signatureWeapon(
+              core,glow,ox,oy,angle,58,5.2,profile,weaponAlpha,"cleaver"
+            );
+          }
+
+          const bite=Math.exp(-Math.pow((p-.43)/.11,2));
+          if(bite>.02){
+            glow.circle(dx0,dy0,8+bite*17).fill({
+              color:profile.main,alpha:alpha*bite*.10
+            });
+            core.circle(dx0,dy0,4+bite*7).fill({
+              color:profile.core,alpha:alpha*bite*.58
+            });
+          }
+        }
+
         let slashCount=1;
         let slashLength=48;
         let slashWidth=3.8;
@@ -13831,7 +14079,12 @@ export class PixiProofRenderer {
         if(effect.spellId==="dk-death-strike"){slashCount=2;slashLength=90;slashWidth=6.5;}
         if(effect.spellId==="dk-frost-strike"){slashCount=2;slashLength=86;slashWidth=5.6;}
         if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=78;slashWidth=5.5;}
-        if(signatureSpec) slashCount=0;
+        const bespokeWarriorWeapon =
+          effect.spellId==="warrior-rend"
+          || effect.spellId==="warrior-slam"
+          || effect.spellId==="warrior-overpower"
+          || effect.spellId==="warrior-bloodthirst";
+        if(signatureSpec || bespokeWarriorWeapon) slashCount=0;
 
         for(let i=0;i<slashCount;i++){
           const delay=i*(slashCount>1?.055:0);

@@ -84,6 +84,106 @@ function weaponSlash(ctx, target, angle, length, profile, alpha, width = 4, bend
   ctx.restore();
 }
 
+function drawWarriorSignatureBlade(
+  ctx,
+  source,
+  angle,
+  length,
+  halfWidth,
+  profile,
+  alpha,
+  shape = "sword",
+) {
+  if (!source || alpha <= 0) return;
+
+  const local = (x, y) => ({
+    x: source.x + x * Math.cos(angle) - y * Math.sin(angle),
+    y: source.y + x * Math.sin(angle) + y * Math.cos(angle),
+  });
+  const root = source.radius + 4;
+  const shoulder =
+    shape === "cleaver"
+      ? length * .66
+      : length - Math.max(10, halfWidth * 1.8);
+  const shoulderWidth =
+    shape === "cleaver" ? halfWidth * 1.32 : halfWidth * .72;
+  const tipWidth = shape === "cleaver" ? halfWidth * .34 : halfWidth * .12;
+  const blade = [
+    local(root, -halfWidth),
+    local(shoulder, -shoulderWidth),
+    local(length, -tipWidth),
+    local(length + (shape === "cleaver" ? 4 : 6), 0),
+    local(length, tipWidth),
+    local(shoulder, shoulderWidth),
+    local(root, halfWidth),
+  ];
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = profile.main;
+  ctx.globalAlpha = alpha * .18;
+  ctx.beginPath();
+  ctx.moveTo(blade[0].x, blade[0].y);
+  for (let i = 1; i < blade.length; i += 1) ctx.lineTo(blade[i].x, blade[i].y);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 4;
+  ctx.globalAlpha = alpha * .48;
+  ctx.fill();
+
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 2.1;
+  ctx.globalAlpha = Math.min(1, alpha * 1.08);
+  ctx.stroke();
+
+  const ridgeA = local(root + 5, 0);
+  const ridgeB = local(length - 7, 0);
+  ctx.lineWidth = 1.35;
+  ctx.globalAlpha = alpha * .92;
+  ctx.beginPath();
+  ctx.moveTo(ridgeA.x, ridgeA.y);
+  ctx.lineTo(ridgeB.x, ridgeB.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawWarriorSweepArc(
+  ctx,
+  source,
+  radius,
+  start,
+  end,
+  profile,
+  alpha,
+  width = 4,
+) {
+  if (!source || alpha <= 0) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 9;
+  ctx.strokeStyle = profile.main;
+  ctx.lineWidth = width * 3.4;
+  ctx.globalAlpha = alpha * .10;
+  ctx.beginPath();
+  ctx.arc(source.x, source.y, radius, start, end, end < start);
+  ctx.stroke();
+
+  ctx.shadowBlur = 3;
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = width;
+  ctx.globalAlpha = alpha * .74;
+  ctx.beginPath();
+  ctx.arc(source.x, source.y, radius - 1, start, end, end < start);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function warriorCue(ctx, source, profile, p, heavy = false) {
   if (!source) return;
   const fade = 1 - clamp01(p);
@@ -128,15 +228,16 @@ function rogueCue(ctx, source, profile, p) {
 
 function drawRend(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .14));
-  const side = missed ? (seeded(seed, 0) > .5 ? 42 : -42) : 0;
-  const to = { x: target.x + side, y: target.y - (missed ? 7 : 0) };
-  const fade = 1 - clamp01((p - .62) / .38);
-  for (let i = 0; i < 3; i += 1) {
-    const delay = i * .055;
-    const local = smooth((p - delay) / .30);
-    if (local <= 0) continue;
-    weaponSlash(ctx, { x: to.x + (i - 1) * 5, y: to.y + (i - 1) * 2 }, -.84 + i * .07, 37 + i * 4, profile, fade * local * .68, 2.2, 5);
-  }
+  const facing = Math.atan2(target.y - source.y, target.x - source.x);
+  const motion = smooth(clamp01((p - .03) / .54));
+  const fade = 1 - smooth((p - .70) / .24);
+  const a0 = facing - 1.18;
+  const angle = a0 + 1.42 * motion;
+  const strength = easeOut(p / .10) * fade;
+
+  drawWarriorSweepArc(ctx, source, source.radius + 35, a0, angle, profile, strength, 4.3);
+  drawWarriorSignatureBlade(ctx, source, angle, 70, 5.4, profile, strength);
+
   if (!missed) {
     for (let i = 0; i < 4; i += 1) {
       const a = -.4 + i * .28;
@@ -331,17 +432,25 @@ function drawSlam(ctx, source, target, profile, p, seed, missed) {
   const impact = smooth(p / .36);
   const fade = 1 - clamp01((p - .72) / .28);
 
+  const facing = Math.atan2(target.y - source.y, target.x - source.x);
+  const drop = smooth(clamp01((p - .20) / .42));
+  const angle = facing - 1.48 + 1.48 * drop;
+  const strength = easeOut(p / .11) * fade;
+
+  drawWarriorSweepArc(
+    ctx,
+    source,
+    source.radius + 40,
+    facing - 1.48,
+    angle,
+    profile,
+    strength,
+    4.8,
+  );
+  drawWarriorSignatureBlade(ctx, source, angle, 84, 7.2, profile, strength);
+
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  ctx.strokeStyle = profile.core;
-  ctx.shadowColor = profile.main;
-  ctx.shadowBlur = 11;
-  ctx.lineWidth = 5;
-  ctx.globalAlpha = fade * impact * .82;
-  ctx.beginPath();
-  ctx.moveTo(to.x - 10, to.y - 42 + impact * 18);
-  ctx.lineTo(to.x + 5, to.y + 12);
-  ctx.stroke();
 
   if (!missed && p > .20) {
     const shock = clamp01((p - .20) / .58);
@@ -437,26 +546,61 @@ function drawPummel(ctx, source, target, profile, p, successful) {
 
 function drawOverpower(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .12));
-  const to = missed ? { x: target.x + (seeded(seed, 4) > .5 ? 42 : -42), y: target.y - 8 } : target;
-  const fade = 1 - clamp01((p - .66) / .34);
-  weaponSlash(ctx, to, .78, 52, profile, fade * smooth(p / .30) * .86, 4.3, -12);
+  const facing = Math.atan2(target.y - source.y, target.x - source.x);
+  const motion = smooth(clamp01((p - .02) / .46));
+  const fade = 1 - smooth((p - .62) / .26);
+  const a0 = facing + .96;
+  const angle = a0 - 1.38 * motion;
+  const strength = easeOut(p / .08) * fade;
+
+  drawWarriorSweepArc(ctx, source, source.radius + 31, a0, angle, profile, strength, 3.2);
+  drawWarriorSignatureBlade(ctx, source, angle, 66, 4.5, profile, strength);
+
   if (!missed && p > .22) {
     const hit = clamp01((p - .22) / .48);
-    for (let i = 0; i < 5; i += 1) {
-      const a = -.9 + i * .28;
-      dot(ctx, target.x + Math.cos(a) * (13 + hit * 20), target.y + Math.sin(a) * (13 + hit * 20), 1.4, profile.main, (1 - hit) * .48);
+    for (let i = 0; i < 4; i += 1) {
+      const a = -.75 + i * .31;
+      dot(ctx, target.x + Math.cos(a) * (13 + hit * 18), target.y + Math.sin(a) * (13 + hit * 18), 1.3, profile.main, (1 - hit) * .42);
     }
   }
 }
 
 function drawBloodthirst(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .12));
-  const to = missed ? { x: target.x + (seeded(seed, 5) > .5 ? 43 : -43), y: target.y } : target;
   const fade = 1 - clamp01((p - .66) / .34);
-  for (let i = 0; i < 3; i += 1) {
-    const delay = i * .045;
-    const local = smooth((p - delay) / .28);
-    weaponSlash(ctx, { x: to.x + (i - 1) * 3, y: to.y }, -.5 + i * .5, 36 + i * 3, profile, fade * local * .62, 2.8, 5);
+  const facing = Math.atan2(target.y - source.y, target.x - source.x);
+
+  for (let i = 0; i < 2; i += 1) {
+    const delay = i * .10;
+    const local = clamp01((p - delay) / .50);
+    if (local <= 0) continue;
+    const motion = smooth(local);
+    const out = 1 - smooth((local - .78) / .22);
+    const sign = i === 0 ? -1 : 1;
+    const start = facing + sign * .92;
+    const angle = start + (facing + sign * .08 - start) * motion;
+    const strength = easeOut(local / .14) * out;
+
+    drawWarriorSweepArc(
+      ctx,
+      source,
+      source.radius + 29,
+      start,
+      angle,
+      profile,
+      strength,
+      3.3,
+    );
+    drawWarriorSignatureBlade(
+      ctx,
+      source,
+      angle,
+      58,
+      5.2,
+      profile,
+      strength,
+      "cleaver",
+    );
   }
 
   if (!missed && source && p > .28) {

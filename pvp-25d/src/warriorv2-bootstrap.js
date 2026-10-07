@@ -31,6 +31,7 @@ CharacterRenderer.prototype.bodyFileFor = function (actor) {
 const url = new URL(window.location.href);
 url.searchParams.delete("characters");
 url.searchParams.delete("warrior");
+url.searchParams.set("warriorV2Test", "1");
 history.replaceState(null, "", url);
 
-import("./main.js?v=20261007-warrior-v2-isolated");
+import("./main.js?v=20261007-warrior-v2-rosterlock");

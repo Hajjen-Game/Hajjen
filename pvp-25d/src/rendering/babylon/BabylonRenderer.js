@@ -1,7 +1,5 @@
-import { CharacterRenderer } from "./CharacterRenderer.js?v=20261007-miniheroes-v1";
-import { QuaterniusCharacterRenderer } from "./QuaterniusCharacterRenderer.js?v=20261007-miniheroes-v1";
-import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-warrior-v2-direct";
-import { WarriorV2CharacterRenderer } from "./WarriorV2CharacterRenderer.js?v=20261007-warrior-v2-direct";
+import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-custom-only";
+import { WarriorV2CharacterRenderer } from "./WarriorV2CharacterRenderer.js?v=20261007-custom-only";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;
@@ -274,23 +272,10 @@ export class BabylonRenderer {
     this.buildLosFormations();
     this.buildEdgeDetails();
 
-    const params = new URLSearchParams(window.location.search);
     const path = window.location.pathname.toLowerCase();
-    const useWarriorV2 = path.endsWith("/warriorv2.html");
-    const useMiniHeroes =
-      path.endsWith("/miniheroes.html")
-      || params.get("characters") === "custom";
-    const useQuaternius =
-      path.endsWith("/quaternius.html")
-      || params.get("characters") === "quaternius";
-
-    const ActorRenderer = useWarriorV2
+    const ActorRenderer = path.endsWith("/warriorv2.html")
       ? WarriorV2CharacterRenderer
-      : useMiniHeroes
-        ? CustomMiniCharacterRenderer
-        : useQuaternius
-          ? QuaterniusCharacterRenderer
-          : CharacterRenderer;
+      : CustomMiniCharacterRenderer;
 
     this.actorRender = new ActorRenderer(
       this.scene,

@@ -24,3 +24,15 @@ Babylon visuals never determine damage, healing, hit timing, LOS, CC or match re
 Verdant Crucible is new. The four visible ruin blocks are built from the same obstacle rectangles used by gameplay collision and LOS.
 
 Use `?debug=1` for FPS, active meshes, actor count and live VFX.
+
+
+## Character pipeline
+
+PvP-2.5D now uses only the project's own Blender-generated Mini Heroes.
+
+- Default renderer: `CustomMiniCharacterRenderer`
+- Warrior experiment: `WarriorV2CharacterRenderer`
+- Generated assets: `assets/characters/miniheroes/`
+- Blender generators: `tools/miniheroes/`
+
+Legacy Tiby and Quaternius character experiments were removed from the project.

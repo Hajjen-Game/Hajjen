@@ -28,7 +28,7 @@ import {
 import {
   drawWarriorRogueCastVfx,
   drawWarriorRogueSpellVfx,
-} from "./WarriorRogueVfx.js?v=20261006-mortalstrikevfx4";
+} from "./WarriorRogueVfx.js?v=20261007-mortalstrikepower1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

@@ -13389,26 +13389,40 @@ export class PixiProofRenderer {
           // middle of the sweep. The broad trail gives spell-level readability,
           // while the blade silhouette keeps it unmistakably physical.
           const facing=Math.atan2(dy0,dx0);
-          const swing=smooth((p-.08)/.38);
-          const reveal=easeOut(p/.12);
-          const swingFade=1-smooth((p-.54)/.30);
+          const swing=smooth((p-.06)/.46);
+          const reveal=easeOut(p/.10);
+          const swingFade=1-smooth((p-.62)/.28);
           const swordAlpha=alpha*reveal*swingFade;
           const startAngle=facing-Math.PI*.58;
           const endAngle=facing+Math.PI*.42;
           const swordAngle=startAngle+(endAngle-startAngle)*swing;
-          const swordLength=Math.max(62,Math.min(94,len0+18));
+          const swordLength=Math.max(74,Math.min(112,len0+30));
           const arcRadius=Math.max(
-            source.radius+31,
-            Math.min(swordLength*.82,len0*.82+16)
+            source.radius+37,
+            Math.min(swordLength*.86,len0*.90+22)
           );
 
           // Attacker-side load: short steel/copper pressure before the blade
           // reaches the target direction.
-          const build=1-smooth((p-.16)/.18);
-          for(let i=0;i<4;i++){
-            const a=facing-Math.PI*.72+i*.48+swing*.20;
+          const build=1-smooth((p-.20)/.22);
+
+          // A short pressure halo makes the release unmistakable before the
+          // blade itself crosses the target.
+          glow.circle(0,0,source.radius+13+build*10).stroke({
+            color:profile.main,
+            width:12,
+            alpha:alpha*build*.10,
+          });
+          core.circle(0,0,source.radius+8+build*7).stroke({
+            color:profile.core,
+            width:1.8,
+            alpha:alpha*build*.42,
+          });
+
+          for(let i=0;i<6;i++){
+            const a=facing-Math.PI*.82+i*.34+swing*.24;
             const inner=source.radius+5;
-            const outer=source.radius+15+(i%2)*5;
+            const outer=source.radius+18+(i%3)*6;
             glow
               .moveTo(Math.cos(a)*inner,Math.sin(a)*inner)
               .lineTo(Math.cos(a+.06)*outer,Math.sin(a+.06)*outer)
@@ -13432,43 +13446,48 @@ export class PixiProofRenderer {
           if(swing>.002){
             arc(glow,0,0,arcRadius,startAngle,swordAngle,{
               color:profile.main,
-              width:18,
-              alpha:swordAlpha*.10,
-            },20);
-            arc(glow,0,0,arcRadius-2,startAngle,swordAngle,{
+              width:28,
+              alpha:swordAlpha*.14,
+            },24);
+            arc(glow,0,0,arcRadius-3,startAngle,swordAngle,{
               color:profile.core,
-              width:10,
-              alpha:swordAlpha*.055,
-            },20);
+              width:15,
+              alpha:swordAlpha*.085,
+            },24);
             arc(core,0,0,arcRadius,startAngle,swordAngle,{
               color:profile.main,
-              width:5.0,
-              alpha:swordAlpha*.62,
-            },20);
+              width:7.0,
+              alpha:swordAlpha*.74,
+            },24);
+            arc(core,0,0,arcRadius-6,startAngle,swordAngle,{
+              color:profile.accent,
+              width:2.7,
+              alpha:swordAlpha*.56,
+            },24);
             arc(
               core,
               0,
               0,
               arcRadius-2,
-              Math.max(startAngle,swordAngle-1.02),
+              Math.max(startAngle,swordAngle-1.18),
               swordAngle,
               {
                 color:profile.core,
-                width:2.1,
-                alpha:swordAlpha*.92,
+                width:3.1,
+                alpha:Math.min(1,swordAlpha*1.12),
               },
-              12
+              14
             );
           }
 
           const root=source.radius+4;
           const tip=swordLength;
           const blade=[
-            point(0,0,root,-5.0,swordAngle),
-            point(0,0,tip-12,-3.6,swordAngle),
+            point(0,0,root,-6.8,swordAngle),
+            point(0,0,tip-14,-4.8,swordAngle),
             point(0,0,tip,0,swordAngle),
-            point(0,0,tip-12,3.6,swordAngle),
-            point(0,0,root,5.0,swordAngle),
+            point(0,0,tip-14,4.8,swordAngle),
+            point(0,0,root,6.8,swordAngle),
           ];
 
           // Two translucent afterimages sell rotational speed without making
@@ -13476,11 +13495,11 @@ export class PixiProofRenderer {
           for(let echo=2;echo>=1;echo--){
             const echoAngle=swordAngle-echo*.12;
             const echoBlade=[
-              point(0,0,root,-4.2,echoAngle),
-              point(0,0,tip-13,-3.0,echoAngle),
+              point(0,0,root,-5.4,echoAngle),
+              point(0,0,tip-14,-3.8,echoAngle),
               point(0,0,tip,0,echoAngle),
-              point(0,0,tip-13,3.0,echoAngle),
-              point(0,0,root,4.2,echoAngle),
+              point(0,0,tip-14,3.8,echoAngle),
+              point(0,0,root,5.4,echoAngle),
             ];
             polygon(glow,echoBlade,{
               color:echo===1?profile.main:profile.accent,
@@ -13491,25 +13510,25 @@ export class PixiProofRenderer {
           // Broad glow body beneath a crisp tapered sword.
           polygon(glow,blade,{
             color:profile.main,
-            alpha:swordAlpha*.12,
+            alpha:swordAlpha*.18,
           },true);
           glow
             .moveTo(blade[0].x,blade[0].y)
             .lineTo(blade[2].x,blade[2].y)
             .stroke({
               color:profile.core,
-              width:13,
-              alpha:swordAlpha*.08,
+              width:18,
+              alpha:swordAlpha*.11,
             });
 
           polygon(core,blade,{
             color:profile.main,
-            alpha:swordAlpha*.34,
+            alpha:swordAlpha*.46,
           },true);
           polygon(core,blade,{
             color:profile.core,
-            width:1.8,
-            alpha:swordAlpha*.96,
+            width:2.5,
+            alpha:Math.min(1,swordAlpha*1.12),
           },false);
 
           // Crossguard, grip and pommel make the silhouette read as a weapon
@@ -13541,16 +13560,35 @@ export class PixiProofRenderer {
 
           // Contact pulse happens exactly when the rotating blade crosses the
           // target-facing direction (about 58% through the 180° sweep).
-          const contact=Math.exp(-Math.pow((swing-.58)/.105,2));
+          const contact=Math.exp(-Math.pow((swing-.58)/.115,2));
           if(contact>.01){
-            glow.circle(dx0,dy0,10+contact*22).fill({
-              color:profile.core,
-              alpha:alpha*contact*.14,
+            glow.circle(dx0,dy0,12+contact*34).fill({
+              color:profile.main,
+              alpha:alpha*contact*.12,
             });
-            core.circle(dx0,dy0,5+contact*8).fill({
+            glow.circle(dx0,dy0,9+contact*24).fill({
               color:profile.core,
-              alpha:alpha*contact*.66,
+              alpha:alpha*contact*.15,
             });
+            core.circle(dx0,dy0,5+contact*10).fill({
+              color:profile.core,
+              alpha:alpha*contact*.84,
+            });
+
+            const hitAngle=Math.atan2(dy0,dx0);
+            for(let i=0;i<6;i++){
+              const a=hitAngle-Math.PI*.52+i*(Math.PI*1.04/5);
+              const inner=10;
+              const outer=24+contact*(20+(i%2)*8);
+              core
+                .moveTo(dx0+Math.cos(a)*inner,dy0+Math.sin(a)*inner)
+                .lineTo(dx0+Math.cos(a)*outer,dy0+Math.sin(a)*outer)
+                .stroke({
+                  color:i===2||i===3?profile.core:profile.main,
+                  width:i===2||i===3?2.4:1.5,
+                  alpha:alpha*contact*.72,
+                });
+            }
           }
         }
 
@@ -13724,20 +13762,37 @@ export class PixiProofRenderer {
                 alpha:alpha*hitFade*.72
               },8);
             }
-            glow.circle(dx,dy,19+expand*36).stroke({
-              color:profile.main,width:12,alpha:alpha*hitFade*.15
+            glow.circle(dx,dy,19+expand*43).stroke({
+              color:profile.main,width:16,alpha:alpha*hitFade*.20
             });
+            glow.circle(dx,dy,12+expand*28).fill({
+              color:profile.accent,alpha:alpha*hitFade*.10
+            });
+
+            // A large directional cleave crescent is the visual payoff of the
+            // 180° swing and makes Mortal Strike readable from peripheral view.
+            const hitAngle=Math.atan2(dy0,dx0);
+            const cleaveCenter=hitAngle+Math.PI*.5;
+            arc(glow,dx,dy,31+expand*31,cleaveCenter-1.28,cleaveCenter+1.28,{
+              color:profile.main,
+              width:19,
+              alpha:alpha*hitFade*.16,
+            },18);
+            arc(core,dx,dy,28+expand*27,cleaveCenter-1.22,cleaveCenter+1.22,{
+              color:profile.core,
+              width:4.5,
+              alpha:alpha*hitFade*.88,
+            },18);
             // Terminal blade echo follows the actual Warrior -> target line,
             // so the impact reads as the end of the 180° sweep rather than a
             // separate fixed diagonal slash.
-            const hitAngle=Math.atan2(dy0,dx0);
-            const p0=point(dx,dy,-42,-5,hitAngle);
-            const p1=point(dx,dy,45,5,hitAngle);
+            const p0=point(dx,dy,-48,-6,hitAngle);
+            const p1=point(dx,dy,51,6,hitAngle);
             glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-              color:profile.main,width:15,alpha:alpha*hitFade*.13
+              color:profile.main,width:20,alpha:alpha*hitFade*.16
             });
             core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-              color:profile.core,width:3.4,alpha:alpha*hitFade*.82
+              color:profile.core,width:4.2,alpha:alpha*hitFade*.92
             });
             glow.circle(dx,dy,9+flash*17).fill({
               color:profile.core,alpha:alpha*hitFade*flash*.14

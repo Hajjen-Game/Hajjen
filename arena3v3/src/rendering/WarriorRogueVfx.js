@@ -156,14 +156,14 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   const dy = target.y - source.y;
   const distance = Math.max(1, Math.hypot(dx, dy));
   const facing = Math.atan2(dy, dx);
-  const swing = smooth((p - .08) / .38);
-  const reveal = smooth(p / .12);
-  const swingFade = 1 - clamp01((p - .54) / .30);
+  const swing = smooth((p - .06) / .46);
+  const reveal = smooth(p / .10);
+  const swingFade = 1 - clamp01((p - .62) / .28);
   const startAngle = facing - Math.PI * .58;
   const endAngle = facing + Math.PI * .42;
   const swordAngle = startAngle + (endAngle - startAngle) * swing;
-  const swordLength = Math.max(62, Math.min(94, distance + 18));
-  const arcRadius = Math.max(source.radius + 31, Math.min(swordLength * .82, distance * .82 + 16));
+  const swordLength = Math.max(74, Math.min(112, distance + 30));
+  const arcRadius = Math.max(source.radius + 37, Math.min(swordLength * .86, distance * .90 + 22));
   const swordAlpha = reveal * swingFade;
 
   ctx.save();
@@ -175,22 +175,22 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   ctx.shadowColor = profile.main;
   ctx.shadowBlur = 14;
   ctx.strokeStyle = profile.main;
-  ctx.lineWidth = 14;
-  ctx.globalAlpha = swordAlpha * .11;
+  ctx.lineWidth = 24;
+  ctx.globalAlpha = swordAlpha * .15;
   ctx.beginPath();
   ctx.arc(0, 0, arcRadius, startAngle, swordAngle);
   ctx.stroke();
 
   ctx.shadowBlur = 7;
-  ctx.lineWidth = 5.2;
-  ctx.globalAlpha = swordAlpha * .58;
+  ctx.lineWidth = 7;
+  ctx.globalAlpha = swordAlpha * .72;
   ctx.beginPath();
   ctx.arc(0, 0, arcRadius, startAngle, swordAngle);
   ctx.stroke();
 
   ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = swordAlpha * .86;
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = Math.min(1, swordAlpha * 1.08);
   ctx.beginPath();
   ctx.arc(0, 0, arcRadius - 2, Math.max(startAngle, swordAngle - 1.02), swordAngle);
   ctx.stroke();
@@ -203,17 +203,17 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   const root = source.radius + 4;
   const tip = swordLength;
   const blade = [
-    localPoint(root, -5),
-    localPoint(tip - 12, -3.5),
+    localPoint(root, -6.8),
+    localPoint(tip - 14, -4.8),
     localPoint(tip, 0),
-    localPoint(tip - 12, 3.5),
-    localPoint(root, 5),
+    localPoint(tip - 14, 4.8),
+    localPoint(root, 6.8),
   ];
 
   ctx.shadowColor = profile.main;
   ctx.shadowBlur = 18;
   ctx.fillStyle = profile.main;
-  ctx.globalAlpha = swordAlpha * .16;
+  ctx.globalAlpha = swordAlpha * .22;
   ctx.beginPath();
   ctx.moveTo(blade[0].x, blade[0].y);
   for (let i = 1; i < blade.length; i += 1) ctx.lineTo(blade[i].x, blade[i].y);
@@ -222,7 +222,7 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
 
   ctx.shadowBlur = 6;
   ctx.fillStyle = profile.main;
-  ctx.globalAlpha = swordAlpha * .36;
+  ctx.globalAlpha = swordAlpha * .48;
   ctx.fill();
 
   ctx.strokeStyle = profile.core;
@@ -264,7 +264,7 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
 
     // Impact flash and broken wound seal sell the Mortal Strike healing debuff.
     ctx.fillStyle = profile.core;
-    ctx.globalAlpha = hitFade * Math.exp(-t * 11) * .22;
+    ctx.globalAlpha = hitFade * Math.exp(-t * 11) * .30;
     ctx.beginPath();
     ctx.arc(0, 0, 11 + (1 - t) * 9, 0, TAU);
     ctx.fill();
@@ -277,7 +277,7 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
     for (let i = 0; i < 3; i += 1) {
       const a = i * TAU / 3 + .2 - t * .18;
       ctx.beginPath();
-      ctx.arc(0, 0, 18 + expand * 25, a, a + .90);
+      ctx.arc(0, 0, 20 + expand * 31, a, a + 1.02);
       ctx.stroke();
     }
 

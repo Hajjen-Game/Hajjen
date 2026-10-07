@@ -1,3 +1,4 @@
+# build-trigger: quaternius-v1
 import bpy
 import math
 import os

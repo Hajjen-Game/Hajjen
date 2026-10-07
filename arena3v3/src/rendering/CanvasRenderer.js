@@ -24,12 +24,12 @@ import {
 import {
   drawPaladinDkCastVfx,
   drawPaladinDkSpellVfx,
-} from "./PaladinDeathKnightVfx.js?v=20260930-vfx2d1";
+} from "./PaladinDeathKnightVfx.js?v=20261007-dkblade1";
 import {
   drawWarriorRogueCastVfx,
   drawWarriorRogueSpellVfx,
 } from "./WarriorRogueVfx.js?v=20261007-roguedaggers2";
-import { drawCanvasMeleeSignatureVfx } from "./MeleeSignatureVfx.js?v=20261007-roguedaggers2";
+import { drawCanvasMeleeSignatureVfx } from "./MeleeSignatureVfx.js?v=20261007-dkblade1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

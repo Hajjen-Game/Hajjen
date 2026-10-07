@@ -197,30 +197,162 @@ function drawSlash(ctx, target, profile, progress, seed, double=false, frost=fal
 function drawDeathStrike(ctx, source, target, profile, progress, seed, missed=false) {
   const p=clamp01(progress);
   dkSourceCue(ctx, source, profile, Math.min(1,p/.15));
-  const visualTarget = missed
-    ? { x: target.x + (seeded(seed, 5) > .5 ? 43 : -43), y: target.y - 10 }
-    : target;
-  drawSlash(ctx,visualTarget,profile,p,seed,true,false);
-  if(source && !missed && p>.28){
-    const t=clamp01((p-.28)/.48), fade=1-clamp01((p-.75)/.25);
-    const q=along(visualTarget,source,easeOut(t)); const b=basis(visualTarget,source);
-    ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=profile.main;ctx.shadowColor=profile.main;ctx.shadowBlur=12;ctx.lineWidth=2;ctx.globalAlpha=fade*.56;
-    ctx.beginPath();ctx.moveTo(visualTarget.x,visualTarget.y);ctx.quadraticCurveTo((visualTarget.x+source.x)/2+b.nx*12,(visualTarget.y+source.y)/2+b.ny*12,q.x,q.y);ctx.stroke();
-    dot(ctx,q.x,q.y,3.2,profile.core,fade*.72);ctx.restore();
+  if (missed || !source) return;
+
+  const hit=clamp01((p-.12)/.56);
+  const fade=1-clamp01((p-.72)/.28);
+  const expand=easeOut(hit);
+  const facing=Math.atan2(target.y-source.y,target.x-source.x);
+
+  ctx.save();
+  ctx.globalCompositeOperation="lighter";
+  ctx.lineCap="round";
+
+  // One dark blood cleave at contact: the runeblade itself is drawn by the
+  // shared melee layer, so this is the wound/payoff rather than another weapon.
+  ctx.strokeStyle=profile.main;
+  ctx.shadowColor=profile.main;
+  ctx.shadowBlur=12;
+  ctx.lineWidth=5.5;
+  ctx.globalAlpha=fade*.52;
+  ctx.beginPath();
+  ctx.arc(target.x,target.y,18+expand*14,facing-1.05,facing+.18);
+  ctx.stroke();
+
+  ctx.strokeStyle=profile.core;
+  ctx.lineWidth=2.1;
+  ctx.globalAlpha=fade*.78;
+  ctx.beginPath();
+  ctx.arc(target.x,target.y,15+expand*11,facing-.98,facing+.12);
+  ctx.stroke();
+
+  // Blood runes implode toward the wound before the stolen life returns.
+  for(let i=0;i<5;i++){
+    const a=i*TAU/5-hit*.52;
+    const outer=34+(i%2)*5;
+    const inner=9+expand*5;
+    ctx.beginPath();
+    ctx.moveTo(
+      target.x+Math.cos(a)*outer,
+      target.y+Math.sin(a)*outer
+    );
+    ctx.lineTo(
+      target.x+Math.cos(a+.22)*inner,
+      target.y+Math.sin(a+.22)*inner
+    );
+    ctx.strokeStyle=i%2?profile.core:profile.main;
+    ctx.lineWidth=i%2?1.7:2.2;
+    ctx.globalAlpha=fade*.62;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
+  if(p>.24){
+    const t=clamp01((p-.24)/.54);
+    const q=along(target,source,easeOut(t));
+    const b=basis(target,source);
+    ctx.save();
+    ctx.globalCompositeOperation="lighter";
+    ctx.strokeStyle=profile.main;
+    ctx.shadowColor=profile.main;
+    ctx.shadowBlur=10;
+    ctx.lineWidth=2.2;
+    ctx.globalAlpha=fade*.56;
+    ctx.beginPath();
+    ctx.moveTo(target.x,target.y);
+    ctx.quadraticCurveTo(
+      (target.x+source.x)/2+b.nx*14,
+      (target.y+source.y)/2+b.ny*14,
+      q.x,q.y
+    );
+    ctx.stroke();
+    dot(ctx,q.x,q.y,3.5,profile.core,fade*.72);
+    ctx.restore();
   }
 }
 
 function drawObliterate(ctx, source, target, profile, progress, seed, missed=false) {
   const p=clamp01(progress);
   dkSourceCue(ctx, source, profile, Math.min(1,p/.20));
-  const visualTarget = missed
-    ? { x: target.x + (seeded(seed, 6) > .5 ? 46 : -46), y: target.y - 9 }
-    : target;
-  drawSlash(ctx,visualTarget,profile,p,seed,true,!missed);
-  if (missed) return;
-  const hit=clamp01((p-.22)/.62), fade=1-clamp01((p-.72)/.28);
-  ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=profile.main;ctx.lineWidth=1.8;ctx.globalAlpha=fade*.68;
-  for(let i=0;i<8;i++){const a=i*TAU/8+seeded(seed,i)*.22;ctx.beginPath();ctx.moveTo(target.x+Math.cos(a)*8,target.y+Math.sin(a)*8);ctx.lineTo(target.x+Math.cos(a)*(18+hit*28),target.y+Math.sin(a)*(18+hit*28));ctx.stroke();}
+  if (missed || !source) return;
+
+  const hit=clamp01((p-.10)/.62);
+  const fade=1-clamp01((p-.76)/.24);
+  const expand=easeOut(hit);
+  const facing=Math.atan2(target.y-source.y,target.x-source.x);
+
+  ctx.save();
+  ctx.globalCompositeOperation="lighter";
+  ctx.lineCap="round";
+
+  // Obliterate = one massive frozen runeblade connection followed by a
+  // crystalline rupture. It should feel much heavier than Frost Strike.
+  const cutA={
+    x:target.x-Math.cos(facing)*38,
+    y:target.y-Math.sin(facing)*38,
+  };
+  const cutB={
+    x:target.x+Math.cos(facing)*40,
+    y:target.y+Math.sin(facing)*40,
+  };
+  ctx.strokeStyle=profile.main;
+  ctx.shadowColor=profile.main;
+  ctx.shadowBlur=18;
+  ctx.lineWidth=15;
+  ctx.globalAlpha=fade*.16;
+  ctx.beginPath();ctx.moveTo(cutA.x,cutA.y);ctx.lineTo(cutB.x,cutB.y);ctx.stroke();
+
+  ctx.strokeStyle=profile.core;
+  ctx.shadowBlur=7;
+  ctx.lineWidth=4.2;
+  ctx.globalAlpha=fade*.90;
+  ctx.beginPath();ctx.moveTo(cutA.x,cutA.y);ctx.lineTo(cutB.x,cutB.y);ctx.stroke();
+
+  const flash=Math.exp(-hit*9);
+  dot(ctx,target.x,target.y,8+flash*13,profile.core,fade*(.22+flash*.38));
+
+  // Uneven ice fractures are the main payoff instead of a generic circle.
+  for(let i=0;i<14;i++){
+    const a=i*TAU/14+seeded(seed,i)*.12;
+    const inner=8+(i%2)*3;
+    const outer=24+expand*(18+(i%4)*8);
+    const bend=a+(i%2?.10:-.10);
+    ctx.strokeStyle=i%3===0?profile.core:profile.main;
+    ctx.lineWidth=i%3===0?2.7:1.7;
+    ctx.globalAlpha=fade*(i%3===0?.82:.64);
+    ctx.beginPath();
+    ctx.moveTo(
+      target.x+Math.cos(a)*inner,
+      target.y+Math.sin(a)*inner
+    );
+    ctx.lineTo(
+      target.x+Math.cos(bend)*outer,
+      target.y+Math.sin(bend)*outer
+    );
+    ctx.stroke();
+  }
+
+  // Four chunky shards make the frozen impact readable even at full zoom-out.
+  for(let i=0;i<4;i++){
+    const a=facing+Math.PI/4+i*Math.PI/2;
+    const rr=21+expand*17;
+    const cx=target.x+Math.cos(a)*rr;
+    const cy=target.y+Math.sin(a)*rr;
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(a);
+    ctx.fillStyle=i%2?profile.core:profile.main;
+    ctx.globalAlpha=fade*.58;
+    ctx.beginPath();
+    ctx.moveTo(9,0);
+    ctx.lineTo(-4,-3.5);
+    ctx.lineTo(-2,3.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 
@@ -253,14 +385,58 @@ function drawMindFreeze(ctx, source, target, profile, progress) {
 }
 
 function drawFrostStrike(ctx, source, target, profile, progress, seed, missed=false) {
-  const p=clamp01(progress);dkSourceCue(ctx,source,profile,Math.min(1,p/.12));
-  const visualTarget = missed
-    ? { x: target.x + (seeded(seed, 7) > .5 ? 42 : -42), y: target.y - 9 }
-    : target;
-  drawSlash(ctx,visualTarget,profile,p,seed,false,!missed);
-  if (missed) return;
-  const fade=1-clamp01((p-.68)/.32);
-  ring(ctx,target.x,target.y,10+easeOut(p)*27,profile.main,fade*.35,1.5);
+  const p=clamp01(progress);
+  dkSourceCue(ctx,source,profile,Math.min(1,p/.12));
+  if (missed || !source) return;
+
+  const hit=clamp01((p-.08)/.50);
+  const fade=1-clamp01((p-.66)/.34);
+  const expand=easeOut(hit);
+  const facing=Math.atan2(target.y-source.y,target.x-source.x);
+
+  ctx.save();
+  ctx.globalCompositeOperation="lighter";
+  ctx.lineCap="round";
+
+  // Fast icy runeblade cut: narrow, directional and much less explosive than
+  // Obliterate.
+  ctx.strokeStyle=profile.main;
+  ctx.shadowColor=profile.main;
+  ctx.shadowBlur=12;
+  ctx.lineWidth=8;
+  ctx.globalAlpha=fade*.13;
+  ctx.beginPath();
+  ctx.arc(target.x,target.y,22+expand*18,facing-.86,facing+.38);
+  ctx.stroke();
+
+  ctx.strokeStyle=profile.core;
+  ctx.lineWidth=2.7;
+  ctx.globalAlpha=fade*.82;
+  ctx.beginPath();
+  ctx.arc(target.x,target.y,20+expand*15,facing-.82,facing+.34);
+  ctx.stroke();
+
+  for(let i=0;i<6;i++){
+    const spread=(i-2.5)*.18;
+    const a=facing+spread;
+    const r0=7+(i%2)*2;
+    const r1=24+expand*(12+(i%3)*5);
+    ctx.strokeStyle=i%2?profile.core:profile.main;
+    ctx.lineWidth=i%2?1.5:2.0;
+    ctx.globalAlpha=fade*.66;
+    ctx.beginPath();
+    ctx.moveTo(
+      target.x+Math.cos(a)*r0,
+      target.y+Math.sin(a)*r0
+    );
+    ctx.lineTo(
+      target.x+Math.cos(a)*r1,
+      target.y+Math.sin(a)*r1
+    );
+    ctx.stroke();
+  }
+  dot(ctx,target.x,target.y,4.2,profile.core,fade*.62);
+  ctx.restore();
 }
 
 function drawRuneTap(ctx, source, profile, progress) {
@@ -286,7 +462,26 @@ export function drawPaladinDkCastVfx(ctx, actor, spell, progress, nowMs=performa
     ctx.save();ctx.globalCompositeOperation="lighter";ctx.translate(actor.x,actor.y);ctx.rotate(-p*.65);
     ctx.strokeStyle=profile.main;ctx.shadowColor=profile.main;ctx.shadowBlur=11+p*8;ctx.lineWidth=1.7;ctx.globalAlpha=.28+p*.48;
     for(let i=0;i<3;i++){const a=i*TAU/3;ctx.beginPath();ctx.moveTo(Math.cos(a)*(actor.radius+7),Math.sin(a)*(actor.radius+7));ctx.lineTo(Math.cos(a+.4)*(actor.radius+20-p*6),Math.sin(a+.4)*(actor.radius+20-p*6));ctx.stroke();}
-    if(profile.kind==="obliterate") for(let i=0;i<5;i++){const a=i*TAU/5;dot(ctx,Math.cos(a)*(actor.radius+14),Math.sin(a)*(actor.radius+14),1.7,profile.core,.35+p*.4);}
+    if(profile.kind==="obliterate"){
+      const pull=1-easeOut(p);
+      for(let i=0;i<6;i++){
+        const a=i*TAU/6-p*.55;
+        const outer=actor.radius+28+pull*10+(i%2)*4;
+        const inner=actor.radius+8+p*5;
+        ctx.strokeStyle=i%2?profile.core:profile.main;
+        ctx.lineWidth=i%2?1.8:2.3;
+        ctx.globalAlpha=.30+p*.50;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a)*outer,Math.sin(a)*outer);
+        ctx.lineTo(Math.cos(a+.12)*inner,Math.sin(a+.12)*inner);
+        ctx.stroke();
+      }
+      ring(ctx,0,0,actor.radius+10+p*7,profile.core,.18+p*.30,1.4);
+      for(let i=0;i<5;i++){
+        const a=i*TAU/5;
+        dot(ctx,Math.cos(a)*(actor.radius+13),Math.sin(a)*(actor.radius+13),1.8,profile.core,.32+p*.46);
+      }
+    }
     ctx.restore();
   }
   return true;

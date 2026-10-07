@@ -52,6 +52,51 @@ const ROGUE_SIGNATURES = Object.freeze({
   }),
 });
 
+const DK_SIGNATURES = Object.freeze({
+  "dk-death-strike": Object.freeze({
+    shape: "runeblade",
+    length: 68,
+    minLength: 54,
+    width: 8.4,
+    trail: .56,
+    main: 0x9f454b,
+    core: 0xe8a4aa,
+    accent: 0x4e2329,
+    rune: 0xd96570,
+    weapons: Object.freeze([
+      Object.freeze({ mode: "sweep", start: .92, end: -.32, delay: 0, span: .48, sideOffset: 0 }),
+    ]),
+  }),
+  "dk-obliterate": Object.freeze({
+    shape: "runeblade",
+    length: 76,
+    minLength: 56,
+    width: 10.2,
+    trail: .82,
+    main: 0x74bad8,
+    core: 0xe3f8ff,
+    accent: 0x4f7291,
+    rune: 0xbcefff,
+    weapons: Object.freeze([
+      Object.freeze({ mode: "sweep", start: -1.34, end: .16, delay: 0, span: .58, sideOffset: 0 }),
+    ]),
+  }),
+  "dk-frost-strike": Object.freeze({
+    shape: "runeblade",
+    length: 66,
+    minLength: 53,
+    width: 8.6,
+    trail: .48,
+    main: 0x75bcd8,
+    core: 0xe8fbff,
+    accent: 0x54728f,
+    rune: 0xa9efff,
+    weapons: Object.freeze([
+      Object.freeze({ mode: "sweep", start: .78, end: -.52, delay: 0, span: .40, sideOffset: 0 }),
+    ]),
+  }),
+});
+
 function clamp01(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
 }
@@ -186,8 +231,128 @@ function drawDagger(ctx, source, offsetX, offsetY, angle, length, spec, alpha) {
   ctx.restore();
 }
 
+function drawRuneblade(ctx, source, offsetX, offsetY, angle, length, spec, alpha) {
+  if (!source || alpha <= 0) return;
+
+  const cx = source.x + offsetX;
+  const cy = source.y + offsetY;
+  const root = source.radius + 4;
+  const guardX = root + 2;
+  const width = spec.width;
+  const main = cssColor(spec.main);
+  const core = cssColor(spec.core);
+  const rune = cssColor(spec.rune || spec.core);
+  const steel = "#59666b";
+  const steelLight = "#b8cbd0";
+  const handle = "#252c33";
+  const handleLight = "#65737a";
+
+  const blade = [
+    localPoint(cx, cy, guardX, -width * .58, angle),
+    localPoint(cx, cy, length * .58, -width, angle),
+    localPoint(cx, cy, length * .84, -width * .55, angle),
+    localPoint(cx, cy, length + 7, 0, angle),
+    localPoint(cx, cy, length * .84, width * .55, angle),
+    localPoint(cx, cy, length * .58, width, angle),
+    localPoint(cx, cy, guardX, width * .58, angle),
+  ];
+
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  // Frost/blood aura belongs around a real piece of steel, not in place of it.
+  ctx.globalCompositeOperation = "lighter";
+  ctx.shadowColor = main;
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = main;
+  ctx.globalAlpha = alpha * .12;
+  ctx.beginPath();
+  ctx.moveTo(blade[0].x, blade[0].y);
+  for (let i = 1; i < blade.length; i += 1) ctx.lineTo(blade[i].x, blade[i].y);
+  ctx.closePath();
+  ctx.fill();
+
+  // Solid dark steel silhouette makes the weapon readable in the melee pile.
+  ctx.globalCompositeOperation = "source-over";
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = steel;
+  ctx.globalAlpha = alpha * .96;
+  ctx.fill();
+  ctx.strokeStyle = steelLight;
+  ctx.lineWidth = 2.1;
+  ctx.globalAlpha = alpha * .94;
+  ctx.stroke();
+
+  // Heavy leather/iron grip, guard and pommel.
+  const handleA = localPoint(cx, cy, root - 16, 0, angle);
+  const handleB = localPoint(cx, cy, guardX + 1, 0, angle);
+  ctx.strokeStyle = handle;
+  ctx.lineWidth = 7;
+  ctx.globalAlpha = alpha * .98;
+  ctx.beginPath();
+  ctx.moveTo(handleA.x, handleA.y);
+  ctx.lineTo(handleB.x, handleB.y);
+  ctx.stroke();
+
+  ctx.strokeStyle = handleLight;
+  ctx.lineWidth = 1.6;
+  ctx.globalAlpha = alpha * .70;
+  ctx.stroke();
+
+  const guardA = localPoint(cx, cy, guardX, -width * 1.55, angle);
+  const guardB = localPoint(cx, cy, guardX, width * 1.55, angle);
+  ctx.strokeStyle = "#465158";
+  ctx.lineWidth = 4.4;
+  ctx.globalAlpha = alpha * .98;
+  ctx.beginPath();
+  ctx.moveTo(guardA.x, guardA.y);
+  ctx.lineTo(guardB.x, guardB.y);
+  ctx.stroke();
+  ctx.strokeStyle = steelLight;
+  ctx.lineWidth = 1.25;
+  ctx.globalAlpha = alpha * .72;
+  ctx.stroke();
+
+  const pommel = localPoint(cx, cy, root - 17, 0, angle);
+  ctx.fillStyle = "#465158";
+  ctx.globalAlpha = alpha * .98;
+  ctx.beginPath();
+  ctx.arc(pommel.x, pommel.y, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bright runic groove and three transverse rune cuts.
+  const ridgeA = localPoint(cx, cy, guardX + 5, 0, angle);
+  const ridgeB = localPoint(cx, cy, Math.max(guardX + 12, length - 7), 0, angle);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.shadowColor = rune;
+  ctx.shadowBlur = 7;
+  ctx.strokeStyle = rune;
+  ctx.lineWidth = 1.8;
+  ctx.globalAlpha = alpha * .90;
+  ctx.beginPath();
+  ctx.moveTo(ridgeA.x, ridgeA.y);
+  ctx.lineTo(ridgeB.x, ridgeB.y);
+  ctx.stroke();
+
+  for (let i = 0; i < 3; i += 1) {
+    const x = guardX + 12 + i * Math.max(7, (length - guardX - 27) / 3);
+    const half = width * (.40 + i * .07);
+    const a = localPoint(cx, cy, x, -half, angle);
+    const b = localPoint(cx, cy, x + 4, half, angle);
+    ctx.lineWidth = 1.25;
+    ctx.globalAlpha = alpha * (.72 - i * .08);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 export function meleeSignatureSpecFor(spellId) {
-  return ROGUE_SIGNATURES[spellId] || null;
+  return ROGUE_SIGNATURES[spellId] || DK_SIGNATURES[spellId] || null;
 }
 
 export function hasMeleeSignatureVfx(spellId) {
@@ -229,7 +394,9 @@ export function drawCanvasMeleeSignatureVfx(ctx, effect, game, progress, alpha) 
     const ox = nx * side;
     const oy = ny * side;
     let angle;
-    let length = spec.length;
+    let length = spec.shape === "runeblade"
+      ? Math.max(spec.minLength || 52, Math.min(spec.length, distance + 4))
+      : spec.length;
 
     if (weapon.mode === "thrust") {
       angle = facing + Number(weapon.angle || 0);
@@ -287,7 +454,11 @@ export function drawCanvasMeleeSignatureVfx(ctx, effect, game, progress, alpha) 
       ctx.stroke();
     }
 
-    drawDagger(ctx, source, ox, oy, angle, length, spec, weaponAlpha);
+    if (spec.shape === "runeblade") {
+      drawRuneblade(ctx, source, ox, oy, angle, length, spec, weaponAlpha);
+    } else {
+      drawDagger(ctx, source, ox, oy, angle, length, spec, weaponAlpha);
+    }
   }
 
   ctx.restore();

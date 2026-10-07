@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-warriorwow2";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-frostscale1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -17408,65 +17408,97 @@ export class PixiProofRenderer {
 
         // Spell-specific moving silhouette.
         if (spec.shape === "frost-spear") {
-          // Final weight pass: Frostbolt keeps its fast spear identity, but the
-          // head now has a broader shoulder, asymmetrical facets and a denser
-          // white core so it reads as a chunk of ice instead of an Ice Lance.
+          // Frostbolt head is range-aware. At point-blank/melee range the old
+          // fixed ~65px crystal could be larger than an entire actor. Preserve
+          // the full showcase silhouette at range, but compress the physical
+          // ice head smoothly when the target is close.
+          const frostRangeScale=
+            .48+.52*clamp01((endLen-50)/110);
+          const fs=value=>value*frostRangeScale;
           const pulse=.92+.08*Math.sin(p*36+seed*.07);
-          const shoulder=11.8*pulse;
+          const shoulder=fs(11.8*pulse);
           const outer=[
-            transformed(px,py,31,0,angle),
-            transformed(px,py,9,-7.2,angle),
-            transformed(px,py,2,-shoulder,angle),
-            transformed(px,py,-10,-9.2,angle),
-            transformed(px,py,-25,-4.4,angle),
-            transformed(px,py,-34,0,angle),
-            transformed(px,py,-24,4.0,angle),
-            transformed(px,py,-7,8.2,angle),
-            transformed(px,py,6,10.7*pulse,angle),
+            transformed(px,py,fs(31),0,angle),
+            transformed(px,py,fs(9),fs(-7.2),angle),
+            transformed(px,py,fs(2),-shoulder,angle),
+            transformed(px,py,fs(-10),fs(-9.2),angle),
+            transformed(px,py,fs(-25),fs(-4.4),angle),
+            transformed(px,py,fs(-34),0,angle),
+            transformed(px,py,fs(-24),fs(4.0),angle),
+            transformed(px,py,fs(-7),fs(8.2),angle),
+            transformed(px,py,fs(6),fs(10.7*pulse),angle),
           ];
           const inner=[
-            transformed(px,py,26,0,angle),
-            transformed(px,py,7,-5.7,angle),
-            transformed(px,py,-3,-6.5,angle),
-            transformed(px,py,-22,-1.8,angle),
-            transformed(px,py,-25,0,angle),
-            transformed(px,py,-18,2.7,angle),
-            transformed(px,py,-1,6.0,angle),
-            transformed(px,py,8,4.8,angle),
+            transformed(px,py,fs(26),0,angle),
+            transformed(px,py,fs(7),fs(-5.7),angle),
+            transformed(px,py,fs(-3),fs(-6.5),angle),
+            transformed(px,py,fs(-22),fs(-1.8),angle),
+            transformed(px,py,fs(-25),0,angle),
+            transformed(px,py,fs(-18),fs(2.7),angle),
+            transformed(px,py,fs(-1),fs(6.0),angle),
+            transformed(px,py,fs(8),fs(4.8),angle),
           ];
           const frontFacet=[
-            transformed(px,py,27,0,angle),
-            transformed(px,py,8,-6.0,angle),
-            transformed(px,py,-3,-1.8,angle),
-            transformed(px,py,8,4.4,angle),
+            transformed(px,py,fs(27),0,angle),
+            transformed(px,py,fs(8),fs(-6.0),angle),
+            transformed(px,py,fs(-3),fs(-1.8),angle),
+            transformed(px,py,fs(8),fs(4.4),angle),
           ];
 
-          poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.34},true);
-          poly(core,outer,{color:0x75dfff,alpha:alpha*travelFade*.90},true);
-          poly(core,inner,{color:spec.core,alpha:alpha*travelFade*.98},true);
-          poly(core,frontFacet,{color:0xcdf7ff,alpha:alpha*travelFade*.90},true);
-          poly(core,outer,{color:spec.core,width:1.75,alpha:alpha*travelFade*.90});
+          poly(glow,outer,{
+            color:spec.main,
+            alpha:alpha*travelFade*.34,
+          },true);
+          poly(core,outer,{
+            color:0x75dfff,
+            alpha:alpha*travelFade*.90,
+          },true);
+          poly(core,inner,{
+            color:spec.core,
+            alpha:alpha*travelFade*.98,
+          },true);
+          poly(core,frontFacet,{
+            color:0xcdf7ff,
+            alpha:alpha*travelFade*.90,
+          },true);
+          poly(core,outer,{
+            color:spec.core,
+            width:Math.max(1.15,1.75*frostRangeScale),
+            alpha:alpha*travelFade*.90,
+          });
 
-          glow.circle(px+tx*6,py+ty*6,spec.size+9).fill({
+          const frostGlowRadius=Math.max(
+            10,
+            (spec.size+9)*(.62+.38*frostRangeScale),
+          );
+          glow.circle(
+            px+tx*fs(6),
+            py+ty*fs(6),
+            frostGlowRadius,
+          ).fill({
             color:spec.main,
             alpha:alpha*travelFade*.20,
           });
-          core.circle(px+tx*10,py+ty*10,3.3).fill({
+          core.circle(
+            px+tx*fs(10),
+            py+ty*fs(10),
+            Math.max(2.1,3.3*frostRangeScale),
+          ).fill({
             color:spec.core,
             alpha:alpha*travelFade*.92,
           });
 
-          // Uneven shoulder crystals make the silhouette less perfectly
-          // symmetrical and give the projectile more physical ice mass.
+          // Shoulder crystals shrink with the core body so close-range casts
+          // stay inside the melee pile instead of covering both actors.
           const upperShoulder=[
-            transformed(px,py,1,-7,angle),
-            transformed(px,py,-8,-16,angle),
-            transformed(px,py,-13,-5.2,angle),
+            transformed(px,py,fs(1),fs(-7),angle),
+            transformed(px,py,fs(-8),fs(-16),angle),
+            transformed(px,py,fs(-13),fs(-5.2),angle),
           ];
           const lowerShoulder=[
-            transformed(px,py,-2,6,angle),
-            transformed(px,py,-8,13,angle),
-            transformed(px,py,-15,4.2,angle),
+            transformed(px,py,fs(-2),fs(6),angle),
+            transformed(px,py,fs(-8),fs(13),angle),
+            transformed(px,py,fs(-15),fs(4.2),angle),
           ];
           poly(core,upperShoulder,{
             color:spec.accent,
@@ -17477,14 +17509,12 @@ export class PixiProofRenderer {
             alpha:alpha*travelFade*.58,
           },true);
 
-          // Crystal fins and trailing splinters preserve the established
-          // Frostbolt motion language while the head carries more weight.
           for(const sign of [-1,1]){
             const finScale=sign>0?1:.88;
             const fin=[
-              transformed(px,py,-7,sign*5,angle),
-              transformed(px,py,-17,sign*14*finScale,angle),
-              transformed(px,py,-21,sign*4,angle),
+              transformed(px,py,fs(-7),fs(sign*5),angle),
+              transformed(px,py,fs(-17),fs(sign*14*finScale),angle),
+              transformed(px,py,fs(-21),fs(sign*4),angle),
             ];
             poly(core,fin,{
               color:sign>0?spec.main:spec.accent,
@@ -17492,16 +17522,25 @@ export class PixiProofRenderer {
             },true);
           }
 
+          // Rear splinters keep motion at range, but stop becoming a second
+          // full-size crystal when Frostbolt is fired into point-blank melee.
+          const closeTrailScale=.58+.42*frostRangeScale;
           for(let i=0;i<7;i++){
             const side=(i-3)*.22;
             const a=angle+Math.PI+side+Math.sin(p*11+i)*.05;
-            const len=20+(i%4)*6;
+            const len=(20+(i%4)*6)*closeTrailScale;
             core
-              .moveTo(px-tx*8,py-ty*8)
-              .lineTo(px+Math.cos(a)*len,py+Math.sin(a)*len)
+              .moveTo(
+                px-tx*fs(8),
+                py-ty*fs(8),
+              )
+              .lineTo(
+                px+Math.cos(a)*len,
+                py+Math.sin(a)*len,
+              )
               .stroke({
                 color:i%3===0?spec.core:(i%2?spec.main:spec.accent),
-                width:i%3===0?1.65:1.1,
+                width:Math.max(.85,(i%3===0?1.65:1.1)*closeTrailScale),
                 alpha:alpha*travelFade*.58,
               });
           }

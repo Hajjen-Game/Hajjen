@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20261003-2015";
+import { Game } from "./core/Game.js?v=20261007-archetypes1b";
 import { InputManager } from "../../arena3v3/src/core/InputManager.js";
 import { CharacterStore } from "../../arena3v3/src/core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "../../arena3v3/src/core/HonorSystem.js";

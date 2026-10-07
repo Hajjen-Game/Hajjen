@@ -393,18 +393,18 @@ export class BabylonRenderer {
       "orb-glass-edge-mat",
       this.scene,
     );
-    edgeMat.diffuseColor=new BABYLON.Color3(0.20,0.32,0.47);
-    edgeMat.emissiveColor=new BABYLON.Color3(0.13,0.25,0.42);
-    edgeMat.specularColor=new BABYLON.Color3(0.40,0.58,0.78);
-    edgeMat.specularPower=96;
-    edgeMat.alpha=0.72;
+    edgeMat.diffuseColor=new BABYLON.Color3(0.30,0.39,0.50);
+    edgeMat.emissiveColor=new BABYLON.Color3(0.070,0.14,0.24);
+    edgeMat.specularColor=new BABYLON.Color3(0.58,0.72,0.90);
+    edgeMat.specularPower=128;
+    edgeMat.alpha=0.56;
     edgeMat.disableLighting=true;
 
     const groundMat=makeGlass(
       "orb-arena-ground-mat",
-      "#8fa7c2",
-      0.075,
-      0.82,
+      "#9eb4cc",
+      0.105,
+      0.78,
     );
 
     const ground=BABYLON.MeshBuilder.CreateBox(
@@ -437,8 +437,34 @@ export class BabylonRenderer {
     const pad=a.boundaryPadding*S;
     const innerW=w-pad*2;
     const innerH=h-pad*2;
-    const rail=0.035;
-    const railY=0.055;
+    const rail=0.026;
+    const railY=0.085;
+
+    const frameGlassMat=makeGlass(
+      "orb-frame-glass-mat",
+      "#b5cbe0",
+      0.13,
+      0.96,
+    );
+
+    const frameThickness=0.20;
+    const frameHeight=0.28;
+    const frameGlassBars=[
+      {name:"n",x:w*0.5,z:pad,width:innerW+frameThickness,depth:frameThickness},
+      {name:"s",x:w*0.5,z:h-pad,width:innerW+frameThickness,depth:frameThickness},
+      {name:"w",x:pad,z:h*0.5,width:frameThickness,depth:innerH+frameThickness},
+      {name:"e",x:w-pad,z:h*0.5,width:frameThickness,depth:innerH+frameThickness},
+    ];
+    for(const b of frameGlassBars){
+      const bar=BABYLON.MeshBuilder.CreateBox(
+        "orb-frame-glass:"+b.name,
+        {width:b.width,depth:b.depth,height:frameHeight},
+        this.scene,
+      );
+      bar.position.set(b.x,frameHeight*0.5-0.01,b.z);
+      bar.material=frameGlassMat;
+      bar.isPickable=false;
+    }
 
     const makeRail=(name,x,z,width,depth,y=railY,material=edgeMat)=>{
       const mesh=BABYLON.MeshBuilder.CreateBox(
@@ -452,11 +478,20 @@ export class BabylonRenderer {
       return mesh;
     };
 
-    // Crisp luminous frame around the playable glass slab.
-    makeRail("orb-frame-n",w*0.5,pad,innerW,rail);
-    makeRail("orb-frame-s",w*0.5,h-pad,innerW,rail);
-    makeRail("orb-frame-w",pad,h*0.5,rail,innerH);
-    makeRail("orb-frame-e",w-pad,h*0.5,rail,innerH);
+    // Crisp top edge + a faint inner highlight give the glass frame real thickness.
+    makeRail("orb-frame-n",w*0.5,pad,innerW,rail,0.145);
+    makeRail("orb-frame-s",w*0.5,h-pad,innerW,rail,0.145);
+    makeRail("orb-frame-w",pad,h*0.5,rail,innerH,0.145);
+    makeRail("orb-frame-e",w-pad,h*0.5,rail,innerH,0.145);
+
+    const innerEdgeMat=edgeMat.clone("orb-glass-edge-inner-mat");
+    innerEdgeMat.alpha=0.24;
+    innerEdgeMat.emissiveColor=edgeMat.emissiveColor.scale(0.42);
+    const inset=0.11;
+    makeRail("orb-frame-inner-n",w*0.5,pad+inset,innerW-inset*2,rail*0.70,0.060,innerEdgeMat);
+    makeRail("orb-frame-inner-s",w*0.5,h-pad-inset,innerW-inset*2,rail*0.70,0.060,innerEdgeMat);
+    makeRail("orb-frame-inner-w",pad+inset,h*0.5,rail*0.70,innerH-inset*2,0.060,innerEdgeMat);
+    makeRail("orb-frame-inner-e",w-pad-inset,h*0.5,rail*0.70,innerH-inset*2,0.060,innerEdgeMat);
 
     // Subtle second frame below the slab makes the glass thickness readable.
     const lowerEdgeMat=edgeMat.clone("orb-glass-edge-lower-mat");
@@ -469,21 +504,21 @@ export class BabylonRenderer {
 
     const obstacleMat=makeGlass(
       "orb-los-mat",
-      "#90a7c2",
-      0.11,
-      0.94,
+      "#9bb1c8",
+      0.155,
+      0.86,
     );
     const topMat=makeGlass(
       "orb-los-top-mat",
-      "#b8cee6",
-      0.075,
-      1.00,
+      "#c1d5e9",
+      0.11,
+      0.95,
     );
 
     const makeObstacleEdges=(o,x,z,ow,od)=>{
       const topY=1.305;
-      const vThickness=0.024;
-      const topRail=0.030;
+      const vThickness=0.018;
+      const topRail=0.022;
 
       makeRail(
         "orb-los-edge-n:"+o.id,
@@ -588,6 +623,81 @@ export class BabylonRenderer {
     center.material=lineMat;
     center.isPickable=false;
 
+    // Soft procedural nebula layers far below the glass. They provide a readable
+    // sense of space/depth without turning the arena itself into a busy texture.
+    const nebulaTexture=new BABYLON.DynamicTexture(
+      "orb-nebula-texture",
+      {width:512,height:256},
+      this.scene,
+      false,
+    );
+    const nctx=nebulaTexture.getContext();
+    nctx.clearRect(0,0,512,256);
+
+    const addNebulaCloud=(x,y,r,inner,outer)=>{
+      const g=nctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,inner);
+      g.addColorStop(0.38,inner.replace(/0\.([0-9]+)\)/,"0.20)"));
+      g.addColorStop(0.72,outer);
+      g.addColorStop(1,"rgba(0,0,0,0)");
+      nctx.fillStyle=g;
+      nctx.fillRect(x-r,y-r,r*2,r*2);
+    };
+
+    addNebulaCloud(108,142,120,"rgba(50,94,255,0.34)","rgba(20,42,130,0.05)");
+    addNebulaCloud(256,104,150,"rgba(58,146,255,0.28)","rgba(16,50,120,0.04)");
+    addNebulaCloud(402,160,135,"rgba(130,74,255,0.30)","rgba(55,24,130,0.05)");
+    addNebulaCloud(314,214,110,"rgba(30,180,255,0.20)","rgba(12,70,130,0.03)");
+    nebulaTexture.hasAlpha=true;
+    nebulaTexture.update();
+
+    const nebulaMat=new BABYLON.StandardMaterial(
+      "orb-nebula-mat",
+      this.scene,
+    );
+    nebulaMat.diffuseTexture=nebulaTexture;
+    nebulaMat.emissiveTexture=nebulaTexture;
+    nebulaMat.opacityTexture=nebulaTexture;
+    nebulaMat.diffuseColor=new BABYLON.Color3(0.18,0.28,0.58);
+    nebulaMat.emissiveColor=new BABYLON.Color3(0.22,0.38,0.85);
+    nebulaMat.alpha=0.34;
+    nebulaMat.backFaceCulling=false;
+    nebulaMat.disableLighting=true;
+    nebulaMat.useAlphaFromDiffuseTexture=true;
+
+    const nebula=BABYLON.MeshBuilder.CreatePlane(
+      "orb-nebula-layer-a",
+      {width:w*1.32,height:h*1.55,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      this.scene,
+    );
+    nebula.rotation.x=Math.PI/2;
+    nebula.rotation.z=-0.10;
+    nebula.position.set(w*0.50,-1.62,h*0.53);
+    nebula.material=nebulaMat;
+    nebula.isPickable=false;
+
+    const nebulaMatB=nebulaMat.clone("orb-nebula-mat-b");
+    nebulaMatB.alpha=0.20;
+    nebulaMatB.emissiveColor=new BABYLON.Color3(0.34,0.18,0.72);
+
+    const nebulaB=BABYLON.MeshBuilder.CreatePlane(
+      "orb-nebula-layer-b",
+      {width:w*1.55,height:h*1.82,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      this.scene,
+    );
+    nebulaB.rotation.x=Math.PI/2;
+    nebulaB.rotation.z=0.16;
+    nebulaB.position.set(w*0.48,-2.45,h*0.46);
+    nebulaB.scaling.set(1.08,1.08,1.08);
+    nebulaB.material=nebulaMatB;
+    nebulaB.isPickable=false;
+
+    this.orbNebulaLayers=[
+      {mesh:nebula,baseY:nebula.position.y,phase:0.3,speed:0.000018},
+      {mesh:nebulaB,baseY:nebulaB.position.y,phase:2.1,speed:-0.000012},
+    ];
+    this.orbNebulaTexture=nebulaTexture;
+
     // Soft particle field physically below the transparent arena.
     const particleTexture=new BABYLON.DynamicTexture(
       "orb-under-space-particle",
@@ -608,7 +718,7 @@ export class BabylonRenderer {
 
     const spaceParticles=new BABYLON.ParticleSystem(
       "orb-under-space",
-      320,
+      520,
       this.scene,
     );
     spaceParticles.particleTexture=particleTexture;
@@ -623,14 +733,16 @@ export class BabylonRenderer {
       0.15,
       h*0.48,
     );
-    spaceParticles.color1=new BABYLON.Color4(0.22,0.48,0.92,0.36);
-    spaceParticles.color2=new BABYLON.Color4(0.58,0.78,1.00,0.46);
+    spaceParticles.color1=new BABYLON.Color4(0.20,0.44,0.95,0.48);
+    spaceParticles.color2=new BABYLON.Color4(0.66,0.80,1.00,0.58);
     spaceParticles.colorDead=new BABYLON.Color4(0.04,0.09,0.18,0);
-    spaceParticles.minSize=0.025;
-    spaceParticles.maxSize=0.085;
-    spaceParticles.minLifeTime=7;
-    spaceParticles.maxLifeTime=15;
-    spaceParticles.emitRate=24;
+    spaceParticles.minSize=0.022;
+    spaceParticles.maxSize=0.105;
+    spaceParticles.minLifeTime=9;
+    spaceParticles.maxLifeTime=18;
+    spaceParticles.emitRate=42;
+    spaceParticles.preWarmCycles=180;
+    spaceParticles.preWarmStepOffset=4;
     spaceParticles.direction1=new BABYLON.Vector3(-0.035,0.018,-0.025);
     spaceParticles.direction2=new BABYLON.Vector3(0.035,0.065,0.025);
     spaceParticles.minEmitPower=0.035;
@@ -1276,6 +1388,12 @@ export class BabylonRenderer {
         mote.baseY + Math.sin(now*0.00045+mote.phase)*0.10;
       mote.mesh.rotation.x = now*0.00010 + mote.phase;
       mote.mesh.rotation.y = -now*0.00013 + mote.phase*0.7;
+    }
+
+    for (const layer of this.orbNebulaLayers || []) {
+      layer.mesh.rotation.z += layer.speed;
+      layer.mesh.position.y =
+        layer.baseY + Math.sin(now*0.00012+layer.phase)*0.06;
     }
   }
 

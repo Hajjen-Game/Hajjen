@@ -1,34 +1,12 @@
+const TIBY_ROOT = "./assets/characters/tiby/";
+const TIBY_FILE = "tiby-base.glb";
+
 const KAYKIT_COMMIT = "672074b73ba276876a19e8816ecdc5241817ab47";
-const KAYKIT_BASE =
+const KAYKIT_ASSET_ROOT =
   "https://raw.githubusercontent.com/KayKit-Game-Assets/"
   + "KayKit-Character-Pack-Adventures-1.0/"
   + KAYKIT_COMMIT
-  + "/addons/kaykit_character_pack_adventures/";
-
-const CHARACTER_ROOT = KAYKIT_BASE + "Characters/gltf/";
-const ASSET_ROOT = KAYKIT_BASE + "Assets/gltf/";
-
-const MODEL_BY_CLASS = Object.freeze({
-  // Use the open-headed Rogue body as the clean caster/light template.
-  // Mage.glb and Rogue_Hooded.glb read mostly as headgear from our high
-  // arena camera, so they are deliberately avoided for gameplay silhouettes.
-  priest: "Rogue.glb",
-  mage: "Rogue.glb",
-  warlock: "Rogue.glb",
-  druid: "Barbarian.glb",
-  warrior: "Knight.glb",
-  paladin: "Knight.glb",
-  "death-knight": "Barbarian.glb",
-  rogue: "Rogue.glb",
-  hunter: "Rogue.glb",
-  shaman: "Barbarian.glb",
-});
-
-const MODEL_FILES = Object.freeze([
-  "Knight.glb",
-  "Rogue.glb",
-  "Barbarian.glb",
-]);
+  + "/addons/kaykit_character_pack_adventures/Assets/gltf/";
 
 const ACCESSORY_FILES = Object.freeze([
   "staff.gltf",
@@ -45,129 +23,96 @@ const ACCESSORY_FILES = Object.freeze([
 
 const CLASS_STYLE = Object.freeze({
   priest: {
-    tint: "#fff1cf",
-    accent: "#e8c663",
-    tintStrength: 0.34,
-    scale: 1.03,
+    accent: "#e7d18a",
+    scale: 1.02,
     width: 0.95,
-    depth: 0.95,
     props: [
-      { file: "staff.gltf", pos: [0.43, 0.78, 0.08], scale: 0.48, rot: [0, 0, -0.10] },
-      { file: "spellbook_open.gltf", pos: [-0.34, 0.96, 0.16], scale: 0.36, rot: [-0.40, 0, -0.08] },
+      { file: "staff.gltf", pos: [0.39, 0.76, 0.08], scale: 0.43, rot: [0, 0, -0.10] },
+      { file: "spellbook_open.gltf", pos: [-0.30, 0.92, 0.14], scale: 0.31, rot: [-0.38, 0, -0.06] },
     ],
   },
   mage: {
-    tint: "#75b8ff",
-    accent: "#796df0",
-    tintStrength: 0.38,
-    scale: 1.02,
+    accent: "#729cf2",
+    scale: 1.01,
     width: 0.93,
-    depth: 0.94,
     props: [
-      { file: "staff.gltf", pos: [0.42, 0.78, 0.08], scale: 0.48, rot: [0, 0, -0.10] },
+      { file: "staff.gltf", pos: [0.38, 0.76, 0.08], scale: 0.43, rot: [0, 0, -0.10] },
     ],
   },
   warlock: {
-    tint: "#a66ed0",
-    accent: "#6f3ca8",
-    tintStrength: 0.43,
-    scale: 1.02,
+    accent: "#9b69c7",
+    scale: 1.01,
     width: 0.94,
-    depth: 0.95,
     props: [
-      { file: "wand.gltf", pos: [0.38, 0.87, 0.11], scale: 0.48, rot: [0, 0, -0.30] },
-      { file: "spellbook_open.gltf", pos: [-0.34, 0.96, 0.14], scale: 0.35, rot: [-0.38, 0, 0.08] },
+      { file: "wand.gltf", pos: [0.34, 0.83, 0.10], scale: 0.43, rot: [0, 0, -0.28] },
+      { file: "spellbook_open.gltf", pos: [-0.29, 0.91, 0.13], scale: 0.30, rot: [-0.36, 0, 0.06] },
     ],
   },
   druid: {
-    tint: "#9c7449",
-    accent: "#72a654",
-    tintStrength: 0.34,
-    scale: 1.04,
+    accent: "#72a65b",
+    scale: 1.03,
     width: 1.00,
-    depth: 1.00,
     props: [
-      { file: "staff.gltf", pos: [0.48, 0.82, 0.10], scale: 0.64, rot: [0, 0, -0.12] },
+      { file: "staff.gltf", pos: [0.39, 0.76, 0.08], scale: 0.43, rot: [0, 0, -0.10] },
     ],
   },
   warrior: {
-    tint: "#a95d49",
-    accent: "#d29b63",
-    tintStrength: 0.34,
-    scale: 1.10,
+    accent: "#c7795b",
+    scale: 1.08,
     width: 1.10,
-    depth: 1.04,
     props: [
-      { file: "sword_2handed.gltf", pos: [0.44, 0.70, 0.03], scale: 0.41, rot: [0, 0, -0.50] },
+      { file: "sword_2handed.gltf", pos: [0.40, 0.66, 0.03], scale: 0.37, rot: [0, 0, -0.48] },
     ],
   },
   paladin: {
-    tint: "#e5a8c6",
-    accent: "#e8c462",
-    tintStrength: 0.30,
-    scale: 1.09,
+    accent: "#e7b6cd",
+    scale: 1.07,
     width: 1.08,
-    depth: 1.04,
     props: [
-      { file: "sword_1handed.gltf", pos: [0.39, 0.78, 0.12], scale: 0.43, rot: [0, 0, -0.48] },
-      { file: "shield_badge.gltf", pos: [-0.39, 0.87, 0.18], scale: 0.54, rot: [0, 0.05, 0.06] },
+      { file: "sword_1handed.gltf", pos: [0.35, 0.74, 0.11], scale: 0.38, rot: [0, 0, -0.46] },
+      { file: "shield_badge.gltf", pos: [-0.35, 0.82, 0.16], scale: 0.48, rot: [0, 0.04, 0.05] },
     ],
   },
   "death-knight": {
-    tint: "#5c445e",
-    accent: "#6eb1d6",
-    tintStrength: 0.40,
-    scale: 1.11,
+    accent: "#6fa8c7",
+    scale: 1.09,
     width: 1.08,
-    depth: 1.04,
     props: [
-      { file: "sword_2handed.gltf", pos: [0.44, 0.70, 0.04], scale: 0.43, rot: [0, 0, -0.48] },
+      { file: "sword_2handed.gltf", pos: [0.40, 0.66, 0.03], scale: 0.39, rot: [0, 0, -0.47] },
     ],
   },
   rogue: {
-    tint: "#c3aa43",
-    accent: "#e0c863",
-    tintStrength: 0.34,
-    scale: 0.98,
+    accent: "#d7bd55",
+    scale: 0.97,
     width: 0.90,
-    depth: 0.92,
     props: [
-      { file: "dagger.gltf", pos: [-0.32, 0.72, 0.12], scale: 0.39, rot: [0, 0, 0.48] },
-      { file: "dagger.gltf", pos: [0.32, 0.72, 0.12], scale: 0.39, rot: [0, 0, -0.48] },
+      { file: "dagger.gltf", pos: [-0.28, 0.68, 0.11], scale: 0.34, rot: [0, 0, 0.45] },
+      { file: "dagger.gltf", pos: [0.28, 0.68, 0.11], scale: 0.34, rot: [0, 0, -0.45] },
     ],
   },
   shaman: {
-    tint: "#5597cc",
-    accent: "#4fb7ad",
-    tintStrength: 0.39,
-    scale: 1.05,
+    accent: "#58aaa8",
+    scale: 1.03,
     width: 1.02,
-    depth: 1.00,
     props: [
-      { file: "axe_1handed.gltf", pos: [0.37, 0.78, 0.12], scale: 0.43, rot: [0, 0, -0.45] },
-      { file: "shield_round.gltf", pos: [-0.38, 0.86, 0.18], scale: 0.52, rot: [0, 0.05, 0.05] },
+      { file: "axe_1handed.gltf", pos: [0.33, 0.73, 0.11], scale: 0.38, rot: [0, 0, -0.42] },
+      { file: "shield_round.gltf", pos: [-0.34, 0.81, 0.16], scale: 0.46, rot: [0, 0.04, 0.04] },
     ],
   },
   hunter: {
-    tint: "#6f8f4d",
-    accent: "#b79b51",
-    tintStrength: 0.34,
-    scale: 0.99,
+    accent: "#8da75e",
+    scale: 0.98,
     width: 0.94,
-    depth: 0.96,
     props: [
-      { file: "crossbow_2handed.gltf", pos: [0.14, 0.92, -0.16], scale: 0.40, rot: [0.10, 0, -0.78] },
+      { file: "crossbow_2handed.gltf", pos: [0.12, 0.87, -0.14], scale: 0.35, rot: [0.08, 0, -0.72] },
     ],
   },
 });
 
 const DEFAULT_STYLE = Object.freeze({
-  tint: "#ffffff",
-  accent: "#c6b98a",
-  tintStrength: 0.16,
+  accent: "#c9b888",
   scale: 1,
   width: 1,
-  depth: 1,
   props: [],
 });
 
@@ -189,9 +134,8 @@ export class CharacterRenderer {
     this.shadowGenerator = shadowGenerator;
     this.scale = scale;
     this.entries = new Map();
-    this.characterContainers = new Map();
+    this.bodyContainer = null;
     this.accessoryContainers = new Map();
-    this.failedModels = new Set();
     this.loadingPromise = this.preloadAssets();
   }
 
@@ -201,56 +145,44 @@ export class CharacterRenderer {
 
   async preloadAssets() {
     if (!BABYLON.SceneLoader) {
-      console.error("Babylon SceneLoader is unavailable; KayKit models cannot load.");
+      console.error("Babylon SceneLoader is unavailable.");
       return;
     }
 
-    const loadCharacter = async file => {
-      try {
-        const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(
-          CHARACTER_ROOT,
-          file,
-          this.scene,
-        );
-        this.characterContainers.set(file, container);
-      } catch (error) {
-        this.failedModels.add(file);
-        console.error("Failed to load KayKit character", file, error);
-      }
-    };
+    const bodyPromise = BABYLON.SceneLoader.LoadAssetContainerAsync(
+      TIBY_ROOT,
+      TIBY_FILE,
+      this.scene,
+    ).then(container => {
+      this.bodyContainer = container;
+    }).catch(error => {
+      console.error("Failed to load local Tiby body", error);
+    });
 
-    const loadAccessory = async file => {
+    const accessoryPromises = ACCESSORY_FILES.map(async file => {
       try {
         const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(
-          ASSET_ROOT,
+          KAYKIT_ASSET_ROOT,
           file,
           this.scene,
         );
         this.accessoryContainers.set(file, container);
       } catch (error) {
-        console.warn("Failed to load KayKit accessory", file, error);
+        console.warn("Failed to load class accessory", file, error);
       }
-    };
+    });
 
-    await Promise.all([
-      ...MODEL_FILES.map(loadCharacter),
-      ...ACCESSORY_FILES.map(loadAccessory),
-    ]);
-  }
-
-  modelFor(actor) {
-    return MODEL_BY_CLASS[actor.classId]
-      || (actor.role === "melee" ? "Knight.glb" : "Mage.glb");
+    await Promise.all([bodyPromise, ...accessoryPromises]);
   }
 
   create(actor) {
     const root = new BABYLON.TransformNode("actor:" + actor.id, this.scene);
-    const modelPivot = new BABYLON.TransformNode(
-      "kaykit-pivot:" + actor.id,
+    const visualRoot = new BABYLON.TransformNode(
+      "tiby-visual:" + actor.id,
       this.scene,
     );
-    modelPivot.parent = root;
-    modelPivot.rotation.y = Math.PI;
+    visualRoot.parent = root;
+    visualRoot.rotation.y = Math.PI;
 
     const propRoot = new BABYLON.TransformNode(
       "class-props:" + actor.id,
@@ -261,112 +193,97 @@ export class CharacterRenderer {
 
     const entry = {
       root,
-      modelPivot,
+      visualRoot,
       propRoot,
       classId: actor.classId,
       role: actor.role,
       style: this.styleFor(actor),
-      modelFile: this.modelFor(actor),
       modelAttached: false,
       modelMeshes: [],
       propMeshes: [],
-      clonedMaterials: [],
       animationGroups: [],
       animationState: null,
       hp: null,
       hpBack: null,
       barRoot: null,
       contactShadow: null,
-      accentRing: null,
+      classRing: null,
     };
 
     this.createGrounding(actor, entry);
     this.createHealthBar(actor, entry);
     this.entries.set(actor.id, entry);
-    this.attachModelWhenReady(actor, entry);
+    this.attachWhenReady(actor, entry);
     return entry;
   }
 
-  async attachModelWhenReady(actor, entry) {
+  async attachWhenReady(actor, entry) {
     await this.loadingPromise;
-
     if (!this.entries.has(actor.id) || entry.modelAttached) return;
 
-    const container = this.characterContainers.get(entry.modelFile);
-    if (!container) {
-      console.warn("No KayKit container available for", entry.modelFile);
+    if (!this.bodyContainer) {
       this.createFallbackMarker(actor, entry);
       return;
     }
 
     try {
-      const instance = container.instantiateModelsToScene(
+      const instance = this.bodyContainer.instantiateModelsToScene(
         sourceName => actor.id + ":" + sourceName,
         false,
       );
 
       for (const node of instance.rootNodes || []) {
-        node.parent = entry.modelPivot;
+        node.parent = entry.visualRoot;
       }
 
-      entry.modelMeshes = entry.modelPivot.getChildMeshes(false);
+      entry.modelMeshes = entry.visualRoot.getChildMeshes(false);
       entry.animationGroups = instance.animationGroups || [];
 
-      this.applyClassLook(actor, entry);
-      this.normalizeModelHeight(entry, actor);
+      this.prepareBody(actor, entry);
+      this.normalizeBody(entry);
       this.attachClassProps(actor, entry);
-
       entry.modelAttached = true;
       this.setAnimation(entry, "idle", true);
     } catch (error) {
-      console.error("Failed to instantiate KayKit model", entry.modelFile, error);
+      console.error("Failed to instantiate Tiby character", error);
       this.createFallbackMarker(actor, entry);
     }
   }
 
-  applyClassLook(actor, entry) {
-    const style = entry.style;
-    const tint = color(style.tint);
-    const tintFactor = BABYLON.Color3.Lerp(
-      BABYLON.Color3.White(),
-      tint,
-      style.tintStrength,
-    );
-    const accent = color(style.accent);
+  prepareBody(actor, entry) {
+    const accent = color(entry.style.accent);
 
     for (const mesh of entry.modelMeshes) {
       mesh.metadata = {
         ...(mesh.metadata || {}),
         actorId: actor.id,
-        kaykit: true,
+        tiby: true,
       };
       mesh.isPickable = true;
       mesh.receiveShadows = true;
       mesh.renderOutline = true;
-      mesh.outlineColor = new BABYLON.Color3(0.07, 0.055, 0.05);
-      mesh.outlineWidth = 0.022;
+      mesh.outlineColor = new BABYLON.Color3(0.065, 0.052, 0.045);
+      mesh.outlineWidth = 0.018;
       this.shadowGenerator?.addShadowCaster(mesh);
 
-      const original = mesh.material;
-      if (!original?.clone) continue;
+      const material = mesh.material;
+      if (!material) continue;
 
-      const cloned = original.clone(actor.id + ":" + original.name);
-      mesh.material = cloned;
-      entry.clonedMaterials.push(cloned);
-
-      if (cloned.albedoColor) {
-        cloned.albedoColor = cloned.albedoColor.multiply(tintFactor);
-        cloned.emissiveColor = accent.scale(0.012);
-        if ("roughness" in cloned) cloned.roughness = Math.max(0.72, cloned.roughness ?? 0.8);
-      } else if (cloned.diffuseColor) {
-        cloned.diffuseColor = cloned.diffuseColor.multiply(tintFactor);
-        cloned.emissiveColor = accent.scale(0.010);
-        cloned.specularColor = new BABYLON.Color3(0.04, 0.04, 0.035);
+      // Preserve the source skin/face colors. A very small class accent keeps
+      // the body readable without dyeing the entire chibi model.
+      if (material.emissiveColor) {
+        material.emissiveColor = accent.scale(0.008);
+      }
+      if (material.specularColor) {
+        material.specularColor = new BABYLON.Color3(0.025, 0.025, 0.022);
+      }
+      if ("roughness" in material && material.roughness != null) {
+        material.roughness = Math.max(0.78, material.roughness);
       }
     }
   }
 
-  normalizeModelHeight(entry, actor) {
+  normalizeBody(entry) {
     const meshes = entry.modelMeshes.filter(mesh => mesh.getBoundingInfo);
     if (!meshes.length) return;
 
@@ -376,43 +293,38 @@ export class CharacterRenderer {
     let maxY = Number.NEGATIVE_INFINITY;
 
     for (const mesh of meshes) {
-      const bounds = mesh.getBoundingInfo()?.boundingBox;
-      if (!bounds) continue;
-      minY = Math.min(minY, bounds.minimumWorld.y);
-      maxY = Math.max(maxY, bounds.maximumWorld.y);
+      const box = mesh.getBoundingInfo()?.boundingBox;
+      if (!box) continue;
+      minY = Math.min(minY, box.minimumWorld.y);
+      maxY = Math.max(maxY, box.maximumWorld.y);
     }
 
     const height = maxY - minY;
     if (!Number.isFinite(height) || height <= 0.001) return;
 
-    const targetHeight = 1.86 * (entry.style.scale || 1);
-    const uniform = targetHeight / height;
-    entry.modelPivot.scaling.set(
+    const uniform = (1.70 * (entry.style.scale || 1)) / height;
+    entry.visualRoot.scaling.set(
       uniform * (entry.style.width || 1),
       uniform,
-      uniform * (entry.style.depth || 1),
+      uniform,
     );
 
     for (const mesh of meshes) mesh.computeWorldMatrix(true);
     minY = Number.POSITIVE_INFINITY;
-
     for (const mesh of meshes) {
-      const bounds = mesh.getBoundingInfo()?.boundingBox;
-      if (!bounds) continue;
-      minY = Math.min(minY, bounds.minimumWorld.y);
+      const box = mesh.getBoundingInfo()?.boundingBox;
+      if (!box) continue;
+      minY = Math.min(minY, box.minimumWorld.y);
     }
-
     if (Number.isFinite(minY)) {
-      entry.modelPivot.position.y -= minY;
+      entry.visualRoot.position.y -= minY;
     }
   }
 
   attachClassProps(actor, entry) {
-    const specs = entry.style.props || [];
-
-    specs.forEach((spec, index) => {
+    for (const [index, spec] of (entry.style.props || []).entries()) {
       const container = this.accessoryContainers.get(spec.file);
-      if (!container) return;
+      if (!container) continue;
 
       try {
         const instance = container.instantiateModelsToScene(
@@ -420,122 +332,87 @@ export class CharacterRenderer {
           false,
         );
 
-        const propAnchor = new BABYLON.TransformNode(
+        const anchor = new BABYLON.TransformNode(
           actor.id + ":prop-anchor:" + index,
           this.scene,
         );
-        propAnchor.parent = entry.propRoot;
-        propAnchor.position.set(...spec.pos);
-        propAnchor.rotation.set(...spec.rot);
-        propAnchor.scaling.setAll(spec.scale);
+        anchor.parent = entry.propRoot;
+        anchor.position.set(...spec.pos);
+        anchor.rotation.set(...spec.rot);
+        anchor.scaling.setAll(spec.scale);
 
         for (const node of instance.rootNodes || []) {
-          node.parent = propAnchor;
+          node.parent = anchor;
         }
 
-        const meshes = propAnchor.getChildMeshes(false);
+        const meshes = anchor.getChildMeshes(false);
         for (const mesh of meshes) {
           mesh.metadata = {
             ...(mesh.metadata || {}),
             actorId: actor.id,
-            kaykitProp: true,
+            classProp: true,
           };
           mesh.isPickable = true;
           mesh.receiveShadows = true;
           mesh.renderOutline = true;
-          mesh.outlineColor = new BABYLON.Color3(0.07, 0.055, 0.05);
-          mesh.outlineWidth = 0.016;
+          mesh.outlineColor = new BABYLON.Color3(0.065, 0.052, 0.045);
+          mesh.outlineWidth = 0.015;
           this.shadowGenerator?.addShadowCaster(mesh);
-
-          const original = mesh.material;
-          if (original?.clone) {
-            const cloned = original.clone(
-              actor.id + ":prop:" + index + ":" + original.name,
-            );
-            const accentFactor = BABYLON.Color3.Lerp(
-              BABYLON.Color3.White(),
-              color(entry.style.accent),
-              0.16,
-            );
-
-            if (cloned.albedoColor) {
-              cloned.albedoColor = cloned.albedoColor.multiply(accentFactor);
-            } else if (cloned.diffuseColor) {
-              cloned.diffuseColor = cloned.diffuseColor.multiply(accentFactor);
-            }
-
-            mesh.material = cloned;
-            entry.clonedMaterials.push(cloned);
-          }
         }
-
         entry.propMeshes.push(...meshes);
       } catch (error) {
-        console.warn(
-          "Could not instantiate KayKit class prop",
-          actor.classId,
-          spec.file,
-          error,
-        );
+        console.warn("Could not instantiate class prop", spec.file, error);
       }
-    });
+    }
   }
 
   createGrounding(actor, entry) {
     const shadowMat = new BABYLON.StandardMaterial(
-      "kaykit-shadow-mat:" + actor.id,
+      "tiby-shadow:" + actor.id,
       this.scene,
     );
-    shadowMat.diffuseColor = new BABYLON.Color3(0.055, 0.038, 0.03);
+    shadowMat.diffuseColor = new BABYLON.Color3(0.045, 0.032, 0.027);
     shadowMat.specularColor = BABYLON.Color3.Black();
-    shadowMat.alpha = 0.30;
+    shadowMat.alpha = 0.28;
     shadowMat.disableLighting = true;
 
     const shadow = BABYLON.MeshBuilder.CreateCylinder(
       "contact-shadow:" + actor.id,
-      {
-        height: 0.010,
-        diameter: 1.02,
-        tessellation: 22,
-      },
+      { height: 0.010, diameter: 0.90, tessellation: 20 },
       this.scene,
     );
     shadow.parent = entry.root;
     shadow.position.y = 0.010;
-    shadow.scaling.set(1.20, 1, 0.76);
+    shadow.scaling.set(1.16, 1, 0.74);
     shadow.material = shadowMat;
     shadow.isPickable = false;
     entry.contactShadow = shadow;
 
     const ringMat = new BABYLON.StandardMaterial(
-      "class-accent-mat:" + actor.id,
+      "class-ring:" + actor.id,
       this.scene,
     );
     ringMat.diffuseColor = color(entry.style.accent);
-    ringMat.emissiveColor = color(entry.style.accent).scale(0.10);
+    ringMat.emissiveColor = color(entry.style.accent).scale(0.06);
     ringMat.specularColor = BABYLON.Color3.Black();
-    ringMat.alpha = 0.13;
+    ringMat.alpha = 0.16;
     ringMat.disableLighting = true;
 
     const ring = BABYLON.MeshBuilder.CreateTorus(
-      "class-accent:" + actor.id,
-      {
-        diameter: 0.88,
-        thickness: 0.024,
-        tessellation: 32,
-      },
+      "class-ring:" + actor.id,
+      { diameter: 0.82, thickness: 0.020, tessellation: 30 },
       this.scene,
     );
     ring.parent = entry.root;
-    ring.position.y = 0.035;
+    ring.position.y = 0.03;
     ring.material = ringMat;
     ring.isPickable = false;
-    entry.accentRing = ring;
+    entry.classRing = ring;
   }
 
   createHealthBar(actor, entry) {
     const backMat = new BABYLON.StandardMaterial(
-      "hp-back-mat:" + actor.id,
+      "hp-back:" + actor.id,
       this.scene,
     );
     backMat.diffuseColor = BABYLON.Color3.FromHexString("#171412");
@@ -543,30 +420,23 @@ export class CharacterRenderer {
     backMat.disableLighting = true;
 
     const hpMat = new BABYLON.StandardMaterial(
-      "hp-mat:" + actor.id,
+      "hp:" + actor.id,
       this.scene,
     );
     hpMat.diffuseColor = BABYLON.Color3.FromHexString(
       actor.team === "friendly" ? "#58b96b" : "#d55c50",
     );
-    hpMat.emissiveColor = hpMat.diffuseColor.scale(0.035);
+    hpMat.emissiveColor = hpMat.diffuseColor.scale(0.025);
     hpMat.specularColor = BABYLON.Color3.Black();
     hpMat.disableLighting = true;
 
-    const barRoot = new BABYLON.TransformNode(
-      "status:" + actor.id,
-      this.scene,
-    );
+    const barRoot = new BABYLON.TransformNode("status:" + actor.id, this.scene);
     barRoot.parent = entry.root;
-    barRoot.position.y = 2.38;
+    barRoot.position.y = 2.18;
 
     const hpBack = BABYLON.MeshBuilder.CreatePlane(
       "hpBack:" + actor.id,
-      {
-        width: 1.30,
-        height: 0.115,
-        sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-      },
+      { width: 1.22, height: 0.105, sideOrientation: BABYLON.Mesh.DOUBLESIDE },
       this.scene,
     );
     hpBack.parent = barRoot;
@@ -576,11 +446,7 @@ export class CharacterRenderer {
 
     const hp = BABYLON.MeshBuilder.CreatePlane(
       "hp:" + actor.id,
-      {
-        width: 1.24,
-        height: 0.070,
-        sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-      },
+      { width: 1.16, height: 0.064, sideOrientation: BABYLON.Mesh.DOUBLESIDE },
       this.scene,
     );
     hp.parent = barRoot;
@@ -597,23 +463,16 @@ export class CharacterRenderer {
   createFallbackMarker(actor, entry) {
     if (!this.entries.has(actor.id) || entry.modelAttached) return;
 
-    const mat = new BABYLON.StandardMaterial(
-      "fallback:" + actor.id,
-      this.scene,
-    );
-    mat.diffuseColor = color(entry.style.tint);
+    const mat = new BABYLON.StandardMaterial("fallback:" + actor.id, this.scene);
+    mat.diffuseColor = color(entry.style.accent);
 
     const marker = BABYLON.MeshBuilder.CreateCapsule(
       "fallback:" + actor.id,
-      {
-        height: 1.30,
-        radius: 0.30,
-        tessellation: 8,
-      },
+      { height: 1.25, radius: 0.29, tessellation: 8 },
       this.scene,
     );
-    marker.parent = entry.modelPivot;
-    marker.position.y = 0.65;
+    marker.parent = entry.visualRoot;
+    marker.position.y = 0.63;
     marker.material = mat;
     marker.metadata = { actorId: actor.id };
     this.shadowGenerator?.addShadowCaster(marker);
@@ -625,50 +484,28 @@ export class CharacterRenderer {
     if (!entry.animationGroups.length) return;
     if (!force && entry.animationState === state) return;
 
-    const castHints = entry.role === "melee"
-      ? ["attack", "slash", "melee", "swing"]
-      : ["cast", "spell", "magic", "attack_magic"];
-
     const hints = state === "run"
-      ? ["run", "running", "walk", "walking"]
+      ? ["run", "walk"]
       : state === "cast"
-        ? castHints
+        ? ["cast", "spell", "attack"]
         : state === "death"
-          ? ["death", "die", "dying"]
-          : ["idle", "standing"];
+          ? ["death", "die"]
+          : ["idle"];
 
-    const selected = findAnimation(entry.animationGroups, hints)
-      || entry.animationGroups[0];
-
+    const selected = findAnimation(entry.animationGroups, hints);
     for (const group of entry.animationGroups) {
-      if (group === selected) continue;
-      group.stop();
+      if (group !== selected) group.stop();
     }
-
     if (selected) {
-      selected.start(true, 1.0, selected.from, selected.to, false);
+      selected.start(true, 1, selected.from, selected.to, false);
       entry.animationState = state;
     }
   }
 
   disposeEntry(entry) {
     for (const group of entry.animationGroups || []) {
-      try {
-        group.stop();
-        group.dispose();
-      } catch {
-        // Animation disposal must never break a match reset.
-      }
+      try { group.stop(); group.dispose(); } catch {}
     }
-
-    for (const material of entry.clonedMaterials || []) {
-      try {
-        material.dispose();
-      } catch {
-        // Cloned visual materials are best-effort cleanup only.
-      }
-    }
-
     entry.root.dispose(false, true);
   }
 
@@ -686,10 +523,7 @@ export class CharacterRenderer {
 
       if (
         entry
-        && (
-          entry.classId !== actor.classId
-          || entry.role !== actor.role
-        )
+        && (entry.classId !== actor.classId || entry.role !== actor.role)
       ) {
         this.disposeEntry(entry);
         this.entries.delete(actor.id);
@@ -698,7 +532,6 @@ export class CharacterRenderer {
 
       entry = entry || this.create(actor);
       entry.root.setEnabled(actor.alive);
-
       if (!actor.alive) {
         this.setAnimation(entry, "death");
         continue;
@@ -712,44 +545,36 @@ export class CharacterRenderer {
 
       const movement = actor.lastMove || { x: 0, y: 0 };
       const moving = Math.hypot(movement.x, movement.y) > 0.05;
-
       if (moving) {
-        entry.root.rotation.y = Math.atan2(
-          movement.x,
-          movement.y,
-        );
+        entry.root.rotation.y = Math.atan2(movement.x, movement.y);
       }
 
       if (actor.cast) this.setAnimation(entry, "cast");
       else if (moving) this.setAnimation(entry, "run");
       else this.setAnimation(entry, "idle");
 
-      const propBob = moving
-        ? Math.sin(time * 0.010) * 0.018
-        : Math.sin(time * 0.0025) * 0.007;
-      entry.propRoot.position.y = propBob;
+      // Tiby has a rig but may export without authored clips. Keep a subtle
+      // miniature-style procedural pose so the arena does not feel static.
+      const bob = moving
+        ? Math.sin(time * 0.012) * 0.028
+        : Math.sin(time * 0.0024) * 0.008;
+      entry.visualRoot.position.y += bob;
+      entry.propRoot.position.y = bob;
 
       const health = Math.max(0, Math.min(1, actor.healthPct));
       entry.hp.scaling.x = health;
-      entry.hp.position.x = -0.62 * (1 - health);
+      entry.hp.position.x = -0.58 * (1 - health);
 
       const hpColor = health < 0.20
         ? "#e14d43"
         : actor.team === "friendly"
           ? "#58b96b"
           : "#d55c50";
-
       entry.hp.material.diffuseColor = BABYLON.Color3.FromHexString(hpColor);
       entry.hp.material.emissiveColor =
-        entry.hp.material.diffuseColor.scale(health < 0.20 ? 0.08 : 0.03);
+        entry.hp.material.diffuseColor.scale(health < 0.20 ? 0.07 : 0.025);
 
-      if (entry.accentRing) {
-        entry.accentRing.visibility = actor.cast ? 0.48 : 0.22;
-        const pulse = actor.cast
-          ? 1 + Math.sin(time * 0.015) * 0.08
-          : 1;
-        entry.accentRing.scaling.setAll(pulse);
-      }
+      entry.classRing.visibility = actor.cast ? 0.34 : 0.16;
     }
   }
 
@@ -761,7 +586,7 @@ export class CharacterRenderer {
     return this.entries.get(id)?.root || null;
   }
 
-  worldPosition(id, y = 1.25) {
+  worldPosition(id, y = 1.22) {
     const root = this.rootForActor(id);
     return root
       ? new BABYLON.Vector3(

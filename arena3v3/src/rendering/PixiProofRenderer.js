@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-frostscale1";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-projectilecontact1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -15901,11 +15901,35 @@ export class PixiProofRenderer {
         const missSign = Math.sin(seed * .89) >= 0 ? 1 : -1;
 
         const heavy = Boolean(spec?.heavy || POLISH_HEAVY_SPELLS.has(effect.spellId));
+        const rangeAwareContact =
+          !missed
+          && (spec?.shape === "frost-spear" || spec?.shape === "pyro");
+        const rangeScale =
+          spec?.shape === "frost-spear"
+            ? .46 + .22 * clamp01((length0 - 50) / 140)
+            : spec?.shape === "pyro"
+              ? .55 + .45 * clamp01((length0 - 55) / 135)
+              : 1;
+        const headFront =
+          spec?.shape === "frost-spear"
+            ? 31 * rangeScale
+            : spec?.shape === "pyro"
+              ? 28 * rangeScale
+              : 0;
+        const targetRadius = Math.max(12, Number(target?.radius) || 18);
+        const contactPullback = rangeAwareContact
+          ? Math.min(
+              Math.max(0, length0 - Math.max(10, source.radius * .55)),
+              targetRadius * .72 + headFront * .32,
+            )
+          : 0;
         const endX =
           dx0
+          - tx0 * contactPullback
           + (missed ? nx0 * missSign * (heavy ? 52 : 42) + tx0 * 14 : 0);
         const endY =
           dy0
+          - ty0 * contactPullback
           + (missed ? ny0 * missSign * (heavy ? 52 : 42) + ty0 * 14 - 5 : 0);
 
         const endLen = Math.max(1,Math.hypot(endX,endY));
@@ -15950,8 +15974,8 @@ export class PixiProofRenderer {
           if (impactFade > .002) {
             drawPool(
               view,
-              endX,
-              endY,
+              missed ? endX : dx0,
+              missed ? endY : dy0,
               profile.main,
               profile.core,
               poolRadius * (1.12 + impactP * .82),
@@ -16290,11 +16314,38 @@ export class PixiProofRenderer {
       const ny0 = tx0;
       const missSign = Math.sin(seed * .89) >= 0 ? 1 : -1;
 
+      // Frostbolt and Pyroblast use a physical contact point rather than
+      // flying their whole silhouette through the target's center. Frostbolt
+      // also stays compact even at long range; Pyroblast only compresses hard
+      // at close range and regains full mass across normal caster distance.
+      const projectileRangeScale =
+        spec.shape === "frost-spear"
+          ? .46 + .22 * clamp01((length0 - 50) / 140)
+          : spec.shape === "pyro"
+            ? .55 + .45 * clamp01((length0 - 55) / 135)
+            : 1;
+      const headFront =
+        spec.shape === "frost-spear"
+          ? 31 * projectileRangeScale
+          : spec.shape === "pyro"
+            ? 28 * projectileRangeScale
+            : 0;
+      const targetRadius = Math.max(12, Number(target?.radius) || 18);
+      const contactPullback =
+        !missed && (spec.shape === "frost-spear" || spec.shape === "pyro")
+          ? Math.min(
+              Math.max(0, length0 - Math.max(10, source.radius * .55)),
+              targetRadius * .72 + headFront * .32,
+            )
+          : 0;
+
       const endX =
         dx0
+        - tx0 * contactPullback
         + (missed ? nx0 * missSign * (spec.heavy ? 52 : 42) + tx0 * 14 : 0);
       const endY =
         dy0
+        - ty0 * contactPullback
         + (missed ? ny0 * missSign * (spec.heavy ? 52 : 42) + ty0 * 14 - 5 : 0);
 
       const endLen = Math.max(1, Math.hypot(endX, endY));
@@ -16922,16 +16973,23 @@ export class PixiProofRenderer {
             p * (spec.heavy ? 17 : 14) * (i % 2 ? -1 : 1)
             + i * Math.PI * 2 / satelliteCount
             + seed * .013;
-          const rr = (spec.size || 9) + 7 + (i % 2) * 4;
+          const rr =
+            ((spec.size || 9) + 7 + (i % 2) * 4)
+            * projectileRangeScale;
           const sx = px + nx * Math.cos(orbit) * rr - tx * (i * 2.2);
           const sy = py + ny * Math.cos(orbit) * rr - ty * (i * 2.2)
             + Math.sin(orbit) * 2.5;
+          const satelliteScale=.72+.28*projectileRangeScale;
 
-          glow.circle(sx,sy,spec.heavy ? 5.2 : 4.1).fill({
+          glow.circle(
+            sx,sy,(spec.heavy ? 5.2 : 4.1)*satelliteScale
+          ).fill({
             color: i % 2 ? spec.core : spec.main,
             alpha: alpha * travelFade * .18,
           });
-          core.circle(sx,sy,spec.heavy ? 2.0 : 1.55).fill({
+          core.circle(
+            sx,sy,(spec.heavy ? 2.0 : 1.55)*satelliteScale
+          ).fill({
             color: i % 2 ? spec.core : spec.accent,
             alpha: alpha * travelFade * .72,
           });
@@ -17412,8 +17470,7 @@ export class PixiProofRenderer {
           // fixed ~65px crystal could be larger than an entire actor. Preserve
           // the full showcase silhouette at range, but compress the physical
           // ice head smoothly when the target is close.
-          const frostRangeScale=
-            .48+.52*clamp01((endLen-50)/110);
+          const frostRangeScale=projectileRangeScale;
           const fs=value=>value*frostRangeScale;
           const pulse=.92+.08*Math.sin(p*36+seed*.07);
           const shoulder=fs(11.8*pulse);
@@ -17545,30 +17602,32 @@ export class PixiProofRenderer {
               });
           }
         } else if (spec.shape === "pyro") {
+          const pyroScale=projectileRangeScale;
+          const ps=value=>value*pyroScale;
           const flicker=.86+.14*Math.sin(p*42+seed*.09);
           const outer=[
-            transformed(px,py,28,0,angle),
-            transformed(px,py,8,-12*flicker,angle),
-            transformed(px,py,-8,-13,angle),
-            transformed(px,py,-26,-7,angle),
-            transformed(px,py,-37,0,angle),
-            transformed(px,py,-25,7,angle),
-            transformed(px,py,-8,13,angle),
-            transformed(px,py,8,12*flicker,angle),
+            transformed(px,py,ps(28),0,angle),
+            transformed(px,py,ps(8),ps(-12*flicker),angle),
+            transformed(px,py,ps(-8),ps(-13),angle),
+            transformed(px,py,ps(-26),ps(-7),angle),
+            transformed(px,py,ps(-37),0,angle),
+            transformed(px,py,ps(-25),ps(7),angle),
+            transformed(px,py,ps(-8),ps(13),angle),
+            transformed(px,py,ps(8),ps(12*flicker),angle),
           ];
           const inner=[
-            transformed(px,py,22,0,angle),
-            transformed(px,py,5,-7,angle),
-            transformed(px,py,-12,-7.5,angle),
-            transformed(px,py,-24,0,angle),
-            transformed(px,py,-12,7.5,angle),
-            transformed(px,py,5,7,angle),
+            transformed(px,py,ps(22),0,angle),
+            transformed(px,py,ps(5),ps(-7),angle),
+            transformed(px,py,ps(-12),ps(-7.5),angle),
+            transformed(px,py,ps(-24),0,angle),
+            transformed(px,py,ps(-12),ps(7.5),angle),
+            transformed(px,py,ps(5),ps(7),angle),
           ];
           const hot=[
-            transformed(px,py,15,0,angle),
-            transformed(px,py,1,-3.8,angle),
-            transformed(px,py,-13,0,angle),
-            transformed(px,py,1,3.8,angle),
+            transformed(px,py,ps(15),0,angle),
+            transformed(px,py,ps(1),ps(-3.8),angle),
+            transformed(px,py,ps(-13),0,angle),
+            transformed(px,py,ps(1),ps(3.8),angle),
           ];
 
           poly(glow,outer,{color:spec.accent,alpha:alpha*travelFade*.26},true);
@@ -17577,23 +17636,38 @@ export class PixiProofRenderer {
           poly(core,inner,{color:0xffb32d,alpha:alpha*travelFade*.94},true);
           poly(core,hot,{color:spec.core,alpha:alpha*travelFade*.98},true);
 
-          glow.circle(px+tx*6,py+ty*6,spec.size+8).fill({
+          glow.circle(
+            px+tx*ps(6),
+            py+ty*ps(6),
+            Math.max(10,(spec.size+8)*(.58+.42*pyroScale)),
+          ).fill({
             color:spec.main,alpha:alpha*travelFade*.20
           });
-          core.circle(px+tx*7,py+ty*7,4.8).fill({
+          core.circle(
+            px+tx*ps(7),
+            py+ty*ps(7),
+            Math.max(2.8,4.8*pyroScale),
+          ).fill({
             color:spec.core,alpha:alpha*travelFade*.98
           });
 
+          const pyroTrailScale=.62+.38*pyroScale;
           for(let i=0;i<8;i++){
             const side=(i-3.5)*.15;
             const a=angle+Math.PI+side+Math.sin(p*12+i)*.07;
-            const len=24+(i%4)*7;
+            const len=(24+(i%4)*7)*pyroTrailScale;
             core
-              .moveTo(px-tx*10+nx*side*10,py-ty*10+ny*side*10)
+              .moveTo(
+                px-tx*ps(10)+nx*side*ps(10),
+                py-ty*ps(10)+ny*side*ps(10)
+              )
               .lineTo(px+Math.cos(a)*len,py+Math.sin(a)*len)
               .stroke({
                 color:i%4===0?spec.core:(i%2?0xffb52f:spec.accent),
-                width:i%4===0?1.8:1.25,
+                width:Math.max(
+                  .9,
+                  (i%4===0?1.8:1.25)*pyroTrailScale
+                ),
                 alpha:alpha*travelFade*.62,
               });
           }
@@ -17923,8 +17997,8 @@ export class PixiProofRenderer {
       if (p >= spec.travelEnd) {
         const hit = clamp01((p - spec.travelEnd) / .36);
         const fade = 1 - smooth(hit);
-        const ix = endX;
-        const iy = endY;
+        const ix = missed ? endX : dx0;
+        const iy = missed ? endY : dy0;
 
         if (missed) {
           for(let i=0;i<6;i++){

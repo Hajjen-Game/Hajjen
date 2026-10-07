@@ -13389,7 +13389,16 @@ export class PixiProofRenderer {
           // middle of the sweep. The broad trail gives spell-level readability,
           // while the blade silhouette keeps it unmistakably physical.
           const facing=Math.atan2(dy0,dx0);
-          const swing=smooth((p-.06)/.46);
+          const rawSwing=clamp01((p-.05)/.52);
+          let swing;
+          if(rawSwing<.48){
+            swing=smooth(rawSwing/.48)*.58;
+          }else if(rawSwing<.68){
+            // Brief readability hold when the blade crosses the target.
+            swing=.58;
+          }else{
+            swing=.58+smooth((rawSwing-.68)/.32)*.42;
+          }
           const reveal=easeOut(p/.10);
           const swingFade=1-smooth((p-.62)/.28);
           const swordAlpha=alpha*reveal*swingFade;
@@ -13473,8 +13482,8 @@ export class PixiProofRenderer {
               swordAngle,
               {
                 color:profile.core,
-                width:3.1,
-                alpha:Math.min(1,swordAlpha*1.12),
+                width:4.2,
+                alpha:Math.min(1,swordAlpha*1.28),
               },
               14
             );
@@ -13523,13 +13532,32 @@ export class PixiProofRenderer {
 
           polygon(core,blade,{
             color:profile.main,
-            alpha:swordAlpha*.46,
+            alpha:swordAlpha*.58,
           },true);
           polygon(core,blade,{
             color:profile.core,
-            width:2.5,
-            alpha:Math.min(1,swordAlpha*1.12),
+            width:2.8,
+            alpha:Math.min(1,swordAlpha*1.20),
           },false);
+
+          const ridgeStart=point(0,0,root+5,0,swordAngle);
+          const ridgeEnd=point(0,0,tip-8,0,swordAngle);
+          glow
+            .moveTo(ridgeStart.x,ridgeStart.y)
+            .lineTo(ridgeEnd.x,ridgeEnd.y)
+            .stroke({
+              color:profile.core,
+              width:7,
+              alpha:swordAlpha*.09,
+            });
+          core
+            .moveTo(ridgeStart.x,ridgeStart.y)
+            .lineTo(ridgeEnd.x,ridgeEnd.y)
+            .stroke({
+              color:profile.core,
+              width:1.8,
+              alpha:Math.min(1,swordAlpha*1.16),
+            });
 
           // Crossguard, grip and pommel make the silhouette read as a weapon
           // even when the fight is visually busy.
@@ -13560,7 +13588,11 @@ export class PixiProofRenderer {
 
           // Contact pulse happens exactly when the rotating blade crosses the
           // target-facing direction (about 58% through the 180° sweep).
-          const contact=Math.exp(-Math.pow((swing-.58)/.115,2));
+          const contactHold=rawSwing>=.48&&rawSwing<.68?1:0;
+          const contact=Math.max(
+            contactHold,
+            Math.exp(-Math.pow((swing-.58)/.115,2))
+          );
           if(contact>.01){
             glow.circle(dx0,dy0,12+contact*34).fill({
               color:profile.main,
@@ -13690,10 +13722,12 @@ export class PixiProofRenderer {
           const hit=clamp01((p-hitStart)/hitSpan);
           const hitFade=1-smooth((hit-.72)/.28);
           const expand=easeOut(hit);
+          const mortalImpact=effect.spellId==="warrior-mortal-strike";
           const heavyImpact=
-            effect.spellId==="warrior-mortal-strike"
+            mortalImpact
             || effect.spellId==="dk-obliterate"
             || effect.spellId==="shaman-stormstrike";
+          const sharedImpactScale=mortalImpact?.48:1;
           const rogueImpact=
             effect.spellId==="rogue-eviscerate"
             || effect.spellId==="rogue-mutilate";
@@ -13703,23 +13737,25 @@ export class PixiProofRenderer {
           glow.circle(dx,dy,15+expand*(heavyImpact?47:36)).stroke({
             color:profile.main,
             width:heavyImpact?15:11,
-            alpha:alpha*hitFade*(heavyImpact?.21:.17),
+            alpha:alpha*hitFade*(heavyImpact?.21:.17)*sharedImpactScale,
           });
           glow.circle(dx,dy,9+expand*(heavyImpact?29:23)).fill({
             color:profile.accent,
-            alpha:alpha*hitFade*(heavyImpact?.13:.10),
+            alpha:alpha*hitFade*(heavyImpact?.13:.10)*sharedImpactScale,
           });
           core.circle(dx,dy,7+expand*(heavyImpact?19:15)).stroke({
             color:profile.core,
             width:heavyImpact?2.8:2.2,
-            alpha:alpha*hitFade*.82,
+            alpha:alpha*hitFade*.82*sharedImpactScale,
           });
 
           const shards=
-            effect.spellId==="dk-obliterate"
-              || effect.spellId==="shaman-stormstrike"
-              ? 16
-              : rogueImpact ? 13 : 11;
+            mortalImpact
+              ? 7
+              : effect.spellId==="dk-obliterate"
+                || effect.spellId==="shaman-stormstrike"
+                ? 16
+                : rogueImpact ? 13 : 11;
           for(let i=0;i<shards;i++){
             const ang=i/shards*Math.PI*2+seed*.009;
             const inner=8+(i%2)*3;
@@ -13741,7 +13777,7 @@ export class PixiProofRenderer {
                     ? 0x78e6ff
                     : (i%3===0?profile.core:(i%2?profile.main:profile.accent)),
                 width:1.8+(i%3===0?1.15:.25),
-                alpha:alpha*hitFade*.76,
+                alpha:alpha*hitFade*.76*sharedImpactScale,
               });
           }
 

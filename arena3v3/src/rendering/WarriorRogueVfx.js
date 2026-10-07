@@ -156,7 +156,15 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   const dy = target.y - source.y;
   const distance = Math.max(1, Math.hypot(dx, dy));
   const facing = Math.atan2(dy, dx);
-  const swing = smooth((p - .06) / .46);
+  const rawSwing = clamp01((p - .05) / .52);
+  let swing;
+  if (rawSwing < .48) {
+    swing = smooth(rawSwing / .48) * .58;
+  } else if (rawSwing < .68) {
+    swing = .58;
+  } else {
+    swing = .58 + smooth((rawSwing - .68) / .32) * .42;
+  }
   const reveal = smooth(p / .10);
   const swingFade = 1 - clamp01((p - .62) / .28);
   const startAngle = facing - Math.PI * .58;
@@ -189,8 +197,8 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   ctx.stroke();
 
   ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 3;
-  ctx.globalAlpha = Math.min(1, swordAlpha * 1.08);
+  ctx.lineWidth = 4.2;
+  ctx.globalAlpha = Math.min(1, swordAlpha * 1.20);
   ctx.beginPath();
   ctx.arc(0, 0, arcRadius - 2, Math.max(startAngle, swordAngle - 1.02), swordAngle);
   ctx.stroke();
@@ -222,12 +230,22 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
 
   ctx.shadowBlur = 6;
   ctx.fillStyle = profile.main;
-  ctx.globalAlpha = swordAlpha * .48;
+  ctx.globalAlpha = swordAlpha * .58;
   ctx.fill();
 
   ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 2.6;
+  ctx.globalAlpha = Math.min(1, swordAlpha * 1.16);
+  ctx.stroke();
+
+  const ridgeA = localPoint(root + 5, 0);
+  const ridgeB = localPoint(tip - 8, 0);
+  ctx.strokeStyle = profile.core;
   ctx.lineWidth = 1.8;
-  ctx.globalAlpha = swordAlpha * .96;
+  ctx.globalAlpha = Math.min(1, swordAlpha * 1.14);
+  ctx.beginPath();
+  ctx.moveTo(ridgeA.x, ridgeA.y);
+  ctx.lineTo(ridgeB.x, ridgeB.y);
   ctx.stroke();
 
   // Crossguard and grip keep the effect readable as a sword instead of a laser.
@@ -281,13 +299,21 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
       ctx.stroke();
     }
 
+    const hitAngle = Math.atan2(dy, dx);
+    ctx.strokeStyle = profile.core;
+    ctx.lineWidth = 4.2;
+    ctx.globalAlpha = hitFade * .86;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30 + expand * 28, hitAngle - .78, hitAngle + .78);
+    ctx.stroke();
+
     ctx.strokeStyle = profile.core;
     ctx.lineWidth = 1.4;
-    ctx.globalAlpha = hitFade * .72;
-    for (let i = 0; i < 7; i += 1) {
-      const a = i * TAU / 7 + seed * .006;
+    ctx.globalAlpha = hitFade * .58;
+    for (let i = 0; i < 5; i += 1) {
+      const a = i * TAU / 5 + seed * .006;
       const inner = 8;
-      const outer = 22 + expand * (11 + (i % 3) * 5);
+      const outer = 22 + expand * (10 + (i % 3) * 4);
       ctx.beginPath();
       ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
       ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);

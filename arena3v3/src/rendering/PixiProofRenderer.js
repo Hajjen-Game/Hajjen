@@ -1587,6 +1587,38 @@ function projectileVfx2Spec(spellId) {
   return spec ? { ...profile, ...spec } : null;
 }
 
+function projectileDistanceScale(spec, distance) {
+  if (!spec) return 1;
+  const d = Math.max(0, Number(distance) || 0);
+  const normal = Math.max(0, Math.min(1, (d - 55) / 135));
+
+  // Frostbolt intentionally stays compact even at long range. Pyroblast keeps
+  // more of its showcase mass, while all other ranged projectiles shrink in
+  // point-blank combat and return to full size at normal caster distance.
+  if (spec.shape === "frost-spear") {
+    return .46 + .22 * Math.max(0, Math.min(1, (d - 50) / 140));
+  }
+  if (spec.shape === "pyro") return .55 + .45 * normal;
+  if (spec.shape === "hammer") return .68 + .32 * normal;
+  return .58 + .42 * normal;
+}
+
+function projectileFrontExtent(spec) {
+  if (!spec) return 0;
+  const extents = {
+    "frost-spear": 31,
+    pyro: 28,
+    frostfire: 29,
+    arcane: 27,
+    "lava-rock": 18,
+    elemental: 19,
+    shadow: 28,
+    chaos: 30,
+    hammer: 22,
+  };
+  return extents[spec.shape] || Math.max(12, (Number(spec.size) || 10) * 1.35);
+}
+
 const COMBAT_VFX2_HEALS = new Set([
   "priest-renew",
   "priest-flash-heal",
@@ -15893,20 +15925,9 @@ export class PixiProofRenderer {
 
         const heavy = Boolean(spec?.heavy || POLISH_HEAVY_SPELLS.has(effect.spellId));
         const rangeAwareContact =
-          !missed
-          && (spec?.shape === "frost-spear" || spec?.shape === "pyro");
-        const rangeScale =
-          spec?.shape === "frost-spear"
-            ? .46 + .22 * clamp01((length0 - 50) / 140)
-            : spec?.shape === "pyro"
-              ? .55 + .45 * clamp01((length0 - 55) / 135)
-              : 1;
-        const headFront =
-          spec?.shape === "frost-spear"
-            ? 31 * rangeScale
-            : spec?.shape === "pyro"
-              ? 28 * rangeScale
-              : 0;
+          !missed && PROJECTILE_VFX2_SPELLS.has(effect.spellId);
+        const rangeScale = projectileDistanceScale(spec, length0);
+        const headFront = projectileFrontExtent(spec) * rangeScale;
         const targetRadius = Math.max(12, Number(target?.radius) || 18);
         const contactPullback = rangeAwareContact
           ? Math.min(
@@ -15941,7 +15962,10 @@ export class PixiProofRenderer {
           : 1 - smooth((p - travelEnd) / .09);
         const travelAlpha = fadeIn * fadeOut;
         const size = Number(spec?.size) || (heavy ? 12 : 8);
-        const poolRadius = (10 + size * (heavy ? 1.22 : 1.05)) * (heavy ? 1.40 : 1.28);
+        const poolRadius =
+          (10 + size * (heavy ? 1.22 : 1.05))
+          * (heavy ? 1.40 : 1.28)
+          * (.72 + .28 * rangeScale);
 
         if (travelAlpha > .002) {
           drawPool(
@@ -16305,25 +16329,14 @@ export class PixiProofRenderer {
       const ny0 = tx0;
       const missSign = Math.sin(seed * .89) >= 0 ? 1 : -1;
 
-      // Frostbolt and Pyroblast use a physical contact point rather than
-      // flying their whole silhouette through the target's center. Frostbolt
-      // also stays compact even at long range; Pyroblast only compresses hard
-      // at close range and regains full mass across normal caster distance.
-      const projectileRangeScale =
-        spec.shape === "frost-spear"
-          ? .46 + .22 * clamp01((length0 - 50) / 140)
-          : spec.shape === "pyro"
-            ? .55 + .45 * clamp01((length0 - 55) / 135)
-            : 1;
-      const headFront =
-        spec.shape === "frost-spear"
-          ? 31 * projectileRangeScale
-          : spec.shape === "pyro"
-            ? 28 * projectileRangeScale
-            : 0;
+      // Every true ranged projectile uses the same physical rule: compress
+      // in point-blank combat and stop at the target's body instead of letting
+      // the entire projectile silhouette travel through the actor center.
+      const projectileRangeScale = projectileDistanceScale(spec, length0);
+      const headFront = projectileFrontExtent(spec) * projectileRangeScale;
       const targetRadius = Math.max(12, Number(target?.radius) || 18);
       const contactPullback =
-        !missed && (spec.shape === "frost-spear" || spec.shape === "pyro")
+        !missed
           ? Math.min(
               Math.max(0, length0 - Math.max(10, source.radius * .55)),
               targetRadius * .72 + headFront * .32,
@@ -17456,6 +17469,16 @@ export class PixiProofRenderer {
         }
 
         // Spell-specific moving silhouette.
+        const rangePoint = (cx,cy,x,y,a) =>
+          rangePoint(
+            cx,
+            cy,
+            x * projectileRangeScale,
+            y * projectileRangeScale,
+            a,
+          );
+        const rs = projectileRangeScale;
+
         if (spec.shape === "frost-spear") {
           // Frostbolt head is range-aware. At point-blank/melee range the old
           // fixed ~65px crystal could be larger than an entire actor. Preserve
@@ -17466,31 +17489,31 @@ export class PixiProofRenderer {
           const pulse=.92+.08*Math.sin(p*36+seed*.07);
           const shoulder=fs(11.8*pulse);
           const outer=[
-            transformed(px,py,fs(31),0,angle),
-            transformed(px,py,fs(9),fs(-7.2),angle),
-            transformed(px,py,fs(2),-shoulder,angle),
-            transformed(px,py,fs(-10),fs(-9.2),angle),
-            transformed(px,py,fs(-25),fs(-4.4),angle),
-            transformed(px,py,fs(-34),0,angle),
-            transformed(px,py,fs(-24),fs(4.0),angle),
-            transformed(px,py,fs(-7),fs(8.2),angle),
-            transformed(px,py,fs(6),fs(10.7*pulse),angle),
+            rangePoint(px,py,fs(31),0,angle),
+            rangePoint(px,py,fs(9),fs(-7.2),angle),
+            rangePoint(px,py,fs(2),-shoulder,angle),
+            rangePoint(px,py,fs(-10),fs(-9.2),angle),
+            rangePoint(px,py,fs(-25),fs(-4.4),angle),
+            rangePoint(px,py,fs(-34),0,angle),
+            rangePoint(px,py,fs(-24),fs(4.0),angle),
+            rangePoint(px,py,fs(-7),fs(8.2),angle),
+            rangePoint(px,py,fs(6),fs(10.7*pulse),angle),
           ];
           const inner=[
-            transformed(px,py,fs(26),0,angle),
-            transformed(px,py,fs(7),fs(-5.7),angle),
-            transformed(px,py,fs(-3),fs(-6.5),angle),
-            transformed(px,py,fs(-22),fs(-1.8),angle),
-            transformed(px,py,fs(-25),0,angle),
-            transformed(px,py,fs(-18),fs(2.7),angle),
-            transformed(px,py,fs(-1),fs(6.0),angle),
-            transformed(px,py,fs(8),fs(4.8),angle),
+            rangePoint(px,py,fs(26),0,angle),
+            rangePoint(px,py,fs(7),fs(-5.7),angle),
+            rangePoint(px,py,fs(-3),fs(-6.5),angle),
+            rangePoint(px,py,fs(-22),fs(-1.8),angle),
+            rangePoint(px,py,fs(-25),0,angle),
+            rangePoint(px,py,fs(-18),fs(2.7),angle),
+            rangePoint(px,py,fs(-1),fs(6.0),angle),
+            rangePoint(px,py,fs(8),fs(4.8),angle),
           ];
           const frontFacet=[
-            transformed(px,py,fs(27),0,angle),
-            transformed(px,py,fs(8),fs(-6.0),angle),
-            transformed(px,py,fs(-3),fs(-1.8),angle),
-            transformed(px,py,fs(8),fs(4.4),angle),
+            rangePoint(px,py,fs(27),0,angle),
+            rangePoint(px,py,fs(8),fs(-6.0),angle),
+            rangePoint(px,py,fs(-3),fs(-1.8),angle),
+            rangePoint(px,py,fs(8),fs(4.4),angle),
           ];
 
           poly(glow,outer,{
@@ -17539,14 +17562,14 @@ export class PixiProofRenderer {
           // Shoulder crystals shrink with the core body so close-range casts
           // stay inside the melee pile instead of covering both actors.
           const upperShoulder=[
-            transformed(px,py,fs(1),fs(-7),angle),
-            transformed(px,py,fs(-8),fs(-16),angle),
-            transformed(px,py,fs(-13),fs(-5.2),angle),
+            rangePoint(px,py,fs(1),fs(-7),angle),
+            rangePoint(px,py,fs(-8),fs(-16),angle),
+            rangePoint(px,py,fs(-13),fs(-5.2),angle),
           ];
           const lowerShoulder=[
-            transformed(px,py,fs(-2),fs(6),angle),
-            transformed(px,py,fs(-8),fs(13),angle),
-            transformed(px,py,fs(-15),fs(4.2),angle),
+            rangePoint(px,py,fs(-2),fs(6),angle),
+            rangePoint(px,py,fs(-8),fs(13),angle),
+            rangePoint(px,py,fs(-15),fs(4.2),angle),
           ];
           poly(core,upperShoulder,{
             color:spec.accent,
@@ -17560,9 +17583,9 @@ export class PixiProofRenderer {
           for(const sign of [-1,1]){
             const finScale=sign>0?1:.88;
             const fin=[
-              transformed(px,py,fs(-7),fs(sign*5),angle),
-              transformed(px,py,fs(-17),fs(sign*14*finScale),angle),
-              transformed(px,py,fs(-21),fs(sign*4),angle),
+              rangePoint(px,py,fs(-7),fs(sign*5),angle),
+              rangePoint(px,py,fs(-17),fs(sign*14*finScale),angle),
+              rangePoint(px,py,fs(-21),fs(sign*4),angle),
             ];
             poly(core,fin,{
               color:sign>0?spec.main:spec.accent,
@@ -17597,28 +17620,28 @@ export class PixiProofRenderer {
           const ps=value=>value*pyroScale;
           const flicker=.86+.14*Math.sin(p*42+seed*.09);
           const outer=[
-            transformed(px,py,ps(28),0,angle),
-            transformed(px,py,ps(8),ps(-12*flicker),angle),
-            transformed(px,py,ps(-8),ps(-13),angle),
-            transformed(px,py,ps(-26),ps(-7),angle),
-            transformed(px,py,ps(-37),0,angle),
-            transformed(px,py,ps(-25),ps(7),angle),
-            transformed(px,py,ps(-8),ps(13),angle),
-            transformed(px,py,ps(8),ps(12*flicker),angle),
+            rangePoint(px,py,ps(28),0,angle),
+            rangePoint(px,py,ps(8),ps(-12*flicker),angle),
+            rangePoint(px,py,ps(-8),ps(-13),angle),
+            rangePoint(px,py,ps(-26),ps(-7),angle),
+            rangePoint(px,py,ps(-37),0,angle),
+            rangePoint(px,py,ps(-25),ps(7),angle),
+            rangePoint(px,py,ps(-8),ps(13),angle),
+            rangePoint(px,py,ps(8),ps(12*flicker),angle),
           ];
           const inner=[
-            transformed(px,py,ps(22),0,angle),
-            transformed(px,py,ps(5),ps(-7),angle),
-            transformed(px,py,ps(-12),ps(-7.5),angle),
-            transformed(px,py,ps(-24),0,angle),
-            transformed(px,py,ps(-12),ps(7.5),angle),
-            transformed(px,py,ps(5),ps(7),angle),
+            rangePoint(px,py,ps(22),0,angle),
+            rangePoint(px,py,ps(5),ps(-7),angle),
+            rangePoint(px,py,ps(-12),ps(-7.5),angle),
+            rangePoint(px,py,ps(-24),0,angle),
+            rangePoint(px,py,ps(-12),ps(7.5),angle),
+            rangePoint(px,py,ps(5),ps(7),angle),
           ];
           const hot=[
-            transformed(px,py,ps(15),0,angle),
-            transformed(px,py,ps(1),ps(-3.8),angle),
-            transformed(px,py,ps(-13),0,angle),
-            transformed(px,py,ps(1),ps(3.8),angle),
+            rangePoint(px,py,ps(15),0,angle),
+            rangePoint(px,py,ps(1),ps(-3.8),angle),
+            rangePoint(px,py,ps(-13),0,angle),
+            rangePoint(px,py,ps(1),ps(3.8),angle),
           ];
 
           poly(glow,outer,{color:spec.accent,alpha:alpha*travelFade*.26},true);
@@ -17665,24 +17688,24 @@ export class PixiProofRenderer {
         } else if (spec.shape === "frostfire") {
           const pulse=.90+.10*Math.sin(p*31+seed*.07);
           const cold=[
-            transformed(px,py,27,0,angle),
-            transformed(px,py,4,-11*pulse,angle),
-            transformed(px,py,-17,-7,angle),
-            transformed(px,py,-28,-1.5,angle),
-            transformed(px,py,-10,0,angle),
+            rangePoint(px,py,27,0,angle),
+            rangePoint(px,py,4,-11*pulse,angle),
+            rangePoint(px,py,-17,-7,angle),
+            rangePoint(px,py,-28,-1.5,angle),
+            rangePoint(px,py,-10,0,angle),
           ];
           const hot=[
-            transformed(px,py,27,0,angle),
-            transformed(px,py,5,10*pulse,angle),
-            transformed(px,py,-15,8,angle),
-            transformed(px,py,-29,1.5,angle),
-            transformed(px,py,-10,0,angle),
+            rangePoint(px,py,27,0,angle),
+            rangePoint(px,py,5,10*pulse,angle),
+            rangePoint(px,py,-15,8,angle),
+            rangePoint(px,py,-29,1.5,angle),
+            rangePoint(px,py,-10,0,angle),
           ];
           const coreDiamond=[
-            transformed(px,py,23,0,angle),
-            transformed(px,py,1,-4.8,angle),
-            transformed(px,py,-17,0,angle),
-            transformed(px,py,1,4.8,angle),
+            rangePoint(px,py,23,0,angle),
+            rangePoint(px,py,1,-4.8,angle),
+            rangePoint(px,py,-17,0,angle),
+            rangePoint(px,py,1,4.8,angle),
           ];
 
           poly(glow,cold,{color:spec.main,alpha:alpha*travelFade*.27},true);
@@ -17693,7 +17716,11 @@ export class PixiProofRenderer {
           poly(core,cold,{color:spec.core,width:1.15,alpha:alpha*travelFade*.70});
           poly(core,hot,{color:0xffd3a8,width:1.15,alpha:alpha*travelFade*.70});
 
-          glow.circle(px+tx*6,py+ty*6,spec.size+8).fill({
+          glow.circle(
+            px+tx*6*rs,
+            py+ty*6*rs,
+            Math.max(8,(spec.size+8)*rs)
+          ).fill({
             color:spec.core,alpha:alpha*travelFade*.12
           });
 
@@ -17701,11 +17728,11 @@ export class PixiProofRenderer {
           // from the hot flank, keeping the hybrid readable at arena scale.
           for(let i=0;i<6;i++){
             const coldSide=(i%2?1:-1);
-            const base=-6-i*2.4;
-            const len=12+(i%3)*5;
+            const base=(-6-i*2.4)*rs;
+            const len=(12+(i%3)*5)*rs;
             const ca=angle+Math.PI+(coldSide*.22);
             core
-              .moveTo(px+tx*base+nx*5,py+ty*base+ny*5)
+              .moveTo(px+tx*base+nx*5*rs,py+ty*base+ny*5*rs)
               .lineTo(px+Math.cos(ca)*len,py+Math.sin(ca)*len)
               .stroke({
                 color:i%3===0?spec.core:spec.main,
@@ -17715,7 +17742,7 @@ export class PixiProofRenderer {
 
             const ha=angle+Math.PI-(coldSide*.18);
             core
-              .moveTo(px+tx*(base-2)-nx*5,py+ty*(base-2)-ny*5)
+              .moveTo(px+tx*(base-2*rs)-nx*5*rs,py+ty*(base-2*rs)-ny*5*rs)
               .lineTo(px+Math.cos(ha)*(len*.82),py+Math.sin(ha)*(len*.82)-2)
               .stroke({
                 color:i%3===0?spec.core:spec.accent,
@@ -17726,18 +17753,18 @@ export class PixiProofRenderer {
         } else if (spec.shape === "arcane") {
           const spin=p*10.5+seed*.009;
           const outer=[
-            transformed(px,py,25,0,angle),
-            transformed(px,py,2,-8,angle),
-            transformed(px,py,-18,-5,angle),
-            transformed(px,py,-27,0,angle),
-            transformed(px,py,-18,5,angle),
-            transformed(px,py,2,8,angle),
+            rangePoint(px,py,25,0,angle),
+            rangePoint(px,py,2,-8,angle),
+            rangePoint(px,py,-18,-5,angle),
+            rangePoint(px,py,-27,0,angle),
+            rangePoint(px,py,-18,5,angle),
+            rangePoint(px,py,2,8,angle),
           ];
           const inner=[
-            transformed(px,py,19,0,angle),
-            transformed(px,py,-1,-3.8,angle),
-            transformed(px,py,-15,0,angle),
-            transformed(px,py,-1,3.8,angle),
+            rangePoint(px,py,19,0,angle),
+            rangePoint(px,py,-1,-3.8,angle),
+            rangePoint(px,py,-15,0,angle),
+            rangePoint(px,py,-1,3.8,angle),
           ];
 
           poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.28},true);
@@ -17747,22 +17774,22 @@ export class PixiProofRenderer {
 
           // Three rotating broken crescents orbit a fast central arcane blade.
           for(let ring=0;ring<3;ring++){
-            const r=10+ring*4.5;
+            const r=(10+ring*4.5)*rs;
             const a0=spin*(ring%2?-.72:.58)+ring*.78;
             strokeArc(core,r,a0,a0+Math.PI*1.05,{
               color:ring===1?spec.core:spec.main,
               width:ring===1?1.45:1.1,
               alpha:alpha*travelFade*(.68-ring*.08),
-            },7,px-tx*(2+ring*2),py-ty*(2+ring*2));
+            },7,px-tx*(2+ring*2)*rs,py-ty*(2+ring*2)*rs);
           }
 
           for(let i=0;i<3;i++){
             const a=spin+i*Math.PI*2/3;
-            const rr=spec.size+8+(i%2)*3;
+            const rr=(spec.size+8+(i%2)*3)*rs;
             core.circle(
               px-tx*4+Math.cos(a)*rr,
               py-ty*4+Math.sin(a)*rr,
-              1.6+(i===0?.5:0)
+              (1.6+(i===0?.5:0))*(.78+.22*rs)
             ).fill({
               color:i===0?spec.core:spec.accent,
               alpha:alpha*travelFade*.68,
@@ -17773,11 +17800,11 @@ export class PixiProofRenderer {
           const pts=[];
           for(let i=0;i<12;i++){
             const a=i/12*Math.PI*2+spin;
-            const rr=i%2?11:17;
+            const rr=(i%2?11:17)*rs;
             pts.push({x:px+Math.cos(a)*rr,y:py+Math.sin(a)*rr});
           }
           poly(glow,pts,{color:spec.main,alpha:alpha*travelFade*.34},true);
-          glow.circle(px,py,spec.size+8).fill({
+          glow.circle(px,py,Math.max(8,(spec.size+8)*rs)).fill({
             color:spec.main,alpha:alpha*travelFade*.18
           });
           poly(core,pts,{color:0x56251f,alpha:alpha*travelFade*.98},true);
@@ -17786,8 +17813,8 @@ export class PixiProofRenderer {
           // Bright molten fractures move across a darker rock shell.
           for(let i=0;i<5;i++){
             const a=i*Math.PI*2/5+spin*.42;
-            const inner=3+(i%2)*2;
-            const outer=11+(i%3)*2.2;
+            const inner=(3+(i%2)*2)*rs;
+            const outer=(11+(i%3)*2.2)*rs;
             core
               .moveTo(px+Math.cos(a)*inner,py+Math.sin(a)*inner)
               .lineTo(px+Math.cos(a+.34)*outer,py+Math.sin(a+.34)*outer)
@@ -17797,15 +17824,15 @@ export class PixiProofRenderer {
                 alpha:alpha*travelFade*.88
               });
           }
-          core.circle(px+tx*4,py+ty*4,3.6).fill({
+          core.circle(px+tx*4*rs,py+ty*4*rs,Math.max(2.2,3.6*rs)).fill({
             color:spec.core,alpha:alpha*travelFade*.88
           });
         } else if (spec.shape === "elemental") {
           const colors=[spec.main,spec.accent,0x80d889];
-          glow.circle(px,py,spec.size+9).fill({
+          glow.circle(px,py,Math.max(8,(spec.size+9)*rs)).fill({
             color:spec.core,alpha:alpha*travelFade*.20
           });
-          core.circle(px,py,7.5).fill({
+          core.circle(px,py,Math.max(3.8,7.5*rs)).fill({
             color:spec.core,alpha:alpha*travelFade*.98
           });
 
@@ -17813,13 +17840,13 @@ export class PixiProofRenderer {
           // white-hot combined core.
           for(let i=0;i<3;i++){
             const a=p*14.5*(i%2?-1:1)+i*Math.PI*2/3;
-            const rr=13+(i%2)*4;
+            const rr=(13+(i%2)*4)*rs;
             const sx=px+Math.cos(a)*rr;
             const sy=py+Math.sin(a)*rr;
-            glow.circle(sx,sy,7).fill({
+            glow.circle(sx,sy,Math.max(3.8,7*rs)).fill({
               color:colors[i],alpha:alpha*travelFade*.20
             });
-            core.circle(sx,sy,3.4).fill({
+            core.circle(sx,sy,Math.max(2.0,3.4*rs)).fill({
               color:colors[i],alpha:alpha*travelFade*.88
             });
             core.moveTo(px,py).lineTo(sx,sy).stroke({
@@ -17828,59 +17855,67 @@ export class PixiProofRenderer {
             });
 
             // Short elemental wake from each satellite.
-            const bx=sx-tx*(9+i*2);
-            const by=sy-ty*(9+i*2);
+            const bx=sx-tx*(9+i*2)*rs;
+            const by=sy-ty*(9+i*2)*rs;
             core.moveTo(bx,by).lineTo(sx,sy).stroke({
               color:colors[i],width:1.0,alpha:alpha*travelFade*.48
             });
           }
-          const backX=px-tx*31;
-          const backY=py-ty*31;
+          const backX=px-tx*31*rs;
+          const backY=py-ty*31*rs;
           jaggedLine(
             glow,backX,backY,px,py,seed+71,4.5,6,
-            {color:spec.main,width:8,alpha:alpha*travelFade*.08},p*4
+            {color:spec.main,width:Math.max(4.5,8*rs),alpha:alpha*travelFade*.08},p*4
           );
           jaggedLine(
             core,backX,backY,px,py,seed+71,4.5,6,
-            {color:spec.core,width:1.8,alpha:alpha*travelFade*.72},p*4
+            {color:spec.core,width:Math.max(1.1,1.8*rs),alpha:alpha*travelFade*.72},p*4
           );
         } else if (spec.shape === "shadow") {
           const pulse=.88+.12*Math.sin(p*24+seed*.07);
           const shell=[
-            transformed(px,py,20,0,angle),
-            transformed(px,py,7,-9*pulse,angle),
-            transformed(px,py,-9,-10,angle),
-            transformed(px,py,-22,-4,angle),
-            transformed(px,py,-28,0,angle),
-            transformed(px,py,-20,6,angle),
-            transformed(px,py,-7,10,angle),
-            transformed(px,py,7,8*pulse,angle),
+            rangePoint(px,py,20,0,angle),
+            rangePoint(px,py,7,-9*pulse,angle),
+            rangePoint(px,py,-9,-10,angle),
+            rangePoint(px,py,-22,-4,angle),
+            rangePoint(px,py,-28,0,angle),
+            rangePoint(px,py,-20,6,angle),
+            rangePoint(px,py,-7,10,angle),
+            rangePoint(px,py,7,8*pulse,angle),
           ];
           const inner=[
-            transformed(px,py,15,0,angle),
-            transformed(px,py,2,-5,angle),
-            transformed(px,py,-15,0,angle),
-            transformed(px,py,2,5,angle),
+            rangePoint(px,py,15,0,angle),
+            rangePoint(px,py,2,-5,angle),
+            rangePoint(px,py,-15,0,angle),
+            rangePoint(px,py,2,5,angle),
           ];
 
           poly(glow,shell,{color:spec.main,alpha:alpha*travelFade*.25},true);
           poly(core,shell,{color:spec.accent,alpha:alpha*travelFade*.96},true);
           poly(core,inner,{color:spec.main,alpha:alpha*travelFade*.92},true);
           poly(core,shell,{color:spec.main,width:1.8,alpha:alpha*travelFade*.74});
-          core.circle(px+tx*6,py+ty*6,3.7).fill({
+          core.circle(
+            px+tx*6*rs,
+            py+ty*6*rs,
+            Math.max(2.2,3.7*rs)
+          ).fill({
             color:spec.core,alpha:alpha*travelFade*.90
           });
 
           for(let i=0;i<6;i++){
             const a=p*6+i*Math.PI*2/6+seed*.013;
-            const rr=spec.size+5+(i%2)*4;
-            glow.circle(px+Math.cos(a)*rr,py+Math.sin(a)*rr,4).fill({
+            const rr=(spec.size+5+(i%2)*4)*rs;
+            glow.circle(
+              px+Math.cos(a)*rr,
+              py+Math.sin(a)*rr,
+              Math.max(2.5,4*rs)
+            ).fill({
               color:spec.main,alpha:alpha*travelFade*.10
             });
             core.circle(
               px+Math.cos(a)*rr,
               py+Math.sin(a)*rr,
-              1.3+(i%2)*.45
+              Math.max(.9,(1.3+(i%2)*.45)*rs)
             ).fill({
               color:i%3===0?spec.core:spec.main,
               alpha:alpha*travelFade*.58,
@@ -17889,41 +17924,45 @@ export class PixiProofRenderer {
         } else if (spec.shape === "chaos") {
           const pulse=.90+.10*Math.sin(p*31+seed*.05);
           const outer=[
-            transformed(px,py,29,0,angle),
-            transformed(px,py,10,-13*pulse,angle),
-            transformed(px,py,-8,-15,angle),
-            transformed(px,py,-27,-9,angle),
-            transformed(px,py,-39,0,angle),
-            transformed(px,py,-27,9,angle),
-            transformed(px,py,-8,15,angle),
-            transformed(px,py,10,13*pulse,angle),
+            rangePoint(px,py,29,0,angle),
+            rangePoint(px,py,10,-13*pulse,angle),
+            rangePoint(px,py,-8,-15,angle),
+            rangePoint(px,py,-27,-9,angle),
+            rangePoint(px,py,-39,0,angle),
+            rangePoint(px,py,-27,9,angle),
+            rangePoint(px,py,-8,15,angle),
+            rangePoint(px,py,10,13*pulse,angle),
           ];
           const inner=[
-            transformed(px,py,22,0,angle),
-            transformed(px,py,4,-7,angle),
-            transformed(px,py,-18,-7,angle),
-            transformed(px,py,-29,0,angle),
-            transformed(px,py,-18,7,angle),
-            transformed(px,py,4,7,angle),
+            rangePoint(px,py,22,0,angle),
+            rangePoint(px,py,4,-7,angle),
+            rangePoint(px,py,-18,-7,angle),
+            rangePoint(px,py,-29,0,angle),
+            rangePoint(px,py,-18,7,angle),
+            rangePoint(px,py,4,7,angle),
           ];
 
           poly(glow,outer,{color:spec.main,alpha:alpha*travelFade*.28},true);
           poly(core,outer,{color:0x244027,alpha:alpha*travelFade*.98},true);
           poly(core,inner,{color:spec.main,alpha:alpha*travelFade*.92},true);
           poly(core,outer,{color:spec.core,width:1.6,alpha:alpha*travelFade*.76});
-          core.circle(px+tx*8,py+ty*8,5).fill({
+          core.circle(
+            px+tx*8*rs,
+            py+ty*8*rs,
+            Math.max(2.8,5*rs)
+          ).fill({
             color:spec.core,alpha:alpha*travelFade*.98
           });
 
-          const backX=px-tx*35;
-          const backY=py-ty*35;
+          const backX=px-tx*35*rs;
+          const backY=py-ty*35*rs;
           for(const sign of [-1,1]){
-            const midX=px-tx*18+nx*sign*17;
-            const midY=py-ty*18+ny*sign*17;
-            const endForkX=px-tx*32+nx*sign*25;
-            const endForkY=py-ty*32+ny*sign*25;
+            const midX=px-tx*18*rs+nx*sign*17*rs;
+            const midY=py-ty*18*rs+ny*sign*17*rs;
+            const endForkX=px-tx*32*rs+nx*sign*25*rs;
+            const endForkY=py-ty*32*rs+ny*sign*25*rs;
             glow
-              .moveTo(px-tx*5,py-ty*5)
+              .moveTo(px-tx*5*rs,py-ty*5*rs)
               .lineTo(midX,midY)
               .lineTo(endForkX,endForkY)
               .stroke({
@@ -17950,25 +17989,25 @@ export class PixiProofRenderer {
         } else if (spec.shape === "hammer") {
           const hammerAngle=angle+p*3.1;
           const handle=[
-            transformed(px,py,-4.5,-16,hammerAngle),
-            transformed(px,py,4.5,-16,hammerAngle),
-            transformed(px,py,4.5,13,hammerAngle),
-            transformed(px,py,-4.5,13,hammerAngle),
+            rangePoint(px,py,-4.5,-16,hammerAngle),
+            rangePoint(px,py,4.5,-16,hammerAngle),
+            rangePoint(px,py,4.5,13,hammerAngle),
+            rangePoint(px,py,-4.5,13,hammerAngle),
           ];
           const head=[
-            transformed(px,py,-17,-22,hammerAngle),
-            transformed(px,py,17,-22,hammerAngle),
-            transformed(px,py,17,-11,hammerAngle),
-            transformed(px,py,-17,-11,hammerAngle),
+            rangePoint(px,py,-17,-22,hammerAngle),
+            rangePoint(px,py,17,-22,hammerAngle),
+            rangePoint(px,py,17,-11,hammerAngle),
+            rangePoint(px,py,-17,-11,hammerAngle),
           ];
           const inset=[
-            transformed(px,py,-10,-20,hammerAngle),
-            transformed(px,py,10,-20,hammerAngle),
-            transformed(px,py,10,-14,hammerAngle),
-            transformed(px,py,-10,-14,hammerAngle),
+            rangePoint(px,py,-10,-20,hammerAngle),
+            rangePoint(px,py,10,-20,hammerAngle),
+            rangePoint(px,py,10,-14,hammerAngle),
+            rangePoint(px,py,-10,-14,hammerAngle),
           ];
 
-          glow.circle(px,py,spec.size+10).fill({
+          glow.circle(px,py,Math.max(8,(spec.size+10)*rs)).fill({
             color:spec.main,alpha:alpha*travelFade*.16
           });
           poly(glow,handle,{color:spec.main,alpha:alpha*travelFade*.28},true);
@@ -17977,7 +18016,11 @@ export class PixiProofRenderer {
           poly(core,head,{color:spec.main,alpha:alpha*travelFade*.95},true);
           poly(core,inset,{color:spec.core,alpha:alpha*travelFade*.88},true);
           poly(core,head,{color:spec.core,width:1.8,alpha:alpha*travelFade*.90});
-          core.circle(px,py-16,2.8).fill({
+          core.circle(
+            px,
+            py-16*rs,
+            Math.max(1.8,2.8*rs)
+          ).fill({
             color:spec.core,alpha:alpha*travelFade*.92
           });
         }

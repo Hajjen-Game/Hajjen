@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-roguedaggers1";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-roguedaggers2";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -13272,16 +13272,16 @@ export class PixiProofRenderer {
                 .lineTo(trailB.x,trailB.y)
                 .stroke({
                   color:signatureSpec.main,
-                  width:signatureSpec.width*2.5,
-                  alpha:weaponAlpha*.075,
+                  width:Math.max(5,signatureSpec.width*1.35),
+                  alpha:weaponAlpha*.045,
                 });
               core
                 .moveTo(trailA.x,trailA.y)
                 .lineTo(trailB.x,trailB.y)
                 .stroke({
                   color:signatureSpec.main,
-                  width:Math.max(1.6,signatureSpec.width*.34),
-                  alpha:weaponAlpha*.34,
+                  width:Math.max(1.15,signatureSpec.width*.20),
+                  alpha:weaponAlpha*.20,
                 });
             }else{
               const start=facing+weapon.start;
@@ -13297,18 +13297,18 @@ export class PixiProofRenderer {
               arc(glow,ox,oy,radius,start,angle,{
                 color:signatureSpec.main,
                 width:Math.max(
-                  11,
-                  signatureSpec.width*2.55*signatureSpec.trail
+                  7,
+                  signatureSpec.width*1.55*signatureSpec.trail
                 ),
-                alpha:weaponAlpha*.085,
+                alpha:weaponAlpha*.055,
               },18);
               arc(core,ox,oy,radius,start,angle,{
                 color:signatureSpec.main,
                 width:Math.max(
-                  3,
-                  signatureSpec.width*.72*signatureSpec.trail
+                  1.7,
+                  signatureSpec.width*.38*signatureSpec.trail
                 ),
-                alpha:weaponAlpha*.56,
+                alpha:weaponAlpha*.40,
               },18);
 
               const leadStart =
@@ -13346,49 +13346,96 @@ export class PixiProofRenderer {
             const isCleaver=signatureSpec.shape==="cleaver";
             const isRune=signatureSpec.shape==="runeblade";
             const width=signatureSpec.width;
-            const tipWidth=isDagger?width*.20:width*.12;
-            const shoulder=isCleaver
-              ? length*.68
-              : length-Math.max(9,width*1.7);
-            const shoulderWidth=isCleaver
-              ? width*1.28
-              : isRune
-                ? width*1.06
-                : width*.74;
+            const daggerSteel=0xb8bfbd;
+            const daggerSteelDark=0x707a79;
+            const daggerHandle=0x342b3a;
+            const daggerHandleLight=0x62536a;
+            const guardX=isDagger?root+1:root;
+            const tipWidth=isDagger?0:width*.12;
+            const shoulder=isDagger
+              ? Math.max(guardX+5,length-9)
+              : isCleaver
+                ? length*.68
+                : length-Math.max(9,width*1.7);
+            const shoulderWidth=isDagger
+              ? width*.68
+              : isCleaver
+                ? width*1.28
+                : isRune
+                  ? width*1.06
+                  : width*.74;
 
-            const blade=[
-              point(ox,oy,root,-width,angle),
-              point(ox,oy,shoulder,-shoulderWidth,angle),
-              point(ox,oy,length,-tipWidth,angle),
-              point(ox,oy,length+Math.max(5,width*.8),0,angle),
-              point(ox,oy,length,tipWidth,angle),
-              point(ox,oy,shoulder,shoulderWidth,angle),
-              point(ox,oy,root,width,angle),
-            ];
+            const blade=isDagger
+              ? [
+                  point(ox,oy,guardX,-width,angle),
+                  point(ox,oy,shoulder,-shoulderWidth,angle),
+                  point(ox,oy,length+6,0,angle),
+                  point(ox,oy,shoulder,shoulderWidth,angle),
+                  point(ox,oy,guardX,width,angle),
+                ]
+              : [
+                  point(ox,oy,root,-width,angle),
+                  point(ox,oy,shoulder,-shoulderWidth,angle),
+                  point(ox,oy,length,-tipWidth,angle),
+                  point(ox,oy,length+Math.max(5,width*.8),0,angle),
+                  point(ox,oy,length,tipWidth,angle),
+                  point(ox,oy,shoulder,shoulderWidth,angle),
+                  point(ox,oy,root,width,angle),
+                ];
 
             polygon(glow,blade,{
               color:signatureSpec.main,
-              alpha:weaponAlpha*(isDagger?.085:.12),
+              alpha:weaponAlpha*(isDagger?.055:.12),
             },true);
             polygon(core,blade,{
-              color:signatureSpec.main,
-              alpha:weaponAlpha*(isDagger?.38:.46),
+              color:isDagger?daggerSteel:signatureSpec.main,
+              alpha:weaponAlpha*(isDagger?.96:.46),
             },true);
             polygon(core,blade,{
               color:signatureSpec.core,
-              width:isDagger?1.7:2.2,
-              alpha:Math.min(1,weaponAlpha*1.04),
+              width:isDagger?1.55:2.2,
+              alpha:Math.min(1,weaponAlpha*1.02),
             },false);
 
-            const ridgeA=point(ox,oy,root+4,0,angle);
-            const ridgeB=point(ox,oy,Math.max(root+8,length-7),0,angle);
+            if(isDagger){
+              // A real hilt is essential at arena zoom. The previous Pixi pass
+              // omitted the handle entirely, which made the weapon read as a
+              // glowing stick / mini-sword.
+              const handleA=point(ox,oy,root-10,0,angle);
+              const handleB=point(ox,oy,guardX+1,0,angle);
+              core
+                .moveTo(handleA.x,handleA.y)
+                .lineTo(handleB.x,handleB.y)
+                .stroke({
+                  color:daggerHandle,
+                  width:5.6,
+                  alpha:weaponAlpha*.98,
+                });
+              core
+                .moveTo(handleA.x,handleA.y)
+                .lineTo(handleB.x,handleB.y)
+                .stroke({
+                  color:daggerHandleLight,
+                  width:1.35,
+                  alpha:weaponAlpha*.72,
+                });
+
+              const pommel=point(ox,oy,root-11,0,angle);
+              core.circle(pommel.x,pommel.y,2.9).fill({
+                color:daggerSteelDark,
+                alpha:weaponAlpha*.96,
+              });
+            }
+
+            const ridgeA=point(ox,oy,guardX+3,0,angle);
+            const ridgeB=point(ox,oy,Math.max(guardX+8,length-4),0,angle);
             core
               .moveTo(ridgeA.x,ridgeA.y)
               .lineTo(ridgeB.x,ridgeB.y)
               .stroke({
                 color:signatureSpec.poison || signatureSpec.core,
-                width:signatureSpec.poison?1.35:(isDagger?1.0:1.45),
-                alpha:weaponAlpha*(signatureSpec.poison?.92:.88),
+                width:signatureSpec.poison?1.45:(isDagger?1.05:1.45),
+                alpha:weaponAlpha*(signatureSpec.poison?.90:.76),
               });
 
             if(signatureSpec.poison){
@@ -13397,21 +13444,35 @@ export class PixiProofRenderer {
                 .lineTo(ridgeB.x,ridgeB.y)
                 .stroke({
                   color:signatureSpec.poison,
-                  width:4.8,
-                  alpha:weaponAlpha*.075,
+                  width:4.2,
+                  alpha:weaponAlpha*.055,
                 });
             }
 
-            const guardA=point(ox,oy,root-1,-width*1.32,angle);
-            const guardB=point(ox,oy,root-1,width*1.32,angle);
+            const guardA=point(
+              ox,oy,guardX,-width*(isDagger?2.05:1.32),angle
+            );
+            const guardB=point(
+              ox,oy,guardX,width*(isDagger?2.05:1.32),angle
+            );
             core
               .moveTo(guardA.x,guardA.y)
               .lineTo(guardB.x,guardB.y)
               .stroke({
-                color:signatureSpec.accent,
-                width:Math.max(1.5,width*.38),
-                alpha:weaponAlpha*.72,
+                color:isDagger?daggerSteelDark:signatureSpec.accent,
+                width:isDagger?3.3:Math.max(1.5,width*.38),
+                alpha:weaponAlpha*.96,
               });
+            if(isDagger){
+              core
+                .moveTo(guardA.x,guardA.y)
+                .lineTo(guardB.x,guardB.y)
+                .stroke({
+                  color:signatureSpec.accent,
+                  width:1.2,
+                  alpha:weaponAlpha*.78,
+                });
+            }
 
             let contactT=.78;
             if(

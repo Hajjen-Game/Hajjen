@@ -1,9 +1,9 @@
 const ROGUE_SIGNATURES = Object.freeze({
   "rogue-garrote": Object.freeze({
     shape: "dagger",
-    length: 47,
-    width: 3.7,
-    trail: .58,
+    length: 42,
+    width: 5.2,
+    trail: .42,
     main: 0xb8ad61,
     core: 0xf2e5aa,
     accent: 0x69567a,
@@ -13,9 +13,9 @@ const ROGUE_SIGNATURES = Object.freeze({
   }),
   "rogue-sinister": Object.freeze({
     shape: "dagger",
-    length: 50,
-    width: 3.8,
-    trail: .48,
+    length: 43,
+    width: 5.4,
+    trail: .34,
     main: 0xc2b867,
     core: 0xf4e8af,
     accent: 0x665578,
@@ -25,9 +25,9 @@ const ROGUE_SIGNATURES = Object.freeze({
   }),
   "rogue-eviscerate": Object.freeze({
     shape: "dagger",
-    length: 52,
-    width: 4.0,
-    trail: .66,
+    length: 45,
+    width: 5.6,
+    trail: .44,
     main: 0xc8bb63,
     core: 0xffedaf,
     accent: 0x745987,
@@ -38,9 +38,9 @@ const ROGUE_SIGNATURES = Object.freeze({
   }),
   "rogue-mutilate": Object.freeze({
     shape: "dagger",
-    length: 55,
-    width: 4.1,
-    trail: .44,
+    length: 46,
+    width: 5.8,
+    trail: .32,
     main: 0xbdb263,
     core: 0xffe9a8,
     accent: 0x715982,
@@ -87,19 +87,23 @@ function drawDagger(ctx, source, offsetX, offsetY, angle, length, spec, alpha) {
   const root = source.radius + 2;
   const width = spec.width;
   const guardX = root + 1;
-  const shoulder = Math.max(guardX + 5, length - 8);
-  const tip = length + 5;
+  const shoulder = Math.max(guardX + 5, length - 9);
+  const tip = length + 6;
   const main = cssColor(spec.main);
   const core = cssColor(spec.core);
   const accent = cssColor(spec.accent);
-  const steel = "#b9bebc";
-  const handle = "#3f3446";
+  const steel = "#b8bfbd";
+  const steelDark = "#707a79";
+  const handle = "#342b3a";
+  const handleLight = "#62536a";
 
+  // Broad at the guard, quickly tapering into a short spear point.
+  // This intentionally exaggerates the silhouette for top-down readability.
   const blade = [
     localPoint(cx, cy, guardX, -width, angle),
-    localPoint(cx, cy, shoulder, -width * .62, angle),
+    localPoint(cx, cy, shoulder, -width * .68, angle),
     localPoint(cx, cy, tip, 0, angle),
-    localPoint(cx, cy, shoulder, width * .62, angle),
+    localPoint(cx, cy, shoulder, width * .68, angle),
     localPoint(cx, cy, guardX, width, angle),
   ];
 
@@ -108,51 +112,72 @@ function drawDagger(ctx, source, offsetX, offsetY, angle, length, spec, alpha) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
+  // Keep the glow outside the weapon instead of turning the whole blade neon.
   ctx.shadowColor = main;
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 9;
   ctx.fillStyle = main;
-  ctx.globalAlpha = alpha * .13;
+  ctx.globalAlpha = alpha * .075;
   ctx.beginPath();
   ctx.moveTo(blade[0].x, blade[0].y);
   for (let i = 1; i < blade.length; i += 1) ctx.lineTo(blade[i].x, blade[i].y);
   ctx.closePath();
   ctx.fill();
 
-  ctx.shadowBlur = 3;
+  ctx.shadowBlur = 2;
   ctx.fillStyle = steel;
-  ctx.globalAlpha = alpha * .88;
+  ctx.globalAlpha = alpha * .96;
   ctx.fill();
 
   ctx.strokeStyle = core;
-  ctx.lineWidth = 1.45;
-  ctx.globalAlpha = alpha * .96;
+  ctx.lineWidth = 1.6;
+  ctx.globalAlpha = alpha * .94;
   ctx.stroke();
 
-  const handleA = localPoint(cx, cy, root - 8, 0, angle);
+  // Dark, chunky grip with a lighter center and a visible pommel.
+  const handleA = localPoint(cx, cy, root - 10, 0, angle);
   const handleB = localPoint(cx, cy, guardX + 1, 0, angle);
   ctx.strokeStyle = handle;
-  ctx.lineWidth = 4.2;
-  ctx.globalAlpha = alpha * .92;
+  ctx.lineWidth = 5.6;
+  ctx.globalAlpha = alpha * .96;
   ctx.beginPath();
   ctx.moveTo(handleA.x, handleA.y);
   ctx.lineTo(handleB.x, handleB.y);
   ctx.stroke();
 
-  const guardA = localPoint(cx, cy, guardX, -width * 1.7, angle);
-  const guardB = localPoint(cx, cy, guardX, width * 1.7, angle);
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = alpha * .82;
+  ctx.strokeStyle = handleLight;
+  ctx.lineWidth = 1.35;
+  ctx.globalAlpha = alpha * .72;
+  ctx.stroke();
+
+  const pommel = localPoint(cx, cy, root - 11, 0, angle);
+  ctx.fillStyle = steelDark;
+  ctx.globalAlpha = alpha * .96;
+  ctx.beginPath();
+  ctx.arc(pommel.x, pommel.y, 2.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Oversized guard is deliberate: at arena zoom it makes the weapon read as
+  // a dagger instead of another bright melee streak.
+  const guardA = localPoint(cx, cy, guardX, -width * 2.05, angle);
+  const guardB = localPoint(cx, cy, guardX, width * 2.05, angle);
+  ctx.strokeStyle = steelDark;
+  ctx.lineWidth = 3.3;
+  ctx.globalAlpha = alpha * .96;
   ctx.beginPath();
   ctx.moveTo(guardA.x, guardA.y);
   ctx.lineTo(guardB.x, guardB.y);
   ctx.stroke();
 
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.25;
+  ctx.globalAlpha = alpha * .82;
+  ctx.stroke();
+
   const ridgeA = localPoint(cx, cy, guardX + 3, 0, angle);
-  const ridgeB = localPoint(cx, cy, length - 3, 0, angle);
+  const ridgeB = localPoint(cx, cy, length - 4, 0, angle);
   ctx.strokeStyle = spec.poison ? cssColor(spec.poison) : core;
-  ctx.lineWidth = spec.poison ? 1.45 : 1;
-  ctx.globalAlpha = alpha * (spec.poison ? .86 : .70);
+  ctx.lineWidth = spec.poison ? 1.55 : 1.05;
+  ctx.globalAlpha = alpha * (spec.poison ? .88 : .72);
   ctx.beginPath();
   ctx.moveTo(ridgeA.x, ridgeA.y);
   ctx.lineTo(ridgeB.x, ridgeB.y);

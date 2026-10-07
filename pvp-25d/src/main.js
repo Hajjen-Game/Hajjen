@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20261007-fallback-heroes";
+import { Game } from "./core/Game.js?v=20261007-warrior-arms-axe-1";
 import { InputManager } from "../../arena3v3/src/core/InputManager.js";
 import { CharacterStore } from "../../arena3v3/src/core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "../../arena3v3/src/core/HonorSystem.js";

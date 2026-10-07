@@ -17,6 +17,15 @@ const SHOWCASE_PROJECTILE_SPELLS = new Set([
 
 const SHOWCASE_PROJECTILE_DURATION_MULTIPLIER = 1.35;
 
+// Mortal Strike now has a readable VFX 3.0+ spectral sword swing. Give that
+// signature melee animation the same extra screen time as showcase projectiles
+// so the 180-degree blade path can actually be read during combat.
+const SHOWCASE_SIGNATURE_MELEE_SPELLS = new Set([
+  "warrior-mortal-strike",
+]);
+
+const SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIER = 1.35;
+
 export class VisualEffectSystem {
   constructor() {
     this.effects = [];
@@ -125,9 +134,17 @@ export class VisualEffectSystem {
       : null;
 
     const baseDuration = layeredDuration || durations[spellId] || 520;
-    const visualDuration = SHOWCASE_PROJECTILE_SPELLS.has(spellId)
-      ? Math.round(baseDuration * SHOWCASE_PROJECTILE_DURATION_MULTIPLIER)
-      : baseDuration;
+    let visualDuration = baseDuration;
+
+    if (SHOWCASE_PROJECTILE_SPELLS.has(spellId)) {
+      visualDuration = Math.round(
+        baseDuration * SHOWCASE_PROJECTILE_DURATION_MULTIPLIER,
+      );
+    } else if (SHOWCASE_SIGNATURE_MELEE_SPELLS.has(spellId)) {
+      visualDuration = Math.round(
+        baseDuration * SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIER,
+      );
+    }
 
     this.add("spell", {
       sourceId: source.id,

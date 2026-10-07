@@ -8217,105 +8217,6 @@ export class PixiProofRenderer {
       graphics.stroke(style);
     };
 
-    const warriorDoubleAxe = (
-      g,
-      glowG,
-      cx,
-      cy,
-      angle,
-      root,
-      length,
-      headSize,
-      profile,
-      alpha,
-    ) => {
-      if(alpha<=0) return;
-
-      const handleStart=point(cx,cy,Math.max(3,root-13),0,angle);
-      const handleEnd=point(cx,cy,length+2,0,angle);
-
-      glowG
-        .moveTo(handleStart.x,handleStart.y)
-        .lineTo(handleEnd.x,handleEnd.y)
-        .stroke({
-          color:profile.main,
-          width:9,
-          alpha:alpha*.075,
-        });
-      g
-        .moveTo(handleStart.x,handleStart.y)
-        .lineTo(handleEnd.x,handleEnd.y)
-        .stroke({
-          color:profile.accent,
-          width:4.1,
-          alpha:alpha*.76,
-        });
-      g
-        .moveTo(handleStart.x,handleStart.y)
-        .lineTo(handleEnd.x,handleEnd.y)
-        .stroke({
-          color:profile.core,
-          width:1.15,
-          alpha:alpha*.52,
-        });
-
-      const headX=length-3;
-      const bladeFor = sign => [
-        point(cx,cy,headX-9,sign*2,angle),
-        point(cx,cy,headX-13,sign*(headSize*.48),angle),
-        point(cx,cy,headX-8,sign*(headSize*.92),angle),
-        point(cx,cy,headX+3,sign*(headSize*1.16),angle),
-        point(cx,cy,headX+9,sign*(headSize*.72),angle),
-        point(cx,cy,headX+5,sign*3,angle),
-      ];
-
-      for(const sign of [-1,1]){
-        const blade=bladeFor(sign);
-        polygon(glowG,blade,{
-          color:profile.main,
-          alpha:alpha*.16,
-        },true);
-        polygon(g,blade,{
-          color:profile.main,
-          alpha:alpha*.58,
-        },true);
-        polygon(g,blade,{
-          color:profile.core,
-          width:2.15,
-          alpha:Math.min(1,alpha*1.10),
-        },false);
-
-        const edgeA=point(
-          cx,cy,headX-7,sign*(headSize*.88),angle
-        );
-        const edgeB=point(
-          cx,cy,headX+6,sign*(headSize*.72),angle
-        );
-        g
-          .moveTo(edgeA.x,edgeA.y)
-          .lineTo(edgeB.x,edgeB.y)
-          .stroke({
-            color:profile.core,
-            width:1.45,
-            alpha:alpha*.88,
-          });
-      }
-
-      const socketA=point(cx,cy,headX-5,-4.4,angle);
-      const socketB=point(cx,cy,headX+5,-4.4,angle);
-      const socketC=point(cx,cy,headX+5,4.4,angle);
-      const socketD=point(cx,cy,headX-5,4.4,angle);
-      polygon(g,[socketA,socketB,socketC,socketD],{
-        color:profile.accent,
-        alpha:alpha*.84,
-      },true);
-      polygon(g,[socketA,socketB,socketC,socketD],{
-        color:profile.core,
-        width:1.2,
-        alpha:alpha*.68,
-      },false);
-    };
-
     for (const view of this.actorViews.values()) {
       view.chainGlowFx.clear();
       view.chainFx.clear();
@@ -11807,6 +11708,105 @@ export class PixiProofRenderer {
           width:Math.max(1.6,halfWidth*.46),
           alpha:alpha*.72,
         });
+    };
+
+    const warriorDoubleAxe = (
+      g,
+      glowG,
+      cx,
+      cy,
+      angle,
+      root,
+      length,
+      headSize,
+      profile,
+      alpha,
+    ) => {
+      if(alpha<=0) return;
+
+      const handleStart=point(cx,cy,Math.max(3,root-13),0,angle);
+      const handleEnd=point(cx,cy,length+2,0,angle);
+
+      glowG
+        .moveTo(handleStart.x,handleStart.y)
+        .lineTo(handleEnd.x,handleEnd.y)
+        .stroke({
+          color:profile.main,
+          width:9,
+          alpha:alpha*.075,
+        });
+      g
+        .moveTo(handleStart.x,handleStart.y)
+        .lineTo(handleEnd.x,handleEnd.y)
+        .stroke({
+          color:profile.accent,
+          width:4.1,
+          alpha:alpha*.76,
+        });
+      g
+        .moveTo(handleStart.x,handleStart.y)
+        .lineTo(handleEnd.x,handleEnd.y)
+        .stroke({
+          color:profile.core,
+          width:1.15,
+          alpha:alpha*.52,
+        });
+
+      const headX=length-3;
+      const bladeFor = sign => [
+        point(cx,cy,headX-9,sign*2,angle),
+        point(cx,cy,headX-13,sign*(headSize*.48),angle),
+        point(cx,cy,headX-8,sign*(headSize*.92),angle),
+        point(cx,cy,headX+3,sign*(headSize*1.16),angle),
+        point(cx,cy,headX+9,sign*(headSize*.72),angle),
+        point(cx,cy,headX+5,sign*3,angle),
+      ];
+
+      for(const sign of [-1,1]){
+        const blade=bladeFor(sign);
+        polygon(glowG,blade,{
+          color:profile.main,
+          alpha:alpha*.16,
+        },true);
+        polygon(g,blade,{
+          color:profile.main,
+          alpha:alpha*.58,
+        },true);
+        polygon(g,blade,{
+          color:profile.core,
+          width:2.15,
+          alpha:Math.min(1,alpha*1.10),
+        },false);
+
+        const edgeA=point(
+          cx,cy,headX-7,sign*(headSize*.88),angle
+        );
+        const edgeB=point(
+          cx,cy,headX+6,sign*(headSize*.72),angle
+        );
+        g
+          .moveTo(edgeA.x,edgeA.y)
+          .lineTo(edgeB.x,edgeB.y)
+          .stroke({
+            color:profile.core,
+            width:1.45,
+            alpha:alpha*.88,
+          });
+      }
+
+      const socketA=point(cx,cy,headX-5,-4.4,angle);
+      const socketB=point(cx,cy,headX+5,-4.4,angle);
+      const socketC=point(cx,cy,headX+5,4.4,angle);
+      const socketD=point(cx,cy,headX-5,4.4,angle);
+      polygon(g,[socketA,socketB,socketC,socketD],{
+        color:profile.accent,
+        alpha:alpha*.84,
+      },true);
+      polygon(g,[socketA,socketB,socketC,socketD],{
+        color:profile.core,
+        width:1.2,
+        alpha:alpha*.68,
+      },false);
     };
 
     for (const view of this.actorViews.values()) {

@@ -49,23 +49,26 @@ export class OrbCharacterRenderer{
     const shellMat=alphaMaterial(
       this.scene,
       "orb-shell-mat:"+actor.id,
-      style.core,
-      0.18,
-      0.16,
+      "#d7e2ef",
+      0.095,
+      0.035,
     );
+    shellMat.specularColor=new BABYLON.Color3(0.48,0.56,0.66);
+    shellMat.specularPower=128;
+
     const middleMat=alphaMaterial(
       this.scene,
       "orb-middle-mat:"+actor.id,
-      style.core,
-      0.30,
-      0.32,
+      "#b8c5d3",
+      0.055,
+      0.018,
     );
     const coreMat=alphaMaterial(
       this.scene,
       "orb-core-mat:"+actor.id,
       style.energy,
-      0.96,
-      0.92,
+      0.98,
+      1.38,
     );
     coreMat.specularPower=96;
 
@@ -103,6 +106,26 @@ export class OrbCharacterRenderer{
     core.metadata={actorId:actor.id,orbPart:"core"};
     core.isPickable=true;
     this.shadowGenerator?.addShadowCaster(core);
+
+    const energyMat=alphaMaterial(
+      this.scene,
+      "orb-energy-mat:"+actor.id,
+      style.core,
+      0.42,
+      1.05,
+    );
+    energyMat.disableLighting=true;
+
+    const energy=BABYLON.MeshBuilder.CreatePolyhedron(
+      "orb-energy:"+actor.id,
+      {type:1,size:0.50},
+      this.scene,
+    );
+    energy.parent=visualRoot;
+    energy.position.y=0.72;
+    energy.scaling.set(1.0,0.82,1.0);
+    energy.material=energyMat;
+    energy.isPickable=false;
 
     const haloMat=alphaMaterial(
       this.scene,
@@ -163,10 +186,10 @@ export class OrbCharacterRenderer{
     contactShadow.isPickable=false;
 
     const sparks=[];
-    for(let i=0;i<3;i++){
+    for(let i=0;i<6;i++){
       const spark=BABYLON.MeshBuilder.CreateSphere(
         "orb-spark:"+actor.id+":"+i,
-        {diameter:0.105-i*0.014,segments:7},
+        {diameter:Math.max(0.055,0.11-i*0.008),segments:7},
         this.scene,
       );
       spark.parent=visualRoot;
@@ -180,9 +203,9 @@ export class OrbCharacterRenderer{
       const trailMat=alphaMaterial(
         this.scene,
         "orb-trail-mat:"+actor.id+":"+i,
-        style.core,
-        0.10-i*0.022,
-        0.22,
+        style.energy,
+        0.085-i*0.014,
+        0.46,
       );
       trailMat.disableLighting=true;
 
@@ -244,11 +267,11 @@ export class OrbCharacterRenderer{
       root,visualRoot,
       classId:actor.classId,role:actor.role,
       style,
-      shell,middle,core,halo,castBand,contactShadow,
+      shell,middle,core,energy,halo,castBand,contactShadow,
       sparks,trail,hp,hpBack,barRoot,
-      shellMat,middleMat,coreMat,haloMat,castMat,hpMat,
+      shellMat,middleMat,coreMat,energyMat,haloMat,castMat,hpMat,
       ownedMaterials:[
-        shellMat,middleMat,coreMat,haloMat,castMat,
+        shellMat,middleMat,coreMat,energyMat,haloMat,castMat,
         shadowMat,hpBackMat,hpMat,
         ...trail.map(t=>t.material),
       ],
@@ -317,15 +340,30 @@ export class OrbCharacterRenderer{
         :0;
 
       e.core.scaling.setAll(
-        0.96+castProgress*0.20+castPulse*0.07
+        0.98+castProgress*0.24+castPulse*0.08
       );
       e.core.scaling.y*=1.18;
-      e.middle.scaling.setAll(1.0+castProgress*0.08);
-      e.shellMat.alpha=0.16+(cast?0.08+castPulse*0.035:0);
-      e.middleMat.alpha=0.28+(cast?0.10:0);
-      e.coreMat.emissiveColor=c3(e.style.energy).scale(
-        cast?1.0:0.72
+
+      const energyPulse=1+Math.sin(time*0.010+String(actor.id).length)*0.12;
+      e.energy.scaling.set(
+        energyPulse*(1+castProgress*0.12),
+        (0.78+castProgress*0.10)/energyPulse,
+        energyPulse*(1+castProgress*0.12),
       );
+      e.energy.rotation.x=time*0.0017;
+      e.energy.rotation.y=-time*0.0024;
+      e.energy.rotation.z=time*0.0011;
+
+      e.middle.scaling.setAll(1.0+castProgress*0.06);
+      e.shellMat.alpha=0.085+(cast?0.025+castPulse*0.018:0);
+      e.middleMat.alpha=0.045+(cast?0.018:0);
+      e.coreMat.emissiveColor=c3(e.style.energy).scale(
+        cast?1.46:1.10
+      );
+      e.energyMat.emissiveColor=c3(e.style.core).scale(
+        cast?1.24:0.92
+      );
+      e.energyMat.alpha=0.34+(cast?0.13+castPulse*0.06:0);
 
       e.castMat.alpha=cast?0.20+castPulse*0.28:0;
       e.castBand.scaling.setAll(0.88+castProgress*0.32);
@@ -336,14 +374,16 @@ export class OrbCharacterRenderer{
       e.haloMat.alpha=0.13+(cast?0.08:0);
 
       for(let i=0;i<e.sparks.length;i++){
-        const a=time*(0.0018+i*0.00035)+i*Math.PI*2/3;
-        const radius=0.26+(cast?0.05+castProgress*0.08:0);
+        const a=time*(0.0017+i*0.00022)+i*Math.PI*2/e.sparks.length;
+        const radius=0.22+(i%2)*0.08+(cast?0.05+castProgress*0.07:0);
         e.sparks[i].position.set(
           Math.cos(a)*radius,
-          0.72+Math.sin(a*1.7+i)*0.20,
+          0.72+Math.sin(a*1.7+i)*0.23,
           Math.sin(a)*radius,
         );
-        e.sparks[i].scaling.setAll(cast?1.18:0.92);
+        e.sparks[i].scaling.setAll(
+          (cast?1.28:0.92)*(i%2?0.82:1.0)
+        );
       }
 
       let leader=pos;

@@ -717,55 +717,92 @@ function drawBloodthirst(ctx, source, target, profile, p, seed, missed) {
 
 function drawGarrote(ctx, source, target, profile, p, seed, missed) {
   rogueCue(ctx, source, profile, Math.min(1, p / .10));
-  const to = missed ? { x: target.x + (seeded(seed, 6) > .5 ? 39 : -39), y: target.y - 7 } : target;
-  const fade = 1 - clamp01((p - .62) / .38);
+  const to = missed
+    ? { x: target.x + (seeded(seed, 6) > .5 ? 34 : -34), y: target.y - 7 }
+    : target;
+  const fade = 1 - clamp01((p - .60) / .40);
+  const cut = smooth(p / .18);
+
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.strokeStyle = profile.core;
   ctx.shadowColor = profile.shadow;
-  ctx.shadowBlur = 7;
-  ctx.lineWidth = 1.8;
-  ctx.globalAlpha = fade * .72;
-  for (let i = 0; i < 2; i += 1) {
-    const y = to.y - 5 + i * 9;
-    ctx.beginPath();
-    ctx.moveTo(to.x - 18, y - 5);
-    ctx.quadraticCurveTo(to.x, y + (i ? -6 : 6), to.x + 18, y + 4);
-    ctx.stroke();
-  }
+  ctx.shadowBlur = 6;
+  ctx.lineWidth = 2.2;
+  ctx.globalAlpha = fade * cut * .76;
+  ctx.beginPath();
+  ctx.moveTo(to.x - 15, to.y - 5);
+  ctx.quadraticCurveTo(to.x, to.y - 10, to.x + 16, to.y - 4);
+  ctx.stroke();
   ctx.restore();
-  if (!missed) for (let i = 0; i < 3; i += 1) dot(ctx, target.x - 9 + i * 9, target.y + 9 + p * 8, 1.2, "#8e5b55", fade * .35);
+
+  if (!missed) {
+    for (let i = 0; i < 4; i += 1) {
+      dot(ctx, target.x - 8 + i * 5, target.y + 5 + p * (5 + i), 1.0 + (i % 2) * .3, "#915852", fade * .34);
+    }
+  }
 }
 
 function drawSinister(ctx, source, target, profile, p, seed, missed) {
   rogueCue(ctx, source, profile, Math.min(1, p / .08));
-  const to = missed ? { x: target.x + (seeded(seed, 7) > .5 ? 40 : -40), y: target.y - 7 } : target;
-  const fade = 1 - clamp01((p - .58) / .42);
-  weaponSlash(ctx, to, -.72, 42, { ...profile, steel: profile.shadow }, fade * smooth(p / .22) * .72, 2.2, 8);
-  if (!missed) {
-    ctx.save();
-    ctx.globalAlpha = fade * .26;
-    ctx.strokeStyle = profile.shadow;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, 15 + p * 17, -.7, .45);
-    ctx.stroke();
-    ctx.restore();
+  const to = missed
+    ? { x: target.x + (seeded(seed, 7) > .5 ? 35 : -35), y: target.y - 6 }
+    : target;
+  const fade = 1 - clamp01((p - .56) / .44);
+  const contact = smooth(p / .17);
+  const facing = Math.atan2(target.y - source.y, target.x - source.x);
+  const b = basis(source, target);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.strokeStyle = profile.core;
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 6;
+  ctx.lineWidth = 2.2;
+  ctx.globalAlpha = fade * contact * .78;
+  ctx.beginPath();
+  ctx.moveTo(to.x - Math.cos(facing) * 10 - b.nx * 3, to.y - Math.sin(facing) * 10 - b.ny * 3);
+  ctx.lineTo(to.x + Math.cos(facing) * 9 + b.nx * 2, to.y + Math.sin(facing) * 9 + b.ny * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  if (!missed && p > .12) {
+    const hit = clamp01((p - .12) / .35);
+    dot(ctx, target.x, target.y, 2.7, profile.core, (1 - hit) * .48);
   }
 }
 
 function drawEviscerate(ctx, source, target, profile, p, seed, missed) {
   rogueCue(ctx, source, profile, Math.min(1, p / .10));
-  const to = missed ? { x: target.x + (seeded(seed, 8) > .5 ? 43 : -43), y: target.y - 6 } : target;
-  const fade = 1 - clamp01((p - .70) / .30);
+  const to = missed
+    ? { x: target.x + (seeded(seed, 8) > .5 ? 38 : -38), y: target.y - 5 }
+    : target;
+  const fade = 1 - clamp01((p - .68) / .32);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.shadowColor = profile.shadow;
+  ctx.shadowBlur = 6;
+  ctx.lineCap = "round";
   for (let i = 0; i < 3; i += 1) {
-    const delay = i * .07;
-    const local = smooth((p - delay) / .22);
-    weaponSlash(ctx, { x: to.x + (i - 1) * 4, y: to.y + (1 - i) * 4 }, -.95 + i * .88, 43, { ...profile, steel: profile.shadow }, fade * local * .76, 2, 4);
+    const local = smooth((p - i * .055) / .20);
+    if (local <= 0) continue;
+    const angle = -.78 + i * .78;
+    const half = 9 + i * 2;
+    ctx.strokeStyle = i === 1 ? profile.core : profile.main;
+    ctx.lineWidth = i === 1 ? 2.4 : 1.7;
+    ctx.globalAlpha = fade * local * (i === 1 ? .84 : .66);
+    ctx.beginPath();
+    ctx.moveTo(to.x - Math.cos(angle) * half, to.y - Math.sin(angle) * half);
+    ctx.lineTo(to.x + Math.cos(angle) * half, to.y + Math.sin(angle) * half);
+    ctx.stroke();
   }
-  if (!missed && p > .25) {
-    const hit = clamp01((p - .25) / .40);
-    dot(ctx, target.x, target.y, 4 * (1 - hit * .5), profile.core, (1 - hit) * .58);
+  ctx.restore();
+
+  if (!missed && p > .20) {
+    const hit = clamp01((p - .20) / .38);
+    ring(ctx, target.x, target.y, 7 + easeOut(hit) * 12, profile.shadow, (1 - hit) * .22, 1.2);
+    dot(ctx, target.x, target.y, 3.5, profile.core, (1 - hit) * .55);
   }
 }
 
@@ -825,18 +862,49 @@ function drawKick(ctx, source, target, profile, p, successful) {
 
 function drawMutilate(ctx, source, target, profile, p, seed, missed) {
   rogueCue(ctx, source, profile, Math.min(1, p / .09));
-  const to = missed ? { x: target.x + (seeded(seed, 9) > .5 ? 43 : -43), y: target.y - 8 } : target;
-  const fade = 1 - clamp01((p - .68) / .32);
-  // Two blades arrive on slightly different beats.
-  const left = smooth(p / .25);
-  const right = smooth((p - .075) / .25);
-  weaponSlash(ctx, { x: to.x - 3, y: to.y }, .72, 44, { ...profile, steel: profile.shadow }, fade * left * .78, 2.2, -5);
-  weaponSlash(ctx, { x: to.x + 3, y: to.y }, -.72, 44, { ...profile, steel: profile.shadow }, fade * right * .78, 2.2, 5);
-  if (!missed && p > .25) {
-    const hit = clamp01((p - .25) / .42);
+  const to = missed
+    ? { x: target.x + (seeded(seed, 9) > .5 ? 38 : -38), y: target.y - 7 }
+    : target;
+  const fade = 1 - clamp01((p - .66) / .34);
+  const left = smooth(p / .22);
+  const right = smooth((p - .045) / .22);
+  const poison = "#79d36f";
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.shadowColor = profile.shadow;
+  ctx.shadowBlur = 7;
+
+  for (const [angle, strength, side] of [
+    [-.68, left, -1],
+    [.68, right, 1],
+  ]) {
+    const half = 12;
+    ctx.strokeStyle = side < 0 ? profile.core : profile.main;
+    ctx.lineWidth = 2.2;
+    ctx.globalAlpha = fade * strength * .78;
+    ctx.beginPath();
+    ctx.moveTo(to.x - Math.cos(angle) * half, to.y - Math.sin(angle) * half);
+    ctx.lineTo(to.x + Math.cos(angle) * half, to.y + Math.sin(angle) * half);
+    ctx.stroke();
+
+    ctx.strokeStyle = poison;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = fade * strength * .62;
+    ctx.beginPath();
+    ctx.moveTo(to.x - Math.cos(angle) * 5, to.y - Math.sin(angle) * 5);
+    ctx.lineTo(to.x + Math.cos(angle) * 7, to.y + Math.sin(angle) * 7);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  if (!missed && p > .18) {
+    const hit = clamp01((p - .18) / .42);
+    dot(ctx, target.x, target.y, 4.2 * (1 - hit * .45), poison, (1 - hit) * .48);
     for (let i = 0; i < 4; i += 1) {
       const a = Math.PI / 4 + i * Math.PI / 2;
-      dot(ctx, target.x + Math.cos(a) * (8 + hit * 14), target.y + Math.sin(a) * (8 + hit * 14), 1.4, i % 2 ? profile.main : profile.shadow, (1 - hit) * .48);
+      dot(ctx, target.x + Math.cos(a) * (7 + hit * 8), target.y + Math.sin(a) * (7 + hit * 8), 1.1, i % 2 ? profile.core : poison, (1 - hit) * .40);
     }
   }
 }

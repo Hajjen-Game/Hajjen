@@ -28,8 +28,8 @@ import {
 import {
   drawWarriorRogueCastVfx,
   drawWarriorRogueSpellVfx,
-} from "./WarriorRogueVfx.js?v=20261007-warriorreach1";
-import { drawCanvasMeleeSignatureVfx } from "./MeleeSignatureVfx.js?v=20261007-warriorbespoke1";
+} from "./WarriorRogueVfx.js?v=20261007-roguedaggers1";
+import { drawCanvasMeleeSignatureVfx } from "./MeleeSignatureVfx.js?v=20261007-roguedaggers1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

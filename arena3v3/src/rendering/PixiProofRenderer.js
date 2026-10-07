@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-warriorbespoke1";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-roguedaggers1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -13386,10 +13386,21 @@ export class PixiProofRenderer {
               .moveTo(ridgeA.x,ridgeA.y)
               .lineTo(ridgeB.x,ridgeB.y)
               .stroke({
-                color:signatureSpec.core,
-                width:isDagger?1.0:1.45,
-                alpha:weaponAlpha*.88,
+                color:signatureSpec.poison || signatureSpec.core,
+                width:signatureSpec.poison?1.35:(isDagger?1.0:1.45),
+                alpha:weaponAlpha*(signatureSpec.poison?.92:.88),
               });
+
+            if(signatureSpec.poison){
+              glow
+                .moveTo(ridgeA.x,ridgeA.y)
+                .lineTo(ridgeB.x,ridgeB.y)
+                .stroke({
+                  color:signatureSpec.poison,
+                  width:4.8,
+                  alpha:weaponAlpha*.075,
+                });
+            }
 
             const guardA=point(ox,oy,root-1,-width*1.32,angle);
             const guardB=point(ox,oy,root-1,width*1.32,angle);
@@ -14268,7 +14279,7 @@ export class PixiProofRenderer {
             mortalImpact
             || effect.spellId==="dk-obliterate"
             || effect.spellId==="shaman-stormstrike";
-          const sharedImpactScale=mortalImpact?.48:1;
+          const sharedImpactScale=mortalImpact?.48:(rogue?.42:1);
           const rogueImpact=
             effect.spellId==="rogue-eviscerate"
             || effect.spellId==="rogue-mutilate";
@@ -14459,109 +14470,101 @@ export class PixiProofRenderer {
           // distinct cut pattern instead of sharing the same spark burst.
           if(effect.spellId==="rogue-garrote"){
             const snap=Math.exp(-hit*11);
-            // One near-horizontal throat cut plus three restrained bleed flecks.
-            const p0=point(dx,dy,-31,0,-.14);
-            const p1=point(dx,dy,33,0,-.14);
+            const p0=point(dx,dy,-18,0,-.12);
+            const p1=point(dx,dy,19,0,-.12);
             glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-              color:profile.main,width:9,alpha:alpha*hitFade*.10
+              color:profile.main,width:7,alpha:alpha*hitFade*.07
             });
             core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-              color:profile.core,width:2.4,alpha:alpha*hitFade*.82
+              color:profile.core,width:2.0,alpha:alpha*hitFade*.78
             });
-            for(let i=0;i<5;i++){
-              const a=-.55+i*.28;
-              const rr=13+expand*(10+(i%2)*4);
-              core.circle(
-                dx+Math.cos(a)*rr,
-                dy+Math.sin(a)*rr+hit*(i%2?3:1),
-                1.0+(i%2)*.35
-              ).fill({
-                color:i===2?profile.core:profile.main,
-                alpha:alpha*hitFade*.58
+            for(let i=0;i<4;i++){
+              const x=dx-8+i*5;
+              const y=dy+5+hit*(3+i*2);
+              core.circle(x,y,1.0+(i%2)*.3).fill({
+                color:i===1?profile.core:profile.main,
+                alpha:alpha*hitFade*.48
               });
             }
-            glow.circle(dx,dy,7+snap*12).fill({
-              color:profile.main,alpha:alpha*hitFade*snap*.10
+            glow.circle(dx,dy,5+snap*9).fill({
+              color:profile.main,alpha:alpha*hitFade*snap*.075
             });
           }
 
           if(effect.spellId==="rogue-sinister"){
-            // Sinister Strike is the clean filler: one fast cut with a small
-            // opposite afterimage and almost no radial clutter.
-            for(let layer=0;layer<2;layer++){
-              const a=layer===0?-.66:.46;
-              const len=layer===0?38:24;
-              const p0=point(dx,dy,-len,0,a);
-              const p1=point(dx,dy,len,0,a);
-              if(layer===0){
-                glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-                  color:profile.main,width:8,alpha:alpha*hitFade*.08
-                });
-              }
-              core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-                color:layer===0?profile.core:profile.accent,
-                width:layer===0?2.2:1.35,
-                alpha:alpha*hitFade*(layer===0?.78:.48)
-              });
-            }
+            const facing=Math.atan2(dy0,dx0);
+            const p0=point(dx,dy,-11,0,facing);
+            const p1=point(dx,dy,10,0,facing);
+            glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:profile.main,width:6,alpha:alpha*hitFade*.06
+            });
+            core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+              color:profile.core,width:2.0,alpha:alpha*hitFade*.76
+            });
+            core.circle(dx,dy,2.6+expand*2).fill({
+              color:profile.core,alpha:alpha*hitFade*.54
+            });
           }
 
           if(effect.spellId==="rogue-eviscerate"){
-            // Eviscerate is the finisher: four long sequential razor lanes and
-            // a tight violet/gold closing crescent.
-            for(let i=0;i<6;i++){
-              const a=-1.18+i*.43+hit*.08;
-              const inner=8+(i%2)*2;
-              const outer=32+expand*(17+(i%3)*6);
-              glow
-                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
-                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
-                .stroke({
-                  color:i%2?profile.core:profile.main,
-                  width:6,alpha:alpha*hitFade*.07
-                });
-              core
-                .moveTo(dx+Math.cos(a)*inner,dy+Math.sin(a)*inner)
-                .lineTo(dx+Math.cos(a)*outer,dy+Math.sin(a)*outer)
-                .stroke({
-                  color:i%2?profile.core:profile.accent,
-                  width:1.55+(i%3===0?.45:0),
-                  alpha:alpha*hitFade*.80,
-                });
+            for(let i=0;i<3;i++){
+              const a=-.76+i*.76+hit*.04;
+              const half=10+i*2;
+              const p0=point(dx,dy,-half,0,a);
+              const p1=point(dx,dy,half,0,a);
+              glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                color:i===1?profile.core:profile.main,
+                width:6,alpha:alpha*hitFade*.055
+              });
+              core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
+                color:i===1?profile.core:profile.accent,
+                width:i===1?2.25:1.55,
+                alpha:alpha*hitFade*.76
+              });
             }
-            arc(glow,dx,dy,28+expand*20,-1.48,.35,{
-              color:profile.accent,width:9,alpha:alpha*hitFade*.10
-            },10);
-            arc(core,dx,dy,26+expand*18,-1.48,.35,{
-              color:profile.core,width:2.2,alpha:alpha*hitFade*.70
-            },10);
+            arc(glow,dx,dy,15+expand*10,-1.40,.20,{
+              color:profile.accent,width:6,alpha:alpha*hitFade*.06
+            },8);
+            arc(core,dx,dy,14+expand*9,-1.40,.20,{
+              color:profile.core,width:1.5,alpha:alpha*hitFade*.52
+            },8);
           }
 
           if(effect.spellId==="rogue-mutilate"){
-            // Mutilate: unmistakable dual-dagger X, followed by small puncture
-            // splinters instead of Eviscerate's sweeping finisher pattern.
-            for(const a of [-.78,.78]){
-              const p0=point(dx,dy,-36,0,a);
-              const p1=point(dx,dy,36,0,a);
+            const poison=0x79d36f;
+            for(const a of [-.68,.68]){
+              const p0=point(dx,dy,-14,0,a);
+              const p1=point(dx,dy,14,0,a);
               glow.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
-                color:profile.main,width:10,alpha:alpha*hitFade*.10
+                color:profile.main,width:7,alpha:alpha*hitFade*.07
               });
               core.moveTo(p0.x,p0.y).lineTo(p1.x,p1.y).stroke({
                 color:a<0?profile.core:profile.main,
-                width:2.8,alpha:alpha*hitFade*.84
+                width:2.2,alpha:alpha*hitFade*.78
+              });
+              const q0=point(dx,dy,-5,0,a);
+              const q1=point(dx,dy,8,0,a);
+              core.moveTo(q0.x,q0.y).lineTo(q1.x,q1.y).stroke({
+                color:poison,width:1.1,alpha:alpha*hitFade*.68
               });
             }
-            for(let i=0;i<6;i++){
-              const a=i/6*Math.PI*2+.18;
-              const r0=7;
-              const r1=19+expand*(9+(i%2)*4);
+            glow.circle(dx,dy,6+expand*11).fill({
+              color:poison,alpha:alpha*hitFade*.07
+            });
+            core.circle(dx,dy,3.2+expand*3.5).fill({
+              color:poison,alpha:alpha*hitFade*.46
+            });
+            for(let i=0;i<4;i++){
+              const a=Math.PI/4+i*Math.PI/2;
+              const r0=6;
+              const r1=13+expand*(5+(i%2)*3);
               core
                 .moveTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0)
                 .lineTo(dx+Math.cos(a)*r1,dy+Math.sin(a)*r1)
                 .stroke({
-                  color:i%2?profile.core:profile.accent,
-                  width:1.35+(i%3===0?.4:0),
-                  alpha:alpha*hitFade*.58
+                  color:i%2?profile.core:poison,
+                  width:1.15,
+                  alpha:alpha*hitFade*.48
                 });
             }
           }

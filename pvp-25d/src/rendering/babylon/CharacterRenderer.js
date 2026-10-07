@@ -208,6 +208,7 @@ export class CharacterRenderer {
       barRoot: null,
       contactShadow: null,
       classRing: null,
+      baseVisualY: 0,
     };
 
     this.createGrounding(actor, entry);
@@ -319,6 +320,7 @@ export class CharacterRenderer {
     if (Number.isFinite(minY)) {
       entry.visualRoot.position.y -= minY;
     }
+    entry.baseVisualY = entry.visualRoot.position.y;
   }
 
   attachClassProps(actor, entry) {
@@ -558,7 +560,7 @@ export class CharacterRenderer {
       const bob = moving
         ? Math.sin(time * 0.012) * 0.028
         : Math.sin(time * 0.0024) * 0.008;
-      entry.visualRoot.position.y += bob;
+      entry.visualRoot.position.y = entry.baseVisualY + bob;
       entry.propRoot.position.y = bob;
 
       const health = Math.max(0, Math.min(1, actor.healthPct));

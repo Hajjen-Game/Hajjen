@@ -27,7 +27,7 @@ jobs:
       - name: Install Blender
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender unzip curl
+          sudo apt-get install -y blender unzip curl python3-numpy
 
       - name: Download CC0 Tiby source
         shell: bash
@@ -37,6 +37,8 @@ jobs:
           curl -L --fail --retry 3 \
             "https://opengameart.org/sites/default/files/Tiby_Character_MnF_0.zip" \
             -o /tmp/Tiby_Character_MnF_0.zip
+          echo "2c438d05446eedff5e59c879d93922c38fe0e42692e646be783eef278a2a744c  /tmp/Tiby_Character_MnF_0.zip" \
+            | sha256sum -c -
           sha256sum /tmp/Tiby_Character_MnF_0.zip | tee /tmp/tiby-source-sha256.txt
           unzip -q /tmp/Tiby_Character_MnF_0.zip -d /tmp/tiby-source
           echo "Tiby source contents:"
@@ -77,6 +79,7 @@ jobs:
           blender -b "${{ steps.source.outputs.path }}" \
             --python pvp-25d/tools/tiby/export_tiby.py \
             -- "$PWD/pvp-25d/assets/characters/tiby/tiby-base.glb"
+          test -s pvp-25d/assets/characters/tiby/tiby-base.glb
           cp /tmp/tiby-source-sha256.txt \
             pvp-25d/assets/characters/tiby/SOURCE_SHA256.txt
           ls -lh pvp-25d/assets/characters/tiby/

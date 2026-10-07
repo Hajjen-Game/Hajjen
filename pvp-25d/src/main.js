@@ -1,4 +1,4 @@
-import { Game } from "./core/Game.js?v=20261007-quaternius1";
+import { Game } from "./core/Game.js?v=20261007-miniheroes-v1";
 import { InputManager } from "../../arena3v3/src/core/InputManager.js";
 import { CharacterStore } from "../../arena3v3/src/core/CharacterStore.js";
 import { HonorSystem, legacyHonorAvailable, migrateLegacyHonor } from "../../arena3v3/src/core/HonorSystem.js";

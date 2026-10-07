@@ -13883,16 +13883,18 @@ export class PixiProofRenderer {
           }
 
           const root=source.radius+4;
+          const axeLength=Math.max(50,Math.min(70,len0+3));
 
-          // A faint previous-pose echo preserves the motion read that worked on
-          // Mortal Strike, but the main silhouette is now one coherent axe.
+          // Keep the axe head centred on the opponent. The blade can stay broad,
+          // but the shaft no longer extends so far that the swing passes outside
+          // the victim's centre.
           warriorDoubleAxe(
             core,glow,0,0,swordAngle-.11,root,
-            Math.min(78,swordLength),14.5,profile,swordAlpha*.12
+            axeLength,14.5,profile,swordAlpha*.12
           );
           warriorDoubleAxe(
             core,glow,0,0,swordAngle,root,
-            Math.min(78,swordLength),15,profile,swordAlpha
+            axeLength,15,profile,swordAlpha
           );
 
           // Contact pulse happens exactly when the rotating blade crosses the
@@ -13956,8 +13958,10 @@ export class PixiProofRenderer {
             color:profile.core,width:2.2,alpha:weaponAlpha*.90
           },10);
 
+          const rendAxeLength=Math.max(48,Math.min(62,len0+3));
           warriorDoubleAxe(
-            core,glow,0,0,angle,source.radius+4,70,13.5,profile,weaponAlpha
+            core,glow,0,0,angle,source.radius+4,
+            rendAxeLength,13.5,profile,weaponAlpha
           );
 
           const tear=smooth(clamp01((p-.36)/.30));
@@ -14015,8 +14019,10 @@ export class PixiProofRenderer {
             },16);
           }
 
+          const slamAxeLength=Math.max(50,Math.min(66,len0+3));
           warriorDoubleAxe(
-            core,glow,0,0,angle,source.radius+4,76,15,profile,weaponAlpha
+            core,glow,0,0,angle,source.radius+4,
+            slamAxeLength,15,profile,weaponAlpha
           );
 
           const contact=Math.exp(-Math.pow((drop-.94)/.11,2));
@@ -14048,8 +14054,10 @@ export class PixiProofRenderer {
             color:profile.core,width:3.3,alpha:weaponAlpha*.86
           },14);
 
+          const overpowerAxeLength=Math.max(46,Math.min(58,len0+3));
           warriorDoubleAxe(
-            core,glow,0,0,angle,source.radius+4,66,12.5,profile,weaponAlpha
+            core,glow,0,0,angle,source.radius+4,
+            overpowerAxeLength,12.5,profile,weaponAlpha
           );
 
           const snap=Math.exp(-Math.pow((motion-.70)/.12,2));
@@ -14113,8 +14121,10 @@ export class PixiProofRenderer {
             alpha:weaponAlpha*.88,
           },10);
 
+          const bloodthirstAxeLength=Math.max(48,Math.min(60,len0+3));
           warriorDoubleAxe(
-            core,glow,0,0,angle,source.radius+4,68,13.5,profile,weaponAlpha
+            core,glow,0,0,angle,source.radius+4,
+            bloodthirstAxeLength,13.5,profile,weaponAlpha
           );
 
           // Contact happens as the axe crosses the target-facing line in each

@@ -28,7 +28,7 @@ import {
 import {
   drawWarriorRogueCastVfx,
   drawWarriorRogueSpellVfx,
-} from "./WarriorRogueVfx.js?v=20261007-warrioraxeshape2";
+} from "./WarriorRogueVfx.js?v=20261007-warriorreach1";
 import { drawCanvasMeleeSignatureVfx } from "./MeleeSignatureVfx.js?v=20261007-warriorbespoke1";
 
 function cssVar(name) {

@@ -357,7 +357,11 @@ function drawRend(ctx, source, target, profile, p, seed, missed) {
   const strength = easeOut(p / .10) * fade;
 
   drawWarriorSweepArc(ctx, source, source.radius + 35, a0, angle, profile, strength, 4.3);
-  drawWarriorDoubleAxe(ctx, source, angle, 70, 13.5, profile, strength);
+  const rendDistance = Math.hypot(target.x - source.x, target.y - source.y);
+  const rendAxeLength = Math.max(48, Math.min(62, rendDistance + 3));
+  drawWarriorDoubleAxe(
+    ctx, source, angle, rendAxeLength, 13.5, profile, strength
+  );
 
   if (!missed) {
     for (let i = 0; i < 4; i += 1) {
@@ -426,11 +430,12 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
 
   ctx.restore();
 
+  const axeLength = Math.max(50, Math.min(70, distance + 3));
   drawWarriorDoubleAxe(
     ctx,
     source,
     swordAngle - .11,
-    Math.min(78, swordLength),
+    axeLength,
     14.5,
     profile,
     swordAlpha * .12,
@@ -439,7 +444,7 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
     ctx,
     source,
     swordAngle,
-    Math.min(78, swordLength),
+    axeLength,
     15,
     profile,
     swordAlpha,
@@ -520,7 +525,11 @@ function drawSlam(ctx, source, target, profile, p, seed, missed) {
     strength,
     4.8,
   );
-  drawWarriorDoubleAxe(ctx, source, angle, 76, 15, profile, strength);
+  const slamDistance = Math.hypot(target.x - source.x, target.y - source.y);
+  const slamAxeLength = Math.max(50, Math.min(66, slamDistance + 3));
+  drawWarriorDoubleAxe(
+    ctx, source, angle, slamAxeLength, 15, profile, strength
+  );
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
@@ -627,7 +636,11 @@ function drawOverpower(ctx, source, target, profile, p, seed, missed) {
   const strength = easeOut(p / .08) * fade;
 
   drawWarriorSweepArc(ctx, source, source.radius + 31, a0, angle, profile, strength, 3.2);
-  drawWarriorDoubleAxe(ctx, source, angle, 66, 12.5, profile, strength);
+  const overpowerDistance = Math.hypot(target.x - source.x, target.y - source.y);
+  const overpowerAxeLength = Math.max(46, Math.min(58, overpowerDistance + 3));
+  drawWarriorDoubleAxe(
+    ctx, source, angle, overpowerAxeLength, 12.5, profile, strength
+  );
 
   if (!missed && p > .22) {
     const hit = clamp01((p - .22) / .48);
@@ -673,11 +686,19 @@ function drawBloodthirst(ctx, source, target, profile, p, seed, missed) {
     strength,
     4.5,
   );
+  const bloodthirstDistance = Math.hypot(
+    target.x - source.x,
+    target.y - source.y,
+  );
+  const bloodthirstAxeLength = Math.max(
+    48,
+    Math.min(60, bloodthirstDistance + 3),
+  );
   drawWarriorDoubleAxe(
     ctx,
     source,
     angle,
-    68,
+    bloodthirstAxeLength,
     13.5,
     profile,
     strength,

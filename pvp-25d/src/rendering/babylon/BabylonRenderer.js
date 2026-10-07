@@ -305,7 +305,7 @@ export class BabylonRenderer {
     this.glow = new BABYLON.GlowLayer("glow", this.scene, {
       blurKernelSize: 32,
     });
-    this.glow.intensity = 0.18;
+    this.glow.intensity = this.orbMode ? 0.48 : 0.18;
 
     this.installAmbientOcclusion();
   }
@@ -350,27 +350,67 @@ export class BabylonRenderer {
     const w = a.width * S;
     const h = a.height * S;
 
-    this.scene.clearColor = BABYLON.Color4.FromHexString("#090b10ff");
-    this.scene.ambientColor = new BABYLON.Color3(0.075,0.085,0.11);
-    this.scene.imageProcessingConfiguration.contrast = 1.12;
-    this.scene.imageProcessingConfiguration.exposure = 0.82;
+    this.scene.clearColor = BABYLON.Color4.FromHexString("#03050aff");
+    this.scene.ambientColor = new BABYLON.Color3(0.025,0.032,0.050);
+    this.scene.imageProcessingConfiguration.contrast = 1.18;
+    this.scene.imageProcessingConfiguration.exposure = 0.68;
 
-    const groundMat = pbr(this.scene, "orb-arena-ground-mat", "#171b22", 0.94);
-    groundMat.albedoColor = new BABYLON.Color3(0.055,0.065,0.085);
+    const makeGlass=(name,hex,alpha,emissive=0)=>{
+      const m=new BABYLON.StandardMaterial(name,this.scene);
+      const cc=color(hex);
+      m.diffuseColor=cc.scale(0.35);
+      m.emissiveColor=cc.scale(emissive);
+      m.specularColor=cc.scale(0.12);
+      m.alpha=alpha;
+      m.backFaceCulling=false;
+      m.needDepthPrePass=true;
+      if(BABYLON.Material?.MATERIAL_ALPHABLEND!==undefined){
+        m.transparencyMode=BABYLON.Material.MATERIAL_ALPHABLEND;
+      }
+      return m;
+    };
+
+    const groundMat = makeGlass(
+      "orb-arena-ground-mat",
+      "#6f8098",
+      0.16,
+      0.018,
+    );
 
     const ground = BABYLON.MeshBuilder.CreateBox(
       "orb-arena-ground",
-      {width:w,depth:h,height:0.10},
+      {width:w,depth:h,height:0.075},
       this.scene,
     );
-    ground.position.set(w*0.5,-0.05,h*0.5);
+    ground.position.set(w*0.5,-0.02,h*0.5);
     ground.material = groundMat;
-    ground.receiveShadows = true;
+    ground.receiveShadows = false;
     ground.metadata = {ground:true};
     this.ground = ground;
 
-    const borderMat = pbr(this.scene, "orb-arena-border-mat", "#2a3038", 0.91);
-    borderMat.albedoColor = new BABYLON.Color3(0.11,0.125,0.15);
+    // A dim secondary slab below the play surface gives the arena visible depth
+    // while still reading as something suspended in empty space.
+    const underMat = makeGlass(
+      "orb-arena-under-mat",
+      "#1b2432",
+      0.085,
+      0.010,
+    );
+    const under = BABYLON.MeshBuilder.CreateBox(
+      "orb-arena-under",
+      {width:w*0.985,depth:h*0.985,height:0.18},
+      this.scene,
+    );
+    under.position.set(w*0.5,-0.18,h*0.5);
+    under.material=underMat;
+    under.isPickable=false;
+
+    const borderMat = makeGlass(
+      "orb-arena-border-mat",
+      "#9cb1ca",
+      0.24,
+      0.055,
+    );
 
     const pad = a.boundaryPadding * S;
     const borderHeight = 0.22;
@@ -398,10 +438,18 @@ export class BabylonRenderer {
       this.shadowGenerator.addShadowCaster(mesh);
     });
 
-    const obstacleMat = pbr(this.scene, "orb-los-mat", "#262c36", 0.88);
-    obstacleMat.albedoColor = new BABYLON.Color3(0.12,0.14,0.17);
-    const topMat = pbr(this.scene, "orb-los-top-mat", "#343c48", 0.86);
-    topMat.albedoColor = new BABYLON.Color3(0.17,0.19,0.23);
+    const obstacleMat = makeGlass(
+      "orb-los-mat",
+      "#75879c",
+      0.21,
+      0.025,
+    );
+    const topMat = makeGlass(
+      "orb-los-top-mat",
+      "#a2b6cd",
+      0.17,
+      0.060,
+    );
 
     for (const o of a.obstacles) {
       const ow = o.w * S;
@@ -416,7 +464,7 @@ export class BabylonRenderer {
       );
       body.position.set(x,0.64,z);
       body.material=obstacleMat;
-      body.receiveShadows=true;
+      body.receiveShadows=false;
       body.metadata={obstacleId:o.id};
       body.isPickable=false;
       this.shadowGenerator.addShadowCaster(body);
@@ -428,15 +476,15 @@ export class BabylonRenderer {
       );
       top.position.set(x,1.32,z);
       top.material=topMat;
-      top.receiveShadows=true;
+      top.receiveShadows=false;
       top.isPickable=false;
       this.shadowGenerator.addShadowCaster(top);
     }
 
     const lineMat = new BABYLON.StandardMaterial("orb-floor-line-mat", this.scene);
-    lineMat.diffuseColor = new BABYLON.Color3(0.16,0.19,0.24);
-    lineMat.emissiveColor = new BABYLON.Color3(0.025,0.03,0.04);
-    lineMat.alpha = 0.34;
+    lineMat.diffuseColor = new BABYLON.Color3(0.22,0.27,0.34);
+    lineMat.emissiveColor = new BABYLON.Color3(0.035,0.045,0.060);
+    lineMat.alpha = 0.20;
     lineMat.disableLighting = true;
 
     const center = BABYLON.MeshBuilder.CreateTorus(
@@ -447,6 +495,32 @@ export class BabylonRenderer {
     center.position.set(w*0.5,0.012,h*0.5);
     center.material=lineMat;
     center.isPickable=false;
+
+    const voidMat=new BABYLON.StandardMaterial(
+      "orb-void-point-mat",
+      this.scene,
+    );
+    voidMat.diffuseColor=new BABYLON.Color3(0.52,0.66,0.84);
+    voidMat.emissiveColor=new BABYLON.Color3(0.12,0.20,0.34);
+    voidMat.alpha=0.46;
+    voidMat.disableLighting=true;
+
+    for(let i=0;i<28;i++){
+      const star=BABYLON.MeshBuilder.CreateSphere(
+        "orb-void-point:"+i,
+        {diameter:0.035+(i%4)*0.010,segments:5},
+        this.scene,
+      );
+      const angle=i*2.399963229728653;
+      const ring=10.5+(i%7)*1.45;
+      star.position.set(
+        w*0.5+Math.cos(angle)*ring,
+        -0.65-(i%5)*0.24,
+        h*0.5+Math.sin(angle)*ring*0.62,
+      );
+      star.material=voidMat;
+      star.isPickable=false;
+    }
   }
 
   buildGround() {

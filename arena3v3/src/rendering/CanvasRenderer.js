@@ -29,6 +29,7 @@ import {
   drawWarriorRogueCastVfx,
   drawWarriorRogueSpellVfx,
 } from "./WarriorRogueVfx.js?v=20261007-mortalstrikepolish1";
+import { drawCanvasMeleeSignatureVfx } from "./MeleeSignatureVfx.js?v=20261007-meleesignatures1";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -1694,6 +1695,10 @@ export class CanvasRenderer {
   }
 
   drawSpellVfx(ctx, effect, game, progress, alpha) {
+    // Source-anchored signature weapon motion is layered under the existing
+    // spell-specific target impact. Mortal Strike keeps its own bespoke version.
+    drawCanvasMeleeSignatureVfx(ctx, effect, game, progress, alpha);
+
     if (drawMageShamanSpellVfx(ctx, effect, game, progress, alpha)) return;
     if (drawWarlockSpellVfx(ctx, effect, game, progress, alpha)) return;
     if (drawPriestDruidSpellVfx(ctx, effect, game, progress, alpha)) return;

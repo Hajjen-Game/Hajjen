@@ -17,14 +17,24 @@ const SHOWCASE_PROJECTILE_SPELLS = new Set([
 
 const SHOWCASE_PROJECTILE_DURATION_MULTIPLIER = 1.35;
 
-// Mortal Strike now has a readable VFX 3.0+ spectral sword swing. Give that
-// signature melee animation the same extra screen time as showcase projectiles
-// so the 180-degree blade path can actually be read during combat.
-const SHOWCASE_SIGNATURE_MELEE_SPELLS = new Set([
-  "warrior-mortal-strike",
+// Signature melee weapon animations need enough screen time to read as an
+// actual swing/thrust rather than a single-frame slash. These multipliers are
+// visual-only; combat resolution, GCDs, cooldowns and damage timing are unchanged.
+const SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIERS = new Map([
+  ["warrior-mortal-strike", 1.35],
+  ["warrior-rend", 1.22],
+  ["warrior-slam", 1.18],
+  ["warrior-overpower", 1.22],
+  ["warrior-bloodthirst", 1.20],
+  ["rogue-garrote", 1.22],
+  ["rogue-sinister", 1.25],
+  ["rogue-eviscerate", 1.20],
+  ["rogue-mutilate", 1.20],
+  ["dk-death-strike", 1.16],
+  ["dk-obliterate", 1.12],
+  ["dk-frost-strike", 1.16],
+  ["shaman-stormstrike", 1.18],
 ]);
-
-const SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIER = 1.35;
 
 export class VisualEffectSystem {
   constructor() {
@@ -140,10 +150,12 @@ export class VisualEffectSystem {
       visualDuration = Math.round(
         baseDuration * SHOWCASE_PROJECTILE_DURATION_MULTIPLIER,
       );
-    } else if (SHOWCASE_SIGNATURE_MELEE_SPELLS.has(spellId)) {
-      visualDuration = Math.round(
-        baseDuration * SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIER,
-      );
+    } else {
+      const meleeMultiplier =
+        SHOWCASE_SIGNATURE_MELEE_DURATION_MULTIPLIERS.get(spellId);
+      if (meleeMultiplier) {
+        visualDuration = Math.round(baseDuration * meleeMultiplier);
+      }
     }
 
     this.add("spell", {

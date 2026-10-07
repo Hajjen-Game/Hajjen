@@ -6,6 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-meleesignatures1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -13033,6 +13034,197 @@ export class PixiProofRenderer {
         const warrior=effect.spellId.startsWith("warrior-");
         const rogue=effect.spellId.startsWith("rogue-");
         const dk=effect.spellId.startsWith("dk-");
+        const signatureSpec=meleeSignatureSpecFor(effect.spellId);
+
+        if(signatureSpec){
+          const facing=Math.atan2(dy0,dx0);
+          const root=source.radius+(signatureSpec.shape==="dagger"?2:4);
+          const nx=-Math.sin(facing);
+          const ny=Math.cos(facing);
+
+          for(let wi=0;wi<signatureSpec.weapons.length;wi++){
+            const weapon=signatureSpec.weapons[wi];
+            const local=clamp01(
+              (p-(weapon.delay||0))/Math.max(.01,weapon.span||.52)
+            );
+            if(local<=0) continue;
+
+            const motion=smooth(local);
+            const appear=easeOut(local/.14);
+            const out=1-smooth((local-.80)/.20);
+            const weaponAlpha=alpha*appear*out;
+            const side=Number(weapon.sideOffset||0);
+            const ox=nx*side;
+            const oy=ny*side;
+
+            let angle;
+            let length=signatureSpec.length;
+
+            if(weapon.mode==="thrust"){
+              angle=facing+Number(weapon.angle||0);
+              length*=.52+easeOut(local)*.48;
+
+              const trailA=point(ox,oy,root,0,angle);
+              const trailB=point(ox,oy,length*.80,0,angle);
+              glow
+                .moveTo(trailA.x,trailA.y)
+                .lineTo(trailB.x,trailB.y)
+                .stroke({
+                  color:signatureSpec.main,
+                  width:signatureSpec.width*2.5,
+                  alpha:weaponAlpha*.075,
+                });
+              core
+                .moveTo(trailA.x,trailA.y)
+                .lineTo(trailB.x,trailB.y)
+                .stroke({
+                  color:signatureSpec.main,
+                  width:Math.max(1.6,signatureSpec.width*.34),
+                  alpha:weaponAlpha*.34,
+                });
+            }else{
+              const start=facing+weapon.start;
+              angle=start+(weapon.end-weapon.start)*motion;
+              const radius=Math.max(
+                source.radius+26,
+                Math.min(
+                  signatureSpec.length*.76,
+                  len0*.80+17
+                )
+              );
+
+              arc(glow,ox,oy,radius,start,angle,{
+                color:signatureSpec.main,
+                width:Math.max(
+                  11,
+                  signatureSpec.width*2.55*signatureSpec.trail
+                ),
+                alpha:weaponAlpha*.085,
+              },18);
+              arc(core,ox,oy,radius,start,angle,{
+                color:signatureSpec.main,
+                width:Math.max(
+                  3,
+                  signatureSpec.width*.72*signatureSpec.trail
+                ),
+                alpha:weaponAlpha*.56,
+              },18);
+
+              const leadStart =
+                weapon.end>=weapon.start
+                  ? Math.max(start,angle-1.00)
+                  : Math.min(start,angle+1.00);
+              arc(core,ox,oy,radius-2,leadStart,angle,{
+                color:signatureSpec.core,
+                width:Math.max(1.5,signatureSpec.width*.31),
+                alpha:weaponAlpha*.88,
+              },10);
+
+              // Single afterimage: enough motion to make the actor feel alive,
+              // but not enough to bury the silhouette in repeated blades.
+              const echoLocal=Math.max(0,local-.085);
+              const echoMotion=smooth(echoLocal);
+              const echoAngle=start+(weapon.end-weapon.start)*echoMotion;
+              const echoLength=length*.97;
+              const echoWidth=signatureSpec.width*.86;
+              const echoShoulder=echoLength-Math.max(8,echoWidth*1.7);
+              const echoBlade=[
+                point(ox,oy,root,-echoWidth,echoAngle),
+                point(ox,oy,echoShoulder,-echoWidth*.70,echoAngle),
+                point(ox,oy,echoLength+Math.max(4,echoWidth*.7),0,echoAngle),
+                point(ox,oy,echoShoulder,echoWidth*.70,echoAngle),
+                point(ox,oy,root,echoWidth,echoAngle),
+              ];
+              polygon(glow,echoBlade,{
+                color:signatureSpec.accent,
+                alpha:weaponAlpha*.045,
+              },true);
+            }
+
+            const isDagger=signatureSpec.shape==="dagger";
+            const isCleaver=signatureSpec.shape==="cleaver";
+            const isRune=signatureSpec.shape==="runeblade";
+            const width=signatureSpec.width;
+            const tipWidth=isDagger?width*.20:width*.12;
+            const shoulder=isCleaver
+              ? length*.68
+              : length-Math.max(9,width*1.7);
+            const shoulderWidth=isCleaver
+              ? width*1.28
+              : isRune
+                ? width*1.06
+                : width*.74;
+
+            const blade=[
+              point(ox,oy,root,-width,angle),
+              point(ox,oy,shoulder,-shoulderWidth,angle),
+              point(ox,oy,length,-tipWidth,angle),
+              point(ox,oy,length+Math.max(5,width*.8),0,angle),
+              point(ox,oy,length,tipWidth,angle),
+              point(ox,oy,shoulder,shoulderWidth,angle),
+              point(ox,oy,root,width,angle),
+            ];
+
+            polygon(glow,blade,{
+              color:signatureSpec.main,
+              alpha:weaponAlpha*(isDagger?.085:.12),
+            },true);
+            polygon(core,blade,{
+              color:signatureSpec.main,
+              alpha:weaponAlpha*(isDagger?.38:.46),
+            },true);
+            polygon(core,blade,{
+              color:signatureSpec.core,
+              width:isDagger?1.7:2.2,
+              alpha:Math.min(1,weaponAlpha*1.04),
+            },false);
+
+            const ridgeA=point(ox,oy,root+4,0,angle);
+            const ridgeB=point(ox,oy,Math.max(root+8,length-7),0,angle);
+            core
+              .moveTo(ridgeA.x,ridgeA.y)
+              .lineTo(ridgeB.x,ridgeB.y)
+              .stroke({
+                color:signatureSpec.core,
+                width:isDagger?1.0:1.45,
+                alpha:weaponAlpha*.88,
+              });
+
+            const guardA=point(ox,oy,root-1,-width*1.32,angle);
+            const guardB=point(ox,oy,root-1,width*1.32,angle);
+            core
+              .moveTo(guardA.x,guardA.y)
+              .lineTo(guardB.x,guardB.y)
+              .stroke({
+                color:signatureSpec.accent,
+                width:Math.max(1.5,width*.38),
+                alpha:weaponAlpha*.72,
+              });
+
+            let contactT=.78;
+            if(
+              weapon.mode!=="thrust"
+              && Math.abs(weapon.end-weapon.start)>.001
+            ){
+              contactT=clamp01(
+                (0-weapon.start)/(weapon.end-weapon.start)
+              );
+            }
+            const contact=Math.exp(
+              -Math.pow((motion-contactT)/.105,2)
+            );
+            if(contact>.035){
+              glow.circle(dx0,dy0,5+contact*12).fill({
+                color:signatureSpec.main,
+                alpha:alpha*contact*.055,
+              });
+              core.circle(dx0,dy0,2.5+contact*4.5).fill({
+                color:signatureSpec.core,
+                alpha:alpha*contact*.48,
+              });
+            }
+          }
+        }
 
         if(effect.spellId==="warrior-charge"){
           const originX=Number.isFinite(effect.sourceX)?effect.sourceX-source.x:0;
@@ -13639,6 +13831,7 @@ export class PixiProofRenderer {
         if(effect.spellId==="dk-death-strike"){slashCount=2;slashLength=90;slashWidth=6.5;}
         if(effect.spellId==="dk-frost-strike"){slashCount=2;slashLength=86;slashWidth=5.6;}
         if(effect.spellId==="shaman-stormstrike"){slashCount=2;slashLength=78;slashWidth=5.5;}
+        if(signatureSpec) slashCount=0;
 
         for(let i=0;i<slashCount;i++){
           const delay=i*(slashCount>1?.055:0);

@@ -17470,7 +17470,7 @@ export class PixiProofRenderer {
 
         // Spell-specific moving silhouette.
         const rangePoint = (cx,cy,x,y,a) =>
-          rangePoint(
+          transformed(
             cx,
             cy,
             x * projectileRangeScale,

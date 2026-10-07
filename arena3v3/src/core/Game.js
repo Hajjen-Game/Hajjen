@@ -1,7 +1,7 @@
 import { Actor } from "../entities/Actor.js";
 import { MovementSystem } from "../systems/MovementSystem.js?v=20261006-powerups1";
 import { ResourceSystem } from "../systems/ResourceSystem.js";
-import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20261007-allprojectilecontact1";
+import { CrowdControlSystem } from "../systems/CrowdControlSystem.js?v=20261007-allprojectilecontact2";
 import { PlayerAbilityQueue } from "../systems/PlayerAbilityQueue.js";
 import { VisualEffectSystem } from "../systems/VisualEffectSystem.js?v=20261007-warriorbespoke1";
 import { DampeningSystem } from "../systems/DampeningSystem.js";
@@ -9,7 +9,7 @@ import { PowerUpSystem } from "../systems/PowerUpSystem.js?v=20261006-powerups1"
 import { CombatSystem } from "../systems/CombatSystem.js?v=20261006-rankspells1";
 import { AISystem } from "../systems/AISystem.js?v=20261006-supportstable2";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../systems/AIBehaviorProfiles.js?v=20260928-onboarding1";
-import { RendererBridge } from "../rendering/RendererBridge.js?v=20261007-allprojectilecontact1";
+import { RendererBridge } from "../rendering/RendererBridge.js?v=20261007-allprojectilecontact2";
 import { UIManager } from "../ui/UIManager.js?v=20261006-rankspells1";
 import { buildMatchReport } from "./MatchReport.js?v=20261006-powerups1";
 import { buildAiMovementReport } from "./AiMovementReport.js?v=20261005-deadtargetfix1";

@@ -1,4 +1,4 @@
-import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-warrior-arms-axe-1";
+import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-warrior-arms-axe-2";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;

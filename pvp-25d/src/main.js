@@ -37,15 +37,26 @@ const gameShell = document.querySelector("#game-shell");
 const input = new InputManager();
 const characters = new CharacterStore();
 const PLAYABLE_CLASS_IDS = new Set([...CLASS_IDS_BY_ROLE.healer, "warrior", "rogue", "death-knight", "mage", "warlock", "shaman"]);
+const WARRIOR_V2_TEST =
+  new URLSearchParams(window.location.search).get("warriorV2Test") === "1";
+
+function forceWarriorV2Roster(inputRoster) {
+  if (!WARRIOR_V2_TEST) return inputRoster;
+  return {
+    ...inputRoster,
+    allyMelee: "warrior",
+    enemyMelee: "warrior",
+  };
+}
 
 let game = null;
 let activeCharacter = null;
-let baseRoster = loadTeamPreferences();
-let roster = {
+let baseRoster = forceWarriorV2Roster(loadTeamPreferences());
+let roster = forceWarriorV2Roster({
   ...baseRoster,
   playerClass: DEFAULT_ROSTER.playerClass,
   playerName: "Player",
-};
+});
 let lastEnemyKey = "";
 let lastPlayedArenaId = null;
 let pendingArena = DEFAULT_ARENA;
@@ -153,7 +164,9 @@ function rollOpponent() {
     ...roster,
   };
 
-  roster = randomizeEnemyRoster(seedRoster, lastEnemyKey);
+  roster = forceWarriorV2Roster(
+    randomizeEnemyRoster(seedRoster, lastEnemyKey),
+  );
   lastEnemyKey = enemyRosterKey(roster);
 }
 
@@ -498,11 +511,11 @@ function selectCharacter(characterId) {
   if (!character) return;
 
   activeCharacter = characters.touch(characterId) || character;
-  baseRoster = loadTeamPreferences();
-  roster = {
+  baseRoster = forceWarriorV2Roster(loadTeamPreferences());
+  roster = forceWarriorV2Roster({
     ...currentCharacterRoster(),
     ...baseRoster,
-  };
+  });
 
   game.selectCharacter(activeCharacter, buildRosterConfigs({
     ...DEFAULT_ROSTER,
@@ -586,18 +599,18 @@ rosterCancel.addEventListener("click", closeMatchSetup);
 document.querySelector("#roster-apply").addEventListener("click", () => {
   if (!activeCharacter || !game) return;
 
-  baseRoster = {
+  baseRoster = forceWarriorV2Roster({
     allyHealer: document.querySelector("#roster-ally-healer").value,
     allyMelee: document.querySelector("#roster-ally-melee").value,
     allyCaster: document.querySelector("#roster-ally-caster").value,
-  };
+  });
   saveTeamPreferences();
 
-  roster = {
+  roster = forceWarriorV2Roster({
     ...roster,
     ...currentCharacterRoster(),
     ...baseRoster,
-  };
+  });
 
   leaveArenaLobby();
   game.startPreparedMatch(buildRosterConfigs(roster), pendingArena);
@@ -653,10 +666,12 @@ migrateExistingRatingsToStartingRating(
   characters.all().map(character => character.id),
 );
 
-const placeholderRoster = randomizeEnemyRoster({
-  ...DEFAULT_ROSTER,
-  playerName: "Player",
-});
+const placeholderRoster = forceWarriorV2Roster(
+  randomizeEnemyRoster({
+    ...DEFAULT_ROSTER,
+    playerName: "Player",
+  }),
+);
 
 game = new Game({
   canvas,

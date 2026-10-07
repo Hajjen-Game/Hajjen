@@ -305,7 +305,7 @@ export class BabylonRenderer {
     this.glow = new BABYLON.GlowLayer("glow", this.scene, {
       blurKernelSize: 32,
     });
-    this.glow.intensity = this.orbMode ? 0.48 : 0.18;
+    this.glow.intensity = this.orbMode ? 0.62 : 0.18;
 
     this.installAmbientOcclusion();
   }
@@ -350,10 +350,10 @@ export class BabylonRenderer {
     const w = a.width * S;
     const h = a.height * S;
 
-    this.scene.clearColor = BABYLON.Color4.FromHexString("#02040aff");
-    this.scene.ambientColor = new BABYLON.Color3(0.018,0.026,0.045);
-    this.scene.imageProcessingConfiguration.contrast = 1.22;
-    this.scene.imageProcessingConfiguration.exposure = 0.66;
+    this.scene.clearColor = BABYLON.Color4.FromHexString("#030713ff");
+    this.scene.ambientColor = new BABYLON.Color3(0.055,0.075,0.115);
+    this.scene.imageProcessingConfiguration.contrast = 1.14;
+    this.scene.imageProcessingConfiguration.exposure = 0.96;
 
     const makeGlass=(name,hex,alpha,edgeStrength=0.85)=>{
       const m=new BABYLON.StandardMaterial(name,this.scene);
@@ -393,18 +393,18 @@ export class BabylonRenderer {
       "orb-glass-edge-mat",
       this.scene,
     );
-    edgeMat.diffuseColor=new BABYLON.Color3(0.30,0.39,0.50);
-    edgeMat.emissiveColor=new BABYLON.Color3(0.070,0.14,0.24);
-    edgeMat.specularColor=new BABYLON.Color3(0.58,0.72,0.90);
-    edgeMat.specularPower=128;
-    edgeMat.alpha=0.56;
+    edgeMat.diffuseColor=new BABYLON.Color3(0.42,0.58,0.78);
+    edgeMat.emissiveColor=new BABYLON.Color3(0.12,0.34,0.72);
+    edgeMat.specularColor=new BABYLON.Color3(0.78,0.90,1.00);
+    edgeMat.specularPower=160;
+    edgeMat.alpha=0.84;
     edgeMat.disableLighting=true;
 
     const groundMat=makeGlass(
       "orb-arena-ground-mat",
-      "#9eb4cc",
-      0.105,
-      0.78,
+      "#b8d4ee",
+      0.18,
+      0.90,
     );
 
     const ground=BABYLON.MeshBuilder.CreateBox(
@@ -442,9 +442,9 @@ export class BabylonRenderer {
 
     const frameGlassMat=makeGlass(
       "orb-frame-glass-mat",
-      "#b5cbe0",
-      0.13,
-      0.96,
+      "#c7ddf4",
+      0.22,
+      1.00,
     );
 
     const frameThickness=0.20;
@@ -485,8 +485,8 @@ export class BabylonRenderer {
     makeRail("orb-frame-e",w-pad,h*0.5,rail,innerH,0.145);
 
     const innerEdgeMat=edgeMat.clone("orb-glass-edge-inner-mat");
-    innerEdgeMat.alpha=0.24;
-    innerEdgeMat.emissiveColor=edgeMat.emissiveColor.scale(0.42);
+    innerEdgeMat.alpha=0.42;
+    innerEdgeMat.emissiveColor=edgeMat.emissiveColor.scale(0.60);
     const inset=0.11;
     makeRail("orb-frame-inner-n",w*0.5,pad+inset,innerW-inset*2,rail*0.70,0.060,innerEdgeMat);
     makeRail("orb-frame-inner-s",w*0.5,h-pad-inset,innerW-inset*2,rail*0.70,0.060,innerEdgeMat);
@@ -495,8 +495,8 @@ export class BabylonRenderer {
 
     // Subtle second frame below the slab makes the glass thickness readable.
     const lowerEdgeMat=edgeMat.clone("orb-glass-edge-lower-mat");
-    lowerEdgeMat.alpha=0.26;
-    lowerEdgeMat.emissiveColor=edgeMat.emissiveColor.scale(0.32);
+    lowerEdgeMat.alpha=0.36;
+    lowerEdgeMat.emissiveColor=edgeMat.emissiveColor.scale(0.42);
     makeRail("orb-frame-under-n",w*0.5,pad,innerW,rail,-0.285,lowerEdgeMat);
     makeRail("orb-frame-under-s",w*0.5,h-pad,innerW,rail,-0.285,lowerEdgeMat);
     makeRail("orb-frame-under-w",pad,h*0.5,rail,innerH,-0.285,lowerEdgeMat);
@@ -504,15 +504,15 @@ export class BabylonRenderer {
 
     const obstacleMat=makeGlass(
       "orb-los-mat",
-      "#9bb1c8",
-      0.155,
-      0.86,
+      "#b6cfe7",
+      0.25,
+      0.96,
     );
     const topMat=makeGlass(
       "orb-los-top-mat",
-      "#c1d5e9",
-      0.11,
-      0.95,
+      "#d2e5f7",
+      0.22,
+      1.00,
     );
 
     const makeObstacleEdges=(o,x,z,ow,od)=>{
@@ -623,6 +623,84 @@ export class BabylonRenderer {
     center.material=lineMat;
     center.isPickable=false;
 
+    // Bright readable procedural space backdrop far below the glass.
+    // Unlike the transparent nebula layers, this gives the eye a real "space below" reference.
+    const spaceBackdropTexture=new BABYLON.DynamicTexture(
+      "orb-space-backdrop-texture",
+      {width:1024,height:512},
+      this.scene,
+      false,
+    );
+    const sbctx=spaceBackdropTexture.getContext();
+    sbctx.fillStyle="#020612";
+    sbctx.fillRect(0,0,1024,512);
+
+    const cloud=(x,y,r,c0,c1)=>{
+      const g=sbctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,c0);
+      g.addColorStop(0.42,c1);
+      g.addColorStop(1,"rgba(0,0,0,0)");
+      sbctx.fillStyle=g;
+      sbctx.fillRect(x-r,y-r,r*2,r*2);
+    };
+
+    cloud(180,330,240,"rgba(54,96,255,0.78)","rgba(28,38,140,0.20)");
+    cloud(430,240,300,"rgba(42,152,255,0.62)","rgba(20,62,160,0.16)");
+    cloud(720,280,270,"rgba(116,56,255,0.66)","rgba(58,24,150,0.16)");
+    cloud(865,145,210,"rgba(40,104,255,0.54)","rgba(20,48,120,0.12)");
+
+    for(let i=0;i<170;i++){
+      const x=(i*619)%1019;
+      const y=(i*283+71)%509;
+      const size=i%19===0?2.6:i%7===0?1.7:0.75;
+      const a=i%11===0?0.95:0.48+(i%5)*0.08;
+      sbctx.fillStyle=`rgba(180,220,255,${a})`;
+      sbctx.beginPath();
+      sbctx.arc(x,y,size,0,Math.PI*2);
+      sbctx.fill();
+
+      if(i%23===0){
+        sbctx.strokeStyle="rgba(120,180,255,0.42)";
+        sbctx.lineWidth=0.7;
+        sbctx.beginPath();
+        sbctx.moveTo(x-5,y);
+        sbctx.lineTo(x+5,y);
+        sbctx.moveTo(x,y-5);
+        sbctx.lineTo(x,y+5);
+        sbctx.stroke();
+      }
+    }
+
+    spaceBackdropTexture.hasAlpha=false;
+    spaceBackdropTexture.update();
+
+    const spaceBackdropMat=new BABYLON.StandardMaterial(
+      "orb-space-backdrop-mat",
+      this.scene,
+    );
+    spaceBackdropMat.diffuseTexture=spaceBackdropTexture;
+    spaceBackdropMat.emissiveTexture=spaceBackdropTexture;
+    spaceBackdropMat.emissiveColor=new BABYLON.Color3(0.92,0.98,1.00);
+    spaceBackdropMat.specularColor=BABYLON.Color3.Black();
+    spaceBackdropMat.disableLighting=true;
+    spaceBackdropMat.backFaceCulling=false;
+
+    const spaceBackdrop=BABYLON.MeshBuilder.CreatePlane(
+      "orb-space-backdrop",
+      {
+        width:w*1.55,
+        height:h*1.90,
+        sideOrientation:BABYLON.Mesh.DOUBLESIDE,
+      },
+      this.scene,
+    );
+    spaceBackdrop.rotation.x=Math.PI/2;
+    spaceBackdrop.position.set(w*0.50,-3.25,h*0.50);
+    spaceBackdrop.material=spaceBackdropMat;
+    spaceBackdrop.isPickable=false;
+    this.orbSpaceBackdrop=spaceBackdrop;
+    this.orbSpaceBackdropTexture=spaceBackdropTexture;
+
     // Soft procedural nebula layers far below the glass. They provide a readable
     // sense of space/depth without turning the arena itself into a busy texture.
     const nebulaTexture=new BABYLON.DynamicTexture(
@@ -658,9 +736,9 @@ export class BabylonRenderer {
     nebulaMat.diffuseTexture=nebulaTexture;
     nebulaMat.emissiveTexture=nebulaTexture;
     nebulaMat.opacityTexture=nebulaTexture;
-    nebulaMat.diffuseColor=new BABYLON.Color3(0.18,0.28,0.58);
-    nebulaMat.emissiveColor=new BABYLON.Color3(0.22,0.38,0.85);
-    nebulaMat.alpha=0.34;
+    nebulaMat.diffuseColor=new BABYLON.Color3(0.34,0.44,0.78);
+    nebulaMat.emissiveColor=new BABYLON.Color3(0.46,0.70,1.00);
+    nebulaMat.alpha=0.66;
     nebulaMat.backFaceCulling=false;
     nebulaMat.disableLighting=true;
     nebulaMat.useAlphaFromDiffuseTexture=true;
@@ -677,8 +755,8 @@ export class BabylonRenderer {
     nebula.isPickable=false;
 
     const nebulaMatB=nebulaMat.clone("orb-nebula-mat-b");
-    nebulaMatB.alpha=0.20;
-    nebulaMatB.emissiveColor=new BABYLON.Color3(0.34,0.18,0.72);
+    nebulaMatB.alpha=0.42;
+    nebulaMatB.emissiveColor=new BABYLON.Color3(0.54,0.26,0.92);
 
     const nebulaB=BABYLON.MeshBuilder.CreatePlane(
       "orb-nebula-layer-b",
@@ -733,14 +811,14 @@ export class BabylonRenderer {
       0.15,
       h*0.48,
     );
-    spaceParticles.color1=new BABYLON.Color4(0.20,0.44,0.95,0.48);
-    spaceParticles.color2=new BABYLON.Color4(0.66,0.80,1.00,0.58);
+    spaceParticles.color1=new BABYLON.Color4(0.28,0.58,1.00,0.72);
+    spaceParticles.color2=new BABYLON.Color4(0.78,0.90,1.00,0.84);
     spaceParticles.colorDead=new BABYLON.Color4(0.04,0.09,0.18,0);
-    spaceParticles.minSize=0.022;
-    spaceParticles.maxSize=0.105;
+    spaceParticles.minSize=0.028;
+    spaceParticles.maxSize=0.14;
     spaceParticles.minLifeTime=9;
     spaceParticles.maxLifeTime=18;
-    spaceParticles.emitRate=42;
+    spaceParticles.emitRate=58;
     spaceParticles.preWarmCycles=180;
     spaceParticles.preWarmStepOffset=4;
     spaceParticles.direction1=new BABYLON.Vector3(-0.035,0.018,-0.025);

@@ -170,8 +170,8 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   const startAngle = facing - Math.PI * .58;
   const endAngle = facing + Math.PI * .42;
   const swordAngle = startAngle + (endAngle - startAngle) * swing;
-  const swordLength = Math.max(74, Math.min(112, distance + 30));
-  const arcRadius = Math.max(source.radius + 37, Math.min(swordLength * .86, distance * .90 + 22));
+  const swordLength = Math.max(66, Math.min(96, distance + 24));
+  const arcRadius = Math.max(source.radius + 32, Math.min(swordLength * .86, distance * .86 + 18));
   const swordAlpha = reveal * swingFade;
 
   ctx.save();
@@ -211,11 +211,11 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   const root = source.radius + 4;
   const tip = swordLength;
   const blade = [
-    localPoint(root, -6.8),
-    localPoint(tip - 14, -4.8),
+    localPoint(root, -5.8),
+    localPoint(tip - 12, -4.0),
     localPoint(tip, 0),
-    localPoint(tip - 14, 4.8),
-    localPoint(root, 6.8),
+    localPoint(tip - 12, 4.0),
+    localPoint(root, 5.8),
   ];
 
   ctx.shadowColor = profile.main;

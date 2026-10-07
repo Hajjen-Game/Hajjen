@@ -6,7 +6,7 @@ import { effectIconKey, effectPalette, effectPriority } from "./EffectIconRegist
 import { TALENT_TREE_REGISTRY } from "../content/talents/registry.js?v=20260928-healinghp1";
 import { drawGrandRingEnvironment } from "./GrandRingEnvironment.js?v=20261001-grandring7";
 import { drawWindscarEnvironment } from "./WindscarEnvironment.js?v=20261001-windscar2";
-import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-meleesignatures1";
+import { meleeSignatureSpecFor } from "./MeleeSignatureVfx.js?v=20261007-meleesizes1";
 
 const PIXI_MODULE_URL = "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // A/B test: keep world movement, but disable the Living Ring's walk bob/squash.
@@ -13597,10 +13597,10 @@ export class PixiProofRenderer {
           const startAngle=facing-Math.PI*.58;
           const endAngle=facing+Math.PI*.42;
           const swordAngle=startAngle+(endAngle-startAngle)*swing;
-          const swordLength=Math.max(74,Math.min(112,len0+30));
+          const swordLength=Math.max(66,Math.min(96,len0+24));
           const arcRadius=Math.max(
-            source.radius+37,
-            Math.min(swordLength*.86,len0*.90+22)
+            source.radius+32,
+            Math.min(swordLength*.86,len0*.86+18)
           );
 
           // Attacker-side load: short steel/copper pressure before the blade
@@ -13684,11 +13684,11 @@ export class PixiProofRenderer {
           const root=source.radius+4;
           const tip=swordLength;
           const blade=[
-            point(0,0,root,-6.8,swordAngle),
-            point(0,0,tip-14,-4.8,swordAngle),
+            point(0,0,root,-5.8,swordAngle),
+            point(0,0,tip-12,-4.0,swordAngle),
             point(0,0,tip,0,swordAngle),
-            point(0,0,tip-14,4.8,swordAngle),
-            point(0,0,root,6.8,swordAngle),
+            point(0,0,tip-12,4.0,swordAngle),
+            point(0,0,root,5.8,swordAngle),
           ];
 
           // Two translucent afterimages sell rotational speed without making
@@ -13696,11 +13696,11 @@ export class PixiProofRenderer {
           for(let echo=2;echo>=1;echo--){
             const echoAngle=swordAngle-echo*.12;
             const echoBlade=[
-              point(0,0,root,-5.4,echoAngle),
-              point(0,0,tip-14,-3.8,echoAngle),
+              point(0,0,root,-4.7,echoAngle),
+              point(0,0,tip-12,-3.3,echoAngle),
               point(0,0,tip,0,echoAngle),
-              point(0,0,tip-14,3.8,echoAngle),
-              point(0,0,root,5.4,echoAngle),
+              point(0,0,tip-12,3.3,echoAngle),
+              point(0,0,root,4.7,echoAngle),
             ];
             polygon(glow,echoBlade,{
               color:echo===1?profile.main:profile.accent,

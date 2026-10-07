@@ -451,8 +451,9 @@ export class CrowdControlSystem {
 
     const style = spell.visualStyle || source.visualStyle || "interrupt";
     if (!this.game.vfx.ownsImpact(spell.id)) {
+      // Keep the quick interrupt connection, but do not stamp the legacy
+      // full-size X/slash over the interrupted actor.
       this.game.vfx.beam(source, target, style, 180);
-      this.game.vfx.slash(target, style, 300);
     }
     this.game.recordInterrupt(source, target, effect.durationMs);
     this.game.addFloatingText(target, "INTERRUPTED", "cc");

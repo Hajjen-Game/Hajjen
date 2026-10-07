@@ -4563,20 +4563,11 @@ export class PixiProofRenderer {
         continue;
       }
 
-      // School lock / interrupt: restrained purple lock-cross effect.
+      // School lock is already communicated by INTERRUPTED combat text and
+      // the CC/lock UI. Do not place an X or other world-space marker over the
+      // actor; it obscures the character and reads like a targeting marker.
       if (effect.kind === "schoolLock") {
-        const r=actor.radius+9;
-        for(const sign of [-1,1]){
-          core
-            .moveTo(-r*sign,-r*.60)
-            .lineTo(r*sign,r*.60)
-            .stroke({
-              color:palette.core,width:2,alpha:.48
-            });
-        }
-        glow.circle(0,0,r+4).stroke({
-          color:palette.main,width:6,alpha:.08
-        });
+        continue;
       }
     }
   }

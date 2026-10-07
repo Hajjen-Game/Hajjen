@@ -151,6 +151,108 @@ function drawWarriorSignatureBlade(
   ctx.restore();
 }
 
+function drawWarriorDoubleAxe(
+  ctx,
+  source,
+  angle,
+  length,
+  headSize,
+  profile,
+  alpha,
+) {
+  if (!source || alpha <= 0) return;
+
+  const local = (x, y) => ({
+    x: source.x + x * Math.cos(angle) - y * Math.sin(angle),
+    y: source.y + x * Math.sin(angle) + y * Math.cos(angle),
+  });
+  const root = source.radius + 4;
+  const handleStart = local(Math.max(3, root - 13), 0);
+  const handleEnd = local(length + 2, 0);
+  const headX = length - 3;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  ctx.shadowColor = profile.main;
+  ctx.shadowBlur = 12;
+  ctx.strokeStyle = profile.main;
+  ctx.lineWidth = 9;
+  ctx.globalAlpha = alpha * .075;
+  ctx.beginPath();
+  ctx.moveTo(handleStart.x, handleStart.y);
+  ctx.lineTo(handleEnd.x, handleEnd.y);
+  ctx.stroke();
+
+  ctx.shadowBlur = 3;
+  ctx.strokeStyle = profile.accent;
+  ctx.lineWidth = 4.1;
+  ctx.globalAlpha = alpha * .76;
+  ctx.stroke();
+
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 1.15;
+  ctx.globalAlpha = alpha * .52;
+  ctx.stroke();
+
+  for (const sign of [-1, 1]) {
+    const blade = [
+      local(headX - 9, sign * 2),
+      local(headX - 13, sign * (headSize * .48)),
+      local(headX - 8, sign * (headSize * .92)),
+      local(headX + 3, sign * (headSize * 1.16)),
+      local(headX + 9, sign * (headSize * .72)),
+      local(headX + 5, sign * 3),
+    ];
+
+    ctx.shadowColor = profile.main;
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = profile.main;
+    ctx.globalAlpha = alpha * .18;
+    ctx.beginPath();
+    ctx.moveTo(blade[0].x, blade[0].y);
+    for (let i = 1; i < blade.length; i += 1) {
+      ctx.lineTo(blade[i].x, blade[i].y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 4;
+    ctx.globalAlpha = alpha * .58;
+    ctx.fill();
+
+    ctx.strokeStyle = profile.core;
+    ctx.lineWidth = 2.1;
+    ctx.globalAlpha = Math.min(1, alpha * 1.10);
+    ctx.stroke();
+  }
+
+  const socket = [
+    local(headX - 5, -4.4),
+    local(headX + 5, -4.4),
+    local(headX + 5, 4.4),
+    local(headX - 5, 4.4),
+  ];
+  ctx.fillStyle = profile.accent;
+  ctx.globalAlpha = alpha * .84;
+  ctx.beginPath();
+  ctx.moveTo(socket[0].x, socket[0].y);
+  for (let i = 1; i < socket.length; i += 1) {
+    ctx.lineTo(socket[i].x, socket[i].y);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = profile.core;
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = alpha * .68;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
 function drawWarriorSweepArc(
   ctx,
   source,
@@ -236,7 +338,7 @@ function drawRend(ctx, source, target, profile, p, seed, missed) {
   const strength = easeOut(p / .10) * fade;
 
   drawWarriorSweepArc(ctx, source, source.radius + 35, a0, angle, profile, strength, 4.3);
-  drawWarriorSignatureBlade(ctx, source, angle, 70, 5.4, profile, strength);
+  drawWarriorDoubleAxe(ctx, source, angle, 70, 13.5, profile, strength);
 
   if (!missed) {
     for (let i = 0; i < 4; i += 1) {
@@ -249,10 +351,9 @@ function drawRend(ctx, source, target, profile, p, seed, missed) {
 function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .14), true);
 
-  // VFX 3.0+: Mortal Strike is a weapon ability that reads like a signature
-  // spell. A spectral greatsword performs a full 180° sweep through the target,
-  // followed by a compact anti-heal wound seal. Misses still aim at the actor;
-  // combat text is the authority for MISS/DODGE.
+  // VFX 3.0+: Mortal Strike keeps the approved 180° signature sweep, but the
+  // Warrior now carries one spectral double-sided axe. Misses still aim at the
+  // actor; combat text remains the authority for MISS/DODGE.
   const dx = target.x - source.x;
   const dy = target.y - source.y;
   const distance = Math.max(1, Math.hypot(dx, dy));
@@ -304,73 +405,26 @@ function drawMortalStrike(ctx, source, target, profile, p, seed, missed) {
   ctx.arc(0, 0, arcRadius - 2, Math.max(startAngle, swordAngle - 1.02), swordAngle);
   ctx.stroke();
 
-  const localPoint = (x, y) => ({
-    x: x * Math.cos(swordAngle) - y * Math.sin(swordAngle),
-    y: x * Math.sin(swordAngle) + y * Math.cos(swordAngle),
-  });
-
-  const root = source.radius + 4;
-  const tip = swordLength;
-  const blade = [
-    localPoint(root, -5.8),
-    localPoint(tip - 12, -4.0),
-    localPoint(tip, 0),
-    localPoint(tip - 12, 4.0),
-    localPoint(root, 5.8),
-  ];
-
-  ctx.shadowColor = profile.main;
-  ctx.shadowBlur = 18;
-  ctx.fillStyle = profile.main;
-  ctx.globalAlpha = swordAlpha * .22;
-  ctx.beginPath();
-  ctx.moveTo(blade[0].x, blade[0].y);
-  for (let i = 1; i < blade.length; i += 1) ctx.lineTo(blade[i].x, blade[i].y);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.shadowBlur = 6;
-  ctx.fillStyle = profile.main;
-  ctx.globalAlpha = swordAlpha * .58;
-  ctx.fill();
-
-  ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 2.6;
-  ctx.globalAlpha = Math.min(1, swordAlpha * 1.16);
-  ctx.stroke();
-
-  const ridgeA = localPoint(root + 5, 0);
-  const ridgeB = localPoint(tip - 8, 0);
-  ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 1.8;
-  ctx.globalAlpha = Math.min(1, swordAlpha * 1.14);
-  ctx.beginPath();
-  ctx.moveTo(ridgeA.x, ridgeA.y);
-  ctx.lineTo(ridgeB.x, ridgeB.y);
-  ctx.stroke();
-
-  // Crossguard and grip keep the effect readable as a sword instead of a laser.
-  const guardA = localPoint(root - 1, -11);
-  const guardB = localPoint(root - 1, 11);
-  ctx.strokeStyle = profile.core;
-  ctx.lineWidth = 3;
-  ctx.globalAlpha = swordAlpha * .82;
-  ctx.beginPath();
-  ctx.moveTo(guardA.x, guardA.y);
-  ctx.lineTo(guardB.x, guardB.y);
-  ctx.stroke();
-
-  const gripA = localPoint(Math.max(4, root - 14), 0);
-  const gripB = localPoint(root + 2, 0);
-  ctx.strokeStyle = profile.steel || profile.main;
-  ctx.lineWidth = 4;
-  ctx.globalAlpha = swordAlpha * .72;
-  ctx.beginPath();
-  ctx.moveTo(gripA.x, gripA.y);
-  ctx.lineTo(gripB.x, gripB.y);
-  ctx.stroke();
-
   ctx.restore();
+
+  drawWarriorDoubleAxe(
+    ctx,
+    source,
+    swordAngle - .11,
+    Math.min(78, swordLength),
+    14.5,
+    profile,
+    swordAlpha * .12,
+  );
+  drawWarriorDoubleAxe(
+    ctx,
+    source,
+    swordAngle,
+    Math.min(78, swordLength),
+    15,
+    profile,
+    swordAlpha,
+  );
 
   if (p > .30) {
     const t = clamp01((p - .30) / .50);
@@ -447,7 +501,7 @@ function drawSlam(ctx, source, target, profile, p, seed, missed) {
     strength,
     4.8,
   );
-  drawWarriorSignatureBlade(ctx, source, angle, 84, 7.2, profile, strength);
+  drawWarriorDoubleAxe(ctx, source, angle, 76, 15, profile, strength);
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
@@ -554,7 +608,7 @@ function drawOverpower(ctx, source, target, profile, p, seed, missed) {
   const strength = easeOut(p / .08) * fade;
 
   drawWarriorSweepArc(ctx, source, source.radius + 31, a0, angle, profile, strength, 3.2);
-  drawWarriorSignatureBlade(ctx, source, angle, 66, 4.5, profile, strength);
+  drawWarriorDoubleAxe(ctx, source, angle, 66, 12.5, profile, strength);
 
   if (!missed && p > .22) {
     const hit = clamp01((p - .22) / .48);
@@ -567,41 +621,48 @@ function drawOverpower(ctx, source, target, profile, p, seed, missed) {
 
 function drawBloodthirst(ctx, source, target, profile, p, seed, missed) {
   warriorCue(ctx, source, profile, Math.min(1, p / .12));
-  const fade = 1 - clamp01((p - .66) / .34);
   const facing = Math.atan2(target.y - source.y, target.x - source.x);
+  const raw = clamp01((p - .03) / .86);
+  const start = facing - 1.43;
+  const far = facing + 1.43;
+  let angle;
+  let segmentStart;
 
-  for (let i = 0; i < 2; i += 1) {
-    const delay = i * .10;
-    const local = clamp01((p - delay) / .50);
-    if (local <= 0) continue;
-    const motion = smooth(local);
-    const out = 1 - smooth((local - .78) / .22);
-    const sign = i === 0 ? -1 : 1;
-    const start = facing + sign * .92;
-    const angle = start + (facing + sign * .08 - start) * motion;
-    const strength = easeOut(local / .14) * out;
-
-    drawWarriorSweepArc(
-      ctx,
-      source,
-      source.radius + 29,
-      start,
-      angle,
-      profile,
-      strength,
-      3.3,
-    );
-    drawWarriorSignatureBlade(
-      ctx,
-      source,
-      angle,
-      58,
-      5.2,
-      profile,
-      strength,
-      "cleaver",
-    );
+  if (raw < .47) {
+    const motion = smooth(raw / .47);
+    angle = start + (far - start) * motion;
+    segmentStart = start;
+  } else if (raw < .56) {
+    angle = far;
+    segmentStart = start;
+  } else {
+    const motion = smooth((raw - .56) / .44);
+    angle = far + (start - far) * motion;
+    segmentStart = far;
   }
+
+  const fade = 1 - smooth((p - .91) / .09);
+  const strength = easeOut(p / .08) * fade;
+
+  drawWarriorSweepArc(
+    ctx,
+    source,
+    source.radius + 34,
+    segmentStart,
+    angle,
+    profile,
+    strength,
+    4.5,
+  );
+  drawWarriorDoubleAxe(
+    ctx,
+    source,
+    angle,
+    68,
+    13.5,
+    profile,
+    strength,
+  );
 
   if (!missed && source && p > .28) {
     const t = clamp01((p - .28) / .48);

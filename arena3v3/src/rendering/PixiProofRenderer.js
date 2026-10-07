@@ -8217,6 +8217,105 @@ export class PixiProofRenderer {
       graphics.stroke(style);
     };
 
+    const warriorDoubleAxe = (
+      g,
+      glowG,
+      cx,
+      cy,
+      angle,
+      root,
+      length,
+      headSize,
+      profile,
+      alpha,
+    ) => {
+      if(alpha<=0) return;
+
+      const handleStart=point(cx,cy,Math.max(3,root-13),0,angle);
+      const handleEnd=point(cx,cy,length+2,0,angle);
+
+      glowG
+        .moveTo(handleStart.x,handleStart.y)
+        .lineTo(handleEnd.x,handleEnd.y)
+        .stroke({
+          color:profile.main,
+          width:9,
+          alpha:alpha*.075,
+        });
+      g
+        .moveTo(handleStart.x,handleStart.y)
+        .lineTo(handleEnd.x,handleEnd.y)
+        .stroke({
+          color:profile.accent,
+          width:4.1,
+          alpha:alpha*.76,
+        });
+      g
+        .moveTo(handleStart.x,handleStart.y)
+        .lineTo(handleEnd.x,handleEnd.y)
+        .stroke({
+          color:profile.core,
+          width:1.15,
+          alpha:alpha*.52,
+        });
+
+      const headX=length-3;
+      const bladeFor = sign => [
+        point(cx,cy,headX-9,sign*2,angle),
+        point(cx,cy,headX-13,sign*(headSize*.48),angle),
+        point(cx,cy,headX-8,sign*(headSize*.92),angle),
+        point(cx,cy,headX+3,sign*(headSize*1.16),angle),
+        point(cx,cy,headX+9,sign*(headSize*.72),angle),
+        point(cx,cy,headX+5,sign*3,angle),
+      ];
+
+      for(const sign of [-1,1]){
+        const blade=bladeFor(sign);
+        polygon(glowG,blade,{
+          color:profile.main,
+          alpha:alpha*.16,
+        },true);
+        polygon(g,blade,{
+          color:profile.main,
+          alpha:alpha*.58,
+        },true);
+        polygon(g,blade,{
+          color:profile.core,
+          width:2.15,
+          alpha:Math.min(1,alpha*1.10),
+        },false);
+
+        const edgeA=point(
+          cx,cy,headX-7,sign*(headSize*.88),angle
+        );
+        const edgeB=point(
+          cx,cy,headX+6,sign*(headSize*.72),angle
+        );
+        g
+          .moveTo(edgeA.x,edgeA.y)
+          .lineTo(edgeB.x,edgeB.y)
+          .stroke({
+            color:profile.core,
+            width:1.45,
+            alpha:alpha*.88,
+          });
+      }
+
+      const socketA=point(cx,cy,headX-5,-4.4,angle);
+      const socketB=point(cx,cy,headX+5,-4.4,angle);
+      const socketC=point(cx,cy,headX+5,4.4,angle);
+      const socketD=point(cx,cy,headX-5,4.4,angle);
+      polygon(g,[socketA,socketB,socketC,socketD],{
+        color:profile.accent,
+        alpha:alpha*.84,
+      },true);
+      polygon(g,[socketA,socketB,socketC,socketD],{
+        color:profile.core,
+        width:1.2,
+        alpha:alpha*.68,
+      },false);
+    };
+
     for (const view of this.actorViews.values()) {
       view.chainGlowFx.clear();
       view.chainFx.clear();
@@ -13658,10 +13757,10 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="warrior-mortal-strike"){
-          // VFX 3.0+ signature swing: a real spectral greatsword rotates through
-          // exactly 180 degrees around the Warrior and crosses the target at the
-          // middle of the sweep. The broad trail gives spell-level readability,
-          // while the blade silhouette keeps it unmistakably physical.
+          // VFX 3.0+ signature swing: the Warrior's spectral double-sided axe
+          // rotates through 180 degrees and crosses the target at the middle of
+          // the sweep. The broad trail gives spell-level readability, while the
+          // axe silhouette keeps the class weapon identity unmistakable.
           const facing=Math.atan2(dy0,dx0);
           const rawSwing=clamp01((p-.05)/.52);
           let swing;
@@ -13764,101 +13863,17 @@ export class PixiProofRenderer {
           }
 
           const root=source.radius+4;
-          const tip=swordLength;
-          const blade=[
-            point(0,0,root,-5.8,swordAngle),
-            point(0,0,tip-12,-4.0,swordAngle),
-            point(0,0,tip,0,swordAngle),
-            point(0,0,tip-12,4.0,swordAngle),
-            point(0,0,root,5.8,swordAngle),
-          ];
 
-          // Two translucent afterimages sell rotational speed without making
-          // the main blade fuzzy.
-          for(let echo=2;echo>=1;echo--){
-            const echoAngle=swordAngle-echo*.12;
-            const echoBlade=[
-              point(0,0,root,-4.7,echoAngle),
-              point(0,0,tip-12,-3.3,echoAngle),
-              point(0,0,tip,0,echoAngle),
-              point(0,0,tip-12,3.3,echoAngle),
-              point(0,0,root,4.7,echoAngle),
-            ];
-            polygon(glow,echoBlade,{
-              color:echo===1?profile.main:profile.accent,
-              alpha:swordAlpha*(echo===1?.07:.04),
-            },true);
-          }
-
-          // Broad glow body beneath a crisp tapered sword.
-          polygon(glow,blade,{
-            color:profile.main,
-            alpha:swordAlpha*.18,
-          },true);
-          glow
-            .moveTo(blade[0].x,blade[0].y)
-            .lineTo(blade[2].x,blade[2].y)
-            .stroke({
-              color:profile.core,
-              width:18,
-              alpha:swordAlpha*.11,
-            });
-
-          polygon(core,blade,{
-            color:profile.main,
-            alpha:swordAlpha*.58,
-          },true);
-          polygon(core,blade,{
-            color:profile.core,
-            width:2.8,
-            alpha:Math.min(1,swordAlpha*1.20),
-          },false);
-
-          const ridgeStart=point(0,0,root+5,0,swordAngle);
-          const ridgeEnd=point(0,0,tip-8,0,swordAngle);
-          glow
-            .moveTo(ridgeStart.x,ridgeStart.y)
-            .lineTo(ridgeEnd.x,ridgeEnd.y)
-            .stroke({
-              color:profile.core,
-              width:7,
-              alpha:swordAlpha*.09,
-            });
-          core
-            .moveTo(ridgeStart.x,ridgeStart.y)
-            .lineTo(ridgeEnd.x,ridgeEnd.y)
-            .stroke({
-              color:profile.core,
-              width:1.8,
-              alpha:Math.min(1,swordAlpha*1.16),
-            });
-
-          // Crossguard, grip and pommel make the silhouette read as a weapon
-          // even when the fight is visually busy.
-          const guardA=point(0,0,root-1,-11,swordAngle);
-          const guardB=point(0,0,root-1,11,swordAngle);
-          core
-            .moveTo(guardA.x,guardA.y)
-            .lineTo(guardB.x,guardB.y)
-            .stroke({
-              color:profile.core,
-              width:3.0,
-              alpha:swordAlpha*.84,
-            });
-          const gripA=point(0,0,Math.max(4,root-14),0,swordAngle);
-          const gripB=point(0,0,root+2,0,swordAngle);
-          core
-            .moveTo(gripA.x,gripA.y)
-            .lineTo(gripB.x,gripB.y)
-            .stroke({
-              color:profile.accent,
-              width:4.2,
-              alpha:swordAlpha*.72,
-            });
-          core.circle(gripA.x,gripA.y,2.8).fill({
-            color:profile.core,
-            alpha:swordAlpha*.72,
-          });
+          // A faint previous-pose echo preserves the motion read that worked on
+          // Mortal Strike, but the main silhouette is now one coherent axe.
+          warriorDoubleAxe(
+            core,glow,0,0,swordAngle-.11,root,
+            Math.min(78,swordLength),14.5,profile,swordAlpha*.12
+          );
+          warriorDoubleAxe(
+            core,glow,0,0,swordAngle,root,
+            Math.min(78,swordLength),15,profile,swordAlpha
+          );
 
           // Contact pulse happens exactly when the rotating blade crosses the
           // target-facing direction (about 58% through the 180° sweep).
@@ -13921,7 +13936,9 @@ export class PixiProofRenderer {
             color:profile.core,width:2.2,alpha:weaponAlpha*.90
           },10);
 
-          signatureWeapon(core,glow,0,0,angle,70,5.4,profile,weaponAlpha);
+          warriorDoubleAxe(
+            core,glow,0,0,angle,source.radius+4,70,13.5,profile,weaponAlpha
+          );
 
           const tear=smooth(clamp01((p-.36)/.30));
           if(tear>0){
@@ -13978,7 +13995,9 @@ export class PixiProofRenderer {
             },16);
           }
 
-          signatureWeapon(core,glow,0,0,angle,84,7.2,profile,weaponAlpha);
+          warriorDoubleAxe(
+            core,glow,0,0,angle,source.radius+4,76,15,profile,weaponAlpha
+          );
 
           const contact=Math.exp(-Math.pow((drop-.94)/.11,2));
           if(contact>.02){
@@ -14009,7 +14028,9 @@ export class PixiProofRenderer {
             color:profile.core,width:3.3,alpha:weaponAlpha*.86
           },14);
 
-          signatureWeapon(core,glow,0,0,angle,66,4.5,profile,weaponAlpha);
+          warriorDoubleAxe(
+            core,glow,0,0,angle,source.radius+4,66,12.5,profile,weaponAlpha
+          );
 
           const snap=Math.exp(-Math.pow((motion-.70)/.12,2));
           if(snap>.03){
@@ -14022,45 +14043,89 @@ export class PixiProofRenderer {
         }
 
         if(effect.spellId==="warrior-bloodthirst"){
-          // Bloodthirst: two compact cleaver hits that converge on the victim,
-          // then the existing red fragments pull back toward the Warrior.
+          // Bloodthirst uses ONE double-sided axe. It rips through a near-180°
+          // forehand, follows through briefly, then reverses across the victim.
+          // Two readable contacts, one coherent weapon silhouette.
           const facing=Math.atan2(dy0,dx0);
-          for(let i=0;i<2;i++){
-            const delay=i*.10;
-            const local=clamp01((p-delay)/.50);
-            if(local<=0) continue;
-            const motion=smooth(local);
-            const out=1-smooth((local-.78)/.22);
-            const sign=i===0?-1:1;
-            const start=facing+sign*.92;
-            const end=facing+sign*.08;
-            const angle=start+(end-start)*motion;
-            const side=sign*3.5;
-            const ox=-Math.sin(facing)*side;
-            const oy=Math.cos(facing)*side;
-            const weaponAlpha=alpha*easeOut(local/.14)*out;
+          const start=facing-1.43;
+          const far=facing+1.43;
+          const raw=clamp01((p-.03)/.86);
+          let angle;
+          let segmentStart;
+          let localMotion;
 
-            arc(glow,ox,oy,source.radius+29,start,angle,{
-              color:profile.main,width:14,alpha:weaponAlpha*.075
-            },12);
-            arc(core,ox,oy,source.radius+28,start,angle,{
-              color:i===0?profile.main:profile.core,
-              width:3.4,alpha:weaponAlpha*.68
-            },12);
-
-            signatureWeapon(
-              core,glow,ox,oy,angle,58,5.2,profile,weaponAlpha,"cleaver"
-            );
+          if(raw<.47){
+            localMotion=smooth(raw/.47);
+            angle=start+(far-start)*localMotion;
+            segmentStart=start;
+          }else if(raw<.56){
+            localMotion=1;
+            angle=far;
+            segmentStart=start;
+          }else{
+            localMotion=smooth((raw-.56)/.44);
+            angle=far+(start-far)*localMotion;
+            segmentStart=far;
           }
 
-          const bite=Math.exp(-Math.pow((p-.43)/.11,2));
-          if(bite>.02){
-            glow.circle(dx0,dy0,8+bite*17).fill({
-              color:profile.main,alpha:alpha*bite*.10
+          const out=1-smooth((p-.91)/.09);
+          const weaponAlpha=alpha*easeOut(p/.08)*out;
+          const radius=source.radius+34;
+
+          arc(glow,0,0,radius,segmentStart,angle,{
+            color:profile.main,
+            width:18,
+            alpha:weaponAlpha*.09,
+          },20);
+          arc(core,0,0,radius,segmentStart,angle,{
+            color:profile.main,
+            width:4.7,
+            alpha:weaponAlpha*.64,
+          },20);
+
+          const leadingStart =
+            angle>=segmentStart
+              ? Math.max(segmentStart,angle-.72)
+              : Math.min(segmentStart,angle+.72);
+          arc(core,0,0,radius-2,leadingStart,angle,{
+            color:profile.core,
+            width:2.25,
+            alpha:weaponAlpha*.88,
+          },10);
+
+          warriorDoubleAxe(
+            core,glow,0,0,angle,source.radius+4,68,13.5,profile,weaponAlpha
+          );
+
+          // Contact happens as the axe crosses the target-facing line in each
+          // direction. The small red pullback below remains Bloodthirst's payoff.
+          const contact1=Math.exp(-Math.pow((raw-.235)/.055,2));
+          const contact2=Math.exp(-Math.pow((raw-.78)/.060,2));
+          const contact=Math.max(contact1,contact2);
+          if(contact>.02){
+            glow.circle(dx0,dy0,9+contact*20).fill({
+              color:profile.main,
+              alpha:alpha*contact*.105,
             });
-            core.circle(dx0,dy0,4+bite*7).fill({
-              color:profile.core,alpha:alpha*bite*.58
+            core.circle(dx0,dy0,4+contact*7).fill({
+              color:profile.core,
+              alpha:alpha*contact*.68,
             });
+
+            const hitDir=contact1>=contact2?1:-1;
+            for(let i=0;i<4;i++){
+              const a=facing+hitDir*(-.34+i*.22);
+              const inner=9;
+              const outer=22+contact*(9+(i%2)*5);
+              core
+                .moveTo(dx0+Math.cos(a)*inner,dy0+Math.sin(a)*inner)
+                .lineTo(dx0+Math.cos(a)*outer,dy0+Math.sin(a)*outer)
+                .stroke({
+                  color:i===1||i===2?profile.core:profile.main,
+                  width:i===1||i===2?2.0:1.25,
+                  alpha:alpha*contact*.62,
+                });
+            }
           }
         }
 

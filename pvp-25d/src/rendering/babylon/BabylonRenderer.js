@@ -350,114 +350,203 @@ export class BabylonRenderer {
     const w = a.width * S;
     const h = a.height * S;
 
-    this.scene.clearColor = BABYLON.Color4.FromHexString("#03050aff");
-    this.scene.ambientColor = new BABYLON.Color3(0.025,0.032,0.050);
-    this.scene.imageProcessingConfiguration.contrast = 1.18;
-    this.scene.imageProcessingConfiguration.exposure = 0.68;
+    this.scene.clearColor = BABYLON.Color4.FromHexString("#02040aff");
+    this.scene.ambientColor = new BABYLON.Color3(0.018,0.026,0.045);
+    this.scene.imageProcessingConfiguration.contrast = 1.22;
+    this.scene.imageProcessingConfiguration.exposure = 0.66;
 
-    const makeGlass=(name,hex,alpha,emissive=0)=>{
+    const makeGlass=(name,hex,alpha,edgeStrength=0.85)=>{
       const m=new BABYLON.StandardMaterial(name,this.scene);
       const cc=color(hex);
-      m.diffuseColor=cc.scale(0.35);
-      m.emissiveColor=cc.scale(emissive);
-      m.specularColor=cc.scale(0.12);
+      m.diffuseColor=cc.scale(0.10);
+      m.emissiveColor=cc.scale(0.012);
+      m.specularColor=cc.scale(0.82);
+      m.specularPower=128;
       m.alpha=alpha;
       m.backFaceCulling=false;
       m.needDepthPrePass=true;
+
       if(BABYLON.Material?.MATERIAL_ALPHABLEND!==undefined){
         m.transparencyMode=BABYLON.Material.MATERIAL_ALPHABLEND;
       }
+
+      if(BABYLON.FresnelParameters){
+        const fresnel=new BABYLON.FresnelParameters();
+        fresnel.bias=0.04;
+        fresnel.power=3.4;
+        fresnel.leftColor=BABYLON.Color3.White().scale(edgeStrength);
+        fresnel.rightColor=BABYLON.Color3.Black();
+        m.opacityFresnelParameters=fresnel;
+
+        const emissiveFresnel=new BABYLON.FresnelParameters();
+        emissiveFresnel.bias=0.02;
+        emissiveFresnel.power=4.4;
+        emissiveFresnel.leftColor=cc.scale(0.28);
+        emissiveFresnel.rightColor=BABYLON.Color3.Black();
+        m.emissiveFresnelParameters=emissiveFresnel;
+      }
+
       return m;
     };
 
-    const groundMat = makeGlass(
+    const edgeMat=new BABYLON.StandardMaterial(
+      "orb-glass-edge-mat",
+      this.scene,
+    );
+    edgeMat.diffuseColor=new BABYLON.Color3(0.20,0.32,0.47);
+    edgeMat.emissiveColor=new BABYLON.Color3(0.13,0.25,0.42);
+    edgeMat.specularColor=new BABYLON.Color3(0.40,0.58,0.78);
+    edgeMat.specularPower=96;
+    edgeMat.alpha=0.72;
+    edgeMat.disableLighting=true;
+
+    const groundMat=makeGlass(
       "orb-arena-ground-mat",
-      "#6f8098",
-      0.16,
-      0.018,
+      "#8fa7c2",
+      0.075,
+      0.82,
     );
 
-    const ground = BABYLON.MeshBuilder.CreateBox(
+    const ground=BABYLON.MeshBuilder.CreateBox(
       "orb-arena-ground",
-      {width:w,depth:h,height:0.075},
+      {width:w,depth:h,height:0.065},
       this.scene,
     );
-    ground.position.set(w*0.5,-0.02,h*0.5);
-    ground.material = groundMat;
-    ground.receiveShadows = false;
-    ground.metadata = {ground:true};
-    this.ground = ground;
+    ground.position.set(w*0.5,-0.015,h*0.5);
+    ground.material=groundMat;
+    ground.receiveShadows=false;
+    ground.metadata={ground:true};
+    ground.isPickable=true;
+    this.ground=ground;
 
-    // A dim secondary slab below the play surface gives the arena visible depth
-    // while still reading as something suspended in empty space.
-    const underMat = makeGlass(
+    const underMat=makeGlass(
       "orb-arena-under-mat",
-      "#1b2432",
-      0.085,
-      0.010,
+      "#273750",
+      0.032,
+      0.40,
     );
-    const under = BABYLON.MeshBuilder.CreateBox(
+    const under=BABYLON.MeshBuilder.CreateBox(
       "orb-arena-under",
-      {width:w*0.985,depth:h*0.985,height:0.18},
+      {width:w*0.992,depth:h*0.992,height:0.26},
       this.scene,
     );
-    under.position.set(w*0.5,-0.18,h*0.5);
+    under.position.set(w*0.5,-0.24,h*0.5);
     under.material=underMat;
     under.isPickable=false;
 
-    const borderMat = makeGlass(
-      "orb-arena-border-mat",
-      "#9cb1ca",
-      0.24,
-      0.055,
-    );
+    const pad=a.boundaryPadding*S;
+    const innerW=w-pad*2;
+    const innerH=h-pad*2;
+    const rail=0.035;
+    const railY=0.055;
 
-    const pad = a.boundaryPadding * S;
-    const borderHeight = 0.22;
-    const borderThickness = 0.13;
-    const innerW = w - pad*2;
-    const innerH = h - pad*2;
-
-    const borders = [
-      {x:w*0.5,z:pad,width:innerW,depth:borderThickness},
-      {x:w*0.5,z:h-pad,width:innerW,depth:borderThickness},
-      {x:pad,z:h*0.5,width:borderThickness,depth:innerH},
-      {x:w-pad,z:h*0.5,width:borderThickness,depth:innerH},
-    ];
-
-    borders.forEach((b,i)=>{
-      const mesh = BABYLON.MeshBuilder.CreateBox(
-        "orb-arena-border:"+i,
-        {width:b.width,depth:b.depth,height:borderHeight},
+    const makeRail=(name,x,z,width,depth,y=railY,material=edgeMat)=>{
+      const mesh=BABYLON.MeshBuilder.CreateBox(
+        name,
+        {width,depth,height:0.032},
         this.scene,
       );
-      mesh.position.set(b.x,borderHeight*0.5,b.z);
-      mesh.material=borderMat;
-      mesh.receiveShadows=true;
+      mesh.position.set(x,y,z);
+      mesh.material=material;
       mesh.isPickable=false;
-      this.shadowGenerator.addShadowCaster(mesh);
-    });
+      return mesh;
+    };
 
-    const obstacleMat = makeGlass(
+    // Crisp luminous frame around the playable glass slab.
+    makeRail("orb-frame-n",w*0.5,pad,innerW,rail);
+    makeRail("orb-frame-s",w*0.5,h-pad,innerW,rail);
+    makeRail("orb-frame-w",pad,h*0.5,rail,innerH);
+    makeRail("orb-frame-e",w-pad,h*0.5,rail,innerH);
+
+    // Subtle second frame below the slab makes the glass thickness readable.
+    const lowerEdgeMat=edgeMat.clone("orb-glass-edge-lower-mat");
+    lowerEdgeMat.alpha=0.26;
+    lowerEdgeMat.emissiveColor=edgeMat.emissiveColor.scale(0.32);
+    makeRail("orb-frame-under-n",w*0.5,pad,innerW,rail,-0.285,lowerEdgeMat);
+    makeRail("orb-frame-under-s",w*0.5,h-pad,innerW,rail,-0.285,lowerEdgeMat);
+    makeRail("orb-frame-under-w",pad,h*0.5,rail,innerH,-0.285,lowerEdgeMat);
+    makeRail("orb-frame-under-e",w-pad,h*0.5,rail,innerH,-0.285,lowerEdgeMat);
+
+    const obstacleMat=makeGlass(
       "orb-los-mat",
-      "#75879c",
-      0.21,
-      0.025,
+      "#90a7c2",
+      0.11,
+      0.94,
     );
-    const topMat = makeGlass(
+    const topMat=makeGlass(
       "orb-los-top-mat",
-      "#a2b6cd",
-      0.17,
-      0.060,
+      "#b8cee6",
+      0.075,
+      1.00,
     );
 
-    for (const o of a.obstacles) {
-      const ow = o.w * S;
-      const od = o.h * S;
-      const x = (o.x + o.w*0.5) * S;
-      const z = (o.y + o.h*0.5) * S;
+    const makeObstacleEdges=(o,x,z,ow,od)=>{
+      const topY=1.305;
+      const vThickness=0.024;
+      const topRail=0.030;
 
-      const body = BABYLON.MeshBuilder.CreateBox(
+      makeRail(
+        "orb-los-edge-n:"+o.id,
+        x,
+        z-od*0.5,
+        ow,
+        topRail,
+        topY,
+      );
+      makeRail(
+        "orb-los-edge-s:"+o.id,
+        x,
+        z+od*0.5,
+        ow,
+        topRail,
+        topY,
+      );
+      makeRail(
+        "orb-los-edge-w:"+o.id,
+        x-ow*0.5,
+        z,
+        topRail,
+        od,
+        topY,
+      );
+      makeRail(
+        "orb-los-edge-e:"+o.id,
+        x+ow*0.5,
+        z,
+        topRail,
+        od,
+        topY,
+      );
+
+      const corners=[
+        [x-ow*0.5,z-od*0.5],
+        [x+ow*0.5,z-od*0.5],
+        [x-ow*0.5,z+od*0.5],
+        [x+ow*0.5,z+od*0.5],
+      ];
+      corners.forEach(([cx,cz],i)=>{
+        const post=BABYLON.MeshBuilder.CreateBox(
+          "orb-los-post:"+o.id+":"+i,
+          {
+            width:vThickness,
+            depth:vThickness,
+            height:1.27,
+          },
+          this.scene,
+        );
+        post.position.set(cx,0.67,cz);
+        post.material=edgeMat;
+        post.isPickable=false;
+      });
+    };
+
+    for(const o of a.obstacles){
+      const ow=o.w*S;
+      const od=o.h*S;
+      const x=(o.x+o.w*0.5)*S;
+      const z=(o.y+o.h*0.5)*S;
+
+      const body=BABYLON.MeshBuilder.CreateBox(
         "orb-los:"+o.id,
         {width:ow,depth:od,height:1.28},
         this.scene,
@@ -467,62 +556,125 @@ export class BabylonRenderer {
       body.receiveShadows=false;
       body.metadata={obstacleId:o.id};
       body.isPickable=false;
-      this.shadowGenerator.addShadowCaster(body);
 
-      const top = BABYLON.MeshBuilder.CreateBox(
+      const top=BABYLON.MeshBuilder.CreateBox(
         "orb-los-top:"+o.id,
-        {width:ow*0.90,depth:od*0.90,height:0.08},
+        {width:ow*0.96,depth:od*0.96,height:0.035},
         this.scene,
       );
-      top.position.set(x,1.32,z);
+      top.position.set(x,1.295,z);
       top.material=topMat;
       top.receiveShadows=false;
       top.isPickable=false;
-      this.shadowGenerator.addShadowCaster(top);
+
+      makeObstacleEdges(o,x,z,ow,od);
     }
 
-    const lineMat = new BABYLON.StandardMaterial("orb-floor-line-mat", this.scene);
-    lineMat.diffuseColor = new BABYLON.Color3(0.22,0.27,0.34);
-    lineMat.emissiveColor = new BABYLON.Color3(0.035,0.045,0.060);
-    lineMat.alpha = 0.20;
-    lineMat.disableLighting = true;
-
-    const center = BABYLON.MeshBuilder.CreateTorus(
-      "orb-arena-center",
-      {diameter:2.7,thickness:0.025,tessellation:64},
+    const lineMat=new BABYLON.StandardMaterial(
+      "orb-floor-line-mat",
       this.scene,
     );
-    center.position.set(w*0.5,0.012,h*0.5);
+    lineMat.diffuseColor=new BABYLON.Color3(0.16,0.24,0.34);
+    lineMat.emissiveColor=new BABYLON.Color3(0.035,0.065,0.11);
+    lineMat.alpha=0.16;
+    lineMat.disableLighting=true;
+
+    const center=BABYLON.MeshBuilder.CreateTorus(
+      "orb-arena-center",
+      {diameter:2.7,thickness:0.022,tessellation:64},
+      this.scene,
+    );
+    center.position.set(w*0.5,0.025,h*0.5);
     center.material=lineMat;
     center.isPickable=false;
 
-    const voidMat=new BABYLON.StandardMaterial(
-      "orb-void-point-mat",
+    // Soft particle field physically below the transparent arena.
+    const particleTexture=new BABYLON.DynamicTexture(
+      "orb-under-space-particle",
+      {width:32,height:32},
+      this.scene,
+      false,
+    );
+    const ctx=particleTexture.getContext();
+    const gradient=ctx.createRadialGradient(16,16,0,16,16,16);
+    gradient.addColorStop(0,"rgba(190,225,255,1)");
+    gradient.addColorStop(0.20,"rgba(120,185,255,0.85)");
+    gradient.addColorStop(0.55,"rgba(60,110,210,0.30)");
+    gradient.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,32,32);
+    particleTexture.hasAlpha=true;
+    particleTexture.update();
+
+    const spaceParticles=new BABYLON.ParticleSystem(
+      "orb-under-space",
+      320,
       this.scene,
     );
-    voidMat.diffuseColor=new BABYLON.Color3(0.52,0.66,0.84);
-    voidMat.emissiveColor=new BABYLON.Color3(0.12,0.20,0.34);
-    voidMat.alpha=0.46;
-    voidMat.disableLighting=true;
+    spaceParticles.particleTexture=particleTexture;
+    spaceParticles.emitter=new BABYLON.Vector3(w*0.5,-0.55,h*0.5);
+    spaceParticles.minEmitBox=new BABYLON.Vector3(
+      -w*0.48,
+      -2.10,
+      -h*0.48,
+    );
+    spaceParticles.maxEmitBox=new BABYLON.Vector3(
+      w*0.48,
+      0.15,
+      h*0.48,
+    );
+    spaceParticles.color1=new BABYLON.Color4(0.22,0.48,0.92,0.36);
+    spaceParticles.color2=new BABYLON.Color4(0.58,0.78,1.00,0.46);
+    spaceParticles.colorDead=new BABYLON.Color4(0.04,0.09,0.18,0);
+    spaceParticles.minSize=0.025;
+    spaceParticles.maxSize=0.085;
+    spaceParticles.minLifeTime=7;
+    spaceParticles.maxLifeTime=15;
+    spaceParticles.emitRate=24;
+    spaceParticles.direction1=new BABYLON.Vector3(-0.035,0.018,-0.025);
+    spaceParticles.direction2=new BABYLON.Vector3(0.035,0.065,0.025);
+    spaceParticles.minEmitPower=0.035;
+    spaceParticles.maxEmitPower=0.11;
+    spaceParticles.updateSpeed=0.012;
+    spaceParticles.gravity=BABYLON.Vector3.Zero();
+    spaceParticles.blendMode=BABYLON.ParticleSystem.BLENDMODE_ADD;
+    spaceParticles.start();
+    this.orbSpaceParticles=spaceParticles;
+    this.orbSpaceParticleTexture=particleTexture;
 
-    for(let i=0;i<28;i++){
-      const star=BABYLON.MeshBuilder.CreateSphere(
-        "orb-void-point:"+i,
-        {diameter:0.035+(i%4)*0.010,segments:5},
+    // A handful of larger, dim motes adds depth/parallax below the glass.
+    const moteMat=new BABYLON.StandardMaterial(
+      "orb-under-mote-mat",
+      this.scene,
+    );
+    moteMat.diffuseColor=new BABYLON.Color3(0.10,0.18,0.32);
+    moteMat.emissiveColor=new BABYLON.Color3(0.035,0.075,0.16);
+    moteMat.alpha=0.28;
+    moteMat.disableLighting=true;
+
+    this.orbVoidMotes=[];
+    for(let i=0;i<24;i++){
+      const mote=BABYLON.MeshBuilder.CreatePolyhedron(
+        "orb-under-mote:"+i,
+        {type:2,size:0.020+(i%5)*0.008},
         this.scene,
       );
-      const angle=i*2.399963229728653;
-      const ring=10.5+(i%7)*1.45;
-      star.position.set(
-        w*0.5+Math.cos(angle)*ring,
-        -0.65-(i%5)*0.24,
-        h*0.5+Math.sin(angle)*ring*0.62,
+      const u=((i*37)%101)/100;
+      const v=((i*61+17)%103)/102;
+      mote.position.set(
+        pad+u*innerW,
+        -0.55-(i%6)*0.28,
+        pad+v*innerH,
       );
-      star.material=voidMat;
-      star.isPickable=false;
+      mote.material=moteMat;
+      mote.isPickable=false;
+      this.orbVoidMotes.push({
+        mesh:mote,
+        baseY:mote.position.y,
+        phase:i*0.73,
+      });
     }
   }
-
   buildGround() {
     const a = this.arena;
     const w = a.width * S;
@@ -1116,6 +1268,17 @@ export class BabylonRenderer {
     this.torches.push({ flame, light, phase: index * 1.73 });
   }
 
+  animateOrbVoid(now) {
+    if (!this.orbMode || !this.orbVoidMotes) return;
+
+    for (const mote of this.orbVoidMotes) {
+      mote.mesh.position.y =
+        mote.baseY + Math.sin(now*0.00045+mote.phase)*0.10;
+      mote.mesh.rotation.x = now*0.00010 + mote.phase;
+      mote.mesh.rotation.y = -now*0.00013 + mote.phase*0.7;
+    }
+  }
+
   render(game) {
     if (!this.ready || !this.scene || !this.actorRender || !this.vfx) {
       if (this.debug && this.debugPanel) {
@@ -1138,6 +1301,7 @@ export class BabylonRenderer {
     this.vfx.consume(game.vfx?.events || []);
     this.vfx.update(dt);
     this.animateTorches(now);
+    this.animateOrbVoid(now);
     this.syncTarget(game);
     this.syncText(game);
     this.syncDebug(game);

@@ -230,6 +230,83 @@ export class CustomMiniCharacterRenderer{
     entry.hp=hp;
   }
 
+  createWarriorArmsAndAxe(actor,entry){
+    const skinMat=new BABYLON.StandardMaterial("warrior-arms:"+actor.id,this.scene);
+    skinMat.diffuseColor=BABYLON.Color3.FromHexString("#b88463");
+    skinMat.specularColor=BABYLON.Color3.Black();
+
+    const handleMat=new BABYLON.StandardMaterial("warrior-axe-handle:"+actor.id,this.scene);
+    handleMat.diffuseColor=BABYLON.Color3.FromHexString("#3b2b22");
+    handleMat.specularColor=BABYLON.Color3.Black();
+
+    const axeMat=new BABYLON.StandardMaterial("warrior-axe-head:"+actor.id,this.scene);
+    axeMat.diffuseColor=BABYLON.Color3.FromHexString("#8f969f");
+    axeMat.specularColor=new BABYLON.Color3(0.12,0.12,0.12);
+
+    entry.ownedMaterials.push(skinMat,handleMat,axeMat);
+
+    const weaponPivot=new BABYLON.TransformNode("warrior-weapon-pivot:"+actor.id,this.scene);
+    weaponPivot.parent=entry.visualRoot;
+    weaponPivot.position.set(0,0.73,-0.02);
+
+    const leftArm=BABYLON.MeshBuilder.CreateBox(
+      "warrior-arm-left:"+actor.id,
+      {width:0.15,height:0.15,depth:0.48},
+      this.scene
+    );
+    leftArm.parent=entry.visualRoot;
+    leftArm.position.set(-0.25,0.73,-0.18);
+    leftArm.rotation.y=-0.58;
+    leftArm.material=skinMat;
+    leftArm.metadata={actorId:actor.id};
+    this.shadowGenerator?.addShadowCaster(leftArm);
+
+    const rightArm=BABYLON.MeshBuilder.CreateBox(
+      "warrior-arm-right:"+actor.id,
+      {width:0.15,height:0.15,depth:0.48},
+      this.scene
+    );
+    rightArm.parent=entry.visualRoot;
+    rightArm.position.set(0.25,0.73,-0.18);
+    rightArm.rotation.y=0.58;
+    rightArm.material=skinMat;
+    rightArm.metadata={actorId:actor.id};
+    this.shadowGenerator?.addShadowCaster(rightArm);
+
+    const handle=BABYLON.MeshBuilder.CreateBox(
+      "warrior-axe-handle:"+actor.id,
+      {width:0.075,height:0.075,depth:0.92},
+      this.scene
+    );
+    handle.parent=weaponPivot;
+    handle.position.set(0.24,0,-0.27);
+    handle.rotation.y=-0.32;
+    handle.material=handleMat;
+    handle.metadata={actorId:actor.id};
+    this.shadowGenerator?.addShadowCaster(handle);
+
+    const axeHead=BABYLON.MeshBuilder.CreateBox(
+      "warrior-axe-head:"+actor.id,
+      {width:0.42,height:0.12,depth:0.24},
+      this.scene
+    );
+    axeHead.parent=weaponPivot;
+    axeHead.position.set(0.38,0,-0.70);
+    axeHead.rotation.y=-0.32;
+    axeHead.material=axeMat;
+    axeHead.metadata={actorId:actor.id};
+    this.shadowGenerator?.addShadowCaster(axeHead);
+
+    entry.weaponPivot=weaponPivot;
+    entry.warriorAttackStartedAt=0;
+    entry.warriorCooldownSnapshot=new Map([
+      ["warrior-rend",actor.cooldownFor("warrior-rend")],
+      ["warrior-mortal-strike",actor.cooldownFor("warrior-mortal-strike")],
+      ["warrior-slam",actor.cooldownFor("warrior-slam")],
+    ]);
+    entry.meshes.push(leftArm,rightArm,handle,axeHead);
+  }
+
   createFallback(actor,entry){
     const m=new BABYLON.StandardMaterial("mini-fallback:"+actor.id,this.scene);
     m.diffuseColor=color(entry.style.primary);
@@ -244,6 +321,9 @@ export class CustomMiniCharacterRenderer{
     marker.metadata={actorId:actor.id};
     this.shadowGenerator?.addShadowCaster(marker);
     entry.meshes=[marker];
+    if(actor.classId==="warrior"){
+      this.createWarriorArmsAndAxe(actor,entry);
+    }
     entry.modelAttached=true;
   }
 
@@ -285,6 +365,34 @@ export class CustomMiniCharacterRenderer{
       // Tiny lean makes the rigid miniature feel alive until authored
       // arm/weapon animations are added in the next pass.
       e.visualRoot.rotation.z=moving?Math.sin(time*0.013)*0.028:0;
+
+      if(actor.classId==="warrior" && e.weaponPivot){
+        const meleeSpellIds=[
+          "warrior-rend",
+          "warrior-mortal-strike",
+          "warrior-slam",
+        ];
+
+        for(const spellId of meleeSpellIds){
+          const current=actor.cooldownFor(spellId);
+          const previous=e.warriorCooldownSnapshot?.get(spellId) ?? 0;
+          if(current>previous+120){
+            e.warriorAttackStartedAt=time;
+          }
+          e.warriorCooldownSnapshot?.set(spellId,current);
+        }
+
+        const elapsed=time-(e.warriorAttackStartedAt||0);
+        if(elapsed>=0 && elapsed<320){
+          const t=elapsed/320;
+          const swing=Math.sin(t*Math.PI);
+          e.weaponPivot.rotation.y=-0.52+swing*1.45;
+          e.weaponPivot.rotation.z=-swing*0.16;
+        }else{
+          e.weaponPivot.rotation.y=-0.52;
+          e.weaponPivot.rotation.z=0;
+        }
+      }
 
       const health=Math.max(0,Math.min(1,actor.healthPct));
       e.hp.scaling.x=health;

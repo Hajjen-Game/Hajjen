@@ -194,6 +194,7 @@ export class OrbCharacterRenderer{
       ghost.material=trailMat;
       ghost.isPickable=false;
       ghost.visibility=0;
+      ghost.position.set(actor.x*this.scale,0.80,actor.y*this.scale);
       trail.push({mesh:ghost,material:trailMat});
     }
 
@@ -300,7 +301,7 @@ export class OrbCharacterRenderer{
         e.visualRoot.rotation.y=Math.atan2(mv.x,mv.y);
       }
 
-      const breathe=1+Math.sin(time*0.0034+actor.id.length)*0.025;
+      const breathe=1+Math.sin(time*0.0034+String(actor.id).length)*0.025;
       if(moving){
         e.visualRoot.scaling.set(0.94,1.00,1.13);
       }else{
@@ -331,7 +332,7 @@ export class OrbCharacterRenderer{
       e.castBand.rotation.z=time*0.0024;
       e.castBand.rotation.y=time*0.0018;
 
-      e.halo.scaling.setAll(1+Math.sin(time*0.004+actor.id.length)*0.055);
+      e.halo.scaling.setAll(1+Math.sin(time*0.004+String(actor.id).length)*0.055);
       e.haloMat.alpha=0.13+(cast?0.08:0);
 
       for(let i=0;i<e.sparks.length;i++){

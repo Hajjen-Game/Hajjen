@@ -167,6 +167,40 @@ implementations, not just screenshots.
   **Live-browser looks, especially real floor blending and mobile FPS,
   still need visual verification**.
 
+## Impact Continuity Pass 7 — hits that belong to the projectile
+
+After user screenshot review, the Pass 5 impacts looked like independent radial
+sigils/star drawings, while the newer Pass 6 projectiles were sharpened,
+directional and full of layered material-specific motion. This pass changes
+**Crystal Bolt and Sun Lance impacts only**.
+
+- New `EnergyPixiImpacts.js` replaces the old Pixi `contact + outerContact`
+  rendering **for these two spells**. It uses the *same incoming vector* as
+  the projectile and follows `pierce -> fracture/bloom -> decay`.
+- Crystal Bolt continues the white-blue spear a short distance THROUGH the
+  orb, breaks into restrained forward ice splinters, tiny rotating snow-star
+  fragments, and two incomplete directional frost shears. No big teal plates
+  or round frost sigils.
+- Sun Lance leaves a narrow white-gold penetrator, releases asymmetric loose
+  embers, short streaks and three rolling heat tongues. There are no large
+  even spokes, complete corona rings, or diagram-like starbursts.
+- Babylon `EnergyHeroVFX.impact()` now authors the small axial penetration
+  core and fine material fragments instead of a radial wheel. Its original
+  `outerImpact()` is **not invoked** for these two spells.
+- Babylon `EnergyVolumeImpact` now pushes real 3D ice shards and hot solar
+  debris predominantly along the incoming vector, with 1–2 needle filaments
+  instead of the previous upright fragmented orbit arcs. The four other
+  signatures retain their earlier effects. The `3D IMPACTS` A/B toggle
+  still controls only the volumetric layer.
+- Pixi and Babylon impact durations are paired at 560 ms for Crystal Bolt
+  and 480 ms for Sun Lance. Impact ground-light flashes remain 270 ms.
+- The existing Pass 6 projectiles, reflections, glass orb visuals, approved
+  build-ups, AI, collision, hit timing and damage are unchanged.
+- Validation: eight JavaScript syntax checks, 96 Pixi impact phase/scale/spell
+  simulations (including no effect on unrelated Rift Slash), and four Babylon
+  3D volume scenarios with 53/53 mock meshes disposed. **Actual browser
+  aesthetics and FPS still require visual verification.**
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

@@ -1,3 +1,5 @@
+import { MageOrbWindup } from "./MageOrbWindup.js?v=20261008-mage-bespoke1";
+
 const CLASS_STYLE=Object.freeze({
   priest:{core:"#f2e5b8",energy:"#fff3b0"},
   warrior:{core:"#c84d3f",energy:"#ff7a5f"},
@@ -242,6 +244,10 @@ export class OrbCharacterRenderer{
     const root=new BABYLON.TransformNode("orb-actor:"+actor.id,this.scene);
     const visualRoot=new BABYLON.TransformNode("orb-visual:"+actor.id,this.scene);
     visualRoot.parent=root;
+    // Only Mage allocates the bespoke wind-up meshes; other classes stay untouched.
+    const mageWindup=actor.classId==="mage"
+      ?new MageOrbWindup(this.scene,visualRoot,actor.id)
+      :null;
 
     const shellMat=alphaMaterial(
       this.scene,
@@ -713,7 +719,7 @@ export class OrbCharacterRenderer{
     const entry={
       root,visualRoot,
       classId:actor.classId,role:actor.role,
-      style,seed,motion,
+      style,seed,motion,mageWindup,
       shell,middle,core,energy,plasma,rings,motifArcs,shards,nucleus,heartLoops,glassFace,heartFace,motes,chargeMotes,chargeArcs,releaseCore,halo,castBand,contactShadow,
       sparks,trail,hp,hpBack,barRoot,
       shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,motifArcMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,chargeMat,chargeArcMat,releaseMat,haloMat,castMat,hpMat,
@@ -729,6 +735,7 @@ export class OrbCharacterRenderer{
   }
 
   disposeEntry(entry){
+    entry.mageWindup?.dispose();
     for(const t of entry.trail||[]) t.mesh?.dispose();
     for(const m of entry.ownedMaterials||[]){try{m.dispose();}catch{}}
     entry.root.dispose(false,true);
@@ -870,11 +877,21 @@ export class OrbCharacterRenderer{
       );
 
       const spellId=cast?.spellId||"";
+      const bespokeMageCast=e.classId==="mage"
+        && (spellId==="mage-frostbolt"||spellId==="mage-pyroblast");
+      e.mageWindup?.update(spellId,castProgress,time);
       const castProfile=castEnergyProfile(spellId,e.style);
       const castMain=c3(castProfile.main);
       const castCore=c3(castProfile.core);
       const castAccent=c3(castProfile.accent);
       const castLate=cast?Math.max(0,(castProgress-.68)/.32):0;
+      // Spell school takes over the Mage core during these two signature casts.
+      if(bespokeMageCast){
+        e.coreMat.emissiveColor=castMain.scale(1.25+castProgress*.72+castLate*.56);
+        e.energyMat.emissiveColor=castMain.scale(.88+castProgress*.53);
+        e.plasmaMat.emissiveColor=castMain.scale(.46+castProgress*.37);
+        e.motifArcMat.emissiveColor=castAccent.scale(.80+castProgress*.44);
+      }
 
       e.chargeMat.diffuseColor=castMain.scale(.25);
       e.chargeMat.emissiveColor=castMain.scale(1.52);
@@ -888,7 +905,7 @@ export class OrbCharacterRenderer{
 
       for(let i=0;i<e.chargeMotes.length;i++){
         const mote=e.chargeMotes[i];
-        if(!cast){
+        if(!cast||bespokeMageCast){
           mote.visibility=0;
           continue;
         }
@@ -930,7 +947,7 @@ export class OrbCharacterRenderer{
 
       for(let i=0;i<e.chargeArcs.length;i++){
         const arc=e.chargeArcs[i];
-        if(!cast){
+        if(!cast||bespokeMageCast){
           arc.visibility=0;
           continue;
         }
@@ -951,7 +968,7 @@ export class OrbCharacterRenderer{
           +Math.cos(t*.33+i)*.09;
       }
 
-      e.releaseCore.visibility=cast?castLate:0;
+      e.releaseCore.visibility=cast&&!bespokeMageCast?castLate:0;
       e.releaseCore.scaling.setAll(
         .55+castLate*2.10+Math.sin(t*15)*castLate*.10
       );
@@ -970,7 +987,9 @@ export class OrbCharacterRenderer{
         );
       }
 
-            e.castMat.alpha=cast?0.20+castPulse*0.28:0;
+      e.castMat.alpha=bespokeMageCast
+        ?0.10+castProgress*.14
+        :(cast?0.20+castPulse*0.28:0);
       e.castMat.diffuseColor=castMain.scale(.20);
       e.castMat.emissiveColor=castMain.scale(1.18);
       e.castBand.scaling.setAll(.94+castProgress*.18);
@@ -1011,13 +1030,16 @@ export class OrbCharacterRenderer{
         cast?1.54:1.14
       );
 
+      // Keep the final pressure spike! Previously the generic pulse below
+      // overwrote the stronger last-32%-of-cast scale calculated above.
       e.nucleus.scaling.setAll(
-        0.96+Math.sin(time*0.009+String(actor.id).length)*0.12
-        +castProgress*0.28
+        0.96+Math.sin(time*0.009+String(actor.id).length)*0.10
+        +castProgress*.19+castLate*.62
       );
       e.nucleusMat.emissiveColor=c3("#fffdf3").scale(cast?2.5:1.7);
       e.loopMat.alpha=0.70+(cast?0.20+castPulse*0.08:0);
-      e.loopMat.emissiveColor=c3(e.style.energy).scale(cast?2.1:1.38);
+      e.loopMat.emissiveColor=c3(bespokeMageCast?castProfile.main:e.style.energy)
+        .scale(cast?2.1:1.38);
       for(let i=0;i<e.heartLoops.length;i++){
         const loop=e.heartLoops[i];
         loop.rotation.x=0.12+i*0.36+Math.sin(time*0.00085+i)*0.17;
@@ -1027,6 +1049,8 @@ export class OrbCharacterRenderer{
       // Glass remains neutral; only the inner energy adopts the class colour.
       e.glassMat.alpha=0.88+(cast?0.08:0);
       e.heartMat.alpha=0.58+(cast?0.13+castPulse*0.11:0);
+      e.heartMat.emissiveColor=c3(bespokeMageCast?castProfile.main:e.style.energy)
+        .scale(bespokeMageCast?1.32:1.22);
       e.heartFace.scaling.setAll(
         1+Math.sin(time*0.0047+String(actor.id).length)*0.035
         +castProgress*0.13

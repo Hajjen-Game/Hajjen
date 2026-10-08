@@ -17,6 +17,14 @@ const COLORS={
   "photon-barrier":{c:0xffc37f,core:0xfff7c6,dim:0xc87854},
   "reactive-thread":{c:0x75ecc2,core:0xd9fff2,dim:0x329cb9},
 };
+// The ORIGINAL spell palettes above are unchanged (including glass build-ups).
+// A stronger saturated light/dark separation is only used during travel/hit.
+// The glow pass then emits that colour into the scene; changing hex values
+// alone never recreated the neon punch of the initial visual signatures.
+const NEON_HIT={
+  "crystal-bolt":{c:0x29ceff,core:0xf7ffff,dim:0x0868b7,glow:0x00aaff},
+  "sun-lance":{c:0xffaa34,core:0xffffe8,dim:0xc85618,glow:0xff7f15},
+};
 const HERO=new Set(Object.keys(COLORS));
 const CAST_MS={"crystal-bolt":1300,"sun-lance":1800,"null-prison":1400,
   "rift-slash":390,"gravity-hammer":600,"pulse-mend":1500,
@@ -25,6 +33,7 @@ export class EnergyPixiVFXOverlay {
   constructor(stage,renderer){
     this.stage=stage;this.renderer=renderer;this.ready=false;
     this.effects=[];this.app=null;this.graphics=null;
+    this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
     this.sequence=0;
     this.alive=true;this.failed=false;this.enabled=true;
     this.resizeHandler=null;
@@ -42,7 +51,24 @@ export class EnergyPixiVFXOverlay {
       });
       if(!this.alive){app.destroy(true,{children:true});return;}
       this.app=app;this.graphics=new PIXI.Graphics();
+      // Separate bloom underneath sharp Pixi geometry. Rendering another
+      // filtered copy of the entire spell would blur the ice/fire details.
+      this.neonSoft=new PIXI.Graphics();
+      this.neonHot=new PIXI.Graphics();
+      this.neonSoft.blendMode="add";
+      this.neonHot.blendMode="add";
+      try{
+        if(!PIXI.BlurFilter)throw new Error("BlurFilter unavailable");
+        this.neonBlur=new PIXI.BlurFilter({strength:8,quality:2});
+        this.neonSoft.filters=[this.neonBlur];
+      }catch(_){
+        // Graceful fallback for devices missing the optional blur shader.
+        // Keep the sharp existing VFX working; do not block Pixi readiness.
+        this.neonSoft.alpha=.16;
+      }
+      app.stage.addChild(this.neonSoft);
       app.stage.addChild(this.graphics);
+      app.stage.addChild(this.neonHot);
       const canvas=app.canvas;
       canvas.className="energy-pixi-layer";
       Object.assign(canvas.style,{
@@ -122,6 +148,78 @@ export class EnergyPixiVFXOverlay {
       BABYLON.Matrix.Identity(),scene.getTransformMatrix(),viewport);
     const px=Math.hypot(edge.x-centre.x,edge.y-centre.y);
     return Number.isFinite(px)?clamp(px/23,.70,4.0):1;
+  }
+  // An inexpensive two-layer bloom, only for the two ranged signatures.
+  // Uses the SAME positions/easing/contact timing as their existing Pixi
+  // animation. It does not modify motion, shape or the 3D build-up.
+  neon(g,hot,e,from,to,now,scale){
+    const palette=NEON_HIT[e.spellId];
+    if(!palette||!from||!to)return;
+    const travelMs=e.contactMs||1;
+    const dx=to.x-from.x,dy=to.y-from.y;
+    const length=Math.max(1,Math.hypot(dx,dy));
+    const tx=dx/length,ty=dy/length,nx=-ty,ny=tx;
+    const k=clamp(scale*.82,.65,2.2);
+    const drawLine=(layer,pts,color,width,alpha)=>{
+      if(alpha<=.005)return;
+      layer.moveTo(pts[0].x,pts[0].y);
+      for(let i=1;i<pts.length;i++)layer.lineTo(pts[i].x,pts[i].y);
+      layer.stroke({color,width:width*k,alpha:clamp(alpha,0,1),
+        cap:"round",join:"round"});
+    };
+    const circle=(layer,x,y,r,color,alpha)=>{
+      if(alpha>.005)layer.circle(x,y,r*k).fill({
+        color,alpha:clamp(alpha,0,1)});
+    };
+    const travel=clamp(now/travelMs,0,1);
+    if(now<travelMs){
+      const p=travel*travel*(3-2*travel);
+      const tip={x:from.x+dx*p,y:from.y+dy*p};
+      const gained=length*p;
+      const tail=Math.min(gained*.72,(e.spellId==="crystal-bolt"?115:134)*k);
+      const start={x:tip.x-tx*tail,y:tip.y-ty*tail};
+      const alpha=clamp(travel/.10,0,1)*(1-clamp((travel-.90)/.10,0,1));
+      drawLine(g,[start,tip],palette.glow,20,.68*alpha);
+      drawLine(g,[start,tip],palette.c,9,.50*alpha);
+      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?12:15,
+        palette.glow,.70*alpha);
+      circle(g,tip.x,tip.y,6,palette.core,.33*alpha);
+      // Neon-white cap visible above the existing high-detail projectile.
+      drawLine(hot,[{x:tip.x-tx*10*k,y:tip.y-ty*10*k},
+        {x:tip.x+tx*5*k,y:tip.y+ty*5*k}],
+        palette.core,1.65,.83*alpha);
+    }else{
+      const phase=clamp((now-travelMs)/Math.max(1,e.duration-travelMs),0,1);
+      const ease=v=>{const q=clamp(v,0,1);return q*q*(3-2*q);};
+      const flash=1-ease((phase-.035)/.23);
+      const burst=ease(phase/.10)*(1-ease((phase-.34)/.37));
+      const tail=1-ease((phase-.50)/.45);
+      // Glowing impact without a graphic ring or oversized pale disk.
+      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?18:23,
+        palette.glow,.88*flash+.53*burst);
+      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?8:10,
+        palette.c,.71*flash+.24*burst);
+      const side=e.spellId==="crystal-bolt"?17:22;
+      for(const sign of [-1,1]){
+        const pts=[];
+        for(let j=0;j<=9;j++){
+          const f=j/9,a=phase*(e.spellId==="crystal-bolt"?8:11)+f*3.3+sign;
+          const radius=(7+f*side)*ease(phase/.27);
+          pts.push({x:to.x+tx*f*23*k+nx*sign*radius*k+
+            nx*Math.sin(a)*2*k,
+            y:to.y+ty*f*23*k+ny*sign*radius*k+
+            ny*Math.sin(a)*2*k});
+        }
+        drawLine(g,pts,palette.glow,7,.40*burst+.12*tail);
+      }
+      circle(hot,to.x,to.y,e.spellId==="crystal-bolt"?3.2:3.8,
+        palette.core,.95*flash+.38*burst);
+      // Core streak follows the incoming axis rather than becoming a star.
+      drawLine(hot,[
+        {x:to.x-tx*13*k,y:to.y-ty*13*k},
+        {x:to.x+tx*17*k,y:to.y+ty*17*k}],
+        palette.core,1.5,.72*flash+.21*burst);
+    }
   }
   stroke(g,points,color,width,alpha=1){
     if(points.length<2)return;
@@ -502,6 +600,8 @@ export class EnergyPixiVFXOverlay {
   update(match,now=performance.now()){
     if(!this.ready||!this.graphics||!this.enabled)return;
     const g=this.graphics;g.clear();
+    this.neonSoft?.clear();
+    this.neonHot?.clear();
     this.effects=this.effects.filter(e=>now-e.start<e.duration);
     for(const e of this.effects){
       const t=clamp((now-e.start)/e.duration,0,1);
@@ -509,11 +609,19 @@ export class EnergyPixiVFXOverlay {
       const from=e.launch?this.projectWorld(e.launch.x,e.launch.z):this.point(a);
       const to=this.point(b||a);
       if(!from||!to)continue;
-      const style=COLORS[e.spellId];
+      // The restored original palette still drives charges. Only the
+      // approved Crystal/Sun TRAVEL and CONTACT get the saturated neon skin.
+      const hot=e.type==="hit"&&NEON_HIT[e.spellId];
+      const style=hot?NEON_HIT[e.spellId]:COLORS[e.spellId];
       if(e.type==="windup")this.charge(g,e,from,t,style);
-      else if(e.type==="hit"||e.type==="heal")this.trail(g,e,from,to,t,style,
-        this.impactScale(b||a,to));
-      else this.status(g,e,to,t,style);
+      else if(e.type==="hit"||e.type==="heal"){
+        const scale=this.impactScale(b||a,to);
+        if(hot&&this.neonSoft&&this.neonHot){
+          this.neon(this.neonSoft,this.neonHot,e,from,to,
+            now-e.start,scale);
+        }
+        this.trail(g,e,from,to,t,style,scale);
+      }else this.status(g,e,to,t,style);
     }
     this.app.render();
   }
@@ -523,5 +631,6 @@ export class EnergyPixiVFXOverlay {
     if(!this.observer&&this.resizeHandler)window.removeEventListener("resize",this.resizeHandler);
     try{this.app?.destroy(true,{children:true});}catch{}
     this.effects=[];this.graphics=null;this.app=null;this.ready=false;
+    this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
   }
 }

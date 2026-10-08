@@ -501,58 +501,69 @@ export class EnergyHeroVFX {
     return fx;
   }
   impact(fx,target){
-    const id=fx.spellId;
+    const id=fx.spellId,crystal=id==="crystal-bolt";
     const point=target?.alive?this.world(target):fx.root.position.clone();
-    const crystal=id==="crystal-bolt";
+    const travel=fx.destination.subtract(fx.origin);
+    const length=Math.max(.001,Math.hypot(travel.x,travel.z));
+    const tx=travel.x/length,tz=travel.z/length,sx=-tz,sz=tx;
+    const P=(a,side=0,y=0)=>new BABYLON.Vector3(
+      tx*a+sx*side,y,tz*a+sz*side);
     this.floorLight.impact(id,point);
     const splash=this.makeEffect(id,crystal?"crystal-impact":"solar-impact",
-      point,crystal?480:420,{targetId:fx.targetId});
-    // Energy is concentrated in a tiny tinted core, not a white disc.
-    this.ball(splash,crystal?.24:.27,"main");
-    this.ball(splash,.095,"light",1);
+      point,crystal?410:390,{targetId:fx.targetId});
+    // Piercing core, visibly continuous with the last frame of travel.
+    // There is NO broad corona, symmetrical spoke wheel or oversized disc.
+    this.ball(splash,crystal?.105:.13,"light");
+    this.tube(splash,[P(-.47),P(-.12,.015),P(crystal?.46:.56)],
+      crystal?.018:.020,"light",1);
+    this.tube(splash,[P(-.39,-.065,-.06),P(-.10,-.045,.025),
+      P(crystal?.34:.46,-.085,.09)],crystal?.010:.013,"main",2);
     if(crystal){
-      // Faceted micro-splinters echo the angular charge inside the glass.
+      // Spear fractures: small angled ice needles inherit its direction
+      // and carry the transverse snowflake/splinter motion of Frostbolt.
       for(let i=0;i<7;i++){
-        const a=i*TAU/7+.15,rr=.23+(i%3)*.045;
-        const shard=this.cone(splash,.035+(i%2)*.010,
-          .24+(i%3)*.075,4,i===0?"light":"main",i+2);
-        shard.position.set(Math.cos(a)*rr,(i%3-1)*.065,Math.sin(a)*rr);
-        shard.rotation.y=a;shard.rotation.z=Math.PI*.38+a*.20;
+        const side=i%2?1:-1;
+        const lateral=side*(.10+(i%3)*.08);
+        const shard=this.cone(splash,.026+(i%3)*.008,
+          .19+(i%3)*.055,4,i%3===0?"light":"main",i+4);
+        shard.position.copyFrom(P(-.12+(i%4)*.125,lateral,(i%3-1)*.105));
+        shard.rotation.x=.3+side*.45;
+        shard.rotation.z=.7+side*.22;
+        shard.rotation.y=Math.atan2(tx,tz);
       }
-      for(let i=0;i<6;i++){
-        const a=(i+.25)*TAU/6;
-        this.tube(splash,[
-          new BABYLON.Vector3(Math.cos(a)*.15,-.52,Math.sin(a)*.15),
-          new BABYLON.Vector3(Math.cos(a+.12)*(.42+(i%2)*.09),-.53,
-            Math.sin(a+.12)*(.42+(i%2)*.09))
-        ],i===0?.016:.009,i===0?"light":"main",i+9);
+      for(let i=0;i<3;i++){
+        const side=i%2?1:-1;
+        this.tube(splash,[P(-.13,side*.08,(i-1)*.08),
+          P(.15,side*(.23+i*.035),(i-1)*.13)],
+          i===0?.010:.008,i===0?"light":"main",i+13);
       }
-      this.arc(splash,.46,Math.PI*1.20,.30,-.49,.011,"main",16);
-      this.arc(splash,.53,Math.PI*.66,3.60,-.49,.008,"dark",17);
     }else{
-      // Focused piercing corona with only five fine spokes.
-      this.arc(splash,.39,Math.PI*1.48,-.58,.01,.016,"main",2);
-      this.arc(splash,.47,Math.PI*.62,2.50,-.02,.010,"dark",3);
-      for(let i=0;i<5;i++){
-        const a=(i+.16)*TAU/5,len=.40+(i%2)*.10;
-        this.tube(splash,[
-          new BABYLON.Vector3(Math.cos(a)*.15,Math.sin(a)*.12,0),
-          new BABYLON.Vector3(Math.cos(a)*len,
-            Math.sin(a)*len*.83,(i%2?-.055:.055))
-        ],i===0?.019:.010,i===0?"light":"main",i+4);
+      // Hot solar lance opens into asymmetric heat filaments and small
+      // incandescent embers; no graphic star drawn around the glass orb.
+      for(let lane=0;lane<3;lane++){
+        const side=lane%2?1:-1;
+        const points=[];
+        for(let j=0;j<=9;j++){
+          const f=j/9;
+          points.push(P(-.15+f*(.51+lane*.10),
+            side*(.045+lane*.037)*Math.sin(f*Math.PI*1.6),
+            Math.sin(f*Math.PI)*(.025+lane*.021)));
+        }
+        this.tube(splash,points,lane===0?.012:.008,
+          lane===0?"light":"main",lane+3);
       }
-      for(let i=0;i<4;i++){
-        const a=i*TAU/4+.24;
-        const mote=this.cone(splash,.026,.15+(i%2)*.045,5,
-          i===0?"light":"main",i+9);
-        mote.position.set(Math.cos(a)*.32,Math.sin(a)*.22,.055);
-        mote.rotation.z=a-Math.PI/2;
+      for(let i=0;i<7;i++){
+        const side=i%2?1:-1;
+        const ember=this.ball(splash,.052+(i%3)*.018,
+          i%4===0?"light":i%3===0?"dark":"main",i+8);
+        ember.position.copyFrom(P(-.06+(i%5)*.095,
+          side*(.10+(i%3)*.06),(i%4-1.5)*.055));
       }
     }
-    this.outerImpact(id,point,fx.targetId);
+    // Physical Babylon fragments retain parallax, but now follow the
+    // projectile vector and the same material language as the Pixi layer.
     this.volume.spawn(id,point,{
-      targetId:fx.targetId,
-      direction:fx.destination.subtract(fx.origin),
+      targetId:fx.targetId,direction:travel,
     });
   }
   update(match,now=performance.now()){

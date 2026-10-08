@@ -4,6 +4,7 @@
 // and suspended persistent shields. The later Pixi pass can add sharp 2D accents.
 import { ABILITY_BY_ID } from "../abilityCatalog.js";
 import { EnergyVolumeImpact } from "./EnergyVolumeImpact.js?v=20261008-volume-impact1";
+import { EnergyProjectileGroundLight } from "./EnergyProjectileGroundLight.js?v=20261008-pixi-parity1";
 
 const TAU=Math.PI*2;
 const S=.02;
@@ -33,6 +34,7 @@ export class EnergyHeroVFX {
     this.sequence=0;
     this.maxLive=76;  // no unbounded GPU objects in longer matches
     this.volume=new EnergyVolumeImpact(this);
+    this.floorLight=new EnergyProjectileGroundLight(scene);
     this.stats={lastSpell:"",active:0};
   }
   supports(id){return CHOSEN.has(id);}
@@ -203,6 +205,7 @@ export class EnergyHeroVFX {
       sparkle.position.copyFrom(start);
       fx.meshes[fx.meshes.length-1].tracer=i;
     }
+    this.floorLight.attach(fx);
     return fx;
   }
   // Rift Slash is a blade-free dimensional tear that races THROUGH the target.
@@ -501,6 +504,7 @@ export class EnergyHeroVFX {
     const id=fx.spellId;
     const point=target?.alive?this.world(target):fx.root.position.clone();
     const crystal=id==="crystal-bolt";
+    this.floorLight.impact(id,point);
     const splash=this.makeEffect(id,crystal?"crystal-impact":"solar-impact",
       point,crystal?480:420,{targetId:fx.targetId});
     // Energy is concentrated in a tiny tinted core, not a white disc.
@@ -591,6 +595,7 @@ export class EnergyHeroVFX {
         const end=target?.alive?this.world(target):fx.destination;
         const travel=smooth(t);
         fx.root.position.copyFrom(BABYLON.Vector3.Lerp(fx.origin,end,travel));
+        this.floorLight.updateProjectile(fx,fx.root.position,travel);
         const diff=end.subtract(fx.origin).normalize();
         fx.root.rotation.x=Math.PI/2;
         // align conical axis (+Y) with travel in the XZ plane
@@ -732,18 +737,22 @@ export class EnergyHeroVFX {
         mesh.visibility=clamp(alpha,0,1);
       }
     }
+    this.floorLight.update(now);
     this.stats.active=this.live.length;
   }
   destroy(fx){
+    this.floorLight.detach(fx);
     for(const e of fx.meshes)e.mesh.dispose();
     fx.root.dispose();
   }
   clear(){
     for(const fx of this.live)this.destroy(fx);
     this.live.length=0;
+    this.floorLight.clear();
   }
   dispose(){
     this.clear();
+    this.floorLight.dispose();
     for(const mat of this.materials.values())mat.dispose();
     this.materials.clear();
   }

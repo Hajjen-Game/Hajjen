@@ -85,6 +85,7 @@ function roleButton(role, info) {
     mutate(() => changeRole(build, role));
     selectedAbilityId = ROLES[role].locked[0];
     selectedFreeSlot = 0;
+    render();
     message("New " + info.name + " draft. Select a free slot to begin.");
   });
   return button;

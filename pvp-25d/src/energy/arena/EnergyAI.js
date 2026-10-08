@@ -208,17 +208,30 @@ export class EnergyAI {
     if(!target?.alive||this.isRooted(actor)||this.isIncapacitated(actor)){
       actor.lastMove={x:0,y:0};return;
     }
+    // Healers path to a wounded teammate if LOS or healing range is broken.
+    // Chasing an enemy while the patient bleeds behind a pillar is not triage.
+    const patient=actor.role==="healer"?this.triage(actor):null;
+    const saving=patient&&patient.hp/patient.maxHp<.8
+      &&(dist(actor,patient)>420||!this.hasLOS(actor,patient,m.arena));
+    if(saving)target=patient;
     const d=dist(actor,target),los=this.hasLOS(actor,target,m.arena);
     const closeThreat=m.opponents(actor).find(e=>e.role==="melee"&&dist(e,actor)<155);
-    let desired=actor.role==="melee"?77:actor.role==="caster"?285:300;
+    let desired=actor.role==="melee"?77:actor.role==="caster"?285:saving?240:300;
     // Ranged actors need to be inside the usable range, not parked at their
     // preferred distance with a pillar between them and the focus.
     desired=Math.min(desired,390);
     if(closeThreat&&actor.role!=="melee"&&d<250){
       const dx=actor.x-closeThreat.x,dy=actor.y-closeThreat.y;
-      const future={x:actor.x+dx*1.3,y:actor.y+dy*1.3};
-      if(this.canStand(future.x,future.y,m.arena,24)){
-        actor.aiPath=null;m.move(actor,dx,dy,dt);return;
+      const away={x:dx,y:dy};
+      const tangents=[{x:-dy,y:dx},{x:dy,y:-dx}];
+      // Don't pin a ranged character to the arena boundary. Pick a walkable
+      // escape vector with a small tangent component if directly blocked.
+      const directions=[away,...tangents].filter(v=>this.canStand(
+        actor.x+v.x*1.1,actor.y+v.y*1.1,m.arena,24));
+      if(directions.length){
+        actor.aiPath=null;
+        const direction=directions[0];
+        m.move(actor,direction.x,direction.y,dt);return;
       }
     }
     if(los&&d<=desired+35&&d>=Math.max(38,desired-90)){

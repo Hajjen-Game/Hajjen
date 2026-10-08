@@ -123,17 +123,17 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
       .closePath().fill({color:style.core,alpha:.92*opacity});
     line([{x:px-tx*3*k,y:py-ty*3*k},tip],style.core,1.15,.97);
   }else{
-    // Pyroblast: four flame temperature layers, flowing ribbons and a molten
-    // golden body. Sun Lance stays tighter and more directional than fire.
-    // More dark amber + molten gold, less continuous cream-white fill.
+    // Sun Lance's build-up is yellow-white, not fire-orange: the travel
+    // shares that luminous SOLAR YELLOW family while retaining all existing
+    // Pyroblast-inspired coils, embers, ribbon shapes and timing.
     // Tapered flowing amber ribbons with deliberate gaps: fire that wraps a
     // defined solar tip, not a broad opaque strip between the two orbs.
     ribbon(3,1,3.0,11.5,7.5,18,style.dim,.22);
     ribbon(11,1.12,2.5,8.5,5.5,18,style.c,.36);
-    ribbon(23,.94,1.1,4.4,3.2,18,0xffb035,.51);
+    ribbon(23,.94,1.1,4.4,3.2,18,0xffd84e,.51);
     ribbon(37,1.25,.4,2.4,1.7,18,style.core,.32);
     ribbon(101,1.70,1.5,9.5,8.5,16,style.dim,.09);
-    line([pt(0),pt(1)],0xffba3a,3.3,.35);
+    line([pt(0),pt(1)],0xffe45e,3.3,.35);
     line([pt(0),pt(1)],style.core,.83,.47);
     // A few independent embers give motion without obscuring the lance.
     for(let i=0;i<13;i++){
@@ -146,7 +146,7 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
       const radius=1.1+(i%4)*.43;
       dot(p.x,p.y+lift,radius*3.7,i%4===0?style.core:style.c,.14);
       dot(p.x,p.y+lift,radius,
-        i%5===0?style.core:i%2?0xffc34a:style.dim,.83);
+        i%5===0?style.core:i%2?0xffe477:style.dim,.83);
       if(i%3===0){
         line([{x:p.x,y:p.y+lift},{x:p.x-tx*10*k+nx*side*.15,
           y:p.y+lift-ty*10*k-3*k}],
@@ -163,7 +163,7 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
         pts.push(pt(f,sign*Math.sin(f*Math.PI*3+shift)
           *(5+lane*2.2)*k*Math.sin(f*Math.PI)));
       }
-      line(pts,lane===0?style.core:lane===1?0xffd04a:
+      line(pts,lane===0?style.core:lane===1?0xffe779:
         lane===2?style.c:style.dim,lane===0?2.1:1.35,lane===0?.66:.46);
     }
     // Pyroblast's rotating heating coils supply moving depth along the beam.
@@ -176,10 +176,10 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
         ring.push({x:p.x+tx*Math.cos(a)*along+nx*Math.sin(a)*across,
           y:p.y+ty*Math.cos(a)*along+ny*Math.sin(a)*across});
       }
-      line(ring,i%2?0xffbf4b:style.c,1.15,.34);
+      line(ring,i%2?0xffe06a:style.c,1.15,.34);
     }
-    // Three-level solar spearhead; the small hot-white front sits INSIDE
-    // a gold facet with a burnt-orange silhouette (like the build-up).
+    // Three-level solar spearhead. Ochre outer contour, strong YELLOW body,
+    // and a near-white golden tip matching the charged build-up.
     const front=21*k,back=14*k;
     const tip={x:px+tx*front,y:py+ty*front};
     g.moveTo(tip.x,tip.y)

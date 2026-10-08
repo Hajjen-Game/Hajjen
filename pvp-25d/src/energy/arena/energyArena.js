@@ -1,9 +1,9 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
 import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
-import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-combat-feedback2";
+import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-combat-feedback4";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-combat-feedback2";
-import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-feedback3";
+import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-feedback4";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
@@ -223,9 +223,11 @@ function renderActionBar(){
     node.classList.toggle("gcd",reason==="CASTING"||reason==="GLOBAL COOLDOWN");
     node.style.setProperty("--gcd-progress",Math.round(clamp((player.gcd||0)/1.3,0,1)*100)+"%");
     node.classList.toggle("queued",pendingCast?.ability===slot.id);
-    node.title=ability.name+" — "+ability.description+"\n"+(reason||"READY")
+    const newTitle=ability.name+" — "+ability.description+"\n"+(reason||"READY")
       +(slot.evolutionId?"\nEvolution: "+slot.evolutionId:"");
-    node.setAttribute("aria-label",ability.name+(reason?" · "+reason:""));
+    if(node.title!==newTitle)node.title=newTitle;
+    const newLabel=ability.name+(reason?" · "+reason:"");
+    if(node.getAttribute("aria-label")!==newLabel)node.setAttribute("aria-label",newLabel);
     cd.textContent=remaining>.02?Math.ceil(remaining)+"s":"";
   }
 }

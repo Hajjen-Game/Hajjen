@@ -1,6 +1,7 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
 import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v13-magecomplete";
-import { VfxController } from "./VfxController.js?v=20261008-frost3d1";
+import { VfxController } from "./VfxController.js?v=20261008-orb-hybrid1";
+import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid1";
 
 const S = 0.02;
 
@@ -61,6 +62,7 @@ export class BabylonRenderer {
     this.gui = null;
     this.actorRender = null;
     this.vfx = null;
+    this.pixiOverlay = null;
     this.backend = "initializing";
     this.ready = false;
     this.initError = null;
@@ -168,6 +170,18 @@ export class BabylonRenderer {
     );
 
     this.buildScene();
+    if(this.orbMode){
+      this.pixiOverlay=new OrbPixiHybridOverlay(this);
+      try{
+        await this.pixiOverlay.init();
+      }catch(error){
+        // Never block arena gameplay if the Pixi CDN or a second graphics
+        // context is unavailable. The original Babylon spells remain a fallback.
+        console.warn("Orb Pixi hybrid unavailable: using Babylon fallback",error);
+        this.pixiOverlay?.dispose();
+        this.pixiOverlay=null;
+      }
+    }
     this.ready = true;
     this.initError = null;
     this.lastTime = performance.now();
@@ -1563,6 +1577,7 @@ export class BabylonRenderer {
     if (game.vfx?.game !== game) game.vfx?.bindGame?.(game);
 
     this.actorRender.sync(game, now);
+    this.vfx.usePixiProjectiles=Boolean(this.pixiOverlay?.ready);
     this.vfx.consume(game.vfx?.events || []);
     this.vfx.update(dt);
     this.animateTorches(now);
@@ -1571,6 +1586,15 @@ export class BabylonRenderer {
     this.syncText(game);
     this.syncDebug(game);
     this.scene.render();
+    if(this.pixiOverlay?.ready){
+      try{
+        this.pixiOverlay.render(game);
+      }catch(error){
+        console.error("Orb Pixi hybrid failed, reverting to Babylon VFX",error);
+        this.pixiOverlay.dispose();
+        this.pixiOverlay=null;
+      }
+    }
     this.checkWebGpuRenderHealth();
   }
 

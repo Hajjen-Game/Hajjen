@@ -23,6 +23,10 @@ export class OrbPixiHybridOverlay{
     this.scene=babylon.scene;
     this.camera=babylon.camera;
     this.actorViews=new Map();
+    this.combatTextViews=new Map();
+    // Persistent projected proxies are essential: Pixi's original text
+    // renderer keys animation state by the same event object every frame.
+    this.combatTextProxies=new Map();
     this.width=0;this.height=0;this.ready=false;
   }
   async init(){
@@ -48,10 +52,15 @@ export class OrbPixiHybridOverlay{
         canvas:view,width:this.width,height:this.height,
         backgroundAlpha:0,antialias:true,autoStart:false,
         preference:"webgl",autoDensity:true,
-        resolution:Math.min(2,Math.max(1,window.devicePixelRatio||1)),
+        // Native Pixi 3v3 uses >=1.5. DPR=1 previously made Orb VFX
+        // noticeably softer than the original at gameplay zoom.
+        resolution:Math.min(2,Math.max(1.5,Number(window.devicePixelRatio)||1)),
       });
       this.fxStage=new PIXI.Container();
       this.app.stage.addChild(this.fxStage);
+      this.combatTextLayer=new PIXI.Container();
+      this.combatTextLayer.label="orb-combat-text";
+      this.app.stage.addChild(this.combatTextLayer);
       this.ready=true;
     }catch(error){
       view.remove();
@@ -198,6 +207,38 @@ export class OrbPixiHybridOverlay{
       });
     }
   }
+  projectCombatTexts(game,actorMap){
+    const active=new Set(game.floatingTexts||[]);
+    for(const item of this.combatTextProxies.keys()){
+      if(!active.has(item))this.combatTextProxies.delete(item);
+    }
+    const projected=[];
+    for(const item of active){
+      let proxy=this.combatTextProxies.get(item);
+      if(!proxy){
+        proxy={...item};
+        this.combatTextProxies.set(item,proxy);
+      }
+      const actor=game.getActor?.(item.actorId)
+        ||(game.actors||[]).find(a=>a.id===item.actorId);
+      if(!actor)continue;
+      // Anchor to the affected character in 3D world-space, never to the
+      // 2D HUD centre. Use a height above the upper half of its glass body.
+      const point=this.at(actor.x,actor.y,1.34);
+      if(!point)continue;
+      const lane=Math.max(0,
+        (actor.y-actor.radius-8)-(Number(item.y)||0)
+      );
+      proxy.x=point.x;
+      proxy.y=point.y-13-clamp(lane*.65,0,23);
+      proxy.remainingMs=item.remainingMs;
+      proxy.totalMs=item.totalMs;
+      proxy.text=item.text;
+      proxy.type=item.type;
+      projected.push(proxy);
+    }
+    return projected;
+  }
   render(game){
     if(!this.ready||!this.scene||!this.camera)return;
     this.resize();
@@ -212,8 +253,10 @@ export class OrbPixiHybridOverlay{
       view.root.visible=true;
       // Pixi's detailed buildup is inside the projected sphere; Babylon
       // still supplies the actual volumetric core and rotating 3D energy.
-      view.mask.clear().circle(0,0,radius*.89).fill(0xffffff);
-      view.castLayer.scale.set(clamp((radius*.82)/(radius+33),.23,.57));
+      view.mask.clear().circle(0,0,radius*.94).fill(0xffffff);
+      // The first hybrid pass reduced detailed Pixi runes too far.
+      // Preserve the clear glass outline but show more of the spell geometry.
+      view.castLayer.scale.set(clamp((radius*.93)/(radius+31),.26,.64));
       const selected=game.player?.targetId===actor.id;
       this.updateStatusBars(view,actor,radius,selected);
       actorMap.set(actor.id,{
@@ -261,6 +304,7 @@ export class OrbPixiHybridOverlay{
       actors:[...actorMap.values()],
       getActor:id=>actorMap.get(id),
       vfx:{effects},
+      floatingTexts:this.projectCombatTexts(game,actorMap),
       elapsedSeconds:Number(game.elapsedSeconds)||0,
     };
     // These are the actual Pixi 3v3 methods, in their original order.
@@ -282,12 +326,15 @@ export class OrbPixiHybridOverlay{
     original.updateNativeProjectileVfx2.call(this,projectedGame);
     original.updateNativeSpellAnimationPolish.call(this,projectedGame);
     original.updateNativeRangedShowcaseVfx.call(this,projectedGame);
+    original.updateNativeFloatingCombatText.call(this,projectedGame);
     this.app.render();
   }
   dispose(){
     this.ready=false;
     for(const view of this.actorViews.values())view.root.destroy({children:true});
     this.actorViews.clear();
+    this.combatTextViews.clear();
+    this.combatTextProxies.clear();
     this.app?.destroy(true,{children:true});
     this.view?.remove();
   }

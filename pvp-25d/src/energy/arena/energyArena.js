@@ -10,6 +10,14 @@ const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
 let match=null,renderer=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let pendingCast=null; // WoW-style short ability queue, resolved against current target.
+const frameCache=new Map(),actionNodes=[];
+function clearUiCaches(){
+  frameCache.clear();actionNodes.length=0;
+  $("friendly-frames").replaceChildren();
+  $("enemy-frames").replaceChildren();
+  $("action-bar").replaceChildren();
+}
 const arena=VERDANT_CRUCIBLE;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
@@ -48,7 +56,7 @@ function showGate(){
   $("combat-screen").hidden=true;$("build-gate").hidden=false;
   $("scene-error").hidden=true;
   if(renderer){renderer.dispose();renderer=null;}
-  keys.clear();
+  keys.clear();pendingCast=null;
   renderBuildChoices();
 }
 function start(build){
@@ -62,7 +70,8 @@ function start(build){
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
     if(renderer)renderer.dispose();
     renderer=new EnergyArenaRenderer($("energy-canvas"),arena);
-    last=performance.now();lastUi=0;lastNotice="";keys.clear();
+    last=performance.now();lastUi=0;lastNotice="";keys.clear();pendingCast=null;
+    clearUiCaches();
     renderUI();
     match.log("Energy Arena ready. Tab targets enemies; F1–F3 targets allies.");
   }catch(error){
@@ -105,57 +114,113 @@ function castSlot(index){
   const ability=match.loadout.abilitySlots[index]?.id;
   if(!ability)return;
   match.dashDirection=directionalVector();
-  const success=match.castAbility(match.player,ability,match.player.targetId);
-  if(!success){const next=match.notices[0];if(next)flash(next.text);}
+  const p=match.player;
+  const reason=match.reason(p,ability,p.targetId);
+  const waiting=reason==="CASTING"||reason==="GLOBAL COOLDOWN";
+  const queueTime=Math.max(p.gcd||0,(p.cast?.remainingMs||0)/1000);
+  if(waiting&&queueTime<=0.45){
+    pendingCast={index,ability,targetId:p.targetId};
+    flash(ABILITY_BY_ID[ability].name+" · QUEUED");
+    return;
+  }
+  if(reason){
+    pendingCast=null;
+    flash(ABILITY_BY_ID[ability].name+" · "+reason+(waiting?" "+queueTime.toFixed(1)+"s":""));
+    return;
+  }
+  pendingCast=null;
+  const success=match.castAbility(p,ability,p.targetId);
+  if(success){
+    flash(ABILITY_BY_ID[ability].name+(ABILITY_RULES[ability]?.cast?" · CASTING":" · ACTIVATED"));
+    renderUI();
+  } else flash(ABILITY_BY_ID[ability].name+" · COULD NOT CAST");
+}
+function updateCastQueue(){
+  if(!pendingCast||!match||!match.player.alive||match.ended)return;
+  const p=match.player,request=pendingCast;
+  const reason=match.reason(p,request.ability,request.targetId);
+  if(reason==="CASTING"||reason==="GLOBAL COOLDOWN")return;
+  pendingCast=null;
+  if(reason){flash(ABILITY_BY_ID[request.ability].name+" · "+reason);return;}
+  match.dashDirection=directionalVector();
+  if(match.castAbility(p,request.ability,request.targetId)){
+    flash(ABILITY_BY_ID[request.ability].name+" · CASTING");
+  }
 }
 function flash(message){
   if(message===lastNotice)return;
   lastNotice=message;
+  if(flash.resetNotice)clearTimeout(flash.resetNotice);
+  flash.resetNotice=setTimeout(()=>{lastNotice="";},500);
   const node=$("combat-flash");node.textContent=message;node.style.opacity="1";
   clearTimeout(flash.timer);
   flash.timer=setTimeout(()=>node.style.opacity="0",1400);
 }
-function frame(actor){
-  const button=element("button","unit-frame"+(match.player.targetId===actor.id?" targeted":"")+(actor.alive?"":" dead"));
-  button.type="button";button.disabled=!actor.alive;
+function createFrame(actor){
+  const button=element("button","unit-frame");button.type="button";
+  button.dataset.actorId=actor.id;
   const heading=element("div","unit-frame-header");
-  heading.append(element("span","",actor.name),element("span","",actor.role.toUpperCase()));
-  const hp=element("div","hp-track");
-  const fill=element("div","hp-fill");fill.style.width=clamp(actor.healthPct*100,0,100)+"%";
-  hp.append(fill);
-  button.append(heading,element("div","unit-frame-sub",
-    actor.cast?ABILITY_BY_ID[actor.cast.spellId]?.name+" · CASTING":actor.statuses.some(s=>s.kind==="incapacitate")?"CONTROLLED":actor.statuses.some(s=>s.kind==="root")?"ROOTED":"ENERGY ORB"),
-    hp,element("div","hp-values",Math.ceil(actor.hp)+" / "+actor.maxHp+" HP"+(actor.shield>0?" · SHIELD "+Math.ceil(actor.shield):"")));
+  const name=element("span","",actor.name),role=element("span","",actor.role.toUpperCase());
+  heading.append(name,role);
+  const sub=element("div","unit-frame-sub");
+  const hp=element("div","hp-track"),fill=element("div","hp-fill");hp.append(fill);
+  const value=element("div","hp-values");
+  button.append(heading,sub,hp,value);
   button.addEventListener("click",()=>{target(actor.id);renderUI();});
+  frameCache.set(actor.id,{button,sub,fill,value});
   return button;
 }
 function renderFrames(){
-  const friendly=$("friendly-frames"),enemy=$("enemy-frames");
-  friendly.replaceChildren();enemy.replaceChildren();
   for(const actor of match.actors){
-    (actor.team==="friendly"?friendly:enemy).append(frame(actor));
+    let view=frameCache.get(actor.id);
+    if(!view){
+      const button=createFrame(actor);
+      (actor.team==="friendly"?$("friendly-frames"):$("enemy-frames")).append(button);
+      view=frameCache.get(actor.id);
+    }
+    const {button,sub,fill,value}=view;
+    button.classList.toggle("targeted",match.player.targetId===actor.id);
+    button.classList.toggle("dead",!actor.alive);
+    button.disabled=!actor.alive;
+    const casting=actor.cast;
+    sub.textContent=casting?((ABILITY_BY_ID[casting.spellId]?.name||"ENERGY")+" · "+Math.max(0,casting.remainingMs/1000).toFixed(1)+"s")
+      :actor.statuses.some(s=>s.kind==="incapacitate")?"CONTROLLED"
+      :actor.statuses.some(s=>s.kind==="root")?"ROOTED":"ENERGY ORB";
+    fill.style.width=clamp(actor.healthPct*100,0,100)+"%";
+    value.textContent=Math.ceil(actor.hp)+" / "+actor.maxHp+" HP"+(actor.shield>0?" · SHIELD "+Math.ceil(actor.shield):"");
   }
 }
-function actionButton(slot,index){
+function createActionButton(slot,index){
   const ability=ABILITY_BY_ID[slot.id];
-  const rule=ABILITY_RULES[slot.id];
-  const player=match.player;
-  const cd=player.cooldowns[slot.id]||0;
-  const available=match.reason(player,slot.id,player.targetId);
-  const node=element("button","spell-button"+(cd>0?" cooling":"")+(available?" disabled":""));
-  node.type="button";
+  const node=element("button","spell-button");node.type="button";
   node.style.setProperty("--tone",DISCIPLINES[ability.discipline].color);
-  node.title=ability.name+" — "+ability.description+"\n"+(available||"READY")+(slot.evolutionId?"\nEvolution: "+slot.evolutionId:"");
-  node.setAttribute("aria-label",hotkeys[index]+": "+ability.name+(available?" · "+available:""));
   const icon=element("span","spell-icon",glyph[ability.discipline]);
-  node.append(element("span","key-label",hotkeys[index]),icon,element("span","spell-label",ability.name));
-  if(cd>0)node.append(element("span","cd-value",Math.ceil(cd)+"s"));
+  const cd=element("span","cd-value");
+  node.append(element("span","key-label",hotkeys[index]),icon,
+    element("span","spell-label",ability.name),cd);
   node.addEventListener("click",()=>castSlot(index));
+  actionNodes[index]={node,cd,ability,slot};
   return node;
 }
 function renderActionBar(){
-  const root=$("action-bar");root.replaceChildren();
-  match.loadout.abilitySlots.forEach((s,i)=>root.append(actionButton(s,i)));
+  const root=$("action-bar");
+  if(actionNodes.length!==match.loadout.abilitySlots.length){
+    root.replaceChildren();actionNodes.length=0;
+    match.loadout.abilitySlots.forEach((slot,index)=>root.append(createActionButton(slot,index)));
+  }
+  const player=match.player;
+  for(const entry of actionNodes){
+    const {node,cd,ability,slot}=entry;
+    const remaining=player.cooldowns[slot.id]||0;
+    const reason=match.reason(player,slot.id,player.targetId);
+    node.classList.toggle("cooling",remaining>0);
+    node.classList.toggle("disabled",!!reason);
+    node.classList.toggle("queued",pendingCast?.ability===slot.id);
+    node.title=ability.name+" — "+ability.description+"\n"+(reason||"READY")
+      +(slot.evolutionId?"\nEvolution: "+slot.evolutionId:"");
+    node.setAttribute("aria-label",ability.name+(reason?" · "+reason:""));
+    cd.textContent=remaining>.02?Math.ceil(remaining)+"s":"";
+  }
 }
 function renderUI(){
   if(!match)return;
@@ -189,6 +254,7 @@ function frameLoop(now){
     const y=Number(keys.has("w"))-Number(keys.has("s"));
     match.move(match.player,x,y,dt);
     match.update(dt);
+    updateCastQueue();
   }
   for(const event of match.consumeEvents())renderer.spawnEffect(event,match);
   try{renderer.render(match)}
@@ -198,7 +264,7 @@ function frameLoop(now){
     match=null;
     return;
   }
-  if(now-lastUi>110){renderUI();lastUi=now;}
+  if(now-lastUi>85){renderUI();lastUi=now;}
 }
 $("energy-canvas").addEventListener("click",event=>{
   if(!match||!renderer)return;

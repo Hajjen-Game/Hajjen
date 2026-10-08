@@ -705,16 +705,28 @@ export class EnergyHeroVFX {
             base.z*(1+t*.12));
           alpha=Math.min(.85,t*8,(1-t)*1.60);
         }else if(fx.type==="crystal-impact"){
-          mesh.position.set(base.x*(1+t*.40),base.y*(1+t*.28),
-            base.z*(1+t*.40));
-          mesh.scaling.setAll(.62+t*.48);
-          alpha=Math.min(.85,t*10,(1-t)*1.55);
+          // The white spear through the orb is the INITIAL penetration, not
+          // a horizontal line still floating after the energy burst.
+          if(idx<=2){
+            mesh.scaling.setAll(.75+1.18*smooth(t/.21));
+            alpha=Math.min(1,t*35)*(1-smooth((t-.07)/.36));
+          }else{
+            mesh.position.set(base.x*(1+t*.94),base.y*(1+t*.72),
+              base.z*(1+t*.94));
+            mesh.scaling.setAll(.80+.30*smooth(t/.28));
+            alpha=Math.min(.95,t*16)*(1-smooth((t-.48)/.47));
+          }
         }else if(fx.type==="solar-impact"){
-          mesh.position.set(base.x*(1+t*.28),base.y*(1+t*.20),
-            base.z*(1+t*.28));
-          mesh.scaling.setAll(.72+.34*smooth(t));
-          mesh.rotation.z+=.009*(idx%2?1:-1);
-          alpha=Math.min(.85,t*10,(1-t)*1.45);
+          if(idx<=2){
+            mesh.scaling.setAll(.80+1.26*smooth(t/.23));
+            alpha=Math.min(1,t*35)*(1-smooth((t-.06)/.37));
+          }else{
+            mesh.position.set(base.x*(1+t*.92),base.y*(1+t*.59),
+              base.z*(1+t*.92));
+            mesh.scaling.setAll(.78+.36*smooth(t/.32));
+            mesh.rotation.z+=.009*(idx%2?1:-1);
+            alpha=Math.min(.91,t*18)*(1-smooth((t-.48)/.47));
+          }
         }else if(fx.type==="gravity-impact"){
           mesh.position.set(base.x*(1+t*.28),base.y+Math.sin(t*Math.PI)*(.025+(idx%4)*.015),
             base.z*(1+t*.28));

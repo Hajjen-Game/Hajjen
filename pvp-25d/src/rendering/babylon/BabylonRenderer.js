@@ -1,7 +1,7 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
 import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v13-magecomplete";
 import { VfxController } from "./VfxController.js?v=20261008-orb-hybrid1";
-import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid1";
+import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid2-allspells";
 
 const S = 0.02;
 

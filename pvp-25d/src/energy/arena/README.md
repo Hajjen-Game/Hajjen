@@ -330,6 +330,35 @@ Frostbolt/Pyroblast-inspired projectile choreography or glass build-ups:
   and projectile animation function remain unchanged. Browser aesthetics,
   bloom/compositing and device performance still require visual validation.
 
+## Projectile Head & Colour Weight Pass 12 — original palette, clear nose
+
+Following screenshots comparing Crystal Bolt / Sun Lance projectiles against
+their own build-ups and the neon-rich Null Prison, the key issue turned out
+to be **weight and visibility**, not the original palette.
+
+- Fixed a concrete rendering bug: `drawEnergyProjectile()` AND the additive
+  glow overlay previously faded between **90% and 100%** of projectile travel,
+  removing the shaped nose *before the impact started*. Both now remain
+  fully visible through the last pre-contact frame; the impact takes over.
+- Both spells now have visibly separate **dark outer facet, saturated
+  coloured main facet, and small near-white leading-edge facet**. Crystal
+  Bolt reads as a sharp ice spear; Sun Lance as a golden solar spearhead.
+  Their underlying winding ribbons, particles, movement timing, and
+  authored build-ups are unchanged.
+- The original `COLORS` shades once again drive the two hit events, with
+  class-coloured additive bloom as a complement. White is concentrated
+  at the leading head and small specular tips instead of continuously
+  filling an entire trail. Saturated body and dark edge are more visible.
+- Travel glow is now deliberately **weaker along the tail** and more
+  concentrated around the travelling head. Impact has a smaller colour
+  bloom and a sharp short core, without reinstating circular sigils.
+- Null Prison, Reactive Thread and every other spell are untouched.
+- Verified directly by drawing both old and new head geometry at six
+  progress values: the old head had **zero strong facets at 0.95–1.00**
+  travel, while the new head retained its coloured and white tip at all
+  sampled values. Static checks confirm charge/build-up code untouched.
+  Real browser visuals and FPS remain to be reviewed.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

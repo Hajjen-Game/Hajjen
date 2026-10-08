@@ -114,7 +114,7 @@ export class EnergyPixiVFXOverlay {
     const duration=event.type==="windup"?CAST_MS[spellId]
       :event.type==="control"?1300:event.type==="shield"?1400
       :event.type==="ability"?1200
-      :isProjectileContact?contactMs+(spellId==="crystal-bolt"?560:480)
+      :isProjectileContact?contactMs+(spellId==="crystal-bolt"?215:190)
       :isSignatureHit?contactMs+750:750;
     // Freeze release in world space; a moving caster cannot pull its old
     // projectile tail along, just like the original Pixi 3v3 spells.
@@ -178,18 +178,20 @@ export class EnergyPixiVFXOverlay {
       const p=travel*travel*(3-2*travel);
       const tip={x:from.x+dx*p,y:from.y+dy*p};
       const gained=length*p;
-      const tail=Math.min(gained*.72,(e.spellId==="crystal-bolt"?115:134)*k);
+      const tail=Math.min(gained*.68,(e.spellId==="crystal-bolt"?79:91)*k);
       const start={x:tip.x-tx*tail,y:tip.y-ty*tail};
       // The tip must remain visible right until the hit. Earlier the glow
       // faded BEFORE contact, at the same time as the original sprite head.
       const alpha=clamp(travel/.10,0,1);
       // Head > body > tail; softer, darker wake instead of a uniform beam.
-      drawLine(g,[start,tip],palette.dim,11,.24*alpha);
-      drawLine(g,[start,tip],palette.glow,7.5,.17*alpha);
-      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?12:15,
-        palette.glow,.51*alpha);
-      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?5:6,
-        palette.c,.44*alpha);
+      drawLine(g,[start,tip],palette.dim,7,.16*alpha);
+      drawLine(g,[start,tip],palette.glow,4,.16*alpha);
+      // Soft colour only behind the small faceted spearhead. The hot,
+      // detailed shape is still drawn sharply by EnergyPixiProjectiles.
+      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?8:10,
+        palette.glow,.42*alpha);
+      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?3.3:4.1,
+        palette.c,.38*alpha);
       // Near-white specular facet sits at the LEADING edge of the new head.
       const tipFront=e.spellId==="crystal-bolt"?19:21;
       const headTip={x:tip.x+tx*tipFront*k,y:tip.y+ty*tipFront*k};
@@ -201,36 +203,19 @@ export class EnergyPixiVFXOverlay {
         .closePath().fill({color:palette.core,alpha:.64*alpha});
       circle(hot,headTip.x,headTip.y,1.7,palette.core,.86*alpha);
     }else{
+      // Only a very short light snap. The compact Pixi impact routine
+      // supplies the directional splinters / embers; NO second bloom ring
+      // or curling streak effect around the victim.
       const phase=clamp((now-travelMs)/Math.max(1,e.duration-travelMs),0,1);
-      const ease=v=>{const q=clamp(v,0,1);return q*q*(3-2*q);};
-      const flash=1-ease((phase-.035)/.23);
-      const burst=ease(phase/.10)*(1-ease((phase-.34)/.37));
-      const tail=1-ease((phase-.50)/.45);
-      // Glowing impact without a graphic ring or oversized pale disk.
-      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?14:17,
-        palette.glow,.46*flash+.24*burst);
-      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?7:8,
-        palette.c,.39*flash+.18*burst);
-      const side=e.spellId==="crystal-bolt"?17:22;
-      for(const sign of [-1,1]){
-        const pts=[];
-        for(let j=0;j<=9;j++){
-          const f=j/9,a=phase*(e.spellId==="crystal-bolt"?8:11)+f*3.3+sign;
-          const radius=(7+f*side)*ease(phase/.27);
-          pts.push({x:to.x+tx*f*23*k+nx*sign*radius*k+
-            nx*Math.sin(a)*2*k,
-            y:to.y+ty*f*23*k+ny*sign*radius*k+
-            ny*Math.sin(a)*2*k});
-        }
-        drawLine(g,pts,palette.glow,5.5,.32*burst+.08*tail);
-      }
-      circle(hot,to.x,to.y,e.spellId==="crystal-bolt"?3.2:3.8,
-        palette.core,.95*flash+.38*burst);
-      // Core streak follows the incoming axis rather than becoming a star.
+      const fade=1-smooth((phase-.015)/.64);
+      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?7:9,
+        palette.glow,.27*fade);
+      circle(hot,to.x,to.y,e.spellId==="crystal-bolt"?2.0:2.4,
+        palette.core,.86*fade);
       drawLine(hot,[
-        {x:to.x-tx*13*k,y:to.y-ty*13*k},
-        {x:to.x+tx*17*k,y:to.y+ty*17*k}],
-        palette.core,1.5,.72*flash+.21*burst);
+        {x:to.x-tx*6*k,y:to.y-ty*6*k},
+        {x:to.x+tx*8*k,y:to.y+ty*8*k}],
+        palette.core,1.1,.60*fade);
     }
   }
   stroke(g,points,color,width,alpha=1){

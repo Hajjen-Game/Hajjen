@@ -291,6 +291,10 @@ export class OrbPixiHybridOverlay{
         :this.width/1280;
       return {
         ...e,
+        // In the Orb hybrid, all spell projectiles must visibly make contact
+        // with their intended target, even on a combat miss/resist. The
+        // simulation and MISS combat text still use the original result.
+        missed:e.type==="spell"?false:e.missed,
         sourceX:source?.x??e.sourceX,sourceY:source?.y??e.sourceY,
         targetX:target?.x??e.targetX,targetY:target?.y??e.targetY,
         x:point?.x??e.x,y:point?.y??e.y,

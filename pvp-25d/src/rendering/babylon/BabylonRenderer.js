@@ -334,6 +334,24 @@ export class BabylonRenderer {
     this.glow.intensity = this.orbMode ? 0.40 : 0.18;
 
     this.installAmbientOcclusion();
+    // The Orb Arena uses subpixel cyan geometry on nearly black glass.
+    // Apply modest FXAA to BABYLON ONLY; Pixi combat and spell layers stay
+    // independently sharp and do not go through this post-process.
+    if(this.orbMode&&BABYLON.FxaaPostProcess){
+      try{
+        this.orbFxaa=new BABYLON.FxaaPostProcess(
+          "orb-edge-antialias",
+          1.0,
+          this.camera,
+          BABYLON.Texture.BILINEAR_SAMPLINGMODE,
+          this.engine,
+          false,
+        );
+      }catch(error){
+        console.warn("Optional Orb edge antialiasing unavailable",error);
+        this.orbFxaa=null;
+      }
+    }
   }
 
   installAmbientOcclusion() {
@@ -378,8 +396,10 @@ export class BabylonRenderer {
 
     this.scene.clearColor = BABYLON.Color4.FromHexString("#000107ff");
     this.scene.ambientColor = new BABYLON.Color3(0.018,0.024,0.036);
-    this.scene.imageProcessingConfiguration.contrast = 1.24;
-    this.scene.imageProcessingConfiguration.exposure = 0.82;
+    // Preserve contrast in the dark arena, but avoid excessively hard cyan
+    // edges against near-black and let the antialias pass smooth them.
+    this.scene.imageProcessingConfiguration.contrast = 1.13;
+    this.scene.imageProcessingConfiguration.exposure = 0.84;
 
     const makeGlass=(name,hex,alpha,edgeStrength=0.85)=>{
       const m=new BABYLON.StandardMaterial(name,this.scene);
@@ -419,16 +439,16 @@ export class BabylonRenderer {
       "orb-glass-edge-mat",
       this.scene,
     );
-    edgeMat.diffuseColor=new BABYLON.Color3(0.40,0.78,1.00);
-    edgeMat.emissiveColor=new BABYLON.Color3(0.12,0.78,1.00);
+    edgeMat.diffuseColor=new BABYLON.Color3(0.32,0.69,0.91);
+    edgeMat.emissiveColor=new BABYLON.Color3(0.09,0.48,0.68);
     edgeMat.specularColor=new BABYLON.Color3(0.94,0.98,1.00);
     edgeMat.specularPower=220;
     edgeMat.alpha=1.00;
     edgeMat.disableLighting=true;
 
     const hotEdgeMat=edgeMat.clone("orb-glass-hot-edge-mat");
-    hotEdgeMat.diffuseColor=new BABYLON.Color3(0.82,0.95,1.00);
-    hotEdgeMat.emissiveColor=new BABYLON.Color3(0.34,0.86,1.00);
+    hotEdgeMat.diffuseColor=new BABYLON.Color3(0.63,0.86,0.94);
+    hotEdgeMat.emissiveColor=new BABYLON.Color3(0.22,0.61,0.77);
     hotEdgeMat.specularColor=BABYLON.Color3.White();
     hotEdgeMat.alpha=0.92;
 
@@ -469,7 +489,7 @@ export class BabylonRenderer {
     const pad=a.boundaryPadding*S;
     const innerW=w-pad*2;
     const innerH=h-pad*2;
-    const rail=0.012;
+    const rail=0.026;
     const railY=0.085;
 
     const frameGlassMat=makeGlass(
@@ -499,28 +519,25 @@ export class BabylonRenderer {
     }
 
     const makeRail=(name,x,z,width,depth,y=railY,material=edgeMat)=>{
-      const mesh=BABYLON.MeshBuilder.CreateBox(
-        name,
-        {width,depth,height:0.032},
+      // Rounded geometry gives a coherent antialiased silhouette even when
+      // viewed obliquely; the old razor-thin boxes shimmered like paint lines.
+      const acrossX=width>=depth;
+      const span=acrossX?width:depth;
+      const radius=Math.max(.010,(acrossX?depth:width)*.5);
+      const path=acrossX
+        ?[new BABYLON.Vector3(x-span*.5,y,z),new BABYLON.Vector3(x+span*.5,y,z)]
+        :[new BABYLON.Vector3(x,y,z-span*.5),new BABYLON.Vector3(x,y,z+span*.5)];
+      const mesh=BABYLON.MeshBuilder.CreateTube(
+        name,{path,radius,tessellation:10,cap:BABYLON.Mesh.CAP_ROUND},
         this.scene,
       );
-      mesh.position.set(x,y,z);
       mesh.material=material;
       mesh.isPickable=false;
       return mesh;
     };
 
-    const makeHotRail=(name,x,z,width,depth,y=railY)=>{
-      const mesh=BABYLON.MeshBuilder.CreateBox(
-        name,
-        {width,depth,height:0.015},
-        this.scene,
-      );
-      mesh.position.set(x,y,z);
-      mesh.material=hotEdgeMat;
-      mesh.isPickable=false;
-      return mesh;
-    };
+    const makeHotRail=(name,x,z,width,depth,y=railY)=>
+      makeRail(name,x,z,width,depth,y,hotEdgeMat);
 
     // Crisp top edge + a faint inner highlight give the glass frame real thickness.
     makeRail("orb-frame-n",w*0.5,pad,innerW,rail,0.145);
@@ -528,7 +545,7 @@ export class BabylonRenderer {
     makeRail("orb-frame-w",pad,h*0.5,rail,innerH,0.145);
     makeRail("orb-frame-e",w-pad,h*0.5,rail,innerH,0.145);
 
-    const hotRail=0.0045;
+    const hotRail=0.011;
     makeHotRail("orb-frame-hot-n",w*0.5,pad,innerW,hotRail,0.158);
     makeHotRail("orb-frame-hot-s",w*0.5,h-pad,innerW,hotRail,0.158);
     makeHotRail("orb-frame-hot-w",pad,h*0.5,hotRail,innerH,0.158);
@@ -567,8 +584,8 @@ export class BabylonRenderer {
 
     const makeObstacleEdges=(o,x,z,ow,od)=>{
       const topY=1.305;
-      const vThickness=0.009;
-      const topRail=0.010;
+      const vThickness=0.023;
+      const topRail=0.024;
 
       makeRail(
         "orb-los-edge-n:"+o.id,
@@ -603,7 +620,7 @@ export class BabylonRenderer {
         topY,
       );
 
-      const hot=0.0040;
+      const hot=0.011;
       makeHotRail("orb-los-hot-n:"+o.id,x,z-od*0.5,ow,hot,topY+0.014);
       makeHotRail("orb-los-hot-s:"+o.id,x,z+od*0.5,ow,hot,topY+0.014);
       makeHotRail("orb-los-hot-w:"+o.id,x-ow*0.5,z,hot,od,topY+0.014);
@@ -616,16 +633,19 @@ export class BabylonRenderer {
         [x+ow*0.5,z+od*0.5],
       ];
       corners.forEach(([cx,cz],i)=>{
-        const post=BABYLON.MeshBuilder.CreateBox(
+        const post=BABYLON.MeshBuilder.CreateTube(
           "orb-los-post:"+o.id+":"+i,
           {
-            width:vThickness,
-            depth:vThickness,
-            height:1.27,
+            path:[
+              new BABYLON.Vector3(cx,.035,cz),
+              new BABYLON.Vector3(cx,1.305,cz),
+            ],
+            radius:vThickness*.5,
+            tessellation:10,
+            cap:BABYLON.Mesh.CAP_ROUND,
           },
           this.scene,
         );
-        post.position.set(cx,0.67,cz);
         post.material=edgeMat;
         post.isPickable=false;
       });

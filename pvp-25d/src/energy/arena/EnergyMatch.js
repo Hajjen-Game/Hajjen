@@ -172,7 +172,7 @@ export class EnergyMatch {
     const scaled=Math.max(0,Math.round(amount*(1-this.dampening)));
     const given=Math.min(target.maxHp-target.hp,scaled);
     target.hp+=given;target.healthPct=target.hp/target.maxHp;
-    if(given)this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,spellId,amount:given});
+    this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,spellId,amount:given,overheal:scaled-given});
   }
   damage(target,amount,source,spellId){
     if(!target?.alive)return;
@@ -186,6 +186,7 @@ export class EnergyMatch {
     this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,amount:value,absorbed});
     if(value>0){
       // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
+      if(target.statuses.some(s=>s.kind==="incapacitate"))this.emit({type:"break",actorId:source.id,targetId:target.id,spellId});
       target.statuses=target.statuses.filter(s=>s.kind!=="incapacitate");
       const thread=target.statuses.find(s=>s.kind==="reactive-thread");
       if(thread&&thread.procGate<=0){
@@ -230,7 +231,7 @@ export class EnergyMatch {
       actor.x=x;actor.y=y;
     }
     actor.dashGate=1.3;
-    this.emit({type:"dash",actorId:actor.id,spellId:"vector-rush"});
+    this.emit({type:"dash",actorId:actor.id,spellId:actor.dashSpellId||"vector-rush"});
   }
   addStatus(target,entry) {
     target.statuses=target.statuses.filter(s=>s.kind!==entry.kind||s.sourceId!==entry.sourceId);
@@ -258,9 +259,11 @@ export class EnergyMatch {
     }
     if(r.mode==="dash"){
       const direction=actor.control==="player"?this.dashDirection||{x:1,y:0}:{x:actor.team==="friendly"?1:-1,y:0};
+      actor.dashSpellId=spellId;
       this.dash(actor,direction,r.distance);
     }else if(r.mode==="rush"){
       const delta={x:target.x-actor.x,y:target.y-actor.y};
+      actor.dashSpellId=spellId;
       this.dash(actor,delta,Math.max(0,distance(actor,target)-65));
     }else if(r.mode==="interrupt"){
       if(target.cast){
@@ -272,8 +275,15 @@ export class EnergyMatch {
         this.log(actor.name+" interrupted "+target.name);
       }
     }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
-    else if(r.mode==="guard")this.addStatus(target,{kind:"guard",remaining:r.duration,amount:r.amount,sourceId:actor.id});
-    else if(r.mode==="shield"){target.shield=Math.max(target.shield,r.amount);this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});}
+    else if(r.mode==="guard"){
+      this.addStatus(target,{kind:"guard",remaining:r.duration,amount:r.amount,sourceId:actor.id});
+      this.emit({type:"guard",actorId:actor.id,targetId:target.id,spellId});
+    }
+    else if(r.mode==="shield"){
+      target.shield=Math.max(target.shield,r.amount);
+      this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});
+      this.emit({type:"shield",actorId:actor.id,targetId:target.id,spellId,amount:r.amount});
+    }
     else if(r.mode==="damage"){
       let amount=r.amount;
       if(r.requiresDebuff&&this.debuffed(target))amount*=1.25;
@@ -300,9 +310,13 @@ export class EnergyMatch {
       this.heal(target,4,actor,spellId);
     }else if(r.mode==="link"){
       this.addStatus(actor,{kind:"link",remaining:r.duration,sourceId:actor.id,linkedId:target.id,procGate:0});
+      this.emit({type:"link",actorId:actor.id,targetId:target.id,spellId});
     }else if(r.mode==="cleanse"){
       const bad=target.statuses.find(s=>s.negative);
-      if(bad)target.statuses.splice(target.statuses.indexOf(bad),1);
+      if(bad){
+        target.statuses.splice(target.statuses.indexOf(bad),1);
+        this.emit({type:"cleanse",actorId:actor.id,targetId:target.id,spellId});
+      }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId});
       if(actor.evolutions[spellId]==="purifying-surge"&&bad)this.heal(target,10,actor,spellId);
     }
     this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});

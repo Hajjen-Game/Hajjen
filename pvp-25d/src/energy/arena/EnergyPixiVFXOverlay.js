@@ -148,102 +148,100 @@ export class EnergyPixiVFXOverlay {
   }
   // Contact has its own timeline; trails finish when the Babylon missile
   // arrives, then the splinter/star/crater remains briefly on the victim.
-  contact(g,e,from,to,t,style){
-    const k=clamp(t,0,1),a=e.spellId,fade=Math.pow(1-k,1.3);
+  // Impact refinement: compact and intricate. Geometry borrows the same
+  // motifs as each buildup instead of introducing broad white shock wheels.
+  contact(g,e,from,to,t,style,scale=1){
+    const k=clamp(t,0,1),a=e.spellId;
+    const fade=Math.min(1,k*10,Math.pow(1-k,1.25)*1.25);
+    const unit=(n)=>n*scale;
     if(a==="crystal-bolt"){
-      // Irregular icy facets, not a circular magical puff.
-      const arms=11;
-      for(let i=0;i<arms;i++){
-        const angle=i*TAU/arms+.14*(i%3);
-        const outer=(22+(i%4)*5)+(38+(i%3)*7)*k;
-        const inner=10+15*k;
-        const spread=(.19+.08*(i%3));
-        const p1={x:to.x+Math.cos(angle-spread)*outer,
-          y:to.y+Math.sin(angle-spread)*outer*.82};
-        const tip={x:to.x+Math.cos(angle)*outer*1.34,
-          y:to.y+Math.sin(angle)*outer*1.03};
-        const p2={x:to.x+Math.cos(angle+spread)*outer,
-          y:to.y+Math.sin(angle+spread)*outer*.82};
-        this.stroke(g,[{x:to.x+Math.cos(angle)*inner,y:to.y+Math.sin(angle)*inner*.8},
-          p1,tip,p2],i%3===0?style.core:style.c,
-          i%3===0?3.2:1.9,fade*.94);
+      // Seven 4-vertex prism fragments + two incomplete cold orbit arcs.
+      for(let i=0;i<7;i++){
+        const angle=(i+.18)*TAU/7,rr=unit(9+(i%3)*2+13*k);
+        const x=to.x+Math.cos(angle)*rr,y=to.y+Math.sin(angle)*rr*.78;
+        const shard=[{x:x-Math.cos(angle+.5)*unit(4),y:y-Math.sin(angle+.5)*unit(4)},
+          {x:x+Math.cos(angle)*unit(7),y:y+Math.sin(angle)*unit(6)},
+          {x:x+Math.cos(angle-.6)*unit(3),y:y+Math.sin(angle-.6)*unit(3)},
+          {x:x-Math.cos(angle+.5)*unit(4),y:y-Math.sin(angle+.5)*unit(4)}];
+        this.stroke(g,shard,i===0?style.core:style.c,
+          unit(i===0?1.65:.95),fade*(i%3===0?.85:.69));
       }
-      for(let i=0;i<3;i++){
-        const scale=(23+48*k)+i*8;
-        const hex=[];
-        for(let j=0;j<=6;j++){
-          const angle=j*TAU/6+i*.19;
-          hex.push({x:to.x+Math.cos(angle)*scale,y:to.y+Math.sin(angle)*scale*.7});
+      for(let i=0;i<2;i++){
+        const arc=[];
+        for(let j=0;j<=13;j++){
+          const angle=.35+i*2.85+j*1.65/13;
+          arc.push({x:to.x+Math.cos(angle)*unit(16+12*k+i*4),
+            y:to.y+Math.sin(angle)*unit(13+8*k+i*3)});
         }
-        this.stroke(g,hex,i===0?style.core:style.c,i===0?2.6:1.35,
-          fade*(.75-i*.15));
+        this.stroke(g,arc,i===0?style.c:style.dim,unit(1.0),fade*.65);
       }
     }else if(a==="sun-lance"){
-      // Extremely bright centre, asymmetric solar petals and piercing rays.
-      const radius=14+61*k;
-      this.circle(g,to.x,to.y,radius,style.c,5.2*fade,.82*fade);
-      this.circle(g,to.x,to.y,radius*.58,style.core,2.6*fade,fade);
-      for(let i=0;i<12;i++){
-        const angle=i*TAU/12+k*.32;
-        const ray=radius*(i%3===0?1.6:1.21);
-        this.stroke(g,[{x:to.x+Math.cos(angle)*radius*.30,
-          y:to.y+Math.sin(angle)*radius*.30},
-          {x:to.x+Math.cos(angle)*ray,y:to.y+Math.sin(angle)*ray*.83}],
-        i%3===0?style.core:style.c,i%3===0?4.7:2.25,fade*.94);
+      // Single tight corona with five SHORT needle-like, offset solar rays.
+      const radius=unit(12+11*k);
+      const arc=[];
+      for(let j=0;j<=19;j++){
+        const angle=-.7+j*4.65/19;
+        arc.push({x:to.x+Math.cos(angle)*radius,
+          y:to.y+Math.sin(angle)*radius*.86});
       }
-      for(let j=0;j<4;j++){
-        const angle=j*Math.PI/2+.25;
-        this.stroke(g,[{x:to.x-Math.cos(angle)*radius*1.7,
-            y:to.y-Math.sin(angle)*radius*1.25},
-          {x:to.x+Math.cos(angle)*radius*1.7,
-            y:to.y+Math.sin(angle)*radius*1.25}],
-        j===0?style.core:style.c,j===0?4.3:1.7,fade*.84);
+      this.stroke(g,arc,style.c,unit(1.45),fade*.86);
+      for(let i=0;i<5;i++){
+        const angle=(i+.17)*TAU/5;
+        const out=unit(19+(i%2)*4+9*k);
+        this.stroke(g,[{x:to.x+Math.cos(angle)*unit(7),
+          y:to.y+Math.sin(angle)*unit(7)},
+          {x:to.x+Math.cos(angle)*out,
+          y:to.y+Math.sin(angle)*out*.83}],
+          i===0?style.core:style.c,unit(i===0?1.75:1.0),
+          fade*(i===0?.9:.67));
       }
+      this.circle(g,to.x,to.y,unit(5.5),style.c,unit(1.4),fade*.9);
     }else if(a==="rift-slash"){
-      // Two opposed spatial seams closing around an open central fracture.
+      // A narrow dark void seam framed by two coloured hairlines.
       for(let side=-1;side<=1;side+=2){
-        const line=[],length=29+52*k;
-        for(let i=0;i<=22;i++){
-          const u=i/22-0.5;
-          line.push({x:to.x+(u*2)*length+side*Math.sin(u*Math.PI*2+k*2)*7,
-            y:to.y+u*(35+28*k)*side+Math.sin(u*11+side)*(5+8*k)});
+        const line=[];
+        for(let j=0;j<=18;j++){
+          const u=j/18-.5;
+          const x=u*2*unit(23+10*k);
+          line.push({x:to.x+x,
+            y:to.y+side*(u*unit(18)+Math.sin(u*10+side)*unit(2.4))});
         }
-        this.stroke(g,line,side===1?style.core:style.c,side===1?5.4:3.3,
-          fade*.96);
+        this.stroke(g,line,side===1?style.dim:style.c,
+          unit(side===1?2.1:1.3),fade*.86);
       }
-      for(let i=0;i<8;i++){
-        const a0=i*TAU/8+.17,len=(26+49*k)*(i%2?1.2:.87);
-        this.stroke(g,[{x:to.x+Math.cos(a0)*11,y:to.y+Math.sin(a0)*10},
-          {x:to.x+Math.cos(a0)*len,y:to.y+Math.sin(a0)*len*.82}],
-          i%3===0?style.core:style.c,i%3===0?2.8:1.5,fade*.86);
+      for(let i=0;i<5;i++){
+        const a0=(i+.12)*TAU/5;
+        this.stroke(g,[{x:to.x+Math.cos(a0)*unit(8),
+          y:to.y+Math.sin(a0)*unit(7)},
+          {x:to.x+Math.cos(a0+.12)*unit(16+(i%2)*5+9*k),
+          y:to.y+Math.sin(a0+.12)*unit(14+7*k)}],
+          style.c,unit(.88),fade*.5);
       }
     }else if(a==="gravity-hammer"){
-      // A grounded broad shock disc, asymmetric radiating ground fissures.
-      const r=18+k*80;
-      for(let ring=0;ring<3;ring++){
-        const rr=r*(.53+ring*.32),points=[];
-        for(let j=0;j<=30;j++){
-          const angle=j*TAU/30;
-          const variation=1+Math.sin(angle*7+ring)*.06;
-          points.push({x:to.x+Math.cos(angle)*rr*variation,
-            y:to.y+Math.sin(angle)*rr*.59*variation});
+      // Ground-hugging elliptical pressure wave + tiny branched cracks.
+      for(let ring=0;ring<2;ring++){
+        const line=[],radius=unit(11+11*k+ring*6);
+        for(let j=0;j<=24;j++){
+          const angle=j*TAU/24;
+          line.push({x:to.x+Math.cos(angle)*radius,
+            y:to.y+Math.sin(angle)*radius*.59});
         }
-        this.stroke(g,points,ring===0?style.core:style.c,ring===0?4.8:2.2,
-          fade*(1-ring*.17));
+        this.stroke(g,line,ring===0?style.c:style.dim,
+          unit(ring===0?1.35:.85),fade*(ring===0?.79:.46));
       }
-      for(let i=0;i<12;i++){
-        const angle=i*TAU/12;
-        const len=(30+i%3*7)+65*k;
-        this.stroke(g,[{x:to.x+Math.cos(angle)*11,y:to.y+Math.sin(angle)*7},
-          {x:to.x+Math.cos(angle+.12)*len*.65,
-            y:to.y+Math.sin(angle+.12)*len*.33},
+      for(let i=0;i<8;i++){
+        const angle=i*TAU/8+.16,len=unit(20+(i%3)*2+13*k);
+        this.stroke(g,[
+          {x:to.x+Math.cos(angle)*unit(7),y:to.y+Math.sin(angle)*unit(4)},
+          {x:to.x+Math.cos(angle+.1)*len*.69,
+            y:to.y+Math.sin(angle+.1)*len*.36},
           {x:to.x+Math.cos(angle-.06)*len,
-            y:to.y+Math.sin(angle-.06)*len*.62}],
-          i%4===0?style.core:style.c,i%4===0?3.6:1.9,fade*.9);
+            y:to.y+Math.sin(angle-.06)*len*.60}
+        ],i===0?style.core:style.c,unit(i===0?1.5:.9),fade*.74);
       }
     }
   }
-  trail(g,e,from,to,t,style){
+  trail(g,e,from,to,t,style,scale=1){
     if(!from||!to)return;
     const elapsed=t*e.duration,hitAt=e.contactMs||e.duration*.60;
     const travel=clamp(elapsed/hitAt,0,1);
@@ -253,50 +251,45 @@ export class EnergyPixiVFXOverlay {
     const len=Math.max(1,Math.hypot(dx,dy)),px=-dy/len,py=dx/len;
     const attack=e.spellId;
     if(elapsed<hitAt&&(attack==="sun-lance"||attack==="crystal-bolt")){
-      const tail=attack==="sun-lance"?82:60,nx=dx/len,ny=dy/len;
-      for(let i=-2;i<=2;i++){
-        const wav=attack==="crystal-bolt"?Math.sin(t*30+i*2.3)*6:
-          Math.sin(t*32+i*1.8)*2;
-        const spread=i*3.2+wav;
+      const tail=(attack==="sun-lance"?43:35)*scale,nx=dx/len,ny=dy/len;
+      for(let i=-1;i<=1;i++){
+        const wobble=attack==="crystal-bolt"?Math.sin(t*25+i*2.3)*3*scale:0;
+        const spread=i*2.8*scale+wobble;
         this.stroke(g,[{x:x-nx*tail+px*spread,y:y-ny*tail+py*spread},
-          {x:x+px*i*2,y:y+py*i*2}],
-        i===0?style.core:style.c,i===0?5.0:1.85,
-          Math.max(0,1-travel*.35)*(i===0?1:.8));
+          {x:x+px*i*2*scale,y:y+py*i*2*scale}],
+          i===0?style.c:style.dim,(i===0?2.0:.85)*scale,
+          (1-travel*.5)*(i===0?.86:.58));
       }
-      this.circle(g,x,y,attack==="sun-lance"?9:7,style.core,3.1,1);
+      this.circle(g,x,y,(attack==="sun-lance"?4.2:3.4)*scale,
+        style.c,1.35*scale,.88);
     }else if(elapsed<hitAt&&attack==="rift-slash"){
-      // An actual attack moves outward from the caster instead of appearing
-      // as three static arcs parked on top of the victim.
-      const r=26+20*travel;
-      for(let i=0;i<4;i++){
-        const curve=[];
-        for(let j=0;j<=26;j++){
-          const angle=-1.40+j*2.8/26+travel*.74+i*.16;
-          curve.push({x:x+Math.cos(angle)*(r-i*4.5),
-            y:y+Math.sin(angle)*(r*.92-i*2.5)});
+      const radius=(14+10*travel)*scale;
+      for(let i=0;i<3;i++){
+        const points=[];
+        for(let j=0;j<=23;j++){
+          const a=-1.3+j*2.6/23+travel*.65+i*.095;
+          points.push({x:x+Math.cos(a)*(radius-i*2.6*scale),
+            y:y+Math.sin(a)*(radius*.85-i*2*scale)});
         }
-        this.stroke(g,curve,i===1?style.core:style.c,
-          i===1?6.0:2.9,(1-travel*.18)*(i===3?.5:.96));
+        this.stroke(g,points,i===0?style.dim:i===1?style.c:style.core,
+          (i===0?1.8:i===1?1.35:.7)*scale,(1-travel*.2)*.82);
       }
-      // Bright travelling seam visually joins source and target.
-      this.stroke(g,[{x:from.x,y:from.y},
-        {x:x,y:y}],style.c,2.1,travel*.67);
     }else if(elapsed<hitAt&&attack==="gravity-hammer"){
-      const v=1-travel,headY=to.y-(150*v*v);
-      for(let i=-2;i<=2;i++){
-        this.stroke(g,[{x:to.x+i*10,y:headY-36-10*Math.abs(i)},
-          {x:to.x+i*5,y:headY+10}],i===0?style.core:style.c,
-          i===0?5.6:2.5,1-travel*.18);
+      const v=1-travel,headY=to.y-(85*v*v)*scale;
+      for(let i=-1;i<=1;i++){
+        this.stroke(g,[{x:to.x+i*7*scale,y:headY-(17+5*Math.abs(i))*scale},
+          {x:to.x+i*3*scale,y:headY+7*scale}],
+          i===0?style.c:style.dim,(i===0?2.35:.95)*scale,1-travel*.25);
       }
-      this.circle(g,to.x,headY,14+12*travel,style.core,3.2,1);
+      this.circle(g,to.x,headY,(7+4*travel)*scale,style.c,1.55*scale,.9);
     }
     if(elapsed>=hitAt){
       const impactT=clamp((elapsed-hitAt)/Math.max(1,e.duration-hitAt),0,1);
-      if(["sun-lance","crystal-bolt","rift-slash","gravity-hammer"].includes(attack)){
-        this.contact(g,e,from,to,impactT,style);
-      }else this.flare(g,to.x,to.y,impactT,style,.9);
+      if(["sun-lance","crystal-bolt","rift-slash","gravity-hammer"].includes(attack))
+        this.contact(g,e,from,to,impactT,style,scale);
+      else this.flare(g,to.x,to.y,impactT,style,.9);
     }
-    // Unchanged healing identity: thin, rotating three-thread transfer.
+    // The healing signature is intentionally unchanged in this pass.
     if(attack==="pulse-mend"){
       for(let i=0;i<3;i++){
         const phase=i*TAU/3+t*TAU*3;

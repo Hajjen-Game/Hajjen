@@ -40,6 +40,7 @@ export class EnergyCombatFeedback{
       if(event.absorbed>0)this.spawn("absorb","ABSORB "+Math.round(event.absorbed),to);
     }else if(event.type==="heal"){
       if(event.amount>0)this.spawn("heal","+"+event.amount,to);
+      else if(event.overheal>0 && event.actorId==="player")this.spawn("info","FULL HP",to);
     }else if(event.type==="control"){
       this.spawn("control",(event.spellId==="crystal-snare"?"ROOTED":"CONTROLLED"),to);
     }else if(event.type==="interrupt"){
@@ -53,7 +54,13 @@ export class EnergyCombatFeedback{
     }else if(event.type==="cleanse"){
       this.spawn("heal","CLEANSED",to);
     }else if(event.type==="shield"){
-      this.spawn("absorb","SHIELDED",to);
+      this.spawn("absorb","SHIELD +"+Math.round(event.amount||0),to);
+    }else if(event.type==="guard"){
+      this.spawn("absorb","GUARDED",to);
+    }else if(event.type==="link"){
+      this.spawn("heal","LINKED",to);
+    }else if(event.type==="nothing"&&event.actorId==="player"){
+      this.spawn("info","NOTHING TO CLEANSE",to);
     }
   }
   project(actor){

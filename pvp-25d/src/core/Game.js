@@ -8,7 +8,7 @@ import { DampeningSystem } from "../../../arena3v3/src/systems/DampeningSystem.j
 import { CombatSystem } from "../gameplay/original/CombatSystem.js?v=20261002-2250";
 import { AISystem } from "../gameplay/original/AISystem.js?v=20261002-2250";
 import { createAiBehaviorProfile, enemyAiRatingForPlayerRating } from "../../../arena3v3/src/systems/AIBehaviorProfiles.js";
-import { BabylonRenderer } from "../rendering/babylon/BabylonRenderer.js?v=20261008-orbs-v16-pixi-allspells";
+import { BabylonRenderer } from "../rendering/babylon/BabylonRenderer.js?v=20261008-orbs-v17-targetstatus";
 import { UIManager } from "../ui/UIManager.js?v=20261002-2250";
 import { buildMatchReport } from "../gameplay/original/MatchReport.js?v=20261002-2250";
 import { HonorSystem, talentPointsForRank } from "../../../arena3v3/src/core/HonorSystem.js";

@@ -168,7 +168,7 @@ export class MageOrbProjectileVfx{
       const ribbon=mesh(scene,"CreateTube",name+":wake:"+i,
         {path:points,
          radiusFunction:(step)=>(
-           (this.isPyro?.018:.010)+(this.isPyro?.032:.020)*(step/11)
+           (this.isPyro?.018:.009)+(this.isPyro?.031:.020)*(1-step/11)
          )*(1-i*.18),
          tessellation:6,updatable:true},
         this.root,i===trailCount-1?hotTrailMat:(i%2?accentMat:trailMat));
@@ -244,13 +244,13 @@ export class MageOrbProjectileVfx{
   }
 
   flightTick(t){
-    const fly=easeOut(t);
+    // Linear forward progress stays energetic all the way to contact.
+    const fly=t;
     const p=BABYLON.Vector3.Lerp(this.launchAt,this.target,fly);
     p.y+=Math.sin(t*Math.PI)*(this.isPyro?.15:.09);
     this.currentPosition.copyFrom(p);
     this.head.position.copyFrom(p);
     const wobble=Math.sin(t*(this.isPyro?38:25));
-    this.headOuter.scaling.x*=1; // keep the defined spear/fire shape
     this.head.rotation.z=this.isPyro?wobble*.10:Math.sin(t*13)*.035;
     this.head.rotation.y=Math.atan2(this.direction.x,this.direction.z)
       +Math.sin(t*19)*.025;

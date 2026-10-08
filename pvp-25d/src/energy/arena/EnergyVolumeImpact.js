@@ -26,6 +26,7 @@ export class EnergyVolumeImpact {
       rotation:mesh.rotation.clone(),
       velocity:velocity||new BABYLON.Vector3(),
       delay:opts.delay||0,
+      burst:!!opts.burst,
       spin:opts.spin||new BABYLON.Vector3(.2,.5,.35),
       intensity:opts.intensity??1};
     fx.volumeParts.push(p);
@@ -309,7 +310,7 @@ export class EnergyVolumeImpact {
         continue;
       }
       const rise=fx.ground?(.42*Math.sin(Math.PI*u)-.15*u*u)
-        :p.burst?.09*Math.sin(Math.PI*k):0;
+        :(p.burst?.09*Math.sin(Math.PI*k):0);
       m.position.set(
         p.origin.x+p.velocity.x*k,
         p.origin.y+p.velocity.y*k+rise,

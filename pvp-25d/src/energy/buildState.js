@@ -1,6 +1,6 @@
 import {
   ABILITY_BY_ID, FREE_ABILITIES, ROLES, TALENT_BUDGET, MAX_TALENT_RANK,
-  MAX_ACTIVE_EVOLUTIONS, FREE_ABILITY_SLOTS, SAVED_BUILD_SLOTS,
+  MAX_ACTIVE_EVOLUTIONS, FREE_ABILITY_SLOTS, SAVED_BUILD_SLOTS, MAX_FLUX, BASE_FLUX_REGEN,
 } from "./abilityCatalog.js";
 
 export const ENERGY_STORAGE_KEY = "pvp25d-energy-builds-v1";
@@ -209,4 +209,29 @@ export function writeBuildStorage(storage, state) {
   const saved = Array.from({ length: SAVED_BUILD_SLOTS }, (_, i) => state.saved[i] ? normalizeBuild(state.saved[i]) : null);
   const draft = normalizeBuild(state.draft);
   storage.setItem(ENERGY_STORAGE_KEY, JSON.stringify({ version: VERSION, saved, draft }));
+}
+
+
+// Validated, immutable handoff for the eventual new combat actor pipeline.
+// The current match engine intentionally does not consume this yet.
+export function buildCombatLoadout(build) {
+  const errors = validateBuild(build);
+  if (errors.length) throw new Error("Invalid energy build: " + errors.join("; "));
+  if (!isReady(build)) throw new Error("Equip all eight free abilities before entering a match");
+  return Object.freeze({
+    schema: "energy-build-v1",
+    name: build.name,
+    role: build.role,
+    abilitySlots: Object.freeze(allEquippedIds(build).map(id => Object.freeze({
+      id,
+      talentRank: build.talents[id] || 0,
+      evolutionId: build.evolutions[id] || null,
+    }))),
+    resource: Object.freeze({
+      type: "flux",
+      max: MAX_FLUX,
+      regenerationPerSecond: BASE_FLUX_REGEN,
+    }),
+    rolePassive: ROLES[build.role].passive,
+  });
 }

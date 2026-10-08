@@ -1,7 +1,8 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
 import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v18-recover";
 import { VfxController } from "./VfxController.js?v=20261008-orb-hybrid1";
-import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid4-safe";
+import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid5-ground";
+import { OrbGroundMarkers } from "./OrbGroundMarkers.js?v=20261008-ground-rings1";
 
 const S = 0.02;
 
@@ -63,6 +64,7 @@ export class BabylonRenderer {
     this.actorRender = null;
     this.vfx = null;
     this.pixiOverlay = null;
+    this.groundMarkers = null;
     this.backend = "initializing";
     this.ready = false;
     this.initError = null;
@@ -170,6 +172,14 @@ export class BabylonRenderer {
     );
 
     this.buildScene();
+    if(this.orbMode){
+      try{
+        this.groundMarkers=new OrbGroundMarkers(this.scene,S);
+      }catch(error){
+        console.warn("Orb ground marker initialization skipped",error);
+        this.groundMarkers=null;
+      }
+    }
     if(this.orbMode){
       this.pixiOverlay=new OrbPixiHybridOverlay(this);
       try{
@@ -1579,6 +1589,17 @@ export class BabylonRenderer {
     // Hide the old low-contrast Babylon status planes only when the Pixi
     // overlay is active. Restore them automatically if the overlay fails.
     this.actorRender.sync(game, now);
+    // Separate visual subsystem: a marker failure must never interrupt the
+    // arena render, targeting, input or the Pixi spell overlay.
+    if(this.orbMode&&this.groundMarkers){
+      try{
+        this.groundMarkers.sync(game,now);
+      }catch(error){
+        console.error("Orb ground marker disabled after error",error);
+        try{this.groundMarkers.dispose();}catch(cleanupError){console.warn(cleanupError);}
+        this.groundMarkers=null;
+      }
+    }
     if(this.orbMode){
       // Only hide the old 3D planes after Babylon has successfully synced
       // the actors. The restored OrbCharacterRenderer is otherwise untouched.
@@ -1666,9 +1687,9 @@ export class BabylonRenderer {
   }
 
   syncTarget(game) {
-    // OrbCharacterRenderer now owns animated green/red team rings and its
-    // selected-target highlight. Do not stack the old static torus on top.
-    if(this.orbMode&&this.pixiOverlay?.ready){
+    // Ground-level markers replace the old target torus only while healthy.
+    // If they fail, the original target indicator remains as fallback.
+    if(this.orbMode&&this.groundMarkers){
       this.target.setEnabled(false);
       return;
     }

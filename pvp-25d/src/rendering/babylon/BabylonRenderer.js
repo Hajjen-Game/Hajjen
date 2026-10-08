@@ -1,6 +1,6 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
 import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v13-magecomplete";
-import { VfxController } from "./VfxController.js?v=20261008-mage-flight1";
+import { VfxController } from "./VfxController.js?v=20261008-frost3d1";
 
 const S = 0.02;
 

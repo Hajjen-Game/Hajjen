@@ -218,12 +218,24 @@ function animate(now){
 }
 function init(){
   drawCards();
-  let volumeOn=false; // Match the actual production default: Pixi impacts.
+  let volumeOn=false; // The old faceted experiment remains OFF by default.
+  let threadOn=true;  // Small Reactive Thread-style depth is the new default.
+  const syncDepthModes=()=>{
+    renderer?.spellFX?.hero?.volume?.setEnabled(volumeOn);
+    renderer?.spellFX?.hero?.setThreadDepthEnabled(threadOn);
+    $("toggle-volume").textContent=volumeOn?"3D DEBRIS: ON":"3D DEBRIS: OFF";
+    $("toggle-threads").textContent=threadOn?"THREAD DEPTH: ON":"THREAD DEPTH: OFF";
+  };
   $("toggle-volume").addEventListener("click",()=>{
     volumeOn=!volumeOn;
-    renderer?.spellFX?.hero?.volume?.setEnabled(volumeOn);
-    $("toggle-volume").textContent=volumeOn?"3D IMPACTS: ON":"3D IMPACTS: OFF";
-    // Restart the current signature for a meaningful side-by-side comparison.
+    if(volumeOn)threadOn=false; // never stack rejected chunky fragments
+    syncDepthModes();
+    run(active||signature[0],false);
+  });
+  $("toggle-threads").addEventListener("click",()=>{
+    threadOn=!threadOn;
+    if(threadOn)volumeOn=false; // clean A/B against Pixi-only or old debris
+    syncDepthModes();
     run(active||signature[0],false);
   });
   let pixiOn=true;
@@ -232,7 +244,7 @@ function init(){
     renderer?.pixiFX?.setEnabled(pixiOn);
     $("toggle-pixi").textContent=pixiOn?"PIXI SPELLS: ON":"PIXI SPELLS: OFF";
     $("render-label").textContent=pixiOn
-      ?"PIXI SPELL VFX · BABYLON GLASS + FLOOR LIGHT"
+      ?"PIXI SPELL VFX · REACTIVE THREAD DEPTH + GLASS"
       :"BABYLON SPELL FALLBACK · PIXI OFF";
     // Rebuild the spell with the correct renderer, not a half-Pixi/half-
     // Babylon projectile left behind from the previous toggle state.
@@ -242,10 +254,9 @@ function init(){
   $("play-sequence").addEventListener("click",()=>run(signature[0],true));
   try{
     renderer=new EnergyArenaRenderer($("vfx-canvas"),VERDANT_CRUCIBLE);
-    renderer.spellFX.hero.volume.setEnabled(volumeOn);
-    $("toggle-volume").textContent="3D IMPACTS: OFF";
+    syncDepthModes();
     $("toggle-pixi").textContent="PIXI SPELLS: ON";
-    $("render-label").textContent="PIXI SPELL VFX · BABYLON GLASS + FLOOR LIGHT";
+    $("render-label").textContent="PIXI SPELL VFX · REACTIVE THREAD DEPTH + GLASS";
     // Visual close-up: the orbs, spell volumes and trails are the subject,
     // not the distant boundaries of the arena.
     const base=renderer.fitCamera.bind(renderer);

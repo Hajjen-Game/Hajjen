@@ -16,6 +16,9 @@ export class EnergyAI {
     this.canStand=canStand;
     this.planTick=0;
     this.plans={friendly:{state:"PRESSURE",targetId:null},enemy:{state:"PRESSURE",targetId:null}};
+    // A team can open on any role. Never select the human by actor ID.
+    // React to exposed healers, low HP and positioning as the fight unfolds.
+    this.openerRole=["melee","caster","healer"][Math.floor(Math.random()*3)];
     this.navCorners=this.buildCorners();
     this.lastPressureAt=0;
     this.lastPositions=new Map();
@@ -86,7 +89,8 @@ export class EnergyAI {
       const hp=o.hp/o.maxHp;
       const pressure=allies.filter(a=>a.role!=="healer").some(a=>dist(a,o)<390);
       let score=(1-hp)*115 + (pressure?16:0);
-      if(o.role==="healer")score+=14+(o.flux<28?38:0);
+      if(o.role==="healer"&&o.flux<28)score+=38;
+      if(team==="enemy"&&o.role===this.openerRole)score+=12;
       if(o.statuses.some(s=>s.kind==="incapacitate"))score-=48;
       if(selected&&selected.id===o.id)score+=50;
       if(last.targetId===o.id&&now<(last.holdUntil||0))score+=50;
@@ -100,7 +104,9 @@ export class EnergyAI {
     if((healer&&healer.hp/healer.maxHp<.42)||vulnerable)state="RECOVER";
     else if(threat&&healer&&healer.hp/healer.maxHp<.78)state="PEEL";
     else if(hp<.42||opponents.length===1)state="BURST";
-    this.plans[team]={state,targetId:chosen.id,changedAt:now,holdUntil:now+2.6};
+    this.plans[team]={state,targetId:chosen.id,
+      changedAt:last.targetId===chosen.id?last.changedAt:now,
+      holdUntil:last.targetId===chosen.id?last.holdUntil:now+2.6};
   }
   target(actor){
     const m=this.match,enemies=m.opponents(actor);

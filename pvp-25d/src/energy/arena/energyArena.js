@@ -1,8 +1,8 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
 import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
-import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js";
+import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-combat-feedback2";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-combat-feedback2";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-feedback1";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
@@ -258,13 +258,20 @@ function renderUI(){
 function frameLoop(now){
   requestAnimationFrame(frameLoop);
   if(!match||!renderer)return;
-  const dt=clamp((now-last)/1000,0,.06);last=now;
+  const elapsed=clamp((now-last)/1000,0,.25);last=now;
   if(!match.ended){
     const x=Number(keys.has("d"))-Number(keys.has("a"));
     const y=Number(keys.has("w"))-Number(keys.has("s"));
-    match.move(match.player,x,y,dt);
-    match.update(dt);
-    updateCastQueue();
+    // The legacy alpha dropped time above 60ms/frame. This made casts and GCD
+    // look frozen on a slow GPU. Advance the simulation in small safe steps.
+    let remaining=elapsed;
+    while(remaining>.00001&&!match.ended){
+      const step=Math.min(.05,remaining);
+      match.move(match.player,x,y,step);
+      match.update(step);
+      updateCastQueue();
+      remaining-=step;
+    }
   }
   updateCastHUD(); // Cast bar updates every animation frame, not only HUD ticks.
   for(const event of match.consumeEvents()){

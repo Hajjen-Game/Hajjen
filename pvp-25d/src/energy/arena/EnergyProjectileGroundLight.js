@@ -47,7 +47,7 @@ export class EnergyProjectileGroundLight {
     mat.specularColor=BABYLON.Color3.Black();
     mat.diffuseTexture=this.makeTexture();
     mat.useAlphaFromDiffuseTexture=true;
-    mat.alpha=core?.60:.46;
+    mat.alpha=core?.60:.31;
     mat.disableLighting=true;
     mat.disableDepthWrite=true;
     mat.backFaceCulling=false;
@@ -68,7 +68,10 @@ export class EnergyProjectileGroundLight {
   }
   attach(fx){
     if(!TONES[fx.spellId])return;
-    fx.floorLights=[this.plane(fx.spellId),this.plane(fx.spellId,true)];
+    // Pixi 3v3 uses four staggered soft pools plus a small bright contact
+    // ellipse; recreate that structure on the physical floor.
+    fx.floorLights=[this.plane(fx.spellId,true),
+      ...Array.from({length:4},()=>this.plane(fx.spellId))];
   }
   updateProjectile(fx,position,progress){
     if(!fx.floorLights)return;
@@ -78,14 +81,14 @@ export class EnergyProjectileGroundLight {
     const ux=dx/length,uz=dz/length;
     const fade=smooth(progress/.16)*(1-smooth((progress-.83)/.17));
     for(let i=0;i<fx.floorLights.length;i++){
-      const mesh=fx.floorLights[i],core=i===1;
-      const back=core?.015:.20;
+      const mesh=fx.floorLights[i],core=i===0,q=core?0:(i-1)/3;
+      const back=core?.015:q*.55;
       mesh.position.x=position.x-ux*back;
       mesh.position.z=position.z-uz*back;
-      // Soft elliptical pools, slightly elongated behind the travel direction.
+      // Staggered soft elliptical pools stretch behind travel like Pixi 3v3.
       mesh.rotation.y=-Math.atan2(ux,uz);
-      mesh.scaling.set(core?.45:.88,core?.32:.57,1);
-      mesh.visibility=fade*(core?.82:.76);
+      mesh.scaling.set(core?.40:.78+q*.16,core?.28:.47+q*.08,1);
+      mesh.visibility=fade*(core?.84:.65-q*.29);
     }
   }
   impact(spellId,point,now=performance.now()){

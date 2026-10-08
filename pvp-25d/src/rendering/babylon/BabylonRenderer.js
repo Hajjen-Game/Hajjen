@@ -1577,8 +1577,10 @@ export class BabylonRenderer {
     if (game.vfx?.game !== game) game.vfx?.bindGame?.(game);
 
     this.actorRender.sync(game, now);
-    this.vfx.usePixiProjectiles=Boolean(this.pixiOverlay?.ready);
-    this.vfx.consume(game.vfx?.events || []);
+    // All spell / heal / melee VFX are handled by Pixi while the hybrid is
+    // active. Never render the previous low-detail Babylon effects on top.
+    // If Pixi fails, events remain unconsumed for the Babylon fallback.
+    if(!this.pixiOverlay?.ready)this.vfx.consume(game.vfx?.events || []);
     this.vfx.update(dt);
     this.animateTorches(now);
     this.animateOrbVoid(now);

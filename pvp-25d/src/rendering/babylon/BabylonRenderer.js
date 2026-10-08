@@ -305,7 +305,7 @@ export class BabylonRenderer {
     this.glow = new BABYLON.GlowLayer("glow", this.scene, {
       blurKernelSize: 32,
     });
-    this.glow.intensity = this.orbMode ? 0.38 : 0.18;
+    this.glow.intensity = this.orbMode ? 0.40 : 0.18;
 
     this.installAmbientOcclusion();
   }
@@ -400,11 +400,17 @@ export class BabylonRenderer {
     edgeMat.alpha=1.00;
     edgeMat.disableLighting=true;
 
+    const hotEdgeMat=edgeMat.clone("orb-glass-hot-edge-mat");
+    hotEdgeMat.diffuseColor=new BABYLON.Color3(0.82,0.95,1.00);
+    hotEdgeMat.emissiveColor=new BABYLON.Color3(0.34,0.86,1.00);
+    hotEdgeMat.specularColor=BABYLON.Color3.White();
+    hotEdgeMat.alpha=0.92;
+
     const groundMat=makeGlass(
       "orb-arena-ground-mat",
-      "#c7d1dc",
-      0.040,
-      0.48,
+      "#d6dde4",
+      0.026,
+      0.38,
     );
 
     const ground=BABYLON.MeshBuilder.CreateBox(
@@ -478,11 +484,29 @@ export class BabylonRenderer {
       return mesh;
     };
 
+    const makeHotRail=(name,x,z,width,depth,y=railY)=>{
+      const mesh=BABYLON.MeshBuilder.CreateBox(
+        name,
+        {width,depth,height:0.015},
+        this.scene,
+      );
+      mesh.position.set(x,y,z);
+      mesh.material=hotEdgeMat;
+      mesh.isPickable=false;
+      return mesh;
+    };
+
     // Crisp top edge + a faint inner highlight give the glass frame real thickness.
     makeRail("orb-frame-n",w*0.5,pad,innerW,rail,0.145);
     makeRail("orb-frame-s",w*0.5,h-pad,innerW,rail,0.145);
     makeRail("orb-frame-w",pad,h*0.5,rail,innerH,0.145);
     makeRail("orb-frame-e",w-pad,h*0.5,rail,innerH,0.145);
+
+    const hotRail=0.0045;
+    makeHotRail("orb-frame-hot-n",w*0.5,pad,innerW,hotRail,0.158);
+    makeHotRail("orb-frame-hot-s",w*0.5,h-pad,innerW,hotRail,0.158);
+    makeHotRail("orb-frame-hot-w",pad,h*0.5,hotRail,innerH,0.158);
+    makeHotRail("orb-frame-hot-e",w-pad,h*0.5,hotRail,innerH,0.158);
 
     const innerEdgeMat=edgeMat.clone("orb-glass-edge-inner-mat");
     innerEdgeMat.alpha=0.28;
@@ -504,21 +528,21 @@ export class BabylonRenderer {
 
     const obstacleMat=makeGlass(
       "orb-los-mat",
-      "#d7e0e8",
-      0.050,
-      0.56,
+      "#dfe7ed",
+      0.028,
+      0.44,
     );
     const topMat=makeGlass(
       "orb-los-top-mat",
-      "#e4ebf1",
-      0.040,
-      0.62,
+      "#eef4f8",
+      0.024,
+      0.50,
     );
 
     const makeObstacleEdges=(o,x,z,ow,od)=>{
       const topY=1.305;
-      const vThickness=0.011;
-      const topRail=0.012;
+      const vThickness=0.009;
+      const topRail=0.010;
 
       makeRail(
         "orb-los-edge-n:"+o.id,
@@ -552,6 +576,12 @@ export class BabylonRenderer {
         od,
         topY,
       );
+
+      const hot=0.0040;
+      makeHotRail("orb-los-hot-n:"+o.id,x,z-od*0.5,ow,hot,topY+0.014);
+      makeHotRail("orb-los-hot-s:"+o.id,x,z+od*0.5,ow,hot,topY+0.014);
+      makeHotRail("orb-los-hot-w:"+o.id,x-ow*0.5,z,hot,od,topY+0.014);
+      makeHotRail("orb-los-hot-e:"+o.id,x+ow*0.5,z,hot,od,topY+0.014);
 
       const corners=[
         [x-ow*0.5,z-od*0.5],
@@ -698,6 +728,40 @@ export class BabylonRenderer {
     spaceBackdrop.isPickable=false;
     this.orbSpaceBackdrop=spaceBackdrop;
     this.orbSpaceBackdropTexture=spaceBackdropTexture;
+
+    // Mid-depth stars: a distinct layer between the near drifting motes
+    // and the far backdrop, so the transparent glass has visible depth/parallax.
+    const midStarMat=new BABYLON.StandardMaterial(
+      "orb-mid-star-mat",
+      this.scene,
+    );
+    midStarMat.diffuseColor=new BABYLON.Color3(0.68,0.82,1.00);
+    midStarMat.emissiveColor=new BABYLON.Color3(0.28,0.52,1.00);
+    midStarMat.alpha=0.72;
+    midStarMat.disableLighting=true;
+
+    this.orbMidStars=[];
+    for(let i=0;i<54;i++){
+      const star=BABYLON.MeshBuilder.CreateSphere(
+        "orb-mid-stars:"+i,
+        {diameter:0.018+(i%9===0?0.038:(i%4)*0.005),segments:5},
+        this.scene,
+      );
+      const u=((i*47+11)%109)/108;
+      const v=((i*71+23)%113)/112;
+      star.position.set(
+        pad+u*innerW,
+        -1.55-(i%4)*0.22,
+        pad+v*innerH,
+      );
+      star.material=midStarMat;
+      star.isPickable=false;
+      this.orbMidStars.push({
+        mesh:star,
+        baseY:star.position.y,
+        phase:i*0.51,
+      });
+    }
 
     // Soft procedural nebula layers far below the glass. They provide a readable
     // sense of space/depth without turning the arena itself into a busy texture.
@@ -1470,6 +1534,11 @@ export class BabylonRenderer {
       layer.mesh.rotation.z += layer.speed;
       layer.mesh.position.y =
         layer.baseY + Math.sin(now*0.00012+layer.phase)*0.06;
+    }
+
+    for (const star of this.orbMidStars || []) {
+      star.mesh.position.y =
+        star.baseY + Math.sin(now*0.00020+star.phase)*0.035;
     }
   }
 

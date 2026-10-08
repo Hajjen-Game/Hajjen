@@ -10,7 +10,7 @@ const PALETTE={
 
 export class EnergyCombatFeedback{
   constructor(stage,renderer){
-    this.stage=stage;this.renderer=renderer;this.items=[];
+    this.stage=stage;this.renderer=renderer;this.items=[];this.pending=[];
     this.layer=document.createElement("div");
     this.layer.className="energy-combat-text-layer";
     this.layer.setAttribute("aria-hidden","true");
@@ -34,6 +34,20 @@ export class EnergyCombatFeedback{
   }
   onEvent(event,match){
     this.match=match;
+    // The visual missile takes real screen time to reach the target. Align
+    // floating combat numbers with contact, not with the hit simulation tick.
+    if(event.type==="hit"&&["sun-lance","crystal-bolt"].includes(event.spellId)){
+      const a=match.getActor(event.actorId),b=match.getActor(event.targetId);
+      if(a&&b&&a!==b){
+        const worldDist=Math.hypot(a.x-b.x,a.y-b.y)*WORLD_SCALE;
+        const delay=clamp(235+worldDist*18,255,490);
+        this.pending.push({event,at:performance.now()+delay});
+        return;
+      }
+    }
+    this.showEvent(event);
+  }
+  showEvent(event){
     const to=event.targetId||event.actorId;
     if(event.type==="hit"){
       if(event.amount>0)this.spawn("damage","−"+event.amount,to);
@@ -75,6 +89,12 @@ export class EnergyCombatFeedback{
   }
   update(match,now=performance.now()){
     this.match=match;
+    for(let i=this.pending.length-1;i>=0;i--){
+      if(now<this.pending[i].at)continue;
+      const {event}=this.pending[i];
+      this.pending.splice(i,1);
+      this.showEvent(event);
+    }
     for(let i=this.items.length-1;i>=0;i--){
       const item=this.items[i];
       const elapsed=now-item.start;
@@ -93,5 +113,5 @@ export class EnergyCombatFeedback{
       item.node.style.transform="translate(-50%,-50%) scale("+pop.toFixed(2)+")";
     }
   }
-  dispose(){this.layer.remove();this.items.length=0;}
+  dispose(){this.layer.remove();this.items.length=0;this.pending.length=0;}
 }

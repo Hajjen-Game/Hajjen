@@ -178,7 +178,7 @@ export class BabylonRenderer {
         // Never block arena gameplay if the Pixi CDN or a second graphics
         // context is unavailable. The original Babylon spells remain a fallback.
         console.warn("Orb Pixi hybrid unavailable: using Babylon fallback",error);
-        this.pixiOverlay?.dispose();
+        try{this.pixiOverlay?.dispose();}catch(cleanupError){console.warn(cleanupError);}
         this.pixiOverlay=null;
       }
     }
@@ -1591,7 +1591,7 @@ export class BabylonRenderer {
         this.pixiOverlay.render(game);
       }catch(error){
         console.error("Orb Pixi hybrid failed, reverting to Babylon VFX",error);
-        this.pixiOverlay.dispose();
+        try{this.pixiOverlay.dispose();}catch(cleanupError){console.warn(cleanupError);}
         this.pixiOverlay=null;
       }
     }
@@ -1769,6 +1769,9 @@ export class BabylonRenderer {
         ?? "n/a"
       )
       + "\nVFX " + this.vfx.active.length
+      + (this.orbMode
+        ? "\nSpellRenderer "+(this.pixiOverlay?.ready?"PIXI HYBRID":"BABYLON FALLBACK")
+        : "")
       + "\nTime " + game.elapsedSeconds.toFixed(1) + "s";
   }
 }

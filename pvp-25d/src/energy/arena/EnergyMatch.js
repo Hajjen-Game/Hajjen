@@ -2,7 +2,7 @@
 // Rules intentionally limited to a first-playable balance baseline.
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
-import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v2";
+import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
 
 const TICK = 0.05;
 export const ABILITY_RULES = Object.freeze({

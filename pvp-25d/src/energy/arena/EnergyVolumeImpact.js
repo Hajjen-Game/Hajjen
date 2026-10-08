@@ -11,7 +11,9 @@ const SUPPORTED=new Set(["crystal-bolt","sun-lance","rift-slash","gravity-hammer
 export class EnergyVolumeImpact {
   constructor(hero){
     this.hero=hero;
-    this.enabled=true;
+    // Production default: Pixi-only combat impacts. Debug A/B can still
+    // opt in to this experimental Babylon layer in Visual VFX Lab.
+    this.enabled=false;
     this.maxActive=9;
     this.stats={total:0,active:0};
   }

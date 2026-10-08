@@ -102,10 +102,10 @@ export class EnergyPixiVFXOverlay {
     const viewport=new BABYLON.Viewport(0,0,
       Math.max(1,this.stage.clientWidth),Math.max(1,this.stage.clientHeight));
     const edge=BABYLON.Vector3.Project(
-      new BABYLON.Vector3(actor.x*S+.55,.88,actor.y*S),
+      new BABYLON.Vector3(actor.x*S+.62,.88,actor.y*S),
       BABYLON.Matrix.Identity(),scene.getTransformMatrix(),viewport);
     const px=Math.hypot(edge.x-centre.x,edge.y-centre.y);
-    return Number.isFinite(px)?clamp(px/21,.48,1.08):.72;
+    return Number.isFinite(px)?clamp(px/23,.70,4.0):1;
   }
   stroke(g,points,color,width,alpha=1){
     if(points.length<2)return;
@@ -264,17 +264,7 @@ export class EnergyPixiVFXOverlay {
     const len=Math.max(1,Math.hypot(dx,dy)),px=-dy/len,py=dx/len;
     const attack=e.spellId;
     if(elapsed<hitAt&&(attack==="sun-lance"||attack==="crystal-bolt")){
-      const tail=(attack==="sun-lance"?43:35)*scale,nx=dx/len,ny=dy/len;
-      for(let i=-1;i<=1;i++){
-        const wobble=attack==="crystal-bolt"?Math.sin(t*25+i*2.3)*3*scale:0;
-        const spread=i*2.8*scale+wobble;
-        this.stroke(g,[{x:x-nx*tail+px*spread,y:y-ny*tail+py*spread},
-          {x:x+px*i*2*scale,y:y+py*i*2*scale}],
-          i===0?style.c:style.dim,(i===0?2.0:.85)*scale,
-          (1-travel*.5)*(i===0?.86:.58));
-      }
-      this.circle(g,x,y,(attack==="sun-lance"?4.2:3.4)*scale,
-        style.c,1.35*scale,.88);
+      this.ribbonTrail(g,e,from,to,travel,style,Math.min(scale,3.0));
     }else if(elapsed<hitAt&&attack==="rift-slash"){
       const radius=(14+10*travel)*scale;
       for(let i=0;i<3;i++){
@@ -299,7 +289,11 @@ export class EnergyPixiVFXOverlay {
     if(elapsed>=hitAt){
       const impactT=clamp((elapsed-hitAt)/Math.max(1,e.duration-hitAt),0,1);
       if(["sun-lance","crystal-bolt","rift-slash","gravity-hammer"].includes(attack))
-        this.contact(g,e,from,to,impactT,style,scale);
+        {
+          // Keep tiny, intricate core while the outer layer scales with orb.
+          this.contact(g,e,from,to,impactT,style,Math.min(1.55,scale));
+          this.outerContact(g,e,from,to,impactT,style,scale);
+        }
       else this.flare(g,to.x,to.y,impactT,style,.9);
     }
     // The healing signature is intentionally unchanged in this pass.
@@ -312,6 +306,158 @@ export class EnergyPixiVFXOverlay {
           1.5+i*.38,1-t*.35);
       }
     }
+  }
+  // Deliberately incomplete outer silhouettes. At reference scale, these
+  // span ~40–52px from target centre; screen projection grows them with the
+  // orb until the impact reads at roughly 2–2.5 orb diameters. The small
+  // internal impact remains detailed and unchanged.
+  outerContact(g,e,from,to,t,style,scale=1){
+    const spell=e.spellId,k=clamp(t,0,1);
+    const fade=clamp(Math.min(1,k*12)*(1-k)*1.25,0,.82);
+    const R=n=>n*scale;
+    const arc=(radius,start,span,color,width,opacity,flat=1,steps=20)=>{
+      const pts=[];
+      for(let j=0;j<=steps;j++){
+        const a=start+j*span/steps;
+        pts.push({x:to.x+Math.cos(a)*R(radius),
+          y:to.y+Math.sin(a)*R(radius)*flat});
+      }
+      this.stroke(g,pts,color,R(width),fade*opacity);
+    };
+    if(spell==="crystal-bolt"){
+      // Outer facets form a broken frost chrysanthemum, never a solid ring.
+      for(let i=0;i<8;i++){
+        const a=i*TAU/8+.16,r=R(29+(i%3)*3+14*k);
+        const x=to.x+Math.cos(a)*r,y=to.y+Math.sin(a)*r*.83;
+        const ray=[{x:x-Math.cos(a+.65)*R(4),y:y-Math.sin(a+.65)*R(4)},
+          {x:x+Math.cos(a)*R(8),y:y+Math.sin(a)*R(6)},
+          {x:x+Math.cos(a-.55)*R(4),y:y+Math.sin(a-.55)*R(3)},
+          {x:x-Math.cos(a+.65)*R(4),y:y-Math.sin(a+.65)*R(4)}];
+        this.stroke(g,ray,i%4===0?style.core:style.c,
+          R(i%4===0?1.35:.88),fade*(i%3===0?.89:.72));
+      }
+      arc(35+9*k,.4,1.37,style.c,1.15,.63,.84);
+      arc(44+7*k,3.37,1.05,style.dim,.85,.70,.84);
+    }else if(spell==="sun-lance"){
+      // Narrow sun penetration: broken corona, six calibrated gold needles,
+      // and a few satellites. All rays are short and intentionally offset.
+      arc(34+10*k,-.55,2.72,style.c,1.30,.83,.90);
+      arc(42+7*k,2.75,1.20,style.dim,.91,.57,.90);
+      for(let i=0;i<6;i++){
+        const a=(i+.19)*TAU/6;
+        const start=R(25),finish=R(43+(i%3)*4+7*k);
+        this.stroke(g,[
+          {x:to.x+Math.cos(a)*start,y:to.y+Math.sin(a)*start*.9},
+          {x:to.x+Math.cos(a)*finish,y:to.y+Math.sin(a)*finish*.88}
+        ],i===0?style.core:style.c,R(i===0?1.42:.89),fade*(i%3===0?.93:.67));
+      }
+      for(let i=0;i<3;i++){
+        const a=i*TAU/3+.42;
+        this.circle(g,to.x+Math.cos(a)*R(39),to.y+Math.sin(a)*R(33),
+          R(1.35),style.c,R(.75),fade*.8);
+      }
+    }else if(spell==="rift-slash"){
+      // A split seam extends well beyond the victim without becoming neon
+      // bands. Two asymmetric curves, thin bright edge and small side cracks.
+      for(const side of [-1,1]){
+        const points=[];
+        for(let i=0;i<=24;i++){
+          const u=i/24-.5;
+          const x=R(u*105);
+          points.push({x:to.x+x,y:to.y+side*(R(u*40)+Math.sin(u*10+side)*R(4))});
+        }
+        this.stroke(g,points,side<0?style.c:style.dim,
+          R(side<0?1.36:1.9),fade*.84);
+      }
+      for(let i=0;i<6;i++){
+        const a=(i+.28)*TAU/6;
+        this.stroke(g,[{x:to.x+Math.cos(a)*R(27),y:to.y+Math.sin(a)*R(22)},
+          {x:to.x+Math.cos(a+.10)*R(40+(i%2)*9),
+            y:to.y+Math.sin(a+.1)*R(32+(i%3)*3)}
+        ],style.c,R(.88),fade*.60);
+      }
+    }else if(spell==="gravity-hammer"){
+      // Low elliptical expanding ground arcs and short angled fissures.
+      // Never draw a full upright star wheel over the orb.
+      arc(36+12*k,.15,2.45,style.c,1.48,.83,.50);
+      arc(46+9*k,3.08,1.95,style.dim,1.0,.66,.50);
+      for(let i=0;i<9;i++){
+        const a=(i+.13)*TAU/9,r=R(36+(i%3)*4+12*k);
+        this.stroke(g,[
+          {x:to.x+Math.cos(a)*R(21),y:to.y+Math.sin(a)*R(11)},
+          {x:to.x+Math.cos(a+.12)*r*.72,
+            y:to.y+Math.sin(a+.12)*r*.35},
+          {x:to.x+Math.cos(a-.06)*r,y:to.y+Math.sin(a-.06)*r*.52}
+        ],i===0?style.core:style.c,R(i===0?1.35:.91),fade*.75);
+      }
+    }
+  }
+  // Pixi 3v3-inspired moving ribbon: tapered layered glow, an electric thin
+  // spine, counter-twisted secondary filaments and discrete tumbling motes.
+  // All points are sampled along the ease curve, not just a straight line
+  // attached to the projectile. This makes the tail visibly move and unravel.
+  ribbonTrail(g,e,from,to,travel,style,scale){
+    const spell=e.spellId,isIce=spell==="crystal-bolt";
+    const dx=to.x-from.x,dy=to.y-from.y;
+    const len=Math.max(1,Math.hypot(dx,dy));
+    const tx=dx/len,ty=dy/len,nx=-ty,ny=tx;
+    const length=Math.min(.74,Math.max(.20,(isIce?125:155)*scale/len));
+    const count=21,phase=travel*18;
+    const samples=[];
+    const smooth=x=>x*x*(3-2*x);
+    for(let i=0;i<count;i++){
+      const f=i/(count-1),u=Math.max(0,travel-f*length);
+      const p=smooth(u),w=Math.sin(phase-i*.63)*(isIce?3.2:1.65)*scale;
+      samples.push({x:from.x+dx*p+nx*w*f,y:from.y+dy*p+ny*w*f,u,f});
+    }
+    // A broad *transparent* discipline-coloured halo underneath thin details.
+    // Draw back-to-front so the head reads crisply instead of glowing white.
+    for(let i=count-1;i>0;i--){
+      const a=samples[i],b=samples[i-1],fade=(1-i/count)*.75;
+      if(a.u===0&&b.u===0)continue;
+      this.stroke(g,[a,b],style.c,(4.1+1.7*fade)*scale,fade*.13);
+      this.stroke(g,[a,b],style.c,(1.10+1.25*fade)*scale,fade*.65);
+      if(i<count*.57)this.stroke(g,[a,b],style.core,.67*scale,fade*.42);
+    }
+    for(const side of [-1,1]){
+      const path=[];
+      for(let i=0;i<count-1;i++){
+        const p=samples[i];
+        if(p.u<=0)continue;
+        const spiral=Math.sin(phase*1.4-i*(isIce?.80:.54)+side*1.5);
+        const spread=(isIce?6.4:4.1)*scale*(.25+p.f*.75);
+        path.push({x:p.x+nx*spiral*spread*side,
+          y:p.y+ny*spiral*spread*side});
+      }
+      if(path.length>1)this.stroke(g,path,
+        side<0?style.c:style.dim,(isIce?1.05:.89)*scale,.44);
+    }
+    // Independent little facets / solar sparks along the wake.
+    for(let i=2;i<15;i+=2){
+      const p=samples[i];if(p.u<=0)continue;
+      const angle=phase*.7+i*1.9;
+      const radius=(2.6+(i%3)*1.7)*scale;
+      const side=i%2?1:-1;
+      const x=p.x+nx*radius*side,y=p.y+ny*radius*side;
+      if(isIce){
+        const shard=[{x:x-tx*3.2*scale,y:y-ty*3.2*scale},
+          {x:x+nx*2.0*scale,y:y+ny*2.0*scale},
+          {x:x+tx*4.6*scale,y:y+ty*4.6*scale},
+          {x:x-tx*3.2*scale,y:y-ty*3.2*scale}];
+        this.stroke(g,shard,i%4===0?style.core:style.c,.83*scale,.62*(1-i/18));
+      }else{
+        const sx=x+Math.cos(angle)*1.6*scale,sy=y+Math.sin(angle)*1.6*scale;
+        this.stroke(g,[{x:sx-tx*3.7*scale,y:sy-ty*3.7*scale},
+          {x:sx+tx*3.2*scale,y:sy+ty*3.2*scale}],
+          i%4===0?style.core:style.c,.90*scale,.57*(1-i/19));
+        if(i%4===0)this.circle(g,sx,sy,1.55*scale,style.c,.7*scale,.55);
+      }
+    }
+    const head=samples[0];
+    this.circle(g,head.x,head.y,(isIce?4.3:4.8)*scale,
+      style.c,1.7*scale,.84);
+    if(!isIce)this.circle(g,head.x,head.y,1.7*scale,
+      style.core,.86*scale,.86);
   }
   status(g,e,p,t,style){
     const fade=Math.min(1,t*6,(1-t)*5);

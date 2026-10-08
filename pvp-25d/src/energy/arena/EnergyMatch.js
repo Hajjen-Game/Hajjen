@@ -273,7 +273,7 @@ export class EnergyMatch {
         this.emit({type:"interrupt",actorId:actor.id,targetId:target.id,spellId});
         if(actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon")actor.flux=clamp(actor.flux+12,0,MAX_FLUX);
         this.log(actor.name+" interrupted "+target.name);
-      }
+      }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
     }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
     else if(r.mode==="guard"){
       this.addStatus(target,{kind:"guard",remaining:r.duration,amount:r.amount,sourceId:actor.id});
@@ -316,7 +316,7 @@ export class EnergyMatch {
       if(bad){
         target.statuses.splice(target.statuses.indexOf(bad),1);
         this.emit({type:"cleanse",actorId:actor.id,targetId:target.id,spellId});
-      }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId});
+      }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NOTHING TO CLEANSE"});
       if(actor.evolutions[spellId]==="purifying-surge"&&bad)this.heal(target,10,actor,spellId);
     }
     this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});

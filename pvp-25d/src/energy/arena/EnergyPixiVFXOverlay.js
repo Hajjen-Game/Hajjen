@@ -94,6 +94,19 @@ export class EnergyPixiVFXOverlay {
     if(!Number.isFinite(pos.x)||!Number.isFinite(pos.y)||pos.z<0||pos.z>1)return null;
     return {x:pos.x,y:pos.y};
   }
+  impactScale(actor,centre){
+    // A world-size reference projected through the active Babylon camera:
+    // impacts shrink with the arena zoom instead of staying giant in pixels.
+    if(!actor||!centre||!this.renderer.scene)return .72;
+    const scene=this.renderer.scene;
+    const viewport=new BABYLON.Viewport(0,0,
+      Math.max(1,this.stage.clientWidth),Math.max(1,this.stage.clientHeight));
+    const edge=BABYLON.Vector3.Project(
+      new BABYLON.Vector3(actor.x*S+.55,.88,actor.y*S),
+      BABYLON.Matrix.Identity(),scene.getTransformMatrix(),viewport);
+    const px=Math.hypot(edge.x-centre.x,edge.y-centre.y);
+    return Number.isFinite(px)?clamp(px/21,.48,1.08):.72;
+  }
   stroke(g,points,color,width,alpha=1){
     if(points.length<2)return;
     g.moveTo(points[0].x,points[0].y);
@@ -348,7 +361,8 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       const style=COLORS[e.spellId];
       if(e.type==="windup")this.charge(g,e,from,t,style);
-      else if(e.type==="hit"||e.type==="heal")this.trail(g,e,from,to,t,style);
+      else if(e.type==="hit"||e.type==="heal")this.trail(g,e,from,to,t,style,
+        this.impactScale(b||a,to));
       else this.status(g,e,to,t,style);
     }
     this.app.render();

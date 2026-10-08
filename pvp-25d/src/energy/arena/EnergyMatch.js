@@ -329,6 +329,40 @@ export class EnergyMatch {
     actor.statuses=actor.statuses.filter(s=>s.remaining>0);
     if(shieldExpired)actor.shield=0;
   }
+  aiNavigate(actor,enemy,desired,dt) {
+    const d=distance(actor,enemy);
+    if(d<desired-45&&actor.role!=="melee"){
+      actor.waypoint=null;
+      this.move(actor,actor.x-enemy.x,actor.y-enemy.y,dt);
+      return;
+    }
+    if(d<=desired+30){actor.waypoint=null;actor.lastMove={x:0,y:0};return;}
+    if(actor.waypoint&&(distance(actor,actor.waypoint)<27||this.time>actor.waypoint.until))actor.waypoint=null;
+    if(!actor.waypoint){
+      // Actor collision is wider than a ray used for spell LOS. Route around
+      // the first blocking pillar with a stable near-side detour point.
+      const obstacle=(this.arena.obstacles||[]).find(o=>segmentHitsRect(actor,enemy,o,30));
+      if(obstacle){
+        const sideX=actor.x<obstacle.x?obstacle.x-55
+          :actor.x>obstacle.x+obstacle.w?obstacle.x+obstacle.w+55
+          :actor.x<obstacle.x+obstacle.w/2?obstacle.x-55:obstacle.x+obstacle.w+55;
+        const options=[
+          {x:sideX,y:obstacle.y-55},
+          {x:sideX,y:obstacle.y+obstacle.h+55},
+        ].filter(p=>canStand(p.x,p.y,this.arena,23));
+        options.sort((a,b)=>(distance(actor,a)+distance(a,enemy))-(distance(actor,b)+distance(b,enemy)));
+        if(options.length)actor.waypoint={...options[0],until:this.time+5};
+      }
+    }
+    const goal=actor.waypoint||enemy;
+    const before={x:actor.x,y:actor.y};
+    this.move(actor,goal.x-actor.x,goal.y-actor.y,dt);
+    if(actor.waypoint&&distance(before,actor)<0.15){
+      // If the current detour has become blocked by another obstacle,
+      // release it rather than flip between directions every frame.
+      actor.waypoint=null;
+    }
+  }
   aiStep(actor,dt){
     if(!actor.alive)return;
     const friends=this.allies(actor),enemies=this.opponents(actor);
@@ -340,11 +374,7 @@ export class EnergyMatch {
     const healTarget=friends.reduce((best,a)=>a.hp/a.maxHp<best.hp/best.maxHp?a:best,friends[0]);
     if(!actor.cast){
       const desired=actor.role==="melee"?72:actor.role==="caster"?335:360;
-      const d=distance(actor,enemy);
-      const vector={x:enemy.x-actor.x,y:enemy.y-actor.y};
-      if(d>desired+30)this.move(actor,vector.x,vector.y,dt);
-      else if(d<desired-45&&actor.role!=="melee")this.move(actor,-vector.x,-vector.y,dt);
-      else actor.lastMove={x:0,y:0};
+      this.aiNavigate(actor,enemy,desired,dt);
     }
     actor.decision-=dt;
     if(actor.decision>0)return;

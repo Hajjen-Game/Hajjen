@@ -191,6 +191,16 @@ export class EnergyHeroVFX {
       for(let i=0;i<3;i++)this.ball(fx,.095,"main",i,
         new BABYLON.Vector3(.20*Math.cos(i*TAU/3),-.50,.20*Math.sin(i*TAU/3)));
     }
+    // Visible even with Pixi disabled: 3D particles trace an actual path
+    // behind the travelling energy, with colour and turbulence per discipline.
+    for(let i=0;i<11;i++){
+      const sparkle=this.ball(fx,
+        (spellId==="crystal-bolt"?.105:.088)*(1-i*.057),
+        i%5===0?"light":i%2===0?"dark":"main",i+8);
+      sparkle.parent=null; // keep world position; projectile root moves independently
+      sparkle.position.copyFrom(start);
+      fx.meshes[fx.meshes.length-1].tracer=i;
+    }
     return fx;
   }
   // Rift Slash is a blade-free dimensional tear that races THROUGH the target.
@@ -244,6 +254,7 @@ export class EnergyHeroVFX {
       new BABYLON.Vector3(point.x,.08,point.z),350);
     this.torus(floor,.80,.018,"dark");
     this.arc(floor,.50,Math.PI*.95,.35,.013,.012,"main");
+    this.outerImpact("rift-slash",point,null);
     return fx;
   }
   hammer(source,target){
@@ -293,6 +304,7 @@ export class EnergyHeroVFX {
     this.ball(flash,.33,"main");
     this.ball(flash,.12,"light",1);
     this.torus(flash,.67,.020,"main",2).rotation.x=.65;
+    this.outerImpact("gravity-hammer",this.world(target,.085),target.id);
     return shock;
   }
   // Patient receives layered energy ribbons with an emphasized landing.
@@ -404,6 +416,81 @@ export class EnergyHeroVFX {
     // Do not let the generic VFX spawn duplicates of these hero spells.
     return true;
   }
+  // Two scales, intentionally distinct: detailed impact stays inside the
+  // target orb; thin coloured outer fragments reach ~2.1-2.5 orb diameters.
+  // These are fractured arcs/shards, never solid white discs or radial wheels.
+  outerImpact(spellId,position,targetId){
+    const ground=spellId==="gravity-hammer";
+    const pos=ground?new BABYLON.Vector3(position.x,.086,position.z):position;
+    const fx=this.makeEffect(spellId,"outer-impact",pos,
+      spellId==="gravity-hammer"?610:spellId==="rift-slash"?470:540,
+      {targetId,ground});
+    if(spellId==="crystal-bolt"){
+      for(let i=0;i<8;i++){
+        const angle=(i+.16)*TAU/8,radius=.81+(i%3)*.16;
+        const shard=this.cone(fx,.040+(i%2)*.014,.24+(i%4)*.048,4,
+          i===1?"light":i%3===0?"dark":"main",i);
+        shard.position.set(Math.cos(angle)*radius,
+          (i%3-1)*.18,Math.sin(angle)*radius);
+        shard.rotation.z=Math.PI*.46+angle*.18;
+        shard.rotation.y=angle;
+      }
+      this.arc(fx,1.06,Math.PI*.77,.12,-.42,.018,"main",20);
+      this.arc(fx,1.19,Math.PI*.49,3.52,-.42,.012,"dark",21);
+    }else if(spellId==="sun-lance"){
+      this.arc(fx,1.0,Math.PI*.83,-.65,.015,.020,"main",0);
+      this.arc(fx,1.19,Math.PI*.39,2.35,-.04,.012,"dark",1);
+      for(let i=0;i<5;i++){
+        const a=(i+.19)*TAU/5,r=.75+(i%2)*.13;
+        this.tube(fx,[
+          new BABYLON.Vector3(Math.cos(a)*r,Math.sin(a)*r*.79,0),
+          new BABYLON.Vector3(Math.cos(a)*(r+.29+(i%2)*.08),
+            Math.sin(a)*(r+.29+(i%2)*.08)*.83,(i%2?-.07:.07))
+        ],i===0?.019:.012,i===0?"light":"main",i+2);
+      }
+      for(let i=0;i<3;i++){
+        const a=i*TAU/3+.3;
+        const mote=this.ball(fx,.075,"main",i+9);
+        mote.position.set(Math.cos(a)*1.0,Math.sin(a)*.68,.13);
+      }
+    }else if(spellId==="rift-slash"){
+      // Two jagged, opposite seams reading as a split in space.
+      for(let side=-1;side<=1;side+=2){
+        const points=[];
+        for(let i=0;i<=17;i++){
+          const u=i/17-.5;
+          points.push(new BABYLON.Vector3(u*2.56,
+            side*(u*.96+Math.sin(u*10+side)*.09),
+            .12*Math.cos(u*5+side)));
+        }
+        this.tube(fx,points,side===1?.027:.019,
+          side===1?"dark":"main",side);
+      }
+      for(let i=0;i<5;i++){
+        const a=(i+.32)*TAU/5;
+        this.tube(fx,[
+          new BABYLON.Vector3(Math.cos(a)*.78,Math.sin(a)*.61,.03),
+          new BABYLON.Vector3(Math.cos(a+.10)*(1.04+i%2*.22),
+            Math.sin(a+.10)*(.88+i%2*.11),-.02)
+        ],.011,i===0?"light":"main",i+3);
+      }
+    }else if(ground){
+      // A low-ground pressure shock that does not obscure the glass orb.
+      this.arc(fx,1.25,Math.PI*.97,.09,.017,.027,"main",0);
+      this.arc(fx,1.54,Math.PI*.59,3.22,.016,.018,"dark",1);
+      for(let i=0;i<9;i++){
+        const a=(i+.15)*TAU/9,outer=1.02+(i%3)*.18;
+        this.tube(fx,[
+          new BABYLON.Vector3(Math.cos(a)*.59,.02,Math.sin(a)*.59),
+          new BABYLON.Vector3(Math.cos(a+.11)*outer*.79,.02,
+            Math.sin(a+.11)*outer*.79),
+          new BABYLON.Vector3(Math.cos(a-.045)*outer,.018,
+            Math.sin(a-.045)*outer)
+        ],i%4===0?.019:.012,i===1?"light":"main",i+2);
+      }
+    }
+    return fx;
+  }
   impact(fx,target){
     const id=fx.spellId;
     const point=target?.alive?this.world(target):fx.root.position.clone();
@@ -452,6 +539,7 @@ export class EnergyHeroVFX {
         mote.rotation.z=a-Math.PI/2;
       }
     }
+    this.outerImpact(id,point,fx.targetId);
   }
   update(match,now=performance.now()){
     for(let i=this.live.length-1;i>=0;i--){
@@ -507,7 +595,26 @@ export class EnergyHeroVFX {
           if(target)this.gravityContact(target);
         }
       }
-      for(const {mesh,slot,i:idx,base} of fx.meshes){
+      for(const {mesh,slot,i:idx,base,tracer} of fx.meshes){
+        // World-space three-dimensional tail is independent of the projectile
+        // root rotation. It persists even if Pixi fails to load.
+        if(fx.type==="projectile"&&tracer!==undefined){
+          const end=target?.alive?this.world(target):fx.destination;
+          const progress=smooth(t);
+          const historyT=clamp(progress-(tracer+1)*.038,0,1);
+          const point=BABYLON.Vector3.Lerp(fx.origin,end,historyT);
+          const dx=end.x-fx.origin.x,dz=end.z-fx.origin.z;
+          const length=Math.hypot(dx,dz)||1;
+          const wobble=(fx.spellId==="crystal-bolt"?.095:.052)*
+            Math.sin(now*.012-tracer*1.85)*(1+tracer*.05);
+          point.x+=(-dz/length)*wobble;
+          point.z+=(dx/length)*wobble;
+          point.y+=Math.cos(now*.011-tracer*2.1)*wobble*.6;
+          mesh.position.copyFrom(point);
+          mesh.scaling.setAll(Math.max(.30,1-tracer*.055));
+          mesh.visibility=clamp((1-tracer/12)*Math.min(1,t*9)*(1-t*.42),0,.78);
+          continue;
+        }
         let alpha=1;
         if(fx.type==="charge"){
           const pressure=smooth(t),angle=now*.001*(1+idx*.25)+idx*TAU/6;
@@ -545,6 +652,13 @@ export class EnergyHeroVFX {
           mesh.rotation.z=-.35+Math.sin(t*3.8+idx*.38)*.18;
           mesh.scaling.setAll((.42+Math.min(1,t*2.5)*.53)*(idx%2?.94:1));
           alpha=Math.min(1,t*7,Math.max(0,(1-t)*5));
+        }else if(fx.type==="outer-impact"){
+          // Expand gently beyond the orb without changing the tiny inner core.
+          // Low-contrast edges keep the signature detailed, not washed out.
+          const expansion=.80+.34*smooth(t);
+          mesh.scaling.setAll(expansion);
+          mesh.visibility=clamp(Math.min(1,t*11,(1-t)*1.65)*
+            (slot==="light"?.56:slot==="dark"?.48:.78),0,.85);
         }else if(fx.type==="rift-impact"){
           mesh.scaling.setAll(.62+.40*smooth(t));
           mesh.position.set(base.x*(1+t*.12),base.y*(1+t*.08),

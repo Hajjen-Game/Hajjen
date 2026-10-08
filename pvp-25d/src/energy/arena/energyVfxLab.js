@@ -106,6 +106,8 @@ function run(spell,fromSequence=false){
   const previewDuration=spell.duration;
   prepareActors(spell);
   renderer.spellFX.hero.clear();
+  // Clear only old visual accents, not scene or combat progression.
+  if(renderer.pixiFX)renderer.pixiFX.effects.length=0;
   $("now-playing").textContent=spell.name+" · "+spell.discipline.toUpperCase();
   setPhase(labels.charging,spell.phase+" — energy assembling inside the orb");
   selectCard(spell.id);
@@ -216,6 +218,14 @@ function animate(now){
 }
 function init(){
   drawCards();
+  let volumeOn=true;
+  $("toggle-volume").addEventListener("click",()=>{
+    volumeOn=!volumeOn;
+    renderer?.spellFX?.hero?.volume?.setEnabled(volumeOn);
+    $("toggle-volume").textContent=volumeOn?"3D IMPACTS: ON":"3D IMPACTS: OFF";
+    // Restart the current signature for a meaningful side-by-side comparison.
+    run(active||signature[0],false);
+  });
   let pixiOn=true;
   $("toggle-pixi").addEventListener("click",()=>{
     pixiOn=!pixiOn;

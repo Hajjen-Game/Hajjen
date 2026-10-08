@@ -114,3 +114,13 @@ h2{font-size:23px}
 .spell-button:active{transform:translateY(1px)}
 #combat-flash{z-index:6;min-width:150px;text-align:center;font-weight:800}
 .unit-frame:focus-visible,.spell-button:focus-visible{outline:2px solid #a8ecfc;outline-offset:2px}
+
+/* GCD is a thin progress strip, not a whole-button opacity flash. */
+.spell-button.gcd{opacity:1;border-color:#57708c}
+.spell-button.gcd::after{
+  content:"";position:absolute;bottom:0;left:0;height:3px;
+  width:var(--gcd-progress,0%);
+  background:#a1d7f1;box-shadow:0 0 8px #7fc9f0;
+  pointer-events:none;border-radius:2px;transition:width .06s linear;
+}
+.spell-button.gcd.disabled{opacity:.78}

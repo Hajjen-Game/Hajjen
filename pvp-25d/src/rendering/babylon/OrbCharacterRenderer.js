@@ -30,6 +30,23 @@ function alphaMaterial(scene,name,hex,alpha,emissive=0){
   return m;
 }
 
+function addGlassFresnel(material,edgeColor){
+  if(!BABYLON.FresnelParameters) return;
+  const opacity=new BABYLON.FresnelParameters();
+  opacity.bias=0.03;
+  opacity.power=3.2;
+  opacity.leftColor=new BABYLON.Color3(0.92,0.97,1.00);
+  opacity.rightColor=BABYLON.Color3.Black();
+  material.opacityFresnelParameters=opacity;
+
+  const emissive=new BABYLON.FresnelParameters();
+  emissive.bias=0.00;
+  emissive.power=4.1;
+  emissive.leftColor=edgeColor.scale(0.44);
+  emissive.rightColor=BABYLON.Color3.Black();
+  material.emissiveFresnelParameters=emissive;
+}
+
 export class OrbCharacterRenderer{
   constructor(scene,shadowGenerator,scale){
     this.scene=scene;
@@ -53,8 +70,11 @@ export class OrbCharacterRenderer{
       0.095,
       0.035,
     );
-    shellMat.specularColor=new BABYLON.Color3(0.48,0.56,0.66);
-    shellMat.specularPower=128;
+    shellMat.diffuseColor=new BABYLON.Color3(0.055,0.070,0.090);
+    shellMat.emissiveColor=new BABYLON.Color3(0.008,0.012,0.018);
+    shellMat.specularColor=new BABYLON.Color3(0.88,0.94,1.00);
+    shellMat.specularPower=180;
+    addGlassFresnel(shellMat,new BABYLON.Color3(0.62,0.82,1.00));
 
     const middleMat=alphaMaterial(
       this.scene,
@@ -63,6 +83,11 @@ export class OrbCharacterRenderer{
       0.055,
       0.018,
     );
+    middleMat.diffuseColor=new BABYLON.Color3(0.030,0.038,0.052);
+    middleMat.emissiveColor=new BABYLON.Color3(0.004,0.006,0.010);
+    middleMat.specularColor=new BABYLON.Color3(0.55,0.68,0.82);
+    middleMat.specularPower=128;
+
     const coreMat=alphaMaterial(
       this.scene,
       "orb-core-mat:"+actor.id,
@@ -74,7 +99,7 @@ export class OrbCharacterRenderer{
 
     const shell=BABYLON.MeshBuilder.CreateSphere(
       "orb-shell:"+actor.id,
-      {diameter:1.18,segments:20},
+      {diameter:1.24,segments:28},
       this.scene,
     );
     shell.parent=visualRoot;
@@ -85,7 +110,7 @@ export class OrbCharacterRenderer{
 
     const middle=BABYLON.MeshBuilder.CreateSphere(
       "orb-middle:"+actor.id,
-      {diameter:0.86,segments:16},
+      {diameter:0.92,segments:20},
       this.scene,
     );
     middle.parent=visualRoot;
@@ -96,7 +121,7 @@ export class OrbCharacterRenderer{
 
     const core=BABYLON.MeshBuilder.CreatePolyhedron(
       "orb-core:"+actor.id,
-      {type:2,size:0.36},
+      {type:2,size:0.30},
       this.scene,
     );
     core.parent=visualRoot;
@@ -126,6 +151,78 @@ export class OrbCharacterRenderer{
     energy.scaling.set(1.0,0.82,1.0);
     energy.material=energyMat;
     energy.isPickable=false;
+
+    const plasmaMat=alphaMaterial(
+      this.scene,
+      "orb-plasma-mat:"+actor.id,
+      style.energy,
+      0.16,
+      0.78,
+    );
+    plasmaMat.disableLighting=true;
+
+    const plasma=BABYLON.MeshBuilder.CreateSphere(
+      "orb-plasma:"+actor.id,
+      {diameter:0.72,segments:16},
+      this.scene,
+    );
+    plasma.parent=visualRoot;
+    plasma.position.y=0.72;
+    plasma.material=plasmaMat;
+    plasma.isPickable=false;
+
+    const ringMat=alphaMaterial(
+      this.scene,
+      "orb-ring-mat:"+actor.id,
+      style.energy,
+      0.58,
+      1.15,
+    );
+    ringMat.disableLighting=true;
+
+    const rings=[];
+    const ringDefs=[
+      {diameter:0.78,thickness:0.020,rx:Math.PI*0.48,rz:0.18},
+      {diameter:0.67,thickness:0.017,rx:Math.PI*0.20,rz:Math.PI*0.34},
+      {diameter:0.56,thickness:0.014,rx:Math.PI*0.70,rz:-Math.PI*0.22},
+    ];
+    for(let i=0;i<ringDefs.length;i++){
+      const d=ringDefs[i];
+      const ring=BABYLON.MeshBuilder.CreateTorus(
+        "orb-energy-ring:"+actor.id+":"+i,
+        {diameter:d.diameter,thickness:d.thickness,tessellation:48},
+        this.scene,
+      );
+      ring.parent=visualRoot;
+      ring.position.y=0.72;
+      ring.rotation.x=d.rx;
+      ring.rotation.z=d.rz;
+      ring.material=ringMat;
+      ring.isPickable=false;
+      rings.push(ring);
+    }
+
+    const shardMat=alphaMaterial(
+      this.scene,
+      "orb-shard-mat:"+actor.id,
+      style.core,
+      0.88,
+      1.35,
+    );
+    shardMat.disableLighting=true;
+
+    const shards=[];
+    for(let i=0;i<5;i++){
+      const shard=BABYLON.MeshBuilder.CreatePolyhedron(
+        "orb-shard:"+actor.id+":"+i,
+        {type:1,size:0.075+(i%2)*0.012},
+        this.scene,
+      );
+      shard.parent=visualRoot;
+      shard.material=shardMat;
+      shard.isPickable=false;
+      shards.push(shard);
+    }
 
     const haloMat=alphaMaterial(
       this.scene,
@@ -189,7 +286,7 @@ export class OrbCharacterRenderer{
     for(let i=0;i<6;i++){
       const spark=BABYLON.MeshBuilder.CreateSphere(
         "orb-spark:"+actor.id+":"+i,
-        {diameter:Math.max(0.055,0.11-i*0.008),segments:7},
+        {diameter:Math.max(0.040,0.085-i*0.006),segments:7},
         this.scene,
       );
       spark.parent=visualRoot;
@@ -267,11 +364,11 @@ export class OrbCharacterRenderer{
       root,visualRoot,
       classId:actor.classId,role:actor.role,
       style,
-      shell,middle,core,energy,halo,castBand,contactShadow,
+      shell,middle,core,energy,plasma,rings,shards,halo,castBand,contactShadow,
       sparks,trail,hp,hpBack,barRoot,
-      shellMat,middleMat,coreMat,energyMat,haloMat,castMat,hpMat,
+      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,haloMat,castMat,hpMat,
       ownedMaterials:[
-        shellMat,middleMat,coreMat,energyMat,haloMat,castMat,
+        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,haloMat,castMat,
         shadowMat,hpBackMat,hpMat,
         ...trail.map(t=>t.material),
       ],
@@ -354,16 +451,40 @@ export class OrbCharacterRenderer{
       e.energy.rotation.y=-time*0.0024;
       e.energy.rotation.z=time*0.0011;
 
-      e.middle.scaling.setAll(1.0+castProgress*0.06);
-      e.shellMat.alpha=0.085+(cast?0.025+castPulse*0.018:0);
-      e.middleMat.alpha=0.045+(cast?0.018:0);
+      e.middle.scaling.setAll(1.0+castProgress*0.04);
+      e.shellMat.alpha=0.055+(cast?0.010+castPulse*0.008:0);
+      e.middleMat.alpha=0.026+(cast?0.010:0);
       e.coreMat.emissiveColor=c3(e.style.energy).scale(
-        cast?1.46:1.10
+        cast?1.72:1.28
       );
       e.energyMat.emissiveColor=c3(e.style.core).scale(
-        cast?1.24:0.92
+        cast?1.45:1.08
       );
-      e.energyMat.alpha=0.34+(cast?0.13+castPulse*0.06:0);
+      e.energyMat.alpha=0.28+(cast?0.16+castPulse*0.08:0);
+
+      const plasmaPulse=1+Math.sin(time*0.0067+String(actor.id).length)*0.08;
+      e.plasma.scaling.setAll(
+        plasmaPulse*(1+castProgress*0.13+castPulse*0.04)
+      );
+      e.plasmaMat.alpha=0.12+(cast?0.11+castPulse*0.05:0);
+      e.plasmaMat.emissiveColor=c3(e.style.energy).scale(
+        cast?1.10:0.66
+      );
+
+      for(let i=0;i<e.rings.length;i++){
+        const ring=e.rings[i];
+        const dir=i%2===0?1:-1;
+        ring.rotation.y+=dir*(0.010+i*0.003)*(cast?1.8:1.0);
+        ring.rotation.z+=dir*0.0035;
+        ring.scaling.setAll(
+          0.98+Math.sin(time*(0.0038+i*0.0009)+i)*0.05
+          +castProgress*0.08
+        );
+      }
+      e.ringMat.alpha=0.46+(cast?0.20+castPulse*0.10:0);
+      e.ringMat.emissiveColor=c3(e.style.energy).scale(
+        cast?1.42:1.08
+      );
 
       e.castMat.alpha=cast?0.20+castPulse*0.28:0;
       e.castBand.scaling.setAll(0.88+castProgress*0.32);
@@ -385,6 +506,24 @@ export class OrbCharacterRenderer{
           (cast?1.28:0.92)*(i%2?0.82:1.0)
         );
       }
+
+      for(let i=0;i<e.shards.length;i++){
+        const a=time*(0.0011+i*0.00016)+i*Math.PI*2/e.shards.length;
+        const radius=0.47+(i%2)*0.07+castProgress*0.06;
+        const shard=e.shards[i];
+        shard.position.set(
+          Math.cos(a)*radius,
+          0.72+Math.sin(a*1.35+i)*0.18,
+          Math.sin(a)*radius,
+        );
+        shard.rotation.x=time*0.0018+i;
+        shard.rotation.y=-time*0.0022+i*0.6;
+        shard.scaling.setAll(cast?1.20:0.92);
+      }
+      e.shardMat.alpha=0.72+(cast?0.18:0);
+      e.shardMat.emissiveColor=c3(e.style.core).scale(
+        cast?1.54:1.14
+      );
 
       let leader=pos;
       for(let i=0;i<e.trail.length;i++){

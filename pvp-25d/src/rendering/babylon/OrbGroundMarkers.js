@@ -35,12 +35,13 @@ export class OrbGroundMarkers{
       this.materials[team]={
         base:markerMaterial(scene,"orb-ground-"+team+"-base",p.base,.37,.42),
         arc:markerMaterial(scene,"orb-ground-"+team+"-arc",p.arc,.85,.85),
-        // Keep the full base ring restrained. The broken moving arcs and
-        // glints carry target emphasis, rather than a solid neon circle.
-        selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.56,.64),
-        selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,.94,1.44),
-        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.27,.88),
-        selectedDot:markerMaterial(scene,"orb-ground-"+team+"-selected-dot",p.arc,.96,1.52),
+        // Selected target gets a larger readable ring, with detail confined
+        // to its circumference. Normal friend/enemy markers stay unchanged.
+        selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.72,.83),
+        selectedTrack:markerMaterial(scene,"orb-ground-"+team+"-selected-track",p.base,.45,.67),
+        selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,.96,1.48),
+        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.22,.75),
+        selectedDot:markerMaterial(scene,"orb-ground-"+team+"-selected-dot",p.arc,.86,1.06),
       };
     }
   }
@@ -71,6 +72,17 @@ export class OrbGroundMarkers{
     );
     selectedGroup.parent=root;
     selectedGroup.setEnabled(false);
+    // Faint complete track restores target legibility at normal camera zoom;
+    // rotating arcs and glints are an accent, not the whole indicator.
+    const selectedTrack=BABYLON.MeshBuilder.CreateTorus(
+      "orb-ground-lock-track:"+actor.id,
+      {diameter:2.02,thickness:.033,tessellation:128},
+      this.scene,
+    );
+    selectedTrack.parent=selectedGroup;
+    selectedTrack.position.y=.008;
+    selectedTrack.material=materials.selectedTrack;
+    selectedTrack.isPickable=false;
     const selectedArcsPivot=new BABYLON.TransformNode(
       "orb-ground-lock-arcs:"+actor.id,this.scene,
     );
@@ -81,19 +93,19 @@ export class OrbGroundMarkers{
     selectedTicksPivot.parent=selectedGroup;
     const selectedArcs=[];
     const selectedGlowArcs=[];
-    const arcAngles=[.24,1.69,3.16,4.86];
-    const arcSpans=[.50,.28,.41,.23];
+    const arcAngles=[.08,1.68,3.17,4.80];
+    const arcSpans=[1.08,.90,1.05,.86];
     for(let i=0;i<4;i++){
       const path=[];
-      for(let j=0;j<=24;j++){
-        const a=arcAngles[i]+arcSpans[i]*j/24;
+      for(let j=0;j<=40;j++){
+        const a=arcAngles[i]+arcSpans[i]*j/40;
         path.push(new BABYLON.Vector3(
-          Math.cos(a)*1.035,.014,Math.sin(a)*1.035,
+          Math.cos(a)*1.012,.014,Math.sin(a)*1.012,
         ));
       }
       const arc=BABYLON.MeshBuilder.CreateTube(
         "orb-ground-lock-segment:"+actor.id+":"+i,
-        {path,radius:i%2===0?.024:.019,tessellation:10},
+        {path,radius:i%2===0?.027:.023,tessellation:12},
         this.scene,
       );
       arc.parent=selectedArcsPivot;
@@ -107,7 +119,7 @@ export class OrbGroundMarkers{
         );
         const glow=BABYLON.MeshBuilder.CreateTube(
           "orb-ground-lock-soft:"+actor.id+":"+i,
-          {path:glowPath,radius:.047,tessellation:8},
+          {path:glowPath,radius:.043,tessellation:10},
           this.scene,
         );
         glow.parent=selectedArcsPivot;
@@ -117,16 +129,18 @@ export class OrbGroundMarkers{
       }
     }
     const selectedTicks=[];
-    for(let i=0;i<7;i++){
-      const angle=(i+.19*(i%3))*TAU/7;
-      const inner=i%3===0?1.08:1.13;
-      const outer=inner+(i%3===0?.17:.085);
+    for(let i=0;i<5;i++){
+      const angle=(i+.21*(i%3))*TAU/5;
+      const span=i%2===0?.105:.063;
+      // Short tangent marks, never radial spikes beyond the ring.
+      const tickPath=[-span*.5,span*.5].map(offset=>
+        new BABYLON.Vector3(
+          Math.cos(angle+offset)*1.018,.016,Math.sin(angle+offset)*1.018,
+        )
+      );
       const tick=BABYLON.MeshBuilder.CreateTube(
         "orb-ground-lock-tick:"+actor.id+":"+i,
-        {path:[
-          new BABYLON.Vector3(Math.cos(angle)*inner,.016,Math.sin(angle)*inner),
-          new BABYLON.Vector3(Math.cos(angle)*outer,.016,Math.sin(angle)*outer),
-        ],radius:i%3===0?.018:.012,tessellation:8},
+        {path:tickPath,radius:i%2===0?.016:.012,tessellation:10},
         this.scene,
       );
       tick.parent=selectedTicksPivot;
@@ -135,15 +149,15 @@ export class OrbGroundMarkers{
       selectedTicks.push(tick);
     }
     const selectedDots=[];
-    for(let i=0;i<4;i++){
-      const angle=(i+.38)*TAU/4;
+    for(let i=0;i<3;i++){
+      const angle=(i+.36)*TAU/3;
       const dot=BABYLON.MeshBuilder.CreateSphere(
         "orb-ground-lock-dot:"+actor.id+":"+i,
-        {diameter:i%2===0?.052:.035,segments:10},
+        {diameter:i%2===0?.036:.027,segments:12},
         this.scene,
       );
       dot.parent=selectedTicksPivot;
-      dot.position.set(Math.cos(angle)*1.115,.018,Math.sin(angle)*1.115);
+      dot.position.set(Math.cos(angle)*1.014,.018,Math.sin(angle)*1.014);
       dot.material=materials.selectedDot;
       dot.isPickable=false;
       selectedDots.push(dot);
@@ -179,7 +193,7 @@ export class OrbGroundMarkers{
     }
     const entry={
       root,accents,base,arcs,team,materials,
-      selectedGroup,selectedArcsPivot,selectedTicksPivot,
+      selectedGroup,selectedTrack,selectedArcsPivot,selectedTicksPivot,
       selectedArcs,selectedGlowArcs,selectedTicks,selectedDots,
     };
     this.entries.set(actor.id,entry);
@@ -218,8 +232,8 @@ export class OrbGroundMarkers{
         entry.selectedTicksPivot.rotation.y=-direction*t*1.27;
         const phase=String(actor.id).length*.53;
         const pulse=Math.sin(t*(team==="enemy"?6.2:5.1)+phase);
-        entry.root.scaling.setAll(1.045+.012*pulse);
-        entry.selectedArcsPivot.scaling.setAll(1+.018*Math.sin(t*3.0+phase));
+        entry.root.scaling.setAll(1.042+.009*pulse);
+        entry.selectedArcsPivot.scaling.setAll(1+.008*Math.sin(t*3.0+phase));
         for(let i=0;i<entry.selectedDots.length;i++){
           entry.selectedDots[i].visibility=.64+
             .28*(.5+.5*Math.sin(t*4.4+i*1.8+phase));

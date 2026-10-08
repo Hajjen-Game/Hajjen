@@ -41,8 +41,8 @@ export class EnergyCombatFeedback{
       const a=match.getActor(event.actorId),b=match.getActor(event.targetId);
       if(a&&b){
         const worldDist=Math.hypot(a.x-b.x,a.y-b.y)*WORLD_SCALE;
-        const delay=event.spellId==="rift-slash"?301:
-          event.spellId==="gravity-hammer"?490:
+        const delay=event.spellId==="rift-slash"?269:
+          event.spellId==="gravity-hammer"?478:
           clamp(235+worldDist*18,255,490);
         this.pending.push({event,at:performance.now()+delay});
         return;

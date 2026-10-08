@@ -92,7 +92,7 @@ function selectFriend(index){
 }
 function directionalVector(){
   const x=Number(keys.has("d"))-Number(keys.has("a"));
-  const y=Number(keys.has("s"))-Number(keys.has("w"));
+  const y=Number(keys.has("w"))-Number(keys.has("s"));
   if(x||y)return{x,y};
   const lastMove=match?.player?.lastMove;
   if(lastMove&&(lastMove.x||lastMove.y))return{x:lastMove.x,y:lastMove.y};
@@ -186,7 +186,7 @@ function frameLoop(now){
   const dt=clamp((now-last)/1000,0,.06);last=now;
   if(!match.ended){
     const x=Number(keys.has("d"))-Number(keys.has("a"));
-    const y=Number(keys.has("s"))-Number(keys.has("w"));
+    const y=Number(keys.has("w"))-Number(keys.has("s"));
     match.move(match.player,x,y,dt);
     match.update(dt);
   }

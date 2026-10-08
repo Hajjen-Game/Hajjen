@@ -2,7 +2,7 @@
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-impact-refine3";
-import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-pass2";
+import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);

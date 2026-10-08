@@ -1,8 +1,8 @@
 // Optional PixiJS 8 accent layer, matching the sharp readability of Pixi 3v3.
 // Babylon keeps glass, real 3D buildup and depth. Pixi only draws screen-space
 // trails and hit highlights, never controls real damage, targeting or movement.
-import { drawEnergyProjectile } from "./EnergyPixiProjectiles.js?v=20261008-head-contrast12";
-import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-impact-burst8";
+import { drawEnergyProjectile } from "./EnergyPixiProjectiles.js?v=20261008-attack-first13";
+import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

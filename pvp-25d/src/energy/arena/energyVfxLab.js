@@ -1,7 +1,7 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-pixi-parity1";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-impact-continuity1";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 

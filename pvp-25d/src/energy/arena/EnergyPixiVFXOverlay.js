@@ -266,25 +266,68 @@ export class EnergyPixiVFXOverlay {
     if(elapsed<hitAt&&(attack==="sun-lance"||attack==="crystal-bolt")){
       this.ribbonTrail(g,e,from,to,travel,style,Math.min(scale,3.0));
     }else if(elapsed<hitAt&&attack==="rift-slash"){
-      const radius=(14+10*travel)*scale;
-      for(let i=0;i<3;i++){
-        const points=[];
-        for(let j=0;j<=23;j++){
-          const a=-1.3+j*2.6/23+travel*.65+i*.095;
-          points.push({x:x+Math.cos(a)*(radius-i*2.6*scale),
-            y:y+Math.sin(a)*(radius*.85-i*2*scale)});
+      // Two receding after-images and opposing prismatic seams sweep forward.
+      // Direction is set by caster->target, not by a static ring at the victim.
+      const radius=(15+12*travel)*Math.min(scale,2.8);
+      for(let echo=0;echo<3;echo++){
+        const p=clamp(travel-echo*.13,0,1);
+        const curve=p*p*(3-2*p);
+        const cx=from.x+dx*curve,cy=from.y+dy*curve;
+        for(let lane=-1;lane<=1;lane+=2){
+          const pts=[];
+          for(let j=0;j<=20;j++){
+            const u=j/20-.5,angle=u*Math.PI*2.4+travel*.52+echo*.18;
+            const dist=(radius-echo*3*Math.min(scale,2.8));
+            pts.push({x:cx+Math.cos(angle)*dist*px-Math.sin(angle)*dist*.42*tx,
+              y:cy+Math.cos(angle)*dist*py-Math.sin(angle)*dist*.42*ty+
+                lane*u*dist*.28});
+          }
+          this.stroke(g,pts,echo===0?(lane<0?style.dim:style.c):style.c,
+            (echo===0?1.60:.80)*Math.min(scale,2.8),
+            (1-echo*.29)*(1-travel*.20)*(lane<0?.70:.82));
         }
-        this.stroke(g,points,i===0?style.dim:i===1?style.c:style.core,
-          (i===0?1.8:i===1?1.35:.7)*scale,(1-travel*.2)*.82);
+      }
+      // A cracked central seam and short fading shards add void personality.
+      for(let j=0;j<5;j++){
+        const lag=clamp(travel-(j+1)*.10,0,1);
+        const eased=lag*lag*(3-2*lag);
+        if(lag===0)continue;
+        const cx=from.x+dx*eased,cy=from.y+dy*eased;
+        const side=j%2?-1:1,sideSize=(4+j%3*2)*Math.min(scale,2.7);
+        this.stroke(g,[{x:cx+px*sideSize*side,y:cy+py*sideSize*side},
+          {x:cx+px*sideSize*side+tx*8,y:cy+py*sideSize*side+ty*8}],
+          j===0?style.core:style.c,.86*Math.min(scale,2.7),.55*(1-j/7));
       }
     }else if(elapsed<hitAt&&attack==="gravity-hammer"){
-      const v=1-travel,headY=to.y-(85*v*v)*scale;
-      for(let i=-1;i<=1;i++){
-        this.stroke(g,[{x:to.x+i*7*scale,y:headY-(17+5*Math.abs(i))*scale},
-          {x:to.x+i*3*scale,y:headY+7*scale}],
-          i===0?style.c:style.dim,(i===0?2.35:.95)*scale,1-travel*.25);
+      // Descending filaments spiral around the compact heavy mass. No long
+      // opaque white shaft; the slam gains weight through convergence.
+      const shapeScale=Math.min(scale,2.8),v=1-travel;
+      const headY=to.y-82*v*v*shapeScale;
+      for(let lane=-2;lane<=2;lane++){
+        const points=[];
+        for(let j=0;j<=13;j++){
+          const q=j/13;
+          const spin=travel*10+lane*1.75+q*TAU*.85;
+          points.push({
+            x:to.x+Math.sin(spin)*(8+q*7)*shapeScale+lane*2*shapeScale,
+            y:headY-q*(19+16*v)*shapeScale
+          });
+        }
+        this.stroke(g,points,lane===0?style.c:lane%2?style.dim:style.c,
+          (lane===0?1.9:.86)*shapeScale,
+          (lane===0?.80:.48)*(1-travel*.26));
       }
-      this.circle(g,to.x,headY,(7+4*travel)*scale,style.c,1.55*scale,.9);
+      for(let i=0;i<5;i++){
+        const a=travel*6+i*TAU/5;
+        this.stroke(g,[{
+          x:to.x+Math.cos(a)*9*shapeScale,
+          y:headY+Math.sin(a)*4*shapeScale
+        },{
+          x:to.x+Math.cos(a+.25)*15*shapeScale,
+          y:headY+Math.sin(a+.25)*7*shapeScale
+        }],i===0?style.core:style.c,.9*shapeScale,.59);
+      }
+      this.circle(g,to.x,headY,(6+4*travel)*shapeScale,style.c,1.5*shapeScale,.81);
     }
     if(elapsed>=hitAt){
       const impactT=clamp((elapsed-hitAt)/Math.max(1,e.duration-hitAt),0,1);

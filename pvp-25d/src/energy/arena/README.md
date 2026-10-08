@@ -263,6 +263,38 @@ Pixi projectile shapes and authored Pixi impacts are retained.
   both Pixi-primary and Babylon fallback paths (two ranged spells).
   Live visual/FPS testing is still needed.
 
+## Threaded Impact Pass 10 — Reactive Thread depth for Pixi hits
+
+After the user noted that Reactive Thread already looks three-dimensional
+*with* Pixi, Crystal Bolt and Sun Lance now borrow its thin spatial strand
+approach instead of reintroducing large polygon fragments.
+
+- **Default:** accepted Pixi projectiles, impact flashes and particles remain
+  untouched. On contact, Babylon adds only **four slender, partial 3D energy
+  filaments and four tiny orbiting motes** for each Crystal Bolt / Sun Lance
+  hit. This is a short-lived ~560/480 ms variant of Reactive Thread's rotating
+  `this.arc()/this.tube()` geometry, not a comeback of the old 3D shards.
+- **Actual depth:** the strands are authored as curved 3D tubes at differing
+  heights, travel-axis depths and rotations, wrapping around the struck glass
+  orb and unwinding as they fade. They are non-pickable and cleaned up through
+  `EnergyHeroVFX`'s bounded lifetime management.
+- **Crystal Bolt** receives colder, slightly tighter orbiting frost strands.
+  **Sun Lance** receives more open, warmer and faster-winding solar filaments.
+  Their Pixi material particles remain the principal visual impact.
+- No additional 3D geometry is spawned during travel, and existing 3D
+  build-ups inside glass and Babylon floor-light/reflections are retained.
+- The former experimental heavy `EnergyVolumeImpact` remains **OFF by
+  default**. Visual VFX Lab now offers three clean comparisons:
+  `THREAD DEPTH: ON/OFF` for the subtle new filaments,
+  `3D DEBRIS: ON/OFF` for the **old** faceted experiment, and
+  `PIXI SPELLS: ON/OFF` for the safe fallback. Thread/debris toggles are
+  mutually exclusive and replay the current signature.
+- Verified six mocked contact modes (both spells with threads / without
+  threads / with old debris); new contact has precisely four 3D tubes and
+  four tiny motes, with no geometric overlap in pure-Pixi mode. Both spell
+  timelines complete and clear their effects. Visual/FPS browser verification
+  is still required.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

@@ -65,6 +65,18 @@ Evaluation checkpoints: distinct silhouette for each ability; clear build-up ins
 - Null Prison, Pulse Mend, Photon Barrier and Reactive Thread retain their prior signatures.
 - Babylon meshes and Pixi overlay now follow the same contact timing. Verified with syntax tests and 4× full eight-spell simulated replay/cleanup; real browser and visual perception still require user screenshots and feedback.
 
+## Visual Impact Refinement Pass 3 — compact, detail-first impacts
+
+User screenshots showed that the existing build-ups were much sharper and more intricate than the impacts. Pass 3 specifically refines Crystal Bolt, Sun Lance, Rift Slash and Gravity Hammer; **all four build-ups and the other four signatures stay intact**.
+
+- **Crystal Bolt** now has a tiny cold-tinted core, seven four-sided crystal fragments, six subtle floor fractures and two narrow orbit fragments, not a giant cyan luminous disc.
+- **Sun Lance** now concentrates energy into a smaller piercing corona, five short thin spokes and tiny motes, not a wide wheel of large white rods.
+- **Rift Slash** is now a close-range moving three-layer void seam (dark/magenta/hairline), followed by a thin directional tear with six fine rift chips rather than broad neon bands.
+- **Gravity Hammer** retains a faceted overhead hit, but the head is smaller, the impact fires on ground contact, and the aftershock is a compact two-ring ground compression with eight short asymmetric cracks.
+- **Babylon** impact mesh scale and fade curves now grow modestly; no oversized white geometry is introduced. **Pixi** uses detail-first strokes 0.7–2.1 px at reference scale and has a hard zoom-proportional clamp (0.48–1.08) based on the orb's projected world radius.
+- The floating combat text and Pixi visuals for Rift Slash and Gravity Hammer align with the new Babylon hit time (269 ms and 478 ms after launch respectively).
+- Verified via syntax checks, effect lifecycle simulation across all eight signatures repeated three times, no leaked meshes (591 created/591 disposed), Pixi shape tests and versioned module import chain. Actual browser visuals still require screenshot review.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

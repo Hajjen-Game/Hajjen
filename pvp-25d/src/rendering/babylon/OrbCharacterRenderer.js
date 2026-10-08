@@ -788,7 +788,21 @@ export class OrbCharacterRenderer{
       const castPulse=cast
         ?0.5+0.5*Math.sin(time*0.024)
         :0;
-
+      const spellId=cast?.spellId||"";
+      const castProfile=castEnergyProfile(spellId,e.style);
+      const mode=cast?castProfile.mode:"idle";
+      // Different physical gestures per spell school, not just recolouring
+      // identical orbiting rings for every class.
+      const modeSpeed={
+        frost:.63,fire:1.52,lightning:1.92,
+        shadow:-1.13,holy:.53,nature:.77,
+        poison:1.35,melee:1.67,rune:.88,
+      }[mode]||1;
+      const modePressure=cast?({
+        frost:-.13,fire:.15,lightning:.07,
+        shadow:-.075,holy:.12,nature:.085,
+        poison:.045,melee:.095,rune:-.025,
+      }[mode]||0)*castProgress:0;
       e.core.scaling.setAll(
         0.96+castProgress*0.12+castPulse*0.045
       );
@@ -822,14 +836,16 @@ export class OrbCharacterRenderer{
       );
 
       const t=time*0.001;
-      const orbitSpeed=e.motion.rate*(cast?1.30+castProgress*.70:1);
+      const orbitSpeed=e.motion.rate*(cast?modeSpeed*(1.18+castProgress*.85):1);
       for(let i=0;i<e.rings.length;i++){
         const ring=e.rings[i];
         const dir=(i%2===0?1:-1)*e.motion.direction;
         const irregular=
           Math.sin(t*(0.43+i*.17)+e.motion.phase+i)*e.motion.wobble;
         ring.rotation.x=[Math.PI*0.28,Math.PI*0.57,Math.PI*0.14][i]
-          +irregular*.55;
+          +irregular*.55
+          +(cast&&mode==="holy"?.10*castProgress:0)
+          +(cast&&mode==="lightning"?Math.sin(t*12+i*2.3)*.11:0);
         ring.rotation.y=
           dir*t*orbitSpeed*(0.62+i*.17)
           +Math.sin(t*.23+e.motion.phase+i)*.12;
@@ -839,12 +855,13 @@ export class OrbCharacterRenderer{
         ring.scaling.setAll(
           .96
           +Math.sin(t*(1.05+i*.31)+e.motion.phase+i)*.025
-          +castProgress*.045
+          +castProgress*.045+modePressure
+          +(cast&&mode==="nature"?Math.sin(t*3+i*2)*.045*castProgress:0)
         );
       }
-      e.ringMat.alpha=0.16+(cast?0.10+castPulse*0.035:0);
-      e.ringMat.emissiveColor=c3(e.style.energy).scale(
-        cast?1.12:.70
+      e.ringMat.alpha=.16+(cast?.11+castPulse*.035:0);
+      e.ringMat.emissiveColor=c3(cast?castProfile.accent:e.style.energy).scale(
+        cast?1.22:.70
       );
 
       for(let i=0;i<e.motifArcs.length;i++){
@@ -858,7 +875,9 @@ export class OrbCharacterRenderer{
         arc.rotation.y=
           dir*t*e.motion.rate*(.74+(i%3)*.18)
           +classPhase
-          +wobble;
+          +wobble
+          +(cast&&mode==="shadow"?.21*Math.sin(t*3.1+i):0)
+          +(cast&&mode==="lightning"?.15*Math.sin(t*15+i*1.4):0);
         arc.rotation.x=
           .18+(i%3)*.46
           +Math.sin(t*(.29+i*.11)+classPhase)*(.10+e.motion.wobble*.35);
@@ -868,19 +887,18 @@ export class OrbCharacterRenderer{
           +Math.cos(t*.37+classPhase)*.08;
         arc.scaling.setAll(
           1+surge+castProgress*(i%2===0?.05:.02)
+          +modePressure*(i%2===0?1:.48)
         );
         arc.visibility=.72+(i%2)*.14;
       }
       e.motifArcMat.alpha=.46+(cast?.10:0);
-      e.motifArcMat.emissiveColor=c3(e.style.energy).scale(
+      e.motifArcMat.emissiveColor=c3(cast?castProfile.main:e.style.energy).scale(
         cast?1.48:1.08
       );
 
-      const spellId=cast?.spellId||"";
       const bespokeMageCast=e.classId==="mage"
         && (spellId==="mage-frostbolt"||spellId==="mage-pyroblast");
       e.mageWindup?.update(spellId,castProgress,time);
-      const castProfile=castEnergyProfile(spellId,e.style);
       const castMain=c3(castProfile.main);
       const castCore=c3(castProfile.core);
       const castAccent=c3(castProfile.accent);
@@ -976,8 +994,11 @@ export class OrbCharacterRenderer{
       // Pixi-style build-up: the permanent identity layers tighten and the
       // centre swells only near release instead of looping at one intensity.
       if(cast){
+        // Frost visibly condenses; Fire inflates; Holy rises steadily;
+        // Shadow folds inward while Lightning flickers asymmetrically.
         e.core.scaling.setAll(
           .92+castProgress*.10+castLate*.42+castPulse*.025
+          +modePressure*.55
         );
         e.nucleus.scaling.setAll(
           .92+castProgress*.18+castLate*.65
@@ -1034,23 +1055,26 @@ export class OrbCharacterRenderer{
       // overwrote the stronger last-32%-of-cast scale calculated above.
       e.nucleus.scaling.setAll(
         0.96+Math.sin(time*0.009+String(actor.id).length)*0.10
-        +castProgress*.19+castLate*.62
+        +castProgress*.19+castLate*.62+modePressure*.42
       );
-      e.nucleusMat.emissiveColor=c3("#fffdf3").scale(cast?2.5:1.7);
+      e.nucleusMat.emissiveColor=c3(cast?castProfile.core:"#fffdf3")
+        .scale(cast?2.15:1.7);
       e.loopMat.alpha=0.70+(cast?0.20+castPulse*0.08:0);
-      e.loopMat.emissiveColor=c3(bespokeMageCast?castProfile.main:e.style.energy)
-        .scale(cast?2.1:1.38);
+      e.loopMat.emissiveColor=c3(cast?castProfile.accent:e.style.energy)
+        .scale(cast?1.85:1.38);
       for(let i=0;i<e.heartLoops.length;i++){
         const loop=e.heartLoops[i];
         loop.rotation.x=0.12+i*0.36+Math.sin(time*0.00085+i)*0.17;
-        loop.rotation.z=i*0.6+time*(i===0?0.00064:-0.00043);
-        loop.scaling.setAll(1+castProgress*0.15+Math.sin(time*0.004+i)*0.045);
+        loop.rotation.z=i*.6+time*(i===0?0.00064:-0.00043)
+          *(cast?modeSpeed:1);
+        loop.scaling.setAll(1+castProgress*.15+modePressure
+          +Math.sin(time*.004+i)*.045);
       }
       // Glass remains neutral; only the inner energy adopts the class colour.
       e.glassMat.alpha=0.88+(cast?0.08:0);
       e.heartMat.alpha=0.58+(cast?0.13+castPulse*0.11:0);
-      e.heartMat.emissiveColor=c3(bespokeMageCast?castProfile.main:e.style.energy)
-        .scale(bespokeMageCast?1.32:1.22);
+      e.heartMat.emissiveColor=c3(cast?castProfile.main:e.style.energy)
+        .scale(cast?1.35:1.22);
       e.heartFace.scaling.setAll(
         1+Math.sin(time*0.0047+String(actor.id).length)*0.035
         +castProgress*0.13

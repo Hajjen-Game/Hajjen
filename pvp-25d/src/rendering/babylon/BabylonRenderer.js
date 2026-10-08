@@ -1,8 +1,8 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
 import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { VfxController } from "./VfxController.js?v=20261008-orb-hybrid1";
-import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid6-textsharp";
-import { OrbGroundMarkers } from "./OrbGroundMarkers.js?v=20261008-ground-rings3-brighttarget";
+import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid7-contact";
+import { OrbGroundMarkers } from "./OrbGroundMarkers.js?v=20261008-ground-rings4-smooth";
 
 const S = 0.02;
 

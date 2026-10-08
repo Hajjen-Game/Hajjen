@@ -35,8 +35,9 @@ export class OrbGroundMarkers{
       this.materials[team]={
         base:markerMaterial(scene,"orb-ground-"+team+"-base",p.base,.40,.48),
         arc:markerMaterial(scene,"orb-ground-"+team+"-arc",p.arc,.88,.96),
-        selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.72,.76),
-        selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,.98,1.34),
+        selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.98,1.22),
+        selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,1.00,1.90),
+        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.45,1.52),
       };
     }
   }
@@ -58,6 +59,31 @@ export class OrbGroundMarkers{
     base.parent=root;
     base.material=materials.base;
     base.isPickable=false;
+
+    // A second, wider halo makes the CURRENT target unmistakable, while
+    // remaining flat on the floor below the orb rather than around its body.
+    // Disabled by default: all untargeted actors keep their previous look.
+    const targetHalo=BABYLON.MeshBuilder.CreateTorus(
+      "orb-ground-target-halo:"+actor.id,
+      {diameter:2.08,thickness:.080,tessellation:80},
+      this.scene,
+    );
+    targetHalo.parent=root;
+    targetHalo.position.y=.002;
+    targetHalo.material=materials.selectedGlow;
+    targetHalo.isPickable=false;
+    targetHalo.setEnabled(false);
+
+    const targetOutline=BABYLON.MeshBuilder.CreateTorus(
+      "orb-ground-target-outline:"+actor.id,
+      {diameter:2.08,thickness:.022,tessellation:80},
+      this.scene,
+    );
+    targetOutline.parent=root;
+    targetOutline.position.y=.012;
+    targetOutline.material=materials.selectedArc;
+    targetOutline.isPickable=false;
+    targetOutline.setEnabled(false);
 
     // Three light accents travel around the otherwise stable ring.
     const accents=new BABYLON.TransformNode(
@@ -87,7 +113,7 @@ export class OrbGroundMarkers{
       arc.isPickable=false;
       arcs.push(arc);
     }
-    const entry={root,accents,base,arcs,team,materials};
+    const entry={root,accents,base,targetHalo,targetOutline,arcs,team,materials};
     this.entries.set(actor.id,entry);
     return entry;
   }
@@ -114,11 +140,21 @@ export class OrbGroundMarkers{
       for(const arc of entry.arcs){
         arc.material=selected?entry.materials.selectedArc:entry.materials.arc;
       }
-      entry.accents.rotation.y=(team==="friendly"?1:-1)*t*.85;
-      // Small pulse for a selected target, not the entire orb.
-      entry.root.scaling.setAll(
-        selected?1.055+.016*Math.sin(t*6):1+.008*Math.sin(t*2.7+String(actor.id).length),
-      );
+      entry.accents.rotation.y=(team==="friendly"?1:-1)*t*(selected?1.12:.85);
+      entry.targetHalo.setEnabled(selected);
+      entry.targetOutline.setEnabled(selected);
+      if(selected){
+        // Stronger, readable selected-target signal with a living outer halo.
+        // We never scale/rotate the orb itself or change gameplay collision.
+        const pulse=Math.sin(t*(team==="enemy"?7.2:5.8));
+        entry.root.scaling.setAll(1.105+.032*pulse);
+        entry.targetHalo.scaling.setAll(1.01+.033*Math.sin(t*4.8));
+        entry.targetOutline.scaling.setAll(1.005+.016*Math.sin(t*6.2));
+      }else{
+        entry.root.scaling.setAll(
+          1+.008*Math.sin(t*2.7+String(actor.id).length),
+        );
+      }
     }
     for(const [id,entry] of this.entries){
       if(aliveIds.has(id))continue;

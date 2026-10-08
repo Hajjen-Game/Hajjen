@@ -261,7 +261,7 @@ export class EnergyPixiVFXOverlay {
     const ease=travel*travel*(3-2*travel);
     const x=from.x+(to.x-from.x)*ease,y=from.y+(to.y-from.y)*ease;
     const dx=to.x-from.x,dy=to.y-from.y;
-    const len=Math.max(1,Math.hypot(dx,dy)),px=-dy/len,py=dx/len;
+    const len=Math.max(1,Math.hypot(dx,dy)),tx=dx/len,ty=dy/len,px=-dy/len,py=dx/len;
     const attack=e.spellId;
     if(elapsed<hitAt&&(attack==="sun-lance"||attack==="crystal-bolt")){
       this.ribbonTrail(g,e,from,to,travel,style,Math.min(scale,3.0));

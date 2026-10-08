@@ -2,7 +2,8 @@
 // floor target rings without changing the existing BabylonRenderer / Pixi game.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
-import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261008-combat-vfx1";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261008-vfx-slice2";
+import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261008-vfx-slice2";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);
@@ -19,6 +20,8 @@ export class EnergyArenaRenderer {
     this.effects=[];
     this.createScene();
     this.spellFX=new EnergySpellVFX(this.scene);
+    this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
+    this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
     // Keep our established glass + animated arc geometry but replace class
     // palettes with role and discipline colours from the new Energy system.
@@ -118,6 +121,7 @@ export class EnergyArenaRenderer {
   }
   spawnEffect(event,match){
     this.spellFX.spawn(event,match);
+    this.pixiFX?.spawn(event,match);
   }
   render(match){
     const now=performance.now();
@@ -126,10 +130,12 @@ export class EnergyArenaRenderer {
     this.markers.sync(match,now);
     this.spellFX.update(match,now);
     this.scene.render();
+    this.pixiFX?.update(match,now);
   }
   dispose(){
     this.observer?.disconnect();
     window.removeEventListener("resize",this.resize);
+    this.pixiFX?.dispose();
     this.spellFX?.dispose();
     this.markers?.dispose();
     this.scene.dispose();

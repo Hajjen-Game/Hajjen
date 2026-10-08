@@ -135,6 +135,38 @@ depth and parallax rather than more screen-space rings. New module:
   48 eight-signature on/off replay simulations. All mesh instances were
   disposed in tests; **live-browser visuals and FPS still need review.**
 
+## Projectile Parity Pass 6 — directly from Pixi 3v3
+
+Crystal Bolt and Sun Lance have been revised against the actual
+`arena3v3/src/rendering/PixiProofRenderer.js` Frostbolt / Pyroblast
+implementations, not just screenshots.
+
+- **Crystal Bolt:** adapts Frostbolt's compact angular spear, four tapered
+  translucent/white-hot energy streams, rotating snow-star fragments,
+  drifting crystal splinters and twin helix filaments.
+- **Sun Lance:** adapts Pyroblast's five nested, temperature-separated
+  ribbons, independent hot embers, wavy flame tongues, rotating coils and
+  a narrower, concentrated solar head. These are not merely recolors.
+- **Motion:** trails are capped to a recent slice of the projectile's flight,
+  the Pixi launch point freezes at release, and both Pixi and Babylon use
+  the same ease-out travel fraction. Moving after casting never tethers
+  the released trail back to the caster.
+- **Floor lighting:** new independent `EnergyProjectileGroundLight.js` uses
+  one cached 128×128 radial-alpha texture and shared emissive materials.
+  Four staggered translucent light pools plus a small bright pool move on
+  the Babylon ground under each ranged projectile. A 270 ms expanding
+  ground-light flash appears at contact. Lighting works even with
+  `PIXI ACCENTS: OFF` and cleans up its meshes/materials/textures.
+- The existing build-ups, authored 3D impacts (Pass 5), character/orb
+  visuals, spells, combat timings, arena and original Pixi-3v3 source
+  were **not changed**.
+- Both Energy Arena and Visual VFX Lab have versioned import URLs.
+  Static JavaScript parsing and 36 time/zoom-case projectile geometry
+  simulations succeeded. Babylon floor-light creation, movement, impact
+  and disposal were also exercised with a lightweight mesh mock.
+  **Live-browser looks, especially real floor blending and mobile FPS,
+  still need visual verification**.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

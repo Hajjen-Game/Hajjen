@@ -74,7 +74,7 @@ export class EnergyPixiVFXOverlay {
     const distance=target?Math.hypot(source.x-target.x,source.y-target.y)*S:0;
     const contactMs=spellId==="sun-lance"||spellId==="crystal-bolt"
       ?clamp(235+distance*18,255,490)
-      :spellId==="rift-slash"?301:spellId==="gravity-hammer"?490:0;
+      :spellId==="rift-slash"?269:spellId==="gravity-hammer"?478:0;
     const isSignatureHit=event.type==="hit"&&contactMs>0;
     const duration=event.type==="windup"?CAST_MS[spellId]
       :event.type==="control"?1300:event.type==="shield"?1400

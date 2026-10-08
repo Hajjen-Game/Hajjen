@@ -23,7 +23,7 @@ export class EnergyPixiVFXOverlay {
   constructor(stage,renderer){
     this.stage=stage;this.renderer=renderer;this.ready=false;
     this.effects=[];this.app=null;this.graphics=null;
-    this.alive=true;this.failed=false;
+    this.alive=true;this.failed=false;this.enabled=true;
     this.resizeHandler=null;
   }
   async init(){
@@ -47,6 +47,7 @@ export class EnergyPixiVFXOverlay {
         pointerEvents:"none",zIndex:"2",display:"block",
       });
       this.stage.appendChild(canvas);
+      canvas.style.display=this.enabled?"block":"none";
       this.resizeHandler=()=>{
         if(!this.app||!this.alive)return;
         const w=Math.max(1,this.stage.clientWidth),h=Math.max(1,this.stage.clientHeight);
@@ -220,8 +221,12 @@ export class EnergyPixiVFXOverlay {
       }
     }else this.flare(g,p.x,p.y,t,style,.85);
   }
+  setEnabled(value){
+    this.enabled=!!value;
+    if(this.app?.canvas)this.app.canvas.style.display=this.enabled?"block":"none";
+  }
   update(match,now=performance.now()){
-    if(!this.ready||!this.graphics)return;
+    if(!this.ready||!this.graphics||!this.enabled)return;
     const g=this.graphics;g.clear();
     this.effects=this.effects.filter(e=>now-e.start<e.duration);
     for(const e of this.effects){

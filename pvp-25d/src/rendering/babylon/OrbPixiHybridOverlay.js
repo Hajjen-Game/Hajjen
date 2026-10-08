@@ -99,12 +99,6 @@ export class OrbPixiHybridOverlay{
     root.label="orb-hybrid:"+id;
     this.fxStage.addChild(root);
 
-    // Screen-projected allegiance rings are Pixi-only. Babylon's 3D meshes
-    // remain identical to the last known working commit.
-    const teamGlow=new PIXI.Graphics();
-    const teamRing=new PIXI.Graphics();
-    root.addChild(teamGlow,teamRing);
-
     const castLayer=new PIXI.Container();
     const castWindupGlowFx=new PIXI.Graphics();
     const castWindupFx=new PIXI.Graphics();
@@ -145,42 +139,9 @@ export class OrbPixiHybridOverlay{
     root.addChild(status);
     view={root,body:{position:{x:0,y:0}},mask,castLayer,
       castWindupGlowFx,castWindupFx,
-      teamGlow,teamRing,status,barBg,barFill,barBorder,...layers};
+      status,barBg,barFill,barBorder,...layers};
     this.actorViews.set(id,view);
     return view;
-  }
-  updateTeamMarking(view,actor,radius,selected,time){
-    const friendly=actor.team==="friendly";
-    const color=friendly?0x42f08b:0xff535b;
-    const glow=friendly?0x1cd774:0xeb293e;
-    const spin=(friendly?1:-1)*time*(friendly?.82:.94)
-      +(String(actor.id).length%7)*.6;
-    const pulse=1+.020*Math.sin(time*3.2+String(actor.id).length);
-    const r=radius*(selected?1.26:1.19)*pulse;
-    const g=view.teamGlow,ring=view.teamRing;
-    g.clear();ring.clear();
-    // A dim but continuous contour makes ally/enemy teams distinguishable,
-    // without turning the orb's transparent glass into an opaque disk.
-    g.circle(0,0,r).stroke({
-      color:glow,width:selected?8:5,alpha:selected?.22:.11,
-    });
-    ring.circle(0,0,r).stroke({
-      color,width:selected?2.65:2.15,alpha:selected?.93:.56,
-    });
-    for(let i=0;i<3;i++){
-      const start=spin+i*(Math.PI*2/3);
-      const length=[.72,.43,.56][i];
-      const count=12;
-      for(let p=0;p<=count;p++){
-        const a=start+length*(p/count);
-        const x=Math.cos(a)*r,y=Math.sin(a)*r;
-        if(p===0)ring.moveTo(x,y);
-        else ring.lineTo(x,y);
-      }
-      ring.stroke({
-        color,width:selected?4.2:3.3,alpha:selected?.98:.87,
-      });
-    }
   }
   updateStatusBars(view,actor,radius,selected){
     const bg=view.barBg,fill=view.barFill,border=view.barBorder;
@@ -254,8 +215,6 @@ export class OrbPixiHybridOverlay{
       view.mask.clear().circle(0,0,radius*.89).fill(0xffffff);
       view.castLayer.scale.set(clamp((radius*.82)/(radius+33),.23,.57));
       const selected=game.player?.targetId===actor.id;
-      this.updateTeamMarking(view,actor,radius,selected,
-        Number(game.elapsedSeconds)||0);
       this.updateStatusBars(view,actor,radius,selected);
       actorMap.set(actor.id,{
         ...actor,

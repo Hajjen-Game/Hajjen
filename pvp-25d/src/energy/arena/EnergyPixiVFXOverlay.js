@@ -22,8 +22,10 @@ const COLORS={
 // The glow pass then emits that colour into the scene; changing hex values
 // alone never recreated the neon punch of the initial visual signatures.
 const NEON_HIT={
-  "crystal-bolt":{c:0x29ceff,core:0xf7ffff,dim:0x0868b7,glow:0x00aaff},
-  "sun-lance":{c:0xffaa34,core:0xffffe8,dim:0xc85618,glow:0xff7f15},
+  // Same original palette as the build-ups. Contrast is created by
+  // redistributing shade vs colour vs white, not replacing the hues.
+  "crystal-bolt":{...COLORS["crystal-bolt"],glow:0x00aaff},
+  "sun-lance":{...COLORS["sun-lance"],glow:0xff841d},
 };
 const HERO=new Set(Object.keys(COLORS));
 const CAST_MS={"crystal-bolt":1300,"sun-lance":1800,"null-prison":1400,
@@ -178,16 +180,26 @@ export class EnergyPixiVFXOverlay {
       const gained=length*p;
       const tail=Math.min(gained*.72,(e.spellId==="crystal-bolt"?115:134)*k);
       const start={x:tip.x-tx*tail,y:tip.y-ty*tail};
-      const alpha=clamp(travel/.10,0,1)*(1-clamp((travel-.90)/.10,0,1));
-      drawLine(g,[start,tip],palette.glow,20,.68*alpha);
-      drawLine(g,[start,tip],palette.c,9,.50*alpha);
+      // The tip must remain visible right until the hit. Earlier the glow
+      // faded BEFORE contact, at the same time as the original sprite head.
+      const alpha=clamp(travel/.10,0,1);
+      // Head > body > tail; softer, darker wake instead of a uniform beam.
+      drawLine(g,[start,tip],palette.dim,11,.24*alpha);
+      drawLine(g,[start,tip],palette.glow,7.5,.17*alpha);
       circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?12:15,
-        palette.glow,.70*alpha);
-      circle(g,tip.x,tip.y,6,palette.core,.33*alpha);
-      // Neon-white cap visible above the existing high-detail projectile.
-      drawLine(hot,[{x:tip.x-tx*10*k,y:tip.y-ty*10*k},
-        {x:tip.x+tx*5*k,y:tip.y+ty*5*k}],
-        palette.core,1.65,.83*alpha);
+        palette.glow,.51*alpha);
+      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?5:6,
+        palette.c,.44*alpha);
+      // Near-white specular facet sits at the LEADING edge of the new head.
+      const tipFront=e.spellId==="crystal-bolt"?19:21;
+      const headTip={x:tip.x+tx*tipFront*k,y:tip.y+ty*tipFront*k};
+      const headBase={x:tip.x+tx*3*k,y:tip.y+ty*3*k};
+      hot.moveTo(headTip.x,headTip.y)
+        .lineTo(headBase.x+nx*2.1*k,headBase.y+ny*2.1*k)
+        .lineTo(tip.x+tx*2*k,tip.y+ty*2*k)
+        .lineTo(headBase.x-nx*2.1*k,headBase.y-ny*2.1*k)
+        .closePath().fill({color:palette.core,alpha:.64*alpha});
+      circle(hot,headTip.x,headTip.y,1.7,palette.core,.86*alpha);
     }else{
       const phase=clamp((now-travelMs)/Math.max(1,e.duration-travelMs),0,1);
       const ease=v=>{const q=clamp(v,0,1);return q*q*(3-2*q);};
@@ -195,10 +207,10 @@ export class EnergyPixiVFXOverlay {
       const burst=ease(phase/.10)*(1-ease((phase-.34)/.37));
       const tail=1-ease((phase-.50)/.45);
       // Glowing impact without a graphic ring or oversized pale disk.
-      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?18:23,
-        palette.glow,.88*flash+.53*burst);
-      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?8:10,
-        palette.c,.71*flash+.24*burst);
+      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?14:17,
+        palette.glow,.46*flash+.24*burst);
+      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?7:8,
+        palette.c,.39*flash+.18*burst);
       const side=e.spellId==="crystal-bolt"?17:22;
       for(const sign of [-1,1]){
         const pts=[];
@@ -210,7 +222,7 @@ export class EnergyPixiVFXOverlay {
             y:to.y+ty*f*23*k+ny*sign*radius*k+
             ny*Math.sin(a)*2*k});
         }
-        drawLine(g,pts,palette.glow,7,.40*burst+.12*tail);
+        drawLine(g,pts,palette.glow,5.5,.32*burst+.08*tail);
       }
       circle(hot,to.x,to.y,e.spellId==="crystal-bolt"?3.2:3.8,
         palette.core,.95*flash+.38*burst);

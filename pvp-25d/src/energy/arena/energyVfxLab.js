@@ -210,7 +210,16 @@ function animate(now){
 }
 function init(){
   drawCards();
-  $("replay-spell").addEventListener("click",()=>run(active||signature[0],false));
+  let pixiOn=true;
+  $("toggle-pixi").addEventListener("click",()=>{
+    pixiOn=!pixiOn;
+    renderer?.pixiFX?.setEnabled(pixiOn);
+    $("toggle-pixi").textContent=pixiOn?"PIXI ACCENTS: ON":"PIXI ACCENTS: OFF";
+    $("render-label").textContent=pixiOn
+      ?"BABYLON 3D + PIXI CRISP ACCENTS"
+      :"BABYLON 3D ONLY · PIXI DISABLED";
+  });
+    $("replay-spell").addEventListener("click",()=>run(active||signature[0],false));
   $("play-sequence").addEventListener("click",()=>run(signature[0],true));
   try{
     renderer=new EnergyArenaRenderer($("vfx-canvas"),VERDANT_CRUCIBLE);

@@ -295,6 +295,17 @@ $("save-build").addEventListener("click", () => {
   persist(); render();
   message("Saved preset " + (index + 1) + ": " + build.name + (isReady(build) ? "" : " (unfinished draft)"));
 });
+$("test-energy-build").addEventListener("click", () => {
+  if (!isReady(build)) {
+    message("Equip all eight free abilities before entering Energy Arena.", true);
+    return;
+  }
+  const problems = validateBuild(build);
+  if (problems.length) { message(problems.join("; "), true); return; }
+  persist();
+  window.location.href = "./energy-arena.html?load=draft";
+});
+
 $("new-build").addEventListener("click", () => {
   if (!window.confirm("Start a new build? Save your current draft to a preset first if you want to keep it.")) return;
   build = createBuild(build.role);

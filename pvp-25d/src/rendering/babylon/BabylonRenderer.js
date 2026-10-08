@@ -1,6 +1,6 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
 import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v12-magebespoke";
-import { VfxController } from "./VfxController.js?v=20261002-2250";
+import { VfxController } from "./VfxController.js?v=20261008-mage-flight1";
 
 const S = 0.02;
 
@@ -288,7 +288,9 @@ export class BabylonRenderer {
       this.shadowGenerator,
       S,
     );
-    this.vfx = new VfxController(this.scene, this.actorRender, S);
+    this.vfx = new VfxController(this.scene, this.actorRender, S, {
+      orbMode: this.orbMode,
+    });
 
     this.targetMat = new BABYLON.StandardMaterial("targetMat", this.scene);
     this.targetMat.disableLighting = true;

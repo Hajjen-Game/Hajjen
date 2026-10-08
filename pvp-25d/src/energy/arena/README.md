@@ -234,6 +234,35 @@ projectiles and build-ups while strengthening the hit in three phases:
   stress cases with 35/35 planes released. Browser appearance/FPS still need
   manual evaluation.
 
+## Pixi-primary projectile policy — Pass 9
+
+User side-by-side screenshots showed the **3D IMPACTS OFF** result was
+cleaner and more readable than the volumetric version. The accepted
+Pixi projectile shapes and authored Pixi impacts are retained.
+
+- **Default for Energy Arena AND Visual VFX Lab:** experimental Babylon
+  `EnergyVolumeImpact` is **OFF**. The old 3D layer is preserved only as
+  an opt-in A/B comparison in Visual VFX Lab; normal fights do not spawn it.
+- **Crystal Bolt and Sun Lance with Pixi ready/enabled:** Pixi owns the
+  *complete visible traveling projectile and impact/aftermath*. The Babylon
+  VFX controller keeps only an invisible timing root and its physical,
+  moving projectile ground illumination / contact reflection. It no longer
+  adds cones, sphere particles, 3D hit needles, or volumetric debris to the
+  approved Pixi silhouette.
+- **Fall back safely:** if Pixi has failed/not loaded or the user disables
+  the `PIXI SPELLS` toggle, Babylon's existing projectile and compact hit
+  visuals remain available. The renderer checks readiness at the hit event,
+  so we do not create invisible attacks while a CDN is loading.
+- **Approved build-ups inside the glass, shields, controls, other signatures,
+  combat/hit logic, and the Babylon arena/orbs/ground remain unchanged.**
+  Additional spells can be migrated selectively without hiding their
+  existing effects before Pixi alternatives have parity.
+- The lab defaults to `3D IMPACTS: OFF`; both renderer switches restart
+  the current demonstration for a meaningful side-by-side comparison.
+- Passed JavaScript syntax/import-graph checks and unit-style checks of
+  both Pixi-primary and Babylon fallback paths (two ranged spells).
+  Live visual/FPS testing is still needed.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

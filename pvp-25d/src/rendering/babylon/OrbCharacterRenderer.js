@@ -47,34 +47,89 @@ function addGlassFresnel(material,edgeColor){
   material.emissiveFresnelParameters=emissive;
 }
 
-// The glass catches clean, short specular arcs while the energy underneath
-// keeps its own (class-coloured) orbit. No texture sheets or image assets.
-function glassHighlightPath(radius,start,span){
-  const points=[];
-  const height=Math.sqrt(Math.max(0,0.62*0.62-radius*radius));
-  for(let i=0;i<=20;i++){
-    const t=i/20;
-    const angle=start+t*span;
-    points.push(new BABYLON.Vector3(
-      Math.cos(angle)*radius,
-      0.72+height+0.008,
-      Math.sin(angle)*radius,
-    ));
+// One shared, procedural camera-facing glass reflection texture. The actual
+// collider/pick target and the lit inner meshes remain true 3D spheres.
+// A nearly transparent centre and crisp circular rim are essential at
+// gameplay zoom, especially against the black arena floor.
+function makeOrbTexture(scene,type){
+  const tex=new BABYLON.DynamicTexture(
+    "orb-"+type+"-texture",256,scene,false,BABYLON.Texture.BILINEAR_SAMPLINGMODE,
+  );
+  const ctx=tex.getContext();
+  const cx=128,cy=128;
+  ctx.clearRect(0,0,256,256);
+  if(type==="glass"){
+    // Refracted shading only, never an opaque fill over the coloured core.
+    let g=ctx.createRadialGradient(105,89,20,128,128,117);
+    g.addColorStop(0,"rgba(216,235,255,0.015)");
+    g.addColorStop(0.60,"rgba(170,201,230,0.018)");
+    g.addColorStop(0.83,"rgba(198,226,250,0.055)");
+    g.addColorStop(0.96,"rgba(222,244,255,0.18)");
+    g.addColorStop(1,"rgba(228,247,255,0)");
+    ctx.fillStyle=g;
+    ctx.beginPath();
+    ctx.arc(cx,cy,116,0,Math.PI*2);
+    ctx.fill();
+
+    // Subtle full 360-degree rim to guarantee a readable sphere silhouette.
+    const rim=ctx.createLinearGradient(38,35,216,219);
+    rim.addColorStop(0,"rgba(247,252,255,0.86)");
+    rim.addColorStop(0.38,"rgba(199,224,245,0.41)");
+    rim.addColorStop(0.75,"rgba(170,199,224,0.28)");
+    rim.addColorStop(1,"rgba(240,251,255,0.66)");
+    ctx.lineWidth=4.0;
+    ctx.strokeStyle=rim;
+    ctx.beginPath();ctx.arc(cx,cy,110,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=1.35;
+    ctx.strokeStyle="rgba(245,253,255,0.46)";
+    ctx.beginPath();ctx.arc(cx,cy,105,0,Math.PI*2);ctx.stroke();
+
+    // Two short white studio reflections suggest curved clear glass.
+    ctx.save();
+    ctx.shadowColor="rgba(224,248,255,0.8)";
+    ctx.shadowBlur=7;
+    ctx.lineCap="round";
+    ctx.lineWidth=6;
+    ctx.strokeStyle="rgba(251,253,255,0.94)";
+    ctx.beginPath();ctx.arc(cx,cy,108,3.58,4.63);ctx.stroke();
+    ctx.lineWidth=3.1;
+    ctx.strokeStyle="rgba(241,251,255,0.70)";
+    ctx.beginPath();ctx.arc(cx,cy,101,5.36,5.88);ctx.stroke();
+    ctx.restore();
+    ctx.lineWidth=2.0;
+    ctx.strokeStyle="rgba(235,248,255,0.47)";
+    ctx.beginPath();ctx.arc(cx,cy,91,2.62,3.17);ctx.stroke();
+  }else{
+    // Faint diffuse energy surrounding a concentrated 3D nucleus.
+    const g=ctx.createRadialGradient(cx,cy,3,cx,cy,116);
+    g.addColorStop(0,"rgba(255,255,255,0.66)");
+    g.addColorStop(0.20,"rgba(255,255,255,0.42)");
+    g.addColorStop(0.48,"rgba(255,255,255,0.14)");
+    g.addColorStop(0.76,"rgba(255,255,255,0.035)");
+    g.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.fillStyle=g;
+    ctx.fillRect(0,0,256,256);
   }
-  return points;
+  tex.hasAlpha=true;
+  tex.update(false);
+  return tex;
 }
 
-function wakePath(lane){
-  const points=[];
-  for(let i=0;i<=24;i++){
-    const t=i/24;
-    points.push(new BABYLON.Vector3(
-      -0.40-1.28*t,
-      0.72+0.08*Math.sin(t*4.2+lane*1.3)-0.10*t,
-      (lane-1)*0.13+Math.sin(t*5.7+lane*1.7)*(0.035+0.12*t),
-    ));
+function makeOrbBillboardMaterial(scene,name,texture,emissiveColor,alpha){
+  const mat=new BABYLON.StandardMaterial(name,scene);
+  mat.diffuseTexture=texture;
+  mat.useAlphaFromDiffuseTexture=true;
+  mat.diffuseColor=BABYLON.Color3.Black();
+  mat.emissiveTexture=texture;
+  mat.emissiveColor=emissiveColor;
+  mat.disableLighting=true;
+  mat.backFaceCulling=false;
+  mat.disableDepthWrite=true;
+  mat.alpha=alpha;
+  if(BABYLON.Material?.MATERIAL_ALPHABLEND!==undefined){
+    mat.transparencyMode=BABYLON.Material.MATERIAL_ALPHABLEND;
   }
-  return points;
+  return mat;
 }
 
 export class OrbCharacterRenderer{
@@ -83,6 +138,8 @@ export class OrbCharacterRenderer{
     this.shadowGenerator=shadowGenerator;
     this.scale=scale;
     this.entries=new Map();
+    this.glassTexture=makeOrbTexture(scene,"glass");
+    this.heartTexture=makeOrbTexture(scene,"heart");
   }
 
   styleFor(actor){return CLASS_STYLE[actor.classId]||DEFAULT_STYLE;}
@@ -107,7 +164,7 @@ export class OrbCharacterRenderer{
     addGlassFresnel(shellMat,new BABYLON.Color3(0.75,0.87,1.00));
     // A transparent sphere must not depth-mask its luminous core.
     shellMat.needDepthPrePass=false;
-    shellMat.separateCullingPass=true;
+    shellMat.backFaceCulling=true;
 
     const middleMat=alphaMaterial(
       this.scene,
@@ -120,6 +177,8 @@ export class OrbCharacterRenderer{
     middleMat.emissiveColor=new BABYLON.Color3(0.004,0.006,0.010);
     middleMat.specularColor=new BABYLON.Color3(0.55,0.68,0.82);
     middleMat.specularPower=128;
+    middleMat.needDepthPrePass=false;
+    middleMat.backFaceCulling=true;
 
     const coreMat=alphaMaterial(
       this.scene,
@@ -129,10 +188,13 @@ export class OrbCharacterRenderer{
       1.38,
     );
     coreMat.specularPower=96;
+    coreMat.needDepthPrePass=false;
+    coreMat.backFaceCulling=true;
+    coreMat.diffuseColor=c3(style.core).scale(0.20);
 
     const shell=BABYLON.MeshBuilder.CreateSphere(
       "orb-shell:"+actor.id,
-      {diameter:1.24,segments:28},
+      {diameter:1.24,segments:48},
       this.scene,
     );
     shell.parent=visualRoot;
@@ -143,7 +205,7 @@ export class OrbCharacterRenderer{
 
     const middle=BABYLON.MeshBuilder.CreateSphere(
       "orb-middle:"+actor.id,
-      {diameter:0.92,segments:20},
+      {diameter:0.89,segments:40},
       this.scene,
     );
     middle.parent=visualRoot;
@@ -152,18 +214,18 @@ export class OrbCharacterRenderer{
     middle.metadata={actorId:actor.id,orbPart:"middle"};
     middle.isPickable=true;
 
-    const core=BABYLON.MeshBuilder.CreatePolyhedron(
+    const core=BABYLON.MeshBuilder.CreateSphere(
       "orb-core:"+actor.id,
-      {type:2,size:0.30},
+      {diameter:0.35,segments:32},
       this.scene,
     );
     core.parent=visualRoot;
     core.position.y=0.72;
-    core.scaling.set(1.0,1.18,1.0);
+    core.scaling.setAll(1);
     core.material=coreMat;
     core.metadata={actorId:actor.id,orbPart:"core"};
     core.isPickable=true;
-    this.shadowGenerator?.addShadowCaster(core);
+    // Internal energy must not cast hard-edged shadows across its own glass.
 
     const energyMat=alphaMaterial(
       this.scene,
@@ -173,15 +235,17 @@ export class OrbCharacterRenderer{
       1.05,
     );
     energyMat.disableLighting=true;
+    energyMat.backFaceCulling=true;
+    energyMat.needDepthPrePass=false;
 
-    const energy=BABYLON.MeshBuilder.CreatePolyhedron(
+    const energy=BABYLON.MeshBuilder.CreateSphere(
       "orb-energy:"+actor.id,
-      {type:1,size:0.50},
+      {diameter:0.52,segments:32},
       this.scene,
     );
     energy.parent=visualRoot;
     energy.position.y=0.72;
-    energy.scaling.set(1.0,0.82,1.0);
+    energy.scaling.setAll(1);
     energy.material=energyMat;
     energy.isPickable=false;
 
@@ -198,7 +262,7 @@ export class OrbCharacterRenderer{
 
     const plasma=BABYLON.MeshBuilder.CreateSphere(
       "orb-plasma:"+actor.id,
-      {diameter:0.72,segments:16},
+      {diameter:0.76,segments:36},
       this.scene,
     );
     plasma.parent=visualRoot;
@@ -217,9 +281,9 @@ export class OrbCharacterRenderer{
 
     const rings=[];
     const ringDefs=[
-      {diameter:0.94,thickness:0.013,rx:Math.PI*0.28,rz:0.18},
-      {diameter:0.72,thickness:0.017,rx:Math.PI*0.57,rz:Math.PI*0.34},
-      {diameter:0.52,thickness:0.014,rx:Math.PI*0.14,rz:-Math.PI*0.22},
+      {diameter:0.94,thickness:0.010,rx:Math.PI*0.28,rz:0.18},
+      {diameter:0.76,thickness:0.013,rx:Math.PI*0.57,rz:Math.PI*0.34},
+      {diameter:0.53,thickness:0.012,rx:Math.PI*0.14,rz:-Math.PI*0.22},
     ];
     for(let i=0;i<ringDefs.length;i++){
       const d=ringDefs[i];
@@ -241,16 +305,16 @@ export class OrbCharacterRenderer{
       this.scene,
       "orb-shard-mat:"+actor.id,
       style.core,
-      0.88,
-      1.35,
+      0.50,
+      0.85,
     );
     shardMat.disableLighting=true;
 
     const shards=[];
-    for(let i=0;i<5;i++){
+    for(let i=0;i<4;i++){
       const shard=BABYLON.MeshBuilder.CreatePolyhedron(
         "orb-shard:"+actor.id+":"+i,
-        {type:1,size:0.075+(i%2)*0.012},
+        {type:1,size:0.026+(i%2)*0.010},
         this.scene,
       );
       shard.parent=visualRoot;
@@ -267,7 +331,7 @@ export class OrbCharacterRenderer{
     nucleusMat.disableLighting=true;
     const nucleus=BABYLON.MeshBuilder.CreateSphere(
       "orb-nucleus:"+actor.id,
-      {diameter:actor.classId==="rogue"?0.105:0.16,segments:12},
+      {diameter:0.12,segments:24},
       this.scene,
     );
     nucleus.parent=visualRoot;
@@ -296,62 +360,48 @@ export class OrbCharacterRenderer{
       heartLoops.push(ring);
     }
 
-    // Curved surface reflections: these sit on the upper hemisphere, not in
-    // the core, so the orb continues to read as a transparent glass object.
-    const glintMat=alphaMaterial(
-      this.scene,"orb-glass-glint-mat:"+actor.id,"#effaff",0.76,1.18,
+    // Camera-facing reflections restore the spherical outline at any angle.
+    const glassMat=makeOrbBillboardMaterial(
+      this.scene,"orb-glass-face-mat:"+actor.id,
+      this.glassTexture,new BABYLON.Color3(0.75,0.87,1.0),0.95,
     );
-    glintMat.disableLighting=true;
-    glintMat.needDepthPrePass=false;
-    const glassGlints=[];
-    for(const [i,d] of [
-      {radius:0.54,start:2.45,span:0.75},
-      {radius:0.48,start:4.46,span:0.43},
-      {radius:0.37,start:2.70,span:0.36},
-    ].entries()){
-      const glint=BABYLON.MeshBuilder.CreateTube(
-        "orb-glass-glint:"+actor.id+":"+i,
-        {path:glassHighlightPath(d.radius,d.start,d.span),
-         radius:i===0?0.012:0.008,tessellation:6,cap:BABYLON.Mesh.NO_CAP},
-        this.scene,
-      );
-      glint.parent=visualRoot;
-      glint.material=glintMat;
-      glint.isPickable=false;
-      glassGlints.push(glint);
-    }
+    const glassFace=BABYLON.MeshBuilder.CreatePlane(
+      "orb-glass-face:"+actor.id,
+      {size:1.31,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      this.scene,
+    );
+    glassFace.parent=visualRoot;
+    glassFace.position.y=0.72;
+    glassFace.billboardMode=BABYLON.Mesh.BILLBOARDMODE_ALL;
+    glassFace.material=glassMat;
+    glassFace.alphaIndex=12;
+    glassFace.isPickable=false;
 
-    // Narrow tapered energy wisps, rather than additional ghost copies of
-    // the whole sphere. They remain subtle at rest and brighten while casting.
-    const wakeMat=alphaMaterial(
-      this.scene,"orb-wake-mat:"+actor.id,style.energy,0.35,1.24,
+    const heartMat=makeOrbBillboardMaterial(
+      this.scene,"orb-heart-face-mat:"+actor.id,
+      this.heartTexture,c3(style.energy).scale(1.22),0.66,
     );
-    wakeMat.disableLighting=true;
-    wakeMat.needDepthPrePass=false;
-    const wakes=[];
-    for(let i=0;i<3;i++){
-      const wake=BABYLON.MeshBuilder.CreateTube(
-        "orb-wake:"+actor.id+":"+i,
-        {path:wakePath(i),
-         radiusFunction:(step,distance)=>0.018*Math.pow(1-step/24,1.6)+0.001,
-         tessellation:5,cap:BABYLON.Mesh.NO_CAP},
-        this.scene,
-      );
-      wake.parent=visualRoot;
-      wake.material=wakeMat;
-      wake.isPickable=false;
-      wakes.push(wake);
-    }
+    const heartFace=BABYLON.MeshBuilder.CreatePlane(
+      "orb-heart-face:"+actor.id,
+      {size:0.95,sideOrientation:BABYLON.Mesh.DOUBLESIDE},
+      this.scene,
+    );
+    heartFace.parent=visualRoot;
+    heartFace.position.y=0.72;
+    heartFace.billboardMode=BABYLON.Mesh.BILLBOARDMODE_ALL;
+    heartFace.material=heartMat;
+    heartFace.alphaIndex=8;
+    heartFace.isPickable=false;
 
     const moteMat=alphaMaterial(
       this.scene,"orb-mote-mat:"+actor.id,style.energy,0.72,1.25,
     );
     moteMat.disableLighting=true;
     const motes=[];
-    for(let i=0;i<9;i++){
+    for(let i=0;i<5;i++){
       const mote=BABYLON.MeshBuilder.CreateSphere(
         "orb-mote:"+actor.id+":"+i,
-        {diameter:0.021+(i%3)*0.012,segments:6},
+        {diameter:0.013+(i%3)*0.009,segments:10},
         this.scene,
       );
       mote.parent=visualRoot;
@@ -431,28 +481,9 @@ export class OrbCharacterRenderer{
       sparks.push(spark);
     }
 
+    // Do not duplicate the entire sphere behind moving actors; it reads as
+    // multiple flat crystals at arena distance rather than subtle motion.
     const trail=[];
-    for(let i=0;i<3;i++){
-      const trailMat=alphaMaterial(
-        this.scene,
-        "orb-trail-mat:"+actor.id+":"+i,
-        style.energy,
-        0.085-i*0.014,
-        0.46,
-      );
-      trailMat.disableLighting=true;
-
-      const ghost=BABYLON.MeshBuilder.CreateSphere(
-        "orb-trail:"+actor.id+":"+i,
-        {diameter:0.72-i*0.09,segments:10},
-        this.scene,
-      );
-      ghost.material=trailMat;
-      ghost.isPickable=false;
-      ghost.visibility=0;
-      ghost.position.set(actor.x*this.scale,0.80,actor.y*this.scale);
-      trail.push({mesh:ghost,material:trailMat});
-    }
 
     const hpBackMat=new BABYLON.StandardMaterial(
       "orb-hp-back-mat:"+actor.id,
@@ -500,13 +531,12 @@ export class OrbCharacterRenderer{
       root,visualRoot,
       classId:actor.classId,role:actor.role,
       style,
-      shell,middle,core,energy,plasma,rings,shards,nucleus,heartLoops,glassGlints,wakes,motes,halo,castBand,contactShadow,
+      shell,middle,core,energy,plasma,rings,shards,nucleus,heartLoops,glassFace,heartFace,motes,halo,castBand,contactShadow,
       sparks,trail,hp,hpBack,barRoot,
-      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glintMat,wakeMat,moteMat,haloMat,castMat,hpMat,
+      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,haloMat,castMat,hpMat,
       ownedMaterials:[
-        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glintMat,wakeMat,moteMat,haloMat,castMat,
+        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,haloMat,castMat,
         shadowMat,hpBackMat,hpMat,
-        ...trail.map(t=>t.material),
       ],
       lastPos:new BABYLON.Vector3(actor.x*this.scale,0.16,actor.y*this.scale),
     };
@@ -557,12 +587,9 @@ export class OrbCharacterRenderer{
         e.visualRoot.rotation.y=Math.atan2(mv.x,mv.y);
       }
 
-      const breathe=1+Math.sin(time*0.0034+String(actor.id).length)*0.025;
-      if(moving){
-        e.visualRoot.scaling.set(0.94,1.00,1.13);
-      }else{
-        e.visualRoot.scaling.set(breathe,1.0/breathe,breathe);
-      }
+      // Preserve a spherical outline both while running and while idle.
+      const breathe=1+Math.sin(time*0.0034+String(actor.id).length)*0.014;
+      e.visualRoot.scaling.setAll(breathe);
 
       const cast=actor.cast;
       const castProgress=cast
@@ -573,36 +600,33 @@ export class OrbCharacterRenderer{
         :0;
 
       e.core.scaling.setAll(
-        0.98+castProgress*0.24+castPulse*0.08
+        0.96+castProgress*0.12+castPulse*0.045
       );
-      e.core.scaling.y*=1.18;
 
       const energyPulse=1+Math.sin(time*0.010+String(actor.id).length)*0.12;
-      e.energy.scaling.set(
-        energyPulse*(1+castProgress*0.12),
-        (0.78+castProgress*0.10)/energyPulse,
-        energyPulse*(1+castProgress*0.12),
+      e.energy.scaling.setAll(
+        (0.96+energyPulse*0.045)*(1+castProgress*0.10)
       );
       e.energy.rotation.x=time*0.0017;
       e.energy.rotation.y=-time*0.0024;
       e.energy.rotation.z=time*0.0011;
 
       e.middle.scaling.setAll(1.0+castProgress*0.04);
-      e.shellMat.alpha=0.055+(cast?0.010+castPulse*0.008:0);
-      e.middleMat.alpha=0.026+(cast?0.010:0);
+      e.shellMat.alpha=0.22+(cast?0.035+castPulse*0.015:0);
+      e.middleMat.alpha=0.06+(cast?0.012:0);
       e.coreMat.emissiveColor=c3(e.style.energy).scale(
         cast?1.72:1.28
       );
       e.energyMat.emissiveColor=c3(e.style.core).scale(
         cast?1.45:1.08
       );
-      e.energyMat.alpha=0.28+(cast?0.16+castPulse*0.08:0);
+      e.energyMat.alpha=0.15+(cast?0.07+castPulse*0.03:0);
 
       const plasmaPulse=1+Math.sin(time*0.0067+String(actor.id).length)*0.08;
       e.plasma.scaling.setAll(
         plasmaPulse*(1+castProgress*0.13+castPulse*0.04)
       );
-      e.plasmaMat.alpha=0.095+(cast?0.09+castPulse*0.045:0);
+      e.plasmaMat.alpha=0.075+(cast?0.05+castPulse*0.035:0);
       e.plasmaMat.emissiveColor=c3(e.style.energy).scale(
         cast?1.10:0.66
       );
@@ -649,7 +673,7 @@ export class OrbCharacterRenderer{
 
       for(let i=0;i<e.shards.length;i++){
         const a=time*(0.0011+i*0.00016)+i*Math.PI*2/e.shards.length;
-        const radius=0.47+(i%2)*0.07+castProgress*0.06;
+        const radius=0.50+(i%2)*0.045+castProgress*0.03;
         const shard=e.shards[i];
         shard.position.set(
           Math.cos(a)*radius,
@@ -660,7 +684,7 @@ export class OrbCharacterRenderer{
         shard.rotation.y=-time*0.0022+i*0.6;
         shard.scaling.setAll(cast?1.20:0.92);
       }
-      e.shardMat.alpha=0.72+(cast?0.18:0);
+      e.shardMat.alpha=0.48+(cast?0.20:0);
       e.shardMat.emissiveColor=c3(e.style.core).scale(
         cast?1.54:1.14
       );
@@ -678,24 +702,16 @@ export class OrbCharacterRenderer{
         loop.rotation.z=i*0.6+time*(i===0?0.00064:-0.00043);
         loop.scaling.setAll(1+castProgress*0.15+Math.sin(time*0.004+i)*0.045);
       }
-      e.glintMat.alpha=0.63+Math.sin(time*0.0026+String(actor.id).length)*0.12
-        +(cast?0.06:0);
-      for(let i=0;i<e.glassGlints.length;i++){
-        e.glassGlints[i].visibility=0.70+Math.sin(time*0.0019+i*1.9)*0.22;
-      }
-      e.wakeMat.alpha=0.21+(moving?0.13*speed:0.05)
-        +(cast?0.12+castPulse*0.09:0);
-      e.wakeMat.emissiveColor=c3(e.style.energy).scale(cast?1.65:1.15);
-      for(let i=0;i<e.wakes.length;i++){
-        const wake=e.wakes[i];
-        wake.scaling.x=0.76+(moving?0.35*speed:0)
-          +castProgress*0.24;
-        wake.rotation.y=Math.sin(time*0.0011+i*2.2)*0.12;
-        wake.visibility=0.78+i*0.06;
-      }
+      // Glass remains neutral; only the inner energy adopts the class colour.
+      e.glassMat.alpha=0.88+(cast?0.08:0);
+      e.heartMat.alpha=0.58+(cast?0.13+castPulse*0.11:0);
+      e.heartFace.scaling.setAll(
+        1+Math.sin(time*0.0047+String(actor.id).length)*0.035
+        +castProgress*0.13
+      );
       for(let i=0;i<e.motes.length;i++){
         const angle=time*(0.00075+i*0.00010)+i*2.39996;
-        const r=0.64+(i%3)*0.10+0.09*Math.sin(time*0.0008+i);
+        const r=0.60+(i%3)*0.045+0.05*Math.sin(time*0.0008+i);
         const mote=e.motes[i];
         mote.position.set(
           Math.cos(angle)*r,
@@ -704,28 +720,6 @@ export class OrbCharacterRenderer{
         );
         mote.visibility=0.35+0.40*(0.5+0.5*Math.sin(time*0.004+i));
         mote.scaling.setAll(cast?1.35:0.95);
-      }
-
-      let leader=pos;
-      for(let i=0;i<e.trail.length;i++){
-        const ghost=e.trail[i].mesh;
-        const follow=moving?(0.20-i*0.025):0.34;
-        BABYLON.Vector3.LerpToRef(
-          ghost.position,
-          leader,
-          Math.max(0.08,follow),
-          ghost.position,
-        );
-        leader=ghost.position.clone();
-        ghost.position.y=0.80;
-        ghost.visibility=moving
-          ?Math.max(0,0.26-i*0.065)*speed
-          :Math.max(0,ghost.visibility-0.08);
-        ghost.scaling.set(
-          0.88-i*0.06,
-          0.84-i*0.05,
-          1.12+i*0.05,
-        );
       }
 
       const health=Math.max(0,Math.min(1,actor.healthPct));

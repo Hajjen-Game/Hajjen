@@ -18,7 +18,7 @@ export class EnergyCombatFeedback{
   }
   spawn(type,label,actorId,now=performance.now()){
     if(!label||!actorId)return;
-    const actor=this.renderer.match?.getActor(actorId);
+    const actor=this.match?.getActor(actorId);
     if(!actor)return;
     const node=document.createElement("span");
     node.className="energy-combat-number energy-"+type;
@@ -33,6 +33,7 @@ export class EnergyCombatFeedback{
     }
   }
   onEvent(event,match){
+    this.match=match;
     const to=event.targetId||event.actorId;
     if(event.type==="hit"){
       if(event.amount>0)this.spawn("damage","−"+event.amount,to);
@@ -66,7 +67,7 @@ export class EnergyCombatFeedback{
     return Number.isFinite(point.x)&&Number.isFinite(point.y)&&point.z>=0&&point.z<=1?point:null;
   }
   update(match,now=performance.now()){
-    this.renderer.match=match;
+    this.match=match;
     for(let i=this.items.length-1;i>=0;i--){
       const item=this.items[i];
       const elapsed=now-item.start;

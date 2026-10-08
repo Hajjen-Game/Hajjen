@@ -107,6 +107,34 @@ small: nearly everything was confined to the glass core. This pass intentionally
   `arena3v3` files are untouched. Both Energy Arena and Visual VFX Lab use
   cache-busted imports. Browser screenshot/feel verification remains next.
 
+## Volumetric Impact Pass 5 — physical 3D spell hits
+
+After the initial impact revisions were visually acceptable, the next goal was
+depth and parallax rather than more screen-space rings. New module:
+`EnergyVolumeImpact.js` (Babylon mesh-based particles, no external assets).
+
+- **Crystal Bolt:** 12 individually animated faceted 3D shards with varied
+  velocity/rotation/height; two tilted fragmented arcs.
+- **Sun Lance:** nine slim directional light darts oriented to the projectile
+  travel vector, four off-axis luminous motes, and separate front/back corona.
+- **Rift Slash:** two genuine twisted Babylon ribbon meshes through the
+  target's volume plus seven flying void fragments.
+- **Gravity Hammer:** low ground-bound pressure rings and 12 3D fragments
+  following ballistic arcs, with three weaker pressure jets.
+- Kept the previously approved build-ups, underlying detailed inner impact,
+  thin outer Pixi graphics, glow balance, arena, AI and damage calculations.
+- All volume meshes are part of the existing `EnergyHeroVFX` lifetime system,
+  capped at nine simultaneous volume impacts for bounded rendering cost.
+- Corrected an existing low-FPS issue: hammer and rift impact events could be
+  missed if animation time jumped over the contact trigger; contact now
+  triggers once even on a delayed frame.
+- Visual VFX Lab has `3D IMPACTS: ON/OFF`, automatically replaying the
+  selected spell, alongside the pre-existing `PIXI ACCENTS: ON/OFF`.
+  Compare both ON versus 3D OFF at the same spell and camera.
+- Tested 16 four-spell scenarios at 16, 92, 280 and 600 ms per frame, plus
+  48 eight-signature on/off replay simulations. All mesh instances were
+  disposed in tests; **live-browser visuals and FPS still need review.**
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

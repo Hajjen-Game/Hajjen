@@ -219,4 +219,7 @@ window.addEventListener("blur",()=>keys.clear());
 $("change-build").addEventListener("click",showGate);
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
 renderBuildChoices();
+if (new URLSearchParams(window.location.search).get("load") === "draft" && isReady(store.draft)) {
+  start(store.draft);
+}
 requestAnimationFrame(frameLoop);

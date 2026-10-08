@@ -6,6 +6,7 @@ import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-f
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smooth=v=>{const t=clamp(v,0,1);return t*t*(3-2*t);};
 const rgb=hex=>parseInt(hex.replace("#",""),16);
 const COLORS={
   "crystal-bolt":{c:0x6fd8ff,core:0xebfcff,dim:0x278cbe},

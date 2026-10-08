@@ -34,13 +34,16 @@ export class EnergyCombatFeedback{
   }
   onEvent(event,match){
     this.match=match;
-    // The visual missile takes real screen time to reach the target. Align
-    // floating combat numbers with contact, not with the hit simulation tick.
-    if(event.type==="hit"&&["sun-lance","crystal-bolt"].includes(event.spellId)){
+    // Match simulation still applies damage immediately. Only the cosmetic
+    // numbers are deferred so all four signature abilities read as one
+    // physical contact instead of a number appearing before the impact.
+    if(event.type==="hit"&&["sun-lance","crystal-bolt","rift-slash","gravity-hammer"].includes(event.spellId)){
       const a=match.getActor(event.actorId),b=match.getActor(event.targetId);
-      if(a&&b&&a!==b){
+      if(a&&b){
         const worldDist=Math.hypot(a.x-b.x,a.y-b.y)*WORLD_SCALE;
-        const delay=clamp(235+worldDist*18,255,490);
+        const delay=event.spellId==="rift-slash"?301:
+          event.spellId==="gravity-hammer"?490:
+          clamp(235+worldDist*18,255,490);
         this.pending.push({event,at:performance.now()+delay});
         return;
       }

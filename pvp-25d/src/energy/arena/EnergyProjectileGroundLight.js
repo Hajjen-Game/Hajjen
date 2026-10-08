@@ -79,7 +79,7 @@ export class EnergyProjectileGroundLight {
     const dz=fx.destination.z-fx.origin.z;
     const length=Math.max(.01,Math.hypot(dx,dz));
     const ux=dx/length,uz=dz/length;
-    const fade=smooth(progress/.16)*(1-smooth((progress-.83)/.17));
+    const fade=smooth(progress/.16); // Stay lit until the projectile actually hits.
     for(let i=0;i<fx.floorLights.length;i++){
       const mesh=fx.floorLights[i],core=i===0,q=core?0:(i-1)/3;
       const back=core?.015:q*.55;
@@ -105,7 +105,7 @@ export class EnergyProjectileGroundLight {
       const oldest=this.flashes.shift();
       for(const item of oldest.meshes)item.dispose();
     }
-    this.flashes.push({meshes,start:now,duration:350});
+    this.flashes.push({meshes,start:now,duration:205});
   }
   update(now=performance.now()){
     for(let i=this.flashes.length-1;i>=0;i--){
@@ -118,10 +118,10 @@ export class EnergyProjectileGroundLight {
       const onset=smooth((p+.04)/.14);
       const cooling=1-smooth((p-.19)/.77);
       const [glow,hot]=f.meshes;
-      glow.scaling.set(.80+p*1.06,.66+p*.79,1);
-      hot.scaling.set(.34+p*.65,.25+p*.46,1);
-      glow.visibility=clamp(onset*cooling*.98,0,1);
-      hot.visibility=clamp(onset*(1-smooth((p-.13)/.62))*.92,0,1);
+      glow.scaling.set(.63+p*.57,.49+p*.42,1);
+      hot.scaling.set(.30+p*.36,.23+p*.27,1);
+      glow.visibility=clamp(onset*cooling*.64,0,1);
+      hot.visibility=clamp(onset*(1-smooth((p-.13)/.62))*.78,0,1);
     }
   }
   detach(fx){

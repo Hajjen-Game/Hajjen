@@ -33,11 +33,11 @@ export class OrbGroundMarkers{
     for(const team of ["friendly","enemy"]){
       const p=TEAM_COLORS[team];
       this.materials[team]={
-        base:markerMaterial(scene,"orb-ground-"+team+"-base",p.base,.40,.48),
-        arc:markerMaterial(scene,"orb-ground-"+team+"-arc",p.arc,.88,.96),
+        base:markerMaterial(scene,"orb-ground-"+team+"-base",p.base,.37,.42),
+        arc:markerMaterial(scene,"orb-ground-"+team+"-arc",p.arc,.85,.85),
         selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.98,1.22),
         selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,1.00,1.90),
-        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.45,1.52),
+        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.38,1.26),
       };
     }
   }
@@ -53,7 +53,7 @@ export class OrbGroundMarkers{
     // Flat XZ torus. Not parented to the orb's bobbing / rotation.
     const base=BABYLON.MeshBuilder.CreateTorus(
       "orb-ground-base:"+actor.id,
-      {diameter:1.72,thickness:.025,tessellation:72},
+      {diameter:1.72,thickness:.041,tessellation:128},
       this.scene,
     );
     base.parent=root;
@@ -65,7 +65,7 @@ export class OrbGroundMarkers{
     // Disabled by default: all untargeted actors keep their previous look.
     const targetHalo=BABYLON.MeshBuilder.CreateTorus(
       "orb-ground-target-halo:"+actor.id,
-      {diameter:2.08,thickness:.080,tessellation:80},
+      {diameter:2.08,thickness:.075,tessellation:128},
       this.scene,
     );
     targetHalo.parent=root;
@@ -76,7 +76,7 @@ export class OrbGroundMarkers{
 
     const targetOutline=BABYLON.MeshBuilder.CreateTorus(
       "orb-ground-target-outline:"+actor.id,
-      {diameter:2.08,thickness:.022,tessellation:80},
+      {diameter:2.08,thickness:.037,tessellation:128},
       this.scene,
     );
     targetOutline.parent=root;
@@ -95,8 +95,8 @@ export class OrbGroundMarkers{
       const points=[];
       const start=i*TAU/3;
       const span=[.73,.49,.60][i];
-      for(let j=0;j<=15;j++){
-        const a=start+span*j/15;
+      for(let j=0;j<=32;j++){
+        const a=start+span*j/32;
         points.push(new BABYLON.Vector3(
           Math.cos(a)*.86,
           .007,
@@ -105,7 +105,7 @@ export class OrbGroundMarkers{
       }
       const arc=BABYLON.MeshBuilder.CreateTube(
         "orb-ground-arc:"+actor.id+":"+i,
-        {path:points,radius:i===0?.020:.015,tessellation:5},
+        {path:points,radius:i===0?.027:.023,tessellation:12},
         this.scene,
       );
       arc.parent=accents;

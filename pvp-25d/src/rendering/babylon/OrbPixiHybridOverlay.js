@@ -3,7 +3,8 @@
 import { PixiProofRenderer } from "../../../../arena3v3/src/rendering/PixiProofRenderer.js?v=20261008-orb-hybrid1";
 
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
-const SPELLS=new Set(["mage-frostbolt","mage-pyroblast"]);
+// All native Pixi 3v3 spell categories are supported; only actor geometry
+// stays in Babylon. The original Pixi methods filter relevant spell IDs.
 const SCALE=.02;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
@@ -70,6 +71,12 @@ export class OrbPixiHybridOverlay{
   at(x,y,height=.88){
     return this.project(new BABYLON.Vector3(x*SCALE,height,y*SCALE));
   }
+  pixelsPerWorldUnit(actor){
+    if(!actor)return this.width/1280;
+    const c=this.at(actor.x,actor.y);
+    const edge=this.at(actor.x+1,actor.y);
+    return c&&edge?clamp(Math.hypot(edge.x-c.x,edge.y-c.y),.25,3):this.width/1280;
+  }
   radius(actor,center){
     const edge=this.project(new BABYLON.Vector3(
       actor.x*SCALE+.62,.88,actor.y*SCALE,
@@ -93,12 +100,28 @@ export class OrbPixiHybridOverlay{
     root.addChild(mask);
     castLayer.mask=mask;
 
-    const projectileVfx2GlowFx=new PIXI.Graphics();
-    const projectileVfx2CoreFx=new PIXI.Graphics();
-    root.addChild(projectileVfx2GlowFx,projectileVfx2CoreFx);
+    // Layer names match PixiProofRenderer.createActorView, allowing us to
+    // invoke the ORIGINAL per-class VFX methods rather than rewriting them.
+    // Layers are ordered soft->sharp to preserve the authored colour balance.
+    const layers={};
+    for(const name of [
+      "secondaryGlowFx","secondaryFx",
+      "burstFx","slashFx","ringFx","beamFx",
+      "chainGlowFx","chainFx","chainSparkFx",
+      "priestHealSpellFx","priestDruidSpellFx",
+      "paladinDkSpellFx","warriorRogueSpellFx",
+      "commonCasterSpellFx",
+      "combatVfx2GlowFx","combatVfx2CoreFx",
+      "projectileVfx2GlowFx","projectileVfx2CoreFx",
+      "spellPolishGlowFx","spellPolishCoreFx",
+    ]){
+      const graphic=new PIXI.Graphics();
+      graphic.label=name;
+      root.addChild(graphic);
+      layers[name]=graphic;
+    }
     view={root,body:{position:{x:0,y:0}},mask,castLayer,
-      castWindupGlowFx,castWindupFx,
-      projectileVfx2GlowFx,projectileVfx2CoreFx};
+      castWindupGlowFx,castWindupFx,...layers};
     this.actorViews.set(id,view);
     return view;
   }
@@ -119,9 +142,11 @@ export class OrbPixiHybridOverlay{
       view.mask.clear().circle(0,0,radius*.89).fill(0xffffff);
       view.castLayer.scale.set(clamp((radius*.82)/(radius+33),.23,.57));
       actorMap.set(actor.id,{
-        id:actor.id,x:projected.x,y:projected.y,radius,
-        alive:true,classId:actor.classId,
-        cast:SPELLS.has(actor.cast?.spellId)?actor.cast:null,
+        ...actor,
+        x:projected.x,y:projected.y,radius,
+        // Preserve every class's original spellbook, cast and combat state;
+        // Pixi's dedicated healer, melee and talent VFX need these fields.
+        alive:true,
         getSpell:id=>actor.getSpell?.(id)||{id},
       });
     }
@@ -130,20 +155,32 @@ export class OrbPixiHybridOverlay{
       view.root.destroy({children:true});
       this.actorViews.delete(id);
     }
-    const effects=(game.vfx?.events||[])
-      .filter(e=>e.type==="spell"&&SPELLS.has(e.spellId))
-      .map(e=>{
-        // Snapshot original 3v3 cast-completion coordinates. Do not tether
-        // visual trails to the moving caster or moving target.
-        const source=Number.isFinite(e.sourceX)&&Number.isFinite(e.sourceY)
-          ?this.at(e.sourceX,e.sourceY):actorMap.get(e.sourceId);
-        const target=Number.isFinite(e.targetX)&&Number.isFinite(e.targetY)
-          ?this.at(e.targetX,e.targetY):actorMap.get(e.targetId);
-        return {...e,sourceX:source?.x,sourceY:source?.y,
-          targetX:target?.x,targetY:target?.y,
-          seed:e.seed??e.id};
-      })
-      .filter(e=>Number.isFinite(e.sourceX)&&Number.isFinite(e.targetX));
+    const events=game.vfx?.events||[];
+    const effects=events.map(e=>{
+      // Preserve the frozen cast positions, rather than attaching moving
+      // projectile tails to the actor's CURRENT position.
+      const source=Number.isFinite(e.sourceX)&&Number.isFinite(e.sourceY)
+        ?this.at(e.sourceX,e.sourceY):actorMap.get(e.sourceId);
+      const target=Number.isFinite(e.targetX)&&Number.isFinite(e.targetY)
+        ?this.at(e.targetX,e.targetY):actorMap.get(e.targetId);
+      const point=Number.isFinite(e.x)&&Number.isFinite(e.y)
+        ?this.at(e.x,e.y):null;
+      // In Pixi, actor.radius and AoE radii use screen-pixel units. Convert
+      // Babylon's logical arena units using a local projected X offset.
+      const anchor=actorMap.get(e.sourceId)||actorMap.get(e.targetId);
+      const pixelsPerGameUnit=anchor&&game.getActor
+        ?this.pixelsPerWorldUnit(game.getActor(anchor.id))
+        :this.width/1280;
+      return {
+        ...e,
+        sourceX:source?.x??e.sourceX,sourceY:source?.y??e.sourceY,
+        targetX:target?.x??e.targetX,targetY:target?.y??e.targetY,
+        x:point?.x??e.x,y:point?.y??e.y,
+        radiusStart:Number.isFinite(e.radiusStart)?e.radiusStart*pixelsPerGameUnit:undefined,
+        radiusEnd:Number.isFinite(e.radiusEnd)?e.radiusEnd*pixelsPerGameUnit:undefined,
+        seed:e.seed??e.id,
+      };
+    });
 
     const projectedGame={
       actors:[...actorMap.values()],
@@ -151,10 +188,25 @@ export class OrbPixiHybridOverlay{
       vfx:{effects},
       elapsedSeconds:Number(game.elapsedSeconds)||0,
     };
-    // Execute original, polished 3v3 Pixi functions directly. Zero geometry
-    // copied or redrawn from memory: shared source of truth.
-    PixiProofRenderer.prototype.updateNativeCastWindupVfx.call(this,projectedGame);
-    PixiProofRenderer.prototype.updateNativeProjectileVfx2.call(this,projectedGame);
+    // These are the actual Pixi 3v3 methods, in their original order.
+    // They know which spells each class owns and skip inapplicable events.
+    const original=PixiProofRenderer.prototype;
+    original.updateNativeCastWindupVfx.call(this,projectedGame);
+    original.updateNativeSecondaryCombatVfx.call(this,projectedGame);
+    original.updateNativeBurstVfx.call(this,projectedGame);
+    original.updateNativeSlashVfx.call(this,projectedGame);
+    original.updateNativeRingVfx.call(this,projectedGame);
+    original.updateNativeBeamVfx.call(this,projectedGame);
+    original.updateNativeChainVfx.call(this,projectedGame);
+    original.updateNativePriestHealSpellVfx.call(this,projectedGame);
+    original.updateNativePriestDruidSpellVfx.call(this,projectedGame);
+    original.updateNativePaladinDkSpellVfx.call(this,projectedGame);
+    original.updateNativeWarriorRogueSpellVfx.call(this,projectedGame);
+    original.updateNativeCommonCasterSpellVfx.call(this,projectedGame);
+    original.updateNativeCombatVfx2.call(this,projectedGame);
+    original.updateNativeProjectileVfx2.call(this,projectedGame);
+    original.updateNativeSpellAnimationPolish.call(this,projectedGame);
+    original.updateNativeRangedShowcaseVfx.call(this,projectedGame);
     this.app.render();
   }
   dispose(){

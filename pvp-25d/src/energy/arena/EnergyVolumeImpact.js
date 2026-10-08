@@ -117,58 +117,82 @@ export class EnergyVolumeImpact {
     });
     const V=(x=0,y=0,z=0)=>new BABYLON.Vector3(x,y,z);
     if(spellId==="crystal-bolt"){
-      // Crystalline fragments explode in a THREE-DIMENSIONAL spherical spread.
-      // Cold shards pass behind and above the glass; some fall below its core.
-      for(let i=0;i<12;i++){
-        const a=(i+.28)*TAU/12;
-        const y=Math.sin(a*2.8)*.37+.10;
-        const spread=.66+(i%4)*.12;
-        const origin=V(Math.cos(a)*.23,y*.38,Math.sin(a)*.23);
-        const velocity=V(Math.cos(a)*spread,y+.18*(i%3-1),Math.sin(a)*spread);
-        const p=this.faceted(fx,"ice-3d-shard:"+i,
-          .16+(i%3)*.036,i%5===0?"light":i%4===0?"dark":"main",
+      // Frostbolt's spear disintegrates FORWARD through the glass volume.
+      // These are solid faceted ice splinters with different heights/rotation,
+      // not a symmetric ring or circular icy emblem around the victim.
+      const dir=fx.motionDir,planar=Math.hypot(dir.x,dir.z)||1;
+      const tx=dir.x/planar,tz=dir.z/planar,sx=-tz,sz=tx;
+      for(let i=0;i<10;i++){
+        const side=i%2?-1:1;
+        const lateral=side*(.09+(i%4)*.050);
+        const along=-.24+(i%5)*.105;
+        const lift=(i%3-1)*.16;
+        const origin=V(tx*along+sx*lateral,lift,tz*along+sz*lateral);
+        const forward=(i%5===0?-.32:.58)+(i%3)*.13;
+        const velocity=V(tx*forward+sx*side*(.17+i%3*.035),
+          lift*.65+(i%4-1.5)*.12,
+          tz*forward+sz*side*(.17+i%3*.035));
+        const part=this.faceted(fx,"ice-3d-directional-splinter:"+i,
+          .10+(i%3)*.025,i%5===0?"light":i%4===0?"dark":"main",
           i,origin,velocity,{type:i%3===0?1:0,
-          delay:(i%4)*.035,
-          spin:V(2.1+(i%3),1.4+i*.32,2.7+(i%4)),
-          intensity:.75});
-        p.mesh.rotation.set(a*.4,a,.2*i);
+            delay:(i%4)*.028,
+            spin:V(1.8+(i%3)*.4,1.2+i*.18,2.0+(i%4)*.22),
+            intensity:.79});
+        part.mesh.rotation.set(i*.19,Math.atan2(tx,tz),side*.36);
       }
-      this.arc(fx,"ice-3d-shell-near",.85,.20,Math.PI*1.20,-.10,
-        .87,"main",2);
-      this.arc(fx,"ice-3d-shell-far",1.05,Math.PI*1.1,Math.PI*.78,.02,
-        -1.02,"dark",3);
+      // Two slim 3D needle streaks start inside the orb and continue through
+      // it, keeping the same crystal spear axis as the travelling projectile.
+      for(let lane=0;lane<2;lane++){
+        const side=lane?1:-1,offset=side*.12;
+        const trail=this.hero.tube(fx,[
+          V(-tx*.42+sx*offset,-.04+side*.10,-tz*.42+sz*offset),
+          V(-tx*.07+sx*offset*.56,side*.065,-tz*.07+sz*offset*.56),
+          V(tx*.54+sx*offset*.30,.05-side*.055,tz*.54+sz*offset*.30),
+        ],lane===0?.015:.010,lane===0?"main":"light",20+lane);
+        // The auxiliary needle's parent is the volume root; fade it with
+        // the same lifetime but without the old rotating corona logic.
+        fx.volumeStatic=fx.volumeStatic||[];
+        fx.volumeStatic.push(trail);
+      }
     }else if(spellId==="sun-lance"){
-      // The hit pierces through the sphere's depth along its arrival vector.
-      // Warm jets fan into a subtle tilted, broken corona.
-      const dir=fx.motionDir;
-      const planar=Math.hypot(dir.x,dir.z)||1;
-      const nx=dir.x/planar,nz=dir.z/planar;
+      // Solar lance penetrates as a forward heat jet. Gold embers peel away
+      // asymmetrically from the axis; no upright radial sun/star wheel.
+      const dir=fx.motionDir,planar=Math.hypot(dir.x,dir.z)||1;
+      const tx=dir.x/planar,tz=dir.z/planar,sx=-tz,sz=tx;
       for(let i=0;i<9;i++){
-        const angle=i*TAU/9+.16;
-        const side=Math.sin(angle),lift=Math.cos(angle);
-        const origin=V(nx*.28+(-nz)*side*.18,lift*.25,nz*.28+nx*side*.18);
-        const velocity=V(nx*(.52+i%3*.10)+(-nz)*side*.42,
-          lift*(.50+(i%3)*.12),
-          nz*(.52+i%3*.10)+nx*side*.42);
-        const p=this.dart(fx,"sun-3d-dart:"+i,
-          .038+(i%3)*.008,.22+(i%4)*.06,
-          i===0?"light":i%3===0?"dark":"main",i,origin,velocity,{
-            delay:(i%3)*.026,
-            spin:V(.28,1.25,1.6),
-            intensity:.76,
+        const side=i%2?-1:1;
+        const lateral=side*(.08+(i%4)*.055);
+        const along=-.17+(i%4)*.095;
+        const up=(i%3-1)*.145;
+        const origin=V(tx*along+sx*lateral,up,tz*along+sz*lateral);
+        const forward=.48+(i%4)*.12;
+        const velocity=V(tx*forward+sx*side*(.15+(i%3)*.05),
+          up*.55+(i%5-2)*.07,
+          tz*forward+sz*side*(.15+(i%3)*.05));
+        const dart=this.dart(fx,"sun-3d-forward-ember:"+i,
+          .023+(i%3)*.006,.15+(i%4)*.055,
+          i%4===0?"light":i%3===0?"dark":"main",i,
+          origin,velocity,{
+            delay:(i%3)*.024,
+            spin:V(.21,.78,.35),intensity:.73,
           });
-        p.mesh.rotation.set(Math.PI*.33,Math.atan2(nx,nz),angle);
+        dart.mesh.rotation.set(.38,Math.atan2(tx,tz),side*.3);
       }
-      this.arc(fx,"sun-3d-corona-front",.87,.38,Math.PI*1.20,.10,
-        .78,"main",12);
-      this.arc(fx,"sun-3d-corona-behind",.98,3.5,Math.PI*.62,-.07,
-        -.88,"dark",13);
+      // The hot filament behind the moving tip becomes the hit afterimage.
+      const shaft=this.hero.tube(fx,[
+        V(-tx*.40,-.035,-tz*.40),
+        V(-tx*.12,.01,-tz*.12),
+        V(tx*.52,.025,tz*.52),
+      ],.016,"light",22);
+      fx.volumeStatic=[shaft];
       for(let i=0;i<4;i++){
-        const a=i*TAU/4+.24;
-        this.faceted(fx,"sun-3d-mote:"+i,
-          .095,"main",i+14,V(Math.cos(a)*.35,Math.sin(a)*.30,Math.sin(a)*.22),
-          V(nx*.35+Math.cos(a)*.25,Math.sin(a)*.24,nz*.35+Math.sin(a)*.27),
-          {spin:V(.9,.8,1.0),intensity:.61});
+        const a=i*TAU/4+.36,side=i%2?-1:1;
+        this.faceted(fx,"sun-3d-loose-ember:"+i,
+          .070,i%3===0?"light":"main",i+14,
+          V(tx*.10+sx*side*.19,Math.sin(a)*.16,tz*.10+sz*side*.19),
+          V(tx*(.37+i*.07)+sx*side*.29,Math.cos(a)*.22,
+            tz*(.37+i*.07)+sz*side*.29),
+          {spin:V(.5,.7,.8),intensity:.55});
       }
     }else if(spellId==="rift-slash"){
       // The signature is two TWISTED SURFACES which briefly open through the
@@ -224,6 +248,11 @@ export class EnergyVolumeImpact {
   update(fx,t,now){
     const progress=smooth(t);
     const fade=clamp(Math.min(1,t*13,(1-t)*1.82),0,.92);
+    // The two penetrating filaments fade quickly after contact rather than
+    // becoming lingering rings in front of the target.
+    for(const filament of fx.volumeStatic||[]){
+      filament.visibility=clamp((1-smooth((t-.06)/.46))*.62,0,.66);
+    }
     for(const p of fx.volumeParts){
       const u=clamp((t-p.delay)/Math.max(.001,1-p.delay),0,1);
       const k=smooth(u);

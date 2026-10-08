@@ -201,6 +201,39 @@ directional and full of layered material-specific motion. This pass changes
   3D volume scenarios with 53/53 mock meshes disposed. **Actual browser
   aesthetics and FPS still require visual verification.**
 
+## Impact Burst Pass 8 — readable release beyond the glass
+
+Following real browser screenshots of Pass 7, both impacts still read as a
+thin horizontal line within the victim orb, despite the improved projectile
+travel effects. Pass 8 preserves the accepted Crystal Bolt/Sun Lance
+projectiles and build-ups while strengthening the hit in three phases:
+
+- **0–100 ms / penetration:** a brief layered icy-blue or white-gold core
+  burst expands near the impact point. The old static axial white line now
+  fades early instead of lingering through the entire contact animation.
+- **100–250 ms / energy release:** Crystal Bolt's directional frost splinters,
+  angular needles, two non-closed ice shears and snow-star particles form an
+  irregular wider fracture fan. Sun Lance's flowing hot tongues, golden embers,
+  and open coiling heat ribbons burst outward. Both remain biased toward the
+  incoming direction, never becoming a circular rune or starwheel.
+- **250–600 ms / aftermath:** splinters and embers separate and fade. The
+  projected Pixi impact silhouette is capped at approximately 2.3× normal
+  projected scale, retaining actual arena size readability rather than
+  turning into a full-screen graphic.
+- The Babylon volume layer now uses faster staged motion and more substantial
+  real 3D fragments, reaching outside the glass at several heights/depths,
+  with a brief luminous volumetric core. Existing volume concurrency remains
+  limited to nine simultaneous impacts. The `3D IMPACTS` switch still works.
+- The real floor receives both a concentrated hot reflection and a softer
+  growing light pool for 350 ms. Original projectile travel ground lights
+  and their fade curves are unchanged.
+- No combat mechanics, spells/damage, AI, arena, renderer baseline, or
+  non-Crystal/Sun signatures are changed.
+- Validated 108 Pixi geometry cases at different phases/sizes, four Babylon
+  signature timelines with 76/76 mesh objects cleaned up, and floor light
+  stress cases with 35/35 planes released. Browser appearance/FPS still need
+  manual evaluation.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

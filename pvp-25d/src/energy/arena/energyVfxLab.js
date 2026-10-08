@@ -225,6 +225,10 @@ function init(){
     renderer?.spellFX?.hero?.setThreadDepthEnabled(threadOn);
     $("toggle-volume").textContent=volumeOn?"3D DEBRIS: ON":"3D DEBRIS: OFF";
     $("toggle-threads").textContent=threadOn?"THREAD DEPTH: ON":"THREAD DEPTH: OFF";
+    $("render-label").textContent=!pixiOn?"BABYLON SPELL FALLBACK · PIXI OFF":
+      volumeOn?"PIXI SPELL VFX · LEGACY 3D DEBRIS":
+      threadOn?"PIXI SPELL VFX · THREAD DEPTH + GLASS":
+      "PIXI SPELL VFX · COMPACT CONTACT + GLASS";
   };
   $("toggle-volume").addEventListener("click",()=>{
     volumeOn=!volumeOn;
@@ -243,9 +247,7 @@ function init(){
     pixiOn=!pixiOn;
     renderer?.pixiFX?.setEnabled(pixiOn);
     $("toggle-pixi").textContent=pixiOn?"PIXI SPELLS: ON":"PIXI SPELLS: OFF";
-    $("render-label").textContent=pixiOn
-      ?"PIXI SPELL VFX · REACTIVE THREAD DEPTH + GLASS"
-      :"BABYLON SPELL FALLBACK · PIXI OFF";
+    syncDepthModes();
     // Rebuild the spell with the correct renderer, not a half-Pixi/half-
     // Babylon projectile left behind from the previous toggle state.
     run(active||signature[0],false);
@@ -256,7 +258,7 @@ function init(){
     renderer=new EnergyArenaRenderer($("vfx-canvas"),VERDANT_CRUCIBLE);
     syncDepthModes();
     $("toggle-pixi").textContent="PIXI SPELLS: ON";
-    $("render-label").textContent="PIXI SPELL VFX · REACTIVE THREAD DEPTH + GLASS";
+    $("render-label").textContent="PIXI SPELL VFX · COMPACT CONTACT + GLASS";
     // Visual close-up: the orbs, spell volumes and trails are the subject,
     // not the distant boundaries of the arena.
     const base=renderer.fitCamera.bind(renderer);

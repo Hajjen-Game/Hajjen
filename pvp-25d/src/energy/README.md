@@ -1,6 +1,6 @@
 # PvP-2.5D — Energy Build System v1
 
-**Status: phase 1 delivered (independent build editor). Combat integration is NOT yet active.**
+**Status: phase 1 complete; separate Energy Combat alpha now available. The legacy 3v3 combat is NOT replaced.**
 
 ## Agreed rules
 
@@ -48,8 +48,8 @@ Preview entrypoint: energy-build.html
 ## Delivery milestones
 
 1. DONE: Ability catalog; roles; Flux preview data; loadout editor; 2 locked + 8 shared slots; 12 TP; Evolution cap; 3 presets; auto-saved draft; access links from character and lobby screens.
-2. NEXT: Define executable ability coefficients, costs, cast/cooldown rules; build a new actor configuration and selectable safe match path while retaining the existing game.
-3. Implement combat handlers, role Flux economy, DR/LOS, interrupts, defenses, targeting, HUD, mobility and actionbar compatibility.
+2. PROTOTYPE: A separate playable match path at energy-arena.html uses the saved builds, role-based Flux, ten ability actions, early handlers for all 22 base abilities, simple 3v3 bots and the existing orb geometry. See arena/README.md. These are first-pass coefficients, not complete parity.
+3. IN PROGRESS: Refine combat handling, Flux economy, DR/LOS, interrupts, defenses, targeting, HUD, mobility, actionbar and tactical counterplay. Initial versions are in the separate prototype.
 4. Adapt AI and match reports to build-based tactics; add balance telemetry.
 5. Give every energy ability and Evolution a signature Babylon/Pixi buildup and impact, preserving current orb graphics.
 
@@ -63,4 +63,4 @@ Preview entrypoint: energy-build.html
 6. Save a preset, modify the draft, load the preset, reload the webpage; confirm persistence.
 7. Return to the existing arena and verify match flow, HUD, graphics and original progression still work.
 
-**Important:** The new abilities are not yet executable in the current match. Do not misrepresent the lab as a completed combat migration.
+**Important:** The new abilities work at baseline in the separate Energy Arena ALPHA, but are not yet executable in the original Orb Arena. Most of the 66 Evolutions and final VFX remain to implement. Do not misrepresent the prototype as a completed combat migration.

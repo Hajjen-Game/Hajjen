@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"/>
+<title>PvP-2.5D · Visual Combat Slice</title>
+<link rel="stylesheet" href="./src/energy/arena/energyVfxLab.css?v=20261008-vfx-lab1"/>
+</head>
+<body>
+<main class="vfx-shell">
+  <header class="vfx-header">
+    <div class="brand"><span class="brand-orb"></span><div>
+      <p class="eyebrow">PVP-2.5D / CREATIVE GATE</p>
+      <h1>VISUAL COMBAT <span>SLICE</span></h1>
+    </div></div>
+    <nav>
+      <a href="./energy-arena.html">ENERGY ARENA ↗</a>
+      <a href="./energy-build.html">ENERGY BUILD LAB ↗</a>
+    </nav>
+  </header>
+  <section class="intro">
+    <div>
+      <p class="eyebrow">THE VISUAL GO / NO-GO TEST</p>
+      <h2>Eight spells. One question: is this worth building?</h2>
+      <p>Watch the energy assemble <strong>inside the glass</strong>, escape as a distinctive form, and make contact. This is an isolated visual experiment: no AI, cooldowns, or damage balance.</p>
+    </div>
+    <div class="phase-track"><span>01 · CHARGE</span><span>02 · RELEASE</span><span>03 · CONTACT</span></div>
+  </section>
+  <section class="stage-panel">
+    <div class="stage-toolbar">
+      <div><p class="eyebrow">CONTROLLED 3D ARENA</p><strong id="now-playing">Select a spell to begin</strong></div>
+      <div class="stage-actions">
+        <button id="replay-spell">↻ REPLAY</button>
+        <button id="play-sequence" class="primary">PLAY ALL EIGHT</button>
+      </div>
+    </div>
+    <div id="vfx-stage" class="vfx-stage">
+      <canvas id="vfx-canvas" aria-label="Live 3D combat spell comparison"></canvas>
+      <div class="stage-overlay">
+        <span>FRIENDLY ENERGY</span><span>ENEMY TARGET</span>
+      </div>
+      <div id="vfx-error" class="vfx-error" hidden></div>
+    </div>
+    <div class="stage-status">
+      <div><span class="live-dot"></span><strong id="phase-name">READY</strong><span id="phase-description">Click any ability below.</span></div>
+      <span id="render-label">BABYLON 3D · GLASS ORBS · AUTHORED VFX</span>
+    </div>
+  </section>
+  <section class="spell-section">
+    <div class="spell-title">
+      <div><p class="eyebrow">EIGHT SIGNATURE ABILITIES</p><h2>Compare their visual identities</h2></div>
+      <span>CHOOSE ONE · REPLAY AS OFTEN AS YOU LIKE</span>
+    </div>
+    <div id="spell-grid" class="spell-grid"></div>
+  </section>
+  <footer>
+    <p>This page is only a visual checkpoint. It leaves the existing Pixi 3v3 arena, the old Orb Arena, and Energy combat balance untouched.</p>
+    <a href="./energy-arena.html">RETURN TO ENERGY ARENA →</a>
+  </footer>
+</main>
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script type="module" src="./src/energy/arena/energyVfxLab.js?v=20261008-vfx-lab1"></script>
+</body>
+</html>

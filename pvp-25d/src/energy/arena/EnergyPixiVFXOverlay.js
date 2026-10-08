@@ -79,9 +79,15 @@ export class EnergyPixiVFXOverlay {
       ?clamp(235+distance*18,255,490)
       :spellId==="rift-slash"?269:spellId==="gravity-hammer"?478:0;
     const isSignatureHit=event.type==="hit"&&contactMs>0;
+    const isProjectileContact=event.type==="hit"&&
+      (spellId==="crystal-bolt"||spellId==="sun-lance");
+    // Keep Pixi and Babylon contact tails on the same clock. The old 750 ms
+    // residual ring lingered after the physical fragments had disappeared.
     const duration=event.type==="windup"?CAST_MS[spellId]
       :event.type==="control"?1300:event.type==="shield"?1400
-      :event.type==="ability"?1200:isSignatureHit?contactMs+750:750;
+      :event.type==="ability"?1200
+      :isProjectileContact?contactMs+(spellId==="crystal-bolt"?560:480)
+      :isSignatureHit?contactMs+750:750;
     // Freeze release in world space; a moving caster cannot pull its old
     // projectile tail along, just like the original Pixi 3v3 spells.
     this.effects.push({spellId,type:event.type,start:performance.now(),

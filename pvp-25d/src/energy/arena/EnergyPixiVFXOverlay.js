@@ -2,6 +2,7 @@
 // Babylon keeps glass, real 3D buildup and depth. Pixi only draws screen-space
 // trails and hit highlights, never controls real damage, targeting or movement.
 import { drawEnergyProjectile } from "./EnergyPixiProjectiles.js?v=20261008-pixi-parity1";
+import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-impact-continuity1";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -343,8 +344,14 @@ export class EnergyPixiVFXOverlay {
       if(["sun-lance","crystal-bolt","rift-slash","gravity-hammer"].includes(attack))
         {
           // Keep tiny, intricate core while the outer layer scales with orb.
-          this.contact(g,e,from,to,impactT,style,Math.min(1.55,scale));
-          this.outerContact(g,e,from,to,impactT,style,scale);
+          if(attack==="crystal-bolt"||attack==="sun-lance"){
+            // Same incoming axis, shards and heat motifs as the new projectiles.
+            // Do NOT layer the old radial sigils/star spokes over this pass.
+            drawProjectileImpact(g,e,from,to,impactT,style,scale);
+          }else{
+            this.contact(g,e,from,to,impactT,style,Math.min(1.55,scale));
+            this.outerContact(g,e,from,to,impactT,style,scale);
+          }
         }
       else this.flare(g,to.x,to.y,impactT,style,.9);
     }

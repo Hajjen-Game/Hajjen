@@ -671,6 +671,10 @@ export class EnergyHeroVFX {
         this.volume.update(fx,t,now);
         continue;
       }
+      if(fx.type==="threaded-impact"&&target?.alive){
+        // Follow the struck orb only during the brief impact aftermath.
+        fx.root.position.copyFrom(this.world(target));
+      }
       if(fx.type==="projectile"){
         const end=target?.alive?this.world(target):fx.destination;
         const travel=smooth(t);
@@ -756,6 +760,30 @@ export class EnergyHeroVFX {
           mesh.rotation.x=idx*.34+now*.0004*(idx%2?1:-1);
           mesh.rotation.y=idx*.77+now*.00055*(idx%2?1:-1);
           alpha=Math.min(1,t/.12,(1-t)*9);
+        }else if(fx.type==="threaded-impact"){
+          // Borrow Reactive Thread's continuously rotating arc geometry.
+          // Deliberately small: unravel and fade without an impact wheel.
+          const unfold=smooth(t/.32);
+          const cool=1-smooth((t-.48)/.48);
+          const onset=smooth(t/.12);
+          if(idx<4){
+            mesh.rotation.x=(idx-1.5)*.12+
+              t*(fx.spellId==="crystal-bolt"?1.05:1.55)*(idx%2?1:-1);
+            mesh.rotation.y=idx*.19+t*(fx.spellId==="crystal-bolt"?1.40:2.06);
+            mesh.rotation.z=(idx-1.5)*.10+Math.sin(t*7+idx)*.16;
+            mesh.scaling.setAll(.66+.43*unfold);
+            alpha=onset*cool*(slot==="light"?.64:
+              slot==="dark"?.30:.45);
+          }else{
+            const lane=idx-4,phase=lane*TAU/4+t*8.1;
+            const radius=(.36+.52*unfold)*(lane%2?.94:1);
+            mesh.position.set(
+              Math.cos(phase)*radius*.85,
+              Math.sin(phase*1.3)*(.22+.38*unfold),
+              Math.sin(phase)*radius);
+            mesh.scaling.setAll(.70+.23*Math.sin(phase+lane));
+            alpha=onset*cool*(slot==="light"?.72:.52);
+          }
         }else if(fx.type==="rift-drive"){
           // A forward-moving spatial cleave with a staggered follow-up wave.
           mesh.rotation.z=-.35+Math.sin(t*3.8+idx*.38)*.18;

@@ -1,0 +1,383 @@
+// Standalone Energy Combat prototype: never imports arena3v3 combat.
+// Rules intentionally limited to a first-playable balance baseline.
+import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
+import { buildCombatLoadout } from "../buildState.js";
+
+const TICK = 0.05;
+export const ABILITY_RULES = Object.freeze({
+  "pulse-mend":       { mode:"heal",amount:40,cost:18,cast:1.5,range:490 },
+  "resonance-guard":  { mode:"guard",amount:0.33,duration:4,cost:22,cd:32,range:490 },
+  "phase-rush":       { mode:"rush",cost:14,cd:17,range:450 },
+  "pulse-sever":      { mode:"interrupt",cost:10,cd:15,range:105 },
+  "flux-bolt":        { mode:"damage",amount:17,cost:11,cast:1.5,range:490 },
+  "phase-slip":       { mode:"dash",distance:170,cost:16,cd:23 },
+  "entropy-mark":     { mode:"dot",amount:5,ticks:6,period:2,cost:15,range:490 },
+  "rift-slash":       { mode:"damage",amount:28,cost:19,cd:6,range:100,requiresDebuff:true },
+  "null-prison":      { mode:"cc",cc:"incapacitate",duration:4,cost:20,cast:1.4,cd:24,range:490 },
+  "sun-lance":        { mode:"damage",amount:27,cost:18,cast:1.8,range:490 },
+  "zenith-crash":     { mode:"damage",amount:38,cost:30,cast:2,cd:18,range:490,area:92 },
+  "photon-barrier":   { mode:"shield",amount:42,duration:5,cost:23,cd:28,range:490 },
+  "crystal-bolt":     { mode:"damage",amount:15,cost:12,cast:1.3,range:490,slow:0.35,slowTime:3 },
+  "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490 },
+  "fracture-spear":   { mode:"damage",amount:32,cost:24,cast:1.7,cd:12,range:490,controlBonus:0.3 },
+  "arc-strike":       { mode:"damage",amount:13,cost:10,range:100 },
+  "gravity-hammer":   { mode:"damage",amount:37,cost:27,cast:0.6,cd:12,range:105 },
+  "vector-rush":      { mode:"dash",distance:180,cost:14,cd:18 },
+  "resonance-cut":    { mode:"interrupt",cost:15,cd:20,range:370 },
+  "reactive-thread":  { mode:"hot",amount:4,ticks:5,period:2,cost:18,range:490,reactive:8 },
+  "symbiosis-link":   { mode:"link",duration:10,cost:18,cd:16,range:490 },
+  "cleanse-flux":     { mode:"cleanse",cost:11,cd:10,range:490 },
+});
+
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb"};
+const number=(value,defaultValue=0)=>Number.isFinite(Number(value))?Number(value):defaultValue;
+
+export function segmentHitsRect(a,b,rect,pad=5) {
+  const x=rect.x-pad,y=rect.y-pad,w=rect.w+pad*2,h=rect.h+pad*2;
+  let tMin=0,tMax=1;
+  const dx=b.x-a.x,dy=b.y-a.y;
+  for(const [origin,delta,min,max] of [[a.x,dx,x,x+w],[a.y,dy,y,y+h]]){
+    if(Math.abs(delta)<1e-9){if(origin>=min&&origin<=max)return true;continue;}
+    let near=(min-origin)/delta,far=(max-origin)/delta;
+    if(near>far)[near,far]=[far,near];
+    tMin=Math.max(tMin,near);tMax=Math.min(tMax,far);
+    if(tMin>tMax)return false;
+  }
+  return true;
+}
+
+export function hasLineOfSight(a,b,arena) {
+  return !(arena.obstacles||[]).some(o=>segmentHitsRect(a,b,o,6));
+}
+
+export function canStand(x,y,arena,radius=21) {
+  const b=arena.bounds;
+  if(x<b.x+radius||x>b.x+b.w-radius||y<b.y+radius||y>b.y+b.h-radius)return false;
+  return !(arena.obstacles||[]).some(o=>x>o.x-radius&&x<o.x+o.w+radius&&y>o.y-radius&&y<o.y+o.h+radius);
+}
+
+function actorFor(id,team,role,pos,control,abilities,evolutions={}) {
+  return {
+    id,team,role,control, classId:"energy-"+role,
+    name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+role.toUpperCase(),
+    x:pos.x,y:pos.y, hp:100,maxHp:100,alive:true,healthPct:1,flux:100,
+    energyStyle:{core:roleColor[role],energy:roleColor[role]},
+    targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,
+    schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions,
+    dashGate:0,arcCount:0,dr:{}, lastInterrupt:0,
+  };
+}
+
+export class EnergyMatch {
+  constructor(build,arena) {
+    this.loadout=buildCombatLoadout(build);
+    this.arena=arena;
+    this.time=0;
+    this.ended=false;
+    this.winner=null;
+    this.events=[];
+    this.notices=[];
+    this.player= null;
+    this.actors=[];
+    const support={healer:["pulse-mend","reactive-thread","photon-barrier","cleanse-flux","sun-lance"],
+      melee:["phase-rush","pulse-sever","arc-strike","gravity-hammer","rift-slash"],
+      caster:["flux-bolt","crystal-bolt","crystal-snare","sun-lance","fracture-spear"]};
+    for(const team of ["friendly","enemy"]){
+      for(const role of ["healer","melee","caster"]){
+        const isPlayer=team==="friendly"&&role===build.role;
+        const abilities=isPlayer?this.loadout.abilitySlots.map(s=>s.id):[...ROLES[role].locked,...support[role]];
+        const evolutions=isPlayer?Object.fromEntries(this.loadout.abilitySlots.filter(s=>s.evolutionId).map(s=>[s.id,s.evolutionId])):{};
+        const id=isPlayer?"player":team+"-"+role;
+        const config=arena.spawns[team+"-"+role];
+        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions);
+        this.actors.push(actor);
+        if(isPlayer)this.player=actor;
+      }
+    }
+    this.player.targetId="enemy-melee";
+    for(const a of this.actors){
+      if(a.control==="ai")a.targetId=a.team==="friendly"?"enemy-melee":"player";
+    }
+  }
+  getActor(id) {return this.actors.find(a=>a.id===id)||null;}
+  living(team){return this.actors.filter(a=>a.alive&&a.team===team);}
+  opponents(actor){return this.living(actor.team==="friendly"?"enemy":"friendly");}
+  allies(actor){return this.living(actor.team);}
+  get dampening(){
+    return this.time<45?0:clamp(0.1+Math.floor((this.time-45)/10)*0.02,0,1);
+  }
+  log(text){this.notices.unshift({time:this.time,text});if(this.notices.length>7)this.notices.length=7;}
+  emit(event){this.events.push({...event,time:this.time});}
+  consumeEvents(){return this.events.splice(0);}
+  isControlled(actor,kind) {return actor.statuses.some(s=>s.kind===kind&&s.remaining>0);}
+  debuffed(actor){return actor.statuses.some(s=>s.negative&&s.remaining>0);}
+  currentTarget(actor,mode,preferredId) {
+    const chosen=this.getActor(preferredId||actor.targetId);
+    if(["heal","guard","shield","hot","link","cleanse"].includes(mode)){
+      return chosen?.alive&&chosen.team===actor.team?chosen:actor;
+    }
+    return chosen?.alive&&chosen.team!==actor.team?chosen:null;
+  }
+  cost(actor,rule,spellId) {
+    let cost=rule.cost||0;
+    if(actor.role==="healer"&&["heal","hot","link"].includes(rule.mode))cost*=0.85;
+    if(actor.role==="caster"&&rule.mode==="damage"&&rule.range>200)cost*=0.85;
+    return Math.ceil(cost);
+  }
+  reason(actor,spellId,targetId) {
+    const rule=ABILITY_RULES[spellId],ability=ABILITY_BY_ID[spellId];
+    if(!rule||!ability||!actor.abilities.includes(spellId))return "NOT IN LOADOUT";
+    if(!actor.alive||this.ended)return "MATCH ENDED";
+    if(this.isControlled(actor,"incapacitate"))return "CONTROLLED";
+    if(actor.cast)return "CASTING";
+    if(actor.gcd>0)return "GLOBAL COOLDOWN";
+    if((actor.cooldowns[spellId]||0)>0)return "COOLDOWN";
+    if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
+    if(actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
+    if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
+    if(rule.mode==="dash")return null;
+    const target=this.currentTarget(actor,rule.mode,targetId);
+    if(!target)return "SELECT A TARGET";
+    const d=distance(actor,target);
+    if(d>(rule.range||490))return "OUT OF RANGE";
+    if(!hasLineOfSight(actor,target,this.arena))return "LINE OF SIGHT";
+    if(rule.mode==="interrupt"&&!target.cast)return "TARGET NOT CASTING";
+    return null;
+  }
+  castAbility(actor,spellId,targetId,opts={}) {
+    const error=this.reason(actor,spellId,targetId);
+    if(error){if(actor===this.player&&!opts.silent)this.log(ABILITY_BY_ID[spellId]?.name+": "+error);return false;}
+    const rule=ABILITY_RULES[spellId];
+    const target=rule.mode==="dash"?null:this.currentTarget(actor,rule.mode,targetId);
+    actor.flux-=this.cost(actor,rule,spellId);
+    actor.gcd=1.3;
+    actor.cooldowns[spellId]=rule.cd||0;
+    this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,spellId});
+    if(rule.cast) {
+      actor.cast={spellId,remainingMs:rule.cast*1000,totalMs:rule.cast*1000,targetId:target?.id||null};
+    }else this.execute(actor,spellId,target?.id||null);
+    return true;
+  }
+  heal(target,amount,source,spellId){
+    if(!target?.alive)return;
+    const scaled=Math.max(0,Math.round(amount*(1-this.dampening)));
+    const given=Math.min(target.maxHp-target.hp,scaled);
+    target.hp+=given;target.healthPct=target.hp/target.maxHp;
+    if(given)this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,spellId,amount:given});
+  }
+  damage(target,amount,source,spellId){
+    if(!target?.alive)return;
+    let value=amount;
+    const guard=target.statuses.find(s=>s.kind==="guard");
+    if(guard)value*=1-guard.amount;
+    const absorbed=Math.min(target.shield,value);
+    target.shield-=absorbed;
+    value=Math.max(0,Math.round(value-absorbed));
+    target.hp=Math.max(0,target.hp-value);target.healthPct=target.hp/target.maxHp;
+    this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,amount:value,absorbed});
+    if(value>0){
+      const thread=target.statuses.find(s=>s.kind==="reactive-thread");
+      if(thread&&thread.procGate<=0){
+        this.heal(target,thread.reactive, this.getActor(thread.sourceId), "reactive-thread");
+        thread.procGate=2;
+      }
+    }
+    if(source.role==="melee"&&value>0&&["arc-strike","rift-slash","gravity-hammer"].includes(spellId)&&source.bonusFluxGate<=0){
+      source.flux=clamp(source.flux+4,0,MAX_FLUX);source.bonusFluxGate=1;
+    }
+    const link=source.statuses.find(s=>s.kind==="link");
+    if(link&&value>0&&link.procGate<=0){
+      const ally=this.getActor(link.linkedId);
+      if(ally?.alive)this.heal(ally,Math.min(15,value*.32),source,"symbiosis-link");
+      link.procGate=0.45;
+    }
+    if(target.hp===0){
+      target.alive=false;target.cast=null;this.log(target.name+" eliminated!");
+      this.emit({type:"death",actorId:target.id,spellId});
+    }
+  }
+  move(actor,dx,dy,dt){
+    if(!actor.alive||this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
+    const length=Math.hypot(dx,dy)||1;
+    const speed=174*(this.isControlled(actor,"slow")?0.65:1);
+    const xStep=dx/length*speed*dt,yStep=dy/length*speed*dt;
+    let mx=0,my=0;
+    if(dx||dy){
+      if(canStand(actor.x+xStep,actor.y,this.arena)){actor.x+=xStep;mx=xStep;}
+      if(canStand(actor.x,actor.y+yStep,this.arena)){actor.y+=yStep;my=yStep;}
+    }
+    actor.lastMove={x:mx/(speed*dt||1),y:my/(speed*dt||1)};
+  }
+  dash(actor,dir,distancePx){
+    if(this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
+    const length=Math.hypot(dir.x,dir.y)||1;
+    const step=7,steps=Math.ceil(distancePx/step);
+    for(let i=0;i<steps;i++){
+      const stepPx=Math.min(step,distancePx-i*step);
+      const x=actor.x+dir.x/length*stepPx,y=actor.y+dir.y/length*stepPx;
+      if(!canStand(x,y,this.arena))break;
+      actor.x=x;actor.y=y;
+    }
+    actor.dashGate=1.3;
+    this.emit({type:"dash",actorId:actor.id,spellId:"vector-rush"});
+  }
+  addStatus(target,entry) {
+    target.statuses=target.statuses.filter(s=>s.kind!==entry.kind||s.sourceId!==entry.sourceId);
+    target.statuses.push(entry);
+  }
+  applyCC(target,category,duration,source,spellId) {
+    const dr=target.dr[category]||{level:0,resetAt:0};
+    if(this.time>dr.resetAt)dr.level=0;
+    const scale=[1,.5,0][Math.min(2,dr.level)];
+    if(scale<=0){this.emit({type:"immune",actorId:source.id,targetId:target.id,spellId});return;}
+    const value=duration*scale;
+    target.statuses=target.statuses.filter(s=>s.kind!==category);
+    target.statuses.push({kind:category,negative:true,remaining:value,sourceId:source.id});
+    dr.level=Math.min(2,dr.level+1);
+    dr.resetAt=this.time+value+20;
+    target.dr[category]=dr;
+    if(category==="incapacitate")target.cast=null;
+    this.emit({type:"control",actorId:source.id,targetId:target.id,spellId});
+  }
+  execute(actor,spellId,targetId) {
+    const r=ABILITY_RULES[spellId],target=this.currentTarget(actor,r.mode,targetId);
+    if(r.mode!=="dash"&&(!target?.alive||distance(actor,target)>(r.range||490)||!hasLineOfSight(actor,target,this.arena))) {
+      if(actor===this.player)this.log("Target moved out of range or LOS.");
+      return;
+    }
+    if(r.mode==="dash"){
+      const direction=actor.control==="player"?this.dashDirection||{x:1,y:0}:{x:actor.team==="friendly"?1:-1,y:0};
+      this.dash(actor,direction,r.distance);
+    }else if(r.mode==="rush"){
+      const delta={x:target.x-actor.x,y:target.y-actor.y};
+      this.dash(actor,delta,Math.max(0,distance(actor,target)-65));
+    }else if(r.mode==="interrupt"){
+      if(target.cast){
+        const interrupted=target.cast.spellId,discipline=ABILITY_BY_ID[interrupted]?.discipline;
+        target.cast=null;
+        if(discipline)target.schoolLocks[discipline]=3;
+        this.emit({type:"interrupt",actorId:actor.id,targetId:target.id,spellId});
+        if(actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon")actor.flux=clamp(actor.flux+12,0,MAX_FLUX);
+        this.log(actor.name+" interrupted "+target.name);
+      }
+    }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
+    else if(r.mode==="guard")this.addStatus(target,{kind:"guard",remaining:r.duration,amount:r.amount,sourceId:actor.id});
+    else if(r.mode==="shield"){target.shield=Math.max(target.shield,r.amount);this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});}
+    else if(r.mode==="damage"){
+      let amount=r.amount;
+      if(r.requiresDebuff&&this.debuffed(target))amount*=1.25;
+      if(r.controlBonus&&(this.isControlled(target,"root")||this.isControlled(target,"slow")))amount*=1+r.controlBonus;
+      if(actor.evolutions[spellId]==="focused-impact"||actor.evolutions[spellId]==="singularity-impact")amount*=1.2;
+      this.damage(target,amount,actor,spellId);
+      if(r.slow)this.addStatus(target,{kind:"slow",negative:true,remaining:r.slowTime,sourceId:actor.id});
+      if(spellId==="arc-strike"&&actor.evolutions[spellId]==="twin-arc"){
+        actor.arcCount++;
+        if(actor.arcCount%3===0)this.damage(target,amount*.5,actor,spellId);
+      }
+      if(r.area){
+        for(const other of this.opponents(actor)){
+          if(other!==target&&distance(other,target)<r.area&&hasLineOfSight(actor,other,this.arena))this.damage(other,amount*.42,actor,spellId);
+        }
+      }
+    }else if(r.mode==="dot"){
+      this.addStatus(target,{kind:"dot",negative:true,remaining:r.ticks*r.period,sourceId:actor.id,
+        spellId,amount:r.amount,period:r.period,tickLeft:r.period,tickCount:0});
+    }else if(r.mode==="cc")this.applyCC(target,r.cc,r.duration,actor,spellId);
+    else if(r.mode==="hot"){
+      this.addStatus(target,{kind:"reactive-thread",remaining:r.ticks*r.period,sourceId:actor.id,
+        period:r.period,tickLeft:r.period,amount:r.amount,reactive:r.reactive,procGate:0});
+      this.heal(target,4,actor,spellId);
+    }else if(r.mode==="link"){
+      this.addStatus(actor,{kind:"link",remaining:r.duration,sourceId:actor.id,linkedId:target.id,procGate:0});
+    }else if(r.mode==="cleanse"){
+      const bad=target.statuses.find(s=>s.negative);
+      if(bad)target.statuses.splice(target.statuses.indexOf(bad),1);
+      if(actor.evolutions[spellId]==="purifying-surge"&&bad)this.heal(target,10,actor,spellId);
+    }
+    this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
+  }
+  updateStatus(actor,dt) {
+    for(const status of actor.statuses){
+      status.remaining-=dt;
+      if(status.procGate>0)status.procGate=Math.max(0,status.procGate-dt);
+      if(status.period&&actor.alive){
+        status.tickLeft-=dt;
+        while(status.tickLeft<=0&&status.remaining>=-dt){
+          status.tickLeft+=status.period;
+          const source=this.getActor(status.sourceId)||actor;
+          if(status.kind==="dot"){
+            const ramp=source.evolutions[status.spellId]==="deep-decay"?1+0.15*(status.tickCount||0):1;
+            this.damage(actor,status.amount*ramp,source,status.spellId);
+            status.tickCount++;
+          }
+          if(status.kind==="reactive-thread")this.heal(actor,status.amount,source,"reactive-thread");
+        }
+      }
+    }
+    const shieldExpired=actor.statuses.some(s=>s.kind==="shield"&&s.remaining<=0);
+    actor.statuses=actor.statuses.filter(s=>s.remaining>0);
+    if(shieldExpired)actor.shield=0;
+  }
+  aiStep(actor,dt){
+    if(!actor.alive)return;
+    const friends=this.allies(actor),enemies=this.opponents(actor);
+    if(!enemies.length)return;
+    const target=this.getActor(actor.targetId);
+    const nearest=enemies.reduce((best,e)=>distance(actor,e)<distance(actor,best)?e:best,enemies[0]);
+    if(!target?.alive||target.team===actor.team)actor.targetId=nearest.id;
+    const enemy=this.getActor(actor.targetId);
+    const healTarget=friends.reduce((best,a)=>a.hp/a.maxHp<best.hp/best.maxHp?a:best,friends[0]);
+    if(!actor.cast){
+      const desired=actor.role==="melee"?72:actor.role==="caster"?335:360;
+      const d=distance(actor,enemy);
+      const vector={x:enemy.x-actor.x,y:enemy.y-actor.y};
+      if(d>desired+30)this.move(actor,vector.x,vector.y,dt);
+      else if(d<desired-45&&actor.role!=="melee")this.move(actor,-vector.x,-vector.y,dt);
+      else actor.lastMove={x:0,y:0};
+    }
+    actor.decision-=dt;
+    if(actor.decision>0)return;
+    actor.decision=0.65+Math.random()*0.5;
+    if(actor.role==="healer"&&healTarget.hp<70){
+      if(this.castAbility(actor,"pulse-mend",healTarget.id,{silent:true}))return;
+      if(this.castAbility(actor,"reactive-thread",healTarget.id,{silent:true}))return;
+    }
+    if(actor.role==="melee"){
+      if(distance(actor,enemy)>105)this.castAbility(actor,"phase-rush",enemy.id,{silent:true});
+      else this.castAbility(actor,actor.cooldowns["gravity-hammer"]<=0&&actor.flux>30?"gravity-hammer":"arc-strike",enemy.id,{silent:true});
+    }else if(actor.role==="caster"){
+      if(!this.castAbility(actor,"crystal-bolt",enemy.id,{silent:true}))
+        this.castAbility(actor,"flux-bolt",enemy.id,{silent:true});
+    }else this.castAbility(actor,"sun-lance",enemy.id,{silent:true});
+  }
+  update(delta) {
+    if(this.ended)return;
+    const dt=clamp(delta,0,0.06);this.time+=dt;
+    for(const actor of this.actors){
+      if(!actor.alive)continue;
+      actor.flux=Math.min(MAX_FLUX,actor.flux+BASE_FLUX_REGEN*dt);
+      actor.gcd=Math.max(0,actor.gcd-dt);
+      actor.dashGate=Math.max(0,actor.dashGate-dt);
+      actor.bonusFluxGate=Math.max(0,(actor.bonusFluxGate||0)-dt);
+      for(const key of Object.keys(actor.cooldowns))actor.cooldowns[key]=Math.max(0,actor.cooldowns[key]-dt);
+      for(const key of Object.keys(actor.schoolLocks))actor.schoolLocks[key]=Math.max(0,actor.schoolLocks[key]-dt);
+      this.updateStatus(actor,dt);
+      if(actor.cast){
+        actor.cast.remainingMs-=dt*1000;
+        if(actor.cast.remainingMs<=0){
+          const finished=actor.cast;actor.cast=null;
+          this.execute(actor,finished.spellId,finished.targetId);
+        }
+      }
+      if(actor.control==="ai")this.aiStep(actor,dt);
+    }
+    if(!this.living("friendly").length||!this.living("enemy").length||this.time>=240){
+      this.ended=true;
+      this.winner=this.living("friendly").reduce((n,a)=>n+a.hp,0)>=this.living("enemy").reduce((n,a)=>n+a.hp,0)?"friendly":"enemy";
+      this.log((this.winner==="friendly"?"VICTORY":"DEFEAT")+" · ENERGY ARENA");
+      this.emit({type:"end",winner:this.winner});
+    }
+  }
+}

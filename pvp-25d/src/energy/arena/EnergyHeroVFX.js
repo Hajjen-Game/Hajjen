@@ -35,9 +35,14 @@ export class EnergyHeroVFX {
     this.maxLive=76;  // no unbounded GPU objects in longer matches
     this.volume=new EnergyVolumeImpact(this);
     this.floorLight=new EnergyProjectileGroundLight(scene);
+    // In Energy Arena, Pixi owns the finished projectile and contact.
+    // Babylon still provides floor illumination and glass-orb charge-ups.
+    // Disable only ranged projectile meshes when Pixi is actually ready.
+    this.pixiProjectilesAvailable=false;
     this.stats={lastSpell:"",active:0};
   }
   supports(id){return CHOSEN.has(id);}
+  setPixiProjectilesAvailable(value){this.pixiProjectilesAvailable=!!value;}
   material(hex,alpha=1,emission=1.05){
     const key=hex+":"+alpha+":"+emission;
     if(this.materials.has(key))return this.materials.get(key);
@@ -179,7 +184,17 @@ export class EnergyHeroVFX {
     const duration=clamp(235+far*18,255,490);
     const fx=this.makeEffect(spellId,"projectile",start,duration,{
       targetId:target.id,sourceId:source.id,origin:start.clone(),destination:end.clone(),
+      pixiPrimary:this.pixiProjectilesAvailable,
     });
+    if(fx.pixiPrimary){
+      // The Pixi renderer draws ALL visible travel geometry for this cast.
+      // Keep a lightweight invisible Babylon root to move its floor-light
+      // reflection; do not duplicate the beautiful Pixi projectile with
+      // cones, balls, tracers or later Babylon-only hit geometry.
+      this.floorLight.attach(fx);
+      return fx;
+    }
+    // Fallback if Pixi failed to load or was explicitly switched off.
     if(spellId==="crystal-bolt"){
       const crystal=this.cone(fx,.22,.88,5,"main",0);
       crystal.position.y=.04;
@@ -509,6 +524,15 @@ export class EnergyHeroVFX {
     const P=(a,side=0,y=0)=>new BABYLON.Vector3(
       tx*a+sx*side,y,tz*a+sz*side);
     this.floorLight.impact(id,point);
+    if(fx.pixiPrimary){
+      // Pixi owns both the contact bloom and aftermath. The optional
+      // volumetric experiment is available ONLY when enabled in VFX Lab.
+      if(this.volume.enabled)this.volume.spawn(id,point,{
+        targetId:fx.targetId,direction:travel,
+      });
+      return;
+    }
+    // Babylon's compact fallback is kept for Pixi-unavailable devices.
     const splash=this.makeEffect(id,crystal?"crystal-impact":"solar-impact",
       point,crystal?410:390,{targetId:fx.targetId});
     // Piercing core, visibly continuous with the last frame of travel.

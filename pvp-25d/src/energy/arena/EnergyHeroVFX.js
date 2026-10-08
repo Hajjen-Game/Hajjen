@@ -557,7 +557,17 @@ export class EnergyHeroVFX {
       const actor=fx.actorId&&match.getActor(fx.actorId);
       const target=fx.targetId&&match.getActor(fx.targetId);
       if(t>=1){
+        // A slow frame can skip across the contact threshold. Make sure the
+        // hit always happens once before the travelling geometry is removed.
         if(fx.type==="projectile")this.impact(fx,target);
+        if(fx.type==="rift-drive"&&!fx.ripTriggered){
+          fx.ripTriggered=true;
+          this.riftContact(target?.alive?this.world(target):fx.destination);
+        }
+        if(fx.type==="hammer"&&!fx.impactTriggered){
+          fx.impactTriggered=true;
+          if(target)this.gravityContact(target);
+        }
         this.destroy(fx);this.live.splice(i,1);
         continue;
       }

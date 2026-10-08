@@ -77,6 +77,36 @@ User screenshots showed that the existing build-ups were much sharper and more i
 - The floating combat text and Pixi visuals for Rift Slash and Gravity Hammer align with the new Babylon hit time (269 ms and 478 ms after launch respectively).
 - Verified via syntax checks, effect lifecycle simulation across all eight signatures repeated three times, no leaked meshes (591 created/591 disposed), Pixi shape tests and versioned module import chain. Actual browser visuals still require screenshot review.
 
+## Trail + Outer Impact Pass 4 — restore readability beyond the orb
+
+After testing Pass 3 on mobile, the authored four-hit signatures had become too
+small: nearly everything was confined to the glass core. This pass intentionally
+**does not alter the accepted buildup animations**.
+
+- The four existing *inner* impacts remain compact, coloured, detailed, and
+  identifiable even when impact effects are disabled.
+- A separate *outer* layer (Babylon three-dimensional fine arcs and fragments,
+  Pixi sharp lines) extends beyond the orb to approximately **2.0–2.45× the
+  orb radius**, or a total silhouette of ~2.0–2.45× the orb diameter. It
+  does not use broad white plates or full radial glowing wheels.
+- **Crystal Bolt**: 8 small outer frost facets and broken cold arcs.
+  **Sun Lance**: partial corona, 5–6 focused needles and gold motes.
+  **Rift Slash**: two travelling opposed void seams, thin afterimages and
+  small dimensional chips. **Gravity Hammer**: low elliptical pressure arcs
+  with shallow ground fractures.
+- **Projectile trails**: Babylon now has 11 history-based 3D sparklets behind
+  Crystal Bolt / Sun Lance that remain visible when Pixi is unavailable.
+  Pixi adds tapered coloured ribbons, hairline energy spines, counter-twisted
+  side filaments and crystalline/sun motes inspired by arena3v3's projectile
+  VFX language. Rift Slash adds phased thin echo arcs and Gravity Hammer gains
+  coiling descending filaments.
+- Pixi outer-impact dimensions follow actual projected orb size. At sampled
+  screen orb radii 20/38/66px, all four impact silhouettes remained in the
+  intended 2.0–2.45× radius range; paths and alpha values remained finite.
+- The pass only changes `pvp-25d/src/energy/arena/`; original
+  `arena3v3` files are untouched. Both Energy Arena and Visual VFX Lab use
+  cache-busted imports. Browser screenshot/feel verification remains next.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

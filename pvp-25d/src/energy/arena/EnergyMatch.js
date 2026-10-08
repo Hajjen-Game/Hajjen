@@ -39,7 +39,7 @@ export function segmentHitsRect(a,b,rect,pad=5) {
   let tMin=0,tMax=1;
   const dx=b.x-a.x,dy=b.y-a.y;
   for(const [origin,delta,min,max] of [[a.x,dx,x,x+w],[a.y,dy,y,y+h]]){
-    if(Math.abs(delta)<1e-9){if(origin>=min&&origin<=max)return true;continue;}
+    if(Math.abs(delta)<1e-9){if(origin<min||origin>max)return false;continue;}
     let near=(min-origin)/delta,far=(max-origin)/delta;
     if(near>far)[near,far]=[far,near];
     tMin=Math.max(tMin,near);tMax=Math.min(tMax,far);
@@ -66,7 +66,7 @@ function actorFor(id,team,role,pos,control,abilities,evolutions={}) {
     energyStyle:{core:roleColor[role],energy:roleColor[role]},
     targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,
     schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions,
-    dashGate:0,arcCount:0,dr:{}, lastInterrupt:0,
+    dashGate:0,arcCount:0,dr:{}, lastInterrupt:0,bonusFluxGate:0,
   };
 }
 
@@ -92,13 +92,20 @@ export class EnergyMatch {
         const id=isPlayer?"player":team+"-"+role;
         const config=arena.spawns[team+"-"+role];
         const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions);
+        if(isPlayer){
+          const weighted=build.freeSlots.filter(Boolean).map(id=>ABILITY_BY_ID[id]?.discipline).filter(Boolean);
+          const ranked=[...new Set(weighted)].sort((a,b)=>weighted.filter(x=>x===b).length-weighted.filter(x=>x===a).length);
+          const primary=DISCIPLINES[ranked[0]]?.color||roleColor[role];
+          const secondary=DISCIPLINES[ranked[1]]?.color||roleColor[role];
+          actor.energyStyle={core:primary,energy:secondary};
+        }
         this.actors.push(actor);
         if(isPlayer)this.player=actor;
       }
     }
     this.player.targetId="enemy-melee";
     for(const a of this.actors){
-      if(a.control==="ai")a.targetId=a.team==="friendly"?"enemy-melee":"player";
+      if(a.control==="ai")a.targetId=a.team==="friendly"?"enemy-melee":a.role==="melee"?"player":a.role==="caster"?"friendly-caster":"friendly-melee";
     }
   }
   getActor(id) {return this.actors.find(a=>a.id===id)||null;}
@@ -143,7 +150,7 @@ export class EnergyMatch {
     const d=distance(actor,target);
     if(d>(rule.range||490))return "OUT OF RANGE";
     if(!hasLineOfSight(actor,target,this.arena))return "LINE OF SIGHT";
-    if(rule.mode==="interrupt"&&!target.cast)return "TARGET NOT CASTING";
+    // Interrupts may be used into a fake cast. The cooldown must still be spent.
     return null;
   }
   castAbility(actor,spellId,targetId,opts={}) {
@@ -178,6 +185,8 @@ export class EnergyMatch {
     target.hp=Math.max(0,target.hp-value);target.healthPct=target.hp/target.maxHp;
     this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,amount:value,absorbed});
     if(value>0){
+      // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
+      target.statuses=target.statuses.filter(s=>s.kind!=="incapacitate");
       const thread=target.statuses.find(s=>s.kind==="reactive-thread");
       if(thread&&thread.procGate<=0){
         this.heal(target,thread.reactive, this.getActor(thread.sourceId), "reactive-thread");

@@ -78,7 +78,13 @@ function setPhase(name,desc){
 function prepareActors(spell){
   // Fresh actor shells pick up the spell's exact discipline palette.
   const tint=palette[spell.discipline];
-  source.classId="energy-caster-"+spell.id;
+  // Audition melee attacks at their actual short range. A 300-unit melee
+  // demonstration made the slash look like an unintended ranged projectile.
+  const close=spell.id==="rift-slash"||spell.id==="gravity-hammer";
+  source.x=close?555:450;
+  enemy.x=close?650:755;
+  source.y=360;enemy.y=360;
+    source.classId="energy-caster-"+spell.id;
   source.energyStyle={core:tint,energy:spell.discipline==="solar"?"#fff1bd":
     spell.discipline==="cryo"?"#e4faff":spell.discipline==="vital"?"#ddfff1":"#efcbff"};
   source.role=spell.discipline==="kinetic"?"melee":"caster";

@@ -103,7 +103,7 @@ export class OrbGroundMarkers{
       const team=actor.team==="friendly"?"friendly":"enemy";
       let entry=this.entries.get(actor.id);
       if(entry&&entry.team!==team){
-        entry.root.dispose(false,true);
+        entry.root.dispose(false,false);
         this.entries.delete(actor.id);
         entry=null;
       }
@@ -122,13 +122,15 @@ export class OrbGroundMarkers{
     }
     for(const [id,entry] of this.entries){
       if(aliveIds.has(id))continue;
-      entry.root.dispose(false,true);
+      entry.root.dispose(false,false);
       this.entries.delete(id);
     }
   }
 
   dispose(){
-    for(const entry of this.entries.values())entry.root.dispose(false,true);
+    // These entries share one material set per team: never dispose materials
+    // via mesh disposal until the renderer itself shuts down.
+    for(const entry of this.entries.values())entry.root.dispose(false,false);
     this.entries.clear();
     for(const mats of Object.values(this.materials)){
       for(const material of Object.values(mats))material.dispose();

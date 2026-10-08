@@ -3,7 +3,7 @@
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261008-impact-pass2";
-import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261008-vfx-slice5";
+import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261008-impact-pass2";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);

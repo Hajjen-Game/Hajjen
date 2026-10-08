@@ -359,6 +359,45 @@ to be **weight and visibility**, not the original palette.
   sampled values. Static checks confirm charge/build-up code untouched.
   Real browser visuals and FPS remain to be reviewed.
 
+## Attack-First VFX Pass 13 — neon travel, compact contact
+
+The approved direction following visual references is **"the spell/attack is
+the star; the hit is confirmation."** Crystal Bolt and Sun Lance now put
+the majority of their visual work into a readable *head / body / wake*,
+keeping their original category colors and controlled neon/glow. The broad
+impact experiments (volumetric debris, 3D threads and large Pixi bursts)
+no longer run by default.
+
+- **Crystal Bolt:** slim translucent dark-blue/cyan wake, visible twin icy
+  filaments and a distinct faceted crystalline spearhead. About 40% fewer
+  ornamental snow stars/splinters while retaining characteristic frost
+  movement. The almost-white tip stays visible until actual contact.
+- **Sun Lance:** narrow, staggered amber/gold flame ribbons instead of a
+  broad semi-opaque body, a clearly separate golden leading spearhead,
+  fewer floating embers and reduced rotating coils. Glow is strongest at
+  the tip with a subtler trailing glow.
+- **Both hit effects:** a tiny directional white-hot/cyan/gold snap and
+  only four ice needles or five embers. Contact lasts only **215 ms** for
+  Crystal Bolt and **190 ms** for Sun Lance (after projectile travel),
+  with no large corona, sigil, ring, radial symbol or lingering polygon
+  cloud. Pixi's separate blurred neon layer is shorter/narrower on
+  travel and becomes a tiny contact hotspot on landing.
+- **Babylon:** keeps transparent glass/orbs, cast/build-up animations,
+  moving projectile floor reflections, and a *shorter, smaller*
+  205-ms ground contact flash. The old chunky 3D debris remains OFF,
+  and the Reactive Thread-inspired depth experiment is now OFF by
+  default for these hits (but both are still available as separate
+  Visual VFX Lab comparisons).
+- **No changes** to spell damage, timing of contact, combat/AI, caster
+  build-ups, class colors, Null Prison, melee effects, or the rest of the
+  game. This only adjusts the screen-space animation after cast and
+  its cosmetic post-contact lifetime.
+- Verification: 104 projectile/impact phase/zoom geometry scenarios;
+  no invalid coordinates/opacity, a persistent leading tip at all
+  late travel samples, and tighter geometry than the previous Pass 12
+  impacts. JavaScript syntax/import-chain checks passed. Actual
+  browser appearance and FPS still need visual inspection.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

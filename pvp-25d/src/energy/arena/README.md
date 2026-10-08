@@ -30,6 +30,31 @@
 - The player's dominant equipped disciplines tint the glass orb inner energy. Existing production OrbCharacterRenderer and OrbGroundMarkers are reused unchanged.
 - A small generic Babylon effect accompanies combat events. This is **not** the final authored spell/VFX system.
 
+## Visual Combat Slice v1 — creative go/no-go gate
+
+A **separate, controlled 3D/Pixi audition page** is available at
+**pvp-25d/energy-vfx-lab.html**, linked from Energy Arena and Energy Build Lab.
+It deliberately pauses combat entirely: no bots, no cooldown restrictions and
+no resource/HP balance. Click any of the eight signatures, Replay, or Play All.
+
+Visual signatures and goals:
+- **Crystal Bolt:** converging icy prisms inside glass, faceted projectile, shattering contact.
+- **Sun Lance:** solar corona and spinning charge geometry, concentrated gold lance and piercing starburst.
+- **Null Prison:** angular windup and six-sided energy cage around the target.
+- **Rift Slash:** weaponless crossing arcs/void tear rather than swinging a sword.
+- **Gravity Hammer:** red gravity buildup, overhead faceted impact, ground shock rings.
+- **Pulse Mend:** coiling turquoise energy inside the caster, transfer to ally and luminous landing.
+- **Photon Barrier:** interlocking photon bands and transparent shell that persists on the ally.
+- **Reactive Thread:** persistent living strands looping inside/around ally's glass, triggered healing pulses.
+
+Technical split: **Babylon** owns all volumes, internal glass charge-up, 3D geometry, target occlusion and orbit/ring environment. A **nonessential Pixi v8 overlay** uses bright, fine 2D linework to make trails, slash outlines and contact readable at actual arena scale; the underlying Babylon signatures remain usable if Pixi fails to load. The original Pixi 3v3 is unchanged and can be compared from a lab header link.
+
+The same authored signatures also display in normal Energy Arena matches when the abilities trigger. Other spells retain the generic fallback visual renderer. All casts/damage and actor rules remain separate from VFX.
+
+**Important limitations:** This is a visual proof, not final production VFX or full combat parity; the spell timings in the visual lab are staged preview timings and do not change arena spell statistics. Pixel-level/browser screenshots, device frame rate and gameplay readability still need live verification.
+
+Evaluation checkpoints: distinct silhouette for each ability; clear build-up inside the orb; release/impact legibility at normal camera zoom; no weapons; shields and controls readable on targets; acceptable performance; and whether this visually merits further work over Pixi 3v3.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

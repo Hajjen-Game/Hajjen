@@ -1,5 +1,5 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
-import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261007-orbs-v2-void";
+import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v9-energycore";
 import { VfxController } from "./VfxController.js?v=20261002-2250";
 
 const S = 0.02;

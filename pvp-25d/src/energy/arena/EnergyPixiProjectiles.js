@@ -12,7 +12,7 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
   const u=smooth(travel),distance=d*u;
   if(distance<2)return;
   const k=clamp(scale*.85,.72,2.15);
-  const tail=Math.min((ice?132:158)*k,distance*.74);
+  const tail=Math.min((ice?126:139)*k,distance*.74);
   const startDist=Math.min(Math.max(13*k,distance-tail),Math.max(0,distance-7*k));
   const ax=from.x+tx*startDist,ay=from.y+ty*startDist;
   const px=from.x+dx*u,py=from.y+dy*u;
@@ -58,21 +58,23 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
     // low wobble and a thinner crystalline silhouette.
     // Keep the original palette, but redistribute it: shadowed icy facets
     // and saturated cyan do most of the work; white belongs at the nose.
-    ribbon(5,.92,4.5,13.5,3.8,15,style.dim,.25);
-    ribbon(13,1.13,3.2,10.5,2.8,15,style.c,.33);
-    ribbon(29,1,1.4,5,1.25,15,style.c,.48);
-    ribbon(109,1.45,6,17,4.2,14,style.dim,.14);
-    line([pt(0),pt(1)],style.c,4.2,.42);
-    line([pt(0),pt(1)],style.core,.85,.55);
+    // Slim, flowing cyan wisps. Let the empty space BETWEEN layers create
+    // depth instead of stacking five wide translucent polygon sheets.
+    ribbon(5,.92,2.0,7.5,3.8,15,style.dim,.19);
+    ribbon(13,1.13,1.3,6.0,2.8,15,style.c,.39);
+    ribbon(29,1,.5,3.2,1.25,15,style.c,.34);
+    ribbon(109,1.45,1.3,6.5,4.2,14,style.dim,.09);
+    line([pt(0),pt(1)],style.c,2.5,.36);
+    line([pt(0),pt(1)],style.core,.72,.38);
     // Every splinter is a small angular crystal, not a generic glowing dot.
-    for(let i=0;i<15;i++){
-      const f=(i+.45)/15;
+    for(let i=0;i<9;i++){
+      const f=(i+.45)/9;
       const drift=Math.sin(seed*.031+i*2.17+travel*14.5)
         *(5+(i%4)*2.2)*k;
       const p=pt(f,drift),r=(1.8+(i%4)*.55);
       dot(p.x,p.y,r*2.4,style.c,.10);
       const spin=travel*(6.8+(i%3)*.7)+i*.83;
-      for(let arm=0;arm<3;arm++){
+      for(let arm=0;arm<2;arm++){
         const a=spin+arm*Math.PI/3;
         const ex=Math.cos(a)*r*k,ey=Math.sin(a)*r*k;
         line([{x:p.x-ex,y:p.y-ey},{x:p.x+ex,y:p.y+ey}],
@@ -80,8 +82,8 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
           arm===0?1:.8,.76);
       }
     }
-    for(let i=0;i<10;i++){
-      const f=(i+.30)/10,sign=i%2?1:-1;
+    for(let i=0;i<7;i++){
+      const f=(i+.30)/7,sign=i%2?1:-1;
       const drift=(sign*(7+(i%4)*3)+Math.sin(i*1.8+travel*10+seed*.04)*3)*k;
       const p=pt(f,drift),len=(5+(i%4)*2.3)*k;
       line([p,{x:p.x-tx*len+nx*sign*len*.34,
@@ -124,16 +126,18 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
     // Pyroblast: four flame temperature layers, flowing ribbons and a molten
     // golden body. Sun Lance stays tighter and more directional than fire.
     // More dark amber + molten gold, less continuous cream-white fill.
-    ribbon(3,1,7,19,7.5,18,style.dim,.26);
-    ribbon(11,1.12,5,15,5.5,18,style.c,.34);
-    ribbon(23,.94,2.2,8,3.2,18,0xffb035,.51);
-    ribbon(37,1.25,.8,3.5,1.7,18,style.core,.49);
-    ribbon(101,1.70,9,24,8.5,16,style.dim,.14);
-    line([pt(0),pt(1)],0xffba3a,5.4,.45);
-    line([pt(0),pt(1)],style.core,.96,.63);
-    // 24 independent embers, with flicker and streaks.
-    for(let i=0;i<24;i++){
-      const f=(i+.35)/24;
+    // Tapered flowing amber ribbons with deliberate gaps: fire that wraps a
+    // defined solar tip, not a broad opaque strip between the two orbs.
+    ribbon(3,1,3.0,11.5,7.5,18,style.dim,.22);
+    ribbon(11,1.12,2.5,8.5,5.5,18,style.c,.36);
+    ribbon(23,.94,1.1,4.4,3.2,18,0xffb035,.51);
+    ribbon(37,1.25,.4,2.4,1.7,18,style.core,.32);
+    ribbon(101,1.70,1.5,9.5,8.5,16,style.dim,.09);
+    line([pt(0),pt(1)],0xffba3a,3.3,.35);
+    line([pt(0),pt(1)],style.core,.83,.47);
+    // A few independent embers give motion without obscuring the lance.
+    for(let i=0;i<13;i++){
+      const f=(i+.35)/13;
       const side=Math.sin(i*1.71+travel*20+seed*.025)
         *(6+(i%5)*2.4)*k;
       const p=pt(f,side);
@@ -149,8 +153,8 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
         i%2?style.core:style.c,1.15,.54);
       }
     }
-    // Four staggered flame tongues weave in/out of the hotter center.
-    for(let lane=0;lane<4;lane++){
+    // Three staggered flame tongues weave in/out of the hotter center.
+    for(let lane=0;lane<3;lane++){
       const sign=lane%2?1:-1;
       const shift=travel*(13+lane*1.8)+seed*.017+lane*1.7;
       const pts=[];
@@ -163,7 +167,7 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
         lane===2?style.c:style.dim,lane===0?2.1:1.35,lane===0?.66:.46);
     }
     // Pyroblast's rotating heating coils supply moving depth along the beam.
-    for(let i=0;i<6;i++){
+    for(let i=0;i<3;i++){
       const p=pt(.18+i*.13),spin=travel*12+i*.9+seed*.009;
       const along=(4+Math.sin(spin)*2)*k,across=(8+i%3*2.5)*k;
       const ring=[];

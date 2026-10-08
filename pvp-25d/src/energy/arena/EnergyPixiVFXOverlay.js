@@ -71,11 +71,16 @@ export class EnergyPixiVFXOverlay {
     const source=match.getActor(event.actorId),target=match.getActor(event.targetId);
     if(!source)return;
     const spellId=event.spellId;
+    const distance=target?Math.hypot(source.x-target.x,source.y-target.y)*S:0;
+    const contactMs=spellId==="sun-lance"||spellId==="crystal-bolt"
+      ?clamp(235+distance*18,255,490)
+      :spellId==="rift-slash"?301:spellId==="gravity-hammer"?490:0;
+    const isSignatureHit=event.type==="hit"&&contactMs>0;
     const duration=event.type==="windup"?CAST_MS[spellId]
       :event.type==="control"?1300:event.type==="shield"?1400
-      :event.type==="ability"?1200:spellId==="gravity-hammer"?850:750;
+      :event.type==="ability"?1200:isSignatureHit?contactMs+750:750;
     this.effects.push({spellId,type:event.type,start:performance.now(),
-      duration,sourceId:source.id,targetId:target?.id||null});
+      duration,contactMs,sourceId:source.id,targetId:target?.id||null});
     if(this.effects.length>52)this.effects.shift();
   }
   point(actor){
@@ -141,52 +146,166 @@ export class EnergyPixiVFXOverlay {
       this.stroke(g,vertices,style.c,2,fade*.65);
     }
   }
+  // Contact has its own timeline; trails finish when the Babylon missile
+  // arrives, then the splinter/star/crater remains briefly on the victim.
+  contact(g,e,from,to,t,style){
+    const k=clamp(t,0,1),a=e.spellId,fade=Math.pow(1-k,1.3);
+    if(a==="crystal-bolt"){
+      // Irregular icy facets, not a circular magical puff.
+      const arms=11;
+      for(let i=0;i<arms;i++){
+        const angle=i*TAU/arms+.14*(i%3);
+        const outer=(22+(i%4)*5)+(38+(i%3)*7)*k;
+        const inner=10+15*k;
+        const spread=(.19+.08*(i%3));
+        const p1={x:to.x+Math.cos(angle-spread)*outer,
+          y:to.y+Math.sin(angle-spread)*outer*.82};
+        const tip={x:to.x+Math.cos(angle)*outer*1.34,
+          y:to.y+Math.sin(angle)*outer*1.03};
+        const p2={x:to.x+Math.cos(angle+spread)*outer,
+          y:to.y+Math.sin(angle+spread)*outer*.82};
+        this.stroke(g,[{x:to.x+Math.cos(angle)*inner,y:to.y+Math.sin(angle)*inner*.8},
+          p1,tip,p2],i%3===0?style.core:style.c,
+          i%3===0?3.2:1.9,fade*.94);
+      }
+      for(let i=0;i<3;i++){
+        const scale=(23+48*k)+i*8;
+        const hex=[];
+        for(let j=0;j<=6;j++){
+          const angle=j*TAU/6+i*.19;
+          hex.push({x:to.x+Math.cos(angle)*scale,y:to.y+Math.sin(angle)*scale*.7});
+        }
+        this.stroke(g,hex,i===0?style.core:style.c,i===0?2.6:1.35,
+          fade*(.75-i*.15));
+      }
+    }else if(a==="sun-lance"){
+      // Extremely bright centre, asymmetric solar petals and piercing rays.
+      const radius=14+61*k;
+      this.circle(g,to.x,to.y,radius,style.c,5.2*fade,.82*fade);
+      this.circle(g,to.x,to.y,radius*.58,style.core,2.6*fade,fade);
+      for(let i=0;i<12;i++){
+        const angle=i*TAU/12+k*.32;
+        const ray=radius*(i%3===0?1.6:1.21);
+        this.stroke(g,[{x:to.x+Math.cos(angle)*radius*.30,
+          y:to.y+Math.sin(angle)*radius*.30},
+          {x:to.x+Math.cos(angle)*ray,y:to.y+Math.sin(angle)*ray*.83}],
+        i%3===0?style.core:style.c,i%3===0?4.7:2.25,fade*.94);
+      }
+      for(let j=0;j<4;j++){
+        const angle=j*Math.PI/2+.25;
+        this.stroke(g,[{x:to.x-Math.cos(angle)*radius*1.7,
+            y:to.y-Math.sin(angle)*radius*1.25},
+          {x:to.x+Math.cos(angle)*radius*1.7,
+            y:to.y+Math.sin(angle)*radius*1.25}],
+        j===0?style.core:style.c,j===0?4.3:1.7,fade*.84);
+      }
+    }else if(a==="rift-slash"){
+      // Two opposed spatial seams closing around an open central fracture.
+      for(let side=-1;side<=1;side+=2){
+        const line=[],length=29+52*k;
+        for(let i=0;i<=22;i++){
+          const u=i/22-0.5;
+          line.push({x:to.x+(u*2)*length+side*Math.sin(u*Math.PI*2+k*2)*7,
+            y:to.y+u*(35+28*k)*side+Math.sin(u*11+side)*(5+8*k)});
+        }
+        this.stroke(g,line,side===1?style.core:style.c,side===1?5.4:3.3,
+          fade*.96);
+      }
+      for(let i=0;i<8;i++){
+        const a0=i*TAU/8+.17,len=(26+49*k)*(i%2?1.2:.87);
+        this.stroke(g,[{x:to.x+Math.cos(a0)*11,y:to.y+Math.sin(a0)*10},
+          {x:to.x+Math.cos(a0)*len,y:to.y+Math.sin(a0)*len*.82}],
+          i%3===0?style.core:style.c,i%3===0?2.8:1.5,fade*.86);
+      }
+    }else if(a==="gravity-hammer"){
+      // A grounded broad shock disc, asymmetric radiating ground fissures.
+      const r=18+k*80;
+      for(let ring=0;ring<3;ring++){
+        const rr=r*(.53+ring*.32),points=[];
+        for(let j=0;j<=30;j++){
+          const angle=j*TAU/30;
+          const variation=1+Math.sin(angle*7+ring)*.06;
+          points.push({x:to.x+Math.cos(angle)*rr*variation,
+            y:to.y+Math.sin(angle)*rr*.59*variation});
+        }
+        this.stroke(g,points,ring===0?style.core:style.c,ring===0?4.8:2.2,
+          fade*(1-ring*.17));
+      }
+      for(let i=0;i<12;i++){
+        const angle=i*TAU/12;
+        const len=(30+i%3*7)+65*k;
+        this.stroke(g,[{x:to.x+Math.cos(angle)*11,y:to.y+Math.sin(angle)*7},
+          {x:to.x+Math.cos(angle+.12)*len*.65,
+            y:to.y+Math.sin(angle+.12)*len*.33},
+          {x:to.x+Math.cos(angle-.06)*len,
+            y:to.y+Math.sin(angle-.06)*len*.62}],
+          i%4===0?style.core:style.c,i%4===0?3.6:1.9,fade*.9);
+      }
+    }
+  }
   trail(g,e,from,to,t,style){
-    // The crisp 2D ribbon gives structure to the volumetric Babylon missile.
     if(!from||!to)return;
-    const travel=clamp(t/.57,0,1);
+    const elapsed=t*e.duration,hitAt=e.contactMs||e.duration*.60;
+    const travel=clamp(elapsed/hitAt,0,1);
     const ease=travel*travel*(3-2*travel);
     const x=from.x+(to.x-from.x)*ease,y=from.y+(to.y-from.y)*ease;
     const dx=to.x-from.x,dy=to.y-from.y;
     const len=Math.max(1,Math.hypot(dx,dy)),px=-dy/len,py=dx/len;
-    if(e.spellId==="sun-lance"||e.spellId==="crystal-bolt"){
-      const tail=45+(e.spellId==="sun-lance"?26:8);
-      const nx=dx/len,ny=dy/len;
+    const attack=e.spellId;
+    if(elapsed<hitAt&&(attack==="sun-lance"||attack==="crystal-bolt")){
+      const tail=attack==="sun-lance"?82:60,nx=dx/len,ny=dy/len;
       for(let i=-2;i<=2;i++){
-        const wav=e.spellId==="crystal-bolt"?Math.sin(t*26+i*2)*6:Math.sin(t*30+i*2)*3;
-        const spread=i*3+wav;
+        const wav=attack==="crystal-bolt"?Math.sin(t*30+i*2.3)*6:
+          Math.sin(t*32+i*1.8)*2;
+        const spread=i*3.2+wav;
         this.stroke(g,[{x:x-nx*tail+px*spread,y:y-ny*tail+py*spread},
           {x:x+px*i*2,y:y+py*i*2}],
-        i===0?style.core:style.c,i===0?3.4:1.2,Math.max(0,(1-travel*.60))*(i===0?.95:.67));
+        i===0?style.core:style.c,i===0?5.0:1.85,
+          Math.max(0,1-travel*.35)*(i===0?1:.8));
       }
-      this.circle(g,x,y,e.spellId==="sun-lance"?7:5,style.core,2.7,1);
-    }else if(e.spellId==="rift-slash"){
-      const r=27+24*t;
-      for(let i=0;i<3;i++){
-        const arc=[];
-        for(let j=0;j<=16;j++){
-          const a=-2.05+j*3.7/16+t*.85+i*.31;
-          arc.push({x:to.x+Math.cos(a)*(r-i*6),y:to.y+Math.sin(a)*(r*.67)});
+      this.circle(g,x,y,attack==="sun-lance"?9:7,style.core,3.1,1);
+    }else if(elapsed<hitAt&&attack==="rift-slash"){
+      // An actual attack moves outward from the caster instead of appearing
+      // as three static arcs parked on top of the victim.
+      const r=26+20*travel;
+      for(let i=0;i<4;i++){
+        const curve=[];
+        for(let j=0;j<=26;j++){
+          const angle=-1.40+j*2.8/26+travel*.74+i*.16;
+          curve.push({x:x+Math.cos(angle)*(r-i*4.5),
+            y:y+Math.sin(angle)*(r*.92-i*2.5)});
         }
-        this.stroke(g,arc,i===0?style.core:style.c,4.2-i*.95,(1-t)*.94);
+        this.stroke(g,curve,i===1?style.core:style.c,
+          i===1?6.0:2.9,(1-travel*.18)*(i===3?.5:.96));
       }
-    }else if(e.spellId==="gravity-hammer"){
-      for(let i=0;i<3;i++){
-        this.stroke(g,[{x:to.x+(i-1)*17,y:to.y-100*(1-t)},
-          {x:to.x+(i-1)*10,y:to.y-12*t}],
-        i===1?style.core:style.c,3-i*.5,(1-t)*.85);
+      // Bright travelling seam visually joins source and target.
+      this.stroke(g,[{x:from.x,y:from.y},
+        {x:x,y:y}],style.c,2.1,travel*.67);
+    }else if(elapsed<hitAt&&attack==="gravity-hammer"){
+      const v=1-travel,headY=to.y-(150*v*v);
+      for(let i=-2;i<=2;i++){
+        this.stroke(g,[{x:to.x+i*10,y:headY-36-10*Math.abs(i)},
+          {x:to.x+i*5,y:headY+10}],i===0?style.core:style.c,
+          i===0?5.6:2.5,1-travel*.18);
       }
-    }else if(e.spellId==="pulse-mend"){
+      this.circle(g,to.x,headY,14+12*travel,style.core,3.2,1);
+    }
+    if(elapsed>=hitAt){
+      const impactT=clamp((elapsed-hitAt)/Math.max(1,e.duration-hitAt),0,1);
+      if(["sun-lance","crystal-bolt","rift-slash","gravity-hammer"].includes(attack)){
+        this.contact(g,e,from,to,impactT,style);
+      }else this.flare(g,to.x,to.y,impactT,style,.9);
+    }
+    // Unchanged healing identity: thin, rotating three-thread transfer.
+    if(attack==="pulse-mend"){
       for(let i=0;i<3;i++){
-        const yy=i*TAU/3+t*TAU*3;
-        const ox=Math.cos(yy)*9,oy=Math.sin(yy)*10;
+        const phase=i*TAU/3+t*TAU*3;
+        const ox=Math.cos(phase)*9,oy=Math.sin(phase)*10;
         this.stroke(g,[{x:from.x+ox,y:from.y+oy},
           {x:x+ox,y:y+oy}],i===0?style.core:style.c,
           1.5+i*.38,1-t*.35);
       }
     }
-    if(t>.48)this.flare(g,to.x,to.y,clamp((t-.48)/.52,0,1),style,
-      e.spellId==="gravity-hammer"?1.4:1);
   }
   status(g,e,p,t,style){
     const fade=Math.min(1,t*6,(1-t)*5);

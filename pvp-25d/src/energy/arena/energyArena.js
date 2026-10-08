@@ -2,7 +2,7 @@
 import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
 import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-energy-ai-v3";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-thread-depth10";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-neon-color11";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 

@@ -2,7 +2,7 @@
 // Babylon keeps glass, real 3D buildup and depth. Pixi only draws screen-space
 // trails and hit highlights, never controls real damage, targeting or movement.
 import { drawEnergyProjectile } from "./EnergyPixiProjectiles.js?v=20261008-pixi-parity1";
-import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-impact-continuity1";
+import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-impact-burst8";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

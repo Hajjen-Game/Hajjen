@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <title>PvP-2.5D · Energy Build Lab</title>
+  <link rel="stylesheet" href="./src/energy/buildLab.css?v=20261008-energy-build-v1"/>
+</head>
+<body>
+  <div class="lab-shell">
+    <header class="lab-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <p class="eyebrow">PVP-2.5D / EXPERIMENTAL SYSTEM</p>
+          <h1>ENERGY BUILD <span>LAB</span></h1>
+        </div>
+      </div>
+      <a class="ghost-button" href="./orbs.html">← RETURN TO ARENA</a>
+    </header>
+
+    <section class="stage-intro">
+      <div>
+        <p class="eyebrow">CREATE YOUR OWN COMBAT IDENTITY</p>
+        <h2>One role. Unlimited combinations.</h2>
+        <p>Select a core role, equip eight abilities from five energy disciplines, then distribute Talents and activate up to two Evolutions.</p>
+      </div>
+      <div class="stage-stats" id="build-summary" aria-live="polite"></div>
+    </section>
+
+    <div class="preview-alert" role="note">
+      <span class="alert-orb" aria-hidden="true"></span>
+      <div><strong>BUILD EDITOR · EARLY PLAYABLE-SYSTEM PREVIEW</strong>
+        <p>Builds are saved in this browser. They do not change the current arena combat yet; that integration comes after this first system is tested.</p>
+      </div>
+    </div>
+
+    <section class="panel role-panel" aria-labelledby="roles-title">
+      <div class="panel-title-row">
+        <div><p class="eyebrow">01 / FOUNDATION</p><h2 id="roles-title">Choose your core role</h2></div>
+        <span class="micro-label">2 role abilities always equipped</span>
+      </div>
+      <div id="role-selector" class="role-selector"></div>
+    </section>
+
+    <div class="lab-columns">
+      <div class="primary-column">
+        <section class="panel loadout-panel" aria-labelledby="loadout-title">
+          <div class="panel-title-row">
+            <div><p class="eyebrow">02 / LOADOUT</p><h2 id="loadout-title">Your energy loadout</h2></div>
+            <span id="loadout-count" class="micro-label">2 / 10</span>
+          </div>
+          <div id="loadout" class="loadout-grid"></div>
+          <div class="panel-footnote">Select any unlocked slot, then choose an ability below. Click an equipped free ability to inspect or remove it.</div>
+        </section>
+
+        <section class="panel catalog-panel" aria-labelledby="catalog-title">
+          <div class="panel-title-row">
+            <div><p class="eyebrow">03 / SHARED DISCIPLINES</p><h2 id="catalog-title">Ability library</h2></div>
+            <span id="catalog-count" class="micro-label">16 free abilities</span>
+          </div>
+          <div class="catalog-toolbar">
+            <label for="filter-discipline">DISCIPLINE</label>
+            <select id="filter-discipline">
+              <option value="all">All disciplines</option>
+              <option value="void">Void</option>
+              <option value="solar">Solar</option>
+              <option value="cryo">Cryo</option>
+              <option value="kinetic">Kinetic</option>
+              <option value="vital">Vital</option>
+            </select>
+            <span id="selection-prompt" class="micro-label"></span>
+          </div>
+          <div id="catalog-grid" class="catalog-grid"></div>
+        </section>
+      </div>
+
+      <div class="secondary-column">
+        <section class="panel detail-panel" aria-labelledby="detail-title">
+          <div class="panel-title-row">
+            <div><p class="eyebrow">04 / PERSONALIZATION</p><h2 id="detail-title">Talent & Evolution</h2></div>
+          </div>
+          <div id="talent-summary" class="talent-summary" aria-live="polite"></div>
+          <div id="ability-details"></div>
+        </section>
+
+        <section class="panel storage-panel" aria-labelledby="storage-title">
+          <div class="panel-title-row">
+            <div><p class="eyebrow">05 / BUILDS</p><h2 id="storage-title">Saved presets</h2></div>
+          </div>
+          <label class="field-label" for="build-name">BUILD NAME</label>
+          <input id="build-name" maxlength="38" placeholder="Name your build"/>
+          <div class="save-row">
+            <select id="save-slot" aria-label="Preset slot to save"><option value="0">Preset 1</option><option value="1">Preset 2</option><option value="2">Preset 3</option></select>
+            <button id="save-build" type="button" class="primary-button">SAVE BUILD</button>
+          </div>
+          <div id="saved-presets" class="saved-presets"></div>
+          <div class="storage-actions">
+            <button id="new-build" type="button" class="ghost-button">NEW BUILD</button>
+            <button id="reset-talents" type="button" class="ghost-button">RESET TALENTS</button>
+          </div>
+          <div id="status-message" role="status" aria-live="polite"></div>
+        </section>
+
+        <section class="panel flux-panel" aria-labelledby="flux-title">
+          <div class="panel-title-row">
+            <div><p class="eyebrow">06 / RESOURCE PROFILE</p><h2 id="flux-title">Flux economy</h2></div>
+          </div>
+          <div class="flux-line"><span>FLUX</span><strong>100 / 100</strong></div>
+          <div class="flux-track"><div class="flux-fill"></div></div>
+          <p><strong>+8 Flux/sec</strong> base regeneration. Role passives shape how energy is spent or regained.</p>
+          <p id="flux-passive"></p>
+          <p class="fine-print">Flux and role passives are design values for the coming combat integration, not active arena mechanics yet.</p>
+        </section>
+      </div>
+    </div>
+
+    <footer class="lab-footer"><span>ENERGY BUILD SYSTEM · V1</span><span>Current 3v3 match and VFX remain unchanged</span></footer>
+  </div>
+  <script type="module" src="./src/energy/buildLab.js?v=20261008-energy-build-v1"></script>
+</body>
+</html>

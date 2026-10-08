@@ -73,7 +73,14 @@ export class EnergyHeroVFX {
   }
   bind(fx,mesh,slot="main",i=0){
     mesh.parent=fx.root;
-    mesh.material=this.material(COLOR[fx.spellId]?.[slot==="light"?1:slot==="dark"?2:0]||"#99e7ff",
+    // Only the travelling/landing Sun Lance uses the new build-up-matched
+    // solar-yellow palette. In particular, its existing charge orb and rings
+    // continue to use the ORIGINAL COLOR array above.
+    const sunTravel=fx.spellId==="sun-lance"&&
+      (fx.type==="projectile"||fx.type==="solar-impact");
+    const palette=sunTravel
+      ?["#ffdf4d","#fff9c7","#bd952a"]:COLOR[fx.spellId];
+    mesh.material=this.material(palette?.[slot==="light"?1:slot==="dark"?2:0]||"#99e7ff",
       slot==="ghost"?.19:slot==="soft"?.33:slot==="light"?.99:.85,
       slot==="light"?1.65:slot==="dark"?.65:1.17);
     mesh.isPickable=false;
@@ -552,7 +559,7 @@ export class EnergyHeroVFX {
       // keep their established colour identity and animation.
       const threadColors=ice
         ?["#efffff","#14cbff","#078cea","#07518c"]
-        :["#ffffe4","#ffbd32","#ff871b","#ba3e16"];
+        :["#fff9d4","#ffe066","#ffcd40","#b68e2b"];
       strand.material=this.material(threadColors[lane],
         lane===0?.96:.84,lane===0?2.02:1.74);
       strand.visibility=0;
@@ -565,7 +572,7 @@ export class EnergyHeroVFX {
         i===0?"light":i===3?"dark":"main",i+4);
       mote.material=this.material(ice
         ?(i===0?"#ffffff":"#22dfff")
-        :(i===0?"#fffde8":"#ffb333"),.94,1.94);
+        :(i===0?"#fffce0":"#ffe36d"),.94,1.94);
       mote.visibility=0;
     }
     return fx;

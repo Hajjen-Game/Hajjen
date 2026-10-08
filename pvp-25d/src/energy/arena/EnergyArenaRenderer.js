@@ -23,6 +23,9 @@ export class EnergyArenaRenderer {
     // palettes with role and discipline colours from the new Energy system.
     this.actorRender.styleFor=actor=>actor.energyStyle||{core:"#6acbd8",energy:"#83e4ee"};
     this.markers=new OrbGroundMarkers(this.scene,S);
+    // Babylon starts with the canvas HTML default drawing buffer (300x150).
+    // Resize immediately to CSS stage dimensions, not only after a window resize.
+    this.engine.resize();
     this.fitCamera();
     this.resize=()=>{this.engine.resize();this.fitCamera();};
     window.addEventListener("resize",this.resize);

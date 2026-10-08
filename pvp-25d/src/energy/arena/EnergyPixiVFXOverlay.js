@@ -26,7 +26,10 @@ const NEON_HIT={
   // Same original palette as the build-ups. Contrast is created by
   // redistributing shade vs colour vs white, not replacing the hues.
   "crystal-bolt":{...COLORS["crystal-bolt"],glow:0x00aaff},
-  "sun-lance":{...COLORS["sun-lance"],glow:0xff841d},
+  // The cast/build-up uses COLORS above unchanged. This travelling
+  // signature instead matches its luminous yellow-white visual identity:
+  // vibrant solar yellow, near-white gold, and shadowed ochre (not orange).
+  "sun-lance":{c:0xffdf4d,core:0xfff9c7,dim:0xbd952a,glow:0xffdf56},
 };
 const HERO=new Set(Object.keys(COLORS));
 const CAST_MS={"crystal-bolt":1300,"sun-lance":1800,"null-prison":1400,

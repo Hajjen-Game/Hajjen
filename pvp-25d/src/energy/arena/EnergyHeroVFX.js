@@ -478,7 +478,7 @@ export class EnergyHeroVFX {
       const actor=fx.actorId&&match.getActor(fx.actorId);
       const target=fx.targetId&&match.getActor(fx.targetId);
       if(t>=1){
-        if(fx.type==="projectile")this.impact(fx);
+        if(fx.type==="projectile")this.impact(fx,target);
         this.destroy(fx);this.live.splice(i,1);
         continue;
       }
@@ -503,12 +503,29 @@ export class EnergyHeroVFX {
         // align conical axis (+Y) with travel in the XZ plane
         fx.root.rotation.z=-Math.atan2(diff.x,diff.z);
       }
+      if(fx.type==="rift-drive"){
+        const end=target?.alive?this.world(target):fx.destination;
+        const travel=smooth(clamp(t/.66,0,1));
+        fx.root.position.copyFrom(BABYLON.Vector3.Lerp(fx.origin,end,travel));
+        const vec=end.subtract(fx.origin);
+        fx.root.rotation.y=Math.atan2(vec.x,vec.z);
+        if(!fx.ripTriggered&&t>=.64){
+          fx.ripTriggered=true;
+          this.riftContact(end);
+        }
+      }
       if(fx.type==="mend"){
         const end=target?.alive?this.world(target):fx.destination;
         fx.root.position.copyFrom(BABYLON.Vector3.Lerp(fx.origin,end,smooth(t)));
       }
-      if(fx.type==="hammer")
+      if(fx.type==="hammer"){
+        if(target)fx.root.position.set(target.x*S,fx.root.position.y,target.y*S);
         fx.root.position.y=3.55-2.67*smooth(t);
+        if(!fx.impactTriggered&&t>=.83){
+          fx.impactTriggered=true;
+          if(target)this.gravityContact(target);
+        }
+      }
       for(const {mesh,slot,i:idx,base} of fx.meshes){
         let alpha=1;
         if(fx.type==="charge"){
@@ -542,10 +559,35 @@ export class EnergyHeroVFX {
           mesh.rotation.x=idx*.34+now*.0004*(idx%2?1:-1);
           mesh.rotation.y=idx*.77+now*.00055*(idx%2?1:-1);
           alpha=Math.min(1,t/.12,(1-t)*9);
-        }else if(fx.type==="melee"){
-          mesh.rotation.y=-.75+t*2.4+idx*.16;
-          mesh.scaling.setAll(.57+t*.85);
-          alpha=(1-t)*1.2;
+        }else if(fx.type==="rift-drive"){
+          // A forward-moving spatial cleave with a staggered follow-up wave.
+          mesh.rotation.z=-.35+Math.sin(t*3.8+idx*.38)*.18;
+          mesh.scaling.setAll((.38+Math.min(1,t*2.4)*1.12)*(idx%2?.93:1));
+          alpha=Math.min(1,t*7,Math.max(0,(1-t)*5));
+        }else if(fx.type==="rift-impact"){
+          mesh.scaling.setAll(.53+1.32*smooth(t));
+          mesh.position.set(base.x*(1+t*.32),base.y*(1+t*.21),
+            base.z*(1+t*.3));
+          alpha=Math.min(1,t*9,(1-t)*1.9);
+        }else if(fx.type==="crystal-impact"){
+          mesh.position.set(base.x*(1+t*1.55),base.y*(1+t*.85),
+            base.z*(1+t*1.55));
+          mesh.scaling.setAll(.52+t*1.58);
+          alpha=Math.min(1,t*12,(1-t)*1.7);
+        }else if(fx.type==="solar-impact"){
+          mesh.position.set(base.x*(1+t*.84),base.y*(1+t*.63),
+            base.z*(1+t*.84));
+          mesh.scaling.setAll(.62+1.68*smooth(t));
+          mesh.rotation.z+=.009*(idx%2?1:-1);
+          alpha=Math.min(1,t*12,(1-t)*1.78);
+        }else if(fx.type==="gravity-impact"){
+          mesh.position.set(base.x*(1+t*1.13),base.y+Math.sin(t*Math.PI)*(.07+idx%4*.055),
+            base.z*(1+t*1.13));
+          mesh.scaling.setAll(.47+1.62*smooth(t));
+          alpha=Math.min(1,t*14,(1-t)*1.7);
+        }else if(fx.type==="gravity-flash"){
+          mesh.scaling.setAll(.72+1.40*t);
+          alpha=Math.min(1,t*9,(1-t)*2);
         }else if(fx.type==="shock"||fx.type==="impact"){
           mesh.scaling.setAll(.52+t*2.0);
           alpha=(1-t)*.94;

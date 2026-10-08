@@ -2,7 +2,7 @@
 // floor target rings without changing the existing BabylonRenderer / Pixi game.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
-import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261008-trail-outer-impact4";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261008-volume-depth-v1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261008-trail-outer-impact4";
 
 const S=.02;

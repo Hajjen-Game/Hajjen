@@ -115,6 +115,97 @@ function makeOrbTexture(scene,type){
   return tex;
 }
 
+function actorSeed(id){
+  return String(id||"orb").split("").reduce(
+    (sum,ch,index)=>sum+ch.charCodeAt(0)*(index+3),
+    17,
+  );
+}
+
+function castEnergyProfile(spellId="",fallback=DEFAULT_STYLE){
+  const id=String(spellId||"").toLowerCase();
+  if(/frost|ice/.test(id)){
+    return {main:"#5fd8ff",core:"#e7fbff",accent:"#82aaff",mode:"frost"};
+  }
+  if(/pyro|fire|flame|lava|holy-fire/.test(id)){
+    return {main:"#ff6138",core:"#fff0a8",accent:"#ff9b3d",mode:"fire"};
+  }
+  if(/lightning|storm|thunder/.test(id)){
+    return {main:"#56bfff",core:"#eefcff",accent:"#8a7dff",mode:"lightning"};
+  }
+  if(/mind|shadow|fear|warlock|curse|hex/.test(id)){
+    return {main:"#9d63ff",core:"#f1ddff",accent:"#5c3bc4",mode:"shadow"};
+  }
+  if(/heal|renew|holy|flash|greater|paladin/.test(id)){
+    return {main:"#ffe168",core:"#fffdf0",accent:"#f5a7cf",mode:"holy"};
+  }
+  if(/druid|nature|lifebloom|rejuven|swiftmend/.test(id)){
+    return {main:"#74e68b",core:"#efffdc",accent:"#b7d95e",mode:"nature"};
+  }
+  if(/poison|rogue|garrote|sinister|eviscerate|mutilate/.test(id)){
+    return {main:"#d6e94e",core:"#ffffc4",accent:"#75bd53",mode:"poison"};
+  }
+  if(/warrior|slam|mortal|rend|bloodthirst|overpower/.test(id)){
+    return {main:"#ff6655",core:"#fff0dc",accent:"#d73b33",mode:"melee"};
+  }
+  if(/death|dk|frost-strike/.test(id)){
+    return {main:"#72d7e5",core:"#eefcff",accent:"#3f88a2",mode:"rune"};
+  }
+  return {
+    main:fallback.energy,
+    core:"#ffffff",
+    accent:fallback.core,
+    mode:"arcane",
+  };
+}
+
+function classMotionProfile(classId="",seed=0){
+  const base={
+    priest:{rate:.70,wobble:.11,segments:3},
+    mage:{rate:1.02,wobble:.07,segments:4},
+    shaman:{rate:.91,wobble:.15,segments:4},
+    warlock:{rate:.78,wobble:.18,segments:3},
+    paladin:{rate:.62,wobble:.06,segments:4},
+    druid:{rate:.66,wobble:.20,segments:5},
+    warrior:{rate:.74,wobble:.09,segments:3},
+    rogue:{rate:1.10,wobble:.13,segments:2},
+    "death-knight":{rate:.71,wobble:.14,segments:3},
+    hunter:{rate:.84,wobble:.10,segments:3},
+  }[classId]||{rate:.82,wobble:.12,segments:3};
+  return {
+    ...base,
+    direction:seed%2===0?1:-1,
+    phase:(seed%997)*.0137,
+  };
+}
+
+function createArcSegment(scene,name,radius,span,thickness,material){
+  const steps=18;
+  const points=[];
+  for(let i=0;i<=steps;i++){
+    const a=-span*.5+(i/steps)*span;
+    points.push(new BABYLON.Vector3(
+      Math.cos(a)*radius,
+      0,
+      Math.sin(a)*radius,
+    ));
+  }
+  const mesh=BABYLON.MeshBuilder.CreateTube(
+    name,
+    {
+      path:points,
+      radius:thickness,
+      tessellation:6,
+      cap:BABYLON.Mesh.CAP_ROUND,
+      updatable:false,
+    },
+    scene,
+  );
+  mesh.material=material;
+  mesh.isPickable=false;
+  return mesh;
+}
+
 function makeOrbBillboardMaterial(scene,name,texture,emissiveColor,alpha){
   const mat=new BABYLON.StandardMaterial(name,scene);
   mat.diffuseTexture=texture;
@@ -146,6 +237,8 @@ export class OrbCharacterRenderer{
 
   create(actor){
     const style=this.styleFor(actor);
+    const seed=actorSeed(actor.id);
+    const motion=classMotionProfile(actor.classId,seed);
     const root=new BABYLON.TransformNode("orb-actor:"+actor.id,this.scene);
     const visualRoot=new BABYLON.TransformNode("orb-visual:"+actor.id,this.scene);
     visualRoot.parent=root;
@@ -274,8 +367,8 @@ export class OrbCharacterRenderer{
       this.scene,
       "orb-ring-mat:"+actor.id,
       style.energy,
-      0.58,
-      1.15,
+      0.22,
+      0.70,
     );
     ringMat.disableLighting=true;
 
@@ -299,6 +392,36 @@ export class OrbCharacterRenderer{
       ring.material=ringMat;
       ring.isPickable=false;
       rings.push(ring);
+    }
+
+    const motifArcMat=alphaMaterial(
+      this.scene,
+      "orb-motif-arc-mat:"+actor.id,
+      style.energy,
+      0.54,
+      1.30,
+    );
+    motifArcMat.disableLighting=true;
+    motifArcMat.needDepthPrePass=false;
+
+    const motifArcs=[];
+    const motifCount=Math.max(3,motion.segments);
+    for(let i=0;i<motifCount;i++){
+      const span=0.62+((seed+i*37)%5)*0.12;
+      const radius=0.30+(i%3)*0.085+((seed+i*11)%7)*0.004;
+      const arc=createArcSegment(
+        this.scene,
+        "orb-motif-arc:"+actor.id+":"+i,
+        radius,
+        span,
+        0.008+(i%2)*0.003,
+        motifArcMat,
+      );
+      arc.parent=visualRoot;
+      arc.position.y=0.72;
+      arc.rotation.x=(i%3)*0.42+0.15;
+      arc.rotation.z=(i*1.31+motion.phase)%Math.PI;
+      motifArcs.push(arc);
     }
 
     const shardMat=alphaMaterial(
@@ -409,6 +532,66 @@ export class OrbCharacterRenderer{
       mote.isPickable=false;
       motes.push(mote);
     }
+
+    const chargeMat=alphaMaterial(
+      this.scene,"orb-cast-charge-mat:"+actor.id,style.energy,0,1.55,
+    );
+    chargeMat.disableLighting=true;
+    chargeMat.needDepthPrePass=false;
+
+    const chargeMotes=[];
+    for(let i=0;i<12;i++){
+      const mote=BABYLON.MeshBuilder.CreateSphere(
+        "orb-cast-charge:"+actor.id+":"+i,
+        {diameter:0.025+(i%4)*0.008,segments:7},
+        this.scene,
+      );
+      mote.parent=visualRoot;
+      mote.position.y=0.72;
+      mote.material=chargeMat;
+      mote.isPickable=false;
+      mote.visibility=0;
+      chargeMotes.push(mote);
+    }
+
+    const chargeArcMat=alphaMaterial(
+      this.scene,"orb-cast-arc-mat:"+actor.id,style.energy,0,1.65,
+    );
+    chargeArcMat.disableLighting=true;
+    chargeArcMat.needDepthPrePass=false;
+
+    const chargeArcs=[];
+    for(let i=0;i<4;i++){
+      const arc=createArcSegment(
+        this.scene,
+        "orb-cast-arc:"+actor.id+":"+i,
+        0.74+i*0.10,
+        0.72+i*0.13,
+        0.009+(i%2)*0.003,
+        chargeArcMat,
+      );
+      arc.parent=visualRoot;
+      arc.position.y=0.72;
+      arc.rotation.x=0.22+i*0.43;
+      arc.rotation.z=i*1.17;
+      arc.visibility=0;
+      chargeArcs.push(arc);
+    }
+
+    const releaseMat=alphaMaterial(
+      this.scene,"orb-cast-release-mat:"+actor.id,"#ffffff",0,2.20,
+    );
+    releaseMat.disableLighting=true;
+    const releaseCore=BABYLON.MeshBuilder.CreateSphere(
+      "orb-cast-release-core:"+actor.id,
+      {diameter:0.18,segments:20},
+      this.scene,
+    );
+    releaseCore.parent=visualRoot;
+    releaseCore.position.y=0.72;
+    releaseCore.material=releaseMat;
+    releaseCore.isPickable=false;
+    releaseCore.visibility=0;
 
     const haloMat=alphaMaterial(
       this.scene,
@@ -530,12 +713,12 @@ export class OrbCharacterRenderer{
     const entry={
       root,visualRoot,
       classId:actor.classId,role:actor.role,
-      style,
-      shell,middle,core,energy,plasma,rings,shards,nucleus,heartLoops,glassFace,heartFace,motes,halo,castBand,contactShadow,
+      style,seed,motion,
+      shell,middle,core,energy,plasma,rings,motifArcs,shards,nucleus,heartLoops,glassFace,heartFace,motes,chargeMotes,chargeArcs,releaseCore,halo,castBand,contactShadow,
       sparks,trail,hp,hpBack,barRoot,
-      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,haloMat,castMat,hpMat,
+      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,motifArcMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,chargeMat,chargeArcMat,releaseMat,haloMat,castMat,hpMat,
       ownedMaterials:[
-        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,haloMat,castMat,
+        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,motifArcMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,chargeMat,chargeArcMat,releaseMat,haloMat,castMat,
         shadowMat,hpBackMat,hpMat,
       ],
       lastPos:new BABYLON.Vector3(actor.x*this.scale,0.16,actor.y*this.scale),
@@ -631,29 +814,168 @@ export class OrbCharacterRenderer{
         cast?1.10:0.66
       );
 
+      const t=time*0.001;
+      const orbitSpeed=e.motion.rate*(cast?1.30+castProgress*.70:1);
       for(let i=0;i<e.rings.length;i++){
         const ring=e.rings[i];
-        const dir=i%2===0?1:-1;
-        // Clock-based rotation: stable speed at 30/60/120 fps.
+        const dir=(i%2===0?1:-1)*e.motion.direction;
+        const irregular=
+          Math.sin(t*(0.43+i*.17)+e.motion.phase+i)*e.motion.wobble;
         ring.rotation.x=[Math.PI*0.28,Math.PI*0.57,Math.PI*0.14][i]
-          +Math.sin(time*0.00054+i)*0.08;
-        ring.rotation.y=dir*time*(0.00065+i*0.00018)*(cast?1.5:1.0);
+          +irregular*.55;
+        ring.rotation.y=
+          dir*t*orbitSpeed*(0.62+i*.17)
+          +Math.sin(t*.23+e.motion.phase+i)*.12;
         ring.rotation.z=[0.18,Math.PI*0.34,-Math.PI*0.22][i]
-          +dir*time*0.00023;
+          +dir*t*(.15+i*.035)
+          +Math.sin(t*(.31+i*.07)+i)*.07;
         ring.scaling.setAll(
-          0.98+Math.sin(time*(0.0038+i*0.0009)+i)*0.05
-          +castProgress*0.08
+          .96
+          +Math.sin(t*(1.05+i*.31)+e.motion.phase+i)*.025
+          +castProgress*.045
         );
       }
-      e.ringMat.alpha=0.56+(cast?0.22+castPulse*0.10:0);
+      e.ringMat.alpha=0.16+(cast?0.10+castPulse*0.035:0);
       e.ringMat.emissiveColor=c3(e.style.energy).scale(
-        cast?1.42:1.08
+        cast?1.12:.70
       );
 
-      e.castMat.alpha=cast?0.20+castPulse*0.28:0;
-      e.castBand.scaling.setAll(0.88+castProgress*0.32);
-      e.castBand.rotation.z=time*0.0024;
-      e.castBand.rotation.y=time*0.0018;
+      for(let i=0;i<e.motifArcs.length;i++){
+        const arc=e.motifArcs[i];
+        const dir=(i%2===0?1:-1)*e.motion.direction;
+        const classPhase=e.motion.phase+i*1.73;
+        const wobble=
+          Math.sin(t*(.47+i*.083)+classPhase)*e.motion.wobble;
+        const surge=
+          Math.sin(t*(1.1+i*.19)+classPhase)*.035;
+        arc.rotation.y=
+          dir*t*e.motion.rate*(.74+(i%3)*.18)
+          +classPhase
+          +wobble;
+        arc.rotation.x=
+          .18+(i%3)*.46
+          +Math.sin(t*(.29+i*.11)+classPhase)*(.10+e.motion.wobble*.35);
+        arc.rotation.z=
+          (i*1.31+e.motion.phase)
+          +dir*t*(.19+(i%2)*.07)
+          +Math.cos(t*.37+classPhase)*.08;
+        arc.scaling.setAll(
+          1+surge+castProgress*(i%2===0?.05:.02)
+        );
+        arc.visibility=.72+(i%2)*.14;
+      }
+      e.motifArcMat.alpha=.46+(cast?.10:0);
+      e.motifArcMat.emissiveColor=c3(e.style.energy).scale(
+        cast?1.48:1.08
+      );
+
+      const spellId=cast?.spellId||"";
+      const castProfile=castEnergyProfile(spellId,e.style);
+      const castMain=c3(castProfile.main);
+      const castCore=c3(castProfile.core);
+      const castAccent=c3(castProfile.accent);
+      const castLate=cast?Math.max(0,(castProgress-.68)/.32):0;
+
+      e.chargeMat.diffuseColor=castMain.scale(.25);
+      e.chargeMat.emissiveColor=castMain.scale(1.52);
+      e.chargeMat.alpha=cast?.78:0;
+      e.chargeArcMat.diffuseColor=castAccent.scale(.20);
+      e.chargeArcMat.emissiveColor=castMain.scale(1.62);
+      e.chargeArcMat.alpha=cast?.58:0;
+      e.releaseMat.diffuseColor=castCore.scale(.35);
+      e.releaseMat.emissiveColor=castCore.scale(2.25);
+      e.releaseMat.alpha=cast?Math.min(1,castLate*1.18):0;
+
+      for(let i=0;i<e.chargeMotes.length;i++){
+        const mote=e.chargeMotes[i];
+        if(!cast){
+          mote.visibility=0;
+          continue;
+        }
+        const phase=e.motion.phase+i*2.399963;
+        const dir=(i%2===0?1:-1)*e.motion.direction;
+        const startRadius=.94+(i%4)*.12+((e.seed+i*19)%7)*.015;
+        const inward=Math.pow(castProgress,.72);
+        let radius=startRadius*(1-inward*.58);
+        let angle=
+          phase
+          +dir*t*(.82+(i%5)*.11)
+          +Math.sin(t*(1.30+i*.09)+phase)*(.09+e.motion.wobble*.45);
+        let yWave=Math.sin(angle*(1.35+(i%3)*.16)+phase)*(.24-(inward*.08));
+
+        if(castProfile.mode==="lightning"){
+          angle+=Math.sin(t*7+i*1.7)*.08;
+          radius+=Math.sin(t*11+i)*.035;
+          yWave+=Math.sin(t*9+i)*.045;
+        }else if(castProfile.mode==="fire"){
+          yWave+=Math.sin(t*3.2+i)*.055*(1-inward);
+        }else if(castProfile.mode==="holy"){
+          angle+=Math.sin(t*.8+i)*.045;
+          yWave*=.72;
+        }else if(castProfile.mode==="shadow"){
+          radius+=Math.sin(t*2.2+i)*.04;
+          angle+=Math.sin(t*1.4+i)*.12;
+        }else if(castProfile.mode==="nature"){
+          yWave+=Math.sin(t*1.7+i*2.1)*.08;
+        }
+
+        mote.position.set(
+          Math.cos(angle)*radius,
+          .72+yWave,
+          Math.sin(angle)*radius,
+        );
+        mote.visibility=.28+castProgress*.72;
+        mote.scaling.setAll(.72+castProgress*.72+(i%3)*.08);
+      }
+
+      for(let i=0;i<e.chargeArcs.length;i++){
+        const arc=e.chargeArcs[i];
+        if(!cast){
+          arc.visibility=0;
+          continue;
+        }
+        const dir=(i%2===0?1:-1)*e.motion.direction;
+        const tighten=1-castProgress*.22;
+        const flicker=.78+.22*Math.sin(t*(2.1+i*.37)+e.motion.phase+i);
+        arc.visibility=(.20+castProgress*.80)*flicker;
+        arc.scaling.setAll(tighten*(1+Math.sin(t*.9+i)*.025));
+        arc.rotation.y=
+          dir*t*(.92+i*.17)
+          +e.motion.phase+i*1.37
+          +Math.sin(t*.57+i)*.11;
+        arc.rotation.x=
+          .18+i*.39
+          +Math.sin(t*(.41+i*.08)+i)*.14;
+        arc.rotation.z=
+          dir*t*(.21+i*.04)
+          +Math.cos(t*.33+i)*.09;
+      }
+
+      e.releaseCore.visibility=cast?castLate:0;
+      e.releaseCore.scaling.setAll(
+        .55+castLate*2.10+Math.sin(t*15)*castLate*.10
+      );
+
+      // Pixi-style build-up: the permanent identity layers tighten and the
+      // centre swells only near release instead of looping at one intensity.
+      if(cast){
+        e.core.scaling.setAll(
+          .92+castProgress*.10+castLate*.42+castPulse*.025
+        );
+        e.nucleus.scaling.setAll(
+          .92+castProgress*.18+castLate*.65
+        );
+        e.plasma.scaling.setAll(
+          1+castProgress*.08+castLate*.16
+        );
+      }
+
+            e.castMat.alpha=cast?0.20+castPulse*0.28:0;
+      e.castMat.diffuseColor=castMain.scale(.20);
+      e.castMat.emissiveColor=castMain.scale(1.18);
+      e.castBand.scaling.setAll(.94+castProgress*.18);
+      e.castBand.rotation.z=t*(1.4+castProgress*.8)*e.motion.direction;
+      e.castBand.rotation.y=-t*(.95+castProgress*.5)*e.motion.direction;
 
       e.halo.scaling.setAll(1+Math.sin(time*0.004+String(actor.id).length)*0.055);
       e.haloMat.alpha=0.13+(cast?0.08:0);
@@ -710,16 +1032,26 @@ export class OrbCharacterRenderer{
         +castProgress*0.13
       );
       for(let i=0;i<e.motes.length;i++){
-        const angle=time*(0.00075+i*0.00010)+i*2.39996;
-        const r=0.60+(i%3)*0.045+0.05*Math.sin(time*0.0008+i);
+        const phase=e.motion.phase+i*2.39996;
+        const dir=(i%2===0?1:-1)*e.motion.direction;
+        const angle=
+          dir*t*(.46+i*.075)
+          +phase
+          +Math.sin(t*(.29+i*.055)+phase)*(.12+e.motion.wobble);
+        const r=
+          .54+(i%3)*.050
+          +.055*Math.sin(t*(.61+i*.12)+phase);
         const mote=e.motes[i];
         mote.position.set(
           Math.cos(angle)*r,
-          0.72+Math.sin(angle*2.0+i)*0.22,
+          .72+Math.sin(angle*(1.55+(i%2)*.22)+phase)*(.14+(i%3)*.03),
           Math.sin(angle)*r,
         );
-        mote.visibility=0.35+0.40*(0.5+0.5*Math.sin(time*0.004+i));
-        mote.scaling.setAll(cast?1.35:0.95);
+        mote.visibility=
+          .18+.46*(.5+.5*Math.sin(t*(1.15+i*.21)+phase));
+        mote.scaling.setAll(
+          cast?.90:.72+(i%2)*.12
+        );
       }
 
       const health=Math.max(0,Math.min(1,actor.healthPct));

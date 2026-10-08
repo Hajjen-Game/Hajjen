@@ -295,6 +295,41 @@ approach instead of reintroducing large polygon fragments.
   timelines complete and clear their effects. Visual/FPS browser verification
   is still required.
 
+## Neon Color / Glow Pass 11 — initial identity, new light separation
+
+Side-by-side code checks against the earliest Pixi overlay showed the
+**original base palette never changed**: Crystal Bolt used
+`#6fd8ff / #ebfcff / #278cbe` and Sun Lance used
+`#ffb66b / #fff1bf / #d36a43`. The flatter newer results were therefore
+**not solvable by reverting the hex values alone**.
+
+This pass restores the luminous neon feel without modifying existing
+Frostbolt/Pyroblast-inspired projectile choreography or glass build-ups:
+
+- Original `COLORS` remains the palette for charges and all non-target
+  effects. Crystal/Sun **hit events only** use a richer saturated
+  travel/contact skin: `#29ceff/#f7ffff/#0868b7` for Crystal Bolt and
+  `#ffaa34/#ffffe8/#c85618` for Sun Lance, matching the earlier cyan/gold
+  identity with stronger light/dark contrast.
+- A **separate Pixi Graphics bloom layer** is drawn *beneath* the accepted
+  sharp spell artwork, using Pixi v8 `BlurFilter` and additive blend. A
+  second sharp additive layer above it restores concentrated near-white
+  projectile tips and instant contact cores.
+- The glow is anchored to the **same launch/target coordinates and existing
+  smoothstep/contact-time easing**, with a bounded travelling wake and
+  noncircular burst halo, so it never turns a spell into a screen-wide disk.
+  Only Crystal Bolt and Sun Lance hit events get this extra work.
+- Optional filter setup degrades gracefully; unsupported blur devices keep
+  the sharp original Pixi VFX instead of breaking the renderer.
+- The existing **Reactive Thread-style 3D hit arcs and motes** get a
+  slightly stronger neon emission, with materials overridden *only* for
+  these two impact types. Build-ups and original Reactive Thread remain
+  unchanged; no rejected large 3D debris returns.
+- Verified 72 Pixi glow timeline/zoom scenarios with valid geometry and
+  opacity, plus static checks that the original `COLORS`, charge routine,
+  and projectile animation function remain unchanged. Browser aesthetics,
+  bloom/compositing and device performance still require visual validation.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

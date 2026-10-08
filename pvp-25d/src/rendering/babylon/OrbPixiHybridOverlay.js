@@ -1,12 +1,20 @@
 // Hybrid Orb Arena: actual PixiProofRenderer spell VFX over Babylon's 3D canvas.
 // 3D glass, inner energy, collision, LOS and combat are always Babylon.
 import { PixiProofRenderer } from "../../../../arena3v3/src/rendering/PixiProofRenderer.js?v=20261008-orb-hybrid1";
+import { classColorFor } from "../../../../arena3v3/src/content/classes/classColors.js";
+import { castBarPaletteFor } from "../../../../arena3v3/src/rendering/CastPalette.js?v=20260928-focusrestyle1";
 
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 // All native Pixi 3v3 spell categories are supported; only actor geometry
 // stays in Babylon. The original Pixi methods filter relevant spell IDs.
 const SCALE=.02;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const hex=(value,fallback=0xffffff)=>{
+  const match=typeof value==="string"&&/^#([a-f0-9]{6})$/i.exec(value);
+  return match?parseInt(match[1],16):fallback;
+};
+const RESOURCE_COLORS={mana:0x4599ec,energy:0xf5d15c,rage:0xe46051,
+  runic:0x64cce0,focus:0xd3a952};
 
 export class OrbPixiHybridOverlay{
   constructor(babylon){
@@ -120,10 +128,75 @@ export class OrbPixiHybridOverlay{
       root.addChild(graphic);
       layers[name]=graphic;
     }
+    // 2D HUD-style bars stay pixel-crisp at any camera zoom. Draw these
+    // last so spells never wash out the class HP or school-coloured castbar.
+    const status=new PIXI.Container();
+    status.label="orb-readable-status:"+id;
+    const barBg=new PIXI.Graphics();
+    const barFill=new PIXI.Graphics();
+    const barBorder=new PIXI.Graphics();
+    status.addChild(barBg,barFill,barBorder);
+    root.addChild(status);
     view={root,body:{position:{x:0,y:0}},mask,castLayer,
-      castWindupGlowFx,castWindupFx,...layers};
+      castWindupGlowFx,castWindupFx,
+      status,barBg,barFill,barBorder,...layers};
     this.actorViews.set(id,view);
     return view;
+  }
+  updateStatusBars(view,actor,radius,selected){
+    const bg=view.barBg,fill=view.barFill,border=view.barBorder;
+    bg.clear();fill.clear();border.clear();
+    view.status.position.set(0,-radius-21);
+    const health=clamp(Number(actor.healthPct)||0,0,1);
+    const low=health<.2;
+    const hpColor=low?0xed5352:hex(classColorFor(actor),0xc9dce5);
+    const teamColor=actor.team==="friendly"?0x49e98e:0xff5b60;
+    const outline=selected?teamColor:0x7f93a3;
+    // 100px health block: dark matte background, vivid class fill, thin
+    // contour. Similar to the original Pixi 3v3 UI but easier to read.
+    bg.rect(-50,0,100,12).fill({color:0x060a12,alpha:.98});
+    fill.rect(-48,2,96*health,8).fill({
+      color:hpColor,alpha:low?.90+.10*Math.sin(performance.now()*.014)**2:1,
+    });
+    border.rect(-50,0,100,12).stroke({
+      color:outline,width:selected?1.7:1.1,alpha:selected?.95:.82,
+    });
+    // Slight dark seam preserves the recognizable Pixi bar proportions.
+    if(actor.resource?.max>0){
+      const power=clamp(Number(actor.resourcePct)||0,0,1);
+      const resource=RESOURCE_COLORS[actor.resource.type]||0x66a3c7;
+      bg.rect(-50,14,100,6).fill({color:0x050911,alpha:.94});
+      fill.rect(-48,15,96*power,4).fill({color:resource,alpha:.98});
+      border.rect(-50,14,100,6).stroke({
+        color:0x5b7582,width:.85,alpha:.72,
+      });
+    }
+    if(actor.cast){
+      const progress=clamp(
+        1-Math.max(0,Number(actor.cast.remainingMs)||0)
+          /Math.max(1,Number(actor.cast.totalMs)||1),0,1,
+      );
+      const palette=castBarPaletteFor(actor,{
+        cast:"#d6aa67",cream:"#f4e4c5",border:"#d4baa0",
+      });
+      const spell=actor.getSpell?.(actor.cast.spellId);
+      const castAccent=hex(palette.start,0xe3ac70);
+      const borderColor=spell?.interruptible===false
+        ?0xffd16d:hex(palette.border,0xffeed0);
+      bg.rect(-53,-17,106,11).fill({color:0x070a11,alpha:.97});
+      fill.rect(-51,-15,102*progress,7).fill({
+        color:castAccent,alpha:.98,
+      });
+      // A bright cap makes cast progress readable during movement.
+      if(progress>.01){
+        fill.rect(-51+102*progress-2,-15,2,7).fill({
+          color:hex(palette.end,0xffe2a5),alpha:.95,
+        });
+      }
+      border.rect(-53,-17,106,11).stroke({
+        color:borderColor,width:1.2,alpha:.96,
+      });
+    }
   }
   render(game){
     if(!this.ready||!this.scene||!this.camera)return;
@@ -141,6 +214,8 @@ export class OrbPixiHybridOverlay{
       // still supplies the actual volumetric core and rotating 3D energy.
       view.mask.clear().circle(0,0,radius*.89).fill(0xffffff);
       view.castLayer.scale.set(clamp((radius*.82)/(radius+33),.23,.57));
+      this.updateStatusBars(view,actor,radius,
+        game.player?.targetId===actor.id);
       actorMap.set(actor.id,{
         ...actor,
         x:projected.x,y:projected.y,radius,

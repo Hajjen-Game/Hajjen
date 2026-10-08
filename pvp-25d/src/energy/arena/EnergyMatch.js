@@ -2,6 +2,7 @@
 // Rules intentionally limited to a first-playable balance baseline.
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
+import { EnergyAI } from "./EnergyAI.js?v=20261008-energyaiv1";
 
 const TICK = 0.05;
 export const ABILITY_RULES = Object.freeze({
@@ -81,9 +82,16 @@ export class EnergyMatch {
     this.notices=[];
     this.player= null;
     this.actors=[];
-    const support={healer:["pulse-mend","reactive-thread","photon-barrier","cleanse-flux","sun-lance"],
-      melee:["phase-rush","pulse-sever","arc-strike","gravity-hammer","rift-slash"],
-      caster:["flux-bolt","crystal-bolt","crystal-snare","sun-lance","fracture-spear"]};
+    // Bots use real 10-slot classless builds: two role-bound + eight shared.
+    // Select a balanced set covering damage, healing, interrupt, CC and defense.
+    const support={
+      healer:["reactive-thread","photon-barrier","cleanse-flux","sun-lance",
+        "null-prison","symbiosis-link","crystal-bolt","resonance-cut"],
+      melee:["arc-strike","gravity-hammer","rift-slash","vector-rush",
+        "crystal-snare","photon-barrier","entropy-mark","resonance-cut"],
+      caster:["crystal-bolt","crystal-snare","sun-lance","fracture-spear",
+        "null-prison","photon-barrier","resonance-cut","reactive-thread"],
+    };
     for(const team of ["friendly","enemy"]){
       for(const role of ["healer","melee","caster"]){
         const isPlayer=team==="friendly"&&role===build.role;
@@ -107,6 +115,10 @@ export class EnergyMatch {
     for(const a of this.actors){
       if(a.control==="ai")a.targetId=a.team==="friendly"?"enemy-melee":a.role==="melee"?"player":a.role==="caster"?"friendly-caster":"friendly-melee";
     }
+    this.ai=new EnergyAI(this,{
+      rules:ABILITY_RULES,hasLOS:hasLineOfSight,segmentHitsRect,canStand,
+    });
+    this.ai.tick(0);
   }
   getActor(id) {return this.actors.find(a=>a.id===id)||null;}
   living(team){return this.actors.filter(a=>a.alive&&a.team===team);}
@@ -343,71 +355,10 @@ export class EnergyMatch {
     actor.statuses=actor.statuses.filter(s=>s.remaining>0);
     if(shieldExpired)actor.shield=0;
   }
-  aiNavigate(actor,enemy,desired,dt) {
-    const d=distance(actor,enemy);
-    if(d<desired-45&&actor.role!=="melee"){
-      actor.waypoint=null;
-      this.move(actor,actor.x-enemy.x,actor.y-enemy.y,dt);
-      return;
-    }
-    if(d<=desired+30){actor.waypoint=null;actor.lastMove={x:0,y:0};return;}
-    if(actor.waypoint&&(distance(actor,actor.waypoint)<27||this.time>actor.waypoint.until))actor.waypoint=null;
-    if(!actor.waypoint){
-      // Actor collision is wider than a ray used for spell LOS. Route around
-      // the first blocking pillar with a stable near-side detour point.
-      const obstacle=(this.arena.obstacles||[]).find(o=>segmentHitsRect(actor,enemy,o,30));
-      if(obstacle){
-        const sideX=actor.x<obstacle.x?obstacle.x-55
-          :actor.x>obstacle.x+obstacle.w?obstacle.x+obstacle.w+55
-          :actor.x<obstacle.x+obstacle.w/2?obstacle.x-55:obstacle.x+obstacle.w+55;
-        const options=[
-          {x:sideX,y:obstacle.y-55},
-          {x:sideX,y:obstacle.y+obstacle.h+55},
-        ].filter(p=>canStand(p.x,p.y,this.arena,23));
-        options.sort((a,b)=>(distance(actor,a)+distance(a,enemy))-(distance(actor,b)+distance(b,enemy)));
-        if(options.length)actor.waypoint={...options[0],until:this.time+5};
-      }
-    }
-    const goal=actor.waypoint||enemy;
-    const before={x:actor.x,y:actor.y};
-    this.move(actor,goal.x-actor.x,goal.y-actor.y,dt);
-    if(actor.waypoint&&distance(before,actor)<0.15){
-      // If the current detour has become blocked by another obstacle,
-      // release it rather than flip between directions every frame.
-      actor.waypoint=null;
-    }
-  }
-  aiStep(actor,dt){
-    if(!actor.alive)return;
-    const friends=this.allies(actor),enemies=this.opponents(actor);
-    if(!enemies.length)return;
-    const target=this.getActor(actor.targetId);
-    const nearest=enemies.reduce((best,e)=>distance(actor,e)<distance(actor,best)?e:best,enemies[0]);
-    if(!target?.alive||target.team===actor.team)actor.targetId=nearest.id;
-    const enemy=this.getActor(actor.targetId);
-    const healTarget=friends.reduce((best,a)=>a.hp/a.maxHp<best.hp/best.maxHp?a:best,friends[0]);
-    if(!actor.cast){
-      const desired=actor.role==="melee"?72:actor.role==="caster"?335:360;
-      this.aiNavigate(actor,enemy,desired,dt);
-    }
-    actor.decision-=dt;
-    if(actor.decision>0)return;
-    actor.decision=0.65+Math.random()*0.5;
-    if(actor.role==="healer"&&healTarget.hp<70){
-      if(this.castAbility(actor,"pulse-mend",healTarget.id,{silent:true}))return;
-      if(this.castAbility(actor,"reactive-thread",healTarget.id,{silent:true}))return;
-    }
-    if(actor.role==="melee"){
-      if(distance(actor,enemy)>105)this.castAbility(actor,"phase-rush",enemy.id,{silent:true});
-      else this.castAbility(actor,actor.cooldowns["gravity-hammer"]<=0&&actor.flux>30?"gravity-hammer":"arc-strike",enemy.id,{silent:true});
-    }else if(actor.role==="caster"){
-      if(!this.castAbility(actor,"crystal-bolt",enemy.id,{silent:true}))
-        this.castAbility(actor,"flux-bolt",enemy.id,{silent:true});
-    }else this.castAbility(actor,"sun-lance",enemy.id,{silent:true});
-  }
   update(delta) {
     if(this.ended)return;
     const dt=clamp(delta,0,0.06);this.time+=dt;
+    this.ai.tick(dt);
     for(const actor of this.actors){
       if(!actor.alive)continue;
       actor.flux=Math.min(MAX_FLUX,actor.flux+BASE_FLUX_REGEN*dt);
@@ -424,7 +375,7 @@ export class EnergyMatch {
           this.execute(actor,finished.spellId,finished.targetId);
         }
       }
-      if(actor.control==="ai")this.aiStep(actor,dt);
+      if(actor.control==="ai")this.ai.updateActor(actor,dt);
     }
     if(!this.living("friendly").length||!this.living("enemy").length||this.time>=240){
       this.ended=true;

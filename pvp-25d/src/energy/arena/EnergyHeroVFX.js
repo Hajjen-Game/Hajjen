@@ -39,10 +39,13 @@ export class EnergyHeroVFX {
     // Babylon still provides floor illumination and glass-orb charge-ups.
     // Disable only ranged projectile meshes when Pixi is actually ready.
     this.pixiProjectilesAvailable=false;
+    // Short Reactve Thread-style 3D filaments may wrap a Pixi hit.
+    this.threadDepthEnabled=true;
     this.stats={lastSpell:"",active:0};
   }
   supports(id){return CHOSEN.has(id);}
   setPixiProjectilesAvailable(value){this.pixiProjectilesAvailable=!!value;}
+  setThreadDepthEnabled(value){this.threadDepthEnabled=!!value;}
   material(hex,alpha=1,emission=1.05){
     const key=hex+":"+alpha+":"+emission;
     if(this.materials.has(key))return this.materials.get(key);
@@ -515,6 +518,46 @@ export class EnergyHeroVFX {
     }
     return fx;
   }
+  // Four fine real-3D arcs based on Reactive Thread, never chunky shards.
+  // Pixi keeps full ownership of the sharp contact flash and aftereffects.
+  threadedContact(spellId,point,travel,targetId){
+    const ice=spellId==="crystal-bolt";
+    const fx=this.makeEffect(spellId,"threaded-impact",point.clone(),
+      ice?560:480,{targetId});
+    const length=Math.max(.001,Math.hypot(travel.x,travel.z));
+    const tx=travel.x/length,tz=travel.z/length,sx=-tz,sz=tx;
+    const V=(a,b,c)=>new BABYLON.Vector3(tx*a+sx*b,c,tz*a+sz*b);
+    // Partially open orbits, tilted and displaced along incoming travel.
+    // Their 3D path creates parallax in front/behind the glass orb.
+    for(let lane=0;lane<4;lane++){
+      const points=[],radius=(ice?.61:.67)+lane*.072;
+      const start=lane*TAU/4+(ice?.17:-.27);
+      const span=(ice?2.55:3.04)+(lane%2)*.20;
+      const side=lane%2?1:-1;
+      for(let j=0;j<=26;j++){
+        const u=j/26,angle=start+span*u;
+        const around=Math.cos(angle)*radius;
+        const height=Math.sin(angle)*radius*(ice?.74:.84);
+        const depth=side*.21*Math.cos(angle*.86+lane*.7)
+          +(u-.5)*(ice?.40:.48);
+        const ripple=Math.sin(u*TAU*2+lane*1.6)*.035;
+        points.push(V(depth,around+ripple,height+(lane-1.5)*.045));
+      }
+      const strand=this.tube(fx,points,
+        lane===0?.015:lane===2?.011:.013,
+        lane===0?"light":lane===3?"dark":"main",lane);
+      strand.visibility=0;
+      strand.rotation.x=(lane-1.5)*.12;
+      strand.rotation.y=lane*.19;
+    }
+    // Four tiny orbiting motes, just as Reactive Thread uses, never plates.
+    for(let i=0;i<4;i++){
+      const mote=this.ball(fx,ice?.045:.056,
+        i===0?"light":i===3?"dark":"main",i+4);
+      mote.visibility=0;
+    }
+    return fx;
+  }
   impact(fx,target){
     const id=fx.spellId,crystal=id==="crystal-bolt";
     const point=target?.alive?this.world(target):fx.root.position.clone();
@@ -525,11 +568,13 @@ export class EnergyHeroVFX {
       tx*a+sx*side,y,tz*a+sz*side);
     this.floorLight.impact(id,point);
     if(fx.pixiPrimary){
-      // Pixi owns both the contact bloom and aftermath. The optional
-      // volumetric experiment is available ONLY when enabled in VFX Lab.
+      // Only one 3D layer: the legacy chunky debris experiment OR the
+      // tiny short-lived Reactive Thread-style wraps (normal default).
       if(this.volume.enabled)this.volume.spawn(id,point,{
         targetId:fx.targetId,direction:travel,
       });
+      else if(this.threadDepthEnabled)this.threadedContact(
+        id,point,travel,fx.targetId);
       return;
     }
     // Babylon's compact fallback is kept for Pixi-unavailable devices.

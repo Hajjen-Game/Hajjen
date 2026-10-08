@@ -35,9 +35,12 @@ export class OrbGroundMarkers{
       this.materials[team]={
         base:markerMaterial(scene,"orb-ground-"+team+"-base",p.base,.37,.42),
         arc:markerMaterial(scene,"orb-ground-"+team+"-arc",p.arc,.85,.85),
-        selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.98,1.22),
-        selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,1.00,1.90),
-        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.38,1.26),
+        // Keep the full base ring restrained. The broken moving arcs and
+        // glints carry target emphasis, rather than a solid neon circle.
+        selectedBase:markerMaterial(scene,"orb-ground-"+team+"-selected-base",p.base,.56,.64),
+        selectedArc:markerMaterial(scene,"orb-ground-"+team+"-selected-arc",p.arc,.94,1.44),
+        selectedGlow:markerMaterial(scene,"orb-ground-"+team+"-selected-glow",p.arc,.27,.88),
+        selectedDot:markerMaterial(scene,"orb-ground-"+team+"-selected-dot",p.arc,.96,1.52),
       };
     }
   }
@@ -60,30 +63,91 @@ export class OrbGroundMarkers{
     base.material=materials.base;
     base.isPickable=false;
 
-    // A second, wider halo makes the CURRENT target unmistakable, while
-    // remaining flat on the floor below the orb rather than around its body.
-    // Disabled by default: all untargeted actors keep their previous look.
-    const targetHalo=BABYLON.MeshBuilder.CreateTorus(
-      "orb-ground-target-halo:"+actor.id,
-      {diameter:2.08,thickness:.075,tessellation:128},
-      this.scene,
+    // The selected target uses an asymmetric segmented orbital indicator,
+    // lying in XZ on the arena floor. Meshes are inactive unless targeted.
+    // Separate rotations make it feel like a living lock-on, not a HUD ring.
+    const selectedGroup=new BABYLON.TransformNode(
+      "orb-ground-lock:"+actor.id,this.scene,
     );
-    targetHalo.parent=root;
-    targetHalo.position.y=.002;
-    targetHalo.material=materials.selectedGlow;
-    targetHalo.isPickable=false;
-    targetHalo.setEnabled(false);
-
-    const targetOutline=BABYLON.MeshBuilder.CreateTorus(
-      "orb-ground-target-outline:"+actor.id,
-      {diameter:2.08,thickness:.037,tessellation:128},
-      this.scene,
+    selectedGroup.parent=root;
+    selectedGroup.setEnabled(false);
+    const selectedArcsPivot=new BABYLON.TransformNode(
+      "orb-ground-lock-arcs:"+actor.id,this.scene,
     );
-    targetOutline.parent=root;
-    targetOutline.position.y=.012;
-    targetOutline.material=materials.selectedArc;
-    targetOutline.isPickable=false;
-    targetOutline.setEnabled(false);
+    selectedArcsPivot.parent=selectedGroup;
+    const selectedTicksPivot=new BABYLON.TransformNode(
+      "orb-ground-lock-ticks:"+actor.id,this.scene,
+    );
+    selectedTicksPivot.parent=selectedGroup;
+    const selectedArcs=[];
+    const selectedGlowArcs=[];
+    const arcAngles=[.24,1.69,3.16,4.86];
+    const arcSpans=[.50,.28,.41,.23];
+    for(let i=0;i<4;i++){
+      const path=[];
+      for(let j=0;j<=24;j++){
+        const a=arcAngles[i]+arcSpans[i]*j/24;
+        path.push(new BABYLON.Vector3(
+          Math.cos(a)*1.035,.014,Math.sin(a)*1.035,
+        ));
+      }
+      const arc=BABYLON.MeshBuilder.CreateTube(
+        "orb-ground-lock-segment:"+actor.id+":"+i,
+        {path,radius:i%2===0?.024:.019,tessellation:10},
+        this.scene,
+      );
+      arc.parent=selectedArcsPivot;
+      arc.material=materials.selectedArc;
+      arc.isPickable=false;
+      selectedArcs.push(arc);
+      if(i%2===0){
+        // Faint, slightly broader glow behind two arcs, not a solid halo.
+        const glowPath=path.map(p=>
+          new BABYLON.Vector3(p.x,.006,p.z)
+        );
+        const glow=BABYLON.MeshBuilder.CreateTube(
+          "orb-ground-lock-soft:"+actor.id+":"+i,
+          {path:glowPath,radius:.047,tessellation:8},
+          this.scene,
+        );
+        glow.parent=selectedArcsPivot;
+        glow.material=materials.selectedGlow;
+        glow.isPickable=false;
+        selectedGlowArcs.push(glow);
+      }
+    }
+    const selectedTicks=[];
+    for(let i=0;i<7;i++){
+      const angle=(i+.19*(i%3))*TAU/7;
+      const inner=i%3===0?1.08:1.13;
+      const outer=inner+(i%3===0?.17:.085);
+      const tick=BABYLON.MeshBuilder.CreateTube(
+        "orb-ground-lock-tick:"+actor.id+":"+i,
+        {path:[
+          new BABYLON.Vector3(Math.cos(angle)*inner,.016,Math.sin(angle)*inner),
+          new BABYLON.Vector3(Math.cos(angle)*outer,.016,Math.sin(angle)*outer),
+        ],radius:i%3===0?.018:.012,tessellation:8},
+        this.scene,
+      );
+      tick.parent=selectedTicksPivot;
+      tick.material=materials.selectedArc;
+      tick.isPickable=false;
+      selectedTicks.push(tick);
+    }
+    const selectedDots=[];
+    for(let i=0;i<4;i++){
+      const angle=(i+.38)*TAU/4;
+      const dot=BABYLON.MeshBuilder.CreateSphere(
+        "orb-ground-lock-dot:"+actor.id+":"+i,
+        {diameter:i%2===0?.052:.035,segments:10},
+        this.scene,
+      );
+      dot.parent=selectedTicksPivot;
+      dot.position.set(Math.cos(angle)*1.115,.018,Math.sin(angle)*1.115);
+      dot.material=materials.selectedDot;
+      dot.isPickable=false;
+      selectedDots.push(dot);
+    }
 
     // Three light accents travel around the otherwise stable ring.
     const accents=new BABYLON.TransformNode(
@@ -113,7 +177,11 @@ export class OrbGroundMarkers{
       arc.isPickable=false;
       arcs.push(arc);
     }
-    const entry={root,accents,base,targetHalo,targetOutline,arcs,team,materials};
+    const entry={
+      root,accents,base,arcs,team,materials,
+      selectedGroup,selectedArcsPivot,selectedTicksPivot,
+      selectedArcs,selectedGlowArcs,selectedTicks,selectedDots,
+    };
     this.entries.set(actor.id,entry);
     return entry;
   }
@@ -140,16 +208,22 @@ export class OrbGroundMarkers{
       for(const arc of entry.arcs){
         arc.material=selected?entry.materials.selectedArc:entry.materials.arc;
       }
-      entry.accents.rotation.y=(team==="friendly"?1:-1)*t*(selected?1.12:.85);
-      entry.targetHalo.setEnabled(selected);
-      entry.targetOutline.setEnabled(selected);
+      const direction=team==="friendly"?1:-1;
+      entry.accents.rotation.y=direction*t*(selected?1.10:.85);
+      entry.selectedGroup.setEnabled(selected);
       if(selected){
-        // Stronger, readable selected-target signal with a living outer halo.
-        // We never scale/rotate the orb itself or change gameplay collision.
-        const pulse=Math.sin(t*(team==="enemy"?7.2:5.8));
-        entry.root.scaling.setAll(1.105+.032*pulse);
-        entry.targetHalo.scaling.setAll(1.01+.033*Math.sin(t*4.8));
-        entry.targetOutline.scaling.setAll(1.005+.016*Math.sin(t*6.2));
+        // Two unequal orbital speeds with a restrained breathing motion.
+        // The ground marker turns; the 3D glass orb and collision do not.
+        entry.selectedArcsPivot.rotation.y=direction*t*.66;
+        entry.selectedTicksPivot.rotation.y=-direction*t*1.27;
+        const phase=String(actor.id).length*.53;
+        const pulse=Math.sin(t*(team==="enemy"?6.2:5.1)+phase);
+        entry.root.scaling.setAll(1.045+.012*pulse);
+        entry.selectedArcsPivot.scaling.setAll(1+.018*Math.sin(t*3.0+phase));
+        for(let i=0;i<entry.selectedDots.length;i++){
+          entry.selectedDots[i].visibility=.64+
+            .28*(.5+.5*Math.sin(t*4.4+i*1.8+phase));
+        }
       }else{
         entry.root.scaling.setAll(
           1+.008*Math.sin(t*2.7+String(actor.id).length),

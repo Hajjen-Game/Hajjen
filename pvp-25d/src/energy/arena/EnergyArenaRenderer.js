@@ -2,7 +2,7 @@
 // floor target rings without changing the existing BabylonRenderer / Pixi game.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
-import { DISCIPLINES, ABILITY_BY_ID } from "../abilityCatalog.js";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261008-combat-vfx1";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);
@@ -18,6 +18,7 @@ export class EnergyArenaRenderer {
     this.scene.imageProcessingConfiguration.exposure=0.95;
     this.effects=[];
     this.createScene();
+    this.spellFX=new EnergySpellVFX(this.scene);
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
     // Keep our established glass + animated arc geometry but replace class
     // palettes with role and discipline colours from the new Energy system.
@@ -99,53 +100,37 @@ export class EnergyArenaRenderer {
     const x=(clientX-rect.left)*this.engine.getRenderWidth()/Math.max(1,rect.width);
     const y=(clientY-rect.top)*this.engine.getRenderHeight()/Math.max(1,rect.height);
     const pick=this.scene.pick(x,y,mesh=>Boolean(mesh?.metadata?.actorId));
-    return pick?.pickedMesh?.metadata?.actorId||null;
+    if(pick?.pickedMesh?.metadata?.actorId)return pick.pickedMesh.metadata.actorId;
+    // Clicks near the transparent glass edge should still target the orb.
+    const viewport=new BABYLON.Viewport(0,0,
+      Math.max(1,rect.width),Math.max(1,rect.height));
+    let best=null,bestD=42;
+    for(const actor of this.activeActors||[]){
+      if(!actor.alive)continue;
+      const p=BABYLON.Vector3.Project(
+        new BABYLON.Vector3(actor.x*S,.88,actor.y*S),
+        BABYLON.Matrix.Identity(),this.scene.getTransformMatrix(),viewport);
+      if(!Number.isFinite(p.x)||p.z<0||p.z>1)continue;
+      const d=Math.hypot(p.x-(clientX-rect.left),p.y-(clientY-rect.top));
+      if(d<bestD){best=actor.id;bestD=d;}
+    }
+    return best;
   }
   spawnEffect(event,match){
-    const ability=ABILITY_BY_ID[event.spellId];
-    const from=match.getActor(event.actorId);
-    const to=match.getActor(event.targetId);
-    const tint=DISCIPLINES[ability?.discipline]?.color||(event.type==="heal"?"#65d7a5":"#f1a19f");
-    if(event.type==="ability"||event.type==="windup"||event.type==="death"||event.type==="end")return;
-    const anchor=to||from;
-    if(!anchor)return;
-    const duration=event.type==="control"?1.0:event.type==="interrupt"?.75:.46;
-    const base=new BABYLON.Vector3(anchor.x*S,.89,anchor.y*S);
-    const mat=this.material("energy-vfx-"+this.effects.length+"-"+event.time,tint,tint,.76);
-    mat.disableLighting=true;mat.specularColor=color("#000000");
-    const sphere=BABYLON.MeshBuilder.CreateSphere("energy-impact:"+event.spellId,{diameter:.38,segments:16},this.scene);
-    sphere.position.copyFrom(base);sphere.material=mat;sphere.isPickable=false;
-    this.effects.push({mesh:sphere,mat,start:performance.now(),duration:duration*1000,base});
-    if(from&&to&&from!==to&&event.type!=="immune"){
-      const start=new BABYLON.Vector3(from.x*S,.89,from.y*S);
-      const end=base;
-      const beamMat=this.material("energy-trace-mat"+event.time,tint,tint,.70);
-      const line=this.tube("energy-trace",[start,end],.018,beamMat);
-      this.effects.push({mesh:line,mat:beamMat,start:performance.now(),duration:240,trace:true});
-    }
+    this.spellFX.spawn(event,match);
   }
   render(match){
     const now=performance.now();
+    this.activeActors=match.actors;
     this.actorRender.sync(match,now);
     this.markers.sync(match,now);
-    for(const item of this.effects){
-      const t=(now-item.start)/item.duration;
-      if(t>1)continue;
-      if(!item.trace){
-        item.mesh.scaling.setAll(.7+t*3.6);
-        item.mesh.position.y=item.base.y+t*.12;
-      }
-      item.mat.alpha=.7*(1-t);
-    }
-    const dead=this.effects.filter(e=>(now-e.start)>e.duration);
-    for(const e of dead){e.mesh.dispose();e.mat.dispose();}
-    this.effects=this.effects.filter(e=>(now-e.start)<=e.duration);
+    this.spellFX.update(match,now);
     this.scene.render();
   }
   dispose(){
     this.observer?.disconnect();
     window.removeEventListener("resize",this.resize);
-    for(const e of this.effects){e.mesh.dispose();e.mat.dispose();}
+    this.spellFX?.dispose();
     this.markers?.dispose();
     this.scene.dispose();
     this.engine.dispose();

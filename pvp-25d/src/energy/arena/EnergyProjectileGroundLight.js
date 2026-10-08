@@ -93,18 +93,35 @@ export class EnergyProjectileGroundLight {
   }
   impact(spellId,point,now=performance.now()){
     if(!TONES[spellId])return;
-    const mesh=this.plane(spellId);
-    mesh.position.set(point.x,.038,point.z);
-    mesh.visibility=.96;
-    if(this.flashes.length>=12)this.flashes.shift().mesh.dispose();
-    this.flashes.push({mesh,start:now,duration:270});
+    // Two independent pools: a bright tight contact bloom and an amber/cyan
+    // spill that briefly expands across the real 3D floor.
+    const glow=this.plane(spellId);
+    const hot=this.plane(spellId,true);
+    glow.position.set(point.x,.037,point.z);
+    hot.position.set(point.x,.043,point.z);
+    const meshes=[glow,hot];
+    // The impact cap counts EFFECTS, not individual meshes.
+    if(this.flashes.length>=12){
+      const oldest=this.flashes.shift();
+      for(const item of oldest.meshes)item.dispose();
+    }
+    this.flashes.push({meshes,start:now,duration:350});
   }
   update(now=performance.now()){
     for(let i=this.flashes.length-1;i>=0;i--){
       const f=this.flashes[i],p=clamp((now-f.start)/f.duration,0,1);
-      if(p>=1){f.mesh.dispose();this.flashes.splice(i,1);continue;}
-      f.mesh.scaling.set(.68+p*1.26,.55+p*.90,1);
-      f.mesh.visibility=(1-smooth(p))*.85;
+      if(p>=1){
+        for(const item of f.meshes)item.dispose();
+        this.flashes.splice(i,1);
+        continue;
+      }
+      const onset=smooth((p+.04)/.14);
+      const cooling=1-smooth((p-.19)/.77);
+      const [glow,hot]=f.meshes;
+      glow.scaling.set(.80+p*1.06,.66+p*.79,1);
+      hot.scaling.set(.34+p*.65,.25+p*.46,1);
+      glow.visibility=clamp(onset*cooling*.98,0,1);
+      hot.visibility=clamp(onset*(1-smooth((p-.13)/.62))*.92,0,1);
     }
   }
   detach(fx){
@@ -112,7 +129,7 @@ export class EnergyProjectileGroundLight {
     fx.floorLights=null;
   }
   clear(){
-    for(const f of this.flashes)f.mesh.dispose();
+    for(const f of this.flashes)for(const item of f.meshes)item.dispose();
     this.flashes.length=0;
   }
   dispose(){

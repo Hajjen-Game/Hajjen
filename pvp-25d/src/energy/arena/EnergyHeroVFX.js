@@ -197,110 +197,102 @@ export class EnergyHeroVFX {
   // It has directional travel and a secondary crossing fracture on contact.
   melee(spellId,source,target){
     const origin=this.world(source,.88),destination=this.world(target,.88);
-    const fx=this.makeEffect(spellId,"rift-drive",origin,470,{
+    const fx=this.makeEffect(spellId,"rift-drive",origin,420,{
       origin:origin.clone(),destination:destination.clone(),sourceId:source.id,
       targetId:target.id,ripTriggered:false,
     });
-    for(let i=0;i<4;i++){
+    for(let i=0;i<3;i++){
       const path=[];
-      for(let j=0;j<=32;j++){
-        const t=j/32,a=-1.27+t*2.54+(i-1.5)*.13;
+      for(let j=0;j<=24;j++){
+        const a=-1.16+j*2.32/24+(i-1)*.09;
         path.push(new BABYLON.Vector3(
-          Math.sin(a)*(1.12-i*.09),Math.cos(a)*(.73-i*.07)+(i-1.5)*.11,
-          Math.sin(a*1.6)*(.14+i*.055)
-        ));
+          Math.sin(a)*(.57-i*.045),
+          Math.cos(a)*(.48-i*.055)+(i-1)*.035,
+          Math.sin(a*1.7)*(.065+i*.02)));
       }
-      this.tube(fx,path,i===0?.088:i===1?.055:.033,
-        i===1?"light":i===3?"dark":"main",i);
+      this.tube(fx,path,[.026,.015,.010][i],["dark","main","light"][i],i);
     }
-    // The bright gap between two dark facets sells a rip in space, not a sword.
-    for(let i=0;i<4;i++){
-      const shard=this.cone(fx,.11,.48+i*.14,4,i%2?"light":"main",i+4);
-      shard.rotation.z=Math.PI/2+i*.35;
-      shard.position.set((i-1.5)*.20,(i%2?1:-1)*.21,.03);
+    for(let i=0;i<3;i++){
+      const shard=this.cone(fx,.043,.23+i*.05,4,i===1?"light":"main",i+4);
+      shard.rotation.z=Math.PI/2+i*.25;
+      shard.position.set((i-1)*.12,(i%2?1:-1)*.11,.025);
     }
     return fx;
   }
   riftContact(point){
-    const fx=this.makeEffect("rift-slash","rift-impact",point.clone(),730);
-    this.ball(fx,.68,"light");
+    const fx=this.makeEffect("rift-slash","rift-impact",point.clone(),460);
     for(let i=0;i<3;i++){
       const path=[];
-      for(let j=0;j<=25;j++){
-        const a=-1.18+j*2.36/25+i*.26;
+      for(let j=0;j<=21;j++){
+        const a=-1.10+j*2.20/21+(i-1)*.09;
         path.push(new BABYLON.Vector3(
-          Math.sin(a)*(1.40-i*.12),Math.cos(a)*(.83-i*.05),
-          (i-1)*.19+Math.sin(a*1.8)*.12,
-        ));
+          Math.sin(a)*(.68-i*.065),
+          Math.cos(a)*(.50-i*.06)+(i-1)*.08,
+          (i-1)*.028+Math.sin(a*2.4)*.034));
       }
-      this.tube(fx,path,i===0?.075:i===1?.045:.028,
-        i===1?"light":i===2?"dark":"main",i);
+      this.tube(fx,path,[.030,.019,.010][i],["dark","main","light"][i],i);
     }
-    for(let i=0;i<8;i++){
-      const a=i*TAU/8;
-      const start=.26,end=.74+(i%3)*.15;
+    for(let i=0;i<6;i++){
+      const a=i*TAU/6+.23;
       this.tube(fx,[
-        new BABYLON.Vector3(Math.cos(a)*start,Math.sin(a)*start*.8,0),
-        new BABYLON.Vector3(Math.cos(a)*end,Math.sin(a)*end*.84,.2*(i%2?1:-1)),
-      ],i%3===0?.037:.023,i%3===0?"light":"main",i+3);
+        new BABYLON.Vector3(Math.cos(a)*.16,Math.sin(a)*.14,0),
+        new BABYLON.Vector3(Math.cos(a+.12)*(.38+(i%3)*.055),
+          Math.sin(a+.12)*(.34+(i%3)*.04),.045*(i%2?1:-1))
+      ],.010,i===0?"light":"main",i+3);
     }
-    const floor=this.makeEffect("rift-slash","shock",new BABYLON.Vector3(
-      point.x,.08,point.z),590);
-    this.torus(floor,1.42,.065,"main");
+    const floor=this.makeEffect("rift-slash","shock",
+      new BABYLON.Vector3(point.x,.08,point.z),350);
+    this.torus(floor,.80,.018,"dark");
+    this.arc(floor,.50,Math.PI*.95,.35,.013,.012,"main");
     return fx;
   }
   hammer(source,target){
-    const fx=this.makeEffect("gravity-hammer","hammer",
-      this.world(target,3.55),590,{
-        destination:this.world(target,.88),targetId:target.id,
-        impactTriggered:false,
-      });
-    const head=this.cone(fx,.75,1.80,6,"main");
+    const fx=this.makeEffect("gravity-hammer","hammer",this.world(target,2.7),520,{
+      destination:this.world(target,.88),targetId:target.id,
+      impactTriggered:false,
+    });
+    const head=this.cone(fx,.44,1.11,6,"main");
     head.rotation.x=Math.PI;
-    const core=this.cone(fx,.32,1.89,6,"light",1);
+    const core=this.cone(fx,.16,1.04,6,"dark",1);
     core.rotation.x=Math.PI;
-    const collar=this.torus(fx,1.03,.085,"main",2);
-    collar.rotation.x=.39;
-    for(let i=0;i<6;i++){
-      const a=i*TAU/6;
-      const shard=this.cone(fx,.08,.38,4,i%2?"light":"main",i+3);
-      shard.position.set(Math.cos(a)*.48,-.22,Math.sin(a)*.48);
+    this.torus(fx,.69,.032,"main",2).rotation.x=.45;
+    for(let i=0;i<4;i++){
+      const a=i*TAU/4;
+      const shard=this.cone(fx,.040,.21,4,i===0?"light":"main",i+3);
+      shard.position.set(Math.cos(a)*.27,-.16,Math.sin(a)*.27);
     }
-    // Ground fracture waits until the descending energy physically contacts.
     return fx;
   }
   gravityContact(target){
     const ground=this.world(target,.085);
-    const shock=this.makeEffect("gravity-hammer","gravity-impact",ground,880,{
+    const shock=this.makeEffect("gravity-hammer","gravity-impact",ground,560,{
       targetId:target.id,
     });
-    this.ball(shock,.95,"light");
-    for(let i=0;i<3;i++){
-      const ring=this.torus(shock,1.15+i*.48,i===0?.10:.054,
-        i===0?"light":i===2?"dark":"main",i);
-      ring.position.y=.035+i*.012;
+    this.ball(shock,.23,"main");
+    for(let i=0;i<2;i++){
+      const ring=this.torus(shock,.67+i*.43,.024-i*.006,i===0?"main":"dark",i);
+      ring.position.y=.012;
     }
-    // Twelve asymmetrical ground cracks, spreading out from actual contact.
-    for(let i=0;i<12;i++){
-      const a=i*TAU/12+.14*(i%3),len=1.05+(i%4)*.22;
-      const path=[
-        new BABYLON.Vector3(Math.cos(a)*.37,.04,Math.sin(a)*.37),
-        new BABYLON.Vector3(Math.cos(a+.10)*len*.64,.035,Math.sin(a+.10)*len*.64),
-        new BABYLON.Vector3(Math.cos(a-.09)*len,.027,Math.sin(a-.09)*len),
-      ];
-      this.tube(shock,path,i%3===0?.055:.033,i%4===0?"light":"main",i);
+    for(let i=0;i<8;i++){
+      const a=i*TAU/8+.12*(i%2),len=.43+(i%3)*.11;
+      this.tube(shock,[
+        new BABYLON.Vector3(Math.cos(a)*.21,.014,Math.sin(a)*.21),
+        new BABYLON.Vector3(Math.cos(a+.13)*len*.70,.018,
+          Math.sin(a+.13)*len*.70),
+        new BABYLON.Vector3(Math.cos(a-.08)*len,.012,Math.sin(a-.08)*len),
+      ],i===0?.020:.011,i===0?"light":"main",i);
     }
-    for(let i=0;i<7;i++){
-      const a=i*TAU/7;
-      const chip=this.cone(shock,.08+(i%3)*.025,.42+(i%4)*.13,5,
-        i%3===0?"light":"main",i+14);
-      chip.position.set(Math.cos(a)*.65,.35,Math.sin(a)*.65);
-      chip.rotation.z=.55+i*.17;
+    for(let i=0;i<5;i++){
+      const a=i*TAU/5;
+      const chip=this.cone(shock,.037,.16+(i%3)*.05,4,i===0?"light":"main",i+8);
+      chip.position.set(Math.cos(a)*.31,.11,Math.sin(a)*.31);
+      chip.rotation.z=.4+i*.22;
     }
     const flash=this.makeEffect("gravity-hammer","gravity-flash",
-      this.world(target,.9),520,{targetId:target.id});
-    this.ball(flash,1.19,"light");
-    this.torus(flash,1.95,.094,"main").rotation.x=.48;
+      this.world(target,.86),220,{targetId:target.id});
+    this.ball(flash,.33,"main");
+    this.ball(flash,.12,"light",1);
+    this.torus(flash,.67,.020,"main",2).rotation.x=.65;
     return shock;
   }
   // Patient receives layered energy ribbons with an emphasized landing.
@@ -413,62 +405,51 @@ export class EnergyHeroVFX {
     return true;
   }
   impact(fx,target){
-    const spellId=fx.spellId;
+    const id=fx.spellId;
     const point=target?.alive?this.world(target):fx.root.position.clone();
-    const crystalline=spellId==="crystal-bolt";
-    const splash=this.makeEffect(spellId,
-      crystalline?"crystal-impact":"solar-impact",point,crystalline?810:760,
-      {targetId:fx.targetId});
-    this.ball(splash,crystalline?.92:1.13,"light");
-    this.ball(splash,crystalline?1.45:1.75,"soft");
-    if(crystalline){
-      // Faceted splinters project outward at different heights; cold cracks
-      // and polygon shockrings give a very different silhouette from Solar.
-      for(let i=0;i<12;i++){
-        const a=i*TAU/12,rr=.40+(i%4)*.11;
-        const splinter=this.cone(splash,.095+(i%3)*.017,.67+(i%4)*.17,4,
-          i%3===0?"light":"main",i);
-        splinter.position.set(Math.cos(a)*rr,(i%3-1)*.19,
-          Math.sin(a)*rr);
-        splinter.rotation.z=Math.PI*.45+a*.22;
-        splinter.rotation.y=a;
-      }
+    const crystal=id==="crystal-bolt";
+    const splash=this.makeEffect(id,crystal?"crystal-impact":"solar-impact",
+      point,crystal?480:420,{targetId:fx.targetId});
+    // Energy is concentrated in a tiny tinted core, not a white disc.
+    this.ball(splash,crystal?.24:.27,"main");
+    this.ball(splash,.095,"light",1);
+    if(crystal){
+      // Faceted micro-splinters echo the angular charge inside the glass.
       for(let i=0;i<7;i++){
-        const a=(i+.23)*TAU/7;
+        const a=i*TAU/7+.15,rr=.23+(i%3)*.045;
+        const shard=this.cone(splash,.035+(i%2)*.010,
+          .24+(i%3)*.075,4,i===0?"light":"main",i+2);
+        shard.position.set(Math.cos(a)*rr,(i%3-1)*.065,Math.sin(a)*rr);
+        shard.rotation.y=a;shard.rotation.z=Math.PI*.38+a*.20;
+      }
+      for(let i=0;i<6;i++){
+        const a=(i+.25)*TAU/6;
         this.tube(splash,[
-          new BABYLON.Vector3(0,-.72,0),
-          new BABYLON.Vector3(Math.cos(a)*(.55+i%3*.14),-.74,
-            Math.sin(a)*(.55+i%3*.14)),
-          new BABYLON.Vector3(Math.cos(a+.15)*(1.15+i%2*.21),-.75,
-            Math.sin(a+.15)*(1.15+i%2*.21)),
-        ],i%3===0?.049:.032,i%2?"light":"main",i+13);
+          new BABYLON.Vector3(Math.cos(a)*.15,-.52,Math.sin(a)*.15),
+          new BABYLON.Vector3(Math.cos(a+.12)*(.42+(i%2)*.09),-.53,
+            Math.sin(a+.12)*(.42+(i%2)*.09))
+        ],i===0?.016:.009,i===0?"light":"main",i+9);
       }
-      for(let i=0;i<2;i++){
-        const ring=this.torus(splash,1.35+i*.45,.063,
-          i===0?"light":"main",i+20);
-        ring.position.y=-.68;
-        ring.rotation.y=i*.45;
-      }
+      this.arc(splash,.46,Math.PI*1.20,.30,-.49,.011,"main",16);
+      this.arc(splash,.53,Math.PI*.66,3.60,-.49,.008,"dark",17);
     }else{
-      // A focused, piercing star: directional radiant spokes + hot corona,
-      // much brighter and longer-lived than the original generic flash.
-      const main=this.torus(splash,1.48,.084,"light",0);
-      main.rotation.x=.54;
-      const second=this.torus(splash,2.06,.052,"main",1);
-      second.rotation.x=-.55;
-      for(let i=0;i<12;i++){
-        const a=i*TAU/12,len=1.16+(i%3)*.31;
-        this.tube(splash,[
-          new BABYLON.Vector3(Math.cos(a)*.27,Math.sin(a)*.18,0),
-          new BABYLON.Vector3(Math.cos(a)*len,
-            Math.sin(a)*len*.88,(i%2?-.22:.22)),
-        ],i%3===0?.064:.034,i%3===0?"light":"main",i+2);
-      }
+      // Focused piercing corona with only five fine spokes.
+      this.arc(splash,.39,Math.PI*1.48,-.58,.01,.016,"main",2);
+      this.arc(splash,.47,Math.PI*.62,2.50,-.02,.010,"dark",3);
       for(let i=0;i<5;i++){
-        const a=i*TAU/5;
-        const dart=this.cone(splash,.1,.72,5,i%2?"light":"main",i+17);
-        dart.position.set(Math.cos(a)*.82,Math.sin(a)*.64,.12);
-        dart.rotation.z=a-Math.PI/2;
+        const a=(i+.16)*TAU/5,len=.40+(i%2)*.10;
+        this.tube(splash,[
+          new BABYLON.Vector3(Math.cos(a)*.15,Math.sin(a)*.12,0),
+          new BABYLON.Vector3(Math.cos(a)*len,
+            Math.sin(a)*len*.83,(i%2?-.055:.055))
+        ],i===0?.019:.010,i===0?"light":"main",i+4);
+      }
+      for(let i=0;i<4;i++){
+        const a=i*TAU/4+.24;
+        const mote=this.cone(splash,.026,.15+(i%2)*.045,5,
+          i===0?"light":"main",i+9);
+        mote.position.set(Math.cos(a)*.32,Math.sin(a)*.22,.055);
+        mote.rotation.z=a-Math.PI/2;
       }
     }
   }

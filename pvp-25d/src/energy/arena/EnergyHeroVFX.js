@@ -546,6 +546,14 @@ export class EnergyHeroVFX {
       const strand=this.tube(fx,points,
         lane===0?.015:lane===2?.011:.013,
         lane===0?"light":lane===3?"dark":"main",lane);
+      // Restrict richer neon materials to the impact threads only:
+      // original glass charge-up, Reactive Thread, and projectile materials
+      // keep their established colour identity and animation.
+      const threadColors=ice
+        ?["#efffff","#14cbff","#078cea","#07518c"]
+        :["#ffffe4","#ffbd32","#ff871b","#ba3e16"];
+      strand.material=this.material(threadColors[lane],
+        lane===0?.96:.84,lane===0?2.02:1.74);
       strand.visibility=0;
       strand.rotation.x=(lane-1.5)*.12;
       strand.rotation.y=lane*.19;
@@ -554,6 +562,9 @@ export class EnergyHeroVFX {
     for(let i=0;i<4;i++){
       const mote=this.ball(fx,ice?.045:.056,
         i===0?"light":i===3?"dark":"main",i+4);
+      mote.material=this.material(ice
+        ?(i===0?"#ffffff":"#22dfff")
+        :(i===0?"#fffde8":"#ffb333"),.94,1.94);
       mote.visibility=0;
     }
     return fx;

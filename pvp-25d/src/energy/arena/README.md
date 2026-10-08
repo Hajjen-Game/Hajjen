@@ -55,6 +55,16 @@ The same authored signatures also display in normal Energy Arena matches when th
 
 Evaluation checkpoints: distinct silhouette for each ability; clear build-up inside the orb; release/impact legibility at normal camera zoom; no weapons; shields and controls readable on targets; acceptable performance; and whether this visually merits further work over Pixi 3v3.
 
+## Visual Impact Pass 2 — four focused signature upgrades
+
+- Crystal Bolt: expanded three-dimensional faceted shatter, cold ground cracks and multiple sharp Pixi polygons rather than the generic orb-ring flash.
+- Sun Lance: larger radiant golden starburst and piercing spokes, synchronized with the projectile arriving at its target.
+- Rift Slash: an energy-only travelling tear that passes through its target, then creates crossing spatial seams and an impact shock. The Visual Lab shows it at actual close-combat range.
+- Gravity Hammer: impact geometry and ground shock now trigger **when the descending mass touches the target**, instead of flashing before the hammer lands; twelve fractured ground rays, expanding shock discs and displaced energy debris.
+- For these four signatures, floating combat text is delayed cosmetically to the visible moment of contact. Simulation HP/damage is unchanged.
+- Null Prison, Pulse Mend, Photon Barrier and Reactive Thread retain their prior signatures.
+- Babylon meshes and Pixi overlay now follow the same contact timing. Verified with syntax tests and 4× full eight-spell simulated replay/cleanup; real browser and visual perception still require user screenshots and feedback.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

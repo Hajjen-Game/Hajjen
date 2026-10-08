@@ -1,6 +1,7 @@
 // Optional PixiJS 8 accent layer, matching the sharp readability of Pixi 3v3.
 // Babylon keeps glass, real 3D buildup and depth. Pixi only draws screen-space
 // trails and hit highlights, never controls real damage, targeting or movement.
+import { drawEnergyProjectile } from "./EnergyPixiProjectiles.js?v=20261008-pixi-parity1";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -23,6 +24,7 @@ export class EnergyPixiVFXOverlay {
   constructor(stage,renderer){
     this.stage=stage;this.renderer=renderer;this.ready=false;
     this.effects=[];this.app=null;this.graphics=null;
+    this.sequence=0;
     this.alive=true;this.failed=false;this.enabled=true;
     this.resizeHandler=null;
   }
@@ -79,17 +81,24 @@ export class EnergyPixiVFXOverlay {
     const duration=event.type==="windup"?CAST_MS[spellId]
       :event.type==="control"?1300:event.type==="shield"?1400
       :event.type==="ability"?1200:isSignatureHit?contactMs+750:750;
+    // Freeze release in world space; a moving caster cannot pull its old
+    // projectile tail along, just like the original Pixi 3v3 spells.
     this.effects.push({spellId,type:event.type,start:performance.now(),
-      duration,contactMs,sourceId:source.id,targetId:target?.id||null});
+      duration,contactMs,sourceId:source.id,targetId:target?.id||null,
+      launch:event.type==="hit"?{x:source.x*S,z:source.y*S}:null,
+      seed:++this.sequence});
     if(this.effects.length>52)this.effects.shift();
   }
   point(actor){
-    if(!actor||!this.renderer.scene)return null;
+    return actor?this.projectWorld(actor.x*S,actor.y*S):null;
+  }
+  projectWorld(x,z){
+    if(!this.renderer.scene)return null;
     const scene=this.renderer.scene;
     const view=new BABYLON.Viewport(0,0,
       Math.max(1,this.stage.clientWidth),Math.max(1,this.stage.clientHeight));
     const pos=BABYLON.Vector3.Project(
-      new BABYLON.Vector3(actor.x*S,.88,actor.y*S),
+      new BABYLON.Vector3(x,.88,z),
       BABYLON.Matrix.Identity(),scene.getTransformMatrix(),view);
     if(!Number.isFinite(pos.x)||!Number.isFinite(pos.y)||pos.z<0||pos.z>1)return null;
     return {x:pos.x,y:pos.y};
@@ -435,72 +444,10 @@ export class EnergyPixiVFXOverlay {
       }
     }
   }
-  // Pixi 3v3-inspired moving ribbon: tapered layered glow, an electric thin
-  // spine, counter-twisted secondary filaments and discrete tumbling motes.
-  // All points are sampled along the ease curve, not just a straight line
-  // attached to the projectile. This makes the tail visibly move and unravel.
+  // These two effects are deliberately authored from Frostbolt/Pyroblast,
+  // rather than the old generic energy line used during initial prototyping.
   ribbonTrail(g,e,from,to,travel,style,scale){
-    const spell=e.spellId,isIce=spell==="crystal-bolt";
-    const dx=to.x-from.x,dy=to.y-from.y;
-    const len=Math.max(1,Math.hypot(dx,dy));
-    const tx=dx/len,ty=dy/len,nx=-ty,ny=tx;
-    const length=Math.min(.74,Math.max(.20,(isIce?125:155)*scale/len));
-    const count=21,phase=travel*18;
-    const samples=[];
-    const smooth=x=>x*x*(3-2*x);
-    for(let i=0;i<count;i++){
-      const f=i/(count-1),u=Math.max(0,travel-f*length);
-      const p=smooth(u),w=Math.sin(phase-i*.63)*(isIce?3.2:1.65)*scale;
-      samples.push({x:from.x+dx*p+nx*w*f,y:from.y+dy*p+ny*w*f,u,f});
-    }
-    // A broad *transparent* discipline-coloured halo underneath thin details.
-    // Draw back-to-front so the head reads crisply instead of glowing white.
-    for(let i=count-1;i>0;i--){
-      const a=samples[i],b=samples[i-1],fade=(1-i/count)*.75;
-      if(a.u===0&&b.u===0)continue;
-      this.stroke(g,[a,b],style.c,(4.1+1.7*fade)*scale,fade*.13);
-      this.stroke(g,[a,b],style.c,(1.10+1.25*fade)*scale,fade*.65);
-      if(i<count*.57)this.stroke(g,[a,b],style.core,.67*scale,fade*.42);
-    }
-    for(const side of [-1,1]){
-      const path=[];
-      for(let i=0;i<count-1;i++){
-        const p=samples[i];
-        if(p.u<=0)continue;
-        const spiral=Math.sin(phase*1.4-i*(isIce?.80:.54)+side*1.5);
-        const spread=(isIce?6.4:4.1)*scale*(.25+p.f*.75);
-        path.push({x:p.x+nx*spiral*spread*side,
-          y:p.y+ny*spiral*spread*side});
-      }
-      if(path.length>1)this.stroke(g,path,
-        side<0?style.c:style.dim,(isIce?1.05:.89)*scale,.44);
-    }
-    // Independent little facets / solar sparks along the wake.
-    for(let i=2;i<15;i+=2){
-      const p=samples[i];if(p.u<=0)continue;
-      const angle=phase*.7+i*1.9;
-      const radius=(2.6+(i%3)*1.7)*scale;
-      const side=i%2?1:-1;
-      const x=p.x+nx*radius*side,y=p.y+ny*radius*side;
-      if(isIce){
-        const shard=[{x:x-tx*3.2*scale,y:y-ty*3.2*scale},
-          {x:x+nx*2.0*scale,y:y+ny*2.0*scale},
-          {x:x+tx*4.6*scale,y:y+ty*4.6*scale},
-          {x:x-tx*3.2*scale,y:y-ty*3.2*scale}];
-        this.stroke(g,shard,i%4===0?style.core:style.c,.83*scale,.62*(1-i/18));
-      }else{
-        const sx=x+Math.cos(angle)*1.6*scale,sy=y+Math.sin(angle)*1.6*scale;
-        this.stroke(g,[{x:sx-tx*3.7*scale,y:sy-ty*3.7*scale},
-          {x:sx+tx*3.2*scale,y:sy+ty*3.2*scale}],
-          i%4===0?style.core:style.c,.90*scale,.57*(1-i/19));
-        if(i%4===0)this.circle(g,sx,sy,1.55*scale,style.c,.7*scale,.55);
-      }
-    }
-    const head=samples[0];
-    this.circle(g,head.x,head.y,(isIce?4.3:4.8)*scale,
-      style.c,1.7*scale,.84);
-    if(!isIce)this.circle(g,head.x,head.y,1.7*scale,
-      style.core,.86*scale,.86);
+    drawEnergyProjectile(g,e,from,to,travel,style,scale);
   }
   status(g,e,p,t,style){
     const fade=Math.min(1,t*6,(1-t)*5);
@@ -546,7 +493,8 @@ export class EnergyPixiVFXOverlay {
     for(const e of this.effects){
       const t=clamp((now-e.start)/e.duration,0,1);
       const a=match.getActor(e.sourceId),b=match.getActor(e.targetId);
-      const from=this.point(a),to=this.point(b||a);
+      const from=e.launch?this.projectWorld(e.launch.x,e.launch.z):this.point(a);
+      const to=this.point(b||a);
       if(!from||!to)continue;
       const style=COLORS[e.spellId];
       if(e.type==="windup")this.charge(g,e,from,t,style);

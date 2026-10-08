@@ -9,7 +9,7 @@ nav{display:flex;align-items:center;gap:9px}nav a,footer a{border:1px solid #3c5
 .intro{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px;gap:26px}.intro h2{font-size:clamp(22px,2.3vw,32px);margin:7px 0 10px}.intro p:not(.eyebrow){max-width:730px;font-size:13px;color:#adbed1;line-height:1.62}.intro strong{color:#d3e6f3}
 .phase-track{display:flex;gap:9px;white-space:nowrap;font-weight:770;letter-spacing:.10em;font-size:10px}.phase-track span{border:1px solid #45536b;border-radius:7px;color:#bad3e5;padding:10px 11px;background:#172237}
 .stage-panel{border:1px solid #3a4b60;border-radius:15px;overflow:hidden;background:linear-gradient(110deg,#131b2b,#151f32);box-shadow:0 18px 55px #03071477}
-.stage-toolbar{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px}.stage-toolbar strong{display:block;margin-top:4px;font-size:15px}.stage-actions{display:flex;gap:8px}
+.stage-toolbar{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px}.stage-toolbar strong{display:block;margin-top:4px;font-size:15px}.stage-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .stage-actions button{padding:10px 14px;border-radius:8px;background:#1e3149;border:1px solid #4b6882;color:#d8ebf7;font-size:11px;font-weight:790;letter-spacing:.04em}.stage-actions button:hover{background:#304963}.stage-actions .primary{background:#a3dff0;border-color:#a3dff0;color:#102032}.stage-actions .primary:hover{background:#d0f4fc}
 .vfx-stage{height:min(51vw,680px);min-height:450px;position:relative;background:#070e1a;overflow:hidden;border-top:1px solid #38556f;border-bottom:1px solid #344761}
 #vfx-canvas{display:block;width:100%;height:100%;outline:none;touch-action:none}

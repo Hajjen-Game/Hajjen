@@ -608,60 +608,6 @@ export class OrbCharacterRenderer{
     );
     haloMat.disableLighting=true;
 
-    // World-space allegiance ring: readable green allies and red enemies.
-    // This sits around the ground contact, not as a flat overlay on the glass.
-    const friendly=actor.team==="friendly";
-    const teamHex=friendly?"#48ed8b":"#ff545a";
-    const teamGlowHex=friendly?"#28ff88":"#ff303f";
-    const teamBaseMat=alphaMaterial(
-      this.scene,"orb-team-rim:"+actor.id,teamHex,0.38,0.86,
-    );
-    teamBaseMat.disableLighting=true;
-    const teamArcMat=alphaMaterial(
-      this.scene,"orb-team-segments:"+actor.id,teamGlowHex,0.84,1.46,
-    );
-    teamArcMat.disableLighting=true;
-    const teamInnerMat=alphaMaterial(
-      this.scene,"orb-team-inner:"+actor.id,teamHex,0.29,0.66,
-    );
-    teamInnerMat.disableLighting=true;
-    const teamRingPivot=new BABYLON.TransformNode(
-      "orb-team-ring:"+actor.id,this.scene,
-    );
-    teamRingPivot.parent=root;
-    teamRingPivot.position.y=-0.035;
-    const teamBase=BABYLON.MeshBuilder.CreateTorus(
-      "orb-team-base:"+actor.id,
-      {diameter:1.92,thickness:0.029,tessellation:88},
-      this.scene,
-    );
-    teamBase.parent=teamRingPivot;
-    teamBase.material=teamBaseMat;
-    teamBase.isPickable=false;
-    const teamInner=BABYLON.MeshBuilder.CreateTorus(
-      "orb-team-inner:"+actor.id,
-      {diameter:1.68,thickness:0.013,tessellation:80},
-      this.scene,
-    );
-    teamInner.parent=teamRingPivot;
-    teamInner.material=teamInnerMat;
-    teamInner.isPickable=false;
-    const teamArcPivot=new BABYLON.TransformNode(
-      "orb-team-arcs:"+actor.id,this.scene,
-    );
-    teamArcPivot.parent=teamRingPivot;
-    const teamArcs=[];
-    for(const [i,segment] of [1.02,.72,.43].entries()){
-      const arc=createArcSegment(
-        this.scene,"orb-team-arc:"+actor.id+":"+i,
-        .96,segment,i===0?.029:.022,teamArcMat,
-      );
-      arc.parent=teamArcPivot;
-      arc.rotation.y=i*2.094+(i%2?.20:-.12);
-      arc.isPickable=false;
-      teamArcs.push(arc);
-    }
-
     const halo=BABYLON.MeshBuilder.CreateTorus(
       "orb-halo:"+actor.id,
       {diameter:1.05,thickness:0.028,tessellation:40},
@@ -772,14 +718,14 @@ export class OrbCharacterRenderer{
 
     const entry={
       root,visualRoot,
-      classId:actor.classId,role:actor.role,team:actor.team,
+      classId:actor.classId,role:actor.role,
       style,seed,motion,mageWindup,
       shell,middle,core,energy,plasma,rings,motifArcs,shards,nucleus,heartLoops,glassFace,heartFace,motes,chargeMotes,chargeArcs,releaseCore,halo,castBand,contactShadow,
-      sparks,trail,hp,hpBack,barRoot,teamRingPivot,teamArcPivot,teamBase,teamInner,teamArcs,
+      sparks,trail,hp,hpBack,barRoot,
       shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,motifArcMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,chargeMat,chargeArcMat,releaseMat,haloMat,castMat,hpMat,
       ownedMaterials:[
         shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,motifArcMat,shardMat,nucleusMat,loopMat,glassMat,heartMat,moteMat,chargeMat,chargeArcMat,releaseMat,haloMat,castMat,
-        shadowMat,hpBackMat,hpMat,teamBaseMat,teamArcMat,teamInnerMat,
+        shadowMat,hpBackMat,hpMat,
       ],
       lastPos:new BABYLON.Vector3(actor.x*this.scale,0.16,actor.y*this.scale),
     };
@@ -805,7 +751,7 @@ export class OrbCharacterRenderer{
 
     for(const actor of game.actors){
       let e=this.entries.get(actor.id);
-      if(e&&(e.classId!==actor.classId||e.role!==actor.role||e.team!==actor.team)){
+      if(e&&(e.classId!==actor.classId||e.role!==actor.role)){
         this.disposeEntry(e);
         this.entries.delete(actor.id);
         e=null;
@@ -822,27 +768,6 @@ export class OrbCharacterRenderer{
         actor.y*this.scale,
       );
       e.root.position.copyFrom(pos);
-
-      // The ring is always present for team recognition, with a stronger
-      // rotating outline on the selected unit. No model spinning is needed.
-      const isSelected=game.player?.targetId===actor.id;
-      const tRing=time*.001;
-      e.teamArcPivot.rotation.y=tRing*(actor.team==="friendly"?.83:-.92)
-        +e.seed*.021;
-      e.teamRingPivot.rotation.y=-tRing*.12;
-      e.teamRingPivot.scaling.setAll(
-        1+Math.sin(tRing*3.1+e.seed)*.013
-        +(isSelected?.055+.013*Math.sin(tRing*6.5):0)
-      );
-      e.teamBaseMat.alpha=isSelected?.73:.36;
-      e.teamArcMat.alpha=isSelected?.99:.81;
-      e.teamInnerMat.alpha=isSelected?.52:.22;
-      e.teamArcs.forEach((arc,i)=>{
-        arc.scaling.setAll(1+Math.sin(tRing*(1.7+i*.3)+e.seed+i)*.014);
-      });
-      // Crisp screen-space Pixi status bars replace the older dim 3D planes.
-      // Keep the 3D bars as fallback if the hybrid renderer is unavailable.
-      e.barRoot.setEnabled(!this.usePixiBars);
 
       const mv=actor.lastMove||{x:0,y:0};
       const speed=Math.min(1,Math.hypot(mv.x||0,mv.y||0));

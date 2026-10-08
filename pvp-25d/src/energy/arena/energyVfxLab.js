@@ -218,7 +218,7 @@ function animate(now){
 }
 function init(){
   drawCards();
-  let volumeOn=true;
+  let volumeOn=false; // Match the actual production default: Pixi impacts.
   $("toggle-volume").addEventListener("click",()=>{
     volumeOn=!volumeOn;
     renderer?.spellFX?.hero?.volume?.setEnabled(volumeOn);
@@ -230,15 +230,22 @@ function init(){
   $("toggle-pixi").addEventListener("click",()=>{
     pixiOn=!pixiOn;
     renderer?.pixiFX?.setEnabled(pixiOn);
-    $("toggle-pixi").textContent=pixiOn?"PIXI ACCENTS: ON":"PIXI ACCENTS: OFF";
+    $("toggle-pixi").textContent=pixiOn?"PIXI SPELLS: ON":"PIXI SPELLS: OFF";
     $("render-label").textContent=pixiOn
-      ?"BABYLON 3D + PIXI CRISP ACCENTS"
-      :"BABYLON 3D ONLY · PIXI DISABLED";
+      ?"PIXI SPELL VFX · BABYLON GLASS + FLOOR LIGHT"
+      :"BABYLON SPELL FALLBACK · PIXI OFF";
+    // Rebuild the spell with the correct renderer, not a half-Pixi/half-
+    // Babylon projectile left behind from the previous toggle state.
+    run(active||signature[0],false);
   });
     $("replay-spell").addEventListener("click",()=>run(active||signature[0],false));
   $("play-sequence").addEventListener("click",()=>run(signature[0],true));
   try{
     renderer=new EnergyArenaRenderer($("vfx-canvas"),VERDANT_CRUCIBLE);
+    renderer.spellFX.hero.volume.setEnabled(volumeOn);
+    $("toggle-volume").textContent="3D IMPACTS: OFF";
+    $("toggle-pixi").textContent="PIXI SPELLS: ON";
+    $("render-label").textContent="PIXI SPELL VFX · BABYLON GLASS + FLOOR LIGHT";
     // Visual close-up: the orbs, spell volumes and trails are the subject,
     // not the distant boundaries of the arena.
     const base=renderer.fitCamera.bind(renderer);

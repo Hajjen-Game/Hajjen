@@ -464,9 +464,12 @@ export class EnergyHeroVFX {
     for(const e of fx.meshes)e.mesh.dispose();
     fx.root.dispose();
   }
-  dispose(){
+  clear(){
     for(const fx of this.live)this.destroy(fx);
     this.live.length=0;
+  }
+  dispose(){
+    this.clear();
     for(const mat of this.materials.values())mat.dispose();
     this.materials.clear();
   }

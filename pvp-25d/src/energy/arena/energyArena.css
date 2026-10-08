@@ -86,3 +86,31 @@ h2{font-size:23px}
 .spell-button.cooling{opacity:.46}
 .prototype-note{padding:13px 3px;color:#8099b8;font-size:10px;text-align:center}
 @media(max-width:1270px){.energy-shell{width:calc(100% - 16px)}.battle-layout{grid-template-columns:170px minmax(0,1fr) 170px}.action-bar{grid-template-columns:repeat(10,minmax(47px,1fr))}.combat-footer{gap:12px}.resource-bar{width:170px}.spell-button .spell-label{font-size:8px}}
+
+
+/* Native Pixi 3v3-style readability: high-contrast combat values, actor anchored. */
+.energy-combat-text-layer{position:absolute;inset:0;z-index:4;overflow:hidden;pointer-events:none}
+.energy-combat-number{
+  position:absolute;white-space:nowrap;line-height:1;user-select:none;pointer-events:none;
+  font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:18px;font-weight:950;
+  letter-spacing:-.025em;text-shadow:0 2px 0 #0a0e19,2px 0 0 #0a0e19,
+    -2px 0 0 #0a0e19,0 -2px 0 #0a0e19,0 0 8px #080b15dc;
+  will-change:transform,opacity;
+}
+.energy-combat-number.energy-damage{font-size:20px}
+.energy-combat-number.energy-heal{font-size:20px}
+.energy-combat-number.energy-control,.energy-combat-number.energy-interrupt{
+  font-size:14px;letter-spacing:.07em}
+.energy-combat-number.energy-absorb,.energy-combat-number.energy-immune,
+.energy-combat-number.energy-info{font-size:13px}
+.cast-indicator{z-index:5;box-shadow:0 5px 25px #030915b0}
+.cast-progress{height:9px}
+#cast-progress-fill{
+  background:linear-gradient(90deg,color-mix(in srgb,var(--school,#8bdfff) 65%,#162e49),var(--school,#8bdfff));
+  box-shadow:0 0 12px var(--school,#8bdfff);
+}
+.spell-button{touch-action:manipulation;user-select:none}
+.spell-button.queued{border-color:#90ddee;box-shadow:0 0 0 1px #90ddeeaa,0 0 15px #68bbd74f}
+.spell-button:active{transform:translateY(1px)}
+#combat-flash{z-index:6;min-width:150px;text-align:center;font-weight:800}
+.unit-frame:focus-visible,.spell-button:focus-visible{outline:2px solid #a8ecfc;outline-offset:2px}

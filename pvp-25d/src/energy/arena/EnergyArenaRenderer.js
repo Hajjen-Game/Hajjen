@@ -120,6 +120,10 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    // Snapshot renderer availability at RELEASE, so a missing/disabled Pixi
+    // layer falls back to Babylon rather than making attacks invisible.
+    this.spellFX.hero.setPixiProjectilesAvailable(
+      !!(this.pixiFX?.ready&&this.pixiFX?.enabled&&!this.pixiFX?.failed));
     this.spellFX.spawn(event,match);
     this.pixiFX?.spawn(event,match);
   }

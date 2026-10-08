@@ -5,7 +5,7 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const smooth=n=>{const t=clamp(n,0,1);return t*t*(3-2*t);};
 const TONES={
   "crystal-bolt":{color:"#59caff",core:"#d7f9ff"},
-  "sun-lance":{color:"#ff9946",core:"#ffe7a6"},
+  "sun-lance":{color:"#ffdf56",core:"#fff9c7"},
 };
 
 export class EnergyProjectileGroundLight {

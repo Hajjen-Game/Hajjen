@@ -3,13 +3,14 @@ import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from ".
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
 import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js";
+import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-feedback1";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
-let match=null,renderer=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let match=null,renderer=null,feedback=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
@@ -55,6 +56,7 @@ function showGate(){
   match=null;
   $("combat-screen").hidden=true;$("build-gate").hidden=false;
   $("scene-error").hidden=true;
+  feedback?.dispose();feedback=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;
   renderBuildChoices();
@@ -68,8 +70,10 @@ function start(build){
     $("active-build").textContent=build.name.toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
+    feedback?.dispose();feedback=null;
     if(renderer)renderer.dispose();
     renderer=new EnergyArenaRenderer($("energy-canvas"),arena);
+    feedback=new EnergyCombatFeedback($("scene-stage"),renderer);
     last=performance.now();lastUi=0;lastNotice="";keys.clear();pendingCast=null;
     clearUiCaches();
     renderUI();
@@ -222,6 +226,17 @@ function renderActionBar(){
     cd.textContent=remaining>.02?Math.ceil(remaining)+"s":"";
   }
 }
+function updateCastHUD(){
+  if(!match)return;
+  const cast=match.player.cast,bar=$("cast-indicator");
+  bar.hidden=!cast;
+  if(!cast)return;
+  const ability=ABILITY_BY_ID[cast.spellId];
+  $("cast-name").textContent=ability?.name||"ENERGY CAST";
+  const progress=clamp(100*(1-cast.remainingMs/cast.totalMs),0,100);
+  $("cast-progress-fill").style.width=progress.toFixed(2)+"%";
+  $("cast-indicator").style.setProperty("--school",DISCIPLINES[ability?.discipline]?.color||"#8bdfff");
+}
 function renderUI(){
   if(!match)return;
   const p=match.player;
@@ -233,12 +248,7 @@ function renderUI(){
   const victim=match.getActor(p.targetId);
   $("selected-target").textContent=victim?.name||"NONE";
   $("target-status").textContent=victim?.alive?(Math.round(victim.healthPct*100)+"% HP"):"";
-  const cast=p.cast;
-  $("cast-indicator").hidden=!cast;
-  if(cast){
-    $("cast-name").textContent=ABILITY_BY_ID[cast.spellId]?.name||"CAST";
-    $("cast-progress-fill").style.width=clamp(100*(1-cast.remainingMs/cast.totalMs),0,100)+"%";
-  }
+  updateCastHUD();
   renderFrames();renderActionBar();
   const feed=$("combat-feed");feed.replaceChildren();
   for(const note of match.notices.slice(0,5))feed.append(element("p","",note.text));
@@ -256,7 +266,19 @@ function frameLoop(now){
     match.update(dt);
     updateCastQueue();
   }
-  for(const event of match.consumeEvents())renderer.spawnEffect(event,match);
+  updateCastHUD(); // Cast bar updates every animation frame, not only HUD ticks.
+  for(const event of match.consumeEvents()){
+    renderer.spawnEffect(event,match);
+    feedback?.onEvent(event,match);
+    if(event.type==="hit"&&event.actorId==="player"&&event.amount>0){
+      const who=match.getActor(event.targetId)?.name||"target";
+      match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+who+" −"+event.amount);
+    }else if(event.type==="heal"&&event.actorId==="player"&&event.amount>0){
+      match.log((ABILITY_BY_ID[event.spellId]?.name||"Heal")+" +"+event.amount+" HP");
+    }else if(event.type==="control"&&event.actorId==="player"){
+      match.log((ABILITY_BY_ID[event.spellId]?.name||"CC")+" landed.");
+    }
+  }
   try{renderer.render(match)}
   catch(error){
     setError("Rendering failed: "+(error?.message||String(error)));
@@ -264,6 +286,7 @@ function frameLoop(now){
     match=null;
     return;
   }
+  feedback?.update(match,now);
   if(now-lastUi>85){renderUI();lastUi=now;}
 }
 $("energy-canvas").addEventListener("click",event=>{

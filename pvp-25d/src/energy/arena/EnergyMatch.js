@@ -80,6 +80,8 @@ export class EnergyMatch {
     this.winner=null;
     this.events=[];
     this.notices=[];
+    this.telemetry=new Map();
+    this.lastDamageAt=0;
     this.player= null;
     this.actors=[];
     // Bots use real 10-slot classless builds: two role-bound + eight shared.
@@ -128,7 +130,62 @@ export class EnergyMatch {
     return this.time<45?0:clamp(0.1+Math.floor((this.time-45)/10)*0.02,0,1);
   }
   log(text){this.notices.unshift({time:this.time,text});if(this.notices.length>7)this.notices.length=7;}
-  emit(event){this.events.push({...event,time:this.time});}
+  emit(event){
+    const source=this.getActor(event.actorId);
+    if(source){
+      let stat=this.telemetry.get(source.id);
+      if(!stat){
+        stat={casts:0,hits:0,damage:0,healing:0,interrupts:0,cc:0,abilities:{}};
+        this.telemetry.set(source.id,stat);
+      }
+      if(event.type==="ability"){
+        stat.casts++;
+        stat.abilities[event.spellId]=(stat.abilities[event.spellId]||0)+1;
+      }else if(event.type==="hit"){
+        stat.hits++;stat.damage+=event.amount||0;
+        if(event.amount>0)this.lastDamageAt=this.time;
+      }else if(event.type==="heal")stat.healing+=event.amount||0;
+      else if(event.type==="interrupt")stat.interrupts++;
+      else if(event.type==="control")stat.cc++;
+    }
+    this.events.push({...event,time:this.time});
+  }
+  aiReport(){
+    const lines=[
+      "ENERGY ARENA — AI / COMBAT TEST REPORT",
+      "Schema: energy-ai-v2 · independent 3v3 prototype",
+      "Arena: "+(this.arena.name||this.arena.id||"The Grand Ring"),
+      "Time: "+this.time.toFixed(1)+"s | Dampening: "+Math.round(this.dampening*100)+"%",
+      "Result: "+(this.ended?(this.winner==="friendly"?"VICTORY":"DEFEAT"):"IN PROGRESS"),
+      "Last damage: "+(this.time-this.lastDamageAt).toFixed(1)+"s ago",
+      "Player role: "+this.player.role+" | Ability slots: "+this.loadout.abilitySlots.map(s=>s.id).join(", "),
+    ];
+    for(const team of ["friendly","enemy"]){
+      const plan=this.ai?.plans[team]||{};
+      lines.push("",team.toUpperCase()+" PLAN: "+(plan.state||"unknown")
+        +" | focus: "+(this.getActor(plan.targetId)?.name||"none")+" ["+(plan.targetId||"")+"]");
+      for(const a of this.actors.filter(a=>a.team===team)){
+        const t=this.getActor(a.targetId),stats=this.telemetry.get(a.id)||{};
+        const distanceToTarget=t?Math.round(distance(a,t)):"—";
+        const los=t?hasLineOfSight(a,t,this.arena):false;
+        lines.push(
+          a.name+" ["+a.role+" / "+a.control+"]"+
+          " | "+(a.alive?"ALIVE":"DEAD")+" HP "+Math.ceil(a.hp)+"/"+a.maxHp
+          +" Flux "+Math.round(a.flux)
+          +" | Position ("+Math.round(a.x)+","+Math.round(a.y)+")"
+          +" | Target "+(t?.name||"none")+" ["+(a.targetId||"")+"]"+
+          " | range "+distanceToTarget+" | LOS "+los
+          +" | Cast "+(a.cast?.spellId||"none")
+          +" | Nav "+(a.aiPath?.points?.length||0)+" waypoints"
+          +" | Damage "+Math.round(stats.damage||0)+" Heal "+Math.round(stats.healing||0)
+          +" Abilities "+(stats.casts||0)+" Hits "+(stats.hits||0)
+          +" CC "+(stats.cc||0)+" Interrupts "+(stats.interrupts||0)
+        );
+        if(stats.abilities)lines.push("  Ability usage: "+Object.entries(stats.abilities).map(([id,count])=>id+"×"+count).join(", "));
+      }
+    }
+    return lines.join("\n");
+  }
   consumeEvents(){return this.events.splice(0);}
   isControlled(actor,kind) {return actor.statuses.some(s=>s.kind===kind&&s.remaining>0);}
   debuffed(actor){return actor.statuses.some(s=>s.negative&&s.remaining>0);}

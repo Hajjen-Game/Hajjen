@@ -47,6 +47,36 @@ function addGlassFresnel(material,edgeColor){
   material.emissiveFresnelParameters=emissive;
 }
 
+// The glass catches clean, short specular arcs while the energy underneath
+// keeps its own (class-coloured) orbit. No texture sheets or image assets.
+function glassHighlightPath(radius,start,span){
+  const points=[];
+  const height=Math.sqrt(Math.max(0,0.62*0.62-radius*radius));
+  for(let i=0;i<=20;i++){
+    const t=i/20;
+    const angle=start+t*span;
+    points.push(new BABYLON.Vector3(
+      Math.cos(angle)*radius,
+      0.72+height+0.008,
+      Math.sin(angle)*radius,
+    ));
+  }
+  return points;
+}
+
+function wakePath(lane){
+  const points=[];
+  for(let i=0;i<=24;i++){
+    const t=i/24;
+    points.push(new BABYLON.Vector3(
+      -0.40-1.28*t,
+      0.72+0.08*Math.sin(t*4.2+lane*1.3)-0.10*t,
+      (lane-1)*0.13+Math.sin(t*5.7+lane*1.7)*(0.035+0.12*t),
+    ));
+  }
+  return points;
+}
+
 export class OrbCharacterRenderer{
   constructor(scene,shadowGenerator,scale){
     this.scene=scene;
@@ -67,14 +97,17 @@ export class OrbCharacterRenderer{
       this.scene,
       "orb-shell-mat:"+actor.id,
       "#d7e2ef",
-      0.095,
-      0.035,
+      0.11,
+      0.05,
     );
     shellMat.diffuseColor=new BABYLON.Color3(0.055,0.070,0.090);
     shellMat.emissiveColor=new BABYLON.Color3(0.008,0.012,0.018);
     shellMat.specularColor=new BABYLON.Color3(0.88,0.94,1.00);
     shellMat.specularPower=180;
-    addGlassFresnel(shellMat,new BABYLON.Color3(0.62,0.82,1.00));
+    addGlassFresnel(shellMat,new BABYLON.Color3(0.75,0.87,1.00));
+    // A transparent sphere must not depth-mask its luminous core.
+    shellMat.needDepthPrePass=false;
+    shellMat.separateCullingPass=true;
 
     const middleMat=alphaMaterial(
       this.scene,
@@ -160,6 +193,8 @@ export class OrbCharacterRenderer{
       0.78,
     );
     plasmaMat.disableLighting=true;
+    plasmaMat.backFaceCulling=true;
+    plasmaMat.needDepthPrePass=false;
 
     const plasma=BABYLON.MeshBuilder.CreateSphere(
       "orb-plasma:"+actor.id,
@@ -182,9 +217,9 @@ export class OrbCharacterRenderer{
 
     const rings=[];
     const ringDefs=[
-      {diameter:0.78,thickness:0.020,rx:Math.PI*0.48,rz:0.18},
-      {diameter:0.67,thickness:0.017,rx:Math.PI*0.20,rz:Math.PI*0.34},
-      {diameter:0.56,thickness:0.014,rx:Math.PI*0.70,rz:-Math.PI*0.22},
+      {diameter:0.94,thickness:0.013,rx:Math.PI*0.28,rz:0.18},
+      {diameter:0.72,thickness:0.017,rx:Math.PI*0.57,rz:Math.PI*0.34},
+      {diameter:0.52,thickness:0.014,rx:Math.PI*0.14,rz:-Math.PI*0.22},
     ];
     for(let i=0;i<ringDefs.length;i++){
       const d=ringDefs[i];
@@ -222,6 +257,107 @@ export class OrbCharacterRenderer{
       shard.material=shardMat;
       shard.isPickable=false;
       shards.push(shard);
+    }
+
+    // Distinct luminous centre, nested gyres and curved white glass reflections.
+    // The small white-hot kernel anchors the shape from top-down camera distance.
+    const nucleusMat=alphaMaterial(
+      this.scene,"orb-nucleus-mat:"+actor.id,"#fffdf3",0.98,1.9,
+    );
+    nucleusMat.disableLighting=true;
+    const nucleus=BABYLON.MeshBuilder.CreateSphere(
+      "orb-nucleus:"+actor.id,
+      {diameter:actor.classId==="rogue"?0.105:0.16,segments:12},
+      this.scene,
+    );
+    nucleus.parent=visualRoot;
+    nucleus.position.y=0.735;
+    nucleus.material=nucleusMat;
+    nucleus.isPickable=false;
+
+    const loopMat=alphaMaterial(
+      this.scene,"orb-heart-loop-mat:"+actor.id,style.energy,0.82,1.72,
+    );
+    loopMat.disableLighting=true;
+    loopMat.needDepthPrePass=false;
+    const heartLoops=[];
+    for(let i=0;i<2;i++){
+      const ring=BABYLON.MeshBuilder.CreateTorus(
+        "orb-heart-loop:"+actor.id+":"+i,
+        {diameter:0.30+i*0.17,thickness:i===0?0.020:0.013,tessellation:56},
+        this.scene,
+      );
+      ring.parent=visualRoot;
+      ring.position.y=0.73;
+      ring.rotation.x=0.12+i*0.36;
+      ring.rotation.z=i*0.6;
+      ring.material=loopMat;
+      ring.isPickable=false;
+      heartLoops.push(ring);
+    }
+
+    // Curved surface reflections: these sit on the upper hemisphere, not in
+    // the core, so the orb continues to read as a transparent glass object.
+    const glintMat=alphaMaterial(
+      this.scene,"orb-glass-glint-mat:"+actor.id,"#effaff",0.76,1.18,
+    );
+    glintMat.disableLighting=true;
+    glintMat.needDepthPrePass=false;
+    const glassGlints=[];
+    for(const [i,d] of [
+      {radius:0.54,start:2.45,span:0.75},
+      {radius:0.48,start:4.46,span:0.43},
+      {radius:0.37,start:2.70,span:0.36},
+    ].entries()){
+      const glint=BABYLON.MeshBuilder.CreateTube(
+        "orb-glass-glint:"+actor.id+":"+i,
+        {path:glassHighlightPath(d.radius,d.start,d.span),
+         radius:i===0?0.012:0.008,tessellation:6,cap:BABYLON.Mesh.NO_CAP},
+        this.scene,
+      );
+      glint.parent=visualRoot;
+      glint.material=glintMat;
+      glint.isPickable=false;
+      glassGlints.push(glint);
+    }
+
+    // Narrow tapered energy wisps, rather than additional ghost copies of
+    // the whole sphere. They remain subtle at rest and brighten while casting.
+    const wakeMat=alphaMaterial(
+      this.scene,"orb-wake-mat:"+actor.id,style.energy,0.35,1.24,
+    );
+    wakeMat.disableLighting=true;
+    wakeMat.needDepthPrePass=false;
+    const wakes=[];
+    for(let i=0;i<3;i++){
+      const wake=BABYLON.MeshBuilder.CreateTube(
+        "orb-wake:"+actor.id+":"+i,
+        {path:wakePath(i),
+         radiusFunction:(step,distance)=>0.018*Math.pow(1-step/24,1.6)+0.001,
+         tessellation:5,cap:BABYLON.Mesh.NO_CAP},
+        this.scene,
+      );
+      wake.parent=visualRoot;
+      wake.material=wakeMat;
+      wake.isPickable=false;
+      wakes.push(wake);
+    }
+
+    const moteMat=alphaMaterial(
+      this.scene,"orb-mote-mat:"+actor.id,style.energy,0.72,1.25,
+    );
+    moteMat.disableLighting=true;
+    const motes=[];
+    for(let i=0;i<9;i++){
+      const mote=BABYLON.MeshBuilder.CreateSphere(
+        "orb-mote:"+actor.id+":"+i,
+        {diameter:0.021+(i%3)*0.012,segments:6},
+        this.scene,
+      );
+      mote.parent=visualRoot;
+      mote.material=moteMat;
+      mote.isPickable=false;
+      motes.push(mote);
     }
 
     const haloMat=alphaMaterial(
@@ -364,11 +500,11 @@ export class OrbCharacterRenderer{
       root,visualRoot,
       classId:actor.classId,role:actor.role,
       style,
-      shell,middle,core,energy,plasma,rings,shards,halo,castBand,contactShadow,
+      shell,middle,core,energy,plasma,rings,shards,nucleus,heartLoops,glassGlints,wakes,motes,halo,castBand,contactShadow,
       sparks,trail,hp,hpBack,barRoot,
-      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,haloMat,castMat,hpMat,
+      shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glintMat,wakeMat,moteMat,haloMat,castMat,hpMat,
       ownedMaterials:[
-        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,haloMat,castMat,
+        shellMat,middleMat,coreMat,energyMat,plasmaMat,ringMat,shardMat,nucleusMat,loopMat,glintMat,wakeMat,moteMat,haloMat,castMat,
         shadowMat,hpBackMat,hpMat,
         ...trail.map(t=>t.material),
       ],
@@ -466,7 +602,7 @@ export class OrbCharacterRenderer{
       e.plasma.scaling.setAll(
         plasmaPulse*(1+castProgress*0.13+castPulse*0.04)
       );
-      e.plasmaMat.alpha=0.12+(cast?0.11+castPulse*0.05:0);
+      e.plasmaMat.alpha=0.095+(cast?0.09+castPulse*0.045:0);
       e.plasmaMat.emissiveColor=c3(e.style.energy).scale(
         cast?1.10:0.66
       );
@@ -474,14 +610,18 @@ export class OrbCharacterRenderer{
       for(let i=0;i<e.rings.length;i++){
         const ring=e.rings[i];
         const dir=i%2===0?1:-1;
-        ring.rotation.y+=dir*(0.010+i*0.003)*(cast?1.8:1.0);
-        ring.rotation.z+=dir*0.0035;
+        // Clock-based rotation: stable speed at 30/60/120 fps.
+        ring.rotation.x=[Math.PI*0.28,Math.PI*0.57,Math.PI*0.14][i]
+          +Math.sin(time*0.00054+i)*0.08;
+        ring.rotation.y=dir*time*(0.00065+i*0.00018)*(cast?1.5:1.0);
+        ring.rotation.z=[0.18,Math.PI*0.34,-Math.PI*0.22][i]
+          +dir*time*0.00023;
         ring.scaling.setAll(
           0.98+Math.sin(time*(0.0038+i*0.0009)+i)*0.05
           +castProgress*0.08
         );
       }
-      e.ringMat.alpha=0.46+(cast?0.20+castPulse*0.10:0);
+      e.ringMat.alpha=0.56+(cast?0.22+castPulse*0.10:0);
       e.ringMat.emissiveColor=c3(e.style.energy).scale(
         cast?1.42:1.08
       );
@@ -524,6 +664,47 @@ export class OrbCharacterRenderer{
       e.shardMat.emissiveColor=c3(e.style.core).scale(
         cast?1.54:1.14
       );
+
+      e.nucleus.scaling.setAll(
+        0.96+Math.sin(time*0.009+String(actor.id).length)*0.12
+        +castProgress*0.28
+      );
+      e.nucleusMat.emissiveColor=c3("#fffdf3").scale(cast?2.5:1.7);
+      e.loopMat.alpha=0.70+(cast?0.20+castPulse*0.08:0);
+      e.loopMat.emissiveColor=c3(e.style.energy).scale(cast?2.1:1.38);
+      for(let i=0;i<e.heartLoops.length;i++){
+        const loop=e.heartLoops[i];
+        loop.rotation.x=0.12+i*0.36+Math.sin(time*0.00085+i)*0.17;
+        loop.rotation.z=i*0.6+time*(i===0?0.00064:-0.00043);
+        loop.scaling.setAll(1+castProgress*0.15+Math.sin(time*0.004+i)*0.045);
+      }
+      e.glintMat.alpha=0.63+Math.sin(time*0.0026+String(actor.id).length)*0.12
+        +(cast?0.06:0);
+      for(let i=0;i<e.glassGlints.length;i++){
+        e.glassGlints[i].visibility=0.70+Math.sin(time*0.0019+i*1.9)*0.22;
+      }
+      e.wakeMat.alpha=0.21+(moving?0.13*speed:0.05)
+        +(cast?0.12+castPulse*0.09:0);
+      e.wakeMat.emissiveColor=c3(e.style.energy).scale(cast?1.65:1.15);
+      for(let i=0;i<e.wakes.length;i++){
+        const wake=e.wakes[i];
+        wake.scaling.x=0.76+(moving?0.35*speed:0)
+          +castProgress*0.24;
+        wake.rotation.y=Math.sin(time*0.0011+i*2.2)*0.12;
+        wake.visibility=0.78+i*0.06;
+      }
+      for(let i=0;i<e.motes.length;i++){
+        const angle=time*(0.00075+i*0.00010)+i*2.39996;
+        const r=0.64+(i%3)*0.10+0.09*Math.sin(time*0.0008+i);
+        const mote=e.motes[i];
+        mote.position.set(
+          Math.cos(angle)*r,
+          0.72+Math.sin(angle*2.0+i)*0.22,
+          Math.sin(angle)*r,
+        );
+        mote.visibility=0.35+0.40*(0.5+0.5*Math.sin(time*0.004+i));
+        mote.scaling.setAll(cast?1.35:0.95);
+      }
 
       let leader=pos;
       for(let i=0;i<e.trail.length;i++){

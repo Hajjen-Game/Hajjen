@@ -1,7 +1,7 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
 import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
-import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-combat-feedback4";
+import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-energy-ai-v2";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261008-combat-feedback2";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-feedback4";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
@@ -322,6 +322,16 @@ document.addEventListener("keydown",event=>{
 });
 document.addEventListener("keyup",event=>keys.delete(event.key.toLowerCase()));
 window.addEventListener("blur",()=>keys.clear());
+$("copy-ai-report").addEventListener("click",async()=>{
+  if(!match)return;
+  const report=match.aiReport();
+  try{
+    await navigator.clipboard.writeText(report);
+    flash("AI REPORT COPIED — paste it into our chat");
+  }catch{
+    window.prompt("Copy this AI report and paste it into our chat:",report);
+  }
+});
 $("change-build").addEventListener("click",showGate);
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
 renderBuildChoices();

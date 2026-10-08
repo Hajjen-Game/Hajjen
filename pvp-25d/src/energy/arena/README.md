@@ -398,6 +398,34 @@ no longer run by default.
   impacts. JavaScript syntax/import-chain checks passed. Actual
   browser appearance and FPS still need visual inspection.
 
+## Sun Lance Yellow Parity Pass 14 — cast-to-travel color identity
+
+A user side-by-side screenshot showed Sun Lance's cast/build-up looking
+**luminous golden yellow** while its projectile looked distinctly
+**peach-orange**. The cause was not timing or geometry: Pixi's hit palette
+used `#ffb66b` plus multiple hard-coded orange trail/ember colors, and
+the Babylon floor used `#ff9946`.
+
+- The **existing build-up is intentionally untouched** (both Babylon
+  `COLOR` and Pixi `COLORS`, including cast rings and core).
+- Sun Lance **travel/contact** now uses the yellow-gold family:
+  main `#ffdf4d`, near-white core `#fff9c7`, ochre contour
+  `#bd952a`, and neon yellow glow `#ffdf56`.
+- Replaced the five orange-only hard-coded accents in its existing
+  Pixi ribbon, central line, ember, flame tongue and heating coil with
+  coherent solar yellow highlights, without changing any trajectory,
+  ribbon widths, particle counts, alpha, easing or timings.
+- Its small Pixi contact snap inherits the same palette; Babylon's
+  travelling/reflected ground pools use `#ffdf56` / `#fff9c7`.
+- Babylon fallback projectile/impact meshes and optional 3D filament
+  comparison get corresponding yellow materials **without touching cast
+  materials**. Crystal Bolt and all other spells remain as before.
+- Verification: 28 old/new Sun Lance projectile traces at different
+  progress/zoom values have **identical shape commands and opacity**,
+  differing only in color. Old and new Pixi charge geometry and compact
+  impact implementation are identical. Live browser color appearance
+  must still be reviewed.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

@@ -3,8 +3,8 @@
 // Babylon renders volumes *inside* the glass, physical energy arcs, projectiles
 // and suspended persistent shields. The later Pixi pass can add sharp 2D accents.
 import { ABILITY_BY_ID } from "../abilityCatalog.js";
-import { EnergyVolumeImpact } from "./EnergyVolumeImpact.js?v=20261008-impact-continuity1";
-import { EnergyProjectileGroundLight } from "./EnergyProjectileGroundLight.js?v=20261008-pixi-parity1";
+import { EnergyVolumeImpact } from "./EnergyVolumeImpact.js?v=20261008-impact-burst8";
+import { EnergyProjectileGroundLight } from "./EnergyProjectileGroundLight.js?v=20261008-impact-burst8";
 
 const TAU=Math.PI*2;
 const S=.02;

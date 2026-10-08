@@ -117,7 +117,7 @@ export class OrbPixiHybridOverlay{
       // Pixi's detailed buildup is inside the projected sphere; Babylon
       // still supplies the actual volumetric core and rotating 3D energy.
       view.mask.clear().circle(0,0,radius*.89).fill(0xffffff);
-      view.castLayer.scale.set(clamp(radius/26,.65,1.2));
+      view.castLayer.scale.set(clamp((radius*.82)/(radius+33),.23,.57));
       actorMap.set(actor.id,{
         id:actor.id,x:projected.x,y:projected.y,radius,
         alive:true,classId:actor.classId,

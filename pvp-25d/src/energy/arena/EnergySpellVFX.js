@@ -3,12 +3,14 @@
 // Procedural, luminous spell travel / buildup / impact preserve orb readability.
 import { ABILITY_BY_ID, DISCIPLINES } from "../abilityCatalog.js";
 import { ABILITY_RULES } from "./EnergyMatch.js";
+import { EnergyHeroVFX } from "./EnergyHeroVFX.js?v=20261008-vfx-slice1";
 
 const S=.02,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export class EnergySpellVFX {
   constructor(scene){
     this.scene=scene;this.effects=[];this.nextId=0;
     this.materials=new Map();
+    this.hero=new EnergyHeroVFX(scene);
   }
   material(hex){
     if(this.materials.has(hex))return this.materials.get(hex);
@@ -60,6 +62,10 @@ export class EnergySpellVFX {
   }
   spawn(e,match){
     if(!e.spellId)return;
+    if(this.hero.supports(e.spellId)){
+      this.hero.spawn(e,match);
+      return;
+    }
     const ability=ABILITY_BY_ID[e.spellId],rule=ABILITY_RULES[e.spellId];
     if(!ability)return;
     const from=match.getActor(e.actorId),target=match.getActor(e.targetId);
@@ -109,6 +115,7 @@ export class EnergySpellVFX {
     if(e.type==="dash")this.ring(this.world(from,.10),hex,1,500,"ground");
   }
   update(match,now=performance.now()){
+    this.hero.update(match,now);
     for(let i=this.effects.length-1;i>=0;i--){
       const effect=this.effects[i];
       const t=clamp((now-effect.start)/effect.duration,0,1);
@@ -152,6 +159,7 @@ export class EnergySpellVFX {
     }
   }
   dispose(){
+    this.hero.dispose();
     for(const e of this.effects)e.mesh.dispose();
     this.effects=[];
     for(const material of this.materials.values())material.dispose();

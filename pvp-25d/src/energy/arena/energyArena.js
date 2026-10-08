@@ -218,7 +218,10 @@ function renderActionBar(){
     const remaining=player.cooldowns[slot.id]||0;
     const reason=match.reason(player,slot.id,player.targetId);
     node.classList.toggle("cooling",remaining>0);
-    node.classList.toggle("disabled",!!reason);
+    const hardStop=reason&&!["CASTING","GLOBAL COOLDOWN"].includes(reason);
+    node.classList.toggle("disabled",!!hardStop);
+    node.classList.toggle("gcd",reason==="CASTING"||reason==="GLOBAL COOLDOWN");
+    node.style.setProperty("--gcd-progress",Math.round(clamp((player.gcd||0)/1.3,0,1)*100)+"%");
     node.classList.toggle("queued",pendingCast?.ability===slot.id);
     node.title=ability.name+" — "+ability.description+"\n"+(reason||"READY")
       +(slot.evolutionId?"\nEvolution: "+slot.evolutionId:"");
@@ -277,13 +280,18 @@ function frameLoop(now){
   for(const event of match.consumeEvents()){
     renderer.spawnEffect(event,match);
     feedback?.onEvent(event,match);
-    if(event.type==="hit"&&event.actorId==="player"&&event.amount>0){
-      const who=match.getActor(event.targetId)?.name||"target";
-      match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+who+" −"+event.amount);
-    }else if(event.type==="heal"&&event.actorId==="player"&&event.amount>0){
-      match.log((ABILITY_BY_ID[event.spellId]?.name||"Heal")+" +"+event.amount+" HP");
+    if(event.type==="hit"&&event.amount>0){
+      const attacker=match.getActor(event.actorId),victim=match.getActor(event.targetId);
+      if(attacker?.id==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+(victim?.name||"target")+" −"+event.amount);
+      else if(victim?.id==="player")match.log((attacker?.name||"Enemy")+" hits YOU −"+event.amount);
+    }else if(event.type==="heal"&&event.amount>0){
+      const healed=match.getActor(event.targetId);
+      if(event.actorId==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Heal")+" → "+(healed?.name||"ally")+" +"+event.amount);
+      else if(healed?.id==="player")match.log("YOU healed +"+event.amount+" HP");
     }else if(event.type==="control"&&event.actorId==="player"){
       match.log((ABILITY_BY_ID[event.spellId]?.name||"CC")+" landed.");
+    }else if(event.type==="interrupt"&&event.actorId==="player"){
+      match.log("INTERRUPT landed!");
     }
   }
   try{renderer.render(match)}

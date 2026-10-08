@@ -40,7 +40,8 @@ export class EnergyHeroVFX {
     // Disable only ranged projectile meshes when Pixi is actually ready.
     this.pixiProjectilesAvailable=false;
     // Short Reactve Thread-style 3D filaments may wrap a Pixi hit.
-    this.threadDepthEnabled=true;
+    // Projectile/attack is the visual hero; spatial threads are opt-in A/B.
+    this.threadDepthEnabled=false;
     this.stats={lastSpell:"",active:0};
   }
   supports(id){return CHOSEN.has(id);}

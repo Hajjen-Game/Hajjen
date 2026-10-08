@@ -4,7 +4,7 @@
 // and suspended persistent shields. The later Pixi pass can add sharp 2D accents.
 import { ABILITY_BY_ID } from "../abilityCatalog.js";
 import { EnergyVolumeImpact } from "./EnergyVolumeImpact.js?v=20261008-pixi-primary9";
-import { EnergyProjectileGroundLight } from "./EnergyProjectileGroundLight.js?v=20261008-attack-first13";
+import { EnergyProjectileGroundLight } from "./EnergyProjectileGroundLight.js?v=20261008-solar-yellow14";
 
 const TAU=Math.PI*2;
 const S=.02;

@@ -1,7 +1,7 @@
 import { CustomMiniCharacterRenderer } from "./CustomMiniCharacterRenderer.js?v=20261007-orbs-v2-void";
-import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v17-targetstatus";
+import { OrbCharacterRenderer } from "./OrbCharacterRenderer.js?v=20261008-orbs-v18-recover";
 import { VfxController } from "./VfxController.js?v=20261008-orb-hybrid1";
-import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid3-status";
+import { OrbPixiHybridOverlay } from "./OrbPixiHybridOverlay.js?v=20261008-orb-hybrid4-safe";
 
 const S = 0.02;
 
@@ -1578,8 +1578,14 @@ export class BabylonRenderer {
 
     // Hide the old low-contrast Babylon status planes only when the Pixi
     // overlay is active. Restore them automatically if the overlay fails.
-    if(this.orbMode)this.actorRender.usePixiBars=Boolean(this.pixiOverlay?.ready);
     this.actorRender.sync(game, now);
+    if(this.orbMode){
+      // Only hide the old 3D planes after Babylon has successfully synced
+      // the actors. The restored OrbCharacterRenderer is otherwise untouched.
+      for(const entry of this.actorRender.entries?.values?.()||[]){
+        entry.barRoot?.setEnabled(!this.pixiOverlay?.ready);
+      }
+    }
     // All spell / heal / melee VFX are handled by Pixi while the hybrid is
     // active. Never render the previous low-detail Babylon effects on top.
     // If Pixi fails, events remain unconsumed for the Babylon fallback.
@@ -1662,7 +1668,7 @@ export class BabylonRenderer {
   syncTarget(game) {
     // OrbCharacterRenderer now owns animated green/red team rings and its
     // selected-target highlight. Do not stack the old static torus on top.
-    if(this.orbMode){
+    if(this.orbMode&&this.pixiOverlay?.ready){
       this.target.setEnabled(false);
       return;
     }

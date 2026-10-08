@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <title>PvP-2.5D · Energy Arena</title>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261008-energy-combat-a1"/>
+</head>
+<body>
+  <main class="energy-shell">
+    <header class="arena-header">
+      <div class="identity"><span class="identity-orb" aria-hidden="true"></span><div>
+        <p class="eyebrow">PVP-2.5D / ENERGY COMBAT PREVIEW</p>
+        <h1>ENERGY <span>ARENA</span></h1>
+      </div></div>
+      <div class="arena-header-actions">
+        <span class="preview-pill">ALPHA · PROTOTYPE RULES</span>
+        <a href="./energy-build.html" class="header-button">ENERGY BUILD LAB ↗</a>
+        <a href="./orbs.html" class="header-button">LEGACY ARENA ↗</a>
+      </div>
+    </header>
+
+    <section id="build-gate" class="build-gate" aria-labelledby="gate-title">
+      <div class="eyebrow">LOADOUT CHECK</div>
+      <h2 id="gate-title">Choose an Energy Build</h2>
+      <p>Your Energy Build Lab presets are available here. A build needs eight free abilities before it can be used in a match.</p>
+      <div id="available-builds" class="available-builds"></div>
+      <a href="./energy-build.html" class="header-button">OPEN BUILD LAB →</a>
+    </section>
+
+    <section id="combat-screen" class="combat-screen" hidden>
+      <div class="match-topline">
+        <div><p class="eyebrow">THE GRAND RING · 3V3 TEST MATCH</p><strong id="active-build">BUILD</strong></div>
+        <div class="match-center"><span id="dampening-label">DAMPENING 0%</span><strong id="match-clock">00:00</strong></div>
+        <div class="topline-right"><button id="restart-match" class="header-button">RESTART</button><button id="change-build" class="header-button">CHANGE BUILD</button></div>
+      </div>
+      <div class="battle-layout">
+        <aside class="team-panel" aria-label="Friendly team">
+          <div class="panel-caption">YOUR TEAM</div>
+          <div id="friendly-frames"></div>
+          <div class="controls-note"><strong>CONTROLS</strong><p>WASD · Move</p><p>1–0 · Abilities</p><p>Tab · Next enemy</p><p>F1 / F2 / F3 · Friendly targets</p><p>Click orb · Target</p></div>
+        </aside>
+        <section class="arena-center">
+          <div id="scene-stage" class="scene-stage">
+            <canvas id="energy-canvas" aria-label="3v3 energy arena"></canvas>
+            <div id="combat-banner" class="combat-banner" hidden></div>
+            <div id="cast-indicator" class="cast-indicator" hidden><span id="cast-name"></span><div class="cast-progress"><span id="cast-progress-fill"></span></div></div>
+            <div id="combat-flash" class="combat-flash" aria-live="polite"></div>
+            <div id="scene-error" class="scene-error" hidden></div>
+          </div>
+          <div class="target-strip"><span class="target-label">SELECTED TARGET</span><strong id="selected-target">Enemy Melee</strong><span id="target-status"></span></div>
+        </section>
+        <aside class="team-panel enemies" aria-label="Enemy team">
+          <div class="panel-caption">ENEMY TEAM</div>
+          <div id="enemy-frames"></div>
+          <div class="fight-log"><strong>COMBAT FEED</strong><div id="combat-feed"></div></div>
+        </aside>
+      </div>
+      <footer class="combat-footer">
+        <div class="resource-bar">
+          <div class="resource-header"><strong>FLUX</strong><span id="flux-text">100 / 100</span></div>
+          <div class="flux-track"><div id="flux-fill" class="flux-fill"></div></div>
+          <div class="resource-subline"><span id="role-passive"></span><span id="player-health">HP 100 / 100</span></div>
+        </div>
+        <div id="action-bar" class="action-bar"></div>
+      </footer>
+      <p class="prototype-note">This is a separate first-playable combat test. Core spell effects are functional; most Talent Evolutions and signature VFX are not integrated yet. The existing 3v3 arena remains untouched.</p>
+    </section>
+  </main>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261008-energy-combat-a1"></script>
+</body>
+</html>

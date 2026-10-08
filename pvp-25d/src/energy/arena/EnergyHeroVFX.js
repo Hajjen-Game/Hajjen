@@ -3,6 +3,7 @@
 // Babylon renders volumes *inside* the glass, physical energy arcs, projectiles
 // and suspended persistent shields. The later Pixi pass can add sharp 2D accents.
 import { ABILITY_BY_ID } from "../abilityCatalog.js";
+import { EnergyVolumeImpact } from "./EnergyVolumeImpact.js?v=20261008-volume-impact1";
 
 const TAU=Math.PI*2;
 const S=.02;
@@ -31,6 +32,7 @@ export class EnergyHeroVFX {
     this.materials=new Map();
     this.sequence=0;
     this.maxLive=76;  // no unbounded GPU objects in longer matches
+    this.volume=new EnergyVolumeImpact(this);
     this.stats={lastSpell:"",active:0};
   }
   supports(id){return CHOSEN.has(id);}
@@ -255,6 +257,7 @@ export class EnergyHeroVFX {
     this.torus(floor,.80,.018,"dark");
     this.arc(floor,.50,Math.PI*.95,.35,.013,.012,"main");
     this.outerImpact("rift-slash",point,null);
+    this.volume.spawn("rift-slash",point);
     return fx;
   }
   hammer(source,target){
@@ -305,6 +308,9 @@ export class EnergyHeroVFX {
     this.ball(flash,.12,"light",1);
     this.torus(flash,.67,.020,"main",2).rotation.x=.65;
     this.outerImpact("gravity-hammer",this.world(target,.085),target.id);
+    this.volume.spawn("gravity-hammer",this.world(target,.085),{
+      targetId:target.id,
+    });
     return shock;
   }
   // Patient receives layered energy ribbons with an emphasized landing.
@@ -540,6 +546,10 @@ export class EnergyHeroVFX {
       }
     }
     this.outerImpact(id,point,fx.targetId);
+    this.volume.spawn(id,point,{
+      targetId:fx.targetId,
+      direction:fx.destination.subtract(fx.origin),
+    });
   }
   update(match,now=performance.now()){
     for(let i=this.live.length-1;i>=0;i--){
@@ -562,6 +572,10 @@ export class EnergyHeroVFX {
       }
       if(fx.type==="thread"&&target&&!target.statuses?.some(s=>s.kind==="reactive-thread")&&t>.10){
         this.destroy(fx);this.live.splice(i,1);continue;
+      }
+      if(fx.type==="volume-impact"){
+        this.volume.update(fx,t,now);
+        continue;
       }
       if(fx.type==="projectile"){
         const end=target?.alive?this.world(target):fx.destination;

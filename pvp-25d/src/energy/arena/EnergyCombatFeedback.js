@@ -60,7 +60,7 @@ export class EnergyCombatFeedback{
     }else if(event.type==="link"){
       this.spawn("heal","LINKED",to);
     }else if(event.type==="nothing"&&event.actorId==="player"){
-      this.spawn("info","NOTHING TO CLEANSE",to);
+      this.spawn("info",event.message||"NO EFFECT",to);
     }
   }
   project(actor){

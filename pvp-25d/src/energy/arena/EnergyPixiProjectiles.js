@@ -16,7 +16,9 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
   const startDist=Math.min(Math.max(13*k,distance-tail),Math.max(0,distance-7*k));
   const ax=from.x+tx*startDist,ay=from.y+ty*startDist;
   const px=from.x+dx*u,py=from.y+dy*u;
-  const opacity=smooth(travel/.10)*(1-smooth((travel-.89)/.11));
+  // Stay fully visible through the FINAL travelling frame. The previous
+  // .89-.1 fade erased the head before the impact event even began.
+  const opacity=smooth(travel/.10);
   const pt=(f,offset=0)=>({
     x:ax+(px-ax)*f+nx*offset,
     y:ay+(py-ay)*f+ny*offset
@@ -54,12 +56,14 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
   if(ice){
     // Frostbolt: cool translucent envelope, razor-hot center, deliberate
     // low wobble and a thinner crystalline silhouette.
-    ribbon(5,.92,4.5,13.5,3.8,15,style.dim,.13);
-    ribbon(13,1.13,3.2,10.5,2.8,15,style.c,.22);
-    ribbon(29,1,1.4,5,1.25,15,style.c,.72);
-    ribbon(109,1.45,6,17,4.2,14,style.c,.10);
-    line([pt(0),pt(1)],style.c,5.2,.48);
-    line([pt(0),pt(1)],style.core,1.45,.97);
+    // Keep the original palette, but redistribute it: shadowed icy facets
+    // and saturated cyan do most of the work; white belongs at the nose.
+    ribbon(5,.92,4.5,13.5,3.8,15,style.dim,.25);
+    ribbon(13,1.13,3.2,10.5,2.8,15,style.c,.33);
+    ribbon(29,1,1.4,5,1.25,15,style.c,.48);
+    ribbon(109,1.45,6,17,4.2,14,style.dim,.14);
+    line([pt(0),pt(1)],style.c,4.2,.42);
+    line([pt(0),pt(1)],style.core,.85,.55);
     // Every splinter is a small angular crystal, not a generic glowing dot.
     for(let i=0;i<15;i++){
       const f=(i+.45)/15;
@@ -94,25 +98,39 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
       }
       line(points,sign>0?style.core:style.dim,1.05,.43);
     }
-    // Long faceted nose with a fine white seam; brighter but not oversized.
-    const front=13*k,wing=4.8*k;
-    g.moveTo(px+tx*front,py+ty*front)
-      .lineTo(px-tx*8*k+nx*wing,py-ty*8*k+ny*wing)
-      .lineTo(px-tx*4*k,py-ty*4*k)
-      .lineTo(px-tx*8*k-nx*wing,py-ty*8*k-ny*wing)
-      .closePath().fill({color:style.c,alpha:.79*opacity});
-    line([{x:px-tx*9*k,y:py-ty*9*k},{x:px+tx*front,y:py+ty*front}],
-      style.core,1.5,.99);
+    // Distinct faceted spearhead: dark silhouette -> saturated blue facet ->
+    // tiny near-white cutting edge. Keep it separable from the luminous tail.
+    const front=19*k,wing=7.1*k;
+    const tip={x:px+tx*front,y:py+ty*front};
+    g.moveTo(tip.x,tip.y)
+      .lineTo(px-tx*12*k+nx*wing*1.28,py-ty*12*k+ny*wing*1.28)
+      .lineTo(px-tx*6*k,py-ty*6*k)
+      .lineTo(px-tx*12*k-nx*wing*1.28,py-ty*12*k-ny*wing*1.28)
+      .closePath().fill({color:style.dim,alpha:.93*opacity});
+    g.moveTo(tip.x,tip.y)
+      .lineTo(px-tx*9*k+nx*wing,py-ty*9*k+ny*wing)
+      .lineTo(px+tx*2*k,py+ty*2*k)
+      .lineTo(px-tx*9*k-nx*wing,py-ty*9*k-ny*wing)
+      .closePath().fill({color:style.c,alpha:.96*opacity});
+    // The brightest area is a narrow, tapered facet at the leading tip,
+    // not a white band extending all the way to the casting orb.
+    g.moveTo(tip.x,tip.y)
+      .lineTo(px+tx*2*k+nx*2.1*k,py+ty*2*k+ny*2.1*k)
+      .lineTo(px-tx*3*k,py-ty*3*k)
+      .lineTo(px+tx*2*k-nx*2.1*k,py+ty*2*k-ny*2.1*k)
+      .closePath().fill({color:style.core,alpha:.92*opacity});
+    line([{x:px-tx*3*k,y:py-ty*3*k},tip],style.core,1.15,.97);
   }else{
     // Pyroblast: four flame temperature layers, flowing ribbons and a molten
     // golden body. Sun Lance stays tighter and more directional than fire.
-    ribbon(3,1,7,19,7.5,18,style.dim,.13);
-    ribbon(11,1.12,5,15,5.5,18,style.c,.23);
-    ribbon(23,.94,2.2,8,3.2,18,0xffb035,.77);
-    ribbon(37,1.25,.8,3.5,1.7,18,style.core,.92);
-    ribbon(101,1.70,9,24,8.5,16,style.c,.10);
-    line([pt(0),pt(1)],0xffba3a,6.8,.56);
-    line([pt(0),pt(1)],style.core,1.8,.96);
+    // More dark amber + molten gold, less continuous cream-white fill.
+    ribbon(3,1,7,19,7.5,18,style.dim,.26);
+    ribbon(11,1.12,5,15,5.5,18,style.c,.34);
+    ribbon(23,.94,2.2,8,3.2,18,0xffb035,.51);
+    ribbon(37,1.25,.8,3.5,1.7,18,style.core,.49);
+    ribbon(101,1.70,9,24,8.5,16,style.dim,.14);
+    line([pt(0),pt(1)],0xffba3a,5.4,.45);
+    line([pt(0),pt(1)],style.core,.96,.63);
     // 24 independent embers, with flicker and streaks.
     for(let i=0;i<24;i++){
       const f=(i+.35)/24;
@@ -156,14 +174,26 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
       }
       line(ring,i%2?0xffbf4b:style.c,1.15,.34);
     }
-    const front=15*k,back=11*k;
-    g.moveTo(px+tx*front,py+ty*front)
-      .lineTo(px-tx*back+nx*5.3*k,py-ty*back+ny*5.3*k)
-      .lineTo(px-tx*4*k,py-ty*4*k)
-      .lineTo(px-tx*back-nx*5.3*k,py-ty*back-ny*5.3*k)
-      .closePath().fill({color:0xffb746,alpha:.66*opacity});
-    line([{x:px-tx*10*k,y:py-ty*10*k},
-      {x:px+tx*front,y:py+ty*front}],style.core,2.1,.98);
+    // Three-level solar spearhead; the small hot-white front sits INSIDE
+    // a gold facet with a burnt-orange silhouette (like the build-up).
+    const front=21*k,back=14*k;
+    const tip={x:px+tx*front,y:py+ty*front};
+    g.moveTo(tip.x,tip.y)
+      .lineTo(px-tx*back+nx*8.2*k,py-ty*back+ny*8.2*k)
+      .lineTo(px-tx*7*k,py-ty*7*k)
+      .lineTo(px-tx*back-nx*8.2*k,py-ty*back-ny*8.2*k)
+      .closePath().fill({color:style.dim,alpha:.92*opacity});
+    g.moveTo(tip.x,tip.y)
+      .lineTo(px-tx*10*k+nx*6.1*k,py-ty*10*k+ny*6.1*k)
+      .lineTo(px-tx*3*k,py-ty*3*k)
+      .lineTo(px-tx*10*k-nx*6.1*k,py-ty*10*k-ny*6.1*k)
+      .closePath().fill({color:style.c,alpha:.97*opacity});
+    g.moveTo(tip.x,tip.y)
+      .lineTo(px+tx*1*k+nx*2.6*k,py+ty*1*k+ny*2.6*k)
+      .lineTo(px-tx*5*k,py-ty*5*k)
+      .lineTo(px+tx*1*k-nx*2.6*k,py+ty*1*k-ny*2.6*k)
+      .closePath().fill({color:style.core,alpha:.91*opacity});
+    line([{x:px-tx*4*k,y:py-ty*4*k},tip],style.core,1.35,.98);
     for(let i=0;i<4;i++){
       const sign=i%2?1:-1,p=pt(.88-i*.09,sign*(4+i*1.5)*k);
       line([{x:p.x-tx*4*k,y:p.y-ty*4*k},

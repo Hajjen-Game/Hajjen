@@ -3,6 +3,7 @@
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
+import { MODES, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261009-learning-path25";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-kick-lock1";
 
 const TICK = 0.05;
@@ -76,8 +77,13 @@ function actorFor(id,team,role,pos,control,abilities,evolutions={}) {
 }
 
 export class EnergyMatch {
-  constructor(build,arena) {
-    this.loadout=buildCombatLoadout(build);
+  constructor(build,arena,options={}) {
+    // Independently balance each mode while keeping a full, editable Build Lab build.
+    this.modeId=MODES[options.modeId]?options.modeId:"training";
+    this.mode=MODES[this.modeId];
+    this.progressLevel=Math.max(1,Math.min(8,Math.floor(options.level||1)));
+    this.loadout=stagedLoadout(build,this.progressLevel);
+    this.tuning=enemyTuning(this.modeId,this.progressLevel);
     this.arena=arena;
     this.time=0;
     this.ended=false;
@@ -93,18 +99,11 @@ export class EnergyMatch {
     this.actors=[];
     // Bots use real 10-slot classless builds: two role-bound + eight shared.
     // Select a balanced set covering damage, healing, interrupt, CC and defense.
-    const support={
-      healer:["reactive-thread","photon-barrier","cleanse-flux","sun-lance",
-        "null-prison","symbiosis-link","crystal-bolt","resonance-cut"],
-      melee:["arc-strike","gravity-hammer","rift-slash","vector-rush",
-        "crystal-snare","photon-barrier","entropy-mark","resonance-cut"],
-      caster:["crystal-bolt","crystal-snare","sun-lance","fracture-spear",
-        "null-prison","photon-barrier","resonance-cut","reactive-thread"],
-    };
+    const rosters=rosterRoles(build.role,this.modeId);
     for(const team of ["friendly","enemy"]){
-      for(const role of ["healer","melee","caster"]){
+      for(const role of rosters[team]){
         const isPlayer=team==="friendly"&&role===build.role;
-        const abilities=isPlayer?this.loadout.abilitySlots.map(s=>s.id):[...ROLES[role].locked,...support[role]];
+        const abilities=isPlayer?this.loadout.abilitySlots.map(s=>s.id):botAbilities(role,this.progressLevel,this.modeId);
         const evolutions=isPlayer?Object.fromEntries(this.loadout.abilitySlots.filter(s=>s.evolutionId).map(s=>[s.id,s.evolutionId])):{};
         const id=isPlayer?"player":team+"-"+role;
         const config=arena.spawns[team+"-"+role];
@@ -120,9 +119,12 @@ export class EnergyMatch {
         if(isPlayer)this.player=actor;
       }
     }
-    this.player.targetId="enemy-melee";
+    this.player.targetId=this.living("enemy").find(a=>a.role!=="healer")?.id||this.living("enemy")[0]?.id||null;
     for(const a of this.actors){
-      if(a.control==="ai")a.targetId=a.team==="friendly"?"enemy-melee":a.role==="melee"?"player":a.role==="caster"?"friendly-caster":"friendly-melee";
+      if(a.control!=="ai")continue;
+      const targets=this.opponents(a);
+      a.targetId=(a.team==="friendly"?this.getActor(this.player.targetId):
+        targets.find(t=>t.role==="caster")||targets.find(t=>t.role==="melee")||this.player)?.id||targets[0]?.id||null;
     }
     this.ai=new EnergyAI(this,{
       rules:ABILITY_RULES,hasLOS:hasLineOfSight,segmentHitsRect,canStand,
@@ -264,7 +266,8 @@ export class EnergyMatch {
   }
   heal(target,amount,source,spellId){
     if(!target?.alive)return;
-    const scaled=Math.max(0,Math.round(amount*(1-this.dampening)));
+    const scaled=Math.max(0,Math.round(amount*(1-this.dampening)
+      *(source?.team==="enemy"?this.tuning.healing:1)));
     const given=Math.min(target.maxHp-target.hp,scaled);
     const hpBefore=target.hp;
     target.hp+=given;target.healthPct=target.hp/target.maxHp;
@@ -273,8 +276,10 @@ export class EnergyMatch {
   }
   damage(target,amount,source,spellId){
     if(!target?.alive)return;
-    let value=amount;
-    const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=amount;
+    // Beginner scaling applies only to incoming enemy damage; no spell rules
+    // or visual impact are changed, and the full balance returns at high levels.
+    let value=amount*(source?.team==="enemy"?this.tuning.damage:1);
+    const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
     const guard=target.statuses.find(s=>s.kind==="guard");
     if(guard)value*=1-guard.amount;
     const guardReduction=rawDamage-value;

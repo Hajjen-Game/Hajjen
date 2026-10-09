@@ -104,6 +104,18 @@ export class EnergyHeroVFX {
     },this.scene);
     return this.bind(fx,mesh,slot,i);
   }
+  // Babylon's octahedral polyhedron makes a double-pointed faceted gem,
+  // rather than the single-sided conical arrow used by the original bolt.
+  // Bake the proportions into the vertices so shared animation scaling
+  // cannot accidentally turn the crystal into a short round pebble.
+  crystal(fx,size,elongation,slot="main",i=0){
+    const mesh=BABYLON.MeshBuilder.CreatePolyhedron("hero-crystal:"+this.sequence++,{
+      type:1,size,flat:true,
+    },this.scene);
+    mesh.scaling.y=elongation;
+    mesh.bakeCurrentTransformIntoVertices();
+    return this.bind(fx,mesh,slot,i);
+  }
   tube(fx,points,radius,slot="main",i=0){
     const mesh=BABYLON.MeshBuilder.CreateTube("hero-filament:"+this.sequence++,{
       path:points,radius,tessellation:8,cap:BABYLON.Mesh.CAP_ROUND,
@@ -197,19 +209,42 @@ export class EnergyHeroVFX {
     // Keeping the genuine 3D body gives the same layered identity as the
     // other original Visual Combat Slice spells.
     if(spellId==="crystal-bolt"){
-      const crystal=this.cone(fx,.22,.88,5,"main",0);
-      crystal.position.y=.04;
-      const tip=this.cone(fx,.12,.68,5,"light",1);
-      tip.position.y=.15;
-      for(let i=0;i<3;i++)this.ball(fx,.1,"light",i,
-        new BABYLON.Vector3(Math.cos(i*TAU/3)*.18,-.3,Math.sin(i*TAU/3)*.18));
+      // A real, double-ended quartz/octagonal crystal instead of an arrow.
+      // Main cyan faceted shell + shorter bright inner gem give depth, not
+      // a flat white wedge. The actual energy trails are unchanged.
+      this.crystal(fx,.37,1.52,"main",0);
+      this.crystal(fx,.245,1.42,"light",1);
+      for(let i=0;i<3;i++){
+        const a=i*TAU/3+.38;
+        this.ball(fx,.072,i===0?"light":"main",i+2,
+          new BABYLON.Vector3(Math.cos(a)*.30,
+            (i-1)*.23,Math.sin(a)*.30));
+      }
+      // Two restrained, tilted orbit arcs echo the crystallization
+      // inspiration without becoming a second impact or ground sigil.
+      for(let i=0;i<2;i++){
+        const orbit=this.arc(fx,.35+i*.04,Math.PI*1.24,
+          i*2.75+.35,0,.0095,i===0?"light":"main",i+5);
+        orbit.rotation.x=.52+i*.70;
+      }
     }else{
-      const spine=this.cone(fx,.22,1.35,5,"main",0);
-      const core=this.cone(fx,.085,1.72,5,"light",1);
-      core.position.y=.1;
-      this.torus(fx,.42,.042,"light",2).position.y=-.15;
-      for(let i=0;i<3;i++)this.ball(fx,.095,"main",i,
-        new BABYLON.Vector3(.20*Math.cos(i*TAU/3),-.50,.20*Math.sin(i*TAU/3)));
+      // Solar energy is an incandescent ORB, not a triangular lance.
+      // A saturated gold shell surrounds a compact white-hot center;
+      // a soft translucent corona gives it a living fireball silhouette.
+      this.ball(fx,.61,"main",0);
+      this.ball(fx,.36,"light",1);
+      this.ball(fx,.79,"soft",2);
+      for(let i=0;i<2;i++){
+        const halo=this.arc(fx,.39+i*.055,Math.PI*(i?1.0:1.32),
+          .24+i*2.43,0,.016,i===0?"light":"main",i+3);
+        halo.rotation.x=.38+i*.79;
+      }
+      for(let i=0;i<3;i++){
+        const a=i*TAU/3+.35;
+        this.ball(fx,.083,i===0?"light":"main",i+5,
+          new BABYLON.Vector3(.36*Math.cos(a),
+            (i-1)*.15,.36*Math.sin(a)));
+      }
     }
     if(fx.pixiPrimary){
       // Original 3D core + restrained Pixi accents; no later tracer cloud.
@@ -756,11 +791,23 @@ export class EnergyHeroVFX {
           mesh.scaling.setAll(.64+pressure*.82);
           alpha=.68+pressure*.32;
         }else if(fx.type==="projectile"){
-          mesh.rotation.y=now*.003*(idx%2?1:-1);
-          mesh.scaling.setAll(1+.2*Math.sin(t*12+idx));
-          // Initial 3D core remains clearly visible for the entire Pixi
-          // travel; contact is handled separately on projectile expiry.
+          // Preserve the original 3D motion/timing and all Pixi tails,
+          // but make the NEW physical head look animated instead of rigid.
+          const ice=fx.spellId==="crystal-bolt";
+          const mainBody=idx<=2;
+          const pulse=ice
+            ?1+.045*Math.sin(now*.006+idx*.95)
+            :1+.075*Math.sin(now*.009+idx*1.4);
+          mesh.rotation.y=now*(ice?.00125:.0020)*(idx%2?1:-1);
+          if(!mainBody){
+            mesh.rotation.x+=.0; // Keep orbit arcs' authored tilts.
+            mesh.scaling.setAll(.94+.10*Math.sin(now*.006+idx));
+          }else{
+            mesh.scaling.setAll(pulse);
+          }
+          // Core and gem faces remain visible through the final frame.
           alpha=fx.pixiPrimary?Math.min(1,t*10):clamp((1-t)*4,0,1);
+          if(!ice&&idx===2)alpha*=.64; // corona is light, not a solid ball
         }else if(fx.type==="prison"){
           const rise=smooth(t/.11),sag=1-.03*Math.sin(now*.002+idx);
           mesh.scaling.setAll((.65+.35*rise)*sag);

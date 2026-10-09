@@ -90,7 +90,7 @@ export function drawRiftSlashTravel(g,e,from,to,travel,style,scale=1){
     const u=(i+.7)/5,a=(u-.5)*Math.PI*1.22+spin;
     const p=vec(centre,Math.cos(a)*r*.63,Math.sin(a)*r*.90);
     const f=(3+i%2*2)*k;
-    const q=vec(p,tx*f+nx*0,0); // translated a small amount along attack
+    const q={x:p.x+tx*f,y:p.y+ty*f}; // spark follows attack direction
     stroke([p,{x:p.x+tx*f-nx*(i%2?4:-4)*k,
       y:p.y+ty*f-ny*(i%2?4:-4)*k}],
       i===0?PALETTE.edge:PALETTE.magenta,.80,sparkOn*(.39+i*.065));

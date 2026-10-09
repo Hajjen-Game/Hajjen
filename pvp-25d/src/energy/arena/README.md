@@ -657,6 +657,39 @@ for the existing game or a fullscreen screenshot overlay.
   This pass does not edit Crystal Bolt, Sun Lance, Rift Slash or any
   other spell renderer/gameplay.
 
+## Full Match Run Report (energy-run-v1)
+
+Energy Arena now has **COPY RUN REPORT** next to the existing **COPY AI
+REPORT**. AI REPORT still tracks movement, plans, LOS and focus decisions;
+RUN REPORT is a separate forensic combat trace. Both buttons work mid-match,
+on player death (the 3v3 can continue), or after the winner is declared.
+
+- Every emitted simulation event has an ordered timestamp and is recorded
+  independently of `consumeEvents()` and delayed client-side VFX.
+- Hit snapshots are captured at damage calculation: actual lost HP,
+  pre/post HP and shield, raw attack value, guard reduction, shield absorbed,
+  applied statuses and actor/source/spell IDs. Heals include pre/post HP and
+  overhealing. Recorded shields/guards, CC with DR, interrupt origin,
+  cleanses and fatal blows carry identifying metadata too.
+- The copyable report contains outcome, loadout, last known actor stats,
+  incoming 1s/3s worst burst windows for each actor, six seconds of detailed
+  event reconstruction before every death, damage totals by
+  source-victim-spell, and the full chronological combat log.
+- A maximum of 4000 retained events bounds memory and records the number
+  of evicted oldest events. Real matches are at most 240 seconds.
+- Report timestamps are simulation/application times. Some Pixi effects
+  delay hit animation *cosmetically* by ~hundreds of ms; these do not
+  delay or alter the actual damage calculation.
+- **No AI, damage rules, cast times, health pools, hit timing or VFX
+  changed** in this instrumentation pass. The forensic trace is intended
+  to identify the root cause of occasional extremely fast deaths BEFORE
+  deciding which values/mechanics need balancing.
+- A unit simulation with four 27-point hits in 0.36s confirmed the
+  100 HP / 1-second burst is exposed with exact 100→73→46→19→0 HP
+  accounting; simulated guard, absorb, history retention and the
+  original AI report were also tested. Browser copy/UI smoke
+  validation is still appropriate.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

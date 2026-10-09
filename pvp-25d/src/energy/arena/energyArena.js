@@ -216,19 +216,23 @@ function renderActionBar(){
   for(const entry of actionNodes){
     const {node,cd,ability,slot}=entry;
     const remaining=player.cooldowns[slot.id]||0;
+    const schoolRemaining=player.schoolLocks[ability.discipline]||0;
     const reason=match.reason(player,slot.id,player.targetId);
     node.classList.toggle("cooling",remaining>0);
+    node.classList.toggle("school-locked",schoolRemaining>.02);
     const hardStop=reason&&!["CASTING","GLOBAL COOLDOWN"].includes(reason);
     node.classList.toggle("disabled",!!hardStop);
     node.classList.toggle("gcd",reason==="CASTING"||reason==="GLOBAL COOLDOWN");
     node.style.setProperty("--gcd-progress",Math.round(clamp((player.gcd||0)/1.3,0,1)*100)+"%");
     node.classList.toggle("queued",pendingCast?.ability===slot.id);
     const newTitle=ability.name+" — "+ability.description+"\n"+(reason||"READY")
+      +(schoolRemaining>.02?"\nSchool lock: "+schoolRemaining.toFixed(1)+"s":"")
+      +(remaining>.02?"\nCooldown: "+remaining.toFixed(1)+"s":"")
       +(slot.evolutionId?"\nEvolution: "+slot.evolutionId:"");
     if(node.title!==newTitle)node.title=newTitle;
     const newLabel=ability.name+(reason?" · "+reason:"");
     if(node.getAttribute("aria-label")!==newLabel)node.setAttribute("aria-label",newLabel);
-    cd.textContent=remaining>.02?Math.ceil(remaining)+"s":"";
+    cd.textContent=remaining>.02?Math.ceil(remaining)+"s":schoolRemaining>.02?"LOCK "+Math.ceil(schoolRemaining)+"s":"";
   }
 }
 function updateCastHUD(){

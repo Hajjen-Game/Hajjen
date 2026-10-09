@@ -621,6 +621,42 @@ provided neon slash reference images.
   Gravity, Null Prison and Pulse Mend. Real browser / live arena
   appearance still needs visual inspection.
 
+## Energy Orb Glass & Identity Pass 21
+
+The arena reference image is a direction for the **characters themselves**:
+transparent glass, rich coloured internal energy, restrained orbiting
+accents and soft pools of colour against the dark arena — not a substitute
+for the existing game or a fullscreen screenshot overlay.
+
+- New `EnergyOrbPolish.js` is **exclusive to Energy Arena and its Visual
+  VFX Lab**, layered after `OrbCharacterRenderer.sync()`. Main 3v3
+  gameplay and the shared orb renderer are NOT edited.
+- Orb glass is more transparent so the core is visible at arena camera
+  distance. Existing camera-facing reflections, actor size, targeting
+  geometry, cast cues, HP bars, orbs and hit locations are retained.
+- All five energy disciplines get an individually coloured, compact 3D
+  central motif, two tilted independently rotating depth/orbit bands, and
+  three slowly revolving small facets: Solar gold, Cryo cyan, Void
+  violet, Kinetic red, Vital green. The build's primary colour or active
+  VFX Lab discipline selects the matching character identity. Nuclei
+  keep a narrow bright highlight with saturated colour *around* it.
+- Small two-strand energy wakes are visible only while moving, not while
+  idle, and a single shared 96x96 radial gradient provides understated
+  ground colour/glow per actor. All extra meshes are visual-only and
+  explicitly non-pickable. No world lights or per-frame mesh/material
+  allocations were added.
+- Animation and environmental lighting work in normal match mode and
+  the same VFX preview. All new materials/meshes/textures are disposed
+  on actor deletion, class swap or renderer shutdown.
+- Code simulation covered all five discipline profiles, idle/moving
+  animation, no per-frame allocations, scene/picking safety, actor
+  replacement/cleanup and full GPU resource cleanup (54/54 meshes,
+  37/37 materials, 1/1 shared texture disposed).
+- **Visual QA still needed in a real browser** for the exact glass
+  transparency and glow balance at gameplay zoom and spell impacts.
+  This pass does not edit Crystal Bolt, Sun Lance, Rift Slash or any
+  other spell renderer/gameplay.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

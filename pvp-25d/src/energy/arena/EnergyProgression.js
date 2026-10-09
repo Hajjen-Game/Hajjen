@@ -10,20 +10,21 @@ export const MODES = Object.freeze({
   training: Object.freeze({
     id:"training",label:"Training Grounds",size:"1v1",subtitle:"Learn one mechanic at a time",
     description:"One opponent, gentle pressure, no coordinated burst. Practice targeting, casting and movement.",
-    xpWin:50,xpLoss:22,
+    xpWin:35,xpLoss:14,
   }),
   duo: Object.freeze({
     id:"duo",label:"Duo Skirmish",size:"2v2",subtitle:"Your first team fights",
     description:"You and one AI partner. Early rivals have no healer; learn counters as you level.",
-    xpWin:65,xpLoss:26,
+    xpWin:45,xpLoss:20,
   }),
   trio: Object.freeze({
     id:"trio",label:"Full Arena",size:"3v3",subtitle:"The complete arena experience",
     description:"Three versus three, full team tactics. Available whenever you want the challenge.",
-    xpWin:85,xpLoss:30,
+    xpWin:60,xpLoss:24,
   }),
 });
-const LEVEL_XP=[0,50,130,240,380,555,765,1010];
+// A new ability now takes several victories. Existing XP is preserved.
+const LEVEL_XP=[0,140,340,600,920,1300,1740,2240];
 const LESSONS=[
   "Learn targeting, movement and your three core abilities.",
   "A new ability joins your kit. Practice using it before taking on bigger fights.",
@@ -125,12 +126,26 @@ export function completeArenaBuild(build){
 export function stagedLoadout(build,level){
   const full=buildCombatLoadout(completeArenaBuild(build));
   const byId=new Map(full.abilitySlots.map(slot=>[slot.id,slot]));
-  const order=[...PREFERENCES[full.role],...full.abilitySlots.map(s=>s.id)];
+  // Preserve three foundations while making the player's OWN picks determine
+  // subsequent slots rather than always forcing the same default spell order.
+  const foundations=PREFERENCES[full.role].slice(0,3);
+  const playerChoices=(build.freeSlots||[]).filter(Boolean);
+  const order=[...foundations,...playerChoices,...ROLES[full.role].locked,
+    ...PREFERENCES[full.role],...full.abilitySlots.map(s=>s.id)];
   const selected=[];
   for(const id of order){
     if(byId.has(id)&&!selected.includes(id))selected.push(id);
   }
-  const slots=selected.slice(0,slotsForLevel(level)).map(id=>byId.get(id));
+  const limit=Math.min(12,Math.max(0,(Math.floor(level)-1)*2));
+  let spent=0,activeEvolutions=0;
+  const slots=selected.slice(0,slotsForLevel(level)).map(id=>{
+    const base=byId.get(id);
+    const earnedRank=Math.max(0,Math.min(base.talentRank,limit-spent));
+    spent+=earnedRank;
+    const evolution=earnedRank===3&&base.evolutionId&&activeEvolutions<2?base.evolutionId:null;
+    if(evolution)activeEvolutions++;
+    return Object.freeze({...base,talentRank:earnedRank,evolutionId:evolution});
+  });
   return Object.freeze({...full,abilitySlots:Object.freeze(slots),
     progressLevel:level,maxAbilitySlots:full.abilitySlots.length});
 }

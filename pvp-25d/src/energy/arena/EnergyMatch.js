@@ -3,8 +3,8 @@
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
-import { MODES, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261009-learning-path25";
-import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-kick-lock1";
+import { MODES, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261009-learning-path26";
+import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
 
 const TICK = 0.05;
 // First survivability pass: allow a meaningful response to coordinated burst.

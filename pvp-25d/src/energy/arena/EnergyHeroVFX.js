@@ -182,11 +182,25 @@ export class EnergyHeroVFX {
       }
       for(let i=0;i<6;i++)this.ball(fx,.086,i%2?"light":"main",i);
     }else if(spellId==="rift-slash"){
+      // In-orb build-up like our other signature spells. The wide crescent
+      // belongs ONLY to the release, not to the charging glass orb.
       for(let i=0;i<3;i++){
-        this.arc(fx,.53+i*.12,Math.PI*1.15,i*.9,0,.055,
-          i===0?"light":"main",i);
+        const filament=this.arc(fx,.24+i*.085,Math.PI*(.55+i*.08),
+          i*1.56,.02,.011,i===0?"light":"main",i);
+        filament.rotation.x=.35+i*.45;
       }
-      this.cone(fx,.18,.6,5,"dark",0);
+      this.ball(fx,.155,"light",3);
+      for(let i=0;i<3;i++){
+        const a=i*TAU/3;
+        this.ball(fx,.067,i===0?"light":"main",4+i,
+          new BABYLON.Vector3(Math.cos(a)*.28,
+            Math.sin(a)*.17,Math.sin(a)*.28));
+      }
+      // Materialize a tiny, ghostly SIDE blade only right before release.
+      const preview=this.arc(fx,.42,Math.PI*.75,-.63,.02,.015,"main",7);
+      preview.position.x=-.50;
+      fx.meshes[fx.meshes.length-1].riftPreview=true;
+      preview.visibility=0;
     }else if(spellId==="gravity-hammer"){
       for(let i=0;i<3;i++){
         const ring=this.torus(fx,.42+i*.20,.045,i===0?"light":"main",i);
@@ -294,9 +308,16 @@ export class EnergyHeroVFX {
   // depth and provides a meaningful fallback if Pixi is switched off.
   melee(spellId,source,target){
     const origin=this.world(source,.88),destination=this.world(target,.88);
-    const fx=this.makeEffect(spellId,"rift-drive",origin,420,{
+    const heading=destination.subtract(origin);
+    const mag=Math.max(.001,Math.hypot(heading.x,heading.z));
+    // The blade's movement is PERPENDICULAR to the strike direction:
+    // from one side of the enemy, across its centre, and out the other.
+    const normal=new BABYLON.Vector3(-heading.z/mag,0,heading.x/mag);
+    const start=destination.clone();
+    start.x-=normal.x*1.38;start.z-=normal.z*1.38;
+    const fx=this.makeEffect(spellId,"rift-drive",start,420,{
       origin:origin.clone(),destination:destination.clone(),sourceId:source.id,
-      targetId:target.id,ripTriggered:false,
+      targetId:target.id,ripTriggered:false,riftNormal:normal,
     });
     this.riftCrescent(fx,.96,.31,"#321948",.75,0,-.055); // shadow
     this.riftCrescent(fx,.87,.235,"#ad63ea",.80,1,.035); // rift body
@@ -763,10 +784,17 @@ export class EnergyHeroVFX {
       }
       if(fx.type==="rift-drive"){
         const end=target?.alive?this.world(target):fx.destination;
-        const travel=smooth(clamp(t/.66,0,1));
-        fx.root.position.copyFrom(BABYLON.Vector3.Lerp(fx.origin,end,travel));
-        const vec=end.subtract(fx.origin);
-        fx.root.rotation.y=Math.atan2(vec.x,vec.z);
+        // At t=.64 the cut crosses the enemy (and the one real hit fires).
+        // A shorter follow-through travels beyond the enemy rather than
+        // suddenly stopping when damage is registered.
+        const q=t<=.64?.5*smooth(t/.64):
+          .5+.5*smooth((t-.64)/.36);
+        const side=-1.38+2.76*q;
+        fx.root.position.copyFrom(end);
+        fx.root.position.x+=fx.riftNormal.x*side;
+        fx.root.position.z+=fx.riftNormal.z*side;
+        const direction=end.subtract(fx.origin);
+        fx.root.rotation.y=Math.atan2(direction.x,direction.z);
         if(!fx.ripTriggered&&t>=.64){
           fx.ripTriggered=true;
           this.riftContact(end);
@@ -784,7 +812,7 @@ export class EnergyHeroVFX {
           if(target)this.gravityContact(target);
         }
       }
-      for(const {mesh,slot,i:idx,base,tracer,riftThread} of fx.meshes){
+      for(const {mesh,slot,i:idx,base,tracer,riftThread,riftPreview} of fx.meshes){
         // World-space three-dimensional tail is independent of the projectile
         // root rotation. It persists even if Pixi fails to load.
         if(fx.type==="projectile"&&tracer!==undefined){
@@ -807,17 +835,38 @@ export class EnergyHeroVFX {
         let alpha=1;
         if(fx.type==="charge"){
           const pressure=smooth(t),angle=now*.001*(1+idx*.25)+idx*TAU/6;
-          if(mesh.name.includes("hero-facet")||mesh.name.includes("hero-ball")&&idx>0){
-            const radius=fx.spellId==="sun-lance"?.36*(1-pressure*.7):.35*(1-pressure*.8);
-            mesh.position.set(Math.cos(angle)*radius,Math.sin(angle*1.1)*.17,
-              Math.sin(angle)*radius);
-            mesh.rotation.z=angle*1.1;
-          }else {
-            mesh.rotation.y=angle;
-            mesh.rotation.x=.35*Math.sin(angle);
+          if(fx.spellId==="rift-slash"){
+            if(riftPreview){
+              // Stay invisible until 75% of the cast is finished.
+              mesh.position.x=-.50;
+              mesh.rotation.z=-.46+.18*smooth((t-.76)/.24);
+              mesh.scaling.setAll(.68+.20*smooth((t-.77)/.23));
+              alpha=.36*smooth((t-.77)/.19)*(1-smooth((t-.96)/.04));
+            }else{
+              // Thin rift filaments and motes remain inside the orb.
+              mesh.rotation.z=angle*.82;
+              mesh.rotation.x=.22*Math.sin(angle+idx);
+              if(mesh.name.includes("hero-ball")&&idx>3){
+                const radius=.25*(1-pressure*.40);
+                mesh.position.set(Math.cos(angle)*radius,
+                  Math.sin(angle*1.2)*.13,Math.sin(angle)*radius);
+              }
+              mesh.scaling.setAll(.68+.22*pressure);
+              alpha=.56+.31*pressure;
+            }
+          }else{
+            if(mesh.name.includes("hero-facet")||mesh.name.includes("hero-ball")&&idx>0){
+              const radius=fx.spellId==="sun-lance"?.36*(1-pressure*.7):.35*(1-pressure*.8);
+              mesh.position.set(Math.cos(angle)*radius,Math.sin(angle*1.1)*.17,
+                Math.sin(angle)*radius);
+              mesh.rotation.z=angle*1.1;
+            }else {
+              mesh.rotation.y=angle;
+              mesh.rotation.x=.35*Math.sin(angle);
+            }
+            mesh.scaling.setAll(.64+pressure*.82);
+            alpha=.68+pressure*.32;
           }
-          mesh.scaling.setAll(.64+pressure*.82);
-          alpha=.68+pressure*.32;
         }else if(fx.type==="projectile"){
           // Preserve the original 3D motion/timing and all Pixi tails,
           // but make the NEW physical head look animated instead of rigid.

@@ -74,7 +74,12 @@ export class EnergyOrbPolish{
     this.floorTexture=null;
   }
   create(actor,entry){
-    const id=actor.id,kind=kindFor(actor),p=PALETTE[kind];
+    const id=actor.id,kind=kindFor(actor);
+    const showcase=Boolean(actor.isShowcase);
+    const base=PALETTE[kind];
+    const second=actor.energyStyle?.energy;
+    // Distinct player-chosen secondary energy appears as gyros/motes.
+    const p={...base,accent:second&&second!==base.hex?second:base.accent};
     const mats=[],meshes=[],parts={};
     const mat=(suffix,hex,opts)=>{
       const m=material(this.scene,"energy-orb21:"+id+":"+suffix,hex,opts);
@@ -87,9 +92,9 @@ export class EnergyOrbPolish{
       meshes.push(mesh);return mesh;
     };
     const shell=entry.visualRoot;
-    const hot=mat("heart",p.hot,{alpha:.92,emit:1.55});
+    const hot=mat("heart",p.hot,{alpha:.92,emit:showcase?1.8:1.55});
     const base=mat("inner",p.hex,{alpha:.72,emit:1.18});
-    const accents=mat("accents",p.accent,{alpha:.82,emit:1.40});
+    const accents=mat("accents",p.accent,{alpha:showcase?.91:.82,emit:showcase?1.85:1.40});
     const faint=mat("threads",p.hex,{alpha:.46,emit:1.1});
     const clear=mat("glints","#edfaff",{alpha:.68,emit:1.20});
 
@@ -121,11 +126,11 @@ export class EnergyOrbPolish{
     // Separate gyres provide visible depth and parallax. Their inclinations
     // are staggered rather than being copies of one flat emblem.
     parts.orbits=[];
-    for(let i=0;i<2;i++){
+    for(let i=0;i<(showcase?4:2);i++){
       const o=add(BABYLON.MeshBuilder.CreateTorus(
         "energy-orb21-gyro:"+id+":"+i,{
           diameter:kind==="void"?.50+i*.13:.44+i*.12,
-          thickness:i===0?.013:.009,tessellation:32,
+          thickness:i===0?.013:showcase?.008:.009,tessellation:32,
         },this.scene),shell,i===0?accents:faint,vec(0,.84+i*.055,0));
       o.rotation.x=.24+i*.79;
       o.rotation.z=(kind==="void"?.63:.24)+i*.62;
@@ -134,7 +139,7 @@ export class EnergyOrbPolish{
     // Small orbiting faceted motes vary by discipline. Never spawn a
     // screen-sized particle burst or cover enemy HP / target indicators.
     parts.shards=[];
-    for(let i=0;i<3;i++){
+    for(let i=0;i<(showcase?7:3);i++){
       const piece=add(BABYLON.MeshBuilder.CreatePolyhedron(
         "energy-orb21-fragment:"+id+":"+i,{
           type:1,size:(kind==="cryo"?.052:.040)+(i===1?.012:0),
@@ -174,7 +179,7 @@ export class EnergyOrbPolish{
     floor.visibility=.55;
     parts.floor=floor;
 
-    const data={id,kind,p,parts,mats,meshes,entry};
+    const data={id,kind,p,parts,mats,meshes,entry,showcase};
     this.entries.set(id,data);
     return data;
   }
@@ -201,12 +206,12 @@ export class EnergyOrbPolish{
       entry.plasmaMat.alpha=actor.cast?.10:.075;
       entry.glassMat.alpha=.94;
       entry.heartMat.alpha=actor.cast?.57:.44;
-      entry.coreMat.emissiveColor=rgb(p.hex).scale(actor.cast?1.66:1.31);
+      entry.coreMat.emissiveColor=rgb(p.hex).scale(actor.cast?1.66:showcase?1.6:1.31);
       entry.nucleusMat.emissiveColor=rgb(p.hot).scale(actor.cast?2.07:1.58);
       entry.nucleus.scaling.setAll(actor.cast?1.0:.82);
       // Strong class colour remains around a SMALL hot nucleus; the
       // outer glass is neutral so classes still look related.
-      entry.energyMat.emissiveColor=rgb(p.hex).scale(actor.cast?1.33:1.08);
+      entry.energyMat.emissiveColor=rgb(showcase?p.accent:p.hex).scale(actor.cast?1.33:showcase?1.28:1.08);
       entry.plasmaMat.emissiveColor=rgb(p.hex).scale(actor.cast?.92:.65);
 
       const t=time*.001;
@@ -214,6 +219,7 @@ export class EnergyOrbPolish{
       const motion=actor.lastMove||{x:0,y:0};
       const speed=clamp(Math.hypot(motion.x||0,motion.y||0),0,1);
       const breathe=.5+.5*Math.sin(t*2.0+entry.seed*.037);
+      const showcase=Boolean(actor.isShowcase);
       const {symbol,orbits,shards,wisps,floor}=parts;
       symbol.rotation.y=t*(data.kind==="void"?-.72:.47)+entry.seed*.015;
       symbol.rotation.z=.29+.14*Math.sin(t*1.19+entry.seed);
@@ -227,7 +233,7 @@ export class EnergyOrbPolish{
       }
       for(let i=0;i<shards.length;i++){
         const a=t*(i===1?-1.03:.66)+i*TAU/3+entry.seed*.02;
-        const rad=.37+(i===1?.09:0)+.025*Math.sin(t*1.1+i);
+        const rad=.37+(i===1?.09:0)+(data.showcase?.07*(i%3):0)+.025*Math.sin(t*1.1+i);
         const m=shards[i];
         m.position.set(Math.cos(a)*rad,
           .77+Math.sin(a*1.6+i)*(.12+i*.025),

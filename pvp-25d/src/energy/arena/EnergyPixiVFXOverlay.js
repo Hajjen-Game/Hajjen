@@ -3,6 +3,7 @@
 // trails and hit highlights, never controls real damage, targeting or movement.
 import { drawOriginalLayeredProjectile } from "./EnergyOriginalLayeredProjectiles.js?v=20261009-travel-tail16";
 import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
+import { drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-rift-crescent19";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -92,7 +93,7 @@ export class EnergyPixiVFXOverlay {
       :event.type==="control"?1300:event.type==="shield"?1400
       :event.type==="ability"?1200
       :isProjectileContact?contactMs+(spellId==="crystal-bolt"?215:190)
-      :isSignatureHit?contactMs+750:750;
+      :isSignatureHit?contactMs+(spellId==="rift-slash"?230:750):750;
     // Freeze release in world space; a moving caster cannot pull its old
     // projectile tail along, just like the original Pixi 3v3 spells.
     this.effects.push({spellId,type:event.type,start:performance.now(),
@@ -289,38 +290,8 @@ export class EnergyPixiVFXOverlay {
       // Babylon spear/crystal, not a second large illustrated projectile.
       drawOriginalLayeredProjectile(g,e,from,to,travel,style,scale);
     }else if(elapsed<hitAt&&attack==="rift-slash"){
-      // Two receding after-images and opposing prismatic seams sweep forward.
-      // Direction is set by caster->target, not by a static ring at the victim.
-      const radius=(15+12*travel)*Math.min(scale,2.8);
-      for(let echo=0;echo<3;echo++){
-        const p=clamp(travel-echo*.13,0,1);
-        const curve=p*p*(3-2*p);
-        const cx=from.x+dx*curve,cy=from.y+dy*curve;
-        for(let lane=-1;lane<=1;lane+=2){
-          const pts=[];
-          for(let j=0;j<=20;j++){
-            const u=j/20-.5,angle=u*Math.PI*2.4+travel*.52+echo*.18;
-            const dist=(radius-echo*3*Math.min(scale,2.8));
-            pts.push({x:cx+Math.cos(angle)*dist*px-Math.sin(angle)*dist*.42*tx,
-              y:cy+Math.cos(angle)*dist*py-Math.sin(angle)*dist*.42*ty+
-                lane*u*dist*.28});
-          }
-          this.stroke(g,pts,echo===0?(lane<0?style.dim:style.c):style.c,
-            (echo===0?1.60:.80)*Math.min(scale,2.8),
-            (1-echo*.29)*(1-travel*.20)*(lane<0?.70:.82));
-        }
-      }
-      // A cracked central seam and short fading shards add void personality.
-      for(let j=0;j<5;j++){
-        const lag=clamp(travel-(j+1)*.10,0,1);
-        const eased=lag*lag*(3-2*lag);
-        if(lag===0)continue;
-        const cx=from.x+dx*eased,cy=from.y+dy*eased;
-        const side=j%2?-1:1,sideSize=(4+j%3*2)*Math.min(scale,2.7);
-        this.stroke(g,[{x:cx+px*sideSize*side,y:cy+py*sideSize*side},
-          {x:cx+px*sideSize*side+tx*8,y:cy+py*sideSize*side+ty*8}],
-          j===0?style.core:style.c,.86*Math.min(scale,2.7),.55*(1-j/7));
-      }
+      // Primary sweep + echo replaces the old thin seam and random shards.
+      drawRiftSlashTravel(g,e,from,to,travel,style,scale);
     }else if(elapsed<hitAt&&attack==="gravity-hammer"){
       // Descending filaments spiral around the compact heavy mass. No long
       // opaque white shaft; the slam gains weight through convergence.
@@ -358,9 +329,11 @@ export class EnergyPixiVFXOverlay {
         {
           // Keep tiny, intricate core while the outer layer scales with orb.
           if(attack==="crystal-bolt"||attack==="sun-lance"){
-            // Same incoming axis, shards and heat motifs as the new projectiles.
-            // Do NOT layer the old radial sigils/star spokes over this pass.
+            // Original accepted projectile impacts are untouched.
             drawProjectileImpact(g,e,from,to,impactT,style,scale);
+          }else if(attack==="rift-slash"){
+            // Tiny contact acknowledgement; the moving slash is the star.
+            drawRiftSlashContact(g,e,from,to,impactT,style,scale);
           }else{
             this.contact(g,e,from,to,impactT,style,Math.min(1.55,scale));
             this.outerContact(g,e,from,to,impactT,style,scale);

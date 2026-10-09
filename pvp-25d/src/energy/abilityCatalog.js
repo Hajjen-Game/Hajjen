@@ -1,9 +1,9 @@
 // Energy Build v1: design data only. Intentionally isolated from legacy arena3v3 combat.
 export const MAX_FLUX = 100;
 export const BASE_FLUX_REGEN = 8;
-export const TALENT_BUDGET = 12;
+export const TALENT_BUDGET = 30;
 export const MAX_TALENT_RANK = 3;
-export const MAX_ACTIVE_EVOLUTIONS = 2;
+export const MAX_ACTIVE_EVOLUTIONS = 10;
 export const FREE_ABILITY_SLOTS = 8;
 export const SAVED_BUILD_SLOTS = 3;
 

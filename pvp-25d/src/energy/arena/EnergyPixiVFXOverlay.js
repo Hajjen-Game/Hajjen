@@ -18,9 +18,7 @@ const COLORS={
   "photon-barrier":{c:0xffc37f,core:0xfff7c6,dim:0xc87854},
   "reactive-thread":{c:0x75ecc2,core:0xd9fff2,dim:0x329cb9},
 };
-// Cast, travel and contact now share ONE original Visual Combat Slice palette.
-// The old recoloured neon skins added an unrelated second visual identity.
-const NEON_HIT={};
+// Cast, travel and contact all share the original Visual Combat Slice palette.
 const HERO=new Set(Object.keys(COLORS));
 const CAST_MS={"crystal-bolt":1300,"sun-lance":1800,"null-prison":1400,
   "rift-slash":390,"gravity-hammer":600,"pulse-mend":1500,
@@ -47,24 +45,9 @@ export class EnergyPixiVFXOverlay {
       });
       if(!this.alive){app.destroy(true,{children:true});return;}
       this.app=app;this.graphics=new PIXI.Graphics();
-      // Separate bloom underneath sharp Pixi geometry. Rendering another
-      // filtered copy of the entire spell would blur the ice/fire details.
-      this.neonSoft=new PIXI.Graphics();
-      this.neonHot=new PIXI.Graphics();
-      this.neonSoft.blendMode="add";
-      this.neonHot.blendMode="add";
-      try{
-        if(!PIXI.BlurFilter)throw new Error("BlurFilter unavailable");
-        this.neonBlur=new PIXI.BlurFilter({strength:8,quality:2});
-        this.neonSoft.filters=[this.neonBlur];
-      }catch(_){
-        // Graceful fallback for devices missing the optional blur shader.
-        // Keep the sharp existing VFX working; do not block Pixi readiness.
-        this.neonSoft.alpha=.16;
-      }
-      app.stage.addChild(this.neonSoft);
+      // First Visual Combat Slice: a SINGLE crisp Pixi accent layer over
+      // physical Babylon energy. Avoid the later extra additive/blur layers.
       app.stage.addChild(this.graphics);
-      app.stage.addChild(this.neonHot);
       const canvas=app.canvas;
       canvas.className="energy-pixi-layer";
       Object.assign(canvas.style,{
@@ -144,73 +127,6 @@ export class EnergyPixiVFXOverlay {
       BABYLON.Matrix.Identity(),scene.getTransformMatrix(),viewport);
     const px=Math.hypot(edge.x-centre.x,edge.y-centre.y);
     return Number.isFinite(px)?clamp(px/23,.70,4.0):1;
-  }
-  // An inexpensive two-layer bloom, only for the two ranged signatures.
-  // Uses the SAME positions/easing/contact timing as their existing Pixi
-  // animation. It does not modify motion, shape or the 3D build-up.
-  neon(g,hot,e,from,to,now,scale){
-    const palette=NEON_HIT[e.spellId];
-    if(!palette||!from||!to)return;
-    const travelMs=e.contactMs||1;
-    const dx=to.x-from.x,dy=to.y-from.y;
-    const length=Math.max(1,Math.hypot(dx,dy));
-    const tx=dx/length,ty=dy/length,nx=-ty,ny=tx;
-    const k=clamp(scale*.82,.65,2.2);
-    const drawLine=(layer,pts,color,width,alpha)=>{
-      if(alpha<=.005)return;
-      layer.moveTo(pts[0].x,pts[0].y);
-      for(let i=1;i<pts.length;i++)layer.lineTo(pts[i].x,pts[i].y);
-      layer.stroke({color,width:width*k,alpha:clamp(alpha,0,1),
-        cap:"round",join:"round"});
-    };
-    const circle=(layer,x,y,r,color,alpha)=>{
-      if(alpha>.005)layer.circle(x,y,r*k).fill({
-        color,alpha:clamp(alpha,0,1)});
-    };
-    const travel=clamp(now/travelMs,0,1);
-    if(now<travelMs){
-      const p=travel*travel*(3-2*travel);
-      const tip={x:from.x+dx*p,y:from.y+dy*p};
-      const gained=length*p;
-      const tail=Math.min(gained*.68,(e.spellId==="crystal-bolt"?79:91)*k);
-      const start={x:tip.x-tx*tail,y:tip.y-ty*tail};
-      // The tip must remain visible right until the hit. Earlier the glow
-      // faded BEFORE contact, at the same time as the original sprite head.
-      const alpha=clamp(travel/.10,0,1);
-      // Head > body > tail; softer, darker wake instead of a uniform beam.
-      drawLine(g,[start,tip],palette.dim,7,.16*alpha);
-      drawLine(g,[start,tip],palette.glow,4,.16*alpha);
-      // Soft colour only behind the small faceted spearhead. The hot,
-      // detailed shape is still drawn sharply by EnergyPixiProjectiles.
-      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?8:10,
-        palette.glow,.42*alpha);
-      circle(g,tip.x,tip.y,e.spellId==="crystal-bolt"?3.3:4.1,
-        palette.c,.38*alpha);
-      // Near-white specular facet sits at the LEADING edge of the new head.
-      const tipFront=e.spellId==="crystal-bolt"?19:21;
-      const headTip={x:tip.x+tx*tipFront*k,y:tip.y+ty*tipFront*k};
-      const headBase={x:tip.x+tx*3*k,y:tip.y+ty*3*k};
-      hot.moveTo(headTip.x,headTip.y)
-        .lineTo(headBase.x+nx*2.1*k,headBase.y+ny*2.1*k)
-        .lineTo(tip.x+tx*2*k,tip.y+ty*2*k)
-        .lineTo(headBase.x-nx*2.1*k,headBase.y-ny*2.1*k)
-        .closePath().fill({color:palette.core,alpha:.64*alpha});
-      circle(hot,headTip.x,headTip.y,1.7,palette.core,.86*alpha);
-    }else{
-      // Only a very short light snap. The compact Pixi impact routine
-      // supplies the directional splinters / embers; NO second bloom ring
-      // or curling streak effect around the victim.
-      const phase=clamp((now-travelMs)/Math.max(1,e.duration-travelMs),0,1);
-      const fade=1-smooth((phase-.015)/.64);
-      circle(g,to.x,to.y,e.spellId==="crystal-bolt"?7:9,
-        palette.glow,.27*fade);
-      circle(hot,to.x,to.y,e.spellId==="crystal-bolt"?2.0:2.4,
-        palette.core,.86*fade);
-      drawLine(hot,[
-        {x:to.x-tx*6*k,y:to.y-ty*6*k},
-        {x:to.x+tx*8*k,y:to.y+ty*8*k}],
-        palette.core,1.1,.60*fade);
-    }
   }
   stroke(g,points,color,width,alpha=1){
     if(points.length<2)return;
@@ -548,11 +464,7 @@ export class EnergyPixiVFXOverlay {
       }
     }
   }
-  // These two effects are deliberately authored from Frostbolt/Pyroblast,
-  // rather than the old generic energy line used during initial prototyping.
-  ribbonTrail(g,e,from,to,travel,style,scale){
-    drawEnergyProjectile(g,e,from,to,travel,style,scale);
-  }
+  // Crystal/Sun use drawOriginalLayeredProjectile directly in trail().
   status(g,e,p,t,style){
     const fade=Math.min(1,t*6,(1-t)*5);
     if(e.spellId==="null-prison"){
@@ -604,15 +516,10 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
-      const hot=e.type==="hit"&&NEON_HIT[e.spellId];
       const style=COLORS[e.spellId];
       if(e.type==="windup")this.charge(g,e,from,t,style);
       else if(e.type==="hit"||e.type==="heal"){
         const scale=this.impactScale(b||a,to);
-        if(hot&&this.neonSoft&&this.neonHot){
-          this.neon(this.neonSoft,this.neonHot,e,from,to,
-            now-e.start,scale);
-        }
         this.trail(g,e,from,to,t,style,scale);
       }else this.status(g,e,to,t,style);
     }

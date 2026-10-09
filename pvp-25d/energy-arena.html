@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-combat-ux24"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-learning-path25"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -23,16 +23,38 @@
     </header>
 
     <section id="build-gate" class="build-gate" aria-labelledby="gate-title">
-      <div class="eyebrow">LOADOUT CHECK</div>
-      <h2 id="gate-title">Choose an Energy Build</h2>
-      <p>Your Energy Build Lab presets are available here. A build needs eight free abilities before it can be used in a match.</p>
+      <div class="eyebrow">YOUR ARENA JOURNEY</div>
+      <h2 id="gate-title">Learn your powers. Build your champion.</h2>
+      <p>Start small and grow into your full ten-ability kit. You earn XP even when you lose. Existing Energy Build Lab presets are saved and never overwritten.</p>
+      <div class="arena-progression" aria-label="Your progression">
+        <div class="progression-head"><strong id="progression-level">LEVEL 1 · 3/10 ABILITIES</strong><span id="progression-xp">50 XP TO NEXT LEVEL</span></div>
+        <div class="progression-track"><div id="progression-fill" class="progression-fill"></div></div>
+        <p id="progression-lesson" class="progression-lesson">Start with three abilities and learn the basics.</p>
+        <small id="progression-record" class="progression-record">0 VICTORIES · 0 DEFEATS</small>
+      </div>
+      <h3 class="gate-subtitle">Choose how you want to fight</h3>
+      <div class="arena-mode-selector" role="group" aria-label="Choose arena mode">
+        <button type="button" class="arena-mode selected" data-arena-mode="training" aria-pressed="true">
+          <span class="mode-top"><strong class="mode-label">Training Grounds</strong><b class="mode-size">1v1</b></span>
+          <span class="mode-description">Single opponent, easy opening lessons.</span>
+        </button>
+        <button type="button" class="arena-mode" data-arena-mode="duo" aria-pressed="false">
+          <span class="mode-top"><strong class="mode-label">Duo Skirmish</strong><b class="mode-size">2v2</b></span>
+          <span class="mode-description">Play with an AI partner.</span>
+        </button>
+        <button type="button" class="arena-mode" data-arena-mode="trio" aria-pressed="false">
+          <span class="mode-top"><strong class="mode-label">Full Arena</strong><b class="mode-size">3v3</b></span>
+          <span class="mode-description">Full team fights for veterans.</span>
+        </button>
+      </div>
+      <div class="gate-build-heading"><h3 class="gate-subtitle">Choose a build</h3><a href="./energy-build.html" class="header-button">EDIT BUILDS →</a></div>
+      <p class="gate-hint">You can start with an unfinished draft: missing slots receive temporary starter spells. Your saved build remains unchanged.</p>
       <div id="available-builds" class="available-builds"></div>
-      <a href="./energy-build.html" class="header-button">OPEN BUILD LAB →</a>
     </section>
 
     <section id="combat-screen" class="combat-screen" hidden>
       <div class="match-topline">
-        <div><p class="eyebrow">VERDANT CRUCIBLE · 3V3 TEST MATCH</p><strong id="active-build">BUILD</strong></div>
+        <div><p class="eyebrow">VERDANT CRUCIBLE · <span id="match-mode">TRAINING · 1V1</span></p><strong id="active-build">BUILD</strong><span class="match-level-label" id="match-level">LEVEL 1 · 3/10 ABILITIES</span></div>
         <div class="match-center"><span id="dampening-label">DAMPENING 0%</span><strong id="match-clock">00:00</strong></div>
         <div class="topline-right"><button id="copy-run-report" class="header-button report-button" title="Copy detailed combat timeline, burst windows and death reconstruction">COPY RUN REPORT</button><button id="copy-ai-report" class="header-button" title="Copy an AI movement and combat diagnostic report">COPY AI REPORT</button><button id="restart-match" class="header-button">RESTART</button><button id="change-build" class="header-button">CHANGE BUILD</button></div>
       </div>
@@ -45,7 +67,7 @@
         <section class="arena-center">
           <div id="scene-stage" class="scene-stage">
             <canvas id="energy-canvas" aria-label="3v3 energy arena"></canvas>
-            <div id="combat-banner" class="combat-banner" hidden></div>
+            <div id="combat-banner" class="combat-banner" hidden><strong id="match-result-title">VICTORY</strong><p id="match-result-details"></p></div>
             <div id="cast-indicator" class="cast-indicator" hidden><span id="cast-name"></span><div class="cast-progress"><span id="cast-progress-fill"></span></div></div>
             <div id="combat-flash" class="combat-flash" aria-live="polite"></div>
             <div id="scene-error" class="scene-error" hidden></div>
@@ -66,10 +88,11 @@
         </div>
         <div id="action-bar" class="action-bar"></div>
       </footer>
-      <p class="prototype-note">This is a separate first-playable combat test. Core spell effects are functional; most Talent Evolutions and signature VFX are not integrated yet. The existing 3v3 arena remains untouched.</p>
+      <p id="match-learning-tip" class="prototype-note">LEARNING FOCUS · Explore the basics of targeting and healing.</p>
+      <p class="prototype-note">Training, Duo Skirmish and Full Arena share the same progression. Full Energy Build Lab customisation remains available, while abilities unlock over time. The legacy 3v3 arena remains untouched.</p>
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-combat-ux24"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-learning-path25"></script>
 </body>
 </html>

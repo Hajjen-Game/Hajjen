@@ -580,6 +580,47 @@ the impact as short confirmation.
   Rift Slash and other signatures. Real in-browser aesthetics and FPS still
   require visual review before another styling iteration.
 
+## Rift Slash Side Sweep / In-Orb Build-Up Pass 20
+
+Feedback from the first Crescent Pass 19 showed a large pink ring around
+the caster during the wind-up, followed by a vertical "C" that travelled
+in a straight line like a projectile. The requested animation was a
+**dimensional cut that arrives from the side**, closer to the previously
+provided neon slash reference images.
+
+- New compact, original-identity wind-up: three swirling magenta/purple
+  filaments and three motes INSIDE the glass caster orb, with a tiny
+  ghost crescent appearing only during the final ~20% of charging. The
+  former large charge arcs and dark cone were removed. Both the Babylon
+  charge and Pixi charge are authored specifically for Rift Slash.
+- New attacking trajectory: a luminous primary crescent starts
+  perpendicular to the caster-to-target direction, on one side of the
+  enemy, then **swings laterally THROUGH the enemy to the opposite side**
+  while rotating; it is not spawned at the caster and sent forward.
+  Babylon computes the side normal in world X/Z coordinates; Pixi
+  computes the perpendicular normal in screen space and the two passes
+  cross the enemy at the exact hit timing in each renderer.
+- The original dark-violet undercut, purple blade body, neon-magenta
+  glow, white cutting edge, delayed smaller echo and restrained sparks
+  remain. Five optional real 3D filaments travel WITH the slash during
+  Thread Depth ON; neither the 3D crescent meshes nor their threads get
+  their own large impact.
+- Pixi briefly draws the slash **120ms past the registered contact** to
+  show follow-through; the compact ~230ms contact remains separate.
+  The Babylon hit still triggers exactly once at t=.64 of the 420ms
+  movement. No combat event timing, ability damage, cooldowns, or AI
+  were changed.
+- Retained user's preferred **PIXI ON + THREAD DEPTH ON + 3D DEBRIS OFF**.
+  Existing comparison controls still function. Crystal Bolt and Sun
+  Lance's projectile trails, heads and impacts are unchanged.
+- Code verification: 168 standalone charge/sweep/contact geometry
+  scenarios across multiple zooms and strike directions; four Babylon
+  combinations for Pixi ready/fallback and Thread Depth OFF/ON checking
+  3D ribbon count, late charge preview, cross-target path and one
+  contact; 96 Pixi overlay mock frames across Rift, Crystal, Sun,
+  Gravity, Null Prison and Pulse Mend. Real browser / live arena
+  appearance still needs visual inspection.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

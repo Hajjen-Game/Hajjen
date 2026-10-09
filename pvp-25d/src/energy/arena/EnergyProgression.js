@@ -1,8 +1,8 @@
 // Independent Energy Arena onboarding / play-mode progression.
 // This sits between Build Lab (full 10-slot authoring) and EnergyMatch.
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
-import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js";
-import { buildCombatLoadout } from "../buildState.js";
+import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js?v=20261009-orbit-tree31";
+import { buildCombatLoadout } from "../buildState.js?v=20261009-orbit-tree31";
 
 export const PROGRESSION_KEY = "pvp25d-energy-progression-v1";
 export const MAX_LEVEL = 8;

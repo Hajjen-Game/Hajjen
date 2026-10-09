@@ -73,14 +73,9 @@ export class EnergyHeroVFX {
   }
   bind(fx,mesh,slot="main",i=0){
     mesh.parent=fx.root;
-    // Only the travelling/landing Sun Lance uses the new build-up-matched
-    // solar-yellow palette. In particular, its existing charge orb and rings
-    // continue to use the ORIGINAL COLOR array above.
-    const sunTravel=fx.spellId==="sun-lance"&&
-      (fx.type==="projectile"||fx.type==="solar-impact");
-    const palette=sunTravel
-      ?["#ffdf4d","#fff9c7","#bd952a"]:COLOR[fx.spellId];
-    mesh.material=this.material(palette?.[slot==="light"?1:slot==="dark"?2:0]||"#99e7ff",
+    // 2481bc37a: ALL spell phases use the same class-colour layers.
+    // No separate yellow/orange identity between charge and travelling orb.
+    mesh.material=this.material(COLOR[fx.spellId]?.[slot==="light"?1:slot==="dark"?2:0]||"#99e7ff",
       slot==="ghost"?.19:slot==="soft"?.33:slot==="light"?.99:.85,
       slot==="light"?1.65:slot==="dark"?.65:1.17);
     mesh.isPickable=false;
@@ -197,15 +192,10 @@ export class EnergyHeroVFX {
       targetId:target.id,sourceId:source.id,origin:start.clone(),destination:end.clone(),
       pixiPrimary:this.pixiProjectilesAvailable,
     });
-    if(fx.pixiPrimary){
-      // The Pixi renderer draws ALL visible travel geometry for this cast.
-      // Keep a lightweight invisible Babylon root to move its floor-light
-      // reflection; do not duplicate the beautiful Pixi projectile with
-      // cones, balls, tracers or later Babylon-only hit geometry.
-      this.floorLight.attach(fx);
-      return fx;
-    }
-    // Fallback if Pixi failed to load or was explicitly switched off.
+    // Restore the ORIGINAL 2481bc37a 3D body at all times. Pixi is only
+    // five thin 2D accents, not the complete projectile silhouette.
+    // Keeping the genuine 3D body gives the same layered identity as the
+    // other original Visual Combat Slice spells.
     if(spellId==="crystal-bolt"){
       const crystal=this.cone(fx,.22,.88,5,"main",0);
       crystal.position.y=.04;
@@ -221,8 +211,12 @@ export class EnergyHeroVFX {
       for(let i=0;i<3;i++)this.ball(fx,.095,"main",i,
         new BABYLON.Vector3(.20*Math.cos(i*TAU/3),-.50,.20*Math.sin(i*TAU/3)));
     }
-    // Visible even with Pixi disabled: 3D particles trace an actual path
-    // behind the travelling energy, with colour and turbulence per discipline.
+    if(fx.pixiPrimary){
+      // Original 3D core + restrained Pixi accents; no later tracer cloud.
+      this.floorLight.attach(fx);
+      return fx;
+    }
+    // Pixi-unavailable fallback retains the additional 3D tracer path.
     for(let i=0;i<11;i++){
       const sparkle=this.ball(fx,
         (spellId==="crystal-bolt"?.105:.088)*(1-i*.057),
@@ -764,7 +758,9 @@ export class EnergyHeroVFX {
         }else if(fx.type==="projectile"){
           mesh.rotation.y=now*.003*(idx%2?1:-1);
           mesh.scaling.setAll(1+.2*Math.sin(t*12+idx));
-          alpha=clamp((1-t)*4,0,1);
+          // Initial 3D core remains clearly visible for the entire Pixi
+          // travel; contact is handled separately on projectile expiry.
+          alpha=fx.pixiPrimary?Math.min(1,t*10):clamp((1-t)*4,0,1);
         }else if(fx.type==="prison"){
           const rise=smooth(t/.11),sag=1-.03*Math.sin(now*.002+idx);
           mesh.scaling.setAll((.65+.35*rise)*sag);

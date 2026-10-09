@@ -35,7 +35,7 @@ const LESSONS=[
   "Full ten-ability kit. Fine-tune builds, timing and team strategies.",
 ];
 const PREFERENCES={
-  healer:["pulse-mend","crystal-bolt","sun-lance","resonance-guard",
+  healer:["pulse-mend","crystal-bolt","resonance-guard","sun-lance",
     "photon-barrier","reactive-thread","null-prison","symbiosis-link",
     "zenith-crash","resonance-cut","cleanse-flux","rift-slash"],
   melee:["phase-rush","arc-strike","rift-slash","pulse-sever",

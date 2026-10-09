@@ -4,7 +4,7 @@ import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
 import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261009-kick-lock1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-polish21";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";
-import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-overhead21";
+import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
@@ -290,7 +290,6 @@ function frameLoop(now){
   for(const event of match.consumeEvents()){
     renderer.spawnEffect(event,match);
     feedback?.onEvent(event,match);
-    overhead?.onEvent(event,now);
     if(event.type==="hit"&&event.amount>0){
       const attacker=match.getActor(event.actorId),victim=match.getActor(event.targetId);
       if(attacker?.id==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+(victim?.name||"target")+" −"+event.amount);

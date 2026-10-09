@@ -128,21 +128,24 @@ export function stagedLoadout(build,level){
   const byId=new Map(full.abilitySlots.map(slot=>[slot.id,slot]));
   // Preserve three foundations while making the player's OWN picks determine
   // subsequent slots rather than always forcing the same default spell order.
-  const foundations=PREFERENCES[full.role].slice(0,3);
+  // Preserve the two role-locked spells; ALL eight shared slots are replaceable.
+  // Saved player picks must come before recommended auto-fill spells.
   const playerChoices=(build.freeSlots||[]).filter(Boolean);
-  const order=[...foundations,...playerChoices,...ROLES[full.role].locked,
+  const order=[...ROLES[full.role].locked,...playerChoices,
     ...PREFERENCES[full.role],...full.abilitySlots.map(s=>s.id)];
   const selected=[];
   for(const id of order){
     if(byId.has(id)&&!selected.includes(id))selected.push(id);
   }
-  const limit=Math.min(12,Math.max(0,(Math.floor(level)-1)*2));
+  // Match the earned-point schedule in EnergyCharacter.js without a circular import.
+  const earned=[0,0,2,6,10,14,19,24,30];
+  const limit=earned[Math.min(8,Math.max(1,Math.floor(level)||1))];
   let spent=0,activeEvolutions=0;
   const slots=selected.slice(0,slotsForLevel(level)).map(id=>{
     const base=byId.get(id);
     const earnedRank=Math.max(0,Math.min(base.talentRank,limit-spent));
     spent+=earnedRank;
-    const evolution=earnedRank===3&&base.evolutionId&&activeEvolutions<2?base.evolutionId:null;
+    const evolution=earnedRank===3&&base.evolutionId&&activeEvolutions<10?base.evolutionId:null;
     if(evolution)activeEvolutions++;
     return Object.freeze({...base,talentRank:earnedRank,evolutionId:evolution});
   });

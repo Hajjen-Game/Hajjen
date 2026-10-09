@@ -34,20 +34,44 @@ export class EnergyOrbShowcase{
     this.fakeMatch={actors:[this.actor]};
     this.discipline=null;this.secondary=null;
     this.visible=true;
+    this.failed=false;
+    this.firstFrame=false;
     this.resizeObserver=typeof ResizeObserver==="function"?new ResizeObserver(()=>this.engine.resize()):null;
     this.resizeObserver?.observe(canvas);
     this.engine.runRenderLoop(()=>{
-      if(!this.visible||this.canvas.clientWidth===0)return;
-      const now=performance.now();
-      this.characterRender.sync(this.fakeMatch,now);
-      this.polish.sync(this.fakeMatch,now);
-      const e=this.characterRender.entries.get(this.actor.id);
-      // Never show a combat HP bar in the character portrait.
-      e?.barRoot?.setEnabled(false);
-      // Gentle camera orbit gives parallax and readable glass depth.
-      this.camera.alpha=-Math.PI/2+Math.sin(now*.00022)*.18;
-      this.scene.render();
+      if(!this.visible||this.failed||this.canvas.clientWidth===0||this.canvas.clientHeight===0)return;
+      try{
+        this.renderFrame(performance.now());
+      }catch(error){
+        // Do not silently leave an empty hero portrait if Babylon or a
+        // polish layer fails. One explicit diagnostic, no console spam.
+        this.failed=true;
+        console.error("Energy character orb preview failed:",error);
+        const fallback=document.getElementById("hub-visual-fallback");
+        if(fallback){
+          fallback.hidden=false;
+          fallback.textContent="Unable to render your 3D orb. Open the browser console for details.";
+        }
+        this.engine.stopRenderLoop();
+      }
     });
+  }
+  renderFrame(now){
+    // OrbCharacterRenderer receives the same actor-shaped input as combat.
+    // The polished layer must run AFTER sync, as in EnergyArenaRenderer.
+    this.characterRender.sync(this.fakeMatch,now);
+    this.polish.sync(this.fakeMatch,now);
+    const e=this.characterRender.entries.get(this.actor.id);
+    if(!e)throw Error("OrbCharacterRenderer did not create the showcase orb");
+    // Never show a combat HP bar in the character portrait.
+    e.barRoot?.setEnabled(false);
+    this.camera.alpha=-Math.PI/2+Math.sin(now*.00022)*.18;
+    this.scene.render();
+    if(!this.firstFrame){
+      this.firstFrame=true;
+      const fallback=document.getElementById("hub-visual-fallback");
+      if(fallback)fallback.hidden=true;
+    }
   }
   update(build,level){
     const identity=energyIdentity(build,level);
@@ -65,7 +89,12 @@ export class EnergyOrbShowcase{
   }
   setVisible(visible){
     this.visible=Boolean(visible);
-    if(visible)this.engine.resize();
+    if(!this.visible||this.failed)return;
+    this.engine.resize();
+    // The parent HUB has just been unhidden; resize again after layout.
+    requestAnimationFrame(()=>{
+      if(this.visible&&!this.failed)this.engine.resize();
+    });
   }
   dispose(){
     this.resizeObserver?.disconnect();

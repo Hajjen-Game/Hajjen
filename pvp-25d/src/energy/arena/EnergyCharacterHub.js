@@ -1,7 +1,7 @@
 // Energy Arena character home, onboarding and visual talent/evolution workbench.
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES } from "../abilityCatalog.js";
-import { createBuild, equipAbility, adjustTalent, chooseEvolution, resetTalents,
+import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js";
 import { MODES, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-character-hub27";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-character-hub27";
@@ -26,7 +26,7 @@ export class EnergyCharacterHub{
     this.getProgression=getProgression;this.getMode=getMode;
     this.changeMode=changeMode;this.startMatch=startMatch;
     this.character=loadCharacter(storage);
-    this.preview=null;this.selectedAbility=null;this.isEditing=false;
+    this.preview=null;this.selectedAbility=null;this.showSwapPicker=false;
     this.message="";
     this.bind();
   }
@@ -62,11 +62,13 @@ export class EnergyCharacterHub{
     $("new-character-name").addEventListener("keydown",e=>{
       if(e.key==="Enter")$("create-character").click();
     });
-    $("hub-talents-button").addEventListener("click",()=>this.showTalents(true));
-    $("hub-close-talents").addEventListener("click",()=>this.showTalents(false));
     $("hub-reset-talents").addEventListener("click",()=>{
+      if(!window.confirm("Reset all allocated Talent Points and chosen Evolutions?"))return;
       this.store.draft=resetTalents(this.store.draft);
-      this.persist();this.draw();
+      this.persist();this.message="Talent Points and Evolutions reset.";this.draw();
+    });
+    $("hub-change-ability").addEventListener("click",()=>{
+      this.showSwapPicker=!this.showSwapPicker;this.renderLibrary();
     });
     $("hub-play-button").addEventListener("click",()=>{
       if(!this.character)return;
@@ -123,13 +125,6 @@ export class EnergyCharacterHub{
     // Free the separate HUB WebGL context while combat is rendering.
     this.preview?.dispose();this.preview=null;
   }
-  showTalents(open){
-    this.isEditing=Boolean(open);
-    $("hub-talent-workbench").hidden=!open;
-    $("hub-battle-modes").hidden=Boolean(open);
-    $("hub-talents-button").setAttribute("aria-expanded",String(open));
-    if(open)this.renderTree();
-  }
   draw(){
     if(!this.character)return;
     const build=this.store.draft;
@@ -143,7 +138,6 @@ export class EnergyCharacterHub{
     $("hub-xp").textContent=progress.maxLevel?"MAX LEVEL":
       progress.xp+" XP · "+progress.remaining+" TO NEXT LEVEL";
     $("hub-xp-fill").style.width=(progress.progress*100).toFixed(1)+"%";
-    $("hub-focus").textContent=progress.lesson;
     $("hub-record").textContent=this.getProgression().wins+" WINS / "+this.getProgression().losses+" LOSSES";
     $("hub-energy-name").textContent=identity.label.toUpperCase();
     const weights=$("hub-energy-weights");weights.replaceChildren();
@@ -161,7 +155,7 @@ export class EnergyCharacterHub{
     $("hub-orb-stage").style.setProperty("--hub-core",identity.style.core);
     $("hub-orb-stage").style.setProperty("--hub-accent",identity.style.energy);
     this.renderModes();
-    if(this.isEditing)this.renderTree();
+    this.renderTree();
     $("hub-status").textContent=this.message;
   }
   renderModes(){
@@ -176,6 +170,7 @@ export class EnergyCharacterHub{
     }
     $("hub-play-button").textContent="ENTER "+MODES[selected].size+" ARENA →";
   }
+
   renderTree(){
     const build=this.store.draft;
     const state=progressDetails(this.getProgression());
@@ -184,25 +179,36 @@ export class EnergyCharacterHub{
     const cap=talentPointsForLevel(state.level);
     const used=spentTalentPoints(build);
     const effective=active.reduce((sum,spell)=>sum+spell.talentRank,0);
-    $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE · "+
-      effective+"/"+cap+" ACTIVE TP"+(used>cap?" · "+(used-cap)+" PLANNED":"");
-    $("hub-evolution-count").textContent=activeEvolutionCount(build)+" / 2 EVOLUTIONS";
+    const liveEvolutions=active.filter(spell=>spell.evolutionId).length;
+    $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE";
+    $("hub-evolution-count").textContent=liveEvolutions+" / 2 ACTIVE";
+    $("hub-spellbook-count").textContent=active.length+" / 10 UNLOCKED";
     const list=$("hub-spell-nodes");list.replaceChildren();
-    if(!this.selectedAbility||!active.some(x=>x.id===this.selectedAbility))
-      this.selectedAbility=active[0]?.id||null;
+    if(!this.selectedAbility||!active.some(spell=>spell.id===this.selectedAbility)){
+      this.selectedAbility=active[0]?.id||null;this.showSwapPicker=false;
+    }
     full.forEach((slot,index)=>{
       const ability=ABILITY_BY_ID[slot.id];
-      const unlocked=index<active.length,rank=active[index]?.talentRank||0;
-      const node=button("", "hub-spell-node"+(unlocked?" unlocked":" locked")+
-        (this.selectedAbility===slot.id?" selected":""),()=>{
-          this.selectedAbility=slot.id;this.renderTree();
+      const unlocked=index<active.length;
+      const rank=active.find(spell=>spell.id===slot.id)?.talentRank||0;
+      const evolved=Boolean(active.find(spell=>spell.id===slot.id)?.evolutionId);
+      const canUpgrade=unlocked&&rank<3&&used<cap;
+      const selected=this.selectedAbility===slot.id;
+      const node=button("","hub-spell-node"+(unlocked?" unlocked":" locked")+
+        (selected?" selected":"")+(evolved?" evolved":"")+(canUpgrade?" upgradeable":""),()=>{
+          this.selectedAbility=slot.id;this.showSwapPicker=false;this.renderTree();
         });
       node.disabled=!unlocked;
+      node.setAttribute("aria-pressed",String(selected));
       node.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
       const symbol=el("span","hub-spell-symbol",glyphs[ability.discipline]);
-      const name=el("span","hub-spell-name",ability.name);
-      const number=el("span","hub-spell-level",unlocked?("RANK "+rank+"/3"):"LEVEL "+Math.min(8,index-1));
-      node.append(symbol,name,number);list.append(node);
+      const text=el("span","hub-spell-copy");
+      text.append(el("strong","hub-spell-name",ability.name),
+        el("small","hub-spell-category",ability.category.toUpperCase()),
+        el("span","hub-spell-level",unlocked?"RANK "+rank+" / 3":"UNLOCK AT LEVEL "+(index-1)));
+      const status=el("span","hub-spell-state",!unlocked?"▣":evolved?"✦":canUpgrade?"＋":"✓");
+      status.setAttribute("aria-hidden","true");
+      node.append(symbol,text,status);list.append(node);
     });
     this.renderSelected();
     this.renderLibrary();
@@ -213,94 +219,160 @@ export class EnergyCharacterHub{
     if(!ability)return;
     const build=this.store.draft;
     const state=progressDetails(this.getProgression());
-    const spent=spentTalentPoints(build),cap=talentPointsForLevel(state.level);
-    const plannedRank=build.talents[ability.id]||0;
-    const rank=stagedLoadout(build,state.level).abilitySlots.find(a=>a.id===ability.id)?.talentRank||0;
-    holder.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
-    holder.append(el("p","eyebrow",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
-      el("h3","",ability.name),el("p","hub-spell-description",ability.description));
-    const growth=el("div","hub-talent-growth");
-    const nodes=el("div","hub-talent-ranks");
+    const cap=talentPointsForLevel(state.level),spent=spentTalentPoints(build);
+    const live=stagedLoadout(build,state.level).abilitySlots.find(spell=>spell.id===ability.id);
+    const rank=live?.talentRank||0,plannedRank=build.talents[ability.id]||0;
+    const selectedEvolution=build.evolutions[ability.id]||null;
+    const tone=DISCIPLINES[ability.discipline].color;
+    holder.style.setProperty("--spell-tone",tone);
+    const head=el("div","hub-panel-heading");
+    head.append(el("h3","","SPELL EVOLUTION TREE"),
+      el("span","hub-path-indicator",ability.name+" · RANK "+rank+"/3"));
+    const origin=el("div","hub-tree-origin");
+    origin.append(el("span","hub-origin-icon",glyphs[ability.discipline]),
+      el("strong","",ability.name),el("small","","BASE SPELL"),
+      el("p","",ability.description));
+    const rankRow=el("div","hub-rank-row");
+    rankRow.style.setProperty("--rank-fill",(rank/3*100)+"%");
     for(let i=1;i<=3;i++){
-      nodes.append(el("span","hub-talent-rank"+(i<=rank?" active":""),String(i)));
+      const earned=i<=rank;
+      const available=i===plannedRank+1&&spent<cap;
+      const btn=button("","hub-rank-node"+(earned?" mastered":"")+
+        (available?" available":"")+(i<=plannedRank&&!earned?" planned":""),()=>{
+          if(available)this.editTalent(ability.id,1);
+        });
+      btn.disabled=!available;
+      btn.setAttribute("aria-label","Rank "+i+": "+(earned?"unlocked":available?"spend one Talent Point":"locked"));
+      btn.append(el("span","hub-rank-glyph",earned?"✓":available?"＋":"◆"),
+        el("strong","","RANK "+i),
+        el("small","",earned?"UNLOCKED":i<=plannedRank?"PLANNED":available?"1 TALENT POINT":"LOCKED"));
+      rankRow.append(btn);
     }
-    const minus=button("−","hub-talent-adjust",()=>this.editTalent(ability.id,-1));
-    const plus=button("+","hub-talent-adjust",()=>this.editTalent(ability.id,1));
+    const canSpend=plannedRank<3&&spent<cap;
+    const controls=el("div","hub-tree-controls");
+    const hint=el("span","hub-tree-hint",
+      plannedRank>rank?"Some points are planned in Advanced Build Lab and will activate as you level up.":
+        rank===3?"Mastery complete. Choose one of the three evolutions below.":
+        spent>=cap?"Earn more Talent Points by leveling up, or refund a rank.":
+        "Spend 1 Talent Point per rank. Rank 3 unlocks an Evolution choice.");
+    const actions=el("div","hub-rank-actions");
+    const minus=button("− REFUND","hub-rank-action secondary",()=>this.editTalent(ability.id,-1));
     minus.disabled=plannedRank===0;
-    plus.disabled=plannedRank===3||spent>=cap;
-    growth.append(el("span","hub-small-label","SPELL MASTERY"),minus,nodes,plus);
-    holder.append(growth,el("p","hub-tree-hint",
-      plannedRank>rank?"Additional points are planned in Advanced Build Lab. "+
-        "Only earned Talent Points take effect in combat.":
-      rank<3?"Spend three earned Talent Points to unlock a spell evolution.":
-      "Mastered · Choose one Evolution branch below."));
+    const plus=button(rank===3?"MAX RANK":canSpend?"+ UNLOCK NEXT RANK":"NO POINTS","hub-rank-action primary",()=>this.editTalent(ability.id,1));
+    plus.disabled=!canSpend;
+    actions.append(minus,plus);controls.append(hint,actions);
+    const branchTitle=el("div","hub-evolution-label");
+    branchTitle.append(el("strong","","CHOOSE YOUR EVOLUTION"),
+      el("small","","At Rank 3, pick one path. Up to two spells can be evolved in your build."));
     const paths=el("div","hub-evolution-branches");
+    const slotsFull=activeEvolutionCount(build)>=2;
     for(const [i,ev] of ability.evolutions.entries()){
-      const active=rank===3&&build.evolutions[ability.id]===ev.id;
-      const btn=button("", "hub-evolution-node"+(active?" active":"")+(rank<3?" disabled":""),()=>{
-        if(rank<3)return;
-        this.mutate(()=>chooseEvolution(build,ability.id,active?null:ev.id));
-      });
-      btn.disabled=rank<3||(!active&&!build.evolutions[ability.id]&&activeEvolutionCount(build)>=2);
-      const branch=el("span","hub-branch-line");
-      const head=el("span","hub-branch-heading","0"+(i+1)+" · "+ev.name);
-      const description=el("span","hub-branch-description",ev.description);
-      const pill=el("span","hub-branch-status",active?"ACTIVE":rank<3?"REQUIRES RANK 3":"CHOOSE");
-      btn.append(branch,head,description,pill);
-      paths.append(btn);
+      const chosen=selectedEvolution===ev.id;
+      const allowed=rank===3&&(chosen||!slotsFull);
+      const node=button("","hub-evolution-node"+(chosen?" active":"")+
+        (!allowed?" disabled":"") ,()=>{
+          if(!allowed)return;
+          this.mutate(()=>chooseEvolution(this.store.draft,ability.id,chosen?null:ev.id));
+        });
+      node.disabled=!allowed;
+      node.setAttribute("aria-pressed",String(chosen));
+      const badge=el("span","hub-evolution-glyph",["✦","➤","◈"][i]);
+      const title=el("strong","hub-branch-heading",ev.name);
+      const description=el("p","hub-branch-description",ev.description);
+      const status=el("span","hub-branch-status",chosen?"✓ SELECTED":
+        rank<3?"REQUIRES RANK 3":slotsFull?"2 / 2 EVOLUTIONS USED":"CHOOSE PATH →");
+      node.append(badge,title,description,status);
+      paths.append(node);
     }
-    holder.append(paths);
+    holder.append(head,origin,rankRow,controls,branchTitle,paths);
+    this.renderDetail(ability,rank,plannedRank,selectedEvolution);
+  }
+  renderDetail(ability,rank,plannedRank,selectedEvolution){
+    const tone=DISCIPLINES[ability.discipline].color;
+    const spell=$("hub-detail-spell");spell.replaceChildren();
+    spell.style.setProperty("--spell-tone",tone);
+    const summary=el("div","hub-detail-title");
+    const symbol=el("span","hub-detail-icon",glyphs[ability.discipline]);
+    const info=el("div","");
+    info.append(el("strong","",ability.name),
+      el("small","",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()));
+    summary.append(symbol,info);
+    spell.append(summary,el("p","hub-detail-description",ability.description));
+    const current=$("hub-detail-current");current.replaceChildren();
+    current.append(el("h4","","CURRENT MASTERY"),
+      el("div","hub-detail-stat","RANK "+rank+" / 3"),
+      el("p","",ability.details));
+    const next=$("hub-detail-next");next.replaceChildren();
+    next.append(el("h4","","NEXT UPGRADE"),
+      el("strong","",rank===3?"MASTERY COMPLETE":rank<plannedRank?"RANK "+(rank+1)+" · PLANNED":
+        "RANK "+(rank+1)),
+      el("p","",rank===3?"This spell has unlocked its evolution branches.":
+        rank===2?"Spend 1 Talent Point to unlock this spell's evolution choices.":
+        "Invest a Talent Point here to progress toward Rank 3 and unlock evolution."));
+    const evolved=$("hub-detail-evolution");evolved.replaceChildren();
+    const selected=ability.evolutions.find(ev=>ev.id===selectedEvolution);
+    evolved.append(el("h4","","SELECTED EVOLUTION"),
+      el("strong","",selected?selected.name:"NONE YET"),
+      el("p","",selected?selected.description:
+        "Reach Rank 3 to choose one of three ways to transform this spell."));
   }
   renderLibrary(){
     const build=this.store.draft;
     const state=progressDetails(this.getProgression());
     const active=stagedLoadout(build,state.level).abilitySlots;
-    const holder=$("hub-spell-library");holder.replaceChildren();
-    // Role starters remain stable; optional free spells can be customised
-    // once the player reaches an additional unlocked slot.
-    const available=state.slots>3;
-    $("hub-library-label").textContent=available
-      ?"CUSTOMISE YOUR NEXT FREE ABILITY":"MORE ABILITIES UNLOCK AT LEVEL 2";
-    if(!available)return;
-    const equipped=new Set(active.map(x=>x.id));
-    const replaceable=active.filter(s=>!ROLES[build.role].locked.includes(s.id));
-    if(!replaceable.length)return;
-    const select=el("select","hub-swap-slot");
-    select.setAttribute("aria-label","Ability to replace");
-    for(const slot of replaceable){
-      const opt=el("option","",ABILITY_BY_ID[slot.id].name);
-      opt.value=slot.id;select.append(opt);
+    const index=active.findIndex(spell=>spell.id===this.selectedAbility);
+    const foundational=new Set(stagedLoadout(build,1).abilitySlots.map(spell=>spell.id));
+    const editable=index>=3&&!foundational.has(this.selectedAbility);
+    const area=$("hub-spell-swap-area"),holder=$("hub-spell-library"),toggle=$("hub-change-ability");
+    area.hidden=!editable;
+    if(!editable){this.showSwapPicker=false;holder.hidden=true;return;}
+    toggle.textContent=this.showSwapPicker?"CLOSE ABILITY OPTIONS":"CHANGE THIS ABILITY";
+    holder.hidden=!this.showSwapPicker;
+    holder.replaceChildren();
+    if(!this.showSwapPicker)return;
+    const free=build.freeSlots;
+    const oldIndex=free.indexOf(this.selectedAbility);
+    const freeIndex=oldIndex>=0?oldIndex:free.findIndex(id=>id===null);
+    if(freeIndex<0){
+      holder.append(el("p","","No free slot is available. Use Advanced Build Lab to rearrange abilities."));
+      return;
     }
-    select.value=replaceable.some(x=>x.id===this.selectedAbility)
-      ?this.selectedAbility:replaceable[0].id;
-    const library=el("div","hub-library-grid");
-    for(const a of FREE_ABILITIES){
-      const node=button(a.name,"hub-library-ability",()=>{
-        const old=select.value;
-        const oldIndex=build.freeSlots.indexOf(old);
-        // A starter spell can be temporarily auto-equipped without appearing
-        // in saved draft. Find an empty slot; equip and keep the draft intact.
-        const i=oldIndex>=0?oldIndex:build.freeSlots.indexOf(null);
-        if(i<0){this.setMessage("All free slots used. Use Energy Build Lab to rearrange them.");return;}
-        if(build.freeSlots.some((id,j)=>id===a.id&&j!==i)){
-          this.setMessage(a.name+" is already in your build.");return;
-        }
-        this.mutate(()=>equipAbility(build,i,a.id));
-        this.selectedAbility=a.id;
-      });
-      node.style.setProperty("--spell-tone",DISCIPLINES[a.discipline].color);
-      node.disabled=equipped.has(a.id);
-      if(equipped.has(a.id))node.classList.add("equipped");
-      library.append(node);
+    holder.append(el("p","","Replace this unlocked ability. Any Talent Points spent on it will be refunded."));
+    const selector=el("select","hub-swap-slot");
+    selector.setAttribute("aria-label","Choose replacement ability");
+    const used=new Set(active.map(spell=>spell.id));
+    const current=el("option","",ABILITY_BY_ID[this.selectedAbility].name+" (KEEP)");
+    current.value=this.selectedAbility;selector.append(current);
+    for(const ability of FREE_ABILITIES){
+      if(used.has(ability.id)||foundational.has(ability.id))continue;
+      const option=el("option","",ability.name+" · "+DISCIPLINES[ability.discipline].name);
+      option.value=ability.id;selector.append(option);
     }
-    holder.append(select,library);
+    const confirm=button("REPLACE ABILITY →","hub-rank-action primary",()=>{
+      if(selector.value===this.selectedAbility){this.showSwapPicker=false;this.renderLibrary();return;}
+      const nextId=selector.value;
+      this.mutate(()=>equipAbility(this.store.draft,freeIndex,nextId));
+      this.selectedAbility=nextId;this.showSwapPicker=false;this.renderTree();
+    });
+    holder.append(selector,confirm);
   }
   editTalent(id,delta){
-    const limit=talentPointsForLevel(progressDetails(this.getProgression()).level);
+    const level=progressDetails(this.getProgression()).level;
+    const limit=talentPointsForLevel(level);
     if(delta>0&&spentTalentPoints(this.store.draft)>=limit){
-      this.setMessage("Level up to earn more talent points.");return;
+      this.setMessage("Earn more Talent Points by leveling up.");return;
     }
-    this.mutate(()=>adjustTalent(this.store.draft,id,delta));
+    this.mutate(()=>{
+      let build=this.store.draft;
+      // Progression auto-fills early combat spells. Pin an auto-filled spell
+      // to a real free slot before investing, so the point is persisted.
+      if(delta>0&&!allEquippedIds(build).includes(id)){
+        const freeIndex=build.freeSlots.findIndex(value=>value===null);
+        if(freeIndex<0)throw Error("No free ability slot is available.");
+        build=equipAbility(build,freeIndex,id);
+      }
+      return adjustTalent(build,id,delta);
+    });
   }
   mutate(fn){
     try{

@@ -139,7 +139,7 @@ export function botAbilities(role,level,modeId){
   return BOT_KITS[role].slice(0,cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){
-  if(modeId==="training")return {friendly:[playerRole],enemy:["caster"]};
+  if(modeId==="training")return {friendly:[playerRole],enemy:[playerRole==="melee"?"melee":"caster"]};
   if(modeId==="duo"){
     const partner=playerRole==="healer"?"melee":"healer";
     // Teach 2v2 mechanics against damage-only teams first. An enemy healer

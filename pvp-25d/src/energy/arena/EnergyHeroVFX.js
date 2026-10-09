@@ -130,6 +130,28 @@ export class EnergyHeroVFX {
     }
     return this.tube(fx,points,thickness,slot,i);
   }
+  // Genuine 3D crescent beneath Pixi: staggered surfaces create physical
+  // parallax instead of replacing the slash with thin tubes or arrow shards.
+  riftCrescent(fx,radius,width,color,opacity,i,depth=0){
+    const outside=[],inside=[];
+    for(let j=0;j<=32;j++){
+      const u=j/32,a=(u-.5)*Math.PI*1.18;
+      const taper=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.80);
+      const inner=radius-width*taper;
+      const point=r=>new BABYLON.Vector3(
+        Math.sin(a)*r,Math.cos(a)*r*.69,
+        depth+Math.sin(a*1.16)*.12);
+      outside.push(point(radius));
+      inside.push(point(inner));
+    }
+    const mesh=BABYLON.MeshBuilder.CreateRibbon(
+      "hero-rift-crescent:"+this.sequence++,{
+        pathArray:[outside,inside],closePath:false,closeArray:false,
+      },this.scene);
+    this.bind(fx,mesh,"main",i);
+    mesh.material=this.material(color,opacity,1.64);
+    return mesh;
+  }
   // Every school has a DIFFERENT build-up silhouette and movement pattern.
   windup(spellId,actor,target,castDuration){
     const isCast=castDuration>0;
@@ -267,58 +289,60 @@ export class EnergyHeroVFX {
     this.floorLight.attach(fx);
     return fx;
   }
-  // Rift Slash is a blade-free dimensional tear that races THROUGH the target.
-  // It has directional travel and a secondary crossing fracture on contact.
+  // Rift Slash is a sweeping dimensional CUT, not a travelling blob.
+  // The primary bright crescent is authored in Pixi; Babylon adds physical
+  // depth and provides a meaningful fallback if Pixi is switched off.
   melee(spellId,source,target){
     const origin=this.world(source,.88),destination=this.world(target,.88);
     const fx=this.makeEffect(spellId,"rift-drive",origin,420,{
       origin:origin.clone(),destination:destination.clone(),sourceId:source.id,
       targetId:target.id,ripTriggered:false,
     });
-    for(let i=0;i<3;i++){
-      const path=[];
-      for(let j=0;j<=24;j++){
-        const a=-1.16+j*2.32/24+(i-1)*.09;
-        path.push(new BABYLON.Vector3(
-          Math.sin(a)*(.57-i*.045),
-          Math.cos(a)*(.48-i*.055)+(i-1)*.035,
-          Math.sin(a*1.7)*(.065+i*.02)));
+    this.riftCrescent(fx,.96,.31,"#321948",.75,0,-.055); // shadow
+    this.riftCrescent(fx,.87,.235,"#ad63ea",.80,1,.035); // rift body
+    this.riftCrescent(fx,.89,.065,"#ffe1ff",.92,2,.12); // hot cutting lip
+    this.riftCrescent(fx,.68,.125,"#9856d3",.40,3,-.13); // trailing echo
+    // Three-dimensional "Reactive Thread"-style travelling energy veins.
+    // These belong to the SWING itself and only exist in THREAD DEPTH ON.
+    // They curve at different heights/depths to give true parallax.
+    if(this.threadDepthEnabled){
+      for(let lane=0;lane<5;lane++){
+        const path=[],side=lane%2?1:-1;
+        for(let j=0;j<=27;j++){
+          const u=j/27,a=(u-.5)*Math.PI*(1.17+lane*.045);
+          const r=.77+(lane-2)*.070;
+          path.push(new BABYLON.Vector3(
+            Math.sin(a)*r,
+            Math.cos(a)*r*(.63+lane*.027)+
+              Math.sin(u*Math.PI*2+lane)*.030,
+            (lane-2)*.105+
+              Math.sin(a*1.5+lane)*(.075+lane*.012)));
+        }
+        const filament=this.tube(fx,path,
+          lane===2?.015:.0095,lane===2?"light":lane%2?"main":"dark",4+lane);
+        filament.material=this.material(
+          lane===2?"#ffe9ff":lane%2?"#ed5bd5":"#6b3f9c",
+          lane===2?.94:.65,lane===2?1.86:1.35);
+        fx.meshes[fx.meshes.length-1].riftThread=true;
       }
-      this.tube(fx,path,[.026,.015,.010][i],["dark","main","light"][i],i);
-    }
-    for(let i=0;i<3;i++){
-      const shard=this.cone(fx,.043,.23+i*.05,4,i===1?"light":"main",i+4);
-      shard.rotation.z=Math.PI/2+i*.25;
-      shard.position.set((i-1)*.12,(i%2?1:-1)*.11,.025);
     }
     return fx;
   }
   riftContact(point){
-    const fx=this.makeEffect("rift-slash","rift-impact",point.clone(),460);
-    for(let i=0;i<3;i++){
-      const path=[];
-      for(let j=0;j<=21;j++){
-        const a=-1.10+j*2.20/21+(i-1)*.09;
-        path.push(new BABYLON.Vector3(
-          Math.sin(a)*(.68-i*.065),
-          Math.cos(a)*(.50-i*.06)+(i-1)*.08,
-          (i-1)*.028+Math.sin(a*2.4)*.034));
-      }
-      this.tube(fx,path,[.030,.019,.010][i],["dark","main","light"][i],i);
+    // Tiny crossing energy incision: the BIG crescent is the actual attack.
+    const fx=this.makeEffect("rift-slash","rift-impact",point.clone(),235);
+    const p=[
+      [new BABYLON.Vector3(-.25,-.11,-.03),
+       new BABYLON.Vector3(.27,.18,.065)],
+      [new BABYLON.Vector3(-.13,.17,-.07),
+       new BABYLON.Vector3(.16,-.19,.06)]
+    ];
+    for(let i=0;i<p.length;i++){
+      const spark=this.tube(fx,p[i],i===0?.019:.013,i===0?"light":"main",i);
+      spark.material=this.material(i===0?"#ffe1ff":"#df5bcf",.86,1.55);
     }
-    for(let i=0;i<6;i++){
-      const a=i*TAU/6+.23;
-      this.tube(fx,[
-        new BABYLON.Vector3(Math.cos(a)*.16,Math.sin(a)*.14,0),
-        new BABYLON.Vector3(Math.cos(a+.12)*(.38+(i%3)*.055),
-          Math.sin(a+.12)*(.34+(i%3)*.04),.045*(i%2?1:-1))
-      ],.010,i===0?"light":"main",i+3);
-    }
-    const floor=this.makeEffect("rift-slash","shock",
-      new BABYLON.Vector3(point.x,.08,point.z),350);
-    this.torus(floor,.80,.018,"dark");
-    this.arc(floor,.50,Math.PI*.95,.35,.013,.012,"main");
-    this.outerImpact("rift-slash",point,null);
+    // Retain optional legacy 3D debris toggle for direct A/B tests, off
+    // by default; do not spawn the old large 3D impact wheel/rift sigil.
     this.volume.spawn("rift-slash",point);
     return fx;
   }
@@ -760,7 +784,7 @@ export class EnergyHeroVFX {
           if(target)this.gravityContact(target);
         }
       }
-      for(const {mesh,slot,i:idx,base,tracer} of fx.meshes){
+      for(const {mesh,slot,i:idx,base,tracer,riftThread} of fx.meshes){
         // World-space three-dimensional tail is independent of the projectile
         // root rotation. It persists even if Pixi fails to load.
         if(fx.type==="projectile"&&tracer!==undefined){
@@ -850,10 +874,22 @@ export class EnergyHeroVFX {
             alpha=onset*cool*(slot==="light"?.72:.52);
           }
         }else if(fx.type==="rift-drive"){
-          // A forward-moving spatial cleave with a staggered follow-up wave.
-          mesh.rotation.z=-.35+Math.sin(t*3.8+idx*.38)*.18;
-          mesh.scaling.setAll((.42+Math.min(1,t*2.5)*.53)*(idx%2?.94:1));
-          alpha=Math.min(1,t*7,Math.max(0,(1-t)*5));
+          // The main crescent swings across the target; the smaller echo
+          // unfolds a fraction behind it. Extra world-space depth filaments
+          // respond to the user's THREAD DEPTH toggle.
+          const rise=smooth(t/.12),cool=1-smooth((t-.74)/.26);
+          const sweep=smooth(clamp(t/.73,0,1));
+          if(riftThread){
+            mesh.rotation.z=-.25+sweep*.47+idx*.022;
+            mesh.rotation.x=Math.sin(t*7.6+idx)*.15;
+            mesh.rotation.y=Math.sin(t*5.8+idx*.72)*.18;
+            mesh.scaling.setAll(.72+.34*smooth(t/.47));
+            alpha=rise*cool*(slot==="light"?.85:slot==="dark"?.45:.69);
+          }else{
+            mesh.rotation.z=-.34+sweep*.68+(idx===3?-.20:0);
+            mesh.scaling.setAll((.74+.29*smooth(t/.46))*(idx===3?.84:1));
+            alpha=rise*cool*(idx===0?.78:idx===1?.89:idx===2?.98:.50);
+          }
         }else if(fx.type==="outer-impact"){
           // Expand gently beyond the orb without changing the tiny inner core.
           // Low-contrast edges keep the signature detailed, not washed out.

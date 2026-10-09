@@ -191,6 +191,7 @@ export class EnergyOrbPolish{
       }
     }
     for(const actor of game.actors){
+      const showcase=Boolean(actor.isShowcase);
       const entry=this.actorRenderer.entries.get(actor.id);
       if(!entry)continue;
       let data=this.entries.get(actor.id);
@@ -219,7 +220,6 @@ export class EnergyOrbPolish{
       const motion=actor.lastMove||{x:0,y:0};
       const speed=clamp(Math.hypot(motion.x||0,motion.y||0),0,1);
       const breathe=.5+.5*Math.sin(t*2.0+entry.seed*.037);
-      const showcase=Boolean(actor.isShowcase);
       const {symbol,orbits,shards,wisps,floor}=parts;
       symbol.rotation.y=t*(data.kind==="void"?-.72:.47)+entry.seed*.015;
       symbol.rotation.z=.29+.14*Math.sin(t*1.19+entry.seed);

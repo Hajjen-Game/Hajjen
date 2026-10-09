@@ -9,7 +9,8 @@ import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261009-orbit-tree32";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261009-menu-codex33";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261009-menu-codex33";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
@@ -19,7 +20,7 @@ const store=readBuildStorage(window.localStorage);
 let profile=readProgression(window.localStorage);
 let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
 let awardedMatch=null;
-let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,hub=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,hub=null,menu=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
@@ -40,7 +41,7 @@ function element(tag,className="",text=""){
 function setError(text){
   const node=$("scene-error");node.hidden=false;node.textContent=text;
 }
-function showGate(){
+function showGate(toMenu=false){
   match=null;
   $("combat-screen").hidden=true;$("build-gate").hidden=false;
   $("scene-error").hidden=true;
@@ -50,7 +51,8 @@ function showGate(){
   coach?.dispose();coach=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;awardedMatch=null;
-  hub?.open();
+  if(toMenu)menu?.open();
+  else hub?.open();
 }
 function start(build){
   try{
@@ -59,7 +61,7 @@ function start(build){
     const state=progressDetails(profile);
     match=new EnergyMatch(build,arena,{modeId:selectedMode,level:state.level});
     awardedMatch=null;
-    hub?.hide();$("combat-screen").hidden=false;
+    hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
     $("match-mode").textContent=match.mode.size+" · "+match.mode.label.toUpperCase();
     $("match-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
@@ -351,26 +353,34 @@ $("copy-run-report").addEventListener("click",()=>{
 $("copy-ai-report").addEventListener("click",()=>{
   if(match)copyReport(match.aiReport(),"AI REPORT");
 });
+const changeMode=id=>{
+  if(!MODES[id])return;
+  selectedMode=id;
+  profile={...profile,lastMode:id};
+  saveProgression(window.localStorage,profile);
+};
 hub=new EnergyCharacterHub({
   storage:window.localStorage,buildStore:store,
   getProgression:()=>profile,
-  getMode:()=>selectedMode,
-  changeMode:id=>{
-    if(!MODES[id])return;
-    selectedMode=id;
-    profile={...profile,lastMode:id};
-    saveProgression(window.localStorage,profile);
-  },
-  startMatch:(build,mode)=>{
-    if(MODES[mode])selectedMode=mode;
-    start(build);
+  openMainMenu:()=>menu.open(),
+  openPlayMenu:()=>menu.openPlay(),
+});
+menu=new EnergyMainMenu({
+  openHub:()=>hub.open(),
+  startMatch:()=>start(store.draft),
+  changeMode,
+  getCharacter:()=>hub.character,
+  hideHub:()=>hub.hide(),
+  onMenuFromCombat:()=>{
+    if(match&&!match.ended&&!window.confirm("Leave the current match and return to the main menu?"))return;
+    showGate(true);
   },
 });
 $("change-build").textContent="RETURN TO HUB";
-$("change-build").addEventListener("click",showGate);
+$("change-build").addEventListener("click",()=>showGate(false));
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
-hub.open();
-if(new URLSearchParams(window.location.search).get("load")==="draft"&&hub.character){
-  hub.showTalents(true);
-}
+// A direct link back from old Build Lab still opens the HUB. All normal visits
+// start at the new main menu rather than opening a 3D WebGL scene behind it.
+if(new URLSearchParams(window.location.search).get("load")==="draft")hub.open();
+else menu.open();
 requestAnimationFrame(frameLoop);

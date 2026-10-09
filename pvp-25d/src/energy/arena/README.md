@@ -910,3 +910,71 @@ stalemate, corrected by postponing enemy healers to level three.
 **Manual browser playtesting is still necessary** for mode pacing, role
 readability, level-up rewards, and in-match onboarding.
 
+
+
+## Character HUB, Orbs and Spell Mastery — Pass 27
+
+The Energy Arena entry screen is now a character-centred HUB instead of a
+build-preset selector. A first-time visitor names an Energy Orb and chooses
+**Healer / Melee / Caster**. Name and role are saved separately under
+`pvp25d-energy-character-v1`; the XP profile remains stored under
+`pvp25d-energy-progression-v1`. The existing `pvp25d-energy-builds-v1`
+saved slots are preserved. Creating a new character archives a pre-existing
+equipped draft into the first empty preset, or into a recovery key when all
+presets are full. An intentional role change in Advanced Build Lab updates
+the character's role upon return instead of discarding edited data.
+
+### Character home
+- A **large, actual 3D Babylon orb** uses the existing
+  `OrbCharacterRenderer` and `EnergyOrbPolish`, not a CSS illustration.
+  In its own showcase-only render context the orb gains extra gyres and
+  floating shards (four and seven rather than two and three in combat).
+  The showcase renderer stops and disposes when entering a match, preventing
+  two concurrent Babylon GPU scenes. It is recreated on returning.
+- `EnergyCharacter.energyIdentity()` calculates primary / secondary
+  elemental energy from the *currently playable* spells, earned Talent
+  ranks and selected Evolutions. The same calculated style is used for
+  the character's real combat orb. In-game secondary energy gently tints
+  the moving accent geometry without the showcase's additional geometry.
+- HUD displays name, role, level, XP to next level, battle record,
+  current lesson, discipline energy bars and 1v1/2v2/3v3 selection.
+  Returning from a match goes to this HUB, not a preset picker.
+- **Abilities & Talents** opens a new node-based spell mastery panel
+  with ten spell slots, rank investment (0–3 per spell), visible three-way
+  Evolution branches and explanations for each path. Inactive future
+  spells are visibly locked. At level two and above, the player can
+  replace their next free ability from the shared discipline library.
+- Changes to spells, talent ranks and active Evolutions are saved through
+  the existing validated `buildState` APIs, then immediately recalculate
+  the showcase energy palette. The advanced Build Lab remains available
+  but now links back to the character HUB (even when its draft is incomplete).
+
+### XP pacing and gameplay
+- XP thresholds have been slowed from
+  `0,50,130,240,380,555,765,1010` to
+  `0,140,340,600,920,1300,1740,2240`, while per-match XP rewards
+  changed to Training `35/14` (win/loss), Duo `45/20`,
+  Full Arena `60/24`. Four Training victories are now required
+  to reach level two (without losses), rather than one.
+- Stored numeric XP and past wins/losses are **not wiped**. Displayed
+  level recalculates against the slower progression threshold.
+- Earned Talent Points are now 0 at level one, +2 per level thereafter,
+  capped at the existing 12 points. Existing Advanced Build Lab plans
+  are preserved but their *combat effectiveness* is capped by earned
+  ranks, including Evolution availability. The HUB distinguishes
+  effective earned ranks from higher pre-planned ranks.
+- The player-selected free ability order now takes priority after
+  their three role-appropriate fundamentals. This matters: changing
+  the build actually changes the abilities available in combat and
+  therefore the orb's energy signature.
+- The preview is visually richer than gameplay; **orb appearance in the
+  arena remains deliberately lighter** for clarity and performance.
+
+### Current limitation / future passes
+This is a first playable HUB/visual-tree pass. Some Evolution descriptions
+in `abilityCatalog.js` remain design targets and are **not yet all
+implemented in actual combat rules**. The current 3D preview was tested
+through source checks and fake-DOM UI interactions, not a full graphical
+browser playtest. Character/XP/build saves are browser-local, not cloud
+accounts. The independent legacy `arena3v3` game remains untouched.
+

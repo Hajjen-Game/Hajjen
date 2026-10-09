@@ -190,3 +190,161 @@ h2{font-size:23px}
 .energy-combat-number.energy-heal-out,
 .energy-combat-number.energy-heal-in{font-size:20px}
 @media(max-width:1250px){.energy-orb-bars{width:68px}}
+
+/* Pass 24 — adapted from the Pixi 3v3 action feedback language.
+   Energy's discipline neon replaces WoW class art/palette. */
+.spell-button{
+  --energy-spell:var(--tone,#80d7e9);
+  overflow:hidden;
+  isolation:isolate;
+  transition:border-color .12s,box-shadow .12s,background .12s;
+}
+.spell-button .spell-icon{
+  position:relative;isolation:isolate;overflow:visible;flex:none;
+  width:30px;height:30px;
+  background:radial-gradient(circle at 40% 30%,
+    color-mix(in srgb,var(--energy-spell) 24%,#19283d),
+    color-mix(in srgb,var(--energy-spell) 8%,#101929) 72%);
+  border-color:color-mix(in srgb,var(--energy-spell) 66%,#627a99);
+  box-shadow:inset 0 1px #efffff1b,0 0 6px color-mix(in srgb,var(--energy-spell) 20%,transparent);
+  transition:filter .12s,box-shadow .12s;
+}
+.spell-button .energy-action-gcd,.spell-button .energy-action-cooldown{
+  position:absolute;inset:-2px;border-radius:8px;z-index:4;pointer-events:none;
+}
+.spell-button .energy-action-gcd{
+  background:conic-gradient(from -90deg,
+    #06101dbc 0 var(--gcd-angle,0deg),
+    #050d1c15 var(--gcd-angle,0deg) 360deg);
+  box-shadow:inset 0 0 0 1px #bceafc30;
+}
+.spell-button .energy-action-cooldown{
+  background:conic-gradient(from -90deg,
+    #040a15df 0 var(--cd-angle,0deg),
+    #050b1555 var(--cd-angle,0deg) 360deg);
+  box-shadow:inset 0 0 0 1px #0209169c;
+}
+.energy-action-gcd[hidden],.energy-action-cooldown[hidden]{display:none!important}
+.spell-button .energy-action-cast{
+  position:absolute;bottom:0;left:0;height:3px;width:0;z-index:5;pointer-events:none;
+  background:var(--energy-spell);
+  box-shadow:0 0 8px var(--energy-spell),0 -2px 12px color-mix(in srgb,var(--energy-spell) 30%,transparent);
+}
+.spell-button.casting{
+  border-color:var(--energy-spell);
+  box-shadow:inset 0 0 10px color-mix(in srgb,var(--energy-spell) 8%,transparent),
+    0 0 11px color-mix(in srgb,var(--energy-spell) 23%,transparent);
+}
+.spell-button.casting .spell-icon{
+  box-shadow:inset 0 0 10px color-mix(in srgb,var(--energy-spell) 15%,transparent),
+    0 0 11px color-mix(in srgb,var(--energy-spell) 50%,transparent);
+}
+.spell-button .energy-action-flash{position:absolute;inset:0;border-radius:7px;z-index:6;pointer-events:none;opacity:0}
+.spell-button.cast-success .energy-action-flash{
+  border:2px solid var(--energy-spell);
+  background:radial-gradient(circle,color-mix(in srgb,var(--energy-spell) 28%,transparent),transparent 75%);
+  animation:energy-action-success .48s ease-out both;
+}
+@keyframes energy-action-success{
+  0%{opacity:0;transform:scale(.93)}
+  22%{opacity:1;transform:scale(1);box-shadow:inset 0 0 18px color-mix(in srgb,var(--energy-spell) 32%,transparent),0 0 16px var(--energy-spell)}
+  100%{opacity:0;transform:scale(1.065)}
+}
+.spell-button.cast-interrupted{border-color:#dc76f9;animation:energy-kick-shake .32s ease-out}
+.spell-button.cast-interrupted .energy-action-flash{
+  animation:energy-action-fade .62s ease-out both;
+  background:
+    linear-gradient(45deg,transparent 0 44%,#f7a2ffdf 47% 52%,transparent 55%),
+    linear-gradient(-45deg,transparent 0 44%,#ce4c92bf 47% 52%,transparent 55%);
+}
+@keyframes energy-kick-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+@keyframes energy-action-fade{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+.spell-button.cast-failed .energy-action-flash{
+  border:2px solid #ed746e;background:repeating-linear-gradient(-45deg,#e65e5e22 0 7px,transparent 7px 14px);
+  animation:energy-action-fade .43s ease-out both;
+}
+.spell-button.cooldown-ready .energy-action-flash{
+  border:2px solid var(--energy-spell);
+  animation:energy-ready-pop .54s ease-out both;
+}
+@keyframes energy-ready-pop{
+  0%{opacity:0;transform:scale(.9)}
+  25%{opacity:1;transform:scale(1);box-shadow:0 0 23px var(--energy-spell)}
+  100%{opacity:0;transform:scale(1.055)}
+}
+.spell-button.input-pressed .spell-icon{transform:scale(.93);filter:brightness(1.35)}
+.spell-button.available:hover{
+  border-color:var(--energy-spell);
+  box-shadow:0 0 10px color-mix(in srgb,var(--energy-spell) 20%,transparent);
+}
+.spell-button.cooling,.spell-button.disabled,.spell-button.gcd.disabled{opacity:1}
+.spell-button.cooling .spell-icon{filter:saturate(.7) brightness(.83)}
+.spell-button.gcd::after{display:none}
+/* In contrast to a single greyed-out state, show WHY a slot cannot fire. */
+.spell-button.no-resource{border-color:#597b9a}
+.spell-button.no-resource .spell-icon{filter:saturate(.55) brightness(.72)}
+.spell-button.out-of-range{border-color:#9a6665}
+.spell-button.out-of-range .spell-icon{filter:saturate(.48) brightness(.73)}
+.spell-button.los-blocked{border-color:#b77a51}
+.spell-button.los-blocked .spell-icon{filter:saturate(.45) brightness(.7)}
+.spell-button.invalid-target .spell-icon{filter:grayscale(.55) brightness(.65)}
+.spell-button.school-locked{border-color:#b673d8;box-shadow:inset 0 0 12px #b65cda24}
+.spell-button.school-locked .spell-icon{filter:saturate(.45) brightness(.76)}
+.spell-button.controlled{border-color:#e07a9a}
+.spell-button.controlled .spell-icon{filter:brightness(.67)}
+.spell-button.player-dead{opacity:.50}
+.spell-button .cd-value{
+  z-index:7;background:#071322bb;padding:1px 2px;border-radius:3px;color:#eaf5fe;
+  font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000;
+}
+.spell-button.school-locked .cd-value{color:#f4adff}
+.spell-button.queued{border-color:var(--energy-spell);animation:energy-queued .65s ease-in-out infinite alternate}
+@keyframes energy-queued{from{box-shadow:0 0 3px transparent}to{box-shadow:0 0 12px color-mix(in srgb,var(--energy-spell) 40%,transparent)}}
+
+/* Player-only central control badge: similar information priority to Pixi 3v3,
+   but with Energy Arena's glass prism / neon spectral treatment. */
+.energy-player-cc{
+  position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);
+  z-index:7;pointer-events:none;text-align:center;color:#f6d4ff;
+  --cc-tint:#db84f3;
+  filter:drop-shadow(0 5px 11px #020610bc);
+}
+.energy-player-cc[hidden]{display:none}
+.energy-player-cc[data-kind="root"]{--cc-tint:#86dffa;color:#bdf4ff}
+.energy-player-cc[data-kind="schoolLock"]{--cc-tint:#e790f6;color:#f3c4ff}
+.energy-player-cc[data-kind="stun"]{--cc-tint:#ffd37a;color:#ffe8b2}
+.energy-player-cc[data-kind="fear"]{--cc-tint:#e16eb8;color:#ffc2e9}
+.energy-cc-disc{
+  position:relative;margin:0 auto;width:77px;height:77px;
+  border-radius:19px;display:grid;place-items:center;
+  border:1px solid color-mix(in srgb,var(--cc-tint) 70%,#64708b);
+  background:linear-gradient(145deg,#14213de8,#0a0e20e8);
+  box-shadow:inset 0 1px #eef5ff21,inset 0 0 17px color-mix(in srgb,var(--cc-tint) 11%,transparent),
+    0 0 21px color-mix(in srgb,var(--cc-tint) 35%,transparent);
+}
+.energy-cc-disc::before{
+  content:"";position:absolute;inset:-5px;pointer-events:none;border-radius:23px;
+  background:conic-gradient(from -90deg,var(--cc-tint) 0 var(--cc-remaining,360deg),#29364a60 var(--cc-remaining,360deg) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:3px;
+}
+.energy-cc-glyph{width:41px;height:41px;display:grid;place-items:center;color:var(--cc-tint);filter:drop-shadow(0 0 5px var(--cc-tint))}
+.energy-cc-glyph svg{width:100%;height:100%}
+.energy-cc-time{
+  position:absolute;bottom:3px;right:4px;padding:1px 3px;
+  border-radius:4px;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;
+  background:#050e1df0;color:#fff;letter-spacing:.015em;
+}
+.energy-cc-title{
+  margin-top:8px;color:var(--cc-tint);letter-spacing:.14em;font-weight:900;
+  font-size:14px;text-shadow:0 0 10px color-mix(in srgb,var(--cc-tint) 55%,transparent);
+}
+.energy-cc-sub{
+  margin-top:2px;font-size:10px;font-weight:760;
+  letter-spacing:.12em;color:#e7e3f7;
+}
+@media(max-width:760px){
+  .energy-cc-disc{width:64px;height:64px}
+  .energy-cc-glyph{width:35px;height:35px}
+  .energy-cc-title{font-size:11px}
+}

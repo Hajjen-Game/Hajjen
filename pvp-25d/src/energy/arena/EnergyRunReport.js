@@ -76,7 +76,9 @@ function eventText(match,e){
       +" | "+safe(e.spellId)+" "+safe(e.ccKind)+" "+fix(e.duration)+"s"
       +" | DR "+safe(e.drScale);
     case "interrupt":return "INTERRUPT "+name(match,e.actorId)+" → "+name(match,e.targetId)
-      +" | "+safe(e.spellId)+" stops "+safe(e.interruptedSpell);
+      +" | "+safe(e.spellId)+" stops "+safe(e.interruptedSpell)
+      +(e.interruptedSchool?" | "+e.interruptedSchool+" school locked "+fix(e.schoolLockSeconds)+"s"
+        +" | interrupted spell cooldown "+fix(e.interruptedCooldownRemaining)+"s":"");
     case "immune":return "IMMUNE "+name(match,e.targetId)+" | "+safe(e.spellId);
     case "cleanse":return "CLEANSE "+name(match,e.actorId)+" → "+name(match,e.targetId)
       +" | "+safe(e.removedStatus)+" via "+safe(e.spellId);

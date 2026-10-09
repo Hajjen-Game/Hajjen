@@ -1,7 +1,7 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-original-layers15";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-original-layers15b";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
@@ -228,7 +228,7 @@ function init(){
     $("render-label").textContent=!pixiOn?"BABYLON SPELL FALLBACK · PIXI OFF":
       volumeOn?"PIXI SPELL VFX · LEGACY 3D DEBRIS":
       threadOn?"PIXI SPELL VFX · THREAD DEPTH + GLASS":
-      "PIXI SPELL VFX · COMPACT CONTACT + GLASS";
+      "ORIGINAL LAYERED VFX · 3D CORE + PIXI";
   };
   $("toggle-volume").addEventListener("click",()=>{
     volumeOn=!volumeOn;
@@ -258,7 +258,7 @@ function init(){
     renderer=new EnergyArenaRenderer($("vfx-canvas"),VERDANT_CRUCIBLE);
     syncDepthModes();
     $("toggle-pixi").textContent="PIXI SPELLS: ON";
-    $("render-label").textContent="PIXI SPELL VFX · COMPACT CONTACT + GLASS";
+    $("render-label").textContent="ORIGINAL LAYERED VFX · 3D CORE + PIXI";
     // Visual close-up: the orbs, spell volumes and trails are the subject,
     // not the distant boundaries of the arena.
     const base=renderer.fitCamera.bind(renderer);

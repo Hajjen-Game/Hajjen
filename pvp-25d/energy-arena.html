@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-build-tree30"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-orbit-tree31"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -76,44 +76,55 @@
           </div>
         </header>
 
-        <div id="hub-talent-workbench" class="hub-build-layout">
-          <aside class="hub-tree-spells hub-build-panel" aria-label="Your spellbook">
-            <div class="hub-panel-heading"><h3>SPELLBOOK</h3><span id="hub-spellbook-count">3 / 10 UNLOCKED</span></div>
-            <p class="hub-panel-intro">Choose a spell to view its mastery path.</p>
+        <div id="hub-talent-workbench" class="hub-build-layout hub-radial-layout">
+          <aside class="hub-tree-spells hub-build-panel" aria-label="Spell library">
+            <div class="hub-panel-heading"><h3>YOUR SPELLS</h3><span id="hub-spellbook-count">0 / 10 EQUIPPED</span></div>
+            <div class="hub-library-tabs" role="group" aria-label="Spell list">
+              <button type="button" class="hub-library-tab active" data-hub-list="equipped" aria-pressed="true">BUILD (10)</button>
+              <button type="button" class="hub-library-tab" data-hub-list="pool" aria-pressed="false">POOL (8)</button>
+            </div>
+            <p class="hub-panel-intro">All 18 class-compatible spells appear on the map. Click any node to inspect its Evolutions.</p>
             <div id="hub-spell-nodes" class="hub-spellbook-list"></div>
             <div class="hub-spellbook-footer">
-              <span class="hub-key active">● ACTIVE</span>
-              <span class="hub-key ready">◆ UPGRADE</span>
-              <span class="hub-key locked">◇ LEVEL LOCKED</span>
+              <span class="hub-key active">◉ IN YOUR BUILD</span>
+              <span class="hub-key ready">◇ AVAILABLE IN POOL</span>
+              <span class="hub-key locked">♙ CLASS-BOUND</span>
             </div>
           </aside>
-
-          <div class="hub-build-center">
-            <section id="hub-orb-stage" class="hub-orb-stage" aria-label="Live 3D Energy Orb">
-              <div class="hub-orb-topline">
-                <h3>YOUR ENERGY ORB</h3>
-                <span class="hub-orb-live"><span class="hub-live-indicator"></span> LIVE PREVIEW</span>
+          <section class="hub-evolution-space hub-build-panel" aria-label="Evolution tree with all spells">
+            <div class="hub-panel-heading hub-map-header">
+              <h3>EVOLUTION TREE</h3>
+              <div class="hub-map-legend">
+                <span><i class="hub-map-dot chosen"></i> BUILD</span>
+                <span><i class="hub-map-dot unchosen"></i> POOL</span>
+                <span>◈ HOVER OR CLICK TO EXPLORE</span>
               </div>
-              <div class="hub-orb-halo" aria-hidden="true"></div>
-              <canvas id="hub-orb-canvas" aria-label="Animated 3D preview of your own Energy orb"></canvas>
-              <p id="hub-visual-fallback" hidden></p>
-              <div class="hub-orb-signature">
-                <strong id="hub-energy-name">SOLAR / CRYO</strong>
-                <div id="hub-energy-weights" class="hub-energy-weights"></div>
+            </div>
+            <div id="hub-orbit-board" class="hub-orbit-board">
+              <svg id="hub-orbit-lines" class="hub-orbit-lines" viewBox="0 0 1000 1000" aria-hidden="true"></svg>
+              <div id="hub-orb-stage" class="hub-orb-stage hub-orbit-core">
+                <div class="hub-orb-halo" aria-hidden="true"></div>
+                <canvas id="hub-orb-canvas" aria-label="Live animated 3D preview of your Energy orb"></canvas>
+                <p id="hub-visual-fallback" hidden></p>
+                <div class="hub-orb-signature hub-orbit-signature">
+                  <strong id="hub-energy-name">SOLAR / CRYO</strong>
+                  <div id="hub-energy-weights" class="hub-energy-weights"></div>
+                </div>
               </div>
-            </section>
-            <section id="hub-selected-spell" class="hub-selected-spell hub-build-panel" aria-label="Selected spell mastery and evolution tree"></section>
-          </div>
-
+              <div id="hub-orbit-nodes" class="hub-orbit-nodes" aria-label="All 18 spells"></div>
+              <div id="hub-node-tooltip" class="hub-node-tooltip" hidden role="status"></div>
+            </div>
+            <p class="hub-map-caption">YOUR ORB · TEN SPELLS IN YOUR BUILD · EIGHT MORE TO EXPLORE</p>
+          </section>
           <aside class="hub-details-column">
             <section class="hub-details-panel hub-build-panel" aria-label="Selected spell details">
-              <div class="hub-panel-heading"><h3>BUILD DETAILS</h3></div>
+              <div class="hub-panel-heading"><h3>SELECTED SPELL</h3><span id="hub-detail-status">IN BUILD</span></div>
               <div id="hub-detail-spell"></div>
               <div id="hub-detail-current"></div>
               <div id="hub-detail-next"></div>
               <div id="hub-detail-evolution"></div>
               <div id="hub-spell-swap-area" class="hub-spell-swap-area" hidden>
-                <button id="hub-change-ability" type="button" class="hub-secondary">CHANGE THIS ABILITY</button>
+                <button id="hub-change-ability" type="button" class="hub-secondary">REPLACE THIS SPELL</button>
                 <div id="hub-spell-library" class="hub-swap-picker" hidden></div>
               </div>
             </section>
@@ -189,6 +200,6 @@
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-build-tree30"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-orbit-tree31"></script>
 </body>
 </html>

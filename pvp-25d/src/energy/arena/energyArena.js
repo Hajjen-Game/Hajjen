@@ -1,6 +1,6 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
-import { readBuildStorage } from "../buildState.js";
-import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
+import { readBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
+import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261009-orbit-tree31";
 import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261009-character-hub27";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-hub-orbit29";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";

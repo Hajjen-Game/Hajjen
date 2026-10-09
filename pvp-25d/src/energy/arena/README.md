@@ -690,6 +690,45 @@ on player death (the 3v3 can continue), or after the winner is declared.
   original AI report were also tested. Browser copy/UI smoke
   validation is still appropriate.
 
+## Early Survival Balance Pass (prototype-survival-v1)
+
+A real 23.16-second FULL RUN REPORT showed the healer player losing
+100/100 HP in 1.82 seconds once both teammates had died, including a
+69-HP burst within 0.46 seconds. More importantly the report exposed
+two combat defects: a pulse-mend intended for a fallen ally quietly
+retargeted to the caster at full health, and overlapping Photon Barrier
+timers from different sources could let an *old* shield expiry erase a
+newer active shield.
+
+This first survivability iteration changes **only Energy Arena combat**:
+- Base max HP: **100 → 160** for every player, ally and opponent, preserving
+  symmetry and the existing damage formulas/individual attack values.
+- Pulse Mend: **40 → 60 HP**; Photon Barrier: **42 → 60 shield**.
+- Reactive Thread: **4 → 6 per periodic tick and initial heal**,
+  reactive heal **8 → 10**, keeping sustained healing relevant to the
+  larger health pool.
+- **Shield refresh bug fixed:** new Photon Barrier now replaces the
+  previous shield timer regardless of caster. A superseded expired timer
+  can no longer erase another active shield; expired shields clear only
+  when no shield status remains.
+- **Dead cast target bug fixed:** a spell remains bound to its original
+  target after the windup. If the target dies, is out of range or loses
+  line of sight, the spell reports FIZZLE with its reason, refunds
+  its Flux and does not redirect an intended ally heal to self.
+  The cast-time/GCD are still spent.
+- COPY RUN REPORT marks the active balance version and records explicit
+  FIZZLE events, allowing direct comparison with energy-run-v1 logs
+  collected before this pass.
+- Simulation tests checked all six 160-HP baselines, the 100-HP
+  player burst from the provided run now leaving 60 HP, healing a
+  wounded teammate, retaining dead-target selection, accurate
+  Flux refund, shield refresh/expiry across different casters,
+  Guard + Barrier mitigation, correct dead-enemy spell failure and
+  continued AI-report generation.
+- No spell rendering, projectile graphics, target selection controls,
+  AI tactical plans, individual attack damage or arena geometry changed.
+  New real-match reports are needed before fine-tuning TTK further.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

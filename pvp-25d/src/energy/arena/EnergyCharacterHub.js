@@ -108,7 +108,8 @@ export class EnergyCharacterHub{
   }
   hide(){
     $("build-gate").hidden=true;
-    this.preview?.setVisible(false);
+    // Free the separate HUB WebGL context while combat is rendering.
+    this.preview?.dispose();this.preview=null;
   }
   showTalents(open){
     this.isEditing=Boolean(open);

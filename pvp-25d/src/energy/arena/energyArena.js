@@ -1,17 +1,18 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
 import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
-import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261009-kick-lock1";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261009-kick-lock1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-polish21";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
+import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
-let match=null,renderer=null,feedback=null,overhead=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
@@ -59,6 +60,7 @@ function showGate(){
   $("scene-error").hidden=true;
   feedback?.dispose();feedback=null;
   overhead?.dispose();overhead=null;
+  combatUX?.dispose();combatUX=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;
   renderBuildChoices();
@@ -74,10 +76,12 @@ function start(build){
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
     feedback?.dispose();feedback=null;
     overhead?.dispose();overhead=null;
+    combatUX?.dispose();combatUX=null;
     if(renderer)renderer.dispose();
     renderer=new EnergyArenaRenderer($("energy-canvas"),arena);
     feedback=new EnergyCombatFeedback($("scene-stage"),renderer);
     overhead=new EnergyOverheadHUD($("scene-stage"),renderer,ABILITY_BY_ID,DISCIPLINES);
+    combatUX=new EnergyCombatUX($("scene-stage"),ABILITY_RULES,ABILITY_BY_ID,DISCIPLINES,hasLineOfSight);
     last=performance.now();lastUi=0;lastNotice="";keys.clear();pendingCast=null;
     clearUiCaches();
     renderUI();
@@ -119,6 +123,7 @@ function directionalVector(){
 }
 function castSlot(index){
   if(!match||match.ended||!match.player.alive)return;
+  combatUX?.pulse(actionNodes[index],"input-pressed");
   const ability=match.loadout.abilitySlots[index]?.id;
   if(!ability)return;
   match.dashDirection=directionalVector();
@@ -133,6 +138,7 @@ function castSlot(index){
   }
   if(reason){
     pendingCast=null;
+    combatUX?.pulse(actionNodes[index],"cast-failed");
     flash(ABILITY_BY_ID[ability].name+" · "+reason+(waiting?" "+queueTime.toFixed(1)+"s":""));
     return;
   }
@@ -149,7 +155,7 @@ function updateCastQueue(){
   const reason=match.reason(p,request.ability,request.targetId);
   if(reason==="CASTING"||reason==="GLOBAL COOLDOWN")return;
   pendingCast=null;
-  if(reason){flash(ABILITY_BY_ID[request.ability].name+" · "+reason);return;}
+  if(reason){combatUX?.pulseSpell(actionNodes,request.ability,"cast-failed",performance.now());flash(ABILITY_BY_ID[request.ability].name+" · "+reason);return;}
   match.dashDirection=directionalVector();
   if(match.castAbility(p,request.ability,request.targetId)){
     flash(ABILITY_BY_ID[request.ability].name+" · CASTING");
@@ -216,28 +222,7 @@ function renderActionBar(){
     root.replaceChildren();actionNodes.length=0;
     match.loadout.abilitySlots.forEach((slot,index)=>root.append(createActionButton(slot,index)));
   }
-  const player=match.player;
-  for(const entry of actionNodes){
-    const {node,cd,ability,slot}=entry;
-    const remaining=player.cooldowns[slot.id]||0;
-    const schoolRemaining=player.schoolLocks[ability.discipline]||0;
-    const reason=match.reason(player,slot.id,player.targetId);
-    node.classList.toggle("cooling",remaining>0);
-    node.classList.toggle("school-locked",schoolRemaining>.02);
-    const hardStop=reason&&!["CASTING","GLOBAL COOLDOWN"].includes(reason);
-    node.classList.toggle("disabled",!!hardStop);
-    node.classList.toggle("gcd",reason==="CASTING"||reason==="GLOBAL COOLDOWN");
-    node.style.setProperty("--gcd-progress",Math.round(clamp((player.gcd||0)/1.3,0,1)*100)+"%");
-    node.classList.toggle("queued",pendingCast?.ability===slot.id);
-    const newTitle=ability.name+" — "+ability.description+"\n"+(reason||"READY")
-      +(schoolRemaining>.02?"\nSchool lock: "+schoolRemaining.toFixed(1)+"s":"")
-      +(remaining>.02?"\nCooldown: "+remaining.toFixed(1)+"s":"")
-      +(slot.evolutionId?"\nEvolution: "+slot.evolutionId:"");
-    if(node.title!==newTitle)node.title=newTitle;
-    const newLabel=ability.name+(reason?" · "+reason:"");
-    if(node.getAttribute("aria-label")!==newLabel)node.setAttribute("aria-label",newLabel);
-    cd.textContent=remaining>.02?Math.ceil(remaining)+"s":schoolRemaining>.02?"LOCK "+Math.ceil(schoolRemaining)+"s":"";
-  }
+  combatUX?.updateActionBar(match,actionNodes,pendingCast,performance.now());
 }
 function updateCastHUD(){
   if(!match)return;
@@ -290,6 +275,7 @@ function frameLoop(now){
   for(const event of match.consumeEvents()){
     renderer.spawnEffect(event,match);
     feedback?.onEvent(event,match);
+    combatUX?.onEvent(event,actionNodes,now);
     if(event.type==="hit"&&event.amount>0){
       const attacker=match.getActor(event.actorId),victim=match.getActor(event.targetId);
       if(attacker?.id==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+(victim?.name||"target")+" −"+event.amount);
@@ -313,6 +299,8 @@ function frameLoop(now){
   }
   overhead?.update(match,now);
   feedback?.update(match,now);
+  combatUX?.updateActionBar(match,actionNodes,pendingCast,now);
+  combatUX?.updateCC(match);
   if(now-lastUi>85){renderUI();lastUi=now;}
 }
 $("energy-canvas").addEventListener("click",event=>{

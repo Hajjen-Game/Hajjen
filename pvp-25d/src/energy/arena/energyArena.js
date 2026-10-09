@@ -3,14 +3,15 @@ import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from ".
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
 import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261009-kick-lock1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-polish21";
-import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
+import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";
+import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-overhead21";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
-let match=null,renderer=null,feedback=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let match=null,renderer=null,feedback=null,overhead=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
@@ -57,6 +58,7 @@ function showGate(){
   $("combat-screen").hidden=true;$("build-gate").hidden=false;
   $("scene-error").hidden=true;
   feedback?.dispose();feedback=null;
+  overhead?.dispose();overhead=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;
   renderBuildChoices();
@@ -71,9 +73,11 @@ function start(build){
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
     feedback?.dispose();feedback=null;
+    overhead?.dispose();overhead=null;
     if(renderer)renderer.dispose();
     renderer=new EnergyArenaRenderer($("energy-canvas"),arena);
     feedback=new EnergyCombatFeedback($("scene-stage"),renderer);
+    overhead=new EnergyOverheadHUD($("scene-stage"),renderer,ABILITY_BY_ID,DISCIPLINES);
     last=performance.now();lastUi=0;lastNotice="";keys.clear();pendingCast=null;
     clearUiCaches();
     renderUI();
@@ -286,6 +290,7 @@ function frameLoop(now){
   for(const event of match.consumeEvents()){
     renderer.spawnEffect(event,match);
     feedback?.onEvent(event,match);
+    overhead?.onEvent(event,now);
     if(event.type==="hit"&&event.amount>0){
       const attacker=match.getActor(event.actorId),victim=match.getActor(event.targetId);
       if(attacker?.id==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+(victim?.name||"target")+" −"+event.amount);
@@ -307,6 +312,7 @@ function frameLoop(now){
     match=null;
     return;
   }
+  overhead?.update(match,now);
   feedback?.update(match,now);
   if(now-lastUi>85){renderUI();lastUi=now;}
 }

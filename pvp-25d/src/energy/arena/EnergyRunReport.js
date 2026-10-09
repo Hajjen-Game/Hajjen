@@ -103,7 +103,9 @@ export function formatEnergyRunReport(match){
   const history=sortedHistory(match);
   const lines=[
     "ENERGY ARENA — FULL RUN REPORT",
-    "Schema: energy-run-v1 · independent 3v3 prototype",
+    "Schema: energy-run-v2 · independent 1v1/2v2/3v3 prototype",
+    "Mode: "+safe(match.mode?.label)+" ("+safe(match.mode?.size)+") | Progression level "+safe(match.progressLevel)
+      +" | Enemy damage ×"+fix(match.tuning?.damage,2)+" | Enemy healing ×"+fix(match.tuning?.healing,2),
     "Arena: "+(match.arena?.name||match.arena?.id||"unknown"),
     "Result: "+(match.ended?(match.winner==="friendly"?"VICTORY":"DEFEAT"):"IN PROGRESS")
       +" | Elapsed "+fix(match.time,2)+"s | Dampening "+fix(match.dampening*100,0)+"%",

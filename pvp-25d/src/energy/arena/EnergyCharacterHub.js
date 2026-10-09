@@ -1,9 +1,9 @@
 // Energy Arena character home, onboarding and visual talent/evolution workbench.
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261009-orbit-tree31";
-import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents,
+import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
-import { MODES, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
+import { completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-orbit-tree31";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-orbit-tree32";
 
@@ -33,10 +33,10 @@ function classCompatibleSpells(role){return availableAbilities(role);}
 
 
 export class EnergyCharacterHub{
-  constructor({storage,buildStore,getProgression,getMode,changeMode,startMatch}){
+  constructor({storage,buildStore,getProgression,openMainMenu,openPlayMenu}){
     this.storage=storage;this.store=buildStore;
-    this.getProgression=getProgression;this.getMode=getMode;
-    this.changeMode=changeMode;this.startMatch=startMatch;
+    this.getProgression=getProgression;
+    this.openMainMenu=openMainMenu;this.openPlayMenu=openPlayMenu;
     this.character=loadCharacter(storage);
     this.preview=null;this.selectedAbility=null;this.showSwapPicker=false;this.listFilter="equipped";
     this.message="";
@@ -88,13 +88,15 @@ export class EnergyCharacterHub{
       });
     }
     $("hub-orbit-board").addEventListener("mouseleave",()=>this.hideTooltip());
-    $("hub-play-button").addEventListener("click",()=>{
-      if(!this.character)return;
-      this.startMatch(this.store.draft,this.getMode());
+    $("hub-play-button").addEventListener("click",()=>this.openPlayMenu());
+    $("hub-back-menu").addEventListener("click",()=>this.openMainMenu());
+    $("hub-new-build").addEventListener("click",()=>{
+      if(!window.confirm("Start a fresh build for this character? Save your current build in a preset first."))return;
+      this.store.draft=createBuild(this.character.role);
+      this.selectedAbility=null;this.showSwapPicker=false;
+      this.message="Fresh build ready. Your character, level and saved presets are unchanged.";
+      this.persist();this.draw();
     });
-    for(const item of document.querySelectorAll("[data-arena-mode]")){
-      item.addEventListener("click",()=>{this.changeMode(item.dataset.arenaMode);this.renderModes();});
-    }
     $("hub-name-edit").addEventListener("click",()=>{
       if(!this.character)return;
       const name=window.prompt("Name your Energy orb",this.character.name);
@@ -172,21 +174,58 @@ export class EnergyCharacterHub{
     }
     $("hub-orb-stage").style.setProperty("--hub-core",identity.style.core);
     $("hub-orb-stage").style.setProperty("--hub-accent",identity.style.energy);
-    this.renderModes();
     this.renderTree();
+    this.renderPresets();
     $("hub-status").textContent=this.message;
   }
-  renderModes(){
-    const selected=this.getMode();
-    for(const n of document.querySelectorAll("[data-arena-mode]")){
-      const id=n.dataset.arenaMode;
-      n.classList.toggle("selected",id===selected);
-      n.setAttribute("aria-pressed",String(id===selected));
-      n.querySelector(".mode-label").textContent=MODES[id].label;
-      n.querySelector(".mode-size").textContent=MODES[id].size;
-      n.querySelector(".mode-description").textContent=MODES[id].description;
+  renderPresets(){
+    const root=$("hub-preset-slots");root.replaceChildren();
+    for(let index=0;index<3;index++){
+      const saved=this.store.saved[index];
+      const sameRole=!saved||saved.role===this.character.role;
+      const row=el("div","hub-preset-row"+(sameRole?"":" hub-preset-other-role"));
+      const info=el("div","hub-preset-label");
+      info.append(el("strong","",saved?.name||"EMPTY PRESET "+(index+1)),
+        el("span","",saved
+          ?ROLES[saved.role].name+" · "+spentTalentPoints(saved)+" TP · "+activeEvolutionCount(saved)+" Evolutions"
+          :"Save your current build here"));
+      const actions=el("div","hub-preset-actions");
+      const save=button(saved?"SAVE OVER":"SAVE","hub-preset-button",()=>this.savePreset(index));
+      if(saved){
+        const load=button("LOAD","hub-preset-button load",()=>this.loadPreset(index));
+        load.disabled=!sameRole;
+        load.title=sameRole?"Use this preset":"This build belongs to a different class";
+        actions.append(load);
+      }
+      actions.append(save);row.append(info,actions);root.append(row);
     }
-    $("hub-play-button").textContent="ENTER "+MODES[selected].size+" ARENA →";
+  }
+  savePreset(index){
+    if(!this.character)return;
+    if(this.store.saved[index]&&!window.confirm("Overwrite saved preset "+(index+1)+"?"))return;
+    const current=this.store.draft;
+    const name=window.prompt("Name this build",current.name||"My Build");
+    if(name===null)return;
+    try{
+      // Complete auto-filled starter choices into explicit saved slots, so
+      // future pool changes cannot silently alter a loaded preset.
+      const snapshot=normalizeBuild(renameBuild(completeArenaBuild(current),name));
+      this.store.saved[index]=snapshot;
+      this.persist();this.message="Preset "+(index+1)+" saved: "+snapshot.name;
+      this.renderPresets();$("hub-status").textContent=this.message;
+    }catch(error){this.setMessage(error.message||"Could not save preset.");}
+  }
+  loadPreset(index){
+    const saved=this.store.saved[index];
+    if(!saved)return;
+    if(saved.role!==this.character.role){
+      this.setMessage("This preset uses a different class. Your character class stays fixed.");return;
+    }
+    if(!window.confirm("Load preset "+(index+1)+"? Unsaved changes in your current build will be replaced."))return;
+    this.store.draft=normalizeBuild(saved);
+    this.selectedAbility=null;this.showSwapPicker=false;
+    this.message="Loaded "+saved.name+" · character and level unchanged.";
+    this.persist();this.draw();
   }
 
   // The map always contains 18 nodes: both role-specific spells and all 16

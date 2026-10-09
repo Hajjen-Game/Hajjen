@@ -147,7 +147,7 @@ export function drawRiftSlashContact(g,e,from,to,phase,style,scale=1){
     style.core,1.9,.92);
   line({x:to.x-nx*10*k,y:to.y-ny*10*k},
     {x:to.x+nx*12*k+tx*3*k,y:to.y+ny*12*k+ty*3*k},
-    PALETTE.magenta,1.35,.75);
+    C.magenta,1.35,.75);
   for(let i=0;i<3;i++){
     const side=i-1;
     const p={x:to.x+tx*(i+3)*k+nx*side*8*k,

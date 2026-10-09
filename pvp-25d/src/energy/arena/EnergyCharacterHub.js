@@ -183,14 +183,16 @@ export class EnergyCharacterHub{
     const full=stagedLoadout(build,8).abilitySlots;
     const cap=talentPointsForLevel(state.level);
     const used=spentTalentPoints(build);
-    $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE · "+used+"/"+cap+" EARNED TP";
+    const effective=active.reduce((sum,spell)=>sum+spell.talentRank,0);
+    $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE · "+
+      effective+"/"+cap+" ACTIVE TP"+(used>cap?" · "+(used-cap)+" PLANNED":"");
     $("hub-evolution-count").textContent=activeEvolutionCount(build)+" / 2 EVOLUTIONS";
     const list=$("hub-spell-nodes");list.replaceChildren();
     if(!this.selectedAbility||!active.some(x=>x.id===this.selectedAbility))
       this.selectedAbility=active[0]?.id||null;
     full.forEach((slot,index)=>{
       const ability=ABILITY_BY_ID[slot.id];
-      const unlocked=index<active.length,rank=build.talents[slot.id]||0;
+      const unlocked=index<active.length,rank=active[index]?.talentRank||0;
       const node=button("", "hub-spell-node"+(unlocked?" unlocked":" locked")+
         (this.selectedAbility===slot.id?" selected":""),()=>{
           this.selectedAbility=slot.id;this.renderTree();
@@ -212,7 +214,8 @@ export class EnergyCharacterHub{
     const build=this.store.draft;
     const state=progressDetails(this.getProgression());
     const spent=spentTalentPoints(build),cap=talentPointsForLevel(state.level);
-    const rank=build.talents[ability.id]||0;
+    const plannedRank=build.talents[ability.id]||0;
+    const rank=stagedLoadout(build,state.level).abilitySlots.find(a=>a.id===ability.id)?.talentRank||0;
     holder.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
     holder.append(el("p","eyebrow",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
       el("h3","",ability.name),el("p","hub-spell-description",ability.description));
@@ -223,15 +226,17 @@ export class EnergyCharacterHub{
     }
     const minus=button("−","hub-talent-adjust",()=>this.editTalent(ability.id,-1));
     const plus=button("+","hub-talent-adjust",()=>this.editTalent(ability.id,1));
-    minus.disabled=rank===0;
-    plus.disabled=rank===3||spent>=cap;
+    minus.disabled=plannedRank===0;
+    plus.disabled=plannedRank===3||spent>=cap;
     growth.append(el("span","hub-small-label","SPELL MASTERY"),minus,nodes,plus);
     holder.append(growth,el("p","hub-tree-hint",
-      rank<3?"Spend three talent points to unlock a spell evolution.":
+      plannedRank>rank?"Additional points are planned in Advanced Build Lab. "+
+        "Only earned Talent Points take effect in combat.":
+      rank<3?"Spend three earned Talent Points to unlock a spell evolution.":
       "Mastered · Choose one Evolution branch below."));
     const paths=el("div","hub-evolution-branches");
     for(const [i,ev] of ability.evolutions.entries()){
-      const active=build.evolutions[ability.id]===ev.id;
+      const active=rank===3&&build.evolutions[ability.id]===ev.id;
       const btn=button("", "hub-evolution-node"+(active?" active":"")+(rank<3?" disabled":""),()=>{
         if(rank<3)return;
         this.mutate(()=>chooseEvolution(build,ability.id,active?null:ev.id));

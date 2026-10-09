@@ -139,3 +139,68 @@ h2{font-size:23px}
   .topline-right{justify-content:flex-start}
   .topline-right .header-button{padding:9px 10px;white-space:nowrap}
 }
+
+
+/* Pass 21 — crisp, screen-space HP + school cast bars for Energy Arena only.
+   Ground rings, spell VFX and the shared Babylon orb renderer are unchanged. */
+.energy-overhead-layer{
+  position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;
+}
+.energy-overhead{
+  position:absolute;transform:translate(-50%,-100%);width:112px;
+  padding:4px 5px 5px;pointer-events:none;border-radius:7px;
+  border:1px solid #54758cab;background:linear-gradient(180deg,#091725f2,#0a1729e8);
+  box-shadow:0 2px 9px #020712de,0 0 0 1px #020a14b8;
+  color:#edf6ff;font-variant-numeric:tabular-nums;
+  --hp-one:#46b797;--hp-two:#95f5c9;--cast-colour:#99dffc;
+}
+.energy-overhead.enemy{--hp-one:#a33d6b;--hp-two:#ff8eb1;border-color:#6d475b}
+.energy-overhead.player{border-color:#73cce1;box-shadow:0 2px 9px #020712,0 0 10px #5cd9f329}
+.energy-overhead.selected{border-color:#f6a2b1;box-shadow:0 0 0 1px #f69aab6e,0 0 12px #ff86ad42}
+.energy-overhead.selected.friendly{border-color:#7bf2c2;box-shadow:0 0 0 1px #6de3ba77,0 0 12px #67e4bd42}
+.energy-overhead-title{
+  display:flex;align-items:center;justify-content:space-between;gap:3px;
+  font-size:9px;font-weight:780;line-height:1.2;margin-bottom:4px;
+  text-shadow:0 1px 2px #020713;white-space:nowrap;
+}
+.energy-overhead-name{overflow:hidden;text-overflow:ellipsis;max-width:66px}
+.energy-overhead-value{font-weight:830;font-size:9px;color:#d4e8f9}
+.energy-overhead-hp{
+  width:100%;height:8px;position:relative;background:#050d19;
+  border:1px solid #486078;border-radius:4px;overflow:hidden;
+  box-shadow:inset 0 1px 3px #000c,0 1px 0 #7893a620;
+}
+.energy-overhead-hp-fill{
+  width:100%;height:100%;background:linear-gradient(90deg,var(--hp-one),var(--hp-two));
+  box-shadow:0 0 7px var(--hp-one);transition:width .10s linear;
+}
+.energy-overhead.shielded .energy-overhead-hp{border-color:#aadfff;box-shadow:0 0 5px #a7deff87}
+.energy-overhead.danger{--hp-one:#c73348;--hp-two:#ff5569}
+.energy-overhead.danger .energy-overhead-hp-fill{animation:energy-orb-danger 1s infinite ease-in-out}
+@keyframes energy-orb-danger{50%{opacity:.55}}
+.energy-overhead-cast{margin-top:5px;padding-top:3px;border-top:1px solid #50627d7a}
+.energy-overhead-cast-name{
+  display:flex;align-items:center;justify-content:space-between;gap:4px;
+  color:var(--cast-colour);font-size:9px;font-weight:780;margin-bottom:3px;
+  letter-spacing:.005em;line-height:1.15;text-shadow:0 0 5px #030712;
+}
+.energy-overhead-cast-name span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.energy-overhead-cast-name span:last-child{flex-shrink:0;font-variant-numeric:tabular-nums}
+.energy-overhead-cast-track{
+  height:6px;border-radius:4px;background:#050e1b;border:1px solid #596780;
+  overflow:hidden;box-shadow:inset 0 1px 3px #000;
+}
+.energy-overhead-cast-fill{
+  height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--cast-colour) 56%,#27334b),var(--cast-colour));
+  box-shadow:0 0 7px var(--cast-colour);width:0;
+}
+.energy-overhead-cast.interrupted{--cast-colour:#ffa1cc}
+.energy-overhead-cast.interrupted .energy-overhead-cast-fill{background:#e7689c;opacity:.85}
+.energy-combat-number.energy-damage-out{font-size:20px}
+.energy-combat-number.energy-damage-in{font-size:21px;text-shadow:0 2px #170a18,0 0 8px #ef446d8c}
+.energy-combat-number.energy-heal-out,
+.energy-combat-number.energy-heal-in{font-size:20px}
+@media(max-width:1250px){
+  .energy-overhead{width:104px;padding:4px}
+  .energy-overhead-title,.energy-overhead-value{font-size:8px}
+}

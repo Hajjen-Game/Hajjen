@@ -5,7 +5,7 @@ import { createBuild, equipAbility, adjustTalent, chooseEvolution, resetTalents,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js";
 import { MODES, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-character-hub27";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-character-hub27";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-character-hub27";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-orb-preview-fix28";
 
 const $=id=>document.getElementById(id);
 const el=(tag,cls,text)=>{

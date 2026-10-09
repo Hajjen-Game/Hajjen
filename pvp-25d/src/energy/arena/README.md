@@ -520,6 +520,29 @@ projectile head geometry and per-head animation** in `EnergyHeroVFX.js`.
   impact source files are byte-for-byte identical. Browser aesthetics and
   FPS still need direct user visual review.
 
+## Projectile Head Proportions Pass 18 — smaller, slimmer
+
+Follow-up screenshot review of Pass 17 showed the crystal diamond visually
+overpowering the target orb and the solar core also looking too large.
+Only the physical Babylon heads in `EnergyHeroVFX.js` were adjusted:
+
+- **Crystal Bolt:** outer faceted gem width/size .37 -> .22 (about 41%
+  narrower) while increasing elongation 1.52 -> 2.55, maintaining almost
+  exactly the same longitudinal size. Inner gem .245 -> .125, elongation
+  1.42 -> 2.40. Glints and orbit arcs were reduced proportionately.
+  The result is a slim double-ended crystal rather than a broad diamond.
+- **Sun Lance:** outer glowing sphere .61 -> .47, white core .36 -> .275
+  and translucent corona .79 -> .60 (about 23–24% smaller), with
+  proportionally smaller orbit arcs, sparks and ember placements.
+- **Unchanged by design:** both long Pixi tails, Pixi screen-space
+  overlay, compact impacts, Thread Depth / 3D Debris controls, cast
+  build-ups, spell colours, floor reflections, projectile lifetime and
+  all other signatures.
+- Tested all four Crystal/Sun × Pixi-on/fallback head paths against
+  Pass 17 sizes; confirmed head meshes remain visible throughout travel,
+  counts and timelines unchanged, and charge/travel-impact/tail code
+  has not been modified. In-browser visual review still required.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

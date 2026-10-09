@@ -22,34 +22,117 @@
       </div>
     </header>
 
-    <section id="build-gate" class="build-gate" aria-labelledby="gate-title">
-      <div class="eyebrow">YOUR ARENA JOURNEY</div>
-      <h2 id="gate-title">Learn your powers. Build your champion.</h2>
-      <p>Start small and grow into your full ten-ability kit. You earn XP even when you lose. Existing Energy Build Lab presets are saved and never overwritten.</p>
-      <div class="arena-progression" aria-label="Your progression">
-        <div class="progression-head"><strong id="progression-level">LEVEL 1 · 3/10 ABILITIES</strong><span id="progression-xp">50 XP TO NEXT LEVEL</span></div>
-        <div class="progression-track"><div id="progression-fill" class="progression-fill"></div></div>
-        <p id="progression-lesson" class="progression-lesson">Start with three abilities and learn the basics.</p>
-        <small id="progression-record" class="progression-record">0 VICTORIES · 0 DEFEATS</small>
+    <section id="build-gate" class="character-gate" aria-label="Energy character home">
+      <div id="character-creation" class="character-creation" hidden>
+        <p class="eyebrow">YOUR JOURNEY BEGINS</p>
+        <h2>Create your Energy Orb</h2>
+        <p>One character to grow and make your own. Choose how its energy begins.
+          You can evolve it with abilities, talents, and disciplines as you play.</p>
+        <label class="hub-field-label" for="new-character-name">CHARACTER NAME</label>
+        <input type="text" id="new-character-name" class="hub-name-input" maxlength="20" placeholder="Name your orb" autocomplete="off"/>
+        <h3 class="hub-small-heading">Choose a core role</h3>
+        <div class="character-role-choices" role="group" aria-label="Character role">
+          <button type="button" data-create-role="healer" class="character-role selected" aria-pressed="true">
+            <span class="character-role-glyph">✧</span><strong>Healer</strong>
+            <small>Vital energy · healing and protection</small>
+          </button>
+          <button type="button" data-create-role="melee" class="character-role" aria-pressed="false">
+            <span class="character-role-glyph">⌁</span><strong>Melee</strong>
+            <small>Kinetic energy · close-range pressure</small>
+          </button>
+          <button type="button" data-create-role="caster" class="character-role" aria-pressed="false">
+            <span class="character-role-glyph">❖</span><strong>Caster</strong>
+            <small>Cryo energy · ranged spellcraft</small>
+          </button>
+        </div>
+        <button type="button" id="create-character" class="hub-primary">CREATE CHARACTER →</button>
+        <p id="create-character-error" role="alert" class="hub-error"></p>
       </div>
-      <h3 class="gate-subtitle">Choose how you want to fight</h3>
-      <div class="arena-mode-selector" role="group" aria-label="Choose arena mode">
-        <button type="button" class="arena-mode selected" data-arena-mode="training" aria-pressed="true">
-          <span class="mode-top"><strong class="mode-label">Training Grounds</strong><b class="mode-size">1v1</b></span>
-          <span class="mode-description">Single opponent, easy opening lessons.</span>
-        </button>
-        <button type="button" class="arena-mode" data-arena-mode="duo" aria-pressed="false">
-          <span class="mode-top"><strong class="mode-label">Duo Skirmish</strong><b class="mode-size">2v2</b></span>
-          <span class="mode-description">Play with an AI partner.</span>
-        </button>
-        <button type="button" class="arena-mode" data-arena-mode="trio" aria-pressed="false">
-          <span class="mode-top"><strong class="mode-label">Full Arena</strong><b class="mode-size">3v3</b></span>
-          <span class="mode-description">Full team fights for veterans.</span>
-        </button>
+
+      <div id="character-hub" class="character-hub" hidden>
+        <div class="hub-heading">
+          <div><p class="eyebrow">YOUR ENERGY CHAMPION</p>
+            <h2 id="hub-character-name">MY ORB</h2>
+            <p id="hub-role" class="hub-subtitle">HEALER · ENERGY ORB</p>
+          </div>
+          <button type="button" id="hub-name-edit" class="header-button">RENAME <span aria-hidden="true">✎</span></button>
+        </div>
+        <div class="hub-hero-grid">
+          <aside class="hub-character-stats">
+            <p class="eyebrow">CHARACTER PROGRESSION</p>
+            <div id="hub-level" class="hub-level">LEVEL 1</div>
+            <p id="hub-level-subtitle" class="hub-subtitle">3 OF 10 ABILITIES UNLOCKED</p>
+            <div class="hub-progress-track"><div id="hub-xp-fill"></div></div>
+            <div id="hub-xp" class="hub-progress-label">0 XP</div>
+            <p class="hub-small-heading">CURRENT TRAINING</p>
+            <p id="hub-focus" class="hub-focus">Learn your core abilities.</p>
+            <p id="hub-record" class="hub-record">0 WINS / 0 LOSSES</p>
+            <button type="button" id="hub-talents-button" class="hub-secondary" aria-expanded="false">
+              <span aria-hidden="true">✦</span> ABILITIES &amp; TALENTS →
+            </button>
+            <a href="./energy-build.html" class="hub-muted-link">Advanced Build Lab ↗</a>
+          </aside>
+
+          <div id="hub-orb-stage" class="hub-orb-stage">
+            <div class="hub-orb-halo" aria-hidden="true"></div>
+            <canvas id="hub-orb-canvas" aria-label="Animated 3D preview of your Energy orb"></canvas>
+            <p id="hub-visual-fallback" hidden></p>
+            <div class="hub-orb-caption">
+              <span class="hub-live-indicator"></span>
+              <span>LIVE CHARACTER ENERGY</span>
+            </div>
+          </div>
+
+          <aside class="hub-side-panel">
+            <div class="hub-energy-summary">
+              <p class="eyebrow">ENERGY SIGNATURE</p>
+              <strong id="hub-energy-name">VITAL / CRYO</strong>
+              <p>Spell choices, talent ranks and Evolutions shape your orb.</p>
+              <div id="hub-energy-weights" class="hub-energy-weights"></div>
+            </div>
+            <div id="hub-battle-modes">
+              <p class="hub-small-heading">CHOOSE YOUR NEXT BATTLE</p>
+              <div class="arena-mode-selector" role="group" aria-label="Choose arena mode">
+                <button type="button" class="arena-mode selected" data-arena-mode="training" aria-pressed="true">
+                  <span class="mode-top"><strong class="mode-label">Training Grounds</strong><b class="mode-size">1v1</b></span>
+                  <span class="mode-description">Learn one mechanic at a time.</span>
+                </button>
+                <button type="button" class="arena-mode" data-arena-mode="duo" aria-pressed="false">
+                  <span class="mode-top"><strong class="mode-label">Duo Skirmish</strong><b class="mode-size">2v2</b></span>
+                  <span class="mode-description">You and a partner face two enemies.</span>
+                </button>
+                <button type="button" class="arena-mode" data-arena-mode="trio" aria-pressed="false">
+                  <span class="mode-top"><strong class="mode-label">Full Arena</strong><b class="mode-size">3v3</b></span>
+                  <span class="mode-description">Your full team against theirs.</span>
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <div id="hub-talent-workbench" class="hub-talent-workbench" hidden>
+          <div class="hub-talent-heading">
+            <div><p class="eyebrow">YOUR SPELL DEVELOPMENT</p>
+              <h3>Spell Mastery &amp; Evolutions</h3>
+            </div>
+            <div class="hub-talent-stats"><strong id="hub-talent-points">0 AVAILABLE</strong><span id="hub-evolution-count">0 / 2 EVOLUTIONS</span></div>
+            <button type="button" id="hub-close-talents" class="header-button">CLOSE ✕</button>
+          </div>
+          <div class="hub-tree-grid">
+            <div class="hub-tree-spells"><p class="hub-small-heading">YOUR SPELLS</p><div id="hub-spell-nodes"></div></div>
+            <div id="hub-selected-spell" class="hub-selected-spell"></div>
+          </div>
+          <div class="hub-library-panel">
+            <div class="hub-library-heading"><p id="hub-library-label" class="hub-small-heading">CUSTOMISE YOUR SPELLS</p>
+              <button id="hub-reset-talents" type="button" class="header-button">RESET TALENTS</button></div>
+            <div id="hub-spell-library"></div>
+          </div>
+        </div>
+        <p id="hub-status" class="hub-status" role="status" aria-live="polite"></p>
+        <div class="hub-footer">
+          <span>ONE CHARACTER · YOUR ENERGY · YOUR PATH</span>
+          <button type="button" id="hub-play-button" class="hub-primary">ENTER 1V1 ARENA →</button>
+        </div>
       </div>
-      <div class="gate-build-heading"><h3 class="gate-subtitle">Choose a build</h3><a href="./energy-build.html" class="header-button">EDIT BUILDS →</a></div>
-      <p class="gate-hint">You can start with an unfinished draft: missing slots receive temporary starter spells. Your saved build remains unchanged.</p>
-      <div id="available-builds" class="available-builds"></div>
     </section>
 
     <section id="combat-screen" class="combat-screen" hidden>

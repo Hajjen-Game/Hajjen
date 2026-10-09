@@ -765,6 +765,30 @@ in the independent Energy Arena, while reducing floating combat-text clutter.
   dispatch cases including delayed Crystal/Sun/Gravity hit behavior.
   Browser-level visual readability still needs reviewing.
 
+## Compact Orb Bars — Pass 23
+
+The previous text-heavy overhead boxes were too large and obscured groups
+of orbs. Pass 23 replaces them with the reference-inspired **two strips only**,
+using Energy Arena's restrained teal/pink/neon identity:
+
+- A **small HP bar** (72px wide / 68px on narrower viewports; 8px tall)
+  directly above the orb. No name, numerical HP, background card or label.
+  Friendly mint, enemy pink; danger red, target and shield highlights stay
+  subtle. Side party frames still show exact HP, name and role.
+- A separate **6px cast bar above HP**, school-coloured with no cast name,
+  timer or interruption text. It is hidden except while an actor is actively
+  casting; HP stays anchored to the same position whether it appears or not.
+- Orb-relative camera projection is lowered from world y=1.96 to 1.74 to
+  place bars closer to the character without competing with large VFX.
+- The Energy-only overlay continues hiding the duplicated shared 3D HP
+  strips; **no shared renderer, gameplay, AI, damage, run reports or spell
+  effects were modified**. Player-only combat text filtering is preserved.
+- Mock HUD verification passed seven scenarios including correct bar order,
+  no extra text DOM, cast school colour/progress, team and target state,
+  120 update frames without creating DOM, stable HP anchor when cast starts
+  and stops, and dead/removed character cleanup. Live visual QA is still
+  needed for clustered orbs at real gameplay resolution.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

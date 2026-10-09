@@ -2,6 +2,7 @@
 // floor target rings without changing the existing BabylonRenderer / Pixi game.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
+import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-orb-polish21";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261009-side-swing20";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
 
@@ -26,6 +27,8 @@ export class EnergyArenaRenderer {
     // Keep our established glass + animated arc geometry but replace class
     // palettes with role and discipline colours from the new Energy system.
     this.actorRender.styleFor=actor=>actor.energyStyle||{core:"#6acbd8",energy:"#83e4ee"};
+    // Energy-only glass/core/discipline pass. Shared WoW 3v3 orb renderer stays untouched.
+    this.orbPolish=new EnergyOrbPolish(this.scene,this.actorRender);
     this.markers=new OrbGroundMarkers(this.scene,S);
     // Babylon starts with the canvas HTML default drawing buffer (300x150).
     // Resize immediately to CSS stage dimensions, not only after a window resize.
@@ -131,6 +134,7 @@ export class EnergyArenaRenderer {
     const now=performance.now();
     this.activeActors=match.actors;
     this.actorRender.sync(match,now);
+    this.orbPolish.sync(match,now);
     this.markers.sync(match,now);
     this.spellFX.update(match,now);
     this.scene.render();
@@ -142,6 +146,7 @@ export class EnergyArenaRenderer {
     this.pixiFX?.dispose();
     this.spellFX?.dispose();
     this.markers?.dispose();
+    this.orbPolish?.dispose();
     this.scene.dispose();
     this.engine.dispose();
   }

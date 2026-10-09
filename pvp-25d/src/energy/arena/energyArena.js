@@ -1,5 +1,5 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
-import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
+import { readBuildStorage } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
 import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261009-learning-path26";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-polish21";
@@ -8,7 +8,8 @@ import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bar
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-learning-path26";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-character-hub27";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261009-character-hub27";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
@@ -18,7 +19,7 @@ const store=readBuildStorage(window.localStorage);
 let profile=readProgression(window.localStorage);
 let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
 let awardedMatch=null;
-let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,hub=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
@@ -39,48 +40,6 @@ function element(tag,className="",text=""){
 function setError(text){
   const node=$("scene-error");node.hidden=false;node.textContent=text;
 }
-function renderProgression(){
-  const state=progressDetails(profile);
-  $("progression-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
-  $("progression-xp").textContent=state.maxLevel?"MAX LEVEL":state.remaining+" XP TO NEXT LEVEL";
-  $("progression-fill").style.width=(state.progress*100).toFixed(1)+"%";
-  $("progression-lesson").textContent=state.lesson;
-  $("progression-record").textContent=profile.wins+" VICTORIES · "+profile.losses+" DEFEATS";
-}
-function renderModeChoices(){
-  for(const button of document.querySelectorAll("[data-arena-mode]")){
-    const id=button.dataset.arenaMode,mode=MODES[id];
-    button.classList.toggle("selected",id===selectedMode);
-    button.setAttribute("aria-pressed",String(id===selectedMode));
-    button.querySelector(".mode-label").textContent=mode.label;
-    button.querySelector(".mode-size").textContent=mode.size;
-    button.querySelector(".mode-description").textContent=mode.description;
-  }
-}
-function renderBuildChoices(){
-  const root=$("available-builds");root.replaceChildren();
-  const builds=[{label:"Current draft",build:store.draft},...store.saved.map((b,i)=>({label:"Preset "+(i+1),build:b}))];
-  for(const entry of builds){
-    if(!entry.build)continue;
-    const ready=isReady(entry.build);
-    const button=element("button","build-choice");
-    button.type="button";
-    const text=element("span");
-    const heading=element("strong","",entry.build.name);
-    const level=progressDetails(profile);
-    const detail=element("small","",entry.label+" · "+ROLES[entry.build.role].name
-      +" · "+level.slots+" unlocked of 10 abilities");
-    text.append(heading,detail);
-    button.append(text,element("span","status",ready?"ENTER ARENA →":"START WITH STARTER KIT →"));
-    button.addEventListener("click",()=>start(entry.build));
-    root.append(button);
-  }
-  if(!root.childElementCount){
-    root.append(element("p","","Create a build to begin."));
-  }
-  renderModeChoices();
-  renderProgression();
-}
 function showGate(){
   match=null;
   $("combat-screen").hidden=true;$("build-gate").hidden=false;
@@ -91,7 +50,7 @@ function showGate(){
   coach?.dispose();coach=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;awardedMatch=null;
-  renderBuildChoices();
+  hub?.open();
 }
 function start(build){
   try{
@@ -100,8 +59,8 @@ function start(build){
     const state=progressDetails(profile);
     match=new EnergyMatch(build,arena,{modeId:selectedMode,level:state.level});
     awardedMatch=null;
-    $("build-gate").hidden=true;$("combat-screen").hidden=false;
-    $("active-build").textContent=build.name.toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
+    hub?.hide();$("combat-screen").hidden=false;
+    $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
     $("match-mode").textContent=match.mode.size+" · "+match.mode.label.toUpperCase();
     $("match-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
@@ -125,9 +84,8 @@ function start(build){
     match.log(match.mode.size+" "+match.mode.label+" ready. "+state.slots+" abilities unlocked.");
   }catch(error){
     console.error("Energy Arena start failed",error);
-    $("build-gate").hidden=false;$("combat-screen").hidden=true;
-    const warning=element("p","",error?.message||"Unable to start arena");
-    warning.style.color="#f8a0ab";$("available-builds").append(warning);
+    $("combat-screen").hidden=true;
+    hub?.open();hub?.setMessage(error?.message||"Unable to start arena");
   }
 }
 
@@ -393,18 +351,26 @@ $("copy-run-report").addEventListener("click",()=>{
 $("copy-ai-report").addEventListener("click",()=>{
   if(match)copyReport(match.aiReport(),"AI REPORT");
 });
-for(const button of document.querySelectorAll("[data-arena-mode]")){
-  button.addEventListener("click",()=>{
-    selectedMode=button.dataset.arenaMode;
-    profile={...profile,lastMode:selectedMode};
+hub=new EnergyCharacterHub({
+  storage:window.localStorage,buildStore:store,
+  getProgression:()=>profile,
+  getMode:()=>selectedMode,
+  changeMode:id=>{
+    if(!MODES[id])return;
+    selectedMode=id;
+    profile={...profile,lastMode:id};
     saveProgression(window.localStorage,profile);
-    renderModeChoices();
-  });
-}
+  },
+  startMatch:(build,mode)=>{
+    if(MODES[mode])selectedMode=mode;
+    start(build);
+  },
+});
+$("change-build").textContent="RETURN TO HUB";
 $("change-build").addEventListener("click",showGate);
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
-renderBuildChoices();
-if (new URLSearchParams(window.location.search).get("load") === "draft" && isReady(store.draft)) {
-  start(store.draft);
+hub.open();
+if(new URLSearchParams(window.location.search).get("load")==="draft"&&hub.character){
+  hub.showTalents(true);
 }
 requestAnimationFrame(frameLoop);

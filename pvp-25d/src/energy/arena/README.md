@@ -462,6 +462,36 @@ The starting points were read directly from the original GitHub files:
   JavaScript syntax checks passed. Real browser/in-match visual review is
   still required before any further visual additions.
 
+## Traveling Tail Pass 16 — restore the long flowing wakes
+
+After screenshots comparing the first Crystal Bolt/Sun Lance versions to
+Pass 15, the problem was isolated to **travel tail length and shape**:
+Pass 15's `EnergyOriginalLayeredProjectiles.js` capped the entire tail
+at only 53px (ice) / 71px (sun) before projection scaling and drew
+five straight segments. Their 3D spearheads were already correct.
+
+- Preserve Pass 15's original **3D spear/crystal heads**, original class
+  palettes, build-ups, and `drawProjectileImpact` exactly as implemented.
+- Restore the long, tapering, staggered wake with five fine filaments,
+  distinct lengths and sinuous motion along their whole path (16 segments
+  per lane instead of a single straight line). The outer strands reach
+  further back and fade toward their origin; the central near-white
+  line is shorter and brightest next to the 3D head.
+- Tail reach is now `min(distance*.87, (crystal?252:274)*scale)`
+  with capped projection scale, not a broad opaque beam. Very weak colour
+  under-strokes give the mid/near wake a small neon glow without adding
+  another Pixi blur stage or interfering with the physical floor lights.
+- Three tiny staggered motes follow the wake at different distances,
+  instead of two particles clustered immediately behind the nose.
+- **No change** to contact/aftermath, 3D debris, optional Thread Depth,
+  the Pixi toggles, projectile head geometry, damage, AI or build-ups.
+  The user-preferred `THREAD DEPTH: ON`, `PIXI SPELLS: ON`,
+  `3D DEBRIS: OFF` comparison remains available in VFX Lab.
+- Verified 56 old/new phase/zoom scenarios for both spells with valid
+  coordinates and original colours. At phase 0.86 and 1× zoom, the
+  trailing reach grew from roughly 46px to 214px for Crystal Bolt,
+  and 61px to 233px for Sun Lance. Browser appearance still needs review.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

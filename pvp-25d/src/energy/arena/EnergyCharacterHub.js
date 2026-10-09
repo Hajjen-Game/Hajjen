@@ -44,7 +44,17 @@ export class EnergyCharacterHub{
       try{
         const role=document.querySelector("[data-create-role].selected")?.dataset.createRole||"healer";
         const character=saveCharacter(this.storage,{name:$("new-character-name").value,role});
-        this.character=character;this.store.draft=createBuild(role);
+        this.character=character;
+        // Preserve a former Build Lab draft as a preset before starting a
+        // fresh character. If presets are full, keep a recoverable backup.
+        const previous=this.store.draft;
+        if(previous&&(previous.freeSlots||[]).some(Boolean)){
+          const empty=this.store.saved.findIndex(b=>!b);
+          if(empty>=0)this.store.saved[empty]=previous;
+          else try{this.storage.setItem("pvp25d-energy-pre-character-draft-v1",JSON.stringify(previous));}
+          catch{}
+        }
+        this.store.draft=createBuild(role);
         this.persist();
         this.open();
       }catch(error){$("create-character-error").textContent=error.message;}
@@ -91,9 +101,11 @@ export class EnergyCharacterHub{
       return;
     }
     if(this.store.draft.role!==this.character.role){
-      // One actual character: restore its chosen core role without mixing builds.
-      this.store.draft=createBuild(this.character.role);
-      this.persist();
+      // A role switch made intentionally in Advanced Build Lab belongs to
+      // this character. Never discard that edited build on return.
+      this.character=saveCharacter(this.storage,{
+        name:this.character.name,role:this.store.draft.role
+      });
     }
     if(!this.preview){
       try{this.preview=new EnergyOrbShowcase($("hub-orb-canvas"));}

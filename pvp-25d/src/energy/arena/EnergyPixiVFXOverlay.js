@@ -1,7 +1,7 @@
 // Optional PixiJS 8 accent layer, matching the sharp readability of Pixi 3v3.
 // Babylon keeps glass, real 3D buildup and depth. Pixi only draws screen-space
 // trails and hit highlights, never controls real damage, targeting or movement.
-import { drawEnergyProjectile } from "./EnergyPixiProjectiles.js?v=20261008-solar-yellow14";
+import { drawOriginalLayeredProjectile } from "./EnergyOriginalLayeredProjectiles.js?v=20261009-original-layers15";
 import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
@@ -18,19 +18,9 @@ const COLORS={
   "photon-barrier":{c:0xffc37f,core:0xfff7c6,dim:0xc87854},
   "reactive-thread":{c:0x75ecc2,core:0xd9fff2,dim:0x329cb9},
 };
-// The ORIGINAL spell palettes above are unchanged (including glass build-ups).
-// A stronger saturated light/dark separation is only used during travel/hit.
-// The glow pass then emits that colour into the scene; changing hex values
-// alone never recreated the neon punch of the initial visual signatures.
-const NEON_HIT={
-  // Same original palette as the build-ups. Contrast is created by
-  // redistributing shade vs colour vs white, not replacing the hues.
-  "crystal-bolt":{...COLORS["crystal-bolt"],glow:0x00aaff},
-  // The cast/build-up uses COLORS above unchanged. This travelling
-  // signature instead matches its luminous yellow-white visual identity:
-  // vibrant solar yellow, near-white gold, and shadowed ochre (not orange).
-  "sun-lance":{c:0xffdf4d,core:0xfff9c7,dim:0xbd952a,glow:0xffdf56},
-};
+// Cast, travel and contact now share ONE original Visual Combat Slice palette.
+// The old recoloured neon skins added an unrelated second visual identity.
+const NEON_HIT={};
 const HERO=new Set(Object.keys(COLORS));
 const CAST_MS={"crystal-bolt":1300,"sun-lance":1800,"null-prison":1400,
   "rift-slash":390,"gravity-hammer":600,"pulse-mend":1500,
@@ -379,7 +369,9 @@ export class EnergyPixiVFXOverlay {
     const len=Math.max(1,Math.hypot(dx,dy)),tx=dx/len,ty=dy/len,px=-dy/len,py=dx/len;
     const attack=e.spellId;
     if(elapsed<hitAt&&(attack==="sun-lance"||attack==="crystal-bolt")){
-      this.ribbonTrail(g,e,from,to,travel,style,Math.min(scale,3.0));
+      // Original 2ca1aac7b five-strand accents over the 2481bc37a
+      // Babylon spear/crystal, not a second large illustrated projectile.
+      drawOriginalLayeredProjectile(g,e,from,to,travel,style,scale);
     }else if(elapsed<hitAt&&attack==="rift-slash"){
       // Two receding after-images and opposing prismatic seams sweep forward.
       // Direction is set by caster->target, not by a static ring at the victim.
@@ -610,10 +602,10 @@ export class EnergyPixiVFXOverlay {
       const from=e.launch?this.projectWorld(e.launch.x,e.launch.z):this.point(a);
       const to=this.point(b||a);
       if(!from||!to)continue;
-      // The restored original palette still drives charges. Only the
-      // approved Crystal/Sun TRAVEL and CONTACT get the saturated neon skin.
+      // Restored Visual Combat Slice visual language for ALL eight signatures.
+      // No second saturated Sun/Crystal palette painted over the caster.
       const hot=e.type==="hit"&&NEON_HIT[e.spellId];
-      const style=hot?NEON_HIT[e.spellId]:COLORS[e.spellId];
+      const style=COLORS[e.spellId];
       if(e.type==="windup")this.charge(g,e,from,t,style);
       else if(e.type==="hit"||e.type==="heal"){
         const scale=this.impactScale(b||a,to);

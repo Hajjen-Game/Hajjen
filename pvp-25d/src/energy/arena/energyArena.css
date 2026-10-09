@@ -124,3 +124,15 @@ h2{font-size:23px}
   pointer-events:none;border-radius:2px;transition:width .06s linear;
 }
 .spell-button.gcd.disabled{opacity:.78}
+
+/* Run report belongs in the match header, remains usable after death.
+   Wrap rather than overflowing onto the combat stage on smaller screens. */
+.match-topline{flex-wrap:wrap}
+.topline-right{flex-wrap:wrap;justify-content:flex-end}
+.report-button{border-color:#618fa9;color:#d3f5ff;background:#173047}
+.report-button:hover{background:#21465b}
+@media(max-width:750px){
+  .match-center{gap:8px}
+  .topline-right{justify-content:flex-start}
+  .topline-right .header-button{padding:9px 10px;white-space:nowrap}
+}

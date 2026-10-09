@@ -6,6 +6,7 @@ import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-pol
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
+import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-learning-path25";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
@@ -17,7 +18,7 @@ const store=readBuildStorage(window.localStorage);
 let profile=readProgression(window.localStorage);
 let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
 let awardedMatch=null;
-let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
+let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
@@ -87,6 +88,7 @@ function showGate(){
   feedback?.dispose();feedback=null;
   overhead?.dispose();overhead=null;
   combatUX?.dispose();combatUX=null;
+  coach?.dispose();coach=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;awardedMatch=null;
   renderBuildChoices();
@@ -109,11 +111,14 @@ function start(build){
     feedback?.dispose();feedback=null;
     overhead?.dispose();overhead=null;
     combatUX?.dispose();combatUX=null;
+    coach?.dispose();coach=null;
     if(renderer)renderer.dispose();
     renderer=new EnergyArenaRenderer($("energy-canvas"),arena);
     feedback=new EnergyCombatFeedback($("scene-stage"),renderer);
     overhead=new EnergyOverheadHUD($("scene-stage"),renderer,ABILITY_BY_ID,DISCIPLINES);
     combatUX=new EnergyCombatUX($("scene-stage"),ABILITY_RULES,ABILITY_BY_ID,DISCIPLINES,hasLineOfSight);
+    coach=new EnergyTrainingGuide($("scene-stage"));
+    coach.start(match);
     last=performance.now();lastUi=0;lastNotice="";keys.clear();pendingCast=null;
     clearUiCaches();
     renderUI();
@@ -129,7 +134,7 @@ function start(build){
 function target(id){
   if(!match||match.ended)return;
   const actor=match.getActor(id);
-  if(actor?.alive)match.player.targetId=id;
+  if(actor?.alive){match.player.targetId=id;coach?.onTarget(actor);}
 }
 function cycleEnemies(){
   if(!match)return;
@@ -301,6 +306,7 @@ function frameLoop(now){
     while(remaining>.00001&&!match.ended){
       const step=Math.min(.05,remaining);
       match.move(match.player,x,y,step);
+      if(x||y)coach?.onMove();
       match.update(step);
       updateCastQueue();
       remaining-=step;
@@ -326,6 +332,7 @@ function frameLoop(now){
     renderer.spawnEffect(event,match);
     feedback?.onEvent(event,match);
     combatUX?.onEvent(event,actionNodes,now);
+    coach?.onEvent(event);
     if(event.type==="hit"&&event.amount>0){
       const attacker=match.getActor(event.actorId),victim=match.getActor(event.targetId);
       if(attacker?.id==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+(victim?.name||"target")+" −"+event.amount);

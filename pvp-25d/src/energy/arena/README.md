@@ -789,6 +789,47 @@ using Energy Arena's restrained teal/pink/neon identity:
   and stops, and dead/removed character cleanup. Live visual QA is still
   needed for clustered orbs at real gameplay resolution.
 
+## Pixi 3v3 Combat Readability Transfer — Pass 24
+
+Energy Arena borrows **mechanical readability/UI feedback semantics** from
+`arena3v3/src/ui/UIManager.js`, `src/ui/components.js` and
+`src/styles/game.css` as used by the Pixi 3v3 game. The original game
+code/assets are not imported, changed, or overwritten. All styling is
+re-authored in the independent game's five Energy discipline colours.
+
+- Added `EnergyCombatUX.js`: each existing Action Bar slot now has a
+  compact **radial cooldown sweep, distinct radial GCD sweep, coloured
+  in-icon spell windup and thin cast-progress edge**. These track the
+  EnergyMatch simulation, not the delayed VFX render timeline.
+- Slot states visually distinguish insufficient Flux, out-of-range,
+  obstructed LOS, invalid target, school lock, hard CC, actual cooldown,
+  active casting, queued action and unavailable/dead player. They are
+  deliberately differentiated by border, desaturation and accent rather
+  than dimming every unavailable icon to the same flat grey.
+- Success produces a short school-coloured flash, interrupt produces a
+  short magenta fracture-shake, fizzled/failed casts receive red feedback,
+  and cooldown finishing flashes as ready. Input presses and queued casts
+  are distinct. Transient classes are cleared by monotonic frame time,
+  with no background timers or allocations on subsequent frames.
+- Central **player-only CC icon** adapted from Pixi 3v3's player CC alert.
+  Supports incapacitate, root, stun, fear and school lock; only status
+  types implemented in the independent EnergyMatch will appear.
+  Priority is stun → fear → incapacitate → root → school lock. A
+  geometric rune icon and animated duration ring show tenths of a second
+  remaining, with a short identifying title and (for interrupt) school
+  name. This does not change actual CC duration or action eligibility.
+- The CC badge automatically disappears on expiry, death or match end.
+  It has pointer-events disabled and never intercepts targeting.
+- `energyArena.js` wires the new module into match lifecycle, each
+  event batch, action bar, queue/input and each animation frame. The two
+  report buttons, personal floating combat text filter, thin HP/cast
+  strips and all existing spell visual effects remain unchanged.
+- Standalone UI simulation tested no DOM churn, differentiated GCD/CD,
+  school lock independent of cooldown, 70%-complete cast and queued
+  state, Flux/range/LOS reasons, spell success/fizzle/kick flashes,
+  CC priority, radial decay, auto-hide on expiry and cleanup on death;
+  full-browser playtest still required to judge look/feel.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

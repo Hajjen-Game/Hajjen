@@ -859,3 +859,54 @@ re-authored in the independent game's five Energy discipline colours.
 - energyArena.js: controls, build selection, HUD, actionbar, DOM views and animation loop.
 - energyArena.css: styling in Build Lab visual language.
 - ../../energy-arena.html: web entrypoint.
+
+
+## Energy Arena Learning Path — Pass 25
+
+The independent Energy Arena now has three playable modes (selectable from
+the entry screen): **Training Grounds 1v1**, **Duo Skirmish 2v2**, and
+**Full Arena 3v3**. Training Grounds is the default for a new profile.
+All modes use the *existing* map, orb renderer, VFX, controls, ability
+rules, CC and combat-feedback modules; the legacy `arena3v3` directory
+and Energy Build Lab data are not changed.
+
+### Progressive abilities and coaching
+- A separate browser-local profile `pvp25d-energy-progression-v1`
+  records XP, level (1–8), wins/losses and last mode, without overwriting
+  `pvp25d-energy-builds-v1`. XP is given for victories **and** defeats,
+  exactly once after a match finishes.
+- Slots available in battle grow from **3 at level 1** to **10 at level 8**.
+  Energy Build Lab still saves full builds and talent/evolution choices;
+  only the staged *match* loadout is limited. New players can start from an
+  unfinished draft: missing free slots are temporarily supplied from
+  sensible role-specific starter choices, without editing saved drafts.
+- Level 1 healer starts with Pulse Mend, Crystal Bolt and Resonance
+  Guard (when available), including a heal, attack and defensive.
+  Other roles start with equivalent role-appropriate fundamentals.
+- Training Grounds adds a small non-blocking checklist: target enemy,
+  move with WASD, and execute an ability. Later levels suggest trying
+  the newest unlocked ability. Goals are educational, not prerequisites.
+
+### AI and encounter difficulty
+- Training is single-opponent with gentler incoming damage; melee
+  beginners face melee training opponents.
+- Rookie 2v2 has two opposing damage dealers instead of an enemy healer.
+  At **level 3** it introduces enemy healer + DPS pairs, once the player
+  has more tools to counter sustained healing.
+- Enemy AI uses restricted spell kits at low level and progressively
+  unlocks more options with the player. The original planner/navigation
+  stays in place; enemy damage/healing modifiers for the selected mode
+  gradually return toward full values at higher levels.
+- Full Arena is always selectable for users wanting 3v3 earlier.
+  Enemy team roles and actual spell-kit size are now included in both
+  the full run report and the AI debug report.
+
+### Testing and remaining polish
+Source parsing and integration checks passed, plus independent EnergyMatch
+simulations for all player roles and the 1v1/2v2/3v3 rosters. A scripted
+level-one healer won a Training Grounds test in ~17 seconds with self-heals
+and ranged attacks. A first 2v2 simulation exposed an early healer
+stalemate, corrected by postponing enemy healers to level three.
+**Manual browser playtesting is still necessary** for mode pacing, role
+readability, level-up rewards, and in-match onboarding.
+

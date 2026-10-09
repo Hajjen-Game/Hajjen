@@ -800,7 +800,6 @@ export class EnergyHeroVFX {
             :1+.075*Math.sin(now*.009+idx*1.4);
           mesh.rotation.y=now*(ice?.00125:.0020)*(idx%2?1:-1);
           if(!mainBody){
-            mesh.rotation.x+=.0; // Keep orbit arcs' authored tilts.
             mesh.scaling.setAll(.94+.10*Math.sin(now*.006+idx));
           }else{
             mesh.scaling.setAll(pulse);

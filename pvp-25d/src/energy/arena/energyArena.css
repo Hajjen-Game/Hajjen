@@ -84,6 +84,9 @@ h2{font-size:23px}
 .spell-button .cd-value{position:absolute;top:3px;right:5px;font-size:9px;font-weight:700;color:#9cd3eb}
 .spell-button.disabled{opacity:.53}
 .spell-button.cooling{opacity:.46}
+/* Show the short kick lock independently of an actual spell cooldown. */
+.spell-button.school-locked:not(.cooling){border-color:#bd759e;background:#28172d;opacity:.78}
+.spell-button.school-locked:not(.cooling) .cd-value{color:#ffb4e7;text-shadow:0 0 6px #e67ec988}
 .prototype-note{padding:13px 3px;color:#8099b8;font-size:10px;text-align:center}
 @media(max-width:1270px){.energy-shell{width:calc(100% - 16px)}.battle-layout{grid-template-columns:170px minmax(0,1fr) 170px}.action-bar{grid-template-columns:repeat(10,minmax(47px,1fr))}.combat-footer{gap:12px}.resource-bar{width:170px}.spell-button .spell-label{font-size:8px}}
 

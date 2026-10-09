@@ -6,8 +6,11 @@ import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-full-run-report1";
 
 const TICK = 0.05;
+// First survivability pass: allow a meaningful response to coordinated burst.
+// One shared health pool for player and both teams; damage amounts unchanged.
+export const BASE_ACTOR_HEALTH = 160;
 export const ABILITY_RULES = Object.freeze({
-  "pulse-mend":       { mode:"heal",amount:40,cost:18,cast:1.5,range:490 },
+  "pulse-mend":       { mode:"heal",amount:60,cost:18,cast:1.5,range:490 },
   "resonance-guard":  { mode:"guard",amount:0.33,duration:4,cost:22,cd:32,range:490 },
   "phase-rush":       { mode:"rush",cost:14,cd:17,range:450 },
   "pulse-sever":      { mode:"interrupt",cost:10,cd:15,range:105 },
@@ -18,7 +21,7 @@ export const ABILITY_RULES = Object.freeze({
   "null-prison":      { mode:"cc",cc:"incapacitate",duration:4,cost:20,cast:1.4,cd:24,range:490 },
   "sun-lance":        { mode:"damage",amount:27,cost:18,cast:1.8,range:490 },
   "zenith-crash":     { mode:"damage",amount:38,cost:30,cast:2,cd:18,range:490,area:92 },
-  "photon-barrier":   { mode:"shield",amount:42,duration:5,cost:23,cd:28,range:490 },
+  "photon-barrier":   { mode:"shield",amount:60,duration:5,cost:23,cd:28,range:490 },
   "crystal-bolt":     { mode:"damage",amount:15,cost:12,cast:1.3,range:490,slow:0.35,slowTime:3 },
   "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490 },
   "fracture-spear":   { mode:"damage",amount:32,cost:24,cast:1.7,cd:12,range:490,controlBonus:0.3 },
@@ -26,7 +29,7 @@ export const ABILITY_RULES = Object.freeze({
   "gravity-hammer":   { mode:"damage",amount:37,cost:27,cast:0.6,cd:12,range:105 },
   "vector-rush":      { mode:"dash",distance:180,cost:14,cd:18 },
   "resonance-cut":    { mode:"interrupt",cost:15,cd:20,range:370 },
-  "reactive-thread":  { mode:"hot",amount:4,ticks:5,period:2,cost:18,range:490,reactive:8 },
+  "reactive-thread":  { mode:"hot",amount:6,ticks:5,period:2,cost:18,range:490,reactive:10 },
   "symbiosis-link":   { mode:"link",duration:10,cost:18,cd:16,range:490 },
   "cleanse-flux":     { mode:"cleanse",cost:11,cd:10,range:490 },
 });
@@ -64,7 +67,7 @@ function actorFor(id,team,role,pos,control,abilities,evolutions={}) {
   return {
     id,team,role,control, classId:"energy-"+role,
     name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+role.toUpperCase(),
-    x:pos.x,y:pos.y, hp:100,maxHp:100,alive:true,healthPct:1,flux:100,
+    x:pos.x,y:pos.y, hp:BASE_ACTOR_HEALTH,maxHp:BASE_ACTOR_HEALTH,alive:true,healthPct:1,flux:100,
     energyStyle:{core:roleColor[role],energy:roleColor[role]},
     targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,
     schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions,
@@ -331,7 +334,12 @@ export class EnergyMatch {
     this.emit({type:"dash",actorId:actor.id,spellId:actor.dashSpellId||"vector-rush"});
   }
   addStatus(target,entry) {
-    target.statuses=target.statuses.filter(s=>s.kind!==entry.kind||s.sourceId!==entry.sourceId);
+    // One shared Photon Barrier pool is intentionally non-stacking: every
+    // refresh replaces the prior timer, even if a different ally cast it.
+    // Otherwise an expired older shield timer can erase a newer shield.
+    target.statuses=target.statuses.filter(s=>
+      entry.kind==="shield"?s.kind!=="shield":
+      s.kind!==entry.kind||s.sourceId!==entry.sourceId);
     target.statuses.push(entry);
   }
   applyCC(target,category,duration,source,spellId) {
@@ -350,9 +358,26 @@ export class EnergyMatch {
       spellId,ccKind:category,duration:value,drScale:scale});
   }
   execute(actor,spellId,targetId) {
-    const r=ABILITY_RULES[spellId],target=this.currentTarget(actor,r.mode,targetId);
-    if(r.mode!=="dash"&&(!target?.alive||distance(actor,target)>(r.range||490)||!hasLineOfSight(actor,target,this.arena))) {
-      if(actor===this.player)this.log("Target moved out of range or LOS.");
+    const r=ABILITY_RULES[spellId];
+    // A cast must stay bound to its original target after wind-up. In the
+    // previous code a dead ally triggered currentTarget()'s self fallback:
+    // Pulse Mend silently overhealed the player instead of reporting a miss.
+    const target=targetId?this.getActor(targetId):this.currentTarget(actor,r.mode);
+    const lost= r.mode!=="dash"&&
+      (!target?.alive||target.team===actor.team
+        ?!["heal","guard","shield","hot","link","cleanse"].includes(r.mode)
+        :["heal","guard","shield","hot","link","cleanse"].includes(r.mode));
+    const reason= r.mode==="dash"?null:!target?.alive?"TARGET DIED"
+      :lost?"INVALID TARGET":distance(actor,target)>(r.range||490)?"OUT OF RANGE"
+      :!hasLineOfSight(actor,target,this.arena)?"LINE OF SIGHT":null;
+    if(reason){
+      // Cast spent its GCD/time, but a spell that never connected does
+      // not consume its Flux. This is a fizzle, NOT a hidden self-heal.
+      actor.flux=clamp(actor.flux+this.cost(actor,r,spellId),0,MAX_FLUX);
+      this.emit({type:"fizzle",actorId:actor.id,targetId:targetId||null,
+        spellId,reason});
+      if(actor===this.player)this.log((ABILITY_BY_ID[spellId]?.name||spellId)
+        +": "+reason+" — Flux refunded");
       return;
     }
     if(r.mode==="dash"){
@@ -409,7 +434,7 @@ export class EnergyMatch {
     else if(r.mode==="hot"){
       this.addStatus(target,{kind:"reactive-thread",remaining:r.ticks*r.period,sourceId:actor.id,
         period:r.period,tickLeft:r.period,amount:r.amount,reactive:r.reactive,procGate:0});
-      this.heal(target,4,actor,spellId);
+      this.heal(target,6,actor,spellId);
     }else if(r.mode==="link"){
       this.addStatus(actor,{kind:"link",remaining:r.duration,sourceId:actor.id,linkedId:target.id,procGate:0});
       this.emit({type:"link",actorId:actor.id,targetId:target.id,spellId});
@@ -444,7 +469,7 @@ export class EnergyMatch {
     }
     const shieldExpired=actor.statuses.some(s=>s.kind==="shield"&&s.remaining<=0);
     actor.statuses=actor.statuses.filter(s=>s.remaining>0);
-    if(shieldExpired)actor.shield=0;
+    if(shieldExpired&&!actor.statuses.some(s=>s.kind==="shield"))actor.shield=0;
   }
   update(delta) {
     if(this.ended)return;

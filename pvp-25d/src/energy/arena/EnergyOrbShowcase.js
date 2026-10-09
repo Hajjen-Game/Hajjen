@@ -2,7 +2,7 @@
 // as the actual arena, but in its own isolated, larger 3D showcase.
 // No meshes, materials or draw calls are added to combat by this class.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
-import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-orb-preview-fix28";
+import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { energyIdentity } from "./EnergyCharacter.js?v=20261009-character-hub27";
 
 export class EnergyOrbShowcase{
@@ -16,7 +16,7 @@ export class EnergyOrbShowcase{
     this.scene.imageProcessingConfiguration.contrast=1.1;
     this.scene.imageProcessingConfiguration.exposure=1.12;
     this.camera=new BABYLON.ArcRotateCamera("hero-preview-camera",
-      -Math.PI/2,1.27,2.95,new BABYLON.Vector3(0,.92,0),this.scene);
+      -Math.PI/2,1.27,2.43,new BABYLON.Vector3(0,.72,0),this.scene);
     this.camera.minZ=.05;
     new BABYLON.HemisphericLight("hero-fill",new BABYLON.Vector3(.15,1,.35),this.scene).intensity=1.15;
     const rim=new BABYLON.PointLight("hero-rim",new BABYLON.Vector3(-2,3,-3),this.scene);

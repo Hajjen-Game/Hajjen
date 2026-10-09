@@ -3,8 +3,8 @@
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js";
-import { MODES, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-character-hub27";
-import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-character-hub27";
+import { MODES, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
+import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-orbit-tree31";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-hub-orbit29";
 
 const $=id=>document.getElementById(id);

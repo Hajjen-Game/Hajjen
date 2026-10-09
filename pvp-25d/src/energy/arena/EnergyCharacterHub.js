@@ -1,8 +1,8 @@
 // Energy Arena character home, onboarding and visual talent/evolution workbench.
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
-import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js";
+import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261009-orbit-tree31";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents,
-  spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js";
+  spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
 import { MODES, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-orbit-tree31";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-hub-orbit29";

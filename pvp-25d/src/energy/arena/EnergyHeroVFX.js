@@ -212,38 +212,42 @@ export class EnergyHeroVFX {
       // A real, double-ended quartz/octagonal crystal instead of an arrow.
       // Main cyan faceted shell + shorter bright inner gem give depth, not
       // a flat white wedge. The actual energy trails are unchanged.
-      this.crystal(fx,.37,1.52,"main",0);
-      this.crystal(fx,.245,1.42,"light",1);
+      // Narrower than Head Pass 17 while keeping almost the same length:
+      // a slim, double-pointed ice shard rather than an oversized diamond.
+      this.crystal(fx,.22,2.55,"main",0);
+      this.crystal(fx,.125,2.40,"light",1);
       for(let i=0;i<3;i++){
         const a=i*TAU/3+.38;
-        this.ball(fx,.072,i===0?"light":"main",i+2,
-          new BABYLON.Vector3(Math.cos(a)*.30,
-            (i-1)*.23,Math.sin(a)*.30));
+        this.ball(fx,.055,i===0?"light":"main",i+2,
+          new BABYLON.Vector3(Math.cos(a)*.235,
+            (i-1)*.20,Math.sin(a)*.235));
       }
       // Two restrained, tilted orbit arcs echo the crystallization
       // inspiration without becoming a second impact or ground sigil.
       for(let i=0;i<2;i++){
-        const orbit=this.arc(fx,.35+i*.04,Math.PI*1.24,
-          i*2.75+.35,0,.0095,i===0?"light":"main",i+5);
+        const orbit=this.arc(fx,.275+i*.035,Math.PI*1.24,
+          i*2.75+.35,0,.008,i===0?"light":"main",i+5);
         orbit.rotation.x=.52+i*.70;
       }
     }else{
       // Solar energy is an incandescent ORB, not a triangular lance.
       // A saturated gold shell surrounds a compact white-hot center;
       // a soft translucent corona gives it a living fireball silhouette.
-      this.ball(fx,.61,"main",0);
-      this.ball(fx,.36,"light",1);
-      this.ball(fx,.79,"soft",2);
+      // The Sun keeps its rounded hot-core identity but takes up less
+      // room around a target orb; no extra flare or impact-scale change.
+      this.ball(fx,.47,"main",0);
+      this.ball(fx,.275,"light",1);
+      this.ball(fx,.60,"soft",2);
       for(let i=0;i<2;i++){
-        const halo=this.arc(fx,.39+i*.055,Math.PI*(i?1.0:1.32),
-          .24+i*2.43,0,.016,i===0?"light":"main",i+3);
+        const halo=this.arc(fx,.31+i*.045,Math.PI*(i?1.0:1.32),
+          .24+i*2.43,0,.013,i===0?"light":"main",i+3);
         halo.rotation.x=.38+i*.79;
       }
       for(let i=0;i<3;i++){
         const a=i*TAU/3+.35;
-        this.ball(fx,.083,i===0?"light":"main",i+5,
-          new BABYLON.Vector3(.36*Math.cos(a),
-            (i-1)*.15,.36*Math.sin(a)));
+        this.ball(fx,.065,i===0?"light":"main",i+5,
+          new BABYLON.Vector3(.275*Math.cos(a),
+            (i-1)*.12,.275*Math.sin(a)));
       }
     }
     if(fx.pixiPrimary){

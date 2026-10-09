@@ -348,3 +348,60 @@ h2{font-size:23px}
   .energy-cc-glyph{width:35px;height:35px}
   .energy-cc-title{font-size:11px}
 }
+
+/* Learning Path v1: progressive arena entry, no change to VFX or standard combat. */
+.build-gate{max-width:930px;margin:20px auto;padding:24px 26px}
+.build-gate>p{max-width:700px;line-height:1.55}
+.arena-progression{
+  margin:19px 0 20px;padding:16px 18px;
+  border:1px solid #44738d;border-radius:12px;
+  background:linear-gradient(130deg,#17354b,#121c33 70%);
+  box-shadow:inset 0 1px #9af2ff12,0 8px 25px #01071145;
+}
+.progression-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12px;letter-spacing:.09em}
+.progression-head strong{color:#b2f5ff}
+.progression-head span{color:#8db9ca;font-size:10px}
+.progression-track{height:9px;margin:12px 0 10px;border:1px solid #41637c;border-radius:20px;overflow:hidden;background:#070f20}
+.progression-fill{height:100%;width:0;background:linear-gradient(90deg,#3cb5d8,#8bf3db);box-shadow:0 0 14px #77fff0;transition:width .2s}
+.progression-lesson{font-size:12px;color:#d7ecf2;margin:6px 0}
+.progression-record{font-size:10px;color:#87b5c5;letter-spacing:.08em}
+.gate-subtitle{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#b0d9ed;margin:14px 0 9px}
+.arena-mode-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:22px}
+.arena-mode{
+  min-height:115px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:13px;
+  padding:13px;border-radius:11px;border:1px solid #395470;
+  background:linear-gradient(#192943,#0e1a2d);color:#cfe5f5;
+  transition:border-color .13s,box-shadow .13s,background .13s;
+}
+.arena-mode:hover{border-color:#74c1df;box-shadow:0 0 14px #59bddd28}
+.arena-mode.selected{
+  border-color:#8feaff;background:linear-gradient(#1b3c54,#102538);
+  box-shadow:inset 0 0 0 1px #8feaff45,0 0 18px #41cbec20;
+}
+.arena-mode:focus-visible{outline:2px solid #90eaff;outline-offset:3px}
+.mode-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mode-label{font-size:13px;color:#e5f6ff}
+.mode-size{padding:4px 7px;font-size:12px;background:#223e58;border:1px solid #528eaa;border-radius:6px;color:#99efff}
+.arena-mode.selected .mode-size{background:#225c69;color:#c1fff8;border-color:#87e5dd}
+.mode-description{font-size:11px;line-height:1.4;color:#90abc2}
+.gate-build-heading{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.gate-build-heading .gate-subtitle{margin:0}
+.gate-hint{color:#92b7c8;font-size:11px;margin:12px 0}
+.match-level-label{
+  display:inline-flex;margin-left:12px;padding:3px 7px;border:1px solid #467d94;
+  border-radius:5px;background:#163245;color:#a3e8f6;font-size:10px;letter-spacing:.07em
+}
+#combat-banner{z-index:8;text-align:center;gap:14px}
+#match-result-title{font-size:36px;letter-spacing:.2em;color:#e6f8ff;text-shadow:0 0 25px #44bed96c}
+#match-result-details{
+  max-width:600px;padding:13px 18px;border:1px solid #4d92a8;border-radius:10px;
+  background:#102a42e8;color:#abecfc;font-size:13px;font-weight:650;
+  letter-spacing:.045em;line-height:1.6;text-shadow:none
+}
+@media(max-width:780px){
+  .build-gate{padding:18px}
+  .arena-mode-selector{grid-template-columns:1fr}
+  .arena-mode{min-height:0;gap:5px}
+  .match-level-label{margin:6px 0 0}
+  #match-result-details{font-size:11px;max-width:90%}
+}

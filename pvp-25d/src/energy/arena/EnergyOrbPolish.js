@@ -97,11 +97,15 @@ export class EnergyOrbPolish{
     const accents=mat("accents",p.accent,{alpha:showcase?.91:.82,emit:showcase?1.85:1.40});
     const faint=mat("threads",p.hex,{alpha:.46,emit:1.1});
     const clear=mat("glints","#edfaff",{alpha:.68,emit:1.20});
+    // Only the HUB gets an extra translucent, secondary-colour shell orbit.
+    // Keep arena orbit count/material budget exactly as before.
+    const outerThread=showcase?mat("outer-thread",p.accent,{alpha:.43,emit:1.28}):null;
 
-    // A small, genuinely three-dimensional class-specific centre BEHIND the
-    // front glass highlight. Detail scales within the existing 1.24 shell.
-    // The y-axis is vertical in world space; all centres remain near 0.72.
-    const center=vec(0,.92,0);
+    // The actual glass, core and nucleus all have local y=.72. The HUB
+    // elements must share that centre, not the old .92 offset (which made
+    // the orbit look detached ABOVE the sphere).
+    // Leave the established arena polish positions unchanged.
+    const center=vec(0,showcase?.72:.92,0);
     if(kind==="cryo"||kind==="kinetic"){
       const shape=add(BABYLON.MeshBuilder.CreatePolyhedron(
         "energy-orb21-core:"+id,{type:1,size:kind==="cryo"?.155:.135},
@@ -123,26 +127,36 @@ export class EnergyOrbPolish{
         shell,hot,center);
     }
 
-    // Separate gyres provide visible depth and parallax. Their inclinations
-    // are staggered rather than being copies of one flat emblem.
+    // HUB: two luminous gyres INSIDE the glass and two thinner orbits
+    // hugging its OUTSIDE. All four share the actual sphere centre (.72).
+    // X/Z tilts give real front/back crossings as Y rotation animates,
+    // rather than stacked hoops hovering above the sphere.
+    // The arena's existing two rings stay exactly as they were.
     parts.orbits=[];
+    const hubDiameters=[.43,.60,1.29,1.39]; // Glass diameter: 1.24
+    const hubTilts=[.54,1.21,.76,1.37];
+    const hubRolls=[-.27,.58,-.46,.27];
     for(let i=0;i<(showcase?4:2);i++){
       const o=add(BABYLON.MeshBuilder.CreateTorus(
         "energy-orb21-gyro:"+id+":"+i,{
-          diameter:kind==="void"?.50+i*.13:.44+i*.12,
-          thickness:i===0?.013:showcase?.008:.009,tessellation:32,
-        },this.scene),shell,i===0?accents:faint,vec(0,.84+i*.055,0));
-      o.rotation.x=.24+i*.79;
-      o.rotation.z=(kind==="void"?.63:.24)+i*.62;
+          diameter:showcase?hubDiameters[i]:(kind==="void"?.50+i*.13:.44+i*.12),
+          thickness:showcase?(i<2?.011:.007):(i===0?.013:.009),
+          tessellation:showcase?48:32,
+        },this.scene),shell,
+        showcase&&i>=2?outerThread:(i===0?accents:faint),
+        vec(0,showcase?.72:.84+i*.055,0));
+      o.rotation.x=showcase?hubTilts[i]:.24+i*.79;
+      o.rotation.z=showcase?hubRolls[i]:(kind==="void"?.63:.24)+i*.62;
       parts.orbits.push(o);
     }
-    // Small orbiting faceted motes vary by discipline. Never spawn a
-    // screen-sized particle burst or cover enemy HP / target indicators.
+    // Most HUB motes remain suspended INSIDE the glass; just one tiny
+    // escaped spark travels beyond it. Battle shard count stays at three.
     parts.shards=[];
     for(let i=0;i<(showcase?7:3);i++){
       const piece=add(BABYLON.MeshBuilder.CreatePolyhedron(
         "energy-orb21-fragment:"+id+":"+i,{
-          type:1,size:(kind==="cryo"?.052:.040)+(i===1?.012:0),
+          type:1,size:showcase?(i===6?.026:(kind==="cryo"?.047:.035)+(i===1?.009:0))
+            :(kind==="cryo"?.052:.040)+(i===1?.012:0),
         },this.scene),shell,i===0?hot:i===1?accents:base,vec(0,.74,0));
       parts.shards.push(piece);
     }
@@ -226,21 +240,37 @@ export class EnergyOrbPolish{
       symbol.scaling.x=(data.kind==="cryo"?.88:1)*(1+breathe*.08);
       symbol.scaling.z=(data.kind==="cryo"?.88:1)*(1+breathe*.08);
       for(let i=0;i<orbits.length;i++){
-        const ring=orbits[i],dir=i===0?1:-1;
+        const ring=orbits[i],dir=i%2===0?1:-1;
         ring.rotation.y=dir*t*(.48+i*.24)*activity+entry.seed*.004+i*1.4;
-        ring.rotation.x=.25+i*.71+.12*Math.sin(t*.84+i);
-        ring.visibility=.68+(actor.cast?.20:breathe*.15);
+        ring.rotation.x=showcase
+          ?[.54,1.21,.76,1.37][i]+.085*Math.sin(t*.61+i)
+          :.25+i*.71+.12*Math.sin(t*.84+i);
+        ring.visibility=showcase
+          ?(i>=2?.46:.73)+(actor.cast?.13:breathe*.10)
+          :.68+(actor.cast?.20:breathe*.15);
       }
       for(let i=0;i<shards.length;i++){
-        const a=t*(i===1?-1.03:.66)+i*TAU/3+entry.seed*.02;
-        const rad=.37+(i===1?.09:0)+(data.showcase?.07*(i%3):0)+.025*Math.sin(t*1.1+i);
+        const a=t*(i===1?-1.03:.66)+i*(showcase?TAU/7:TAU/3)+entry.seed*.02;
         const m=shards[i];
-        m.position.set(Math.cos(a)*rad,
-          .77+Math.sin(a*1.6+i)*(.12+i*.025),
-          Math.sin(a)*rad);
+        if(showcase){
+          // Six orbiting flecks are enclosed by the 0.62 glass radius.
+          // The seventh is a restrained exterior glint, never a burst.
+          const outside=i===6;
+          const baseRadius=outside?.68:[.24,.31,.37,.40,.29,.44][i];
+          const rad=baseRadius+.016*Math.sin(t*.83+i);
+          m.position.set(Math.cos(a)*rad,
+            .72+Math.sin(a*1.6+i)*(outside?.09:.11+(i%3)*.023),
+            Math.sin(a)*rad);
+          m.visibility=(outside?.31:.65)+(actor.cast?.12:breathe*.10);
+        }else{
+          const rad=.37+(i===1?.09:0)+.025*Math.sin(t*1.1+i);
+          m.position.set(Math.cos(a)*rad,
+            .77+Math.sin(a*1.6+i)*(.12+i*.025),
+            Math.sin(a)*rad);
+          m.visibility=.66+(actor.cast?.20:breathe*.17);
+        }
         m.rotation.x=a*.76+i*.6;
         m.rotation.z=-a*.51;
-        m.visibility=.66+(actor.cast?.20:breathe*.17);
       }
       for(let i=0;i<wisps.length;i++){
         wisps[i].visibility=speed*clamp(.50+.18*Math.sin(t*7+i),.25,.70);

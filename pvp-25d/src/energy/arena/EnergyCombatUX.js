@@ -34,7 +34,7 @@ export class EnergyCombatUX{
     const sub=document.createElement("div");sub.className="energy-cc-sub";
     this.ccRoot.append(disc,title,sub);stage.appendChild(this.ccRoot);
     this.ccDisc=disc;this.ccIcon=icon;this.ccTime=timer;this.ccTitle=title;this.ccSub=sub;
-    this.ccKind=null;
+    this.ccKind=null;this.ccInitial=0;this.ccPrevious=0;
   }
   decorate(entry){
     if(entry.fx)return;
@@ -158,15 +158,22 @@ export class EnergyCombatUX{
     }
     let info=null;
     if(effect)info={kind:effect.kind,seconds:effect.remaining,
-      total:Math.max(effect.remaining,1),detail:effect.kind==="root"?"MOVEMENT LOCKED":"CONTROL EFFECT"};
+      total:effect.remaining,detail:effect.kind==="root"?"MOVEMENT LOCKED":"CONTROL EFFECT"};
     else{
       const locks=Object.entries(player.schoolLocks||{}).filter(([,t])=>t>.015)
         .sort((a,b)=>b[1]-a[1]);
       if(locks.length)info={kind:"schoolLock",seconds:locks[0][1],
         total:3,detail:locks[0][0].toUpperCase()+" LOCKED"};
     }
-    if(!info){this.ccRoot.hidden=true;this.ccKind=null;return;}
+    if(!info){this.ccRoot.hidden=true;this.ccKind=null;this.ccInitial=0;return;}
     this.ccRoot.hidden=false;
+    // Preserve the total time across frames so the sweep actually
+    // counts DOWN. Restart only if a new/longer CC replaces the old one.
+    if(this.ccKind!==info.kind||info.seconds>this.ccPrevious+.10){
+      this.ccInitial=Math.max(info.seconds,.01);
+    }
+    this.ccPrevious=info.seconds;
+    info.total=Math.max(this.ccInitial,.01);
     if(this.ccKind!==info.kind){
       this.ccKind=info.kind;this.ccRoot.dataset.kind=info.kind;
       this.ccIcon.innerHTML=ccMarkup(info.kind);

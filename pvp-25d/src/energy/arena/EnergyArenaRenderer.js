@@ -2,8 +2,8 @@
 // floor target rings without changing the existing BabylonRenderer / Pixi game.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
-import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261009-slim-head18";
-import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-travel-tail16";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261009-rift-crescent19";
+import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-rift-crescent19";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);

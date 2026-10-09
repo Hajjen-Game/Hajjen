@@ -82,11 +82,16 @@ export function drawRiftSlashCharge(g,e,from,to,t,style){
 export function drawRiftSlashTravel(g,e,from,to,travel,style,scale=1){
   if(!from||!to)return;
   const f=frame(from,to),t=clamp(travel,0,1),k=clamp(scale,.72,1.8);
-  const phase=smooth(t),on=smooth(t/.11)*(1-smooth((t-.82)/.18));
+  // In Pixi the hit lands at 269ms of the (269+120)ms swing timeline,
+  // so the blade crosses the target exactly at contact (t~=0.69).
+  const crossing=269/389;
+  const phase=t<=crossing?.5*smooth(t/crossing):
+    .5+.5*smooth((t-crossing)/(1-crossing));
+  const on=smooth(t/.11)*(1-smooth((t-.82)/.18));
   const r=44*k;
   // The blade enters from the LEFT SIDE OF THE STRIKE AXIS and cuts across
   // the enemy's centre. It overshoots to the opposite side before dissolving.
-  const lateral=(-1.30+2.48*phase)*r;
+  const lateral=(-1.30+2.60*phase)*r;
   const forward=(-.16+.18*phase)*r;
   const center=point(f,to,forward,lateral);
   // Rotation makes the action an actual SWING, not a translated letter C.
@@ -106,7 +111,7 @@ export function drawRiftSlashTravel(g,e,from,to,travel,style,scale=1){
   const echoOn=smooth(delayed/.17)*(1-smooth((delayed-.67)/.33))*.48;
   if(echoOn>.006){
     const echoCentre=point(f,to,(-.14+.17*smooth(delayed))*r,
-      (-1.30+2.48*smooth(delayed))*.84*r);
+      (-1.30+2.60*smooth(delayed))*.84*r);
     const echoR=31*k,echoAngle=-.72+.94*smooth(delayed);
     const tail=crescent(g,f,echoCentre,echoR+3*k,9*k,
       echoAngle,C.shadow,echoOn*.66);

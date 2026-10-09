@@ -296,12 +296,10 @@ $("save-build").addEventListener("click", () => {
   message("Saved preset " + (index + 1) + ": " + build.name + (isReady(build) ? "" : " (unfinished draft)"));
 });
 $("test-energy-build").addEventListener("click", () => {
-  if (!isReady(build)) {
-    message("Equip all eight free abilities before entering Energy Arena.", true);
-    return;
-  }
   const problems = validateBuild(build);
   if (problems.length) { message(problems.join("; "), true); return; }
+  // The new character HUB completes empty arena slots temporarily, so an
+  // unfinished draft can return safely without granting free unlocks.
   persist();
   window.location.href = "./energy-arena.html?load=draft";
 });

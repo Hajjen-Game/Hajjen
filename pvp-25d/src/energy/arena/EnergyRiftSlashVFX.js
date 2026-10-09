@@ -1,101 +1,126 @@
-// Rift Slash / "dimensional cleave" — attack-first Pixi VFX.
-// The broad leading crescent carries the spell, rather than the contact.
-// Babylon supplies the optional 3D filaments when THREAD DEPTH is enabled.
-// No physical damage, collision, target or animation clock is changed here.
+// Rift Slash pass 20: a SIDE-ORIGIN DIMENSIONAL SWEEP, not an arrow projectile.
+// Same purple/magenta/near-white color identity as the rest of Energy Arena.
+// Damage timing remains external and the previously approved impact is kept.
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=v=>{const t=clamp(v,0,1);return t*t*(3-2*t);};
-const PALETTE={shadow:0x34174f,body:0x9650d8,magenta:0xe95cda,edge:0xffe5ff};
+const TAU=Math.PI*2;
+const C={shadow:0x34174f,body:0x9650d8,magenta:0xe95cda,edge:0xffe5ff};
 
+function frame(from,to){
+  const dx=to.x-from.x,dy=to.y-from.y;
+  const d=Math.max(1,Math.hypot(dx,dy));
+  return {tx:dx/d,ty:dy/d,nx:-dy/d,ny:dx/d};
+}
+function point(f,center,forward,side){
+  return {x:center.x+f.tx*forward+f.nx*side,
+    y:center.y+f.ty*forward+f.ny*side};
+}
+function stroke(g,pts,color,width,alpha){
+  if(alpha<.004||pts.length<2)return;
+  g.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++)g.lineTo(pts[i].x,pts[i].y);
+  g.stroke({color,width,alpha:clamp(alpha,0,1),cap:"round",join:"round"});
+}
+function crescent(g,f,center,r,width,spin,color,alpha){
+  if(alpha<.003)return [];
+  const outer=[],inner=[],edge=[];
+  for(let i=0;i<=38;i++){
+    const u=i/38,angle=(u-.5)*Math.PI*1.22+spin;
+    const taper=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.78);
+    const x=Math.cos(angle)*.62,y=Math.sin(angle)*.94;
+    outer.push(point(f,center,x*r,y*r));
+    inner.push(point(f,center,x*(r-width*taper),y*(r-width*taper)));
+    edge.push(point(f,center,x*(r-.6),y*(r-.6)));
+  }
+  g.moveTo(outer[0].x,outer[0].y);
+  for(let i=1;i<outer.length;i++)g.lineTo(outer[i].x,outer[i].y);
+  for(let i=inner.length-1;i>=0;i--)g.lineTo(inner[i].x,inner[i].y);
+  g.closePath().fill({color,alpha:clamp(alpha,0,1)});
+  return edge;
+}
+
+// Charge belongs INSIDE the glass orb just like other signature spells.
+// The ghost side blade exists only in the last ~20% of the wind-up.
+export function drawRiftSlashCharge(g,e,from,to,t,style){
+  if(!from)return;
+  const f=frame(from,to||{x:from.x+1,y:from.y});
+  const phase=clamp(t,0,1),pressure=smooth(phase);
+  const fade=smooth(phase/.14)*(1-smooth((phase-.94)/.06));
+  // Three concentric twisting light filaments within ~14px of orb centre.
+  for(let lane=0;lane<3;lane++){
+    const pts=[],start=phase*TAU*(lane%2?-.8:1.02)+lane*2.10;
+    for(let j=0;j<=20;j++){
+      const u=j/20,a=start+u*(1.40+lane*.13);
+      const rad=(5.8+lane*2.9)*(1-.14*pressure);
+      pts.push({x:from.x+Math.cos(a)*rad,
+        y:from.y+Math.sin(a)*rad*.78});
+    }
+    stroke(g,pts,lane===0?style.core:lane===1?style.c:style.dim,
+      lane===0?1.6:1.05,fade*(.55+pressure*.28));
+  }
+  // Irregular rift current gathering at a compact central point.
+  for(let i=0;i<3;i++){
+    const a=phase*TAU*(i%2?-.75:1.1)+i*TAU/3;
+    const rad=(7.5-i*.8)*(1-.31*pressure);
+    const p={x:from.x+Math.cos(a)*rad,
+      y:from.y+Math.sin(a)*rad*.83};
+    g.circle(p.x,p.y,1.05+i*.14).fill({
+      color:i===0?style.core:style.c,alpha:fade*(.43+pressure*.33)});
+  }
+  // A SMALL ghost blade foreshadows the lateral swing just before release.
+  const sideOn=smooth((phase-.77)/.20)*fade;
+  if(sideOn>.005){
+    const centre=point(f,from,0,-14);
+    const ghost=crescent(g,f,centre,13,3.2,-.36,style.dim,
+      sideOn*.27);
+    stroke(g,ghost.slice(5,34),style.c,1.15,sideOn*.47);
+  }
+}
+
+// Most of the attack lives at the TARGET and sweeps laterally through it.
+// There is NO interpolation of the crescent from caster to target.
 export function drawRiftSlashTravel(g,e,from,to,travel,style,scale=1){
   if(!from||!to)return;
-  const dx=to.x-from.x,dy=to.y-from.y;
-  const len=Math.max(1,Math.hypot(dx,dy));
-  const tx=dx/len,ty=dy/len,nx=-ty,ny=tx;
-  const k=clamp(scale,.72,1.8),t=clamp(travel,0,1);
-  const progress=smooth(t);
-  const on=smooth(t/.13)*(1-smooth((t-.75)/.25));
-  const center=(p)=>({x:from.x+dx*smooth(p),y:from.y+dy*smooth(p)});
-  const vec=(c,forward,side)=>({x:c.x+tx*forward+nx*side,y:c.y+ty*forward+ny*side});
-  const stroke=(pts,color,width,alpha)=>{
-    if(alpha<=.004||pts.length<2)return;
-    g.moveTo(pts[0].x,pts[0].y);
-    for(let i=1;i<pts.length;i++)g.lineTo(pts[i].x,pts[i].y);
-    g.stroke({color,width:Math.max(.4,width*k),alpha:clamp(alpha,0,1),
-      cap:"round",join:"round"});
-  };
-  const band=(pts,color,alpha)=>{
-    if(alpha<=.004||pts.length<3)return;
-    g.moveTo(pts[0].x,pts[0].y);
-    for(let i=1;i<pts.length;i++)g.lineTo(pts[i].x,pts[i].y);
-    g.closePath().fill({color,alpha:clamp(alpha,0,1)});
-  };
-  // Filled, tapered CRESCENT mesh in 2D. The width peaks in the middle,
-  // fades to sharp tips, and never resembles a circular impact wheel.
-  const crescent=(centre,r,spin,width,colour,opacity)=>{
-    const outer=[],inner=[],edge=[];
-    for(let i=0;i<=40;i++){
-      const u=i/40,angle=(u-.5)*Math.PI*1.22+spin;
-      const weight=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.74);
-      const swell=width*weight;
-      const axial=Math.cos(angle)*.63;
-      const lateral=Math.sin(angle)*.90;
-      const outerRadius=r;
-      const innerRadius=r-swell;
-      outer.push(vec(centre,axial*outerRadius,lateral*outerRadius));
-      inner.push(vec(centre,axial*innerRadius,lateral*innerRadius));
-      edge.push(vec(centre,axial*(r-.7*k),lateral*(r-.7*k)));
-    }
-    band([...outer,...inner.reverse()],colour,opacity);
-    return edge;
-  };
+  const f=frame(from,to),t=clamp(travel,0,1),k=clamp(scale,.72,1.8);
+  const phase=smooth(t),on=smooth(t/.11)*(1-smooth((t-.82)/.18));
+  const r=44*k;
+  // The blade enters from the LEFT SIDE OF THE STRIKE AXIS and cuts across
+  // the enemy's centre. It overshoots to the opposite side before dissolving.
+  const lateral=(-1.30+2.48*phase)*r;
+  const forward=(-.16+.18*phase)*r;
+  const center=point(f,to,forward,lateral);
+  // Rotation makes the action an actual SWING, not a translated letter C.
+  const angle=-.67+1.13*phase;
+  const shadow=crescent(g,f,center,r+5*k,18*k,angle,
+    C.shadow,on*.76);
+  const outer=crescent(g,f,center,r,15*k,angle,style.c,on*.83);
+  crescent(g,f,center,r-4*k,8*k,angle+.022,C.magenta,on*.74);
+  stroke(g,outer.slice(4,35),C.magenta,4.3*k,on*.28);
+  stroke(g,outer.slice(5,34),style.core,2.05*k,on*.93);
+  stroke(g,outer.slice(10,29),C.edge,.72*k,on*.90);
+  stroke(g,shadow,style.dim,.8*k,on*.39);
 
-  // A very dark undercut separates the saturated pink-violet blade from
-  // its neon rim, just like the user's slash reference images.
-  const centre=center(progress*.92);
-  const r=(43+7*smooth(t/.55))*k;
-  const spin=(t-.43)*.29;
-  const shadow=crescent(centre,r+5.5*k,spin,20*k,
-    PALETTE.shadow,on*.80);
-  const main=crescent(centre,r,spin,16*k,style.c,on*.85);
-  crescent(centre,r-5*k,spin+.025,8*k,
-    PALETTE.magenta,on*.74);
-
-  // Stroke only the leading edge's central segment to preserve a thin hot
-  // cutting line, not a giant opaque white arc.
-  const bright=main.slice(5,36);
-  stroke(main,PALETTE.magenta,5.4,on*.23);
-  stroke(bright,style.core,2.25,on*.94);
-  stroke(bright.slice(5,-5),PALETTE.edge,.82,on*.94);
-  stroke(shadow,style.dim,1.0,on*.48);
-
-  // A delayed, smaller crescent follows the blade and provides a readable
-  // echo of movement; its own contour never masks the primary shape.
-  const lag=clamp((t-.14)/.86,0,1);
-  const echoOn=smooth(lag/.16)*(1-smooth((lag-.57)/.43))*.50;
-  if(echoOn>.008){
-    const echoCentre=center(lag*.79);
-    const echoR=(30+4*smooth(lag))*k;
-    const echo=crescent(echoCentre,echoR,spin-.22,8*k,
-      PALETTE.shadow,echoOn*.72);
-    const echoEdge=crescent(echoCentre,echoR-1.4*k,spin-.22,
-      5*k,style.c,echoOn*.66);
-    stroke(echoEdge.slice(5,35),PALETTE.magenta,1.35,echoOn*.77);
-    stroke(echo,style.dim,.9,echoOn*.43);
+  // Secondary blade follows the same sideways path at a DELAY, not from
+  // the caster's launch position; it appears behind the cutting edge.
+  const delayed=clamp((t-.16)/.84,0,1);
+  const echoOn=smooth(delayed/.17)*(1-smooth((delayed-.67)/.33))*.48;
+  if(echoOn>.006){
+    const echoCentre=point(f,to,(-.14+.17*smooth(delayed))*r,
+      (-1.30+2.48*smooth(delayed))*.84*r);
+    const echoR=31*k,echoAngle=-.72+.94*smooth(delayed);
+    const tail=crescent(g,f,echoCentre,echoR+3*k,9*k,
+      echoAngle,C.shadow,echoOn*.66);
+    const edge=crescent(g,f,echoCentre,echoR,5*k,
+      echoAngle,style.c,echoOn*.65);
+    stroke(g,edge.slice(6,33),C.magenta,1.6*k,echoOn*.84);
+    stroke(g,tail,style.dim,.8*k,echoOn*.42);
   }
-
-  // Only a handful of directional cuts and sparks. They move WITH the
-  // crescent rather than becoming a second radial impact explosion.
-  const sparkOn=on*(.80+.20*Math.sin(t*23));
-  for(let i=0;i<4;i++){
-    const u=(i+.7)/5,a=(u-.5)*Math.PI*1.22+spin;
-    const p=vec(centre,Math.cos(a)*r*.63,Math.sin(a)*r*.90);
-    const f=(3+i%2*2)*k;
-    const q={x:p.x+tx*f,y:p.y+ty*f}; // spark follows attack direction
-    stroke([p,{x:p.x+tx*f-nx*(i%2?4:-4)*k,
-      y:p.y+ty*f-ny*(i%2?4:-4)*k}],
-      i===0?PALETTE.edge:PALETTE.magenta,.80,sparkOn*(.39+i*.065));
-    if(i===1||i===3)g.circle(q.x,q.y,1.05*k).fill({
-      color:style.core,alpha:clamp(sparkOn*.54,0,1)});
+  // Small directional spark streaks hug the outer curve, never a radial hit.
+  if(on>.01)for(let i=0;i<3;i++){
+    const u=(i+1)/4,a=(u-.5)*Math.PI*1.22+angle;
+    const p=point(f,center,Math.cos(a)*r*.62,Math.sin(a)*r*.94);
+    const q=point(f,p,(i+3)*2*k,(i%2?1:-1)*4*k);
+    stroke(g,[p,q],i===1?style.core:C.magenta,.85*k,on*.62);
   }
 }
 

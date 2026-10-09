@@ -6,12 +6,17 @@ import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-pol
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
+import { MODES, readProgression, saveProgression, awardMatch, progressDetails,
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-learning-path25";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
+let profile=readProgression(window.localStorage);
+let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
+let awardedMatch=null;
 let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
 const frameCache=new Map(),actionNodes=[];
@@ -33,6 +38,24 @@ function element(tag,className="",text=""){
 function setError(text){
   const node=$("scene-error");node.hidden=false;node.textContent=text;
 }
+function renderProgression(){
+  const state=progressDetails(profile);
+  $("progression-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
+  $("progression-xp").textContent=state.maxLevel?"MAX LEVEL":state.remaining+" XP TO NEXT LEVEL";
+  $("progression-fill").style.width=(state.progress*100).toFixed(1)+"%";
+  $("progression-lesson").textContent=state.lesson;
+  $("progression-record").textContent=profile.wins+" VICTORIES · "+profile.losses+" DEFEATS";
+}
+function renderModeChoices(){
+  for(const button of document.querySelectorAll("[data-arena-mode]")){
+    const id=button.dataset.arenaMode,mode=MODES[id];
+    button.classList.toggle("selected",id===selectedMode);
+    button.setAttribute("aria-pressed",String(id===selectedMode));
+    button.querySelector(".mode-label").textContent=mode.label;
+    button.querySelector(".mode-size").textContent=mode.size;
+    button.querySelector(".mode-description").textContent=mode.description;
+  }
+}
 function renderBuildChoices(){
   const root=$("available-builds");root.replaceChildren();
   const builds=[{label:"Current draft",build:store.draft},...store.saved.map((b,i)=>({label:"Preset "+(i+1),build:b}))];
@@ -40,20 +63,23 @@ function renderBuildChoices(){
     if(!entry.build)continue;
     const ready=isReady(entry.build);
     const button=element("button","build-choice");
-    button.type="button";button.disabled=!ready;
+    button.type="button";
     const text=element("span");
     const heading=element("strong","",entry.build.name);
-    const detail=element("small","",entry.label+" · "+ROLES[entry.build.role].name+" · "+allEquippedIds(entry.build).length+"/10 abilities");
+    const level=progressDetails(profile);
+    const detail=element("small","",entry.label+" · "+ROLES[entry.build.role].name
+      +" · "+level.slots+" unlocked of 10 abilities");
     text.append(heading,detail);
-    button.append(text,element("span","status",ready?"ENTER ARENA →":"COMPLETE BUILD FIRST"));
+    button.append(text,element("span","status",ready?"ENTER ARENA →":"START WITH STARTER KIT →"));
     button.addEventListener("click",()=>start(entry.build));
     root.append(button);
   }
   if(!root.childElementCount){
-    root.append(element("p","","No saved builds yet. Create one in Energy Build Lab."));
+    root.append(element("p","","Create a build to begin."));
   }
+  renderModeChoices();
+  renderProgression();
 }
-
 function showGate(){
   match=null;
   $("combat-screen").hidden=true;$("build-gate").hidden=false;
@@ -62,18 +88,24 @@ function showGate(){
   overhead?.dispose();overhead=null;
   combatUX?.dispose();combatUX=null;
   if(renderer){renderer.dispose();renderer=null;}
-  keys.clear();pendingCast=null;
+  keys.clear();pendingCast=null;awardedMatch=null;
   renderBuildChoices();
 }
 function start(build){
   try{
-    buildCombatLoadout(build);
+    completeArenaBuild(build); // An incomplete draft can start with a temporary starter kit.
     selectedBuild=build;
-    match=new EnergyMatch(build,arena);
+    const state=progressDetails(profile);
+    match=new EnergyMatch(build,arena,{modeId:selectedMode,level:state.level});
+    awardedMatch=null;
     $("build-gate").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=build.name.toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
+    $("match-mode").textContent=match.mode.size+" · "+match.mode.label.toUpperCase();
+    $("match-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
+    $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
+    $("match-result-details").textContent="";
     feedback?.dispose();feedback=null;
     overhead?.dispose();overhead=null;
     combatUX?.dispose();combatUX=null;
@@ -85,7 +117,7 @@ function start(build){
     last=performance.now();lastUi=0;lastNotice="";keys.clear();pendingCast=null;
     clearUiCaches();
     renderUI();
-    match.log("Energy Arena ready. Tab targets enemies; F1–F3 targets allies.");
+    match.log(match.mode.size+" "+match.mode.label+" ready. "+state.slots+" abilities unlocked.");
   }catch(error){
     console.error("Energy Arena start failed",error);
     $("build-gate").hidden=false;$("combat-screen").hidden=true;
@@ -251,7 +283,10 @@ function renderUI(){
   const feed=$("combat-feed");feed.replaceChildren();
   for(const note of match.notices.slice(0,5))feed.append(element("p","",note.text));
   const banner=$("combat-banner");
-  if(match.ended){banner.hidden=false;banner.textContent=match.winner==="friendly"?"VICTORY":"DEFEAT";}
+  if(match.ended){
+    banner.hidden=false;
+    $("match-result-title").textContent=match.winner==="friendly"?"VICTORY":"DEFEAT";
+  }
 }
 function frameLoop(now){
   requestAnimationFrame(frameLoop);
@@ -270,6 +305,21 @@ function frameLoop(now){
       updateCastQueue();
       remaining-=step;
     }
+  }
+  if(match.ended&&!awardedMatch){
+    const previous=profile;
+    awardedMatch=awardMatch(profile,match.modeId,match.winner==="friendly");
+    profile=awardedMatch.next;
+    saveProgression(window.localStorage,profile);
+    const {earned,after,levelUp,before}=awardedMatch;
+    const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
+    const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots
+      .filter(s=>!beforeIds.has(s.id)).map(s=>ABILITY_BY_ID[s.id]?.name||s.id);
+    $("match-result-details").textContent="+"+earned+" XP · LEVEL "+after.level
+      +(levelUp?" · LEVEL UP!":"")
+      +(unlocked.length?" · NEW: "+unlocked.join(", "):"")
+      +" · Choose CHANGE BUILD to switch mode";
+    $("match-level").textContent="LEVEL "+after.level+" · "+after.slots+"/10 ABILITIES";
   }
   updateCastHUD(); // Cast bar updates every animation frame, not only HUD ticks.
   for(const event of match.consumeEvents()){
@@ -336,6 +386,14 @@ $("copy-run-report").addEventListener("click",()=>{
 $("copy-ai-report").addEventListener("click",()=>{
   if(match)copyReport(match.aiReport(),"AI REPORT");
 });
+for(const button of document.querySelectorAll("[data-arena-mode]")){
+  button.addEventListener("click",()=>{
+    selectedMode=button.dataset.arenaMode;
+    profile={...profile,lastMode:selectedMode};
+    saveProgression(window.localStorage,profile);
+    renderModeChoices();
+  });
+}
 $("change-build").addEventListener("click",showGate);
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
 renderBuildChoices();

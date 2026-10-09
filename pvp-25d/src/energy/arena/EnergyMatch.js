@@ -99,7 +99,7 @@ export class EnergyMatch {
     this.actors=[];
     // Bots use real 10-slot classless builds: two role-bound + eight shared.
     // Select a balanced set covering damage, healing, interrupt, CC and defense.
-    const rosters=rosterRoles(build.role,this.modeId);
+    const rosters=rosterRoles(build.role,this.modeId,this.progressLevel);
     for(const team of ["friendly","enemy"]){
       for(const role of rosters[team]){
         const isPlayer=team==="friendly"&&role===build.role;

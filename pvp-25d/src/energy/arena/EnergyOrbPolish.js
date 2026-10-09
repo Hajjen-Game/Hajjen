@@ -76,10 +76,10 @@ export class EnergyOrbPolish{
   create(actor,entry){
     const id=actor.id,kind=kindFor(actor);
     const showcase=Boolean(actor.isShowcase);
-    const base=PALETTE[kind];
+    const palette=PALETTE[kind];
     const second=actor.energyStyle?.energy;
     // Distinct player-chosen secondary energy appears as gyros/motes.
-    const p={...base,accent:second&&second!==base.hex?second:base.accent};
+    const p={...palette,accent:second&&second!==palette.hex?second:palette.accent};
     const mats=[],meshes=[],parts={};
     const mat=(suffix,hex,opts)=>{
       const m=material(this.scene,"energy-orb21:"+id+":"+suffix,hex,opts);

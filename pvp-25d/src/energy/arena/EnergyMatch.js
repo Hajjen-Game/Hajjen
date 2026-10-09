@@ -3,6 +3,7 @@
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
+import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-full-run-report1";
 
 const TICK = 0.05;
 export const ABILITY_RULES = Object.freeze({
@@ -79,6 +80,9 @@ export class EnergyMatch {
     this.ended=false;
     this.winner=null;
     this.events=[];
+    // Full-match evidence is independent of the short AI report and
+    // survives consumeEvents() / VFX rendering. Capped for 240s matches.
+    this.runHistory=[];this.runHistoryDropped=0;this.runSequence=0;
     this.notices=[];
     this.telemetry=new Map();
     this.lastDamageAt=0;
@@ -148,8 +152,23 @@ export class EnergyMatch {
       else if(event.type==="interrupt")stat.interrupts++;
       else if(event.type==="control")stat.cc++;
     }
-    this.events.push({...event,time:this.time});
+    const snapshot={...event,time:this.time,seq:this.runSequence++};
+    this.events.push(snapshot);
+    // Record the facts at event time; actors/statuses will mutate later.
+    this.runHistory.push({
+      ...snapshot,
+      actorHp:source?.hp??null,
+      targetHp:this.getActor(event.targetId)?.hp??null,
+      targetShield:this.getActor(event.targetId)?.shield??null,
+      targetStatuses:this.getActor(event.targetId)?.statuses
+        ?.filter(s=>s.remaining>0)
+        .map(s=>s.kind+"("+s.remaining.toFixed(1)+"s)").join(", ")||"none",
+    });
+    if(this.runHistory.length>RUN_HISTORY_LIMIT){
+      this.runHistory.shift();this.runHistoryDropped++;
+    }
   }
+  runReport(){return formatEnergyRunReport(this);}
   aiReport(){
     const lines=[
       "ENERGY ARENA — AI / COMBAT TEST REPORT",
@@ -230,7 +249,8 @@ export class EnergyMatch {
     actor.flux-=this.cost(actor,rule,spellId);
     actor.gcd=1.3;
     actor.cooldowns[spellId]=rule.cd||0;
-    this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,spellId});
+    this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,
+      spellId,castSeconds:rule.cast||0});
     if(rule.cast) {
       actor.cast={spellId,remainingMs:rule.cast*1000,totalMs:rule.cast*1000,targetId:target?.id||null};
     }else this.execute(actor,spellId,target?.id||null);
@@ -240,19 +260,26 @@ export class EnergyMatch {
     if(!target?.alive)return;
     const scaled=Math.max(0,Math.round(amount*(1-this.dampening)));
     const given=Math.min(target.maxHp-target.hp,scaled);
+    const hpBefore=target.hp;
     target.hp+=given;target.healthPct=target.hp/target.maxHp;
-    this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,spellId,amount:given,overheal:scaled-given});
+    this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,
+      spellId,amount:given,overheal:scaled-given,hpBefore,hpAfter:target.hp});
   }
   damage(target,amount,source,spellId){
     if(!target?.alive)return;
     let value=amount;
+    const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=amount;
     const guard=target.statuses.find(s=>s.kind==="guard");
     if(guard)value*=1-guard.amount;
+    const guardReduction=rawDamage-value;
     const absorbed=Math.min(target.shield,value);
     target.shield-=absorbed;
     value=Math.max(0,Math.round(value-absorbed));
     target.hp=Math.max(0,target.hp-value);target.healthPct=target.hp/target.maxHp;
-    this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,amount:value,absorbed});
+    this.emit({type:"hit",actorId:source.id,targetId:target.id,
+      spellId,amount:hpBefore-target.hp,absorbed,
+      rawDamage,guardReduction,guardActive:!!guard,
+      hpBefore,hpAfter:target.hp,shieldBefore,shieldAfter:target.shield});
     if(value>0){
       // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
       if(target.statuses.some(s=>s.kind==="incapacitate"))this.emit({type:"break",actorId:source.id,targetId:target.id,spellId});
@@ -274,7 +301,8 @@ export class EnergyMatch {
     }
     if(target.hp===0){
       target.alive=false;target.cast=null;this.log(target.name+" eliminated!");
-      this.emit({type:"death",actorId:target.id,spellId});
+      this.emit({type:"death",actorId:target.id,targetId:target.id,
+        killerId:source.id,spellId});
     }
   }
   move(actor,dx,dy,dt){
@@ -318,7 +346,8 @@ export class EnergyMatch {
     dr.resetAt=this.time+value+20;
     target.dr[category]=dr;
     if(category==="incapacitate")target.cast=null;
-    this.emit({type:"control",actorId:source.id,targetId:target.id,spellId});
+    this.emit({type:"control",actorId:source.id,targetId:target.id,
+      spellId,ccKind:category,duration:value,drScale:scale});
   }
   execute(actor,spellId,targetId) {
     const r=ABILITY_RULES[spellId],target=this.currentTarget(actor,r.mode,targetId);
@@ -339,19 +368,23 @@ export class EnergyMatch {
         const interrupted=target.cast.spellId,discipline=ABILITY_BY_ID[interrupted]?.discipline;
         target.cast=null;
         if(discipline)target.schoolLocks[discipline]=3;
-        this.emit({type:"interrupt",actorId:actor.id,targetId:target.id,spellId});
+        this.emit({type:"interrupt",actorId:actor.id,targetId:target.id,
+          spellId,interruptedSpell:interrupted});
         if(actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon")actor.flux=clamp(actor.flux+12,0,MAX_FLUX);
         this.log(actor.name+" interrupted "+target.name);
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
     }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
     else if(r.mode==="guard"){
       this.addStatus(target,{kind:"guard",remaining:r.duration,amount:r.amount,sourceId:actor.id});
-      this.emit({type:"guard",actorId:actor.id,targetId:target.id,spellId});
+      this.emit({type:"guard",actorId:actor.id,targetId:target.id,
+        spellId,guardPercent:r.amount,duration:r.duration});
     }
     else if(r.mode==="shield"){
+      const shieldBefore=target.shield;
       target.shield=Math.max(target.shield,r.amount);
       this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});
-      this.emit({type:"shield",actorId:actor.id,targetId:target.id,spellId,amount:r.amount});
+      this.emit({type:"shield",actorId:actor.id,targetId:target.id,
+        spellId,amount:r.amount,shieldBefore,shieldAfter:target.shield});
     }
     else if(r.mode==="damage"){
       let amount=r.amount;
@@ -384,7 +417,8 @@ export class EnergyMatch {
       const bad=target.statuses.find(s=>s.negative);
       if(bad){
         target.statuses.splice(target.statuses.indexOf(bad),1);
-        this.emit({type:"cleanse",actorId:actor.id,targetId:target.id,spellId});
+        this.emit({type:"cleanse",actorId:actor.id,targetId:target.id,
+          spellId,removedStatus:bad.kind});
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NOTHING TO CLEANSE"});
       if(actor.evolutions[spellId]==="purifying-surge"&&bad)this.heal(target,10,actor,spellId);
     }

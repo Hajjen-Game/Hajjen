@@ -219,7 +219,7 @@ function animate(now){
 function init(){
   drawCards();
   let volumeOn=false; // The old faceted experiment remains OFF by default.
-  let threadOn=false; // Attack-first: pure Pixi contact is the new default.
+  let threadOn=true; // Preferred Pixi + thread depth; 3D debris stays OFF.
   const syncDepthModes=()=>{
     renderer?.spellFX?.hero?.volume?.setEnabled(volumeOn);
     renderer?.spellFX?.hero?.setThreadDepthEnabled(threadOn);

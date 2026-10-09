@@ -17,8 +17,11 @@ export function drawOriginalLayeredProjectile(g,e,from,to,travel,style,scale=1){
   if(distance<2)return;
   const cx=from.x+dx*advance,cy=from.y+dy*advance;
   const k=clamp(scale*.85,.75,1.65);
-  // FIRST VERSION: 53px (ice) / 71px (solar), never a thick full-arena beam.
-  const tail=Math.min(distance*.70,(ice?53:71)*k);
+  // Long, living wake like the FIRST screenshots (before the back-to-
+  // roots pass shortened it to only 53/71px). The distant end is a faint
+  // whisper, while the last third connects visibly into the 3D spearhead.
+  // Each lane has a different reach so this never becomes one solid beam.
+  const tail=Math.min(distance*.87,(ice?252:274)*k);
   const alpha=smooth(travel/.12);
   const pos=(back,side=0)=>({x:cx-tx*back+nx*side*k,
     y:cy-ty*back+ny*side*k});
@@ -29,21 +32,41 @@ export function drawOriginalLayeredProjectile(g,e,from,to,travel,style,scale=1){
       cap:"round",join:"round"});
   };
 
-  // Original five-strand motion: darker outside, two colored filaments,
-  // colored inner path, and ONE hairline of near-white energy.
-  // Subtle out-of-phase oscillation makes separate layers move against
-  // one another just like other Visual Combat Slice spell signatures.
+  // Same original five layers, now with a real flowing trajectory through
+  // the wake. Previously each was just ONE straight segment between two
+  // drifting endpoints: it looked like 3 naked lines behind a big head.
+  // Keep the original base/dim/core palette and the existing 3D head.
   for(let lane=-2;lane<=2;lane++){
-    const wav=Math.sin(travel*(ice?26:30)+lane*2+(e.seed||0)*.03)
-      *(ice?4.2:2.6);
-    const offset=lane*(ice?2.9:2.6)+wav;
-    const start=pos(tail,offset);
-    const end=pos(0,lane*1.35);
     const center=lane===0,outer=Math.abs(lane)===2;
+    const length=tail*(outer?1:center?.79:.92);
+    const width=center?1.30:outer?1.18:1.38;
+    const strength=center?.69:outer?.38:.67;
     const color=center?style.core:outer?style.dim:style.c;
-    const width=center?1.45:outer?1.6:1.8;
-    const strength=center?.75:outer?.34:.68;
-    stroke(start,end,color,width,strength*(1-travel*.16));
+    const points=[];
+    for(let j=0;j<=16;j++){
+      const q=j/16;
+      const wave=Math.sin(travel*(ice?19:21)+q*(ice?10.7:9.0)+
+          lane*1.62+(e.seed||0)*.03);
+      const counter=Math.cos(travel*12.3-q*6.8+lane*1.85);
+      const swell=Math.sin(Math.PI*(.05+q*.90));
+      const side=lane*(ice?2.8:2.6)*(1.14-.66*q)
+        +wave*(ice?5.3:3.9)*swell
+        +counter*(ice?1.7:1.2)*swell;
+      points.push(pos(length*(1-q),side));
+    }
+    for(let j=1;j<points.length;j++){
+      const q=(j-.5)/16;
+      // Opacity and thickness taper toward the distant end, preserving
+      // darker negative space between cyan/gold energy strands.
+      const fade=.12+.88*smooth(q/.74);
+      const thickness=width*(.43+.57*smooth(q/.82));
+      // Soft color under-stroke: not a blur filter or a large opacity wash.
+      // Only middle/near-nose segments receive a little luminous breadth.
+      if(!outer&&q>.30)stroke(points[j-1],points[j],style.c,
+        thickness+2.0,strength*.13*fade);
+      stroke(points[j-1],points[j],color,thickness,
+        strength*fade*(1-travel*.11));
+    }
   }
   // Original separate head glow is very small: the actual 3D cone/ball
   // remains visible behind it and supplies the bulk of the projectile.
@@ -52,11 +75,14 @@ export function drawOriginalLayeredProjectile(g,e,from,to,travel,style,scale=1){
     .fill({color:style.c,alpha:.42*alpha});
   g.circle(nose.x,nose.y,(ice?1.8:2.4)*k)
     .fill({color:style.core,alpha:.84*alpha});
-  // Just two asynchronous satellites: motion depth without a particle cloud.
-  for(let i=0;i<2;i++){
+  // Three tiny, staggered wake sparks follow the FULL travelling path,
+  // not just the first few pixels behind the head. They stay delicate.
+  for(let i=0;i<3;i++){
     const phase=travel*(ice?14:17)+i*Math.PI+(e.seed||0)*.021;
-    const p=pos(7+i*7,Math.sin(phase)*(ice?5.5:6.5));
-    g.circle(p.x,p.y,.78*k).fill({
-      color:i?style.c:style.core,alpha:(i?.42:.58)*alpha});
+    const back=tail*(.16+i*.29);
+    const p=pos(back,Math.sin(phase)*(ice?5.5:6.5));
+    g.circle(p.x,p.y,(i===0?.88:.65)*k).fill({
+      color:i===0?style.core:style.c,
+      alpha:(i===0?.53:.34)*alpha*(1-i*.13)});
   }
 }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-orbit-tree31"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-menu-codex33"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -17,12 +17,64 @@
       <div class="arena-header-actions">
         <span class="preview-pill">ALPHA · PROTOTYPE RULES</span>
         <a href="./energy-vfx-lab.html" class="header-button" style="color:#b9e9fc;border-color:#567f9a">VISUAL VFX LAB ↗</a>
-        <a href="./energy-build.html" class="header-button">ENERGY BUILD LAB ↗</a>
+        <button type="button" id="main-menu-open" class="header-button">MAIN MENU</button>
         <a href="./orbs.html" class="header-button">LEGACY ARENA ↗</a>
       </div>
     </header>
 
-    <section id="build-gate" class="character-gate" aria-label="Energy character home">
+    <section id="main-menu" class="energy-main-menu" aria-label="Energy Arena main menu">
+      <div class="menu-orb-visual" aria-hidden="true"><div class="menu-orb-core"></div><span class="menu-orbit-ring one"></span><span class="menu-orbit-ring two"></span></div>
+      <div class="menu-copy">
+        <p class="eyebrow">YOUR ORB · YOUR PATH · YOUR ARENA</p>
+        <h2>FORGE YOUR <span>ENERGY</span></h2>
+        <p>Shape a living energy orb, evolve your abilities and battle your way from training to full 3v3 combat.</p>
+        <div class="menu-main-actions">
+          <button type="button" class="menu-action primary" id="menu-play">▶ PLAY <span>Choose your arena</span></button>
+          <button type="button" class="menu-action" id="menu-hub">◈ CHARACTER HUB <span>Evolution Tree & builds</span></button>
+          <button type="button" class="menu-action" id="menu-about">▣ ABOUT / HOW TO PLAY <span>Open the illustrated guide</span></button>
+        </div>
+        <div id="menu-mode-options" class="menu-modes" hidden aria-label="Choose arena mode">
+          <p class="hub-small-heading">CHOOSE YOUR BATTLE</p>
+          <div class="menu-mode-grid">
+            <button type="button" class="menu-mode" data-menu-mode="training"><strong>TRAINING GROUNDS</strong><span>1v1 · Learn the fundamentals</span></button>
+            <button type="button" class="menu-mode" data-menu-mode="duo"><strong>DUO SKIRMISH</strong><span>2v2 · Fight with a partner</span></button>
+            <button type="button" class="menu-mode" data-menu-mode="trio"><strong>FULL ARENA</strong><span>3v3 · Your full team</span></button>
+          </div>
+        </div>
+        <p class="menu-note">Singleplayer prototype · AI-controlled opponents · Your progress is saved in this browser.</p>
+      </div>
+    </section>
+
+    <section id="guide-overlay" class="guide-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="guide-title">
+      <div class="guide-book">
+        <div class="guide-book-top">
+          <div><p class="eyebrow">THE ENERGY ARENA HANDBOOK</p><h2 id="guide-title">THE FIELD GUIDE</h2></div>
+          <button type="button" id="guide-close" class="header-button" aria-label="Close guide">CLOSE ✕</button>
+        </div>
+        <div class="guide-book-pages">
+          <article class="guide-page guide-page-text">
+            <p id="guide-chapter" class="guide-chapter"></p>
+            <h3 id="guide-page-title"></h3>
+            <p id="guide-intro" class="guide-intro"></p>
+            <div id="guide-steps" class="guide-steps"></div>
+            <div id="guide-tip" class="guide-tip"></div>
+            <span class="guide-page-number">ENERGY ARENA · FIELD NOTES</span>
+          </article>
+          <div class="guide-page guide-page-art" aria-label="Illustrated explanation">
+            <div id="guide-illustration" class="guide-illustration"></div>
+            <div id="guide-art-caption" class="guide-art-caption"></div>
+            <span class="guide-page-number">ILLUSTRATED REFERENCE</span>
+          </div>
+        </div>
+        <div class="guide-book-footer">
+          <button type="button" class="header-button" id="guide-prev">← PREVIOUS</button>
+          <span id="guide-progress">1 / 8</span>
+          <button type="button" class="header-button" id="guide-next">NEXT PAGE →</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="build-gate" class="character-gate" aria-label="Energy character home" hidden>
       <div id="character-creation" class="character-creation" hidden>
         <p class="eyebrow">YOUR JOURNEY BEGINS</p>
         <h2>Create your Energy Orb</h2>
@@ -67,7 +119,7 @@
               <div><strong id="hub-talent-points">0 AVAILABLE</strong><small>TALENT POINTS</small></div>
             </div>
             <div class="hub-point-card"><span class="hub-point-icon evolution">◈</span>
-              <div><strong id="hub-evolution-count">0 / 2 ACTIVE</strong><small>EVOLUTIONS · UNLOCK AT RANK 3</small></div>
+              <div><strong id="hub-evolution-count">0 / 10 CHOSEN</strong><small>EVOLUTIONS · UNLOCK AT RANK 3</small></div>
             </div>
           </div>
           <div class="hub-overview-actions">
@@ -128,33 +180,24 @@
                 <div id="hub-spell-library" class="hub-swap-picker" hidden></div>
               </div>
             </section>
-            <section id="hub-battle-modes" class="hub-modes-panel hub-build-panel">
-              <div class="hub-panel-heading"><h3>ARENA MODES</h3></div>
-              <div class="arena-mode-selector" role="group" aria-label="Choose arena mode">
-                <button type="button" class="arena-mode selected" data-arena-mode="training" aria-pressed="true">
-                  <span class="mode-top"><strong class="mode-label">Training Grounds</strong><b class="mode-size">1v1</b></span>
-                  <span class="mode-description">Practice one mechanic at a time.</span>
-                </button>
-                <button type="button" class="arena-mode" data-arena-mode="duo" aria-pressed="false">
-                  <span class="mode-top"><strong class="mode-label">Duo Skirmish</strong><b class="mode-size">2v2</b></span>
-                  <span class="mode-description">You and one partner versus two.</span>
-                </button>
-                <button type="button" class="arena-mode" data-arena-mode="trio" aria-pressed="false">
-                  <span class="mode-top"><strong class="mode-label">Full Arena</strong><b class="mode-size">3v3</b></span>
-                  <span class="mode-description">Full three-versus-three arena.</span>
-                </button>
+            <section class="hub-presets hub-build-panel" aria-label="Saved character builds">
+              <div class="hub-panel-heading"><h3>BUILD PRESETS</h3><span>3 SAVE SLOTS</span></div>
+              <p class="hub-preset-intro">Save spell combinations and Evolutions, then return to them whenever you want.</p>
+              <div id="hub-preset-slots" class="hub-preset-slots"></div>
+              <div class="hub-preset-tools">
+                <button type="button" id="hub-new-build" class="header-button">NEW BUILD</button>
+                <button id="hub-reset-talents" type="button" class="header-button">RESET TALENTS</button>
               </div>
             </section>
             <section class="hub-utilities">
-              <button id="hub-reset-talents" type="button" class="header-button">RESET TALENTS</button>
-              <a href="./energy-build.html" class="hub-muted-link">ADVANCED BUILD LAB ↗</a>
+              <span class="hub-utilities-label">YOUR SPELLS · YOUR EVOLUTIONS</span>
             </section>
           </aside>
         </div>
         <p id="hub-status" class="hub-status" role="status" aria-live="polite"></p>
         <div class="hub-footer">
           <span>ONE CHARACTER · YOUR ENERGY · YOUR PATH</span>
-          <button type="button" id="hub-play-button" class="hub-primary">ENTER 1V1 ARENA →</button>
+          <div class="hub-footer-actions"><button type="button" id="hub-back-menu" class="header-button">← MAIN MENU</button><button type="button" id="hub-play-button" class="hub-primary">PLAY →</button></div>
         </div>
       </div>
     </section>
@@ -200,6 +243,6 @@
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-orbit-tree32"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-menu-codex33"></script>
 </body>
 </html>

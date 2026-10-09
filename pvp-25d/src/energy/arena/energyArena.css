@@ -560,3 +560,189 @@ h2{font-size:23px}
   .hub-evolution-branches{grid-template-columns:1fr}
   .hub-evolution-node{min-height:82px}
 }
+
+
+/* Character HUB v30 — spellbook -> mastery path -> evolution, with the live
+   Babylon glass orb always visible while the player edits their build. */
+.character-hub{padding:18px 19px 16px}
+.hub-overview{display:grid;grid-template-columns:minmax(170px,.95fr) minmax(170px,1fr) minmax(300px,1.5fr) auto;
+  gap:17px;align-items:center;padding:9px 5px 15px;margin-bottom:12px;border-bottom:1px solid #2b465b}
+.hub-overview-name{min-width:0;border-right:1px solid #2e485d;padding-right:12px}
+.hub-overview-name h2{font-size:25px;letter-spacing:.025em;margin:7px 0 4px}
+.hub-overview-progress{min-width:0}
+.hub-overview-progress .hub-level{display:block;font-size:21px;margin:0 0 7px}
+.hub-overview-progress .hub-progress-track{height:6px;margin:4px 0 6px}
+.hub-overview-progress .hub-progress-label{margin:0 0 6px;font-size:10px}
+.hub-overview-progress .hub-subtitle{font-size:9px}
+.hub-overview-points{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
+.hub-point-card{display:flex;gap:10px;align-items:center;min-width:0;padding:10px 12px;
+  background:linear-gradient(135deg,#12263a,#0d1729);border:1px solid #2c4961;border-radius:9px}
+.hub-point-icon{font-size:27px;color:#f0b868;text-shadow:0 0 15px #ed9f4eaa}
+.hub-point-icon.evolution{color:#b99bf3;text-shadow:0 0 15px #a78affaa}
+.hub-point-card strong{display:block;color:#ecfaff;font-size:15px;white-space:nowrap}
+.hub-point-card small{display:block;color:#85b5ce;font-size:9px;letter-spacing:.08em;line-height:1.35;margin-top:2px}
+.hub-overview-actions{display:grid;gap:10px;justify-items:end}
+.hub-overview-actions .hub-record{white-space:nowrap}
+.hub-build-layout{display:grid;grid-template-columns:minmax(215px,.9fr) minmax(420px,2fr) minmax(220px,.86fr);
+  align-items:start;gap:11px}
+.hub-build-panel{border:1px solid #34546c;border-radius:11px;
+  background:linear-gradient(145deg,#101d31,#091424);box-shadow:inset 0 1px #adf0ff0b;min-width:0}
+.hub-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;
+  margin-bottom:10px;border-bottom:1px solid #29495e;padding-bottom:10px}
+.hub-panel-heading h3{margin:0;font-size:12px;color:#a5e8f4;letter-spacing:.12em;font-weight:830}
+.hub-panel-heading>span{font-size:9px;color:#8fb4ce;white-space:nowrap}
+.hub-panel-intro{font-size:11px;color:#93b5ca;line-height:1.35;margin-bottom:12px}
+.hub-tree-spells{padding:14px 11px}
+.hub-spellbook-list,#hub-spell-nodes{display:grid;grid-template-columns:1fr;gap:7px;margin:0}
+.hub-spell-node{--spell-tone:#7ed9ed;display:flex;align-items:center;gap:9px;position:relative;
+  min-height:61px;width:100%;text-align:left;padding:7px 10px;background:linear-gradient(105deg,#15263c,#0f1d31);
+  border:1px solid #314d67;border-radius:9px;color:#e8f5fc;transition:border-color .15s,background .15s,box-shadow .15s}
+.hub-spell-node.unlocked{border-left:2px solid var(--spell-tone)}
+.hub-spell-node.selected{background:linear-gradient(100deg,#2b3444,#16263b);border:1px solid #f0bb77;
+  box-shadow:inset 0 0 0 1px #f4be7550,0 0 12px #b9863d30}
+.hub-spell-node:not(:disabled):hover{border-color:var(--spell-tone);filter:brightness(1.15)}
+.hub-spell-node.locked{opacity:.44;cursor:not-allowed}
+.hub-spell-node.evolved:not(.selected){box-shadow:inset 0 0 14px #ad7feb1c}
+.hub-spell-symbol{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;
+  font-size:22px;border:1px solid color-mix(in srgb,var(--spell-tone) 65%,#34526b);
+  border-radius:8px;background:radial-gradient(circle at 37% 28%,color-mix(in srgb,var(--spell-tone) 25%,#132337),#071728 90%);
+  color:var(--spell-tone);text-shadow:0 0 11px color-mix(in srgb,var(--spell-tone) 70%,transparent)}
+.hub-spell-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.hub-spell-name{font-size:12px;line-height:1.15}
+.hub-spell-category{color:var(--spell-tone);font-size:8px;letter-spacing:.08em}
+.hub-spell-level{font-size:9px;color:#a4c1d3;letter-spacing:.02em}
+.hub-spell-state{margin-left:auto;flex:none;display:grid;place-items:center;width:23px;height:23px;
+  border:1px solid #426980;border-radius:7px;color:#7acbe0;background:#16324a;font-size:15px}
+.hub-spell-node.upgradeable .hub-spell-state{color:#eac486;border-color:#a98658;background:#423322}
+.hub-spell-node.evolved .hub-spell-state{color:#c9a0ff}
+.hub-spell-node.locked .hub-spell-state{border:0;background:transparent;color:#7596a9}
+.hub-spellbook-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px;border-top:1px solid #243b4e;padding:11px 3px 0}
+.hub-key{font-size:8px;color:#9ac8ce;white-space:nowrap}
+.hub-key.ready{color:#e7bd78}.hub-key.locked{color:#667f97}
+.hub-build-center{min-width:0;display:flex;flex-direction:column;gap:11px}
+.hub-orb-stage{position:sticky;top:12px;z-index:2;height:310px;min-height:310px;
+  border:1px solid #375d79;border-radius:11px;background:radial-gradient(ellipse at 47% 44%,#142b42,#080f20 74%);
+  box-shadow:inset 0 0 38px #070d1a,0 9px 22px #0309156b}
+.hub-orb-topline{position:absolute;z-index:3;left:15px;top:13px;right:12px;pointer-events:none;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hub-orb-topline h3{font-size:12px;color:#a2ebfb;letter-spacing:.14em;margin:0}
+.hub-orb-live{font-size:9px;color:#8bc3d1;letter-spacing:.1em}
+.hub-orb-live .hub-live-indicator{display:inline-block;vertical-align:middle;margin-right:5px}
+.hub-orb-halo{inset:7% 10%;opacity:.65}
+.hub-orb-signature{position:absolute;z-index:3;right:13px;bottom:15px;
+  pointer-events:none;width:130px;padding:9px 10px;border:1px solid #33506980;border-radius:9px;
+  background:linear-gradient(110deg,#0b1b2ac9,#0a1926af);backdrop-filter:blur(5px)}
+.hub-orb-signature strong{display:block;font-size:10px;color:#c4eafb;letter-spacing:.07em}
+.hub-orb-signature .hub-energy-weights{gap:5px;margin:10px 0 0}
+.hub-orb-signature .hub-energy-row{grid-template-columns:37px 1fr;gap:6px;font-size:9px}
+.hub-orb-signature .hub-energy-track{height:3px}
+.hub-selected-spell{padding:15px 14px 17px;background:
+  radial-gradient(ellipse at 50% 36%,#132c4260,transparent 67%),
+  linear-gradient(145deg,#0d1c30,#0a1424)}
+.hub-selected-spell .hub-panel-heading{margin-bottom:12px}
+.hub-path-indicator{font-size:9px;color:var(--spell-tone);font-weight:700}
+.hub-tree-origin{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;position:relative}
+.hub-origin-icon{display:grid;place-items:center;width:52px;height:52px;
+  border-radius:11px;border:2px solid var(--spell-tone);font-size:28px;color:var(--spell-tone);
+  background:radial-gradient(circle at 50% 32%,color-mix(in srgb,var(--spell-tone) 30%,#15233c),#111b2d);
+  box-shadow:0 0 19px color-mix(in srgb,var(--spell-tone) 28%,transparent)}
+.hub-tree-origin strong{font-size:14px}
+.hub-tree-origin small{font-size:9px;color:var(--spell-tone);letter-spacing:.07em}
+.hub-tree-origin p{max-width:390px;margin:3px 0 0;color:#a9c4d8;font-size:10px;line-height:1.4}
+.hub-rank-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;position:relative;
+  isolation:isolate;margin:26px auto 5px;width:min(100%,480px)}
+.hub-rank-row:before{content:"";height:3px;position:absolute;z-index:-1;top:17px;left:16%;right:16%;
+  background:linear-gradient(to right,#f1bc74 0%,#f1bc74 var(--rank-fill),#304f6a var(--rank-fill),#304f6a 100%);
+  box-shadow:0 0 9px #65d6ee30}
+.hub-rank-node{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:flex-start;
+  text-align:center;color:#94afc2;background:transparent;border:0;padding:0 4px;font-size:10px}
+.hub-rank-glyph{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;transform:rotate(45deg);
+  border:2px solid #426884;background:#101d31;color:#8cb5cc;font-size:16px;box-shadow:0 0 0 5px #101d31}
+.hub-rank-glyph::first-letter{transform:rotate(-45deg)}
+.hub-rank-node strong{font-size:11px;color:#d0e7f3;margin-top:5px}
+.hub-rank-node small{font-size:8px;letter-spacing:.05em;line-height:1.3}
+.hub-rank-node.mastered .hub-rank-glyph{color:#fff4d1;background:#9e723c;border-color:#f6bd73;box-shadow:0 0 13px #efb76c6e,0 0 0 5px #101d31}
+.hub-rank-node.available .hub-rank-glyph{color:#cffaff;border-color:#7bd7f4;box-shadow:0 0 15px #68e9ff67,0 0 0 5px #101d31}
+.hub-rank-node.available:hover .hub-rank-glyph{filter:brightness(1.35)}
+.hub-rank-node.available small{color:#a4ecf7}
+.hub-rank-node.planned .hub-rank-glyph{border-color:#af8ce5}
+.hub-tree-controls{display:flex;align-items:center;gap:12px;justify-content:space-between;
+  margin:17px 0;padding:11px;border:1px solid #2a4760;border-radius:8px;background:#1221379c}
+.hub-tree-hint{color:#accad9;font-size:10px;line-height:1.5;flex:1}
+.hub-rank-actions{display:flex;gap:6px;flex:none}
+.hub-rank-action{padding:8px 10px;border-radius:7px;border:1px solid #6fa6c1;background:#18394c;
+  color:#d1f6ff;font-size:9px;font-weight:830;letter-spacing:.06em;white-space:nowrap}
+.hub-rank-action.primary{border-color:#f0bc7e;color:#182b36;background:#eebc78}
+.hub-rank-action.secondary{color:#b7d5e4}
+.hub-rank-action:disabled{opacity:.32;cursor:not-allowed}
+.hub-rank-action:not(:disabled):hover{filter:brightness(1.16)}
+.hub-evolution-label{display:flex;align-items:center;justify-content:space-between;gap:15px;border-top:1px solid #274961;
+  padding:14px 3px 11px}
+.hub-evolution-label strong{font-size:10px;letter-spacing:.11em;color:#a1e7f2}
+.hub-evolution-label small{font-size:9px;color:#8eabc1;line-height:1.4;max-width:285px}
+.hub-evolution-branches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+  padding:15px 0 0;margin:0;border:0;position:relative}
+.hub-evolution-branches:before{content:"";position:absolute;top:0;left:17%;right:17%;height:1px;background:#4d779a}
+.hub-evolution-node{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;
+  min-height:171px;padding:12px 10px 10px;border:1px solid #466980;border-radius:9px;
+  background:linear-gradient(155deg,#192c43,#0d1b2f);color:#dceefa;text-align:left}
+.hub-evolution-node:before{content:"";position:absolute;left:50%;bottom:100%;width:1px;height:15px;background:#4d779a}
+.hub-evolution-node:nth-child(1){--evolution-tone:#eab96f}
+.hub-evolution-node:nth-child(2){--evolution-tone:#77d5ff}
+.hub-evolution-node:nth-child(3){--evolution-tone:#c390f6}
+.hub-evolution-glyph{display:grid;place-items:center;width:35px;height:35px;border:1px solid var(--evolution-tone);
+  border-radius:7px;color:var(--evolution-tone);font-size:20px;background:#0e1d30;
+  box-shadow:0 0 13px color-mix(in srgb,var(--evolution-tone) 16%,transparent)}
+.hub-evolution-node.active{border-color:var(--evolution-tone);box-shadow:inset 0 0 18px color-mix(in srgb,var(--evolution-tone) 11%,transparent),
+  0 0 11px color-mix(in srgb,var(--evolution-tone) 25%,transparent)}
+.hub-evolution-node.disabled{opacity:.55;cursor:not-allowed}
+.hub-evolution-node:not(:disabled):hover{border-color:var(--evolution-tone);filter:brightness(1.15)}
+.hub-branch-heading{font-size:11px;color:#e6f7fd;line-height:1.2}
+.hub-branch-description{font-size:10px;line-height:1.4;color:#b7cedf;flex:1;margin:0}
+.hub-branch-status{font-size:9px;font-weight:830;color:var(--evolution-tone);letter-spacing:.03em}
+.hub-details-column{display:grid;gap:10px;min-width:0}
+.hub-details-panel,.hub-modes-panel{padding:14px 12px;min-width:0}
+.hub-detail-title{display:flex;gap:9px;align-items:center;margin-bottom:13px}
+.hub-detail-title>div{min-width:0}
+.hub-detail-title strong{display:block;color:#effbff;font-size:13px}
+.hub-detail-title small{display:block;color:var(--spell-tone);font-size:9px;margin-top:4px}
+.hub-detail-icon{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--spell-tone);
+  border-radius:9px;background:#19273a;font-size:24px;color:var(--spell-tone);flex:none}
+.hub-detail-description{color:#aecbdd;font-size:11px;line-height:1.55;margin-bottom:14px}
+#hub-detail-current,#hub-detail-next,#hub-detail-evolution{border-top:1px solid #2a475b;padding:13px 0}
+.hub-details-panel h4{margin:0 0 9px;font-size:9px;letter-spacing:.14em;color:#9ae5ef}
+.hub-details-panel #hub-detail-next h4{color:#91dba8}
+.hub-details-panel #hub-detail-evolution h4{color:#c6a6ed}
+.hub-details-panel #hub-detail-next strong,.hub-details-panel #hub-detail-evolution strong{font-size:12px;color:#e6f5fc}
+.hub-details-panel #hub-detail-current p,.hub-details-panel #hub-detail-next p,
+.hub-details-panel #hub-detail-evolution p{font-size:10px;line-height:1.45;color:#a5bfd2;margin-top:8px}
+.hub-detail-stat{padding:8px;border:1px solid #385770;background:#172b43;border-radius:7px;font-size:12px;font-weight:800}
+.hub-spell-swap-area{border-top:1px solid #2a475b;padding-top:10px}
+.hub-spell-swap-area .hub-secondary{margin:0;padding:10px 8px;font-size:10px}
+.hub-swap-picker{display:grid;gap:9px;margin-top:10px}
+.hub-swap-picker p{font-size:10px;color:#adc8d8;line-height:1.4}
+.hub-swap-slot{margin:0;max-width:100%;width:100%}
+.hub-modes-panel .arena-mode-selector{display:grid;grid-template-columns:1fr;gap:6px;margin:0}
+.hub-modes-panel .arena-mode{min-height:0;gap:3px;padding:9px 10px}
+.hub-modes-panel .mode-label{font-size:11px}
+.hub-modes-panel .mode-description{font-size:9px}
+.hub-utilities{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.hub-utilities .hub-muted-link{margin:0;font-size:9px;white-space:nowrap}
+.hub-utilities .header-button{font-size:9px;padding:10px}
+.hub-status{min-height:14px;padding:8px 3px 3px}
+.hub-footer{margin-top:4px;padding-top:12px}
+.hub-footer .hub-primary{padding:12px 20px}
+@media(max-width:1240px){
+  .hub-build-layout{grid-template-columns:minmax(205px,.9fr) minmax(410px,1.9fr) minmax(205px,.85fr);gap:8px}
+  .hub-overview{grid-template-columns:minmax(155px,1fr) minmax(135px,.9fr) minmax(250px,1.65fr) auto;gap:9px}
+  .hub-point-card{padding:8px;gap:6px}
+  .hub-point-card strong{font-size:12px}
+  .hub-point-card small{font-size:8px}
+  .hub-rank-actions{flex-direction:column}
+  .hub-evolution-node{padding:10px 7px}
+  .hub-orb-signature{width:115px;padding:7px}
+  .hub-orb-stage{height:290px;min-height:290px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hub-spell-node,.hub-primary,.hub-evolution-node{transition:none}
+}

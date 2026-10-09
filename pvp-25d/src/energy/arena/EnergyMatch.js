@@ -3,7 +3,8 @@
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
-import { MODES, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261009-learning-path26";
+import { MODES, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261009-character-hub27";
+import { energyIdentity } from "./EnergyCharacter.js?v=20261009-character-hub27";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
 
 const TICK = 0.05;
@@ -109,11 +110,11 @@ export class EnergyMatch {
         const config=arena.spawns[team+"-"+role];
         const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions);
         if(isPlayer){
-          const weighted=build.freeSlots.filter(Boolean).map(id=>ABILITY_BY_ID[id]?.discipline).filter(Boolean);
-          const ranked=[...new Set(weighted)].sort((a,b)=>weighted.filter(x=>x===b).length-weighted.filter(x=>x===a).length);
-          const primary=DISCIPLINES[ranked[0]]?.color||roleColor[role];
-          const secondary=DISCIPLINES[ranked[1]]?.color||roleColor[role];
-          actor.energyStyle={core:primary,energy:secondary};
+          // Same talent-weighted signature as character HUB, with subtle
+          // battle-scale rendering handled by EnergyOrbPolish.
+          const id=energyIdentity(build,this.progressLevel);
+          actor.energyStyle=id.style;
+          actor.energyDiscipline=id.primary;
         }
         this.actors.push(actor);
         if(isPlayer)this.player=actor;

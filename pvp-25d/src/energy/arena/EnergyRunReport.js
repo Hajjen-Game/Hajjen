@@ -21,7 +21,7 @@ const actorLine=(match,a)=>{
 };
 const important=new Set([
   "hit","heal","death","shield","guard","control","interrupt","immune",
-  "cleanse","break","windup","ability","end","link",
+  "cleanse","break","windup","ability","end","link","fizzle",
 ]);
 const getTargetId=e=>e.targetId||(e.type==="death"?e.actorId:null);
 const harmful=e=>e.type==="hit"&&n(e.amount)>0;
@@ -86,6 +86,8 @@ function eventText(match,e){
     case "ability":return "EXECUTED "+name(match,e.actorId)+" → "+name(match,e.targetId)
       +" | "+safe(e.spellId);
     case "link":return "LINK "+name(match,e.actorId)+" → "+name(match,e.targetId);
+    case "fizzle":return "FIZZLE "+name(match,e.actorId)+" → "+name(match,e.targetId)
+      +" | "+safe(e.spellId)+" | "+safe(e.reason)+" (Flux refunded)";
     case "end":return "MATCH END | "+safe(e.winner);
     default:return e.type.toUpperCase()+" "+name(match,e.actorId)+" "+safe(e.spellId);
   }
@@ -105,6 +107,7 @@ export function formatEnergyRunReport(match){
       +" | Elapsed "+fix(match.time,2)+"s | Dampening "+fix(match.dampening*100,0)+"%",
     "Player role: "+safe(match.player?.role)+" | abilities: "
       +(match.loadout?.abilitySlots||[]).map(a=>a.id).join(", "),
+    "Balance: prototype-survival-v1 · 160 base HP, 60 Pulse Mend, 60 Photon Barrier, Reactive Thread 6/tick",
     "Timing: all times are SIMULATION hit times, not delayed Pixi/Babylon impact frames.",
     "Recorded events: "+history.length+" | dropped oldest: "+(match.runHistoryDropped||0)
       +" | cap "+RUN_HISTORY_LIMIT,

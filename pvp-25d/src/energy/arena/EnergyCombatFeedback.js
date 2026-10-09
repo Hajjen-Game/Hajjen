@@ -5,6 +5,8 @@ const WORLD_SCALE=0.02;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const PALETTE={
   damage:"#ff6c69",heal:"#7bea9c",absorb:"#aed9ff",control:"#f4d49a",
+  "damage-out":"#ffdb9e","damage-in":"#ff6868",
+  "heal-out":"#84f1ad","heal-in":"#50ffc5",
   interrupt:"#e3afff",immune:"#f3deb4",info:"#d8e7f7",
 };
 
@@ -25,15 +27,28 @@ export class EnergyCombatFeedback{
     node.textContent=String(label);
     node.style.color=PALETTE[type]||PALETTE.info;
     const lane=this.items.filter(x=>x.actorId===actorId&&now-x.start<500).length;
-    const item={type,node,actorId,start:now,duration:type==="damage"||type==="heal"?950:1150,lane};
+    const item={type,node,actorId,start:now,duration:type.startsWith("damage")||type.startsWith("heal")?950:1150,lane};
     this.items.push(item);
     this.layer.appendChild(node);
     if(this.items.length>125){
       const old=this.items.shift();old.node.remove();
     }
   }
+  // Filter before either immediate text OR delayed projectile numbers:
+  // player output (damage/heal on anyone), plus incoming damage and heals.
+  // AI↔AI combat may still be recorded in the full run report.
+  shouldShow(event){
+    const player="player";
+    if(event.type==="hit"||event.type==="heal"){
+      return event.actorId===player||event.targetId===player;
+    }
+    // Hide all combat miscellany unless it originates from the player or
+    // is directed at the player. A player death event is actor-anchored.
+    return event.actorId===player||event.targetId===player;
+  }
   onEvent(event,match){
     this.match=match;
+    if(!this.shouldShow(event))return;
     // Match simulation still applies damage immediately. Only the cosmetic
     // numbers are deferred so all four signature abilities read as one
     // physical contact instead of a number appearing before the impact.
@@ -52,11 +67,14 @@ export class EnergyCombatFeedback{
   }
   showEvent(event){
     const to=event.targetId||event.actorId;
+    if(!this.shouldShow(event))return;
     if(event.type==="hit"){
-      if(event.amount>0)this.spawn("damage","−"+event.amount,to);
+      if(event.amount>0)this.spawn(event.targetId==="player"?"damage-in":"damage-out",
+        "−"+event.amount,to);
       if(event.absorbed>0)this.spawn("absorb","ABSORB "+Math.round(event.absorbed),to);
     }else if(event.type==="heal"){
-      if(event.amount>0)this.spawn("heal","+"+event.amount,to);
+      if(event.amount>0)this.spawn(event.targetId==="player"?"heal-in":"heal-out",
+        "+"+event.amount,to);
       else if(event.overheal>0 && event.actorId==="player")this.spawn("info","FULL HP",to);
     }else if(event.type==="control"){
       this.spawn("control",(event.spellId==="crystal-snare"?"ROOTED":"CONTROLLED"),to);
@@ -107,7 +125,7 @@ export class EnergyCombatFeedback{
       const actor=match.getActor(item.actorId),p=this.project(actor);
       if(!p){item.node.style.opacity="0";continue;}
       const t=clamp(elapsed/item.duration,0,1);
-      const rise=(item.type==="heal"?34:46)*t;
+      const rise=(item.type.startsWith("heal")?34:46)*t;
       const offset=item.lane*19;
       const pop=t<.16?0.74+(.26*(t/.16)):1;
       item.node.style.left=(p.x+((item.lane%3)-1)*12)+"px";

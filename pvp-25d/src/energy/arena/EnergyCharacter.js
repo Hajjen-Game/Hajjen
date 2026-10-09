@@ -20,8 +20,9 @@ export function saveCharacter(storage,character){
   return next;
 }
 export function talentPointsForLevel(level){
-  // 0 points until the player has played and leveled. 12 at level 8.
-  return Math.min(12,Math.max(0,(Math.floor(level)-1)*2));
+  // Thirty earned points by level 8: enough to fully master every equipped spell.
+  const earned=[0,0,2,6,10,14,19,24,30];
+  return earned[Math.min(8,Math.max(1,Math.floor(level)||1))];
 }
 export function energyIdentity(build,level=1){
   const loadout=stagedLoadout(build,level);

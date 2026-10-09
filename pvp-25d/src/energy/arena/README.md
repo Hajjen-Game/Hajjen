@@ -543,6 +543,43 @@ Only the physical Babylon heads in `EnergyHeroVFX.js` were adjusted:
   counts and timelines unchanged, and charge/travel-impact/tail code
   has not been modified. In-browser visual review still required.
 
+## Rift Slash Crescent / Thread Depth Pass 19
+
+Rift Slash's earlier signature was thin crossing fracture lines, a few tiny
+Babylon tubes/shards and a large contact effect. The requested references
+instead feature a **large, tapered, high-energy sweeping arc**, with magenta
+glow and a dark underside. This pass changes Rift Slash's *travel* and keeps
+the impact as short confirmation.
+
+- New isolated `EnergyRiftSlashVFX.js` draws a broad, non-circular **Pixi
+  primary crescent**: dark violet undercut, saturated original rift violet
+  body, neon magenta inner pass, near-white leading cutting edge and soft
+  low-opacity glow. The blade has tapered ends and travels toward the enemy.
+  A smaller, delayed crescent echoes the movement, followed by four tiny
+  directional glints. No screen shake, full-screen bloom or chunky debris.
+- Babylon `EnergyHeroVFX.js` now creates four **real 3D ribbon surfaces**
+  for the swing (shadow, violet body, white-pink cutting lip and back echo),
+  supplying real parallax and a fallback if Pixi is turned off.
+- **Thread Depth ON** creates five extra independent 3D filaments with
+  varied depth/heights and restrained magenta/white light. They are part of
+  the moving swing itself, **not** a big extra impact wheel. With Thread
+  Depth OFF the four core crescents still render and the Pixi slash remains.
+- The old Rift impact's oversized 3D seams, ground sigil and outer ring were
+  replaced by a 235 ms crossing glint. The Pixi Rift contact lasts 230 ms
+  after its existing 269 ms travel clock. A/B 3D Debris remains optional,
+  and legacy impact volume only appears if explicitly enabled.
+- User-preferred **Pixi ON + Thread Depth ON + 3D Debris OFF** is now the
+  default for the Energy Arena and Visual VFX Lab. Existing toggles still
+  let users compare Pixi-only, Babylon fallback and optional depth.
+- All other signatures retain their existing attack, projectile, charge and
+  contact code. This changes no cooldown, gameplay damage, hit registration
+  or AI behaviour.
+- Verified 72 2D travel phase/direction/zoom cases, 15 contact cases,
+  four Babylon mode combinations (Pixi ready/fallback × thread on/off)
+  with one contact trigger each, and 50 mock Pixi frame renders including
+  Rift Slash and other signatures. Real in-browser aesthetics and FPS still
+  require visual review before another styling iteration.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

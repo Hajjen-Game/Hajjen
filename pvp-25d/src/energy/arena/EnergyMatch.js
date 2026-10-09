@@ -251,7 +251,10 @@ export class EnergyMatch {
     const target=rule.mode==="dash"?null:this.currentTarget(actor,rule.mode,targetId);
     actor.flux-=this.cost(actor,rule,spellId);
     actor.gcd=1.3;
-    actor.cooldowns[spellId]=rule.cd||0;
+    // Casted abilities earn their long cooldown only when the cast actually
+    // resolves. Being kicked must NOT consume Null Prison's 24s cooldown.
+    // Instants (including a fake interrupt) retain their existing cooldown.
+    if(!rule.cast)actor.cooldowns[spellId]=rule.cd||0;
     this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,
       spellId,castSeconds:rule.cast||0});
     if(rule.cast) {
@@ -379,6 +382,9 @@ export class EnergyMatch {
         +": "+reason+" — Flux refunded");
       return;
     }
+    // Only a completed, valid cast starts cooldown. Fizzled or interrupted
+    // casted spells stay available once the short school lock wears off.
+    if(r.cast&&r.cd)actor.cooldowns[spellId]=r.cd;
     if(r.mode==="dash"){
       const direction=actor.control==="player"?this.dashDirection||{x:1,y:0}:{x:actor.team==="friendly"?1:-1,y:0};
       actor.dashSpellId=spellId;
@@ -393,7 +399,9 @@ export class EnergyMatch {
         target.cast=null;
         if(discipline)target.schoolLocks[discipline]=3;
         this.emit({type:"interrupt",actorId:actor.id,targetId:target.id,
-          spellId,interruptedSpell:interrupted});
+          spellId,interruptedSpell:interrupted,interruptedSchool:discipline,
+          schoolLockSeconds:discipline?3:0,
+          interruptedCooldownRemaining:target.cooldowns[interrupted]||0});
         if(actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon")actor.flux=clamp(actor.flux+12,0,MAX_FLUX);
         this.log(actor.name+" interrupted "+target.name);
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});

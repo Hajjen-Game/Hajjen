@@ -729,6 +729,42 @@ This first survivability iteration changes **only Energy Arena combat**:
   AI tactical plans, individual attack damage or arena geometry changed.
   New real-match reports are needed before fine-tuning TTK further.
 
+## Orb Overhead Bars and Personal Combat Text — Pass 22
+
+Pass 22 fixes unreadable world-scale health planes and missing per-orb cast bars
+in the independent Energy Arena, while reducing floating combat-text clutter.
+
+- New `EnergyOverheadHUD.js` is a noninteractive DOM overlay positioned by
+  Babylon camera projection. Each living orb has a readable name + current/max
+  HP and a wider 8px HP meter; friendly mint, enemy red/pink, dark contrast
+  background, target outlines, shield border and a pulse below 20% HP.
+- A separate cast row below HP appears for every active caster and displays
+  the ability name, remaining seconds, percentage completion and discipline
+  colour. Interrupted cast targets briefly show INTERRUPTED for 800ms and
+  then return to their ordinary HP-only panel.
+- Energy Arena hides the shared 3D status bars locally with
+  `entry.barRoot.setEnabled(false)`. The shared OrbCharacterRenderer code,
+  world meshes, collision/target picking, cast timers and all spell VFX
+  remain unmodified. No DOM elements are allocated per frame; entries are
+  reused and disposed when actors disappear or when renderer closes.
+- `EnergyCombatFeedback.js` now only displays events caused by the player
+  or targeting the player. Player outgoing damage is warm gold, incoming
+  damage is red, outgoing heals mint, and incoming heals brighter green.
+  Healing the player oneself is shown once. Enemy↔enemy, ally↔enemy,
+  ally↔ally, enemy heal and other AI-only combat texts are hidden.
+  Related CC/interrupt feedback is similarly player-focused.
+- The filter is enforced BEFORE delayed projectile combat text is queued,
+  and again at display time, preventing AI-AI projectile numbers from
+  surfacing after the impact delay. The full run/AI combat reports continue
+  recording all actors, damage and heals without filtering.
+- Verified with isolated UI mock simulations: 4 actor overhead states,
+  precise 112/160 HP, 28/160 low HP, selection, shield, cast school colour,
+  cast time, temporary interrupt and expiration, 80 update frames with
+  no new DOM entries, dead/removed actor cleanup. Also checked
+  14 representative player/AI event combinations and seven real feed
+  dispatch cases including delayed Crystal/Sun/Gravity hit behavior.
+  Browser-level visual readability still needs reviewing.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

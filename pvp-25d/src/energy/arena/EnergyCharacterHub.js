@@ -178,10 +178,8 @@ export class EnergyCharacterHub{
     const full=stagedLoadout(build,8).abilitySlots;
     const cap=talentPointsForLevel(state.level);
     const used=spentTalentPoints(build);
-    const effective=active.reduce((sum,spell)=>sum+spell.talentRank,0);
-    const liveEvolutions=active.filter(spell=>spell.evolutionId).length;
     $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE";
-    $("hub-evolution-count").textContent=liveEvolutions+" / 2 ACTIVE";
+    $("hub-evolution-count").textContent=activeEvolutionCount(build)+" / 2 CHOSEN";
     $("hub-spellbook-count").textContent=active.length+" / 10 UNLOCKED";
     const list=$("hub-spell-nodes");list.replaceChildren();
     if(!this.selectedAbility||!active.some(spell=>spell.id===this.selectedAbility)){
@@ -340,7 +338,7 @@ export class EnergyCharacterHub{
     holder.append(el("p","","Replace this unlocked ability. Any Talent Points spent on it will be refunded."));
     const selector=el("select","hub-swap-slot");
     selector.setAttribute("aria-label","Choose replacement ability");
-    const used=new Set(active.map(spell=>spell.id));
+    const used=new Set([...allEquippedIds(build),...active.map(spell=>spell.id)]);
     const current=el("option","",ABILITY_BY_ID[this.selectedAbility].name+" (KEEP)");
     current.value=this.selectedAbility;selector.append(current);
     for(const ability of FREE_ABILITIES){

@@ -746,3 +746,11 @@ h2{font-size:23px}
 @media(prefers-reduced-motion:reduce){
   .hub-spell-node,.hub-primary,.hub-evolution-node{transition:none}
 }
+
+/* Keep the orb in view while the spell tree itself scrolls; do not shrink
+   the Babylon canvas further or detach its WebGL context on talent edits. */
+.hub-build-center .hub-selected-spell{max-height:545px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#345f79 #0a1525}
+.hub-rank-glyph{transform:none}
+@media(max-width:1240px){
+  .hub-build-center .hub-selected-spell{max-height:565px}
+}

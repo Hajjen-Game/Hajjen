@@ -8,8 +8,8 @@ import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bar
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-character-hub27";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261009-build-tree30";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261009-orbit-tree31";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);

@@ -1,7 +1,7 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
 import { readBuildStorage, isReady, allEquippedIds, buildCombatLoadout } from "../buildState.js";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js";
-import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261008-energy-ai-v3";
+import { EnergyMatch, ABILITY_RULES } from "./EnergyMatch.js?v=20261009-full-run-report1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-polish21";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
@@ -322,15 +322,22 @@ document.addEventListener("keydown",event=>{
 });
 document.addEventListener("keyup",event=>keys.delete(event.key.toLowerCase()));
 window.addEventListener("blur",()=>keys.clear());
-$("copy-ai-report").addEventListener("click",async()=>{
-  if(!match)return;
-  const report=match.aiReport();
+// Both reports are available during play, after a death and at match end.
+// Preserve the separate AI behaviour snapshot for movement/targeting bugs.
+async function copyReport(report,label){
   try{
+    if(!navigator.clipboard?.writeText)throw new Error("Clipboard unsupported");
     await navigator.clipboard.writeText(report);
-    flash("AI REPORT COPIED — paste it into our chat");
+    flash(label+" COPIED — paste into our chat");
   }catch{
-    window.prompt("Copy this AI report and paste it into our chat:",report);
+    window.prompt("Copy this "+label.toLowerCase()+" and paste into our chat:",report);
   }
+}
+$("copy-run-report").addEventListener("click",()=>{
+  if(match)copyReport(match.runReport(),"RUN REPORT");
+});
+$("copy-ai-report").addEventListener("click",()=>{
+  if(match)copyReport(match.aiReport(),"AI REPORT");
 });
 $("change-build").addEventListener("click",showGate);
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});

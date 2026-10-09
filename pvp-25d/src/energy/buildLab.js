@@ -2,12 +2,12 @@ import {
   ABILITY_BY_ID, DISCIPLINES, FREE_ABILITIES, ROLES,
   TALENT_BUDGET, MAX_TALENT_RANK, MAX_ACTIVE_EVOLUTIONS,
   FREE_ABILITY_SLOTS, MAX_FLUX, BASE_FLUX_REGEN,
-} from "./abilityCatalog.js?v=20261008-energy-build-v1";
+} from "./abilityCatalog.js?v=20261009-orbit-tree31";
 import {
   createBuild, changeRole, equipAbility, clearAbility, adjustTalent,
   chooseEvolution, renameBuild, resetTalents, readBuildStorage, writeBuildStorage,
   allEquippedIds, spentTalentPoints, activeEvolutionCount, isReady, validateBuild,
-} from "./buildState.js?v=20261008-energy-build-v1";
+} from "./buildState.js?v=20261009-orbit-tree31";
 
 const $ = id => document.getElementById(id);
 const state = readBuildStorage(window.localStorage);
@@ -60,7 +60,7 @@ function renderSummary() {
   clear(parent);
   badgeNumber(parent, allEquippedIds(build).length + " / 10", "SLOTS EQUIPPED");
   badgeNumber(parent, (TALENT_BUDGET - spentTalentPoints(build)) + "", "TP AVAILABLE");
-  badgeNumber(parent, activeEvolutionCount(build) + " / 2", "EVOLUTIONS");
+  badgeNumber(parent, activeEvolutionCount(build) + " / " + MAX_ACTIVE_EVOLUTIONS, "EVOLUTIONS");
   $("loadout-count").textContent = allEquippedIds(build).length + " / 10 EQUIPPED" + (isReady(build) ? " · COMPLETE" : " · DRAFT");
   const talents = $("talent-summary"); clear(talents);
   add(talents,
@@ -197,7 +197,7 @@ function renderDetails() {
   plus.addEventListener("click", () => mutate(() => adjustTalent(build, ability.id, 1)));
   add(controls, minus, el("strong", "", rank + " / " + MAX_TALENT_RANK), plus);
   add(rankRow, meter, controls);
-  add(talentSection, rankRow, el("p", "panel-footnote", "Three points unlock Evolution selection. Maximum 12 points across the build."));
+  add(talentSection, rankRow, el("p", "panel-footnote", "Three ranks unlock an Evolution. All ten equipped spells can reach Rank 3 (" + TALENT_BUDGET + " points total)."));
   add(wrap, talentSection);
   const evSection = el("div", "detail-section");
   add(evSection, el("h3", "", "ABILITY EVOLUTION"));
@@ -220,7 +220,7 @@ function renderDetails() {
       add(evSection, option);
     });
     if (!build.evolutions[ability.id] && activeEvolutionCount(build) >= MAX_ACTIVE_EVOLUTIONS) {
-      add(evSection, el("p", "evolution-locked", "Both Evolution slots are occupied. Remove an active Evolution before choosing another."));
+      add(evSection, el("p", "evolution-locked", "All Evolution slots are occupied. Remove an active Evolution before choosing another."));
     }
   }
   add(wrap, evSection);

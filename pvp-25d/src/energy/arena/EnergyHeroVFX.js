@@ -41,7 +41,7 @@ export class EnergyHeroVFX {
     this.pixiProjectilesAvailable=false;
     // Short Reactve Thread-style 3D filaments may wrap a Pixi hit.
     // Projectile/attack is the visual hero; spatial threads are opt-in A/B.
-    this.threadDepthEnabled=false;
+    this.threadDepthEnabled=true; // Preferred crisp Pixi + spatial threads, no chunky debris.
     this.stats={lastSpell:"",active:0};
   }
   supports(id){return CHOSEN.has(id);}

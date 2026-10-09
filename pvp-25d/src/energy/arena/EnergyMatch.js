@@ -181,6 +181,8 @@ export class EnergyMatch {
       "Arena: "+(this.arena.name||this.arena.id||"The Grand Ring"),
       "Time: "+this.time.toFixed(1)+"s | Dampening: "+Math.round(this.dampening*100)+"%",
       "Result: "+(this.ended?(this.winner==="friendly"?"VICTORY":"DEFEAT"):"IN PROGRESS"),
+      "Mode: "+this.mode.label+" ("+this.mode.size+") | Level "+this.progressLevel
+        +" | Enemy damage ×"+this.tuning.damage.toFixed(2)+" | Enemy healing ×"+this.tuning.healing.toFixed(2),
       "Last damage: "+(this.time-this.lastDamageAt).toFixed(1)+"s ago",
       "Player role: "+this.player.role+" | Ability slots: "+this.loadout.abilitySlots.map(s=>s.id).join(", "),
     ];

@@ -3,7 +3,7 @@
 // trails and hit highlights, never controls real damage, targeting or movement.
 import { drawOriginalLayeredProjectile } from "./EnergyOriginalLayeredProjectiles.js?v=20261009-travel-tail16";
 import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
-import { drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-rift-crescent19";
+import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -289,9 +289,11 @@ export class EnergyPixiVFXOverlay {
       // Original 2ca1aac7b five-strand accents over the 2481bc37a
       // Babylon spear/crystal, not a second large illustrated projectile.
       drawOriginalLayeredProjectile(g,e,from,to,travel,style,scale);
-    }else if(elapsed<hitAt&&attack==="rift-slash"){
-      // Primary sweep + echo replaces the old thin seam and random shards.
-      drawRiftSlashTravel(g,e,from,to,travel,style,scale);
+    }else if(elapsed<hitAt+120&&attack==="rift-slash"){
+      // Side-to-side swing crosses the target at the hit moment, then
+      // follows THROUGH it for a brief 120ms instead of freezing on contact.
+      drawRiftSlashTravel(g,e,from,to,
+        clamp(elapsed/(hitAt+120),0,1),style,scale);
     }else if(elapsed<hitAt&&attack==="gravity-hammer"){
       // Descending filaments spiral around the compact heavy mass. No long
       // opaque white shaft; the slam gains weight through convergence.
@@ -490,7 +492,11 @@ export class EnergyPixiVFXOverlay {
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
       const style=COLORS[e.spellId];
-      if(e.type==="windup")this.charge(g,e,from,t,style);
+      if(e.type==="windup"){
+        if(e.spellId==="rift-slash")
+          drawRiftSlashCharge(g,e,from,to,t,style);
+        else this.charge(g,e,from,t,style);
+      }
       else if(e.type==="hit"||e.type==="heal"){
         const scale=this.impactScale(b||a,to);
         this.trail(g,e,from,to,t,style,scale);

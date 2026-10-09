@@ -363,12 +363,11 @@ export class EnergyMatch {
     // previous code a dead ally triggered currentTarget()'s self fallback:
     // Pulse Mend silently overhealed the player instead of reporting a miss.
     const target=targetId?this.getActor(targetId):this.currentTarget(actor,r.mode);
-    const lost= r.mode!=="dash"&&
-      (!target?.alive||target.team===actor.team
-        ?!["heal","guard","shield","hot","link","cleanse"].includes(r.mode)
-        :["heal","guard","shield","hot","link","cleanse"].includes(r.mode));
+    const supportive=["heal","guard","shield","hot","link","cleanse"].includes(r.mode);
+    const wrongTeam=target&&(supportive
+      ?target.team!==actor.team:target.team===actor.team);
     const reason= r.mode==="dash"?null:!target?.alive?"TARGET DIED"
-      :lost?"INVALID TARGET":distance(actor,target)>(r.range||490)?"OUT OF RANGE"
+      :wrongTeam?"INVALID TARGET":distance(actor,target)>(r.range||490)?"OUT OF RANGE"
       :!hasLineOfSight(actor,target,this.arena)?"LINE OF SIGHT":null;
     if(reason){
       // Cast spent its GCD/time, but a spell that never connected does

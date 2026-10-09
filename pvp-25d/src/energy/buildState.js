@@ -163,7 +163,7 @@ export function adjustTalent(build, abilityId, delta) {
   const rank = next.talents[abilityId] || 0;
   const proposed = rank + delta;
   if (proposed < 0 || proposed > MAX_TALENT_RANK) throw new Error("Talent rank must be between 0 and 3");
-  if (delta > 0 && spentTalentPoints(next) >= TALENT_BUDGET) throw new Error("All 12 Talent Points are allocated");
+  if (delta > 0 && spentTalentPoints(next) >= TALENT_BUDGET) throw new Error("All "+TALENT_BUDGET+" Talent Points are allocated");
   if (proposed === 0) delete next.talents[abilityId];
   else next.talents[abilityId] = proposed;
   if (proposed < MAX_TALENT_RANK) delete next.evolutions[abilityId];
@@ -180,7 +180,7 @@ export function chooseEvolution(build, abilityId, evolutionId) {
   if (next.talents[abilityId] !== MAX_TALENT_RANK) throw new Error("Spend 3 Talent Points on this ability first");
   if (!ABILITY_BY_ID[abilityId].evolutions.some(e => e.id === evolutionId)) throw new Error("Unknown evolution");
   if (!next.evolutions[abilityId] && activeEvolutionCount(next) >= MAX_ACTIVE_EVOLUTIONS) {
-    throw new Error("Only two Evolutions may be active. Remove one first.");
+    throw new Error("All "+MAX_ACTIVE_EVOLUTIONS+" Evolution slots are occupied. Remove one first.");
   }
   next.evolutions[abilityId] = evolutionId;
   return next;

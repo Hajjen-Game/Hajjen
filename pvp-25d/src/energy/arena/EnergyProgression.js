@@ -14,7 +14,7 @@ export const MODES = Object.freeze({
   }),
   duo: Object.freeze({
     id:"duo",label:"Duo Skirmish",size:"2v2",subtitle:"Your first team fights",
-    description:"You and one AI partner against a matched duo. Less chaos and fewer simultaneous threats.",
+    description:"You and one AI partner. Early rivals have no healer; learn counters as you level.",
     xpWin:65,xpLoss:26,
   }),
   trio: Object.freeze({
@@ -138,11 +138,15 @@ export function botAbilities(role,level,modeId){
   const cap=modeId==="training"?3:modeId==="duo"?Math.min(8,slotsForLevel(level)):slotsForLevel(level);
   return BOT_KITS[role].slice(0,cap);
 }
-export function rosterRoles(playerRole,modeId){
+export function rosterRoles(playerRole,modeId,level=1){
   if(modeId==="training")return {friendly:[playerRole],enemy:["caster"]};
   if(modeId==="duo"){
     const partner=playerRole==="healer"?"melee":"healer";
-    return {friendly:[playerRole,partner],enemy:["healer",playerRole==="caster"?"caster":"melee"]};
+    // Teach 2v2 mechanics against damage-only teams first. An enemy healer
+    // requires CC / interrupts and would make 3-ability matches unwinnable.
+    const opponents=level<3?["melee","caster"]:
+      ["healer",playerRole==="caster"?"caster":"melee"];
+    return {friendly:[playerRole,partner],enemy:opponents};
   }
   return {friendly:["healer","melee","caster"],enemy:["healer","melee","caster"]};
 }

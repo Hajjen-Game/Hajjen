@@ -1,7 +1,7 @@
 import {
   ABILITY_BY_ID, FREE_ABILITIES, ROLES, TALENT_BUDGET, MAX_TALENT_RANK,
   MAX_ACTIVE_EVOLUTIONS, FREE_ABILITY_SLOTS, SAVED_BUILD_SLOTS, MAX_FLUX, BASE_FLUX_REGEN,
-} from "./abilityCatalog.js";
+} from "./abilityCatalog.js?v=20261009-orbit-tree31";
 
 export const ENERGY_STORAGE_KEY = "pvp25d-energy-builds-v1";
 const VERSION = 1;

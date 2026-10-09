@@ -426,6 +426,42 @@ the Babylon floor used `#ff9946`.
   impact implementation are identical. Live browser color appearance
   must still be reviewed.
 
+## Visual Combat Slice Back-to-Roots Pass 15 — the original layered identity
+
+Following in-match feedback that Crystal Bolt and Sun Lance no longer looked
+like the other six signatures, this is **not** another neon colour tweak.
+The starting points were read directly from the original GitHub files:
+`2481bc37a` (first authored Babylon 3D Visual Combat Slice) and
+`2ca1aac7b` (the first, lightweight Pixi accent overlay).
+
+- Their **original 3D projectile bodies** return in Babylon when Pixi is
+  available: Crystal Bolt has two faceted cones plus three tiny motes;
+  Sun Lance has two spear cones, one slim torus and three motes. The same
+  authored geometry is retained in Babylon fallback, which additionally
+  keeps its preexisting optional tracer particles.
+- A new isolated `EnergyOriginalLayeredProjectiles.js` draws the **five
+  independent, gently swaying thin Pixi filaments** used in the original
+  visual direction: darker outside, class-coloured energy paths, and a
+  tiny near-white core/head glint, plus just two satellites. Real 3D form
+  comes from Babylon; Pixi no longer creates a second giant spearhead,
+  wide polygon-ribbon body or independent 2D debris cloud during travel.
+- Both cast and travel now use the ORIGINAL shared category colours
+  already used by the other signature spells (Crystal blue/cyan and Sun
+  amber/gold). No extra yellow-only Sun Lance skin, bright re-colouring or
+  full-length additively blurred neon layer; the redundant Pixi bloom
+  Graphics/blur-filter pass was removed from initialization.
+- The existing cast/build-ups, compact contact snap, contact/damage timing,
+  small Babylon floor lights, orbs, arena, class abilities and other six
+  signatures stay unchanged. Sun's floor lights were brought back into
+  the original shared class-gold palette.
+- Pixi ready: original 3D core + simple Pixi strands. Pixi unavailable:
+  Babylon core + current existing 3D fallback tracers.
+  Lab's `THREAD DEPTH` and `3D DEBRIS` remain optional and OFF by default.
+- Programmatic checks: 48 geometry/colour/zoom/time combinations for the new
+  Pixi strands, four Babylon primary/fallback travel path checks, and
+  JavaScript syntax checks passed. Real browser/in-match visual review is
+  still required before any further visual additions.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

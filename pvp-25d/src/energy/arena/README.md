@@ -492,6 +492,34 @@ five straight segments. Their 3D spearheads were already correct.
   trailing reach grew from roughly 46px to 214px for Crystal Bolt,
   and 61px to 233px for Sun Lance. Browser appearance still needs review.
 
+## Projectile Head Pass 17 — faceted crystal and solar orb
+
+Following an accepted traveling-tail pass, the user requested new HEADS
+only: the old ice/solar pointed arrow cones were mismatched with the softer,
+magical glass-orb aesthetic. These changes affect **only the Babylon
+projectile head geometry and per-head animation** in `EnergyHeroVFX.js`.
+
+- Crystal Bolt: replace the long triangular cone spearhead with two
+  concentric, elongated **octahedral 3D crystals** (a saturated cyan outer
+  crystal and smaller, near-white gem), three tiny off-axis glints, and
+  two delicate tilted orbital arcs. Babylon's `CreatePolyhedron(type:1)`
+  uses baked elongation so subsequent pulse/rotation updates preserve its
+  diamond-like silhouette.
+- Sun Lance: replace the conical spearhead with a **rounded solar orb**:
+  a glowing gold sphere, a smaller near-white core, a translucent corona,
+  two open orbit filaments, and three small ember motes. Subtle breathing
+  and rotation preserve the sensation of traveling condensed solar energy.
+- **Do not change** the successful five-filament long Pixi tails, any
+  casting/build-up effect, the original category colors, the existing
+  compact Pixi impact, optional Thread Depth or 3D Debris toggles, floor
+  reflections, hit timings, or game mechanics. No projectile arrow cones
+  remain in either Pixi-primary or Babylon fallback mode.
+- Verified four head spawn/animation paths (Crystal/Sun × Pixi ready and
+  fallback), including shape counts, crystal proportions and lifetime
+  visibility. Static comparisons to Pass 16 confirm Pixi tail, overlay and
+  impact source files are byte-for-byte identical. Browser aesthetics and
+  FPS still need direct user visual review.
+
 ## Work still required
 
 - Most Talent-rank modifiers and most of the 66 Evolutions do not yet affect combat. Examples of very early activated Evolution effects include Twin Arc, Deep Decay, focused single-target impact, interrupt Flux restoration and Purifying Surge.

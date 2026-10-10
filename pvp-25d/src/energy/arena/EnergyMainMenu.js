@@ -13,18 +13,18 @@ const PAGES=[
     art:"arena",caption:"An arena is a small battlefield. Positioning and obstacles matter."
   },
   {
-    title:"CREATE YOUR ORB",chapter:"02 / YOUR CHARACTER",
-    intro:"Name your orb and pick one role: Healer, Melee or Caster. Your choice gives you two permanent class spells.",
+    title:"CHOOSE YOUR ORIGIN",chapter:"02 / YOUR ORIGIN",
+    intro:"Name your planet and choose its Origin: Genesis, Impact or Eclipse. Each Origin gives you two fixed starting spells and a unique passive.",
     steps:[
-      ["HEALER","Protect yourself and teammates with healing and defense."],
-      ["MELEE","Fight up close, chase enemies and interrupt spells."],
-      ["CASTER","Attack from range and control the fight with positioning."]
-    ],tip:"Your orb's colors reflect the disciplines in your current build.",
-    art:"roles",caption:"Three starting roles. Each comes with two class-bound spells."
+      ["GENESIS","Restore health and protect allies. Start with Pulse Mend and Resonance Guard."],
+      ["IMPACT","Rush into close combat and interrupt enemies. Start with Phase Rush and Pulse Sever."],
+      ["ECLIPSE","Fight from range and escape danger. Start with Flux Bolt and Phase Slip."]
+    ],tip:"Origins shape your starting strengths, not your entire build. All five energy disciplines remain available.",
+    art:"roles",caption:"Genesis, Impact and Eclipse have different starting strengths. Your later spells are up to you."
   },
   {
     title:"BUILD YOUR SPELL KIT",chapter:"03 / THE EVOLUTION TREE",
-    intro:"Your complete build contains ten spells: two bound to your role and eight that you choose.",
+    intro:"Your complete build contains ten spells: two fixed by your Origin and eight that you choose.",
     steps:[
       ["INNER RING","The ten spells in your build are highlighted around your orb."],
       ["OUTER RING","Eight other shared spells stay visible so you can compare them."],
@@ -44,16 +44,16 @@ const PAGES=[
   },
   {
     title:"FORGE A SINGULARITY",chapter:"05 / BLACK HOLE MATTER",
-    intro:"At level 10 you unlock Singularity Forge. It links one of your two class spells with any unlocked shared spell, creating a new combat reaction.",
+    intro:"At level 10 you unlock Singularity Forge. It links one of your two Origin spells with any unlocked shared spell, creating a new combat reaction.",
     steps:[
       ["BLACK HOLE MATTER","Earn it occasionally from arena victories. Creating or changing your link costs one Matter."],
-      ["THREE REACTIONS","Choose Annihilation, Distortion or Resonance, then use the partner spell before your class spell."],
+      ["THREE REACTIONS","Choose Annihilation, Distortion or Resonance, then use the partner spell before your Origin spell."],
       ["ENERGY FRAGMENTS","Earn these from team kills and use them to strengthen your forged Singularity at later levels."]
     ],tip:"Preview as many combinations as you like for free. Ordinary spell ranks still use Talent Points.",
-    art:"singularity",caption:"A charged partner spell followed by its class anchor releases the Singularity."
+    art:"singularity",caption:"A charged partner spell followed by its Origin anchor releases the Singularity."
   },
   {
-    title:"READ THE BATTLE",chapter:"05 / IN THE ARENA",
+    title:"READ THE BATTLE",chapter:"06 / IN THE ARENA",
     intro:"Watch health, your Flux resource, targets and cooldowns. Choose when to attack, protect or reposition.",
     steps:[
       ["TARGET","Click an orb to target it, or press Tab to cycle enemies."],
@@ -63,7 +63,7 @@ const PAGES=[
     art:"combat",caption:"The fight is real-time. The arena, target and action bar guide decisions."
   },
   {
-    title:"LEARN THE CONTROLS",chapter:"06 / QUICK CONTROLS",
+    title:"LEARN THE CONTROLS",chapter:"07 / QUICK CONTROLS",
     intro:"A few simple keys cover the most important parts of the game.",
     steps:[
       ["W A S D","Move your orb around the battlefield."],
@@ -73,7 +73,7 @@ const PAGES=[
     art:"controls",caption:"These are the currently implemented keyboard controls."
   },
   {
-    title:"CHOOSE YOUR BATTLE",chapter:"07 / ARENA MODES",
+    title:"CHOOSE YOUR BATTLE",chapter:"08 / ARENA MODES",
     intro:"You can enter any mode from the main menu. Start small or jump straight into a tougher fight.",
     steps:[
       ["TRAINING · 1V1","A gentler match against one enemy. Best for learning."],
@@ -83,7 +83,7 @@ const PAGES=[
     art:"modes",caption:"Three modes, one evolving character."
   },
   {
-    title:"KEEP EXPERIMENTING",chapter:"08 / YOUR NEXT STEPS",
+    title:"KEEP EXPERIMENTING",chapter:"09 / YOUR NEXT STEPS",
     intro:"Winning and losing both award XP. More levels unlock more spells and Talent Points.",
     steps:[
       ["LEVEL UP","Your ten ability slots unlock gradually until level 28."],
@@ -112,9 +112,9 @@ function artMarkup(name){
       </div>`;
     case "roles":return `
       <div class="book-role-gallery">
-        <div><span class="book-role-orb healer">✧</span><strong>HEALER</strong><small>HEAL · PROTECT</small></div>
-        <div><span class="book-role-orb melee">⌁</span><strong>MELEE</strong><small>CHASE · INTERRUPT</small></div>
-        <div><span class="book-role-orb caster">❖</span><strong>CASTER</strong><small>CAST · CONTROL</small></div>
+        <div><span class="book-role-orb healer">✧</span><strong>GENESIS</strong><small>HEAL · PROTECT</small></div>
+        <div><span class="book-role-orb melee">⌁</span><strong>IMPACT</strong><small>CHASE · INTERRUPT</small></div>
+        <div><span class="book-role-orb caster">❖</span><strong>ECLIPSE</strong><small>CAST · REPOSITION</small></div>
       </div>`;
     case "loadout":return `
       <div class="book-orbit-map">
@@ -135,7 +135,7 @@ function artMarkup(name){
       <p class="book-art-subtitle">ONE SPELL · THREE PATHS · CHOOSE ONE</p>`;
     case "singularity":return `
       <div class="book-singularity-art">
-        <div class="book-singularity-spells"><span>✦ <small>CLASS SPELL</small></span><span>❄ <small>PARTNER SPELL</small></span></div>
+        <div class="book-singularity-spells"><span>✦ <small>ORIGIN SPELL</small></span><span>❄ <small>PARTNER SPELL</small></span></div>
         <div class="book-singularity-path"><i></i><i></i></div>
         <div class="book-singularity-core"><div class="book-singularity-hole"></div></div>
         <strong>BLACK HOLE MATTER</strong>

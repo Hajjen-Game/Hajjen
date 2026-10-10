@@ -3,8 +3,11 @@
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261009-orbit-tree31";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
-import { completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
-import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261009-orbit-tree31";
+import { completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
+import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261010-singularity34";
+import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
+  validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
+  from "./EnergySingularity.js?v=20261010-singularity34";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-orbit-tree32";
 
 const $=id=>document.getElementById(id);
@@ -33,13 +36,13 @@ function classCompatibleSpells(role){return availableAbilities(role);}
 
 
 export class EnergyCharacterHub{
-  constructor({storage,buildStore,getProgression,openMainMenu,openPlayMenu}){
+  constructor({storage,buildStore,getProgression,changeProgression,openMainMenu,openPlayMenu}){
     this.storage=storage;this.store=buildStore;
-    this.getProgression=getProgression;
+    this.getProgression=getProgression;this.changeProgression=changeProgression;
     this.openMainMenu=openMainMenu;this.openPlayMenu=openPlayMenu;
     this.character=loadCharacter(storage);
     this.preview=null;this.selectedAbility=null;this.showSwapPicker=false;this.listFilter="equipped";
-    this.message="";
+    this.message="";this.forgeDraft=null;
     this.bind();
   }
   bind(){
@@ -97,6 +100,15 @@ export class EnergyCharacterHub{
       this.message="Fresh build ready. Your character, level and saved presets are unchanged.";
       this.persist();this.draw();
     });
+    $("hub-forge-anchor").addEventListener("change",event=>{
+      this.forgeDraft={...this.forgeDraft,anchor:event.target.value};
+      this.renderForge();
+    });
+    $("hub-forge-partner").addEventListener("change",event=>{
+      this.forgeDraft={...this.forgeDraft,partner:event.target.value};
+      this.renderForge();
+    });
+    $("hub-forge-confirm").addEventListener("click",()=>this.commitForge());
     $("hub-name-edit").addEventListener("click",()=>{
       if(!this.character)return;
       const name=window.prompt("Name your Energy orb",this.character.name);
@@ -175,8 +187,119 @@ export class EnergyCharacterHub{
     $("hub-orb-stage").style.setProperty("--hub-core",identity.style.core);
     $("hub-orb-stage").style.setProperty("--hub-accent",identity.style.energy);
     this.renderTree();
+    this.renderForge();
     this.renderPresets();
     $("hub-status").textContent=this.message;
+  }
+  renderForge(){
+    const profile=this.getProgression();
+    const state=this.treeSnapshot();
+    const level=state.level;
+    $("hub-matter-count").textContent=profile.blackHoleMatter||0;
+    $("hub-fragments-count").textContent=profile.energyFragments||0;
+    const isLocked=level<FORGE_LEVEL;
+    $("hub-forge-status").textContent=isLocked?"LOCKED · LVL 10":"UNLOCKED";
+    $("hub-forge-locked").hidden=!isLocked;
+    $("hub-forge-unlocked").hidden=isLocked;
+    if(isLocked)return;
+    const available=state.unlocked.map(slot=>slot.id);
+    const anchorOptions=ROLES[state.build.role].locked.filter(id=>available.includes(id));
+    const partnerOptions=available.filter(id=>!ROLES[state.build.role].locked.includes(id));
+    const core=profile.singularity;
+    if(!this.forgeDraft){
+      this.forgeDraft=core?{...core}:{anchor:anchorOptions[0]||"",
+        partner:partnerOptions[0]||"",reaction:"annihilation"};
+    }
+    // Do not silently replace an active pairing if a preset changed;
+    // preserve the draft and explain that this core is dormant.
+    const selection=this.forgeDraft;
+    for(const [id,choices,key] of [
+      ["hub-forge-anchor",anchorOptions,"anchor"],
+      ["hub-forge-partner",partnerOptions,"partner"]
+    ]){
+      const select=$(id);select.replaceChildren();
+      for(const abilityId of choices){
+        const option=el("option","",ABILITY_BY_ID[abilityId]?.name||abilityId);
+        option.value=abilityId;select.append(option);
+      }
+      // Browsers fall back to the first option if the former pair is not
+      // currently unlocked. This changes only the PREVIEW, not the core.
+      if(!choices.includes(selection[key]))selection[key]=choices[0]||"";
+      select.value=selection[key];
+    }
+    const reactions=$("hub-forge-reactions");reactions.replaceChildren();
+    for(const entry of Object.values(REACTIONS)){
+      const selected=selection.reaction===entry.id;
+      const choice=button(entry.name,"hub-forge-reaction"+(selected?" selected":""),()=>{
+        this.forgeDraft={...selection,reaction:entry.id};
+        this.renderForge();
+      });
+      choice.setAttribute("aria-pressed",String(selected));
+      choice.append(el("small","",entry.short));
+      reactions.append(choice);
+    }
+    const active=singularityAvailable(core,level,available);
+    const preview=REACTIONS[selection.reaction]||REACTIONS.annihilation;
+    $("hub-forge-preview").textContent=preview.description+" "+preview.note;
+    $("hub-forge-summary").textContent=!core
+      ?"No Singularity forged yet. Link one class spell to one unlocked shared spell."
+      :active?"ACTIVE · "+ABILITY_BY_ID[core.anchor]?.name+" + "+ABILITY_BY_ID[core.partner]?.name
+        +" · "+REACTIONS[core.reaction].name+" · MASTERY "+(core.tier||0)+"/4"
+      :"INACTIVE · Your forged pair is not fully equipped or unlocked in this build. Re-equip its spells or reforge the link.";
+    const error=validateForgeSelection({...profile,level},state.build,available,selection);
+    const unchanged=Boolean(core&&core.anchor===selection.anchor
+      &&core.partner===selection.partner&&core.reaction===selection.reaction);
+    const confirm=$("hub-forge-confirm");
+    confirm.disabled=Boolean(error||unchanged||(profile.blackHoleMatter||0)<1);
+    confirm.textContent=unchanged?"CURRENT SINGULARITY":
+      core?"REFORGE · 1 BLACK HOLE MATTER":"FORGE · 1 BLACK HOLE MATTER";
+    confirm.title=error||((profile.blackHoleMatter||0)<1
+      ?"Earn Black Hole Matter from arena victories.":"Preview is free; only confirming spends Matter.");
+    const mastery=$("hub-forge-mastery");mastery.replaceChildren();
+    mastery.append(el("h4","","SINGULARITY MASTERY"));
+    if(!core){
+      mastery.append(el("p","","Forge your first link to begin developing its tree with Energy Fragments."));
+      return;
+    }
+    const tier=Math.max(0,Math.min(4,core.tier||0));
+    const dots=el("div","hub-forge-tier-dots");
+    for(let i=0;i<4;i++)dots.append(el("span",i<tier?"filled":""));
+    mastery.append(dots);
+    if(tier===4){mastery.append(el("p","","Fully mastered · all four upgrades unlocked."));return;}
+    const neededLevel=FORGE_TIER_LEVELS[tier],cost=FORGE_TIER_COSTS[tier];
+    const upgrade=button("MASTERY "+(tier+1)+" · "+cost+" FRAGMENTS",
+      "hub-secondary hub-forge-upgrade",()=>this.purchaseForgeMastery());
+    upgrade.disabled=level<neededLevel||(profile.energyFragments||0)<cost;
+    mastery.append(el("p","",level<neededLevel?"Next mastery unlocks at level "+neededLevel+".":
+      "Spend Energy Fragments earned from your team's kills to develop your chosen Singularity."),
+      upgrade);
+  }
+  commitForge(){
+    const profile=this.getProgression();
+    const state=this.treeSnapshot();
+    const ids=state.unlocked.map(slot=>slot.id);
+    const error=validateForgeSelection({...profile,level:state.level},state.build,ids,this.forgeDraft);
+    if(error){this.setMessage(error);return;}
+    if(profile.singularity&&!window.confirm(
+      "Spend 1 Black Hole Matter to change your active Singularity? Existing mastery will be preserved."))return;
+    try{
+      const next=forgeSingularity({...profile,level:state.level},
+        state.build,ids,this.forgeDraft);
+      if(next===profile)return;
+      this.changeProgression(next);
+      this.message="Singularity forged · "+REACTIONS[next.singularity.reaction].name+" ready.";
+      this.draw();
+    }catch(error){this.setMessage(error.message||"Could not forge a Singularity.");}
+  }
+  purchaseForgeMastery(){
+    const profile=this.getProgression();
+    const level=progressDetails(profile).level;
+    try{
+      const next=upgradeSingularity({...profile,level});
+      this.changeProgression(next);
+      this.message="Singularity mastery upgraded to tier "+next.singularity.tier+".";
+      this.draw();
+    }catch(error){this.setMessage(error.message||"Could not upgrade Singularity.");}
   }
   renderPresets(){
     const root=$("hub-preset-slots");root.replaceChildren();
@@ -233,7 +356,7 @@ export class EnergyCharacterHub{
   treeSnapshot(){
     const build=this.store.draft;
     const level=progressDetails(this.getProgression()).level;
-    const planned=stagedLoadout(build,8).abilitySlots;
+    const planned=stagedLoadout(build,30).abilitySlots;
     const unlocked=stagedLoadout(build,level).abilitySlots;
     const plannedIds=new Set(planned.map(slot=>slot.id));
     const activeById=new Map(unlocked.map(slot=>[slot.id,slot]));
@@ -494,7 +617,7 @@ export class EnergyCharacterHub{
     const build=this.store.draft;
     const locked=new Set(ROLES[build.role].locked);
     if(locked.has(oldId)||locked.has(newId))throw Error("Class spells cannot be swapped.");
-    const shared=stagedLoadout(build,8).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
+    const shared=stagedLoadout(build,30).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
     const index=shared.indexOf(oldId);
     if(index<0||shared.includes(newId))throw Error("Choose a valid shared spell to replace.");
     const hydrated={...build,freeSlots:shared};
@@ -557,7 +680,7 @@ export class EnergyCharacterHub{
       // modifying talent ranks, preserving the exact current build.
       if(delta>0&&!allEquippedIds(build).includes(id)){
         const locked=new Set(ROLES[build.role].locked);
-        const shared=stagedLoadout(build,8).abilitySlots.map(s=>s.id).filter(spell=>!locked.has(spell));
+        const shared=stagedLoadout(build,30).abilitySlots.map(s=>s.id).filter(spell=>!locked.has(spell));
         if(!shared.includes(id))throw Error("Equip this spell before spending Talent Points.");
         build={...build,freeSlots:shared};
       }

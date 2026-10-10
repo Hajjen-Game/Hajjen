@@ -1,11 +1,11 @@
 // Standalone Energy Combat prototype: never imports arena3v3 combat.
 // Rules intentionally limited to a first-playable balance baseline.
-import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
+import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js?v=20261010-origins35";
 import { buildCombatLoadout } from "../buildState.js";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
-import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261010-singularity34";
-import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261010-singularity34";
-import { energyIdentity } from "./EnergyCharacter.js?v=20261010-singularity34";
+import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261010-origins35";
+import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261010-origins35";
+import { energyIdentity } from "./EnergyCharacter.js?v=20261010-origins35";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
 
 const TICK = 0.05;
@@ -69,7 +69,7 @@ export function canStand(x,y,arena,radius=21) {
 function actorFor(id,team,role,pos,control,abilities,evolutions={},talentRanks={}) {
   return {
     id,team,role,control, classId:"energy-"+role,
-    name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+role.toUpperCase(),
+    name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+(ROLES[role]?.name||role).toUpperCase(),
     x:pos.x,y:pos.y, hp:BASE_ACTOR_HEALTH,maxHp:BASE_ACTOR_HEALTH,alive:true,healthPct:1,flux:100,
     energyStyle:{core:roleColor[role],energy:roleColor[role]},
     targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,

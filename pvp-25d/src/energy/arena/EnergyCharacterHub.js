@@ -405,7 +405,10 @@ export class EnergyCharacterHub{
     const byDiscipline=(a,b)=>ELEMENT_ORDER.indexOf(a.discipline)-
       ELEMENT_ORDER.indexOf(b.discipline)||a.name.localeCompare(b.name);
     const pool=compatible.filter(spell=>!plannedIds.has(spell.id)).sort(byDiscipline);
-    const inner=unlocked.map(slot=>ABILITY_BY_ID[slot.id]).sort(byDiscipline);
+    // Keep the exact action-bar order: Origin spells occupy slots 1 and 2.
+    // The first replaceable shared spell is always slot 3, never re-sorted
+    // ahead of either Origin spell because of energy discipline.
+    const inner=unlocked.map(slot=>ABILITY_BY_ID[slot.id]);
     return {build,level,planned,unlocked,plannedIds,activeById,
       roleBound,pool,inner,compatible};
   }
@@ -524,9 +527,10 @@ export class EnergyCharacterHub{
       // To keep all eighteen main spell names readable, show the three
       // outer-pool Evolution subnodes when that spell is selected. Their
       // names/descriptions are always accessible in the right detail panel.
-      // Pool previews extend OUTWARD, away from the inner mastery ring.
-      // A wider map margin leaves space for all three satellite buttons.
-      if(selected)this.renderEvolutionSatellites({ability,angle,origin:p,dist:472,
+      // Pool Mastery sits outside its selected spell, not in the tight
+      // 425–472 gap where satellite buttons touched its highlight outline.
+      // The board has extra breathing room at all edges for these branches.
+      if(selected)this.renderEvolutionSatellites({ability,angle,origin:p,dist:524,
         visible:true,selected,state,place,addLine,pool:true});
     }
     // Put the active spell/evolution above the decorative connecting lines.
@@ -535,7 +539,7 @@ export class EnergyCharacterHub{
     const rank=state.activeById.get(ability.id)?.talentRank||0;
     const chosenId=state.build.evolutions[ability.id]||null;
     for(const [i,ev] of ability.evolutions.entries()){
-      const branchAngle=angle+(i-1)*(pool?.117:.143);
+      const branchAngle=angle+(i-1)*(pool?.108:.143);
       const p=orbitPos(branchAngle,dist);
       const chosen=chosenId===ev.id;
       const tone=DISCIPLINES[ability.discipline].color;

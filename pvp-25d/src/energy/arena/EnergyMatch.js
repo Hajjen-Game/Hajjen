@@ -330,10 +330,10 @@ export class EnergyMatch {
       spellId:core.anchor,reaction:core.reaction,tier});
     this.log("SINGULARITY · "+core.reaction.toUpperCase()+"!");
   }
-  heal(target,amount,source,spellId){
+  heal(target,amount,source,spellId,periodic=false){
     if(!target?.alive)return;
     const rank=source?.talentRanks?.[spellId]||0;
-    const crit=this.rollCrit(source,spellId,"heal");
+    const crit=this.rollCrit(source,spellId,periodic?"hot":"heal");
     const scaled=Math.max(0,Math.round(amount*this.power*
       healMultiplier(spellId,rank)*(crit?CRIT_MULTIPLIER:1)*
       (1-this.dampening)*(source?.team==="enemy"?this.tuning.healing:1)));
@@ -343,12 +343,12 @@ export class EnergyMatch {
     this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,
       spellId,amount:given,overheal:scaled-given,hpBefore,hpAfter:target.hp,crit});
   }
-  damage(target,amount,source,spellId){
+  damage(target,amount,source,spellId,periodic=false){
     if(!target?.alive)return;
     // Level power scales damage for players AND AI; Rank selectively develops
     // damage spells and Marble Bag rolls crit (not CC, guards or movement).
     const rank=source?.talentRanks?.[spellId]||0;
-    const crit=this.rollCrit(source,spellId,"damage");
+    const crit=this.rollCrit(source,spellId,periodic?"dot":"damage");
     let value=amount*this.power*damageMultiplier(spellId,rank)*
       (crit?CRIT_MULTIPLIER:1)*(source?.team==="enemy"?this.tuning.damage:1);
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
@@ -550,10 +550,10 @@ export class EnergyMatch {
           const source=this.getActor(status.sourceId)||actor;
           if(status.kind==="dot"){
             const ramp=source.evolutions[status.spellId]==="deep-decay"?1+0.15*(status.tickCount||0):1;
-            this.damage(actor,status.amount*ramp,source,status.spellId);
+            this.damage(actor,status.amount*ramp,source,status.spellId,true);
             status.tickCount++;
           }
-          if(status.kind==="reactive-thread")this.heal(actor,status.amount,source,"reactive-thread");
+          if(status.kind==="reactive-thread")this.heal(actor,status.amount,source,"reactive-thread",true);
         }
       }
     }

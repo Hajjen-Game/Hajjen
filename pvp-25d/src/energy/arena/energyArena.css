@@ -1398,3 +1398,8 @@ h2{font-size:23px}
   border-left:2px solid #9ed1e9;border-radius:6px;
   background:linear-gradient(90deg,#173047,#102034);
   color:#c9e4f3;font-size:10px;line-height:1.55}
+
+
+/* V40: surface the same HP / damage / heal / crit progression used in combat. */
+.hub-combat-stats{margin:6px 0 0;font-size:10px;line-height:1.4;
+  letter-spacing:.05em;font-weight:750;color:#a9d7ec}

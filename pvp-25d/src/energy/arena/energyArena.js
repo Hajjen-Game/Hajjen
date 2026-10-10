@@ -236,6 +236,7 @@ function createFrame(actor){
   const hp=element("div","hp-track"),fill=element("div","hp-fill");hp.append(fill);
   const value=element("div","hp-values");
   button.append(heading,sub,hp,value);
+  if(actor.boss)button.classList.add("boss");
   button.addEventListener("click",()=>{target(actor.id);renderUI();});
   frameCache.set(actor.id,{button,sub,fill,value});
   return button;
@@ -258,13 +259,15 @@ function renderFrames(){
       view=frameCache.get(actor.id);
     }
     const {button,sub,fill,value}=view;
+    button.classList.toggle("boss",Boolean(actor.boss));
     button.classList.toggle("targeted",match.player.targetId===actor.id);
     button.classList.toggle("dead",!actor.alive);
     button.disabled=!actor.alive;
     const casting=actor.cast;
     sub.textContent=casting?((ABILITY_BY_ID[casting.spellId]?.name||"ENERGY")+" · "+Math.max(0,casting.remainingMs/1000).toFixed(1)+"s")
       :actor.statuses.some(s=>s.kind==="incapacitate")?"CONTROLLED"
-      :actor.statuses.some(s=>s.kind==="root")?"ROOTED":"ENERGY ORB";
+      :actor.statuses.some(s=>s.kind==="root")?"ROOTED":
+        actor.boss?"FINAL WAVE · RIFT BOSS":"ENERGY ORB";
     fill.style.width=clamp(actor.healthPct*100,0,100)+"%";
     value.textContent=Math.ceil(actor.hp)+" / "+actor.maxHp+" HP"+(actor.shield>0?" · SHIELD "+Math.ceil(actor.shield):"");
   }
@@ -346,6 +349,18 @@ function renderUI(){
     ?"WAVE "+match.wave+" / "+DEFENSE_WAVES+
       " · "+(match.waveState==="intermission"?"RESONANCE":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED")
     :"DAMPENING "+Math.round(match.dampening*100)+"%";
+  if(match.modeId==="defense"){
+    const tips=[
+      "Try your three normal spells. Your first Wave Resonance unlocks AFTER Wave 1.",
+      "New enemies approach. Try your enhanced Origin spell and focus dangerous targets.",
+      "Disrupt enemy casters and protect your two AI companions.",
+      "Coordinate interrupts, damage and healing as the wave grows.",
+      "FINAL STAND · Defeat the Rift Warden and survive with your team."
+    ];
+    $("match-learning-tip").textContent=match.waveState==="intermission"?
+      "WAVE "+match.wave+" CLEARED · CHOOSE ONE RESONANCE TO CONTINUE":
+      "PLANET DEFENSE · "+tips[Math.max(0,match.wave-1)];
+  }
   $("flux-text").textContent=Math.floor(p.flux)+" / 100";
   $("flux-fill").style.width=clamp(p.flux,0,100)+"%";
   $("player-health").textContent="HP "+Math.ceil(p.hp)+" / "+p.maxHp;

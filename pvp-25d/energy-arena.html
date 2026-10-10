@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261009-menu-codex33"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-singularity34"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -180,6 +180,30 @@
                 <div id="hub-spell-library" class="hub-swap-picker" hidden></div>
               </div>
             </section>
+            <section id="hub-singularity-panel" class="hub-singularity-panel hub-build-panel" aria-label="Singularity Forge">
+              <div class="hub-panel-heading"><h3>SINGULARITY FORGE</h3><span id="hub-forge-status">LOCKED · LVL 10</span></div>
+              <div class="hub-forge-wallet">
+                <div><strong id="hub-matter-count">0</strong><small>BLACK HOLE MATTER</small></div>
+                <div><strong id="hub-fragments-count">0</strong><small>ENERGY FRAGMENTS</small></div>
+              </div>
+              <div id="hub-forge-locked" class="hub-forge-locked" hidden>
+                <span class="hub-forge-lock-symbol">◉</span>
+                <strong>REQUIRES LEVEL 10</strong>
+                <p>You may discover Black Hole Matter before you can use it. Reach level 10 to forge a synergy.</p>
+              </div>
+              <div id="hub-forge-unlocked" hidden>
+                <p id="hub-forge-summary" class="hub-forge-note"></p>
+                <label class="hub-forge-label" for="hub-forge-anchor">ANCHOR · YOUR CLASS SPELL</label>
+                <select id="hub-forge-anchor" class="hub-forge-select"></select>
+                <label class="hub-forge-label" for="hub-forge-partner">PARTNER · UNLOCKED SHARED SPELL</label>
+                <select id="hub-forge-partner" class="hub-forge-select"></select>
+                <p class="hub-forge-label">CHOOSE YOUR REACTION</p>
+                <div id="hub-forge-reactions" class="hub-forge-reactions"></div>
+                <p id="hub-forge-preview" class="hub-forge-preview"></p>
+                <button id="hub-forge-confirm" type="button" class="hub-secondary hub-forge-confirm">FORGE · 1 MATTER</button>
+                <div id="hub-forge-mastery" class="hub-forge-mastery"></div>
+              </div>
+            </section>
             <section class="hub-presets hub-build-panel" aria-label="Saved character builds">
               <div class="hub-panel-heading"><h3>BUILD PRESETS</h3><span>3 SAVE SLOTS</span></div>
               <p class="hub-preset-intro">Save spell combinations and Evolutions, then return to them whenever you want.</p>
@@ -243,6 +267,6 @@
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261009-menu-codex33"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-singularity34"></script>
 </body>
 </html>

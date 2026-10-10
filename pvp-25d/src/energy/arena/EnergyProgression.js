@@ -5,7 +5,11 @@ import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js?v=202
 import { buildCombatLoadout } from "../buildState.js?v=20261009-orbit-tree31";
 
 export const PROGRESSION_KEY = "pvp25d-energy-progression-v1";
-export const MAX_LEVEL = 8;
+export const MAX_LEVEL = 30;
+export const FORGE_UNLOCK_LEVEL = 10;
+// New slots arrive gradually so the player has time to master each spell.
+export const SPELL_SLOT_LEVELS = Object.freeze([1,1,1,4,8,12,16,20,24,28]);
+export const FRAGMENTS_PER_KILL = 5;
 export const MODES = Object.freeze({
   training: Object.freeze({
     id:"training",label:"Training Grounds",size:"1v1",subtitle:"Learn one mechanic at a time",
@@ -24,17 +28,30 @@ export const MODES = Object.freeze({
   }),
 });
 // A new ability now takes several victories. Existing XP is preserved.
-const LEVEL_XP=[0,140,340,600,920,1300,1740,2240];
-const LESSONS=[
-  "Learn targeting, movement and your three core abilities.",
-  "A new ability joins your kit. Practice using it before taking on bigger fights.",
-  "Read enemy casts and react with your defensive or interrupt.",
-  "Use line of sight and positioning to avoid free damage.",
-  "Learn when to use crowd control rather than dealing damage.",
-  "Coordinate your abilities with your AI partner.",
-  "Practice chaining pressure while keeping a defensive ready.",
-  "Full ten-ability kit. Fine-tune builds, timing and team strategies.",
-];
+// Cumulative XP thresholds for levels 1–30. Older saved XP is preserved.
+// First levels introduce mechanics quickly; later levels reward mastery.
+export const LEVEL_XP=Object.freeze(Array.from({length:MAX_LEVEL},(_,i)=>
+  i===0?0:Math.round(i*100+15*i*(i-1))));
+const LESSONS=Object.freeze([
+  "Learn movement, targeting and your first three abilities.",
+  "Practise timing and line of sight before your next spell unlock.",
+  "Make good use of your class spells and your first shared ability.",
+  "New spell unlocked. Try adding it to your action bar.",
+  "Learn how to survive enemy burst without wasting your defensive spells.",
+  "Practise combining your favorite abilities.",
+  "Explore the different energy disciplines.",
+  "New spell unlocked. Test an alternative approach.",
+  "Prepare for your first Singularity.",
+  "Singularity Forge unlocked! Discover linked spell reactions.",
+]);
+// Subsequent lessons adapt to progress rather than becoming undefined.
+function lessonForLevel(level){
+  if(level<=10)return LESSONS[level-1];
+  if(SPELL_SLOT_LEVELS.includes(level))return "New spell slot unlocked. Learn the new ability before your next battle.";
+  if(level<20)return "Develop your spell ranks and explore Singularity reactions.";
+  if(level<28)return "Master timing, Evolution choices and team positioning.";
+  return "Complete your ten-spell build and final Evolutions.";
+}
 const PREFERENCES={
   healer:["pulse-mend","crystal-bolt","resonance-guard","sun-lance",
     "photon-barrier","reactive-thread","null-prison","symbiosis-link",
@@ -63,7 +80,7 @@ export function levelForXp(xp){
   while(level<MAX_LEVEL&&xp>=LEVEL_XP[level])level++;
   return level;
 }
-export function slotsForLevel(level){return clip(Math.floor(level)+2,3,10);}
+export function slotsForLevel(level){return SPELL_SLOT_LEVELS.filter(required=>level>=required).length;}
 export function progressDetails(profile){
   const level=levelForXp(profile.xp||0),base=LEVEL_XP[level-1],next=LEVEL_XP[level];
   return {
@@ -71,34 +88,57 @@ export function progressDetails(profile){
     startXp:base,nextXp:next??null,xp:profile.xp||0,
     progress:next==null?1:clip(((profile.xp||0)-base)/(next-base),0,1),
     remaining:next==null?0:Math.max(0,next-(profile.xp||0)),
-    lesson:LESSONS[level-1],
+    lesson:lessonForLevel(level),
   };
 }
+function blankProgression(){
+  return {version:1,xp:0,wins:0,losses:0,lastMode:"training",
+    energyFragments:0,blackHoleMatter:0,firstMatterGranted:false,
+    singularity:null};
+}
+function nonnegativeInt(value){return Math.max(0,Math.floor(Number(value)||0));}
 export function readProgression(storage){
-  try {
+  const blank=blankProgression();
+  try{
     const s=JSON.parse(storage.getItem(PROGRESSION_KEY)||"null");
-    if(s?.version!==1)return {version:1,xp:0,wins:0,losses:0,lastMode:"training"};
-    return {
-      version:1,xp:Math.max(0,Math.floor(Number(s.xp)||0)),
-      wins:Math.max(0,Math.floor(Number(s.wins)||0)),
-      losses:Math.max(0,Math.floor(Number(s.losses)||0)),
+    if(s?.version!==1)return blank;
+    const allowedReactions=["annihilation","distortion","resonance"];
+    const raw=s.singularity;
+    const singularity=raw&&typeof raw==="object"
+      &&typeof raw.anchor==="string"&&typeof raw.partner==="string"
+      &&allowedReactions.includes(raw.reaction)
+      ?{anchor:raw.anchor,partner:raw.partner,reaction:raw.reaction,
+        tier:Math.min(4,nonnegativeInt(raw.tier))}:null;
+    return {...blank,
+      xp:nonnegativeInt(s.xp),wins:nonnegativeInt(s.wins),
+      losses:nonnegativeInt(s.losses),
       lastMode:MODES[s.lastMode]?s.lastMode:"training",
-    };
-  }catch{return {version:1,xp:0,wins:0,losses:0,lastMode:"training"};}
+      energyFragments:nonnegativeInt(s.energyFragments),
+      blackHoleMatter:nonnegativeInt(s.blackHoleMatter),
+      firstMatterGranted:Boolean(s.firstMatterGranted),singularity};
+  }catch{return blank;}
 }
 export function saveProgression(storage,profile){
   try{storage.setItem(PROGRESSION_KEY,JSON.stringify(profile));return true;}
-  catch{return false;} // Private/blocked storage must not prevent a battle.
+  catch{return false;}
 }
-export function awardMatch(profile,modeId,won){
+export function awardMatch(profile,modeId,won,enemyKills=0){
   const mode=MODES[modeId]||MODES.training;
   const before=progressDetails(profile),earned=won?mode.xpWin:mode.xpLoss;
+  const fragments=FRAGMENTS_PER_KILL*nonnegativeInt(enemyKills);
+  // Arena victory drops are intentionally occasional. No boss mode exists yet.
+  const matterDrop=won&&Math.random()<0.25?1:0;
   const next={...profile,xp:(profile.xp||0)+earned,
     wins:(profile.wins||0)+(won?1:0),
-    losses:(profile.losses||0)+(won?0:1),lastMode:mode.id};
+    losses:(profile.losses||0)+(won?0:1),lastMode:mode.id,
+    energyFragments:(profile.energyFragments||0)+fragments,
+    blackHoleMatter:(profile.blackHoleMatter||0)+matterDrop};
   const after=progressDetails(next);
+  const starterMatter=after.level>=FORGE_UNLOCK_LEVEL&&!profile.firstMatterGranted?1:0;
+  if(starterMatter){next.blackHoleMatter+=1;next.firstMatterGranted=true;}
   return {next,before,after,earned,levelUp:after.level>before.level,
-    unlocked:Math.max(0,after.slots-before.slots)};
+    unlocked:Math.max(0,after.slots-before.slots),
+    fragments,matter:starterMatter+matterDrop};
 }
 // Finish an unfinished Build Lab draft with temporary starter options for combat.
 // The player's stored draft stays untouched; only the staged arena build is filled.
@@ -138,8 +178,7 @@ export function stagedLoadout(build,level){
     if(byId.has(id)&&!selected.includes(id))selected.push(id);
   }
   // Match the earned-point schedule in EnergyCharacter.js without a circular import.
-  const earned=[0,0,2,6,10,14,19,24,30];
-  const limit=earned[Math.min(8,Math.max(1,Math.floor(level)||1))];
+  const limit=clip(Math.floor(level)||1,1,MAX_LEVEL);
   let spent=0,activeEvolutions=0;
   const slots=selected.slice(0,slotsForLevel(level)).map(id=>{
     const base=byId.get(id);
@@ -169,9 +208,9 @@ export function rosterRoles(playerRole,modeId,level=1){
   return {friendly:["healer","melee","caster"],enemy:["healer","melee","caster"]};
 }
 export function enemyTuning(modeId,level){
-  // Early-game protection is explicit, per mode. Scaling fades by level 8.
-  const step=clip(level-1,0,7);
-  if(modeId==="training")return {damage:.42,healing:.8};
-  if(modeId==="duo")return {damage:Math.min(.95,.65+.043*step),healing:Math.min(1,.80+.03*step)};
-  return {damage:Math.min(1,.75+.04*step),healing:Math.min(1,.84+.025*step)};
+  // Beginner assistance fades before the middle of the 30-level journey.
+  const step=clip(level-1,0,19);
+  if(modeId==="training")return {damage:Math.min(1,.52+.024*step),healing:Math.min(1,.8+.01*step)};
+  if(modeId==="duo")return {damage:Math.min(1,.65+.018*step),healing:Math.min(1,.80+.011*step)};
+  return {damage:Math.min(1,.75+.014*step),healing:Math.min(1,.84+.009*step)};
 }

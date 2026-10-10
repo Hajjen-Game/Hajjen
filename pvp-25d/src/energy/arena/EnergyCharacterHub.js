@@ -204,6 +204,9 @@ export class EnergyCharacterHub{
     const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
     $("hub-level-subtitle").textContent=progress.slots+"/10"+
       (nextSlotLevel?" · NEXT SPELL LVL "+nextSlotLevel:" · FULL LOADOUT");
+    $("hub-combat-stats").textContent="HP "+maxHealthForLevel(progress.level)+
+      " · DAMAGE/HEAL ×"+powerForLevel(progress.level).toFixed(2)+
+      " · CRIT 10%";
     $("hub-xp").textContent=progress.maxLevel?"MAX LEVEL":
       progress.xp+" XP · "+progress.remaining+" TO NEXT LEVEL";
     $("hub-xp-fill").style.width=(progress.progress*100).toFixed(1)+"%";

@@ -1,7 +1,7 @@
 // Character identity is independent from build presets, and saved separately.
 // Never touches the legacy arena or erases Energy Build Lab saved slots.
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261009-orbit-tree31";
-import { stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
+import { stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
 
 export const CHARACTER_KEY="pvp25d-energy-character-v1";
 export function loadCharacter(storage){
@@ -20,9 +20,9 @@ export function saveCharacter(storage,character){
   return next;
 }
 export function talentPointsForLevel(level){
-  // Thirty earned points by level 8: enough to fully master every equipped spell.
-  const earned=[0,0,2,6,10,14,19,24,30];
-  return earned[Math.min(8,Math.max(1,Math.floor(level)||1))];
+  // Exactly one Talent Point per level, including level 1.
+  // Ten equipped abilities × three ranks = thirty earned points at level 30.
+  return Math.min(30,Math.max(1,Math.floor(Number(level)||1)));
 }
 export function energyIdentity(build,level=1){
   const loadout=stagedLoadout(build,level);

@@ -1,7 +1,7 @@
 import {
   ABILITY_BY_ID, FREE_ABILITIES, ROLES, TALENT_BUDGET, MAX_TALENT_RANK,
   MAX_ACTIVE_EVOLUTIONS, FREE_ABILITY_SLOTS, SAVED_BUILD_SLOTS, MAX_FLUX, BASE_FLUX_REGEN,
-} from "./abilityCatalog.js?v=20261009-orbit-tree31";
+} from "./abilityCatalog.js?v=20261010-origins35";
 
 export const ENERGY_STORAGE_KEY = "pvp25d-energy-builds-v1";
 const VERSION = 1;
@@ -70,6 +70,9 @@ export function normalizeBuild(raw) {
   const build = createBuild(ROLES[raw?.role] ? raw.role : "healer");
   if (!raw || typeof raw !== "object") return build;
   build.name = typeof raw.name === "string" ? raw.name.trim().slice(0, 38) || build.name : build.name;
+  // Rename only original default build titles; never overwrite a custom preset name.
+  const oldNames = {healer:"Healer Build",melee:"Melee Build",caster:"Caster Build"};
+  if (build.name === oldNames[build.role]) build.name = ROLES[build.role].name + " Build";
   if (Array.isArray(raw.freeSlots)) {
     const seen = new Set();
     for (let i = 0; i < FREE_ABILITY_SLOTS; i += 1) {

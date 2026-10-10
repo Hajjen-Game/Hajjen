@@ -1,8 +1,8 @@
 // Independent Energy Arena onboarding / play-mode progression.
 // This sits between Build Lab (full 10-slot authoring) and EnergyMatch.
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
-import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js?v=20261009-orbit-tree31";
-import { buildCombatLoadout } from "../buildState.js?v=20261009-orbit-tree31";
+import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js?v=20261010-origins35";
+import { buildCombatLoadout } from "../buildState.js?v=20261010-origins35";
 
 export const PROGRESSION_KEY = "pvp25d-energy-progression-v1";
 export const MAX_LEVEL = 30;
@@ -18,7 +18,7 @@ export const MODES = Object.freeze({
   }),
   duo: Object.freeze({
     id:"duo",label:"Duo Skirmish",size:"2v2",subtitle:"Your first team fights",
-    description:"You and one AI partner. Early rivals have no healer; learn counters as you level.",
+    description:"You and one AI partner. Early rivals have no Genesis opponent; learn counters as you level.",
     xpWin:45,xpLoss:20,
   }),
   trio: Object.freeze({
@@ -35,7 +35,7 @@ export const LEVEL_XP=Object.freeze(Array.from({length:MAX_LEVEL},(_,i)=>
 const LESSONS=Object.freeze([
   "Learn movement, targeting and your first three abilities.",
   "Practise timing and line of sight before your next spell unlock.",
-  "Make good use of your class spells and your first shared ability.",
+  "Make good use of your two Origin spells and your first shared ability.",
   "New spell unlocked. Try adding it to your action bar.",
   "Learn how to survive enemy burst without wasting your defensive spells.",
   "Practise combining your favorite abilities.",
@@ -150,7 +150,7 @@ export function awardMatch(profile,modeId,won,enemyKills=0){
 // Finish an unfinished Build Lab draft with temporary starter options for combat.
 // The player's stored draft stays untouched; only the staged arena build is filled.
 export function completeArenaBuild(build){
-  if(!build||!ROLES[build.role])throw Error("Choose a valid role first.");
+  if(!build||!ROLES[build.role])throw Error("Choose a valid Origin first.");
   const free=FREE_ABILITIES.map(a=>a.id);
   const locked=new Set(ROLES[build.role].locked);
   const chosen=[];

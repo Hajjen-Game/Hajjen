@@ -123,6 +123,21 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="resonance-proc"){
+      const target=match.getActor(event.targetId)||match.getActor(event.actorId);
+      if(target){
+        const hex=event.role==="healer"?"#85f0b8":
+          event.role==="melee"?"#f58ca0":"#8ecaff";
+        const pos=new BABYLON.Vector3(target.x*S,.14,target.y*S);
+        this.spellFX.ring(pos,hex,
+          event.kind==="wave"?3.1:event.kind==="impact"?1.8:1.25,
+          event.kind==="wave"?680:490,"ground");
+        if(event.kind!=="wave")
+          this.spellFX.sphere(new BABYLON.Vector3(pos.x,.85,pos.z),
+            hex,event.kind==="impact"?.43:.24,330,"burst");
+      }
+      return;
+    }
     // Snapshot renderer availability at RELEASE, so a missing/disabled Pixi
     // layer falls back to Babylon rather than making attacks invisible.
     this.spellFX.hero.setPixiProjectilesAvailable(

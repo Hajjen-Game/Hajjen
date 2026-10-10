@@ -43,7 +43,7 @@ export class EnergyCharacterHub{
     this.openMainMenu=openMainMenu;this.openPlayMenu=openPlayMenu;
     this.character=loadCharacter(storage);
     this.preview=null;this.selectedAbility=null;this.showSwapPicker=false;this.listFilter="equipped";
-    this.message="";this.forgeDraft=null;
+    this.message="";this.forgeDraft=null;this.creatingNew=false;
     this.bind();
   }
   bind(){
@@ -62,6 +62,7 @@ export class EnergyCharacterHub{
       try{
         const role=document.querySelector("[data-create-role].selected")?.dataset.createRole||"healer";
         this.character=this.createOrigin({name:$("new-character-name").value,role});
+        this.creatingNew=false;
         this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
         this.message="Origin created. Your new journey starts at level 1.";
         this.open();
@@ -135,9 +136,9 @@ export class EnergyCharacterHub{
   open(){
     $("combat-screen").hidden=true;
     $("build-gate").hidden=false;
-    $("character-creation").hidden=Boolean(this.character);
-    $("character-hub").hidden=!this.character;
-    if(!this.character){
+    $("character-creation").hidden=Boolean(this.character)&&!this.creatingNew;
+    $("character-hub").hidden=!this.character||this.creatingNew;
+    if(!this.character||this.creatingNew){
       $("new-character-name").value="";
       $("create-character-error").textContent="";
       return;
@@ -161,7 +162,7 @@ export class EnergyCharacterHub{
   }
   openCreation(){
     this.hide();
-    this.character=null;
+    this.creatingNew=true;
     this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
     document.querySelectorAll("[data-create-role]").forEach(node=>{
       const active=node.dataset.createRole==="healer";
@@ -174,13 +175,14 @@ export class EnergyCharacterHub{
   }
   activateCharacter(character){
     this.hide();
-    this.character=character;
+    this.character=character;this.creatingNew=false;
     this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
     this.message="";
     $("hub-origin-info").hidden=true;
     $("hub-origin-info-toggle").setAttribute("aria-expanded","false");
   }
   hide(){
+    this.creatingNew=false;
     $("build-gate").hidden=true;
     // Free the separate HUB WebGL context while combat is rendering.
     this.preview?.dispose();this.preview=null;

@@ -2,13 +2,13 @@
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261010-origins35";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
-  spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
+  spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261010-origins35";
 import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261010-origins35";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
-  from "./EnergySingularity.js?v=20261010-singularity34";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261010-singularity34";
+  from "./EnergySingularity.js?v=20261010-origins35";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261010-origins35";
 
 const $=id=>document.getElementById(id);
 const el=(tag,cls,text)=>{
@@ -259,7 +259,7 @@ export class EnergyCharacterHub{
     const preview=REACTIONS[selection.reaction]||REACTIONS.annihilation;
     $("hub-forge-preview").textContent=preview.description+" "+preview.note;
     $("hub-forge-summary").textContent=!core
-      ?"No Singularity forged yet. Link one class spell to one unlocked shared spell."
+      ?"No Singularity forged yet. Link one Origin spell to one unlocked shared spell."
       :active?"ACTIVE · "+ABILITY_BY_ID[core.anchor]?.name+" + "+ABILITY_BY_ID[core.partner]?.name
         +" · "+REACTIONS[core.reaction].name+" · MASTERY "+(core.tier||0)+"/4"
       :"INACTIVE · Your forged pair is not fully equipped or unlocked in this build. Re-equip its spells or reforge the link.";
@@ -334,7 +334,7 @@ export class EnergyCharacterHub{
       if(saved){
         const load=button("LOAD","hub-preset-button load",()=>this.loadPreset(index));
         load.disabled=!sameRole;
-        load.title=sameRole?"Use this preset":"This build belongs to a different class";
+        load.title=sameRole?"Use this preset":"This build belongs to a different Origin";
         actions.append(load);
       }
       actions.append(save);row.append(info,actions);root.append(row);
@@ -566,7 +566,7 @@ export class EnergyCharacterHub{
     const unlocked=state.activeById.has(ability.id);
     const availableTP=talentPointsForLevel(state.level)-spentTalentPoints(build);
     const selectedEvolution=build.evolutions[ability.id]||null;
-    $("hub-detail-status").textContent=bound?"CLASS-BOUND":inBuild?"IN BUILD":"AVAILABLE POOL";
+    $("hub-detail-status").textContent=bound?"ORIGIN-BOUND":inBuild?"IN BUILD":"AVAILABLE POOL";
     const spell=$("hub-detail-spell");spell.replaceChildren();
     spell.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
     const summary=el("div","hub-detail-title");
@@ -633,7 +633,7 @@ export class EnergyCharacterHub{
   replaceSharedSpell(oldId,newId){
     const build=this.store.draft;
     const locked=new Set(ROLES[build.role].locked);
-    if(locked.has(oldId)||locked.has(newId))throw Error("Class spells cannot be swapped.");
+    if(locked.has(oldId)||locked.has(newId))throw Error("Origin spells cannot be swapped.");
     const shared=stagedLoadout(build,30).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
     const index=shared.indexOf(oldId);
     if(index<0||shared.includes(newId))throw Error("Choose a valid shared spell to replace.");

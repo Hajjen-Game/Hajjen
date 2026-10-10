@@ -150,6 +150,10 @@ export class EnergyPlanetDefense extends EnergyMatch{
   damageExtra(target,amount,spellId){
     this.damage(target,amount,this.player,spellId);
   }
+  resonanceVisual(target,kind,spellId){
+    this.emit({type:"resonance-proc",actorId:"player",targetId:target?.id||"player",
+      spellId,kind,role:this.player.role});
+  }
   damage(target,amount,source,spellId,periodic=false){
     const tier=source===this.player&&spellId==="flux-bolt"&&!periodic?
       this.resonanceTier("flux-overcharge"):0;
@@ -172,32 +176,47 @@ export class EnergyPlanetDefense extends EnergyMatch{
           .sort((a,b)=>distance(a,primary)-distance(b,primary));
         for(const other of extras.slice(0,tier>=2?3:2)){
           this.damageExtra(other,ABILITY_RULES["flux-bolt"].amount*(.39+tier*.05),"flux-bolt");
+          this.resonanceVisual(other,"chain","flux-bolt");
         }
       }
     }
     if(spellId==="phase-slip"){
       const tier=this.resonanceTier("phase-discharge");
-      if(tier)for(const enemy of this.foesNear(actor,150+tier*12))
-        this.damageExtra(enemy,8+5*tier,"phase-slip");
+      if(tier){
+        this.resonanceVisual(actor,"wave","phase-slip");
+        for(const enemy of this.foesNear(actor,150+tier*12))
+          this.damageExtra(enemy,8+5*tier,"phase-slip");
+      }
     }
     if(spellId==="phase-rush"&&primary){
       const shock=this.resonanceTier("rush-shockwave");
-      if(shock)for(const enemy of this.foesNear(actor,135+shock*12))
-        this.damageExtra(enemy,7+5*shock,"phase-rush");
+      if(shock){
+        this.resonanceVisual(actor,"wave","phase-rush");
+        for(const enemy of this.foesNear(actor,135+shock*12))
+          this.damageExtra(enemy,7+5*shock,"phase-rush");
+      }
       const hit=this.resonanceTier("rush-impact");
-      if(hit&&primary.alive&&distance(actor,primary)<145)
+      if(hit&&primary.alive&&distance(actor,primary)<145){
         this.damageExtra(primary,8+7*hit,"phase-rush");
+        this.resonanceVisual(primary,"impact","phase-rush");
+      }
     }
     if(spellId==="pulse-sever"){
       const tier=this.resonanceTier("sever-strike");
-      if(tier&&primary?.alive)this.damageExtra(primary,7+5*tier,"pulse-sever");
+      if(tier&&primary?.alive){
+        this.damageExtra(primary,7+5*tier,"pulse-sever");
+        this.resonanceVisual(primary,"impact","pulse-sever");
+      }
     }
     if(spellId==="pulse-mend"&&effectiveHeal){
       const tier=this.resonanceTier("mend-reverberation");
       if(tier){
         const healed=this.getActor(effectiveHeal.targetId)||actor;
         const foe=this.foesNear(healed,420).sort((a,b)=>distance(a,healed)-distance(b,healed))[0];
-        if(foe)this.damageExtra(foe,7+5*tier,"pulse-mend");
+        if(foe){
+          this.damageExtra(foe,7+5*tier,"pulse-mend");
+          this.resonanceVisual(foe,"chain","pulse-mend");
+        }
       }
       const echo=this.resonanceTier("mend-chain");
       if(echo){
@@ -208,8 +227,11 @@ export class EnergyPlanetDefense extends EnergyMatch{
     }
     if(spellId==="resonance-guard"){
       const tier=this.resonanceTier("guard-wave");
-      if(tier&&primary)for(const enemy of this.foesNear(primary,145+tier*8))
-        this.damageExtra(enemy,7+5*tier,"resonance-guard");
+      if(tier&&primary){
+        this.resonanceVisual(primary,"wave","resonance-guard");
+        for(const enemy of this.foesNear(primary,145+tier*8))
+          this.damageExtra(enemy,7+5*tier,"resonance-guard");
+      }
     }
   }
   update(dt){

@@ -1,5 +1,8 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
-import { readBuildStorage } from "../buildState.js?v=20261010-origins35";
+import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261010-origins35";
+import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261010-origins35";
+import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
+  appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261010-roster37";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261010-origins35";
 import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261010-origins35";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-hub-orbit29";
@@ -9,8 +12,8 @@ import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-hub-progression36";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261010-hub-progression36";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-roster37";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261010-roster37";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);
@@ -18,8 +21,21 @@ const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
 let profile=readProgression(window.localStorage);
-const claimed=ensureStarterMatter(profile);
-if(claimed!==profile){profile=claimed;saveProgression(window.localStorage,profile);}
+// Migrates any existing single-character save into a one-entry Origin list.
+let roster=readOriginRoster(window.localStorage,loadCharacter(window.localStorage),store,profile);
+const original=activeOrigin(roster);
+if(original){
+  const oldBuilds=original.builds;
+  store.draft=normalizeBuild(oldBuilds.draft);
+  store.saved=oldBuilds.saved.map(saved=>saved?normalizeBuild(saved):null);
+  profile=original.progression;
+  const initialized=ensureStarterMatter(profile);
+  if(initialized!==profile)profile=initialized;
+  saveCharacter(window.localStorage,original.character);
+  writeBuildStorage(window.localStorage,store);
+  saveProgression(window.localStorage,profile);
+}
+persistOriginRoster(window.localStorage,roster);
 let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
 let awardedMatch=null;
 let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,hub=null,menu=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
@@ -30,6 +46,39 @@ function clearUiCaches(){
   $("friendly-frames").replaceChildren();
   $("enemy-frames").replaceChildren();
   $("action-bar").replaceChildren();
+}
+function saveActiveOrigin(){
+  if(!roster.activeId||!hub?.character)return;
+  roster=snapshotActiveOrigin(roster,hub.character,store,profile);
+  persistOriginRoster(window.localStorage,roster);
+}
+function applyActiveOrigin(){
+  const selected=activeOrigin(roster);
+  if(!selected)return null;
+  const target=selected.character;
+  store.draft=normalizeBuild(selected.builds.draft);
+  store.saved=selected.builds.saved.map(saved=>saved?normalizeBuild(saved):null);
+  profile=ensureStarterMatter(selected.progression);
+  selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
+  saveCharacter(window.localStorage,target);
+  writeBuildStorage(window.localStorage,store);
+  saveProgression(window.localStorage,profile);
+  hub?.activateCharacter(target);
+  saveActiveOrigin();
+  return target;
+}
+function createOriginCharacter(character){
+  saveActiveOrigin();
+  roster=appendOrigin(roster,character);
+  persistOriginRoster(window.localStorage,roster);
+  return applyActiveOrigin();
+}
+function activateOriginById(id){
+  if(roster.activeId===id)return;
+  saveActiveOrigin();
+  roster=chooseOrigin(roster,id);
+  persistOriginRoster(window.localStorage,roster);
+  applyActiveOrigin();
 }
 const arena=VERDANT_CRUCIBLE;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -367,11 +416,15 @@ const changeMode=id=>{
   selectedMode=id;
   profile={...profile,lastMode:id};
   saveProgression(window.localStorage,profile);
+  saveActiveOrigin();
 };
 hub=new EnergyCharacterHub({
   storage:window.localStorage,buildStore:store,
   getProgression:()=>profile,
-  changeProgression:next=>{profile=next;saveProgression(window.localStorage,profile);},
+  changeProgression:next=>{profile=next;saveProgression(window.localStorage,profile);saveActiveOrigin();},
+  createOrigin:createOriginCharacter,
+  onCharacterSaved:saveActiveOrigin,
+  onBuildSaved:saveActiveOrigin,
   openMainMenu:()=>menu.open(),
   openPlayMenu:()=>menu.openPlay(),
 });
@@ -380,6 +433,14 @@ menu=new EnergyMainMenu({
   startMatch:()=>start(store.draft),
   changeMode,
   getCharacter:()=>hub.character,
+  createOrigin:()=>hub.openCreation(),
+  getOrigins:()=>({activeId:roster.activeId,
+    characters:roster.characters.map(entry=>({
+      ...entry,character:{...entry.character,
+        origin:ROLES[entry.character.role].name,color:ROLES[entry.character.role].color}
+    }))}),
+  selectOrigin:activateOriginById,
+  getOriginLevel:entry=>progressDetails(entry.progression).level,
   hideHub:()=>hub.hide(),
   onMenuFromCombat:()=>{
     if(match&&!match.ended&&!window.confirm("Leave the current match and return to the main menu?"))return;

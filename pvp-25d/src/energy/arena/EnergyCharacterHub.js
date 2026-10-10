@@ -9,6 +9,7 @@ import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261010-origins35";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261010-origins35";
+import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks40";
 
 const $=id=>document.getElementById(id);
 const el=(tag,cls,text)=>{
@@ -33,33 +34,6 @@ function svgShape(tag,attrs){
   return node;
 }
 function classCompatibleSpells(role){return availableAbilities(role);}
-
-// Keep the HUB honest about the current combat implementation. Ranks do
-// scale the listed damaging/healing/shield abilities, but mobility, CC and
-// interrupt ranks still need a dedicated utility balance pass.
-const RANK_DAMAGE_IDS=new Set([
-  "flux-bolt","entropy-mark","rift-slash","sun-lance","zenith-crash",
-  "crystal-bolt","fracture-spear","arc-strike","gravity-hammer"
-]);
-const RANK_HEAL_IDS=new Set(["pulse-mend","reactive-thread","symbiosis-link"]);
-function rankEffectText(id,rank){
-  if(id==="resonance-guard")
-    return "CURRENT RANK EFFECT · "+(33+rank*1.2).toFixed(1)+
-      "% damage reduction (base 33%). Rank 3 unlocks your Evolution.";
-  if(id==="photon-barrier")
-    return "CURRENT RANK EFFECT · "+(rank?("+"+rank*4+"% shield strength"):"Base shield strength")+
-      ". Rank 3 unlocks your Evolution.";
-  if(RANK_DAMAGE_IDS.has(id))
-    return "CURRENT RANK EFFECT · "+(rank?("+"+rank*4+"% damage"):"Base spell damage")+
-      ". Rank 3 unlocks your Evolution.";
-  if(RANK_HEAL_IDS.has(id))
-    return "CURRENT RANK EFFECT · "+(rank?("+"+rank*4+"% healing"):"Base spell healing")+
-      ". Rank 3 unlocks your Evolution.";
-  return "UTILITY RANKS · No direct range, cooldown or duration bonus yet. "+
-    "Rank 3 unlocks an Evolution. Utility rank bonuses still need balancing.";
-}
-
-
 
 export class EnergyCharacterHub{
   constructor({storage,buildStore,getProgression,changeProgression,createOrigin,onCharacterSaved,onBuildSaved,openMainMenu,openPlayMenu}){
@@ -654,7 +628,7 @@ export class EnergyCharacterHub{
         !unlocked?"Selected for your future build · unlocks as you level":
         "Rank "+rank+" / 3 · "+availableTP+" Talent Points available"));
     // Players need to SEE what a Talent Point changes before investing it.
-    current.append(el("p","hub-rank-effect",rankEffectText(ability.id,rank)));
+    current.append(el("p","hub-rank-effect",rankDescription(ability.id,rank)));
     if(inBuild&&unlocked&&plannedRank>0){
       const refund=button("− REFUND ONE RANK","hub-detail-refund",()=>this.editTalent(ability.id,-1));
       current.append(refund);

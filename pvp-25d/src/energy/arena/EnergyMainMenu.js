@@ -4,12 +4,12 @@ const $=id=>document.getElementById(id);
 const PAGES=[
   {
     title:"WELCOME TO ENERGY ARENA",chapter:"01 / THE BIG IDEA",
-    intro:"You control an energy orb in short, tactical arena battles. The goal is simple: defeat the opposing team.",
+    intro:"You control an energy orb, learn your spells through Planet Defense and choose between wave survival and tactical arena battles.",
     steps:[
       ["BUILD","Choose the spells and Evolutions that fit your playstyle."],
       ["FIGHT","Move, aim, cast and use cover to survive."],
       ["GROW","Earn XP, level up and gradually unlock your full toolkit."]
-    ],tip:"First match? Start with Training Grounds (1v1).",
+    ],tip:"First match? Planet Defense starts with your real level-1 spells. Your first Wave Resonance comes AFTER Wave 1.",
     art:"arena",caption:"An arena is a small battlefield. Positioning and obstacles matter."
   },
   {
@@ -73,13 +73,13 @@ const PAGES=[
     art:"controls",caption:"These are the currently implemented keyboard controls."
   },
   {
-    title:"CHOOSE YOUR BATTLE",chapter:"08 / ARENA MODES",
-    intro:"You can enter any mode from the main menu. Start small or jump straight into a tougher fight.",
+    title:"CHOOSE YOUR BATTLE",chapter:"08 / GAME MODES",
+    intro:"Planet Defense is the natural place to level and learn. Arena matches stay available whenever you want tactical PvP-style fights.",
     steps:[
-      ["TRAINING · 1V1","A gentler match against one enemy. Best for learning."],
-      ["DUO · 2V2","Fight with an AI partner against two opponents."],
-      ["FULL ARENA · 3V3","A complete team fight with three characters on each side."]
-    ],tip:"The modes all use your current build and character progression.",
+      ["PLANET DEFENSE · 3VE","Five survival waves. You and two AI companions always form Genesis / Impact / Eclipse."],
+      ["WAVE RESONANCES","After clearing Wave 1, choose your first temporary spell enhancement. Four choices per five-wave run."],
+      ["ARENA · 1V1 / 2V2 / 3V3","Practice targeting, teamwork and counterplay against AI teams."]
+    ],tip:"Wave Resonances disappear after the run. Permanent XP, Talent Points and Origin progression remain.",
     art:"modes",caption:"Three modes, one evolving character."
   },
   {
@@ -160,7 +160,7 @@ function artMarkup(name){
       </div>`;
     case "modes":return `
       <div class="book-modes-art">
-        <div><strong>TRAINING GROUNDS</strong><span>✦ <em>VS</em> ◆</span><small>1V1</small></div>
+        <div><strong>PLANET DEFENSE</strong><span>✦ ✧ ◈ <em>VS</em> ◆ ◆ ◆</span><small>5 WAVES · 3VE</small></div>
         <div><strong>DUO SKIRMISH</strong><span>✦ ✧ <em>VS</em> ◆ ◆</span><small>2V2</small></div>
         <div><strong>FULL ARENA</strong><span>✦ ✧ ◈ <em>VS</em> ◆ ◆ ◆</span><small>3V3</small></div>
       </div>`;

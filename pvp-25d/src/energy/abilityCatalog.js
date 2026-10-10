@@ -7,20 +7,28 @@ export const MAX_ACTIVE_EVOLUTIONS = 10;
 export const FREE_ABILITY_SLOTS = 8;
 export const SAVED_BUILD_SLOTS = 3;
 
+// Player-facing Origins. Stable healer/melee/caster keys are intentionally
+// unchanged for older saves, AI composition, abilities and combat rules.
 export const ROLES = Object.freeze({
   healer: {
-    name: "Healer", color: "#66d5ad", subtitle: "Sustain & support",
-    passive: "Healing abilities use 15% less Flux. Reliable direct healing and a team defensive are always available.",
+    name: "Genesis", color: "#66d5ad", subtitle: "Life & protection",
+    description: "Genesis draws on the energy of creation. Restore health, protect allies and survive long enough to turn the tide.",
+    playstyle: "Choose Genesis if you enjoy helping your team, surviving pressure and mixing support with your own attacks.",
+    passive: "Healing spells cost 15% less Flux.",
     locked: ["pulse-mend", "resonance-guard"],
   },
   melee: {
-    name: "Melee", color: "#f27b83", subtitle: "Pressure & disruption",
-    passive: "Successful melee hits generate 4 bonus Flux (1 second internal cooldown). Gap closer and interrupt are always available.",
+    name: "Impact", color: "#f27b83", subtitle: "Momentum & disruption",
+    description: "Impact is a force of motion and collision. Rush into range, pressure opponents and interrupt their most dangerous casts.",
+    playstyle: "Choose Impact if you like aggressive movement, fighting up close and disrupting enemies at the right moment.",
+    passive: "Successful melee hits restore 4 Flux, at most once per second.",
     locked: ["phase-rush", "pulse-sever"],
   },
   caster: {
-    name: "Caster", color: "#79cafd", subtitle: "Ranged pressure & positioning",
-    passive: "Ranged direct damage abilities use 15% less Flux. A ranged filler and a short escape are always available.",
+    name: "Eclipse", color: "#79cafd", subtitle: "Energy & positioning",
+    description: "Eclipse bends raw cosmic energy into powerful ranged attacks. Control the distance, time your casts and escape when cornered.",
+    playstyle: "Choose Eclipse if you enjoy ranged combat, positioning and finding the perfect window to unleash spells.",
+    passive: "Ranged direct-damage spells cost 15% less Flux.",
     locked: ["flux-bolt", "phase-slip"],
   },
 });

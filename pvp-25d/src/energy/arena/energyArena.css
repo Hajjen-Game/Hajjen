@@ -1208,3 +1208,22 @@ h2{font-size:23px}
   .character-creation{padding:35px 25px}
   .origin-details-info{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 }
+
+
+/* Compact Origin reference for characters who already passed creation. */
+.hub-overview-name{position:relative}
+.hub-origin-info-toggle{display:block;margin:8px 0 0;padding:3px 0;border:0;background:none;
+  color:#a4d7e8;font-size:9px;font-weight:800;letter-spacing:.08em;text-align:left}
+.hub-origin-info-toggle:hover,.hub-origin-info-toggle:focus-visible{color:#e5f6ff;text-decoration:underline}
+.hub-origin-info{position:absolute;left:0;top:calc(100% + 8px);z-index:30;
+  width:min(335px,calc(100vw - 60px));padding:15px 16px;display:grid;gap:9px;
+  border-radius:10px;border:1px solid #5a768f;
+  background:linear-gradient(145deg,#18283f,#0e1729);box-shadow:0 14px 40px #020610e6}
+.hub-origin-info p{margin:0;font-size:11px;line-height:1.55;color:#c3d9ed}
+.hub-origin-info p:not(:first-child){border-top:1px solid #2b4057;padding-top:8px}
+.character-role[data-create-role="melee"].selected{border-color:#ef9aa3;
+  background:linear-gradient(#402b3a,#171b2a);box-shadow:inset 0 0 0 1px #ee96a622,0 0 25px #d17b8918}
+.character-role[data-create-role="caster"].selected{border-color:#83cfff;
+  background:linear-gradient(#1c3450,#111b30);box-shadow:inset 0 0 0 1px #92d6ff26,0 0 25px #68bdff1a}
+.character-role[data-create-role="melee"].selected::after{color:#f6bac0}
+.character-role[data-create-role="caster"].selected::after{color:#b3e1ff}

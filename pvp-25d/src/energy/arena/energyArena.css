@@ -1279,3 +1279,71 @@ h2{font-size:23px}
 @media(prefers-reduced-motion:reduce){
  .hub-orbit-spell .hub-orbit-icon{transition:none}
 }
+
+
+/* V37: one Origin at a time, without hiding the full roster. */
+.menu-origin-section{margin:16px 0 24px;padding:14px;border:1px solid #395d73;
+  border-radius:11px;background:linear-gradient(135deg,#102238,#10182a)}
+.menu-origin-heading{display:flex;justify-content:space-between;gap:12px;
+  padding-bottom:10px;border-bottom:1px solid #34516c}
+.menu-origin-heading strong{font-size:11px;letter-spacing:.14em;color:#cfedfc}
+.menu-origin-heading span{font-size:9px;color:#8daec4;letter-spacing:.07em}
+.menu-origin-list{display:grid;gap:8px;margin-top:10px;max-height:260px;overflow-y:auto}
+.menu-origin-item{display:flex;gap:11px;align-items:center;width:100%;text-align:left;
+  padding:10px;border:1px solid #344d65;border-radius:9px;
+  background:#132238;color:#d3ebf9}
+.menu-origin-item:hover{border-color:#82bfd5;background:#19344c}
+.menu-origin-item.active{border-color:#d3b47e;background:linear-gradient(110deg,#28344a,#13253c);
+  box-shadow:inset 0 0 12px #eccb7928,0 0 16px #e2b76118}
+.menu-origin-emblem{--origin-color:#79cafd;flex:none;display:grid;place-items:center;
+  height:37px;width:37px;border:2px solid var(--origin-color);border-radius:50%;
+  color:var(--origin-color);font-size:24px;background:#111d33;
+  box-shadow:0 0 14px color-mix(in srgb,var(--origin-color) 40%,transparent)}
+.menu-origin-meta{flex:1;min-width:0;display:grid;gap:4px}
+.menu-origin-meta strong{font-size:12px;color:#edf8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-origin-meta small{font-size:9px;color:#95b6cf;letter-spacing:.04em}
+.menu-origin-state{font-size:9px;letter-spacing:.06em;font-weight:850;color:#8ab9d4}
+.menu-origin-item.active .menu-origin-state{color:#f2dba0}
+.menu-origin-empty,.menu-origin-hint{margin:9px 0 0;font-size:10px;color:#8eafc4;line-height:1.5}
+.menu-action:disabled{opacity:.44;cursor:not-allowed;filter:none}
+
+/* Wider tree stage and a safe outer buffer for selected pool Mastery nodes.
+   Outer Evolution previews now occupy radius 472 instead of radius 351. */
+.hub-radial-layout{grid-template-columns:minmax(190px,.7fr) minmax(710px,3.5fr) minmax(240px,1fr);
+  column-gap:12px}
+.hub-evolution-space{padding:15px 12px 16px}
+.hub-orbit-board{max-width:1060px;width:calc(100% - 34px);margin:14px auto 24px}
+.hub-orbit-evolution.pool{opacity:.8;background:#102239;border-width:1.5px}
+.hub-orbit-evolution.pool:hover,.hub-orbit-evolution.pool:focus-visible{
+  border-color:#d1e8ff;box-shadow:0 0 15px #7bc8ef7a}
+.hub-orbit-branch.pool{stroke-width:2;stroke-dasharray:4 6;opacity:.65}
+
+/* Selected Spell now has the same origin-coloured identity and glow as YOUR SPELLS. */
+#hub-detail-spell.hub-selected-spell-card{
+  --spell-tone:#79cafd;position:relative;margin:8px 0 18px;
+  padding:13px 11px 10px;border:1px solid #455971;border-left:4px solid var(--spell-tone);
+  border-radius:9px;background:linear-gradient(110deg,#17273c,#0b1829);
+  transition:background .14s,border-color .14s,box-shadow .14s}
+#hub-detail-spell.hub-selected-spell-card.equipped-now{
+  border-color:color-mix(in srgb,var(--spell-tone) 67%,#4c657b);
+  border-left:4px solid var(--spell-tone);
+  background:linear-gradient(110deg,color-mix(in srgb,var(--spell-tone) 22%,#132840),#101e32 85%);
+  box-shadow:0 0 17px color-mix(in srgb,var(--spell-tone) 28%,transparent),
+    inset 0 0 18px color-mix(in srgb,var(--spell-tone) 10%,transparent)}
+#hub-detail-spell.hub-selected-spell-card.preview-pool{
+  border-color:#63839a;border-left:4px solid var(--spell-tone);
+  background:linear-gradient(108deg,color-mix(in srgb,var(--spell-tone) 13%,#101f32),#0e1a2a);
+  box-shadow:0 0 15px color-mix(in srgb,var(--spell-tone) 17%,transparent)}
+#hub-detail-spell .hub-detail-title strong{color:#fff6e5;font-size:14px}
+#hub-detail-spell .hub-detail-title small{color:var(--spell-tone)}
+#hub-detail-spell .hub-detail-icon{
+  border:2px solid var(--spell-tone);border-radius:8px;
+  background:color-mix(in srgb,var(--spell-tone) 14%,#122035);
+  box-shadow:0 0 16px color-mix(in srgb,var(--spell-tone) 42%,transparent),
+    inset 0 0 13px color-mix(in srgb,var(--spell-tone) 12%,transparent)}
+#hub-detail-spell .hub-detail-description{color:#d2e0ee}
+#hub-detail-spell .hub-bound-chip,#hub-detail-spell .hub-pool-chip{margin-bottom:0}
+@media(max-width:1450px){
+  .hub-radial-layout{grid-template-columns:minmax(175px,.68fr) minmax(600px,3.1fr) minmax(225px,.9fr)}
+  .hub-orbit-board{width:calc(100% - 24px)}
+}

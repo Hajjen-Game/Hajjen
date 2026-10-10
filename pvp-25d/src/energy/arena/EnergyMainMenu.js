@@ -43,6 +43,16 @@ const PAGES=[
     art:"talents",caption:"Master a spell first. Then select one of three branching Evolutions."
   },
   {
+    title:"FORGE A SINGULARITY",chapter:"05 / BLACK HOLE MATTER",
+    intro:"At level 10 you unlock Singularity Forge. It links one of your two class spells with any unlocked shared spell, creating a new combat reaction.",
+    steps:[
+      ["BLACK HOLE MATTER","Earn it occasionally from arena victories. Creating or changing your link costs one Matter."],
+      ["THREE REACTIONS","Choose Annihilation, Distortion or Resonance, then use the partner spell before your class spell."],
+      ["ENERGY FRAGMENTS","Earn these from team kills and use them to strengthen your forged Singularity at later levels."]
+    ],tip:"Preview as many combinations as you like for free. Ordinary spell ranks still use Talent Points.",
+    art:"singularity",caption:"A charged partner spell followed by its class anchor releases the Singularity."
+  },
+  {
     title:"READ THE BATTLE",chapter:"05 / IN THE ARENA",
     intro:"Watch health, your Flux resource, targets and cooldowns. Choose when to attack, protect or reposition.",
     steps:[
@@ -123,6 +133,15 @@ function artMarkup(name){
         <div>◈<strong>UTILITY</strong><small>New effect</small></div>
       </div>
       <p class="book-art-subtitle">ONE SPELL · THREE PATHS · CHOOSE ONE</p>`;
+    case "singularity":return `
+      <div class="book-singularity-art">
+        <div class="book-singularity-spells"><span>✦ <small>CLASS SPELL</small></span><span>❄ <small>PARTNER SPELL</small></span></div>
+        <div class="book-singularity-path"><i></i><i></i></div>
+        <div class="book-singularity-core"><div class="book-singularity-hole"></div></div>
+        <strong>BLACK HOLE MATTER</strong>
+        <div class="book-singularity-reactions"><span>ANNIHILATION</span><span>DISTORTION</span><span>RESONANCE</span></div>
+        <small>REQUIRES LEVEL 10</small>
+      </div>`;
     case "combat":return `
       <div class="book-combat-scene">
         <div class="book-combat-score"><span class="ally">ALLY 100%</span><span class="foe">ENEMY 100%</span></div>

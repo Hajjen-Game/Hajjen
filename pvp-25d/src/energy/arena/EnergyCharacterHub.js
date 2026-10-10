@@ -36,9 +36,10 @@ function classCompatibleSpells(role){return availableAbilities(role);}
 
 
 export class EnergyCharacterHub{
-  constructor({storage,buildStore,getProgression,changeProgression,openMainMenu,openPlayMenu}){
+  constructor({storage,buildStore,getProgression,changeProgression,createOrigin,onCharacterSaved,onBuildSaved,openMainMenu,openPlayMenu}){
     this.storage=storage;this.store=buildStore;
     this.getProgression=getProgression;this.changeProgression=changeProgression;
+    this.createOrigin=createOrigin;this.onCharacterSaved=onCharacterSaved;this.onBuildSaved=onBuildSaved;
     this.openMainMenu=openMainMenu;this.openPlayMenu=openPlayMenu;
     this.character=loadCharacter(storage);
     this.preview=null;this.selectedAbility=null;this.showSwapPicker=false;this.listFilter="equipped";
@@ -60,19 +61,9 @@ export class EnergyCharacterHub{
     $("create-character").addEventListener("click",()=>{
       try{
         const role=document.querySelector("[data-create-role].selected")?.dataset.createRole||"healer";
-        const character=saveCharacter(this.storage,{name:$("new-character-name").value,role});
-        this.character=character;
-        // Preserve a former Build Lab draft as a preset before starting a
-        // fresh character. If presets are full, keep a recoverable backup.
-        const previous=this.store.draft;
-        if(previous&&(previous.freeSlots||[]).some(Boolean)){
-          const empty=this.store.saved.findIndex(b=>!b);
-          if(empty>=0)this.store.saved[empty]=previous;
-          else try{this.storage.setItem("pvp25d-energy-pre-character-draft-v1",JSON.stringify(previous));}
-          catch{}
-        }
-        this.store.draft=createBuild(role);
-        this.persist();
+        this.character=this.createOrigin({name:$("new-character-name").value,role});
+        this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
+        this.message="Origin created. Your new journey starts at level 1.";
         this.open();
       }catch(error){$("create-character-error").textContent=error.message;}
     });
@@ -120,7 +111,7 @@ export class EnergyCharacterHub{
       if(!this.character)return;
       const name=window.prompt("Name your Energy orb",this.character.name);
       if(name===null)return;
-      try{this.character=saveCharacter(this.storage,{...this.character,name});this.draw();}
+      try{this.character=saveCharacter(this.storage,{...this.character,name});this.onCharacterSaved?.();this.draw();}
       catch(error){this.setMessage(error.message);}
     });
   }
@@ -135,7 +126,7 @@ export class EnergyCharacterHub{
     $("origin-choice-details").style.setProperty("--origin-color",origin.color);
   }
   persist(){
-    try{writeBuildStorage(this.storage,this.store);}
+    try{writeBuildStorage(this.storage,this.store);this.onBuildSaved?.();}
     catch{this.setMessage("Local storage is unavailable. Changes may not be retained.");}
   }
   setMessage(text){
@@ -151,12 +142,11 @@ export class EnergyCharacterHub{
       $("create-character-error").textContent="";
       return;
     }
+    // An Origin's role is immutable; the active draft must match the
+    // selected roster character, never silently change their Origin.
     if(this.store.draft.role!==this.character.role){
-      // A role switch made intentionally in Advanced Build Lab belongs to
-      // this character. Never discard that edited build on return.
-      this.character=saveCharacter(this.storage,{
-        name:this.character.name,role:this.store.draft.role
-      });
+      this.store.draft=createBuild(this.character.role);
+      this.persist();
     }
     if(!this.preview){
       try{this.preview=new EnergyOrbShowcase($("hub-orb-canvas"));}
@@ -168,6 +158,27 @@ export class EnergyCharacterHub{
     }
     this.preview?.setVisible(true);
     this.draw();
+  }
+  openCreation(){
+    this.hide();
+    this.character=null;
+    this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
+    document.querySelectorAll("[data-create-role]").forEach(node=>{
+      const active=node.dataset.createRole==="healer";
+      node.classList.toggle("selected",active);
+      node.setAttribute("aria-pressed",String(active));
+    });
+    this.updateOriginChoice("healer");
+    $("main-menu").hidden=true;
+    this.open();
+  }
+  activateCharacter(character){
+    this.hide();
+    this.character=character;
+    this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
+    this.message="";
+    $("hub-origin-info").hidden=true;
+    $("hub-origin-info-toggle").setAttribute("aria-expanded","false");
   }
   hide(){
     $("build-gate").hidden=true;

@@ -52,7 +52,7 @@ function hitText(match,e){
   const parts=["raw "+raw,"guard prevented "+fix(guard),"shield absorbed "+fix(shield)];
   if(e.guardActive)parts.push("guard ACTIVE");
   return name(match,e.actorId)+" → "+name(match,e.targetId)
-    +" | "+safe(e.spellId)+" "+fix(e.amount)+" damage"
+    +" | "+safe(e.spellId)+" "+fix(e.amount)+" damage"+(e.crit?" [CRIT]":"")
     +" | HP "+b+" → "+a
     +" | shield "+fix(e.shieldBefore)+" → "+fix(e.shieldAfter)
     +" | "+parts.join("; ")
@@ -62,7 +62,7 @@ function eventText(match,e){
   switch(e.type){
     case "hit":return "HIT "+hitText(match,e);
     case "heal":return "HEAL "+name(match,e.actorId)+" → "+name(match,e.targetId)
-      +" | "+safe(e.spellId)+" +"+fix(e.amount)+" HP "
+      +" | "+safe(e.spellId)+" +"+fix(e.amount)+" HP"+(e.crit?" [CRIT]":"")+" "
       +fix(e.hpBefore)+" → "+fix(e.hpAfter)
       +" (overheal "+fix(e.overheal)+")";
     case "death":return "DEATH "+name(match,e.actorId)
@@ -111,7 +111,8 @@ export function formatEnergyRunReport(match){
       +" | Elapsed "+fix(match.time,2)+"s | Dampening "+fix(match.dampening*100,0)+"%",
     "Player role: "+safe(match.player?.role)+" | abilities: "
       +(match.loadout?.abilitySlots||[]).map(a=>a.id).join(", "),
-    "Balance: prototype-survival-v1 · 160 base HP, 60 Pulse Mend, 60 Photon Barrier, Reactive Thread 6/tick",
+    "Balance: ranked-spells-v2 · 160–360 HP, level-scaled damage/healing/shields, 10% Marble Bag crit ×1.5",
+    "Player and AI share the same level multipliers · abilities gain distinct Rank 1–3 effects",
     "Timing: all times are SIMULATION hit times, not delayed Pixi/Babylon impact frames.",
     "Recorded events: "+history.length+" | dropped oldest: "+(match.runHistoryDropped||0)
       +" | cap "+RUN_HISTORY_LIMIT,

@@ -11,6 +11,12 @@ export const FORGE_UNLOCK_LEVEL = 10;
 export const SPELL_SLOT_LEVELS = Object.freeze([1,1,1,4,8,12,16,20,24,28]);
 export const FRAGMENTS_PER_KILL = 5;
 export const MODES = Object.freeze({
+  defense: Object.freeze({
+    id:"defense",label:"Planet Defense",size:"3vE",
+    subtitle:"Survive five waves with two AI companions",
+    description:"Genesis, Impact and Eclipse survive five escalating waves. Choose a Wave Resonance after each of the first four waves.",
+    xpWin:80,xpLoss:22,
+  }),
   training: Object.freeze({
     id:"training",label:"Training Grounds",size:"1v1",subtitle:"Learn one mechanic at a time",
     description:"One opponent, gentle pressure, no coordinated burst. Practice targeting, casting and movement.",
@@ -203,6 +209,7 @@ export function botAbilities(role,level,modeId){
   return BOT_KITS[role].slice(0,cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){
+  if(modeId==="defense")return {friendly:["healer","melee","caster"],enemy:[]};
   if(modeId==="training")return {friendly:[playerRole],enemy:[playerRole==="melee"?"melee":"caster"]};
   if(modeId==="duo"){
     const partner=playerRole==="healer"?"melee":"healer";

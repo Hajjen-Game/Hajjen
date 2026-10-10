@@ -16,7 +16,7 @@ export function freshOriginProgression(){
 function safeBuildStore(value,role){
   const saved=Array.from({length:3},(_,i)=>{
     const stored=value?.saved?.[i];
-    return stored&&ROLES[stored.role]&&stored.role===role?normalizeBuild(stored):null;
+    return stored&&ROLES[stored.role]?normalizeBuild(stored):null;
   });
   return {version:1,draft:value?.draft?.role===role?
     normalizeBuild(value.draft):createBuild(role),saved};

@@ -47,7 +47,7 @@ export function forgeSingularity(profile,build,unlockedIds,selection){
     &&previous.reaction===selection.reaction)return profile; // no cost
   if((profile.blackHoleMatter||0)<FORGE_CHANGE_MATTER)throw Error("You need 1 Black Hole Matter.");
   return {...profile,blackHoleMatter:profile.blackHoleMatter-FORGE_CHANGE_MATTER,
-    singularity:{anchor:selection.anchor,partner:selection.partner,reaction:selection.reaction,tier:0}};
+    singularity:{anchor:selection.anchor,partner:selection.partner,reaction:selection.reaction,tier:previous?.tier||0}};
 }
 export function upgradeSingularity(profile){
   const core=profile?.singularity;

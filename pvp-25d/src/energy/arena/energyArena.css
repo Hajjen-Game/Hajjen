@@ -1447,3 +1447,11 @@ h2{font-size:23px}
  .defense-resonance-overlay{justify-content:flex-start}
  .defense-resonance-option{min-height:0;padding:12px}
 }
+
+
+/* Planet Defense: final Rift Warden reads as a dangerous boss in the frames. */
+.enemies .unit-frame.boss{border:1.5px solid #b58cee;
+  background:linear-gradient(110deg,#291b3c,#151a2c);
+  box-shadow:inset 0 0 16px #a260df26,0 0 16px #8d5ccf2a}
+.enemies .unit-frame.boss .unit-frame-header{color:#f2d7ff}
+.enemies .unit-frame.boss .unit-frame-sub{color:#c8b4e4;letter-spacing:.07em}

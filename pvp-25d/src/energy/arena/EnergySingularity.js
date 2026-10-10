@@ -1,7 +1,7 @@
 // Singularity Forge: one class-anchor + one unlocked shared spell.
 // Matter pays for creating/replacing the pairing or reaction. Fragments
 // develop its separate branch: no spell Talent Points are consumed.
-import { ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261009-orbit-tree31";
+import { ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261010-origins35";
 
 export const REACTIONS=Object.freeze({
   annihilation:Object.freeze({
@@ -30,7 +30,7 @@ export function validateForgeSelection(profile,build,unlockedIds,selection){
   const level=Math.max(1,Math.floor(Number(profile?.level)||1));
   if(level<FORGE_LEVEL)return "Singularity Forge requires level 10.";
   if(!selection||!REACTIONS[selection.reaction])return "Choose a reaction.";
-  if(!ROLES[build?.role]?.locked.includes(selection.anchor))return "Choose one of your two class-bound spells.";
+  if(!ROLES[build?.role]?.locked.includes(selection.anchor))return "Choose one of your two Origin spells.";
   if(!ABILITY_BY_ID[selection.partner]||ABILITY_BY_ID[selection.partner].role)return "Choose a shared partner spell.";
   if(selection.anchor===selection.partner)return "Choose two different spells.";
   if(!unlockedIds.includes(selection.anchor)||!unlockedIds.includes(selection.partner)){

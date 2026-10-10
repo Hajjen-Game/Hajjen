@@ -528,10 +528,11 @@ export class EnergyCharacterHub{
       // To keep all eighteen main spell names readable, show the three
       // outer-pool Evolution subnodes when that spell is selected. Their
       // names/descriptions are always accessible in the right detail panel.
-      // Pool Mastery sits outside its selected spell, not in the tight
-      // 425–472 gap where satellite buttons touched its highlight outline.
-      // The board has extra breathing room at all edges for these branches.
-      if(selected)this.renderEvolutionSatellites({ability,angle,origin:p,dist:524,
+      // The uppermost pool spell needs shorter branches, otherwise
+      // satellites reach the top boundary. Keep the wider spacing elsewhere.
+      // 488 vs 524 is only applied within the narrow top arc.
+      const masteryRadius=Math.sin(angle)<-.90?488:524;
+      if(selected)this.renderEvolutionSatellites({ability,angle,origin:p,dist:masteryRadius,
         visible:true,selected,state,place,addLine,pool:true});
     }
     // Put the active spell/evolution above the decorative connecting lines.

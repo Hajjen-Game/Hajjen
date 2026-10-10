@@ -7,11 +7,16 @@ import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning
 import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261010-origins35";
 import { energyIdentity } from "./EnergyCharacter.js?v=20261010-origins35";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
+import { BASE_HEALTH, BASE_CRIT_CHANCE, CRIT_MULTIPLIER, maxHealthForLevel,
+  powerForLevel, damageMultiplier, healMultiplier, shieldMultiplier,
+  rankedRule, successfulInterruptFlux, normalizedRank }
+  from "./EnergySpellBalance.js?v=20261010-balanced-ranks40";
+import { EnergyMarbleBagPool } from "./EnergyMarbleBag.js?v=20261010-balanced-ranks40";
 
 const TICK = 0.05;
 // First survivability pass: allow a meaningful response to coordinated burst.
 // One shared health pool for player and both teams; damage amounts unchanged.
-export const BASE_ACTOR_HEALTH = 160;
+export const BASE_ACTOR_HEALTH = BASE_HEALTH;
 export const ABILITY_RULES = Object.freeze({
   "pulse-mend":       { mode:"heal",amount:60,cost:18,cast:1.5,range:490 },
   "resonance-guard":  { mode:"guard",amount:0.33,duration:4,cost:22,cd:32,range:490 },
@@ -66,11 +71,12 @@ export function canStand(x,y,arena,radius=21) {
   return !(arena.obstacles||[]).some(o=>x>o.x-radius&&x<o.x+o.w+radius&&y>o.y-radius&&y<o.y+o.h+radius);
 }
 
-function actorFor(id,team,role,pos,control,abilities,evolutions={},talentRanks={}) {
+function actorFor(id,team,role,pos,control,abilities,evolutions={},talentRanks={},level=1) {
   return {
     id,team,role,control, classId:"energy-"+role,
     name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+(ROLES[role]?.name||role).toUpperCase(),
-    x:pos.x,y:pos.y, hp:BASE_ACTOR_HEALTH,maxHp:BASE_ACTOR_HEALTH,alive:true,healthPct:1,flux:100,
+    x:pos.x,y:pos.y, hp:maxHealthForLevel(level),maxHp:maxHealthForLevel(level),
+    alive:true,healthPct:1,flux:100,
     energyStyle:{core:roleColor[role],energy:roleColor[role]},
     targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,
     schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions, talentRanks,
@@ -88,6 +94,8 @@ export class EnergyMatch {
     this.singularityCharge=null;
     this.loadout=stagedLoadout(build,this.progressLevel);
     this.tuning=enemyTuning(this.modeId,this.progressLevel);
+    this.power=powerForLevel(this.progressLevel);
+    this.critBags=new EnergyMarbleBagPool();
     this.arena=arena;
     this.time=0;
     this.ended=false;
@@ -109,10 +117,13 @@ export class EnergyMatch {
         const isPlayer=team==="friendly"&&role===build.role;
         const abilities=isPlayer?this.loadout.abilitySlots.map(s=>s.id):botAbilities(role,this.progressLevel,this.modeId);
         const evolutions=isPlayer?Object.fromEntries(this.loadout.abilitySlots.filter(s=>s.evolutionId).map(s=>[s.id,s.evolutionId])):{};
-        const talentRanks=isPlayer?Object.fromEntries(this.loadout.abilitySlots.map(s=>[s.id,s.talentRank||0])):{};
+        // AI grows through the same Rank model without spending player TP.
+        // Rank 1/2/3 AI tiers arrive at levels 10/20/30 respectively.
+        const talentRanks=isPlayer?Object.fromEntries(this.loadout.abilitySlots.map(s=>[s.id,s.talentRank||0])):
+          Object.fromEntries(abilities.map(spellId=>[spellId,Math.min(3,Math.floor(this.progressLevel/10))]));
         const id=isPlayer?"player":team+"-"+role;
         const config=arena.spawns[team+"-"+role];
-        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions,talentRanks);
+        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions,talentRanks,this.progressLevel);
         if(isPlayer){
           // Same talent-weighted signature as character HUB, with subtle
           // battle-scale rendering handled by EnergyOrbPolish.
@@ -227,6 +238,15 @@ export class EnergyMatch {
     }
     return chosen?.alive&&chosen.team!==actor.team?chosen:null;
   }
+  rule(actor,spellId){
+    return rankedRule(spellId,ABILITY_RULES[spellId],actor?.talentRanks?.[spellId]||0);
+  }
+  rollCrit(source,spellId,context){
+    if(!source)return false;
+    return this.critBags.drawWeighted(
+      source.id+":"+spellId+":"+context+":crit",
+      {crit:BASE_CRIT_CHANCE,normal:1-BASE_CRIT_CHANCE})==="crit";
+  }
   cost(actor,rule,spellId) {
     let cost=rule.cost||0;
     if(actor.role==="healer"&&["heal","hot","link"].includes(rule.mode))cost*=0.85;
@@ -234,7 +254,7 @@ export class EnergyMatch {
     return Math.ceil(cost);
   }
   reason(actor,spellId,targetId) {
-    const rule=ABILITY_RULES[spellId],ability=ABILITY_BY_ID[spellId];
+    const rule=this.rule(actor,spellId),ability=ABILITY_BY_ID[spellId];
     if(!rule||!ability||!actor.abilities.includes(spellId))return "NOT IN LOADOUT";
     if(!actor.alive||this.ended)return "MATCH ENDED";
     if(this.isControlled(actor,"incapacitate"))return "CONTROLLED";
@@ -256,7 +276,7 @@ export class EnergyMatch {
   castAbility(actor,spellId,targetId,opts={}) {
     const error=this.reason(actor,spellId,targetId);
     if(error){if(actor===this.player&&!opts.silent)this.log(ABILITY_BY_ID[spellId]?.name+": "+error);return false;}
-    const rule=ABILITY_RULES[spellId];
+    const rule=this.rule(actor,spellId);
     const target=rule.mode==="dash"?null:this.currentTarget(actor,rule.mode,targetId);
     actor.flux-=this.cost(actor,rule,spellId);
     actor.gcd=1.3;
@@ -311,23 +331,25 @@ export class EnergyMatch {
   }
   heal(target,amount,source,spellId){
     if(!target?.alive)return;
-    // A Talent Point directly improves healing. Each rank adds 4%;
-    // Rank 3 also permits a separate Evolution choice.
-    const mastery=1+.04*Math.max(0,Math.min(3,source?.talentRanks?.[spellId]||0));
-    const scaled=Math.max(0,Math.round(amount*mastery*(1-this.dampening)
-      *(source?.team==="enemy"?this.tuning.healing:1)));
+    const rank=source?.talentRanks?.[spellId]||0;
+    const crit=this.rollCrit(source,spellId,"heal");
+    const scaled=Math.max(0,Math.round(amount*this.power*
+      healMultiplier(spellId,rank)*(crit?CRIT_MULTIPLIER:1)*
+      (1-this.dampening)*(source?.team==="enemy"?this.tuning.healing:1)));
     const given=Math.min(target.maxHp-target.hp,scaled);
     const hpBefore=target.hp;
     target.hp+=given;target.healthPct=target.hp/target.maxHp;
     this.emit({type:"heal",actorId:source?.id||target.id,targetId:target.id,
-      spellId,amount:given,overheal:scaled-given,hpBefore,hpAfter:target.hp});
+      spellId,amount:given,overheal:scaled-given,hpBefore,hpAfter:target.hp,crit});
   }
   damage(target,amount,source,spellId){
     if(!target?.alive)return;
-    // Beginner scaling applies only to incoming enemy damage; no spell rules
-    // or visual impact are changed, and the full balance returns at high levels.
-    const mastery=1+.04*Math.max(0,Math.min(3,source?.talentRanks?.[spellId]||0));
-    let value=amount*mastery*(source?.team==="enemy"?this.tuning.damage:1);
+    // Level power scales damage for players AND AI; Rank selectively develops
+    // damage spells and Marble Bag rolls crit (not CC, guards or movement).
+    const rank=source?.talentRanks?.[spellId]||0;
+    const crit=this.rollCrit(source,spellId,"damage");
+    let value=amount*this.power*damageMultiplier(spellId,rank)*
+      (crit?CRIT_MULTIPLIER:1)*(source?.team==="enemy"?this.tuning.damage:1);
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
     const guard=target.statuses.find(s=>s.kind==="guard");
     if(guard)value*=1-guard.amount;
@@ -337,7 +359,7 @@ export class EnergyMatch {
     value=Math.max(0,Math.round(value-absorbed));
     target.hp=Math.max(0,target.hp-value);target.healthPct=target.hp/target.maxHp;
     this.emit({type:"hit",actorId:source.id,targetId:target.id,
-      spellId,amount:hpBefore-target.hp,absorbed,
+      spellId,amount:hpBefore-target.hp,absorbed,crit,
       rawDamage,guardReduction,guardActive:!!guard,
       hpBefore,hpAfter:target.hp,shieldBefore,shieldAfter:target.shield});
     if(value>0){
@@ -356,7 +378,7 @@ export class EnergyMatch {
     const link=source.statuses.find(s=>s.kind==="link");
     if(link&&value>0&&link.procGate<=0){
       const ally=this.getActor(link.linkedId);
-      if(ally?.alive)this.heal(ally,Math.min(15,value*.32),source,"symbiosis-link");
+      if(ally?.alive)this.heal(ally,Math.min(15*this.power,value*.32),source,"symbiosis-link");
       link.procGate=0.45;
     }
     if(target.hp===0){
@@ -415,7 +437,7 @@ export class EnergyMatch {
       spellId,ccKind:category,duration:value,drScale:scale});
   }
   execute(actor,spellId,targetId) {
-    const r=ABILITY_RULES[spellId];
+    const r=this.rule(actor,spellId);
     // A cast must stay bound to its original target after wind-up. In the
     // previous code a dead ally triggered currentTarget()'s self fallback:
     // Pulse Mend silently overhealed the player instead of reporting a miss.
@@ -456,21 +478,24 @@ export class EnergyMatch {
           spellId,interruptedSpell:interrupted,interruptedSchool:discipline,
           schoolLockSeconds:discipline?3:0,
           interruptedCooldownRemaining:target.cooldowns[interrupted]||0});
-        if(actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon")actor.flux=clamp(actor.flux+12,0,MAX_FLUX);
+        const masteryFlux=successfulInterruptFlux(spellId,actor.talentRanks[spellId]||0);
+        const evolutionFlux=actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon"?12:0;
+        actor.flux=clamp(actor.flux+masteryFlux+evolutionFlux,0,MAX_FLUX);
         this.log(actor.name+" interrupted "+target.name);
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
     }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
     else if(r.mode==="guard"){
-      this.addStatus(target,{kind:"guard",remaining:r.duration,amount:Math.min(.6,r.amount+.012*(actor.talentRanks[spellId]||0)),sourceId:actor.id});
+      this.addStatus(target,{kind:"guard",remaining:r.duration,amount:Math.min(.6,r.amount),sourceId:actor.id});
       this.emit({type:"guard",actorId:actor.id,targetId:target.id,
         spellId,guardPercent:r.amount,duration:r.duration});
     }
     else if(r.mode==="shield"){
       const shieldBefore=target.shield;
-      target.shield=Math.max(target.shield,r.amount*(1+.04*(actor.talentRanks[spellId]||0)));
+      target.shield=Math.max(target.shield,Math.round(r.amount*this.power*
+        shieldMultiplier(spellId,actor.talentRanks[spellId]||0)));
       this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});
       this.emit({type:"shield",actorId:actor.id,targetId:target.id,
-        spellId,amount:r.amount,shieldBefore,shieldAfter:target.shield});
+        spellId,amount:target.shield-shieldBefore,shieldBefore,shieldAfter:target.shield});
     }
     else if(r.mode==="damage"){
       let amount=r.amount;

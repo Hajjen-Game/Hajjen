@@ -1105,3 +1105,51 @@ h2{font-size:23px}
   .hub-presets .hub-preset-button{font-size:8px;padding:8px}
   .energy-main-menu{min-height:620px}
 }
+
+
+/* V34 — Singularity Forge lives in the HUB, not in the arena mode selector.
+   Only the currently equipped/unlocked spells can be forged. */
+.hub-singularity-panel{padding:14px 12px;display:grid;gap:10px;min-width:0;
+  background:radial-gradient(ellipse at 50% -25%,#4d326a70,transparent 68%),
+    linear-gradient(135deg,#101c31,#141a2e)}
+.hub-singularity-panel .hub-panel-heading{margin-bottom:2px}
+#hub-forge-status{font-size:9px;color:#c0a4e9;letter-spacing:.07em}
+.hub-forge-wallet{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hub-forge-wallet>div{border:1px solid #4e557d;background:#121e33;border-radius:9px;
+  padding:10px 7px;display:grid;gap:5px;text-align:center}
+.hub-forge-wallet strong{font-size:21px;color:#d2c0ff}
+.hub-forge-wallet small{font-size:8px;color:#a8add7;letter-spacing:.04em;line-height:1.3}
+.hub-forge-locked{padding:15px 11px;border:1px dashed #76688a;border-radius:10px;
+  background:#13182a;text-align:center}
+.hub-forge-lock-symbol{display:grid;place-items:center;font-size:26px;color:#c9a3eb;padding:8px}
+.hub-forge-locked strong{font-size:12px;letter-spacing:.09em;color:#d0b3ef}
+.hub-forge-locked p,.hub-forge-note,.hub-forge-mastery p{font-size:10px;line-height:1.55;color:#a9bcd8}
+.hub-forge-locked p{margin:9px 0 0}
+#hub-forge-unlocked{display:grid;gap:9px}
+.hub-forge-note{margin:0;padding:8px;border:1px solid #4c4e74;border-radius:7px;background:#171e32}
+.hub-forge-label{font-size:9px;font-weight:800;color:#c3c6ee;letter-spacing:.05em;margin:4px 0 0}
+.hub-forge-select{display:block;min-width:0;width:100%;padding:9px 8px;border:1px solid #566486;
+  border-radius:7px;background:#131d34;color:#d8eeff;font-size:11px}
+.hub-forge-reactions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.hub-forge-reaction{display:grid;justify-items:center;gap:5px;min-width:0;
+  background:#151e32;border:1px solid #525676;border-radius:8px;color:#b3bde7;
+  font-size:9px;font-weight:800;padding:9px 2px}
+.hub-forge-reaction small{font-size:8px;color:#8196b4;font-weight:500}
+.hub-forge-reaction.selected{border-color:#cba6f6;color:#ead7ff;
+  background:#342546;box-shadow:0 0 12px #935de530}
+.hub-forge-preview{border-left:2px solid #a881db;padding:7px 8px;margin:0;
+  color:#c1c2e4;font-size:10px;line-height:1.5}
+.hub-forge-confirm{width:100%;font-size:10px;line-height:1.4;white-space:normal;
+  border-color:#a786c9}
+.hub-forge-confirm:disabled,.hub-forge-upgrade:disabled{opacity:.45;cursor:not-allowed}
+.hub-forge-mastery{border-top:1px solid #555473;padding-top:12px;display:grid;gap:8px}
+.hub-forge-mastery h4{color:#c6b8ef;font-size:10px;margin:0;letter-spacing:.09em}
+.hub-forge-mastery p{margin:0}
+.hub-forge-tier-dots{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.hub-forge-tier-dots span{height:8px;border-radius:8px;border:1px solid #5a5679;background:#1f2741}
+.hub-forge-tier-dots span.filled{background:#bb9ae4;border-color:#dcc2fe;
+  box-shadow:0 0 8px #b991e762}
+@media(max-width:1180px){
+  .hub-forge-reactions{grid-template-columns:1fr}
+  .hub-forge-reaction{grid-template-columns:1fr auto;padding:8px;text-align:left;justify-items:start}
+}

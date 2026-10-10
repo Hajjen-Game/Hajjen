@@ -2,8 +2,8 @@
 // turrets or permanent changes to the player's equipped spells.
 // Wave Resonances are transient and are offered ONLY after each completed wave.
 import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
-  from "./EnergyMatch.js?v=20261011-planet-defense2";
-import { botAbilities } from "./EnergyProgression.js?v=20261011-planet-defense2";
+  from "./EnergyMatch.js?v=20261011-planet-defense3";
+import { botAbilities } from "./EnergyProgression.js?v=20261011-planet-defense3";
 import { MAX_FLUX, ROLES } from "../abilityCatalog.js?v=20261010-origins35";
 
 const WAVE_PLANS=Object.freeze([

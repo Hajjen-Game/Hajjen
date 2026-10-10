@@ -3,7 +3,7 @@
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261009-orbit-tree31";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
-import { completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
+import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261010-singularity34";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
@@ -166,7 +166,9 @@ export class EnergyCharacterHub{
     $("hub-character-name").textContent=this.character.name;
     $("hub-role").textContent=ROLES[build.role].name.toUpperCase()+" · ENERGY ORB";
     $("hub-level").textContent="LEVEL "+progress.level;
-    $("hub-level-subtitle").textContent=progress.slots+" OF 10 ABILITIES UNLOCKED";
+    const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
+    $("hub-level-subtitle").textContent=progress.slots+" OF 10 SPELLS UNLOCKED"+
+      (nextSlotLevel?" · NEXT SPELL LVL "+nextSlotLevel:" · FULL LOADOUT");
     $("hub-xp").textContent=progress.maxLevel?"MAX LEVEL":
       progress.xp+" XP · "+progress.remaining+" TO NEXT LEVEL";
     $("hub-xp-fill").style.width=(progress.progress*100).toFixed(1)+"%";
@@ -189,7 +191,10 @@ export class EnergyCharacterHub{
     this.renderTree();
     this.renderForge();
     this.renderPresets();
-    $("hub-status").textContent=this.message;
+    const excess=spentTalentPoints(build)>talentPointsForLevel(progress.level);
+    $("hub-status").textContent=this.message||(excess
+      ?"Legacy build: some previously allocated ranks exceed your current level. Only earned Talent Points apply in combat. RESET TALENTS is free."
+      :"");
   }
   renderForge(){
     const profile=this.getProgression();

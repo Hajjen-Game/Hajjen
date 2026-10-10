@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-singularity34"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-origins35"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -68,7 +68,7 @@
         </div>
         <div class="guide-book-footer">
           <button type="button" class="header-button" id="guide-prev">← PREVIOUS</button>
-          <span id="guide-progress">1 / 8</span>
+          <span id="guide-progress">1 / 9</span>
           <button type="button" class="header-button" id="guide-next">NEXT PAGE →</button>
         </div>
       </div>
@@ -78,25 +78,37 @@
       <div id="character-creation" class="character-creation" hidden>
         <p class="eyebrow">YOUR JOURNEY BEGINS</p>
         <h2>Create your Energy Orb</h2>
-        <p>One character to grow and make your own. Choose how its energy begins.
-          You can evolve it with abilities, talents, and disciplines as you play.</p>
+        <p>Every planet begins with an Origin. It decides your two permanent spells and your natural strength, but the rest of your build is yours to shape.</p>
         <label class="hub-field-label" for="new-character-name">CHARACTER NAME</label>
         <input type="text" id="new-character-name" class="hub-name-input" maxlength="20" placeholder="Name your orb" autocomplete="off"/>
-        <h3 class="hub-small-heading">Choose a core role</h3>
-        <div class="character-role-choices" role="group" aria-label="Character role">
-          <button type="button" data-create-role="healer" class="character-role selected" aria-pressed="true">
-            <span class="character-role-glyph">✧</span><strong>Healer</strong>
-            <small>Vital energy · healing and protection</small>
+        <h3 class="hub-small-heading">CHOOSE YOUR ORIGIN</h3>
+        <div class="character-role-choices" role="group" aria-label="Choose your Origin">
+          <button type="button" data-create-role="healer" class="character-role selected" aria-pressed="true" aria-controls="origin-choice-details">
+            <span class="character-role-glyph">✧</span><strong>Genesis</strong>
+            <small>Life · protect and restore</small>
           </button>
-          <button type="button" data-create-role="melee" class="character-role" aria-pressed="false">
-            <span class="character-role-glyph">⌁</span><strong>Melee</strong>
-            <small>Kinetic energy · close-range pressure</small>
+          <button type="button" data-create-role="melee" class="character-role" aria-pressed="false" aria-controls="origin-choice-details">
+            <span class="character-role-glyph">⌁</span><strong>Impact</strong>
+            <small>Momentum · pressure and disrupt</small>
           </button>
-          <button type="button" data-create-role="caster" class="character-role" aria-pressed="false">
-            <span class="character-role-glyph">❖</span><strong>Caster</strong>
-            <small>Cryo energy · ranged spellcraft</small>
+          <button type="button" data-create-role="caster" class="character-role" aria-pressed="false" aria-controls="origin-choice-details">
+            <span class="character-role-glyph">❖</span><strong>Eclipse</strong>
+            <small>Energy · cast and reposition</small>
           </button>
         </div>
+        <section id="origin-choice-details" class="origin-choice-details" aria-label="Selected Origin details" aria-live="polite">
+          <div class="origin-details-heading">
+            <span class="origin-details-eyebrow">YOUR SELECTED ORIGIN</span>
+            <h3 id="origin-selected-name">GENESIS</h3>
+            <p id="origin-selected-description"></p>
+          </div>
+          <div class="origin-details-info">
+            <div><strong>WHO IT SUITS</strong><p id="origin-selected-playstyle"></p></div>
+            <div><strong>TWO STARTING SPELLS</strong><p id="origin-selected-spells"></p></div>
+            <div><strong>ORIGIN PASSIVE</strong><p id="origin-selected-passive"></p></div>
+          </div>
+        </section>
+        <p class="origin-choice-footnote">Your Origin cannot be changed on this character. You can still equip shared spells from every energy discipline and experiment with any Evolution or Singularity.</p>
         <button type="button" id="create-character" class="hub-primary">CREATE CHARACTER →</button>
         <p id="create-character-error" role="alert" class="hub-error"></p>
       </div>
@@ -106,7 +118,7 @@
           <div class="hub-overview-name">
             <p class="eyebrow">YOUR ENERGY CHAMPION</p>
             <h2 id="hub-character-name">MY ORB</h2>
-            <p id="hub-role" class="hub-subtitle">CASTER · ENERGY ORB</p>
+            <p id="hub-role" class="hub-subtitle">ECLIPSE · ENERGY ORIGIN</p>
           </div>
           <div class="hub-overview-progress">
             <strong id="hub-level" class="hub-level">LEVEL 1</strong>
@@ -135,12 +147,12 @@
               <button type="button" class="hub-library-tab active" data-hub-list="equipped" aria-pressed="true">BUILD (10)</button>
               <button type="button" class="hub-library-tab" data-hub-list="pool" aria-pressed="false">POOL (8)</button>
             </div>
-            <p class="hub-panel-intro">All 18 class-compatible spells appear on the map. Click any node to inspect its Evolutions.</p>
+            <p class="hub-panel-intro">All 18 spells available to your Origin appear on the map. Click any node to inspect its Evolutions.</p>
             <div id="hub-spell-nodes" class="hub-spellbook-list"></div>
             <div class="hub-spellbook-footer">
               <span class="hub-key active">◉ IN YOUR BUILD</span>
               <span class="hub-key ready">◇ AVAILABLE IN POOL</span>
-              <span class="hub-key locked">♙ CLASS-BOUND</span>
+              <span class="hub-key locked">♙ ORIGIN SPELL</span>
             </div>
           </aside>
           <section class="hub-evolution-space hub-build-panel" aria-label="Evolution tree with all spells">
@@ -193,7 +205,7 @@
               </div>
               <div id="hub-forge-unlocked" hidden>
                 <p id="hub-forge-summary" class="hub-forge-note"></p>
-                <label class="hub-forge-label" for="hub-forge-anchor">ANCHOR · YOUR CLASS SPELL</label>
+                <label class="hub-forge-label" for="hub-forge-anchor">ANCHOR · YOUR ORIGIN SPELL</label>
                 <select id="hub-forge-anchor" class="hub-forge-select"></select>
                 <label class="hub-forge-label" for="hub-forge-partner">PARTNER · UNLOCKED SHARED SPELL</label>
                 <select id="hub-forge-partner" class="hub-forge-select"></select>
@@ -246,7 +258,7 @@
             <div id="combat-flash" class="combat-flash" aria-live="polite"></div>
             <div id="scene-error" class="scene-error" hidden></div>
           </div>
-          <div class="target-strip"><span class="target-label">SELECTED TARGET</span><strong id="selected-target">Enemy Melee</strong><span id="target-status"></span></div>
+          <div class="target-strip"><span class="target-label">SELECTED TARGET</span><strong id="selected-target">Enemy Impact</strong><span id="target-status"></span></div>
         </section>
         <aside class="team-panel enemies" aria-label="Enemy team">
           <div class="panel-caption">ENEMY TEAM</div>
@@ -267,6 +279,6 @@
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-singularity34"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-origins35"></script>
 </body>
 </html>

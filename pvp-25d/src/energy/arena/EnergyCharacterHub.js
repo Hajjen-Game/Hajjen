@@ -1,10 +1,10 @@
 // Energy Arena character home, onboarding and visual talent/evolution workbench.
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
-import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261009-orbit-tree31";
+import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261010-origins35";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
-import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
-import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261010-singularity34";
+import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
+import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261010-origins35";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261010-singularity34";
@@ -53,8 +53,10 @@ export class EnergyCharacterHub{
           n.classList.toggle("selected",active);
           n.setAttribute("aria-pressed",String(active));
         });
+        this.updateOriginChoice(item.dataset.createRole);
       });
     }
+    this.updateOriginChoice("healer");
     $("create-character").addEventListener("click",()=>{
       try{
         const role=document.querySelector("[data-create-role].selected")?.dataset.createRole||"healer";
@@ -117,6 +119,16 @@ export class EnergyCharacterHub{
       catch(error){this.setMessage(error.message);}
     });
   }
+  updateOriginChoice(role){
+    const origin=ROLES[role]||ROLES.healer;
+    $("origin-selected-name").textContent=origin.name.toUpperCase();
+    $("origin-selected-description").textContent=origin.description;
+    $("origin-selected-playstyle").textContent=origin.playstyle;
+    $("origin-selected-spells").textContent=origin.locked
+      .map(id=>ABILITY_BY_ID[id]?.name||id).join(" + ");
+    $("origin-selected-passive").textContent=origin.passive;
+    $("origin-choice-details").style.setProperty("--origin-color",origin.color);
+  }
   persist(){
     try{writeBuildStorage(this.storage,this.store);}
     catch{this.setMessage("Local storage is unavailable. Changes may not be retained.");}
@@ -164,7 +176,7 @@ export class EnergyCharacterHub{
     const identity=energyIdentity(build,progress.level);
     this.preview?.update(build,progress.level);
     $("hub-character-name").textContent=this.character.name;
-    $("hub-role").textContent=ROLES[build.role].name.toUpperCase()+" · ENERGY ORB";
+    $("hub-role").textContent=ROLES[build.role].name.toUpperCase()+" · ENERGY ORIGIN";
     $("hub-level").textContent="LEVEL "+progress.level;
     const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
     $("hub-level-subtitle").textContent=progress.slots+" OF 10 SPELLS UNLOCKED"+
@@ -347,7 +359,7 @@ export class EnergyCharacterHub{
     const saved=this.store.saved[index];
     if(!saved)return;
     if(saved.role!==this.character.role){
-      this.setMessage("This preset uses a different class. Your character class stays fixed.");return;
+      this.setMessage("This preset belongs to a different Origin. Your current Origin stays unchanged.");return;
     }
     if(!window.confirm("Load preset "+(index+1)+"? Unsaved changes in your current build will be replaced."))return;
     this.store.draft=normalizeBuild(saved);
@@ -419,7 +431,7 @@ export class EnergyCharacterHub{
       const label=el("span","hub-spell-copy");
       label.append(el("strong","hub-spell-name",ability.name),
         el("small","hub-spell-category",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
-        el("span","hub-spell-level",bound?"CLASS SPELL · "+(unlocked?"RANK "+rank:"LOCKED BY LEVEL"):
+        el("span","hub-spell-level",bound?"ORIGIN SPELL · "+(unlocked?"RANK "+rank:"LOCKED BY LEVEL"):
           !inBuild?"IN AVAILABLE POOL":unlocked?"RANK "+rank+"/3":"UNLOCKS AS YOU LEVEL"));
       const stateGlyph=bound?"♙":!inBuild?"＋":evolved?"✦":unlocked?"✓":"◇";
       btn.append(el("span","hub-spell-symbol",glyphs[ability.discipline]),label,
@@ -563,7 +575,7 @@ export class EnergyCharacterHub{
       DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()));
     summary.append(el("span","hub-detail-icon",glyphs[ability.discipline]),info);
     spell.append(summary,el("p","hub-detail-description",ability.description));
-    if(bound)spell.append(el("span","hub-bound-chip","♙ CLASS SPELL · CANNOT REPLACE"));
+    if(bound)spell.append(el("span","hub-bound-chip","♙ ORIGIN SPELL · CANNOT REPLACE"));
     else if(!inBuild)spell.append(el("span","hub-pool-chip","AVAILABLE TO EQUIP"));
     const current=$("hub-detail-current");current.replaceChildren();
     current.append(el("h4","","SPELL MASTERY"),el("p","",ability.details));

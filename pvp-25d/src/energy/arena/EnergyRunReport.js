@@ -90,6 +90,13 @@ function eventText(match,e){
     case "link":return "LINK "+name(match,e.actorId)+" → "+name(match,e.targetId);
     case "fizzle":return "FIZZLE "+name(match,e.actorId)+" → "+name(match,e.targetId)
       +" | "+safe(e.spellId)+" | "+safe(e.reason)+" (Flux refunded)";
+    case "wave-start":return "WAVE "+e.wave+" START | "+safe(e.waveName);
+    case "wave-spawn":return "WAVE "+e.wave+" SPAWN | "+name(match,e.actorId)+(e.boss?" [BOSS]":"");
+    case "wave-clear":return "WAVE "+e.wave+" CLEARED";
+    case "resonance-chosen":return "WAVE RESONANCE | "+safe(e.resonanceId)+
+      " tier "+fix(e.tier,0)+" after wave "+e.wave;
+    case "resonance-proc":return "WAVE RESONANCE PROC | "+safe(e.kind)+" "+safe(e.spellId)+
+      " on "+name(match,e.targetId);
     case "end":return "MATCH END | "+safe(e.winner);
     default:return e.type.toUpperCase()+" "+name(match,e.actorId)+" "+safe(e.spellId);
   }
@@ -117,6 +124,13 @@ export function formatEnergyRunReport(match){
     "Recorded events: "+history.length+" | dropped oldest: "+(match.runHistoryDropped||0)
       +" | cap "+RUN_HISTORY_LIMIT,
   ];
+  if(match.modeId==="defense")lines.push(
+    "Planet Defense: wave "+match.wave+"/5 · state "+safe(match.waveState)+
+      " · "+(match.totalKills||0)+" defeated · "+
+      (match.resonancesChosen||0)+" Wave Resonances selected",
+    "Resonance loadout: "+(Object.entries(match.resonances||{})
+      .map(([id,tier])=>id+" Rank "+tier).join(" · ")||"none")
+  );
   lines.push("","=== FINAL COMBAT STATS ===");
   for(const a of match.actors)lines.push(actorLine(match,a));
 

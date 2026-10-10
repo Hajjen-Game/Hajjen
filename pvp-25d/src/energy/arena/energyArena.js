@@ -4,15 +4,15 @@ import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261010-or
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261010-roster37";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261010-origins35";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261010-origins35";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261010-balanced-ranks40";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-hub-orbit29";
-import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-singularity34";
+import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks40";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-rank-trim39";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-balanced-ranks40";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261010-roster37";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 

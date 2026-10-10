@@ -105,10 +105,17 @@ export class EnergyPlanetDefense extends EnergyMatch{
       {core:"#7bc4a6",energy:"#a2efc5"};
     actor.targetId=this.living("friendly")[order%this.living("friendly").length]?.id||"player";
     this.actors.push(actor);
-    this.player.targetId=this.player.targetId||id;
+    // Re-target the first living enemy of every new wave; the previous
+    // wave's target may still exist in the run history as a dead actor.
+    if(order===0||!this.getActor(this.player.targetId)?.alive)
+      this.player.targetId=id;
     this.ai.planTick=0;
     this.emit({type:"wave-spawn",actorId:actor.id,targetId:actor.id,wave:this.wave,boss:isBoss});
     return true;
+  }
+  reason(actor,spellId,targetId){
+    if(this.waveState==="intermission")return "CHOOSE WAVE RESONANCE";
+    return super.reason(actor,spellId,targetId);
   }
   // Resonances enhance the player's existing equipped abilities; they never
   // add new action slots, talent ranks, or mutate saved Character HUB builds.

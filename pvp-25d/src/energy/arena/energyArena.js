@@ -12,7 +12,7 @@ import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-roster37";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-rank-trim39";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261010-roster37";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 

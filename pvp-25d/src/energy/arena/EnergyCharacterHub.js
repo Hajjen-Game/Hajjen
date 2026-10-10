@@ -447,6 +447,7 @@ export class EnergyCharacterHub{
       const rank=state.activeById.get(ability.id)?.talentRank||0;
       const evolved=Boolean(state.build.evolutions[ability.id]);
       const bound=state.roleBound.has(ability.id);
+      const slotIndex=state.inner.findIndex(spell=>spell.id===ability.id);
       const btn=button("","hub-spell-node"+(inBuild?" unlocked equipped-now":" in-pool")+
         (this.selectedAbility===ability.id?" selected":"")+
         (!unlocked&&inBuild?" level-gated":"")+(evolved?" evolved":""),()=>this.selectSpell(ability.id));
@@ -456,9 +457,9 @@ export class EnergyCharacterHub{
       const label=el("span","hub-spell-copy");
       label.append(el("strong","hub-spell-name",ability.name),
         el("small","hub-spell-category",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
-        el("span","hub-spell-level",bound?"ORIGIN SPELL · "+(unlocked?"RANK "+rank:"LOCKED BY LEVEL"):
-          !inBuild?"AVAILABLE IN POOL":"RANK "+rank+"/3"));
-      const stateGlyph=bound?"♙":!inBuild?"＋":evolved?"✦":"✓";
+        el("span","hub-spell-level",bound?"SLOT "+(slotIndex+1)+" · ORIGIN SPELL · RANK "+rank:
+          !inBuild?"AVAILABLE IN POOL":"SLOT "+(slotIndex+1)+" · RANK "+rank+"/3"));
+      const stateGlyph=bound?String(slotIndex+1):!inBuild?"＋":evolved?"✦":"✓";
       btn.append(el("span","hub-spell-symbol",glyphs[ability.discipline]),label,
         el("span","hub-spell-state",stateGlyph));
       btn.addEventListener("mouseenter",event=>this.showTooltip(ability,event,inBuild));
@@ -499,7 +500,7 @@ export class EnergyCharacterHub{
       node.setAttribute("aria-pressed",String(selected));
       node.title=ability.name+" — "+ability.description;
       const icon=el("span","hub-orbit-icon",glyphs[ability.discipline]);
-      if(state.roleBound.has(ability.id))icon.append(el("span","hub-orbit-lock","♙"));
+      if(state.roleBound.has(ability.id))icon.append(el("span","hub-orbit-lock",String(index+1)));
       node.append(icon,el("span","hub-orbit-name",ability.name));
       node.addEventListener("mouseenter",event=>this.showTooltip(ability,event,true));
       node.addEventListener("mousemove",event=>this.moveTooltip(event));

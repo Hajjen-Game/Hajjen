@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-origins35"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-hub-progression36"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -130,7 +130,7 @@
             <strong id="hub-level" class="hub-level">LEVEL 1</strong>
             <div class="hub-progress-track"><div id="hub-xp-fill"></div></div>
             <p id="hub-xp" class="hub-progress-label">0 XP</p>
-            <p id="hub-level-subtitle" class="hub-subtitle">3 OF 10 ABILITIES UNLOCKED</p>
+            <p id="hub-level-subtitle" class="hub-subtitle">3/10 · NEXT SPELL LVL 4</p>
           </div>
           <div class="hub-overview-points" aria-label="Your build resources">
             <div class="hub-point-card"><span class="hub-point-icon">✦</span>
@@ -148,15 +148,15 @@
 
         <div id="hub-talent-workbench" class="hub-build-layout hub-radial-layout">
           <aside class="hub-tree-spells hub-build-panel" aria-label="Spell library">
-            <div class="hub-panel-heading"><h3>YOUR SPELLS</h3><span id="hub-spellbook-count">0 / 10 EQUIPPED</span></div>
+            <div class="hub-panel-heading"><h3>YOUR SPELLS</h3><span id="hub-spellbook-count">3/10</span></div>
             <div class="hub-library-tabs" role="group" aria-label="Spell list">
-              <button type="button" class="hub-library-tab active" data-hub-list="equipped" aria-pressed="true">BUILD (10)</button>
-              <button type="button" class="hub-library-tab" data-hub-list="pool" aria-pressed="false">POOL (8)</button>
+              <button type="button" class="hub-library-tab active" data-hub-list="equipped" aria-pressed="true">BUILD (3)</button>
+              <button type="button" class="hub-library-tab" data-hub-list="pool" aria-pressed="false">POOL (15)</button>
             </div>
-            <p class="hub-panel-intro">All 18 spells available to your Origin appear on the map. Click any node to inspect its Evolutions.</p>
+            <p class="hub-panel-intro">Only unlocked spells enter your build ring. Explore the other Origin-compatible spells in the outer pool.</p>
             <div id="hub-spell-nodes" class="hub-spellbook-list"></div>
             <div class="hub-spellbook-footer">
-              <span class="hub-key active">◉ IN YOUR BUILD</span>
+              <span class="hub-key active">◉ EQUIPPED</span>
               <span class="hub-key ready">◇ AVAILABLE IN POOL</span>
               <span class="hub-key locked">♙ ORIGIN SPELL</span>
             </div>
@@ -184,7 +184,7 @@
               <div id="hub-orbit-nodes" class="hub-orbit-nodes" aria-label="All 18 spells"></div>
               <div id="hub-node-tooltip" class="hub-node-tooltip" hidden role="status"></div>
             </div>
-            <p class="hub-map-caption">YOUR ORB · TEN SPELLS IN YOUR BUILD · EIGHT MORE TO EXPLORE</p>
+            <p id="hub-map-caption" class="hub-map-caption">3/10 · 15 MORE SPELLS TO EXPLORE</p>
           </section>
           <aside class="hub-details-column">
             <section class="hub-details-panel hub-build-panel" aria-label="Selected spell details">
@@ -285,6 +285,6 @@
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-origins35"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-hub-progression36"></script>
 </body>
 </html>

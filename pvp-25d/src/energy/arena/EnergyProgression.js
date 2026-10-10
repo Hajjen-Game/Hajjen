@@ -118,6 +118,13 @@ export function readProgression(storage){
       firstMatterGranted:Boolean(s.firstMatterGranted),singularity};
   }catch{return blank;}
 }
+// Claim the level-10 starter material even for existing profiles which
+// crossed level 10 before this update; persistence happens in the caller.
+export function ensureStarterMatter(profile){
+  if(progressDetails(profile).level<FORGE_UNLOCK_LEVEL||profile.firstMatterGranted)return profile;
+  return {...profile,firstMatterGranted:true,
+    blackHoleMatter:(profile.blackHoleMatter||0)+1};
+}
 export function saveProgression(storage,profile){
   try{storage.setItem(PROGRESSION_KEY,JSON.stringify(profile));return true;}
   catch{return false;}

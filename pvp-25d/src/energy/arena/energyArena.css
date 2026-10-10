@@ -1178,3 +1178,33 @@ h2{font-size:23px}
 .book-singularity-reactions span{padding:10px 7px;border:1px solid #625e93;border-radius:7px;
   font-size:9px;color:#c9d9f8;text-align:center}
 .book-singularity-art>small{font-size:9px;color:#d9bd89;letter-spacing:.15em}
+
+
+/* Origin selection: teach the long-term playstyle before the player commits. */
+.character-role-choices{margin-bottom:14px}
+.character-role{min-height:134px;justify-content:center}
+.character-role[aria-pressed="true"]{position:relative}
+.character-role[aria-pressed="true"]::after{
+  content:"SELECTED";position:absolute;top:8px;right:9px;
+  color:#b8f2df;font-weight:800;font-size:8px;letter-spacing:.13em}
+.origin-choice-details{--origin-color:#66d5ad;margin:0 auto 14px;padding:18px 19px;
+  border:1px solid color-mix(in srgb,var(--origin-color) 45%,#36445c);
+  border-radius:12px;background:radial-gradient(ellipse at 10% 0%,
+  color-mix(in srgb,var(--origin-color) 13%,transparent),transparent 60%),#101b2d;
+  text-align:left}
+.origin-details-heading{display:grid;gap:7px;padding-bottom:14px;
+  border-bottom:1px solid #354a62}
+.origin-details-eyebrow{font-size:9px;letter-spacing:.16em;color:#92aac4;font-weight:800}
+.origin-details-heading h3{font-size:21px;letter-spacing:.06em;margin:0;color:var(--origin-color);
+  text-shadow:0 0 16px color-mix(in srgb,var(--origin-color) 30%,transparent)}
+.origin-details-heading p{font-size:12px;color:#c4d5e6;line-height:1.55;margin:0}
+.origin-details-info{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:15px;padding-top:14px}
+.origin-details-info>div{min-width:0}
+.origin-details-info strong{display:block;margin-bottom:7px;font-size:9px;letter-spacing:.1em;color:#94b2cc}
+.origin-details-info p{font-size:11px;color:#ccdae8;line-height:1.48;margin:0}
+.character-creation>.origin-choice-footnote{font-size:11px!important;color:#88a5be!important;
+  line-height:1.5!important;max-width:670px;margin:0 auto 19px!important}
+@media(max-width:1080px){
+  .character-creation{padding:35px 25px}
+  .origin-details-info{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+}

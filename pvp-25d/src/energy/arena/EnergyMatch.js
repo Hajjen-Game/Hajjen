@@ -6,7 +6,7 @@ import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
 import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261010-origins35";
 import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261010-origins35";
 import { energyIdentity } from "./EnergyCharacter.js?v=20261010-origins35";
-import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
+import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261010-balanced-ranks40";
 import { BASE_HEALTH, BASE_CRIT_CHANCE, CRIT_MULTIPLIER, maxHealthForLevel,
   powerForLevel, damageMultiplier, healMultiplier, shieldMultiplier,
   rankedRule, successfulInterruptFlux }

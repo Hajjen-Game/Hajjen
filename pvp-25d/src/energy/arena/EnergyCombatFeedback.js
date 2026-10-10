@@ -7,6 +7,7 @@ const PALETTE={
   damage:"#ff6c69",heal:"#7bea9c",absorb:"#aed9ff",control:"#f4d49a",
   "damage-out":"#ffdb9e","damage-in":"#ff6868",
   "heal-out":"#84f1ad","heal-in":"#50ffc5",
+  "crit-damage":"#ffe1a0","crit-heal":"#c5ffe1",
   interrupt:"#e3afff",immune:"#f3deb4",info:"#d8e7f7",
 };
 
@@ -69,12 +70,14 @@ export class EnergyCombatFeedback{
     const to=event.targetId||event.actorId;
     if(!this.shouldShow(event))return;
     if(event.type==="hit"){
-      if(event.amount>0)this.spawn(event.targetId==="player"?"damage-in":"damage-out",
-        "−"+event.amount,to);
+      if(event.amount>0)this.spawn(event.crit?"crit-damage":
+        event.targetId==="player"?"damage-in":"damage-out",
+        (event.crit?"✦ CRIT ":"")+"−"+event.amount,to);
       if(event.absorbed>0)this.spawn("absorb","ABSORB "+Math.round(event.absorbed),to);
     }else if(event.type==="heal"){
-      if(event.amount>0)this.spawn(event.targetId==="player"?"heal-in":"heal-out",
-        "+"+event.amount,to);
+      if(event.amount>0)this.spawn(event.crit?"crit-heal":
+        event.targetId==="player"?"heal-in":"heal-out",
+        (event.crit?"✦ CRIT ":"")+"+"+event.amount,to);
       else if(event.overheal>0 && event.actorId==="player")this.spawn("info","FULL HP",to);
     }else if(event.type==="control"){
       this.spawn("control",(event.spellId==="crystal-snare"?"ROOTED":"CONTROLLED"),to);

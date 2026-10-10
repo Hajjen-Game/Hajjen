@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-hub-progression36"/>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261010-roster37"/>
 </head>
 <body>
   <main class="energy-shell">
@@ -31,8 +31,14 @@
         <div class="menu-main-actions">
           <button type="button" class="menu-action primary" id="menu-play">▶ PLAY <span>Choose your arena</span></button>
           <button type="button" class="menu-action" id="menu-hub">◈ CHARACTER HUB <span>Evolution Tree & builds</span></button>
+          <button type="button" class="menu-action" id="menu-new-origin">✦ CREATE NEW ORIGIN <span>Begin a new character</span></button>
           <button type="button" class="menu-action" id="menu-about">▣ ABOUT / HOW TO PLAY <span>Open the illustrated guide</span></button>
         </div>
+        <section class="menu-origin-section" aria-label="Your saved Origins">
+          <div class="menu-origin-heading"><strong>YOUR ORIGINS</strong><span id="menu-origin-count">0 CREATED</span></div>
+          <div id="menu-origin-list" class="menu-origin-list"></div>
+          <p class="menu-origin-hint">Select an Origin to switch characters. Each keeps its own level, build, presets and Singularity.</p>
+        </section>
         <div id="menu-mode-options" class="menu-modes" hidden aria-label="Choose arena mode">
           <p class="hub-small-heading">CHOOSE YOUR BATTLE</p>
           <div class="menu-mode-grid">
@@ -153,7 +159,7 @@
               <button type="button" class="hub-library-tab active" data-hub-list="equipped" aria-pressed="true">BUILD (3)</button>
               <button type="button" class="hub-library-tab" data-hub-list="pool" aria-pressed="false">POOL (15)</button>
             </div>
-            <p class="hub-panel-intro">Only unlocked spells enter your build ring. Explore the other Origin-compatible spells in the outer pool.</p>
+            <p class="hub-panel-intro">Your unlocked spells glow in the inner ring. The outer pool shows the options you can explore.</p>
             <div id="hub-spell-nodes" class="hub-spellbook-list"></div>
             <div class="hub-spellbook-footer">
               <span class="hub-key active">◉ EQUIPPED</span>
@@ -285,6 +291,6 @@
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-hub-progression36"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261010-roster37"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // Character identity is independent from build presets, and saved separately.
 // Never touches the legacy arena or erases Energy Build Lab saved slots.
-import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261009-orbit-tree31";
-import { stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
+import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261010-origins35";
+import { stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
 
 export const CHARACTER_KEY="pvp25d-energy-character-v1";
 export function loadCharacter(storage){
@@ -12,7 +12,7 @@ export function loadCharacter(storage){
   }catch{return null;}
 }
 export function saveCharacter(storage,character){
-  if(!ROLES[character?.role])throw Error("Choose a role.");
+  if(!ROLES[character?.role])throw Error("Choose an Origin.");
   const name=String(character?.name||"").trim().replace(/\s+/g," ").slice(0,20);
   if(name.length<2)throw Error("Name your orb (at least 2 characters).");
   const next={version:1,name,role:character.role};

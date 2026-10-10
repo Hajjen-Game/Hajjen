@@ -136,6 +136,30 @@ export class EnergyArenaRenderer {
     this.actorRender.sync(match,now);
     this.orbPolish.sync(match,now);
     this.markers.sync(match,now);
+    // Planet Defense finale: a visible rotating double halo marks the Rift
+    // Warden as the wave boss without modifying the shared 3v3 orb renderer.
+    const boss=match.modeId==="defense"?
+      match.actors.find(a=>a.boss&&a.alive):null;
+    if(boss&&!this.defenseBossRings){
+      const ringMat=this.material("defense-boss-ring","#b98be9","#bb7aff");
+      const edgeMat=this.material("defense-boss-edge","#66559a","#9265d9");
+      this.defenseBossRings=[
+        BABYLON.MeshBuilder.CreateTorus("defense-boss-halo-inner",
+          {diameter:2.3,thickness:.055,tessellation:52},this.scene),
+        BABYLON.MeshBuilder.CreateTorus("defense-boss-halo-outer",
+          {diameter:2.95,thickness:.024,tessellation:52},this.scene)
+      ];
+      this.defenseBossRings[0].material=ringMat;
+      this.defenseBossRings[1].material=edgeMat;
+      for(const ring of this.defenseBossRings)ring.isPickable=false;
+    }
+    for(const [index,ring] of (this.defenseBossRings||[]).entries()){
+      ring.setEnabled(Boolean(boss));
+      if(boss){
+        ring.position.set(boss.x*S,.12+index*.023,boss.y*S);
+        ring.rotation.y=(now*.00037)*(index===0?1:-1);
+      }
+    }
     this.spellFX.update(match,now);
     this.scene.render();
     this.pixiFX?.update(match,now);

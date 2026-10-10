@@ -24,13 +24,13 @@ const PAGES=[
   },
   {
     title:"BUILD YOUR SPELL KIT",chapter:"03 / THE EVOLUTION TREE",
-    intro:"Your complete build contains ten spells: two fixed by your Origin and eight that you choose.",
+    intro:"You begin with three unlocked spells. More join your inner ring as you level, up to a complete ten-spell build.",
     steps:[
-      ["INNER RING","The ten spells in your build are highlighted around your orb."],
-      ["OUTER RING","Eight other shared spells stay visible so you can compare them."],
-      ["REPLACE","Click a shared spell, read its description and swap it into your build."]
-    ],tip:"You can change your eight shared spells without starting a new character.",
-    art:"loadout",caption:"10 in the build + 8 available in the pool, always shown."
+      ["INNER RING","Only your currently unlocked spells glow around the orb. At level 2, you have 3/10."],
+      ["OUTER RING","The other Origin-compatible spells stay visible outside the bright ring."],
+      ["REPLACE","Inspect a pool spell and swap it with one of your unlocked shared spells."]
+    ],tip:"Your two Origin spells are permanent. Other unlocked spells can be changed for free.",
+    art:"loadout",caption:"An early-level build: 3 equipped, 15 available to explore. The inner ring grows as you level."
   },
   {
     title:"UPGRADE & EVOLVE",chapter:"04 / TALENTS AND EVOLUTIONS",
@@ -120,10 +120,10 @@ function artMarkup(name){
       <div class="book-orbit-map">
         <div class="book-orbit-ring inner"></div><div class="book-orbit-ring outer"></div>
         <div class="book-orbit-hero">✦</div>
-        ${dots(10,"book-orbit-dot chosen",27)}
-        ${dots(8,"book-orbit-dot pool",44,Math.PI/8-Math.PI/2)}
+        ${dots(3,"book-orbit-dot chosen",27)}
+        ${dots(15,"book-orbit-dot pool",44,Math.PI/15-Math.PI/2)}
       </div>
-      <div class="book-key"><span class="a">◉ 10 IN BUILD</span><span class="b">◇ 8 AVAILABLE</span></div>`;
+      <div class="book-key"><span class="a">◉ 3/10 EQUIPPED</span><span class="b">◇ 15 IN POOL</span></div>`;
     case "talents":return `
       <div class="book-rank-path"><span>RANK 1 ✓</span><span>RANK 2 ✓</span><span>RANK 3 ★</span></div>
       <div class="book-branch-stem"></div>

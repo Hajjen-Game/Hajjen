@@ -148,9 +148,13 @@ export class EnergyArenaRenderer {
   render(match){
     const now=performance.now();
     this.activeActors=match.actors;
-    this.actorRender.sync(match,now);
-    this.orbPolish.sync(match,now);
-    this.markers.sync(match,now);
+    // Five waves create twenty enemies. Keep dead actors for reports, but
+    // remove their mesh entries immediately to avoid a growing Babylon scene.
+    const display=match.modeId==="defense"?
+      {actors:match.actors.filter(a=>a.alive),player:match.player}:match;
+    this.actorRender.sync(display,now);
+    this.orbPolish.sync(display,now);
+    this.markers.sync(display,now);
     // Planet Defense finale: a visible rotating double halo marks the Rift
     // Warden as the wave boss without modifying the shared 3v3 orb renderer.
     const boss=match.modeId==="defense"?

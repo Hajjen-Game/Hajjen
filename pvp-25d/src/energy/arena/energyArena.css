@@ -1390,3 +1390,11 @@ h2{font-size:23px}
 @media(max-width:900px){
   .hub-orbit-board{width:calc(100% - 76px);margin:28px auto 40px}
 }
+
+
+/* V39: make the current Rank effect visible next to the Talent Point spend.
+   Utility skills explicitly disclose when they do not yet gain numerical power. */
+.hub-rank-effect{margin:8px 0 0;padding:9px 10px;border:1px solid #506c83;
+  border-left:2px solid #9ed1e9;border-radius:6px;
+  background:linear-gradient(90deg,#173047,#102034);
+  color:#c9e4f3;font-size:10px;line-height:1.55}

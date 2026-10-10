@@ -10,7 +10,7 @@ import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learnin
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-singularity34";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261009-menu-codex33";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261010-singularity34";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
 const $=id=>document.getElementById(id);

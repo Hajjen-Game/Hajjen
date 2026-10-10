@@ -34,12 +34,12 @@ const PAGES=[
   },
   {
     title:"UPGRADE & EVOLVE",chapter:"04 / TALENTS AND EVOLUTIONS",
-    intro:"Each equipped spell can reach Rank 3. At Rank 3, choose one of its three Evolutions.",
+    intro:"Each spell has a custom Rank 1–3 path. Rank improves that spell's effect, while your Character Level increases HP and overall combat power.",
     steps:[
-      ["TALENT POINTS","Earn points as you level up, then spend them on spell ranks."],
-      ["EVOLUTION","Pick the change you like: more power, new utility or a different effect."],
-      ["MAX LEVEL","At level 30 you earn 30 points: enough to max all ten spells."]
-    ],tip:"Evolution choices can be changed; try different combinations.",
+      ["SPELL RANKS","Spend 1 Talent Point per Rank. Damage and healing grow stronger; utility spells improve cooldowns, cost or reach."],
+      ["EVOLUTION","At Rank 3 choose one of three Evolutions that changes how the spell behaves."],
+      ["MAX LEVEL","Level 30 gives 30 total Talent Points: enough to Rank 3 all ten spells."]
+    ],tip:"Crits use shuffled Marble Bags (10% chance, ×1.5 damage or healing). Read each spell's exact Rank bonus in the HUB.",
     art:"talents",caption:"Master a spell first. Then select one of three branching Evolutions."
   },
   {

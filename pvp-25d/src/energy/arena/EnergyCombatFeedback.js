@@ -94,6 +94,11 @@ export class EnergyCombatFeedback{
       this.spawn("absorb","GUARDED",to);
     }else if(event.type==="link"){
       this.spawn("heal","LINKED",to);
+    }else if(event.type==="synergy"&&event.actorId==="player"){
+      const names={annihilation:"ANNIHILATION!",distortion:"DISTORTION!",resonance:"RESONANCE!"};
+      this.spawn(event.reaction==="resonance"?"heal":"control",names[event.reaction]||"SYNERGY!",to);
+    }else if(event.type==="synergy-charge"&&event.actorId==="player"){
+      this.spawn("info","SINGULARITY CHARGED",event.actorId);
     }else if(event.type==="nothing"&&event.actorId==="player"){
       this.spawn("info",event.message||"NO EFFECT",to);
     }

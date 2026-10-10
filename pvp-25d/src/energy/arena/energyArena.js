@@ -4,14 +4,15 @@ import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261010-or
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261010-roster37";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261010-origins35";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261010-balanced-ranks41";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-planet-defense1";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-planet-defense1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-hub-orbit29";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261010-origins35";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-planet-defense1";
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-balanced-ranks41";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261010-balanced-ranks41";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
@@ -113,7 +114,8 @@ function start(build){
     completeArenaBuild(build); // An incomplete draft can start with a temporary starter kit.
     selectedBuild=build;
     const state=progressDetails(profile);
-    match=new EnergyMatch(build,arena,{modeId:selectedMode,level:state.level,singularity:profile.singularity});
+    const MatchType=selectedMode==="defense"?EnergyPlanetDefense:EnergyMatch;
+    match=new MatchType(build,arena,{modeId:selectedMode,level:state.level,singularity:profile.singularity});
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
@@ -122,6 +124,7 @@ function start(build){
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
+    $("defense-resonance-overlay").hidden=true;
     $("match-result-details").textContent="";
     feedback?.dispose();feedback=null;
     overhead?.dispose();overhead=null;
@@ -173,7 +176,7 @@ function directionalVector(){
   return{x:1,y:0};
 }
 function castSlot(index){
-  if(!match||match.ended||!match.player.alive)return;
+  if(!match||match.ended||match.waveState==="intermission"||!match.player.alive)return;
   combatUX?.pulse(actionNodes[index],"input-pressed");
   const ability=match.loadout.abilitySlots[index]?.id;
   if(!ability)return;
@@ -201,7 +204,7 @@ function castSlot(index){
   } else flash(ABILITY_BY_ID[ability].name+" · COULD NOT CAST");
 }
 function updateCastQueue(){
-  if(!pendingCast||!match||!match.player.alive||match.ended)return;
+  if(!pendingCast||!match||!match.player.alive||match.ended||match.waveState==="intermission")return;
   const p=match.player,request=pendingCast;
   const reason=match.reason(p,request.ability,request.targetId);
   if(reason==="CASTING"||reason==="GLOBAL COOLDOWN")return;
@@ -236,7 +239,16 @@ function createFrame(actor){
   return button;
 }
 function renderFrames(){
+  // Old wave enemies remain in run reports, but must not fill the right HUD.
+  if(match.modeId==="defense"){
+    for(const [id,view] of frameCache){
+      if(id.startsWith("wave-")&&!match.getActor(id)?.alive){
+        view.button.remove();frameCache.delete(id);
+      }
+    }
+  }
   for(const actor of match.actors){
+    if(match.modeId==="defense"&&actor.team==="enemy"&&!actor.alive)continue;
     let view=frameCache.get(actor.id);
     if(!view){
       const button=createFrame(actor);
@@ -286,11 +298,52 @@ function updateCastHUD(){
   $("cast-progress-fill").style.width=progress.toFixed(2)+"%";
   $("cast-indicator").style.setProperty("--school",DISCIPLINES[ability?.discipline]?.color||"#8bdfff");
 }
+function renderResonances(){
+  const overlay=$("defense-resonance-overlay");
+  if(!match||match.modeId!=="defense"||match.waveState!=="intermission"){
+    overlay.hidden=true;return;
+  }
+  overlay.hidden=false;
+  const host=$("defense-resonance-options");
+  const screenWave=match.waveIntermission;
+  if(host.dataset.wave===String(screenWave)&&host.dataset.choices===String(match.resonancesChosen))return;
+  host.dataset.wave=String(screenWave);
+  host.dataset.choices=String(match.resonancesChosen);
+  $("defense-resonance-subtitle").textContent="WAVE "+screenWave+" CLEARED · "+
+    "Select one upgrade to start Wave "+(screenWave+1)+"/"+DEFENSE_WAVES;
+  host.replaceChildren();
+  for(const choice of match.resonanceChoices()){
+    const button=element("button","defense-resonance-option");button.type="button";
+    const tone=DISCIPLINES[ABILITY_BY_ID[choice.spellId]?.discipline]?.color||"#8bd6dc";
+    button.style.setProperty("--resonance-tone",tone);
+    button.disabled=choice.tier>=3;
+    const tier=element("span","resonance-tier",
+      choice.tier?"CURRENT TIER "+choice.tier+" → "+choice.nextTier:"NEW RESONANCE · TIER 1");
+    const title=element("strong","",choice.name);
+    const spell=element("span","resonance-spell",ABILITY_BY_ID[choice.spellId]?.name||choice.spellId);
+    const info=element("span","resonance-description",choice.description);
+    const action=element("span","resonance-pick",choice.tier>=3?"MAXED OUT":
+      choice.tier?"UPGRADE RESONANCE →":"CHOOSE RESONANCE →");
+    button.append(tier,title,spell,info,action);
+    button.addEventListener("click",()=>{
+      if(!match||!match.chooseResonance(choice.id))return;
+      pendingCast=null;keys.clear();
+      host.dataset.wave="";
+      overlay.hidden=true;
+      flash(choice.name+" · TIER "+match.resonanceTier(choice.id)+"!");
+      renderUI();
+    });
+    host.append(button);
+  }
+}
 function renderUI(){
   if(!match)return;
   const p=match.player;
   $("match-clock").textContent=String(Math.floor(match.time/60)).padStart(2,"0")+":"+String(Math.floor(match.time%60)).padStart(2,"0");
-  $("dampening-label").textContent="DAMPENING "+Math.round(match.dampening*100)+"%";
+  $("dampening-label").textContent=match.modeId==="defense"
+    ?"WAVE "+match.wave+" / "+DEFENSE_WAVES+
+      " · "+(match.waveState==="intermission"?"RESONANCE":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED")
+    :"DAMPENING "+Math.round(match.dampening*100)+"%";
   $("flux-text").textContent=Math.floor(p.flux)+" / 100";
   $("flux-fill").style.width=clamp(p.flux,0,100)+"%";
   $("player-health").textContent="HP "+Math.ceil(p.hp)+" / "+p.maxHp;
@@ -299,6 +352,7 @@ function renderUI(){
   $("target-status").textContent=victim?.alive?(Math.round(victim.healthPct*100)+"% HP"):"";
   updateCastHUD();
   renderFrames();renderActionBar();
+  renderResonances();
   const feed=$("combat-feed");feed.replaceChildren();
   for(const note of match.notices.slice(0,5))feed.append(element("p","",note.text));
   const banner=$("combat-banner");
@@ -319,16 +373,17 @@ function frameLoop(now){
     let remaining=elapsed;
     while(remaining>.00001&&!match.ended){
       const step=Math.min(.05,remaining);
-      match.move(match.player,x,y,step);
+      if(match.waveState!=="intermission")match.move(match.player,x,y,step);
       if(x||y)coach?.onMove();
       match.update(step);
-      updateCastQueue();
+      if(match.waveState!=="intermission")updateCastQueue();
       remaining-=step;
     }
   }
   if(match.ended&&!awardedMatch){
     const previous=profile;
-    const enemyKills=match.actors.filter(a=>a.team==="enemy"&&!a.alive).length;
+    const enemyKills=match.modeId==="defense"?match.totalKills:
+      match.actors.filter(a=>a.team==="enemy"&&!a.alive).length;
     awardedMatch=awardMatch(profile,match.modeId,match.winner==="friendly",enemyKills);
     profile=awardedMatch.next;
     saveProgression(window.localStorage,profile);
@@ -337,7 +392,9 @@ function frameLoop(now){
     const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
     const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots
       .filter(s=>!beforeIds.has(s.id)).map(s=>ABILITY_BY_ID[s.id]?.name||s.id);
-    $("match-result-details").textContent="+"+earned+" XP · LEVEL "+after.level
+    $("match-result-details").textContent=
+      (match.modeId==="defense"?"WAVE "+match.wave+" / "+DEFENSE_WAVES+" · ":"")+
+      "+"+earned+" XP · LEVEL "+after.level
       +(levelUp?" · LEVEL UP!":"")
       +(unlocked.length?" · NEW: "+unlocked.join(", "):"")
       +" · +"+fragments+" ENERGY FRAGMENTS"
@@ -352,6 +409,11 @@ function frameLoop(now){
     feedback?.onEvent(event,match);
     combatUX?.onEvent(event,actionNodes,now);
     coach?.onEvent(event);
+    if(event.type==="wave-start"&&match.modeId==="defense"){
+      flash("WAVE "+event.wave+" · "+event.waveName);
+    }else if(event.type==="wave-clear"&&match.modeId==="defense"){
+      flash("WAVE "+event.wave+" CLEARED!");
+    }
     if(event.type==="synergy"&&event.actorId==="player"){
       flash("SINGULARITY · "+event.reaction.toUpperCase()+"!");
     }

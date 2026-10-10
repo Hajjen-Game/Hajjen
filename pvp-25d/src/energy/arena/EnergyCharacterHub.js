@@ -111,6 +111,11 @@ export class EnergyCharacterHub{
       this.renderForge();
     });
     $("hub-forge-confirm").addEventListener("click",()=>this.commitForge());
+    $("hub-origin-info-toggle").addEventListener("click",()=>{
+      const info=$("hub-origin-info");
+      info.hidden=!info.hidden;
+      $("hub-origin-info-toggle").setAttribute("aria-expanded",String(!info.hidden));
+    });
     $("hub-name-edit").addEventListener("click",()=>{
       if(!this.character)return;
       const name=window.prompt("Name your Energy orb",this.character.name);
@@ -176,7 +181,12 @@ export class EnergyCharacterHub{
     const identity=energyIdentity(build,progress.level);
     this.preview?.update(build,progress.level);
     $("hub-character-name").textContent=this.character.name;
-    $("hub-role").textContent=ROLES[build.role].name.toUpperCase()+" · ENERGY ORIGIN";
+    const origin=ROLES[build.role];
+    $("hub-role").textContent=origin.name.toUpperCase()+" · ENERGY ORIGIN";
+    $("hub-origin-info-description").textContent=origin.description+" "+origin.playstyle;
+    $("hub-origin-info-spells").textContent="STARTING SPELLS · "+origin.locked
+      .map(id=>ABILITY_BY_ID[id]?.name||id).join(" + ");
+    $("hub-origin-info-passive").textContent="PASSIVE · "+origin.passive;
     $("hub-level").textContent="LEVEL "+progress.level;
     const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
     $("hub-level-subtitle").textContent=progress.slots+" OF 10 SPELLS UNLOCKED"+

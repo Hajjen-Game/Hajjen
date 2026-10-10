@@ -108,7 +108,7 @@
             <div><strong>ORIGIN PASSIVE</strong><p id="origin-selected-passive"></p></div>
           </div>
         </section>
-        <p class="origin-choice-footnote">Your Origin cannot be changed on this character. You can still equip shared spells from every energy discipline and experiment with any Evolution or Singularity.</p>
+        <p class="origin-choice-footnote">Your Origin determines your two permanent spells. You can still equip shared spells from every energy discipline and experiment with any Evolution or Singularity.</p>
         <button type="button" id="create-character" class="hub-primary">CREATE CHARACTER →</button>
         <p id="create-character-error" role="alert" class="hub-error"></p>
       </div>
@@ -119,6 +119,12 @@
             <p class="eyebrow">YOUR ENERGY CHAMPION</p>
             <h2 id="hub-character-name">MY ORB</h2>
             <p id="hub-role" class="hub-subtitle">ECLIPSE · ENERGY ORIGIN</p>
+            <button type="button" id="hub-origin-info-toggle" class="hub-origin-info-toggle" aria-expanded="false" aria-controls="hub-origin-info">ⓘ ABOUT MY ORIGIN</button>
+            <div id="hub-origin-info" class="hub-origin-info" hidden>
+              <p id="hub-origin-info-description"></p>
+              <p id="hub-origin-info-spells"></p>
+              <p id="hub-origin-info-passive"></p>
+            </div>
           </div>
           <div class="hub-overview-progress">
             <strong id="hub-level" class="hub-level">LEVEL 1</strong>

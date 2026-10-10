@@ -189,7 +189,7 @@ export class EnergyCharacterHub{
     $("hub-origin-info-passive").textContent="PASSIVE · "+origin.passive;
     $("hub-level").textContent="LEVEL "+progress.level;
     const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
-    $("hub-level-subtitle").textContent=progress.slots+" OF 10 SPELLS UNLOCKED"+
+    $("hub-level-subtitle").textContent=progress.slots+"/10"+
       (nextSlotLevel?" · NEXT SPELL LVL "+nextSlotLevel:" · FULL LOADOUT");
     $("hub-xp").textContent=progress.maxLevel?"MAX LEVEL":
       progress.xp+" XP · "+progress.remaining+" TO NEXT LEVEL";
@@ -378,25 +378,23 @@ export class EnergyCharacterHub{
     this.persist();this.draw();
   }
 
-  // The map always contains 18 nodes: both role-specific spells and all 16
-  // shared spells. Ten are in the (possibly level-gated) loadout, eight in pool.
+  // Only level-unlocked spells belong to the bright inner orbit.
+  // The full-level fallback must never look like ten chosen spells at level 2.
   treeSnapshot(){
     const build=this.store.draft;
     const level=progressDetails(this.getProgression()).level;
-    const planned=stagedLoadout(build,30).abilitySlots;
     const unlocked=stagedLoadout(build,level).abilitySlots;
-    const plannedIds=new Set(planned.map(slot=>slot.id));
+    const planned=unlocked;
+    const plannedIds=new Set(unlocked.map(slot=>slot.id));
     const activeById=new Map(unlocked.map(slot=>[slot.id,slot]));
     const roleBound=new Set(ROLES[build.role].locked);
     const compatible=classCompatibleSpells(build.role);
-    const pool=compatible.filter(spell=>!plannedIds.has(spell.id));
-    // The same discipline ordering groups related spell paths together
-    // without discarding the player's actual chosen abilities.
     const byDiscipline=(a,b)=>ELEMENT_ORDER.indexOf(a.discipline)-
       ELEMENT_ORDER.indexOf(b.discipline)||a.name.localeCompare(b.name);
-    const inner=planned.map(slot=>ABILITY_BY_ID[slot.id]).sort(byDiscipline);
+    const pool=compatible.filter(spell=>!plannedIds.has(spell.id)).sort(byDiscipline);
+    const inner=unlocked.map(slot=>ABILITY_BY_ID[slot.id]).sort(byDiscipline);
     return {build,level,planned,unlocked,plannedIds,activeById,
-      roleBound,pool:pool.sort(byDiscipline),inner,compatible};
+      roleBound,pool,inner,compatible};
   }
   renderTree(){
     const state=this.treeSnapshot();
@@ -404,7 +402,8 @@ export class EnergyCharacterHub{
     const used=spentTalentPoints(state.build);
     $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
     $("hub-evolution-count").textContent=activeEvolutionCount(state.build)+" / 10 CHOSEN";
-    $("hub-spellbook-count").textContent=state.planned.length+" / 10 IN BUILD";
+    $("hub-spellbook-count").textContent=state.unlocked.length+"/10";
+    $("hub-map-caption").textContent=state.unlocked.length+"/10 · "+state.pool.length+" MORE SPELLS TO EXPLORE";
     if(!this.selectedAbility||!state.compatible.some(spell=>spell.id===this.selectedAbility)){
       this.selectedAbility=state.inner[0]?.id||null;
     }
@@ -432,7 +431,7 @@ export class EnergyCharacterHub{
       const rank=state.activeById.get(ability.id)?.talentRank||0;
       const evolved=Boolean(state.build.evolutions[ability.id]);
       const bound=state.roleBound.has(ability.id);
-      const btn=button("","hub-spell-node"+(inBuild?" unlocked":" in-pool")+
+      const btn=button("","hub-spell-node"+(inBuild?" unlocked equipped-now":" in-pool")+
         (this.selectedAbility===ability.id?" selected":"")+
         (!unlocked&&inBuild?" level-gated":"")+(evolved?" evolved":""),()=>this.selectSpell(ability.id));
       btn.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
@@ -442,8 +441,8 @@ export class EnergyCharacterHub{
       label.append(el("strong","hub-spell-name",ability.name),
         el("small","hub-spell-category",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
         el("span","hub-spell-level",bound?"ORIGIN SPELL · "+(unlocked?"RANK "+rank:"LOCKED BY LEVEL"):
-          !inBuild?"IN AVAILABLE POOL":unlocked?"RANK "+rank+"/3":"UNLOCKS AS YOU LEVEL"));
-      const stateGlyph=bound?"♙":!inBuild?"＋":evolved?"✦":unlocked?"✓":"◇";
+          !inBuild?"AVAILABLE IN POOL":"RANK "+rank+"/3"));
+      const stateGlyph=bound?"♙":!inBuild?"＋":evolved?"✦":"✓";
       btn.append(el("span","hub-spell-symbol",glyphs[ability.discipline]),label,
         el("span","hub-spell-state",stateGlyph));
       btn.addEventListener("mouseenter",event=>this.showTooltip(ability,event,inBuild));
@@ -471,14 +470,14 @@ export class EnergyCharacterHub{
       holder.append(node);
     };
     for(const [index,ability] of state.inner.entries()){
-      const angle=-Math.PI/2+index*TAU/10;
+      const angle=-Math.PI/2+index*TAU/Math.max(1,state.inner.length);
       const p=orbitPos(angle,283);
       const tone=DISCIPLINES[ability.discipline].color;
       const unlocked=state.activeById.has(ability.id);
       const selected=this.selectedAbility===ability.id;
       addLine(orbitPos(angle,205),p,"hub-orbit-link"+(selected?" selected":""),tone);
-      const node=button("","hub-orbit-spell active"+(selected?" selected":"")+
-        (!unlocked?" future":"")+(state.roleBound.has(ability.id)?" class-bound":""),()=>this.selectSpell(ability.id));
+      const node=button("","hub-orbit-spell active equipped-now"+(selected?" selected":"")+
+        (state.roleBound.has(ability.id)?" class-bound":""),()=>this.selectSpell(ability.id));
       node.style.setProperty("--node-tone",tone);
       node.setAttribute("aria-label",ability.name+" (in build)"+(state.roleBound.has(ability.id)?" class-bound":""));
       node.setAttribute("aria-pressed",String(selected));
@@ -490,11 +489,11 @@ export class EnergyCharacterHub{
       node.addEventListener("mousemove",event=>this.moveTooltip(event));
       node.addEventListener("mouseleave",()=>this.hideTooltip());
       place(node,p);
-      this.renderEvolutionSatellites({ability,angle,origin:p,dist:344,
+      this.renderEvolutionSatellites({ability,angle,origin:p,dist:369,
         visible:true,selected,state,place,addLine});
     }
     for(const [index,ability] of state.pool.entries()){
-      const angle=-Math.PI/2+TAU/16+index*TAU/8;
+      const angle=-Math.PI/2+TAU/(Math.max(1,state.pool.length)*2)+index*TAU/Math.max(1,state.pool.length);
       const p=orbitPos(angle,425),tone=DISCIPLINES[ability.discipline].color;
       const selected=this.selectedAbility===ability.id;
       addLine(orbitPos(angle,389),p,"hub-orbit-link pool"+(selected?" selected":""),tone);
@@ -512,7 +511,7 @@ export class EnergyCharacterHub{
       // To keep all eighteen main spell names readable, show the three
       // outer-pool Evolution subnodes when that spell is selected. Their
       // names/descriptions are always accessible in the right detail panel.
-      if(selected)this.renderEvolutionSatellites({ability,angle,origin:p,dist:356,
+      if(selected)this.renderEvolutionSatellites({ability,angle,origin:p,dist:351,
         visible:true,selected,state,place,addLine,pool:true});
     }
     // Put the active spell/evolution above the decorative connecting lines.
@@ -521,7 +520,7 @@ export class EnergyCharacterHub{
     const rank=state.activeById.get(ability.id)?.talentRank||0;
     const chosenId=state.build.evolutions[ability.id]||null;
     for(const [i,ev] of ability.evolutions.entries()){
-      const branchAngle=angle+(i-1)*.112;
+      const branchAngle=angle+(i-1)*.143;
       const p=orbitPos(branchAngle,dist);
       const chosen=chosenId===ev.id;
       const tone=DISCIPLINES[ability.discipline].color;
@@ -574,7 +573,7 @@ export class EnergyCharacterHub{
     const inBuild=state.plannedIds.has(ability.id);
     const bound=state.roleBound.has(ability.id);
     const unlocked=state.activeById.has(ability.id);
-    const availableTP=talentPointsForLevel(state.level)-spentTalentPoints(build);
+    const availableTP=Math.max(0,talentPointsForLevel(state.level)-spentTalentPoints(build));
     const selectedEvolution=build.evolutions[ability.id]||null;
     $("hub-detail-status").textContent=bound?"ORIGIN-BOUND":inBuild?"IN BUILD":"AVAILABLE POOL";
     const spell=$("hub-detail-spell");spell.replaceChildren();
@@ -636,18 +635,21 @@ export class EnergyCharacterHub{
   pickEvolution(id,evolutionId){
     this.mutate(()=>chooseEvolution(this.store.draft,id,evolutionId));
   }
-  // Swapping always uses the complete eight-slot shared loadout, including
-  // auto-filled early-game choices, so the chosen slot is replaced exactly.
+  // Swapping only uses unlocked spells; future choices stay stored, not equipped.
   // No role spell can be swapped out. The old spell's talents/evolution are
   // automatically refunded by equipAbility; saved presets remain untouched.
   replaceSharedSpell(oldId,newId){
     const build=this.store.draft;
     const locked=new Set(ROLES[build.role].locked);
     if(locked.has(oldId)||locked.has(newId))throw Error("Origin spells cannot be swapped.");
-    const shared=stagedLoadout(build,30).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
+    const level=progressDetails(this.getProgression()).level;
+    const active=stagedLoadout(build,level).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
+    if(!active.includes(oldId)||active.includes(newId))
+      throw Error("Choose an unlocked shared spell and an available replacement.");
+    const saved=build.freeSlots.filter(Boolean);
+    const shared=[...active,...saved.filter(id=>!active.includes(id)&&id!==newId)].slice(0,8);
     const index=shared.indexOf(oldId);
-    if(index<0||shared.includes(newId))throw Error("Choose a valid shared spell to replace.");
-    const hydrated={...build,freeSlots:shared};
+    const hydrated={...build,freeSlots:[...shared,...Array(8-shared.length).fill(null)]};
     return equipAbility(hydrated,index,newId);
   }
   renderLibrary(state=this.treeSnapshot()){
@@ -668,7 +670,7 @@ export class EnergyCharacterHub{
     const select=el("select","hub-swap-slot");
     const description=el("p","",
       inBuild?"Choose another spell from the pool to replace "+ABILITY_BY_ID[id].name+".":
-      "Choose which of your eight shared spells to replace with "+ABILITY_BY_ID[id].name+".");
+      "Choose an unlocked shared spell to replace with "+ABILITY_BY_ID[id].name+".");
     if(inBuild){
       for(const ability of state.pool){
         const opt=el("option","",ability.name+" · "+DISCIPLINES[ability.discipline].name);
@@ -676,7 +678,7 @@ export class EnergyCharacterHub{
       }
       select.setAttribute("aria-label","New spell from available pool");
     }else{
-      const current=state.planned.filter(slot=>!state.roleBound.has(slot.id));
+      const current=state.unlocked.filter(slot=>!state.roleBound.has(slot.id));
       for(const slot of current){
         const ability=ABILITY_BY_ID[slot.id];
         const opt=el("option","",ability.name+" · current build");
@@ -703,13 +705,15 @@ export class EnergyCharacterHub{
     }
     this.mutate(()=>{
       let build=this.store.draft;
-      // Convert auto-filled choices into eight explicit slots before
-      // modifying talent ranks, preserving the exact current build.
+      // Persist unlocked picks without filling every future ability slot.
       if(delta>0&&!allEquippedIds(build).includes(id)){
         const locked=new Set(ROLES[build.role].locked);
-        const shared=stagedLoadout(build,30).abilitySlots.map(s=>s.id).filter(spell=>!locked.has(spell));
-        if(!shared.includes(id))throw Error("Equip this spell before spending Talent Points.");
-        build={...build,freeSlots:shared};
+        const unlocked=stagedLoadout(build,level).abilitySlots.map(s=>s.id)
+          .filter(spell=>!locked.has(spell));
+        if(!unlocked.includes(id))throw Error("Unlock this spell before spending Talent Points.");
+        const saved=build.freeSlots.filter(Boolean);
+        const explicit=[...unlocked,...saved.filter(spell=>!unlocked.includes(spell))].slice(0,8);
+        build={...build,freeSlots:[...explicit,...Array(8-explicit.length).fill(null)]};
       }
       return adjustTalent(build,id,delta);
     });

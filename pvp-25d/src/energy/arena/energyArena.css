@@ -1403,3 +1403,47 @@ h2{font-size:23px}
 /* V40: surface the same HP / damage / heal / crit progression used in combat. */
 .hub-combat-stats{margin:6px 0 0;font-size:10px;line-height:1.4;
   letter-spacing:.05em;font-weight:750;color:#a9d7ec}
+
+
+/* PLANET DEFENSE v1 — readable wave choices without replacing the combat HUD. */
+.menu-mode.planet-defense-mode{grid-column:1 / -1;border-color:#65877e;
+  background:linear-gradient(105deg,#173b3e,#1a283e 80%);box-shadow:inset 0 0 21px #53c8b619}
+.menu-mode.planet-defense-mode:hover,.menu-mode.planet-defense-mode:focus-visible{
+  border-color:#91ddc7;box-shadow:0 0 22px #5bdec944,inset 0 0 18px #4bd2c625}
+.defense-resonance-overlay[hidden]{display:none!important}
+.defense-resonance-overlay{position:absolute;z-index:35;inset:0;display:flex;
+  flex-direction:column;justify-content:center;align-items:center;gap:14px;
+  background:radial-gradient(ellipse at center,#13283af8,#07101bf9 85%);
+  padding:clamp(14px,3vw,42px);overflow:auto;color:#dfedfa;
+  backdrop-filter:blur(10px);text-align:center}
+.defense-resonance-header{display:flex;flex-direction:column;align-items:center;gap:6px}
+.defense-overline{font-size:10px;letter-spacing:.24em;font-weight:800;color:#94ddcb}
+.defense-resonance-header h2{margin:0;color:#fceac4;font-size:clamp(18px,2.1vw,28px);
+  letter-spacing:.05em;text-shadow:0 0 20px #eabf7440}
+.defense-resonance-header p{margin:0;color:#afcbd9;font-size:12px}
+.defense-resonance-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;width:100%;max-width:940px}
+.defense-resonance-option{--resonance-tone:#82c9ee;display:flex;flex-direction:column;
+  align-items:flex-start;gap:10px;min-height:180px;padding:20px 16px;text-align:left;
+  border:1px solid color-mix(in srgb,var(--resonance-tone) 54%,#29455f);
+  border-radius:12px;color:#edf5ff;cursor:pointer;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--resonance-tone) 15%,#14253a),#0a1627);
+  transition:transform .15s,border-color .15s,box-shadow .15s}
+.defense-resonance-option:hover,.defense-resonance-option:focus-visible{
+  transform:translateY(-3px);border-color:var(--resonance-tone);
+  box-shadow:0 0 24px color-mix(in srgb,var(--resonance-tone) 28%,transparent);
+  outline:none}
+.defense-resonance-option:disabled{opacity:.36;cursor:default;transform:none}
+.defense-resonance-option .resonance-tier{font-size:10px;letter-spacing:.13em;
+  font-weight:850;color:var(--resonance-tone)}
+.defense-resonance-option strong{font-size:15px;letter-spacing:.04em}
+.defense-resonance-option .resonance-spell{color:#8cb4c9;font-size:10px;font-weight:750}
+.defense-resonance-option .resonance-description{color:#c4d5e5;line-height:1.5;font-size:12px}
+.defense-resonance-option .resonance-pick{margin-top:auto;font-size:10px;
+  font-weight:900;color:var(--resonance-tone);letter-spacing:.15em}
+.defense-resonance-footnote{max-width:590px;font-size:10px;color:#8eaabc;line-height:1.5}
+@media(max-width:750px){
+ .defense-resonance-options{grid-template-columns:1fr;max-width:520px}
+ .defense-resonance-overlay{justify-content:flex-start}
+ .defense-resonance-option{min-height:0;padding:12px}
+}

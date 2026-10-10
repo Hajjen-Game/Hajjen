@@ -88,7 +88,8 @@ const PAGES=[
     steps:[
       ["LEVEL UP","Your ten ability slots unlock gradually until level 28."],
       ["TRY BUILDS","Save up to three named presets in the HUB and load them later."],
-      ["RETURN","Use Main Menu to choose another mode or open this guide again."]
+      ["MORE ORIGINS","Create and choose additional Origins from Main Menu. Each has its own level, builds and Singularity."],
+      ["RETURN","Use Main Menu to switch Origins or choose another mode."]
     ],tip:"There is no need to make the perfect build on your first match.",
     art:"progress",caption:"Level, build and experience are part of the same journey."
   }

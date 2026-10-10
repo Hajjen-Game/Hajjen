@@ -1227,3 +1227,55 @@ h2{font-size:23px}
   background:linear-gradient(#1c3450,#111b30);box-shadow:inset 0 0 0 1px #92d6ff26,0 0 25px #68bdff1a}
 .character-role[data-create-role="melee"].selected::after{color:#f6bac0}
 .character-role[data-create-role="caster"].selected::after{color:#b3e1ff}
+
+
+/* V36: earned spells are the focus; unearned spells remain quiet in the pool.
+   Selection (inspector focus) is different from ownership (bright gold halo). */
+.hub-radial-layout .hub-spell-node.equipped-now{
+  background:linear-gradient(105deg,
+    color-mix(in srgb,var(--spell-tone) 20%,#172e42),#101f32 79%);
+  border:1px solid color-mix(in srgb,var(--spell-tone) 66%,#415770);
+  border-left:4px solid var(--spell-tone);
+  box-shadow:inset 0 0 12px color-mix(in srgb,var(--spell-tone) 11%,transparent),
+    0 0 14px color-mix(in srgb,var(--spell-tone) 17%,transparent)}
+.hub-radial-layout .hub-spell-node.equipped-now .hub-spell-name{color:#fff7e4}
+.hub-radial-layout .hub-spell-node.equipped-now .hub-spell-state{
+  color:#fae2a2;border-color:#dcb97a;background:#443724;
+  box-shadow:0 0 9px #eec27750}
+.hub-radial-layout .hub-spell-node.equipped-now.selected{
+  border-color:#ffe2a4;border-left-color:var(--spell-tone);
+  box-shadow:0 0 19px color-mix(in srgb,var(--spell-tone) 36%,transparent),
+    inset 0 0 14px #fac77e18}
+.hub-radial-layout .hub-spell-node.in-pool:not(.selected){opacity:.58;filter:saturate(.7)}
+.hub-radial-layout .hub-spell-node.in-pool .hub-spell-state{
+  border-color:#456b81;color:#7aa6bb;background:#13253c;box-shadow:none}
+.hub-radial-layout .hub-spell-node.in-pool.selected{
+  border:1px solid #73a9cf;box-shadow:0 0 11px #6cbef32b}
+.hub-orbit-spell.equipped-now .hub-orbit-icon{
+  border:3px solid var(--node-tone);
+  outline:2px solid #ffdc89;
+  outline-offset:3px;
+  box-shadow:0 0 0 6px color-mix(in srgb,var(--node-tone) 16%,transparent),
+    0 0 21px color-mix(in srgb,var(--node-tone) 72%,transparent),
+    0 0 34px #e9b96952,
+    inset 0 0 18px color-mix(in srgb,var(--node-tone) 34%,transparent)}
+.hub-orbit-spell.equipped-now .hub-orbit-name{
+  color:#ffe6aa;text-shadow:0 0 7px #edb65665,0 2px 3px #020710;
+  font-weight:900}
+.hub-orbit-spell.equipped-now.selected .hub-orbit-icon{
+  outline:3px solid #fff2b9;outline-offset:6px;
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--node-tone) 27%,transparent),
+    0 0 28px var(--node-tone),0 0 46px #efc77a99}
+.hub-orbit-spell.pool:not(.selected) .hub-orbit-icon{opacity:.53;filter:saturate(.65)}
+.hub-orbit-spell.pool:not(.selected) .hub-orbit-name{opacity:.85}
+.hub-orbit-spell.pool.selected .hub-orbit-icon{
+  outline-color:#8bccff;box-shadow:0 0 20px #78c7ef70}
+.hub-orbit-link:not(.pool){stroke-width:3.8;opacity:.8;
+  filter:drop-shadow(0 0 7px #8bd5ea44)}
+.hub-orbit-link.selected:not(.pool){stroke-width:4.8;opacity:1}
+.hub-orbit-branch:not(.pool){stroke-width:1.8;opacity:.8}
+.hub-orbit-evolution:not(.pool){width:24px;height:24px}
+.hub-orbit-evolution.unmastered:not(.pool){opacity:.64}
+@media(prefers-reduced-motion:reduce){
+ .hub-orbit-spell .hub-orbit-icon{transition:none}
+}

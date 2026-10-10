@@ -34,6 +34,9 @@ if(original){
   saveCharacter(window.localStorage,original.character);
   writeBuildStorage(window.localStorage,store);
   saveProgression(window.localStorage,profile);
+  // Persist the one-time level-10 starter grant to this Origin immediately.
+  // Otherwise a refresh before the next match could grant it twice.
+  roster=snapshotActiveOrigin(roster,original.character,store,profile);
 }
 persistOriginRoster(window.localStorage,roster);
 let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";

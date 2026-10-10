@@ -1,7 +1,7 @@
 // Standalone Energy Combat prototype: never imports arena3v3 combat.
 // Rules intentionally limited to a first-playable balance baseline.
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js?v=20261010-origins35";
-import { buildCombatLoadout } from "../buildState.js";
+import { buildCombatLoadout } from "../buildState.js?v=20261010-origins35";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
 import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261010-origins35";
 import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261010-origins35";

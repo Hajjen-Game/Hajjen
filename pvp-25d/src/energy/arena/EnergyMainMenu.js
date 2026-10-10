@@ -172,13 +172,17 @@ function artMarkup(name){
   }
 }
 export class EnergyMainMenu{
-  constructor({openHub,startMatch,changeMode,getCharacter,hideHub,onMenuFromCombat}){
+  constructor({openHub,startMatch,changeMode,getCharacter,hideHub,onMenuFromCombat,
+    getOrigins,selectOrigin,createOrigin,getOriginLevel}){
     this.openHub=openHub;this.startMatch=startMatch;
     this.changeMode=changeMode;this.getCharacter=getCharacter;
     this.hideHub=hideHub;this.onMenuFromCombat=onMenuFromCombat;
+    this.getOrigins=getOrigins;this.selectOrigin=selectOrigin;
+    this.createOrigin=createOrigin;this.getOriginLevel=getOriginLevel;
     this.page=0;this.previousFocus=null;
     $("menu-play").addEventListener("click",()=>this.openPlay());
     $("menu-hub").addEventListener("click",()=>this.enterHub());
+    $("menu-new-origin").addEventListener("click",()=>this.createOrigin());
     $("menu-about").addEventListener("click",()=>this.openGuide());
     $("main-menu-open").addEventListener("click",()=>this.onMenuFromCombat());
     for(const node of document.querySelectorAll("[data-menu-mode]")){
@@ -208,6 +212,42 @@ export class EnergyMainMenu{
     this.hideHub();
     $("main-menu").hidden=false;
     $("menu-mode-options").hidden=true;
+    this.renderOrigins();
+  }
+  renderOrigins(){
+    const {characters,activeId}=this.getOrigins();
+    const host=$("menu-origin-list");host.replaceChildren();
+    $("menu-origin-count").textContent=characters.length+" CREATED";
+    for(const entry of characters){
+      const isActive=entry.id===activeId;
+      const row=document.createElement("button");row.type="button";
+      row.className="menu-origin-item"+(isActive?" active":"");
+      row.setAttribute("aria-pressed",String(isActive));
+      row.setAttribute("aria-label","Select "+entry.character.name+" ("+entry.character.origin+")");
+      row.addEventListener("click",()=>{
+        if(!isActive)this.selectOrigin(entry.id);
+        this.renderOrigins();
+      });
+      const emblem=document.createElement("span");emblem.className="menu-origin-emblem";
+      emblem.textContent=entry.character.origin==="Genesis"?"✧":
+        entry.character.origin==="Impact"?"⌁":"❖";
+      emblem.style.setProperty("--origin-color",entry.character.color);
+      const meta=document.createElement("span");meta.className="menu-origin-meta";
+      const name=document.createElement("strong");name.textContent=entry.character.name;
+      const subtitle=document.createElement("small");
+      subtitle.textContent=entry.character.origin+" · LEVEL "+this.getOriginLevel(entry);
+      meta.append(name,subtitle);
+      const state=document.createElement("span");
+      state.className="menu-origin-state";state.textContent=isActive?"ACTIVE ✓":"SELECT →";
+      row.append(emblem,meta,state);host.append(row);
+    }
+    if(!characters.length){
+      const empty=document.createElement("p");empty.className="menu-origin-empty";
+      empty.textContent="No Origins created. Create your first to begin.";
+      host.append(empty);
+    }
+    $("menu-play").disabled=!characters.length;
+    $("menu-hub").disabled=!characters.length;
   }
   openPlay(){
     this.open();

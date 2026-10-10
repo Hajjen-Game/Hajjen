@@ -3,8 +3,9 @@
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js";
 import { buildCombatLoadout } from "../buildState.js";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
-import { MODES, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261009-character-hub27";
-import { energyIdentity } from "./EnergyCharacter.js?v=20261009-character-hub27";
+import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261010-singularity34";
+import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261010-singularity34";
+import { energyIdentity } from "./EnergyCharacter.js?v=20261010-singularity34";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
 
 const TICK = 0.05;
@@ -82,7 +83,9 @@ export class EnergyMatch {
     // Independently balance each mode while keeping a full, editable Build Lab build.
     this.modeId=MODES[options.modeId]?options.modeId:"training";
     this.mode=MODES[this.modeId];
-    this.progressLevel=Math.max(1,Math.min(8,Math.floor(options.level||1)));
+    this.progressLevel=Math.max(1,Math.min(MAX_LEVEL,Math.floor(options.level||1)));
+    this.singularity=options.singularity||null;
+    this.singularityCharge=null;
     this.loadout=stagedLoadout(build,this.progressLevel);
     this.tuning=enemyTuning(this.modeId,this.progressLevel);
     this.arena=arena;
@@ -266,6 +269,44 @@ export class EnergyMatch {
       actor.cast={spellId,remainingMs:rule.cast*1000,totalMs:rule.cast*1000,targetId:target?.id||null};
     }else this.execute(actor,spellId,target?.id||null);
     return true;
+  }
+  handleSingularityCast(actor,spellId,target){
+    // Only a player's completed, valid cast can arm or fire the core.
+    // The two spells keep their normal effects and individual Evolutions.
+    const core=this.singularity;
+    if(actor!==this.player||!singularityAvailable(core,this.progressLevel,actor.abilities))return;
+    if(spellId===core.partner){
+      this.singularityCharge={expires:this.time+SYNERGY_WINDOW_SECONDS};
+      this.emit({type:"synergy-charge",actorId:actor.id,spellId,
+        reaction:core.reaction,duration:SYNERGY_WINDOW_SECONDS});
+      return;
+    }
+    if(spellId!==core.anchor||!this.singularityCharge)return;
+    const charge=this.singularityCharge;
+    this.singularityCharge=null;
+    if(this.time>charge.expires)return;
+    const tier=Math.max(0,Math.min(4,Math.floor(core.tier||0)));
+    const origin=target?.alive?target:actor;
+    if(core.reaction==="annihilation"){
+      // AoE is capped and respects LOS, so supportive and mobility anchors work.
+      const foes=this.opponents(actor).filter(t=>t.alive&&
+        distance(t,origin)<155&&hasLineOfSight(origin,t,this.arena));
+      for(const enemy of foes.slice(0,3))
+        this.damage(enemy,8+tier*3,actor,core.anchor);
+    }else if(core.reaction==="distortion"){
+      const foes=this.opponents(actor).filter(t=>t.alive&&
+        distance(t,origin)<165&&hasLineOfSight(origin,t,this.arena));
+      for(const enemy of foes.slice(0,3))
+        this.addStatus(enemy,{kind:"slow",negative:true,remaining:1.4+tier*.3,sourceId:actor.id});
+    }else if(core.reaction==="resonance"){
+      const ally=target?.team===actor.team&&target.alive?target:actor;
+      ally.shield=Math.min(ally.maxHp*.4,ally.shield+10+tier*4);
+      this.addStatus(ally,{kind:"shield",remaining:3.5,sourceId:actor.id});
+      actor.flux=clamp(actor.flux+7+tier*2,0,MAX_FLUX);
+    }
+    this.emit({type:"synergy",actorId:actor.id,targetId:origin?.id||actor.id,
+      spellId:core.anchor,reaction:core.reaction,tier});
+    this.log("SINGULARITY · "+core.reaction.toUpperCase()+"!");
   }
   heal(target,amount,source,spellId){
     if(!target?.alive)return;
@@ -462,6 +503,7 @@ export class EnergyMatch {
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NOTHING TO CLEANSE"});
       if(actor.evolutions[spellId]==="purifying-surge"&&bad)this.heal(target,10,actor,spellId);
     }
+    this.handleSingularityCast(actor,spellId,target);
     this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
   }
   updateStatus(actor,dt) {

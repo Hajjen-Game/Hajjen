@@ -71,7 +71,7 @@ export function canStand(x,y,arena,radius=21) {
   return !(arena.obstacles||[]).some(o=>x>o.x-radius&&x<o.x+o.w+radius&&y>o.y-radius&&y<o.y+o.h+radius);
 }
 
-function actorFor(id,team,role,pos,control,abilities,evolutions={},talentRanks={},level=1) {
+export function actorFor(id,team,role,pos,control,abilities,evolutions={},talentRanks={},level=1) {
   return {
     id,team,role,control, classId:"energy-"+role,
     name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+(ROLES[role]?.name||role).toUpperCase(),
@@ -152,6 +152,7 @@ export class EnergyMatch {
   opponents(actor){return this.living(actor.team==="friendly"?"enemy":"friendly");}
   allies(actor){return this.living(actor.team);}
   get dampening(){
+    if(this.modeId==="defense")return 0; // PvE survival is not a dampening arena.
     return this.time<45?0:clamp(0.1+Math.floor((this.time-45)/10)*0.02,0,1);
   }
   log(text){this.notices.unshift({time:this.time,text});if(this.notices.length>7)this.notices.length=7;}
@@ -583,9 +584,12 @@ export class EnergyMatch {
       }
       if(actor.control==="ai")this.ai.updateActor(actor,dt);
     }
-    if(!this.living("friendly").length||!this.living("enemy").length||this.time>=240){
+    if(!this.living("friendly").length||
+      (this.modeId!=="defense"&&!this.living("enemy").length)||
+      this.time>=(this.modeId==="defense"?900:240)){
       this.ended=true;
-      this.winner=this.living("friendly").reduce((n,a)=>n+a.hp,0)>=this.living("enemy").reduce((n,a)=>n+a.hp,0)?"friendly":"enemy";
+      this.winner=this.modeId==="defense"?"enemy":
+        this.living("friendly").reduce((n,a)=>n+a.hp,0)>=this.living("enemy").reduce((n,a)=>n+a.hp,0)?"friendly":"enemy";
       this.log((this.winner==="friendly"?"VICTORY":"DEFEAT")+" · ENERGY ARENA");
       this.emit({type:"end",winner:this.winner});
     }

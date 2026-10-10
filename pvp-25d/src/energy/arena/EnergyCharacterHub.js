@@ -8,7 +8,7 @@ import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } fr
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261010-singularity34";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261009-orbit-tree32";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261010-singularity34";
 
 const $=id=>document.getElementById(id);
 const el=(tag,cls,text)=>{

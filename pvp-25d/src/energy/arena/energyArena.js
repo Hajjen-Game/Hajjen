@@ -329,6 +329,7 @@ function frameLoop(now){
     awardedMatch=awardMatch(profile,match.modeId,match.winner==="friendly",enemyKills);
     profile=awardedMatch.next;
     saveProgression(window.localStorage,profile);
+    saveActiveOrigin();
     const {earned,after,levelUp,before,fragments,matter}=awardedMatch;
     const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
     const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots

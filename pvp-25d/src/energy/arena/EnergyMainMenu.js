@@ -38,7 +38,7 @@ const PAGES=[
     steps:[
       ["TALENT POINTS","Earn points as you level up, then spend them on spell ranks."],
       ["EVOLUTION","Pick the change you like: more power, new utility or a different effect."],
-      ["MAX LEVEL","At level 8 you can earn 30 points: enough to max all ten spells."]
+      ["MAX LEVEL","At level 30 you earn 30 points: enough to max all ten spells."]
     ],tip:"Evolution choices can be changed; try different combinations.",
     art:"talents",caption:"Master a spell first. Then select one of three branching Evolutions."
   },
@@ -76,7 +76,7 @@ const PAGES=[
     title:"KEEP EXPERIMENTING",chapter:"08 / YOUR NEXT STEPS",
     intro:"Winning and losing both award XP. More levels unlock more spells and Talent Points.",
     steps:[
-      ["LEVEL UP","Your ten ability slots unlock gradually until level 8."],
+      ["LEVEL UP","Your ten ability slots unlock gradually until level 28."],
       ["TRY BUILDS","Save up to three named presets in the HUB and load them later."],
       ["RETURN","Use Main Menu to choose another mode or open this guide again."]
     ],tip:"There is no need to make the perfect build on your first match.",
@@ -146,7 +146,7 @@ function artMarkup(name){
       </div>`;
     default:return `
       <div class="book-progress-art">
-        <span>LEVEL 1</span><div class="book-progress-line"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>LEVEL 8</span>
+        <span>LEVEL 1</span><div class="book-progress-line"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>LEVEL 30</span>
         <strong>30 TALENT POINTS</strong><small>10 MASTERED SPELLS</small>
         <div class="book-presets-art"><span>BUILD 1</span><span>BUILD 2</span><span>BUILD 3</span></div>
       </div>`;

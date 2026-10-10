@@ -1,15 +1,15 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
 import { readBuildStorage } from "../buildState.js?v=20261009-orbit-tree31";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261009-orbit-tree31";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261009-character-hub27";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261010-singularity34";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-hub-orbit29";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261009-player-only21";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
-import { MODES, readProgression, saveProgression, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261009-orbit-tree31";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261009-menu-codex33";
+import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261010-singularity34";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-singularity34";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261009-menu-codex33";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
@@ -18,6 +18,8 @@ const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
 const glyph={void:"◈",solar:"✦",cryo:"❄",kinetic:"ϟ",vital:"✧"};
 const store=readBuildStorage(window.localStorage);
 let profile=readProgression(window.localStorage);
+const claimed=ensureStarterMatter(profile);
+if(claimed!==profile){profile=claimed;saveProgression(window.localStorage,profile);}
 let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
 let awardedMatch=null;
 let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,hub=null,menu=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
@@ -59,7 +61,7 @@ function start(build){
     completeArenaBuild(build); // An incomplete draft can start with a temporary starter kit.
     selectedBuild=build;
     const state=progressDetails(profile);
-    match=new EnergyMatch(build,arena,{modeId:selectedMode,level:state.level});
+    match=new EnergyMatch(build,arena,{modeId:selectedMode,level:state.level,singularity:profile.singularity});
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
@@ -274,17 +276,21 @@ function frameLoop(now){
   }
   if(match.ended&&!awardedMatch){
     const previous=profile;
-    awardedMatch=awardMatch(profile,match.modeId,match.winner==="friendly");
+    const enemyKills=match.actors.filter(a=>a.team==="enemy"&&!a.alive).length;
+    awardedMatch=awardMatch(profile,match.modeId,match.winner==="friendly",enemyKills);
     profile=awardedMatch.next;
     saveProgression(window.localStorage,profile);
-    const {earned,after,levelUp,before}=awardedMatch;
+    const {earned,after,levelUp,before,fragments,matter}=awardedMatch;
     const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
     const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots
       .filter(s=>!beforeIds.has(s.id)).map(s=>ABILITY_BY_ID[s.id]?.name||s.id);
     $("match-result-details").textContent="+"+earned+" XP · LEVEL "+after.level
       +(levelUp?" · LEVEL UP!":"")
       +(unlocked.length?" · NEW: "+unlocked.join(", "):"")
-      +" · Choose CHANGE BUILD to switch mode";
+      +" · +"+fragments+" ENERGY FRAGMENTS"
+      +(matter?" · +"+matter+" BLACK HOLE MATTER":"")
+      +(levelUp&&after.level>=10&&before.level<10?" · SINGULARITY FORGE UNLOCKED!":"")
+      +" · Return to HUB to upgrade your planet";
     $("match-level").textContent="LEVEL "+after.level+" · "+after.slots+"/10 ABILITIES";
   }
   updateCastHUD(); // Cast bar updates every animation frame, not only HUD ticks.
@@ -293,6 +299,9 @@ function frameLoop(now){
     feedback?.onEvent(event,match);
     combatUX?.onEvent(event,actionNodes,now);
     coach?.onEvent(event);
+    if(event.type==="synergy"&&event.actorId==="player"){
+      flash("SINGULARITY · "+event.reaction.toUpperCase()+"!");
+    }
     if(event.type==="hit"&&event.amount>0){
       const attacker=match.getActor(event.actorId),victim=match.getActor(event.targetId);
       if(attacker?.id==="player")match.log((ABILITY_BY_ID[event.spellId]?.name||"Attack")+" → "+(victim?.name||"target")+" −"+event.amount);
@@ -362,6 +371,7 @@ const changeMode=id=>{
 hub=new EnergyCharacterHub({
   storage:window.localStorage,buildStore:store,
   getProgression:()=>profile,
+  changeProgression:next=>{profile=next;saveProgression(window.localStorage,profile);},
   openMainMenu:()=>menu.open(),
   openPlayMenu:()=>menu.openPlay(),
 });

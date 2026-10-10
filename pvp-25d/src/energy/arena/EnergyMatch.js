@@ -9,7 +9,7 @@ import { energyIdentity } from "./EnergyCharacter.js?v=20261010-origins35";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261009-learning-path26";
 import { BASE_HEALTH, BASE_CRIT_CHANCE, CRIT_MULTIPLIER, maxHealthForLevel,
   powerForLevel, damageMultiplier, healMultiplier, shieldMultiplier,
-  rankedRule, successfulInterruptFlux, normalizedRank }
+  rankedRule, successfulInterruptFlux }
   from "./EnergySpellBalance.js?v=20261010-balanced-ranks40";
 import { EnergyMarbleBagPool } from "./EnergyMarbleBag.js?v=20261010-balanced-ranks40";
 
@@ -321,7 +321,8 @@ export class EnergyMatch {
         this.addStatus(enemy,{kind:"slow",negative:true,remaining:1.4+tier*.3,sourceId:actor.id});
     }else if(core.reaction==="resonance"){
       const ally=target?.team===actor.team&&target.alive?target:actor;
-      ally.shield=Math.min(ally.maxHp*.4,ally.shield+10+tier*4);
+      ally.shield=Math.min(ally.maxHp*.4,
+        ally.shield+Math.round((10+tier*4)*this.power));
       this.addStatus(ally,{kind:"shield",remaining:3.5,sourceId:actor.id});
       actor.flux=clamp(actor.flux+7+tier*2,0,MAX_FLUX);
     }
@@ -378,7 +379,9 @@ export class EnergyMatch {
     const link=source.statuses.find(s=>s.kind==="link");
     if(link&&value>0&&link.procGate<=0){
       const ally=this.getActor(link.linkedId);
-      if(ally?.alive)this.heal(ally,Math.min(15*this.power,value*.32),source,"symbiosis-link");
+      // Damage already contains the level multiplier. Divide it back out
+      // before handing the base healing to heal(), which scales exactly once.
+      if(ally?.alive)this.heal(ally,Math.min(15,value*.32/this.power),source,"symbiosis-link");
       link.procGate=0.45;
     }
     if(target.hp===0){

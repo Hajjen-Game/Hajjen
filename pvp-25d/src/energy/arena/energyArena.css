@@ -1347,3 +1347,46 @@ h2{font-size:23px}
   .hub-radial-layout{grid-template-columns:minmax(175px,.68fr) minmax(600px,3.1fr) minmax(225px,.9fr)}
   .hub-orbit-board{width:calc(100% - 24px)}
 }
+
+
+/* V38: Main icons are centred at their orbit coordinates, never their labels.
+   Orbit names live BELOW the circle, away from the bright outline/lock badge. */
+.hub-orbit-spell{
+  height:54px;justify-content:center;gap:0}
+.hub-orbit-spell.pool{height:41px}
+.hub-orbit-spell .hub-orbit-icon{flex:none}
+.hub-orbit-spell .hub-orbit-name{
+  position:absolute;top:calc(100% + 11px);left:50%;transform:translateX(-50%);
+  width:max-content;max-width:115px;min-height:0;line-height:1.3;
+  padding:4px 7px;border-radius:5px;pointer-events:none;z-index:6;
+  color:#f9e1af;background:#0b1828ed;
+  border:1px solid #d2b67c25;
+  box-shadow:0 3px 11px #040813ae,0 0 8px #eac26d26;
+  text-shadow:0 1px 4px #030b17,0 0 7px #000}
+.hub-orbit-spell.pool .hub-orbit-name{
+  top:calc(100% + 9px);max-width:103px;
+  padding:3px 5px;color:#9db4c9;border-color:#31526e22;
+  background:#0a1728cd;box-shadow:0 2px 8px #02081275}
+.hub-orbit-spell.pool.selected .hub-orbit-name{
+  color:#f9e4b5;border-color:#c4aa6959;
+  background:#152b3fe8;box-shadow:0 0 13px #e5b57930}
+.hub-orbit-spell.equipped-now .hub-orbit-name{
+  color:#ffe3a7;background:#0d1c2ddf;border-color:#b7a36d3d}
+.hub-orbit-spell.equipped-now.selected .hub-orbit-name{color:#fff3cc}
+.hub-orbit-spell:hover .hub-orbit-name,.hub-orbit-spell:focus-visible .hub-orbit-name{
+  color:#fff1d3;border-color:#d6b57e88}
+.hub-orbit-lock{font-size:10px;font-weight:900}
+.hub-radial-layout .hub-spell-node.equipped-now .hub-spell-state{
+  min-width:22px;justify-content:center;font-weight:900}
+/* Pool previews extend beyond the 1000-unit SVG board. Reserve an outer
+   safety margin so all three satellites remain visible at top/right/left. */
+.hub-orbit-board{
+  max-width:1060px;width:calc(100% - 120px);
+  margin:42px auto 60px;overflow:visible}
+.hub-orbit-nodes,.hub-orbit-lines{overflow:visible}
+@media(max-width:1450px){
+  .hub-orbit-board{width:calc(100% - 100px);margin:34px auto 52px}
+}
+@media(max-width:900px){
+  .hub-orbit-board{width:calc(100% - 76px);margin:28px auto 40px}
+}

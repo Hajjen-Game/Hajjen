@@ -66,14 +66,14 @@ export function canStand(x,y,arena,radius=21) {
   return !(arena.obstacles||[]).some(o=>x>o.x-radius&&x<o.x+o.w+radius&&y>o.y-radius&&y<o.y+o.h+radius);
 }
 
-function actorFor(id,team,role,pos,control,abilities,evolutions={}) {
+function actorFor(id,team,role,pos,control,abilities,evolutions={},talentRanks={}) {
   return {
     id,team,role,control, classId:"energy-"+role,
     name:control==="player"?"YOU":(team==="friendly"?"ALLY ":"ENEMY ")+role.toUpperCase(),
     x:pos.x,y:pos.y, hp:BASE_ACTOR_HEALTH,maxHp:BASE_ACTOR_HEALTH,alive:true,healthPct:1,flux:100,
     energyStyle:{core:roleColor[role],energy:roleColor[role]},
     targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,
-    schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions,
+    schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions, talentRanks,
     dashGate:0,arcCount:0,dr:{}, lastInterrupt:0,bonusFluxGate:0,
   };
 }
@@ -109,9 +109,10 @@ export class EnergyMatch {
         const isPlayer=team==="friendly"&&role===build.role;
         const abilities=isPlayer?this.loadout.abilitySlots.map(s=>s.id):botAbilities(role,this.progressLevel,this.modeId);
         const evolutions=isPlayer?Object.fromEntries(this.loadout.abilitySlots.filter(s=>s.evolutionId).map(s=>[s.id,s.evolutionId])):{};
+        const talentRanks=isPlayer?Object.fromEntries(this.loadout.abilitySlots.map(s=>[s.id,s.talentRank||0])):{};
         const id=isPlayer?"player":team+"-"+role;
         const config=arena.spawns[team+"-"+role];
-        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions);
+        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions,talentRanks);
         if(isPlayer){
           // Same talent-weighted signature as character HUB, with subtle
           // battle-scale rendering handled by EnergyOrbPolish.
@@ -310,7 +311,10 @@ export class EnergyMatch {
   }
   heal(target,amount,source,spellId){
     if(!target?.alive)return;
-    const scaled=Math.max(0,Math.round(amount*(1-this.dampening)
+    // A Talent Point directly improves healing. Each rank adds 4%;
+    // Rank 3 also permits a separate Evolution choice.
+    const mastery=1+.04*Math.max(0,Math.min(3,source?.talentRanks?.[spellId]||0));
+    const scaled=Math.max(0,Math.round(amount*mastery*(1-this.dampening)
       *(source?.team==="enemy"?this.tuning.healing:1)));
     const given=Math.min(target.maxHp-target.hp,scaled);
     const hpBefore=target.hp;
@@ -322,7 +326,8 @@ export class EnergyMatch {
     if(!target?.alive)return;
     // Beginner scaling applies only to incoming enemy damage; no spell rules
     // or visual impact are changed, and the full balance returns at high levels.
-    let value=amount*(source?.team==="enemy"?this.tuning.damage:1);
+    const mastery=1+.04*Math.max(0,Math.min(3,source?.talentRanks?.[spellId]||0));
+    let value=amount*mastery*(source?.team==="enemy"?this.tuning.damage:1);
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
     const guard=target.statuses.find(s=>s.kind==="guard");
     if(guard)value*=1-guard.amount;
@@ -456,13 +461,13 @@ export class EnergyMatch {
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
     }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
     else if(r.mode==="guard"){
-      this.addStatus(target,{kind:"guard",remaining:r.duration,amount:r.amount,sourceId:actor.id});
+      this.addStatus(target,{kind:"guard",remaining:r.duration,amount:Math.min(.6,r.amount+.012*(actor.talentRanks[spellId]||0)),sourceId:actor.id});
       this.emit({type:"guard",actorId:actor.id,targetId:target.id,
         spellId,guardPercent:r.amount,duration:r.duration});
     }
     else if(r.mode==="shield"){
       const shieldBefore=target.shield;
-      target.shield=Math.max(target.shield,r.amount);
+      target.shield=Math.max(target.shield,r.amount*(1+.04*(actor.talentRanks[spellId]||0)));
       this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});
       this.emit({type:"shield",actorId:actor.id,targetId:target.id,
         spellId,amount:r.amount,shieldBefore,shieldAfter:target.shield});

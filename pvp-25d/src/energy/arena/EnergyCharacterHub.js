@@ -590,6 +590,7 @@ export class EnergyCharacterHub{
     const selectedEvolution=build.evolutions[ability.id]||null;
     $("hub-detail-status").textContent=bound?"ORIGIN-BOUND":inBuild?"IN BUILD":"AVAILABLE POOL";
     const spell=$("hub-detail-spell");spell.replaceChildren();
+    spell.className="hub-selected-spell-card "+(inBuild?"equipped-now":"preview-pool");
     spell.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
     const summary=el("div","hub-detail-title");
     const info=el("div","");

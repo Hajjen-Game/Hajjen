@@ -125,6 +125,8 @@ function start(build){
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
     $("defense-resonance-overlay").hidden=true;
+    $("defense-resonance-options").dataset.wave="";
+    $("defense-resonance-options").dataset.choices="";
     $("match-result-details").textContent="";
     feedback?.dispose();feedback=null;
     overhead?.dispose();overhead=null;

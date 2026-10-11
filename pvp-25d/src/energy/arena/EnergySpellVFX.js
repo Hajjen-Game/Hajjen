@@ -75,7 +75,7 @@ export class EnergySpellVFX {
     if(e.type==="windup"){
       // Begin charging immediately, inside the glass core. Casts grow until
       // completion, instant abilities flash quickly rather than feeling dead.
-      const castMs=(rule?.cast||0)*1000;
+      const castMs=(e.castSeconds??rule?.cast??0)*1000;
       this.sphere(this.world(from,.89),hex,.23,
         castMs?Math.min(2800,castMs):300,"charge",{actorId:from.id});
       return;

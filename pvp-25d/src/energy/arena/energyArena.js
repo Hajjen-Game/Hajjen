@@ -12,7 +12,7 @@ import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bar
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-identity13";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-fastlevel1";
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261011-identity13";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-guided-defense8";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
@@ -508,7 +508,8 @@ function frameLoop(now){
     $("match-result-details").textContent=
       (match.modeId==="defense"?"WAVE "+match.wave+" / "+DEFENSE_WAVES+" · ":"")+
       "+"+earned+" XP · LEVEL "+after.level
-      +(levelUp?" · LEVEL UP!":"")
+      +(levelUp?" · "+(after.level-before.level>1?
+        "+"+(after.level-before.level)+" LEVELS!":"LEVEL UP!"):"")
       +(unlocked.length?" · NEW: "+unlocked.join(", "):"")
       +" · +"+fragments+" ENERGY FRAGMENTS"
       +(matter?" · +"+matter+" BLACK HOLE MATTER":"")

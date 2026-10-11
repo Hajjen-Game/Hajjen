@@ -48,13 +48,16 @@ export class EnergySpellVFX {
     for(let i=0;i<=18;i++){
       const angle=-1.0+i*2.0/18;
       points.push(new BABYLON.Vector3(
-        position.x+Math.sin(angle)*r*swing,
-        position.y+Math.cos(angle)*r*.48,
-        position.z+Math.sin(angle)*r*.30*swing
+        Math.sin(angle)*r*swing,
+        Math.cos(angle)*r*.48,
+        Math.sin(angle)*r*.30*swing
       ));
     }
     const mesh=BABYLON.MeshBuilder.CreateTube("energy-swipe:"+this.nextId++,{
       path:points,radius:.065,tessellation:12},this.scene);
+    // Local-space vertices + a world-space pivot: rotation MUST happen at
+    // the target, not around the world origin (the screen-spanning swipe bug).
+    mesh.position.copyFrom(position);
     mesh.material=this.material(color);mesh.isPickable=false;
     this.effects.push({type:"slash",mesh,start:performance.now(),duration:440,
       initial:position.clone()});
@@ -68,12 +71,14 @@ export class EnergySpellVFX {
       for(let i=0;i<=14;i++){
         const a=(-.94+i*1.88/14)*swing;
         points.push(new BABYLON.Vector3(
-          position.x+Math.sin(a)*radius,
-          position.y+Math.cos(a)*radius*.45+(layer?-.09:.035),
-          position.z+(layer?-.15:.09)+Math.sin(a)*radius*.2));
+          Math.sin(a)*radius,
+          Math.cos(a)*radius*.45+(layer?-.09:.035),
+          (layer?-.15:.09)+Math.sin(a)*radius*.2));
       }
       const mesh=BABYLON.MeshBuilder.CreateTube("energy-arc-swipe:"+this.nextId++,{
         path:points,radius:layer===0?.042:.022,tessellation:10},this.scene);
+      // Crucial: rotate around the victim's position rather than (0,0,0).
+      mesh.position.copyFrom(position);
       mesh.material=this.material(layer===0?"#ffccd4":hex);
       mesh.isPickable=false;
       this.effects.push({type:"arc-swipe",mesh,start:performance.now(),

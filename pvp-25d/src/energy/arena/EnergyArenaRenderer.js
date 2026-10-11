@@ -145,6 +145,38 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="evolution-proc"){
+      const target=match.getActor(event.targetId)||match.getActor(event.actorId);
+      const px=(Number.isFinite(event.x)?event.x:target?.x),py=(Number.isFinite(event.y)?event.y:target?.y);
+      if(Number.isFinite(px)&&Number.isFinite(py)){
+        const {discipline}=ABILITY_BY_ID[event.spellId]||{};
+        const colors={solar:"#ffc577",kinetic:"#f27c96",void:"#ba94f4",
+          cryo:"#83d9ff",vital:"#8ce6b7"};
+        const hex=colors[discipline]||"#b2d9fa";
+        const p=new BABYLON.Vector3(px*S,.115,py*S);
+        const wide=["seismic-wave","solar-aftershock","burning-ground",
+          "shock-trail","interrupt-shockwave","prismatic-return"].includes(event.kind);
+        const setup=String(event.kind).endsWith("-ready")||event.kind==="impact-charge";
+        const dim=wide?3.1:setup?1.1:1.7;
+        this.spellFX.ring(p,hex,dim,wide?690:440,"ground");
+        if(!setup)this.spellFX.sphere(new BABYLON.Vector3(p.x,.85,p.z),hex,
+          wide?.44:.28,360,"burst");
+      }
+      return;
+    }
+    if(event.type==="hit"&&event.spellId==="zenith-crash"){
+      // A Solar pillar strikes FROM ABOVE; no generic sideways projectile.
+      const target=match.getActor(event.targetId);
+      if(target){
+        const p=new BABYLON.Vector3(target.x*S,.12,target.y*S);
+        const end=new BABYLON.Vector3(p.x,.35,p.z);
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,4.1,p.z),"#f8c877",
+          .88,430,"fall",{end});
+        this.spellFX.ring(p,"#ffd88b",2.5,640,"ground");
+        this.spellFX.ring(p,"#e58f55",1.4,470,"ground");
+      }
+      return;
+    }
     if(event.type==="resonance-proc"){
       const target=match.getActor(event.targetId)||match.getActor(event.actorId);
       if(target){

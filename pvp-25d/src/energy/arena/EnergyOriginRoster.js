@@ -1,7 +1,7 @@
 // Multi-character roster for Energy Arena. All records remain local to this
 // browser. Old single-character keys mirror the active record for compatibility.
-import { ROLES } from "../abilityCatalog.js?v=20261011-impact-map5";
-import { createBuild, normalizeBuild } from "../buildState.js?v=20261011-impact-map5";
+import { ROLES } from "../abilityCatalog.js?v=20261011-impact-map6";
+import { createBuild, normalizeBuild } from "../buildState.js?v=20261011-impact-map6";
 
 export const ORIGIN_ROSTER_KEY="pvp25d-energy-origin-roster-v1";
 const MAX_ORIGINS=12;

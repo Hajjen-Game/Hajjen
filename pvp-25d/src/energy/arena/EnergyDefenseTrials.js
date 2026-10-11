@@ -1,7 +1,7 @@
 // Planet Defense's in-combat field guide. Trials use the SAME Rank/Evolution/
 // Singularity values as Character HUB. PvE Enchantments are intentionally
 // separate: these help with waves and are never permanent or used in Arena.
-import { ABILITY_BY_ID, ROLES, ABILITIES } from "../abilityCatalog.js?v=20261011-impact-map6";
+import { ABILITY_BY_ID, ROLES, ABILITIES } from "../abilityCatalog.js?v=20261011-evolution10";
 import { RANK_PATHS } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const CURATED_EVOLUTIONS=Object.freeze({

@@ -60,6 +60,26 @@ export class EnergySpellVFX {
       initial:position.clone()});
     this.ring(new BABYLON.Vector3(position.x,.075,position.z),color,1.2,570,"ground");
   }
+  // Arc Strike is a close-range hit. Constrain ALL geometry to the victim's
+  // glass shell instead of the screen-spanning generic slash sweep.
+  arcSwipe(position,hex,swing=1){
+    for(let layer=0;layer<2;layer++){
+      const points=[],radius=layer===0?.51:.39;
+      for(let i=0;i<=14;i++){
+        const a=(-.94+i*1.88/14)*swing;
+        points.push(new BABYLON.Vector3(
+          position.x+Math.sin(a)*radius,
+          position.y+Math.cos(a)*radius*.45+(layer?-.09:.035),
+          position.z+(layer?-.15:.09)+Math.sin(a)*radius*.2));
+      }
+      const mesh=BABYLON.MeshBuilder.CreateTube("energy-arc-swipe:"+this.nextId++,{
+        path:points,radius:layer===0?.042:.022,tessellation:10},this.scene);
+      mesh.material=this.material(layer===0?"#ffccd4":hex);
+      mesh.isPickable=false;
+      this.effects.push({type:"arc-swipe",mesh,start:performance.now(),
+        duration:240,initial:position.clone(),swing});
+    }
+  }
   spawn(e,match){
     if(!e.spellId)return;
     if(this.hero.supports(e.spellId)){
@@ -96,8 +116,9 @@ export class EnergySpellVFX {
           e.spellId==="flux-bolt"?.37:.45,370,"projectile",{
           end,spellId:e.spellId,
         });
-      }else this.slash(end,hex,e.spellId,
-        e.spellId==="arc-strike"&&(from.strikeSwingCounter||0)%2===0?-1:1);
+      }else if(e.spellId==="arc-strike"){
+        this.arcSwipe(end,hex,(from.strikeSwingCounter||0)%2===0?-1:1);
+      }else this.slash(end,hex,e.spellId);
       return;
     }
     if(e.type==="heal"){
@@ -154,6 +175,10 @@ export class EnergySpellVFX {
       }else if(effect.type==="fall"){
         mesh.position.y=effect.initial.y-(effect.initial.y-effect.end.y)*(t*t);
         mesh.scaling.setAll(1.0+t*.25);mesh.visibility=1-t*.35;
+      }else if(effect.type==="arc-swipe"){
+        mesh.rotation.y=effect.swing*(t*.26-.12);
+        mesh.scaling.setAll(.88+.12*t);
+        mesh.visibility=(1-t)*.97;
       }else if(effect.type==="slash"){
         mesh.rotation.y=t*1.25-.35;
         mesh.scaling.setAll(.74+.85*t);mesh.visibility=(1-t)*.96;

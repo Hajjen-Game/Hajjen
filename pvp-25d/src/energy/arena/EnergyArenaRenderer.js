@@ -150,6 +150,22 @@ export class EnergyArenaRenderer {
       const target=match.getActor(event.targetId)||match.getActor(event.actorId);
       const px=(Number.isFinite(event.x)?event.x:target?.x),py=(Number.isFinite(event.y)?event.y:target?.y);
       if(Number.isFinite(px)&&Number.isFinite(py)){
+        if(event.kind==="zenith-impact"){
+          const p=new BABYLON.Vector3(px*S,.12,py*S);
+          this.spellFX.sphere(new BABYLON.Vector3(p.x,4.2,p.z),"#ffd18a",.96,440,"fall",
+            {end:new BABYLON.Vector3(p.x,.4,p.z)});
+          this.spellFX.ring(p,"#ffdd96",2.65,680,"ground");
+          this.spellFX.ring(p,"#e7a363",1.45,490,"ground");
+          return;
+        }
+        if(event.kind==="split-lance"){
+          const source=match.getActor(event.actorId);
+          if(source){
+            const start=new BABYLON.Vector3(source.x*S,.93,source.y*S);
+            this.spellFX.sphere(start,"#f8c477",.38,370,"projectile",
+              {end:new BABYLON.Vector3(px*S,.85,py*S),spellId:event.spellId});
+          }
+        }
         const {discipline}=ABILITY_BY_ID[event.spellId]||{};
         const colors={solar:"#ffc577",kinetic:"#f27c96",void:"#ba94f4",
           cryo:"#83d9ff",vital:"#8ce6b7"};
@@ -165,19 +181,8 @@ export class EnergyArenaRenderer {
       }
       return;
     }
-    if(event.type==="hit"&&event.spellId==="zenith-crash"){
-      // A Solar pillar strikes FROM ABOVE; no generic sideways projectile.
-      const target=match.getActor(event.targetId);
-      if(target){
-        const p=new BABYLON.Vector3(target.x*S,.12,target.y*S);
-        const end=new BABYLON.Vector3(p.x,.35,p.z);
-        this.spellFX.sphere(new BABYLON.Vector3(p.x,4.1,p.z),"#f8c877",
-          .88,430,"fall",{end});
-        this.spellFX.ring(p,"#ffd88b",2.5,640,"ground");
-        this.spellFX.ring(p,"#e58f55",1.4,470,"ground");
-      }
-      return;
-    }
+    if(event.type==="hit"&&event.spellId==="zenith-crash")
+      return; // Its one descending pillar comes from zenith-impact, not every AoE hit.
     if(event.type==="resonance-proc"){
       const target=match.getActor(event.targetId)||match.getActor(event.actorId);
       if(target){

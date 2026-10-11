@@ -146,6 +146,16 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="wave-debuff"&&event.spellId==="rift-corruption"){
+      const target=match.getActor(event.targetId);
+      if(target){
+        const p=new BABYLON.Vector3(target.x*S,.12,target.y*S);
+        this.spellFX.ring(p,"#b78af5",1.95,750,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,1.1,p.z),
+          "#c3a1fa",.48,550,"burst");
+      }
+      return;
+    }
     if(event.type==="dash"&&
       (event.spellId==="phase-slip"||event.spellId==="vector-rush")){
       const x1=event.fromX*S,z1=event.fromY*S,x2=event.toX*S,z2=event.toY*S;

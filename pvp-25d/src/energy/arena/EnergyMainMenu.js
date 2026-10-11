@@ -1,9 +1,9 @@
-// A standalone menu + illustrated field guide for the Energy Arena.
+// A standalone menu + illustrated field guide for the Project Energy.
 // It never mutates the saved build, character, progression, or match rules.
 const $=id=>document.getElementById(id);
 const PAGES=[
   {
-    title:"WELCOME TO ENERGY ARENA",chapter:"01 / THE BIG IDEA",
+    title:"WELCOME TO PROJECT ENERGY",chapter:"01 / THE BIG IDEA",
     intro:"You control an energy orb, learn your spells through Planet Defense and choose between wave survival and tactical arena battles.",
     steps:[
       ["BUILD","Choose the spells and Evolutions that fit your playstyle."],
@@ -184,18 +184,24 @@ export class EnergyMainMenu{
     this.getOrigins=getOrigins;this.selectOrigin=selectOrigin;
     this.createOrigin=createOrigin;this.getOriginLevel=getOriginLevel;
     this.page=0;this.previousFocus=null;
-    $("menu-play").addEventListener("click",()=>this.openPlay());
-    $("menu-hub").addEventListener("click",()=>this.enterHub());
-    $("menu-new-origin").addEventListener("click",()=>this.createOrigin());
+    $("menu-new-origin").addEventListener("click",()=>this.createNew());
+    $("menu-resume").addEventListener("click",()=>this.openResume());
     $("menu-about").addEventListener("click",()=>this.openGuide());
+    $("menu-game-dev").addEventListener("click",()=>this.openGameDev());
+    $("roster-create-origin").addEventListener("click",()=>this.createNew());
+    $("roster-back").addEventListener("click",()=>this.open());
+    $("game-dev-back").addEventListener("click",()=>this.open());
+    $("play-back-hub").addEventListener("click",()=>this.enterHub());
     $("main-menu-open").addEventListener("click",()=>this.onMenuFromCombat());
+    for(const node of document.querySelectorAll("[data-play-path]")){
+      node.addEventListener("click",()=>this.choosePath(node.dataset.playPath));
+    }
     for(const node of document.querySelectorAll("[data-menu-mode]")){
       node.addEventListener("click",()=>{
-        const mode=node.dataset.menuMode;
-        this.changeMode(mode);
-        if(!this.getCharacter()){this.enterHub();return;}
-        $("main-menu").hidden=true;
-        this.startMatch(mode);
+        if(node.disabled||!this.getCharacter())return;
+        this.changeMode(node.dataset.menuMode);
+        this.hideScreens();
+        this.startMatch(node.dataset.menuMode);
       });
     }
     $("guide-close").addEventListener("click",()=>this.closeGuide());
@@ -205,17 +211,39 @@ export class EnergyMainMenu{
       if(event.target===$("guide-overlay"))this.closeGuide();
     });
     document.addEventListener("keydown",event=>{
-      if($("guide-overlay").hidden)return;
-      if(event.key==="Escape"){event.preventDefault();this.closeGuide();}
-      else if(event.key==="ArrowRight"){event.preventDefault();this.turn(1);}
-      else if(event.key==="ArrowLeft"){event.preventDefault();this.turn(-1);}
+      if(!$("guide-overlay").hidden){
+        if(event.key==="Escape"){event.preventDefault();this.closeGuide();}
+        else if(event.key==="ArrowRight"){event.preventDefault();this.turn(1);}
+        else if(event.key==="ArrowLeft"){event.preventDefault();this.turn(-1);}
+      }else if(event.key==="Escape"){
+        if(!$("hub-play-screen").hidden){event.preventDefault();this.enterHub();}
+        else if(!$("origin-roster-screen").hidden||!$("game-dev-screen").hidden){
+          event.preventDefault();this.open();
+        }
+      }
     });
+  }
+  hideScreens(){
+    for(const id of ["main-menu","origin-roster-screen","hub-play-screen","game-dev-screen"])
+      $(id).hidden=true;
   }
   open(){
     this.closeGuide();
     this.hideHub();
+    this.hideScreens();
     $("main-menu").hidden=false;
-    $("menu-mode-options").hidden=true;
+    $("main-menu-open").hidden=true;
+  }
+  createNew(){
+    this.hideScreens();
+    $("main-menu-open").hidden=false;
+    this.createOrigin();
+  }
+  openResume(){
+    this.hideHub();
+    this.hideScreens();
+    $("origin-roster-screen").hidden=false;
+    $("main-menu-open").hidden=false;
     this.renderOrigins();
   }
   renderOrigins(){
@@ -226,11 +254,12 @@ export class EnergyMainMenu{
       const isActive=entry.id===activeId;
       const row=document.createElement("button");row.type="button";
       row.className="menu-origin-item"+(isActive?" active":"");
-      row.setAttribute("aria-pressed",String(isActive));
-      row.setAttribute("aria-label","Select "+entry.character.name+" ("+entry.character.origin+")");
+      row.setAttribute("aria-label","Continue as "+entry.character.name+
+        " ("+entry.character.origin+")");
       row.addEventListener("click",()=>{
-        if(!isActive)this.selectOrigin(entry.id);
-        this.renderOrigins();
+        // Enter the clicked Origin's HUB immediately; no secondary Play step.
+        this.selectOrigin(entry.id);
+        this.enterHub();
       });
       const emblem=document.createElement("span");emblem.className="menu-origin-emblem";
       emblem.textContent=entry.character.origin==="Genesis"?"✧":
@@ -242,25 +271,52 @@ export class EnergyMainMenu{
       subtitle.textContent=entry.character.origin+" · LEVEL "+this.getOriginLevel(entry);
       meta.append(name,subtitle);
       const state=document.createElement("span");
-      state.className="menu-origin-state";state.textContent=isActive?"ACTIVE ✓":"SELECT →";
+      state.className="menu-origin-state";
+      state.textContent="ENTER HUB →";
       row.append(emblem,meta,state);host.append(row);
     }
     if(!characters.length){
       const empty=document.createElement("p");empty.className="menu-origin-empty";
-      empty.textContent="No Origins created. Create your first to begin.";
+      empty.textContent="No saved Origins yet. Choose New Origin to begin.";
       host.append(empty);
     }
-    $("menu-play").disabled=!characters.length;
-    $("menu-hub").disabled=!characters.length;
-  }
-  openPlay(){
-    this.open();
-    $("menu-mode-options").hidden=false;
-    $("menu-mode-options").scrollIntoView({behavior:"smooth",block:"nearest"});
   }
   enterHub(){
-    $("main-menu").hidden=true;
+    this.hideScreens();
+    $("main-menu-open").hidden=false;
     this.openHub();
+  }
+  openPlay(){
+    // HUB -> Play -> PvE/PvP -> mode. No mode selection in the front menu.
+    if(!this.getCharacter()){this.openResume();return;}
+    this.hideHub();
+    this.hideScreens();
+    $("hub-play-screen").hidden=false;
+    $("main-menu-open").hidden=false;
+    $("play-mode-options").hidden=true;
+    $("play-pve-modes").hidden=true;
+    $("play-pvp-modes").hidden=true;
+    for(const button of document.querySelectorAll("[data-play-path]"))
+      button.setAttribute("aria-expanded","false");
+  }
+  choosePath(path){
+    if(path!=="pve"&&path!=="pvp")return;
+    $("play-mode-options").hidden=false;
+    $("play-mode-heading").textContent=path==="pve"?"PvE · CHOOSE YOUR JOURNEY":
+      "PvP · CHOOSE YOUR TEAM SIZE";
+    $("play-pve-modes").hidden=path!=="pve";
+    $("play-pvp-modes").hidden=path!=="pvp";
+    for(const button of document.querySelectorAll("[data-play-path]")){
+      const selected=button.dataset.playPath===path;
+      button.classList.toggle("selected",selected);
+      button.setAttribute("aria-expanded",String(selected));
+    }
+  }
+  openGameDev(){
+    this.hideHub();
+    this.hideScreens();
+    $("game-dev-screen").hidden=false;
+    $("main-menu-open").hidden=false;
   }
   openGuide(){
     this.previousFocus=document.activeElement;
@@ -290,8 +346,6 @@ export class EnergyMainMenu{
       row.append(head,body);steps.append(row);
     }
     $("guide-tip").textContent="TIP · "+item.tip;
-    // Static, self-contained instructional drawings (no third-party image
-    // requests). Only author-controlled markup from artMarkup is inserted.
     $("guide-illustration").innerHTML=artMarkup(item.art);
     $("guide-art-caption").textContent=item.caption;
     $("guide-progress").textContent=(this.page+1)+" / "+PAGES.length;

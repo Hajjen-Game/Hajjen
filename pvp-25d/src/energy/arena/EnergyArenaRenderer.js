@@ -5,7 +5,7 @@ import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261011-encounters1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
-import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat1";
+import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 
 const S=.02;

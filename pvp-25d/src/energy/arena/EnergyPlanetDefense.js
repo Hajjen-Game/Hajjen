@@ -6,14 +6,9 @@ import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
 import { botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-orbfix15";
+import { buildPlanetEncounters, PVE_ENEMY_ARCHETYPES, ENCOUNTER_SPELLS }
+  from "./EnergyPvEEncounters.js?v=20261011-encounters1";
 
-const WAVE_PLANS=Object.freeze([
-  {name:"FIRST CONTACT",enemies:["melee","caster"],maxAlive:2,spawnGap:3.4},
-  {name:"THE SWARM",enemies:["melee","caster","melee"],maxAlive:3,spawnGap:3.1},
-  {name:"DISRUPTION",enemies:["caster","melee","caster","melee"],maxAlive:3,spawnGap:3.0},
-  {name:"OVERLOAD",enemies:["melee","caster","healer","caster","melee"],maxAlive:3,spawnGap:2.8},
-  {name:"FINAL STAND",enemies:["caster","melee","caster","melee","caster","melee"],maxAlive:3,spawnGap:2.7}
-]);
 export const DEFENSE_WAVES=5;
 export const WAVE_RESONANCES=Object.freeze({
   healer:Object.freeze([
@@ -53,10 +48,16 @@ export class EnergyPlanetDefense extends EnergyMatch{
     this.waveSpawned=0;this.waveDefeated=0;this.totalKills=0;
     this.spawnClock=0;this.waveIntermission=0;
     this.resonances={};this.resonancesChosen=0;this.trialHistory=[];
+    // Seed is saved on this match for reproducible reports/tests; production
+    // runs vary the encounter order while keeping level-gated mechanics.
+    this.encounterSeed=options.encounterSeed??Math.floor(Math.random()*0x7fffffff);
+    this.encounter=buildPlanetEncounters(this.progressLevel,this.encounterSeed);
+    this.encounterHistory=[];
+    this.summonedThisWave=0;
     this.beginWave();
   }
-  get currentWave(){return WAVE_PLANS[this.wave-1]||null;}
-  get totalWaveEnemies(){return this.currentWave?.enemies.length||0;}
+  get currentWave(){return this.encounter.waves[this.wave-1]||null;}
+  get totalWaveEnemies(){return (this.currentWave?.enemies.length||0)+this.summonedThisWave;}
   get waveRemaining(){return this.spawnQueue.length+this.living("enemy").length;}
   resonanceChoices(){
     return defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
@@ -67,17 +68,23 @@ export class EnergyPlanetDefense extends EnergyMatch{
     if(this.wave>=DEFENSE_WAVES||this.ended)return;
     this.wave++;
     this.waveState="active";
-    this.waveSpawned=0;this.waveDefeated=0;
+    this.waveSpawned=0;this.waveDefeated=0;this.summonedThisWave=0;
     this.spawnQueue=[...this.currentWave.enemies];
     this.spawnClock=0;
     this.ai.planTick=0;
     this.spawnNext();
-    this.log("WAVE "+this.wave+" / "+DEFENSE_WAVES+" · "+this.currentWave.name);
-    this.emit({type:"wave-start",wave:this.wave,waveName:this.currentWave.name});
+    this.log("WAVE "+this.wave+" / "+DEFENSE_WAVES+" · "+
+      this.currentWave.name+" · "+this.encounter.stage+" (LEVEL "+this.progressLevel+")");
+    this.emit({type:"wave-start",wave:this.wave,waveName:this.currentWave.name,
+      encounterTier:this.encounter.tier,encounterStage:this.encounter.stage,
+      waveFocus:this.currentWave.focus});
   }
   spawnNext(){
-    const role=this.spawnQueue.shift();
-    if(!role)return false;
+    const archetype=this.spawnQueue.shift();
+    if(!archetype)return false;
+    const identity=PVE_ENEMY_ARCHETYPES[archetype];
+    if(!identity)return false;
+    const role=identity.role;
     const order=this.waveSpawned++;
     const center=this.player;
     const allies=this.living("friendly");
@@ -98,33 +105,133 @@ export class EnergyPlanetDefense extends EnergyMatch{
       if(pos)break;
     }
     pos=pos||this.arena.spawns["enemy-"+role];
-    const isBoss=this.wave===DEFENSE_WAVES&&order===0;
+    const isBoss=archetype==="boss"&&this.wave===DEFENSE_WAVES&&order===0;
     const id="wave-"+this.wave+"-enemy-"+order;
     const kit=botAbilities(role,Math.max(this.progressLevel,Math.min(12,this.progressLevel+this.wave-1)),"trio");
     const ranks=Object.fromEntries(kit.map(spell=>[spell,Math.min(3,Math.floor(this.progressLevel/10))]));
     const actor=actorFor(id,"enemy",role,pos,"ai",kit,{},ranks,this.progressLevel);
     // Smaller opening encounters mean three level-1 heroes can win through
     // their own spells. Later waves become more demanding without HP inflation.
-    const healthScale=isBoss?1.7:clamp(.48+(this.wave-1)*.105,.48,.9);
+    const healthScale=isBoss?1.7+this.encounter.tier*.055:
+      clamp(.48+(this.wave-1)*.105+this.encounter.eliteHealthBonus*
+        (identity.weight===2?1:.35),.48,1.05);
     actor.maxHp=Math.round(actor.maxHp*healthScale);
     actor.hp=actor.maxHp;
     actor.healthPct=1;
-    actor.name=isBoss?"RIFT WARDEN":
-      (role==="caster"?"RIFT SPARK":role==="melee"?"PHASE RAIDER":"VOID MENDER");
+    actor.name=isBoss?this.encounter.boss.name:identity.name;
+    actor.encounterKey=archetype;
     actor.boss=isBoss;
+    actor.encounterNextAt=this.time+(isBoss?5.6:
+      archetype==="channeler"||archetype==="harbinger"?4.5+order*.65:9999);
+    actor.encounterCycle=0;actor.encounterPhases=new Set();
     actor.energyStyle=isBoss?{core:"#d3a4ff",energy:"#9a6be7"}:
-      role==="caster"?{core:"#9b7ef0",energy:"#87ceff"}:
-      role==="melee"?{core:"#ec7c93",energy:"#f7a0a9"}:
+      role==="caster"?{core:archetype==="channeler"||archetype==="harbinger"?
+        "#ce92ff":"#9b7ef0",energy:"#87ceff"}:
+      role==="melee"?{core:archetype==="bulwark"?"#ffad78":"#ec7c93",energy:"#f7a0a9"}:
       {core:"#7bc4a6",energy:"#a2efc5"};
     actor.targetId=this.living("friendly")[order%this.living("friendly").length]?.id||"player";
     this.actors.push(actor);
+    // Bulwarks announce short guard windows. Do not make them unkillable.
+    if(archetype==="bulwark"){
+      this.addStatus(actor,{kind:"guard",amount:.17,remaining:4.5,
+        sourceId:actor.id,procGate:0});
+      this.emit({type:"encounter-guard",actorId:actor.id,targetId:actor.id,
+        spellId:"resonance-guard",wave:this.wave});
+    }
     // Re-target the first living enemy of every new wave; the previous
     // wave's target may still exist in the run history as a dead actor.
     if(order===0||!this.getActor(this.player.targetId)?.alive)
       this.player.targetId=id;
     this.ai.planTick=0;
-    this.emit({type:"wave-spawn",actorId:actor.id,targetId:actor.id,wave:this.wave,boss:isBoss});
+    this.emit({type:"wave-spawn",actorId:actor.id,targetId:actor.id,
+      wave:this.wave,boss:isBoss,archetype,level:this.progressLevel});
     return true;
+  }
+  // Every signature is a REAL interruptible cast. Its impact position is
+  // locked at the start: stepping outside the warning ring avoids damage.
+  startEncounterCast(actor,kind){
+    if(!actor?.alive||actor.cast||actor.charge||actor.gcd>.01||
+      (actor.schoolLocks.void||0)>0||
+      this.isControlled(actor,"incapacitate"))return false;
+    const focus=kind==="nova"?actor:
+      this.living("friendly").sort((a,b)=>{
+        // The channeler sometimes targets the exposed healer, creating a
+        // priority-threat decision without always targeting the human.
+        return (a.hp/a.maxHp)-(b.hp/b.maxHp);
+      })[0];
+    if(!focus)return false;
+    const spellId=kind==="nova"?ENCOUNTER_SPELLS.nova:ENCOUNTER_SPELLS.mark;
+    const radius=kind==="nova"?this.encounter.novaRadius:
+      actor.boss?114+this.encounter.tier*4:94+this.encounter.tier*4;
+    const seconds=this.encounter.telegraphSeconds+
+      (actor.boss?0:.15);
+    actor.cast={spellId,remainingMs:seconds*1000,totalMs:seconds*1000,
+      targetId:focus.id,impact:{x:focus.x,y:focus.y},
+      radius,encounterKind:kind};
+    actor.encounterCycle++;
+    actor.encounterNextAt=this.time+(actor.boss?
+      this.encounter.signatureInterval:Math.max(10.5,15-this.encounter.tier*.5));
+    this.emit({type:"encounter-telegraph",spellId,
+      actorId:actor.id,targetId:focus.id,
+      x:focus.x,y:focus.y,radius,duration:seconds,
+      encounterKind:kind,boss:Boolean(actor.boss)});
+    this.log((actor.boss?"BOSS":"PRIORITY THREAT")+" · "+actor.name+
+      (kind==="nova"?" CHANNELS RIFT NOVA":" TARGETS RIFT MARK")+
+      " · MOVE OUT OR INTERRUPT");
+    return true;
+  }
+  resolveEncounterCast(actor,spellId,context){
+    if(!actor?.alive||!context?.impact)return;
+    const point=context.impact;
+    const kind=context.encounterKind||"mark";
+    const radius=context.radius||110;
+    this.emit({type:"encounter-impact",actorId:actor.id,spellId,
+      targetId:context.targetId||null,x:point.x,y:point.y,radius,
+      encounterKind:kind,boss:Boolean(actor.boss)});
+    const victims=this.living("friendly").filter(ally=>
+      distance(ally,point)<=radius&&hasLineOfSight(point,ally,this.arena));
+    const base=(kind==="nova"?9:8)+(actor.boss?2.4:0)+this.encounter.tier*1.15;
+    for(const victim of victims)this.damage(victim,base,actor,spellId);
+    this.emit({type:"encounter-resolve",actorId:actor.id,spellId,
+      x:point.x,y:point.y,hitCount:victims.length,avoided:!victims.length,
+      encounterKind:kind});
+    if(!victims.length)this.log(actor.name+" · ATTACK AVOIDED!");
+  }
+  enterBossPhase(actor,threshold){
+    if(actor.encounterPhases.has(threshold))return;
+    actor.encounterPhases.add(threshold);
+    const label=threshold===.65?"FRACTURED SHELL":"LAST RESONANCE";
+    if(this.encounter.bossPhaseShields){
+      // A short defensive puzzle, not a huge HP refill.
+      const before=actor.shield;
+      actor.shield=Math.min(actor.maxHp*.12,
+        actor.shield+actor.maxHp*(threshold===.65?.08:.05));
+      this.addStatus(actor,{kind:"shield",remaining:3.2,sourceId:actor.id,
+        spellId:"photon-barrier"});
+      this.emit({type:"shield",actorId:actor.id,targetId:actor.id,
+        spellId:"photon-barrier",amount:actor.shield-before,
+        shieldBefore:before,shieldAfter:actor.shield});
+    }
+    if(threshold===.65&&this.encounter.bossReinforcements){
+      this.spawnQueue.push("skirmisher","channeler");
+      this.summonedThisWave+=2;
+    }
+    actor.encounterNextAt=Math.min(actor.encounterNextAt,this.time+2.4);
+    this.emit({type:"boss-phase",actorId:actor.id,targetId:actor.id,
+      spellId:"photon-barrier",threshold,phase:label,
+      wave:this.wave,reinforcements:threshold===.65&&this.encounter.bossReinforcements});
+    this.log("BOSS PHASE · "+label+
+      (threshold===.65&&this.encounter.bossReinforcements?" · REINFORCEMENTS":""));
+  }
+  updateEncounters(){
+    for(const actor of this.living("enemy")){
+      if(!actor.boss&&!["channeler","harbinger"].includes(actor.encounterKey))continue;
+      if(actor.encounterNextAt>this.time||actor.cast||actor.charge)continue;
+      const kind=actor.boss?
+        (this.encounter.bossGroundMarks&&actor.encounterCycle%2===1?"mark":"nova"):
+        "mark";
+      this.startEncounterCast(actor,kind);
+    }
   }
   reason(actor,spellId,targetId){
     if(this.waveState==="intermission")return "CHOOSE WAVE RESONANCE";
@@ -206,11 +313,17 @@ export class EnergyPlanetDefense extends EnergyMatch{
       this.resonanceTier("flux-overcharge"):0;
     const hpBefore=target?.hp||0;
     super.damage(target,tier?amount*(1+.18*tier):amount,source,spellId,periodic);
+    if(target?.boss&&target.alive&&this.waveState==="active"){
+      const percent=target.hp/target.maxHp;
+      if(percent<=.65)this.enterBossPhase(target,.65);
+      if(percent<=.32&&this.encounter.bossDoubleThreat)
+        this.enterBossPhase(target,.32);
+    }
     // Higher-level PvE casters can apply a light, dispellable debuff.
     // It creates a REAL purpose for Cleanse Flux in wave encounters without
     // overwhelming the level-1 learning experience. Only direct hits apply it,
     // with a long deterministic cooldown (no random untelegraphed spam).
-    if(this.progressLevel>=6&&this.wave>=3&&target?.alive&&
+    if(this.encounter.corruption&&this.wave>=3&&target?.alive&&
       target.team==="friendly"&&source?.team==="enemy"&&source.role==="caster"&&
       !periodic&&target.hp<hpBefore&&
       ["flux-bolt","crystal-bolt","sun-lance"].includes(spellId)&&
@@ -224,6 +337,10 @@ export class EnergyPlanetDefense extends EnergyMatch{
     }
   }
   execute(actor,spellId,targetId,castContext=null){
+    if(Object.values(ENCOUNTER_SPELLS).includes(spellId)){
+      this.resolveEncounterCast(actor,spellId,castContext);
+      return;
+    }
     const before=this.events.length;
     const primary=this.getActor(targetId);
     super.execute(actor,spellId,targetId,castContext);
@@ -312,6 +429,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
     }
     super.update(dt);
     if(this.ended)return;
+    if(this.waveState==="active")this.updateEncounters();
     const casualties=this.actors.filter(a=>a.team==="enemy"&&a.id.startsWith("wave-"+this.wave+"-")&&!a.alive).length;
     if(casualties>this.waveDefeated){
       this.totalKills+=casualties-this.waveDefeated;

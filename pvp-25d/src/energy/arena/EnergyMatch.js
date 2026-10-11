@@ -28,7 +28,7 @@ export const ABILITY_RULES = Object.freeze({
   "rift-slash":       { mode:"damage",amount:28,cost:19,cd:6,range:100,requiresDebuff:true },
   "null-prison":      { mode:"cc",cc:"incapacitate",duration:4,cost:20,cast:1.4,cd:24,range:490 },
   "sun-lance":        { mode:"damage",amount:27,cost:18,cast:1.8,range:490 },
-  "zenith-crash":     { mode:"damage",amount:38,cost:30,cast:2,cd:18,range:490,area:92 },
+  "zenith-crash":     { mode:"damage",amount:38,cost:30,cast:2,cd:18,range:490,area:124 },
   "photon-barrier":   { mode:"shield",amount:60,duration:5,cost:23,cd:28,range:490 },
   "crystal-bolt":     { mode:"damage",amount:15,cost:12,cast:1.3,range:490,slow:0.35,slowTime:3 },
   "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490 },
@@ -267,6 +267,10 @@ export class EnergyMatch {
       return {...rule,range:rule.range+125,cd:rule.cd+2};
     return rule;
   }
+  identityProc(source,spellId,kind,target=null,x=null,y=null){
+    this.emit({type:"identity-proc",actorId:source.id,targetId:target?.id||null,
+      spellId,kind,x:x??target?.x??source.x,y:y??target?.y??source.y});
+  }
   evolutionProc(source,spellId,kind,target=null,x=null,y=null){
     this.emit({type:"evolution-proc",actorId:source.id,targetId:target?.id||null,
       spellId,kind,x:x??target?.x??source.x,y:y??target?.y??source.y});
@@ -333,7 +337,15 @@ export class EnergyMatch {
     this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,
       spellId,castSeconds:rule.cast||0});
     if(rule.cast) {
-      actor.cast={spellId,remainingMs:rule.cast*1000,totalMs:rule.cast*1000,targetId:target?.id||null};
+      actor.cast={spellId,remainingMs:rule.cast*1000,totalMs:rule.cast*1000,
+        targetId:target?.id||null};
+      if(spellId==="zenith-crash"&&target){
+        // Lock the GROUND at cast start. Moving enemies may dodge the pillar,
+        // even if the originally targeted enemy dies during the warning.
+        actor.cast.impact={x:target.x,y:target.y};
+        this.emit({type:"ground-telegraph",actorId:actor.id,spellId,
+          x:target.x,y:target.y,radius:rule.area,duration:rule.cast});
+      }
     }else this.execute(actor,spellId,target?.id||null);
     return true;
   }
@@ -500,7 +512,29 @@ export class EnergyMatch {
     this.emit({type:"control",actorId:source.id,targetId:target.id,
       spellId,ccKind:category,duration:value,drScale:scale});
   }
-  execute(actor,spellId,targetId) {
+  resolveZenith(actor,target,position,rule){
+    const foes=this.opponents(actor).filter(t=>distance(t,position)<=rule.area&&
+      hasLineOfSight(position,t,this.arena)).sort((a,b)=>
+      (a===target?-1:b===target?1:distance(a,position)-distance(b,position))).slice(0,6);
+    this.evolutionProc(actor,"zenith-crash","zenith-impact",null,position.x,position.y);
+    for(const [index,foe] of foes.entries())
+      this.damage(foe,rule.amount*(index===0?1:.42),actor,"zenith-crash");
+    if(actor.evolutions["zenith-crash"]==="solar-aftershock"){
+      this.scheduleEvolution(actor,"zenith-crash","solar-aftershock",
+        position.x,position.y,.85,rule.amount*.45,rule.area);
+      this.evolutionProc(actor,"zenith-crash","solar-aftershock-ready",null,position.x,position.y);
+    }else if(actor.evolutions["zenith-crash"]==="burning-ground"){
+      for(let tick=1;tick<=3;tick++)
+        this.scheduleEvolution(actor,"zenith-crash","burning-ground",
+          position.x,position.y,tick,5.5,rule.area);
+      this.evolutionProc(actor,"zenith-crash","burning-ground",null,position.x,position.y);
+    }
+    if(!foes.length)this.log("ZENITH CRASH · EVADED");
+    this.handleSingularityCast(actor,"zenith-crash",foes[0]||null);
+    this.emit({type:"ability",actorId:actor.id,targetId:foes[0]?.id||null,
+      spellId:"zenith-crash"});
+  }
+  execute(actor,spellId,targetId,castContext=null) {
     const r=this.rule(actor,spellId);
     // A cast must stay bound to its original target after wind-up. In the
     // previous code a dead ally triggered currentTarget()'s self fallback:
@@ -509,7 +543,8 @@ export class EnergyMatch {
     const supportive=["heal","guard","shield","hot","link","cleanse"].includes(r.mode);
     const wrongTeam=target&&(supportive
       ?target.team!==actor.team:target.team===actor.team);
-    const reason= r.mode==="dash"?null:!target?.alive?"TARGET DIED"
+    const reason= r.mode==="dash"||(spellId==="zenith-crash"&&castContext?.impact)?
+      null:!target?.alive?"TARGET DIED"
       :wrongTeam?"INVALID TARGET":distance(actor,target)>(r.range||490)?"OUT OF RANGE"
       :!hasLineOfSight(actor,target,this.arena)?"LINE OF SIGHT":null;
     if(reason){
@@ -525,6 +560,10 @@ export class EnergyMatch {
     // Only a completed, valid cast starts cooldown. Fizzled or interrupted
     // casted spells stay available once the short school lock wears off.
     if(r.cast&&r.cd)actor.cooldowns[spellId]=r.cd;
+    if(spellId==="zenith-crash"){
+      this.resolveZenith(actor,target,castContext?.impact||{x:target.x,y:target.y},r);
+      return;
+    }
     if(r.mode==="dash"){
       const direction=actor.control==="player"?this.dashDirection||{x:1,y:0}:{x:actor.team==="friendly"?1:-1,y:0};
       actor.dashSpellId=spellId;
@@ -784,7 +823,7 @@ export class EnergyMatch {
         actor.cast.remainingMs-=dt*1000;
         if(actor.cast.remainingMs<=0){
           const finished=actor.cast;actor.cast=null;
-          this.execute(actor,finished.spellId,finished.targetId);
+          this.execute(actor,finished.spellId,finished.targetId,finished);
         }
       }
       if(actor.control==="ai")this.ai.updateActor(actor,dt);

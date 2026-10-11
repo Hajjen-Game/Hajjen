@@ -64,12 +64,12 @@ export const ABILITIES = Object.freeze([
     ["pursuit","Pursuit","Shorter cooldown for more frequent pursuit."],
     ["disruption","Disruption","Applies a brief slow on arrival."],
   ],"melee"),
-  ability("pulse-sever","Pulse Sever","kinetic","Melee interrupt","Optional close-range interrupt with school lockout on a successful stop.","Instant · Shared interrupt",[
+  ability("pulse-sever","Pulse Sever","kinetic","Melee counter-interrupt","Interrupt at melee range and counterstrike for minor Kinetic damage when you successfully stop a cast.","Instant · Melee counter · 15s CD",[
     ["suppression","Suppression","A successful interrupt extends the school lockout."],
     ["siphon","Siphon","A successful interrupt restores Flux."],
     ["shockwave","Shockwave","A successful interrupt produces a small damage pulse."],
   ]),
-  ability("flux-bolt","Flux Bolt","solar","Ranged filler","Low-cost ranged direct damage; always available to casters.","1.5s cast · Role attack",[
+  ability("flux-bolt","Flux Bolt","solar","Ranged rhythm","Consecutive hits on one target build Solar Rhythm; every third Flux Bolt releases an extra energy burst. Resets if you switch target or wait too long.","1.5s cast · Every 3rd hit bursts",[
     ["overcharge","Overcharge","Longer cast with a larger, harder-hitting projectile."],
     ["rapid-flux","Rapid Flux","Shorter cast at reduced damage."],
     ["fractured-energy","Fractured Energy","Next direct attack from another discipline gains a bonus."],
@@ -95,12 +95,12 @@ export const ABILITIES = Object.freeze([
     ["void-anchor","Void Anchor","A brief slow remains when the prison ends."],
     ["unstable-prison","Unstable Prison","Breaking the prison by damage emits a small damage pulse; no additional CC."],
   ]),
-  ability("sun-lance","Sun Lance","solar","Precision finisher","Heavy Solar lance dealing 18% more damage to enemies below 35% HP. Rewards finishing weakened bosses and priority targets.","1.8s cast · Execute bonus · 18 Flux",[
+  ability("sun-lance","Sun Lance","solar","Precision finisher","Focused Solar lance deals 18% extra damage to enemies below 35% HP. Unlike Flux Bolt, it rewards choosing a weakened priority target.","1.8s cast · +18% below 35% HP",[
     ["overcharged-lance","Overcharged Lance","Longer cast with a larger direct hit."],
     ["scorching-lance","Scorching Lance","Apply a short Solar damage-over-time burn."],
     ["split-lance","Split Lance","Reduced secondary damage to a nearby second enemy."],
   ]),
-  ability("zenith-crash","Zenith Crash","solar","Area burst","A solar pillar crashes down from above, blasting the target and nearby enemies. LOS matters.","2s cast · 18s cooldown",[
+  ability("zenith-crash","Zenith Crash","solar","Telegraphed area burst","Mark the enemy’s current position; after 2 seconds a Solar pillar lands there, damaging enemies still inside. The impact can be dodged.","2s warning · Ground-locked impact · 18s CD",[
     ["focused-impact","Focused Impact","Smaller impact area with higher focused damage."],
     ["solar-aftershock","Solar Aftershock","A weaker second explosion follows at the same location."],
     ["burning-ground","Burning Ground","Leave a short-lived damaging plasma field."],
@@ -125,7 +125,7 @@ export const ABILITIES = Object.freeze([
     ["crystal-rupture","Crystal Rupture","Reduced splash damage around the target."],
     ["delayed-shatter","Delayed Shatter","A crystal lodged in the target shatters with a second hit."],
   ]),
-  ability("arc-strike","Arc Strike","kinetic","Melee filler","Your reliable instant Kinetic melee attack. No cooldown, only the global cooldown.","Instant · No cooldown · 10 Flux",[
+  ability("arc-strike","Arc Strike","kinetic","Melee combo","Fast instant Kinetic strike. A second Arc Strike within 4 seconds hits 16% harder and returns 3 Flux; then the rhythm resets.","Instant · Two-hit rhythm · No CD",[
     ["twin-arc","Twin Arc","Every third hit creates a second arc from the opposite side."],
     ["momentum","Momentum","Successful hits return some Flux with an internal cooldown."],
     ["resonant-strike","Resonant Strike","Charge the next direct attack from another ability."],
@@ -140,7 +140,7 @@ export const ABILITIES = Object.freeze([
     ["shock-trail","Shock Trail","Leave a brief damaging trail along the route."],
     ["kinetic-shield","Kinetic Shield","Gain a small absorb shield after completing the dash."],
   ]),
-  ability("resonance-cut","Resonance Cut","kinetic","Ranged interrupt","Mid-range interrupt with school lockout only on a successful cast stop.","Instant · 20s cooldown · 15 Flux",[
+  ability("resonance-cut","Resonance Cut","kinetic","Ranged disruption","Interrupt a cast from range; on success, the target’s next damaging attack within 5 seconds deals 18% less damage.","Instant · Ranged dissonance · 20s CD",[
     ["long-reach","Long Reach","Longer range but a slightly longer cooldown."],
     ["flux-siphon","Flux Siphon","Regain Flux on a successful interrupt."],
     ["disruptive-wake","Disruptive Wake","A successful interrupt also briefly slows the target."],

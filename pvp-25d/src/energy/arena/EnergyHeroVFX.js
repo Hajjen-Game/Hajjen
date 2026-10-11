@@ -2,7 +2,7 @@
 // Deliberately independent of WoW/Pixi class spell IDs and of the legacy arena.
 // Babylon renders volumes *inside* the glass, physical energy arcs, projectiles
 // and suspended persistent shields. The later Pixi pass can add sharp 2D accents.
-import { ABILITY_BY_ID } from "../abilityCatalog.js";
+import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-evolution10";
 import { EnergyVolumeImpact } from "./EnergyVolumeImpact.js?v=20261008-pixi-primary9";
 import { EnergyProjectileGroundLight } from "./EnergyProjectileGroundLight.js?v=20261009-original-layers15b";
 

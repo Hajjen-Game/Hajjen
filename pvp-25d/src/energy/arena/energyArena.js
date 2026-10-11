@@ -1,4 +1,4 @@
-// Energy Arena UI, scoped to the independent Energy Build / combat prototype.
+// Project Energy UI; internal Energy Arena module names remain stable while the public title is undecided.
 import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261011-identity13";
 import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261011-identity13";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
@@ -13,8 +13,8 @@ import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-xpcurve2";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261011-identity13";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-guided-defense8";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261011-menu-nav2";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-menu-nav2";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
 
@@ -642,6 +642,8 @@ $("change-build").addEventListener("click",()=>showGate(false));
 $("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
 // A direct link back from old Build Lab still opens the HUB. All normal visits
 // start at the new main menu rather than opening a 3D WebGL scene behind it.
-if(new URLSearchParams(window.location.search).get("load")==="draft")hub.open();
+const pageParams=new URLSearchParams(window.location.search);
+if(pageParams.get("menu")==="dev")menu.openGameDev();
+else if(pageParams.get("load")==="draft")hub.open();
 else menu.open();
 requestAnimationFrame(frameLoop);

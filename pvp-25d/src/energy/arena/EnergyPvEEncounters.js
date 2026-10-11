@@ -42,6 +42,10 @@ const random=(seed)=>{
 };
 function waveArchetypes(wave,tier,variation){
   const enemies=[...BASE[wave-1]];
+  // Even the opening encounter develops once the player has a full toolkit.
+  // Do not force a level-28 hero through the same two-target tutorial again.
+  if(tier>=3&&wave===1)enemies.push("skirmisher");
+  if(tier>=5&&wave===1)enemies.push("channeler");
   if(tier>=1&&wave>=3)enemies.push(wave===3?"skirmisher":"raider");
   if(tier>=2&&wave>=2){
     const index=enemies.findIndex((e,i)=>i>0&&e==="spark");
@@ -62,6 +66,15 @@ function waveArchetypes(wave,tier,variation){
     if(index>=0)enemies[index]="harbinger";
   }
   if(tier>=7&&wave>=4)enemies.push("bulwark");
+  // Vary the encounter MIX across runs, not just the arrival order.
+  if(tier>=1&&wave>=2&&variation()<.5){
+    const index=enemies.findIndex((e,i)=>i>0&&e==="raider");
+    if(index>=0)enemies[index]=tier>=3?"skirmisher":"spark";
+  }
+  if(tier>=4&&wave>=3&&variation()<.4){
+    const index=enemies.findIndex((e,i)=>i>0&&e==="spark");
+    if(index>=0)enemies[index]="harbinger";
+  }
   // Variation changes the attack order and opening threat without replacing
   // the guaranteed boss in slot zero of the finale.
   const start=wave===5?1:0;
@@ -80,7 +93,9 @@ export function buildPlanetEncounters(level,seed=1){
   const waves=Array.from({length:5},(_,i)=>{
     const wave=i+1;
     const enemies=waveArchetypes(wave,tier,rand);
-    const maxAlive=clamp((wave<=1?2:3)+(tier>=3&&wave>=3?1:0),2,4);
+    const maxAlive=clamp((wave<=1?2:3)+
+      (tier>=3&&(wave>=3||wave===1)?1:0)+
+      (tier>=5&&wave===1?1:0),2,4);
     return {
       wave,name:NAMES[i],enemies,maxAlive,
       spawnGap:Math.max(2.25,3.35-(wave-1)*.16-tier*.07),

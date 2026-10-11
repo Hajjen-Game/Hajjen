@@ -4,9 +4,9 @@ import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261011-id
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261011-identity13";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261011-identity13";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-orbfix15";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-orbfix15";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-orbfix15";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-orbfix16";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-orbfix16";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-orbfix16";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";

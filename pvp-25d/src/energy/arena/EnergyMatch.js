@@ -651,6 +651,10 @@ export class EnergyMatch {
         amount*=1.20;actor.resonantStrikeCharge=null;
         this.evolutionProc(actor,"arc-strike","resonant-strike",target);
       }
+      if(spellId==="arc-strike")
+        actor.strikeSwingCounter=(actor.strikeSwingCounter||0)+1;
+      if(spellId==="zenith-crash")
+        this.evolutionProc(actor,spellId,"zenith-impact",target);
       this.damage(target,amount,actor,spellId);
       if(r.slow)this.addStatus(target,{kind:"slow",negative:true,remaining:r.slowTime,sourceId:actor.id});
       if(spellId==="arc-strike"){

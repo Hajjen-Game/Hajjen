@@ -19,10 +19,10 @@ export const ROLES = Object.freeze({
   },
   melee: {
     name: "Impact", color: "#f27b83", subtitle: "Momentum & disruption",
-    description: "Impact is a force of motion and collision. Rush into range, pressure opponents and interrupt their most dangerous casts.",
-    playstyle: "Choose Impact if you like aggressive movement, fighting up close and disrupting enemies at the right moment.",
+    description: "Impact is a force of motion and collision. Rush into range and chain together fast Kinetic melee hits while disrupting dangerous foes.",
+    playstyle: "Choose Impact for aggressive melee combat: close the gap, keep striking and choose utility such as interrupts as your build grows.",
     passive: "Successful melee hits restore 4 Flux, at most once per second.",
-    locked: ["phase-rush", "pulse-sever"],
+    locked: ["phase-rush", "arc-strike"],
   },
   caster: {
     name: "Eclipse", color: "#79cafd", subtitle: "Energy & positioning",
@@ -64,11 +64,11 @@ export const ABILITIES = Object.freeze([
     ["pursuit","Pursuit","Shorter cooldown for more frequent pursuit."],
     ["disruption","Disruption","Applies a brief slow on arrival."],
   ],"melee"),
-  ability("pulse-sever","Pulse Sever","kinetic","Melee interrupt","Close-range interrupt with school lockout on a successful stop.","Instant · Role interrupt",[
+  ability("pulse-sever","Pulse Sever","kinetic","Melee interrupt","Optional close-range interrupt with school lockout on a successful stop.","Instant · Shared interrupt",[
     ["suppression","Suppression","A successful interrupt extends the school lockout."],
     ["siphon","Siphon","A successful interrupt restores Flux."],
     ["shockwave","Shockwave","A successful interrupt produces a small damage pulse."],
-  ],"melee"),
+  ]),
   ability("flux-bolt","Flux Bolt","solar","Ranged filler","Low-cost ranged direct damage; always available to casters.","1.5s cast · Role attack",[
     ["overcharge","Overcharge","Longer cast with a larger, harder-hitting projectile."],
     ["rapid-flux","Rapid Flux","Shorter cast at reduced damage."],
@@ -125,7 +125,7 @@ export const ABILITIES = Object.freeze([
     ["crystal-rupture","Crystal Rupture","Reduced splash damage around the target."],
     ["delayed-shatter","Delayed Shatter","A crystal lodged in the target shatters with a second hit."],
   ]),
-  ability("arc-strike","Arc Strike","kinetic","Melee filler","Fast, low-cost weaponless melee energy sweep.","Instant · 10 Flux",[
+  ability("arc-strike","Arc Strike","kinetic","Melee filler","Your reliable instant Kinetic melee attack. No cooldown, only the global cooldown.","Instant · No cooldown · 10 Flux",[
     ["twin-arc","Twin Arc","Every third hit creates a second arc from the opposite side."],
     ["momentum","Momentum","Successful hits return some Flux with an internal cooldown."],
     ["resonant-strike","Resonant Strike","Charge the next direct attack from another ability."],

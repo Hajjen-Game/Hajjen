@@ -875,7 +875,9 @@ export class EnergyMatch {
         actor.strikeSwingCounter=(actor.strikeSwingCounter||0)+1;
       if(spellId==="zenith-crash")
         this.evolutionProc(actor,spellId,"zenith-impact",target);
+      const targetHpBefore=target.hp;
       this.damage(target,amount,actor,spellId);
+      const effectiveDamage=Math.max(0,targetHpBefore-target.hp);
       if(r.slow)this.addStatus(target,{kind:"slow",negative:true,remaining:r.slowTime,sourceId:actor.id});
       if(spellId==="arc-strike"){
         const evo=actor.evolutions[spellId];
@@ -899,8 +901,8 @@ export class EnergyMatch {
         if(evo==="echo-cut"&&target.alive){
           this.scheduleEvolution(actor,spellId,"echo-cut",target.x,target.y,.36,
             amount*.36,0,{targetId:target.id});
-        }else if(evo==="rift-hunger"){
-          const healed=Math.min(12,amount*.22);
+        }else if(evo==="rift-hunger"&&effectiveDamage>0){
+          const healed=Math.min(12,effectiveDamage*.22/this.power);
           this.heal(actor,healed,actor,"rift-slash");
           this.evolutionProc(actor,spellId,"rift-hunger",actor);
         }else if(evo==="fractured-edge"&&debuffed){

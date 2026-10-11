@@ -5,6 +5,7 @@ import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261011-guided-defense8";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
+import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-impact-map6";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);

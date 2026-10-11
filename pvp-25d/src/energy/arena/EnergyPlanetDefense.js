@@ -5,7 +5,7 @@ import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
   from "./EnergyMatch.js?v=20261011-identity13";
 import { botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
 import { MAX_FLUX, ROLES } from "../abilityCatalog.js?v=20261011-identity13";
-import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-identity13";
+import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-identity14";
 
 const WAVE_PLANS=Object.freeze([
   {name:"FIRST CONTACT",enemies:["melee","caster"],maxAlive:2,spawnGap:3.4},

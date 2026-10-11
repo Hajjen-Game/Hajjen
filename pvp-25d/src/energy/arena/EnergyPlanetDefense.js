@@ -4,7 +4,7 @@
 import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
   from "./EnergyMatch.js?v=20261011-identity13";
 import { botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
-import { MAX_FLUX, ROLES } from "../abilityCatalog.js?v=20261011-identity13";
+import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-identity14";
 
 const WAVE_PLANS=Object.freeze([
@@ -135,11 +135,27 @@ export class EnergyPlanetDefense extends EnergyMatch{
   // reaction engine. No save data is modified. Enchantments remain PvE-only.
   chooseResonance(id){
     if(this.waveState!=="intermission"||this.ended)return false;
-    const choice=this.resonanceChoices().find(option=>option.id===id);
+    let choice=this.resonanceChoices().find(option=>option.id===id);
+    // A Rank-3 Mastery offer unlocks an explicit Evolution selection.
+    if(!choice&&id.startsWith("mastery-evolution:")){
+      const [,spellId,evolutionId]=id.split(":");
+      const available=this.resonanceChoices().find(option=>
+        option.kind==="mastery"&&option.spellId===spellId&&option.rank===3);
+      const evolution=ABILITY_BY_ID[spellId]?.evolutions?.find(e=>e.id===evolutionId);
+      if(available&&evolution)choice={...available,id,kind:"mastery-evolution",
+        evolutionId,name:evolution.name.toUpperCase(),label:"RANK 3 + EVOLUTION",
+        how:"Use "+ABILITY_BY_ID[spellId].name+" with "+evolution.name+
+          " in Wave "+(this.wave+1)+".",
+        unlock:"Reach Rank 3 permanently in your Character HUB to pick this Evolution."};
+    }
     if(!choice||!this.player.abilities.includes(choice.spellId))return false;
     if(choice.kind==="mastery"){
+      if(choice.rank===3&&ABILITY_BY_ID[choice.spellId]?.evolutions?.length)return false;
       if((this.player.talentRanks[choice.spellId]||0)>=choice.rank)return false;
       this.player.talentRanks[choice.spellId]=choice.rank;
+    }else if(choice.kind==="mastery-evolution"){
+      this.player.talentRanks[choice.spellId]=3;
+      this.player.evolutions[choice.spellId]=choice.evolutionId;
     }else if(choice.kind==="evolution"){
       this.player.talentRanks[choice.spellId]=3;
       this.player.evolutions[choice.spellId]=choice.evolutionId;
@@ -166,7 +182,8 @@ export class EnergyPlanetDefense extends EnergyMatch{
       ally.hp=Math.min(ally.maxHp,Math.max(ally.hp,Math.round(ally.maxHp*.55)));
       ally.healthPct=ally.hp/ally.maxHp;
       ally.flux=Math.max(70,ally.flux);
-      ally.cast=null;ally.gcd=0;ally.schoolLocks={};ally.statuses=[];ally.shield=0;
+      ally.cast=null;ally.charge=null;ally.cooldowns={};ally.gcd=0;ally.dashGate=0;
+      ally.schoolLocks={};ally.statuses=[];ally.shield=0;
     }
     this.beginWave();
     return true;
@@ -308,6 +325,11 @@ export class EnergyPlanetDefense extends EnergyMatch{
         this.emit({type:"end",winner:this.winner});
         this.log("PLANET DEFENSE · ALL FIVE WAVES CLEARED!");
       }else{
+        // Clear every friendly cooldown at wave completion, not only on retry.
+        for(const ally of this.actors.filter(a=>a.team==="friendly")){
+          ally.cooldowns={};ally.gcd=0;ally.dashGate=0;ally.schoolLocks={};
+          ally.cast=null;ally.charge=null;
+        }
         this.waveState="intermission";this.waveIntermission=this.wave;
         this.log("CHOOSE A WAVE RESONANCE TO CONTINUE");
       }

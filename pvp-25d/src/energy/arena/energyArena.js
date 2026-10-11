@@ -363,13 +363,65 @@ function renderResonances(){
   }
   // Confirmation is deliberate: especially at level 1 the player should
   // understand what a Rank/Evolution means BEFORE the next wave begins.
-  confirm.onclick=()=>{
-    if(!match||match.waveState!=="intermission"||!match.chooseResonance(selected.id))return;
+  const accept=choice=>{
+    if(!match||match.waveState!=="intermission"||!match.chooseResonance(choice.id))return;
     pendingCast=null;keys.clear();
     host.dataset.wave="";
     overlay.hidden=true;
-    flash(selected.label+" · "+selected.name);
+    flash(choice.label+" · "+choice.name);
     renderUI();
+  };
+  confirm.onclick=()=>{
+    const evolutions=selected.kind==="mastery"&&selected.rank===3
+      ?(ABILITY_BY_ID[selected.spellId]?.evolutions||[]):[];
+    if(evolutions.length){
+      // A Rank-3 pick is NOT auto-confirmed. Let the player choose which
+      // REAL Evolution this trial applies before starting the next wave.
+      const base=selected;
+      const nextWave=screenWave+1;
+      $("defense-resonance-title").textContent="CHOOSE YOUR EVOLUTION";
+      $("defense-resonance-subtitle").textContent=
+        ABILITY_BY_ID[base.spellId].name+" reached Rank 3 for this run. Choose how it evolves.";
+      host.replaceChildren();
+      const back=element("button","defense-resonance-option","← BACK TO SPELL TRIALS");
+      back.type="button";
+      back.addEventListener("click",()=>{host.dataset.wave="";renderResonances();});
+      host.append(back);
+      const evoButtons=[];
+      const choose=evo=>{
+        selected={...base,kind:"mastery-evolution",evolutionId:evo.id,
+          id:"mastery-evolution:"+base.spellId+":"+evo.id,
+          name:evo.name.toUpperCase(),label:"RANK 3 + EVOLUTION TRIAL",
+          description:evo.description,
+          how:"Use "+ABILITY_BY_ID[base.spellId].name+" with "+evo.name+
+            " in Wave "+nextWave+".",
+          unlock:"Reach Rank 3 permanently in Character HUB to choose this Evolution."};
+        for(const [i,button] of evoButtons.entries()){
+          button.classList.toggle("selected",evolutions[i].id===evo.id);
+          button.setAttribute("aria-pressed",String(evolutions[i].id===evo.id));
+        }
+        $("defense-trial-how").textContent=selected.how;
+        $("defense-trial-unlock-heading").textContent="HOW TO UNLOCK IT PERMANENTLY";
+        $("defense-trial-unlock").textContent=selected.unlock;
+        confirm.textContent="TRY "+evo.name.toUpperCase()+" IN WAVE "+nextWave+" →";
+        confirm.onclick=()=>accept(selected);
+      };
+      for(const evo of evolutions){
+        const button=element("button","defense-resonance-option");
+        button.type="button";
+        button.style.setProperty("--resonance-tone",
+          DISCIPLINES[ABILITY_BY_ID[base.spellId]?.discipline]?.color||"#8bd6dc");
+        button.append(element("span","resonance-tier","EVOLUTION · RANK 3"),
+          element("strong","",evo.name.toUpperCase()),
+          element("span","resonance-description",evo.description),
+          element("span","resonance-pick","CHOOSE EVOLUTION →"));
+        button.addEventListener("click",()=>choose(evo));
+        host.append(button);evoButtons.push(button);
+      }
+      choose(evolutions[0]);
+      return;
+    }
+    accept(selected);
   };
   display();
 }

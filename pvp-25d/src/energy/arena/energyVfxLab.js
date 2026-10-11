@@ -1,7 +1,9 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261009-orb-polish21";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-orbfix16";
+import { ABILITIES } from "../abilityCatalog.js?v=20261011-identity13";
+import { ABILITY_RULES } from "./EnergyMatch.js?v=20261011-orbfix16";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
@@ -36,6 +38,26 @@ const signature=[
     caption:"Four animated healing threads encircle glass → reactive light pulses",
     phase:"REACTIVE WEAVE",duration:540,type:"ability",target:"ally"},
 ];
+// Original eight hand-authored signatures remain first, but the lab can
+// now preview every gameplay ability using the exact live spell event renderer.
+const polishedIds=new Set(signature.map(spell=>spell.id));
+const spellType=mode=>({
+  damage:"hit",heal:"heal",shield:"shield",guard:"guard",
+  cc:"control",dot:"ability",hot:"ability",rush:"charge",dash:"dash",
+  interrupt:"interrupt",link:"link",cleanse:"cleanse"
+})[mode]||"ability";
+const catalogue=[...signature,...ABILITIES.filter(spell=>!polishedIds.has(spell.id))
+  .map(spell=>{
+    const rule=ABILITY_RULES[spell.id]||{};
+    const type=spellType(rule.mode);
+    return {id:spell.id,name:spell.name,discipline:spell.discipline,
+      icon:{kinetic:"ϟ",void:"◈",cryo:"❄",solar:"✦",vital:"✧"}[spell.discipline],
+      caption:spell.description,phase:spell.discipline.toUpperCase()+" ENERGY",
+      duration:Math.max(420,(rule.cast||0)*1000),type,
+      target:["heal","guard","shield","hot","link","cleanse"].includes(rule.mode)
+        ?"ally":"enemy"};
+  })];
+let visibleSpells=[...catalogue],sequenceList=[...catalogue];
 const labels={
   charging:"CHARGING",release:"RELEASING",contact:"CONTACT",ready:"READY",
 };
@@ -78,13 +100,13 @@ function setPhase(name,desc){
 function prepareActors(spell){
   // Fresh actor shells pick up the spell's exact discipline palette.
   const tint=palette[spell.discipline];
-  // Audition melee attacks at their actual short range. A 300-unit melee
-  // demonstration made the slash look like an unintended ranged projectile.
-  const close=spell.id==="rift-slash"||spell.id==="gravity-hammer";
+  // Use the real melee range for short hits; mobility needs a longer path.
+  const rule=ABILITY_RULES[spell.id]||{};
+  const close=rule.range>0&&rule.range<=125&&spell.type!=="charge";
   source.x=close?555:450;
   enemy.x=close?650:755;
   source.y=360;enemy.y=360;
-    source.classId="energy-caster-"+spell.id;
+  source.classId="energy-caster-"+spell.id;
   source.energyStyle={core:tint,energy:spell.discipline==="solar"?"#fff1bd":
     spell.discipline==="cryo"?"#e4faff":spell.discipline==="vital"?"#ddfff1":"#efcbff"};
   source.role=spell.discipline==="kinetic"?"melee":"caster";
@@ -102,7 +124,7 @@ function run(spell,fromSequence=false){
   if(!renderer)return;
   sequence=fromSequence;
   active=spell;
-  sequenceIndex=signature.indexOf(spell);
+  sequenceIndex=(fromSequence?sequenceList:catalogue).indexOf(spell);
   const previewDuration=spell.duration;
   prepareActors(spell);
   renderer.spellFX.hero.clear();
@@ -111,12 +133,15 @@ function run(spell,fromSequence=false){
   $("now-playing").textContent=spell.name+" · "+spell.discipline.toUpperCase();
   setPhase(labels.charging,spell.phase+" — energy assembling inside the orb");
   selectCard(spell.id);
+  $("lab-spell-picker").value=spell.id;
   const target=match.getActor(source.targetId);
   source.cast={spellId:spell.id,totalMs:previewDuration,remainingMs:previewDuration,targetId:target.id};
   timeline.spell=spell;
   timeline.started=performance.now();
   timeline.released=false;
   timeline.pulses=0;
+  timeline.trailCount=0;
+  timeline.chargeFinished=false;
   renderer.spawnEffect({
     type:"windup",actorId:source.id,targetId:target.id,spellId:spell.id,
   },match);
@@ -126,6 +151,25 @@ function release(spell){
   source.cast=null;
   const target=match.getActor(source.targetId);
   const id=spell.id;
+  if(spell.type==="charge"){
+    renderer.spawnEffect({type:"charge-start",spellId:id,
+      actorId:source.id,targetId:target.id,x:source.x,y:source.y},match);
+    setPhase(labels.release,"Your orb visibly charges toward the selected enemy.");
+    return;
+  }
+  if(spell.type==="dash"){
+    const fromX=source.x,fromY=source.y;
+    source.x+=165;
+    renderer.spawnEffect({type:"dash",spellId:id,actorId:source.id,
+      fromX,fromY,toX:source.x,toY:source.y},match);
+    setPhase(labels.release,"Movement spell preview: departure and arrival.");
+    return;
+  }
+  if(id==="zenith-crash"){
+    renderer.spawnEffect({type:"evolution-proc",spellId:id,
+      actorId:source.id,targetId:target.id,kind:"zenith-impact",
+      x:target.x,y:target.y},match);
+  }
   if(spell.type==="control")
     target.statuses=[{kind:"incapacitate",negative:true,remaining:4}];
   if(spell.type==="shield"){
@@ -134,6 +178,8 @@ function release(spell){
   }
   if(id==="reactive-thread")
     target.statuses=[{kind:"reactive-thread",remaining:10,sourceId:source.id}];
+  if(id==="arc-strike")
+    source.strikeSwingCounter=(source.strikeSwingCounter||0)+1;
   const event={
     type:spell.type,spellId:id,actorId:source.id,targetId:target.id,
     amount:spell.type==="hit"?id==="gravity-hammer"?42:id==="sun-lance"?31:26:spell.type==="heal"?40:42,
@@ -153,7 +199,7 @@ function release(spell){
 }
 function drawCards(){
   const root=$("spell-grid");root.replaceChildren();
-  for(const spell of signature){
+  for(const spell of visibleSpells){
     const card=el("button","spell-card");
     card.type="button";card.dataset.spell=spell.id;
     card.setAttribute("aria-pressed","false");
@@ -163,7 +209,8 @@ function drawCards(){
     const heading=el("span");
     heading.append(el("strong","",spell.name),el("div","discipline",spell.discipline));
     top.append(emblem,heading);
-    card.append(top,el("span","tagline",spell.caption),el("span","play","▶ PLAY SIGNATURE"));
+    card.append(top,el("span","tagline",spell.caption),
+      el("span","play",polishedIds.has(spell.id)?"▶ AUTHORED VFX":"▶ GAMEPLAY VFX"));
     card.addEventListener("click",()=>run(spell,false));
     root.append(card);
   }
@@ -183,6 +230,23 @@ function animate(now){
       }
     }else{
       const since=elapsed-spell.duration;
+      if(spell.type==="charge"&&!timeline.chargeFinished){
+        // Model real Phase Rush travel during the preview rather than blinking.
+        const progress=clamp(since/430,0,1);
+        const nextX=450+(enemy.x-450-51)*progress;
+        source.lastMove={x:1,y:0};
+        source.x=nextX;
+        while(timeline.trailCount<Math.floor(since/70)&&progress<1){
+          renderer.spawnEffect({type:"charge-trail",spellId:spell.id,
+            actorId:source.id,x:source.x,y:source.y},match);
+          timeline.trailCount++;
+        }
+        if(progress>=1){
+          timeline.chargeFinished=true;source.lastMove={x:0,y:0};
+          renderer.spawnEffect({type:"charge-impact",spellId:spell.id,
+            actorId:source.id,targetId:enemy.id,x:source.x,y:source.y},match);
+        }
+      }
       if(spell.id==="reactive-thread"&&timeline.pulses<3&&since>(timeline.pulses+1)*690){
         timeline.pulses++;
         const event={type:"heal",actorId:source.id,targetId:ally.id,
@@ -194,7 +258,7 @@ function animate(now){
         "Persistent protective energy field":spell.id==="null-prison"?
         "Control structure holds the target":"Distinct impact and residual energy");
       if(since>3700){
-        if(sequence&&sequenceIndex<signature.length-1)run(signature[sequenceIndex+1],true);
+        if(sequence&&sequenceIndex<sequenceList.length-1)run(sequenceList[sequenceIndex+1],true);
         else{
           timeline.spell=null;sequence=false;
           setPhase(labels.ready,"Replay this signature or choose another spell.");
@@ -217,7 +281,25 @@ function animate(now){
   }
 }
 function init(){
-  drawCards();
+  const picker=$("lab-spell-picker"),filter=$("lab-discipline-filter");
+  for(const spell of catalogue){
+    const option=el("option","",spell.name+" · "+spell.discipline.toUpperCase());
+    option.value=spell.id;
+    picker.append(option);
+  }
+  picker.addEventListener("change",()=>{
+    const spell=catalogue.find(s=>s.id===picker.value);
+    if(spell){sequence=false;run(spell,false);}
+  });
+  const updateFilter=()=>{
+    visibleSpells=filter.value==="all"?[...catalogue]:
+      catalogue.filter(spell=>spell.discipline===filter.value);
+    drawCards();
+    if(active)selectCard(active.id);
+    $("spell-count").textContent=visibleSpells.length+" SPELLS · CHOOSE ANY";
+  };
+  filter.addEventListener("change",updateFilter);
+  updateFilter();
   let volumeOn=false; // The old faceted experiment remains OFF by default.
   let threadOn=true; // Preferred Pixi + thread depth; 3D debris stays OFF.
   const syncDepthModes=()=>{
@@ -253,7 +335,10 @@ function init(){
     run(active||signature[0],false);
   });
     $("replay-spell").addEventListener("click",()=>run(active||signature[0],false));
-  $("play-sequence").addEventListener("click",()=>run(signature[0],true));
+  $("play-sequence").addEventListener("click",()=>{
+    sequenceList=[...visibleSpells];
+    if(sequenceList.length)run(sequenceList[0],true);
+  });
   try{
     renderer=new EnergyArenaRenderer($("vfx-canvas"),VERDANT_CRUCIBLE);
     syncDepthModes();

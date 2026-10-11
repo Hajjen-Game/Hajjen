@@ -97,6 +97,8 @@ function eventText(match,e){
       " | "+safe(e.resonanceId)+" tier "+fix(e.tier,0)+" after wave "+e.wave;
     case "resonance-proc":return "WAVE RESONANCE PROC | "+safe(e.kind)+" "+safe(e.spellId)+
       " on "+name(match,e.targetId);
+    case "evolution-proc":return "EVOLUTION PROC | "+safe(e.kind)+" · "+safe(e.spellId)+
+      " by "+name(match,e.actorId)+" on "+name(match,e.targetId);
     case "end":return "MATCH END | "+safe(e.winner);
     default:return e.type.toUpperCase()+" "+name(match,e.actorId)+" "+safe(e.spellId);
   }

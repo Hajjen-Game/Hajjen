@@ -42,6 +42,10 @@ export const ABILITY_RULES = Object.freeze({
   "cleanse-flux":     { mode:"cleanse",cost:11,cd:10,range:490 },
 });
 
+// The Babylon glass shell is 1.24 world units across (scale .02).
+// Collision covers the complete visible orb, not only the bright nucleus.
+export const ORB_COLLISION_RADIUS=31;
+const ORB_SEPARATION=ORB_COLLISION_RADIUS*2+2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb"};
@@ -78,7 +82,7 @@ export function actorFor(id,team,role,pos,control,abilities,evolutions={},talent
     x:pos.x,y:pos.y, hp:maxHealthForLevel(level),maxHp:maxHealthForLevel(level),
     alive:true,healthPct:1,flux:100,
     energyStyle:{core:roleColor[role],energy:roleColor[role]},
-    targetId:null,lastMove:{x:0,y:0},cast:null,cooldowns:{},gcd:0,
+    targetId:null,lastMove:{x:0,y:0},cast:null,charge:null,cooldowns:{},gcd:0,
     schoolLocks:{},statuses:[],shield:0,decision:0,abilities, evolutions, talentRanks,
     dashGate:0,arcCount:0,dr:{}, lastInterrupt:0,bonusFluxGate:0,
   };
@@ -339,6 +343,7 @@ export class EnergyMatch {
     if(!actor.alive||this.ended)return "MATCH ENDED";
     if(this.isControlled(actor,"incapacitate"))return "CONTROLLED";
     if(actor.cast)return "CASTING";
+    if(actor.charge)return "CHARGING";
     if(actor.gcd>0)return "GLOBAL COOLDOWN";
     if((actor.cooldowns[spellId]||0)>0)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
@@ -567,16 +572,23 @@ export class EnergyMatch {
         killerId:source.id,spellId});
     }
   }
-  move(actor,dx,dy,dt){
-    if(!actor.alive||this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
+  // Circle-circle collision shared by the player, allied/enemy AI and dashes.
+  canOccupy(actor,x,y){
+    if(!canStand(x,y,this.arena,ORB_COLLISION_RADIUS))return false;
+    return this.actors.every(other=>other===actor||!other.alive||
+      Math.hypot(other.x-x,other.y-y)>=ORB_SEPARATION);
+  }
+  move(actor,dx,dy,dt,speedOverride=null){
+    if(!actor.alive||(actor.charge&&speedOverride===null)||
+      this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
     const length=Math.hypot(dx,dy)||1;
-    const speed=174*(this.isControlled(actor,"slow")?0.65:1)*
+    const speed=(speedOverride??174)*(this.isControlled(actor,"slow")?0.65:1)*
       (actor.statuses.some(s=>s.kind==="frost-momentum")?1.18:1);
     const xStep=dx/length*speed*dt,yStep=dy/length*speed*dt;
     let mx=0,my=0;
     if(dx||dy){
-      if(canStand(actor.x+xStep,actor.y,this.arena)){actor.x+=xStep;mx=xStep;}
-      if(canStand(actor.x,actor.y+yStep,this.arena)){actor.y+=yStep;my=yStep;}
+      if(this.canOccupy(actor,actor.x+xStep,actor.y)){actor.x+=xStep;mx=xStep;}
+      if(this.canOccupy(actor,actor.x,actor.y+yStep)){actor.y+=yStep;my=yStep;}
     }
     actor.lastMove={x:mx/(speed*dt||1),y:my/(speed*dt||1)};
   }
@@ -588,12 +600,55 @@ export class EnergyMatch {
     for(let i=0;i<steps;i++){
       const stepPx=Math.min(step,distancePx-i*step);
       const x=actor.x+dir.x/length*stepPx,y=actor.y+dir.y/length*stepPx;
-      if(!canStand(x,y,this.arena))break;
+      if(!this.canOccupy(actor,x,y))break;
       actor.x=x;actor.y=y;
     }
     actor.dashGate=1.3;
     this.emit({type:"dash",actorId:actor.id,spellId:actor.dashSpellId||"vector-rush",
       fromX:from.x,fromY:from.y,toX:actor.x,toY:actor.y});
+  }
+  finishCharge(actor){
+    const charge=actor.charge;
+    if(!charge)return;
+    actor.charge=null;
+    const target=this.getActor(charge.targetId);
+    this.emit({type:"charge-impact",actorId:actor.id,
+      targetId:target?.alive?target.id:null,spellId:charge.spellId,
+      x:actor.x,y:actor.y});
+    if(!target?.alive)return;
+    const evo=actor.evolutions[charge.spellId];
+    if(evo==="impact"){
+      actor.rushEmpower={until:this.time+5};
+      this.evolutionProc(actor,charge.spellId,"impact-charge",target);
+    }else if(evo==="disruption"&&distance(actor,target)<=105){
+      this.addStatus(target,{kind:"slow",negative:true,remaining:2.2,sourceId:actor.id});
+      this.evolutionProc(actor,charge.spellId,"disruption",target);
+    }
+  }
+  updateCharge(actor,dt){
+    const charge=actor.charge;
+    if(!charge)return;
+    const target=this.getActor(charge.targetId);
+    charge.elapsed+=dt;
+    if(!target?.alive||this.isControlled(actor,"root")||
+      this.isControlled(actor,"incapacitate")){this.finishCharge(actor);return;}
+    const dist=distance(actor,target);
+    if(dist<=ORB_SEPARATION+5||charge.elapsed>=.9){
+      this.finishCharge(actor);return;
+    }
+    const before={x:actor.x,y:actor.y};
+    // Simulated charge travel instead of an instant teleport.
+    const travel=Math.min(880*dt,dist-ORB_SEPARATION-5);
+    this.move(actor,target.x-actor.x,target.y-actor.y,travel/880,880);
+    const advanced=distance(actor,before);
+    if(advanced<.01){this.finishCharge(actor);return;}
+    charge.trailClock=(charge.trailClock||0)+dt;
+    if(charge.trailClock>=.07){
+      charge.trailClock=0;
+      this.emit({type:"charge-trail",actorId:actor.id,
+        spellId:charge.spellId,x:actor.x,y:actor.y});
+    }
+    if(distance(actor,target)<=ORB_SEPARATION+5)this.finishCharge(actor);
   }
   addStatus(target,entry) {
     // One shared Photon Barrier pool is intentionally non-stacking: every
@@ -727,16 +782,13 @@ export class EnergyMatch {
           spellId,amount:actor.shield-prev,shieldBefore:prev,shieldAfter:actor.shield});
       }
     }else if(r.mode==="rush"){
-      const delta={x:target.x-actor.x,y:target.y-actor.y};
-      actor.dashSpellId=spellId;
-      this.dash(actor,delta,Math.max(0,distance(actor,target)-65));
-      if(actor.evolutions[spellId]==="impact"){
-        actor.rushEmpower={until:this.time+5};
-        this.evolutionProc(actor,spellId,"impact-charge",target);
-      }else if(actor.evolutions[spellId]==="disruption"){
-        this.addStatus(target,{kind:"slow",negative:true,remaining:2.2,sourceId:actor.id});
-        this.evolutionProc(actor,spellId,"disruption",target);
-      }
+      // Charge travels visibly over several simulation ticks, tracking the
+      // target while respecting walls and every other orb's collision.
+      actor.charge={targetId:target.id,spellId,elapsed:0,trailClock:0};
+      actor.dashGate=1.3;
+      this.emit({type:"charge-start",actorId:actor.id,targetId:target.id,
+        spellId,x:actor.x,y:actor.y});
+      if(distance(actor,target)<=ORB_SEPARATION+5)this.finishCharge(actor);
     }else if(r.mode==="interrupt"){
       if(target.cast){
         const interrupted=target.cast.spellId,discipline=ABILITY_BY_ID[interrupted]?.discipline;
@@ -1102,7 +1154,8 @@ export class EnergyMatch {
           this.execute(actor,finished.spellId,finished.targetId,finished);
         }
       }
-      if(actor.control==="ai")this.ai.updateActor(actor,dt);
+      if(actor.charge)this.updateCharge(actor,dt);
+      if(actor.control==="ai"&&!actor.charge)this.ai.updateActor(actor,dt);
     }
     this.processEvolutionEffects();
     if(!this.living("friendly").length||

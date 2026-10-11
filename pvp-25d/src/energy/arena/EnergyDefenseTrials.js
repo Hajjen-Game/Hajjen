@@ -87,19 +87,25 @@ export function defenseTrialChoices(match,enchantments){
       isTemporary:true};
   }).sort((a,b)=>a.tier-b.tier); // Offer unexplored effects before repeat tiers.
   const core=()=>{
-    const anchor=ROLES[actor.role].locked.find(spell=>equipped.includes(spell));
-    const partner=equipped.find(id=>!ROLES[actor.role].locked.includes(id));
-    if(!anchor||!partner)return [];
-    return REACTIONS.map(reaction=>({
-      id:"singularity:"+anchor+":"+partner+":"+reaction.id,kind:"singularity",
-      spellId:anchor,anchor,partner,reaction:reaction.id,
-      name:reaction.name.toUpperCase(),label:"REAL SINGULARITY · FREE TRIAL",
-      description:reaction.description,
-      how:"Cast "+ABILITY_BY_ID[partner].name+" → "+ABILITY_BY_ID[anchor].name+
-        " within 6 seconds to trigger "+reaction.name+".",
-      unlock:"At Level 10, spend Black Hole Matter in Singularity Forge to save a combination permanently.",
-      isTemporary:true
-    }));
+    const anchors=ROLES[actor.role].locked.filter(id=>equipped.includes(id));
+    const partners=equipped.filter(id=>!ROLES[actor.role].locked.includes(id));
+    if(!anchors.length||!partners.length)return [];
+    // Reveal both dimensions of the real Forge: players preview different
+    // spell PAIRS as well as three different reaction types.
+    return REACTIONS.map((reaction,i)=>{
+      const anchor=anchors[i%anchors.length],partner=partners[i%partners.length];
+      return {
+        id:"singularity:"+anchor+":"+partner+":"+reaction.id,kind:"singularity",
+        spellId:anchor,anchor,partner,reaction:reaction.id,
+        name:reaction.name.toUpperCase(),label:"REAL SINGULARITY · FREE TRIAL",
+        pair:ABILITY_BY_ID[partner].name+" → "+ABILITY_BY_ID[anchor].name,
+        description:reaction.description,
+        how:"Cast "+ABILITY_BY_ID[partner].name+" → "+ABILITY_BY_ID[anchor].name+
+          " within 6 seconds to trigger "+reaction.name+".",
+        unlock:"At Level 10, spend Black Hole Matter in Singularity Forge to save a combination permanently.",
+        isTemporary:true
+      };
+    });
   };
   let ordered;
   if(wave===1)ordered=[...mastery];

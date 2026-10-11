@@ -92,6 +92,7 @@ export class EnergyMatch {
     this.progressLevel=Math.max(1,Math.min(MAX_LEVEL,Math.floor(options.level||1)));
     this.singularity=options.singularity||null;
     this.singularityCharge=null;
+    this.evolutionEvents=[];
     this.loadout=stagedLoadout(build,this.progressLevel);
     this.tuning=enemyTuning(this.modeId,this.progressLevel);
     this.power=powerForLevel(this.progressLevel);
@@ -254,7 +255,37 @@ export class EnergyMatch {
       return {...rule,cast:Math.max(.6,(rule.cast||0)-.35),amount:rule.amount*.85};
     if(spellId==="flux-bolt"&&evo==="overcharge")
       return {...rule,cast:(rule.cast||0)+.4,amount:rule.amount*1.3};
+    if(spellId==="sun-lance"&&evo==="overcharged-lance")
+      return {...rule,cast:rule.cast+.42,amount:rule.amount*1.32};
+    if(spellId==="zenith-crash"&&evo==="focused-impact")
+      return {...rule,amount:rule.amount*1.25,area:Math.round(rule.area*.62)};
+    if(spellId==="photon-barrier"&&evo==="reinforced-prism")
+      return {...rule,amount:rule.amount*1.34,cd:rule.cd+5};
+    if(spellId==="vector-rush"&&evo==="extended-vector")
+      return {...rule,distance:rule.distance+52,cd:rule.cd+3};
+    if(spellId==="resonance-cut"&&evo==="long-reach")
+      return {...rule,range:rule.range+125,cd:rule.cd+2};
     return rule;
+  }
+  evolutionProc(source,spellId,kind,target=null,x=null,y=null){
+    this.emit({type:"evolution-proc",actorId:source.id,targetId:target?.id||null,
+      spellId,kind,x:x??target?.x??source.x,y:y??target?.y??source.y});
+  }
+  scheduleEvolution(source,spellId,kind,x,y,delay,amount,radius){
+    this.evolutionEvents.push({sourceId:source.id,spellId,kind,x,y,
+      at:this.time+delay,amount,radius});
+  }
+  processEvolutionEffects(){
+    const ready=this.evolutionEvents.filter(e=>e.at<=this.time);
+    this.evolutionEvents=this.evolutionEvents.filter(e=>e.at>this.time);
+    for(const e of ready){
+      const source=this.getActor(e.sourceId);
+      if(!source?.alive)continue;
+      this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
+      for(const enemy of this.opponents(source).filter(t=>distance(t,e)<e.radius&&
+          hasLineOfSight(e,t,this.arena)).slice(0,6))
+        this.damage(enemy,e.amount,source,e.spellId);
+    }
   }
   rollCrit(source,spellId,context){
     if(!source)return false;
@@ -367,6 +398,8 @@ export class EnergyMatch {
     let value=amount*this.power*damageMultiplier(spellId,rank)*
       (crit?CRIT_MULTIPLIER:1)*(source?.team==="enemy"?this.tuning.damage:1);
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
+    const reflectingBarrier=target.statuses.find(s=>s.kind==="shield"&&
+      s.spellId==="photon-barrier"&&s.evolution==="prismatic-return");
     const guard=target.statuses.find(s=>s.kind==="guard");
     if(guard)value*=1-guard.amount;
     const guardReduction=rawDamage-value;
@@ -378,6 +411,17 @@ export class EnergyMatch {
       spellId,amount:hpBefore-target.hp,absorbed,crit,
       rawDamage,guardReduction,guardActive:!!guard,
       hpBefore,hpAfter:target.hp,shieldBefore,shieldAfter:target.shield});
+    if(absorbed>0&&shieldBefore>0&&target.shield<=0&&reflectingBarrier){
+      // Consumed shield cannot reflect twice, even during nested proc damage.
+      target.statuses=target.statuses.filter(s=>s!==reflectingBarrier);
+      const owner=this.getActor(reflectingBarrier.sourceId);
+      if(owner?.alive){
+        this.evolutionProc(owner,"photon-barrier","prismatic-return",target);
+        for(const foe of this.opponents(owner).filter(t=>distance(t,target)<155&&
+            hasLineOfSight(target,t,this.arena)).slice(0,3))
+          this.damage(foe,9,owner,"photon-barrier");
+      }
+    }
     if(value>0){
       // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
       if(target.statuses.some(s=>s.kind==="incapacitate"))this.emit({type:"break",actorId:source.id,targetId:target.id,spellId});
@@ -436,6 +480,8 @@ export class EnergyMatch {
     // Otherwise an expired older shield timer can erase a newer shield.
     target.statuses=target.statuses.filter(s=>
       entry.kind==="shield"?s.kind!=="shield":
+      entry.kind==="dot"&&s.kind==="dot"?
+        s.sourceId!==entry.sourceId||s.spellId!==entry.spellId:
       s.kind!==entry.kind||s.sourceId!==entry.sourceId);
     target.statuses.push(entry);
   }
@@ -615,6 +661,7 @@ export class EnergyMatch {
       }
       if(actor.control==="ai")this.ai.updateActor(actor,dt);
     }
+    this.processEvolutionEffects();
     if(!this.living("friendly").length||
       (this.modeId!=="defense"&&!this.living("enemy").length)||
       this.time>=(this.modeId==="defense"?900:240)){

@@ -62,8 +62,8 @@ export class EnergyArenaRenderer {
       this.observer.observe(canvas.parentElement||canvas);
     }
   }
-  // Separate overhead indicators keep target allegiance readable above
-  // the glass, while the player always has a unique pale-cyan orbit.
+  // The existing target floor ring stays; four luminous chevrons point
+  // inward at its circumference. No more floating overhead markers.
   createIdentificationMarkers(){
     const halo=(name,hex,diameter,thickness)=>{
       const mesh=BABYLON.MeshBuilder.CreateTorus(name,{
@@ -72,17 +72,30 @@ export class EnergyArenaRenderer {
       mesh.isPickable=false;
       return mesh;
     };
-    this.targetOverheads={};
+    this.targetFloorArrows={};
     for(const team of ["friendly","enemy"]){
-      const hex=team==="friendly"?"#62ffae":"#ff697b";
-      const ring=halo("energy-overhead-target-"+team,hex,1.20,.072);
-      const point=BABYLON.MeshBuilder.CreatePolyhedron(
-        "energy-overhead-point-"+team,{type:1,size:.20},this.scene);
-      point.material=this.material("energy-overhead-point-mat-"+team,hex,hex);
-      point.isPickable=false;
-      ring.setEnabled(false);point.setEnabled(false);
-      this.targetOverheads[team]={ring,point};
+      const hex=team==="friendly"?"#65ffac":"#ff687c";
+      const material=this.material("energy-target-chevron-mat-"+team,hex,hex,.95);
+      material.disableLighting=true;
+      const group=new BABYLON.TransformNode("energy-target-arrows-"+team,this.scene);
+      for(let i=0;i<4;i++){
+        const angle=i*Math.PI/2;
+        const point=(a,r)=>new BABYLON.Vector3(Math.cos(a)*r,.025,Math.sin(a)*r);
+        // Thin arrowheads stop at the old selected ring and face its centre.
+        const path=[point(angle-.14,1.43),point(angle,1.105),
+          point(angle+.14,1.43)];
+        const arrow=BABYLON.MeshBuilder.CreateTube(
+          "energy-target-chevron-"+team+"-"+i,
+          {path,radius:.046,tessellation:8},this.scene);
+        arrow.material=material;
+        arrow.parent=group;
+        arrow.isPickable=false;
+      }
+      group.setEnabled(false);
+      this.targetFloorArrows[team]=group;
     }
+    // The player has a different, always-on icy orbit; it never turns
+    // friendly or hostile red/green.
     this.selfMarks=[
       halo("energy-self-orbit-main","#c5f6ff",1.92,.046),
       halo("energy-self-orbit-edge","#76d7f1",2.12,.023)
@@ -91,15 +104,13 @@ export class EnergyArenaRenderer {
   }
   updateIdentificationMarkers(match,now){
     const selected=match.getActor(match.player?.targetId);
-    for(const [team,{ring,point}] of Object.entries(this.targetOverheads)){
+    for(const [team,group] of Object.entries(this.targetFloorArrows)){
       const enabled=Boolean(selected?.alive&&selected.team===team);
-      ring.setEnabled(enabled);point.setEnabled(enabled);
+      group.setEnabled(enabled);
       if(!enabled)continue;
-      const bob=Math.sin(now*.0047)*.085;
-      ring.position.set(selected.x*S,2.02+bob,selected.y*S);
-      ring.rotation.y=now*.00065*(team==="friendly"?1:-1);
-      point.position.set(selected.x*S,2.33+bob,selected.y*S);
-      point.rotation.y=-now*.001;
+      group.position.set(selected.x*S,.092,selected.y*S);
+      group.rotation.y=Math.sin(now*.0008)*.095;
+      group.scaling.setAll(.99+.022*(.5+.5*Math.sin(now*.005)));
     }
     const player=match.player;
     for(const [index,ring] of this.selfMarks.entries()){

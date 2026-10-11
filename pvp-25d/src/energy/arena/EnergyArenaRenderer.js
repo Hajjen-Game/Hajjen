@@ -5,6 +5,7 @@ import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261011-encounters1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
+import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat1";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 
 const S=.02;
@@ -44,6 +45,9 @@ export class EnergyArenaRenderer {
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
     this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
+    // Planet Defense uses the same procedural creatures as the design lab.
+    // PvP, teammates and the player's orb still use OrbCharacterRenderer.
+    this.riftActors=this.defenseMode?new EnergyRiftActorRenderer(this.scene,S):null;
     // Keep our established glass + animated arc geometry but replace class
     // palettes with role and discipline colours from the new Energy system.
     this.actorRender.styleFor=actor=>actor.energyStyle||{core:"#6acbd8",energy:"#83e4ee"};
@@ -206,6 +210,7 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    this.riftActors?.notify(event,match);
     if(event.type==="encounter-telegraph"){
       const origin=new BABYLON.Vector3(event.x*S,.115,event.y*S);
       const diameter=Math.max(1,event.radius*2*S);
@@ -422,8 +427,14 @@ export class EnergyArenaRenderer {
     // remove their mesh entries immediately to avoid a growing Babylon scene.
     const display=match.modeId==="defense"?
       {actors:match.actors.filter(a=>a.alive),player:match.player}:match;
-    this.actorRender.sync(display,now);
-    this.orbPolish.sync(display,now);
+    const orbs=match.modeId==="defense"?
+      {...display,actors:display.actors.filter(a=>!(a.team==="enemy"&&a.encounterKey))}:display;
+    // Never draw a player-shaped orb on top of a Rift creature.
+    this.actorRender.sync(orbs,now);
+    this.orbPolish.sync(orbs,now);
+    this.riftActors?.sync(display.actors,now);
+    // The targeting/LOS indicators still use ALL living actors, including
+    // new Rift meshes, so combat interaction behaves exactly as before.
     this.markers.sync(display,now);
     this.updateIdentificationMarkers(match,now);
     // Planet Defense finale: a visible rotating double halo marks the Rift
@@ -461,6 +472,7 @@ export class EnergyArenaRenderer {
     this.spellFX?.dispose();
     this.markers?.dispose();
     this.orbPolish?.dispose();
+    this.riftActors?.dispose();
     this.scene.dispose();
     this.engine.dispose();
   }

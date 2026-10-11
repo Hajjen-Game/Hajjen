@@ -16,6 +16,7 @@ import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatc
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261010-balanced-ranks41";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-planet-defense3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
+import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-defense-terrain4";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
@@ -84,7 +85,7 @@ function activateOriginById(id){
   persistOriginRoster(window.localStorage,roster);
   applyActiveOrigin();
 }
-const arena=VERDANT_CRUCIBLE;
+const arenaForMode=mode=>mode==="defense"?SHATTERED_EXPANSE:VERDANT_CRUCIBLE;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 function element(tag,className="",text=""){
@@ -115,11 +116,14 @@ function start(build){
     selectedBuild=build;
     const state=progressDetails(profile);
     const MatchType=selectedMode==="defense"?EnergyPlanetDefense:EnergyMatch;
+    const arena=arenaForMode(selectedMode);
     match=new MatchType(build,arena,{modeId:selectedMode,level:state.level,singularity:profile.singularity});
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
     $("match-mode").textContent=match.mode.size+" · "+match.mode.label.toUpperCase();
+    $("match-map-name").textContent=arena.name.toUpperCase();
+    $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
     $("match-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";

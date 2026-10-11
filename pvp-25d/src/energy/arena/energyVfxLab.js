@@ -1,7 +1,7 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-orbfix16";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-arc17";
 import { ABILITIES } from "../abilityCatalog.js?v=20261011-identity13";
 import { ABILITY_RULES } from "./EnergyMatch.js?v=20261011-orbfix16";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";

@@ -86,7 +86,7 @@ export class EnergyOrbShowcase{
       if(!entry)throw Error("Missing team orb "+actor.id);
       entry.barRoot?.setEnabled(false);
       // Preview-only size hierarchy: never change combat hitboxes.
-      entry.root.scaling.setAll(actor.id===this.actor.id?1.06:.74);
+      entry.root.scaling.setAll(actor.id===this.actor.id?1.06:.90);
     }
     this.camera.alpha=-Math.PI/2+Math.sin(now*.00022)*.11;
     this.scene.render();

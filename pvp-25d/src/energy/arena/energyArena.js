@@ -4,19 +4,19 @@ import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261011-im
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261011-impact-map6";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261011-impact-map6";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-impact-map6";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-impact-map6";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-impact-map6";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-guided-defense8";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-guided-defense8";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-guided-defense8";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
-import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261009-combat-ux24";
+import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-impact-map6";
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261011-impact-map6";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-impact-map6";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-guided-defense8";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
-import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-impact-map6";
+import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];

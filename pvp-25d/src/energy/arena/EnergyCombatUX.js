@@ -81,7 +81,10 @@ export class EnergyCombatUX{
     const player=match.player;
     for(const entry of entries){
       this.decorate(entry);
-      const {node,slot,ability,cd,fx}=entry,rule=this.rules[slot.id];
+      // Respect the live actor's real Rank/Evolution rule. Planet Defense
+      // can loan temporary upgrades, and the HUD must preview their actual
+      // cooldown, cost and range instead of the unranked base spell.
+      const {node,slot,ability,cd,fx}=entry,rule=match.rule(player,slot.id)||this.rules[slot.id];
       const remaining=player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
       const gcd=player.gcd||0;

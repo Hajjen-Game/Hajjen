@@ -169,10 +169,12 @@ export class EnergyArenaRenderer {
     if(event.type==="ground-telegraph"&&event.spellId==="zenith-crash"){
       const center=new BABYLON.Vector3(event.x*S,.10,event.y*S);
       const diameter=(event.radius||124)*S*2;
-      this.spellFX.ring(center,"#ffc780",diameter,(event.duration||2)*1000,
-        "telegraph",{casterId:event.actorId});
+      // Friendly pillars look Solar-gold; enemy danger zones look hostile red.
+      const hostile=match.getActor(event.actorId)?.team==="enemy";
+      this.spellFX.ring(center,hostile?"#f16f88":"#ffc780",
+        diameter,(event.duration||2)*1000,"telegraph",{casterId:event.actorId});
       this.spellFX.ring(new BABYLON.Vector3(center.x,.105,center.z),
-        "#e07856",diameter*.62,(event.duration||2)*1000,
+        hostile?"#aa3d64":"#e07856",diameter*.62,(event.duration||2)*1000,
         "telegraph",{casterId:event.actorId});
       return;
     }

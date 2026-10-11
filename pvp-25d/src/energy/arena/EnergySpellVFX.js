@@ -134,9 +134,10 @@ export class EnergySpellVFX {
       const effect=this.effects[i];
       // An interrupted (or dead) caster must not leave a misleading
       // Zenith warning circle behind for the remainder of its cast.
-      if(effect.type==="telegraph"){
+      if(effect.type==="telegraph"||effect.type==="encounter-telegraph"){
         const caster=match.getActor(effect.casterId);
-        if(!caster?.alive||caster.cast?.spellId!=="zenith-crash"){
+        const expected=effect.castSpell||"zenith-crash";
+        if(!caster?.alive||caster.cast?.spellId!==expected){
           effect.mesh.dispose();this.effects.splice(i,1);continue;
         }
       }
@@ -165,9 +166,9 @@ export class EnergySpellVFX {
       }else if(effect.type==="slash"){
         mesh.rotation.y=t*1.25-.35;
         mesh.scaling.setAll(.74+.85*t);mesh.visibility=(1-t)*.96;
-      }else if(effect.type==="telegraph"){
+      }else if(effect.type==="telegraph"||effect.type==="encounter-telegraph"){
         mesh.scaling.setAll(1.08-.08*t);
-        mesh.visibility=.45+.42*t;
+        mesh.visibility=.42+.45*t;
       }else if(effect.type==="ground"){
         mesh.scaling.setAll(.7+1.1*t);
         mesh.visibility=.85*(1-t);

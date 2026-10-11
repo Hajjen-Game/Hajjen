@@ -146,6 +146,26 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="dash"&&
+      (event.spellId==="phase-slip"||event.spellId==="vector-rush")){
+      const x1=event.fromX*S,z1=event.fromY*S,x2=event.toX*S,z2=event.toY*S;
+      if(event.spellId==="phase-slip"){
+        this.spellFX.ring(new BABYLON.Vector3(x1,.11,z1),"#a987e8",1.5,490,"ground");
+        this.spellFX.ring(new BABYLON.Vector3(x2,.11,z2),"#d9b2ff",1.9,530,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(x2,.83,z2),"#b98fe7",.39,430,"burst");
+      }else{
+        // Vector Rush has a readable travel path; Phase Slip has only the
+        // two blink endpoints. No extra damage is attached to either VFX.
+        for(let i=0;i<6;i++){
+          const t=(i+.5)/6;
+          const x=x1+(x2-x1)*t,z=z1+(z2-z1)*t;
+          this.spellFX.sphere(new BABYLON.Vector3(x,.15,z),
+            i%2?"#f88fa3":"#fbd0d8",.18+(1-t)*.07,330,"burst");
+        }
+        this.spellFX.ring(new BABYLON.Vector3(x2,.11,z2),"#f48ea4",1.3,480,"ground");
+      }
+      return;
+    }
     if(event.type==="ground-telegraph"&&event.spellId==="zenith-crash"){
       const center=new BABYLON.Vector3(event.x*S,.10,event.y*S);
       const diameter=(event.radius||124)*S*2;
@@ -164,7 +184,8 @@ export class EnergyArenaRenderer {
       if(Number.isFinite(x)&&Number.isFinite(y)){
         const kinetic=["arc-second-strike","counterstrike","dissonance",
           "dissonance-absorbed"].includes(event.kind);
-        const c=kinetic?"#f68a9c":"#ffe0a0";
+        const c=event.spellId==="phase-slip"?"#bda0f1":
+          kinetic?"#f68a9c":"#ffe0a0";
         const p=new BABYLON.Vector3(x*S,.11,y*S);
         const radius=event.kind==="flux-third-hit"?1.9:
           event.kind==="precision-execute"?2.05:1.35;

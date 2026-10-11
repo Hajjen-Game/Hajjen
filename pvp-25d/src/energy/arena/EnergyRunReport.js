@@ -90,7 +90,19 @@ function eventText(match,e){
     case "link":return "LINK "+name(match,e.actorId)+" → "+name(match,e.targetId);
     case "fizzle":return "FIZZLE "+name(match,e.actorId)+" → "+name(match,e.targetId)
       +" | "+safe(e.spellId)+" | "+safe(e.reason)+" (Flux refunded)";
-    case "wave-start":return "WAVE "+e.wave+" START | "+safe(e.waveName);
+    case "wave-start":return "WAVE "+e.wave+" START | "+safe(e.waveName)+
+      (e.encounterStage?" | "+safe(e.encounterStage)+" | "+safe(e.waveFocus):"");
+    case "encounter-telegraph":return "PVE TELEGRAPH | "+name(match,e.actorId)+
+      " casts "+safe(e.encounterKind)+" | radius "+fix(e.radius,0)+
+      " | warning "+fix(e.duration,2)+"s";
+    case "encounter-impact":return "PVE IMPACT | "+name(match,e.actorId)+
+      " | "+safe(e.encounterKind)+" at "+fix(e.x,0)+","+fix(e.y,0);
+    case "encounter-resolve":return "PVE AVOIDANCE | "+name(match,e.actorId)+
+      " | hit allies "+fix(e.hitCount,0)+(e.avoided?" | AVOIDED":"");
+    case "encounter-guard":return "PVE BULWARK GUARD | "+name(match,e.actorId);
+    case "boss-phase":return "BOSS PHASE | "+safe(e.phase)+
+      " | HP threshold "+fix(e.threshold*100,0)+"%"+
+      (e.reinforcements?" | REINFORCEMENTS":"");
     case "wave-spawn":return "WAVE "+e.wave+" SPAWN | "+name(match,e.actorId)+(e.boss?" [BOSS]":"");
     case "wave-clear":return "WAVE "+e.wave+" CLEARED";
     case "wave-debuff":return "PVE CORRUPTION | "+name(match,e.actorId)+
@@ -134,6 +146,12 @@ export function formatEnergyRunReport(match){
       +" | cap "+RUN_HISTORY_LIMIT,
   ];
   if(match.modeId==="defense")lines.push(
+    "PvE Encounter & Boss Identity 1.0: level "+
+      safe(match.encounter?.level)+" · tier "+safe(match.encounter?.tier)+
+      " "+safe(match.encounter?.stage)+" · seed "+safe(match.encounterSeed)+
+      " · finale "+safe(match.encounter?.boss?.name),
+    "Encounter wave rosters: "+(match.encounter?.waves||[])
+      .map(w=>"wave "+w.wave+" ["+w.enemies.join(", ")+"] cap "+w.maxAlive).join(" · "),
     "Planet Defense: wave "+match.wave+"/5 · state "+safe(match.waveState)+
       " · "+(match.totalKills||0)+" defeated · "+
       (match.resonancesChosen||0)+" guided trial selections",

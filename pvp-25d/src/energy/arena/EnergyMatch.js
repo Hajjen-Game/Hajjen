@@ -835,7 +835,9 @@ export class EnergyMatch {
       if(distance(actor,target)<=ORB_SEPARATION+5)this.finishCharge(actor);
     }else if(r.mode==="interrupt"){
       if(target.cast){
-        const interrupted=target.cast.spellId,discipline=ABILITY_BY_ID[interrupted]?.discipline;
+        const interrupted=target.cast.spellId,
+          discipline=ABILITY_BY_ID[interrupted]?.discipline||
+            (interrupted.startsWith("encounter-")?"void":null);
         target.cast=null;
         const evo=actor.evolutions[spellId];
         if(discipline)target.schoolLocks[discipline]=evo==="suppression"?4.5:3;

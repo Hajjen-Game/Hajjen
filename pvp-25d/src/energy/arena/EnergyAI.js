@@ -90,6 +90,13 @@ export class EnergyAI {
       const pressure=allies.filter(a=>a.role!=="healer").some(a=>dist(a,o)<390);
       let score=(1-hp)*115 + (pressure?16:0);
       if(o.role==="healer"&&o.flux<28)score+=38;
+      // In Planet Defense a Rift Channeler winding up a ground blast is a
+      // real priority threat. Allied bots can peel or interrupt it.
+      if(team==="friendly"&&o.encounterKey){
+        if(["channeler","harbinger"].includes(o.encounterKey))score+=20;
+        if(o.cast?.spellId?.startsWith("encounter-"))score+=145;
+        if(o.boss)score+=14;
+      }
       if(team==="enemy"&&o.role===this.openerRole)score+=12;
       if(o.statuses.some(s=>s.kind==="incapacitate"))score-=48;
       if(selected&&selected.id===o.id)score+=50;

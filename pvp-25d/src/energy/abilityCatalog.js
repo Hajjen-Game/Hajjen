@@ -74,7 +74,7 @@ export const ABILITIES = Object.freeze([
     ["rapid-flux","Rapid Flux","Shorter cast at reduced damage."],
     ["fractured-energy","Fractured Energy","Next direct attack from another discipline gains a bonus."],
   ],"caster"),
-  ability("phase-slip","Phase Slip","void","Escape","Short directional teleport, stopped by solid arena obstacles.","Instant · Role mobility",[
+  ability("phase-slip","Phase Slip","void","Void escape","Instant directional phase jump that removes slows on arrival, but cannot escape roots or cross solid obstacles.","Instant · Removes slows · 23s CD",[
     ["extended-phase","Extended Phase","Teleport farther with a longer cooldown."],
     ["residual-field","Residual Field","Leave a short-lived slow field at the origin."],
     ["phase-shield","Phase Shield","Gain a small absorb shield on arrival."],
@@ -135,7 +135,7 @@ export const ABILITIES = Object.freeze([
     ["seismic-wave","Seismic Wave","Weaker primary hit but an expanding damage shockwave."],
     ["aftershock","Aftershock","A second weaker impact lands at the same location and can be avoided."],
   ]),
-  ability("vector-rush","Vector Rush","kinetic","Directional dash","Dash in the chosen direction, respecting arena collisions.","Instant · 18s cooldown",[
+  ability("vector-rush","Vector Rush","kinetic","Kinetic dash","A visible high-speed rush in your chosen direction. Unlike Phase Slip, it follows a kinetic travel path and does not cleanse slows.","Instant · Kinetic trail · 18s CD",[
     ["extended-vector","Extended Vector","Move farther, with a longer cooldown."],
     ["shock-trail","Shock Trail","Leave a brief damaging trail along the route."],
     ["kinetic-shield","Kinetic Shield","Gain a small absorb shield after completing the dash."],

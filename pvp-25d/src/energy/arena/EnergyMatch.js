@@ -265,6 +265,25 @@ export class EnergyMatch {
       return {...rule,distance:rule.distance+52,cd:rule.cd+3};
     if(spellId==="resonance-cut"&&evo==="long-reach")
       return {...rule,range:rule.range+125,cd:rule.cd+2};
+    // Void - a faster trap costs control time; a stronger root is never free.
+    if(spellId==="null-prison"&&evo==="rapid-seal")
+      return {...rule,cast:Math.max(.65,rule.cast-.45),duration:Math.max(1.6,rule.duration-1)};
+    if(spellId==="phase-slip"&&evo==="extended-phase")
+      return {...rule,distance:rule.distance+60,cd:(rule.cd||0)+4};
+    // Cryo - all three variants modify the same real spell used in Arena.
+    if(spellId==="crystal-bolt"&&evo==="rapid-crystal")
+      return {...rule,cast:Math.max(.65,rule.cast-.3),amount:rule.amount*.85};
+    if(spellId==="crystal-snare"&&evo==="deep-freeze")
+      return {...rule,duration:rule.duration+.85,cd:rule.cd+5};
+    if(spellId==="fracture-spear"&&evo==="focused-fracture")
+      return {...rule,amount:rule.amount*.80,controlBonus:.7};
+    // Vital - distinct steady/reactive healing profiles and tactical dispels.
+    if(spellId==="reactive-thread"&&evo==="emergency-weave")
+      return {...rule,amount:rule.amount*.75,reactive:rule.reactive*1.25};
+    if(spellId==="reactive-thread"&&evo==="steady-flow")
+      return {...rule,amount:rule.amount*1.3,reactive:rule.reactive*.65};
+    if(spellId==="cleanse-flux"&&evo==="dual-purge")
+      return {...rule,cd:rule.cd+6};
     return rule;
   }
   identityProc(source,spellId,kind,target=null,x=null,y=null){
@@ -275,9 +294,9 @@ export class EnergyMatch {
     this.emit({type:"evolution-proc",actorId:source.id,targetId:target?.id||null,
       spellId,kind,x:x??target?.x??source.x,y:y??target?.y??source.y});
   }
-  scheduleEvolution(source,spellId,kind,x,y,delay,amount,radius){
+  scheduleEvolution(source,spellId,kind,x,y,delay,amount,radius,extras={}){
     this.evolutionEvents.push({sourceId:source.id,spellId,kind,x,y,
-      at:this.time+delay,amount,radius});
+      at:this.time+delay,amount,radius,...extras});
   }
   processEvolutionEffects(){
     const ready=this.evolutionEvents.filter(e=>e.at<=this.time);
@@ -285,10 +304,21 @@ export class EnergyMatch {
     for(const e of ready){
       const source=this.getActor(e.sourceId);
       if(!source?.alive)continue;
+      if(e.targetId){
+        const target=this.getActor(e.targetId);
+        if(!target?.alive||target.team===source.team)continue;
+        this.evolutionProc(source,e.spellId,e.kind,target);
+        if(e.amount>0)this.damage(target,e.amount,source,e.spellId);
+        continue;
+      }
       this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
       for(const enemy of this.opponents(source).filter(t=>distance(t,e)<e.radius&&
-          hasLineOfSight(e,t,this.arena)).slice(0,6))
-        this.damage(enemy,e.amount,source,e.spellId);
+          hasLineOfSight(e,t,this.arena)).slice(0,6)){
+        if(e.amount>0)this.damage(enemy,e.amount,source,e.spellId);
+        if(e.slowDuration)
+          this.addStatus(enemy,{kind:"slow",negative:true,remaining:e.slowDuration,
+            sourceId:source.id});
+      }
     }
   }
   rollCrit(source,spellId,context){
@@ -472,7 +502,8 @@ export class EnergyMatch {
   move(actor,dx,dy,dt){
     if(!actor.alive||this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
     const length=Math.hypot(dx,dy)||1;
-    const speed=174*(this.isControlled(actor,"slow")?0.65:1);
+    const speed=174*(this.isControlled(actor,"slow")?0.65:1)*
+      (actor.statuses.some(s=>s.kind==="frost-momentum")?1.18:1);
     const xStep=dx/length*speed*dt,yStep=dy/length*speed*dt;
     let mx=0,my=0;
     if(dx||dy){

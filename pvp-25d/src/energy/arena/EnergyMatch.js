@@ -1053,11 +1053,30 @@ export class EnergyMatch {
             this.damage(actor,status.amount*ramp,source,status.spellId,true);
             status.tickCount++;
           }
-          if(status.kind==="reactive-thread")this.heal(actor,status.amount,source,"reactive-thread",true);
+          if(status.kind==="reactive-thread")
+            this.heal(actor,status.amount,source,"reactive-thread",true);
+          if(status.kind==="symbiosis-echo"&&source.alive)
+            this.heal(actor,status.amount,source,"symbiosis-link",true);
         }
       }
     }
-    const shieldExpired=actor.statuses.some(s=>s.kind==="shield"&&s.remaining<=0);
+    const expired=actor.statuses.filter(s=>s.remaining<=0);
+    for(const status of expired){
+      const source=this.getActor(status.sourceId);
+      if(!source?.alive)continue;
+      if(status.kind==="incapacitate"&&status.spellId==="null-prison"&&
+        status.evolution==="void-anchor"){
+        this.addStatus(actor,{kind:"slow",negative:true,remaining:2,sourceId:source.id});
+        this.evolutionProc(source,"null-prison","void-anchor",actor);
+      }
+      if(status.kind==="root"&&status.spellId==="crystal-snare"&&
+        status.evolution==="shatterfield"){
+        this.scheduleEvolution(source,"crystal-snare","shatterfield",
+          actor.x,actor.y,.05,0,115,{slowDuration:1.7});
+        this.evolutionProc(source,"crystal-snare","shatterfield",actor);
+      }
+    }
+    const shieldExpired=expired.some(s=>s.kind==="shield");
     actor.statuses=actor.statuses.filter(s=>s.remaining>0);
     if(shieldExpired&&!actor.statuses.some(s=>s.kind==="shield"))actor.shield=0;
   }

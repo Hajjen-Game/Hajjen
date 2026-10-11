@@ -1,7 +1,7 @@
 // Planet Defense's in-combat field guide. Trials use the SAME Rank/Evolution/
 // Singularity values as Character HUB. PvE Enchantments are intentionally
 // separate: these help with waves and are never permanent or used in Arena.
-import { ABILITY_BY_ID, ROLES } from "../abilityCatalog.js?v=20261011-impact-map6";
+import { ABILITY_BY_ID, ROLES, ABILITIES } from "../abilityCatalog.js?v=20261011-impact-map6";
 import { RANK_PATHS } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const CURATED_EVOLUTIONS=Object.freeze({
@@ -64,7 +64,14 @@ export function defenseTrialChoices(match,enchantments){
       unlock:"Earn Talent Points from levelling; spend one per Rank in Character HUB.",
       isTemporary:true};
   }).filter(Boolean);
-  const evolution=(CURATED_EVOLUTIONS[actor.role]||[]).map(([spellId,evolutionId])=>{
+  // Newly implemented Solar/Kinetic Evolutions are discoverable whenever
+  // the player actually has that spell equipped, regardless of Origin.
+  const previewPool=[...(CURATED_EVOLUTIONS[actor.role]||[]),
+    ...ABILITIES.filter(a=>equipped.includes(a.id)&&
+      ["solar","kinetic"].includes(a.discipline))
+      .flatMap(a=>a.evolutions.map(e=>[a.id,e.id]))];
+  const evolution=previewPool.filter(([id,evo],index,array)=>
+    array.findIndex(([x,y])=>x===id&&y===evo)===index).map(([spellId,evolutionId])=>{
     if(!equipped.includes(spellId)||actor.evolutions[spellId]===evolutionId)return null;
     const ev=ABILITY_BY_ID[spellId]?.evolutions.find(x=>x.id===evolutionId);
     if(!ev)return null;

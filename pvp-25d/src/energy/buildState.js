@@ -75,9 +75,21 @@ export function normalizeBuild(raw) {
   if (build.name === oldNames[build.role]) build.name = ROLES[build.role].name + " Build";
   if (Array.isArray(raw.freeSlots)) {
     const seen = new Set();
+    const locked = new Set(ROLES[build.role].locked);
+    // Impact's old level-1 free Arc Strike is now permanent. Preserve that
+    // player's rank/evolution ON Arc Strike and replace its duplicated shared
+    // slot with a usable offensive spell, without wiping the saved build.
+    const previous = raw.freeSlots.slice(0,FREE_ABILITY_SLOTS);
+    const reserved = new Set(previous.filter(id=>FREE_IDS.has(id)&&!locked.has(id)));
     for (let i = 0; i < FREE_ABILITY_SLOTS; i += 1) {
-      const id = raw.freeSlots[i];
-      if (FREE_IDS.has(id) && !seen.has(id)) {
+      let id = previous[i];
+      if (locked.has(id)) {
+        id = ["rift-slash","gravity-hammer","entropy-mark","pulse-sever",
+          ...FREE_ABILITIES.map(a=>a.id)]
+          .find(candidate=>FREE_IDS.has(candidate)&&!locked.has(candidate)
+            &&!seen.has(candidate)&&!reserved.has(candidate))||null;
+      }
+      if (FREE_IDS.has(id) && !locked.has(id) && !seen.has(id)) {
         seen.add(id);
         build.freeSlots[i] = id;
       }

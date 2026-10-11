@@ -73,7 +73,7 @@ const BOT_KITS={
   healer:["pulse-mend","crystal-bolt","resonance-guard","photon-barrier",
     "reactive-thread","cleanse-flux","sun-lance","null-prison",
     "symbiosis-link","resonance-cut"],
-  melee:["phase-rush","arc-strike","pulse-sever","rift-slash",
+  melee:["phase-rush","arc-strike","rift-slash","pulse-sever",
     "photon-barrier","gravity-hammer","entropy-mark","crystal-snare",
     "vector-rush","resonance-cut"],
   caster:["flux-bolt","crystal-bolt","phase-slip","sun-lance",

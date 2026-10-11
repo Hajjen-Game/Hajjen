@@ -15,6 +15,7 @@ export const MODES = Object.freeze({
     id:"defense",label:"Planet Defense",size:"3vE",
     subtitle:"Survive five waves with two AI companions",
     description:"Genesis, Impact and Eclipse survive five escalating waves. Discover real spell Mastery and Evolutions, Forge trials and optional PvE Enchantments between waves.",
+    // Level-dependent XP on victory; fixed xpWin remains the max-level fallback.
     xpWin:80,xpLoss:22,
   }),
   training: Object.freeze({
@@ -86,6 +87,18 @@ export function levelForXp(xp){
   while(level<MAX_LEVEL&&xp>=LEVEL_XP[level])level++;
   return level;
 }
+// Planet Defense is a complete five-wave encounter, not a short PvP round.
+// A fresh character reaches level 30 in 19 straight victories: wins 1–9
+// teach one level at a time, then wins 10–19 grant two levels each.
+// Award the *exact missing XP* to the target threshold, preserving old saves,
+// all existing level gates, and the slower XP rates of other arena modes.
+export function planetDefenseVictoryXp(profile){
+  const xp=Math.max(0,Math.floor(Number(profile?.xp)||0));
+  const level=levelForXp(xp);
+  if(level>=MAX_LEVEL)return MODES.defense.xpWin;
+  const targetLevel=Math.min(MAX_LEVEL,level+(level<10?1:2));
+  return Math.max(1,LEVEL_XP[targetLevel-1]-xp);
+}
 export function slotsForLevel(level){return SPELL_SLOT_LEVELS.filter(required=>level>=required).length;}
 export function progressDetails(profile){
   const level=levelForXp(profile.xp||0),base=LEVEL_XP[level-1],next=LEVEL_XP[level];
@@ -137,7 +150,10 @@ export function saveProgression(storage,profile){
 }
 export function awardMatch(profile,modeId,won,enemyKills=0){
   const mode=MODES[modeId]||MODES.training;
-  const before=progressDetails(profile),earned=won?mode.xpWin:mode.xpLoss;
+  const before=progressDetails(profile);
+  const earned=won&&modeId==="defense"
+    ?planetDefenseVictoryXp(profile)
+    :won?mode.xpWin:mode.xpLoss;
   const fragments=FRAGMENTS_PER_KILL*nonnegativeInt(enemyKills);
   // Arena victory drops are intentionally occasional. No boss mode exists yet.
   const matterDrop=won&&Math.random()<0.25?1:0;

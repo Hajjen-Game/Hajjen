@@ -39,7 +39,8 @@ export function validateBuild(build) {
     return ["Invalid free slot count"];
   }
   const free = build.freeSlots.filter(Boolean);
-  if (free.some(id => !FREE_IDS.has(id))) problems.push("Unknown or role-locked ability in a free slot");
+  if (free.some(id => !FREE_IDS.has(id) || ROLES[build.role].locked.includes(id)))
+    problems.push("Unknown or role-locked ability in a free slot");
   if (new Set(free).size !== free.length) problems.push("Duplicate free abilities");
   const equipped = new Set([...ROLES[build.role].locked, ...free]);
   if (!build.talents || typeof build.talents !== "object" || Array.isArray(build.talents)) {
@@ -143,7 +144,8 @@ export function equipAbility(build, slotIndex, abilityId) {
   if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= FREE_ABILITY_SLOTS) {
     throw new Error("Choose one of the eight free slots");
   }
-  if (!FREE_IDS.has(abilityId)) throw new Error("Only shared abilities can go into free slots");
+  if (!FREE_IDS.has(abilityId) || ROLES[build.role].locked.includes(abilityId))
+    throw new Error("Origin-bound spells cannot be equipped twice.");
   if (build.freeSlots.some((id, index) => id === abilityId && index !== slotIndex)) {
     throw new Error("Already equipped. Remove it from the other slot first.");
   }

@@ -540,7 +540,9 @@ export class EnergyMatch {
       this.evolutionProc(actor,"zenith-crash","burning-ground",null,position.x,position.y);
     }
     if(!foes.length)this.log("ZENITH CRASH · EVADED");
-    this.handleSingularityCast(actor,"zenith-crash",foes[0]||null);
+    // A dodged Zenith still spends its cast/cooldown but must not trigger
+    // a free damaging Singularity around the player when no enemy was hit.
+    if(foes.length)this.handleSingularityCast(actor,"zenith-crash",foes[0]);
     this.emit({type:"ability",actorId:actor.id,targetId:foes[0]?.id||null,
       spellId:"zenith-crash"});
   }

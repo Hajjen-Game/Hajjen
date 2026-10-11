@@ -15,8 +15,10 @@ export class EnergyOrbShowcase{
     this.scene.ambientColor=BABYLON.Color3.FromHexString("#56637d");
     this.scene.imageProcessingConfiguration.contrast=1.1;
     this.scene.imageProcessingConfiguration.exposure=1.12;
+    // A single WebGL canvas showcases the whole Origin team.
+    // Keep one OrbCharacterRenderer/Polish instance; no additional contexts.
     this.camera=new BABYLON.ArcRotateCamera("hero-preview-camera",
-      -Math.PI/2,1.27,2.43,new BABYLON.Vector3(0,.72,0),this.scene);
+      -Math.PI/2,1.27,3.45,new BABYLON.Vector3(0,.72,0),this.scene);
     this.camera.minZ=.05;
     new BABYLON.HemisphericLight("hero-fill",new BABYLON.Vector3(.15,1,.35),this.scene).intensity=1.15;
     const rim=new BABYLON.PointLight("hero-rim",new BABYLON.Vector3(-2,3,-3),this.scene);
@@ -31,7 +33,23 @@ export class EnergyOrbShowcase{
       statuses:[],cast:null,lastMove:{x:0,y:0},
       energyStyle:{core:"#6fdaad",energy:"#78d1fa"},isShowcase:true
     };
-    this.fakeMatch={actors:[this.actor]};
+    // Two companion actors share the exact same render pipeline as the hero.
+    // y maps to the preview's horizontal world-axis at this camera angle.
+    this.allies=["healer","melee","caster"].map((role,i)=>({
+      id:"energy-hub-companion-"+role,
+      team:"friendly",control:"ai",role,classId:"energy-"+role,
+      x:0,y:i===0?-1.10:i===1?0:1.10,alive:true,
+      hp:160,maxHp:160,healthPct:1,flux:100,shield:0,
+      statuses:[],cast:null,lastMove:{x:0,y:0},isShowcase:true,
+      energyStyle:{
+        healer:{core:"#66d5ad",energy:"#b0f8de"},
+        melee:{core:"#f27b83",energy:"#f7ad91"},
+        caster:{core:"#79cafd",energy:"#baaffb"},
+      }[role]
+    }));
+    // Player role is always the central orb; its two companions flank it.
+    this.allies=this.allies.filter(ally=>ally.role!==this.actor.role);
+    this.fakeMatch={actors:[this.actor,...this.allies]};
     this.discipline=null;this.secondary=null;
     this.visible=true;
     this.failed=false;
@@ -61,11 +79,16 @@ export class EnergyOrbShowcase{
     // The polished layer must run AFTER sync, as in EnergyArenaRenderer.
     this.characterRender.sync(this.fakeMatch,now);
     this.polish.sync(this.fakeMatch,now);
-    const e=this.characterRender.entries.get(this.actor.id);
-    if(!e)throw Error("OrbCharacterRenderer did not create the showcase orb");
-    // Never show a combat HP bar in the character portrait.
-    e.barRoot?.setEnabled(false);
-    this.camera.alpha=-Math.PI/2+Math.sin(now*.00022)*.18;
+    const hero=this.characterRender.entries.get(this.actor.id);
+    if(!hero)throw Error("OrbCharacterRenderer did not create the showcase orb");
+    for(const actor of this.fakeMatch.actors){
+      const entry=this.characterRender.entries.get(actor.id);
+      if(!entry)throw Error("Missing team orb "+actor.id);
+      entry.barRoot?.setEnabled(false);
+      // Preview-only size hierarchy: never change combat hitboxes.
+      entry.root.scaling.setAll(actor.id===this.actor.id?1.06:.74);
+    }
+    this.camera.alpha=-Math.PI/2+Math.sin(now*.00022)*.11;
     this.scene.render();
     if(!this.firstFrame){
       this.firstFrame=true;
@@ -78,6 +101,18 @@ export class EnergyOrbShowcase{
     this.actor.role=build.role;
     this.actor.classId="energy-"+build.role;
     this.actor.energyStyle=identity.style;
+    // Stable, unique friendly roster: the two roles the player did not pick.
+    this.allies=[
+      ["healer",{core:"#66d5ad",energy:"#b0f8de"}],
+      ["melee",{core:"#f27b83",energy:"#f7ad91"}],
+      ["caster",{core:"#79cafd",energy:"#baaffb"}]
+    ].filter(([role])=>role!==build.role).map(([role,style],i)=>({
+      id:"energy-hub-companion-"+role,team:"friendly",control:"ai",role,
+      classId:"energy-"+role,x:0,y:i===0?-1.10:1.10,alive:true,
+      hp:160,maxHp:160,healthPct:1,flux:100,shield:0,statuses:[],
+      cast:null,lastMove:{x:0,y:0},isShowcase:true,energyStyle:style
+    }));
+    this.fakeMatch.actors=[this.actor,...this.allies];
     if(identity.primary!==this.discipline||identity.secondary!==this.secondary){
       const p=this.polish.entries.get(this.actor.id);
       if(p){this.polish.disposeEntry(p);this.polish.entries.delete(this.actor.id);}

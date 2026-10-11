@@ -453,6 +453,16 @@ export class EnergyMatch {
     const guard=target.statuses.find(s=>s.kind==="guard");
     if(guard)value*=1-guard.amount;
     const guardReduction=rawDamage-value;
+    if(guardReduction>0&&guard?.evolution==="retaliation"&&
+      guard.procGate<=0&&spellId!=="resonance-guard"){
+      guard.procGate=.75;
+      const owner=this.getActor(guard.sourceId);
+      if(owner?.alive&&source?.alive&&source.team!==owner.team){
+        this.damage(source,Math.min(12,guardReduction*.24/this.power),
+          owner,"resonance-guard");
+        this.evolutionProc(owner,"resonance-guard","retaliation",source);
+      }
+    }
     const absorbed=Math.min(target.shield,value);
     target.shield-=absorbed;
     value=Math.max(0,Math.round(value-absorbed));
@@ -474,12 +484,39 @@ export class EnergyMatch {
     }
     if(value>0){
       // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
-      if(target.statuses.some(s=>s.kind==="incapacitate"))this.emit({type:"break",actorId:source.id,targetId:target.id,spellId});
-      target.statuses=target.statuses.filter(s=>s.kind!=="incapacitate");
+      const prison=target.statuses.find(s=>s.kind==="incapacitate");
+      if(prison){
+        this.emit({type:"break",actorId:source.id,targetId:target.id,spellId});
+        target.statuses=target.statuses.filter(s=>s!==prison);
+        const jailer=this.getActor(prison.sourceId);
+        if(jailer?.alive){
+          if(prison.evolution==="void-anchor")
+            this.addStatus(target,{kind:"slow",negative:true,remaining:2,sourceId:jailer.id});
+          if(prison.evolution==="unstable-prison"&&spellId!=="null-prison"){
+            this.evolutionProc(jailer,"null-prison","unstable-prison",target);
+            for(const other of this.opponents(jailer).filter(a=>
+              distance(a,target)<=125&&hasLineOfSight(target,a,this.arena)).slice(0,4))
+              this.damage(other,6,jailer,"null-prison");
+          }
+        }
+      }
       const thread=target.statuses.find(s=>s.kind==="reactive-thread");
       if(thread&&thread.procGate<=0){
-        this.heal(target,thread.reactive, this.getActor(thread.sourceId), "reactive-thread");
-        thread.procGate=2;
+        const healer=this.getActor(thread.sourceId);
+        if(healer?.alive){
+          const low=target.hp/target.maxHp<=.4&&thread.evolution==="emergency-weave";
+          const pulse=thread.reactive*(low?1.5:1);
+          this.heal(target,pulse,healer,"reactive-thread");
+          thread.procGate=2;
+          if(thread.evolution==="harmonic-thread"){
+            const second=this.allies(healer).filter(a=>a!==target&&a.hp<a.maxHp&&
+              distance(a,target)<=420).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+            if(second){
+              this.heal(second,pulse*.45,healer,"reactive-thread");
+              this.evolutionProc(healer,"reactive-thread","harmonic-thread",second);
+            }
+          }
+        }
       }
     }
     if(source.role==="melee"&&value>0&&["arc-strike","rift-slash","gravity-hammer"].includes(spellId)&&source.bonusFluxGate<=0){
@@ -488,10 +525,26 @@ export class EnergyMatch {
     const link=source.statuses.find(s=>s.kind==="link");
     if(link&&value>0&&link.procGate<=0){
       const ally=this.getActor(link.linkedId);
-      // Damage already contains the level multiplier. Divide it back out
-      // before handing the base healing to heal(), which scales exactly once.
-      if(ally?.alive)this.heal(ally,Math.min(15,value*.32/this.power),source,"symbiosis-link");
-      link.procGate=0.45;
+      // A single direct hit creates ONE healing budget. Share it rather than
+      // duplicating the total healing with Reciprocal Flow.
+      if(ally?.alive){
+        const enhanced=link.evolution==="amplified-link";
+        const budget=Math.min(enhanced?20:15,
+          value*(enhanced?.44:.32)/this.power);
+        if(link.evolution==="reciprocal-flow"&&ally!==source){
+          this.heal(ally,budget*.5,source,"symbiosis-link");
+          this.heal(source,budget*.5,source,"symbiosis-link");
+          this.evolutionProc(source,"symbiosis-link","reciprocal-flow",ally);
+        }else{
+          this.heal(ally,budget,source,"symbiosis-link");
+          if(link.evolution==="lingering-resonance"){
+            this.addStatus(ally,{kind:"symbiosis-echo",remaining:2.1,sourceId:source.id,
+              period:1,tickLeft:1,amount:Math.min(3,budget*.12)});
+            this.evolutionProc(source,"symbiosis-link","lingering-resonance",ally);
+          }
+        }
+      }
+      link.procGate=enhanced?.6:.45;
     }
     if(target.hp===0){
       target.alive=false;target.cast=null;this.log(target.name+" eliminated!");

@@ -1,4 +1,4 @@
-# Energy Arena — Game Design Tracker
+# Project Energy (working title) — Game Design Tracker
 
 **Purpose:** A persistent, lightweight source of truth for gameplay decisions, pending proposals, missing polish, and future passes. Update this file when a good idea arises; never confuse a suggestion with a confirmed user decision. Do not replace code/testing with this document.
 
@@ -18,6 +18,22 @@
 - **IMPLEMENTED (visual prototype 1.3, awaiting in-browser review):** Material Balance Pass in [Enemy Design Lab](enemy-design-lab.html) tones down Rift Shard's overbright central reactor/inner plasma, increases Channeler's shell and facets plus front-face Fresnel fill while keeping its contained core, and gives Bulwark heavier crystal body visibility with extra opacity and Fresnel front fill. The existing GLASS ON/OFF A/B comparison remains working. This is a visual prototype only, with **no Planet Defense changes**. Review all three at GAMEPLAY SCALE and COMPARE before committing them as production enemy art.
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
+
+## Front-end navigation overhaul (2026-10-11)
+
+**Status: IMPLEMENTED / needs real browser UX review.**
+- Main Menu has exactly four primary actions: **New Game**, **Resume Game**, **About**, **Game Dev**. The title displayed is **Project Energy** as an explicitly provisional *working title*; internal files, storage keys and URLs are intentionally unchanged.
+- New Game opens creation of a fresh Origin. Resume Game opens a distinct Origin roster; clicking any Origin loads its own HUB. Saves/builds/level are preserved.
+- HUB **Play** opens a dedicated **PvE / PvP** choice screen. PvE offers **Planet Defense** (existing live mode) and **Rift Expedition** (shown as LOCKED, unlock level **20 or 30 — undecided**, no active gameplay endpoint). PvP offers **1v1** (existing Training Grounds), **2v2** (Duo), and **3v3** (Trio).
+- Game Dev contains the **Visual VFX Lab**, **Enemy & Boss Design Lab**, and **Energy Build Lab**. Links to labs and to legacy Arena have been removed from the normal game header and other lab menus; labs return to the Game Dev screen.
+- About remains the illustrated field guide. A cancel button was added to character creation.
+- **Technical checks:** JS syntax, DOM IDs, New/Resume/HUB/Play category selection, PvE/PvP mode callbacks, back navigation, About and locked Rift Expedition UI passed scripted navigation tests. Real mobile/desktop browser tests still needed.
+
+**Open design questions — do not silently decide:**
+1. **Final game title:** No name chosen. `Project Energy` is a temporary UI label only.
+2. **Planet Defense name:** `Space Surf` proposed by user as a wave-themed name. Keep Planet Defense for now; evaluate alongside lore and activity identity.
+3. **Rift Expedition unlock level:** 20 or 30? Not decided. Both appear in the disabled card explicitly as TBD; do not make this playable until the mode and gate are designed.
+4. **PvP labels:** Main choice displays 1v1/2v2/3v3; underlying game modes still named Training Grounds/Duo/Full Arena internally. Decide later whether separate PvP matchmaking/identity requires changes.
 
 ## Planet Defense Rift creature live integration
 

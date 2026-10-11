@@ -170,6 +170,9 @@ export class EnergyAI {
       // Dispels high-impact CC first: never cleanse a harmless slow while an ally is imprisoned.
       const controlled=allies.find(a=>a.statuses.some(s=>s.negative&&(s.kind==="incapacitate"||s.kind==="root")));
       if(controlled&&this.tryCast(actor,["cleanse-flux"],controlled))return;
+      const corrupted=allies.find(a=>a.statuses.some(s=>
+        s.negative&&s.kind==="dot"&&s.spellId==="rift-corruption"));
+      if(corrupted&&this.tryCast(actor,["cleanse-flux"],corrupted))return;
       if(urgentHealth<.80){
         if(this.tryCast(actor,["pulse-mend"],urgent))return;
         if(urgentHealth<.9&& !urgent.statuses.some(s=>s.kind==="reactive-thread")&&

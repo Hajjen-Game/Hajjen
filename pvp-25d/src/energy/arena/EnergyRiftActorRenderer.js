@@ -39,7 +39,9 @@ export class EnergyRiftActorRenderer{
     // Do not render the hero orb underneath or reuse its character shaders.
     for(const crown of unit.bossExtras)crown.setEnabled(Boolean(actor.boss));
     const meshes=unit.root.getChildMeshes(false);
-    const materials=new Set();
+    // Some authored materials (e.g. optional rune variants) have no mesh
+    // in a particular species. Dispose those too after each PvE wave.
+    const materials=new Set(Object.values(unit.mats));
     for(const mesh of meshes){
       if(mesh.material)materials.add(mesh.material);
       mesh.isPickable=!PICK_EXCLUDED.test(mesh.name);
@@ -125,7 +127,7 @@ export class EnergyRiftActorRenderer{
     if(this.glow?.removeIncludedOnlyMesh)
       for(const mesh of entry.meshes)this.glow.removeIncludedOnlyMesh(mesh);
     // The extra ground-ink material is owned by the unit but not by mats.
-    entry.unit.root.dispose(false,true);
+    entry.unit.root.dispose(false,false);
     for(const material of entry.materials)material.dispose();
   }
   dispose(){

@@ -14,7 +14,7 @@ export const MODES = Object.freeze({
   defense: Object.freeze({
     id:"defense",label:"Planet Defense",size:"3vE",
     subtitle:"Survive five waves with two AI companions",
-    description:"Genesis, Impact and Eclipse survive five escalating waves. Choose a Wave Resonance after each of the first four waves.",
+    description:"Genesis, Impact and Eclipse survive five escalating waves. Discover real spell Mastery and Evolutions, Forge trials and optional PvE Enchantments between waves.",
     xpWin:80,xpLoss:22,
   }),
   training: Object.freeze({

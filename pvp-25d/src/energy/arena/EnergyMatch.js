@@ -632,16 +632,90 @@ export class EnergyMatch {
       let amount=r.amount;
       if(r.requiresDebuff&&this.debuffed(target))amount*=1.25;
       if(r.controlBonus&&(this.isControlled(target,"root")||this.isControlled(target,"slow")))amount*=1+r.controlBonus;
-      if(actor.evolutions[spellId]==="focused-impact"||actor.evolutions[spellId]==="singularity-impact")amount*=1.2;
+      if(actor.evolutions[spellId]==="singularity-impact")amount*=1.2;
+      if(spellId==="sun-lance"&&target.hp/target.maxHp<=.35)
+        amount*=1.18; // Precision finisher rather than Flux Bolt's steady filler.
+      if(spellId==="gravity-hammer"&&actor.evolutions[spellId]==="seismic-wave")amount*=.78;
+      if(actor.rushEmpower&&this.time<=actor.rushEmpower.until&&
+        ["arc-strike","rift-slash","gravity-hammer"].includes(spellId)){
+        amount*=1.28;actor.rushEmpower=null;
+        this.evolutionProc(actor,"phase-rush","impact-charge",target);
+      }
+      if(actor.crossDisciplineCharge&&this.time<=actor.crossDisciplineCharge.until&&
+        ABILITY_BY_ID[spellId]?.discipline!==actor.crossDisciplineCharge.discipline){
+        amount*=1.22;actor.crossDisciplineCharge=null;
+        this.evolutionProc(actor,"flux-bolt","fractured-energy",target);
+      }
+      if(actor.resonantStrikeCharge&&this.time<=actor.resonantStrikeCharge.until&&
+        spellId!=="arc-strike"){
+        amount*=1.20;actor.resonantStrikeCharge=null;
+        this.evolutionProc(actor,"arc-strike","resonant-strike",target);
+      }
       this.damage(target,amount,actor,spellId);
       if(r.slow)this.addStatus(target,{kind:"slow",negative:true,remaining:r.slowTime,sourceId:actor.id});
-      if(spellId==="arc-strike"&&actor.evolutions[spellId]==="twin-arc"){
-        actor.arcCount++;
-        if(actor.arcCount%3===0)this.damage(target,amount*.5,actor,spellId);
+      if(spellId==="arc-strike"){
+        const evo=actor.evolutions[spellId];
+        if(evo==="twin-arc"){
+          actor.arcCount++;
+          if(actor.arcCount%3===0){
+            this.damage(target,amount*.5,actor,spellId);
+            this.evolutionProc(actor,spellId,"twin-arc",target);
+          }
+        }else if(evo==="momentum"&&(actor.evolutionFluxGate||0)<=this.time){
+          actor.flux=clamp(actor.flux+7,0,MAX_FLUX);
+          actor.evolutionFluxGate=this.time+2;
+          this.evolutionProc(actor,spellId,"momentum",target);
+        }else if(evo==="resonant-strike"){
+          actor.resonantStrikeCharge={until:this.time+6};
+          this.evolutionProc(actor,spellId,"resonant-strike-ready",actor);
+        }
+      }
+      if(spellId==="flux-bolt"&&actor.evolutions[spellId]==="fractured-energy"){
+        actor.crossDisciplineCharge={until:this.time+7,discipline:"solar"};
+        this.evolutionProc(actor,spellId,"fractured-energy-ready",actor);
+      }
+      if(spellId==="sun-lance"){
+        const evo=actor.evolutions[spellId];
+        if(evo==="scorching-lance"){
+          this.addStatus(target,{kind:"dot",negative:true,remaining:6,sourceId:actor.id,
+            spellId,amount:4.5,period:2,tickLeft:2,tickCount:0});
+          this.evolutionProc(actor,spellId,"scorching-lance",target);
+        }else if(evo==="split-lance"){
+          const second=this.opponents(actor).filter(t=>t!==target&&distance(t,target)<225&&
+            hasLineOfSight(target,t,this.arena)).sort((a,b)=>distance(a,target)-distance(b,target))[0];
+          if(second){
+            this.damage(second,amount*.46,actor,spellId);
+            this.evolutionProc(actor,spellId,"split-lance",second);
+          }
+        }
+      }
+      if(spellId==="zenith-crash"){
+        const evo=actor.evolutions[spellId];
+        if(evo==="solar-aftershock"){
+          this.scheduleEvolution(actor,spellId,"solar-aftershock",target.x,target.y,.85,amount*.45,92);
+          this.evolutionProc(actor,spellId,"solar-aftershock-ready",target);
+        }else if(evo==="burning-ground"){
+          for(let tick=1;tick<=3;tick++)
+            this.scheduleEvolution(actor,spellId,"burning-ground",target.x,target.y,tick,5.5,96);
+          this.evolutionProc(actor,spellId,"burning-ground",target);
+        }
+      }
+      if(spellId==="gravity-hammer"){
+        const evo=actor.evolutions[spellId];
+        if(evo==="seismic-wave"){
+          this.evolutionProc(actor,spellId,"seismic-wave",target);
+          for(const enemy of this.opponents(actor).filter(t=>t!==target&&distance(t,target)<160&&
+              hasLineOfSight(target,t,this.arena)).slice(0,5))
+            this.damage(enemy,amount*.48,actor,spellId);
+        }else if(evo==="aftershock"){
+          this.scheduleEvolution(actor,spellId,"aftershock",target.x,target.y,.78,amount*.50,80);
+          this.evolutionProc(actor,spellId,"aftershock-ready",target);
+        }
       }
       if(r.area){
         for(const other of this.opponents(actor)){
-          if(other!==target&&distance(other,target)<r.area&&hasLineOfSight(actor,other,this.arena))this.damage(other,amount*.42,actor,spellId);
+          if(other!==target&&distance(other,target)<r.area&&hasLineOfSight(actor,other,this.arena))
+            this.damage(other,amount*.42,actor,spellId);
         }
       }
     }else if(r.mode==="dot"){

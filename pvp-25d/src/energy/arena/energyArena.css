@@ -1557,3 +1557,146 @@ h2{font-size:23px}
   .journey-screen .menu-origin-section{padding:13px}
   .journey-screen-actions .menu-action{width:100%}
 }
+
+
+/* HUB 2.0 — Origin squad + read-only single-Origin hex journey preview.
+   Uses one existing live Babylon canvas for the three actual squad orbs. */
+.hub-team-panel,.hub-journey-panel{
+  position:relative;margin:16px 0 19px;padding:20px 22px;
+  border:1px solid #355976;border-radius:14px;
+  background:radial-gradient(ellipse at 50% 8%,#284d7443,transparent 57%),
+    linear-gradient(145deg,#101e33,#090f20 84%);
+  box-shadow:inset 0 1px #8ecdf519,0 14px 30px #03071046;
+}
+.hub-team-title,.hub-journey-heading{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
+  flex-wrap:wrap;margin-bottom:14px;
+}
+.hub-team-title h3,.hub-journey-heading h3{
+  font-size:clamp(17px,2.2vw,25px);letter-spacing:.07em;margin:5px 0 0;
+  color:#eaf7ff;line-height:1.25
+}
+.hub-team-title h3 span,.hub-journey-heading h3 span{color:#9be4f4}
+.hub-team-title>p{font-size:11px;color:#91b5cb}
+.hub-team-grid{display:grid;grid-template-columns:1fr 1.22fr 1fr;
+  align-items:stretch;gap:13px}
+.hub-teammate-card{
+  --team-core:#70dfbe;--team-energy:#a7f5ed;min-width:0;
+  padding:16px 14px;border:1px solid #395971;border-radius:12px;
+  background:radial-gradient(ellipse at 50% 8%,color-mix(in srgb,var(--team-core) 13%,transparent),
+    transparent 65%),linear-gradient(145deg,#14273d,#0b1426);
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px
+}
+.hub-teammate-card.hero{
+  border-color:#7292a7;background:radial-gradient(ellipse at 50% 16%,
+    color-mix(in srgb,var(--team-core) 24%,transparent),transparent 67%),#11263a;
+  box-shadow:inset 0 0 0 1px #92c4f417,0 0 26px #5cbded11
+}
+.hub-team-aura{
+  display:grid;place-items:center;position:relative;flex:none;width:69px;height:69px;
+  border:1px solid color-mix(in srgb,var(--team-core) 62%,transparent);
+  border-radius:50%;
+  background:radial-gradient(circle at 39% 32%,#f7ffff 0 3%,
+    color-mix(in srgb,var(--team-energy) 85%,#ffffff) 6%,
+    color-mix(in srgb,var(--team-core) 64%,#101b40) 18%,
+    #12253c 47%,#080f21 76%);
+  box-shadow:0 0 21px color-mix(in srgb,var(--team-core) 36%,transparent),
+    inset 0 0 21px #050b21;
+  animation:hub-team-breathe 5.4s ease-in-out infinite
+}
+.hub-team-aura:before,.hub-team-aura:after{
+  content:"";position:absolute;inset:15%;border:1px solid
+    color-mix(in srgb,var(--team-energy) 62%,transparent);
+  border-radius:50%;transform:rotate(-30deg) scaleY(.42);
+  box-shadow:0 0 12px color-mix(in srgb,var(--team-energy) 46%,transparent);
+  animation:hub-team-orbit 9s linear infinite
+}
+.hub-team-aura:after{inset:6%;border-color:color-mix(in srgb,var(--team-core) 40%,transparent);
+  transform:rotate(48deg) scaleY(.38);animation-direction:reverse;animation-duration:13s}
+.hub-team-orb-heart{width:12px;height:12px;border-radius:50%;
+  background:#f3ffff;filter:blur(4px);box-shadow:0 0 19px var(--team-energy)}
+.hub-teammate-card.hero .hub-team-aura{width:92px;height:92px}
+.hub-team-persona{display:grid;justify-items:center;gap:5px;min-width:0}
+.hub-team-persona small{font-size:9px;color:#9bc5d8;letter-spacing:.1em}
+.hub-team-persona strong{font-size:16px;color:#f4fbff;letter-spacing:.08em;
+  overflow-wrap:anywhere}
+.hub-teammate-card.companion .hub-team-persona strong{font-size:14px}
+.hub-team-persona>span{font-size:10px;color:#99bdce}
+.hub-team-gate{margin:auto 0 0;color:#a4c4d6;font-size:9px;line-height:1.75}
+.hub-team-gate>span{display:block;color:#7594af}
+.hub-team-note{font-size:10px;color:#779cb4;line-height:1.55;margin:13px 0 0;text-align:center}
+@keyframes hub-team-breathe{
+  0%,100%{filter:brightness(.92);transform:scale(.985)}
+  50%{filter:brightness(1.15);transform:scale(1.035)}
+}
+@keyframes hub-team-orbit{
+  from{rotate:0deg}to{rotate:360deg}
+}
+#hub-journey-summary{border:1px solid #47748d;border-radius:7px;
+  padding:9px 12px;background:#0d2234;color:#b3dded;font-size:10px;
+  font-weight:800;letter-spacing:.07em}
+.hub-journey-intro{font-size:11px;line-height:1.65;color:#a6c2d5;margin:0 0 14px}
+.hub-journey-intro strong{color:#f0ca92}
+.hub-journey-scroll{overflow-x:auto;scrollbar-color:#406c83 #091727;border:1px solid #2d4f69;
+  border-radius:10px;background:
+  radial-gradient(ellipse at 50% 45%,#19324b75,transparent 60%),
+  radial-gradient(circle at 20% 65%,#28648315 0 2px,transparent 3px),#081423}
+.hub-journey-map{width:100%;min-width:750px;height:385px;position:relative;
+  isolation:isolate;background:radial-gradient(ellipse at 55% 45%,#22416218,transparent 67%)}
+.journey-route{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.journey-route-line{fill:none;stroke:#47748c;stroke-width:2.8;stroke-dasharray:6 10;
+  opacity:.68;stroke-linecap:round;stroke-linejoin:round}
+.journey-hex{position:absolute;z-index:1;transform:translate(-50%,-50%);
+  width:73px;height:78px;padding:0;background:none;border:0;cursor:pointer;color:#a3bacd}
+.journey-hex-face{display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:2px;width:100%;height:66px;
+  clip-path:polygon(50% 0,94% 25%,94% 75%,50% 100%,6% 75%,6% 25%);
+  border:0;background:linear-gradient(145deg,#2c5267,#14283e 58%,#0e182a);
+  filter:drop-shadow(0 0 4px #4ca6cf22);
+  box-shadow:inset 0 0 20px #172b43}
+.journey-hex-face small{color:#a9bed1;font-size:10px;font-weight:700;letter-spacing:.06em}
+.journey-hex-symbol{font-size:24px;color:#6c9db5;line-height:1}
+.journey-hex-label{display:block;position:absolute;top:69px;left:50%;
+  transform:translateX(-50%);white-space:nowrap;font-size:8px;letter-spacing:.045em;
+  font-weight:850;color:#8cbed4;text-shadow:0 2px 5px #010610;pointer-events:none}
+.journey-hex.milestone .journey-hex-face{
+  background:linear-gradient(150deg,#325b73,#282b50 65%,#111929)}
+.journey-hex.milestone .journey-hex-symbol{color:#d5bfec;text-shadow:0 0 15px #b794f855}
+.journey-hex.next .journey-hex-face{background:linear-gradient(145deg,#2e6682,#1d3b59 63%,#0c233b);
+  box-shadow:inset 0 0 22px #70d5ef38}
+.journey-hex.next .journey-hex-symbol{color:#a1eff2}
+.journey-hex.completed .journey-hex-face{background:#145d4e;color:#9af5bd}
+.journey-hex.completed .journey-hex-symbol{color:#adffd0}
+.journey-hex.selected .journey-hex-face{
+  outline:2px solid #acdcee;outline-offset:3px;
+  filter:brightness(1.25) drop-shadow(0 0 10px #79cdea55)}
+.journey-hex:hover .journey-hex-face,.journey-hex:focus-visible .journey-hex-face{
+  filter:brightness(1.45) drop-shadow(0 0 10px #78ddf969)}
+.journey-hex:focus-visible{outline:2px solid #a5eafa;outline-offset:3px;border-radius:12px}
+.hub-journey-detail{margin-top:12px;padding:15px 18px;border:1px solid #456782;
+  border-radius:10px;background:linear-gradient(110deg,#142b3e,#0c192a);
+  display:grid;gap:7px}
+.journey-detail-heading{display:flex;gap:14px;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;font-size:9px;letter-spacing:.08em;color:#88cbe3;font-weight:850}
+.journey-detail-heading span+span{color:#beaacf}
+.hub-journey-detail>strong{font-size:15px;color:#e8f9ff;letter-spacing:.055em}
+.hub-journey-detail>p{font-size:11px;line-height:1.65;margin:0;color:#b4cede}
+.hub-journey-detail>small{color:#7398b0;font-size:10px;line-height:1.5}
+/* Maintain the central orb with 3 real characters, slightly widen its shared
+   preview so both companions read without overlaying active spell nodes. */
+.hub-orbit-core.hub-orb-stage{width:49%;height:40%}
+@media(max-width:780px){
+  .hub-team-panel,.hub-journey-panel{padding:14px;margin:12px 0}
+  .hub-team-grid{gap:7px}
+  .hub-teammate-card{padding:12px 6px}
+  .hub-team-persona strong{font-size:12px}
+  .hub-teammate-card.companion .hub-team-persona strong{font-size:11px}
+  .hub-team-persona small{font-size:8px}
+  .hub-team-persona>span,.hub-team-gate{font-size:8px}
+  .hub-team-aura{width:48px;height:48px}
+  .hub-teammate-card.hero .hub-team-aura{width:66px;height:66px}
+  .hub-journey-map{width:750px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hub-team-aura,.hub-team-aura:before,.hub-team-aura:after{animation:none}
+}

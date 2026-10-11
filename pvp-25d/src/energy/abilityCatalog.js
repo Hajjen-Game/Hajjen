@@ -95,12 +95,12 @@ export const ABILITIES = Object.freeze([
     ["void-anchor","Void Anchor","A brief slow remains when the prison ends."],
     ["unstable-prison","Unstable Prison","Breaking the prison by damage emits a small damage pulse; no additional CC."],
   ]),
-  ability("sun-lance","Sun Lance","solar","Ranged damage","Reliable high-impact ranged attack without a normal cooldown.","1.8s cast · 18 Flux",[
+  ability("sun-lance","Sun Lance","solar","Precision finisher","Heavy Solar lance dealing 18% more damage to enemies below 35% HP. Rewards finishing weakened bosses and priority targets.","1.8s cast · Execute bonus · 18 Flux",[
     ["overcharged-lance","Overcharged Lance","Longer cast with a larger direct hit."],
     ["scorching-lance","Scorching Lance","Apply a short Solar damage-over-time burn."],
     ["split-lance","Split Lance","Reduced secondary damage to a nearby second enemy."],
   ]),
-  ability("zenith-crash","Zenith Crash","solar","Area burst","Telegraphed solar pillar lands from above. Positioning and LOS matter.","2s cast · 18s cooldown",[
+  ability("zenith-crash","Zenith Crash","solar","Area burst","A solar pillar crashes down from above, blasting the target and nearby enemies. LOS matters.","2s cast · 18s cooldown",[
     ["focused-impact","Focused Impact","Smaller impact area with higher focused damage."],
     ["solar-aftershock","Solar Aftershock","A weaker second explosion follows at the same location."],
     ["burning-ground","Burning Ground","Leave a short-lived damaging plasma field."],

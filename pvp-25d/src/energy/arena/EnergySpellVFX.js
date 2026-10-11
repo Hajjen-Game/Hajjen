@@ -43,14 +43,14 @@ export class EnergySpellVFX {
     const effect={type,mesh,start:performance.now(),duration,initial:position.clone(),...extra};
     this.effects.push(effect);return effect;
   }
-  slash(position,color,spellId){
+  slash(position,color,spellId,swing=1){
     const points=[];const r=spellId==="gravity-hammer"?.75:.86;
     for(let i=0;i<=18;i++){
       const angle=-1.0+i*2.0/18;
       points.push(new BABYLON.Vector3(
-        position.x+Math.sin(angle)*r,
+        position.x+Math.sin(angle)*r*swing,
         position.y+Math.cos(angle)*r*.48,
-        position.z+Math.sin(angle)*r*.30
+        position.z+Math.sin(angle)*r*.30*swing
       ));
     }
     const mesh=BABYLON.MeshBuilder.CreateTube("energy-swipe:"+this.nextId++,{
@@ -78,6 +78,10 @@ export class EnergySpellVFX {
       const castMs=(e.castSeconds??rule?.cast??0)*1000;
       this.sphere(this.world(from,.89),hex,.23,
         castMs?Math.min(2800,castMs):300,"charge",{actorId:from.id});
+      if(e.spellId==="flux-bolt"){
+        this.sphere(this.world(from,.95),"#ffe3a0",.11,
+          castMs?Math.min(2800,castMs):300,"charge",{actorId:from.id});
+      }
       return;
     }
     if(e.type==="hit"){
@@ -88,10 +92,12 @@ export class EnergySpellVFX {
         this.ring(new BABYLON.Vector3(end.x,.09,end.z),hex,1.5,650,"ground");
       }else if(ranged&&from!==target){
         const start=this.world(from,.91);
-        this.sphere(start,hex,e.spellId==="fracture-spear"?.58:.45,370,"projectile",{
+        this.sphere(start,hex,e.spellId==="fracture-spear"?.58:
+          e.spellId==="flux-bolt"?.37:.45,370,"projectile",{
           end,spellId:e.spellId,
         });
-      }else this.slash(end,hex,e.spellId);
+      }else this.slash(end,hex,e.spellId,
+        e.spellId==="arc-strike"&&(from.strikeSwingCounter||0)%2===0?-1:1);
       return;
     }
     if(e.type==="heal"){

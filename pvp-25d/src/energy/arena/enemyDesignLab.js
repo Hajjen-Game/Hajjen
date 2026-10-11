@@ -137,9 +137,10 @@ function createUnit(scene,key){
   energyFlash.setEnabled(false);
   const particles=[];
   const satellites=[];
+  const glyphs=[];
   let core=null;
   const unit={key,p,root,body,orbit,accent,armor,mats,ground,groundInner,
-    groundPulse,energyFlash,particles,satellites,shield:null,core:null,
+    groundPulse,energyFlash,particles,satellites,glyphs,shield:null,core:null,
     coreBaseScale:null,inner:null,bossExtras:[],
     color:p.glow,phaseOffset:{shard:.7,channeler:2.2,bulwark:3.8}[key]};
   if(key==="shard"){
@@ -232,6 +233,8 @@ function createUnit(scene,key){
         radius:.10,subdivisions:1},holder,mats.energy);
       dot.position.set(.12,.21,-.12);
       particles.push(holder);
+      glyphs.push({node:holder,index:i,x:Math.cos(a)*r,
+        y:Math.sin(a*2)*.38,z:Math.sin(a)*r});
       line(scene,"channeler-tether-"+i,body,mats.haze,[
         V(Math.cos(a)*.38,-.10,Math.sin(a)*.38),
         V(Math.cos(a)*.92,Math.sin(a*3)*.14,Math.sin(a)*.92),
@@ -344,7 +347,7 @@ function createUnit(scene,key){
     mote.position.set(Math.cos(angle)*(.35+i*.038),
       Math.sin(angle*1.7)*.38,Math.sin(angle)*(.38+i*.024));
   }
-  unit.inner={node:inner,heart,plasma,innerOrbit};
+  unit.inner={node:inner,heart,plasma,plasmaBaseScale:plasma.scaling.clone(),innerOrbit};
   // Independent boss silhouette exploration. Enlarges and adds overhead
   // energy architecture, but makes NO claim this is a production boss.
   const crown=new BABYLON.TransformNode(key+"-boss-crown",scene);
@@ -547,8 +550,19 @@ class EnemyShowroom{
       u.inner.innerOrbit.rotation.z+=dt*(key==="bulwark"?.25:.47);
       u.inner.heart.scaling.setAll(.88+.13*Math.sin(time*3.8+offset)+
         wind*.34+impact*.29);
-      u.inner.plasma.scaling.setAll(.96+Math.sin(time*1.7+offset)*.045+
-        wind*.15);
+      const innerScale=.96+Math.sin(time*1.7+offset)*.045+wind*.15;
+      const pb=u.inner.plasmaBaseScale;
+      u.inner.plasma.scaling.set(pb.x*innerScale,pb.y*innerScale,pb.z*innerScale);
+      for(const glyph of u.glyphs){
+        const {node,index,x,y,z}=glyph;
+        const gather=1-wind*.27;
+        node.position.set(x*gather,y+Math.sin(time*1.8+index)*.12,
+          z*gather);
+        node.rotation.z=Math.sin(time*1.15+index)*.10+wind*.24;
+      }
+      armor.scaling.set(1-wind*(key==="bulwark"?.055:0),
+        1+wind*(key==="bulwark"?.045:0),
+        1+wind*(key==="bulwark"?.06:0));
       for(const fragment of u.satellites){
         const {node,index,baseY}=fragment;
         node.position.y=baseY+Math.sin(time*(1.45+index*.11)+index)*.17;

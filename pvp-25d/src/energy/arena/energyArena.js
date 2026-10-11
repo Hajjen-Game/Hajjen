@@ -342,6 +342,8 @@ function renderResonances(){
       button.setAttribute("aria-pressed",String(active));
     }
     $("defense-trial-how").textContent=selected.how;
+    $("defense-trial-unlock-heading").textContent=selected.kind==="enchantment"
+      ?"PVE-ONLY · NO PERMANENT UNLOCK":"HOW TO UNLOCK IT PERMANENTLY";
     $("defense-trial-unlock").textContent=selected.unlock;
     confirm.textContent="TRY "+selected.name+" IN WAVE "+(screenWave+1)+" →";
   };

@@ -1,4 +1,4 @@
-// Enemy & Boss Design Lab 1.2 — Channeler cleanup and Bulwark silhouette refinement.
+// Enemy & Boss Design Lab 1.3 — balanced living-glass material and core luminance.
 // No imports from EnergyMatch, no mutation of Planet Defense, saves or AI.
 // All forms, glow volumes and animation passes are authored as real 3D meshes.
 const $=id=>document.getElementById(id);
@@ -53,18 +53,27 @@ function material(scene,name,hex,emission=0,alpha=1){
   }
   return mat;
 }
-// A light-weight adaptation of the player's OrbCharacterRenderer glass.
-// Diffuse translucent crystal lets the moving core show through; Fresnel
-// lifts the silhouette edges instead of producing bright solid polygons.
-function glassMaterial(scene,name,hex,alpha,emission=.12){
+// Living-glass study adapted from the player's OrbCharacterRenderer.
+// A totally black Fresnel face worked for Shard but made Channeler and
+// Bulwark nearly invisible from the front. Face-fill restores readable
+// *volume* while leaving the outlines translucent and the reactor visible.
+const MATERIAL_BALANCE=Object.freeze({
+  shard:     {shell:.39,face:.48,glass:.22,faceFill:0,   shellGlow:.09,faceGlow:.16,coreGlow:.67,heartGlow:.45},
+  channeler: {shell:.61,face:.67,glass:.30,faceFill:.35,shellGlow:.14,faceGlow:.19,coreGlow:.75,heartGlow:.54},
+  bulwark:   {shell:.74,face:.78,glass:.39,faceFill:.52,shellGlow:.17,faceGlow:.23,coreGlow:.88,heartGlow:.60},
+});
+function glassMaterial(scene,name,hex,alpha,emission=.12,faceFill=0){
   const mat=material(scene,name,hex,emission,alpha);
   mat._glassAlpha=alpha;
   mat._glassEmissive=emission;
+  // Higher-opacity creatures also receive more diffuse front-face color,
+  // not only bright edges. Preserve clean transparent surfaces on Shard.
+  mat.diffuseColor=color(hex).scale(.33+faceFill*.20);
   if(BABYLON.FresnelParameters){
     const rim=new BABYLON.FresnelParameters();
     rim.bias=.10;rim.power=2.7;
     rim.leftColor=new BABYLON.Color3(.95,.97,1);
-    rim.rightColor=BABYLON.Color3.Black();
+    rim.rightColor=new BABYLON.Color3(faceFill,faceFill,faceFill);
     const light=new BABYLON.FresnelParameters();
     light.bias=.015;light.power=4;
     light.leftColor=color(hex).scale(.36);
@@ -111,18 +120,22 @@ function createUnit(scene,key){
   accent.parent=body;
   const armor=new BABYLON.TransformNode(key+"-armor",scene);
   armor.parent=body;
+  const balance=MATERIAL_BALANCE[key];
   const mats={
     shell:glassMaterial(scene,key+"-shell",p.shell,
-      key==="bulwark"?.31:.39,.09),
+      balance.shell,balance.shellGlow,balance.faceFill),
     face:glassMaterial(scene,key+"-facet",p.edge,
-      key==="bulwark"?.43:.48,.16),
+      balance.face,balance.faceGlow,balance.faceFill),
     trim:material(scene,key+"-trim",p.edge,.62,.78),
-    energy:material(scene,key+"-energy",p.glow,1.20,.83),
+    energy:material(scene,key+"-energy",p.glow,1.20,key==="shard"?.72:.83),
     haze:material(scene,key+"-haze",p.energy,.42,.13),
     rune:material(scene,key+"-runes",p.glow,1.02,.93),
-    glass:glassMaterial(scene,key+"-glass",p.edge,.22,.24),
-    plasma:material(scene,key+"-inner-plasma",p.energy,.73,.23),
-    heart:material(scene,key+"-heart","#ffedf9",.98,.92),
+    glass:glassMaterial(scene,key+"-glass",p.edge,balance.glass,
+      .24,balance.faceFill*.75),
+    plasma:material(scene,key+"-inner-plasma",p.energy,
+      key==="shard"?.48:.73,key==="shard"?.19:.23),
+    heart:material(scene,key+"-heart","#ffedf9",
+      key==="shard"?.75:.98,key==="shard"?.78:.92),
     trace:material(scene,key+"-tracers",p.glow,.70,.75),
   };
   const ground=torus(scene,key+"-ground",root,mats.haze,2.95,.047);
@@ -141,7 +154,7 @@ function createUnit(scene,key){
   let core=null;
   const unit={key,p,root,body,orbit,accent,armor,mats,ground,groundInner,
     groundPulse,energyFlash,particles,satellites,glyphs,core:null,
-    coreBaseScale:null,inner:null,bossExtras:[],
+    coreBaseScale:null,inner:null,bossExtras:[],balance,
     color:p.glow,phaseOffset:{shard:.7,channeler:2.2,bulwark:3.8}[key]};
   if(key==="shard"){
     // The hero is a perfect sphere; this predator is deliberately very tall,
@@ -550,12 +563,16 @@ class EnemyShowroom{
         node.rotation.z=-.40+Math.sin(time*1.3+index*1.8)*.24-wind*.29;
         node.scaling.setAll(1-wind*.21+release*.28);
       }
+      // Balance idle cores without dulling spell build-ups or impacts.
+      // Shard keeps its lively outline but no longer floods the scene
+      // with a pink-white centre.
       mats.energy.emissiveColor=color(u.p.glow).scale(
-        (key==="channeler"?.65:.87)+wind*(key==="channeler"?.70:1.22)+impact*.94);
+        u.balance.coreGlow+wind*(key==="channeler"?.70:
+          key==="shard"?.94:1.22)+impact*.94);
       mats.trim.emissiveColor=color(u.p.edge).scale(.56+wind*.82+impact*.67);
       mats.trace.emissiveColor=color(u.p.glow).scale(.70+wind*.72+impact*.48);
       mats.heart.emissiveColor=color("#fff0fb").scale(
-        (key==="channeler"?.43:.62)+wind*.40+impact*.46);
+        u.balance.heartGlow+wind*.40+impact*.46);
       u.ground.scaling.setAll(1+wind*.13+impact*.17);
       u.ground.visibility=clamp(.52+wind*.36+impact*.28);
       const push=key==="shard"?release*1.28:key==="bulwark"?release*.31:0;

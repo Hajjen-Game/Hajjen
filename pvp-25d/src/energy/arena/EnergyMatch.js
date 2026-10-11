@@ -559,7 +559,7 @@ export class EnergyMatch {
           }
         }
       }
-      link.procGate=enhanced?.6:.45;
+      link.procGate=enhanced?1:.45; // 20 base healing at most once per second
     }
     if(target.hp===0){
       target.alive=false;target.cast=null;this.log(target.name+" eliminated!");

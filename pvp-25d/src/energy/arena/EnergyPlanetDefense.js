@@ -2,10 +2,10 @@
 // turrets or permanent changes to the player's equipped spells.
 // Wave Resonances are transient and are offered ONLY after each completed wave.
 import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
-  from "./EnergyMatch.js?v=20261011-identity13";
+  from "./EnergyMatch.js?v=20261011-orbfix15";
 import { botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
-import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-identity14";
+import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-orbfix15";
 
 const WAVE_PLANS=Object.freeze([
   {name:"FIRST CONTACT",enemies:["melee","caster"],maxAlive:2,spawnGap:3.4},

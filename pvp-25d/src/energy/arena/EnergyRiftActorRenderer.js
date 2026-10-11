@@ -106,8 +106,10 @@ export class EnergyRiftActorRenderer{
       u.root.rotation.y=entry.facing*.46;
       const cast=actor.cast;
       const progress=cast?clamp(1-cast.remainingMs/Math.max(1,cast.totalMs),0,1):0;
-      const wind=cast?.spellId?.startsWith("encounter-")?
-        .38+.62*progress:cast?.spellId?.length?.38*progress:0;
+      const wind=cast
+        ?cast.spellId?.startsWith("encounter-")
+          ?.38+.62*progress:.38*progress
+        :0;
       const attackAge=(now-entry.lastAttack)/1000;
       const impactAge=(now-entry.lastImpact)/1000;
       const release=attackAge>=0&&attackAge<.52?

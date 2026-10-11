@@ -336,6 +336,26 @@ export class EnergyPlanetDefense extends EnergyMatch{
         spellId:"rift-corruption",wave:this.wave});
     }
   }
+  // Charge resonances trigger at ARRIVAL, not when Phase Rush is pressed.
+  // This matters in PvE waves where enemies may enter/leave the landing area.
+  finishCharge(actor){
+    const charge=actor.charge;
+    const primary=charge?.targetId?this.getActor(charge.targetId):null;
+    super.finishCharge(actor);
+    if(actor!==this.player||charge?.spellId!=="phase-rush"||
+      this.waveState!=="active")return;
+    const shock=this.resonanceTier("rush-shockwave");
+    if(shock){
+      this.resonanceVisual(actor,"wave","phase-rush");
+      for(const enemy of this.foesNear(actor,135+shock*12))
+        this.damageExtra(enemy,7+5*shock,"phase-rush");
+    }
+    const impact=this.resonanceTier("rush-impact");
+    if(impact&&primary?.alive&&distance(actor,primary)<145){
+      this.damageExtra(primary,8+7*impact,"phase-rush");
+      this.resonanceVisual(primary,"impact","phase-rush");
+    }
+  }
   execute(actor,spellId,targetId,castContext=null){
     if(Object.values(ENCOUNTER_SPELLS).includes(spellId)){
       this.resolveEncounterCast(actor,spellId,castContext);
@@ -367,19 +387,6 @@ export class EnergyPlanetDefense extends EnergyMatch{
         this.resonanceVisual(actor,"wave","phase-slip");
         for(const enemy of this.foesNear(actor,150+tier*12))
           this.damageExtra(enemy,8+5*tier,"phase-slip");
-      }
-    }
-    if(spellId==="phase-rush"&&primary){
-      const shock=this.resonanceTier("rush-shockwave");
-      if(shock){
-        this.resonanceVisual(actor,"wave","phase-rush");
-        for(const enemy of this.foesNear(actor,135+shock*12))
-          this.damageExtra(enemy,7+5*shock,"phase-rush");
-      }
-      const hit=this.resonanceTier("rush-impact");
-      if(hit&&primary.alive&&distance(actor,primary)<145){
-        this.damageExtra(primary,8+7*hit,"phase-rush");
-        this.resonanceVisual(primary,"impact","phase-rush");
       }
     }
     if(spellId==="arc-strike"&&validHit&&primary){

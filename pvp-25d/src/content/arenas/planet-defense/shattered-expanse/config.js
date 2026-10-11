@@ -4,7 +4,7 @@
 export const SHATTERED_EXPANSE = Object.freeze({
   id:"shattered-expanse",
   name:"The Shattered Expanse",
-  description:"An open, fractured moon plateau with crystal outcrops, distant rifts and broad kiting routes.",
+  description:"A huge, clean survival field with Energy Arena lighting, floor lines and open routes for kiting waves.",
   mode:"defense",
   width:2640,height:1760,boundaryPadding:52,
   bounds:{x:52,y:52,w:2536,h:1656},
@@ -21,7 +21,7 @@ export const SHATTERED_EXPANSE = Object.freeze({
     "enemy-caster":{x:1930,y:910,facing:Math.PI}
   },
   presentation:{
-    biome:"shattered-moon",
+    biome:"energy-arena-open-field",
     sky:"#060e1e",ground:"#182434",groundLight:"#273546",
     groundDark:"#0c1828",stone:"#3f4b5e",stoneLight:"#677085",
     stoneDark:"#1b2939",accent:"#72bbc6"

@@ -146,6 +146,43 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="ground-telegraph"&&event.spellId==="zenith-crash"){
+      const center=new BABYLON.Vector3(event.x*S,.10,event.y*S);
+      const diameter=(event.radius||124)*S*2;
+      this.spellFX.ring(center,"#ffc780",diameter,(event.duration||2)*1000,
+        "telegraph",{casterId:event.actorId});
+      this.spellFX.ring(new BABYLON.Vector3(center.x,.105,center.z),
+        "#e07856",diameter*.62,(event.duration||2)*1000,
+        "telegraph",{casterId:event.actorId});
+      return;
+    }
+    if(event.type==="identity-proc"){
+      const actor=match.getActor(event.actorId);
+      const target=match.getActor(event.targetId)||actor;
+      const x=Number.isFinite(event.x)?event.x:target?.x;
+      const y=Number.isFinite(event.y)?event.y:target?.y;
+      if(Number.isFinite(x)&&Number.isFinite(y)){
+        const kinetic=["arc-second-strike","counterstrike","dissonance",
+          "dissonance-absorbed"].includes(event.kind);
+        const c=kinetic?"#f68a9c":"#ffe0a0";
+        const p=new BABYLON.Vector3(x*S,.11,y*S);
+        const radius=event.kind==="flux-third-hit"?1.9:
+          event.kind==="precision-execute"?2.05:1.35;
+        this.spellFX.ring(p,c,radius,460,"ground");
+        if(event.kind==="flux-third-hit"||event.kind==="precision-execute")
+          this.spellFX.sphere(new BABYLON.Vector3(p.x,.91,p.z),c,
+            .32,350,"burst");
+        if(event.kind==="dissonance"){
+          const source=actor;
+          if(source){
+            const start=new BABYLON.Vector3(source.x*S,.91,source.y*S);
+            this.spellFX.sphere(start,c,.32,320,"projectile",
+              {end:new BABYLON.Vector3(p.x,.85,p.z),spellId:"resonance-cut"});
+          }
+        }
+      }
+      return;
+    }
     if(event.type==="evolution-proc"){
       const target=match.getActor(event.targetId)||match.getActor(event.actorId);
       const px=(Number.isFinite(event.x)?event.x:target?.x),py=(Number.isFinite(event.y)?event.y:target?.y);

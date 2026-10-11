@@ -8,7 +8,8 @@ import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } fr
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261011-identity13";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261010-origins35";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-team-hub1";
+import { EnergyJourneyRoadmap } from "./EnergyJourneyRoadmap.js?v=20261012-team-hub1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const $=id=>document.getElementById(id);
@@ -44,6 +45,11 @@ export class EnergyCharacterHub{
     this.character=loadCharacter(storage);
     this.preview=null;this.selectedAbility=null;this.showSwapPicker=false;this.listFilter="equipped";
     this.message="";this.forgeDraft=null;this.creatingNew=false;
+    // Roadmap is a truthful DESIGN PREVIEW: no old generic wins are imported.
+    this.journey=new EnergyJourneyRoadmap({
+      map:$("hub-journey-map"),detail:$("hub-journey-detail"),
+      summary:$("hub-journey-summary")
+    });
     this.bind();
   }
   bind(){
@@ -188,12 +194,34 @@ export class EnergyCharacterHub{
     // Free the separate HUB WebGL context while combat is rendering.
     this.preview?.dispose();this.preview=null;
   }
+  renderTeamIdentity(role){
+    const roles=["healer","melee","caster"].filter(id=>id!==role);
+    const colors={
+      healer:{core:ROLES.healer.color,energy:"#a5ffe1",subtitle:"SUPPORT"},
+      melee:{core:ROLES.melee.color,energy:"#ffc0a1",subtitle:"MELEE"},
+      caster:{core:ROLES.caster.color,energy:"#a0c3ff",subtitle:"CASTER"},
+    };
+    for(const [index,side] of ["left","right"].entries()){
+      const ally=roles[index],theme=colors[ally];
+      $("hub-ally-name-"+side).textContent=ROLES[ally].name.toUpperCase();
+      $("hub-ally-type-"+side).textContent=theme.subtitle+" · BALANCED";
+      $("hub-ally-card-"+side).style.setProperty("--team-core",theme.core);
+      $("hub-ally-card-"+side).style.setProperty("--team-energy",theme.energy);
+    }
+    $("hub-team-hero-name").textContent=this.character.name;
+    $("hub-team-hero-type").textContent=ROLES[role].name.toUpperCase()+" · YOUR ORIGIN";
+    $("hub-hero-card").style.setProperty("--team-core",ROLES[role].color);
+    $("hub-hero-card").style.setProperty("--team-energy",
+      colors[role].energy);
+  }
   draw(){
     if(!this.character)return;
     const build=this.store.draft;
     const progress=progressDetails(this.getProgression());
     const identity=energyIdentity(build,progress.level);
     this.preview?.update(build,progress.level);
+    this.renderTeamIdentity(build.role);
+    this.journey.render();
     $("hub-character-name").textContent=this.character.name;
     const origin=ROLES[build.role];
     $("hub-role").textContent=origin.name.toUpperCase()+" · ENERGY ORIGIN";

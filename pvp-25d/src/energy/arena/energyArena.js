@@ -318,32 +318,57 @@ function renderResonances(){
   if(host.dataset.wave===String(screenWave)&&host.dataset.choices===String(match.resonancesChosen))return;
   host.dataset.wave=String(screenWave);
   host.dataset.choices=String(match.resonancesChosen);
-  $("defense-resonance-subtitle").textContent="WAVE "+screenWave+" CLEARED · "+
-    "Select one upgrade to start Wave "+(screenWave+1)+"/"+DEFENSE_WAVES;
+  const lesson=match.trialLesson();
+  const choices=match.resonanceChoices();
+  $("defense-resonance-title").textContent=lesson.title;
+  $("defense-resonance-subtitle").textContent="WAVE "+screenWave+
+    " CLEARED · "+lesson.intro;
+  $("defense-trial-lesson").textContent=lesson.why+
+    " · All trials reset when Planet Defense ends.";
   host.replaceChildren();
-  for(const choice of match.resonanceChoices()){
+  const confirm=$("defense-trial-confirm");
+  confirm.disabled=!choices.length;
+  if(!choices.length){
+    $("defense-trial-how").textContent="All available trials are mastered.";
+    $("defense-trial-unlock").textContent="Return to Character HUB to develop your permanent build.";
+    return;
+  }
+  let selected=choices[0];
+  const buttons=[];
+  const display=()=>{
+    for(const [index,button] of buttons.entries()){
+      const active=choices[index].id===selected.id;
+      button.classList.toggle("selected",active);
+      button.setAttribute("aria-pressed",String(active));
+    }
+    $("defense-trial-how").textContent=selected.how;
+    $("defense-trial-unlock").textContent=selected.unlock;
+    confirm.textContent="TRY "+selected.name+" IN WAVE "+(screenWave+1)+" →";
+  };
+  for(const choice of choices){
     const button=element("button","defense-resonance-option");button.type="button";
     const tone=DISCIPLINES[ABILITY_BY_ID[choice.spellId]?.discipline]?.color||"#8bd6dc";
     button.style.setProperty("--resonance-tone",tone);
-    button.disabled=choice.tier>=3;
-    const tier=element("span","resonance-tier",
-      choice.tier?"CURRENT TIER "+choice.tier+" → "+choice.nextTier:"NEW RESONANCE · TIER 1");
+    const tag=element("span","resonance-tier",choice.label);
     const title=element("strong","",choice.name);
     const spell=element("span","resonance-spell",ABILITY_BY_ID[choice.spellId]?.name||choice.spellId);
     const info=element("span","resonance-description",choice.description);
-    const action=element("span","resonance-pick",choice.tier>=3?"MAXED OUT":
-      choice.tier?"UPGRADE RESONANCE →":"CHOOSE RESONANCE →");
-    button.append(tier,title,spell,info,action);
-    button.addEventListener("click",()=>{
-      if(!match||!match.chooseResonance(choice.id))return;
-      pendingCast=null;keys.clear();
-      host.dataset.wave="";
-      overlay.hidden=true;
-      flash(choice.name+" · TIER "+match.resonanceTier(choice.id)+"!");
-      renderUI();
-    });
-    host.append(button);
+    const action=element("span","resonance-pick","VIEW EXPLANATION →");
+    button.append(tag,title,spell,info,action);
+    button.addEventListener("click",()=>{selected=choice;display();});
+    host.append(button);buttons.push(button);
   }
+  // Confirmation is deliberate: especially at level 1 the player should
+  // understand what a Rank/Evolution means BEFORE the next wave begins.
+  confirm.onclick=()=>{
+    if(!match||match.waveState!=="intermission"||!match.chooseResonance(selected.id))return;
+    pendingCast=null;keys.clear();
+    host.dataset.wave="";
+    overlay.hidden=true;
+    flash(selected.label+" · "+selected.name);
+    renderUI();
+  };
+  display();
 }
 function renderUI(){
   if(!match)return;
@@ -361,8 +386,10 @@ function renderUI(){
       "Coordinate interrupts, damage and healing as the wave grows.",
       "FINAL STAND · Defeat the Rift Warden and survive with your team."
     ];
+    const latest=match.trialHistory?.at(-1);
     $("match-learning-tip").textContent=match.waveState==="intermission"?
-      "WAVE "+match.wave+" CLEARED · CHOOSE ONE RESONANCE TO CONTINUE":
+      "WAVE "+match.wave+" CLEARED · LEARN ABOUT YOUR NEXT TRIAL":
+      latest&&match.wave>1?"FIELD GUIDE · "+latest.how:
       "PLANET DEFENSE · "+tips[Math.max(0,match.wave-1)];
   }
   $("flux-text").textContent=Math.floor(p.flux)+" / 100";
@@ -421,6 +448,8 @@ function frameLoop(now){
       +" · +"+fragments+" ENERGY FRAGMENTS"
       +(matter?" · +"+matter+" BLACK HOLE MATTER":"")
       +(levelUp&&after.level>=10&&before.level<10?" · SINGULARITY FORGE UNLOCKED!":"")
+      +(match.modeId==="defense"&&match.trialHistory?.length
+        ?" · TRIED: "+match.trialHistory.map(t=>t.name).join(", "):"")
       +" · Return to HUB to upgrade your planet";
     $("match-level").textContent="LEVEL "+after.level+" · "+after.slots+"/10 ABILITIES";
   }

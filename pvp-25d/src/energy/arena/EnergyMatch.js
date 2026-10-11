@@ -1,12 +1,12 @@
 // Standalone Energy Combat prototype: never imports arena3v3 combat.
 // Rules intentionally limited to a first-playable balance baseline.
-import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js?v=20261011-evolution10";
-import { buildCombatLoadout } from "../buildState.js?v=20261011-evolution10";
+import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js?v=20261011-identity11";
+import { buildCombatLoadout } from "../buildState.js?v=20261011-identity11";
 import { EnergyAI } from "./EnergyAI.js?v=20261008-energy-ai-v3";
-import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261011-evolution10";
-import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261011-evolution10";
-import { energyIdentity } from "./EnergyCharacter.js?v=20261011-evolution10";
-import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261011-evolution10";
+import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261011-identity11";
+import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261011-identity11";
+import { energyIdentity } from "./EnergyCharacter.js?v=20261011-identity11";
+import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261011-identity11";
 import { BASE_HEALTH, BASE_CRIT_CHANCE, CRIT_MULTIPLIER, maxHealthForLevel,
   powerForLevel, damageMultiplier, healMultiplier, shieldMultiplier,
   rankedRule, successfulInterruptFlux }

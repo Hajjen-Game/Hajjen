@@ -85,7 +85,7 @@ export function defenseTrialChoices(match,enchantments){
         " in the next wave. This can hit multiple foes or extend your survival.",
       unlock:"PvE-only upgrade. It does not exist in normal Arena and disappears after this match.",
       isTemporary:true};
-  });
+  }).sort((a,b)=>a.tier-b.tier); // Offer unexplored effects before repeat tiers.
   const core=()=>{
     const anchor=ROLES[actor.role].locked.find(spell=>equipped.includes(spell));
     const partner=equipped.find(id=>!ROLES[actor.role].locked.includes(id));

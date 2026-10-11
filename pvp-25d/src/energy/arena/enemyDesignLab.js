@@ -288,7 +288,7 @@ function createUnit(scene,key){
     }
     const shieldNode=new BABYLON.TransformNode("bulwark-forward-shield",scene);
     shieldNode.parent=body;shieldNode.position.set(-1.32,.03,0);
-    shield=shape(scene,"CreateCylinder","bulwark-shield-plane",{
+    const shield=shape(scene,"CreateCylinder","bulwark-shield-plane",{
       height:.14,diameter:2.05,tessellation:6},shieldNode,mats.glass);
     shield.rotation.z=Math.PI/2;
     const shieldInner=shape(scene,"CreateCylinder","bulwark-shield-hub",{

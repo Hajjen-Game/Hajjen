@@ -19,14 +19,27 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
-## PROPOSAL — No-level Progression Roadmap 1.0 (2026-10-11)
+## ACTIVE DESIGN PROPOSAL — Team Journey Roadmap 1.1 (2026-10-11)
+
+**DESIGN ONLY. Nothing in running gameplay has changed.** Active full spec: [PROGRESSION_ROADMAP_1_1.md](PROGRESSION_ROADMAP_1_1.md). Version 1.0 is preserved as an outdated historical draft, NOT the currently recommended gates.
+
+- **PREPARE before a challenge:** spell pools expand and a new spell can be selected immediately **after hex 3**, for counterplay in hex 4, and immediately **after hex 7**, for complexity in hex 8. All five disciplines remain available from the very first earned shared-spell choice; nothing locks an entire discipline.
+- **Both AI companions displayed from the start** in the HUB as smaller, living orbs alongside the larger player orb. Player should also read slightly bigger on the field; visual size must not affect combat collision or range.
+- After ~5 first-clear wins, unlock independent **AI behavior styles** for both companions (four initial proposed modes: Balanced, Aggressive, Protective, Disruptive). The upcoming hexes can favor strategic selection but should remain winnable through multiple approaches.
+- After ~15 first-clear wins, unlock **optional AI spell-build editing**; curated, style-aware default presets work without needing edits. Companion progression is stored independently within each Origin save.
+- Retain the **temporary PvE Enchantments** spirit, but rename it (working suggestion **Wave Surges**); make the effects more spectacular. Interpret user idea as **four offered cards each intermission: two self-targeted and one targeted at each AI; select ONE card**. **Confirm this interpretation before coding rewards.** Buffs last for the remainder of that Planet Defense run and need real AI casting/proc integration.
+- **PvP is deliberately postponed**, no speculative 15-clear PvP gate or milestone in the active campaign design. Do not schedule or hard-code it until the user raises it again.
+- Encounters need variety, but can reuse a set of mechanic packages with larger mixed waves, denser enemies and intentionally enjoyable high-VFX spell chaos. No need for twenty unique boss systems.
+- Keep #10 Evolutions and #20 Synergies/Rift Expedition as provisional milestones; five Rift clears optionally opens synergy deepening. Replace levels/ranks coherently and migrate existing saves non-destructively.
+
+## HISTORICAL DRAFT — No-level Progression Roadmap 1.0 (superseded)
 
 **Status: DESIGN ONLY — no progression/gameplay code changed.** Full working specification: [PROGRESSION_ROADMAP_1_0.md](PROGRESSION_ROADMAP_1_0.md).
 
 - **Explicit requirement:** All five disciplines (Void, Solar, Cryo, Kinetic, Vital) are available for selection at the **first earned shared-spell reward**; lock **individual advanced spells**, never a whole category. Selection remains free across Origin roles.
 - Replace level 1–30 and numeric spell Rank 0–3 with a 20-hex first-clear Planet Defense journey. Two bound Origin spells at start, eight interchangeable shared slots, and 16 shared spells that are progressively discovered. Later discoveries go into the library without growing the 10-slot combat bar.
 - Draft escalation: Counterplay pool after 3 unique hexes, Complex spell pool after 7; Evolutions around 10; Synergies and Rift Expedition around 20; optional deeper synergy tree after five unique Rift Expedition clears.
-- **PvP gate around 15 wins remains explicitly UNDECIDED** (also consider 12/18). No accidental gameplay lock or definitive promise until user confirms.
+- **SUPERSEDED PvP idea:** The 1.0 suggestion of a 15-win PvP unlock has been withdrawn from the active progression design. PvP will be revisited separately at the user's request.
 - Map should mark completed hexes with green ticks and preview locked future systems. Replaying old hexes must not generate endless campaign milestones.
 - Retain existing saves; current `wins` aggregates modes, so migration must not pretend all old wins are Planet Defense clears. Existing level gates, Rank-derived modifiers and PvE tier math require careful replacement.
 

@@ -379,21 +379,24 @@ function renderUI(){
   $("match-clock").textContent=String(Math.floor(match.time/60)).padStart(2,"0")+":"+String(Math.floor(match.time%60)).padStart(2,"0");
   $("dampening-label").textContent=match.modeId==="defense"
     ?"WAVE "+match.wave+" / "+DEFENSE_WAVES+
-      " · "+(match.waveState==="intermission"?"RESONANCE":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED")
+      " · "+(match.waveState==="intermission"?"SPELL DISCOVERY":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED")
     :"DAMPENING "+Math.round(match.dampening*100)+"%";
   if(match.modeId==="defense"){
     const tips=[
-      "Try your three normal spells. Your first Wave Resonance unlocks AFTER Wave 1.",
+      "Try your normal spells first. Your first guided Spell Mastery trial unlocks AFTER Wave 1.",
       "New enemies approach. Try your enhanced Origin spell and focus dangerous targets.",
       "Disrupt enemy casters and protect your two AI companions.",
       "Coordinate interrupts, damage and healing as the wave grows.",
       "FINAL STAND · Defeat the Rift Warden and survive with your team."
     ];
     const latest=match.trialHistory?.at(-1);
-    $("match-learning-tip").textContent=match.waveState==="intermission"?
+    const corruptionHint=match.progressLevel>=6&&match.wave>=3?
+      " · PVE CORRUPTION: CLEANSE FLUX REMOVES IT":"";
+    $("match-learning-tip").textContent=(match.waveState==="intermission"?
       "WAVE "+match.wave+" CLEARED · LEARN ABOUT YOUR NEXT TRIAL":
       latest&&match.wave>1?"FIELD GUIDE · "+latest.how:
-      "PLANET DEFENSE · "+tips[Math.max(0,match.wave-1)];
+      "PLANET DEFENSE · "+tips[Math.max(0,match.wave-1)])+
+      (match.waveState==="active"?corruptionHint:"");
   }
   $("flux-text").textContent=Math.floor(p.flux)+" / 100";
   $("flux-fill").style.width=clamp(p.flux,0,100)+"%";

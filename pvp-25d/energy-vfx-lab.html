@@ -23,8 +23,8 @@
   <section class="intro">
     <div>
       <p class="eyebrow">THE VISUAL GO / NO-GO TEST</p>
-      <h2>Eight spells. One question: is this worth building?</h2>
-      <p>Watch the energy assemble <strong>inside the glass</strong>, escape as a distinctive form, and make contact. This is an isolated visual experiment: no AI, cooldowns, or damage balance.</p>
+      <h2>Test any Energy Arena spell</h2>
+      <p>Choose and replay any spell, filter by discipline, or play a complete set. The original eight have custom authored VFX; other spells show their current in-game effects. This is a visual preview only, with no AI or damage balance.</p>
     </div>
     <div class="phase-track"><span>01 · CHARGE</span><span>02 · RELEASE</span><span>03 · CONTACT</span></div>
   </section>
@@ -35,8 +35,11 @@
         <button id="toggle-volume" title="Optional old Babylon polygon-debris comparison, not the subtle threads">3D DEBRIS: OFF</button>
         <button id="toggle-threads" title="Spatial filament depth through the slash, toggle OFF for a Pixi-only comparison">THREAD DEPTH: ON</button>
         <button id="toggle-pixi" title="Pixi owns projectile and impact VFX; turn off to compare Babylon fallback">PIXI SPELLS: ON</button>
+        <label class="lab-picker-label" for="lab-spell-picker">SPELL
+          <select id="lab-spell-picker" aria-label="Spell to preview"></select>
+        </label>
         <button id="replay-spell">↻ REPLAY</button>
-        <button id="play-sequence" class="primary">PLAY ALL EIGHT</button>
+        <button id="play-sequence" class="primary">PLAY FILTERED</button>
       </div>
     </div>
     <div id="vfx-stage" class="vfx-stage">
@@ -53,8 +56,19 @@
   </section>
   <section class="spell-section">
     <div class="spell-title">
-      <div><p class="eyebrow">EIGHT SIGNATURE ABILITIES</p><h2>Compare their visual identities</h2></div>
-      <span>CHOOSE ONE · REPLAY AS OFTEN AS YOU LIKE</span>
+      <div><p class="eyebrow">ALL ENERGY ARENA SPELLS</p><h2>Choose what to test</h2></div>
+      <div class="lab-filter">
+        <label for="lab-discipline-filter">DISCIPLINE</label>
+        <select id="lab-discipline-filter">
+          <option value="all">All disciplines</option>
+          <option value="kinetic">Kinetic</option>
+          <option value="solar">Solar</option>
+          <option value="void">Void</option>
+          <option value="cryo">Cryo</option>
+          <option value="vital">Vital</option>
+        </select>
+        <span id="spell-count">ALL SPELLS</span>
+      </div>
     </div>
     <div id="spell-grid" class="spell-grid"></div>
   </section>
@@ -64,6 +78,6 @@
   </footer>
 </main>
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
-<script type="module" src="./src/energy/arena/energyVfxLab.js?v=20261009-orb-polish21"></script>
+<script type="module" src="./src/energy/arena/energyVfxLab.js?v=20261011-orbfix16"></script>
 </body>
 </html>

@@ -313,6 +313,7 @@ export class EnergyMatch {
     if((actor.cooldowns[spellId]||0)>0)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
     if(actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
+    if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
     if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
     if(rule.mode==="dash")return null;
     const target=this.currentTarget(actor,rule.mode,targetId);
@@ -483,6 +484,7 @@ export class EnergyMatch {
   dash(actor,dir,distancePx){
     if(this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
     const length=Math.hypot(dir.x,dir.y)||1;
+    const from={x:actor.x,y:actor.y};
     const step=7,steps=Math.ceil(distancePx/step);
     for(let i=0;i<steps;i++){
       const stepPx=Math.min(step,distancePx-i*step);
@@ -491,7 +493,8 @@ export class EnergyMatch {
       actor.x=x;actor.y=y;
     }
     actor.dashGate=1.3;
-    this.emit({type:"dash",actorId:actor.id,spellId:actor.dashSpellId||"vector-rush"});
+    this.emit({type:"dash",actorId:actor.id,spellId:actor.dashSpellId||"vector-rush",
+      fromX:from.x,fromY:from.y,toX:actor.x,toY:actor.y});
   }
   addStatus(target,entry) {
     // One shared Photon Barrier pool is intentionally non-stacking: every
@@ -576,6 +579,13 @@ export class EnergyMatch {
       actor.dashSpellId=spellId;
       const previous={x:actor.x,y:actor.y};
       this.dash(actor,direction,r.distance);
+      if(spellId==="phase-slip"){
+        const slows=actor.statuses.filter(status=>status.kind==="slow");
+        if(slows.length){
+          actor.statuses=actor.statuses.filter(status=>status.kind!=="slow");
+          this.identityProc(actor,spellId,"phase-escape",null,actor.x,actor.y);
+        }
+      }
       if(spellId==="vector-rush"){
         const evo=actor.evolutions[spellId];
         if(evo==="kinetic-shield"){

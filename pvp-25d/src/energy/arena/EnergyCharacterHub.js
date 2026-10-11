@@ -87,6 +87,7 @@ export class EnergyCharacterHub{
     $("hub-orbit-board").addEventListener("mouseleave",()=>this.hideTooltip());
     $("hub-play-button").addEventListener("click",()=>this.openPlayMenu());
     $("hub-back-menu").addEventListener("click",()=>this.openMainMenu());
+    $("create-back-menu").addEventListener("click",()=>this.openMainMenu());
     $("hub-new-build").addEventListener("click",()=>{
       if(!window.confirm("Start a fresh build for this character? Save your current build in a preset first."))return;
       this.store.draft=createBuild(this.character.role);

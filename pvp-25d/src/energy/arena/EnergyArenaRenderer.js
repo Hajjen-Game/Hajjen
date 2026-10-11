@@ -206,6 +206,45 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="encounter-telegraph"){
+      const origin=new BABYLON.Vector3(event.x*S,.115,event.y*S);
+      const diameter=Math.max(1,event.radius*2*S);
+      const hue=event.boss?"#ed76d6":"#b68af2";
+      // Persistent warning rings are tied to the live interruptible cast,
+      // not to damage events. Interrupting or killing the caster cancels them.
+      this.spellFX.ring(origin,hue,diameter,event.duration*1000,
+        "encounter-telegraph",{casterId:event.actorId,castSpell:event.spellId});
+      this.spellFX.ring(new BABYLON.Vector3(origin.x,.118,origin.z),
+        event.boss?"#ff9a95":"#8bd9fa",diameter*.74,event.duration*1000,
+        "encounter-telegraph",{casterId:event.actorId,castSpell:event.spellId});
+      return;
+    }
+    if(event.type==="encounter-impact"){
+      const center=new BABYLON.Vector3(event.x*S,.11,event.y*S);
+      const hex=event.boss?"#d28cff":"#9eacf9";
+      this.spellFX.ring(center,hex,
+        Math.max(1,2*S*event.radius*.88),540,"ground");
+      this.spellFX.sphere(new BABYLON.Vector3(center.x,.88,center.z),
+        "#ead2ff",event.boss?1.35:.94,510,"burst");
+      return;
+    }
+    if(event.type==="boss-phase"){
+      const boss=match.getActor(event.actorId);
+      if(boss){
+        const center=new BABYLON.Vector3(boss.x*S,.13,boss.y*S);
+        this.spellFX.ring(center,"#d2a3ff",4.0,950,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(center.x,1.02,center.z),
+          "#b886f8",1.3,650,"burst");
+      }
+      return;
+    }
+    if(event.type==="encounter-guard"){
+      const shielded=match.getActor(event.actorId);
+      if(shielded)this.spellFX.ring(
+        new BABYLON.Vector3(shielded.x*S,.14,shielded.y*S),
+        "#f7b377",2.1,650,"ground");
+      return;
+    }
     if(event.type==="charge-trail"){
       // The sphere is a wake behind an actually moving orb, not a teleport.
       this.spellFX.sphere(new BABYLON.Vector3(event.x*S,.68,event.y*S),

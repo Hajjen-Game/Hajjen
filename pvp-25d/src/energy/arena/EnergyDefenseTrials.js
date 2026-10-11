@@ -1,7 +1,7 @@
 // Planet Defense's in-combat field guide. Trials use the SAME Rank/Evolution/
 // Singularity values as Character HUB. PvE Enchantments are intentionally
 // separate: these help with waves and are never permanent or used in Arena.
-import { ABILITY_BY_ID, ROLES, ABILITIES } from "../abilityCatalog.js?v=20261011-identity13";
+import { ABILITY_BY_ID, ROLES } from "../abilityCatalog.js?v=20261011-identity13";
 import { RANK_PATHS } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const CURATED_EVOLUTIONS=Object.freeze({
@@ -69,10 +69,10 @@ export function defenseTrialChoices(match,enchantments){
   // Put shared spells first in the additional pool to demonstrate the player's
   // own custom build rather than only the two Origin starter abilities.
   const previewPool=[...(CURATED_EVOLUTIONS[actor.role]||[]),
-    ...ABILITIES.filter(a=>equipped.includes(a.id)&&!ROLES[actor.role].locked.includes(a.id))
-      .flatMap(a=>a.evolutions.map(e=>[a.id,e.id])),
-    ...ABILITIES.filter(a=>equipped.includes(a.id)&&ROLES[actor.role].locked.includes(a.id))
-      .flatMap(a=>a.evolutions.map(e=>[a.id,e.id]))];
+    ...equipped.filter(id=>!ROLES[actor.role].locked.includes(id))
+      .flatMap(id=>(ABILITY_BY_ID[id]?.evolutions||[]).map(e=>[id,e.id])),
+    ...equipped.filter(id=>ROLES[actor.role].locked.includes(id))
+      .flatMap(id=>(ABILITY_BY_ID[id]?.evolutions||[]).map(e=>[id,e.id]))];
   const evolution=previewPool.filter(([id,evo],index,array)=>
     array.findIndex(([x,y])=>x===id&&y===evo)===index).map(([spellId,evolutionId])=>{
     if(!equipped.includes(spellId)||actor.evolutions[spellId]===evolutionId)return null;

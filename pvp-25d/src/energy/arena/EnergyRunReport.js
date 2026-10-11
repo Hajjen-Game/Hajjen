@@ -93,6 +93,8 @@ function eventText(match,e){
     case "wave-start":return "WAVE "+e.wave+" START | "+safe(e.waveName);
     case "wave-spawn":return "WAVE "+e.wave+" SPAWN | "+name(match,e.actorId)+(e.boss?" [BOSS]":"");
     case "wave-clear":return "WAVE "+e.wave+" CLEARED";
+    case "wave-debuff":return "PVE CORRUPTION | "+name(match,e.actorId)+
+      " afflicted "+name(match,e.targetId)+" in wave "+e.wave;
     case "resonance-chosen":return "DEFENSE DISCOVERY | "+safe(e.kind)+
       " | "+safe(e.resonanceId)+" tier "+fix(e.tier,0)+" after wave "+e.wave;
     case "resonance-proc":return "WAVE RESONANCE PROC | "+safe(e.kind)+" "+safe(e.spellId)+

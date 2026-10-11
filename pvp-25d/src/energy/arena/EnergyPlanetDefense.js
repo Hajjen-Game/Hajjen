@@ -120,6 +120,9 @@ export class EnergyPlanetDefense extends EnergyMatch{
     actor.healthPct=1;
     actor.name=isBoss?this.encounter.boss.name:identity.name;
     actor.encounterKey=archetype;
+    // Renderer-only identity hint: level-specific bosses use a distinct
+    // Rift creature silhouette. No change to AI, abilities or hitboxes.
+    actor.encounterLevel=this.progressLevel;
     actor.boss=isBoss;
     actor.encounterNextAt=this.time+(isBoss?5.6:
       archetype==="channeler"||archetype==="harbinger"?4.5+order*.65:9999);

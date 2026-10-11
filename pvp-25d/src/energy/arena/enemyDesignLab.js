@@ -1,4 +1,4 @@
-// Enemy & Boss Design Lab 1.3 — balanced living-glass material and core luminance.
+// Enemy & Boss Design Lab 1.4 — Shard-matched glass and visible living interiors.
 // No imports from EnergyMatch, no mutation of Planet Defense, saves or AI.
 // All forms, glow volumes and animation passes are authored as real 3D meshes.
 const $=id=>document.getElementById(id);
@@ -53,14 +53,12 @@ function material(scene,name,hex,emission=0,alpha=1){
   }
   return mat;
 }
-// Living-glass study adapted from the player's OrbCharacterRenderer.
-// A totally black Fresnel face worked for Shard but made Channeler and
-// Bulwark nearly invisible from the front. Face-fill restores readable
-// *volume* while leaving the outlines translucent and the reactor visible.
+// All three now use Shard's precise glass/edge formula. Their energy
+// identity comes from light and *inside* geometry, not an opaque face fill.
 const MATERIAL_BALANCE=Object.freeze({
-  shard:     {shell:.39,face:.48,glass:.22,faceFill:0,   shellGlow:.09,faceGlow:.16,coreGlow:.67,heartGlow:.45},
-  channeler: {shell:.61,face:.67,glass:.30,faceFill:.35,shellGlow:.14,faceGlow:.19,coreGlow:.75,heartGlow:.54},
-  bulwark:   {shell:.74,face:.78,glass:.39,faceFill:.52,shellGlow:.17,faceGlow:.23,coreGlow:.88,heartGlow:.60},
+  shard:     {shell:.39,face:.48,glass:.22,faceFill:0,shellGlow:.09,faceGlow:.16,coreGlow:.67,heartGlow:.45,plasmaGlow:.48},
+  channeler: {shell:.39,face:.48,glass:.22,faceFill:0,shellGlow:.09,faceGlow:.16,coreGlow:1.02,heartGlow:.76,plasmaGlow:.92},
+  bulwark:   {shell:.39,face:.48,glass:.22,faceFill:0,shellGlow:.09,faceGlow:.16,coreGlow:1.06,heartGlow:.80,plasmaGlow:.96},
 });
 function glassMaterial(scene,name,hex,alpha,emission=.12,faceFill=0){
   const mat=material(scene,name,hex,emission,alpha);
@@ -133,10 +131,12 @@ function createUnit(scene,key){
     glass:glassMaterial(scene,key+"-glass",p.edge,balance.glass,
       .24,balance.faceFill*.75),
     plasma:material(scene,key+"-inner-plasma",p.energy,
-      key==="shard"?.48:.73,key==="shard"?.19:.23),
-    heart:material(scene,key+"-heart","#ffedf9",
-      key==="shard"?.75:.98,key==="shard"?.78:.92),
-    trace:material(scene,key+"-tracers",p.glow,.70,.75),
+      balance.plasmaGlow,key==="shard"?.19:.37),
+    heart:material(scene,key+"-heart",
+      key==="channeler"?"#e2faff":key==="bulwark"?"#ffead9":"#ffedf9",
+      key==="shard"?.75:1.10,key==="shard"?.78:.96),
+    trace:material(scene,key+"-tracers",p.glow,
+      key==="shard"?.70:.95,key==="shard"?.75:.90),
   };
   const ground=torus(scene,key+"-ground",root,mats.haze,2.95,.047);
   ground.position.y=.085;
@@ -213,7 +213,8 @@ function createUnit(scene,key){
     // and bloomed beyond its silhouette.
     const reactor=shape(scene,"CreateIcoSphere","channeler-reactor",{radius:.47,subdivisions:3},
       body,mats.energy);
-    reactor.scaling.set(.60,.98,.62);core=reactor;
+    // Only a little wider/brighter: it must remain inside the tall spindle.
+    reactor.scaling.set(.68,1.05,.70);core=reactor;
     const haze=shape(scene,"CreateSphere","channeler-field",{diameter:1.33,segments:24},body,mats.glass);
     haze.scaling.set(.70,1.00,.70);
     const conduit=shape(scene,"CreateCylinder","channeler-light-conduit",{
@@ -265,6 +266,8 @@ function createUnit(scene,key){
     const innerHeart=shape(scene,"CreateIcoSphere","bulwark-broad-reactor",{
       radius:.77,subdivisions:2},body,mats.plasma);
     innerHeart.scaling.set(1.12,.81,1.07);
+    // Let the living reactor read through the frontal crystal facet.
+    innerHeart.position.x=-.20;
     // A narrow angular visor frames the power source without a disk or ring.
     const upperRidge=shape(scene,"CreateBox","bulwark-reactor-brow",{
       width:.25,height:.10,depth:1.06},body,mats.trim);
@@ -326,19 +329,39 @@ function createUnit(scene,key){
   innerOrbit.parent=inner;
   for(let i=0;i<3;i++){
     const gyre=torus(scene,key+"-inner-gyre-"+i,innerOrbit,mats.trace,
-      (key==="bulwark"?1.25:key==="channeler"?.52:1.0)+
-      i*(key==="channeler"?.10:.19),.022+i*.002);
+      (key==="bulwark"?1.25:key==="channeler"?.65:1.0)+
+      i*(key==="channeler"?.10:.19),key==="shard"?.022+i*.002:.031+i*.003);
     gyre.rotation.set(i*.87+.18,i*.66,i*.85+.25);
     if(key==="channeler")gyre.scaling.y=1.15;
   }
   for(let i=0;i<5;i++){
     const angle=i*Math.PI*2/5;
     const mote=shape(scene,"CreateSphere",key+"-internal-mote-"+i,{
-      diameter:i%2?.10:.14,segments:8},innerOrbit,mats.heart);
+      diameter:(i%2?.10:.14)*(key==="shard"?1:1.22),segments:8},innerOrbit,mats.heart);
     const moteRange=key==="channeler"?.57:1;
     mote.position.set(Math.cos(angle)*(.35+i*.038)*moteRange,
       Math.sin(angle*1.7)*.38*moteRange,
       Math.sin(angle)*(.38+i*.024)*moteRange);
+  }
+  // Animated energy currents have the same layered-depth principle as Shard,
+  // but each path fits *inside* its creature. They are visible from multiple
+  // camera angles and rotate around the contained heart during idle/casting.
+  if(key!=="shard"){
+    for(let i=0;i<4;i++){
+      const angle=i*Math.PI/2;
+      const radial=key==="channeler"?.23:.47;
+      const height=key==="channeler"?.51:.34;
+      const path=[
+        V(Math.cos(angle)*radial,-height,Math.sin(angle)*radial),
+        V(Math.cos(angle+.42)*radial*.80,-height*.36,
+          Math.sin(angle+.42)*radial*.80),
+        V(Math.cos(angle+.82)*radial*.89,height*.42,
+          Math.sin(angle+.82)*radial*.89),
+        V(Math.cos(angle+1.14)*radial*.62,height,
+          Math.sin(angle+1.14)*radial*.62),
+      ];
+      line(scene,key+"-internal-current-"+i,innerOrbit,mats.trace,path,.028);
+    }
   }
   unit.inner={node:inner,heart,plasma,plasmaBaseScale:plasma.scaling.clone(),innerOrbit};
   // Independent boss silhouette exploration. Enlarges and adds overhead
@@ -571,8 +594,13 @@ class EnemyShowroom{
           key==="shard"?.94:1.22)+impact*.94);
       mats.trim.emissiveColor=color(u.p.edge).scale(.56+wind*.82+impact*.67);
       mats.trace.emissiveColor=color(u.p.glow).scale(.70+wind*.72+impact*.48);
-      mats.heart.emissiveColor=color("#fff0fb").scale(
-        u.balance.heartGlow+wind*.40+impact*.46);
+      mats.heart.emissiveColor=color(
+        key==="channeler"?"#e2faff":key==="bulwark"?"#ffead9":"#fff0fb"
+      ).scale(u.balance.heartGlow+wind*.40+impact*.46);
+      mats.plasma.emissiveColor=color(u.p.energy).scale(
+        u.balance.plasmaGlow+
+        (key==="shard"?.09:.19)*(.5+.5*Math.sin(time*2.3+offset))+
+        wind*.36+impact*.30);
       u.ground.scaling.setAll(1+wind*.13+impact*.17);
       u.ground.visibility=clamp(.52+wind*.36+impact*.28);
       const push=key==="shard"?release*1.28:key==="bulwark"?release*.31:0;

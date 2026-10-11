@@ -99,6 +99,11 @@ function eventText(match,e){
       " on "+name(match,e.targetId);
     case "evolution-proc":return "EVOLUTION PROC | "+safe(e.kind)+" · "+safe(e.spellId)+
       " by "+name(match,e.actorId)+" on "+name(match,e.targetId);
+    case "identity-proc":return "SPELL IDENTITY | "+safe(e.kind)+" · "+safe(e.spellId)+
+      " by "+name(match,e.actorId)+" on "+name(match,e.targetId);
+    case "ground-telegraph":return "GROUND TELEGRAPH | "+safe(e.spellId)+" at ("+
+      fix(e.x,0)+","+fix(e.y,0)+") · radius "+fix(e.radius,0)+
+      " · impact in "+fix(e.duration,1)+"s";
     case "end":return "MATCH END | "+safe(e.winner);
     default:return e.type.toUpperCase()+" "+name(match,e.actorId)+" "+safe(e.spellId);
   }

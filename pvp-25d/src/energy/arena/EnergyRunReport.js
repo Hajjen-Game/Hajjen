@@ -93,8 +93,8 @@ function eventText(match,e){
     case "wave-start":return "WAVE "+e.wave+" START | "+safe(e.waveName);
     case "wave-spawn":return "WAVE "+e.wave+" SPAWN | "+name(match,e.actorId)+(e.boss?" [BOSS]":"");
     case "wave-clear":return "WAVE "+e.wave+" CLEARED";
-    case "resonance-chosen":return "WAVE RESONANCE | "+safe(e.resonanceId)+
-      " tier "+fix(e.tier,0)+" after wave "+e.wave;
+    case "resonance-chosen":return "DEFENSE DISCOVERY | "+safe(e.kind)+
+      " | "+safe(e.resonanceId)+" tier "+fix(e.tier,0)+" after wave "+e.wave;
     case "resonance-proc":return "WAVE RESONANCE PROC | "+safe(e.kind)+" "+safe(e.spellId)+
       " on "+name(match,e.targetId);
     case "end":return "MATCH END | "+safe(e.winner);
@@ -127,9 +127,18 @@ export function formatEnergyRunReport(match){
   if(match.modeId==="defense")lines.push(
     "Planet Defense: wave "+match.wave+"/5 · state "+safe(match.waveState)+
       " · "+(match.totalKills||0)+" defeated · "+
-      (match.resonancesChosen||0)+" Wave Resonances selected",
-    "Resonance loadout: "+(Object.entries(match.resonances||{})
-      .map(([id,tier])=>id+" Rank "+tier).join(" · ")||"none")
+      (match.resonancesChosen||0)+" guided trial selections",
+    "Discovery trail: "+(match.trialHistory||[])
+      .map(t=>"wave "+t.wave+" "+t.kind+" "+t.name).join(" · "),
+    "Temporary spell Ranks: "+match.player.abilities
+      .map(id=>id+"="+(match.player.talentRanks[id]||0)).join(", "),
+    "Temporary Evolutions: "+(Object.entries(match.player.evolutions||{})
+      .map(([id,evo])=>id+"="+evo).join(" · ")||"none"),
+    "Temporary Singularity: "+(match.singularity?
+      match.singularity.partner+" → "+match.singularity.anchor+" ("+
+      match.singularity.reaction+")":"none"),
+    "PvE Enchantments: "+(Object.entries(match.resonances||{})
+      .map(([id,tier])=>id+" tier "+tier).join(" · ")||"none")
   );
   lines.push("","=== FINAL COMBAT STATS ===");
   for(const a of match.actors)lines.push(actorLine(match,a));

@@ -58,9 +58,10 @@ export function defenseTrialChoices(match,enchantments){
     if(current>=3||!RANK_PATHS[spellId])return null;
     const rank=current+1,name=ABILITY_BY_ID[spellId].name;
     return {id:"mastery:"+spellId+":"+rank,kind:"mastery",spellId,rank,
-      name:name+" · RANK "+rank,label:"REAL SPELL MASTERY",
+      name:name+" · RANK "+rank,label:rank===3?"RANK 3 · CHOOSE EVOLUTION":"REAL SPELL MASTERY",
       description:RANK_PATHS[spellId][rank-1],
-      how:"Use "+name+" in Wave "+(wave+1)+" to feel its higher Rank.",
+      how:rank===3?"Choose an Evolution for "+name+" before Wave "+(wave+1)+".":
+        "Use "+name+" in Wave "+(wave+1)+" to feel its higher Rank.",
       unlock:"Earn Talent Points from levelling; spend one per Rank in Character HUB.",
       isTemporary:true};
   }).filter(Boolean);

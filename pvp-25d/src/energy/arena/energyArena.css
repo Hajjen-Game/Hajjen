@@ -1455,3 +1455,31 @@ h2{font-size:23px}
   box-shadow:inset 0 0 16px #a260df26,0 0 16px #8d5ccf2a}
 .enemies .unit-frame.boss .unit-frame-header{color:#f2d7ff}
 .enemies .unit-frame.boss .unit-frame-sub{color:#c8b4e4;letter-spacing:.07em}
+
+
+/* In-combat progression field guide: every choice explains use and unlocks. */
+.defense-resonance-option.selected{border-color:var(--resonance-tone);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--resonance-tone) 48%,transparent),
+    inset 0 0 22px color-mix(in srgb,var(--resonance-tone) 17%,transparent)}
+.defense-resonance-option.selected .resonance-pick{color:#dffde9}
+.defense-trial-detail{width:100%;max-width:940px;display:grid;
+  grid-template-columns:1fr 1fr;gap:10px;text-align:left}
+.defense-trial-instruction{padding:13px 16px;border:1px solid #45677a;border-radius:9px;
+  background:#102639df;min-width:0}
+.defense-trial-instruction span{display:block;letter-spacing:.11em;
+  font-size:9px;font-weight:800;color:#95ddca}
+.defense-trial-instruction:nth-child(2) span{color:#e8c58d}
+.defense-trial-instruction p{font-size:12px;line-height:1.5;
+  margin:7px 0 0;color:#e3eafa}
+.defense-trial-confirm{min-height:42px;max-width:94%;padding:10px 25px;
+  background:linear-gradient(110deg,#317d80,#2a536f);color:#f0fbff;
+  border:1px solid #75d4d0;border-radius:9px;font-size:11px;
+  font-weight:850;letter-spacing:.1em;cursor:pointer}
+.defense-trial-confirm:hover,.defense-trial-confirm:focus-visible{
+  box-shadow:0 0 21px #5bcec356;outline:2px solid #ccf4e9}
+.defense-trial-confirm:disabled{opacity:.42;cursor:default}
+@media(max-width:750px){
+  .defense-trial-detail{grid-template-columns:1fr}
+  .defense-resonance-header p{font-size:11px}
+  .defense-trial-instruction{padding:10px 12px}
+}

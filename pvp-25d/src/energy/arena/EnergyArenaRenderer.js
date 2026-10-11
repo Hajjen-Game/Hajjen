@@ -231,14 +231,35 @@ export class EnergyArenaRenderer {
           cryo:"#83d9ff",vital:"#8ce6b7"};
         const hex=colors[discipline]||"#b2d9fa";
         const p=new BABYLON.Vector3(px*S,.115,py*S);
+        const field=["shatterfield","residual-field"].includes(event.kind);
+        const burst=["collapse","crystal-rupture","unstable-prison"].includes(event.kind);
+        const secondary=["contagion","glacial-echo","echo-cut","harmonic-thread",
+          "harmonic-field"].includes(event.kind);
         const wide=["seismic-wave","solar-aftershock","burning-ground",
-          "shock-trail","interrupt-shockwave","prismatic-return"].includes(event.kind);
+          "shock-trail","interrupt-shockwave","prismatic-return",...["shatterfield","residual-field"]].includes(event.kind);
         const setup=String(event.kind).endsWith("-ready")||event.kind==="impact-charge";
-        const dim=event.kind==="solar-aftershock"||event.kind==="burning-ground"?
+        const dim=field?4.5:burst?3.1:
+          event.kind==="solar-aftershock"||event.kind==="burning-ground"?
           4.9:wide?3.1:setup?1.1:1.7;
         this.spellFX.ring(p,hex,dim,wide?690:440,"ground");
-        if(!setup)this.spellFX.sphere(new BABYLON.Vector3(p.x,.85,p.z),hex,
-          wide?.44:.28,360,"burst");
+        if(burst){
+          this.spellFX.ring(new BABYLON.Vector3(p.x,.13,p.z),hex,
+            dim*.64,520,"ground");
+          this.spellFX.sphere(new BABYLON.Vector3(p.x,1.05,p.z),
+            hex,.65,390,"burst");
+        }else if(!setup&&!field)
+          this.spellFX.sphere(new BABYLON.Vector3(p.x,.85,p.z),hex,
+            wide?.44:.28,360,"burst");
+        if(secondary){
+          // Actual secondary hits/linked healing must show a second energy
+          // path, not merely an extra combat-text number on another orb.
+          const source=match.getActor(event.actorId);
+          if(source&&source.id!==event.targetId){
+            this.spellFX.sphere(new BABYLON.Vector3(source.x*S,.9,source.y*S),
+              hex,.24,390,"projectile",
+              {end:new BABYLON.Vector3(p.x,.85,p.z),spellId:event.spellId});
+          }
+        }
       }
       return;
     }

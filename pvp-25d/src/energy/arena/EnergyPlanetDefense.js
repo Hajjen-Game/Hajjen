@@ -187,7 +187,24 @@ export class EnergyPlanetDefense extends EnergyMatch{
   damage(target,amount,source,spellId,periodic=false){
     const tier=source===this.player&&spellId==="flux-bolt"&&!periodic?
       this.resonanceTier("flux-overcharge"):0;
+    const hpBefore=target?.hp||0;
     super.damage(target,tier?amount*(1+.18*tier):amount,source,spellId,periodic);
+    // Higher-level PvE casters can apply a light, dispellable debuff.
+    // It creates a REAL purpose for Cleanse Flux in wave encounters without
+    // overwhelming the level-1 learning experience. Only direct hits apply it,
+    // with a long deterministic cooldown (no random untelegraphed spam).
+    if(this.progressLevel>=6&&this.wave>=3&&target?.alive&&
+      target.team==="friendly"&&source?.team==="enemy"&&source.role==="caster"&&
+      !periodic&&target.hp<hpBefore&&
+      ["flux-bolt","crystal-bolt","sun-lance"].includes(spellId)&&
+      (source.corruptionGate||0)<=this.time){
+      source.corruptionGate=this.time+12;
+      this.addStatus(target,{kind:"dot",negative:true,remaining:6,
+        period:2,tickLeft:2,tickCount:0,amount:2.5,
+        spellId:"rift-corruption",sourceId:source.id});
+      this.emit({type:"wave-debuff",actorId:source.id,targetId:target.id,
+        spellId:"rift-corruption",wave:this.wave});
+    }
   }
   execute(actor,spellId,targetId,castContext=null){
     const before=this.events.length;

@@ -50,6 +50,7 @@ export class EnergyArenaRenderer {
     // Energy-only glass/core/discipline pass. Shared WoW 3v3 orb renderer stays untouched.
     this.orbPolish=new EnergyOrbPolish(this.scene,this.actorRender);
     this.markers=new OrbGroundMarkers(this.scene,S);
+    this.createIdentificationMarkers();
     // Babylon starts with the canvas HTML default drawing buffer (300x150).
     // Resize immediately to CSS stage dimensions, not only after a window resize.
     this.engine.resize();
@@ -59,6 +60,54 @@ export class EnergyArenaRenderer {
     if("ResizeObserver"in window){
       this.observer=new ResizeObserver(()=>this.resize());
       this.observer.observe(canvas.parentElement||canvas);
+    }
+  }
+  // Separate overhead indicators keep target allegiance readable above
+  // the glass, while the player always has a unique pale-cyan orbit.
+  createIdentificationMarkers(){
+    const halo=(name,hex,diameter,thickness)=>{
+      const mesh=BABYLON.MeshBuilder.CreateTorus(name,{
+        diameter,thickness,tessellation:64},this.scene);
+      mesh.material=this.material(name+"-mat",hex,hex,.95);
+      mesh.isPickable=false;
+      return mesh;
+    };
+    this.targetOverheads={};
+    for(const team of ["friendly","enemy"]){
+      const hex=team==="friendly"?"#62ffae":"#ff697b";
+      const ring=halo("energy-overhead-target-"+team,hex,1.20,.072);
+      const point=BABYLON.MeshBuilder.CreatePolyhedron(
+        "energy-overhead-point-"+team,{type:1,size:.20},this.scene);
+      point.material=this.material("energy-overhead-point-mat-"+team,hex,hex);
+      point.isPickable=false;
+      ring.setEnabled(false);point.setEnabled(false);
+      this.targetOverheads[team]={ring,point};
+    }
+    this.selfMarks=[
+      halo("energy-self-orbit-main","#c5f6ff",1.92,.046),
+      halo("energy-self-orbit-edge","#76d7f1",2.12,.023)
+    ];
+    for(const ring of this.selfMarks)ring.setEnabled(false);
+  }
+  updateIdentificationMarkers(match,now){
+    const selected=match.getActor(match.player?.targetId);
+    for(const [team,{ring,point}] of Object.entries(this.targetOverheads)){
+      const enabled=Boolean(selected?.alive&&selected.team===team);
+      ring.setEnabled(enabled);point.setEnabled(enabled);
+      if(!enabled)continue;
+      const bob=Math.sin(now*.0047)*.085;
+      ring.position.set(selected.x*S,2.02+bob,selected.y*S);
+      ring.rotation.y=now*.00065*(team==="friendly"?1:-1);
+      point.position.set(selected.x*S,2.33+bob,selected.y*S);
+      point.rotation.y=-now*.001;
+    }
+    const player=match.player;
+    for(const [index,ring] of this.selfMarks.entries()){
+      ring.setEnabled(Boolean(player?.alive));
+      if(!player?.alive)continue;
+      ring.position.set(player.x*S,.94+index*.1,player.y*S);
+      ring.rotation.x=index===0?.24:-.19;
+      ring.rotation.y=now*.0008*(index===0?1:-1);
     }
   }
   material(id,diffuse,emissive,alpha=1) {
@@ -146,6 +195,19 @@ export class EnergyArenaRenderer {
     return best;
   }
   spawnEffect(event,match){
+    if(event.type==="charge-trail"){
+      // The sphere is a wake behind an actually moving orb, not a teleport.
+      this.spellFX.sphere(new BABYLON.Vector3(event.x*S,.68,event.y*S),
+        "#f090a6",.23,210,"burst");
+      return;
+    }
+    if(event.type==="charge-impact"){
+      this.spellFX.ring(new BABYLON.Vector3(event.x*S,.105,event.y*S),
+        "#ff9bad",1.55,400,"ground");
+      this.spellFX.sphere(new BABYLON.Vector3(event.x*S,.84,event.y*S),
+        "#ffcad5",.40,300,"burst");
+      return;
+    }
     if(event.type==="wave-debuff"&&event.spellId==="rift-corruption"){
       const target=match.getActor(event.targetId);
       if(target){
@@ -313,6 +375,7 @@ export class EnergyArenaRenderer {
     this.actorRender.sync(display,now);
     this.orbPolish.sync(display,now);
     this.markers.sync(display,now);
+    this.updateIdentificationMarkers(match,now);
     // Planet Defense finale: a visible rotating double halo marks the Rift
     // Warden as the wave boss without modifying the shared 3v3 orb renderer.
     const boss=match.modeId==="defense"?

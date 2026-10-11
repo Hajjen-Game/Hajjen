@@ -1,4 +1,4 @@
-// Enemy & Boss Design Lab 1.0 — independent Babylon silhouette research.
+// Enemy & Boss Design Lab 1.1 — transparent living-energy material study.
 // No imports from EnergyMatch, no mutation of Planet Defense, saves or AI.
 // All forms, glow volumes and animation passes are authored as real 3D meshes.
 const $=id=>document.getElementById(id);
@@ -15,7 +15,7 @@ const CONCEPTS=Object.freeze({
     form:"Long, asymmetric crystal point surrounded by orbiting living fragments.",
     attack:"Contracts its fragments, then lunges forward in a sharp burst.",
     risk:"Does it read as a living creature instead of a floating crystal pickup?",
-    shell:"#b477b4",edge:"#efabe0",glow:"#f1a6e8",energy:"#b773e6",
+    shell:"#9974c7",edge:"#d3b8f7",glow:"#f0a4fa",energy:"#b375e9",
   },
   channeler:{
     name:"RIFT CHANNELER",
@@ -24,7 +24,7 @@ const CONCEPTS=Object.freeze({
     form:"Open structure: floating glyph plates, a vertical core and counter-rotating rings.",
     attack:"Runes converge, rings align and energy discharges in a broad pulse.",
     risk:"Are its rings legible at real arena zoom, or too similar to a player orb?",
-    shell:"#457c99",edge:"#a8eafa",glow:"#8be9fa",energy:"#83acd9",
+    shell:"#44799b",edge:"#a2e9f8",glow:"#8be9fa",energy:"#79b8e7",
   },
   bulwark:{
     name:"RIFT BULWARK",
@@ -33,21 +33,47 @@ const CONCEPTS=Object.freeze({
     form:"Blocky plated shoulders, angular chassis and a forward-facing shield.",
     attack:"Armour braces around the core, then slams into the ground.",
     risk:"Does it feel heavy without becoming an unreadable collection of chunks?",
-    shell:"#8c6a60",edge:"#ffba8b",glow:"#f2a778",energy:"#d87e69",
+    shell:"#826c9b",edge:"#ffc4a3",glow:"#ffc28c",energy:"#d48cba",
   },
 });
 
 function material(scene,name,hex,emission=0,alpha=1){
   const mat=new BABYLON.StandardMaterial(name,scene);
   const c=color(hex);
-  mat.diffuseColor=c.scale(emission>0?.33:.78);
+  mat.diffuseColor=c.scale(emission>0?.33:.68);
   mat.emissiveColor=c.scale(emission);
-  mat.specularColor=color("#a2bed9").scale(.3);
-  mat.specularPower=70;
+  mat.specularColor=color("#d4edff").scale(.56);
+  mat.specularPower=100;
   mat.backFaceCulling=false;
   mat.alpha=alpha;
-  if(alpha<1&&BABYLON.Material?.MATERIAL_ALPHABLEND!==undefined)
-    mat.transparencyMode=BABYLON.Material.MATERIAL_ALPHABLEND;
+  if(alpha<1){
+    mat.needDepthPrePass=true;
+    if(BABYLON.Material?.MATERIAL_ALPHABLEND!==undefined)
+      mat.transparencyMode=BABYLON.Material.MATERIAL_ALPHABLEND;
+  }
+  return mat;
+}
+// A light-weight adaptation of the player's OrbCharacterRenderer glass.
+// Diffuse translucent crystal lets the moving core show through; Fresnel
+// lifts the silhouette edges instead of producing bright solid polygons.
+function glassMaterial(scene,name,hex,alpha,emission=.12){
+  const mat=material(scene,name,hex,emission,alpha);
+  mat._glassAlpha=alpha;
+  mat._glassEmissive=emission;
+  if(BABYLON.FresnelParameters){
+    const rim=new BABYLON.FresnelParameters();
+    rim.bias=.10;rim.power=2.7;
+    rim.leftColor=new BABYLON.Color3(.95,.97,1);
+    rim.rightColor=BABYLON.Color3.Black();
+    const light=new BABYLON.FresnelParameters();
+    light.bias=.015;light.power=4;
+    light.leftColor=color(hex).scale(.36);
+    light.rightColor=BABYLON.Color3.Black();
+    mat._glassOpacityFresnel=rim;
+    mat._glassEmissiveFresnel=light;
+    mat.opacityFresnelParameters=rim;
+    mat.emissiveFresnelParameters=light;
+  }
   return mat;
 }
 function shape(scene,kind,name,options,parent,mat){
@@ -86,14 +112,18 @@ function createUnit(scene,key){
   const armor=new BABYLON.TransformNode(key+"-armor",scene);
   armor.parent=body;
   const mats={
-    shell:material(scene,key+"-shell",p.shell,.12),
-    face:material(scene,key+"-facet",p.edge,.20),
-    trim:material(scene,key+"-trim",p.edge,.72,.9),
-    energy:material(scene,key+"-energy",p.glow,1.18,.78),
-    haze:material(scene,key+"-haze",p.energy,.57,.18),
-    rune:material(scene,key+"-runes",p.glow,1.1,.95),
-    glass:material(scene,key+"-glass",p.edge,.23,.26),
-    shadow:material(scene,key+"-shadow","#101626",.12,.83),
+    shell:glassMaterial(scene,key+"-shell",p.shell,
+      key==="bulwark"?.31:.39,.09),
+    face:glassMaterial(scene,key+"-facet",p.edge,
+      key==="bulwark"?.43:.48,.16),
+    trim:material(scene,key+"-trim",p.edge,.62,.78),
+    energy:material(scene,key+"-energy",p.glow,1.20,.83),
+    haze:material(scene,key+"-haze",p.energy,.42,.13),
+    rune:material(scene,key+"-runes",p.glow,1.02,.93),
+    glass:glassMaterial(scene,key+"-glass",p.edge,.22,.24),
+    plasma:material(scene,key+"-inner-plasma",p.energy,.73,.23),
+    heart:material(scene,key+"-heart","#ffedf9",.98,.92),
+    trace:material(scene,key+"-tracers",p.glow,.70,.75),
   };
   const ground=torus(scene,key+"-ground",root,mats.haze,2.95,.047);
   ground.position.y=.085;
@@ -106,10 +136,11 @@ function createUnit(scene,key){
     diameter:1.3,segments:20},body,mats.energy);
   energyFlash.setEnabled(false);
   const particles=[];
+  const satellites=[];
   let core=null;
-  let shield=null;
   const unit={key,p,root,body,orbit,accent,armor,mats,ground,groundInner,
-    groundPulse,energyFlash,particles,shield:null,core:null,bossExtras:[],
+    groundPulse,energyFlash,particles,satellites,shield:null,core:null,
+    coreBaseScale:null,inner:null,bossExtras:[],
     color:p.glow,phaseOffset:{shard:.7,channeler:2.2,bulwark:3.8}[key]};
   if(key==="shard"){
     // The hero is a perfect sphere; this predator is deliberately very tall,
@@ -121,7 +152,10 @@ function createUnit(scene,key){
     core=shape(scene,"CreateIcoSphere","shard-reactor",{radius:.53,subdivisions:2},body,mats.energy);
     core.position.y=-.2;
     const mist=shape(scene,"CreateSphere","shard-reactor-glass",{diameter:1.32,segments:18},
-      body,mats.haze);mist.position.y=-.2;
+      body,mats.glass);mist.position.y=-.2;
+    const innerFlare=shape(scene,"CreateIcoSphere","shard-internal-thorn",{
+      radius:.73,subdivisions:1},body,mats.plasma);
+    innerFlare.scaling.set(.5,1.4,.55);innerFlare.position.y=-.13;
     for(let i=0;i<3;i++){
       const side=i%2===0?-1:1;
       const barb=crystal(scene,"shard-barb-"+i,body,i===2?mats.trim:mats.face,
@@ -134,15 +168,16 @@ function createUnit(scene,key){
     }
     for(let i=0;i<7;i++){
       const angle=i*Math.PI*2/7;
-      const shard=crystal(scene,"shard-satellite-"+i,orbit,
+      const holder=new BABYLON.TransformNode("shard-fragment-holder-"+i,scene);
+      holder.parent=orbit;
+      const shard=crystal(scene,"shard-satellite-"+i,holder,
         i%3===0?mats.trim:mats.glass,.37+(i%3)*.16,.12+i%2*.035,4);
       const r=1.16+.18*(i%3);
-      const x=Math.cos(angle)*r,z=Math.sin(angle)*r,y=Math.sin(angle*2)*.5;
-      for(const part of [shard.top,shard.bottom]){
-        part.position.x=x;part.position.y+=y;part.position.z=z;
-        part.rotation.z=-.55;
-      }
-      particles.push(shard.top);
+      const baseY=Math.sin(angle*2)*.5;
+      holder.position.set(Math.cos(angle)*r,baseY,Math.sin(angle)*r);
+      holder.rotation.z=-.45;holder.rotation.y=angle;
+      satellites.push({node:holder,baseY,index:i,angle});
+      particles.push(holder);
     }
     const arc=torus(scene,"shard-crooked-halo",accent,mats.glass,2.72,.035);
     arc.rotation.x=.72;arc.rotation.z=.33;
@@ -162,8 +197,14 @@ function createUnit(scene,key){
     const reactor=shape(scene,"CreateIcoSphere","channeler-reactor",{radius:.67,subdivisions:3},
       body,mats.energy);
     reactor.scaling.set(.70,1.20,.7);core=reactor;
-    const haze=shape(scene,"CreateSphere","channeler-field",{diameter:1.8,segments:24},body,mats.haze);
+    const haze=shape(scene,"CreateSphere","channeler-field",{diameter:1.8,segments:24},body,mats.glass);
     haze.scaling.set(.88,1.26,.88);
+    const conduit=shape(scene,"CreateCylinder","channeler-light-conduit",{
+      height:2.65,diameter:.24,tessellation:10},body,mats.plasma);
+    conduit.position.y=.08;
+    const conduitTop=shape(scene,"CreateSphere","channeler-throat",{
+      diameter:.27,segments:12},body,mats.heart);
+    conduitTop.position.y=.89;
     const top=crystal(scene,"channeler-top-spire",body,mats.face,1.15,.36,6);
     const bottom=crystal(scene,"channeler-bottom-spire",body,mats.trim,1.0,.29,6);
     for(const part of [top.top,top.bottom])part.position.y+=1.13;
@@ -204,8 +245,13 @@ function createUnit(scene,key){
     const chassis=shape(scene,"CreatePolyhedron","bulwark-chassis",{type:1,size:1.36},body,mats.shell);
     chassis.scaling.set(1.05,.92,.96);
     const prism=shape(scene,"CreateBox","bulwark-central-casing",{
-      width:1.10,height:1.14,depth:1.25},body,mats.face);
+      width:1.10,height:1.14,depth:1.25},body,mats.glass);
     prism.rotation.y=Math.PI/4;
+    const innerHeart=shape(scene,"CreateIcoSphere","bulwark-broad-reactor",{
+      radius:.89,subdivisions:2},body,mats.plasma);
+    innerHeart.scaling.set(1.05,.9,1.15);
+    const sternum=torus(scene,"bulwark-outer-reactor-rim",body,mats.trim,1.18,.043);
+    sternum.rotation.z=Math.PI/2;sternum.position.x=-1.08;
     core=shape(scene,"CreateIcoSphere","bulwark-reactor",{
       radius:.67,subdivisions:2},body,mats.energy);
     core.position.x=-.48;core.scaling.set(.8,.86,.9);
@@ -231,6 +277,11 @@ function createUnit(scene,key){
       const fin=shape(scene,"CreatePolyhedron","bulwark-fin-"+side,{
         type:1,size:.39},armor,mats.trim);
       fin.position.set(.61,.31,side*.68);fin.scaling.set(1.1,.65,.6);
+      // Exposed luminous seams keep the large plates legible through glass.
+      line(scene,"bulwark-plate-seam-"+side,armor,mats.trace,[
+        V(-.69,-.84,side*.88),V(-.79,-.2,side*1.17),
+        V(-.36,.31,side*1.32),V(.15,.58,side*.96),
+      ],.030);
     }
     const shieldNode=new BABYLON.TransformNode("bulwark-forward-shield",scene);
     shieldNode.parent=body;shieldNode.position.set(-1.32,.03,0);
@@ -244,6 +295,10 @@ function createUnit(scene,key){
     const shieldRune=shape(scene,"CreateCylinder","bulwark-shield-crack",{
       height:.24,diameter:.49,tessellation:6},shieldNode,mats.energy);
     shieldRune.position.x=-.21;shieldRune.rotation.z=Math.PI/2;
+    const shieldOutline=torus(scene,"bulwark-glass-shield-edge",shieldNode,
+      mats.trim,2.0,.065);
+    shieldOutline.rotation.z=Math.PI/2;
+    shieldOutline.position.x=-.11;
     unit.shield=shieldNode;
     for(let i=0;i<6;i++){
       const a=Math.PI*2*i/6,r=.68;
@@ -258,6 +313,38 @@ function createUnit(scene,key){
     weight.rotation.x=.17;
   }
   unit.core=core;
+  // Preserve the reactor's custom aspect ratio when it pulses. The old
+  // setAll() accidentally made the Channeler reactor round after one frame.
+  unit.coreBaseScale=core?.scaling.clone()||V(1,1,1);
+  // Shared Energy Arena visual language: layered *internal* plasma, a bright
+  // heartbeat and independent luminous gyres — NOT an opaque orb skin.
+  // Each creature keeps its distinct external silhouette.
+  const inner=new BABYLON.TransformNode(key+"-living-interior",scene);
+  inner.parent=body;
+  inner.position.copyFrom(key==="shard"?V(0,-.20,0):
+    key==="bulwark"?V(-.18,0,0):V(0,0,0));
+  const plasma=shape(scene,"CreateSphere",key+"-interior-cloud",{
+    diameter:key==="bulwark"?1.40:1.08,segments:18},inner,mats.plasma);
+  plasma.scaling.set(1.1,key==="channeler"?1.37:.82,.89);
+  const heart=shape(scene,"CreateIcoSphere",key+"-living-heart",{
+    radius:key==="bulwark"?.26:.21,subdivisions:2},inner,mats.heart);
+  heart.scaling.set(1.05,1.12,1);
+  const innerOrbit=new BABYLON.TransformNode(key+"-inner-gyres",scene);
+  innerOrbit.parent=inner;
+  for(let i=0;i<3;i++){
+    const gyre=torus(scene,key+"-inner-gyre-"+i,innerOrbit,mats.trace,
+      (key==="bulwark"?1.25:1.0)+i*.19,.022+i*.002);
+    gyre.rotation.set(i*.87+.18,i*.66,i*.85+.25);
+    if(key==="channeler")gyre.scaling.y=1.15;
+  }
+  for(let i=0;i<5;i++){
+    const angle=i*Math.PI*2/5;
+    const mote=shape(scene,"CreateSphere",key+"-internal-mote-"+i,{
+      diameter:i%2?.10:.14,segments:8},innerOrbit,mats.heart);
+    mote.position.set(Math.cos(angle)*(.35+i*.038),
+      Math.sin(angle*1.7)*.38,Math.sin(angle)*(.38+i*.024));
+  }
+  unit.inner={node:inner,heart,plasma,innerOrbit};
   // Independent boss silhouette exploration. Enlarges and adds overhead
   // energy architecture, but makes NO claim this is a production boss.
   const crown=new BABYLON.TransformNode(key+"-boss-crown",scene);
@@ -280,8 +367,8 @@ class EnemyShowroom{
     this.scene=new BABYLON.Scene(this.engine);
     this.scene.clearColor=BABYLON.Color4.FromHexString("#080f1fff");
     this.scene.ambientColor=color("#51627f");
-    this.scene.imageProcessingConfiguration.contrast=1.2;
-    this.scene.imageProcessingConfiguration.exposure=1.1;
+    this.scene.imageProcessingConfiguration.contrast=1.12;
+    this.scene.imageProcessingConfiguration.exposure=.88;
     this.camera=new BABYLON.ArcRotateCamera("research-camera",
       -Math.PI*.62,1.18,9.6,V(0,1.5,0),this.scene);
     this.camera.lowerRadiusLimit=5.2;
@@ -293,12 +380,12 @@ class EnemyShowroom{
     this.camera.attachControl(canvas,true);
     const ambient=new BABYLON.HemisphericLight("soft-sky",V(.3,1,.2),this.scene);
     ambient.diffuse=color("#bacde8");ambient.groundColor=color("#35324f");
-    ambient.intensity=.85;
+    ambient.intensity=.68;
     const keyLight=new BABYLON.DirectionalLight("face-light",V(.65,-1,.42),this.scene);
-    keyLight.diffuse=color("#b6d9fc");keyLight.intensity=1.25;
+    keyLight.diffuse=color("#a7c7e7");keyLight.intensity=.84;
     const edgeLight=new BABYLON.PointLight("edge-light",V(3.4,5.8,-4),this.scene);
-    edgeLight.diffuse=color("#a67ddf");edgeLight.intensity=37;
-    edgeLight.range=23;
+    edgeLight.diffuse=color("#9172bf");edgeLight.intensity=5.5;
+    edgeLight.range=15;
     this.groundMaterial=material(this.scene,"research-floor","#141d30",.03);
     this.floor=shape(this.scene,"CreateGround","research-platform",{
       width:28,height:19,subdivisions:2},null,this.groundMaterial);
@@ -314,7 +401,7 @@ class EnemyShowroom{
     }
     this.glow=new BABYLON.GlowLayer("research-emission",this.scene,{
       blurKernelSize:42});
-    this.glow.intensity=.65;
+    this.glow.intensity=.50;
     this.units={
       shard:createUnit(this.scene,"shard"),
       channeler:createUnit(this.scene,"channeler"),
@@ -322,6 +409,7 @@ class EnemyShowroom{
     };
     this.selected="shard";
     this.compare=false;this.gameplay=false;this.boss=false;this.light=false;
+    this.glass=true;
     this.paused=false;this.repeat=false;this.cue="idle";
     this.elapsed=0;this.cueAt=0;this.lastFrame=performance.now();
     this.setLayout();
@@ -355,7 +443,11 @@ class EnemyShowroom{
       for(const extra of u.bossExtras)extra.setEnabled(this.boss);
     }
     this.camera.target.copyFrom(V(0,1.63*scale,0));
-    this.camera.radius=this.compare?(this.gameplay?13.4:15.0)*(this.boss?1.18:1):
+    // Symmetrical comparison: perspective should not turn the nearest model
+    // into a giant while the third model disappears near the far edge.
+    this.camera.alpha=this.compare?-Math.PI/2:-Math.PI*.62;
+    this.camera.beta=this.compare?1.15:1.18;
+    this.camera.radius=this.compare?(this.gameplay?17.6:18.2)*(this.boss?1.20:1):
       (this.gameplay?10.9:8.4)*(this.boss?1.22:1);
     $("comparison-labels").hidden=!this.compare;
     $("stage-title").textContent=this.compare?"THREE RIFT SILHOUETTES":CONCEPTS[this.selected].name;
@@ -367,7 +459,23 @@ class EnemyShowroom{
     this.scene.clearColor=BABYLON.Color4.FromHexString(bright?"#25334bff":"#080f1fff");
     this.groundMaterial.diffuseColor=color(bright?"#536477":"#141d30");
     this.groundMaterial.emissiveColor=color(bright?"#26354d":"#080e1b").scale(.3);
-    this.glow.intensity=bright?.48:.65;
+    this.glow.intensity=bright?.36:.50;
+  }
+  setGlass(enabled){
+    this.glass=enabled;
+    for(const u of Object.values(this.units)){
+      for(const role of ["shell","face","glass"]){
+        const mat=u.mats[role];
+        mat.alpha=enabled?mat._glassAlpha:.94;
+        mat.opacityFresnelParameters=enabled?
+          (mat._glassOpacityFresnel||null):null;
+        mat.emissiveFresnelParameters=enabled?
+          (mat._glassEmissiveFresnel||null):null;
+        mat.needDepthPrePass=enabled;
+        mat.emissiveColor=color(role==="shell"?u.p.shell:u.p.edge).scale(
+          enabled?mat._glassEmissive:.12);
+      }
+    }
   }
   select(key){
     if(!CONCEPTS[key])return;
@@ -429,9 +537,28 @@ class EnemyShowroom{
       accent.rotation.y-=dt*(key==="channeler"?.38:key==="bulwark"?.19:.5);
       armor.rotation.z=key==="bulwark"?Math.sin(time*.7)*.012:0;
       const flutter=1+.045*Math.sin(time*3.2*slow+offset);
-      if(core)core.scaling.setAll(flutter*(1+wind*.35+impact*.26));
-      mats.energy.emissiveColor=color(u.p.glow).scale(1.18+wind*1.50+impact*1.2);
-      mats.trim.emissiveColor=color(u.p.edge).scale(.72+wind*.85+impact*.72);
+      const pulse=flutter*(1+wind*.28+impact*.14);
+      if(core){
+        const base=u.coreBaseScale;
+        core.scaling.set(base.x*pulse,base.y*pulse,base.z*pulse);
+      }
+      u.inner.innerOrbit.rotation.y+=dt*(key==="channeler"?1.16:
+        key==="shard"?.95:.54)*(1+wind*2.3);
+      u.inner.innerOrbit.rotation.z+=dt*(key==="bulwark"?.25:.47);
+      u.inner.heart.scaling.setAll(.88+.13*Math.sin(time*3.8+offset)+
+        wind*.34+impact*.29);
+      u.inner.plasma.scaling.setAll(.96+Math.sin(time*1.7+offset)*.045+
+        wind*.15);
+      for(const fragment of u.satellites){
+        const {node,index,baseY}=fragment;
+        node.position.y=baseY+Math.sin(time*(1.45+index*.11)+index)*.17;
+        node.rotation.z=-.40+Math.sin(time*1.3+index*1.8)*.24-wind*.29;
+        node.scaling.setAll(1-wind*.21+release*.28);
+      }
+      mats.energy.emissiveColor=color(u.p.glow).scale(.87+wind*1.22+impact*.94);
+      mats.trim.emissiveColor=color(u.p.edge).scale(.56+wind*.82+impact*.67);
+      mats.trace.emissiveColor=color(u.p.glow).scale(.70+wind*.72+impact*.48);
+      mats.heart.emissiveColor=color("#fff0fb").scale(.62+wind*.5+impact*.46);
       u.ground.scaling.setAll(1+wind*.13+impact*.17);
       u.ground.visibility=clamp(.52+wind*.36+impact*.28);
       const push=key==="shard"?release*1.28:key==="bulwark"?release*.31:0;
@@ -501,6 +628,11 @@ function init(){
   $("toggle-boss").addEventListener("click",()=>{
     if(!showroom)return;showroom.boss=!showroom.boss;showroom.setLayout();
     setPressed("toggle-boss",showroom.boss,"BOSS STUDY: ON","BOSS STUDY: OFF");
+  });
+  $("toggle-glass").addEventListener("click",()=>{
+    if(!showroom)return;
+    showroom.setGlass(!showroom.glass);
+    setPressed("toggle-glass",showroom.glass,"GLASS: ON","GLASS: OFF");
   });
   $("toggle-light").addEventListener("click",()=>{
     if(!showroom)return;showroom.setLighting(!showroom.light);

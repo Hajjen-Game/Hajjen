@@ -9,7 +9,7 @@ const PAGES=[
       ["BUILD","Choose the spells and Evolutions that fit your playstyle."],
       ["FIGHT","Move, aim, cast and use cover to survive."],
       ["GROW","Earn XP, level up and gradually unlock your full toolkit."]
-    ],tip:"First match? Planet Defense starts with your real level-1 spells. Your first Wave Resonance comes AFTER Wave 1.",
+    ],tip:"First match? Planet Defense starts with your real level-1 spells. Your first guided Mastery Trial comes AFTER Wave 1.",
     art:"arena",caption:"An arena is a small battlefield. Positioning and obstacles matter."
   },
   {
@@ -77,9 +77,12 @@ const PAGES=[
     intro:"Planet Defense is the natural place to level and learn. Arena matches stay available whenever you want tactical PvP-style fights.",
     steps:[
       ["PLANET DEFENSE · 3VE","Five survival waves. You and two AI companions always form Genesis / Impact / Eclipse."],
-      ["WAVE RESONANCES","After clearing Wave 1, choose your first temporary spell enhancement. Four choices per five-wave run."],
+      ["MASTERY TRIALS","After Wave 1, try the real Rank improvements from your Character HUB — no Talent Points spent."],
+      ["EVOLUTION TRIALS","From level 4, get a temporary Rank 3 + a real Evolution preview."],
+      ["SINGULARITY TRIALS","From level 10, freely try linked spell reactions without spending Black Hole Matter."],
+      ["PVE ENCHANTMENTS","Special multihit and survival boosts help with bigger waves; these are not normal Arena abilities."],
       ["ARENA · 1V1 / 2V2 / 3V3","Practice targeting, teamwork and counterplay against AI teams."]
-    ],tip:"Wave Resonances disappear after the run. Permanent XP, Talent Points and Origin progression remain.",
+    ],tip:"Every between-wave choice explains how to use it and where its permanent version unlocks. Trials reset at match end; your XP remains.",
     art:"modes",caption:"Three modes, one evolving character."
   },
   {

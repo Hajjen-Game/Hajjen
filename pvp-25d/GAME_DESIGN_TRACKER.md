@@ -12,6 +12,7 @@
 - **IMPLEMENTED:** Planet Defense has five waves, level-dependent encounter rosters/tier names and boss mechanical phases, with temporary between-wave spell trials.
 - **IMPLEMENTED:** Planet Defense XP curve aims for ~44 straight five-minute wins to reach level 30 (approximately 3h40m), without auto-leveling each victory.
 - **AGREED:** Spell VFX polishing across *all* abilities is deferred until a later dedicated pass; gameplay/identity is the current focus.
+- **IMPLEMENTED (visual prototype only):** Standalone [Enemy & Boss Design Lab](enemy-design-lab.html) with three distinct procedural Babylon 3D test subjects (Rift Shard, Rift Channeler, Rift Bulwark), idle/build-up/attack/impact sequences, same-stage comparison, gameplay scale, alternative lighting and speculative boss-size treatments. **No Planet Defense enemy renderers or combat are changed.**
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
 ## Important design mismatch: Planet Defense attackers
@@ -36,15 +37,16 @@
 6. A lore explanation is needed: what Rift entities are, why they invade, what the player's orb/planet is defending.
 
 **Not yet chosen:**
-- Is the fantasy specifically defending a *planet*, a *core*, or a broader realm?
+- User currently leans toward the player being a *living energy being existing in space*, but lore is not locked. Is the fantasy specifically defending a *planet*, a *core*, or a broader realm?
 - Should PvE enemies be purely alien constructs, corrupted energy creatures, or a mix?
 - How much visual change do we want in the first pass, before a full enemy-animation overhaul?
+- Which of the three design-lab visual directions deserves refinement first? No creatures are selected for production until the user has assessed the running 3D prototypes.
 
 ## Next suggested development order (proposal)
 
 | Priority | Pass | Scope | State |
 | --- | --- | --- | --- |
-| 1 | PvE Enemy Identity 1.0 | Define 4–5 nonplayer enemy silhouettes and gameplay roles, preserve existing level-scaled encounters. | PROPOSAL |
+| 1 | PvE Enemy Identity 1.0 | Three live Babylon prototypes in the isolated [Enemy Design Lab](enemy-design-lab.html); review their readability, idle motion and attacks, then decide production enemy direction. | VALIDATION |
 | 2 | Boss Silhouette & Phase Identity | Give each current boss a distinctive model shape and readable phase transition. | BACKLOG |
 | 3 | Encounter/AI validation | Check target selection, interrupted casts, spawn frequency, boss difficulty, level 1 vs level 30 and allied AI reactions in browser. | VALIDATION |
 | 4 | Spell VFX across all abilities | Dedicated visual consistency pass (buildup / travel / impact / scale / color, Visual VFX Lab). | BACKLOG |

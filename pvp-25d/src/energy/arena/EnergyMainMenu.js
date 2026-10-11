@@ -17,7 +17,7 @@ const PAGES=[
     intro:"Name your planet and choose its Origin: Genesis, Impact or Eclipse. Each Origin gives you two fixed starting spells and a unique passive.",
     steps:[
       ["GENESIS","Restore health and protect allies. Start with Pulse Mend and Resonance Guard."],
-      ["IMPACT","Rush into close combat and interrupt enemies. Start with Phase Rush and Pulse Sever."],
+      ["IMPACT","Rush into melee with Phase Rush, then keep attacking with instant Arc Strike. Pulse Sever remains a shared interrupt you can equip later."],
       ["ECLIPSE","Fight from range and escape danger. Start with Flux Bolt and Phase Slip."]
     ],tip:"Origins shape your starting strengths, not your entire build. All five energy disciplines remain available.",
     art:"roles",caption:"Genesis, Impact and Eclipse have different starting strengths. Your later spells are up to you."
@@ -114,7 +114,7 @@ function artMarkup(name){
     case "roles":return `
       <div class="book-role-gallery">
         <div><span class="book-role-orb healer">✧</span><strong>GENESIS</strong><small>HEAL · PROTECT</small></div>
-        <div><span class="book-role-orb melee">⌁</span><strong>IMPACT</strong><small>CHASE · INTERRUPT</small></div>
+        <div><span class="book-role-orb melee">⌁</span><strong>IMPACT</strong><small>CHARGE · STRIKE</small></div>
         <div><span class="book-role-orb caster">❖</span><strong>ECLIPSE</strong><small>CAST · REPOSITION</small></div>
       </div>`;
     case "loadout":return `

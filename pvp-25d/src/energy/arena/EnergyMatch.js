@@ -539,11 +539,11 @@ export class EnergyMatch {
     }
     const link=source.statuses.find(s=>s.kind==="link");
     if(link&&value>0&&link.procGate<=0){
+      const enhanced=link.evolution==="amplified-link";
       const ally=this.getActor(link.linkedId);
       // A single direct hit creates ONE healing budget. Share it rather than
       // duplicating the total healing with Reciprocal Flow.
       if(ally?.alive){
-        const enhanced=link.evolution==="amplified-link";
         const budget=Math.min(enhanced?20:15,
           value*(enhanced?.44:.32)/this.power);
         if(link.evolution==="reciprocal-flow"&&ally!==source){

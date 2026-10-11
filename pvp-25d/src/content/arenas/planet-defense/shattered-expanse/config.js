@@ -9,17 +9,9 @@ export const SHATTERED_EXPANSE = Object.freeze({
   width:2640,height:1760,boundaryPadding:52,
   bounds:{x:52,y:52,w:2536,h:1656},
   cameraStart:{x:1320,y:880},
-  // Large gaps and offset rock clusters make long, readable routes.
-  obstacles:[
-    {id:"west-north-crystal",x:530,y:350,w:124,h:116},
-    {id:"west-south-ledge",x:595,y:1310,w:170,h:104},
-    {id:"north-rift-rock",x:1050,y:245,w:150,h:105},
-    {id:"north-east-crystal",x:1860,y:360,w:130,h:135},
-    {id:"east-ridge",x:2210,y:850,w:132,h:180},
-    {id:"south-east-crystal",x:1840,y:1340,w:140,h:124},
-    {id:"south-ridge",x:1155,y:1440,w:190,h:108},
-    {id:"west-ridge",x:300,y:875,w:150,h:145}
-  ],
+  // Open wave-survival field: PvP Arena's clean dark visual language, without
+  // the pillars/mesas that cluttered the first Planet Defense playtest.
+  obstacles:[],
   spawns:{
     "friendly-healer":{x:1275,y:880,facing:0},
     "friendly-melee":{x:1345,y:815,facing:0},

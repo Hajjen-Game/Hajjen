@@ -528,7 +528,26 @@ export class EnergyMatch {
     if(r.mode==="dash"){
       const direction=actor.control==="player"?this.dashDirection||{x:1,y:0}:{x:actor.team==="friendly"?1:-1,y:0};
       actor.dashSpellId=spellId;
+      const previous={x:actor.x,y:actor.y};
       this.dash(actor,direction,r.distance);
+      if(spellId==="vector-rush"){
+        const evo=actor.evolutions[spellId];
+        if(evo==="kinetic-shield"){
+          const before=actor.shield;
+          actor.shield=Math.min(actor.maxHp*.4,actor.shield+Math.round(actor.maxHp*.11));
+          this.addStatus(actor,{kind:"shield",remaining:3.5,sourceId:actor.id,spellId});
+          this.emit({type:"shield",actorId:actor.id,targetId:actor.id,spellId,
+            amount:actor.shield-before,shieldBefore:before,shieldAfter:actor.shield});
+        }else if(evo==="shock-trail"){
+          for(const t of [.25,.5,.75]){
+            const x=previous.x+(actor.x-previous.x)*t;
+            const y=previous.y+(actor.y-previous.y)*t;
+            this.scheduleEvolution(actor,spellId,"shock-trail",x,y,.12,6,62);
+            this.scheduleEvolution(actor,spellId,"shock-trail",x,y,1.0,5,62);
+          }
+          this.evolutionProc(actor,spellId,"shock-trail",null,actor.x,actor.y);
+        }
+      }
       if(actor.evolutions[spellId]==="phase-shield"){
         const prev=actor.shield;
         actor.shield=Math.min(actor.maxHp*.4,
@@ -541,18 +560,36 @@ export class EnergyMatch {
       const delta={x:target.x-actor.x,y:target.y-actor.y};
       actor.dashSpellId=spellId;
       this.dash(actor,delta,Math.max(0,distance(actor,target)-65));
+      if(actor.evolutions[spellId]==="impact"){
+        actor.rushEmpower={until:this.time+5};
+        this.evolutionProc(actor,spellId,"impact-charge",target);
+      }else if(actor.evolutions[spellId]==="disruption"){
+        this.addStatus(target,{kind:"slow",negative:true,remaining:2.2,sourceId:actor.id});
+        this.evolutionProc(actor,spellId,"disruption",target);
+      }
     }else if(r.mode==="interrupt"){
       if(target.cast){
         const interrupted=target.cast.spellId,discipline=ABILITY_BY_ID[interrupted]?.discipline;
         target.cast=null;
-        if(discipline)target.schoolLocks[discipline]=3;
+        const evo=actor.evolutions[spellId];
+        if(discipline)target.schoolLocks[discipline]=evo==="suppression"?4.5:3;
         this.emit({type:"interrupt",actorId:actor.id,targetId:target.id,
           spellId,interruptedSpell:interrupted,interruptedSchool:discipline,
-          schoolLockSeconds:discipline?3:0,
+          schoolLockSeconds:discipline?target.schoolLocks[discipline]:0,
           interruptedCooldownRemaining:target.cooldowns[interrupted]||0});
         const masteryFlux=successfulInterruptFlux(spellId,actor.talentRanks[spellId]||0);
         const evolutionFlux=actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon"?12:0;
         actor.flux=clamp(actor.flux+masteryFlux+evolutionFlux,0,MAX_FLUX);
+        if(evo==="shockwave"){
+          this.evolutionProc(actor,spellId,"interrupt-shockwave",target);
+          for(const foe of this.opponents(actor).filter(t=>
+            distance(t,target)<135&&hasLineOfSight(target,t,this.arena)).slice(0,4))
+            this.damage(foe,11,actor,spellId);
+        }
+        if(evo==="disruptive-wake"){
+          this.addStatus(target,{kind:"slow",negative:true,remaining:3,sourceId:actor.id});
+          this.evolutionProc(actor,spellId,"disruptive-wake",target);
+        }
         this.log(actor.name+" interrupted "+target.name);
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
     }else if(r.mode==="heal"){
@@ -574,9 +611,22 @@ export class EnergyMatch {
       const shieldBefore=target.shield;
       target.shield=Math.max(target.shield,Math.round(r.amount*this.power*
         shieldMultiplier(spellId,actor.talentRanks[spellId]||0)));
-      this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id});
+      this.addStatus(target,{kind:"shield",remaining:r.duration,sourceId:actor.id,
+        spellId,evolution:actor.evolutions[spellId]||null});
       this.emit({type:"shield",actorId:actor.id,targetId:target.id,
         spellId,amount:target.shield-shieldBefore,shieldBefore,shieldAfter:target.shield});
+      if(actor.evolutions[spellId]==="shared-light"){
+        const second=this.allies(actor).filter(a=>a!==target&&distance(a,target)<225)
+          .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+        if(second){
+          const before=second.shield;
+          second.shield=Math.max(second.shield,Math.round(r.amount*this.power*.45));
+          this.addStatus(second,{kind:"shield",remaining:r.duration,sourceId:actor.id,spellId});
+          this.emit({type:"shield",actorId:actor.id,targetId:second.id,spellId,
+            amount:second.shield-before,shieldBefore:before,shieldAfter:second.shield});
+          this.evolutionProc(actor,spellId,"shared-light",second);
+        }
+      }
     }
     else if(r.mode==="damage"){
       let amount=r.amount;

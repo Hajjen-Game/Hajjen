@@ -351,7 +351,8 @@ function renderResonances(){
     button.style.setProperty("--resonance-tone",tone);
     const tag=element("span","resonance-tier",choice.label);
     const title=element("strong","",choice.name);
-    const spell=element("span","resonance-spell",ABILITY_BY_ID[choice.spellId]?.name||choice.spellId);
+    const spell=element("span","resonance-spell",
+      choice.pair||ABILITY_BY_ID[choice.spellId]?.name||choice.spellId);
     const info=element("span","resonance-description",choice.description);
     const action=element("span","resonance-pick","VIEW EXPLANATION →");
     button.append(tag,title,spell,info,action);

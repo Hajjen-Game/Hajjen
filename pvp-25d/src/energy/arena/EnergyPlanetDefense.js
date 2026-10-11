@@ -28,8 +28,8 @@ export const WAVE_RESONANCES=Object.freeze({
       description:"Phase Rush releases a circular shockwave on arrival. Higher tiers make the impact stronger."},
     {id:"rush-impact",name:"KINETIC IMPACT",spellId:"phase-rush",
       description:"Phase Rush damages its primary target on impact. Higher tiers increase the direct hit."},
-    {id:"sever-strike",name:"SEVERING ARC",spellId:"pulse-sever",
-      description:"Pulse Sever also deals Kinetic damage, even when there was no cast to interrupt."}
+    {id:"arc-cleave",name:"ARC CLEAVE",spellId:"arc-strike",
+      description:"Every Arc Strike also strikes up to two nearby enemies with smaller kinetic arcs. Higher tiers hit harder."}
   ]),
   caster:Object.freeze([
     {id:"chain-flux",name:"CHAIN FLUX",spellId:"flux-bolt",
@@ -42,10 +42,8 @@ export const WAVE_RESONANCES=Object.freeze({
 });
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const SPAWNS=[
-  {x:1010,y:360},{x:965,y:95},{x:965,y:625},{x:1070,y:490},
-  {x:892,y:352},{x:1070,y:245},{x:680,y:98},{x:680,y:622}
-];
+// Sequentially spread wave entrances around the current team's position.
+const SPAWN_ANGLES=[0,2.55,4.45,1.25,3.65,5.6,2.12,4.96];
 
 export class EnergyPlanetDefense extends EnergyMatch{
   constructor(build,arena,options={}){
@@ -82,9 +80,25 @@ export class EnergyPlanetDefense extends EnergyMatch{
     const role=this.spawnQueue.shift();
     if(!role)return false;
     const order=this.waveSpawned++;
-    const spawn=SPAWNS[(order+this.wave*2)%SPAWNS.length];
-    const pos=canStand(spawn.x,spawn.y,this.arena,25)?spawn:
-      this.arena.spawns["enemy-"+role];
+    const center=this.player;
+    const allies=this.living("friendly");
+    // Enemies appear off-centre in the wide world, not at old PvP spawns.
+    // During a long expedition the team can roam; spawns travel with it.
+    const angle=SPAWN_ANGLES[(order+this.wave*2)%SPAWN_ANGLES.length];
+    let pos=null;
+    for(const radius of [495,425,570,350,640]){
+      for(const offset of [0,.35,-.35,.75,-.75]){
+        const t=angle+offset;
+        const candidate={x:center.x+Math.cos(t)*radius,
+          y:center.y+Math.sin(t)*radius};
+        if(canStand(candidate.x,candidate.y,this.arena,31)&&
+          allies.every(ally=>distance(ally,candidate)>250)){
+          pos=candidate;break;
+        }
+      }
+      if(pos)break;
+    }
+    pos=pos||this.arena.spawns["enemy-"+role];
     const isBoss=this.wave===DEFENSE_WAVES&&order===0;
     const id="wave-"+this.wave+"-enemy-"+order;
     const kit=botAbilities(role,Math.max(this.progressLevel,Math.min(12,this.progressLevel+this.wave-1)),"trio");
@@ -201,11 +215,15 @@ export class EnergyPlanetDefense extends EnergyMatch{
         this.resonanceVisual(primary,"impact","phase-rush");
       }
     }
-    if(spellId==="pulse-sever"){
-      const tier=this.resonanceTier("sever-strike");
-      if(tier&&primary?.alive){
-        this.damageExtra(primary,7+5*tier,"pulse-sever");
-        this.resonanceVisual(primary,"impact","pulse-sever");
+    if(spellId==="arc-strike"&&validHit&&primary){
+      const tier=this.resonanceTier("arc-cleave");
+      if(tier){
+        const extras=this.foesNear(primary,145).filter(enemy=>enemy!==primary)
+          .sort((a,b)=>distance(a,primary)-distance(b,primary));
+        for(const other of extras.slice(0,2)){
+          this.damageExtra(other,ABILITY_RULES["arc-strike"].amount*(.34+.12*tier),"arc-strike");
+          this.resonanceVisual(other,"impact","arc-strike");
+        }
       }
     }
     if(spellId==="pulse-mend"&&effectiveHeal){

@@ -3,7 +3,7 @@
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
-import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261011-orbfix16";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261011-arc17";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 

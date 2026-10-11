@@ -82,12 +82,12 @@ export const ABILITIES = Object.freeze([
 
   ability("entropy-mark","Entropy Mark","void","Damage over time","12-second dispellable damage-over-time mark.","Instant · 15 Flux",[
     ["deep-decay","Deep Decay","Damage ramps up while the mark remains active."],
-    ["contagion","Contagion","A weaker mark may spread to a nearby second enemy."],
-    ["collapse","Collapse","Direct damage can consume a charged mark for a burst."],
+    ["contagion","Contagion","Applying Entropy Mark also spreads a half-strength mark to one nearby unmarked enemy."],
+    ["collapse","Collapse","After two damage ticks, your next direct damaging spell detonates and consumes the charged mark."],
   ]),
   ability("rift-slash","Rift Slash","void","Melee burst","Heavy weaponless arc slash, empowered by a debuff from any discipline.","Instant · 6s cooldown",[
     ["echo-cut","Echo Cut","A second, weaker arc follows the first."],
-    ["rift-hunger","Rift Hunger","A capped share of damage returns as self-healing."],
+    ["rift-hunger","Rift Hunger","Rift Slash heals you for a capped portion of its hit, helping Impact survive close combat."],
     ["fractured-edge","Fractured Edge","Striking a debuffed enemy empowers the next direct attack."],
   ]),
   ability("null-prison","Null Prison","void","Breakable CC","Castable incapacitates for up to 4 seconds; breaks on damage and follows DR.","1.4s cast · 24s cooldown",[
@@ -151,14 +151,14 @@ export const ABILITIES = Object.freeze([
     ["harmonic-thread","Harmonic Thread","Reactive pulses also heal another injured ally for a smaller amount."],
   ]),
   ability("symbiosis-link","Symbiosis Link","vital","Damage-to-heal","Link an ally for 10 seconds; capped direct damage converts to healing.","Instant · 10s duration",[
-    ["amplified-link","Amplified Link","Higher healing conversion with a per-second cap."],
-    ["lingering-resonance","Lingering Resonance","Part of each heal becomes a short heal-over-time."],
+    ["amplified-link","Amplified Link","More healing from your direct damage, capped at one healing pulse per second."],
+    ["lingering-resonance","Lingering Resonance","Each converted heal also leaves a two-second healing echo on the linked ally."],
     ["reciprocal-flow","Reciprocal Flow","Split the same total healing between ally and self."],
   ]),
   ability("cleanse-flux","Cleanse Flux","vital","Dispel","Remove a dispellable negative effect from self or an ally.","Instant · 10s cooldown",[
     ["purifying-surge","Purifying Surge","A successful dispel also restores a little HP."],
     ["flux-reclamation","Flux Reclamation","A successful dispel returns some Flux."],
-    ["dual-purge","Dual Purge","Remove up to two eligible effects, with a longer cooldown."],
+    ["dual-purge","Dual Purge","Remove up to two negative effects from one ally, but with a longer cooldown."],
   ]),
 ]);
 

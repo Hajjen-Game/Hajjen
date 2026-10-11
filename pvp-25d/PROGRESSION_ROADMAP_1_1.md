@@ -3,7 +3,7 @@
 **Design date:** 2026-10-11 (updated after user feedback)  
 **Status:** DESIGN PROPOSAL, not implemented in gameplay.  
 **Supersedes:** [Roadmap 1.0](PROGRESSION_ROADMAP_1_0.md). Preserve 1.0 for design history; **1.1 is the active proposal**.  
-**Concept:** A 20-hex campaign builds the player's Origin **and two persistent AI companions**. All five disciplines are available from the first shared-spell choice. Player and companion depth is introduced progressively. PvP is **out of scope and has NO proposed unlock date** until the user reopens that subject.
+**Concept:** A **single 20-hex progression roadmap for the player's Origin only**. Both AI companions appear alongside the player in the HUB and can eventually be assigned styles and optional preset/custom builds, but **have no separate development tracks, hex maps, levels, win counters, or reward routes**. All five disciplines are available from the first shared-spell choice. PvP is **out of scope and has NO proposed unlock date** until the user reopens that subject.
 
 ## User direction: decisions versus suggestions
 
@@ -11,8 +11,8 @@
 - Replace character levels and numeric spell ranks with a connected Planet Defense hex-roadmap.
 - An Origin starts with **only its two bound spells**; shared spells unlock progressively; **Void, Solar, Cryo, Kinetic and Vital must all have eligible choices from the first win** and remain combinable across Origins.
 - A new spell or counterplay category becomes available **BEFORE the encounter that will make it valuable**. Unlocks are preparation and anticipation, never compensation for a challenge already passed.
-- Players can select temporary, spectacular PvE run buffs between waves; add the choice to empower **either AI companion**, not just self; current working interpretation is **four cards in total: two for the player, one for each AI; pick ONE card**. Ask user to confirm whether this was meant as one of four or four awards per intermission.
-- Both AI companions are visible in the HUB from the start; the player's orb is visually larger on the battlefield and HUB.
+- **CONFIRMED:** Between waves, offer exactly **four Overcharge cards**: **two boost the player**, **one boosts AI companion A**, and **one boosts AI companion B**. The player selects **exactly ONE card per intermission**. The chosen effect lasts for the rest of the run; the other three cards are not granted.
+- Both AI companions are visible in the HUB from the start; the player's orb is visually larger on the battlefield and HUB. **Only the player's Origin has a visible campaign progression track.** Companion style/build controls are features unlocked on that one shared player journey, not additional progression systems.
 - Around first-clear #5, allow AI combat-behavior style selection; around #15, unlock optional AI build editing with **working style-based presets already supplied** so players never *have* to edit them.
 - Encounter progression should vary enough to be interesting, but levels need not each introduce a bespoke boss/system: some steps should intentionally feature more enemies, more pressure, more simultaneous procs and enjoyable screen-filling chaos.
 - **Do not plan PvP now.** Its availability timing will be decided later by the user.
@@ -56,12 +56,12 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 - All first-time post-clear rewards must persist if the player exits without choosing. Replays grant no extra permanent milestone.
 - Genesis starts with two non-damaging spells; its allied melee/caster must be competent from the first round, without giving the player an unearned hidden third spell.
 
-## Three-character HUB and battlefield identity
+## Three-character HUB and battlefield identity — ONE player roadmap
 
 **Beginning immediately, independently of customization unlocks:**
 - HUB prominently displays all three *actual owned team members* as living energy orbs in one coherent presentation; player's orb central/dominant, two AI teammates flanking. Example Impact player → Genesis support AI + Eclipse caster AI. Scale target for player: roughly **10–20% greater diameter** than individual companion orbs in combat and in the HUB (experiment at actual camera scale, avoid scale breaking hitboxes/target outlines).
-- Each companion has role/name, health identity, default style label and a compact summary. Their silhouettes/colors derive from their own Origin identities. Do not render three independent heavy WebGL contexts; prefer one shared preview scene or reusable instances.
-- Before hex 5, companion cards are inspectable but their **STYLE** editor is preview/locked; before hex 15, **BUILD** editor is preview/locked. No giant locked spell-tree panels cluttering the first HUB entry.
+- Each companion has role/name, health identity, default style label and a compact summary. Their silhouettes/colors derive from their own Origin identities. Do not render three independent heavy WebGL contexts; prefer one shared preview scene or reusable instances. **Only the player has an OPEN ROADMAP / hex progression view. No AI experience bars, victory counters, side-roadmaps or separate reward nodes.**
+- Before player hex 5, companion cards are inspectable but their **STYLE** editor is preview/locked; before player hex 15, **BUILD** editor is preview/locked. Both unlocks appear as milestones on the **player's one roadmap**, not the companions' own tracks. No giant locked spell-tree panels cluttering the first HUB entry.
 - Clicking self opens the main spell library and evolution tree. Clicking a companion after #5 exposes **STYLE**; after #15 also **BUILD**. Returning to self remains effortless.
 - Companion presence is also identifiable during Planet Defense via existing friendly health/cast frames and role labels; player is visually the focal point. Player's larger graphic must not increase collision radius, targeting hitbox or AI melee range accidentally.
 
@@ -89,11 +89,11 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 - Optional “RESTORE RECOMMENDED BUILD” and free respec. Do not punish the player for leaving the AI on default.
 - Persist ally role, selected behavior style, preset identifier, optional customized spells, and AI preferences *with that player's Origin/save*. Do not mix companion loadouts across character slots.
 
-## Temporary between-wave buffs — propose working name 'WAVE SURGES'
+## Temporary between-wave buffs — **OVERCHARGES** (confirmed term for design)
 
-**User intent:** keep fun run-only PvE Enchantments but rename them, make them spectacular, and let the player buff one of their two AI teammates **instead of always buffing self**. **Wave Surges** is a *working name*, alternatives “Overcharges” and “Energy Surges”; no name decided.
+**Confirmed direction:** retain and expand the fun temporary PvE Enchantments as **Overcharges**. They are spectacular run-only buffs with a choice to power up **either AI companion** instead of always buffing the player. This is distinct from the permanent spell/evolution rewards granted after clearing a campaign hex.
 
-**Critical ambiguity for user confirmation:** “two choices for yourself and one choice for each AI” is interpreted as **four offered cards each intermission**: two choices targeted at YOU, one at AI A, one at AI B; player **chooses ONE** of the four. If the user intended *four buffs awarded every time*, change reward count after confirmation. Do not make that assumption silently in implementation.
+**CONFIRMED OFFER/CLAIM RULE:** After each of the four intermissions in a five-wave Planet Defense run, present **four cards**: **two for YOU**, **one for AI A**, **one for AI B**. Player picks **ONE card total**. Apply it to the explicitly shown recipient, discard the other three choices, and begin the next wave. Thus one full run grants at most **four total Overcharges**, not four per wave. Never auto-apply all four.
 
 Example after Wave 2:
 | Target | Card example | Effect |
@@ -105,10 +105,10 @@ Example after Wave 2:
 
 - Exactly which cards appear is **curated based on current actors' actually equipped spells and roles**. Do not offer Impact-only spell buffs to Genesis. Each card visually shows the recipient's orb, name and discipline.
 - After selection, only that target receives the buff; it lasts for the **remainder of that Planet Defense run**, disappears on win/loss/restart, and is not persisted as a permanent Evolution. A newly revived ally retains its run-specific Surge.
-- Four intermissions in a five-wave battle → up to four chosen boosts in a run. Stacking allowed but bounded and visibly trackable; choose whether repeated effects increase tiers or open complementary combinatorial effects.
+- Four intermissions in a five-wave battle → up to four chosen **Overcharges** in a run, each assigned to whichever of the three teammates was printed on the chosen card. Stacking allowed but bounded and visibly trackable; choose whether repeated effects increase tiers or open complementary combinatorial effects.
 - This is the system for **high-ceiling fun/chaos**: split shots, pulsing orbital companions, echo casts, chain lightning/Flux arcs, larger falling impacts, shockwave chains, healing blooms. Allow deliberately flashy builds by later waves.
 - Balance by **internal proc cooldowns, target caps, bounded recursion and total active particles**, not by removing all fun. Keep interrupt/dodge telegraphs legible. Avoid runaway lag and exponential damage when two procs trigger each other.
-- Redesign the current `EnergyDefenseTrials.js` + `EnergyPlanetDefense.js` Rank/Mastery-heavy intermissions. They presently offer **up to 3 cards and 1 selected reward for the player**, with temporary Ranks/Evolutions, a few PvE Enchantments and a Singularity trial. Under the new vision, split *permanent campaign spell/Evolution unlocks* (AFTER a Planet Defense first-clear) from *temporary Wave Surges* (BETWEEN the five waves). They are separate progression layers, UI and save lifetimes.
+- Redesign the current `EnergyDefenseTrials.js` + `EnergyPlanetDefense.js` Rank/Mastery-heavy intermissions. They presently offer **up to 3 cards and 1 selected reward for the player**, with temporary Ranks/Evolutions, a few PvE Enchantments and a Singularity trial. Under the new vision, split *permanent campaign spell/Evolution unlocks* (AFTER a Planet Defense first-clear) from *temporary Overcharges* (BETWEEN the five waves). They are separate UI flows and save lifetimes; **Overcharges are not companion progression**.
 - AI-targeted buffs require a **target actor ID** and real event/proc hooks for AI casts/hits/heals; currently many Wave Resonances are player-only. Don't just recolor a card.
 
 ## The revised 20-hex milestone map
@@ -150,23 +150,25 @@ Vary enemy counts, spawn directions, timing, spacing, environment or hazard dens
 
 ## HUB / UX / saving / migration implications
 
-- Main HUB: left/right small companion orbs, center larger player orb. Character cards are always visible and legible; Level/XP replaced with Campaign Roadmap. Companion panels progressively unlock **STYLE after 5** and **BUILD after 15**.
+- Main HUB: left/right small companion orbs, center larger player orb. Character cards are always visible and legible; Level/XP replaced with **the player's one Campaign Roadmap**. Companion panels progressively unlock **STYLE after the player's 5th clear** and **BUILD after the player's 15th clear**. No parallel AI roadmap, progression gauge, milestone chain or achievement counter.
 - Separate expandable views for the player's spell library and each companion's style/presets; avoid showing three giant trees simultaneously.
 - Campaign roadmap: a curved, connected 20-hex map; completed green tick and text, active bright node, locked dark nodes with clear milestone icons at 3, 5, 7, 10, 15, 20. Click any future hex for a preview, not to play it. Use accessibility labels and keyboard focus.
-- First-clear rewards (permanent): account for pending unclaimed reward and transactional save; library accepts all disciplines; max 10 active. Wave Surges (temporary): actor-targeted and run-only.
+- First-clear rewards (permanent): account for pending unclaimed reward and transactional save; library accepts all disciplines; max 10 active. **Overcharges** (temporary): actor-targeted, exactly one chosen from four cards per wave intermission, and run-only.
 - Extend versioned **per-Origin** saves for first-clear node, chosen player spells, companions' style IDs, companion preset/build customisations and Expedition progress. Temporary Surges don't survive leaving the current run. Don't silently grant historic Planet Defense clears from existing aggregated wins.
 - Existing level/rank/AI power progression and enemy level tiers are coupled to `EnergyProgression.js`, `EnergyMatch.js`, `EnergySpellBalance.js`, `EnergyPvEEncounters.js`, `EnergyAI.js`, `EnergyDefenseTrials.js`, `EnergyPlanetDefense.js` and HUB. Implement across files in guarded passes instead of hiding Level labels and leaving the old rules secretly active.
-- **Implementation order proposal:** (1) isolated Journey/Hex-map UI prototype + three-orb HUB composition (no save change); (2) campaign save schema/spell unlocks and encounter preview/tiers; (3) Wave Surges per-actor and user-facing four-card UI; (4) AI STYLE behaviors at five clears; (5) optional AI BUILD presets/editor at fifteen; (6) Evolutions/Synergies/Rift Expedition integration. Add tests for replay farming, duplicate spell rewards, multiple Origins, independent companion saves, AI target buff proc and low-FPS large swarms.
+- **Implementation order proposal:** (1) isolated **single-player** Journey/Hex-map UI prototype + three-orb HUB composition (no save change); (2) campaign save schema/spell unlocks and encounter preview/tiers; (3) **Overcharges** per-actor and user-facing four-card/select-one UI; (4) AI STYLE behaviors at the player's fifth clear; (5) optional AI BUILD presets/editor at the player's fifteenth; (6) Evolutions/Synergies/Rift Expedition integration. Add tests for replay farming, duplicate spell rewards, multiple Origins, per-Origin companion settings (NOT independent ally tracks), AI-targeted buff procs and low-FPS large swarms.
 
 ## Remaining design decisions
 
-1. **Wave Surges selection:** four cards, choose one per intermission (suggested interpretation); confirm versus receiving one personal + one each AI or multiple boosts.
-2. **Name:** “Wave Surges” is a working suggestion, not final. PvE Enchantments need a more exciting name.
+1. **Overcharge selection — CONFIRMED:** Four cards between each wave; two for player, one per AI; select exactly ONE. This is not an open balance question.
+2. **Terminology:** Use **Overcharges** for this run-only PvE buff system in the new design. Individual buff names/effects remain to be developed.
 3. **AI style set:** four role-aware styles (Balanced/Aggressive/Protective/Disruptive) proposed for first release. Validate that every role actually exhibits different behavior.
 4. **AI build access at 15:** curated defaults remain automatic; how far to allow changing their class-bound spells/Evolutions is TBD.
 5. **Progression pace:** initial 20-hex plan, 1–16 spell rewards and 17–19 alternate rewards to tune via real playtesting.
 6. **Synergy Tree:** only if deeper tree changes gameplay meaningfully rather than simply increases stats; remains optional.
 7. **PvP:** no progression milestone or release plan until user returns to it.
 8. **Planet Defense/Project Energy naming:** “Space Surf” and final game title remain undecided.
+
+**Important clarification — CONFIRMED:** AI allies are visible and customisable in the HUB, but **only the player's Origin roadmap is displayed**. The player clearing hex 5/15 globally unlocks AI style/build configuration. Companion settings are not companion progression.
 
 **No gameplay code is changed by this design document.**

@@ -222,6 +222,54 @@
           </div>
         </header>
 
+        <section class="hub-team-panel" aria-label="Your Origin and two AI companions">
+          <div class="hub-team-title">
+            <div><p class="eyebrow">THE TEAM YOU WILL DEVELOP</p><h3>YOUR <span>SQUAD</span></h3></div>
+            <p>One Origin. Two companions. One shared journey.</p>
+          </div>
+          <div class="hub-team-grid">
+            <article class="hub-teammate-card companion" id="hub-ally-card-left">
+              <div class="hub-team-aura" id="hub-ally-orb-left" aria-hidden="true"><span class="hub-team-orb-heart"></span></div>
+              <div class="hub-team-persona">
+                <small>AI COMPANION 01</small>
+                <strong id="hub-ally-name-left">GENESIS</strong>
+                <span id="hub-ally-type-left">SUPPORT · BALANCED</span>
+              </div>
+              <p class="hub-team-gate">STYLE · AFTER PLANET 5 <span>BUILD · AFTER PLANET 15</span></p>
+            </article>
+            <article class="hub-teammate-card hero" id="hub-hero-card">
+              <div class="hub-team-aura" id="hub-hero-orb" aria-hidden="true"><span class="hub-team-orb-heart"></span></div>
+              <div class="hub-team-persona">
+                <small>YOU · YOUR ORIGIN</small>
+                <strong id="hub-team-hero-name">YOUR ORIGIN</strong>
+                <span id="hub-team-hero-type">YOUR SPELLS · YOUR JOURNEY</span>
+              </div>
+              <p class="hub-team-gate">YOUR ROADMAP <span>YOUR BUILD · YOUR EVOLUTIONS</span></p>
+            </article>
+            <article class="hub-teammate-card companion" id="hub-ally-card-right">
+              <div class="hub-team-aura" id="hub-ally-orb-right" aria-hidden="true"><span class="hub-team-orb-heart"></span></div>
+              <div class="hub-team-persona">
+                <small>AI COMPANION 02</small>
+                <strong id="hub-ally-name-right">ECLIPSE</strong>
+                <span id="hub-ally-type-right">CASTER · BALANCED</span>
+              </div>
+              <p class="hub-team-gate">STYLE · AFTER PLANET 5 <span>BUILD · AFTER PLANET 15</span></p>
+            </article>
+          </div>
+          <p class="hub-team-note">The existing live 3D orb showcase below now displays all three squad members in a single Babylon scene. Companion configuration opens later in your own roadmap — companions have no separate progression tracks.</p>
+        </section>
+        <section class="hub-journey-panel" aria-label="Your Planet Defense journey roadmap preview">
+          <div class="hub-journey-heading">
+            <div><p class="eyebrow">YOUR ORIGIN · PLANET DEFENSE</p><h3>JOURNEY <span>ROADMAP</span></h3></div>
+            <span id="hub-journey-summary">CAMPAIGN PREVIEW · 20 PLANETS</span>
+          </div>
+          <p class="hub-journey-intro">Discover new spells and grow your team across twenty planets. Select any hexagon to preview what lies ahead. <strong>Preview only:</strong> milestones and completion tracking are not yet active; your existing saves are preserved.</p>
+          <div class="hub-journey-scroll" tabindex="0" aria-label="Scrollable roadmap">
+            <div class="hub-journey-map" id="hub-journey-map"></div>
+          </div>
+          <div class="hub-journey-detail" id="hub-journey-detail" aria-live="polite"></div>
+        </section>
+
         <div id="hub-talent-workbench" class="hub-build-layout hub-radial-layout">
           <aside class="hub-tree-spells hub-build-panel" aria-label="Spell library">
             <div class="hub-panel-heading"><h3>YOUR SPELLS</h3><span id="hub-spellbook-count">3/10</span></div>
@@ -250,7 +298,7 @@
               <svg id="hub-orbit-lines" class="hub-orbit-lines" viewBox="0 0 1000 1000" aria-hidden="true"></svg>
               <div id="hub-orb-stage" class="hub-orb-stage hub-orbit-core">
                 <div class="hub-orb-halo" aria-hidden="true"></div>
-                <canvas id="hub-orb-canvas" aria-label="Live animated 3D preview of your Energy orb"></canvas>
+                <canvas id="hub-orb-canvas" aria-label="Live animated Babylon 3D preview of your Origin and two smaller AI allies"></canvas>
                 <p id="hub-visual-fallback" hidden></p>
                 <div class="hub-orb-signature hub-orbit-signature">
                   <strong id="hub-energy-name">SOLAR / CRYO</strong>

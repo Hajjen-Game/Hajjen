@@ -189,10 +189,10 @@ export class EnergyPlanetDefense extends EnergyMatch{
       this.resonanceTier("flux-overcharge"):0;
     super.damage(target,tier?amount*(1+.18*tier):amount,source,spellId,periodic);
   }
-  execute(actor,spellId,targetId){
+  execute(actor,spellId,targetId,castContext=null){
     const before=this.events.length;
     const primary=this.getActor(targetId);
-    super.execute(actor,spellId,targetId);
+    super.execute(actor,spellId,targetId,castContext);
     if(actor!==this.player||this.ended||this.waveState!=="active")return;
     // Don't proc Resonances on missed/invalid/unfinished spells.
     const newlyEmitted=this.events.slice(before);

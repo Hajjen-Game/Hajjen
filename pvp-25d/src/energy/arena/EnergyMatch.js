@@ -409,6 +409,13 @@ export class EnergyMatch {
     const crit=this.rollCrit(source,spellId,periodic?"dot":"damage");
     let value=amount*this.power*damageMultiplier(spellId,rank)*
       (crit?CRIT_MULTIPLIER:1)*(source?.team==="enemy"?this.tuning.damage:1);
+    const dissonance=!periodic&&source.statuses.find(s=>s.kind==="dissonance"&&s.remaining>0);
+    if(dissonance){
+      value*=1-.18;
+      source.statuses=source.statuses.filter(s=>s!==dissonance);
+      const origin=this.getActor(dissonance.sourceId);
+      if(origin)this.identityProc(origin,"resonance-cut","dissonance-absorbed",source);
+    }
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
     const reflectingBarrier=target.statuses.find(s=>s.kind==="shield"&&
       s.spellId==="photon-barrier"&&s.evolution==="prismatic-return");
@@ -619,6 +626,16 @@ export class EnergyMatch {
         const masteryFlux=successfulInterruptFlux(spellId,actor.talentRanks[spellId]||0);
         const evolutionFlux=actor.evolutions[spellId]==="flux-siphon"||actor.evolutions[spellId]==="siphon"?12:0;
         actor.flux=clamp(actor.flux+masteryFlux+evolutionFlux,0,MAX_FLUX);
+        if(spellId==="pulse-sever"){
+          // Melee counter: rewards stopping a cast *in melee*, never on a fake kick.
+          this.damage(target,8,actor,spellId);
+          this.identityProc(actor,spellId,"counterstrike",target);
+        }else if(spellId==="resonance-cut"){
+          // Ranged disruption: no free melee damage, instead weakens the
+          // victim's NEXT non-periodic damaging attack within five seconds.
+          this.addStatus(target,{kind:"dissonance",negative:true,remaining:5,sourceId:actor.id});
+          this.identityProc(actor,spellId,"dissonance",target);
+        }
         if(evo==="shockwave"){
           this.evolutionProc(actor,spellId,"interrupt-shockwave",target);
           for(const foe of this.opponents(actor).filter(t=>
@@ -672,8 +689,20 @@ export class EnergyMatch {
       if(r.requiresDebuff&&this.debuffed(target))amount*=1.25;
       if(r.controlBonus&&(this.isControlled(target,"root")||this.isControlled(target,"slow")))amount*=1+r.controlBonus;
       if(actor.evolutions[spellId]==="singularity-impact")amount*=1.2;
-      if(spellId==="sun-lance"&&target.hp/target.maxHp<=.35)
-        amount*=1.18; // Precision finisher rather than Flux Bolt's steady filler.
+      if(spellId==="sun-lance"&&target.hp/target.maxHp<=.35){
+        amount*=1.18;
+        this.identityProc(actor,spellId,"precision-execute",target);
+      }
+      if(spellId==="arc-strike"){
+        const rhythm=actor.arcRhythm;
+        const second=rhythm&&this.time<=rhythm.until;
+        actor.arcRhythm=second?null:{until:this.time+4};
+        if(second){
+          amount*=1.16; // A visible two-hit combo, not a new action bar spell.
+          actor.flux=clamp(actor.flux+3,0,MAX_FLUX);
+          this.identityProc(actor,spellId,"arc-second-strike",target);
+        }
+      }
       if(spellId==="gravity-hammer"&&actor.evolutions[spellId]==="seismic-wave")amount*=.78;
       if(actor.rushEmpower&&this.time<=actor.rushEmpower.until&&
         ["arc-strike","rift-slash","gravity-hammer"].includes(spellId)){
@@ -711,6 +740,18 @@ export class EnergyMatch {
         }else if(evo==="resonant-strike"){
           actor.resonantStrikeCharge={until:this.time+6};
           this.evolutionProc(actor,spellId,"resonant-strike-ready",actor);
+        }
+      }
+      if(spellId==="flux-bolt"){
+        const rhythm=actor.fluxRhythm;
+        const hits=rhythm&&rhythm.targetId===target.id&&this.time<=rhythm.until?
+          rhythm.hits+1:1;
+        actor.fluxRhythm=hits>=3?null:{targetId:target.id,hits,until:this.time+6};
+        if(hits>=3){
+          // Single-target pulse is intentionally small; multi-target chains
+          // belong to the temporary PvE Enchantment, not baseline Arena.
+          this.damage(target,6,actor,spellId);
+          this.identityProc(actor,spellId,"flux-third-hit",target);
         }
       }
       if(spellId==="flux-bolt"&&actor.evolutions[spellId]==="fractured-energy"){

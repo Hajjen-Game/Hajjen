@@ -4,59 +4,121 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-  <title>PvP-2.5D · Energy Arena</title>
-  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261011-guided-defense8"/>
+  <title>Project Energy · Working Title</title>
+  <link rel="stylesheet" href="./src/energy/arena/energyArena.css?v=20261011-menu-nav1"/>
 </head>
 <body>
   <main class="energy-shell">
     <header class="arena-header">
       <div class="identity"><span class="identity-orb" aria-hidden="true"></span><div>
-        <p class="eyebrow">PVP-2.5D / ENERGY COMBAT PREVIEW</p>
-        <h1>ENERGY <span>ARENA</span></h1>
+        <p class="eyebrow">LIVING ENERGY / WORKING TITLE</p>
+        <h1>PROJECT <span>ENERGY</span></h1>
       </div></div>
       <div class="arena-header-actions">
-        <span class="preview-pill">ALPHA · PROTOTYPE RULES</span>
-        <a href="./energy-vfx-lab.html" class="header-button" style="color:#b9e9fc;border-color:#567f9a">VISUAL VFX LAB ↗</a>
-        <a href="./enemy-design-lab.html" class="header-button" style="color:#dec4ff;border-color:#785f97">ENEMY DESIGN LAB ↗</a>
+        <span class="preview-pill">ALPHA · IN DEVELOPMENT</span>
         <button type="button" id="main-menu-open" class="header-button">MAIN MENU</button>
-        <a href="./orbs.html" class="header-button">LEGACY ARENA ↗</a>
       </div>
     </header>
 
-    <section id="main-menu" class="energy-main-menu" aria-label="Energy Arena main menu">
+    <section id="main-menu" class="energy-main-menu" aria-label="Project Energy main menu">
       <div class="menu-orb-visual" aria-hidden="true"><div class="menu-orb-core"></div><span class="menu-orbit-ring one"></span><span class="menu-orbit-ring two"></span></div>
       <div class="menu-copy">
-        <p class="eyebrow">YOUR ORB · YOUR PATH · YOUR ARENA</p>
+        <p class="eyebrow">A LIVING ENERGY UNIVERSE · WORKING TITLE</p>
         <h2>FORGE YOUR <span>ENERGY</span></h2>
-        <p>Shape a living energy orb, evolve your abilities and battle your way from training to full 3v3 combat.</p>
+        <p>Create a living energy being, discover your powers and protect your world or face rival Origins.</p>
         <div class="menu-main-actions">
-          <button type="button" class="menu-action primary" id="menu-play">▶ PLAY <span>Choose your arena</span></button>
-          <button type="button" class="menu-action" id="menu-hub">◈ CHARACTER HUB <span>Evolution Tree & builds</span></button>
-          <button type="button" class="menu-action" id="menu-new-origin">✦ CREATE NEW ORIGIN <span>Begin a new character</span></button>
-          <button type="button" class="menu-action" id="menu-about">▣ ABOUT / HOW TO PLAY <span>Open the illustrated guide</span></button>
+          <button type="button" class="menu-action primary" id="menu-new-origin">✦ NEW GAME <span>Create a new Origin</span></button>
+          <button type="button" class="menu-action" id="menu-resume">▶ RESUME GAME <span>Choose a saved Origin</span></button>
+          <button type="button" class="menu-action" id="menu-about">▣ ABOUT <span>Explore the illustrated field guide</span></button>
+          <button type="button" class="menu-action dev-action" id="menu-game-dev">⚙ GAME DEV <span>Labs & visual testing</span></button>
         </div>
-        <section class="menu-origin-section" aria-label="Your saved Origins">
-          <div class="menu-origin-heading"><strong>YOUR ORIGINS</strong><span id="menu-origin-count">0 CREATED</span></div>
-          <div id="menu-origin-list" class="menu-origin-list"></div>
-          <p class="menu-origin-hint">Select an Origin to switch characters. Each keeps its own level, build, presets and Singularity.</p>
-        </section>
-        <div id="menu-mode-options" class="menu-modes" hidden aria-label="Choose arena mode">
-          <p class="hub-small-heading">CHOOSE YOUR BATTLE</p>
-          <div class="menu-mode-grid">
-            <button type="button" class="menu-mode planet-defense-mode" data-menu-mode="defense"><strong>✦ PLANET DEFENSE</strong><span>3vE · Five waves · Wave Resonances · Recommended first</span></button>
-            <button type="button" class="menu-mode" data-menu-mode="training"><strong>TRAINING GROUNDS</strong><span>1v1 · Learn the fundamentals</span></button>
-            <button type="button" class="menu-mode" data-menu-mode="duo"><strong>DUO SKIRMISH</strong><span>2v2 · Fight with a partner</span></button>
-            <button type="button" class="menu-mode" data-menu-mode="trio"><strong>FULL ARENA</strong><span>3v3 · Your full team</span></button>
-          </div>
+        <p class="menu-note">Singleplayer · AI opponents · Each Origin saves its own progression in this browser.</p>
+      </div>
+    </section>
+
+    <section id="origin-roster-screen" class="journey-screen" hidden aria-label="Resume game — choose an Origin">
+      <div class="journey-screen-heading">
+        <p class="eyebrow">RESUME GAME / YOUR CHARACTERS</p>
+        <h2>CHOOSE YOUR <span>ORIGIN</span></h2>
+        <p>Your character's level, talent builds, resources and achievements remain separate.</p>
+      </div>
+      <section class="menu-origin-section" aria-label="Your saved Origins">
+        <div class="menu-origin-heading"><strong>YOUR ORIGINS</strong><span id="menu-origin-count">0 CREATED</span></div>
+        <div id="menu-origin-list" class="menu-origin-list"></div>
+      </section>
+      <div class="journey-screen-actions">
+        <button type="button" class="menu-action primary" id="roster-create-origin">✦ NEW ORIGIN <span>Create another character</span></button>
+        <button type="button" class="header-button" id="roster-back">← MAIN MENU</button>
+      </div>
+    </section>
+
+    <section id="hub-play-screen" class="journey-screen" hidden aria-label="Choose a game mode">
+      <div class="journey-screen-heading">
+        <p class="eyebrow">YOUR ORIGIN / PLAY</p>
+        <h2>CHOOSE YOUR <span>PATH</span></h2>
+        <p>Select a PvE or PvP activity. Return to your HUB to change spells, talents or Evolutions.</p>
+      </div>
+      <div class="play-path-grid" aria-label="Choose PvE or PvP">
+        <button type="button" class="play-path-button" data-play-path="pve" aria-expanded="false" aria-controls="play-mode-options">
+          <span class="play-path-glyph">✦</span><strong>PvE</strong>
+          <span>Defend your world · Conquer Rift encounters</span>
+          <small>EXPLORE PvE →</small>
+        </button>
+        <button type="button" class="play-path-button" data-play-path="pvp" aria-expanded="false" aria-controls="play-mode-options">
+          <span class="play-path-glyph">⚔</span><strong>PvP</strong>
+          <span>Battle rival Origins · Solo against AI teams</span>
+          <small>EXPLORE PvP →</small>
+        </button>
+      </div>
+      <div id="play-mode-options" class="play-mode-options" hidden>
+        <p id="play-mode-heading" class="hub-small-heading">CHOOSE ACTIVITY</p>
+        <div id="play-pve-modes" class="menu-mode-grid" hidden>
+          <button type="button" class="menu-mode planet-defense-mode" data-menu-mode="defense">
+            <strong>✦ PLANET DEFENSE</strong><span>Five escalating waves · Rift enemies · Spell discoveries</span>
+          </button>
+          <button type="button" class="menu-mode locked-mode" disabled aria-disabled="true">
+            <strong>◇ RIFT EXPEDITION <span class="mode-lock">LOCKED</span></strong>
+            <span>Unlocks at level 20 or 30 · TBD</span>
+          </button>
         </div>
-        <p class="menu-note">Singleplayer prototype · AI-controlled opponents · Your progress is saved in this browser.</p>
+        <div id="play-pvp-modes" class="menu-mode-grid" hidden>
+          <button type="button" class="menu-mode" data-menu-mode="training"><strong>1v1</strong><span>Solo duel · Training Grounds</span></button>
+          <button type="button" class="menu-mode" data-menu-mode="duo"><strong>2v2</strong><span>You and one ally · Duo Skirmish</span></button>
+          <button type="button" class="menu-mode" data-menu-mode="trio"><strong>3v3</strong><span>Full team combat · Arena</span></button>
+        </div>
+      </div>
+      <div class="journey-screen-actions">
+        <button type="button" class="header-button" id="play-back-hub">← CHARACTER HUB</button>
+      </div>
+    </section>
+
+    <section id="game-dev-screen" class="journey-screen" hidden aria-label="Game development labs">
+      <div class="journey-screen-heading">
+        <p class="eyebrow">DEVELOPMENT / INTERNAL TOOLS</p>
+        <h2>GAME <span>DEV</span></h2>
+        <p>Visual development environments are kept separate from normal gameplay.</p>
+      </div>
+      <div class="dev-lab-grid">
+        <a class="dev-lab-card" href="./energy-vfx-lab.html">
+          <span class="dev-lab-glyph">✧</span><strong>VISUAL VFX LAB</strong>
+          <span>Inspect, compare and replay the game's spells and impacts.</span>
+          <small>OPEN LAB ↗</small>
+        </a>
+        <a class="dev-lab-card" href="./enemy-design-lab.html">
+          <span class="dev-lab-glyph">◈</span><strong>ENEMY & BOSS DESIGN LAB</strong>
+          <span>Study Rift creature models, animations and boss silhouettes.</span>
+          <small>OPEN LAB ↗</small>
+        </a>
+      </div>
+      <div class="journey-screen-actions">
+        <button type="button" class="header-button" id="game-dev-back">← MAIN MENU</button>
       </div>
     </section>
 
     <section id="guide-overlay" class="guide-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="guide-title">
       <div class="guide-book">
         <div class="guide-book-top">
-          <div><p class="eyebrow">THE ENERGY ARENA HANDBOOK</p><h2 id="guide-title">THE FIELD GUIDE</h2></div>
+          <div><p class="eyebrow">PROJECT ENERGY HANDBOOK</p><h2 id="guide-title">THE FIELD GUIDE</h2></div>
           <button type="button" id="guide-close" class="header-button" aria-label="Close guide">CLOSE ✕</button>
         </div>
         <div class="guide-book-pages">
@@ -66,7 +128,7 @@
             <p id="guide-intro" class="guide-intro"></p>
             <div id="guide-steps" class="guide-steps"></div>
             <div id="guide-tip" class="guide-tip"></div>
-            <span class="guide-page-number">ENERGY ARENA · FIELD NOTES</span>
+            <span class="guide-page-number">PROJECT ENERGY · FIELD NOTES</span>
           </article>
           <div class="guide-page guide-page-art" aria-label="Illustrated explanation">
             <div id="guide-illustration" class="guide-illustration"></div>
@@ -86,7 +148,7 @@
       <div id="character-creation" class="character-creation" hidden>
         <p class="eyebrow">YOUR JOURNEY BEGINS</p>
         <h2>Create your Energy Orb</h2>
-        <p>Every planet begins with an Origin. It decides your two permanent spells and your natural strength, but the rest of your build is yours to shape.</p>
+        <p>Every energy being begins with an Origin. It decides your two permanent spells and your natural strength, but the rest of your build is yours to shape.</p>
         <label class="hub-field-label" for="new-character-name">CHARACTER NAME</label>
         <input type="text" id="new-character-name" class="hub-name-input" maxlength="20" placeholder="Name your orb" autocomplete="off"/>
         <h3 class="hub-small-heading">CHOOSE YOUR ORIGIN</h3>
@@ -117,7 +179,7 @@
           </div>
         </section>
         <p class="origin-choice-footnote">Your Origin determines your two permanent spells. You can still equip shared spells from every energy discipline and experiment with any Evolution or Singularity.</p>
-        <button type="button" id="create-character" class="hub-primary">CREATE CHARACTER →</button>
+        <div class="creation-navigation"><button type="button" id="create-character" class="hub-primary">CREATE ORIGIN →</button><button type="button" id="create-back-menu" class="header-button">← MAIN MENU</button></div>
         <p id="create-character-error" role="alert" class="hub-error"></p>
       </div>
 
@@ -247,7 +309,7 @@
         </div>
         <p id="hub-status" class="hub-status" role="status" aria-live="polite"></p>
         <div class="hub-footer">
-          <span>ONE CHARACTER · YOUR ENERGY · YOUR PATH</span>
+          <span>ONE ORIGIN · YOUR ENERGY · YOUR PATH</span>
           <div class="hub-footer-actions"><button type="button" id="hub-back-menu" class="header-button">← MAIN MENU</button><button type="button" id="hub-play-button" class="hub-primary">PLAY →</button></div>
         </div>
       </div>
@@ -304,10 +366,10 @@
         <div id="action-bar" class="action-bar"></div>
       </footer>
       <p id="match-learning-tip" class="prototype-note">LEARNING FOCUS · Explore the basics of targeting and healing.</p>
-      <p class="prototype-note">Training, Duo Skirmish and Full Arena share the same progression. Your character HUB handles spells, Evolutions and Singularity forging. Spell slots unlock gradually through level 28; level 30 earns the final Talent Point. The legacy 3v3 arena remains untouched.</p>
+      <p class="prototype-note">Training, Duo Skirmish and Full Arena share the same progression. Your character HUB handles spells, Evolutions and Singularity forging. Spell slots unlock gradually through level 28; level 30 earns the final Talent Point. </p>
     </section>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/energy/arena/energyArena.js?v=20261011-riftcombat2"></script>
+  <script type="module" src="./src/energy/arena/energyArena.js?v=20261011-menu-nav1"></script>
 </body>
 </html>

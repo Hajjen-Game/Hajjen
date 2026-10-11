@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <title>Energy Arena · Enemy & Boss Design Lab</title>
-  <link rel="stylesheet" href="./src/energy/arena/enemyDesignLab.css?v=20261011-enemylab1"/>
+  <link rel="stylesheet" href="./src/energy/arena/enemyDesignLab.css?v=20261011-glass11"/>
 </head>
 <body>
 <main class="lab-shell">
@@ -22,9 +22,9 @@
   </header>
   <section class="intro">
     <div>
-      <p class="eyebrow">PROTOTYPE 01 · THREE DIRECTIONS / ZERO COMMITMENT</p>
+      <p class="eyebrow">PROTOTYPE 1.1 · TRANSPARENT ENERGY / THREE DIRECTIONS</p>
       <h2>What should a Rift creature feel like?</h2>
-      <p>Three genuinely different, animated 3D silhouettes. Study their idle behavior, energy build-up and signature strikes before deciding what belongs in Planet Defense. These are experiments, not replacements for live enemies.</p>
+      <p>Three distinct living-energy prototypes, now with transparent crystal shells, internal plasma and luminous cores. Switch GLASS on and off to compare how their silhouettes read before deciding what belongs in Planet Defense.</p>
     </div>
     <span class="prototype-tag">ISOLATED VISUAL TEST · NO GAMEPLAY CHANGES</span>
   </section>
@@ -34,6 +34,7 @@
         <span id="stage-subtitle">A nervous, splintered energy predator</span></div>
       <div class="display-controls" role="group" aria-label="Presentation settings">
         <button type="button" id="toggle-compare" aria-pressed="false" title="Show all three creatures beside each other">COMPARE: OFF</button>
+        <button type="button" id="toggle-glass" aria-pressed="true" title="Compare transparent energy bodies with the earlier solid-looking material style">GLASS: ON</button>
         <button type="button" id="toggle-scale" aria-pressed="false" title="View closer to actual arena screen scale">GAMEPLAY SCALE: OFF</button>
         <button type="button" id="toggle-boss" aria-pressed="false" title="Experimental boss-scale silhouette study, not a finished boss">BOSS STUDY: OFF</button>
         <button type="button" id="toggle-light" aria-pressed="false" title="Compare the creatures against brighter neutral lighting">LIGHT FLOOR: OFF</button>
@@ -41,7 +42,7 @@
     </div>
     <div id="creature-stage" class="creature-stage">
       <canvas id="creature-canvas" aria-label="Interactive 3D enemy and boss design viewer. Drag to orbit, scroll to zoom."></canvas>
-      <div class="stage-corner"><span class="live-pip"></span> PROCEDURAL 3D / LIVE IDLE</div>
+      <div class="stage-corner"><span class="live-pip"></span> PROCEDURAL 3D / LIVING GLASS</div>
       <div class="view-hint">DRAG TO ROTATE · SCROLL TO ZOOM</div>
       <div class="comparison-labels" id="comparison-labels" hidden>
         <span>RIFT SHARD<small>SWARM · SPEED</small></span>
@@ -102,11 +103,11 @@
     </div>
   </section>
   <footer>
-    <p>This lab uses independent test models. Planet Defense's enemies, player orbs, balance, saves and AI remain unchanged. Boss Study is a speculative larger treatment, not a finished boss model.</p>
+    <p>Transparent Energy Pass 1.1 is a visual experiment. Turn GLASS off for a solid-material comparison. Planet Defense's enemies, player orbs, balance, saves and AI are unchanged; Boss Study is speculative.</p>
     <a href="./energy-arena.html">RETURN TO ENERGY ARENA →</a>
   </footer>
 </main>
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
-<script type="module" src="./src/energy/arena/enemyDesignLab.js?v=20261011-enemylab1"></script>
+<script type="module" src="./src/energy/arena/enemyDesignLab.js?v=20261011-glass11"></script>
 </body>
 </html>

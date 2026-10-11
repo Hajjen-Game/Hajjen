@@ -240,7 +240,21 @@ export class EnergyMatch {
     return chosen?.alive&&chosen.team!==actor.team?chosen:null;
   }
   rule(actor,spellId){
-    return rankedRule(spellId,ABILITY_RULES[spellId],actor?.talentRanks?.[spellId]||0);
+    const rule=rankedRule(spellId,ABILITY_RULES[spellId],actor?.talentRanks?.[spellId]||0);
+    if(!rule)return rule;
+    // These are REAL, shared Evolutions, not Planet Defense-only replicas.
+    const evo=actor?.evolutions?.[spellId];
+    if(spellId==="pulse-mend"&&evo==="restoration")
+      return {...rule,amount:rule.amount*1.2,cost:Math.max(1,rule.cost-2)};
+    if(spellId==="resonance-guard"&&evo==="guardian")
+      return {...rule,amount:Math.min(.6,rule.amount+.075),cd:(rule.cd||0)+5};
+    if(spellId==="phase-rush"&&evo==="pursuit")
+      return {...rule,cd:Math.max(5,(rule.cd||0)-5)};
+    if(spellId==="flux-bolt"&&evo==="rapid-flux")
+      return {...rule,cast:Math.max(.6,(rule.cast||0)-.35),amount:rule.amount*.85};
+    if(spellId==="flux-bolt"&&evo==="overcharge")
+      return {...rule,cast:(rule.cast||0)+.4,amount:rule.amount*1.3};
+    return rule;
   }
   rollCrit(source,spellId,context){
     if(!source)return false;
@@ -469,6 +483,14 @@ export class EnergyMatch {
       const direction=actor.control==="player"?this.dashDirection||{x:1,y:0}:{x:actor.team==="friendly"?1:-1,y:0};
       actor.dashSpellId=spellId;
       this.dash(actor,direction,r.distance);
+      if(actor.evolutions[spellId]==="phase-shield"){
+        const prev=actor.shield;
+        actor.shield=Math.min(actor.maxHp*.4,
+          actor.shield+Math.round(12*this.power));
+        this.addStatus(actor,{kind:"shield",remaining:3.5,sourceId:actor.id});
+        this.emit({type:"shield",actorId:actor.id,targetId:actor.id,
+          spellId,amount:actor.shield-prev,shieldBefore:prev,shieldAfter:actor.shield});
+      }
     }else if(r.mode==="rush"){
       const delta={x:target.x-actor.x,y:target.y-actor.y};
       actor.dashSpellId=spellId;
@@ -487,8 +509,17 @@ export class EnergyMatch {
         actor.flux=clamp(actor.flux+masteryFlux+evolutionFlux,0,MAX_FLUX);
         this.log(actor.name+" interrupted "+target.name);
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
-    }else if(r.mode==="heal")this.heal(target,r.amount,actor,spellId);
-    else if(r.mode==="guard"){
+    }else if(r.mode==="heal"){
+      this.heal(target,r.amount,actor,spellId);
+      if(actor.evolutions[spellId]==="preservation"){
+        const before=target.shield;
+        target.shield=Math.min(target.maxHp*.4,
+          target.shield+Math.round(r.amount*this.power*.22));
+        this.addStatus(target,{kind:"shield",remaining:3.5,sourceId:actor.id});
+        this.emit({type:"shield",actorId:actor.id,targetId:target.id,
+          spellId,amount:target.shield-before,shieldBefore:before,shieldAfter:target.shield});
+      }
+    }else if(r.mode==="guard"){
       this.addStatus(target,{kind:"guard",remaining:r.duration,amount:Math.min(.6,r.amount),sourceId:actor.id});
       this.emit({type:"guard",actorId:actor.id,targetId:target.id,
         spellId,guardPercent:r.amount,duration:r.duration});

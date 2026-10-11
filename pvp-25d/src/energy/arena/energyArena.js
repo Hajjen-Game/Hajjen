@@ -121,7 +121,8 @@ function start(build){
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
-    $("match-mode").textContent=match.mode.size+" · "+match.mode.label.toUpperCase();
+    $("match-mode").textContent=match.mode.size+" · "+match.mode.label.toUpperCase()+
+      (match.encounter?" · "+match.encounter.stage:"");
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
     $("match-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
@@ -439,16 +440,22 @@ function renderUI(){
       "New enemies approach. Try your enhanced Origin spell and focus dangerous targets.",
       "Disrupt enemy casters and protect your two AI companions.",
       "Coordinate interrupts, damage and healing as the wave grows.",
-      "FINAL STAND · Defeat the Rift Warden and survive with your team."
+      "FINAL STAND · Read the boss warning circles, reposition and interrupt channels when possible."
     ];
     const latest=match.trialHistory?.at(-1);
-    const corruptionHint=match.progressLevel>=6&&match.wave>=3?
-      " · PVE CORRUPTION: CLEANSE FLUX REMOVES IT":"";
+    const corruptionHint=match.encounter?.corruption&&match.wave>=3?
+      " · RIFT CORRUPTION: CLEANSE FLUX CAN DISPEL":"";
+    const stageHint=match.encounter?.stage?
+      " · "+match.encounter.stage+" · "+match.currentWave?.focus:"";
+    const encounterHint=match.wave===DEFENSE_WAVES?
+      " · "+match.encounter.boss.name+" · DODGE THE TELEGRAPHS":
+      match.encounter?.casterChannels&&match.wave>=2?
+      " · RIFT CHANNELERS: MOVE OUT OR INTERRUPT":"";
     $("match-learning-tip").textContent=(match.waveState==="intermission"?
       "WAVE "+match.wave+" CLEARED · LEARN ABOUT YOUR NEXT TRIAL":
       latest&&match.wave>1?"FIELD GUIDE · "+latest.how:
       "PLANET DEFENSE · "+tips[Math.max(0,match.wave-1)])+
-      (match.waveState==="active"?corruptionHint:"");
+      (match.waveState==="active"?stageHint+encounterHint+corruptionHint:"");
   }
   $("flux-text").textContent=Math.floor(p.flux)+" / 100";
   $("flux-fill").style.width=clamp(p.flux,0,100)+"%";
@@ -518,9 +525,16 @@ function frameLoop(now){
     combatUX?.onEvent(event,actionNodes,now);
     coach?.onEvent(event);
     if(event.type==="wave-start"&&match.modeId==="defense"){
-      flash("WAVE "+event.wave+" · "+event.waveName);
+      flash("WAVE "+event.wave+" · "+event.waveName+
+        (event.encounterStage?" · "+event.encounterStage:""));
     }else if(event.type==="wave-clear"&&match.modeId==="defense"){
       flash("WAVE "+event.wave+" CLEARED!");
+    }else if(event.type==="boss-phase"&&match.modeId==="defense"){
+      flash("BOSS PHASE · "+event.phase+
+        (event.reinforcements?" · REINFORCEMENTS!":""));
+    }else if(event.type==="encounter-resolve"&&event.avoided&&
+      match.modeId==="defense"){
+      if(event.actorId==="player")flash("ATTACK EVADED");
     }
     if(event.type==="synergy"&&event.actorId==="player"){
       flash("SINGULARITY · "+event.reaction.toUpperCase()+"!");

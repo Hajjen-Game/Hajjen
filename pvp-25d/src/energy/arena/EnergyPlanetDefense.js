@@ -5,6 +5,7 @@ import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
   from "./EnergyMatch.js?v=20261011-impact-map6";
 import { botAbilities } from "./EnergyProgression.js?v=20261011-impact-map6";
 import { MAX_FLUX, ROLES } from "../abilityCatalog.js?v=20261011-impact-map6";
+import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-defense-trials7";
 
 const WAVE_PLANS=Object.freeze([
   {name:"FIRST CONTACT",enemies:["melee","caster"],maxAlive:2,spawnGap:3.4},
@@ -51,18 +52,16 @@ export class EnergyPlanetDefense extends EnergyMatch{
     this.wave=0;this.waveState="starting";this.spawnQueue=[];
     this.waveSpawned=0;this.waveDefeated=0;this.totalKills=0;
     this.spawnClock=0;this.waveIntermission=0;
-    this.resonances={};this.resonancesChosen=0;
+    this.resonances={};this.resonancesChosen=0;this.trialHistory=[];
     this.beginWave();
   }
   get currentWave(){return WAVE_PLANS[this.wave-1]||null;}
   get totalWaveEnemies(){return this.currentWave?.enemies.length||0;}
   get waveRemaining(){return this.spawnQueue.length+this.living("enemy").length;}
   resonanceChoices(){
-    return WAVE_RESONANCES[this.player.role].map(choice=>({
-      ...choice,tier:this.resonances[choice.id]||0,
-      nextTier:Math.min(3,(this.resonances[choice.id]||0)+1)
-    }));
+    return defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
   }
+  trialLesson(){return trialLesson(this.progressLevel,this.waveIntermission);}
   resonanceTier(id){return this.resonances[id]||0;}
   beginWave(){
     if(this.wave>=DEFENSE_WAVES||this.ended)return;
@@ -131,20 +130,37 @@ export class EnergyPlanetDefense extends EnergyMatch{
     if(this.waveState==="intermission")return "CHOOSE WAVE RESONANCE";
     return super.reason(actor,spellId,targetId);
   }
-  // Resonances enhance the player's existing equipped abilities; they never
-  // add new action slots, talent ranks, or mutate saved Character HUB builds.
+  // In-match guided trials. The same player actor that casts in Arena receives
+  // temporary REAL Ranks/Evolutions. Singularity uses the original Forge
+  // reaction engine. No save data is modified. Enchantments remain PvE-only.
   chooseResonance(id){
     if(this.waveState!=="intermission"||this.ended)return false;
-    const choice=WAVE_RESONANCES[this.player.role].find(x=>x.id===id);
-    if(!choice)return false;
-    if(!this.player.abilities.includes(choice.spellId))return false;
-    if(this.resonanceTier(id)>=3)return false;
-    this.resonances[id]=this.resonanceTier(id)+1;
+    const choice=this.resonanceChoices().find(option=>option.id===id);
+    if(!choice||!this.player.abilities.includes(choice.spellId))return false;
+    if(choice.kind==="mastery"){
+      if((this.player.talentRanks[choice.spellId]||0)>=choice.rank)return false;
+      this.player.talentRanks[choice.spellId]=choice.rank;
+    }else if(choice.kind==="evolution"){
+      this.player.talentRanks[choice.spellId]=3;
+      this.player.evolutions[choice.spellId]=choice.evolutionId;
+    }else if(choice.kind==="singularity"){
+      if(this.progressLevel<10||!this.player.abilities.includes(choice.partner))return false;
+      this.singularity={anchor:choice.anchor,partner:choice.partner,
+        reaction:choice.reaction,tier:0};
+      this.singularityCharge=null;
+    }else if(choice.kind==="enchantment"){
+      if(this.resonanceTier(choice.enchantmentId)>=3)return false;
+      this.resonances[choice.enchantmentId]=choice.tier;
+    }else return false;
     this.resonancesChosen++;
+    this.trialHistory.push({wave:this.wave,kind:choice.kind,name:choice.name,
+      spellId:choice.spellId,how:choice.how,unlock:choice.unlock});
     this.emit({type:"resonance-chosen",actorId:"player",spellId:choice.spellId,
-      resonanceId:id,tier:this.resonances[id],wave:this.wave});
-    this.log(choice.name+" · TIER "+this.resonances[id]+" · WAVE RESONANCE");
-    // Recover partly between rounds; fallen allies are brought back to life.
+      resonanceId:choice.id,tier:choice.rank||choice.tier||1,
+      kind:choice.kind,wave:this.wave});
+    this.log("DISCOVERY · "+choice.name+" · "+choice.label);
+    // Recover partly between rounds; fallen allies return, but a team wipe
+    // during an active wave remains a loss as before.
     for(const ally of this.actors.filter(a=>a.team==="friendly")){
       ally.alive=true;
       ally.hp=Math.min(ally.maxHp,Math.max(ally.hp,Math.round(ally.maxHp*.55)));

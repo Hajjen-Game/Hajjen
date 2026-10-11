@@ -212,7 +212,7 @@ export class EnergyArenaRenderer {
           const p=new BABYLON.Vector3(px*S,.12,py*S);
           this.spellFX.sphere(new BABYLON.Vector3(p.x,4.2,p.z),"#ffd18a",.96,440,"fall",
             {end:new BABYLON.Vector3(p.x,.4,p.z)});
-          this.spellFX.ring(p,"#ffdd96",2.65,680,"ground");
+          this.spellFX.ring(p,"#ffdd96",4.9,680,"ground");
           this.spellFX.ring(p,"#e7a363",1.45,490,"ground");
           return;
         }
@@ -232,7 +232,8 @@ export class EnergyArenaRenderer {
         const wide=["seismic-wave","solar-aftershock","burning-ground",
           "shock-trail","interrupt-shockwave","prismatic-return"].includes(event.kind);
         const setup=String(event.kind).endsWith("-ready")||event.kind==="impact-charge";
-        const dim=wide?3.1:setup?1.1:1.7;
+        const dim=event.kind==="solar-aftershock"||event.kind==="burning-ground"?
+          4.9:wide?3.1:setup?1.1:1.7;
         this.spellFX.ring(p,hex,dim,wide?690:440,"ground");
         if(!setup)this.spellFX.sphere(new BABYLON.Vector3(p.x,.85,p.z),hex,
           wide?.44:.28,360,"burst");

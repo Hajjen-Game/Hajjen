@@ -42,10 +42,11 @@ export const ABILITY_RULES = Object.freeze({
   "cleanse-flux":     { mode:"cleanse",cost:11,cd:10,range:490 },
 });
 
-// The Babylon glass shell is 1.24 world units across (scale .02).
-// Collision covers the complete visible orb, not only the bright nucleus.
-export const ORB_COLLISION_RADIUS=31;
-const ORB_SEPARATION=ORB_COLLISION_RADIUS*2+2;
+// Match the original 3v3 Pixi MovementSystem: actor bodies separate gently,
+// without treating the entire decorative glass shell as a blocking collider.
+// 21 px is comparable to the core/class-icon collider in 3v3 Pixi.
+export const ORB_COLLISION_RADIUS=21;
+const ORB_SEPARATION=ORB_COLLISION_RADIUS*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb"};
@@ -572,11 +573,54 @@ export class EnergyMatch {
         killerId:source.id,spellId});
     }
   }
-  // Circle-circle collision shared by the player, allied/enemy AI and dashes.
+  // Keep walls solid, but allow actors to slide past one another like Pixi 3v3.
+  // A gentle separation pass below discourages standing inside another orb.
   canOccupy(actor,x,y){
-    if(!canStand(x,y,this.arena,ORB_COLLISION_RADIUS))return false;
-    return this.actors.every(other=>other===actor||!other.alive||
-      Math.hypot(other.x-x,other.y-y)>=ORB_SEPARATION);
+    return canStand(x,y,this.arena,ORB_COLLISION_RADIUS);
+  }
+  resolveActorSeparation(dt){
+    const living=this.actors.filter(a=>a.alive);
+    if(living.length<2||dt<=0)return;
+    const shifts=new Map(living.map(actor=>[actor,{x:0,y:0}]));
+    const maxStep=Math.min(3.2,68*dt);
+    for(let i=0;i<living.length;i++){
+      const a=living[i];
+      for(let j=i+1;j<living.length;j++){
+        const b=living[j];
+        let dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
+        const trigger=ORB_SEPARATION*1.04;
+        if(dist>=trigger)continue;
+        if(dist<.001){
+          // Deterministic fallback when both actors have identical positions.
+          const angle=(i*2.39996+j*.61803)%(Math.PI*2);
+          dx=Math.cos(angle);dy=Math.sin(angle);dist=1;
+        }
+        const correction=Math.min(ORB_SEPARATION*1.08-dist,maxStep*2);
+        const aLocked=Boolean(a.charge),bLocked=Boolean(b.charge);
+        const aw=aLocked?0:(a===this.player?.18:1);
+        const bw=bLocked?0:(b===this.player?.18:1);
+        const total=aw+bw;
+        if(total<=0)continue;
+        const nx=dx/dist,ny=dy/dist;
+        shifts.get(a).x-=nx*correction*aw/total;
+        shifts.get(a).y-=ny*correction*aw/total;
+        shifts.get(b).x+=nx*correction*bw/total;
+        shifts.get(b).y+=ny*correction*bw/total;
+      }
+    }
+    for(const actor of living){
+      if(actor.charge)continue;
+      const shift=shifts.get(actor),mag=Math.hypot(shift.x,shift.y);
+      if(mag<.001)continue;
+      const scale=Math.min(1,maxStep/mag);
+      const dx=shift.x*scale,dy=shift.y*scale;
+      if(this.canOccupy(actor,actor.x+dx,actor.y+dy)){
+        actor.x+=dx;actor.y+=dy;
+      }else{
+        if(this.canOccupy(actor,actor.x+dx,actor.y))actor.x+=dx;
+        if(this.canOccupy(actor,actor.x,actor.y+dy))actor.y+=dy;
+      }
+    }
   }
   move(actor,dx,dy,dt,speedOverride=null){
     if(!actor.alive||(actor.charge&&speedOverride===null)||
@@ -1157,6 +1201,7 @@ export class EnergyMatch {
       if(actor.charge)this.updateCharge(actor,dt);
       if(actor.control==="ai"&&!actor.charge)this.ai.updateActor(actor,dt);
     }
+    this.resolveActorSeparation(dt);
     this.processEvolutionEffects();
     if(!this.living("friendly").length||
       (this.modeId!=="defense"&&!this.living("enemy").length)||

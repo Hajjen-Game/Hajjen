@@ -120,10 +120,17 @@ export function defenseTrialChoices(match,enchantments){
   let ordered;
   if(wave===1)ordered=[...mastery];
   else if(wave===2)ordered=[...mastery.slice(1),...enchant.slice(0,1),...mastery.slice(0,1)];
-  else if(wave===3&&level>=4)ordered=[...evolution.slice(0,2),...enchant.slice(0,1)];
+  else if(wave===3&&level>=4)ordered=[
+    ...evolution.slice(0,1),
+    ...evolution.filter(e=>!ROLES[actor.role].locked.includes(e.spellId)).slice(0,1),
+    ...enchant.slice(0,1)
+  ];
   else if(wave===3)ordered=[...mastery.slice(2),...enchant.slice(0,2),...mastery.slice(0,2)];
   else if(wave===4&&level>=10)ordered=core();
-  else if(wave===4&&level>=4)ordered=[...evolution.slice(1,2),...enchant.slice(0,2),...evolution.slice(0,1)];
+  else if(wave===4&&level>=4)ordered=[
+    ...evolution.filter(e=>!ROLES[actor.role].locked.includes(e.spellId)).slice(1,2),
+    ...enchant.slice(0,2),...evolution.slice(1,2)
+  ];
   else ordered=[...mastery.slice(1,2),...enchant.slice(1),...mastery.slice(0,1)];
   // If some spells are already maxed/fully evolved, fill empty cards with
   // useful eligible choices. Never show an unearned or unavailable ability.

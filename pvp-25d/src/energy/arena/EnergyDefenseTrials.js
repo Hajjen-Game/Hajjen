@@ -64,11 +64,14 @@ export function defenseTrialChoices(match,enchantments){
       unlock:"Earn Talent Points from levelling; spend one per Rank in Character HUB.",
       isTemporary:true};
   }).filter(Boolean);
-  // Newly implemented Solar/Kinetic Evolutions are discoverable whenever
-  // the player actually has that spell equipped, regardless of Origin.
+  // Every real Evolution is discoverable in Planet Defense, regardless of
+  // discipline/Origin. Never preview a spell not equipped at this level.
+  // Put shared spells first in the additional pool to demonstrate the player's
+  // own custom build rather than only the two Origin starter abilities.
   const previewPool=[...(CURATED_EVOLUTIONS[actor.role]||[]),
-    ...ABILITIES.filter(a=>equipped.includes(a.id)&&
-      ["solar","kinetic"].includes(a.discipline))
+    ...ABILITIES.filter(a=>equipped.includes(a.id)&&!ROLES[actor.role].locked.includes(a.id))
+      .flatMap(a=>a.evolutions.map(e=>[a.id,e.id])),
+    ...ABILITIES.filter(a=>equipped.includes(a.id)&&ROLES[actor.role].locked.includes(a.id))
       .flatMap(a=>a.evolutions.map(e=>[a.id,e.id]))];
   const evolution=previewPool.filter(([id,evo],index,array)=>
     array.findIndex(([x,y])=>x===id&&y===evo)===index).map(([spellId,evolutionId])=>{

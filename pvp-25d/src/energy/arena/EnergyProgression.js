@@ -15,7 +15,7 @@ export const MODES = Object.freeze({
     id:"defense",label:"Planet Defense",size:"3vE",
     subtitle:"Survive five waves with two AI companions",
     description:"Genesis, Impact and Eclipse survive five escalating waves. Discover real spell Mastery and Evolutions, Forge trials and optional PvE Enchantments between waves.",
-    // Level-dependent XP on victory; fixed xpWin remains the max-level fallback.
+    // Level-scaled XP on victory; fixed xpWin is the max-level fallback.
     xpWin:80,xpLoss:22,
   }),
   training: Object.freeze({
@@ -87,17 +87,21 @@ export function levelForXp(xp){
   while(level<MAX_LEVEL&&xp>=LEVEL_XP[level])level++;
   return level;
 }
-// Planet Defense is a complete five-wave encounter, not a short PvP round.
-// A fresh character reaches level 30 in 19 straight victories: wins 1–9
-// teach one level at a time, then wins 10–19 grant two levels each.
-// Award the *exact missing XP* to the target threshold, preserving old saves,
-// all existing level gates, and the slower XP rates of other arena modes.
+// Planet Defense takes about five minutes. Its leveling curve aims for
+// roughly 44 straight wins (~3h40m) to reach level 30 from zero XP.
+// Award normal XP rather than snapping players to level boundaries:
+// a win can leave you partway through a level, or finish the XP bar.
+// Per-win XP increases with the level's XP requirement (tougher encounters),
+// but the fraction earned gradually falls to make later levels last longer.
+// Existing saved XP, level gates and other game modes are untouched.
 export function planetDefenseVictoryXp(profile){
-  const xp=Math.max(0,Math.floor(Number(profile?.xp)||0));
-  const level=levelForXp(xp);
+  const level=levelForXp(Math.max(0,Math.floor(Number(profile?.xp)||0)));
   if(level>=MAX_LEVEL)return MODES.defense.xpWin;
-  const targetLevel=Math.min(MAX_LEVEL,level+(level<10?1:2));
-  return Math.max(1,LEVEL_XP[targetLevel-1]-xp);
+  const nextLevelXp=LEVEL_XP[level];
+  const currentLevelXp=LEVEL_XP[level-1];
+  const requiredXp=nextLevelXp-currentLevelXp;
+  const rewardFraction=Math.max(.52,.82-.009*(level-1));
+  return Math.max(1,Math.round(requiredXp*rewardFraction));
 }
 export function slotsForLevel(level){return SPELL_SLOT_LEVELS.filter(required=>level>=required).length;}
 export function progressDetails(profile){

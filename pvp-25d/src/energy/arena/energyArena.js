@@ -1,19 +1,19 @@
 // Energy Arena UI, scoped to the independent Energy Build / combat prototype.
-import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261011-identity11";
-import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261011-identity11";
+import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261011-identity12";
+import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261011-identity12";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
-  appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261011-identity11";
-import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261011-identity11";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-identity11";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-identity11";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-identity11";
+  appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261011-identity12";
+import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261011-identity12";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-identity12";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-identity12";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-identity12";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-identity11";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261011-identity11";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-identity12";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261011-identity12";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261011-guided-defense8";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";

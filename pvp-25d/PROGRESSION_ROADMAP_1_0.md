@@ -1,4 +1,6 @@
-# Project Energy — Progression Roadmap 1.0 (DESIGN PROPOSAL)
+# Project Energy — Progression Roadmap 1.0 (HISTORICAL DRAFT)
+
+> **SUPERSEDED:** The active design is [Progression Roadmap 1.1 — Team Journey](PROGRESSION_ROADMAP_1_1.md). 1.1 moves Counterplay/Complexity selections **before** new encounter types, adds ally HUD presence and AI styles/builds, redesigns temporary wave buffs for a choice between self and companions, and postpones PvP indefinitely. The PvP-after-15 idea in this 1.0 draft is **no longer current**.
 
 **Created:** 2026-10-11  
 **Status:** PROPOSAL / review before implementation. **Nothing in this document changes running gameplay.**  

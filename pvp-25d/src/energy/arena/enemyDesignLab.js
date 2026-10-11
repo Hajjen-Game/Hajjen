@@ -1,4 +1,4 @@
-// Enemy & Boss Design Lab 1.1 — transparent living-energy material study.
+// Enemy & Boss Design Lab 1.2 — Channeler cleanup and Bulwark silhouette refinement.
 // No imports from EnergyMatch, no mutation of Planet Defense, saves or AI.
 // All forms, glow volumes and animation passes are authored as real 3D meshes.
 const $=id=>document.getElementById(id);
@@ -21,7 +21,7 @@ const CONCEPTS=Object.freeze({
     name:"RIFT CHANNELER",
     caption:"An ancient rune engine held together by energy",
     role:"Caster / high-priority channel interrupt.",
-    form:"Open structure: floating glyph plates, a vertical core and counter-rotating rings.",
+    form:"Open structure: clean floating crystal fins, a contained vertical core and counter-rotating rings.",
     attack:"Runes converge, rings align and energy discharges in a broad pulse.",
     risk:"Are its rings legible at real arena zoom, or too similar to a player orb?",
     shell:"#44799b",edge:"#a2e9f8",glow:"#8be9fa",energy:"#79b8e7",
@@ -30,8 +30,8 @@ const CONCEPTS=Object.freeze({
     name:"RIFT BULWARK",
     caption:"A broad, unyielding crystalline guardian",
     role:"Tank / area denial / telegraphed heavy slam.",
-    form:"Blocky plated shoulders, angular chassis and a forward-facing shield.",
-    attack:"Armour braces around the core, then slams into the ground.",
+    form:"Broad separated crystal shoulders protecting an exposed internal reactor. No round front shield.",
+    attack:"Side armour braces inward, then the entire heavy frame slams forward.",
     risk:"Does it feel heavy without becoming an unreadable collection of chunks?",
     shell:"#826c9b",edge:"#ffc4a3",glow:"#ffc28c",energy:"#d48cba",
   },
@@ -140,7 +140,7 @@ function createUnit(scene,key){
   const glyphs=[];
   let core=null;
   const unit={key,p,root,body,orbit,accent,armor,mats,ground,groundInner,
-    groundPulse,energyFlash,particles,satellites,glyphs,shield:null,core:null,
+    groundPulse,energyFlash,particles,satellites,glyphs,core:null,
     coreBaseScale:null,inner:null,bossExtras:[],
     color:p.glow,phaseOffset:{shard:.7,channeler:2.2,bulwark:3.8}[key]};
   if(key==="shard"){
@@ -195,17 +195,20 @@ function createUnit(scene,key){
   }else if(key==="channeler"){
     const tower=shape(scene,"CreatePolyhedron","channeler-spindle",{type:1,size:1.15},body,mats.shell);
     tower.scaling.set(.63,1.34,.61);
-    const reactor=shape(scene,"CreateIcoSphere","channeler-reactor",{radius:.67,subdivisions:3},
+    // Keep luminous matter *inside* the spindle even at peak wind-up.
+    // In 1.1 the glass volume plus glowing reactor filled the whole frame
+    // and bloomed beyond its silhouette.
+    const reactor=shape(scene,"CreateIcoSphere","channeler-reactor",{radius:.47,subdivisions:3},
       body,mats.energy);
-    reactor.scaling.set(.70,1.20,.7);core=reactor;
-    const haze=shape(scene,"CreateSphere","channeler-field",{diameter:1.8,segments:24},body,mats.glass);
-    haze.scaling.set(.88,1.26,.88);
+    reactor.scaling.set(.60,.98,.62);core=reactor;
+    const haze=shape(scene,"CreateSphere","channeler-field",{diameter:1.33,segments:24},body,mats.glass);
+    haze.scaling.set(.70,1.00,.70);
     const conduit=shape(scene,"CreateCylinder","channeler-light-conduit",{
-      height:2.65,diameter:.24,tessellation:10},body,mats.plasma);
-    conduit.position.y=.08;
+      height:1.43,diameter:.125,tessellation:10},body,mats.plasma);
+    conduit.position.y=.02;
     const conduitTop=shape(scene,"CreateSphere","channeler-throat",{
-      diameter:.27,segments:12},body,mats.heart);
-    conduitTop.position.y=.89;
+      diameter:.15,segments:12},body,mats.heart);
+    conduitTop.position.y=.52;
     const top=crystal(scene,"channeler-top-spire",body,mats.face,1.15,.36,6);
     const bottom=crystal(scene,"channeler-bottom-spire",body,mats.trim,1.0,.29,6);
     for(const part of [top.top,top.bottom])part.position.y+=1.13;
@@ -222,16 +225,12 @@ function createUnit(scene,key){
       holder.parent=orbit;
       holder.position.set(Math.cos(a)*r,Math.sin(a*2)*.38,Math.sin(a)*r);
       holder.rotation.y=-a;
-      const rune=shape(scene,"CreateBox","channeler-glyph-plate-"+i,{
-        width:.43,height:.87,depth:.12},holder,mats.glass);
-      rune.rotation.z=i%2?.1:-.1;
-      const stripe=shape(scene,"CreateBox","channeler-glyph-ink-"+i,{
-        width:.055,height:.57,depth:.035},holder,mats.rune);
-      stripe.position.z=-.085;
-      stripe.rotation.z=.20;
-      const dot=shape(scene,"CreateIcoSphere","channeler-glyph-eye-"+i,{
-        radius:.10,subdivisions:1},holder,mats.energy);
-      dot.position.set(.12,.21,-.12);
+      // No runes, dots or pictogram-like markings: these are natural
+      // translucent energy fins rather than rotating UI icons.
+      const fin=shape(scene,"CreateBox","channeler-clear-fin-"+i,{
+        width:.29,height:.59,depth:.085},holder,mats.glass);
+      fin.rotation.z=i%2?.16:-.16;
+      fin.rotation.y=(i%3-1)*.18;
       particles.push(holder);
       glyphs.push({node:holder,index:i,x:Math.cos(a)*r,
         y:Math.sin(a*2)*.38,z:Math.sin(a)*r});
@@ -251,10 +250,12 @@ function createUnit(scene,key){
       width:1.10,height:1.14,depth:1.25},body,mats.glass);
     prism.rotation.y=Math.PI/4;
     const innerHeart=shape(scene,"CreateIcoSphere","bulwark-broad-reactor",{
-      radius:.89,subdivisions:2},body,mats.plasma);
-    innerHeart.scaling.set(1.05,.9,1.15);
-    const sternum=torus(scene,"bulwark-outer-reactor-rim",body,mats.trim,1.18,.043);
-    sternum.rotation.z=Math.PI/2;sternum.position.x=-1.08;
+      radius:.77,subdivisions:2},body,mats.plasma);
+    innerHeart.scaling.set(1.12,.81,1.07);
+    // A narrow angular visor frames the power source without a disk or ring.
+    const upperRidge=shape(scene,"CreateBox","bulwark-reactor-brow",{
+      width:.25,height:.10,depth:1.06},body,mats.trim);
+    upperRidge.position.set(-.94,.45,0);
     core=shape(scene,"CreateIcoSphere","bulwark-reactor",{
       radius:.67,subdivisions:2},body,mats.energy);
     core.position.x=-.48;core.scaling.set(.8,.86,.9);
@@ -266,9 +267,9 @@ function createUnit(scene,key){
         type:1,size:.85},armor,mats.shell);
       pa.position.set(.03,.12,side*1.1);
       pa.scaling.set(.76,1.0,.8);
-      const shoulderTip=crystal(scene,"bulwark-spine-"+side,armor,mats.face,.83,.31,4);
+      const shoulderTip=crystal(scene,"bulwark-spine-"+side,armor,mats.face,.58,.25,4);
       for(const part of [shoulderTip.top,shoulderTip.bottom]){
-        part.position.z=side*1.33;part.position.y+=.89;part.rotation.z=side*.38;
+        part.position.z=side*1.30;part.position.y+=.70;part.rotation.z=side*.26;
       }
       const plate=shape(scene,"CreateBox","bulwark-flank-"+side,{
         width:.61,height:1.19,depth:.67},armor,mats.face);
@@ -277,40 +278,15 @@ function createUnit(scene,key){
       const band=shape(scene,"CreateBox","bulwark-energy-band-"+side,{
         width:.085,height:.65,depth:.47},armor,mats.trim);
       band.position.set(-.70,-.38,side*1.06);
-      const fin=shape(scene,"CreatePolyhedron","bulwark-fin-"+side,{
-        type:1,size:.39},armor,mats.trim);
-      fin.position.set(.61,.31,side*.68);fin.scaling.set(1.1,.65,.6);
+      // Cleaner frontal plate gaps instead of extra polygonal fins.
       // Exposed luminous seams keep the large plates legible through glass.
       line(scene,"bulwark-plate-seam-"+side,armor,mats.trace,[
         V(-.69,-.84,side*.88),V(-.79,-.2,side*1.17),
         V(-.36,.31,side*1.32),V(.15,.58,side*.96),
       ],.030);
     }
-    const shieldNode=new BABYLON.TransformNode("bulwark-forward-shield",scene);
-    shieldNode.parent=body;shieldNode.position.set(-1.32,.03,0);
-    const shield=shape(scene,"CreateCylinder","bulwark-shield-plane",{
-      height:.14,diameter:2.05,tessellation:6},shieldNode,mats.glass);
-    shield.rotation.z=Math.PI/2;
-    const shieldInner=shape(scene,"CreateCylinder","bulwark-shield-hub",{
-      height:.21,diameter:1.0,tessellation:6},shieldNode,mats.shell);
-    shieldInner.rotation.z=Math.PI/2;
-    shieldInner.position.x=-.09;
-    const shieldRune=shape(scene,"CreateCylinder","bulwark-shield-crack",{
-      height:.24,diameter:.49,tessellation:6},shieldNode,mats.energy);
-    shieldRune.position.x=-.21;shieldRune.rotation.z=Math.PI/2;
-    const shieldOutline=torus(scene,"bulwark-glass-shield-edge",shieldNode,
-      mats.trim,2.0,.065);
-    shieldOutline.rotation.z=Math.PI/2;
-    shieldOutline.position.x=-.11;
-    unit.shield=shieldNode;
-    for(let i=0;i<6;i++){
-      const a=Math.PI*2*i/6,r=.68;
-      const marker=shape(scene,"CreateSphere","bulwark-shield-nail-"+i,{
-        diameter:.13,segments:8},shieldNode,mats.rune);
-      marker.position.set(-.20,Math.cos(a)*r,Math.sin(a)*r);
-    }
-    const guard=torus(scene,"bulwark-guard-orbit",accent,mats.glass,3.35,.043);
-    guard.rotation.x=.36;guard.rotation.z=.37;
+    // No circular shield, orbital guard hoop or shield nails. The shoulder
+    // plates themselves telegraph Bulwark's defensive brace.
     const weight=torus(scene,"bulwark-lower-field",body,mats.trim,2.15,.050);
     weight.position.y=-1.12;
     weight.rotation.x=.17;
@@ -327,8 +303,9 @@ function createUnit(scene,key){
   inner.position.copyFrom(key==="shard"?V(0,-.20,0):
     key==="bulwark"?V(-.18,0,0):V(0,0,0));
   const plasma=shape(scene,"CreateSphere",key+"-interior-cloud",{
-    diameter:key==="bulwark"?1.40:1.08,segments:18},inner,mats.plasma);
-  plasma.scaling.set(1.1,key==="channeler"?1.37:.82,.89);
+    diameter:key==="bulwark"?1.40:key==="channeler"?.87:1.08,segments:18},inner,mats.plasma);
+  plasma.scaling.set(key==="channeler"?.70:1.1,
+    key==="channeler"?1.08:.82,key==="channeler"?.67:.89);
   const heart=shape(scene,"CreateIcoSphere",key+"-living-heart",{
     radius:key==="bulwark"?.26:.21,subdivisions:2},inner,mats.heart);
   heart.scaling.set(1.05,1.12,1);
@@ -336,7 +313,8 @@ function createUnit(scene,key){
   innerOrbit.parent=inner;
   for(let i=0;i<3;i++){
     const gyre=torus(scene,key+"-inner-gyre-"+i,innerOrbit,mats.trace,
-      (key==="bulwark"?1.25:1.0)+i*.19,.022+i*.002);
+      (key==="bulwark"?1.25:key==="channeler"?.52:1.0)+
+      i*(key==="channeler"?.10:.19),.022+i*.002);
     gyre.rotation.set(i*.87+.18,i*.66,i*.85+.25);
     if(key==="channeler")gyre.scaling.y=1.15;
   }
@@ -344,8 +322,10 @@ function createUnit(scene,key){
     const angle=i*Math.PI*2/5;
     const mote=shape(scene,"CreateSphere",key+"-internal-mote-"+i,{
       diameter:i%2?.10:.14,segments:8},innerOrbit,mats.heart);
-    mote.position.set(Math.cos(angle)*(.35+i*.038),
-      Math.sin(angle*1.7)*.38,Math.sin(angle)*(.38+i*.024));
+    const moteRange=key==="channeler"?.57:1;
+    mote.position.set(Math.cos(angle)*(.35+i*.038)*moteRange,
+      Math.sin(angle*1.7)*.38*moteRange,
+      Math.sin(angle)*(.38+i*.024)*moteRange);
   }
   unit.inner={node:inner,heart,plasma,plasmaBaseScale:plasma.scaling.clone(),innerOrbit};
   // Independent boss silhouette exploration. Enlarges and adds overhead
@@ -387,8 +367,9 @@ class EnemyShowroom{
     const keyLight=new BABYLON.DirectionalLight("face-light",V(.65,-1,.42),this.scene);
     keyLight.diffuse=color("#a7c7e7");keyLight.intensity=.84;
     const edgeLight=new BABYLON.PointLight("edge-light",V(3.4,5.8,-4),this.scene);
-    edgeLight.diffuse=color("#9172bf");edgeLight.intensity=5.5;
-    edgeLight.range=15;
+    // The previous point light left a distracting white patch on the floor.
+    edgeLight.diffuse=color("#9172bf");edgeLight.intensity=1.15;
+    edgeLight.range=11;
     this.groundMaterial=material(this.scene,"research-floor","#141d30",.03);
     this.floor=shape(this.scene,"CreateGround","research-platform",{
       width:28,height:19,subdivisions:2},null,this.groundMaterial);
@@ -569,17 +550,18 @@ class EnemyShowroom{
         node.rotation.z=-.40+Math.sin(time*1.3+index*1.8)*.24-wind*.29;
         node.scaling.setAll(1-wind*.21+release*.28);
       }
-      mats.energy.emissiveColor=color(u.p.glow).scale(.87+wind*1.22+impact*.94);
+      mats.energy.emissiveColor=color(u.p.glow).scale(
+        (key==="channeler"?.65:.87)+wind*(key==="channeler"?.70:1.22)+impact*.94);
       mats.trim.emissiveColor=color(u.p.edge).scale(.56+wind*.82+impact*.67);
       mats.trace.emissiveColor=color(u.p.glow).scale(.70+wind*.72+impact*.48);
-      mats.heart.emissiveColor=color("#fff0fb").scale(.62+wind*.5+impact*.46);
+      mats.heart.emissiveColor=color("#fff0fb").scale(
+        (key==="channeler"?.43:.62)+wind*.40+impact*.46);
       u.ground.scaling.setAll(1+wind*.13+impact*.17);
       u.ground.visibility=clamp(.52+wind*.36+impact*.28);
       const push=key==="shard"?release*1.28:key==="bulwark"?release*.31:0;
       body.position.x=-push;
       body.scaling.setAll(1+wind*.055+release*.045);
-      if(u.shield)u.shield.scaling.setAll(1+wind*.22+impact*.12);
-      const showPulse=impact>.035;
+       const showPulse=impact>.035;
       u.groundPulse.setEnabled(showPulse);
       u.energyFlash.setEnabled(showPulse);
       if(showPulse){

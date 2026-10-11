@@ -7,7 +7,7 @@ import { botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-orbfix15";
 import { buildPlanetEncounters, PVE_ENEMY_ARCHETYPES, ENCOUNTER_SPELLS }
-  from "./EnergyPvEEncounters.js?v=20261011-encounters1";
+  from "./EnergyPvEEncounters.js?v=20261011-encounters2";
 
 export const DEFENSE_WAVES=5;
 export const WAVE_RESONANCES=Object.freeze({

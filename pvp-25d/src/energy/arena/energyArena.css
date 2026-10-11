@@ -1483,3 +1483,77 @@ h2{font-size:23px}
   .defense-resonance-header p{font-size:11px}
   .defense-trial-instruction{padding:10px 12px}
 }
+
+
+/* V1 navigation overhaul: four-option front door; Resume, Game Dev and HUB
+   activity selection live on their own screens. Preserve CSS [hidden] semantics
+   even for flex/grid layouts: the game often toggles these panels by JS. */
+#main-menu[hidden],#origin-roster-screen[hidden],#hub-play-screen[hidden],
+#game-dev-screen[hidden],#play-mode-options[hidden],
+#play-pve-modes[hidden],#play-pvp-modes[hidden],
+#build-gate[hidden],#combat-screen[hidden],
+#character-hub[hidden],#character-creation[hidden],
+#guide-overlay[hidden],#main-menu-open[hidden]{display:none!important}
+.energy-main-menu .menu-main-actions{gap:12px}
+.energy-main-menu .menu-action.dev-action{border-color:#665a7c;color:#c9bde8;
+  background:linear-gradient(110deg,#201d39,#111b2d)}
+.journey-screen{min-height:540px;padding:clamp(24px,5vw,65px);
+  border:1px solid #3a546c;border-radius:16px;
+  background:radial-gradient(ellipse at 12% 0%,#31547540,transparent 45%),
+    linear-gradient(140deg,#111f31,#090f1c 85%);
+  box-shadow:0 24px 70px #03081388}
+.journey-screen-heading{max-width:850px;margin-bottom:30px}
+.journey-screen-heading h2{font-size:clamp(27px,4vw,50px);margin:11px 0 11px;
+  line-height:1.1;letter-spacing:.03em;color:#e3f5ff}
+.journey-screen-heading h2 span{color:#97e1f1}
+.journey-screen-heading>p:last-child{color:#9cbad0;font-size:13px;line-height:1.65}
+.journey-screen .menu-origin-section{max-width:840px;margin:0 0 24px;
+  padding:20px;border-radius:12px}
+.journey-screen .menu-origin-list{max-height:510px;overflow-y:auto;gap:10px}
+.journey-screen .menu-origin-item{padding:14px 16px;min-height:72px}
+.journey-screen .menu-origin-item .menu-origin-state{color:#9ce0ef!important}
+.journey-screen-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:25px}
+.journey-screen-actions .menu-action{min-width:min(330px,100%);margin:0}
+.journey-screen-actions .header-button{padding:15px 21px}
+.play-path-grid,.dev-lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.play-path-button,.dev-lab-card{display:flex;align-items:flex-start;flex-direction:column;
+  min-height:205px;gap:12px;text-align:left;color:#e6f6ff;border:1px solid #4a6b83;
+  border-radius:14px;padding:24px;background:radial-gradient(ellipse at 94% 8%,#46709238,transparent 50%),#14253a;
+  transition:background .15s,border-color .15s,transform .15s}
+.play-path-button{cursor:pointer;font:inherit}
+.play-path-button:hover,.dev-lab-card:hover{border-color:#8bd7e8;background-color:#1b3851;transform:translateY(-2px)}
+.play-path-button.selected{border-color:#91e7e4;background-color:#204358;
+  box-shadow:inset 0 0 0 1px #82e6eb40,0 0 18px #70e8e31b}
+.play-path-button strong,.dev-lab-card strong{font-size:22px;letter-spacing:.07em}
+.play-path-button>span:not(.play-path-glyph),.dev-lab-card>span:not(.dev-lab-glyph){
+  font-size:12px;color:#a2bbd4;line-height:1.5}
+.play-path-button small,.dev-lab-card small{font-size:10px;font-weight:850;
+  letter-spacing:.12em;color:#a1e3f3;margin-top:auto}
+.play-path-glyph,.dev-lab-glyph{font-size:28px;color:#9ee5f0;line-height:1}
+.play-path-button[data-play-path="pvp"]{border-color:#5d597e}
+.play-path-button[data-play-path="pvp"] .play-path-glyph{color:#d4b2fc}
+.play-mode-options{margin-top:18px;padding:21px;border:1px solid #476581;
+  border-radius:13px;background:#0d1b2c}
+.play-mode-options .menu-mode-grid{display:grid;gap:9px;margin-top:14px}
+.play-mode-options .menu-mode{padding:17px 19px;min-height:66px}
+.play-mode-options .menu-mode strong{font-size:14px}
+.play-mode-options .menu-mode span{font-size:11px}
+.play-mode-options .locked-mode{cursor:not-allowed;border-style:dashed;
+  border-color:#5c647d;color:#8f9fb5;background:#151d2d;opacity:.76}
+.play-mode-options .locked-mode:hover{border-color:#5c647d;background:#151d2d}
+.mode-lock{display:inline-block;margin-left:8px;padding:3px 7px;
+  border-radius:5px;color:#d8b7e7!important;border:1px solid #746487;font-size:9px!important}
+.dev-lab-card{text-decoration:none}
+.dev-lab-card:nth-child(2){border-color:#67537e;
+  background:radial-gradient(ellipse at 94% 8%,#6651943d,transparent 50%),#142137}
+.dev-lab-card:nth-child(2) .dev-lab-glyph{color:#d6b1fb}
+.creation-navigation{display:flex;align-items:center;gap:14px;justify-content:center;flex-wrap:wrap}
+.creation-navigation .header-button{padding:14px 20px}
+@media(max-width:720px){
+  .journey-screen{min-height:0;padding:23px 15px}
+  .play-path-grid,.dev-lab-grid{grid-template-columns:1fr}
+  .play-path-button,.dev-lab-card{min-height:150px;padding:18px}
+  .journey-screen .menu-origin-item{min-height:66px}
+  .journey-screen .menu-origin-section{padding:13px}
+  .journey-screen-actions .menu-action{width:100%}
+}

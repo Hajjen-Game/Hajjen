@@ -1,7 +1,7 @@
 // Singularity Forge: one class-anchor + one unlocked shared spell.
 // Matter pays for creating/replacing the pairing or reaction. Fragments
 // develop its separate branch: no spell Talent Points are consumed.
-import { ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-evolution10";
+import { ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity11";
 
 export const REACTIONS=Object.freeze({
   annihilation:Object.freeze({

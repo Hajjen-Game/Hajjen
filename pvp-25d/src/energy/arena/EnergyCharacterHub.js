@@ -8,7 +8,7 @@ import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } fr
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261011-identity13";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-hub-revision3";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-hub-revision4";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const $=id=>document.getElementById(id);

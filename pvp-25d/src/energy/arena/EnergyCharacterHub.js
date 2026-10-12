@@ -763,7 +763,8 @@ export class EnergyCharacterHub{
       addLine(origin,p,"hub-orbit-branch"+(chosen?" evolved":"")+(pool?" pool":""),tone);
       const previewFocused=isJourney&&this.evolutionPreview?.abilityId===ability.id&&
         this.evolutionPreview?.evolutionId===ev.id;
-      const btn=button("","hub-orbit-evolution"+(chosen?" selected":"")+
+      const btn=button("","hub-orbit-evolution"+
+        (chosen?(isJourney?" selected evolution-chosen":" selected"):"")+
         (!isJourney&&rank<3?" unmastered":"")+(pool?" pool":"")+
         (previewFocused?" preview-focused":""),()=>{
           this.selectedAbility=ability.id;
@@ -782,6 +783,8 @@ export class EnergyCharacterHub{
           }else this.renderTree();
         });
       btn.style.setProperty("--node-tone",tone);
+      btn.dataset.evolutionId=ev.id;
+      btn.setAttribute("aria-pressed",String(chosen));
       btn.setAttribute("aria-label",ability.name+" Evolution: "+ev.name+
         (isJourney?(chosen?" (active, click to remove)":
           !canEvolve?" (preview only; unlock Stage 10 and discover spell)":

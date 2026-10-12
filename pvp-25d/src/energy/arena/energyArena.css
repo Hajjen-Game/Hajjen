@@ -2340,3 +2340,22 @@ h2{font-size:23px}
 @media(prefers-reduced-motion:reduce){
   .character-hub.journey-mode .hub-orbit-evolution.evolution-chosen{animation:none}
 }
+
+
+/* Game Dev Journey replay hexes 1.1: completed remains green, but DEV-only
+   enabled hexes now visibly invite clicking without implying new rewards. */
+.journey-hex.replayable{cursor:pointer}
+.journey-hex.replayable .journey-hex-face{
+  opacity:1;background:linear-gradient(145deg,#1f7667,#164e48 63%,#0e3031);
+  box-shadow:inset 0 0 18px #85f6bc25;
+  transition:filter .15s,box-shadow .15s
+}
+.journey-hex.replayable:hover .journey-hex-face,
+.journey-hex.replayable:focus-visible .journey-hex-face{
+  filter:brightness(1.3) drop-shadow(0 0 12px #8fe9c68a);
+  box-shadow:inset 0 0 20px #90ffc14c
+}
+.journey-hex.replayable.selected .journey-hex-face{
+  outline:2px solid #ffe8ad;outline-offset:3px;
+  filter:brightness(1.2) drop-shadow(0 0 13px #f2d19e8c)
+}

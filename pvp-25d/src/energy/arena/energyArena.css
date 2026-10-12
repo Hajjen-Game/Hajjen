@@ -2235,3 +2235,41 @@ h2{font-size:23px}
   .bk-orb,.bk-orb:before,.bk-orb:after,
   .bk-discover-node>span,.bk-future-vortex{animation:none}
 }
+
+/* AI Styles 1.0 — each compact ally card keeps its own role-aware editor.
+   Edit opens at Stage 5. The Build editor remains unavailable until Stage 15. */
+.hub-companion-action[aria-expanded="true"]{
+  border-color:#a2dee9;background:#214258;color:#e4fbff;
+  box-shadow:0 0 11px #77dbed28
+}
+.hub-companion-style-picker[hidden]{display:none!important}
+.hub-companion-style-picker{
+  display:grid;gap:9px;padding:12px;margin-top:9px;border:1px solid
+  color-mix(in srgb,var(--ally-core) 50%,#28536a);
+  border-radius:10px;background:linear-gradient(155deg,#112b40,#0a1c30)
+}
+.hub-companion-style-intro{
+  color:#9dc9d7;font-size:9px;font-weight:850;letter-spacing:.11em;
+  line-height:1.45
+}
+.hub-companion-style-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.hub-ally-style-option{
+  min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;
+  padding:10px 9px;text-align:left;border:1px solid #3c5c74;border-radius:8px;
+  background:#102036;color:#d4e9f4;cursor:pointer;
+  transition:border-color .16s,background .16s
+}
+.hub-ally-style-option strong{font-size:11px;letter-spacing:.04em;color:#ecfaff}
+.hub-ally-style-option span{font-size:9px;font-weight:750;color:#9bd2df;line-height:1.4}
+.hub-ally-style-option small{font-size:9px;color:#93afc3;line-height:1.43}
+.hub-ally-style-option.selected{
+  border-color:var(--ally-core);background:#1b3b4c;
+  box-shadow:inset 0 0 12px color-mix(in srgb,var(--ally-core) 18%,transparent)
+}
+.hub-ally-style-option.selected strong:before{content:"✓ ";color:var(--ally-core)}
+.hub-ally-style-option:hover,.hub-ally-style-option:focus-visible{
+  border-color:#a1e7f2;outline-offset:2px;filter:brightness(1.09)
+}
+@media(max-width:1150px){
+  .hub-companion-style-options{grid-template-columns:1fr}
+}

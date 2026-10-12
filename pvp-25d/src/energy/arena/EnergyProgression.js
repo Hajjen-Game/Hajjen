@@ -8,7 +8,9 @@ export const PROGRESSION_KEY = "pvp25d-energy-progression-v1";
 export const MAX_LEVEL = 30;
 export const FORGE_UNLOCK_LEVEL = 10;
 // New slots arrive gradually so the player has time to master each spell.
-export const SPELL_SLOT_LEVELS = Object.freeze([1,1,1,4,8,12,16,20,24,28]);
+// Exactly two Origin-bound spells at creation. Extra shared slots must be EARNED;
+// no role starts with a free third spell (the old array had three level-1 entries).
+export const SPELL_SLOT_LEVELS = Object.freeze([1,1,4,8,12,16,20,24,28,30]);
 export const FRAGMENTS_PER_KILL = 5;
 export const MODES = Object.freeze({
   defense: Object.freeze({

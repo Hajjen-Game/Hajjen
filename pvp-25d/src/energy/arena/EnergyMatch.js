@@ -166,7 +166,7 @@ export class EnergyMatch {
   opponents(actor){return this.living(actor.team==="friendly"?"enemy":"friendly");}
   allies(actor){return this.living(actor.team);}
   get dampening(){
-    if(this.modeId==="defense")return 0; // PvE survival is not a dampening arena.
+    if(this.modeId==="defense"||this.modeId==="rift")return 0; // PvE never uses arena dampening.
     return this.time<45?0:clamp(0.1+Math.floor((this.time-45)/10)*0.02,0,1);
   }
   log(text){this.notices.unshift({time:this.time,text});if(this.notices.length>7)this.notices.length=7;}
@@ -1216,10 +1216,10 @@ export class EnergyMatch {
     this.resolveActorSeparation(dt);
     this.processEvolutionEffects();
     if(!this.living("friendly").length||
-      (this.modeId!=="defense"&&!this.living("enemy").length)||
-      this.time>=(this.modeId==="defense"?900:240)){
+      (!["defense","rift"].includes(this.modeId)&&!this.living("enemy").length)||
+      this.time>=(["defense","rift"].includes(this.modeId)?1200:240)){
       this.ended=true;
-      this.winner=this.modeId==="defense"?"enemy":
+      this.winner=["defense","rift"].includes(this.modeId)?"enemy":
         this.living("friendly").reduce((n,a)=>n+a.hp,0)>=this.living("enemy").reduce((n,a)=>n+a.hp,0)?"friendly":"enemy";
       this.log((this.winner==="friendly"?"VICTORY":"DEFEAT")+" · ENERGY ARENA");
       this.emit({type:"end",winner:this.winner});

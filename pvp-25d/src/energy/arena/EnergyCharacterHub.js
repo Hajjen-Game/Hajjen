@@ -821,7 +821,7 @@ export class EnergyCharacterHub{
     if(journey&&!journey.owned.includes(newId))
       throw Error("Discover this spell through Planet Defense first.");
     const level=progressDetails(this.getProgression()).level;
-    const active=stagedLoadout(build,level).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
+    const active=stagedLoadout(build,level,readJourney(this.getProgression())).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
     if(!active.includes(oldId)||active.includes(newId))
       throw Error("Choose an unlocked shared spell and an available replacement.");
     const saved=build.freeSlots.filter(Boolean);
@@ -896,7 +896,7 @@ export class EnergyCharacterHub{
       // Persist unlocked picks without filling every future ability slot.
       if(delta>0&&!allEquippedIds(build).includes(id)){
         const locked=new Set(ROLES[build.role].locked);
-        const unlocked=stagedLoadout(build,level).abilitySlots.map(s=>s.id)
+        const unlocked=stagedLoadout(build,level,readJourney(this.getProgression())).abilitySlots.map(s=>s.id)
           .filter(spell=>!locked.has(spell));
         if(!unlocked.includes(id))throw Error("Unlock this spell before spending Talent Points.");
         const saved=build.freeSlots.filter(Boolean);

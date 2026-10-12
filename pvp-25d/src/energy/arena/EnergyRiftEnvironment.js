@@ -185,7 +185,7 @@ export function createRiftEnvironment(scene,arena,scale=.02){
       }
       for(const [i,mesh] of bossRings.entries()){
         mesh.rotation.y=now*.00013*(i?-.8:1);
-        mesh.visibility=match?.wave>=5?.75:.25;
+        mesh.visibility=match?.wave>=5?0.75:0.25;
       }
     }
   };

@@ -337,7 +337,8 @@ export class EnergyCharacterHub{
     $("hub-origin-info-passive").textContent="PASSIVE · "+origin.passive;
     if(journey){
       $("hub-level").textContent="JOURNEY · "+journey.clears+" / 20";
-      $("hub-level-subtitle").textContent=progress.slots+"/10 SPELL SLOTS · NO LEVELS OR RANKS";
+      $("hub-level-subtitle").textContent=progress.slots+"/10 SPELL SLOTS · NO LEVELS OR RANKS · "+
+        Object.keys(journey.evolutions).length+"/"+journeyEvolutionCapacity(journey)+" EVOLUTIONS";
       $("hub-combat-stats").textContent="HP "+maxHealthForLevel(1)+
         " · DAMAGE/HEAL ×1.00 · CRIT 10%";
       $("hub-xp").textContent=journey.pending?
@@ -590,6 +591,10 @@ export class EnergyCharacterHub{
     const journey=readJourney(this.getProgression());
     const evolutionCap=journey?journeyEvolutionCapacity(journey):10;
     const activeCount=journey?Object.keys(journey.evolutions).length:activeEvolutionCount(state.build);
+    $("hub-talent-points").parentElement.querySelector("small").textContent=journey?
+      "JOURNEY PROGRESSION":"TALENT POINTS";
+    $("hub-evolution-count").parentElement.querySelector("small").textContent=journey?
+      "PERMANENT EVOLUTIONS":"EVOLUTIONS · UNLOCK AT RANK 3";
     $("hub-talent-points").textContent=journey?
       "RANKLESS JOURNEY · "+Math.max(0,evolutionCap-activeCount)+" EVOLUTION SLOTS FREE":
       Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";

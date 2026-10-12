@@ -3,14 +3,14 @@
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261012-eclipse-oc1";
-import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261012-dev-origin1";
-import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261012-dev-origin1";
+import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261012-evolution1";
+import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261012-evolution1";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261012-eclipse-oc1";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-ai-styles1";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-evolution1";
 import {readJourney,eligibleJourneySpells,claimJourneySpell,
-  journeyEvolutionCapacity,setJourneyEvolution,JOURNEY_EVOLUTION_STAGES} from "./EnergyJourneyCampaign.js?v=20261012-dev-origin1";
+  journeyEvolutionCapacity,setJourneyEvolution,JOURNEY_EVOLUTION_STAGES} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
 import {COMPANION_STYLES,STYLE_IDS,STYLE_UNLOCK_STAGE,companionStyleFor,setCompanionStyle}
   from "./EnergyCompanionStyles.js?v=20261012-dev-origin1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";

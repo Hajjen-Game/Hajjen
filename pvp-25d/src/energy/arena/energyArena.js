@@ -566,6 +566,8 @@ function frameLoop(now){
           "STAGE "+String(awardedMatch.planet).padStart(2,"0")+" CLEARED!":
           match.winner==="friendly"?"VICTORY":"PLANET DEFENSE FAILED · RETRY")+
         (cleared&&after.clears<=16?" · NEW SPELL DISCOVERY AWAITS IN HUB":"")+
+        (cleared&&[10,12,14,16,20].includes(after.clears)?
+          " · NEW EVOLUTION SLOT UNLOCKED IN HUB":"")+
         " · +"+fragments+" ENERGY FRAGMENTS"+
         " · NO XP OR SPELL RANKS · Return to HUB to continue your Journey";
       $("match-level").textContent="JOURNEY · "+after.clears+" / 20 STAGES";

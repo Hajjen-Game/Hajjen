@@ -42,13 +42,15 @@ export class EnergyJourneyRoadmap{
     this.map=map;this.detail=detail;this.summary=summary;
     this.onSelect=onSelect;
     this.selected=1;this.clears=0;this.armed=false;this.tracked=false;
+    // Only the currently active DEV Test Origin may replay cleared Stages.
+    this.allowReplay=false;this.replayStage=20;
     this.buttons=new Map();
     this.build();
     this.render();
   }
   build(){
     this.map.replaceChildren();
-    this.map.setAttribute("aria-label","20 Planet Defense Journey hexes. Select the next available Stage.");
+    this.map.setAttribute("aria-label","20 Planet Defense Journey hexes. Select the next available Stage, or replay cleared Stages with a DEV Origin.");
     const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
     svg.classList.add("journey-route");
     svg.setAttribute("viewBox","0 0 1000 800");
@@ -86,13 +88,18 @@ export class EnergyJourneyRoadmap{
   }
   resetSelection(){
     this.armed=false;
-    this.selected=Math.min(20,this.clears+1);
+    this.selected=this.allowReplay?
+      Math.max(1,Math.min(20,this.replayStage||this.clears)):
+      Math.min(20,this.clears+1);
     this.render();
   }
   select(step){
-    // Only the first uncleared step can be armed for PLAY. Future milestones
-    // are readable but cannot bypass the campaign route.
-    if(step!==this.clears+1||step>20)return false;
+    // Ordinary Journey progression remains next-Stage-only. A DEV Test
+    // Origin may deliberately replay an already-cleared Stage, never a
+    // future Stage. No new reward is granted through this map.
+    if(!Number.isInteger(step)||step<1||step>20)return false;
+    const replay=this.allowReplay&&step<=this.clears;
+    if(!replay&&step!==this.clears+1)return false;
     this.selected=step;this.armed=true;
     this.render();
     this.onSelect?.(JOURNEY_STEPS[step-1]);
@@ -101,22 +108,27 @@ export class EnergyJourneyRoadmap{
   render(){
     // Never infer clear history from old .wins or XP: those mix several modes.
     const clears=this.clears;
-    this.summary.textContent=this.tracked?
-      "JOURNEY · "+clears+" / 20 CLEARED":
+    this.summary.textContent=this.allowReplay?
+      "DEV TEST · SELECT A CLEARED STAGE TO REPLAY · "+clears+" / 20 CLEARED":
+      this.tracked?"JOURNEY · "+clears+" / 20 CLEARED":
       "JOURNEY · 0 / 20 CLEARED";
     for(const hex of JOURNEY_STEPS){
       const button=this.buttons.get(hex.step);
+      const replayable=this.allowReplay&&hex.step<=clears;
+      const available=replayable||hex.step===clears+1;
       button.classList.toggle("completed",hex.step<=clears);
+      button.classList.toggle("replayable",replayable);
       button.classList.toggle("next",hex.step===clears+1);
       button.classList.toggle("milestone",hex.milestone);
       button.classList.toggle("selected",this.armed&&hex.step===this.selected);
-      button.disabled=hex.step!==clears+1;
+      button.disabled=!available;
       button.setAttribute("aria-pressed",String(this.armed&&hex.step===this.selected));
       button.querySelector(".journey-hex-symbol").textContent=
         hex.step<=clears?"✓":glyphs[hex.kind];
       button.setAttribute("aria-label","Stage "+hex.step+" — "+hex.title+
-        "; "+(hex.step<=clears?"completed":hex.step===clears+1?"next planned":"future")+
-        "; "+(button.disabled?"locked":"selectable")+"; "+(this.tracked?"Journey campaign":"legacy preview")+".");
+        "; "+(replayable?"cleared, click to play Stage again":
+          hex.step<=clears?"completed":hex.step===clears+1?"next available":"future locked")+
+        "; "+(button.disabled?"locked":"selectable")+".");
     }
     const hex=JOURNEY_STEPS[this.selected-1];
     this.detail.replaceChildren();
@@ -125,15 +137,19 @@ export class EnergyJourneyRoadmap{
     const number=document.createElement("span");
     number.textContent="STAGE "+String(hex.step).padStart(2,"0")+" / 20";
     const state=document.createElement("span");
-    state.textContent=hex.step<=clears?"✓ STAGE CLEARED":
+    state.textContent=this.allowReplay&&hex.step<=clears?
+      this.armed?"SELECTED · PLAY STAGE AGAIN":"✓ CLEARED · REPLAY AVAILABLE":
+      hex.step<=clears?"✓ STAGE CLEARED":
       this.armed?"SELECTED · READY TO PLAY":
       hex.step===clears+1?"NEXT AVAILABLE · SELECT THE HEX":"FUTURE MILESTONE";
     heading.append(number,state);
     const title=document.createElement("strong");title.textContent=hex.title;
     const description=document.createElement("p");description.textContent=hex.description;
     const note=document.createElement("small");
-    note.textContent=this.tracked?
-      "This Origin's first-clear progress is saved. Completing the next Stage will advance the path; permanent spell discoveries are claimed in HUB.":
+    note.textContent=this.allowReplay?
+      "DEV TEST REPLAY · Choose a green, completed hex and press PLAY STAGE AGAIN. Your full build, Evolutions and AI Styles remain active. Replays grant no rewards and do not change your 20/20 progress.":
+      this.tracked?
+      "This Origin's first-clear progress is saved. Completing the next Stage advances your Journey; permanent spell discoveries are claimed in HUB.":
       "Legacy Origin preview: old XP or PvP wins do not count as hex clears. Existing saves are untouched.";
     this.detail.append(heading,title,description,note);
   }

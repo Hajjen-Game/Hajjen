@@ -91,6 +91,34 @@
         <h2>GAME <span>DEV</span></h2>
         <p>Visual development environments are kept separate from normal gameplay.</p>
       </div>
+      <section class="dev-origin-panel" aria-labelledby="dev-origin-title">
+        <div class="dev-origin-heading">
+          <span class="dev-origin-glyph" aria-hidden="true">◉</span>
+          <div>
+            <h3 id="dev-origin-title">DEV TEST ORIGIN · FULL ACCESS</h3>
+            <p>A separate test character with Stage 20 completed, all 16 shared spells, ten equipped slots and both AI Styles unlocked. Replay any Stage without changing your normal saves.</p>
+          </div>
+        </div>
+        <p class="dev-origin-note">Evolutions, companion Build editor, Synergies and Rift Expedition are still in development. Completing Stage 20 here does not activate features that have not been built.</p>
+        <div class="dev-origin-controls">
+          <label for="game-dev-origin-role">TEST ORIGIN
+            <select id="game-dev-origin-role">
+              <option value="healer">GENESIS · VITAL</option>
+              <option value="melee">IMPACT · KINETIC</option>
+              <option value="caster">ECLIPSE · CRYO</option>
+            </select>
+          </label>
+          <button type="button" class="hub-primary" id="game-dev-create-origin">CREATE / RESET TEST ORIGIN</button>
+        </div>
+        <div class="dev-origin-controls dev-origin-play">
+          <label for="game-dev-stage-select">REPLAY ENCOUNTER
+            <select id="game-dev-stage-select" aria-label="Choose a Stage from 1 to 20 for development testing"></select>
+          </label>
+          <button type="button" class="header-button" id="game-dev-open-origin" disabled>OPEN TEST ORIGIN HUB</button>
+          <button type="button" class="hub-primary" id="game-dev-play-stage" disabled>PLAY SELECTED STAGE →</button>
+        </div>
+        <p id="game-dev-origin-status" class="dev-origin-status" role="status" aria-live="polite">No DEV Test Origin created yet.</p>
+      </section>
       <div class="dev-lab-grid">
         <a class="dev-lab-card" href="./energy-vfx-lab.html">
           <span class="dev-lab-glyph">✧</span><strong>VISUAL VFX LAB</strong>

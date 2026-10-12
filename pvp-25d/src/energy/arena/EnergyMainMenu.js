@@ -4,97 +4,224 @@ import { EnergyJourneyRoadmap } from "./EnergyJourneyRoadmap.js?v=20261012-journ
 const $=id=>document.getElementById(id);
 const PAGES=[
   {
-    title:"WELCOME TO PROJECT ENERGY",chapter:"01 / THE BIG IDEA",
-    intro:"You control an energy orb, learn your spells through Planet Defense and choose between wave survival and tactical arena battles.",
-    steps:[
-      ["BUILD","Choose the spells and Evolutions that fit your playstyle."],
-      ["FIGHT","Move, aim, cast and use cover to survive."],
-      ["GROW","Clear new Journey planets, discover spells from all five disciplines and unlock Evolutions."]
-    ],tip:"New Origins begin with two bound spells. Your first planet clear grants a choice from all five disciplines.",
-    art:"arena",caption:"An arena is a small battlefield. Positioning and obstacles matter."
+    "title": "VÄLKOMMEN TILL PROJECT ENERGY",
+    "chapter": "01 / VAD ÄR SPELET?",
+    "intro": "Project Energy är ett singleplayer-actionspel om levande energivarelser. Skapa din egen Origin och slåss i realtid tillsammans med två AI-kompisar mot vågor av fiender.",
+    "steps": [
+      [
+        "DIN EGEN ENERGIVARELSE",
+        "Du styr ett levande klot med egna spells, utseende och en tydlig energiidentitet."
+      ],
+      [
+        "ETT LAG PÅ TRE",
+        "Dina två AI-kompisar slåss, skyddar och hjälper dig under varje Planet Defense."
+      ],
+      [
+        "BYGG NÅGOT UNIKT",
+        "Välj nya spells, skapa oväntade kombinationer och forma din personliga spelstil."
+      ]
+    ],
+    "tip": "Börja med en Origin som känns rolig. Du behöver inte förstå hela byggsystemet direkt.",
+    "art": "vision",
+    "caption": "En Origin, två AI-kompisar och intensiva strider mot levande energifiender."
   },
   {
-    title:"CHOOSE YOUR ORIGIN",chapter:"02 / YOUR ORIGIN",
-    intro:"Name your planet and choose its Origin: Genesis, Impact or Eclipse. Each Origin gives you two fixed starting spells and a unique passive.",
-    steps:[
-      ["GENESIS","Restore health and protect allies. Start with Pulse Mend and Resonance Guard."],
-      ["IMPACT","Rush into melee with Phase Rush, then keep attacking with instant Arc Strike. Pulse Sever remains a shared interrupt you can equip later."],
-      ["ECLIPSE","Fight from range and escape danger. Start with Flux Bolt and Phase Slip."]
-    ],tip:"Origins shape your starting strengths, not your entire build. All five energy disciplines remain available.",
-    art:"roles",caption:"Genesis, Impact and Eclipse have different starting strengths. Your later spells are up to you."
+    "title": "VÄLJ DIN ORIGIN",
+    "chapter": "02 / TRE SÄTT ATT BÖRJA",
+    "intro": "När du skapar en Origin väljer du namn och grundidentitet. Varje Origin börjar med två permanenta spells från samma energidisciplin. De två kan inte bytas ut.",
+    "steps": [
+      [
+        "GENESIS · VITAL",
+        "En stödjande Origin med Pulse Mend och Resonance Guard. Healing och skydd är din styrka."
+      ],
+      [
+        "IMPACT · KINETIC",
+        "En aggressiv närstrids-Origin med Phase Rush och Arc Strike. Gå nära, rör dig snabbt och slå hårt."
+      ],
+      [
+        "ECLIPSE · CRYO",
+        "En kontrollerande distans-Origin med Crystal Bolt och Crystal Snare. Sakta ner och lås fast fiender."
+      ]
+    ],
+    "tip": "Din Origin avgör hur du börjar – inte vilka energidiscipliner du får använda senare.",
+    "art": "origins",
+    "caption": "Genesis = Vital · Impact = Kinetic · Eclipse = Cryo."
   },
   {
-    title:"BUILD YOUR SPELL KIT",chapter:"03 / THE EVOLUTION TREE",
-    intro:"New Origins begin with two bound spells. Each first-clear Planet Defense victory lets you discover another shared spell for your library.",
-    steps:[
-      ["INNER RING","Your actual earned spells surround your Origin. New Journey builds begin with exactly two."],
-      ["OUTER RING","Future spells remain visible but unlock at campaign milestones; all five disciplines are available from the start."],
-      ["REPLACE","Inspect a pool spell and swap it with one of your unlocked shared spells."]
-    ],tip:"Your two Origin spells stay bound. You can equip discovered shared spells after you earn them.",
-    art:"loadout",caption:"Your Journey starts with the two Origin-bound spells. The bright inner ring grows as you earn discoveries."
+    "title": "SÅ FUNGERAR STRIDEN",
+    "chapter": "03 / REALTID OCH SAMARBETE",
+    "intro": "Du styr din egen Origin direkt. Dina två lagkamrater sköts av AI och har egna spells. Positionering, rätt mål och tajming avgör när laget överlever.",
+    "steps": [
+      [
+        "RÖRELSE OCH MÅL",
+        "Rör dig med W, A, S, D. Klicka för att välja mål eller använd Tab för att växla mellan fiender."
+      ],
+      [
+        "DINA SPELLS",
+        "Använd 1–0 för actionbarens spells. F1–F3 hjälper dig att välja dig själv och dina allierade."
+      ],
+      [
+        "SPELSTIL",
+        "Attackera, heala, skydda, kontrollera och flytta dig bort från farliga attacker."
+      ]
+    ],
+    "tip": "Du behöver inte styra AI-kompisarna i strid. De använder sina egna förmågor automatiskt.",
+    "art": "combat",
+    "caption": "Din Origin slåss tillsammans med AI-laget medan spells, mål och rörelse styrs i realtid."
   },
   {
-    title:"EVOLVE YOUR ORIGIN",chapter:"04 / JOURNEY MILESTONES",
-    intro:"Journey characters have no levels or spell ranks. New spells are discovered through first-time Planet Defense clears.",
-    steps:[
-      ["PLANET 3","Unlock Counterplay spells for the next encounter."],
-      ["PLANET 10","Evolutions are planned to change a spell's behavior, not add numerical ranks."],
-      ["PLANET 20","Synergies and Rift Expedition form the next major milestone."]
-    ],tip:"Your two Origin spells are permanent. Additional spell discoveries can come from any of the five disciplines.",
-    art:"talents",caption:"Unlock distinctive gameplay choices as your Journey advances."
+    "title": "FÖRSVARA PLANETEN",
+    "chapter": "04 / PLANET DEFENSE",
+    "intro": "Planet Defense är spelets första huvudsakliga spelläge. Varje match består av fem fiendevågor där ditt lag försöker överleva allt större hot.",
+    "steps": [
+      [
+        "FEM VÅGOR",
+        "Varje våg har en egen sammansättning av fiender. Ibland krävs taktik, ibland gäller det att hantera riktigt mycket kaos."
+      ],
+      [
+        "NYA HOT",
+        "Olika fiender kan pressa dig på olika sätt. Förberedelser och val av spells blir viktigare längre in i kampanjen."
+      ],
+      [
+        "VINN TILLSAMMANS",
+        "Alla tre lagmedlemmar kan bidra. Skydda varandra, kontrollera farliga fiender och få ut maximalt av era spells."
+      ]
+    ],
+    "tip": "Målet är att varje planet ska kännas annorlunda – utan att varje match måste ha en helt ny boss.",
+    "art": "waves",
+    "caption": "Fem vågor, ett lag och fiender som blir fler och mer krävande."
   },
   {
-    title:"SYNERGIES · COMING LATER",chapter:"05 / LONG-TERM DISCOVERIES",
-    intro:"Synergies will unlock through the Journey instead of an arbitrary Character Level. This feature is not active for new Journey Origins yet.",
-    steps:[
-      ["PLANET 20","The proposed milestone for Synergies and Rift Expedition."],
-      ["SPELL PAIRS","Eventually discover combinations of your Origin spells with shared energy disciplines."],
-      ["PREVIEW","Existing legacy Forge systems remain available to older saved builds."]
-    ],tip:"The spell-library Journey and the Forge migration are deliberately separate development passes.",
-    art:"singularity",caption:"Combine energy disciplines after the relevant systems become available."
+    "title": "DIN JOURNEY",
+    "chapter": "05 / 20 PLANETER ATT KLARA",
+    "intro": "Project Energy har inga vanliga levels eller spell ranks för nya Origins. I stället växer du genom att klara planeter i en Journey med 20 hexagoner.",
+    "steps": [
+      [
+        "TRYCK PLAY",
+        "Öppna Journey Roadmap, välj nästa tillgängliga hexagon och tryck Play för att starta Planet Defense."
+      ],
+      [
+        "MARKERADE SEGRAR",
+        "En planet får en grön bock när du klarat den för första gången. Då öppnas nästa steg."
+      ],
+      [
+        "NYTT INNEHÅLL",
+        "Längs vägen öppnas fler spell-val. Framtida milstolpar visar också AI Styles, Evolutions och nya utmaningar."
+      ]
+    ],
+    "tip": "En ny spell väljs efter en första seger. Du kan inte hoppa förbi kommande planeter.",
+    "art": "journey",
+    "caption": "Hexagonerna visar din resa. Grönt betyder avklarat; nästa planet är markerad."
   },
   {
-    title:"READ THE BATTLE",chapter:"06 / IN THE ARENA",
-    intro:"Watch health, your Flux resource, targets and cooldowns. Choose when to attack, protect or reposition.",
-    steps:[
-      ["TARGET","Click an orb to target it, or press Tab to cycle enemies."],
-      ["CAST","Use keys 1–0 for the ten ability slots as they unlock."],
-      ["SURVIVE","Move behind arena obstacles to break line of sight and avoid attacks."]
-    ],tip:"Your allies keep fighting even when you are not controlling them.",
-    art:"combat",caption:"The fight is real-time. The arena, target and action bar guide decisions."
+    "title": "UPPTÄCK OCH BYGG SPELLS",
+    "chapter": "06 / EVOLUTION TREE",
+    "intro": "Du börjar med två bundna spells. Efter nya Planet Defense-segrar upptäcker du permanenta spells från fem discipliner: Void, Solar, Cryo, Kinetic och Vital.",
+    "steps": [
+      [
+        "LYSANDE SPELLS",
+        "Efter en vinst lyser de tillgängliga spellsen upp i Evolution Tree. Klicka på dem för att läsa vad de gör."
+      ],
+      [
+        "VÄLJ EN PERMANENT",
+        "Bekräfta ditt val i Selected Spell-panelen. Du får exakt en ny spell per första planetseger."
+      ],
+      [
+        "SKAPA DIN BUILD",
+        "Du kan få totalt tio aktiva spells: dina två bundna plus upp till åtta delade. Spara dina favoritkombinationer som Build Presets."
+      ]
+    ],
+    "tip": "Du får välja mellan alla fem energidiscipliner från första spell-belöningen, oavsett Origin.",
+    "art": "spells",
+    "caption": "Tillgängliga nya spells glöder i yttersta ringen; ett val blir permanent."
   },
   {
-    title:"LEARN THE CONTROLS",chapter:"07 / QUICK CONTROLS",
-    intro:"A few simple keys cover the most important parts of the game.",
-    steps:[
-      ["W A S D","Move your orb around the battlefield."],
-      ["1 THROUGH 0","Cast spells from your action bar."],
-      ["TAB / F1–F3","Cycle enemies with Tab. Select friendly targets with F1, F2 and F3."]
-    ],tip:"Only abilities you've unlocked can be used in combat.",
-    art:"controls",caption:"These are the currently implemented keyboard controls."
+    "title": "ÖVERLADDA DIN MATCH",
+    "chapter": "07 / OVERCHARGES",
+    "intro": "Mellan vågorna erbjuds Overcharges – tillfälliga förstärkningar som gör varje Planet Defense-match mer oförutsägbar, effektfull och rolig.",
+    "steps": [
+      [
+        "FYRA ERBJUDANDEN",
+        "Två kort förstärker dig. Ett kort förstärker den ena AI-kompisen och ett förstärker den andra."
+      ],
+      [
+        "VÄLJ EXAKT ETT",
+        "Du väljer bara ett av de fyra korten efter varje vågpaus. Totalt kan du samla fyra Overcharges under en match."
+      ],
+      [
+        "SKAPA KAOS",
+        "Till exempel kan Comet Rain få extra energiattacker att falla över fiender. Andra Overcharges förstärker healing, skydd eller närstrid."
+      ]
+    ],
+    "tip": "Overcharges försvinner efter matchen. Dina permanenta upptäckta spells finns däremot kvar i din Origin.",
+    "art": "overcharges",
+    "caption": "Två val för dig och ett för vardera AI-kompisen. Välj ett kort per paus."
   },
   {
-    title:"CHOOSE YOUR BATTLE",chapter:"08 / PLANET DEFENSE",
-    intro:"Your active Journey follows a 20-planet roadmap. Completing each new planet for the first time advances your Origin.",
-    steps:[
-      ["PLANET DEFENSE","Five waves alongside two AI companions, using only your earned spells."],
-      ["BETWEEN WAVES","Choose temporary buffs for this match; the four-card ally-aware Overcharge system is being developed."],
-      ["AFTER THE WIN","Return to HUB to claim your permanent spell discovery from all eligible energy disciplines."],
-      ["JOURNEY HEXES","Only your next available hex starts a new first-clear encounter. Completed hexes receive green ticks."],
-      ["PVP TESTS","Existing 1v1, 2v2 and 3v3 prototypes remain in development access. PvP progression has not been decided."]
-    ],tip:"The new Journey does not award XP or spell ranks. Older Origins keep their historical progression until migration.",
-    art:"modes",caption:"One campaign path, two AI companions and a growing spell library."
+    "title": "EVOLUTIONS OCH BUILDS",
+    "chapter": "08 / FÖRDJUPA DIN ORIGIN",
+    "intro": "Evolution Tree visar inte bara vilka spells du äger. Det visar också möjliga utvecklingsvägar för varje spell – så att samma förmåga längre fram kan få olika användningsområden.",
+    "steps": [
+      [
+        "UTFORSKA VÄGAR",
+        "Klicka på en Evolution för att läsa vad den kan göra, även när den är låst."
+      ],
+      [
+        "PLANET 10 · PLANERAT",
+        "Evolutions är tänkta att låsas upp genom Journey och ändra hur spells fungerar – inte bara öka en siffra."
+      ],
+      [
+        "BUILD PRESETS",
+        "Du kan spara och återvända till olika spell-kombinationer i HUB. Du behöver inte bygga allt från början varje gång."
+      ]
+    ],
+    "tip": "Evolution-valen går redan att förhandsgranska. Den permanenta upplåsningen utvecklas fortfarande.",
+    "art": "evolutions",
+    "caption": "Ett spellträd med olika framtida Evolution-vägar, utan gamla Rank 1–3."
   },
   {
-    title:"KEEP EXPERIMENTING",chapter:"09 / YOUR NEXT STEPS",
-    intro:"There are no levels in the new Journey. Each first-clear planet makes a tangible part of your Origin's toolkit available.",
-    steps:[
-      ["DISCOVER SPELLS","Choose an owned shared spell from the five disciplines after a new planet is cleared."],
-      ["BUILD YOUR KIT","Your ten active slots are two bound Origin spells plus up to eight discovered shared spells."],
-      ["AI TEAM","Companion styles are planned after Planet 5 and their optional build editors after Planet 15."],
-      ["OTHER ORIGINS","You can create or resume more Origins. They have separate campaign progress and spell libraries."]
-    ],tip:"An unfinished first-clear spell reward stays saved until you choose. There is no need to perfect the first build.",
-    art:"progress",caption:"A connected campaign with spell discoveries and team milestones."
+    "title": "LÄR KÄNNA DITT LAG",
+    "chapter": "09 / DINA AI-KOMPISAR",
+    "intro": "Dina två AI-kompisar har egna roller och energityper. De syns som animerade klot under ditt stora Evolution Tree i HUB och följer med på varje Planet Defense.",
+    "steps": [
+      [
+        "ALLTID TVÅ ALLIERADE",
+        "Om du spelar Eclipse följer Genesis och Impact med. Väljer du en annan Origin får du de två övriga som AI-kompisar."
+      ],
+      [
+        "PLANET 5 · PLANERAT",
+        "AI Styles ska låta dig påverka hur aggressivt, skyddande eller kontrollerande en kompis spelar."
+      ],
+      [
+        "PLANET 15 · PLANERAT",
+        "AI Builds ska ge möjlighet att anpassa deras spells. Färdiga builds ska fungera även om du inte vill ändra något."
+      ]
+    ],
+    "tip": "AI-kompisarna får inga egna Journey-kartor. Deras inställningar låses upp på din Origins resa.",
+    "art": "companions",
+    "caption": "Du i centrum av striden; två självständiga AI-kompisar som du senare kan forma."
+  },
+  {
+    "title": "DET HÄR ÄR BARA BÖRJAN",
+    "chapter": "10 / FRAMTIDEN",
+    "intro": "Project Energy byggs fortfarande. Målet är att spelet ska vara enkelt att komma in i, fullt av färgstarka spells och djupt nog för att du ska vilja experimentera länge.",
+    "steps": [
+      [
+        "PLANET 20 · MÅL",
+        "Synergies och Rift Expedition är planerade som större upplåsningar längre fram i Journey."
+      ],
+      [
+        "MER SAMSPEL",
+        "Fler fiender, kombinationer och smartare AI-lagkamrater ska göra PvE-kampanjen rikare med tiden."
+      ],
+      [
+        "DIN UPPLEVELSE",
+        "Testa olika Origins, prova oväntade spell-kombinationer och berätta gärna vad som är kul – eller borde bli bättre."
+      ]
+    ],
+    "tip": "Det du spelar nu är en utvecklingsversion. Vissa knappar och milstolpar är medvetet låsta tills de är färdiga.",
+    "art": "future",
+    "caption": "Nya planeter, djupare synergier och Rift Expedition väntar längre fram."
   }
 ];
 function artMarkup(name){

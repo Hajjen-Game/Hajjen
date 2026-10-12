@@ -1,15 +1,15 @@
 // Energy Arena character home, onboarding and visual talent/evolution workbench.
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
-import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261011-identity13";
+import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
-  spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261011-identity13";
-import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261012-journey3";
-import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261012-journey3";
+  spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261012-eclipse-oc1";
+import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261012-eclipse-oc1";
+import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261012-eclipse-oc1";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
-  from "./EnergySingularity.js?v=20261011-identity13";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-journey3";
-import {readJourney,eligibleJourneySpells,claimJourneySpell} from "./EnergyJourneyCampaign.js?v=20261012-journey3";
+  from "./EnergySingularity.js?v=20261012-eclipse-oc1";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-eclipse-oc1";
+import {readJourney,eligibleJourneySpells,claimJourneySpell} from "./EnergyJourneyCampaign.js?v=20261012-eclipse-oc1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const $=id=>document.getElementById(id);

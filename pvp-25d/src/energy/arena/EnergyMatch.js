@@ -212,7 +212,8 @@ export class EnergyMatch {
       "Arena: "+(this.arena.name||this.arena.id||"The Grand Ring"),
       "Time: "+this.time.toFixed(1)+"s | Dampening: "+Math.round(this.dampening*100)+"%",
       "Result: "+(this.ended?(this.winner==="friendly"?"VICTORY":"DEFEAT"):"IN PROGRESS"),
-      "Mode: "+this.mode.label+" ("+this.mode.size+") | Level "+this.progressLevel
+      "Mode: "+this.mode.label+" ("+this.mode.size+") | "+
+        (this.journey?"Stage "+Math.min(20,this.journey.clears+1):"Level "+this.progressLevel)
         +" | Enemy damage ×"+this.tuning.damage.toFixed(2)+" | Enemy healing ×"+this.tuning.healing.toFixed(2),
       "Last damage: "+(this.time-this.lastDamageAt).toFixed(1)+"s ago",
       "Player role: "+this.player.role+" | Ability slots: "+this.loadout.abilitySlots.map(s=>s.id).join(", "),
@@ -226,7 +227,8 @@ export class EnergyMatch {
         const distanceToTarget=t?Math.round(distance(a,t)):"—";
         const los=t?hasLineOfSight(a,t,this.arena):false;
         lines.push(
-          a.name+" ["+a.role+" / "+a.control+"]"+
+          a.name+" ["+a.role+" / "+a.control+
+          (a.aiStyle?" / STYLE "+a.aiStyle.toUpperCase():"")+"]"+
           " | "+(a.alive?"ALIVE":"DEAD")+" HP "+Math.ceil(a.hp)+"/"+a.maxHp
           +" Flux "+Math.round(a.flux)
           +" | Position ("+Math.round(a.x)+","+Math.round(a.y)+")"

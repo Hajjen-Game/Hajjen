@@ -97,13 +97,17 @@ export class EnergyPlanetDefense extends EnergyMatch{
     if(!identity)return false;
     const role=identity.role;
     const order=this.waveSpawned++;
-    const center=this.player;
+    // Expedition guardians occupy a particular sector; they do not wander
+    // the entire route by spawning around whichever way the player kites.
+    const center=this.arena.mode==="rift"?
+      this.arena.route?.[this.wave-1]?.center||this.player:this.player;
     const allies=this.living("friendly");
     // Enemies appear off-centre in the wide world, not at old PvP spawns.
     // During a long expedition the team can roam; spawns travel with it.
     const angle=SPAWN_ANGLES[(order+this.wave*2)%SPAWN_ANGLES.length];
     let pos=null;
-    for(const radius of [495,425,570,350,640]){
+    for(const radius of (this.arena.mode==="rift"?
+      [210,280,335,165,395]:[495,425,570,350,640])){
       for(const offset of [0,.35,-.35,.75,-.75]){
         const t=angle+offset;
         const candidate={x:center.x+Math.cos(t)*radius,

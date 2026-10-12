@@ -97,7 +97,9 @@ export class EnergyPlanetDefense extends EnergyMatch{
     this.ai.planTick=0;
     this.spawnNext();
     this.log("WAVE "+this.wave+" / "+DEFENSE_WAVES+" · "+
-      this.currentWave.name+" · "+this.encounter.stage+" (LEVEL "+this.progressLevel+")");
+      this.currentWave.name+" · "+this.encounter.stage+
+      (this.journey?" (PLANET "+Math.min(20,this.journey.clears+1)+")":
+        " (LEVEL "+this.progressLevel+")"));
     this.emit({type:"wave-start",wave:this.wave,waveName:this.currentWave.name,
       encounterTier:this.encounter.tier,encounterStage:this.encounter.stage,
       waveFocus:this.currentWave.focus});

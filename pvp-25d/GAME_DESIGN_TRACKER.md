@@ -19,6 +19,15 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
+## HUB polish and Eclipse Origin starting-discipline correction (2026-10-12)
+
+**Implemented and tested in GitHub:**
+- Moved **Build Presets** from the right details column to the **left, directly below Your Spells**, keeping one set of three save slots and the existing New Build / Reset Talents buttons. Journey preset saves do not auto-fill a full legacy kit; loading older presets strips unearned shared spells and old Rank/Evolution settings from new Journey characters.
+- **Journey Evolutions remain LOCKED, but are now readable and clickable as previews**. Clicking any Evolution satellite in the central tree, or one of the three right-hand Evolution cards, focuses its description and explicit lock status. No Evolution gets selected, saved or granted before the actual Planet 10 implementation. Legacy Rank-based Evolutions retain their previous behavior.
+- Tested: HTML ID integrity, correct left-column location, browser import/cache strings, JavaScript syntax, three working clickable Journey Evolution cards, satellite selection, correct unlock guard, Journey preset save and prevention of importing an unearned spell.
+
+**Pending user confirmation — do not invent an Eclipse starter spell:** User confirmed **each Origin's two bound starting spells must come from the same energy discipline**, including Eclipse. Genesis (Pulse Mend + Resonance Guard) is Vital/Vital; Impact (Phase Rush + Arc Strike) is Kinetic/Kinetic. The previously implemented Eclipse pair **Flux Bolt (Solar) + Phase Slip (Void)** conflicts with this requirement. Historical records show this pair was introduced in code, but do not identify a separately agreed same-discipline replacement pair. Need the user's exact chosen Eclipse starter discipline/spell pair before modifying mechanics, VFX, the shared spell pool, or existing saves. **Eclipse starter categories are not yet corrected in code.**
+
 ## IMPLEMENTED — Journey v2 foundation and two-spell Origin fix (2026-10-12)
 
 **Status: FIRST LIVE PROGRESSION SLICE; browser gameplay review still pending.** [Roadmap 1.1](PROGRESSION_ROADMAP_1_1.md) remains the complete target design; this is not a claim that all of its milestones are implemented.

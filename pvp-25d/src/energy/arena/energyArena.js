@@ -657,7 +657,12 @@ menu=new EnergyMainMenu({
 });
 $("change-build").textContent="RETURN TO HUB";
 $("change-build").addEventListener("click",()=>showGate(false));
-$("restart-match").addEventListener("click",()=>{if(selectedBuild)start(selectedBuild);});
+$("restart-match").addEventListener("click",()=>{
+  // Journey planets are selected explicitly through the hex map. Never let
+  // RESTART bypass an unclaimed discovery or advance without hex selection.
+  if(readJourney(profile)){showGate(false);return;}
+  if(selectedBuild)start(selectedBuild);
+});
 // A direct link back from old Build Lab still opens the HUB. All normal visits
 // start at the new main menu rather than opening a 3D WebGL scene behind it.
 const pageParams=new URLSearchParams(window.location.search);

@@ -2,8 +2,8 @@
 // turrets or permanent changes to the player's equipped spells.
 // Wave Resonances are transient and are offered ONLY after each completed wave.
 import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
-  from "./EnergyMatch.js?v=20261011-encounters1";
-import { botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
+  from "./EnergyMatch.js?v=20261012-journey1";
+import { botAbilities } from "./EnergyProgression.js?v=20261012-journey1";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-orbfix15";
 import { buildPlanetEncounters, PVE_ENEMY_ARCHETYPES, ENCOUNTER_SPELLS }
@@ -60,9 +60,18 @@ export class EnergyPlanetDefense extends EnergyMatch{
   get totalWaveEnemies(){return (this.currentWave?.enemies.length||0)+this.summonedThisWave;}
   get waveRemaining(){return this.spawnQueue.length+this.living("enemy").length;}
   resonanceChoices(){
-    return defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
+    const choices=defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
+    // Never show Rank 1–3, Talent Point or level-gated trials to new Origins.
+    // Existing temporary PvE enchantments remain playable until Overcharges.
+    return this.journey?choices.filter(choice=>choice.kind==="enchantment"):choices;
   }
-  trialLesson(){return trialLesson(this.progressLevel,this.waveIntermission);}
+  trialLesson(){
+    return this.journey?{
+      title:"TEMPORARY ENERGY BOOST",
+      intro:"Choose one temporary boost for the next waves. Permanent spells are discovered after completing a planet, not during waves.",
+      why:"This temporary boost expires at the end of Planet Defense. Overcharges for your companions are coming in the next pass."
+    }:trialLesson(this.progressLevel,this.waveIntermission);
+  }
   resonanceTier(id){return this.resonances[id]||0;}
   beginWave(){
     if(this.wave>=DEFENSE_WAVES||this.ended)return;

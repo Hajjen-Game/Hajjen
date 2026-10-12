@@ -45,7 +45,7 @@ export class EnergyJourneyRoadmap{
   }
   build(){
     this.map.replaceChildren();
-    this.map.setAttribute("aria-label","20 Planet Defense Journey hexes. Select the next available planet.");
+    this.map.setAttribute("aria-label","20 Planet Defense Journey hexes. Select the next available Stage.");
     const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
     svg.classList.add("journey-route");
     svg.setAttribute("viewBox","0 0 1000 800");
@@ -66,7 +66,7 @@ export class EnergyJourneyRoadmap{
       button.style.left=spot.x+"%";button.style.top=spot.y+"%";
       button.dataset.hex=String(hex.step);
       button.setAttribute("aria-label",
-        "Planet Defense step "+hex.step+", "+hex.title+
+        "Stage "+hex.step+", "+hex.title+
         ". See your active Origin's Journey status.");
       const face=document.createElement("span");face.className="journey-hex-face";
       const number=document.createElement("small");number.textContent=String(hex.step).padStart(2,"0");
@@ -99,8 +99,8 @@ export class EnergyJourneyRoadmap{
     // Never infer clear history from old .wins or XP: those mix several modes.
     const clears=this.clears;
     this.summary.textContent=this.tracked?
-      "PLANET DEFENSE · "+clears+" / 20 CLEARED":
-      "PLANET DEFENSE · LEGACY PREVIEW · NO VERIFIED CLEARS";
+      "JOURNEY · "+clears+" / 20 CLEARED":
+      "JOURNEY · 0 / 20 CLEARED";
     for(const hex of JOURNEY_STEPS){
       const button=this.buttons.get(hex.step);
       button.classList.toggle("completed",hex.step<=clears);
@@ -111,7 +111,7 @@ export class EnergyJourneyRoadmap{
       button.setAttribute("aria-pressed",String(this.armed&&hex.step===this.selected));
       button.querySelector(".journey-hex-symbol").textContent=
         hex.step<=clears?"✓":glyphs[hex.kind];
-      button.setAttribute("aria-label","Planet Defense step "+hex.step+" — "+hex.title+
+      button.setAttribute("aria-label","Stage "+hex.step+" — "+hex.title+
         "; "+(hex.step<=clears?"completed":hex.step===clears+1?"next planned":"future")+
         "; "+(button.disabled?"locked":"selectable")+"; "+(this.tracked?"Journey campaign":"legacy preview")+".");
     }
@@ -120,9 +120,9 @@ export class EnergyJourneyRoadmap{
     const heading=document.createElement("div");
     heading.className="journey-detail-heading";
     const number=document.createElement("span");
-    number.textContent="PLANET "+String(hex.step).padStart(2,"0")+" / 20";
+    number.textContent="STAGE "+String(hex.step).padStart(2,"0")+" / 20";
     const state=document.createElement("span");
-    state.textContent=hex.step<=clears?"✓ PLANET CLEARED":
+    state.textContent=hex.step<=clears?"✓ STAGE CLEARED":
       this.armed?"SELECTED · READY TO PLAY":
       hex.step===clears+1?"NEXT AVAILABLE · SELECT THE HEX":"FUTURE MILESTONE";
     heading.append(number,state);
@@ -130,7 +130,7 @@ export class EnergyJourneyRoadmap{
     const description=document.createElement("p");description.textContent=hex.description;
     const note=document.createElement("small");
     note.textContent=this.tracked?
-      "This Origin's first-clear progress is saved. Completing the next planet will advance the path; permanent spell discoveries are claimed in HUB.":
+      "This Origin's first-clear progress is saved. Completing the next Stage will advance the path; permanent spell discoveries are claimed in HUB.":
       "Legacy Origin preview: old XP or PvP wins do not count as hex clears. Existing saves are untouched.";
     this.detail.append(heading,title,description,note);
   }

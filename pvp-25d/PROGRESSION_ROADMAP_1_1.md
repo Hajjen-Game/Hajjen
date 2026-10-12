@@ -65,7 +65,17 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 - Clicking self opens the main spell library and evolution tree. Clicking a companion after #5 exposes **STYLE**; after #15 also **BUILD**. Returning to self remains effortless.
 - Companion presence is also identifiable during Planet Defense via existing friendly health/cast frames and role labels; player is visually the focal point. Player's larger graphic must not increase collision radius, targeting hitbox or AI melee range accidentally.
 
-## AI behavior style unlock (proposed: reward of clear #5)
+## IMPLEMENTED — AI Styles 1.0 (unlock after Stage 5)
+
+**Live Stage-5 behavior pass:** each new Journey Origin saves a `companionStyles` selection for each of its two companion roles. HUB companion cards unlock their STYLE button after five first-clear Stages. Players may independently select Balanced, Aggressive, Protective or Disruptive; all default to Balanced. Each choice persists across matches and Origin switching. The selection is passed to the correct friendly AI actor, never to the human player or enemy bots. No new companion XP, extra progression maps or passive +% HP/damage modifiers.
+
+- **Aggressive:** follows player focus, seeks vulnerable enemies and pursues offensive openings with closer ranged movement; emergency healing remains safe.
+- **Protective:** prioritizes attackers near wounded allies, shields earlier, heals sooner and repositions more cautiously.
+- **Disruptive:** focuses Channelers and active wind-ups, reacts sooner and attempts interrupts/control when those actual spells are available.
+- **Balanced:** remains the baseline team planner with balanced target choice, defensive triage and pressure.
+- **Safety/QA:** old XP/Rank Origins can be discarded by the roster loader per user approval; existing Journey Origins are kept with their owned spells, completed Stages and saved styles. UI lock, two independent style choices, save round-trip, actual distinct combat decisions, AI style report and match wiring were exercised in simulated JS tests. Browser visual review and tactical balance still needed.
+
+### Original design intent (retained for context)
 
 **Recommend only FOUR clear behavior presets initially** (default + three purposeful alternatives). Both allies can choose independently. Switch at HUB for free before each planet, and let chosen styles persist per Origin's team.
 
@@ -162,7 +172,7 @@ Vary enemy counts, spawn directions, timing, spacing, environment or hazard dens
 
 1. **Overcharge selection — CONFIRMED:** Four cards between each wave; two for player, one per AI; select exactly ONE. This is not an open balance question.
 2. **Terminology:** Use **Overcharges** for this run-only PvE buff system in the new design. Individual buff names/effects remain to be developed.
-3. **AI style set:** four role-aware styles (Balanced/Aggressive/Protective/Disruptive) proposed for first release. Validate that every role actually exhibits different behavior.
+3. **AI style set — IMPLEMENTED:** Balanced/Aggressive/Protective/Disruptive now change actual companion target/triage/cast/movement decisions and save per Origin after Stage 5. Continue live playtesting role distinctions and pathing.
 4. **AI build access at 15:** curated defaults remain automatic; how far to allow changing their class-bound spells/Evolutions is TBD.
 5. **Progression pace:** initial 20-hex plan, 1–16 spell rewards and 17–19 alternate rewards to tune via real playtesting.
 6. **Synergy Tree:** only if deeper tree changes gameplay meaningfully rather than simply increases stats; remains optional.

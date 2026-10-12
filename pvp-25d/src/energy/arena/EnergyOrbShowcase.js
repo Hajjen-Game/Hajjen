@@ -42,12 +42,18 @@ export class EnergyOrbShowcase{
     this.visible=true;
     this.failed=false;
     this.firstFrame=false;
+    this.lastCompactFrame=0;
     this.resizeObserver=typeof ResizeObserver==="function"?new ResizeObserver(()=>this.engine.resize()):null;
     this.resizeObserver?.observe(canvas);
     this.engine.runRenderLoop(()=>{
       if(!this.visible||this.failed||this.canvas.clientWidth===0||this.canvas.clientHeight===0)return;
       try{
-        this.renderFrame(performance.now());
+        const now=performance.now();
+        // Small previews run at ~30 FPS and reduced resolution; prioritize
+        // the hero's large interactive 3D Evolution Tree.
+        if(this.companionRole&&now-this.lastCompactFrame<33)return;
+        if(this.companionRole)this.lastCompactFrame=now;
+        this.renderFrame(now);
       }catch(error){
         // Do not silently leave an empty hero portrait if Babylon or a
         // polish layer fails. One explicit diagnostic, no console spam.

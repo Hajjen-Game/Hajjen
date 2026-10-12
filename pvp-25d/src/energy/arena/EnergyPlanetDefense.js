@@ -278,7 +278,9 @@ export class EnergyPlanetDefense extends EnergyMatch{
       if(!this.journey||this.overcharges.length!==this.resonancesChosen||
         this.resonancesChosen>=DEFENSE_WAVES-1)return false;
       const recipient=this.getActor(choice.targetId);
-      if(!recipient||recipient.team!=="friendly"||!recipient.alive)return false;
+      // A companion that fell during the wave will be revived below.
+      // It must still be eligible for a healing/damage Overcharge.
+      if(!recipient||recipient.team!=="friendly")return false;
       this.overcharges.push({targetId:recipient.id,effect:choice.effect,
         wave:this.wave,grantedAt:this.time});
     }else if(choice.kind==="mastery"){

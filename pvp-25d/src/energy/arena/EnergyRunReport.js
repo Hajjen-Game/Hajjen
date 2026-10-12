@@ -167,6 +167,23 @@ export function formatEnergyRunReport(match){
     "PvE Enchantments: "+(Object.entries(match.resonances||{})
       .map(([id,tier])=>id+" tier "+tier).join(" · ")||"none")
   );
+  if(match.modeId==="rift")lines.push(
+    "RIFT EXPEDITION 1.0 · "+safe(match.arena?.name)+
+      " · sector "+safe(match.wave)+"/5 · current "+safe(match.sector?.name),
+    "Rift objective: "+safe(match.objective)+" | State: "+safe(match.waveState)+
+      " | enemies defeated: "+safe(match.totalKills),
+    "Rift route: "+(match.arena?.route||[]).map((s,i)=>
+      (i+1)+" "+s.name).join(" → "),
+    "Activated seals: "+(match.riftHistory||[]).map(entry=>
+      "sector "+entry.sector+" at "+fix(entry.time,1)+"s").join("; "),
+    "Rift boss: "+safe(match.encounter?.boss?.name)+
+      " | seed "+safe(match.encounterSeed)+
+      " | first-run reward: none (prototype)",
+    "Equipped Evolutions: "+(Object.entries(match.player?.evolutions||{})
+      .map(([id,evo])=>id+" → "+evo).join("; ")||"none"),
+    "Rift-specific events: "+history.filter(e=>String(e.type).startsWith("rift-"))
+      .map(e=>e.type+"@"+fix(e.time,1)+"s").join("; ")
+  );
   lines.push("","=== FINAL COMBAT STATS ===");
   for(const a of match.actors)lines.push(actorLine(match,a));
 

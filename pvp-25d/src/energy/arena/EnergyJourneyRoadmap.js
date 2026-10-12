@@ -1,6 +1,7 @@
-// Project Energy / Journey Roadmap 1.1 visual preview.
-// IMPORTANT: this is a READ-ONLY design prototype. Existing XP and generic
-// match wins are NOT Planet Defense campaign clears. No unlocks/save writes.
+// Project Energy / Journey Roadmap 1.1.
+// New Journey Origins have LIVE first-clear progress and permanent discoveries.
+// Legacy XP and aggregated wins are never imported as completed hexes.
+// The map reads progress provided by the active Origin; it does not write saves.
 export const JOURNEY_STEPS=Object.freeze(Array.from({length:20},(_,i)=>{
   const step=i+1;
   const events={
@@ -44,7 +45,7 @@ export class EnergyJourneyRoadmap{
   }
   build(){
     this.map.replaceChildren();
-    this.map.setAttribute("aria-label","20 Planet Defense journey hexes — preview only");
+    this.map.setAttribute("aria-label","20 Planet Defense Journey hexes. Select the next available planet.");
     const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
     svg.classList.add("journey-route");
     svg.setAttribute("viewBox","0 0 1000 800");
@@ -66,7 +67,7 @@ export class EnergyJourneyRoadmap{
       button.dataset.hex=String(hex.step);
       button.setAttribute("aria-label",
         "Planet Defense step "+hex.step+", "+hex.title+
-        ". Design preview, not yet earned.");
+        ". See your active Origin's Journey status.");
       const face=document.createElement("span");face.className="journey-hex-face";
       const number=document.createElement("small");number.textContent=String(hex.step).padStart(2,"0");
       const glyph=document.createElement("span");glyph.className="journey-hex-symbol";
@@ -112,7 +113,7 @@ export class EnergyJourneyRoadmap{
         hex.step<=clears?"✓":glyphs[hex.kind];
       button.setAttribute("aria-label","Planet Defense step "+hex.step+" — "+hex.title+
         "; "+(hex.step<=clears?"completed":hex.step===clears+1?"next planned":"future")+
-        "; "+(button.disabled?"locked":"selectable")+"; roadmap preview.");
+        "; "+(button.disabled?"locked":"selectable")+"; "+(this.tracked?"Journey campaign":"legacy preview")+".");
     }
     const hex=JOURNEY_STEPS[this.selected-1];
     this.detail.replaceChildren();

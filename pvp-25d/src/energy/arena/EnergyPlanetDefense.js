@@ -2,8 +2,8 @@
 // turrets or permanent changes to the player's equipped spells.
 // Wave Resonances are transient and are offered ONLY after each completed wave.
 import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
-  from "./EnergyMatch.js?v=20261012-evolution1";
-import { botAbilities } from "./EnergyProgression.js?v=20261012-evolution1";
+  from "./EnergyMatch.js?v=20261012-rift1";
+import { botAbilities } from "./EnergyProgression.js?v=20261012-rift1";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261012-eclipse-oc1";
 import {overchargeChoices,resolveOverchargeProcs} from "./EnergyOvercharges.js?v=20261012-eclipse-oc1";

@@ -6,6 +6,7 @@ import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
 import { botAbilities } from "./EnergyProgression.js?v=20261012-journey3";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-orbfix15";
+import {overchargeChoices,resolveOverchargeProcs} from "./EnergyOvercharges.js?v=20261012-overcharge1";
 import { buildPlanetEncounters, PVE_ENEMY_ARCHETYPES, ENCOUNTER_SPELLS }
   from "./EnergyPvEEncounters.js?v=20261012-journey-threat1";
 
@@ -48,6 +49,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
     this.waveSpawned=0;this.waveDefeated=0;this.totalKills=0;
     this.spawnClock=0;this.waveIntermission=0;
     this.resonances={};this.resonancesChosen=0;this.trialHistory=[];
+    this.overcharges=[]; // run-only actor-targeted selections, never persisted
     // Seed is saved on this match for reproducible reports/tests; production
     // runs vary the encounter order while keeping level-gated mechanics.
     this.encounterSeed=options.encounterSeed??Math.floor(Math.random()*0x7fffffff);
@@ -60,30 +62,14 @@ export class EnergyPlanetDefense extends EnergyMatch{
   get totalWaveEnemies(){return (this.currentWave?.enemies.length||0)+this.summonedThisWave;}
   get waveRemaining(){return this.spawnQueue.length+this.living("enemy").length;}
   resonanceChoices(){
-    if(this.journey){
-      // The old trial selector offers Mastery ONLY after Wave 1. Filtering
-      // those choices would leave an EMPTY intermission and soft-lock runs.
-      // Instead build usable, rankless temporary effects on EVERY wave.
-      return (WAVE_RESONANCES[this.player.role]||[])
-        .filter(e=>this.player.abilities.includes(e.spellId)&&this.resonanceTier(e.id)<3)
-        .map(e=>{
-          const tier=this.resonanceTier(e.id)+1;
-          return {id:"enchant:"+e.id+":"+tier,kind:"enchantment",
-            spellId:e.spellId,enchantmentId:e.id,tier,
-            name:e.name,label:"TEMPORARY BOOST · TIER "+tier,
-            description:e.description,
-            how:"Empower "+ABILITY_BY_ID[e.spellId].name+" for the remaining waves.",
-            unlock:"Run-only effect. Permanent spell discoveries happen after a first-clear victory.",
-            isTemporary:true};
-        });
-    }
+    if(this.journey)return overchargeChoices(this);
     return defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
   }
   trialLesson(){
     return this.journey?{
-      title:"TEMPORARY ENERGY BOOST",
-      intro:"Choose one temporary boost for the next waves. Permanent spells are discovered after completing a planet, not during waves.",
-      why:"This temporary boost expires at the end of Planet Defense. Overcharges for your companions are coming in the next pass."
+      title:"CHOOSE ONE OVERCHARGE",
+      intro:"Four offers: two for YOU, one for each AI companion. Choose exactly ONE.",
+      why:"Only the chosen teammate receives this run-only boost. Unselected cards disappear. Permanent discoveries are earned after a new planet clear."
     }:trialLesson(this.progressLevel,this.waveIntermission);
   }
   resonanceTier(id){return this.resonances[id]||0;}
@@ -266,7 +252,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
     }
   }
   reason(actor,spellId,targetId){
-    if(this.waveState==="intermission")return "CHOOSE WAVE RESONANCE";
+    if(this.waveState==="intermission")return this.journey?"CHOOSE AN OVERCHARGE":"CHOOSE WAVE RESONANCE";
     return super.reason(actor,spellId,targetId);
   }
   // In-match guided trials. The same player actor that casts in Arena receives
@@ -287,8 +273,15 @@ export class EnergyPlanetDefense extends EnergyMatch{
           " in Wave "+(this.wave+1)+".",
         unlock:"Reach Rank 3 permanently in your Character HUB to pick this Evolution."};
     }
-    if(!choice||!this.player.abilities.includes(choice.spellId))return false;
-    if(choice.kind==="mastery"){
+    if(!choice||(choice.kind!=="overcharge"&&!this.player.abilities.includes(choice.spellId)))return false;
+    if(choice.kind==="overcharge"){
+      if(!this.journey||this.overcharges.length!==this.resonancesChosen||
+        this.resonancesChosen>=DEFENSE_WAVES-1)return false;
+      const recipient=this.getActor(choice.targetId);
+      if(!recipient||recipient.team!=="friendly"||!recipient.alive)return false;
+      this.overcharges.push({targetId:recipient.id,effect:choice.effect,
+        wave:this.wave,grantedAt:this.time});
+    }else if(choice.kind==="mastery"){
       if(choice.rank===3&&ABILITY_BY_ID[choice.spellId]?.evolutions?.length)return false;
       if((this.player.talentRanks[choice.spellId]||0)>=choice.rank)return false;
       this.player.talentRanks[choice.spellId]=choice.rank;
@@ -310,10 +303,12 @@ export class EnergyPlanetDefense extends EnergyMatch{
     this.resonancesChosen++;
     this.trialHistory.push({wave:this.wave,kind:choice.kind,name:choice.name,
       spellId:choice.spellId,how:choice.how,unlock:choice.unlock});
-    this.emit({type:"resonance-chosen",actorId:"player",spellId:choice.spellId,
+    this.emit({type:"resonance-chosen",actorId:choice.kind==="overcharge"?
+      choice.targetId:"player",spellId:choice.spellId,
       resonanceId:choice.id,tier:choice.rank||choice.tier||1,
       kind:choice.kind,wave:this.wave});
-    this.log("DISCOVERY · "+choice.name+" · "+choice.label);
+    this.log((choice.kind==="overcharge"?"OVERCHARGE · ":"DISCOVERY · ")+
+      choice.name+" · "+(choice.recipient||choice.label));
     // Recover partly between rounds; fallen allies return, but a team wipe
     // during an active wave remains a loss as before.
     for(const ally of this.actors.filter(a=>a.team==="friendly")){
@@ -396,9 +391,15 @@ export class EnergyPlanetDefense extends EnergyMatch{
     const before=this.events.length;
     const primary=this.getActor(targetId);
     super.execute(actor,spellId,targetId,castContext);
-    if(actor!==this.player||this.ended||this.waveState!=="active")return;
-    // Don't proc Resonances on missed/invalid/unfinished spells.
+    if(this.ended||this.waveState!=="active")return;
+    // Procs belong to the ACTUAL casting character, including AI companions.
+    // Run-only impacts are capped and do not recursively call execute().
     const newlyEmitted=this.events.slice(before);
+    if(this.journey&&actor.team==="friendly"&&
+      newlyEmitted.some(e=>e.type==="ability"&&e.actorId===actor.id))
+      resolveOverchargeProcs(this,actor,newlyEmitted);
+    if(actor!==this.player)return;
+    // Legacy resonances still work as before on the player only.
     if(!newlyEmitted.some(e=>e.type==="ability"&&e.actorId===actor.id&&e.spellId===spellId))return;
     const validHit=newlyEmitted.some(e=>e.type==="hit"&&e.targetId===targetId&&e.spellId===spellId);
     const effectiveHeal=newlyEmitted.find(e=>e.type==="heal"&&e.spellId===spellId&&e.amount>0);
@@ -488,7 +489,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
           ally.cast=null;ally.charge=null;
         }
         this.waveState="intermission";this.waveIntermission=this.wave;
-        this.log("CHOOSE A WAVE RESONANCE TO CONTINUE");
+        this.log(this.journey?"CHOOSE ONE OF FOUR OVERCHARGES":"CHOOSE A WAVE RESONANCE TO CONTINUE");
       }
     }
   }

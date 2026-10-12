@@ -15,6 +15,8 @@ export const JOURNEY_SHARED_LIMIT=8;
 // and each milestone grants one additional active Evolution choice.
 export const JOURNEY_EVOLUTION_STAGES=Object.freeze([10,12,14,16,20]);
 export function journeyEvolutionCapacity(journey){
+  // Dev-only replays keep unlocked Evolutions even on early Stage encounters.
+  if(journey?.devTest===true)return JOURNEY_EVOLUTION_STAGES.length;
   const clears=clamp(Math.floor(Number(journey?.clears)||0),0,JOURNEY_MAX_PLANETS);
   return JOURNEY_EVOLUTION_STAGES.filter(stage=>clears>=stage).length;
 }

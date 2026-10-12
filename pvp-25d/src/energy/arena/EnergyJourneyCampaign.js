@@ -3,6 +3,7 @@
 // Each Origin has two bound spells of ONE discipline (Genesis Vital,
 // Impact Kinetic, Eclipse Cryo); only FIRST clears advance hexes.
 import {ROLES,FREE_ABILITIES,MAX_FLUX,BASE_FLUX_REGEN} from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import {normalizeCompanionStyles} from "./EnergyCompanionStyles.js?v=20261012-style1";
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const FREE_IDS=new Set(FREE_ABILITIES.map(a=>a.id));
 const EARLY=["entropy-mark","sun-lance","fracture-spear","vector-rush","reactive-thread"];
@@ -12,7 +13,7 @@ export const JOURNEY_MAX_PLANETS=20;
 export const JOURNEY_SHARED_LIMIT=8;
 export const JOURNEY_DISCOVERY=Object.freeze({early:Object.freeze(EARLY),counter:Object.freeze(COUNTER),advanced:Object.freeze(ADVANCED)});
 export function newJourney(){
-  return {version:2,clears:0,owned:[],pending:null};
+  return {version:2,clears:0,owned:[],pending:null,companionStyles:normalizeCompanionStyles(null)};
 }
 export function readJourney(profile){
   const j=profile?.journey;
@@ -32,7 +33,7 @@ export function readJourney(profile){
     const next=eligible?proposed:legacyExchange[oldId]?fallback:null;
     if(next&&owned.length<FREE_ABILITIES.length)owned.push(next);
   }
-  return {version:2,clears,owned,pending:j.pending?.kind==="spell"&&Number.isInteger(j.pending.planet)&&
+  return {version:2,clears,owned,companionStyles:normalizeCompanionStyles(j.companionStyles),pending:j.pending?.kind==="spell"&&Number.isInteger(j.pending.planet)&&
     j.pending.planet>=1&&j.pending.planet<=Math.min(16,clears)&&
     !owned.some(id=>id===j.pending.spellId)
     ?{kind:"spell",planet:j.pending.planet}:null};

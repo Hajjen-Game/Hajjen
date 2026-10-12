@@ -329,7 +329,8 @@ function renderResonances(){
   $("defense-resonance-subtitle").textContent="WAVE "+screenWave+
     " CLEARED · "+lesson.intro;
   $("defense-trial-lesson").textContent=lesson.why+
-    " · All trials reset when Planet Defense ends.";
+    (match.journey?" · All Overcharges reset after this Planet Defense run.":
+      " · All trials reset when Planet Defense ends.");
   host.replaceChildren();
   const confirm=$("defense-trial-confirm");
   confirm.disabled=!choices.length;
@@ -347,33 +348,42 @@ function renderResonances(){
       button.setAttribute("aria-pressed",String(active));
     }
     $("defense-trial-how").textContent=selected.how;
-    $("defense-trial-unlock-heading").textContent=selected.kind==="enchantment"
-      ?"PVE-ONLY · NO PERMANENT UNLOCK":"HOW TO UNLOCK IT PERMANENTLY";
+    $("defense-trial-unlock-heading").textContent=selected.kind==="overcharge"?
+      "OVERCHARGE · MATCH-ONLY BENEFIT":selected.kind==="enchantment"?
+      "PVE-ONLY · NO PERMANENT UNLOCK":"HOW TO UNLOCK IT PERMANENTLY";
     $("defense-trial-unlock").textContent=selected.unlock;
-    confirm.textContent="TRY "+selected.name+" IN WAVE "+(screenWave+1)+" →";
+    confirm.textContent=selected.kind==="overcharge"?
+      "BOOST "+selected.recipient+" · NEXT WAVE →":
+      "TRY "+selected.name+" IN WAVE "+(screenWave+1)+" →";
   };
   for(const choice of choices){
     const button=element("button","defense-resonance-option");button.type="button";
-    const tone=DISCIPLINES[ABILITY_BY_ID[choice.spellId]?.discipline]?.color||"#8bd6dc";
+    const boosted=choice.kind==="overcharge"?match.getActor(choice.targetId):null;
+    const tone=boosted?
+      ROLES[boosted.role]?.color||"#8bd6dc":
+      DISCIPLINES[ABILITY_BY_ID[choice.spellId]?.discipline]?.color||"#8bd6dc";
     button.style.setProperty("--resonance-tone",tone);
     const tag=element("span","resonance-tier",choice.label);
     const title=element("strong","",choice.name);
     const spell=element("span","resonance-spell",
-      choice.pair||ABILITY_BY_ID[choice.spellId]?.name||choice.spellId);
+      choice.kind==="overcharge"?choice.recipient:
+        choice.pair||ABILITY_BY_ID[choice.spellId]?.name||choice.spellId);
     const info=element("span","resonance-description",choice.description);
-    const action=element("span","resonance-pick","VIEW EXPLANATION →");
+    const action=element("span","resonance-pick",
+      choice.kind==="overcharge"?"CHOOSE THIS TEAMMATE →":"VIEW EXPLANATION →");
     button.append(tag,title,spell,info,action);
     button.addEventListener("click",()=>{selected=choice;display();});
     host.append(button);buttons.push(button);
   }
-  // Confirmation is deliberate: especially at level 1 the player should
-  // understand what a Rank/Evolution means BEFORE the next wave begins.
+  // One deliberate confirmation. Journey: four Overcharges, choose ONE;
+  // legacy: retain the old Mastery/Evolution trials unchanged.
   const accept=choice=>{
     if(!match||match.waveState!=="intermission"||!match.chooseResonance(choice.id))return;
     pendingCast=null;keys.clear();
     host.dataset.wave="";
     overlay.hidden=true;
-    flash(choice.label+" · "+choice.name);
+    flash((choice.kind==="overcharge"?choice.recipient+" · ":"")+
+      choice.name+" · "+choice.label);
     renderUI();
   };
   confirm.onclick=()=>{

@@ -19,6 +19,16 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
+## IMPLEMENTED — Journey Spell Discovery in Evolution Tree (2026-10-12)
+
+**User-approved UI revision; browser visual review pending.** The first-clear reward remains an *earned, pending and save-persistent single-spell choice* (not an Overcharge), but **the rejected giant five-column reward panel above the HUB has been removed**.
+
+- After a first Planet Defense victory, show a **compact guidance strip** at the top of HUB explaining where to click and how to claim the permanent reward. Do not show a separate spell-selection window.
+- Illuminate **the five currently eligible spells at first clear** directly on their existing **outer Evolution Tree nodes**, with individual discipline-coloured pulsing glows and small NEW labels. On later clears the count and illuminated nodes adapt to the currently available, unowned spells.
+- Automatically focus one eligible spell the first time the pending reward is shown; the player is free to explore/compare others, including locked previews. Selecting a glowing node updates **Selected Spell** on the right, including the spell's real description, its eligibility and a large **DISCOVER THIS SPELL** action in that panel. The rest of the Evolution Tree stays unchanged.
+- Clicking DISCOVER uses the existing `claimJourneySpell` permanent entitlement; adds that spell to Origin ownership, equips it in the first free shared slot where available, persists profile/build, dismisses the banner and unlocks next Journey hex. **Only one claim per cleared planet**, and future/locked spells cannot be claimed. Legacy XP/Rank Origins and their spell selection are unchanged.
+- Tested strict JavaScript syntax, existing HUB DOM IDs, absent old reward grid, glowing first-clear five, selectable-but-not-claimable future spell, in-panel claiming/auto-equipping/persistence, dismissal, and double-claim rejection using mocked DOM/runtime. Actual browser screenshots/visual and performance check still required.
+
 ## IMPLEMENTED — Eclipse Cryo + Overcharges 1.0 (2026-10-12)
 
 **Status: CODE SHIPPED, mock-runtime tested; live browser balance/VFX feedback pending.**

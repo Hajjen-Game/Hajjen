@@ -45,6 +45,7 @@ export class EnergyCharacterHub{
     this.character=loadCharacter(storage);
     this.preview=null;this.companionPreviews={};
     this.selectedAbility=null;this.evolutionPreview=null;this.showSwapPicker=false;this.listFilter="equipped";
+    this.lastFocusedDiscovery=null;
     this.message="";this.forgeDraft=null;this.creatingNew=false;
     this.bind();
   }
@@ -210,49 +211,42 @@ export class EnergyCharacterHub{
   renderJourneyReward(journey){
     const section=$("hub-journey-reward");
     section.hidden=!journey?.pending;
-    if(!journey?.pending)return;
+    if(!journey?.pending){
+      this.lastFocusedDiscovery=null;
+      return;
+    }
+    const eligible=eligibleJourneySpells(journey);
     $("hub-journey-reward-planet").textContent=
       "PLANET "+String(journey.pending.planet).padStart(2,"0")+" CLEARED";
-    const host=$("hub-journey-reward-options");host.replaceChildren();
-    const available=new Set(eligibleJourneySpells(journey));
-    const grouped=["void","solar","cryo","kinetic","vital"];
-    for(const discipline of grouped){
-      const box=el("div","hub-journey-discipline");
-      const title=el("strong","",DISCIPLINES[discipline].name.toUpperCase());
-      box.style.setProperty("--spell-tone",DISCIPLINES[discipline].color);
-      box.append(title);
-      const spells=FREE_ABILITIES.filter(a=>a.discipline===discipline);
-      for(const ability of spells){
-        const canPick=available.has(ability.id),owned=journey.owned.includes(ability.id);
-        const buttonNode=button(ability.name,"hub-journey-spell"+(canPick?" available":""),()=>{
-          try{
-            const next=claimJourneySpell(this.getProgression(),ability.id);
-            const slots=[...this.store.draft.freeSlots];
-            if(!slots.includes(ability.id)){
-              const position=slots.findIndex(id=>!id);
-              if(position>=0)slots[position]=ability.id;
-            }
-            this.store.draft=normalizeBuild({...this.store.draft,
-              freeSlots:slots,talents:{},evolutions:{}});
-            this.changeProgression(next);
-            this.persist();
-            this.message=ability.name+" discovered. Prepare for the next planet.";
-            this.selectedAbility=ability.id;
-            this.draw();
-          }catch(error){this.setMessage(error.message);}
-        });
-        buttonNode.disabled=!canPick;
-        buttonNode.title=owned?"Already discovered":
-          canPick?ability.description:
-          "Unlocks after Planet "+(["rift-slash","photon-barrier","phase-slip","pulse-sever","cleanse-flux"].includes(ability.id)?3:7);
-        const note=el("small","",owned?"DISCOVERED":
-          canPick?ability.category.toUpperCase():
-          buttonNode.title.toUpperCase());
-        const row=el("div","hub-journey-spell-row");row.append(buttonNode,note);
-        box.append(row);
-      }
-      host.append(box);
+    $("hub-discovery-count").textContent=String(eligible.length);
+    // Focus ONE bright node on first return after the win. Afterwards let
+    // users browse all 16 pool spells (including locked preview nodes).
+    const key=this.character?.role+":"+this.character?.name+":"+journey.pending.planet;
+    if(this.lastFocusedDiscovery!==key){
+      this.lastFocusedDiscovery=key;
+      this.selectedAbility=eligible[0]||this.selectedAbility;
+      this.evolutionPreview=null;
+      this.showSwapPicker=false;
     }
+  }
+  claimDiscovery(id){
+    try{
+      const next=claimJourneySpell(this.getProgression(),id);
+      const slots=[...this.store.draft.freeSlots];
+      if(!slots.includes(id)){
+        const position=slots.findIndex(spellId=>!spellId);
+        if(position>=0)slots[position]=id;
+      }
+      this.store.draft=normalizeBuild({...this.store.draft,
+        freeSlots:slots,talents:{},evolutions:{}});
+      this.changeProgression(next);
+      this.persist();
+      this.message=ABILITY_BY_ID[id].name+
+        " discovered! Your next Planet Defense hex is now available.";
+      this.selectedAbility=id;
+      this.lastFocusedDiscovery=null;
+      this.draw();
+    }catch(error){this.setMessage(error?.message||"Could not discover this spell.");}
   }
   renderTeamIdentity(role,level){
     const roles=["healer","melee","caster"].filter(id=>id!==role);
@@ -299,7 +293,7 @@ export class EnergyCharacterHub{
       $("hub-combat-stats").textContent="HP "+maxHealthForLevel(1)+
         " · DAMAGE/HEAL ×1.00 · CRIT 10%";
       $("hub-xp").textContent=journey.pending?
-        "CHOOSE YOUR EARNED SPELL ABOVE":
+        "CHOOSE A GLOWING SPELL IN YOUR EVOLUTION TREE":
         journey.clears>=20?"PLANET CAMPAIGN COMPLETE":
         "NEXT · PLANET "+String(journey.clears+1).padStart(2,"0");
       $("hub-xp-fill").style.width=(journey.clears/20*100).toFixed(1)+"%";
@@ -548,7 +542,11 @@ export class EnergyCharacterHub{
     $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
     $("hub-evolution-count").textContent=activeEvolutionCount(state.build)+" / 10 CHOSEN";
     $("hub-spellbook-count").textContent=state.unlocked.length+"/10";
-    $("hub-map-caption").textContent=state.unlocked.length+"/10 · "+state.pool.length+" MORE SPELLS TO EXPLORE";
+    const discovery=readJourney(this.getProgression());
+    const available=discovery?.pending?eligibleJourneySpells(discovery):[];
+    $("hub-map-caption").textContent=available.length?
+      available.length+" GLOWING SPELLS · CLICK A NODE TO INSPECT · DISCOVER IN SELECTED SPELL":
+      state.unlocked.length+"/10 · "+state.pool.length+" MORE SPELLS TO EXPLORE";
     if(!this.selectedAbility||!state.compatible.some(spell=>spell.id===this.selectedAbility)){
       this.selectedAbility=state.inner[0]?.id||null;
     }
@@ -578,10 +576,12 @@ export class EnergyCharacterHub{
       const unlocked=state.activeById.has(ability.id);
       const rank=state.activeById.get(ability.id)?.talentRank||0;
       const journey=readJourney(this.getProgression());
+      const canDiscover=Boolean(journey?.pending&&eligibleJourneySpells(journey).includes(ability.id));
       const evolved=Boolean(state.build.evolutions[ability.id]);
       const bound=state.roleBound.has(ability.id);
       const slotIndex=state.inner.findIndex(spell=>spell.id===ability.id);
       const btn=button("","hub-spell-node"+(inBuild?" unlocked equipped-now":" in-pool")+
+        (canDiscover?" discovery-available":"")+
         (this.selectedAbility===ability.id?" selected":"")+
         (!unlocked&&inBuild?" level-gated":"")+(evolved?" evolved":""),()=>this.selectSpell(ability.id));
       btn.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
@@ -593,7 +593,8 @@ export class EnergyCharacterHub{
         el("span","hub-spell-level",journey?
           (bound?"SLOT "+(slotIndex+1)+" · ORIGIN-BOUND":
             inBuild?"SLOT "+(slotIndex+1)+" · DISCOVERED":
-              journey.owned.includes(ability.id)?"OWNED · IN LIBRARY":"LOCKED · JOURNEY DISCOVERY"):
+              journey.owned.includes(ability.id)?"OWNED · IN LIBRARY":
+          canDiscover?"✧ READY TO DISCOVER":"LOCKED · JOURNEY DISCOVERY"):
           (bound?"SLOT "+(slotIndex+1)+" · ORIGIN SPELL · RANK "+rank:
           !inBuild?"AVAILABLE IN POOL":"SLOT "+(slotIndex+1)+" · RANK "+rank+"/3")));
       const stateGlyph=bound?String(slotIndex+1):!inBuild?"＋":evolved?"✦":"✓";
@@ -646,20 +647,28 @@ export class EnergyCharacterHub{
       this.renderEvolutionSatellites({ability,angle,origin:p,dist:369,
         visible:true,selected,state,place,addLine});
     }
+    const discovery=readJourney(this.getProgression());
+    const eligible=new Set(discovery?.pending?eligibleJourneySpells(discovery):[]);
     for(const [index,ability] of state.pool.entries()){
       const angle=-Math.PI/2+TAU/(Math.max(1,state.pool.length)*2)+index*TAU/Math.max(1,state.pool.length);
       const p=orbitPos(angle,425),tone=DISCIPLINES[ability.discipline].color;
       const selected=this.selectedAbility===ability.id;
-      addLine(orbitPos(angle,389),p,"hub-orbit-link pool"+(selected?" selected":""),tone);
-      const node=button("","hub-orbit-spell pool"+(selected?" selected":""),()=>this.selectSpell(ability.id));
+      const canDiscover=eligible.has(ability.id);
+      addLine(orbitPos(angle,389),p,"hub-orbit-link pool"+
+        (canDiscover?" discovery-available":"")+(selected?" selected":""),tone);
+      const node=button("","hub-orbit-spell pool"+
+        (canDiscover?" discovery-available":"")+
+        (selected?" selected":""),()=>this.selectSpell(ability.id));
       node.style.setProperty("--node-tone",tone);
       node.setAttribute("aria-label",ability.name+
-        (readJourney(this.getProgression())?.owned.includes(ability.id)?
-          " (discovered, in library)":" (Journey discovery required)"));
+        (canDiscover?" (new spell available — select to discover)":
+          discovery?.owned.includes(ability.id)?" (discovered, in library)":
+          " (Journey discovery required)"));
       node.setAttribute("aria-pressed",String(selected));
       node.title=ability.name+" — "+ability.description;
       node.append(el("span","hub-orbit-icon",glyphs[ability.discipline]),
         el("span","hub-orbit-name",ability.name));
+      if(canDiscover)node.append(el("span","hub-orbit-discovery-label","NEW"));
       node.addEventListener("mouseenter",event=>this.showTooltip(ability,event,false));
       node.addEventListener("mousemove",event=>this.moveTooltip(event));
       node.addEventListener("mouseleave",()=>this.hideTooltip());
@@ -746,10 +755,13 @@ export class EnergyCharacterHub{
     const unlocked=state.activeById.has(ability.id);
     const availableTP=Math.max(0,talentPointsForLevel(state.level)-spentTalentPoints(build));
     const selectedEvolution=build.evolutions[ability.id]||null;
-    $("hub-detail-status").textContent=bound?"ORIGIN-BOUND":inBuild?"IN BUILD":
+    const canDiscover=Boolean(journey?.pending&&eligibleJourneySpells(journey).includes(ability.id));
+    $("hub-detail-status").textContent=canDiscover?"✧ NEW SPELL AVAILABLE":
+      bound?"ORIGIN-BOUND":inBuild?"IN BUILD":
       journey&&!journey.owned.includes(ability.id)?"LOCKED · JOURNEY":"IN LIBRARY";
     const spell=$("hub-detail-spell");spell.replaceChildren();
-    spell.className="hub-selected-spell-card "+(inBuild?"equipped-now":"preview-pool");
+    spell.className="hub-selected-spell-card "+(inBuild?"equipped-now":"preview-pool")+
+      (canDiscover?" discovery-ready":"");
     spell.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
     const summary=el("div","hub-detail-title");
     const info=el("div","");
@@ -757,6 +769,15 @@ export class EnergyCharacterHub{
       DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()));
     summary.append(el("span","hub-detail-icon",glyphs[ability.discipline]),info);
     spell.append(summary,el("p","hub-detail-description",ability.description));
+    if(canDiscover){
+      const claim=button("✧ DISCOVER THIS SPELL","hub-discover-confirm",()=>this.claimDiscovery(ability.id));
+      claim.setAttribute("aria-label","Permanently discover "+ability.name+
+        " as your Planet "+journey.pending.planet+" reward");
+      spell.append(el("p","hub-discover-note",
+        "PERMANENT PLANET "+String(journey.pending.planet).padStart(2,"0")+
+        " REWARD · You can choose only one spell."),
+        claim);
+    }
     if(journey){
       const owned=journey.owned.includes(ability.id);
       if(bound)spell.append(el("span","hub-bound-chip","ORIGIN-BOUND · CANNOT REPLACE"));
@@ -765,11 +786,14 @@ export class EnergyCharacterHub{
       current.replaceChildren(el("h4","","SPELL DETAILS"),el("p","",ability.details),
         el("p","hub-detail-stat",bound?"BOUND STARTING SPELL":
           owned?"DISCOVERED · "+(inBuild?"EQUIPPED":"IN LIBRARY"):
+            canDiscover?"AVAILABLE NOW · CLICK DISCOVER THIS SPELL ABOVE":
             "UNDISCOVERED · Unlock through the Journey"));
       next.replaceChildren(el("h4","","JOURNEY DISCOVERY"),
         el("p","",bound?"This is one of your two permanent Origin spells.":
           owned?"Equip discovered shared spells in your eight shared spell slots.":
-          "New shared spells unlock as you clear planets. All five disciplines are available from your first choice."));
+          canDiscover?"This spell is one of the glowing Journey discoveries. Confirm it above to permanently add it to your Origin.":
+            journey.pending?"Click a glowing spell in the outer Evolution Tree, then confirm in Selected Spell.":
+              "New shared spells unlock as you clear planets. All five disciplines are available from your first choice."));
       evolutions.replaceChildren(el("h4","","EVOLUTIONS · PLANET 10"),
         el("p","hub-evolution-explainer",
           journey.clears<10?"Preview the three Evolution paths. All are locked until you clear Planet 10.":

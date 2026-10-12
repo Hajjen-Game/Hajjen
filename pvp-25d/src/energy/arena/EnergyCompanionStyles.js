@@ -25,7 +25,7 @@ export function normalizeCompanionStyles(value){
 }
 export function companionStyleFor(journey,role){
   if(!journey||!(role in DEFAULT_COMPANION_STYLES))return "balanced";
-  if((journey.clears||0)<STYLE_UNLOCK_STAGE)return "balanced";
+  if((journey.clears||0)<STYLE_UNLOCK_STAGE&&journey.devTest!==true)return "balanced";
   return normalizeCompanionStyles(journey.companionStyles)[role];
 }
 export function setCompanionStyle(profile,role,style){

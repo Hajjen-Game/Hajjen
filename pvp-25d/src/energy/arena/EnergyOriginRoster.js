@@ -1,9 +1,9 @@
 // Multi-character roster for Energy Arena. All records remain local to this
 // browser. Old single-character keys mirror the active record for compatibility.
 import { ROLES, FREE_ABILITIES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
-import { completeArenaBuild } from "./EnergyProgression.js?v=20261012-ai-styles1";
+import { completeArenaBuild } from "./EnergyProgression.js?v=20261012-dev-origin1";
 import { createBuild, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
-import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-ai-styles1";
+import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-dev-origin1";
 
 export const ORIGIN_ROSTER_KEY="pvp25d-energy-origin-roster-v1";
 const MAX_ORIGINS=12;

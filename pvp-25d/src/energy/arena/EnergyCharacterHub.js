@@ -44,7 +44,7 @@ export class EnergyCharacterHub{
     this.openMainMenu=openMainMenu;this.openPlayMenu=openPlayMenu;
     this.character=loadCharacter(storage);
     this.preview=null;this.companionPreviews={};
-    this.selectedAbility=null;this.showSwapPicker=false;this.listFilter="equipped";
+    this.selectedAbility=null;this.evolutionPreview=null;this.showSwapPicker=false;this.listFilter="equipped";
     this.message="";this.forgeDraft=null;this.creatingNew=false;
     this.bind();
   }
@@ -488,7 +488,11 @@ export class EnergyCharacterHub{
     try{
       // Complete auto-filled starter choices into explicit saved slots, so
       // future pool changes cannot silently alter a loaded preset.
-      const snapshot=normalizeBuild(renameBuild(completeArenaBuild(current),name));
+      // Legacy presets can autofill; Journey builds MUST preserve earned
+      // spells only, otherwise a save preset can launder locked spells.
+      const journey=readJourney(this.getProgression());
+      const snapshot=normalizeBuild(renameBuild(
+        journey?current:completeArenaBuild(current),name));
       this.store.saved[index]=snapshot;
       this.persist();this.message="Preset "+(index+1)+" saved: "+snapshot.name;
       this.renderPresets();$("hub-status").textContent=this.message;
@@ -501,9 +505,16 @@ export class EnergyCharacterHub{
       this.setMessage("This preset belongs to a different Origin. Your current Origin stays unchanged.");return;
     }
     if(!window.confirm("Load preset "+(index+1)+"? Unsaved changes in your current build will be replaced."))return;
-    this.store.draft=normalizeBuild(saved);
-    this.selectedAbility=null;this.showSwapPicker=false;
-    this.message="Loaded "+saved.name+" · character and level unchanged.";
+    const journey=readJourney(this.getProgression());
+    if(journey){
+      const owned=new Set(journey.owned);
+      const equipped=[...new Set((saved.freeSlots||[]).filter(id=>owned.has(id)))].slice(0,8);
+      this.store.draft=normalizeBuild({...saved,
+        freeSlots:[...equipped,...Array(8-equipped.length).fill(null)],
+        talents:{},evolutions:{}});
+    }else this.store.draft=normalizeBuild(saved);
+    this.selectedAbility=null;this.evolutionPreview=null;this.showSwapPicker=false;
+    this.message="Loaded "+saved.name+(journey?" · only earned Journey spells equipped.":" · character and level unchanged.");
     this.persist();this.draw();
   }
 
@@ -553,7 +564,10 @@ export class EnergyCharacterHub{
     this.renderLibrary(state);
   }
   selectSpell(id){
-    if(this.selectedAbility!==id)this.showSwapPicker=false;
+    if(this.selectedAbility!==id){
+      this.showSwapPicker=false;
+      this.evolutionPreview=null;
+    }
     this.selectedAbility=id;this.hideTooltip();this.renderTree();
   }
   renderSpellList(state){
@@ -672,17 +686,25 @@ export class EnergyCharacterHub{
       const chosen=chosenId===ev.id;
       const tone=DISCIPLINES[ability.discipline].color;
       addLine(origin,p,"hub-orbit-branch"+(chosen?" evolved":"")+(pool?" pool":""),tone);
+      const previewFocused=isJourney&&this.evolutionPreview?.abilityId===ability.id&&
+        this.evolutionPreview?.evolutionId===ev.id;
       const btn=button("","hub-orbit-evolution"+(chosen?" selected":"")+
-        (rank<3?" unmastered":"")+(pool?" pool":"") ,()=>{
+        (rank<3?" unmastered":"")+(pool?" pool":"")+
+        (previewFocused?" preview-focused":""),()=>{
           this.selectedAbility=ability.id;this.showSwapPicker=false;
-          if(!pool&&rank===3){
+          if(isJourney){
+            // Journey Evolutions are previews until the real milestone system is
+            // implemented. Click for a detailed LOCKED card, never grant one.
+            this.evolutionPreview={abilityId:ability.id,evolutionId:ev.id};
+            this.renderTree();
+          }else if(!pool&&rank===3){
             this.pickEvolution(ability.id,chosen?null:ev.id);
           }else this.renderTree();
         });
       btn.style.setProperty("--node-tone",tone);
       btn.setAttribute("aria-label",ability.name+" Evolution: "+ev.name+
-        (chosen?" (selected)":pool?" (requires equipping)":
-        isJourney?" (unlock via Journey Evolutions)":rank<3?
+        (isJourney?" (click to inspect; locked until Planet 10 and the Evolution system is released)":
+        chosen?" (selected)":pool?" (requires equipping)":rank<3?
           " (requires Rank 3)":" (click to choose)"));
       btn.title=ev.name+": "+ev.description;
       btn.append(el("span","",i===0?"✦":i===1?"➤":"◈"));
@@ -749,9 +771,39 @@ export class EnergyCharacterHub{
           owned?"Equip discovered shared spells in your eight shared spell slots.":
           "New shared spells unlock as you clear planets. All five disciplines are available from your first choice."));
       evolutions.replaceChildren(el("h4","","EVOLUTIONS · PLANET 10"),
-        el("p","",journey.clears>=10?
-          "Evolutions are being migrated from Rank-based talents into the new Journey system.":
-          "Reach Planet 10 to unlock spell Evolutions. No Rank 3 prerequisite."));
+        el("p","hub-evolution-explainer",
+          journey.clears<10?"Preview the three Evolution paths. All are locked until you clear Planet 10.":
+            "Planet 10 reached. Evolution selection will be activated in a future gameplay pass; you can preview each path now."));
+      for(const ev of ability.evolutions){
+        const focused=this.evolutionPreview?.abilityId===ability.id&&
+          this.evolutionPreview?.evolutionId===ev.id;
+        const card=button("","hub-detail-evolution-choice preview-card"+
+          (focused?" preview-focused":""),()=>{
+          this.evolutionPreview={abilityId:ability.id,evolutionId:ev.id};
+          this.renderTree();
+        });
+        card.setAttribute("aria-pressed",String(Boolean(focused)));
+        card.setAttribute("aria-label",ev.name+" Evolution, locked; click to inspect");
+        card.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
+        card.append(el("strong","",ev.name),
+          el("p","",ev.description),
+          el("span","",focused?"✧ SELECTED FOR PREVIEW · LOCKED":
+            journey.clears<10?"🔒 LOCKED · PLANET 10":
+              "🔒 PREVIEW ONLY · NOT YET ACTIVE"));
+        evolutions.append(card);
+      }
+      if(this.evolutionPreview?.abilityId===ability.id){
+        const chosen=ability.evolutions.find(e=>e.id===this.evolutionPreview.evolutionId);
+        if(chosen){
+          const note=el("div","hub-evolution-preview-note");
+          note.append(el("strong","",chosen.name+" · EVOLUTION PREVIEW"),
+            el("p","",chosen.description),
+            el("small","",journey.clears<10?
+              "UNLOCKS AT PLANET 10 · VIEW ONLY":
+              "MILESTONE REACHED · EVOLUTION SYSTEM NOT YET ENABLED"));
+          evolutions.append(note);
+        }
+      }
       return;
     }
     if(bound)spell.append(el("span","hub-bound-chip","♙ ORIGIN SPELL · CANNOT REPLACE"));

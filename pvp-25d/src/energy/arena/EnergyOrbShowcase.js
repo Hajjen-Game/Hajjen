@@ -88,8 +88,8 @@ export class EnergyOrbShowcase{
       if(fallback)fallback.hidden=true;
     }
   }
-  update(build,level){
-    const identity=energyIdentity(build,level);
+  update(build,level,journey=null){
+    const identity=energyIdentity(build,level,journey);
     this.actor.role=build.role;
     this.actor.classId="energy-"+build.role;
     this.actor.energyStyle=identity.style;

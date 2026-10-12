@@ -65,6 +65,14 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 - Clicking self opens the main spell library and evolution tree. Clicking a companion after #5 exposes **STYLE**; after #15 also **BUILD**. Returning to self remains effortless.
 - Companion presence is also identifiable during Planet Defense via existing friendly health/cast frames and role labels; player is visually the focal point. Player's larger graphic must not increase collision radius, targeting hitbox or AI melee range accidentally.
 
+## PROTOTYPE IMPLEMENTED — Rift Expedition 1.0 (The Echoing Rift)
+
+After completing Stage 20, Origins can enter a separate **Rift Expedition** through HUB → PLAY. For development, completed DEV Test Origins may launch directly through GAME DEV. This is an initial *standalone, reward-free prototype* — not the permanent Synergy or replay-progression system.
+
+The first expedition spans a continuous **3700×1740** world with five destination courts (Threshold, Causeway, Glasswound Grove, Silent Sanctum, Rift Heart), 16 real AI/LOS collision objects and ~280 purpose-built Babylon 3D environmental elements. Players must actually traverse the route on foot and defeat enemies guarding each sector; the next zone opens only after the player reaches an activated Rift gate. The fifth room holds the current multi-phase Rift boss. The arena and world layout are intentionally not Planet Defense's flat open field with automatic waves. Existing spells, AI companions, proc effects and class orbs are reused.
+
+**Not implemented yet:** Rift currency/loot, permanence of Rift clears, Synergy unlocks or deepening trees, more map variants, hand-authored final terrain assets, bespoke Rift bosses, dedicated expedition hazard mechanics and high-confidence balance/performance. Preserve the original Stage 20 Synergy vision as a later milestone. Real browser testing and redesign based on visual/AI feedback come first.
+
 ## IMPLEMENTED — Evolution System 1.0 (Stage 10+)
 
 The Journey now unlocks rankless permanent Evolution choices after Stage **10, 12, 14, 16 and 20**. Each milestone adds one active choice to a maximum of five by Stage 20, with no additional invented rewards for 17–19. An Origin may activate **one of the three existing Evolutions per discovered or bound spell**; selecting a different option for that same spell is free, while choosing a new spell consumes another earned slot. Selections are saved per Origin as `journey.evolutions` and remain owned when switching equipped spells/presets; only equipped spells apply Evolution effects in live EnergyMatch combat. Full rankless Journey compatibility means `talentRank:0` even for evolved spells. Legacy Rank-based Evolutions remain unchanged.
@@ -146,7 +154,7 @@ Example after Wave 2:
 | **15** | Choose unowned shared spell; optional **AI BUILD** editor remains planned | Hex 16 must work with curated AI defaults |
 | 16 | Claim final shared spell + earn fourth Evolution slot | Hex 17 transitions to wider strategic challenges |
 | 17–19 | No fabricated extra rewards; continue strategic encounter escalation | Mixed high-intensity swarms, harder boss conditions and meaningful strategy |
-| **20** | Earn fifth Evolution slot. **Synergies + Rift Expedition** remain candidate future unlocks (not implemented) | Future Expedition campaign planned |
+| **20** | Earn fifth Evolution slot and access the first **Rift Expedition prototype**. Synergies remain planned and unimplemented. | The Echoing Rift can be played as a separate, reward-free PvE journey |
 | Rift Expedition clear 5 | Optional Synergy Deepening Tree candidate | Further progress beyond Planet Defense |
 
 **PvP is intentionally absent** from this table. It is postponed, not “unlocks at 15” and not replaced with another assumed date. The current prototype UI can remain during design experimentation, but the future PvP gate is a separate user decision.

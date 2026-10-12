@@ -8,7 +8,8 @@ import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } fr
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261011-identity13";
-import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-hub-revision4";
+import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-journey1";
+import {readJourney,eligibleJourneySpells,claimJourneySpell} from "./EnergyJourneyCampaign.js?v=20261012-journey1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const $=id=>document.getElementById(id);
@@ -65,7 +66,7 @@ export class EnergyCharacterHub{
         this.character=this.createOrigin({name:$("new-character-name").value,role});
         this.creatingNew=false;
         this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
-        this.message="Origin created. Your new journey starts at level 1.";
+        this.message="Origin created. Begin your Journey with two bound spells.";
         this.open();
       }catch(error){$("create-character-error").textContent=error.message;}
     });
@@ -206,6 +207,53 @@ export class EnergyCharacterHub{
     }
     this.companionPreviews={};
   }
+  renderJourneyReward(journey){
+    const section=$("hub-journey-reward");
+    section.hidden=!journey?.pending;
+    if(!journey?.pending)return;
+    $("hub-journey-reward-planet").textContent=
+      "PLANET "+String(journey.pending.planet).padStart(2,"0")+" CLEARED";
+    const host=$("hub-journey-reward-options");host.replaceChildren();
+    const available=new Set(eligibleJourneySpells(journey));
+    const grouped=["void","solar","cryo","kinetic","vital"];
+    for(const discipline of grouped){
+      const box=el("div","hub-journey-discipline");
+      const title=el("strong","",DISCIPLINES[discipline].name.toUpperCase());
+      box.style.setProperty("--spell-tone",DISCIPLINES[discipline].color);
+      box.append(title);
+      const spells=FREE_ABILITIES.filter(a=>a.discipline===discipline);
+      for(const ability of spells){
+        const canPick=available.has(ability.id),owned=journey.owned.includes(ability.id);
+        const buttonNode=button(ability.name,"hub-journey-spell"+(canPick?" available":""),()=>{
+          try{
+            const next=claimJourneySpell(this.getProgression(),ability.id);
+            const slots=[...this.store.draft.freeSlots];
+            if(!slots.includes(ability.id)){
+              const position=slots.findIndex(id=>!id);
+              if(position>=0)slots[position]=ability.id;
+            }
+            this.store.draft=normalizeBuild({...this.store.draft,
+              freeSlots:slots,talents:{},evolutions:{}});
+            this.changeProgression(next);
+            this.persist();
+            this.message=ability.name+" discovered. Prepare for the next planet.";
+            this.selectedAbility=ability.id;
+            this.draw();
+          }catch(error){this.setMessage(error.message);}
+        });
+        buttonNode.disabled=!canPick;
+        buttonNode.title=owned?"Already discovered":
+          canPick?ability.description:
+          "Unlocks after Planet "+(["rift-slash","photon-barrier","crystal-snare","pulse-sever","cleanse-flux"].includes(ability.id)?3:7);
+        const note=el("small","",owned?"DISCOVERED":
+          canPick?ability.category.toUpperCase():
+          buttonNode.title.toUpperCase());
+        const row=el("div","hub-journey-spell-row");row.append(buttonNode,note);
+        box.append(row);
+      }
+      host.append(box);
+    }
+  }
   renderTeamIdentity(role,level){
     const roles=["healer","melee","caster"].filter(id=>id!==role);
     const labels={healer:"SUPPORT",melee:"MELEE",caster:"CASTER"};
@@ -232,9 +280,12 @@ export class EnergyCharacterHub{
     if(!this.character)return;
     const build=this.store.draft;
     const progress=progressDetails(this.getProgression());
-    const identity=energyIdentity(build,progress.level);
-    this.preview?.update(build,progress.level);
+    const journey=readJourney(this.getProgression());
+    $("character-hub").classList.toggle("journey-mode",Boolean(journey));
+    const identity=energyIdentity(build,progress.level,journey);
+    this.preview?.update(build,progress.level,journey);
     this.renderTeamIdentity(build.role,progress.level);
+    this.renderJourneyReward(journey);
     $("hub-character-name").textContent=this.character.name;
     const origin=ROLES[build.role];
     $("hub-role").textContent=origin.name.toUpperCase()+" · ENERGY ORIGIN";
@@ -242,17 +293,30 @@ export class EnergyCharacterHub{
     $("hub-origin-info-spells").textContent="STARTING SPELLS · "+origin.locked
       .map(id=>ABILITY_BY_ID[id]?.name||id).join(" + ");
     $("hub-origin-info-passive").textContent="PASSIVE · "+origin.passive;
-    $("hub-level").textContent="LEVEL "+progress.level;
-    const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
-    $("hub-level-subtitle").textContent=progress.slots+"/10"+
-      (nextSlotLevel?" · NEXT SPELL LVL "+nextSlotLevel:" · FULL LOADOUT");
-    $("hub-combat-stats").textContent="HP "+maxHealthForLevel(progress.level)+
-      " · DAMAGE/HEAL ×"+powerForLevel(progress.level).toFixed(2)+
-      " · CRIT 10%";
-    $("hub-xp").textContent=progress.maxLevel?"MAX LEVEL":
-      progress.xp+" XP · "+progress.remaining+" TO NEXT LEVEL";
-    $("hub-xp-fill").style.width=(progress.progress*100).toFixed(1)+"%";
-    $("hub-record").textContent=this.getProgression().wins+" WINS / "+this.getProgression().losses+" LOSSES";
+    if(journey){
+      $("hub-level").textContent="JOURNEY · "+journey.clears+" / 20";
+      $("hub-level-subtitle").textContent=progress.slots+"/10 SPELL SLOTS · NO LEVELS OR RANKS";
+      $("hub-combat-stats").textContent="HP "+maxHealthForLevel(1)+
+        " · DAMAGE/HEAL ×1.00 · CRIT 10%";
+      $("hub-xp").textContent=journey.pending?
+        "CHOOSE YOUR EARNED SPELL ABOVE":
+        journey.clears>=20?"PLANET CAMPAIGN COMPLETE":
+        "NEXT · PLANET "+String(journey.clears+1).padStart(2,"0");
+      $("hub-xp-fill").style.width=(journey.clears/20*100).toFixed(1)+"%";
+      $("hub-record").textContent=journey.clears+" PLANETS CLEARED";
+    }else{
+      $("hub-level").textContent="LEVEL "+progress.level;
+      const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
+      $("hub-level-subtitle").textContent=progress.slots+"/10"+
+        (nextSlotLevel?" · NEXT SPELL LVL "+nextSlotLevel:" · FULL LOADOUT");
+      $("hub-combat-stats").textContent="HP "+maxHealthForLevel(progress.level)+
+        " · DAMAGE/HEAL ×"+powerForLevel(progress.level).toFixed(2)+
+        " · CRIT 10%";
+      $("hub-xp").textContent=progress.maxLevel?"MAX LEVEL":
+        progress.xp+" XP · "+progress.remaining+" TO NEXT LEVEL";
+      $("hub-xp-fill").style.width=(progress.progress*100).toFixed(1)+"%";
+      $("hub-record").textContent=this.getProgression().wins+" WINS / "+this.getProgression().losses+" LOSSES";
+    }
     $("hub-energy-name").textContent=identity.label.toUpperCase();
     const weights=$("hub-energy-weights");weights.replaceChildren();
     const total=Object.values(identity.weights).reduce((a,b)=>a+b,0)||1;
@@ -272,7 +336,7 @@ export class EnergyCharacterHub{
     this.renderForge();
     this.renderPresets();
     const excess=spentTalentPoints(build)>talentPointsForLevel(progress.level);
-    $("hub-status").textContent=this.message||(excess
+    $("hub-status").textContent=this.message||(!journey&&excess
       ?"Legacy build: some previously allocated ranks exceed your current level. Only earned Talent Points apply in combat. RESET TALENTS is free."
       :"");
   }
@@ -282,8 +346,15 @@ export class EnergyCharacterHub{
     const level=state.level;
     $("hub-matter-count").textContent=profile.blackHoleMatter||0;
     $("hub-fragments-count").textContent=profile.energyFragments||0;
-    const isLocked=level<FORGE_LEVEL;
-    $("hub-forge-status").textContent=isLocked?"LOCKED · LVL 10":"UNLOCKED";
+    const isJourney=Boolean(readJourney(profile));
+    const isLocked=isJourney||level<FORGE_LEVEL;
+    $("hub-forge-status").textContent=isJourney?"LOCKED · PLANET 20":
+      isLocked?"LOCKED · LVL 10":"UNLOCKED";
+    if(isJourney){
+      const panel=$("hub-forge-locked");
+      panel.querySelector("strong").textContent="UNLOCKS AFTER PLANET 20";
+      panel.querySelector("p").textContent="Synergies are coming with Rift Expedition. No levels or spell ranks needed.";
+    }
     $("hub-forge-locked").hidden=!isLocked;
     $("hub-forge-unlocked").hidden=isLocked;
     if(isLocked)return;
@@ -441,7 +512,8 @@ export class EnergyCharacterHub{
   treeSnapshot(){
     const build=this.store.draft;
     const level=progressDetails(this.getProgression()).level;
-    const unlocked=stagedLoadout(build,level).abilitySlots;
+    const journey=readJourney(this.getProgression());
+    const unlocked=stagedLoadout(build,level,journey).abilitySlots;
     const planned=unlocked;
     const plannedIds=new Set(unlocked.map(slot=>slot.id));
     const activeById=new Map(unlocked.map(slot=>[slot.id,slot]));
@@ -459,8 +531,9 @@ export class EnergyCharacterHub{
   }
   renderTree(){
     const state=this.treeSnapshot();
-    const cap=talentPointsForLevel(state.level);
-    const used=spentTalentPoints(state.build);
+    const isJourney=Boolean(readJourney(this.getProgression()));
+    const cap=isJourney?0:talentPointsForLevel(state.level);
+    const used=isJourney?0:spentTalentPoints(state.build);
     $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
     $("hub-evolution-count").textContent=activeEvolutionCount(state.build)+" / 10 CHOSEN";
     $("hub-spellbook-count").textContent=state.unlocked.length+"/10";
@@ -636,6 +709,7 @@ export class EnergyCharacterHub{
     if(!ability)return;
     const build=state.build,rank=state.activeById.get(ability.id)?.talentRank||0;
     const plannedRank=build.talents[ability.id]||0;
+    const journey=readJourney(this.getProgression());
     const inBuild=state.plannedIds.has(ability.id);
     const bound=state.roleBound.has(ability.id);
     const unlocked=state.activeById.has(ability.id);
@@ -651,6 +725,25 @@ export class EnergyCharacterHub{
       DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()));
     summary.append(el("span","hub-detail-icon",glyphs[ability.discipline]),info);
     spell.append(summary,el("p","hub-detail-description",ability.description));
+    if(journey){
+      const owned=journey.owned.includes(ability.id);
+      if(bound)spell.append(el("span","hub-bound-chip","ORIGIN-BOUND · CANNOT REPLACE"));
+      const current=$("hub-detail-current"),next=$("hub-detail-next");
+      const evolutions=$("hub-detail-evolution");
+      current.replaceChildren(el("h4","","SPELL DETAILS"),el("p","",ability.details),
+        el("p","hub-detail-stat",bound?"BOUND STARTING SPELL":
+          owned?"DISCOVERED · "+(inBuild?"EQUIPPED":"IN LIBRARY"):
+            "UNDISCOVERED · Unlock through the Journey"));
+      next.replaceChildren(el("h4","","JOURNEY DISCOVERY"),
+        el("p","",bound?"This is one of your two permanent Origin spells.":
+          owned?"Equip discovered shared spells in your eight shared spell slots.":
+          "New shared spells unlock as you clear planets. All five disciplines are available from your first choice."));
+      evolutions.replaceChildren(el("h4","","EVOLUTIONS · PLANET 10"),
+        el("p","",journey.clears>=10?
+          "Evolutions are being migrated from Rank-based talents into the new Journey system.":
+          "Reach Planet 10 to unlock spell Evolutions. No Rank 3 prerequisite."));
+      return;
+    }
     if(bound)spell.append(el("span","hub-bound-chip","♙ ORIGIN SPELL · CANNOT REPLACE"));
     else if(!inBuild)spell.append(el("span","hub-pool-chip","AVAILABLE TO EQUIP"));
     const current=$("hub-detail-current");current.replaceChildren();
@@ -702,6 +795,10 @@ export class EnergyCharacterHub{
     }
   }
   pickEvolution(id,evolutionId){
+    if(readJourney(this.getProgression())){
+      this.setMessage("Evolutions will unlock through your Journey, not Rank 3.");
+      return;
+    }
     this.mutate(()=>chooseEvolution(this.store.draft,id,evolutionId));
   }
   // Swapping only uses unlocked spells; future choices stay stored, not equipped.
@@ -767,6 +864,10 @@ export class EnergyCharacterHub{
     holder.append(description,select,confirm);
   }
   editTalent(id,delta){
+    if(readJourney(this.getProgression())){
+      this.setMessage("Journey has no spell ranks. Evolutions unlock later.");
+      return;
+    }
     const level=progressDetails(this.getProgression()).level;
     const limit=talentPointsForLevel(level);
     if(delta>0&&spentTalentPoints(this.store.draft)>=limit){

@@ -59,6 +59,9 @@ export function claimJourneySpell(profile,id){
   return {...profile,journey:{...journey,owned:[...journey.owned,id],pending:null}};
 }
 export function journeyActiveSlots(journey){
+  // Transient Game Dev combat previews may replay early Stages with a full
+  // ten-spell toolkit. The normal saved Journey never receives this flag.
+  if(journey?.devTest===true)return 2+JOURNEY_SHARED_LIMIT;
   return 2+Math.min(JOURNEY_SHARED_LIMIT,journey?.clears||0);
 }
 export function journeyCombatLoadout(build,journey){

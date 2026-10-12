@@ -19,6 +19,15 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
+## IMPLEMENTED — Evolution selection glow + DEV Journey replay UX (2026-10-12)
+
+**Status: shipped, code-verified; browser visual/real-combat confirmation pending.**
+
+- **Evolution Tree readability:** The currently active Evolution satellite (e.g. Phase Slip → Residual Field) now uses a smaller version of the selected main spell's gold outline and discipline-colored inner glow, with brighter icon, elevated z-order, gentle pulsing aura and highlighted connection. Uses `evolution-chosen` on only the active satellite. Other two choices remain normal. Honors reduced-motion preferences and remains compact at narrower screen widths. Selection state is also explicitly exposed through `aria-pressed`.
+- **Replay directly from HUB:** With the **active DEV Test Origin only**, HUB → PLAY → Journey Roadmap lets the player click any of the twenty completed green hexes. Selection shows `PLAY STAGE AGAIN · STAGE NN` and launches that exact Stage through the existing DEV replay path. The main map provides a visible, clickable route without needing to go back to the separate Game Dev panel. Stage selection remains explicit rather than automatically replaying the last Stage.
+- **No reward farming or progress resets:** The completed Dev Origin stays at 20/20, uses its full earned spell loadout, Evolutions and AI Styles even at Stage 1, and receives no first-clear rewards or progression from replays. Ordinary Journey Origins retain their normal next-unlocked-Stage-only hex restrictions. Returning from DEV to a normal Origin disables replay controls.
+- **Validation:** Mock-DOM execution of real Journey Map and Main Menu confirmed Stage-7 replay routing and CTA, dev Stage 1–20 enabled, normal Stage-6 next-only gating, normal completed 20/20 no replay, and switching active Origin re-locks old hexes; HUB satellite rendering confirmed exactly one `evolution-chosen` for Residual Field, correct `aria-pressed` and strong selected link. Actual browser screenshot and interactive playtest still needed.
+
 ## IMPLEMENTED — Evolution System 1.0 (2026-10-12)
 
 **Status: code shipped and Journey save/combat module tests passed; needs manual browser visual and real combat playtesting.** Detailed ability/Evolution identity and balance audit remains deliberately postponed.

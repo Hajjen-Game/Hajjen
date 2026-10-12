@@ -202,26 +202,26 @@ const PAGES=[
     "caption": "Du i centrum av striden; två självständiga AI-kompisar som du senare kan forma."
   },
   {
-    "title": "DET HÄR ÄR BARA BÖRJAN",
-    "chapter": "10 / FRAMTIDEN",
+    "title": "VÄGEN IN I RIFT",
+    "chapter": "10 / EXPEDITION OCH FRAMTIDEN",
     "intro": "Project Energy byggs fortfarande. Målet är att spelet ska vara enkelt att komma in i, fullt av färgstarka spells och djupt nog för att du ska vilja experimentera länge.",
     "steps": [
       [
-        "STAGE 20 · MÅL",
-        "Synergies och Rift Expedition är planerade som större upplåsningar längre fram i Journey."
+        "STAGE 20 · RIFT EXPEDITION",
+        "Efter Stage 20 kan du testa The Echoing Rift, en egen expedition med fem sammanhängande områden, portaler och en slutboss. Den skiljer sig från Planet Defense."
       ],
       [
-        "MER SAMSPEL",
-        "Fler fiender, kombinationer och smartare AI-lagkamrater ska göra PvE-kampanjen rikare med tiden."
+        "FORTFARANDE UNDER UTVECKLING",
+        "Rift Expedition 1.0 har en spelbar väg och strider men ännu inga permanenta belöningar. Synergies, fler miljöer och mer avancerade mekaniker kommer senare."
       ],
       [
         "DIN UPPLEVELSE",
         "Testa olika Origins, prova oväntade spell-kombinationer och berätta gärna vad som är kul – eller borde bli bättre."
       ]
     ],
-    "tip": "Det du spelar nu är en utvecklingsversion. Vissa knappar och milstolpar är medvetet låsta tills de är färdiga.",
+    "tip": "Med Game Dev och en DEV Test Origin kan du prova den första Rift Expedition direkt utan att behöva spela om hela Journey.",
     "art": "future",
-    "caption": "Nya planeter, djupare synergier och Rift Expedition väntar längre fram."
+    "caption": "The Echoing Rift har öppnats i en första spelbar version. Synergies och fler expeditioner kommer senare."
   }
 ];
 function artMarkup(name){

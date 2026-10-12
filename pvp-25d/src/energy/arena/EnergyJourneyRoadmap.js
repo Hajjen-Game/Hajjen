@@ -10,9 +10,12 @@ export const JOURNEY_STEPS=Object.freeze(Array.from({length:20},(_,i)=>{
     5:["AI STYLES","Choose Balanced, Aggressive, Protective or Disruptive for either companion.","team"],
     7:["COMPLEXITY","Unlock more advanced spell choices before Hex 8.","sparkles"],
     8:["FULL LOADOUT","Your tenth active slot opens; future discoveries belong in your library.","sparkles"],
-    10:["EVOLUTIONS","Evolutions begin. Change how equipped spells behave.","evolution"],
+    10:["EVOLUTIONS","First permanent rankless Evolution slot unlocked. Choose one of three paths for a discovered spell.","evolution"],
+    12:["EVOLUTION SLOT","A second permanent Evolution can be activated.","evolution"],
+    14:["EVOLUTION SLOT","A third permanent Evolution can be activated.","evolution"],
+    16:["EVOLUTION SLOT","A fourth permanent Evolution can be activated.","evolution"],
     15:["AI BUILDS","Optional companion build editing with recommended presets already equipped.","team"],
-    20:["RIFT EXPEDITION","Proposed Synergies and Rift Expedition unlock milestone.","rift"]
+    20:["RIFT EXPEDITION","Fifth Evolution slot unlocked. Synergies and Rift Expedition are still planned for a future update.","rift"]
   };
   const event=events[step];
   return Object.freeze({

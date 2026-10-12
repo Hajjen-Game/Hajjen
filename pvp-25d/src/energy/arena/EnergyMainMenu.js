@@ -167,17 +167,17 @@ const PAGES=[
         "Klicka på en Evolution för att läsa vad den kan göra, även när den är låst."
       ],
       [
-        "STAGE 10 · PLANERAT",
-        "Evolutions är tänkta att låsas upp genom Journey och ändra hur spells fungerar – inte bara öka en siffra."
+        "STAGE 10 · EVOLUTIONS",
+        "När du klarar Stage 10 får du välja din första Evolution. Fler platser öppnas efter Stage 12, 14, 16 och 20. Inga spell ranks behövs."
       ],
       [
         "BUILD PRESETS",
         "Du kan spara och återvända till olika spell-kombinationer i HUB. Du behöver inte bygga allt från början varje gång."
       ]
     ],
-    "tip": "Evolution-valen går redan att förhandsgranska. Den permanenta upplåsningen utvecklas fortfarande.",
+    "tip": "Välj en Evolution per spell. Valet sparas per Origin och fungerar i strid när spellen är utrustad. Du kan ändra valet kostnadsfritt.",
     "art": "evolutions",
-    "caption": "Tre möjliga Evolution-vägar för samma spell – förhandsvisning tills systemet öppnas."
+    "caption": "Tre Evolution-vägar per spell. Val blir spelbara från Stage 10 och ger nya effekter i strid."
   },
   {
     "title": "LÄR KÄNNA DITT LAG",

@@ -3,6 +3,7 @@
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
 import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js?v=20261011-identity13";
 import { buildCombatLoadout } from "../buildState.js?v=20261011-identity13";
+import {readJourney,awardedJourneyClear,journeyActiveSlots,journeyCombatLoadout} from "./EnergyJourneyCampaign.js?v=20261012-journey1";
 
 export const PROGRESSION_KEY = "pvp25d-energy-progression-v1";
 export const MAX_LEVEL = 30;
@@ -107,6 +108,17 @@ export function planetDefenseVictoryXp(profile){
 }
 export function slotsForLevel(level){return SPELL_SLOT_LEVELS.filter(required=>level>=required).length;}
 export function progressDetails(profile){
+  const journey=readJourney(profile);
+  if(journey){
+    // 'level' below is PRIVATE encounter-difficulty compatibility only.
+    // Journey Origins have no public Character Level or XP.
+    const internalStage=Math.max(1,Math.min(30,journey.clears+1));
+    return {journey:true,clears:journey.clears,level:internalStage,
+      slots:journeyActiveSlots(journey),maxLevel:false,startXp:0,nextXp:null,
+      xp:0,progress:0,remaining:0,
+      lesson:"Complete Planet "+Math.min(20,journey.clears+1)+
+        " to discover your next spell and grow your Origin."};
+  }
   const level=levelForXp(profile.xp||0),base=LEVEL_XP[level-1],next=LEVEL_XP[level];
   return {
     level,slots:slotsForLevel(level),maxLevel:level===MAX_LEVEL,
@@ -134,18 +146,21 @@ export function readProgression(storage){
       &&allowedReactions.includes(raw.reaction)
       ?{anchor:raw.anchor,partner:raw.partner,reaction:raw.reaction,
         tier:Math.min(4,nonnegativeInt(raw.tier))}:null;
-    return {...blank,
+    const profile={...blank,
       xp:nonnegativeInt(s.xp),wins:nonnegativeInt(s.wins),
       losses:nonnegativeInt(s.losses),
       lastMode:MODES[s.lastMode]?s.lastMode:"training",
       energyFragments:nonnegativeInt(s.energyFragments),
       blackHoleMatter:nonnegativeInt(s.blackHoleMatter),
       firstMatterGranted:Boolean(s.firstMatterGranted),singularity};
+    if(readJourney(s))profile.journey=readJourney(s);
+    return profile;
   }catch{return blank;}
 }
 // Claim the level-10 starter material even for existing profiles which
 // crossed level 10 before this update; persistence happens in the caller.
 export function ensureStarterMatter(profile){
+  if(readJourney(profile))return profile; // Forge is a later Journey milestone.
   if(progressDetails(profile).level<FORGE_UNLOCK_LEVEL||profile.firstMatterGranted)return profile;
   return {...profile,firstMatterGranted:true,
     blackHoleMatter:(profile.blackHoleMatter||0)+1};
@@ -155,6 +170,22 @@ export function saveProgression(storage,profile){
   catch{return false;}
 }
 export function awardMatch(profile,modeId,won,enemyKills=0){
+  const journey=readJourney(profile);
+  if(journey){
+    const before=progressDetails(profile);
+    let next={...profile,wins:(profile.wins||0)+(won?1:0),
+      losses:(profile.losses||0)+(won?0:1),lastMode:modeId,
+      energyFragments:(profile.energyFragments||0)+FRAGMENTS_PER_KILL*nonnegativeInt(enemyKills)};
+    let cleared=false,planet=null;
+    if(won&&modeId==="defense"){
+      const award=awardedJourneyClear(next);
+      next=award.next;cleared=award.changed;planet=award.planet??null;
+    }
+    return {next,before,after:progressDetails(next),earned:0,
+      levelUp:false,unlocked:cleared?1:0,
+      journeyClear:cleared,planet,
+      fragments:FRAGMENTS_PER_KILL*nonnegativeInt(enemyKills),matter:0};
+  }
   const mode=MODES[modeId]||MODES.training;
   const before=progressDetails(profile);
   const earned=won&&modeId==="defense"
@@ -198,7 +229,8 @@ export function completeArenaBuild(build){
   buildCombatLoadout(staged); // Validate without mutating the saved build.
   return staged;
 }
-export function stagedLoadout(build,level){
+export function stagedLoadout(build,level,journey=null){
+  if(journey)return journeyCombatLoadout(build,journey);
   const full=buildCombatLoadout(completeArenaBuild(build));
   const byId=new Map(full.abilitySlots.map(slot=>[slot.id,slot]));
   // Preserve three foundations while making the player's OWN picks determine

@@ -1,21 +1,21 @@
 // Project Energy UI; internal Energy Arena module names remain stable while the public title is undecided.
 import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
 import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261012-eclipse-oc1";
-import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-ai-styles1";
+import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-dev-origin1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
-  appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261012-ai-styles1";
+  appendOrigin, chooseOrigin, upsertDevOrigin, devOrigin } from "./EnergyOriginRoster.js?v=20261012-dev-origin1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-ai-styles2";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-ai-styles2";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-dev-origin1";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-dev-origin1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261012-ai-styles2";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261012-ai-styles1";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261012-dev-origin1";
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261012-ai-styles1";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-ai-styles1";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-dev-origin1";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
 
@@ -79,6 +79,27 @@ function createOriginCharacter(character){
   persistOriginRoster(window.localStorage,roster);
   return applyActiveOrigin();
 }
+function createTestOrigin(role){
+  saveActiveOrigin();
+  roster=upsertDevOrigin(roster,role);
+  persistOriginRoster(window.localStorage,roster);
+  return applyActiveOrigin();
+}
+function activateTestOrigin(){
+  const dev=devOrigin(roster);
+  if(!dev)throw Error("Create a DEV Test Origin first.");
+  activateOriginById(dev.id);
+}
+function playTestStage(stage){
+  if(!Number.isInteger(stage)||stage<1||stage>20)
+    throw Error("Select a Stage between 1 and 20.");
+  activateTestOrigin();
+  profile={...profile,devStage:stage,lastMode:"defense"};
+  selectedMode="defense";
+  saveProgression(window.localStorage,profile);
+  saveActiveOrigin();
+  start(store.draft);
+}
 function activateOriginById(id){
   if(roster.activeId===id)return;
   saveActiveOrigin();
@@ -116,10 +137,17 @@ function start(build){
     completeArenaBuild(build); // An incomplete draft can start with a temporary starter kit.
     selectedBuild=build;
     const state=progressDetails(profile);
+    const devStage=profile.devTest===true?
+      Math.max(1,Math.min(20,Math.floor(Number(profile.devStage)||20))):null;
+    const journey=readJourney(profile);
+    // Full Journey stays saved at 20/20. Only this match gets a transient
+    // Stage position, keeping the complete dev toolkit available.
+    const combatJourney=devStage!==null&&journey?
+      {...journey,clears:devStage-1,devTest:true}:journey;
     const MatchType=selectedMode==="defense"?EnergyPlanetDefense:EnergyMatch;
     const arena=arenaForMode(selectedMode);
-    match=new MatchType(build,arena,{modeId:selectedMode,level:state.level,
-      singularity:profile.singularity,journey:readJourney(profile)});
+    match=new MatchType(build,arena,{modeId:selectedMode,level:devStage||state.level,
+      singularity:profile.singularity,journey:combatJourney});
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
@@ -127,7 +155,9 @@ function start(build){
       (match.encounter?" · "+match.encounter.stage:"");
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
-    $("match-level").textContent=state.journey?
+    $("match-level").textContent=devStage!==null?
+      "DEV TEST · STAGE "+String(devStage).padStart(2,"0")+" · 10/10 SPELLS":
+      state.journey?
       "STAGE "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/10 SPELLS":
       "LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
@@ -512,12 +542,24 @@ function frameLoop(now){
     const previous=profile;
     const enemyKills=match.modeId==="defense"?match.totalKills:
       match.actors.filter(a=>a.team==="enemy"&&!a.alive).length;
-    awardedMatch=awardMatch(profile,match.modeId,match.winner==="friendly",enemyKills);
-    profile=awardedMatch.next;
-    saveProgression(window.localStorage,profile);
-    saveActiveOrigin();
+    // Dev replays never pay Journey rewards, add XP or mutate normal saves.
+    awardedMatch=profile.devTest===true?{
+      next:profile,before:progressDetails(profile),after:progressDetails(profile),
+      earned:0,levelUp:false,fragments:0,matter:0,journeyClear:false
+    }:awardMatch(profile,match.modeId,match.winner==="friendly",enemyKills);
+    if(!profile.devTest){
+      profile=awardedMatch.next;
+      saveProgression(window.localStorage,profile);
+      saveActiveOrigin();
+    }
     const {earned,after,levelUp,before,fragments,matter}=awardedMatch;
-    if(before.journey){
+    if(profile.devTest){
+      $("match-result-details").textContent=
+        "DEV TEST · STAGE "+String(profile.devStage||20).padStart(2,"0")+
+        " · "+(match.winner==="friendly"?"VICTORY":"DEFEAT")+
+        " · NO CAMPAIGN REWARDS OR SAVE PROGRESSION · Return to HUB or Game Dev.";
+      $("match-level").textContent="DEV TEST · STAGE "+String(profile.devStage||20).padStart(2,"0");
+    }else if(before.journey){
       const cleared=awardedMatch.journeyClear;
       $("match-result-details").textContent=
         (cleared?
@@ -660,6 +702,10 @@ menu=new EnergyMainMenu({
   selectOrigin:activateOriginById,
   getOriginLevel:entry=>progressDetails(entry.progression).level,
   getJourney:()=>readJourney(profile),
+  getDevOrigin:()=>devOrigin(roster),
+  createDevOrigin:createTestOrigin,
+  activateDevOrigin:activateTestOrigin,
+  playDevStage:playTestStage,
   hideHub:()=>hub.hide(),
   onMenuFromCombat:()=>{
     if(match&&!match.ended&&!window.confirm("Leave the current match and return to the main menu?"))return;

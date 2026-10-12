@@ -4,9 +4,9 @@ import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "..
 import { buildCombatLoadout } from "../buildState.js?v=20261012-eclipse-oc1";
 import { EnergyAI } from "./EnergyAI.js?v=20261012-style1";
 import {companionStyleFor} from "./EnergyCompanionStyles.js?v=20261012-dev-origin1";
-import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261012-evolution1";
+import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261012-rift1";
 import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261012-eclipse-oc1";
-import { energyIdentity } from "./EnergyCharacter.js?v=20261012-evolution1";
+import { energyIdentity } from "./EnergyCharacter.js?v=20261012-rift1";
 import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261011-encounters1";
 import { BASE_HEALTH, BASE_CRIT_CHANCE, CRIT_MULTIPLIER, maxHealthForLevel,
   powerForLevel, damageMultiplier, healMultiplier, shieldMultiplier,

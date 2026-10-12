@@ -6,7 +6,7 @@ import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrig
   appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261012-eclipse-oc1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-eclipse-oc1";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-eclipse-oc1";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-eclipse-oc2";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261012-eclipse-oc1";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";

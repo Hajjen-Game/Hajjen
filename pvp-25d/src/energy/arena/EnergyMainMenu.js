@@ -87,7 +87,7 @@ const PAGES=[
         "Alla tre lagmedlemmar kan bidra. Skydda varandra, kontrollera farliga fiender och få ut maximalt av era spells."
       ]
     ],
-    "tip": "Målet är att varje planet ska kännas annorlunda – utan att varje match måste ha en helt ny boss.",
+    "tip": "Målet är att varje Stage ska kännas annorlunda – utan att varje match måste ha en helt ny boss.",
     "art": "waves",
     "caption": "Fem vågor, ett lag och fiender som blir fler och mer krävande."
   },
@@ -98,11 +98,11 @@ const PAGES=[
     "steps": [
       [
         "TRYCK PLAY",
-        "Öppna Journey Roadmap, välj nästa tillgängliga hexagon och tryck Play för att starta Planet Defense."
+        "Öppna Journey Roadmap, välj nästa tillgängliga Stage och tryck Play för att starta Planet Defense."
       ],
       [
         "MARKERADE SEGRAR",
-        "En planet får en grön bock när du klarat den för första gången. Då öppnas nästa steg."
+        "En Stage får en grön bock när du klarat den för första gången. Då öppnas nästa steg."
       ],
       [
         "NYTT INNEHÅLL",
@@ -111,7 +111,7 @@ const PAGES=[
     ],
     "tip": "En ny spell väljs efter en första seger. Du kan inte hoppa förbi kommande planeter.",
     "art": "journey",
-    "caption": "Hexagonerna visar din resa. Grönt betyder avklarat; nästa planet är markerad."
+    "caption": "Hexagonerna visar din resa. Grönt betyder avklarat; nästa Stage är markerad."
   },
   {
     "title": "UPPTÄCK OCH BYGG SPELLS",
@@ -167,7 +167,7 @@ const PAGES=[
         "Klicka på en Evolution för att läsa vad den kan göra, även när den är låst."
       ],
       [
-        "PLANET 10 · PLANERAT",
+        "STAGE 10 · PLANERAT",
         "Evolutions är tänkta att låsas upp genom Journey och ändra hur spells fungerar – inte bara öka en siffra."
       ],
       [
@@ -189,11 +189,11 @@ const PAGES=[
         "Om du spelar Eclipse följer Genesis och Impact med. Väljer du en annan Origin får du de två övriga som AI-kompisar."
       ],
       [
-        "PLANET 5 · PLANERAT",
+        "STAGE 5 · PLANERAT",
         "AI Styles ska låta dig påverka hur aggressivt, skyddande eller kontrollerande en kompis spelar."
       ],
       [
-        "PLANET 15 · PLANERAT",
+        "STAGE 15 · PLANERAT",
         "AI Builds ska ge möjlighet att anpassa deras spells. Färdiga builds ska fungera även om du inte vill ändra något."
       ]
     ],
@@ -207,7 +207,7 @@ const PAGES=[
     "intro": "Project Energy byggs fortfarande. Målet är att spelet ska vara enkelt att komma in i, fullt av färgstarka spells och djupt nog för att du ska vilja experimentera länge.",
     "steps": [
       [
-        "PLANET 20 · MÅL",
+        "STAGE 20 · MÅL",
         "Synergies och Rift Expedition är planerade som större upplåsningar längre fram i Journey."
       ],
       [
@@ -275,7 +275,7 @@ function artMarkup(name){
       '<div class="bk-wave-pause">'+tag("OVERCHARGE AFTER EACH PAUSE","bright")+
         '<span>CHOOSE 1 OF 4</span></div></div>';
     case "journey":return '<div class="bk-art bk-journey">'+
-      '<div class="bk-art-kicker">YOUR CAMPAIGN · 20 PLANETS</div>'+
+      '<div class="bk-art-kicker">YOUR CAMPAIGN · 20 STAGES</div>'+
       '<div class="bk-hex-map">'+Array.from({length:20},(_,i)=>{
         const step=i+1,state=i<2?"done":i===2?"next":"locked";
         const label=step===3?"COUNTER":step===5?"AI":step===10?"EVO":step===15?"BUILD":step===20?"RIFT":"";
@@ -283,7 +283,7 @@ function artMarkup(name){
           (i<2?"✓":String(step).padStart(2,"0"))+'</span>'+
           (label?'<small>'+label+'</small>':"")+'</div>';
       }).join("")+'</div>'+
-      '<div class="bk-journey-legend">'+tag("✓ KLAR","done")+tag("NÄSTA PLANET","bright")+tag("LÅST")+'</div>'+
+      '<div class="bk-journey-legend">'+tag("✓ KLAR","done")+tag("NÄSTA STAGE","bright")+tag("LÅST")+'</div>'+
       '<div class="bk-art-footer">NO LEVELS <b>·</b> EVERY FIRST CLEAR COUNTS</div></div>';
     case "spells":return '<div class="bk-art bk-spells">'+
       '<div class="bk-art-kicker">FIVE DISCIPLINES · ONE DISCOVERY</div>'+
@@ -320,7 +320,7 @@ function artMarkup(name){
         ["GLACIAL ECHO","SECOND PROJECTILE"],
         ["BRITTLE CORE","AMPLIFIED HIT"]
       ].map(item=>'<div class="bk-evo-option"><span>◇</span><strong>'+item[0]+
-        '</strong><small>'+item[1]+'</small><em>LOCKED · PLANET 10</em></div>').join("")+
+        '</strong><small>'+item[1]+'</small><em>UNLOCKS AT STAGE 10</em></div>').join("")+
       '</div><div class="bk-art-footer">EXPLORE NOW <b>·</b> UNLOCK LATER</div></div>';
     case "companions":return '<div class="bk-art bk-companions">'+
       '<div class="bk-art-kicker">TWO AI COMPANIONS · ONE JOURNEY</div>'+
@@ -337,7 +337,7 @@ function artMarkup(name){
       '<div class="bk-future-scene"><div class="bk-future-ring bk-future-ring-1"></div>'+
         '<div class="bk-future-ring bk-future-ring-2"></div>'+
         '<div class="bk-future-vortex">✧</div>'+
-        '<span class="bk-future-badge">PLANET 20</span>'+
+        '<span class="bk-future-badge">STAGE 20</span>'+
       '</div><div class="bk-future-content"><strong>RIFT EXPEDITION</strong>'+
         '<span>SYNERGIES · NEW PVE CHALLENGES</span></div>'+
       '<div class="bk-art-footer">IN DEVELOPMENT <b>·</b> MORE TO DISCOVER</div></div>';
@@ -362,7 +362,7 @@ export class EnergyMainMenu{
       onSelect:hex=>{
         const button=$("play-journey-start");
         button.disabled=false;
-        button.textContent="PLAY · PLANET "+String(hex.step).padStart(2,"0")+" →";
+        button.textContent="PLAY · STAGE "+String(hex.step).padStart(2,"0")+" →";
       }
     });
     $("menu-new-origin").addEventListener("click",()=>this.createNew());
@@ -455,7 +455,7 @@ export class EnergyMainMenu{
       const subtitle=document.createElement("small");
       subtitle.textContent=entry.character.origin+" · "+
         (entry.progression.journey?.version===2?
-          (entry.progression.journey.clears||0)+"/20 PLANETS":
+          (entry.progression.journey.clears||0)+"/20 STAGES":
           "LEVEL "+this.getOriginLevel(entry));
       meta.append(name,subtitle);
       const state=document.createElement("span");
@@ -488,7 +488,7 @@ export class EnergyMainMenu{
     $("main-menu-open").hidden=false;
     const start=$("play-journey-start");
     start.disabled=true;
-    start.textContent="SELECT NEXT PLANET TO PLAY";
+    start.textContent="SELECT NEXT STAGE TO PLAY";
     this.journey.resetSelection();
   }
   openGameDev(){

@@ -1940,3 +1940,298 @@ h2{font-size:23px}
   .character-hub.journey-mode .hub-orbit-spell.pool.discovery-available .hub-orbit-icon{
     animation:none;box-shadow:0 0 18px color-mix(in srgb,var(--node-tone) 50%,transparent)}
 }
+
+
+/* ABOUT BOOK 3.0 — contemporary Project Energy PvE onboarding.
+   Each right-hand visual is lightweight CSS/DOM art; no outdated XP, ranks,
+   PVP diagrams or large external images. Keep illustration on the RIGHT. */
+.guide-book-pages{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.guide-book .guide-page-text{padding:27px 30px 26px}
+.guide-book .guide-page-art{padding:24px 24px 23px}
+.guide-book .guide-page-text h3{font-size:clamp(20px,2vw,28px);margin:12px 0 9px}
+.guide-book .guide-intro{line-height:1.58;font-size:12px}
+.guide-book .guide-steps{gap:10px;margin-top:16px}
+.guide-book .guide-step{padding-left:11px}
+.guide-book .guide-step strong{font-size:10px}
+.guide-book .guide-step p{font-size:11px;line-height:1.48;margin-top:3px}
+.guide-book .guide-tip{margin:16px 0 8px;padding:10px 12px;font-size:10px}
+.guide-book .guide-illustration{width:100%;min-height:355px;padding:0;overflow:hidden}
+.guide-book .guide-art-caption{font-size:10px;padding:11px 2px}
+.bk-art{--bk-cyan:#78dfed;--bk-vital:#60e9c3;--bk-cryo:#69d5ff;
+  --bk-kinetic:#f28885;--bk-void:#c79de9;--bk-solar:#f7c477;
+  width:min(100%,460px);min-height:350px;height:100%;position:relative;isolation:isolate;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:13px;color:#deeff8;font-size:12px;overflow:hidden}
+.bk-art:before{content:"";position:absolute;inset:13% 5%;
+  background:radial-gradient(ellipse at center,#21658729,transparent 65%);
+  pointer-events:none;z-index:-1}
+.bk-art-kicker{color:#94c2d4;font-size:9px;letter-spacing:.16em;font-weight:800;
+  text-align:center;flex:0 0 auto}
+.bk-art-footer{color:#8eafc6;letter-spacing:.13em;font-size:9px;font-weight:800;
+  margin-top:auto;text-align:center;line-height:1.45;flex:0 0 auto}
+.bk-art-footer b{font-weight:700;color:#5f86a4;margin:0 6px}
+.bk-tag{font-size:9px;font-weight:800;letter-spacing:.06em;
+  color:#a4c1d2;border:1px solid #345b70;border-radius:6px;
+  background:#112337;padding:6px 8px;white-space:nowrap}
+.bk-tag.bright{color:#ceefff;border-color:#75bdce;background:#1a3b50}
+.bk-tag.done{color:#acffe0;border-color:#499c89;background:#153e3c}
+/* Tiny live-energy orbs echo the real game's faceted cores and orbit bands. */
+.bk-orb{--bk-energy:var(--bk-cryo);position:relative;display:inline-grid;
+  place-items:center;width:82px;height:82px;border-radius:50%;flex-shrink:0;
+  background:
+   radial-gradient(circle at 40% 31%,#fff 0 3%,var(--bk-energy) 7%,
+   color-mix(in srgb,var(--bk-energy) 40%,#071c39) 30%,#0a1835 70%),
+   #0b1930;
+  box-shadow:inset -9px -14px 18px #020814c4,inset 3px 4px 12px #e0fdff59,
+   0 0 25px color-mix(in srgb,var(--bk-energy) 40%,transparent),
+   0 0 3px 1px var(--bk-energy);
+  animation:bk-breathe 4.8s ease-in-out infinite}
+.bk-orb--vital{--bk-energy:var(--bk-vital)}
+.bk-orb--kinetic{--bk-energy:var(--bk-kinetic)}
+.bk-orb--cryo{--bk-energy:var(--bk-cryo)}
+.bk-orb--void{--bk-energy:var(--bk-void)}
+.bk-orb:before,.bk-orb:after{content:"";position:absolute;inset:12%;
+  border:1px solid color-mix(in srgb,var(--bk-energy) 75%,#fff);
+  border-radius:50%;transform:rotate(-34deg) scaleY(.46);
+  filter:drop-shadow(0 0 5px var(--bk-energy));
+  animation:bk-orbit 11s linear infinite}
+.bk-orb:after{inset:3%;transform:rotate(53deg) scaleY(.37);
+  animation-duration:15s;animation-direction:reverse;opacity:.78}
+.bk-orb i{width:12px;height:12px;border-radius:50%;
+  background:#f9ffff;box-shadow:0 0 12px 8px
+  color-mix(in srgb,var(--bk-energy) 48%,transparent)}
+@keyframes bk-breathe{0%,100%{filter:brightness(.93)}50%{filter:brightness(1.14)}}
+@keyframes bk-orbit{to{rotate:360deg}}
+/* Page 1 — game fantasy: three protagonists versus an incoming swarm */
+.bk-vision{justify-content:space-around}
+.bk-vision-actors{display:flex;width:100%;justify-content:space-around;
+  align-items:center;gap:9px;position:relative;z-index:2}
+.bk-vision-unit{display:flex;flex-direction:column;align-items:center;gap:12px;
+  min-width:0;text-align:center}
+.bk-vision-unit .bk-orb{width:65px;height:65px}
+.bk-vision-unit.main .bk-orb{width:114px;height:114px}
+.bk-vision-unit strong,.bk-vision-unit small{color:#b5ecf5;letter-spacing:.09em;font-size:10px}
+.bk-vision-unit small{font-size:9px;color:#8eb8c9}
+.bk-vision-line{position:absolute;top:26%;left:18%;right:18%;height:32%;
+  border-bottom:1px solid #72bfd277;border-radius:50%;z-index:0;
+  transform:rotate(-4deg)}
+.bk-vision-enemies{display:flex;gap:15px;justify-content:center;align-items:center;
+  width:70%;height:50px}
+.bk-vision-enemies i{width:19px;height:19px;transform:rotate(45deg);
+  background:linear-gradient(135deg,#c5a5ec,#343353);border:1px solid #bd96eb;
+  box-shadow:0 0 13px #aa7bee6b}
+.bk-vision-enemies i:nth-child(even){width:13px;height:13px;opacity:.65}
+/* Page 2 — actual Origin starter identities */
+.bk-origins{flex-direction:row;align-content:center;align-items:stretch;gap:8px;flex-wrap:wrap}
+.bk-origin-card{flex:1 1 28%;min-width:0;max-width:33%;height:240px;
+  border:1px solid #335f74;border-radius:11px;
+  background:linear-gradient(155deg,#153346,#0e1b31 75%);
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  justify-content:center;padding:13px 6px;text-align:center}
+.bk-origin-card--vital{border-color:#3c8776}
+.bk-origin-card--kinetic{border-color:#955d69}
+.bk-origin-card--cryo{border-color:#4f89b9}
+.bk-origin-card .bk-orb{width:67px;height:67px}
+.bk-origin-card strong{font-size:12px;letter-spacing:.06em}
+.bk-origin-card em{font-size:10px;color:#8fcfdf;font-style:normal}
+.bk-origin-abilities{margin-top:4px;font-size:9px;line-height:1.6;
+  color:#b8d4e0;display:flex;flex-direction:column}
+.bk-origin-abilities b{color:#e9c891}
+/* Page 3 — the combat field, action bar and targeting */
+.bk-combat{gap:11px}
+.bk-battle-header{display:flex;align-items:center;justify-content:space-between;
+  width:100%;gap:7px;color:#b5d3e5;font-size:9px;letter-spacing:.08em}
+.bk-battle-header b{color:#91efcb}
+.bk-battle-header span:last-child b{color:#f5a6b1}
+.bk-battle-zone{position:relative;width:94%;height:223px;overflow:hidden;
+  border:1px solid #335b78;border-radius:12px;
+  background:
+   repeating-linear-gradient(0deg,transparent 0 39px,#5a88a51c 40px 41px),
+   repeating-linear-gradient(90deg,transparent 0 39px,#5a88a51c 40px 41px),
+   radial-gradient(ellipse at center,#163d57,#08172b 83%);
+  transform:perspective(700px) rotateX(4deg)}
+.bk-battle-cover{position:absolute;width:19%;height:29%;
+  background:linear-gradient(145deg,#4e6676,#1c3047);
+  border:2px solid #7393a5;border-radius:9px;box-shadow:8px 9px 4px #0008}
+.bk-battle-cover.left{left:28%;top:10%}
+.bk-battle-cover.right{right:25%;bottom:12%}
+.bk-fighter{position:absolute;z-index:2}
+.bk-fighter .bk-orb{width:42px;height:42px}
+.bk-fighter-a{left:16%;top:27%}
+.bk-fighter-b{left:39%;bottom:15%}
+.bk-fighter-c{left:23%;bottom:23%}
+.bk-fighter-enemy{right:18%;top:33%;font-size:39px;color:#f0b0eb;
+  filter:drop-shadow(0 0 10px #c276d5)}
+.bk-battle-cast{position:absolute;left:50%;top:45%;width:37%;height:3px;
+  background:linear-gradient(90deg,#9fe8ff,#e7b7ff);
+  transform:rotate(-17deg);box-shadow:0 0 12px 5px #79bcef52}
+.bk-combat-hotkeys{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+/* Page 4 — the five waves and mob density */
+.bk-waves{gap:13px}
+.bk-wave-row{display:flex;gap:7px;width:100%;justify-content:center}
+.bk-wave-hex{width:18%;height:55px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;border:1px solid #40617a;
+  clip-path:polygon(50% 0,98% 26%,98% 74%,50% 100%,2% 74%,2% 26%);
+  background:#183046}
+.bk-wave-hex.current{border:0;background:#38738a;box-shadow:inset 0 0 12px #74ffff55}
+.bk-wave-hex small{font-size:8px;letter-spacing:.11em;color:#91b8cc}
+.bk-wave-hex strong{font-size:15px;color:#edfcff}
+.bk-wave-arena{display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;height:164px;border:1px solid #31566f;border-radius:14px;
+  background:radial-gradient(circle at 55% 60%,#21415e,#091a2c 79%);overflow:hidden}
+.bk-wave-squad{width:31%;display:flex;position:relative;align-items:center;justify-content:center}
+.bk-wave-squad .bk-orb{width:36px;height:36px;margin-left:-12px}
+.bk-wave-burst{font-size:51px;color:#bdefff;text-shadow:0 0 16px #65cce1,0 0 35px #72b7ff}
+.bk-wave-hostiles{width:39%;height:125px;display:grid;grid-template-columns:repeat(4,1fr);
+  align-content:center;place-items:center;gap:6px}
+.bk-threat{color:#cb9df3;font-size:17px;text-shadow:0 0 12px #d8a1fc}
+.bk-threat.large{color:#e5b1e7;font-size:28px}
+.bk-wave-pause{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.bk-wave-pause>span:last-child{font-size:9px;color:#b2d7e5;letter-spacing:.08em}
+/* Page 5 — example 20-hex journey (not the user's save). */
+.bk-journey{gap:15px}
+.bk-hex-map{display:grid;grid-template-columns:repeat(5,1fr);gap:8px 10px;width:100%;padding:0 7px}
+.bk-hex-cell{height:44px;min-width:0;position:relative;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:1px;color:#80a6bd;opacity:.73;
+  background:linear-gradient(140deg,#29415d,#112439);
+  clip-path:polygon(50% 0,96% 24%,96% 76%,50% 100%,4% 76%,4% 24%)}
+.bk-hex-cell span{font-weight:800;font-size:11px}
+.bk-hex-cell small{font-size:7px;font-weight:900;letter-spacing:.05em}
+.bk-hex-cell.done{background:linear-gradient(140deg,#347a6d,#123f38);
+  color:#b6ffe0;opacity:1}
+.bk-hex-cell.next{background:linear-gradient(140deg,#4c91aa,#194d68);
+  color:#efffff;opacity:1;box-shadow:0 0 18px #9feaff66}
+.bk-journey-legend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+/* Page 6 — five discipline discoveries outside the player orb. */
+.bk-spells{gap:9px}
+.bk-discovery-stage{width:100%;height:236px;position:relative;
+  border-radius:50%;background:radial-gradient(circle at center,#1e4d6344,transparent 54%)}
+.bk-discovery-stage:before{content:"";position:absolute;inset:20px 34px;
+  border:1px dashed #41748c;border-radius:50%}
+.bk-discovery-hero{position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);width:86px;height:86px}
+.bk-discover-node{--discipline:var(--bk-cryo);position:absolute;
+  min-width:105px;max-width:132px;display:grid;justify-items:center;gap:3px;
+  text-align:center;color:#def5ff}
+.bk-discover-node>span{display:grid;place-items:center;width:37px;height:37px;
+  border-radius:50%;border:2px solid var(--discipline);
+  background:radial-gradient(circle,#2f6486,#0e243a);
+  color:var(--discipline);font-size:19px;
+  box-shadow:0 0 13px 3px color-mix(in srgb,var(--discipline) 45%,transparent);
+  animation:bk-node-pulse 2.8s ease-in-out infinite}
+.bk-discover-node strong{font-size:9px;line-height:1.3;text-shadow:0 2px 5px #0009}
+.bk-discover-node.void{--discipline:var(--bk-void)}
+.bk-discover-node.solar{--discipline:var(--bk-solar)}
+.bk-discover-node.cryo{--discipline:var(--bk-cryo)}
+.bk-discover-node.kinetic{--discipline:var(--bk-kinetic)}
+.bk-discover-node.vital{--discipline:var(--bk-vital)}
+.bk-discover-node-1{left:1%;top:6%}
+.bk-discover-node-2{right:1%;top:6%}
+.bk-discover-node-3{left:0;top:50%}
+.bk-discover-node-4{right:0;top:50%}
+.bk-discover-node-5{left:50%;bottom:1%;transform:translateX(-50%)}
+@keyframes bk-node-pulse{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.42)}}
+.bk-selected-preview{display:flex;gap:5px;align-items:center;justify-content:center;
+  flex-wrap:wrap;background:#102c40;border:1px solid #41798d;
+  padding:9px 11px;border-radius:9px;text-align:center}
+.bk-selected-preview>span:first-child{color:#9bb9c9;font-size:8px;letter-spacing:.1em}
+.bk-selected-preview strong{color:#d9f9ff;font-size:10px}
+.bk-preview-button{border-radius:5px;background:#23546c;color:#d0f6fc;
+  border:1px solid #67bdd6;padding:6px;font-size:8px;font-weight:800}
+/* Page 7 — four actual recipient-labelled Overcharge cards. */
+.bk-overcharges{gap:12px}
+.bk-overcharge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;gap:9px}
+.bk-overcharge-card{border:1px solid #466b80;border-radius:9px;
+  background:linear-gradient(155deg,#18374d,#0c192c);height:112px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;padding:9px 5px;text-align:center;position:relative}
+.bk-overcharge-card.you{border-color:#65a5c5}
+.bk-overcharge-card.vital{border-color:#50a994}
+.bk-overcharge-card.kinetic{border-color:#d08a8a}
+.bk-overcharge-card.highlighted{box-shadow:0 0 16px #71ddeb39,inset 0 0 15px #77e0ff22}
+.bk-overcharge-card small{font-size:8px;letter-spacing:.12em;color:#90c2d5}
+.bk-overcharge-sigil{font-size:18px;color:#c6f6ff;line-height:1;
+  filter:drop-shadow(0 0 7px #a4eeff)}
+.bk-overcharge-card strong{font-size:11px;color:#eefbff}
+.bk-overcharge-card>span{font-size:9px;color:#9abbcc}
+.bk-overcharge-bottom{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+/* Page 8 — no Rank 1-3; evolution previews are locked by hex milestone */
+.bk-evolutions{gap:13px}
+.bk-evo-source{width:150px;height:80px;display:grid;place-items:center;
+  gap:5px;border:1px solid #5aa0c6;border-radius:12px;background:#14314b;
+  box-shadow:0 0 21px #6dd0e72f}
+.bk-evo-source>span{font-size:24px;color:#8be9fa}
+.bk-evo-source strong{font-size:11px;color:#d7f4ff}
+.bk-evo-connectors{width:72%;height:32px;display:flex;justify-content:space-between;position:relative}
+.bk-evo-connectors:before{content:"";position:absolute;top:14px;left:0;right:0;
+  border-top:2px solid #587ea8}
+.bk-evo-connectors i{height:30px;width:2px;background:#587ea8;display:block}
+.bk-evo-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  width:100%;gap:8px}
+.bk-evo-option{min-height:130px;border:1px solid #425672;border-radius:10px;
+  background:linear-gradient(145deg,#1a2943,#101c31);
+  display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;
+  padding:12px 5px}
+.bk-evo-option>span{font-size:22px;color:#c1b1e9}
+.bk-evo-option strong{font-size:10px;color:#e2dafa;line-height:1.3}
+.bk-evo-option small{font-size:8px;color:#abbcd2}
+.bk-evo-option em{font-style:normal;margin-top:auto;color:#d2a9e5;
+  font-size:8px;letter-spacing:.04em}
+/* Page 9 — two real AI teammate identities shown as separate cards. */
+.bk-companions{gap:16px}
+.bk-companion-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;width:100%}
+.bk-companion-card{height:236px;padding:16px 9px 10px;
+  border:1px solid #4c7186;border-radius:13px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+  background:radial-gradient(ellipse at 50% 22%,#24607844,transparent 70%),#101f34}
+.bk-companion-card>small{font-size:9px;color:#86b5cc;letter-spacing:.11em}
+.bk-companion-card .bk-orb{width:82px;height:82px}
+.bk-companion-card>strong{font-size:13px;color:#f0fbff;letter-spacing:.08em}
+.bk-companion-card>span{color:#97c9d6;font-size:9px;text-align:center}
+.bk-companion-locks{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin-top:5px}
+.bk-companion-locks .bk-tag{font-size:8px;padding:5px 7px}
+/* Page 10 — conceptual future Rift Expedition scene, marked planned */
+.bk-future{gap:17px}
+.bk-future-scene{height:209px;width:90%;position:relative;display:grid;place-items:center}
+.bk-future-ring{position:absolute;width:170px;height:170px;border:4px solid #7780b2;
+  border-radius:50%;box-shadow:0 0 24px #7a93ed6a,inset 0 0 27px #5c73b66b}
+.bk-future-ring-1{transform:rotateX(51deg) rotateY(31deg)}
+.bk-future-ring-2{transform:rotateY(59deg) rotate(-30deg);
+  border-color:#b787ce;opacity:.8}
+.bk-future-vortex{width:106px;height:106px;border-radius:50%;
+  display:grid;place-items:center;font-size:47px;color:#f1e4ff;
+  background:radial-gradient(circle,#5bbad2 0,#263d78 43%,#0c142d 78%);
+  box-shadow:0 0 32px #ac84e8ad,inset 0 0 22px #070a24;z-index:1;
+  animation:bk-breathe 5s ease-in-out infinite}
+.bk-future-badge{position:absolute;top:0;right:0;font-size:9px;
+  letter-spacing:.1em;color:#d9bfe8;border:1px solid #916fc5;border-radius:6px;
+  padding:7px 9px;background:#211b38}
+.bk-future-content{text-align:center;display:grid;gap:8px}
+.bk-future-content strong{font-size:17px;letter-spacing:.15em;color:#e5d4fb}
+.bk-future-content span{font-size:10px;letter-spacing:.08em;color:#a7b7d6}
+@media(max-width:850px){
+  .guide-book .guide-page-text{padding:23px 18px}
+  .guide-book .guide-page-art{padding:16px 12px}
+  .bk-art{min-height:320px;gap:9px}
+  .bk-origin-card{height:218px}
+  .bk-origin-card .bk-orb{width:50px;height:50px}
+  .bk-origin-card strong{font-size:10px}
+  .bk-origin-abilities{font-size:8px}
+  .bk-discover-node{min-width:76px;max-width:98px}
+  .bk-discover-node strong{font-size:8px}
+  .bk-discover-node-1{left:0}
+  .bk-discover-node-2{right:0}
+}
+@media(max-width:610px){
+  /* Still left text / right illustration, with a scrollable two-page spread. */
+  .guide-book-pages{grid-template-columns:minmax(270px,1fr) minmax(270px,1fr);
+    overflow-x:auto;overflow-y:auto}
+  .guide-page-text{min-width:270px}
+  .guide-page-art{min-width:270px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bk-orb,.bk-orb:before,.bk-orb:after,
+  .bk-discover-node>span,.bk-future-vortex{animation:none}
+}

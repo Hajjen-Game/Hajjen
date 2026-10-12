@@ -60,10 +60,24 @@ export class EnergyPlanetDefense extends EnergyMatch{
   get totalWaveEnemies(){return (this.currentWave?.enemies.length||0)+this.summonedThisWave;}
   get waveRemaining(){return this.spawnQueue.length+this.living("enemy").length;}
   resonanceChoices(){
-    const choices=defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
-    // Never show Rank 1–3, Talent Point or level-gated trials to new Origins.
-    // Existing temporary PvE enchantments remain playable until Overcharges.
-    return this.journey?choices.filter(choice=>choice.kind==="enchantment"):choices;
+    if(this.journey){
+      // The old trial selector offers Mastery ONLY after Wave 1. Filtering
+      // those choices would leave an EMPTY intermission and soft-lock runs.
+      // Instead build usable, rankless temporary effects on EVERY wave.
+      return (WAVE_RESONANCES[this.player.role]||[])
+        .filter(e=>this.player.abilities.includes(e.spellId)&&this.resonanceTier(e.id)<3)
+        .map(e=>{
+          const tier=this.resonanceTier(e.id)+1;
+          return {id:"enchant:"+e.id+":"+tier,kind:"enchantment",
+            spellId:e.spellId,enchantmentId:e.id,tier,
+            name:e.name,label:"TEMPORARY BOOST · TIER "+tier,
+            description:e.description,
+            how:"Empower "+ABILITY_BY_ID[e.spellId].name+" for the remaining waves.",
+            unlock:"Run-only effect. Permanent spell discoveries happen after a first-clear victory.",
+            isTemporary:true};
+        });
+    }
+    return defenseTrialChoices(this,WAVE_RESONANCES[this.player.role]);
   }
   trialLesson(){
     return this.journey?{

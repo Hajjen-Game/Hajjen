@@ -259,7 +259,12 @@ export function stagedLoadout(build,level,journey=null){
     progressLevel:level,maxAbilitySlots:full.abilitySlots.length});
 }
 export function botAbilities(role,level,modeId){
-  const cap=modeId==="training"?3:modeId==="duo"?Math.min(8,slotsForLevel(level)):slotsForLevel(level);
+  // Companions are FULLY FUNCTIONAL from the first Planet Defense planet,
+  // even while the player's Origin intentionally starts with just 2 spells.
+  // Their optional build editor arrives at the player's 15th clear.
+  const cap=modeId==="defense"?Math.max(6,slotsForLevel(level)):
+    modeId==="training"?3:modeId==="duo"?Math.min(8,slotsForLevel(level)):
+    slotsForLevel(level);
   return BOT_KITS[role].slice(0,cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){

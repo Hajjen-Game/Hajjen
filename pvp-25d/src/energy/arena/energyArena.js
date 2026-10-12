@@ -5,9 +5,9 @@ import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-ai-styles1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261012-ai-styles1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-ai-styles1";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-ai-styles1";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261012-eclipse-oc1";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-ai-styles2";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-ai-styles2";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261012-ai-styles2";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";

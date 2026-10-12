@@ -346,13 +346,16 @@ function artMarkup(name){
 }
 export class EnergyMainMenu{
   constructor({openHub,startMatch,changeMode,getCharacter,hideHub,onMenuFromCombat,
-    getOrigins,selectOrigin,createOrigin,getOriginLevel,getJourney}){
+    getOrigins,selectOrigin,createOrigin,getOriginLevel,getJourney,
+    getDevOrigin,createDevOrigin,activateDevOrigin,playDevStage}){
     this.openHub=openHub;this.startMatch=startMatch;
     this.changeMode=changeMode;this.getCharacter=getCharacter;
     this.hideHub=hideHub;this.onMenuFromCombat=onMenuFromCombat;
     this.getOrigins=getOrigins;this.selectOrigin=selectOrigin;
     this.createOrigin=createOrigin;this.getOriginLevel=getOriginLevel;
     this.getJourney=getJourney;
+    this.getDevOrigin=getDevOrigin;this.createDevOrigin=createDevOrigin;
+    this.activateDevOrigin=activateDevOrigin;this.playDevStage=playDevStage;
     this.page=0;this.previousFocus=null;
     // Play opens the one player Journey. No XP or old mixed-mode wins count
     // as campaign clears until the true first-clear schema is implemented.
@@ -372,6 +375,33 @@ export class EnergyMainMenu{
     $("roster-create-origin").addEventListener("click",()=>this.createNew());
     $("roster-back").addEventListener("click",()=>this.open());
     $("game-dev-back").addEventListener("click",()=>this.open());
+    const devStage=$("game-dev-stage-select");
+    for(let stage=1;stage<=20;stage++){
+      const option=document.createElement("option");
+      option.value=String(stage);
+      option.textContent="STAGE "+String(stage).padStart(2,"0");
+      devStage.append(option);
+    }
+    devStage.value="20";
+    $("game-dev-create-origin").addEventListener("click",()=>{
+      try{
+        if(this.getDevOrigin()&&!window.confirm(
+          "Reset your existing DEV Test Origin? Its spell build, AI Styles and saved presets will be replaced. Your normal Origins are safe."))return;
+        this.createDevOrigin($("game-dev-origin-role").value);
+        this.enterHub();
+      }catch(error){$("game-dev-origin-status").textContent=error.message||"Could not create test Origin.";}
+    });
+    $("game-dev-open-origin").addEventListener("click",()=>{
+      if(!this.getDevOrigin())return;
+      this.activateDevOrigin();this.enterHub();
+    });
+    $("game-dev-play-stage").addEventListener("click",()=>{
+      if(!this.getDevOrigin())return;
+      const stage=Number(devStage.value);
+      if(!Number.isInteger(stage)||stage<1||stage>20)return;
+      this.hideScreens();
+      this.playDevStage(stage);
+    });
     $("play-back-hub").addEventListener("click",()=>this.enterHub());
     $("main-menu-open").addEventListener("click",()=>this.onMenuFromCombat());
     $("play-journey-start").addEventListener("click",()=>{
@@ -453,7 +483,7 @@ export class EnergyMainMenu{
       const meta=document.createElement("span");meta.className="menu-origin-meta";
       const name=document.createElement("strong");name.textContent=entry.character.name;
       const subtitle=document.createElement("small");
-      subtitle.textContent=entry.character.origin+" · "+
+      subtitle.textContent=entry.character.origin+" · "+(entry.devTest?"DEV TEST · ":"")+
         (entry.progression.journey?.version===2?
           (entry.progression.journey.clears||0)+"/20 STAGES":
           "LEVEL "+this.getOriginLevel(entry));
@@ -491,11 +521,26 @@ export class EnergyMainMenu{
     start.textContent="SELECT NEXT STAGE TO PLAY";
     this.journey.resetSelection();
   }
+  renderDevStatus(){
+    const dev=this.getDevOrigin?.();
+    $("game-dev-open-origin").disabled=!dev;
+    $("game-dev-play-stage").disabled=!dev;
+    const status=$("game-dev-origin-status");
+    if(!dev){
+      status.textContent="No test Origin created. Choose an Origin above, then create one.";
+      return;
+    }
+    status.textContent=dev.character.name+" · 20/20 STAGES · ALL 16 SHARED SPELLS · "+
+      "AI STYLES UNLOCKED · SAVED SEPARATELY. Choose any Stage to replay it with the full toolkit.";
+    $("game-dev-stage-select").value=String(dev.progression.devStage||20);
+    $("game-dev-origin-role").value=dev.character.role;
+  }
   openGameDev(){
     this.hideHub();
     this.hideScreens();
     $("game-dev-screen").hidden=false;
     $("main-menu-open").hidden=false;
+    this.renderDevStatus();
   }
   openGuide(){
     this.previousFocus=document.activeElement;

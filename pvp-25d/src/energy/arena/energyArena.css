@@ -1559,7 +1559,7 @@ h2{font-size:23px}
   min-width:190px;color:#a8c6de;font-size:10px;font-weight:800;letter-spacing:.09em}
 .dev-origin-controls select{width:100%;padding:13px;color:#edf7ff;
   border:1px solid #5b7094;border-radius:8px;background:#101b30;
-  font:600 12px inherit}
+  font-size:12px;font-weight:600;font-family:inherit}
 .dev-origin-controls button{min-height:44px;padding:11px 15px;
   white-space:normal}
 .dev-origin-controls button:disabled{opacity:.44;cursor:not-allowed;filter:none}

@@ -6,7 +6,8 @@ import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrig
   appendOrigin, chooseOrigin, upsertDevOrigin, devOrigin } from "./EnergyOriginRoster.js?v=20261012-evolution1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-evolution1";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-evolution1";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-rift1";
+import { EnergyRiftExpedition, RIFT_SECTORS } from "./EnergyRiftExpedition.js?v=20261012-rift1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261012-evolution1";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
@@ -18,6 +19,7 @@ import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261012-evolution
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-evolution-ux2";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
+import { ECHOING_RIFT } from "../../content/arenas/rift-expedition/echoing-rift/config.js?v=20261012-rift1";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];
@@ -100,6 +102,16 @@ function playTestStage(stage){
   saveActiveOrigin();
   start(store.draft);
 }
+function playRiftExpedition(){
+  const journey=readJourney(profile);
+  if(!journey||journey.clears<20)
+    throw Error("Rift Expedition unlocks only after Stage 20.");
+  selectedMode="rift";
+  profile={...profile,lastMode:"rift"};
+  saveProgression(window.localStorage,profile);
+  saveActiveOrigin();
+  start(store.draft);
+}
 function activateOriginById(id){
   if(roster.activeId===id)return;
   saveActiveOrigin();
@@ -107,7 +119,8 @@ function activateOriginById(id){
   persistOriginRoster(window.localStorage,roster);
   applyActiveOrigin();
 }
-const arenaForMode=mode=>mode==="defense"?SHATTERED_EXPANSE:VERDANT_CRUCIBLE;
+const arenaForMode=mode=>mode==="rift"?ECHOING_RIFT:
+  mode==="defense"?SHATTERED_EXPANSE:VERDANT_CRUCIBLE;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 function element(tag,className="",text=""){
@@ -144,9 +157,11 @@ function start(build){
     // Stage position, keeping the complete dev toolkit available.
     const combatJourney=devStage!==null&&journey?
       {...journey,clears:devStage-1,devTest:true}:journey;
-    const MatchType=selectedMode==="defense"?EnergyPlanetDefense:EnergyMatch;
+    const MatchType=selectedMode==="rift"?EnergyRiftExpedition:
+      selectedMode==="defense"?EnergyPlanetDefense:EnergyMatch;
     const arena=arenaForMode(selectedMode);
-    match=new MatchType(build,arena,{modeId:selectedMode,level:devStage||state.level,
+    match=new MatchType(build,arena,{modeId:selectedMode,
+      level:selectedMode==="rift"?20:devStage||state.level,
       singularity:profile.singularity,journey:combatJourney});
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
@@ -155,7 +170,9 @@ function start(build){
       (match.encounter?" · "+match.encounter.stage:"");
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
-    $("match-level").textContent=devStage!==null?
+    $("match-level").textContent=selectedMode==="rift"?
+      "RIFT EXPEDITION · SECTOR 01 / 05 · "+state.slots+"/10 SPELLS":
+      devStage!==null?
       "DEV TEST · STAGE "+String(devStage).padStart(2,"0")+" · 10/10 SPELLS":
       state.journey?
       "STAGE "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/10 SPELLS":
@@ -475,11 +492,20 @@ function renderUI(){
   if(!match)return;
   const p=match.player;
   $("match-clock").textContent=String(Math.floor(match.time/60)).padStart(2,"0")+":"+String(Math.floor(match.time%60)).padStart(2,"0");
-  $("dampening-label").textContent=match.modeId==="defense"
-    ?"WAVE "+match.wave+" / "+DEFENSE_WAVES+
-      " · "+(match.waveState==="intermission"?"SPELL DISCOVERY":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED")
-    :"DAMPENING "+Math.round(match.dampening*100)+"%";
-  if(match.modeId==="defense"){
+  $("dampening-label").textContent=match.modeId==="rift"?
+    "RIFT · SECTOR "+match.wave+"/"+RIFT_SECTORS+
+      (match.waveState==="advance"?" · GATE UNSEALED":
+        " · "+match.waveDefeated+"/"+match.totalWaveEnemies+" GUARDIANS"):
+    match.modeId==="defense"?
+    "WAVE "+match.wave+" / "+DEFENSE_WAVES+
+      " · "+(match.waveState==="intermission"?"SPELL DISCOVERY":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED"):
+    "DAMPENING "+Math.round(match.dampening*100)+"%";
+  if(match.modeId==="rift"){
+    $("match-learning-tip").textContent=
+      "RIFT EXPEDITION · "+match.sector?.name+" · "+match.objective+
+      (match.waveState==="advance"?
+        " · WALK INTO THE GLOWING GATE TO OPEN THE NEXT SECTOR":"");
+  }else if(match.modeId==="defense"){
     const tips=[
       "Try your normal spells first. Your first guided Spell Mastery trial unlocks AFTER Wave 1.",
       "New enemies approach. Try your enhanced Origin spell and focus dangerous targets.",
@@ -543,17 +569,25 @@ function frameLoop(now){
     const enemyKills=match.modeId==="defense"?match.totalKills:
       match.actors.filter(a=>a.team==="enemy"&&!a.alive).length;
     // Dev replays never pay Journey rewards, add XP or mutate normal saves.
-    awardedMatch=profile.devTest===true?{
+    awardedMatch=(profile.devTest===true||match.modeId==="rift")?{
       next:profile,before:progressDetails(profile),after:progressDetails(profile),
       earned:0,levelUp:false,fragments:0,matter:0,journeyClear:false
     }:awardMatch(profile,match.modeId,match.winner==="friendly",enemyKills);
-    if(!profile.devTest){
+    if(!profile.devTest&&match.modeId!=="rift"){
       profile=awardedMatch.next;
       saveProgression(window.localStorage,profile);
       saveActiveOrigin();
     }
     const {earned,after,levelUp,before,fragments,matter}=awardedMatch;
-    if(profile.devTest){
+    if(match.modeId==="rift"){
+      $("match-result-details").textContent=
+        "RIFT EXPEDITION · "+(match.winner==="friendly"?
+          "THE HEART GUARDIAN FALLS · FIRST EXPEDITION COMPLETE":
+          "EXPEDITION FAILED · TRY AGAIN")+
+        " · PROTOTYPE: NO PERMANENT REWARDS OR JOURNEY CHANGES.";
+      $("match-level").textContent="RIFT EXPEDITION · "+
+        match.riftCleared+" / "+RIFT_SECTORS+" SECTORS";
+    }else if(profile.devTest){
       $("match-result-details").textContent=
         "DEV TEST · STAGE "+String(profile.devStage||20).padStart(2,"0")+
         " · "+(match.winner==="friendly"?"VICTORY":"DEFEAT")+
@@ -598,7 +632,13 @@ function frameLoop(now){
     feedback?.onEvent(event,match);
     combatUX?.onEvent(event,actionNodes,now);
     coach?.onEvent(event);
-    if(event.type==="wave-start"&&match.modeId==="defense"){
+    if(event.type==="rift-sector-start"&&match.modeId==="rift"){
+      flash("RIFT SECTOR "+event.wave+" · "+event.waveName);
+    }else if(event.type==="rift-gate-open"&&match.modeId==="rift"){
+      flash("RIFT GATE OPEN · FOLLOW THE GLOWING PORTAL");
+    }else if(event.type==="rift-gate-activated"&&match.modeId==="rift"){
+      flash("RIFT SEAL BROKEN · NEXT SECTOR UNLOCKED");
+    }else if(event.type==="wave-start"&&match.modeId==="defense"){
       flash("WAVE "+event.wave+" · "+event.waveName+
         (event.encounterStage?" · "+event.encounterStage:""));
     }else if(event.type==="wave-clear"&&match.modeId==="defense"){
@@ -709,6 +749,7 @@ menu=new EnergyMainMenu({
   createDevOrigin:createTestOrigin,
   activateDevOrigin:activateTestOrigin,
   playDevStage:playTestStage,
+  playRift:playRiftExpedition,
   hideHub:()=>hub.hide(),
   onMenuFromCombat:()=>{
     if(match&&!match.ended&&!window.confirm("Leave the current match and return to the main menu?"))return;

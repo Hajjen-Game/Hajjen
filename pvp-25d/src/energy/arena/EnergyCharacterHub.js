@@ -10,7 +10,7 @@ import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   from "./EnergySingularity.js?v=20261012-eclipse-oc1";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-evolution1";
 import {readJourney,eligibleJourneySpells,claimJourneySpell,
-  journeyEvolutionCapacity,setJourneyEvolution,JOURNEY_EVOLUTION_STAGES} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
+  journeyEvolutionCapacity,setJourneyEvolution} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
 import {COMPANION_STYLES,STYLE_IDS,STYLE_UNLOCK_STAGE,companionStyleFor,setCompanionStyle}
   from "./EnergyCompanionStyles.js?v=20261012-dev-origin1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
@@ -509,7 +509,9 @@ export class EnergyCharacterHub{
       const info=el("div","hub-preset-label");
       info.append(el("strong","",saved?.name||"EMPTY PRESET "+(index+1)),
         el("span","",saved
-          ?ROLES[saved.role].name+" · "+spentTalentPoints(saved)+" TP · "+activeEvolutionCount(saved)+" Evolutions"
+          ?ROLES[saved.role].name+(readJourney(this.getProgression())?
+            " · Spell loadout · Origin Evolutions kept":
+            " · "+spentTalentPoints(saved)+" TP · "+activeEvolutionCount(saved)+" Evolutions")
           :"Save your current build here"));
       const actions=el("div","hub-preset-actions");
       const save=button(saved?"SAVE OVER":"SAVE","hub-preset-button",()=>this.savePreset(index));
@@ -635,7 +637,7 @@ export class EnergyCharacterHub{
       const rank=state.activeById.get(ability.id)?.talentRank||0;
       const journey=readJourney(this.getProgression());
       const canDiscover=Boolean(journey?.pending&&eligibleJourneySpells(journey).includes(ability.id));
-      const evolved=Boolean(journey?.evolutions[ability.id]||state.build.evolutions[ability.id]);
+      const evolved=journey?Boolean(journey.evolutions[ability.id]):Boolean(state.build.evolutions[ability.id]);
       const bound=state.roleBound.has(ability.id);
       const slotIndex=state.inner.findIndex(spell=>spell.id===ability.id);
       const btn=button("","hub-spell-node"+(inBuild?" unlocked equipped-now":" in-pool")+

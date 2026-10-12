@@ -9,8 +9,8 @@ const PAGES=[
     steps:[
       ["BUILD","Choose the spells and Evolutions that fit your playstyle."],
       ["FIGHT","Move, aim, cast and use cover to survive."],
-      ["GROW","Earn XP, level up and gradually unlock your full toolkit."]
-    ],tip:"First match? Planet Defense starts with your real level-1 spells. Your first guided Mastery Trial comes AFTER Wave 1.",
+      ["GROW","Clear new Journey planets, discover spells from all five disciplines and unlock Evolutions."]
+    ],tip:"New Origins begin with two bound spells. Your first planet clear grants a choice from all five disciplines.",
     art:"arena",caption:"An arena is a small battlefield. Positioning and obstacles matter."
   },
   {
@@ -25,12 +25,12 @@ const PAGES=[
   },
   {
     title:"BUILD YOUR SPELL KIT",chapter:"03 / THE EVOLUTION TREE",
-    intro:"You begin with three unlocked spells. More join your inner ring as you level, up to a complete ten-spell build.",
+    intro:"New Origins begin with two bound spells. Each first-clear Planet Defense victory lets you discover another shared spell for your library.",
     steps:[
-      ["INNER RING","Only your currently unlocked spells glow around the orb. At level 2, you have 3/10."],
-      ["OUTER RING","The other Origin-compatible spells stay visible outside the bright ring."],
+      ["INNER RING","Your actual earned spells surround your Origin. New Journey builds begin with exactly two."],
+      ["OUTER RING","Future spells remain visible but unlock at campaign milestones; all five disciplines are available from the start."],
       ["REPLACE","Inspect a pool spell and swap it with one of your unlocked shared spells."]
-    ],tip:"Your two Origin spells are permanent. Other unlocked spells can be changed for free.",
+    ],tip:"Your two Origin spells stay bound. You can equip discovered shared spells after you earn them.",
     art:"loadout",caption:"An early-level build: 3 equipped, 15 available to explore. The inner ring grows as you level."
   },
   {
@@ -313,6 +313,7 @@ export class EnergyMainMenu{
     const journey=this.getJourney?.();
     if(journey?.pending){this.enterHub();return;}
     this.journey.clears=Math.min(20,journey?.clears||0);
+    this.journey.tracked=Boolean(journey);
     this.hideHub();
     this.hideScreens();
     $("hub-play-screen").hidden=false;

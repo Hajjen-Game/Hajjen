@@ -177,7 +177,7 @@ const PAGES=[
     ],
     "tip": "Evolution-valen går redan att förhandsgranska. Den permanenta upplåsningen utvecklas fortfarande.",
     "art": "evolutions",
-    "caption": "Ett spellträd med olika framtida Evolution-vägar, utan gamla Rank 1–3."
+    "caption": "Tre möjliga Evolution-vägar för samma spell – förhandsvisning tills systemet öppnas."
   },
   {
     "title": "LÄR KÄNNA DITT LAG",

@@ -54,7 +54,6 @@ const PAGES=[
     art:"singularity",caption:"Combine energy disciplines after the relevant systems become available."
   },
   {
-  {
     title:"READ THE BATTLE",chapter:"06 / IN THE ARENA",
     intro:"Watch health, your Flux resource, targets and cooldowns. Choose when to attack, protect or reposition.",
     steps:[

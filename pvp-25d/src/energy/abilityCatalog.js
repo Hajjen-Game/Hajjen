@@ -129,7 +129,7 @@ export const ABILITIES = Object.freeze([
     ["twin-arc","Twin Arc","Every third hit creates a second arc from the opposite side."],
     ["momentum","Momentum","Successful hits return some Flux with an internal cooldown."],
     ["resonant-strike","Resonant Strike","Charge the next direct attack from another ability."],
-  ]),
+  ],"melee"),
   ability("gravity-hammer","Gravity Hammer","kinetic","Melee burst","Heavy gravity impact from above in melee range; no stun.","0.6s warning · 12s cooldown",[
     ["singularity-impact","Singularity Impact","Concentrate the impact into higher single-target damage."],
     ["seismic-wave","Seismic Wave","Weaker primary hit but an expanding damage shockwave."],

@@ -347,7 +347,7 @@ function artMarkup(name){
 export class EnergyMainMenu{
   constructor({openHub,startMatch,changeMode,getCharacter,hideHub,onMenuFromCombat,
     getOrigins,selectOrigin,createOrigin,getOriginLevel,getJourney,
-    getDevOrigin,createDevOrigin,activateDevOrigin,playDevStage}){
+    getDevOrigin,createDevOrigin,activateDevOrigin,playDevStage,isDevOrigin}){
     this.openHub=openHub;this.startMatch=startMatch;
     this.changeMode=changeMode;this.getCharacter=getCharacter;
     this.hideHub=hideHub;this.onMenuFromCombat=onMenuFromCombat;
@@ -356,6 +356,7 @@ export class EnergyMainMenu{
     this.getJourney=getJourney;
     this.getDevOrigin=getDevOrigin;this.createDevOrigin=createDevOrigin;
     this.activateDevOrigin=activateDevOrigin;this.playDevStage=playDevStage;
+    this.isDevOrigin=isDevOrigin;
     this.page=0;this.previousFocus=null;
     // Play opens the one player Journey. No XP or old mixed-mode wins count
     // as campaign clears until the true first-clear schema is implemented.
@@ -365,7 +366,9 @@ export class EnergyMainMenu{
       onSelect:hex=>{
         const button=$("play-journey-start");
         button.disabled=false;
-        button.textContent="PLAY · STAGE "+String(hex.step).padStart(2,"0")+" →";
+        button.textContent=(this.journey.allowReplay&&hex.step<=this.journey.clears?
+          "PLAY STAGE AGAIN · STAGE ":"PLAY · STAGE ")+
+          String(hex.step).padStart(2,"0")+" →";
       }
     });
     $("menu-new-origin").addEventListener("click",()=>this.createNew());
@@ -405,11 +408,19 @@ export class EnergyMainMenu{
     $("play-back-hub").addEventListener("click",()=>this.enterHub());
     $("main-menu-open").addEventListener("click",()=>this.onMenuFromCombat());
     $("play-journey-start").addEventListener("click",()=>{
-      if(!$("play-journey-start").disabled&&this.journey.armed&&this.getCharacter()){
-        this.changeMode("defense");
+      if($("play-journey-start").disabled||!this.journey.armed||!this.getCharacter())return;
+      const stage=this.journey.selected;
+      // Replay is available only while the DEV Origin is the active character.
+      // Ordinary Origins cannot use this UI to skip or farm Journey Stages.
+      if(this.journey.allowReplay&&stage<=this.journey.clears){
+        if(!this.isDevOrigin?.())return;
         this.hideScreens();
-        this.startMatch("defense");
+        this.playDevStage(stage);
+        return;
       }
+      this.changeMode("defense");
+      this.hideScreens();
+      this.startMatch("defense");
     });
     for(const node of document.querySelectorAll("[data-menu-mode]")){
       node.addEventListener("click",()=>{
@@ -512,13 +523,17 @@ export class EnergyMainMenu{
     if(journey?.pending){this.enterHub();return;}
     this.journey.clears=Math.min(20,journey?.clears||0);
     this.journey.tracked=Boolean(journey);
+    this.journey.allowReplay=Boolean(journey&&this.isDevOrigin?.());
+    this.journey.replayStage=this.journey.allowReplay?
+      this.getDevOrigin?.()?.progression?.devStage||20:20;
     this.hideHub();
     this.hideScreens();
     $("hub-play-screen").hidden=false;
     $("main-menu-open").hidden=false;
     const start=$("play-journey-start");
     start.disabled=true;
-    start.textContent="SELECT NEXT STAGE TO PLAY";
+    start.textContent=this.journey.allowReplay?
+      "SELECT A CLEARED STAGE TO REPLAY":"SELECT NEXT STAGE TO PLAY";
     this.journey.resetSelection();
   }
   renderDevStatus(){

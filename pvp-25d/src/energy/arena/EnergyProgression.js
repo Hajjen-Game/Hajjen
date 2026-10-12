@@ -21,6 +21,12 @@ export const MODES = Object.freeze({
     // Level-scaled XP on victory; fixed xpWin is the max-level fallback.
     xpWin:80,xpLoss:22,
   }),
+  rift: Object.freeze({
+    id:"rift",label:"Rift Expedition",size:"3vE",
+    subtitle:"Journey through five connected Rift sectors with two AI companions",
+    description:"Cross ruins, crystal groves and Rift gates, defeat sector guardians, and confront the Heart Guardian in a separate boss arena.",
+    xpWin:0,xpLoss:0,
+  }),
   training: Object.freeze({
     id:"training",label:"Training Grounds",size:"1v1",subtitle:"Learn one mechanic at a time",
     description:"One opponent, gentle pressure, no coordinated burst. Practice targeting, casting and movement.",
@@ -262,13 +268,13 @@ export function botAbilities(role,level,modeId){
   // Companions are FULLY FUNCTIONAL from the first Planet Defense planet,
   // even while the player's Origin intentionally starts with just 2 spells.
   // Their optional build editor arrives at the player's 15th clear.
-  const cap=modeId==="defense"?Math.max(6,slotsForLevel(level)):
+  const cap=(modeId==="defense"||modeId==="rift")?Math.max(6,slotsForLevel(level)):
     modeId==="training"?3:modeId==="duo"?Math.min(8,slotsForLevel(level)):
     slotsForLevel(level);
   return BOT_KITS[role].slice(0,cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){
-  if(modeId==="defense")return {friendly:["healer","melee","caster"],enemy:[]};
+  if(modeId==="defense"||modeId==="rift")return {friendly:["healer","melee","caster"],enemy:[]};
   if(modeId==="training")return {friendly:[playerRole],enemy:[playerRole==="melee"?"melee":"caster"]};
   if(modeId==="duo"){
     const partner=playerRole==="healer"?"melee":"healer";

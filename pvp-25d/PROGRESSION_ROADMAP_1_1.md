@@ -1,7 +1,7 @@
 # Project Energy — Progression Roadmap 1.1: Team Journey
 
 **Design date:** 2026-10-11 (updated after user feedback)  
-**Status:** DESIGN PROPOSAL, not implemented in gameplay.  
+**Status:** ACTIVE DESIGN + PARTIAL GAMEPLAY IMPLEMENTATION. The rankless 20-hex first-clear progression, initial spell discoveries, Cryo Eclipse starters and four run-only Overcharges are implemented for new Journey Origins. AI styles/build editors, permanent Evolutions/Synergies and Rift Expedition remain planned.  
 **Supersedes:** [Roadmap 1.0](PROGRESSION_ROADMAP_1_0.md). Preserve 1.0 for design history; **1.1 is the active proposal**.  
 **Concept:** A **single 20-hex progression roadmap for the player's Origin only**. Both AI companions appear alongside the player in the HUB and can eventually be assigned styles and optional preset/custom builds, but **have no separate development tracks, hex maps, levels, win counters, or reward routes**. All five disciplines are available from the first shared-spell choice. PvP is **out of scope and has NO proposed unlock date** until the user reopens that subject.
 
@@ -30,17 +30,17 @@ Every major hex should feature:
 
 ## Actual existing spell catalogue (22: 6 Origin-bound + 16 shared)
 
-Origin-bound starter pairs remain Genesis: Pulse Mend + Resonance Guard; Impact: Phase Rush + Arc Strike; Eclipse: Flux Bolt + Phase Slip. Those four other Origins' bound spells are not secretly added to the common pool.
+**Confirmed Origin-bound starter pairs:** Genesis: Pulse Mend + Resonance Guard (Vital); Impact: Phase Rush + Arc Strike (Kinetic); **Eclipse: Crystal Bolt + Crystal Snare (Cryo)**. Each Origin has exactly two spells from ONE discipline; the other Origins' bound spells are not in the shared pool. **Flux Bolt (Solar)** and **Phase Slip (Void)** remain fully functional as shared Journey discoveries. Total catalogue: 22 spells = 6 bound + 16 shared.
 
 | Discipline | Choice pool at first clear (#1) | New spell options awarded with clear #3, usable in #4 | New spell options awarded with clear #7, usable in #8 |
 |---|---|---|---|
-| Void | Entropy Mark (DoT) | Rift Slash (debuff-follow-up melee strike) | Null Prison (breakable CC) |
-| Solar | Sun Lance (finish wounded target) | Photon Barrier (absorb) | Zenith Crash (telegraphed AoE) |
-| Cryo | Crystal Bolt (slow) | Crystal Snare (root) | Fracture Spear (burst against slowed/rooted targets) |
+| Void | Entropy Mark (DoT) | Rift Slash (debuff-follow-up melee strike), Phase Slip (mobility/slow cleanse) | Null Prison (breakable CC) |
+| Solar | Sun Lance (finish wounded target) | Photon Barrier (absorb) | Zenith Crash (telegraphed AoE), Flux Bolt (multi-hit Solar rhythm) |
+| Cryo | **Fracture Spear** (direct Cryo burst, stronger against slowed/rooted enemies) | — the two other existing Cryo spells are Eclipse-bound | — no additional shared Cryo spell yet |
 | Kinetic | Vector Rush (travel/dodge) | Pulse Sever (melee interrupt) | Gravity Hammer (melee AoE telegraph), Resonance Cut (ranged interrupt) |
 | Vital | Reactive Thread (HoT) | Cleanse Flux (dispel) | Symbiosis Link (damage-to-heal) |
 
-**No discipline gating, EVER.** All five disciplines stay visible and selectable in each reward interface; options are filtered per individual spell ownership and hex unlock. Each new pool augments prior options, which never expire.
+**No discipline gating, EVER.** All five disciplines stay visible and selectable in each reward interface; options are filtered per individual spell ownership and hex unlock. Each new pool augments prior options, which never expire. **Design gap for future spell development:** the shared Cryo pool currently contains only Fracture Spear because Crystal Bolt and Crystal Snare are now Eclipse-bound. Fracture Spear works without setup and is therefore the initial Cryo option for ALL Origins; enemy/AI slows and roots increase its effectiveness. Consider adding a new distinct shared Cryo ability in a later Spell Identity pass if this feels too narrow.
 
 Spells that have a counterplay prerequisite need adjacent encounters teaching that situation. Suggested encounter sequencing:
 - **Hex 1–3:** distinguish DOT/direct burst, target focus, incoming swarm damage, positioning and basic slows. The player's first owned shared spell can come from any category.
@@ -59,7 +59,7 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 ## Three-character HUB and battlefield identity — ONE player roadmap
 
 **Beginning immediately, independently of customization unlocks:**
-- HUB prominently displays all three *actual owned team members* as living energy orbs in one coherent presentation; player's orb central/dominant, two AI teammates flanking. Example Impact player → Genesis support AI + Eclipse caster AI. Scale target for player: roughly **10–20% greater diameter** than individual companion orbs in combat and in the HUB (experiment at actual camera scale, avoid scale breaking hitboxes/target outlines).
+- **Current accepted HUB:** the player's large animated orb is alone in the Evolution Tree. Two compact AI panels are **beneath the central Evolution Tree**, side by side, each with its own smaller animated orb, role, spec and locked STYLE/BUILD controls. Do not show the rejected separate YOUR SQUAD strip or render multiple orbs inside the player's central tree. Companion appearance must not affect combat hitboxes.
 - Each companion has role/name, health identity, default style label and a compact summary. Their silhouettes/colors derive from their own Origin identities. Do not render three independent heavy WebGL contexts; prefer one shared preview scene or reusable instances. **Only the player has an OPEN ROADMAP / hex progression view. No AI experience bars, victory counters, side-roadmaps or separate reward nodes.**
 - Before player hex 5, companion cards are inspectable but their **STYLE** editor is preview/locked; before player hex 15, **BUILD** editor is preview/locked. Both unlocks appear as milestones on the **player's one roadmap**, not the companions' own tracks. No giant locked spell-tree panels cluttering the first HUB entry.
 - Clicking self opens the main spell library and evolution tree. Clicking a companion after #5 exposes **STYLE**; after #15 also **BUILD**. Returning to self remains effortless.
@@ -91,7 +91,7 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 
 ## Temporary between-wave buffs — **OVERCHARGES** (confirmed term for design)
 
-**Confirmed direction:** retain and expand the fun temporary PvE Enchantments as **Overcharges**. They are spectacular run-only buffs with a choice to power up **either AI companion** instead of always buffing the player. This is distinct from the permanent spell/evolution rewards granted after clearing a campaign hex.
+**Implemented in first gameplay pass:** temporary **Overcharges** replace legacy between-wave Rank trials **for new Journey Origins**. Each card targets a specific live player/AI actor; real casts, hits and heals trigger bounded Overcharge effects with internal cooldowns and VFX events. Older legacy Origins retain their previous trial system. Overcharges are distinct from permanent spell/Evolution rewards granted after clearing a campaign hex.
 
 **CONFIRMED OFFER/CLAIM RULE:** After each of the four intermissions in a five-wave Planet Defense run, present **four cards**: **two for YOU**, **one for AI A**, **one for AI B**. Player picks **ONE card total**. Apply it to the explicitly shown recipient, discard the other three choices, and begin the next wave. Thus one full run grants at most **four total Overcharges**, not four per wave. Never auto-apply all four.
 
@@ -108,7 +108,7 @@ Example after Wave 2:
 - Four intermissions in a five-wave battle → up to four chosen **Overcharges** in a run, each assigned to whichever of the three teammates was printed on the chosen card. Stacking allowed but bounded and visibly trackable; choose whether repeated effects increase tiers or open complementary combinatorial effects.
 - This is the system for **high-ceiling fun/chaos**: split shots, pulsing orbital companions, echo casts, chain lightning/Flux arcs, larger falling impacts, shockwave chains, healing blooms. Allow deliberately flashy builds by later waves.
 - Balance by **internal proc cooldowns, target caps, bounded recursion and total active particles**, not by removing all fun. Keep interrupt/dodge telegraphs legible. Avoid runaway lag and exponential damage when two procs trigger each other.
-- Redesign the current `EnergyDefenseTrials.js` + `EnergyPlanetDefense.js` Rank/Mastery-heavy intermissions. They presently offer **up to 3 cards and 1 selected reward for the player**, with temporary Ranks/Evolutions, a few PvE Enchantments and a Singularity trial. Under the new vision, split *permanent campaign spell/Evolution unlocks* (AFTER a Planet Defense first-clear) from *temporary Overcharges* (BETWEEN the five waves). They are separate UI flows and save lifetimes; **Overcharges are not companion progression**.
+- **Implemented boundary:** `EnergyPlanetDefense.js` offers four Overcharges only for new Journey Origins; existing `EnergyDefenseTrials.js` Rank/Mastery choices remain available only to older legacy profiles. Player/companion Overcharges are run-only and never saved in permanent progress. Permanent discoveries happen after a first-clear, in HUB. The full visual/AI balance of Overcharges needs browser playtesting.
 - AI-targeted buffs require a **target actor ID** and real event/proc hooks for AI casts/hits/heals; currently many Wave Resonances are player-only. Don't just recolor a card.
 
 ## The revised 20-hex milestone map
@@ -150,7 +150,7 @@ Vary enemy counts, spawn directions, timing, spacing, environment or hazard dens
 
 ## HUB / UX / saving / migration implications
 
-- Main HUB: left/right small companion orbs, center larger player orb. Character cards are always visible and legible; Level/XP replaced with **the player's one Campaign Roadmap**. Companion panels progressively unlock **STYLE after the player's 5th clear** and **BUILD after the player's 15th clear**. No parallel AI roadmap, progression gauge, milestone chain or achievement counter.
+- **Current accepted navigation:** HUB contains the player's large Evolution Tree with the two small AI panels beneath it. The **Journey Roadmap is opened by HUB → PLAY**, not displayed directly in the HUB. Select the next available hex and then press PLAY to start that planet. Completed hexes show green ticks; future ones are locked. AI panels progressively unlock STYLE after player's 5th clear and BUILD after player's 15th clear, without any AI-specific progression tracks.
 - Separate expandable views for the player's spell library and each companion's style/presets; avoid showing three giant trees simultaneously.
 - Campaign roadmap: a curved, connected 20-hex map; completed green tick and text, active bright node, locked dark nodes with clear milestone icons at 3, 5, 7, 10, 15, 20. Click any future hex for a preview, not to play it. Use accessibility labels and keyboard focus.
 - First-clear rewards (permanent): account for pending unclaimed reward and transactional save; library accepts all disciplines; max 10 active. **Overcharges** (temporary): actor-targeted, exactly one chosen from four cards per wave intermission, and run-only.

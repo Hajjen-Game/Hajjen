@@ -31,28 +31,29 @@ const PAGES=[
       ["OUTER RING","Future spells remain visible but unlock at campaign milestones; all five disciplines are available from the start."],
       ["REPLACE","Inspect a pool spell and swap it with one of your unlocked shared spells."]
     ],tip:"Your two Origin spells stay bound. You can equip discovered shared spells after you earn them.",
-    art:"loadout",caption:"An early-level build: 3 equipped, 15 available to explore. The inner ring grows as you level."
+    art:"loadout",caption:"Your Journey starts with the two Origin-bound spells. The bright inner ring grows as you earn discoveries."
   },
   {
-    title:"UPGRADE & EVOLVE",chapter:"04 / TALENTS AND EVOLUTIONS",
-    intro:"Each spell has a custom Rank 1–3 path. Rank improves that spell's effect, while your Character Level increases HP and overall combat power.",
+    title:"EVOLVE YOUR ORIGIN",chapter:"04 / JOURNEY MILESTONES",
+    intro:"Journey characters have no levels or spell ranks. New spells are discovered through first-time Planet Defense clears.",
     steps:[
-      ["SPELL RANKS","Spend 1 Talent Point per Rank. Damage and healing grow stronger; utility spells improve cooldowns, cost or reach."],
-      ["EVOLUTION","At Rank 3 choose one of three Evolutions that changes how the spell behaves."],
-      ["MAX LEVEL","Level 30 gives 30 total Talent Points: enough to Rank 3 all ten spells."]
-    ],tip:"Crits use shuffled Marble Bags (10% chance, ×1.5 damage or healing). Read each spell's exact Rank bonus in the HUB.",
-    art:"talents",caption:"Master a spell first. Then select one of three branching Evolutions."
+      ["PLANET 3","Unlock Counterplay spells for the next encounter."],
+      ["PLANET 10","Evolutions are planned to change a spell's behavior, not add numerical ranks."],
+      ["PLANET 20","Synergies and Rift Expedition form the next major milestone."]
+    ],tip:"Your two Origin spells are permanent. Additional spell discoveries can come from any of the five disciplines.",
+    art:"talents",caption:"Unlock distinctive gameplay choices as your Journey advances."
   },
   {
-    title:"FORGE A SINGULARITY",chapter:"05 / BLACK HOLE MATTER",
-    intro:"At level 10 you unlock Singularity Forge. It links one of your two Origin spells with any unlocked shared spell, creating a new combat reaction.",
+    title:"SYNERGIES · COMING LATER",chapter:"05 / LONG-TERM DISCOVERIES",
+    intro:"Synergies will unlock through the Journey instead of an arbitrary Character Level. This feature is not active for new Journey Origins yet.",
     steps:[
-      ["BLACK HOLE MATTER","Earn it occasionally from arena victories. Creating or changing your link costs one Matter."],
-      ["THREE REACTIONS","Choose Annihilation, Distortion or Resonance, then use the partner spell before your Origin spell."],
-      ["ENERGY FRAGMENTS","Earn these from team kills and use them to strengthen your forged Singularity at later levels."]
-    ],tip:"Preview as many combinations as you like for free. Ordinary spell ranks still use Talent Points.",
-    art:"singularity",caption:"A charged partner spell followed by its Origin anchor releases the Singularity."
+      ["PLANET 20","The proposed milestone for Synergies and Rift Expedition."],
+      ["SPELL PAIRS","Eventually discover combinations of your Origin spells with shared energy disciplines."],
+      ["PREVIEW","Existing legacy Forge systems remain available to older saved builds."]
+    ],tip:"The spell-library Journey and the Forge migration are deliberately separate development passes.",
+    art:"singularity",caption:"Combine energy disciplines after the relevant systems become available."
   },
+  {
   {
     title:"READ THE BATTLE",chapter:"06 / IN THE ARENA",
     intro:"Watch health, your Flux resource, targets and cooldowns. Choose when to attack, protect or reposition.",
@@ -74,28 +75,27 @@ const PAGES=[
     art:"controls",caption:"These are the currently implemented keyboard controls."
   },
   {
-    title:"CHOOSE YOUR BATTLE",chapter:"08 / GAME MODES",
-    intro:"Planet Defense is the natural place to level and learn. Arena matches stay available whenever you want tactical PvP-style fights.",
+    title:"CHOOSE YOUR BATTLE",chapter:"08 / PLANET DEFENSE",
+    intro:"Your active Journey follows a 20-planet roadmap. Completing each new planet for the first time advances your Origin.",
     steps:[
-      ["PLANET DEFENSE · 3VE","Five survival waves. You and two AI companions always form Genesis / Impact / Eclipse."],
-      ["MASTERY TRIALS","After Wave 1, try the real Rank improvements from your Character HUB — no Talent Points spent."],
-      ["EVOLUTION TRIALS","From level 4, get a temporary Rank 3 + a real Evolution preview."],
-      ["SINGULARITY TRIALS","From level 10, freely try linked spell reactions without spending Black Hole Matter."],
-      ["PVE ENCHANTMENTS","Special multihit and survival boosts help with bigger waves; these are not normal Arena abilities."],
-      ["ARENA · 1V1 / 2V2 / 3V3","Practice targeting, teamwork and counterplay against AI teams."]
-    ],tip:"Every between-wave choice explains how to use it and where its permanent version unlocks. Trials reset at match end; your XP remains.",
-    art:"modes",caption:"Three modes, one evolving character."
+      ["PLANET DEFENSE","Five waves alongside two AI companions, using only your earned spells."],
+      ["BETWEEN WAVES","Choose temporary buffs for this match; the four-card ally-aware Overcharge system is being developed."],
+      ["AFTER THE WIN","Return to HUB to claim your permanent spell discovery from all eligible energy disciplines."],
+      ["JOURNEY HEXES","Only your next available hex starts a new first-clear encounter. Completed hexes receive green ticks."],
+      ["PVP TESTS","Existing 1v1, 2v2 and 3v3 prototypes remain in development access. PvP progression has not been decided."]
+    ],tip:"The new Journey does not award XP or spell ranks. Older Origins keep their historical progression until migration.",
+    art:"modes",caption:"One campaign path, two AI companions and a growing spell library."
   },
   {
     title:"KEEP EXPERIMENTING",chapter:"09 / YOUR NEXT STEPS",
-    intro:"Winning and losing both award XP. More levels unlock more spells and Talent Points.",
+    intro:"There are no levels in the new Journey. Each first-clear planet makes a tangible part of your Origin's toolkit available.",
     steps:[
-      ["LEVEL UP","Your ten ability slots unlock gradually until level 28."],
-      ["TRY BUILDS","Save up to three named presets in the HUB and load them later."],
-      ["MORE ORIGINS","Create and choose additional Origins from Main Menu. Each has its own level, builds and Singularity."],
-      ["RETURN","Use Main Menu to switch Origins or choose another mode."]
-    ],tip:"There is no need to make the perfect build on your first match.",
-    art:"progress",caption:"Level, build and experience are part of the same journey."
+      ["DISCOVER SPELLS","Choose an owned shared spell from the five disciplines after a new planet is cleared."],
+      ["BUILD YOUR KIT","Your ten active slots are two bound Origin spells plus up to eight discovered shared spells."],
+      ["AI TEAM","Companion styles are planned after Planet 5 and their optional build editors after Planet 15."],
+      ["OTHER ORIGINS","You can create or resume more Origins. They have separate campaign progress and spell libraries."]
+    ],tip:"An unfinished first-clear spell reward stays saved until you choose. There is no need to perfect the first build.",
+    art:"progress",caption:"A connected campaign with spell discoveries and team milestones."
   }
 ];
 function artMarkup(name){

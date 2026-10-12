@@ -2,6 +2,7 @@
 // browser. Old single-character keys mirror the active record for compatibility.
 import { ROLES } from "../abilityCatalog.js?v=20261011-identity13";
 import { createBuild, normalizeBuild } from "../buildState.js?v=20261011-identity13";
+import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-journey1";
 
 export const ORIGIN_ROSTER_KEY="pvp25d-energy-origin-roster-v1";
 const MAX_ORIGINS=12;
@@ -11,7 +12,8 @@ const validCharacter=character=>character&&ROLES[character.role]
 const id=()=>Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10);
 export function freshOriginProgression(){
   return {version:1,xp:0,wins:0,losses:0,lastMode:"training",energyFragments:0,
-    blackHoleMatter:0,firstMatterGranted:false,singularity:null};
+    blackHoleMatter:0,firstMatterGranted:false,singularity:null,
+    journey:newJourney()};
 }
 function safeBuildStore(value,role){
   const saved=Array.from({length:3},(_,i)=>{
@@ -24,7 +26,13 @@ function safeBuildStore(value,role){
 function safeProfile(value){
   const defaults=freshOriginProgression();
   if(!value||typeof value!=="object")return defaults;
-  return {...defaults,...value,version:1};
+  const safe={...defaults,...value,version:1};
+  // No forced conversion from historical XP/wins to Planet Defense clears:
+  // only profiles that explicitly contain Journey v2 participate.
+  if(!Object.prototype.hasOwnProperty.call(value,"journey"))delete safe.journey;
+  else if(readJourney(safe))safe.journey=readJourney(safe);
+  else delete safe.journey;
+  return safe;
 }
 function record(character,buildStore,profile,forcedId){
   if(!validCharacter(character))throw Error("Name your Origin (at least 2 characters).");

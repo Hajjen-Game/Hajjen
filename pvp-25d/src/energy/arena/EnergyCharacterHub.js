@@ -724,7 +724,8 @@ export class EnergyCharacterHub{
     const unlocked=state.activeById.has(ability.id);
     const availableTP=Math.max(0,talentPointsForLevel(state.level)-spentTalentPoints(build));
     const selectedEvolution=build.evolutions[ability.id]||null;
-    $("hub-detail-status").textContent=bound?"ORIGIN-BOUND":inBuild?"IN BUILD":"AVAILABLE POOL";
+    $("hub-detail-status").textContent=bound?"ORIGIN-BOUND":inBuild?"IN BUILD":
+      journey&&!journey.owned.includes(ability.id)?"LOCKED · JOURNEY":"IN LIBRARY";
     const spell=$("hub-detail-spell");spell.replaceChildren();
     spell.className="hub-selected-spell-card "+(inBuild?"equipped-now":"preview-pool");
     spell.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
@@ -836,7 +837,8 @@ export class EnergyCharacterHub{
     const id=this.selectedAbility;
     const inBuild=state.plannedIds.has(id);
     const bound=state.roleBound.has(id);
-    area.hidden=bound||!id;
+    const journey=readJourney(this.getProgression());
+    area.hidden=bound||!id||Boolean(journey&&!inBuild&&!journey.owned.includes(id));
     if(bound||!id){
       this.showSwapPicker=false;holder.hidden=true;return;
     }

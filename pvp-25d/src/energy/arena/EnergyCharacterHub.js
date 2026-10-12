@@ -10,6 +10,8 @@ import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   from "./EnergySingularity.js?v=20261012-eclipse-oc1";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-eclipse-oc1";
 import {readJourney,eligibleJourneySpells,claimJourneySpell} from "./EnergyJourneyCampaign.js?v=20261012-eclipse-oc1";
+import {COMPANION_STYLES,STYLE_IDS,STYLE_UNLOCK_STAGE,companionStyleFor,setCompanionStyle}
+  from "./EnergyCompanionStyles.js?v=20261012-style1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const $=id=>document.getElementById(id);
@@ -45,7 +47,7 @@ export class EnergyCharacterHub{
     this.character=loadCharacter(storage);
     this.preview=null;this.companionPreviews={};
     this.selectedAbility=null;this.evolutionPreview=null;this.showSwapPicker=false;this.listFilter="equipped";
-    this.lastFocusedDiscovery=null;
+    this.lastFocusedDiscovery=null;this.openStylePanel=null;
     this.message="";this.forgeDraft=null;this.creatingNew=false;
     this.bind();
   }
@@ -61,6 +63,13 @@ export class EnergyCharacterHub{
       });
     }
     this.updateOriginChoice("healer");
+    for(const side of ["left","right"]){
+      $("hub-ally-style-"+side).addEventListener("click",()=>{
+        if((readJourney(this.getProgression())?.clears||0)<STYLE_UNLOCK_STAGE)return;
+        this.openStylePanel=this.openStylePanel===side?null:side;
+        this.renderTeamIdentity(this.store.draft.role,progressDetails(this.getProgression()).level);
+      });
+    }
     $("create-character").addEventListener("click",()=>{
       try{
         const role=document.querySelector("[data-create-role].selected")?.dataset.createRole||"healer";
@@ -194,7 +203,7 @@ export class EnergyCharacterHub{
   activateCharacter(character){
     this.hide();
     this.character=character;this.creatingNew=false;
-    this.lastFocusedDiscovery=null;
+    this.openStylePanel=null;this.lastFocusedDiscovery=null;
     this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
     this.message="";
     $("hub-origin-info").hidden=true;
@@ -266,9 +275,41 @@ export class EnergyCharacterHub{
         .slice(0,2).map(([key])=>DISCIPLINES[key]?.name.toUpperCase()||key);
       $("hub-ally-name-"+side).textContent=ROLES[ally].name.toUpperCase();
       $("hub-ally-type-"+side).textContent=labels[ally]+" · "+spec.join(" / ");
-      // These controls unlock on the PLAYER'S journey: no AI level track.
-      $("hub-ally-style-"+side).disabled=true;
+      // Styles are earned once at STAGE 5 on this player's Journey.
+      // Each companion uses its own persisted role ID, not a parallel XP track.
+      const journey=readJourney(this.getProgression());
+      const unlocked=(journey?.clears||0)>=STYLE_UNLOCK_STAGE;
+      const current=companionStyleFor(journey,ally);
+      const trigger=$("hub-ally-style-"+side);
+      trigger.disabled=!unlocked;
+      trigger.setAttribute("aria-expanded",String(unlocked&&this.openStylePanel===side));
+      trigger.replaceChildren(document.createTextNode("STYLE · "+COMPANION_STYLES[current].name.toUpperCase()),
+        el("small","",unlocked?"EDIT STYLE":"UNLOCKS AT STAGE 5"));
       $("hub-ally-build-"+side).disabled=true;
+      $("hub-ally-build-"+side).querySelector("small").textContent="UNLOCKS AT STAGE 15";
+      const panel=$("hub-ally-style-picker-"+side);
+      panel.hidden=!unlocked||this.openStylePanel!==side;
+      const options=$("hub-ally-style-options-"+side);options.replaceChildren();
+      if(unlocked&&this.openStylePanel===side){
+        for(const id of STYLE_IDS){
+          const style=COMPANION_STYLES[id];
+          const selected=id===current;
+          const btn=button("","hub-ally-style-option"+(selected?" selected":""),()=>{
+            try{
+              const next=setCompanionStyle(this.getProgression(),ally,id);
+              this.changeProgression(next);
+              this.message=ROLES[ally].name+" will play "+style.name+
+                " in your next Stage.";
+              this.draw();
+            }catch(error){this.setMessage(error?.message||"Could not change companion Style.");}
+          });
+          btn.setAttribute("aria-pressed",String(selected));
+          btn.append(el("strong","",style.name),
+            el("span","",style.short),
+            el("small","",style.description));
+          options.append(btn);
+        }
+      }
       $("hub-ally-card-"+side).style.setProperty("--ally-core",ROLES[ally].color);
     }
   }

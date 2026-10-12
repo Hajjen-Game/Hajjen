@@ -1,8 +1,19 @@
-// Level-led Planet Defense encounters. A small selection of readable mechanics
-// grows as character spell slots unlock (1, 4, 8, 12, 16, 20, 24, 28).
-// No saved character stats, PvP rules or temporary spell trials are changed.
+// Legacy Planet Defense remains level-led. Journey v2 instead introduces
+// COUNTERPLAY threats on Planet 4 (AFTER hex 3 spell choices) and advanced
+// mechanics on Planet 8 (AFTER hex 7 spell choices). No PvP rules changed.
 const clamp=(value,low,high)=>Math.min(high,Math.max(low,value));
 const THRESHOLDS=[1,4,8,12,16,20,24,28];
+// Journey stages are NOT player levels or XP. These milestones are chosen to
+// ensure unlock → prepare → encounter rather than making the player fail
+// before receiving access to the intended tactical response.
+const JOURNEY_THREAT_TIERS=[
+  {planet:1,tier:0},
+  {planet:4,tier:2}, // interrupts, dispels, protection and positional control
+  {planet:8,tier:3}, // wider setups/AoE, Bulwarks and coordination
+  {planet:12,tier:4},
+  {planet:16,tier:5},
+  {planet:20,tier:7},
+];
 const TIERS=["INITIATE","AWAKENING","DISRUPTION","FRACTURE",
   "RIFTSTORM","VOIDFRONT","ASCENSION","CATACLYSM"];
 const NAMES=["FIRST CONTACT","THE SWARM","DISRUPTION","OVERLOAD","FINAL STAND"];
@@ -84,9 +95,11 @@ function waveArchetypes(wave,tier,variation){
   }
   return enemies;
 }
-export function buildPlanetEncounters(level,seed=1){
+export function buildPlanetEncounters(level,seed=1,journey=false){
   level=clamp(Math.floor(level)||1,1,30);
-  const tier=THRESHOLDS.filter(required=>level>=required).length-1;
+  const tier=journey?
+    JOURNEY_THREAT_TIERS.filter(gate=>level>=gate.planet).at(-1).tier:
+    THRESHOLDS.filter(required=>level>=required).length-1;
   const rand=random((seed>>>0)^Math.imul(level,2654435761));
   const boss=bossForLevel(level);
   const stage=TIERS[tier];

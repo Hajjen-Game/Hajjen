@@ -225,81 +225,123 @@ const PAGES=[
   }
 ];
 function artMarkup(name){
-  const dots=(count,cls,r,start=-Math.PI/2)=>Array.from({length:count},(_,i)=>{
-    const a=start+i*Math.PI*2/count;
-    const x=50+Math.cos(a)*r,y=50+Math.sin(a)*r;
-    return '<i class="'+cls+'" style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%"></i>';
-  }).join("");
+  const orb=(theme,extra="")=>
+    '<span class="bk-orb bk-orb--'+theme+' '+extra+'" aria-hidden="true"><i></i></span>';
+  const tag=(label,type="")=>'<span class="bk-tag '+type+'">'+label+'</span>';
   switch(name){
-    case "arena":return `
-      <div class="book-arena-map">
-        <span class="book-pillar p1"></span><span class="book-pillar p2"></span>
-        <span class="book-pillar p3"></span><span class="book-pillar p4"></span>
-        <span class="book-unit hero">✦</span><span class="book-unit friend">✧</span>
-        <span class="book-unit enemy">◈</span><span class="book-unit enemy second">◈</span>
-        <span class="book-path"></span>
-        <span class="book-mini-label top">YOUR ORB</span>
-        <span class="book-mini-label bottom">OPPONENTS</span>
-      </div>`;
-    case "roles":return `
-      <div class="book-role-gallery">
-        <div><span class="book-role-orb healer">✧</span><strong>GENESIS</strong><small>HEAL · PROTECT</small></div>
-        <div><span class="book-role-orb melee">⌁</span><strong>IMPACT</strong><small>CHARGE · STRIKE</small></div>
-        <div><span class="book-role-orb caster">❖</span><strong>ECLIPSE</strong><small>CAST · REPOSITION</small></div>
-      </div>`;
-    case "loadout":return `
-      <div class="book-orbit-map">
-        <div class="book-orbit-ring inner"></div><div class="book-orbit-ring outer"></div>
-        <div class="book-orbit-hero">✦</div>
-        ${dots(3,"book-orbit-dot chosen",27)}
-        ${dots(15,"book-orbit-dot pool",44,Math.PI/15-Math.PI/2)}
-      </div>
-      <div class="book-key"><span class="a">◉ 3/10 EQUIPPED</span><span class="b">◇ 15 IN POOL</span></div>`;
-    case "talents":return `
-      <div class="book-rank-path"><span>RANK 1 ✓</span><span>RANK 2 ✓</span><span>RANK 3 ★</span></div>
-      <div class="book-branch-stem"></div>
-      <div class="book-evolution-row">
-        <div>✦<strong>POWER</strong><small>Bigger impact</small></div>
-        <div>➤<strong>SPEED</strong><small>Quicker cast</small></div>
-        <div>◈<strong>UTILITY</strong><small>New effect</small></div>
-      </div>
-      <p class="book-art-subtitle">ONE SPELL · THREE PATHS · CHOOSE ONE</p>`;
-    case "singularity":return `
-      <div class="book-singularity-art">
-        <div class="book-singularity-spells"><span>✦ <small>ORIGIN SPELL</small></span><span>❄ <small>PARTNER SPELL</small></span></div>
-        <div class="book-singularity-path"><i></i><i></i></div>
-        <div class="book-singularity-core"><div class="book-singularity-hole"></div></div>
-        <strong>BLACK HOLE MATTER</strong>
-        <div class="book-singularity-reactions"><span>ANNIHILATION</span><span>DISTORTION</span><span>RESONANCE</span></div>
-        <small>REQUIRES LEVEL 10</small>
-      </div>`;
-    case "combat":return `
-      <div class="book-combat-scene">
-        <div class="book-combat-score"><span class="ally">ALLY 100%</span><span class="foe">ENEMY 100%</span></div>
-        <span class="book-combat-rock"></span>
-        <span class="book-combat-hero">✦</span><span class="book-combat-enemy">◆</span>
-        <span class="book-projectile"></span>
-        <div class="book-action-row">${Array.from({length:10},(_,i)=>'<i>'+((i+1)%10)+'</i>').join("")}</div>
-      </div>`;
-    case "controls":return `
-      <div class="book-controls">
-        <div class="book-wasd"><kbd>W</kbd><div><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div><span>MOVE</span></div>
-        <div class="book-keys"><div class="book-keyline">1 · 2 · 3 · 4 · 5 · 6 · 7 · 8 · 9 · 0</div>
-        <p>CAST ABILITIES</p><div><kbd>TAB</kbd> <span>ENEMY</span></div>
-        <div><kbd>F1</kbd><kbd>F2</kbd><kbd>F3</kbd><span>ALLIES</span></div></div>
-      </div>`;
-    case "modes":return `
-      <div class="book-modes-art">
-        <div><strong>PLANET DEFENSE</strong><span>✦ ✧ ◈ <em>VS</em> ◆ ◆ ◆</span><small>5 WAVES · 3VE</small></div>
-        <div><strong>DUO SKIRMISH</strong><span>✦ ✧ <em>VS</em> ◆ ◆</span><small>2V2</small></div>
-        <div><strong>FULL ARENA</strong><span>✦ ✧ ◈ <em>VS</em> ◆ ◆ ◆</span><small>3V3</small></div>
-      </div>`;
-    default:return `
-      <div class="book-progress-art">
-        <span>LEVEL 1</span><div class="book-progress-line"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>LEVEL 30</span>
-        <strong>30 TALENT POINTS</strong><small>10 MASTERED SPELLS</small>
-        <div class="book-presets-art"><span>BUILD 1</span><span>BUILD 2</span><span>BUILD 3</span></div>
-      </div>`;
+    case "vision":return '<div class="bk-art bk-vision">'+
+      '<div class="bk-art-kicker">A LIVING ENERGY WORLD</div>'+
+      '<div class="bk-stars bk-stars-a"></div>'+
+      '<div class="bk-vision-line"></div>'+
+      '<div class="bk-vision-actors">'+
+        '<div class="bk-vision-unit">'+orb("vital")+'<small>AI · GENESIS</small></div>'+
+        '<div class="bk-vision-unit main">'+orb("cryo")+'<strong>DIN ORIGIN</strong></div>'+
+        '<div class="bk-vision-unit">'+orb("kinetic")+'<small>AI · IMPACT</small></div>'+
+      '</div><div class="bk-vision-enemies"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bk-art-footer">3 ENERGY ORBS <b>·</b> REAL-TIME PVE</div></div>';
+    case "origins":return '<div class="bk-art bk-origins">'+
+      [
+        ["vital","GENESIS","VITAL","PULSE MEND","RESONANCE GUARD"],
+        ["kinetic","IMPACT","KINETIC","PHASE RUSH","ARC STRIKE"],
+        ["cryo","ECLIPSE","CRYO","CRYSTAL BOLT","CRYSTAL SNARE"]
+      ].map(role=>'<div class="bk-origin-card bk-origin-card--'+role[0]+'">'+
+        orb(role[0])+'<strong>'+role[1]+'</strong><em>'+role[2]+'</em>'+
+        '<span class="bk-origin-abilities">'+role[3]+'<b>+</b>'+role[4]+'</span></div>'
+      ).join("")+
+      '<div class="bk-art-footer">TWO BOUND SPELLS <b>·</b> ONE DISCIPLINE</div></div>';
+    case "combat":return '<div class="bk-art bk-combat">'+
+      '<div class="bk-battle-header"><span>YOU <b>100%</b></span><span>WAVE 03 / 05</span><span>ENEMY <b>62%</b></span></div>'+
+      '<div class="bk-battle-zone">'+
+        '<span class="bk-battle-cover left"></span><span class="bk-battle-cover right"></span>'+
+        '<div class="bk-fighter bk-fighter-a">'+orb("vital")+'</div>'+
+        '<div class="bk-fighter bk-fighter-b">'+orb("cryo")+'</div>'+
+        '<div class="bk-fighter bk-fighter-c">'+orb("kinetic")+'</div>'+
+        '<div class="bk-fighter bk-fighter-enemy">◆</div>'+
+        '<div class="bk-battle-cast"></div>'+
+      '</div><div class="bk-combat-hotkeys">'+
+        tag("W A S D · MOVE")+tag("1 – 0 · SPELLS")+tag("TAB · TARGET")+
+      '</div><div class="bk-art-footer">THINK FAST <b>·</b> FIGHT AS A TEAM</div></div>';
+    case "waves":return '<div class="bk-art bk-waves">'+
+      '<div class="bk-art-kicker">PLANET DEFENSE · 5 WAVES</div>'+
+      '<div class="bk-wave-row">'+Array.from({length:5},(_,i)=>
+        '<div class="bk-wave-hex '+(i===2?"current":"")+'">'+
+        '<small>VÅG</small><strong>0'+(i+1)+'</strong></div>').join("")+'</div>'+
+      '<div class="bk-wave-arena"><div class="bk-wave-squad">'+
+        orb("cryo")+orb("vital")+orb("kinetic")+
+        '</div><div class="bk-wave-burst">✧</div>'+
+        '<div class="bk-wave-hostiles">'+Array.from({length:11},(_,i)=>
+          '<span class="bk-threat '+(i%4===0?"large":"")+'">◆</span>').join("")+
+        '</div></div>'+
+      '<div class="bk-wave-pause">'+tag("OVERCHARGE AFTER EACH PAUSE","bright")+
+        '<span>CHOOSE 1 OF 4</span></div></div>';
+    case "journey":return '<div class="bk-art bk-journey">'+
+      '<div class="bk-art-kicker">YOUR CAMPAIGN · 20 PLANETS</div>'+
+      '<div class="bk-hex-map">'+Array.from({length:20},(_,i)=>{
+        const step=i+1,state=i<2?"done":i===2?"next":"locked";
+        const label=step===3?"COUNTER":step===5?"AI":step===10?"EVO":step===15?"BUILD":step===20?"RIFT":"";
+        return '<div class="bk-hex-cell '+state+'"><span>'+
+          (i<2?"✓":String(step).padStart(2,"0"))+'</span>'+
+          (label?'<small>'+label+'</small>':"")+'</div>';
+      }).join("")+'</div>'+
+      '<div class="bk-journey-legend">'+tag("✓ KLAR","done")+tag("NÄSTA PLANET","bright")+tag("LÅST")+'</div>'+
+      '<div class="bk-art-footer">NO LEVELS <b>·</b> EVERY FIRST CLEAR COUNTS</div></div>';
+    case "spells":return '<div class="bk-art bk-spells">'+
+      '<div class="bk-art-kicker">FIVE DISCIPLINES · ONE DISCOVERY</div>'+
+      '<div class="bk-discovery-stage">'+orb("cryo","bk-discovery-hero")+
+      [
+        ["void","ENTROPY MARK"],["solar","SUN LANCE"],["cryo","FRACTURE SPEAR"],
+        ["kinetic","VECTOR RUSH"],["vital","REACTIVE THREAD"]
+      ].map((a,i)=>'<div class="bk-discover-node bk-discover-node-'+(i+1)+' '+a[0]+'">'+
+        '<span>✦</span><strong>'+a[1]+'</strong></div>').join("")+
+      '</div><div class="bk-selected-preview">'+
+        '<span>SELECTED SPELL</span><strong>FRACTURE SPEAR</strong>'+
+        '<span class="bk-preview-button">✧ DISCOVER THIS SPELL</span>'+
+      '</div><div class="bk-art-footer">2 BOUND + UP TO 8 SHARED SPELLS</div></div>';
+    case "overcharges":return '<div class="bk-art bk-overcharges">'+
+      '<div class="bk-art-kicker">WAVE COMPLETE · CHOOSE ONE</div>'+
+      '<div class="bk-overcharge-grid">'+
+      [
+        ["you","YOU · ECLIPSE","COMET RAIN","EXTRA IMPACTS"],
+        ["you","YOU · ECLIPSE","RIME CASCADE","CRYO BURSTS"],
+        ["vital","AI · GENESIS","LIVING BLOOM","HEALING PULSES"],
+        ["kinetic","AI · IMPACT","ARC TEMPEST","KINETIC CHAINS"]
+      ].map((a,i)=>'<div class="bk-overcharge-card '+a[0]+(i===0?" highlighted":"")+'">'+
+        '<small>'+a[1]+'</small><div class="bk-overcharge-sigil">✦</div>'+
+        '<strong>'+a[2]+'</strong><span>'+a[3]+'</span></div>').join("")+
+      '</div><div class="bk-overcharge-bottom">'+
+      tag("ONE CHOICE","bright")+tag("RUN ONLY")+tag("FOUR WAVE BREAKS")+
+      '</div></div>';
+    case "evolutions":return '<div class="bk-art bk-evolutions">'+
+      '<div class="bk-art-kicker">CRYSTAL BOLT · THREE FUTURE PATHS</div>'+
+      '<div class="bk-evo-source"><span>❖</span><strong>CRYSTAL BOLT</strong></div>'+
+      '<div class="bk-evo-connectors"><i></i><i></i><i></i></div>'+
+      '<div class="bk-evo-options">'+[
+        ["RAPID CRYSTAL","QUICKER CAST"],
+        ["GLACIAL ECHO","SECOND PROJECTILE"],
+        ["BRITTLE CORE","AMPLIFIED HIT"]
+      ].map(item=>'<div class="bk-evo-option"><span>◇</span><strong>'+item[0]+
+        '</strong><small>'+item[1]+'</small><em>LOCKED · PLANET 10</em></div>').join("")+
+      '</div><div class="bk-art-footer">EXPLORE NOW <b>·</b> UNLOCK LATER</div></div>';
+    case "companions":return '<div class="bk-art bk-companions">'+
+      '<div class="bk-art-kicker">TWO AI COMPANIONS · ONE JOURNEY</div>'+
+      '<div class="bk-companion-row">'+[
+        ["vital","GENESIS","SUPPORT","VITAL / SOLAR"],
+        ["kinetic","IMPACT","MELEE","KINETIC / VOID"]
+      ].map(item=>'<div class="bk-companion-card">'+
+        '<small>AI COMPANION</small>'+orb(item[0])+
+        '<strong>'+item[1]+'</strong><span>'+item[2]+' · '+item[3]+'</span>'+
+        '<div class="bk-companion-locks">'+tag("STYLE · 5")+tag("BUILD · 15")+'</div></div>').join("")+
+      '</div><div class="bk-art-footer">THEIR CONFIGURATION · YOUR MILESTONES</div></div>';
+    case "future":return '<div class="bk-art bk-future">'+
+      '<div class="bk-art-kicker">THE JOURNEY CONTINUES</div>'+
+      '<div class="bk-future-scene"><div class="bk-future-ring bk-future-ring-1"></div>'+
+        '<div class="bk-future-ring bk-future-ring-2"></div>'+
+        '<div class="bk-future-vortex">✧</div>'+
+        '<span class="bk-future-badge">PLANET 20</span>'+
+      '</div><div class="bk-future-content"><strong>RIFT EXPEDITION</strong>'+
+        '<span>SYNERGIES · NEW PVE CHALLENGES</span></div>'+
+      '<div class="bk-art-footer">IN DEVELOPMENT <b>·</b> MORE TO DISCOVER</div></div>';
+    default:return '<div class="bk-art bk-vision">'+orb("cryo")+'</div>';
   }
 }
 export class EnergyMainMenu{

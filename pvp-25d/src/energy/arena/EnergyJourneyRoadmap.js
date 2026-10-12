@@ -37,7 +37,7 @@ export class EnergyJourneyRoadmap{
   constructor({map,detail,summary,onSelect=null}){
     this.map=map;this.detail=detail;this.summary=summary;
     this.onSelect=onSelect;
-    this.selected=1;this.clears=0;this.armed=false;
+    this.selected=1;this.clears=0;this.armed=false;this.tracked=false;
     this.buttons=new Map();
     this.build();
     this.render();
@@ -97,7 +97,9 @@ export class EnergyJourneyRoadmap{
   render(){
     // Never infer clear history from old .wins or XP: those mix several modes.
     const clears=this.clears;
-    this.summary.textContent="PLANET DEFENSE · 20 HEXES · PREVIEW";
+    this.summary.textContent=this.tracked?
+      "PLANET DEFENSE · "+clears+" / 20 CLEARED":
+      "PLANET DEFENSE · LEGACY PREVIEW · NO VERIFIED CLEARS";
     for(const hex of JOURNEY_STEPS){
       const button=this.buttons.get(hex.step);
       button.classList.toggle("completed",hex.step<=clears);
@@ -106,6 +108,8 @@ export class EnergyJourneyRoadmap{
       button.classList.toggle("selected",this.armed&&hex.step===this.selected);
       button.disabled=hex.step!==clears+1;
       button.setAttribute("aria-pressed",String(this.armed&&hex.step===this.selected));
+      button.querySelector(".journey-hex-symbol").textContent=
+        hex.step<=clears?"✓":glyphs[hex.kind];
       button.setAttribute("aria-label","Planet Defense step "+hex.step+" — "+hex.title+
         "; "+(hex.step<=clears?"completed":hex.step===clears+1?"next planned":"future")+
         "; "+(button.disabled?"locked":"selectable")+"; roadmap preview.");
@@ -117,12 +121,16 @@ export class EnergyJourneyRoadmap{
     const number=document.createElement("span");
     number.textContent="PLANET "+String(hex.step).padStart(2,"0")+" / 20";
     const state=document.createElement("span");
-    state.textContent=this.armed?"SELECTED · READY TO PLAY":"NEXT AVAILABLE · SELECT THE HEX";
+    state.textContent=hex.step<=clears?"✓ PLANET CLEARED":
+      this.armed?"SELECTED · READY TO PLAY":
+      hex.step===clears+1?"NEXT AVAILABLE · SELECT THE HEX":"FUTURE MILESTONE";
     heading.append(number,state);
     const title=document.createElement("strong");title.textContent=hex.title;
     const description=document.createElement("p");description.textContent=hex.description;
     const note=document.createElement("small");
-    note.textContent="Selection starts the current Planet Defense prototype; hex wins, permanent rewards and progression tracking are not active yet. Existing saves remain untouched.";
+    note.textContent=this.tracked?
+      "This Origin's first-clear progress is saved. Completing the next planet will advance the path; permanent spell discoveries are claimed in HUB.":
+      "Legacy Origin preview: old XP or PvP wins do not count as hex clears. Existing saves are untouched.";
     this.detail.append(heading,title,description,note);
   }
 }

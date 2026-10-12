@@ -1700,3 +1700,74 @@ h2{font-size:23px}
 @media(prefers-reduced-motion:reduce){
   .hub-team-aura,.hub-team-aura:before,.hub-team-aura:after{animation:none}
 }
+
+
+/* HUB 2.1 REVISION — requested composition: one hero inside Evolution Tree;
+   two compact real animated Babylon companion portraits BELOW that tree. */
+.hub-radial-layout{align-items:start}
+.hub-radial-layout .hub-tree-spells{align-self:start}
+.hub-radial-layout .hub-evolution-space{align-self:start}
+.hub-companion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;margin-top:21px;padding-top:17px;border-top:1px solid #31546c}
+.hub-companion-panel{--ally-core:#6ec5c5;min-width:0;display:flex;
+  flex-direction:column;align-items:stretch;text-align:center;
+  border:1px solid #345875;border-radius:11px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 27%,
+    color-mix(in srgb,var(--ally-core) 12%,transparent),transparent 67%),
+    linear-gradient(145deg,#14263c,#0a1427);
+  box-shadow:inset 0 1px #9ac9e419}
+.hub-companion-heading{display:flex;justify-content:space-between;align-items:center;
+  gap:8px;flex-wrap:wrap;padding:11px 14px 0}
+.hub-companion-heading span{font-size:9px;letter-spacing:.11em;color:#86adc4;font-weight:800}
+.hub-companion-heading strong{font-size:12px;color:#e5f6fc;letter-spacing:.05em}
+.hub-companion-preview{position:relative;height:200px;min-height:200px;overflow:hidden;
+  margin:2px 8px 0;border-radius:10px;
+  background:radial-gradient(ellipse at center,#19364d66,transparent 67%),#080e1d}
+.hub-companion-preview canvas{position:absolute;inset:0;width:100%;height:100%;
+  display:block;touch-action:none}
+.hub-companion-fallback{position:absolute;inset:0;display:grid;place-items:center;
+  color:#b5cfdd;font-size:10px;z-index:2;padding:10px}
+.hub-companion-fallback[hidden]{display:none!important}
+.hub-companion-identity{font-size:10px;letter-spacing:.08em;color:#a1d5e5;
+  margin:2px 8px 12px;font-weight:760}
+.hub-companion-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;
+  padding:0 12px 14px;margin-top:auto}
+.hub-companion-action{display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:5px;border:1px solid #36536c;border-radius:8px;
+  background:#112037;color:#c4dce8;font-size:10px;font-weight:800;
+  padding:9px 3px;min-height:49px;letter-spacing:.04em}
+.hub-companion-action small{font-size:8px;letter-spacing:0;color:#87a5ba}
+.hub-companion-action:disabled{cursor:not-allowed;opacity:.65}
+.hub-companion-action:not(:disabled):hover{border-color:#91ddec;background:#1c354c}
+.play-journey-panel{margin:0;padding:18px 20px}
+.play-journey-panel .hub-journey-scroll{margin:0 0 13px}
+.play-journey-panel .hub-journey-intro{margin:12px 0 0;color:#82a8bd;font-size:11px}
+.journey-play-screen .journey-screen-heading{margin-bottom:16px}
+.journey-play-screen .journey-screen-heading h2{font-size:clamp(28px,3.2vw,43px)}
+.play-journey-actions{margin:18px 0 22px}
+.play-journey-actions .hub-primary{min-width:250px;padding:14px 21px}
+.play-journey-actions .hub-primary:disabled{opacity:.52;cursor:not-allowed;
+  box-shadow:none;filter:saturate(.25)}
+.journey-hex:disabled{cursor:not-allowed}
+.journey-hex:disabled:not(.selected) .journey-hex-face{opacity:.65}
+.journey-hex:disabled:hover .journey-hex-face{
+  filter:none;outline:0}
+.play-prototype-modes{border:1px solid #32465f;border-radius:9px;
+  padding:12px 16px;background:#0b1729;color:#a8c9d9}
+.play-prototype-modes summary{font-size:10px;font-weight:800;cursor:pointer;
+  letter-spacing:.12em;list-style-position:inside}
+.play-prototype-modes>p{font-size:10px;color:#85a4b9;line-height:1.55;margin:10px 0}
+.play-prototype-modes .menu-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.play-rift-locked{display:flex;gap:8px;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;margin-top:12px;font-size:10px;color:#90a2bc;
+  border:1px dashed #3d4964;border-radius:9px;padding:10px 14px}
+.play-rift-locked strong{color:#c6b6dd;letter-spacing:.06em}
+@media(max-width:970px){
+  .hub-companion-grid{grid-template-columns:1fr}
+  .hub-companion-preview{height:185px;min-height:185px}
+}
+@media(max-width:680px){
+  .play-prototype-modes .menu-mode-grid{grid-template-columns:1fr}
+  .play-journey-actions .hub-primary{width:100%}
+  .play-journey-panel{padding:12px}
+}

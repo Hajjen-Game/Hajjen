@@ -11,7 +11,7 @@ import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-ai-styles1";
 import {readJourney,eligibleJourneySpells,claimJourneySpell} from "./EnergyJourneyCampaign.js?v=20261012-dev-origin1";
 import {COMPANION_STYLES,STYLE_IDS,STYLE_UNLOCK_STAGE,companionStyleFor,setCompanionStyle}
-  from "./EnergyCompanionStyles.js?v=20261012-style1";
+  from "./EnergyCompanionStyles.js?v=20261012-dev-origin1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
 
 const $=id=>document.getElementById(id);

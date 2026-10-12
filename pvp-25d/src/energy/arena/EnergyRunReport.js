@@ -176,7 +176,7 @@ export function formatEnergyRunReport(match){
       (i+1)+" "+s.name).join(" → "),
     "Activated seals: "+(match.riftHistory||[]).map(entry=>
       "sector "+entry.sector+" at "+fix(entry.time,1)+"s").join("; "),
-    "Rift boss: "+safe(match.encounter?.boss?.name)+
+    "Rift boss: "+safe(match.actors.find(a=>a.boss)?.name||match.encounter?.boss?.name)+
       " | seed "+safe(match.encounterSeed)+
       " | first-run reward: none (prototype)",
     "Equipped Evolutions: "+(Object.entries(match.player?.evolutions||{})

@@ -563,6 +563,7 @@ export class EnergyCharacterHub{
       const inBuild=state.plannedIds.has(ability.id);
       const unlocked=state.activeById.has(ability.id);
       const rank=state.activeById.get(ability.id)?.talentRank||0;
+      const journey=readJourney(this.getProgression());
       const evolved=Boolean(state.build.evolutions[ability.id]);
       const bound=state.roleBound.has(ability.id);
       const slotIndex=state.inner.findIndex(spell=>spell.id===ability.id);
@@ -575,8 +576,12 @@ export class EnergyCharacterHub{
       const label=el("span","hub-spell-copy");
       label.append(el("strong","hub-spell-name",ability.name),
         el("small","hub-spell-category",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
-        el("span","hub-spell-level",bound?"SLOT "+(slotIndex+1)+" · ORIGIN SPELL · RANK "+rank:
-          !inBuild?"AVAILABLE IN POOL":"SLOT "+(slotIndex+1)+" · RANK "+rank+"/3"));
+        el("span","hub-spell-level",journey?
+          (bound?"SLOT "+(slotIndex+1)+" · ORIGIN-BOUND":
+            inBuild?"SLOT "+(slotIndex+1)+" · DISCOVERED":
+              journey.owned.includes(ability.id)?"OWNED · IN LIBRARY":"LOCKED · JOURNEY DISCOVERY"):
+          (bound?"SLOT "+(slotIndex+1)+" · ORIGIN SPELL · RANK "+rank:
+          !inBuild?"AVAILABLE IN POOL":"SLOT "+(slotIndex+1)+" · RANK "+rank+"/3")));
       const stateGlyph=bound?String(slotIndex+1):!inBuild?"＋":evolved?"✦":"✓";
       btn.append(el("span","hub-spell-symbol",glyphs[ability.discipline]),label,
         el("span","hub-spell-state",stateGlyph));
@@ -634,7 +639,9 @@ export class EnergyCharacterHub{
       addLine(orbitPos(angle,389),p,"hub-orbit-link pool"+(selected?" selected":""),tone);
       const node=button("","hub-orbit-spell pool"+(selected?" selected":""),()=>this.selectSpell(ability.id));
       node.style.setProperty("--node-tone",tone);
-      node.setAttribute("aria-label",ability.name+" (available in pool)");
+      node.setAttribute("aria-label",ability.name+
+        (readJourney(this.getProgression())?.owned.includes(ability.id)?
+          " (discovered, in library)":" (Journey discovery required)"));
       node.setAttribute("aria-pressed",String(selected));
       node.title=ability.name+" — "+ability.description;
       node.append(el("span","hub-orbit-icon",glyphs[ability.discipline]),
@@ -657,6 +664,7 @@ export class EnergyCharacterHub{
   }
   renderEvolutionSatellites({ability,angle,origin,dist,selected,state,place,addLine,pool=false}){
     const rank=state.activeById.get(ability.id)?.talentRank||0;
+    const isJourney=Boolean(readJourney(this.getProgression()));
     const chosenId=state.build.evolutions[ability.id]||null;
     for(const [i,ev] of ability.evolutions.entries()){
       const branchAngle=angle+(i-1)*(pool?.108:.143);
@@ -674,7 +682,8 @@ export class EnergyCharacterHub{
       btn.style.setProperty("--node-tone",tone);
       btn.setAttribute("aria-label",ability.name+" Evolution: "+ev.name+
         (chosen?" (selected)":pool?" (requires equipping)":
-        rank<3?" (requires Rank 3)":" (click to choose)"));
+        isJourney?" (unlock via Journey Evolutions)":rank<3?
+          " (requires Rank 3)":" (click to choose)"));
       btn.title=ev.name+": "+ev.description;
       btn.append(el("span","",i===0?"✦":i===1?"➤":"◈"));
       btn.addEventListener("mouseenter",event=>this.showTooltip(ability,event,!pool,ev));
@@ -808,6 +817,9 @@ export class EnergyCharacterHub{
     const build=this.store.draft;
     const locked=new Set(ROLES[build.role].locked);
     if(locked.has(oldId)||locked.has(newId))throw Error("Origin spells cannot be swapped.");
+    const journey=readJourney(this.getProgression());
+    if(journey&&!journey.owned.includes(newId))
+      throw Error("Discover this spell through Planet Defense first.");
     const level=progressDetails(this.getProgression()).level;
     const active=stagedLoadout(build,level).abilitySlots.map(s=>s.id).filter(id=>!locked.has(id));
     if(!active.includes(oldId)||active.includes(newId))
@@ -838,13 +850,19 @@ export class EnergyCharacterHub{
       inBuild?"Choose another spell from the pool to replace "+ABILITY_BY_ID[id].name+".":
       "Choose an unlocked shared spell to replace with "+ABILITY_BY_ID[id].name+".");
     if(inBuild){
-      for(const ability of state.pool){
+      const journey=readJourney(this.getProgression());
+      for(const ability of state.pool.filter(ability=>!journey||journey.owned.includes(ability.id))){
         const opt=el("option","",ability.name+" · "+DISCIPLINES[ability.discipline].name);
         opt.value=ability.id;select.append(opt);
       }
       select.setAttribute("aria-label","New spell from available pool");
     }else{
+      const journey=readJourney(this.getProgression());
       const current=state.unlocked.filter(slot=>!state.roleBound.has(slot.id));
+      if(journey&&!journey.owned.includes(id)){
+        holder.replaceChildren(el("p","","This spell is not discovered yet. Clear more Planet Defense hexes to add it to your library."));
+        return;
+      }
       for(const slot of current){
         const ability=ABILITY_BY_ID[slot.id];
         const opt=el("option","",ability.name+" · current build");

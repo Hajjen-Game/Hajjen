@@ -1,9 +1,9 @@
 // Rift Expedition 1.0: a route through five connected locations.
 // Shares the real combat/creature/boss systems, but deliberately does NOT
 // inherit Planet Defense's automatic wave-to-wave intermissions and rewards.
-import {EnergyMatch,canStand} from "./EnergyMatch.js?v=20261012-evolution1";
-import {EnergyPlanetDefense} from "./EnergyPlanetDefense.js?v=20261012-evolution1";
-import {MODES} from "./EnergyProgression.js?v=20261012-evolution1";
+import {EnergyMatch,canStand} from "./EnergyMatch.js?v=20261012-rift1";
+import {EnergyPlanetDefense} from "./EnergyPlanetDefense.js?v=20261012-rift1";
+import {MODES} from "./EnergyProgression.js?v=20261012-rift1";
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const RIFT_SECTORS=5;
 export const RIFT_GATE_RADIUS=112;

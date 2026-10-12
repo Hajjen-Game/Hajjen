@@ -52,43 +52,36 @@
       </div>
     </section>
 
-    <section id="hub-play-screen" class="journey-screen" hidden aria-label="Choose a game mode">
+    <section id="hub-play-screen" class="journey-screen journey-play-screen" hidden aria-label="Choose your next Planet Defense">
       <div class="journey-screen-heading">
-        <p class="eyebrow">YOUR ORIGIN / PLAY</p>
-        <h2>CHOOSE YOUR <span>PATH</span></h2>
-        <p>Select a PvE or PvP activity. Return to your HUB to change spells, talents or Evolutions.</p>
+        <p class="eyebrow">YOUR ORIGIN / PLAY / PLANET DEFENSE</p>
+        <h2>JOURNEY <span>ROADMAP</span></h2>
+        <p>Select the next available planet, then press PLAY to enter Planet Defense. The remaining hexagons show what lies ahead.</p>
       </div>
-      <div class="play-path-grid" aria-label="Choose PvE or PvP">
-        <button type="button" class="play-path-button" data-play-path="pve" aria-expanded="false" aria-controls="play-mode-options">
-          <span class="play-path-glyph">✦</span><strong>PvE</strong>
-          <span>Defend your world · Conquer Rift encounters</span>
-          <small>EXPLORE PvE →</small>
-        </button>
-        <button type="button" class="play-path-button" data-play-path="pvp" aria-expanded="false" aria-controls="play-mode-options">
-          <span class="play-path-glyph">⚔</span><strong>PvP</strong>
-          <span>Battle rival Origins · Solo against AI teams</span>
-          <small>EXPLORE PvP →</small>
-        </button>
-      </div>
-      <div id="play-mode-options" class="play-mode-options" hidden>
-        <p id="play-mode-heading" class="hub-small-heading">CHOOSE ACTIVITY</p>
-        <div id="play-pve-modes" class="menu-mode-grid" hidden>
-          <button type="button" class="menu-mode planet-defense-mode" data-menu-mode="defense">
-            <strong>✦ PLANET DEFENSE</strong><span>Five escalating waves · Rift enemies · Spell discoveries</span>
-          </button>
-          <button type="button" class="menu-mode locked-mode" disabled aria-disabled="true">
-            <strong>◇ RIFT EXPEDITION <span class="mode-lock">LOCKED</span></strong>
-            <span>Unlocks at level 20 or 30 · TBD</span>
-          </button>
+      <section class="hub-journey-panel play-journey-panel" aria-label="Planet Defense 20-step journey">
+        <div class="hub-journey-heading"><span id="hub-journey-summary">CAMPAIGN PREVIEW · 20 PLANETS</span></div>
+        <div class="hub-journey-scroll" tabindex="0" aria-label="Scrollable Planet Defense roadmap">
+          <div class="hub-journey-map" id="hub-journey-map"></div>
         </div>
-        <div id="play-pvp-modes" class="menu-mode-grid" hidden>
-          <button type="button" class="menu-mode" data-menu-mode="training"><strong>1v1</strong><span>Solo duel · Training Grounds</span></button>
-          <button type="button" class="menu-mode" data-menu-mode="duo"><strong>2v2</strong><span>You and one ally · Duo Skirmish</span></button>
-          <button type="button" class="menu-mode" data-menu-mode="trio"><strong>3v3</strong><span>Full team combat · Arena</span></button>
-        </div>
-      </div>
-      <div class="journey-screen-actions">
+        <div class="hub-journey-detail" id="hub-journey-detail" aria-live="polite"></div>
+        <p class="hub-journey-intro">Preview: the upcoming hex launches today's Planet Defense encounter. A real first-clear campaign and permanent rewards will be connected in the progression overhaul. Existing wins are not treated as completed planets.</p>
+      </section>
+      <div class="journey-screen-actions play-journey-actions">
+        <button type="button" class="hub-primary" id="play-journey-start" disabled>SELECT NEXT PLANET TO PLAY</button>
         <button type="button" class="header-button" id="play-back-hub">← CHARACTER HUB</button>
+      </div>
+      <details class="play-prototype-modes">
+        <summary>OTHER MODES · DEVELOPMENT ACCESS</summary>
+        <p>These are existing test arenas, not part of the Planet Defense Journey. PvP progression is postponed.</p>
+        <div class="menu-mode-grid" id="play-pvp-modes">
+          <button type="button" class="menu-mode" data-menu-mode="training"><strong>1v1</strong><span>Solo duel · prototype</span></button>
+          <button type="button" class="menu-mode" data-menu-mode="duo"><strong>2v2</strong><span>Duo · prototype</span></button>
+          <button type="button" class="menu-mode" data-menu-mode="trio"><strong>3v3</strong><span>Trio · prototype</span></button>
+        </div>
+      </details>
+      <div class="play-rift-locked">
+        <strong>◇ RIFT EXPEDITION · LOCKED</strong>
+        <span>Planned milestone: Planet 20. Not playable yet.</span>
       </div>
     </section>
 
@@ -222,54 +215,6 @@
           </div>
         </header>
 
-        <section class="hub-team-panel" aria-label="Your Origin and two AI companions">
-          <div class="hub-team-title">
-            <div><p class="eyebrow">THE TEAM YOU WILL DEVELOP</p><h3>YOUR <span>SQUAD</span></h3></div>
-            <p>One Origin. Two companions. One shared journey.</p>
-          </div>
-          <div class="hub-team-grid">
-            <article class="hub-teammate-card companion" id="hub-ally-card-left">
-              <div class="hub-team-aura" id="hub-ally-orb-left" aria-hidden="true"><span class="hub-team-orb-heart"></span></div>
-              <div class="hub-team-persona">
-                <small>AI COMPANION 01</small>
-                <strong id="hub-ally-name-left">GENESIS</strong>
-                <span id="hub-ally-type-left">SUPPORT · BALANCED</span>
-              </div>
-              <p class="hub-team-gate">STYLE · AFTER PLANET 5 <span>BUILD · AFTER PLANET 15</span></p>
-            </article>
-            <article class="hub-teammate-card hero" id="hub-hero-card">
-              <div class="hub-team-aura" id="hub-hero-orb" aria-hidden="true"><span class="hub-team-orb-heart"></span></div>
-              <div class="hub-team-persona">
-                <small>YOU · YOUR ORIGIN</small>
-                <strong id="hub-team-hero-name">YOUR ORIGIN</strong>
-                <span id="hub-team-hero-type">YOUR SPELLS · YOUR JOURNEY</span>
-              </div>
-              <p class="hub-team-gate">YOUR ROADMAP <span>YOUR BUILD · YOUR EVOLUTIONS</span></p>
-            </article>
-            <article class="hub-teammate-card companion" id="hub-ally-card-right">
-              <div class="hub-team-aura" id="hub-ally-orb-right" aria-hidden="true"><span class="hub-team-orb-heart"></span></div>
-              <div class="hub-team-persona">
-                <small>AI COMPANION 02</small>
-                <strong id="hub-ally-name-right">ECLIPSE</strong>
-                <span id="hub-ally-type-right">CASTER · BALANCED</span>
-              </div>
-              <p class="hub-team-gate">STYLE · AFTER PLANET 5 <span>BUILD · AFTER PLANET 15</span></p>
-            </article>
-          </div>
-          <p class="hub-team-note">The existing live 3D orb showcase below now displays all three squad members in a single Babylon scene. Companion configuration opens later in your own roadmap — companions have no separate progression tracks.</p>
-        </section>
-        <section class="hub-journey-panel" aria-label="Your Planet Defense journey roadmap preview">
-          <div class="hub-journey-heading">
-            <div><p class="eyebrow">YOUR ORIGIN · PLANET DEFENSE</p><h3>JOURNEY <span>ROADMAP</span></h3></div>
-            <span id="hub-journey-summary">CAMPAIGN PREVIEW · 20 PLANETS</span>
-          </div>
-          <p class="hub-journey-intro">Discover new spells and grow your team across twenty planets. Select any hexagon to preview what lies ahead. <strong>Preview only:</strong> milestones and completion tracking are not yet active; your existing saves are preserved.</p>
-          <div class="hub-journey-scroll" tabindex="0" aria-label="Scrollable roadmap">
-            <div class="hub-journey-map" id="hub-journey-map"></div>
-          </div>
-          <div class="hub-journey-detail" id="hub-journey-detail" aria-live="polite"></div>
-        </section>
-
         <div id="hub-talent-workbench" class="hub-build-layout hub-radial-layout">
           <aside class="hub-tree-spells hub-build-panel" aria-label="Spell library">
             <div class="hub-panel-heading"><h3>YOUR SPELLS</h3><span id="hub-spellbook-count">3/10</span></div>
@@ -309,6 +254,36 @@
               <div id="hub-node-tooltip" class="hub-node-tooltip" hidden role="status"></div>
             </div>
             <p id="hub-map-caption" class="hub-map-caption">3/10 · 15 MORE SPELLS TO EXPLORE</p>
+            <section class="hub-companion-grid" aria-label="Your two AI companions">
+              <article class="hub-companion-panel" id="hub-ally-card-left">
+                <div class="hub-companion-heading">
+                  <span>AI COMPANION 01</span><strong id="hub-ally-name-left">GENESIS</strong>
+                </div>
+                <div class="hub-companion-preview">
+                  <canvas id="hub-ally-canvas-left" aria-label="Animated 3D preview of your first AI companion"></canvas>
+                  <p id="hub-ally-fallback-left" class="hub-companion-fallback" hidden>3D preview unavailable</p>
+                </div>
+                <p id="hub-ally-type-left" class="hub-companion-identity">SUPPORT · VITAL / SOLAR</p>
+                <div class="hub-companion-actions">
+                  <button type="button" class="hub-companion-action" id="hub-ally-style-left" disabled>STYLE <small>LOCKED · PLANET 5</small></button>
+                  <button type="button" class="hub-companion-action" id="hub-ally-build-left" disabled>BUILD <small>LOCKED · PLANET 15</small></button>
+                </div>
+              </article>
+              <article class="hub-companion-panel" id="hub-ally-card-right">
+                <div class="hub-companion-heading">
+                  <span>AI COMPANION 02</span><strong id="hub-ally-name-right">IMPACT</strong>
+                </div>
+                <div class="hub-companion-preview">
+                  <canvas id="hub-ally-canvas-right" aria-label="Animated 3D preview of your second AI companion"></canvas>
+                  <p id="hub-ally-fallback-right" class="hub-companion-fallback" hidden>3D preview unavailable</p>
+                </div>
+                <p id="hub-ally-type-right" class="hub-companion-identity">MELEE · KINETIC / VOID</p>
+                <div class="hub-companion-actions">
+                  <button type="button" class="hub-companion-action" id="hub-ally-style-right" disabled>STYLE <small>LOCKED · PLANET 5</small></button>
+                  <button type="button" class="hub-companion-action" id="hub-ally-build-right" disabled>BUILD <small>LOCKED · PLANET 15</small></button>
+                </div>
+              </article>
+            </section>
           </section>
           <aside class="hub-details-column">
             <section class="hub-details-panel hub-build-panel" aria-label="Selected spell details">

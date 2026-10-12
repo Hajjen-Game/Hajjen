@@ -1775,40 +1775,28 @@ h2{font-size:23px}
 /* Journey v2 first live slice. Legacy Origins keep their older build panels,
    while fresh Origins show first-clear discoveries WITHOUT XP or spell ranks. */
 #hub-journey-reward[hidden]{display:none!important}
-.hub-journey-reward{padding:19px 22px;margin:0 0 16px;
-  background:radial-gradient(ellipse at 50% 5%,#29506c52,transparent 60%),#0c1b2d;
-  border:1px solid #67a6b5;border-radius:14px;box-shadow:0 0 25px #59d9e51c}
-.hub-journey-reward-heading{display:grid;gap:6px;margin:0 0 16px}
-.hub-journey-reward-heading h3{font-size:23px;letter-spacing:.06em;color:#e4f6ff;margin:0}
-.hub-journey-reward-heading h3 span{color:#a0edff}
-.hub-journey-reward-heading p{font-size:11px;color:#a8cadd;line-height:1.55;margin:0}
-#hub-journey-reward-planet{font-size:10px;letter-spacing:.1em;color:#e8c588;margin-top:5px}
-.hub-journey-reward-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.hub-journey-discipline{--spell-tone:#94cfdc;padding:12px 10px;
-  border:1px solid color-mix(in srgb,var(--spell-tone) 44%,#29455a);border-radius:10px;
-  background:linear-gradient(160deg,color-mix(in srgb,var(--spell-tone) 13%,#0e1e30),#0a1627)}
-.hub-journey-discipline>strong{display:block;text-align:center;color:var(--spell-tone);
-  font-size:11px;letter-spacing:.11em;margin-bottom:12px}
-.hub-journey-spell-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
-.hub-journey-spell{min-height:35px;font-size:10px;font-weight:700;
-  padding:7px 6px;border:1px solid #39556e;border-radius:7px;
-  background:#101e2f;color:#a6bacb}
-.hub-journey-spell.available{cursor:pointer;color:#edfaff;
-  border-color:var(--spell-tone);background:#153046;box-shadow:0 0 12px #7ebedb14}
-.hub-journey-spell.available:hover{filter:brightness(1.2)}
-.hub-journey-spell:disabled{opacity:.45;cursor:not-allowed}
-.hub-journey-spell-row small{text-align:center;color:#89a5b9;
-  font-size:8px;line-height:1.35}
-.hub-journey-reward-note{color:#88abc1;font-size:10px;margin:14px 0 0}
+/* Slim earned-spell instruction only; the Evolution Tree IS the picker. */
+.hub-journey-reward{padding:11px 19px 12px;margin:0 0 13px;
+  background:linear-gradient(105deg,#173d5060,#0a1c2a 72%);
+  border:1px solid #6bafbd;border-radius:10px;
+  box-shadow:inset 3px 0 #82f0ed99,0 0 17px #58dbe01c}
+.hub-journey-reward-heading{display:grid;gap:5px}
+.hub-journey-reward-heading .eyebrow{margin:0;color:#7edfe0;font-size:9px;letter-spacing:.16em}
+.hub-discovery-title-row{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hub-journey-reward h3{font-size:16px;letter-spacing:.08em;color:#e3f6fa;margin:0}
+.hub-journey-reward h3 span{color:#90eff7}
+.hub-journey-reward p{font-size:11px;color:#b4d2df;line-height:1.5;margin:0}
+.hub-journey-reward p strong{color:#e5fafb}
+#hub-journey-reward-planet{font-size:10px;letter-spacing:.08em;color:#f7d49c}
+@media(max-width:630px){.hub-journey-reward{padding:10px 12px}
+  .hub-journey-reward h3{font-size:13px}}
 .character-hub.journey-mode .hub-overview-points{display:none}
 .character-hub.journey-mode .hub-detail-refund,
 .character-hub.journey-mode #hub-reset-talents{display:none}
 .character-hub.journey-mode .hub-orbit-evolution{opacity:.67;pointer-events:auto;cursor:pointer}
 .character-hub.journey-mode .hub-forge-wallet{opacity:.6}
 .character-hub.journey-mode .hub-overview-progress .hub-level{color:#a3e6f4}
-@media(max-width:1100px){.hub-journey-reward-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:630px){.hub-journey-reward-options{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .hub-journey-reward{padding:14px}}
+
 
 /* HUB Journey polish — permanent build presets live beneath the left
    spellbook. Evolution branches are clickable PREVIEWS, never upgrades
@@ -1891,4 +1879,64 @@ h2{font-size:23px}
   .defense-resonance-overlay.overcharge-mode .defense-resonance-option{
     min-height:132px
   }
+}
+
+/* First-clear discovery: five eligible outer-ring nodes shine and breathe.
+   They are still ordinary clickable spell nodes (no new modal or duplicate UI). */
+@keyframes hub-discovery-shimmer{
+  0%,100%{box-shadow:0 0 8px 2px color-mix(in srgb,var(--node-tone) 46%,transparent),
+    0 0 17px 3px color-mix(in srgb,var(--node-tone) 30%,transparent),
+    inset 0 0 12px color-mix(in srgb,var(--node-tone) 25%,transparent)}
+  50%{box-shadow:0 0 15px 4px color-mix(in srgb,var(--node-tone) 68%,transparent),
+    0 0 30px 9px color-mix(in srgb,var(--node-tone) 37%,transparent),
+    inset 0 0 17px color-mix(in srgb,var(--node-tone) 38%,transparent)}
+}
+.character-hub.journey-mode .hub-orbit-spell.pool.discovery-available{
+  opacity:1;filter:none;z-index:7;cursor:pointer
+}
+.character-hub.journey-mode .hub-orbit-spell.pool.discovery-available .hub-orbit-icon{
+  width:46px;height:46px;border:2px solid var(--node-tone);
+  background:radial-gradient(circle at 35% 27%,
+    color-mix(in srgb,var(--node-tone) 36%,#20314c),#0a1930 75%);
+  opacity:1;filter:none;animation:hub-discovery-shimmer 2.65s ease-in-out infinite
+}
+.character-hub.journey-mode .hub-orbit-spell.pool.discovery-available.selected .hub-orbit-icon{
+  outline:2px solid #fff0b6;outline-offset:5px;transform:scale(1.10)
+}
+.character-hub.journey-mode .hub-orbit-spell.pool.discovery-available .hub-orbit-name{
+  opacity:1;color:#eef9ff;text-shadow:0 0 9px var(--node-tone),0 2px 4px #000;
+  font-size:9px
+}
+.hub-orbit-discovery-label{font-size:8px;font-weight:900;letter-spacing:.12em;
+  color:var(--node-tone);text-shadow:0 0 8px var(--node-tone);line-height:1.1}
+.hub-orbit-link.pool.discovery-available{
+  opacity:.65;stroke-width:2;stroke-dasharray:none;
+  filter:drop-shadow(0 0 5px currentColor)
+}
+.hub-radial-layout .hub-spell-node.discovery-available{
+  opacity:1;border-color:var(--spell-tone);background:linear-gradient(110deg,
+  color-mix(in srgb,var(--spell-tone) 18%,#112336),#0b1829);
+  box-shadow:0 0 10px color-mix(in srgb,var(--spell-tone) 22%,transparent)
+}
+#hub-detail-spell.discovery-ready{
+  border-color:var(--spell-tone);
+  background:linear-gradient(145deg,
+    color-mix(in srgb,var(--spell-tone) 18%,#18273d),#0c1a2e);
+  box-shadow:0 0 22px color-mix(in srgb,var(--spell-tone) 22%,transparent)
+}
+.hub-discover-note{margin:10px 0 8px;color:#c9e5ee;font-size:10px;
+  font-weight:760;letter-spacing:.05em;line-height:1.5}
+.hub-discover-confirm{display:block;width:100%;border-radius:8px;
+  border:1px solid var(--spell-tone);cursor:pointer;padding:12px 9px;
+  color:#f5ffff;background:linear-gradient(115deg,
+    color-mix(in srgb,var(--spell-tone) 31%,#112239),#16283e);
+  font-size:11px;font-weight:900;letter-spacing:.08em;
+  box-shadow:0 0 16px color-mix(in srgb,var(--spell-tone) 24%,transparent);
+  transition:filter .15s,transform .15s}
+.hub-discover-confirm:hover,.hub-discover-confirm:focus-visible{
+  filter:brightness(1.18);transform:translateY(-1px);outline:2px solid #c5efff90;outline-offset:2px
+}
+@media(prefers-reduced-motion:reduce){
+  .character-hub.journey-mode .hub-orbit-spell.pool.discovery-available .hub-orbit-icon{
+    animation:none;box-shadow:0 0 18px color-mix(in srgb,var(--node-tone) 50%,transparent)}
 }

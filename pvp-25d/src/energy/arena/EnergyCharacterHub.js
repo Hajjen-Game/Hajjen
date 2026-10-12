@@ -228,7 +228,7 @@ export class EnergyCharacterHub{
     }
     const eligible=eligibleJourneySpells(journey);
     $("hub-journey-reward-planet").textContent=
-      "PLANET "+String(journey.pending.planet).padStart(2,"0")+" CLEARED";
+      "STAGE "+String(journey.pending.planet).padStart(2,"0")+" CLEARED";
     $("hub-discovery-count").textContent=String(eligible.length);
     // Focus ONE bright node on first return after the win. Afterwards let
     // users browse all 16 pool spells (including locked preview nodes).
@@ -337,10 +337,10 @@ export class EnergyCharacterHub{
         " · DAMAGE/HEAL ×1.00 · CRIT 10%";
       $("hub-xp").textContent=journey.pending?
         "CHOOSE A GLOWING SPELL IN YOUR EVOLUTION TREE":
-        journey.clears>=20?"PLANET CAMPAIGN COMPLETE":
-        "NEXT · PLANET "+String(journey.clears+1).padStart(2,"0");
+        journey.clears>=20?"JOURNEY COMPLETE · STAGE 20":
+        "NEXT · STAGE "+String(journey.clears+1).padStart(2,"0");
       $("hub-xp-fill").style.width=(journey.clears/20*100).toFixed(1)+"%";
-      $("hub-record").textContent=journey.clears+" PLANETS CLEARED";
+      $("hub-record").textContent=journey.clears+" STAGES CLEARED";
     }else{
       $("hub-level").textContent="LEVEL "+progress.level;
       const nextSlotLevel=SPELL_SLOT_LEVELS.find(required=>required>progress.level);
@@ -385,11 +385,11 @@ export class EnergyCharacterHub{
     $("hub-fragments-count").textContent=profile.energyFragments||0;
     const isJourney=Boolean(readJourney(profile));
     const isLocked=isJourney||level<FORGE_LEVEL;
-    $("hub-forge-status").textContent=isJourney?"LOCKED · PLANET 20":
+    $("hub-forge-status").textContent=isJourney?"UNLOCKS AT STAGE 20":
       isLocked?"LOCKED · LVL 10":"UNLOCKED";
     if(isJourney){
       const panel=$("hub-forge-locked");
-      panel.querySelector("strong").textContent="UNLOCKS AFTER PLANET 20";
+      panel.querySelector("strong").textContent="UNLOCKS AT STAGE 20";
       panel.querySelector("p").textContent="Synergies are coming with Rift Expedition. No levels or spell ranks needed.";
     }
     $("hub-forge-locked").hidden=!isLocked;
@@ -755,7 +755,7 @@ export class EnergyCharacterHub{
         });
       btn.style.setProperty("--node-tone",tone);
       btn.setAttribute("aria-label",ability.name+" Evolution: "+ev.name+
-        (isJourney?" (click to inspect; locked until Planet 10 and the Evolution system is released)":
+        (isJourney?" (click to inspect; locked until Stage 10 and the Evolution system is released)":
         chosen?" (selected)":pool?" (requires equipping)":rank<3?
           " (requires Rank 3)":" (click to choose)"));
       btn.title=ev.name+": "+ev.description;
@@ -815,9 +815,9 @@ export class EnergyCharacterHub{
     if(canDiscover){
       const claim=button("✧ DISCOVER THIS SPELL","hub-discover-confirm",()=>this.claimDiscovery(ability.id));
       claim.setAttribute("aria-label","Permanently discover "+ability.name+
-        " as your Planet "+journey.pending.planet+" reward");
+        " as your Stage "+journey.pending.planet+" reward");
       spell.append(el("p","hub-discover-note",
-        "PERMANENT PLANET "+String(journey.pending.planet).padStart(2,"0")+
+        "PERMANENT STAGE "+String(journey.pending.planet).padStart(2,"0")+
         " REWARD · You can choose only one spell."),
         claim);
     }
@@ -836,11 +836,11 @@ export class EnergyCharacterHub{
           owned?"Equip discovered shared spells in your eight shared spell slots.":
           canDiscover?"This spell is one of the glowing Journey discoveries. Confirm it above to permanently add it to your Origin.":
             journey.pending?"Click a glowing spell in the outer Evolution Tree, then confirm in Selected Spell.":
-              "New shared spells unlock as you clear planets. All five disciplines are available from your first choice."));
-      evolutions.replaceChildren(el("h4","","EVOLUTIONS · PLANET 10"),
+              "New shared spells unlock as you clear stages. All five disciplines are available from your first choice."));
+      evolutions.replaceChildren(el("h4","","EVOLUTIONS · STAGE 10"),
         el("p","hub-evolution-explainer",
-          journey.clears<10?"Preview the three Evolution paths. All are locked until you clear Planet 10.":
-            "Planet 10 reached. Evolution selection will be activated in a future gameplay pass; you can preview each path now."));
+          journey.clears<10?"Preview the three Evolution paths. All are locked until you clear Stage 10.":
+            "Stage 10 reached. Evolution selection will be activated in a future gameplay pass; you can preview each path now."));
       for(const ev of ability.evolutions){
         const focused=this.evolutionPreview?.abilityId===ability.id&&
           this.evolutionPreview?.evolutionId===ev.id;
@@ -855,7 +855,7 @@ export class EnergyCharacterHub{
         card.append(el("strong","",ev.name),
           el("p","",ev.description),
           el("span","",focused?"✧ SELECTED FOR PREVIEW · LOCKED":
-            journey.clears<10?"🔒 LOCKED · PLANET 10":
+            journey.clears<10?"🔒 UNLOCKS AT STAGE 10":
               "🔒 PREVIEW ONLY · NOT YET ACTIVE"));
         evolutions.append(card);
       }
@@ -866,7 +866,7 @@ export class EnergyCharacterHub{
           note.append(el("strong","",chosen.name+" · EVOLUTION PREVIEW"),
             el("p","",chosen.description),
             el("small","",journey.clears<10?
-              "UNLOCKS AT PLANET 10 · VIEW ONLY":
+              "UNLOCKS AT STAGE 10 · VIEW ONLY":
               "MILESTONE REACHED · EVOLUTION SYSTEM NOT YET ENABLED"));
           evolutions.append(note);
         }

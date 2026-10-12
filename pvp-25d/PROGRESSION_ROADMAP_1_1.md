@@ -52,7 +52,7 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 ### Active slots versus permanent collection
 - At 0: 2 active bound spells. After clears 1–8, one **new owned shared spell + one active slot** per first-clear, reaching 10 active spells (2 bound + 8 shared).
 - After clears 9–16, claim one more owned shared spell per clear. **These are in the library and can be swapped for the eight shared slots**, no more than 10 active total. No duplicate discoveries; at 16 all 16 shared spells may be owned.
-- Hexes 17–19 require rewarding alternatives (more Evolution choices, specialized campaign challenges, cosmetics) rather than fake spell drops.
+- Stages 17–19 do not require invented rewards. Let challenging encounters build toward the fifth Evolution slot at Stage 20; cosmetics and other optional rewards can be decided after playtesting.
 - All first-time post-clear rewards must persist if the player exits without choosing. Replays grant no extra permanent milestone.
 - Genesis starts with two non-damaging spells; its allied melee/caster must be competent from the first round, without giving the player an unearned hidden third spell.
 
@@ -180,7 +180,7 @@ Vary enemy counts, spawn directions, timing, spacing, environment or hazard dens
 2. **Terminology:** Use **Overcharges** for this run-only PvE buff system in the new design. Individual buff names/effects remain to be developed.
 3. **AI style set — IMPLEMENTED:** Balanced/Aggressive/Protective/Disruptive now change actual companion target/triage/cast/movement decisions and save per Origin after Stage 5. Continue live playtesting role distinctions and pathing.
 4. **AI build access at 15:** curated defaults remain automatic; how far to allow changing their class-bound spells/Evolutions is TBD.
-5. **Progression pace:** initial 20-hex plan, 1–16 spell rewards and 17–19 alternate rewards to tune via real playtesting.
+5. **Progression pace:** 20 Stages, 1–16 spell rewards, Evolution slots at 10/12/14/16/20. Stage 17–19 bonus rewards remain intentionally unassigned pending playtesting.
 6. **Synergy Tree:** only if deeper tree changes gameplay meaningfully rather than simply increases stats; remains optional.
 7. **PvP:** no progression milestone or release plan until user returns to it.
 8. **Planet Defense/Project Energy naming:** “Space Surf” and final game title remain undecided.

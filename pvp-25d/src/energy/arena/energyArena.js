@@ -318,6 +318,7 @@ function renderResonances(){
     overlay.hidden=true;return;
   }
   overlay.hidden=false;
+  overlay.classList.toggle("overcharge-mode",Boolean(match.journey));
   const host=$("defense-resonance-options");
   const screenWave=match.waveIntermission;
   if(host.dataset.wave===String(screenWave)&&host.dataset.choices===String(match.resonancesChosen))return;

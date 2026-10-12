@@ -133,8 +133,12 @@ export class EnergyPlanetDefense extends EnergyMatch{
     const isBoss=archetype==="boss"&&this.wave===DEFENSE_WAVES&&order===0;
     const id="wave-"+this.wave+"-enemy-"+order;
     const kit=botAbilities(role,Math.max(this.progressLevel,Math.min(12,this.progressLevel+this.wave-1)),"trio");
-    const ranks=Object.fromEntries(kit.map(spell=>[spell,Math.min(3,Math.floor(this.progressLevel/10))]));
-    const actor=actorFor(id,"enemy",role,pos,"ai",kit,{},ranks,this.progressLevel);
+    // Enemy difficulty advances through encounter recipes, not hidden Rank
+    // multipliers or a character-level HP stat for Journey saves.
+    const ranks=Object.fromEntries(kit.map(spell=>[spell,
+      this.journey?0:Math.min(3,Math.floor(this.progressLevel/10))]));
+    const actor=actorFor(id,"enemy",role,pos,"ai",kit,{},ranks,
+      this.journey?1:this.progressLevel);
     // Smaller opening encounters mean three level-1 heroes can win through
     // their own spells. Later waves become more demanding without HP inflation.
     const healthScale=isBoss?1.7+this.encounter.tier*.055:

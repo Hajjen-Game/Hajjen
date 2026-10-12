@@ -15,7 +15,7 @@ import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learnin
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261012-eclipse-oc1";
 import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261012-discovery-tree1";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-journey4";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-about-book3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
 

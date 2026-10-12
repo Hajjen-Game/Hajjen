@@ -6,6 +6,7 @@ import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261012-evolution1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
+import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261012-rift1";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 
 const S=.02;
@@ -29,13 +30,13 @@ export class EnergyArenaRenderer {
   constructor(canvas,arena) {
     if(!window.BABYLON)throw new Error("Babylon.js is unavailable");
     this.canvas=canvas;this.arena=arena;
-    this.defenseMode=arena.mode==="defense";
+    this.defenseMode=arena.mode==="defense"||arena.mode==="rift";
     this.cameraFocus={x:arena.cameraStart?.x??arena.width*.5,
       y:arena.cameraStart?.y??arena.height*.5};
     this.lastFollowAt=0;
     this.engine=new BABYLON.Engine(canvas,true,{stencil:true,antialias:true,preserveDrawingBuffer:false});
     this.scene=new BABYLON.Scene(this.engine);
-    this.scene.clearColor=BABYLON.Color4.FromHexString("#080d18ff");
+    this.scene.clearColor=BABYLON.Color4.FromHexString(arena.mode==="rift"?"#08091bff":"#080d18ff");
     this.scene.ambientColor=color("#4b5471");
     this.scene.imageProcessingConfiguration.contrast=1.09;
     this.scene.imageProcessingConfiguration.exposure=0.95;
@@ -151,6 +152,9 @@ export class EnergyArenaRenderer {
     ground.position.set(cx,-.038,cz);
     ground.material=this.material("floor-mat","#101522","#080f1f");
     ground.isPickable=false;
+    if(a.mode==="rift"){
+      this.riftWorld=createRiftEnvironment(this.scene,a,S);
+    }else{
     const outerMat=this.material("outer-rim","#11273a","#32869b");
     const innerMat=this.material("inside-line","#0d1e2e","#245465");
     const path=(x,y,ww,hh,elev)=>[
@@ -176,6 +180,7 @@ export class EnergyArenaRenderer {
       top.position.set(x,1.25,z);top.material=sideMat;top.isPickable=false;
       this.tube("energy-obstacle-rim:"+o.id,path((o.x+6)*S,(o.y+6)*S,(o.w-12)*S,(o.h-12)*S,1.32),.032,obstacleRim);
       this.tube("energy-obstacle-foot:"+o.id,path(o.x*S,o.y*S,bw,bh,.02),.025,innerMat);
+    }
     }
     this.glow=new BABYLON.GlowLayer("energy-glow",this.scene,{blurKernelSize:24});
     this.glow.intensity=.38;
@@ -425,9 +430,9 @@ export class EnergyArenaRenderer {
     this.activeActors=match.actors;
     // Five waves create twenty enemies. Keep dead actors for reports, but
     // remove their mesh entries immediately to avoid a growing Babylon scene.
-    const display=match.modeId==="defense"?
+    const display=this.defenseMode?
       {actors:match.actors.filter(a=>a.alive),player:match.player}:match;
-    const orbs=match.modeId==="defense"?
+    const orbs=this.defenseMode?
       {...display,actors:display.actors.filter(a=>!(a.team==="enemy"&&a.encounterKey))}:display;
     // Never draw a player-shaped orb on top of a Rift creature.
     this.actorRender.sync(orbs,now);
@@ -439,7 +444,7 @@ export class EnergyArenaRenderer {
     this.updateIdentificationMarkers(match,now);
     // Planet Defense finale: a visible rotating double halo marks the Rift
     // Warden as the wave boss without modifying the shared 3v3 orb renderer.
-    const boss=match.modeId==="defense"?
+    const boss=this.defenseMode?
       match.actors.find(a=>a.boss&&a.alive):null;
     if(boss&&!this.defenseBossRings){
       const ringMat=this.material("defense-boss-ring","#b98be9","#bb7aff");
@@ -462,6 +467,7 @@ export class EnergyArenaRenderer {
       }
     }
     this.spellFX.update(match,now);
+    this.riftWorld?.update(match,now);
     this.scene.render();
     this.pixiFX?.update(match,now);
   }

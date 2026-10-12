@@ -3,7 +3,7 @@
 import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities } from "../abilityCatalog.js?v=20261011-identity13";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261011-identity13";
-import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout } from "./EnergyProgression.js?v=20261011-identity13";
+import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261011-identity13";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261011-identity13";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
@@ -206,19 +206,23 @@ export class EnergyCharacterHub{
     }
     this.companionPreviews={};
   }
-  renderTeamIdentity(role){
+  renderTeamIdentity(role,level){
     const roles=["healer","melee","caster"].filter(id=>id!==role);
-    const identity={
-      healer:{spec:"VITAL / SOLAR",subtitle:"SUPPORT"},
-      melee:{spec:"KINETIC / VOID",subtitle:"MELEE"},
-      caster:{spec:"CRYO / SOLAR",subtitle:"CASTER"},
-    };
+    const labels={healer:"SUPPORT",melee:"MELEE",caster:"CASTER"};
     for(const [index,side] of ["left","right"].entries()){
-      const ally=roles[index],spec=identity[ally];
+      const ally=roles[index],spells=botAbilities(ally,level,"defense");
+      // The spec is derived from the ally's REAL equipped combat kit,
+      // not a guessed hard-coded pairing that can go stale with level.
+      const counts=new Map();
+      for(const id of spells){
+        const discipline=ABILITY_BY_ID[id]?.discipline;
+        if(discipline)counts.set(discipline,(counts.get(discipline)||0)+1);
+      }
+      const spec=[...counts].sort((a,b)=>b[1]-a[1])
+        .slice(0,2).map(([key])=>DISCIPLINES[key]?.name.toUpperCase()||key);
       $("hub-ally-name-"+side).textContent=ROLES[ally].name.toUpperCase();
-      $("hub-ally-type-"+side).textContent=spec.subtitle+" · "+spec.spec;
-      // These controls only reveal what will unlock on the PLAYER'S journey.
-      // No separate AI progression tracks or misleading earned milestones.
+      $("hub-ally-type-"+side).textContent=labels[ally]+" · "+spec.join(" / ");
+      // These controls unlock on the PLAYER'S journey: no AI level track.
       $("hub-ally-style-"+side).disabled=true;
       $("hub-ally-build-"+side).disabled=true;
       $("hub-ally-card-"+side).style.setProperty("--ally-core",ROLES[ally].color);
@@ -230,7 +234,7 @@ export class EnergyCharacterHub{
     const progress=progressDetails(this.getProgression());
     const identity=energyIdentity(build,progress.level);
     this.preview?.update(build,progress.level);
-    this.renderTeamIdentity(build.role);
+    this.renderTeamIdentity(build.role,progress.level);
     $("hub-character-name").textContent=this.character.name;
     const origin=ROLES[build.role];
     $("hub-role").textContent=origin.name.toUpperCase()+" · ENERGY ORIGIN";

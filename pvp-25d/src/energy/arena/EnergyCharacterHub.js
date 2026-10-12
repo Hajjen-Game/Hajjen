@@ -9,7 +9,8 @@ import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261012-eclipse-oc1";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-ai-styles1";
-import {readJourney,eligibleJourneySpells,claimJourneySpell} from "./EnergyJourneyCampaign.js?v=20261012-dev-origin1";
+import {readJourney,eligibleJourneySpells,claimJourneySpell,
+  journeyEvolutionCapacity,setJourneyEvolution,JOURNEY_EVOLUTION_STAGES} from "./EnergyJourneyCampaign.js?v=20261012-dev-origin1";
 import {COMPANION_STYLES,STYLE_IDS,STYLE_UNLOCK_STAGE,companionStyleFor,setCompanionStyle}
   from "./EnergyCompanionStyles.js?v=20261012-dev-origin1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";
@@ -84,6 +85,10 @@ export class EnergyCharacterHub{
       if(e.key==="Enter")$("create-character").click();
     });
     $("hub-reset-talents").addEventListener("click",()=>{
+      if(readJourney(this.getProgression())){
+        this.setMessage("Journey Evolutions are changed directly on spell cards, without spell ranks.");
+        return;
+      }
       if(!window.confirm("Reset all allocated Talent Points and chosen Evolutions?"))return;
       this.store.draft=resetTalents(this.store.draft);
       this.persist();this.message="Talent Points and Evolutions reset.";this.draw();
@@ -582,8 +587,13 @@ export class EnergyCharacterHub{
     const isJourney=Boolean(readJourney(this.getProgression()));
     const cap=isJourney?0:talentPointsForLevel(state.level);
     const used=isJourney?0:spentTalentPoints(state.build);
-    $("hub-talent-points").textContent=Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
-    $("hub-evolution-count").textContent=activeEvolutionCount(state.build)+" / 10 CHOSEN";
+    const journey=readJourney(this.getProgression());
+    const evolutionCap=journey?journeyEvolutionCapacity(journey):10;
+    const activeCount=journey?Object.keys(journey.evolutions).length:activeEvolutionCount(state.build);
+    $("hub-talent-points").textContent=journey?
+      "RANKLESS JOURNEY · "+Math.max(0,evolutionCap-activeCount)+" EVOLUTION SLOTS FREE":
+      Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
+    $("hub-evolution-count").textContent=activeCount+" / "+evolutionCap+" CHOSEN";
     $("hub-spellbook-count").textContent=state.unlocked.length+"/10";
     const discovery=readJourney(this.getProgression());
     const available=discovery?.pending?eligibleJourneySpells(discovery):[];
@@ -620,7 +630,7 @@ export class EnergyCharacterHub{
       const rank=state.activeById.get(ability.id)?.talentRank||0;
       const journey=readJourney(this.getProgression());
       const canDiscover=Boolean(journey?.pending&&eligibleJourneySpells(journey).includes(ability.id));
-      const evolved=Boolean(state.build.evolutions[ability.id]);
+      const evolved=Boolean(journey?.evolutions[ability.id]||state.build.evolutions[ability.id]);
       const bound=state.roleBound.has(ability.id);
       const slotIndex=state.inner.findIndex(spell=>spell.id===ability.id);
       const btn=button("","hub-spell-node"+(inBuild?" unlocked equipped-now":" in-pool")+
@@ -730,8 +740,12 @@ export class EnergyCharacterHub{
   }
   renderEvolutionSatellites({ability,angle,origin,dist,selected,state,place,addLine,pool=false}){
     const rank=state.activeById.get(ability.id)?.talentRank||0;
-    const isJourney=Boolean(readJourney(this.getProgression()));
-    const chosenId=state.build.evolutions[ability.id]||null;
+    const journey=readJourney(this.getProgression());
+    const isJourney=Boolean(journey);
+    const chosenId=isJourney?journey.evolutions[ability.id]:state.build.evolutions[ability.id];
+    const discovered=Boolean(journey&&(journey.owned.includes(ability.id)||
+      ROLES[state.build.role].locked.includes(ability.id)));
+    const canEvolve=Boolean(journey&&journeyEvolutionCapacity(journey)>0&&discovered);
     for(const [i,ev] of ability.evolutions.entries()){
       const branchAngle=angle+(i-1)*(pool?.108:.143);
       const p=orbitPos(branchAngle,dist);
@@ -741,22 +755,29 @@ export class EnergyCharacterHub{
       const previewFocused=isJourney&&this.evolutionPreview?.abilityId===ability.id&&
         this.evolutionPreview?.evolutionId===ev.id;
       const btn=button("","hub-orbit-evolution"+(chosen?" selected":"")+
-        (rank<3?" unmastered":"")+(pool?" pool":"")+
+        (!isJourney&&rank<3?" unmastered":"")+(pool?" pool":"")+
         (previewFocused?" preview-focused":""),()=>{
-          this.selectedAbility=ability.id;this.showSwapPicker=false;
+          this.selectedAbility=ability.id;
+          this.showSwapPicker=false;
           if(isJourney){
-            // Journey Evolutions are previews until the real milestone system is
-            // implemented. Click for a detailed LOCKED card, never grant one.
-            this.evolutionPreview={abilityId:ability.id,evolutionId:ev.id};
-            this.renderTree();
+            if(canEvolve){
+              this.evolutionPreview=null;
+              this.pickEvolution(ability.id,chosen?null:ev.id);
+            }else{
+              // Locked or undiscovered spell: inspect the card in Selected Spell.
+              this.evolutionPreview={abilityId:ability.id,evolutionId:ev.id};
+              this.renderTree();
+            }
           }else if(!pool&&rank===3){
             this.pickEvolution(ability.id,chosen?null:ev.id);
           }else this.renderTree();
         });
       btn.style.setProperty("--node-tone",tone);
       btn.setAttribute("aria-label",ability.name+" Evolution: "+ev.name+
-        (isJourney?" (click to inspect; locked until Stage 10 and the Evolution system is released)":
-        chosen?" (selected)":pool?" (requires equipping)":rank<3?
+        (isJourney?(chosen?" (active, click to remove)":
+          !canEvolve?" (preview only; unlock Stage 10 and discover spell)":
+          " (click to activate)"):
+          chosen?" (selected)":pool?" (requires equipping)":rank<3?
           " (requires Rank 3)":" (click to choose)"));
       btn.title=ev.name+": "+ev.description;
       btn.append(el("span","",i===0?"✦":i===1?"➤":"◈"));
@@ -797,7 +818,7 @@ export class EnergyCharacterHub{
     const bound=state.roleBound.has(ability.id);
     const unlocked=state.activeById.has(ability.id);
     const availableTP=Math.max(0,talentPointsForLevel(state.level)-spentTalentPoints(build));
-    const selectedEvolution=build.evolutions[ability.id]||null;
+    const selectedEvolution=journey?journey.evolutions[ability.id]||null:build.evolutions[ability.id]||null;
     const canDiscover=Boolean(journey?.pending&&eligibleJourneySpells(journey).includes(ability.id));
     $("hub-detail-status").textContent=canDiscover?"✧ NEW SPELL AVAILABLE":
       bound?"ORIGIN-BOUND":inBuild?"IN BUILD":
@@ -822,54 +843,63 @@ export class EnergyCharacterHub{
         claim);
     }
     if(journey){
-      const owned=journey.owned.includes(ability.id);
+      const owned=journey.owned.includes(ability.id)||bound;
+      const capacity=journeyEvolutionCapacity(journey);
+      const spent=Object.keys(journey.evolutions).length;
+      const activeEvolution=journey.evolutions[ability.id]||null;
       if(bound)spell.append(el("span","hub-bound-chip","ORIGIN-BOUND · CANNOT REPLACE"));
       const current=$("hub-detail-current"),next=$("hub-detail-next");
       const evolutions=$("hub-detail-evolution");
       current.replaceChildren(el("h4","","SPELL DETAILS"),el("p","",ability.details),
         el("p","hub-detail-stat",bound?"BOUND STARTING SPELL":
-          owned?"DISCOVERED · "+(inBuild?"EQUIPPED":"IN LIBRARY"):
-            canDiscover?"AVAILABLE NOW · CLICK DISCOVER THIS SPELL ABOVE":
-            "UNDISCOVERED · Unlock through the Journey"));
+          owned?(inBuild?"DISCOVERED · EQUIPPED":"DISCOVERED · IN LIBRARY"):
+            canDiscover?"AVAILABLE NOW · DISCOVER THIS SPELL ABOVE":
+            "UNDISCOVERED · Unlock through Journey"));
+      if(activeEvolution)
+        current.append(el("p","hub-detail-stat",
+          "ACTIVE EVOLUTION · "+ability.evolutions.find(e=>e.id===activeEvolution)?.name));
       next.replaceChildren(el("h4","","JOURNEY DISCOVERY"),
         el("p","",bound?"This is one of your two permanent Origin spells.":
-          owned?"Equip discovered shared spells in your eight shared spell slots.":
-          canDiscover?"This spell is one of the glowing Journey discoveries. Confirm it above to permanently add it to your Origin.":
-            journey.pending?"Click a glowing spell in the outer Evolution Tree, then confirm in Selected Spell.":
-              "New shared spells unlock as you clear stages. All five disciplines are available from your first choice."));
-      evolutions.replaceChildren(el("h4","","EVOLUTIONS · STAGE 10"),
+          owned?"Discovered spells can be swapped into your eight shared slots. Their Evolution remains saved even while unequipped.":
+          canDiscover?"This spell is one of the glowing Journey discoveries. Confirm it above to add it permanently.":
+            journey.pending?"Click a glowing spell in the outer Evolution Tree and confirm in Selected Spell.":
+              "New shared spells unlock as you clear Stages."));
+      evolutions.replaceChildren(el("h4","","EVOLUTIONS · "+spent+"/"+capacity+" ACTIVE"),
         el("p","hub-evolution-explainer",
-          journey.clears<10?"Preview the three Evolution paths. All are locked until you clear Stage 10.":
-            "Stage 10 reached. Evolution selection will be activated in a future gameplay pass; you can preview each path now."));
+          capacity===0?"Your first Evolution slot unlocks after clearing Stage 10.":
+          !owned?"Discover this spell to choose one of its Evolutions.":
+          activeEvolution?"One Evolution per spell. Select another to switch freely, or click the active one to remove it.":
+          spent>=capacity?"All Evolution slots are used. Remove an Evolution from another spell to free a slot.":
+          "Choose one Evolution for this spell. The choice is saved permanently to your Origin and works in combat."));
       for(const ev of ability.evolutions){
+        const chosen=activeEvolution===ev.id;
         const focused=this.evolutionPreview?.abilityId===ability.id&&
           this.evolutionPreview?.evolutionId===ev.id;
-        const card=button("","hub-detail-evolution-choice preview-card"+
-          (focused?" preview-focused":""),()=>{
-          this.evolutionPreview={abilityId:ability.id,evolutionId:ev.id};
-          this.renderTree();
+        const canChoose=capacity>0&&owned;
+        const card=button("","hub-detail-evolution-choice"+
+          (chosen?" selected":focused?" preview-focused":"")+
+          (!canChoose?" preview-card":""),()=>{
+          if(canChoose){
+            this.evolutionPreview=null;
+            this.pickEvolution(ability.id,chosen?null:ev.id);
+          }else{
+            this.evolutionPreview={abilityId:ability.id,evolutionId:ev.id};
+            this.renderTree();
+          }
         });
-        card.setAttribute("aria-pressed",String(Boolean(focused)));
-        card.setAttribute("aria-label",ev.name+" Evolution, locked; click to inspect");
+        card.setAttribute("aria-pressed",String(chosen));
+        card.setAttribute("aria-label",ev.name+" Evolution, "+
+          (chosen?"active; click to remove":canChoose?"click to select":
+            "preview only"));
         card.style.setProperty("--spell-tone",DISCIPLINES[ability.discipline].color);
         card.append(el("strong","",ev.name),
           el("p","",ev.description),
-          el("span","",focused?"✧ SELECTED FOR PREVIEW · LOCKED":
-            journey.clears<10?"🔒 UNLOCKS AT STAGE 10":
-              "🔒 PREVIEW ONLY · NOT YET ACTIVE"));
+          el("span","",chosen?"✓ ACTIVE · CLICK TO REMOVE":
+            !capacity?"🔒 UNLOCKS AT STAGE 10":
+            !owned?"🔒 DISCOVER SPELL FIRST":
+            spent>=capacity?"ALL SLOTS USED · FREE A SLOT OR SWITCH EXISTING":
+            "CHOOSE EVOLUTION →"));
         evolutions.append(card);
-      }
-      if(this.evolutionPreview?.abilityId===ability.id){
-        const chosen=ability.evolutions.find(e=>e.id===this.evolutionPreview.evolutionId);
-        if(chosen){
-          const note=el("div","hub-evolution-preview-note");
-          note.append(el("strong","",chosen.name+" · EVOLUTION PREVIEW"),
-            el("p","",chosen.description),
-            el("small","",journey.clears<10?
-              "UNLOCKS AT STAGE 10 · VIEW ONLY":
-              "MILESTONE REACHED · EVOLUTION SYSTEM NOT YET ENABLED"));
-          evolutions.append(note);
-        }
       }
       return;
     }
@@ -925,7 +955,15 @@ export class EnergyCharacterHub{
   }
   pickEvolution(id,evolutionId){
     if(readJourney(this.getProgression())){
-      this.setMessage("Evolutions will unlock through your Journey, not Rank 3.");
+      try{
+        const next=setJourneyEvolution(this.getProgression(),this.character.role,id,evolutionId);
+        this.changeProgression(next);
+        this.message=evolutionId?
+          ABILITY_BY_ID[id].name+" · "+ABILITY_BY_ID[id].evolutions.find(e=>e.id===evolutionId)?.name+
+            " activated! Equip the spell to use it in combat.":
+          ABILITY_BY_ID[id].name+" Evolution removed. Its slot is available again.";
+        this.draw();
+      }catch(error){this.setMessage(error?.message||"Could not select Evolution.");}
       return;
     }
     this.mutate(()=>chooseEvolution(this.store.draft,id,evolutionId));

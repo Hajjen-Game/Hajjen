@@ -324,6 +324,8 @@ export class EnergyCharacterHub{
     const progress=progressDetails(this.getProgression());
     const journey=readJourney(this.getProgression());
     $("character-hub").classList.toggle("journey-mode",Boolean(journey));
+    // Retired Rank/TP controls do not apply to rankless Journey Evolutions.
+    $("hub-reset-talents").style.display=journey?"none":"";
     const identity=energyIdentity(build,progress.level,journey);
     this.preview?.update(build,progress.level,journey);
     this.renderTeamIdentity(build.role,progress.level);

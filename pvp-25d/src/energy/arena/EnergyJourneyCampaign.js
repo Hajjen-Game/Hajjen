@@ -2,7 +2,7 @@
 // This save state is distinct from legacy XP, total wins and arena profiles.
 // Each Origin has two bound spells of ONE discipline (Genesis Vital,
 // Impact Kinetic, Eclipse Cryo); only FIRST clears advance hexes.
-import {ROLES,FREE_ABILITIES,MAX_FLUX,BASE_FLUX_REGEN} from "../abilityCatalog.js?v=20261011-identity13";
+import {ROLES,FREE_ABILITIES,MAX_FLUX,BASE_FLUX_REGEN} from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const FREE_IDS=new Set(FREE_ABILITIES.map(a=>a.id));
 const EARLY=["entropy-mark","sun-lance","fracture-spear","vector-rush","reactive-thread"];

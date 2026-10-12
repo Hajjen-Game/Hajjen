@@ -69,7 +69,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
     return this.journey?{
       title:"CHOOSE ONE OVERCHARGE",
       intro:"Four offers: two for YOU, one for each AI companion. Choose exactly ONE.",
-      why:"Only the chosen teammate receives this run-only boost. Unselected cards disappear. Permanent discoveries are earned after a new planet clear."
+      why:"Only the chosen teammate receives this run-only boost. Unselected cards disappear. Permanent discoveries are earned after a new Stage clear."
     }:trialLesson(this.progressLevel,this.waveIntermission);
   }
   resonanceTier(id){return this.resonances[id]||0;}
@@ -84,7 +84,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
     this.spawnNext();
     this.log("WAVE "+this.wave+" / "+DEFENSE_WAVES+" · "+
       this.currentWave.name+" · "+this.encounter.stage+
-      (this.journey?" (PLANET "+Math.min(20,this.journey.clears+1)+")":
+      (this.journey?" (STAGE "+Math.min(20,this.journey.clears+1)+")":
         " (LEVEL "+this.progressLevel+")"));
     this.emit({type:"wave-start",wave:this.wave,waveName:this.currentWave.name,
       encounterTier:this.encounter.tier,encounterStage:this.encounter.stage,

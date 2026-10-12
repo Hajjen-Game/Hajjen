@@ -18,7 +18,20 @@ export function readJourney(profile){
   const j=profile?.journey;
   if(j?.version!==2)return null; // Legacy saves remain untouched.
   const clears=clamp(Math.floor(Number(j.clears)||0),0,JOURNEY_MAX_PLANETS);
-  const owned=[...new Set(Array.isArray(j.owned)?j.owned.filter(id=>FREE_IDS.has(id)):[])].slice(0,FREE_ABILITIES.length);
+  // Pre-Cryo Eclipse Journey saves may have earned Crystal Bolt/Snare as
+  // shared spells. They became Eclipse's two bound spells. Preserve the
+  // NUMBER of permanent discoveries by exchanging those old earned IDs for
+  // meaningful shared spells, without converting XP or granting bonus wins.
+  const legacyExchange={"crystal-bolt":"fracture-spear","crystal-snare":"phase-slip"};
+  const owned=[];
+  for(const oldId of Array.isArray(j.owned)?j.owned:[]){
+    const proposed=legacyExchange[oldId]||oldId;
+    const eligible=FREE_IDS.has(proposed)&&!owned.includes(proposed);
+    const fallback=[...EARLY,...(clears>=3?COUNTER:[]),
+      ...(clears>=7?ADVANCED:[])].find(id=>FREE_IDS.has(id)&&!owned.includes(id));
+    const next=eligible?proposed:legacyExchange[oldId]?fallback:null;
+    if(next&&owned.length<FREE_ABILITIES.length)owned.push(next);
+  }
   return {version:2,clears,owned,pending:j.pending?.kind==="spell"&&Number.isInteger(j.pending.planet)&&
     j.pending.planet>=1&&j.pending.planet<=Math.min(16,clears)&&
     !owned.some(id=>id===j.pending.spellId)

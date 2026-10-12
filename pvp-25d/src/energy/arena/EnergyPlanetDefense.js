@@ -7,7 +7,7 @@ import { botAbilities } from "./EnergyProgression.js?v=20261012-journey3";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261011-identity13";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261011-orbfix15";
 import { buildPlanetEncounters, PVE_ENEMY_ARCHETYPES, ENCOUNTER_SPELLS }
-  from "./EnergyPvEEncounters.js?v=20261011-encounters2";
+  from "./EnergyPvEEncounters.js?v=20261012-journey-threat1";
 
 export const DEFENSE_WAVES=5;
 export const WAVE_RESONANCES=Object.freeze({
@@ -51,7 +51,7 @@ export class EnergyPlanetDefense extends EnergyMatch{
     // Seed is saved on this match for reproducible reports/tests; production
     // runs vary the encounter order while keeping level-gated mechanics.
     this.encounterSeed=options.encounterSeed??Math.floor(Math.random()*0x7fffffff);
-    this.encounter=buildPlanetEncounters(this.progressLevel,this.encounterSeed);
+    this.encounter=buildPlanetEncounters(this.progressLevel,this.encounterSeed,Boolean(this.journey));
     this.encounterHistory=[];
     this.summonedThisWave=0;
     this.beginWave();

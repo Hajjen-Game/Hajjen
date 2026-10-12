@@ -137,7 +137,8 @@ export class EnergyPlanetDefense extends EnergyMatch{
     actor.maxHp=Math.round(actor.maxHp*healthScale);
     actor.hp=actor.maxHp;
     actor.healthPct=1;
-    actor.name=isBoss?this.encounter.boss.name:identity.name;
+    actor.name=isBoss&&this.arena.mode==="rift"?"THE RIFT HEARTKEEPER":
+      isBoss?this.encounter.boss.name:identity.name;
     actor.encounterKey=archetype;
     // Renderer-only identity hint: level-specific bosses use a distinct
     // Rift creature silhouette. No change to AI, abilities or hitboxes.

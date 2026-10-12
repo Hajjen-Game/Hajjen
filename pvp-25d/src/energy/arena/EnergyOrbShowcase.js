@@ -3,7 +3,7 @@
 // No meshes, materials or draw calls are added to combat by this class.
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
-import { energyIdentity } from "./EnergyCharacter.js?v=20261012-ai-styles1";
+import { energyIdentity } from "./EnergyCharacter.js?v=20261012-evolution1";
 
 export class EnergyOrbShowcase{
   constructor(canvas,{companionRole=null,side=null}={}){

@@ -2,7 +2,7 @@
 // browser. Old single-character keys mirror the active record for compatibility.
 import { ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { createBuild, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
-import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-eclipse-oc1";
+import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-ai-styles1";
 
 export const ORIGIN_ROSTER_KEY="pvp25d-energy-origin-roster-v1";
 const MAX_ORIGINS=12;

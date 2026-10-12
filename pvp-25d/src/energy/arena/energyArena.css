@@ -1543,6 +1543,27 @@ h2{font-size:23px}
 .play-mode-options .locked-mode:hover{border-color:#5c647d;background:#151d2d}
 .mode-lock{display:inline-block;margin-left:8px;padding:3px 7px;
   border-radius:5px;color:#d8b7e7!important;border:1px solid #746487;font-size:9px!important}
+.dev-origin-panel{margin:0 0 24px;padding:22px 24px;
+  border:1px solid #706a9e;border-radius:14px;
+  background:radial-gradient(ellipse at 94% 7%,#64529f34,transparent 52%),#161d32}
+.dev-origin-heading{display:flex;align-items:flex-start;gap:18px}
+.dev-origin-glyph{font-size:40px;line-height:1;color:#d2b9fb;
+  text-shadow:0 0 24px #a88aff66}
+.dev-origin-heading h3{margin:0 0 8px;color:#e2d6ff;
+  font-size:18px;letter-spacing:.09em}
+.dev-origin-heading p{margin:0;color:#aec4db;font-size:12px;line-height:1.65}
+.dev-origin-note{margin:14px 0;padding:10px 12px;color:#c7cee2;font-size:11px;
+  line-height:1.55;border-left:2px solid #8278b7;background:#151a2b}
+.dev-origin-controls{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}
+.dev-origin-controls label{display:flex;flex-direction:column;gap:8px;flex:1;
+  min-width:190px;color:#a8c6de;font-size:10px;font-weight:800;letter-spacing:.09em}
+.dev-origin-controls select{width:100%;padding:13px;color:#edf7ff;
+  border:1px solid #5b7094;border-radius:8px;background:#101b30;
+  font:600 12px inherit}
+.dev-origin-controls button{min-height:44px;padding:11px 15px;
+  white-space:normal}
+.dev-origin-controls button:disabled{opacity:.44;cursor:not-allowed;filter:none}
+.dev-origin-status{margin:14px 0 0;color:#a8dfe8;font-size:12px;line-height:1.6}
 .dev-lab-card{text-decoration:none}
 .dev-lab-card:nth-child(2){border-color:#67537e;
   background:radial-gradient(ellipse at 94% 8%,#6651943d,transparent 50%),#142137}

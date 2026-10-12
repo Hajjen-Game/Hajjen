@@ -24,6 +24,10 @@ export class EnergyAI {
     this.lastPositions=new Map();
   }
 
+  style(actor){
+    // Never affect hostile AI or the player. Balanced is the safe baseline.
+    return actor.team==="friendly"&&actor.control==="ai"?actor.aiStyle||"balanced":"balanced";
+  }
   buildCorners(){
     // Corner visibility graph: go around pillars instead of running into
     // one wall or alternating between two equally attractive dead ends.
@@ -125,8 +129,26 @@ export class EnergyAI {
       ?enemies.find(a=>a.role==="melee"&&dist(a,healer)<125):null;
     const hero=m.player;
     // An allied DPS supports the player's pressure unless an urgent peel is needed.
-    const target=peeling&&actor.role!=="healer"?peeling:
-      focus?.alive?focus:own?.alive?own:enemies[0];
+    const style=this.style(actor);
+    const teammates=m.allies(actor);
+    const vulnerable=teammates.filter(a=>a.hp/a.maxHp<.84)
+      .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+    const protectThreat=style==="protective"&&vulnerable?
+      enemies.filter(e=>dist(e,vulnerable)<185)
+        .sort((a,b)=>dist(a,vulnerable)-dist(b,vulnerable))[0]:null;
+    const castingThreat=style==="disruptive"?
+      enemies.filter(e=>e.cast?.remainingMs>100&&!this.isIncapacitated(e))
+        .sort((a,b)=>a.cast.remainingMs-b.cast.remainingMs)[0]:null;
+    const channeler=style==="disruptive"?enemies.find(e=>
+      ["channeler","harbinger"].includes(e.encounterKey)):null;
+    const heroFocus=m.getActor(m.player.targetId);
+    const aggressiveTarget=style==="aggressive"?
+      (heroFocus?.team==="enemy"&&heroFocus.alive?heroFocus:
+        enemies.filter(e=>e.hp/e.maxHp<.65).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0]):null;
+    const target=protectThreat||castingThreat||aggressiveTarget||
+      (style==="disruptive"&&channeler)||(
+        peeling&&actor.role!=="healer"?peeling:
+        focus?.alive?focus:own?.alive?own:enemies[0]);
     if(actor.targetId!==target.id) {
       actor.targetId=target.id;
       actor.waypoint=null;
@@ -159,18 +181,26 @@ export class EnergyAI {
     const urgent=this.triage(actor),urgentHealth=urgent.hp/urgent.maxHp;
     const healer=allies.find(a=>a.role==="healer");
     const healerHealth=healer?.hp/healer?.maxHp??1;
+    const style=this.style(actor);
     const priority=actor.role==="healer"||actor.abilities.includes("pulse-mend");
+    const healThreshold=style==="protective"?.93:style==="aggressive"?.66:.80;
     const enemyCasting=enemies.filter(e=>e.cast&&e.alive
       &&e.cast.remainingMs>120&&!this.isIncapacitated(e))
       .sort((a,b)=>a.cast.remainingMs-b.cast.remainingMs);
+    // Everyone interrupts imminent lethal casts. Disruptive companions track
+    // routine hostile casts earlier and spend control on high-risk Channelers.
     for(const e of enemyCasting) {
-      if(this.tryCast(actor,["pulse-sever","resonance-cut"],e))return;
+      const dangerous=e.cast.spellId?.startsWith("encounter-");
+      if(style!=="aggressive"||dangerous||e.cast.remainingMs<420)
+        if(this.tryCast(actor,["pulse-sever","resonance-cut"],e))return;
+      if(style==="disruptive"&&actor.role!=="healer"&&
+        !this.isIncapacitated(e)&&this.tryCast(actor,["null-prison"],e))return;
     }
     if(health<.45) {
       if(this.tryCast(actor,["resonance-guard","photon-barrier"],actor))return;
       if(this.tryCast(actor,["phase-slip","vector-rush"],null))return;
     }
-    if(urgentHealth<.45){
+    if(urgentHealth<(style==="protective"?.83:.45)){
       if(this.tryCast(actor,["resonance-guard","photon-barrier"],urgent))return;
     }
     if(priority){
@@ -180,16 +210,19 @@ export class EnergyAI {
       const corrupted=allies.find(a=>a.statuses.some(s=>
         s.negative&&s.kind==="dot"&&s.spellId==="rift-corruption"));
       if(corrupted&&this.tryCast(actor,["cleanse-flux"],corrupted))return;
-      if(urgentHealth<.80){
+      if(urgentHealth<healThreshold){
         if(this.tryCast(actor,["pulse-mend"],urgent))return;
         if(urgentHealth<.9&& !urgent.statuses.some(s=>s.kind==="reactive-thread")&&
           this.tryCast(actor,["reactive-thread"],urgent))return;
       }
-      if(urgentHealth<.93&& !urgent.statuses.some(s=>s.kind==="reactive-thread")
+      if(urgentHealth<(style==="protective"?.98:style==="aggressive"?.78:.93)&&
+        !urgent.statuses.some(s=>s.kind==="reactive-thread")
         &&this.tryCast(actor,["reactive-thread"],urgent))return;
       if(healerHealth<.6&&this.tryCast(actor,["photon-barrier"],healer))return;
     }
     if(!target)return;
+    if(style==="disruptive"&&target.cast&&!this.isIncapacitated(target)&&
+      actor.role!=="healer"&&this.tryCast(actor,["null-prison"],target))return;
     const enemyHealer=enemies.find(a=>a.role==="healer");
     const focus=target;
     const controlled=this.isIncapacitated(focus);
@@ -227,12 +260,16 @@ export class EnergyAI {
     // Healers path to a wounded teammate if LOS or healing range is broken.
     // Chasing an enemy while the patient bleeds behind a pillar is not triage.
     const patient=actor.role==="healer"?this.triage(actor):null;
-    const saving=patient&&patient.hp/patient.maxHp<.8
+    const style=this.style(actor);
+    const saving=patient&&patient.hp/patient.maxHp<(style==="protective"?.93:.8)
       &&(dist(actor,patient)>420||!this.hasLOS(actor,patient,m.arena));
     if(saving)target=patient;
     const d=dist(actor,target),los=this.hasLOS(actor,target,m.arena);
     const closeThreat=m.opponents(actor).find(e=>e.role==="melee"&&dist(e,actor)<155);
     let desired=actor.role==="melee"?77:actor.role==="caster"?285:saving?240:300;
+    if(style==="aggressive"&&actor.role!=="melee")desired-=55;
+    if(style==="protective"&&actor.role!=="melee")desired+=35;
+    if(style==="disruptive"&&actor.role==="caster")desired=310;
     // Ranged actors need to be inside the usable range, not parked at their
     // preferred distance with a pillar between them and the focus.
     desired=Math.min(desired,390);
@@ -297,7 +334,9 @@ export class EnergyAI {
     if(!actor.cast)this.navigate(actor,target,dt);
     actor.decision=(actor.decision||0)-dt;
     if(actor.decision>0)return;
-    actor.decision=.22+(actor.role==="healer"?.09:.04);
+    // Disruptive reacts earlier to enemy wind-ups; other styles remain cheap.
+    actor.decision=this.style(actor)==="disruptive"?.16:
+      .22+(actor.role==="healer"?.09:.04);
     this.decision(actor,target);
   }
 }

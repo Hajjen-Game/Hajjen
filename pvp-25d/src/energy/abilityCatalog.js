@@ -25,11 +25,11 @@ export const ROLES = Object.freeze({
     locked: ["phase-rush", "arc-strike"],
   },
   caster: {
-    name: "Eclipse", color: "#79cafd", subtitle: "Energy & positioning",
-    description: "Eclipse bends raw cosmic energy into powerful ranged attacks. Control the distance, time your casts and escape when cornered.",
-    playstyle: "Choose Eclipse if you enjoy ranged combat, positioning and finding the perfect window to unleash spells.",
+    name: "Eclipse", color: "#79cafd", subtitle: "Cryo & positioning",
+    description: "Eclipse shapes Cryo energy into crystalline projectiles and roots. Slow advancing enemies, trap dangerous foes and control the space between you.",
+    playstyle: "Choose Eclipse to kite with Crystal Bolt and hold enemies in place with Crystal Snare. Discover other disciplines as your Journey progresses.",
     passive: "Ranged direct-damage spells cost 15% less Flux.",
-    locked: ["flux-bolt", "phase-slip"],
+    locked: ["crystal-bolt", "crystal-snare"],
   },
 });
 
@@ -73,12 +73,12 @@ export const ABILITIES = Object.freeze([
     ["overcharge","Overcharge","Longer cast with a larger, harder-hitting projectile."],
     ["rapid-flux","Rapid Flux","Shorter cast at reduced damage."],
     ["fractured-energy","Fractured Energy","Next direct attack from another discipline gains a bonus."],
-  ],"caster"),
+  ]),
   ability("phase-slip","Phase Slip","void","Void escape","Instant directional phase jump that removes slows on arrival, but cannot escape roots or cross solid obstacles.","Instant · Removes slows · 23s CD",[
     ["extended-phase","Extended Phase","Teleport farther with a longer cooldown."],
     ["residual-field","Residual Field","Leave a short-lived slow field at the origin."],
     ["phase-shield","Phase Shield","Gain a small absorb shield on arrival."],
-  ],"caster"),
+  ]),
 
   ability("entropy-mark","Entropy Mark","void","Damage over time","12-second dispellable damage-over-time mark.","Instant · 15 Flux",[
     ["deep-decay","Deep Decay","Damage ramps up while the mark remains active."],
@@ -114,12 +114,12 @@ export const ABILITIES = Object.freeze([
     ["rapid-crystal","Rapid Crystal","Faster cast for less damage."],
     ["glacial-echo","Glacial Echo","Launch a second, smaller crystal after the first."],
     ["brittle-core","Brittle Core","Empower the next direct attack from any discipline."],
-  ]),
+  ],"caster"),
   ability("crystal-snare","Crystal Snare","cryo","Root","Instant 3-second root; the target can still cast and attack. Root DR applies.","Instant · 18s cooldown",[
     ["deep-freeze","Deep Freeze","Longer root with a longer cooldown; DR still applies."],
     ["shatterfield","Shatterfield","A brief slow field remains after the root ends."],
     ["frost-momentum","Frost Momentum","Landing the root grants temporary movement speed."],
-  ]),
+  ],"caster"),
   ability("fracture-spear","Fracture Spear","cryo","Ranged burst","Heavy crystalline ranged attack, empowered versus any slowed or rooted target.","1.7s cast · 12s cooldown",[
     ["focused-fracture","Focused Fracture","Higher bonus against controlled targets, lower base damage."],
     ["crystal-rupture","Crystal Rupture","Reduced splash damage around the target."],

@@ -244,7 +244,7 @@ export class EnergyCharacterHub{
         buttonNode.disabled=!canPick;
         buttonNode.title=owned?"Already discovered":
           canPick?ability.description:
-          "Unlocks after Planet "+(["rift-slash","photon-barrier","crystal-snare","pulse-sever","cleanse-flux"].includes(ability.id)?3:7);
+          "Unlocks after Planet "+(["rift-slash","photon-barrier","phase-slip","pulse-sever","cleanse-flux"].includes(ability.id)?3:7);
         const note=el("small","",owned?"DISCOVERED":
           canPick?ability.category.toUpperCase():
           buttonNode.title.toUpperCase());

@@ -24,8 +24,8 @@ export function talentPointsForLevel(level){
   // Ten equipped abilities × three ranks = thirty earned points at level 30.
   return Math.min(30,Math.max(1,Math.floor(Number(level)||1)));
 }
-export function energyIdentity(build,level=1){
-  const loadout=stagedLoadout(build,level);
+export function energyIdentity(build,level=1,journey=null){
+  const loadout=stagedLoadout(build,level,journey);
   const weights=Object.fromEntries(Object.keys(DISCIPLINES).map(k=>[k,0]));
   const counts=Object.fromEntries(Object.keys(DISCIPLINES).map(k=>[k,0]));
   for(const slot of loadout.abilitySlots){

@@ -347,7 +347,8 @@ function artMarkup(name){
 export class EnergyMainMenu{
   constructor({openHub,startMatch,changeMode,getCharacter,hideHub,onMenuFromCombat,
     getOrigins,selectOrigin,createOrigin,getOriginLevel,getJourney,
-    getDevOrigin,createDevOrigin,activateDevOrigin,playDevStage,isDevOrigin}){
+    getDevOrigin,createDevOrigin,activateDevOrigin,playDevStage,isDevOrigin,
+    playRift}){
     this.openHub=openHub;this.startMatch=startMatch;
     this.changeMode=changeMode;this.getCharacter=getCharacter;
     this.hideHub=hideHub;this.onMenuFromCombat=onMenuFromCombat;
@@ -356,7 +357,7 @@ export class EnergyMainMenu{
     this.getJourney=getJourney;
     this.getDevOrigin=getDevOrigin;this.createDevOrigin=createDevOrigin;
     this.activateDevOrigin=activateDevOrigin;this.playDevStage=playDevStage;
-    this.isDevOrigin=isDevOrigin;
+    this.isDevOrigin=isDevOrigin;this.playRift=playRift;
     this.page=0;this.previousFocus=null;
     // Play opens the one player Journey. No XP or old mixed-mode wins count
     // as campaign clears until the true first-clear schema is implemented.
@@ -394,6 +395,12 @@ export class EnergyMainMenu{
         this.enterHub();
       }catch(error){$("game-dev-origin-status").textContent=error.message||"Could not create test Origin.";}
     });
+    $("game-dev-play-rift").addEventListener("click",()=>{
+      if(!this.getDevOrigin())return;
+      this.activateDevOrigin();
+      this.hideScreens();
+      this.playRift();
+    });
     $("game-dev-open-origin").addEventListener("click",()=>{
       if(!this.getDevOrigin())return;
       this.activateDevOrigin();this.enterHub();
@@ -406,6 +413,11 @@ export class EnergyMainMenu{
       this.playDevStage(stage);
     });
     $("play-back-hub").addEventListener("click",()=>this.enterHub());
+    $("play-rift-expedition").addEventListener("click",()=>{
+      if($("play-rift-expedition").disabled||!this.getCharacter())return;
+      this.hideScreens();
+      this.playRift();
+    });
     $("main-menu-open").addEventListener("click",()=>this.onMenuFromCombat());
     $("play-journey-start").addEventListener("click",()=>{
       if($("play-journey-start").disabled||!this.journey.armed||!this.getCharacter())return;
@@ -535,11 +547,16 @@ export class EnergyMainMenu{
     start.textContent=this.journey.allowReplay?
       "SELECT A CLEARED STAGE TO REPLAY":"SELECT NEXT STAGE TO PLAY";
     this.journey.resetSelection();
+    const rift=$("play-rift-expedition");
+    const unlocked=Boolean(journey?.clears>=20);
+    rift.disabled=!unlocked;
+    rift.textContent=unlocked?"ENTER THE ECHOING RIFT →":"UNLOCKS AT STAGE 20";
   }
   renderDevStatus(){
     const dev=this.getDevOrigin?.();
     $("game-dev-open-origin").disabled=!dev;
     $("game-dev-play-stage").disabled=!dev;
+    $("game-dev-play-rift").disabled=!dev;
     const status=$("game-dev-origin-status");
     if(!dev){
       status.textContent="No test Origin created. Choose an Origin above, then create one.";

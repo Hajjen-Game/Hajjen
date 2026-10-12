@@ -178,12 +178,13 @@ function artMarkup(name){
 }
 export class EnergyMainMenu{
   constructor({openHub,startMatch,changeMode,getCharacter,hideHub,onMenuFromCombat,
-    getOrigins,selectOrigin,createOrigin,getOriginLevel}){
+    getOrigins,selectOrigin,createOrigin,getOriginLevel,getJourney}){
     this.openHub=openHub;this.startMatch=startMatch;
     this.changeMode=changeMode;this.getCharacter=getCharacter;
     this.hideHub=hideHub;this.onMenuFromCombat=onMenuFromCombat;
     this.getOrigins=getOrigins;this.selectOrigin=selectOrigin;
     this.createOrigin=createOrigin;this.getOriginLevel=getOriginLevel;
+    this.getJourney=getJourney;
     this.page=0;this.previousFocus=null;
     // Play opens the one player Journey. No XP or old mixed-mode wins count
     // as campaign clears until the true first-clear schema is implemented.
@@ -284,7 +285,10 @@ export class EnergyMainMenu{
       const meta=document.createElement("span");meta.className="menu-origin-meta";
       const name=document.createElement("strong");name.textContent=entry.character.name;
       const subtitle=document.createElement("small");
-      subtitle.textContent=entry.character.origin+" · LEVEL "+this.getOriginLevel(entry);
+      subtitle.textContent=entry.character.origin+" · "+
+        (entry.progression.journey?.version===2?
+          (entry.progression.journey.clears||0)+"/20 PLANETS":
+          "LEVEL "+this.getOriginLevel(entry));
       meta.append(name,subtitle);
       const state=document.createElement("span");
       state.className="menu-origin-state";
@@ -306,6 +310,9 @@ export class EnergyMainMenu{
     // HUB -> Play = the campaign map. The hex needs an explicit selection
     // before starting; other game modes remain in a collapsed dev section.
     if(!this.getCharacter()){this.openResume();return;}
+    const journey=this.getJourney?.();
+    if(journey?.pending){this.enterHub();return;}
+    this.journey.clears=Math.min(20,journey?.clears||0);
     this.hideHub();
     this.hideScreens();
     $("hub-play-screen").hidden=false;

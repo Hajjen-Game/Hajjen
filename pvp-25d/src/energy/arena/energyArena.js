@@ -705,6 +705,7 @@ menu=new EnergyMainMenu({
   getOriginLevel:entry=>progressDetails(entry.progression).level,
   getJourney:()=>readJourney(profile),
   getDevOrigin:()=>devOrigin(roster),
+  isDevOrigin:()=>Boolean(profile.devTest===true&&activeOrigin(roster)?.devTest===true),
   createDevOrigin:createTestOrigin,
   activateDevOrigin:activateTestOrigin,
   playDevStage:playTestStage,

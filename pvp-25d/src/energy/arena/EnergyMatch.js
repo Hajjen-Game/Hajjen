@@ -95,12 +95,15 @@ export class EnergyMatch {
     this.modeId=MODES[options.modeId]?options.modeId:"training";
     this.mode=MODES[this.modeId];
     this.progressLevel=Math.max(1,Math.min(MAX_LEVEL,Math.floor(options.level||1)));
-    this.singularity=options.singularity||null;
+    this.journey=options.journey||null;
+    this.singularity=this.journey?null:options.singularity||null;
     this.singularityCharge=null;
     this.evolutionEvents=[];
-    this.loadout=stagedLoadout(build,this.progressLevel);
+    this.loadout=stagedLoadout(build,this.progressLevel,this.journey);
     this.tuning=enemyTuning(this.modeId,this.progressLevel);
-    this.power=powerForLevel(this.progressLevel);
+    // Character-level power growth is removed for Journey players. 'level'
+    // survives only as an internal stand-in for difficulty/encounter recipes.
+    this.power=this.journey?1:powerForLevel(this.progressLevel);
     this.critBags=new EnergyMarbleBagPool();
     this.arena=arena;
     this.time=0;
@@ -126,14 +129,15 @@ export class EnergyMatch {
         // AI grows through the same Rank model without spending player TP.
         // Rank 1/2/3 AI tiers arrive at levels 10/20/30 respectively.
         const talentRanks=isPlayer?Object.fromEntries(this.loadout.abilitySlots.map(s=>[s.id,s.talentRank||0])):
-          Object.fromEntries(abilities.map(spellId=>[spellId,Math.min(3,Math.floor(this.progressLevel/10))]));
+          Object.fromEntries(abilities.map(spellId=>[spellId,this.journey?0:Math.min(3,Math.floor(this.progressLevel/10))]));
         const id=isPlayer?"player":team+"-"+role;
         const config=arena.spawns[team+"-"+role];
-        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",abilities,evolutions,talentRanks,this.progressLevel);
+        const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",
+          abilities,evolutions,talentRanks,this.journey&&isPlayer?1:this.progressLevel);
         if(isPlayer){
           // Same talent-weighted signature as character HUB, with subtle
           // battle-scale rendering handled by EnergyOrbPolish.
-          const id=energyIdentity(build,this.progressLevel);
+          const id=energyIdentity(build,this.progressLevel,this.journey);
           actor.energyStyle=id.style;
           actor.energyDiscipline=id.primary;
         }

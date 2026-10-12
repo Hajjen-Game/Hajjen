@@ -2294,3 +2294,49 @@ h2{font-size:23px}
 @media(max-width:1150px){
   .hub-companion-style-options{grid-template-columns:1fr}
 }
+
+
+/* Evolution satellite selection polish 1.1.
+   Match the gold-ring / discipline-coloured glow of an equipped selected
+   spell, scaled to a small Evolution satellite; not just the hover preview. */
+.character-hub.journey-mode .hub-orbit-evolution.evolution-chosen{
+  width:29px;height:29px;opacity:1;z-index:9;
+  border:2.5px solid var(--node-tone);
+  outline:2px solid #ffe7a4;outline-offset:3px;
+  color:#fff5d7;font-weight:900;
+  background:radial-gradient(circle at 35% 24%,
+    color-mix(in srgb,var(--node-tone) 42%,#233752),#0a172e 80%);
+  text-shadow:0 0 9px var(--node-tone);
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--node-tone) 24%,transparent),
+    0 0 16px color-mix(in srgb,var(--node-tone) 86%,transparent),
+    0 0 29px #f4c47788,
+    inset 0 0 13px color-mix(in srgb,var(--node-tone) 40%,transparent);
+  filter:none;
+  animation:hub-evolution-chosen-glow 3s ease-in-out infinite;
+}
+.character-hub.journey-mode .hub-orbit-evolution.evolution-chosen:hover,
+.character-hub.journey-mode .hub-orbit-evolution.evolution-chosen:focus-visible{
+  opacity:1;filter:brightness(1.17);
+  transform:translate(-50%,-50%) scale(1.12);
+}
+.character-hub.journey-mode .hub-orbit-branch.evolved{
+  stroke-width:3.5;opacity:1;filter:drop-shadow(0 0 5px #ffe5a180)
+}
+@keyframes hub-evolution-chosen-glow{
+  0%,100%{box-shadow:
+    0 0 0 5px color-mix(in srgb,var(--node-tone) 24%,transparent),
+    0 0 16px color-mix(in srgb,var(--node-tone) 86%,transparent),
+    0 0 29px #f4c47788,
+    inset 0 0 13px color-mix(in srgb,var(--node-tone) 40%,transparent)}
+  50%{box-shadow:
+    0 0 0 6px color-mix(in srgb,var(--node-tone) 33%,transparent),
+    0 0 20px color-mix(in srgb,var(--node-tone) 95%,transparent),
+    0 0 37px #f4c477b3,
+    inset 0 0 17px color-mix(in srgb,var(--node-tone) 47%,transparent)}
+}
+@media(max-width:1350px){
+  .character-hub.journey-mode .hub-orbit-evolution.evolution-chosen{width:26px;height:26px}
+}
+@media(prefers-reduced-motion:reduce){
+  .character-hub.journey-mode .hub-orbit-evolution.evolution-chosen{animation:none}
+}

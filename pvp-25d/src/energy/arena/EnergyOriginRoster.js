@@ -45,7 +45,11 @@ export function readOriginRoster(storage,legacyCharacter,buildStore,profile){
   try{
     const raw=JSON.parse(storage.getItem(ORIGIN_ROSTER_KEY)||"null");
     if(raw?.version===1&&Array.isArray(raw.characters)){
-      const characters=raw.characters.filter(entry=>validCharacter(entry?.character))
+      // The user approved discarding ALL pre-Journey XP/Rank characters.
+      // Keep every Journey Origin exactly as it is (including Stage clears
+      // and newly chosen companion styles).
+      const characters=raw.characters.filter(entry=>
+        validCharacter(entry?.character)&&entry?.progression?.journey?.version===2)
         .slice(0,MAX_ORIGINS).map(entry=>record(entry.character,entry.builds,entry.progression,
           typeof entry.id==="string"&&entry.id?entry.id:undefined));
       const activeId=characters.some(entry=>entry.id===raw.activeId)?raw.activeId:
@@ -53,9 +57,9 @@ export function readOriginRoster(storage,legacyCharacter,buildStore,profile){
       return {version:1,activeId,characters};
     }
   }catch{}
-  const characters=validCharacter(legacyCharacter)?
-    [record(legacyCharacter,buildStore,profile)]:[];
-  return {version:1,activeId:characters[0]?.id||null,characters};
+  // Do not resurrect pre-Journey single-character saves from old browser
+  // storage. Those obsolete profiles are intentionally excluded.
+  return {version:1,activeId:null,characters:[]};
 }
 export function persistOriginRoster(storage,roster){
   storage.setItem(ORIGIN_ROSTER_KEY,JSON.stringify(roster));

@@ -2,7 +2,8 @@
 // Rules intentionally limited to a first-playable balance baseline.
 import { ABILITY_BY_ID, ROLES, DISCIPLINES, MAX_FLUX, BASE_FLUX_REGEN } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { buildCombatLoadout } from "../buildState.js?v=20261012-eclipse-oc1";
-import { EnergyAI } from "./EnergyAI.js?v=20261011-encounters1";
+import { EnergyAI } from "./EnergyAI.js?v=20261012-style1";
+import {companionStyleFor} from "./EnergyCompanionStyles.js?v=20261012-style1";
 import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261012-eclipse-oc1";
 import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261012-eclipse-oc1";
 import { energyIdentity } from "./EnergyCharacter.js?v=20261012-eclipse-oc1";
@@ -134,6 +135,9 @@ export class EnergyMatch {
         const config=arena.spawns[team+"-"+role];
         const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",
           abilities,evolutions,talentRanks,this.journey?1:this.progressLevel);
+        if(team==="friendly"&&!isPlayer&&this.journey){
+          actor.aiStyle=companionStyleFor(this.journey,role);
+        }
         if(isPlayer){
           // Same talent-weighted signature as character HUB, with subtle
           // battle-scale rendering handled by EnergyOrbPolish.

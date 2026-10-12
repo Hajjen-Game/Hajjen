@@ -189,8 +189,8 @@ const PAGES=[
         "Om du spelar Eclipse följer Genesis och Impact med. Väljer du en annan Origin får du de två övriga som AI-kompisar."
       ],
       [
-        "STAGE 5 · PLANERAT",
-        "AI Styles ska låta dig påverka hur aggressivt, skyddande eller kontrollerande en kompis spelar."
+        "STAGE 5 · SPELBART",
+        "Efter Stage 5 kan du välja Balanced, Aggressive, Protective eller Disruptive direkt i kompanjonens HUB-kort. Spelstilen ändrar deras beslut i strid."
       ],
       [
         "STAGE 15 · PLANERAT",

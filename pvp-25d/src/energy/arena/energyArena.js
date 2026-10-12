@@ -1,20 +1,21 @@
 // Project Energy UI; internal Energy Arena module names remain stable while the public title is undecided.
 import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261011-identity13";
-import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261011-identity13";
+import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261012-journey1";
+import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-journey1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
-  appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261011-identity13";
+  appendOrigin, chooseOrigin } from "./EnergyOriginRoster.js?v=20261012-journey1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261011-identity13";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261011-encounters1";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261011-riftcombat2";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-journey1";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-journey1";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-riftcombat2";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
-  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261011-xpcurve2";
-import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261012-hub-revision4";
-import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-hub-revision3";
+  completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261012-journey1";
+import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261012-journey1";
+import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-journey1";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
 
@@ -117,7 +118,8 @@ function start(build){
     const state=progressDetails(profile);
     const MatchType=selectedMode==="defense"?EnergyPlanetDefense:EnergyMatch;
     const arena=arenaForMode(selectedMode);
-    match=new MatchType(build,arena,{modeId:selectedMode,level:state.level,singularity:profile.singularity});
+    match=new MatchType(build,arena,{modeId:selectedMode,level:state.level,
+      singularity:profile.singularity,journey:readJourney(profile)});
     awardedMatch=null;
     hub?.hide();$("main-menu").hidden=true;$("combat-screen").hidden=false;
     $("active-build").textContent=(hub?.character?.name||build.name).toUpperCase()+" · "+ROLES[build.role].name.toUpperCase();
@@ -125,7 +127,9 @@ function start(build){
       (match.encounter?" · "+match.encounter.stage:"");
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
-    $("match-level").textContent="LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
+    $("match-level").textContent=state.journey?
+      "PLANET "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/10 SPELLS":
+      "LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
@@ -502,23 +506,36 @@ function frameLoop(now){
     saveProgression(window.localStorage,profile);
     saveActiveOrigin();
     const {earned,after,levelUp,before,fragments,matter}=awardedMatch;
-    const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
-    const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots
-      .filter(s=>!beforeIds.has(s.id)).map(s=>ABILITY_BY_ID[s.id]?.name||s.id);
-    $("match-result-details").textContent=
-      (match.modeId==="defense"?"WAVE "+match.wave+" / "+DEFENSE_WAVES+" · ":"")+
-      "+"+earned+" XP · LEVEL "+after.level
-      +(levelUp?" · "+(after.level-before.level>1?
-        "+"+(after.level-before.level)+" LEVELS!":"LEVEL UP!"):"")
-      +(after.maxLevel?" · MAX LEVEL":" · "+after.remaining+" XP TO NEXT LEVEL")
-      +(unlocked.length?" · NEW: "+unlocked.join(", "):"")
-      +" · +"+fragments+" ENERGY FRAGMENTS"
-      +(matter?" · +"+matter+" BLACK HOLE MATTER":"")
-      +(levelUp&&after.level>=10&&before.level<10?" · SINGULARITY FORGE UNLOCKED!":"")
-      +(match.modeId==="defense"&&match.trialHistory?.length
-        ?" · TRIED: "+match.trialHistory.map(t=>t.name).join(", "):"")
-      +" · Return to HUB to upgrade your planet";
-    $("match-level").textContent="LEVEL "+after.level+" · "+after.slots+"/10 ABILITIES";
+    if(before.journey){
+      const cleared=awardedMatch.journeyClear;
+      $("match-result-details").textContent=
+        (cleared?
+          "PLANET "+String(awardedMatch.planet).padStart(2,"0")+" CLEARED!":
+          match.winner==="friendly"?"VICTORY":"PLANET DEFENSE FAILED · RETRY")+
+        (cleared&&after.clears<=16?" · NEW SPELL DISCOVERY AWAITS IN HUB":"")+
+        " · +"+fragments+" ENERGY FRAGMENTS"+
+        " · NO XP OR SPELL RANKS · Return to HUB to continue your Journey";
+      $("match-level").textContent="JOURNEY · "+after.clears+" / 20 PLANETS";
+    }else{
+      const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
+      const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots
+        .filter(s=>!beforeIds.has(s.id)).map(s=>ABILITY_BY_ID[s.id]?.name||s.id);
+      $("match-result-details").textContent=
+        (match.modeId==="defense"?"WAVE "+match.wave+" / "+DEFENSE_WAVES+" · ":"")+
+        "+"+earned+" XP · LEVEL "+after.level
+        +(levelUp?" · "+(after.level-before.level>1?
+          "+"+(after.level-before.level)+" LEVELS!":"LEVEL UP!"):"")
+        +(after.maxLevel?" · MAX LEVEL":" · "+after.remaining+" XP TO NEXT LEVEL")
+        +(unlocked.length?" · NEW: "+unlocked.join(", "):"")
+        +" · +"+fragments+" ENERGY FRAGMENTS"
+        +(matter?" · +"+matter+" BLACK HOLE MATTER":"")
+        +(levelUp&&after.level>=10&&before.level<10?" · SINGULARITY FORGE UNLOCKED!":"")
+        +(match.modeId==="defense"&&match.trialHistory?.length
+          ?" · TRIED: "+match.trialHistory.map(t=>t.name).join(", "):"")
+        +" · Return to HUB to upgrade your planet";
+      $("match-level").textContent="LEVEL "+after.level+" · "+after.slots+"/10 ABILITIES";
+  
+    }
   }
   updateCastHUD(); // Cast bar updates every animation frame, not only HUD ticks.
   for(const event of match.consumeEvents()){
@@ -631,6 +648,7 @@ menu=new EnergyMainMenu({
     }))}),
   selectOrigin:activateOriginById,
   getOriginLevel:entry=>progressDetails(entry.progression).level,
+  getJourney:()=>readJourney(profile),
   hideHub:()=>hub.hide(),
   onMenuFromCombat:()=>{
     if(match&&!match.ended&&!window.confirm("Leave the current match and return to the main menu?"))return;

@@ -19,6 +19,17 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
+## IMPLEMENTED — Game Dev: complete Test Origin + Stage replay (2026-10-12)
+
+**Status: implemented in live Game Dev UI and mocked-runtime tested; full browser gameplay QA pending.**
+
+- Main Menu → GAME DEV offers a separate **DEV TEST ORIGIN**. Choose Genesis, Impact or Eclipse; CREATE / RESET makes a clearly marked, independent save with **20/20 Stages cleared, all 16 shared spells owned, eight shared abilities initially equipped alongside the two bound spells**, and both companion AI STYLE editors available. It does not consume one of the twelve normal Origin slots.
+- OPEN TEST ORIGIN HUB permits normal spell swaps, preset saves and AI style changes without hours of Journey grinding. Changing the test Origin type is an explicit destructive reset of the **dev save only**, behind a confirmation prompt; ordinary Origins and their existing builds remain untouched. The dev Origin persists across reloads.
+- GAME DEV → REPLAY ENCOUNTER offers Stages 01–20 at any time, with the chosen Stage's encounter recipe and a **temporary ten-spell combat loadout** regardless of early-Stage normal unlock limits. Styles chosen in the DEV HUB remain active even when replaying Stage 1–4. Combat uses a transient Stage-indexed Journey and never rewrites permanent 20/20 progress.
+- **Isolation:** Dev matches award no XP, Journey spell rewards, fragments or cleared Stages. Normal player Origins still follow the unmodified earned spell/Stage path.
+- **Not fabricated:** rankless permanent Evolutions (Stage 10), AI companion Build editor (Stage 15), Synergies and Rift Expedition (Stage 20) are not yet implemented. They remain preview-only or explicitly locked even on the completed Dev Origin; do not misrepresent this as a playable unlock.
+- **Verification:** JS syntax checks across affected modules; real module-data simulations of all 3 Origin roles, 16/16 ownership, full 10-slot builds during Stage-1 replay, preservation of normal two-slot Stage-1 saves, save/reload, per-Origin companion style persistence and dev-only early-Stage style override. Real browser interaction and gameplay need human review.
+
 ## IMPLEMENTED — Stage rename + AI Styles 1.0 (2026-10-12)
 
 **Status: LIVE gameplay code implemented; real browser feedback pending.**

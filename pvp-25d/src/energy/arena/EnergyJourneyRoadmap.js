@@ -34,9 +34,10 @@ const nodePosition=index=>{
 const glyphs={sparkles:"✦",shield:"⬡",team:"◈",evolution:"✧",rift:"✺",planet:"⬡"};
 
 export class EnergyJourneyRoadmap{
-  constructor({map,detail,summary}){
+  constructor({map,detail,summary,onSelect=null}){
     this.map=map;this.detail=detail;this.summary=summary;
-    this.selected=1;this.clears=0;
+    this.onSelect=onSelect;
+    this.selected=1;this.clears=0;this.armed=false;
     this.buttons=new Map();
     this.build();
     this.render();
@@ -79,24 +80,35 @@ export class EnergyJourneyRoadmap{
       this.map.append(button);
     });
   }
-  select(step){
-    this.selected=Math.max(1,Math.min(20,Math.floor(step)||1));
+  resetSelection(){
+    this.armed=false;
+    this.selected=Math.min(20,this.clears+1);
     this.render();
+  }
+  select(step){
+    // Only the first uncleared step can be armed for PLAY. Future milestones
+    // are readable but cannot bypass the campaign route.
+    if(step!==this.clears+1||step>20)return false;
+    this.selected=step;this.armed=true;
+    this.render();
+    this.onSelect?.(JOURNEY_STEPS[step-1]);
+    return true;
   }
   render(){
     // Never infer clear history from old .wins or XP: those mix several modes.
     const clears=this.clears;
-    this.summary.textContent="CAMPAIGN PREVIEW · 20 PLANETS · NO CLEARS IMPORTED";
+    this.summary.textContent="PLANET DEFENSE · 20 HEXES · PREVIEW";
     for(const hex of JOURNEY_STEPS){
       const button=this.buttons.get(hex.step);
       button.classList.toggle("completed",hex.step<=clears);
       button.classList.toggle("next",hex.step===clears+1);
       button.classList.toggle("milestone",hex.milestone);
-      button.classList.toggle("selected",hex.step===this.selected);
-      button.setAttribute("aria-pressed",String(hex.step===this.selected));
+      button.classList.toggle("selected",this.armed&&hex.step===this.selected);
+      button.disabled=hex.step!==clears+1;
+      button.setAttribute("aria-pressed",String(this.armed&&hex.step===this.selected));
       button.setAttribute("aria-label","Planet Defense step "+hex.step+" — "+hex.title+
         "; "+(hex.step<=clears?"completed":hex.step===clears+1?"next planned":"future")+
-        "; roadmap preview only.");
+        "; "+(button.disabled?"locked":"selectable")+"; roadmap preview.");
     }
     const hex=JOURNEY_STEPS[this.selected-1];
     this.detail.replaceChildren();
@@ -105,12 +117,12 @@ export class EnergyJourneyRoadmap{
     const number=document.createElement("span");
     number.textContent="PLANET "+String(hex.step).padStart(2,"0")+" / 20";
     const state=document.createElement("span");
-    state.textContent="PLANNED · NOT YET TRACKED";
+    state.textContent=this.armed?"SELECTED · READY TO PLAY":"NEXT AVAILABLE · SELECT THE HEX";
     heading.append(number,state);
     const title=document.createElement("strong");title.textContent=hex.title;
     const description=document.createElement("p");description.textContent=hex.description;
     const note=document.createElement("small");
-    note.textContent="Design preview: rewards, hex completion and unlocks are not active yet. Existing Origins and saved wins are untouched.";
+    note.textContent="Selection starts the current Planet Defense prototype; hex wins, permanent rewards and progression tracking are not active yet. Existing saves remain untouched.";
     this.detail.append(heading,title,description,note);
   }
 }

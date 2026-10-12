@@ -65,6 +65,12 @@ Spells that have a counterplay prerequisite need adjacent encounters teaching th
 - Clicking self opens the main spell library and evolution tree. Clicking a companion after #5 exposes **STYLE**; after #15 also **BUILD**. Returning to self remains effortless.
 - Companion presence is also identifiable during Planet Defense via existing friendly health/cast frames and role labels; player is visually the focal point. Player's larger graphic must not increase collision radius, targeting hitbox or AI melee range accidentally.
 
+## IMPLEMENTED — Evolution System 1.0 (Stage 10+)
+
+The Journey now unlocks rankless permanent Evolution choices after Stage **10, 12, 14, 16 and 20**. Each milestone adds one active choice to a maximum of five by Stage 20, with no additional invented rewards for 17–19. An Origin may activate **one of the three existing Evolutions per discovered or bound spell**; selecting a different option for that same spell is free, while choosing a new spell consumes another earned slot. Selections are saved per Origin as `journey.evolutions` and remain owned when switching equipped spells/presets; only equipped spells apply Evolution effects in live EnergyMatch combat. Full rankless Journey compatibility means `talentRank:0` even for evolved spells. Legacy Rank-based Evolutions remain unchanged.
+
+The redundant right-side Evolution Preview summary beneath the three real Evolution cards has been removed. Locked Evolution descriptions remain inspectable before Stage 10. The DEV TEST ORIGIN starts with all five slots and can replay Stages 1–20 with the same Evolution-enabled full toolkit. All existing 66 Evolution definitions were retained for a future Spell Identity & Evolution design audit. **Manual browser combat QA pending.**
+
 ## IMPLEMENTED — AI Styles 1.0 (unlock after Stage 5)
 
 **Live Stage-5 behavior pass:** each new Journey Origin saves a `companionStyles` selection for each of its two companion roles. HUB companion cards unlock their STYLE button after five first-clear Stages. Players may independently select Balanced, Aggressive, Protective or Disruptive; all default to Balanced. Each choice persists across matches and Origin switching. The selection is passed to the correct friendly AI actor, never to the human player or enemy bots. No new companion XP, extra progression maps or passive +% HP/damage modifiers.
@@ -135,12 +141,12 @@ Example after Wave 2:
 | **7** | **Open Complexity pool immediately**; choose shared spell (ninth slot) | **Hex 8** introduces the more advanced situations |
 | 8 | Choose shared spell (tenth, final active slot) | Hex 9 begins high-density threats |
 | 9 | Choose unowned shared spell for collection | Hex 10 showcases full build potential |
-| **10** | Choose unowned shared spell + unlock first **Evolution** choice | Hex 11 includes fun Evolution opportunity |
-| 11–14 | Continue discovering shared spells; occasional Evolution choices | Gradually varied mechanics and greater enemy pressure |
-| **15** | Choose unowned shared spell + unlock OPTIONAL **AI BUILD** access | Hex 16 rewards well-composed defaults or custom presets |
-| 16 | Claim final possible shared spell from the 16-spell catalogue | Hex 17 transitions to wider strategic challenges |
-| 17–19 | Evolution options, cosmetic or campaign milestones **TBD** (not invented spell drops) | Mixed high-intensity swarms, harder boss conditions and meaningful strategy |
-| **20** | **Synergies + Rift Expedition** candidate unlock (pending implementation) | Expedition campaign begins |
+| **10** | Choose unowned shared spell + earn first **permanent Evolution slot** | Hex 11 offers real Evolution strategies |
+| 11–14 | Continue shared spell discoveries; earn Evolution slots after **12 and 14** | Gradually varied mechanics and greater enemy pressure |
+| **15** | Choose unowned shared spell; optional **AI BUILD** editor remains planned | Hex 16 must work with curated AI defaults |
+| 16 | Claim final shared spell + earn fourth Evolution slot | Hex 17 transitions to wider strategic challenges |
+| 17–19 | No fabricated extra rewards; continue strategic encounter escalation | Mixed high-intensity swarms, harder boss conditions and meaningful strategy |
+| **20** | Earn fifth Evolution slot. **Synergies + Rift Expedition** remain candidate future unlocks (not implemented) | Future Expedition campaign planned |
 | Rift Expedition clear 5 | Optional Synergy Deepening Tree candidate | Further progress beyond Planet Defense |
 
 **PvP is intentionally absent** from this table. It is postponed, not “unlocks at 15” and not replaced with another assumed date. The current prototype UI can remain during design experimentation, but the future PvP gate is a separate user decision.

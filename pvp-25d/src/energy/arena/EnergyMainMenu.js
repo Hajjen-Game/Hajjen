@@ -1,3 +1,4 @@
+import { EnergyJourneyRoadmap } from "./EnergyJourneyRoadmap.js?v=20261012-play-roadmap3";
 // A standalone menu + illustrated field guide for the Project Energy.
 // It never mutates the saved build, character, progression, or match rules.
 const $=id=>document.getElementById(id);
@@ -184,6 +185,17 @@ export class EnergyMainMenu{
     this.getOrigins=getOrigins;this.selectOrigin=selectOrigin;
     this.createOrigin=createOrigin;this.getOriginLevel=getOriginLevel;
     this.page=0;this.previousFocus=null;
+    // Play opens the one player Journey. No XP or old mixed-mode wins count
+    // as campaign clears until the true first-clear schema is implemented.
+    this.journey=new EnergyJourneyRoadmap({
+      map:$("hub-journey-map"),detail:$("hub-journey-detail"),
+      summary:$("hub-journey-summary"),
+      onSelect:hex=>{
+        const button=$("play-journey-start");
+        button.disabled=false;
+        button.textContent="PLAY · PLANET "+String(hex.step).padStart(2,"0")+" →";
+      }
+    });
     $("menu-new-origin").addEventListener("click",()=>this.createNew());
     $("menu-resume").addEventListener("click",()=>this.openResume());
     $("menu-about").addEventListener("click",()=>this.openGuide());
@@ -193,9 +205,13 @@ export class EnergyMainMenu{
     $("game-dev-back").addEventListener("click",()=>this.open());
     $("play-back-hub").addEventListener("click",()=>this.enterHub());
     $("main-menu-open").addEventListener("click",()=>this.onMenuFromCombat());
-    for(const node of document.querySelectorAll("[data-play-path]")){
-      node.addEventListener("click",()=>this.choosePath(node.dataset.playPath));
-    }
+    $("play-journey-start").addEventListener("click",()=>{
+      if(!$("play-journey-start").disabled&&this.journey.armed&&this.getCharacter()){
+        this.changeMode("defense");
+        this.hideScreens();
+        this.startMatch("defense");
+      }
+    });
     for(const node of document.querySelectorAll("[data-menu-mode]")){
       node.addEventListener("click",()=>{
         if(node.disabled||!this.getCharacter())return;
@@ -287,30 +303,17 @@ export class EnergyMainMenu{
     this.openHub();
   }
   openPlay(){
-    // HUB -> Play -> PvE/PvP -> mode. No mode selection in the front menu.
+    // HUB -> Play = the campaign map. The hex needs an explicit selection
+    // before starting; other game modes remain in a collapsed dev section.
     if(!this.getCharacter()){this.openResume();return;}
     this.hideHub();
     this.hideScreens();
     $("hub-play-screen").hidden=false;
     $("main-menu-open").hidden=false;
-    $("play-mode-options").hidden=true;
-    $("play-pve-modes").hidden=true;
-    $("play-pvp-modes").hidden=true;
-    for(const button of document.querySelectorAll("[data-play-path]"))
-      button.setAttribute("aria-expanded","false");
-  }
-  choosePath(path){
-    if(path!=="pve"&&path!=="pvp")return;
-    $("play-mode-options").hidden=false;
-    $("play-mode-heading").textContent=path==="pve"?"PvE · CHOOSE YOUR JOURNEY":
-      "PvP · CHOOSE YOUR TEAM SIZE";
-    $("play-pve-modes").hidden=path!=="pve";
-    $("play-pvp-modes").hidden=path!=="pvp";
-    for(const button of document.querySelectorAll("[data-play-path]")){
-      const selected=button.dataset.playPath===path;
-      button.classList.toggle("selected",selected);
-      button.setAttribute("aria-expanded",String(selected));
-    }
+    const start=$("play-journey-start");
+    start.disabled=true;
+    start.textContent="SELECT NEXT PLANET TO PLAY";
+    this.journey.resetSelection();
   }
   openGameDev(){
     this.hideHub();

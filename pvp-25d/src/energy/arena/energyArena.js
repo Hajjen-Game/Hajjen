@@ -299,7 +299,7 @@ function createFrame(actor){
 }
 function renderFrames(){
   // Old wave enemies remain in run reports, but must not fill the right HUD.
-  if(match.modeId==="defense"){
+  if(["defense","rift"].includes(match.modeId)){
     for(const [id,view] of frameCache){
       if(id.startsWith("wave-")&&!match.getActor(id)?.alive){
         view.button.remove();frameCache.delete(id);
@@ -307,7 +307,7 @@ function renderFrames(){
     }
   }
   for(const actor of match.actors){
-    if(match.modeId==="defense"&&actor.team==="enemy"&&!actor.alive)continue;
+    if(["defense","rift"].includes(match.modeId)&&actor.team==="enemy"&&!actor.alive)continue;
     let view=frameCache.get(actor.id);
     if(!view){
       const button=createFrame(actor);
@@ -323,7 +323,7 @@ function renderFrames(){
     sub.textContent=casting?((ABILITY_BY_ID[casting.spellId]?.name||"ENERGY")+" · "+Math.max(0,casting.remainingMs/1000).toFixed(1)+"s")
       :actor.statuses.some(s=>s.kind==="incapacitate")?"CONTROLLED"
       :actor.statuses.some(s=>s.kind==="root")?"ROOTED":
-        actor.boss?"FINAL WAVE · RIFT BOSS":"ENERGY ORB";
+        actor.boss?(match.modeId==="rift"?"RIFT HEART GUARDIAN":"FINAL WAVE · RIFT BOSS"):"ENERGY ORB";
     fill.style.width=clamp(actor.healthPct*100,0,100)+"%";
     value.textContent=Math.ceil(actor.hp)+" / "+actor.maxHp+" HP"+(actor.shield>0?" · SHIELD "+Math.ceil(actor.shield):"");
   }

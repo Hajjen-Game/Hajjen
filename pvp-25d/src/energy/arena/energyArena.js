@@ -128,7 +128,7 @@ function start(build){
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
     $("match-level").textContent=state.journey?
-      "PLANET "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/10 SPELLS":
+      "STAGE "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/10 SPELLS":
       "LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
@@ -521,12 +521,12 @@ function frameLoop(now){
       const cleared=awardedMatch.journeyClear;
       $("match-result-details").textContent=
         (cleared?
-          "PLANET "+String(awardedMatch.planet).padStart(2,"0")+" CLEARED!":
+          "STAGE "+String(awardedMatch.planet).padStart(2,"0")+" CLEARED!":
           match.winner==="friendly"?"VICTORY":"PLANET DEFENSE FAILED · RETRY")+
         (cleared&&after.clears<=16?" · NEW SPELL DISCOVERY AWAITS IN HUB":"")+
         " · +"+fragments+" ENERGY FRAGMENTS"+
         " · NO XP OR SPELL RANKS · Return to HUB to continue your Journey";
-      $("match-level").textContent="JOURNEY · "+after.clears+" / 20 PLANETS";
+      $("match-level").textContent="JOURNEY · "+after.clears+" / 20 STAGES";
     }else{
       const beforeIds=new Set(stagedLoadout(selectedBuild,before.level).abilitySlots.map(s=>s.id));
       const unlocked=stagedLoadout(selectedBuild,after.level).abilitySlots

@@ -180,6 +180,7 @@ export class EnergyCharacterHub{
   openCreation(){
     this.hide();
     this.creatingNew=true;
+    this.lastFocusedDiscovery=null;
     this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
     document.querySelectorAll("[data-create-role]").forEach(node=>{
       const active=node.dataset.createRole==="healer";
@@ -193,6 +194,7 @@ export class EnergyCharacterHub{
   activateCharacter(character){
     this.hide();
     this.character=character;this.creatingNew=false;
+    this.lastFocusedDiscovery=null;
     this.selectedAbility=null;this.showSwapPicker=false;this.forgeDraft=null;
     this.message="";
     $("hub-origin-info").hidden=true;

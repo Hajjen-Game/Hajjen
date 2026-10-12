@@ -1,4 +1,4 @@
-import { EnergyJourneyRoadmap } from "./EnergyJourneyRoadmap.js?v=20261012-journey3";
+import { EnergyJourneyRoadmap } from "./EnergyJourneyRoadmap.js?v=20261012-journey4";
 // A standalone menu + illustrated field guide for the Project Energy.
 // It never mutates the saved build, character, progression, or match rules.
 const $=id=>document.getElementById(id);

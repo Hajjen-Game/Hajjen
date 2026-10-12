@@ -1,12 +1,13 @@
 // Project Energy — first live slice of the rankless single-Origin Journey.
 // This save state is distinct from legacy XP, total wins and arena profiles.
-// Player Origins start with two bound spells; only FIRST clears advance hexes.
+// Each Origin has two bound spells of ONE discipline (Genesis Vital,
+// Impact Kinetic, Eclipse Cryo); only FIRST clears advance hexes.
 import {ROLES,FREE_ABILITIES,MAX_FLUX,BASE_FLUX_REGEN} from "../abilityCatalog.js?v=20261011-identity13";
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const FREE_IDS=new Set(FREE_ABILITIES.map(a=>a.id));
-const EARLY=["entropy-mark","sun-lance","crystal-bolt","vector-rush","reactive-thread"];
-const COUNTER=["rift-slash","photon-barrier","crystal-snare","pulse-sever","cleanse-flux"];
-const ADVANCED=["null-prison","zenith-crash","fracture-spear","gravity-hammer","resonance-cut","symbiosis-link"];
+const EARLY=["entropy-mark","sun-lance","fracture-spear","vector-rush","reactive-thread"];
+const COUNTER=["rift-slash","photon-barrier","phase-slip","pulse-sever","cleanse-flux"];
+const ADVANCED=["null-prison","zenith-crash","flux-bolt","gravity-hammer","resonance-cut","symbiosis-link"];
 export const JOURNEY_MAX_PLANETS=20;
 export const JOURNEY_SHARED_LIMIT=8;
 export const JOURNEY_DISCOVERY=Object.freeze({early:Object.freeze(EARLY),counter:Object.freeze(COUNTER),advanced:Object.freeze(ADVANCED)});

@@ -133,7 +133,7 @@ export class EnergyMatch {
         const id=isPlayer?"player":team+"-"+role;
         const config=arena.spawns[team+"-"+role];
         const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",
-          abilities,evolutions,talentRanks,this.journey&&isPlayer?1:this.progressLevel);
+          abilities,evolutions,talentRanks,this.journey?1:this.progressLevel);
         if(isPlayer){
           // Same talent-weighted signature as character HUB, with subtle
           // battle-scale rendering handled by EnergyOrbPolish.

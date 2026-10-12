@@ -2,7 +2,7 @@
 
 **Purpose:** A persistent, lightweight source of truth for gameplay decisions, pending proposals, missing polish, and future passes. Update this file when a good idea arises; never confuse a suggestion with a confirmed user decision. Do not replace code/testing with this document.
 
-**Last reviewed:** 2026-10-11
+**Last reviewed:** 2026-10-12
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
 ## The core game identity
@@ -19,14 +19,26 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
-## IMPLEMENTED REVISION — HUB 2.1: companion panels + Play Journey (2026-10-12)
+## IMPLEMENTED — Journey v2 foundation and two-spell Origin fix (2026-10-12)
+
+**Status: FIRST LIVE PROGRESSION SLICE; browser gameplay review still pending.** [Roadmap 1.1](PROGRESSION_ROADMAP_1_1.md) remains the complete target design; this is not a claim that all of its milestones are implemented.
+
+- **BUG FIX:** Genesis, Impact and Eclipse start with exactly **two bound spells**, including legacy level-1 builds. The SPELL_SLOT_LEVELS schedule no longer grants an automatic third ability at level 1. In new Journey rules only earned shared spells appear in actual combat and the inner HUB orbit.
+- **NEW Origins:** Each new Origin receives an explicit per-Origin Journey v2 save with zero first-time clears and no earned shared spells. There is no user-facing Level, XP growth, numeric spell Rank or level-derived character HP/damage multiplier for these Origins. Old profiles without Journey remain on their previous XP/rank system **without being silently reset or assigned fake Planet Defense clears**.
+- **LIVE clear/reward loop:** Play → select only the next available hex → Planet Defense → first-time victory increases the clear count → unclaimed permanent spell reward remains pending → HUB presents a choice across all 5 disciplines → one chosen shared spell is permanently discovered and automatically placed in the first open shared slot (up to eight). The rest of the 16 shared spells enter the library and can be exchanged into active slots after 8 clears. Planet Defense losses, non-Defense developer-mode victories and attempts to advance with a pending reward do not advance the campaign.
+- **Discovery timing:** After **Planet 3**, eligible Counterplay spells are available immediately, for Planet 4. After **Planet 7**, advanced spells are offered immediately, for Planet 8. The new Journey encounter schedule was adjusted: Channeler interrupts/corruption begin at Planet 4, and Bulwark/shield-pressure starts at Planet 8. Older level-based encounters remain unchanged. Difficulty scales via encounter composition and mechanics, not hidden player/enemy ranks or HP level-inflation.
+- **Temporary between-wave selections:** Existing functional temporary PvE enhancements remain for this phase; Rank/Mastery/Singularity trial cards are excluded for new Journey Origins to avoid bringing back Rank prerequisites. The four-card **Overcharges** system (2 self/1 each AI, choose 1) has **NOT been built yet**; do not mislabel legacy temporary effects as final Overcharges.
+- **NOT YET IMPLEMENTED:** Actual AI style editing after 5, companion build editing after 15, genuine rankless permanent Evolutions at 10, permanent Synergies at 20, Rift Expedition, 17–19 campaign rewards and full encounter identity tuning. Preview milestone hexes and locked buttons are not finished feature unlocks. PvP gating remains undecided and is not part of the Journey.
+- **VALIDATION:** static syntax/DOM/module-version audits and mocked runtime progression simulations passed for all three two-spell Origin starts, all first 16 first-clear spell discoveries, no duplicate wins, loss/PvP isolation, legacy-save preservation, 5-discipline initial choices and threats introduced after (not before) the relevant unlocks. Full Babylon/browser playthrough and visual review **still required**.
+
+## HISTORICAL — HUB 2.1 layout before live progression (2026-10-12)
 
 **Supersedes the incorrect HUB 2.0 layout described below.** User-reviewed screenshots made four requirements explicit:
 
 - **Remove the top YOUR SQUAD strip.** The large central Evolution Tree belongs to the player and shows **exactly one hero orb**. Fix: `EnergyOrbShowcase.js` is back to *one actor per canvas*; the previous shared-scene all-actor fakeMatch caused duplicate/overlapping orbs in the player's Evolution Tree.
 - Under the **central Evolution Tree**, two **side-by-side, compact AI panels** each use a real animated Babylon orb preview with the same `OrbCharacterRenderer`/`EnergyOrbPolish` rendering. No evolutionary ring/tree around them. Display AI Origin, role and spec derived from its actual current `botAbilities` spell disciplines. **STYLE** and **BUILD** are visibly disabled and labelled Planet 5 / Planet 15. No AI-specific progression roadmap. Individual small renderers are low-resolution / ~30fps and disposed when leaving HUB.
 - **Journey Roadmap is no longer in HUB.** HUB **Play** opens a dedicated Play panel with the existing 20-hex snake map. Exactly the *next* hex (currently Planet 1 because no new first-clear campaign state exists yet) is clickable; select it before the **PLAY · PLANET 01** button becomes enabled. Future hexes cannot be started. The new button launches the current Planet Defense mode; existing prototype PvP modes remain under a collapsed **OTHER MODES · DEVELOPMENT ACCESS** disclosure. Rift Expedition remains locked.
-- **Scope/safety:** The roadmap is still a **visual/test navigation preview**. Persistent first-clear win recording, tier-specific encounter data, permanent spell rewards and new rankless progression are NOT yet wired up; wins from old generic profiles must not be imported as hex clears. The existing XP/Level/Rank and saves/gameplay remain unmodified. After finishing Planet Defense now, the next hex does NOT automatically advance until the upcoming campaign progression implementation.
+- **Scope/safety (historical at the time of HUB 2.1):** The roadmap originally launched as a visual preview without win/reward tracking. **SUPERSEDED by the live Journey progression slice documented above**; the new Origin Journey now tracks verified first-clear wins, while existing legacy Origins remain safe.
 - **Validation:** imported module syntax, all HTML element references and IDs, play selection gating (including attempts to skip to hex 10), working Planet Defense start, legacy 2v2 prototype access, Origin swapping, three isolated preview canvases and resource disposal were checked using mocked JavaScript runtimes; real Babylon/browser visual inspection still needed.
 
 ## SUPERSEDED VISUAL PROTOTYPE — HUB 2.0 Squad + Journey Preview (2026-10-12)
@@ -39,7 +51,7 @@
 
 ## ACTIVE DESIGN PROPOSAL — Team Journey Roadmap 1.1 (2026-10-11)
 
-**DESIGN ONLY. Nothing in running gameplay has changed.** Active full spec: [PROGRESSION_ROADMAP_1_1.md](PROGRESSION_ROADMAP_1_1.md). Version 1.0 is preserved as an outdated historical draft, NOT the currently recommended gates.
+**TARGET DESIGN. The first live Journey gameplay slice is now implemented (documented above), but several major milestones remain proposals/incomplete.** Active full spec: [PROGRESSION_ROADMAP_1_1.md](PROGRESSION_ROADMAP_1_1.md). Version 1.0 is preserved as an outdated historical draft, NOT the currently recommended gates.
 
 - **PREPARE before a challenge:** spell pools expand and a new spell can be selected immediately **after hex 3**, for counterplay in hex 4, and immediately **after hex 7**, for complexity in hex 8. All five disciplines remain available from the very first earned shared-spell choice; nothing locks an entire discipline.
 - **CONFIRMED: Only the player's Origin has a progression roadmap.** Both AI companions are displayed from the start in the HUB as smaller, living orbs alongside the larger player orb. They have **no separate progression paths, hex maps, XP bars or achievement counters**; their STYLE/BUILD options unlock via the player's roadmap. Player should also read slightly bigger on the field; visual size must not affect combat collision or range.

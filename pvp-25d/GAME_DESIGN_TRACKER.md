@@ -2,7 +2,7 @@
 
 **Purpose:** A persistent, lightweight source of truth for gameplay decisions, pending proposals, missing polish, and future passes. Update this file when a good idea arises; never confuse a suggestion with a confirmed user decision. Do not replace code/testing with this document.
 
-**Last reviewed:** 2026-10-12
+**Last reviewed:** 2026-10-13
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
 ## The core game identity
@@ -18,6 +18,16 @@
 - **IMPLEMENTED (visual prototype 1.3, awaiting in-browser review):** Material Balance Pass in [Enemy Design Lab](enemy-design-lab.html) tones down Rift Shard's overbright central reactor/inner plasma, increases Channeler's shell and facets plus front-face Fresnel fill while keeping its contained core, and gives Bulwark heavier crystal body visibility with extra opacity and Fresnel front fill. The existing GLASS ON/OFF A/B comparison remains working. This is a visual prototype only, with **no Planet Defense changes**. Review all three at GAMEPLAY SCALE and COMPARE before committing them as production enemy art.
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
+
+## IMPLEMENTED — Rift Expedition 1.2b: Restore Readability / Keep Hexagon (2026-10-13)
+
+**Status:** Implemented in GitHub and verified with procedural 3D scene tests. Actual desktop visual inspection is still pending.
+
+- **Visual correction from user screenshots:** Rift 1.2's fragmented/broken circles and elongated/irregular fight-area ground made the arenas less recognizable. The two sharply glowing white square floor sigils in Shattered Causeway were disliked. The clear hexagon in Silent Sanctum was explicitly approved.
+- **Bring back the 1.1 circles:** restored the complete outer and inner rings for Fractured Threshold, Shattered Causeway, Glasswound Grove and Rift Heart, along with regular clean ground islands and restrained perimeter rubble. Slightly reinforced ring thickness for readability; removed fractured fragments/crescents, elongated silhouette and Bastion's two square floor sigils entirely (including the nearby decorative ledges).
+- **Keep the hexagon:** Silent Sanctum deliberately retains its full-size bright outer hex and inner hex, framed with a quieter circular perimeter. This is the only major geometric departure from the circular arena language and is intentional.
+- **Preserve good 1.2 functionality:** all 19 true AI/LOS collision rectangles, rock clusters, Crystal Grove & Sanctum hazards/telegraphs, Rift portals, boss-chamber rings and boss mechanics remain unchanged. No raised road or stone path, no white cube crowns and no permanent gameplay/reward alterations.
+- **Validation:** procedural Babylon scene mock found four intact pairs of large/small circle rings; one intact Sanctum hex pair with a surrounding circle; no Bastion square sigils, broken arcs, or floating route tubes; 95 low-poly cliff pieces within the existing 19 collider footprints, four functioning portals, hazard warning visibility/cleanup and the preserved Rift Heart elements. HTML/JavaScript cache graph refreshed through `energy-arena.html` → `energyArena.js` → `EnergyArenaRenderer.js` → `EnergyRiftEnvironment.js`. User desktop/browser confirmation still required.
 
 ## IMPLEMENTED — Rift Expedition 1.2: Sector Identity & Positioning (2026-10-13)
 

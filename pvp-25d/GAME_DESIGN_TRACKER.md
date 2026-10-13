@@ -19,6 +19,12 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
+## IMPLEMENTED — Rift Expedition 1.2b follow-up: stable sector-clear lighting (2026-10-13)
+
+- **User review:** clean Rift combat circles and the preserved Sanctum hexagon now look better. When the first sector's final enemy was defeated, the map appeared to brighten; keep the same dark ambient look before and after sector completion.
+- **Change:** eliminated the open-gate jump in portal ring visibility (previously .32 → 1). Rune gates now hold a constant, subdued emissive visibility (.52) in both states, using a subtle scaling pulse for the opened state plus the existing HUD announcement to communicate where to go. No global exposure/light changes, removal of important portal markers, path alterations, collision edits, hazard redesign or other gameplay modifications.
+- **Verification:** Babylon-style scene test checked the same gate torus and inner ring have identical visibility before and after sector clear, with the pulse staying within a small size range; JavaScript syntax and deployed module cache chain passed. Desktop visual confirmation is still needed.
+
 ## IMPLEMENTED — Rift Expedition 1.2b: Restore Readability / Keep Hexagon (2026-10-13)
 
 **Status:** Implemented in GitHub and verified with procedural 3D scene tests. Actual desktop visual inspection is still pending.

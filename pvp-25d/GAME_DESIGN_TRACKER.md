@@ -19,6 +19,16 @@
 - **IMPLEMENTED (visual prototype 1.4, awaiting browser review):** [Enemy & Boss Design Lab](enemy-design-lab.html) gives **all three** Rift prototypes identical Shard reference glass values (shell .39 / face .48 / glass .22; front-face Fresnel fill 0). Channeler/Bulwark now have brighter, color-matched hearts/plasma/reactors and four additional animated inner energy streams per creature. The Channeler reactor remains constrained inside its tall spindle and Bulwark still has no circular shield. Tested module startup, animation and GLASS ON/OFF; still needs actual visual inspection at gameplay scale. Planet Defense unchanged.
 - **BACKLOG:** Keep combat readable with low-poly/dark-muted arena art, characteristic energy spheres, vivid spell buildup, travel and impacts.
 
+## IMPLEMENTED — Rift Expedition 1.1: Terrain Cleanup (2026-10-13)
+
+**Status:** merged directly into default GitHub branch; static/runtime-mock scene construction checks passed; visual browser review still needed.
+
+- **User screenshots of Rift Expedition 1.0:** the meandering road appeared as an enormous floating purple cylinder cutting across combat, while luminous pink/white squared obstacle tops distracted from spells. The final boss room and its circular identity were judged readable and worth preserving.
+- **No replacement stone road:** removed the whole `rift-long-path`, `rift-energy-spine` and `rift-road-seam-*` tube network; Rift navigation still uses the same five fixed sectors, clear walkable spaces and activated rune gates. No new road geometry was introduced.
+- **Cliff terrain instead of luminous boxes:** replaced 16 box/crown/shard obstacle visual assemblies with 16 matte blue-grey/dark violet low-poly cliff clusters using five overlapping faceted, tapered rock volumes each (80 cliff pieces). The bright emissive cube tops were deleted; muted stone faces and stepped heights form mountain ridges, with some variation by obstacle type. Kept room/portal rings and Rift Heart set-piece recognizable. No external assets.
+- **Safe collision:** existing `arena.obstacles` world rectangles stay unchanged; all 80 visible cliff pieces are contained within those footprints and remain unpickable visual meshes. Existing AI navigation, line of sight, projectile collision and boss mechanics are unchanged. No newly added hidden collisions or rock pieces extending into the center combat corridor.
+- **Verification:** runtime mock Babylon scene successfully constructed 273 meshes, 80 rock pieces, 0 raised roads, 0 luminous cube crowns, four intact Rift portal rings and two boss-room rings; one portal became active after sector clear; geometry footprint checks all passed. Browser module cache-bust applied down the `energy-arena.html` → `energyArena.js` → `EnergyArenaRenderer.js` → `EnergyRiftEnvironment.js` dependency chain. Real desktop screenshot, spell readability and AI pathing remain QA items.
+
 ## IMPLEMENTED PROTOTYPE — Rift Expedition 1.0: The Echoing Rift (2026-10-12)
 
 **Status:** Implemented in live GitHub gameplay code. Mock match route and procedural 3D construction tests passed. Full browser gameplay and visual performance review pending. This is *not* a final expedition, finished biome art, Synergy system, or reward loop.

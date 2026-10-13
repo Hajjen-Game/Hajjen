@@ -501,7 +501,11 @@ function renderUI(){
       " · "+(match.waveState==="intermission"?"SPELL DISCOVERY":match.waveDefeated+"/"+match.totalWaveEnemies+" DEFEATED"):
     "DAMPENING "+Math.round(match.dampening*100)+"%";
   if(match.modeId==="rift"){
+    const hazard=match.riftHazard;
     $("match-learning-tip").textContent=
+      hazard?.phase==="warning"?
+        "RIFT HAZARD · "+hazard.name+" · MOVE OUT OF THE GLOWING RING · "+
+          Math.max(0,hazard.until-match.time).toFixed(1)+"s":
       "RIFT EXPEDITION · "+match.sector?.name+" · "+match.objective+
       (match.waveState==="advance"?
         " · WALK INTO THE GLOWING GATE TO OPEN THE NEXT SECTOR":"");
@@ -632,7 +636,13 @@ function frameLoop(now){
     feedback?.onEvent(event,match);
     combatUX?.onEvent(event,actionNodes,now);
     coach?.onEvent(event);
-    if(event.type==="rift-sector-start"&&match.modeId==="rift"){
+    if(event.type==="rift-hazard-warning"&&match.modeId==="rift"){
+      flash((event.kind==="flux"?"GLASSWOUND SURGE":"SANCTUM RUPTURE")+
+        " · MOVE OUT OF THE RING");
+    }else if(event.type==="rift-hazard-impact"&&match.modeId==="rift"){
+      if(event.affected?.includes(match.player.id))
+        flash("RIFT HAZARD HIT · REPOSITION");
+    }else if(event.type==="rift-sector-start"&&match.modeId==="rift"){
       flash("RIFT SECTOR "+event.wave+" · "+event.waveName);
     }else if(event.type==="rift-gate-open"&&match.modeId==="rift"){
       flash("RIFT GATE OPEN · FOLLOW THE GLOWING PORTAL");

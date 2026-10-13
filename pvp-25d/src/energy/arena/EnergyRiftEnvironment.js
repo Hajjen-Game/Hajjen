@@ -57,33 +57,104 @@ export function createRiftEnvironment(scene,arena,scale=.02){
     mesh.position.set(x,y,z);mesh.material=material;
     return isPickable(mesh);
   }
-  // No rendered road. Navigation is provided by the world composition and
-  // the activated Rift portals; the playable route stays clear in the config.
-  const portals=[],bossRings=[];
+  // No rendered road. Distinct court silhouettes signal changes of biome,
+  // while spell telegraphs always stay higher contrast than environment art.
+  function arc(name,x,z,r,start,end,material){
+    const points=[];
+    for(let j=0;j<=20;j++){
+      const angle=start+(end-start)*j/20;
+      points.push(new BABYLON.Vector3(x+Math.cos(angle)*r,.013,
+        z+Math.sin(angle)*r));
+    }
+    const mesh=BABYLON.MeshBuilder.CreateTube(name,{
+      path:points,radius:.018,tessellation:5},scene);
+    mesh.material=material;return isPickable(mesh);
+  }
+  function polygon(name,x,z,r,sides,material,turn=0){
+    const points=[];
+    for(let j=0;j<=sides;j++){
+      const angle=j*TWO_PI/sides+turn;
+      points.push(new BABYLON.Vector3(x+Math.cos(angle)*r,.012,
+        z+Math.sin(angle)*r));
+    }
+    const mesh=BABYLON.MeshBuilder.CreateTube(name,{
+      path:points,radius:.025,tessellation:5},scene);
+    mesh.material=material;return isPickable(mesh);
+  }
+  const portals=[],bossRings=[],hazardRings=[];
   for(let i=0;i<arena.route.length;i++){
     const sector=arena.route[i],x=sector.center.x*scale,z=sector.center.y*scale;
     const coreMat=mat("sect-"+i,tones[i][0],tones[i][1]);
-    // Deliberately irregular floor architecture rather than flat grid tiles.
-    const base=cylinder("rift-arena-island-"+i,x,z,5.4+i%2*.5,.11,deep,10);
+    // Four journey locations are deliberately NOT concentric circles.
+    // The fifth is still the unmistakable Rift Heart boss chamber.
+    const isHeart=sector.shape==="heart";
+    const base=cylinder("rift-arena-island-"+i,x,z,
+      isHeart?5.4:sector.shape==="bastion"?5.1:5.35,
+      .11,deep,isHeart?10:sector.shape==="sanctum"?6:
+        sector.shape==="grove"?9:sector.shape==="bastion"?8:7);
     base.position.y=-.079;
-    ring("rift-court-engraving-"+i,x,z,4.15,coreMat,.028,.014);
-    ring("rift-court-inner-"+i,x,z,2.45,copper,.021,.018);
-    for(let n=0;n<8;n++){
-      const angle=TWO_PI*n/8+i*.31;
-      const rx=x+Math.cos(angle)*4.76,rz=z+Math.sin(angle)*4.76;
-      // Debris along the outer court. No mesh colliders: decoration only.
-      const piece=cylinder("rift-court-debris-"+i+"-"+n,rx,rz,
-        .20+(n%3)*.10,.13+n%2*.15,n%2?stone:rubble,5);
-      piece.rotation.y=angle;
+    if(sector.shape==="fractured"){
+      base.scaling.x=1.09;base.scaling.z=.89;
+      arc("rift-threshold-broken-arc-n",x,z,4.36,-2.75,-.90,coreMat);
+      arc("rift-threshold-broken-arc-s",x,z,4.36,.15,1.87,coreMat);
+      for(let n=0;n<6;n++){
+        const a=n*1.38+.4;
+        const piece=cylinder("rift-threshold-rubble-"+n,
+          x+Math.cos(a)*4.65,z+Math.sin(a)*4.25,
+          .28+(n%3)*.11,.13+(n%2)*.19,n%2?stone:rubble,5);
+        piece.rotation.y=a;
+      }
+    }else if(sector.shape==="bastion"){
+      base.scaling.x=1.19;base.scaling.z=.77;
+      // Short transverse fortification markings, not a continuous road.
+      for(const side of [-1,1]){
+        box("rift-bastion-ledge-"+i+"-"+side,
+          x+side*4.7,z-.42,.64,1.26,.29,stone);
+        polygon("rift-bastion-sigil-"+i+"-"+side,
+          x+side*3.05,z+.55,.74,4,coreMat,.785);
+      }
+      arc("rift-bastion-left",x-2.1,z,2.18,2.18,4.1,copper);
+      arc("rift-bastion-right",x+2.1,z,2.18,-.98,.96,copper);
+    }else if(sector.shape==="grove"){
+      base.scaling.x=1.04;base.scaling.z=.92;
+      for(let n=0;n<3;n++)arc("rift-grove-crescent-"+n,
+        x+(n-1)*.28,z,3.26+n*.65,
+        .52+n*1.97,1.9+n*1.97,coreMat);
+    }else if(sector.shape==="sanctum"){
+      polygon("rift-sanctum-hex",x,z,4.45,6,coreMat,.52);
+      polygon("rift-sanctum-inner",x,z,2.35,6,copper,.52);
+      for(let n=0;n<4;n++){
+        const a=n*TWO_PI/4+.58;
+        const px=x+Math.cos(a)*5.45,pz=z+Math.sin(a)*5.45;
+        cylinder("rift-sanctum-pedestal-"+n,px,pz,.38,.24,stone,6);
+        crystal("rift-sanctum-keystone-"+n,px,pz,1.1,.21,coreMat);
+      }
+    }else if(isHeart){
+      ring("rift-court-engraving-"+i,x,z,4.15,coreMat,.028,.014);
+      ring("rift-court-inner-"+i,x,z,2.45,copper,.021,.018);
+      for(let n=0;n<8;n++){
+        const a=TWO_PI*n/8+i*.31;
+        const piece=cylinder("rift-heart-debris-"+n,
+          x+Math.cos(a)*4.76,z+Math.sin(a)*4.76,
+          .2+(n%3)*.1,.13+(n%2)*.15,n%2?stone:rubble,5);
+        piece.rotation.y=a;
+      }
     }
-    // Tall silhouettes along edges make the biome legible at gameplay zoom.
+    // Signature landmarks distinguish each sector without filling the
+    // center of its actual playable combat space with collisionless props.
     const side=i%2===0?1:-1;
     for(const n of [-1,1]){
-      const px=x+(n*.95),pz=z+side*(5.5+.24*i);
-      box("rift-ruined-base-"+i+"-"+n,px,pz,.86,.82,.30,stone);
-      crystal("rift-signature-spire-"+i+"-"+n,px,pz,
-        2.6+.5*(i%3),.43,coreMat,n*.13);
-      ring("rift-spire-sigil-"+i+"-"+n,px,pz,.8,coreMat,.025,.10);
+      const px=x+n*.95,pz=z+side*(5.5+.24*i);
+      if(sector.shape==="bastion"||sector.shape==="fractured"){
+        cylinder("rift-ruined-base-"+i+"-"+n,px,pz,.53,.23,stone,5);
+        crystal("rift-signature-spire-"+i+"-"+n,px,pz,
+          1.65+.2*(i%3),.31,sector.shape==="fractured"?stoneLight:coreMat,n*.13);
+      }else{
+        box("rift-ruined-base-"+i+"-"+n,px,pz,.70,.65,.18,stone);
+        crystal("rift-signature-spire-"+i+"-"+n,px,pz,
+          2.1+.4*(i%3),.36,coreMat,n*.13);
+        ring("rift-spire-sigil-"+i+"-"+n,px,pz,.7,coreMat,.022,.08);
+      }
     }
     if(i===2){
       // Glasswound Grove: denser translucent crystal grove, kept beyond the
@@ -119,6 +190,17 @@ export function createRiftEnvironment(scene,arena,scale=.02){
       }
       portals.push({stage:i+1,meshes:[portal,inner],x:gx,z:gz});
     }
+  }
+  // Sector-specific positional mechanics: telegraphed ground rings belong
+  // to the exact radius used by the combat simulation. No hidden hotspots.
+  for(const hazard of arena.hazards||[]){
+    const x=hazard.x*scale,z=hazard.y*scale,r=hazard.radius*scale;
+    const material=hazard.kind==="flux"?cyan:violet;
+    const outer=ring("rift-hazard-outer-"+hazard.id,x,z,r,material,.075,.075);
+    const inner=ring("rift-hazard-inner-"+hazard.id,x,z,r*.72,
+      hazard.kind==="flux"?cyan:ember,.035,.085);
+    outer.visibility=0;inner.visibility=0;
+    hazardRings.push({hazard,meshes:[outer,inner]});
   }
   // The existing rectangles remain the authoritative collisions for AI,
   // player movement and LOS. Every visible cliff piece sits INSIDE its
@@ -186,6 +268,16 @@ export function createRiftEnvironment(scene,arena,scale=.02){
       for(const [i,mesh] of bossRings.entries()){
         mesh.rotation.y=now*.00013*(i?-.8:1);
         mesh.visibility=match?.wave>=5?0.75:0.25;
+      }
+      for(const zone of hazardRings){
+        const current=match?.riftHazard;
+        const active=match?.wave===zone.hazard.sector&&
+          current?.id===zone.hazard.id;
+        for(const [i,mesh] of zone.meshes.entries()){
+          mesh.visibility=active?(current.phase==="warning"?.85:1):0;
+          if(active)mesh.scaling.setAll(1+
+            (current.phase==="warning"?.035*Math.sin(now*.008+i):.08));
+        }
       }
     }
   };

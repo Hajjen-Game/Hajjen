@@ -165,6 +165,8 @@ export class EnergyRiftExpedition extends EnergyPlanetDefense{
       this.waveDefeated=casualties;
     }
     if(!this.spawnQueue.length&&!this.living("enemy").length){
+      // Sector is cleared: cancel unfinished ground warnings immediately.
+      this.riftHazard=null;
       this.riftCleared=this.wave;
       this.emit({type:"rift-sector-clear",actorId:"player",wave:this.wave,
         waveName:this.sector.name});

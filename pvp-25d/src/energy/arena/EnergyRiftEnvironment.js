@@ -59,17 +59,6 @@ export function createRiftEnvironment(scene,arena,scale=.02){
   }
   // No rendered road. Distinct court silhouettes signal changes of biome,
   // while spell telegraphs always stay higher contrast than environment art.
-  function arc(name,x,z,r,start,end,material){
-    const points=[];
-    for(let j=0;j<=20;j++){
-      const angle=start+(end-start)*j/20;
-      points.push(new BABYLON.Vector3(x+Math.cos(angle)*r,.013,
-        z+Math.sin(angle)*r));
-    }
-    const mesh=BABYLON.MeshBuilder.CreateTube(name,{
-      path:points,radius:.018,tessellation:5},scene);
-    mesh.material=material;return isPickable(mesh);
-  }
   function polygon(name,x,z,r,sides,material,turn=0){
     const points=[];
     for(let j=0;j<=sides;j++){
@@ -85,42 +74,21 @@ export function createRiftEnvironment(scene,arena,scale=.02){
   for(let i=0;i<arena.route.length;i++){
     const sector=arena.route[i],x=sector.center.x*scale,z=sector.center.y*scale;
     const coreMat=mat("sect-"+i,tones[i][0],tones[i][1]);
-    // Four journey locations are deliberately NOT concentric circles.
-    // The fifth is still the unmistakable Rift Heart boss chamber.
+    // Rift 1.2b: bring back the clean, COMPLETE 1.1 combat circles.
+    // World accents live around the courts, not instead of their outlines.
+    // The Sanctum's large hexagon is intentionally retained as its identity.
     const isHeart=sector.shape==="heart";
+    const isSanctum=sector.shape==="sanctum";
     const base=cylinder("rift-arena-island-"+i,x,z,
-      isHeart?5.4:sector.shape==="bastion"?5.1:5.35,
-      .11,deep,isHeart?10:sector.shape==="sanctum"?6:
-        sector.shape==="grove"?9:sector.shape==="bastion"?8:7);
+      5.4+i%2*.5,.11,deep,10);
     base.position.y=-.079;
-    if(sector.shape==="fractured"){
-      base.scaling.x=1.09;base.scaling.z=.89;
-      arc("rift-threshold-broken-arc-n",x,z,4.36,-2.75,-.90,coreMat);
-      arc("rift-threshold-broken-arc-s",x,z,4.36,.15,1.87,coreMat);
-      for(let n=0;n<6;n++){
-        const a=n*1.38+.4;
-        const piece=cylinder("rift-threshold-rubble-"+n,
-          x+Math.cos(a)*4.65,z+Math.sin(a)*4.25,
-          .28+(n%3)*.11,.13+(n%2)*.19,n%2?stone:rubble,5);
-        piece.rotation.y=a;
-      }
-    }else if(sector.shape==="bastion"){
-      base.scaling.x=1.19;base.scaling.z=.77;
-      // Short transverse fortification markings, not a continuous road.
-      for(const side of [-1,1]){
-        box("rift-bastion-ledge-"+i+"-"+side,
-          x+side*4.7,z-.42,.64,1.26,.29,stone);
-        polygon("rift-bastion-sigil-"+i+"-"+side,
-          x+side*3.05,z+.55,.74,4,coreMat,.785);
-      }
-      arc("rift-bastion-left",x-2.1,z,2.18,2.18,4.1,copper);
-      arc("rift-bastion-right",x+2.1,z,2.18,-.98,.96,copper);
-    }else if(sector.shape==="grove"){
-      base.scaling.x=1.04;base.scaling.z=.92;
-      for(let n=0;n<3;n++)arc("rift-grove-crescent-"+n,
-        x+(n-1)*.28,z,3.26+n*.65,
-        .52+n*1.97,1.9+n*1.97,coreMat);
-    }else if(sector.shape==="sanctum"){
+    if(!isSanctum){
+      ring("rift-court-engraving-"+i,x,z,4.15,coreMat,.041,.019);
+      ring("rift-court-inner-"+i,x,z,2.45,copper,.027,.023);
+    }else{
+      // A quiet round perimeter frames the beloved bright hexagon without
+      // replacing its six-sided silhouette or cluttering the fight center.
+      ring("rift-sanctum-circle-frame",x,z,5.12,copper,.029,.018);
       polygon("rift-sanctum-hex",x,z,4.45,6,coreMat,.52);
       polygon("rift-sanctum-inner",x,z,2.35,6,copper,.52);
       for(let n=0;n<4;n++){
@@ -129,16 +97,15 @@ export function createRiftEnvironment(scene,arena,scale=.02){
         cylinder("rift-sanctum-pedestal-"+n,px,pz,.38,.24,stone,6);
         crystal("rift-sanctum-keystone-"+n,px,pz,1.1,.21,coreMat);
       }
-    }else if(isHeart){
-      ring("rift-court-engraving-"+i,x,z,4.15,coreMat,.028,.014);
-      ring("rift-court-inner-"+i,x,z,2.45,copper,.021,.018);
-      for(let n=0;n<8;n++){
-        const a=TWO_PI*n/8+i*.31;
-        const piece=cylinder("rift-heart-debris-"+n,
-          x+Math.cos(a)*4.76,z+Math.sin(a)*4.76,
-          .2+(n%3)*.1,.13+(n%2)*.15,n%2?stone:rubble,5);
-        piece.rotation.y=a;
-      }
+    }
+    // Restore sparse 1.1-like perimeter rubble. None of the following
+    // geometry creates new collision, roads, sigil squares or empty arcs.
+    for(let n=0;n<8;n++){
+      const angle=TWO_PI*n/8+i*.31;
+      const rx=x+Math.cos(angle)*4.76,rz=z+Math.sin(angle)*4.76;
+      const piece=cylinder("rift-court-debris-"+i+"-"+n,rx,rz,
+        .20+(n%3)*.10,.13+(n%2)*.15,n%2?stone:rubble,5);
+      piece.rotation.y=angle;
     }
     // Signature landmarks distinguish each sector without filling the
     // center of its actual playable combat space with collisionless props.

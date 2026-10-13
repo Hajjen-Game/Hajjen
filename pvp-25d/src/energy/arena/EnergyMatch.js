@@ -7,7 +7,7 @@ import {companionStyleFor} from "./EnergyCompanionStyles.js?v=20261012-dev-origi
 import { MODES, MAX_LEVEL, stagedLoadout, botAbilities, rosterRoles, enemyTuning } from "./EnergyProgression.js?v=20261012-rift1";
 import { singularityAvailable, SYNERGY_WINDOW_SECONDS } from "./EnergySingularity.js?v=20261012-eclipse-oc1";
 import { energyIdentity } from "./EnergyCharacter.js?v=20261012-rift1";
-import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261012-rift1";
+import { RUN_HISTORY_LIMIT, formatEnergyRunReport } from "./EnergyRunReport.js?v=20261013-rift12";
 import { BASE_HEALTH, BASE_CRIT_CHANCE, CRIT_MULTIPLIER, maxHealthForLevel,
   powerForLevel, damageMultiplier, healMultiplier, shieldMultiplier,
   rankedRule, successfulInterruptFlux }

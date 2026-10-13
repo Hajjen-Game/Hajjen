@@ -168,7 +168,7 @@ export function formatEnergyRunReport(match){
       .map(([id,tier])=>id+" tier "+tier).join(" · ")||"none")
   );
   if(match.modeId==="rift")lines.push(
-    "RIFT EXPEDITION 1.0 · "+safe(match.arena?.name)+
+    "RIFT EXPEDITION 1.2 · "+safe(match.arena?.name)+
       " · sector "+safe(match.wave)+"/5 · current "+safe(match.sector?.name),
     "Rift objective: "+safe(match.objective)+" | State: "+safe(match.waveState)+
       " | enemies defeated: "+safe(match.totalKills),
@@ -179,6 +179,11 @@ export function formatEnergyRunReport(match){
     "Rift boss: "+safe(match.actors.find(a=>a.boss)?.name||match.encounter?.boss?.name)+
       " | seed "+safe(match.encounterSeed)+
       " | first-run reward: none (prototype)",
+    "Sector shapes: "+(match.arena?.route||[])
+      .map((s,i)=>"sector "+(i+1)+" "+safe(s.shape)).join(" · "),
+    "Terrain hazards: "+(match.riftHazardHits||[]).map(h=>
+      "sector "+h.sector+" "+safe(h.name)+" at "+fix(h.time,1)+"s ["+
+      (h.affected||[]).join(", ")+"]").join("; "),
     "Equipped Evolutions: "+(Object.entries(match.player?.evolutions||{})
       .map(([id,evo])=>id+" → "+evo).join("; ")||"none"),
     "Rift-specific events: "+history.filter(e=>String(e.type).startsWith("rift-"))

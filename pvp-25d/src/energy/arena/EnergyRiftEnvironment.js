@@ -1,5 +1,5 @@
-// Rift Expedition world art 1.0: actual 3D terrain composition, traversal
-// language, ruins, crystalline landmarks and objective portals.
+// Rift Expedition 1.1: natural low-poly cliff formations, crystalline
+// landmarks and objective portals. No raised road/tube or luminous cube lids.
 // Geometry is decorative except arena.obstacles, which use the same shapes for
 // collision/LOS/AI. No Planet Defense floor grid and no external asset loading.
 const TWO_PI=Math.PI*2;
@@ -19,7 +19,14 @@ export function createRiftEnvironment(scene,arena,scale=.02){
     deep=mat("deep","#171c33"),copper=mat("copper","#544768"),
     violet=mat("violet","#6a47a0","#3d2265"),cyan=mat("cyan","#3b8995","#236875"),
     bloom=mat("bloom","#ad74ff","#8454da"),ember=mat("ember","#ba86f4","#75439e"),
-    floor=mat("path","#353044","#1e1c31"),rubble=mat("rubble","#29283c");
+    rubble=mat("rubble","#29283c");
+  // Matte earth/stone: no bright emissive white tops, even under the shared
+  // scene glow pass. Slightly varied faces give the cliffs readable facets.
+  const cliffBase=mat("cliff-base","#292c40","#080b14"),
+    cliffShadow=mat("cliff-shadow","#23283a","#060916"),
+    cliffFace=mat("cliff-face","#414159","#090d1a"),
+    cliffSlate=mat("cliff-slate","#34394e","#080d18"),
+    cliffViolet=mat("cliff-violet","#393248","#0d0919");
   const tones=[
     ["#714b98","#3c295f"],["#7385b5","#425978"],
     ["#40b8b6","#1c736e"],["#af84c4","#653d8c"],["#cc8cda","#7747b0"]
@@ -50,29 +57,8 @@ export function createRiftEnvironment(scene,arena,scale=.02){
     mesh.position.set(x,y,z);mesh.material=material;
     return isPickable(mesh);
   }
-  function pathLine(name,points,r,material){
-    const mesh=BABYLON.MeshBuilder.CreateTube(name,{
-      path:points.map(([x,z])=>new BABYLON.Vector3(x,.026,z)),
-      radius:r,tessellation:7},scene);
-    mesh.material=material;return isPickable(mesh);
-  }
-  // Walkable road is physically continuous but meanders through five
-  // differently-shaped encounter courts. A dim stone lane is contrasted by
-  // thin energy veins; real obstacles never sit on the centre line.
-  const centers=arena.route.map(r=>[r.center.x*scale,r.center.y*scale]);
-  const routePoints=[[7.1,17.3],...centers,[arena.width*scale-3.7,17.4]];
-  pathLine("rift-long-path",routePoints,.88,floor);
-  pathLine("rift-energy-spine",routePoints,.043,violet);
-  for(let i=0;i<routePoints.length-1;i++){
-    const a=routePoints[i],b=routePoints[i+1];
-    const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
-    const nx=-dz/len,nz=dx/len;
-    for(const side of [-1,1]){
-      pathLine("rift-road-seam-"+i+"-"+side,[
-        [a[0]+nx*.73*side,a[1]+nz*.73*side],
-        [b[0]+nx*.73*side,b[1]+nz*.73*side]],.021,copper);
-    }
-  }
+  // No rendered road. Navigation is provided by the world composition and
+  // the activated Rift portals; the playable route stays clear in the config.
   const portals=[],bossRings=[];
   for(let i=0;i<arena.route.length;i++){
     const sector=arena.route[i],x=sector.center.x*scale,z=sector.center.y*scale;
@@ -134,31 +120,45 @@ export function createRiftEnvironment(scene,arena,scale=.02){
       portals.push({stage:i+1,meshes:[portal,inner],x:gx,z:gz});
     }
   }
-  // True solid collision/LOS obstacles are rendered as layered, irregular
-  // stone ruins or clustered shards — not Planet Defense's simple grey boxes.
-  for(const o of arena.obstacles){
-    const x=(o.x+o.w/2)*scale,z=(o.y+o.h/2)*scale;
-    const w=o.w*scale,d=o.h*scale;
-    const height=o.kind==="monolith"?2.5:o.kind==="crystal"?1.85:1.35;
-    const material=o.kind==="crystal"?violet:o.kind==="monolith"?deep:stone;
-    const base=box("rift-solid-"+o.id,x,z,w,d,height,material);
-    base.rotation.y=0; // match real axis-aligned collision rectangle
-    box("rift-solid-crown-"+o.id,x,z,w*.84,d*.82,.17,
-      o.kind==="crystal"?bloom:stoneLight).position.y=height+.07;
-    if(o.kind==="crystal"||o.kind==="monolith"){
-      for(let n=0;n<3;n++){
-        const side=n-1;
-        crystal("rift-solid-crystal-"+o.id+"-"+n,
-          x+side*w*.29,z+(n%2?.21:-.16)*d,height*.78+1.0,
-          .23+(n%2)*.10,n%2?cyan:bloom,side*.14);
-      }
-    }else{
-      for(let n=0;n<2;n++)
-        box("rift-ruin-split-"+o.id+"-"+n,x+(n?-.25:.28)*w,
-          z+(n?.23:-.20)*d,w*.31,d*.36,height*.24,
-          n?stoneLight:rubble).position.y=height+.12;
-    }
+  // The existing rectangles remain the authoritative collisions for AI,
+  // player movement and LOS. Every visible cliff piece sits INSIDE its
+  // rectangle, so we do not introduce invisible surprise path blockers.
+  function rock(name,x,z,width,depth,height,material,facets=6){
+    const mesh=BABYLON.MeshBuilder.CreateCylinder(name,{
+      diameterBottom:1,diameterTop:.47,height,tessellation:facets},scene);
+    mesh.scaling.x=width;mesh.scaling.z=depth;
+    mesh.position.set(x,height*.5-.025,z);
+    mesh.material=material;return isPickable(mesh);
   }
+  function createCliffCluster(obstacle,index){
+    const {id,kind}=obstacle;
+    const x=(obstacle.x+obstacle.w*.5)*scale;
+    const z=(obstacle.y+obstacle.h*.5)*scale;
+    const w=obstacle.w*scale,d=obstacle.h*scale;
+    const tall=kind==="monolith"?2.45:
+      kind==="column"?2.05:kind==="crystal"?1.85:1.48;
+    const variant=(index*7+3)%5;
+    const dark=kind==="monolith"?cliffShadow:
+      kind==="crystal"?cliffViolet:cliffBase;
+    // Three overlapping tapered 5–7 sided volumes form uneven rock strata.
+    // No square caps; no glowing white top surfaces; no giant needle spires.
+    rock("rift-cliff-base-"+id,x,z,w*.84,d*.83,tall*.64,dark,7);
+    rock("rift-cliff-crest-"+id,
+      x-w*.15,z+d*.09,w*.52,d*.62,tall*(.85+variant*.045),
+      variant%2?cliffFace:cliffSlate,5);
+    rock("rift-cliff-shoulder-"+id,
+      x+w*.21,z-d*.15,w*.39,d*.53,tall*(.64+variant*.035),
+      kind==="monolith"?cliffShadow:cliffBase,6);
+    rock("rift-cliff-outcrop-"+id,
+      x-w*.19,z-d*.24,w*.37,d*.31,tall*(.38+(index%3)*.06),
+      cliffShadow,5);
+    // A few small low-poly fragments reinforce the rocky silhouette,
+    // restrained enough to keep projectile and boss telegraphs readable.
+    rock("rift-cliff-rubble-"+id,x+w*.24,z+d*.27,
+      w*.19,d*.16,.20+(index%2)*.07,cliffSlate,5);
+  }
+  for(const [index,o] of arena.obstacles.entries())
+    createCliffCluster(o,index);
   // Sparse background sculpture frames the route without littering the
   // combat lane or introducing hundreds of tiny expensive meshes.
   for(let i=0;i<arena.route.length;i++){

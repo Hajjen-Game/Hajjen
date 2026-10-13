@@ -5,6 +5,49 @@
 **Last reviewed:** 2026-10-13
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## AGREED — Spell Design 2.0: Eclipse / Cryo baseline (2026-10-13)
+
+**Status: USER-APPROVED DESIGN, NOT IMPLEMENTED.** These specs supersede the current three Cryo spells' Evolution designs *as intended future gameplay*, and add the proposed fourth spell Froststorm. The live ability catalog, Journey rewards, combat logic, VFX and saves are unchanged until a dedicated implementation pass. Eclipse is the FIRST Origin to be redesigned; discuss Impact next, then Vital and the more unusual Solar/Void spells.
+
+### Overall user-confirmed design rules
+
+- Prefer a clear, compact spell kit, not many redundant or forgettable buttons. Tentative catalogue direction: **4 core spells each for Vital, Kinetic and Cryo**, while **Solar and Void contain the more unusual, special/combo-driven spells** (a 4/4/4/5/5 distribution was suggested, but the total mix still requires a separate final roster decision).
+- Core Origin spells should cover meaningful single-target damage/healing, deliberate mouse-placed AoE, crowd control against ordinary mobs and possibly elites, and meaningful larger-cooldown actions. CC does NOT hard-control bosses. Avoid dispel-only buttons; removing Cleanse Flux/dispel is under consideration, not yet a committed implementation.
+- Evolutions must be **visibly and mechanically distinct**, not three variants of similar numerical DPS increases. Support satisfying, readable VFX and multiple valuable build/encounter choices.
+- **Powerful AoE is intentional**: design some Planet Defense waves and Rift Expedition mob packs with considerably MORE enemies so strong AoE and synergies are useful and necessary. Do not reflexively nerf exciting AoE or reduce Expanding Frost's damage per second; balance later through encounter density, enemy durability, mechanics, proc limits and actual playtests.
+- Elite/boss design should create situations where selecting the *right control or damage evolution* matters; user specifically hopes a **four-second elite Ice Tomb** can at times be crucial to surviving dangerous boss adds. No unfair unconditional required-spell gates before a counterplay unlock.
+
+### Eclipse: four confirmed spells, twelve Evolution directions
+
+**1. Crystal Bolt — baseline single-target damage.** Keep existing 1.3s cast, 12 Flux and 35% slow for 3s as initial reference values (numbers still subject to testing). Repeated, satisfying Cryo projectile and bread-and-butter ranged filler.
+- **Rapid Crystal [AGREED]:** faster casting; approximately every third Crystal Bolt can be cast while moving. Evolve for mobile fights and kiting; trade-off tuning later.
+- **Glacial Echo [AGREED]:** clearly visible second smaller crystal projectile lands shortly after the first, with satisfying Comet Rain-inspired sky/projectile VFX. Evolve for sustained single-target.
+- **Fracture Chain [AGREED, replaces Brittle Core]:** every third Crystal Bolt sends crystal fragments towards up to three nearby additional enemies, with distinct impacts. A cleave/wave-control alternative, visually obvious. Exact hit cadence, target cap and damage tuning provisional.
+
+**2. Crystal Snare — baseline multi-target CC.** Unlike current single-target root, the base cast hits the target AND nearby clustered ordinary mobs, rooting them for ~3 seconds while they can still cast/attack. Elite control allowed. Bosses immune to hard root, with a non-controlling Cryo/Chilled tag proposed for Fracture Spear synergy; avoid boss stun/root. Baseline cooldown kept at 18 seconds pending testing.
+- **Deep Freeze / Ice Tomb [AGREED]:** exchanges the default multi-target root for a **SINGLE-TARGET hard Ice Tomb** that prevents moving, casting and attacking for **FOUR FULL SECONDS even on ELITES**, with **NO cooldown increase**. Bosses remain immune to hard CC. This 4s elite duration is explicit and must not be silently halved in the implementation. Visual: big enclosing ice/iceberg.
+- **Shatterfield [AGREED]:** when rooted enemies are released, they leave behind small frost fields dealing damage and slow. Works particularly well with Froststorm and grouped enemies. Stacked damage should be tuned for high mob density, not prematurely made underwhelming.
+- **Crystal Conduit [AGREED, replaces Frost Momentum]:** targets caught by the same Snare connect with visible crystal beams; damage to one transmits some to the others while the links last (bound to CC window). PvE group-cleave synergy; exact shared percentage and safeguards TBD.
+
+**3. Fracture Spear — heavier cooldown single-target burst.** Keep a heavy, visually strong long-range cast and reward Crystal Snare setups. Bosses should have a *non-CC* Cryo mark so the conditional combo still works.
+- **Focused Fracture [AGREED]:** stays STRICTLY SINGLE-TARGET and deals substantially higher burst on a Crystal-Snare-affected / suitably marked target, including boss tag without root. Unlike general AoE, this is the elite/boss execution path.
+- **Crystal Rupture [AGREED]:** spear impact bursts into a radial field of flying crystal shards and deals splash around the primary target; the obvious multi-target variant.
+- **Riftbreaker [AGREED, replaces Delayed Shatter]:** spear pierces through the victim and tears a narrow linear fracture in the ground behind the target. Rising crystalline spikes strike enemies along that line and briefly slow mobs crossing it. Positional line-cleave distinct from Crystal Rupture's circular splash.
+
+**4. Froststorm — NEW, ground-targeted AoE.** Player selects a world position with the mouse; lasting local froststorm repeatedly damages enemies and slows eligible nonboss mobs. Initial design **4 seconds, ~24s cooldown, ~30 Flux** subject to test. Bosses take damage without being slowed. Does not duplicate Solar Zenith Crash's one-shot explosion.
+- **Glacial Barrage [AGREED, replaces Focused Storm proposal]:** while Froststorm persists, large ice crystals/comets visibly fall from above into telegraphed pockets of the storm and strike with spectacular impacts; base storm damage keeps ticking. Inspired by Comet Rain VFX.
+- **Expanding Frost [AGREED]:** the storm grows in radius and lasts longer, **without decreasing its normal damage per second**. Explicit rejection of an artificial per-second damage penalty.
+- **Shattering Storm [AGREED]:** Crystal Bolt and Fracture Spear impacts on enemies inside the storm trigger additional obvious crystal/frost explosions. Designed for active multi-spell combo play.
+
+### Design / implementation boundaries
+
+- The spell *identities* and the twelve Evolution *directions* above are approved; final DPS percentages, proc caps, exact radius, crowd-control rules and VFX implementation details remain for prototyping and combat tests.
+- A Crystal Snare root can hit a pack by default; **Deep Freeze trades that AoE away for a single-target, four-second elite-capable hard CC**. Bosses must never lose boss immunity to hard CC just to make burst combos work.
+- Preserve the distinction between Crystal Bolt cleave, Crystal Conduit's linked damage, Rupture's radial burst, Riftbreaker's line fracture, and Froststorm's persistent placed area. All are different spatial decisions and need their own visual language.
+- Because there are currently **22 spells (6 Origin-bound + 16 shared)**, replacing/adding Froststorm and simplifying other disciplines requires a future deliberate catalogue/Journey migration, not silently creating a 23rd permanent slot or breaking existing Origins.
+- **Next design pass: Impact / Kinetic**. User requires a real, satisfying targeted **Charge** and a reliable **Interrupt**. Any new Impact spell/evolution proposals are NOT yet agreed.
+- No gameplay code is being changed in this documentation pass.
+
 ## The core game identity
 
 - **IMPLEMENTED:** Player is a custom energy orb with distinct Origin, selectable build, spells, Mastery, Evolutions and Singularity.

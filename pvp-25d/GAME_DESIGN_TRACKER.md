@@ -5,6 +5,53 @@
 **Last reviewed:** 2026-10-13
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## AGREED — Spell Design 2.1: Impact / Kinetic (2026-10-13)
+
+**Status: USER-APPROVED AND LOCKED AS CURRENT DESIGN; NOT YET IMPLEMENTED.** This describes the planned Impact combat kit and all 12 Evolution directions, after the user's two rounds of feedback. Do **not** present the current live Kinetic combat code, catalogue, or Evolutions as already updated. Implementation will be a separate, explicitly requested development pass, coordinated with the Cryo/Eclipse redesign.
+
+### Identity and four core spells
+
+Impact = aggressive, physical Kinetic melee Origin that charges between enemies, interrupts important casts, executes rapid attack chains and controls/destroys crowded melee packs. **Targeted Charge and dependable Interrupt are mandatory**. The proposed four-spell roster:
+1. **Arc Strike** — fast, frequently usable basic single-target melee attack with existing two-attack rhythm (the second Arc Strike within ~4s is stronger). Its Evolutions build cleave, concentrated combos or a reactive defense/counter.
+2. **Phase Rush** — a REAL, visible, targeted Charge into an enemy, not a free direction dash/teleport. Start from existing ~17s cooldown reference; active path/LOS/collision rules remain subject to testing. Its Evolutions distinguish radial impact AoE, chained kill pursuit, and a line-piercing kinetic wave.
+3. **Pulse Sever** — responsive melee-range Interrupt against interruptible enemy casts (including interruptible boss abilities). Existing ~15s cooldown is an initial reference. Does not imply bosses become stunnable/CC-vulnerable.
+4. **Gravity Hammer** — large-cooldown, MOUSE-PLACED ground-targeted heavy Kinetic impact that damages an area and briefly knocks down ordinary mobs (and may affect elites according to encounter tuning). Bosses take damage but are immune to hard knockdown/forced positioning. Initial cooldown ~20s is a suggestion, NOT an approved final tuning number. This spell fulfills Impact's AoE/CC role.
+
+**No extra fifth Impact CC spell is planned by default.** Existing **Vector Rush** (directional mobility) and **Resonance Cut** (longer-range interrupt) overlap with Charge/Interrupt and are candidates for later removal or redesign when the total catalogue is finalized; do not delete them yet or break cross-Origin spell availability.
+
+### Arc Strike Evolutions — all AGREED
+
+- **Twin Arc [AGREED]:** every third Arc Strike creates an extra visible Kinetic energy arc, striking additional enemies in front of Impact. Distinct short-range cleave option.
+- **Overdrive [AGREED]:** the player performs **two normal button presses** of Arc Strike in the existing combo window; the SECOND Arc Strike activation automatically becomes **three very rapid, separate visual hits** on the chosen target, like a directed mini-Bladestorm. These are **NOT three additional full-strength Arc Strike casts**; the second cast's upgraded total damage is distributed/tuned across the three animated hits. No three extra keypresses, no unlimited auto-loop. Focus: single-target burst and punchy animation.
+- **Kinetic Reprisal [AGREED; replaces Resonant Edge]:** completing the two-hit Arc Strike combo surrounds Impact with a short-lived, visibly cracked red kinetic shield. The shield absorbs the next incoming attack and retaliates with a kinetic blast when struck. Damage/shield ceiling, duration and cooldown/proc gating require playtesting so boss attacks cannot be nullified without meaningful trade-offs. This is the reactive defense and retaliation alternative.
+
+### Phase Rush Evolutions — all AGREED
+
+- **Meteor Charge [AGREED]:** Charge arrives with a large Kinetic explosion centered on Impact/target and damages nearby mobs. Visually big AoE landing.
+- **Relentless Pursuit [AGREED]:** if an enemy dies shortly after Impact's Charge, Impact may make another targeted Charge toward a new enemy. Creates highly mobile kill-chaining across large packs; exact activation window and chain limits TBD.
+- **Piercing Charge [AGREED; replaces Breach Charge]:** Phase Rush still charges and stops at its selected target, but a powerful Kinetic energy wave continues *through that target* in a narrow straight line, damaging enemies lined up behind it. This is not permission to travel through arena walls or physical collision obstacles. Positional line-cleave variant, not a generic damage vulnerability debuff.
+
+### Pulse Sever Evolutions — all AGREED
+
+- **Echo Sever [AGREED]:** a successful primary Interrupt sends out a visible energy ring that also interrupts nearby ordinary mobs' active casts; no global interrupt across the arena.
+- **Countershock [AGREED]:** a successful Interrupt unleashes a heavy kinetic counterexplosion damaging enemies around the interrupted target. Visible instant offensive response.
+- **Warpath [AGREED; replaces Deflection Field]:** a successful Interrupt enters a short **~4-second damage boost mode** (initial candidate ~20% bonus damage, exact value TBD). Give Impact a visible aggressive aura, stronger red lightning and enhanced melee impacts. Interruptible boss mechanics create deliberate burst windows without making the boss CC-able.
+
+### Gravity Hammer Evolutions — all AGREED
+
+- **Singularity Impact [AGREED]:** focus energy into a smaller marked impact area for very heavy damage, especially against a boss/isolated elite.
+- **Seismic Wave [AGREED]:** the impact releases multiple expanding waves that damage enemies further and further from the center. A large-pack wave-clear path; make subsequent waves visually legible and exciting.
+- **Gravity Well [AGREED]:** a residual gravity zone remains after impact; pulls ordinary mobs and potentially elites toward its center, dealing damage over time. Bosses take applicable damage but **are NOT pulled or hard-controlled**. Synergy with allies' Froststorm, Zenith Crash and other ground AoE is part of the intended fun.
+
+### Design boundaries / implementation notes
+
+- The four named core spells and all twelve named Evolution *behaviors* are accepted as the current design. **Numbers, ranges, overall DPS/Flux values, proc caps, trigger timing and visual polish** are intentionally preliminary and should be tuned in playtests rather than treated as fixed approvals.
+- Strong multi-target combos are allowed on purpose, with larger/more dangerous wave packs tuned to reward them instead of immediately suppressing the effects.
+- CC and forced movement should work on eligible mobs/elites, not bosses. Interrupt is separate from CC: explicitly interruptible boss casts can be countered through Pulse Sever.
+- Each spell should have three meaningfully distinct Evolution decisions with clear in-world feedback, not invisible passive percentage differences.
+- Existing Journey begins with **Phase Rush + Arc Strike** as Impact's two Origin-locked spells. Pulse Sever and Gravity Hammer currently belong to shared/unlockable Kinetic spells; any final reclassification, spell-pool adjustment or removal of overlapping Kinetic abilities requires an explicit Journey and 22-slot catalogue migration decision. This design DOES NOT silently change unlocks or saves.
+- The larger Solar/Void special-spell design and Vital/Genesis's four-spell kit remain future design passes. **Impact and Eclipse are now approved at the design level only; neither overhaul has been implemented in combat.**
+
 ## AGREED — Spell Design 2.0: Eclipse / Cryo baseline (2026-10-13)
 
 **Status: USER-APPROVED DESIGN, NOT IMPLEMENTED.** These specs supersede the current three Cryo spells' Evolution designs *as intended future gameplay*, and add the proposed fourth spell Froststorm. The live ability catalog, Journey rewards, combat logic, VFX and saves are unchanged until a dedicated implementation pass. Eclipse is the FIRST Origin to be redesigned; discuss Impact next, then Vital and the more unusual Solar/Void spells.
@@ -45,7 +92,7 @@
 - A Crystal Snare root can hit a pack by default; **Deep Freeze trades that AoE away for a single-target, four-second elite-capable hard CC**. Bosses must never lose boss immunity to hard CC just to make burst combos work.
 - Preserve the distinction between Crystal Bolt cleave, Crystal Conduit's linked damage, Rupture's radial burst, Riftbreaker's line fracture, and Froststorm's persistent placed area. All are different spatial decisions and need their own visual language.
 - Because there are currently **22 spells (6 Origin-bound + 16 shared)**, replacing/adding Froststorm and simplifying other disciplines requires a future deliberate catalogue/Journey migration, not silently creating a 23rd permanent slot or breaking existing Origins.
-- **Next design pass: Impact / Kinetic**. User requires a real, satisfying targeted **Charge** and a reliable **Interrupt**. Any new Impact spell/evolution proposals are NOT yet agreed.
+- **Impact / Kinetic design now approved:** see **Spell Design 2.1: Impact / Kinetic** above for the four selected core spells and all twelve user-approved Evolution directions, including mandatory Charge and Interrupt. Implementation is pending.
 - No gameplay code is being changed in this documentation pass.
 
 ## The core game identity

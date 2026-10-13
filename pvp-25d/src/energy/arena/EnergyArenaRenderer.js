@@ -3,10 +3,10 @@
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
-import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261012-rift1";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
-import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-terrain11";
+import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift12";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 
 const S=.02;

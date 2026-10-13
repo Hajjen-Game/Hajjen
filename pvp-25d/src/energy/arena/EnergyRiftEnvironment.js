@@ -227,8 +227,11 @@ export function createRiftEnvironment(scene,arena,scale=.02){
       for(const portal of portals){
         const active=portal.stage===gateIndex;
         for(const [j,mesh] of portal.meshes.entries()){
-          mesh.scaling.setAll(active?1+.08*Math.sin(now*.003+j):.84);
-          mesh.visibility=active?1:.32;
+          // A cleared sector must NOT brighten the surrounding Rift.
+          // Keep portal emissive visibility steady; opening is communicated
+          // by a small local pulse (and the existing HUD/objective).
+          mesh.scaling.setAll(active?1+.035*Math.sin(now*.003+j):.98);
+          mesh.visibility=.52;
           mesh.rotation.y=active?now*.0003*(j?-.8:1):0;
         }
       }

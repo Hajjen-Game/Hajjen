@@ -5,10 +5,10 @@ import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin, upsertDevOrigin, devOrigin } from "./EnergyOriginRoster.js?v=20261012-rift1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261012-rift1";
-import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261012-rift1";
-import { EnergyRiftExpedition, RIFT_SECTORS } from "./EnergyRiftExpedition.js?v=20261012-rift1";
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261013-terrain11";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261013-rift12";
+import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261013-rift12";
+import { EnergyRiftExpedition, RIFT_SECTORS } from "./EnergyRiftExpedition.js?v=20261013-rift12";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261013-rift12";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
 import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
@@ -19,7 +19,7 @@ import { EnergyCharacterHub } from "./EnergyCharacterHub.js?v=20261012-rift1";
 import { EnergyMainMenu } from "./EnergyMainMenu.js?v=20261012-rift1";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 import { SHATTERED_EXPANSE } from "../../content/arenas/planet-defense/shattered-expanse/config.js?v=20261011-guided-defense8";
-import { ECHOING_RIFT } from "../../content/arenas/rift-expedition/echoing-rift/config.js?v=20261012-rift1";
+import { ECHOING_RIFT } from "../../content/arenas/rift-expedition/echoing-rift/config.js?v=20261013-rift12";
 
 const $=id=>document.getElementById(id);
 const hotkeys=["1","2","3","4","5","6","7","8","9","0"];

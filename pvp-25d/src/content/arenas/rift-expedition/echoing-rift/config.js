@@ -2,15 +2,15 @@
 // Distances are EnergyMatch world units; collision rectangles are shared with
 // real AI navigation, projectiles, and line-of-sight checks.
 const route=[
-  {id:"threshold",name:"THE FRACTURED THRESHOLD",center:{x:530,y:865},
-    gate:{x:835,y:840},focus:"Break through the ruined Rift entrance"},
-  {id:"causeway",name:"THE SHATTERED CAUSEWAY",center:{x:1180,y:790},
-    gate:{x:1500,y:900},focus:"Clear the defenders among the broken pillars"},
-  {id:"garden",name:"THE GLASSWOUND GROVE",center:{x:1880,y:995},
-    gate:{x:2180,y:950},focus:"Fight through the crystalline growth"},
-  {id:"sanctum",name:"THE SILENT SANCTUM",center:{x:2515,y:830},
-    gate:{x:2830,y:890},focus:"Unseal the last approach to the Nexus"},
-  {id:"heart",name:"THE RIFT HEART",center:{x:3230,y:875},
+  {id:"threshold",name:"THE FRACTURED THRESHOLD",shape:"fractured",center:{x:530,y:865},
+    gate:{x:835,y:840},focus:"Use the broken rock cover to defeat the threshold guardians"},
+  {id:"causeway",name:"THE SHATTERED CAUSEWAY",shape:"bastion",center:{x:1180,y:790},
+    gate:{x:1500,y:900},focus:"Flank the guardians around shattered bastions and pillars"},
+  {id:"garden",name:"THE GLASSWOUND GROVE",shape:"grove",center:{x:1880,y:995},
+    gate:{x:2180,y:950},focus:"Avoid the telegraphed Glasswound flux pulses"},
+  {id:"sanctum",name:"THE SILENT SANCTUM",shape:"sanctum",center:{x:2515,y:830},
+    gate:{x:2830,y:890},focus:"Avoid the Sanctum rupture and use LOS cover"},
+  {id:"heart",name:"THE RIFT HEART",shape:"heart",center:{x:3230,y:875},
     gate:null,focus:"Defeat the Rift Heart guardian"}
 ];
 const obstacle=(id,x,y,w,h,kind)=>({id,x,y,w,h,kind});
@@ -28,17 +28,31 @@ export const ECHOING_RIFT=Object.freeze({
     obstacle("causeway-n",1055,500,170,165,"column"),
     obstacle("causeway-s",1320,1045,150,150,"ruin"),
     obstacle("causeway-east",1510,610,110,130,"crystal"),
+    obstacle("causeway-flank",1255,710,100,125,"stone"),
     obstacle("grove-nw",1695,665,160,150,"crystal"),
     obstacle("grove-sw",1755,1250,185,145,"crystal"),
     obstacle("grove-ne",1985,650,150,120,"crystal"),
     obstacle("grove-se",2060,1190,130,155,"crystal"),
+    obstacle("grove-flank",1915,755,105,110,"crystal"),
     obstacle("sanctum-n",2405,500,205,145,"column"),
     obstacle("sanctum-s",2590,1110,205,155,"ruin"),
     obstacle("sanctum-west",2270,1200,120,135,"stone"),
+    obstacle("sanctum-flank",2660,675,115,130,"ruin"),
     obstacle("heart-nw",3000,555,155,170,"monolith"),
     obstacle("heart-ne",3400,600,150,175,"monolith"),
     obstacle("heart-sw",3020,1180,145,160,"monolith"),
     obstacle("heart-se",3390,1135,145,165,"monolith")
+  ]),
+  // Timed telegraph hazards operate ONLY while their sector is being fought.
+  // They use visual warning rings and apply bounded damage or Flux loss.
+  // Center points are deliberately unobstructed and away from all gates.
+  hazards:Object.freeze([
+    Object.freeze({sector:3,id:"glasswound-surge",kind:"flux",
+      name:"GLASSWOUND SURGE",x:1870,y:1035,radius:130,
+      interval:10,warning:2.0,fluxLoss:18}),
+    Object.freeze({sector:4,id:"sanctum-rupture",kind:"damage",
+      name:"SANCTUM RUPTURE",x:2510,y:865,radius:142,
+      interval:11,warning:2.2,damageRatio:0.075})
   ]),
   spawns:{
     "friendly-healer":{x:400,y:822,facing:0},

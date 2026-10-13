@@ -1,7 +1,7 @@
 // Rift Expedition 1.0: a route through five connected locations.
 // Shares the real combat/creature/boss systems, but deliberately does NOT
 // inherit Planet Defense's automatic wave-to-wave intermissions and rewards.
-import {EnergyMatch,canStand} from "./EnergyMatch.js?v=20261012-rift1";
+import {EnergyMatch,canStand,hasLineOfSight} from "./EnergyMatch.js?v=20261012-rift1";
 import {EnergyPlanetDefense} from "./EnergyPlanetDefense.js?v=20261012-rift1";
 import {MODES} from "./EnergyProgression.js?v=20261012-rift1";
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -23,6 +23,7 @@ export class EnergyRiftExpedition extends EnergyPlanetDefense{
     this.riftHistory=[];
     this.riftGate=null;
     this.riftCleared=0;
+    this.riftHazard=null;this.riftHazardHits=[];
     this.beginWave();
   }
   get sector(){return this.arena.route[this.wave-1]||null;}
@@ -42,6 +43,8 @@ export class EnergyRiftExpedition extends EnergyPlanetDefense{
     this.spawnQueue=[...this.currentWave.enemies];
     this.spawnClock=0;
     this.riftGate=null;
+    this.riftHazard=null;
+    this.nextRiftHazardAt=this.time+5.5;
     this.ai.planTick=0;
     // If AI allies remained behind a distant rock formation, reunite them
     // at a safe spot near the player; the player always travels on foot.
@@ -62,6 +65,60 @@ export class EnergyRiftExpedition extends EnergyPlanetDefense{
     this.emit({type:"wave-start",wave:this.wave,waveName:this.sector.name,
       encounterTier:this.encounter.tier,encounterStage:"RIFT EXPEDITION",
       waveFocus:this.sector.focus});
+  }
+  // Only sectors 3 and 4 carry simple positional challenges; these are
+  // world mechanics, not hidden spell effects, and never run outside Rift.
+  updateRiftHazard(){
+    if(this.waveState!=="active"||this.ended)return;
+    const hazard=this.arena.hazards?.find(h=>h.sector===this.wave);
+    if(!hazard||!this.living("enemy").length)return;
+    const now=this.time,active=this.riftHazard;
+    if(active?.phase==="warning"){
+      if(now<active.until)return;
+      const affected=[];
+      for(const actor of this.actors){
+        if(!actor.alive||distance(actor,hazard)>hazard.radius||
+          !hasLineOfSight(hazard,actor,this.arena))continue;
+        if(hazard.kind==="flux"){
+          const before=actor.flux;
+          actor.flux=Math.max(0,actor.flux-hazard.fluxLoss);
+          if(before>actor.flux)affected.push(actor.id);
+        }else{
+          const guard=actor.statuses.find(q=>q.kind==="guard"&&q.remaining>0);
+          const raw=Math.round(actor.maxHp*hazard.damageRatio*(1-(guard?.amount||0)));
+          const absorb=Math.min(actor.shield,raw);
+          actor.shield-=absorb;
+          const amount=Math.max(0,raw-absorb);
+          actor.hp=Math.max(0,actor.hp-amount);
+          actor.healthPct=actor.hp/actor.maxHp;
+          if(raw>0)affected.push(actor.id);
+          if(actor.hp<=0){
+            actor.alive=false;actor.cast=null;actor.charge=null;
+            this.log(actor.name+" fell to "+hazard.name);
+            this.emit({type:"death",actorId:actor.id,targetId:actor.id,
+              killerId:"rift-environment",spellId:hazard.id});
+          }
+        }
+      }
+      this.riftHazardHits.push({sector:this.wave,name:hazard.name,
+        time:now,affected:[...affected]});
+      this.emit({type:"rift-hazard-impact",actorId:"rift-environment",
+        hazardId:hazard.id,kind:hazard.kind,sector:this.wave,
+        x:hazard.x,y:hazard.y,radius:hazard.radius,affected});
+      this.riftHazard={...hazard,phase:"impact",until:now+.42};
+      this.nextRiftHazardAt=now+hazard.interval;
+      return;
+    }
+    if(active?.phase==="impact"){
+      if(now>=active.until)this.riftHazard=null;
+      return;
+    }
+    if(now<this.nextRiftHazardAt)return;
+    this.riftHazard={...hazard,phase:"warning",until:now+hazard.warning};
+    this.emit({type:"rift-hazard-warning",actorId:"rift-environment",
+      hazardId:hazard.id,kind:hazard.kind,sector:this.wave,
+      x:hazard.x,y:hazard.y,radius:hazard.radius,duration:hazard.warning});
+    this.log(hazard.name+" · MOVE OUT OF THE WARNING RING");
   }
   // Deliberately no intermission or between-wave Overcharge selection:
   // progress is determined by traversing the world and opening seals.
@@ -99,6 +156,8 @@ export class EnergyRiftExpedition extends EnergyPlanetDefense{
     EnergyMatch.prototype.update.call(this,dt);
     if(this.ended)return;
     this.updateEncounters();
+    this.updateRiftHazard();
+    if(this.ended)return;
     const casualties=this.actors.filter(a=>a.team==="enemy"&&
       a.id.startsWith("wave-"+this.wave+"-")&&!a.alive).length;
     if(casualties>this.waveDefeated){

@@ -5,6 +5,54 @@
 **Last reviewed:** 2026-10-13
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## AGREED — Spell Design 2.2: Genesis / Vital (2026-10-13)
+
+**Status: USER-APPROVED CURRENT DESIGN, NOT IMPLEMENTED.** Genesis joins Eclipse (Cryo) and Impact (Kinetic) as the third Origin whose proposed four-spell, twelve-Evolution design has been accepted. Gameplay code, abilities, Journey pools, save files and VFX have NOT been modified by this design decision. Solar is the next DISCUSSION / PROPOSAL discipline, followed by Void; do not mark either as approved without user feedback.
+
+### Core identity and four-spell kit
+
+Genesis is an active 3-character PvE healer. The player and two AI companions are often far apart; therefore **ground-placed, proximity-dependent healing is a poor foundation**. Healing can deliberately seek friendly units across the battlefield (subject to future fair target/range/gameplay checks), while abilities can link defensive preparation, emergency saves and meaningful offensive-heal hybrids. Four approved core spell directions:
+
+1. **Pulse Mend [AGREED]** — reliable casted direct single-target heal on self or ally (existing starting spell; ~1.5s cast, 18 Flux reference), enhanced by one of three strongly differentiated Evolutions.
+2. **Vital Cascade [AGREED, NEW]** — targeted team-healing chain: heal a chosen friendly, then send highly VISIBLE restorative energy to other wounded allies regardless of how far apart the three team members stand. Not a mouse-positioned AoE or a radius-limited clump heal. Initial cooldown suggestion ~20–24s is provisional.
+3. **Resonance Guard [AGREED, REDESIGN]** — **PURE DAMAGE-ABSORB SHIELD**, NOT percentage damage reduction. Instant, target self/ally, visible protective energy shell with its own capped absorb pool. Its old 33%/4s guard mechanic is superseded by this agreed planned identity. Suggested ~8s duration and ~32s cooldown are TUNING PROPOSALS, NOT approved final balance. Active shield's used-up absorption can be restored by the Vital Reversal synergy up to **the original shield capacity only**; no infinite permanent shield or overcap.
+4. **Stasis Seal [AGREED, NEW]** — single-target break-on-damage incapacitating control: enclosing green translucent energy prison that stops movement, attack and casting (~5s candidate). Against elites, shorter duration may be appropriate; bosses remain immune to hard CC, with only a potential short non-CC weakening effect. Its Evolutions offer group CC, a healing release, or resource sustain. Exact CC/DR timings remain to test.
+
+### Pulse Mend Evolutions — all AGREED
+
+- **Vital Crescendo [AGREED]:** the player can **hold the Pulse Mend button** to charge it beyond its normal quick cast into a deliberately longer, enormously impactful single-target heal (~2.5s example). Readable growing green charge/build-up, huge impact. Manual timing choice between quick basic heal and charged heal; not an automatic invisible numeric proc.
+- **Second Heart [AGREED]:** direct Pulse Mend plants a visible short-lived Vital core in its friendly target; the core later automatically detonates as an emergency heal if the target falls critically low (~30% HP candidate threshold). Saving a lethal blow is NOT implicitly guaranteed unless separately specified. Duration/once-per-core safeguards TBD.
+- **Vital Reversal [AGREED; replaces Healing Echo]:** Pulse Mend can target an **ENEMY**. On enemy impact it deals Vital damage and fires clearly visible healing pulses/strands to **EVERY injured team member**, even if spread out. If any teammate has **ACTIVE Resonance Guard**, the impact ALSO REFILLS part of their remaining shield absorb pool, **capped at that Guard instance's original maximum capacity**. Does not refill a shield that expired or turn Guard into DR. Friendly Pulse Mend remains its normal direct heal. This is the intended active Atonement/Penance-like hybrid gameplay, distinct from the earlier Symbiotic Mend proposal (which is **NOT selected**).
+  
+**Selection history:** User rejected Healing Echo (passive bounce) and replaced it with enemy-targeted Vital Reversal. User then explicitly chose to **replace Symbiotic Mend with the separately proposed hold-to-charge Vital Crescendo**. Final Pulse Mend trio is **Vital Crescendo / Second Heart / Vital Reversal**, no Healing Echo and no Symbiotic Mend.
+
+### Vital Cascade Evolutions — all AGREED
+
+- **Double Cascade [AGREED]:** after the initial heal chain, a **second, visibly distinct wave** seeks the team members who still need healing most. Responsive team recovery.
+- **Rejuvenating Orbit [AGREED]:** healed allies receive **three orbiting Vital cores each**, then periodic healing pulses over a few seconds (~6s candidate). Intended as visually compelling sustained team healing, not ground-radius AoE.
+- **Life Transfer [AGREED]:** smart capped transfer of some health from a healthier team member to urgently heal a heavily wounded teammate; donor cannot die or be pushed to a dangerous threshold solely by the transfer. Dramatic triage mechanic; exact caps/HP floor TBD.
+
+### Resonance Guard Evolutions — all AGREED
+
+- **Guardian Network [AGREED]:** main ally/self receives the largest **absorb shield**, while other teammates automatically gain smaller capped absorb shields **irrespective of separation**.
+- **Retaliation [AGREED]:** absorbed damage accumulates visible energy in the shell; when the shield expires/breaks, it unleashes distinct homing Kinetic-like but Vital-coloured counter-projectiles at contributing enemies, with capped damage and appropriate targeting.
+- **Last Stand [AGREED]:** while active, a single would-be lethal hit can be prevented; the Guard bursts in a dramatic Vital rescue effect restoring some target health. Needs explicit one-proc, reasonable cooldown/eligibility and outcome rules, not an unconditional permanent immortality loop.
+
+### Stasis Seal Evolutions — all AGREED
+
+- **Tranquility Wave [AGREED]:** successful seal projects a clear CC wave to nearby eligible normal mobs, placing them in shorter-duration, damage-breakable stasis. Ordinary NPC crowd control, NOT boss incapacitation.
+- **Mercy Bloom [AGREED]:** when Stasis Seal ends naturally or breaks through incoming damage, it releases a luminous healing blossom that seeks the team's most injured ally, even at range.
+- **Essence Siphon [AGREED]:** during a valid Stasis Seal, a clear energy stream channels back to Genesis to regenerate Flux and small healing pulses to the team. Requires eligibility/timing checks for immune boss targets, not a free always-on loop.
+
+### Boundaries and migration notes
+
+- Genesis currently begins with two locked Vital skills **Pulse Mend and Resonance Guard**; keep those as the agreed starting pair. The CURRENT live Vital catalogue has **Pulse Mend, Resonance Guard, Reactive Thread, Symbiosis Link, Cleanse Flux** and is NOT yet changed.
+- The new 4-spell proposal **replaces separate Reactive Thread / Symbiosis Link / Cleanse Flux slots** with Vital Cascade and Stasis Seal; some interesting healing-over-time/damage-to-heal ideas are absorbed into Evolutions. Retiring standalone Dispel/Cleanse Flux from the final roster is consistent with the user's direction; whether any cleansing should survive in another non-spell form is not yet determined.
+- **Do not keep the old percentage damage reduction under Resonance Guard**: user explicitly rejected a hybrid 'DR + extra absorb' and selected **absorb INSTEAD of DR**.
+- Avoid mechanical and VFX duplication across Evolutions, especially team-chain Vital Cascade versus Pulse Mend's Vital Reversal: Cascade is a deliberate **healing-oriented cooldown**, Reversal is an **offensive Pulse Mend variant** that heals wounded allies and replenishes Guard.
+- Strong effects are intentional; balance enemy waves and boss windows for exciting decisions after prototype gameplay tests. Numerical healing, Flux, shield HP, target rules, range, cooldown and proc triggers are provisional.
+- No implementation, save migration, Journey unlock changes or Solar/Void design approvals are part of this doc-only commit.
+
 ## AGREED — Spell Design 2.1: Impact / Kinetic (2026-10-13)
 
 **Status: USER-APPROVED AND LOCKED AS CURRENT DESIGN; NOT YET IMPLEMENTED.** This describes the planned Impact combat kit and all 12 Evolution directions, after the user's two rounds of feedback. Do **not** present the current live Kinetic combat code, catalogue, or Evolutions as already updated. Implementation will be a separate, explicitly requested development pass, coordinated with the Cryo/Eclipse redesign.
@@ -50,7 +98,7 @@ Impact = aggressive, physical Kinetic melee Origin that charges between enemies,
 - CC and forced movement should work on eligible mobs/elites, not bosses. Interrupt is separate from CC: explicitly interruptible boss casts can be countered through Pulse Sever.
 - Each spell should have three meaningfully distinct Evolution decisions with clear in-world feedback, not invisible passive percentage differences.
 - Existing Journey begins with **Phase Rush + Arc Strike** as Impact's two Origin-locked spells. Pulse Sever and Gravity Hammer currently belong to shared/unlockable Kinetic spells; any final reclassification, spell-pool adjustment or removal of overlapping Kinetic abilities requires an explicit Journey and 22-slot catalogue migration decision. This design DOES NOT silently change unlocks or saves.
-- The larger Solar/Void special-spell design and Vital/Genesis's four-spell kit remain future design passes. **Impact and Eclipse are now approved at the design level only; neither overhaul has been implemented in combat.**
+- Vital/Genesis's four-spell, twelve-Evolution design is now **AGREED** in Spell Design 2.2 above. The larger Solar/Void special-spell catalogues remain future design discussions. **Genesis, Impact and Eclipse are approved at the design level only; none of those overhauls has been implemented in combat.**
 
 ## AGREED — Spell Design 2.0: Eclipse / Cryo baseline (2026-10-13)
 

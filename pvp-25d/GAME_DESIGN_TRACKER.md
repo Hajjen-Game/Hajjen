@@ -5,6 +5,27 @@
 **Last reviewed:** 2026-10-13
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## AGREED — Five-class direction and Cross-Class Synergy Spells (2026-10-14)
+
+**Status: USER-AGREED DIRECTION / CONCEPT, NOT IMPLEMENTED.** This is the current overarching design direction and **supersedes the earlier assumption that Solar and Void are shared spell disciplines**. Earlier sections below document their historical design decisions for reference, but do not override this newer direction. Do not change live gameplay/catalogue/Journey/AI without a dedicated implementation pass.
+
+### Character and spell identity
+- Plan for **FIVE full-fledged, class-locked Origins/classes**: **Genesis (Vital)** healer and offensive healing; **Impact (Kinetic)** charge/interrupt/physical melee; **Eclipse (Cryo)** control/burst; **Solar** explosive ranged magic combining the feel of Elemental Shaman + Warlock; **Void** mobile shadow/melee hybrid combining Demon Hunter + Rogue + Shadow Priest.
+- Each class is envisioned with **SIX distinct active, class-locked spells**, rather than all classes sharing the Solar/Void pool. Six is the accepted **starting scope**; don't silently increase to seven. This implies **30 active class spells** across five classes if fully built.
+- **Spells 1–4** are the established core identity spells, each with **THREE alternative Evolutions** (choose one for a given spell). Keep the previously user-approved four-spell designs and 12 Evolution directions for Genesis, Impact, Eclipse intact; Solar/Void core designs are still to be created as *classes*.
+- **Spells 5 and 6** are envisioned as **full, fun, useful standalone active abilities in their own right**, but ALSO have intentional **cross-class synergy interactions** that can create a **spectacular, distinctly animated extra effect** when combined with a suitable spell from ANOTHER class. The synergy is a genuinely different behavior/VFX, not merely +15% damage/healing.
+- **Not final yet:** whether spells 5–6 have their own Evolutions. User's promising idea is to **omit Evolutions** on these two and focus on synergy interactions, but they explicitly have **not decided**. Accordingly, "4 evolved core spells + 2 cross-class synergy spells" is a structural direction, not a mandate that the last two can NEVER evolve.
+- Keep the intrinsic class usability intact if the matching other class isn't present: **synergy enhances an already good spell; it is not a requirement for the spell to function**. The cross-class effect may trigger via an AI companion's normal spell use without micromanaging multiple characters or requiring frame-perfect coordination.
+- **Crystal Convergence** is user-approved as an *example / direction* of a desirable cross-class effect: a Cryo-controlled/clustered group interacting with a Solar ability to unleash a memorable crystal + solar reaction. The exact component spells, timing, damage, VFX and whether it resides on slots 5–6 remain NOT finalized. Other previously mentioned cross-class synergy examples are illustrative only, not all approved.
+- Cross-class interactions should complement, **not prohibit**, satisfying within-class combos such as Crystal Snare + Froststorm or Resonance Guard + Vital Reversal. Core spells should retain their intrinsic synergy potential.
+
+### Modes / companion implications still to design
+- **Planet Defense:** keep a compact player-plus-AI-team wave identity with enjoyable Overcharges; new class count/locked-spell system will eventually require explicit progression and reward-pool redesign.
+- **Rift Expedition:** the user wants a **larger AI party** and fun temporary mid-expedition buff/Overcharge choices similar to Planet Defense, particularly combinations that create interesting spell effects rather than plain stat boosts. Precise party size is UNRESOLVED: user said "fem spelare, jag och fem AI-kompisar" (numerically six total), while an assistant suggested "five total, user + four AI"; do not silently pick one. Confirm before implementing. Larger encounters, AI team awareness, performance, visuals and exploration pacing need design.
+- Solo-play cooperation requires AI capable of recognizing or naturally enabling combo windows, without making the player an onlooker. Cross-class synergy needs to work well both with a full Rift party and with a smaller Planet Defense party, where fewer combinations can occur.
+- **Design next:** define class-locked Solar and Void core identities before deciding the exact two extra abilities for each class; then map cross-class combos and their encounter/Overcharge interactions. Preserve established Genesis/Impact/Eclipse spell decisions until explicitly revised.
+- No GitHub gameplay code, VFX, build, AI or saved data are changed in this documentation-only commit.
+
 ## AGREED — Spell Design 2.2: Genesis / Vital (2026-10-13)
 
 **Status: USER-APPROVED CURRENT DESIGN, NOT IMPLEMENTED.** Genesis joins Eclipse (Cryo) and Impact (Kinetic) as the third Origin whose proposed four-spell, twelve-Evolution design has been accepted. Gameplay code, abilities, Journey pools, save files and VFX have NOT been modified by this design decision. Solar is the next DISCUSSION / PROPOSAL discipline, followed by Void; do not mark either as approved without user feedback.

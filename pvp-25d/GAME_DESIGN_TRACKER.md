@@ -5,6 +5,29 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Eclipse 1.0: Six Cryo Class Spells (2026-10-15)
+
+**Status: IMPLEMENTED IN GITHUB, MOCK-COMBAT TESTS PASS; IN-BROWSER VFX/AI FEEL AND LIVE DEPLOY MUST STILL BE VERIFIED.** This is Eclipse's dedicated six-spell class pass, following Genesis and Impact. Do not treat these tests as a full browser playtest.
+
+### Critical player requirement: Preserve Crystal Bolt VFX
+- **DO NOT REWORK, REPLACE, RESCALE OR CHANGE** Crystal Bolt's existing buildup, moving projectile, tail/trail or impact artwork. The player is very happy with the current Crystal Bolt animation and considers it a **reference animation for future spells**.
+- This implementation only adjusts Crystal Bolt combat/Evolutions and adds separate named Evolution effects. Its original HeroSpellFX/PixiJS render path remains unchanged. Any future VFX polish must treat Crystal Bolt as an asset to protect.
+
+### Six locked Eclipse spells
+1. **Crystal Bolt:** existing signature VFX untouched; Rapid Crystal casts faster (every third can be cast while moving); Glacial Echo launches a smaller delayed hit; Fracture Chain creates up to three additional seeking hits every third Bolt.
+2. **Crystal Snare:** up to a pack of nonboss mobs rooted for about 3 seconds; elites eligible. Bosses instead receive a brief Chilled mark for Spear. Deep Freeze swaps pack root for a **single-target FOUR-SECOND Ice Tomb on eligible elites**, with no extra cooldown; Shatterfield deals damage/slow after root expires; Crystal Conduit links and shares bounded damage while the root remains.
+3. **Fracture Spear:** heavy long-range single-target burst; Focused Fracture rewards Snare/Chilled target including bosses; Crystal Rupture is radial splash; Riftbreaker damages enemies along a narrow line **behind the victim** with rising crystal effects.
+4. **Froststorm:** mouse-selected persistent AoE, repeated damage plus eligible nonboss slow; Glacial Barrage adds three falling ice-comet impacts **without removing base ticks**; Expanding Frost enlarges and lengthens the effect **without lowering tick DPS**; Shattering Storm adds active Bolt/Spear shatter bursts when the target is in the storm.
+5. **Crystal Mirror:** placed on self or an ally; consumes one eligible direct hostile hit and fires a bounded shard counterattack. No general absorb HP pool; not triggered by DoTs, ground AoE or broad boss hazard waves. **No Evolution tree**.
+6. **Avalanche:** mouse-picked **direction**, moving ice-wave passes forward and leaves a short damaged/chilled track. Can push ordinary mobs; bosses/elites remain positionally immune. Obstacle-aware segments stop before walls. **No Evolution tree**.
+
+### Integration
+- Eclipse's exclusive Journey follows Genesis/Impact pacing: core two spells at start; the other four offered at Stage **3/6/9/12**; four core Evolution slots at **10/12/14/16**; Stage 20 Rift remains. Legacy Eclipse shared rewards map to class spells without erasing earned Stage clears. Game Dev test Origin gets all six.
+- HUB spell ring, inventory lock, selection text and Evolution satellites match the six-spell system. AI tries class-specific crowd control, Froststorm pack placement, Mirror defense, heavy Spear setups and Crystal Bolt filler.
+- Browser click targeting added for Froststorm **position** and Avalanche **direction**, using the same known ground picking path as Impact's Gravity Hammer. New Cryo visual events live in `EnergyArenaRenderer` without changing Crystal Bolt's established render pipeline.
+- Source-level syntax checks and 19 isolated combat/Journey tests passed (Crystal Bolt cast/slow, Rapid Crystal movement, 4s elite Ice Tomb, boss CC immunity and Chilled marks, AoE root, linked damage, Shatterfield, focused boss burst, Froststorm ticks/extension/barrage, Mirror single-hit logic, Avalanche motion/push/boss immunity/wall stopping, legacy Journey migration). Tests cannot validate GPU visuals, browser input routing or opponent AI aesthetics.
+- **Follow-up to test in browser:** Verify original Crystal Bolt animation **looks identical**; inspect ground target choice, clicking near walls, Glacial Echo/Fracture Chain add-on VFX, Ice Tomb clarity and 4s elite control, mobile Rapid Crystal cast, Mirror reflection, Avalanche directional spectacle, boss interactions, AI wave usage, HUD/Stage counter and old-save migration. Adjust balancing later, after gameplay observation. Cross-class Synergies remain paused.
+
 ## IMPLEMENTED IN TEST — Impact 1.0: Six Kinetic Spells + HUB Orbit (2026-10-15)
 
 **Status: IMPLEMENTED IN COMBAT CODE; TARGETED MOCK-RUNTIME CHECKS PASSED. Browser visuals, controls, AI, and 20-Stage playtesting still require human validation.** This follows Genesis 1.0 and converts Impact alone; Eclipse, Solar and Void remain on older gameplay until their own class passes.
@@ -282,7 +305,7 @@ Impact = aggressive, physical Kinetic melee Origin that charges between enemies,
 
 ## AGREED — Spell Design 2.0: Eclipse / Cryo baseline (2026-10-13)
 
-**Status: USER-APPROVED DESIGN, NOT IMPLEMENTED.** These specs supersede the current three Cryo spells' Evolution designs *as intended future gameplay*, and add the proposed fourth spell Froststorm. The live ability catalog, Journey rewards, combat logic, VFX and saves are unchanged until a dedicated implementation pass. Eclipse is the FIRST Origin to be redesigned; discuss Impact next, then Vital and the more unusual Solar/Void spells.
+**Status: USER-APPROVED DESIGN, NOW IMPLEMENTED IN THE ECLIPSE 1.0 CODE PASS ABOVE (BROWSER TEST PENDING).** These specs supersede the current three Cryo spells' Evolution designs *as intended future gameplay*, and add the proposed fourth spell Froststorm. The live ability catalog, Journey rewards, combat logic, VFX and saves are unchanged until a dedicated implementation pass. Eclipse is the FIRST Origin to be redesigned; discuss Impact next, then Vital and the more unusual Solar/Void spells.
 
 ### Overall user-confirmed design rules
 

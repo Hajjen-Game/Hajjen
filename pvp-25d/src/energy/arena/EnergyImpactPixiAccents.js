@@ -186,7 +186,8 @@ export function drawImpactPixi(g,event,from,to,t,scale=1){
     else cut(draw,from||p,p,t,s*.75);
   }else if(id==="gravity-hammer"){
     if(type==="ground-telegraph")ground(draw,p,t,s,true);
-    else if(kind==="gravity-impact")ground(draw,p,t,s,false);
+    else if(kind==="gravity-impact")ground(draw,p,t,
+      event.evolution==="singularity-impact"?s*.72:s,false);
     else if(kind==="seismic-wave")pressure(draw,p,t,s,true,true);
     else if(kind==="gravity-well")ground(draw,p,t,s*.87,false);
   }else if(id==="seismic-uppercut"){
@@ -201,7 +202,7 @@ export function drawImpactPixi(g,event,from,to,t,scale=1){
       ground(draw,p,t,s,false);
     else cut(draw,from||p,p,t,s,true);
   }else if(id==="kinetic-rampart"){
-    if(kind==="rampart-start"||type==="ability")wall(draw,p,t,s);
+    if(kind==="rampart-start")wall(draw,p,t,s);
     else if(kind==="rampart-volley"||type==="hit"){
       travel(draw,from||p,p,t,s,true);
       pressure(draw,p,t,s*.62);

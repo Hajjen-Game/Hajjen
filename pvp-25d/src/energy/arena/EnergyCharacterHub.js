@@ -1,16 +1,16 @@
 // Energy Arena character home, onboarding and visual talent/evolution workbench.
 // Reuses the real Energy build engine; never draws a decorative substitute orb.
-import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities, GENESIS_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import { ABILITY_BY_ID, FREE_ABILITIES, DISCIPLINES, ROLES, availableAbilities, GENESIS_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-impact1";
 import { createBuild, allEquippedIds, equipAbility, adjustTalent, chooseEvolution, resetTalents, renameBuild, normalizeBuild,
   spentTalentPoints, activeEvolutionCount, writeBuildStorage } from "../buildState.js?v=20261012-eclipse-oc1";
-import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261012-rift1";
+import { SPELL_SLOT_LEVELS, completeArenaBuild, progressDetails, stagedLoadout, botAbilities } from "./EnergyProgression.js?v=20261015-impact1";
 import { loadCharacter, saveCharacter, talentPointsForLevel, energyIdentity } from "./EnergyCharacter.js?v=20261012-rift1";
 import { REACTIONS, FORGE_LEVEL, FORGE_TIER_LEVELS, FORGE_TIER_COSTS,
   validateForgeSelection, forgeSingularity, upgradeSingularity, singularityAvailable }
   from "./EnergySingularity.js?v=20261012-eclipse-oc1";
 import { EnergyOrbShowcase } from "./EnergyOrbShowcase.js?v=20261012-rift1";
 import {readJourney,eligibleJourneySpells,claimJourneySpell,
-  journeyEvolutionCapacity,setJourneyEvolution} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
+  journeyEvolutionCapacity,setJourneyEvolution} from "./EnergyJourneyCampaign.js?v=20261015-impact1";
 import {COMPANION_STYLES,STYLE_IDS,STYLE_UNLOCK_STAGE,companionStyleFor,setCompanionStyle}
   from "./EnergyCompanionStyles.js?v=20261012-dev-origin1";
 import { rankDescription, maxHealthForLevel, powerForLevel } from "./EnergySpellBalance.js?v=20261010-balanced-ranks41";

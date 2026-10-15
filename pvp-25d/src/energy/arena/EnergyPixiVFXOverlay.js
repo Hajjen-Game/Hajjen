@@ -37,6 +37,7 @@ export class EnergyPixiVFXOverlay {
     this.sequence=0;
     this.solarChainOrigins=new Map();this.solarCoronaOrigins=new Map();
     this.genesisCascadeOrigins=new Map();
+    this.voidRiftHits=new Map();this.voidTeleportOrigins=new Map();
     this.alive=true;this.failed=false;this.enabled=true;
     this.resizeHandler=null;
   }
@@ -80,6 +81,13 @@ export class EnergyPixiVFXOverlay {
     }
   }
   spawn(event,match){
+    // Preserve origin of the real struck victim for the soul-return Evolution.
+    if(event.spellId==="rift-slash"&&event.type==="hit"){
+      const caster=match.getActor(event.actorId),victim=match.getActor(event.targetId);
+      if(caster&&victim&&caster.team!==victim.team)
+        this.voidRiftHits.set(caster.id,{x:victim.x*S,z:victim.y*S,
+          expires:performance.now()+1000});
+    }
     // Five Void class spells plus additive Rift Slash Evolution-only accents.
     // Original Rift Slash, Crystal Bolt, Sun Lance and Pulse Mend stay untouched.
     const voidSlashAccent=event.spellId==="rift-slash"&&
@@ -97,6 +105,13 @@ export class EnergyPixiVFXOverlay {
         Number.isFinite(event.toX)&&Number.isFinite(event.fromY)&&
         Number.isFinite(event.toY);
       const type=event.type;
+      if(dash)this.voidTeleportOrigins.set(actor.id,{
+        x:event.fromX*S,z:event.fromY*S,expires:now+1600});
+      const riftHit=kind==="devouring-pact"?this.voidRiftHits.get(actor.id):null;
+      const slipStart=(kind==="rift-echo"||kind==="rift-echo-start")?
+        this.voidTeleportOrigins.get(actor.id):null;
+      const remembered=riftHit?.expires>now?riftHit:
+        slipStart?.expires>now?slipStart:null;
       const dist=target?Math.hypot(actor.x-target.x,actor.y-target.y)*S:0;
       const contactMs=kind==="entropy-applied"?clamp(210+dist*35,300,520):0;
       const duration=type==="windup"?
@@ -111,6 +126,7 @@ export class EnergyPixiVFXOverlay {
         type,kind,sourceId:actor.id,targetId:target?.id||null,
         start:now,duration,contactMs,seed:++this.sequence,
         launch:dash?{x:event.fromX*S,z:event.fromY*S}:
+          remembered?{x:remembered.x,z:remembered.z}:
           {x:actor.x*S,z:actor.y*S},
         x:dash?event.toX:
           Number.isFinite(event.x)?event.x:null,
@@ -755,6 +771,7 @@ export class EnergyPixiVFXOverlay {
     this.effects=[];this.graphics=null;this.app=null;this.ready=false;
     this.solarChainOrigins.clear();this.solarCoronaOrigins.clear();
     this.genesisCascadeOrigins.clear();
+    this.voidRiftHits.clear();this.voidTeleportOrigins.clear();
     this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
   }
 }

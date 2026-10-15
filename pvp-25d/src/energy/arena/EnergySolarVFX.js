@@ -15,7 +15,7 @@ export class EnergySolarVFX{
     this.scene=scene;this.materials=new Map();this.effects=[];this.sequence=0;
     this.maxEffects=105;this.ascension=new Map();this.familiars=new Map();
     this.plasmaFields=new Map();
-    this.chainOrigins=new Map();
+    this.chainOrigins=new Map();this.coronaOrigins=new Map();
   }
   mat(hue="gold",alpha=.85){
     const key=hue+":"+alpha;
@@ -333,6 +333,8 @@ export class EnergySolarVFX{
         // Orb visually travels BEFORE the impact, rather than exploding early.
         this.burst(this.actor(actor),{kind:"tempest-release"});
       }else if(id==="flux-bolt"&&kind==="flux-third-hit"&&target){
+        this.coronaOrigins.set(actor.id,{x:target.x,y:target.y,
+          expires:performance.now()+1050});
         this.burst(this.actor(target),{large:true,kind:"flux-third-hit"});
       }
       return true;
@@ -345,7 +347,10 @@ export class EnergySolarVFX{
           for(let j=0;j<3;j++)this.hoop(fx,.33+j*.23,
             j===0?"core":"gold",-.16+j*.12,.018,.58);
         }else if(kind==="corona-volley"&&actor&&target){
-          this.flight("corona-flight",this.actor(actor),point,370);
+          const origin=this.coronaOrigins.get(actor.id);
+          const start=origin?.expires>performance.now()?
+            this.world(origin.x,origin.y):this.actor(actor);
+          this.flight("corona-flight",start,point,370);
           this.burst(point,{kind:"corona-hit"});
         }else if(kind==="thunderhead-cloud"){
           const fx=this.make("thunderhead-cloud",
@@ -549,6 +554,8 @@ export class EnergySolarVFX{
       this.familiars.delete(id);
     for(const [id,state]of this.chainOrigins)if(state.expires<now)
       this.chainOrigins.delete(id);
+    for(const [id,state]of this.coronaOrigins)if(state.expires<now)
+      this.coronaOrigins.delete(id);
     for(const [id,fx]of this.plasmaFields)if(!this.effects.includes(fx))
       this.plasmaFields.delete(id);
   }
@@ -560,6 +567,7 @@ export class EnergySolarVFX{
   clear(){
     while(this.effects.length)this.remove(this.effects.pop());
     this.ascension.clear();this.familiars.clear();this.chainOrigins.clear();
+    this.coronaOrigins.clear();
     this.plasmaFields.clear();
   }
   dispose(){this.clear();

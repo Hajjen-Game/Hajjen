@@ -38,6 +38,13 @@ export const ROLES = Object.freeze({
     passive: "Ranged direct-damage spells cost 15% less Flux.",
     locked: ["flux-bolt","sun-lance"],
   },
+  void: {
+    name:"Void",color:"#b785ed",subtitle:"Shadows & predation",
+    description:"Void is a mobile shadow-blade and psychic-magic hybrid. Tear open reality, mark prey, steal life and transform into a nightmare.",
+    playstyle:"Use twin Void blades up close and a corruption mark at range. Place Phase Slip with the mouse, trigger brutal shadow Evolutions and transform when enemies cluster.",
+    passive:"Rift Slash against Entropy-marked enemies restores a little Flux.",
+    locked:["rift-slash","entropy-mark"],
+  },
 });
 
 export const DISCIPLINES = Object.freeze({
@@ -63,6 +70,8 @@ export const ECLIPSE_CLASS_SPELL_IDS = Object.freeze(["crystal-bolt","crystal-sn
 export const ECLIPSE_CORE_SPELL_IDS = Object.freeze(ECLIPSE_CLASS_SPELL_IDS.slice(0,4));
 export const SOLAR_CLASS_SPELL_IDS = Object.freeze(["flux-bolt","sun-lance","zenith-crash","cinder-familiar","solar-ascension","chain-tempest"]);
 export const SOLAR_CORE_SPELL_IDS = Object.freeze(SOLAR_CLASS_SPELL_IDS.slice(0,4));
+export const VOID_CLASS_SPELL_IDS = Object.freeze(["rift-slash","entropy-mark","phase-slip","void-metamorphosis","abyssal-rift","dark-pact"]);
+export const VOID_CORE_SPELL_IDS = Object.freeze(VOID_CLASS_SPELL_IDS.slice(0,4));
 
 export const ABILITIES = Object.freeze([
   ability("pulse-mend","Pulse Mend","vital","Direct or offensive healing","Heal a teammate; with Vital Reversal, strike an enemy to heal wounded allies and restore an active Resonance Guard.","1.5s cast · Genesis core",[
@@ -108,27 +117,37 @@ export const ABILITIES = Object.freeze([
     ["thunderhead","Thunderhead","Each third hit forms an electric storm cloud above the victim, delivering three lightning strikes over time."],
     ["helios-beam","Helios Beam","After three qualifying hits, hold the next Flux Bolt to channel a focused escalating Solar beam for up to two seconds; release early to stop."],
   ],"solar"),
-  ability("phase-slip","Phase Slip","void","Void escape","Instant directional phase jump that removes slows on arrival, but cannot escape roots or cross solid obstacles.","Instant · Removes slows · 23s CD",[
-    ["extended-phase","Extended Phase","Teleport farther with a longer cooldown."],
-    ["residual-field","Residual Field","Leave a short-lived slow field at the origin."],
-    ["phase-shield","Phase Shield","Gain a small absorb shield on arrival."],
-  ]),
-
-  ability("entropy-mark","Entropy Mark","void","Damage over time","12-second dispellable damage-over-time mark.","Instant · 15 Flux",[
-    ["deep-decay","Deep Decay","Damage ramps up while the mark remains active."],
-    ["contagion","Contagion","Applying Entropy Mark also spreads a half-strength mark to one nearby unmarked enemy."],
-    ["collapse","Collapse","After two damage ticks, your next direct damaging spell detonates and consumes the charged mark."],
-  ]),
-  ability("rift-slash","Rift Slash","void","Melee burst","Heavy weaponless arc slash, empowered by a debuff from any discipline.","Instant · 6s cooldown",[
-    ["echo-cut","Echo Cut","A second, weaker arc follows the first."],
-    ["rift-hunger","Rift Hunger","Rift Slash heals you for a capped portion of its hit, helping Impact survive close combat."],
-    ["fractured-edge","Fractured Edge","Striking a debuffed enemy empowers the next direct attack."],
-  ]),
+  ability("phase-slip","Phase Slip","void","Mouse-placed teleport","Click an accessible landing position to instantly phase through shadows. Cannot cross solid arena walls or skip collisions.","Mouse-aimed · Short-range 23s CD",[
+    ["shadow-ambush","Shadow Ambush","After Phase Slip, the next Rift Slash executes three rapid shadow-blade strikes."],
+    ["rift-echo","Rift Echo","A shadow afterimage traces the legal teleport path and damages enemies it passes."],
+    ["veilwalk","Veilwalk","After teleporting, the next direct hostile attack may pass harmlessly through the transparent Void shell."],
+  ],"void"),
+  ability("entropy-mark","Entropy Mark","void","Corruption DoT","A dark projectile implants a pulsing violet fracture in one enemy for around twelve seconds. Sets up devastating Void reactions.","Instant · 12s DoT · Recast when charged",[
+    ["contagion","Contagion","On death, an Entropy-marked target explodes into seeking corruption shards that infect nearby enemies; chaining is capped."],
+    ["psychic-collapse","Psychic Collapse","After two genuine DoT ticks, press Entropy Mark again to consume its mark in a powerful AoE psychic implosion."],
+    ["devouring-pact","Devouring Pact","Rift Slash repeatedly tears bounded healing soul fragments from Entropy-marked enemies."],
+  ],"void"),
+  ability("rift-slash","Rift Slash","void","Twin shadow blades","A fast close-range attack with two void-forged blades. A marked target fractures under the dual strike.","Instant · Fast melee · 3s CD",[
+    ["phantom-assault","Phantom Assault","Every third Rift Slash spawns a shadow clone BEHIND the target for two delayed mirrored strikes."],
+    ["umbral-cyclone","Umbral Cyclone","Every third Rift Slash becomes a wide twin-blade cyclone hitting clustered enemies."],
+    ["executioners-veil","Executioner's Veil","Slashing a low-health Entropy-marked victim triggers three-angle shadow finisher strikes with an internal cooldown."],
+  ],"void"),
   ability("null-prison","Null Prison","void","Breakable CC","Castable incapacitates for up to 4 seconds; breaks on damage and follows DR.","1.4s cast · 24s cooldown",[
     ["rapid-seal","Rapid Seal","Faster cast with shorter crowd-control duration."],
     ["void-anchor","Void Anchor","A brief slow remains when the prison ends."],
     ["unstable-prison","Unstable Prison","Breaking the prison by damage emits a small damage pulse; no additional CC."],
   ]),
+  ability("void-metamorphosis","Void Metamorphosis","void","Shadow transformation","Enter a terrifying eight-second dark combat form with twin curved shadow blades. Your Rift Slash cleaves and Entropy Mark erupts with psychic power.","Instant · 8s form · 45s CD",[
+    ["dreadblade-form","Dreadblade Form","Two enormous shadow blades: wider Rift Slash and every third slash launches twin forward flying blade arcs."],
+    ["mindstorm","Mindstorm","Marked enemies suffer conspicuous sky-falling psychic spears on their Entropy Mark ticks during transformation."],
+    ["soul-devourer","Soul Devourer","Marked enemy deaths grant bounded soul healing and a capped form extension. End the form with a final Void blast."],
+  ],"void"),
+  ability("abyssal-rift","Abyssal Rift","void","Mouse-placed black hole","Click a location to tear a violet breach in reality. Tendrils repeatedly hurt nearby enemies, swallow a limited number of eligible hostile projectiles, then implode.","Mouse placement · 4s breach · 32s CD",[
+
+  ],"void"),
+  ability("dark-pact","Dark Pact","void","HP-sacrifice sky spears","Sacrifice a safe nonlethal fraction of your own health and call down three enormous staggered shadow spears over a chosen enemy.","Targeted · Three sky spears · 30s CD",[
+
+  ],"void"),
   ability("sun-lance","Sun Lance","solar","Precision finisher","Heavy focused Solar lance with its existing signature animation. Hits a weakened enemy harder below 35% health.","1.8s cast · ORIGINAL SUN LANCE VISUALS PRESERVED",[
     ["judgment-of-dawn","Judgment of Dawn","A Lance against a victim below 35% HP triggers a monumental finishing Solar beam from the sky."],
     ["scorching-lance","Scorching Lance","Apply a spreading Solar burn. If its bearer dies, explode in flame and burn nearby enemies."],
@@ -222,10 +241,11 @@ export const ABILITY_BY_ID = Object.freeze(Object.fromEntries(ABILITIES.map(a =>
 export const FREE_ABILITIES = Object.freeze(ABILITIES.filter(a => !a.role));
 export function availableAbilities(role) {
   if (!ROLES[role]) throw new Error("Unknown role: " + role);
-  // Four class-locked six-spell Origins; Void remains future design.
+  // Five independent class-locked six-spell Origins; cross-class synergies parked.
   if (role === "healer") return GENESIS_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   if (role === "melee") return IMPACT_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   if (role === "caster") return ECLIPSE_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   if (role === "solar") return SOLAR_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
+  if (role === "void") return VOID_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   return ABILITIES.filter(a => !a.role || a.role === role);
 }

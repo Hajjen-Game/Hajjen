@@ -1,6 +1,6 @@
 // Project Energy UI; internal Energy Arena module names remain stable while the public title is undecided.
-import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
-import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261012-rift1";
+import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261015-impact1";
+import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261015-impact1";
 import {readJourney,journeyEvolutionCapacity} from "./EnergyJourneyCampaign.js?v=20261015-impact1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin, upsertDevOrigin, devOrigin } from "./EnergyOriginRoster.js?v=20261015-impact1";
@@ -173,11 +173,11 @@ function start(build){
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
     $("match-level").textContent=selectedMode==="rift"?
-      "RIFT EXPEDITION · SECTOR 01 / 05 · "+state.slots+"/10 SPELLS":
+      "RIFT EXPEDITION · SECTOR 01 / 05 · "+state.slots+"/"+match.loadout.abilitySlots.length+" SPELLS":
       devStage!==null?
-      "DEV TEST · STAGE "+String(devStage).padStart(2,"0")+" · 10/10 SPELLS":
+      "DEV TEST · STAGE "+String(devStage).padStart(2,"0")+" · "+match.loadout.abilitySlots.length+"/"+match.loadout.abilitySlots.length+" SPELLS":
       state.journey?
-      "STAGE "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/10 SPELLS":
+      "STAGE "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/"+match.loadout.abilitySlots.length+" SPELLS":
       "LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
     $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";

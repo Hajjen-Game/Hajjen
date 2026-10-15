@@ -244,7 +244,8 @@ function artMarkup(name){
       [
         ["vital","GENESIS","VITAL","PULSE MEND","RESONANCE GUARD"],
         ["kinetic","IMPACT","KINETIC","PHASE RUSH","ARC STRIKE"],
-        ["cryo","ECLIPSE","CRYO","CRYSTAL BOLT","CRYSTAL SNARE"]
+        ["cryo","ECLIPSE","CRYO","CRYSTAL BOLT","CRYSTAL SNARE"],
+        ["solar","SOLAR","SUNFIRE","FLUX BOLT","SUN LANCE"]
       ].map(role=>'<div class="bk-origin-card bk-origin-card--'+role[0]+'">'+
         orb(role[0])+'<strong>'+role[1]+'</strong><em>'+role[2]+'</em>'+
         '<span class="bk-origin-abilities">'+role[3]+'<b>+</b>'+role[4]+'</span></div>'
@@ -565,7 +566,7 @@ export class EnergyMainMenu{
       return;
     }
     status.textContent=dev.character.name+" · 20/20 STAGES · "+
-      (["healer","melee","caster"].includes(dev.character.role)?"ALL 6 "+ROLES[dev.character.role].name.toUpperCase()+" CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
+      (["healer","melee","caster","solar"].includes(dev.character.role)?"ALL 6 "+ROLES[dev.character.role].name.toUpperCase()+" CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
       "AI STYLES UNLOCKED · SAVED SEPARATELY. Choose any Stage to replay it with the full toolkit.";
     $("game-dev-stage-select").value=String(dev.progression.devStage||20);
     $("game-dev-origin-role").value=dev.character.role;

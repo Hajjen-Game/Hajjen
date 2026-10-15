@@ -142,7 +142,8 @@ export class EnergyCharacterHub{
     const footnote=document.querySelector(".origin-choice-footnote");
     if(footnote)footnote.textContent=role==="healer"?
       "Genesis has two permanent starting spells and four additional Vital spells unlocked during its Journey. All six spells are class-exclusive; only the first four have Evolutions.":
-      "Impact and Eclipse still use the current shared-spell system until their class implementation pass.";
+      role==="melee"?"Impact starts with two Kinetic spells and unlocks four more class-exclusive spells. The first four have Evolutions.":
+      "Eclipse still uses shared spell discoveries until its implementation pass.";
     $("origin-selected-spells").textContent=origin.locked
       .map(id=>ABILITY_BY_ID[id]?.name||id).join(" + ");
     $("origin-selected-passive").textContent=origin.passive;
@@ -338,12 +339,12 @@ export class EnergyCharacterHub{
     const origin=ROLES[build.role];
     $("hub-role").textContent=origin.name.toUpperCase()+" · ENERGY ORIGIN";
     $("hub-origin-info-description").textContent=origin.description+" "+origin.playstyle;
-    $("hub-origin-info-spells").textContent=(build.role==="healer"?"GENESIS STARTING SPELLS · ":"STARTING SPELLS · ")+origin.locked
+    $("hub-origin-info-spells").textContent=(["healer","melee"].includes(build.role)?ROLES[build.role].name.toUpperCase()+" STARTING SPELLS · ":"STARTING SPELLS · ")+origin.locked
       .map(id=>ABILITY_BY_ID[id]?.name||id).join(" + ");
     $("hub-origin-info-passive").textContent="PASSIVE · "+origin.passive;
     if(journey){
       $("hub-level").textContent="JOURNEY · "+journey.clears+" / 20";
-      $("hub-level-subtitle").textContent=progress.slots+"/"+(build.role==="healer"?6:10)+" CLASS SPELL SLOTS · NO LEVELS OR RANKS · "+
+      $("hub-level-subtitle").textContent=progress.slots+"/"+(["healer","melee"].includes(build.role)?6:10)+" CLASS SPELL SLOTS · NO LEVELS OR RANKS · "+
         Object.keys(journey.evolutions).length+"/"+journeyEvolutionCapacity(journey)+" EVOLUTIONS";
       $("hub-combat-stats").textContent="HP "+maxHealthForLevel(1)+
         " · DAMAGE/HEAL ×1.00 · CRIT 10%";
@@ -380,8 +381,8 @@ export class EnergyCharacterHub{
       track.append(fill);row.append(label,track);weights.append(row);
     }
     const intro=document.querySelector(".hub-journey-intro");
-    if(intro&&journey&&build.role==="healer")
-      intro.textContent="GENESIS JOURNEY · Unlock four more Vital class spells during your 20 Stages. All six class abilities and the core Evolutions appear around your Energy orb.";
+    if(intro&&journey&&["healer","melee"].includes(build.role))
+      intro.textContent=ROLES[build.role].name.toUpperCase()+" JOURNEY · Unlock four more "+(["healer","melee"].includes(build.role)?"Vital":"Kinetic")+" class spells over 20 Stages. All six abilities appear around the Energy orb; only the four core spells evolve.";
     $("hub-orb-stage").style.setProperty("--hub-core",identity.style.core);
     $("hub-orb-stage").style.setProperty("--hub-accent",identity.style.energy);
     this.renderTree();
@@ -405,8 +406,8 @@ export class EnergyCharacterHub{
     if(isJourney){
       const panel=$("hub-forge-locked");
       panel.querySelector("strong").textContent="UNLOCKS AT STAGE 20";
-      panel.querySelector("p").textContent=state.build.role==="healer"?
-        "Cross-class Synergies are paused. Genesis focuses on six class abilities and four evolving core spells.":
+      panel.querySelector("p").textContent=["healer","melee"].includes(state.build.role)?
+        "Cross-class Synergies are paused. "+ROLES[state.build.role].name+" has six exclusive abilities and four evolving core spells.":
         "Synergies are coming with Rift Expedition. No levels or spell ranks needed.";
     }
     $("hub-forge-locked").hidden=!isLocked;
@@ -612,13 +613,13 @@ export class EnergyCharacterHub{
       "RANKLESS JOURNEY · "+Math.max(0,evolutionCap-activeCount)+" EVOLUTION SLOTS FREE":
       Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
     $("hub-evolution-count").textContent=activeCount+" / "+evolutionCap+" CHOSEN";
-    $("hub-spellbook-count").textContent=state.unlocked.length+"/"+(state.build.role==="healer"?6:10);
-    $("hub-orbit-board")?.classList.toggle("six-class-spells",state.build.role==="healer");
+    $("hub-spellbook-count").textContent=state.unlocked.length+"/"+(["healer","melee"].includes(state.build.role)?6:10);
+    $("hub-orbit-board")?.classList.toggle("six-class-spells",["healer","melee"].includes(state.build.role));
     const discovery=readJourney(this.getProgression());
     const available=discovery?.pending?eligibleJourneySpells(discovery):[];
     $("hub-map-caption").textContent=available.length?
       available.length+" GLOWING SPELLS · CLICK A NODE TO INSPECT · DISCOVER IN SELECTED SPELL":
-      state.unlocked.length+"/"+(state.build.role==="healer"?6:10)+" · "+state.pool.length+" MORE CLASS SPELLS TO DISCOVER";
+      state.unlocked.length+"/"+(["healer","melee"].includes(state.build.role)?6:10)+" · "+state.pool.length+" MORE CLASS SPELLS TO DISCOVER";
     if(!this.selectedAbility||!state.compatible.some(spell=>spell.id===this.selectedAbility)){
       this.selectedAbility=state.inner[0]?.id||null;
     }
@@ -664,7 +665,7 @@ export class EnergyCharacterHub{
         el("small","hub-spell-category",DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()),
         el("span","hub-spell-level",journey?
           (bound?"SLOT "+(slotIndex+1)+" · ORIGIN-BOUND":
-            inBuild?"SLOT "+(slotIndex+1)+(state.build.role==="healer"?" · GENESIS CLASS SPELL":" · DISCOVERED"):
+            inBuild?"SLOT "+(slotIndex+1)+(["healer","melee"].includes(state.build.role)?" · CLASS SPELL":" · DISCOVERED"):
               journey.owned.includes(ability.id)?"OWNED · IN LIBRARY":
           canDiscover?"✧ READY TO DISCOVER":"LOCKED · JOURNEY DISCOVERY"):
           (bound?"SLOT "+(slotIndex+1)+" · ORIGIN SPELL · RANK "+rank:
@@ -704,13 +705,13 @@ export class EnergyCharacterHub{
       const selected=this.selectedAbility===ability.id;
       addLine(orbitPos(angle,205),p,"hub-orbit-link"+(selected?" selected":""),tone);
       const node=button("","hub-orbit-spell active equipped-now"+(selected?" selected":"")+
-        (state.build.role==="healer"||state.roleBound.has(ability.id)?" class-bound":""),()=>this.selectSpell(ability.id));
+        (["healer","melee"].includes(state.build.role)||state.roleBound.has(ability.id)?" class-bound":""),()=>this.selectSpell(ability.id));
       node.style.setProperty("--node-tone",tone);
-      node.setAttribute("aria-label",ability.name+" (in build)"+(state.build.role==="healer"||state.roleBound.has(ability.id)?" class-bound":""));
+      node.setAttribute("aria-label",ability.name+" (in build)"+(["healer","melee"].includes(state.build.role)||state.roleBound.has(ability.id)?" class-bound":""));
       node.setAttribute("aria-pressed",String(selected));
       node.title=ability.name+" — "+ability.description;
       const icon=el("span","hub-orbit-icon",glyphs[ability.discipline]);
-      if(state.build.role==="healer"||state.roleBound.has(ability.id))icon.append(el("span","hub-orbit-lock",String(index+1)));
+      if(["healer","melee"].includes(state.build.role)||state.roleBound.has(ability.id))icon.append(el("span","hub-orbit-lock",String(index+1)));
       node.append(icon,el("span","hub-orbit-name",ability.name));
       node.addEventListener("mouseenter",event=>this.showTooltip(ability,event,true));
       node.addEventListener("mousemove",event=>this.moveTooltip(event));
@@ -869,8 +870,8 @@ export class EnergyCharacterHub{
       const capacity=journeyEvolutionCapacity(journey);
       const spent=Object.keys(journey.evolutions).length;
       const activeEvolution=journey.evolutions[ability.id]||null;
-      if(bound||build.role==="healer"&&inBuild)spell.append(el("span","hub-bound-chip",
-        build.role==="healer"?"GENESIS CLASS SPELL · CANNOT REPLACE":"ORIGIN-BOUND · CANNOT REPLACE"));
+      if(bound||["healer","melee"].includes(build.role)&&inBuild)spell.append(el("span","hub-bound-chip",
+        ["healer","melee"].includes(build.role)?ROLES[build.role].name.toUpperCase()+" CLASS SPELL · CANNOT REPLACE":"ORIGIN-BOUND · CANNOT REPLACE"));
       const current=$("hub-detail-current"),next=$("hub-detail-next");
       const evolutions=$("hub-detail-evolution");
       current.replaceChildren(el("h4","","SPELL DETAILS"),el("p","",ability.details),
@@ -882,8 +883,8 @@ export class EnergyCharacterHub{
         current.append(el("p","hub-detail-stat",
           "ACTIVE EVOLUTION · "+ability.evolutions.find(e=>e.id===activeEvolution)?.name));
       next.replaceChildren(el("h4","","JOURNEY DISCOVERY"),
-        el("p","",build.role==="healer"?(bound?"One of your two Genesis starting spells.":
-          owned?"This Genesis ability is permanently unlocked and automatically equipped.":"Earn this class spell at a Journey discovery milestone."):
+        el("p","",["healer","melee"].includes(build.role)?(bound?"One of your two starting "+ROLES[build.role].name+" spells.":
+          owned?"This class ability is permanently unlocked and automatically equipped.":"Earn this class spell at a Journey discovery milestone."):
           bound?"This is one of your two permanent Origin spells.":
           owned?"Discovered spells can be swapped into your eight shared slots. Their Evolution remains saved even while unequipped.":
           canDiscover?"This spell is one of the glowing Journey discoveries. Confirm it above to add it permanently.":
@@ -1026,9 +1027,9 @@ export class EnergyCharacterHub{
     const inBuild=state.plannedIds.has(id);
     const bound=state.roleBound.has(id);
     const journey=readJourney(this.getProgression());
-    area.hidden=state.build.role==="healer"||bound||!id||Boolean(journey&&!inBuild&&!journey.owned.includes(id));
-    toggle.hidden=state.build.role==="healer";
-    if(state.build.role==="healer"){this.showSwapPicker=false;holder.hidden=true;return;}
+    area.hidden=["healer","melee"].includes(state.build.role)||bound||!id||Boolean(journey&&!inBuild&&!journey.owned.includes(id));
+    toggle.hidden=["healer","melee"].includes(state.build.role);
+    if(["healer","melee"].includes(state.build.role)){this.showSwapPicker=false;holder.hidden=true;return;}
     if(bound||!id){
       this.showSwapPicker=false;holder.hidden=true;return;
     }

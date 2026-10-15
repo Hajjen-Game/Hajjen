@@ -27,7 +27,7 @@ export const ROLES = Object.freeze({
   caster: {
     name: "Eclipse", color: "#79cafd", subtitle: "Cryo & positioning",
     description: "Eclipse shapes Cryo energy into crystalline projectiles and roots. Slow advancing enemies, trap dangerous foes and control the space between you.",
-    playstyle: "Choose Eclipse to kite with Crystal Bolt and hold enemies in place with Crystal Snare. Discover other disciplines as your Journey progresses.",
+    playstyle: "Choose Eclipse for six exclusive Cryo skills: precise Crystal Bolt casts, control, placed Froststorm, protective mirrors and directional Avalanche waves.",
     passive: "Ranged direct-damage spells cost 15% less Flux.",
     locked: ["crystal-bolt", "crystal-snare"],
   },
@@ -52,6 +52,8 @@ export const GENESIS_CLASS_SPELL_IDS = Object.freeze(["pulse-mend","resonance-gu
 export const GENESIS_CORE_SPELL_IDS = Object.freeze(["pulse-mend","resonance-guard","vital-cascade","stasis-seal"]);
 export const IMPACT_CLASS_SPELL_IDS = Object.freeze(["phase-rush","arc-strike","pulse-sever","gravity-hammer","seismic-uppercut","kinetic-rampart"]);
 export const IMPACT_CORE_SPELL_IDS = Object.freeze(["phase-rush","arc-strike","pulse-sever","gravity-hammer"]);
+export const ECLIPSE_CLASS_SPELL_IDS = Object.freeze(["crystal-bolt","crystal-snare","fracture-spear","froststorm","crystal-mirror","avalanche"]);
+export const ECLIPSE_CORE_SPELL_IDS = Object.freeze(ECLIPSE_CLASS_SPELL_IDS.slice(0,4));
 
 export const ABILITIES = Object.freeze([
   ability("pulse-mend","Pulse Mend","vital","Direct or offensive healing","Heal a teammate; with Vital Reversal, strike an enemy to heal wounded allies and restore an active Resonance Guard.","1.5s cast · Genesis core",[
@@ -133,21 +135,32 @@ export const ABILITIES = Object.freeze([
     ["prismatic-return","Prismatic Return","When broken, release a capped damage pulse nearby."],
     ["shared-light","Shared Light","Share a smaller shield with another nearby ally."],
   ]),
-  ability("crystal-bolt","Crystal Bolt","cryo","Ranged slow","Quick ranged crystal hit with a 35% slow for 3 seconds.","1.3s cast · 12 Flux",[
-    ["rapid-crystal","Rapid Crystal","Faster cast for less damage."],
-    ["glacial-echo","Glacial Echo","Launch a second, smaller crystal after the first."],
-    ["brittle-core","Brittle Core","Empower the next direct attack from any discipline."],
+  ability("crystal-bolt","Crystal Bolt","cryo","Signature crystal projectile","Crystal Bolt keeps its original beloved buildup, travel trail and impact. A precise ranged strike that chills the target.","1.3s cast · 12 Flux · Crystal Bolt VFX preserved",[
+    ["rapid-crystal","Rapid Crystal","Faster Crystal Bolt; approximately every third cast can be performed while moving."],
+    ["glacial-echo","Glacial Echo","A second smaller crystal follows the original Bolt and lands shortly after it."],
+    ["fracture-chain","Fracture Chain","Every third Bolt fractures into seeking shards hitting up to three adjacent enemies."],
   ],"caster"),
-  ability("crystal-snare","Crystal Snare","cryo","Root","Instant 3-second root; the target can still cast and attack. Root DR applies.","Instant · 18s cooldown",[
-    ["deep-freeze","Deep Freeze","Longer root with a longer cooldown; DR still applies."],
-    ["shatterfield","Shatterfield","A brief slow field remains after the root ends."],
-    ["frost-momentum","Frost Momentum","Landing the root grants temporary movement speed."],
+  ability("crystal-snare","Crystal Snare","cryo","Multi-target root","Root a pack of nearby ordinary mobs for three seconds. Elites can be rooted; bosses only gain a Chilled mark for Fracture Spear.","Instant · Area root · 18s CD",[
+    ["deep-freeze","Deep Freeze / Ice Tomb","Replace the pack root with a four-second single-target hard Ice Tomb, even on elites. Bosses remain CC-immune."],
+    ["shatterfield","Shatterfield","After a root expires or breaks, the victim leaves a short damaging frost field that slows nearby mobs."],
+    ["crystal-conduit","Crystal Conduit","Rooted targets are linked by visible crystal beams and share bounded damage while the links persist."],
   ],"caster"),
-  ability("fracture-spear","Fracture Spear","cryo","Ranged burst","Heavy crystalline ranged attack, empowered versus any slowed or rooted target.","1.7s cast · 12s cooldown",[
-    ["focused-fracture","Focused Fracture","Higher bonus against controlled targets, lower base damage."],
-    ["crystal-rupture","Crystal Rupture","Reduced splash damage around the target."],
-    ["delayed-shatter","Delayed Shatter","A crystal lodged in the target shatters with a second hit."],
-  ]),
+  ability("fracture-spear","Fracture Spear","cryo","Heavy shatter burst","Heavy long-range crystalline spear, especially effective against Snared or Chilled enemies, including marked bosses.","1.7s cast · 12s CD",[
+    ["focused-fracture","Focused Fracture","Strictly single-target shatter burst against Snared or Chilled foes, including bosses."],
+    ["crystal-rupture","Crystal Rupture","Spear bursts into a radial explosion of crystal shards, damaging nearby enemies."],
+    ["riftbreaker","Riftbreaker","The spear pierces onward, splitting the ground in a narrow line of rising crystal spikes behind the victim."],
+  ],"caster"),
+  ability("froststorm","Froststorm","cryo","Mouse-placed frost area","Click a place in the arena to summon a persistent localized ice storm that damages clustered enemies and slows nonboss mobs.","Mouse target · 4s storm · 24s CD",[
+    ["glacial-barrage","Glacial Barrage","Huge falling crystal comets slam into telegraphed pockets while Froststorm's standard ticks continue."],
+    ["expanding-frost","Expanding Frost","Froststorm grows outward and lasts longer with NO damage-per-second penalty."],
+    ["shattering-storm","Shattering Storm","Crystal Bolt or Fracture Spear hits inside Froststorm trigger extra visible shatter explosions."],
+  ],"caster"),
+  ability("crystal-mirror","Crystal Mirror","cryo","One-hit crystal reflection","Place a floating faceted mirror on yourself or an ally. It blocks the next direct hostile hit, then bursts into seeking crystals that strike the attacker.","Instant · Single direct-attack intercept · 28s CD",[
+
+  ],"caster"),
+  ability("avalanche","Avalanche","cryo","Directional ice onslaught","Aim in the arena with the mouse and unleash a traveling wall of massive crystals that damages and pushes regular mobs, leaving a short crystal track. Bosses resist pushback.","Mouse direction · Moving wave · 30s CD",[
+
+  ],"caster"),
   ability("arc-strike","Arc Strike","kinetic","Melee combo","Rapid two-press melee rhythm: the second strike within four seconds hits harder.","Instant · Two-hit combo",[
     ["twin-arc","Twin Arc","Every third Arc Strike sends a sweeping energy arc that cleaves nearby foes ahead."],
     ["overdrive","Overdrive","The second button press in a combo becomes three fast visual hits with focused total damage."],
@@ -189,8 +202,9 @@ export const ABILITY_BY_ID = Object.freeze(Object.fromEntries(ABILITIES.map(a =>
 export const FREE_ABILITIES = Object.freeze(ABILITIES.filter(a => !a.role));
 export function availableAbilities(role) {
   if (!ROLES[role]) throw new Error("Unknown role: " + role);
-  // Genesis and Impact use six exclusive skills; other Origins remain legacy.
+  // Three class-locked six-spell Origins; Solar/Void remain future design.
   if (role === "healer") return GENESIS_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   if (role === "melee") return IMPACT_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
+  if (role === "caster") return ECLIPSE_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   return ABILITIES.filter(a => !a.role || a.role === role);
 }

@@ -28,7 +28,7 @@ const PAGES=[
   },
   {
     "title": "VÄLJ DIN ORIGIN",
-    "chapter": "02 / FYRA OLIKA ORIGINS",
+    "chapter": "02 / FEM OLIKA ORIGINS",
     "intro": "När du skapar en Origin väljer du namn och grundidentitet. Varje Origin börjar med två permanenta spells från samma energidisciplin. De två kan inte bytas ut.",
     "steps": [
       [
@@ -46,11 +46,15 @@ const PAGES=[
       [
         "SOLAR · SUNFIRE",
         "En explosiv distans-Origin med Flux Bolt och Sun Lance. Kalla ned solstrålar, skapa levande eld och slå mot grupper med blixtar."
+      ],
+      [
+        "VOID · SHADOW",
+        "En snabb skuggklass med Rift Slash och Entropy Mark. Teleportera med musen, slita själar ur fiender och förvandla dig till ett mörkt väsen."
       ]
     ],
     "tip": "Varje Origin har sex exklusiva spells, varav fyra kan få Evolutions. Cross-class Synergies är pausade.",
     "art": "origins",
-    "caption": "Genesis = Vital · Impact = Kinetic · Eclipse = Cryo · Solar = Sunfire."
+    "caption": "Genesis = Vital · Impact = Kinetic · Eclipse = Cryo · Solar = Sunfire · Void = Shadow."
   },
   {
     "title": "SÅ FUNGERAR STRIDEN",

@@ -1,9 +1,11 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261011-encounters1";
-import { ABILITIES } from "../abilityCatalog.js?v=20261011-identity13";
-import { ABILITY_RULES } from "./EnergyMatch.js?v=20261011-encounters1";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261015-voidlab1";
+import { ABILITIES,ABILITY_BY_ID,ROLES,GENESIS_CLASS_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,
+  ECLIPSE_CLASS_SPELL_IDS,SOLAR_CLASS_SPELL_IDS,VOID_CLASS_SPELL_IDS }
+  from "../abilityCatalog.js?v=20261015-voidlab1";
+import { EnergyMatch, actorFor, ABILITY_RULES } from "./EnergyMatch.js?v=20261015-voidlab1";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
@@ -38,8 +40,8 @@ const signature=[
     caption:"Four animated healing threads encircle glass → reactive light pulses",
     phase:"REACTIVE WEAVE",duration:540,type:"ability",target:"ally"},
 ];
-// Original eight hand-authored signatures remain first, but the lab can
-// now preview every gameplay ability using the exact live spell event renderer.
+// Maintain original signatures and Pixi VFX; live mode also plays the
+// real EnergyMatch mechanics rather than inventing signature-only events.
 const polishedIds=new Set(signature.map(spell=>spell.id));
 const spellType=mode=>({
   damage:"hit",heal:"heal",shield:"shield",guard:"guard",
@@ -57,7 +59,15 @@ const catalogue=[...signature,...ABILITIES.filter(spell=>!polishedIds.has(spell.
       target:["heal","guard","shield","hot","link","cleanse"].includes(rule.mode)
         ?"ally":"enemy"};
   })];
-let visibleSpells=[...catalogue],sequenceList=[...catalogue];
+const CLASS_SPELLS={
+  healer:GENESIS_CLASS_SPELL_IDS,melee:IMPACT_CLASS_SPELL_IDS,
+  caster:ECLIPSE_CLASS_SPELL_IDS,solar:SOLAR_CLASS_SPELL_IDS,
+  void:VOID_CLASS_SPELL_IDS
+};
+let selectedRole="healer",selectedEvolution="",labUseCombat=true;
+let visibleSpells=[],sequenceList=[],liveElapsed=0,liveActions=[];
+const classCatalogue=role=>(CLASS_SPELLS[role]||[]).map(id=>
+  catalogue.find(s=>s.id===id)).filter(Boolean);
 const labels={
   charging:"CHARGING",release:"RELEASING",contact:"CONTACT",ready:"READY",
 };
@@ -76,11 +86,11 @@ function actor(id,name,team,role,x,y,core,energy){
     energyStyle:{core,energy},
   };
 }
-const source=actor("vfx-source","YOU","friendly","caster",450,360,"#88dcf6","#d4f8ff");
-const enemy=actor("vfx-target","ENEMY ORB","enemy","caster",755,360,"#c6639f","#f5bbd9");
-const ally=actor("vfx-ally","ALLY ORB","friendly","healer",675,525,"#73cfa9","#cef7dc");
+let source=actor("vfx-source","YOU","friendly","caster",450,360,"#88dcf6","#d4f8ff");
+let enemy=actor("vfx-target","ENEMY ORB","enemy","caster",755,360,"#c6639f","#f5bbd9");
+let ally=actor("vfx-ally","ALLY ORB","friendly","healer",675,525,"#73cfa9","#cef7dc");
 source.targetId=enemy.id;
-const match={
+let match={
   actors:[source,enemy,ally],player:source,
   getActor(id){return this.actors.find(a=>a.id===id)||null;},
 };
@@ -121,7 +131,8 @@ function prepareActors(spell){
   }
 }
 function run(spell,fromSequence=false){
-  if(!renderer)return;
+  if(!renderer||!spell)return;
+  if(labUseCombat){runCombat(spell,fromSequence);return;}
   sequence=fromSequence;
   active=spell;
   sequenceIndex=(fromSequence?sequenceList:catalogue).indexOf(spell);
@@ -218,6 +229,7 @@ function drawCards(){
 function animate(now){
   requestAnimationFrame(animate);
   if(!renderer)return;
+  if(labUseCombat){animateCombat(now);return;}
   const dt=clamp((now-last)/1000,0,.15);last=now;
   if(timeline.spell){
     const spell=timeline.spell;

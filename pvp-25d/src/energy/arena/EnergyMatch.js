@@ -1243,6 +1243,7 @@ export class EnergyMatch {
     if(!f)return;
     if(f.until<=this.time){actor.familiar=null;return;}
     if(f.nextAt>this.time)return;
+    this.identityProc(actor,"cinder-familiar","familiar-orbit",actor);
     f.nextAt=this.time+(f.evo==="soulbrand"?.54:.86);
     const marked=this.getActor(f.targetId);
     const priority=this.getActor(actor.targetId);
@@ -2041,6 +2042,11 @@ export class EnergyMatch {
       this.updateStatus(actor,dt);
       if(actor.familiar)this.updateFamiliar(actor);
       if(actor.solarSigils&&actor.solarSigils.until<=this.time)actor.solarSigils=null;
+      if(actor.solarSigils&&(!actor.solarSigils.visualAt||
+        actor.solarSigils.visualAt<=this.time)){
+        actor.solarSigils.visualAt=this.time+.75;
+        this.identityProc(actor,"solar-ascension","ascension-orbit",actor);
+      }
       if(actor.cast){
         if(actor.cast.heliosBeam&&actor.cast.channelTick!==undefined){
           const beam=actor.cast;

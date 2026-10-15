@@ -11,7 +11,7 @@ const IMPACT_UNLOCKS=Object.freeze(IMPACT_CLASS_SPELL_IDS.slice(2));
 const ECLIPSE_UNLOCKS=Object.freeze(ECLIPSE_CLASS_SPELL_IDS.slice(2));
 const classUnlocks=role=>role==="healer"?GENESIS_UNLOCKS:role==="melee"?IMPACT_UNLOCKS:role==="caster"?ECLIPSE_UNLOCKS:null;
 const classCores=role=>role==="healer"?GENESIS_CORE_SPELL_IDS:role==="melee"?IMPACT_CORE_SPELL_IDS:role==="caster"?ECLIPSE_CORE_SPELL_IDS:null;
-// Preliminary Journey spacing: Genesis gains four class spells, not 16 mixed-school abilities.
+// Preliminary Journey pacing: each implemented Origin earns four class spells, not 16 mixed-school discoveries.
 const GENESIS_DISCOVERY_STAGES=Object.freeze([3,6,9,12]);
 const EARLY=["entropy-mark","sun-lance","fracture-spear","vector-rush","reactive-thread"];
 const COUNTER=["rift-slash","photon-barrier","phase-slip","pulse-sever","cleanse-flux"];
@@ -70,7 +70,7 @@ export function readJourney(profile){
   const originRole=j.originRole||null;
   if(classUnlocks(originRole)){
     // Preserve earned Stage milestones when migrating older mixed-discipline
-    // Impact saves. Once converted, six class spells replace the shared pool.
+    // Impact/Eclipse saves. Once converted, six class spells replace the shared pool.
     const unlocks=classUnlocks(originRole);
     const stageCount=GENESIS_DISCOVERY_STAGES.filter(stage=>clears>=stage).length;
     const pendingIsClass=GENESIS_DISCOVERY_STAGES.includes(j.pending?.planet)&&

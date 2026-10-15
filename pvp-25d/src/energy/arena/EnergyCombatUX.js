@@ -90,7 +90,8 @@ export class EnergyCombatUX{
       const recallStatus=recallTarget?.statuses.find(s=>
         s.kind==="vital-recall"&&s.sourceId===player.id&&s.remaining>0);
       const rampartRecast=slot.id==="kinetic-rampart"&&player.rampart?.until>match.time;
-      const familiarRecast=slot.id==="cinder-familiar"&&player.familiar?.until>match.time;
+      const familiarRecast=slot.id==="cinder-familiar"&&player.familiar?.until>match.time&&
+        player.evolutions["cinder-familiar"]==="dying-star";
       const canRecast=Boolean(recallStatus)||Boolean(rampartRecast)||Boolean(familiarRecast)||
         (slot.id==="soul-relay"&&player.relayPending?.until>match.time);
       node.classList.toggle("recast-ready",Boolean(recallStatus)||Boolean(familiarRecast));

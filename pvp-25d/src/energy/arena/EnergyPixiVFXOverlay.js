@@ -7,7 +7,7 @@ import { drawEclipsePixi,ECLIPSE_PIXI_IDS } from "./EnergyEclipsePixiAccents.js?
 import { drawSolarPixi,SOLAR_PIXI_IDS } from "./EnergySolarPixiAccents.js?v=20261015-solar-pixi1";
 import { drawGenesisPixi,GENESIS_PIXI_IDS,GENESIS_PULSE_EVOS } from "./EnergyGenesisPixiAccents.js?v=20261015-genesis-pixi2";
 import { drawImpactPixi,IMPACT_PIXI_IDS } from "./EnergyImpactPixiAccents.js?v=20261015-impact-pixi1";
-import { drawVoidPixi,VOID_PIXI_IDS,VOID_SLASH_PROC_KINDS } from "./EnergyVoidPixiAccents.js?v=20261015-void-pixi1";
+import { drawVoidPixi,VOID_PIXI_IDS,VOID_SLASH_PROC_KINDS } from "./EnergyVoidPixiAccents.js?v=20261015-void-pixi2";
 import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;

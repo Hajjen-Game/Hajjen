@@ -342,6 +342,7 @@ function runCombat(spell,fromSequence=false){
   timeline.started=performance.now();timeline.released=true;
   timeline.pulses=0;
   renderer.spellFX.hero.clear();
+  renderer.eclipseVFX?.clear();
   if(renderer.pixiFX)renderer.pixiFX.effects.length=0;
   selectCard(spell.id);
   $("now-playing").textContent=ROLES[key].name.toUpperCase()+" · "+spell.name+

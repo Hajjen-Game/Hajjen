@@ -85,9 +85,14 @@ export class EnergyCombatUX{
       // can loan temporary upgrades, and the HUD must preview their actual
       // cooldown, cost and range instead of the unranked base spell.
       const {node,slot,ability,cd,fx}=entry,rule=match.rule(player,slot.id)||this.rules[slot.id];
-      const canRecast=(slot.id==="vital-recall"&&match.allies(player).some(a=>
-        a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===player.id)))||
+      const recallTarget=slot.id==="vital-recall"?match.allies(player).find(a=>
+        a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===player.id&&s.remaining>0)):null;
+      const recallStatus=recallTarget?.statuses.find(s=>
+        s.kind==="vital-recall"&&s.sourceId===player.id&&s.remaining>0);
+      const canRecast=Boolean(recallStatus)||
         (slot.id==="soul-relay"&&player.relayPending?.until>match.time);
+      node.classList.toggle("recast-ready",Boolean(recallStatus));
+      node.classList.toggle("relay-select-partner",slot.id==="soul-relay"&&canRecast);
       const remaining=canRecast?0:player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
       const gcd=player.gcd||0;
@@ -128,7 +133,8 @@ export class EnergyCombatUX{
       const progress=activeCast?clamp(
         1-player.cast.remainingMs/Math.max(1,player.cast.totalMs),0,1):0;
       fx.cast.style.width=(progress*100).toFixed(1)+"%";
-      cd.textContent=remaining>.015?(remaining>=10?Math.ceil(remaining):remaining.toFixed(1))+"s"
+      cd.textContent=recallStatus?"↻ "+recallStatus.remaining.toFixed(1)+"s":
+        remaining>.015?(remaining>=10?Math.ceil(remaining):remaining.toFixed(1))+"s"
         :lock>.015?"LOCK "+Math.ceil(lock)+"s":"";
       // Preserve reason in tooltip and accessibility even when hiding its
       // large floating banner and the button stays tappable for feedback.
@@ -137,11 +143,20 @@ export class EnergyCombatUX{
         :resource?"LOW FLUX":wrongTarget?"SELECT A TARGET"
         :range?"OUT OF RANGE":los?"LINE OF SIGHT"
         :mobility?"MOBILITY LOCK":activeCast?"CASTING":gcd>.015?"GLOBAL COOLDOWN":"READY";
-      const title=ability.name+" — "+ability.description+"\n"+blocker
-        +(remaining>.015?" "+remaining.toFixed(1)+"s":"")
-        +(lock>.015?" · "+lock.toFixed(1)+"s school lock":"");
+      const recallLost=recallStatus?
+        Math.max(0,recallStatus.startHp-recallTarget.hp):0;
+      const title=ability.name+" — "+ability.description+"\n"+
+        (recallStatus?
+          "REACTIVATE: press this spell again within "+recallStatus.remaining.toFixed(1)+
+          "s. Lost HP since activation: "+Math.round(recallLost)+
+          " (absorbed shield damage is NOT restored). "+
+          (blocker==="READY"?"Ready now.":"Currently blocked: "+blocker):
+          blocker+(remaining>.015?" "+remaining.toFixed(1)+"s":"")
+            +(lock>.015?" · "+lock.toFixed(1)+"s school lock":""));
       if(node.title!==title)node.title=title;
-      const aria=ability.name+" · "+blocker;
+      const aria=recallStatus?
+        ability.name+" · PRESS AGAIN · "+recallStatus.remaining.toFixed(1)+
+        " seconds remaining · "+blocker:ability.name+" · "+blocker;
       if(node.getAttribute("aria-label")!==aria)node.setAttribute("aria-label",aria);
       const flash=this.flashUntil.get(slot.id);
       if(flash&&now>=flash.until){

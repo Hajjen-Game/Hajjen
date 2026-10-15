@@ -5,9 +5,53 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## AGREED — Spell Design 3.0: Five classes, slots 5–6 (2026-10-15)
+
+**Status: USER-APPROVED ALL TEN SPELLS, DOCUMENTATION ONLY / NOT IMPLEMENTED.** Current simplification: retain **SIX class-locked active spells in each of five classes** (30 baseline spells total), comprising the already AGREED four core spells + the two newly AGREED spells listed below. The user explicitly liked **all ten** proposed spells. **Cross-class synergy system is PARKED / NOT PART OF THE CURRENT DESIGN OR DEVELOPMENT PASS**, because presenting synergistic chains and additional choices now became overwhelming. Cross-class combo examples from the previous brainstorm were liked as ideas but are **NOT approved implementation requirements**. Preserve them only as optional long-term inspiration; do not trigger, build, schedule, or require them for spells 5/6 without a later explicit reapproval.
+
+### GENESIS / Vital (5 and 6, AGREED)
+
+**5. Vital Recall — Restore Lost Life.** Place a visible green **life-time anchor** on one selected ally for a short window (roughly 4s proposed). Recast before expiry to restore a **substantial, bounded portion of the health that THAT ALLY lost since placement**. It rewards forecasting an incoming heavy boss hit, rather than duplicating plain Pulse Mend's always-available direct heal. Show recovery through returning green fragments and a reverse-time energy vortex. Rules for death prevention, expiry, previous heals and maximum restoration to be tested; not an unconditional resurrection.
+
+**6. Soul Relay — Life Connection.** Link two chosen friendly teammates, even when positioned far apart. Part of damage taken by one is safely transferred to the other, and part of healing on either is visibly echoed through the link to the partner. **Transmitted damage cannot kill the receiving partner**; robust safety floors and anti-loop caps TBD. Two green cores and visible traveling green energy pulses indicate damage/healing transfer. Unlike Vital Cascade, this is deliberate **two-person persistent shared protection/healing**, not groupwide healing chains.
+
+### IMPACT / Kinetic (5 and 6, AGREED)
+
+**5. Seismic Uppercut — Launch & Crush.** Impact lands a fierce single-target kinetic uppercut that launches eligible ordinary mobs into the air, followed by a ground crash and radial shockwave damaging nearby enemies. **Bosses cannot be launched or hard-controlled**; instead the direct hit plants clearly visible kinetic floor fractures that burst on a follow-up impact. Big red rising fist/blade and heavyweight landing VFX.
+
+**6. Kinetic Rampart — Reflective Defense.** Conjure a large **front-facing semicircular kinetic energy barrier** that can absorb/catch a **limited number of hostile projectiles**, visually suspending and rotating them inside the red shield. When it ends, or when the player recasts, release stored energy as a wide volley of kinetic shards back toward threats. **Not a physical collision wall** for actors/AI and not a duplicate long-lived ally absorb shield; partial/front-facing projectile countermechanic. Caps, arc, lifespan and acceptable enemy projectile types TBD.
+
+### ECLIPSE / Cryo (5 and 6, AGREED)
+
+**5. Crystal Mirror — Reflective Magic.** Place a floating, faceted hexagonal crystal mirror **on self or an ally**. It intercepts the **next eligible incoming direct attack**; upon impact, shatters into large guided frost crystal shards that strike the aggressor with distinct blue/white shattering VFX. **One counterattack window**, not another general absorb shield like Resonance Guard. Safe target rules and direct-attack eligibility TBD.
+
+**6. Avalanche — Moving Ice Devastation.** Aim **with the mouse** and send a broad, forward-traveling, ground-hugging wall/wave of oversized ice crystals along the chosen direction, repeatedly damaging targets in its path. Pushes eligible ordinary mobs away but **does not knock back bosses**; heavy crystal impacts still damage bosses. Leaves a **short-lived unstable crystal track**. Unlike stationary Froststorm, this is a moving directional devastation wave; obstacle checks and length/range TBD.
+
+### SOLAR (5 and 6, AGREED)
+
+**5. Solar Ascension — Celestial Power.** Activate to orbit Solar with **three brilliant Solar sigils/orbs**; the player's **next three offensive Solar spells** each spend one sigil, calling a distinct monumental sky-to-target Solar beam on its attacked target. **Player spellcasts activate the charges**, not an independent AI companion: distinguish from Cinder Familiar. White-hot orb, three rings, unmistakable beam impacts. Duration, proc conditions and cooldown TBD.
+
+**6. Chain Tempest — Elemental Lightning.** Launch a large electrified glowing energy sphere toward one target. It bursts on hit into branching chain lightning that arcs through a **capped number of nearby enemies**. Against a solitary boss, instead concentrate the stored elemental energy into **multiple fast, visible successive strikes at the same target**. Immediate chain lightning, distinct from Flux Bolt/Thunderhead's accumulated cadence and ongoing storm cloud. Limits/range/damage TBD.
+
+### VOID (5 and 6, AGREED)
+
+**5. Abyssal Rift — Tear Reality.** Player **chooses a ground position with the mouse** and creates a black/violet breach. It repeatedly attacks nearby enemies with dark energy tendrils for a few seconds, can swallow a **limited number of incoming hostile projectiles**, and always finishes with a conspicuous dark implosion (even when it consumed no projectiles). Differentiated from standard placed AoE through its hazard/projectile interception. No new impassable arena geometry or boss displacement; range, lifetime, projectile eligibility TBD.
+
+**6. Dark Pact — Sacrifice for Power.** Spend a **small, nonlethal portion of Void's own HP** to summon **three enormous falling shadow spears** above a selected enemy. Spears land in fast succession with separately readable heavy impacts, dealing concentrated damage and some nearby splash. The HP cost **must not kill Void** and should respect a safe floor; no free infinite looping with self-heals. Dark energy visibly torn from Void's orb builds three huge violet-black blades high over the target.
+
+### Current rules and parking lot
+
+- **Approved scope:** 5 distinct class-locked kits × (4 already approved Core Spells + 2 new standalone spells) = **30 active spells**. The 20 core spells retain their **60 approved Evolution options** (three per core spell). Avoid reopening this full catalogue unnecessarily.
+- **Evolution decision for spells 5 and 6 remains OPEN**: user earlier considered omitting Evolutions on these 10 spells, and now expressly wants **fewer decisions**, so **DO NOT design/require extra Evolutions now**. The existence or absence of future Evolutions is not silently decided forever.
+- **Cross-class synergies are BENCHED.** Previously sketched **Crystal Convergence**, Solar Collapse, Aegis Charge, Black Ice, Temporal Rebound, Soul Circuit, Falling Star, Prismatic Storm and Frozen Singularity are not assigned as guaranteed spell interactions. They may be re-examined later if the user wants, but **no requirement to make spell 5/6 react to another class**, no extra UI/combo selections and no AI synergy planning at this stage. The spells above must feel good **without synergy**.
+- Keep existing same-class spell compatibility already included in the core design, e.g. **Resonance Guard + Vital Reversal**, **Crystal Snare + Froststorm**, and Void's Entropy Mark interactions. Parking **cross-class** effects should **NOT disable established within-class mechanics**.
+- **Numbers are provisional**: all suggested seconds, cost, target caps, range, damage, HP restore, HP sacrifice and VFX specifics need playtests. Neither concept acceptance nor this commit authorizes implementation.
+- **Rift Expedition party size remains unresolved** (earlier "fem spelare, jag och fem AI" ambiguity). More AI companions, party balancing, Rift buff/Overcharge fun and transition of progression to class locks remain separate design/implementation planning topics. Do NOT commit to a specific party size via assumption.
+- **Current follow-up priority:** a manageable six-spell-per-class playable implementation/testing plan, including keybinds, unlock pacing and AI usage; not another broad spell/synergy/evolution ideation pass unless requested. Avoid overloading the user with optional systems.
+
 ## AGREED — Spell Design 2.4: Void (2026-10-15)
 
-**Status: USER-APPROVED FOUR CORE SPELLS AND TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Void is the fifth full **class-locked** Origin, inspired by **Demon Hunter + Rogue + Shadow Priest**. It should feel like a fast, lethal **shadow melee/caster hybrid**: agile positioning, dual shadow blades, DoT/psychic magic, predatory life-steal and a decisive transformation. Distinguish it from Impact's kinetic heavyweight melee and charge; Void's movement is short-distance, deliberately **mouse-placed teleportation**. Spells 5–6 are reserved for later independently useful cross-class synergy abilities, not invented in this pass.
+**Status: USER-APPROVED FOUR CORE SPELLS AND TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Void is the fifth full **class-locked** Origin, inspired by **Demon Hunter + Rogue + Shadow Priest**. It should feel like a fast, lethal **shadow melee/caster hybrid**: agile positioning, dual shadow blades, DoT/psychic magic, predatory life-steal and a decisive transformation. Distinguish it from Impact's kinetic heavyweight melee and charge; Void's movement is short-distance, deliberately **mouse-placed teleportation**. Spells 5–6 have subsequently been approved as standalone abilities in Spell Design 3.0 above; cross-class synergy is parked.
 
 ### Four approved baseline spells
 
@@ -44,10 +88,10 @@
 
 - The user explicitly said **"yes to all"** four spells and twelve proposed Evolutions with exactly one critical modifier: **Phase Slip destination is selected by the player using the MOUSE**. This rule overrides the previous live Phase Slip behavior, currently a directional teleport/escape. Preserve freedom to click to an eligible landing point.
 - Existing live Void abilities are **Phase Slip / Entropy Mark / Rift Slash / Null Prison**. New locked design keeps and extensively updates first three, **replaces Null Prison with Void Metamorphosis** as the fourth. Null Prison's removal from this four-spell class baseline does NOT itself alter the deployed game or define its legacy migration.
-- All spells remain **Void-class-locked** under the newer five-class direction. Old cross-discipline shared Void spells and generic mixed-origin unlock pools are previous/live systems, NOT this agreed final character design. No cross-class combo spells 5/6 designed yet.
+- All spells remain **Void-class-locked** under the newer five-class direction. Old cross-discipline shared Void spells and generic mixed-origin unlock pools are previous/live systems, NOT this agreed final character design. Spells 5/6 have since been approved as standalone abilities (Spell Design 3.0); combos are parked.
 - Example playstyles: **Shadow Assassin** (Executioner's Veil / Psychic Collapse / Shadow Ambush / Dreadblade Form); **Shadow Corruption** (Umbral Cyclone / Contagion / Rift Echo / Mindstorm); **Soul Predator** (Phantom Assault / Devouring Pact / Veilwalk / Soul Devourer). Examples only, not fixed builds.
 - **Do not implement now:** no gameplay changes, targeting, skills, progression, companion AI, save migration, or VFX in this doc-only decision. Numerical duration, cast time, cost, range, damage, CD, VFX timing, CC immunity, boss tuning and AI behavior to be validated later.
-- The first FOUR core spells + 12 Evolutions are now AGREED for **ALL FIVE** classes: Genesis, Impact, Eclipse, Solar, Void. The next substantive design pass is **spells 5 and 6 for each class**, their enjoyable standalone functions, deliberate spectacular cross-class synergy triggers, and whether those two spells themselves receive Evolutions (still undecided).
+- The first FOUR core spells + 12 Evolutions are now AGREED for **ALL FIVE** classes: Genesis, Impact, Eclipse, Solar, Void. All ten standalone spells 5 and 6 have subsequently been approved (Spell Design 3.0). Cross-class combo triggers are parked; their Evolution question remains undecided.
 
 ## AGREED — Spell Design 2.3: Solar (2026-10-15)
 
@@ -91,11 +135,11 @@
 - Solar's class should support different builds: lightning/area (Thunderhead, Split Lance, Prism Cross, Phoenix Dive); sustained fire/burn (Scorching Lance, Burning Ground, Soulbrand); focused boss/burst (Helios Beam, Judgment of Dawn, Solar Aftershock, Dying Star). These are examples, not fixed builds.
 - **Do not implement** or redesign Photon Barrier, Solar Ascension, shared spell unlock pools, progression, FX engine, old saves, companion AI or combat rules in this documentation-only pass. Preserve previous Origin design approvals and newer five-class direction.
 - Initial timings, Flux, burst magnitudes, triggering behavior, safe target selection, CC interactions, and AI familiar action budgets are **provisional** and should be balanced during test passes. Strong, distinct VFX and mechanics are intentional.
-- **Next design after Solar:** Void, now approved in Spell Design 2.4 above. The next open decisions are cross-class synergy spells 5–6 per class.
+- **Next design after Solar:** Void, now approved in Spell Design 2.4 above. Spells 5–6 were subsequently agreed in Spell Design 3.0 as standalone abilities. Cross-class synergies are currently parked.
 
-## AGREED — Five-class direction and Cross-Class Synergy Spells (2026-10-14)
+## HISTORICAL AGREED DIRECTION — Five classes; initial cross-class synergy concept (2026-10-14, synergy PARKED 2026-10-15)
 
-**Status: USER-AGREED DIRECTION / CONCEPT, NOT IMPLEMENTED.** This is the current overarching design direction and **supersedes the earlier assumption that Solar and Void are shared spell disciplines**. Earlier sections below document their historical design decisions for reference, but do not override this newer direction. Do not change live gameplay/catalogue/Journey/AI without a dedicated implementation pass.
+**Status: HISTORICAL DESIGN DIRECTION. Five class-locked Origins and six spells per class remain agreed; the cross-class synergy mechanics described below were subsequently PARKED by the user on 2026-10-15. See Spell Design 3.0 above for the latest binding decision.** This was the earlier overarching design direction and **supersedes the earlier assumption that Solar and Void are shared spell disciplines**. Earlier sections below document their historical design decisions for reference, but do not override this newer direction. Do not change live gameplay/catalogue/Journey/AI without a dedicated implementation pass.
 
 ### Character and spell identity
 - Plan for **FIVE full-fledged, class-locked Origins/classes**: **Genesis (Vital)** healer and offensive healing; **Impact (Kinetic)** charge/interrupt/physical melee; **Eclipse (Cryo)** control/burst; **Solar** explosive ranged magic combining the feel of Elemental Shaman + Warlock; **Void** mobile shadow/melee hybrid combining Demon Hunter + Rogue + Shadow Priest.

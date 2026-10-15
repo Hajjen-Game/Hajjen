@@ -366,9 +366,11 @@ export class EnergyMatch {
     if(this.isControlled(actor,"incapacitate"))return "CONTROLLED";
     if(actor.cast)return "CASTING";
     if(actor.charge)return "CHARGING";
-    if(actor.gcd>0)return "GLOBAL COOLDOWN";
     const secondRecall=spellId==="vital-recall"&&this.allies(actor).some(a=>
-      a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id));
+      a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id&&q.remaining>0));
+    // Releasing an already armed rewind should not be eaten by the GCD:
+    // players must be able to react before the four-second marker expires.
+    if(actor.gcd>0&&!secondRecall)return "GLOBAL COOLDOWN";
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
@@ -390,7 +392,7 @@ export class EnergyMatch {
     const rule=this.rule(actor,spellId);
     const target=rule.mode==="dash"?null:this.currentTarget(actor,rule.mode,targetId);
     const isRecallRecast=spellId==="vital-recall"&&this.allies(actor).some(a=>
-      a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id));
+      a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id&&q.remaining>0));
     const isRelaySecond=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     if(!isRecallRecast&&!isRelaySecond)actor.flux-=this.cost(actor,rule,spellId);
     actor.gcd=(isRecallRecast||isRelaySecond)?0.6:1.3;
@@ -910,10 +912,13 @@ export class EnergyMatch {
     const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"].includes(r.mode);
     const wrongTeam=target&&(r.mode==="hybrid"?false:
       supportive?target.team!==actor.team:target.team===actor.team);
+    const recallReactivation=spellId==="vital-recall"&&this.allies(actor).some(a=>
+      a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===actor.id&&s.remaining>0));
     const reason= r.mode==="dash"||(spellId==="zenith-crash"&&castContext?.impact)?
       null:!target?.alive?"TARGET DIED"
-      :wrongTeam?"INVALID TARGET":distance(actor,target)>(r.range||490)?"OUT OF RANGE"
-      :!hasLineOfSight(actor,target,this.arena)?"LINE OF SIGHT":null;
+      :wrongTeam?"INVALID TARGET"
+      :!recallReactivation&&distance(actor,target)>(r.range||490)?"OUT OF RANGE"
+      :!recallReactivation&&!hasLineOfSight(actor,target,this.arena)?"LINE OF SIGHT":null;
     if(reason){
       // Cast spent its GCD/time, but a spell that never connected does
       // not consume its Flux. This is a fizzle, NOT a hidden self-heal.

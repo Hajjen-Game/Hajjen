@@ -487,6 +487,7 @@ function run(spell,fromSequence=false){
     return;
   }
   renderer.spellFX.hero.clear();
+  renderer.eclipseVFX?.clear();
   // Clear only old visual accents, not scene or combat progression.
   if(renderer.pixiFX)renderer.pixiFX.effects.length=0;
   $("now-playing").textContent=spell.name+" · "+spell.discipline.toUpperCase();

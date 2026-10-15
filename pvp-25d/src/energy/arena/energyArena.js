@@ -5,13 +5,13 @@ import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin, upsertDevOrigin, devOrigin } from "./EnergyOriginRoster.js?v=20261012-rift1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
-import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261013-rift12";
+import { EnergyMatch, ABILITY_RULES, hasLineOfSight } from "./EnergyMatch.js?v=20261015-recall2";
 import { EnergyPlanetDefense, DEFENSE_WAVES } from "./EnergyPlanetDefense.js?v=20261013-rift12";
 import { EnergyRiftExpedition, RIFT_SECTORS } from "./EnergyRiftExpedition.js?v=20261013-rift12";
 import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261013-rift-lightfix";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261010-balanced-ranks41";
 import { EnergyOverheadHUD } from "./EnergyOverheadHUD.js?v=20261009-minimal-bars23";
-import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261011-guided-defense8";
+import { EnergyCombatUX } from "./EnergyCombatUX.js?v=20261015-recall2";
 import { EnergyTrainingGuide } from "./EnergyTrainingGuide.js?v=20261009-learning-path25";
 import { MODES, readProgression, saveProgression, ensureStarterMatter, awardMatch, progressDetails,
   completeArenaBuild, stagedLoadout } from "./EnergyProgression.js?v=20261012-rift1";

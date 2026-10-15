@@ -130,6 +130,185 @@ function prepareActors(spell){
     participant.lastMove={x:0,y:0};
   }
 }
+// Live mode intentionally creates a disposable *real* EnergyMatch for each
+// trial. All damage, cast timings, recasts, target checks, DoTs and procs are
+// taken from the production engine; no Journey/localStorage writes occur.
+const LIVE_PREVIEW_SECONDS=7.6;
+function spellTarget(spell){
+  const mode=ABILITY_RULES[spell.id]?.mode;
+  return ["heal","guard","shield","mirror","recall","relay","team-heal",
+    "cleanse","hot","link"].includes(mode) ? ally : enemy;
+}
+function previewCast(id,targetId=null,opts={}){
+  const actor=match.player;
+  const success=match.castAbility(actor,id,targetId??enemy.id,{silent:true,...opts});
+  if(!success)console.info("Lab cast could not fire",id,match.reason(actor,id,targetId??enemy.id));
+  return success;
+}
+function scheduleLive(after,action){liveActions.push({at:after,action,done:false});}
+function safePreviewPoint(player,radius=145){
+  for(const distance of [radius,radius*.75,radius*.45]){
+    for(const angle of [0,.5,-.5,1,-1,Math.PI]){
+      const point={x:player.x+Math.cos(angle)*distance,
+        y:player.y+Math.sin(angle)*distance};
+      if(match.canOccupy(player,point.x,point.y)&&
+        !match.arena.obstacles?.some(o=>
+          // The engine itself performs final line-of-sight validation.
+          point.x>o.x&&point.x<o.x+o.w&&point.y>o.y&&point.y<o.y+o.h))
+        return point;
+    }
+  }
+  return null;
+}
+function runCombat(spell,fromSequence=false){
+  active=spell;sequence=fromSequence;
+  sequenceIndex=(fromSequence?sequenceList:visibleSpells).indexOf(spell);
+  const key=selectedRole;
+  const kit=CLASS_SPELLS[key]||[];
+  const spawns={...VERDANT_CRUCIBLE.spawns};
+  for(const role of Object.keys(ROLES)){
+    spawns["friendly-"+role]={x:480,y:360};
+    spawns["enemy-"+role]={x:735,y:360};
+  }
+  const testArena={...VERDANT_CRUCIBLE,spawns};
+  const journey={version:2,originRole:key,clears:20,owned:kit.slice(2),
+    evolutions:{},companionStyles:{},devTest:true};
+  match=new EnergyMatch({role:key,name:"VFX TEST"},testArena,{
+    modeId:"training",journey
+  });
+  match.ai.tick=()=>{};
+  match.ai.updateActor=()=>{};
+  source=match.player;source.name="YOU · "+ROLES[key].name.toUpperCase();
+  enemy=match.living("enemy")[0];
+  ally=actorFor("lab-healing-ally","friendly","healer",{x:595,y:510},
+    "ai",["pulse-mend"],{}, {},1);
+  match.actors.push(ally);
+  source.abilities=[...kit];source.evolutions={};
+  source.energyStyle={core:ROLES[key].color,energy:palette[spell.discipline]};
+  source.classId="energy-"+key;
+  const melee=["rift-slash","arc-strike","pulse-sever","seismic-uppercut"].includes(spell.id);
+  source.x=melee?576:465;source.y=360;
+  enemy.x=melee?662:735;enemy.y=360;
+  enemy.name="STATIC TEST ENEMY";enemy.maxHp=2600;enemy.hp=2600;
+  enemy.healthPct=1;enemy.boss=false;
+  enemy.aiStyle="passive";
+  enemy.cast=null;enemy.targetId=source.id;
+  ally.maxHp=600;ally.hp=390;ally.healthPct=ally.hp/ally.maxHp;
+  source.flux=100;
+  source.targetId=spellTarget(spell).id;
+  if(selectedEvolution)source.evolutions[spell.id]=selectedEvolution;
+  for(const offset of [64,-75]){
+    const foe=actorFor("lab-extra-"+offset,"enemy","caster",
+      {x:enemy.x+48,y:enemy.y+offset},"ai",["crystal-bolt"],{}, {},1);
+    foe.name="SECONDARY ENEMY";foe.maxHp=1300;foe.hp=700;
+    match.actors.push(foe);
+  }
+  // Set up qualifying states so selecting an Evolution previews its
+  // special behaviour on the first press instead of demanding repetitions.
+  if(spell.id==="flux-bolt"){
+    source.fluxRhythm={targetId:enemy.id,hits:2,until:match.time+12};
+    if(selectedEvolution==="helios-beam")source.heliosReady=true;
+  }
+  if(spell.id==="rift-slash"){
+    source.voidSlashCount=2;
+    if(selectedEvolution==="executioners-veil"){
+      enemy.hp=620;enemy.healthPct=enemy.hp/enemy.maxHp;
+    }
+  }
+  if(["executioners-veil","devouring-pact","psychic-collapse",
+    "focused-fracture"].includes(selectedEvolution)){
+    match.addStatus(enemy,{kind:"dot",spellId:"entropy-mark",sourceId:source.id,
+      amount:5,period:2,tickLeft:2,tickCount:2,negative:true,remaining:10});
+  }
+  if(spell.id==="sun-lance"&&selectedEvolution==="judgment-of-dawn"){
+    enemy.hp=640;enemy.healthPct=enemy.hp/enemy.maxHp;
+  }
+  if(spell.id==="pulse-sever")enemy.cast={
+    spellId:"crystal-bolt",remainingMs:2500,totalMs:2500};
+  if(spell.id==="crystal-snare"&&selectedEvolution==="deep-freeze")enemy.elite=true;
+  liveElapsed=0;liveActions=[];timeline.spell=spell;
+  timeline.started=performance.now();timeline.released=true;
+  timeline.pulses=0;
+  renderer.spellFX.hero.clear();
+  if(renderer.pixiFX)renderer.pixiFX.effects.length=0;
+  selectCard(spell.id);
+  $("now-playing").textContent=ROLES[key].name.toUpperCase()+" · "+spell.name+
+    (selectedEvolution?" · "+ABILITY_BY_ID[spell.id].evolutions.find(e=>e.id===selectedEvolution)?.name:"");
+  $("lab-spell-picker").value=spell.id;
+  setPhase("LIVE COMBAT", "Production spell logic · "+(selectedEvolution||"base spell")+
+    " · isolated targets and automatic setup");
+  const mode=ABILITY_RULES[spell.id]?.mode;
+  const target=spellTarget(spell);
+  const id=spell.id;
+  const point=["gravity-hammer","zenith-crash","froststorm","abyssal-rift"].includes(id)?
+    {x:enemy.x,y:enemy.y}:id==="phase-slip"?safePreviewPoint(source):
+    id==="avalanche"?{x:enemy.x,y:enemy.y}:null;
+  const castOptions=point?{point}:id==="flux-bolt"&&selectedEvolution==="helios-beam"?
+    {holdToCharge:true}:{};
+  const fired=previewCast(id,target.id,castOptions);
+  if(!fired)setPhase("INVALID CAST","The real engine rejected the attempted cast. Review spell rules or arena position.");
+  if(id==="vital-recall"){
+    scheduleLive(1.45,()=>{ally.hp=Math.max(1,ally.hp-90);ally.healthPct=ally.hp/ally.maxHp;
+      source.targetId=ally.id;previewCast(id,ally.id);});
+  }else if(id==="soul-relay")
+    scheduleLive(1.55,()=>previewCast(id,source.id));
+  else if(id==="cinder-familiar"&&selectedEvolution==="dying-star")
+    scheduleLive(2.5,()=>previewCast(id,enemy.id));
+  else if(id==="solar-ascension"){
+    for(const at of [1.5,3.1,4.8])
+      scheduleLive(at,()=>{source.flux=100;previewCast("flux-bolt",enemy.id);});
+  }else if(id==="void-metamorphosis"){
+    scheduleLive(1.5,()=>{source.x=enemy.x-88;previewCast("rift-slash",enemy.id);});
+    scheduleLive(4.6,()=>{source.flux=100;previewCast("entropy-mark",enemy.id);});
+  }else if(id==="phase-slip"&&selectedEvolution==="shadow-ambush"){
+    scheduleLive(1.6,()=>{source.x=enemy.x-88;previewCast("rift-slash",enemy.id);});
+  }else if(id==="crystal-mirror"||id==="kinetic-rampart"){
+    scheduleLive(1.5,()=>{enemy.x=source.x+120;
+      match.damage(id==="crystal-mirror"?ally:source,28,enemy,"crystal-bolt");});
+  }else if(id==="abyssal-rift")
+    scheduleLive(1.6,()=>match.damage(source,25,enemy,"crystal-bolt"));
+  else if(id==="flux-bolt"&&selectedEvolution==="helios-beam")
+    scheduleLive(2.0,()=>match.releaseHeldCast(source,"flux-bolt"));
+  for(const event of match.consumeEvents()){
+    renderer.spawnEffect(event,match);
+    feedback?.onEvent(event,match);
+  }
+}
+function animateCombat(now){
+  const dt=clamp((now-last)/1000,0,.15);last=now;
+  if(timeline.spell&&match){
+    // One 50ms engine step at a time, identical to arena combat rules.
+    let remaining=dt;
+    while(remaining>.00001){
+      const step=Math.min(.05,remaining);remaining-=step;
+      liveElapsed+=step;
+      if(!match.ended)match.update(step);
+      for(const task of liveActions)
+        if(!task.done&&liveElapsed>=task.at){task.done=true;task.action();}
+      for(const event of match.consumeEvents()){
+        renderer.spawnEffect(event,match);
+        feedback?.onEvent(event,match);
+      }
+    }
+    if(liveElapsed>LIVE_PREVIEW_SECONDS){
+      if(sequence&&sequenceIndex<sequenceList.length-1)
+        runCombat(sequenceList[sequenceIndex+1],true);
+      else{
+        timeline.spell=null;sequence=false;
+        setPhase("READY","Live trial complete. Replay or choose a different Evolution.");
+      }
+    }
+  }
+  try{
+    renderer.render(match);
+    feedback?.update(match,now);
+  }catch(error){
+    $("vfx-error").hidden=false;
+    $("vfx-error").textContent="Combat Lab preview failed: "+(error?.message||String(error));
+    console.error(error);
+    renderer.dispose();renderer=null;
+  }
+}
 function run(spell,fromSequence=false){
   if(!renderer||!spell)return;
   if(labUseCombat){runCombat(spell,fromSequence);return;}

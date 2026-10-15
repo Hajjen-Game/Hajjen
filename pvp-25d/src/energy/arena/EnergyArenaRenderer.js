@@ -8,7 +8,8 @@ import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx2"
 import { EnergySolarVFX } from "./EnergySolarVFX.js?v=20261015-solar-vfx3";
 import { EnergyGenesisVFX } from "./EnergyGenesisVFX.js?v=20261015-genesis-vfx3";
 import { EnergyImpactVFX } from "./EnergyImpactVFX.js?v=20261015-impact-vfx1";
-import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-impact-pixi1";
+import { EnergyVoidVFX } from "./EnergyVoidVFX.js?v=20261015-void-vfx1";
+import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-void-pixi1";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261015-voidlab1";
@@ -54,6 +55,7 @@ export class EnergyArenaRenderer {
     this.solarVFX=new EnergySolarVFX(this.scene);
     this.genesisVFX=new EnergyGenesisVFX(this.scene);
     this.impactVFX=new EnergyImpactVFX(this.scene);
+    this.voidVFX=new EnergyVoidVFX(this.scene);
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
     this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
@@ -239,6 +241,12 @@ export class EnergyArenaRenderer {
   }
   spawnEffect(event,match){
     this.riftActors?.notify(event,match);
+    // Dedicated Void school: preserve Rift Slash original base animation while
+    // handing its Evolution accents and five other class spells to Void VFX.
+    if(this.voidVFX?.spawn(event,match)){
+      this.pixiFX?.spawn(event,match);
+      return;
+    }
     // Six Impact spells enter an independent Babylon and Pixi Kinetic path.
     if(this.impactVFX?.spawn(event,match)){
       this.pixiFX?.spawn(event,match);
@@ -982,6 +990,7 @@ export class EnergyArenaRenderer {
     this.solarVFX?.update(match,now);
     this.genesisVFX?.update(match,now);
     this.impactVFX?.update(match,now);
+    this.voidVFX?.update(match,now);
     this.syncSolarVisuals(match,now);
     this.syncVoidForms(match,now);
     this.riftWorld?.update(match,now);
@@ -1008,6 +1017,7 @@ export class EnergyArenaRenderer {
     this.solarVFX?.dispose();
     this.genesisVFX?.dispose();
     this.impactVFX?.dispose();
+    this.voidVFX?.dispose();
     this.markers?.dispose();
     this.orbPolish?.dispose();
     this.riftActors?.dispose();

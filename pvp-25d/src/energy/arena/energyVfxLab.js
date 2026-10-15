@@ -128,6 +128,22 @@ function spellTarget(spell){
   return ["heal","guard","shield","mirror","recall","relay","team-heal",
     "cleanse","hot","link"].includes(mode)?ally:enemy;
 }
+function targetIssue(spell,target){
+  if(!target)return "That target is not present in the test arena.";
+  const mode=ABILITY_RULES[spell.id]?.mode;
+  const supportive=["heal","guard","shield","mirror","recall","relay",
+    "team-heal","cleanse","hot","link"].includes(mode);
+  const ignored=["rampart","ascension","transform","summon","ground",
+    "teleport","direction","dash"].includes(mode);
+  if(ignored||mode==="hybrid"||
+    (spell.id==="pulse-mend"&&selectedEvolution==="vital-reversal"))
+    return null;
+  if(supportive&&target.team!=="friendly")
+    return spell.name+" requires Self or Ally; choose a friendly orb.";
+  if(!supportive&&target.team==="friendly")
+    return spell.name+" requires an enemy; select Enemy 1, 2 or 3.";
+  return null;
+}
 function renderTargetChoices(spell){
   const root=$("lab-target-choices");
   root.replaceChildren();
@@ -174,6 +190,16 @@ function prepareActors(spell){
   source.energyStyle={core:tint,energy:spell.discipline==="solar"?"#fff1bd":
     spell.discipline==="cryo"?"#e4faff":spell.discipline==="vital"?"#ddfff1":"#efcbff"};
   source.role=selectedRole;
+  for(const offset of [64,-75]){
+    const id="lab-extra-"+offset;
+    let foe=match.getActor(id);
+    if(!foe){
+      foe=actor(id,offset>0?"ENEMY 2":"ENEMY 3","enemy","caster",
+        enemy.x+48,enemy.y+offset,"#bf6da0","#ffc2ea");
+      match.actors.push(foe);
+    }
+    foe.x=enemy.x+48;foe.y=enemy.y+offset;
+  }
   source.targetId=(spellTarget(spell)||enemy).id;
   for(const participant of match.actors){
     participant.cast=null;
@@ -263,6 +289,15 @@ function runCombat(spell,fromSequence=false){
   if(focus.team==="enemy"&&foe!==enemy){
     foe.maxHp=2600;foe.hp=2600;foe.healthPct=1;
   }
+  if(melee&&focus.team==="enemy"&&Math.hypot(source.x-foe.x,source.y-foe.y)>108){
+    // Make every enemy selectable for melee VFX comparisons without moving
+    // the selected target away from its visible place in the test arena.
+    const standing={x:foe.x-86,y:foe.y};
+    if(match.canOccupy(source,standing.x,standing.y)&&
+      hasLineOfSight(standing,foe,match.arena)){
+      source.x=standing.x;source.y=standing.y;
+    }
+  }
   renderTargetChoices(spell);
   // Set up qualifying states so selecting an Evolution previews its
   // special behaviour on the first press instead of demanding repetitions.
@@ -311,16 +346,9 @@ function runCombat(spell,fromSequence=false){
   const mode=ABILITY_RULES[spell.id]?.mode;
   const id=spell.id;
   const target=focus;
-  const rule=match.rule(source,id);
-  const supportive=["heal","guard","shield","mirror","recall","relay",
-    "team-heal","cleanse","hot","link"].includes(rule.mode);
-  const targeted=!["rampart","ascension","transform","summon","ground",
-    "teleport","direction","dash"].includes(rule.mode);
-  if(targeted&&((supportive&&target.team!==source.team)||
-    (!supportive&&rule.mode!=="hybrid"&&target.team===source.team))){
-    setPhase("INVALID TARGET","This "+spell.name+" requires "+
-      (supportive?"a friendly target.":"an enemy target.")+
-      " Choose another orb above or click one in the arena.");
+  const issue=targetIssue(spell,target);
+  if(issue){
+    setPhase("INVALID TARGET",issue);
     return;
   }
   // An orb controls where the ground AoE lands. Teleport uses a point near
@@ -417,7 +445,7 @@ function animateCombat(now){
     }
     if(liveElapsed>LIVE_PREVIEW_SECONDS){
       if(sequence&&sequenceIndex<sequenceList.length-1)
-        runCombat(sequenceList[sequenceIndex+1],true);
+        run(sequenceList[sequenceIndex+1],true);
       else{
         timeline.spell=null;sequence=false;
         setPhase("READY","Live trial complete. Replay or choose a different Evolution.");
@@ -444,6 +472,13 @@ function run(spell,fromSequence=false){
   sequenceIndex=(fromSequence?sequenceList:catalogue).indexOf(spell);
   const previewDuration=spell.duration;
   prepareActors(spell);
+  const chosen=spellTarget(spell);
+  const issue=targetIssue(spell,chosen);
+  if(issue){
+    timeline.spell=null;sequence=false;
+    setPhase("INVALID TARGET",issue);
+    return;
+  }
   renderer.spellFX.hero.clear();
   // Clear only old visual accents, not scene or combat progression.
   if(renderer.pixiFX)renderer.pixiFX.effects.length=0;

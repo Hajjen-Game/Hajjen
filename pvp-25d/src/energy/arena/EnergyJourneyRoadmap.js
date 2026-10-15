@@ -31,6 +31,29 @@ export const JOURNEY_STEPS=Object.freeze(Array.from({length:20},(_,i)=>{
   });
 }));
 
+// Genesis alone has migrated to six class-bound spells. Its Journey map
+// must not promise sixteen cross-discipline discoveries or ten action slots.
+export const GENESIS_JOURNEY_STEPS=Object.freeze(JOURNEY_STEPS.map((old)=>{
+  const milestones={
+    1:["GENESIS BEGINS","Start with Pulse Mend and Resonance Guard. Learn to heal and shield your companions.","team"],
+    3:["GENESIS SPELL","Discover one of four remaining Genesis class abilities.","sparkles"],
+    5:["AI STYLES","Choose how your two AI teammates behave in combat.","team"],
+    6:["GENESIS SPELL","Discover another Genesis class ability for your six-spell toolkit.","sparkles"],
+    9:["GENESIS SPELL","Discover a third Genesis class ability.","sparkles"],
+    10:["FIRST EVOLUTION","Choose an Evolution for one of your four Genesis core spells.","evolution"],
+    12:["FINAL CLASS SPELL","Unlock the final Genesis ability and your second Evolution slot.","sparkles"],
+    14:["THIRD EVOLUTION","Unlock another Evolution slot for your core skills.","evolution"],
+    15:["AI BUILDS","Companion build customization is planned for this Journey milestone.","team"],
+    16:["FOURTH EVOLUTION","Reach four active Evolutions across Genesis's four core spells.","evolution"],
+    20:["RIFT EXPEDITION","Unlock Rift Expedition. Your six class spells and chosen Evolutions carry into the mode.","rift"],
+  };
+  const m=milestones[old.step];
+  return Object.freeze({step:old.step,
+    title:m?.[0]|| (old.step<=12?"GENESIS JOURNEY":"RIFT PREPARATION"),
+    description:m?.[1]||"Advance your Genesis class and prepare for harder encounters.",
+    kind:m?.[2]||"planet",milestone:!!m});
+}));
+
 const nodePosition=index=>{
   const row=Math.floor(index/5),offset=index%5;
   return {x:10+(row%2?4-offset:offset)*20,y:12.5+row*25};
@@ -42,9 +65,18 @@ export class EnergyJourneyRoadmap{
     this.map=map;this.detail=detail;this.summary=summary;
     this.onSelect=onSelect;
     this.selected=1;this.clears=0;this.armed=false;this.tracked=false;
+    this.originRole=null;this.steps=JOURNEY_STEPS;
     // Only the currently active DEV Test Origin may replay cleared Stages.
     this.allowReplay=false;this.replayStage=20;
     this.buttons=new Map();
+    this.build();
+    this.render();
+  }
+  setOriginRole(role){
+    if(this.originRole===role)return;
+    this.originRole=role;
+    this.steps=role==="healer"?GENESIS_JOURNEY_STEPS:JOURNEY_STEPS;
+    this.buttons.clear();
     this.build();
     this.render();
   }
@@ -57,13 +89,13 @@ export class EnergyJourneyRoadmap{
     svg.setAttribute("preserveAspectRatio","none");
     svg.setAttribute("aria-hidden","true");
     const poly=document.createElementNS("http://www.w3.org/2000/svg","polyline");
-    poly.setAttribute("points",JOURNEY_STEPS.map((_,index)=>{
+    poly.setAttribute("points",this.steps.map((_,index)=>{
       const p=nodePosition(index);return p.x*10+","+p.y*8;
     }).join(" "));
     poly.setAttribute("class","journey-route-line");
     svg.append(poly);
     this.map.append(svg);
-    JOURNEY_STEPS.forEach((hex,index)=>{
+    this.steps.forEach((hex,index)=>{
       const spot=nodePosition(index);
       const button=document.createElement("button");
       button.type="button";
@@ -102,7 +134,7 @@ export class EnergyJourneyRoadmap{
     if(!replay&&step!==this.clears+1)return false;
     this.selected=step;this.armed=true;
     this.render();
-    this.onSelect?.(JOURNEY_STEPS[step-1]);
+    this.onSelect?.(this.steps[step-1]);
     return true;
   }
   render(){
@@ -112,7 +144,7 @@ export class EnergyJourneyRoadmap{
       "DEV TEST · SELECT A CLEARED STAGE TO REPLAY · "+clears+" / 20 CLEARED":
       this.tracked?"JOURNEY · "+clears+" / 20 CLEARED":
       "JOURNEY · 0 / 20 CLEARED";
-    for(const hex of JOURNEY_STEPS){
+    for(const hex of this.steps){
       const button=this.buttons.get(hex.step);
       const replayable=this.allowReplay&&hex.step<=clears;
       const available=replayable||hex.step===clears+1;
@@ -130,7 +162,7 @@ export class EnergyJourneyRoadmap{
           hex.step<=clears?"completed":hex.step===clears+1?"next available":"future locked")+
         "; "+(button.disabled?"locked":"selectable")+".");
     }
-    const hex=JOURNEY_STEPS[this.selected-1];
+    const hex=this.steps[this.selected-1];
     this.detail.replaceChildren();
     const heading=document.createElement("div");
     heading.className="journey-detail-heading";

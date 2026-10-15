@@ -5,6 +5,27 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Impact VFX 1.0: tactile faceted Kinetic class (2026-10-15)
+
+**Status: COMMITTED TO MAIN. All six spells and their event-driven Evolution cues are wired to the real combat renderer and the Visual VFX Lab. Mocked rendering/cleanup tests passed; final browser-GPU appearance, combat feel and FPS await player evaluation alongside the other four classes.**
+
+### Scope, identity, and boundaries
+- Current Impact class spell list is **Phase Rush, Arc Strike, Pulse Sever, Gravity Hammer, Seismic Uppercut and Kinetic Rampart**. Its first four have **three mutually exclusive Evolutions each**; Uppercut and Rampart remain standalone.
+- Dedicated **`EnergyImpactVFX.js`** builds real 3D Babylon faceted kinetic fragments, compressed high-contrast impact cores, skewed recoil rings, narrow spatial trajectories, fissures and physical moving/following status objects. Bounded 112-effect pool, cached/disposable materials, accurate cleanup. Dedicated **`EnergyImpactPixiAccents.js`** draws crisp screen-space swing arcs, travel filaments, kinetic compression, ground glyphs, interrupt locks and precise break shapes without obscuring position/LOS.
+- All visible VFX subscribe to actual `EnergyMatch` events. **No gameplay balance, charge pathfinding/collision, CC/boss immunity, cooldowns, damage, AI or Evolutions changed.** The separately accepted **Crystal Bolt, Sun Lance and Pulse Mend** visual paths/files stay untouched.
+- **Phase Rush:** intense kinetic charge-up, small visible **real position based** charge-trail splinters every emitted movement tick, compact landing fracture. Meteor Charge gives a radial shockbreak; Piercing Charge travels from actual impact trajectory to lined-up enemies; Relentless Pursuit earns a vivid recast-ready energy cue **only on the real reset proc**.
+- **Arc Strike:** different wide faceted sweeping attack rhythm on two consecutive presses; second beat emphasizes contact. Twin Arc is an enlarged frontal sweep, Overdrive gets explicit follow-up strikes from real scheduled ticks, and Kinetic Reprisal has a sharp shield-arming cue and real return-hit thread.
+- **Pulse Sever:** interrupt lock rings are triggered **only by real interrupt success**; the melee counter produces a slice; Echo Sever gains multi-enemy echo rings on actual successful additional interrupts, Countershock creates an expanded breakwave, Warpath follows the actor for the real four-second status.
+- **Gravity Hammer:** ground-targeted warning glyph with genuine radius and cast cancellation, strong overhead compressed mass falling to the actual selected location, nested ground fractures. Singularity remains compact/focused; Seismic Wave gets several real outgoing ring pulses; Gravity Well has a persistent low visual vortex with bound duration (mob pull and boss resistance continue to be defined exclusively by combat rules).
+- **Seismic Uppercut:** melee launch with rising angular momentum shards, separate delayed ground-crush on the real scheduled proc; bosses/elite receive ground fracture cues only, never a fake launch.
+- **Kinetic Rampart:** player-facing openwork barrier with faceted front panels tracks facing and real `actor.rampart` lifetime. Successful catches create small reactive breaks. Actual recast/expiry volley discharges separate shafts to real selected targets; shield visuals disappear when the actual rampart ends.
+- Both ordinary Arena combat and **Game Dev → Visual VFX Lab** share the exact same Impact 3D/Pixi pipeline. Replay and Evolution selection clear Impact along with Eclipse, Solar and Genesis, without touching character or Journey saves. All updated import versions are cache-busted.
+
+### Implemented QA and remaining checks
+- Static routing confirmed all **6/6** class IDs in the ability catalog, new Babylon IDs and Pixi IDs; spawn, per-frame update, disposal and both Lab reset paths are connected. The dedicated Impact layers explicitly reject **Crystal Bolt, Sun Lance and Pulse Mend**.
+- Mocked execution across **26 Impact event cases** (base events and Evolution/identity events) completed without exceptions. **641 created / 641 disposed** Babylon mock objects, including materials, after updating, expiry and disposal. Pixi mock drawing across all six spells yielded 75 nonempty strokes. These checks are simulation fixtures only: no real browser screenshot, measured FPS or actual GPU visual quality has been verified.
+- **Player QA after all class VFX passes:** compare charge silhouette and collision-respecting trace, two-beat Arc Strike, meaningful interrupted-vs-failed Pulse Sever, ground-placed Hammer and its alternative Evolutions, delayed Uppercut slam, Rampart facing/catches and real projectile return against the approved Crystal Bolt and Sun Lance detail bar. Fix anything too generic, too wide, too opaque or misleading before final art approval.
+
 ## IMPLEMENTED IN TEST — Genesis VFX 1.0: Crystal Bolt / Sun Lance-grade Vital detail (2026-10-15)
 
 **Status: COMMITTED TO MAIN. Live-combat mocked integration, Evolution test suite and isolated Pixi visual primitives passed. Actual browser GPU appearance, game feel and final art approval require player evaluation.**

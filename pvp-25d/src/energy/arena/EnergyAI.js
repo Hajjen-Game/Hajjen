@@ -265,6 +265,23 @@ export class EnergyAI {
       if(d>122)return; // travel rather than wasting AI decisions against an out-of-range foe.
       if(this.tryCast(actor,["seismic-uppercut","arc-strike","gravity-hammer","rift-slash"],focus))return;
       if(this.tryCast(actor,["entropy-mark"],focus))return;
+    }else if(actor.role==="void"){
+      const cluster=enemies.filter(e=>dist(e,focus)<200).length;
+      if(!actor.voidForm&&(cluster>=2||focus.boss)&&
+        this.tryCast(actor,["void-metamorphosis"],actor))return;
+      if(cluster>=2&&this.tryCast(actor,["abyssal-rift"],focus))return;
+      if(!focus.statuses.some(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&
+        q.sourceId===actor.id)&&this.tryCast(actor,["entropy-mark"],focus))return;
+      if(actor.evolutions["entropy-mark"]==="psychic-collapse"&&
+        focus.statuses.some(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&
+          q.sourceId===actor.id&&q.tickCount>=2)&&
+        this.tryCast(actor,["entropy-mark"],focus))return;
+      const d=dist(actor,focus);
+      if(d<=126&&this.tryCast(actor,["rift-slash"],focus))return;
+      if((d>146||actor.hp/actor.maxHp<.40)&&
+        !this.isRooted(actor)&&this.tryCast(actor,["phase-slip"],focus))return;
+      if(focus.hp/focus.maxHp<.50&&this.tryCast(actor,["dark-pact"],focus))return;
+      if(this.tryCast(actor,["dark-pact"],focus))return;
     }else if(actor.role==="solar"){
       const cluster=enemies.filter(e=>dist(e,focus)<210).length;
       if(actor.familiar?.evo==="dying-star"&&actor.familiar.until-m.time<2.0&&
@@ -314,7 +331,7 @@ export class EnergyAI {
     if(saving)target=patient;
     const d=dist(actor,target),los=this.hasLOS(actor,target,m.arena);
     const closeThreat=m.opponents(actor).find(e=>e.role==="melee"&&dist(e,actor)<155);
-    let desired=actor.role==="melee"?77:["caster","solar"].includes(actor.role)?285:saving?240:300;
+    let desired=actor.role==="melee"?77:actor.role==="void"?105:["caster","solar"].includes(actor.role)?285:saving?240:300;
     if(style==="aggressive"&&actor.role!=="melee")desired-=55;
     if(style==="protective"&&actor.role!=="melee")desired+=35;
     if(style==="disruptive"&&actor.role==="caster")desired=310;

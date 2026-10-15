@@ -248,7 +248,8 @@ function castSlot(index,heldKey=false){
     pendingGroundAim=pendingGroundAim===ability?null:ability;
     $("energy-canvas").style.cursor=pendingGroundAim?"crosshair":"";
     flash(pendingGroundAim?
-      (ability==="avalanche"?"AVALANCHE · CLICK A DIRECTION IN THE ARENA":
+      (ability==="phase-slip"?"PHASE SLIP · CLICK A VALID TELEPORT DESTINATION":
+        ability==="avalanche"?"AVALANCHE · CLICK A DIRECTION IN THE ARENA":
         ABILITY_BY_ID[ability].name.toUpperCase()+" · CLICK THE ARENA TO PLACE"):
       ABILITY_BY_ID[ability].name.toUpperCase()+" · CANCELLED");
     return;

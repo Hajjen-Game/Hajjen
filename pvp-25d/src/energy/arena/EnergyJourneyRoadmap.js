@@ -57,9 +57,9 @@ export const GENESIS_JOURNEY_STEPS=Object.freeze(JOURNEY_STEPS.map((old)=>{
 export const IMPACT_JOURNEY_STEPS=Object.freeze(GENESIS_JOURNEY_STEPS.map(step=>Object.freeze({
   ...step,
   title:step.title.replace("GENESIS","IMPACT"),
-  description:step.description.replace(/Genesis/g,"Impact")
-    .replace(/Vital/g,"Kinetic").replace(/heal and shield your companions/g,
-      "charge into combat and chain kinetic strikes"),
+  description:step.step===1?
+    "Start with Phase Rush and Arc Strike. Charge into combat and learn your two-hit melee rhythm.":
+    step.description.replace(/Genesis/g,"Impact").replace(/Vital/g,"Kinetic"),
 })));
 
 const nodePosition=index=>{

@@ -5,6 +5,7 @@ import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
 import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx2";
+import { EnergySolarVFX } from "./EnergySolarVFX.js?v=20261015-solar-vfx1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-eclipse-pixi1";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
@@ -48,6 +49,7 @@ export class EnergyArenaRenderer {
     this.createScene();
     this.spellFX=new EnergySpellVFX(this.scene);
     this.eclipseVFX=new EnergyEclipseVFX(this.scene);
+    this.solarVFX=new EnergySolarVFX(this.scene);
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
     this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
@@ -233,6 +235,16 @@ export class EnergyArenaRenderer {
   }
   spawnEffect(event,match){
     this.riftActors?.notify(event,match);
+    // Solar 1.0 is five-spell-only, with a separate Babylon + Pixi pipeline.
+    // NEVER intercept Sun Lance or Crystal Bolt (nor their accepted VFX).
+    if(this.solarVFX?.spawn(event,match)){
+      if(event.spellId==="flux-bolt"&&event.kind==="helios-tick")
+        this.drawSolarHelios(event,match);
+      if(event.spellId==="flux-bolt"&&event.kind==="helios-end")
+        this.clearSolarHelios(event.actorId);
+      this.pixiFX?.spawn(event,match);
+      return;
+    }
     // Only five Eclipse spells enter this independent 3D pipeline.
     // Crystal Bolt, Sun Lance and all other existing VFX stay untouched.
     if(this.eclipseVFX?.spawn(event,match)){
@@ -951,6 +963,7 @@ export class EnergyArenaRenderer {
     }
     this.spellFX.update(match,now);
     this.eclipseVFX?.update(match,now);
+    this.solarVFX?.update(match,now);
     this.syncSolarVisuals(match,now);
     this.syncVoidForms(match,now);
     this.riftWorld?.update(match,now);
@@ -974,6 +987,7 @@ export class EnergyArenaRenderer {
     this.pixiFX?.dispose();
     this.spellFX?.dispose();
     this.eclipseVFX?.dispose();
+    this.solarVFX?.dispose();
     this.markers?.dispose();
     this.orbPolish?.dispose();
     this.riftActors?.dispose();

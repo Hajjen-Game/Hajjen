@@ -4,6 +4,7 @@ import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRender
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
+import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
@@ -46,6 +47,7 @@ export class EnergyArenaRenderer {
     this.solarHeliosBeams=new Map();
     this.createScene();
     this.spellFX=new EnergySpellVFX(this.scene);
+    this.eclipseVFX=new EnergyEclipseVFX(this.scene);
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
     this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
@@ -231,6 +233,9 @@ export class EnergyArenaRenderer {
   }
   spawnEffect(event,match){
     this.riftActors?.notify(event,match);
+    // Only five Eclipse spells enter this independent 3D pipeline.
+    // Crystal Bolt, Sun Lance and all other existing VFX stay untouched.
+    if(this.eclipseVFX?.spawn(event,match))return;
     if(event.type==="encounter-telegraph"){
       const origin=new BABYLON.Vector3(event.x*S,.115,event.y*S);
       const diameter=Math.max(1,event.radius*2*S);
@@ -940,6 +945,7 @@ export class EnergyArenaRenderer {
       }
     }
     this.spellFX.update(match,now);
+    this.eclipseVFX?.update(match,now);
     this.syncSolarVisuals(match,now);
     this.syncVoidForms(match,now);
     this.riftWorld?.update(match,now);
@@ -962,6 +968,7 @@ export class EnergyArenaRenderer {
     window.removeEventListener("resize",this.resize);
     this.pixiFX?.dispose();
     this.spellFX?.dispose();
+    this.eclipseVFX?.dispose();
     this.markers?.dispose();
     this.orbPolish?.dispose();
     this.riftActors?.dispose();

@@ -42,6 +42,7 @@ export class EnergyArenaRenderer {
     this.scene.imageProcessingConfiguration.exposure=0.95;
     this.effects=[];
     this.solarFamiliars=new Map();
+    this.voidFormMeshes=new Map();
     this.solarHeliosBeams=new Map();
     this.createScene();
     this.spellFX=new EnergySpellVFX(this.scene);
@@ -793,6 +794,47 @@ export class EnergyArenaRenderer {
     ];
     this.solarHeliosBeams.set(caster.id,{meshes,until:performance.now()+425});
   }
+  syncVoidForms(match,now){
+    const active=new Set();
+    for(const actor of match.actors){
+      if(!actor.alive||!actor.voidForm||actor.voidForm.until<=match.time)continue;
+      active.add(actor.id);
+      let entry=this.voidFormMeshes.get(actor.id);
+      if(!entry){
+        const node=new BABYLON.TransformNode("void-form-blades-"+actor.id,this.scene);
+        const material=this.material("void-form-blade-mat-"+actor.id,
+          "#4d276a","#ac62ee",.93);
+        const hilite=this.material("void-form-edge-"+actor.id,
+          "#935ac5","#d8a0ff",.95);
+        const blades=[];
+        for(const side of [-1,1]){
+          const blade=BABYLON.MeshBuilder.CreateCylinder(
+            "void-curved-blade-"+actor.id+"-"+side,
+            {height:1.65,diameterTop:0,diameterBottom:.36,tessellation:4},this.scene);
+          blade.parent=node;blade.material=material;blade.isPickable=false;
+          blade.position.set(side*.78,.42,side*.17);
+          blade.rotation.z=side*.38;blades.push(blade);
+          const tip=BABYLON.MeshBuilder.CreateSphere("void-edge-"+actor.id+"-"+side,
+            {diameter:.28,segments:5},this.scene);
+          tip.parent=node;tip.material=hilite;tip.isPickable=false;
+          tip.position.set(side*1.06,1.08,side*.17);blades.push(tip);
+        }
+        entry={node,material,hilite};
+        this.voidFormMeshes.set(actor.id,entry);
+      }
+      const t=now*.001;
+      entry.node.position.set(actor.x*S,1.10+Math.sin(t*4)*.09,actor.y*S);
+      entry.node.rotation.y=t*.7;
+      const scale=actor.voidForm.evo==="dreadblade-form"?1.4:1;
+      entry.node.scaling.setAll(scale);
+    }
+    for(const [id,entry]of this.voidFormMeshes){
+      if(active.has(id))continue;
+      entry.node.dispose(false,false);
+      entry.material.dispose();entry.hilite.dispose();
+      this.voidFormMeshes.delete(id);
+    }
+  }
   syncSolarVisuals(match,now){
     // Real persistent mesh for a SINGLE familiar per caster. Unlike an NPC,
     // it has no targeting frame, AI actor, collision or body physics.
@@ -899,12 +941,17 @@ export class EnergyArenaRenderer {
     }
     this.spellFX.update(match,now);
     this.syncSolarVisuals(match,now);
+    this.syncVoidForms(match,now);
     this.riftWorld?.update(match,now);
     this.scene.render();
     this.pixiFX?.update(match,now);
   }
   dispose(){
     for(const id of this.solarHeliosBeams.keys())this.clearSolarHelios(id);
+    for(const entry of this.voidFormMeshes.values()){
+      entry.node.dispose(false,false);entry.material.dispose();entry.hilite.dispose();
+    }
+    this.voidFormMeshes.clear();
     for(const visual of this.solarFamiliars.values()){
       visual.node.dispose(false,false);
       for(const mat of visual.materials)mat.dispose();

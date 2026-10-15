@@ -62,6 +62,14 @@ export const IMPACT_JOURNEY_STEPS=Object.freeze(GENESIS_JOURNEY_STEPS.map(step=>
     step.description.replace(/Genesis/g,"Impact").replace(/Vital/g,"Kinetic"),
 })));
 
+export const ECLIPSE_JOURNEY_STEPS=Object.freeze(GENESIS_JOURNEY_STEPS.map(step=>Object.freeze({
+  ...step,
+  title:step.title.replace("GENESIS","ECLIPSE"),
+  description:step.step===1?
+    "Start with Crystal Bolt and Crystal Snare. Preserve your signature crystal attack and learn crowd control.":
+    step.description.replace(/Genesis/g,"Eclipse").replace(/Vital/g,"Cryo"),
+})));
+
 const nodePosition=index=>{
   const row=Math.floor(index/5),offset=index%5;
   return {x:10+(row%2?4-offset:offset)*20,y:12.5+row*25};
@@ -83,7 +91,7 @@ export class EnergyJourneyRoadmap{
   setOriginRole(role){
     if(this.originRole===role)return;
     this.originRole=role;
-    this.steps=role==="healer"?GENESIS_JOURNEY_STEPS:role==="melee"?IMPACT_JOURNEY_STEPS:JOURNEY_STEPS;
+    this.steps=role==="healer"?GENESIS_JOURNEY_STEPS:role==="melee"?IMPACT_JOURNEY_STEPS:role==="caster"?ECLIPSE_JOURNEY_STEPS:JOURNEY_STEPS;
     this.buttons.clear();
     this.build();
     this.render();

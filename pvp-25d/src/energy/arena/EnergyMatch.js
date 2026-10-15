@@ -354,7 +354,7 @@ export class EnergyMatch {
       }
       this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
       for(const enemy of this.opponents(source).filter(t=>distance(t,e)<e.radius&&
-          hasLineOfSight(e,t,this.arena)).slice(0,6)){
+          distance(t,e)>=(e.minRadius||0)&&hasLineOfSight(e,t,this.arena)).slice(0,9)){
         if(e.amount>0)this.damage(enemy,e.amount,source,e.spellId);
         if(e.slowDuration)
           this.addStatus(enemy,{kind:"slow",negative:true,remaining:e.slowDuration,
@@ -534,12 +534,16 @@ export class EnergyMatch {
       const origin=this.getActor(dissonance.sourceId);
       if(origin)this.identityProc(origin,"resonance-cut","dissonance-absorbed",source);
     }
+    if(!periodic&&source?.statuses?.some(q=>q.kind==="warpath"&&q.remaining>0)&&
+      ["arc-strike","seismic-uppercut","gravity-hammer","phase-rush"].includes(spellId))
+      value*=1.20;
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
     // Rampart only catches direct hostile, aimed, ranged projectiles
     // entering its front arc; never melee, ground AoE, DoT or self damage.
     const rampart=target.rampart;
     const projectile=(!periodic&&source?.team!==target.team&&
-      ["flux-bolt","crystal-bolt","fracture-spear","sun-lance"].includes(spellId));
+      (["flux-bolt","crystal-bolt","fracture-spear","sun-lance"].includes(spellId)||
+       /^encounter-.*(bolt|projectile|shot|missile)$/i.test(spellId)));
     if(projectile&&rampart?.until>this.time&&rampart.charges>0){
       const dx=source.x-target.x,dy=source.y-target.y,mag=Math.hypot(dx,dy)||1;
       const facing=rampart.facing;
@@ -906,7 +910,7 @@ export class EnergyMatch {
     if(evo==="seismic-wave"){
       for(const [i,ring]of [radius+55,radius+135,radius+215].entries())
         this.scheduleEvolution(actor,"gravity-hammer","seismic-wave",
-          point.x,point.y,.25+i*.23,8,ring);
+          point.x,point.y,.25+i*.23,8,ring,{minRadius:ring-95});
     }else if(evo==="gravity-well"){
       for(const i of [1,2,3,4])
         this.scheduleEvolution(actor,"gravity-hammer","gravity-well",
@@ -1242,6 +1246,28 @@ export class EnergyMatch {
           // victim's NEXT non-periodic damaging attack within five seconds.
           this.addStatus(target,{kind:"dissonance",negative:true,remaining:5,sourceId:actor.id});
           this.identityProc(actor,spellId,"dissonance",target);
+        }
+        if(evo==="echo-sever"){
+          for(const foe of this.opponents(actor).filter(t=>t!==target&&!t.boss&&
+            t.cast&&distance(t,target)<180&&hasLineOfSight(target,t,this.arena)).slice(0,5)){
+            const interruptedOther=foe.cast.spellId;
+            foe.cast=null;
+            const school=ABILITY_BY_ID[interruptedOther]?.discipline||"void";
+            foe.schoolLocks[school]=Math.max(foe.schoolLocks[school]||0,2.5);
+            this.emit({type:"interrupt",actorId:actor.id,targetId:foe.id,
+              spellId,interruptedSpell:interruptedOther});
+            this.evolutionProc(actor,spellId,"echo-sever",foe);
+          }
+        }
+        if(evo==="countershock"){
+          this.evolutionProc(actor,spellId,"countershock",target);
+          for(const foe of this.opponents(actor).filter(t=>distance(t,target)<165&&
+            hasLineOfSight(target,t,this.arena)).slice(0,8))
+            this.damage(foe,15,actor,spellId);
+        }
+        if(evo==="warpath"){
+          this.addStatus(actor,{kind:"warpath",sourceId:actor.id,remaining:4});
+          this.evolutionProc(actor,spellId,"warpath",actor);
         }
         if(evo==="shockwave"){
           this.evolutionProc(actor,spellId,"interrupt-shockwave",target);

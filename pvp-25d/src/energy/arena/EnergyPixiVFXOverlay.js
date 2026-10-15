@@ -5,6 +5,7 @@ import { drawOriginalLayeredProjectile } from "./EnergyOriginalLayeredProjectile
 import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
 import { drawEclipsePixi,ECLIPSE_PIXI_IDS } from "./EnergyEclipsePixiAccents.js?v=20261015-eclipse-pixi1";
 import { drawSolarPixi,SOLAR_PIXI_IDS } from "./EnergySolarPixiAccents.js?v=20261015-solar-pixi1";
+import { drawGenesisPixi,GENESIS_PIXI_IDS,GENESIS_PULSE_EVOS } from "./EnergyGenesisPixiAccents.js?v=20261015-genesis-pixi1";
 import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
@@ -76,6 +77,45 @@ export class EnergyPixiVFXOverlay {
     }
   }
   spawn(event,match){
+    // All non-signature Genesis skills and Pulse Mend's *Evolution only*
+    // accents, without replacing its accepted base signatures.
+    const isMendEvo=event.spellId==="pulse-mend"&&
+      (event.type==="identity-proc"||event.type==="evolution-proc")&&
+      GENESIS_PULSE_EVOS.has(event.kind);
+    if(GENESIS_PIXI_IDS.has(event.spellId)||isMendEvo){
+      if(["windup","heal","shield","ability","identity-proc",
+        "evolution-proc","control","link","immune"].includes(event.type)){
+        const source=match.getActor(event.actorId);
+        if(source){
+          const target=match.getActor(event.targetId);
+          const type=event.type;
+          const duration=type==="windup"?
+             clamp((event.castSeconds||.42)*1000,320,2500):
+            event.kind==="vital-crescendo"||event.kind==="recall-release"?790:
+            event.kind==="relay-linked"||type==="link"?870:
+            event.kind==="last-stand"?830:type==="heal"?650:610;
+          const first=source.relayPending?.firstId?
+            match.getActor(source.relayPending.firstId):null;
+          const remembered=event.kind==="relay-linked"&&target?.statuses?.find(q=>
+            q.kind==="soul-relay")?.partnerId;
+          const partner=remembered?match.getActor(remembered):first;
+          const point=target||source;
+          this.effects.push({
+            genesis:true,spellId:event.spellId,type,kind:event.kind||"",
+            sourceId:source.id,targetId:target?.id||null,
+            duration,start:performance.now(),seed:++this.sequence,
+            launch:partner&&event.spellId==="soul-relay"?
+              {x:partner.x*S,z:partner.y*S}:null,
+            x:Number.isFinite(event.x)?event.x:null,
+            y:Number.isFinite(event.y)?event.y:null
+          });
+          if(this.effects.length>76)this.effects.splice(0,this.effects.length-76);
+        }
+      }
+      if(!isMendEvo)return; // Other five spells use Genesis-only Pixi.
+      // Pulse Mend Evolution accents are additive: let original pipeline
+      // see its base heal/windup events unchanged.
+    }
     // Five Solar class spells: layered animated fine Pixi filaments. Keep
     // protected original Sun Lance and Crystal Bolt pipelines unchanged.
     if(SOLAR_PIXI_IDS.has(event.spellId)){
@@ -573,6 +613,13 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
+      if(e.genesis){
+        const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
+          this.projectWorld(e.x*S,e.y*S):to;
+        const size=this.impactScale(b||a,point||to);
+        drawGenesisPixi(g,e,from,point||to,t,size);
+        continue;
+      }
       if(e.solar){
         const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
           this.projectWorld(e.x*S,e.y*S):to;

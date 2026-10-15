@@ -3,7 +3,7 @@
 // range/LOS/resource distinctions and a player-centred CC icon).
 // Visual only: never changes casting rules, status duration or targeting.
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-const SELF_MODES=new Set(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"]);
+const SELF_MODES=new Set(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart"]);
 const FLASH_TYPES=["cast-success","cast-interrupted","cast-failed","cooldown-ready","input-pressed"];
 const CC_ORDER=["stun","fear","incapacitate","root","schoolLock"];
 const ICONS={
@@ -89,16 +89,17 @@ export class EnergyCombatUX{
         a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===player.id&&s.remaining>0)):null;
       const recallStatus=recallTarget?.statuses.find(s=>
         s.kind==="vital-recall"&&s.sourceId===player.id&&s.remaining>0);
-      const canRecast=Boolean(recallStatus)||
+      const rampartRecast=slot.id==="kinetic-rampart"&&player.rampart?.until>match.time;
+      const canRecast=Boolean(recallStatus)||Boolean(rampartRecast)||
         (slot.id==="soul-relay"&&player.relayPending?.until>match.time);
       node.classList.toggle("recast-ready",Boolean(recallStatus));
       node.classList.toggle("relay-select-partner",slot.id==="soul-relay"&&canRecast);
       const remaining=canRecast?0:player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
-      const gcd=recallStatus?0:(player.gcd||0);
+      const gcd=canRecast?0:(player.gcd||0);
       const activeCast=player.cast?.spellId===slot.id;
       const target=rule.mode==="dash"?null:match.currentTarget(player,rule.mode,player.targetId);
-      const wrongTarget=!target&&rule.mode!=="dash";
+      const wrongTarget=!target&&!["dash","rampart"].includes(rule.mode);
       const range=!canRecast&&!!target&&rule.mode!=="dash"&&
         Math.hypot(target.x-player.x,target.y-player.y)>(rule.range||490);
       const los=!canRecast&&!!target&&!range&&rule.mode!=="dash"&&
@@ -134,6 +135,7 @@ export class EnergyCombatUX{
         1-player.cast.remainingMs/Math.max(1,player.cast.totalMs),0,1):0;
       fx.cast.style.width=(progress*100).toFixed(1)+"%";
       cd.textContent=recallStatus?"↻ "+recallStatus.remaining.toFixed(1)+"s":
+        rampartRecast?"↻ RELEASE":
         remaining>.015?(remaining>=10?Math.ceil(remaining):remaining.toFixed(1))+"s"
         :lock>.015?"LOCK "+Math.ceil(lock)+"s":"";
       // Preserve reason in tooltip and accessibility even when hiding its

@@ -99,13 +99,21 @@ export class EnergyPixiVFXOverlay {
           const remembered=event.kind==="relay-linked"&&target?.statuses?.find(q=>
             q.kind==="soul-relay")?.partnerId;
           const partner=remembered?match.getActor(remembered):first;
-          const point=target||source;
+          // Vital Cascade: launch first from Genesis, then visibly chain
+          // from the selected ally to the remaining injured recipients.
+          const selected=event.spellId==="vital-cascade"&&type==="heal"?
+            match.getActor(source.targetId):null;
+          const bounce=selected?.team===source.team&&selected?.id!==target?.id?
+            selected:null;
+          const origin=event.spellId==="soul-relay"?partner:bounce;
+          const sequence=match.actors.filter(a=>a.team===source.team&&a.alive)
+            .findIndex(a=>a.id===target?.id);
+          const delay=bounce?140+Math.max(0,sequence)*80:0;
           this.effects.push({
             genesis:true,spellId:event.spellId,type,kind:event.kind||"",
             sourceId:source.id,targetId:target?.id||null,
-            duration,start:performance.now(),seed:++this.sequence,
-            launch:partner&&event.spellId==="soul-relay"?
-              {x:partner.x*S,z:partner.y*S}:null,
+            duration,start:performance.now()+delay,seed:++this.sequence,
+            launch:origin?{x:origin.x*S,z:origin.y*S}:null,
             x:Number.isFinite(event.x)?event.x:null,
             y:Number.isFinite(event.y)?event.y:null
           });

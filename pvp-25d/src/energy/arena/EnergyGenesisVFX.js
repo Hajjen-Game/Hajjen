@@ -116,6 +116,7 @@ export class EnergyGenesisVFX{
   }
   flight(from,to,kind="life-flight",ms=450,extras={}){
     const f=this.fx(kind,from,ms,{from:from.clone(),to:to.clone(),...extras});
+    if(extras.delayMs)f.created+=extras.delayMs;
     this.heart(f,kind==="cascade-flight"?.34:.26,"ivory",0,0,0,.84);
     for(let i=0;i<7;i++){
       const a=i*TAU/7;
@@ -389,9 +390,16 @@ export class EnergyGenesisVFX{
     if(event.type==="windup"&&actor){this.windup(actor,id,event.castSeconds||.38);return true;}
     if(event.type==="heal"&&target){
       const source=actor||target;
-      if(id==="vital-cascade"&&source.id!==target.id)
-        this.flight(this.pos(source),this.pos(target),"cascade-flight",480);
-      else if(id==="soul-relay")
+      if(id==="vital-cascade"&&source.id!==target.id){
+        const chosen=match.getActor(source.targetId);
+        const primary=chosen?.alive&&chosen.team===source.team?chosen:target;
+        const direct=primary.id===target.id;
+        const start=direct?source:primary;
+        const sequence=match.actors.filter(q=>q.alive&&q.team===source.team)
+          .findIndex(q=>q.id===target.id);
+        this.flight(this.pos(start),this.pos(target),"cascade-flight",
+          430,{delayMs:direct?0:140+Math.max(0,sequence)*80});
+      }else if(id==="soul-relay")
         this.leafBurst(this.pos(target),false,"relay-heal");
       else if(id==="vital-recall")
         this.leafBurst(this.pos(target),true,"recall-restoration");

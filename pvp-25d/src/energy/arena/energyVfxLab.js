@@ -5,7 +5,7 @@ import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261015-voidlab
 import { ABILITIES,ABILITY_BY_ID,ROLES,GENESIS_CLASS_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,
   ECLIPSE_CLASS_SPELL_IDS,SOLAR_CLASS_SPELL_IDS,VOID_CLASS_SPELL_IDS }
   from "../abilityCatalog.js?v=20261015-voidlab1";
-import { EnergyMatch, actorFor, ABILITY_RULES } from "./EnergyMatch.js?v=20261015-voidlab1";
+import { EnergyMatch, actorFor, hasLineOfSight, ABILITY_RULES } from "./EnergyMatch.js?v=20261015-voidlab1";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 
@@ -152,6 +152,7 @@ function safePreviewPoint(player,radius=145){
       const point={x:player.x+Math.cos(angle)*distance,
         y:player.y+Math.sin(angle)*distance};
       if(match.canOccupy(player,point.x,point.y)&&
+        hasLineOfSight(player,point,match.arena)&&
         !match.arena.obstacles?.some(o=>
           // The engine itself performs final line-of-sight validation.
           point.x>o.x&&point.x<o.x+o.w&&point.y>o.y&&point.y<o.y+o.h))
@@ -311,6 +312,8 @@ function animateCombat(now){
 }
 function run(spell,fromSequence=false){
   if(!renderer||!spell)return;
+  if(active?.id!==spell.id)selectedEvolution="";
+  updateEvolutionPicker(spell);
   if(labUseCombat){runCombat(spell,fromSequence);return;}
   sequence=fromSequence;
   active=spell;
@@ -471,8 +474,28 @@ function animate(now){
     renderer.dispose();renderer=null;
   }
 }
+function updateEvolutionPicker(spell){
+  const picker=$("lab-evolution-picker");
+  picker.replaceChildren();
+  const base=el("option","","BASE SPELL · NO EVOLUTION");
+  base.value="";picker.append(base);
+  for(const evolution of ABILITY_BY_ID[spell?.id]?.evolutions||[]){
+    const option=el("option","",evolution.name);
+    option.value=evolution.id;picker.append(option);
+  }
+  if(![...picker.options].some(option=>option.value===selectedEvolution))
+    selectedEvolution="";
+  picker.value=selectedEvolution;
+  picker.disabled=picker.options.length===1;
+}
 function init(){
   const picker=$("lab-spell-picker"),filter=$("lab-discipline-filter");
+  const origin=$("lab-origin-picker"),evolution=$("lab-evolution-picker");
+  for(const [role,detail] of Object.entries(ROLES)){
+    const option=el("option","",detail.name.toUpperCase()+" · "+detail.subtitle);
+    option.value=role;origin.append(option);
+  }
+  origin.value=selectedRole;
   for(const spell of catalogue){
     const option=el("option","",spell.name+" · "+spell.discipline.toUpperCase());
     option.value=spell.id;
@@ -483,14 +506,48 @@ function init(){
     if(spell){sequence=false;run(spell,false);}
   });
   const updateFilter=()=>{
-    visibleSpells=filter.value==="all"?[...catalogue]:
-      catalogue.filter(spell=>spell.discipline===filter.value);
+    const cls=classCatalogue(selectedRole);
+    visibleSpells=filter.value==="all"?cls:
+      cls.filter(spell=>spell.discipline===filter.value);
+    const old=picker.value;
+    picker.replaceChildren();
+    for(const spell of visibleSpells){
+      const option=el("option","",spell.name);
+      option.value=spell.id;picker.append(option);
+    }
+    if(visibleSpells.some(spell=>spell.id===old))picker.value=old;
     drawCards();
     if(active)selectCard(active.id);
-    $("spell-count").textContent=visibleSpells.length+" SPELLS · CHOOSE ANY";
+    $("spell-count").textContent=visibleSpells.length+" / 6 "+ROLES[selectedRole].name.toUpperCase()+" SPELLS";
   };
-  filter.addEventListener("change",updateFilter);
+  origin.addEventListener("change",()=>{
+    selectedRole=origin.value;selectedEvolution="";
+    filter.value="all";active=null;updateFilter();
+    run(visibleSpells[0],false);
+  });
+  evolution.addEventListener("change",()=>{
+    selectedEvolution=evolution.value;
+    run(active||visibleSpells[0],false);
+  });
+  filter.addEventListener("change",()=>{
+    selectedEvolution="";updateFilter();
+    run(visibleSpells[0],false);
+  });
   updateFilter();
+  $("toggle-combat").addEventListener("click",()=>{
+    labUseCombat=!labUseCombat;
+    $("toggle-combat").textContent=labUseCombat?"LIVE COMBAT: ON":"VISUAL-ONLY: ON";
+    if(!labUseCombat){
+      source=actor("vfx-source","YOU","friendly",selectedRole,450,360,
+        ROLES[selectedRole].color,palette[active?.discipline||"vital"]);
+      enemy=actor("vfx-target","ENEMY ORB","enemy","caster",755,360,"#c6639f","#f5bbd9");
+      ally=actor("vfx-ally","ALLY ORB","friendly","healer",675,525,"#73cfa9","#cef7dc");
+      match={actors:[source,enemy,ally],player:source,
+        getActor(id){return this.actors.find(a=>a.id===id)||null;}};
+      source.targetId=enemy.id;
+    }
+    run(active||visibleSpells[0],false);
+  });
   let volumeOn=false; // The old faceted experiment remains OFF by default.
   let threadOn=true; // Preferred Pixi + thread depth; 3D debris stays OFF.
   const syncDepthModes=()=>{
@@ -527,7 +584,7 @@ function init(){
   });
     $("replay-spell").addEventListener("click",()=>run(active||signature[0],false));
   $("play-sequence").addEventListener("click",()=>{
-    sequenceList=[...visibleSpells];
+    sequenceList=[...visibleSpells];selectedEvolution="";
     if(sequenceList.length)run(sequenceList[0],true);
   });
   try{
@@ -547,7 +604,7 @@ function init(){
     feedback=new EnergyCombatFeedback($("vfx-stage"),renderer);
     previous=performance.now();
     last=previous;
-    run(signature[0],false);
+    run(visibleSpells[0],false);
   }catch(error){
     console.error(error);
     $("vfx-error").hidden=false;

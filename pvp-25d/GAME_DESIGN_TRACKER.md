@@ -5,6 +5,50 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## AGREED — Spell Design 2.4: Void (2026-10-15)
+
+**Status: USER-APPROVED FOUR CORE SPELLS AND TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Void is the fifth full **class-locked** Origin, inspired by **Demon Hunter + Rogue + Shadow Priest**. It should feel like a fast, lethal **shadow melee/caster hybrid**: agile positioning, dual shadow blades, DoT/psychic magic, predatory life-steal and a decisive transformation. Distinguish it from Impact's kinetic heavyweight melee and charge; Void's movement is short-distance, deliberately **mouse-placed teleportation**. Spells 5–6 are reserved for later independently useful cross-class synergy abilities, not invented in this pass.
+
+### Four approved baseline spells
+
+1. **Rift Slash [AGREED; existing Void spell redesigned]:** fast, frequent melee strike with two conjured dark energy blades. Not Impact's two-hit Arc Strike rhythm. Hits against an Entropy-marked enemy may tear visible shadow cracks and support synergy with mark-based Evolutions.
+2. **Entropy Mark [AGREED; existing Void spell redesigned]:** ranged shadow projectile places a pronounced, pulsing dark/lilac corruption mark on an enemy and deals damage over time for roughly **12s**. Clear black/violet cracks and periodic VFX, suitable for follow-up slashes or delayed detonation.
+3. **Phase Slip [AGREED; MOUSE-PLACED TELEPORTATION IS EXPLICIT USER REQUIREMENT]:** the user **chooses the teleport destination with the MOUSE in the arena**. Activate Phase Slip, aim at a world-space point with the cursor/target indicator, and trigger the teleport to that chosen valid point. This is NOT a blind forward dash or an automatic move toward an enemy: **player chooses where to land**. Short-range near-instant disappearance into smoky Void energy and reappearance at destination; intended for flanking, approach, repositioning and emergency dodges. Destination must be **in playable space, within the spell's range, and reachable without crossing solid walls/arena obstacles** (no collision exploit / telefrag / geometry skip). A clearly visible legal/illegal destination preview is desirable. Exact range, cooldown, root/slow handling, trigger/cancel controls and handling of an invalid click remain tuning/UX decisions: don't silently reinterpret mouse-selected teleport as directional movement.
+4. **Void Metamorphosis [AGREED; NEW, replaces Null Prison among Void's four core spells]:** a spectacular dark combat transformation with larger/darker orb silhouette, twin curved shadow blades or winglike horns, purple blast at activation. Short transformative damage phase (~8s suggestion, ~45s CD suggestion) that **changes existing skills**, rather than just giving an invisible percentage damage buff. Base form enhances Rift Slash reach/cleave and makes Entropy Mark pulse with more aggressive psychic effects. Attack controls remain recognisable; unique build-up, VFX and impact feedback are key.
+
+### Rift Slash Evolutions — all THREE AGREED
+
+- **Phantom Assault [AGREED]:** each THIRD Rift Slash summons a clearly visible **shadow clone behind the target** for two quick mirrored melee strikes on that target. Assassin-style focused damage; this is a phantom attack effect, not a new AI teammate.
+- **Umbral Cyclone [AGREED]:** each THIRD Rift Slash becomes a wide rotational strike with two large orbiting shadow blades, damaging nearby enemies in AoE. Readably distinct from the clone's single-target followup.
+- **Executioner's Veil [AGREED]:** when slashing an Entropy-marked low-health enemy (**<30% HP** candidate), a cooldown-limited three-angle finishing sequence triggers: Void briefly fades, reappears around the same victim and slashes from three sides. Elite/boss execution window; include internal proc cooldown so not on every hit.
+
+### Entropy Mark Evolutions — all THREE AGREED
+
+- **Contagion [AGREED]:** marked target's death fractures its corruption core into seeking shards that **infect nearby enemies**, and subsequent marked deaths may continue the chain, subject to sensible caps. The distinctive mechanic is a death-triggered spreading DoT cascade, not immediately applying a half-strength mark on cast.
+- **Psychic Collapse [AGREED]:** after at least TWO Entropy Mark DoT ticks, **press Entropy Mark again** to compress and detonate the charged mark as a powerful shadow/psychic **implosion** damaging the target and adjacent enemies; consumes that mark. Trade sustained DoT against timed burst. Recast/input targeting and proc safeguards need testing.
+- **Devouring Pact [AGREED]:** repeated Rift Slash hits on the currently Entropy-marked enemy tear loose a visible soul fragment/core that travels back to Void, restoring a **capped amount of health**. Intended as genuine melee sustain earned through offense; avoid passive free heals on every tick.
+
+### Phase Slip Evolutions — all THREE AGREED, preserve mouse-placed destination
+
+- **Shadow Ambush [AGREED]:** for a short window after mouse-selected Phase Slip, the next Rift Slash turns into a forceful three-strike dual-shadow-blade assault. Great for a deliberately positioned flank; does not force Phase Slip to auto-teleport to a target.
+- **Rift Echo [AGREED]:** after a player-placed Phase Slip, leave a smoky dark afterimage at the **starting point**; it then traces the teleport path to the chosen landing point as a shadow-damage wave, striking enemies along the path. **Damage effect may travel across the line but teleport itself must NOT cross solid walls**.
+- **Veilwalk [AGREED]:** after Phase Slip, orb becomes partly transparent with a visible Void shell; for a brief timed window **one next incoming direct attack** can pass through harmlessly. A well-timed defensive dodge choice, not permanent invulnerability.
+
+### Void Metamorphosis Evolutions — all THREE AGREED
+
+- **Dreadblade Form [AGREED]:** melee-focused transformation manifests **two enormous shadow energy blades**, broad cleaving Rift Slash, and each THIRD slash launches two large forward-flying blade arcs damaging enemies ahead. Strong Demon Hunter-inspired close-range aggression.
+- **Mindstorm [AGREED]:** Shadow Priest-like ranged transformation: each Entropy Mark tick during form summons conspicuous **psychic spears over the marked target**, plunging downward for distinct shadow hits. Prioritize boss/elite DoT pressure and spectacular vertical VFX.
+- **Soul Devourer [AGREED]:** deaths of Entropy-marked foes while transformed tear out visible dark soul cores that fly to Void, granting capped healing and a short **duration extension with a hard maximum**. At form end, unleash a distinctive final Void blast so the Evolution remains relevant during single-boss fights (without endless adds). Sustain/extension cap and blast scale to be tuned.
+
+### Agreed identity / implementation boundaries
+
+- The user explicitly said **"yes to all"** four spells and twelve proposed Evolutions with exactly one critical modifier: **Phase Slip destination is selected by the player using the MOUSE**. This rule overrides the previous live Phase Slip behavior, currently a directional teleport/escape. Preserve freedom to click to an eligible landing point.
+- Existing live Void abilities are **Phase Slip / Entropy Mark / Rift Slash / Null Prison**. New locked design keeps and extensively updates first three, **replaces Null Prison with Void Metamorphosis** as the fourth. Null Prison's removal from this four-spell class baseline does NOT itself alter the deployed game or define its legacy migration.
+- All spells remain **Void-class-locked** under the newer five-class direction. Old cross-discipline shared Void spells and generic mixed-origin unlock pools are previous/live systems, NOT this agreed final character design. No cross-class combo spells 5/6 designed yet.
+- Example playstyles: **Shadow Assassin** (Executioner's Veil / Psychic Collapse / Shadow Ambush / Dreadblade Form); **Shadow Corruption** (Umbral Cyclone / Contagion / Rift Echo / Mindstorm); **Soul Predator** (Phantom Assault / Devouring Pact / Veilwalk / Soul Devourer). Examples only, not fixed builds.
+- **Do not implement now:** no gameplay changes, targeting, skills, progression, companion AI, save migration, or VFX in this doc-only decision. Numerical duration, cast time, cost, range, damage, CD, VFX timing, CC immunity, boss tuning and AI behavior to be validated later.
+- The first FOUR core spells + 12 Evolutions are now AGREED for **ALL FIVE** classes: Genesis, Impact, Eclipse, Solar, Void. The next substantive design pass is **spells 5 and 6 for each class**, their enjoyable standalone functions, deliberate spectacular cross-class synergy triggers, and whether those two spells themselves receive Evolutions (still undecided).
+
 ## AGREED — Spell Design 2.3: Solar (2026-10-15)
 
 **Status: USER-APPROVED FOUR CORE SPELLS + TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Solar is now its **own class-locked Origin**, not a pool of Solar abilities shared by other Origins. Inspired by the power fantasy of **Elemental Shaman + Warlock**: strong ranged casts, elemental lightning, devastating solar/fire effects, damage-over-time, and a conjured elemental familiar. Distinct from Eclipse's frost/control, Impact's melee/interruption and Genesis's healing. Spells 5–6 are later cross-class synergy spell slots and are NOT defined here.
@@ -47,7 +91,7 @@
 - Solar's class should support different builds: lightning/area (Thunderhead, Split Lance, Prism Cross, Phoenix Dive); sustained fire/burn (Scorching Lance, Burning Ground, Soulbrand); focused boss/burst (Helios Beam, Judgment of Dawn, Solar Aftershock, Dying Star). These are examples, not fixed builds.
 - **Do not implement** or redesign Photon Barrier, Solar Ascension, shared spell unlock pools, progression, FX engine, old saves, companion AI or combat rules in this documentation-only pass. Preserve previous Origin design approvals and newer five-class direction.
 - Initial timings, Flux, burst magnitudes, triggering behavior, safe target selection, CC interactions, and AI familiar action budgets are **provisional** and should be balanced during test passes. Strong, distinct VFX and mechanics are intentional.
-- **Next design:** Void as a full-fledged class blending **Demon Hunter + Rogue + Shadow Priest**. Draft four baseline spells, three distinct gameplay-changing Evolutions each; **user approval is required before documenting Void as AGREED**.
+- **Next design after Solar:** Void, now approved in Spell Design 2.4 above. The next open decisions are cross-class synergy spells 5–6 per class.
 
 ## AGREED — Five-class direction and Cross-Class Synergy Spells (2026-10-14)
 
@@ -56,7 +100,7 @@
 ### Character and spell identity
 - Plan for **FIVE full-fledged, class-locked Origins/classes**: **Genesis (Vital)** healer and offensive healing; **Impact (Kinetic)** charge/interrupt/physical melee; **Eclipse (Cryo)** control/burst; **Solar** explosive ranged magic combining the feel of Elemental Shaman + Warlock; **Void** mobile shadow/melee hybrid combining Demon Hunter + Rogue + Shadow Priest.
 - Each class is envisioned with **SIX distinct active, class-locked spells**, rather than all classes sharing the Solar/Void pool. Six is the accepted **starting scope**; don't silently increase to seven. This implies **30 active class spells** across five classes if fully built.
-- **Spells 1–4** are the established core identity spells, each with **THREE alternative Evolutions** (choose one for a given spell). Keep the previously user-approved four-spell designs and 12 Evolution directions for Genesis, Impact, Eclipse intact; Solar/Void core designs are still to be created as *classes*.
+- **Spells 1–4** are the established core identity spells, each with **THREE alternative Evolutions** (choose one for a given spell). Keep the previously user-approved four-spell designs and 12 Evolution directions for Genesis, Impact, Eclipse intact; Solar and Void core class designs were subsequently approved as Spell Design 2.3 and 2.4 above.
 - **Spells 5 and 6** are envisioned as **full, fun, useful standalone active abilities in their own right**, but ALSO have intentional **cross-class synergy interactions** that can create a **spectacular, distinctly animated extra effect** when combined with a suitable spell from ANOTHER class. The synergy is a genuinely different behavior/VFX, not merely +15% damage/healing.
 - **Not final yet:** whether spells 5–6 have their own Evolutions. User's promising idea is to **omit Evolutions** on these two and focus on synergy interactions, but they explicitly have **not decided**. Accordingly, "4 evolved core spells + 2 cross-class synergy spells" is a structural direction, not a mandate that the last two can NEVER evolve.
 - Keep the intrinsic class usability intact if the matching other class isn't present: **synergy enhances an already good spell; it is not a requirement for the spell to function**. The cross-class effect may trigger via an AI companion's normal spell use without micromanaging multiple characters or requiring frame-perfect coordination.
@@ -72,7 +116,7 @@
 
 ## AGREED — Spell Design 2.2: Genesis / Vital (2026-10-13)
 
-**Status: USER-APPROVED CURRENT DESIGN, NOT IMPLEMENTED.** Genesis joins Eclipse (Cryo) and Impact (Kinetic) as the third Origin whose proposed four-spell, twelve-Evolution design has been accepted. Gameplay code, abilities, Journey pools, save files and VFX have NOT been modified by this design decision. Solar has since been approved in Spell Design 2.3 above. Void is the next DISCUSSION / PROPOSAL class; do not mark it as approved without user feedback.
+**Status: USER-APPROVED CURRENT DESIGN, NOT IMPLEMENTED.** Genesis joins Eclipse (Cryo) and Impact (Kinetic) as the third Origin whose proposed four-spell, twelve-Evolution design has been accepted. Gameplay code, abilities, Journey pools, save files and VFX have NOT been modified by this design decision. Solar has since been approved in Spell Design 2.3 above. Void has subsequently been approved in Spell Design 2.4 above. Solar and Void now both have four approved class-locked core spells each, pending implementation.
 
 ### Core identity and four-spell kit
 

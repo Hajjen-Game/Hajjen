@@ -543,7 +543,7 @@ function init(){
   });
   const updateFilter=()=>{
     const cls=classCatalogue(selectedRole);
-    visibleSpells=filter.value==="all"?cls:
+    visibleSpells=filter.value==="all"||!palette[filter.value]?cls:
       cls.filter(spell=>spell.discipline===filter.value);
     const old=picker.value;
     picker.replaceChildren();

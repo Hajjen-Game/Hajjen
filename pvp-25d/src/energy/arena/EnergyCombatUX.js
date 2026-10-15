@@ -99,10 +99,10 @@ export class EnergyCombatUX{
       const gcd=canRecast?0:(player.gcd||0);
       const activeCast=player.cast?.spellId===slot.id;
       const target=rule.mode==="dash"?null:match.currentTarget(player,rule.mode,player.targetId);
-      const wrongTarget=!target&&!["dash","rampart","ground"].includes(rule.mode);
-      const range=!canRecast&&!!target&&!["dash","rampart","ground"].includes(rule.mode)&&
+      const wrongTarget=!target&&!["dash","rampart","ground","direction"].includes(rule.mode);
+      const range=!canRecast&&!!target&&!["dash","rampart","ground","direction"].includes(rule.mode)&&
         Math.hypot(target.x-player.x,target.y-player.y)>(rule.range||490);
-      const los=!canRecast&&!!target&&!range&&!["dash","rampart","ground"].includes(rule.mode)&&
+      const los=!canRecast&&!!target&&!range&&!["dash","rampart","ground","direction"].includes(rule.mode)&&
         !this.hasLOS(player,target,match.arena);
       const resource=!canRecast&&player.flux<match.cost(player,rule,slot.id);
       const controlled=(player.statuses||[]).some(s=>

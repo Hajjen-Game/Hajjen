@@ -1,7 +1,7 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261015-genesis-vfx3";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261015-impact-vfx1";
 import { ABILITIES,ABILITY_BY_ID,ROLES,GENESIS_CLASS_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,
   ECLIPSE_CLASS_SPELL_IDS,SOLAR_CLASS_SPELL_IDS,VOID_CLASS_SPELL_IDS }
   from "../abilityCatalog.js?v=20261015-voidlab1";
@@ -345,6 +345,7 @@ function runCombat(spell,fromSequence=false){
   renderer.eclipseVFX?.clear();
   renderer.solarVFX?.clear();
   renderer.genesisVFX?.clear();
+  renderer.impactVFX?.clear();
   if(renderer.pixiFX)renderer.pixiFX.effects.length=0;
   selectCard(spell.id);
   $("now-playing").textContent=ROLES[key].name.toUpperCase()+" · "+spell.name+
@@ -492,6 +493,7 @@ function run(spell,fromSequence=false){
   renderer.eclipseVFX?.clear();
   renderer.solarVFX?.clear();
   renderer.genesisVFX?.clear();
+  renderer.impactVFX?.clear();
   // Clear only old visual accents, not scene or combat progression.
   if(renderer.pixiFX)renderer.pixiFX.effects.length=0;
   $("now-playing").textContent=spell.name+" · "+spell.discipline.toUpperCase();

@@ -378,46 +378,46 @@ function runCombat(spell,fromSequence=false){
     "Production combat rejected "+spell.name+" on "+target.name+
     ". Check team, range, line of sight or spell cooldown.");
   if(id==="pulse-mend"&&selectedEvolution==="second-heart"){
-    scheduleLive(1.8,()=>{ally.hp=Math.min(ally.hp,ally.maxHp*.25);
-      match.damage(ally,36,enemy,"crystal-bolt");});
+    scheduleLive(1.8,()=>{target.hp=Math.min(target.hp,target.maxHp*.25);
+      match.damage(target,36,enemy,"crystal-bolt");});
   }else if(id==="resonance-guard"&&
     ["retaliation","last-stand"].includes(selectedEvolution)){
     scheduleLive(1.5,()=>{enemy.x=source.x+125;
-      match.damage(ally,selectedEvolution==="last-stand"?900:46,enemy,"crystal-bolt");});
+      match.damage(target,selectedEvolution==="last-stand"?900:46,enemy,"crystal-bolt");});
   }else if(id==="arc-strike"){
-    scheduleLive(1.52,()=>previewCast(id,enemy.id));
+    scheduleLive(1.52,()=>previewCast(id,target.id));
   }else if(id==="froststorm"&&selectedEvolution==="shattering-storm"){
-    scheduleLive(1.8,()=>previewCast("crystal-bolt",enemy.id));
+    scheduleLive(1.8,()=>previewCast("crystal-bolt",foe.id));
   }else if(id==="sun-lance"&&selectedEvolution==="scorching-lance"){
-    scheduleLive(2.35,()=>match.damage(enemy,400,source,"flux-bolt"));
+    scheduleLive(2.35,()=>match.damage(foe,400,source,"flux-bolt"));
   }else if(id==="entropy-mark"&&selectedEvolution==="contagion"){
-    scheduleLive(2.4,()=>match.damage(enemy,400,source,"rift-slash"));
+    scheduleLive(2.4,()=>match.damage(foe,400,source,"rift-slash"));
   }else if(id==="phase-slip"&&selectedEvolution==="veilwalk"){
     scheduleLive(1.6,()=>match.damage(source,32,enemy,"crystal-bolt"));
   }else if(id==="void-metamorphosis"&&selectedEvolution==="dreadblade-form"){
     for(const t of [1.45,4.58,7.72])
-      scheduleLive(t,()=>{source.x=enemy.x-88;previewCast("rift-slash",enemy.id);});
+      scheduleLive(t,()=>{source.x=foe.x-88;source.y=foe.y;previewCast("rift-slash",foe.id);});
   }else if(id==="void-metamorphosis"&&selectedEvolution==="soul-devourer"){
-    scheduleLive(1.5,()=>previewCast("entropy-mark",enemy.id));
-    scheduleLive(4.1,()=>match.damage(enemy,5000,source,"rift-slash"));
+    scheduleLive(1.5,()=>previewCast("entropy-mark",foe.id));
+    scheduleLive(4.1,()=>match.damage(foe,5000,source,"rift-slash"));
   }else if(id==="vital-recall"){
-    scheduleLive(1.45,()=>{ally.hp=Math.max(1,ally.hp-90);ally.healthPct=ally.hp/ally.maxHp;
-      source.targetId=ally.id;previewCast(id,ally.id);});
+    scheduleLive(1.45,()=>{target.hp=Math.max(1,target.hp-90);target.healthPct=target.hp/target.maxHp;
+      source.targetId=target.id;previewCast(id,target.id);});
   }else if(id==="soul-relay")
-    scheduleLive(1.55,()=>previewCast(id,source.id));
+    scheduleLive(1.55,()=>previewCast(id,target.id===source.id?ally.id:source.id));
   else if(id==="cinder-familiar"&&selectedEvolution==="dying-star")
-    scheduleLive(2.5,()=>previewCast(id,enemy.id));
+    scheduleLive(2.5,()=>previewCast(id,foe.id));
   else if(id==="solar-ascension"){
     for(const at of [1.5,3.1,4.8])
-      scheduleLive(at,()=>{source.flux=100;previewCast("flux-bolt",enemy.id);});
+      scheduleLive(at,()=>{source.flux=100;previewCast("flux-bolt",foe.id);});
   }else if(id==="void-metamorphosis"){
-    scheduleLive(1.5,()=>{source.x=enemy.x-88;previewCast("rift-slash",enemy.id);});
-    scheduleLive(4.6,()=>{source.flux=100;previewCast("entropy-mark",enemy.id);});
+    scheduleLive(1.5,()=>{source.x=foe.x-88;source.y=foe.y;previewCast("rift-slash",foe.id);});
+    scheduleLive(4.6,()=>{source.flux=100;previewCast("entropy-mark",foe.id);});
   }else if(id==="phase-slip"&&selectedEvolution==="shadow-ambush"){
-    scheduleLive(1.6,()=>{source.x=enemy.x-88;previewCast("rift-slash",enemy.id);});
+    scheduleLive(1.6,()=>{source.x=foe.x-88;source.y=foe.y;previewCast("rift-slash",foe.id);});
   }else if(id==="crystal-mirror"||id==="kinetic-rampart"){
     scheduleLive(1.5,()=>{enemy.x=source.x+120;
-      match.damage(id==="crystal-mirror"?ally:source,28,enemy,"crystal-bolt");});
+      match.damage(id==="crystal-mirror"?target:source,28,enemy,"crystal-bolt");});
   }else if(id==="abyssal-rift")
     scheduleLive(1.6,()=>match.damage(source,25,enemy,"crystal-bolt"));
   else if(id==="flux-bolt"&&selectedEvolution==="helios-beam")

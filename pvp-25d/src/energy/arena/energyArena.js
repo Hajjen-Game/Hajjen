@@ -721,6 +721,24 @@ function frameLoop(now){
   combatUX?.updateCC(match);
   if(now-lastUi>85){renderUI();lastUi=now;}
 }
+$("energy-canvas").addEventListener("pointermove",event=>{
+  if(!pendingGroundAim||!match||!renderer)return;
+  const point=renderer.pickGround(event.clientX,event.clientY),player=match.player;
+  const rule=match.rule(player,pendingGroundAim);
+  let valid=!!point;
+  if(point&&["phase-slip","gravity-hammer","froststorm","zenith-crash","abyssal-rift"].includes(pendingGroundAim)){
+    const limit=pendingGroundAim==="phase-slip"?rule.distance:rule.range;
+    valid=Math.hypot(point.x-player.x,point.y-player.y)<=limit&&
+      (pendingGroundAim==="phase-slip"?
+        match.canOccupy(player,point.x,point.y):
+        match.arena.bounds&&point.x>match.arena.bounds.x&&
+        point.x<match.arena.bounds.x+match.arena.bounds.w&&
+        point.y>match.arena.bounds.y&&
+        point.y<match.arena.bounds.y+match.arena.bounds.h)&&
+      hasLineOfSight(player,point,match.arena);
+  }
+  $("energy-canvas").style.cursor=valid?"crosshair":"not-allowed";
+});
 $("energy-canvas").addEventListener("click",event=>{
   if(!match||!renderer)return;
   if(["gravity-hammer","froststorm","avalanche","zenith-crash","phase-slip","abyssal-rift"].includes(pendingGroundAim)){

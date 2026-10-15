@@ -92,9 +92,12 @@ export class EnergyCombatUX{
       const rampartRecast=slot.id==="kinetic-rampart"&&player.rampart?.until>match.time;
       const familiarRecast=slot.id==="cinder-familiar"&&player.familiar?.until>match.time&&
         player.evolutions["cinder-familiar"]==="dying-star";
-      const canRecast=Boolean(recallStatus)||Boolean(rampartRecast)||Boolean(familiarRecast)||
+      const collapseRecast=slot.id==="entropy-mark"&&player.evolutions[slot.id]==="psychic-collapse"&&
+        match.currentTarget(player,"dot",player.targetId)?.statuses?.some(q=>
+          q.kind==="dot"&&q.spellId===slot.id&&q.sourceId===player.id&&q.tickCount>=2);
+      const canRecast=Boolean(recallStatus)||Boolean(rampartRecast)||Boolean(familiarRecast)||Boolean(collapseRecast)||
         (slot.id==="soul-relay"&&player.relayPending?.until>match.time);
-      node.classList.toggle("recast-ready",Boolean(recallStatus)||Boolean(familiarRecast));
+      node.classList.toggle("recast-ready",Boolean(recallStatus)||Boolean(familiarRecast)||Boolean(collapseRecast));
       node.classList.toggle("relay-select-partner",slot.id==="soul-relay"&&canRecast);
       const remaining=canRecast?0:player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
@@ -137,7 +140,7 @@ export class EnergyCombatUX{
         1-player.cast.remainingMs/Math.max(1,player.cast.totalMs),0,1):0;
       fx.cast.style.width=(progress*100).toFixed(1)+"%";
       cd.textContent=recallStatus?"↻ "+recallStatus.remaining.toFixed(1)+"s":
-        rampartRecast?"↻ RELEASE":familiarRecast?"↻ DETONATE":
+        rampartRecast?"↻ RELEASE":familiarRecast?"↻ DETONATE":collapseRecast?"↻ COLLAPSE":
         remaining>.015?(remaining>=10?Math.ceil(remaining):remaining.toFixed(1))+"s"
         :lock>.015?"LOCK "+Math.ceil(lock)+"s":"";
       // Preserve reason in tooltip and accessibility even when hiding its

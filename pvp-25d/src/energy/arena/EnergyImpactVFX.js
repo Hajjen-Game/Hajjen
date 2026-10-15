@@ -171,15 +171,20 @@ export class EnergyImpactVFX {
     this.ramparts.set(a.id,fx);
   }
   rushRibbon(from,to,kind="piercing-shock"){
-    const fx=this.make(kind,to,590);
+    const fx=this.make(kind,from.clone(),470,{
+      moving:true,from:from.clone(),to:to.clone()});
     const dx=to.x-from.x,dz=to.z-from.z,len=Math.hypot(dx,dz)||1;
-    const px=-dz/len,pz=dx/len;
+    const ux=dx/len,uz=dz/len,px=-uz,pz=ux;
+    // Short local wake follows the projectile; never draw a premature full-distance beam.
     for(let j=-2;j<=2;j++){
-      const offset=j*.10,pts=[V(from.x-to.x+px*offset,.16,from.z-to.z+pz*offset),
-        V(dx*.16/len+px*offset,.15,dz*.16/len+pz*offset),V(px*offset,.05,pz*offset)];
-      this.thread(fx,pts,j?"coral":"white",j===0?.04:.017,.78);
+      const offset=j*.10,pts=[
+        V(-ux*.82+px*offset,-.07,-uz*.82+pz*offset),
+        V(-ux*.37+px*offset,.10,-uz*.37+pz*offset),
+        V(px*offset,.03,pz*offset)];
+      this.thread(fx,pts,j?"coral":"white",j===0?.043:.017,.79);
     }
-    this.gem(fx,0,0,0,.13,.4,"white",.86);
+    this.gem(fx,0,0,0,.17,.52,"white",.93);
+    this.gem(fx,-ux*.32,.04,-uz*.32,.09,.34,"peach",.79);
   }
   spawn(e,match){
     if(!IMPACT_VFX_IDS.has(e.spellId))return false;
@@ -270,7 +275,9 @@ export class EnergyImpactVFX {
         this.telegraphs.set(a?.id,f);
       }else if(e.type==="evolution-proc"&&point){
         if(kind==="gravity-impact"){
-          const f=this.seam(point,{large:true,kind:"gravity-collapse"});
+          const focused=a?.evolutions?.["gravity-hammer"]==="singularity-impact";
+          const f=this.seam(point,{large:!focused,
+            kind:focused?"gravity-singularity":"gravity-collapse"});
           this.gem(f,0,3.4,0,.65,1.3,"dark",.83);
           this.orb(f,0,2.7,0,.58,"white",.69);
         }else if(kind==="seismic-wave"){
@@ -346,6 +353,13 @@ export class EnergyImpactVFX {
         (f.kind==="warpath"&&!activeWarpath)||
         (f.preview&&(!a?.alive||a.cast?.spellId!=="gravity-hammer"))||
         (!f.persistent&&t>=1)||t>=1){this.drop(f);continue;}
+      if(f.moving){
+        const u=ease(t);
+        f.root.position.set(
+          f.from.x+(f.to.x-f.from.x)*u,
+          f.from.y+(f.to.y-f.from.y)*u+Math.sin(Math.PI*u)*.22,
+          f.from.z+(f.to.z-f.from.z)*u);
+      }
       if(f.kind==="windup"){
         if(!a?.alive||a.cast&&a.cast.spellId!==f.spellId){
           this.drop(f);continue;
@@ -369,7 +383,8 @@ export class EnergyImpactVFX {
             const rad=(.44+i%2*.06)*(1-.55*ease(t));
             m.position.set(Math.cos(a0)*rad,p.p.y,Math.sin(a0)*rad);
           }else m.rotation.y=now*.00052;
-        }else if(f.kind==="gravity-collapse"&&i>=f.parts.length-2){
+        }else if((f.kind==="gravity-collapse"||f.kind==="gravity-singularity")&&
+          i>=f.parts.length-2){
           m.position.y=p.p.y*(1-ease(t));
           m.scaling.scaleInPlace(1); // position-driven fall; no perpetual growth
         }else if(f.kind==="gravity-warning"||f.kind==="gravity-well"||

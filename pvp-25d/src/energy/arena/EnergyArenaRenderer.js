@@ -6,6 +6,7 @@ import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
 import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx2";
 import { EnergySolarVFX } from "./EnergySolarVFX.js?v=20261015-solar-vfx3";
+import { EnergyGenesisVFX } from "./EnergyGenesisVFX.js?v=20261015-genesis-vfx1";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-solar-pixi2";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
@@ -50,6 +51,7 @@ export class EnergyArenaRenderer {
     this.spellFX=new EnergySpellVFX(this.scene);
     this.eclipseVFX=new EnergyEclipseVFX(this.scene);
     this.solarVFX=new EnergySolarVFX(this.scene);
+    this.genesisVFX=new EnergyGenesisVFX(this.scene);
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
     this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
@@ -235,6 +237,13 @@ export class EnergyArenaRenderer {
   }
   spawnEffect(event,match){
     this.riftActors?.notify(event,match);
+    // Genesis's five non-signature spells use their own detailed meshes.
+    // Original Pulse Mend (and Crystal Bolt/Sun Lance) stay on the original
+    // Hero/Pixi routes; Pulse Mend Evolution FX are supplemental only.
+    if(this.genesisVFX?.spawn(event,match)){
+      this.pixiFX?.spawn(event,match);
+      return;
+    }
     // Solar 1.0 is five-spell-only, with a separate Babylon + Pixi pipeline.
     // NEVER intercept Sun Lance or Crystal Bolt (nor their accepted VFX).
     if(this.solarVFX?.spawn(event,match)){
@@ -964,6 +973,7 @@ export class EnergyArenaRenderer {
     this.spellFX.update(match,now);
     this.eclipseVFX?.update(match,now);
     this.solarVFX?.update(match,now);
+    this.genesisVFX?.update(match,now);
     this.syncSolarVisuals(match,now);
     this.syncVoidForms(match,now);
     this.riftWorld?.update(match,now);
@@ -988,6 +998,7 @@ export class EnergyArenaRenderer {
     this.spellFX?.dispose();
     this.eclipseVFX?.dispose();
     this.solarVFX?.dispose();
+    this.genesisVFX?.dispose();
     this.markers?.dispose();
     this.orbPolish?.dispose();
     this.riftActors?.dispose();

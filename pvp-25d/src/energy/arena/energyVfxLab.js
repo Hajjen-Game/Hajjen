@@ -5,7 +5,7 @@ import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261015-voidlab
 import { ABILITIES,ABILITY_BY_ID,ROLES,GENESIS_CLASS_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,
   ECLIPSE_CLASS_SPELL_IDS,SOLAR_CLASS_SPELL_IDS,VOID_CLASS_SPELL_IDS }
   from "../abilityCatalog.js?v=20261015-voidlab1";
-import { EnergyMatch, actorFor, hasLineOfSight, ABILITY_RULES } from "./EnergyMatch.js?v=20261015-voidlab1";
+import { EnergyMatch, actorFor, hasLineOfSight, ABILITY_RULES } from "./EnergyMatch.js?v=20261015-voidlab2";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 

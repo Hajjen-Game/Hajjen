@@ -275,7 +275,7 @@ function runCombat(spell,fromSequence=false){
   if(selectedEvolution)source.evolutions[spell.id]=selectedEvolution;
   for(const offset of [80,-80]){
     const foe=actorFor("lab-extra-"+offset,"enemy","caster",
-      {x:enemy.x+48,y:enemy.y+offset},"ai",["crystal-bolt"],{}, {},1);
+      {x:enemy.x-60,y:enemy.y+offset},"ai",["crystal-bolt"],{}, {},1);
     foe.name=offset>0?"ENEMY 2":"ENEMY 3";foe.maxHp=1300;foe.hp=700;
     match.actors.push(foe);
   }
@@ -285,6 +285,11 @@ function runCombat(spell,fromSequence=false){
     return;
   }
   source.targetId=focus.id;
+  if(focus===source&&["heal","guard","shield","mirror","recall",
+    "team-heal","hot"].includes(ABILITY_RULES[spell.id]?.mode)){
+    source.hp=Math.round(source.maxHp*.67);
+    source.healthPct=source.hp/source.maxHp;
+  }
   const foe=focus.team==="enemy"?focus:enemy;
   if(focus.team==="enemy"&&foe!==enemy){
     foe.maxHp=2600;foe.hp=2600;foe.healthPct=1;

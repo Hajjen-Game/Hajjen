@@ -318,15 +318,39 @@ export class EnergyArenaRenderer {
       if(Number.isFinite(x)&&Number.isFinite(y)){
         const kinetic=["arc-second-strike","counterstrike","dissonance",
           "dissonance-absorbed"].includes(event.kind);
-        const c=event.spellId==="phase-slip"?"#bda0f1":
+        const vital=ABILITY_BY_ID[event.spellId]?.discipline==="vital";
+        const c=vital?"#81f4b9":event.spellId==="phase-slip"?"#bda0f1":
           kinetic?"#f68a9c":"#ffe0a0";
         const p=new BABYLON.Vector3(x*S,.11,y*S);
         const radius=event.kind==="flux-third-hit"?1.9:
-          event.kind==="precision-execute"?2.05:1.35;
+          event.kind==="precision-execute"?2.05:
+          ["vital-reversal","team-cascade","recall-release","relay-linked"].includes(event.kind)?2.3:1.35;
         this.spellFX.ring(p,c,radius,460,"ground");
-        if(event.kind==="flux-third-hit"||event.kind==="precision-execute")
+        if(event.kind==="flux-third-hit"||event.kind==="precision-execute"||vital)
           this.spellFX.sphere(new BABYLON.Vector3(p.x,.91,p.z),c,
-            .32,350,"burst");
+            vital?.49:.32,350,"burst");
+        if(vital){
+          this.spellFX.ring(new BABYLON.Vector3(p.x,.12,p.z),"#e5fff1",
+            radius*.70,570,"ground");
+          // Vital Reversal visibly fans healing projectiles FROM the enemy
+          // impact toward all wounded friends, even when far apart.
+          if(event.kind==="vital-reversal"&&actor&&target){
+            for(const ally of match.allies(actor).filter(a=>a.alive&&a.hp<a.maxHp)){
+              const start=new BABYLON.Vector3(target.x*S,.95,target.y*S);
+              this.spellFX.sphere(start,c,.25,460,"projectile",{
+                end:new BABYLON.Vector3(ally.x*S,.9,ally.y*S),
+                spellId:"pulse-mend"});
+            }
+          }
+          if(event.kind==="team-cascade"&&actor&&target){
+            for(const ally of match.allies(actor).filter(a=>a.alive&&a!==target)){
+              this.spellFX.sphere(new BABYLON.Vector3(target.x*S,.9,target.y*S),
+                "#b0ffd0",.21,450,"projectile",{
+                  end:new BABYLON.Vector3(ally.x*S,.9,ally.y*S),
+                  spellId:"vital-cascade"});
+            }
+          }
+        }
         if(event.kind==="dissonance"){
           const source=actor;
           if(source){
@@ -364,9 +388,11 @@ export class EnergyArenaRenderer {
         const hex=colors[discipline]||"#b2d9fa";
         const p=new BABYLON.Vector3(px*S,.115,py*S);
         const field=["shatterfield","residual-field"].includes(event.kind);
-        const burst=["collapse","crystal-rupture","unstable-prison"].includes(event.kind);
+        const burst=["collapse","crystal-rupture","unstable-prison","last-stand",
+          "vital-crescendo","retaliation","life-transfer"].includes(event.kind);
         const secondary=["contagion","glacial-echo","echo-cut","harmonic-thread",
-          "harmonic-field"].includes(event.kind);
+          "harmonic-field","mercy-bloom","rejuvenating-orbit","guardian-network",
+          "second-heart","double-cascade"].includes(event.kind);
         const wide=["seismic-wave","solar-aftershock","burning-ground",
           "shock-trail","interrupt-shockwave","prismatic-return",...["shatterfield","residual-field"]].includes(event.kind);
         const setup=String(event.kind).endsWith("-ready")||event.kind==="impact-charge";

@@ -3,6 +3,7 @@
 // trails and hit highlights, never controls real damage, targeting or movement.
 import { drawOriginalLayeredProjectile } from "./EnergyOriginalLayeredProjectiles.js?v=20261009-travel-tail16";
 import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
+import { drawEclipsePixi,ECLIPSE_PIXI_IDS } from "./EnergyEclipsePixiAccents.js?v=20261015-eclipse-pixi1";
 import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
@@ -73,6 +74,34 @@ export class EnergyPixiVFXOverlay {
     }
   }
   spawn(event,match){
+    // New Eclipse accents use exactly the same Pixi surface as Crystal Bolt,
+    // but an isolated implementation. Preserve original signature paths.
+    if(ECLIPSE_PIXI_IDS.has(event.spellId)){
+      if(!["windup","hit","ability","evolution-proc","identity-proc",
+        "control","immune"].includes(event.type))return;
+      const source=match.getActor(event.actorId);
+      if(!source)return;
+      const dest=match.getActor(event.targetId);
+      const distance=dest?Math.hypot(source.x-dest.x,source.y-dest.y)*S:0;
+      const contactMs=event.spellId==="fracture-spear"?
+        clamp(250+distance*35,310,530):0;
+      const duration=event.type==="windup"?
+          clamp((event.castSeconds||.4)*1000,300,2500):
+        event.type==="hit"&&contactMs?contactMs+230:
+        event.kind==="froststorm-start"?1400:
+        event.kind==="mirror-armed"?1100:
+        event.type==="ability"?620:510;
+      this.effects.push({
+        eclipse:true,spellId:event.spellId,type:event.type,kind:event.kind||"",
+        sourceId:source.id,targetId:dest?.id||null,
+        launch:event.type==="hit"?{x:source.x*S,z:source.y*S}:null,
+        x:Number.isFinite(event.x)?event.x:null,
+        y:Number.isFinite(event.y)?event.y:null,
+        duration,contactMs,start:performance.now(),seed:++this.sequence,
+      });
+      if(this.effects.length>60)this.effects.splice(0,this.effects.length-60);
+      return;
+    }
     if(!HERO.has(event.spellId))return;
     if(!["windup","hit","heal","control","shield","ability"].includes(event.type))return;
     if(event.type==="ability"&&event.spellId!=="reactive-thread")return;
@@ -491,6 +520,13 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
+      if(e.eclipse){
+        const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
+          this.projectWorld(e.x*S,e.y*S):to;
+        const scale=this.impactScale(b||a,point||to);
+        drawEclipsePixi(g,e,from,point||to,t,scale);
+        continue;
+      }
       const style=COLORS[e.spellId];
       if(e.type==="windup"){
         if(e.spellId==="rift-slash")

@@ -436,10 +436,12 @@ export class EnergyMatch {
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
     const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time&&
       actor.evolutions["cinder-familiar"]==="dying-star";
+    const markTarget=this.getActor(targetId||actor.targetId);
     const collapseRecast=spellId==="entropy-mark"&&
       actor.evolutions[spellId]==="psychic-collapse"&&
-      this.opponents(actor).some(t=>t.statuses.some(q=>q.spellId==="entropy-mark"&&
-        q.sourceId===actor.id&&q.kind==="dot"&&q.tickCount>=2));
+      markTarget?.team!==actor.team&&markTarget?.statuses.some(q=>
+        q.spellId==="entropy-mark"&&q.sourceId===actor.id&&
+        q.kind==="dot"&&q.tickCount>=2);
     if(actor.gcd>0&&!secondRecall&&!rampartRecast&&!familiarRecast&&!collapseRecast)return "GLOBAL COOLDOWN";
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast&&!collapseRecast)return "COOLDOWN";

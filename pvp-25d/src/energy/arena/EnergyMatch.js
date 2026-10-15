@@ -340,7 +340,7 @@ export class EnergyMatch {
     this.evolutionEvents=this.evolutionEvents.filter(e=>e.at>this.time);
     for(const e of ready){
       const source=this.getActor(e.sourceId);
-      if(!source?.alive)continue;
+      if(!source||(!source.alive&&!["rift-implosion","dark-spear"].includes(e.kind)))continue;
       if(e.spellId==="vital-cascade"&&e.kind==="double-cascade"){
         const injured=this.allies(source).filter(a=>a.hp<a.maxHp);
         for(const ally of injured)this.heal(ally,e.amount,source,"vital-cascade",true);
@@ -389,6 +389,13 @@ export class EnergyMatch {
       }
       if(e.targetId){
         const target=this.getActor(e.targetId);
+        if((!target?.alive||target.team===source.team)&&e.kind==="dark-spear"){
+          this.evolutionProc(source,"dark-pact","dark-spear",null,e.x,e.y);
+          for(const foe of this.opponents(source).filter(q=>distance(q,e)<130&&
+            hasLineOfSight(e,q,this.arena)).slice(0,9))
+            this.damage(foe,e.splash||9,source,e.spellId,true);
+          continue;
+        }
         if(!target?.alive||target.team===source.team)continue;
         this.evolutionProc(source,e.spellId,e.kind,target);
         if(e.amount>0)this.damage(target,e.amount,source,e.spellId);

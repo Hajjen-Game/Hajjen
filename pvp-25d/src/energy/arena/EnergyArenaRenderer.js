@@ -310,17 +310,103 @@ export class EnergyArenaRenderer {
       }
       return;
     }
-    if(event.type==="ground-telegraph"&&["zenith-crash","gravity-hammer"].includes(event.spellId)){
+    if(event.type==="ground-telegraph"&&["zenith-crash","gravity-hammer","froststorm"].includes(event.spellId)){
       const center=new BABYLON.Vector3(event.x*S,.10,event.y*S);
       const diameter=(event.radius||124)*S*2;
       // Friendly pillars look Solar-gold; enemy danger zones look hostile red.
       const hostile=match.getActor(event.actorId)?.team==="enemy";
       this.spellFX.ring(center,hostile?"#f16f88":
-        event.spellId==="gravity-hammer"?"#fb799a":"#ffc780",
+        event.spellId==="gravity-hammer"?"#fb799a":event.spellId==="froststorm"?"#8dddff":"#ffc780",
         diameter,(event.duration||2)*1000,"telegraph",{casterId:event.actorId});
       this.spellFX.ring(new BABYLON.Vector3(center.x,.105,center.z),
-        hostile?"#aa3d64":event.spellId==="gravity-hammer"?"#ffafc7":"#e07856",diameter*.62,(event.duration||2)*1000,
+        hostile?"#aa3d64":event.spellId==="gravity-hammer"?"#ffafc7":event.spellId==="froststorm"?"#beeaff":"#e07856",diameter*.62,(event.duration||2)*1000,
         "telegraph",{casterId:event.actorId});
+      return;
+    }
+    // Eclipse VFX are additive. Do not alter the existing Crystal Bolt
+    // build-up, flight/trail or impact path in HeroSpellFX/Pixi.
+    if(event.type==="identity-proc"&&
+      ["crystal-mirror","avalanche"].includes(event.spellId)){
+      const owner=match.getActor(event.actorId);
+      const protectedTarget=match.getActor(event.targetId)||owner;
+      if(!protectedTarget)return;
+      const p=new BABYLON.Vector3(protectedTarget.x*S,.85,protectedTarget.y*S);
+      if(event.kind==="mirror-armed"){
+        this.spellFX.ring(new BABYLON.Vector3(p.x,.14,p.z),"#b7f4ff",2.8,6800,"ground");
+        for(let i=0;i<6;i++){
+          const theta=i*Math.PI/3;
+          this.spellFX.sphere(new BABYLON.Vector3(
+            p.x+Math.cos(theta)*.9,1.2+Math.sin(theta*2)*.25,p.z+Math.sin(theta)*.9),
+            i%2?"#d9ffff":"#79d7ff",.24,6800,"burst");
+        }
+      }else if(event.kind==="mirror-shatter"){
+        this.spellFX.ring(new BABYLON.Vector3(p.x,.12,p.z),"#efffff",3.4,640,"ground");
+        for(let i=0;i<7;i++){
+          const theta=i*Math.PI*2/7;
+          this.spellFX.sphere(new BABYLON.Vector3(p.x+Math.cos(theta)*1.0,1.8,
+            p.z+Math.sin(theta)*1.0),"#aeecff",.34,510,"burst");
+        }
+      }else if(event.kind==="mirror-shards"&&owner){
+        for(let i=0;i<5;i++)
+          this.spellFX.sphere(new BABYLON.Vector3(owner.x*S,.7+i*.15,owner.y*S),
+            i%2?"#eaffff":"#83ddff",.24,460,"projectile",{
+              end:new BABYLON.Vector3(p.x,1.0,p.z),spellId:"crystal-mirror"});
+      }else if(event.kind==="avalanche-launch"){
+        this.spellFX.ring(new BABYLON.Vector3(p.x,.13,p.z),"#acdbff",3.5,720,"ground");
+      }
+      return;
+    }
+    if(event.type==="evolution-proc"&&[
+      "froststorm-start","froststorm-tick","barrage-warning","glacial-barrage",
+      "shattering-storm","avalanche-wave","avalanche-track",
+      "deep-freeze","conduit-link","crystal-conduit","fracture-chain",
+      "riftbreaker","shatterfield"
+    ].includes(event.kind)){
+      const target=match.getActor(event.targetId)||match.getActor(event.actorId);
+      const x=Number.isFinite(event.x)?event.x:target?.x;
+      const y=Number.isFinite(event.y)?event.y:target?.y;
+      if(!Number.isFinite(x)||!Number.isFinite(y))return;
+      const p=new BABYLON.Vector3(x*S,.14,y*S);
+      const kind=event.kind;
+      const heavy=["glacial-barrage","avalanche-wave","deep-freeze","riftbreaker"].includes(kind);
+      const pale=heavy?"#d3f6ff":"#7dd6ff";
+      if(kind==="froststorm-start"){
+        this.spellFX.ring(p,"#8ad9ff",4.7,5400,"ground");
+        this.spellFX.ring(new BABYLON.Vector3(p.x,.16,p.z),
+          "#b7f5ff",3.0,5100,"ground");
+      }else if(kind==="barrage-warning"){
+        this.spellFX.ring(p,"#edfaff",1.3,900,"telegraph",{casterId:event.actorId});
+      }else if(kind==="glacial-barrage"||kind==="riftbreaker"){
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,5.0,p.z),
+          "#e2ffff",.91,470,"fall",{end:new BABYLON.Vector3(p.x,.46,p.z)});
+        this.spellFX.ring(p,"#9de8ff",2.2,550,"ground");
+      }else if(kind==="avalanche-wave"){
+        this.spellFX.ring(p,"#9de4ff",3.1,520,"ground");
+        for(let i=-2;i<=2;i++){
+          const lateral=i*.62;
+          this.spellFX.sphere(new BABYLON.Vector3(p.x+lateral,.85+Math.abs(i)*.28,
+            p.z+(i%2)*.35),i%2?"#72c8ff":"#ebffff",.48,430,"burst");
+        }
+      }else if(kind==="deep-freeze"){
+        this.spellFX.ring(p,"#a8eeff",2.7,3800,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,1.3,p.z),
+          "#c3efff",1.1,3700,"burst");
+      }else if(kind==="conduit-link"||kind==="crystal-conduit"){
+        const source=match.getActor(event.actorId);
+        this.spellFX.ring(p,"#9dedff",1.55,500,"ground");
+        if(source&&source.id!==event.targetId)
+          this.spellFX.sphere(new BABYLON.Vector3(source.x*S,1.1,source.y*S),
+            "#cefbff",.18,470,"projectile",{
+              end:new BABYLON.Vector3(p.x,.95,p.z),spellId:"crystal-snare"});
+      }else if(kind==="fracture-chain"){
+        this.spellFX.ring(p,"#e7faff",2.0,440,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,1.1,p.z),
+          "#bcf3ff",.42,410,"burst");
+      }else{
+        this.spellFX.ring(p,pale,kind==="shattering-storm"?3.1:1.6,490,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,.80,p.z),
+          "#c4f4ff",kind==="shattering-storm"?.63:.28,420,"burst");
+      }
       return;
     }
     if(event.type==="identity-proc"&&event.spellId==="kinetic-rampart"){

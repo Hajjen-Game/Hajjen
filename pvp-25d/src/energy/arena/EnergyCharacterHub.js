@@ -139,6 +139,10 @@ export class EnergyCharacterHub{
     $("origin-selected-name").textContent=origin.name.toUpperCase();
     $("origin-selected-description").textContent=origin.description;
     $("origin-selected-playstyle").textContent=origin.playstyle;
+    const footnote=document.querySelector(".origin-choice-footnote");
+    if(footnote)footnote.textContent=role==="healer"?
+      "Genesis has two permanent starting spells and four additional Vital spells unlocked during its Journey. All six spells are class-exclusive; only the first four have Evolutions.":
+      "Impact and Eclipse still use the current shared-spell system until their class implementation pass.";
     $("origin-selected-spells").textContent=origin.locked
       .map(id=>ABILITY_BY_ID[id]?.name||id).join(" + ");
     $("origin-selected-passive").textContent=origin.passive;

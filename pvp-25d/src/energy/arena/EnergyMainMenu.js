@@ -564,7 +564,7 @@ export class EnergyMainMenu{
       return;
     }
     status.textContent=dev.character.name+" · 20/20 STAGES · "+
-      (dev.character.role==="healer"?"ALL 6 GENESIS CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
+      (["healer","melee"].includes(dev.character.role)?"ALL 6 "+ROLES[dev.character.role].name.toUpperCase()+" CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
       "AI STYLES UNLOCKED · SAVED SEPARATELY. Choose any Stage to replay it with the full toolkit.";
     $("game-dev-stage-select").value=String(dev.progression.devStage||20);
     $("game-dev-origin-role").value=dev.character.role;

@@ -110,14 +110,14 @@ const PAGES=[
         "Längs vägen öppnas fler spell-val. Framtida milstolpar visar också AI Styles, Evolutions och nya utmaningar."
       ]
     ],
-    "tip": "Genesis och Impact får en ny klass-spell vid Stage 3, 6, 9 och 12. Du kan inte hoppa förbi kommande Stages.",
+    "tip": "Genesis, Impact och Eclipse får klass-spells vid Stage 3, 6, 9 och 12. Du kan inte hoppa över Stages.",
     "art": "journey",
     "caption": "Hexagonerna visar din resa. Grönt betyder avklarat; nästa Stage är markerad."
   },
   {
     "title": "UPPTÄCK OCH BYGG SPELLS",
     "chapter": "06 / EVOLUTION TREE",
-    "intro": "Genesis och Impact har sex egna klass-spells: två från start och fyra som låses upp längs Stage-kartan. Eclipse använder tills vidare det äldre spellbiblioteket i väntan på sitt klasspass.",
+    "intro": "Genesis, Impact och Eclipse har sex klassunika spells var: två från start och fyra som låses upp längs Stage-kartan.",
     "steps": [
       [
         "LYSANDE SPELLS",
@@ -125,14 +125,14 @@ const PAGES=[
       ],
       [
         "VÄLJ EN PERMANENT",
-        "Bekräfta ditt val i Selected Spell-panelen. Genesis och Impact väljer en ny klass-spell vid Stage 3, 6, 9 och 12."
+        "Bekräfta valet i Selected Spell-panelen. Genesis, Impact och Eclipse får en ny klass-spell vid Stage 3, 6, 9 och 12."
       ],
       [
         "SKAPA DIN BUILD",
-        "Genesis och Impact utvecklar sex klass-spells. De första fyra får Evolutions; spell 5 och 6 är helt egna förmågor utan extra Evolution-val."
+        "Varje Origin använder sex klass-spells. De första fyra har Evolutions; spell 5 och 6 är egna färdigheter utan extra Evolution-val."
       ]
     ],
-    "tip": "Spell-valen är nu klassbundna för Genesis och Impact. Cross-class Synergies är pausade.",
+    "tip": "Spell-valen är klassbundna för Genesis, Impact och Eclipse. Crystal Bolt behåller sin signaturanimation. Cross-class Synergies är pausade.",
     "art": "spells",
     "caption": "Tillgängliga nya spells glöder i yttersta ringen; ett val blir permanent."
   },
@@ -565,7 +565,7 @@ export class EnergyMainMenu{
       return;
     }
     status.textContent=dev.character.name+" · 20/20 STAGES · "+
-      (["healer","melee"].includes(dev.character.role)?"ALL 6 "+ROLES[dev.character.role].name.toUpperCase()+" CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
+      (["healer","melee","caster"].includes(dev.character.role)?"ALL 6 "+ROLES[dev.character.role].name.toUpperCase()+" CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
       "AI STYLES UNLOCKED · SAVED SEPARATELY. Choose any Stage to replay it with the full toolkit.";
     $("game-dev-stage-select").value=String(dev.progression.devStage||20);
     $("game-dev-origin-role").value=dev.character.role;

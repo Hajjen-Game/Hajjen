@@ -1,7 +1,7 @@
 // Independent Energy Arena onboarding / play-mode progression.
 // This sits between Build Lab (full 10-slot authoring) and EnergyMatch.
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
-import { ABILITY_BY_ID, FREE_ABILITIES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { buildCombatLoadout } from "../buildState.js?v=20261012-eclipse-oc1";
 import {readJourney,awardedJourneyClear,journeyActiveSlots,journeyCombatLoadout} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
 
@@ -82,9 +82,7 @@ const PREFERENCES={
 const BOT_KITS={
   healer:["pulse-mend","resonance-guard","vital-cascade",
     "stasis-seal","vital-recall","soul-relay"],
-  melee:["phase-rush","arc-strike","rift-slash","pulse-sever",
-    "photon-barrier","gravity-hammer","entropy-mark","crystal-snare",
-    "vector-rush","resonance-cut"],
+  melee:[...IMPACT_CLASS_SPELL_IDS],
   caster:["flux-bolt","crystal-bolt","phase-slip","sun-lance",
     "photon-barrier","crystal-snare","fracture-spear","null-prison",
     "resonance-cut","reactive-thread"],
@@ -121,7 +119,7 @@ export function progressDetails(profile){
     return {journey:true,clears:journey.clears,level:internalStage,
       slots:journeyActiveSlots(journey),maxLevel:false,startXp:0,nextXp:null,
       xp:0,progress:0,remaining:0,
-      lesson:"Complete Planet "+Math.min(20,journey.clears+1)+
+      lesson:"Complete Stage "+Math.min(20,journey.clears+1)+
         " to discover your next spell and grow your Origin."};
   }
   const level=levelForXp(profile.xp||0),base=LEVEL_XP[level-1],next=LEVEL_XP[level];
@@ -270,7 +268,7 @@ export function botAbilities(role,level,modeId){
   const cap=(modeId==="defense"||modeId==="rift")?Math.max(6,slotsForLevel(level)):
     modeId==="training"?3:modeId==="duo"?Math.min(8,slotsForLevel(level)):
     slotsForLevel(level);
-  return BOT_KITS[role].slice(0,cap);
+  return BOT_KITS[role].slice(0,role==="melee"?Math.max(cap,6):cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){
   if(modeId==="defense"||modeId==="rift")return {friendly:["healer","melee","caster"],enemy:[]};

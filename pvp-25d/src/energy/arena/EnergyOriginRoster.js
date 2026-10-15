@@ -1,6 +1,6 @@
 // Multi-character roster for Energy Arena. All records remain local to this
 // browser. Old single-character keys mirror the active record for compatibility.
-import { ROLES, FREE_ABILITIES, GENESIS_CLASS_SPELL_IDS, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS, SOLAR_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-solar1";
+import { ROLES, FREE_ABILITIES, GENESIS_CLASS_SPELL_IDS, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS, SOLAR_CLASS_SPELL_IDS, VOID_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-solar1";
 import { completeArenaBuild } from "./EnergyProgression.js?v=20261015-solar1";
 import { createBuild, normalizeBuild } from "../buildState.js?v=20261015-solar1";
 import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261015-solar1";
@@ -90,14 +90,14 @@ export function appendOrigin(roster,character){
 // Internal Game Dev tool. The marker and save are explicitly isolated; never
 // merge a completed Journey into a normal Origin or replace its build presets.
 export function upsertDevOrigin(roster,role){
-  if(!ROLES[role])throw Error("Choose Genesis, Impact, Eclipse or Solar.");
+  if(!ROLES[role])throw Error("Choose Genesis, Impact, Eclipse, Solar or Void.");
   const origin=ROLES[role];
   const character={name:"DEV "+origin.name.toUpperCase(),role};
   const draft=completeArenaBuild(createBuild(role));
   const progression={...freshOriginProgression(role),
     lastMode:"defense",devTest:true,devStage:20,
     journey:{...newJourney(role),clears:20,
-      owned:role==="healer"?GENESIS_CLASS_SPELL_IDS.slice(2):role==="melee"?IMPACT_CLASS_SPELL_IDS.slice(2):role==="caster"?ECLIPSE_CLASS_SPELL_IDS.slice(2):role==="solar"?SOLAR_CLASS_SPELL_IDS.slice(2):FREE_ABILITIES.map(spell=>spell.id),pending:null}};
+      owned:role==="healer"?GENESIS_CLASS_SPELL_IDS.slice(2):role==="melee"?IMPACT_CLASS_SPELL_IDS.slice(2):role==="caster"?ECLIPSE_CLASS_SPELL_IDS.slice(2):role==="solar"?SOLAR_CLASS_SPELL_IDS.slice(2):role==="void"?VOID_CLASS_SPELL_IDS.slice(2):FREE_ABILITIES.map(spell=>spell.id),pending:null}};
   const entry=record(character,{draft,saved:[null,null,null]},
     progression,DEV_ORIGIN_ID,true);
   return {...roster,activeId:DEV_ORIGIN_ID,

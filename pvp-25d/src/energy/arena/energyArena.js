@@ -172,8 +172,9 @@ function start(build){
       (match.encounter?" · "+match.encounter.stage:"");
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
+    const classSlotMaximum=["healer","melee"].includes(build.role)?6:10;
     $("match-level").textContent=selectedMode==="rift"?
-      "RIFT EXPEDITION · SECTOR 01 / 05 · "+state.slots+"/"+match.loadout.abilitySlots.length+" SPELLS":
+      "RIFT EXPEDITION · SECTOR 01 / 05 · "+state.slots+"/"+classSlotMaximum+" SPELLS":
       devStage!==null?
       "DEV TEST · STAGE "+String(devStage).padStart(2,"0")+" · "+match.loadout.abilitySlots.length+"/"+match.loadout.abilitySlots.length+" SPELLS":
       state.journey?

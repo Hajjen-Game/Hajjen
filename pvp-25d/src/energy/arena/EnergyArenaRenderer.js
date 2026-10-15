@@ -793,7 +793,7 @@ export class EnergyArenaRenderer {
     }
     for(const [id,v] of this.solarFamiliars){
       if(active.has(id))continue;
-      v.node.dispose(false,true);
+      v.node.dispose(false,false);
       for(const mat of v.materials)mat.dispose();
       this.solarFamiliars.delete(id);
     }
@@ -857,7 +857,7 @@ export class EnergyArenaRenderer {
   dispose(){
     for(const id of this.solarHeliosBeams.keys())this.clearSolarHelios(id);
     for(const visual of this.solarFamiliars.values()){
-      visual.node.dispose(false,true);
+      visual.node.dispose(false,false);
       for(const mat of visual.materials)mat.dispose();
     }
     this.solarFamiliars.clear();

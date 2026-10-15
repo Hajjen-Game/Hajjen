@@ -3,7 +3,7 @@
 // range/LOS/resource distinctions and a player-centred CC icon).
 // Visual only: never changes casting rules, status duration or targeting.
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-const SELF_MODES=new Set(["heal","guard","shield","hot","link","cleanse"]);
+const SELF_MODES=new Set(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"]);
 const FLASH_TYPES=["cast-success","cast-interrupted","cast-failed","cooldown-ready","input-pressed"];
 const CC_ORDER=["stun","fear","incapacitate","root","schoolLock"];
 const ICONS={
@@ -85,17 +85,20 @@ export class EnergyCombatUX{
       // can loan temporary upgrades, and the HUD must preview their actual
       // cooldown, cost and range instead of the unranked base spell.
       const {node,slot,ability,cd,fx}=entry,rule=match.rule(player,slot.id)||this.rules[slot.id];
-      const remaining=player.cooldowns[slot.id]||0;
+      const canRecast=(slot.id==="vital-recall"&&match.allies(player).some(a=>
+        a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===player.id)))||
+        (slot.id==="soul-relay"&&player.relayPending?.until>match.time);
+      const remaining=canRecast?0:player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
       const gcd=player.gcd||0;
       const activeCast=player.cast?.spellId===slot.id;
       const target=rule.mode==="dash"?null:match.currentTarget(player,rule.mode,player.targetId);
       const wrongTarget=!target&&rule.mode!=="dash";
-      const range=!!target&&rule.mode!=="dash"&&
+      const range=!canRecast&&!!target&&rule.mode!=="dash"&&
         Math.hypot(target.x-player.x,target.y-player.y)>(rule.range||490);
-      const los=!!target&&!range&&rule.mode!=="dash"&&
+      const los=!canRecast&&!!target&&!range&&rule.mode!=="dash"&&
         !this.hasLOS(player,target,match.arena);
-      const resource=player.flux<match.cost(player,rule,slot.id);
+      const resource=!canRecast&&player.flux<match.cost(player,rule,slot.id);
       const controlled=(player.statuses||[]).some(s=>
         ["stun","fear","incapacitate"].includes(s.kind)&&s.remaining>0);
       const mobility=["dash","rush"].includes(rule.mode)&&player.dashGate>0;

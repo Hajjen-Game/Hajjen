@@ -116,10 +116,10 @@ function prepareActors(spell){
   source.x=close?555:450;
   enemy.x=close?650:755;
   source.y=360;enemy.y=360;
-  source.classId="energy-caster-"+spell.id;
+  source.classId="energy-"+selectedRole;
   source.energyStyle={core:tint,energy:spell.discipline==="solar"?"#fff1bd":
     spell.discipline==="cryo"?"#e4faff":spell.discipline==="vital"?"#ddfff1":"#efcbff"};
-  source.role=spell.discipline==="kinetic"?"melee":"caster";
+  source.role=selectedRole;
   source.targetId=spell.target==="enemy"?enemy.id:ally.id;
   for(const participant of match.actors){
     participant.cast=null;
@@ -133,7 +133,7 @@ function prepareActors(spell){
 // Live mode intentionally creates a disposable *real* EnergyMatch for each
 // trial. All damage, cast timings, recasts, target checks, DoTs and procs are
 // taken from the production engine; no Journey/localStorage writes occur.
-const LIVE_PREVIEW_SECONDS=7.6;
+const LIVE_PREVIEW_SECONDS=10.5;
 function spellTarget(spell){
   const mode=ABILITY_RULES[spell.id]?.mode;
   return ["heal","guard","shield","mirror","recall","relay","team-heal",
@@ -216,11 +216,21 @@ function runCombat(spell,fromSequence=false){
       enemy.hp=620;enemy.healthPct=enemy.hp/enemy.maxHp;
     }
   }
-  if(["executioners-veil","devouring-pact","psychic-collapse",
-    "focused-fracture"].includes(selectedEvolution)){
+  if(["executioners-veil","devouring-pact","psychic-collapse"].includes(selectedEvolution)){
     match.addStatus(enemy,{kind:"dot",spellId:"entropy-mark",sourceId:source.id,
       amount:5,period:2,tickLeft:2,tickCount:2,negative:true,remaining:10});
   }
+  if(selectedEvolution==="focused-fracture")
+    match.addStatus(enemy,{kind:"chilled-mark",sourceId:source.id,remaining:5});
+  if(spell.id==="crystal-bolt"){
+    source.crystalChainHits=2;source.crystalBoltCount=2;
+  }
+  if(spell.id==="sun-lance"&&selectedEvolution==="scorching-lance")
+    enemy.hp=95;
+  if(spell.id==="entropy-mark"&&selectedEvolution==="contagion")
+    enemy.hp=75;
+  if(spell.id==="rift-slash"&&selectedEvolution==="devouring-pact")
+    source.hp=140;
   if(spell.id==="sun-lance"&&selectedEvolution==="judgment-of-dawn"){
     enemy.hp=640;enemy.healthPct=enemy.hp/enemy.maxHp;
   }
@@ -239,16 +249,42 @@ function runCombat(spell,fromSequence=false){
   setPhase("LIVE COMBAT", "Production spell logic · "+(selectedEvolution||"base spell")+
     " · isolated targets and automatic setup");
   const mode=ABILITY_RULES[spell.id]?.mode;
-  const target=spellTarget(spell);
   const id=spell.id;
+  const target=(id==="pulse-mend"&&selectedEvolution==="vital-reversal")?
+    enemy:spellTarget(spell);
   const point=["gravity-hammer","zenith-crash","froststorm","abyssal-rift"].includes(id)?
     {x:enemy.x,y:enemy.y}:id==="phase-slip"?safePreviewPoint(source):
     id==="avalanche"?{x:enemy.x,y:enemy.y}:null;
-  const castOptions=point?{point}:id==="flux-bolt"&&selectedEvolution==="helios-beam"?
-    {holdToCharge:true}:{};
+  const castOptions=point?{point}:
+    (id==="flux-bolt"&&selectedEvolution==="helios-beam")||
+    (id==="pulse-mend"&&selectedEvolution==="vital-crescendo")?
+      {holdToCharge:true}:{};
   const fired=previewCast(id,target.id,castOptions);
   if(!fired)setPhase("INVALID CAST","The real engine rejected the attempted cast. Review spell rules or arena position.");
-  if(id==="vital-recall"){
+  if(id==="pulse-mend"&&selectedEvolution==="second-heart"){
+    scheduleLive(1.8,()=>{ally.hp=Math.min(ally.hp,ally.maxHp*.25);
+      match.damage(ally,36,enemy,"crystal-bolt");});
+  }else if(id==="resonance-guard"&&
+    ["retaliation","last-stand"].includes(selectedEvolution)){
+    scheduleLive(1.5,()=>{enemy.x=source.x+125;
+      match.damage(ally,selectedEvolution==="last-stand"?900:46,enemy,"crystal-bolt");});
+  }else if(id==="arc-strike"){
+    scheduleLive(1.52,()=>previewCast(id,enemy.id));
+  }else if(id==="froststorm"&&selectedEvolution==="shattering-storm"){
+    scheduleLive(1.8,()=>previewCast("crystal-bolt",enemy.id));
+  }else if(id==="sun-lance"&&selectedEvolution==="scorching-lance"){
+    scheduleLive(2.35,()=>match.damage(enemy,400,source,"flux-bolt"));
+  }else if(id==="entropy-mark"&&selectedEvolution==="contagion"){
+    scheduleLive(2.4,()=>match.damage(enemy,400,source,"rift-slash"));
+  }else if(id==="phase-slip"&&selectedEvolution==="veilwalk"){
+    scheduleLive(1.6,()=>match.damage(source,32,enemy,"crystal-bolt"));
+  }else if(id==="void-metamorphosis"&&selectedEvolution==="dreadblade-form"){
+    for(const t of [1.45,4.58,7.72])
+      scheduleLive(t,()=>{source.x=enemy.x-88;previewCast("rift-slash",enemy.id);});
+  }else if(id==="void-metamorphosis"&&selectedEvolution==="soul-devourer"){
+    scheduleLive(1.5,()=>previewCast("entropy-mark",enemy.id));
+    scheduleLive(4.1,()=>match.damage(enemy,5000,source,"rift-slash"));
+  }else if(id==="vital-recall"){
     scheduleLive(1.45,()=>{ally.hp=Math.max(1,ally.hp-90);ally.healthPct=ally.hp/ally.maxHp;
       source.targetId=ally.id;previewCast(id,ally.id);});
   }else if(id==="soul-relay")

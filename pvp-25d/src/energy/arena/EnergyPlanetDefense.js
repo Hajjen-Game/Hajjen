@@ -6,7 +6,7 @@ import { EnergyMatch, ABILITY_RULES, actorFor, canStand, hasLineOfSight }
 import { botAbilities } from "./EnergyProgression.js?v=20261015-solar1";
 import { MAX_FLUX, ROLES, ABILITY_BY_ID } from "../abilityCatalog.js?v=20261015-solar1";
 import { defenseTrialChoices, trialLesson } from "./EnergyDefenseTrials.js?v=20261012-eclipse-oc1";
-import {overchargeChoices,resolveOverchargeProcs} from "./EnergyOvercharges.js?v=20261012-eclipse-oc1";
+import {overchargeChoices,resolveOverchargeProcs} from "./EnergyOvercharges.js?v=20261015-solar1";
 import { buildPlanetEncounters, PVE_ENEMY_ARCHETYPES, ENCOUNTER_SPELLS }
   from "./EnergyPvEEncounters.js?v=20261012-journey-threat1";
 

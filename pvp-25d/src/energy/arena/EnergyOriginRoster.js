@@ -1,6 +1,6 @@
 // Multi-character roster for Energy Arena. All records remain local to this
 // browser. Old single-character keys mirror the active record for compatibility.
-import { ROLES, FREE_ABILITIES, GENESIS_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import { ROLES, FREE_ABILITIES, GENESIS_CLASS_SPELL_IDS, IMPACT_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { completeArenaBuild } from "./EnergyProgression.js?v=20261012-rift1";
 import { createBuild, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
 import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
@@ -97,7 +97,7 @@ export function upsertDevOrigin(roster,role){
   const progression={...freshOriginProgression(role),
     lastMode:"defense",devTest:true,devStage:20,
     journey:{...newJourney(role),clears:20,
-      owned:role==="healer"?GENESIS_CLASS_SPELL_IDS.slice(2):FREE_ABILITIES.map(spell=>spell.id),pending:null}};
+      owned:role==="healer"?GENESIS_CLASS_SPELL_IDS.slice(2):role==="melee"?IMPACT_CLASS_SPELL_IDS.slice(2):FREE_ABILITIES.map(spell=>spell.id),pending:null}};
   const entry=record(character,{draft,saved:[null,null,null]},
     progression,DEV_ORIGIN_ID,true);
   return {...roster,activeId:DEV_ORIGIN_ID,

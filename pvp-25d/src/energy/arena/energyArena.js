@@ -233,7 +233,7 @@ function directionalVector(){
   if(targetActor)return{x:targetActor.x-match.player.x,y:targetActor.y-match.player.y};
   return{x:1,y:0};
 }
-function castSlot(index){
+function castSlot(index,heldKey=false){
   if(!match||match.ended||match.waveState==="intermission"||!match.player.alive)return;
   combatUX?.pulse(actionNodes[index],"input-pressed");
   const ability=match.loadout.abilitySlots[index]?.id;
@@ -255,7 +255,7 @@ function castSlot(index){
     return;
   }
   pendingCast=null;
-  const success=match.castAbility(p,ability,p.targetId);
+  const success=match.castAbility(p,ability,p.targetId,{holdToCharge:heldKey});
   if(success){
     flash(ABILITY_BY_ID[ability].name+(ABILITY_RULES[ability]?.cast?" · CASTING":" · ACTIVATED"));
     renderUI();
@@ -702,9 +702,15 @@ document.addEventListener("keydown",event=>{
   if(["w","a","s","d"].includes(k)){keys.add(k);event.preventDefault();}
   else if(event.code==="Tab"||k==="tab"){event.preventDefault();cycleEnemies();}
   else if(["f1","f2","f3"].includes(k)){event.preventDefault();selectFriend(Number(k.slice(1))-1);}
-  else if(hotkeys.includes(k)&&!event.repeat){event.preventDefault();castSlot(hotkeys.indexOf(k));}
+  else if(hotkeys.includes(k)&&!event.repeat){event.preventDefault();castSlot(hotkeys.indexOf(k),true);}
 });
-document.addEventListener("keyup",event=>keys.delete(event.key.toLowerCase()));
+document.addEventListener("keyup",event=>{
+  const k=event.key.toLowerCase();
+  keys.delete(k);
+  if(!match||!hotkeys.includes(k))return;
+  const spellId=match.loadout.abilitySlots[hotkeys.indexOf(k)]?.id;
+  if(spellId==="pulse-mend")match.releaseHeldCast(match.player,spellId);
+});
 window.addEventListener("blur",()=>keys.clear());
 // Both reports are available during play, after a death and at match end.
 // Preserve the separate AI behaviour snapshot for movement/targeting bugs.

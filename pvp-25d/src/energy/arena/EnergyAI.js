@@ -163,7 +163,21 @@ export class EnergyAI {
     for(const id of abilities){
       if(!id||!actor.abilities.includes(id))continue;
       if(this.ready(actor,id,target)){
-        return this.match.castAbility(actor,id,target?.id||null,{silent:true,
+        let point=null;
+        if(id==="phase-slip"&&target){
+          const dx=target.x-actor.x,dy=target.y-actor.y,len=Math.hypot(dx,dy)||1;
+          const ux=dx/len,uy=dy/len;
+          const retreat=actor.hp/actor.maxHp<.4;
+          const travel=Math.min(165,Math.max(10,len-(retreat?0:83)));
+          for(const length of [travel,travel*.72,travel*.44]){
+            const x=actor.x+ux*length*(retreat?-1:1),
+              y=actor.y+uy*length*(retreat?-1:1);
+            if(this.match.canOccupy(actor,x,y)&&
+              this.hasLOS(actor,{x,y},this.match.arena)){point={x,y};break;}
+          }
+          if(!point)return false;
+        }
+        return this.match.castAbility(actor,id,target?.id||null,{silent:true,point,
           holdToCharge:id==="flux-bolt"&&actor.heliosReady&&actor.evolutions[id]==="helios-beam"});
       }
     }

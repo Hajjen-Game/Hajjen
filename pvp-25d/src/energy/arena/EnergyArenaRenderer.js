@@ -4,7 +4,7 @@ import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRender
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
 import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
-import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx1";
+import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx2";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-eclipse-pixi1";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";

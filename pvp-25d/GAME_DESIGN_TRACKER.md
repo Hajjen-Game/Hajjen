@@ -5,9 +5,23 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Impact 1.0: Six Kinetic Spells + HUB Orbit (2026-10-15)
+
+**Status: IMPLEMENTED IN COMBAT CODE; TARGETED MOCK-RUNTIME CHECKS PASSED. Browser visuals, controls, AI, and 20-Stage playtesting still require human validation.** This follows Genesis 1.0 and converts Impact alone; Eclipse, Solar and Void remain on older gameplay until their own class passes.
+
+- **Class-locked roster:** Phase Rush, Arc Strike, Pulse Sever, Gravity Hammer, Seismic Uppercut, Kinetic Rampart. Six spells, no shared-discipline choice picker or free swappable spell slots for Impact. Signature spells five/six have **no Evolutions**; cross-class Synergy work remains **parked**.
+- **All 12 approved Kinetic Evolutions are modeled in combat:** Phase Rush (Meteor Charge, Relentless Pursuit, Piercing Charge); Arc Strike (Twin Arc, Overdrive, Kinetic Reprisal); Pulse Sever (Echo Sever, Countershock, Warpath); Gravity Hammer (Singularity Impact, Seismic Wave, Gravity Well). Strong multi-target damage and boss-safe CC rules are intentionally preserved for testing.
+- **Signature spells:** Seismic Uppercut briefly incapacitates eligible normal mobs then resolves a wide delayed ground smash; bosses are not launched. Kinetic Rampart faces incoming ranged threats, catches up to three eligible direct projectiles from the front, and emits a capped retaliatory volley when recast, consumed, or expired. Non-projectile damage and rear attacks are not stopped.
+- **Ground targeting:** Gravity Hammer uses a click-selected arena location in player combat, validates range, navigability and LOS, emits a danger telegraph during its cast, and impacts the chosen position even if the original target moves. AI positions it at an opponent's location.
+- **Journey:** Impact now starts with Phase Rush + Arc Strike, earns its remaining four exclusive abilities on Stage **3/6/9/12**, four core Evolution slots at **10/12/14/16**, and retains Stage 20 Rift access. These numbers mirror Genesis's **provisional** playtest cadence rather than being new finalized balance decisions. Existing mixed-discipline Impact Journey saves are mapped to class discoveries without wiping Stage clears.
+- **HUB:** Impact has six class nodes orbiting its Energy orb, with Evolution satellites for only its four core abilities, plus class-only descriptions, discovery statuses and disabled shared spell swapping.
+- **AI / VFX:** Impact companion's class kit replaces its old mixed kit; AI can prioritize melee combo, interrupt, ground-cleave and defensive projectile counter. Charge arrivals, uppercuts, ground impacts, shockwaves and Rampart catches have distinct first-pass Kinetic visual feedback. Dedicated polish is deferred.
+- **Validation performed:** scripted mock-runtime tests for the full Impact 20-Stage Journey, class-exclusive loadout, migration, Gravity Hammer range/telegraph and boss immunity, Rampart front/back intercept and recast, Overdrive's three sequential hits, Twin Arc cone cleave, Kinetic Reprisal retaliation, both multi-interrupt and damaging countershock, Warpath, all Phase Rush variants, and Gravity Well's mob pull / boss immunity; syntax parsing of the touched JS modules. These checks do **not** represent real browser FPS or full end-to-end gameplay.
+- **Next validation:** visually inspect six spell nodes/HUB unlocks, mouse target on arena including obstacles, projectile interception against Rift enemies, charge line-of-sight/collision, castbar/GCD recasts, Evolution VFX/readability, PvP AI balance and save/load. Do not re-enable Synergies.
+
 ## IMPLEMENTATION IN TEST — Genesis 1.0: Six-Spells + HUB Orbit (2026-10-15)
 
-**Status: FIRST CODE PASS, NOT BROWSER / PLAYTEST VALIDATED.** The Genesis migration was implemented as the first of five class conversions. Other four Origins currently use their pre-overhaul gameplay; all classes' NEW designs remain approved on paper but must be implemented in separate passes. This implementation branch does not imply the other Origins have been converted.
+**Status: FIRST CODE PASS, NOT BROWSER / PLAYTEST VALIDATED.** The Genesis migration was implemented as the first of five class conversions. Impact has also been migrated; Eclipse, Solar and Void still use pre-overhaul gameplay. All classes' NEW designs remain approved on paper but must be implemented in separate passes. This implementation branch does not imply the other Origins have been converted.
 
 - **Genesis six class-locked spells in gameplay and ability catalogue:** Pulse Mend, Resonance Guard (pure absorb, not damage reduction), Vital Cascade (team heal at range), Stasis Seal (breakable CC, boss CC immunity), Vital Recall (mark then recast to restore part of HP lost), Soul Relay (two chosen friendly targets via recast, safe damage share + heal share). Spells 5/6 intentionally have **NO Evolution selection** at present; cross-class synergy remains paused.
 - **Twelve core Evolutions** applied in combat on Genesis's first four spells. Vital Crescendo is a KEY-HELD charge (up to ~2.5s, releasing earlier casts the basic version); Vital Reversal allows Pulse Mend to target enemies, directly damage them, heal EVERY injured teammate and replenish active Guard absorb up to its initial capacity. Remaining 10 have actual corresponding proc mechanics/effects.
@@ -221,7 +235,7 @@ Genesis is an active 3-character PvE healer. The player and two AI companions ar
 
 ## AGREED — Spell Design 2.1: Impact / Kinetic (2026-10-13)
 
-**Status: USER-APPROVED AND LOCKED AS CURRENT DESIGN; NOT YET IMPLEMENTED.** This describes the planned Impact combat kit and all 12 Evolution directions, after the user's two rounds of feedback. Do **not** present the current live Kinetic combat code, catalogue, or Evolutions as already updated. Implementation will be a separate, explicitly requested development pass, coordinated with the Cryo/Eclipse redesign.
+**Status: USER-APPROVED DESIGN; IMPLEMENTED AS IMPACT 1.0 CODE PASS ABOVE, BROWSER VALIDATION PENDING.** This describes the Impact combat kit and all 12 Evolution directions, after the user's two rounds of feedback. The Impact 1.0 implementation above now applies to the live Kinetic combat code, catalogue, Evolutions, Journey and HUB. Exact numbers remain provisional and Eclipse is still on the older system.
 
 ### Identity and four core spells
 

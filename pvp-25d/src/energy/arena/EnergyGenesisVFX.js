@@ -258,19 +258,22 @@ export class EnergyGenesisVFX{
       statusKind:"relay",lastPackets:0
     });
     const p=this.pos(first),q=this.pos(second),delta=q.subtract(p);
+    const span=Math.max(.1,Math.hypot(delta.x,delta.z));
+    f.relayInitialSpan=span;
+    f.root.rotation.y=Math.atan2(delta.x,delta.z);
     for(let lane=0;lane<3;lane++){
       const pts=[];
       for(let i=0;i<=14;i++){
         const t=i/14;
-        pts.push(new BABYLON.Vector3(delta.x*t+.07*Math.sin(t*TAU*2+lane),
+        pts.push(new BABYLON.Vector3(.07*Math.sin(t*TAU*2+lane),
           delta.y*t+.12*Math.sin(t*TAU+lane),
-          delta.z*t+.07*Math.cos(t*TAU*2+lane)));
+          span*t+.07*Math.cos(t*TAU*2+lane)));
       }
       this.thread(f,pts,lane===0?"core":lane===1?"mint":"aqua",
         lane===0?.024:.012,lane===0?.67:.49);
     }
     for(let i=0;i<2;i++)this.heart(f,.29,i===0?"core":"aqua",
-      delta.x*i,.0,delta.z*i,.78);
+      0,.0,span*i,.78);
     this.statusFX.set(key,f);return f;
   }
   proc(event,match){
@@ -421,7 +424,7 @@ export class EnergyGenesisVFX{
       if(id==="vital-cascade"&&actor){
         this.leafBurst(this.pos(actor),false,"cascade-release");
       }else if(id==="stasis-seal"&&target&&actor){
-        this.stasis(actor,target);
+        if(!this.statusFX.has("stasis:"+target.id))this.stasis(actor,target);
       }
       return true;
     }

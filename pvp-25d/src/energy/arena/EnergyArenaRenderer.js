@@ -214,6 +214,18 @@ export class EnergyArenaRenderer {
     }
     return best;
   }
+  pickGround(clientX,clientY){
+    const rect=this.canvas.getBoundingClientRect();
+    const x=(clientX-rect.left)*this.engine.getRenderWidth()/Math.max(1,rect.width);
+    const y=(clientY-rect.top)*this.engine.getRenderHeight()/Math.max(1,rect.height);
+    const ray=this.scene.createPickingRay(x,y,BABYLON.Matrix.Identity(),this.camera);
+    const plane=BABYLON.Plane.FromPositionAndNormal(
+      BABYLON.Vector3.Zero(),BABYLON.Vector3.Up());
+    const t=ray.intersectsPlane(plane);
+    if(!Number.isFinite(t)||t<0)return null;
+    const hit=ray.origin.add(ray.direction.scale(t));
+    return {x:hit.x/S,y:hit.z/S};
+  }
   spawnEffect(event,match){
     this.riftActors?.notify(event,match);
     if(event.type==="encounter-telegraph"){

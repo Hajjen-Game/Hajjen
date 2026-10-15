@@ -97,16 +97,17 @@
           <span class="dev-origin-glyph" aria-hidden="true">◉</span>
           <div>
             <h3 id="dev-origin-title">DEV TEST ORIGIN · FULL ACCESS</h3>
-            <p>A separate Stage 20 test character with its active Origin kit and both AI Styles unlocked. Genesis has six class-exclusive spells; other Origins retain the legacy toolkit until their own conversion. Replay any Stage without changing normal saves.</p>
+            <p>A separate Stage 20 test character with its active Origin kit and both AI Styles unlocked. All four available Origins have six exclusive class spells. Solar has its own spells and Sun Lance's original VFX is protected. Replay any Stage without changing normal saves.</p>
           </div>
         </div>
-        <p class="dev-origin-note">Evolutions are unlocked through Journey. Genesis has four core Evolution slots; other Origins still have their previous paths. Cross-class Synergies are paused. Rift Expedition is available for DEV testing.</p>
+        <p class="dev-origin-note">Evolutions are unlocked through Journey. Each Origin has four evolving core spells and two standalone signature spells. Cross-class Synergies are paused. Rift Expedition is available for DEV testing.</p>
         <div class="dev-origin-controls">
           <label for="game-dev-origin-role">TEST ORIGIN
             <select id="game-dev-origin-role">
               <option value="healer">GENESIS · VITAL</option>
               <option value="melee">IMPACT · KINETIC</option>
               <option value="caster">ECLIPSE · CRYO</option>
+              <option value="solar">SOLAR · SUNFIRE</option>
             </select>
           </label>
           <button type="button" class="hub-primary" id="game-dev-create-origin">CREATE / RESET TEST ORIGIN</button>
@@ -193,6 +194,10 @@
             <span class="character-role-glyph">❖</span><strong>Eclipse</strong>
             <small>Energy · cast and reposition</small>
           </button>
+          <button type="button" data-create-role="solar" class="character-role" aria-pressed="false" aria-controls="origin-choice-details">
+            <span class="character-role-glyph">☀</span><strong>Solar</strong>
+            <small>Sunfire · lightning and a living sun</small>
+          </button>
         </div>
         <section id="origin-choice-details" class="origin-choice-details" aria-label="Selected Origin details" aria-live="polite">
           <div class="origin-details-heading">
@@ -206,7 +211,7 @@
             <div><strong>ORIGIN PASSIVE</strong><p id="origin-selected-passive"></p></div>
           </div>
         </section>
-        <p class="origin-choice-footnote">Your Origin determines your two permanent spells. You can still equip shared spells from every energy discipline and experiment with any Evolution or Singularity.</p>
+        <p class="origin-choice-footnote">Each Origin has six exclusive abilities. Four core spells evolve; the final two are standalone abilities. Cross-class Synergies are paused.</p>
         <div class="creation-navigation"><button type="button" id="create-character" class="hub-primary">CREATE ORIGIN →</button><button type="button" id="create-back-menu" class="header-button">← MAIN MENU</button></div>
         <p id="create-character-error" role="alert" class="hub-error"></p>
       </div>

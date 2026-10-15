@@ -14,19 +14,23 @@ const PLAYER_OFFERS=Object.freeze({
     {effect:"comet",name:"COMET RAIN",description:"Successful direct spells summon another energy impact on a nearby foe."},
     {effect:"rime",name:"RIME CASCADE",description:"Direct Cryo or other damaging spells burst into two smaller nearby hits."},
   ]),
+  solar:Object.freeze([
+    {effect:"comet",name:"FALLING STARS",description:"Your successful Solar attacks call one additional glowing sunfire impact onto a threatened enemy."},
+    {effect:"arc",name:"SUNBURST CHAINS",description:"Your successful Solar attacks scatter secondary sunfire arcs into nearby enemies."},
+  ]),
 });
 const ALLY_OFFER={healer:PLAYER_OFFERS.healer[0],
-  melee:PLAYER_OFFERS.melee[0],caster:PLAYER_OFFERS.caster[0]};
+  melee:PLAYER_OFFERS.melee[0],caster:PLAYER_OFFERS.caster[0],solar:PLAYER_OFFERS.solar[0]};
 const COOLDOWN={bloom:2.4,ward:4.5,arc:1.65,siphon:3.3,comet:2.0,rime:2.6};
 
 export function overchargeChoices(match){
   if(!match.journey||match.waveState!=="intermission")return [];
   const player=match.player;
   const allies=match.actors.filter(a=>a.team==="friendly"&&a.id!==player.id);
-  // One role each (Genesis, Impact, Eclipse); stable ordering across waves.
+  // Exactly two existing allies: Solar players team up with Genesis and Impact.
   if(allies.length!==2)return [];
   const offers=[
-    ...PLAYER_OFFERS[player.role].map((item,i)=>({...item,actor:player,slot:i})),
+    ...(PLAYER_OFFERS[player.role]||PLAYER_OFFERS.caster).map((item,i)=>({...item,actor:player,slot:i})),
     ...allies.map((actor,i)=>({...ALLY_OFFER[actor.role],actor,slot:i+2}))
   ];
   return offers.map(({effect,name,description,actor,slot})=>{
@@ -36,11 +40,11 @@ export function overchargeChoices(match){
       id:"overcharge:"+match.waveIntermission+":"+slot+":"+actor.id+":"+effect,
       kind:"overcharge",effect,targetId:actor.id,
       recipient:actor===player?"YOU":actor.role==="healer"?"GENESIS · AI":
-        actor.role==="melee"?"IMPACT · AI":"ECLIPSE · AI",
+        actor.role==="melee"?"IMPACT · AI":actor.role==="solar"?"SOLAR · AI":"ECLIPSE · AI",
       spellId:actor.abilities[0]||"crystal-bolt",
       name,label:(actor===player?"YOUR OVERCHARGE":"ALLY OVERCHARGE")+" · TIER "+tier,
       description,how:"Empowers "+(actor===player?"your Origin":actor.role==="healer"?
-        "Genesis":actor.role==="melee"?"Impact":"Eclipse")+" for the remaining waves.",
+        "Genesis":actor.role==="melee"?"Impact":actor.role==="solar"?"Solar":"Eclipse")+" for the remaining waves.",
       unlock:"Temporary in this Planet Defense only. Choosing it forfeits the other three cards.",
       tier,isTemporary:true
     };

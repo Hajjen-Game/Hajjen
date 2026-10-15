@@ -41,6 +41,8 @@ export class EnergyArenaRenderer {
     this.scene.imageProcessingConfiguration.contrast=1.09;
     this.scene.imageProcessingConfiguration.exposure=0.95;
     this.effects=[];
+    this.solarFamiliars=new Map();
+    this.solarHeliosBeams=new Map();
     this.createScene();
     this.spellFX=new EnergySpellVFX(this.scene);
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
@@ -382,6 +384,8 @@ export class EnergyArenaRenderer {
       const y=Number.isFinite(event.y)?event.y:target?.y;
       if(!Number.isFinite(x)||!Number.isFinite(y))return;
       const p=new BABYLON.Vector3(x*S,.14,y*S),kind=event.kind;
+      if(kind==="helios-tick")this.drawSolarHelios(event,match);
+      if(kind==="helios-end")this.clearSolarHelios(event.actorId);
       if(["judgment-of-dawn","dying-star","solar-aftershock","tempest-focus"].includes(kind)){
         this.spellFX.sphere(new BABYLON.Vector3(p.x,kind==="dying-star"?4.7:5.5,p.z),
           kind==="dying-star"?"#ffffff":"#ffdfa0",
@@ -713,6 +717,90 @@ export class EnergyArenaRenderer {
     this.spellFX.spawn(event,match);
     this.pixiFX?.spawn(event,match);
   }
+
+  clearSolarHelios(actorId){
+    const entry=this.solarHeliosBeams.get(actorId);
+    if(!entry)return;
+    for(const mesh of entry.meshes)mesh.dispose();
+    this.solarHeliosBeams.delete(actorId);
+  }
+  drawSolarHelios(event,match){
+    const caster=match.getActor(event.actorId),victim=match.getActor(event.targetId);
+    if(!caster?.alive||!victim?.alive)return;
+    this.clearSolarHelios(caster.id);
+    if(!this.heliosMats){
+      this.heliosMats=[
+        this.material("solar-helios-glow","#ffb35e","#ffb35e",.30),
+        this.material("solar-helios-core","#fff0c1","#fffce7",.97)
+      ];
+    }
+    const path=[new BABYLON.Vector3(caster.x*S,.94,caster.y*S),
+      new BABYLON.Vector3(victim.x*S,1.0,victim.y*S)];
+    const count=caster.cast?.channelHits||1;
+    const width=Math.min(.17,.075+count*.015);
+    const meshes=[
+      this.tube("solar-helios-halo",path,width*2.2,this.heliosMats[0]),
+      this.tube("solar-helios-hot-core",path,width,this.heliosMats[1])
+    ];
+    this.solarHeliosBeams.set(caster.id,{meshes,until:performance.now()+425});
+  }
+  syncSolarVisuals(match,now){
+    // Real persistent mesh for a SINGLE familiar per caster. Unlike an NPC,
+    // it has no targeting frame, AI actor, collision or body physics.
+    const active=new Set();
+    for(const actor of match.actors){
+      if(!actor.alive||!actor.familiar||actor.familiar.until<=match.time)continue;
+      active.add(actor.id);
+      let visual=this.solarFamiliars.get(actor.id);
+      if(!visual){
+        const node=new BABYLON.TransformNode("cinder-mini-sun-"+actor.id,this.scene);
+        const surface=this.material("mini-sun-surface-"+actor.id,
+          "#f3a34e","#ffc76c");
+        const heart=this.material("mini-sun-heart-"+actor.id,
+          "#a75b20","#fff1ad");
+        const shard=this.material("mini-sun-shards-"+actor.id,
+          "#e98436","#ffd794");
+        const ball=BABYLON.MeshBuilder.CreateSphere("cinder-sun-core-"+actor.id,
+          {diameter:.69,segments:9},this.scene);
+        ball.material=surface;ball.parent=node;ball.isPickable=false;
+        const inner=BABYLON.MeshBuilder.CreateSphere("cinder-sun-heart-"+actor.id,
+          {diameter:.32,segments:7},this.scene);
+        inner.material=heart;inner.parent=node;inner.isPickable=false;
+        const fragments=Array.from({length:4},(_,i)=>{
+          const fragment=BABYLON.MeshBuilder.CreateSphere("cinder-fragment-"+actor.id+"-"+i,
+            {diameter:.15,segments:6},this.scene);
+          fragment.material=shard;fragment.parent=node;fragment.isPickable=false;
+          return fragment;
+        });
+        visual={node,fragments,materials:[surface,heart,shard]};
+        this.solarFamiliars.set(actor.id,visual);
+      }
+      const locked=actor.familiar.evo==="soulbrand"&&
+        match.getActor(actor.familiar.targetId)?.alive?
+        match.getActor(actor.familiar.targetId):null;
+      const follow=locked||actor;
+      const t=now*.001;
+      visual.node.position.set(follow.x*S+.79,1.65+Math.sin(t*2.9)*.12,
+        follow.y*S-.45);
+      visual.node.rotation.y=t*.8;
+      const radius=actor.familiar.evo==="phoenix-dive"?.55:.44;
+      for(let i=0;i<visual.fragments.length;i++){
+        const a=t*1.5+i*Math.PI/2;
+        visual.fragments[i].position.set(Math.cos(a)*radius,
+          Math.sin(a*1.3)*.16,Math.sin(a)*radius);
+      }
+      visual.node.scaling.setAll(1+.06*Math.sin(t*4.1));
+    }
+    for(const [id,v] of this.solarFamiliars){
+      if(active.has(id))continue;
+      v.node.dispose(false,true);
+      for(const mat of v.materials)mat.dispose();
+      this.solarFamiliars.delete(id);
+    }
+    for(const [id,v] of this.solarHeliosBeams)
+      if(v.until<now||!match.getActor(id)?.cast?.heliosBeam)
+        this.clearSolarHelios(id);
+  }
   render(match){
     const now=performance.now();
     if(this.defenseMode&&match.player?.alive){
@@ -761,11 +849,19 @@ export class EnergyArenaRenderer {
       }
     }
     this.spellFX.update(match,now);
+    this.syncSolarVisuals(match,now);
     this.riftWorld?.update(match,now);
     this.scene.render();
     this.pixiFX?.update(match,now);
   }
   dispose(){
+    for(const id of this.solarHeliosBeams.keys())this.clearSolarHelios(id);
+    for(const visual of this.solarFamiliars.values()){
+      visual.node.dispose(false,true);
+      for(const mat of visual.materials)mat.dispose();
+    }
+    this.solarFamiliars.clear();
+    if(this.heliosMats)for(const mat of this.heliosMats)mat.dispose();
     this.observer?.disconnect();
     window.removeEventListener("resize",this.resize);
     this.pixiFX?.dispose();

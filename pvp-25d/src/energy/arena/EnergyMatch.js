@@ -374,7 +374,8 @@ export class EnergyMatch {
       }
       this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
       for(const enemy of this.opponents(source).filter(t=>distance(t,e)<e.radius&&
-          distance(t,e)>=(e.minRadius||0)&&hasLineOfSight(e,t,this.arena)).slice(0,9)){
+          distance(t,e)>=(e.minRadius||0)&&hasLineOfSight(e,t,this.arena))
+        .slice(0,e.kind==="froststorm-tick"?20:9)){
         if(e.amount>0)this.damage(enemy,e.amount,source,e.spellId);
         if(e.slowDuration&&!(e.bossSlowImmune&&enemy.boss))
           this.addStatus(enemy,{kind:"slow",negative:true,remaining:e.slowDuration,
@@ -578,7 +579,9 @@ export class EnergyMatch {
     // or a previous mirror retaliation (and never create a reflection loop).
     const mirrorEligible=!periodic&&source?.team!==target.team&&
       !["crystal-mirror","froststorm","avalanche","gravity-hammer",
-        "zenith-crash"].includes(spellId);
+        "zenith-crash"].includes(spellId)&&
+      !(/^(?:encounter|rift)-/i.test(spellId)&&
+        /nova|burst|field|hazard|wave|slam|shock|collapse|aura/i.test(spellId));
     if(mirror&&mirrorEligible){
       target.statuses=target.statuses.filter(q=>q!==mirror);
       const owner=this.getActor(mirror.sourceId);

@@ -38,7 +38,10 @@ export const ABILITY_RULES = Object.freeze({
   "zenith-crash":     { mode:"damage",amount:38,cost:30,cast:2,cd:18,range:490,area:124 },
   "photon-barrier":   { mode:"shield",amount:60,duration:5,cost:23,cd:28,range:490 },
   "crystal-bolt":     { mode:"damage",amount:15,cost:12,cast:1.3,range:490,slow:0.35,slowTime:3 },
-  "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490 },
+  "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490,area:155 },
+  "froststorm":       { mode:"ground",amount:8,cost:30,cast:.45,cd:24,range:490,area:118,duration:4 },
+  "crystal-mirror":   { mode:"mirror",cost:23,cd:28,range:490,duration:7 },
+  "avalanche":        { mode:"direction",amount:10,cost:35,cd:30,range:490,distance:420,width:114 },
   "fracture-spear":   { mode:"damage",amount:32,cost:24,cast:1.7,cd:12,range:490,controlBonus:0.3 },
   "arc-strike":       { mode:"damage",amount:13,cost:10,range:100 },
   "gravity-hammer":   { mode:"ground",amount:37,cost:30,cast:0.6,cd:20,range:425,area:127 },
@@ -106,6 +109,7 @@ export class EnergyMatch {
     this.singularity=this.journey?null:options.singularity||null;
     this.singularityCharge=null;
     this.evolutionEvents=[];
+    this.froststormFields=[];
     this.loadout=stagedLoadout(build,this.progressLevel,this.journey);
     this.tuning=enemyTuning(this.modeId,this.progressLevel);
     // Character-level power growth is removed for Journey players. 'level'
@@ -256,7 +260,7 @@ export class EnergyMatch {
   debuffed(actor){return actor.statuses.some(s=>s.negative&&s.remaining>0);}
   currentTarget(actor,mode,preferredId) {
     const chosen=this.getActor(preferredId||actor.targetId);
-    if(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart"].includes(mode)){
+    if(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart","mirror"].includes(mode)){
       return chosen?.alive&&chosen.team===actor.team?chosen:actor;
     }
     if(mode==="hybrid")return chosen?.alive?chosen:actor;
@@ -294,11 +298,11 @@ export class EnergyMatch {
       return {...rule,distance:rule.distance+60,cd:(rule.cd||0)+4};
     // Cryo - all three variants modify the same real spell used in Arena.
     if(spellId==="crystal-bolt"&&evo==="rapid-crystal")
-      return {...rule,cast:Math.max(.65,rule.cast-.3),amount:rule.amount*.85};
+      return {...rule,cast:Math.max(.72,rule.cast-.42)};
     if(spellId==="crystal-snare"&&evo==="deep-freeze")
-      return {...rule,duration:rule.duration+.85,cd:rule.cd+5};
+      return {...rule,duration:4,area:0,cc:"incapacitate"};
     if(spellId==="fracture-spear"&&evo==="focused-fracture")
-      return {...rule,amount:rule.amount*.80,controlBonus:.7};
+      return {...rule,controlBonus:.92};
     // Vital - distinct steady/reactive healing profiles and tactical dispels.
     if(spellId==="reactive-thread"&&evo==="emergency-weave")
       return {...rule,amount:rule.amount*.75,reactive:rule.reactive*1.25};
@@ -393,7 +397,7 @@ export class EnergyMatch {
     if(!secondRecall&&!secondRelay&&!rampartRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
     if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
     if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
-    if(["dash","rampart","ground"].includes(rule.mode))return null;
+    if(["dash","rampart","ground","direction"].includes(rule.mode))return null;
     const target=this.currentTarget(actor,rule.mode,targetId);
     if(!target)return "SELECT A TARGET";
     const d=distance(actor,target);
@@ -413,10 +417,18 @@ export class EnergyMatch {
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
     const groundPoint=rule.mode==="ground"?(opts.point||
       (target?.alive?{x:target.x,y:target.y}:null)):null;
+    const directionPoint=rule.mode==="direction"?(opts.point||
+      (target?.alive?{x:target.x,y:target.y}:null)):null;
     if(rule.mode==="ground"&&(!groundPoint||distance(actor,groundPoint)>rule.range||
       !canStand(groundPoint.x,groundPoint.y,this.arena,2)||
       !hasLineOfSight(actor,groundPoint,this.arena))){
-      if(actor===this.player&&!opts.silent)this.log("GRAVITY HAMMER · INVALID GROUND POSITION");
+      if(actor===this.player&&!opts.silent)this.log((ABILITY_BY_ID[spellId]?.name||spellId)+" · INVALID GROUND POSITION");
+      return false;
+    }
+    if(rule.mode==="direction"&&(!directionPoint||
+      distance(actor,directionPoint)<12||!Number.isFinite(directionPoint.x)||
+      !Number.isFinite(directionPoint.y))){
+      if(actor===this.player&&!opts.silent)this.log("AVALANCHE · CHOOSE A DIRECTION");
       return false;
     }
     if(!isRecallRecast&&!isRelaySecond&&!rampartRecast)actor.flux-=this.cost(actor,rule,spellId);
@@ -430,10 +442,16 @@ export class EnergyMatch {
     const castSeconds=crescendo?2.5:(rule.cast||0);
     this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,
       spellId,castSeconds});
+    if(spellId==="crystal-bolt"){
+      actor.crystalBoltCount=(actor.crystalBoltCount||0)+1;
+      actor.crystalBoltMobile=actor.evolutions[spellId]==="rapid-crystal"&&
+        actor.crystalBoltCount%3===0;
+    }
     if(rule.cast) {
       actor.cast={spellId,remainingMs:castSeconds*1000,totalMs:castSeconds*1000,
-        targetId:target?.id||null,crescendoHeld:crescendo};
-      if(spellId==="gravity-hammer"&&groundPoint){
+        targetId:target?.id||null,crescendoHeld:crescendo,
+        mobile:spellId==="crystal-bolt"&&actor.crystalBoltMobile};
+      if(["gravity-hammer","froststorm"].includes(spellId)&&groundPoint){
         actor.cast.impact={...groundPoint};
         this.emit({type:"ground-telegraph",actorId:actor.id,spellId,
           x:groundPoint.x,y:groundPoint.y,radius:rule.area,duration:rule.cast});
@@ -445,7 +463,8 @@ export class EnergyMatch {
         this.emit({type:"ground-telegraph",actorId:actor.id,spellId,
           x:target.x,y:target.y,radius:rule.area,duration:rule.cast});
       }
-    }else this.execute(actor,spellId,target?.id||null);
+    }else this.execute(actor,spellId,target?.id||null,
+      directionPoint?{directionPoint}:null);
     return true;
   }
   releaseHeldCast(actor,spellId){
@@ -538,6 +557,26 @@ export class EnergyMatch {
       ["arc-strike","seismic-uppercut","gravity-hammer","phase-rush"].includes(spellId))
       value*=1.20;
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
+    const mirror=target.statuses.find(q=>q.kind==="crystal-mirror"&&q.remaining>0);
+    // One protected direct hit. Never reflect periodic damage, ground fields
+    // or a previous mirror retaliation (and never create a reflection loop).
+    const mirrorEligible=!periodic&&source?.team!==target.team&&
+      !["crystal-mirror","froststorm","avalanche","gravity-hammer",
+        "zenith-crash"].includes(spellId);
+    if(mirror&&mirrorEligible){
+      target.statuses=target.statuses.filter(q=>q!==mirror);
+      const owner=this.getActor(mirror.sourceId);
+      this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,
+        amount:0,absorbed:Math.round(value),hpBefore,hpAfter:target.hp,
+        shieldBefore,shieldAfter:target.shield,crit:false});
+      if(owner?.alive&&source.alive){
+        this.identityProc(owner,"crystal-mirror","mirror-shatter",target);
+        this.damage(source,Math.min(27,15+value*.32/Math.max(.01,this.power)),
+          owner,"crystal-mirror");
+        this.identityProc(owner,"crystal-mirror","mirror-shards",source);
+      }
+      return;
+    }
     // Rampart only catches direct hostile, aimed, ranged projectiles
     // entering its front arc; never melee, ground AoE, DoT or self damage.
     const rampart=target.rampart;
@@ -647,6 +686,24 @@ export class EnergyMatch {
       source.pursuitReadyUntil=this.time+4;
       this.evolutionProc(source,"phase-rush","relentless-pursuit",target);
       source.pursuitTargetId=null;
+    }
+    if(value>0&&source?.team!==target.team){
+      const conduit=target.statuses.find(q=>q.kind==="crystal-conduit"&&q.remaining>0);
+      // Shared crystal damage is an additional bounded pulse; the linked
+      // hit uses periodic=true and never retriggers the conduit itself.
+      if(conduit&&!periodic){
+        const owner=this.getActor(conduit.sourceId);
+        if(owner?.alive){
+          for(const other of this.opponents(owner).filter(a=>a!==target&&
+            a.statuses.some(q=>q.kind==="crystal-conduit"&&q.groupId===conduit.groupId&&
+              q.remaining>0&&a.statuses.some(root=>root.kind==="root"&&root.remaining>0))
+            &&hasLineOfSight(target,a,this.arena)).slice(0,5)){
+            this.damage(other,Math.min(12,value*.24/Math.max(.01,this.power)),
+              owner,"crystal-snare",true);
+            this.evolutionProc(owner,"crystal-snare","crystal-conduit",other);
+          }
+        }
+      }
     }
     if(value>0){
       // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
@@ -797,6 +854,13 @@ export class EnergyMatch {
   move(actor,dx,dy,dt,speedOverride=null){
     if(!actor.alive||(actor.charge&&speedOverride===null)||
       this.isControlled(actor,"root")||this.isControlled(actor,"incapacitate"))return;
+    // Rapid Crystal: every third Bolt may be cast while moving. Ordinary
+    // Crystal Bolt casts still require a stationary caster; VFX untouched.
+    if((dx||dy)&&actor.cast?.spellId==="crystal-bolt"&&!actor.cast.mobile){
+      const was=actor.cast;actor.cast=null;
+      actor.flux=clamp(actor.flux+this.cost(actor,this.rule(actor,"crystal-bolt"),"crystal-bolt"),0,MAX_FLUX);
+      this.emit({type:"fizzle",actorId:actor.id,spellId:"crystal-bolt",reason:"MOVEMENT INTERRUPTED"});
+    }
     const length=Math.hypot(dx,dy)||1;
     const speed=(speedOverride??174)*(this.isControlled(actor,"slow")?0.65:1)*
       (actor.statuses.some(s=>s.kind==="frost-momentum")?1.18:1);
@@ -1031,12 +1095,12 @@ export class EnergyMatch {
     // previous code a dead ally triggered currentTarget()'s self fallback:
     // Pulse Mend silently overhealed the player instead of reporting a miss.
     const target=targetId?this.getActor(targetId):this.currentTarget(actor,r.mode);
-    const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart"].includes(r.mode);
+    const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart","mirror"].includes(r.mode);
     const wrongTeam=target&&(r.mode==="hybrid"?false:
       supportive?target.team!==actor.team:target.team===actor.team);
     const recallReactivation=spellId==="vital-recall"&&this.allies(actor).some(a=>
       a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===actor.id&&s.remaining>0));
-    const reason= r.mode==="dash"||r.mode==="rampart"||(r.mode==="ground"&&castContext?.impact)||(spellId==="zenith-crash"&&castContext?.impact)?
+    const reason= ["dash","rampart","direction"].includes(r.mode)||(r.mode==="ground"&&castContext?.impact)||(spellId==="zenith-crash"&&castContext?.impact)?
       null:!target?.alive?"TARGET DIED"
       :wrongTeam?"INVALID TARGET"
       :!recallReactivation&&distance(actor,target)>(r.range||490)?"OUT OF RANGE"
@@ -1054,6 +1118,15 @@ export class EnergyMatch {
     // Only a completed, valid cast starts cooldown. Fizzled or interrupted
     // casted spells stay available once the short school lock wears off.
     if(r.cast&&r.cd)actor.cooldowns[spellId]=r.cd;
+    if(spellId==="froststorm"){
+      this.resolveFroststorm(actor,castContext.impact,r);
+      return;
+    }
+    if(spellId==="avalanche"){
+      this.resolveAvalanche(actor,castContext?.directionPoint||
+        {x:target.x,y:target.y},r);
+      return;
+    }
     if(spellId==="gravity-hammer"){
       this.resolveGravityHammer(actor,castContext?.impact||{x:target.x,y:target.y},r);
       return;
@@ -1079,6 +1152,13 @@ export class EnergyMatch {
             shieldAfter:ally.shield});
         }
       }
+      this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+      return;
+    }
+    if(spellId==="crystal-mirror"){
+      this.addStatus(target,{kind:"crystal-mirror",spellId,sourceId:actor.id,
+        remaining:r.duration});
+      this.identityProc(actor,spellId,"mirror-armed",target);
       this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
       return;
     }
@@ -1359,7 +1439,8 @@ export class EnergyMatch {
       let amount=r.amount;
       const debuffed=this.debuffed(target);
       if(r.requiresDebuff&&debuffed)amount*=1.25;
-      if(r.controlBonus&&(this.isControlled(target,"root")||this.isControlled(target,"slow")))amount*=1+r.controlBonus;
+      if(r.controlBonus&&(this.isControlled(target,"root")||this.isControlled(target,"slow")||
+      target.statuses.some(q=>q.kind==="chilled-mark"&&q.remaining>0)))amount*=1+r.controlBonus;
       if(actor.fracturedCharge?.until>this.time&&spellId!=="rift-slash"){
         amount*=1.2;actor.fracturedCharge=null;
         this.evolutionProc(actor,"rift-slash","fractured-edge",target);
@@ -1465,14 +1546,30 @@ export class EnergyMatch {
           this.evolutionProc(actor,spellId,"fractured-edge-ready",actor);
         }
       }
+      if(["crystal-bolt","fracture-spear"].includes(spellId)){
+        for(const field of this.froststormFields.filter(q=>q.owner===actor.id&&
+          q.until>this.time&&q.evo==="shattering-storm"&&
+          distance(target,q)<q.radius).slice(0,1)){
+          this.evolutionProc(actor,"froststorm","shattering-storm",target);
+          for(const foe of this.opponents(actor).filter(q=>distance(q,target)<95&&
+            hasLineOfSight(target,q,this.arena)).slice(0,7))
+            this.damage(foe,7,actor,"froststorm",true);
+        }
+      }
       if(spellId==="crystal-bolt"){
         const evo=actor.evolutions[spellId];
         if(evo==="glacial-echo"&&target.alive)
           this.scheduleEvolution(actor,spellId,"glacial-echo",target.x,target.y,.36,
             amount*.4,0,{targetId:target.id});
-        else if(evo==="brittle-core"){
-          actor.brittleCharge={until:this.time+6};
-          this.evolutionProc(actor,spellId,"brittle-core-ready",actor);
+        else if(evo==="fracture-chain"){
+          actor.crystalChainHits=(actor.crystalChainHits||0)+1;
+          if(actor.crystalChainHits%3===0){
+            for(const foe of this.opponents(actor).filter(e=>e!==target&&
+              distance(e,target)<230&&hasLineOfSight(target,e,this.arena)).slice(0,3)){
+              this.scheduleEvolution(actor,spellId,"fracture-chain",
+                foe.x,foe.y,.16,amount*.38,0,{targetId:foe.id});
+            }
+          }
         }
       }
       if(spellId==="fracture-spear"){
@@ -1482,10 +1579,14 @@ export class EnergyMatch {
           for(const enemy of this.opponents(actor).filter(e=>
             e!==target&&distance(e,target)<150&&hasLineOfSight(target,e,this.arena)).slice(0,4))
             this.damage(enemy,amount*.4,actor,spellId);
-        }else if(evo==="delayed-shatter"&&target.alive){
-          this.scheduleEvolution(actor,spellId,"delayed-shatter",
-            target.x,target.y,.7,amount*.42,0,{targetId:target.id});
-          this.evolutionProc(actor,spellId,"delayed-shatter-ready",target);
+        }else if(evo==="riftbreaker"){
+          const dx=target.x-actor.x,dy=target.y-actor.y,len=Math.hypot(dx,dy)||1;
+          for(const step of [1,2,3,4]){
+            const x=target.x+dx/len*65*step,y=target.y+dy/len*65*step;
+            if(!canStand(x,y,this.arena,3)||!hasLineOfSight(target,{x,y},this.arena))break;
+            this.scheduleEvolution(actor,spellId,"riftbreaker",x,y,.09*step,
+              amount*.40,65,{slowDuration:1.5});
+          }
         }
       }
       if(spellId==="flux-bolt"){
@@ -1563,6 +1664,8 @@ export class EnergyMatch {
           this.evolutionProc(actor,spellId,"contagion",other);
         }
       }
+    }else if(r.mode==="cc"&&spellId==="crystal-snare"){
+      this.resolveCrystalSnare(actor,target,r);
     }else if(r.mode==="cc")this.applyCC(target,r.cc,r.duration,actor,spellId);
     else if(r.mode==="hot"){
       this.addStatus(target,{kind:"reactive-thread",remaining:r.ticks*r.period,sourceId:actor.id,
@@ -1660,6 +1763,7 @@ export class EnergyMatch {
       actor.flux=Math.min(MAX_FLUX,actor.flux+BASE_FLUX_REGEN*dt);
       if(actor.relayPending?.until<=this.time)actor.relayPending=null;
       if(actor.rampart?.until<=this.time)this.releaseRampart(actor);
+      this.froststormFields=this.froststormFields.filter(q=>q.until>this.time);
       actor.gcd=Math.max(0,actor.gcd-dt);
       actor.dashGate=Math.max(0,actor.dashGate-dt);
       actor.bonusFluxGate=Math.max(0,(actor.bonusFluxGate||0)-dt);

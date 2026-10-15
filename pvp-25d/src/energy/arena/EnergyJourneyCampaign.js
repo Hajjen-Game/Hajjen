@@ -70,9 +70,15 @@ export function readJourney(profile){
     const stageCount=GENESIS_DISCOVERY_STAGES.filter(stage=>clears>=stage).length;
     const pendingIsGenesis=GENESIS_DISCOVERY_STAGES.includes(j.pending?.planet)&&
       j.pending?.kind==="spell";
-    const earned=Array.isArray(j.owned)?j.owned.length:0;
-    const count=Math.min(GENESIS_UNLOCKS.length,Math.max(earned,stageCount-(pendingIsGenesis?1:0)));
-    const owned=GENESIS_UNLOCKS.slice(0,count);
+    const previouslyOwned=Array.isArray(j.owned)?j.owned:[];
+    const selected=previouslyOwned.filter((id,index,all)=>
+      GENESIS_UNLOCKS.includes(id)&&all.indexOf(id)===index);
+    const count=Math.min(GENESIS_UNLOCKS.length,Math.max(
+      Math.min(GENESIS_UNLOCKS.length,previouslyOwned.length),
+      stageCount-(pendingIsGenesis?1:0)));
+    // Keep Genesis spell choices in the order the player actually discovered them.
+    // Only legacy mixed-discipline saves need their old rewards remapped.
+    const owned=[...selected,...GENESIS_UNLOCKS.filter(id=>!selected.includes(id))].slice(0,count);
     const pending=pendingIsGenesis&&count<GENESIS_UNLOCKS.length&&
       j.pending.planet<=clears?{kind:"spell",planet:j.pending.planet}:null;
     return {version:2,originRole,clears,owned,pending,

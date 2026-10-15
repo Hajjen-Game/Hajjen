@@ -35,7 +35,10 @@ export const ABILITY_RULES = Object.freeze({
   "rift-slash":       { mode:"damage",amount:28,cost:19,cd:6,range:100,requiresDebuff:true },
   "null-prison":      { mode:"cc",cc:"incapacitate",duration:4,cost:20,cast:1.4,cd:24,range:490 },
   "sun-lance":        { mode:"damage",amount:27,cost:18,cast:1.8,range:490 },
-  "zenith-crash":     { mode:"damage",amount:38,cost:30,cast:2,cd:18,range:490,area:124 },
+  "cinder-familiar":   { mode:"summon",cost:25,cd:35,duration:12 },
+  "solar-ascension":   { mode:"ascension",cost:28,cd:38,duration:12 },
+  "chain-tempest":     { mode:"damage",amount:27,cost:29,cd:26,range:490 },
+  "zenith-crash":     { mode:"ground",amount:38,cost:30,cast:2,cd:18,range:490,area:124 },
   "photon-barrier":   { mode:"shield",amount:60,duration:5,cost:23,cd:28,range:490 },
   "crystal-bolt":     { mode:"damage",amount:15,cost:12,cast:1.3,range:490,slow:0.35,slowTime:3 },
   "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490,area:155 },
@@ -59,7 +62,7 @@ export const ORB_COLLISION_RADIUS=21;
 const ORB_SEPARATION=ORB_COLLISION_RADIUS*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb"};
+const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb",solar:"#f2b56c"};
 const number=(value,defaultValue=0)=>Number.isFinite(Number(value))?Number(value):defaultValue;
 
 export function segmentHitsRect(a,b,rect,pad=5) {
@@ -142,7 +145,9 @@ export class EnergyMatch {
         const talentRanks=isPlayer?Object.fromEntries(this.loadout.abilitySlots.map(s=>[s.id,s.talentRank||0])):
           Object.fromEntries(abilities.map(spellId=>[spellId,this.journey?0:Math.min(3,Math.floor(this.progressLevel/10))]));
         const id=isPlayer?"player":team+"-"+role;
-        const config=arena.spawns[team+"-"+role];
+        const config=arena.spawns[team+"-"+role]||arena.spawns[team+"-caster"]||
+          {x:arena.bounds.x+arena.bounds.w*(team==="friendly"?.20:.80),
+           y:arena.bounds.y+arena.bounds.h*.50};
         const actor=actorFor(id,team,role,config,isPlayer?"player":"ai",
           abilities,evolutions,talentRanks,this.journey?1:this.progressLevel);
         if(team==="friendly"&&!isPlayer&&this.journey){
@@ -392,7 +397,7 @@ export class EnergyMatch {
   cost(actor,rule,spellId) {
     let cost=rule.cost||0;
     if(actor.role==="healer"&&["heal","hot","link"].includes(rule.mode))cost*=0.85;
-    if(actor.role==="caster"&&rule.mode==="damage"&&rule.range>200)cost*=0.85;
+    if(["caster","solar"].includes(actor.role)&&rule.mode==="damage"&&rule.range>200)cost*=0.85;
     return Math.ceil(cost);
   }
   reason(actor,spellId,targetId) {
@@ -407,14 +412,15 @@ export class EnergyMatch {
     // Releasing an already armed rewind should not be eaten by the GCD:
     // players must be able to react before the four-second marker expires.
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
-    if(actor.gcd>0&&!secondRecall&&!rampartRecast)return "GLOBAL COOLDOWN";
+    const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time;
+    if(actor.gcd>0&&!secondRecall&&!rampartRecast&&!familiarRecast)return "GLOBAL COOLDOWN";
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
-    if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast)return "COOLDOWN";
+    if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
-    if(!secondRecall&&!secondRelay&&!rampartRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
+    if(!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
     if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
     if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
-    if(["dash","rampart","ground","direction"].includes(rule.mode))return null;
+    if(["dash","rampart","ground","direction","summon","ascension"].includes(rule.mode))return null;
     const target=this.currentTarget(actor,rule.mode,targetId);
     if(!target)return "SELECT A TARGET";
     const d=distance(actor,target);
@@ -432,6 +438,7 @@ export class EnergyMatch {
       a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id&&q.remaining>0));
     const isRelaySecond=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
+    const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time;
     const groundPoint=rule.mode==="ground"?(opts.point||
       (target?.alive?{x:target.x,y:target.y}:null)):null;
     const directionPoint=rule.mode==="direction"?(opts.point||
@@ -448,15 +455,18 @@ export class EnergyMatch {
       if(actor===this.player&&!opts.silent)this.log("AVALANCHE · CHOOSE A DIRECTION");
       return false;
     }
-    if(!isRecallRecast&&!isRelaySecond&&!rampartRecast)actor.flux-=this.cost(actor,rule,spellId);
-    actor.gcd=(isRecallRecast||isRelaySecond||rampartRecast)?0.6:1.3;
+    if(!isRecallRecast&&!isRelaySecond&&!rampartRecast&&!familiarRecast)actor.flux-=this.cost(actor,rule,spellId);
+    actor.gcd=(isRecallRecast||isRelaySecond||rampartRecast||familiarRecast)?0.6:1.3;
     // Casted abilities earn their long cooldown only when the cast actually
     // resolves. Being kicked must NOT consume Null Prison's 24s cooldown.
     // Instants (including a fake interrupt) retain their existing cooldown.
-    if(!rule.cast&&spellId!=="soul-relay"&&!rampartRecast)actor.cooldowns[spellId]=rule.cd||0;
+    if(!rule.cast&&spellId!=="soul-relay"&&!rampartRecast&&!familiarRecast)actor.cooldowns[spellId]=rule.cd||0;
     const crescendo=spellId==="pulse-mend"&&actor.evolutions[spellId]==="vital-crescendo"&&
       target?.team===actor.team&&opts.holdToCharge===true;
-    const castSeconds=crescendo?2.5:(rule.cast||0);
+    const helios=spellId==="flux-bolt"&&actor.evolutions[spellId]==="helios-beam"&&
+      actor.heliosReady&&opts.holdToCharge===true;
+    if(helios)actor.heliosReady=false;
+    const castSeconds=crescendo?2.5:helios?2:(rule.cast||0);
     this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,
       spellId,castSeconds});
     if(spellId==="crystal-bolt"){
@@ -466,14 +476,15 @@ export class EnergyMatch {
     }
     if(rule.cast) {
       actor.cast={spellId,remainingMs:castSeconds*1000,totalMs:castSeconds*1000,
-        targetId:target?.id||null,crescendoHeld:crescendo,
+        targetId:target?.id||null,crescendoHeld:crescendo,heliosBeam:helios,
+        channelTick:0,channelHits:0,
         mobile:spellId==="crystal-bolt"&&actor.crystalBoltMobile};
-      if(["gravity-hammer","froststorm"].includes(spellId)&&groundPoint){
+      if(["gravity-hammer","froststorm","zenith-crash"].includes(spellId)&&groundPoint){
         actor.cast.impact={...groundPoint};
         this.emit({type:"ground-telegraph",actorId:actor.id,spellId,
           x:groundPoint.x,y:groundPoint.y,radius:rule.area,duration:rule.cast});
       }
-      if(spellId==="zenith-crash"&&target){
+      if(spellId==="zenith-crash"&&target&&!groundPoint){
         // Lock the GROUND at cast start. Moving enemies may dodge the pillar,
         // even if the originally targeted enemy dies during the warning.
         actor.cast.impact={x:target.x,y:target.y};
@@ -486,6 +497,11 @@ export class EnergyMatch {
   }
   releaseHeldCast(actor,spellId){
     const cast=actor?.cast;
+    if(cast?.heliosBeam&&spellId==="flux-bolt"){
+      // Key release ends the real beam channel, not the base projectile cast.
+      cast.remainingMs=0;
+      return;
+    }
     if(!cast?.crescendoHeld||cast.spellId!==spellId)return;
     // Releasing before the full 2.5s charge returns to a normal 1.5s
     // Pulse Mend; holding for the full duration yields the greater heal.
@@ -1161,6 +1177,53 @@ export class EnergyMatch {
     this.emit({type:"control",actorId:source.id,targetId:target.id,
       spellId,ccKind:category,duration:value,drScale:scale});
   }
+  detonateCinder(actor){
+    const f=actor.familiar;
+    if(!f)return;
+    actor.familiar=null;
+    const target=this.getActor(actor.targetId)||this.getActor(f.targetId);
+    const p=target?.alive?target:actor;
+    this.evolutionProc(actor,"cinder-familiar","dying-star",null,p.x,p.y);
+    for(const foe of this.opponents(actor).filter(e=>distance(e,p)<188&&
+      hasLineOfSight(p,e,this.arena)).slice(0,12))
+      this.damage(foe,35,actor,"cinder-familiar");
+  }
+  // Celestial charges belong to the player cast, never a familiar proc or
+  // its own beam. Multiple damage ticks from one spell cost one sigil.
+  triggerSolarAscension(actor,target,spellId){
+    const sig=actor.solarSigils;
+    if(!sig||sig.charges<=0||sig.until<=this.time||!target)return;
+    if(!["flux-bolt","sun-lance","zenith-crash","chain-tempest"].includes(spellId))return;
+    sig.charges--;
+    this.identityProc(actor,"solar-ascension","ascension-beam",target);
+    this.damage(target,15,actor,"solar-ascension");
+    if(!sig.charges)actor.solarSigils=null;
+  }
+  updateFamiliar(actor){
+    const f=actor.familiar;
+    if(!f)return;
+    if(f.until<=this.time){actor.familiar=null;return;}
+    if(f.nextAt>this.time)return;
+    f.nextAt=this.time+(f.evo==="soulbrand"?.54:.86);
+    const marked=this.getActor(f.targetId);
+    const priority=this.getActor(actor.targetId);
+    const target=(f.evo==="soulbrand"&&marked?.alive?marked:
+      priority?.alive&&priority.team!==actor.team?priority:
+      marked?.alive?marked:null)||this.opponents(actor).sort((a,b)=>distance(a,actor)-distance(b,actor))[0];
+    if(!target?.alive||!hasLineOfSight(actor,target,this.arena))return;
+    if(f.evo==="phoenix-dive"&&this.time-f.lastDive>=2.7){
+      f.lastDive=this.time;
+      this.evolutionProc(actor,"cinder-familiar","phoenix-dive",target);
+      for(const foe of this.opponents(actor).filter(e=>distance(e,target)<150&&
+        hasLineOfSight(target,e,this.arena)).slice(0,9))
+        this.damage(foe,13,actor,"cinder-familiar");
+      this.scheduleEvolution(actor,"cinder-familiar","phoenix-trail",
+        target.x,target.y,.45,5,126);
+    }else{
+      this.identityProc(actor,"cinder-familiar",f.evo==="soulbrand"?"soulbrand-ray":"familiar-shot",target);
+      this.damage(target,f.evo==="soulbrand"?6.0:8.2,actor,"cinder-familiar",true);
+    }
+  }
   resolveZenith(actor,target,position,rule){
     const foes=this.opponents(actor).filter(t=>distance(t,position)<=rule.area&&
       hasLineOfSight(position,t,this.arena)).sort((a,b)=>
@@ -1196,7 +1259,7 @@ export class EnergyMatch {
       supportive?target.team!==actor.team:target.team===actor.team);
     const recallReactivation=spellId==="vital-recall"&&this.allies(actor).some(a=>
       a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===actor.id&&s.remaining>0));
-    const reason= ["dash","rampart","direction"].includes(r.mode)||(r.mode==="ground"&&castContext?.impact)||(spellId==="zenith-crash"&&castContext?.impact)?
+    const reason= ["dash","rampart","direction","summon","ascension"].includes(r.mode)||(r.mode==="ground"&&castContext?.impact)?
       null:!target?.alive?"TARGET DIED"
       :wrongTeam?"INVALID TARGET"
       :!recallReactivation&&distance(actor,target)>(r.range||490)?"OUT OF RANGE"
@@ -1214,6 +1277,11 @@ export class EnergyMatch {
     // Only a completed, valid cast starts cooldown. Fizzled or interrupted
     // casted spells stay available once the short school lock wears off.
     if(r.cast&&r.cd)actor.cooldowns[spellId]=r.cd;
+    if(castContext?.heliosBeam&&spellId==="flux-bolt"){
+      this.evolutionProc(actor,"flux-bolt","helios-end",target);
+      this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
+      return;
+    }
     if(spellId==="froststorm"){
       this.resolveFroststorm(actor,castContext.impact,r);
       return;
@@ -1249,6 +1317,23 @@ export class EnergyMatch {
         }
       }
       this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+      return;
+    }
+    if(spellId==="cinder-familiar"){
+      if(actor.familiar?.until>this.time)this.detonateCinder(actor);
+      else {
+        actor.familiar={until:this.time+r.duration,nextAt:this.time+.4,
+          targetId:target?.alive&&target.team!==actor.team?target.id:null,
+          evo:actor.evolutions["cinder-familiar"]||null,lastDive:0};
+        this.identityProc(actor,spellId,"familiar-summon",actor);
+      }
+      this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
+      return;
+    }
+    if(spellId==="solar-ascension"){
+      actor.solarSigils={charges:3,until:this.time+r.duration};
+      this.identityProc(actor,spellId,"ascension-start",actor);
+      this.emit({type:"ability",actorId:actor.id,targetId:actor.id,spellId});
       return;
     }
     if(spellId==="crystal-mirror"){

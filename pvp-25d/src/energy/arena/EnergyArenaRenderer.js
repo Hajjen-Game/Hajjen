@@ -7,7 +7,7 @@ import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261009-side-swing20";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
-import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261015-impact1";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);

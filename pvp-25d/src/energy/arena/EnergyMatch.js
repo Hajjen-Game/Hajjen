@@ -599,9 +599,11 @@ export class EnergyMatch {
     }
     if(!periodic&&source?.familiar?.evo==="soulbrand"&&
       source.familiar.until>this.time&&source.familiar.targetId===target.id&&
-      ["flux-bolt","sun-lance","zenith-crash","chain-tempest"].includes(spellId)){
-      this.evolutionProc(source,"cinder-familiar","soulbrand-discharge",target);
-      this.damage(target,7,source,"cinder-familiar",true);
+      ["flux-bolt","sun-lance","zenith-crash","chain-tempest"].includes(spellId)&&
+      (source.familiar.soulbrandGate||0)<=this.time){
+      source.familiar.soulbrandGate=this.time+.24;
+      this.scheduleEvolution(source,"cinder-familiar","soulbrand-discharge",
+        target.x,target.y,.09,7,0,{targetId:target.id});
     }
     if(!periodic&&source?.statuses?.some(q=>q.kind==="warpath"&&q.remaining>0)&&
       ["arc-strike","seismic-uppercut","gravity-hammer","phase-rush"].includes(spellId))

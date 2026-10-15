@@ -31,8 +31,8 @@ export const JOURNEY_STEPS=Object.freeze(Array.from({length:20},(_,i)=>{
   });
 }));
 
-// Genesis alone has migrated to six class-bound spells. Its Journey map
-// must not promise sixteen cross-discipline discoveries or ten action slots.
+// Genesis, Impact and Eclipse use six class-bound spells and four
+// Evolution unlocks. Their Journeys omit legacy shared discoveries.
 export const GENESIS_JOURNEY_STEPS=Object.freeze(JOURNEY_STEPS.map((old)=>{
   const milestones={
     1:["GENESIS BEGINS","Start with Pulse Mend and Resonance Guard. Learn to heal and shield your companions.","team"],

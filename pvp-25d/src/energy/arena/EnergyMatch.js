@@ -866,16 +866,6 @@ export class EnergyMatch {
       source.mendCharge={until:this.time+8};
       this.evolutionProc(source,"pulse-mend","resonance-ready",source);
     }
-    if(false&&!periodic&&value>0&&source?.evolutions?.["entropy-mark"]==="collapse"&&
-      spellId!=="entropy-mark"&&target.alive){
-      const mark=target.statuses.find(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&
-        q.sourceId===source.id&&q.tickCount>=2);
-      if(mark){
-        target.statuses=target.statuses.filter(q=>q!==mark);
-        this.evolutionProc(source,"entropy-mark","collapse",target);
-        this.damage(target,7+mark.tickCount*3,source,"entropy-mark");
-      }
-    }
     if(source.role==="void"&&spellId==="rift-slash"&&value>0&&
       target.statuses.some(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&q.sourceId===source.id))
       source.flux=clamp(source.flux+3,0,MAX_FLUX);
@@ -1470,6 +1460,20 @@ export class EnergyMatch {
       this.resolveVoidTeleport(actor,castContext?.landingPoint,r);
       return;
     }
+    if(spellId==="entropy-mark"&&actor.evolutions[spellId]==="psychic-collapse"){
+      const charged=target?.statuses?.find(q=>q.kind==="dot"&&q.spellId===spellId&&
+        q.sourceId===actor.id&&q.tickCount>=2);
+      if(charged){
+        target.statuses=target.statuses.filter(q=>q!==charged);
+        actor.cooldowns[spellId]=3;
+        this.evolutionProc(actor,spellId,"psychic-collapse",target);
+        for(const foe of this.opponents(actor).filter(q=>
+          distance(q,target)<160&&hasLineOfSight(target,q,this.arena)).slice(0,10))
+          this.damage(foe,foe===target?32:17,actor,spellId);
+        this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+        return;
+      }
+    }
     if(spellId==="abyssal-rift"){
       this.resolveAbyssalRift(actor,castContext.impact,r);
       return;
@@ -1929,17 +1933,55 @@ export class EnergyMatch {
         }
       }
       if(spellId==="rift-slash"){
-        const evo=actor.evolutions[spellId];
-        if(evo==="echo-cut"&&target.alive){
-          this.scheduleEvolution(actor,spellId,"echo-cut",target.x,target.y,.36,
-            amount*.36,0,{targetId:target.id});
-        }else if(evo==="rift-hunger"&&effectiveDamage>0){
-          const healed=Math.min(12,effectiveDamage*.22/this.power);
-          this.heal(actor,healed,actor,"rift-slash");
-          this.evolutionProc(actor,spellId,"rift-hunger",actor);
-        }else if(evo==="fractured-edge"&&debuffed){
-          actor.fracturedCharge={until:this.time+6};
-          this.evolutionProc(actor,spellId,"fractured-edge-ready",actor);
+        const evo=actor.evolutions[spellId],marked=target.statuses.some(q=>
+          q.kind==="dot"&&q.spellId==="entropy-mark"&&q.sourceId===actor.id);
+        actor.voidSlashCount=(actor.voidSlashCount||0)+1;
+        this.identityProc(actor,"rift-slash","dual-shadow-blades",target);
+        if(marked)this.evolutionProc(actor,spellId,"marked-fracture",target);
+        if(evo==="devouring-pact"){} // Mark sustain comes from Entropy Evolution below.
+        if(actor.evolutions["entropy-mark"]==="devouring-pact"&&marked&&
+          effectiveDamage>0&&(actor.devourGate||0)<=this.time){
+          actor.devourGate=this.time+.75;
+          this.heal(actor,Math.min(13,effectiveDamage*.23)/Math.max(.01,this.power),
+            actor,"rift-slash",true);
+          this.evolutionProc(actor,"entropy-mark","devouring-pact",actor);
+        }
+        if(evo==="phantom-assault"&&actor.voidSlashCount%3===0&&target.alive){
+          for(const d of [.16,.36])this.scheduleEvolution(actor,spellId,"phantom-assault",
+            target.x,target.y,d,amount*.46,0,{targetId:target.id});
+        }else if(evo==="umbral-cyclone"&&actor.voidSlashCount%3===0){
+          this.evolutionProc(actor,spellId,"umbral-cyclone",target);
+          for(const foe of this.opponents(actor).filter(q=>q!==target&&
+            distance(q,actor)<178&&hasLineOfSight(actor,q,this.arena)).slice(0,10))
+            this.damage(foe,amount*.67,actor,"rift-slash");
+        }else if(evo==="executioners-veil"&&marked&&target.hp/target.maxHp<=.30&&
+          (actor.veilExecuteGate||0)<=this.time){
+          actor.veilExecuteGate=this.time+8;
+          this.evolutionProc(actor,spellId,"executioners-veil",target);
+          for(const [i,d] of [.10,.25,.42].entries())
+            this.scheduleEvolution(actor,spellId,"executioners-veil",
+              target.x,target.y,d,amount*.42,0,{targetId:target.id});
+        }
+        if(actor.shadowAmbushUntil>this.time){
+          actor.shadowAmbushUntil=0;
+          this.evolutionProc(actor,"phase-slip","shadow-ambush",target);
+          for(const d of [.10,.23,.36])this.scheduleEvolution(actor,
+            "phase-slip","shadow-ambush",target.x,target.y,d,amount*.40,0,{targetId:target.id});
+        }
+        const form=actor.voidForm;
+        if(form?.until>this.time){
+          form.slashCount++;
+          this.evolutionProc(actor,"void-metamorphosis","form-blades",target);
+          for(const foe of this.opponents(actor).filter(q=>q!==target&&
+            distance(q,target)<(form.evo==="dreadblade-form"?215:133)&&
+            hasLineOfSight(target,q,this.arena)).slice(0,9))
+            this.damage(foe,amount*.52,actor,"rift-slash",true);
+          if(form.evo==="dreadblade-form"&&form.slashCount%3===0){
+            this.evolutionProc(actor,"void-metamorphosis","dreadblade-arcs",target);
+            for(const foe of this.opponents(actor).filter(q=>q!==target&&
+              distance(q,target)<305&&hasLineOfSight(target,q,this.arena)).slice(0,8))
+              this.damage(foe,amount*.54,actor,"void-metamorphosis",true);
+          }
         }
       }
       if(["crystal-bolt","fracture-spear"].includes(spellId)){
@@ -2072,18 +2114,8 @@ export class EnergyMatch {
     }else if(r.mode==="dot"){
       this.addStatus(target,{kind:"dot",negative:true,remaining:r.ticks*r.period,sourceId:actor.id,
         spellId,amount:r.amount,period:r.period,tickLeft:r.period,tickCount:0});
-      if(spellId==="entropy-mark"&&actor.evolutions[spellId]==="contagion"){
-        const other=this.opponents(actor).filter(e=>e!==target&&
-          distance(e,target)<=225&&hasLineOfSight(target,e,this.arena)&&
-          !e.statuses.some(q=>q.kind==="dot"&&q.spellId===spellId&&q.sourceId===actor.id))
-          .sort((a,b)=>distance(a,target)-distance(b,target))[0];
-        if(other){
-          this.addStatus(other,{kind:"dot",negative:true,
-            remaining:r.ticks*r.period,sourceId:actor.id,
-            spellId,amount:r.amount*.5,period:r.period,tickLeft:r.period,tickCount:0});
-          this.evolutionProc(actor,spellId,"contagion",other);
-        }
-      }
+      if(spellId==="entropy-mark")
+        this.identityProc(actor,spellId,"entropy-applied",target);
     }else if(r.mode==="cc"&&spellId==="crystal-snare"){
       this.resolveCrystalSnare(actor,target,r);
     }else if(r.mode==="cc")this.applyCC(target,r.cc,r.duration,actor,spellId);
@@ -2130,8 +2162,16 @@ export class EnergyMatch {
           const source=this.getActor(status.sourceId)||actor;
           if(status.kind==="dot"){
             const ramp=source.evolutions[status.spellId]==="deep-decay"?1+0.15*(status.tickCount||0):1;
-            this.damage(actor,status.amount*ramp,source,status.spellId,true);
+            this.damage(actor,status.amount*ramp*(source.voidForm?.until>this.time&&
+              status.spellId==="entropy-mark"?1.27:1),source,status.spellId,true);
             status.tickCount++;
+            if(status.spellId==="entropy-mark"&&source.voidForm?.until>this.time){
+              this.evolutionProc(source,"void-metamorphosis","mark-psychic-pulse",actor);
+              if(source.voidForm.evo==="mindstorm"){
+                this.scheduleEvolution(source,"void-metamorphosis","mindstorm-spear",
+                  actor.x,actor.y,.23,9,0,{targetId:actor.id});
+              }
+            }
           }
           if(status.kind==="reactive-thread")
             this.heal(actor,status.amount,source,"reactive-thread",true);
@@ -2187,6 +2227,17 @@ export class EnergyMatch {
       actor.flux=Math.min(MAX_FLUX,actor.flux+BASE_FLUX_REGEN*dt);
       if(actor.relayPending?.until<=this.time)actor.relayPending=null;
       if(actor.rampart?.until<=this.time)this.releaseRampart(actor);
+      if(actor.voidForm?.until<=this.time){
+        const end=actor.voidForm;
+        actor.voidForm=null;
+        this.identityProc(actor,"void-metamorphosis","metamorphosis-end",actor);
+        if(end.evo==="soul-devourer"){
+          this.evolutionProc(actor,"void-metamorphosis","soul-devourer-finale",actor);
+          for(const foe of this.opponents(actor).filter(q=>
+            distance(q,actor)<215&&hasLineOfSight(actor,q,this.arena)).slice(0,12))
+            this.damage(foe,21,actor,"void-metamorphosis");
+        }
+      }
       this.froststormFields=this.froststormFields.filter(q=>q.until>this.time);
       actor.gcd=Math.max(0,actor.gcd-dt);
       actor.dashGate=Math.max(0,actor.dashGate-dt);

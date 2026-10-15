@@ -469,7 +469,7 @@ h2{font-size:23px}
   padding:13px 15px;font-size:16px;font-weight:620;background:#0b1a2c;color:#eafaff;
   border-radius:9px;outline:none;text-align:center;box-shadow:inset 0 0 18px #02070d}
 .hub-name-input:focus{border-color:#86d9e5;box-shadow:0 0 0 3px #40c6e326}
-.character-role-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 27px}
+.character-role-choices{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:14px 0 27px}
 .character-role{display:flex;min-height:151px;flex-direction:column;align-items:center;gap:9px;
   padding:18px 10px;border:1px solid #3e516b;border-radius:12px;
   background:linear-gradient(#18283c,#0c1728);color:#d5e8f2}
@@ -482,6 +482,7 @@ h2{font-size:23px}
 .character-role[data-create-role="healer"] .character-role-glyph{color:#6fdaad}
 .character-role[data-create-role="melee"] .character-role-glyph{color:#f18491}
 .character-role[data-create-role="solar"] .character-role-glyph{color:#ffd07d}
+.character-role[data-create-role="void"] .character-role-glyph{color:#c19afb}
 @media(max-width:720px){.character-role-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .hub-primary,.hub-secondary{border-radius:9px;letter-spacing:.08em;font-weight:800;transition:filter .15s,transform .15s;cursor:pointer}
 .hub-primary{padding:14px 23px;border:1px solid #a5f2ff;background:linear-gradient(120deg,#77d7e9,#6bbbd7);
@@ -1261,6 +1262,9 @@ h2{font-size:23px}
 .character-role[data-create-role="solar"].selected{border-color:#ffd58d;
   background:linear-gradient(#423322,#191c29);box-shadow:inset 0 0 0 1px #efbd6b2b,0 0 26px #d9a44b22}
 .character-role[data-create-role="solar"].selected::after{color:#ffe1a2}
+.character-role[data-create-role="void"].selected{border-color:#b996ed;
+  background:linear-gradient(#2a2347,#161727);box-shadow:inset 0 0 0 1px #9e79cd2b,0 0 26px #8f59b822}
+.character-role[data-create-role="void"].selected::after{color:#d5b3ff}
 
 
 /* V36: earned spells are the focus; unearned spells remain quiet in the pool.

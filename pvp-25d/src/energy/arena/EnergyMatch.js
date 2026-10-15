@@ -393,7 +393,7 @@ export class EnergyMatch {
       a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id));
     const isRelaySecond=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     if(!isRecallRecast&&!isRelaySecond)actor.flux-=this.cost(actor,rule,spellId);
-    actor.gcd=isRecallRecast||isRelaySecond?.6:1.3;
+    actor.gcd=(isRecallRecast||isRelaySecond)?0.6:1.3;
     // Casted abilities earn their long cooldown only when the cast actually
     // resolves. Being kicked must NOT consume Null Prison's 24s cooldown.
     // Instants (including a fake interrupt) retain their existing cooldown.
@@ -795,6 +795,43 @@ export class EnergyMatch {
     }
     if(distance(actor,target)<=ORB_SEPARATION+5)this.finishCharge(actor);
   }
+  // Genesis uses a real finite absorb pool, not percentage mitigation.
+  applyGenesisShield(owner,target,rule,scale=1){
+    const before=target.shield,capacity=Math.round(rule.amount*this.power*scale);
+    target.shield=Math.max(target.shield,capacity);
+    this.addStatus(target,{kind:"shield",spellId:"resonance-guard",sourceId:owner.id,
+      remaining:rule.duration,capacity,absorbLeft:capacity,stored:0,
+      evolution:owner.evolutions["resonance-guard"]||null});
+    this.emit({type:"shield",actorId:owner.id,targetId:target.id,
+      spellId:"resonance-guard",amount:target.shield-before,
+      shieldBefore:before,shieldAfter:target.shield});
+  }
+  releaseGenesisGuard(target,status){
+    if(status.dischargeDone)return;
+    status.dischargeDone=true;
+    const owner=this.getActor(status.sourceId);
+    if(owner?.alive&&status.evolution==="retaliation"&&(status.stored||0)>0){
+      const foes=this.opponents(owner).filter(e=>distance(e,target)<490&&
+        hasLineOfSight(target,e,this.arena)).slice(0,3);
+      for(const foe of foes)this.damage(foe,
+        Math.min(20,status.stored*.35/Math.max(1,foes.length))/
+        Math.max(.01,this.power),owner,"resonance-guard");
+      this.evolutionProc(owner,"resonance-guard","retaliation",target);
+    }
+    if(status.absorbLeft<=0)target.statuses=target.statuses.filter(q=>q!==status);
+  }
+  releaseGenesisStasis(owner,status,target){
+    if(status.spellId!=="stasis-seal"||status.released)return;
+    status.released=true;
+    if(status.evolution==="mercy-bloom"){
+      const injured=this.allies(owner).filter(a=>a.hp<a.maxHp)
+        .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp);
+      if(injured[0]){
+        this.heal(injured[0],24,owner,"stasis-seal");
+        this.evolutionProc(owner,"stasis-seal","mercy-bloom",injured[0]);
+      }
+    }
+  }
   addStatus(target,entry) {
     // One shared Photon Barrier pool is intentionally non-stacking: every
     // refresh replaces the prior timer, even if a different ally cast it.
@@ -807,6 +844,11 @@ export class EnergyMatch {
     target.statuses.push(entry);
   }
   applyCC(target,category,duration,source,spellId) {
+    if(spellId==="stasis-seal"&&target.boss){
+      this.emit({type:"immune",actorId:source.id,targetId:target.id,spellId});
+      return;
+    }
+    if(spellId==="stasis-seal"&&target.elite)duration=Math.min(duration,3);
     const dr=target.dr[category]||{level:0,resetAt:0};
     if(this.time>dr.resetAt)dr.level=0;
     const scale=[1,.5,0][Math.min(2,dr.level)];
@@ -814,11 +856,19 @@ export class EnergyMatch {
     const value=duration*scale;
     target.statuses=target.statuses.filter(s=>s.kind!==category);
     target.statuses.push({kind:category,negative:true,remaining:value,sourceId:source.id,
-      spellId,evolution:source.evolutions[spellId]||null});
+      spellId,evolution:source.evolutions[spellId]||null,
+      ...(spellId==="stasis-seal"&&source.evolutions[spellId]==="essence-siphon"?
+        {period:1,tickLeft:1}: {})});
     dr.level=Math.min(2,dr.level+1);
     dr.resetAt=this.time+value+20;
     target.dr[category]=dr;
     if(category==="incapacitate")target.cast=null;
+    if(spellId==="stasis-seal"&&source.evolutions[spellId]==="tranquility-wave"){
+      for(const foe of this.opponents(source).filter(a=>a!==target&&!a.boss&&
+        distance(a,target)<165&&hasLineOfSight(target,a,this.arena)).slice(0,5))
+        this.applyCC(foe,category,Math.min(2,duration*.45),source,"stasis-wave");
+      this.evolutionProc(source,spellId,"tranquility-wave",target);
+    }
     if(category==="root"&&spellId==="crystal-snare"&&
       source.evolutions[spellId]==="frost-momentum"){
       this.addStatus(source,{kind:"frost-momentum",remaining:3,sourceId:source.id});
@@ -857,7 +907,7 @@ export class EnergyMatch {
     // previous code a dead ally triggered currentTarget()'s self fallback:
     // Pulse Mend silently overhealed the player instead of reporting a miss.
     const target=targetId?this.getActor(targetId):this.currentTarget(actor,r.mode);
-    const supportive=["heal","guard","shield","hot","link","cleanse"].includes(r.mode);
+    const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"].includes(r.mode);
     const wrongTeam=target&&(supportive
       ?target.team!==actor.team:target.team===actor.team);
     const reason= r.mode==="dash"||(spellId==="zenith-crash"&&castContext?.impact)?
@@ -879,6 +929,93 @@ export class EnergyMatch {
     if(r.cast&&r.cd)actor.cooldowns[spellId]=r.cd;
     if(spellId==="zenith-crash"){
       this.resolveZenith(actor,target,castContext?.impact||{x:target.x,y:target.y},r);
+      return;
+    }
+    if(spellId==="pulse-mend"&&r.mode==="hybrid"&&target.team!==actor.team){
+      this.damage(target,23,actor,spellId);
+      this.identityProc(actor,spellId,"vital-reversal",target);
+      for(const ally of this.allies(actor)){
+        if(ally.hp<ally.maxHp)this.heal(ally,22,actor,spellId);
+        const guard=ally.statuses.find(q=>q.kind==="shield"&&
+          q.spellId==="resonance-guard"&&q.remaining>0);
+        if(guard){
+          const restore=Math.max(0,Math.min(
+            Math.round(guard.capacity*.22),guard.capacity-guard.absorbLeft));
+          guard.absorbLeft+=restore;
+          const before=ally.shield;ally.shield+=restore;
+          if(restore>0)this.emit({type:"shield",actorId:actor.id,targetId:ally.id,
+            spellId:"resonance-guard",amount:restore,shieldBefore:before,
+            shieldAfter:ally.shield});
+        }
+      }
+      this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+      return;
+    }
+    if(spellId==="vital-cascade"){
+      const recipients=this.allies(actor);
+      for(const ally of recipients.filter(a=>a.hp<a.maxHp)){
+        this.heal(ally,ally===target?r.amount:r.amount*.78,actor,spellId);
+        if(actor.evolutions[spellId]==="rejuvenating-orbit"){
+          this.addStatus(ally,{kind:"rejuvenating-orbit",sourceId:actor.id,
+            spellId,remaining:6,period:1,tickLeft:1,amount:5});
+          this.evolutionProc(actor,spellId,"rejuvenating-orbit",ally);
+        }
+      }
+      if(actor.evolutions[spellId]==="double-cascade")
+        this.scheduleEvolution(actor,spellId,"double-cascade",actor.x,actor.y,.65,20,0);
+      if(actor.evolutions[spellId]==="life-transfer"){
+        const needy=recipients.filter(a=>a.hp<a.maxHp)
+          .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+        const donor=recipients.filter(a=>a!==needy&&a.hp/a.maxHp>.72)
+          .sort((a,b)=>b.hp/b.maxHp-a.hp/a.maxHp)[0];
+        if(needy&&donor){
+          const transfer=Math.max(0,Math.min(donor.hp-donor.maxHp*.55,donor.maxHp*.14));
+          donor.hp-=transfer;donor.healthPct=donor.hp/donor.maxHp;
+          this.heal(needy,transfer/Math.max(.01,this.power),actor,spellId);
+          this.evolutionProc(actor,spellId,"life-transfer",needy);
+        }
+      }
+      this.identityProc(actor,spellId,"team-cascade",target);
+      this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+      return;
+    }
+    if(spellId==="vital-recall"){
+      const active=this.allies(actor).map(ally=>({ally,status:ally.statuses.find(q=>
+        q.kind==="vital-recall"&&q.sourceId===actor.id)})).find(q=>q.status);
+      if(active){
+        active.ally.statuses=active.ally.statuses.filter(q=>q!==active.status);
+        const lost=Math.max(0,active.status.startHp-active.ally.hp);
+        if(lost>0)this.heal(active.ally,Math.min(lost*.75,active.ally.maxHp*.5)/
+          Math.max(.01,this.power),actor,spellId);
+        this.identityProc(actor,spellId,"recall-release",active.ally);
+      }else{
+        this.addStatus(target,{kind:"vital-recall",spellId,sourceId:actor.id,
+          remaining:r.duration,startHp:target.hp});
+        this.identityProc(actor,spellId,"recall-anchor",target);
+      }
+      this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
+      return;
+    }
+    if(spellId==="soul-relay"){
+      const pending=actor.relayPending?.until>this.time?actor.relayPending:null;
+      if(!pending){
+        actor.relayPending={firstId:target.id,until:this.time+7};
+        this.identityProc(actor,spellId,"relay-select-first",target);
+        if(actor===this.player)this.log("SOUL RELAY · Choose another ally and cast again.");
+      }else{
+        const first=this.getActor(pending.firstId);
+        if(first?.alive&&first!==target){
+          const duration=r.duration;
+          this.addStatus(first,{kind:"soul-relay",spellId,sourceId:actor.id,
+            partnerId:target.id,remaining:duration});
+          this.addStatus(target,{kind:"soul-relay",spellId,sourceId:actor.id,
+            partnerId:first.id,remaining:duration});
+          actor.relayPending=null;actor.cooldowns[spellId]=r.cd;
+          this.emit({type:"link",actorId:actor.id,targetId:target.id,spellId});
+          this.identityProc(actor,spellId,"relay-linked",target);
+        }else if(actor===this.player)this.log("SOUL RELAY · Choose a different living ally.");
+      }
+      this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
       return;
     }
     if(r.mode==="dash"){
@@ -971,14 +1108,22 @@ export class EnergyMatch {
         }
         this.log(actor.name+" interrupted "+target.name);
       }else this.emit({type:"nothing",actorId:actor.id,targetId:target.id,spellId,message:"NO CAST TO INTERRUPT"});
-    }else if(r.mode==="heal"){
+    }else if(r.mode==="heal"||r.mode==="hybrid"){
       let amount=r.amount;
+      if(spellId==="pulse-mend"&&castContext?.crescendoHeld){
+        amount*=1.78;
+        this.evolutionProc(actor,spellId,"vital-crescendo",target);
+      }
       if(spellId==="pulse-mend"&&actor.mendCharge?.until>this.time){
         amount*=1.23;
         actor.mendCharge=null;
         this.evolutionProc(actor,spellId,"resonance",target);
       }
       this.heal(target,amount,actor,spellId);
+      if(spellId==="pulse-mend"&&actor.evolutions[spellId]==="second-heart"){
+        this.addStatus(target,{kind:"second-heart",spellId,sourceId:actor.id,remaining:12});
+        this.evolutionProc(actor,spellId,"second-heart-armed",target);
+      }
       if(actor.evolutions[spellId]==="preservation"){
         const before=target.shield;
         target.shield=Math.min(target.maxHp*.4,
@@ -1006,6 +1151,17 @@ export class EnergyMatch {
       }
     }
     else if(r.mode==="shield"){
+      if(spellId==="resonance-guard"){
+        this.applyGenesisShield(actor,target,r);
+        if(actor.evolutions[spellId]==="guardian-network"){
+          for(const ally of this.allies(actor).filter(a=>a!==target)){
+            this.applyGenesisShield(actor,ally,r,.42);
+            this.evolutionProc(actor,spellId,"guardian-network",ally);
+          }
+        }
+        this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+        return;
+      }
       const shieldBefore=target.shield;
       target.shield=Math.max(target.shield,Math.round(r.amount*this.power*
         shieldMultiplier(spellId,actor.talentRanks[spellId]||0)));
@@ -1256,6 +1412,16 @@ export class EnergyMatch {
           }
           if(status.kind==="reactive-thread")
             this.heal(actor,status.amount,source,"reactive-thread",true);
+          if(status.kind==="rejuvenating-orbit"&&source.alive)
+            this.heal(actor,status.amount,source,"vital-cascade",true);
+          if(status.kind==="incapacitate"&&status.spellId==="stasis-seal"&&
+            status.evolution==="essence-siphon"&&source.alive){
+            source.flux=clamp(source.flux+4,0,MAX_FLUX);
+            const hurt=this.allies(source).filter(a=>a.hp<a.maxHp)
+              .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+            if(hurt)this.heal(hurt,5,source,"stasis-seal",true);
+            this.evolutionProc(source,"stasis-seal","essence-siphon",actor);
+          }
           if(status.kind==="symbiosis-echo"&&source.alive)
             this.heal(actor,status.amount,source,"symbiosis-link",true);
         }
@@ -1265,6 +1431,10 @@ export class EnergyMatch {
     for(const status of expired){
       const source=this.getActor(status.sourceId);
       if(!source?.alive)continue;
+      if(status.kind==="shield"&&status.spellId==="resonance-guard")
+        this.releaseGenesisGuard(actor,status);
+      if(status.kind==="incapacitate"&&status.spellId==="stasis-seal")
+        this.releaseGenesisStasis(source,status,actor);
       if(status.kind==="incapacitate"&&status.spellId==="null-prison"&&
         status.evolution==="void-anchor"){
         this.addStatus(actor,{kind:"slow",negative:true,remaining:2,sourceId:source.id});
@@ -1288,6 +1458,7 @@ export class EnergyMatch {
     for(const actor of this.actors){
       if(!actor.alive)continue;
       actor.flux=Math.min(MAX_FLUX,actor.flux+BASE_FLUX_REGEN*dt);
+      if(actor.relayPending?.until<=this.time)actor.relayPending=null;
       actor.gcd=Math.max(0,actor.gcd-dt);
       actor.dashGate=Math.max(0,actor.dashGate-dt);
       actor.bonusFluxGate=Math.max(0,(actor.bonusFluxGate||0)-dt);

@@ -4,6 +4,7 @@
 import { drawOriginalLayeredProjectile } from "./EnergyOriginalLayeredProjectiles.js?v=20261009-travel-tail16";
 import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-first13";
 import { drawEclipsePixi,ECLIPSE_PIXI_IDS } from "./EnergyEclipsePixiAccents.js?v=20261015-eclipse-pixi1";
+import { drawSolarPixi,SOLAR_PIXI_IDS } from "./EnergySolarPixiAccents.js?v=20261015-solar-pixi1";
 import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
@@ -74,6 +75,36 @@ export class EnergyPixiVFXOverlay {
     }
   }
   spawn(event,match){
+    // Five Solar class spells: layered animated fine Pixi filaments. Keep
+    // protected original Sun Lance and Crystal Bolt pipelines unchanged.
+    if(SOLAR_PIXI_IDS.has(event.spellId)){
+      if(!["windup","hit","ability","evolution-proc","identity-proc",
+        "ground-telegraph"].includes(event.type))return;
+      const source=match.getActor(event.actorId);
+      if(!source)return;
+      const target=match.getActor(event.targetId);
+      const dist=target?Math.hypot(source.x-target.x,source.y-target.y)*S:0;
+      const contactMs=event.type==="hit"&&
+        ["flux-bolt","chain-tempest"].includes(event.spellId)?
+          clamp(250+dist*32,315,470):0;
+      const duration=event.type==="windup"?
+          clamp((event.castSeconds||.36)*1000,310,2500):
+        contactMs?contactMs+230:
+        event.type==="ground-telegraph"?
+          clamp((event.duration||2)*1000,500,2600):
+        event.kind==="dying-star"?850:
+        event.kind==="zenith-impact"?850:
+        event.kind==="ascension-beam"?780:
+        event.kind==="phoenix-dive"?630:520;
+      this.effects.push({solar:true,spellId:event.spellId,type:event.type,
+        kind:event.kind||"",start:performance.now(),
+        duration,contactMs,sourceId:source.id,targetId:target?.id||null,
+        launch:event.type==="hit"?{x:source.x*S,z:source.y*S}:null,
+        x:Number.isFinite(event.x)?event.x:null,
+        y:Number.isFinite(event.y)?event.y:null,seed:++this.sequence});
+      if(this.effects.length>68)this.effects.splice(0,this.effects.length-68);
+      return;
+    }
     // New Eclipse accents use exactly the same Pixi surface as Crystal Bolt,
     // but an isolated implementation. Preserve original signature paths.
     if(ECLIPSE_PIXI_IDS.has(event.spellId)){
@@ -520,6 +551,13 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
+      if(e.solar){
+        const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
+          this.projectWorld(e.x*S,e.y*S):to;
+        const scale=this.impactScale(b||a,point||to);
+        drawSolarPixi(g,e,from,point||to,t,scale);
+        continue;
+      }
       if(e.eclipse){
         const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
           this.projectWorld(e.x*S,e.y*S):to;

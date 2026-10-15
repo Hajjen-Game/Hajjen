@@ -14,6 +14,7 @@ export class EnergySolarVFX{
   constructor(scene){
     this.scene=scene;this.materials=new Map();this.effects=[];this.sequence=0;
     this.maxEffects=105;this.ascension=new Map();this.familiars=new Map();
+    this.plasmaFields=new Map();
     this.chainOrigins=new Map();
   }
   mat(hue="gold",alpha=.85){
@@ -35,7 +36,7 @@ export class EnergySolarVFX{
   make(kind,at,ms=520,meta={}){
     const root=new BABYLON.TransformNode("solar:"+kind+":"+(++this.sequence),this.scene);
     root.position.copyFrom(at);
-    const fx={kind,root,created:performance.now(),duration:ms,parts:[],...meta};
+    const fx={kind,root,created:performance.now(),duration:ms,parts:[],nodes:[],...meta};
     this.effects.push(fx);
     while(this.effects.length>this.maxEffects)this.remove(this.effects.shift());
     return fx;
@@ -193,6 +194,7 @@ export class EnergySolarVFX{
     for(let i=0;i<3;i++){
       const root=new BABYLON.TransformNode("ascension-glyph-"+i,this.scene);
       root.parent=fx.root;
+      fx.nodes.push(root);
       const g=this.gem(fx,.21,.53,i===0?"core":i===1?"hot":"gold",0,0,0,.85);
       g.parent=root;
       const wing=this.gem(fx,.105,.23,"hot",.27,.04,0,.65);
@@ -328,7 +330,8 @@ export class EnergySolarVFX{
       }else if(id==="chain-tempest"&&kind==="tempest-core"&&target){
         this.chainOrigins.set(actor.id,{
           x:target.x,y:target.y,expires:performance.now()+1650});
-        this.burst(this.actor(target),{large:true,kind:"tempest-primary"});
+        // Orb visually travels BEFORE the impact, rather than exploding early.
+        this.burst(this.actor(actor),{kind:"tempest-release"});
       }else if(id==="flux-bolt"&&kind==="flux-third-hit"&&target){
         this.burst(this.actor(target),{large:true,kind:"flux-third-hit"});
       }
@@ -369,8 +372,24 @@ export class EnergySolarVFX{
           this.pillar(point.x/S,point.z/S,{kind:"zenith-aftershock",
             large:false});
         else if(kind==="burning-ground"){
-          this.burst(this.world(point.x/S,point.z/S,.14),{
-            kind:"plasma-tick"});
+          const old=this.plasmaFields.get(event.actorId);
+          if(!old||!this.effects.includes(old)||
+             Math.hypot(old.root.position.x-point.x,
+               old.root.position.z-point.z)>.5){
+            if(old)this.drop(old);
+            const fx=this.make("plasma-field",
+              this.world(point.x/S,point.z/S,.1),3450,{
+                sourceId:event.actorId,plasma:true});
+            for(let i=0;i<3;i++)this.hoop(fx,.94+i*.36,
+              i===0?"core":i===1?"plasma":"amber",
+              i*.012,.022,.43);
+            for(let i=0;i<9;i++){
+              const a=i*TAU/9,r=.58+(i%4)*.35;
+              this.gem(fx,.064,.32+(i%3)*.12,i%3===0?"hot":"plasma",
+                Math.cos(a)*r,.08,Math.sin(a)*r,.62);
+            }
+            this.plasmaFields.set(event.actorId,fx);
+          }else this.burst(point,{kind:"plasma-tick"});
         }else if(kind==="prism-cross"){
           this.pillar(point.x/S,point.z/S,{kind:"prism-hit",
             large:false,sky:false,ms:490});
@@ -485,6 +504,17 @@ export class EnergySolarVFX{
         }else if(fx.kind==="zenith-warning"||fx.kind==="aftershock-rune"){
           mesh.rotation.y=now*.00024*(n%2?1:-1);
           mesh.visibility=Math.min(.84,t*6,(1-t)*5);
+        }else if(fx.plasma){
+          if(n>=3){
+            const a=n*TAU/9+now*.00048*(n%2?1:-1);
+            const radius=.58+(n%4)*.35;
+            mesh.position.x=Math.cos(a)*radius;
+            mesh.position.z=Math.sin(a)*radius;
+            mesh.position.y=.09+Math.sin(a*2+n)*.09;
+            mesh.rotation.y=a;
+          }else mesh.rotation.y=now*.00015*(n%2?1:-1);
+          mesh.visibility=Math.min(.72,t*6,(1-t)*4)*
+            (.78+.22*Math.sin(now*.005+n));
         }else if(fx.kind==="thunderhead-cloud"){
           const a=n*TAU/7+now*.00065*(n%2?1:-1);
           mesh.position.x=origin.x+Math.cos(a)*.08;
@@ -519,14 +549,18 @@ export class EnergySolarVFX{
       this.familiars.delete(id);
     for(const [id,state]of this.chainOrigins)if(state.expires<now)
       this.chainOrigins.delete(id);
+    for(const [id,fx]of this.plasmaFields)if(!this.effects.includes(fx))
+      this.plasmaFields.delete(id);
   }
   remove(fx){for(const part of fx.parts)part.mesh.dispose();
+    for(const node of fx.nodes)node.dispose();
     fx.root.dispose();}
   drop(fx){const i=this.effects.indexOf(fx);if(i>=0)this.effects.splice(i,1);
     this.remove(fx);}
   clear(){
     while(this.effects.length)this.remove(this.effects.pop());
     this.ascension.clear();this.familiars.clear();this.chainOrigins.clear();
+    this.plasmaFields.clear();
   }
   dispose(){this.clear();
     for(const mat of this.materials.values())mat.dispose();

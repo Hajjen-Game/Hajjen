@@ -5,6 +5,17 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Visual VFX Lab 2.1: Explained Evolutions + Selectable Targets (2026-10-15)
+
+**Status: COMMITTED TO MAIN; 10 focused simulated UI/combat checks passed. Full browser rendering / user testing still needed.** This pass follows the user's request to be able to understand every Evolution instead of remembering each name, and to choose which orb a spell targets.
+
+- Replaced the compact name-only Evolution dropdown with **four immediately visible selectable cards** for each of the 20 class core spells: original/base spell plus three Evolutions. Every card uses `ABILITY_BY_ID[spellId].evolutions[*].description` to show the **real existing mechanic**; the selected card is visually distinct. The two standalone signature spells per class show one clearly explained base card and do not imply fake Evolution choices. Switching option restarts the controlled trial with that exact Evolution equipped. In Visual-only mode the explainer explicitly cautions that mechanics require Live Combat.
+- Added accessible **AUTO, SELF, ALLY, ENEMY 1, ENEMY 2, ENEMY 3** target buttons and an active-target label above the arena. The user can **click a visible orb** to select it through the existing real renderer's `pickGround` conversion; the nearest actor within a strict hit radius is used. Buttons remain keyboard-operable.
+- `selectedTargetKey` is applied to the actual `EnergyMatch` player's `targetId`, not merely to UI labels. Ground-targeted spells land at the chosen orb, while Phase Slip uses a geometrically legal nearby teleport point in its direction. All three enemies occupy open, line-of-sight-friendly arena positions; melee testers relocate within proper range of the selected enemy to make comparisons fair. Ally and Self support casts act on the specified recipient; invalid enemy-as-ally (or ally-as-enemy) target attempts display **INVALID TARGET** instead of silently falling back to Self. Live and Visual-only modes both honor manual target choices.
+- Lab-only scripted demonstrations now respect chosen recipients and focus enemies for useful follow-up examples such as Second Heart, Vital Recall, Scorching Lance, Contagion, Dreadblade, Dying Star and Solar Ascension. `PLAY ALL 6 CLASS SPELLS` resets to AUTO target to keep the sequence functional.
+- No change to live production damage formulas, spell artwork, Crystal Bolt or Sun Lance signature VFX, or permanent Origin/Journey saves.
+- **Validation:** 10/10 isolated UI + real combat engine checks: five Origins, six Genesis spells, original/three explained Evolution choices, six target options, wrong-team heal prevention, Ally heal, Self heal, selection stored in real Evolution loadout, Sun Lance specifically hitting Enemy 3 (not Enemy 1), standalone Evolution layout, direct orb-click target selection and Visual-only target selection. Full browser feedback still required to confirm click hit areas and layout at real screen sizes.
+
 ## IMPLEMENTED IN TEST — Void 1.0 + Five-Class VFX Lab 2.0 (2026-10-15)
 
 **Status: CODE MERGED TO MAIN; ISOLATED COMBAT CHECKS PASSED. Real browser interaction, GPU animations, frame timing and player feel still require manual playtesting.**

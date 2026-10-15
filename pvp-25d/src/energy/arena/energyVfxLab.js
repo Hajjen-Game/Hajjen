@@ -399,7 +399,7 @@ function animateCombat(now){
 function run(spell,fromSequence=false){
   if(!renderer||!spell)return;
   if(active?.id!==spell.id)selectedEvolution="";
-  updateEvolutionPicker(spell);
+  renderEvolutionChoices(spell);
   if(labUseCombat){runCombat(spell,fromSequence);return;}
   sequence=fromSequence;
   active=spell;
@@ -560,23 +560,51 @@ function animate(now){
     renderer.dispose();renderer=null;
   }
 }
-function updateEvolutionPicker(spell){
-  const picker=$("lab-evolution-picker");
-  picker.replaceChildren();
-  const base=el("option","","BASE SPELL · NO EVOLUTION");
-  base.value="";picker.append(base);
-  for(const evolution of ABILITY_BY_ID[spell?.id]?.evolutions||[]){
-    const option=el("option","",evolution.name);
-    option.value=evolution.id;picker.append(option);
+function renderEvolutionChoices(spell){
+  if(!spell)return;
+  const ability=ABILITY_BY_ID[spell.id];
+  const evolutions=ability?.evolutions||[];
+  if(!evolutions.some(e=>e.id===selectedEvolution))selectedEvolution="";
+  const root=$("lab-evolution-choices");root.replaceChildren();
+  $("lab-evolution-title").textContent=spell.name+" · choose its behaviour";
+  $("lab-evolution-counter").textContent=evolutions.length?
+    "BASE + "+evolutions.length+" EVOLUTIONS":"STANDALONE SIGNATURE SPELL";
+  const variants=[{
+    id:"",name:evolutions.length?"Original spell":"Signature spell",
+    description:ability?.description||spell.caption,base:true,
+  },...evolutions];
+  for(const [i,variant] of variants.entries()){
+    const button=el("button","lab-evolution-card");
+    button.type="button";
+    button.dataset.evolution=variant.id;
+    button.setAttribute("aria-pressed",String(variant.id===selectedEvolution));
+    button.style.setProperty("--tint",palette[ability?.discipline]||"#8dd6ee");
+    if(variant.id===selectedEvolution)button.classList.add("selected");
+    const tag=el("span","lab-evolution-tag",
+      variant.base?"ORIGINAL": "EVOLUTION "+i);
+    const name=el("strong","lab-evolution-name",variant.name);
+    const explanation=el("span","lab-evolution-description",variant.description);
+    const mark=el("span","lab-evolution-selected",
+      variant.id===selectedEvolution?"● SELECTED":"○ TRY THIS");
+    button.append(tag,name,explanation,mark);
+    button.addEventListener("click",()=>{
+      if(selectedEvolution===variant.id)return;
+      selectedEvolution=variant.id;
+      run(active||spell,false);
+    });
+    root.append(button);
   }
-  if(![...picker.options].some(option=>option.value===selectedEvolution))
-    selectedEvolution="";
-  picker.value=selectedEvolution;
-  picker.disabled=picker.options.length===1;
+  const picked=evolutions.find(e=>e.id===selectedEvolution);
+  $("lab-evolution-explainer").textContent=!evolutions.length?
+    "Spells 5 and 6 have no Evolution choices. Test the complete signature ability as designed.":
+    (picked?picked.name+" — "+picked.description:
+      "Original — "+(ability?.description||spell.caption))+
+    (labUseCombat?" Live Combat will trigger the real mechanic in a controlled test.":
+      " Visual-only shows the original animation; switch to Live Combat to test Evolution mechanics.");
 }
 function init(){
   const picker=$("lab-spell-picker"),filter=$("lab-discipline-filter");
-  const origin=$("lab-origin-picker"),evolution=$("lab-evolution-picker");
+  const origin=$("lab-origin-picker");
   for(const [role,detail] of Object.entries(ROLES)){
     const option=el("option","",detail.name.toUpperCase()+" · "+detail.subtitle);
     option.value=role;origin.append(option);
@@ -607,13 +635,9 @@ function init(){
     $("spell-count").textContent=visibleSpells.length+" / 6 "+ROLES[selectedRole].name.toUpperCase()+" SPELLS";
   };
   origin.addEventListener("change",()=>{
-    selectedRole=origin.value;selectedEvolution="";
+    selectedRole=origin.value;selectedEvolution="";selectedTargetKey="auto";
     filter.value="all";active=null;updateFilter();
     run(visibleSpells[0],false);
-  });
-  evolution.addEventListener("change",()=>{
-    selectedEvolution=evolution.value;
-    run(active||visibleSpells[0],false);
   });
   filter.addEventListener("change",()=>{
     selectedEvolution="";updateFilter();

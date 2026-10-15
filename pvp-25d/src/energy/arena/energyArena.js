@@ -172,7 +172,7 @@ function start(build){
       (match.encounter?" · "+match.encounter.stage:"");
     $("match-map-name").textContent=arena.name.toUpperCase();
     $("energy-canvas").setAttribute("aria-label",arena.name+" combat arena");
-    const classSlotMaximum=["healer","melee"].includes(build.role)?6:10;
+    const classSlotMaximum=["healer","melee","caster","solar"].includes(build.role)?6:10;
     $("match-level").textContent=selectedMode==="rift"?
       "RIFT EXPEDITION · SECTOR 01 / 05 · "+state.slots+"/"+classSlotMaximum+" SPELLS":
       devStage!==null?
@@ -244,7 +244,7 @@ function castSlot(index,heldKey=false){
   match.dashDirection=directionalVector();
   const p=match.player;
   const reason=match.reason(p,ability,p.targetId);
-  if(["gravity-hammer","froststorm","avalanche"].includes(ability)&&!reason){
+  if(["gravity-hammer","froststorm","avalanche","zenith-crash"].includes(ability)&&!reason){
     pendingGroundAim=pendingGroundAim===ability?null:ability;
     $("energy-canvas").style.cursor=pendingGroundAim?"crosshair":"";
     flash(pendingGroundAim?
@@ -722,7 +722,7 @@ function frameLoop(now){
 }
 $("energy-canvas").addEventListener("click",event=>{
   if(!match||!renderer)return;
-  if(["gravity-hammer","froststorm","avalanche"].includes(pendingGroundAim)){
+  if(["gravity-hammer","froststorm","avalanche","zenith-crash"].includes(pendingGroundAim)){
     const spellId=pendingGroundAim;
     const point=renderer.pickGround(event.clientX,event.clientY);
     const success=point&&match.castAbility(match.player,spellId,
@@ -755,7 +755,7 @@ document.addEventListener("keyup",event=>{
   keys.delete(k);
   if(!match||!hotkeys.includes(k))return;
   const spellId=match.loadout.abilitySlots[hotkeys.indexOf(k)]?.id;
-  if(spellId==="pulse-mend")match.releaseHeldCast(match.player,spellId);
+  if(["pulse-mend","flux-bolt"].includes(spellId))match.releaseHeldCast(match.player,spellId);
 });
 window.addEventListener("blur",()=>keys.clear());
 // Both reports are available during play, after a death and at match end.

@@ -310,16 +310,45 @@ export class EnergyArenaRenderer {
       }
       return;
     }
-    if(event.type==="ground-telegraph"&&event.spellId==="zenith-crash"){
+    if(event.type==="ground-telegraph"&&["zenith-crash","gravity-hammer"].includes(event.spellId)){
       const center=new BABYLON.Vector3(event.x*S,.10,event.y*S);
       const diameter=(event.radius||124)*S*2;
       // Friendly pillars look Solar-gold; enemy danger zones look hostile red.
       const hostile=match.getActor(event.actorId)?.team==="enemy";
-      this.spellFX.ring(center,hostile?"#f16f88":"#ffc780",
+      this.spellFX.ring(center,hostile?"#f16f88":
+        event.spellId==="gravity-hammer"?"#fb799a":"#ffc780",
         diameter,(event.duration||2)*1000,"telegraph",{casterId:event.actorId});
       this.spellFX.ring(new BABYLON.Vector3(center.x,.105,center.z),
-        hostile?"#aa3d64":"#e07856",diameter*.62,(event.duration||2)*1000,
+        hostile?"#aa3d64":event.spellId==="gravity-hammer"?"#ffafc7":"#e07856",diameter*.62,(event.duration||2)*1000,
         "telegraph",{casterId:event.actorId});
+      return;
+    }
+    if(event.type==="identity-proc"&&event.spellId==="kinetic-rampart"){
+      const actor=match.getActor(event.actorId);
+      if(!actor)return;
+      const base=new BABYLON.Vector3(actor.x*S,.55,actor.y*S);
+      const facing=actor.rampart?.facing||{x:1,y:0};
+      const side={x:-facing.y,y:facing.x};
+      const tone=event.kind==="rampart-catch"?"#ffe5ee":"#fc7895";
+      this.spellFX.ring(new BABYLON.Vector3(base.x,.12,base.z),tone,
+        event.kind==="rampart-start"?2.6:3.5,
+        event.kind==="rampart-start"?3900:560,"ground");
+      for(let i=-2;i<=2;i++){
+        const a=i*.38;
+        const forward=1.1*Math.cos(a),lateral=1.1*Math.sin(a);
+        const x=base.x+(facing.x*forward+side.x*lateral);
+        const z=base.z+(facing.y*forward+side.y*lateral);
+        this.spellFX.sphere(new BABYLON.Vector3(x,.7+Math.abs(i)*.17,z),
+          tone,event.kind==="rampart-start"?.20:.32,
+          event.kind==="rampart-start"?3500:570,"burst");
+      }
+      if(event.kind==="rampart-volley"){
+        for(const foe of match.opponents(actor).slice(0,4)){
+          this.spellFX.sphere(base,"#ffb8ca",.30,390,"projectile",{
+            end:new BABYLON.Vector3(foe.x*S,.78,foe.y*S),
+            spellId:"kinetic-rampart"});
+        }
+      }
       return;
     }
     if(event.type==="identity-proc"){
@@ -370,6 +399,39 @@ export class EnergyArenaRenderer {
             this.spellFX.sphere(start,c,.32,320,"projectile",
               {end:new BABYLON.Vector3(p.x,.85,p.z),spellId:"resonance-cut"});
           }
+        }
+      }
+      return;
+    }
+    if(event.type==="evolution-proc"&&[
+      "gravity-impact","uppercut-launch","uppercut-fracture","uppercut-crash",
+      "meteor-charge","piercing-charge","countershock","seismic-wave",
+      "gravity-well","kinetic-reprisal","kinetic-reprisal-ready","overdrive",
+      "warpath","echo-sever","relentless-pursuit"
+    ].includes(event.kind)){
+      const source=match.getActor(event.actorId);
+      const target=match.getActor(event.targetId)||source;
+      const px=Number.isFinite(event.x)?event.x:target?.x;
+      const py=Number.isFinite(event.y)?event.y:target?.y;
+      if(Number.isFinite(px)&&Number.isFinite(py)){
+        const p=new BABYLON.Vector3(px*S,.12,py*S);
+        const heavy=["gravity-impact","uppercut-crash","meteor-charge","countershock"].includes(event.kind);
+        const c=heavy?"#ffc2d1":"#f27c96";
+        this.spellFX.ring(p,c,heavy?4.3:event.kind==="seismic-wave"?3.6:2.1,
+          heavy?780:540,"ground");
+        if(heavy||event.kind==="uppercut-launch"||event.kind==="uppercut-fracture"){
+          this.spellFX.sphere(new BABYLON.Vector3(p.x,
+            heavy?5.1:event.kind==="uppercut-launch"?.7:3.2,p.z),
+            c,heavy?1.05:.65,heavy?470:390,
+            heavy?"fall":event.kind==="uppercut-launch"?"burst":"fall",
+            heavy?{end:new BABYLON.Vector3(p.x,.45,p.z)}:{end:new BABYLON.Vector3(p.x,.8,p.z)});
+        }else{
+          this.spellFX.sphere(new BABYLON.Vector3(p.x,1,p.z),
+            "#ffadc2",.38,400,"burst");
+        }
+        if(["kinetic-reprisal-ready","warpath"].includes(event.kind)&&source){
+          this.spellFX.ring(new BABYLON.Vector3(source.x*S,.18,source.y*S),
+            "#ff5d90",2.9,3300,"ground");
         }
       }
       return;

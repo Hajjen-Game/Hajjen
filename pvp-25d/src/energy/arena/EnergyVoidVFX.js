@@ -248,6 +248,31 @@ export class EnergyVoidVFX {
     }
     return f;
   }
+  phantom(a,b){
+    // The clone visually appears behind the actual struck enemy, relative
+    // to the true source of the Rift Slash (not behind the player's target frame).
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
+    const pos=this.point(b.x+dx/len*70,b.y+dy/len*70,1.04);
+    const f=this.make("phantom-clone",pos,660);
+    this.core(f,0,0,0,.48,"deep",.55);
+    this.core(f,0,0,0,.20,"heart",.69);
+    for(const side of [-1,1]){
+      const path=[];
+      for(let j=0;j<=15;j++){
+        const t=j/15,ang=.55+1.75*t;
+        path.push(V(side*(.24+Math.cos(ang)*.55),
+          .12+Math.sin(ang)*.67,side*(.12+Math.cos(ang)*.15)));
+      }
+      this.filament(f,path,side>0?"lilac":"magenta",.041,.83);
+      this.shard(f,side*.58,.37,0,.11,.65,side>0?"white":"violet",.73);
+    }
+    for(let i=0;i<7;i++){
+      const theta=i*TAU/7;
+      this.shard(f,Math.cos(theta)*.44,Math.sin(theta)*.28,
+        Math.sin(theta)*.44,.06,.25,"smoke",.6);
+    }
+    return f;
+  }
   skySpear(at,kind="dark-spear"){
     const isPact=kind==="dark-spear";
     const f=this.make("sky-"+kind,at.clone(),690,{
@@ -262,12 +287,26 @@ export class EnergyVoidVFX {
         Math.sin(a)*.24,.12,.85,i%2?"magenta":"amethyst",.72);
       sliver.rotation.z=Math.PI*.12;
     }
+    // The impact has ALREADY happened in the combat event: show instant
+    // sky-to-ground contact, with residual fragments continuing to fall.
+    this.filament(f,[V(0,-.70,0),V(0,2.2,0),V(0,4.9,0)],
+      "white",.043,.88);
+    for(let j=0;j<3;j++){
+      const a=j*TAU/3;
+      this.filament(f,[
+        V(Math.cos(a)*.16,-.55,Math.sin(a)*.16),
+        V(Math.cos(a+.18)*.29,1.6,Math.sin(a+.18)*.29),
+        V(Math.cos(a)*.16,4.5,Math.sin(a)*.16)
+      ],j%2?"magenta":"lilac",.019,.67);
+    }
     this.ring(f,isPact?.92:.7,-.79,"lilac",.021,.70);
     for(let i=0;i<8;i++){
       const a=i*TAU/8;
       this.shard(f,Math.cos(a)*.83,-.73,Math.sin(a)*.83,.058,.23,
         i%2?"violet":"white",.64);
     }
+    // Immediate narrow fracture on the real resolved strike.
+    this.burst(at,isPact?"pact-impact":"mindstorm-impact",isPact?1.05:.78);
     return f;
   }
   spawn(e,match){
@@ -295,6 +334,7 @@ export class EnergyVoidVFX {
       return true;
     }
     if(id==="rift-slash"){
+      if(kind==="phantom-assault"&&b)this.phantom(a,b);
       if(point)this.slashProc(point,kind);
       return true;
     }

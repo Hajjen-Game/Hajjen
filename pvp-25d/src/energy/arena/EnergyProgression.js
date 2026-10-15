@@ -1,7 +1,7 @@
 // Independent Energy Arena onboarding / play-mode progression.
 // This sits between Build Lab (full 10-slot authoring) and EnergyMatch.
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
-import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-eclipse1";
+import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS, SOLAR_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-eclipse1";
 import { buildCombatLoadout } from "../buildState.js?v=20261015-eclipse1";
 import {readJourney,awardedJourneyClear,journeyActiveSlots,journeyCombatLoadout} from "./EnergyJourneyCampaign.js?v=20261015-eclipse1";
 
@@ -17,7 +17,7 @@ export const MODES = Object.freeze({
   defense: Object.freeze({
     id:"defense",label:"Planet Defense",size:"3vE",
     subtitle:"Survive five waves with two AI companions",
-    description:"Genesis, Impact and Eclipse survive five escalating waves. Discover real spell Mastery and Evolutions, Forge trials and optional PvE Enchantments between waves.",
+    description:"Genesis, Impact, Eclipse and Solar survive five escalating waves. Discover real spell Mastery and Evolutions, Forge trials and optional PvE Enchantments between waves.",
     // Level-scaled XP on victory; fixed xpWin is the max-level fallback.
     xpWin:80,xpLoss:22,
   }),
@@ -75,15 +75,15 @@ const PREFERENCES={
   melee:["phase-rush","arc-strike","rift-slash","pulse-sever",
     "photon-barrier","gravity-hammer","entropy-mark","crystal-snare",
     "vector-rush","resonance-cut","sun-lance"],
-  caster:["flux-bolt","crystal-bolt","phase-slip","sun-lance",
-    "photon-barrier","crystal-snare","fracture-spear","null-prison",
-    "reactive-thread","resonance-cut","zenith-crash"],
+  caster:[...ECLIPSE_CLASS_SPELL_IDS],
+  solar:[...SOLAR_CLASS_SPELL_IDS],
 };
 const BOT_KITS={
   healer:["pulse-mend","resonance-guard","vital-cascade",
     "stasis-seal","vital-recall","soul-relay"],
   melee:[...IMPACT_CLASS_SPELL_IDS],
   caster:[...ECLIPSE_CLASS_SPELL_IDS],
+  solar:[...SOLAR_CLASS_SPELL_IDS],
 };
 const clip=(v,a,b)=>Math.min(b,Math.max(a,v));
 export function levelForXp(xp){
@@ -269,8 +269,8 @@ export function botAbilities(role,level,modeId){
   return BOT_KITS[role].slice(0,cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){
-  if(modeId==="defense"||modeId==="rift")return {friendly:["healer","melee","caster"],enemy:[]};
-  if(modeId==="training")return {friendly:[playerRole],enemy:[playerRole==="melee"?"melee":"caster"]};
+  if(modeId==="defense"||modeId==="rift")return {friendly:playerRole==="solar"?["healer","melee","solar"]:["healer","melee","caster"],enemy:[]};
+  if(modeId==="training")return {friendly:[playerRole],enemy:[playerRole==="melee"?"melee":playerRole==="solar"?"solar":"caster"]};
   if(modeId==="duo"){
     const partner=playerRole==="healer"?"melee":"healer";
     // Teach 2v2 mechanics against damage-only teams first. An enemy healer
@@ -279,7 +279,7 @@ export function rosterRoles(playerRole,modeId,level=1){
       ["healer",playerRole==="caster"?"caster":"melee"];
     return {friendly:[playerRole,partner],enemy:opponents};
   }
-  return {friendly:["healer","melee","caster"],enemy:["healer","melee","caster"]};
+  return {friendly:playerRole==="solar"?["healer","melee","solar"]:["healer","melee","caster"],enemy:["healer","melee","caster"]};
 }
 export function enemyTuning(modeId,level){
   // Beginner assistance fades before the middle of the 30-level journey.

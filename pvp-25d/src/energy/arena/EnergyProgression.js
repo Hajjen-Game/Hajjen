@@ -1,7 +1,7 @@
 // Independent Energy Arena onboarding / play-mode progression.
 // This sits between Build Lab (full 10-slot authoring) and EnergyMatch.
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
-import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-impact1";
+import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-impact1";
 import { buildCombatLoadout } from "../buildState.js?v=20261015-impact1";
 import {readJourney,awardedJourneyClear,journeyActiveSlots,journeyCombatLoadout} from "./EnergyJourneyCampaign.js?v=20261015-impact1";
 
@@ -83,9 +83,7 @@ const BOT_KITS={
   healer:["pulse-mend","resonance-guard","vital-cascade",
     "stasis-seal","vital-recall","soul-relay"],
   melee:[...IMPACT_CLASS_SPELL_IDS],
-  caster:["flux-bolt","crystal-bolt","phase-slip","sun-lance",
-    "photon-barrier","crystal-snare","fracture-spear","null-prison",
-    "resonance-cut","reactive-thread"],
+  caster:[...ECLIPSE_CLASS_SPELL_IDS],
 };
 const clip=(v,a,b)=>Math.min(b,Math.max(a,v));
 export function levelForXp(xp){

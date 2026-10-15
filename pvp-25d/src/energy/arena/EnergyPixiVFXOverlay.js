@@ -32,6 +32,7 @@ export class EnergyPixiVFXOverlay {
     this.effects=[];this.app=null;this.graphics=null;
     this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
     this.sequence=0;
+    this.solarChainOrigins=new Map();this.solarCoronaOrigins=new Map();
     this.alive=true;this.failed=false;this.enabled=true;
     this.resizeHandler=null;
   }
@@ -84,6 +85,26 @@ export class EnergyPixiVFXOverlay {
       if(!source)return;
       const target=match.getActor(event.targetId);
       const dist=target?Math.hypot(source.x-target.x,source.y-target.y)*S:0;
+      const now=performance.now();
+      if(event.spellId==="chain-tempest"&&event.kind==="tempest-core"&&target)
+        this.solarChainOrigins.set(source.id,{x:target.x*S,z:target.y*S,
+          until:now+1650});
+      if(event.spellId==="flux-bolt"&&event.kind==="flux-third-hit"&&target)
+        this.solarCoronaOrigins.set(source.id,{x:target.x*S,z:target.y*S,
+          until:now+1150});
+      const remembered=event.kind==="tempest-chain"?
+        this.solarChainOrigins.get(source.id):
+        event.kind==="corona-volley"?
+        this.solarCoronaOrigins.get(source.id):null;
+      const fam=source.familiar;
+      const locked=fam?.evo==="soulbrand"&&fam.targetId?
+        match.getActor(fam.targetId):null;
+      const follow=locked?.alive?locked:source;
+      const familiarShot=event.spellId==="cinder-familiar"&&
+        ["familiar-shot","soulbrand-ray","phoenix-dive"].includes(event.kind);
+      const sourcePoint=remembered?.until>now?
+        {x:remembered.x,z:remembered.z}:familiarShot?
+        {x:(follow.x+39.5)*S,z:(follow.y-22.5)*S}:null;
       const contactMs=event.type==="hit"&&
         ["flux-bolt","chain-tempest"].includes(event.spellId)?
           clamp(250+dist*32,315,470):0;
@@ -99,7 +120,8 @@ export class EnergyPixiVFXOverlay {
       this.effects.push({solar:true,spellId:event.spellId,type:event.type,
         kind:event.kind||"",start:performance.now(),
         duration,contactMs,sourceId:source.id,targetId:target?.id||null,
-        launch:event.type==="hit"?{x:source.x*S,z:source.y*S}:null,
+        launch:sourcePoint||event.type==="hit"?
+          sourcePoint||{x:source.x*S,z:source.y*S}:null,
         x:Number.isFinite(event.x)?event.x:null,
         y:Number.isFinite(event.y)?event.y:null,seed:++this.sequence});
       if(this.effects.length>68)this.effects.splice(0,this.effects.length-68);
@@ -584,6 +606,7 @@ export class EnergyPixiVFXOverlay {
     if(!this.observer&&this.resizeHandler)window.removeEventListener("resize",this.resizeHandler);
     try{this.app?.destroy(true,{children:true});}catch{}
     this.effects=[];this.graphics=null;this.app=null;this.ready=false;
+    this.solarChainOrigins.clear();this.solarCoronaOrigins.clear();
     this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
   }
 }

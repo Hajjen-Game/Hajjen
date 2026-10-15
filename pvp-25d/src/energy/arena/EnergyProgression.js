@@ -268,7 +268,7 @@ export function botAbilities(role,level,modeId){
   const cap=(modeId==="defense"||modeId==="rift")?Math.max(6,slotsForLevel(level)):
     modeId==="training"?3:modeId==="duo"?Math.min(8,slotsForLevel(level)):
     slotsForLevel(level);
-  return BOT_KITS[role].slice(0,role==="melee"?Math.max(cap,6):cap);
+  return BOT_KITS[role].slice(0,cap);
 }
 export function rosterRoles(playerRole,modeId,level=1){
   if(modeId==="defense"||modeId==="rift")return {friendly:["healer","melee","caster"],enemy:[]};

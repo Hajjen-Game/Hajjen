@@ -34,6 +34,7 @@ export class EnergyPixiVFXOverlay {
     this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
     this.sequence=0;
     this.solarChainOrigins=new Map();this.solarCoronaOrigins=new Map();
+    this.genesisCascadeOrigins=new Map();
     this.alive=true;this.failed=false;this.enabled=true;
     this.resizeHandler=null;
   }
@@ -89,6 +90,9 @@ export class EnergyPixiVFXOverlay {
         if(source){
           const target=match.getActor(event.targetId);
           const type=event.type;
+          if(event.spellId==="vital-cascade"&&type==="windup"&&target)
+            this.genesisCascadeOrigins.set(source.id,{
+              targetId:target.id,until:performance.now()+950});
           const duration=type==="windup"?
              clamp((event.castSeconds||.42)*1000,320,2500):
             event.kind==="vital-crescendo"||event.kind==="recall-release"?790:
@@ -101,8 +105,10 @@ export class EnergyPixiVFXOverlay {
           const partner=remembered?match.getActor(remembered):first;
           // Vital Cascade: launch first from Genesis, then visibly chain
           // from the selected ally to the remaining injured recipients.
+          const stored=this.genesisCascadeOrigins.get(source.id);
           const selected=event.spellId==="vital-cascade"&&type==="heal"?
-            match.getActor(source.targetId):null;
+            match.getActor(stored?.until>performance.now()?
+              stored.targetId:source.targetId):null;
           const bounce=selected?.team===source.team&&selected?.id!==target?.id?
             selected:null;
           const origin=event.spellId==="soul-relay"?partner:bounce;
@@ -662,6 +668,7 @@ export class EnergyPixiVFXOverlay {
     try{this.app?.destroy(true,{children:true});}catch{}
     this.effects=[];this.graphics=null;this.app=null;this.ready=false;
     this.solarChainOrigins.clear();this.solarCoronaOrigins.clear();
+    this.genesisCascadeOrigins.clear();
     this.neonSoft=null;this.neonHot=null;this.neonBlur=null;
   }
 }

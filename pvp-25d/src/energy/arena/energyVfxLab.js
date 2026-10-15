@@ -266,7 +266,7 @@ function runCombat(spell,fromSequence=false){
   const melee=["rift-slash","arc-strike","pulse-sever","seismic-uppercut"].includes(spell.id);
   source.x=melee?576:465;source.y=360;
   enemy.x=melee?662:735;enemy.y=360;
-  enemy.name="STATIC TEST ENEMY";enemy.maxHp=2600;enemy.hp=2600;
+  enemy.name="ENEMY 1";enemy.maxHp=2600;enemy.hp=2600;
   enemy.healthPct=1;enemy.boss=false;
   enemy.aiStyle="passive";
   enemy.cast=null;enemy.targetId=source.id;
@@ -276,7 +276,7 @@ function runCombat(spell,fromSequence=false){
   for(const offset of [64,-75]){
     const foe=actorFor("lab-extra-"+offset,"enemy","caster",
       {x:enemy.x+48,y:enemy.y+offset},"ai",["crystal-bolt"],{}, {},1);
-    foe.name="SECONDARY ENEMY";foe.maxHp=1300;foe.hp=700;
+    foe.name=offset>0?"ENEMY 2":"ENEMY 3";foe.maxHp=1300;foe.hp=700;
     match.actors.push(foe);
   }
   const focus=spellTarget(spell);
@@ -717,14 +717,31 @@ function init(){
     run(visibleSpells[0],false);
   });
   updateFilter();
+  // The buttons are the accessible fallback. Clicking an orb in the
+  // renderer selects the same *actor*, not an independent visual dummy.
+  $("vfx-canvas").addEventListener("click",event=>{
+    if(!renderer||!active||typeof renderer.pickGround!=="function")return;
+    const point=renderer.pickGround(event.clientX,event.clientY);
+    if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y))return;
+    const candidates=LAB_TARGETS.filter(t=>t.key!=="auto")
+      .map(t=>({key:t.key,actor:chosenActor(t.key)}))
+      .filter(q=>q.actor?.alive);
+    candidates.sort((a,b)=>
+      Math.hypot(a.actor.x-point.x,a.actor.y-point.y)-
+      Math.hypot(b.actor.x-point.x,b.actor.y-point.y));
+    const nearest=candidates[0];
+    if(nearest&&Math.hypot(nearest.actor.x-point.x,
+      nearest.actor.y-point.y)<=85)
+      chooseTarget(nearest.key);
+  });
   $("toggle-combat").addEventListener("click",()=>{
     labUseCombat=!labUseCombat;
     $("toggle-combat").textContent=labUseCombat?"LIVE COMBAT: ON":"VISUAL-ONLY: ON";
     if(!labUseCombat){
       source=actor("vfx-source","YOU","friendly",selectedRole,450,360,
         ROLES[selectedRole].color,palette[active?.discipline||"vital"]);
-      enemy=actor("vfx-target","ENEMY ORB","enemy","caster",755,360,"#c6639f","#f5bbd9");
-      ally=actor("vfx-ally","ALLY ORB","friendly","healer",675,525,"#73cfa9","#cef7dc");
+      enemy=actor("vfx-target","ENEMY 1","enemy","caster",755,360,"#c6639f","#f5bbd9");
+      ally=actor("vfx-ally","ALLY","friendly","healer",675,525,"#73cfa9","#cef7dc");
       match={actors:[source,enemy,ally],player:source,
         getActor(id){return this.actors.find(a=>a.id===id)||null;}};
       source.targetId=enemy.id;

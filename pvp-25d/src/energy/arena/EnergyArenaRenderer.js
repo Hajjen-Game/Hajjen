@@ -235,7 +235,12 @@ export class EnergyArenaRenderer {
     this.riftActors?.notify(event,match);
     // Only five Eclipse spells enter this independent 3D pipeline.
     // Crystal Bolt, Sun Lance and all other existing VFX stay untouched.
-    if(this.eclipseVFX?.spawn(event,match))return;
+    if(this.eclipseVFX?.spawn(event,match)){
+      // Babylon body + Pixi crisp strands for the same Eclipse event.
+      // Only the old generic path is bypassed, never the Pixi layer.
+      this.pixiFX?.spawn(event,match);
+      return;
+    }
     if(event.type==="encounter-telegraph"){
       const origin=new BABYLON.Vector3(event.x*S,.115,event.y*S);
       const diameter=Math.max(1,event.radius*2*S);

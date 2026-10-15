@@ -563,7 +563,7 @@ export class EnergyMatch {
     if(genesisGuard&&genesisGuard.absorbLeft<=0)
       this.releaseGenesisGuard(target,genesisGuard);
     this.emit({type:"hit",actorId:source.id,targetId:target.id,
-      spellId,amount:hpBefore-target.hp,absorbed,crit,
+      spellId,amount:Math.max(0,hpBefore-target.hp),absorbed,crit,
       rawDamage,guardReduction,guardActive:!!guard,
       hpBefore,hpAfter:target.hp,shieldBefore,shieldAfter:target.shield});
     if(absorbed>0&&shieldBefore>0&&target.shield<=0&&reflectingBarrier){
@@ -908,8 +908,8 @@ export class EnergyMatch {
     // Pulse Mend silently overhealed the player instead of reporting a miss.
     const target=targetId?this.getActor(targetId):this.currentTarget(actor,r.mode);
     const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"].includes(r.mode);
-    const wrongTeam=target&&(supportive
-      ?target.team!==actor.team:target.team===actor.team);
+    const wrongTeam=target&&(r.mode==="hybrid"?false:
+      supportive?target.team!==actor.team:target.team===actor.team);
     const reason= r.mode==="dash"||(spellId==="zenith-crash"&&castContext?.impact)?
       null:!target?.alive?"TARGET DIED"
       :wrongTeam?"INVALID TARGET":distance(actor,target)>(r.range||490)?"OUT OF RANGE"

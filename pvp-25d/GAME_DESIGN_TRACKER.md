@@ -2,8 +2,52 @@
 
 **Purpose:** A persistent, lightweight source of truth for gameplay decisions, pending proposals, missing polish, and future passes. Update this file when a good idea arises; never confuse a suggestion with a confirmed user decision. Do not replace code/testing with this document.
 
-**Last reviewed:** 2026-10-13
+**Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
+
+## AGREED — Spell Design 2.3: Solar (2026-10-15)
+
+**Status: USER-APPROVED FOUR CORE SPELLS + TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Solar is now its **own class-locked Origin**, not a pool of Solar abilities shared by other Origins. Inspired by the power fantasy of **Elemental Shaman + Warlock**: strong ranged casts, elemental lightning, devastating solar/fire effects, damage-over-time, and a conjured elemental familiar. Distinct from Eclipse's frost/control, Impact's melee/interruption and Genesis's healing. Spells 5–6 are later cross-class synergy spell slots and are NOT defined here.
+
+### Four approved baseline spells
+
+1. **Flux Bolt [AGREED; existing spell reshaped as core]:** 1.5s reference cast; rapid ranged glowing energy bolt with lightning accents. Repeated hits on the same enemy build a three-hit Solar rhythm; every third hit produces an extra visible Solar burst. Readable buildup and reset rules. Provisional live numbers must be playtested.
+2. **Sun Lance [AGREED; existing spell reshaped as core]:** heavy, focused ranged Solar lance with emphatic buildup/impact; deals extra damage against low-health enemies (existing <35% HP reference), distinct from Flux Bolt's repeat-cast cadence. Cast reference ~1.8s.
+3. **Zenith Crash [AGREED; MODIFY TARGETING]:** large, powerful **freely mouse-placed** telegraphed AoE, NOT auto-locked to an enemy's position. After a short visual warning (~2s reference), an enormous Solar pillar slams down for major initial damage. ~18s cooldown reference. Its emphasis is a decisive single-impact AoE, unlike Eclipse's lingering Froststorm.
+4. **Cinder Familiar [AGREED; NEW, replaces Photon Barrier in Solar's four-core kit]:** summon a single temporary, self-directed **living mini-sun / elemental energy familiar** that follows Solar and attacks the player's priority target with visible fire/energy attacks. This is a **spell manifestation** and **NOT an extra AI party member**. Suggested duration ~12s, cooldown ~35s are tuning candidates, not locked. Familiar designs/VFX must read as solar elemental magic with a dark/bright inner core, sparks and orbiting fragments. Photon Barrier is NOT a Solar core spell in this new direction. Possible Solar Ascension as later slot 5/6 remains UNDECIDED.
+
+### Flux Bolt Evolutions — all THREE AGREED
+
+- **Corona Volley [AGREED]:** each third Flux Bolt hit erupts into several bright, seeking **small solar projectiles**, hitting up to three nearby enemies with individually readable impacts; focus on group-clearing.
+- **Thunderhead [AGREED]:** each third Flux Bolt hit summons a compact **electric storm cloud above its target**; it launches three visible lightning strikes over the following seconds even while Solar uses other spells. This is lightning over time, NOT Corona Volley's simultaneous seeking fragments.
+- **Helios Beam [AGREED; replaces Solar Reactor]:** after **three qualifying Flux Bolt hits**, the NEXT Flux Bolt can instead be **held down to channel a continuous focused Solar beam** for up to ~2s, dealing repeated hits that intensify while channelled. Player can release early or interrupt to move/dodge. Very visible thin-to-thick hot-white/orange beam, electric arcs, impact sparks. Single-priority-target burst with a real deliberate channel window, not a seeking-projectile or reactive explosion proc. **Solar Reactor explicitly rejected**, do NOT add it back.
+
+### Sun Lance Evolutions — all THREE AGREED
+
+- **Judgment of Dawn [AGREED]:** if Sun Lance strikes a foe below the low-HP finisher threshold (35% initial reference), the hit transforms into a visually overwhelming **concentrated solar beam from above**, with significantly stronger single-target finishing impact. Boss/elite burst direction; threshold and exact damage tuning later.
+- **Scorching Lance [AGREED]:** creates a **Solar DoT burn mark**; a target dying while marked bursts in an AoE fire explosion that **spreads the burn** to nearby eligible mobs. Strong Warlock-inspired cascade identity and pack-clearing potential.
+- **Split Lance [AGREED]:** Sun Lance impact splits into **two smaller energy lances** seeking OTHER wounded enemies, with their own visible impacts. Finishing several already-wounded enemies, distinct from Corona Volley's rhythm-based many-target bolts.
+
+### Zenith Crash Evolutions — all THREE AGREED
+
+- **Solar Aftershock [AGREED]:** a second, somewhat weaker telegraphed Solar pillar detonates at the **same world location** shortly after the first.
+- **Burning Ground [AGREED]:** the initial enormous explosion leaves an obvious **lasting damage-over-time plasma zone** on the ground; synergizes with crowd control and clustered waves without reducing the identity of the base initial impact.
+- **Prism Cross [AGREED]:** primary Zenith Crash impact fires **four broad Solar beams along the ground in an X-shaped pattern** damaging enemies in those lines; solid obstacles stop beam travel. Clear visual read, placement importance, no unfair wall penetration.
+
+### Cinder Familiar Evolutions — all THREE AGREED
+
+- **Phoenix Dive [AGREED; replaces Ember Swarm]:** rather than simply shooting, the one Familiar transforms into a larger **stylized phoenix-like SOLAR ENERGY creature** with wings made of blazing energy and lightning; every few seconds it dives **through a group** damaging enemies and leaving a short-lived burning trail, then returns to Solar until the next dive. Do not implement it as an ordinary realistic bird or as three pets.
+- **Soulbrand [AGREED]:** the Familiar attaches/locks onto one chosen enemy and orbits it, sustaining a visibly focused Solar **burn beam**; Solar's other spell hits on that enemy trigger additional familiar fire discharges. Especially valuable against bosses/elites.
+- **Dying Star [AGREED]:** while active, **repress Cinder Familiar's spell key** to **voluntarily sacrifice/detonate** it early. It dives toward the current target, compresses into a bright mini-sun and explodes in a dramatic **Supernova**. Real opportunity cost (Familiar ends early) and player-timed burst; not a purely passive expiry explosion.
+
+### Boundaries, rejected alternatives and next work
+
+- User approved these **4 + 12** through an explicit spell-by-spell review: Corona Volley, Thunderhead, Judgment of Dawn, Scorching Lance, Split Lance, all three Zenith Crash Evolutions, Soulbrand and Dying Star, then separately APPROVED **Helios Beam** and **Phoenix Dive** as replacements.
+- Explicit **REJECTIONS**: **Solar Reactor** (felt too similar to Corona Volley) and **Ember Swarm**. Both MUST remain out of the locked Solar 2.3 design; **Helios Beam** and **Phoenix Dive** are their final agreed replacements.
+- Solar's class should support different builds: lightning/area (Thunderhead, Split Lance, Prism Cross, Phoenix Dive); sustained fire/burn (Scorching Lance, Burning Ground, Soulbrand); focused boss/burst (Helios Beam, Judgment of Dawn, Solar Aftershock, Dying Star). These are examples, not fixed builds.
+- **Do not implement** or redesign Photon Barrier, Solar Ascension, shared spell unlock pools, progression, FX engine, old saves, companion AI or combat rules in this documentation-only pass. Preserve previous Origin design approvals and newer five-class direction.
+- Initial timings, Flux, burst magnitudes, triggering behavior, safe target selection, CC interactions, and AI familiar action budgets are **provisional** and should be balanced during test passes. Strong, distinct VFX and mechanics are intentional.
+- **Next design:** Void as a full-fledged class blending **Demon Hunter + Rogue + Shadow Priest**. Draft four baseline spells, three distinct gameplay-changing Evolutions each; **user approval is required before documenting Void as AGREED**.
 
 ## AGREED — Five-class direction and Cross-Class Synergy Spells (2026-10-14)
 
@@ -28,7 +72,7 @@
 
 ## AGREED — Spell Design 2.2: Genesis / Vital (2026-10-13)
 
-**Status: USER-APPROVED CURRENT DESIGN, NOT IMPLEMENTED.** Genesis joins Eclipse (Cryo) and Impact (Kinetic) as the third Origin whose proposed four-spell, twelve-Evolution design has been accepted. Gameplay code, abilities, Journey pools, save files and VFX have NOT been modified by this design decision. Solar is the next DISCUSSION / PROPOSAL discipline, followed by Void; do not mark either as approved without user feedback.
+**Status: USER-APPROVED CURRENT DESIGN, NOT IMPLEMENTED.** Genesis joins Eclipse (Cryo) and Impact (Kinetic) as the third Origin whose proposed four-spell, twelve-Evolution design has been accepted. Gameplay code, abilities, Journey pools, save files and VFX have NOT been modified by this design decision. Solar has since been approved in Spell Design 2.3 above. Void is the next DISCUSSION / PROPOSAL class; do not mark it as approved without user feedback.
 
 ### Core identity and four-spell kit
 

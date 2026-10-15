@@ -7,6 +7,7 @@ import { drawEclipsePixi,ECLIPSE_PIXI_IDS } from "./EnergyEclipsePixiAccents.js?
 import { drawSolarPixi,SOLAR_PIXI_IDS } from "./EnergySolarPixiAccents.js?v=20261015-solar-pixi1";
 import { drawGenesisPixi,GENESIS_PIXI_IDS,GENESIS_PULSE_EVOS } from "./EnergyGenesisPixiAccents.js?v=20261015-genesis-pixi2";
 import { drawImpactPixi,IMPACT_PIXI_IDS } from "./EnergyImpactPixiAccents.js?v=20261015-impact-pixi1";
+import { drawVoidPixi,VOID_PIXI_IDS,VOID_SLASH_PROC_KINDS } from "./EnergyVoidPixiAccents.js?v=20261015-void-pixi1";
 import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
@@ -79,6 +80,46 @@ export class EnergyPixiVFXOverlay {
     }
   }
   spawn(event,match){
+    // Five Void class spells plus additive Rift Slash Evolution-only accents.
+    // Original Rift Slash, Crystal Bolt, Sun Lance and Pulse Mend stay untouched.
+    const voidSlashAccent=event.spellId==="rift-slash"&&
+      ["identity-proc","evolution-proc"].includes(event.type)&&
+      VOID_SLASH_PROC_KINDS.has(event.kind);
+    if(VOID_PIXI_IDS.has(event.spellId)&&
+      (event.spellId!=="rift-slash"||voidSlashAccent)){
+      if(!["windup","hit","dash","ability","identity-proc",
+        "evolution-proc"].includes(event.type))return;
+      const actor=match.getActor(event.actorId);
+      if(!actor)return;
+      const target=match.getActor(event.targetId);
+      const now=performance.now(),kind=event.kind||"";
+      const dash=event.type==="dash"&&Number.isFinite(event.fromX)&&
+        Number.isFinite(event.toX)&&Number.isFinite(event.fromY)&&
+        Number.isFinite(event.toY);
+      const type=event.type;
+      const dist=target?Math.hypot(actor.x-target.x,actor.y-target.y)*S:0;
+      const contactMs=kind==="entropy-applied"?clamp(210+dist*35,300,520):0;
+      const duration=type==="windup"?
+        clamp((event.castSeconds||.4)*1000,300,2500):
+        type==="dash"?730:
+        kind==="rift-implosion"||kind==="psychic-collapse"||
+        kind==="soul-devourer-finale"?950:
+        kind==="dark-spear"||kind==="mindstorm-spear"?810:
+        kind==="metamorphosis-start"||kind==="metamorphosis-end"?1150:
+        contactMs?contactMs+280:620;
+      this.effects.push({void:true,spellId:event.spellId,
+        type,kind,sourceId:actor.id,targetId:target?.id||null,
+        start:now,duration,contactMs,seed:++this.sequence,
+        launch:dash?{x:event.fromX*S,z:event.fromY*S}:
+          {x:actor.x*S,z:actor.y*S},
+        x:dash?event.toX:
+          Number.isFinite(event.x)?event.x:null,
+        y:dash?event.toY:
+          Number.isFinite(event.y)?event.y:null
+      });
+      if(this.effects.length>94)this.effects.splice(0,this.effects.length-94);
+      return;
+    }
     // The six Impact-only spells: no overlap with the protected signatures.
     if(IMPACT_PIXI_IDS.has(event.spellId)){
       if(!["windup","charge-start","charge-trail","charge-impact",
@@ -656,6 +697,15 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
+      if(e.void){
+        const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
+          this.projectWorld(e.x*S,e.y*S):to;
+        const size=this.impactScale(b||a,point||to);
+        const tick=e.kind==="entropy-applied"&&e.contactMs?
+          clamp(t*e.duration/e.contactMs,0,1):t;
+        drawVoidPixi(g,e,from,point||to,tick,size);
+        continue;
+      }
       if(e.impact){
         const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
           this.projectWorld(e.x*S,e.y*S):to;

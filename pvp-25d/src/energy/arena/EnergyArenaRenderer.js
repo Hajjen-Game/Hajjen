@@ -7,7 +7,8 @@ import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
 import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx2";
 import { EnergySolarVFX } from "./EnergySolarVFX.js?v=20261015-solar-vfx3";
 import { EnergyGenesisVFX } from "./EnergyGenesisVFX.js?v=20261015-genesis-vfx3";
-import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-genesis-pixi3";
+import { EnergyImpactVFX } from "./EnergyImpactVFX.js?v=20261015-impact-vfx1";
+import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-impact-pixi1";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
 import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261015-voidlab1";
@@ -52,6 +53,7 @@ export class EnergyArenaRenderer {
     this.eclipseVFX=new EnergyEclipseVFX(this.scene);
     this.solarVFX=new EnergySolarVFX(this.scene);
     this.genesisVFX=new EnergyGenesisVFX(this.scene);
+    this.impactVFX=new EnergyImpactVFX(this.scene);
     this.pixiFX=new EnergyPixiVFXOverlay(canvas.parentElement||canvas,this);
     this.pixiFX.init();
     this.actorRender=new OrbCharacterRenderer(this.scene,null,S);
@@ -237,6 +239,11 @@ export class EnergyArenaRenderer {
   }
   spawnEffect(event,match){
     this.riftActors?.notify(event,match);
+    // Six Impact spells enter an independent Babylon and Pixi Kinetic path.
+    if(this.impactVFX?.spawn(event,match)){
+      this.pixiFX?.spawn(event,match);
+      return;
+    }
     // Genesis's five non-signature spells use their own detailed meshes.
     // Original Pulse Mend (and Crystal Bolt/Sun Lance) stay on the original
     // Hero/Pixi routes; Pulse Mend Evolution FX are supplemental only.
@@ -974,6 +981,7 @@ export class EnergyArenaRenderer {
     this.eclipseVFX?.update(match,now);
     this.solarVFX?.update(match,now);
     this.genesisVFX?.update(match,now);
+    this.impactVFX?.update(match,now);
     this.syncSolarVisuals(match,now);
     this.syncVoidForms(match,now);
     this.riftWorld?.update(match,now);
@@ -999,6 +1007,7 @@ export class EnergyArenaRenderer {
     this.eclipseVFX?.dispose();
     this.solarVFX?.dispose();
     this.genesisVFX?.dispose();
+    this.impactVFX?.dispose();
     this.markers?.dispose();
     this.orbPolish?.dispose();
     this.riftActors?.dispose();

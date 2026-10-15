@@ -375,6 +375,9 @@ export class EnergyCharacterHub{
       fill.style.background=DISCIPLINES[discipline].color;
       track.append(fill);row.append(label,track);weights.append(row);
     }
+    const intro=document.querySelector(".hub-journey-intro");
+    if(intro&&journey&&build.role==="healer")
+      intro.textContent="GENESIS JOURNEY · Unlock four more Vital class spells during your 20 Stages. All six class abilities and the core Evolutions appear around your Energy orb.";
     $("hub-orb-stage").style.setProperty("--hub-core",identity.style.core);
     $("hub-orb-stage").style.setProperty("--hub-accent",identity.style.energy);
     this.renderTree();
@@ -398,7 +401,9 @@ export class EnergyCharacterHub{
     if(isJourney){
       const panel=$("hub-forge-locked");
       panel.querySelector("strong").textContent="UNLOCKS AT STAGE 20";
-      panel.querySelector("p").textContent="Synergies are coming with Rift Expedition. No levels or spell ranks needed.";
+      panel.querySelector("p").textContent=state.build.role==="healer"?
+        "Cross-class Synergies are paused. Genesis focuses on six class abilities and four evolving core spells.":
+        "Synergies are coming with Rift Expedition. No levels or spell ranks needed.";
     }
     $("hub-forge-locked").hidden=!isLocked;
     $("hub-forge-unlocked").hidden=isLocked;
@@ -604,6 +609,7 @@ export class EnergyCharacterHub{
       Math.max(0,cap-used)+" AVAILABLE / "+cap+" EARNED";
     $("hub-evolution-count").textContent=activeCount+" / "+evolutionCap+" CHOSEN";
     $("hub-spellbook-count").textContent=state.unlocked.length+"/"+(state.build.role==="healer"?6:10);
+    $("hub-orbit-board")?.classList.toggle("six-class-spells",state.build.role==="healer");
     const discovery=readJourney(this.getProgression());
     const available=discovery?.pending?eligibleJourneySpells(discovery):[];
     $("hub-map-caption").textContent=available.length?
@@ -879,6 +885,12 @@ export class EnergyCharacterHub{
           canDiscover?"This spell is one of the glowing Journey discoveries. Confirm it above to add it permanently.":
             journey.pending?"Click a glowing spell in the outer Evolution Tree and confirm in Selected Spell.":
               "New shared spells unlock as you clear Stages."));
+      if(ability.evolutions.length===0){
+        evolutions.replaceChildren(el("h4","","CLASS SIGNATURE ABILITY"),
+          el("p","hub-evolution-explainer",
+            "Spells 5 and 6 work on their own without any extra Evolution selection."));
+        return;
+      }
       evolutions.replaceChildren(el("h4","","EVOLUTIONS · "+spent+"/"+capacity+" ACTIVE"),
         el("p","hub-evolution-explainer",
           capacity===0?"Your first Evolution slot unlocks after clearing Stage 10.":

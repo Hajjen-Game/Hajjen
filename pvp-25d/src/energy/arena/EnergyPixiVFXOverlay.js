@@ -120,8 +120,8 @@ export class EnergyPixiVFXOverlay {
       this.effects.push({solar:true,spellId:event.spellId,type:event.type,
         kind:event.kind||"",start:performance.now(),
         duration,contactMs,sourceId:source.id,targetId:target?.id||null,
-        launch:sourcePoint||event.type==="hit"?
-          sourcePoint||{x:source.x*S,z:source.y*S}:null,
+        launch:sourcePoint||(event.type==="hit"?
+          {x:source.x*S,z:source.y*S}:null),
         x:Number.isFinite(event.x)?event.x:null,
         y:Number.isFinite(event.y)?event.y:null,seed:++this.sequence});
       if(this.effects.length>68)this.effects.splice(0,this.effects.length-68);

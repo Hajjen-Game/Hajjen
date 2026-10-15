@@ -412,7 +412,8 @@ export class EnergyMatch {
     // Releasing an already armed rewind should not be eaten by the GCD:
     // players must be able to react before the four-second marker expires.
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
-    const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time;
+    const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time&&
+      actor.evolutions["cinder-familiar"]==="dying-star";
     if(actor.gcd>0&&!secondRecall&&!rampartRecast&&!familiarRecast)return "GLOBAL COOLDOWN";
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast)return "COOLDOWN";
@@ -438,7 +439,8 @@ export class EnergyMatch {
       a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id&&q.remaining>0));
     const isRelaySecond=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
-    const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time;
+    const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time&&
+      actor.evolutions["cinder-familiar"]==="dying-star";
     const groundPoint=rule.mode==="ground"?(opts.point||
       (target?.alive?{x:target.x,y:target.y}:null)):null;
     const directionPoint=rule.mode==="direction"?(opts.point||
@@ -498,7 +500,16 @@ export class EnergyMatch {
   releaseHeldCast(actor,spellId){
     const cast=actor?.cast;
     if(cast?.heliosBeam&&spellId==="flux-bolt"){
-      // Key release ends the real beam channel, not the base projectile cast.
+      // Even a deliberately short Helios release produces one visible hit.
+      if(cast.channelHits===0){
+        const victim=this.getActor(cast.targetId);
+        if(victim?.alive&&victim.team!==actor.team){
+          this.damage(victim,7.7,actor,"flux-bolt",true);
+          this.evolutionProc(actor,"flux-bolt","helios-tick",victim);
+          this.triggerSolarAscension(actor,victim,"flux-bolt");
+          cast.channelHits=1;
+        }
+      }
       cast.remainingMs=0;
       return;
     }
@@ -585,6 +596,12 @@ export class EnergyMatch {
       source.statuses=source.statuses.filter(s=>s!==dissonance);
       const origin=this.getActor(dissonance.sourceId);
       if(origin)this.identityProc(origin,"resonance-cut","dissonance-absorbed",source);
+    }
+    if(!periodic&&source?.familiar?.evo==="soulbrand"&&
+      source.familiar.until>this.time&&source.familiar.targetId===target.id&&
+      ["flux-bolt","sun-lance","zenith-crash","chain-tempest"].includes(spellId)){
+      this.evolutionProc(source,"cinder-familiar","soulbrand-discharge",target);
+      this.damage(target,7,source,"cinder-familiar",true);
     }
     if(!periodic&&source?.statuses?.some(q=>q.kind==="warpath"&&q.remaining>0)&&
       ["arc-strike","seismic-uppercut","gravity-hammer","phase-rush"].includes(spellId))
@@ -1355,7 +1372,8 @@ export class EnergyMatch {
       return;
     }
     if(spellId==="cinder-familiar"){
-      if(actor.familiar?.until>this.time)this.detonateCinder(actor);
+      if(actor.familiar?.until>this.time&&actor.evolutions["cinder-familiar"]==="dying-star")
+        this.detonateCinder(actor);
       else {
         actor.familiar={until:this.time+r.duration,nextAt:this.time+.4,
           targetId:target?.alive&&target.team!==actor.team?target.id:null,
@@ -1715,12 +1733,7 @@ export class EnergyMatch {
       const effectiveDamage=Math.max(0,targetHpBefore-target.hp);
       if(["flux-bolt","sun-lance","chain-tempest"].includes(spellId))
         this.triggerSolarAscension(actor,target,spellId);
-      if(actor.familiar?.evo==="soulbrand"&&
-        actor.familiar.until>this.time&&actor.familiar.targetId===target.id&&
-        ["flux-bolt","sun-lance","zenith-crash","chain-tempest"].includes(spellId)){
-        this.evolutionProc(actor,"cinder-familiar","soulbrand-discharge",target);
-        this.damage(target,7,actor,"cinder-familiar",true);
-      }
+      
       if(overdriveFollowup>0){
         this.evolutionProc(actor,spellId,"overdrive",target);
         for(const [i,delay]of [.11,.24].entries())

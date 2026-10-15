@@ -30,9 +30,12 @@ export const ABILITY_RULES = Object.freeze({
   "kinetic-rampart":  { mode:"rampart",cost:24,cd:30,duration:4,range:0 },
   "pulse-sever":      { mode:"interrupt",cost:10,cd:15,range:105 },
   "flux-bolt":        { mode:"damage",amount:17,cost:11,cast:1.5,range:490 },
-  "phase-slip":       { mode:"dash",distance:170,cost:16,cd:23 },
+  "phase-slip":       { mode:"teleport",distance:185,cost:16,cd:23,range:185 },
   "entropy-mark":     { mode:"dot",amount:5,ticks:6,period:2,cost:15,range:490 },
-  "rift-slash":       { mode:"damage",amount:28,cost:19,cd:6,range:100,requiresDebuff:true },
+  "rift-slash":       { mode:"damage",amount:21,cost:13,cd:3,range:113,requiresDebuff:false },
+  "void-metamorphosis": { mode:"transform",cost:23,cd:45,duration:8 },
+  "abyssal-rift":     { mode:"ground",amount:8,cost:28,cd:32,range:490,area:143,duration:4 },
+  "dark-pact":        { mode:"damage",amount:0,cost:23,cd:30,range:490 },
   "null-prison":      { mode:"cc",cc:"incapacitate",duration:4,cost:20,cast:1.4,cd:24,range:490 },
   "sun-lance":        { mode:"damage",amount:27,cost:18,cast:1.8,range:490 },
   "cinder-familiar":   { mode:"summon",cost:25,cd:35,duration:12 },
@@ -62,7 +65,7 @@ export const ORB_COLLISION_RADIUS=21;
 const ORB_SEPARATION=ORB_COLLISION_RADIUS*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb",solar:"#f2b56c"};
+const roleColor={healer:"#6cd4aa",melee:"#f47d83",caster:"#75c8fb",solar:"#f2b56c",void:"#b785ed"};
 const number=(value,defaultValue=0)=>Number.isFinite(Number(value))?Number(value):defaultValue;
 
 export function segmentHitsRect(a,b,rect,pad=5) {
@@ -113,6 +116,7 @@ export class EnergyMatch {
     this.singularityCharge=null;
     this.evolutionEvents=[];
     this.froststormFields=[];
+    this.voidRifts=[];
     this.loadout=stagedLoadout(build,this.progressLevel,this.journey);
     this.tuning=enemyTuning(this.modeId,this.progressLevel);
     // Character-level power growth is removed for Journey players. 'level'
@@ -280,6 +284,8 @@ export class EnergyMatch {
       return {...rule,mode:"hybrid"};
     // Guardian Network, Retaliation and Last Stand alter the shield's
     // behaviour rather than replacing the basic capped absorb.
+    if(spellId==="rift-slash"&&actor.voidForm?.until>this.time)
+      return {...rule,range:actor.voidForm.evo==="dreadblade-form"?179:149};
     if(spellId==="gravity-hammer"&&evo==="singularity-impact")
       return {...rule,amount:rule.amount*1.65,area:Math.round(rule.area*.60)};
     if(spellId==="flux-bolt"&&evo==="rapid-flux")
@@ -414,14 +420,18 @@ export class EnergyMatch {
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
     const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time&&
       actor.evolutions["cinder-familiar"]==="dying-star";
-    if(actor.gcd>0&&!secondRecall&&!rampartRecast&&!familiarRecast)return "GLOBAL COOLDOWN";
+    const collapseRecast=spellId==="entropy-mark"&&
+      actor.evolutions[spellId]==="psychic-collapse"&&
+      this.opponents(actor).some(t=>t.statuses.some(q=>q.spellId==="entropy-mark"&&
+        q.sourceId===actor.id&&q.kind==="dot"&&q.tickCount>=2));
+    if(actor.gcd>0&&!secondRecall&&!rampartRecast&&!familiarRecast&&!collapseRecast)return "GLOBAL COOLDOWN";
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
-    if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast)return "COOLDOWN";
+    if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast&&!collapseRecast)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
-    if(!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
-    if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
-    if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
-    if(["dash","rampart","ground","direction","summon","ascension"].includes(rule.mode))return null;
+    if(!secondRecall&&!secondRelay&&!rampartRecast&&!familiarRecast&&!collapseRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
+    if(["rush","dash","teleport"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
+    if(["rush","dash","teleport"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
+    if(["dash","rampart","ground","direction","summon","ascension","teleport","transform"].includes(rule.mode))return null;
     const target=this.currentTarget(actor,rule.mode,targetId);
     if(!target)return "SELECT A TARGET";
     const d=distance(actor,target);
@@ -441,6 +451,14 @@ export class EnergyMatch {
     const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
     const familiarRecast=spellId==="cinder-familiar"&&actor.familiar?.until>this.time&&
       actor.evolutions["cinder-familiar"]==="dying-star";
+    const landingPoint=rule.mode==="teleport"?(opts.point||null):null;
+    if(rule.mode==="teleport"&&(!landingPoint||
+       distance(actor,landingPoint)>rule.distance||
+       !this.canOccupy(actor,landingPoint.x,landingPoint.y)||
+       !hasLineOfSight(actor,landingPoint,this.arena))){
+      if(actor===this.player&&!opts.silent)this.log("PHASE SLIP · INVALID LANDING POINT");
+      return false;
+    }
     const groundPoint=rule.mode==="ground"?(opts.point||
       (target?.alive?{x:target.x,y:target.y}:null)):null;
     const directionPoint=rule.mode==="direction"?(opts.point||
@@ -457,12 +475,16 @@ export class EnergyMatch {
       if(actor===this.player&&!opts.silent)this.log("AVALANCHE · CHOOSE A DIRECTION");
       return false;
     }
-    if(!isRecallRecast&&!isRelaySecond&&!rampartRecast&&!familiarRecast)actor.flux-=this.cost(actor,rule,spellId);
-    actor.gcd=(isRecallRecast||isRelaySecond||rampartRecast||familiarRecast)?0.6:1.3;
+    const collapseRecast=spellId==="entropy-mark"&&actor.evolutions[spellId]==="psychic-collapse"&&
+      !!target?.statuses?.some(q=>q.spellId==="entropy-mark"&&q.sourceId===actor.id&&
+        q.kind==="dot"&&q.tickCount>=2);
+    if(!isRecallRecast&&!isRelaySecond&&!rampartRecast&&!familiarRecast&&!collapseRecast)
+      actor.flux-=this.cost(actor,rule,spellId);
+    actor.gcd=(isRecallRecast||isRelaySecond||rampartRecast||familiarRecast||collapseRecast)?0.6:1.3;
     // Casted abilities earn their long cooldown only when the cast actually
     // resolves. Being kicked must NOT consume Null Prison's 24s cooldown.
     // Instants (including a fake interrupt) retain their existing cooldown.
-    if(!rule.cast&&spellId!=="soul-relay"&&!rampartRecast&&!familiarRecast)actor.cooldowns[spellId]=rule.cd||0;
+    if(!rule.cast&&spellId!=="soul-relay"&&!rampartRecast&&!familiarRecast&&!collapseRecast)actor.cooldowns[spellId]=rule.cd||0;
     const crescendo=spellId==="pulse-mend"&&actor.evolutions[spellId]==="vital-crescendo"&&
       target?.team===actor.team&&opts.holdToCharge===true;
     const helios=spellId==="flux-bolt"&&actor.evolutions[spellId]==="helios-beam"&&
@@ -494,7 +516,8 @@ export class EnergyMatch {
           x:target.x,y:target.y,radius:rule.area,duration:rule.cast});
       }
     }else this.execute(actor,spellId,target?.id||null,
-      directionPoint?{directionPoint}:null);
+      landingPoint?{landingPoint}:directionPoint?{directionPoint}:
+      groundPoint?{impact:groundPoint}:null);
     return true;
   }
   releaseHeldCast(actor,spellId){
@@ -1314,7 +1337,7 @@ export class EnergyMatch {
       supportive?target.team!==actor.team:target.team===actor.team);
     const recallReactivation=spellId==="vital-recall"&&this.allies(actor).some(a=>
       a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===actor.id&&s.remaining>0));
-    const reason= ["dash","rampart","direction","summon","ascension"].includes(r.mode)||(r.mode==="ground"&&castContext?.impact)?
+    const reason= ["dash","rampart","direction","summon","ascension","teleport","transform"].includes(r.mode)||(r.mode==="ground"&&castContext?.impact)?
       null:!target?.alive?"TARGET DIED"
       :wrongTeam?"INVALID TARGET"
       :!recallReactivation&&distance(actor,target)>(r.range||490)?"OUT OF RANGE"
@@ -1335,6 +1358,31 @@ export class EnergyMatch {
     if(castContext?.heliosBeam&&spellId==="flux-bolt"){
       this.evolutionProc(actor,"flux-bolt","helios-end",target);
       this.emit({type:"ability",actorId:actor.id,targetId:target?.id||null,spellId});
+      return;
+    }
+    if(spellId==="phase-slip"){
+      this.resolveVoidTeleport(actor,castContext?.landingPoint,r);
+      return;
+    }
+    if(spellId==="abyssal-rift"){
+      this.resolveAbyssalRift(actor,castContext.impact,r);
+      return;
+    }
+    if(spellId==="void-metamorphosis"){
+      actor.voidForm={until:this.time+r.duration,
+        evo:actor.evolutions[spellId]||null,extensions:0,slashCount:0};
+      this.identityProc(actor,spellId,"metamorphosis-start",actor);
+      this.emit({type:"ability",actorId:actor.id,targetId:actor.id,spellId});
+      return;
+    }
+    if(spellId==="dark-pact"){
+      const cost=Math.min(Math.max(0,actor.hp-1),Math.round(actor.maxHp*.12));
+      actor.hp=Math.max(1,actor.hp-cost);actor.healthPct=actor.hp/actor.maxHp;
+      this.identityProc(actor,spellId,"pact-sacrifice",actor);
+      for(const [i,delay] of [.23,.49,.77].entries())
+        this.scheduleEvolution(actor,spellId,"dark-spear",target.x,target.y,
+          delay,17+i*3,92,{targetId:target.id,splash:9});
+      this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
       return;
     }
     if(spellId==="froststorm"){

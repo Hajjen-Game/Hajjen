@@ -328,7 +328,7 @@ export class EnergyArenaRenderer {
     // These effects are separate named procs layered around those visuals.
     if(event.type==="identity-proc"&&[
       "familiar-summon","familiar-orbit","familiar-shot","soulbrand-ray",
-      "tempest-core","ascension-start","ascension-beam","precision-execute"
+      "tempest-core","ascension-start","ascension-orbit","ascension-beam","precision-execute"
     ].includes(event.kind)&&
       ["cinder-familiar","solar-ascension","chain-tempest"].includes(event.spellId)){
       const source=match.getActor(event.actorId);
@@ -336,11 +336,19 @@ export class EnergyArenaRenderer {
       if(!source||!target)return;
       const x=source.x*S,z=source.y*S;
       const px=target.x*S,pz=target.y*S;
-      if(["familiar-summon","familiar-orbit","ascension-start"].includes(event.kind)){
-        const big=event.kind==="ascension-start";
+      if(["familiar-summon","familiar-orbit","ascension-start","ascension-orbit"].includes(event.kind)){
+        const big=event.kind==="ascension-start"||event.kind==="ascension-orbit";
         const orbit=new BABYLON.Vector3(x+.75,big?1.45:1.65,z-.56);
         this.spellFX.sphere(orbit,big?"#fff0ae":"#ffe29b",
-          big?.43:.35,big?1500:1150,"burst");
+          big?.43:.35,big?1100:1150,"burst");
+        if(big){
+          const count=source.solarSigils?.charges||3;
+          for(let i=0;i<count;i++){
+            const a=(i/3)*Math.PI*2;
+            this.spellFX.sphere(new BABYLON.Vector3(x+Math.cos(a)*1.15,1.16,
+              z+Math.sin(a)*1.15),"#ffefb0",.25,1000,"burst");
+          }
+        }
         this.spellFX.ring(new BABYLON.Vector3(x,.12,z),
           big?"#ffc974":"#f0a45c",big?3.6:2.0,big?1500:1000,"ground");
       }else if(["familiar-shot","soulbrand-ray"].includes(event.kind)){

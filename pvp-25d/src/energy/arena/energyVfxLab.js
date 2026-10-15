@@ -246,7 +246,6 @@ function runCombat(spell,fromSequence=false){
   enemy.cast=null;enemy.targetId=source.id;
   ally.maxHp=600;ally.hp=390;ally.healthPct=ally.hp/ally.maxHp;
   source.flux=100;
-  source.targetId=spellTarget(spell).id;
   if(selectedEvolution)source.evolutions[spell.id]=selectedEvolution;
   for(const offset of [64,-75]){
     const foe=actorFor("lab-extra-"+offset,"enemy","caster",
@@ -254,39 +253,50 @@ function runCombat(spell,fromSequence=false){
     foe.name="SECONDARY ENEMY";foe.maxHp=1300;foe.hp=700;
     match.actors.push(foe);
   }
+  const focus=spellTarget(spell);
+  if(!focus){
+    setPhase("TARGET MISSING","Select another test target.");
+    return;
+  }
+  source.targetId=focus.id;
+  const foe=focus.team==="enemy"?focus:enemy;
+  if(focus.team==="enemy"&&foe!==enemy){
+    foe.maxHp=2600;foe.hp=2600;foe.healthPct=1;
+  }
+  renderTargetChoices(spell);
   // Set up qualifying states so selecting an Evolution previews its
   // special behaviour on the first press instead of demanding repetitions.
   if(spell.id==="flux-bolt"){
-    source.fluxRhythm={targetId:enemy.id,hits:2,until:match.time+12};
+    source.fluxRhythm={targetId:foe.id,hits:2,until:match.time+12};
     if(selectedEvolution==="helios-beam")source.heliosReady=true;
   }
   if(spell.id==="rift-slash"){
     source.voidSlashCount=2;
     if(selectedEvolution==="executioners-veil"){
-      enemy.hp=620;enemy.healthPct=enemy.hp/enemy.maxHp;
+      foe.hp=620;foe.healthPct=foe.hp/foe.maxHp;
     }
   }
   if(["executioners-veil","devouring-pact","psychic-collapse"].includes(selectedEvolution)){
-    match.addStatus(enemy,{kind:"dot",spellId:"entropy-mark",sourceId:source.id,
+    match.addStatus(foe,{kind:"dot",spellId:"entropy-mark",sourceId:source.id,
       amount:5,period:2,tickLeft:2,tickCount:2,negative:true,remaining:10});
   }
   if(selectedEvolution==="focused-fracture")
-    match.addStatus(enemy,{kind:"chilled-mark",sourceId:source.id,remaining:5});
+    match.addStatus(foe,{kind:"chilled-mark",sourceId:source.id,remaining:5});
   if(spell.id==="crystal-bolt"){
     source.crystalChainHits=2;source.crystalBoltCount=2;
   }
   if(spell.id==="sun-lance"&&selectedEvolution==="scorching-lance")
-    enemy.hp=95;
+    foe.hp=95;
   if(spell.id==="entropy-mark"&&selectedEvolution==="contagion")
-    enemy.hp=75;
+    foe.hp=75;
   if(spell.id==="rift-slash"&&selectedEvolution==="devouring-pact")
     source.hp=140;
   if(spell.id==="sun-lance"&&selectedEvolution==="judgment-of-dawn"){
-    enemy.hp=640;enemy.healthPct=enemy.hp/enemy.maxHp;
+    foe.hp=640;foe.healthPct=foe.hp/foe.maxHp;
   }
-  if(spell.id==="pulse-sever")enemy.cast={
+  if(spell.id==="pulse-sever")foe.cast={
     spellId:"crystal-bolt",remainingMs:2500,totalMs:2500};
-  if(spell.id==="crystal-snare"&&selectedEvolution==="deep-freeze")enemy.elite=true;
+  if(spell.id==="crystal-snare"&&selectedEvolution==="deep-freeze")foe.elite=true;
   liveElapsed=0;liveActions=[];timeline.spell=spell;
   timeline.started=performance.now();timeline.released=true;
   timeline.pulses=0;
@@ -300,17 +310,45 @@ function runCombat(spell,fromSequence=false){
     " · isolated targets and automatic setup");
   const mode=ABILITY_RULES[spell.id]?.mode;
   const id=spell.id;
-  const target=(id==="pulse-mend"&&selectedEvolution==="vital-reversal")?
-    enemy:spellTarget(spell);
-  const point=["gravity-hammer","zenith-crash","froststorm","abyssal-rift"].includes(id)?
-    {x:enemy.x,y:enemy.y}:id==="phase-slip"?safePreviewPoint(source):
-    id==="avalanche"?{x:enemy.x,y:enemy.y}:null;
+  const target=focus;
+  const rule=match.rule(source,id);
+  const supportive=["heal","guard","shield","mirror","recall","relay",
+    "team-heal","cleanse","hot","link"].includes(rule.mode);
+  const targeted=!["rampart","ascension","transform","summon","ground",
+    "teleport","direction","dash"].includes(rule.mode);
+  if(targeted&&((supportive&&target.team!==source.team)||
+    (!supportive&&rule.mode!=="hybrid"&&target.team===source.team))){
+    setPhase("INVALID TARGET","This "+spell.name+" requires "+
+      (supportive?"a friendly target.":"an enemy target.")+
+      " Choose another orb above or click one in the arena.");
+    return;
+  }
+  // An orb controls where the ground AoE lands. Teleport uses a point near
+  // its chosen orb, never the occupied body or an illegal shortcut.
+  const slipPoint=()=>{
+    if(id!=="phase-slip")return null;
+    const dx=target.x-source.x,dy=target.y-source.y;
+    const length=Math.hypot(dx,dy);
+    if(length>20){
+      for(const d of [Math.min(170,length-55),Math.min(135,length-55),80]){
+        if(d<=12)continue;
+        const candidate={x:source.x+dx/length*d,y:source.y+dy/length*d};
+        if(match.canOccupy(source,candidate.x,candidate.y)&&
+          hasLineOfSight(source,candidate,match.arena))return candidate;
+      }
+    }
+    return safePreviewPoint(source);
+  };
+  const point=["gravity-hammer","zenith-crash","froststorm","abyssal-rift",
+    "avalanche"].includes(id)?{x:target.x,y:target.y}:slipPoint();
   const castOptions=point?{point}:
     (id==="flux-bolt"&&selectedEvolution==="helios-beam")||
     (id==="pulse-mend"&&selectedEvolution==="vital-crescendo")?
       {holdToCharge:true}:{};
   const fired=previewCast(id,target.id,castOptions);
-  if(!fired)setPhase("INVALID CAST","The real engine rejected the attempted cast. Review spell rules or arena position.");
+  if(!fired)setPhase("INVALID CAST",
+    "Production combat rejected "+spell.name+" on "+target.name+
+    ". Check team, range, line of sight or spell cooldown.");
   if(id==="pulse-mend"&&selectedEvolution==="second-heart"){
     scheduleLive(1.8,()=>{ally.hp=Math.min(ally.hp,ally.maxHp*.25);
       match.damage(ally,36,enemy,"crystal-bolt");});

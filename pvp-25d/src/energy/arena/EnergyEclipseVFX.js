@@ -140,7 +140,8 @@ export class EnergyEclipseVFX {
     if(!target)return;
     const group=[...match.actors].filter(q=>q.alive&&q.team!==actor.team&&
       (q.statuses||[]).some(s=>s.spellId==="crystal-snare"&&
-        (s.kind==="root"||s.kind==="incapacitate")&&s.remaining>0));
+        (s.kind==="root"||s.kind==="incapacitate")&&
+        s.sourceId===actor.id&&s.remaining>0));
     const shown=group.length?group.slice(0,12):[target];
     shown.forEach((foe,i)=>{
       const status=(foe.statuses||[]).find(s=>s.spellId==="crystal-snare"&&
@@ -285,9 +286,41 @@ export class EnergyEclipseVFX {
     }
     if(kind==="deep-freeze"){this.bloom(point,true,0,"ice-tomb-slam");return;}
     if(kind==="conduit-link"||kind==="crystal-conduit"){
-      const fx=this.bloom(point,false,0,"conduit");
-      if(actor&&target&&actor.id!==target.id)
-        this.link(actor,target,"ice");
+      this.bloom(point,false,0,"conduit");
+      const mark=target?.statuses?.find(s=>s.kind==="crystal-conduit"&&
+        s.sourceId===actor?.id&&s.remaining>0);
+      if(!mark)return;
+      const peers=match.actors.filter(q=>q!==target&&q.alive&&
+        q.team===target.team&&q.statuses?.some(s=>
+          s.kind==="crystal-conduit"&&s.groupId===mark.groupId&&
+          s.remaining>0)).sort((a,b)=>a.id.localeCompare(b.id));
+      // One sustained crystal beam from the first linked victim to each
+      // other victim. Never draw a misleading tether from the caster.
+      const first=[target,...peers].sort((a,b)=>a.id.localeCompare(b.id))[0];
+      if(first?.id===target.id)return;
+      if(peers.length&&first){
+        const start=this.position(first),end=this.position(target);
+        const displacement=end.subtract(start);
+        const fx=this.effect("conduit-active",start,
+          Math.max(480,mark.remaining*1000),{
+            targetId:target.id,peerId:first.id,ownerId:actor.id,
+            groupId:mark.groupId,conduit:true
+          });
+        for(let i=0;i<3;i++){
+          const lane=(i-1)*.085;
+          const points=[];
+          for(let j=0;j<=11;j++){
+            const t=j/11;
+            points.push(new BABYLON.Vector3(
+              displacement.x*t+lane*Math.sin(t*Math.PI*2+i),
+              displacement.y*t+.11*Math.sin(t*Math.PI*3+i),
+              displacement.z*t+lane*Math.cos(t*Math.PI*2+i)
+            ));
+          }
+          this.line(fx,points,i===0?"white":i===1?"ice":"shade",
+            i===0?.018:.012,i===0?.75:.43);
+        }
+      }
       return;
     }
     if(kind==="barrage-warning"){
@@ -405,6 +438,16 @@ export class EnergyEclipseVFX {
       }
       if(fx.kind==="frost-telegraph"&&
         (!actor?.alive||actor.cast?.spellId!=="froststorm"))t=1;
+      if(fx.conduit){
+        const peer=match.getActor(fx.peerId);
+        const connected=target?.alive&&peer?.alive&&
+          target.statuses?.some(s=>s.kind==="crystal-conduit"&&
+            s.groupId===fx.groupId&&s.remaining>0)&&
+          peer.statuses?.some(s=>s.kind==="crystal-conduit"&&
+            s.groupId===fx.groupId&&s.remaining>0);
+        if(!connected)t=1;
+        else fx.root.position.copyFrom(this.position(peer));
+      }
       if(fx.field&&!match.froststormFields?.some(f=>
           f.until>match.time&&f.owner===fx.ownerId&&
           Math.hypot(fx.atX-f.x,fx.atY-f.y)<6))t=1;
@@ -466,6 +509,9 @@ export class EnergyEclipseVFX {
             mesh.rotation.y=a*.26;
           }else mesh.rotation.y=now*.00025*(index%2?1:-1);
           mesh.visibility=Math.min(.58,t*12,(1-t)*7);
+        }else if(fx.conduit){
+          mesh.visibility=Math.min(.82,t*11,(1-t)*7)*
+            (.75+.25*Math.sin(now*.009+index*1.7));
         }else if(fx.kind.startsWith("avalanche")){
           const k=smooth(t/.36);
           mesh.position.y=base.y+(index<9?.38*k:0);

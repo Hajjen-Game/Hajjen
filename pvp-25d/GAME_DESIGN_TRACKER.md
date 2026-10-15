@@ -5,6 +5,28 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Void 1.0 + Five-Class VFX Lab 2.0 (2026-10-15)
+
+**Status: CODE MERGED TO MAIN; ISOLATED COMBAT CHECKS PASSED. Real browser interaction, GPU animations, frame timing and player feel still require manual playtesting.**
+
+### Fifth Origin — Void
+- Void is a **separate role `void`** with its own character/HUB profile, colour and Journey, not a renamed Eclipse or Solar role. This completes the agreed **five Origins × six class-locked active spells = 30** plus **60 approved core Evolutions** (four core spells × three alternatives each × five Origins). No cross-class Synergies; spell 5 and 6 have no Evolution choice for now.
+- **Rift Slash:** dual shadow-blade attack; Phantom Assault (third attack spawns two delayed shadow-clone strikes on victim), Umbral Cyclone (third attack hits group), Executioner's Veil (cooldown-gated three-angle low-HP finisher on an Entropy-marked target).
+- **Entropy Mark:** pulsing 12-second shadow DoT; Contagion **spreads ONLY when a marked enemy DIES** in up to three capped chain generations, not merely on cast; Psychic Collapse requires two real mark ticks and a **second press against that marked target** to detonate and consume; Devouring Pact heals Void by bounded amounts when hitting marked foes with Rift Slash.
+- **Phase Slip:** **THE PLAYER CHOOSES THE LANDING DESTINATION WITH THE MOUSE.** Range, legal arena footprint and line-of-sight/path geometry are checked before consumption. Invalid points cannot relocate the player. The pointer previews valid versus invalid points. Shadow Ambush primes the following slash, Rift Echo sends a damaging afterimage along the legal path, Veilwalk negates one eligible subsequent direct hostile attack.
+- **Void Metamorphosis:** ~8s form with genuinely changed Rift Slash cleave and boosted Entropy Mark psychic effects, plus persistent twin shadow-blade meshes orbiting the player. Dreadblade Form enhances blade range and sends arcs every third slash; Mindstorm drops new psychic spears on genuine Entropy ticks; Soul Devourer grants healing and bounded duration extension on marked kills plus a form-end blast. Normal cooldowns still apply.
+- **Abyssal Rift:** mouse-placed, short-lived dark/violet breach; several distinct tendril damage pulses, limited eligible hostile direct projectile interceptions near Void, and an **unconditional** final implosion. No new impassable terrain or boss displacement.
+- **Dark Pact:** consumes up to a modest share of Void's HP while preserving **at least 1 HP**, followed by three independently scheduled sky-falling shadow spears that damage the target and nearby foes. Bosses never receive forced hard CC from the Void kit.
+- Progression mirrors the other implemented classes (two core spells at creation, four extra permanent class spells at Stage 3/6/9/12, four core Evolution picks at 10/12/14/16, Stage 20 Rift unlock). Void-specific temporary Planet Defense Overcharges: Soul Harvest and Shadow Echoes; two AI allies remain Genesis and Impact. **Rift party expansion remains undecided.**
+
+### Visual VFX Lab 2.0
+- Game Dev → Visual VFX Lab now has **Origin selector for Genesis / Impact / Eclipse / Solar / Void**, each listing exactly six current class-exclusive spells. The UI offers a **Base / Evolution selector** (three choices on each of the four core spells), replay, play all six for selected class, and **LIVE COMBAT vs VISUAL-ONLY** toggles.
+- LIVE COMBAT mode constructs a **disposable real `EnergyMatch`** with static enemies and friendly test actor, injects the selected class's six real spell IDs and Evolution, and plays its authentic emitted combat events through the exact existing `EnergyArenaRenderer`. It calls the actual damage, statuses, cast, AoE, DoT, channel, teleport and Evolution code. It does not mutate Origin saves, Journey clear counts, equipment or live match data.
+- Trigger-state fixtures allow showcasing charge-gated effects without repetitive multi-minute setup: charged Psychic Collapse, third-hit Flux Bolt or Rift Slash, low-HP Sun Lance execution, Slash against Entropy, defensive shield/mirror hits, a second Familiar activation, Solar Ascension and follow-up spells, held Helios Beam and Vital Reversal. These are **explicit lab-only conditions**, not gameplay shortcuts. Old visual-only mode remains for original-art comparisons.
+- **Do not change the established Crystal Bolt or Sun Lance buildup, projectile, trail or impact artwork.** Their respective existing Pixi/Hero FX pipelines remain unmodified. All new Void visuals are additional renderer events.
+- Validation to date: targeted real-EnergyMatch tests cover five roles, exclusive class kits and Journey, map-safe Phase Slip/invalid destinations, charged Psychic Collapse, Entropy death Contagion, multiple Slash Evolutions, Veilwalk, transform, Abyssal Rift, Dark Pact, Soul Devourer healing/extension and Solar Overcharge compatibility. Broader source syntax and cache/import validation precedes final handoff. **No claim of browser-visual approval before user inspects lab.**
+- Next browser QA: try each class's six spells and all core Evolution alternatives, check caster/ally target, second press, correct VFX source, minimised previous effect leakage, obstacle clicks, boss-safe behavior, Soul Devourer finale and real FPS. Use player feedback to iterate VFX Lab 2.1, not cross-class Synergy additions.
+
 ## IMPLEMENTED IN TEST — Solar 1.0: New Fourth Origin + Six Solar Spells (2026-10-15)
 
 **Status: IMPLEMENTED ON GITHUB MAIN. Scripted runtime checks pass; IN-BROWSER VISUAL, FEEL, AI AND SAVE PLAYTEST STILL PENDING.** Solar is a **separate fourth Origin/role** with key `solar`; it is NOT renamed Eclipse or a shared discipline. Void will be the fifth Origin in a later pass. Existing Genesis/Impact/Eclipse saves and kits stay intact.
@@ -125,7 +147,7 @@
 
 ## AGREED — Spell Design 2.4: Void (2026-10-15)
 
-**Status: USER-APPROVED FOUR CORE SPELLS AND TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Void is the fifth full **class-locked** Origin, inspired by **Demon Hunter + Rogue + Shadow Priest**. It should feel like a fast, lethal **shadow melee/caster hybrid**: agile positioning, dual shadow blades, DoT/psychic magic, predatory life-steal and a decisive transformation. Distinguish it from Impact's kinetic heavyweight melee and charge; Void's movement is short-distance, deliberately **mouse-placed teleportation**. Spells 5–6 have subsequently been approved as standalone abilities in Spell Design 3.0 above; cross-class synergy is parked.
+**Status: USER-APPROVED DESIGN, IMPLEMENTED IN VOID 1.0 ABOVE; BROWSER VALIDATION PENDING.** Void is the fifth full **class-locked** Origin, inspired by **Demon Hunter + Rogue + Shadow Priest**. It should feel like a fast, lethal **shadow melee/caster hybrid**: agile positioning, dual shadow blades, DoT/psychic magic, predatory life-steal and a decisive transformation. Distinguish it from Impact's kinetic heavyweight melee and charge; Void's movement is short-distance, deliberately **mouse-placed teleportation**. Spells 5–6 have subsequently been approved as standalone abilities in Spell Design 3.0 above; cross-class synergy is parked.
 
 ### Four approved baseline spells
 

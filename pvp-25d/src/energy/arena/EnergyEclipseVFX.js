@@ -22,6 +22,7 @@ export class EnergyEclipseVFX {
     this.live=[];
     this.seq=0;
     this.maxEffects=115;
+    this.mirrorOrigins=new Map();
     this.stats={spells:{},active:0};
   }
   material(name,alpha=.9){
@@ -311,16 +312,24 @@ export class EnergyEclipseVFX {
     }
     if(kind==="mirror-armed"){if(actor)this.mirror(actor,target||actor,match);return;}
     if(kind==="mirror-shatter"){
+      if(actor)this.mirrorOrigins.set(actor.id,{point:point.clone(),
+        until:performance.now()+750});
       this.bloom(point,true,0,"mirror-shatter");return;
     }
     if(kind==="mirror-shards"){
-      if(actor&&target)this.link(actor,target,"white",true);
+      const remembered=actor&&this.mirrorOrigins.get(actor.id);
+      const from=remembered?.until>performance.now()?
+        remembered.point:this.position(actor||target);
+      if(from&&target)this.linkPoint(from,target,"white",true);
       return;
     }
     this.bloom(point,false,0,kind);
   }
   link(actor,target,tone="ice",reflected=false){
-    const start=this.position(actor),end=this.position(target);
+    this.linkPoint(this.position(actor),target,tone,reflected);
+  }
+  linkPoint(start,target,tone="ice",reflected=false){
+    const end=this.position(target);
     const fx=this.effect(reflected?"reflect-flight":"conduit-flight",start,410,{
       origin:start.clone(),destination:end.clone()
     });
@@ -344,7 +353,7 @@ export class EnergyEclipseVFX {
     }
     if(event.type==="ground-telegraph"&&id==="froststorm"){
       const fx=this.effect("frost-telegraph",this.pos(event.x,event.y,.08),
-        Math.max(600,(event.duration||1)*1000));
+        Math.max(600,(event.duration||1)*1000),{actorId:event.actorId});
       const rr=(event.radius||140)*S;
       for(let i=0;i<3;i++)this.ring(fx,rr*(.68+i*.16),
         i===0?"white":i===1?"ice":"shade",0,.02,.53);
@@ -362,6 +371,8 @@ export class EnergyEclipseVFX {
       if(id==="crystal-snare"&&actor)this.snare(actor,target,match);
       return true;
     }
+    if(event.type==="control"&&id==="crystal-snare")return true;
+    if(event.type==="hit"&&id==="crystal-mirror")return true;
     if(event.type==="identity-proc"&&IDENTITY.has(event.kind)){
       this.proc(event,match);return true;
     }
@@ -392,6 +403,8 @@ export class EnergyEclipseVFX {
           s.kind==="crystal-mirror"&&s.sourceId===fx.ownerId&&s.remaining>0);
         if(!active)t=1;
       }
+      if(fx.kind==="frost-telegraph"&&
+        (!actor?.alive||actor.cast?.spellId!=="froststorm"))t=1;
       if(fx.field&&!match.froststormFields?.some(f=>
           f.until>match.time&&f.owner===fx.ownerId&&
           Math.hypot(fx.atX-f.x,fx.atY-f.y)<6))t=1;
@@ -478,6 +491,7 @@ export class EnergyEclipseVFX {
     for(const entry of fx.meshes)entry.mesh.dispose();
     fx.root.dispose();
   }
-  clear(){for(const fx of this.live)this.destroy(fx);this.live.length=0;}
+  clear(){for(const fx of this.live)this.destroy(fx);this.live.length=0;
+    this.mirrorOrigins.clear();}
   dispose(){this.clear();for(const mat of this.materials.values())mat.dispose();this.materials.clear();}
 }

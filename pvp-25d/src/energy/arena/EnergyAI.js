@@ -163,7 +163,8 @@ export class EnergyAI {
     for(const id of abilities){
       if(!id||!actor.abilities.includes(id))continue;
       if(this.ready(actor,id,target)){
-        return this.match.castAbility(actor,id,target?.id||null,{silent:true});
+        return this.match.castAbility(actor,id,target?.id||null,{silent:true,
+          holdToCharge:id==="flux-bolt"&&actor.heliosReady&&actor.evolutions[id]==="helios-beam"});
       }
     }
     return false;
@@ -264,6 +265,17 @@ export class EnergyAI {
       if(d>122)return; // travel rather than wasting AI decisions against an out-of-range foe.
       if(this.tryCast(actor,["seismic-uppercut","arc-strike","gravity-hammer","rift-slash"],focus))return;
       if(this.tryCast(actor,["entropy-mark"],focus))return;
+    }else if(actor.role==="solar"){
+      const cluster=enemies.filter(e=>dist(e,focus)<210).length;
+      if(actor.familiar?.evo==="dying-star"&&actor.familiar.until-m.time<2.0&&
+        this.tryCast(actor,["cinder-familiar"],focus))return;
+      if(!actor.familiar&&this.tryCast(actor,["cinder-familiar"],focus))return;
+      if(!actor.solarSigils&&(focus.boss||cluster>=2)&&
+        this.tryCast(actor,["solar-ascension"],actor))return;
+      if(cluster>=2&&this.tryCast(actor,["zenith-crash"],focus))return;
+      if((cluster>=2||focus.boss)&&this.tryCast(actor,["chain-tempest"],focus))return;
+      if(focus.hp/focus.maxHp<=.43&&this.tryCast(actor,["sun-lance"],focus))return;
+      if(this.tryCast(actor,["flux-bolt","sun-lance"],focus))return;
     }else if(actor.role==="caster"&&actor.abilities.includes("froststorm")){
       const cluster=enemies.filter(e=>dist(e,target)<190).length;
       if(cluster>=2&&this.tryCast(actor,["froststorm"],target))return;
@@ -302,7 +314,7 @@ export class EnergyAI {
     if(saving)target=patient;
     const d=dist(actor,target),los=this.hasLOS(actor,target,m.arena);
     const closeThreat=m.opponents(actor).find(e=>e.role==="melee"&&dist(e,actor)<155);
-    let desired=actor.role==="melee"?77:actor.role==="caster"?285:saving?240:300;
+    let desired=actor.role==="melee"?77:["caster","solar"].includes(actor.role)?285:saving?240:300;
     if(style==="aggressive"&&actor.role!=="melee")desired-=55;
     if(style==="protective"&&actor.role!=="melee")desired+=35;
     if(style==="disruptive"&&actor.role==="caster")desired=310;

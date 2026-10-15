@@ -48,6 +48,7 @@ let selectedMode=MODES[profile.lastMode]?profile.lastMode:"training";
 let awardedMatch=null;
 let match=null,renderer=null,feedback=null,overhead=null,combatUX=null,coach=null,hub=null,menu=null,last=0,lastUi=0,selectedBuild=null,lastNotice="",keys=new Set();
 let pendingCast=null; // WoW-style short ability queue, resolved against current target.
+let pendingGroundAim=null; // Click arena to place mouse-targeted Gravity Hammer.
 const frameCache=new Map(),actionNodes=[];
 function clearUiCaches(){
   frameCache.clear();actionNodes.length=0;
@@ -141,7 +142,7 @@ function showGate(toMenu=false){
   combatUX?.dispose();combatUX=null;
   coach?.dispose();coach=null;
   if(renderer){renderer.dispose();renderer=null;}
-  keys.clear();pendingCast=null;awardedMatch=null;
+  keys.clear();pendingCast=null;pendingGroundAim=null;awardedMatch=null;
   if(toMenu)menu?.open();
   else hub?.open();
 }
@@ -241,6 +242,14 @@ function castSlot(index,heldKey=false){
   match.dashDirection=directionalVector();
   const p=match.player;
   const reason=match.reason(p,ability,p.targetId);
+  if(ability==="gravity-hammer"&&!reason){
+    pendingGroundAim=pendingGroundAim===ability?null:ability;
+    $("energy-canvas").style.cursor=pendingGroundAim?"crosshair":"";
+    flash(pendingGroundAim?"GRAVITY HAMMER · CLICK THE ARENA TO CHOOSE IMPACT":"GRAVITY HAMMER · CANCELLED");
+    return;
+  }
+  pendingGroundAim=null;
+  $("energy-canvas").style.cursor="";
   const waiting=reason==="CASTING"||reason==="GLOBAL COOLDOWN";
   const queueTime=Math.max(p.gcd||0,(p.cast?.remainingMs||0)/1000);
   if(waiting&&queueTime<=0.45){
@@ -442,7 +451,7 @@ function renderResonances(){
   // legacy: retain the old Mastery/Evolution trials unchanged.
   const accept=choice=>{
     if(!match||match.waveState!=="intermission"||!match.chooseResonance(choice.id))return;
-    pendingCast=null;keys.clear();
+    pendingCast=null;pendingGroundAim=null;keys.clear();
     host.dataset.wave="";
     overlay.hidden=true;
     flash((choice.kind==="overcharge"?choice.recipient+" · ":"")+
@@ -707,12 +716,27 @@ function frameLoop(now){
 }
 $("energy-canvas").addEventListener("click",event=>{
   if(!match||!renderer)return;
+  if(pendingGroundAim==="gravity-hammer"){
+    const point=renderer.pickGround(event.clientX,event.clientY);
+    const success=point&&match.castAbility(match.player,"gravity-hammer",
+      match.player.targetId,{point});
+    if(success){
+      pendingGroundAim=null;$("energy-canvas").style.cursor="";
+      flash("GRAVITY HAMMER · IMPACT LOCATION LOCKED");
+    }else flash("GRAVITY HAMMER · SELECT A VISIBLE POSITION WITHIN RANGE");
+    renderUI();
+    return;
+  }
   const id=renderer.pickActor(event.clientX,event.clientY);
   if(id){target(id);renderUI();}
 });
 document.addEventListener("keydown",event=>{
   if(!match||event.altKey||event.ctrlKey||event.metaKey)return;
   if(["input","textarea","select"].includes(document.activeElement?.tagName?.toLowerCase()))return;
+  if(event.key==="Escape"&&pendingGroundAim){
+    pendingGroundAim=null;$("energy-canvas").style.cursor="";
+    flash("GROUND TARGET · CANCELLED");return;
+  }
   const k=event.key.toLowerCase();
   if(["w","a","s","d"].includes(k)){keys.add(k);event.preventDefault();}
   else if(event.code==="Tab"||k==="tab"){event.preventDefault();cycleEnemies();}

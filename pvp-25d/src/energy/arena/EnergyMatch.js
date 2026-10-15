@@ -376,11 +376,27 @@ export class EnergyMatch {
         }
         continue;
       }
+      if(e.kind==="rift-implosion"){
+        this.evolutionProc(source,"abyssal-rift","rift-implosion",null,e.x,e.y);
+        const breach=this.voidRifts.find(q=>q.owner===source.id&&
+          distance(q,e)<3);
+        for(const foe of this.opponents(source).filter(q=>
+          distance(q,e)<=e.radius&&hasLineOfSight(e,q,this.arena)).slice(0,14))
+          this.damage(foe,e.amount+Math.min(10,breach?.absorptions*3||0),
+            source,"abyssal-rift",true);
+        if(breach)this.voidRifts=this.voidRifts.filter(q=>q!==breach);
+        continue;
+      }
       if(e.targetId){
         const target=this.getActor(e.targetId);
         if(!target?.alive||target.team===source.team)continue;
         this.evolutionProc(source,e.spellId,e.kind,target);
         if(e.amount>0)this.damage(target,e.amount,source,e.spellId);
+        if(e.kind==="dark-spear"&&e.splash){
+          for(const foe of this.opponents(source).filter(q=>q!==target&&
+            distance(q,target)<130&&hasLineOfSight(target,q,this.arena)).slice(0,8))
+            this.damage(foe,e.splash,source,e.spellId,true);
+        }
         continue;
       }
       this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
@@ -632,6 +648,31 @@ export class EnergyMatch {
       ["arc-strike","seismic-uppercut","gravity-hammer","phase-rush"].includes(spellId))
       value*=1.20;
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
+    const veil=target.statuses.find(q=>q.kind==="veilwalk"&&q.remaining>0);
+    if(veil&&!periodic&&source?.team!==target.team&&
+      !["froststorm","avalanche","gravity-hammer","zenith-crash","abyssal-rift"].includes(spellId)){
+      target.statuses=target.statuses.filter(q=>q!==veil);
+      this.evolutionProc(target,"phase-slip","veilwalk-dodge",target);
+      this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,
+        amount:0,absorbed:Math.round(value),hpBefore,hpAfter:target.hp,
+        shieldBefore,shieldAfter:target.shield,crit:false});
+      return;
+    }
+    const hostileProjectile=!periodic&&source?.team!==target.team&&
+      (["flux-bolt","crystal-bolt","fracture-spear","sun-lance"].includes(spellId)||
+        /^encounter-.*(bolt|shot|missile|projectile)$/i.test(spellId));
+    if(hostileProjectile){
+      const breach=this.voidRifts.find(q=>q.owner===target.id&&q.until>this.time&&
+        q.absorptions<q.capacity&&distance(q,source)<q.radius+225);
+      if(breach&&distance(target,breach)<breach.radius+95){
+        breach.absorptions++;
+        this.evolutionProc(target,"abyssal-rift","rift-swallow",null,breach.x,breach.y);
+        this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,
+          amount:0,absorbed:Math.round(value),hpBefore,hpAfter:target.hp,
+          shieldBefore,shieldAfter:target.shield,crit:false});
+        return;
+      }
+    }
     const mirror=target.statuses.find(q=>q.kind==="crystal-mirror"&&q.remaining>0);
     // One protected direct hit. Never reflect periodic damage, ground fields
     // or a previous mirror retaliation (and never create a reflection loop).
@@ -825,7 +866,7 @@ export class EnergyMatch {
       source.mendCharge={until:this.time+8};
       this.evolutionProc(source,"pulse-mend","resonance-ready",source);
     }
-    if(!periodic&&value>0&&source?.evolutions?.["entropy-mark"]==="collapse"&&
+    if(false&&!periodic&&value>0&&source?.evolutions?.["entropy-mark"]==="collapse"&&
       spellId!=="entropy-mark"&&target.alive){
       const mark=target.statuses.find(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&
         q.sourceId===source.id&&q.tickCount>=2);
@@ -835,6 +876,9 @@ export class EnergyMatch {
         this.damage(target,7+mark.tickCount*3,source,"entropy-mark");
       }
     }
+    if(source.role==="void"&&spellId==="rift-slash"&&value>0&&
+      target.statuses.some(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&q.sourceId===source.id))
+      source.flux=clamp(source.flux+3,0,MAX_FLUX);
     if(source.role==="melee"&&value>0&&["arc-strike","rift-slash","gravity-hammer"].includes(spellId)&&source.bonusFluxGate<=0){
       source.flux=clamp(source.flux+4,0,MAX_FLUX);source.bonusFluxGate=1;
     }
@@ -893,6 +937,27 @@ export class EnergyMatch {
                 period:2,tickLeft:2,tickCount:0});
           }
         }
+      }
+      const mark=target.statuses.find(q=>q.kind==="dot"&&q.spellId==="entropy-mark"&&q.remaining>0);
+      const owner=mark&&this.getActor(mark.sourceId);
+      if(owner?.alive&&owner.evolutions["entropy-mark"]==="contagion"){
+        // Limit infected death chains. Only three generations from first mark.
+        const generation=Math.min(3,mark.generation||0);
+        if(generation<3){
+          this.evolutionProc(owner,"entropy-mark","contagion",target);
+          for(const foe of this.opponents(owner).filter(q=>q!==target&&
+            distance(q,target)<220&&hasLineOfSight(target,q,this.arena)&&
+            !q.statuses.some(z=>z.kind==="dot"&&z.spellId==="entropy-mark"&&
+              z.sourceId===owner.id)).slice(0,3))
+            this.addStatus(foe,{kind:"dot",negative:true,remaining:12,
+              sourceId:owner.id,spellId:"entropy-mark",amount:5,period:2,
+              tickLeft:2,tickCount:0,generation:generation+1});
+        }
+      }
+      if(owner?.voidForm?.until>this.time&&owner.voidForm.evo==="soul-devourer"){
+        this.heal(owner,14,owner,"void-metamorphosis",true);
+        owner.voidForm.until=Math.min(owner.voidForm.baseEnd+4,owner.voidForm.until+1.0);
+        this.evolutionProc(owner,"void-metamorphosis","soul-devourer",target);
       }
       target.alive=false;target.cast=null;this.log(target.name+" eliminated!");
       this.emit({type:"death",actorId:target.id,targetId:target.id,
@@ -1056,6 +1121,47 @@ export class EnergyMatch {
       .sort((a,b)=>distance(a,actor)-distance(b,actor)).slice(0,4);
     for(const foe of foes)this.damage(foe,7+(r.stored/Math.max(1,foes.length))*.30/
       Math.max(.01,this.power),actor,"kinetic-rampart");
+  }
+  resolveVoidTeleport(actor,point,rule){
+    if(!point||distance(actor,point)>rule.distance||
+      !this.canOccupy(actor,point.x,point.y)||
+      !hasLineOfSight(actor,point,this.arena))return;
+    const from={x:actor.x,y:actor.y};
+    actor.x=point.x;actor.y=point.y;actor.dashGate=.65;
+    actor.statuses=actor.statuses.filter(q=>q.kind!=="slow");
+    this.emit({type:"dash",actorId:actor.id,spellId:"phase-slip",
+      fromX:from.x,fromY:from.y,toX:actor.x,toY:actor.y});
+    this.identityProc(actor,"phase-slip","void-teleport",actor);
+    const evo=actor.evolutions["phase-slip"];
+    if(evo==="shadow-ambush")actor.shadowAmbushUntil=this.time+4;
+    if(evo==="veilwalk"){
+      this.addStatus(actor,{kind:"veilwalk",sourceId:actor.id,remaining:2.5});
+      this.evolutionProc(actor,"phase-slip","veilwalk",actor);
+    }
+    if(evo==="rift-echo"){
+      for(const fraction of [.16,.34,.52,.7,.88]){
+        const x=from.x+(point.x-from.x)*fraction;
+        const y=from.y+(point.y-from.y)*fraction;
+        this.scheduleEvolution(actor,"phase-slip","rift-echo",
+          x,y,.10+fraction*.35,8,61);
+      }
+      this.evolutionProc(actor,"phase-slip","rift-echo-start",null,from.x,from.y);
+    }
+    this.emit({type:"ability",actorId:actor.id,targetId:actor.id,spellId:"phase-slip"});
+  }
+  resolveAbyssalRift(actor,point,r){
+    if(!point)return;
+    const breach={x:point.x,y:point.y,radius:r.area,owner:actor.id,
+      until:this.time+r.duration,absorptions:0,capacity:3};
+    this.voidRifts.push(breach);
+    this.evolutionProc(actor,"abyssal-rift","rift-open",null,point.x,point.y);
+    for(const [i,t] of [.45,1.3,2.15,3.1].entries())
+      this.scheduleEvolution(actor,"abyssal-rift","rift-tendrils",
+        point.x,point.y,t,r.amount+i*.75,r.area);
+    this.scheduleEvolution(actor,"abyssal-rift","rift-implosion",
+      point.x,point.y,r.duration,22,r.area);
+    this.emit({type:"ability",actorId:actor.id,spellId:"abyssal-rift",
+      targetId:null,x:point.x,y:point.y});
   }
   resolveCrystalSnare(actor,target,r){
     const deep=actor.evolutions["crystal-snare"]==="deep-freeze";
@@ -1369,7 +1475,7 @@ export class EnergyMatch {
       return;
     }
     if(spellId==="void-metamorphosis"){
-      actor.voidForm={until:this.time+r.duration,
+      actor.voidForm={until:this.time+r.duration,baseEnd:this.time+r.duration,
         evo:actor.evolutions[spellId]||null,extensions:0,slashCount:0};
       this.identityProc(actor,spellId,"metamorphosis-start",actor);
       this.emit({type:"ability",actorId:actor.id,targetId:actor.id,spellId});

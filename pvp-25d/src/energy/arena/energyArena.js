@@ -181,7 +181,7 @@ function start(build){
       "STAGE "+String(Math.min(20,state.clears+1)).padStart(2,"0")+" · "+state.slots+"/"+match.loadout.abilitySlots.length+" SPELLS":
       "LEVEL "+state.level+" · "+state.slots+"/10 ABILITIES";
     $("match-learning-tip").textContent="LEARNING FOCUS · "+state.lesson;
-    $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · +8 FLUX/s";
+    $("role-passive").textContent=ROLES[build.role].name.toUpperCase()+" · "+ROLES[build.role].passive;
     $("combat-banner").hidden=true;$("scene-error").hidden=true;
     $("defense-resonance-overlay").hidden=true;
     $("defense-resonance-options").dataset.wave="";

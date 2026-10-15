@@ -16,6 +16,7 @@ export class EnergyGenesisVFX{
     this.scene=scene;this.materials=new Map();this.live=[];
     this.limit=110;this.seq=0;this.statusFX=new Map();
     this.relayFirst=new Map();this.cascadeOrigins=new Map();
+    this.guardAnchors=new Map();
   }
   material(tone="mint",alpha=.85){
     const key=tone+":"+alpha;
@@ -309,7 +310,8 @@ export class EnergyGenesisVFX{
     }
     if(kind==="guardian-network"&&actor&&target){
       this.shield(actor,target,match);
-      const chosen=match.getActor(actor.targetId);
+      const mark=this.guardAnchors.get(actor.id);
+      const chosen=mark?.until>performance.now()?match.getActor(mark.targetId):null;
       const origin=chosen?.alive&&chosen.team===actor.team?chosen:actor;
       if(origin.id!==target.id)
         this.flight(this.pos(origin),this.pos(target),
@@ -419,7 +421,13 @@ export class EnergyGenesisVFX{
       return true;
     }
     if(event.type==="shield"&&id==="resonance-guard"){
-      if(actor&&target)this.shield(actor,target,match);
+      if(actor&&target){
+        const old=this.guardAnchors.get(actor.id);
+        if(!old||old.until<performance.now())
+          this.guardAnchors.set(actor.id,{
+            targetId:target.id,until:performance.now()+600});
+        this.shield(actor,target,match);
+      }
       return true;
     }
     if(event.type==="control"&&id==="stasis-seal"){
@@ -585,6 +593,7 @@ export class EnergyGenesisVFX{
   clear(){
     while(this.live.length)this.drop(this.live[this.live.length-1]);
     this.statusFX.clear();this.relayFirst.clear();this.cascadeOrigins.clear();
+    this.guardAnchors.clear();
   }
   dispose(){
     this.clear();

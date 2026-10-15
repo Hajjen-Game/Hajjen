@@ -17,6 +17,7 @@ export class EnergyVoidVFX {
     this.scene=scene;this.live=[];this.mats=new Map();this.seq=0;
     this.limit=122;this.marks=new Map();this.rifts=new Map();
     this.forms=new Map();this.veils=new Map();
+    this.lastRiftHits=new Map();
   }
   point(x,y,h=.94){return V(x*S,h,y*S)}
   actor(a,h=.94){return this.point(a.x,a.y,h)}
@@ -272,6 +273,14 @@ export class EnergyVoidVFX {
   spawn(e,match){
     if(!VOID_VFX_IDS.has(e.spellId))return false;
     const id=e.spellId,kind=e.kind||"";
+    // Capture the REAL slash victim before returning to the authored blade path.
+    // Devouring Pact's soul fragment must originate at that victim, not the healer.
+    if(id==="rift-slash"&&e.type==="hit"){
+      const source=match.getActor(e.actorId),victim=match.getActor(e.targetId);
+      if(source&&victim&&source.team!==victim.team)
+        this.lastRiftHits.set(source.id,{targetId:victim.id,
+          x:victim.x,y:victim.y,until:performance.now()+1000});
+    }
     // Original authored Rift Slash sword travel, core buildup and impact retained.
     // Evolutions/procs are supplementary only, exactly as Pulse Mend was handled.
     if(id==="rift-slash"&&
@@ -316,8 +325,12 @@ export class EnergyVoidVFX {
           if(!this.marks.has(a.id+":"+infected.id))this.mark(a,infected);
         }
       }else if(e.type==="evolution-proc"&&kind==="devouring-pact"){
-        this.flight(b?this.actor(b):this.actor(a),this.actor(a),
-          {kind:"soul-return",ms:470,scale:.7});
+        const hit=this.lastRiftHits.get(a.id);
+        // Only use a recently confirmed direct Rift Slash hit, never stale targeting.
+        if(hit?.until>performance.now())
+          this.flight(this.point(hit.x,hit.y),this.actor(a),
+            {kind:"soul-return",ms:470,scale:.7});
+        else this.burst(this.actor(a),"soul-recovered",.7);
       }
       return true;
     }
@@ -470,7 +483,10 @@ export class EnergyVoidVFX {
     for(const map of [this.marks,this.rifts,this.forms,this.veils])
       for(const [k,v]of map)if(v===f)map.delete(k);
   }
-  clear(){while(this.live.length)this.drop(this.live[this.live.length-1]);}
+  clear(){
+    while(this.live.length)this.drop(this.live[this.live.length-1]);
+    this.lastRiftHits.clear();
+  }
   dispose(){
     this.clear();for(const m of this.mats.values())m.dispose();this.mats.clear();
   }

@@ -325,6 +325,55 @@ export class EnergyArenaRenderer {
         "telegraph",{casterId:event.actorId});
       return;
     }
+    // Void 1.0: class-specific dark-violet shadow geometry layered over
+    // the existing spell VFX; unrelated Sun Lance/Crystal Bolt remain untouched.
+    if((event.type==="identity-proc"&&[
+      "void-teleport","metamorphosis-start","metamorphosis-end",
+      "entropy-applied","dual-shadow-blades","pact-sacrifice"
+    ].includes(event.kind))||(event.type==="evolution-proc"&&[
+      "rift-open","rift-tendrils","rift-implosion","rift-swallow","dark-spear",
+      "phantom-assault","umbral-cyclone","executioners-veil",
+      "marked-fracture","psychic-collapse","contagion","devouring-pact",
+      "shadow-ambush","rift-echo","rift-echo-start","veilwalk","veilwalk-dodge",
+      "form-blades","dreadblade-arcs","mark-psychic-pulse","mindstorm-spear",
+      "soul-devourer","soul-devourer-finale"
+    ].includes(event.kind))){
+      const actor=match.getActor(event.actorId);
+      const target=match.getActor(event.targetId)||actor;
+      const x=Number.isFinite(event.x)?event.x:target?.x;
+      const y=Number.isFinite(event.y)?event.y:target?.y;
+      if(!Number.isFinite(x)||!Number.isFinite(y))return;
+      const p=new BABYLON.Vector3(x*S,.15,y*S),kind=event.kind;
+      const big=["metamorphosis-start","rift-implosion","psychic-collapse",
+        "soul-devourer-finale","dark-spear","mindstorm-spear"].includes(kind);
+      const color=big?"#e7a4ff":"#a767ea";
+      if(["dark-spear","mindstorm-spear"].includes(kind)){
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,5.1,p.z),
+          "#d3a2ff",big?1.12:.67,550,"fall",{end:new BABYLON.Vector3(p.x,.5,p.z)});
+        this.spellFX.ring(p,"#8f52bd",3.3,710,"ground");
+      }else if(["void-teleport","rift-echo","shadow-ambush","phantom-assault",
+         "executioners-veil"].includes(kind)){
+        this.spellFX.ring(p,"#aa6bd8",2.9,650,"ground");
+        for(let i=0;i<3;i++)
+          this.spellFX.sphere(new BABYLON.Vector3(p.x+(i-1)*.5,1.1+i*.25,p.z),
+            "#b787ef",.27,480,"burst");
+      }else if(kind==="rift-open"||kind==="rift-tendrils"||kind==="rift-swallow"){
+        this.spellFX.ring(p,kind==="rift-open"?"#573277":"#aa62dc",
+          kind==="rift-open"?6:4,kind==="rift-open"?3900:650,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,.6,p.z),
+          "#6c299c",kind==="rift-open"?.85:.52,650,"burst");
+      }else if(kind==="metamorphosis-start"||kind==="form-blades"||kind==="dreadblade-arcs"){
+        this.spellFX.ring(p,"#c786ee",big?5.3:3.2,big?1200:600,"ground");
+        for(const side of [-1,1])this.spellFX.sphere(new BABYLON.Vector3(p.x+side*.72,
+          1.6,p.z+.22),"#b265f2",big?.74:.39,big?850:430,"burst");
+      }else{
+        this.spellFX.ring(p,color,big?5.1:2.7,big?820:510,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,
+          kind==="rift-implosion"?.4:1.1,p.z),
+          big?"#d29af8":"#8b54c0",big?1.15:.42,big?650:460,"burst");
+      }
+      return;
+    }
     // Solar 1.0 is ADDITIVE: the established Sun Lance windup, traveling
     // projectile, tail and impact remain owned by their original VFX pipeline.
     // These effects are separate named procs layered around those visuals.
@@ -699,7 +748,7 @@ export class EnergyArenaRenderer {
       const target=match.getActor(event.targetId)||match.getActor(event.actorId);
       if(target){
         const hex=event.role==="healer"?"#85f0b8":
-          event.role==="melee"?"#f58ca0":event.role==="solar"?"#ffcb78":"#8ecaff";
+          event.role==="melee"?"#f58ca0":event.role==="solar"?"#ffcb78":event.role==="void"?"#bc86fa":"#8ecaff";
         const pos=new BABYLON.Vector3(target.x*S,.14,target.y*S);
         this.spellFX.ring(pos,hex,
           event.kind==="wave"?3.1:event.kind==="impact"?1.8:1.25,

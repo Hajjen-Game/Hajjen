@@ -533,6 +533,7 @@ export class EnergyMainMenu{
     if(!this.getCharacter()){this.openResume();return;}
     const journey=this.getJourney?.();
     if(journey?.pending){this.enterHub();return;}
+    this.journey.setOriginRole(this.getCharacter()?.role||null);
     this.journey.clears=Math.min(20,journey?.clears||0);
     this.journey.tracked=Boolean(journey);
     this.journey.allowReplay=Boolean(journey&&this.isDevOrigin?.());
@@ -562,7 +563,8 @@ export class EnergyMainMenu{
       status.textContent="No test Origin created. Choose an Origin above, then create one.";
       return;
     }
-    status.textContent=dev.character.name+" · 20/20 STAGES · ALL 16 SHARED SPELLS · "+
+    status.textContent=dev.character.name+" · 20/20 STAGES · "+
+      (dev.character.role==="healer"?"ALL 6 GENESIS CLASS SPELLS":"ALL 16 SHARED SPELLS")+" · "+
       "AI STYLES UNLOCKED · SAVED SEPARATELY. Choose any Stage to replay it with the full toolkit.";
     $("game-dev-stage-select").value=String(dev.progression.devStage||20);
     $("game-dev-origin-role").value=dev.character.role;

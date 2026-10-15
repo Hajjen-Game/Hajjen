@@ -336,6 +336,22 @@ export class EnergyMatch {
         this.evolutionProc(source,"vital-cascade","double-cascade",injured[0]||source);
         continue;
       }
+      if(e.kind==="avalanche-wave"){
+        this.evolutionProc(source,"avalanche","avalanche-wave",null,e.x,e.y);
+        for(const enemy of this.opponents(source).filter(t=>
+          distance(t,e)<e.radius&&hasLineOfSight(e,t,this.arena)).slice(0,14)){
+          // A passing wall hits once per crossing segment; later pulses are
+          // capped to avoid repeated overlaps instantly deleting a boss.
+          if((enemy.avalancheLastHit||-99)>this.time-.20)continue;
+          enemy.avalancheLastHit=this.time;
+          this.damage(enemy,e.amount,source,"avalanche");
+          if(!enemy.boss&&!enemy.elite){
+            const nx=enemy.x+e.dx*24,ny=enemy.y+e.dy*24;
+            if(this.canOccupy(enemy,nx,ny)){enemy.x=nx;enemy.y=ny;}
+          }
+        }
+        continue;
+      }
       if(e.kind==="gravity-well"){
         this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
         for(const enemy of this.opponents(source).filter(t=>distance(t,e)<=e.radius&&
@@ -360,7 +376,7 @@ export class EnergyMatch {
       for(const enemy of this.opponents(source).filter(t=>distance(t,e)<e.radius&&
           distance(t,e)>=(e.minRadius||0)&&hasLineOfSight(e,t,this.arena)).slice(0,9)){
         if(e.amount>0)this.damage(enemy,e.amount,source,e.spellId);
-        if(e.slowDuration)
+        if(e.slowDuration&&!(e.bossSlowImmune&&enemy.boss))
           this.addStatus(enemy,{kind:"slow",negative:true,remaining:e.slowDuration,
             sourceId:source.id});
       }
@@ -959,6 +975,83 @@ export class EnergyMatch {
       .sort((a,b)=>distance(a,actor)-distance(b,actor)).slice(0,4);
     for(const foe of foes)this.damage(foe,7+(r.stored/Math.max(1,foes.length))*.30/
       Math.max(.01,this.power),actor,"kinetic-rampart");
+  }
+  resolveCrystalSnare(actor,target,r){
+    const deep=actor.evolutions["crystal-snare"]==="deep-freeze";
+    const selected=deep?[target]:this.opponents(actor).filter(e=>
+      distance(e,target)<=r.area&&hasLineOfSight(target,e,this.arena)).slice(0,12);
+    const groupId=actor.id+":"+this.time.toFixed(3);
+    const rooted=[];
+    for(const foe of selected){
+      this.addStatus(foe,{kind:"chilled-mark",sourceId:actor.id,spellId:"crystal-snare",
+        negative:false,remaining:5});
+      if(foe.boss){
+        this.emit({type:"immune",actorId:actor.id,targetId:foe.id,spellId:"crystal-snare"});
+        continue;
+      }
+      this.applyCC(foe,deep?"incapacitate":"root",deep?4:3,actor,"crystal-snare");
+      if(foe.statuses.some(q=>q.kind===(deep?"incapacitate":"root")&&
+        q.sourceId===actor.id&&q.spellId==="crystal-snare")){
+        rooted.push(foe);
+      }
+      if(deep)this.evolutionProc(actor,"crystal-snare","deep-freeze",foe);
+    }
+    if(!deep&&actor.evolutions["crystal-snare"]==="crystal-conduit"&&rooted.length>1){
+      for(const foe of rooted){
+        this.addStatus(foe,{kind:"crystal-conduit",spellId:"crystal-snare",
+          sourceId:actor.id,groupId,remaining:3});
+        this.evolutionProc(actor,"crystal-snare","conduit-link",foe);
+      }
+    }
+    this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId:"crystal-snare"});
+  }
+  resolveFroststorm(actor,point,r){
+    const evo=actor.evolutions["froststorm"];
+    const lifespan=evo==="expanding-frost"?6:r.duration;
+    this.froststormFields.push({x:point.x,y:point.y,radius:r.area+
+      (evo==="expanding-frost"?95:0),until:this.time+lifespan,
+      owner:actor.id,evo});
+    this.evolutionProc(actor,"froststorm","froststorm-start",null,point.x,point.y);
+    // One standard damage pulse every second, including during extension.
+    for(let tick=1;tick<=lifespan;tick++){
+      const radius=evo==="expanding-frost"?
+        r.area+Math.round(95*tick/lifespan):r.area;
+      this.scheduleEvolution(actor,"froststorm","froststorm-tick",
+        point.x,point.y,tick-.80,r.amount,radius,
+        {slowDuration:1.3,bossSlowImmune:true});
+    }
+    if(evo==="glacial-barrage"){
+      for(let i=0;i<3;i++){
+        const theta=i*2.39996,rad=r.area*.46;
+        const x=point.x+Math.cos(theta)*rad,y=point.y+Math.sin(theta)*rad;
+        this.scheduleEvolution(actor,"froststorm","glacial-barrage",
+          x,y,.85+i*.96,12,60);
+        this.evolutionProc(actor,"froststorm","barrage-warning",null,x,y);
+      }
+    }
+    this.emit({type:"ability",actorId:actor.id,spellId:"froststorm",
+      x:point.x,y:point.y,targetId:null});
+  }
+  resolveAvalanche(actor,point,r){
+    const dx=point.x-actor.x,dy=point.y-actor.y,len=Math.hypot(dx,dy)||1;
+    const ux=dx/len,uy=dy/len;
+    const start={x:actor.x,y:actor.y};
+    let placed=0;
+    for(let i=1;i<=8;i++){
+      const x=start.x+ux*r.distance*(i/8),y=start.y+uy*r.distance*(i/8);
+      if(!canStand(x,y,this.arena,9)||
+        !hasLineOfSight(start,{x,y},this.arena))break;
+      placed++;
+      this.scheduleEvolution(actor,"avalanche","avalanche-wave",
+        x,y,i*.115,r.amount,r.width,{dx:ux,dy:uy});
+      this.scheduleEvolution(actor,"avalanche","avalanche-track",
+        x,y,1.08+i*.115,3,Math.round(r.width*.70),
+        {slowDuration:1.35,bossSlowImmune:true});
+    }
+    this.identityProc(actor,"avalanche","avalanche-launch",null,actor.x,actor.y);
+    this.emit({type:"ability",actorId:actor.id,spellId:"avalanche",
+      x:placed?start.x+ux*r.distance*placed/8:start.x,
+      y:placed?start.y+uy*r.distance*placed/8:start.y,targetId:null});
   }
   resolveGravityHammer(actor,point,r){
     const radius=r.area;
@@ -1745,11 +1838,15 @@ export class EnergyMatch {
       }
       if(status.kind==="root"&&status.spellId==="crystal-snare"&&
         status.evolution==="shatterfield"){
-        this.scheduleEvolution(source,"crystal-snare","shatterfield",
-          actor.x,actor.y,.05,0,115,{slowDuration:1.7});
+        for(const delay of [.10,.65,1.20])
+          this.scheduleEvolution(source,"crystal-snare","shatterfield",
+            actor.x,actor.y,delay,5.5,112,{slowDuration:1.4,bossSlowImmune:true});
         this.evolutionProc(source,"crystal-snare","shatterfield",actor);
       }
     }
+    // Crystal Conduit cannot linger beyond the root even if refreshed.
+    if(!actor.statuses.some(q=>q.kind==="root"&&q.remaining>0))
+      actor.statuses=actor.statuses.filter(q=>q.kind!=="crystal-conduit");
     const shieldExpired=expired.some(s=>s.kind==="shield");
     actor.statuses=actor.statuses.filter(s=>s.remaining>0);
     if(shieldExpired&&!actor.statuses.some(s=>s.kind==="shield"))actor.shield=0;

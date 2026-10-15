@@ -393,7 +393,7 @@ export class EnergyMatch {
     if(!secondRecall&&!secondRelay&&!rampartRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
     if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
     if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
-    if(rule.mode==="dash"||rule.mode==="rampart")return null;
+    if(["dash","rampart","ground"].includes(rule.mode))return null;
     const target=this.currentTarget(actor,rule.mode,targetId);
     if(!target)return "SELECT A TARGET";
     const d=distance(actor,target);
@@ -550,7 +550,7 @@ export class EnergyMatch {
       if((dx*facing.x+dy*facing.y)/mag>=.28){
         rampart.stored=Math.min(target.maxHp*.5,rampart.stored+value);
         rampart.charges--;
-        this.identityProc(target,"kinetic-rampart","rampart-catch",source);
+        this.identityProc(target,"kinetic-rampart","rampart-catch",target);
         this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,
           amount:0,absorbed:Math.round(value),crit:false,rawDamage:value,
           hpBefore,hpAfter:target.hp,shieldBefore,shieldAfter:target.shield});

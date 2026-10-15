@@ -18,9 +18,13 @@ const PLAYER_OFFERS=Object.freeze({
     {effect:"comet",name:"FALLING STARS",description:"Your successful Solar attacks call one additional glowing sunfire impact onto a threatened enemy."},
     {effect:"arc",name:"SUNBURST CHAINS",description:"Your successful Solar attacks scatter secondary sunfire arcs into nearby enemies."},
   ]),
+  void:Object.freeze([
+    {effect:"siphon",name:"SOUL HARVEST",description:"Direct Void strikes restore a capped amount of health."},
+    {effect:"arc",name:"SHADOW ECHOES",description:"Void strikes lash other nearby enemies with short shadow arcs."},
+  ]),
 });
 const ALLY_OFFER={healer:PLAYER_OFFERS.healer[0],
-  melee:PLAYER_OFFERS.melee[0],caster:PLAYER_OFFERS.caster[0],solar:PLAYER_OFFERS.solar[0]};
+  melee:PLAYER_OFFERS.melee[0],caster:PLAYER_OFFERS.caster[0],solar:PLAYER_OFFERS.solar[0],void:PLAYER_OFFERS.void[0]};
 const COOLDOWN={bloom:2.4,ward:4.5,arc:1.65,siphon:3.3,comet:2.0,rime:2.6};
 
 export function overchargeChoices(match){
@@ -40,11 +44,11 @@ export function overchargeChoices(match){
       id:"overcharge:"+match.waveIntermission+":"+slot+":"+actor.id+":"+effect,
       kind:"overcharge",effect,targetId:actor.id,
       recipient:actor===player?"YOU":actor.role==="healer"?"GENESIS · AI":
-        actor.role==="melee"?"IMPACT · AI":actor.role==="solar"?"SOLAR · AI":"ECLIPSE · AI",
+        actor.role==="melee"?"IMPACT · AI":actor.role==="solar"?"SOLAR · AI":actor.role==="void"?"VOID · AI":"ECLIPSE · AI",
       spellId:actor.abilities[0]||"crystal-bolt",
       name,label:(actor===player?"YOUR OVERCHARGE":"ALLY OVERCHARGE")+" · TIER "+tier,
       description,how:"Empowers "+(actor===player?"your Origin":actor.role==="healer"?
-        "Genesis":actor.role==="melee"?"Impact":actor.role==="solar"?"Solar":"Eclipse")+" for the remaining waves.",
+        "Genesis":actor.role==="melee"?"Impact":actor.role==="solar"?"Solar":actor.role==="void"?"Void":"Eclipse")+" for the remaining waves.",
       unlock:"Temporary in this Planet Defense only. Choosing it forfeits the other three cards.",
       tier,isTemporary:true
     };

@@ -31,6 +31,13 @@ export const ROLES = Object.freeze({
     passive: "Ranged direct-damage spells cost 15% less Flux.",
     locked: ["crystal-bolt", "crystal-snare"],
   },
+  solar: {
+    name: "Solar", color: "#f2b56c", subtitle: "Sunfire & lightning",
+    description: "Solar channels living suns, lightning and enormous skyfire into explosive ranged combat.",
+    playstyle: "Choose Solar for six exclusive spells: three-hit energy rhythm, a protected Sun Lance, freely placed pillars, a living Cinder Familiar and spectacular burst.",
+    passive: "Ranged direct-damage spells cost 15% less Flux.",
+    locked: ["flux-bolt","sun-lance"],
+  },
 });
 
 export const DISCIPLINES = Object.freeze({
@@ -54,6 +61,8 @@ export const IMPACT_CLASS_SPELL_IDS = Object.freeze(["phase-rush","arc-strike","
 export const IMPACT_CORE_SPELL_IDS = Object.freeze(["phase-rush","arc-strike","pulse-sever","gravity-hammer"]);
 export const ECLIPSE_CLASS_SPELL_IDS = Object.freeze(["crystal-bolt","crystal-snare","fracture-spear","froststorm","crystal-mirror","avalanche"]);
 export const ECLIPSE_CORE_SPELL_IDS = Object.freeze(ECLIPSE_CLASS_SPELL_IDS.slice(0,4));
+export const SOLAR_CLASS_SPELL_IDS = Object.freeze(["flux-bolt","sun-lance","zenith-crash","cinder-familiar","solar-ascension","chain-tempest"]);
+export const SOLAR_CORE_SPELL_IDS = Object.freeze(SOLAR_CLASS_SPELL_IDS.slice(0,4));
 
 export const ABILITIES = Object.freeze([
   ability("pulse-mend","Pulse Mend","vital","Direct or offensive healing","Heal a teammate; with Vital Reversal, strike an enemy to heal wounded allies and restore an active Resonance Guard.","1.5s cast · Genesis core",[
@@ -94,11 +103,11 @@ export const ABILITIES = Object.freeze([
     ["countershock","Countershock","A successful interrupt detonates kinetic damage around the interrupted enemy."],
     ["warpath","Warpath","A successful interrupt activates four seconds of aggressive empowered melee attacks."],
   ]),
-  ability("flux-bolt","Flux Bolt","solar","Ranged rhythm","Consecutive hits on one target build Solar Rhythm; every third Flux Bolt releases an extra energy burst. Resets if you switch target or wait too long.","1.5s cast · Every 3rd hit bursts",[
-    ["overcharge","Overcharge","Longer cast with a larger, harder-hitting projectile."],
-    ["rapid-flux","Rapid Flux","Shorter cast at reduced damage."],
-    ["fractured-energy","Fractured Energy","Next direct attack from another discipline gains a bonus."],
-  ]),
+  ability("flux-bolt","Flux Bolt","solar","Solar lightning rhythm","Cast a quick radiant bolt. Every third hit against the same target bursts with extra Solar energy.","1.5s cast · Three-hit rhythm",[
+    ["corona-volley","Corona Volley","Each third hit sends bright seeking Solar bolts to up to three additional nearby enemies."],
+    ["thunderhead","Thunderhead","Each third hit forms an electric storm cloud above the victim, delivering three lightning strikes over time."],
+    ["helios-beam","Helios Beam","After three qualifying hits, hold the next Flux Bolt to channel a focused escalating Solar beam for up to two seconds; release early to stop."],
+  ],"solar"),
   ability("phase-slip","Phase Slip","void","Void escape","Instant directional phase jump that removes slows on arrival, but cannot escape roots or cross solid obstacles.","Instant · Removes slows · 23s CD",[
     ["extended-phase","Extended Phase","Teleport farther with a longer cooldown."],
     ["residual-field","Residual Field","Leave a short-lived slow field at the origin."],
@@ -120,16 +129,27 @@ export const ABILITIES = Object.freeze([
     ["void-anchor","Void Anchor","A brief slow remains when the prison ends."],
     ["unstable-prison","Unstable Prison","Breaking the prison by damage emits a small damage pulse; no additional CC."],
   ]),
-  ability("sun-lance","Sun Lance","solar","Precision finisher","Focused Solar lance deals 18% extra damage to enemies below 35% HP. Unlike Flux Bolt, it rewards choosing a weakened priority target.","1.8s cast · +18% below 35% HP",[
-    ["overcharged-lance","Overcharged Lance","Longer cast with a larger direct hit."],
-    ["scorching-lance","Scorching Lance","Apply a short Solar damage-over-time burn."],
-    ["split-lance","Split Lance","Reduced secondary damage to a nearby second enemy."],
-  ]),
-  ability("zenith-crash","Zenith Crash","solar","Telegraphed area burst","Mark the enemy’s current position; after 2 seconds a Solar pillar lands there, damaging enemies still inside. The impact can be dodged.","2s warning · Ground-locked impact · 18s CD",[
-    ["focused-impact","Focused Impact","Smaller impact area with higher focused damage."],
-    ["solar-aftershock","Solar Aftershock","A weaker second explosion follows at the same location."],
-    ["burning-ground","Burning Ground","Leave a short-lived damaging plasma field."],
-  ]),
+  ability("sun-lance","Sun Lance","solar","Precision finisher","Heavy focused Solar lance with its existing signature animation. Hits a weakened enemy harder below 35% health.","1.8s cast · ORIGINAL SUN LANCE VISUALS PRESERVED",[
+    ["judgment-of-dawn","Judgment of Dawn","A Lance against a victim below 35% HP triggers a monumental finishing Solar beam from the sky."],
+    ["scorching-lance","Scorching Lance","Apply a spreading Solar burn. If its bearer dies, explode in flame and burn nearby enemies."],
+    ["split-lance","Split Lance","On impact, fire two smaller lances into other already-wounded nearby targets."],
+  ],"solar"),
+  ability("zenith-crash","Zenith Crash","solar","Mouse-placed sun pillar","Freely choose a ground position with the mouse. After a visible two-second warning, a huge Solar pillar strikes that position.","2.0s cast · Mouse-placed AoE · 18s cooldown",[
+    ["solar-aftershock","Solar Aftershock","After the main Solar pillar, a second delayed, weaker pillar strikes the exact same location."],
+    ["burning-ground","Burning Ground","The crash leaves a clearly visible persistent damaging plasma field."],
+    ["prism-cross","Prism Cross","Four broad Solar beams cross diagonally out from impact in an X; solid obstacles stop the beams."],
+  ],"solar"),
+  ability("cinder-familiar","Cinder Familiar","solar","Summoned elemental","Summon one hovering mini-sun for twelve seconds. It follows Solar, automatically shoots the priority enemy, and is not an AI party member.","Instant · 12s familiar · 35s CD",[
+    ["phoenix-dive","Phoenix Dive","The one familiar becomes a blazing Solar-energy phoenix and dives through enemy packs every few seconds before returning."],
+    ["soulbrand","Soulbrand","Lock the familiar to one target, sustaining a burn ray. Your further spell hits on that foe ignite extra Solar discharges."],
+    ["dying-star","Dying Star","Recast while the familiar is alive to sacrifice it in a dramatic, targeted Supernova explosion."],
+  ],"solar"),
+  ability("solar-ascension","Solar Ascension","solar","Three celestial sigils","Call three brilliant Solar sigils. Each of your next three offensive Solar spellcasts calls down a powerful skybeam at its target.","Instant · Three empowered casts · 38s CD",[
+
+  ],"solar"),
+  ability("chain-tempest","Chain Tempest","solar","Chain lightning detonation","Launch one gigantic lightning orb that branches to up to four nearby enemies on hit. Against a lone foe, deliver multiple concentrated strikes.","Instant · Lightning chain · 26s CD",[
+
+  ],"solar"),
   ability("photon-barrier","Photon Barrier","solar","Absorb shield","Short absorb shield on self or an ally; unlike percentage damage reduction.","Instant · 28s cooldown",[
     ["reinforced-prism","Reinforced Prism","Stronger absorb with a longer cooldown."],
     ["prismatic-return","Prismatic Return","When broken, release a capped damage pulse nearby."],
@@ -202,9 +222,10 @@ export const ABILITY_BY_ID = Object.freeze(Object.fromEntries(ABILITIES.map(a =>
 export const FREE_ABILITIES = Object.freeze(ABILITIES.filter(a => !a.role));
 export function availableAbilities(role) {
   if (!ROLES[role]) throw new Error("Unknown role: " + role);
-  // Three class-locked six-spell Origins; Solar/Void remain future design.
+  // Four class-locked six-spell Origins; Void remains future design.
   if (role === "healer") return GENESIS_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   if (role === "melee") return IMPACT_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   if (role === "caster") return ECLIPSE_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
+  if (role === "solar") return SOLAR_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   return ABILITIES.filter(a => !a.role || a.role === role);
 }

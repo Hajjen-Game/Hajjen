@@ -323,6 +323,106 @@ export class EnergyArenaRenderer {
         "telegraph",{casterId:event.actorId});
       return;
     }
+    // Solar 1.0 is ADDITIVE: the established Sun Lance windup, traveling
+    // projectile, tail and impact remain owned by their original VFX pipeline.
+    // These effects are separate named procs layered around those visuals.
+    if(event.type==="identity-proc"&&[
+      "familiar-summon","familiar-orbit","familiar-shot","soulbrand-ray",
+      "tempest-core","ascension-start","ascension-beam","precision-execute"
+    ].includes(event.kind)&&
+      ["cinder-familiar","solar-ascension","chain-tempest"].includes(event.spellId)){
+      const source=match.getActor(event.actorId);
+      const target=match.getActor(event.targetId)||source;
+      if(!source||!target)return;
+      const x=source.x*S,z=source.y*S;
+      const px=target.x*S,pz=target.y*S;
+      if(["familiar-summon","familiar-orbit","ascension-start"].includes(event.kind)){
+        const big=event.kind==="ascension-start";
+        const orbit=new BABYLON.Vector3(x+.75,big?1.45:1.65,z-.56);
+        this.spellFX.sphere(orbit,big?"#fff0ae":"#ffe29b",
+          big?.43:.35,big?1500:1150,"burst");
+        this.spellFX.ring(new BABYLON.Vector3(x,.12,z),
+          big?"#ffc974":"#f0a45c",big?3.6:2.0,big?1500:1000,"ground");
+      }else if(["familiar-shot","soulbrand-ray"].includes(event.kind)){
+        const start=new BABYLON.Vector3(x+.72,1.8,z-.5);
+        this.spellFX.sphere(start,"#ffca6e",.38,410,"projectile",{
+          end:new BABYLON.Vector3(px,1.0,pz),spellId:"cinder-familiar"});
+        if(event.kind==="soulbrand-ray")
+          this.spellFX.ring(new BABYLON.Vector3(px,.16,pz),"#ffc07a",1.5,520,"ground");
+      }else if(event.kind==="ascension-beam"){
+        const end=new BABYLON.Vector3(px,.48,pz);
+        this.spellFX.sphere(new BABYLON.Vector3(px,5.3,pz),
+          "#fff7c7",.92,420,"fall",{end});
+        this.spellFX.ring(new BABYLON.Vector3(px,.15,pz),"#ffd185",3.4,640,"ground");
+      }else if(event.kind==="tempest-core"){
+        this.spellFX.sphere(new BABYLON.Vector3(px,1.25,pz),"#fff1b6",.83,480,"burst");
+        this.spellFX.ring(new BABYLON.Vector3(px,.15,pz),"#ffc571",2.8,530,"ground");
+      }
+      return;
+    }
+    if(event.type==="evolution-proc"&&[
+      "corona-volley","thunderhead-cloud","thunderhead","helios-ready",
+      "helios-tick","helios-end","judgment-of-dawn","scorching-lance",
+      "scorching-death","split-lance","prism-cross","prism-cross-ready",
+      "phoenix-dive","phoenix-trail","soulbrand-discharge","dying-star",
+      "solar-aftershock","solar-aftershock-ready","burning-ground",
+      "tempest-chain","tempest-focus"
+    ].includes(event.kind)){
+      const source=match.getActor(event.actorId);
+      const target=match.getActor(event.targetId)||source;
+      const x=Number.isFinite(event.x)?event.x:target?.x;
+      const y=Number.isFinite(event.y)?event.y:target?.y;
+      if(!Number.isFinite(x)||!Number.isFinite(y))return;
+      const p=new BABYLON.Vector3(x*S,.14,y*S),kind=event.kind;
+      if(["judgment-of-dawn","dying-star","solar-aftershock","tempest-focus"].includes(kind)){
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,kind==="dying-star"?4.7:5.5,p.z),
+          kind==="dying-star"?"#ffffff":"#ffdfa0",
+          kind==="dying-star"?1.25:.84,490,"fall",{
+            end:new BABYLON.Vector3(p.x,.52,p.z)});
+        this.spellFX.ring(p,"#ffdc91",kind==="dying-star"?5.5:4.1,650,"ground");
+      }else if(kind==="thunderhead-cloud"){
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,3.0,p.z),"#ffe6ac",.73,2200,"burst");
+        this.spellFX.ring(p,"#ffd080",2.3,950,"ground");
+      }else if(["thunderhead","tempest-chain","soulbrand-discharge"].includes(kind)){
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,3.8,p.z),"#fff2cb",
+          .48,350,"fall",{end:new BABYLON.Vector3(p.x,.78,p.z)});
+        this.spellFX.ring(p,"#f7be73",1.85,460,"ground");
+      }else if(kind==="helios-tick"||kind==="helios-end"){
+        if(source){
+          this.spellFX.sphere(new BABYLON.Vector3(source.x*S,.96,source.y*S),
+            "#fff8d5",kind==="helios-tick"?.36:.55,380,"projectile",{
+              end:new BABYLON.Vector3(p.x,1,p.z),spellId:"flux-bolt"});
+        }
+        this.spellFX.ring(p,"#ffe5a6",
+          kind==="helios-tick"?2.0:3.0,460,"ground");
+      }else if(kind==="phoenix-dive"){
+        if(source){
+          const start=new BABYLON.Vector3(source.x*S,1.8,source.y*S);
+          for(const offset of [-.55,-.27,0,.27,.55]){
+            this.spellFX.sphere(new BABYLON.Vector3(start.x+offset,start.y+Math.abs(offset),start.z),
+              offset===0?"#fff0b2":"#ff9d56",.36,540,"projectile",{
+                end:new BABYLON.Vector3(p.x+offset*.3,.68,p.z),spellId:"cinder-familiar"});
+          }
+        }
+        this.spellFX.ring(p,"#ffb56b",3.7,560,"ground");
+      }else if(kind==="corona-volley"||kind==="split-lance"){
+        if(source)
+          this.spellFX.sphere(new BABYLON.Vector3(source.x*S,1,source.y*S),
+            "#ffd77f",.29,430,"projectile",{
+              end:new BABYLON.Vector3(p.x,1,p.z),spellId:event.spellId});
+        this.spellFX.ring(p,"#fff2b6",1.6,440,"ground");
+      }else if(kind==="prism-cross"||kind==="prism-cross-ready"){
+        this.spellFX.ring(p,"#ffcf80",kind==="prism-cross"?2.1:4.8,510,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,.42,p.z),
+          "#ffe2a2",.37,400,"burst");
+      }else{
+        this.spellFX.ring(p,"#ffc775",kind==="burning-ground"?3.8:1.8,
+          kind==="burning-ground"?840:530,"ground");
+        this.spellFX.sphere(new BABYLON.Vector3(p.x,1,p.z),
+          "#ffe3a2",.35,450,"burst");
+      }
+      return;
+    }
     // Eclipse VFX are additive. Do not alter the existing Crystal Bolt
     // build-up, flight/trail or impact path in HeroSpellFX/Pixi.
     if(event.type==="identity-proc"&&

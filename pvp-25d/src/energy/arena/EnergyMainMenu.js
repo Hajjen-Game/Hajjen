@@ -28,7 +28,7 @@ const PAGES=[
   },
   {
     "title": "VÄLJ DIN ORIGIN",
-    "chapter": "02 / TRE SÄTT ATT BÖRJA",
+    "chapter": "02 / FYRA OLIKA ORIGINS",
     "intro": "När du skapar en Origin väljer du namn och grundidentitet. Varje Origin börjar med två permanenta spells från samma energidisciplin. De två kan inte bytas ut.",
     "steps": [
       [
@@ -42,11 +42,15 @@ const PAGES=[
       [
         "ECLIPSE · CRYO",
         "En kontrollerande distans-Origin med Crystal Bolt och Crystal Snare. Sakta ner och lås fast fiender."
+      ],
+      [
+        "SOLAR · SUNFIRE",
+        "En explosiv distans-Origin med Flux Bolt och Sun Lance. Kalla ned solstrålar, skapa levande eld och slå mot grupper med blixtar."
       ]
     ],
-    "tip": "Din Origin avgör hur du börjar – inte vilka energidiscipliner du får använda senare.",
+    "tip": "Varje Origin har sex exklusiva spells, varav fyra kan få Evolutions. Cross-class Synergies är pausade.",
     "art": "origins",
-    "caption": "Genesis = Vital · Impact = Kinetic · Eclipse = Cryo."
+    "caption": "Genesis = Vital · Impact = Kinetic · Eclipse = Cryo · Solar = Sunfire."
   },
   {
     "title": "SÅ FUNGERAR STRIDEN",
@@ -288,7 +292,7 @@ function artMarkup(name){
       '<div class="bk-journey-legend">'+tag("✓ KLAR","done")+tag("NÄSTA STAGE","bright")+tag("LÅST")+'</div>'+
       '<div class="bk-art-footer">NO LEVELS <b>·</b> EVERY FIRST CLEAR COUNTS</div></div>';
     case "spells":return '<div class="bk-art bk-spells">'+
-      '<div class="bk-art-kicker">FIVE DISCIPLINES · ONE DISCOVERY</div>'+
+      '<div class="bk-art-kicker">FIVE ENERGY DISCIPLINES · FOUR PLAYABLE ORIGINS</div>'+
       '<div class="bk-discovery-stage">'+orb("cryo","bk-discovery-hero")+
       [
         ["void","ENTROPY MARK"],["solar","SUN LANCE"],["cryo","FRACTURE SPEAR"],
@@ -320,7 +324,7 @@ function artMarkup(name){
       '<div class="bk-evo-options">'+[
         ["RAPID CRYSTAL","QUICKER CAST"],
         ["GLACIAL ECHO","SECOND PROJECTILE"],
-        ["BRITTLE CORE","AMPLIFIED HIT"]
+        ["FRACTURE CHAIN","SEEKING CRYSTALS"]
       ].map(item=>'<div class="bk-evo-option"><span>◇</span><strong>'+item[0]+
         '</strong><small>'+item[1]+'</small><em>UNLOCKS AT STAGE 10</em></div>').join("")+
       '</div><div class="bk-art-footer">EXPLORE NOW <b>·</b> UNLOCK LATER</div></div>';
@@ -341,7 +345,7 @@ function artMarkup(name){
         '<div class="bk-future-vortex">✧</div>'+
         '<span class="bk-future-badge">STAGE 20</span>'+
       '</div><div class="bk-future-content"><strong>RIFT EXPEDITION</strong>'+
-        '<span>SYNERGIES · NEW PVE CHALLENGES</span></div>'+
+        '<span>NEW PVE CHALLENGES · RIFT SECTORS</span></div>'+
       '<div class="bk-art-footer">IN DEVELOPMENT <b>·</b> MORE TO DISCOVER</div></div>';
     default:return '<div class="bk-art bk-vision">'+orb("cryo")+'</div>';
   }

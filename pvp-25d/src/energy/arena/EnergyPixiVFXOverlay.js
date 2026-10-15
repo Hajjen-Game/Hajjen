@@ -82,7 +82,7 @@ export class EnergyPixiVFXOverlay {
     // The six Impact-only spells: no overlap with the protected signatures.
     if(IMPACT_PIXI_IDS.has(event.spellId)){
       if(!["windup","charge-start","charge-trail","charge-impact",
-        "hit","interrupt","ability","evolution-proc","identity-proc",
+        "hit","interrupt","evolution-proc","identity-proc",
         "ground-telegraph"].includes(event.type))return;
       const source=match.getActor(event.actorId);
       if(!source)return;
@@ -98,6 +98,7 @@ export class EnergyPixiVFXOverlay {
       this.effects.push({impact:true,spellId:event.spellId,
         type:event.type,kind,sourceId:source.id,targetId:target?.id||null,
         start:performance.now(),duration,seed:++this.sequence,
+        evolution:source.evolutions?.[event.spellId]||null,
         second:event.spellId==="arc-strike"&&
           (source.strikeSwingCounter||0)%2===0,
         launch:{x:source.x*S,z:source.y*S},

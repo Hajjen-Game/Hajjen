@@ -5,6 +5,29 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Eclipse VFX 1.0: Crystal Bolt quality bar (2026-10-15)
+
+**Status: COMMITTED TO MAIN. Gameplay-triggered Babylon/WebGL and Pixi simulations pass, browser visual evaluation / actual GPU feel is pending.**
+
+### Non-negotiable preservation
+- **CRYSTAL BOLT IS NOT CHANGED.** Do not alter its original buildup, projectile, trail, impact timing or Pixi / Hero implementations. Crystal Bolt sets the detail/readability bar, not a target for edits. Likewise keep the separately protected original Sun Lance visuals untouched.
+- Eclipse's six class spells are `crystal-bolt` (protected), `crystal-snare`, `fracture-spear`, `froststorm`, `crystal-mirror`, `avalanche`. **Chain Tempest belongs to Solar, not Eclipse**, and has not been changed in this pass.
+- **No gameplay balance/mechanics changed**. New animations are event-driven by existing production combat events and statuses, with no fake spell proxies.
+
+### Implemented graphics
+- **New dedicated module `EnergyEclipseVFX.js`**: detailed low-poly 3D octahedral crystal facets, icy filament connections, small translucent runes/rings, local core buildup INSIDE the orb; distinct cast, travel, hit, sustained and dissipating effects. Material cache, bounded VFX pool, proper actor/status lifetime checks and mesh/material cleanup. Only the five named spells enter the new dispatch path.
+- **New dedicated module `EnergyEclipsePixiAccents.js`**: clean fine Pixi screen-space outlines, spiralling charges, 5-strand/seeded shard spear trail, tight crystalline impact splinters, sharp cage/mirror outlines, frost field and moving Avalanche faceted traces. Original `EnergyOriginalLayeredProjectiles.js`, `EnergyPixiImpacts.js`, `EnergyHeroVFX.js` Crystal Bolt branch and Solar Sun Lance branch remain untouched.
+- **Crystal Snare:** inside-orb 6-fold convergence followed by a proper 6-spike crystalline target cage with stacked thin rings. Follows affected actors and ends when the real root/CC ends, not at a fake fixed duration. Ice Tomb/Deep Freeze adds large semitransparent faceted housing. Shatterfield has actual staggered crystalline release splinters. **Crystal Conduit links ROOTED TARGETS TO EACH OTHER** via continuous three-strand shimmering beams that end when linked status expires; does not falsely link each victim to the caster.
+- **Fracture Spear:** focused long crystal materialization during the 1.7s true cast, high-contrast narrow elongated spear with three faceted layers and orbiting cut shards, real moving 3D body with fine Pixi trailing filaments; short bright penetration and asymmetrical shatter fragments after arrival. Rupture, focused fracture and Riftbreaker events have their own substantial shatter/sky-rising spike cues.
+- **Froststorm:** an original frost-geometry ground telegraph during the real cast, multiple rings/rising snow-crystals spiralling within a sustained localized field, visibly distinct tick pulses, collapsing field at expiration. Expanding Frost keeps the geometry longer; Glacial Barrage provides falling sharpened giant crystal comets, and Shattering Storm creates a distinct burst on the proc target.
+- **Crystal Mirror:** floating, semi-transparent, faceted refractive panels around the actual selected protected ally; follow them until real status expires. On intercepted attack, shield bursts and physical return crystals fly **FROM THE PROTECTED ORB** to attacker (not from distant caster). Ends with a clean residual shatter.
+- **Avalanche:** pre-release crystal compression inside orb, multiple asynchronous moving wall segments with rising ice spikes, sharp parallel seams, lingering interrupted wake and small floor fractures. Existing gameplay collision, push/boss immunity and damage timing unchanged.
+
+### Lab QA and remaining validation
+- The same `EnergyArenaRenderer` pipeline is used in live gameplay and **Game Dev → Visual VFX Lab**; replay / Evolution selection clears all prior custom Eclipse meshes as well as previous Hero/Pixi accents. Fallback Babylon geometry remains available if optional Pixi cannot initialize.
+- **7/7 direct 3D VFX fixture tests passed**, including protection guard and dynamic status follow / cleanup, reflected-shard origin, stress-bound GPU pool and exact object disposal. **20/20 separate Pixi primitive tests passed** across the five spells, while `crystal-bolt` is explicitly rejected by the Eclipse Pixi module. **7/7 real-EnergyMatch-to-EclipseFX integrated tests passed** for actual five spells plus Crystal Bolt exclusion, Conduit, phase endings and collision-safe Avalanche; 588/588 fake GPU objects disposed. Full JS syntax / module cache validation follows.
+- **IMPORTANT:** these scripted tests DO NOT verify aesthetic quality at normal camera zoom; player needs to inspect each spell (and each Evolution) in VFX Lab, judge build-up, silhouette, trail, arrival and residual against unchanged Crystal Bolt, and report any visual weak spots. No browser-GPU screenshot tests were conducted here.
+
 ## IMPLEMENTED IN TEST — Visual VFX Lab 2.1: Explained Evolutions + Selectable Targets (2026-10-15)
 
 **Status: COMMITTED TO MAIN; 10 focused simulated UI/combat checks passed. Full browser rendering / user testing still needed.** This pass follows the user's request to be able to understand every Evolution instead of remembering each name, and to choose which orb a spell targets.

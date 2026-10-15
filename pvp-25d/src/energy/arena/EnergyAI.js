@@ -235,6 +235,12 @@ export class EnergyAI {
         &&this.tryCast(actor,["reactive-thread"],urgent))return;
       if(healerHealth<.6&&this.tryCast(actor,["photon-barrier"],healer))return;
     }
+    if(actor.role==="caster"&&actor.abilities.includes("crystal-mirror")){
+      const protectedAlly=allies.filter(a=>!a.statuses.some(s=>s.kind==="crystal-mirror")&&
+        (a.hp/a.maxHp<.63||enemies.some(e=>e.targetId===a.id&&
+          e.cast?.remainingMs>0))).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+      if(protectedAlly&&this.tryCast(actor,["crystal-mirror"],protectedAlly))return;
+    }
     if(!target)return;
     if(style==="disruptive"&&target.cast&&!this.isIncapacitated(target)&&
       actor.role!=="healer"&&this.tryCast(actor,["null-prison"],target))return;
@@ -258,6 +264,15 @@ export class EnergyAI {
       if(d>122)return; // travel rather than wasting AI decisions against an out-of-range foe.
       if(this.tryCast(actor,["seismic-uppercut","arc-strike","gravity-hammer","rift-slash"],focus))return;
       if(this.tryCast(actor,["entropy-mark"],focus))return;
+    }else if(actor.role==="caster"&&actor.abilities.includes("froststorm")){
+      const cluster=enemies.filter(e=>dist(e,target)<190).length;
+      if(cluster>=2&&this.tryCast(actor,["froststorm"],target))return;
+      if(cluster>=3&&this.tryCast(actor,["avalanche"],target))return;
+      if(!this.isRooted(target)&&dist(actor,target)<480&&
+        this.tryCast(actor,["crystal-snare"],target))return;
+      if(target.statuses.some(q=>q.kind==="chilled-mark"||q.kind==="root")&&
+        this.tryCast(actor,["fracture-spear"],target))return;
+      if(this.tryCast(actor,["fracture-spear","crystal-bolt"],target))return;
     }else{
       const keepDot=!focus.statuses.some(s=>s.kind==="dot"&&s.sourceId===actor.id);
       if(keepDot&&this.tryCast(actor,["entropy-mark"],focus))return;

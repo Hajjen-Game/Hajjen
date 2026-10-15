@@ -90,19 +90,20 @@ export class EnergyCombatUX{
       const recallStatus=recallTarget?.statuses.find(s=>
         s.kind==="vital-recall"&&s.sourceId===player.id&&s.remaining>0);
       const rampartRecast=slot.id==="kinetic-rampart"&&player.rampart?.until>match.time;
-      const canRecast=Boolean(recallStatus)||Boolean(rampartRecast)||
+      const familiarRecast=slot.id==="cinder-familiar"&&player.familiar?.until>match.time;
+      const canRecast=Boolean(recallStatus)||Boolean(rampartRecast)||Boolean(familiarRecast)||
         (slot.id==="soul-relay"&&player.relayPending?.until>match.time);
-      node.classList.toggle("recast-ready",Boolean(recallStatus));
+      node.classList.toggle("recast-ready",Boolean(recallStatus)||Boolean(familiarRecast));
       node.classList.toggle("relay-select-partner",slot.id==="soul-relay"&&canRecast);
       const remaining=canRecast?0:player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
       const gcd=canRecast?0:(player.gcd||0);
       const activeCast=player.cast?.spellId===slot.id;
       const target=rule.mode==="dash"?null:match.currentTarget(player,rule.mode,player.targetId);
-      const wrongTarget=!target&&!["dash","rampart","ground","direction"].includes(rule.mode);
-      const range=!canRecast&&!!target&&!["dash","rampart","ground","direction"].includes(rule.mode)&&
+      const wrongTarget=!target&&!["dash","rampart","ground","direction","summon","ascension"].includes(rule.mode);
+      const range=!canRecast&&!!target&&!["dash","rampart","ground","direction","summon","ascension"].includes(rule.mode)&&
         Math.hypot(target.x-player.x,target.y-player.y)>(rule.range||490);
-      const los=!canRecast&&!!target&&!range&&!["dash","rampart","ground","direction"].includes(rule.mode)&&
+      const los=!canRecast&&!!target&&!range&&!["dash","rampart","ground","direction","summon","ascension"].includes(rule.mode)&&
         !this.hasLOS(player,target,match.arena);
       const resource=!canRecast&&player.flux<match.cost(player,rule,slot.id);
       const controlled=(player.statuses||[]).some(s=>
@@ -135,7 +136,7 @@ export class EnergyCombatUX{
         1-player.cast.remainingMs/Math.max(1,player.cast.totalMs),0,1):0;
       fx.cast.style.width=(progress*100).toFixed(1)+"%";
       cd.textContent=recallStatus?"↻ "+recallStatus.remaining.toFixed(1)+"s":
-        rampartRecast?"↻ RELEASE":
+        rampartRecast?"↻ RELEASE":familiarRecast?"↻ DETONATE":
         remaining>.015?(remaining>=10?Math.ceil(remaining):remaining.toFixed(1))+"s"
         :lock>.015?"LOCK "+Math.ceil(lock)+"s":"";
       // Preserve reason in tooltip and accessibility even when hiding its

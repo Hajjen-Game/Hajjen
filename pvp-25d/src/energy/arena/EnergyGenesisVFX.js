@@ -401,11 +401,19 @@ export class EnergyGenesisVFX{
         this.proc(event,match);
       return false;
     }
-    if(event.type==="windup"&&actor){this.windup(actor,id,event.castSeconds||.38);return true;}
+    if(event.type==="windup"&&actor){
+      if(id==="vital-cascade"&&target)
+        this.cascadeOrigins.set(actor.id,{
+          targetId:target.id,until:performance.now()+900});
+      this.windup(actor,id,event.castSeconds||.38);
+      return true;
+    }
     if(event.type==="heal"&&target){
       const source=actor||target;
       if(id==="vital-cascade"&&source.id!==target.id){
-        const chosen=match.getActor(source.targetId);
+        const selected=this.cascadeOrigins.get(source.id);
+        const chosen=match.getActor(selected?.until>performance.now()?
+          selected.targetId:source.targetId);
         const primary=chosen?.alive&&chosen.team===source.team?chosen:target;
         const direct=primary.id===target.id;
         const start=direct?source:primary;
@@ -580,6 +588,8 @@ export class EnergyGenesisVFX{
       this.statusFX.delete(key);
     for(const [id,state]of this.relayFirst)if(state.until<now)
       this.relayFirst.delete(id);
+    for(const [id,state]of this.cascadeOrigins)if(state.until<now)
+      this.cascadeOrigins.delete(id);
   }
   remove(f){
     for(const p of f.parts)p.mesh.dispose();

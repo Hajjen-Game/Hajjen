@@ -5,6 +5,29 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Solar 1.0: New Fourth Origin + Six Solar Spells (2026-10-15)
+
+**Status: IMPLEMENTED ON GITHUB MAIN. Scripted runtime checks pass; IN-BROWSER VISUAL, FEEL, AI AND SAVE PLAYTEST STILL PENDING.** Solar is a **separate fourth Origin/role** with key `solar`; it is NOT renamed Eclipse or a shared discipline. Void will be the fifth Origin in a later pass. Existing Genesis/Impact/Eclipse saves and kits stay intact.
+
+### Non-negotiable player requirement: PROTECT SUN LANCE'S ORIGINAL ANIMATION
+- **DO NOT ALTER** Sun Lance's existing buildup, projectile, projectile trail/tail, original impact appearance or timing unless the user requests it later. The user is very pleased with this animation and wants it preserved, just like Crystal Bolt. Keep it as a reference for future spells.
+- All new Solar Evolutions, including Judgment of Dawn and Split Lance, add **separate VFX events** outside the Sun Lance original VFX pipeline. `EnergyArenaRenderer`'s new effects do not replace the original HeroSpellFX/Pixi Sun Lance components.
+
+### Locked six-spell kit & twelve core Evolutions
+1. **Flux Bolt:** three same-target-hit rhythm; Corona Volley (third-hit seeking bolts to up to three neighbors), Thunderhead (three delayed overhead lightning strikes), Helios Beam (after three hits, hold next Flux Bolt to channel up to two seconds; early release stops; repeat ticks visibly focus on target). Do not reintroduce rejected Solar Reactor.
+2. **Sun Lance:** core finisher retaining original VFX and low-health bonus. Judgment of Dawn (additional skybeam on an enemy below 35% HP), Scorching Lance (burn; marked victim death produces AoE fire and spreads burn), Split Lance (two smaller guided bolts into **already wounded** additional targets).
+3. **Zenith Crash:** player **mouse-clicks a free ground position**, waits through telegraph, then a powerful pillar lands at that location. Solar Aftershock (same location second delayed pillar), Burning Ground (three plasma damage ticks), Prism Cross (four outward diagonal ground beam arms respecting collision/LOS).
+4. **Cinder Familiar:** single following/orbiting mini-sun **spell manifestation**, not AI actor/party slot; duration ~12s, CD ~35s. Phoenix Dive (ONE energy-phoenix dive through groups and return), Soulbrand (focus/mark target, burn-ray + bounded procs from owner's offensive spell impacts), Dying Star (ONLY this Evolution allows manual second-press early Supernova, which consumes the Familiar). No rejected Ember Swarm.
+5. **Solar Ascension:** three temporary orbiting sigils; next three eligible *offensive Solar player spells* trigger individually visible skybeams. Does not count independent Familiar ticks, and no extra Evolution choices.
+6. **Chain Tempest:** large electric orb direct attack; capped chained blasts into up to four nearby enemies. Against a lone target/boss, concentrated sequential follow-up strikes. No Evolutions.
+
+### Integration & test obligations
+- **Fourth character creation choice and Game Dev option**; independent Origin save and DEV Stage 20 profile. Solar can play Planet Defense/Rift with Genesis and Impact companions, and has 1v1/2v2/3v3 fallback spawns; preserving each earlier Origin's normal two-companion configuration.
+- Six exclusive spell nodes around the Solar HUB Energy orb; four core Evolution satellite trees, slots 5/6 intentionally standalone and no shared spell swapping. Journey starts Flux Bolt + Sun Lance; unlocks four more at Stage **3/6/9/12**, Evolutions at **10/12/14/16**, Stage20 Rift remains. Stage cadence is provisional and mirrors the other class implementations.
+- AI chooses Familiar intelligently (not repeatedly resummoning), prioritizes burst windows, Zenith ground placement, casted Solar attacks and occasional Ascension; Soulbrand/Familiar update through the normal simulation with no extra actor entry. VFX first pass includes glowing familiar, golden sigils, Helios beam ticks, skybeams, lightning, pillar cross and energy Phoenix.
+- **29 directed mock-runtime checks have passed** in this work session: class/Journey/PvE rosters/spawn fallback, full spell roster and 12 Evolution count, baseline Sun Lance, free ground Zenith, Aftershock/Prism Cross/wall blocking/Burning Ground, Cinder's real timed attacks/Dying Star restriction/Soulbrand/Phoenix, three Ascension charges and orbit visuals, Chain Tempest boss and AoE, Helios full hold and immediate early release, Corona seeking shards, Thunderhead delayed strikes, Judgment of Dawn, Scorching death spread and Split Lance wounded-only targeting. These do not replace visual browser QA. Full JS syntax and dependency cache checks to follow.
+- **Browser testing focus:** Compare Sun Lance before/after for EXACT unchanged original visuals; check Solar creation/DEV load and HUB node lock; verify freely clicked Zenith ground target behind obstacles; channel Helios with key held and release early; inspect Familiar tracking, Phoenix silhouette, manual Dying Star, Solar Ascension sigils and single boss Chain Tempest. Tune numbers only after feel tests. Cross-class Synergies remain parked.
+
 ## IMPLEMENTED IN TEST — Eclipse 1.0: Six Cryo Class Spells (2026-10-15)
 
 **Status: IMPLEMENTED IN GITHUB, MOCK-COMBAT TESTS PASS; IN-BROWSER VFX/AI FEEL AND LIVE DEPLOY MUST STILL BE VERIFIED.** This is Eclipse's dedicated six-spell class pass, following Genesis and Impact. Do not treat these tests as a full browser playtest.
@@ -145,7 +168,7 @@
 
 ## AGREED — Spell Design 2.3: Solar (2026-10-15)
 
-**Status: USER-APPROVED FOUR CORE SPELLS + TWELVE EVOLUTIONS, DESIGN ONLY / NOT IMPLEMENTED.** Solar is now its **own class-locked Origin**, not a pool of Solar abilities shared by other Origins. Inspired by the power fantasy of **Elemental Shaman + Warlock**: strong ranged casts, elemental lightning, devastating solar/fire effects, damage-over-time, and a conjured elemental familiar. Distinct from Eclipse's frost/control, Impact's melee/interruption and Genesis's healing. Spells 5–6 are later cross-class synergy spell slots and are NOT defined here.
+**Status: USER-APPROVED DESIGN, NOW IMPLEMENTED IN SOLAR 1.0 ABOVE; BROWSER VALIDATION PENDING.** Solar is now its **own class-locked Origin**, not a pool of Solar abilities shared by other Origins. Inspired by the power fantasy of **Elemental Shaman + Warlock**: strong ranged casts, elemental lightning, devastating solar/fire effects, damage-over-time, and a conjured elemental familiar. Distinct from Eclipse's frost/control, Impact's melee/interruption and Genesis's healing. Spells 5–6 are later cross-class synergy spell slots and are NOT defined here.
 
 ### Four approved baseline spells
 

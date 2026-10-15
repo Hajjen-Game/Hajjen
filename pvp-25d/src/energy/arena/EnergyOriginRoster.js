@@ -1,6 +1,6 @@
 // Multi-character roster for Energy Arena. All records remain local to this
 // browser. Old single-character keys mirror the active record for compatibility.
-import { ROLES, FREE_ABILITIES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import { ROLES, FREE_ABILITIES, GENESIS_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import { completeArenaBuild } from "./EnergyProgression.js?v=20261012-rift1";
 import { createBuild, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
 import { newJourney,readJourney } from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
@@ -12,10 +12,10 @@ const clone=value=>JSON.parse(JSON.stringify(value));
 const validCharacter=character=>character&&ROLES[character.role]
   &&typeof character.name==="string"&&character.name.trim().length>=2;
 const id=()=>Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10);
-export function freshOriginProgression(){
+export function freshOriginProgression(role=null){
   return {version:1,xp:0,wins:0,losses:0,lastMode:"training",energyFragments:0,
     blackHoleMatter:0,firstMatterGranted:false,singularity:null,
-    journey:newJourney()};
+    journey:newJourney(role)};
 }
 function safeBuildStore(value,role){
   const saved=Array.from({length:3},(_,i)=>{
@@ -25,14 +25,14 @@ function safeBuildStore(value,role){
   return {version:1,draft:value?.draft?.role===role?
     normalizeBuild(value.draft):createBuild(role),saved};
 }
-function safeProfile(value){
-  const defaults=freshOriginProgression();
+function safeProfile(value,role){
+  const defaults=freshOriginProgression(role);
   if(!value||typeof value!=="object")return defaults;
   const safe={...defaults,...value,version:1};
   // No forced conversion from historical XP/wins to Planet Defense clears:
   // only profiles that explicitly contain Journey v2 participate.
   if(!Object.prototype.hasOwnProperty.call(value,"journey"))delete safe.journey;
-  else if(readJourney(safe))safe.journey=readJourney(safe);
+  else if(readJourney(safe))safe.journey=readJourney({...safe,journey:{...safe.journey,originRole:role}});
   else delete safe.journey;
   return safe;
 }
@@ -41,7 +41,7 @@ function record(character,buildStore,profile,forcedId,devTest=false){
   const normalized={version:1,name:character.name.trim().slice(0,20),role:character.role};
   return {id:forcedId||id(),devTest:Boolean(devTest),character:normalized,
     builds:safeBuildStore(buildStore,normalized.role),
-    progression:safeProfile(profile)};
+    progression:safeProfile(profile,normalized.role)};
 }
 export function readOriginRoster(storage,legacyCharacter,buildStore,profile){
   try{
@@ -84,7 +84,7 @@ export function appendOrigin(roster,character){
   if(roster.characters.filter(entry=>!entry.devTest).length>=MAX_ORIGINS)
     throw Error("Your Origin list is full (12 characters).");
   const entry=record(character,{draft:createBuild(character.role),
-    saved:[null,null,null]},freshOriginProgression());
+    saved:[null,null,null]},freshOriginProgression(character.role));
   return {...roster,activeId:entry.id,characters:[...roster.characters,entry]};
 }
 // Internal Game Dev tool. The marker and save are explicitly isolated; never
@@ -94,10 +94,10 @@ export function upsertDevOrigin(roster,role){
   const origin=ROLES[role];
   const character={name:"DEV "+origin.name.toUpperCase(),role};
   const draft=completeArenaBuild(createBuild(role));
-  const progression={...freshOriginProgression(),
+  const progression={...freshOriginProgression(role),
     lastMode:"defense",devTest:true,devStage:20,
-    journey:{...newJourney(),clears:20,
-      owned:FREE_ABILITIES.map(spell=>spell.id),pending:null}};
+    journey:{...newJourney(role),clears:20,
+      owned:role==="healer"?GENESIS_CLASS_SPELL_IDS.slice(2):FREE_ABILITIES.map(spell=>spell.id),pending:null}};
   const entry=record(character,{draft,saved:[null,null,null]},
     progression,DEV_ORIGIN_ID,true);
   return {...roster,activeId:DEV_ORIGIN_ID,

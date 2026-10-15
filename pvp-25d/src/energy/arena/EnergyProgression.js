@@ -80,9 +80,8 @@ const PREFERENCES={
     "reactive-thread","resonance-cut","zenith-crash"],
 };
 const BOT_KITS={
-  healer:["pulse-mend","crystal-bolt","resonance-guard","photon-barrier",
-    "reactive-thread","cleanse-flux","sun-lance","null-prison",
-    "symbiosis-link","resonance-cut"],
+  healer:["pulse-mend","resonance-guard","vital-cascade",
+    "stasis-seal","vital-recall","soul-relay"],
   melee:["phase-rush","arc-strike","rift-slash","pulse-sever",
     "photon-barrier","gravity-hammer","entropy-mark","crystal-snare",
     "vector-rush","resonance-cut"],

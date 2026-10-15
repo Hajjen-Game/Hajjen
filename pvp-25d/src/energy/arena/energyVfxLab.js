@@ -64,7 +64,15 @@ const CLASS_SPELLS={
   caster:ECLIPSE_CLASS_SPELL_IDS,solar:SOLAR_CLASS_SPELL_IDS,
   void:VOID_CLASS_SPELL_IDS
 };
-let selectedRole="healer",selectedEvolution="",labUseCombat=true;
+let selectedRole="healer",selectedEvolution="",selectedTargetKey="auto",labUseCombat=true;
+const LAB_TARGETS=[
+  {key:"auto",label:"AUTO",description:"Recommended target for the current spell"},
+  {key:"self",label:"SELF",description:"Your own Origin"},
+  {key:"ally",label:"ALLY",description:"Your friendly test teammate"},
+  {key:"enemy1",label:"ENEMY 1",description:"Main test enemy"},
+  {key:"enemy2",label:"ENEMY 2",description:"Additional target on the upper side"},
+  {key:"enemy3",label:"ENEMY 3",description:"Additional target on the lower side"},
+];
 let visibleSpells=[],sequenceList=[],liveElapsed=0,liveActions=[];
 const classCatalogue=role=>(CLASS_SPELLS[role]||[]).map(id=>
   catalogue.find(s=>s.id===id)).filter(Boolean);
@@ -107,6 +115,52 @@ function setPhase(name,desc){
   $("phase-name").textContent=name;
   $("phase-description").textContent=desc;
 }
+function chosenActor(key){
+  return ({self:source,ally,enemy1:enemy,
+    enemy2:match.getActor("lab-extra-64"),
+    enemy3:match.getActor("lab-extra--75")})[key]||null;
+}
+function spellTarget(spell){
+  if(selectedTargetKey!=="auto")return chosenActor(selectedTargetKey);
+  const mode=ABILITY_RULES[spell.id]?.mode;
+  if(spell.id==="pulse-mend"&&selectedEvolution==="vital-reversal")return enemy;
+  if(["rampart","ascension","transform","summon"].includes(mode))return source;
+  return ["heal","guard","shield","mirror","recall","relay","team-heal",
+    "cleanse","hot","link"].includes(mode)?ally:enemy;
+}
+function renderTargetChoices(spell){
+  const root=$("lab-target-choices");
+  root.replaceChildren();
+  const selected=LAB_TARGETS.find(t=>t.key===selectedTargetKey)||LAB_TARGETS[0];
+  for(const option of LAB_TARGETS){
+    const button=el("button","lab-target-choice");
+    button.type="button";button.dataset.target=option.key;
+    button.setAttribute("aria-pressed",String(option.key===selectedTargetKey));
+    button.setAttribute("title",option.description);
+    if(option.key===selectedTargetKey)button.classList.add("selected");
+    const dot=el("span","lab-target-dot");dot.setAttribute("aria-hidden","true");
+    button.append(dot,el("span","",option.label));
+    button.addEventListener("click",()=>chooseTarget(option.key));
+    root.append(button);
+  }
+  $("lab-target-current").textContent=selected.label;
+  const target=spell?spellTarget(spell):null;
+  const mode=spell?ABILITY_RULES[spell.id]?.mode:null;
+  const untargeted=["rampart","ascension","transform","summon"].includes(mode);
+  const ground=["ground","teleport","direction"].includes(mode);
+  const reason=selectedTargetKey==="auto"?
+    "AUTO chooses "+(target?.name||"a suitable target")+" for this spell.":
+    selected.description+".";
+  $("lab-target-explainer").textContent=reason+
+    (untargeted?" This is a self-activated ability; target selection does not override its self effect.":
+    ground?" For this spell, the selected orb determines the ground or teleport direction.":"")+
+    " Click an orb in the arena to switch target.";
+}
+function chooseTarget(key){
+  if(!LAB_TARGETS.some(t=>t.key===key))return;
+  selectedTargetKey=key;
+  run(active||visibleSpells[0],false);
+}
 function prepareActors(spell){
   // Fresh actor shells pick up the spell's exact discipline palette.
   const tint=palette[spell.discipline];
@@ -120,7 +174,7 @@ function prepareActors(spell){
   source.energyStyle={core:tint,energy:spell.discipline==="solar"?"#fff1bd":
     spell.discipline==="cryo"?"#e4faff":spell.discipline==="vital"?"#ddfff1":"#efcbff"};
   source.role=selectedRole;
-  source.targetId=spell.target==="enemy"?enemy.id:ally.id;
+  source.targetId=(spellTarget(spell)||enemy).id;
   for(const participant of match.actors){
     participant.cast=null;
     participant.statuses=[];
@@ -129,16 +183,12 @@ function prepareActors(spell){
     participant.shield=0;
     participant.lastMove={x:0,y:0};
   }
+  renderTargetChoices(spell);
 }
 // Live mode intentionally creates a disposable *real* EnergyMatch for each
 // trial. All damage, cast timings, recasts, target checks, DoTs and procs are
 // taken from the production engine; no Journey/localStorage writes occur.
 const LIVE_PREVIEW_SECONDS=10.5;
-function spellTarget(spell){
-  const mode=ABILITY_RULES[spell.id]?.mode;
-  return ["heal","guard","shield","mirror","recall","relay","team-heal",
-    "cleanse","hot","link"].includes(mode) ? ally : enemy;
-}
 function previewCast(id,targetId=null,opts={}){
   const actor=match.player;
   const success=match.castAbility(actor,id,targetId??enemy.id,{silent:true,...opts});

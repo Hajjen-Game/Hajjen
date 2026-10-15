@@ -2,15 +2,16 @@
 // This save state is distinct from legacy XP, total wins and arena profiles.
 // Each Origin has two bound spells of ONE discipline (Genesis Vital,
 // Impact Kinetic, Eclipse Cryo); only FIRST clears advance hexes.
-import {ROLES,FREE_ABILITIES,ABILITY_BY_ID,MAX_FLUX,BASE_FLUX_REGEN,GENESIS_CLASS_SPELL_IDS,GENESIS_CORE_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,IMPACT_CORE_SPELL_IDS,ECLIPSE_CLASS_SPELL_IDS,ECLIPSE_CORE_SPELL_IDS} from "../abilityCatalog.js?v=20261015-eclipse1";
+import {ROLES,FREE_ABILITIES,ABILITY_BY_ID,MAX_FLUX,BASE_FLUX_REGEN,GENESIS_CLASS_SPELL_IDS,GENESIS_CORE_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,IMPACT_CORE_SPELL_IDS,ECLIPSE_CLASS_SPELL_IDS,ECLIPSE_CORE_SPELL_IDS,SOLAR_CLASS_SPELL_IDS,SOLAR_CORE_SPELL_IDS} from "../abilityCatalog.js?v=20261015-eclipse1";
 import {normalizeCompanionStyles} from "./EnergyCompanionStyles.js?v=20261012-style1";
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const FREE_IDS=new Set(FREE_ABILITIES.map(a=>a.id));
 const GENESIS_UNLOCKS=Object.freeze(GENESIS_CLASS_SPELL_IDS.slice(2));
 const IMPACT_UNLOCKS=Object.freeze(IMPACT_CLASS_SPELL_IDS.slice(2));
 const ECLIPSE_UNLOCKS=Object.freeze(ECLIPSE_CLASS_SPELL_IDS.slice(2));
-const classUnlocks=role=>role==="healer"?GENESIS_UNLOCKS:role==="melee"?IMPACT_UNLOCKS:role==="caster"?ECLIPSE_UNLOCKS:null;
-const classCores=role=>role==="healer"?GENESIS_CORE_SPELL_IDS:role==="melee"?IMPACT_CORE_SPELL_IDS:role==="caster"?ECLIPSE_CORE_SPELL_IDS:null;
+const SOLAR_UNLOCKS=Object.freeze(SOLAR_CLASS_SPELL_IDS.slice(2));
+const classUnlocks=role=>role==="healer"?GENESIS_UNLOCKS:role==="melee"?IMPACT_UNLOCKS:role==="caster"?ECLIPSE_UNLOCKS:role==="solar"?SOLAR_UNLOCKS:null;
+const classCores=role=>role==="healer"?GENESIS_CORE_SPELL_IDS:role==="melee"?IMPACT_CORE_SPELL_IDS:role==="caster"?ECLIPSE_CORE_SPELL_IDS:role==="solar"?SOLAR_CORE_SPELL_IDS:null;
 // Preliminary Journey pacing: each implemented Origin earns four class spells, not 16 mixed-school discoveries.
 const GENESIS_DISCOVERY_STAGES=Object.freeze([3,6,9,12]);
 const EARLY=["entropy-mark","sun-lance","fracture-spear","vector-rush","reactive-thread"];

@@ -158,7 +158,8 @@ export class EnergyGenesisVFX{
   }
   stasis(actor,subject){
     const status=subject?.statuses?.find(s=>s.kind==="incapacitate"&&
-      s.spellId==="stasis-seal"&&s.sourceId===actor?.id&&s.remaining>0);
+      ["stasis-seal","stasis-wave"].includes(s.spellId)&&
+      s.sourceId===actor?.id&&s.remaining>0);
     if(!status)return null;
     const key="stasis:"+subject.id;
     if(this.statusFX.has(key))this.drop(this.statusFX.get(key));
@@ -307,7 +308,13 @@ export class EnergyGenesisVFX{
       return;
     }
     if(kind==="guardian-network"&&actor&&target){
-      this.shield(actor,target,match);return;
+      this.shield(actor,target,match);
+      const chosen=match.getActor(actor.targetId);
+      const origin=chosen?.alive&&chosen.team===actor.team?chosen:actor;
+      if(origin.id!==target.id)
+        this.flight(this.pos(origin),this.pos(target),
+          "guardian-network-flight",500);
+      return;
     }
     if(kind==="retaliation"){
       this.leafBurst(point,true,"retaliation-release");
@@ -376,8 +383,13 @@ export class EnergyGenesisVFX{
   }
   spawn(event,match){
     const id=event.spellId;
-    if(!GENESIS_VFX_IDS.has(id))return false;
+    const secondaryStasis=id==="stasis-wave"&&event.type==="control";
+    if(!GENESIS_VFX_IDS.has(id)&&!secondaryStasis)return false;
     const actor=match.getActor(event.actorId),target=match.getActor(event.targetId);
+    if(secondaryStasis){
+      if(actor&&target)this.stasis(actor,target);
+      return true;
+    }
     // Pulse Mend has an established authored signature animation.
     // It STILL passes through the existing original pipeline for base casts
     // and heals. Only its three new Evolution procs get additive visuals.
@@ -458,7 +470,8 @@ export class EnergyGenesisVFX{
             this.leafBurst(this.pos(subject),false,"shield-absorb");
           }
         }else if(f.statusKind==="stasis"&&
-          !subject.statuses.some(s=>s.spellId==="stasis-seal"&&
+          !subject.statuses.some(s=>
+            ["stasis-seal","stasis-wave"].includes(s.spellId)&&
             s.kind==="incapacitate"&&s.sourceId===f.sourceId&&s.remaining>0))progress=1;
         else if(f.statusKind==="heart"&&
           !subject.statuses.some(s=>s.kind==="second-heart"&&

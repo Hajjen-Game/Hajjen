@@ -382,7 +382,7 @@ export class EnergyCharacterHub{
     }
     const intro=document.querySelector(".hub-journey-intro");
     if(intro&&journey&&["healer","melee"].includes(build.role))
-      intro.textContent=ROLES[build.role].name.toUpperCase()+" JOURNEY · Unlock four more "+(["healer","melee"].includes(build.role)?"Vital":"Kinetic")+" class spells over 20 Stages. All six abilities appear around the Energy orb; only the four core spells evolve.";
+      intro.textContent=ROLES[build.role].name.toUpperCase()+" JOURNEY · Unlock four more "+(build.role==="healer"?"Vital":"Kinetic")+" class spells over 20 Stages. All six abilities appear around the Energy orb; only the four core spells evolve.";
     $("hub-orb-stage").style.setProperty("--hub-core",identity.style.core);
     $("hub-orb-stage").style.setProperty("--hub-accent",identity.style.energy);
     this.renderTree();

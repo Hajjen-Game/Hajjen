@@ -398,12 +398,12 @@ export class EnergyMatch {
     // resolves. Being kicked must NOT consume Null Prison's 24s cooldown.
     // Instants (including a fake interrupt) retain their existing cooldown.
     if(!rule.cast&&spellId!=="soul-relay")actor.cooldowns[spellId]=rule.cd||0;
+    const crescendo=spellId==="pulse-mend"&&actor.evolutions[spellId]==="vital-crescendo"&&
+      target?.team===actor.team&&opts.holdToCharge===true;
+    const castSeconds=crescendo?2.5:(rule.cast||0);
     this.emit({type:"windup",actorId:actor.id,targetId:target?.id||null,
-      spellId,castSeconds:rule.cast||0});
+      spellId,castSeconds});
     if(rule.cast) {
-      const crescendo=spellId==="pulse-mend"&&actor.evolutions[spellId]==="vital-crescendo"&&
-        target?.team===actor.team&&opts.holdToCharge===true;
-      const castSeconds=crescendo?2.5:rule.cast;
       actor.cast={spellId,remainingMs:castSeconds*1000,totalMs:castSeconds*1000,
         targetId:target?.id||null,crescendoHeld:crescendo};
       if(spellId==="zenith-crash"&&target){

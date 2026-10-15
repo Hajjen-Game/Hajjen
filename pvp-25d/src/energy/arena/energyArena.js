@@ -244,10 +244,13 @@ function castSlot(index,heldKey=false){
   match.dashDirection=directionalVector();
   const p=match.player;
   const reason=match.reason(p,ability,p.targetId);
-  if(ability==="gravity-hammer"&&!reason){
+  if(["gravity-hammer","froststorm","avalanche"].includes(ability)&&!reason){
     pendingGroundAim=pendingGroundAim===ability?null:ability;
     $("energy-canvas").style.cursor=pendingGroundAim?"crosshair":"";
-    flash(pendingGroundAim?"GRAVITY HAMMER · CLICK THE ARENA TO CHOOSE IMPACT":"GRAVITY HAMMER · CANCELLED");
+    flash(pendingGroundAim?
+      (ability==="avalanche"?"AVALANCHE · CLICK A DIRECTION IN THE ARENA":
+        ABILITY_BY_ID[ability].name.toUpperCase()+" · CLICK THE ARENA TO PLACE"):
+      ABILITY_BY_ID[ability].name.toUpperCase()+" · CANCELLED");
     return;
   }
   pendingGroundAim=null;
@@ -719,14 +722,15 @@ function frameLoop(now){
 }
 $("energy-canvas").addEventListener("click",event=>{
   if(!match||!renderer)return;
-  if(pendingGroundAim==="gravity-hammer"){
+  if(["gravity-hammer","froststorm","avalanche"].includes(pendingGroundAim)){
+    const spellId=pendingGroundAim;
     const point=renderer.pickGround(event.clientX,event.clientY);
-    const success=point&&match.castAbility(match.player,"gravity-hammer",
+    const success=point&&match.castAbility(match.player,spellId,
       match.player.targetId,{point});
     if(success){
       pendingGroundAim=null;$("energy-canvas").style.cursor="";
-      flash("GRAVITY HAMMER · IMPACT LOCATION LOCKED");
-    }else flash("GRAVITY HAMMER · SELECT A VISIBLE POSITION WITHIN RANGE");
+      flash(ABILITY_BY_ID[spellId].name.toUpperCase()+" · AIM CONFIRMED");
+    }else flash(ABILITY_BY_ID[spellId].name.toUpperCase()+" · CHOOSE A VALID ARENA POSITION");
     renderUI();
     return;
   }

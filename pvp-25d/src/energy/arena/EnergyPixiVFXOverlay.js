@@ -6,6 +6,7 @@ import { drawProjectileImpact } from "./EnergyPixiImpacts.js?v=20261008-attack-f
 import { drawEclipsePixi,ECLIPSE_PIXI_IDS } from "./EnergyEclipsePixiAccents.js?v=20261015-eclipse-pixi1";
 import { drawSolarPixi,SOLAR_PIXI_IDS } from "./EnergySolarPixiAccents.js?v=20261015-solar-pixi1";
 import { drawGenesisPixi,GENESIS_PIXI_IDS,GENESIS_PULSE_EVOS } from "./EnergyGenesisPixiAccents.js?v=20261015-genesis-pixi2";
+import { drawImpactPixi,IMPACT_PIXI_IDS } from "./EnergyImpactPixiAccents.js?v=20261015-impact-pixi1";
 import { drawRiftSlashCharge,drawRiftSlashTravel,drawRiftSlashContact } from "./EnergyRiftSlashVFX.js?v=20261009-side-swing20";
 const PIXI_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const S=.02,TAU=Math.PI*2;
@@ -78,6 +79,33 @@ export class EnergyPixiVFXOverlay {
     }
   }
   spawn(event,match){
+    // The six Impact-only spells: no overlap with the protected signatures.
+    if(IMPACT_PIXI_IDS.has(event.spellId)){
+      if(!["windup","charge-start","charge-trail","charge-impact",
+        "hit","interrupt","ability","evolution-proc","identity-proc",
+        "ground-telegraph"].includes(event.type))return;
+      const source=match.getActor(event.actorId);
+      if(!source)return;
+      const target=match.getActor(event.targetId);
+      const kind=event.kind||"";
+      const duration=event.type==="ground-telegraph"?
+        clamp((event.duration||.6)*1000,380,1900):
+        event.type==="windup"?clamp((event.castSeconds||.34)*1000,280,2500):
+        kind==="gravity-impact"||kind==="meteor-charge"||
+          kind==="uppercut-crash"?790:
+        kind==="rampart-start"||kind==="warpath"?880:
+        event.type==="charge-trail"?300:560;
+      this.effects.push({impact:true,spellId:event.spellId,
+        type:event.type,kind,sourceId:source.id,targetId:target?.id||null,
+        start:performance.now(),duration,seed:++this.sequence,
+        second:event.spellId==="arc-strike"&&
+          (source.strikeSwingCounter||0)%2===0,
+        launch:{x:source.x*S,z:source.y*S},
+        x:Number.isFinite(event.x)?event.x:null,
+        y:Number.isFinite(event.y)?event.y:null});
+      if(this.effects.length>85)this.effects.splice(0,this.effects.length-85);
+      return;
+    }
     // All non-signature Genesis skills and Pulse Mend's *Evolution only*
     // accents, without replacing its accepted base signatures.
     const isMendEvo=event.spellId==="pulse-mend"&&
@@ -627,6 +655,13 @@ export class EnergyPixiVFXOverlay {
       if(!from||!to)continue;
       // Restored Visual Combat Slice visual language for ALL eight signatures.
       // No second saturated Sun/Crystal palette painted over the caster.
+      if(e.impact){
+        const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
+          this.projectWorld(e.x*S,e.y*S):to;
+        const size=this.impactScale(b||a,point||to);
+        drawImpactPixi(g,e,from,point||to,t,size);
+        continue;
+      }
       if(e.genesis){
         const point=Number.isFinite(e.x)&&Number.isFinite(e.y)?
           this.projectWorld(e.x*S,e.y*S):to;

@@ -699,7 +699,7 @@ export class EnergyArenaRenderer {
       const target=match.getActor(event.targetId)||match.getActor(event.actorId);
       if(target){
         const hex=event.role==="healer"?"#85f0b8":
-          event.role==="melee"?"#f58ca0":"#8ecaff";
+          event.role==="melee"?"#f58ca0":event.role==="solar"?"#ffcb78":"#8ecaff";
         const pos=new BABYLON.Vector3(target.x*S,.14,target.y*S);
         this.spellFX.ring(pos,hex,
           event.kind==="wave"?3.1:event.kind==="impact"?1.8:1.25,

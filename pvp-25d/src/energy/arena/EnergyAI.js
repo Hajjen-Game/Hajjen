@@ -203,6 +203,13 @@ export class EnergyAI {
     if(urgentHealth<(style==="protective"?.83:.45)){
       if(this.tryCast(actor,["resonance-guard","photon-barrier"],urgent))return;
     }
+    if(priority&&actor.abilities.includes("vital-cascade")){
+      // Heal a distributed party before choosing between single-target
+      // Mend and protection. No ground AoE: it follows all injured allies.
+      const wounded=allies.filter(a=>a.hp/a.maxHp<.78);
+      if(wounded.length>=2&&this.tryCast(actor,["vital-cascade"],wounded[0]))return;
+      if(urgentHealth<.48&&this.tryCast(actor,["vital-recall"],urgent))return;
+    }
     if(priority){
       // Dispels high-impact CC first: never cleanse a harmless slow while an ally is imprisoned.
       const controlled=allies.find(a=>a.statuses.some(s=>s.negative&&(s.kind==="incapacitate"||s.kind==="root")));
@@ -248,6 +255,10 @@ export class EnergyAI {
     }
     // A support healer MUST stay offensive whenever healing is not needed.
     if(actor.role==="healer"){
+      // Genesis is primarily a support Origin; use its control to interrupt
+      // a dangerous channel, not a legacy Solar/Cryo spell from another class.
+      if(focus.cast&&!this.isIncapacitated(focus)&&
+        this.tryCast(actor,["stasis-seal"],focus))return;
       this.tryCast(actor,["sun-lance","crystal-bolt","flux-bolt","entropy-mark"],focus);
     }
   }

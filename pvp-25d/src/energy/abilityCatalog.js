@@ -13,7 +13,7 @@ export const ROLES = Object.freeze({
   healer: {
     name: "Genesis", color: "#66d5ad", subtitle: "Life & protection",
     description: "Genesis draws on the energy of creation. Restore health, protect allies and survive long enough to turn the tide.",
-    playstyle: "Choose Genesis if you enjoy helping your team, surviving pressure and mixing support with your own attacks.",
+    playstyle: "Choose Genesis to heal, create absorb shields, save allies from heavy damage and protect your team with six exclusive Vital abilities.",
     passive: "Healing spells cost 15% less Flux.",
     locked: ["pulse-mend", "resonance-guard"],
   },
@@ -48,17 +48,32 @@ function ability(id, name, discipline, category, description, details, evolution
   });
 }
 
+export const GENESIS_CLASS_SPELL_IDS = Object.freeze(["pulse-mend","resonance-guard","vital-cascade","stasis-seal","vital-recall","soul-relay"]);
+export const GENESIS_CORE_SPELL_IDS = Object.freeze(["pulse-mend","resonance-guard","vital-cascade","stasis-seal"]);
+
 export const ABILITIES = Object.freeze([
-  ability("pulse-mend","Pulse Mend","vital","Direct heal","Reliable casted heal on self or an ally.","1.5s cast · Role ability",[
-    ["restoration","Restoration","Stronger direct healing at reduced Flux cost."],
-    ["resonance","Resonance","Direct offensive damage charges up the next Pulse Mend."],
-    ["preservation","Preservation","A portion of the heal becomes a short absorption shield."],
+  ability("pulse-mend","Pulse Mend","vital","Direct or offensive healing","Heal a teammate; with Vital Reversal, strike an enemy to heal wounded allies and restore an active Resonance Guard.","1.5s cast · Genesis core",[
+    ["vital-crescendo","Vital Crescendo","Hold the cast longer to build a colossal single-target heal."],
+    ["second-heart","Second Heart","Place an emergency Vital core that heals the recipient when critically wounded."],
+    ["vital-reversal","Vital Reversal","Cast on an enemy to damage it, heal all injured teammates, and refill active Resonance Guard absorbs."],
   ],"healer"),
-  ability("resonance-guard","Resonance Guard","vital","Damage reduction","Brief percentage damage reduction on self or an ally.","Instant · Role defensive",[
-    ["guardian","Guardian","Stronger damage reduction with a longer cooldown."],
-    ["retaliation","Retaliation","A capped portion of prevented damage returns as offensive energy."],
-    ["harmonic-field","Harmonic Field","Smaller protection also reaches a nearby ally."],
+  ability("resonance-guard","Resonance Guard","vital","Absorb shield","Wrap yourself or an ally in a finite absorb shield; prevents damage rather than reducing damage by a percentage.","Instant · 8s absorb · 32s CD",[
+    ["guardian-network","Guardian Network","Grant smaller absorb shields to all other teammates, regardless of spacing."],
+    ["retaliation","Retaliation","Store absorbed damage, then launch energy bolts at the enemies when the shield bursts or expires."],
+    ["last-stand","Last Stand","Once during the shield, prevent a lethal hit and restore some of the protected ally's HP."],
   ],"healer"),
+  ability("vital-cascade","Vital Cascade","vital","Seeking team heal","Heal a selected teammate, then visibly chain to the other wounded allies no matter where they stand.","Instant · Team healing · 22s CD",[
+    ["double-cascade","Double Cascade","Send a second smart healing wave to the allies who still need it most."],
+    ["rejuvenating-orbit","Rejuvenating Orbit","Give healed teammates orbiting Vital cores that pulse healing for several seconds."],
+    ["life-transfer","Life Transfer","Safely transfer a capped amount of HP from a healthy teammate to rescue the most injured one."],
+  ],"healer"),
+  ability("stasis-seal","Stasis Seal","vital","Breakable crowd control","Enclose a single target in luminous stasis; disables ordinary enemies until time expires or damage breaks it. Bosses resist hard CC.","Instant · Up to 5s CC · 24s CD",[
+    ["tranquility-wave","Tranquility Wave","Spread shorter, damage-breakable stasis to eligible nearby mobs."],
+    ["mercy-bloom","Mercy Bloom","On stasis break or expiry, send a healing blossom to the most injured teammate."],
+    ["essence-siphon","Essence Siphon","While stasis holds, stream Flux back to Genesis and send gentle healing pulses to the team."],
+  ],"healer"),
+  ability("vital-recall","Vital Recall","vital","Healing rewind","Mark a teammate for four seconds, then recast to restore a large but capped share of health they lost since marking.","Instant · Recast · 36s CD",[],"healer"),
+  ability("soul-relay","Soul Relay","vital","Life connection","Link two teammates, dividing some incoming damage and sharing part of their healing over any distance. Transferred damage cannot kill.","Instant · Paired link · 24s CD",[],"healer"),
   ability("phase-rush","Phase Rush","kinetic","Gap closer","Fast targeted rush toward an enemy; does not stun.","Instant · Role mobility",[
     ["impact","Impact","The next melee ability after rushing deals bonus damage."],
     ["pursuit","Pursuit","Shorter cooldown for more frequent pursuit."],
@@ -166,5 +181,8 @@ export const ABILITY_BY_ID = Object.freeze(Object.fromEntries(ABILITIES.map(a =>
 export const FREE_ABILITIES = Object.freeze(ABILITIES.filter(a => !a.role));
 export function availableAbilities(role) {
   if (!ROLES[role]) throw new Error("Unknown role: " + role);
+  // Genesis is the first fully migrated, class-locked six-spell kit.
+  // Other Origins retain their legacy shared pools until their own class passes.
+  if (role === "healer") return GENESIS_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   return ABILITIES.filter(a => !a.role || a.role === role);
 }

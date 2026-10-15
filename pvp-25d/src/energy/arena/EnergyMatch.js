@@ -25,7 +25,9 @@ export const ABILITY_RULES = Object.freeze({
   "stasis-seal":      { mode:"cc",cc:"incapacitate",duration:5,cost:20,cd:24,range:490 },
   "vital-recall":     { mode:"recall",cost:20,cd:36,duration:4,range:490 },
   "soul-relay":       { mode:"relay",cost:22,cd:24,duration:10,range:4900 },
-  "phase-rush":       { mode:"rush",cost:14,cd:17,range:450 },
+  "phase-rush":       { mode:"rush",cost:14,cd:17,range:450 }, 
+  "seismic-uppercut": { mode:"damage",amount:25,cost:27,cd:25,range:110 },
+  "kinetic-rampart":  { mode:"rampart",cost:24,cd:30,duration:4,range:0 },
   "pulse-sever":      { mode:"interrupt",cost:10,cd:15,range:105 },
   "flux-bolt":        { mode:"damage",amount:17,cost:11,cast:1.5,range:490 },
   "phase-slip":       { mode:"dash",distance:170,cost:16,cd:23 },
@@ -39,7 +41,7 @@ export const ABILITY_RULES = Object.freeze({
   "crystal-snare":    { mode:"cc",cc:"root",duration:3,cost:15,cd:18,range:490 },
   "fracture-spear":   { mode:"damage",amount:32,cost:24,cast:1.7,cd:12,range:490,controlBonus:0.3 },
   "arc-strike":       { mode:"damage",amount:13,cost:10,range:100 },
-  "gravity-hammer":   { mode:"damage",amount:37,cost:27,cast:0.6,cd:12,range:105 },
+  "gravity-hammer":   { mode:"ground",amount:37,cost:30,cast:0.6,cd:20,range:425,area:127 },
   "vector-rush":      { mode:"dash",distance:180,cost:14,cd:18 },
   "resonance-cut":    { mode:"interrupt",cost:15,cd:20,range:370 },
   "reactive-thread":  { mode:"hot",amount:6,ticks:5,period:2,cost:18,range:490,reactive:10 },
@@ -254,7 +256,7 @@ export class EnergyMatch {
   debuffed(actor){return actor.statuses.some(s=>s.negative&&s.remaining>0);}
   currentTarget(actor,mode,preferredId) {
     const chosen=this.getActor(preferredId||actor.targetId);
-    if(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"].includes(mode)){
+    if(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart"].includes(mode)){
       return chosen?.alive&&chosen.team===actor.team?chosen:actor;
     }
     if(mode==="hybrid")return chosen?.alive?chosen:actor;
@@ -269,8 +271,8 @@ export class EnergyMatch {
       return {...rule,mode:"hybrid"};
     // Guardian Network, Retaliation and Last Stand alter the shield's
     // behaviour rather than replacing the basic capped absorb.
-    if(spellId==="phase-rush"&&evo==="pursuit")
-      return {...rule,cd:Math.max(5,(rule.cd||0)-5)};
+    if(spellId==="gravity-hammer"&&evo==="singularity-impact")
+      return {...rule,amount:rule.amount*1.65,area:Math.round(rule.area*.60)};
     if(spellId==="flux-bolt"&&evo==="rapid-flux")
       return {...rule,cast:Math.max(.6,(rule.cast||0)-.35),amount:rule.amount*.85};
     if(spellId==="flux-bolt"&&evo==="overcharge")
@@ -330,6 +332,19 @@ export class EnergyMatch {
         this.evolutionProc(source,"vital-cascade","double-cascade",injured[0]||source);
         continue;
       }
+      if(e.kind==="gravity-well"){
+        this.evolutionProc(source,e.spellId,e.kind,null,e.x,e.y);
+        for(const enemy of this.opponents(source).filter(t=>distance(t,e)<=e.radius&&
+          hasLineOfSight(e,t,this.arena)).slice(0,9)){
+          this.damage(enemy,e.amount,source,e.spellId,true);
+          if(!enemy.boss){
+            const dx=e.x-enemy.x,dy=e.y-enemy.y,len=Math.hypot(dx,dy)||1;
+            const nx=enemy.x+dx/len*Math.min(20,len),ny=enemy.y+dy/len*Math.min(20,len);
+            if(this.canOccupy(enemy,nx,ny)){enemy.x=nx;enemy.y=ny;}
+          }
+        }
+        continue;
+      }
       if(e.targetId){
         const target=this.getActor(e.targetId);
         if(!target?.alive||target.team===source.team)continue;
@@ -370,19 +385,20 @@ export class EnergyMatch {
       a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id&&q.remaining>0));
     // Releasing an already armed rewind should not be eaten by the GCD:
     // players must be able to react before the four-second marker expires.
-    if(actor.gcd>0&&!secondRecall)return "GLOBAL COOLDOWN";
+    const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
+    if(actor.gcd>0&&!secondRecall&&!rampartRecast)return "GLOBAL COOLDOWN";
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
-    if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay)return "COOLDOWN";
+    if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay&&!rampartRecast)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
-    if(!secondRecall&&!secondRelay&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
+    if(!secondRecall&&!secondRelay&&!rampartRecast&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
     if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
     if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
-    if(rule.mode==="dash")return null;
+    if(rule.mode==="dash"||rule.mode==="rampart")return null;
     const target=this.currentTarget(actor,rule.mode,targetId);
     if(!target)return "SELECT A TARGET";
     const d=distance(actor,target);
-    if(d>(rule.range||490)&&!secondRecall)return "OUT OF RANGE";
-    if(!secondRecall&&!hasLineOfSight(actor,target,this.arena))return "LINE OF SIGHT";
+    if(d>(rule.range||490)&&!secondRecall&&rule.mode!=="ground")return "OUT OF RANGE";
+    if(!secondRecall&&rule.mode!=="ground"&&!hasLineOfSight(actor,target,this.arena))return "LINE OF SIGHT";
     // Interrupts may be used into a fake cast. The cooldown must still be spent.
     return null;
   }
@@ -394,12 +410,21 @@ export class EnergyMatch {
     const isRecallRecast=spellId==="vital-recall"&&this.allies(actor).some(a=>
       a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===actor.id&&q.remaining>0));
     const isRelaySecond=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
-    if(!isRecallRecast&&!isRelaySecond)actor.flux-=this.cost(actor,rule,spellId);
-    actor.gcd=(isRecallRecast||isRelaySecond)?0.6:1.3;
+    const rampartRecast=spellId==="kinetic-rampart"&&actor.rampart?.until>this.time;
+    const groundPoint=rule.mode==="ground"?(opts.point||
+      (target?.alive?{x:target.x,y:target.y}:null)):null;
+    if(rule.mode==="ground"&&(!groundPoint||distance(actor,groundPoint)>rule.range||
+      !canStand(groundPoint.x,groundPoint.y,this.arena,2)||
+      !hasLineOfSight(actor,groundPoint,this.arena))){
+      if(actor===this.player&&!opts.silent)this.log("GRAVITY HAMMER · INVALID GROUND POSITION");
+      return false;
+    }
+    if(!isRecallRecast&&!isRelaySecond&&!rampartRecast)actor.flux-=this.cost(actor,rule,spellId);
+    actor.gcd=(isRecallRecast||isRelaySecond||rampartRecast)?0.6:1.3;
     // Casted abilities earn their long cooldown only when the cast actually
     // resolves. Being kicked must NOT consume Null Prison's 24s cooldown.
     // Instants (including a fake interrupt) retain their existing cooldown.
-    if(!rule.cast&&spellId!=="soul-relay")actor.cooldowns[spellId]=rule.cd||0;
+    if(!rule.cast&&spellId!=="soul-relay"&&!rampartRecast)actor.cooldowns[spellId]=rule.cd||0;
     const crescendo=spellId==="pulse-mend"&&actor.evolutions[spellId]==="vital-crescendo"&&
       target?.team===actor.team&&opts.holdToCharge===true;
     const castSeconds=crescendo?2.5:(rule.cast||0);
@@ -408,6 +433,11 @@ export class EnergyMatch {
     if(rule.cast) {
       actor.cast={spellId,remainingMs:castSeconds*1000,totalMs:castSeconds*1000,
         targetId:target?.id||null,crescendoHeld:crescendo};
+      if(spellId==="gravity-hammer"&&groundPoint){
+        actor.cast.impact={...groundPoint};
+        this.emit({type:"ground-telegraph",actorId:actor.id,spellId,
+          x:groundPoint.x,y:groundPoint.y,radius:rule.area,duration:rule.cast});
+      }
       if(spellId==="zenith-crash"&&target){
         // Lock the GROUND at cast start. Moving enemies may dodge the pillar,
         // even if the originally targeted enemy dies during the warning.
@@ -505,6 +535,34 @@ export class EnergyMatch {
       if(origin)this.identityProc(origin,"resonance-cut","dissonance-absorbed",source);
     }
     const hpBefore=target.hp,shieldBefore=target.shield,rawDamage=value;
+    // Rampart only catches direct hostile, aimed, ranged projectiles
+    // entering its front arc; never melee, ground AoE, DoT or self damage.
+    const rampart=target.rampart;
+    const projectile=(!periodic&&source?.team!==target.team&&
+      ["flux-bolt","crystal-bolt","fracture-spear","sun-lance"].includes(spellId));
+    if(projectile&&rampart?.until>this.time&&rampart.charges>0){
+      const dx=source.x-target.x,dy=source.y-target.y,mag=Math.hypot(dx,dy)||1;
+      const facing=rampart.facing;
+      if((dx*facing.x+dy*facing.y)/mag>=.28){
+        rampart.stored=Math.min(target.maxHp*.5,rampart.stored+value);
+        rampart.charges--;
+        this.identityProc(target,"kinetic-rampart","rampart-catch",source);
+        this.emit({type:"hit",actorId:source.id,targetId:target.id,spellId,
+          amount:0,absorbed:Math.round(value),crit:false,rawDamage:value,
+          hpBefore,hpAfter:target.hp,shieldBefore,shieldAfter:target.shield});
+        if(rampart.charges===0)this.releaseRampart(target);
+        return;
+      }
+    }
+    const reprisal=target.statuses.find(q=>q.kind==="kinetic-reprisal"&&q.remaining>0);
+    if(reprisal&&!periodic&&source?.team!==target.team){
+      target.statuses=target.statuses.filter(q=>q!==reprisal);
+      const blocked=Math.min(value,Math.min(reprisal.capacity,target.maxHp*.35));
+      value-=blocked;
+      this.evolutionProc(target,"arc-strike","kinetic-reprisal",source);
+      if(source?.alive&&blocked>0)this.damage(source,Math.min(18,blocked*.32/this.power),
+        target,"arc-strike");
+    }
     const reflectingBarrier=target.statuses.find(s=>s.kind==="shield"&&
       s.spellId==="photon-barrier"&&s.evolution==="prismatic-return");
     const guard=target.statuses.find(s=>s.kind==="guard");
@@ -578,6 +636,13 @@ export class EnergyMatch {
             hasLineOfSight(target,t,this.arena)).slice(0,3))
           this.damage(foe,9,owner,"photon-barrier");
       }
+    }
+    if(target.hp<=0&&source?.pursuitTargetId===target.id&&
+      source.pursuitUntil>=this.time&&source.pursuitChain<2){
+      source.cooldowns["phase-rush"]=0;
+      source.pursuitReadyUntil=this.time+4;
+      this.evolutionProc(source,"phase-rush","relentless-pursuit",target);
+      source.pursuitTargetId=null;
     }
     if(value>0){
       // Null Prison is break-on-damage incapacitate, never an unbreakable stun.
@@ -764,6 +829,26 @@ export class EnergyMatch {
       x:actor.x,y:actor.y});
     if(!target?.alive)return;
     const evo=actor.evolutions[charge.spellId];
+    if(evo==="meteor-charge"){
+      this.evolutionProc(actor,"phase-rush","meteor-charge",target);
+      for(const foe of this.opponents(actor).filter(e=>
+        distance(e,actor)<165&&hasLineOfSight(actor,e,this.arena)).slice(0,7))
+        this.damage(foe,20,actor,"phase-rush");
+    }else if(evo==="piercing-charge"){
+      const dx=target.x-charge.fromX,dy=target.y-charge.fromY,len=Math.hypot(dx,dy)||1;
+      const ux=dx/len,uy=dy/len;
+      for(const foe of this.opponents(actor).filter(e=>e!==target).slice(0,12)){
+        const fx=foe.x-target.x,fy=foe.y-target.y;
+        const ahead=fx*ux+fy*uy,side=Math.abs(fx*uy-fy*ux);
+        if(ahead>0&&ahead<320&&side<66&&hasLineOfSight(target,foe,this.arena)){
+          this.damage(foe,18,actor,"phase-rush");
+          this.evolutionProc(actor,"phase-rush","piercing-charge",foe);
+        }
+      }
+    }else if(evo==="relentless-pursuit"){
+      actor.pursuitTargetId=target.id;
+      actor.pursuitUntil=this.time+3;
+    }
     if(evo==="impact"){
       actor.rushEmpower={until:this.time+5};
       this.evolutionProc(actor,charge.spellId,"impact-charge",target);
@@ -796,6 +881,39 @@ export class EnergyMatch {
         spellId:charge.spellId,x:actor.x,y:actor.y});
     }
     if(distance(actor,target)<=ORB_SEPARATION+5)this.finishCharge(actor);
+  }
+  releaseRampart(actor){
+    const r=actor.rampart;
+    if(!r)return;
+    actor.rampart=null;
+    this.identityProc(actor,"kinetic-rampart","rampart-volley",actor);
+    const foes=this.opponents(actor).filter(e=>hasLineOfSight(actor,e,this.arena))
+      .sort((a,b)=>distance(a,actor)-distance(b,actor)).slice(0,4);
+    for(const foe of foes)this.damage(foe,7+(r.stored/Math.max(1,foes.length))*.30/
+      Math.max(.01,this.power),actor,"kinetic-rampart");
+  }
+  resolveGravityHammer(actor,point,r){
+    const radius=r.area;
+    this.evolutionProc(actor,"gravity-hammer","gravity-impact",null,point.x,point.y);
+    const foes=this.opponents(actor).filter(e=>distance(e,point)<=radius&&
+      hasLineOfSight(point,e,this.arena)).slice(0,12);
+    for(const foe of foes){
+      this.damage(foe,r.amount,actor,"gravity-hammer");
+      if(!foe.boss&&!foe.elite&&actor.evolutions["gravity-hammer"]!=="singularity-impact")
+        this.applyCC(foe,"incapacitate",.6,actor,"gravity-hammer");
+    }
+    const evo=actor.evolutions["gravity-hammer"];
+    if(evo==="seismic-wave"){
+      for(const [i,ring]of [radius+55,radius+135,radius+215].entries())
+        this.scheduleEvolution(actor,"gravity-hammer","seismic-wave",
+          point.x,point.y,.25+i*.23,8,ring);
+    }else if(evo==="gravity-well"){
+      for(const i of [1,2,3,4])
+        this.scheduleEvolution(actor,"gravity-hammer","gravity-well",
+          point.x,point.y,i*.7,6,radius+50);
+    }
+    this.emit({type:"ability",actorId:actor.id,spellId:"gravity-hammer",
+      x:point.x,y:point.y,targetId:foes[0]?.id||null});
   }
   // Genesis uses a real finite absorb pool, not percentage mitigation.
   applyGenesisShield(owner,target,rule,scale=1){
@@ -909,12 +1027,12 @@ export class EnergyMatch {
     // previous code a dead ally triggered currentTarget()'s self fallback:
     // Pulse Mend silently overhealed the player instead of reporting a miss.
     const target=targetId?this.getActor(targetId):this.currentTarget(actor,r.mode);
-    const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay"].includes(r.mode);
+    const supportive=["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart"].includes(r.mode);
     const wrongTeam=target&&(r.mode==="hybrid"?false:
       supportive?target.team!==actor.team:target.team===actor.team);
     const recallReactivation=spellId==="vital-recall"&&this.allies(actor).some(a=>
       a.statuses.some(s=>s.kind==="vital-recall"&&s.sourceId===actor.id&&s.remaining>0));
-    const reason= r.mode==="dash"||(spellId==="zenith-crash"&&castContext?.impact)?
+    const reason= r.mode==="dash"||r.mode==="rampart"||(r.mode==="ground"&&castContext?.impact)||(spellId==="zenith-crash"&&castContext?.impact)?
       null:!target?.alive?"TARGET DIED"
       :wrongTeam?"INVALID TARGET"
       :!recallReactivation&&distance(actor,target)>(r.range||490)?"OUT OF RANGE"
@@ -932,6 +1050,10 @@ export class EnergyMatch {
     // Only a completed, valid cast starts cooldown. Fizzled or interrupted
     // casted spells stay available once the short school lock wears off.
     if(r.cast&&r.cd)actor.cooldowns[spellId]=r.cd;
+    if(spellId==="gravity-hammer"){
+      this.resolveGravityHammer(actor,castContext?.impact||{x:target.x,y:target.y},r);
+      return;
+    }
     if(spellId==="zenith-crash"){
       this.resolveZenith(actor,target,castContext?.impact||{x:target.x,y:target.y},r);
       return;
@@ -954,6 +1076,21 @@ export class EnergyMatch {
         }
       }
       this.emit({type:"ability",actorId:actor.id,targetId:target.id,spellId});
+      return;
+    }
+    if(spellId==="kinetic-rampart"){
+      if(actor.rampart?.until>this.time)this.releaseRampart(actor);
+      else {
+        const foes=this.opponents(actor);
+        const nearest=foes.sort((a,b)=>distance(a,actor)-distance(b,actor))[0];
+        const dx=nearest?nearest.x-actor.x:(actor.lastMove.x||1);
+        const dy=nearest?nearest.y-actor.y:(actor.lastMove.y||0);
+        const len=Math.hypot(dx,dy)||1;
+        actor.rampart={until:this.time+r.duration,charges:3,stored:0,
+          facing:{x:dx/len,y:dy/len}};
+        this.identityProc(actor,spellId,"rampart-start",actor);
+      }
+      this.emit({type:"ability",actorId:actor.id,targetId:actor.id,spellId});
       return;
     }
     if(spellId==="vital-cascade"){
@@ -1071,7 +1208,12 @@ export class EnergyMatch {
     }else if(r.mode==="rush"){
       // Charge travels visibly over several simulation ticks, tracking the
       // target while respecting walls and every other orb's collision.
-      actor.charge={targetId:target.id,spellId,elapsed:0,trailClock:0};
+      actor.charge={targetId:target.id,spellId,elapsed:0,trailClock:0,
+        fromX:actor.x,fromY:actor.y};
+      if(!actor.pursuitReadyUntil||actor.pursuitReadyUntil<this.time)
+        actor.pursuitChain=0;
+      else actor.pursuitChain=(actor.pursuitChain||0)+1;
+      actor.pursuitReadyUntil=0;
       actor.dashGate=1.3;
       this.emit({type:"charge-start",actorId:actor.id,targetId:target.id,
         spellId,x:actor.x,y:actor.y});
@@ -1205,6 +1347,7 @@ export class EnergyMatch {
         amount*=1.18;
         this.identityProc(actor,spellId,"precision-execute",target);
       }
+      let overdriveFollowup=0;
       if(spellId==="arc-strike"){
         const rhythm=actor.arcRhythm;
         const second=rhythm&&this.time<=rhythm.until;
@@ -1213,6 +1356,13 @@ export class EnergyMatch {
           amount*=1.16; // A visible two-hit combo, not a new action bar spell.
           actor.flux=clamp(actor.flux+3,0,MAX_FLUX);
           this.identityProc(actor,spellId,"arc-second-strike",target);
+          const evo=actor.evolutions[spellId];
+          if(evo==="overdrive"){overdriveFollowup=amount*.30;amount*=.40;}
+          if(evo==="kinetic-reprisal"){
+            this.addStatus(actor,{kind:"kinetic-reprisal",sourceId:actor.id,
+              remaining:3,capacity:Math.min(actor.maxHp*.35,48*this.power)});
+            this.evolutionProc(actor,spellId,"kinetic-reprisal-ready",actor);
+          }
         }
       }
       if(spellId==="gravity-hammer"&&actor.evolutions[spellId]==="seismic-wave")amount*=.78;
@@ -1238,14 +1388,33 @@ export class EnergyMatch {
       const targetHpBefore=target.hp;
       this.damage(target,amount,actor,spellId);
       const effectiveDamage=Math.max(0,targetHpBefore-target.hp);
+      if(overdriveFollowup>0){
+        this.evolutionProc(actor,spellId,"overdrive",target);
+        for(const [i,delay]of [.11,.24].entries())
+          this.scheduleEvolution(actor,spellId,"overdrive-hit",target.x,target.y,
+            delay,overdriveFollowup,0,{targetId:target.id});
+      }
+      if(spellId==="seismic-uppercut"){
+        const launchable=!target.boss&&!target.elite;
+        if(launchable)this.applyCC(target,"incapacitate",.65,actor,spellId);
+        this.evolutionProc(actor,spellId,launchable?"uppercut-launch":"uppercut-fracture",target);
+        this.scheduleEvolution(actor,spellId,"uppercut-crash",target.x,target.y,
+          .42,18,148);
+      }
       if(r.slow)this.addStatus(target,{kind:"slow",negative:true,remaining:r.slowTime,sourceId:actor.id});
       if(spellId==="arc-strike"){
         const evo=actor.evolutions[spellId];
         if(evo==="twin-arc"){
           actor.arcCount++;
           if(actor.arcCount%3===0){
-            this.damage(target,amount*.5,actor,spellId);
             this.evolutionProc(actor,spellId,"twin-arc",target);
+            for(const enemy of this.opponents(actor).filter(e=>e!==target&&
+              distance(e,actor)<155&&hasLineOfSight(actor,e,this.arena)).slice(0,5)){
+              const ax=target.x-actor.x,ay=target.y-actor.y,
+                bx=enemy.x-actor.x,by=enemy.y-actor.y;
+              if((ax*bx+ay*by)/(Math.hypot(ax,ay)*Math.hypot(bx,by)||1)>.18)
+                this.damage(enemy,amount*.65,actor,spellId);
+            }
           }
         }else if(evo==="momentum"&&(actor.evolutionFluxGate||0)<=this.time){
           actor.flux=clamp(actor.flux+7,0,MAX_FLUX);
@@ -1464,6 +1633,7 @@ export class EnergyMatch {
       if(!actor.alive)continue;
       actor.flux=Math.min(MAX_FLUX,actor.flux+BASE_FLUX_REGEN*dt);
       if(actor.relayPending?.until<=this.time)actor.relayPending=null;
+      if(actor.rampart?.until<=this.time)this.releaseRampart(actor);
       actor.gcd=Math.max(0,actor.gcd-dt);
       actor.dashGate=Math.max(0,actor.dashGate-dt);
       actor.bonusFluxGate=Math.max(0,(actor.bonusFluxGate||0)-dt);

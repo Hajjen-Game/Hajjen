@@ -70,8 +70,8 @@ const LAB_TARGETS=[
   {key:"self",label:"SELF",description:"Your own Origin"},
   {key:"ally",label:"ALLY",description:"Your friendly test teammate"},
   {key:"enemy1",label:"ENEMY 1",description:"Main test enemy"},
-  {key:"enemy2",label:"ENEMY 2",description:"Additional target on the upper side"},
-  {key:"enemy3",label:"ENEMY 3",description:"Additional target on the lower side"},
+  {key:"enemy2",label:"ENEMY 2",description:"Additional target below the main enemy"},
+  {key:"enemy3",label:"ENEMY 3",description:"Additional target above the main enemy"},
 ];
 let visibleSpells=[],sequenceList=[],liveElapsed=0,liveActions=[];
 const classCatalogue=role=>(CLASS_SPELLS[role]||[]).map(id=>
@@ -117,8 +117,8 @@ function setPhase(name,desc){
 }
 function chosenActor(key){
   return ({self:source,ally,enemy1:enemy,
-    enemy2:match.getActor("lab-extra-64"),
-    enemy3:match.getActor("lab-extra--75")})[key]||null;
+    enemy2:match.getActor("lab-extra-80"),
+    enemy3:match.getActor("lab-extra--80")})[key]||null;
 }
 function spellTarget(spell){
   if(selectedTargetKey!=="auto")return chosenActor(selectedTargetKey);
@@ -190,15 +190,15 @@ function prepareActors(spell){
   source.energyStyle={core:tint,energy:spell.discipline==="solar"?"#fff1bd":
     spell.discipline==="cryo"?"#e4faff":spell.discipline==="vital"?"#ddfff1":"#efcbff"};
   source.role=selectedRole;
-  for(const offset of [64,-75]){
+  for(const offset of [80,-80]){
     const id="lab-extra-"+offset;
     let foe=match.getActor(id);
     if(!foe){
       foe=actor(id,offset>0?"ENEMY 2":"ENEMY 3","enemy","caster",
-        enemy.x+48,enemy.y+offset,"#bf6da0","#ffc2ea");
+        enemy.x-60,enemy.y+offset,"#bf6da0","#ffc2ea");
       match.actors.push(foe);
     }
-    foe.x=enemy.x+48;foe.y=enemy.y+offset;
+    foe.x=enemy.x-60;foe.y=enemy.y+offset;
   }
   source.targetId=(spellTarget(spell)||enemy).id;
   for(const participant of match.actors){
@@ -273,7 +273,7 @@ function runCombat(spell,fromSequence=false){
   ally.maxHp=600;ally.hp=390;ally.healthPct=ally.hp/ally.maxHp;
   source.flux=100;
   if(selectedEvolution)source.evolutions[spell.id]=selectedEvolution;
-  for(const offset of [64,-75]){
+  for(const offset of [80,-80]){
     const foe=actorFor("lab-extra-"+offset,"enemy","caster",
       {x:enemy.x+48,y:enemy.y+offset},"ai",["crystal-bolt"],{}, {},1);
     foe.name=offset>0?"ENEMY 2":"ENEMY 3";foe.maxHp=1300;foe.hp=700;

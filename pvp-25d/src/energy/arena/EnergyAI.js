@@ -196,6 +196,14 @@ export class EnergyAI {
       if(style==="disruptive"&&actor.role!=="healer"&&
         !this.isIncapacitated(e)&&this.tryCast(actor,["null-prison"],e))return;
     }
+    if(actor.role==="melee"&&actor.abilities.includes("kinetic-rampart")&&
+      !actor.rampart&&(health<.58&&enemies.some(e=>e.role==="caster")||
+        enemyCasting.some(e=>["flux-bolt","crystal-bolt","sun-lance","fracture-spear"]
+          .includes(e.cast.spellId)&&dist(e,actor)<450))){
+      if(this.tryCast(actor,["kinetic-rampart"],actor))return;
+    }
+    if(actor.rampart&&actor.rampart.charges<=1&&
+      actor.rampart.until-m.time<.7&&this.tryCast(actor,["kinetic-rampart"],actor))return;
     if(health<.45) {
       if(this.tryCast(actor,["resonance-guard","photon-barrier"],actor))return;
       if(this.tryCast(actor,["phase-slip","vector-rush"],null))return;
@@ -245,8 +253,10 @@ export class EnergyAI {
     if(actor.role==="melee"){
       const d=dist(actor,focus);
       if(d>107&&d<450&&this.tryCast(actor,["phase-rush"],focus))return;
+      if(d<=425&&enemies.filter(e=>dist(e,focus)<145).length>=2&&
+        this.tryCast(actor,["gravity-hammer"],focus))return;
       if(d>122)return; // travel rather than wasting AI decisions against an out-of-range foe.
-      if(this.tryCast(actor,["gravity-hammer","rift-slash","arc-strike"],focus))return;
+      if(this.tryCast(actor,["seismic-uppercut","arc-strike","gravity-hammer","rift-slash"],focus))return;
       if(this.tryCast(actor,["entropy-mark"],focus))return;
     }else{
       const keepDot=!focus.statuses.some(s=>s.kind==="dot"&&s.sourceId===actor.id);

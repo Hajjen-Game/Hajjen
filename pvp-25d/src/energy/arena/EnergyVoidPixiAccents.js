@@ -209,13 +209,13 @@ export function drawVoidPixi(g,event,from,to,t,scale=1){
     if(kind==="entropy-applied")projectile(draw,from||p,p,t,s);
     else if(kind==="contagion")burst(draw,p,t,s,true);
     else if(kind==="psychic-collapse")burst(draw,p,t,s,true,true);
-    else if(kind==="devouring-pact")projectile(draw,p,from||p,t,s*.85);
+    else if(kind==="devouring-pact")projectile(draw,from||p,p,t,s*.85);
     else burst(draw,p,t,s*.62,false,false);
   }else if(id==="phase-slip"){
     if(type==="dash")portal(draw,from||p,p,t,s);
     else if(kind==="shadow-ambush")slash(draw,from||p,p,t,s,"executioners-veil");
-    else if(kind==="rift-echo"||kind==="rift-echo-start")
-      spatial(draw,from||p,p,t,s*.8);
+    else if(kind==="rift-echo-start")burst(draw,p,t,s*.7);
+    else if(kind==="rift-echo")spatial(draw,from||p,p,t,s*.8);
     else if(kind==="veilwalk"||kind==="veilwalk-dodge")
       orbit(draw,p,t,s);
     else burst(draw,p,t,s*.7);

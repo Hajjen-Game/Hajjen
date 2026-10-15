@@ -16,6 +16,7 @@ export class EnergySolarVFX{
     this.maxEffects=105;this.ascension=new Map();this.familiars=new Map();
     this.plasmaFields=new Map();
     this.chainOrigins=new Map();this.coronaOrigins=new Map();
+    this.prismOrigins=new Map();
   }
   mat(hue="gold",alpha=.85){
     const key=hue+":"+alpha;
@@ -182,6 +183,25 @@ export class EnergySolarVFX{
       this.hoop(fx,.75,"hot",4.8,.027,.56);
       this.core(fx,.48,"core",0,4.84,0,.88);
     }
+    return fx;
+  }
+  prismSegment(point,center){
+    // Four actual directional rays, not twenty overlapping round pillars.
+    // One lightweight faceted ribbon for each scheduled combat segment.
+    const fx=this.make("prism-ray",point,560);
+    const dx=center?point.x-center.x:1,dz=center?point.z-center.z:1;
+    fx.root.rotation.y=Math.atan2(dx,dz);
+    for(let i=0;i<4;i++){
+      const gem=this.gem(fx,i===0?.105:.058,i===0?1.12:.78,
+        i===0?"core":i%2?"hot":"gold",
+        (i-1.5)*.09,.11,-.15+i*.13,i===0?.85:.70);
+      gem.rotation.x=Math.PI/2;
+    }
+    for(const side of [-1,1])this.filament(fx,[
+      new BABYLON.Vector3(side*.16,.06,-.56),
+      new BABYLON.Vector3(side*.12,.13,0),
+      new BABYLON.Vector3(side*.16,.06,.58)
+    ],side===1?"hot":"core",.012,.65);
     return fx;
   }
   // Each active Solar Ascension charge has a real orbiting low-poly sigil.
@@ -396,9 +416,12 @@ export class EnergySolarVFX{
             this.plasmaFields.set(event.actorId,fx);
           }else this.burst(point,{kind:"plasma-tick"});
         }else if(kind==="prism-cross"){
-          this.pillar(point.x/S,point.z/S,{kind:"prism-hit",
-            large:false,sky:false,ms:490});
+          const center=this.prismOrigins.get(event.actorId);
+          this.prismSegment(point,center?.expires>performance.now()?
+            this.world(center.x,center.y,.14):null);
         }else if(kind==="prism-cross-ready"){
+          this.prismOrigins.set(event.actorId,{
+            x:point.x/S,y:point.z/S,expires:performance.now()+1100});
           const fx=this.make("prism-core",point,700);
           for(const side of [-1,1])for(const other of [-1,1])
             this.filament(fx,[new BABYLON.Vector3(0,0,0),
@@ -556,6 +579,8 @@ export class EnergySolarVFX{
       this.chainOrigins.delete(id);
     for(const [id,state]of this.coronaOrigins)if(state.expires<now)
       this.coronaOrigins.delete(id);
+    for(const [id,state]of this.prismOrigins)if(state.expires<now)
+      this.prismOrigins.delete(id);
     for(const [id,fx]of this.plasmaFields)if(!this.effects.includes(fx))
       this.plasmaFields.delete(id);
   }
@@ -567,7 +592,7 @@ export class EnergySolarVFX{
   clear(){
     while(this.effects.length)this.remove(this.effects.pop());
     this.ascension.clear();this.familiars.clear();this.chainOrigins.clear();
-    this.coronaOrigins.clear();
+    this.coronaOrigins.clear();this.prismOrigins.clear();
     this.plasmaFields.clear();
   }
   dispose(){this.clear();

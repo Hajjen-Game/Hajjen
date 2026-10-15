@@ -255,9 +255,24 @@ function castSlot(index,heldKey=false){
     return;
   }
   pendingCast=null;
+  const recallAlly=ability==="vital-recall"?match.allies(p).find(a=>
+    a.statuses.some(q=>q.kind==="vital-recall"&&q.sourceId===p.id&&q.remaining>0)):null;
+  const hpBeforeRecall=recallAlly?.hp||0;
   const success=match.castAbility(p,ability,p.targetId,{holdToCharge:heldKey});
   if(success){
-    flash(ABILITY_BY_ID[ability].name+(ABILITY_RULES[ability]?.cast?" · CASTING":" · ACTIVATED"));
+    if(ability==="vital-recall"){
+      if(recallAlly){
+        const gained=Math.max(0,Math.round(recallAlly.hp-hpBeforeRecall));
+        flash(gained>0?"VITAL RECALL · RESTORED "+gained+" HP":
+          "VITAL RECALL · NO LOST HP TO RESTORE");
+      }else{
+        const marked=match.allies(p).find(a=>a.statuses.some(q=>
+          q.kind==="vital-recall"&&q.sourceId===p.id&&q.remaining>0));
+        flash(marked?"VITAL RECALL · PRESS "+hotkeys[index]+" AGAIN WITHIN 4s":
+          "VITAL RECALL · ACTIVATED");
+      }
+    }else flash(ABILITY_BY_ID[ability].name+
+      (ABILITY_RULES[ability]?.cast?" · CASTING":" · ACTIVATED"));
     renderUI();
   } else flash(ABILITY_BY_ID[ability].name+" · COULD NOT CAST");
 }

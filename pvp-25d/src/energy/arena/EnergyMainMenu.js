@@ -109,14 +109,14 @@ const PAGES=[
         "Längs vägen öppnas fler spell-val. Framtida milstolpar visar också AI Styles, Evolutions och nya utmaningar."
       ]
     ],
-    "tip": "En ny spell väljs efter en första seger. Du kan inte hoppa förbi kommande planeter.",
+    "tip": "Genesis och Impact får en ny klass-spell vid Stage 3, 6, 9 och 12. Du kan inte hoppa förbi kommande Stages.",
     "art": "journey",
     "caption": "Hexagonerna visar din resa. Grönt betyder avklarat; nästa Stage är markerad."
   },
   {
     "title": "UPPTÄCK OCH BYGG SPELLS",
     "chapter": "06 / EVOLUTION TREE",
-    "intro": "Du börjar med två bundna spells. Efter nya Planet Defense-segrar upptäcker du permanenta spells från fem discipliner: Void, Solar, Cryo, Kinetic och Vital.",
+    "intro": "Genesis och Impact har sex egna klass-spells: två från start och fyra som låses upp längs Stage-kartan. Eclipse använder tills vidare det äldre spellbiblioteket i väntan på sitt klasspass.",
     "steps": [
       [
         "LYSANDE SPELLS",
@@ -124,14 +124,14 @@ const PAGES=[
       ],
       [
         "VÄLJ EN PERMANENT",
-        "Bekräfta ditt val i Selected Spell-panelen. Du får exakt en ny spell per första planetseger."
+        "Bekräfta ditt val i Selected Spell-panelen. Genesis och Impact väljer en ny klass-spell vid Stage 3, 6, 9 och 12."
       ],
       [
         "SKAPA DIN BUILD",
-        "Du kan få totalt tio aktiva spells: dina två bundna plus upp till åtta delade. Spara dina favoritkombinationer som Build Presets."
+        "Genesis och Impact utvecklar sex klass-spells. De första fyra får Evolutions; spell 5 och 6 är helt egna förmågor utan extra Evolution-val."
       ]
     ],
-    "tip": "Du får välja mellan alla fem energidiscipliner från första spell-belöningen, oavsett Origin.",
+    "tip": "Spell-valen är nu klassbundna för Genesis och Impact. Cross-class Synergies är pausade.",
     "art": "spells",
     "caption": "Tillgängliga nya spells glöder i yttersta ringen; ett val blir permanent."
   },

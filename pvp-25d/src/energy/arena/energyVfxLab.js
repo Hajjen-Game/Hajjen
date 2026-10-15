@@ -160,6 +160,7 @@ function renderTargetChoices(spell){
     root.append(button);
   }
   $("lab-target-current").textContent=selected.label;
+  $("lab-stage-target-label").textContent="TARGET · "+selected.label;
   const target=spell?spellTarget(spell):null;
   const mode=spell?ABILITY_RULES[spell.id]?.mode:null;
   const untargeted=["rampart","ascension","transform","summon"].includes(mode);
@@ -789,7 +790,7 @@ function init(){
   });
     $("replay-spell").addEventListener("click",()=>run(active||signature[0],false));
   $("play-sequence").addEventListener("click",()=>{
-    sequenceList=[...visibleSpells];selectedEvolution="";
+    sequenceList=[...visibleSpells];selectedEvolution="";selectedTargetKey="auto";
     if(sequenceList.length)run(sequenceList[0],true);
   });
   try{

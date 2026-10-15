@@ -22,7 +22,7 @@
     <div>
       <p class="eyebrow">THE VISUAL GO / NO-GO TEST</p>
       <h2>Test every Origin and spell</h2>
-      <p>Choose one of five classes, then replay any of its six real combat spells. Select an Evolution to compare its mechanics and animation against the base spell. Live combat mode uses the game engine, without spending permanent resources or touching your saved Journey.</p>
+      <p>Choose one of five classes, then replay any of its six real combat spells. Read what each Evolution does before comparing its mechanics and animation with the base spell. Select a test target using the buttons or by clicking an orb in the arena. Live combat mode uses the game engine, without spending permanent resources or touching your saved Journey.</p>
     </div>
     <div class="phase-track"><span>01 · CHARGE</span><span>02 · RELEASE</span><span>03 · CONTACT</span></div>
   </section>
@@ -39,16 +39,27 @@
         <label class="lab-picker-label" for="lab-spell-picker">SPELL
           <select id="lab-spell-picker" aria-label="Spell to preview"></select>
         </label>
-        <label class="lab-picker-label" for="lab-evolution-picker">EVOLUTION
-          <select id="lab-evolution-picker" aria-label="Choose a spell Evolution"></select>
-        </label>
         <button id="toggle-combat" title="Live uses real EnergyMatch spell logic; visual-only is the earlier staged comparison">LIVE COMBAT: ON</button>
         <button id="replay-spell">↻ REPLAY</button>
         <button id="play-sequence" class="primary">PLAY ALL 6 CLASS SPELLS</button>
       </div>
     </div>
+    <section class="lab-build-panel" aria-label="Spell evolutions and test targets">
+      <div class="lab-build-heading">
+        <div><p class="eyebrow">SPELL EVOLUTIONS</p><h3 id="lab-evolution-title">Choose how this spell evolves</h3></div>
+        <span id="lab-evolution-counter" class="lab-build-counter">BASE + 3 EVOLUTIONS</span>
+      </div>
+      <div id="lab-evolution-choices" class="lab-evolution-choices" role="group" aria-label="Choose an Evolution and see what it changes"></div>
+      <p id="lab-evolution-explainer" class="lab-choice-explainer" aria-live="polite"></p>
+      <div class="lab-target-header">
+        <div><p class="eyebrow">TARGET TESTING</p><h3>Choose who receives the spell</h3></div>
+        <span id="lab-target-current" class="lab-build-counter">AUTO</span>
+      </div>
+      <div id="lab-target-choices" class="lab-target-choices" role="group" aria-label="Select the spell target"></div>
+      <p id="lab-target-explainer" class="lab-choice-explainer" aria-live="polite">Choose a target here or click an orb in the arena.</p>
+    </section>
     <div id="vfx-stage" class="vfx-stage">
-      <canvas id="vfx-canvas" aria-label="Live 3D combat spell comparison"></canvas>
+      <canvas id="vfx-canvas" aria-label="Live 3D combat spell comparison. Click a visible orb to choose a target."></canvas>
       <div class="stage-overlay">
         <span>FRIENDLY ENERGY</span><span>ENEMY TARGET</span>
       </div>

@@ -20,7 +20,7 @@ export const ROLES = Object.freeze({
   melee: {
     name: "Impact", color: "#f27b83", subtitle: "Momentum & disruption",
     description: "Impact is a force of motion and collision. Rush into range and chain together fast Kinetic melee hits while disrupting dangerous foes.",
-    playstyle: "Choose Impact for aggressive melee combat: close the gap, keep striking and choose utility such as interrupts as your build grows.",
+    playstyle: "Choose Impact for six exclusive Kinetic skills: charge, chain melee attacks, interrupt dangerous casts and smash clustered waves.",
     passive: "Successful melee hits restore 4 Flux, at most once per second.",
     locked: ["phase-rush", "arc-strike"],
   },
@@ -50,6 +50,8 @@ function ability(id, name, discipline, category, description, details, evolution
 
 export const GENESIS_CLASS_SPELL_IDS = Object.freeze(["pulse-mend","resonance-guard","vital-cascade","stasis-seal","vital-recall","soul-relay"]);
 export const GENESIS_CORE_SPELL_IDS = Object.freeze(["pulse-mend","resonance-guard","vital-cascade","stasis-seal"]);
+export const IMPACT_CLASS_SPELL_IDS = Object.freeze(["phase-rush","arc-strike","pulse-sever","gravity-hammer","seismic-uppercut","kinetic-rampart"]);
+export const IMPACT_CORE_SPELL_IDS = Object.freeze(["phase-rush","arc-strike","pulse-sever","gravity-hammer"]);
 
 export const ABILITIES = Object.freeze([
   ability("pulse-mend","Pulse Mend","vital","Direct or offensive healing","Heal a teammate; with Vital Reversal, strike an enemy to heal wounded allies and restore an active Resonance Guard.","1.5s cast · Genesis core",[
@@ -74,15 +76,21 @@ export const ABILITIES = Object.freeze([
   ],"healer"),
   ability("vital-recall","Vital Recall","vital","Healing rewind","Mark a teammate for four seconds, then recast to restore a large but capped share of health they lost since marking.","Instant · Recast · 36s CD",[],"healer"),
   ability("soul-relay","Soul Relay","vital","Life connection","Link two teammates, dividing some incoming damage and sharing part of their healing over any distance. Transferred damage cannot kill.","Instant · Paired link · 24s CD",[],"healer"),
-  ability("phase-rush","Phase Rush","kinetic","Gap closer","Fast targeted rush toward an enemy; does not stun.","Instant · Role mobility",[
-    ["impact","Impact","The next melee ability after rushing deals bonus damage."],
-    ["pursuit","Pursuit","Shorter cooldown for more frequent pursuit."],
-    ["disruption","Disruption","Applies a brief slow on arrival."],
+  ability("seismic-uppercut","Seismic Uppercut","kinetic","Launch and crush","Strike a nearby enemy upward, then smash it down with a damaging shockwave. Bosses stay grounded but suffer cracked-earth bursts.","Instant · Melee · 25s CD",[
+
   ],"melee"),
-  ability("pulse-sever","Pulse Sever","kinetic","Melee counter-interrupt","Interrupt at melee range and counterstrike for minor Kinetic damage when you successfully stop a cast.","Instant · Melee counter · 15s CD",[
-    ["suppression","Suppression","A successful interrupt extends the school lockout."],
-    ["siphon","Siphon","A successful interrupt restores Flux."],
-    ["shockwave","Shockwave","A successful interrupt produces a small damage pulse."],
+  ability("kinetic-rampart","Kinetic Rampart","kinetic","Projectile counter","Raise a forward-facing energy barrier, catch limited hostile projectiles, then recast or wait to fire kinetic shards at enemies.","Instant · Recast · 30s CD",[
+
+  ],"melee"),
+  ability("phase-rush","Phase Rush","kinetic","Targeted charge","Charge visibly toward a selected enemy, stopping at melee range without crossing obstacles.","Instant · Targeted Charge · 17s CD",[
+    ["meteor-charge","Meteor Charge","Impact lands in a powerful radial Kinetic blast that hits nearby enemies."],
+    ["relentless-pursuit","Relentless Pursuit","If a charged enemy dies shortly afterward, refresh Charge once for a new target."],
+    ["piercing-charge","Piercing Charge","An energy shock travels past the Charge target and cuts through lined-up enemies."],
+  ],"melee"),
+  ability("pulse-sever","Pulse Sever","kinetic","Melee interrupt","Interrupt an enemy cast at close range. Can counter interruptible boss abilities without stunning the boss.","Instant · Interrupt · 15s CD",[
+    ["echo-sever","Echo Sever","A successful interrupt sends a ring that interrupts nearby ordinary enemies."],
+    ["countershock","Countershock","A successful interrupt detonates kinetic damage around the interrupted enemy."],
+    ["warpath","Warpath","A successful interrupt activates four seconds of aggressive empowered melee attacks."],
   ]),
   ability("flux-bolt","Flux Bolt","solar","Ranged rhythm","Consecutive hits on one target build Solar Rhythm; every third Flux Bolt releases an extra energy burst. Resets if you switch target or wait too long.","1.5s cast · Every 3rd hit bursts",[
     ["overcharge","Overcharge","Longer cast with a larger, harder-hitting projectile."],
@@ -140,15 +148,15 @@ export const ABILITIES = Object.freeze([
     ["crystal-rupture","Crystal Rupture","Reduced splash damage around the target."],
     ["delayed-shatter","Delayed Shatter","A crystal lodged in the target shatters with a second hit."],
   ]),
-  ability("arc-strike","Arc Strike","kinetic","Melee combo","Fast instant Kinetic strike. A second Arc Strike within 4 seconds hits 16% harder and returns 3 Flux; then the rhythm resets.","Instant · Two-hit rhythm · No CD",[
-    ["twin-arc","Twin Arc","Every third hit creates a second arc from the opposite side."],
-    ["momentum","Momentum","Successful hits return some Flux with an internal cooldown."],
-    ["resonant-strike","Resonant Strike","Charge the next direct attack from another ability."],
+  ability("arc-strike","Arc Strike","kinetic","Melee combo","Rapid two-press melee rhythm: the second strike within four seconds hits harder.","Instant · Two-hit combo",[
+    ["twin-arc","Twin Arc","Every third Arc Strike sends a sweeping energy arc that cleaves nearby foes ahead."],
+    ["overdrive","Overdrive","The second button press in a combo becomes three fast visual hits with focused total damage."],
+    ["kinetic-reprisal","Kinetic Reprisal","A completed combo raises a brief cracked shield that absorbs one hit and retaliates."],
   ],"melee"),
-  ability("gravity-hammer","Gravity Hammer","kinetic","Melee burst","Heavy gravity impact from above in melee range; no stun.","0.6s warning · 12s cooldown",[
-    ["singularity-impact","Singularity Impact","Concentrate the impact into higher single-target damage."],
-    ["seismic-wave","Seismic Wave","Weaker primary hit but an expanding damage shockwave."],
-    ["aftershock","Aftershock","A second weaker impact lands at the same location and can be avoided."],
+  ability("gravity-hammer","Gravity Hammer","kinetic","Mouse-placed AoE","Choose an arena position with the mouse; after a short warning, a heavy gravity impact damages nearby enemies and knocks down ordinary mobs.","Mouse target · 20s CD · Bosses immune to knockdown",[
+    ["singularity-impact","Singularity Impact","A smaller targeted impact deals substantially more damage to a boss or isolated elite."],
+    ["seismic-wave","Seismic Wave","Several expanding kinetic waves damage enemies farther from the impact."],
+    ["gravity-well","Gravity Well","The impact leaves a damaging gravity field pulling ordinary mobs inward; bosses resist the pull."],
   ]),
   ability("vector-rush","Vector Rush","kinetic","Kinetic dash","A visible high-speed rush in your chosen direction. Unlike Phase Slip, it follows a kinetic travel path and does not cleanse slows.","Instant · Kinetic trail · 18s CD",[
     ["extended-vector","Extended Vector","Move farther, with a longer cooldown."],
@@ -181,8 +189,8 @@ export const ABILITY_BY_ID = Object.freeze(Object.fromEntries(ABILITIES.map(a =>
 export const FREE_ABILITIES = Object.freeze(ABILITIES.filter(a => !a.role));
 export function availableAbilities(role) {
   if (!ROLES[role]) throw new Error("Unknown role: " + role);
-  // Genesis is the first fully migrated, class-locked six-spell kit.
-  // Other Origins retain their legacy shared pools until their own class passes.
+  // Genesis and Impact use six exclusive skills; other Origins remain legacy.
   if (role === "healer") return GENESIS_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
+  if (role === "melee") return IMPACT_CLASS_SPELL_IDS.map(id => ABILITY_BY_ID[id]);
   return ABILITIES.filter(a => !a.role || a.role === role);
 }

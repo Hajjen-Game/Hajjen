@@ -3,7 +3,7 @@
 // range/LOS/resource distinctions and a player-centred CC icon).
 // Visual only: never changes casting rules, status duration or targeting.
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-const SELF_MODES=new Set(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart"]);
+const SELF_MODES=new Set(["heal","guard","shield","hot","link","cleanse","team-heal","recall","relay","rampart","mirror"]);
 const FLASH_TYPES=["cast-success","cast-interrupted","cast-failed","cooldown-ready","input-pressed"];
 const CC_ORDER=["stun","fear","incapacitate","root","schoolLock"];
 const ICONS={

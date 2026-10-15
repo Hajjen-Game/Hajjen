@@ -1938,7 +1938,6 @@ export class EnergyMatch {
         actor.voidSlashCount=(actor.voidSlashCount||0)+1;
         this.identityProc(actor,"rift-slash","dual-shadow-blades",target);
         if(marked)this.evolutionProc(actor,spellId,"marked-fracture",target);
-        if(evo==="devouring-pact"){} // Mark sustain comes from Entropy Evolution below.
         if(actor.evolutions["entropy-mark"]==="devouring-pact"&&marked&&
           effectiveDamage>0&&(actor.devourGate||0)<=this.time){
           actor.devourGate=this.time+.75;

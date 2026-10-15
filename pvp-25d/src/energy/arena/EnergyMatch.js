@@ -372,7 +372,7 @@ export class EnergyMatch {
     const secondRelay=spellId==="soul-relay"&&actor.relayPending?.until>this.time;
     if((actor.cooldowns[spellId]||0)>0&&!secondRecall&&!secondRelay)return "COOLDOWN";
     if((actor.schoolLocks[ability.discipline]||0)>0)return "SCHOOL LOCKED";
-    if(actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
+    if(!secondRecall&&!secondRelay&&actor.flux<this.cost(actor,rule,spellId))return "LOW FLUX";
     if(["rush","dash"].includes(rule.mode)&&this.isControlled(actor,"root"))return "ROOTED";
     if(["rush","dash"].includes(rule.mode)&&actor.dashGate>0)return "MOBILITY LOCK";
     if(rule.mode==="dash")return null;
@@ -380,7 +380,7 @@ export class EnergyMatch {
     if(!target)return "SELECT A TARGET";
     const d=distance(actor,target);
     if(d>(rule.range||490)&&!secondRecall)return "OUT OF RANGE";
-    if(!hasLineOfSight(actor,target,this.arena))return "LINE OF SIGHT";
+    if(!secondRecall&&!hasLineOfSight(actor,target,this.arena))return "LINE OF SIGHT";
     // Interrupts may be used into a fake cast. The cooldown must still be spent.
     return null;
   }
@@ -551,7 +551,7 @@ export class EnergyMatch {
       const owner=this.getActor(genesisGuard.sourceId);
       if(owner?.alive){
         const prior=target.hp;
-        target.hp=Math.min(target.maxHp,Math.max(1,Math.round(target.maxHp*.28)));
+        target.hp=Math.min(target.maxHp,Math.max(prior,1,Math.round(target.maxHp*.28)));
         target.healthPct=target.hp/target.maxHp;
         value=0;
         this.emit({type:"heal",actorId:owner.id,targetId:target.id,

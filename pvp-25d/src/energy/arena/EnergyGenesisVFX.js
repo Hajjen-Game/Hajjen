@@ -421,7 +421,8 @@ export class EnergyGenesisVFX{
     if(event.type==="link"&&id==="soul-relay"){
       const partner=match.getActor(target?.statuses?.find(s=>
         s.kind==="soul-relay")?.partnerId);
-      if(actor&&target&&partner)this.relay(actor,partner,target);
+      if(actor&&target&&partner&&!this.statusFX.has("relay:"+partner.id+":"+target.id))
+        this.relay(actor,partner,target);
       return true;
     }
     if(event.type==="identity-proc"||event.type==="evolution-proc"){

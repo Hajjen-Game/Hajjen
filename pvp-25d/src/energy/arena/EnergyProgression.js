@@ -85,6 +85,7 @@ const BOT_KITS={
   melee:[...IMPACT_CLASS_SPELL_IDS],
   caster:[...ECLIPSE_CLASS_SPELL_IDS],
   solar:[...SOLAR_CLASS_SPELL_IDS],
+  void:[...VOID_CLASS_SPELL_IDS],
 };
 const clip=(v,a,b)=>Math.min(b,Math.max(a,v));
 export function levelForXp(xp){

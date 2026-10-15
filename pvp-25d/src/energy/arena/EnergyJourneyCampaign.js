@@ -2,11 +2,14 @@
 // This save state is distinct from legacy XP, total wins and arena profiles.
 // Each Origin has two bound spells of ONE discipline (Genesis Vital,
 // Impact Kinetic, Eclipse Cryo); only FIRST clears advance hexes.
-import {ROLES,FREE_ABILITIES,ABILITY_BY_ID,MAX_FLUX,BASE_FLUX_REGEN,GENESIS_CLASS_SPELL_IDS,GENESIS_CORE_SPELL_IDS} from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import {ROLES,FREE_ABILITIES,ABILITY_BY_ID,MAX_FLUX,BASE_FLUX_REGEN,GENESIS_CLASS_SPELL_IDS,GENESIS_CORE_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,IMPACT_CORE_SPELL_IDS} from "../abilityCatalog.js?v=20261012-eclipse-oc1";
 import {normalizeCompanionStyles} from "./EnergyCompanionStyles.js?v=20261012-style1";
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const FREE_IDS=new Set(FREE_ABILITIES.map(a=>a.id));
 const GENESIS_UNLOCKS=Object.freeze(GENESIS_CLASS_SPELL_IDS.slice(2));
+const IMPACT_UNLOCKS=Object.freeze(IMPACT_CLASS_SPELL_IDS.slice(2));
+const classUnlocks=role=>role==="healer"?GENESIS_UNLOCKS:role==="melee"?IMPACT_UNLOCKS:null;
+const classCores=role=>role==="healer"?GENESIS_CORE_SPELL_IDS:role==="melee"?IMPACT_CORE_SPELL_IDS:null;
 // Preliminary Journey spacing: Genesis gains four class spells, not 16 mixed-school abilities.
 const GENESIS_DISCOVERY_STAGES=Object.freeze([3,6,9,12]);
 const EARLY=["entropy-mark","sun-lance","fracture-spear","vector-rush","reactive-thread"];
@@ -19,9 +22,9 @@ export const JOURNEY_SHARED_LIMIT=8;
 export const JOURNEY_EVOLUTION_STAGES=Object.freeze([10,12,14,16,20]);
 export function journeyEvolutionCapacity(journey){
   // Dev-only replays keep unlocked Evolutions even on early Stage encounters.
-  if(journey?.devTest===true)return journey.originRole==="healer"?4:JOURNEY_EVOLUTION_STAGES.length;
+  if(journey?.devTest===true)return classUnlocks(journey.originRole)?4:JOURNEY_EVOLUTION_STAGES.length;
   const clears=clamp(Math.floor(Number(journey?.clears)||0),0,JOURNEY_MAX_PLANETS);
-  return JOURNEY_EVOLUTION_STAGES.slice(0,journey?.originRole==="healer"?4:5).filter(stage=>clears>=stage).length;
+  return JOURNEY_EVOLUTION_STAGES.slice(0,classUnlocks(journey?.originRole)?4:5).filter(stage=>clears>=stage).length;
 }
 export function normalizeJourneyEvolutions(value,clears,originRole=null){
   const result={};
@@ -29,7 +32,7 @@ export function normalizeJourneyEvolutions(value,clears,originRole=null){
   const capacity=journeyEvolutionCapacity({clears,originRole});
   for(const [id,evolutionId] of Object.entries(value)){
     if(Object.keys(result).length>=capacity)break;
-    if((originRole!=="healer"||GENESIS_CORE_SPELL_IDS.includes(id))&&
+    if((!classCores(originRole)||classCores(originRole).includes(id))&&
       ABILITY_BY_ID[id]?.evolutions?.some(item=>item.id===evolutionId))
       result[id]=evolutionId;
   }
@@ -40,8 +43,8 @@ export function setJourneyEvolution(profile,role,abilityId,evolutionId){
   if(!journey||!ROLES[role])throw Error("Choose a valid Journey Origin.");
   if(journeyEvolutionCapacity(journey)<1)
     throw Error("Evolutions unlock after clearing Stage 10.");
-  if(journey.originRole==="healer"&&!GENESIS_CORE_SPELL_IDS.includes(abilityId))
-    throw Error("Genesis has Evolutions on its four core spells only.");
+  if(classCores(journey.originRole)&&!classCores(journey.originRole).includes(abilityId))
+    throw Error("Only the four core class spells have Evolutions.");
   if(!ROLES[role].locked.includes(abilityId)&&!journey.owned.includes(abilityId))
     throw Error("Discover this spell before evolving it.");
   if(evolutionId!==null&&!ABILITY_BY_ID[abilityId]?.evolutions?.some(item=>item.id===evolutionId))
@@ -64,22 +67,21 @@ export function readJourney(profile){
   if(j?.version!==2)return null; // Legacy saves remain untouched.
   const clears=clamp(Math.floor(Number(j.clears)||0),0,JOURNEY_MAX_PLANETS);
   const originRole=j.originRole||null;
-  if(originRole==="healer"){
-    // Existing Genesis Journey discoveries convert to their four class spells.
-    // Preserve earned Stage progress; avoid re-awarding the current pending stage.
+  if(classUnlocks(originRole)){
+    // Preserve earned Stage milestones when migrating older mixed-discipline
+    // Impact saves. Once converted, six class spells replace the shared pool.
+    const unlocks=classUnlocks(originRole);
     const stageCount=GENESIS_DISCOVERY_STAGES.filter(stage=>clears>=stage).length;
-    const pendingIsGenesis=GENESIS_DISCOVERY_STAGES.includes(j.pending?.planet)&&
+    const pendingIsClass=GENESIS_DISCOVERY_STAGES.includes(j.pending?.planet)&&
       j.pending?.kind==="spell";
     const previouslyOwned=Array.isArray(j.owned)?j.owned:[];
     const selected=previouslyOwned.filter((id,index,all)=>
-      GENESIS_UNLOCKS.includes(id)&&all.indexOf(id)===index);
-    const count=Math.min(GENESIS_UNLOCKS.length,Math.max(
-      Math.min(GENESIS_UNLOCKS.length,previouslyOwned.length),
-      stageCount-(pendingIsGenesis?1:0)));
-    // Keep Genesis spell choices in the order the player actually discovered them.
-    // Only legacy mixed-discipline saves need their old rewards remapped.
-    const owned=[...selected,...GENESIS_UNLOCKS.filter(id=>!selected.includes(id))].slice(0,count);
-    const pending=pendingIsGenesis&&count<GENESIS_UNLOCKS.length&&
+      unlocks.includes(id)&&all.indexOf(id)===index);
+    const count=Math.min(unlocks.length,Math.max(
+      Math.min(unlocks.length,previouslyOwned.length),
+      stageCount-(pendingIsClass?1:0)));
+    const owned=[...selected,...unlocks.filter(id=>!selected.includes(id))].slice(0,count);
+    const pending=pendingIsClass&&count<unlocks.length&&
       j.pending.planet<=clears?{kind:"spell",planet:j.pending.planet}:null;
     return {version:2,originRole,clears,owned,pending,
       companionStyles:normalizeCompanionStyles(j.companionStyles),
@@ -107,7 +109,7 @@ export function readJourney(profile){
 }
 export function eligibleJourneySpells(journey){
   if(!journey)return [];
-  if(journey.originRole==="healer")return GENESIS_UNLOCKS.filter(id=>!journey.owned.includes(id));
+  if(classUnlocks(journey.originRole))return classUnlocks(journey.originRole).filter(id=>!journey.owned.includes(id));
   return [...EARLY,...(journey.clears>=3?COUNTER:[]),
     ...(journey.clears>=7?ADVANCED:[])].filter(id=>!journey.owned.includes(id));
 }
@@ -116,8 +118,8 @@ export function awardedJourneyClear(profile){
   if(!previous||previous.clears>=JOURNEY_MAX_PLANETS||
      previous.pending)return {next:profile,changed:false};
   const clears=previous.clears+1;
-  const pending=previous.originRole==="healer"?
-    (GENESIS_DISCOVERY_STAGES.includes(clears)&&previous.owned.length<GENESIS_UNLOCKS.length?
+  const pending=classUnlocks(previous.originRole)?
+    (GENESIS_DISCOVERY_STAGES.includes(clears)&&previous.owned.length<classUnlocks(previous.originRole).length?
       {kind:"spell",planet:clears}:null):
     (clears<=16?{kind:"spell",planet:clears}:null);
   return {next:{...profile,journey:{...previous,clears,pending}},
@@ -130,7 +132,7 @@ export function claimJourneySpell(profile,id){
   return {...profile,journey:{...journey,owned:[...journey.owned,id],pending:null}};
 }
 export function journeyActiveSlots(journey){
-  if(journey?.originRole==="healer")return journey?.devTest===true?6:
+  if(classUnlocks(journey?.originRole))return journey?.devTest===true?6:
     2+Math.min(4,journey.owned?.length||0);
   // Transient Game Dev combat previews may replay early Stages with a full
   // ten-spell toolkit. The normal saved Journey never receives this flag.
@@ -140,8 +142,8 @@ export function journeyActiveSlots(journey){
 export function journeyCombatLoadout(build,journey){
   if(!build||!ROLES[build.role]||!journey)throw Error("Missing Origin or Journey.");
   const owned=new Set(journey.owned);
-  const genesis=build.role==="healer";
-  const chosen=genesis?GENESIS_UNLOCKS.filter(id=>owned.has(id)):
+  const exclusive=classUnlocks(build.role);
+  const chosen=exclusive?exclusive.filter(id=>owned.has(id)):
     [...(build.freeSlots||[]),...journey.owned].filter((id,i,ids)=>
       FREE_IDS.has(id)&&owned.has(id)&&ids.indexOf(id)===i);
   const equipped=chosen.slice(0,journeyActiveSlots(journey)-2);
@@ -154,6 +156,6 @@ export function journeyCombatLoadout(build,journey){
         ?journey.evolutions[id]:null}))),
     resource:Object.freeze({type:"flux",max:MAX_FLUX,regenerationPerSecond:BASE_FLUX_REGEN}),
     rolePassive:ROLES[build.role].passive,
-    progressLevel:1,maxAbilitySlots:genesis?6:10
+    progressLevel:1,maxAbilitySlots:exclusive?6:10
   });
 }

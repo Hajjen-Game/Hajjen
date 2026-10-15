@@ -832,6 +832,26 @@ export class EnergyMatch {
       }
     }
     if(target.hp===0){
+      const burning=target.statuses.find(q=>q.kind==="dot"&&q.spellId==="sun-lance"&&
+        q.remaining>0);
+      if(burning){
+        const owner=this.getActor(burning.sourceId);
+        if(owner?.alive&&owner.evolutions["sun-lance"]==="scorching-lance"){
+          // Expire the original mark before any secondary damage to prevent
+          // chain recursion on this already-dead actor.
+          target.statuses=target.statuses.filter(q=>q!==burning);
+          this.evolutionProc(owner,"sun-lance","scorching-death",target);
+          for(const other of this.opponents(owner).filter(q=>q!==target&&
+            distance(q,target)<170&&hasLineOfSight(target,q,this.arena)).slice(0,7)){
+            this.damage(other,12,owner,"sun-lance",true);
+            if(other.alive&&!other.statuses.some(q=>q.kind==="dot"&&
+              q.spellId==="sun-lance"&&q.sourceId===owner.id))
+              this.addStatus(other,{kind:"dot",negative:true,remaining:6,
+                sourceId:owner.id,spellId:"sun-lance",amount:4.5,
+                period:2,tickLeft:2,tickCount:0});
+          }
+        }
+      }
       target.alive=false;target.cast=null;this.log(target.name+" eliminated!");
       this.emit({type:"death",actorId:target.id,targetId:target.id,
         killerId:source.id,spellId});
@@ -1230,7 +1250,8 @@ export class EnergyMatch {
       (a===target?-1:b===target?1:distance(a,position)-distance(b,position))).slice(0,6);
     this.evolutionProc(actor,"zenith-crash","zenith-impact",null,position.x,position.y);
     for(const [index,foe] of foes.entries())
-      this.damage(foe,rule.amount*(index===0?1:.42),actor,"zenith-crash");
+      this.damage(foe,rule.amount*(index===0?1:.62),actor,"zenith-crash");
+    this.triggerSolarAscension(actor,foes[0]||null,"zenith-crash");
     if(actor.evolutions["zenith-crash"]==="solar-aftershock"){
       this.scheduleEvolution(actor,"zenith-crash","solar-aftershock",
         position.x,position.y,.85,rule.amount*.45,rule.area);
@@ -1240,6 +1261,20 @@ export class EnergyMatch {
         this.scheduleEvolution(actor,"zenith-crash","burning-ground",
           position.x,position.y,tick,5.5,rule.area);
       this.evolutionProc(actor,"zenith-crash","burning-ground",null,position.x,position.y);
+    }
+    if(actor.evolutions["zenith-crash"]==="prism-cross"){
+      for(const [index,dir] of [{x:1,y:1},{x:1,y:-1},{x:-1,y:1},{x:-1,y:-1}].entries()){
+        const len=Math.SQRT2;
+        for(let step=1;step<=5;step++){
+          const p={x:position.x+dir.x/len*66*step,
+            y:position.y+dir.y/len*66*step};
+          if(!canStand(p.x,p.y,this.arena,8)||
+             !hasLineOfSight(position,p,this.arena))break;
+          this.scheduleEvolution(actor,"zenith-crash","prism-cross",p.x,p.y,
+            .14+index*.05+step*.035,8,54);
+        }
+      }
+      this.evolutionProc(actor,"zenith-crash","prism-cross-ready",null,position.x,position.y);
     }
     if(!foes.length)this.log("ZENITH CRASH · EVADED");
     // A dodged Zenith still spends its cast/cooldown but must not trigger
@@ -1632,8 +1667,10 @@ export class EnergyMatch {
       }
       if(actor.evolutions[spellId]==="singularity-impact")amount*=1.2;
       if(spellId==="sun-lance"&&target.hp/target.maxHp<=.35){
-        amount*=1.18;
+        amount*=actor.evolutions[spellId]==="judgment-of-dawn"?1.9:1.18;
         this.identityProc(actor,spellId,"precision-execute",target);
+        if(actor.evolutions[spellId]==="judgment-of-dawn")
+          this.evolutionProc(actor,spellId,"judgment-of-dawn",target);
       }
       let overdriveFollowup=0;
       if(spellId==="arc-strike"){
@@ -1676,6 +1713,14 @@ export class EnergyMatch {
       const targetHpBefore=target.hp;
       this.damage(target,amount,actor,spellId);
       const effectiveDamage=Math.max(0,targetHpBefore-target.hp);
+      if(["flux-bolt","sun-lance","chain-tempest"].includes(spellId))
+        this.triggerSolarAscension(actor,target,spellId);
+      if(actor.familiar?.evo==="soulbrand"&&
+        actor.familiar.until>this.time&&actor.familiar.targetId===target.id&&
+        ["flux-bolt","sun-lance","zenith-crash","chain-tempest"].includes(spellId)){
+        this.evolutionProc(actor,"cinder-familiar","soulbrand-discharge",target);
+        this.damage(target,7,actor,"cinder-familiar",true);
+      }
       if(overdriveFollowup>0){
         this.evolutionProc(actor,spellId,"overdrive",target);
         for(const [i,delay]of [.11,.24].entries())
@@ -1776,29 +1821,53 @@ export class EnergyMatch {
           rhythm.hits+1:1;
         actor.fluxRhythm=hits>=3?null:{targetId:target.id,hits,until:this.time+6};
         if(hits>=3){
-          // Single-target pulse is intentionally small; multi-target chains
-          // belong to the temporary PvE Enchantment, not baseline Arena.
           this.damage(target,6,actor,spellId);
           this.identityProc(actor,spellId,"flux-third-hit",target);
+          const evo=actor.evolutions[spellId];
+          if(evo==="corona-volley"){
+            for(const foe of this.opponents(actor).filter(e=>e!==target&&
+              distance(e,target)<235&&hasLineOfSight(target,e,this.arena)).slice(0,3))
+              this.scheduleEvolution(actor,spellId,"corona-volley",
+                foe.x,foe.y,.17,13,0,{targetId:foe.id});
+          }else if(evo==="thunderhead"){
+            for(const [i,t] of [.44,1.0,1.56].entries())
+              this.scheduleEvolution(actor,spellId,"thunderhead",
+                target.x,target.y,t,10+i*1.2,0,{targetId:target.id});
+            this.evolutionProc(actor,spellId,"thunderhead-cloud",target);
+          }else if(evo==="helios-beam"){
+            actor.heliosReady=true;
+            this.evolutionProc(actor,spellId,"helios-ready",actor);
+          }
         }
-      }
-      if(spellId==="flux-bolt"&&actor.evolutions[spellId]==="fractured-energy"){
-        actor.crossDisciplineCharge={until:this.time+7,discipline:"solar"};
-        this.evolutionProc(actor,spellId,"fractured-energy-ready",actor);
       }
       if(spellId==="sun-lance"){
         const evo=actor.evolutions[spellId];
         if(evo==="scorching-lance"){
-          this.addStatus(target,{kind:"dot",negative:true,remaining:6,sourceId:actor.id,
-            spellId,amount:4.5,period:2,tickLeft:2,tickCount:0});
+          this.addStatus(target,{kind:"dot",negative:true,remaining:8,sourceId:actor.id,
+            spellId,amount:5.0,period:2,tickLeft:2,tickCount:0});
           this.evolutionProc(actor,spellId,"scorching-lance",target);
         }else if(evo==="split-lance"){
-          const second=this.opponents(actor).filter(t=>t!==target&&distance(t,target)<225&&
-            hasLineOfSight(target,t,this.arena)).sort((a,b)=>distance(a,target)-distance(b,target))[0];
-          if(second){
-            this.damage(second,amount*.46,actor,spellId);
-            this.evolutionProc(actor,spellId,"split-lance",second);
+          for(const second of this.opponents(actor).filter(t=>t!==target&&
+            t.hp<t.maxHp&&distance(t,target)<265&&
+            hasLineOfSight(target,t,this.arena)).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp).slice(0,2)){
+            this.scheduleEvolution(actor,spellId,"split-lance",
+              second.x,second.y,.18,amount*.38,0,{targetId:second.id});
           }
+        }
+      }
+      if(spellId==="chain-tempest"){
+        this.identityProc(actor,spellId,"tempest-core",target);
+        const nearby=this.opponents(actor).filter(t=>t!==target&&
+          distance(t,target)<260&&hasLineOfSight(target,t,this.arena))
+          .sort((a,b)=>distance(a,target)-distance(b,target)).slice(0,4);
+        if(nearby.length){
+          for(const [i,foe] of nearby.entries())
+            this.scheduleEvolution(actor,spellId,"tempest-chain",foe.x,foe.y,
+              .12+i*.10,17-i*1.3,0,{targetId:foe.id});
+        }else{
+          for(const [i,delay] of [.17,.39,.61].entries())
+            this.scheduleEvolution(actor,spellId,"tempest-focus",target.x,target.y,
+              delay,8+i,0,{targetId:target.id});
         }
       }
       if(spellId==="zenith-crash"){
@@ -1955,7 +2024,25 @@ export class EnergyMatch {
       for(const key of Object.keys(actor.cooldowns))actor.cooldowns[key]=Math.max(0,actor.cooldowns[key]-dt);
       for(const key of Object.keys(actor.schoolLocks))actor.schoolLocks[key]=Math.max(0,actor.schoolLocks[key]-dt);
       this.updateStatus(actor,dt);
+      if(actor.familiar)this.updateFamiliar(actor);
+      if(actor.solarSigils&&actor.solarSigils.until<=this.time)actor.solarSigils=null;
       if(actor.cast){
+        if(actor.cast.heliosBeam&&actor.cast.channelTick!==undefined){
+          const beam=actor.cast;
+          beam.channelTick+=dt;
+          while(beam.channelTick>=.32&&beam.channelHits<6){
+            beam.channelTick-=.32;
+            beam.channelHits++;
+            const target=this.getActor(beam.targetId);
+            if(!target?.alive||target.team===actor.team){
+              beam.remainingMs=0;break;
+            }
+            const amount=6+beam.channelHits*1.7;
+            this.damage(target,amount,actor,"flux-bolt",true);
+            this.evolutionProc(actor,"flux-bolt","helios-tick",target);
+            if(beam.channelHits===1)this.triggerSolarAscension(actor,target,"flux-bolt");
+          }
+        }
         actor.cast.remainingMs-=dt*1000;
         if(actor.cast.remainingMs<=0){
           const finished=actor.cast;actor.cast=null;

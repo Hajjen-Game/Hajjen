@@ -1,7 +1,7 @@
 // Project Energy UI; internal Energy Arena module names remain stable while the public title is undecided.
 import { readBuildStorage, writeBuildStorage, normalizeBuild } from "../buildState.js?v=20261012-eclipse-oc1";
 import { loadCharacter, saveCharacter } from "./EnergyCharacter.js?v=20261012-rift1";
-import {readJourney} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
+import {readJourney,journeyEvolutionCapacity} from "./EnergyJourneyCampaign.js?v=20261012-evolution1";
 import { readOriginRoster, persistOriginRoster, activeOrigin, snapshotActiveOrigin,
   appendOrigin, chooseOrigin, upsertDevOrigin, devOrigin } from "./EnergyOriginRoster.js?v=20261012-rift1";
 import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
@@ -143,6 +143,7 @@ function showGate(toMenu=false){
   coach?.dispose();coach=null;
   if(renderer){renderer.dispose();renderer=null;}
   keys.clear();pendingCast=null;pendingGroundAim=null;awardedMatch=null;
+  $("energy-canvas").style.cursor="";
   if(toMenu)menu?.open();
   else hub?.open();
 }
@@ -627,8 +628,9 @@ function frameLoop(now){
         (cleared?
           "STAGE "+String(awardedMatch.planet).padStart(2,"0")+" CLEARED!":
           match.winner==="friendly"?"VICTORY":"PLANET DEFENSE FAILED · RETRY")+
-        (cleared&&after.clears<=16?" · NEW SPELL DISCOVERY AWAITS IN HUB":"")+
-        (cleared&&[10,12,14,16,20].includes(after.clears)?
+        (cleared&&readJourney(awardedMatch.next)?.pending?" · NEW CLASS SPELL DISCOVERY AWAITS IN HUB":"")+
+        (cleared&&journeyEvolutionCapacity(readJourney(awardedMatch.next))>
+          journeyEvolutionCapacity(readJourney(previous))?
           " · NEW EVOLUTION SLOT UNLOCKED IN HUB":"")+
         " · +"+fragments+" ENERGY FRAGMENTS"+
         " · NO XP OR SPELL RANKS · Return to HUB to continue your Journey";

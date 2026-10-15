@@ -95,7 +95,7 @@ export class EnergyCombatUX{
       node.classList.toggle("relay-select-partner",slot.id==="soul-relay"&&canRecast);
       const remaining=canRecast?0:player.cooldowns[slot.id]||0;
       const lock=player.schoolLocks[ability.discipline]||0;
-      const gcd=player.gcd||0;
+      const gcd=recallStatus?0:(player.gcd||0);
       const activeCast=player.cast?.spellId===slot.id;
       const target=rule.mode==="dash"?null:match.currentTarget(player,rule.mode,player.targetId);
       const wrongTarget=!target&&rule.mode!=="dash";

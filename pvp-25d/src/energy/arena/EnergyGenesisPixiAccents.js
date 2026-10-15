@@ -5,7 +5,7 @@ const TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const ease=x=>{const t=clamp(x,0,1);return t*t*(3-2*t)};
 export const GENESIS_PIXI_IDS=new Set(["resonance-guard","vital-cascade",
-  "stasis-seal","vital-recall","soul-relay"]);
+  "stasis-seal","stasis-wave","vital-recall","soul-relay"]);
 export const GENESIS_PULSE_EVOS=new Set(["vital-crescendo",
   "second-heart","second-heart-armed","vital-reversal"]);
 const C={core:0xf0fff2,leaf:0x8bf0bc,mint:0x5fd9a8,
@@ -156,7 +156,7 @@ export function drawGenesisPixi(g,e,from,to,t,scale=1){
        e.kind==="life-transfer")threads(stroke,from,p,t,s,
        e.kind==="life-transfer"?"relay":"heal");
     else bloom(stroke,p,t,s,e.kind==="team-cascade");
-  }else if(e.spellId==="stasis-seal"){
+  }else if(e.spellId==="stasis-seal"||e.spellId==="stasis-wave"){
     if(e.type==="control"||e.kind==="tranquility-wave")
       stasis(stroke,p,t,s);
     else if(e.kind==="essence-siphon")threads(stroke,p,from,t,s,"heal");

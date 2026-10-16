@@ -43,13 +43,14 @@ try{
     await page.keyboard.up('w');
     await new Promise(r=>setTimeout(r,1300));
     const after=await page.evaluate(()=>window.__wildpathDebug.read());
+    console.log('MOBILE GAME SNAPSHOTS',mode,JSON.stringify({initial,after,errors}));
     if(mode==='open'){
+      mkdirSync('/tmp/wildpath',{recursive:true});
+      await page.screenshot({path:'/tmp/wildpath/open-world-mobile.png'});
       assert.ok(after.x>initial.x+2,'Glintweaver should move freely to the right');
       assert.ok(after.z>initial.z+2,'Glintweaver should move freely north');
       assert.ok(after.cameraX>initial.cameraX+1,'Camera must follow X');
       assert.ok(after.enemies>0,'The OpenDirector must spawn real enemies');
-      mkdirSync('/tmp/wildpath',{recursive:true});
-      await page.screenshot({path:'/tmp/wildpath/open-world-mobile.png'});
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');

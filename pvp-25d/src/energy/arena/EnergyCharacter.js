@@ -1,6 +1,6 @@
 // Character identity is independent from build presets, and saved separately.
 // Never touches the legacy arena or erases Energy Build Lab saved slots.
-import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261015-voidlab1";
+import { ABILITY_BY_ID, DISCIPLINES, ROLES } from "../abilityCatalog.js?v=20261016-spellcopy1";
 import { stagedLoadout } from "./EnergyProgression.js?v=20261015-voidlab1";
 
 export const CHARACTER_KEY="pvp25d-energy-character-v1";

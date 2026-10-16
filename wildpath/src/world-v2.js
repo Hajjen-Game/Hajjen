@@ -40,7 +40,7 @@ function curvedStrip(scene,name,widthOffset,material,zStart=-22,zEnd=227,step=.8
     positions.push(cx-nx*w,.028,zz-nz*w,cx+nx*w,.028,zz+nz*w);
   }
   for(let i=0;i<positions.length/6-1;i++){
-    const p=i*2;indices.push(p,p+1,p+2,p+1,p+3,p+2);
+    const p=i*2;indices.push(p,p+2,p+1,p+1,p+2,p+3);
   }
   B.VertexData.ComputeNormals(positions,indices,normals);
   const v=new B.VertexData();v.positions=positions;v.indices=indices;v.normals=normals;

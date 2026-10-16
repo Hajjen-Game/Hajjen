@@ -3,6 +3,9 @@
 // Babylon remains authoritative for the game, targeting, movement and camera.
 import { drawEnergyProjectile } from '../../pvp-25d/src/energy/arena/EnergyPixiProjectiles.js';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
+import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
+import { drawImpactPixi } from '../../pvp-25d/src/energy/arena/EnergyImpactPixiAccents.js';
+import { drawGenesisPixi } from '../../pvp-25d/src/energy/arena/EnergyGenesisPixiAccents.js';
 
 const PIXI_URL='https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs';
 const TAU=Math.PI*2;
@@ -78,6 +81,38 @@ function spellEvent(g,e,p,scale){
       drawProjectileImpact(g,{spellId:'crystal-bolt',seed:e.seed},source,p,u,
         style,clamp(scale/15,.65,.93));
       return;
+    }
+    // Reuse Energy Arena's hand-authored class signatures rather than drawing
+    // generic Babylon circles. Scale is capped for Wildpath's distant camera.
+    if(e.stage==='burst'){
+      const k=clamp(scale/13,.65,1.26);
+      if(e.name==='Crystal Bloom'){
+        drawEclipsePixi(g,{spellId:'avalanche',type:'ability',kind:'avalanche-wave',
+          seed:e.seed},p,p,u,k);
+        dot(g,p,Math.max(2,scale*.38),0xf4e7ff,fade*.37);
+        return;
+      }
+      if(e.name==='Winter Pool'){
+        drawEclipsePixi(g,{spellId:'froststorm',type:'ability',kind:'froststorm-start',
+          seed:e.seed},p,p,u,k*.82);
+        return;
+      }
+      if(e.name==='Pale Guard'){
+        drawGenesisPixi(g,{spellId:'resonance-guard',type:'ability',seed:e.seed},
+          p,p,u,k*.85);
+        return;
+      }
+      const impactIDs={'Steel Arc':['arc-strike','hit',''],
+        'Wide Arc':['arc-strike','hit','twin-arc'],
+        'Rushstrike':['phase-rush','charge-impact','meteor-charge'],
+        'Earthwake':['gravity-hammer','ability','gravity-impact']};
+      const id=impactIDs[e.name];
+      if(id){
+        const source={x:p.x-18,y:p.y+10};
+        drawImpactPixi(g,{spellId:id[0],type:id[1],kind:id[2],
+          seed:e.seed,duration:e.life*1000},source,p,u,k);
+        return;
+      }
     }
     const crystal=e.name==='Crystal Bloom',melee=/Arc|Rushstrike|Earthwake/.test(e.name);
     const short=e.stage==='reaction';

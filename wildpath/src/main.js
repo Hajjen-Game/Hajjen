@@ -1,6 +1,6 @@
 import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.3.1';
 import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v4.js?v=0.4.0';
-import { BOARD_HALF_WIDTH, BOARD_END, moveOnRoad, projectToRoad, isOnRoad moveOnRoad, projectToRoad, isOnRoad } from './layout-v4.js?v=0.4.0';
+import { BOARD_HALF_WIDTH, BOARD_END, moveOnRoad, projectToRoad, isOnRoad } from './layout-v4.js?v=0.4.0';
 import { Director } from './director.js?v=0.3.1';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.4.0';
 const CAMERA_WORLD_WIDTH=36.8;

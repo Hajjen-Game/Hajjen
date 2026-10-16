@@ -7,6 +7,7 @@ import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
 import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
+import { createSpellAnimator } from './spell-animation.js?v=0.9.0';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -54,6 +55,13 @@ const director=new Director();
 const keys=new Set();
 const touch={dx:0,dy:0};
 const ui={selectedClass:'caster'};
+const spellFX=createSpellAnimator(scene,{maxEffects:145,
+  reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false});
+function spellStage(name,stage,point,intensity=1,cue='launch'){
+  if(!point)return;
+  if(stage==='sound'){spellFX.sound(name,cue);return;}
+  spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity});
+}
 const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
@@ -145,6 +153,7 @@ function clearGame(){
   for(const e of game.effects)releaseMesh(e.mesh);
   for(const a of game.areas){releaseMesh(a.mesh);releaseMesh(a.border);}
   for(const t of game.texts)t.el.remove();
+  spellFX.clear();
   releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];
@@ -159,6 +168,7 @@ function startGame(){
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
+  spellFX.unlock(); // User gesture from New Game.
   game.actor=createActor(scene,game.classId);
   game.actor.root.scaling.setAll(1.48);
   game.actor.root.position.set(game.x,0,game.z);
@@ -199,7 +209,7 @@ function spawnEnemy(type){
   const id='wild-'+game.frame+'-'+Math.floor(Math.random()*999999);
   const enemy={
     id,type,x,z,actor,alive:true,hp:stats.hp*(1+director.stage*.09),
-    maxHp:stats.hp*(1+director.stage*.09),speed:stats.speed,
+    maxHp:stats.hp*(1+director.stage*.09),speed:stats.speed,recoil:0,
     attackClock:random(.4,1.3),slow:0,knockX:0,knockZ:0,flash:0,bob:Math.random()*6.28
   };
   actor.root.position.set(x,0,z);
@@ -263,6 +273,11 @@ function hurtEnemy(e,base,options={}){
   const amount=base*(crit?1.85:1);
   if(crit)game.crits++;
   e.hp-=amount;e.flash=crit?.26:.17;
+  e.recoil=Math.max(e.recoil||0,crit?.28:.16);
+  if(options.fxSpell){
+    spellStage(options.fxSpell,'reaction',e,crit?1.25:.85);
+    spellStage(options.fxSpell,'damage',{x:e.x,z:e.z,y:2.4},crit?1.45:.75);
+  }
   floatingText({x:e.x,y:2.55,z:e.z},(crit?'CRIT! ':'')+Math.round(amount),crit?'crit':'normal');
   if(crit){
     game.shake=Math.max(game.shake,shakeStrength('crit',reducedMotion));
@@ -315,6 +330,9 @@ function cast(slot){
   if(targeted&&!target)return;
   game.cooldowns[slot]=game.spec.cooldowns[slot];
   activeSpellFeedback(slot);
+  const spellName=game.spec.spells[slot];
+  spellStage(spellName,'charge',game);
+  spellStage(spellName,'sound',game,1,'launch');
   if(caster){
     if(slot===0){icePool(target.x,target.z);ringBurst(target.x,target.z,'#b4ecf1',3);}
     if(slot===1){
@@ -463,7 +481,7 @@ function updatePlayer(dt){
 function updateEnemies(dt){
   for(const e of game.enemies){
     if(!e.alive)continue;
-    e.attackClock-=dt;e.slow=Math.max(0,e.slow-dt);e.flash=Math.max(0,e.flash-dt);
+    e.attackClock-=dt;e.slow=Math.max(0,e.slow-dt);e.flash=Math.max(0,e.flash-dt);e.recoil=Math.max(0,(e.recoil||0)-dt*2.4);
     const dx=game.x-e.x,dz=game.z-e.z,d=Math.max(.01,Math.hypot(dx,dz));
     let mx=0,mz=0;
     if(d>ENEMIES[e.type].range*.88){mx=dx/d;mz=dz/d;}
@@ -478,10 +496,11 @@ function updateEnemies(dt){
     e.x+=(mx/norm*speed+e.knockX*3)*dt;
     e.z+=(mz/norm*speed+e.knockZ*3)*dt;
     e.knockX*=Math.exp(-7*dt);e.knockZ*=Math.exp(-7*dt);
-    e.actor.root.position.set(e.x,Math.sin(game.time*4+e.bob)*.05,e.z);
+    e.actor.root.position.set(e.x,Math.sin(game.time*4+e.bob)*.05+e.recoil*.55,e.z);
     e.actor.root.rotation.y=Math.atan2(dx,dz);
     e.actor.rightArm.rotation.x=Math.sin(game.time*5+e.bob)*.22;
     e.actor.body.scaling.x=e.flash>0?1.12:1;
+    e.actor.body.scaling.y=1-e.recoil*.25;
     e.actor.body.material.emissiveColor.copyFrom(e.flash>0?hitFlashColor:e.normalEmissive);
     if(d<ENEMIES[e.type].range&&e.attackClock<=0){
       e.attackClock=ENEMIES[e.type].cooldown*random(.88,1.12);
@@ -633,6 +652,7 @@ function update(dt){
   updateEnemies(dt);
   updateProjectiles(dt);
   updateEffects(dt);
+  spellFX.tick(dt);
   updateJuice(dt);
   hudTime-=dt;
   if(hudTime<=0){updateHud();hudTime=.12;}

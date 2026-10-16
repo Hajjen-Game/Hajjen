@@ -24,6 +24,8 @@ if (!B) {
   throw new Error('Babylon.js could not be loaded');
 }
 const V = (x,y,z) => new B.Vector3(x,y,z);
+document.body.classList.toggle('wildpath-open',OPEN_WORLD);
+$('energyPanel').hidden=!OPEN_WORLD;
 const canvas = $('game');
 const engine = new B.Engine(canvas,true,{stencil:false,preserveDrawingBuffer:false},true);
 engine.setHardwareScalingLevel(Math.max(1, Math.min(1.5,devicePixelRatio>2?1.35:1)));
@@ -830,7 +832,7 @@ scene.onPointerObservable.add(info=>{
   // Clicking the world never locks a target; combat is positioning-based.
 });
 document.querySelectorAll('[data-class]').forEach(btn=>{
-  if(OPEN_WORLD&&btn.dataset.class!=='caster'){btn.hidden=true;return;}
+  if(OPEN_WORLD&&btn.dataset.class!=='caster'){btn.hidden=true;btn.style.display='none';return;}
   btn.addEventListener('click',()=>{
     ui.selectedClass=btn.dataset.class;
     document.querySelectorAll('[data-class]').forEach(el=>el.classList.toggle('selected',el===btn));

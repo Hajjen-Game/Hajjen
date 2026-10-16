@@ -195,3 +195,18 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
   color:#e3f8e7;background:#2d5b4c}
 .slash-compare-note{font-size:11px;color:#bddac9;line-height:1.45;
   max-width:265px;text-align:center;margin:7px auto 15px}
+
+/* Wildpath 2.0: portrait exploration UI. Legacy mode uses its original layout. */
+.energy-panel{margin-top:9px}
+.energy-top{display:flex;justify-content:space-between;gap:4px;font-size:9px;letter-spacing:.65px;font-weight:900;color:#469d97}
+.energy-track{height:6px;margin-top:4px;background:#c8ded3;border-radius:10px;overflow:hidden}
+#energyFill{height:100%;width:0;background:linear-gradient(90deg,#44c4b2,#a9f4e4);transition:width .17s}
+#energyPanel[hidden]{display:none!important}
+.wildpath-open .class-grid{grid-template-columns:minmax(0,1fr);justify-items:center}
+.wildpath-open .class-card[data-class="melee"]{display:none!important}
+.wildpath-open .class-card[data-class="caster"]{width:min(100%,330px);min-height:110px}
+.classic-link{display:block;text-align:center;color:#b1edce;font-weight:800;font-size:11px;margin-top:15px;text-decoration:underline;text-underline-offset:3px}
+body:not(.wildpath-open) .classic-link{display:none}
+.wildpath-open #goal{font-size:10px;letter-spacing:.4px;background:#284e42dc}
+@media(max-width:650px){.wildpath-open .hud-left{padding:9px 11px}.wildpath-open .hud-score{padding:9px 11px}
+.wildpath-open .energy-panel{margin-top:6px}.wildpath-open .class-card[data-class="caster"]{min-height:102px}}

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#d3e9c4" />
   <meta name="description" content="Wildpath — a cozy-looking, fast-paced fantasy survival adventure." />
-  <title>Wildpath · Weapon Slash Test 1.1.0</title>
-  <link rel="stylesheet" href="./styles.css?v=1.1.0" />
+  <title>Wildpath 2.0 · The Enchanted Wilds</title>
+  <link rel="stylesheet" href="./styles.css?v=2.0.0" />
 </head>
 <body>
   <main id="app">
@@ -19,6 +19,7 @@
         <div class="glass hud-left">
           <div class="hud-label"><span id="className">Glintweaver</span><span class="sep">·</span><span id="stageName">GLADE 1 / 4</span></div>
           <div class="health-track"><div id="healthFill"></div></div>
+          <div id="energyPanel" class="energy-panel"><div class="energy-top"><span>MAGIC ENERGY</span><span id="energyText">0 / 6</span></div><div class="energy-track"><div id="energyFill"></div></div></div>
           <div class="stats-small"><span id="healthText">100 / 100</span><span id="directorLabel">CALM</span></div>
         </div>
         <div class="glass hud-score">
@@ -43,7 +44,7 @@
       </div>
     </div>
     <div id="startScreen" class="screen visible">
-      <div class="title-wrap"><div class="overline">A COZY WORLD. A WILD RIDE.</div><h1>WILD<span>PATH</span></h1><p>Every trail is a new run.</p></div>
+      <div class="title-wrap"><div class="overline">AWAKEN YOUR MAGIC · EXPLORE THE WILDS</div><h1>WILD<span>PATH</span></h1><p>Grow stronger with every glint of magic.</p></div>
       <section class="menu-panel">
         <div class="mini-title">CHOOSE YOUR PATH</div>
         <div class="class-grid">
@@ -51,9 +52,10 @@
           <button class="class-card" data-class="melee"><div class="class-symbol steel">⚔</div><strong>Stoneblade</strong><small>Melee · Steel & shockwaves</small><span>Get close, carve through the crowd.</span></button>
         </div>
         <button id="playButton" class="primary">BEGIN JOURNEY <span>➜</span></button>
-        <p class="key-help">WASD move · Targets chosen automatically · 1 / 2 / 3 abilities · Move while casting</p>
+        <p class="key-help">WASD / Joystick · Auto targeting · 1 / 2 / 3 abilities · Move while casting</p>
+        <a class="classic-link" href="?world=classic">Compare with the original trail version ↗</a>
       </section>
-      <div class="version">CC0 SLASH TEST · v1.1.0</div>
+      <div class="version">OPEN WILDS · v2.0.0</div>
     </div>
     <div id="boostScreen" class="screen" hidden>
       <section class="dialog large"><div class="overline">THE WILDS RESPOND</div><h2>Choose a wild blessing</h2><p>Power up for the rest of this journey.</p><div id="boostOptions" class="boost-grid"></div></section>
@@ -65,6 +67,6 @@
     <div id="loadError" class="screen" hidden><section class="dialog"><h2>Couldn't load the 3D engine.</h2><p>Wildpath needs an internet connection the first time it loads Babylon.js. Reload when online.</p></section></div>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/main.js?v=1.1.0"></script>
+  <script type="module" src="./src/main.js?v=2.0.0"></script>
 </body>
 </html>

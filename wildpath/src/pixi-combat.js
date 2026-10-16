@@ -69,6 +69,20 @@ function spellEvent(g,e,p,scale){
   const fade=(1-smooth((u-.08)/.9))*Math.min(1,u*8+.3);
   const r=clamp(scale*1.8,10,33)*clamp(e.intensity,.5,2.1);
   const from=e.from?e.from:null;
+  // Nature Rebirth: clean, brief petals/leaves on spawn and tier upgrades.
+  if(e.name==='Nature Bloom'&&e.stage==='burst'){
+    const width=clamp(e.intensity,.7,2),radius=(6+u*24)*width;
+    ellipse(g,p,radius,radius*.68,0xa4f1c1,Math.max(1,2.1*width),fade*.67);
+    for(let i=0;i<7;i++){
+      const a=(i+e.seed*.07)*TAU/7;
+      const d=radius*(.38+u*.55);
+      const q={x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d*.67};
+      const color=i%3===0?0xffe3b3:i%2===0?0xf3b8de:0xb1f6ce;
+      shard(g,q,a,clamp(4.2*width,3,11),2.0*width,color,fade*.92);
+    }
+    dot(g,p,Math.max(1.6,4.4*(1-u)*width),0xf3ffcb,fade*.65);
+    return;
+  }
   // Pass 5: compact readable special moments, never multi-layered travel blobs.
   if(e.stage==='burst'&&e.name==='Magic Pickup'){
     const radius=7+u*18;
@@ -419,7 +433,7 @@ export class WildpathPixiCombat {
     if(stage==='burst'&&(name==='Steel Arc'||name==='Wide Arc')&&
        this.slashMode==='asset'&&this.addSlash(name,point,intensity))return;
     if(this.effects.length>=90)this.effects.shift();
-    const life=stage==='burst'?.37:stage==='reaction'?.19:
+    const life=stage==='burst'?(name==='Nature Bloom'?.74:.37):stage==='reaction'?.19:
       stage==='charge'?.20:stage==='core'?.23:stage==='aftermath'?.52:.3;
     this.effects.push({name,stage,x:point.x,z:point.z,y:point.y??1.3,
       intensity,elapsed:0,life,seed:++this.sequence});

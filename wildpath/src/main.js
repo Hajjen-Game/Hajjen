@@ -13,6 +13,8 @@ import { WildpathPixiCombat } from './pixi-combat.js?v=2.1.0';
 import {createOpenWorld} from './world-open.js?v=2.0.1';
 import {OpenDirector} from './director-open.js?v=2.0.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
+import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.2.0';
+import {NatureGrowth} from './nature-growth.js?v=2.2.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
 
@@ -73,6 +75,16 @@ const spellFX=createSpellAnimator(scene,{maxEffects:145,
 const pixi=new WildpathPixiCombat(canvas,scene,engine);
 pixi.enableSlashFrames=!OPEN_WORLD; // Glintweaver-only mode never downloads melee sprites.
 void pixi.init();
+// Only the open world has living scenery. The original game stays intact.
+let natureLedger=makeNatureLedger();
+const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
+  pixi.stage('Nature Bloom','burst',{x:event.x,z:event.z,y:.6},
+    event.tier==='blossom'?1.95:event.tier==='tree'?1.55:event.tier==='bush'?1.2:.72);
+  if(upgraded){
+    const names={bush:'✿ BLOOMING BUSH',tree:'🌳 YOUNG TREE',blossom:'🌸 BLOSSOM TREE'};
+    floatingText({x:event.x,y:2.8,z:event.z},names[event.tier]||'✿ BLOOM','nature');
+  }
+}}):null;
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
   if(stage==='sound'){spellFX.sound(name,cue);return;}
@@ -95,7 +107,8 @@ if(new URLSearchParams(location.search).has('debug')){
       health:game.hp,energy:game.energy,stage:director.stage,
       enemies:game.enemies.filter(e=>e.alive).length,pickups:game.pickups.length,
       score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z,
-      pixiReady:pixi.ready,pixiFailed:pixi.failed
+      pixiReady:pixi.ready,pixiFailed:pixi.failed,
+      nature:nature?.snapshot()??null
     })
   });
 }
@@ -197,6 +210,7 @@ function clearGame(){
   for(const t of game.texts)t.el.remove();
   for(const p of game.pickups)releaseMesh(p.mesh);
   spellFX.clear();pixi.clear();
+  nature?.clear();natureLedger=makeNatureLedger();
   releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];game.pickups=[];game.energy=0;game.lastPickupSound=-10;game.surgeCelebrated=false;
@@ -278,7 +292,14 @@ function floatingText(pos,value,kind='normal'){
 }
 function scoreKill(enemy){
   game.kills++;
-  if(OPEN_WORLD){director.kills++;dropGlint(enemy);}
+  if(OPEN_WORLD){
+    director.kills++;
+    dropGlint(enemy);
+    const event=recordNatureKill(natureLedger,{
+      x:enemy.x,z:enemy.z,type:enemy.type,time:game.time
+    });
+    nature?.apply(event,game);
+  }
   game.combo=game.comboLife>0?game.combo+1:1;
   game.comboLife=5.5;
   const multiplier=1+Math.min(2,Math.floor(game.combo/5)*.2);
@@ -835,6 +856,8 @@ function updateHud(){
   if(OPEN_WORLD){
     label('energyText',game.energy+' / '+energyThreshold(director.stage));
     $('energyFill').style.width=energyProgress(game.energy,director.stage)*100+'%';
+    const growth=nature?.snapshot();
+    if(growth)label('natureBadge','✿ '+growth.plants+' BLOOMS · '+growth.tiers.tree+' TREES · '+growth.tiers.blossom+' RARE');
   }
   label('directorLabel',director.stateLabel);
   label('healthText',Math.ceil(game.hp)+' / '+game.maxHp+(game.shield>0?' · Shield '+Math.round(game.shield):''));
@@ -869,6 +892,7 @@ function update(dt){
   updateEnemies(dt);
   updateProjectiles(dt);
   updateGlints(dt);
+  nature?.update(dt,game);
   updateEffects(dt);
   spellFX.tick(dt);
   updateJuice(dt);

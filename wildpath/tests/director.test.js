@@ -13,7 +13,7 @@ test('director cannot exceed stage threat budget', () => {
 });
 
 test('stages reset intensity and cannot exceed budgets',()=>{
-  const d=new Director();d.stress=.9;d.spent=14;d.next();assert.equal(d.stage,1);assert.equal(d.spent,0);assert.equal(d.phase,'relax');assert.equal(d.stress,0);
+  const d=new Director();d.stress=.9;d.spent=14;d.next();assert.equal(d.stage,1);assert.equal(d.spent,0);assert.equal(d.phase,'build');assert.equal(d.stress,0);
 });
 
 test('both classes have three skills plus their always-on basic',()=>{

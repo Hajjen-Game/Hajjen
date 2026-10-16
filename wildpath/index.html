@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#d3e9c4" />
+  <meta name="description" content="Wildpath — a cozy-looking, fast-paced fantasy survival adventure." />
+  <title>Wildpath · First Playable</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="game" tabindex="0" aria-label="Wildpath 3D game"></canvas>
+    <div id="vignette"></div>
+    <div id="floaters" aria-hidden="true"></div>
+    <div id="hud" hidden>
+      <div class="hud-top">
+        <div class="glass hud-left">
+          <div class="hud-label"><span id="className">Glintweaver</span><span class="sep">·</span><span id="stageName">GLADE 1 / 4</span></div>
+          <div class="health-track"><div id="healthFill"></div></div>
+          <div class="stats-small"><span id="healthText">100 / 100</span><span id="directorLabel">CALM</span></div>
+        </div>
+        <div class="glass hud-score">
+          <div class="hud-label">SCORE <span class="sep">·</span> <span id="timeText">00:00</span></div>
+          <div id="scoreText">0</div>
+          <div class="stats-small"><span id="bestText">BEST 0</span><span id="comboText">x1.0</span></div>
+        </div>
+      </div>
+      <div id="goal" class="goal">Follow the trail · Survive the wilds</div>
+      <div id="targetCard" class="glass target" hidden><span class="eyebrow">TARGET</span><span id="targetName">Mossling</span><div class="target-health"><div id="targetHealthFill"></div></div></div>
+      <div id="bottomHud">
+        <div class="ability basic"><div class="ability-key">AUTO</div><div class="ability-name" id="basicName">Glint Dart</div><div class="ability-desc">Basic attack</div></div>
+        <button class="ability special" data-slot="0"><div class="ability-key">2</div><div class="ability-icon">✧</div><div class="ability-name" id="spellName0">Winter Pool</div><div class="cooldown" id="cooldown0"></div></button>
+        <button class="ability special" data-slot="1"><div class="ability-key">3</div><div class="ability-icon">✦</div><div class="ability-name" id="spellName1">Crystal Bloom</div><div class="cooldown" id="cooldown1"></div></button>
+        <button class="ability special" data-slot="2"><div class="ability-key">4</div><div class="ability-icon">❖</div><div class="ability-name" id="spellName2">Pale Guard</div><div class="cooldown" id="cooldown2"></div></button>
+      </div>
+      <button id="pauseButton" class="small-button" aria-label="Pause">Ⅱ</button>
+      <div id="toast" role="status" aria-live="polite"></div>
+      <div id="touchControls" hidden>
+        <div id="joystick"><div id="stick"></div></div>
+        <button id="touchTarget" aria-label="Change target">◎</button>
+      </div>
+    </div>
+    <div id="startScreen" class="screen visible">
+      <div class="title-wrap"><div class="overline">A COZY WORLD. A WILD RIDE.</div><h1>WILD<span>PATH</span></h1><p>Every trail is a new run.</p></div>
+      <section class="menu-panel">
+        <div class="mini-title">CHOOSE YOUR PATH</div>
+        <div class="class-grid">
+          <button class="class-card selected" data-class="caster"><div class="class-symbol frost">✦</div><strong>Glintweaver</strong><small>Ranged · Ice & light</small><span>Kite enemies and shape the battlefield.</span></button>
+          <button class="class-card" data-class="melee"><div class="class-symbol steel">⚔</div><strong>Stoneblade</strong><small>Melee · Steel & shockwaves</small><span>Get close, carve through the crowd.</span></button>
+        </div>
+        <button id="playButton" class="primary">BEGIN JOURNEY <span>➜</span></button>
+        <p class="key-help">WASD move · Click or Tab target · 2 / 3 / 4 abilities · Basic attack is automatic</p>
+      </section>
+      <div class="version">FIRST PLAYABLE · v0.1</div>
+    </div>
+    <div id="boostScreen" class="screen" hidden>
+      <section class="dialog large"><div class="overline">THE WILDS RESPOND</div><h2>Choose a wild blessing</h2><p>Power up for the rest of this journey.</p><div id="boostOptions" class="boost-grid"></div></section>
+    </div>
+    <div id="resultScreen" class="screen" hidden>
+      <section class="dialog"><div id="resultEyebrow" class="overline">JOURNEY COMPLETE</div><h2 id="resultHeading">A trail well walked.</h2><div id="resultScore">0</div><p id="resultSummary">Your score</p><div id="resultStats"></div><button id="retryButton" class="primary">PLAY AGAIN <span>➜</span></button><button id="menuButton" class="subtle-button">BACK TO CLASSES</button></section>
+    </div>
+    <div id="pauseScreen" class="screen" hidden><section class="dialog"><div class="overline">TAKE A BREATH</div><h2>Journey paused</h2><button id="resumeButton" class="primary">RESUME <span>➜</span></button><button id="quitButton" class="subtle-button">END JOURNEY</button></section></div>
+    <div id="loadError" class="screen" hidden><section class="dialog"><h2>Couldn't load the 3D engine.</h2><p>Wildpath needs an internet connection the first time it loads Babylon.js. Reload when online.</p></section></div>
+  </main>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

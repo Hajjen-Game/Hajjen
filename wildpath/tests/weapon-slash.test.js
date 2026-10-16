@@ -20,3 +20,55 @@ test('mobile slash size stays compact and follows target direction',()=>{
   assert.ok(slashScreenAngle({x:0,y:0},{x:20,y:0})===0);
   assert.ok(Math.abs(slashScreenAngle({x:0,y:0},{x:0,y:20})-Math.PI/2)<1e-9);
 });
+
+test('all 12 original Classic PNG frames are present in the public game bundle',()=>{
+  const {readFileSync}=await import('node:fs');
+  for(const kind of ['basic','wide']){
+    for(const pathname of slashFramePaths(kind)){
+      const f=readFileSync(new URL('../'+pathname.slice(2),import.meta.url));
+      assert.ok(f.length>1000,pathname);
+      assert.equal(f.subarray(1,4).toString(),'PNG');
+    }
+  }
+});
+test('Cethiel slash can be compared live against the previous Pixi visual',async()=>{
+  const {WildpathPixiCombat}=await import('../src/pixi-combat.js');
+  let destroyed=0;
+  class Sprite {
+    constructor(texture){
+      this.texture=texture;this.visible=true;
+      this.anchor={set(){}};
+      this.position={set(x,y){this.x=x;this.y=y;}};
+      this.scale={set(v){this.x=v;this.y=v;}};
+    }
+    destroy(){destroyed++;}
+  }
+  const fx=new WildpathPixiCombat(null,null,null);
+  fx.ready=true;fx.PIXI={Sprite};
+  fx.slashLayer={addChild(){}};
+  fx.slashFrames={
+    basic:Array.from({length:6},()=>({height:150})),
+    wide:Array.from({length:6},()=>({height:150}))
+  };
+  fx.at=(x,z)=>({x:x*10,y:z*10});
+  fx.scaleAt=()=>12;
+  fx.app={render(){}};
+  fx.graphics={clear(){}};
+  fx.setSlashMode('asset');
+  fx.stage('Steel Arc','burst',{x:6,z:6,originX:2,originZ:3,
+    targetX:6,targetZ:6,followPlayer:true});
+  assert.equal(fx.slashes.length,1);
+  assert.equal(fx.effects.length,0);
+  fx.updateSlashes(.14,{state:'play',x:2,z:3});
+  assert.equal(fx.slashes[0].sprite.position.x,20);
+  assert.equal(fx.slashes[0].sprite.position.y,30);
+  assert.equal(fx.slashes[0].sprite.texture,fx.slashFrames.basic[2]);
+  fx.clear();
+  assert.equal(fx.slashes.length,0);
+  assert.equal(destroyed,1);
+  fx.setSlashMode('original');
+  fx.stage('Steel Arc','burst',{x:6,z:6});
+  assert.equal(fx.slashes.length,0);
+  assert.equal(fx.effects.length,1);
+  fx.clear();
+});

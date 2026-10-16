@@ -29,6 +29,46 @@ export function stageDuration(stage){return {charge:.17,core:.24,trail:.25,burst
 export function pickSpell(name){return SPELL_PRESENTATION[name]||SPELL_PRESENTATION['Glint Dart'];}
 
 const V=(B,x,y,z)=>new B.Vector3(x,y,z);
+/**
+ * A thin continuous tapered trail behind Glint Dart. One updatable mesh per shot,
+ * not a new mesh each frame. On unsupported devices the fallback is the existing
+ * particle trail, so an optional graphical feature can never stop combat.
+ */
+export function createRibbonTrail(scene,{color='#8edff1',points=9}={}){
+  const B=window.BABYLON;
+  if(!B.MeshBuilder.CreateTube)return {move(){},dispose(){}};
+  const path=Array.from({length:points},(_,i)=>new B.Vector3(0,1.4,-(points-i)*.02));
+  let mesh=null,material=null,broken=false;
+  try{
+    material=new B.StandardMaterial('glint taper material',scene);
+    const c=B.Color3.FromHexString(color);
+    material.diffuseColor=c;material.emissiveColor=c.scale(1.4);
+    material.specularColor=B.Color3.Black();material.disableLighting=true;
+    material.alpha=.72;material.backFaceCulling=false;
+    mesh=B.MeshBuilder.CreateTube('continuous tapering bolt trail',{
+      path,tessellation:7,updatable:true,
+      radiusFunction:(i)=>.018+.20*i/(points-1)
+    },scene);
+    mesh.material=material;mesh.isPickable=false;
+  }catch{
+    broken=true;mesh?.dispose(false,false);material?.dispose();
+  }
+  return {
+    move(x,y,z){
+      if(broken)return;
+      try{
+        path.shift();path.push(new B.Vector3(x,y,z));
+        B.MeshBuilder.CreateTube(null,{path,instance:mesh},scene);
+      }catch{
+        broken=true;mesh?.dispose(false,false);material?.dispose();
+      }
+    },
+    dispose(){
+      if(broken)return;
+      broken=true;mesh?.dispose(false,false);material?.dispose();
+    }
+  };
+}
 export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={}){
   const B=window.BABYLON;
   const active=[],materials=new Map();

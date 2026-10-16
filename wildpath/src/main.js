@@ -10,7 +10,11 @@ import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from '
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
 import { WildpathPixiCombat } from './pixi-combat.js?v=1.1.0';
-const CAMERA_WORLD_WIDTH=33.2;
+import {createOpenWorld} from './world-open.js?v=2.0.0';
+import {OpenDirector} from './director-open.js?v=2.0.0';
+import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
+const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
+const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
 
 const B = window.BABYLON;
 const $ = id => document.getElementById(id);
@@ -52,8 +56,13 @@ function resizeCamera(){
   camera.orthoBottom=f.bottom;
 }
 resizeCamera();
-const world=createWorld(scene);
-const director=new Director();
+const world=OPEN_WORLD?createOpenWorld(scene):createWorld(scene);
+const director=OPEN_WORLD?new OpenDirector():new Director();
+if(OPEN_WORLD){
+  scene.clearColor=B.Color4.FromHexString('#253c33ff');
+  scene.fogColor=B.Color3.FromHexString('#253c33');
+  scene.fogStart=83;scene.fogEnd=165;
+}
 const keys=new Set();
 const touch={dx:0,dy:0};
 const ui={selectedClass:'caster'};
@@ -71,7 +80,7 @@ function spellStage(name,stage,point,intensity=1,cue='launch'){
 const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
-  texts:[],target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
+  texts:[],pickups:[],energy:0,target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
   cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
@@ -171,17 +180,18 @@ function clearGame(){
   for(const e of game.effects)releaseMesh(e.mesh);
   for(const a of game.areas){releaseMesh(a.mesh);releaseMesh(a.border);}
   for(const t of game.texts)t.el.remove();
+  for(const p of game.pickups)releaseMesh(p.mesh);
   spellFX.clear();pixi.clear();
   releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
-  game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];
+  game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];game.pickups=[];game.energy=0;
   game.selectionRing=null;game.heroRing=null;
   $('scoreBursts').replaceChildren();
 }
 function startGame(){
   clearGame();director.reset();
   game.state='play';game.classId=ui.selectedClass;game.spec=CLASS_DATA[game.classId];
-  game.x=pathX(2);game.z=2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
+  game.x=OPEN_WORLD?0:pathX(2);game.z=OPEN_WORLD?0:2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
   game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;game.displayedScore=0;game.shake=0;
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
@@ -205,9 +215,9 @@ function startGame(){
   $('hud').hidden=false;
   hideScreens();
   // The hero starts on camera; no off-screen travel is ever required.
-  camera.position.set(0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
-  camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
-  toast('Wild creatures approach! Your basic attack fires automatically.');
+  camera.position.set(game.x,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
+  camera.setTarget(V(game.x,0,camera.position.z+CAMERA_LOOK_DISTANCE));
+  toast(OPEN_WORLD?'Collect the glints of magic to awaken your powers!':'Wild creatures approach! Your basic attack fires automatically.');
   canvas.focus();
 }
 // Automatic targeting is recalculated from nearby threats on every attack.
@@ -217,11 +227,14 @@ function currentTarget(range=game.spec.range+.5){
 }
 function spawnEnemy(type){
   const stats=ENEMIES[type];
-  let z=game.z+random(5,9),x=game.x+random(-5.5,5.5);
-  if(Math.random()<.2){z=game.z-random(4,6);x=game.x+random(-4,4);}
-  // Spawn near the hero, including when the player retreats into a previous glade.
-  z=clamp(z,BOARD_START+1,Math.min(BOARD_END-1,director.gate-.5));
-  ({x,z}=projectToRoad(x,z));
+  let x,z;
+  if(OPEN_WORLD)({x,z}=openSpawnPoint(game));
+  else{
+    z=game.z+random(5,9);x=game.x+random(-5.5,5.5);
+    if(Math.random()<.2){z=game.z-random(4,6);x=game.x+random(-4,4);}
+    z=clamp(z,BOARD_START+1,Math.min(BOARD_END-1,director.gate-.5));
+    ({x,z}=projectToRoad(x,z));
+  }
   const actor=createActor(scene,type,true);
   actor.root.scaling.scaleInPlace(1.27);
   const id='wild-'+game.frame+'-'+Math.floor(Math.random()*999999);
@@ -248,6 +261,7 @@ function floatingText(pos,value,kind='normal'){
 }
 function scoreKill(enemy){
   game.kills++;
+  if(OPEN_WORLD){director.kills++;dropGlint(enemy);}
   game.combo=game.comboLife>0?game.combo+1:1;
   game.comboLife=5.5;
   const multiplier=1+Math.min(2,Math.floor(game.combo/5)*.2);
@@ -263,6 +277,34 @@ function scoreKill(enemy){
       {transform:'scale(1.28)',color:'#fff0aa',offset:.45},
       {transform:'scale(1)',color:'#d5f1d7'}
     ],430);
+  }
+}
+function dropGlint(enemy){
+  if(game.pickups.length>=100){
+    const oldest=game.pickups.shift();
+    game.energy+=oldest.value;releaseMesh(oldest.mesh);
+  }
+  const mesh=lightOrb(scene,'#9df7db',.43);
+  mesh.position.set(enemy.x,.48,enemy.z);
+  game.pickups.push({x:enemy.x,z:enemy.z,value:enemy.type==='guardian'?3:1,mesh,age:0});
+}
+function updateGlints(dt){
+  if(!OPEN_WORLD)return;
+  for(let i=game.pickups.length-1;i>=0;i--){
+    const p=game.pickups[i];p.age+=dt;
+    const dx=game.x-p.x,dz=game.z-p.z,dist=Math.hypot(dx,dz);
+    if(dist<6.7||p.age>30){
+      if(dist>.001){
+        const speed=(dist<6.7?8.5:12)+Math.max(0,6.7-dist)*1.45;
+        const step=Math.min(dist,speed*dt);
+        p.x+=dx/dist*step;p.z+=dz/dist*step;
+      }
+    }
+    p.mesh.position.set(p.x,.53+Math.sin(game.time*5+i)*.085,p.z);
+    if(Math.hypot(game.x-p.x,game.z-p.z)<.87){
+      game.energy+=p.value;
+      releaseMesh(p.mesh);game.pickups.splice(i,1);
+    }
   }
 }
 function ringBurst(x,z,color,scale=1){
@@ -513,8 +555,10 @@ function updatePlayer(dt){
   const len=Math.hypot(x,z);
   if(len>.03){
     x/=Math.max(1,len);z/=Math.max(1,len);
-    const dz=nextTravelZ(game.z,z*game.spec.speed*dt,director.stage,director.ready,STAGE_GATES,BOARD_START)-game.z;
-    const step=moveOnRoad(game.x,game.z,x*game.spec.speed*dt,dz);
+    const dz=OPEN_WORLD?z*game.spec.speed*dt:
+      nextTravelZ(game.z,z*game.spec.speed*dt,director.stage,director.ready,STAGE_GATES,BOARD_START)-game.z;
+    const step=OPEN_WORLD?freeStep(game.x,game.z,x*game.spec.speed*dt,dz):
+      moveOnRoad(game.x,game.z,x*game.spec.speed*dt,dz);
     game.x=step.x;
     game.z=step.z;
   }
@@ -527,12 +571,11 @@ function updatePlayer(dt){
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
   // The camera follows the actual player north AND south. Retreating never leaves
   // the hero outside the portrait viewport, even across a previous stage.
-  const p=V(0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
+  const p=V(OPEN_WORLD?game.x:0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
   camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*7.2));
-  // Light directional camera impulse, decaying quickly, never changing the base framing.
   game.shake=Math.max(0,game.shake-dt*1.45);
-  camera.position.x=Math.sin(game.time*83)*game.shake*.62;
-  camera.setTarget(V(camera.position.x,0,camera.position.z+CAMERA_LOOK_DISTANCE));
+  const shakeX=Math.sin(game.time*83)*game.shake*.62;
+  camera.setTarget(V(camera.position.x+shakeX,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
@@ -572,8 +615,11 @@ function updateEnemies(dt){
     }
     const norm=Math.max(1,Math.hypot(mx,mz));
     const speed=e.speed*(e.slow>0?.43:1);
-    e.x+=(mx/norm*speed+e.knockX*3)*dt;
-    e.z+=(mz/norm*speed+e.knockZ*3)*dt;
+    const stepX=(mx/norm*speed+e.knockX*3)*dt,stepZ=(mz/norm*speed+e.knockZ*3)*dt;
+    if(OPEN_WORLD){
+      const moved=freeStep(e.x,e.z,stepX,stepZ,WILD_RADIUS+.5);
+      e.x=moved.x;e.z=moved.z;
+    }else{e.x+=stepX;e.z+=stepZ;}
     e.knockX*=Math.exp(-7*dt);e.knockZ*=Math.exp(-7*dt);
     e.actor.root.position.set(e.x,Math.sin(game.time*4+e.bob)*.05+e.recoil*.55,e.z);
     e.actor.root.rotation.y=Math.atan2(dx,dz);
@@ -675,8 +721,8 @@ function completeStage(){
   if(game.gateQueued)return;
   game.gateQueued=true;
   bumpScore(1250+director.stage*450,null,'stage');
-  game.hp=Math.min(game.maxHp,game.hp+23);
-  if(director.stage>=3){finish(true);return;}
+  game.hp=Math.min(game.maxHp,game.hp+(OPEN_WORLD?16:23));
+  if(director.stage>=(OPEN_WORLD?7:3)){finish(true);return;}
   game.state='boost';
   const wrap=$('boostOptions');wrap.innerHTML='';
   for(const item of pickBoosts()){
@@ -687,6 +733,7 @@ function completeStage(){
     btn.append(icon,title,desc);
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
+      if(OPEN_WORLD)game.energy=0;
       if(item.id==='mend'){game.maxHp+=35;game.hp=Math.min(game.maxHp,game.hp+45);}
       // Blessings do not teleport the hero. Another wave starts where they stand.
       director.next();
@@ -706,7 +753,7 @@ function finish(success){
   game.state='result';
   const oldBest=getBest();saveBest();
   label('resultEyebrow',success?'JOURNEY COMPLETE':'THE WILDS CLAIMED THIS RUN');
-  label('resultHeading',success?'A trail well walked.':'Every path teaches something.');
+  label('resultHeading',success?(OPEN_WORLD?'The wilds have awakened.':'A trail well walked.'):'Every path teaches something.');
   label('resultScore',fmt(game.score));
   label('resultSummary',game.score>=oldBest?'✦ NEW PERSONAL BEST ✦':'BEST '+fmt(oldBest));
   label('resultStats',game.kills+' defeated · '+game.crits+' critical strikes · '+Math.floor(game.time/60)+'m '+Math.floor(game.time%60)+'s');
@@ -714,13 +761,19 @@ function finish(success){
 }
 function updateHud(){
   label('timeText',String(Math.floor(game.time/60)).padStart(2,'0')+':'+String(Math.floor(game.time%60)).padStart(2,'0'));
-  label('stageName','GLADE '+(director.stage+1)+' / 4');
+  label('stageName',OPEN_WORLD?'SURGE '+(director.stage+1)+' / 8':'GLADE '+(director.stage+1)+' / 4');
+  if(OPEN_WORLD){
+    label('energyText',game.energy+' / '+energyThreshold(director.stage));
+    $('energyFill').style.width=energyProgress(game.energy,director.stage)*100+'%';
+  }
   label('directorLabel',director.stateLabel);
   label('healthText',Math.ceil(game.hp)+' / '+game.maxHp+(game.shield>0?' · Shield '+Math.round(game.shield):''));
   $('healthFill').style.width=(game.hp/game.maxHp*100)+'%';
   label('comboText',game.combo>1?'COMBO '+game.combo:'x1.0');
   label('bestText','BEST '+fmt(getBest()));
-  label('goal',director.ready?'GLADE CLEAR · Choose a blessing':'SURVIVE THE WILDS · '+STAGE_NAMES[director.stage]);
+  label('goal',OPEN_WORLD?
+    (director.ready?'MAGIC AWAKENED · Choose a blessing':'COLLECT MAGIC · GROW STRONGER'):
+    (director.ready?'GLADE CLEAR · Choose a blessing':'SURVIVE THE WILDS · '+STAGE_NAMES[director.stage]));
   // No target card is needed: the closest threat is chosen automatically.
   for(let i=0;i<3;i++){
     const cd=$('cooldown'+i),time=game.cooldowns[i],button=abilityButtons[i];
@@ -745,6 +798,7 @@ function update(dt){
   director.tick(dt,game);
   updateEnemies(dt);
   updateProjectiles(dt);
+  updateGlints(dt);
   updateEffects(dt);
   spellFX.tick(dt);
   updateJuice(dt);
@@ -776,6 +830,7 @@ scene.onPointerObservable.add(info=>{
   // Clicking the world never locks a target; combat is positioning-based.
 });
 document.querySelectorAll('[data-class]').forEach(btn=>{
+  if(OPEN_WORLD&&btn.dataset.class!=='caster'){btn.hidden=true;return;}
   btn.addEventListener('click',()=>{
     ui.selectedClass=btn.dataset.class;
     document.querySelectorAll('[data-class]').forEach(el=>el.classList.toggle('selected',el===btn));

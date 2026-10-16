@@ -1,4 +1,4 @@
-import { STAGE_BUDGETS, STAGE_GATES, clamp, choice, random } from './config.js?v=0.5.0';
+import { STAGE_BUDGETS, STAGE_GATES, clamp, choice, random } from './config.js?v=0.6.0';
 // Finite budgets ensure dynamic pacing never generates infinite scoring opportunities.
 export class Director {
   constructor(){this.reset();}

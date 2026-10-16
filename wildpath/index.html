@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#d3e9c4" />
   <meta name="description" content="Wildpath — a cozy-looking, fast-paced fantasy survival adventure." />
-  <title>Wildpath · Mobile First 0.5</title>
-  <link rel="stylesheet" href="./styles.css?v=0.5.0" />
+  <title>Wildpath · Gameplay Flow 0.6</title>
+  <link rel="stylesheet" href="./styles.css?v=0.6.0" />
 </head>
 <body>
   <main id="app">
@@ -27,7 +27,6 @@
         </div>
       </div>
       <div id="goal" class="goal">Follow the trail · Survive the wilds</div>
-      <div id="targetCard" class="glass target" hidden><span class="eyebrow">TARGET</span><span id="targetName">Mossling</span><div class="target-health"><div id="targetHealthFill"></div></div></div>
       <div id="bottomHud">
         <div class="ability basic"><div class="ability-key">AUTO</div><div class="ability-name" id="basicName">Glint Dart</div><div class="ability-desc">Basic attack</div></div>
         <button class="ability special" data-slot="0"><div class="ability-key">2</div><div class="ability-icon">✧</div><div class="ability-name" id="spellName0">Winter Pool</div><div class="cooldown" id="cooldown0"></div></button>
@@ -38,7 +37,6 @@
       <div id="toast" role="status" aria-live="polite"></div>
       <div id="touchControls" hidden>
         <div id="joystick"><div id="stick"></div></div>
-        <button id="touchTarget" aria-label="Change target">◎</button>
       </div>
     </div>
     <div id="startScreen" class="screen visible">
@@ -50,9 +48,9 @@
           <button class="class-card" data-class="melee"><div class="class-symbol steel">⚔</div><strong>Stoneblade</strong><small>Melee · Steel & shockwaves</small><span>Get close, carve through the crowd.</span></button>
         </div>
         <button id="playButton" class="primary">BEGIN JOURNEY <span>➜</span></button>
-        <p class="key-help">WASD move · Click or Tab target · 2 / 3 / 4 abilities · Basic attack is automatic</p>
+        <p class="key-help">WASD move · Targets chosen automatically · 2 / 3 / 4 abilities · Move while casting</p>
       </section>
-      <div class="version">MOBILE FIRST · v0.5</div>
+      <div class="version">GAMEPLAY FLOW · v0.6</div>
     </div>
     <div id="boostScreen" class="screen" hidden>
       <section class="dialog large"><div class="overline">THE WILDS RESPOND</div><h2>Choose a wild blessing</h2><p>Power up for the rest of this journey.</p><div id="boostOptions" class="boost-grid"></div></section>
@@ -64,6 +62,6 @@
     <div id="loadError" class="screen" hidden><section class="dialog"><h2>Couldn't load the 3D engine.</h2><p>Wildpath needs an internet connection the first time it loads Babylon.js. Reload when online.</p></section></div>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/main.js?v=0.5.1"></script>
+  <script type="module" src="./src/main.js?v=0.6.0"></script>
 </body>
 </html>

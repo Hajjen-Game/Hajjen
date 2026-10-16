@@ -1,8 +1,10 @@
-import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.5.0';
-import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.5.0';
-import { BOARD_HALF_WIDTH, BOARD_END, moveOnRoad, projectToRoad, isOnRoad } from './layout-v5.js?v=0.5.0';
-import { Director } from './director.js?v=0.5.0';
-import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.5.0';
+import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.6.0';
+import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.6.0';
+import { BOARD_START, BOARD_END, moveOnRoad, projectToRoad } from './layout-v5.js?v=0.6.0';
+import { chooseAutoTarget } from './targeting.js?v=0.6.0';
+import { nextTravelZ, positionAfterBlessing, cameraAnchorZ } from './flow.js?v=0.6.0';
+import { Director } from './director.js?v=0.6.0';
+import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -96,39 +98,23 @@ function startGame(){
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
   $('hud').hidden=false;
   hideScreens();
-  // Fixed portrait TD-style level composition, no sideways camera skew.
-  const middle=STAGE_GATES[0]/2;
-  camera.position.set(0,CAMERA_HEIGHT,middle-CAMERA_BEHIND);
-  camera.setTarget(V(0,0,middle-CAMERA_BEHIND+CAMERA_LOOK_DISTANCE));
+  // The hero starts on camera; no off-screen travel is ever required.
+  camera.position.set(0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
+  camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   toast('Wild creatures approach! Your basic attack fires automatically.');
   canvas.focus();
 }
-function getNearest(range){
-  let best=null,dist=range;
-  for(const e of game.enemies){
-    if(!e.alive)continue;
-    const d=distance(e,game);
-    if(d<dist){best=e;dist=d;}
-  }
-  return best;
-}
-function currentTarget(){
-  if(game.target&&!game.target.alive)game.target=null;
-  if(!game.target)game.target=getNearest(game.spec.range+.5);
+// Automatic targeting is recalculated from nearby threats on every attack.
+function currentTarget(range=game.spec.range+.5){
+  game.target=chooseAutoTarget(game.enemies,game,range,game.target);
   return game.target;
-}
-function selectTarget(e){game.target=e&&e.alive?e:null;}
-function cycleTarget(){
-  const choices=game.enemies.filter(e=>e.alive&&distance(e,game)<19).sort((a,b)=>distance(a,game)-distance(b,game));
-  if(!choices.length){selectTarget(null);return;}
-  const i=choices.indexOf(game.target);
-  selectTarget(choices[(i+1)%choices.length]);
 }
 function spawnEnemy(type){
   const stats=ENEMIES[type];
   let z=game.z+random(5,9),x=game.x+random(-5.5,5.5);
   if(Math.random()<.2){z=game.z-random(4,6);x=game.x+random(-4,4);}
-  z=clamp(z,(STAGE_GATES[director.stage-1]??0)+.3,director.gate-1);
+  // Spawn near the hero, including when the player retreats into a previous glade.
+  z=clamp(z,BOARD_START+1,Math.min(BOARD_END-1,director.gate-.5));
   ({x,z}=projectToRoad(x,z));
   const actor=createActor(scene,type,true);
   actor.root.scaling.scaleInPlace(1.27);
@@ -220,8 +206,9 @@ function icePool(x,z){
 function cast(slot){
   if(game.state!=='play'||game.cooldowns[slot]>0)return;
   const caster=game.classId==='caster';
-  const target=currentTarget();
-  if((caster&&slot!==2)||(!caster&&slot===1)){if(!target||distance(game,target)>17)return;}
+  const targeted=(caster&&slot!==2)||(!caster&&slot===1);
+  const target=currentTarget(targeted?17:game.spec.range+.5);
+  if(targeted&&!target)return;
   game.cooldowns[slot]=game.spec.cooldowns[slot];
   if(caster){
     if(slot===0){icePool(target.x,target.z);ringBurst(target.x,target.z,'#b4ecf1',3);}
@@ -312,7 +299,7 @@ function updatePlayer(dt){
   const len=Math.hypot(x,z);
   if(len>.03){
     x/=Math.max(1,len);z/=Math.max(1,len);
-    const dz=clamp(game.z+z*game.spec.speed*dt,0,director.ready?director.gate:director.gate-2.3)-game.z;
+    const dz=nextTravelZ(game.z,z*game.spec.speed*dt,director.stage,director.ready,STAGE_GATES,BOARD_START)-game.z;
     const step=moveOnRoad(game.x,game.z,x*game.spec.speed*dt,dz);
     game.x=step.x;
     game.z=step.z;
@@ -322,11 +309,10 @@ function updatePlayer(dt){
   game.actor.rightArm.rotation.x=len>.1?-Math.sin(game.time*12)*.2:0;
   const sword=game.actor.root.metadata?.sword;
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
-  // Calm upright composition: one visible map per glade, no diagonal rotation.
-  const stageStart=STAGE_GATES[director.stage-1]??0;
-  const center=(stageStart+director.gate)*.5;
-  const p=V(0,CAMERA_HEIGHT,center-CAMERA_BEHIND);
-  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*4));
+  // The camera follows the actual player north AND south. Retreating never leaves
+  // the hero outside the portrait viewport, even across a previous stage.
+  const p=V(0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
+  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*7.2));
   camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){
@@ -462,8 +448,11 @@ function completeStage(){
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
       if(item.id==='mend'){game.maxHp+=35;game.hp=Math.min(game.maxHp,game.hp+45);}
-      director.next();game.z=STAGE_GATES[director.stage-1]+2;game.x=pathX(game.z);game.advanceClock=0;
-      game.actor.root.position.set(game.x,0,game.z);
+      // Blessings do not teleport the hero. Another wave starts where they stand.
+      director.next();
+      const settled=positionAfterBlessing(game);
+      game.x=settled.x;game.z=settled.z;game.advanceClock=0;
+      game.target=null;
       game.gateQueued=false;game.state='play';
       hideScreens();toast(item.name+' · New blessing!');
       canvas.focus();
@@ -493,12 +482,7 @@ function updateHud(){
   label('comboText',game.combo>1?'COMBO '+game.combo:'x1.0');
   label('bestText','BEST '+fmt(getBest()));
   label('goal',director.ready?'GLADE CLEAR · Choose a blessing':'SURVIVE THE WILDS · '+STAGE_NAMES[director.stage]);
-  const target=currentTarget();
-  $('targetCard').hidden=!target;
-  if(target){
-    label('targetName',ENEMIES[target.type].name);
-    $('targetHealthFill').style.width=(Math.max(0,target.hp)/target.maxHp*100)+'%';
-  }
+  // No target card is needed: the closest threat is chosen automatically.
   for(let i=0;i<3;i++){
     const cd=$('cooldown'+i),time=game.cooldowns[i];
     cd.style.display=time>0?'flex':'none';cd.textContent=time>0?time.toFixed(1):'';
@@ -530,7 +514,6 @@ window.addEventListener('resize',()=>{engine.resize();resizeCamera();});
 window.addEventListener('blur',()=>keys.clear());
 window.addEventListener('keydown',e=>{
   if(['Tab','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
-  if(e.code==='Tab'&&game.state==='play')cycleTarget();
   if(game.state==='play'&&['Digit2','Digit3','Digit4'].includes(e.code))cast(Number(e.code.slice(-1))-2);
   if(e.code==='Escape'){
     if(game.state==='play'){game.state='pause';showScreen('pauseScreen');}
@@ -541,8 +524,7 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>keys.delete(e.code));
 scene.onPointerObservable.add(info=>{
   if(info.type!==B.PointerEventTypes.POINTERDOWN||game.state!=='play')return;
-  const id=info.pickInfo?.pickedMesh?.metadata?.enemyId;
-  if(id){const e=game.enemies.find(e=>e.id===id&&e.alive);if(e)selectTarget(e);}
+  // Clicking the world never locks a target; combat is positioning-based.
 });
 document.querySelectorAll('[data-class]').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -557,7 +539,6 @@ $('menuButton').addEventListener('click',()=>{clearGame();game.state='start';sho
 $('pauseButton').addEventListener('click',()=>{if(game.state==='play'){game.state='pause';showScreen('pauseScreen');}});
 $('resumeButton').addEventListener('click',()=>{game.state='play';hideScreens();canvas.focus();});
 $('quitButton').addEventListener('click',()=>finish(false));
-$('touchTarget').addEventListener('click',cycleTarget);
 const coarse=matchMedia('(hover: none) and (pointer: coarse)').matches;
 if(coarse){
   $('touchControls').hidden=false;

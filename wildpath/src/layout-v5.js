@@ -4,19 +4,18 @@
 
 export const BOARD_HALF_WIDTH = 15.0;
 export const BOARD_START = -12;
-export const BOARD_END = 168;
+export const BOARD_END = 112;
 export const CAMERA_WORLD_WIDTH = 33.2;
 export const ROAD_HALF_WIDTH = 3.15;
 
-// The first 40 units are deliberately assembled like a top-down game board:
+// The first 26 units are assembled as a compact top-down fantasy board:
 // start near the bottom-left, swing right, then left, then right, then left again.
 // Later glades continue the same navigable sequence without duplicating intersections.
 export const ROUTE = [
-  // Four short glades, around 40 units each. No long, empty transport sections.
-  [-4,-12],[-4,11],[5,11],[5,24],[-4,24],[-4,40],
-  [-4,50],[4,50],[4,64],[-4,64],[-4,80],
-  [-4,90],[5,90],[5,104],[-4,104],[-4,120],
-  [-4,130],[5,130],[5,144],[-4,144],[-4,160],[-4,168]
+  [-4,-12],[-4,7],[5,7],[5,15],[-4,15],[-4,26],
+  [-4,33],[4,33],[4,42],[-4,42],[-4,52],
+  [-4,59],[5,59],[5,68],[-4,68],[-4,78],
+  [-4,85],[5,85],[5,94],[-4,94],[-4,104],[-4,112]
 ];
 export const WAYPOINTS = ROUTE.map(([x,z])=>({x,z}));
 

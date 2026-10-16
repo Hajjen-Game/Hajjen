@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:o="urn:schemas-microsoft-com:office:office">
+<Styles>
+<Style ss:ID="Body"><Alignment ss:Vertical="Top" ss:WrapText="1"/><Font ss:FontName="Aptos" ss:Size="10" ss:Color="#283447"/><Interior ss:Color="#F8FAFC" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#DCE3EF"/></Borders></Style>
+<Style ss:ID="Header"><Alignment ss:Vertical="Center" ss:WrapText="1"/><Font ss:FontName="Aptos Display" ss:Size="12" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1A273D" ss:Pattern="Solid"/></Style>
+<Style ss:ID="Title"><Alignment ss:Vertical="Center"/><Font ss:FontName="Aptos Display" ss:Size="18" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#111C31" ss:Pattern="Solid"/></Style>
+<Style ss:ID="Note"><Alignment ss:Vertical="Center" ss:WrapText="1"/><Font ss:FontName="Aptos" ss:Size="10" ss:Color="#42526F"/><Interior ss:Color="#EEF2F8" ss:Pattern="Solid"/></Style>
+</Styles>
+<Worksheet ss:Name="Genesis"><Table>
+<Column ss:AutoFitWidth="0" ss:Width="165"/>
+<Column ss:AutoFitWidth="0" ss:Width="340"/>
+<Column ss:AutoFitWidth="0" ss:Width="225"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Row ss:Height="34"><Cell ss:MergeAcross="5" ss:StyleID="Title"><Data ss:Type="String">GENESIS · SPELLS &amp; EVOLUTIONS</Data></Cell></Row>
+<Row ss:Height="48"><Cell ss:MergeAcross="5" ss:StyleID="Note"><Data ss:Type="String">30 playable spells · 4 core spells with 3 mutually exclusive Evolutions each · 2 standalone spells per Origin. Values are combat base values and can scale with modifiers. Read the core effect first, then compare the three Evolution branches to its right.</Data></Cell></Row>
+<Row ss:Height="37"><Cell ss:StyleID="Header"><Data ss:Type="String">SPELL</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">BASE EFFECT</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COST / CAST / COOLDOWN</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 1</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 2</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 3</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Pulse Mend
+Direct healing</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Heals a friendly target for 60 base health.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.5 sec cast · 16 Flux for Genesis</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ VITAL CRESCENDO
+
+Hold Pulse Mend to extend its cast to 2.5 sec, increasing its direct healing by 78%. Only applies when healing an ally.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SECOND HEART
+
+Pulse Mend also marks its target for 12 sec. If they fall to 30% health or lower, the mark is consumed to heal for at least 22 base health or 27% of their maximum health, whichever is higher.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ VITAL REVERSAL
+
+Pulse Mend can now target enemies. Deals 23 base damage to that enemy and heals each injured ally for 22 base health. Also restores up to 22% of the capacity of their active Resonance Guard.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Resonance Guard
+Absorb shield</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Shields yourself or an ally, absorbing up to 80 base damage for 8 sec. Damage is absorbed before health is lost.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 22 Flux · 32 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ GUARDIAN NETWORK
+
+Resonance Guard also grants every other teammate an absorb shield with 42% of the main shield&apos;s capacity, regardless of their position.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ RETALIATION
+
+Damage absorbed by Resonance Guard is stored. When the shield breaks or expires, release that stored energy as damage against up to 3 nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ LAST STAND
+
+Once during Resonance Guard, prevent an otherwise lethal hit and restore the protected ally to at least 28% of maximum health. Consumes the shield&apos;s rescue effect.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Vital Cascade
+Team healing</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Heals the selected ally for 38 base health and each other injured teammate for about 30. Reaches allies anywhere on your team.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 32 Flux · 22 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ DOUBLE CASCADE
+
+After Vital Cascade, a second healing wave occurs 0.65 sec later, restoring 20 base health to each ally who is still injured.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ REJUVENATING ORBIT
+
+Allies healed by Vital Cascade gain a 6 sec healing effect that restores 5 base health every second.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ LIFE TRANSFER
+
+After Vital Cascade, move health from a healthy ally to the most injured teammate. Transfers at most 14% of the donor&apos;s maximum health and never reduces the donor below 55% health.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Stasis Seal
+Crowd control</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Incapacitates an enemy for up to 5 sec, preventing actions until the effect ends or damage breaks it. Bosses are immune; elites have a shorter duration.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 20 Flux · 24 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ TRANQUILITY WAVE
+
+Stasis Seal also incapacitates up to 5 nearby ordinary enemies for up to 2 sec. Additional targets must be in range and are freed when damaged; bosses remain immune.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ MERCY BLOOM
+
+When the Stasis Seal ends or is broken, heal the most injured teammate for 24 base health.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ ESSENCE SIPHON
+
+While Stasis Seal is active, restore 4 Flux to Genesis every second and heal the most injured teammate for 5 base health each second.</Data></Cell></Row>
+<Row ss:Height="137"><Cell ss:StyleID="Body"><Data ss:Type="String">Vital Recall
+Healing recovery</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Marks an ally for 4 sec. Cast again before the mark expires to restore 75% of health lost since marking, capped at 50% of the ally&apos;s maximum health.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 20 Flux · 36 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Soul Relay
+Linked protection</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Select two different teammates to link for 10 sec. Transfer up to 26% of incoming health damage to the other ally without killing them, and share 28% of healing received with the other ally.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 22 Flux · 24 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><Selected/><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane></WorksheetOptions></Worksheet>
+<Worksheet ss:Name="Impact"><Table>
+<Column ss:AutoFitWidth="0" ss:Width="165"/>
+<Column ss:AutoFitWidth="0" ss:Width="340"/>
+<Column ss:AutoFitWidth="0" ss:Width="225"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Row ss:Height="34"><Cell ss:MergeAcross="5" ss:StyleID="Title"><Data ss:Type="String">IMPACT · SPELLS &amp; EVOLUTIONS</Data></Cell></Row>
+<Row ss:Height="48"><Cell ss:MergeAcross="5" ss:StyleID="Note"><Data ss:Type="String">30 playable spells · 4 core spells with 3 mutually exclusive Evolutions each · 2 standalone spells per Origin. Values are combat base values and can scale with modifiers. Read the core effect first, then compare the three Evolution branches to its right.</Data></Cell></Row>
+<Row ss:Height="37"><Cell ss:StyleID="Header"><Data ss:Type="String">SPELL</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">BASE EFFECT</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COST / CAST / COOLDOWN</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 1</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 2</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 3</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Phase Rush
+Targeted charge</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Charges toward an enemy and stops at melee range. Cannot pass through walls or other obstacles.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 14 Flux · 17 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ METEOR CHARGE
+
+When Phase Rush reaches its target, unleash a kinetic blast dealing 20 base damage to nearby enemies, including the charged enemy.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ RELENTLESS PURSUIT
+
+If the enemy reached by Phase Rush dies within 3 sec, reset Phase Rush and allow another charge. Can refresh up to twice in one pursuit chain.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ PIERCING CHARGE
+
+On reaching the target, send a kinetic shock through enemies lined up behind it, dealing 18 base damage to each eligible enemy in the path.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Arc Strike
+Melee combo</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Strikes an enemy for 13 base damage. Use Arc Strike again within 4 sec to deal 16% more damage with the second strike and restore 3 Flux.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 10 Flux · Melee range</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ TWIN ARC
+
+Every third Arc Strike releases a wide frontal attack, dealing 65% of that strike&apos;s damage to up to 5 additional nearby enemies in front of you.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ OVERDRIVE
+
+The second Arc Strike of a combo becomes 3 rapid hits on the same target: one immediate strike and two delayed follow-ups. The combo&apos;s damage is split across the hits.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ KINETIC REPRISAL
+
+Completing an Arc Strike combo grants a 3 sec one-hit shield. It absorbs part of the next direct hit and retaliates against the attacker.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Pulse Sever
+Melee interrupt</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Interrupts an enemy that is casting a spell, locking its magic school for 3 sec and dealing 8 base damage. Has no interrupt effect if the target is not casting.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 10 Flux · 15 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ ECHO SEVER
+
+A successful Pulse Sever also interrupts up to 5 nearby non-boss enemies that are currently casting. Each additional interrupted enemy suffers a 2.5 sec school lock.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ COUNTERSHOCK
+
+A successful Pulse Sever releases a shockwave, dealing 15 base damage to enemies near the interrupted target.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ WARPATH
+
+Successfully interrupting with Pulse Sever empowers your Arc Strike, Seismic Uppercut, Gravity Hammer and Phase Rush damage by 20% for 4 sec.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Gravity Hammer
+Ground impact</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Choose a location to deal 37 base damage to enemies in the impact area. Ordinary enemies are knocked down briefly; elites and bosses resist the knockdown.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">0.6 sec cast · 30 Flux · 20 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SINGULARITY IMPACT
+
+Gravity Hammer deals 65% more base damage in an area 40% smaller than normal. The concentrated impact no longer knocks enemies down.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SEISMIC WAVE
+
+Gravity Hammer also releases 3 expanding shockwaves after impact, each dealing 8 base damage to enemies in its moving outer ring.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ GRAVITY WELL
+
+Gravity Hammer leaves a gravity field that pulses 4 times over 2.8 sec, dealing 6 base damage per pulse and pulling ordinary enemies toward its center. Bosses resist the pull.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Seismic Uppercut
+Launch and slam</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Hits a nearby enemy for 25 base damage, then slams the area for another 18 base damage after 0.42 sec. Ordinary enemies are briefly incapacitated; elites and bosses remain grounded.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 27 Flux · 25 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Kinetic Rampart
+Projectile defense</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Raises a forward-facing barrier for up to 4 sec, blocking up to 3 incoming direct projectiles from its front. Recast or let it expire to fire stored kinetic damage at nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 24 Flux · 30 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><Selected/><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane></WorksheetOptions></Worksheet>
+<Worksheet ss:Name="Eclipse"><Table>
+<Column ss:AutoFitWidth="0" ss:Width="165"/>
+<Column ss:AutoFitWidth="0" ss:Width="340"/>
+<Column ss:AutoFitWidth="0" ss:Width="225"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Row ss:Height="34"><Cell ss:MergeAcross="5" ss:StyleID="Title"><Data ss:Type="String">ECLIPSE · SPELLS &amp; EVOLUTIONS</Data></Cell></Row>
+<Row ss:Height="48"><Cell ss:MergeAcross="5" ss:StyleID="Note"><Data ss:Type="String">30 playable spells · 4 core spells with 3 mutually exclusive Evolutions each · 2 standalone spells per Origin. Values are combat base values and can scale with modifiers. Read the core effect first, then compare the three Evolution branches to its right.</Data></Cell></Row>
+<Row ss:Height="37"><Cell ss:StyleID="Header"><Data ss:Type="String">SPELL</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">BASE EFFECT</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COST / CAST / COOLDOWN</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 1</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 2</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 3</Data></Cell></Row>
+<Row ss:Height="137"><Cell ss:StyleID="Body"><Data ss:Type="String">Crystal Bolt
+Ranged damage</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Launches a crystal for 15 base damage and slows the target by 35% for 3 sec.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.3 sec cast · 11 Flux for Eclipse</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ RAPID CRYSTAL
+
+Reduces Crystal Bolt&apos;s cast time from 1.3 sec to 0.88 sec. Every third Crystal Bolt may also be cast while moving.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ GLACIAL ECHO
+
+Crystal Bolt is followed 0.36 sec later by a second smaller hit on the same enemy, dealing 40% of the original Bolt&apos;s damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ FRACTURE CHAIN
+
+Every third Crystal Bolt releases additional crystal hits at up to 3 other nearby enemies, each dealing 38% of the original Bolt&apos;s damage.</Data></Cell></Row>
+<Row ss:Height="155"><Cell ss:StyleID="Body"><Data ss:Type="String">Crystal Snare
+Area control</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Roots nearby enemies around the selected target for up to 3 sec and marks them as Chilled for 5 sec. Bosses resist the root but can still be marked.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 15 Flux · 18 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ DEEP FREEZE / ICE TOMB
+
+Crystal Snare becomes a 4 sec single-target incapacitate instead of an area root. Works on elites; bosses remain immune to hard crowd control.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SHATTERFIELD
+
+When a Crystal Snare root expires, it releases 3 delayed frost pulses around the target, damaging and slowing nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ CRYSTAL CONDUIT
+
+Enemies rooted together by Crystal Snare are linked for 3 sec. A direct hit on one linked target also deals up to 24% of that hit&apos;s damage to other linked rooted targets, capped at 12 base damage each.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Fracture Spear
+Heavy ranged hit</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Hurls a crystal spear for 32 base damage. Deals 30% more damage to a target that is Rooted, Slowed or Chilled.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.7 sec cast · 21 Flux for Eclipse · 12 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ FOCUSED FRACTURE
+
+Fracture Spear deals 92% more damage to targets that are Rooted, Slowed or Chilled, including marked bosses. Remains strictly single-target.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ CRYSTAL RUPTURE
+
+Fracture Spear also explodes on impact, dealing 40% of the Spear&apos;s damage to up to 4 nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ RIFTBREAKER
+
+Fracture Spear creates up to 4 delayed crystal eruptions in a line beyond its target. Each eruption damages and briefly slows enemies; obstacles stop the sequence.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Froststorm
+Ground damage</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Creates a froststorm at a chosen location for 4 sec. Deals 8 base damage in pulses about once per second and slows ordinary enemies caught inside.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">0.45 sec cast · 30 Flux · 24 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ GLACIAL BARRAGE
+
+Froststorm also calls down 3 additional crystal comets at positions inside the storm, each dealing 12 base damage in a small area.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ EXPANDING FROST
+
+Froststorm lasts 6 sec instead of 4 and gradually expands its radius. It continues dealing its normal damage pulses throughout the extended duration.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SHATTERING STORM
+
+Crystal Bolt or Fracture Spear hitting an enemy inside your Froststorm triggers an additional shatter pulse, dealing 7 base damage to nearby enemies.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Crystal Mirror
+Single-hit protection</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Places a crystal mirror on yourself or an ally. Blocks the next eligible direct attack and launches retaliatory crystals at the attacker. Does not block damage-over-time or ground effects.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 23 Flux · 28 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Avalanche
+Directional area damage</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Sends a traveling wall of ice in the chosen direction, damaging and pushing ordinary enemies. Leaves a short damaging trail that slows enemies; bosses resist the push.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 35 Flux · 30 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><Selected/><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane></WorksheetOptions></Worksheet>
+<Worksheet ss:Name="Solar"><Table>
+<Column ss:AutoFitWidth="0" ss:Width="165"/>
+<Column ss:AutoFitWidth="0" ss:Width="340"/>
+<Column ss:AutoFitWidth="0" ss:Width="225"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Row ss:Height="34"><Cell ss:MergeAcross="5" ss:StyleID="Title"><Data ss:Type="String">SOLAR · SPELLS &amp; EVOLUTIONS</Data></Cell></Row>
+<Row ss:Height="48"><Cell ss:MergeAcross="5" ss:StyleID="Note"><Data ss:Type="String">30 playable spells · 4 core spells with 3 mutually exclusive Evolutions each · 2 standalone spells per Origin. Values are combat base values and can scale with modifiers. Read the core effect first, then compare the three Evolution branches to its right.</Data></Cell></Row>
+<Row ss:Height="37"><Cell ss:StyleID="Header"><Data ss:Type="String">SPELL</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">BASE EFFECT</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COST / CAST / COOLDOWN</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 1</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 2</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 3</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Flux Bolt
+Ranged damage combo</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Deals 17 base Solar damage. Every third hit on the same enemy within 6 sec adds a burst of 6 base damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.5 sec cast · 10 Flux for Solar</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ CORONA VOLLEY
+
+Every third successful Flux Bolt hit sends additional Solar bolts to up to 3 other enemies near the original target, dealing 13 base damage each.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ THUNDERHEAD
+
+Every third Flux Bolt hit creates a storm over the target, striking it 3 additional times over about 1.6 sec.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ HELIOS BEAM
+
+After 3 qualifying Flux Bolt hits on the same enemy, hold the next Flux Bolt to channel a focused beam for up to 2 sec. The beam deals repeated damage that grows with each tick; release early to stop.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Sun Lance
+Ranged finisher</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Strikes an enemy for 27 base Solar damage. Deals 18% more damage if the target is below 35% health.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.8 sec cast · 16 Flux for Solar</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ JUDGMENT OF DAWN
+
+When Sun Lance hits an enemy below 35% health, it deals 90% more damage than its normal base hit and triggers a finishing Solar beam from above.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SCORCHING LANCE
+
+Sun Lance burns its target for 5 base damage every 2 sec for 8 sec. If the burning target dies, it explodes and spreads a shorter Solar burn to nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SPLIT LANCE
+
+After Sun Lance hits, launch smaller follow-up lances at up to 2 nearby enemies that are already injured. Each deals 38% of the primary Lance&apos;s damage.</Data></Cell></Row>
+<Row ss:Height="137"><Cell ss:StyleID="Body"><Data ss:Type="String">Zenith Crash
+Placed area damage</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Choose a ground location. After a 2 sec cast, a Solar pillar deals 38 base damage to enemies in the area. Secondary targets take reduced damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">2 sec cast · 30 Flux · 18 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SOLAR AFTERSHOCK
+
+Zenith Crash triggers a second impact at the same location 0.85 sec later, dealing 45% of the main pillar&apos;s damage in a smaller area.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ BURNING GROUND
+
+Zenith Crash leaves a burning field that deals 5.5 base damage to enemies in the area once per second for 3 sec.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ PRISM CROSS
+
+Zenith Crash releases 4 diagonal Solar beams from its impact point. Each beam damages enemies along its path and stops at solid obstacles.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Cinder Familiar
+Summoned attacker</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Summons one Solar familiar for 12 sec. It follows you and automatically attacks your selected enemy or another nearby enemy roughly every 0.86 sec.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 25 Flux · 35 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ PHOENIX DIVE
+
+While Cinder Familiar is active, it dives through enemies near its target roughly every 2.7 sec, damaging them and leaving a short damaging trail.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SOULBRAND
+
+Cinder Familiar focuses on one enemy and attacks it more frequently. Your Flux Bolt, Sun Lance, Zenith Crash and Chain Tempest hits on that enemy trigger extra Solar damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ DYING STAR
+
+Recast Cinder Familiar while it is active to consume it in a targeted supernova, dealing 35 base damage to nearby enemies.</Data></Cell></Row>
+<Row ss:Height="137"><Cell ss:StyleID="Body"><Data ss:Type="String">Solar Ascension
+Empowered Solar spells</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Grants 3 Solar sigils for up to 12 sec. Each of your next 3 offensive Solar spells consumes one sigil to deal 15 additional base damage to its target.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 28 Flux · 38 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+<Row ss:Height="137"><Cell ss:StyleID="Body"><Data ss:Type="String">Chain Tempest
+Chain lightning</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Hits an enemy for 27 base Solar damage, then chains to up to 4 other nearby enemies. If no other enemy is in range, strikes the original target 3 more times.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 25 Flux for Solar · 26 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><Selected/><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane></WorksheetOptions></Worksheet>
+<Worksheet ss:Name="Void"><Table>
+<Column ss:AutoFitWidth="0" ss:Width="165"/>
+<Column ss:AutoFitWidth="0" ss:Width="340"/>
+<Column ss:AutoFitWidth="0" ss:Width="225"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Column ss:AutoFitWidth="0" ss:Width="330"/>
+<Row ss:Height="34"><Cell ss:MergeAcross="5" ss:StyleID="Title"><Data ss:Type="String">VOID · SPELLS &amp; EVOLUTIONS</Data></Cell></Row>
+<Row ss:Height="48"><Cell ss:MergeAcross="5" ss:StyleID="Note"><Data ss:Type="String">30 playable spells · 4 core spells with 3 mutually exclusive Evolutions each · 2 standalone spells per Origin. Values are combat base values and can scale with modifiers. Read the core effect first, then compare the three Evolution branches to its right.</Data></Cell></Row>
+<Row ss:Height="37"><Cell ss:StyleID="Header"><Data ss:Type="String">SPELL</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">BASE EFFECT</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COST / CAST / COOLDOWN</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 1</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 2</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 3</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Rift Slash
+Melee shadow damage</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Strikes an enemy with two Void blades for 21 base damage. Hitting an enemy affected by your Entropy Mark also restores 3 Flux.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 13 Flux · 3 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ PHANTOM ASSAULT
+
+Every third Rift Slash creates a shadow clone behind the struck enemy. The clone lands 2 additional delayed attacks, each dealing 46% of the original Slash&apos;s damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ UMBRAL CYCLONE
+
+Every third Rift Slash also strikes up to 10 other nearby enemies with a broad twin-blade cyclone, dealing 67% of that Slash&apos;s damage to each.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ EXECUTIONER&apos;S VEIL
+
+Rift Slash against an Entropy-marked enemy at or below 30% health triggers 3 delayed finishing strikes. Can trigger once every 8 sec.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Entropy Mark
+Damage over time</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Marks an enemy, dealing 5 base Void damage every 2 sec for 12 sec. Rift Slash against a marked enemy also restores 3 Flux.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 15 Flux · 12 sec duration</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ CONTAGION
+
+When an enemy affected by your Entropy Mark dies, spread the mark to up to 3 nearby unmarked enemies. The infection can spread through up to 3 generations.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ PSYCHIC COLLAPSE
+
+After Entropy Mark has dealt damage twice, recast it for no Flux to consume the mark and deal 32 base damage to the target and 17 to nearby enemies. The recast starts a 3 sec cooldown.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ DEVOURING PACT
+
+Damaging an Entropy-marked enemy with Rift Slash also heals you for up to 23% of the damage dealt, capped at 13 health per trigger. Can trigger at most once every 0.75 sec.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Phase Slip
+Placed teleport</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Teleport to a chosen valid position within short range. Cannot teleport through solid walls or into occupied space.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 16 Flux · 23 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SHADOW AMBUSH
+
+For 4 sec after Phase Slip, your next Rift Slash triggers 3 extra delayed shadow strikes against its target, each dealing 40% of the original Slash&apos;s damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ RIFT ECHO
+
+Phase Slip damages enemies along its actual teleport path with 5 delayed shadow echoes. Each echo deals 8 base damage in a small area.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ VEILWALK
+
+After Phase Slip, gain a 2.5 sec shadow veil. The next direct hostile attack against you passes through harmlessly and consumes the protection.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Void Metamorphosis
+Combat transformation</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Transform into a Void combat form for 8 sec. Rift Slash gains extra reach and damages nearby enemies, while Entropy Mark deals 27% more damage with each tick.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 23 Flux · 45 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ DREADBLADE FORM
+
+During Void Metamorphosis, Rift Slash gains greater reach. Every third Slash also sends out damaging blade arcs that hit other nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ MINDSTORM
+
+While transformed, each damage tick from your Entropy Mark calls down an additional psychic spear, dealing 9 base damage to the marked enemy.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SOUL DEVOURER
+
+While transformed, deaths of enemies affected by your Entropy Mark heal you for 14 health and extend the form by 1 sec, up to 4 extra sec. The form ends with a damaging Void blast.</Data></Cell></Row>
+<Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Abyssal Rift
+Placed area damage</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Open a rift at a chosen location for 4 sec. It damages nearby enemies in repeated pulses, can absorb up to 3 eligible hostile projectiles, then implodes for additional damage.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 28 Flux · 32 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+<Row ss:Height="137"><Cell ss:StyleID="Body"><Data ss:Type="String">Dark Pact
+Health-sacrifice finisher</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Sacrifice up to 12% of your maximum health without killing yourself. Call down 3 staggered Void spears on an enemy, each also damaging nearby enemies.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Instant · 23 Flux · 30 sec cooldown</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">— STANDALONE SPELL —</Data></Cell></Row>
+</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><Selected/><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane></WorksheetOptions></Worksheet>
+</Workbook>

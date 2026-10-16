@@ -1,0 +1,19 @@
+name: Wildpath sprite VFX tests
+on:
+  push:
+    paths:
+      - wildpath/src/**
+      - wildpath/tests/**
+      - wildpath/assets/weapon-slash/**
+      - .github/workflows/wildpath-vfx-tests.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-vfx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Cethiel sprite playback and Pixi integration
+        run: |
+          node --test wildpath/tests/weapon-slash.test.js wildpath/tests/pixi-combat.test.js

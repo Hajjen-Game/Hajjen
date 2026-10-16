@@ -81,16 +81,22 @@ export class NatureGrowth {
       const big=entry.tier==='blossom';
       const height=big?1.25:.98;
       add(this.bark,0,height*.48,0,big?.34:.29,height,big?.34:.29);
-      const canopy=big?petal:this.treeLeaf;
-      const canopy2=big?leaf:this.treeLeaf2;
-      add(canopy,0,height+.52,0,big?2.08:1.65,big?1.30:1.12,big?1.86:1.55);
-      add(canopy2,-.56,height+.28,.15,big?1.17:.96,big?.98:.78,big?1.25:1.01);
-      add(canopy,.53,height+.35,-.21,big?1.21:1.07,big?.96:.82,big?1.18:1.08);
+      // A blossom tree needs a LEAFY silhouette, not one giant pink sphere
+      // that reads like an oversized flower on a distant phone camera.
+      const canopy=big?leaf:this.treeLeaf;
+      const canopy2=this.treeLeaf2;
+      add(canopy,0,height+.52,0,big?2.53:1.65,big?1.36:1.12,big?2.29:1.55);
+      add(canopy2,-.62,height+.28,.18,big?1.34:.96,big?1.02:.78,big?1.35:1.01);
+      add(canopy,.59,height+.35,-.24,big?1.38:1.07,big?1.06:.82,big?1.30:1.08);
       if(big){
-        for(let i=0;i<5;i++){
-          const a=i*Math.PI*2/5+entry.seed;
-          add(center,Math.cos(a)*.78,height+.85+Math.sin(i)*.18,
-            Math.sin(a)*.69,.22,.24,.22);
+        // Individual blossoms on top of the foliage provide depth/readability.
+        for(let i=0;i<8;i++){
+          const a=i*Math.PI*2/8+entry.seed;
+          const r=i%2?.88:.60;
+          const x=Math.cos(a)*r,z=Math.sin(a)*r;
+          const y=height+.99+(i%3)*.055;
+          add(petal,x,y,z,.49,.24,.48);
+          if(i%2===0)add(center,x,y+.13,z,.16,.14,.16);
         }
       }else{
         add(petal,-.36,height+.72,-.55,.29,.21,.24);

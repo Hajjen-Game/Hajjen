@@ -14,7 +14,7 @@ import {createOpenWorld} from './world-open.js?v=2.0.1';
 import {OpenDirector} from './director-open.js?v=2.0.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.2.0';
-import {NatureGrowth} from './nature-growth.js?v=2.2.0';
+import {NatureGrowth} from './nature-growth.js?v=2.2.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
 
@@ -81,7 +81,7 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
   pixi.stage('Nature Bloom','burst',{x:event.x,z:event.z,y:.6},
     event.tier==='blossom'?1.95:event.tier==='tree'?1.55:event.tier==='bush'?1.2:.72);
   if(upgraded){
-    const names={bush:'✿ BLOOMING BUSH',tree:'🌳 YOUNG TREE',blossom:'🌸 BLOSSOM TREE'};
+    const names={bush:'✿ BUSH',tree:'🌳 TREE',blossom:'🌸 BLOOM!'};
     floatingText({x:event.x,y:2.8,z:event.z},names[event.tier]||'✿ BLOOM','nature');
   }
 }}):null;

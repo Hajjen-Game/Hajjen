@@ -27,48 +27,17 @@ export const SPELL_PRESENTATION=Object.freeze(Object.fromEntries(
 export function effectBudget(activeCount,maxCount=155){return activeCount<maxCount;}
 export function stageDuration(stage){return {charge:.17,core:.24,trail:.25,burst:.31,reaction:.18,aftermath:.85,damage:.26}[stage]||.25;}
 export function pickSpell(name){return SPELL_PRESENTATION[name]||SPELL_PRESENTATION['Glint Dart'];}
+// Short isolated glow pips instead of continuously joining positions into a tube.
+// Each fades within 0.15s and stays less than one world unit behind the bolt.
+export function glintTrailSamples(x,y,z,dx=0,dz=0){
+  const length=Math.hypot(dx,dz),nx=length>1e-6?dx/length:0,nz=length>1e-6?dz/length:0;
+  return [
+    {x:x-nx*.34,y:y-.02,z:z-nz*.34,size:.17,life:.15},
+    {x:x-nx*.72,y:y-.04,z:z-nz*.72,size:.10,life:.12}
+  ];
+}
 
 const V=(B,x,y,z)=>new B.Vector3(x,y,z);
-/**
- * A thin continuous tapered trail behind Glint Dart. One updatable mesh per shot,
- * not a new mesh each frame. On unsupported devices the fallback is the existing
- * particle trail, so an optional graphical feature can never stop combat.
- */
-export function createRibbonTrail(scene,{color='#8edff1',points=9}={}){
-  const B=window.BABYLON;
-  if(!B.MeshBuilder.CreateTube)return {move(){},dispose(){}};
-  const path=Array.from({length:points},(_,i)=>new B.Vector3(0,1.4,-(points-i)*.02));
-  let mesh=null,material=null,broken=false;
-  try{
-    material=new B.StandardMaterial('glint taper material',scene);
-    const c=B.Color3.FromHexString(color);
-    material.diffuseColor=c;material.emissiveColor=c.scale(1.4);
-    material.specularColor=B.Color3.Black();material.disableLighting=true;
-    material.alpha=.72;material.backFaceCulling=false;
-    mesh=B.MeshBuilder.CreateTube('continuous tapering bolt trail',{
-      path,tessellation:7,updatable:true,
-      radiusFunction:(i)=>.018+.20*i/(points-1)
-    },scene);
-    mesh.material=material;mesh.isPickable=false;
-  }catch{
-    broken=true;mesh?.dispose(false,false);material?.dispose();
-  }
-  return {
-    move(x,y,z){
-      if(broken)return;
-      try{
-        path.shift();path.push(new B.Vector3(x,y,z));
-        B.MeshBuilder.CreateTube(null,{path,instance:mesh},scene);
-      }catch{
-        broken=true;mesh?.dispose(false,false);material?.dispose();
-      }
-    },
-    dispose(){
-      if(broken)return;
-      broken=true;mesh?.dispose(false,false);material?.dispose();
-    }
-  };
-}
 export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={}){
   const B=window.BABYLON;
   const active=[],materials=new Map();
@@ -101,7 +70,7 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
     return createMesh('ring','spell ripple',hex,x,y,z,size,life,'expand',.79);
   }
   function impactSparks(p,x,z,intensity=1){
-    const count=reducedMotion?2:p.kind==='crystal'?7:5;
+    const count=reducedMotion?2:p.kind==='crystal'?4:5;
     for(let i=0;i<count;i++){
       const a=i*Math.PI*2/count;
       const reach=(.38+Math.random()*.75)*intensity;
@@ -110,7 +79,7 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
       else pip(i%2?p.warm:p.hot,xx,.55+Math.random()*.65,zz,.22,.33,'rise');
     }
   }
-  function emit(name,stage,{x=0,z=0,y=1.3,intensity=1,direction=0}={}){
+  function emit(name,stage,{x=0,z=0,y=1.3,intensity=1,direction=0,directionX=0,directionZ=0}={}){
     if(!SPELL_STAGES.includes(stage))return;
     const p=pickSpell(name),r=p.radius*intensity;
     if(stage==='charge'){
@@ -124,8 +93,14 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
       pip(p.hot,x,y,z,.54*r,.25,'grow');
       pip(p.primary,x,y-.11,z,.80*r,.25,'shrink');
     }else if(stage==='trail'){
-      // Deliberately light: a single glint for many simultaneous projectiles.
-      pip(p.primary,x,y,z,.25*r,.25,'shrink');
+      if(name==='Glint Dart'){
+        for(const [i,point] of glintTrailSamples(x,y,z,directionX,directionZ).entries()){
+          pip(i===0?p.primary:p.warm,point.x,point.y,point.z,
+            point.size*intensity,point.life,'shrink');
+        }
+      }else if(p.kind==='crystal'){
+        pip(p.primary,x,y,z,.12*r,.12,'shrink');
+      }else pip(p.primary,x,y,z,.19*r,.16,'shrink');
     }else if(stage==='burst'){
       ring(p.hot,x,z,Math.max(.55,r*.92),.30,.29);
       pip(p.primary,x,.85,z,.96*r,.19,'shrink');
@@ -134,11 +109,14 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
       pip(p.hot,x,1.65,z,.62*r,.14,'shrink');
       if(!reducedMotion)ring(p.warm,x,z,.36*r,.18,.32);
     }else if(stage==='aftermath'){
-      ring(p.primary,x,z,Math.min(2.3,.60*r),.66,.24);
+      const brief=name==='Glint Dart',bloom=name==='Crystal Bloom';
+      if(!brief)ring(p.primary,x,z,Math.min(1.55,.47*r),bloom?.28:.48,.24);
       if(!reducedMotion){
-        for(let j=0;j<3;j++){
-          const a=j*Math.PI*2/3+Math.random()*.4;
-          pip(p.warm,x+Math.cos(a)*.6*r,.35,z+Math.sin(a)*.6*r,.16,.58,'rise');
+        const count=brief?2:bloom?2:3;
+        for(let j=0;j<count;j++){
+          const a=j*Math.PI*2/count+Math.random()*.3;
+          pip(p.warm,x+Math.cos(a)*.52*r,.35,z+Math.sin(a)*.52*r,
+            brief?.10:.15,brief?.22:bloom?.28:.43,'rise');
         }
       }
     }else if(stage==='damage'){

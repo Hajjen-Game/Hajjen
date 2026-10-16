@@ -106,7 +106,8 @@ function bumpScore(amount,source=null,reason='kill'){
     const pop=document.createElement('span');
     pop.className='score-burst '+(reason==='stage'?'score-stage':'');
     pop.textContent='+'+fmt(points)+(reason==='stage'?' ✦':'');
-    pop.addEventListener('animationend',()=>pop.remove(),{once:true});
+    if(reducedMotion)window.setTimeout(()=>pop.remove(),700);
+    else pop.addEventListener('animationend',()=>pop.remove(),{once:true});
     host.append(pop);
   }
   if(source&&reason!=='stage'){
@@ -227,7 +228,14 @@ function scoreKill(enemy){
   if(best>0&&!game.recordAnnounced&&game.score>=best*.9){
     game.recordAnnounced=true;toast('YOUR PERSONAL RECORD IS WITHIN REACH!');
   }
-  if([5,10,20].includes(game.combo))toast(String(game.combo)+' KILL STREAK!');
+  if([5,10,20].includes(game.combo)){
+    toast(String(game.combo)+' KILL STREAK!');
+    animateUI($('comboText'),[
+      {transform:'scale(1)',color:'#d5f1d7'},
+      {transform:'scale(1.28)',color:'#fff0aa',offset:.45},
+      {transform:'scale(1)',color:'#d5f1d7'}
+    ],430);
+  }
 }
 function ringBurst(x,z,color,scale=1){
   const circle=vfxRing(scene,color,.50,.14);
@@ -426,7 +434,7 @@ function updatePlayer(dt){
   camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*7.2));
   // Light directional camera impulse, decaying quickly, never changing the base framing.
   game.shake=Math.max(0,game.shake-dt*1.45);
-  camera.position.x=Math.sin(game.time*83)*game.shake*.35;
+  camera.position.x=Math.sin(game.time*83)*game.shake*.62;
   camera.setTarget(V(camera.position.x,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){

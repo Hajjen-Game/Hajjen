@@ -187,3 +187,11 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
 @media(hover:none) and (pointer:coarse){
  .sound-button{right:10px;top:153px;bottom:auto;min-width:48px;min-height:48px;font-size:22px;border-radius:13px}
 }
+
+/* A/B preview controls for the external CC0 sword-swipe animation. */
+.slash-compare-label{margin:20px 0 7px;font-size:10px;font-weight:900;
+  letter-spacing:1.7px;color:#bdddc9;text-align:center}
+#slashVfxButton{width:100%;border:1px solid #a4ead1a0;
+  color:#e3f8e7;background:#2d5b4c}
+.slash-compare-note{font-size:11px;color:#bddac9;line-height:1.45;
+  max-width:265px;text-align:center;margin:7px auto 15px}

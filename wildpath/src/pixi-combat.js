@@ -2,6 +2,7 @@
 // Reuses the original Energy Arena Crystal Bolt and impact renderers unchanged.
 // Babylon remains authoritative for the game, targeting, movement and camera.
 import { drawSlimGlint } from './slim-projectile.js?v=1.0.3';
+import { slashFramePaths,slashFrameIndex,slashScreenAngle,slashVisualSize } from './weapon-slash.js?v=1.1.0';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
 import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
 import { drawImpactPixi } from '../../pvp-25d/src/energy/arena/EnergyImpactPixiAccents.js';
@@ -187,6 +188,9 @@ export class WildpathPixiCombat {
     this.app=null;this.graphics=null;this.view=null;
     this.ready=false;this.failed=false;this.effects=[];this.sequence=0;
     this.width=0;this.height=0;this.alive=true;this.time=0;
+    this.slashMode='asset'; // default: Cethiel CC0. Previous Pixi available for A/B.
+    this.slashFrames={basic:[],wide:[]};
+    this.slashLayer=null;this.slashes=[];this.PIXI=null;
   }
   async init(){
     let view;
@@ -209,13 +213,87 @@ export class WildpathPixiCombat {
         preference:'webgl',resolution:Math.min(2,Math.max(1.25,window.devicePixelRatio||1))});
       if(!this.alive){app.destroy(true,{children:true});view.remove();return;}
       this.app=app;this.view=view;this.graphics=new PIXI.Graphics();
+      this.slashLayer=new PIXI.Container();
       this.app.stage.addChild(this.graphics);
+      this.app.stage.addChild(this.slashLayer);
+      this.PIXI=PIXI;
       this.ready=true;
+      // Sprite fetching is optional and never blocks the game loop.
+      void this.loadSlashFrames();
     }catch(error){
       this.failed=true;this.ready=false;
       view?.remove();
       console.warn('Pixi VFX unavailable, using Babylon fallback:',error);
     }
+  }
+
+  async loadSlashFrames(){
+    if(!this.PIXI||!this.alive)return;
+    try{
+      const PIXI=this.PIXI;
+      const pairs=await Promise.all(['basic','wide'].map(async kind=>{
+        const textures=await Promise.all(slashFramePaths(kind).map(path=>
+          PIXI.Assets.load(new URL(path,document.baseURI).href)));
+        return [kind,textures];
+      }));
+      if(!this.alive)return;
+      for(const [kind,frames] of pairs)this.slashFrames[kind]=frames;
+    }catch(error){
+      // Keep the previous Energy Arena effect as fallback.
+      console.warn('Cethiel Weapon Slash sprites unavailable; using Pixi arc:',error);
+    }
+  }
+  setSlashMode(mode){
+    this.slashMode=mode==='original'?'original':'asset';
+    return this.slashMode;
+  }
+  addSlash(name,point,intensity){
+    const kind=name==='Wide Arc'?'wide':'basic';
+    const textures=this.slashFrames[kind];
+    if(!textures.length||!this.PIXI||!this.slashLayer)return false;
+    if(this.slashes.length>=14){
+      const oldest=this.slashes.shift();
+      oldest.sprite.destroy();
+    }
+    const sprite=new this.PIXI.Sprite(textures[0]);
+    sprite.anchor.set(.5);
+    sprite.blendMode='normal';
+    sprite.eventMode='none';
+    this.slashLayer.addChild(sprite);
+    this.slashes.push({sprite,textures,age:0,life:kind==='wide'?.35:.29,
+      x:point.x,z:point.z,y:point.y??1.3,
+      targetX:point.targetX,targetZ:point.targetZ,
+      followPlayer:!!point.followPlayer,
+      intensity:Math.max(.5,Math.min(2,intensity)),kind});
+    return true;
+  }
+  updateSlashes(dt,game){
+    for(let i=this.slashes.length-1;i>=0;i--){
+      const e=this.slashes[i];e.age+=dt;
+      if(e.age>=e.life){
+        e.sprite.destroy();
+        this.slashes.splice(i,1);
+        continue;
+      }
+      const x=e.followPlayer&&game?.state==='play'?game.x:e.x;
+      const z=e.followPlayer&&game?.state==='play'?game.z:e.z;
+      const p=this.at(x,z,e.y),target=this.at(e.targetX??(x+1),e.targetZ??z,e.y);
+      if(!p){e.sprite.visible=false;continue;}
+      e.sprite.visible=true;
+      e.sprite.position.set(p.x,p.y);
+      e.sprite.texture=e.textures[slashFrameIndex(e.age,e.life,e.textures.length)];
+      const angle=slashScreenAngle(p,target);
+      e.sprite.rotation=angle-Math.PI/2;
+      const size=slashVisualSize(this.scaleAt(x,z),e.kind==='wide')*e.intensity;
+      // Maintain original frame aspect ratio; mobile width is capped by size.
+      const h=Math.max(e.sprite.texture.height||150,1);
+      e.sprite.scale.set(size/h);
+      e.sprite.alpha=Math.min(1,(e.life-e.age)/.055);
+    }
+  }
+  clearSlashes(){
+    for(const s of this.slashes)s.sprite.destroy();
+    this.slashes.length=0;
   }
   resize(){
     if(!this.ready)return;
@@ -241,13 +319,20 @@ export class WildpathPixiCombat {
   }
   stage(name,stage,point,intensity=1){
     if(!this.ready||stage==='sound'||stage==='trail')return;
+    if(stage==='burst'&&(name==='Steel Arc'||name==='Wide Arc')&&
+       this.slashMode==='asset'&&this.addSlash(name,point,intensity))return;
     if(this.effects.length>=90)this.effects.shift();
     const life=stage==='burst'?.37:stage==='reaction'?.19:
       stage==='charge'?.20:stage==='core'?.23:stage==='aftermath'?.52:.3;
     this.effects.push({name,stage,x:point.x,z:point.z,y:point.y??1.3,
       intensity,elapsed:0,life,seed:++this.sequence});
   }
-  clear(){this.effects.length=0;this.graphics?.clear();if(this.ready)this.app.render();}
+  clear(){
+    this.effects.length=0;
+    this.clearSlashes();
+    this.graphics?.clear();
+    if(this.ready)this.app.render();
+  }
   update(dt,game){
     if(!this.ready)return;
     this.resize();this.time+=dt;
@@ -277,12 +362,14 @@ export class WildpathPixiCombat {
       const p=this.at(e.x,e.z,e.y);if(!p)continue;
       spellEvent(g,e,p,this.scaleAt(e.x,e.z));
     }
+    this.updateSlashes(dt,game);
     this.app.render();
   }
   dispose(){
     this.alive=false;this.ready=false;
     try{this.app?.destroy(true,{children:true});}catch{}
     this.view?.remove();this.effects=[];this.graphics=null;
-    this.app=null;this.view=null;
+    this.clearSlashes();this.slashFrames={basic:[],wide:[]};
+    this.app=null;this.view=null;this.slashLayer=null;this.PIXI=null;
   }
 }

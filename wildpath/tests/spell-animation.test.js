@@ -36,3 +36,50 @@ test('eight stages remain valid if audio API is unavailable',()=>{
  f.sound('Glint Dart');
  f.clear();f.dispose();
 });
+
+
+test('Glint Dart ribbon updates a single updatable tube and disposes it',()=>{
+  class Vec {constructor(x,y,z){this.x=x;this.y=y;this.z=z;}}
+  class C {static FromHexString(){return new C();}static Black(){return new C();}scale(){return this;}}
+  class M {dispose(){this.released=true;}}
+  let builds=0,updates=0,released=0;
+  const existing={dispose(){released++;}};
+  globalThis.window={BABYLON:{
+    Vector3:Vec,Color3:C,StandardMaterial:M,
+    MeshBuilder:{CreateTube(_name,opts){
+      if(opts.instance){updates++;return opts.instance;}
+      builds++;return existing;
+    }}
+  }};
+  const {createRibbonTrail}=await import('../src/spell-animation.js');
+  const tail=createRibbonTrail({},{color:'#79e4ff'});
+  for(let i=0;i<20;i++)tail.move(i/3,1.4,i/5);
+  assert.equal(builds,1);
+  assert.equal(updates,20);
+  tail.dispose();
+  assert.equal(released,1);
+});
+test('audio launch and impact layers can sound in the same combat moment',()=>{
+  const first=[];
+  class Audio {
+    constructor(){this.currentTime=1;this.state='running';this.destination={};}
+    createOscillator(){return {
+      frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},
+      connect(){},start(t){first.push(t);},stop(){},disconnect(){}
+    };}
+    createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}
+    createBiquadFilter(){return {frequency:{setValueAtTime(){}},connect(){},disconnect(){}};}
+    close(){this.state='closed';}
+  }
+  globalThis.window={AudioContext:Audio,BABYLON:{}};
+  const audio=createSpellAnimator({});
+  audio.unlock();
+  audio.sound('Glint Dart','launch');
+  audio.sound('Glint Dart','impact');
+  assert.equal(first.length,2);
+  assert.ok(first[1]>first[0]);
+  audio.setMuted(true);
+  audio.sound('Glint Dart','launch');
+  assert.equal(first.length,2);
+  audio.dispose();
+});

@@ -1,19 +1,40 @@
-name: Wildpath sprite VFX tests
+name: Wildpath regression and browser smoke tests
 on:
   push:
     paths:
       - wildpath/src/**
       - wildpath/tests/**
+      - wildpath/index.html
+      - wildpath/styles.css
       - wildpath/assets/weapon-slash/**
       - .github/workflows/wildpath-vfx-tests.yml
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  verify-vfx:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Cethiel sprite playback and Pixi integration
+      - name: Validate old and new gameplay systems
+        run: node --test wildpath/tests/*.test.js
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser driver
+        run: npm install --no-save puppeteer-core@24.11.0
+      - name: Inspect installed Chrome
+        run: command -v google-chrome || command -v google-chrome-stable || command -v chromium
+      - name: Serve the full repository
         run: |
-          node --test wildpath/tests/weapon-slash.test.js wildpath/tests/pixi-combat.test.js
+          python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/wildpath-server.log 2>&1 &
+          echo $! > /tmp/wildpath-server.pid
+      - name: Exercise open world and original road on a portrait viewport
+        run: node wildpath/tests/browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wildpath-open-mobile-preview
+          path: /tmp/wildpath/open-world-mobile.png
+          if-no-files-found: ignore

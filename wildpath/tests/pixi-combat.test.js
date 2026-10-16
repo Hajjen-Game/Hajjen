@@ -32,7 +32,7 @@ test('all eight spells have distinct accessible palette profiles',()=>{
 test('orthographic screen scale comes from actual projected viewport',()=>{
   const f=(x,y,z)=>({x:x*14,y:z*11});
   const pair=projectedPair(f,2,4);
-  assert.equal(pair.pixelsPerWorld,14);
+  assert.ok(Math.abs(pair.pixelsPerWorld-14)<1e-9);
 });
 test('temporary effects stay bounded and have no gameplay side effects',()=>{
   const fx=new WildpathPixiCombat(null,null,null);

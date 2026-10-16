@@ -334,22 +334,34 @@ function cast(slot){
   spellStage(spellName,'charge',game);
   spellStage(spellName,'sound',game,1,'launch');
   if(caster){
-    if(slot===0){icePool(target.x,target.z);ringBurst(target.x,target.z,'#b4ecf1',3);}
+    if(slot===0){
+      spellStage('Winter Pool','core',target,.80);
+      icePool(target.x,target.z);
+      spellStage('Winter Pool','burst',target,1.45);
+      spellStage('Winter Pool','aftermath',target,1.5);
+      spellStage('Winter Pool','sound',target,1,'impact');
+    }
     if(slot===1){
       const big=game.upgrades.has('bloom');
-      ringBurst(target.x,target.z,'#a8ecf1',big?4.5:3.3);
+      spellStage('Crystal Bloom','core',target,1.2);
+      spellStage('Crystal Bloom','burst',target,big?2.2:1.65);
       shardBurst(target.x,target.z,'#b2f0ff',big?4.5:3.3);
-      for(const e of game.enemies)if(e.alive&&distance(e,target)<(big?4.6:3.4))hurtEnemy(e,big?38:29,{slow:1.2});
+      for(const e of game.enemies)if(e.alive&&distance(e,target)<(big?4.6:3.4))
+        hurtEnemy(e,big?38:29,{slow:1.2,fxSpell:'Crystal Bloom'});
+      spellStage('Crystal Bloom','aftermath',target,big?2:1.3);
+      spellStage('Crystal Bloom','sound',target,1,'impact');
     }
     if(slot===2){
       const strong=game.upgrades.has('shield');
       game.shield=Math.max(game.shield,strong?65:42);
       game.invulnerable=.42;
-      ringBurst(game.x,game.z,'#90ecce',strong?4:2);
+      spellStage('Pale Guard','core',game,1);
+      spellStage('Pale Guard','burst',game,strong?1.7:1.2);
       const dome=shieldDome(scene,strong?2.2:1.7);
       dome.position.set(game.x,1.46,game.z);
       game.effects.push({mesh:dome,life:.85,total:.85,scale:1.0,particle:false});
       if(strong)for(const e of game.enemies)if(e.alive&&distance(e,game)<4.5)e.slow=Math.max(e.slow,2.7);
+      spellStage('Pale Guard','aftermath',game,1.2);
       floatingText({x:game.x,y:2.8,z:game.z},'GUARD','heal');
     }
   }else{
@@ -395,13 +407,16 @@ function basicAttack(){
   if(!target||distance(game,target)>game.spec.range)return;
   game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
   if(game.classId==='caster'){
+    spellStage('Glint Dart','charge',game,.75);
+    spellStage('Glint Dart','core',game,.8);
+    spellStage('Glint Dart','sound',game,1,'launch');
     const count=game.upgrades.has('triple')?3:game.upgrades.has('double')?2:1;
     for(let i=0;i<count;i++){
       const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.65);
       const offset=(i-(count-1)/2)*.32;
       shot.position.set(game.x+offset,1.5,game.z);
       game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
-        damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),hostile:false,trail:0});
+        damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),hostile:false,trail:0,spell:'Glint Dart'});
     }
   }else{
     const reach=game.upgrades.has('arc')?3.8:2.95;
@@ -526,8 +541,14 @@ function updateProjectiles(dt){
     const d=Math.max(.01,Math.hypot(dx,dz,dy)),step=p.speed*dt;
     if(d<=step+.25){
       if(p.hostile)hurtPlayer(p.damage);
-      else hurtEnemy(p.target,p.damage);
-      ringBurst(p.target.x,p.target.z,p.hostile?'#efb99e':'#a6e7f2',.7);
+      else{
+        const spell=p.spell||'Glint Dart';
+        spellStage(spell,'burst',p.target,.80);
+        hurtEnemy(p.target,p.damage,{fxSpell:spell});
+        spellStage(spell,'aftermath',p.target,.64);
+        spellStage(spell,'sound',p.target,1,'impact');
+      }
+      if(p.hostile)ringBurst(p.target.x,p.target.z,'#efb99e',.7);
       releaseMesh(p.mesh);game.projectiles.splice(i,1);
       continue;
     }
@@ -535,10 +556,12 @@ function updateProjectiles(dt){
     p.mesh.position.set(p.x,p.y,p.z);
     p.trail-=dt;
     if(p.trail<=0){
-      const dot=lightOrb(scene,p.hostile?'#f4d4c0':'#c4fbff',.22);
-      dot.position=p.mesh.position.clone();
-      game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
-      p.trail=.074;
+      if(p.hostile){
+        const dot=lightOrb(scene,'#f4d4c0',.22);
+        dot.position=p.mesh.position.clone();
+        game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
+      }else spellStage(p.spell||'Glint Dart','trail',p,.75);
+      p.trail=.068;
     }
   }
 }

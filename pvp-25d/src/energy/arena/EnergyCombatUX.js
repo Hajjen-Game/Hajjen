@@ -152,7 +152,12 @@ export class EnergyCombatUX{
         :mobility?"MOBILITY LOCK":activeCast?"CASTING":gcd>.015?"GLOBAL COOLDOWN":"READY";
       const recallLost=recallStatus?
         Math.max(0,recallStatus.startHp-recallTarget.hp):0;
-      const title=ability.name+" — "+ability.description+"\n"+
+      const chosenEvolution=ability.evolutions?.find(e=>
+        e.id===player.evolutions?.[slot.id]);
+      const spellTooltip=ability.name+"\n"+ability.details+"\n"+
+        ability.description+(chosenEvolution?
+          "\n\nEVOLUTION · "+chosenEvolution.name+"\n"+chosenEvolution.description:"");
+      const title=spellTooltip+"\n\n"+
         (recallStatus?
           "REACTIVATE: press this spell again within "+recallStatus.remaining.toFixed(1)+
           "s. Lost HP since activation: "+Math.round(recallLost)+

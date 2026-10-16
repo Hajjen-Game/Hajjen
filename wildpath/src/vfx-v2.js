@@ -42,3 +42,14 @@ export function shieldDome(scene,radius=1.8){
   dome.isPickable=false;
   return dome;
 }
+
+export function meleeSlash(scene,x,z,forwardAngle,color='#ffe6b1',reach=2.5){
+  const points=[];
+  for(let i=0;i<=15;i++){
+    const a=forwardAngle-1.08+i/15*2.16;
+    points.push(new B.Vector3(x+Math.sin(a)*reach,1.2,z+Math.cos(a)*reach));
+  }
+  const blade=B.MeshBuilder.CreateTube('bright sword slash',{path:points,radius:.12,tessellation:8},scene);
+  blade.material=mat(scene,'sword trail',color,1.3,.98);
+  blade.isPickable=false;return blade;
+}

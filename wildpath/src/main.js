@@ -7,7 +7,7 @@ import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
 import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
-import { createSpellAnimator } from './spell-animation.js?v=0.9.0';
+import { createSpellAnimator,createRibbonTrail } from './spell-animation.js?v=0.9.0';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -161,7 +161,7 @@ function releaseMesh(mesh){
 function clearGame(){
   if(game.actor){game.actor.dispose();game.actor=null;}
   for(const e of game.enemies)e.actor.dispose();
-  for(const p of game.projectiles)releaseMesh(p.mesh);
+  for(const p of game.projectiles){p.ribbon?.dispose();releaseMesh(p.mesh);}
   for(const e of game.effects)releaseMesh(e.mesh);
   for(const a of game.areas){releaseMesh(a.mesh);releaseMesh(a.border);}
   for(const t of game.texts)t.el.remove();
@@ -444,7 +444,9 @@ function basicAttack(){
       const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.65);
       const offset=(i-(count-1)/2)*.32;
       shot.position.set(game.x+offset,1.5,game.z);
-      game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
+      const ribbon=createRibbonTrail(scene,{color:i%2?'#c7ffff':'#80e7f8'});
+      ribbon.move(game.x+offset,1.5,game.z);
+      game.projectiles.push({mesh:shot,ribbon,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
         damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),hostile:false,trail:0,spell:'Glint Dart'});
     }
   }else{
@@ -569,7 +571,7 @@ function updateProjectiles(dt){
     const p=game.projectiles[i];
     p.life-=dt;
     if(p.life<=0||(!p.hostile&&!p.target.alive)){
-      releaseMesh(p.mesh);game.projectiles.splice(i,1);continue;
+      p.ribbon?.dispose();releaseMesh(p.mesh);game.projectiles.splice(i,1);continue;
     }
     const dx=p.target.x-p.x,dz=p.target.z-p.z,dy=1.1-p.y;
     const d=Math.max(.01,Math.hypot(dx,dz,dy)),step=p.speed*dt;
@@ -583,11 +585,12 @@ function updateProjectiles(dt){
         spellStage(spell,'sound',p.target,1,'impact');
       }
       if(p.hostile)ringBurst(p.target.x,p.target.z,'#efb99e',.7);
-      releaseMesh(p.mesh);game.projectiles.splice(i,1);
+      p.ribbon?.dispose();releaseMesh(p.mesh);game.projectiles.splice(i,1);
       continue;
     }
     p.x+=dx/d*step;p.z+=dz/d*step;p.y+=dy/d*step;
     p.mesh.position.set(p.x,p.y,p.z);
+    p.ribbon?.move(p.x,p.y,p.z);
     p.trail-=dt;
     if(p.trail<=0){
       if(p.hostile){
@@ -595,7 +598,7 @@ function updateProjectiles(dt){
         dot.position=p.mesh.position.clone();
         game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
       }else spellStage(p.spell||'Glint Dart','trail',p,.75);
-      p.trail=.068;
+      p.trail=.095;
     }
   }
 }

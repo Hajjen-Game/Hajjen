@@ -2,7 +2,8 @@ export const CLASS_DATA = {
   caster: { name: 'Glintweaver', hp: 100, speed: 5.25, basic: 'Glint Dart', range: 13.5, attackSpeed: 0.78, baseDamage: 11, spells: ['Winter Pool', 'Crystal Bloom', 'Pale Guard'], cooldowns: [8, 6, 13] },
   melee: { name: 'Stoneblade', hp: 135, speed: 5.6, basic: 'Steel Arc', range: 2.8, attackSpeed: 0.65, baseDamage: 15, spells: ['Wide Arc', 'Rushstrike', 'Earthwake'], cooldowns: [5, 9, 13] },
 };
-export const STAGE_GATES = [49, 99, 149, 199];
+// Lengthened sections mean the mobile camera reveals only part of a glade at once.
+export const STAGE_GATES = [105, 210, 315, 420];
 export const STAGE_BUDGETS = [14, 17, 20, 24];
 export const STAGE_NAMES = ['HONEYDEW MEADOW', 'WHISPER GROVE', 'SUNLIT HOLLOW', 'THE OLD WILDS'];
 export const ENEMIES = {

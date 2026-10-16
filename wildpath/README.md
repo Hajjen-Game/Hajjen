@@ -46,9 +46,9 @@ A stage has a finite threat budget. The Director alternates build-up, peak and r
 * `src/director.js` – dynamic encounter pacing, fixed spawn budgets
 * `src/main.js` – input, combat, upgrades, scoring, state machine, rendering loop
 
-## Deploy to GitHub Pages
+## Hosting in the Hajjen repository
 
-In the GitHub repo settings under **Pages**, choose **GitHub Actions** as the source. The workflow in `.github/workflows/pages.yml` publishes static assets from the default branch on each push. A separate production build/CDN strategy can be added later.
+This game is self-contained under `/wildpath/` on the main branch of `Hajjen-Game/Hajjen`; it does not change or replace the other games. If GitHub Pages serves the repository's `main` branch from the root directory, the game is available under the `/wildpath/` URL. Otherwise, configure your existing hosting service to publish this directory. No separate Pages workflow is included, to avoid interfering with the other games.
 
 ## Art and licensing
 

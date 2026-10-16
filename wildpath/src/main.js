@@ -1,7 +1,9 @@
 import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.3.1';
-import { createWorld, createActor, pathX, BOARD_HALF_WIDTH, CAMERA_WORLD_WIDTH, TRAIL_END, lightOrb, ring, disc } from './world-v3.js?v=0.3.1';
+import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v4.js?v=0.4.0';
+import { BOARD_HALF_WIDTH, BOARD_END, moveOnRoad, projectToRoad, isOnRoad moveOnRoad, projectToRoad, isOnRoad } from './layout-v4.js?v=0.4.0';
 import { Director } from './director.js?v=0.3.1';
-import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.3.1';
+import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.4.0';
+const CAMERA_WORLD_WIDTH=36.8;
 
 const B = window.BABYLON;
 const $ = id => document.getElementById(id);
@@ -94,9 +96,9 @@ function startGame(){
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
   $('hud').hidden=false;
   hideScreens();
-  camera.position.set(0,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
+  camera.position.set(8,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
   camera.setTarget(V(0,0,game.z-CAMERA_BEHIND+CAMERA_LOOK_DISTANCE));
-  toast('Follow the trail · Your basic attack fires automatically!');
+  toast('Follow the marked path · Move sideways around the corners!');
   canvas.focus();
 }
 function getNearest(range){
@@ -122,10 +124,10 @@ function cycleTarget(){
 }
 function spawnEnemy(type){
   const stats=ENEMIES[type];
-  let z=game.z+random(9,17),x=pathX(z)+random(-6.1,6.1);
-  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-6,6);}
-  z=clamp(z,0,TRAIL_END-2);
-  x=clamp(x,-BOARD_HALF_WIDTH+2.8,BOARD_HALF_WIDTH-2.8);
+  let z=game.z+random(9,17),x=pathX(z)+random(-3,3);
+  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-3,3);}
+  z=clamp(z,0,BOARD_END-2);
+  ({x,z}=projectToRoad(x,z));
   const actor=createActor(scene,type,true);
   actor.root.scaling.scaleInPlace(1.1);
   const id='wild-'+game.frame+'-'+Math.floor(Math.random()*999999);
@@ -302,23 +304,22 @@ function updatePlayer(dt){
   const len=Math.hypot(x,z);
   if(len>.03){
     x/=Math.max(1,len);z/=Math.max(1,len);
-    const nextZ=clamp(game.z+z*game.spec.speed*dt,0,director.ready?director.gate:director.gate-2.3);
-    const center=pathX(nextZ);
-    game.x=clamp(game.x+x*game.spec.speed*dt,
-      Math.max(-BOARD_HALF_WIDTH+3.6,center-6.15),
-      Math.min(BOARD_HALF_WIDTH-3.6,center+6.15));
-    game.z=nextZ;
+    const dz=clamp(game.z+z*game.spec.speed*dt,0,director.ready?director.gate:director.gate-2.3)-game.z;
+    const step=moveOnRoad(game.x,game.z,x*game.spec.speed*dt,dz);
+    game.x=step.x;
+    game.z=step.z;
   }
   game.actor.root.position.set(game.x,Math.sin(game.time*12)*(len>.1?.06:.015),game.z);
   game.actor.leftArm.rotation.x=len>.1?Math.sin(game.time*12)*.2:0;
   game.actor.rightArm.rotation.x=len>.1?-Math.sin(game.time*12)*.2:0;
   const sword=game.actor.root.metadata?.sword;
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
-  // Portrait mobile view: do not track sideways, or the board's outer edges disappear.
-  // Track Z only, keeping the hero in the lower third with the winding path ahead.
-  const p=V(0,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
+  // A slight diagonal 3D diorama view like the reference. Follow X just enough
+  // to show off-center street turns; the board may extend a little sideways.
+  const lateral=clamp(game.x*.38,-3.1,3.1);
+  const p=V(lateral+8,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
   camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*3.4));
-  camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
+  camera.setTarget(V(camera.position.x-8,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);

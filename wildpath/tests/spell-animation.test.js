@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SPELL_STAGES,SPELL_PRESENTATION,effectBudget,pickSpell,stageDuration,createSpellAnimator} from '../src/spell-animation.js';
+import {SPELL_STAGES,SPELL_PRESENTATION,effectBudget,pickSpell,stageDuration,createSpellAnimator,createRibbonTrail} from '../src/spell-animation.js';
 test('all eight spells expose the eight common VFX stages',()=>{
  assert.deepEqual(SPELL_STAGES,['charge','core','trail','burst','reaction','sound','aftermath','damage']);
  assert.equal(Object.keys(SPELL_PRESENTATION).length,8);
@@ -51,7 +51,6 @@ test('Glint Dart ribbon updates a single updatable tube and disposes it',()=>{
       builds++;return existing;
     }}
   }};
-  const {createRibbonTrail}=await import('../src/spell-animation.js');
   const tail=createRibbonTrail({},{color:'#79e4ff'});
   for(let i=0;i<20;i++)tail.move(i/3,1.4,i/5);
   assert.equal(builds,1);

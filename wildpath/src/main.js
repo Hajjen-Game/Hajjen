@@ -247,8 +247,14 @@ function cast(slot){
     if(slot===1){
       const dx=target.x-game.x,dz=target.z-game.z,dist=Math.max(.01,Math.hypot(dx,dz));
       const leap=Math.min(8,Math.max(0,dist-1.4));
-      game.x+=dx/dist*leap;
-      game.z=clamp(game.z+dz/dist*leap,0,director.ready?director.gate:director.gate-2.3);
+      // Rush follows the street; it must not jump across meadow plots or walls.
+      for(let moved=0;moved<leap;moved+=.25){
+        const stepSize=Math.min(.25,leap-moved);
+        const allowedZ=clamp(game.z+dz/dist*stepSize,0,director.ready?director.gate:director.gate-2.3)-game.z;
+        const step=moveOnRoad(game.x,game.z,dx/dist*stepSize,allowedZ);
+        if(step.x===game.x&&step.z===game.z)break;
+        game.x=step.x;game.z=step.z;
+      }
       hurtEnemy(target,36,{push:2});
       ringBurst(game.x,game.z,'#edcba0',game.upgrades.has('rush')?4:2);
       if(game.upgrades.has('rush'))

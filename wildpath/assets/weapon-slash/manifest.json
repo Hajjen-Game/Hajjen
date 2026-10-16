@@ -1,0 +1,194 @@
+{
+  "source": "https://opengameart.org/content/weapon-slash-effect",
+  "author": "Cethiel",
+  "license": "CC0-1.0",
+  "original_archive_sha256": "605dff92b8a405a4810aa88b7f8544c6eb7b08b0668816f958abb44cc70cb620",
+  "files": [
+    {
+      "file": "Classic__1__Classic_01.png",
+      "source": "Classic/1/Classic_01.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__1__Classic_02.png",
+      "source": "Classic/1/Classic_02.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__1__Classic_03.png",
+      "source": "Classic/1/Classic_03.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__1__Classic_04.png",
+      "source": "Classic/1/Classic_04.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__1__Classic_05.png",
+      "source": "Classic/1/Classic_05.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__1__Classic_06.png",
+      "source": "Classic/1/Classic_06.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__2__Classic_07.png",
+      "source": "Classic/2/Classic_07.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__2__Classic_08.png",
+      "source": "Classic/2/Classic_08.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__2__Classic_09.png",
+      "source": "Classic/2/Classic_09.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__2__Classic_10.png",
+      "source": "Classic/2/Classic_10.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__2__Classic_11.png",
+      "source": "Classic/2/Classic_11.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__2__Classic_12.png",
+      "source": "Classic/2/Classic_12.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__3__Classic_13.png",
+      "source": "Classic/3/Classic_13.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__3__Classic_14.png",
+      "source": "Classic/3/Classic_14.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__3__Classic_15.png",
+      "source": "Classic/3/Classic_15.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__3__Classic_16.png",
+      "source": "Classic/3/Classic_16.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__3__Classic_17.png",
+      "source": "Classic/3/Classic_17.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__3__Classic_18.png",
+      "source": "Classic/3/Classic_18.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__4__Classic_19.png",
+      "source": "Classic/4/Classic_19.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__4__Classic_20.png",
+      "source": "Classic/4/Classic_20.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__4__Classic_21.png",
+      "source": "Classic/4/Classic_21.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__4__Classic_22.png",
+      "source": "Classic/4/Classic_22.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__4__Classic_23.png",
+      "source": "Classic/4/Classic_23.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__4__Classic_24.png",
+      "source": "Classic/4/Classic_24.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__5__Classic_25.png",
+      "source": "Classic/5/Classic_25.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__5__Classic_26.png",
+      "source": "Classic/5/Classic_26.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__5__Classic_27.png",
+      "source": "Classic/5/Classic_27.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__5__Classic_28.png",
+      "source": "Classic/5/Classic_28.png",
+      "width": 126,
+      "height": 150
+    },
+    {
+      "file": "Classic__5__Classic_29.png",
+      "source": "Classic/5/Classic_29.png",
+      "width": 124,
+      "height": 150
+    },
+    {
+      "file": "Classic__5__Classic_30.png",
+      "source": "Classic/5/Classic_30.png",
+      "width": 125,
+      "height": 150
+    },
+    {
+      "file": "Classic__Preview.png",
+      "source": "Classic/Preview.png",
+      "width": 750,
+      "height": 750
+    }
+  ]
+}

@@ -261,7 +261,7 @@ export class WildpathPixiCombat {
     sprite.eventMode='none';
     this.slashLayer.addChild(sprite);
     this.slashes.push({sprite,textures,age:0,life:kind==='wide'?.35:.29,
-      x:point.x,z:point.z,y:point.y??1.3,
+      x:point.originX??point.x,z:point.originZ??point.z,y:point.y??1.3,
       targetX:point.targetX,targetZ:point.targetZ,
       followPlayer:!!point.followPlayer,
       intensity:Math.max(.5,Math.min(2,intensity)),kind});

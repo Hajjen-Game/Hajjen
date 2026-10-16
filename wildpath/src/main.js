@@ -477,7 +477,8 @@ function basicAttack(){
     spellStage('Steel Arc','core',game,.85);
     spellStage('Steel Arc','trail',game,1);
     spellStage('Steel Arc','burst',{
-      x:game.x,z:game.z,y:1.2,followPlayer:true,
+      x:target.x,z:target.z,y:1.2,followPlayer:true,
+      originX:game.x,originZ:game.z,
       targetX:target.x,targetZ:target.z
     },.85);
     spellStage('Steel Arc','sound',game,1,'launch');

@@ -9,7 +9,7 @@ import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, melee
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=1.0.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=1.0.1';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;

@@ -21,7 +21,7 @@ test('magical pickups have coherent drop, homing, collection and HUD response',(
 test('Power Surge is celebrated once, then resets after claiming a blessing',()=>{
   assert.match(main,/!game\.surgeCelebrated/);
   assert.match(main,/game\.surgeCelebrated=true/);
-  assert.match(main,/stage\('Magic Surge','burst'/);
+  assert.match(main,/spellStage\('Magic Surge','burst'/);
   assert.match(main,/game\.surgeCelebrated=false/);
   assert.match(main,/game\.energy=0/);
   assert.match(main,/game\.invulnerable=Math\.max/);

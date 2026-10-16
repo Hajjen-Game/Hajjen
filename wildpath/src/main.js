@@ -1,4 +1,4 @@
-import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.6.0';
+import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=2.1.0';
 import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.7.0';
 import { BOARD_START, BOARD_END, moveOnRoad, projectToRoad } from './layout-v5.js?v=0.6.0';
 import { chooseAutoTarget } from './targeting.js?v=0.6.0';
@@ -9,7 +9,7 @@ import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, melee
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=2.0.1';
+import { WildpathPixiCombat } from './pixi-combat.js?v=2.1.0';
 import {createOpenWorld} from './world-open.js?v=2.0.1';
 import {OpenDirector} from './director-open.js?v=2.0.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';

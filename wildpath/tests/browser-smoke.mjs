@@ -54,6 +54,22 @@ try{
       assert.ok(after.z>initial.z+.50,'Glintweaver should move freely north');
       assert.ok(after.cameraX>initial.cameraX+.35,'Camera must follow X');
       assert.ok(after.enemies>0,'The OpenDirector must spawn real enemies');
+      // Unlike a static smoke check, verify an actual kill → pickup →
+      // collection transition in the running 3D game.
+      await page.waitForFunction(()=>window.__wildpathDebug.read().energy>0,
+        {timeout:32000,polling:300});
+      const collected=await page.evaluate(()=>({
+        ...window.__wildpathDebug.read(),
+        energyText:document.querySelector('#energyText')?.textContent,
+        energyWidth:document.querySelector('#energyFill')?.style.width,
+        panelHidden:document.querySelector('#energyPanel')?.hidden
+      }));
+      assert.ok(collected.energy>=1,'Real kills must yield collectible magic');
+      assert.ok(collected.energyText.startsWith(String(collected.energy)+' / '));
+      assert.ok(parseFloat(collected.energyWidth)>0,'Energy fill must visibly advance');
+      assert.equal(collected.panelHidden,false);
+      console.log('PASS ENERGY COLLECTED',JSON.stringify(collected));
+      await page.screenshot({path:'/tmp/wildpath/open-world-energy.png'});
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');

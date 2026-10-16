@@ -1,6 +1,7 @@
 import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js';
 import { createWorld, createActor, pathX, BOARD_HALF_WIDTH, CAMERA_WORLD_WIDTH, TRAIL_END, lightOrb, ring, disc } from './world-v3.js';
 import { Director } from './director.js';
+import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js';
 
 const B = window.BABYLON;
 const $ = id => document.getElementById(id);
@@ -27,7 +28,7 @@ ambient.groundColor = new B.Color3(.25,.4,.35);
 const sunshine = new B.DirectionalLight('sunshine',V(-.5,-1,.6),scene);
 sunshine.intensity = .62;
 sunshine.diffuse = new B.Color3(.97,.88,.77);
-const camera = new B.FreeCamera('portrait diorama camera',V(0,56,-18),scene);
+const camera = new B.FreeCamera('portrait diorama camera',V(0,CAMERA_HEIGHT,-CAMERA_BEHIND),scene);
 camera.mode = B.Camera.ORTHOGRAPHIC_CAMERA;
 camera.minZ = .05;
 camera.maxZ = 650;
@@ -35,13 +36,11 @@ scene.activeCamera = camera;
 function resizeCamera(){
   // Width-first composition: the FULL diorama is visible on any mobile screen.
   // Height follows the portrait aspect ratio and reveals only part of each glade.
-  const aspect=engine.getRenderWidth()/Math.max(1,engine.getRenderHeight());
-  const halfWidth=CAMERA_WORLD_WIDTH/2;
-  const halfHeight=halfWidth/aspect;
-  camera.orthoLeft=-halfWidth;
-  camera.orthoRight=halfWidth;
-  camera.orthoTop=halfHeight;
-  camera.orthoBottom=-halfHeight;
+  const f=widthLockedFrustum(engine.getRenderWidth(),Math.max(1,engine.getRenderHeight()),CAMERA_WORLD_WIDTH);
+  camera.orthoLeft=f.left;
+  camera.orthoRight=f.right;
+  camera.orthoTop=f.top;
+  camera.orthoBottom=f.bottom;
 }
 resizeCamera();
 const world=createWorld(scene);
@@ -95,8 +94,8 @@ function startGame(){
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
   $('hud').hidden=false;
   hideScreens();
-  camera.position.set(0,56,game.z-18);
-  camera.setTarget(V(0,0,game.z+12));
+  camera.position.set(0,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
+  camera.setTarget(V(0,0,game.z-CAMERA_BEHIND+CAMERA_LOOK_DISTANCE));
   toast('Follow the trail · Your basic attack fires automatically!');
   canvas.focus();
 }
@@ -317,9 +316,9 @@ function updatePlayer(dt){
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
   // Portrait mobile view: do not track sideways, or the board's outer edges disappear.
   // Track Z only, keeping the hero in the lower third with the winding path ahead.
-  const p=V(0,56,game.z-18);
+  const p=V(0,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
   camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*3.4));
-  camera.setTarget(V(0,0,camera.position.z+30));
+  camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);

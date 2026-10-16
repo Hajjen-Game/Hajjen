@@ -73,6 +73,18 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const hitFlashColor=B.Color3.FromHexString('#fff2bc');
 const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
 const abilityButtons=[...document.querySelectorAll('#bottomHud .ability.special')];
+const soundButton=$('soundButton');
+function updateSoundButton(){
+  if(!soundButton)return;
+  soundButton.textContent=spellFX.muted?'♪̸':'♪';
+  soundButton.setAttribute('aria-label',spellFX.muted?'Enable spell sounds':'Mute spell sounds');
+  soundButton.setAttribute('aria-pressed',String(!spellFX.muted));
+}
+soundButton?.addEventListener('click',()=>{
+  spellFX.setMuted(!spellFX.muted);
+  updateSoundButton();
+});
+updateSoundButton();
 function animateUI(el,keyframes,duration=300,easing='cubic-bezier(.2,.85,.2,1)'){
   if(!el||reducedMotion||!el.animate)return;
   el.animate(keyframes,{duration,easing});
@@ -336,6 +348,7 @@ function cast(slot){
   if(caster){
     if(slot===0){
       spellStage('Winter Pool','core',target,.80);
+      spellStage('Winter Pool','trail',target,.8);
       icePool(target.x,target.z);
       spellStage('Winter Pool','burst',target,1.45);
       spellStage('Winter Pool','aftermath',target,1.5);
@@ -344,6 +357,7 @@ function cast(slot){
     if(slot===1){
       const big=game.upgrades.has('bloom');
       spellStage('Crystal Bloom','core',target,1.2);
+      spellStage('Crystal Bloom','trail',target,1.2);
       spellStage('Crystal Bloom','burst',target,big?2.2:1.65);
       shardBurst(target.x,target.z,'#b2f0ff',big?4.5:3.3);
       for(const e of game.enemies)if(e.alive&&distance(e,target)<(big?4.6:3.4))
@@ -356,12 +370,14 @@ function cast(slot){
       game.shield=Math.max(game.shield,strong?65:42);
       game.invulnerable=.42;
       spellStage('Pale Guard','core',game,1);
+      spellStage('Pale Guard','trail',game,1.1);
       spellStage('Pale Guard','burst',game,strong?1.7:1.2);
       const dome=shieldDome(scene,strong?2.2:1.7);
       dome.position.set(game.x,1.46,game.z);
       game.effects.push({mesh:dome,life:.85,total:.85,scale:1.0,particle:false});
       if(strong)for(const e of game.enemies)if(e.alive&&distance(e,game)<4.5)e.slow=Math.max(e.slow,2.7);
       spellStage('Pale Guard','aftermath',game,1.2);
+      spellStage('Pale Guard','damage',game,.85); // Defence feedback, no damage dealt.
       floatingText({x:game.x,y:2.8,z:game.z},'GUARD','heal');
     }
   }else{
@@ -403,6 +419,7 @@ function cast(slot){
     if(slot===2){
       const big=game.upgrades.has('quake'),radius=big?7:5;
       spellStage('Earthwake','core',game,1.1);
+      spellStage('Earthwake','trail',game,1.2);
       spellStage('Earthwake','burst',game,big?2:1.5);
       const quake=vfxRing(scene,'#ffe6b7',radius*.85,.21);
       quake.position.set(game.x,.26,game.z);
@@ -447,6 +464,7 @@ function basicAttack(){
       const d=Math.max(.01,Math.hypot(vx,vz)*Math.hypot(dx,dz));
       if((vx*dx+vz*dz)/d>.12)hurtEnemy(e,game.spec.baseDamage,{push:.35,fxSpell:'Steel Arc'});
     }
+    spellStage('Steel Arc','aftermath',target,.7);
     if(game.upgrades.has('echo')){
       const d=Math.max(.01,Math.hypot(dx,dz));
       const endpoint={x:game.x+dx/d*5.6,z:game.z+dz/d*5.6};
@@ -593,7 +611,8 @@ function updateEffects(dt){
     const a=game.areas[i];a.life-=dt;a.tick-=dt;
     if(a.tick<=0){
       a.tick=.65;
-      for(const e of game.enemies)if(e.alive&&distance(e,a)<a.radius)hurtEnemy(e,a.damage,{slow:a.slow});
+      for(const e of game.enemies)if(e.alive&&distance(e,a)<a.radius)
+        hurtEnemy(e,a.damage,{slow:a.slow,fxSpell:'Winter Pool'});
     }
     if(a.life<=0){releaseMesh(a.mesh);releaseMesh(a.border);game.areas.splice(i,1);}
   }

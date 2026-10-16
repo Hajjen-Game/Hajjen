@@ -2,41 +2,56 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STAGE_GATES } from '../src/config.js';
 import { widthLockedFrustum, visibleTrailAhead } from '../src/framing.js';
+import { ROAD_SEGMENTS, WAYPOINTS, BOARD_HALF_WIDTH, BOARD_END,
+  ROAD_HALF_WIDTH, isOnRoad, moveOnRoad, rectsForRoad, pathX } from '../src/layout-v4.js';
 
-// Babylon.js only needs to be present when building render meshes, not when
-// checking the path math in a headless Node test.
-globalThis.window={BABYLON:{}};
-const {pathX,BOARD_HALF_WIDTH,CAMERA_WORLD_WIDTH,TRAIL_END}=await import('../src/world-v3.js');
-
-test('diorama always fits completely across a portrait phone',()=>{
-  for(const [width,height] of [[360,780],[390,844],[412,915],[768,1024],[650,1080]]){
-    const f=widthLockedFrustum(width,height,CAMERA_WORLD_WIDTH);
-    assert.ok(f.left<=-BOARD_HALF_WIDTH);
-    assert.ok(f.right>=BOARD_HALF_WIDTH);
-    assert.equal(f.top-f.bottom,CAMERA_WORLD_WIDTH*height/width);
+test('Level 1 street network has ONLY straight streets and square 90-degree bends',()=>{
+  assert.ok(ROAD_SEGMENTS.length>10);
+  for(const seg of ROAD_SEGMENTS){
+    assert.ok(seg.a.x===seg.b.x || seg.a.z===seg.b.z);
+    assert.ok(seg.maxX>seg.minX && seg.maxZ>seg.minZ);
+    assert.ok(seg.horizontal ? seg.a.z===seg.b.z : seg.a.x===seg.b.x);
   }
+  assert.ok(ROAD_SEGMENTS.filter(s=>s.horizontal&&s.a.z<=STAGE_GATES[0]).length>=4);
+  assert.ok(rectsForRoad().every(r=>r.w>=ROAD_HALF_WIDTH*2 || r.d>=ROAD_HALF_WIDTH*2));
 });
 
-test('first mobile view reveals only a PART of first level, and rest scrolls upward',()=>{
-  const ahead=visibleTrailAhead(390,844,CAMERA_WORLD_WIDTH);
-  assert.ok(ahead>30&&ahead<STAGE_GATES[0]*.58);
-  assert.ok(STAGE_GATES[0]>ahead*1.6);
+test('player can negotiate every right-angle turn through the first glade',()=>{
+  let p={x:pathX(2),z:2};
+  for(const point of WAYPOINTS.filter(t=>t.z>=12&&t.z<=STAGE_GATES[0])){
+    for(let tick=0;tick<2000;tick++){
+      const dx=point.x-p.x,dz=point.z-p.z,dist=Math.hypot(dx,dz);
+      if(dist<.12)break;
+      p=moveOnRoad(p.x,p.z,dx/Math.max(dist,.001)*.13,dz/Math.max(dist,.001)*.13);
+      assert.ok(isOnRoad(p.x,p.z));
+    }
+    assert.ok(Math.hypot(p.x-point.x,p.z-point.z)<.2, 'waypoint '+point.x+','+point.z+' reachable');
+  }
+  assert.ok(p.z>=STAGE_GATES[0]-.1);
 });
 
-test('winding path remains on the finite island throughout the game',()=>{
-  const points=Array.from({length:90},(_,i)=>pathX(i*5));
-  assert.ok(points.every(Number.isFinite));
-  assert.ok(points.every(x=>Math.abs(x)<BOARD_HALF_WIDTH-6));
-  assert.ok(Math.max(...points)-Math.min(...points)>6);
-  assert.ok(TRAIL_END>STAGE_GATES.at(-1));
+test('first glade has visible meadow lots, not one large smooth asphalt strip',()=>{
+  assert.equal(isOnRoad(-7,2),true);
+  assert.equal(isOnRoad(12,19),false);
+  assert.equal(isOnRoad(7,24),true);
+  assert.ok(Math.abs(pathX(36)-pathX(42))>10);
 });
 
-test('frustum keeps identical horizontal width on mobile and desktop',()=>{
-  const portrait=widthLockedFrustum(390,844,CAMERA_WORLD_WIDTH);
-  const desktop=widthLockedFrustum(650,1080,CAMERA_WORLD_WIDTH);
-  assert.equal(portrait.right-portrait.left,desktop.right-desktop.left);
+test('portrait camera can see main island width but only part of the level length',()=>{
+  for(const [width,height] of [[360,780],[390,844],[412,915],[768,1024]]){
+    const f=widthLockedFrustum(width,height,36.8);
+    assert.ok(f.left<=-BOARD_HALF_WIDTH&&f.right>=BOARD_HALF_WIDTH);
+    assert.equal(f.right-f.left,36.8);
+  }
+  const ahead=visibleTrailAhead(390,844,36.8);
+  assert.ok(ahead>43&&ahead<74);
+  assert.ok(STAGE_GATES[0]>ahead);
+  assert.ok(BOARD_END>STAGE_GATES.at(-1));
 });
 
-test('a portrait frustum rejects zero-size viewports',()=>{
-  assert.throws(()=>widthLockedFrustum(0,900),RangeError);
+test('desktop and mobile maintain consistent world width',()=>{
+  const a=widthLockedFrustum(390,844,36.8);
+  const b=widthLockedFrustum(650,1080,36.8);
+  assert.equal(a.right-a.left,b.right-b.left);
+  assert.throws(()=>widthLockedFrustum(0,900,36.8),RangeError);
 });

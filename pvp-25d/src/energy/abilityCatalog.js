@@ -74,7 +74,7 @@ export const VOID_CLASS_SPELL_IDS = Object.freeze(["rift-slash","entropy-mark","
 export const VOID_CORE_SPELL_IDS = Object.freeze(VOID_CLASS_SPELL_IDS.slice(0,4));
 
 export const ABILITIES = Object.freeze([
-  ability("pulse-mend","Pulse Mend","vital","Direct healing","Heals a friendly target for 60 base health.","1.5 sec cast · 16 Flux for Genesis",[
+  ability("pulse-mend","Pulse Mend","vital","Direct healing","Heals a friendly target for 60 base health.","1.5 sec cast · 16 Flux (18 with Vital Reversal) for Genesis",[
     ["vital-crescendo","Vital Crescendo","Hold Pulse Mend to extend its cast to 2.5 sec, increasing its direct healing by 78%. Only applies when healing an ally."],
     ["second-heart","Second Heart","Pulse Mend also marks its target for 12 sec. If they fall to 30% health or lower, the mark is consumed to heal for at least 22 base health or 27% of their maximum health, whichever is higher."],
     ["vital-reversal","Vital Reversal","Pulse Mend can now target enemies. Deals 23 base damage to that enemy and heals each injured ally for 22 base health. Also restores up to 22% of the capacity of their active Resonance Guard."],

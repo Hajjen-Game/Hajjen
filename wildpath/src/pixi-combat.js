@@ -17,6 +17,10 @@ const S={
   'Winter Pool':{c:0x81cefb,core:0xebffff,dim:0x3f8ab3},
   'Crystal Bloom':{c:0xb5a1ff,core:0xffffff,dim:0x5262a5},
   'Pale Guard':{c:0x7df4c4,core:0xebfff6,dim:0x3c9b8b},
+  'Magic Pickup':{c:0x46f1c7,core:0xf0ffea,dim:0x139e8c},
+  'Magic Surge':{c:0xa1ffce,core:0xffffbb,dim:0x20b8a1},
+  'Guard Block':{c:0x8dfbd9,core:0xffffff,dim:0x47b6a4},
+  'Crystal Cascade':{c:0xb4a3ff,core:0xffffff,dim:0x585fc1},
   'Steel Arc':{c:0xffd28a,core:0xfff7cf,dim:0xb27749},
   'Wide Arc':{c:0xffcf8e,core:0xffffff,dim:0xb7754f},
   'Rushstrike':{c:0xffb977,core:0xfff2ca,dim:0xb96d55},
@@ -65,6 +69,48 @@ function spellEvent(g,e,p,scale){
   const fade=(1-smooth((u-.08)/.9))*Math.min(1,u*8+.3);
   const r=clamp(scale*1.8,10,33)*clamp(e.intensity,.5,2.1);
   const from=e.from?e.from:null;
+  // Pass 5: compact readable special moments, never multi-layered travel blobs.
+  if(e.stage==='burst'&&e.name==='Magic Pickup'){
+    const radius=7+u*18;
+    ellipse(g,p,radius,radius*.70,0x83ffe0,2.4,fade*.9);
+    dot(g,p,Math.max(1,4*(1-u)),0xeafff3,fade);
+    for(let i=0;i<4;i++){
+      const a=(i+.5)*TAU/4+e.seed*.1;
+      const q={x:p.x+Math.cos(a)*radius,y:p.y+Math.sin(a)*radius*.7};
+      dot(g,q,1.9,0xc4ffeb,fade*.85);
+    }
+    return;
+  }
+  if(e.stage==='burst'&&e.name==='Magic Surge'){
+    const radius=18+u*clamp(scale*8,50,100);
+    ellipse(g,p,radius,radius*.78,0x9cffe4,4.4,fade*.90);
+    ellipse(g,p,radius*.73,radius*.58,0xf5ffbc,1.9,fade*.77);
+    dot(g,p,clamp(12*(1-u),1,12),0xffffff,fade*.53);
+    for(let i=0;i<8;i++){
+      const a=i*TAU/8+e.seed*.025;
+      const q={x:p.x+Math.cos(a)*radius*.9,y:p.y+Math.sin(a)*radius*.67};
+      shard(g,q,a,7+scale*.5,2.1,i%2?0xa8ffdd:0xffffc7,fade*.95);
+    }
+    return;
+  }
+  if(e.stage==='burst'&&e.name==='Guard Block'){
+    const radius=(23+u*19)*clamp(scale/13,.85,1.4);
+    ellipse(g,p,radius,radius*.82,0xa5ffe4,3.4,fade);
+    ellipse(g,p,radius*.74,radius*.62,0xe6fff3,1.8,fade*.8);
+    return;
+  }
+  if(e.stage==='burst'&&e.name==='Crystal Cascade'){
+    const radius=10+u*43;
+    ellipse(g,p,radius,radius*.72,0xbfaaff,2.7,fade*.92);
+    for(let i=0;i<7;i++){
+      const a=i*TAU/7+e.seed*.06,q={
+        x:p.x+Math.cos(a)*radius*.78,
+        y:p.y+Math.sin(a)*radius*.55
+      };
+      shard(g,q,a,10+scale*.3,2.9,i%2?0x9fdfff:0xe9ddff,fade*.96);
+    }
+    return;
+  }
   if(e.stage==='charge'||e.stage==='core'){
     const w=e.stage==='charge'?r*.67:r*.44;
     ellipse(g,p,w,w*.62,style.c,Math.max(1.15,r*.12),fade*.63);
@@ -74,13 +120,29 @@ function spellEvent(g,e,p,scale){
       dot(g,{x:p.x+Math.cos(a)*w*.8,y:p.y+Math.sin(a)*w*.62},1.3,style.core,fade*.87);
     }
     dot(g,p,Math.max(1.2,w*.19),style.core,fade*.58);
+    if(e.name==='Glint Dart'){
+      // One short crisp muzzle flash; the in-flight projectile stays slim.
+      for(let i=0;i<4;i++){
+        const a=i*TAU/4+Math.PI/4;
+        line(g,{x:p.x+Math.cos(a)*4,y:p.y+Math.sin(a)*4},
+          {x:p.x+Math.cos(a)*11,y:p.y+Math.sin(a)*11},
+          0xd0ffff,1.35,fade*.86);
+      }
+    }
   }
   if(e.stage==='burst'||e.stage==='reaction'){
     if(e.name==='Glint Dart'&&e.stage==='burst'){
-      // Exact original Energy Arena crystal impact, restrained for mobile.
+      // A compact but visibly bright impact, not a larger flying projectile.
       const source=from||{x:p.x-18,y:p.y+3};
       drawProjectileImpact(g,{spellId:'crystal-bolt',seed:e.seed},source,p,u,
-        style,clamp(scale/15,.65,.93));
+        style,clamp(scale/12.5,.83,1.16));
+      const reach=6+u*15;
+      for(let i=0;i<4;i++){
+        const a=i*TAU/4+e.seed*.07;
+        line(g,{x:p.x+Math.cos(a)*5,y:p.y+Math.sin(a)*5},
+          {x:p.x+Math.cos(a)*reach,y:p.y+Math.sin(a)*reach},
+          0xc9fbff,1.5,fade*.83);
+      }
       return;
     }
     // Reuse Energy Arena's hand-authored class signatures rather than drawing
@@ -89,18 +151,29 @@ function spellEvent(g,e,p,scale){
       const k=clamp(scale/13,.65,1.26);
       if(e.name==='Crystal Bloom'){
         drawEclipsePixi(g,{spellId:'avalanche',type:'ability',kind:'avalanche-wave',
-          seed:e.seed},p,p,u,k);
-        dot(g,p,Math.max(2,scale*.38),0xf4e7ff,fade*.37);
+          seed:e.seed},p,p,u,k*1.08);
+        const radius=(14+u*56)*clamp(e.intensity,.8,1.7);
+        ellipse(g,p,radius,radius*.77,0xb5a1ff,2.6,fade*.89);
+        for(let i=0;i<6;i++){
+          const a=i*TAU/6+e.seed*.03;
+          const q={x:p.x+Math.cos(a)*radius*.75,y:p.y+Math.sin(a)*radius*.65};
+          shard(g,q,a,11+scale*.5,3.1,i%2?0xaeeaff:0xece0ff,fade*.94);
+        }
+        dot(g,p,Math.max(2,scale*.38),0xffffff,fade*.47);
         return;
       }
       if(e.name==='Winter Pool'){
         drawEclipsePixi(g,{spellId:'froststorm',type:'ability',kind:'froststorm-start',
-          seed:e.seed},p,p,u,k*.82);
+          seed:e.seed},p,p,u,k*1.13);
+        const pulse=(17+u*42)*clamp(e.intensity,.8,1.5);
+        ellipse(g,p,pulse,pulse*.78,0xc6f6ff,2.5,fade*.86);
         return;
       }
       if(e.name==='Pale Guard'){
         drawGenesisPixi(g,{spellId:'resonance-guard',type:'ability',seed:e.seed},
-          p,p,u,k*.85);
+          p,p,u,k*1.12);
+        const pulse=22+u*clamp(scale*4.5,33,70);
+        ellipse(g,p,pulse,pulse*.8,0xc5ffe5,3.1,fade*.86);
         return;
       }
       const impactIDs={'Steel Arc':['arc-strike','hit',''],
@@ -160,22 +233,45 @@ function drawPool(g,area,project,time,scale){
   const px=project(area.x+area.radius,.26,area.z);
   const pz=project(area.x,.26,area.z+area.radius);
   if(!p||!px||!pz)return;
-  const rx=clamp(Math.hypot(px.x-p.x,px.y-p.y),8,105),
-    ry=clamp(Math.hypot(pz.x-p.x,pz.y-p.y),5,95);
-  g.ellipse(p.x,p.y,rx,ry).fill({color:0x6bbcf0,alpha:.12});
-  ellipse(g,p,rx,ry,0xa8e5ff,2,.73);
-  ellipse(g,p,rx*.85,ry*.84,0x469dcd,1,.46);
-  for(let i=0;i<6;i++){
+  const rx=clamp(Math.hypot(px.x-p.x,px.y-p.y)*1.10,11,135),
+    ry=clamp(Math.hypot(pz.x-p.x,pz.y-p.y)*1.10,7,108);
+  g.ellipse(p.x,p.y,rx,ry).fill({color:0x69bce9,alpha:.22});
+  ellipse(g,p,rx,ry,0xc6faff,3,.86);
+  ellipse(g,p,rx*.86,ry*.84,0x67cbe9,1.5,.72);
+  for(let i=0;i<8;i++){
     const a=i*TAU/6+time*.22;
     const x=p.x+Math.cos(a)*rx*.64,y=p.y+Math.sin(a)*ry*.59;
-    shard(g,{x,y},a+time*.32,clamp(scale*.48,3.5,7.5),2,0xd7faff,.6);
+    shard(g,{x,y},a+time*.32,clamp(scale*.68,5.2,11),2.2,0xe5ffff,.83);
+    dot(g,{x:x+Math.sin(time*2+i)*3,y:y-4-Math.abs(Math.sin(time*3+i))*6},
+      1.8,0xd8fdff,.8);
+  }
+}
+function drawMagicPickups(g,pickups,project,time){
+  const max=Math.min(pickups.length,100);
+  for(let i=0;i<max;i++){
+    const e=pickups[i],p=project(e.x,.98,e.z);
+    if(!p)continue;
+    const pulse=1+Math.sin(time*7+e.seed)*.12,magnet=e.magnet;
+    const r=(magnet?9.5:8)*pulse;
+    dot(g,p,r*1.5,0x44f4c7,.10);
+    dot(g,p,r,0x58ffd7,.33);
+    ellipse(g,p,r*.82,r*.72,0xa5fff0,1.45,.88);
+    dot(g,p,r*.43,0xeeffec,.99);
+    const twinkle={x:p.x+r*.86,y:p.y-r*.95};
+    dot(g,twinkle,1.65,0xffffff,.92);
+    if(magnet&&time>0){
+      const drift={x:p.x-5-Math.sin(time*9+e.seed)*5,
+        y:p.y+7+Math.cos(time*6+e.seed)*3};
+      line(g,drift,p,0x80ffe8,2,.46);
+    }
   }
 }
 function drawWard(g,hero,project,time,scale){
   const p=project(hero.x,1.05,hero.z);if(!p)return;
-  const radius=clamp(scale*1.85,12,42),pulse=1+Math.sin(time*4)*.045;
-  ellipse(g,p,radius*pulse,radius*.80*pulse,0x66efbc,2,.67);
-  ellipse(g,p,radius*.81,radius*.65,0xe0fff0,1.1,.74);
+  const radius=clamp(scale*2.65,18,57),pulse=1+Math.sin(time*4)*.05;
+  g.ellipse(p.x,p.y,radius*pulse,radius*.80*pulse).fill({color:0x7affcc,alpha:.09});
+  ellipse(g,p,radius*pulse,radius*.80*pulse,0x83ffca,3.1,.86);
+  ellipse(g,p,radius*.80,radius*.66,0xf0ffeb,1.6,.8);
   for(let i=0;i<5;i++){
     const a=i*TAU/5+time*.4;
     dot(g,{x:p.x+Math.cos(a)*radius,y:p.y+Math.sin(a)*radius*.8},
@@ -339,6 +435,7 @@ export class WildpathPixiCombat {
     this.resize();this.time+=dt;
     const g=this.graphics;g.clear();
     if(game?.state==='play'){
+      drawMagicPickups(g,game.pickups??[],(x,y,z)=>this.project(x,y,z),this.time);
       for(const area of game.areas)drawPool(g,area,(x,y,z)=>this.project(x,y,z),this.time,
         this.scaleAt(area.x,area.z));
       if(game.shield>0)drawWard(g,game,(x,y,z)=>this.project(x,y,z),this.time,

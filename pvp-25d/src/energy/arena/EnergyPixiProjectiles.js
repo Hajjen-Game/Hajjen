@@ -5,7 +5,9 @@ const TAU=Math.PI*2;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=v=>{const t=clamp(v,0,1);return t*t*(3-2*t);};
 
-export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
+// Optional per-caller core size. Default 1 preserves all Energy Arena visuals.
+// Wildpath's more distant camera requests a smaller projectile head only.
+export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1,options={}){
   const ice=e.spellId==="crystal-bolt",seed=e.seed||1;
   const dx=to.x-from.x,dy=to.y-from.y,d=Math.max(1,Math.hypot(dx,dy));
   const tx=dx/d,ty=dy/d,nx=-ty,ny=tx;
@@ -102,26 +104,29 @@ export function drawEnergyProjectile(g,e,from,to,travel,style,scale=1){
     }
     // Distinct faceted spearhead: dark silhouette -> saturated blue facet ->
     // tiny near-white cutting edge. Keep it separable from the luminous tail.
-    const front=19*k,wing=7.1*k;
+    // Keep the authored Energy Arena tail intact while permitting the
+    // distant-camera Wildpath variant to use a much smaller faceted core.
+    const headK=k*clamp(options.coreScale??1,.35,1);
+    const front=19*headK,wing=7.1*headK;
     const tip={x:px+tx*front,y:py+ty*front};
     g.moveTo(tip.x,tip.y)
-      .lineTo(px-tx*12*k+nx*wing*1.28,py-ty*12*k+ny*wing*1.28)
-      .lineTo(px-tx*6*k,py-ty*6*k)
-      .lineTo(px-tx*12*k-nx*wing*1.28,py-ty*12*k-ny*wing*1.28)
+      .lineTo(px-tx*12*headK+nx*wing*1.28,py-ty*12*headK+ny*wing*1.28)
+      .lineTo(px-tx*6*headK,py-ty*6*headK)
+      .lineTo(px-tx*12*headK-nx*wing*1.28,py-ty*12*headK-ny*wing*1.28)
       .closePath().fill({color:style.dim,alpha:.93*opacity});
     g.moveTo(tip.x,tip.y)
-      .lineTo(px-tx*9*k+nx*wing,py-ty*9*k+ny*wing)
-      .lineTo(px+tx*2*k,py+ty*2*k)
-      .lineTo(px-tx*9*k-nx*wing,py-ty*9*k-ny*wing)
+      .lineTo(px-tx*9*headK+nx*wing,py-ty*9*headK+ny*wing)
+      .lineTo(px+tx*2*headK,py+ty*2*headK)
+      .lineTo(px-tx*9*headK-nx*wing,py-ty*9*headK-ny*wing)
       .closePath().fill({color:style.c,alpha:.96*opacity});
-    // The brightest area is a narrow, tapered facet at the leading tip,
-    // not a white band extending all the way to the casting orb.
+    // The white hot cutting edge gets the same independent core scale.
     g.moveTo(tip.x,tip.y)
-      .lineTo(px+tx*2*k+nx*2.1*k,py+ty*2*k+ny*2.1*k)
-      .lineTo(px-tx*3*k,py-ty*3*k)
-      .lineTo(px+tx*2*k-nx*2.1*k,py+ty*2*k-ny*2.1*k)
+      .lineTo(px+tx*2*headK+nx*2.1*headK,py+ty*2*headK+ny*2.1*headK)
+      .lineTo(px-tx*3*headK,py-ty*3*headK)
+      .lineTo(px+tx*2*headK-nx*2.1*headK,py+ty*2*headK-ny*2.1*headK)
       .closePath().fill({color:style.core,alpha:.92*opacity});
-    line([{x:px-tx*3*k,y:py-ty*3*k},tip],style.core,1.15,.97);
+    line([{x:px-tx*3*headK,y:py-ty*3*headK},tip],
+      style.core,Math.max(.7,1.15*headK/k),.97);
   }else{
     // Sun Lance's build-up is yellow-white, not fire-orange: the travel
     // shares that luminous SOLAR YELLOW family while retaining all existing

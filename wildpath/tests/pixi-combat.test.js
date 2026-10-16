@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { volleyVector,projectedPair,styleForSpell,WildpathPixiCombat } from '../src/pixi-combat.js';
+import { drawEnergyProjectile } from '../../pvp-25d/src/energy/arena/EnergyPixiProjectiles.js';
 import { readFileSync } from 'node:fs';
 
 test('energy arena artist-authored crystal projectile and impacts are imported',()=>{
@@ -48,4 +49,32 @@ test('application targets separate enemies and renders Pixi after Babylon',()=>{
   assert.match(js,/target:shotTarget/);
   assert.match(js,/scene\.render\(\);\s*pixi\.update/);
   assert.match(js,/if\(pixi\.ready&&!p\.hostile\)/);
+});
+
+test('Wildpath reduces only the projectile head; Energy Arena visuals remain unchanged',()=>{
+  class Recorder {
+    constructor(){this.log=[];}
+    moveTo(x,y){this.log.push(['m',x,y]);return this;}
+    lineTo(x,y){this.log.push(['l',x,y]);return this;}
+    closePath(){this.log.push(['close']);return this;}
+    fill(info){this.log.push(['fill',info]);return this;}
+    stroke(info){this.log.push(['stroke',info]);return this;}
+    circle(x,y,r){this.log.push(['circle',x,y,r]);return this;}
+  }
+  const record=options=>{
+    const g=new Recorder();
+    drawEnergyProjectile(g,{spellId:'crystal-bolt',seed:10},
+      {x:35,y:60},{x:145,y:60},1,styleForSpell('Glint Dart'),.81,options);
+    return g.log;
+  };
+  const original=record(),explicit=record({coreScale:1}),small=record({coreScale:.55});
+  assert.deepEqual(original,explicit,'Energy Arena default must remain pixel-identical');
+  assert.equal(original.length,small.length);
+  // The authored ribbons, sparkles and helix are identical. Only the
+  // final faceted projectile head changes coordinates.
+  let firstChanged=original.findIndex((part,i)=>JSON.stringify(part)!==JSON.stringify(small[i]));
+  assert.ok(firstChanged>225,'tail should be unchanged');
+  const normalTip=145+19*.72,smallTip=145+19*.72*.55;
+  assert.ok(original.some(q=>q[0]==='m'&&Math.abs(q[1]-normalTip)<.00001));
+  assert.ok(small.some(q=>q[0]==='m'&&Math.abs(q[1]-smallTip)<.00001));
 });

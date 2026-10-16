@@ -21,13 +21,12 @@ function instance(source,name,x,y,z,sx,sy,sz){
 }
 export function createOpenWorld(scene){
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
-  const turf=material(scene,'enchanted deep moss','#445f51',.09);
-  const earth=material(scene,'earth sides','#263f37',.05);
+  const turf=material(scene,'enchanted deep moss','#516e5c',.11);
   const ground=B.MeshBuilder.CreateGround('continuous woodland floor',
     {width:WILD_FLOOR_RADIUS*2,height:WILD_FLOOR_RADIUS*2,subdivisions:1},scene);
   ground.material=turf;ground.isPickable=false;ground.position.y=-.12;
-  const leaves=['#446c58','#547961','#64866a','#3a6256','#678777','#537565'].map((c,i)=>
-    sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.09)));
+  const leaves=['#527f60','#69916e','#7b9c79','#416f5f','#88a481','#608775'].map((c,i)=>
+    sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.14)));
   const bark=cylinderSource(scene,'tree bark source',material(scene,'warm forest wood','#6c5b4f'));
   const shrubs=['#6e927c','#789985','#658573'].map((c,i)=>
     sphereSource(scene,'fern source '+i,material(scene,'fern shade '+i,c,.1)));
@@ -36,43 +35,55 @@ export function createOpenWorld(scene){
   const flower=['#f6bcb9','#c4b6de','#e8cf9c','#b5d7c9'].map((c,i)=>
     sphereSource(scene,'flower source '+i,material(scene,'flower color '+i,c,.23)));
   const glow=sphereSource(scene,'magic firefly source',material(scene,'firefly tint','#a5e5da',.9));
-  const dirt=sphereSource(scene,'soft ground light',material(scene,'glade moss light','#68836d',.08));
-  const darker=sphereSource(scene,'woodland mottling',material(scene,'glade shade','#3e5a4c',.05));
+  // The previous shaded, flattened spheres rendered as giant dark blotches on
+  // phones. Unlit and nearly transparent layers add gentle turf variation.
+  const sunny=material(scene,'pale grass variation','#b8c69a',.0);
+  sunny.disableLighting=true;sunny.alpha=.075;
+  const shadowy=material(scene,'soft moss variation','#264336',.0);
+  shadowy.disableLighting=true;shadowy.alpha=.075;
+  const dirt=sphereSource(scene,'soft ground light',sunny);
+  const darker=sphereSource(scene,'woodland mottling',shadowy);
   const trunk=(x,z,s)=>{
     instance(bark,'slender trunk',x,.65*s,z,.38*s,1.3*s,.39*s);
     const leaf=choose(leaves);
-    instance(leaf,'rounded canopy',x,1.8*s,z,2.25*s,1.55*s,2.08*s);
-    instance(leaf,'rounded canopy cluster',x-.56*s,1.72*s,z+.23*s,1.52*s,1.37*s,1.50*s);
-    instance(choose(leaves),'lighter canopy lobe',x+.53*s,1.68*s,z-.3*s,1.38*s,1.24*s,1.46*s);
+    instance(leaf,'rounded canopy',x,1.75*s,z,2.15*s,1.50*s,2.10*s);
+    instance(choose(leaves),'lighter canopy lobe',x+.52*s,1.60*s,z-.32*s,1.45*s,1.32*s,1.53*s);
   };
   // Gentle broad color variation rather than a rectangular road.
-  for(let i=0;i<150;i++){
-    const x=(rand()-.5)*147,z=(rand()-.5)*147;
-    const s=3+rand()*6;
-    instance(rand()<.60?dirt:darker,'meadow color patch',x,-.11,z,s,.025,s*.79);
+  for(let i=0;i<90;i++){
+    const x=(rand()-.5)*143,z=(rand()-.5)*143;
+    const s=2.2+rand()*4.5;
+    instance(rand()<.62?dirt:darker,'subtle meadow color patch',x,-.107,z,s,.012,s*.83);
   }
   // Natural outer forest: dense trees read as a boundary, not an artificial wall.
   for(let ring=0;ring<3;ring++){
     const radius=WILD_RADIUS+5+ring*5.5;
-    const count=ring===0?84:ring===1?91:99;
+    const count=ring===0?48:ring===1?55:63;
     for(let i=0;i<count;i++){
       const a=(i+rand()*.68)*Math.PI*2/count;
       const r=radius+(rand()-.5)*4.7;
       trunk(Math.cos(a)*r,Math.sin(a)*r,.68+rand()*.53);
     }
   }
-  // Islands of scenery inside the world, with an uncluttered spawn glade.
-  for(let i=0;i<130;i++){
+  // A recognizable starting glade framed by trees. Open gaps in between keep
+  // free movement readable; no continuous wall or forced route.
+  for(let i=0;i<15;i++){
+    const angle=(i+.28+(rand()-.5)*.37)*Math.PI*2/15;
+    const radius=17+rand()*5.7;
+    trunk(Math.cos(angle)*radius,Math.sin(angle)*radius,.64+rand()*.22);
+  }
+  // A few distant woodland islands with breathing room for combat.
+  for(let i=0;i<98;i++){
     const a=rand()*Math.PI*2,r=Math.sqrt(rand())*(WILD_RADIUS-5);
     const x=Math.cos(a)*r,z=Math.sin(a)*r;
     if(Math.hypot(x,z)<11)continue;
     const roll=rand();
-    if(roll<.20 && r>22)trunk(x,z,.53+rand()*.25);
-    else if(roll<.68)instance(choose(shrubs),'soft fern cluster',x,.17,z,.45+rand()*.55,.24+rand()*.25,.42+rand()*.44);
+    if(roll<.18 && r>24)trunk(x,z,.59+rand()*.21);
+    else if(roll<.68)instance(choose(shrubs),'soft fern cluster',x,.17,z,.42+rand()*.44,.24+rand()*.17,.39+rand()*.36);
     else instance(choose(stones),'rounded stone',x,.22,z,.40+rand()*.54,.30+rand()*.24,.35+rand()*.4);
   }
   // Small soft-colored flowers and occasional magical motes.
-  for(let i=0;i<245;i++){
+  for(let i=0;i<195;i++){
     const a=rand()*Math.PI*2,r=Math.sqrt(rand())*(WILD_RADIUS+8);
     const x=Math.cos(a)*r,z=Math.sin(a)*r;
     const p=choose(flower);

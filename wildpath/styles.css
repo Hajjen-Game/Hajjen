@@ -119,3 +119,6 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
   .target .eyebrow {font-size:8px}
   .target-health {height:5px}
 }
+
+/* Wildpath 0.5: uncluttered mobile battlefield */
+@media(max-width:699px){#goal{top:112px;max-width:74vw;font-size:9px;opacity:.93}.target{top:152px;min-width:135px;width:135px;padding:6px 9px}}

@@ -1,9 +1,9 @@
-import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.3.1';
-import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v4.js?v=0.4.0';
-import { BOARD_HALF_WIDTH, BOARD_END, moveOnRoad, projectToRoad, isOnRoad } from './layout-v4.js?v=0.4.0';
-import { Director } from './director.js?v=0.3.1';
-import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.4.0';
-const CAMERA_WORLD_WIDTH=36.8;
+import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.5.0';
+import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.5.0';
+import { BOARD_HALF_WIDTH, BOARD_END, moveOnRoad, projectToRoad, isOnRoad } from './layout-v5.js?v=0.5.0';
+import { Director } from './director.js?v=0.5.0';
+import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.5.0';
+const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
 const $ = id => document.getElementById(id);
@@ -84,7 +84,7 @@ function startGame(){
   game.x=pathX(2);game.z=2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
   game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
-  game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;
+  game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
   game.actor=createActor(scene,game.classId);
   game.actor.root.scaling.setAll(1.18);
@@ -96,9 +96,11 @@ function startGame(){
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
   $('hud').hidden=false;
   hideScreens();
-  camera.position.set(8,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
-  camera.setTarget(V(0,0,game.z-CAMERA_BEHIND+CAMERA_LOOK_DISTANCE));
-  toast('Follow the marked path · Move sideways around the corners!');
+  // Fixed portrait TD-style level composition, no sideways camera skew.
+  const middle=STAGE_GATES[0]/2;
+  camera.position.set(0,CAMERA_HEIGHT,middle-CAMERA_BEHIND);
+  camera.setTarget(V(0,0,middle-CAMERA_BEHIND+CAMERA_LOOK_DISTANCE));
+  toast('Wild creatures approach! Your basic attack fires automatically.');
   canvas.focus();
 }
 function getNearest(range){
@@ -124,9 +126,9 @@ function cycleTarget(){
 }
 function spawnEnemy(type){
   const stats=ENEMIES[type];
-  let z=game.z+random(9,17),x=pathX(z)+random(-3,3);
-  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-3,3);}
-  z=clamp(z,0,BOARD_END-2);
+  let z=game.z+random(5,9),x=game.x+random(-5.5,5.5);
+  if(Math.random()<.2){z=game.z-random(4,6);x=game.x+random(-4,4);}
+  z=clamp(z,(STAGE_GATES[director.stage-1]??0)+.3,director.gate-1);
   ({x,z}=projectToRoad(x,z));
   const actor=createActor(scene,type,true);
   actor.root.scaling.scaleInPlace(1.1);
@@ -320,12 +322,12 @@ function updatePlayer(dt){
   game.actor.rightArm.rotation.x=len>.1?-Math.sin(game.time*12)*.2:0;
   const sword=game.actor.root.metadata?.sword;
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
-  // A slight diagonal 3D diorama view like the reference. Follow X just enough
-  // to show off-center street turns; the board may extend a little sideways.
-  const lateral=clamp(game.x*.38,-3.1,3.1);
-  const p=V(lateral+8,CAMERA_HEIGHT,game.z-CAMERA_BEHIND);
-  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*3.4));
-  camera.setTarget(V(camera.position.x-8,0,camera.position.z+CAMERA_LOOK_DISTANCE));
+  // Calm upright composition: one visible map per glade, no diagonal rotation.
+  const stageStart=STAGE_GATES[director.stage-1]??0;
+  const center=(stageStart+director.gate)*.5;
+  const p=V(0,CAMERA_HEIGHT,center-CAMERA_BEHIND);
+  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*4));
+  camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
@@ -341,7 +343,10 @@ function updatePlayer(dt){
   game.invulnerable=Math.max(0,game.invulnerable-dt);
   game.comboLife=Math.max(0,game.comboLife-dt);
   if(game.comboLife===0)game.combo=0;
-  if(director.ready&&game.z>=director.gate-.05)completeStage();
+  if(director.ready){
+    game.advanceClock+=dt;
+    if(game.advanceClock>1.25)completeStage();
+  }else game.advanceClock=0;
 }
 function updateEnemies(dt){
   for(const e of game.enemies){
@@ -457,7 +462,7 @@ function completeStage(){
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
       if(item.id==='mend'){game.maxHp+=35;game.hp=Math.min(game.maxHp,game.hp+45);}
-      director.next();game.z=Math.max(game.z,STAGE_GATES[director.stage-1]+1);game.x=pathX(game.z);
+      director.next();game.z=STAGE_GATES[director.stage-1]+2;game.x=pathX(game.z);game.advanceClock=0;
       game.actor.root.position.set(game.x,0,game.z);
       game.gateQueued=false;game.state='play';
       hideScreens();toast(item.name+' · New blessing!');
@@ -487,7 +492,7 @@ function updateHud(){
   $('healthFill').style.width=(game.hp/game.maxHp*100)+'%';
   label('comboText',game.combo>1?'COMBO '+game.combo:'x1.0');
   label('bestText','BEST '+fmt(getBest()));
-  label('goal',director.ready?'Trail clear · Reach the glowing stones':'Follow the trail · '+STAGE_NAMES[director.stage]);
+  label('goal',director.ready?'GLADE CLEAR · Choose a blessing':'SURVIVE THE WILDS · '+STAGE_NAMES[director.stage]);
   const target=currentTarget();
   $('targetCard').hidden=!target;
   if(target){

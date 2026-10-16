@@ -6,9 +6,9 @@ export function widthLockedFrustum(renderWidth,renderHeight,worldWidth=29.4){
   const halfHeight=halfWidth*renderHeight/renderWidth;
   return {left:-halfWidth,right:halfWidth,top:halfHeight,bottom:-halfHeight};
 }
-export const CAMERA_HEIGHT=48;
-export const CAMERA_BEHIND=23;
-export const CAMERA_AIM_AHEAD=13;
+export const CAMERA_HEIGHT=52;
+export const CAMERA_BEHIND=7;
+export const CAMERA_AIM_AHEAD=4;
 export const CAMERA_LOOK_DISTANCE=CAMERA_BEHIND+CAMERA_AIM_AHEAD;
 // Pure estimate of forward-visible trail length at the ground plane.
 export function visibleTrailAhead(renderWidth,renderHeight,worldWidth=29.4){

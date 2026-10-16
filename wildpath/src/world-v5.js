@@ -1,10 +1,10 @@
 // Wildpath v0.5 — compact mobile fantasy adventure inspired by tower-defense map composition.
 // The vegetation is softly rounded, but every ROAD segment is axis-aligned.
-import { STAGE_GATES } from './config.js';
+import { STAGE_GATES } from './config.js?v=0.5.0';
 import { BOARD_START, BOARD_END, BOARD_HALF_WIDTH, ROAD_HALF_WIDTH, WAYPOINTS,
-  pathX, isOnRoad, rectsForRoad } from './layout-v5.js';
+  pathX, isOnRoad, rectsForRoad } from './layout-v5.js?v=0.5.0';
 export { createActor, ring, disc, lightOrb } from './world.js';
-export { pathX, isOnRoad } from './layout-v5.js';
+export { pathX, isOnRoad } from './layout-v5.js?v=0.5.0';
 
 const B=window.BABYLON;
 const rng=(seed)=>()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);

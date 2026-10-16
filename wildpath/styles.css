@@ -180,3 +180,10 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
  .float-damage{animation:none}
  #bottomHud .ability.special{transition:none}
 }
+
+/* 0.9: spell audio, subtle accessible controls. */
+.sound-button{right:72px;min-width:39px;min-height:39px;font-size:22px;color:#e9f8de;border:1px solid #638d7d66;background:#25483ed9}
+.sound-button[aria-pressed="false"]{opacity:.55}
+@media(hover:none) and (pointer:coarse){
+ .sound-button{right:10px;top:153px;bottom:auto;min-width:48px;min-height:48px;font-size:22px;border-radius:13px}
+}

@@ -21,7 +21,7 @@ test('mobile slash size stays compact and follows target direction',()=>{
   assert.ok(Math.abs(slashScreenAngle({x:0,y:0},{x:0,y:20})-Math.PI/2)<1e-9);
 });
 
-test('all 12 original Classic PNG frames are present in the public game bundle',()=>{
+test('all 12 original Classic PNG frames are present in the public game bundle',async()=>{
   const {readFileSync}=await import('node:fs');
   for(const kind of ['basic','wide']){
     for(const pathname of slashFramePaths(kind)){

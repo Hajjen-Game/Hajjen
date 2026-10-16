@@ -36,5 +36,7 @@ jobs:
         if: always()
         with:
           name: wildpath-open-mobile-preview
-          path: /tmp/wildpath/open-world-mobile.png
+          path: |
+            /tmp/wildpath/open-world-mobile.png
+            /tmp/wildpath/open-world-energy.png
           if-no-files-found: ignore

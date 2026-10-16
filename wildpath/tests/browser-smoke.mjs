@@ -34,7 +34,10 @@ try{
     if(mode==='open')assert.equal(v.classMeThis,'none');
     await page.click('#playButton');
     await page.waitForFunction(()=>window.__wildpathDebug.read().state==='play',{timeout:15000});
+    await page.waitForFunction(()=>window.__wildpathDebug.read().pixiReady||
+      window.__wildpathDebug.read().pixiFailed,{timeout:25000});
     const initial=await page.evaluate(()=>window.__wildpathDebug.read());
+    assert.ok(initial.pixiReady,'Real Pixi renderer must initialize on mobile');
     assert.equal(initial.enemies,0);
     await page.keyboard.down('d');
     await new Promise(r=>setTimeout(r,900));

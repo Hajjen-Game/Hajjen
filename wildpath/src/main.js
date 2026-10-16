@@ -94,7 +94,8 @@ if(new URLSearchParams(location.search).has('debug')){
       mode:OPEN_WORLD?'open':'classic',state:game.state,x:game.x,z:game.z,
       health:game.hp,energy:game.energy,stage:director.stage,
       enemies:game.enemies.filter(e=>e.alive).length,pickups:game.pickups.length,
-      score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z
+      score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z,
+      pixiReady:pixi.ready,pixiFailed:pixi.failed
     })
   });
 }

@@ -4,11 +4,12 @@ import { volleyVector,projectedPair,styleForSpell,WildpathPixiCombat } from '../
 import { drawEnergyProjectile } from '../../pvp-25d/src/energy/arena/EnergyPixiProjectiles.js';
 import { readFileSync } from 'node:fs';
 
-test('energy arena artist-authored crystal projectile and impacts are imported',()=>{
+test('Wildpath travel uses its own two-layer glint while Energy Arena impacts remain',()=>{
   const path=readFileSync(new URL('../src/pixi-combat.js',import.meta.url),'utf8');
-  assert.match(path,/pvp-25d\/src\/energy\/arena\/EnergyPixiProjectiles\.js/);
+  assert.match(path,/slim-projectile\.js/);
+  assert.match(path,/drawSlimGlint\(/);
+  assert.doesNotMatch(path,/drawEnergyProjectile\(/);
   assert.match(path,/pvp-25d\/src\/energy\/arena\/EnergyPixiImpacts\.js/);
-  assert.match(path,/drawEnergyProjectile\(/);
   assert.match(path,/drawProjectileImpact\(/);
 });
 test('Pixi projectile trail never becomes a long band even when camera zooms out',()=>{
@@ -77,4 +78,22 @@ test('Wildpath reduces only the projectile head; Energy Arena visuals remain unc
   const normalTip=145+19*.72,smallTip=145+19*.72*.55;
   assert.ok(original.some(q=>q[0]==='m'&&Math.abs(q[1]-normalTip)<.00001));
   assert.ok(small.some(q=>q[0]==='m'&&Math.abs(q[1]-smallTip)<.00001));
+});
+
+test('Pixi gameplay layer draws precisely two surfaces per moving glint',()=>{
+  const log=[],g={
+    clear(){return this;},moveTo(x,y){return this;},
+    lineTo(x,y){return this;},closePath(){return this;},
+    fill(a){log.push(a);return this;}
+  };
+  const fx=new WildpathPixiCombat(null,null,null);
+  fx.ready=true;fx.graphics=g;fx.app={render(){}};
+  fx.resize=()=>{};fx.project=(x,y,z)=>({x:100+x*10,y:200-z*10});
+  fx.scaleAt=()=>12;
+  fx.update(1/60,{
+    state:'play',areas:[],projectiles:[
+      {hostile:false,x:2,z:2,y:1.3,dirX:1,dirZ:0}
+    ],shield:0
+  });
+  assert.equal(log.length,2);
 });

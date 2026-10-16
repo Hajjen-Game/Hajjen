@@ -1,7 +1,7 @@
 // Wildpath 1.0 — Energy Arena's proven Pixi/Babylon hybrid.
 // Reuses the original Energy Arena Crystal Bolt and impact renderers unchanged.
 // Babylon remains authoritative for the game, targeting, movement and camera.
-import { drawEnergyProjectile } from '../../pvp-25d/src/energy/arena/EnergyPixiProjectiles.js?v=wildpath-core-1.0.2';
+import { drawSlimGlint } from './slim-projectile.js?v=1.0.3';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
 import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
 import { drawImpactPixi } from '../../pvp-25d/src/energy/arena/EnergyImpactPixiAccents.js';
@@ -263,12 +263,11 @@ export class WildpathPixiCombat {
         if(!head)continue;
         const prev=this.at(p.x-(p.dirX||0)*4.3,p.z-(p.dirZ||1)*4.3,p.y??1.4);
         const dir=prev?{x:head.x-prev.x,y:head.y-prev.y}:{x:0,y:-1};
-        const from=volleyVector(head.x,head.y,dir.x,dir.y,50);
-        // Wildpath's zoomed-out camera needs a smaller HOT HEAD, not a
-        // diminished tail. Energy Arena's original head stays untouched.
-        drawEnergyProjectile(g,{spellId:'crystal-bolt',seed:p.fxSeed||11},
-          from,head,1,styleForSpell('Glint Dart'),
-          clamp(this.scaleAt(p.x,p.z)/13,.72,.96),{coreScale:.55});
+        // Slim mobile-only rendering: exactly one tapered cyan tail and one
+        // compact white core. All the old spirals, halos, ribbons and shards
+        // are removed from the projectile's travel stage. Impacts remain rich.
+        const from=volleyVector(head.x,head.y,dir.x,dir.y,22);
+        drawSlimGlint(g,from,head,clamp(this.scaleAt(p.x,p.z)/13,.82,1.03));
       }
     }
     for(let i=this.effects.length-1;i>=0;i--){

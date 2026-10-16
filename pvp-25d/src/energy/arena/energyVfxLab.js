@@ -1,11 +1,11 @@
 // A controlled visual audition, not a match simulation.
 // Reuses the real Energy Arena renderer, glass orbs, selected-target rings
 // and authored EnergyHeroVFX. No AI, cooldown, HP or progression rules.
-import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261015-void-vfx2";
+import { EnergyArenaRenderer } from "./EnergyArenaRenderer.js?v=20261016-spellcopy1";
 import { ABILITIES,ABILITY_BY_ID,ROLES,GENESIS_CLASS_SPELL_IDS,IMPACT_CLASS_SPELL_IDS,
   ECLIPSE_CLASS_SPELL_IDS,SOLAR_CLASS_SPELL_IDS,VOID_CLASS_SPELL_IDS }
-  from "../abilityCatalog.js?v=20261015-voidlab1";
-import { EnergyMatch, actorFor, hasLineOfSight, ABILITY_RULES } from "./EnergyMatch.js?v=20261015-voidlab2";
+  from "../abilityCatalog.js?v=20261016-spellcopy1";
+import { EnergyMatch, actorFor, hasLineOfSight, ABILITY_RULES } from "./EnergyMatch.js?v=20261016-spellcopy1";
 import { EnergyCombatFeedback } from "./EnergyCombatFeedback.js?v=20261008-impact-refine3";
 import { VERDANT_CRUCIBLE } from "../../content/arenas/verdant-crucible/config.js?v=20261002-2250";
 

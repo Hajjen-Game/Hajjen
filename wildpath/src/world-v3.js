@@ -29,7 +29,7 @@ function material(scene,name,hex,glow=0){
   return m;
 }
 function planeStrip(scene,name,halfWidth,hex,height){
-  const pos=[],indices=[],normals=[],n=520,start=-3,end=TRAIL_END+2;
+  const pos=[],indices=[],normals=[],n=570,start=-47,end=TRAIL_END+2;
   for(let i=0;i<=n;i++){
     const z=mix(start,end,i/n);
     const mid=pathX(z),spread=halfWidth+.10*Math.sin(z/5.3);
@@ -73,7 +73,7 @@ function makeGround(scene,end){
   const side=material(scene,'raised board dark vertical sides',COLORS.cliff,.07);
   const border=material(scene,'dark meadow outer rim','#364e45',.07);
   // A real rectangular board, rather than an endless forest floor.
-  const length=end+8,mid=(-4+end)/2;
+  const start=-49,length=end-start+4,mid=(start+end+4)/2;
   sceneBox(scene,'solid raised forest island',27.15,1.15,length,0,-.79,mid,side);
   sceneBox(scene,'clean forest island lip',27.25,.20,length,0,-.20,mid,border);
   sceneBox(scene,'walkable grass tabletop',26.9,.11,length-.14,0,-.08,mid,top);
@@ -87,7 +87,7 @@ function makeGround(scene,end){
   const dots=patches.map((m,i)=>sourceSphere(scene,'meadow patch source '+i,m,10));
   const r=rng(47273);
   for(let i=0;i<170;i++){
-    const z=r()*end-1,x=(r()-.5)*24.6;
+    const z=-45+r()*(end+45),x=(r()-.5)*24.6;
     if(Math.abs(x-pathX(z))<6.3)continue;
     const size=.65+r()*1.3;
     instance(dots[Math.floor(r()*dots.length)],'rounded patch of forest moss',x,.025,z,size,.07,size*.83,r()*6.3);
@@ -155,7 +155,7 @@ export function createWorld(scene){
 
   // Two readable scenery rails along the fixed board sides, instead of an open world.
   // Their jitter is constrained so neither trees nor rocks wander off the island.
-  for(let z=0;z<end;z+=4.25){
+  for(let z=-43;z<end;z+=4.25){
     for(const side of [-1,1]){
       const x=side*(10.25+r()*1.6),zz=z+(r()-.5)*2.1;
       if(r()<.73)tree(x,zz,.73+r()*.25);
@@ -164,7 +164,7 @@ export function createWorld(scene){
     }
   }
   // Pathside vegetation is sparse and curated, leaving its curves clearly visible.
-  for(let z=2;z<end;z+=7.4){
+  for(let z=-41;z<end;z+=7.4){
     for(const side of [-1,1]){
       const center=pathX(z),x=center+side*(6.1+r()*.64);
       if(Math.abs(x)>9.5)continue;
@@ -173,13 +173,13 @@ export function createWorld(scene){
     }
   }
   for(let i=0;i<180;i++){
-    const z=r()*end,sign=r()<.5?-1:1,x=sign*(7.2+r()*5.6);
+    const z=-44+r()*(end+44),sign=r()<.5?-1:1,x=sign*(7.2+r()*5.6);
     if(Math.abs(x-pathX(z))<5.65)continue;
     if(r()<.66)bush(x,z,.34+r()*.44);
     else stone(x,z,.3+r()*.45);
   }
   for(let i=0;i<130;i++){
-    const z=r()*end,x=(r()-.5)*25;
+    const z=-44+r()*(end+44),x=(r()-.5)*25;
     if(Math.abs(x-pathX(z))<5.6)continue;
     instance(choice(flower),'tiny flower in meadow',x,.14,z,.13,.18,.14);
   }

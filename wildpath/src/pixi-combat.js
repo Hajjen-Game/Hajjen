@@ -264,9 +264,11 @@ export class WildpathPixiCombat {
         const prev=this.at(p.x-(p.dirX||0)*4.3,p.z-(p.dirZ||1)*4.3,p.y??1.4);
         const dir=prev?{x:head.x-prev.x,y:head.y-prev.y}:{x:0,y:-1};
         const from=volleyVector(head.x,head.y,dir.x,dir.y,50);
+        // Wildpath's zoomed-out camera needs a smaller HOT HEAD, not a
+        // diminished tail. Energy Arena's original head stays untouched.
         drawEnergyProjectile(g,{spellId:'crystal-bolt',seed:p.fxSeed||11},
           from,head,1,styleForSpell('Glint Dart'),
-          clamp(this.scaleAt(p.x,p.z)/13,.72,.96));
+          clamp(this.scaleAt(p.x,p.z)/13,.72,.96),{coreScale:.55});
       }
     }
     for(let i=this.effects.length-1;i>=0;i--){

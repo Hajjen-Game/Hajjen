@@ -106,7 +106,7 @@ export class NatureGrowth {
     const index=this.order.indexOf(entry);
     if(index>=0)this.order.splice(index,1);
   }
-  siteFor(x,z,hero,tier){
+  siteFor(x,z,hero,tier,ignoreId=null){
     const minHero=tier==='blossom'?4.2:tier==='tree'?3.4:1.9;
     const dx=x-hero.x,dz=z-hero.z,d=Math.hypot(dx,dz);
     if(d<minHero){
@@ -119,7 +119,7 @@ export class NatureGrowth {
     // Keep new plants from stacking directly on each other.
     const distance=tier==='blossom'?2.3:tier==='tree'?1.85:1.05;
     for(let attempt=0;attempt<7;attempt++){
-      if(this.order.every(p=>Math.hypot(p.targetX-x,p.targetZ-z)>distance))break;
+      if(this.order.every(p=>p.id===ignoreId||Math.hypot(p.targetX-x,p.targetZ-z)>distance))break;
       const a=attempt*2.39996+Math.atan2(z,x);
       const rad=1.1+attempt*.26;
       const nx=x+Math.cos(a)*rad,nz=z+Math.sin(a)*rad;
@@ -127,7 +127,7 @@ export class NatureGrowth {
     }
     return {x,z};
   }
-  enforceBudget(hero){
+  enforceBudget(hero,upcomingTier){
     while(this.order.length>=NATURE_MAX_PLANTS){
       // Recycle old, small plants far from the camera first.
       const candidates=this.order.filter(p=>p.tier==='flower'||p.tier==='bush');
@@ -135,7 +135,7 @@ export class NatureGrowth {
       this.remove((far.length?far:candidates)[0]||this.order[0]);
     }
     const trees=this.order.filter(p=>p.tier==='tree'||p.tier==='blossom');
-    if(trees.length>=NATURE_MAX_TREES){
+    if((upcomingTier==='tree'||upcomingTier==='blossom')&&trees.length>=NATURE_MAX_TREES){
       // Tree density bound: oldest tree transitions out when the next grows.
       this.remove(trees[0]);
     }
@@ -146,14 +146,20 @@ export class NatureGrowth {
     if(event.kind==='grow')return;
     const isUpgrade=Boolean(existing);
     if(isUpgrade){
-      existing.root.dispose(false,false);
-      // We explicitly dispose old Instances; the shared templates survive.
-      for(const m of existing.meshes){if(!m.isDisposed())m.dispose();}
+      // The incoming tier might turn a flower into a tree. Keep a strict
+      // tree count without accidentally removing the plant being upgraded.
+      if((event.tier==='tree'||event.tier==='blossom')&&
+         existing.tier!=='tree'&&existing.tier!=='blossom'){
+        const trees=this.order.filter(p=>p.tier==='tree'||p.tier==='blossom');
+        if(trees.length>=NATURE_MAX_TREES)this.remove(trees[0]);
+      }
+      for(const m of existing.meshes)m.dispose();
       existing.meshes.length=0;
+      existing.root.dispose();
     }else{
-      this.enforceBudget(hero);
+      this.enforceBudget(hero,event.tier);
     }
-    const pos=this.siteFor(event.x,event.z,hero,event.tier);
+    const pos=this.siteFor(event.x,event.z,hero,event.tier,event.id);
     const entry=isUpgrade?existing:{
       id:event.id,seed:event.id*1.37,meshes:[],root:null,
       x:pos.x,z:pos.z,targetX:pos.x,targetZ:pos.z

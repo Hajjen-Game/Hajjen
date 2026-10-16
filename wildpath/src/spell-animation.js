@@ -32,7 +32,8 @@ const V=(B,x,y,z)=>new B.Vector3(x,y,z);
 export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={}){
   const B=window.BABYLON;
   const active=[],materials=new Map();
-  let muted=false,context=null,lastSoundTime=0;
+  let muted=false,context=null;
+  const lastSoundByCue=new Map();
   const key=(hex,alpha)=>hex+'/'+alpha;
   function material(hex,alpha=.82){
     const k=key(hex,alpha);
@@ -131,23 +132,26 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
   function sound(name,cue='launch'){
     if(muted||!context||context.state!=='running')return;
     const now=context.currentTime;
-    if(now-lastSoundTime<.052)return;
-    lastSoundTime=now;
+    const soundKey=cue+':'+name;
+    if(now-(lastSoundByCue.get(soundKey)??-100)<(cue==='launch'?.07:.09))return;
+    lastSoundByCue.set(soundKey,now);
+    // Make the second layer distinguishable even for instant-hit abilities.
+    const t=now+(cue==='impact'?.075:0);
     const p=pickSpell(name),cold=p.kind==='ice'||p.kind==='frost'||p.kind==='crystal';
     const shield=p.kind==='shield',start=cold?620:shield?460:235;
     const base=cold?'sine':shield?'triangle':'triangle';
     const interval=cue==='impact'?.115:cue==='charge'?.105:.17;
     try{
       const osc=context.createOscillator(),gain=context.createGain(),filter=context.createBiquadFilter();
-      filter.type='lowpass';filter.frequency.setValueAtTime(cold?3200:1600,now);
+      filter.type='lowpass';filter.frequency.setValueAtTime(cold?3200:1600,t);
       osc.type=base;
-      osc.frequency.setValueAtTime(start*(cue==='impact'?1.4:.65),now);
-      osc.frequency.exponentialRampToValueAtTime(Math.max(80,start*(cue==='impact'?.34:1.6)),now+interval);
-      gain.gain.setValueAtTime(.0001,now);
-      gain.gain.exponentialRampToValueAtTime(cue==='impact'?.045:.026,now+.013);
-      gain.gain.exponentialRampToValueAtTime(.0001,now+interval);
+      osc.frequency.setValueAtTime(start*(cue==='impact'?1.4:.65),t);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(80,start*(cue==='impact'?.34:1.6)),t+interval);
+      gain.gain.setValueAtTime(.0001,t);
+      gain.gain.exponentialRampToValueAtTime(cue==='impact'?.045:.026,t+.013);
+      gain.gain.exponentialRampToValueAtTime(.0001,t+interval);
       osc.connect(filter);filter.connect(gain);gain.connect(context.destination);
-      osc.start(now);osc.stop(now+interval+.015);
+      osc.start(t);osc.stop(t+interval+.015);
       osc.onended=()=>{osc.disconnect();filter.disconnect();gain.disconnect();};
     }catch{/* Audio failures cannot interrupt combat */}
   }

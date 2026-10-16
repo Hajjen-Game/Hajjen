@@ -228,8 +228,8 @@ function startGame(){
   $('hud').hidden=false;
   hideScreens();
   // The hero starts on camera; no off-screen travel is ever required.
-  camera.position.set(game.x,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
-  camera.setTarget(V(game.x,0,camera.position.z+CAMERA_LOOK_DISTANCE));
+  camera.position.set(OPEN_WORLD?game.x:0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
+  camera.setTarget(V(OPEN_WORLD?game.x:0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   toast(OPEN_WORLD?'Collect the glints of magic to awaken your powers!':'Wild creatures approach! Your basic attack fires automatically.');
   canvas.focus();
 }
@@ -746,7 +746,10 @@ function completeStage(){
     btn.append(icon,title,desc);
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
-      if(OPEN_WORLD)game.energy=0;
+      if(OPEN_WORLD){
+        game.energy=0;
+        game.invulnerable=Math.max(game.invulnerable,.75);
+      }
       if(item.id==='mend'){game.maxHp+=35;game.hp=Math.min(game.maxHp,game.hp+45);}
       // Blessings do not teleport the hero. Another wave starts where they stand.
       director.next();

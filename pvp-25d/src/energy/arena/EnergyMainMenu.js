@@ -1,4 +1,4 @@
-import {ROLES} from "../abilityCatalog.js?v=20261015-voidlab1";
+import {ROLES} from "../abilityCatalog.js?v=20261016-spellcopy1";
 import { EnergyJourneyRoadmap } from "./EnergyJourneyRoadmap.js?v=20261015-voidlab1";
 // A standalone menu + illustrated field guide for the Project Energy.
 // It never mutates the saved build, character, progression, or match rules.

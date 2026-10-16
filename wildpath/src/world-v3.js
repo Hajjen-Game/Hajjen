@@ -1,6 +1,6 @@
 // Wildpath Visual Pass 0.3 — portrait-first, finite-width fantasy trail.
 // The board is a long 3D diorama; the camera shows its full width and follows the northward journey.
-import { STAGE_GATES } from './config.js';
+import { STAGE_GATES } from './config.js?v=0.3.1';
 export { createActor, ring, disc, lightOrb } from './world.js';
 
 const B = window.BABYLON;

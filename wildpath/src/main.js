@@ -1,7 +1,7 @@
-import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js';
-import { createWorld, createActor, pathX, BOARD_HALF_WIDTH, CAMERA_WORLD_WIDTH, TRAIL_END, lightOrb, ring, disc } from './world-v3.js';
-import { Director } from './director.js';
-import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js';
+import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.3.1';
+import { createWorld, createActor, pathX, BOARD_HALF_WIDTH, CAMERA_WORLD_WIDTH, TRAIL_END, lightOrb, ring, disc } from './world-v3.js?v=0.3.1';
+import { Director } from './director.js?v=0.3.1';
+import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.3.1';
 
 const B = window.BABYLON;
 const $ = id => document.getElementById(id);

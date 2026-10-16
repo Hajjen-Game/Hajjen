@@ -9,8 +9,8 @@ import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, melee
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=1.1.0';
-import {createOpenWorld} from './world-open.js?v=2.0.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=2.0.1';
+import {createOpenWorld} from './world-open.js?v=2.0.1';
 import {OpenDirector} from './director-open.js?v=2.0.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';

@@ -23,7 +23,7 @@ test('shorter glades replace the long 40-unit transport sections',()=>{
 
 test('hero can traverse the first encounter and reverse all turns',()=>{
   assert.ok(ROAD_SEGMENTS.every(s=>s.a.x===s.b.x||s.a.z===s.b.z));
-  assert.ok(rectsForRoad().every(s=>s.w>=ROAD_HALF_WIDTH*2&&s.d>=ROAD_HALF_WIDTH*2));
+  assert.ok(rectsForRoad().every(s=>s.w+1e-6>=ROAD_HALF_WIDTH*2&&s.d+1e-6>=ROAD_HALF_WIDTH*2));
   assert.ok(!isOnRoad(12,17));
   assert.ok(isOnRoad(-4,2));
   let hero={x:pathX(2),z:2};

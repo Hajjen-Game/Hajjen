@@ -83,7 +83,7 @@ function spellStage(name,stage,point,intensity=1,cue='launch'){
 const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
-  texts:[],pickups:[],energy:0,target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
+  texts:[],pickups:[],energy:0,lastPickupSound:-10,surgeCelebrated:false,target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
   cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
@@ -198,9 +198,11 @@ function clearGame(){
   spellFX.clear();pixi.clear();
   releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
-  game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];game.pickups=[];game.energy=0;
+  game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];game.pickups=[];game.energy=0;game.lastPickupSound=-10;game.surgeCelebrated=false;
   game.selectionRing=null;game.heroRing=null;
   $('scoreBursts').replaceChildren();
+  $('energyPanel').classList.remove('energy-gained','energy-ready');
+  $('surgeBanner').classList.remove('shown');
 }
 function startGame(){
   clearGame();director.reset();
@@ -293,30 +295,53 @@ function scoreKill(enemy){
     ],430);
   }
 }
-function dropGlint(enemy){
-  if(game.pickups.length>=100){
-    const oldest=game.pickups.shift();
-    game.energy+=oldest.value;releaseMesh(oldest.mesh);
+function absorbMagic(value){
+  game.energy+=value;
+  const panel=$('energyPanel');
+  panel.classList.add('energy-gained');
+  panel.classList.toggle('energy-ready',game.energy>=energyThreshold(director.stage));
+  label('energyText',game.energy+' / '+energyThreshold(director.stage));
+  $('energyFill').style.width=energyProgress(game.energy,director.stage)*100+'%';
+  // A visible number at the actual player, plus UI feedback and a gentle chime.
+  floatingText({x:game.x,y:3.25,z:game.z},'✦ +'+value+' MAGIC','energy');
+  if(pixi.ready)pixi.stage('Magic Pickup','burst',{x:game.x,z:game.z,y:1.4},1);
+  if(game.time-game.lastPickupSound>.19){
+    spellFX.sound('Pale Guard','impact');
+    game.lastPickupSound=game.time;
   }
-  const mesh=lightOrb(scene,'#9df7db',.43);
-  mesh.position.set(enemy.x,.48,enemy.z);
-  game.pickups.push({x:enemy.x,z:enemy.z,value:enemy.type==='guardian'?3:1,mesh,age:0});
+  if(!reducedMotion){
+    animateUI(panel,[{filter:'brightness(1)',transform:'scale(1)'},
+      {filter:'brightness(2.4)',transform:'scale(1.045)',offset:.32},
+      {filter:'brightness(1)',transform:'scale(1)'}],350);
+  }
+}
+function dropGlint(enemy){
+  if(game.pickups.length>=90){
+    const oldest=game.pickups.shift();
+    absorbMagic(oldest.value);
+    releaseMesh(oldest.mesh);
+  }
+  const mesh=lightOrb(scene,'#8cffe2',.81);
+  mesh.position.set(enemy.x,.90,enemy.z);
+  game.pickups.push({x:enemy.x,z:enemy.z,value:enemy.type==='guardian'?3:1,
+    mesh,age:0,magnet:false,seed:Math.random()*6.28});
 }
 function updateGlints(dt){
   if(!OPEN_WORLD)return;
   for(let i=game.pickups.length-1;i>=0;i--){
     const p=game.pickups[i];p.age+=dt;
     const dx=game.x-p.x,dz=game.z-p.z,dist=Math.hypot(dx,dz);
-    if(dist<6.7||p.age>30){
-      if(dist>.001){
-        const speed=(dist<6.7?8.5:12)+Math.max(0,6.7-dist)*1.45;
-        const step=Math.min(dist,speed*dt);
-        p.x+=dx/dist*step;p.z+=dz/dist*step;
-      }
+    p.magnet=dist<9.2||p.age>10;
+    if(p.magnet&&dist>.001){
+      const speed=(dist<9.2?9.8:15)+Math.max(0,9.2-dist)*1.7;
+      const step=Math.min(dist,speed*dt);
+      p.x+=dx/dist*step;p.z+=dz/dist*step;
     }
-    p.mesh.position.set(p.x,.53+Math.sin(game.time*5+i)*.085,p.z);
-    if(Math.hypot(game.x-p.x,game.z-p.z)<.87){
-      game.energy+=p.value;
+    const appear=Math.min(1,p.age*5);
+    p.mesh.scaling.setAll((.86+Math.sin(p.age*9+p.seed)*.11)*appear);
+    p.mesh.position.set(p.x,.94+Math.sin(game.time*5.5+p.seed)*.18,p.z);
+    if(Math.hypot(game.x-p.x,game.z-p.z)<1.12){
+      absorbMagic(p.value);
       releaseMesh(p.mesh);game.pickups.splice(i,1);
     }
   }
@@ -366,6 +391,16 @@ function hurtEnemy(e,base,options={}){
   }
   if(e.hp<=0){
     e.alive=false;scoreKill(e);
+    if(OPEN_WORLD&&game.upgrades.has('cascade')&&!options.fromCascade){
+      spellStage('Crystal Cascade','burst',{x:e.x,z:e.z,y:1.18},1.1);
+      let hits=0;
+      for(const other of game.enemies){
+        if(other!==e&&other.alive&&Math.hypot(other.x-e.x,other.z-e.z)<3.6){
+          hurtEnemy(other,17,{fxSpell:'Crystal Cascade',fromCascade:true});
+          if(++hits===4)break;
+        }
+      }
+    }
     ringBurst(e.x,e.z,e.type==='ember'?'#ffb49b':'#f8e7ab',1.15);
     game.shake=Math.max(game.shake,shakeStrength('kill',reducedMotion));
     if(game.target===e)game.target=null;
@@ -378,7 +413,9 @@ function hurtPlayer(amount){
   game.invulnerable=.38;game.recentHit=2.3;
   game.shake=Math.max(game.shake,shakeStrength('playerHit',reducedMotion));
   animateUI($('damageTint'),[{opacity:0},{opacity:.18,offset:.25},{opacity:0}],380);
-  floatingText({x:game.x,y:2.5,z:game.z},absorb===amount?'BLOCK':'-'+Math.round(amount-absorb),'hurt');
+  const blocked=absorb===amount;
+  floatingText({x:game.x,y:2.5,z:game.z},blocked?'✦ BLOCK':'-'+Math.round(amount-absorb),blocked?'block':'hurt');
+  if(blocked)spellStage('Guard Block','burst',game,1);
   if(game.hp<=0)finish(false);
 }
 function projectile(target,damage,color='#99dce6',hostile=false){
@@ -610,6 +647,13 @@ function updatePlayer(dt){
   game.comboLife=Math.max(0,game.comboLife-dt);
   if(game.comboLife===0)game.combo=0;
   if(director.ready){
+    if(OPEN_WORLD&&!game.surgeCelebrated){
+      game.surgeCelebrated=true;
+      const banner=$('surgeBanner');banner.classList.add('shown');
+      spellStage('Magic Surge','burst',game,2);
+      spellFX.sound('Pale Guard','launch');
+      toast('POWER SURGE! Choose an evolution.');
+    }
     game.advanceClock+=dt;
     if(game.advanceClock>1.25)completeStage();
   }else game.advanceClock=0;
@@ -723,7 +767,7 @@ function updateEffects(dt){
   }
 }
 function pickBoosts(){
-  const pool=BOOSTS.filter(b=>b.classes.includes(game.classId)&&!game.upgrades.has(b.id));
+  const pool=BOOSTS.filter(b=>b.classes.includes(game.classId)&&!game.upgrades.has(b.id)&&(!b.onlyOpen||OPEN_WORLD));
   const picks=[];
   while(picks.length<3&&pool.length){
     const i=Math.floor(Math.random()*pool.length);
@@ -748,8 +792,11 @@ function completeStage(){
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
       if(OPEN_WORLD){
-        game.energy=0;
+        game.energy=0;game.surgeCelebrated=false;
+        $('energyPanel').classList.remove('energy-ready','energy-gained');
+        $('surgeBanner').classList.remove('shown');
         game.invulnerable=Math.max(game.invulnerable,.75);
+        spellStage('Magic Surge','burst',game,1.5);
       }
       if(item.id==='mend'){game.maxHp+=35;game.hp=Math.min(game.maxHp,game.hp+45);}
       // Blessings do not teleport the hero. Another wave starts where they stand.
@@ -762,6 +809,11 @@ function completeStage(){
       canvas.focus();
     });
     wrap.append(btn);
+  }
+  $('surgeBanner').classList.remove('shown');
+  if(OPEN_WORLD){
+    label('boostHeading','POWER SURGE!');
+    label('boostSubtitle','Your magic has awakened. Choose how it evolves.');
   }
   showScreen('boostScreen');
 }

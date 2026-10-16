@@ -210,3 +210,64 @@ body:not(.wildpath-open) .classic-link{display:none}
 .wildpath-open #goal{font-size:10px;letter-spacing:.4px;background:#284e42dc}
 @media(max-width:650px){.wildpath-open .hud-left{padding:9px 11px}.wildpath-open .hud-score{padding:9px 11px}
 .wildpath-open .energy-panel{margin-top:6px}.wildpath-open .class-card[data-class="caster"]{min-height:102px}}
+
+/* Wildpath 2.1 / Pass 5 — energy feedback must be unmissable on small screens. */
+.wildpath-open .energy-panel{
+  position:relative;margin-top:9px;padding:8px 9px 9px;
+  background:linear-gradient(110deg,#103e3de3,#245e55de);
+  border:1px solid #a5f1dd80;border-radius:11px;
+  box-shadow:inset 0 0 12px #65fee820,0 0 9px #65ffdd26;
+  transform-origin:50% 50%;
+}
+.wildpath-open .energy-top{
+  font-size:10px;letter-spacing:.6px;color:#d7fff0;
+  text-shadow:0 0 10px #56ffdd91;
+}
+.wildpath-open .energy-track{
+  height:12px;margin-top:6px;
+  background:#123f40;
+  border:1px solid #a0edc880;
+  box-shadow:inset 0 2px 3px #042d32;
+}
+.wildpath-open #energyFill{
+  background:linear-gradient(90deg,#17bfae,#5de9d5 63%,#d5fff3);
+  box-shadow:0 0 12px #73ffefc8;
+}
+.wildpath-open .energy-panel.energy-gained{border-color:#a2ffed}
+.wildpath-open .energy-panel.energy-ready{
+  border-color:#f5ffae;box-shadow:0 0 20px #a5efae91,inset 0 0 12px #eaffae3e;
+}
+.float-damage.energy{
+  color:#9bffe5;font-size:19px;font-weight:900;
+  text-shadow:0 2px 4px #0c3a35,0 0 15px #37ebd6;
+}
+.float-damage.block{
+  color:#d2ffea;font-size:28px;
+  text-shadow:0 0 14px #75f6c4,0 2px 4px #123d39;
+}
+.wildpath-open .float-damage.crit{font-size:32px;color:#ffe08a;text-shadow:0 0 16px #ffc650,0 2px 4px #46391f}
+.surge-banner{
+  pointer-events:none;position:absolute;z-index:6;top:24%;left:50%;
+  width:max-content;max-width:92vw;transform:translate(-50%,0) scale(.75);
+  padding:16px 22px;border-radius:20px;
+  background:#143e3edf;border:2px solid #d0ffcd;
+  color:#faffbc;text-shadow:0 0 20px #f3ff75;
+  box-shadow:0 0 36px #7de5a68c,inset 0 0 20px #71cfbc45;
+  font-weight:900;font-size:clamp(19px,5.2vw,31px);letter-spacing:1px;
+  text-align:center;opacity:0;visibility:hidden;
+}
+.surge-banner.shown{visibility:visible;animation:surgeCelebrate 1.2s ease-out both}
+@keyframes surgeCelebrate{
+  0%{opacity:0;transform:translate(-50%,15px) scale(.65)}
+  26%{opacity:1;transform:translate(-50%,-7px) scale(1.12)}
+  70%{opacity:1;transform:translate(-50%,0) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-20px) scale(1.02)}
+}
+@media(max-width:650px){
+  .wildpath-open .energy-panel{margin-top:7px;padding:6px 7px 7px}
+  .wildpath-open .energy-track{height:10px}
+  .wildpath-open .energy-top{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .surge-banner.shown{animation:none;opacity:1;transform:translate(-50%,0)}
+}

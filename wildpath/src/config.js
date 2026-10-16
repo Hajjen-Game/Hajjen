@@ -19,6 +19,7 @@ export const BOOSTS = [
   { id: 'bloom', classes: ['caster'], name: 'Shatterbloom', icon: '✷', desc: 'Crystal Bloom radiates farther and hits harder.' },
   { id: 'critchill', classes: ['caster'], name: 'Glacial Luck', icon: '✳', desc: 'Your glints sometimes strike with even greater force.' },
   { id: 'shield', classes: ['caster'], name: 'Soft Aegis', icon: '❖', desc: 'Pale Guard protects more and chills nearby foes.' },
+  { id: 'cascade', classes: ['caster'], onlyOpen:true, name: 'Crystal Cascade', icon:'✶', desc:'Defeated foes burst into crystals that hit up to four nearby enemies.' },
   { id: 'arc', classes: ['melee'], name: 'Long Edge', icon: '⚔', desc: 'Basic sword arcs sweep farther and wider.' },
   { id: 'echo', classes: ['melee'], name: 'Aftershock', icon: '〰', desc: 'Basic attacks release a short traveling shockwave.' },
   { id: 'cleave', classes: ['melee'], name: 'Broad Sweep', icon: '✺', desc: 'Wide Arc gets larger and deals more damage.' },

@@ -137,3 +137,46 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
  #bottomHud .ability.special .ability-key{font-size:12px}
  #bottomHud .ability.special .ability-name{font-size:10px}
 }
+
+/* Wildpath 0.8 — touch-friendly, high-clarity feedback. */
+#damageTint{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;background:radial-gradient(circle at center,transparent 22%,#fe6556 120%)}
+.hud-score{position:relative;overflow:visible}
+#scoreText{font-variant-numeric:tabular-nums;transform-origin:right center;will-change:transform}
+#scoreBursts{position:absolute;right:9px;top:100%;width:max-content;max-width:190px;pointer-events:none}
+.score-burst{display:block;color:#ffe3a0;font-size:16px;font-weight:900;letter-spacing:.1px;text-align:right;
+ text-shadow:0 2px 3px #1a3d30,0 0 12px #fdd58c8c;
+ animation:scoreBurstFly .9s cubic-bezier(.1,.7,.1,1) both}
+.score-burst.score-stage{color:#e3ffd8;font-size:20px}
+@keyframes scoreBurstFly{0%{opacity:0;transform:translateY(12px) scale(.65)}18%{opacity:1;transform:translateY(-2px) scale(1.19)}67%{opacity:1;transform:translateY(-16px) scale(1)}100%{opacity:0;transform:translateY(-30px) scale(.91)}}
+#bottomHud .ability.special{isolation:isolate;transform-origin:50% 75%;transition:box-shadow .16s,filter .16s,border-color .16s}
+#bottomHud .ability.special.is-ready{
+ border-color:#a5ffdb;background:linear-gradient(165deg,#3f7365,#1d4843);
+ box-shadow:0 3px 0 #183d36,0 0 11px #95ffe36b,inset 0 0 14px #93fbd51c;
+}
+#bottomHud .ability.special.is-ready .ability-icon{color:#d4fff5;text-shadow:0 0 9px #b8fff4,0 0 16px #8cfff7bf}
+#bottomHud .ability.special.is-cooling{
+ border-color:#4a7067;background:#203c36;color:#bad2c8;
+ box-shadow:0 2px 0 #142f29,inset 0 0 8px #0d292785;
+}
+#bottomHud .ability.special.is-cooling .ability-icon{color:#638d86;text-shadow:none;filter:brightness(.75)}
+#bottomHud .ability.special.is-cooling .ability-name{opacity:.68}
+#bottomHud .ability.special .cooldown{
+ z-index:2;border-radius:inherit;inset:0;
+ background:linear-gradient(to top,#0b241fd6 var(--remaining,0%),#152b2b82 var(--remaining,0%));
+ backdrop-filter:none;font-variant-numeric:tabular-nums;
+ font-size:19px;text-shadow:0 2px 6px #000;
+ pointer-events:none
+}
+.float-damage{font-size:20px;line-height:1;font-variant-numeric:tabular-nums;
+ animation:damageHitPop .30s ease-out both;white-space:nowrap}
+.float-damage.normal{color:#f4f9ee}
+.float-damage.crit{font-size:28px;color:#ffde81;text-shadow:0 2px 0 #584029,0 0 8px #ffbf74}
+.float-damage.score{font-size:17px;color:#e5f8bb;text-shadow:0 2px 6px #245c36}
+.float-damage.hurt{font-size:24px;color:#ffb5a2}
+.float-damage.heal{font-size:22px;color:#98f4c9}
+@keyframes damageHitPop{0%{transform:translate(-50%,-50%) scale(.3)}48%{transform:translate(-50%,-50%) scale(1.32)}100%{transform:translate(-50%,-50%) scale(1)}}
+@media (prefers-reduced-motion:reduce){
+ #scoreBursts .score-burst{animation:none;opacity:1}
+ .float-damage{animation:none}
+ #bottomHud .ability.special{transition:none}
+}

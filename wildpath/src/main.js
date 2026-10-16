@@ -6,6 +6,7 @@ import { nextTravelZ, positionAfterBlessing, cameraAnchorZ } from './flow.js?v=0
 import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
 import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
+import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -58,10 +59,66 @@ const game={
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
   texts:[],target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
-  cooldowns:[0,0,0],toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
+  cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const hitFlashColor=B.Color3.FromHexString('#fff2bc');
+const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+const abilityButtons=[...document.querySelectorAll('#bottomHud .ability.special')];
+function animateUI(el,keyframes,duration=300,easing='cubic-bezier(.2,.85,.2,1)'){
+  if(!el||reducedMotion||!el.animate)return;
+  el.animate(keyframes,{duration,easing});
+}
+function activeSpellFeedback(slot){
+  const button=abilityButtons[slot];if(!button)return;
+  button.classList.remove('is-ready');button.classList.add('is-cooling');
+  animateUI(button,[
+    {transform:'translateY(0) scale(1)',filter:'brightness(1.1)'},
+    {transform:'translateY(4px) scale(.89)',filter:'brightness(1.7)',offset:.24},
+    {transform:'translateY(0) scale(1.04)',filter:'brightness(1.22)',offset:.67},
+    {transform:'translateY(0) scale(1)',filter:'brightness(1)'}
+  ],275);
+  game.shake=Math.max(game.shake,shakeStrength(slot===1?'heavy':'cast',reducedMotion));
+}
+function spellReadyFeedback(slot){
+  const button=abilityButtons[slot];if(!button)return;
+  button.classList.remove('is-cooling');button.classList.add('is-ready');
+  animateUI(button,[
+    {transform:'scale(.97)',filter:'brightness(1)'},
+    {transform:'scale(1.18)',filter:'brightness(2.5)',offset:.36},
+    {transform:'scale(1.02)',filter:'brightness(1.4)',offset:.7},
+    {transform:'scale(1)',filter:'brightness(1)'}
+  ],490);
+}
+function bumpScore(amount,source=null,reason='kill'){
+  const points=Math.round(amount);
+  if(!Number.isFinite(points)||points<=0)return;
+  game.score+=points;
+  const score=$('scoreText');
+  animateUI(score,[
+    {transform:'scale(1)',color:'#f3e8bd'},
+    {transform:'scale(1.28)',color:'#fff9c6',offset:.35},
+    {transform:'scale(1)',color:'#f3e8bd'}
+  ],320);
+  const host=$('scoreBursts');
+  if(host){
+    while(host.children.length>5)host.firstElementChild.remove();
+    const pop=document.createElement('span');
+    pop.className='score-burst '+(reason==='stage'?'score-stage':'');
+    pop.textContent='+'+fmt(points)+(reason==='stage'?' ✦':'');
+    pop.addEventListener('animationend',()=>pop.remove(),{once:true});
+    host.append(pop);
+  }
+  if(source&&reason!=='stage'){
+    floatingText({x:source.x,y:2.9,z:source.z},'+'+fmt(points),'score');
+  }
+  if(points>=1200)game.shake=Math.max(game.shake,shakeStrength('heavy',reducedMotion));
+}
+function updateJuice(dt){
+  game.displayedScore=displayedScoreStep(game.displayedScore,game.score,dt);
+  label('scoreText',fmt(game.displayedScore));
+}
+
 const bestKey=()=> 'wildpath-v01-best-'+game.classId;
 function getBest(){try{return Number(localStorage.getItem(bestKey()))||0;}catch{return 0;}}
 function saveBest(){try{if(game.score>getBest())localStorage.setItem(bestKey(),String(game.score));}catch{}}
@@ -91,12 +148,13 @@ function clearGame(){
   releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];
   game.selectionRing=null;game.heroRing=null;
+  $('scoreBursts').replaceChildren();
 }
 function startGame(){
   clearGame();director.reset();
   game.state='play';game.classId=ui.selectedClass;game.spec=CLASS_DATA[game.classId];
   game.x=pathX(2);game.z=2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
-  game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;
+  game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;game.displayedScore=0;game.shake=0;
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
@@ -109,7 +167,12 @@ function startGame(){
   game.heroRing.position.set(game.x,.21,game.z);
   label('className',game.spec.name);
   label('basicName',game.spec.basic);
-  game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
+  game.spec.spells.forEach((name,i)=>{
+    label('spellName'+i,name);
+    abilityButtons[i]?.classList.add('is-ready');
+    abilityButtons[i]?.classList.remove('is-cooling');
+  });
+  label('scoreText','0');
   $('hud').hidden=false;
   hideScreens();
   // The hero starts on camera; no off-screen travel is ever required.
@@ -151,14 +214,15 @@ function floatingText(pos,value,kind='normal'){
   el.className='float-damage '+kind;
   el.textContent=value;
   $('floaters').append(el);
-  game.texts.push({el,pos:V(pos.x,pos.y,pos.z),life:.77,total:.77});
+  // Text fades upward; randomized horizontal offset makes crowd hits legible.
+  game.texts.push({el,pos:V(pos.x+random(-.18,.18),pos.y,pos.z),life:kind==='crit'?.95:.73,total:kind==='crit'?.95:.73});
 }
 function scoreKill(enemy){
   game.kills++;
   game.combo=game.comboLife>0?game.combo+1:1;
   game.comboLife=5.5;
   const multiplier=1+Math.min(2,Math.floor(game.combo/5)*.2);
-  game.score+=Math.round(ENEMIES[enemy.type].score*multiplier);
+  bumpScore(ENEMIES[enemy.type].score*multiplier,enemy,'kill');
   const best=getBest();
   if(best>0&&!game.recordAnnounced&&game.score>=best*.9){
     game.recordAnnounced=true;toast('YOUR PERSONAL RECORD IS WITHIN REACH!');
@@ -190,8 +254,12 @@ function hurtEnemy(e,base,options={}){
   const crit=Math.random()<(boosted?.24:.115);
   const amount=base*(crit?1.85:1);
   if(crit)game.crits++;
-  e.hp-=amount;e.flash=.20;
-  floatingText({x:e.x,y:2.5,z:e.z},(crit?'✦ ':'')+Math.round(amount),crit?'crit':'normal');
+  e.hp-=amount;e.flash=crit?.26:.17;
+  floatingText({x:e.x,y:2.55,z:e.z},(crit?'CRIT! ':'')+Math.round(amount),crit?'crit':'normal');
+  if(crit){
+    game.shake=Math.max(game.shake,shakeStrength('crit',reducedMotion));
+    if(game.effects.length<110)ringBurst(e.x,e.z,'#ffdf88',.64);
+  }
   if(options.slow)e.slow=Math.max(e.slow,options.slow);
   if(options.push){
     const dx=e.x-game.x,dz=e.z-game.z,dist=Math.max(.1,Math.hypot(dx,dz));
@@ -199,7 +267,8 @@ function hurtEnemy(e,base,options={}){
   }
   if(e.hp<=0){
     e.alive=false;scoreKill(e);
-    ringBurst(e.x,e.z,e.type==='ember'?'#f0b5a0':'#e5dfac',.9);
+    ringBurst(e.x,e.z,e.type==='ember'?'#ffb49b':'#f8e7ab',1.15);
+    game.shake=Math.max(game.shake,shakeStrength('kill',reducedMotion));
     if(game.target===e)game.target=null;
   }
 }
@@ -208,6 +277,8 @@ function hurtPlayer(amount){
   const absorb=Math.min(game.shield,amount);
   game.shield-=absorb;game.hp=Math.max(0,game.hp-(amount-absorb));
   game.invulnerable=.38;game.recentHit=2.3;
+  game.shake=Math.max(game.shake,shakeStrength('playerHit',reducedMotion));
+  animateUI($('damageTint'),[{opacity:0},{opacity:.18,offset:.25},{opacity:0}],380);
   floatingText({x:game.x,y:2.5,z:game.z},absorb===amount?'BLOCK':'-'+Math.round(amount-absorb),'hurt');
   if(game.hp<=0)finish(false);
 }
@@ -235,6 +306,7 @@ function cast(slot){
   const target=currentTarget(targeted?17:game.spec.range+.5);
   if(targeted&&!target)return;
   game.cooldowns[slot]=game.spec.cooldowns[slot];
+  activeSpellFeedback(slot);
   if(caster){
     if(slot===0){icePool(target.x,target.z);ringBurst(target.x,target.z,'#b4ecf1',3);}
     if(slot===1){
@@ -263,7 +335,7 @@ function cast(slot){
       game.effects.push({mesh:sweep,life:.26,total:.26,scale:1.0,particle:false});
       let hits=0;
       for(const e of game.enemies)if(e.alive&&distance(e,game)<radius){hurtEnemy(e,big?41:32,{push:1.5});hits++;}
-      if(hits>=4)game.score+=120;
+      if(hits>=4)bumpScore(120,game,'bonus');
     }
     if(slot===1){
       const dx=target.x-game.x,dz=target.z-game.z,dist=Math.max(.01,Math.hypot(dx,dz));
@@ -352,7 +424,10 @@ function updatePlayer(dt){
   // the hero outside the portrait viewport, even across a previous stage.
   const p=V(0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
   camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*7.2));
-  camera.setTarget(V(0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
+  // Light directional camera impulse, decaying quickly, never changing the base framing.
+  game.shake=Math.max(0,game.shake-dt*1.45);
+  camera.position.x=Math.sin(game.time*83)*game.shake*.35;
+  camera.setTarget(V(camera.position.x,0,camera.position.z+CAMERA_LOOK_DISTANCE));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
@@ -363,7 +438,11 @@ function updatePlayer(dt){
   if(game.attackClock<=0){
     basicAttack();game.attackClock=game.spec.attackSpeed*(game.upgrades.has('tempo')?.75:1);
   }
-  for(let i=0;i<3;i++)game.cooldowns[i]=Math.max(0,game.cooldowns[i]-dt);
+  for(let i=0;i<3;i++){
+    const previous=game.cooldowns[i];
+    game.cooldowns[i]=Math.max(0,previous-dt);
+    if(justRecharged(previous,game.cooldowns[i]))spellReadyFeedback(i);
+  }
   game.recentHit=Math.max(0,game.recentHit-dt);
   game.invulnerable=Math.max(0,game.invulnerable-dt);
   game.comboLife=Math.max(0,game.comboLife-dt);
@@ -474,7 +553,7 @@ function pickBoosts(){
 function completeStage(){
   if(game.gateQueued)return;
   game.gateQueued=true;
-  game.score+=1250+director.stage*450;
+  bumpScore(1250+director.stage*450,null,'stage');
   game.hp=Math.min(game.maxHp,game.hp+23);
   if(director.stage>=3){finish(true);return;}
   game.state='boost';
@@ -513,7 +592,6 @@ function finish(success){
   $('hud').hidden=true;showScreen('resultScreen');
 }
 function updateHud(){
-  label('scoreText',fmt(game.score));
   label('timeText',String(Math.floor(game.time/60)).padStart(2,'0')+':'+String(Math.floor(game.time%60)).padStart(2,'0'));
   label('stageName','GLADE '+(director.stage+1)+' / 4');
   label('directorLabel',director.stateLabel);
@@ -524,8 +602,15 @@ function updateHud(){
   label('goal',director.ready?'GLADE CLEAR · Choose a blessing':'SURVIVE THE WILDS · '+STAGE_NAMES[director.stage]);
   // No target card is needed: the closest threat is chosen automatically.
   for(let i=0;i<3;i++){
-    const cd=$('cooldown'+i),time=game.cooldowns[i];
-    cd.style.display=time>0?'flex':'none';cd.textContent=time>0?time.toFixed(1):'';
+    const cd=$('cooldown'+i),time=game.cooldowns[i],button=abilityButtons[i];
+    const busy=time>.001;
+    cd.style.display=busy?'flex':'none';cd.textContent=busy?time.toFixed(1):'';
+    cd.style.setProperty('--remaining',cooldownFill(time,game.spec.cooldowns[i])+'%');
+    button?.classList.toggle('is-ready',!busy);
+    button?.classList.toggle('is-cooling',busy);
+    if(button){
+      button.setAttribute('aria-label',game.spec.spells[i]+(busy?', ready in '+time.toFixed(1)+' seconds':', ready'));
+    }
   }
 }
 let hudTime=0;
@@ -540,6 +625,7 @@ function update(dt){
   updateEnemies(dt);
   updateProjectiles(dt);
   updateEffects(dt);
+  updateJuice(dt);
   hudTime-=dt;
   if(hudTime<=0){updateHud();hudTime=.12;}
 }

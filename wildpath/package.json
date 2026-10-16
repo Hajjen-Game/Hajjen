@@ -1,0 +1,11 @@
+{
+  "name": "wildpath-first-playable",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Static Babylon.js fantasy adventure prototype",
+  "scripts": {
+    "test": "node --test",
+    "serve": "python3 -m http.server 8000"
+  }
+}

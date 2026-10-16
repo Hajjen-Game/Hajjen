@@ -5,6 +5,16 @@
 **Last reviewed:** 2026-10-15
 **Statuses:** IMPLEMENTED (exists in game), AGREED (chosen design, not necessarily implemented), PROPOSAL (needs a design decision), BACKLOG (planned work), VALIDATION (needs playtesting).
 
+## IMPLEMENTED IN TEST — Spell Description Overhaul 1.0 (2026-10-16)
+
+**Status: COMMITTED TO MAIN — 30/30 playable Origin spells and 60/60 playable Evolutions rewritten. No combat/gameplay or VFX behavior changed.**
+
+- Approved copy style: concise WoW-like gameplay description first; separate cast/Flux/cooldown metadata; separate Evolution trigger/result; explicit thresholds, durations and caps. All five Origins (Genesis/Impact/Eclipse/Solar/Void), 6 playable spells each, 4 three-way Evolution trees + 2 standalone signature spells.
+- Source of truth: `src/energy/abilityCatalog.js`. Rewrote 30 categories, 30 base descriptions and their 30 detail strings, plus 60 Evolution descriptions. Source numbers and conditions verified against `EnergyMatch.js` where available, including 3-sec Relentless Pursuit death window, 2-tick Psychic Collapse, 4-sec Void form extension cap, dual-status healing/absorb thresholds and Genesis Pulse Mend's conditional 16/18 Flux cost.
+- Player-facing changes: HUB spell page now shows mechanics and resource details separately; on-hover Evolution path shows the base spell first, then the chosen Evolution. Actionbar native tooltip now includes the base description, cost/cast/cooldown and selected Evolution text. Visual VFX Lab imports the same descriptions without duplicating a copy. Relevant JS and HTML cache versions bumped.
+- Exported new review workbook: `energy_arena_spells_evolutions_v2.xml` (Excel-compatible 5 sheets) and native `.xlsx` conversation artifact. One row per spell, three Evo branches to the right; supported gameplay combinations called out in the .xlsx.
+- Documentation: `SPELL_TOOLTIP_COPY_GUIDE.md`. Legacy off-roster catalog abilities were left untouched. Final user reading / UX review pending. No balance, healing/damage, cooldowns, AI, visuals, saves or class names altered during this pass.
+
 ## IMPLEMENTED IN TEST — Void VFX 1.0: dark-matter precision and actual status lifetime (2026-10-15)
 
 **Status: COMMITTED TO MAIN. Void's six-spell kit is hooked into combat and Game Dev → Visual VFX Lab; mocked graphical lifecycle and Pixi geometry tests pass. Real browser GPU quality, FPS, final feel and visual approval must be evaluated by the player together with the other four Origins.**

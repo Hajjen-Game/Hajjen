@@ -7,7 +7,7 @@ import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
 import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
-import { createSpellAnimator,createRibbonTrail } from './spell-animation.js?v=0.9.0';
+import { createSpellAnimator,createRibbonTrail } from './spell-animation.js?v=0.9.1';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;

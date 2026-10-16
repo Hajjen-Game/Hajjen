@@ -70,7 +70,16 @@ function label(id,value){$(id).textContent=value;}
 function hideScreens(){for(const id of ['startScreen','boostScreen','resultScreen','pauseScreen'])$(id).hidden=true;}
 function showScreen(id){hideScreens();$(id).hidden=false;}
 function toast(message){label('toast',message);$('toast').classList.add('shown');game.toastClock=2.5;}
-function releaseMesh(mesh){if(mesh)mesh.dispose(false,false);}
+function releaseMesh(mesh){
+  if(!mesh)return;
+  // Transient VFX owns its materials: dispose them as well, or mobile GPUs
+  // accumulate resources every time a projectile or impact expires.
+  const materials=new Set();
+  if(mesh.material)materials.add(mesh.material);
+  for(const child of mesh.getChildMeshes?.()||[])if(child.material)materials.add(child.material);
+  mesh.dispose(false,false);
+  for(const material of materials)material.dispose();
+}
 function clearGame(){
   if(game.actor){game.actor.dispose();game.actor=null;}
   for(const e of game.enemies)e.actor.dispose();
@@ -160,8 +169,8 @@ function ringBurst(x,z,color,scale=1){
   const circle=vfxRing(scene,color,.50,.14);
   circle.position.set(x,.28,z);
   game.effects.push({mesh:circle,life:.38,total:.38,scale:Math.max(1.15,scale*1.6),particle:false});
-  for(let i=0;i<5;i++){
-    const dot=magicProjectile(scene,color,.17);
+  for(let i=0;i<4;i++){
+    const dot=lightOrb(scene,color,.22);
     dot.position.set(x+random(-.72,.72),random(.5,2),z+random(-.72,.72));
     game.effects.push({mesh:dot,life:.32,total:.32,scale:.8,particle:true});
   }
@@ -420,10 +429,10 @@ function updateProjectiles(dt){
     p.mesh.position.set(p.x,p.y,p.z);
     p.trail-=dt;
     if(p.trail<=0){
-      const dot=magicProjectile(scene,p.hostile?'#f4d4c0':'#c4fbff',.18);
+      const dot=lightOrb(scene,p.hostile?'#f4d4c0':'#c4fbff',.22);
       dot.position=p.mesh.position.clone();
       game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
-      p.trail=.055;
+      p.trail=.074;
     }
   }
 }

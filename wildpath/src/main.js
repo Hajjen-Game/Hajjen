@@ -395,7 +395,11 @@ function cast(slot){
     if(slot===0){
       const big=game.upgrades.has('cleave'),radius=big?5.2:3.9;
       spellStage('Wide Arc','core',game,1.15);
-      spellStage('Wide Arc','burst',game,big?1.8:1.35);
+      spellStage('Wide Arc','burst',{
+        x:game.x,z:game.z,y:1.18,followPlayer:true,
+        targetX:target?.x??game.x+Math.sin(game.actor.root.rotation.y)*3,
+        targetZ:target?.z??game.z+Math.cos(game.actor.root.rotation.y)*3
+      },big?1.3:1.0);
       const dir=game.actor.root.rotation.y;
       if(!pixi.ready){
         const sweep=meleeSlash(scene,game.x,game.z,dir,'#fff0bd',radius*.68);
@@ -472,7 +476,10 @@ function basicAttack(){
     spellStage('Steel Arc','charge',game,.7);
     spellStage('Steel Arc','core',game,.85);
     spellStage('Steel Arc','trail',game,1);
-    spellStage('Steel Arc','burst',target,.85);
+    spellStage('Steel Arc','burst',{
+      x:game.x,z:game.z,y:1.2,followPlayer:true,
+      targetX:target.x,targetZ:target.z
+    },.85);
     spellStage('Steel Arc','sound',game,1,'launch');
     if(!pixi.ready){
       const arc=meleeSlash(scene,game.x,game.z,game.actor.root.rotation.y,'#f8dfa6',reach*.85);
@@ -778,6 +785,18 @@ $('playButton').addEventListener('click',startGame);
 $('retryButton').addEventListener('click',startGame);
 $('menuButton').addEventListener('click',()=>{clearGame();game.state='start';showScreen('startScreen');$('hud').hidden=true;});
 $('pauseButton').addEventListener('click',()=>{if(game.state==='play'){game.state='pause';showScreen('pauseScreen');}});
+const slashTestButton=$('slashVfxButton');
+function updateSlashTestButton(){
+  if(!slashTestButton)return;
+  slashTestButton.textContent=pixi.slashMode==='asset'
+    ?'WEAPON SLASH: CETHIEL (TEST)'
+    :'WEAPON SLASH: PREVIOUS PIXI';
+}
+slashTestButton?.addEventListener('click',()=>{
+  pixi.setSlashMode(pixi.slashMode==='asset'?'original':'asset');
+  updateSlashTestButton();
+});
+updateSlashTestButton();
 $('resumeButton').addEventListener('click',()=>{game.state='play';hideScreens();canvas.focus();});
 $('quitButton').addEventListener('click',()=>finish(false));
 const coarse=matchMedia('(hover: none) and (pointer: coarse)').matches;

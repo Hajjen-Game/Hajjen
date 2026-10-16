@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#d3e9c4" />
   <meta name="description" content="Wildpath — a cozy-looking, fast-paced fantasy survival adventure." />
-  <title>Wildpath · Slim Projectile 1.0.3</title>
-  <link rel="stylesheet" href="./styles.css?v=1.0.1" />
+  <title>Wildpath · Weapon Slash Test 1.1.0</title>
+  <link rel="stylesheet" href="./styles.css?v=1.1.0" />
 </head>
 <body>
   <main id="app">
@@ -53,7 +53,7 @@
         <button id="playButton" class="primary">BEGIN JOURNEY <span>➜</span></button>
         <p class="key-help">WASD move · Targets chosen automatically · 1 / 2 / 3 abilities · Move while casting</p>
       </section>
-      <div class="version">SLIM PIXI · v1.0.3</div>
+      <div class="version">CC0 SLASH TEST · v1.1.0</div>
     </div>
     <div id="boostScreen" class="screen" hidden>
       <section class="dialog large"><div class="overline">THE WILDS RESPOND</div><h2>Choose a wild blessing</h2><p>Power up for the rest of this journey.</p><div id="boostOptions" class="boost-grid"></div></section>
@@ -61,10 +61,10 @@
     <div id="resultScreen" class="screen" hidden>
       <section class="dialog"><div id="resultEyebrow" class="overline">JOURNEY COMPLETE</div><h2 id="resultHeading">A trail well walked.</h2><div id="resultScore">0</div><p id="resultSummary">Your score</p><div id="resultStats"></div><button id="retryButton" class="primary">PLAY AGAIN <span>➜</span></button><button id="menuButton" class="subtle-button">BACK TO CLASSES</button></section>
     </div>
-    <div id="pauseScreen" class="screen" hidden><section class="dialog"><div class="overline">TAKE A BREATH</div><h2>Journey paused</h2><button id="resumeButton" class="primary">RESUME <span>➜</span></button><button id="quitButton" class="subtle-button">END JOURNEY</button></section></div>
+    <div id="pauseScreen" class="screen" hidden><section class="dialog"><div class="overline">TAKE A BREATH</div><h2>Journey paused</h2><button id="resumeButton" class="primary">RESUME <span>➜</span></button><p class="slash-compare-label">STONEBLADE VISUAL TEST</p><button id="slashVfxButton" class="subtle-button" type="button">WEAPON SLASH: CETHIEL (TEST)</button><p class="slash-compare-note">Switch between Cethiel's CC0 weapon slash frames and the previous Pixi effect, then resume.</p><button id="quitButton" class="subtle-button">END JOURNEY</button></section></div>
     <div id="loadError" class="screen" hidden><section class="dialog"><h2>Couldn't load the 3D engine.</h2><p>Wildpath needs an internet connection the first time it loads Babylon.js. Reload when online.</p></section></div>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/main.js?v=1.0.3"></script>
+  <script type="module" src="./src/main.js?v=1.1.0"></script>
 </body>
 </html>

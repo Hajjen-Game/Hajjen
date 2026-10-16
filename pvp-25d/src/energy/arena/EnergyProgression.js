@@ -1,7 +1,7 @@
 // Independent Energy Arena onboarding / play-mode progression.
 // This sits between Build Lab (full 10-slot authoring) and EnergyMatch.
 // No legacy arena3v3 imports and no mutation of saved Energy builds.
-import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS, SOLAR_CLASS_SPELL_IDS, VOID_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261015-voidlab1";
+import { ABILITY_BY_ID, FREE_ABILITIES, ROLES, IMPACT_CLASS_SPELL_IDS, ECLIPSE_CLASS_SPELL_IDS, SOLAR_CLASS_SPELL_IDS, VOID_CLASS_SPELL_IDS } from "../abilityCatalog.js?v=20261016-spellcopy1";
 import { buildCombatLoadout } from "../buildState.js?v=20261015-voidlab1";
 import {readJourney,awardedJourneyClear,journeyActiveSlots,journeyCombatLoadout} from "./EnergyJourneyCampaign.js?v=20261015-voidlab1";
 

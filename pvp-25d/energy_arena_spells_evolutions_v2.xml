@@ -18,7 +18,7 @@
 <Row ss:Height="48"><Cell ss:MergeAcross="5" ss:StyleID="Note"><Data ss:Type="String">30 playable spells · 4 core spells with 3 mutually exclusive Evolutions each · 2 standalone spells per Origin. Values are combat base values and can scale with modifiers. Read the core effect first, then compare the three Evolution branches to its right.</Data></Cell></Row>
 <Row ss:Height="37"><Cell ss:StyleID="Header"><Data ss:Type="String">SPELL</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">BASE EFFECT</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COST / CAST / COOLDOWN</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 1</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 2</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">EVOLUTION 3</Data></Cell></Row>
 <Row ss:Height="146"><Cell ss:StyleID="Body"><Data ss:Type="String">Pulse Mend
-Direct healing</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Heals a friendly target for 60 base health.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.5 sec cast · 16 Flux for Genesis</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ VITAL CRESCENDO
+Direct healing</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Heals a friendly target for 60 base health.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">1.5 sec cast · 16 Flux (18 with Vital Reversal) for Genesis</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ VITAL CRESCENDO
 
 Hold Pulse Mend to extend its cast to 2.5 sec, increasing its direct healing by 78%. Only applies when healing an ally.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">★ SECOND HEART
 

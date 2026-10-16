@@ -1,5 +1,5 @@
-import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, clamp, random } from './config.js';
-import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v2.js';
+import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js';
+import { createWorld, createActor, pathX, BOARD_HALF_WIDTH, CAMERA_WORLD_WIDTH, TRAIL_END, lightOrb, ring, disc } from './world-v3.js';
 import { Director } from './director.js';
 
 const B = window.BABYLON;
@@ -14,12 +14,12 @@ const canvas = $('game');
 const engine = new B.Engine(canvas,true,{stencil:false,preserveDrawingBuffer:false},true);
 engine.setHardwareScalingLevel(Math.max(1, Math.min(1.5,devicePixelRatio>2?1.35:1)));
 const scene = new B.Scene(engine);
-scene.clearColor = B.Color4.FromHexString('#263e38ff');
+scene.clearColor = B.Color4.FromHexString('#26322eff');
 scene.ambientColor = new B.Color3(.37,.45,.41);
 scene.fogMode = B.Scene.FOGMODE_LINEAR;
-scene.fogColor = B.Color3.FromHexString('#324b42');
-scene.fogStart = 83;
-scene.fogEnd = 163;
+scene.fogColor = B.Color3.FromHexString('#26322e');
+scene.fogStart = 135;
+scene.fogEnd = 300;
 const ambient = new B.HemisphericLight('soft sky',V(0,1,0),scene);
 ambient.intensity = .68;
 ambient.diffuse = new B.Color3(.82,.9,.86);
@@ -27,18 +27,21 @@ ambient.groundColor = new B.Color3(.25,.4,.35);
 const sunshine = new B.DirectionalLight('sunshine',V(-.5,-1,.6),scene);
 sunshine.intensity = .62;
 sunshine.diffuse = new B.Color3(.97,.88,.77);
-const camera = new B.FreeCamera('high orthographic camera',V(0,40,-19),scene);
+const camera = new B.FreeCamera('portrait diorama camera',V(0,56,-18),scene);
 camera.mode = B.Camera.ORTHOGRAPHIC_CAMERA;
 camera.minZ = .05;
-camera.maxZ = 230;
+camera.maxZ = 650;
 scene.activeCamera = camera;
 function resizeCamera(){
-  const w=engine.getRenderWidth(), h=Math.max(1,engine.getRenderHeight());
-  const height=window.innerWidth<650?41:47;
-  camera.orthoTop=height/2;
-  camera.orthoBottom=-height/2;
-  camera.orthoLeft=-height*w/h/2;
-  camera.orthoRight=height*w/h/2;
+  // Width-first composition: the FULL diorama is visible on any mobile screen.
+  // Height follows the portrait aspect ratio and reveals only part of each glade.
+  const aspect=engine.getRenderWidth()/Math.max(1,engine.getRenderHeight());
+  const halfWidth=CAMERA_WORLD_WIDTH/2;
+  const halfHeight=halfWidth/aspect;
+  camera.orthoLeft=-halfWidth;
+  camera.orthoRight=halfWidth;
+  camera.orthoTop=halfHeight;
+  camera.orthoBottom=-halfHeight;
 }
 resizeCamera();
 const world=createWorld(scene);
@@ -92,8 +95,8 @@ function startGame(){
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
   $('hud').hidden=false;
   hideScreens();
-  camera.position.set(pathX(game.z+11),40,game.z-19);
-  camera.setTarget(V(pathX(game.z+13),0,game.z+13));
+  camera.position.set(0,56,game.z-18);
+  camera.setTarget(V(0,0,game.z+12));
   toast('Follow the trail · Your basic attack fires automatically!');
   canvas.focus();
 }
@@ -120,9 +123,10 @@ function cycleTarget(){
 }
 function spawnEnemy(type){
   const stats=ENEMIES[type];
-  let z=game.z+random(9,17),x=pathX(z)+random(-6.7,6.7);
-  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-6.4,6.4);}
-  z=clamp(z,0,215);
+  let z=game.z+random(9,17),x=pathX(z)+random(-6.1,6.1);
+  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-6,6);}
+  z=clamp(z,0,TRAIL_END-2);
+  x=clamp(x,-BOARD_HALF_WIDTH+2.8,BOARD_HALF_WIDTH-2.8);
   const actor=createActor(scene,type,true);
   actor.root.scaling.scaleInPlace(1.1);
   const id='wild-'+game.frame+'-'+Math.floor(Math.random()*999999);
@@ -300,7 +304,10 @@ function updatePlayer(dt){
   if(len>.03){
     x/=Math.max(1,len);z/=Math.max(1,len);
     const nextZ=clamp(game.z+z*game.spec.speed*dt,0,director.ready?director.gate:director.gate-2.3);
-    game.x=clamp(game.x+x*game.spec.speed*dt,pathX(nextZ)-7.25,pathX(nextZ)+7.25);
+    const center=pathX(nextZ);
+    game.x=clamp(game.x+x*game.spec.speed*dt,
+      Math.max(-BOARD_HALF_WIDTH+3.6,center-6.15),
+      Math.min(BOARD_HALF_WIDTH-3.6,center+6.15));
     game.z=nextZ;
   }
   game.actor.root.position.set(game.x,Math.sin(game.time*12)*(len>.1?.06:.015),game.z);
@@ -308,11 +315,11 @@ function updatePlayer(dt){
   game.actor.rightArm.rotation.x=len>.1?-Math.sin(game.time*12)*.2:0;
   const sword=game.actor.root.metadata?.sword;
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
-  // Show the winding route ahead, keeping the character in the lower part of the screen.
-  const cameraX=pathX(game.z+12)*.7+game.x*.3;
-  const p=V(cameraX,40,game.z-19);
-  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*3.2));
-  camera.setTarget(V(camera.position.x,0,camera.position.z+32));
+  // Portrait mobile view: do not track sideways, or the board's outer edges disappear.
+  // Track Z only, keeping the hero in the lower third with the winding path ahead.
+  const p=V(0,56,game.z-18);
+  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*3.4));
+  camera.setTarget(V(0,0,camera.position.z+30));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
@@ -444,7 +451,7 @@ function completeStage(){
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
       if(item.id==='mend'){game.maxHp+=35;game.hp=Math.min(game.maxHp,game.hp+45);}
-      director.next();game.z=Math.max(game.z,director.stage*50+1);game.x=pathX(game.z);
+      director.next();game.z=Math.max(game.z,STAGE_GATES[director.stage-1]+1);game.x=pathX(game.z);
       game.actor.root.position.set(game.x,0,game.z);
       game.gateQueued=false;game.state='play';
       hideScreens();toast(item.name+' · New blessing!');

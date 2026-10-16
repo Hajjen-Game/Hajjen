@@ -1,9 +1,9 @@
 // Dedicated Energy Arena VFX. Babylon-only prototype effects, built around
 // actual spell events, not by replaying old WoW-class Pixi spell identifiers.
 // Procedural, luminous spell travel / buildup / impact preserve orb readability.
-import { ABILITY_BY_ID, DISCIPLINES } from "../abilityCatalog.js?v=20261012-eclipse-oc1";
+import { ABILITY_BY_ID, DISCIPLINES } from "../abilityCatalog.js?v=20261016-spellcopy1";
 import { ABILITY_RULES } from "./EnergyMatch.js?v=20261013-rift12";
-import { EnergyHeroVFX } from "./EnergyHeroVFX.js?v=20261012-eclipse-oc1";
+import { EnergyHeroVFX } from "./EnergyHeroVFX.js?v=20261016-spellcopy1";
 
 const S=.02,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export class EnergySpellVFX {

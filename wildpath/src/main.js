@@ -7,7 +7,7 @@ import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
 import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
-import { createSpellAnimator,createRibbonTrail } from './spell-animation.js?v=0.9.1';
+import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -60,7 +60,7 @@ const spellFX=createSpellAnimator(scene,{maxEffects:145,
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
   if(stage==='sound'){spellFX.sound(name,cue);return;}
-  spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity});
+  spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity,directionX:point.dirX||0,directionZ:point.dirZ||0});
 }
 const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
@@ -161,7 +161,7 @@ function releaseMesh(mesh){
 function clearGame(){
   if(game.actor){game.actor.dispose();game.actor=null;}
   for(const e of game.enemies)e.actor.dispose();
-  for(const p of game.projectiles){p.ribbon?.dispose();releaseMesh(p.mesh);}
+  for(const p of game.projectiles)releaseMesh(p.mesh);
   for(const e of game.effects)releaseMesh(e.mesh);
   for(const a of game.areas){releaseMesh(a.mesh);releaseMesh(a.border);}
   for(const t of game.texts)t.el.remove();
@@ -270,12 +270,12 @@ function ringBurst(x,z,color,scale=1){
   }
 }
 function shardBurst(x,z,color,radius){
-  for(let i=0;i<7;i++){
-    const angle=i*Math.PI*2/7;
-    const m=crystal(scene,color,.36+Math.random()*.28);
-    m.position.set(x+Math.sin(angle)*radius*.53,1.1,z+Math.cos(angle)*radius*.53);
-    m.rotation.z=Math.random()*.75-.3;
-    game.effects.push({mesh:m,life:.44,total:.44,scale:1.6,particle:true});
+  for(let i=0;i<5;i++){
+    const angle=i*Math.PI*2/5;
+    const m=crystal(scene,color,.28+Math.random()*.16);
+    m.position.set(x+Math.sin(angle)*radius*.50,.72,z+Math.cos(angle)*radius*.50);
+    m.rotation.z=Math.random()*.6-.3;
+    game.effects.push({mesh:m,life:.34,total:.34,scale:1.05,particle:true});
   }
 }
 function hurtEnemy(e,base,options={}){
@@ -356,13 +356,13 @@ function cast(slot){
     }
     if(slot===1){
       const big=game.upgrades.has('bloom');
-      spellStage('Crystal Bloom','core',target,1.2);
-      spellStage('Crystal Bloom','trail',target,1.2);
-      spellStage('Crystal Bloom','burst',target,big?2.2:1.65);
-      shardBurst(target.x,target.z,'#b2f0ff',big?4.5:3.3);
+      // Grounded crystal blast: short seed pulse and sharp radial burst, no beam.
+      spellStage('Crystal Bloom','core',target,1.1);
+      spellStage('Crystal Bloom','burst',target,big?1.65:1.25);
+      shardBurst(target.x,target.z,'#bbaffb',big?3.55:2.7);
       for(const e of game.enemies)if(e.alive&&distance(e,target)<(big?4.6:3.4))
         hurtEnemy(e,big?38:29,{slow:1.2,fxSpell:'Crystal Bloom'});
-      spellStage('Crystal Bloom','aftermath',target,big?2:1.3);
+      spellStage('Crystal Bloom','aftermath',target,big?1.15:.88);
       spellStage('Crystal Bloom','sound',target,1,'impact');
     }
     if(slot===2){
@@ -441,12 +441,10 @@ function basicAttack(){
     spellStage('Glint Dart','sound',game,1,'launch');
     const count=game.upgrades.has('triple')?3:game.upgrades.has('double')?2:1;
     for(let i=0;i<count;i++){
-      const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.65);
+      const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.54);
       const offset=(i-(count-1)/2)*.32;
       shot.position.set(game.x+offset,1.5,game.z);
-      const ribbon=createRibbonTrail(scene,{color:i%2?'#c7ffff':'#80e7f8'});
-      ribbon.move(game.x+offset,1.5,game.z);
-      game.projectiles.push({mesh:shot,ribbon,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
+      game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
         damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),hostile:false,trail:0,spell:'Glint Dart'});
     }
   }else{
@@ -571,7 +569,7 @@ function updateProjectiles(dt){
     const p=game.projectiles[i];
     p.life-=dt;
     if(p.life<=0||(!p.hostile&&!p.target.alive)){
-      p.ribbon?.dispose();releaseMesh(p.mesh);game.projectiles.splice(i,1);continue;
+      releaseMesh(p.mesh);game.projectiles.splice(i,1);continue;
     }
     const dx=p.target.x-p.x,dz=p.target.z-p.z,dy=1.1-p.y;
     const d=Math.max(.01,Math.hypot(dx,dz,dy)),step=p.speed*dt;
@@ -585,20 +583,20 @@ function updateProjectiles(dt){
         spellStage(spell,'sound',p.target,1,'impact');
       }
       if(p.hostile)ringBurst(p.target.x,p.target.z,'#efb99e',.7);
-      p.ribbon?.dispose();releaseMesh(p.mesh);game.projectiles.splice(i,1);
+      releaseMesh(p.mesh);game.projectiles.splice(i,1);
       continue;
     }
     p.x+=dx/d*step;p.z+=dz/d*step;p.y+=dy/d*step;
+    p.dirX=dx/d;p.dirZ=dz/d;
     p.mesh.position.set(p.x,p.y,p.z);
-    p.ribbon?.move(p.x,p.y,p.z);
     p.trail-=dt;
     if(p.trail<=0){
       if(p.hostile){
         const dot=lightOrb(scene,'#f4d4c0',.22);
         dot.position=p.mesh.position.clone();
         game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
-      }else spellStage(p.spell||'Glint Dart','trail',p,.75);
-      p.trail=.095;
+      }else spellStage(p.spell||'Glint Dart','trail',p,.72);
+      p.trail=.065;
     }
   }
 }

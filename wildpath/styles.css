@@ -51,3 +51,43 @@ body{user-select:none}button{font:inherit;cursor:pointer}button:focus-visible{ou
 @media(hover:none) and (pointer:coarse){#bottomHud{left:auto;right:10px;bottom:16px;transform:none;gap:4px}.ability{min-width:62px;min-height:66px;width:66px;height:66px;padding:6px}.ability.basic{display:none}.ability-name{font-size:9px}.ability-icon{font-size:22px}.hud-top{padding:8px}.hud-left{padding:8px;width:43vw}.hud-score{min-width:110px;padding:8px}#scoreText{font-size:22px}#goal{top:82px;padding:7px;font-size:9px}.target{top:119px}.small-button{top:95px;bottom:auto;right:9px}}
 @media(max-width:650px){.title-wrap h1{font-size:58px;letter-spacing:-3px}.menu-panel{padding:15px}.class-card{min-height:135px;padding:10px 5px}.class-card>span{font-size:10px}.boost-grid{grid-template-columns:1fr}.boost-card{min-height:70px;display:grid;grid-template-columns:44px 1fr;grid-template-rows:24px auto;text-align:left;gap:4px}.boost-icon{grid-row:span 2;font-size:28px}.boost-card strong{font-size:13px}.boost-card span:last-child{font-size:10px}.dialog.large{max-height:92vh;overflow:auto}}
 @media(max-height:640px){.screen{gap:8px}.title-wrap h1{font-size:49px}.title-wrap p{margin-top:3px}.class-card{min-height:100px;padding:6px}.class-symbol{font-size:20px}.menu-panel{padding:12px}.primary{margin-top:9px}}
+
+
+/* Wildpath Visual Pass 0.2: forest-tone UI lets the landscape carry the mood. */
+:root{color:#e7efe5;background:#253e37}
+#vignette{background:radial-gradient(ellipse at 50% 44%,transparent 45%,rgba(16,31,29,.31) 100%)}
+.glass{background:rgba(29,51,47,.84);border-color:rgba(159,193,166,.27);box-shadow:0 8px 24px rgba(10,28,25,.2);color:#e4f1e7;backdrop-filter:blur(6px)}
+.hud-label,.eyebrow{color:#a4c3aa}
+.stats-small{color:#b5cbb8}
+.sep{color:#6d8a7c}
+.health-track,.target-health{background:#334c42}
+.health-track>div{background:linear-gradient(90deg,#63b58f,#b4c983)}
+.target-health>div{background:#dc9c7f}
+#goal{background:#203d34ed;border:1px solid #597e64;box-shadow:0 4px 18px #142e28a1;color:#e7eecb}
+#scoreText{color:#f3e8bd}
+.ability{background:#2a4842e8;border-color:#64817289;box-shadow:0 6px 18px #132d29aa;color:#edf3e1}
+.ability.basic{background:#385b4ee7}
+.ability-key{color:#b8c9ab}
+.ability-icon{color:#83d2c7}
+.ability-desc{color:#a7bdae}
+.small-button{background:#2c4d45ef;color:#d5e9d7;border:1px solid #6c897a7a}
+#joystick{background:#395d52a3;border-color:#b8d0b282}
+#stick{background:#a0bfa3ce}
+#touchTarget{background:#2b4d42e9;color:#e1ecdb;border-color:#759787}
+.screen{background:linear-gradient(143deg,rgba(26,53,46,.90),rgba(39,57,54,.85));backdrop-filter:blur(8px)}
+.title-wrap h1{color:#f0eac9;text-shadow:0 6px rgba(11,33,27,.45)}
+.title-wrap h1 span{color:#8cbca8}
+.title-wrap p{color:#b2c7af}
+.overline,.mini-title,.version{color:#acc5b1}
+.menu-panel,.dialog{background:rgba(33,56,50,.95);border-color:#668473a3;color:#e9f0dd;box-shadow:0 18px 48px #0d2624ba}
+.dialog h2{color:#f1e9c4}
+.dialog p,.key-help{color:#b7c9b8}
+.class-card,.boost-card{background:#34584b;border-color:#597c68;color:#eef1df}
+.class-card.selected{background:#3d6955;border-color:#a7d8b1}
+.class-card small,.class-card>span,.boost-card span:last-child{color:#c2d1bf}
+.class-symbol{color:#8ccee0}.class-symbol.steel{color:#e7b68b}
+.primary{background:#698e65;box-shadow:0 6px #3b624b;color:#f8f3db}
+.primary:hover{background:#78a076}
+.subtle-button{color:#b7cdb5}
+#resultScore{color:#f1dfa9}
+#resultStats{color:#b4cab4}

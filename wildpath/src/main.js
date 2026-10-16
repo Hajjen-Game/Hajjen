@@ -86,6 +86,17 @@ const game={
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
   cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
+// Read-only instrumentation for manual QA and browser smoke tests (?debug=1).
+if(new URLSearchParams(location.search).has('debug')){
+  window.__wildpathDebug=Object.freeze({
+    read:()=>({
+      mode:OPEN_WORLD?'open':'classic',state:game.state,x:game.x,z:game.z,
+      health:game.hp,energy:game.energy,stage:director.stage,
+      enemies:game.enemies.filter(e=>e.alive).length,pickups:game.pickups.length,
+      score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z
+    })
+  });
+}
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const hitFlashColor=B.Color3.FromHexString('#fff2bc');
 const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;

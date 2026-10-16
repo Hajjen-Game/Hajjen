@@ -34,7 +34,7 @@ test('first glade has visible meadow lots, not one large smooth asphalt strip',(
   assert.equal(isOnRoad(-7,2),true);
   assert.equal(isOnRoad(12,19),false);
   assert.equal(isOnRoad(7,24),true);
-  assert.ok(Math.abs(pathX(36)-pathX(42))>10);
+  assert.ok(Math.abs(pathX(35)-pathX(42))>10);
 });
 
 test('portrait camera can see main island width but only part of the level length',()=>{

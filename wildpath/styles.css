@@ -110,3 +110,12 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
   #goal{top:132px;max-width:85vw;overflow:hidden;text-overflow:ellipsis}
   .target{top:174px}
 }
+
+/* Wildpath v0.4 — compact mobile HUD leaves the right-angle road visible. */
+@media (max-width:699px) {
+  #goal {top:121px;max-width:79vw;font-size:9px;padding:6px 12px}
+  .target {top:161px;min-width:148px;width:148px;padding:7px 11px;border-radius:12px}
+  .target #targetName {font-size:12px}
+  .target .eyebrow {font-size:8px}
+  .target-health {height:5px}
+}

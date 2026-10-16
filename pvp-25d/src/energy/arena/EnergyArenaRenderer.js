@@ -3,7 +3,7 @@
 import { OrbCharacterRenderer } from "../../rendering/babylon/OrbCharacterRenderer.js?v=20261008-orbs-v21-vfx-polish";
 import { OrbGroundMarkers } from "../../rendering/babylon/OrbGroundMarkers.js?v=20261008-ground-rings6-contained";
 import { EnergyOrbPolish } from "./EnergyOrbPolish.js?v=20261009-hub-orbit29";
-import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261013-rift12";
+import { EnergySpellVFX } from "./EnergySpellVFX.js?v=20261016-spellcopy1";
 import { EnergyEclipseVFX } from "./EnergyEclipseVFX.js?v=20261015-eclipse-vfx2";
 import { EnergySolarVFX } from "./EnergySolarVFX.js?v=20261015-solar-vfx3";
 import { EnergyGenesisVFX } from "./EnergyGenesisVFX.js?v=20261015-genesis-vfx3";
@@ -12,7 +12,7 @@ import { EnergyVoidVFX } from "./EnergyVoidVFX.js?v=20261015-void-vfx2";
 import { EnergyPixiVFXOverlay } from "./EnergyPixiVFXOverlay.js?v=20261015-void-pixi2";
 import { EnergyRiftActorRenderer } from "./EnergyRiftActorRenderer.js?v=20261011-riftcombat2";
 import { createRiftEnvironment } from "./EnergyRiftEnvironment.js?v=20261013-rift-lightfix";
-import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261015-voidlab1";
+import { ABILITY_BY_ID } from "../abilityCatalog.js?v=20261016-spellcopy1";
 
 const S=.02;
 const color=hex=>BABYLON.Color3.FromHexString(hex);

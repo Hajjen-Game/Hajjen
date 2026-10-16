@@ -109,7 +109,25 @@ if(new URLSearchParams(location.search).has('debug')){
       score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z,
       pixiReady:pixi.ready,pixiFailed:pixi.failed,
       nature:nature?.snapshot()??null
-    })
+    }),
+    // Debug-only illustration/test: ten local simulated kills create one tree.
+    // No score, combat, health, loot or permanent progression is changed.
+    previewNature:(count=10)=>{
+      if(!nature||game.state!=='play')return null;
+      const demo=makeNatureLedger();
+      demo.nextId=natureLedger.nextId+5000;
+      const at=game.time+.01;
+      for(let i=0;i<Math.min(10,Math.max(1,count));i++){
+        const e=recordNatureKill(demo,{x:game.x+4,z:game.z+3,
+          type:'bramble',time:at+i*.035});
+        nature.apply(e,game);
+      }
+      return nature.snapshot();
+    },
+    restart:()=>{
+      startGame();
+      return nature?.snapshot()??null;
+    }
   });
 }
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);

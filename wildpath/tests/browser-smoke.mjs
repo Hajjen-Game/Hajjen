@@ -71,8 +71,20 @@ try{
       assert.ok(collected.energyText.startsWith(String(collected.energy)+' / '));
       assert.ok(parseFloat(collected.energyWidth)>0,'Energy fill must visibly advance');
       assert.equal(collected.panelHidden,false);
-      console.log('PASS ENERGY COLLECTED',JSON.stringify(collected));
+      assert.ok(collected.nature?.plants>=1,
+        'A real enemy kill must grow a wildflower in the scene');
+      console.log('PASS ENERGY + WILDFLOWER',JSON.stringify(collected));
       await page.screenshot({path:'/tmp/wildpath/open-world-energy.png'});
+      // Deterministic visual smoke on 10 clustered kills without altering combat.
+      const bloomed=await page.evaluate(()=>window.__wildpathDebug.previewNature(10));
+      assert.ok(bloomed?.tiers.blossom>=1,
+        '10 rapid kills must transform the same plant into a blossom tree');
+      await new Promise(r=>setTimeout(r,1400));
+      await page.screenshot({path:'/tmp/wildpath/nature-rebirth-blossom.png'});
+      console.log('PASS NATURE TIERS',JSON.stringify(bloomed));
+      const restarted=await page.evaluate(()=>window.__wildpathDebug.restart());
+      assert.equal(restarted.plants,0,'New rounds must clear all grown plants');
+      assert.equal(restarted.upgrades,0,'New rounds reset plant evolution');
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');

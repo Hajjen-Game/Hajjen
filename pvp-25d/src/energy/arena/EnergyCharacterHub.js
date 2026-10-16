@@ -816,11 +816,17 @@ export class EnergyCharacterHub{
     const tip=$("hub-node-tooltip");
     const discipline=DISCIPLINES[ability.discipline];
     tip.replaceChildren();
-    tip.append(el("strong","",evolution?evolution.name:ability.name),
+    tip.append(el("strong","",ability.name),
       el("small","",discipline.name.toUpperCase()+" · "+(inBuild?"IN BUILD":"AVAILABLE POOL")),
-      el("p","",evolution?evolution.description:ability.description));
-    if(!evolution)tip.append(el("span","",
-      "EVOLUTIONS: "+ability.evolutions.map(ev=>ev.name).join(" · ")));
+      el("p","",ability.details),
+      el("p","",ability.description));
+    if(evolution){
+      tip.append(el("strong","","EVOLUTION · "+evolution.name),
+        el("p","",evolution.description));
+    }else if(ability.evolutions.length){
+      tip.append(el("span","",
+        "EVOLUTIONS: "+ability.evolutions.map(ev=>ev.name).join(" · ")));
+    }
     tip.hidden=false;this.moveTooltip(event);
   }
   moveTooltip(event){
@@ -828,8 +834,8 @@ export class EnergyCharacterHub{
     if(tip.hidden||!event||typeof event.clientX!=="number")return;
     const bounds=$("hub-orbit-board").getBoundingClientRect();
     // Coarse floating position, clamped so no tooltip leaves the board.
-    const x=Math.max(6,Math.min(bounds.width-230,event.clientX-bounds.left+15));
-    const y=Math.max(6,Math.min(bounds.height-110,event.clientY-bounds.top+14));
+    const x=Math.max(6,Math.min(bounds.width-280,event.clientX-bounds.left+15));
+    const y=Math.max(6,Math.min(bounds.height-180,event.clientY-bounds.top+14));
     tip.style.left=x+"px";tip.style.top=y+"px";
   }
   hideTooltip(){$("hub-node-tooltip").hidden=true;}
@@ -857,7 +863,8 @@ export class EnergyCharacterHub{
     info.append(el("strong","",ability.name),el("small","",
       DISCIPLINES[ability.discipline].name.toUpperCase()+" · "+ability.category.toUpperCase()));
     summary.append(el("span","hub-detail-icon",glyphs[ability.discipline]),info);
-    spell.append(summary,el("p","hub-detail-description",ability.description));
+    spell.append(summary,el("p","hub-detail-description",ability.description),
+      el("p","hub-detail-stat",ability.details));
     if(canDiscover){
       const claim=button("✧ DISCOVER THIS SPELL","hub-discover-confirm",()=>this.claimDiscovery(ability.id));
       claim.setAttribute("aria-label","Permanently discover "+ability.name+

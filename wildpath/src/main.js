@@ -367,15 +367,21 @@ function cast(slot){
   }else{
     if(slot===0){
       const big=game.upgrades.has('cleave'),radius=big?5.2:3.9;
-      ringBurst(game.x,game.z,'#f5d6a7',radius);
+      spellStage('Wide Arc','core',game,1.15);
+      spellStage('Wide Arc','burst',game,big?1.8:1.35);
       const dir=game.actor.root.rotation.y;
       const sweep=meleeSlash(scene,game.x,game.z,dir,'#fff0bd',radius*.68);
       game.effects.push({mesh:sweep,life:.26,total:.26,scale:1.0,particle:false});
+      spellStage('Wide Arc','trail',game,1.3);
       let hits=0;
-      for(const e of game.enemies)if(e.alive&&distance(e,game)<radius){hurtEnemy(e,big?41:32,{push:1.5});hits++;}
+      for(const e of game.enemies)if(e.alive&&distance(e,game)<radius){
+        hurtEnemy(e,big?41:32,{push:1.5,fxSpell:'Wide Arc'});hits++;
+      }
+      spellStage('Wide Arc','aftermath',game,1.1);
       if(hits>=4)bumpScore(120,game,'bonus');
     }
     if(slot===1){
+      spellStage('Rushstrike','core',game,.9);
       const dx=target.x-game.x,dz=target.z-game.z,dist=Math.max(.01,Math.hypot(dx,dz));
       const leap=Math.min(8,Math.max(0,dist-1.4));
       // Rush follows the street; it must not jump across meadow plots or walls.
@@ -385,19 +391,25 @@ function cast(slot){
         const step=moveOnRoad(game.x,game.z,dx/dist*stepSize,allowedZ);
         if(step.x===game.x&&step.z===game.z)break;
         game.x=step.x;game.z=step.z;
+        if(moved%1<.25)spellStage('Rushstrike','trail',game,.64);
       }
-      hurtEnemy(target,36,{push:2});
-      ringBurst(game.x,game.z,'#edcba0',game.upgrades.has('rush')?4:2);
+      hurtEnemy(target,36,{push:2,fxSpell:'Rushstrike'});
+      spellStage('Rushstrike','burst',game,game.upgrades.has('rush')?1.75:1.10);
+      spellStage('Rushstrike','aftermath',game,1.0);
       if(game.upgrades.has('rush'))
-        for(const e of game.enemies)if(e!==target&&e.alive&&distance(e,game)<4.2)hurtEnemy(e,22,{push:2});
+        for(const e of game.enemies)if(e!==target&&e.alive&&distance(e,game)<4.2)
+          hurtEnemy(e,22,{push:2,fxSpell:'Rushstrike'});
     }
     if(slot===2){
       const big=game.upgrades.has('quake'),radius=big?7:5;
-      ringBurst(game.x,game.z,'#ecc09b',radius);
+      spellStage('Earthwake','core',game,1.1);
+      spellStage('Earthwake','burst',game,big?2:1.5);
       const quake=vfxRing(scene,'#ffe6b7',radius*.85,.21);
       quake.position.set(game.x,.26,game.z);
       game.effects.push({mesh:quake,life:.52,total:.52,scale:1.25,particle:false});
-      for(const e of game.enemies)if(e.alive&&distance(e,game)<radius)hurtEnemy(e,25,{push:big?5:3});
+      for(const e of game.enemies)if(e.alive&&distance(e,game)<radius)
+        hurtEnemy(e,25,{push:big?5:3,fxSpell:'Earthwake'});
+      spellStage('Earthwake','aftermath',game,big?1.5:1.1);
       game.invulnerable=.55;
     }
   }
@@ -420,7 +432,11 @@ function basicAttack(){
     }
   }else{
     const reach=game.upgrades.has('arc')?3.8:2.95;
-    ringBurst(game.x,game.z,'#f9dcae',1.55);
+    spellStage('Steel Arc','charge',game,.7);
+    spellStage('Steel Arc','core',game,.85);
+    spellStage('Steel Arc','trail',game,1);
+    spellStage('Steel Arc','burst',target,.85);
+    spellStage('Steel Arc','sound',game,1,'launch');
     const arc=meleeSlash(scene,game.x,game.z,game.actor.root.rotation.y,'#f8dfa6',reach*.85);
     game.effects.push({mesh:arc,life:.22,total:.22,scale:1.05,particle:false});
     const sword=game.actor.root.metadata?.sword;
@@ -429,13 +445,13 @@ function basicAttack(){
     for(const e of game.enemies)if(e.alive&&distance(e,game)<reach){
       const vx=e.x-game.x,vz=e.z-game.z;
       const d=Math.max(.01,Math.hypot(vx,vz)*Math.hypot(dx,dz));
-      if((vx*dx+vz*dz)/d>.12)hurtEnemy(e,game.spec.baseDamage,{push:.35});
+      if((vx*dx+vz*dz)/d>.12)hurtEnemy(e,game.spec.baseDamage,{push:.35,fxSpell:'Steel Arc'});
     }
     if(game.upgrades.has('echo')){
       const d=Math.max(.01,Math.hypot(dx,dz));
       const endpoint={x:game.x+dx/d*5.6,z:game.z+dz/d*5.6};
       ringBurst(endpoint.x,endpoint.z,'#f5cba0',1.8);
-      for(const e of game.enemies)if(e.alive&&distance(e,endpoint)<1.9)hurtEnemy(e,8);
+      for(const e of game.enemies)if(e.alive&&distance(e,endpoint)<1.9)hurtEnemy(e,8,{fxSpell:'Steel Arc'});
     }
   }
 }

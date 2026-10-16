@@ -1,7 +1,7 @@
 // Wildpath 1.0 — Energy Arena's proven Pixi/Babylon hybrid.
 // Reuses the original Energy Arena Crystal Bolt and impact renderers unchanged.
 // Babylon remains authoritative for the game, targeting, movement and camera.
-import { drawEnergyProjectile } from '../../pvp-25d/src/energy/arena/EnergyPixiProjectiles.js';
+import { drawEnergyProjectile } from '../../pvp-25d/src/energy/arena/EnergyPixiProjectiles.js?v=wildpath-core-1.0.2';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
 import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
 import { drawImpactPixi } from '../../pvp-25d/src/energy/arena/EnergyImpactPixiAccents.js';

@@ -87,7 +87,7 @@ function startGame(){
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
   game.actor=createActor(scene,game.classId);
-  game.actor.root.scaling.setAll(1.18);
+  game.actor.root.scaling.setAll(1.48);
   game.actor.root.position.set(game.x,0,game.z);
   game.selectionRing=ring(scene,'target focus','#f4afa2',1.03,.075);
   game.selectionRing.isVisible=false;
@@ -131,7 +131,7 @@ function spawnEnemy(type){
   z=clamp(z,(STAGE_GATES[director.stage-1]??0)+.3,director.gate-1);
   ({x,z}=projectToRoad(x,z));
   const actor=createActor(scene,type,true);
-  actor.root.scaling.scaleInPlace(1.1);
+  actor.root.scaling.scaleInPlace(1.27);
   const id='wild-'+game.frame+'-'+Math.floor(Math.random()*999999);
   const enemy={
     id,type,x,z,actor,alive:true,hp:stats.hp*(1+director.stage*.09),

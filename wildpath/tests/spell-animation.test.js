@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SPELL_STAGES,SPELL_PRESENTATION,effectBudget,pickSpell,stageDuration,createSpellAnimator,createRibbonTrail} from '../src/spell-animation.js';
+import {SPELL_STAGES,SPELL_PRESENTATION,effectBudget,pickSpell,stageDuration,createSpellAnimator,glintTrailSamples} from '../src/spell-animation.js';
 test('all eight spells expose the eight common VFX stages',()=>{
  assert.deepEqual(SPELL_STAGES,['charge','core','trail','burst','reaction','sound','aftermath','damage']);
  assert.equal(Object.keys(SPELL_PRESENTATION).length,8);
@@ -38,25 +38,22 @@ test('eight stages remain valid if audio API is unavailable',()=>{
 });
 
 
-test('Glint Dart ribbon updates a single updatable tube and disposes it',()=>{
-  class Vec {constructor(x,y,z){this.x=x;this.y=y;this.z=z;}}
-  class C {static FromHexString(){return new C();}static Black(){return new C();}scale(){return this;}}
-  class M {dispose(){this.released=true;}}
-  let builds=0,updates=0,released=0;
-  const existing={dispose(){released++;}};
-  globalThis.window={BABYLON:{
-    Vector3:Vec,Color3:C,StandardMaterial:M,
-    MeshBuilder:{CreateTube(_name,opts){
-      if(opts.instance){updates++;return opts.instance;}
-      builds++;return existing;
-    }}
-  }};
-  const tail=createRibbonTrail({},{color:'#79e4ff'});
-  for(let i=0;i<20;i++)tail.move(i/3,1.4,i/5);
-  assert.equal(builds,1);
-  assert.equal(updates,20);
-  tail.dispose();
-  assert.equal(released,1);
+test('glint pips are short, directional, and independent',()=>{
+  const points=glintTrailSamples(8,1.5,5,3,4);
+  assert.equal(points.length,2);
+  assert.ok(points.every(p=>Math.hypot(p.x-8,p.z-5)<=.73));
+  assert.ok(points.every(p=>p.life>=.10&&p.life<=.15));
+  assert.ok(points[0].size>points[1].size);
+  assert.ok(points[0].x<8&&points[0].z<5);
+  assert.ok(glintTrailSamples(-2,1.5,6,-1,0).every(p=>p.x>-2));
+});
+test('no connected ribbon mesh can appear again',async()=>{
+  const {readFileSync}=await import('node:fs');
+  const game=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+  const animator=readFileSync(new URL('../src/spell-animation.js',import.meta.url),'utf8');
+  assert.doesNotMatch(game,/createRibbonTrail|p\.ribbon|ribbon\.move/);
+  assert.doesNotMatch(animator,/CreateTube|continuous tapering bolt trail|createRibbonTrail/);
+  assert.match(game,/p\.trail=\.065/);
 });
 test('audio launch and impact layers can sound in the same combat moment',()=>{
   const first=[];

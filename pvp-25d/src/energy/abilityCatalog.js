@@ -76,7 +76,7 @@ export const VOID_CORE_SPELL_IDS = Object.freeze(VOID_CLASS_SPELL_IDS.slice(0,4)
 export const ABILITIES = Object.freeze([
   ability("pulse-mend","Pulse Mend","vital","Direct healing","Heals a friendly target for 60 base health.","1.5 sec cast · 16 Flux for Genesis",[
     ["vital-crescendo","Vital Crescendo","Hold Pulse Mend to extend its cast to 2.5 sec, increasing its direct healing by 78%. Only applies when healing an ally."],
-    ["second-heart","Second Heart","Pulse Mend also protects its target for 12 sec. If they fall to 30% health or lower, the mark is consumed to restore at least 22 health or 27% of their maximum health, whichever is higher."],
+    ["second-heart","Second Heart","Pulse Mend also marks its target for 12 sec. If they fall to 30% health or lower, the mark is consumed to heal for at least 22 base health or 27% of their maximum health, whichever is higher."],
     ["vital-reversal","Vital Reversal","Pulse Mend can now target enemies. Deals 23 base damage to that enemy and heals each injured ally for 22 base health. Also restores up to 22% of the capacity of their active Resonance Guard."],
   ],"healer"),
   ability("resonance-guard","Resonance Guard","vital","Absorb shield","Shields yourself or an ally, absorbing up to 80 base damage for 8 sec. Damage is absorbed before health is lost.","Instant · 22 Flux · 32 sec cooldown",[
@@ -95,7 +95,7 @@ export const ABILITIES = Object.freeze([
     ["essence-siphon","Essence Siphon","While Stasis Seal is active, restore 4 Flux to Genesis every second and heal the most injured teammate for 5 base health each second."],
   ],"healer"),
   ability("vital-recall","Vital Recall","vital","Healing recovery","Marks an ally for 4 sec. Cast again before the mark expires to restore 75% of health lost since marking, capped at 50% of the ally's maximum health.","Instant · 20 Flux · 36 sec cooldown",[],"healer"),
-  ability("soul-relay","Soul Relay","vital","Linked protection","Select two different teammates to link for 10 sec. They share part of the damage and healing they receive. Transferred damage cannot kill the linked ally.","Instant · 22 Flux · 24 sec cooldown",[],"healer"),
+  ability("soul-relay","Soul Relay","vital","Linked protection","Select two different teammates to link for 10 sec. Transfer up to 26% of incoming health damage to the other ally without killing them, and share 28% of healing received with the other ally.","Instant · 22 Flux · 24 sec cooldown",[],"healer"),
   ability("seismic-uppercut","Seismic Uppercut","kinetic","Launch and slam","Hits a nearby enemy for 25 base damage, then slams the area for another 18 base damage after 0.42 sec. Ordinary enemies are briefly incapacitated; elites and bosses remain grounded.","Instant · 27 Flux · 25 sec cooldown",[
 
   ],"melee"),
@@ -103,12 +103,12 @@ export const ABILITIES = Object.freeze([
 
   ],"melee"),
   ability("phase-rush","Phase Rush","kinetic","Targeted charge","Charges toward an enemy and stops at melee range. Cannot pass through walls or other obstacles.","Instant · 14 Flux · 17 sec cooldown",[
-    ["meteor-charge","Meteor Charge","When Phase Rush reaches its target, unleash a kinetic blast dealing 20 base damage to nearby enemies."],
+    ["meteor-charge","Meteor Charge","When Phase Rush reaches its target, unleash a kinetic blast dealing 20 base damage to nearby enemies, including the charged enemy."],
     ["relentless-pursuit","Relentless Pursuit","If the enemy reached by Phase Rush dies within 3 sec, reset Phase Rush and allow another charge. Can refresh up to twice in one pursuit chain."],
     ["piercing-charge","Piercing Charge","On reaching the target, send a kinetic shock through enemies lined up behind it, dealing 18 base damage to each eligible enemy in the path."],
   ],"melee"),
   ability("pulse-sever","Pulse Sever","kinetic","Melee interrupt","Interrupts an enemy that is casting a spell, locking its magic school for 3 sec and dealing 8 base damage. Has no interrupt effect if the target is not casting.","Instant · 10 Flux · 15 sec cooldown",[
-    ["echo-sever","Echo Sever","A successful Pulse Sever also interrupts up to 5 nearby ordinary enemies that are currently casting. Each additional interrupted enemy suffers a 2.5 sec school lock."],
+    ["echo-sever","Echo Sever","A successful Pulse Sever also interrupts up to 5 nearby non-boss enemies that are currently casting. Each additional interrupted enemy suffers a 2.5 sec school lock."],
     ["countershock","Countershock","A successful Pulse Sever releases a shockwave, dealing 15 base damage to enemies near the interrupted target."],
     ["warpath","Warpath","Successfully interrupting with Pulse Sever empowers your Arc Strike, Seismic Uppercut, Gravity Hammer and Phase Rush damage by 20% for 4 sec."],
   ]),
@@ -137,7 +137,7 @@ export const ABILITIES = Object.freeze([
     ["void-anchor","Void Anchor","A brief slow remains when the prison ends."],
     ["unstable-prison","Unstable Prison","Breaking the prison by damage emits a small damage pulse; no additional CC."],
   ]),
-  ability("void-metamorphosis","Void Metamorphosis","void","Combat transformation","Transform into a Void combat form for 8 sec. Rift Slash hits in a wider area, while Entropy Mark ticks deal 27% more damage and trigger psychic strikes.","Instant · 23 Flux · 45 sec cooldown",[
+  ability("void-metamorphosis","Void Metamorphosis","void","Combat transformation","Transform into a Void combat form for 8 sec. Rift Slash gains extra reach and damages nearby enemies, while Entropy Mark deals 27% more damage with each tick.","Instant · 23 Flux · 45 sec cooldown",[
     ["dreadblade-form","Dreadblade Form","During Void Metamorphosis, Rift Slash gains greater reach. Every third Slash also sends out damaging blade arcs that hit other nearby enemies."],
     ["mindstorm","Mindstorm","While transformed, each damage tick from your Entropy Mark calls down an additional psychic spear, dealing 9 base damage to the marked enemy."],
     ["soul-devourer","Soul Devourer","While transformed, deaths of enemies affected by your Entropy Mark heal you for 14 health and extend the form by 1 sec, up to 4 extra sec. The form ends with a damaging Void blast."],

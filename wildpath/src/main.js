@@ -8,6 +8,8 @@ import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE 
 import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
+import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=1.0.0';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -57,10 +59,14 @@ const touch={dx:0,dy:0};
 const ui={selectedClass:'caster'};
 const spellFX=createSpellAnimator(scene,{maxEffects:145,
   reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false});
+const pixi=new WildpathPixiCombat(canvas,scene,engine);
+void pixi.init();
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
   if(stage==='sound'){spellFX.sound(name,cue);return;}
-  spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity,directionX:point.dirX||0,directionZ:point.dirZ||0});
+  if(pixi.ready)pixi.stage(name,stage,point,intensity);
+  else spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity,
+    directionX:point.dirX||0,directionZ:point.dirZ||0});
 }
 const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
@@ -165,7 +171,7 @@ function clearGame(){
   for(const e of game.effects)releaseMesh(e.mesh);
   for(const a of game.areas){releaseMesh(a.mesh);releaseMesh(a.border);}
   for(const t of game.texts)t.el.remove();
-  spellFX.clear();
+  spellFX.clear();pixi.clear();
   releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];
@@ -260,6 +266,7 @@ function scoreKill(enemy){
   }
 }
 function ringBurst(x,z,color,scale=1){
+  if(pixi.ready)return;
   const circle=vfxRing(scene,color,.50,.14);
   circle.position.set(x,.28,z);
   game.effects.push({mesh:circle,life:.38,total:.38,scale:Math.max(1.15,scale*1.6),particle:false});
@@ -270,6 +277,7 @@ function ringBurst(x,z,color,scale=1){
   }
 }
 function shardBurst(x,z,color,radius){
+  if(pixi.ready)return;
   for(let i=0;i<5;i++){
     const angle=i*Math.PI*2/5;
     const m=crystal(scene,color,.28+Math.random()*.16);
@@ -329,6 +337,7 @@ function icePool(x,z){
   const radius=big?4.6:3.2;
   const pool=visibleGroundPool(scene,'#7ec7e4',radius);
   const mesh=pool.floor,border=pool.edge;
+  if(pixi.ready){mesh.isVisible=false;border.isVisible=false;}
   mesh.position.set(x,.21,z);
   border.position.set(x,.25,z);
   ringBurst(x,z,'#d4fbff',1.8);
@@ -372,9 +381,11 @@ function cast(slot){
       spellStage('Pale Guard','core',game,1);
       spellStage('Pale Guard','trail',game,1.1);
       spellStage('Pale Guard','burst',game,strong?1.7:1.2);
-      const dome=shieldDome(scene,strong?2.2:1.7);
-      dome.position.set(game.x,1.46,game.z);
-      game.effects.push({mesh:dome,life:.85,total:.85,scale:1.0,particle:false});
+      if(!pixi.ready){
+        const dome=shieldDome(scene,strong?2.2:1.7);
+        dome.position.set(game.x,1.46,game.z);
+        game.effects.push({mesh:dome,life:.85,total:.85,scale:1.0,particle:false});
+      }
       if(strong)for(const e of game.enemies)if(e.alive&&distance(e,game)<4.5)e.slow=Math.max(e.slow,2.7);
       spellStage('Pale Guard','aftermath',game,1.2);
       spellStage('Pale Guard','damage',game,.85); // Defence feedback, no damage dealt.
@@ -386,8 +397,10 @@ function cast(slot){
       spellStage('Wide Arc','core',game,1.15);
       spellStage('Wide Arc','burst',game,big?1.8:1.35);
       const dir=game.actor.root.rotation.y;
-      const sweep=meleeSlash(scene,game.x,game.z,dir,'#fff0bd',radius*.68);
-      game.effects.push({mesh:sweep,life:.26,total:.26,scale:1.0,particle:false});
+      if(!pixi.ready){
+        const sweep=meleeSlash(scene,game.x,game.z,dir,'#fff0bd',radius*.68);
+        game.effects.push({mesh:sweep,life:.26,total:.26,scale:1.0,particle:false});
+      }
       spellStage('Wide Arc','trail',game,1.3);
       let hits=0;
       for(const e of game.enemies)if(e.alive&&distance(e,game)<radius){
@@ -421,9 +434,11 @@ function cast(slot){
       spellStage('Earthwake','core',game,1.1);
       spellStage('Earthwake','trail',game,1.2);
       spellStage('Earthwake','burst',game,big?2:1.5);
-      const quake=vfxRing(scene,'#ffe6b7',radius*.85,.21);
-      quake.position.set(game.x,.26,game.z);
-      game.effects.push({mesh:quake,life:.52,total:.52,scale:1.25,particle:false});
+      if(!pixi.ready){
+        const quake=vfxRing(scene,'#ffe6b7',radius*.85,.21);
+        quake.position.set(game.x,.26,game.z);
+        game.effects.push({mesh:quake,life:.52,total:.52,scale:1.25,particle:false});
+      }
       for(const e of game.enemies)if(e.alive&&distance(e,game)<radius)
         hurtEnemy(e,25,{push:big?5:3,fxSpell:'Earthwake'});
       spellStage('Earthwake','aftermath',game,big?1.5:1.1);
@@ -440,12 +455,17 @@ function basicAttack(){
     spellStage('Glint Dart','core',game,.8);
     spellStage('Glint Dart','sound',game,1,'launch');
     const count=game.upgrades.has('triple')?3:game.upgrades.has('double')?2:1;
-    for(let i=0;i<count;i++){
+    const volley=chooseVolleyTargets(game.enemies,game,game.spec.range,count,target);
+    for(let i=0;i<volley.length;i++){
+      const shotTarget=volley[i];
       const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.54);
-      const offset=(i-(count-1)/2)*.32;
+      const offset=(i-(volley.length-1)/2)*.36;
       shot.position.set(game.x+offset,1.5,game.z);
-      game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
-        damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),hostile:false,trail:0,spell:'Glint Dart'});
+      if(pixi.ready){shot.isVisible=false;
+        for(const child of shot.getChildMeshes())child.isVisible=false;}
+      game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target:shotTarget,life:3.6,speed:17,
+        damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),
+        hostile:false,trail:0,spell:'Glint Dart',fxSeed:game.frame*17+i*31});
     }
   }else{
     const reach=game.upgrades.has('arc')?3.8:2.95;
@@ -454,8 +474,10 @@ function basicAttack(){
     spellStage('Steel Arc','trail',game,1);
     spellStage('Steel Arc','burst',target,.85);
     spellStage('Steel Arc','sound',game,1,'launch');
-    const arc=meleeSlash(scene,game.x,game.z,game.actor.root.rotation.y,'#f8dfa6',reach*.85);
-    game.effects.push({mesh:arc,life:.22,total:.22,scale:1.05,particle:false});
+    if(!pixi.ready){
+      const arc=meleeSlash(scene,game.x,game.z,game.actor.root.rotation.y,'#f8dfa6',reach*.85);
+      game.effects.push({mesh:arc,life:.22,total:.22,scale:1.05,particle:false});
+    }
     const sword=game.actor.root.metadata?.sword;
     if(sword)sword.rotation.z=-.6;
     const dx=target.x-game.x,dz=target.z-game.z;
@@ -589,13 +611,17 @@ function updateProjectiles(dt){
     p.x+=dx/d*step;p.z+=dz/d*step;p.y+=dy/d*step;
     p.dirX=dx/d;p.dirZ=dz/d;
     p.mesh.position.set(p.x,p.y,p.z);
+    if(pixi.ready&&!p.hostile){
+      p.mesh.isVisible=false;
+      for(const child of p.mesh.getChildMeshes())child.isVisible=false;
+    }
     p.trail-=dt;
     if(p.trail<=0){
       if(p.hostile){
         const dot=lightOrb(scene,'#f4d4c0',.22);
         dot.position=p.mesh.position.clone();
         game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
-      }else spellStage(p.spell||'Glint Dart','trail',p,.72);
+      }else if(!pixi.ready)spellStage(p.spell||'Glint Dart','trail',p,.72);
       p.trail=.065;
     }
   }
@@ -615,6 +641,7 @@ function updateEffects(dt){
       for(const e of game.enemies)if(e.alive&&distance(e,a)<a.radius)
         hurtEnemy(e,a.damage,{slow:a.slow,fxSpell:'Winter Pool'});
     }
+    if(pixi.ready){a.mesh.isVisible=false;a.border.isVisible=false;}
     if(a.life<=0){releaseMesh(a.mesh);releaseMesh(a.border);game.areas.splice(i,1);}
   }
   const view=camera.viewport.toGlobal(engine.getRenderWidth(),engine.getRenderHeight());
@@ -722,8 +749,9 @@ engine.runRenderLoop(()=>{
   previous=now;
   if(game.state==='play')update(dt);
   scene.render();
+  pixi.update(dt,game);
 });
-window.addEventListener('resize',()=>{engine.resize();resizeCamera();});
+window.addEventListener('resize',()=>{engine.resize();resizeCamera();pixi.resize();});
 window.addEventListener('blur',()=>keys.clear());
 window.addEventListener('keydown',e=>{
   if(['Tab','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();

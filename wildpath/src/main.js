@@ -1,5 +1,5 @@
 import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, clamp, random } from './config.js';
-import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world.js';
+import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v2.js';
 import { Director } from './director.js';
 
 const B = window.BABYLON;
@@ -14,27 +14,27 @@ const canvas = $('game');
 const engine = new B.Engine(canvas,true,{stencil:false,preserveDrawingBuffer:false},true);
 engine.setHardwareScalingLevel(Math.max(1, Math.min(1.5,devicePixelRatio>2?1.35:1)));
 const scene = new B.Scene(engine);
-scene.clearColor = B.Color4.FromHexString('#d9e9d7ff');
-scene.ambientColor = new B.Color3(.67,.76,.67);
+scene.clearColor = B.Color4.FromHexString('#263e38ff');
+scene.ambientColor = new B.Color3(.37,.45,.41);
 scene.fogMode = B.Scene.FOGMODE_LINEAR;
-scene.fogColor = B.Color3.FromHexString('#d9e9d7');
-scene.fogStart = 44;
-scene.fogEnd = 82;
+scene.fogColor = B.Color3.FromHexString('#324b42');
+scene.fogStart = 83;
+scene.fogEnd = 163;
 const ambient = new B.HemisphericLight('soft sky',V(0,1,0),scene);
-ambient.intensity = .95;
-ambient.diffuse = new B.Color3(1,.99,.93);
-ambient.groundColor = new B.Color3(.41,.59,.45);
+ambient.intensity = .68;
+ambient.diffuse = new B.Color3(.82,.9,.86);
+ambient.groundColor = new B.Color3(.25,.4,.35);
 const sunshine = new B.DirectionalLight('sunshine',V(-.5,-1,.6),scene);
-sunshine.intensity = .7;
-sunshine.diffuse = new B.Color3(1,.94,.81);
-const camera = new B.FreeCamera('high orthographic camera',V(0,25,-16),scene);
+sunshine.intensity = .62;
+sunshine.diffuse = new B.Color3(.97,.88,.77);
+const camera = new B.FreeCamera('high orthographic camera',V(0,40,-19),scene);
 camera.mode = B.Camera.ORTHOGRAPHIC_CAMERA;
 camera.minZ = .05;
-camera.maxZ = 150;
+camera.maxZ = 230;
 scene.activeCamera = camera;
 function resizeCamera(){
   const w=engine.getRenderWidth(), h=Math.max(1,engine.getRenderHeight());
-  const height=window.innerWidth<650?26:28;
+  const height=window.innerWidth<650?41:47;
   camera.orthoTop=height/2;
   camera.orthoBottom=-height/2;
   camera.orthoLeft=-height*w/h/2;
@@ -83,6 +83,7 @@ function startGame(){
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
   game.actor=createActor(scene,game.classId);
+  game.actor.root.scaling.setAll(1.18);
   game.actor.root.position.set(game.x,0,game.z);
   game.selectionRing=ring(scene,'target focus','#f4afa2',1.03,.075);
   game.selectionRing.isVisible=false;
@@ -91,8 +92,8 @@ function startGame(){
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
   $('hud').hidden=false;
   hideScreens();
-  camera.position.set(game.x,25,game.z-16);
-  camera.setTarget(V(game.x,0,game.z+1));
+  camera.position.set(pathX(game.z+11),40,game.z-19);
+  camera.setTarget(V(pathX(game.z+13),0,game.z+13));
   toast('Follow the trail · Your basic attack fires automatically!');
   canvas.focus();
 }
@@ -119,10 +120,11 @@ function cycleTarget(){
 }
 function spawnEnemy(type){
   const stats=ENEMIES[type];
-  let z=game.z+random(9,17),x=pathX(z)+random(-9,9);
-  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-7,7);}
+  let z=game.z+random(9,17),x=pathX(z)+random(-6.7,6.7);
+  if(Math.random()<.23){z=game.z-random(8,13);x=pathX(z)+random(-6.4,6.4);}
   z=clamp(z,0,215);
   const actor=createActor(scene,type,true);
+  actor.root.scaling.scaleInPlace(1.1);
   const id='wild-'+game.frame+'-'+Math.floor(Math.random()*999999);
   const enemy={
     id,type,x,z,actor,alive:true,hp:stats.hp*(1+director.stage*.09),
@@ -297,17 +299,20 @@ function updatePlayer(dt){
   const len=Math.hypot(x,z);
   if(len>.03){
     x/=Math.max(1,len);z/=Math.max(1,len);
-    game.x=clamp(game.x+x*game.spec.speed*dt,-21,21);
-    game.z=clamp(game.z+z*game.spec.speed*dt,0,director.ready?director.gate:director.gate-2.3);
+    const nextZ=clamp(game.z+z*game.spec.speed*dt,0,director.ready?director.gate:director.gate-2.3);
+    game.x=clamp(game.x+x*game.spec.speed*dt,pathX(nextZ)-7.25,pathX(nextZ)+7.25);
+    game.z=nextZ;
   }
   game.actor.root.position.set(game.x,Math.sin(game.time*12)*(len>.1?.06:.015),game.z);
   game.actor.leftArm.rotation.x=len>.1?Math.sin(game.time*12)*.2:0;
   game.actor.rightArm.rotation.x=len>.1?-Math.sin(game.time*12)*.2:0;
   const sword=game.actor.root.metadata?.sword;
   if(sword)sword.rotation.z+=(0-sword.rotation.z)*Math.min(1,dt*10);
-  const p=V(game.x,25,game.z-16);
-  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*5));
-  camera.setTarget(V(camera.position.x,0,camera.position.z+17));
+  // Show the winding route ahead, keeping the character in the lower part of the screen.
+  const cameraX=pathX(game.z+12)*.7+game.x*.3;
+  const p=V(cameraX,40,game.z-19);
+  camera.position=B.Vector3.Lerp(camera.position,p,Math.min(1,dt*3.2));
+  camera.setTarget(V(camera.position.x,0,camera.position.z+32));
   const target=currentTarget();
   if(target){
     game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);

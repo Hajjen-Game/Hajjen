@@ -5,7 +5,7 @@ export { createActor, ring, disc, lightOrb } from './world.js';
 
 const B = window.BABYLON;
 const V = (x,y,z)=>new B.Vector3(x,y,z);
-const rng=(seed)=>()=>((seed=(Math.imul(1664525,seed)+1013904223)>>>0)/4294967296;
+const rng=(seed)=>()=>((seed=(Math.imul(1664525,seed)+1013904223)>>>0)/4294967296);
 const mix=(a,b,t)=>a+(b-a)*t;
 const COLORS={
   earth:'#5b7158', grass:'#66805f', meadow:'#769069', grassLight:'#899b72',

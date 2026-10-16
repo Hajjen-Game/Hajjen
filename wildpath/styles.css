@@ -122,3 +122,18 @@ body{background:radial-gradient(ellipse at center,#30483f,#101e1b)}
 
 /* Wildpath 0.5: uncluttered mobile battlefield */
 @media(max-width:699px){#goal{top:112px;max-width:74vw;font-size:9px;opacity:.93}.target{top:152px;min-width:135px;width:135px;padding:6px 9px}}
+
+/* Visual Readability 0.7 — phone-sized skills, clear states and crisp spell contrast. */
+#bottomHud .ability.special{border:1px solid rgba(161,232,221,.55);background:rgba(30,62,57,.93);color:#f6f4e7;box-shadow:0 2px 0 #152d29,0 6px 18px #081e1c76;touch-action:manipulation}
+#bottomHud .ability.special .ability-key{font-size:13px;font-weight:900;color:#eafde8;top:7px;left:10px}
+#bottomHud .ability.special .ability-icon{font-size:27px;color:#a5f0e6;text-shadow:0 0 9px #84d5d2a0}
+#bottomHud .ability.special .ability-name{font-size:11px;color:#f9f9e9;line-height:1.22}
+#bottomHud .ability.basic{opacity:.65}
+#bottomHud .ability.special:active{transform:translateY(3px) scale(.95);box-shadow:0 1px 0 #152d29}
+.float-damage{font-weight:900;text-shadow:0 1px 3px #183d37,0 0 4px #0f2c28}
+.float-damage.crit{font-size:27px}
+@media(hover:none) and (pointer:coarse){
+ #bottomHud .ability.special{min-width:68px;width:70px;min-height:71px;height:71px;border-radius:16px}
+ #bottomHud .ability.special .ability-key{font-size:12px}
+ #bottomHud .ability.special .ability-name{font-size:10px}
+}

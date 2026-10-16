@@ -1,10 +1,11 @@
 import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=0.6.0';
-import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.6.0';
+import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.7.0';
 import { BOARD_START, BOARD_END, moveOnRoad, projectToRoad } from './layout-v5.js?v=0.6.0';
 import { chooseAutoTarget } from './targeting.js?v=0.6.0';
 import { nextTravelZ, positionAfterBlessing, cameraAnchorZ } from './flow.js?v=0.6.0';
 import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
+import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
 const CAMERA_WORLD_WIDTH=33.2;
 
 const B = window.BABYLON;
@@ -55,11 +56,12 @@ const ui={selectedClass:'caster'};
 const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
-  texts:[],target:null,selectionRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
+  texts:[],target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
   cooldowns:[0,0,0],toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+const hitFlashColor=B.Color3.FromHexString('#fff2bc');
 const bestKey=()=> 'wildpath-v01-best-'+game.classId;
 function getBest(){try{return Number(localStorage.getItem(bestKey()))||0;}catch{return 0;}}
 function saveBest(){try{if(game.score>getBest())localStorage.setItem(bestKey(),String(game.score));}catch{}}
@@ -77,8 +79,9 @@ function clearGame(){
   for(const a of game.areas){releaseMesh(a.mesh);releaseMesh(a.border);}
   for(const t of game.texts)t.el.remove();
   releaseMesh(game.selectionRing);
+  releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];
-  game.selectionRing=null;
+  game.selectionRing=null;game.heroRing=null;
 }
 function startGame(){
   clearGame();director.reset();
@@ -93,6 +96,8 @@ function startGame(){
   game.actor.root.position.set(game.x,0,game.z);
   game.selectionRing=ring(scene,'target focus','#f4afa2',1.03,.075);
   game.selectionRing.isVisible=false;
+  game.heroRing=vfxRing(scene,game.classId==='caster'?'#9af4f5':'#f3d2a1',.87,.13);
+  game.heroRing.position.set(game.x,.21,game.z);
   label('className',game.spec.name);
   label('basicName',game.spec.basic);
   game.spec.spells.forEach((s,i)=>label('spellName'+i,s));
@@ -125,6 +130,7 @@ function spawnEnemy(type){
     attackClock:random(.4,1.3),slow:0,knockX:0,knockZ:0,flash:0,bob:Math.random()*6.28
   };
   actor.root.position.set(x,0,z);
+  enemy.normalEmissive=actor.body.material.emissiveColor.clone();
   actor.root.metadata={...(actor.root.metadata||{}),enemyId:id};
   actor.root.getChildMeshes().forEach(m=>m.metadata={...(m.metadata||{}),enemyId:id});
   game.enemies.push(enemy);
@@ -151,13 +157,22 @@ function scoreKill(enemy){
   if([5,10,20].includes(game.combo))toast(String(game.combo)+' KILL STREAK!');
 }
 function ringBurst(x,z,color,scale=1){
-  const circle=ring(scene,'impact ripple',color,.35,.10);
-  circle.position.set(x,.12,z);circle.isPickable=false;
-  game.effects.push({mesh:circle,life:.42,total:.42,scale,particle:false});
-  for(let i=0;i<3;i++){
-    const dot=lightOrb(scene,color,.13);
-    dot.position.set(x+random(-.5,.5),random(.35,1.1),z+random(-.5,.5));
-    game.effects.push({mesh:dot,life:.36,total:.36,scale:.8,particle:true});
+  const circle=vfxRing(scene,color,.50,.14);
+  circle.position.set(x,.28,z);
+  game.effects.push({mesh:circle,life:.38,total:.38,scale:Math.max(1.15,scale*1.6),particle:false});
+  for(let i=0;i<5;i++){
+    const dot=magicProjectile(scene,color,.17);
+    dot.position.set(x+random(-.72,.72),random(.5,2),z+random(-.72,.72));
+    game.effects.push({mesh:dot,life:.32,total:.32,scale:.8,particle:true});
+  }
+}
+function shardBurst(x,z,color,radius){
+  for(let i=0;i<7;i++){
+    const angle=i*Math.PI*2/7;
+    const m=crystal(scene,color,.36+Math.random()*.28);
+    m.position.set(x+Math.sin(angle)*radius*.53,1.1,z+Math.cos(angle)*radius*.53);
+    m.rotation.z=Math.random()*.75-.3;
+    game.effects.push({mesh:m,life:.44,total:.44,scale:1.6,particle:true});
   }
 }
 function hurtEnemy(e,base,options={}){
@@ -166,7 +181,7 @@ function hurtEnemy(e,base,options={}){
   const crit=Math.random()<(boosted?.24:.115);
   const amount=base*(crit?1.85:1);
   if(crit)game.crits++;
-  e.hp-=amount;e.flash=.13;
+  e.hp-=amount;e.flash=.20;
   floatingText({x:e.x,y:2.5,z:e.z},(crit?'✦ ':'')+Math.round(amount),crit?'crit':'normal');
   if(options.slow)e.slow=Math.max(e.slow,options.slow);
   if(options.push){
@@ -188,7 +203,7 @@ function hurtPlayer(amount){
   if(game.hp<=0)finish(false);
 }
 function projectile(target,damage,color='#99dce6',hostile=false){
-  const mesh=lightOrb(scene,color,hostile?.48:.38);
+  const mesh=magicProjectile(scene,color,hostile?.54:.67);
   const x=hostile?target.x:game.x,z=hostile?target.z:game.z;
   const destination=hostile?game:target;
   mesh.position.set(x,1.5,z);
@@ -197,10 +212,11 @@ function projectile(target,damage,color='#99dce6',hostile=false){
 function icePool(x,z){
   const big=game.upgrades.has('snowfield');
   const radius=big?4.6:3.2;
-  const mesh=disc(scene,'winter pool','#97d9e6',radius,.38);
-  mesh.position.set(x,.018,z);mesh.isPickable=false;
-  const border=ring(scene,'winter rim','#b5f3e6',radius,.06);
-  border.position.set(x,.06,z);border.isPickable=false;
+  const pool=visibleGroundPool(scene,'#7ec7e4',radius);
+  const mesh=pool.floor,border=pool.edge;
+  mesh.position.set(x,.21,z);
+  border.position.set(x,.25,z);
+  ringBurst(x,z,'#d4fbff',1.8);
   game.areas.push({x,z,radius,life:big?7.5:5.5,tick:0,damage:big?11:6,slow:2.5,mesh,border});
 }
 function cast(slot){
@@ -215,6 +231,7 @@ function cast(slot){
     if(slot===1){
       const big=game.upgrades.has('bloom');
       ringBurst(target.x,target.z,'#a8ecf1',big?4.5:3.3);
+      shardBurst(target.x,target.z,'#b2f0ff',big?4.5:3.3);
       for(const e of game.enemies)if(e.alive&&distance(e,target)<(big?4.6:3.4))hurtEnemy(e,big?38:29,{slow:1.2});
     }
     if(slot===2){
@@ -222,6 +239,9 @@ function cast(slot){
       game.shield=Math.max(game.shield,strong?65:42);
       game.invulnerable=.42;
       ringBurst(game.x,game.z,'#90ecce',strong?4:2);
+      const dome=shieldDome(scene,strong?2.2:1.7);
+      dome.position.set(game.x,1.46,game.z);
+      game.effects.push({mesh:dome,life:.85,total:.85,scale:1.0,particle:false});
       if(strong)for(const e of game.enemies)if(e.alive&&distance(e,game)<4.5)e.slow=Math.max(e.slow,2.7);
       floatingText({x:game.x,y:2.8,z:game.z},'GUARD','heal');
     }
@@ -229,6 +249,9 @@ function cast(slot){
     if(slot===0){
       const big=game.upgrades.has('cleave'),radius=big?5.2:3.9;
       ringBurst(game.x,game.z,'#f5d6a7',radius);
+      const dir=game.actor.root.rotation.y;
+      const sweep=meleeSlash(scene,game.x,game.z,dir,'#fff0bd',radius*.68);
+      game.effects.push({mesh:sweep,life:.26,total:.26,scale:1.0,particle:false});
       let hits=0;
       for(const e of game.enemies)if(e.alive&&distance(e,game)<radius){hurtEnemy(e,big?41:32,{push:1.5});hits++;}
       if(hits>=4)game.score+=120;
@@ -252,6 +275,9 @@ function cast(slot){
     if(slot===2){
       const big=game.upgrades.has('quake'),radius=big?7:5;
       ringBurst(game.x,game.z,'#ecc09b',radius);
+      const quake=vfxRing(scene,'#ffe6b7',radius*.85,.21);
+      quake.position.set(game.x,.26,game.z);
+      game.effects.push({mesh:quake,life:.52,total:.52,scale:1.25,particle:false});
       for(const e of game.enemies)if(e.alive&&distance(e,game)<radius)hurtEnemy(e,25,{push:big?5:3});
       game.invulnerable=.55;
     }
@@ -264,7 +290,7 @@ function basicAttack(){
   if(game.classId==='caster'){
     const count=game.upgrades.has('triple')?3:game.upgrades.has('double')?2:1;
     for(let i=0;i<count;i++){
-      const shot=lightOrb(scene,i%2?'#c2f4f0':'#99dce6',.37);
+      const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.65);
       const offset=(i-(count-1)/2)*.32;
       shot.position.set(game.x+offset,1.5,game.z);
       game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target,life:3.6,speed:17,
@@ -273,6 +299,8 @@ function basicAttack(){
   }else{
     const reach=game.upgrades.has('arc')?3.8:2.95;
     ringBurst(game.x,game.z,'#f9dcae',1.55);
+    const arc=meleeSlash(scene,game.x,game.z,game.actor.root.rotation.y,'#f8dfa6',reach*.85);
+    game.effects.push({mesh:arc,life:.22,total:.22,scale:1.05,particle:false});
     const sword=game.actor.root.metadata?.sword;
     if(sword)sword.rotation.z=-.6;
     const dx=target.x-game.x,dz=target.z-game.z;
@@ -305,6 +333,8 @@ function updatePlayer(dt){
     game.z=step.z;
   }
   game.actor.root.position.set(game.x,Math.sin(game.time*12)*(len>.1?.06:.015),game.z);
+  game.heroRing.position.set(game.x,.20,game.z);
+  game.heroRing.scaling.setAll(1+Math.sin(game.time*4)*.065);
   game.actor.leftArm.rotation.x=len>.1?Math.sin(game.time*12)*.2:0;
   game.actor.rightArm.rotation.x=len>.1?-Math.sin(game.time*12)*.2:0;
   const sword=game.actor.root.metadata?.sword;
@@ -355,11 +385,12 @@ function updateEnemies(dt){
     e.actor.root.position.set(e.x,Math.sin(game.time*4+e.bob)*.05,e.z);
     e.actor.root.rotation.y=Math.atan2(dx,dz);
     e.actor.rightArm.rotation.x=Math.sin(game.time*5+e.bob)*.22;
-    e.actor.body.scaling.x=e.flash>0?.84:.75;
+    e.actor.body.scaling.x=e.flash>0?1.12:1;
+    e.actor.body.material.emissiveColor.copyFrom(e.flash>0?hitFlashColor:e.normalEmissive);
     if(d<ENEMIES[e.type].range&&e.attackClock<=0){
       e.attackClock=ENEMIES[e.type].cooldown*random(.88,1.12);
       if(e.type==='ember'){
-        const p=lightOrb(scene,'#eeb59e',.47);p.position.set(e.x,1.4,e.z);
+        const p=magicProjectile(scene,'#f5a36e',.59);p.position.set(e.x,1.4,e.z);
         game.projectiles.push({mesh:p,x:e.x,y:1.4,z:e.z,target:game,damage:ENEMIES[e.type].damage,
           hostile:true,life:3.5,speed:9,trail:0});
       }else{hurtPlayer(ENEMIES[e.type].damage);ringBurst(game.x,game.z,'#f3c0a8',.8);}
@@ -389,10 +420,10 @@ function updateProjectiles(dt){
     p.mesh.position.set(p.x,p.y,p.z);
     p.trail-=dt;
     if(p.trail<=0){
-      const dot=lightOrb(scene,p.hostile?'#f4d4c0':'#d2fbf7',.12);
+      const dot=magicProjectile(scene,p.hostile?'#f4d4c0':'#c4fbff',.18);
       dot.position=p.mesh.position.clone();
       game.effects.push({mesh:dot,life:.19,total:.19,scale:.55,particle:true});
-      p.trail=.085;
+      p.trail=.055;
     }
   }
 }
@@ -514,7 +545,7 @@ window.addEventListener('resize',()=>{engine.resize();resizeCamera();});
 window.addEventListener('blur',()=>keys.clear());
 window.addEventListener('keydown',e=>{
   if(['Tab','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
-  if(game.state==='play'&&['Digit2','Digit3','Digit4'].includes(e.code))cast(Number(e.code.slice(-1))-2);
+  if(game.state==='play'&&['Digit1','Digit2','Digit3'].includes(e.code))cast(Number(e.code.slice(-1))-1);
   if(e.code==='Escape'){
     if(game.state==='play'){game.state='pause';showScreen('pauseScreen');}
     else if(game.state==='pause'){game.state='play';hideScreens();}

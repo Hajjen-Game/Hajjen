@@ -71,6 +71,7 @@ const ui={selectedClass:'caster'};
 const spellFX=createSpellAnimator(scene,{maxEffects:145,
   reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false});
 const pixi=new WildpathPixiCombat(canvas,scene,engine);
+pixi.enableSlashFrames=!OPEN_WORLD; // Glintweaver-only mode never downloads melee sprites.
 void pixi.init();
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;

@@ -189,6 +189,7 @@ export class WildpathPixiCombat {
     this.ready=false;this.failed=false;this.effects=[];this.sequence=0;
     this.width=0;this.height=0;this.alive=true;this.time=0;
     this.slashMode='asset'; // default: Cethiel CC0. Previous Pixi available for A/B.
+    this.enableSlashFrames=true;
     this.slashFrames={basic:[],wide:[]};
     this.slashLayer=null;this.slashes=[];this.PIXI=null;
   }
@@ -219,7 +220,7 @@ export class WildpathPixiCombat {
       this.PIXI=PIXI;
       this.ready=true;
       // Sprite fetching is optional and never blocks the game loop.
-      void this.loadSlashFrames();
+      if(this.enableSlashFrames)void this.loadSlashFrames();
     }catch(error){
       this.failed=true;this.ready=false;
       view?.remove();

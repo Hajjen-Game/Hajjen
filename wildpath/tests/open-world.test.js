@@ -72,6 +72,6 @@ test('all combat and Pixi systems are still invoked for the new world',()=>{
   for(const name of ['chooseVolleyTargets(','basicAttack();','updateEnemies(dt);',
     'updateProjectiles(dt);','pixi.update(dt,game);','updateGlints(dt);',
     'director.tick(dt,game);','spellFX.tick(dt);'])assert.ok(source.includes(name),name);
-  assert.match(source,/OPEN_WORLD\)game\.energy=0/);
+  assert.match(source,/if\(OPEN_WORLD\)\s*\{\s*game\.energy=0/);
   assert.match(source,/OPEN_WORLD\?7:3/);
 });

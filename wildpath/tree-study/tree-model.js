@@ -1,9 +1,8 @@
-// A hand-sculpted, fully 3D tree study. The canopy is thousands of curved
-// individual leaf surfaces, NOT spheres or billboard foliage.
-// Built from deterministic geometry; no paid models or external asset hosting.
+// Willowglow 2.0: authored layered leaf geometry and six organic main boughs.
+// Keeps the Tree Study 1.0 shape language; no sphere foliage or paid assets.
 export const ART_DIRECTION = Object.freeze({
-  name: 'Willowglow — hand-shaped forest elder',
-  foliage: ['#456f62', '#6d9871', '#91b77e', '#b9ce91', '#d9dda5'],
+  name: 'Willowglow — hand-shaped forest elder 2.0',
+  foliage: ['#365a4c', '#628a67', '#87b579', '#b5cc8f', '#d9e0ac'],
   blossoms: ['#f6d7c0', '#ffe9cc', '#efb8bb'],
   bark: '#815744'
 });
@@ -24,12 +23,13 @@ export function buildHeroTree(B, scene, shadows) {
   bark.diffuseColor = C('#b58b72');
   bark.specularColor = C('#16110c');
   bark.specularPower = 20;
-  const barkCanvas = new B.DynamicTexture('bark grain / artist brushstrokes', {width:256,height:512}, scene, false);
+  const barkCanvas = new B.DynamicTexture('bark grain / artist brushstrokes', {width:512,height:512}, scene, false);
   const barkCtx = barkCanvas.getContext();
-  barkCtx.fillStyle = '#9a694e';
-  barkCtx.fillRect(0,0,256,512);
-  for (let i=0; i<150; i++) {
-    const x = rand()*256, y = rand()*512, len = 22+rand()*180;
+  barkCtx.fillStyle = '#95634e';
+  barkCtx.fillRect(0,0,512,512);
+  // Fine parallel strokes and soft pale ridges make bark read at game distance.
+  for (let i=0; i<300; i++) {
+    const x = rand()*512, y = rand()*512, len = 14+rand()*155;
     barkCtx.strokeStyle = rand()<.50 ? 'rgba(65,36,30,'+(0.06+rand()*.16)+')' :
       'rgba(241,198,139,'+(0.05+rand()*.16)+')';
     barkCtx.lineWidth = 1+rand()*4;
@@ -54,8 +54,8 @@ export function buildHeroTree(B, scene, shadows) {
 
   // Distinct root buttresses and a curved asymmetrical trunk.
   tube('continuous tapered trunk',[
-    [0,-.05,0],[-.08,.85,.08],[-.20,1.8,-.10],[-.05,3.02,-.15],
-    [.18,4.18,-.05],[.18,5.10,-.08]
+    [0,-.05,0],[-.08,.85,.08],[-.19,1.9,-.10],[-.11,3.16,-.20],
+    [.16,4.29,-.07],[.22,5.28,-.06]
   ],.49,.16,16);
   const roots = [
     [[-.05,.40,.12],[-.57,.21,.24],[-.95,.10,.40],[-1.15,.02,.58]],
@@ -65,37 +65,48 @@ export function buildHeroTree(B, scene, shadows) {
   ];
   roots.forEach((p,i)=>tube('sculpted root '+(i+1),p,.15,.025,8));
 
-  // Each silhouette group has its own actual twig branch, then hand-arranged
-  // leaves. Irregular masses overlap so no spherical "lollipop" clumps form.
-  const crowns = [
-    {x:-2.25,y:5.45,z:.20,rx:1.26,ry:.87,rz:1.04,n:78},
-    {x:-2.00,y:6.35,z:-.88,rx:1.13,ry:.89,rz:1.07,n:70},
-    {x:-1.15,y:7.43,z:-.25,rx:1.12,ry:.85,rz:1.12,n:84},
-    {x:.18,y:7.93,z:-.12,rx:1.21,ry:.97,rz:1.24,n:95},
-    {x:1.58,y:7.47,z:-.63,rx:1.22,ry:.83,rz:1.16,n:82},
-    {x:2.42,y:6.47,z:.10,rx:1.26,ry:.82,rz:1.10,n:86},
-    {x:1.93,y:5.68,z:1.05,rx:1.19,ry:.79,rz:1.01,n:68},
-    {x:.48,y:5.76,z:1.52,rx:1.27,ry:.80,rz:1.13,n:84},
-    {x:-1.19,y:5.88,z:1.36,rx:1.04,ry:.75,rz:1.06,n:74},
-    {x:.35,y:6.92,z:-1.75,rx:1.22,ry:.96,rz:.89,n:72},
-    {x:-.95,y:7.19,z:1.04,rx:1.10,ry:.90,rz:.90,n:70},
-    {x:1.20,y:6.98,z:1.20,rx:1.07,ry:.85,rz:.96,n:68},
-    {x:-2.84,y:5.95,z:-.33,rx:.78,ry:.67,rz:.91,n:39},
-    {x:2.78,y:6.13,z:-.48,rx:.71,ry:.60,rz:.85,n:35},
-    {x:.72,y:8.63,z:.24,rx:.74,ry:.52,rz:.72,n:44}
+  // Six major branches, not fifteen straight spikes. Deliberate branching
+  // gives a readable fork silhouette when camera rotates down to eye level.
+  const boughs = [
+    {name:'left lower',points:[[.00,3.50,.02],[-.40,4.12,.05],[-1.05,4.95,.22],[-1.83,5.90,.20]],a:.24,b:.048},
+    {name:'left high',points:[[-.05,4.10,-.04],[-.40,5.02,-.17],[-.80,6.35,-.46],[-1.11,7.42,-.32]],a:.21,b:.040},
+    {name:'center crown',points:[[.12,4.55,-.08],[.17,5.65,-.22],[.24,6.67,-.35],[.34,7.85,-.21]],a:.21,b:.041},
+    {name:'right high',points:[[.13,4.06,-.08],[.72,5.01,-.28],[1.16,6.13,-.49],[1.73,7.20,-.50]],a:.23,b:.045},
+    {name:'right low',points:[[.15,3.64,.06],[.72,4.42,.29],[1.55,5.10,.55],[2.13,6.23,.72]],a:.25,b:.048},
+    {name:'front sheltered',points:[[-.06,3.93,.10],[.08,4.72,.69],[.18,5.45,1.24],[.34,6.40,1.65]],a:.18,b:.039}
   ];
-  crowns.forEach((g,i)=>{
-    const h=3.62+(i%4)*.18;
-    tube('visible forking limb '+(i+1),[
-      [0,h,0],[g.x*.27,h+.65,g.z*.28],
-      [g.x*.65,g.y-.55,g.z*.7],[g.x,g.y+.06,g.z]
-    ],.18,.026,8);
-  });
+  for(const b of boughs)tube('sculpted main bough / '+b.name,b.points,b.a,b.b,11);
+  // Cluster centers describe asymmetric layered foliage, not individual tree trunks.
+  // Increased internal density and overlap preserves foliage mass from all viewpoints.
+  const crowns = [
+    {x:-2.12,y:5.58,z:.22,rx:1.22,ry:.80,rz:1.05,n:120},
+    {x:-1.92,y:6.33,z:-.71,rx:1.18,ry:.86,rz:1.04,n:100},
+    {x:-1.06,y:7.26,z:-.32,rx:1.25,ry:.84,rz:1.08,n:118},
+    {x:.26,y:7.85,z:-.16,rx:1.29,ry:.91,rz:1.24,n:139},
+    {x:1.48,y:7.27,z:-.53,rx:1.22,ry:.85,rz:1.16,n:118},
+    {x:2.18,y:6.48,z:.31,rx:1.28,ry:.81,rz:1.12,n:124},
+    {x:1.78,y:5.84,z:1.12,rx:1.16,ry:.78,rz:1.02,n:90},
+    {x:.42,y:5.84,z:1.50,rx:1.15,ry:.82,rz:1.04,n:93},
+    {x:-1.15,y:5.80,z:1.30,rx:1.13,ry:.83,rz:1.00,n:96},
+    {x:.28,y:6.91,z:-1.58,rx:1.21,ry:.91,rz:.94,n:99},
+    {x:-.90,y:7.08,z:1.13,rx:1.11,ry:.83,rz:.98,n:106},
+    {x:1.02,y:6.98,z:1.16,rx:1.16,ry:.82,rz:1.01,n:109},
+    {x:.40,y:8.51,z:.05,rx:.83,ry:.58,rz:.76,n:61}
+  ];
+  // Four fine secondary branches are attached to actual bough ends only.
+  // We deliberately avoid the original 15 trunk-to-tip spokes.
+  const shoots=[
+    [[-1.16,5.17,.14],[-1.66,5.52,.85],[-1.92,5.91,1.14]],
+    [[-1.03,6.40,-.41],[-1.32,6.88,.29],[-1.46,7.23,.72]],
+    [[1.36,6.13,-.48],[1.77,6.39,.27],[2.09,6.69,.83]],
+    [[.21,5.69,1.12],[.72,5.87,1.31],[1.21,6.20,1.45]]
+  ];
+  shoots.forEach((pts,i)=>tube('hidden curved secondary twig '+i,pts,.080,.017,7));
 
   // Leaf = curved ribbon with real sculpted edges, tapered end and raised midrib.
   // Drawn into one batch with individually shaded vertices for performance.
   const positions=[],indices=[],colors=[],uvs=[];
-  const dark=C('#416759'),mid=C('#79a277'),sun=C('#bcd090'),light=C('#dbe0ad');
+  const dark=C('#315c49'),mid=C('#608d68'),sun=C('#9fc481'),light=C('#cbdc9c');
   function put(position, color, uv) {
     positions.push(position.x,position.y,position.z);
     colors.push(color.r,color.g,color.b,1);
@@ -128,14 +139,14 @@ export function buildHeroTree(B, scene, shadows) {
     const point=V(g.x,g.y,g.z);
     for(let i=0;i<g.n;i++) {
       const az=rand()*Math.PI*2,co=rand()*2-1;
-      const radius=.34+.67*Math.sqrt(rand());
+      const radius=.17+.78*Math.sqrt(rand());
       const shell=V(Math.cos(az)*Math.sqrt(1-co*co),co,Math.sin(az)*Math.sqrt(1-co*co));
       const center=point.add(V(shell.x*g.rx*radius,shell.y*g.ry*radius,shell.z*g.rz*radius));
-      const outward=V(shell.x+(.2-rand()*.4),shell.y*.65+.32+(rand()-.5)*.5,shell.z+(.2-rand()*.4));
-      const hue=clamp(.4+.23*shell.y+(.15*center.y/9)+(rand()-.5)*.8,0,1);
+      const outward=V(shell.x*.72+(rand()-.5)*.58,shell.y*.43+.08+(rand()-.5)*.48,shell.z*.72+(rand()-.5)*.58);
+      const hue=clamp(.39+.33*shell.y+.13*center.y/9+(rand()-.5)*.58,0,1);
       const base=B.Color3.Lerp(hue<.5?dark:mid,hue<.5?mid:sun,hue<.5?hue*2:(hue-.5)*2);
       // Dark underside, colorful sunlit crown, but never uniform flat green.
-      blade(center,outward,.34+rand()*.22,.09+rand()*.085,base,(rand()-.5)*1.2);
+      blade(center,outward,.39+rand()*.22,.116+rand()*.095,base,(rand()-.5)*1.0);
       leafCount++;
     }
   });
@@ -146,11 +157,12 @@ export function buildHeroTree(B, scene, shadows) {
   leafMesh.useVertexColors=true;leafMesh.hasVertexAlpha=false;
   const leavesMat=new B.StandardMaterial('matte hand-colored foliage with leaf gradients',scene);
   leavesMat.diffuseColor=C('#ffffff');
-  leavesMat.ambientColor=C('#465b40');
+  leavesMat.ambientColor=C('#334d35');
   leavesMat.specularColor=C('#0b160e');
   leavesMat.backFaceCulling=false;
   leavesMat.twoSidedLighting=true;
   leafMesh.material=leavesMat;shadows?.addShadowCaster(leafMesh);
+  leafMesh.receiveShadows = true; // Leaf clusters shade one another for dimensional depth.
 
   // Painted blossom geometry batched into ONE mesh, not hundreds of draw calls.
   const flowerPositions=[],flowerIndices=[],flowerColors=[];
@@ -189,5 +201,5 @@ export function buildHeroTree(B, scene, shadows) {
   floralData.normals=[];B.VertexData.ComputeNormals(flowerPositions,flowerIndices,floralData.normals);
   floralData.applyToMesh(flowerMesh);flowerMesh.useVertexColors=true;flowerMesh.hasVertexAlpha=false;
   flowerMesh.material=leavesMat;flowerMesh.parent=treeRoot;
-  return {root:treeRoot,stats:{leaves:leafCount,blossoms:blossomCount,branches:crowns.length,source:'Custom geometry, no external model'}};
+  return {root:treeRoot,stats:{leaves:leafCount,blossoms:blossomCount,branches:boughs.length,clusters:crowns.length,source:'Custom geometry, no external model'}};
 }

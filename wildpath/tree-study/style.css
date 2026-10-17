@@ -119,3 +119,7 @@ body.tree-study-v9 .quick-compare{letter-spacing:.04px}
 /* Pass 20: compact tree comparison, trunk/branch framing on small phones. */
 body.tree-study-v10 .quick-compare{letter-spacing:.04px}
 @media(max-width:690px){body.tree-study-v10 .identity p{max-width:270px}}
+
+/* Tree Study 11.0: retain the smaller Android viewing controls. */
+body.tree-study-v11 .quick-compare{letter-spacing:.04px}
+@media(max-width:690px){body.tree-study-v11 .identity p{max-width:280px}}

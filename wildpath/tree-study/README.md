@@ -1,21 +1,25 @@
-# Wildpath Tree Study 10.0 — Trunk Character & Branch Weight (Pass 20)
+# Wildpath Tree Study 11.0 — Lower Trunk & Softer Fork (Pass 21)
 
-**Public preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=20
+Preview: https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=21
 
-**Compare against unchanged 9.0:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?tree=v9&rev=20
+The user explicitly requested a shorter visible trunk and a lower crown nearer the supplied lush stylized fantasy tree reference. Version 10 was visually too angular and generated root claws and a giant dark fork junction on Samsung Galaxy A51. This pass corrects the actual wood geometry, not only colors or test labels.
 
-The user wanted to work on the trunk while keeping the improved-but-not-finished 9.0 canopy as a separate, unchanged baseline. This pass strictly changes the *wood*, not the leaves.
+## Changes
+- New `tree-model-v11.js`, constructed with **the identical 9.0 foliage algorithm and nine crown descriptors**.
+- Shifts all crown centers rigidly **0.62 units downward** so foliage starts lower and the trunk-to-crown ratio approaches the target reference. Blossom positions follow the same crowns. All relative lobe/leaf positions and shading are unchanged.
+- Replaces v10's hand-ring wood meshes with Babylon's smooth curved **tube sweeps**, no huge artificial fork bulge or flat-sided knot.
+- Trunk top is lowered and the first support branches start around **Y=2.66–3.14** rather than the v10 fork at Y=3.28–4.01, with shorter visible wood leading into foliage.
+- More gentle painted umber bark, no nearly-black patches.
+- Root foot uses a gentle bell flare and three very short buttress paths that end at or just below the soil edge. No long, projecting claws.
+- Keeps six softly tapered main branches and four secondary stems inside foliage.
+- All previous versions 1–10 remain available in the independent Tree Study viewer. No main game files touched.
 
-## Design
-- New `tree-model-v10.js`, preserves 9.0's nine authored non-rendered crown guides and the entire curved-leaf geometry algorithm/color distribution.
-- New sculpted wood geometry, not a generic smooth tube: cross-sectional ring mesh with shallow longitudinal ridges and asymmetry, vertex-tinted lit/shaded contours, softly animated-looking static curve without movement.
-- **Broader root collar:** a grounded base flare feeding into a tapering, gently curved shaft. Four short partially embedded buttress roots replace four long claw-like projections.
-- **Six load-bearing branches:** different thicknesses and curvatures; wider blending near the fork, narrower natural outer tips. Four subtly bent twigs complement them.
-- Darker neutral umber bark instead of red-orange, with restrained procedural painted lines and knots. All original leaf layers, geometry and dark crown inter-lobe shading remain.
-- Reuses the compact mobile camera/light controls, silhouette toggle, ground-stage geometry and shadows.
-- All variants v1–v9 remain selectable; v10 is the default only for the tree-study experiment. Production Wildpath remains untouched.
+## Comparison
+- 11.0 (default): `?rev=21`
+- 10.0 (previous trunk): `?tree=v10&rev=21`
+- 9.0 (pre-trunk wood): `?tree=v9&rev=21`
 
-## Technical acceptance
-Tree construction must yield 6 primary boughs, 4 small buttress roots, 4 secondary twigs, and 1 trunk. Real Babylon Mesh/VertexData geometry with finite vertices, legal face indices, smooth normals. Leaf and crown sections must stay text-identical to 9.0 aside from the displayed version of leaf batch names.
+## Checks and acceptance
+Validate geometry for finite vertices, correct leaf mesh indexes and positive swept-wood radii. Run GitHub unit/browser regression and wait for **successful GitHub Pages deploy**, not just a successful repository commit. On the user's phone, judge in near view and side view: shorter exposed trunk, lower first branching, smooth fork and a subtle root base, while retaining the 9.0 foliage quality. The canopy remains a prototype requiring separate refinements.
 
-Publish in **one atomic commit** to prevent concurrent GitHub Pages runs cancelling one another; verify Actions unit/browser checks and Pages deployment. Real Galaxy A51 frame-rate, bark shading and overall appearance still require mobile screenshots before accepting art direction. No paid assets.
+No paid art, external 3D imports or proprietary assets.

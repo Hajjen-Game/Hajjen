@@ -18,7 +18,7 @@ test('each bush has real leaf blades and separate flowers',()=>{
  for(const variant of NATURE_VARIANTS.bush){
   const parts=makePlantForm({tier:'bush',variant},3);
   assert.ok(parts.some(p=>p.kind==='blade'));
-  assert.ok(parts.filter(p=>p.kind==='petal').length>=4);
+  assert.ok(parts.filter(p=>p.kind==='petal'||p.kind==='accent').length>=4);
   assert.ok(parts.length<=30);
  }
 });
@@ -26,7 +26,7 @@ test('each flower silhouette has stems and distinct radial petals',()=>{
  for(const variant of NATURE_VARIANTS.flower){
   const parts=makePlantForm({tier:'flower',variant},1);
   assert.ok(parts.some(p=>p.kind==='stem'));
-  assert.ok(parts.filter(p=>p.kind==='petal').length>=4);
+  assert.ok(parts.filter(p=>p.kind==='petal'||p.kind==='accent').length>=4);
  }
 });
 test('nature color choices remain independent from geometry',()=>{

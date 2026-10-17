@@ -45,4 +45,5 @@ jobs:
             /tmp/wildpath/nature-fusion-garden.png
             /tmp/wildpath/living-water-pond.png
             /tmp/wildpath/living-water-gallery.png
+            /tmp/wildpath/willowglow-game-preview.png
           if-no-files-found: ignore

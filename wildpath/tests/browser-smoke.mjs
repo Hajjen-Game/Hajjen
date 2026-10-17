@@ -149,6 +149,25 @@ try{
     }
     console.log('PASS',mode,JSON.stringify(after));
   }
+  // Inspect the REAL playable open world with the authored Willowglow tree.
+  await page.goto('http://127.0.0.1:8000/wildpath/?willowglow=1&debug=1',
+    {waitUntil:'domcontentloaded',timeout:40000});
+  await page.waitForFunction(()=>window.__wildpathDebug?.read?.()?.willowglow,{timeout:45000});
+  const willowglow=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
+  assert.equal(willowglow.version,'11.0');
+  assert.ok(willowglow.meshes>=10,'Real 3D tree meshes expected, not placeholder blobs');
+  assert.ok(willowglow.leaves>3000);
+  assert.ok(willowglow.scale>=.5&&willowglow.scale<.8);
+  assert.equal(await page.$eval('#willowglowPreviewNote',el=>el.hidden),false);
+  await page.click('#playButton');
+  await page.waitForFunction(()=>window.__wildpathDebug.read().state==='play',{timeout:15000});
+  await new Promise(r=>setTimeout(r,1200));
+  await page.screenshot({path:'/tmp/wildpath/willowglow-game-preview.png'});
+  const live=await page.evaluate(()=>window.__wildpathDebug.read());
+  assert.ok(live.willowglow?.meshes>=10,'Tree remains in the world while playing');
+  assert.equal(live.mode,'open');
+  console.log('PASS WILLOWGLOW IN-GAME PREVIEW',JSON.stringify(live.willowglow));
+
   assert.deepEqual(errors.filter(e=>e.startsWith('PAGE ')),[],'No JavaScript runtime exceptions');
   console.log('Browser resource reports:',errors);
   await page.close();

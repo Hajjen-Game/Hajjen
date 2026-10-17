@@ -40,6 +40,17 @@ export function drawWaterSpell(g,e,p,worldScale){
   const u=clamp(e.elapsed/e.life,0,1),a=fade(u);
   const k=clamp(e.intensity,.6,2.15);
   const base=clamp(worldScale,5,19);
+  if(e.name==='Living Pond'){
+    const r=(8+u*33)*k;
+    stroke(g,p,r,.70,0xa2ffea,2.8,a*.88);
+    stroke(g,p,r*.67,.74,0xf4fffa,1.3,a*.74);
+    for(let i=0;i<7;i++){
+      const ang=i*TAU/7+e.seed*.08;
+      dot(g,p.x+Math.cos(ang)*r*.85,p.y+Math.sin(ang)*r*.64,
+        1.9,i%3?0xb6fcdd:0xffffff,a*.75);
+    }
+    return true;
+  }
   if(e.name==='Water Dart'){
     if(e.stage==='charge'||e.stage==='core'){
       stroke(g,p,5+u*10,.75,0xa1fffa,1.9,a*.9);

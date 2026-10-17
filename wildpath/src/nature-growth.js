@@ -202,7 +202,6 @@ export class NatureGrowth {
     region.root.position.set(region.x,0,region.z);
     region.meshes=[];
     region.age=0;
-    this.rebuildFusionDecor(region);
   }
   rebuildFusionDecor(region){
     for(const part of region.meshes)part.dispose();

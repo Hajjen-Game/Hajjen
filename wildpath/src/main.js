@@ -9,12 +9,12 @@ import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, melee
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=2.3.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=2.4.0';
 import {createOpenWorld} from './world-open.js?v=2.0.1';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
-import {NatureGrowth} from './nature-growth.js?v=2.2.1';
+import {NatureGrowth} from './nature-growth.js?v=2.4.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
@@ -79,8 +79,9 @@ void pixi.init();
 // Only the open world has living scenery. The original game stays intact.
 let natureLedger=makeNatureLedger();
 const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
-  pixi.stage('Nature Bloom','burst',{x:event.x,z:event.z,y:.6},
-    event.tier==='blossom'?1.95:event.tier==='tree'?1.55:event.tier==='bush'?1.2:.72);
+  pixi.stage('Nature Bloom','burst',{x:event.x,z:event.z,y:.6,
+    color:event.fxColor},
+    event.tier==='blossom'?2.12:event.tier==='tree'?1.82:event.tier==='bush'?1.35:.83);
   if(upgraded){
     const names={bush:'✿ BUSH',tree:'🌳 TREE',blossom:'🌸 BLOOM!'};
     floatingText({x:event.x,y:2.8,z:event.z},names[event.tier]||'✿ BLOOM','nature');
@@ -122,6 +123,25 @@ if(new URLSearchParams(location.search).has('debug')){
         const e=recordNatureKill(demo,{x:game.x+4,z:game.z+3,
           type:'bramble',time:at+i*.035});
         nature.apply(e,game);
+      }
+      return nature.snapshot();
+    },
+    // Visual QA only: a color/shape gallery showing six species-independent
+    // palettes and escalating plant sizes, without modifying the game build.
+    previewNatureGallery:()=>{
+      if(!nature||game.state!=='play')return null;
+      const at=game.time+.01,seed=makeNatureLedger();
+      seed.nextId=6001;
+      for(let i=0;i<6;i++){
+        const angle=i*Math.PI/3;
+        const x=game.x+Math.cos(angle)*10.1;
+        const z=game.z+Math.sin(angle)*10.1;
+        const kills=i===0?1:i===1?3:i===2?6:10;
+        for(let k=0;k<kills;k++){
+          const e=recordNatureKill(seed,{x,z,time:at+i*2+k*.03,
+            type:'mossling'});
+          nature.apply(e,game);
+        }
       }
       return nature.snapshot();
     },

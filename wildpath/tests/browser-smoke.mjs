@@ -91,6 +91,15 @@ try{
       console.log('PASS POWER BLOOM PACK',JSON.stringify(burst));
       await new Promise(r=>setTimeout(r,1100));
       await page.screenshot({path:'/tmp/wildpath/power-bloom-pack.png'});
+      const gallery=await page.evaluate(()=>window.__wildpathDebug.previewNatureGallery());
+      const colors=gallery?.palettes||{};
+      assert.ok(Object.values(colors).filter(n=>n>0).length>=6,
+        'A normal series of flowerings must demonstrate six independent palettes');
+      assert.ok(gallery.biggestScale>2,'Premium trees must be much larger');
+      assert.ok(gallery.tiers.bush>=1&&gallery.tiers.tree>=1&&gallery.tiers.blossom>=1);
+      await new Promise(r=>setTimeout(r,1450));
+      await page.screenshot({path:'/tmp/wildpath/nature-variety-gallery.png'});
+      console.log('PASS NATURE VARIETY',JSON.stringify(gallery));
       const restarted=await page.evaluate(()=>window.__wildpathDebug.restart());
       assert.equal(restarted.plants,0,'New rounds must clear all grown plants');
       assert.equal(restarted.upgrades,0,'New rounds reset plant evolution');

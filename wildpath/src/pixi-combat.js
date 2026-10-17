@@ -84,16 +84,19 @@ function spellEvent(g,e,p,scale){
   }
   // Nature Rebirth: clean, brief petals/leaves on spawn and tier upgrades.
   if(e.name==='Nature Bloom'&&e.stage==='burst'){
-    const width=clamp(e.intensity,.7,2),radius=(6+u*24)*width;
-    ellipse(g,p,radius,radius*.68,0xa4f1c1,Math.max(1,2.1*width),fade*.67);
-    for(let i=0;i<7;i++){
-      const a=(i+e.seed*.07)*TAU/7;
+    const width=clamp(e.intensity,.7,2.2),radius=(6+u*24)*width;
+    const blossom=e.color??0xeaa6c2;
+    ellipse(g,p,radius,radius*.68,blossom,Math.max(1,2.3*width),fade*.78);
+    ellipse(g,p,radius*.60,radius*.42,0xd9f7c1,1.05,fade*.45);
+    const petals=width>1.6?12:width>1.05?9:6;
+    for(let i=0;i<petals;i++){
+      const a=(i+e.seed*.07)*TAU/petals;
       const d=radius*(.38+u*.55);
       const q={x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d*.67};
-      const color=i%3===0?0xffe3b3:i%2===0?0xf3b8de:0xb1f6ce;
-      shard(g,q,a,clamp(4.2*width,3,11),2.0*width,color,fade*.92);
+      const color=i%5===0?0xfff2ce:i%3===0?0xb8dba7:blossom;
+      shard(g,q,a,clamp(4.2*width,3,12),2.0*width,color,fade*.92);
     }
-    dot(g,p,Math.max(1.6,4.4*(1-u)*width),0xf3ffcb,fade*.65);
+    dot(g,p,Math.max(1.6,5*(1-u)*width),0xffffe9,fade*.75);
     return;
   }
   // Pass 5: compact readable special moments, never multi-layered travel blobs.
@@ -454,7 +457,7 @@ export class WildpathPixiCombat {
     const life=stage==='burst'?(name==='Nature Bloom'?.74:.37):stage==='reaction'?.19:
       stage==='charge'?.20:stage==='core'?.23:stage==='aftermath'?.52:.3;
     this.effects.push({name,stage,x:point.x,z:point.z,y:point.y??1.3,
-      intensity,elapsed:0,life,seed:++this.sequence});
+      color:point.color,intensity,elapsed:0,life,seed:++this.sequence});
   }
   clear(){
     this.effects.length=0;

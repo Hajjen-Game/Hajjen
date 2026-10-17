@@ -41,4 +41,5 @@ jobs:
             /tmp/wildpath/open-world-energy.png
             /tmp/wildpath/nature-rebirth-blossom.png
             /tmp/wildpath/power-bloom-pack.png
+            /tmp/wildpath/nature-variety-gallery.png
           if-no-files-found: ignore

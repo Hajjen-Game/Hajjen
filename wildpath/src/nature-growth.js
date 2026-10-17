@@ -46,7 +46,7 @@ export class NatureGrowth {
     this.shadowTexture.hasAlpha=true;this.shadowTexture.update();
     const shadowMat=material(scene,'soft contact','#31483c');
     shadowMat.opacityTexture=this.shadowTexture;
-    shadowMat.disableLighting=true;shadowMat.alpha=.28;
+    shadowMat.disableLighting=true;shadowMat.alpha=.22;
     shadowMat.backFaceCulling=false;
     this.materials.push(shadowMat);
     this.shadowSource=B.MeshBuilder.CreateGround('rebirth shadow source',
@@ -96,8 +96,8 @@ export class NatureGrowth {
   attachShadow(entry){
     if(entry.shadow)entry.shadow.dispose();
     const shadow=this.shadowSource.createInstance('soft contact '+entry.id);
-    const size=entry.tier==='blossom'?4.7:entry.tier==='tree'?3.9:
-      entry.tier==='bush'?2.1:.95;
+    const size=entry.tier==='blossom'?3.15:entry.tier==='tree'?2.80:
+      entry.tier==='bush'?1.65:.76;
     const s=size*entry.look.scale;
     shadow.position.set(entry.x,-.110,entry.z);
     shadow.scaling.set(s,1,s*.81);

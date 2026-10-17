@@ -34,3 +34,8 @@ button:focus-visible,.back:focus-visible{outline:3px solid #d3a36c;outline-offse
 .scorecard .eyebrow{font-size:9px;letter-spacing:.8px}
 .hint{left:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);font-size:10px}
 }
+/* Pass 12 – unobtrusive in-view version comparison */
+.compare{display:inline-flex;margin-top:10px;color:#356856;font-weight:800;font-size:12px;text-decoration:none;border-bottom:1px solid #8ba99c;padding-bottom:3px;max-width:100%}
+.compare:hover{color:#1d453b;border-color:#1d453b}
+.compare:focus-visible{outline:3px solid #d3a36c;outline-offset:3px}
+@media(max-width:690px){.compare{font-size:11px;margin-top:8px}}

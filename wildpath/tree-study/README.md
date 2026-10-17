@@ -1,25 +1,28 @@
-# Wildpath – Tree Study 5.0 (Pass 15)
+# Wildpath — Tree Study 6.0 (Pass 16)
 
 **Preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
 
-Tree Study 5.0 continues the user-approved hand-crafted fantasy tree goal: separately readable, rounded leaf bouquets made entirely from actual overlapping leaves, with deep inner green and bright warm leaf tips. This remains a free **isolated art test**. No production Wildpath combat, terrain or progression files are changed.
+## Why a new approach
+After reviewing 5.0 on a Galaxy A51, the art direction was not yet at the approved reference. The main problems were radial "flower rosettes", repeated identical foliage, pale minty color and too many separated canopy chunks. This pass **does not simply add more leaves** and does not use the earlier 3.0 smooth canopy blobs.
 
-## Differences from 4.0
-- Reduce the visual merger of ten foliage clouds to **nine named, staggered bouquets** with subtle visible breaks between them. Six curved primary limbs/trunk are kept from the successful Tree Study 2.0 foundation.
-- Separate every bouquet into genuinely shaded inner leaf fans and lighter exterior fans. Two batched leaf meshes keep draw calls low while creating more readable layered depth. No 3.0 solid green canopy shells and no imported meshes.
-- Distribute patches consistently using the golden angle rather than randomly oriented sprays. Leaf tips point in coherent directions within each patch.
-- Maintain almost exactly 4.0's leaf budget (~2.8k leaves), avoiding the "just add leaves" problem.
-- Preserve clean broad neutral translucent canopy shadow and contact shade. **Turning shadows off now also disables the shadow overlays**.
-- Mobile-first **focus view** hides the large information card by default. The Info button restores it; a small floating 4.0 comparison link stays visible.
+## What was implemented
+- Model `tree-model-v6.js` derives from 5.0; 5.0 and earlier versions are preserved.
+- **Nine asymmetric, interlocking crowns**, each with individually designed spread, vertical hang, and sweeping direction.
+- **Leaves attach along the lengths of bending twig-like growth axes in alternating, unequal pairs**, rather than a radial 360° center. Pendant leaves droop softly at branch tips.
+- Distinct shaded forest-green leaves on the interior and richer olive/sunlit greens on exposed layers, assembled into two vertex-colored meshes for efficient rendering.
+- Fewer (14) blossom motifs so leaf form remains the focus. Original curved trunk, six primary branches, textured bark and roots retained.
+- Real-time trunk/branch shadows and a soft neutral canopy/contact shadow; shadows toggle also disables the soft overlay.
+- Mobile review remains distraction-free with optional info card, orbiting camera and warm/soft lighting controls.
 
-## Comparison
-- **5.0 default** – `/wildpath/tree-study/`
-- **4.0** – `/wildpath/tree-study/?tree=v4`
-- **3.0** – `/wildpath/tree-study/?tree=v3`
-- **2.0** – `/wildpath/tree-study/?tree=v2`
-- **1.0** – `/wildpath/tree-study/?tree=v1`
+## A/B comparisons
+- New 6.0: `/wildpath/tree-study/`
+- 5.0: `/wildpath/tree-study/?tree=v5`
+- 4.0: `/wildpath/tree-study/?tree=v4`
+- 3.0: `/wildpath/tree-study/?tree=v3`
+- 2.0: `/wildpath/tree-study/?tree=v2`
+- 1.0: `/wildpath/tree-study/?tree=v1`
 
 ## Acceptance criteria
-Judge primarily from *side*, *front* and *elevated Wildpath camera* on Android. Each bouquet should retain its visual identity rather than merge into a generic spiky cloud; dark gaps should create depth without making foliage muddy. Inspect leaf-patch direction and compare FPS against 4.0. Code and static verification do **not** prove aesthetic parity with the approved reference. User screenshots remain the acceptance gate.
+Review on Android from Wildpath camera, straight-on side and overhead: reduced star/rosette appearance, visibly varied foliage silhouette, organic drooping and no flat plastic blobs. Monitor real FPS, compare with 5.0 and determine whether the user-approved reference now feels closer.
 
-No paywalled assets, third-party 3D generation plugins or original game changes.
+**Limitations:** Static code validation alone does not prove visual improvement or mobile FPS; do not claim this level is reached without screenshots/user evaluation. No production Wildpath files modified and no paid assets used.

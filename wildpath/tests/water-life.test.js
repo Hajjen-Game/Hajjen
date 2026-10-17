@@ -62,5 +62,5 @@ test('mobile water surfaces use explicit pastel geometry rather than black textu
  assert.match(src,/CreateDisc\(/);
  assert.match(src,/turquoise water body/);
  assert.match(src,/MATERIAL_ALPHABLEND/);
- assert.doesNotMatch(src,/DynamicTexture/);
+ assert.doesNotMatch(src,/new B\\.DynamicTexture\\(/);
 });

@@ -1,4 +1,4 @@
-import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=2.1.0';
+import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=2.3.0';
 import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.7.0';
 import { BOARD_START, BOARD_END, moveOnRoad, projectToRoad } from './layout-v5.js?v=0.6.0';
 import { chooseAutoTarget } from './targeting.js?v=0.6.0';
@@ -9,11 +9,11 @@ import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, melee
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=2.1.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=2.3.0';
 import {createOpenWorld} from './world-open.js?v=2.0.1';
-import {OpenDirector} from './director-open.js?v=2.0.0';
+import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
-import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.2.0';
+import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=2.2.1';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
@@ -124,6 +124,23 @@ if(new URLSearchParams(location.search).has('debug')){
         nature.apply(e,game);
       }
       return nature.snapshot();
+    },
+    // Debug-only integration check: upgraded Crystal Bloom against 10 real
+    // enemies. This is not available in the ordinary game URL.
+    testPowerBurst:()=>{
+      if(!OPEN_WORLD||game.state!=='play')return null;
+      for(const e of game.enemies)e.alive=false;
+      game.target=null;
+      game.upgrades.add('bloom');game.upgrades.add('nova');
+      const anchor={x:game.x+6.5,z:game.z};
+      for(let i=0;i<10;i++){
+        spawnEnemy('mossling',{packAnchor:anchor,packIndex:i,packSize:10});
+        game.enemies[game.enemies.length-1].hp=8;
+      }
+      const before=game.kills;
+      game.cooldowns[1]=0;cast(1);
+      return {kills:game.kills-before,plants:nature.snapshot(),
+        remaining:game.enemies.filter(x=>x.alive).length};
     },
     restart:()=>{
       startGame();
@@ -418,8 +435,8 @@ function shardBurst(x,z,color,radius){
 function hurtEnemy(e,base,options={}){
   if(!e||!e.alive)return;
   const boosted=(game.classId==='caster'&&game.upgrades.has('critchill'))||(game.classId==='melee'&&game.upgrades.has('critsteel'));
-  const crit=Math.random()<(boosted?.24:.115);
-  const amount=base*(crit?1.85:1);
+  const crit=Math.random()<(boosted?(OPEN_WORLD?.33:.24):.115);
+  const amount=base*(crit?(OPEN_WORLD&&boosted?2.25:1.85):1);
   if(crit)game.crits++;
   e.hp-=amount;e.flash=crit?.26:.17;
   e.recoil=Math.max(e.recoil||0,crit?.28:.16);

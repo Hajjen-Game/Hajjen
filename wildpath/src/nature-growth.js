@@ -2,7 +2,7 @@
 // Decorative only: no physics, obstruction or changes to combat/targeting.
 import {NATURE_MAX_PLANTS,NATURE_MAX_TREES} from './nature-rebirth.js';
 import {WILD_RADIUS} from './open-layout.js';
-import {planNatureFusions,fusionRadius,FUSION_MAX_REGIONS,regionSummary} from './nature-fusion.js?v=2.6.0';
+import {planNatureFusions,fusionRadius,FUSION_MAX_REGIONS,regionSummary} from './nature-fusion.js?v=2.6.1';
 import {makePlantForm,describePlantForm} from './nature-forms.js?v=2.5.2';
 import {NATURE_PALETTES,NATURE_PALETTE_IDS,chooseNatureLook,natureVisibility}
   from './nature-variety.js';
@@ -64,7 +64,7 @@ export class NatureGrowth {
     })){
       const mat=material(scene,'living earth '+kind,color);
       mat.opacityTexture=this.shadowTexture;
-      mat.disableLighting=true;mat.alpha=.24;mat.backFaceCulling=false;
+      mat.disableLighting=true;mat.alpha=.60;mat.backFaceCulling=false;
       this.materials.push(mat);this.meadowMaterials[kind]=mat;
     }
     this.paletteMeshes={};
@@ -209,7 +209,7 @@ export class NatureGrowth {
     region.ground.material=this.meadowMaterials[region.kind];
     // One modest cohesive group replaces multiple individual mesh hierarchies.
     // Stable deterministic positions and mixed petals, not random clumped orbs.
-    const count=Math.min(8,3+Math.floor(region.count/3));
+    const count=Math.min(9,4+Math.floor(region.count/3));
     const radius=region.radius*.62;
     for(let i=0;i<count;i++){
       const angle=i*2.399963+region.id*.47;

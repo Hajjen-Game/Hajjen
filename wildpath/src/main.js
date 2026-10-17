@@ -14,7 +14,7 @@ import {createOpenWorld} from './world-open.js?v=2.5.0';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
-import {NatureGrowth} from './nature-growth.js?v=2.6.0';
+import {NatureGrowth} from './nature-growth.js?v=2.6.1';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
@@ -90,8 +90,8 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
   pixi.stage('Nature Fusion','burst',{x:event.x,z:event.z,y:.22,
     color:event.kind==='enchanted'?0xcdb1ee:event.kind==='grove'?0xbce6af:0xcde6a4},
     event.kind==='enchanted'?1.75:1.15);
-  const labels={meadow:'✿ MEADOW',thicket:'❀ FLOWER BED',
-    grove:'🌳 GROVE',enchanted:'✧ ENCHANTED GROVE'};
+  const labels={meadow:'✿ MEADOW',thicket:'❀ FLOWERS',
+    grove:'🌳 GROVE',enchanted:'✧ MAGIC GROVE'};
   floatingText({x:event.x,y:2.15,z:event.z},labels[event.kind],'nature');
 }}):null;
 function spellStage(name,stage,point,intensity=1,cue='launch'){
@@ -173,6 +173,7 @@ if(new URLSearchParams(location.search).has('debug')){
       if(!nature)return null;
       const n=Math.min(150,Math.max(0,Math.ceil(seconds/.05)));
       for(let i=0;i<n;i++)nature.update(.05,game);
+      updateHud();
       return nature.snapshot();
     },
     // Debug-only integration check: upgraded Crystal Bloom against 10 real

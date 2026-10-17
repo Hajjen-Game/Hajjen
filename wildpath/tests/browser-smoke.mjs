@@ -119,6 +119,9 @@ try{
         'Fusion must replace individual plant meshes, not just add grass');
       assert.ok(fused.regions<=22,'Combined patches have a strict rendering cap');
       assert.ok(fused.tiers.blossom>=1,'Rare trees survive spatial fusion');
+      const gardenHud=await page.$eval('#natureBadge',el=>el.textContent);
+      assert.ok(gardenHud.includes(fused.regions+' GROVES'),
+        'HUD must show actual visible fusion regions');
       console.log('PASS LIVING WORLD NATURE FUSION',JSON.stringify(fused));
       await page.screenshot({path:'/tmp/wildpath/nature-fusion-garden.png'});
       const restarted=await page.evaluate(()=>window.__wildpathDebug.restart());

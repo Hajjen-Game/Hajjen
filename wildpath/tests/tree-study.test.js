@@ -36,6 +36,8 @@ test('Silhouette is defined first, before curved leaves are distributed',()=>{
  const counts=[...model.matchAll(/leaves:(\d+),lean:/g)].map(x=>Number(x[1]));
  assert.equal(counts.length,9);
  assert.equal(counts.reduce((a,b)=>a+b,0),2711);
+ assert.match(model,/const count=inner\?Math\.round\(g\.leaves\*\.25\):g\.leaves/);
+ assert.match(model,/if\(!inner&&i%6===0\)/);
  assert.match(model,/const GOLDEN_ANGLE=2\.399963229728653/);
  assert.match(model,/tangential/);
  assert.match(model,/function addLeaf\(/);

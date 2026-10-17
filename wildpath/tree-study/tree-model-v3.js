@@ -135,7 +135,7 @@ export function buildHeroTree(B, scene, shadows) {
     }
     for(let ti=0;ti<LAT_SEG;ti++)for(let ai=0;ai<WIDTH_SEG;ai++){
       const a=offset+ti*(WIDTH_SEG+1)+ai,b=a+WIDTH_SEG+1;
-      massIndices.push(a,b,a+1,a+1,b,b+1);
+      massIndices.push(a,a+1,b,a+1,b+1,b); // outward-facing sculpted foliage surface
     }
   }
   const volume=new B.Mesh('sculpted foliage pavilions / connected painted masses',scene);

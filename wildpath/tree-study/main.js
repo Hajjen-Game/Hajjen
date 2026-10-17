@@ -13,10 +13,10 @@ scene.imageProcessingConfiguration.toneMappingEnabled=true;
 scene.imageProcessingConfiguration.toneMappingType=B.ImageProcessingConfiguration.TONEMAPPING_ACES;
 scene.imageProcessingConfiguration.exposure=1.20;
 scene.imageProcessingConfiguration.contrast=1.10;
-const camera=new B.ArcRotateCamera('art directed presentation camera',-Math.PI*.62,1.01,17.8,V(0,4.1,0),scene);
-camera.lowerRadiusLimit=12.5;camera.upperRadiusLimit=31;
+const camera=new B.ArcRotateCamera('art directed presentation camera',-Math.PI*.62,1.01,mobile?25:17.8,V(0,4.1,0),scene);
+camera.lowerRadiusLimit=mobile?20:12.5;camera.upperRadiusLimit=mobile?43:31;
 camera.lowerBetaLimit=.37;camera.upperBetaLimit=1.37;
-camera.minZ=.07;camera.fov=.67;
+camera.minZ=.07;camera.fov=mobile?.73:.67;
 camera.wheelPrecision=32;
 camera.pinchPrecision=90;
 camera.angularSensibilityX=1700;camera.angularSensibilityY=1750;
@@ -70,7 +70,7 @@ const flowerPetal=[makeMat('peach flower','#e8b9a1'),makeMat('cream flower','#f6
  makeMat('lilac flower','#d7c2db')];
 const centers=makeMat('butter yellow flower centers','#e2ba72');
 const stoneMat=makeMat('pale round river rock','#bdbea6','#272922');
-for(let i=0;i<30;i++){
+for(let i=0;i<16;i++){
  const angle=rnd()*Math.PI*2,radius=1.5+Math.sqrt(rnd())*5.0,x=Math.cos(angle)*radius,z=Math.sin(angle)*radius;
  const blades=2+(i%3);
  for(let j=0;j<blades;j++){
@@ -112,7 +112,7 @@ function apply(){
 $('time').addEventListener('click',()=>{mode=(mode+1)%2;apply();});
 $('angle').addEventListener('click',()=>{
  isHigh=!isHigh;camera.beta=isHigh?.63:1.01;
- camera.radius=isHigh?21.5:17.8;
+ camera.radius=isHigh?(mobile?30:21.5):(mobile?25:17.8);
  $('angle').textContent=isHigh?'◈ Kameravy: Wildpath':'◈ Kameravy: nära';
 });
 $('shadows').addEventListener('click',()=>{

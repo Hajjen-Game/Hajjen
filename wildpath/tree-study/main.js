@@ -1,4 +1,6 @@
-import {buildHeroTree} from './tree-model.js?v=11.1';
+import {buildHeroTree as buildV1} from './tree-model-v1.js?v=11.1';
+import {buildHeroTree as buildV2} from './tree-model.js?v=12.0';
+const compareV1=new URLSearchParams(location.search).get('tree')==='v1';
 const B=window.BABYLON;
 const $=id=>document.getElementById(id);
 if(!B){$('error').hidden=false;$('error').textContent='Babylon.js kunde inte laddas. Kontrollera anslutningen.';throw Error('Babylon unavailable');}
@@ -11,8 +13,8 @@ scene.clearColor=B.Color4.FromHexString('#e7e9ddff');
 scene.ambientColor=C('#a9b7a0');
 scene.imageProcessingConfiguration.toneMappingEnabled=true;
 scene.imageProcessingConfiguration.toneMappingType=B.ImageProcessingConfiguration.TONEMAPPING_ACES;
-scene.imageProcessingConfiguration.exposure=1.20;
-scene.imageProcessingConfiguration.contrast=1.10;
+scene.imageProcessingConfiguration.exposure=1.09;
+scene.imageProcessingConfiguration.contrast=1.17;
 const camera=new B.ArcRotateCamera('art directed presentation camera',-Math.PI*.62,1.01,mobile?25:17.8,V(0,4.1,0),scene);
 camera.lowerRadiusLimit=mobile?20:12.5;camera.upperRadiusLimit=mobile?43:31;
 camera.lowerBetaLimit=.37;camera.upperBetaLimit=1.37;
@@ -23,17 +25,17 @@ camera.angularSensibilityX=1700;camera.angularSensibilityY=1750;
 camera.panningSensibility=0;camera.inertia=.76;
 camera.attachControl(canvas,true);
 const hemi=new B.HemisphericLight('bright bounce from soft ivory sky',V(-.12,1,.28),scene);
-hemi.diffuse=C('#e2f0d9');hemi.groundColor=C('#898f7c');hemi.intensity=.85;
+hemi.diffuse=C('#dfead4');hemi.groundColor=C('#6c7967');hemi.intensity=.76;
 const sun=new B.DirectionalLight('warm key light / left',V(-.60,-1,.25),scene);
-sun.position=V(-11,21,-8);sun.diffuse=C('#ffe0b4');sun.intensity=2.05;
+sun.position=V(-11,21,-8);sun.diffuse=C('#ffe0b4');sun.intensity=1.90;
 sun.shadowFrustumSize=28;sun.autoCalcShadowZBounds=true;
 const shadows=new B.ShadowGenerator(mobile?1024:1536,sun);
 shadows.usePercentageCloserFiltering=true;
 shadows.filteringQuality=B.ShadowGenerator.QUALITY_HIGH;
 shadows.bias=.0008;shadows.normalBias=.035;
-shadows.setDarkness(.36);
+shadows.setDarkness(.28);
 const fill=new B.PointLight('subtle shadow-side peach fill',V(7,9,5),scene);
-fill.diffuse=C('#e9d2a5');fill.intensity=.38;
+fill.diffuse=C('#eed4bb');fill.intensity=.28;
 const makeMat=(name,color,shine='#171c12')=>{
  const m=new B.StandardMaterial(name,scene);
  m.diffuseColor=C(color);m.specularColor=C(shine);
@@ -62,8 +64,12 @@ for(let i=0;i<2400;i++){
  ctx.beginPath();ctx.ellipse(x,y,w,w*.6,rnd()*7,0,2*Math.PI);ctx.fill();
 }
 grassTex.update();earthMat.diffuseTexture=grassTex;
-const hero=buildHeroTree(B,scene,shadows);
-$('count').textContent=hero.stats.leaves.toLocaleString('sv-SE')+' individuella blad · '+hero.stats.branches+' grenar';
+const hero=(compareV1?buildV1:buildV2)(B,scene,shadows);
+$('count').textContent=hero.stats.leaves.toLocaleString('sv-SE')+' blad · '+hero.stats.branches+' huvudgrenar';
+$('versionTitle').textContent=compareV1?'Tree Study 1.0':'Tree Study 2.0';
+$('compareLink').href=compareV1?'./?tree=v2':'./?tree=v1';
+$('compareLink').textContent=compareV1?'Visa nya trädet (2.0) ↗':'Jämför mot 1.0 ↗';
+$('count').title=compareV1?'Originalet från pass 11':'Tätare krona och sex huvudgrenar från pass 12';
 // Small sculpted rooted understory; subdued to keep scrutiny on the main object.
 const moss=makeMat('emerald understory','#6c9978'),bright=makeMat('ivory grass','#b5c692');
 const flowerPetal=[makeMat('peach flower','#e8b9a1'),makeMat('cream flower','#f6ddba'),
@@ -99,8 +105,8 @@ for(let i=0;i<16;i++){
 }
 scene.environmentIntensity=.7;
 const modes=[
- {name:'varmt',sky:'#e7e9dd',sun:'#ffe0b4',s:2.05,hemi:'#e2f0d9',h:.85},
- {name:'mjukt',sky:'#dee7e3',sun:'#fff5dc',s:1.55,hemi:'#e1e9f8',h:1.04}
+ {name:'varmt',sky:'#e6e8da',sun:'#ffe0bc',s:1.90,hemi:'#dfead4',h:.76},
+ {name:'mjukt',sky:'#e0e9e2',sun:'#fff3d8',s:1.65,hemi:'#ddece7',h:.82}
 ];
 let mode=0,isHigh=false,hasShadows=true;
 function apply(){

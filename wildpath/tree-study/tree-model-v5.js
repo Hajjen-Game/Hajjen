@@ -178,7 +178,7 @@ export function buildHeroTree(B, scene, shadows) {
       if(right.lengthSquared()<.01)right=V(1,0,0);
       const up=B.Vector3.Cross(facing,right).normalize();
       const lit=layer>.72, palette=lit?outerBatch:innerBatch;
-      const count=11+(p%3);
+      const count=10+(p%3); // Keep triangle budget close to Tree Study 4.0.
       for(let k=0;k<count;k++){
         const theta=2*Math.PI*k/count+(ci*.28)+(rand()-.5)*.16;
         const around=right.scale(Math.cos(theta)).add(up.scale(Math.sin(theta)));

@@ -19,17 +19,18 @@ export class LivingWater {
       {width:128,height:128},scene,false);
     const ctx=this.texture.getContext();
     const gradient=ctx.createRadialGradient(64,64,3,64,64,63);
-    gradient.addColorStop(0,'rgba(102,235,222,.80)');
-    gradient.addColorStop(.30,'rgba(75,201,218,.77)');
-    gradient.addColorStop(.67,'rgba(72,177,192,.64)');
-    gradient.addColorStop(.83,'rgba(135,230,210,.44)');
+    gradient.addColorStop(0,'rgba(61,173,216,.97)');
+    gradient.addColorStop(.30,'rgba(53,163,208,.92)');
+    gradient.addColorStop(.67,'rgba(64,180,204,.85)');
+    gradient.addColorStop(.83,'rgba(116,226,218,.54)');
     gradient.addColorStop(1,'rgba(110,224,205,0)');
     ctx.clearRect(0,0,128,128);ctx.fillStyle=gradient;
     ctx.fillRect(0,0,128,128);this.texture.hasAlpha=true;this.texture.update();
-    this.waterMaterial=mat(scene,'shallow turquoise water','#c2fff3',.84);
+    this.waterMaterial=mat(scene,'shallow turquoise water','#ffffff',.95);
     this.waterMaterial.diffuseTexture=this.texture;
     this.waterMaterial.useAlphaFromDiffuseTexture=true;
     this.waterMaterial.disableLighting=true;
+    this.waterMaterial.needDepthPrePass=true;
     this.padMat=mat(scene,'lily pads','#679c82',1);
     this.padAccent=mat(scene,'sunlit lily leaves','#93c6a0',1);
     this.lilyMat=mat(scene,'water lily petals','#f7dbeb',1);
@@ -85,7 +86,7 @@ export class LivingWater {
         leaf.parent=e.root;leaf.position.set(px,y,pz);
         leaf.scaling.set(sx,sy,sz);leaf.isPickable=false;e.lilies.push(leaf);
       };
-      pad(i%2?this.padAccentSource:this.padSource,-.068,x,z,.55,.075,.45);
+      pad(i%2?this.padAccentSource:this.padSource,-.068,x,z,.70,.075,.57);
       if(i%2===0){
         for(let j=0;j<4;j++){
           const a2=j*Math.PI/2;

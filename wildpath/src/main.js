@@ -15,7 +15,7 @@ import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=2.6.1';
-import {LivingWater} from './living-water.js?v=2.7.0';
+import {LivingWater} from './living-water.js?v=2.7.1';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
@@ -183,6 +183,17 @@ if(new URLSearchParams(location.search).has('debug')){
       for(let i=0;i<n;i++)nature.update(.05,game);
       updateHud();
       return nature.snapshot();
+    },
+    // Dedicated display-only scene for judging pond color and lily-pad scale.
+    previewWaterGarden:()=>{
+      if(!water||game.state!=='play')return null;
+      const at=game.time;
+      water.cast('tide',game.x+4,game.z+6,4.5,at);
+      for(let i=0;i<6;i++)water.kill(game.x+4.1,game.z+6.2,at+i*.035);
+      water.cast('rain',game.x-6,game.z+9,3.7,at);
+      water.update(.9,at+.9);game.waterSurfaces=water.surfaces();
+      updateHud();
+      return water.snapshot();
     },
     // Debug-only integration check: upgraded Crystal Bloom against 10 real
     // enemies. This is not available in the ordinary game URL.
@@ -1024,7 +1035,7 @@ function updateHud(){
     if(growth)label('natureBadge','✿ '+growth.planted+' BLOOMS · '+growth.regions+
       ' GROVES · '+growth.tiers.blossom+' RARE');
     const ponds=water?.snapshot();
-    if(ponds)label('waterBadge','≈ '+ponds.ponds+' PONDS · '+ponds.temporary+' RAIN POOLS');
+    if(ponds)label('waterBadge','≈ '+ponds.ponds+' PONDS · '+ponds.temporary+' WET');
   }
   label('directorLabel',director.stateLabel);
   label('healthText',Math.ceil(game.hp)+' / '+game.maxHp+(game.shield>0?' · Shield '+Math.round(game.shield):''));

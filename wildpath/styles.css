@@ -312,3 +312,11 @@ body:not(.wildpath-open) .classic-link{display:none}
 .wildpath-open .water-badge{padding:1px 2px 0;color:#a9f2ed;
   font-size:9px;font-weight:800;letter-spacing:.28px;text-shadow:0 0 7px #4aaab385}
 @media(max-width:380px){.wildpath-open .water-badge{font-size:8px}}
+
+/* Pass 9.1: avoid goal text covering the growing nature+water HUD. */
+@media(max-width:700px){
+  .wildpath-open #goal{top:209px;max-width:90vw}
+  .wildpath-open .water-badge{font-size:8px;letter-spacing:.12px;white-space:nowrap}
+  .wildpath-open .nature-badge{line-height:1.35}
+}
+@media(max-width:380px){.wildpath-open #goal{top:215px}}

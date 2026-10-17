@@ -44,4 +44,5 @@ jobs:
             /tmp/wildpath/nature-variety-gallery.png
             /tmp/wildpath/nature-fusion-garden.png
             /tmp/wildpath/living-water-pond.png
+            /tmp/wildpath/living-water-gallery.png
           if-no-files-found: ignore

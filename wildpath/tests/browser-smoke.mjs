@@ -136,6 +136,13 @@ try{
       assert.equal(restarted.fusedPlants,0,'New rounds clear fusion counters');
       const clearedPonds=await page.evaluate(()=>window.__wildpathDebug.read().water);
       assert.equal(clearedPonds.ponds,0,'New rounds must remove old water');
+      const waterGarden=await page.evaluate(()=>window.__wildpathDebug.previewWaterGarden());
+      assert.equal(waterGarden.ponds,1,'Preview must grow one permanent lily pond');
+      assert.equal(waterGarden.rarePonds,1,'Six nearby kills create an ornate lily pond');
+      assert.equal(waterGarden.temporary,1,'Rainfall creates a distinct temporary pool');
+      await new Promise(r=>setTimeout(r,700));
+      await page.screenshot({path:'/tmp/wildpath/living-water-gallery.png'});
+      console.log('PASS LIVING WATER GALLERY',JSON.stringify(waterGarden));
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');

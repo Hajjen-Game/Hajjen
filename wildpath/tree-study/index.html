@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e1e8d9">
+<meta name="description" content="Wildpath Tree Study 1.0, one hand-shaped fantasy tree to evaluate our free art pipeline">
+<title>Wildpath · Tree Study 1.0</title>
+<link href="./style.css?v=11.1" rel="stylesheet">
+</head>
+<body>
+<canvas id="scene" aria-label="Interactive Wildpath tree showcase" tabindex="0"></canvas>
+<div class="topbar">
+  <div class="identity">
+    <span class="eyebrow">WILDPATH / PASS 11</span>
+    <h1>One beautiful tree.</h1>
+    <p>Tree Study 1.0 · Hand-sculpted 3D test</p>
+  </div>
+  <a class="back" href="../">Till Wildpath ↗</a>
+</div>
+<div class="mode">
+  <div class="controls">
+    <button type="button" id="angle">◈ Kameravy: nära</button>
+    <button type="button" id="time">☀ Ljus: varmt</button>
+    <button type="button" id="shadows">◉ Skuggor: på</button>
+  </div>
+</div>
+<div class="scorecard">
+  <span class="eyebrow">OBJECT QUALITY CHECK</span>
+  <h2>Willowglow</h2>
+  <p>Ett enda träd. Formgivna blad, levande grenar, mjukt ljus och en lugn palett.</p>
+  <p class="secondary">0 kr · Egen 3D-geometri · Inga externa trädmodeller</p>
+  <div class="meta"><span id="count">Bygger modellen…</span><span id="fps"></span></div>
+</div>
+<div class="hint">Dra för att rotera · Nyp / scrolla för att zooma</div>
+<div id="error" hidden role="alert"></div>
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script type="module" src="./main.js?v=11.1"></script>
+</body>
+</html>

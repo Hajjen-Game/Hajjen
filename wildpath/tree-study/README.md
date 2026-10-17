@@ -1,15 +1,26 @@
-# Wildpath — Pass 12: Tree Study 2.0
+# Wildpath — Tree Study 3.0 (Pass 13)
 
-**Live comparison:** `/wildpath/tree-study/` (v2.0) and `/wildpath/tree-study/?tree=v1` (archived v1 geometry). The page includes an A/B link. The game at `/wildpath/` is untouched.
+**Preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
 
-## What changed
-- Retains the distinctive arched trunk, roots, sculpted leaf mesh and flowering accents praised in Tree Study 1.0.
-- Replaces the 15 visible spoke-like canopy tubes with **6 continuous, gracefully tapering main boughs**, plus four short concealed twigs.
-- Reorganizes foliage into 13 overlapping clusters totaling **1,373 individually shaped leaves** (1.0 had 1,049). Leaves are modestly wider and more horizontally layered to reduce the see-through effect and the spiky silhouette in low camera angles.
-- Improves leaf-color depth (deeper forest-greens and warm light edges), introduces intra-canopy shadow receiving, gently increases bark brushstroke detail, and retunes key/fill/ambient lighting to avoid washed-out cream-green tones.
-- Preserves the original code at `tree-model-v1.js`; the viewer loads it with `?tree=v1`. Comparison takes place under the same new lighting, so the A/B mainly isolates changes to geometry and foliage.
+### Design intent
+After 1.0→2.0 yielded only a modest visual improvement, the user elected to leave Meshy/Tripo and develop our existing free, original 3D tree further.
 
-## Evaluation criteria
-Compare screenshots in close and elevated view and record FPS on Android. If the new tree looks fuller and clearer from both positions without feeling like a green blob, continue to build an asset library. If not, revise the 3D-art production method before making a larger world.
+In 3.0 we replace 2.0's forest of exposed, spiky isolated leaves with:
+- **12 hand-arranged flattened irregular foliage masses** (sculpted vertex-color meshes), with asymmetry and scalloped contours
+- **775 curved and raised individual edge/detail leaves**, slightly larger and more intentionally layered than the prior 1,373-leaf crown
+- 6 continuous major branches from 2.0, retaining the original curved trunk, nuanced bark and flowers
+- softly painted light/shade transitions over canopy volumes instead of harsh planar shadow noise
+- diffuse transparent radial canopy and root-contact shadows (the trunk and branches remain real-time shadow casters)
+- softer warm/cool lighting and clear A/B version controls
 
-No paid or third-party foliage, and no changes to combat or the existing Wildpath world. Code and imports are checked; a real Android render must still be reviewed by the user.
+No external 3D AI service, paid asset or imported Meshy file is used. No main Wildpath gameplay or nature-system file is changed.
+
+### A/B versions
+- Default \`/wildpath/tree-study/\`: new 3.0
+- \`/wildpath/tree-study/?tree=v2\`: previous 2.0
+- \`/wildpath/tree-study/?tree=v1\`: original 1.0
+
+### Validation
+Unit checks verify version links, 3D mesh construction and foliage shadow approach. Mobile browser rendering and how natural the crown looks remain **subject to user evaluation**, not assumed from code. Watch FPS and compare side/back/elevated angles and the softness of cast shadows.
+
+Keep user feedback as art direction; do not add more leaves by default if shape is the underlying problem.

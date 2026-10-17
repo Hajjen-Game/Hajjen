@@ -26,19 +26,30 @@ export class OpenDirector {
     if(this.phase==='peak'&&this.phaseTime>4.8){this.phase='relax';this.phaseTime=0;}
     if(this.phase==='relax'&&this.phaseTime>4.0){this.phase='build';this.phaseTime=0;}
     if(this.phase==='relax')return;
-    const limit=Math.min(21,7+this.stage*2);
+    const limit=Math.min(30,8+this.stage*3);
     if(count>=limit)return;
     this.spawnTimer-=dt;
     if(this.spawnTimer>0)return;
-    let type='mossling';
-    const roll=Math.random();
-    if(this.stage>=4&&!this.guardianSent&&this.kills>5&&roll<.16){
-      type='guardian';this.guardianSent=true;
-    }else if(this.stage>=2&&roll<.22)type='ember';
-    else if(this.stage>=1&&roll<.41)type='bramble';
-    game.spawnEnemy(type);
-    const pace=Math.max(.56,1.30-this.stage*.08);
-    this.spawnTimer=random(pace*.70,pace*1.16)+(this.stress>.7?.20:0);
+    // Waves now arrive in small, tight PACKS. This creates real opportunities
+    // for AoE kills and 3/6/10 Nature Rebirth evolutions.
+    // The pressure-aware cap prevents endless enemy accumulation on mobile.
+    const pack=this.stage<1?1:this.stage<3?2:
+      this.stage<5?3:this.phase==='peak'?5:4;
+    const size=Math.max(0,Math.min(pack,limit-count));
+    const anchor={x:game.x,z:game.z};
+    for(let i=0;i<size;i++){
+      let type='mossling';
+      const roll=Math.random();
+      if(this.stage>=4&&!this.guardianSent&&this.kills>5&&roll<.09){
+        type='guardian';this.guardianSent=true;
+      }else if(this.stage>=2&&roll<.18)type='ember';
+      else if(this.stage>=1&&roll<.42)type='bramble';
+      game.spawnEnemy(type,{packAnchor:anchor,packIndex:i,packSize:size});
+    }
+    // Lower density during relief windows; no instant hard scaling whenever
+    // players unlock a new power.
+    const pace=Math.max(.78,1.58-this.stage*.06);
+    this.spawnTimer=random(pace*.82,pace*1.24)+(this.stress>.76?.38:0);
   }
   get stateLabel(){return this.ready?'MAGIC READY':this.phase==='relax'?'BREATHING ROOM':this.phase==='peak'?'WILD SURGE':'GROWING MAGIC';}
   get progress(){return Math.max(0,Math.min(1,this.kills/30));}

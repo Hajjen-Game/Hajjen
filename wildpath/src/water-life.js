@@ -74,3 +74,20 @@ export function waterState(ledger){
     temporary:ledger.spots.length-ponds.length,pondsMade:ledger.pondsMade,
     rarePonds:ponds.filter(s=>s.rare).length};
 }
+
+const WATER_BOOSTS=Object.freeze({
+  double:['Twin Streams','Fire two automatic water darts instead of one.'],
+  triple:['Fourfold Current','Fire FOUR stronger water darts across the glade.'],
+  snowfield:['Rain Garden','Rainfall spreads to 5.2m with faster pulses and a splash on impact.'],
+  bloom:['Tidal Surge','Tidal Bloom expands to 5.4m and hits for 51 damage.'],
+  critchill:['Deep Current','Increases critical hit chance and water magic damage.'],
+  shield:['Lagoon Ward','Strengthen Tide Guard and slow close enemies.'],
+  cascade:['Rushing Cascade','Fallen enemies create chain reactions of crashing water.'],
+  nova:['Grand Tidal Bloom','7.3m tidal explosion for 78 damage plus four secondary water bursts.'],
+  hailstorm:['Monsoon','6.7m Rainfall with a 42-damage opening splash and rapid 26-damage pulses.'],
+  glintstorm:['Five Streams','Fire FIVE stronger water darts; each hit splashes five nearby enemies.'],
+  chain:['Ricochet Water','Water Dart splashes onto two nearby enemies on impact.'],
+  cascadebloom:['Living Deluge','Your cascading water can spread through two waves of fallen enemies.']
+});
+export function waterBoostName(id,fallback){return WATER_BOOSTS[id]?.[0]||fallback;}
+export function waterBoostDescription(id,fallback){return WATER_BOOSTS[id]?.[1]||fallback;}

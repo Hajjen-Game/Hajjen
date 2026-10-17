@@ -307,3 +307,8 @@ body:not(.wildpath-open) .classic-link{display:none}
 
 /* Nature Forms & Depth: wood and foliage live in Babylon, no HUD overlay changes. */
 .wildpath-open .nature-badge{letter-spacing:.25px}
+
+/* Living Water: compact secondary readout without enlarging the combat HUD. */
+.wildpath-open .water-badge{padding:1px 2px 0;color:#a9f2ed;
+  font-size:9px;font-weight:800;letter-spacing:.28px;text-shadow:0 0 7px #4aaab385}
+@media(max-width:380px){.wildpath-open .water-badge{font-size:8px}}

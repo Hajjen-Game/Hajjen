@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#d3e9c4" />
   <meta name="description" content="Wildpath — a cozy-looking, fast-paced fantasy survival adventure." />
-  <title>Wildpath 2.6.1 · Living World & Nature Fusion</title>
-  <link rel="stylesheet" href="./styles.css?v=2.6.0" />
+  <title>Wildpath 2.7.0 · Water Magic & Living Water</title>
+  <link rel="stylesheet" href="./styles.css?v=2.7.0" />
 </head>
 <body>
   <main id="app">
@@ -19,7 +19,7 @@
         <div class="glass hud-left">
           <div class="hud-label"><span id="className">Glintweaver</span><span class="sep">·</span><span id="stageName">GLADE 1 / 4</span></div>
           <div class="health-track"><div id="healthFill"></div></div>
-          <div id="energyPanel" class="energy-panel"><div class="energy-top"><span>✦ MAGIC ENERGY</span><span id="energyText">0 / 6</span></div><div class="energy-track"><div id="energyFill"></div></div><div id="natureBadge" class="nature-badge">✿ 0 BLOOMS · 0 TREES · 0 RARE</div></div>
+          <div id="energyPanel" class="energy-panel"><div class="energy-top"><span>✦ MAGIC ENERGY</span><span id="energyText">0 / 6</span></div><div class="energy-track"><div id="energyFill"></div></div><div id="natureBadge" class="nature-badge">✿ 0 BLOOMS · 0 GROVES · 0 RARE</div><div id="waterBadge" class="water-badge">≈ 0 PONDS · 0 RAIN POOLS</div></div>
           <div class="stats-small"><span id="healthText">100 / 100</span><span id="directorLabel">CALM</span></div>
         </div>
         <div class="glass hud-score">
@@ -32,10 +32,10 @@
       <div id="goal" class="goal">Follow the trail · Survive the wilds</div>
       <div id="surgeBanner" class="surge-banner" aria-live="polite">✦ POWER SURGE! ✦</div>
       <div id="bottomHud">
-        <div class="ability basic"><div class="ability-key">AUTO</div><div class="ability-name" id="basicName">Glint Dart</div><div class="ability-desc">Basic attack</div></div>
-        <button class="ability special" data-slot="0"><div class="ability-key">1</div><div class="ability-icon">✧</div><div class="ability-name" id="spellName0">Winter Pool</div><div class="cooldown" id="cooldown0"></div></button>
-        <button class="ability special" data-slot="1"><div class="ability-key">2</div><div class="ability-icon">✦</div><div class="ability-name" id="spellName1">Crystal Bloom</div><div class="cooldown" id="cooldown1"></div></button>
-        <button class="ability special" data-slot="2"><div class="ability-key">3</div><div class="ability-icon">❖</div><div class="ability-name" id="spellName2">Pale Guard</div><div class="cooldown" id="cooldown2"></div></button>
+        <div class="ability basic"><div class="ability-key">AUTO</div><div class="ability-name" id="basicName">Water Dart</div><div class="ability-desc">Basic attack</div></div>
+        <button class="ability special" data-slot="0"><div class="ability-key">1</div><div class="ability-icon">✧</div><div class="ability-name" id="spellName0">Rainfall</div><div class="cooldown" id="cooldown0"></div></button>
+        <button class="ability special" data-slot="1"><div class="ability-key">2</div><div class="ability-icon">✦</div><div class="ability-name" id="spellName1">Tidal Bloom</div><div class="cooldown" id="cooldown1"></div></button>
+        <button class="ability special" data-slot="2"><div class="ability-key">3</div><div class="ability-icon">❖</div><div class="ability-name" id="spellName2">Tide Guard</div><div class="cooldown" id="cooldown2"></div></button>
       </div>
       <button id="soundButton" class="small-button sound-button" aria-label="Mute spell sounds" aria-pressed="true">♪</button>
       <button id="pauseButton" class="small-button" aria-label="Pause">Ⅱ</button>
@@ -49,14 +49,14 @@
       <section class="menu-panel">
         <div class="mini-title">CHOOSE YOUR PATH</div>
         <div class="class-grid">
-          <button class="class-card selected" data-class="caster"><div class="class-symbol frost">✦</div><strong>Glintweaver</strong><small>Ranged · Ice & light</small><span>Kite enemies and shape the battlefield.</span></button>
+          <button class="class-card selected" data-class="caster"><div class="class-symbol frost">✦</div><strong>Glintweaver</strong><small>Ranged · Water & nature</small><span>Kite enemies and shape the battlefield.</span></button>
           <button class="class-card" data-class="melee"><div class="class-symbol steel">⚔</div><strong>Stoneblade</strong><small>Melee · Steel & shockwaves</small><span>Get close, carve through the crowd.</span></button>
         </div>
         <button id="playButton" class="primary">BEGIN JOURNEY <span>➜</span></button>
         <p class="key-help">WASD / Joystick · Auto targeting · 1 / 2 / 3 abilities · Move while casting</p>
         <a class="classic-link" href="?world=classic">Compare with the original trail version ↗</a>
       </section>
-      <div class="version">NATURE FUSION · v2.6.1</div>
+      <div class="version">LIVING WATER · v2.7.0</div>
     </div>
     <div id="boostScreen" class="screen" hidden>
       <section class="dialog large"><div class="overline">THE WILDS RESPOND</div><h2 id="boostHeading">Choose a wild blessing</h2><p id="boostSubtitle">Power up for the rest of this journey.</p><div id="boostOptions" class="boost-grid"></div></section>
@@ -68,6 +68,6 @@
     <div id="loadError" class="screen" hidden><section class="dialog"><h2>Couldn't load the 3D engine.</h2><p>Wildpath needs an internet connection the first time it loads Babylon.js. Reload when online.</p></section></div>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/main.js?v=2.6.1"></script>
+  <script type="module" src="./src/main.js?v=2.7.0"></script>
 </body>
 </html>

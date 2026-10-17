@@ -46,3 +46,12 @@ test('two overlapping wet zones never double-count a kill',()=>{
  waterKill(w,{x:1.7,z:0,time:2});
  assert.equal(w.spots.reduce((n,p)=>n+p.kills,0),1);
 });
+
+test('a mature lily pond gains rare status at six nearby kills',()=>{
+ const w=newWaterLedger();
+ waterCast(w,{x:0,z:0,kind:'tide',time:1,radius:3});
+ for(let i=0;i<5;i++)waterKill(w,{x:0,z:0,time:i+2});
+ const events=waterKill(w,{x:0,z:0,time:7});
+ assert.equal(events.length,1);assert.equal(events[0].evolved,true);
+ assert.equal(waterState(w).rarePonds,1);
+});

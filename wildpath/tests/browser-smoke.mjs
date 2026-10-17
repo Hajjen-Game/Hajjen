@@ -88,9 +88,14 @@ try{
         'Grand Bloom must kill a full pack through real combat');
       assert.ok(burst?.plants?.tiers.blossom>=1,
         'Ten rapid real kills must create a blossom tree');
+      assert.ok(burst?.water?.ponds>=1,
+        'A real upgraded Tidal Bloom must grow a permanent lily pond');
       console.log('PASS POWER BLOOM PACK',JSON.stringify(burst));
       await new Promise(r=>setTimeout(r,1100));
       await page.screenshot({path:'/tmp/wildpath/power-bloom-pack.png'});
+      const pondText=await page.$eval('#waterBadge',el=>el.textContent);
+      assert.match(pondText,/[1-8] PONDS/,'The pond counter must respond to AoE kills');
+      await page.screenshot({path:'/tmp/wildpath/living-water-pond.png'});
       const gallery=await page.evaluate(()=>window.__wildpathDebug.previewNatureGallery());
       const colors=gallery?.palettes||{};
       assert.ok(Object.values(colors).filter(n=>n>0).length>=6,
@@ -129,6 +134,8 @@ try{
       assert.equal(restarted.upgrades,0,'New rounds reset plant evolution');
       assert.equal(restarted.regions,0,'New rounds clear combined groves');
       assert.equal(restarted.fusedPlants,0,'New rounds clear fusion counters');
+      const clearedPonds=await page.evaluate(()=>window.__wildpathDebug.read().water);
+      assert.equal(clearedPonds.ponds,0,'New rounds must remove old water');
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');

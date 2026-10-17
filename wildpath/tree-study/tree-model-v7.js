@@ -149,7 +149,7 @@ export function buildHeroTree(B, scene, shadows) {
     const origin=V(g.x,g.y,g.z),phase=ci*1.61;
     for(let layer=0;layer<2;layer++){
       const inner=layer===0;
-      const count=inner?Math.round(g.leaves*.37):g.leaves;
+      const count=inner?Math.round(g.leaves*.25):g.leaves; // inner depth, mobile-friendly budget
       const density=inner?.69:.91;
       const batch=batches[inner?0:1];
       for(let i=0;i<count;i++){
@@ -186,7 +186,7 @@ export function buildHeroTree(B, scene, shadows) {
         leafCount++;
         // On alternating exposed samples, add a small *overlapping* leaf to
         // close pinholes without puffing out the outer silhouette.
-        if(!inner&&i%4===0){
+        if(!inner&&i%6===0){ // fewer occlusion leaves while preserving the envelope
           const second=direction.scale(.74).add(across.scale(.32)).normalize();
           const offset=base.subtract(n.scale(.05)).add(across.scale(.10));
           addLeaf(batch,offset,second,.31+rand()*.10,.126,

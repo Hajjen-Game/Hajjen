@@ -15,22 +15,16 @@ export class LivingWater {
     this.ledger=newWaterLedger();
     this.entries=new Map();
     this.time=0;
-    this.texture=new B.DynamicTexture('living water soft radial shoreline',
-      {width:128,height:128},scene,false);
-    const ctx=this.texture.getContext();
-    const gradient=ctx.createRadialGradient(64,64,3,64,64,63);
-    gradient.addColorStop(0,'rgba(61,173,216,.97)');
-    gradient.addColorStop(.30,'rgba(53,163,208,.92)');
-    gradient.addColorStop(.67,'rgba(64,180,204,.85)');
-    gradient.addColorStop(.83,'rgba(116,226,218,.54)');
-    gradient.addColorStop(1,'rgba(110,224,205,0)');
-    ctx.clearRect(0,0,128,128);ctx.fillStyle=gradient;
-    ctx.fillRect(0,0,128,128);this.texture.hasAlpha=true;this.texture.update();
-    this.waterMaterial=mat(scene,'shallow turquoise water','#ffffff',.95);
-    this.waterMaterial.diffuseTexture=this.texture;
-    this.waterMaterial.useAlphaFromDiffuseTexture=true;
-    this.waterMaterial.disableLighting=true;
-    this.waterMaterial.needDepthPrePass=true;
+    // Explicit pastel alpha-blended meshes replace a dark/black mobile
+    // DynamicTexture fallback. Three layered ovals soften the shore.
+    this.waterMaterial=mat(scene,'turquoise water body','#68cddd',.62);
+    this.edgeMaterial=mat(scene,'mint water shoreline','#91e5cf',.24);
+    this.glossMaterial=mat(scene,'bright water glimmer','#b4f2eb',.21);
+    for(const m of [this.waterMaterial,this.edgeMaterial,this.glossMaterial]){
+      m.disableLighting=true;
+      m.emissiveColor=m.diffuseColor.scale(.76);
+      m.transparencyMode=B.Material.MATERIAL_ALPHABLEND;
+    }
     this.padMat=mat(scene,'lily pads','#679c82',1);
     this.padAccent=mat(scene,'sunlit lily leaves','#93c6a0',1);
     this.lilyMat=mat(scene,'water lily petals','#f7dbeb',1);
@@ -63,11 +57,19 @@ export class LivingWater {
     }
     const root=new B.TransformNode('living water spot '+spot.id,this.scene);
     root.position.set(spot.x,0,spot.z);
-    const mesh=B.MeshBuilder.CreateGround('shallow water '+spot.id,
-      {width:1,height:1,subdivisions:1},this.scene);
-    mesh.parent=root;mesh.position.y=-.087;
-    mesh.material=this.waterMaterial;mesh.isPickable=false;
-    const entry={id:spot.id,root,mesh,data:{...spot},pond:Boolean(spot.permanent),
+    const layer=(name,material,y)=>{
+      const disc=B.MeshBuilder.CreateDisc(name+' '+spot.id,
+        {radius:1,tessellation:36},this.scene);
+      disc.rotation.x=Math.PI/2;
+      disc.parent=root;disc.position.y=y;
+      disc.material=material;disc.isPickable=false;
+      return disc;
+    };
+    const mesh=layer('water outer',this.edgeMaterial,-.084);
+    const inner=layer('water body',this.waterMaterial,-.081);
+    const sheen=layer('water reflection',this.glossMaterial,-.078);
+    const entry={id:spot.id,root,mesh,inner,sheen,
+      data:{...spot},pond:Boolean(spot.permanent),
       rare:Boolean(spot.rare),lilies:[],age:0};
     this.entries.set(spot.id,entry);
     if(entry.pond)this.addLilies(entry);
@@ -114,7 +116,8 @@ export class LivingWater {
   }
   release(e){
     for(const p of e.lilies)p.dispose();
-    e.mesh.dispose();e.root.dispose();this.entries.delete(e.id);
+    e.mesh.dispose();e.inner.dispose();e.sheen.dispose();
+    e.root.dispose();this.entries.delete(e.id);
   }
   update(dt,now){
     this.time+=dt;
@@ -125,8 +128,10 @@ export class LivingWater {
       const u=Math.min(1,e.age/(e.pond?1.1:.50));
       const grow=1-Math.pow(1-u,3);
       const pulse=1+Math.sin(this.time*1.75+e.id)*.018;
-      e.mesh.scaling.set(Math.max(.01,e.data.radius*2*grow*pulse),1,
-        Math.max(.01,e.data.radius*1.64*grow*pulse));
+      const rad=Math.max(.01,e.data.radius*grow*pulse);
+      e.mesh.scaling.set(rad*1.06,rad*.88,1);
+      e.inner.scaling.set(rad*.91,rad*.74,1);
+      e.sheen.scaling.set(rad*.50,rad*.42,1);
     }
   }
   snapshot(){return waterState(this.ledger);}
@@ -141,8 +146,7 @@ export class LivingWater {
   dispose(){
     this.clear();this.padSource.dispose();this.padAccentSource.dispose();
     this.lilySource.dispose();this.centerSource.dispose();
-    for(const m of [this.waterMaterial,this.padMat,this.padAccent,
-      this.lilyMat,this.centerMat])m.dispose();
-    this.texture.dispose();
+    for(const m of [this.waterMaterial,this.edgeMaterial,this.glossMaterial,
+      this.padMat,this.padAccent,this.lilyMat,this.centerMat])m.dispose();
   }
 }

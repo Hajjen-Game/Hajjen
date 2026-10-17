@@ -33,36 +33,42 @@ function shrub(out,variant,seed){
 function tree(out,variant,big,seed){
   // View is top-down/slightly tilted: crown mass is shifted behind the
   // trunk (positive Z), leaving the fork and lower trunk visible in front.
-  const h=big?1.75:1.48;
+  const h=big?1.90:1.63;
   const bend=Math.sin(seed)*.22;
-  out.push(part('bark',0,h*.29,-.43,.29,h*.60,.30,0,bend*.24));
-  out.push(part('bark',bend*.18,h*.73,-.26,.25,h*.49,.26,-.12,-bend*.30));
-  for(const [x,z,tilt] of [[-.62,-.05,.78],[.61,.13,-.72],[.05,.69,-.20]]){
-    out.push(part('branch',x*.47+bend*.1,h*.94,z*.54+.03,
-      .145,1.03,.15,-z*.60,tilt));
+  out.push(part('bark',0,h*.28,-.58,.33,h*.63,.31,0,bend*.24));
+  out.push(part('bark',bend*.18,h*.69,-.42,.27,h*.52,.25,-.12,-bend*.30));
+  for(const [x,z,tilt] of [[-.88,-.13,.81],[.85,.09,-.79],[.08,.67,-.24]]){
+    // Branches shifted toward the camera so the forks remain visible.
+    out.push(part('branch',x*.49+bend*.1,h*.88,z*.42-.36,
+      .18,1.17,.17,-z*.50,tilt));
   }
   const wide=variant==='wide',tall=variant==='tall',grove=variant==='grove';
   const grand=variant==='grand';
-  const clusters=grand?9:grove?8:wide?7:6;
-  const baseY=h+(tall?1.18:.78);
-  const spread=wide?1.42:tall?.82:grand?1.18:1.03;
+  const clusters=grand?10:grove?9:wide?9:8;
+  const baseY=h+(tall?1.21:.88);
+  const spread=wide?1.48:tall?.89:grand?1.18:1.05;
   for(let i=0;i<clusters;i++){
     const a=2*Math.PI*i/clusters+seed*.16;
     const r=(i%3===0?.30:i%3===1?.76:1.04)*spread;
-    const x=Math.cos(a)*r,z=.48+Math.sin(a)*r*.73;
+    const x=Math.cos(a)*r,z=.94+Math.sin(a)*r*.76;
     const lift=(i%3)*.23+(tall?i*.13:0);
-    const s=(big?1.12:.93)*(grand?1.13:1);
+    const s=(big?.95:.79)*(grand?1.10:1);
     out.push(part(i%3===0?'accent':i%2===0?'light':'leaf',
-      x,baseY+lift,z,s*(wide?1.1:.90),s*(tall?1.08:.71),
-      s*(wide?1.03:.86)));
+      x,baseY+lift,z,s*(wide?1.10:.91),s*(tall?1.03:.69),
+      s*(wide?1.03:.87)));
+    if(i%3===0){
+      // Small ovoid leaf tips break up the balloon silhouette.
+      out.push(part('blade',x*1.34,baseY+lift-.11,
+        .94+(z-.94)*1.30,.27,.18,.46,0,a));
+    }
   }
   // Floral caps break up the canopy surface without creating huge balls.
-  const n=big?7:3;
+  const n=big?6:3;
   for(let i=0;i<n;i++){
     const a=i*2.399963+seed*.1;
     const r=.39+(i%3)*.29;
     const x=Math.cos(a)*r*(wide?1.25:1);
-    const z=.43+Math.sin(a)*r*.67;
+    const z=.92+Math.sin(a)*r*.67;
     out.push(part(i%3===0?'accent':'petal',x,
       baseY+.50+(i%3)*.16,z,
       big?.31:.23,.17,big?.29:.20));

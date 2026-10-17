@@ -9,12 +9,12 @@ import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, melee
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=2.4.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=2.6.0';
 import {createOpenWorld} from './world-open.js?v=2.5.0';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
-import {NatureGrowth} from './nature-growth.js?v=2.5.2';
+import {NatureGrowth} from './nature-growth.js?v=2.6.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
@@ -86,6 +86,13 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
     const names={bush:'✿ BUSH',tree:'🌳 TREE',blossom:'🌸 BLOOM!'};
     floatingText({x:event.x,y:2.8,z:event.z},names[event.tier]||'✿ BLOOM','nature');
   }
+},onFusion:event=>{
+  pixi.stage('Nature Fusion','burst',{x:event.x,z:event.z,y:.22,
+    color:event.kind==='enchanted'?0xcdb1ee:event.kind==='grove'?0xbce6af:0xcde6a4},
+    event.kind==='enchanted'?1.75:1.15);
+  const labels={meadow:'✿ MEADOW',thicket:'❀ FLOWER BED',
+    grove:'🌳 GROVE',enchanted:'✧ ENCHANTED GROVE'};
+  floatingText({x:event.x,y:2.15,z:event.z},labels[event.kind],'nature');
 }}):null;
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
@@ -144,6 +151,21 @@ if(new URLSearchParams(location.search).has('debug')){
         }
       }
       return nature.snapshot();
+    },
+    // Test-only separate plants for a real asynchronous fusion sequence.
+    previewFusionGarden:()=>{
+      if(!nature||game.state!=='play')return null;
+      const before=nature.snapshot();
+      const center={x:game.x+8.6,z:game.z+4.8};
+      const id=9000+Math.floor(game.time)*100;
+      for(let i=0;i<7;i++){
+        const angle=i*2.399963;
+        nature.apply({kind:'create',id:id+i,
+          x:center.x+Math.cos(angle)*1.7,
+          z:center.z+Math.sin(angle)*1.55,
+          tier:i===0?'bush':'flower',species:'mossling'},game);
+      }
+      return {before,after:nature.snapshot()};
     },
     // Debug-only integration check: upgraded Crystal Bloom against 10 real
     // enemies. This is not available in the ordinary game URL.
@@ -975,7 +997,8 @@ function updateHud(){
     label('energyText',Math.min(game.energy,energyThreshold(director.stage))+' / '+energyThreshold(director.stage));
     $('energyFill').style.width=energyProgress(game.energy,director.stage)*100+'%';
     const growth=nature?.snapshot();
-    if(growth)label('natureBadge','✿ '+growth.plants+' BLOOMS · '+growth.tiers.tree+' TREES · '+growth.tiers.blossom+' RARE');
+    if(growth)label('natureBadge','✿ '+growth.planted+' BLOOMS · '+growth.regions+
+      ' GROVES · '+growth.tiers.blossom+' RARE');
   }
   label('directorLabel',director.stateLabel);
   label('healthText',Math.ceil(game.hp)+' / '+game.maxHp+(game.shield>0?' · Shield '+Math.round(game.shield):''));

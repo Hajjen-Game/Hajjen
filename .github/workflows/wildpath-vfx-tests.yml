@@ -42,4 +42,5 @@ jobs:
             /tmp/wildpath/nature-rebirth-blossom.png
             /tmp/wildpath/power-bloom-pack.png
             /tmp/wildpath/nature-variety-gallery.png
+            /tmp/wildpath/nature-fusion-garden.png
           if-no-files-found: ignore

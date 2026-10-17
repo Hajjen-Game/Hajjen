@@ -104,9 +104,25 @@ try{
       await new Promise(r=>setTimeout(r,1450));
       await page.screenshot({path:'/tmp/wildpath/nature-variety-gallery.png'});
       console.log('PASS NATURE VARIETY',JSON.stringify(gallery));
+      const fusionStart=await page.evaluate(()=>window.__wildpathDebug.previewFusionGarden());
+      assert.ok(fusionStart.after.plants>=fusionStart.before.plants+7,
+        'New flowers remain individually visible at first');
+      await page.waitForFunction(previous=>{
+        const now=window.__wildpathDebug.read().nature;
+        return now&&now.fusedPlants>=previous+3&&now.regions>=1;
+      },{timeout:13500,polling:230},fusionStart.before.fusedPlants);
+      const fused=await page.evaluate(()=>window.__wildpathDebug.read().nature);
+      assert.ok(fused.plants<fusionStart.after.plants,
+        'Fusion must replace individual plant meshes, not just add grass');
+      assert.ok(fused.regions<=22,'Combined patches have a strict rendering cap');
+      assert.ok(fused.tiers.blossom>=1,'Rare trees survive spatial fusion');
+      console.log('PASS LIVING WORLD NATURE FUSION',JSON.stringify(fused));
+      await page.screenshot({path:'/tmp/wildpath/nature-fusion-garden.png'});
       const restarted=await page.evaluate(()=>window.__wildpathDebug.restart());
       assert.equal(restarted.plants,0,'New rounds must clear all grown plants');
       assert.equal(restarted.upgrades,0,'New rounds reset plant evolution');
+      assert.equal(restarted.regions,0,'New rounds clear combined groves');
+      assert.equal(restarted.fusedPlants,0,'New rounds clear fusion counters');
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');

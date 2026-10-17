@@ -83,6 +83,17 @@ function spellEvent(g,e,p,scale){
     return;
   }
   // Nature Rebirth: clean, brief petals/leaves on spawn and tier upgrades.
+  if(e.name==='Nature Fusion'&&e.stage==='burst'){
+    const r=(10+u*55)*clamp(e.intensity,.8,1.8),tone=e.color??0xb4daa2;
+    ellipse(g,p,r,r*.72,tone,2.8,fade*.8);
+    ellipse(g,p,r*.67,r*.46,0xe9ffd2,1.25,fade*.72);
+    for(let i=0;i<9;i++){
+      const a=i*TAU/9+e.seed*.02;
+      const q={x:p.x+Math.cos(a)*r*.75,y:p.y+Math.sin(a)*r*.53};
+      shard(g,q,a+.34,5.5,2,i%3?0xf2dec9:tone,fade*.75);
+    }
+    return;
+  }
   if(e.name==='Nature Bloom'&&e.stage==='burst'){
     const width=clamp(e.intensity,.7,2.2),radius=(6+u*24)*width;
     const blossom=e.color??0xeaa6c2;
@@ -454,7 +465,7 @@ export class WildpathPixiCombat {
     if(stage==='burst'&&(name==='Steel Arc'||name==='Wide Arc')&&
        this.slashMode==='asset'&&this.addSlash(name,point,intensity))return;
     if(this.effects.length>=90)this.effects.shift();
-    const life=stage==='burst'?(name==='Nature Bloom'?.74:.37):stage==='reaction'?.19:
+    const life=stage==='burst'?(name==='Nature Fusion'?1.05:name==='Nature Bloom'?.74:.37):stage==='reaction'?.19:
       stage==='charge'?.20:stage==='core'?.23:stage==='aftermath'?.52:.3;
     this.effects.push({name,stage,x:point.x,z:point.z,y:point.y??1.3,
       color:point.color,intensity,elapsed:0,life,seed:++this.sequence});

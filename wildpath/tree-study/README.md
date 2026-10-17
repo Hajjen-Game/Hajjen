@@ -1,26 +1,27 @@
-# Wildpath — Tree Study 3.0 (Pass 13)
+# Wildpath — Tree Study 4.0 (Pass 14)
 
-**Preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
+Preview: https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
 
-### Design intent
-After 1.0→2.0 yielded only a modest visual improvement, the user elected to leave Meshy/Tripo and develop our existing free, original 3D tree further.
+## User-approved art direction
 
-In 3.0 we replace 2.0's forest of exposed, spiky isolated leaves with:
-- **12 hand-arranged flattened irregular foliage masses** (sculpted vertex-color meshes), with asymmetry and scalloped contours
-- **775 curved and raised individual edge/detail leaves**, slightly larger and more intentionally layered than the prior 1,373-leaf crown
-- 6 continuous major branches from 2.0, retaining the original curved trunk, nuanced bark and flowers
-- softly painted light/shade transitions over canopy volumes instead of harsh planar shadow noise
-- diffuse transparent radial canopy and root-contact shadows (the trunk and branches remain real-time shadow casters)
-- softer warm/cool lighting and clear A/B version controls
+The approved reference shows a handcrafted fantasy tree, with about 7–10 rounded leaf bouquets. Each bouquet is lush with abundant **individual overlapping 3D leaves**, distinctly dark core shadows and bright green sunlit tips. It does not resemble a stack of green pancake meshes (3.0) or a thin open cloud of stray leaves (2.0). The last image shared in the Wildpath conversation is a visual reference, not an imported 3D model.
 
-No external 3D AI service, paid asset or imported Meshy file is used. No main Wildpath gameplay or nature-system file is changed.
+### Implementation
 
-### A/B versions
-- Default \`/wildpath/tree-study/\`: new 3.0
-- \`/wildpath/tree-study/?tree=v2\`: previous 2.0
-- \`/wildpath/tree-study/?tree=v1\`: original 1.0
+- Rebuilt starting from the **2.0** model (curved bark, natural roots, six main branches); 2.0 and 3.0 source files remain unchanged.
+- New `tree-model-v4.js` draws **10 asymmetrical leaf bouquets**. Bouquets comprise **191 radial sprays** of actual bent, midrib-lifted leaf geometry with layered darker inner and brighter outer pigments.
+- Each spray is a separate hand-distributed arrangement around 3D branching directions, not a solid underlying sphere, mesh shell, or billboard; 280 extra outer-fringe leaves break up hard edges.
+- The prototype produces about 2,800 curved leaves as one batched vertex-colored canopy mesh to control browser draw calls. Geometry density is deliberate but **mobile FPS must be confirmed**.
+- Retains real trunk/branch shadows; uses soft neutral-tinted alpha-shadow beneath the canopy instead of sharp per-leaf ground artifacts.
+- No external AI-generated assets, Meshy/Tripo dependencies, paid resources or other production-game changes.
 
-### Validation
-Unit checks verify version links, 3D mesh construction and foliage shadow approach. Mobile browser rendering and how natural the crown looks remain **subject to user evaluation**, not assumed from code. Watch FPS and compare side/back/elevated angles and the softness of cast shadows.
+### A/B review
 
-Keep user feedback as art direction; do not add more leaves by default if shape is the underlying problem.
+- Default `/wildpath/tree-study/`: 4.0
+- `?tree=v2`: 2.0 (comparison)
+- `?tree=v3`: 3.0 (comparison)
+- `?tree=v1`: 1.0 (historic)
+
+### Acceptance criteria
+
+Compare the detailed leaf clumps from the side and elevated Wildpath camera. A pass requires substantially better handmade foliage than 2.0 and 3.0; a visual target of the final user-approved concept; no visible sphere/flat-blob artifacts; and playable Android frame rate. Code checks are not substitutes for live mobile screenshot feedback.

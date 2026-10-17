@@ -38,18 +38,26 @@ export function waterCast(ledger,{x,z,kind,time,radius=2.7}){
 }
 export function waterKill(ledger,{x,z,time}){
   if(!finite(x,z,time))return [];
-  const candidates=ledger.spots.filter(s=>!s.permanent && time<=s.expires &&
+  const candidates=ledger.spots.filter(s=>(s.permanent||time<=s.expires) &&
     distance(s,{x,z})<=s.radius*.95);
   if(!candidates.length)return [];
-  // Count a kill only ONCE in its closest wet area.
-  const spot=candidates.sort((a,b)=>distance(a,{x,z})-distance(b,{x,z}))[0];
+  // Prefer creating a new pond from active spell water over a nearby pond.
+  const spot=candidates.sort((a,b)=>Number(a.permanent)-Number(b.permanent) ||
+    distance(a,{x,z})-distance(b,{x,z}))[0];
   spot.kills++;
+  if(spot.permanent){
+    if(!spot.rare&&spot.kills>=WATER_POND_RARE){
+      spot.rare=true;spot.radius=Math.min(WATER_MAX_RADIUS,spot.radius*1.16);
+      return [{...spot,kind:'pond',promoted:false,evolved:true}];
+    }
+    return [];
+  }
   if(spot.kills<WATER_POND_KILLS)return [];
   if(ledger.spots.filter(s=>s.permanent).length>=WATER_MAX_PONDS){
     // Don't silently erase player-earned ponds.
     return [];
   }
-  spot.permanent=true;spot.rare=spot.kills>=WATER_POND_RARE;
+  spot.permanent=true;spot.rare=false;
   spot.radius=Math.min(WATER_MAX_RADIUS,Math.max(2.5,spot.radius*.75));
   ledger.pondsMade++;
   return [{...spot,kind:'pond',promoted:true}];

@@ -21,6 +21,7 @@ const S={
   'Magic Surge':{c:0xa1ffce,core:0xffffbb,dim:0x20b8a1},
   'Guard Block':{c:0x8dfbd9,core:0xffffff,dim:0x47b6a4},
   'Crystal Cascade':{c:0xb4a3ff,core:0xffffff,dim:0x585fc1},
+  'Glint Splash':{c:0x86efff,core:0xf2ffff,dim:0x369fb2},
   'Steel Arc':{c:0xffd28a,core:0xfff7cf,dim:0xb27749},
   'Wide Arc':{c:0xffcf8e,core:0xffffff,dim:0xb7754f},
   'Rushstrike':{c:0xffb977,core:0xfff2ca,dim:0xb96d55},
@@ -69,6 +70,18 @@ function spellEvent(g,e,p,scale){
   const fade=(1-smooth((u-.08)/.9))*Math.min(1,u*8+.3);
   const r=clamp(scale*1.8,10,33)*clamp(e.intensity,.5,2.1);
   const from=e.from?e.from:null;
+  if(e.name==='Glint Splash'&&e.stage==='burst'){
+    // A broad but CLEAN ring, not an oversized glint projectile tail.
+    const radius=(7+u*35)*clamp(e.intensity,.8,1.5);
+    ellipse(g,p,radius,radius*.74,0x72eeff,3,fade*.9);
+    ellipse(g,p,radius*.67,radius*.5,0xedffff,1.25,fade*.65);
+    for(let i=0;i<4;i++){
+      const a=i*Math.PI/2+e.seed*.05;
+      const q={x:p.x+Math.cos(a)*radius*.83,y:p.y+Math.sin(a)*radius*.63};
+      shard(g,q,a,9,2.1,0xc4faff,fade*.87);
+    }
+    return;
+  }
   // Nature Rebirth: clean, brief petals/leaves on spawn and tier upgrades.
   if(e.name==='Nature Bloom'&&e.stage==='burst'){
     const width=clamp(e.intensity,.7,2),radius=(6+u*24)*width;
@@ -166,7 +179,7 @@ function spellEvent(g,e,p,scale){
       if(e.name==='Crystal Bloom'){
         drawEclipsePixi(g,{spellId:'avalanche',type:'ability',kind:'avalanche-wave',
           seed:e.seed},p,p,u,k*1.08);
-        const radius=(14+u*56)*clamp(e.intensity,.8,1.7);
+        const radius=(14+u*56)*clamp(e.intensity,.8,2.1);
         ellipse(g,p,radius,radius*.77,0xb5a1ff,2.6,fade*.89);
         for(let i=0;i<6;i++){
           const a=i*TAU/6+e.seed*.03;
@@ -252,12 +265,17 @@ function drawPool(g,area,project,time,scale){
   g.ellipse(p.x,p.y,rx,ry).fill({color:0x69bce9,alpha:.22});
   ellipse(g,p,rx,ry,0xc6faff,3,.86);
   ellipse(g,p,rx*.86,ry*.84,0x67cbe9,1.5,.72);
-  for(let i=0;i<8;i++){
-    const a=i*TAU/6+time*.22;
+  for(let i=0;i<(area.radius>5.7?12:8);i++){
+    const count=area.radius>5.7?12:8;
+    const a=i*TAU/count+time*.22;
     const x=p.x+Math.cos(a)*rx*.64,y=p.y+Math.sin(a)*ry*.59;
     shard(g,{x,y},a+time*.32,clamp(scale*.68,5.2,11),2.2,0xe5ffff,.83);
     dot(g,{x:x+Math.sin(time*2+i)*3,y:y-4-Math.abs(Math.sin(time*3+i))*6},
-      1.8,0xd8fdff,.8);
+      area.radius>5.7?2.4:1.8,0xd8fdff,.8);
+    if(area.radius>5.7&&i%2===0){
+      const q={x:x+Math.sin(time*3+i)*7,y:y-Math.abs(Math.sin(time*5+i))*13};
+      shard(g,q,time+i,8.8,2,0xe6ffff,.78);
+    }
   }
 }
 function drawMagicPickups(g,pickups,project,time){

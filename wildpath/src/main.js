@@ -162,7 +162,8 @@ if(new URLSearchParams(location.search).has('debug')){
     },
     // Test-only separate plants for a real asynchronous fusion sequence.
     previewFusionGarden:()=>{
-      if(!nature||game.state!=='play')return null;
+      // Visual QA runs even while an unrelated Power Surge selection is paused.
+      if(!nature)return null;
       const before=nature.snapshot();
       const center={x:game.x+8.6,z:game.z+4.8};
       const id=9000+Math.floor(game.time)*100;
@@ -186,7 +187,7 @@ if(new URLSearchParams(location.search).has('debug')){
     },
     // Dedicated display-only scene for judging pond color and lily-pad scale.
     previewWaterGarden:()=>{
-      if(!water||game.state!=='play')return null;
+      if(!water)return null;
       const at=game.time;
       water.cast('tide',game.x+4,game.z+6,4.5,at);
       for(let i=0;i<6;i++)water.kill(game.x+4.1,game.z+6.2,at+i*.035);

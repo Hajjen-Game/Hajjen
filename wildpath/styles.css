@@ -304,3 +304,6 @@ body:not(.wildpath-open) .classic-link{display:none}
 .wildpath-open .boost-card.boost-offensive .boost-icon{
   text-shadow:0 0 14px #c9ffbc;color:#e6ffdb;
 }
+
+/* Nature Forms & Depth: wood and foliage live in Babylon, no HUD overlay changes. */
+.wildpath-open .nature-badge{letter-spacing:.25px}

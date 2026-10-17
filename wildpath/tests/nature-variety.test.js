@@ -43,8 +43,9 @@ test('canopy occlusion fades individual large trees near the player',()=>{
 test('actual Babylon canopy construction includes colored crowns, not only tiny flower dots',async()=>{
   const {readFileSync}=await import('node:fs');
   const renderer=readFileSync(new URL('../src/nature-growth.js',import.meta.url),'utf8');
-  assert.match(renderer,/const main=\(big\|\|variant==='wide'\|\|variant==='tall'\)\?m\.petal:m\.light/);
-  assert.match(renderer,/A\(m\.accent,0,crownH\+\.26/);
-  assert.match(renderer,/part\.visibility=visible/);
+  assert.match(renderer,/const anatomy=makePlantForm\(entry\.look,entry\.seed\)/);
+  assert.match(renderer,/this\.shadowSource=B\.MeshBuilder\.CreateGround/);
+  assert.match(renderer,/createRadialGradient/);
+  assert.match(renderer,/part\.visibility=/);
   assert.match(renderer,/NATURE_MAX_TREES/);
 });

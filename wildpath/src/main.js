@@ -10,11 +10,11 @@ import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from '
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
 import { WildpathPixiCombat } from './pixi-combat.js?v=2.4.0';
-import {createOpenWorld} from './world-open.js?v=2.0.1';
+import {createOpenWorld} from './world-open.js?v=2.5.0';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
-import {NatureGrowth} from './nature-growth.js?v=2.4.1';
+import {NatureGrowth} from './nature-growth.js?v=2.5.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;

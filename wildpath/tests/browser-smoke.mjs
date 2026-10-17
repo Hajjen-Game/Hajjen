@@ -97,6 +97,10 @@ try{
         'A normal series of flowerings must demonstrate six independent palettes');
       assert.ok(gallery.biggestScale>2,'Premium trees must be much larger');
       assert.ok(gallery.tiers.bush>=1&&gallery.tiers.tree>=1&&gallery.tiers.blossom>=1);
+      assert.ok(gallery.visibleBranches>=3,'Trees must have visible branches');
+      assert.ok(gallery.foliageClusters>=6,'Trees must have layered crown clusters');
+      assert.equal(gallery.contactShadows,gallery.plants,
+        'Every created plant needs a soft ground contact shadow');
       await new Promise(r=>setTimeout(r,1450));
       await page.screenshot({path:'/tmp/wildpath/nature-variety-gallery.png'});
       console.log('PASS NATURE VARIETY',JSON.stringify(gallery));

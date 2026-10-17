@@ -91,3 +91,23 @@ body.silhouette-active .scorecard{display:none}
  body.tree-study-v5 #silhouette{padding-inline:9px}
  .topbar .identity{max-width:min(270px,63vw)}
 }
+
+/* Pass 18: compact individual review controls; no giant translucent bar
+   obscuring the upper crown on portrait Android. Previous studies untouched. */
+body.tree-study-v8 .controls{
+  background:transparent;border:0;box-shadow:none;backdrop-filter:none;
+  padding:0;max-width:calc(100vw - 24px);gap:6px;
+}
+body.tree-study-v8 .controls button{
+  background:rgba(252,251,243,.92);
+  box-shadow:0 4px 16px rgba(39,67,47,.12),inset 0 0 0 1px rgba(207,224,205,.9);
+  backdrop-filter:blur(10px);border-radius:16px
+}
+body.tree-study-v8 .mode{top:calc(env(safe-area-inset-top) + 112px)}
+body.tree-study-v8 .scorecard .secondary{opacity:.65}
+@media(max-width:690px){
+ body.tree-study-v8 .mode{left:12px;top:calc(env(safe-area-inset-top) + 100px)}
+ body.tree-study-v8 .controls button{padding:9px 10px;font-size:10px}
+ body.tree-study-v8 .identity{max-width:min(245px,65vw)}
+ body.tree-study-v8 .hint{left:12px;font-size:10px}
+}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#dce6d0"><title>Wildpath · Visual Foundation · Pass 10</title>
+<link rel="stylesheet" href="./style.css?v=10.1"></head>
+<body>
+<canvas id="world" aria-label="3D-test av Wildpaths nya naturgrafik" tabindex="0"></canvas>
+<header class="top"><div class="identity"><div class="kicker">WILDPATH · PASS 10</div><h1>Visual Foundation</h1><p>Ny 3D-miljö · separat grafikexperiment</p></div><a class="back" href="../">Till spelet ↗</a></header>
+<section class="controls" aria-label="Grafikinställningar">
+  <div class="pill"><span class="light"></span><span id="status">Laddar 3D-miljön...</span></div>
+  <div class="actions"><button id="timeBtn" type="button">☀ Morgonljus</button><button id="viewBtn" type="button">◇ Kamera: diagonal</button><button id="shadowBtn" type="button">◉ Skuggor: på</button></div>
+</section>
+<aside class="note"><strong>Vad ska vi utvärdera?</strong><span>Objektens form · färger · material · ljus · skuggor</span><small>Riktiga texturerade träd och buskar (Quaternius CC0), inte våra tidigare sfärträd.</small></aside>
+<div class="footer"><span>WASD / piltangenter: utforska</span><span>Dra med musen / fingret för att titta · scrolla för zoom</span><span id="fps"></span></div>
+<div id="touch" aria-label="Virtuell joystick"><div id="knob"></div></div>
+<div id="error" role="alert" hidden></div>
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script type="module" src="./main.js?v=10.1"></script>
+</body></html>

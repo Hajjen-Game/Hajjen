@@ -15,6 +15,8 @@ import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=2.6.1';
+import {LivingWater} from './living-water.js?v=2.7.0';
+import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
@@ -94,10 +96,15 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
     grove:'🌳 GROVE',enchanted:'✧ MAGIC GROVE'};
   floatingText({x:event.x,y:2.15,z:event.z},labels[event.kind],'nature');
 }}):null;
+const water=OPEN_WORLD?new LivingWater(scene,{onPond:e=>{
+  pixi.stage('Living Pond','burst',{x:e.x,z:e.z,y:.20,color:0x9beee5},
+    e.rare?1.5:1.05);
+  floatingText({x:e.x,z:e.z,y:2.0},e.rare?'✧ LILY POND':'≈ POND','nature');
+}}):null;
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
   if(stage==='sound'){spellFX.sound(name,cue);return;}
-  if(pixi.ready)pixi.stage(name,stage,point,intensity);
+  if(pixi.ready)pixi.stage(visibleWaterSpell(name,OPEN_WORLD),stage,point,intensity);
   else spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity,
     directionX:point.dirX||0,directionZ:point.dirZ||0});
 }
@@ -106,7 +113,8 @@ const game={
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
   texts:[],pickups:[],energy:0,lastPickupSound:-10,surgeCelebrated:false,target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
-  cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
+  cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false,
+  waterSurfaces:[]
 };
 // Read-only instrumentation for manual QA and browser smoke tests (?debug=1).
 if(new URLSearchParams(location.search).has('debug')){
@@ -117,7 +125,7 @@ if(new URLSearchParams(location.search).has('debug')){
       enemies:game.enemies.filter(e=>e.alive).length,pickups:game.pickups.length,
       score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z,
       pixiReady:pixi.ready,pixiFailed:pixi.failed,
-      nature:nature?.snapshot()??null
+      nature:nature?.snapshot()??null,water:water?.snapshot()??null
     }),
     // Debug-only illustration/test: ten local simulated kills create one tree.
     // No score, combat, health, loot or permanent progression is changed.
@@ -191,7 +199,7 @@ if(new URLSearchParams(location.search).has('debug')){
       const before=game.kills;
       game.cooldowns[1]=0;cast(1);
       return {kills:game.kills-before,plants:nature.snapshot(),
-        remaining:game.enemies.filter(x=>x.alive).length};
+        water:water.snapshot(),remaining:game.enemies.filter(x=>x.alive).length};
     },
     restart:()=>{
       startGame();
@@ -298,6 +306,7 @@ function clearGame(){
   for(const p of game.pickups)releaseMesh(p.mesh);
   spellFX.clear();pixi.clear();
   nature?.clear();natureLedger=makeNatureLedger();
+  water?.clear();game.waterSurfaces=[];
   releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];game.pickups=[];game.energy=0;game.lastPickupSound=-10;game.surgeCelebrated=false;
@@ -323,9 +332,9 @@ function startGame(){
   game.heroRing=vfxRing(scene,game.classId==='caster'?'#9af4f5':'#f3d2a1',.87,.13);
   game.heroRing.position.set(game.x,.21,game.z);
   label('className',game.spec.name);
-  label('basicName',game.spec.basic);
+  label('basicName',visibleWaterSpell(game.spec.basic,OPEN_WORLD));
   game.spec.spells.forEach((name,i)=>{
-    label('spellName'+i,name);
+    label('spellName'+i,visibleWaterSpell(name,OPEN_WORLD));
     abilityButtons[i]?.classList.add('is-ready');
     abilityButtons[i]?.classList.remove('is-cooling');
   });
@@ -409,6 +418,7 @@ function scoreKill(enemy){
       x:enemy.x,z:enemy.z,type:enemy.type,time:game.time
     });
     nature?.apply(event,game);
+    water?.kill(enemy.x,enemy.z,game.time);
   }
   game.combo=game.comboLife>0?game.combo+1:1;
   game.comboLife=5.5;
@@ -569,7 +579,8 @@ function icePool(x,z){
   border.position.set(x,.25,z);
   ringBurst(x,z,'#d4fbff',1.8);
   game.areas.push({x,z,radius,life:power.life,tick:OPEN_WORLD?power.tick:0,
-    tickRate:power.tick,damage:power.damage,slow:power.slow,mesh,border});
+    tickRate:power.tick,damage:power.damage,slow:power.slow,mesh,border,water:OPEN_WORLD});
+  if(OPEN_WORLD)water?.cast('rain',x,z,Math.min(5.8,radius*.81),game.time);
   if(OPEN_WORLD&&power.entryDamage){
     spellStage('Winter Pool','burst',{x,z,y:.5},
       game.upgrades.has('hailstorm')?2.15:1.6);
@@ -601,6 +612,8 @@ function cast(slot){
     if(slot===1){
       const power=casterBloom(game.upgrades,OPEN_WORLD);
       const cx=target.x,cz=target.z;
+      if(OPEN_WORLD)water?.cast('tide',cx,cz,
+        Math.min(5.0,power.radius*.67),game.time);
       spellStage('Crystal Bloom','core',target,1.1);
       spellStage('Crystal Bloom','burst',target,power.intensity);
       shardBurst(cx,cz,'#bbaffb',power.radius*.65);
@@ -714,7 +727,7 @@ function basicAttack(){
         for(const child of shot.getChildMeshes())child.isVisible=false;}
       game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target:shotTarget,life:3.6,speed:17,
         damage:casterGlintDamage(game.upgrades,game.spec.baseDamage,OPEN_WORLD),
-        hostile:false,trail:0,spell:'Glint Dart',fxSeed:game.frame*17+i*31});
+        hostile:false,trail:0,spell:'Glint Dart',water:OPEN_WORLD,fxSeed:game.frame*17+i*31});
     }
   }else{
     const reach=game.upgrades.has('arc')?3.8:2.95;
@@ -957,8 +970,10 @@ function completeStage(){
     const btn=document.createElement('button');btn.className='boost-card';
     if(OPEN_WORLD&&item.category==='damage')btn.classList.add('boost-offensive');
     const icon=document.createElement('span');icon.className='boost-icon';icon.textContent=item.icon;
-    const title=document.createElement('strong');title.textContent=item.name;
-    const desc=document.createElement('span');desc.textContent=item.desc;
+    const title=document.createElement('strong');title.textContent=
+      OPEN_WORLD?waterBoostName(item.id,item.name):item.name;
+    const desc=document.createElement('span');desc.textContent=
+      OPEN_WORLD?waterBoostDescription(item.id,item.desc):item.desc;
     btn.append(icon,title,desc);
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
@@ -976,7 +991,7 @@ function completeStage(){
       game.x=settled.x;game.z=settled.z;game.advanceClock=0;
       game.target=null;
       game.gateQueued=false;game.state='play';
-      hideScreens();toast(item.name+' · New blessing!');
+      hideScreens();toast((OPEN_WORLD?waterBoostName(item.id,item.name):item.name)+' · New blessing!');
       canvas.focus();
     });
     wrap.append(btn);
@@ -1008,6 +1023,8 @@ function updateHud(){
     const growth=nature?.snapshot();
     if(growth)label('natureBadge','✿ '+growth.planted+' BLOOMS · '+growth.regions+
       ' GROVES · '+growth.tiers.blossom+' RARE');
+    const ponds=water?.snapshot();
+    if(ponds)label('waterBadge','≈ '+ponds.ponds+' PONDS · '+ponds.temporary+' RAIN POOLS');
   }
   label('directorLabel',director.stateLabel);
   label('healthText',Math.ceil(game.hp)+' / '+game.maxHp+(game.shield>0?' · Shield '+Math.round(game.shield):''));
@@ -1026,7 +1043,8 @@ function updateHud(){
     button?.classList.toggle('is-ready',!busy);
     button?.classList.toggle('is-cooling',busy);
     if(button){
-      button.setAttribute('aria-label',game.spec.spells[i]+(busy?', ready in '+time.toFixed(1)+' seconds':', ready'));
+      button.setAttribute('aria-label',visibleWaterSpell(game.spec.spells[i],OPEN_WORLD)+
+        (busy?', ready in '+time.toFixed(1)+' seconds':', ready'));
     }
   }
 }
@@ -1043,6 +1061,8 @@ function update(dt){
   updateProjectiles(dt);
   updateGlints(dt);
   nature?.update(dt,game);
+  water?.update(dt,game.time);
+  if(water)game.waterSurfaces=water.surfaces();
   updateEffects(dt);
   spellFX.tick(dt);
   updateJuice(dt);

@@ -326,12 +326,28 @@ function spawnEnemy(type,opts={}){
 game.spawnEnemy=spawnEnemy;
 game.showToast=toast;
 function floatingText(pos,value,kind='normal'){
+  if(OPEN_WORLD){
+    // Readability cap for simultaneous AoE damage numbers and score pops.
+    if(['normal','crit','score'].includes(kind)){
+      const cap=kind==='score'?3:kind==='crit'?3:7;
+      if(game.texts.filter(t=>t.kind===kind).length>=cap)return;
+    }
+    if(kind==='nature'){
+      // Rapid tier evolution presents one final bloom label, not 3 stacked ones.
+      for(let i=game.texts.length-1;i>=0;i--){
+        const t=game.texts[i];
+        if(t.kind==='nature'&&Math.hypot(t.pos.x-pos.x,t.pos.z-pos.z)<7){
+          t.el.remove();game.texts.splice(i,1);
+        }
+      }
+    }
+  }
   const el=document.createElement('div');
   el.className='float-damage '+kind;
   el.textContent=value;
   $('floaters').append(el);
   // Text fades upward; randomized horizontal offset makes crowd hits legible.
-  game.texts.push({el,pos:V(pos.x+random(-.18,.18),pos.y,pos.z),life:kind==='crit'?.95:.73,total:kind==='crit'?.95:.73});
+  game.texts.push({el,kind,pos:V(pos.x+random(-.18,.18),pos.y,pos.z),life:kind==='crit'?.95:.73,total:kind==='crit'?.95:.73});
 }
 function scoreKill(enemy){
   game.kills++;
@@ -365,7 +381,7 @@ function absorbMagic(value){
   const panel=$('energyPanel');
   panel.classList.add('energy-gained');
   panel.classList.toggle('energy-ready',game.energy>=energyThreshold(director.stage));
-  label('energyText',game.energy+' / '+energyThreshold(director.stage));
+  label('energyText',Math.min(game.energy,energyThreshold(director.stage))+' / '+energyThreshold(director.stage));
   $('energyFill').style.width=energyProgress(game.energy,director.stage)*100+'%';
   // A visible number at the actual player, plus UI feedback and a gentle chime.
   floatingText({x:game.x,y:3.25,z:game.z},'✦ +'+value+' MAGIC','energy');
@@ -936,7 +952,7 @@ function updateHud(){
   label('timeText',String(Math.floor(game.time/60)).padStart(2,'0')+':'+String(Math.floor(game.time%60)).padStart(2,'0'));
   label('stageName',OPEN_WORLD?'SURGE '+(director.stage+1)+' / 8':'GLADE '+(director.stage+1)+' / 4');
   if(OPEN_WORLD){
-    label('energyText',game.energy+' / '+energyThreshold(director.stage));
+    label('energyText',Math.min(game.energy,energyThreshold(director.stage))+' / '+energyThreshold(director.stage));
     $('energyFill').style.width=energyProgress(game.energy,director.stage)*100+'%';
     const growth=nature?.snapshot();
     if(growth)label('natureBadge','✿ '+growth.plants+' BLOOMS · '+growth.tiers.tree+' TREES · '+growth.tiers.blossom+' RARE');

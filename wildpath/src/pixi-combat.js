@@ -2,6 +2,7 @@
 // Reuses the original Energy Arena Crystal Bolt and impact renderers unchanged.
 // Babylon remains authoritative for the game, targeting, movement and camera.
 import { drawSlimGlint } from './slim-projectile.js?v=1.0.3';
+import {drawWaterProjectile,drawWaterSpell,drawRainfallField,drawWaterSurfaces} from './water-pixi.js?v=2.7.0';
 import { slashFramePaths,slashFrameIndex,slashScreenAngle,slashVisualSize } from './weapon-slash.js?v=1.1.0';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
 import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
@@ -14,6 +15,12 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const smooth=n=>{n=clamp(n,0,1);return n*n*(3-2*n)};
 const S={
   'Glint Dart':{c:0x65cfff,core:0xf3ffff,dim:0x258cbf},
+  'Water Dart':{c:0x65dae9,core:0xf3ffff,dim:0x36899d},
+  'Rainfall':{c:0x73d7eb,core:0xdfffff,dim:0x458ca4},
+  'Tidal Bloom':{c:0x69cfee,core:0xf4fffc,dim:0x3d97c4},
+  'Tide Guard':{c:0x76efc5,core:0xeaffed,dim:0x419d8e},
+  'Tidal Cascade':{c:0x6dcdea,core:0xe5fffb,dim:0x3b92b3},
+  'Water Splash':{c:0x79dbe6,core:0xf7fffb,dim:0x4aa0b2},
   'Winter Pool':{c:0x81cefb,core:0xebffff,dim:0x3f8ab3},
   'Crystal Bloom':{c:0xb5a1ff,core:0xffffff,dim:0x5262a5},
   'Pale Guard':{c:0x7df4c4,core:0xebfff6,dim:0x3c9b8b},
@@ -70,6 +77,7 @@ function spellEvent(g,e,p,scale){
   const fade=(1-smooth((u-.08)/.9))*Math.min(1,u*8+.3);
   const r=clamp(scale*1.8,10,33)*clamp(e.intensity,.5,2.1);
   const from=e.from?e.from:null;
+  if(drawWaterSpell(g,e,p,scale))return;
   if(e.name==='Glint Splash'&&e.stage==='burst'){
     // A broad but CLEAN ring, not an oversized glint projectile tail.
     const radius=(7+u*35)*clamp(e.intensity,.8,1.5);
@@ -465,7 +473,8 @@ export class WildpathPixiCombat {
     if(stage==='burst'&&(name==='Steel Arc'||name==='Wide Arc')&&
        this.slashMode==='asset'&&this.addSlash(name,point,intensity))return;
     if(this.effects.length>=90)this.effects.shift();
-    const life=stage==='burst'?(name==='Nature Fusion'?1.05:name==='Nature Bloom'?.74:.37):stage==='reaction'?.19:
+    const life=stage==='burst'?(name==='Tidal Bloom'?.57:name==='Rainfall'?.55:
+      name==='Nature Fusion'?1.05:name==='Nature Bloom'?.74:.37):stage==='reaction'?.19:
       stage==='charge'?.20:stage==='core'?.23:stage==='aftermath'?.52:.3;
     this.effects.push({name,stage,x:point.x,z:point.z,y:point.y??1.3,
       color:point.color,intensity,elapsed:0,life,seed:++this.sequence});
@@ -482,8 +491,14 @@ export class WildpathPixiCombat {
     const g=this.graphics;g.clear();
     if(game?.state==='play'){
       drawMagicPickups(g,game.pickups??[],(x,y,z)=>this.project(x,y,z),this.time);
-      for(const area of game.areas)drawPool(g,area,(x,y,z)=>this.project(x,y,z),this.time,
-        this.scaleAt(area.x,area.z));
+      drawWaterSurfaces(g,game.waterSurfaces??[],
+        (x,y,z)=>this.project(x,y,z),this.time);
+      for(const area of game.areas){
+        if(area.water)drawRainfallField(g,area,
+          (x,y,z)=>this.project(x,y,z),this.time);
+        else drawPool(g,area,(x,y,z)=>this.project(x,y,z),this.time,
+          this.scaleAt(area.x,area.z));
+      }
       if(game.shield>0)drawWard(g,game,(x,y,z)=>this.project(x,y,z),this.time,
         this.scaleAt(game.x,game.z));
       for(const p of game.projectiles){
@@ -496,7 +511,9 @@ export class WildpathPixiCombat {
         // compact white core. All the old spirals, halos, ribbons and shards
         // are removed from the projectile's travel stage. Impacts remain rich.
         const from=volleyVector(head.x,head.y,dir.x,dir.y,22);
-        drawSlimGlint(g,from,head,clamp(this.scaleAt(p.x,p.z)/13,.82,1.03));
+        const scale=clamp(this.scaleAt(p.x,p.z)/13,.82,1.03);
+        if(p.water)drawWaterProjectile(g,from,head,scale,this.time,p.fxSeed);
+        else drawSlimGlint(g,from,head,scale);
       }
     }
     for(let i=this.effects.length-1;i>=0;i--){

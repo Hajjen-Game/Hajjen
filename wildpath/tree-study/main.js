@@ -116,6 +116,7 @@ $('count').title=version==='v8'
 const focusInfo=$('infoButton'),quickCompare=$('quickCompare');
 const isFocus=['v5','v6','v7','v8'].includes(version);
 document.body.classList.toggle('tree-study-v5',isFocus);
+document.body.classList.toggle('tree-study-v8',version==='v8');
 if(isFocus){
   document.body.classList.add('focus-view');
   focusInfo.hidden=false;quickCompare.hidden=false;

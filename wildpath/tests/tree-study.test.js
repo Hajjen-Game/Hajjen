@@ -7,53 +7,53 @@ import {ART_DIRECTION as V3} from '../tree-study/tree-model-v3.js';
 import {ART_DIRECTION as V4} from '../tree-study/tree-model-v4.js';
 import {ART_DIRECTION as V5} from '../tree-study/tree-model-v5.js';
 import {ART_DIRECTION as V6} from '../tree-study/tree-model-v6.js';
+import {ART_DIRECTION as V7} from '../tree-study/tree-model-v7.js';
 
-const source = path => readFileSync(new URL(path,import.meta.url),'utf8');
+const source=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 
-test('six tree versions remain available and 6.0 is the default',()=>{
- assert.equal(V1.name,'Willowglow — hand-shaped forest elder');
- assert.equal(V2.name,'Willowglow — hand-shaped forest elder 2.0');
- assert.equal(V3.name,'Willowglow — sculpted foliage study 3.0');
- assert.equal(V4.name,'Willowglow — layered sculpted leaf clusters 4.0');
- assert.equal(V5.name,'Willowglow — cluster identity and depth 5.0');
- assert.equal(V6.name,'Willowglow — organic foliage massing 6.0');
+test('Tree Study 7.0 is selected by default and earlier versions are preserved',()=>{
+ assert.match(V7.name,/silhouette first 7\.0/);
+ for(const old of [V1,V2,V3,V4,V5,V6])assert.ok(old.name.startsWith('Willowglow'));
  const app=source('../tree-study/main.js');
- for(const i of [1,2,3,4,5,6]) assert.match(app,new RegExp('buildV'+i));
- assert.match(app,/compareV5\?buildV5:buildV6/);
- assert.match(app,/compareV5\?'v5':'v6'/);
  const html=source('../tree-study/index.html');
- assert.match(html,/main\.js\?v=16\.0/);
- assert.match(html,/Tree Study 6\.0/);
- assert.match(html,/id="quickCompare"/);
- assert.match(html,/id="infoButton"/);
+ for(let n=1;n<=7;n++) assert.match(app,new RegExp('buildV'+n));
+ assert.match(app,/compareV6\?buildV6:buildV7/);
+ assert.match(app,/compareV6\?'v6':'v7'/);
+ assert.match(app,/tree-model-v7\.js\?v=17\.0/);
+ assert.match(html,/id="passLabel">WILDPATH \/ PASS 17/);
+ assert.match(html,/id="studyTagline"/);
+ assert.match(html,/id="silhouette"/);
+ assert.match(html,/main\.js\?v=17\.0/);
+ assert.match(html,/style\.css\?v=17\.0/);
+ assert.match(html,/tree=v4&amp;rev=17/);
 });
 
-test('6.0 reshapes foliage into alternate leaves on curving twigs, not rosettes',()=>{
- const model=source('../tree-study/tree-model-v6.js');
- assert.match(model,/organic foliage massing 6\.0/);
+test('Silhouette is defined first, before curved leaves are distributed',()=>{
+ const model=source('../tree-study/tree-model-v7.js');
+ assert.match(model,/These nine design envelopes define the intended finished silhouette/);
+ assert.match(model,/NOT rendered/);
  assert.match(model,/const crowns = \[/);
- const sprays=[...model.matchAll(/sprays:(\d+),sweep:/g)].map(m=>Number(m[1]));
- assert.equal(sprays.length,9);
- assert.equal(sprays.reduce((a,b)=>a+b,0),201);
- assert.match(model,/function leafyTwig\(/);
- assert.match(model,/const stagger=\(node%2===0\?1:-1\)/);
- assert.match(model,/const tilt=crown\.hang/);
- assert.match(model,/staggered sequence of leafy nodes/);
- assert.match(model,/shaded hanging undergrowth \/ leaf twigs/);
- assert.match(model,/natural sunlit layered foliage \/ leaf twigs/);
- assert.doesNotMatch(model,/const count=10\+\(p%3\)/);
- assert.doesNotMatch(model,/const theta=2\*Math\.PI\*k\/count/);
+ const counts=[...model.matchAll(/leaves:(\d+),lean:/g)].map(x=>Number(x[1]));
+ assert.equal(counts.length,9);
+ assert.equal(counts.reduce((a,b)=>a+b,0),2711);
+ assert.match(model,/const GOLDEN_ANGLE=2\.399963229728653/);
+ assert.match(model,/tangential/);
+ assert.match(model,/function addLeaf\(/);
+ assert.match(model,/curved/);
  assert.doesNotMatch(model,/sculpted foliage pavilions/);
- assert.doesNotMatch(model,/B\.MeshBuilder\.CreateSphere/);
+ assert.doesNotMatch(model,/CreateSphere/);
+ assert.doesNotMatch(model,/rosetteAxis/);
+ assert.doesNotMatch(model,/const count=10\+\(p%3\)/);
  assert.doesNotMatch(model,/addShadowCaster\(leafMesh\)/);
 });
 
-test('focus review and soft shadow controls continue working for 6.0',()=>{
+test('Real geometry can be inspected in single-color silhouette mode',()=>{
  const app=source('../tree-study/main.js');
- assert.match(app,/const isFocus=version==='v5'\|\|version==='v6'/);
- assert.match(app,/quickCompare\.href=version==='v6'\?'\.\/\?tree=v5'/);
- assert.match(app,/if\(version==='v3'\|\|version==='v4'\|\|version==='v5'\|\|version==='v6'\)/);
+ assert.match(app,/hero\.root\.getChildMeshes\(false\)/);
+ assert.match(app,/B\.StandardMaterial\('true flat silhouette ink'/);
+ assert.match(app,/mono\.disableLighting=true/);
+ assert.match(app,/mesh\.material=silhouetteEnabled\?mono:material/);
+ assert.match(app,/document\.body\.classList\.toggle\('silhouette-active',silhouetteEnabled\)/);
+ assert.match(app,/focusInfo\.addEventListener\('click'/);
  assert.match(app,/softShades\.forEach\(shade=>shade\.setEnabled\(hasShadows\)\)/);
- const css=source('../tree-study/style.css');
- assert.match(css,/body\.tree-study-v5\.focus-view \.scorecard\{display:none\}/);
 });

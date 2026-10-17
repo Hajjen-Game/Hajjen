@@ -1,10 +1,12 @@
 import {buildHeroTree as buildV1} from './tree-model-v1.js?v=11.1';
 import {buildHeroTree as buildV2} from './tree-model.js?v=12.0';
 import {buildHeroTree as buildV3} from './tree-model-v3.js?v=13.0';
+import {buildHeroTree as buildV4} from './tree-model-v4.js?v=14.0';
 const selectedVersion=new URLSearchParams(location.search).get('tree');
 const compareV1=selectedVersion==='v1';
 const compareV2=selectedVersion==='v2';
-const version=compareV1?'v1':compareV2?'v2':'v3';
+const compareV3=selectedVersion==='v3';
+const version=compareV1?'v1':compareV2?'v2':compareV3?'v3':'v4';
 const B=window.BABYLON;
 const $=id=>document.getElementById(id);
 if(!B){$('error').hidden=false;$('error').textContent='Babylon.js kunde inte laddas. Kontrollera anslutningen.';throw Error('Babylon unavailable');}
@@ -68,20 +70,23 @@ for(let i=0;i<2400;i++){
  ctx.beginPath();ctx.ellipse(x,y,w,w*.6,rnd()*7,0,2*Math.PI);ctx.fill();
 }
 grassTex.update();earthMat.diffuseTexture=grassTex;
-const hero=(compareV1?buildV1:compareV2?buildV2:buildV3)(B,scene,shadows);
+const hero=(compareV1?buildV1:compareV2?buildV2:compareV3?buildV3:buildV4)(B,scene,shadows);
 $('count').textContent=hero.stats.leaves.toLocaleString('sv-SE')+' formade blad · '+hero.stats.branches+' huvudgrenar';
-$('versionTitle').textContent=version==='v3'?'Tree Study 3.0':version==='v2'?'Tree Study 2.0':'Tree Study 1.0';
-$('studyDescription').textContent=version==='v3'
- ?'Skulpterade lövvolymer, mjukare silhuett och färgskiftningar.'
- :version==='v2'?'Tätare krona, tydliga huvudgrenar, rikare bladfärger och mjukare ljus.'
+$('versionTitle').textContent='Tree Study '+(version==='v4'?'4.0':version==='v3'?'3.0':version==='v2'?'2.0':'1.0');
+$('studyDescription').textContent=version==='v4'
+ ?'Tio fylliga 3D-bladknippen byggda helt av överlappande formade blad.'
+ :version==='v3'?'Skulpterade lövvolymer, mjukare silhuett och färgskiftningar.'
+ :version==='v2'?'Tätare krona, tydliga huvudgrenar och rikare bladfärger.'
  :'Originalträdet med individuella blad och 15 grenarmar.';
-$('compareLink').href=version==='v3'?'./?tree=v2':'./?tree=v3';
-$('compareLink').textContent=version==='v3'?'Jämför mot 2.0 ↗':'Till Tree Study 3.0 ↗';
-$('compareOldLink').href='./?tree=v1';
+$('compareLink').href=version==='v4'?'./?tree=v2':'./?tree=v4';
+$('compareLink').textContent=version==='v4'?'Jämför mot 2.0 ↗':'Till Tree Study 4.0 ↗';
+$('compareOldLink').href=version==='v4'?'./?tree=v3':'./?tree=v1';
+$('compareOldLink').textContent=version==='v4'?'Visa 3.0':'Visa 1.0';
 $('compareOldLink').hidden=version==='v1';
-$('count').title=version==='v3'?'Tolv skulpterade bladgrupper med bladdetaljer längs ytterkanterna'
- :version==='v2'?'Blad och sex huvudgrenar från pass 12'
- :'Originalet från pass 11';
+$('count').title=version==='v4'
+ ?'Tio bladknippen med mörka innerlager och färgstarka yttre blad; inga solida lövklumpar'
+ :version==='v3'?'Tolv skulpterade bladvolymer'
+ :version==='v2'?'Blad och sex huvudgrenar från pass 12':'Originalet från pass 11';
 // Small sculpted rooted understory; subdued to keep scrutiny on the main object.
 const moss=makeMat('emerald understory','#6c9978'),bright=makeMat('ivory grass','#b5c692');
 const flowerPetal=[makeMat('peach flower','#e8b9a1'),makeMat('cream flower','#f6ddba'),
@@ -118,17 +123,19 @@ for(let i=0;i<16;i++){
 // Soft foliage shadow, painted as a broad radial transparency instead of
 // the previous harsh polygon mosaic cast by hundreds of individual leaves.
 // Only used for the V3 canopy: its trunk and branches still cast real shadows.
-if(version==='v3'){
+if(version==='v3'||version==='v4'){
  function softGroundShade(name,w,d,x,z,centerAlpha){
    const tex=new B.DynamicTexture(name+' / alpha gradient',{width:256,height:256},scene,false);
    tex.hasAlpha=true;
    const brush=tex.getContext();
    brush.clearRect(0,0,256,256);
    const grad=brush.createRadialGradient(128,128,5,128,128,125);
-   grad.addColorStop(0,'rgba(27,63,47,'+centerAlpha+')');
-   grad.addColorStop(.45,'rgba(34,66,48,'+(centerAlpha*.53)+')');
-   grad.addColorStop(.74,'rgba(42,83,61,'+(centerAlpha*.18)+')');
-   grad.addColorStop(1,'rgba(42,83,61,0)');
+   const isFourth=version==='v4';
+   const dark=isFourth?'25,37,29':'27,63,47';
+   grad.addColorStop(0,'rgba('+dark+','+centerAlpha+')');
+   grad.addColorStop(.45,'rgba('+dark+','+(centerAlpha*.50)+')');
+   grad.addColorStop(.74,'rgba('+dark+','+(centerAlpha*.14)+')');
+   grad.addColorStop(1,'rgba('+dark+',0)');
    brush.fillStyle=grad;brush.fillRect(0,0,256,256);tex.update();
    const mat=new B.StandardMaterial(name+' / matte shadow',scene);
    mat.diffuseTexture=tex;mat.useAlphaFromDiffuseTexture=true;mat.alpha=1;
@@ -139,8 +146,9 @@ if(version==='v3'){
    shadow.position=V(x,-.044,z);shadow.material=mat;shadow.isPickable=false;
    shadow.receiveShadows=false;
  }
- softGroundShade('soft broad canopy shade',8.7,6.6,1.15,-.65,.30);
- softGroundShade('root contact shade',2.1,1.65,.09,.04,.48);
+ softGroundShade('soft broad canopy shade',version==='v4'?9.5:8.7,version==='v4'?8.0:6.6,
+   .70,-.30,version==='v4'?.19:.30);
+ softGroundShade('root contact shade',2.1,1.65,.09,.04,version==='v4'?.32:.48);
 }
 scene.environmentIntensity=.7;
 const modes=[

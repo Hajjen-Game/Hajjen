@@ -115,3 +115,7 @@ body.tree-study-v8 .scorecard .secondary{opacity:.65}
 /* Tree Study 9.0: preserve compact controls and a clear mobile comparison. */
 body.tree-study-v9 .quick-compare{letter-spacing:.04px}
 @media(max-width:690px){body.tree-study-v9 .identity p{max-width:260px}}
+
+/* Pass 20: compact tree comparison, trunk/branch framing on small phones. */
+body.tree-study-v10 .quick-compare{letter-spacing:.04px}
+@media(max-width:690px){body.tree-study-v10 .identity p{max-width:270px}}

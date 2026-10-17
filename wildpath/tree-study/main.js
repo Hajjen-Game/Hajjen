@@ -7,6 +7,7 @@ import {buildHeroTree as buildV6} from './tree-model-v6.js?v=16.0';
 import {buildHeroTree as buildV7} from './tree-model-v7.js?v=17.0';
 import {buildHeroTree as buildV8} from './tree-model-v8.js?v=18.0';
 import {buildHeroTree as buildV9} from './tree-model-v9.js?v=19.0';
+import {buildHeroTree as buildV10} from './tree-model-v10.js?v=20.0';
 const selectedVersion=new URLSearchParams(location.search).get('tree');
 const compareV1=selectedVersion==='v1';
 const compareV2=selectedVersion==='v2';
@@ -16,7 +17,8 @@ const compareV5=selectedVersion==='v5';
 const compareV6=selectedVersion==='v6';
 const compareV7=selectedVersion==='v7';
 const compareV8=selectedVersion==='v8';
-const version=compareV1?'v1':compareV2?'v2':compareV3?'v3':compareV4?'v4':compareV5?'v5':compareV6?'v6':compareV7?'v7':compareV8?'v8':'v9';
+const compareV9=selectedVersion==='v9';
+const version=compareV1?'v1':compareV2?'v2':compareV3?'v3':compareV4?'v4':compareV5?'v5':compareV6?'v6':compareV7?'v7':compareV8?'v8':compareV9?'v9':'v10';
 const B=window.BABYLON;
 const $=id=>document.getElementById(id);
 if(!B){$('error').hidden=false;$('error').textContent='Babylon.js kunde inte laddas. Kontrollera anslutningen.';throw Error('Babylon unavailable');}
@@ -80,16 +82,18 @@ for(let i=0;i<2400;i++){
  ctx.beginPath();ctx.ellipse(x,y,w,w*.6,rnd()*7,0,2*Math.PI);ctx.fill();
 }
 grassTex.update();earthMat.diffuseTexture=grassTex;
-const hero=(compareV1?buildV1:compareV2?buildV2:compareV3?buildV3:compareV4?buildV4:compareV5?buildV5:compareV6?buildV6:compareV7?buildV7:compareV8?buildV8:buildV9)(B,scene,shadows);
+const hero=(compareV1?buildV1:compareV2?buildV2:compareV3?buildV3:compareV4?buildV4:compareV5?buildV5:compareV6?buildV6:compareV7?buildV7:compareV8?buildV8:compareV9?buildV9:buildV10)(B,scene,shadows);
 $('count').textContent=hero.stats.leaves.toLocaleString('sv-SE')+' formade blad · '+hero.stats.branches+' huvudgrenar';
 $('versionTitle').textContent='Tree Study '+(version.slice(1))+'.0';
-const vTitle=version==='v9'?'Sharper Leaves & Deep Occlusion':version==='v8'?'Leaf Layering & Richer Shading':version==='v7'?'Silhouette First':version==='v6'?'Organic Foliage Massing':
+const vTitle=version==='v10'?'Trunk Character & Branch Weight':version==='v9'?'Sharper Leaves & Deep Occlusion':version==='v8'?'Leaf Layering & Richer Shading':version==='v7'?'Silhouette First':version==='v6'?'Organic Foliage Massing':
  version==='v5'?'Cluster Identity & Depth':'Art Direction Study';
 if($('passLabel'))$('passLabel').textContent='WILDPATH / PASS '+(10+Number(version.slice(1)));
 if($('studyTagline'))$('studyTagline').textContent=' · '+vTitle;
 document.title='Wildpath · Tree Study '+version.slice(1)+'.0';
-const revision='rev=19';
-$('studyDescription').textContent=version==='v9'
+const revision='rev=20';
+$('studyDescription').textContent=version==='v10'
+ ?'Skulpterad mörkare stam, mjuk stamfot och kraftigare bärande huvudgrenar.'
+ :version==='v9'
  ?'Spetsigare 3D-blad, mörkare kronmöten och tydligare bladsiluetter.'
  :version==='v8'
  ?'Tre lager formade blad, mörkare skuggfickor och rikare skogsgröna toner.'
@@ -103,12 +107,14 @@ $('studyDescription').textContent=version==='v9'
  :version==='v3'?'Skulpterade lövvolymer och färgskiftningar.'
  :version==='v2'?'Tätare krona, tydliga huvudgrenar och rikare bladfärger.'
  :'Originalträdet med individuella blad och 15 grenarmar.';
-$('compareLink').href=version==='v9'?'./?tree=v8&'+revision:'./?'+revision;
-$('compareLink').textContent=version==='v9'?'Jämför med 8.0 ↗':'Till Tree Study 9.0 ↗';
-$('compareOldLink').href=version==='v9'?'./?tree=v7&'+revision:'./?tree=v8&'+revision;
-$('compareOldLink').textContent=version==='v9'?'Jämför 7.0':'Jämför 8.0';
+$('compareLink').href=version==='v10'?'./?tree=v9&'+revision:'./?'+revision;
+$('compareLink').textContent=version==='v10'?'Jämför med 9.0 ↗':'Till Tree Study 10.0 ↗';
+$('compareOldLink').href=version==='v10'?'./?tree=v8&'+revision:'./?tree=v9&'+revision;
+$('compareOldLink').textContent=version==='v10'?'Jämför 8.0':'Jämför 9.0';
 $('compareOldLink').hidden=version==='v1';
-$('count').title=version==='v9'
+$('count').title=version==='v10'
+ ?'Kronan identisk med 9.0. Skulpterad stam med korta buttress-rötter, sex viktade boughs och mörk umbrabark.'
+ :version==='v9'
  ?'Smalare spetsiga 3D-blad, skuggade klustergränser och tydligare bladkant.'
  :version==='v8'
  ?'Tre separata djupskikt av riktiga böjda blad, rik grön palett och mörka skuggfickor.'
@@ -120,15 +126,16 @@ $('count').title=version==='v9'
  ?'Nio handplacerade lövgrupper med färgsatta 3D-blad i mörka inre och ljusa yttre lager.'
  :'Äldre trädstudie för jämförelse.';
 const focusInfo=$('infoButton'),quickCompare=$('quickCompare');
-const isFocus=['v5','v6','v7','v8','v9'].includes(version);
+const isFocus=['v5','v6','v7','v8','v9','v10'].includes(version);
 document.body.classList.toggle('tree-study-v5',isFocus);
-document.body.classList.toggle('tree-study-v8',version==='v8'||version==='v9');
+document.body.classList.toggle('tree-study-v8',['v8','v9','v10'].includes(version));
 document.body.classList.toggle('tree-study-v9',version==='v9');
+document.body.classList.toggle('tree-study-v10',version==='v10');
 if(isFocus){
   document.body.classList.add('focus-view');
   focusInfo.hidden=false;quickCompare.hidden=false;
-  quickCompare.href=version==='v9'?'./?tree=v8&'+revision:version==='v8'?'./?tree=v7&'+revision:version==='v7'?'./?tree=v4&'+revision:version==='v6'?'./?tree=v5&'+revision:'./?tree=v4&'+revision;
- quickCompare.textContent=version==='v9'?'Jämför med 8.0 ↗':version==='v8'?'Jämför med 7.0 ↗':version==='v7'?'Jämför med 4.0 ↗':version==='v6'?'Jämför med 5.0 ↗':'Jämför med 4.0 ↗';
+  quickCompare.href=version==='v10'?'./?tree=v9&'+revision:version==='v9'?'./?tree=v8&'+revision:version==='v8'?'./?tree=v7&'+revision:version==='v7'?'./?tree=v4&'+revision:version==='v6'?'./?tree=v5&'+revision:'./?tree=v4&'+revision;
+ quickCompare.textContent=version==='v10'?'Jämför med 9.0 ↗':version==='v9'?'Jämför med 8.0 ↗':version==='v8'?'Jämför med 7.0 ↗':version==='v7'?'Jämför med 4.0 ↗':version==='v6'?'Jämför med 5.0 ↗':'Jämför med 4.0 ↗';
   focusInfo.textContent='ⓘ Visa info';
   focusInfo.addEventListener('click',()=>{
     const hiding=!document.body.classList.contains('focus-view');
@@ -173,14 +180,14 @@ for(let i=0;i<16;i++){
 // the previous harsh polygon mosaic cast by hundreds of individual leaves.
 // All tree versions keep real trunk shadows. 3–5 get a soft canopy/contact decal.
 const softShades=[];
-if(['v3','v4','v5','v6','v7','v8','v9'].includes(version)){
+if(['v3','v4','v5','v6','v7','v8','v9','v10'].includes(version)){
  function softGroundShade(name,w,d,x,z,centerAlpha){
    const tex=new B.DynamicTexture(name+' / alpha gradient',{width:256,height:256},scene,false);
    tex.hasAlpha=true;
    const brush=tex.getContext();
    brush.clearRect(0,0,256,256);
    const grad=brush.createRadialGradient(128,128,5,128,128,125);
-   const newer=['v4','v5','v6','v7','v8','v9'].includes(version);
+   const newer=['v4','v5','v6','v7','v8','v9','v10'].includes(version);
    const dark=newer?'32,39,34':'27,63,47';
    grad.addColorStop(0,'rgba('+dark+','+centerAlpha+')');
    grad.addColorStop(.45,'rgba('+dark+','+(centerAlpha*.50)+')');
@@ -196,10 +203,10 @@ if(['v3','v4','v5','v6','v7','v8','v9'].includes(version)){
    shadow.position=V(x,-.044,z);shadow.material=mat;shadow.isPickable=false;
    shadow.receiveShadows=false;softShades.push(shadow);
  }
- const newerStudy=['v5','v6','v7','v8','v9'].includes(version);
+ const newerStudy=['v5','v6','v7','v8','v9','v10'].includes(version);
  softGroundShade('soft broad canopy shade',newerStudy?9.3:version==='v4'?9.5:8.7,
-   newerStudy?8.4:version==='v4'?8.0:6.6,.70,-.30,version==='v9'?.25:newerStudy?.18:version==='v4'?.19:.30);
- softGroundShade('root contact shade',2.1,1.65,.09,.04,version==='v9'?.33:newerStudy?.29:version==='v4'?.32:.48);
+   newerStudy?8.4:version==='v4'?8.0:6.6,.70,-.30,(version==='v9'||version==='v10')?.25:newerStudy?.18:version==='v4'?.19:.30);
+ softGroundShade('root contact shade',2.1,1.65,.09,.04,(version==='v9'||version==='v10')?.33:newerStudy?.29:version==='v4'?.32:.48);
 }
 scene.environmentIntensity=.7;
 const modes=[
@@ -230,7 +237,7 @@ apply();
 // and silhouette from all viewpoints while suppressing material/lighting cues.
 // The overlay does not fake a black 2D outline.
 const silhouetteButton=$('silhouette');
-const hasSilhouette=version==='v7'||version==='v8'||version==='v9';
+const hasSilhouette=['v7','v8','v9','v10'].includes(version);
 if(hasSilhouette && silhouetteButton){
  silhouetteButton.hidden=false;
  const mono=new B.StandardMaterial('true flat silhouette ink',scene);

@@ -1,26 +1,15 @@
-# Wildpath – Pass 11: Tree Study 1.0
+# Wildpath — Pass 12: Tree Study 2.0
 
-**Standalone mobile-friendly art-quality benchmark** at \`/wildpath/tree-study/\`.
-Play Wildpath proper at \`/wildpath/\` – nothing in the playable game is modified.
+**Live comparison:** `/wildpath/tree-study/` (v2.0) and `/wildpath/tree-study/?tree=v1` (archived v1 geometry). The page includes an A/B link. The game at `/wildpath/` is untouched.
 
-## Why this exists
-The Pass 10 scene loaded fine, and its camera was a positive discovery, but the Quaternius model quality, pixelated foliage, muddy paths, water and harsh shadows did not approach the user's Garden Galaxy reference. The user does **not** want to pay for assets unless the pipeline first proves sufficient visual quality.
+## What changed
+- Retains the distinctive arched trunk, roots, sculpted leaf mesh and flowering accents praised in Tree Study 1.0.
+- Replaces the 15 visible spoke-like canopy tubes with **6 continuous, gracefully tapering main boughs**, plus four short concealed twigs.
+- Reorganizes foliage into 13 overlapping clusters totaling **1,373 individually shaped leaves** (1.0 had 1,049). Leaves are modestly wider and more horizontally layered to reduce the see-through effect and the spiky silhouette in low camera angles.
+- Improves leaf-color depth (deeper forest-greens and warm light edges), introduces intra-canopy shadow receiving, gently increases bark brushstroke detail, and retunes key/fill/ambient lighting to avoid washed-out cream-green tones.
+- Preserves the original code at `tree-model-v1.js`; the viewer loads it with `?tree=v1`. Comparison takes place under the same new lighting, so the A/B mainly isolates changes to geometry and foliage.
 
-This experiment takes the opposite approach: **one bespoke 3D tree** rather than a whole world. The custom mesh has curved branch architecture, visible tapered trunk and roots, **separate curved leaf surfaces instead of spherical canopy blobs**, a very small number of blossoms, a quiet shaded glade, painterly ground pigment and art-directed warm/cool lighting. Its 3D geometry is generated locally via Babylon.js with no third-party tree models, texture purchases or remote assets. Babylon.js itself comes from its CDN.
+## Evaluation criteria
+Compare screenshots in close and elevated view and record FPS on Android. If the new tree looks fuller and clearer from both positions without feeling like a green blob, continue to build an asset library. If not, revise the 3D-art production method before making a larger world.
 
-## Controls
-- Drag on the tree to orbit the camera; pinch/scroll to zoom.
-- **Camera** switch: object close-up / higher Wildpath-like view.
-- **Light** switch: warm afternoon / softer cooler illumination.
-- **Shadows** switch: shadow evaluation on/off.
-
-## Acceptance gate – visually judged by the user on their Android phone
-- Strong **silhouette and leaf-level detail** from Wildpath's actual camera angle.
-- Convincing curved bark and visible tree forks.
-- Rich, calm colors with believable soft light and grounding.
-- No lollipop sphere crowns and no noisy scenery.
-- Responsive on mobile; record FPS in the UI.
-- If the object still looks prototype-grade, stop expanding the art pipeline and reassess tools.
-
-## Limitations
-This is an **unvalidated first study**, not a claim to meet Garden Galaxy's art quality. It uses manually specified procedural mesh construction instead of an artist-painted Blender asset; if the result falls short, the next approach must change materially. Automatic browser runtime and mobile performance tests have not yet been run by this workflow.
+No paid or third-party foliage, and no changes to combat or the existing Wildpath world. Code and imports are checked; a real Android render must still be reviewed by the user.

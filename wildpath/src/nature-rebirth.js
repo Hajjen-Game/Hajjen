@@ -1,7 +1,7 @@
 // Nature Rebirth 1.0 — pure, testable kill clustering. No combat changes.
 // Immediate flower on first kill; nearby kills within 1.6 s upgrade that plant.
 export const NATURE_WINDOW=1.6;
-export const NATURE_RADIUS=5.5;
+export const NATURE_RADIUS=7.2;
 export const NATURE_MAX_PLANTS=112;
 export const NATURE_MAX_TREES=18;
 export const NATURE_TIERS=Object.freeze([

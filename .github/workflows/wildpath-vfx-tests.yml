@@ -40,4 +40,5 @@ jobs:
             /tmp/wildpath/open-world-mobile.png
             /tmp/wildpath/open-world-energy.png
             /tmp/wildpath/nature-rebirth-blossom.png
+            /tmp/wildpath/power-bloom-pack.png
           if-no-files-found: ignore

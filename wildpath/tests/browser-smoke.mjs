@@ -82,6 +82,15 @@ try{
       await new Promise(r=>setTimeout(r,1400));
       await page.screenshot({path:'/tmp/wildpath/nature-rebirth-blossom.png'});
       console.log('PASS NATURE TIERS',JSON.stringify(bloomed));
+      // Real production cast vs. 10 close enemies, not simulated deaths.
+      const burst=await page.evaluate(()=>window.__wildpathDebug.testPowerBurst());
+      assert.ok(burst?.kills>=10,
+        'Grand Bloom must kill a full pack through real combat');
+      assert.ok(burst?.plants?.tiers.blossom>=1,
+        'Ten rapid real kills must create a blossom tree');
+      console.log('PASS POWER BLOOM PACK',JSON.stringify(burst));
+      await new Promise(r=>setTimeout(r,1100));
+      await page.screenshot({path:'/tmp/wildpath/power-bloom-pack.png'});
       const restarted=await page.evaluate(()=>window.__wildpathDebug.restart());
       assert.equal(restarted.plants,0,'New rounds must clear all grown plants');
       assert.equal(restarted.upgrades,0,'New rounds reset plant evolution');

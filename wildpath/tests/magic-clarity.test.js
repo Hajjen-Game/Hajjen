@@ -43,13 +43,14 @@ test('caster visuals each have a distinct readable combat signature',()=>{
   assert.match(pixi,/e\.name==='Guard Block'/);
   assert.match(main,/blocked\?'✦ BLOCK'/);
 });
-test('Crystal Cascade is new and limited to open world with bounded nonrecursive hit spread',()=>{
+test('Crystal Cascade is open-world only with strictly bounded chain depth',()=>{
   const upgrade=BOOSTS.find(x=>x.id==='cascade');
   assert.ok(upgrade);
   assert.equal(upgrade.onlyOpen,true);
   assert.deepEqual(upgrade.classes,['caster']);
   assert.match(main,/!b\.onlyOpen\|\|OPEN_WORLD/);
-  assert.match(main,/!options\.fromCascade/);
-  assert.match(main,/fromCascade:true/);
-  assert.match(main,/if\(\+\+hits===4\)break/);
+  assert.match(main,/const chain=cascadePower\(game\.upgrades,OPEN_WORLD\)/);
+  assert.match(main,/depth<chain\.maxDepth/);
+  assert.match(main,/cascadeDepth:depth\+1/);
+  assert.match(main,/if\(\+\+hits===chain\.targets\)break/);
 });

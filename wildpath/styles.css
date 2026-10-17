@@ -295,3 +295,12 @@ body:not(.wildpath-open) .classic-link{display:none}
 /* Nature Rebirth: short feedback labels stay out of the center of combat. */
 .wildpath-open .float-damage.nature{font-size:15px;letter-spacing:.2px;
   color:#f5ffdd;text-shadow:0 0 9px #8fdd9c,0 1px 3px #2f5033}
+
+/* Power Bloom 2.3: strong offensive upgrades are readable before selection. */
+.wildpath-open .boost-card.boost-offensive{
+  border:1px solid #9de6c7;background:linear-gradient(145deg,#285a50,#173a38);
+  box-shadow:inset 0 0 12px #adf5c621,0 3px 14px #122d2452;
+}
+.wildpath-open .boost-card.boost-offensive .boost-icon{
+  text-shadow:0 0 14px #c9ffbc;color:#e6ffdb;
+}

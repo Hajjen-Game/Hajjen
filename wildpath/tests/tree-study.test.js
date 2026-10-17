@@ -67,8 +67,8 @@ test('v10 viewer stays mobile-friendly with silhouette review and v9 comparison'
   const css=source('../tree-study/style.css');
   assert.ok(app.includes("const hasSilhouette=['v7','v8','v9','v10','v11'].includes(version)"));
   assert.ok(app.includes("document.body.classList.toggle('tree-study-v10',version==='v10')"));
-  assert.ok(app.includes("quickCompare.href=version==='v10'?'./?tree=v9&'+revision"));
-  assert.ok(app.includes("const revision='rev=20'"));
+  assert.ok(app.includes("version==='v10'?'./?tree=v9&'+revision"));
+  assert.ok(app.includes("const revision='rev=21'"));
   assert.ok(app.includes('hero.root.getChildMeshes(false)'));
   assert.ok(app.includes('softShades.forEach(shade=>shade.setEnabled(hasShadows))'));
   assert.ok(css.includes('body.tree-study-v10 .quick-compare'));

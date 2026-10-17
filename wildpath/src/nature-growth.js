@@ -2,7 +2,7 @@
 // Decorative only: no physics, obstruction or changes to combat/targeting.
 import {NATURE_MAX_PLANTS,NATURE_MAX_TREES} from './nature-rebirth.js';
 import {WILD_RADIUS} from './open-layout.js';
-import {makePlantForm,describePlantForm} from './nature-forms.js?v=2.5.1';
+import {makePlantForm,describePlantForm} from './nature-forms.js?v=2.5.2';
 import {NATURE_PALETTES,NATURE_PALETTE_IDS,chooseNatureLook,natureVisibility}
   from './nature-variety.js';
 const B=window.BABYLON;

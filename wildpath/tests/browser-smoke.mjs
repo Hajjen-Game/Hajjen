@@ -107,11 +107,14 @@ try{
       const fusionStart=await page.evaluate(()=>window.__wildpathDebug.previewFusionGarden());
       assert.ok(fusionStart.after.plants>=fusionStart.before.plants+7,
         'New flowers remain individually visible at first');
-      await page.waitForFunction(previous=>{
-        const now=window.__wildpathDebug.read().nature;
-        return now&&now.fusedPlants>=previous+3&&now.regions>=1;
-      },{timeout:13500,polling:230},fusionStart.before.fusedPlants);
-      const fused=await page.evaluate(()=>window.__wildpathDebug.read().nature);
+      // Directly advance the PRODUCTION animation while deterministic
+      // validation is running. Gameplay can pause for an upgrade mid-test.
+      const fused=await page.evaluate(()=>window.__wildpathDebug.advanceNature(4.2));
+      console.log('FUSION QA SNAPSHOT',JSON.stringify({
+        before:fusionStart.before,after:fusionStart.after,fused
+      }));
+      assert.ok(fused.fusedPlants>=fusionStart.before.fusedPlants+3 &&
+        fused.regions>=1,'Settled neighbor plants must fuse into a visual patch');
       assert.ok(fused.plants<fusionStart.after.plants,
         'Fusion must replace individual plant meshes, not just add grass');
       assert.ok(fused.regions<=22,'Combined patches have a strict rendering cap');

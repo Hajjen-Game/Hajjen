@@ -167,6 +167,14 @@ if(new URLSearchParams(location.search).has('debug')){
       }
       return {before,after:nature.snapshot()};
     },
+    // Advances the production NatureGrowth animation/controller only, never
+    // invents kills, plants, boosts or changes the actual combat simulator.
+    advanceNature:(seconds=3.7)=>{
+      if(!nature)return null;
+      const n=Math.min(150,Math.max(0,Math.ceil(seconds/.05)));
+      for(let i=0;i<n;i++)nature.update(.05,game);
+      return nature.snapshot();
+    },
     // Debug-only integration check: upgraded Crystal Bloom against 10 real
     // enemies. This is not available in the ordinary game URL.
     testPowerBurst:()=>{

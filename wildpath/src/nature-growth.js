@@ -88,6 +88,8 @@ export class NatureGrowth {
       p.position.set(piece.x,piece.y,piece.z);
       p.scaling.set(piece.sx,piece.sy,piece.sz);
       p.rotation.x=piece.rx||0;p.rotation.z=piece.rz||0;
+      // Preserve the visible trunk even when foliage fades near the hero.
+      p.metadata={natureKind:piece.kind};
       p.isPickable=false;entry.meshes.push(p);
     }
   }
@@ -190,7 +192,9 @@ export class NatureGrowth {
       p.root.rotation.y=Math.sin(this.time*.59+p.seed)*.028;
       p.shadow.position.x=p.x;p.shadow.position.z=p.z;
       const visible=natureVisibility(Math.hypot(hero.x-p.x,hero.z-p.z),p.tier);
-      for(const part of p.meshes)part.visibility=visible;
+      for(const part of p.meshes)
+        part.visibility=['bark','branch','stem'].includes(part.metadata?.natureKind)
+          ?Math.max(.83,visible):visible;
     }
   }
   clear(){

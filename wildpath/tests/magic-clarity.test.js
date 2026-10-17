@@ -13,7 +13,7 @@ test('magical pickups have coherent drop, homing, collection and HUD response',(
   assert.match(main,/absorbMagic\(p\.value\)/);
   assert.match(main,/function absorbMagic\(value\)/);
   assert.match(main,/floatingText\(\{x:game\.x,y:3\.25,z:game\.z\},'✦ \+'/);
-  assert.match(main,/label\('energyText',game\.energy\+'/);
+  assert.match(main,/label\('energyText',Math\.min\(game\.energy,energyThreshold\(director\.stage\)\)/);
   assert.match(html,/id="energyPanel"/);
   assert.match(html,/id="energyFill"/);
   assert.match(css,/\.energy-track\{\s*height:12px/);

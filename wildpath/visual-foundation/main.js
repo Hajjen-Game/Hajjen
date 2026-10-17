@@ -40,6 +40,7 @@ camera.wheelPrecision=45;camera.pinchPrecision=95;
 camera.inertia=.82;camera.angularSensibilityX=1800;camera.angularSensibilityY=1800;
 camera.attachControl(canvas,true);
 let viewWidth=mobile?31:43;
+let lastCameraRadius=camera.radius;
 function frame(){const ratio=Math.max(.1,engine.getRenderWidth()/Math.max(1,engine.getRenderHeight()));const half=viewWidth/2;
   camera.orthoLeft=-half;camera.orthoRight=half;camera.orthoTop=half/ratio;camera.orthoBottom=-half/ratio;}
 frame();
@@ -131,7 +132,7 @@ function createPond(x,z,rx,rz){
  for(let n=0;n<2;n++){
   const ring=B.MeshBuilder.CreateTorus('broad subtle water ripple',{diameter:1,thickness:.018,tessellation:64},scene);
   ring.position=V(x,.027+n*.003,z);ring.scaling=V(rx*(.68-n*.28)*2,1,rz*(.68-n*.28)*2);
-  ring.material=rippleMaterial;ripples.push({ring,phase:n*2.2,base:1});
+  ring.material=rippleMaterial;ripples.push({ring,phase:n*2.2,baseX:ring.scaling.x,baseZ:ring.scaling.z});
  }
  for(let i=0;i<6;i++){const a=rnd()*6.28,rr=.1+rnd()*.7;
   const px=x+Math.cos(a)*rx*rr,pz=z+Math.sin(a)*rz*rr;
@@ -246,6 +247,10 @@ const position=V(0,0,0);
 let time=0,seconds=0,frames=0;
 engine.runRenderLoop(()=>{
  const dt=Math.min(.05,engine.getDeltaTime()/1000||.016);time+=dt;seconds+=dt;frames++;
+ if(Math.abs(camera.radius-lastCameraRadius)>.01){
+   viewWidth=B.Scalar.Clamp(viewWidth*camera.radius/lastCameraRadius,21,68);
+   lastCameraRadius=camera.radius;frame();
+ }
  let mx=(+pressed.has('d')+ +pressed.has('arrowright'))-(+pressed.has('a')+ +pressed.has('arrowleft'))+analogX;
  let mz=(+pressed.has('w')+ +pressed.has('arrowup'))-(+pressed.has('s')+ +pressed.has('arrowdown'))-analogY;
  const length=Math.hypot(mx,mz);
@@ -259,8 +264,8 @@ engine.runRenderLoop(()=>{
  const desired=V(position.x,.35,position.z);
  camera.setTarget(B.Vector3.Lerp(camera.target,desired,Math.min(1,dt*4)));
  for(const s of sparkles)s.mesh.position.y=s.alt+Math.sin(time*.9+s.phase)*.19;
- for(const r of ripples){const s=1+.018*Math.sin(time*.72+r.phase);
-  r.ring.scaling.x*=1+(s-1)*dt;r.ring.scaling.z*=1+(s-1)*dt;}
+ for(const r of ripples){const s=1+.024*Math.sin(time*.72+r.phase);
+  r.ring.scaling.x=r.baseX*s;r.ring.scaling.z=r.baseZ*s;}
  if(seconds>1.3){byId('fps').textContent=Math.round(frames/seconds)+' fps';frames=0;seconds=0;}
  scene.render();
 });

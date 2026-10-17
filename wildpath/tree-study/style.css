@@ -44,3 +44,37 @@ button:focus-visible,.back:focus-visible{outline:3px solid #d3a36c;outline-offse
 .version-links .compare.minor{font-size:11px;opacity:.73}
 .version-links [hidden]{display:none!important}
 @media(max-width:690px){.version-links{gap:9px}.version-links .compare.minor{font-size:10px}}
+
+/* Tree Study 5.0 – prioritize the tree, not the evaluation overlay. */
+#infoButton[hidden],.quick-compare[hidden]{display:none!important}
+body.tree-study-v5.focus-view .scorecard{display:none}
+body.tree-study-v5 .scorecard{
+  width:min(255px,44vw);padding:14px 16px;
+  bottom:calc(env(safe-area-inset-bottom) + 70px)
+}
+body.tree-study-v5 .scorecard h2{font-size:19px;margin:3px 0}
+body.tree-study-v5 .scorecard p{font-size:11px;margin:0 0 7px}
+body.tree-study-v5 .identity{padding:12px 15px}
+body.tree-study-v5 .identity h1{font-size:22px}
+.quick-compare{
+  position:fixed;z-index:3;right:clamp(16px,3vw,40px);
+  bottom:calc(env(safe-area-inset-bottom) + 19px);
+  padding:10px 14px;border-radius:17px;
+  text-decoration:none;font-size:12px;font-weight:850;
+  color:#31594c;background:rgba(254,251,243,.92);
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 5px 18px rgba(48,65,48,.15);
+  backdrop-filter:blur(12px);
+}
+.quick-compare:focus-visible{outline:3px solid #d3a36c;outline-offset:3px}
+@media(max-width:690px){
+  body.tree-study-v5 .scorecard{
+    width:min(230px,68vw);bottom:calc(env(safe-area-inset-bottom) + 68px);
+    right:12px;padding:11px
+  }
+  body.tree-study-v5 .identity h1{font-size:19px}
+  body.tree-study-v5 .identity{padding:10px 12px}
+  .quick-compare{right:12px;bottom:calc(env(safe-area-inset-bottom) + 10px);padding:9px 12px;font-size:10px}
+  body.tree-study-v5 .hint{bottom:calc(env(safe-area-inset-bottom) + 53px);max-width:calc(100vw - 24px)}
+  body.tree-study-v5 .controls button{font-size:10px;padding:8px}
+}

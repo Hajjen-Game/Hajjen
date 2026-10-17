@@ -108,11 +108,13 @@ export class NatureGrowth {
       const trunkH=height+(tall?.30:0);
       A(this.bark,0,trunkH*.50,0,big?.39:.33,trunkH,big?.39:.33);
       // Four genuinely distinct tree silhouettes, not merely color swaps.
-      const main=big?m.light:m.leaf;
+      // Top-down readability: substantial colored crowns, not tiny pink
+      // buds buried inside nearly-identical green foliage.
+      const main=(big||variant==='wide'||variant==='tall')?m.petal:m.light;
       if(variant==='round'||variant==='grand'){
         A(main,0,crownH,0,2.15,1.48,2.08);
         A(m.leaf,-.75,crownH-.28,.22,1.29,1.07,1.33);
-        A(m.light,.73,crownH-.23,-.18,1.35,1.03,1.19);
+        A(m.accent,.73,crownH-.23,-.18,1.35,1.03,1.19);
         if(variant==='grand'){
           A(main,0,crownH+.54,.07,1.65,1.09,1.58);
           A(m.leaf,.12,crownH-.29,.79,1.50,.91,1.11);
@@ -120,18 +122,18 @@ export class NatureGrowth {
       }else if(wide){
         A(main,-.69,crownH-.06,0,1.95,1.20,1.62);
         A(m.leaf,.72,crownH-.02,-.05,1.95,1.24,1.73);
-        A(m.light,0,crownH+.26,.03,1.77,1.19,1.65);
+        A(m.accent,0,crownH+.26,.03,1.77,1.19,1.65);
         A(main,.04,crownH-.38,.60,1.96,.78,1.13);
       }else if(tall){
         A(main,0,crownH+.45,0,1.48,1.69,1.39);
-        A(m.leaf,-.43,crownH-.25,.15,1.26,1.27,1.25);
+        A(m.accent,-.43,crownH-.25,.15,1.26,1.27,1.25);
         A(m.light,.42,crownH-.28,-.15,1.25,1.19,1.20);
         A(main,0,crownH+1.05,-.02,.86,.92,.87);
       }else{ // grove: a cluster of overlapping, rounded mini-canopies
         for(let i=0;i<5;i++){
           const a=i*Math.PI*2/5+entry.seed;
           const rad=i%2?.67:.91;
-          A(i%2?m.light:m.leaf,Math.cos(a)*rad,crownH+(i%3)*.23,
+          A(i%2?m.accent:m.leaf,Math.cos(a)*rad,crownH+(i%3)*.23,
             Math.sin(a)*rad,1.32,1.18,1.32);
         }
         A(main,0,crownH+.28,0,1.50,1.19,1.48);

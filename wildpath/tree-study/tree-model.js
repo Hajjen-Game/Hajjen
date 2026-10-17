@@ -160,8 +160,10 @@ export function buildHeroTree(B, scene, shadows) {
   });
   const pollen=new B.StandardMaterial('warm glowing pollen',scene);
   pollen.diffuseColor=C('#dfab69');pollen.emissiveColor=C('#3b2818');
-  const prototype=B.MeshBuilder.CreateSphere('petal master',{diameter:1,segments:10},scene);
-  prototype.isVisible=false; prototype.parent=treeRoot;
+  const masters=petals.map((mat,i)=>{
+    const mesh=B.MeshBuilder.CreateSphere('petal master '+i,{diameter:1,segments:10},scene);
+    mesh.isVisible=false;mesh.parent=treeRoot;mesh.material=mat;return mesh;
+  });
   const pollenPrototype=B.MeshBuilder.CreateSphere('pollen prototype',{diameter:.095,segments:8},scene);
   pollenPrototype.isVisible=false;pollenPrototype.parent=treeRoot;pollenPrototype.material=pollen;
   let blossomCount=0;
@@ -171,20 +173,20 @@ export function buildHeroTree(B, scene, shadows) {
     const az=rand()*Math.PI*2,r=.55+rand()*.68;
     const center=V(g.x+Math.cos(az)*g.rx*r,g.y+(rand()-.5)*g.ry*1.6,g.z+Math.sin(az)*g.rz*r);
     const stem=V((rand()-.5)*.8,.5,(rand()-.5)*.8).normalize();
-    const tint=petals[Math.floor(rand()*petals.length)];
+    const petalMaster=masters[Math.floor(rand()*masters.length)];
     const dot=pollenPrototype.createInstance('golden heart '+i);
     dot.position=center;dot.parent=treeRoot;dot.isVisible=true;
     for(let a=0;a<5;a++){
       const theta=a*2*Math.PI/5,off=V(Math.cos(theta),.05+rand()*.15,Math.sin(theta));
-      const p=prototype.createInstance('five petal sculpted blossom '+i+' / '+a);
+      const p=petalMaster.createInstance('five petal sculpted blossom '+i+' / '+a);
       p.position=center.add(off.scale(.105));
       p.scaling=V(.115,.045,.080);
       p.rotation=V((rand()-.5)*.55,theta,(rand()-.5)*.3);
-      p.material=tint;p.parent=treeRoot;p.isVisible=true;
+      p.parent=treeRoot;p.isVisible=true;
     }
     blossomCount++;
   }
-  prototype.dispose(); pollenPrototype.dispose(); // instances retain geometry in Babylon.js
+  // Keep the invisible source meshes alive: Babylon.js instances share their geometry.
 
   return {root:treeRoot,stats:{leaves:leafCount,blossoms:blossomCount,branches:crowns.length,source:'Custom geometry, no external model'}};
 }

@@ -13,6 +13,12 @@ export function choosePowerBoosts(pool,upgrades,stage,rng=Math.random){
       if(b&&result.length<3)result.push(b);
     }
   }
+  // Once an evolution becomes available, always offer at least one in the
+  // next Power Surge. A larger spell should not hide behind random card rolls.
+  if(stage>=1&&result.length<3){
+    const evolutions=offensive.filter(b=>b.requires?.length&&!result.includes(b));
+    if(evolutions.length)result.push(evolutions[Math.floor(rng()*evolutions.length)]);
+  }
   while(result.length<Math.min(2,offensive.length)){
     const left=offensive.filter(b=>!result.includes(b));
     if(!left.length)break;

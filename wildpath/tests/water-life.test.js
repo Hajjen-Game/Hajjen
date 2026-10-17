@@ -55,3 +55,12 @@ test('a mature lily pond gains rare status at six nearby kills',()=>{
  assert.equal(events.length,1);assert.equal(events[0].evolved,true);
  assert.equal(waterState(w).rarePonds,1);
 });
+
+test('mobile water surfaces use explicit pastel geometry rather than black texture fallback',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const src=readFileSync(new URL('../src/living-water.js',import.meta.url),'utf8');
+ assert.match(src,/CreateDisc\(/);
+ assert.match(src,/turquoise water body/);
+ assert.match(src,/MATERIAL_ALPHABLEND/);
+ assert.doesNotMatch(src,/DynamicTexture/);
+});

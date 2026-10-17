@@ -37,23 +37,30 @@ export function createOpenWorld(scene){
   const glow=sphereSource(scene,'magic firefly source',material(scene,'firefly tint','#a5e5da',.9));
   // The previous shaded, flattened spheres rendered as giant dark blotches on
   // phones. Unlit and nearly transparent layers add gentle turf variation.
-  const sunny=material(scene,'pale grass variation','#b8c69a',.0);
-  sunny.disableLighting=true;sunny.alpha=.075;
-  const shadowy=material(scene,'soft moss variation','#264336',.0);
-  shadowy.disableLighting=true;shadowy.alpha=.075;
-  const dirt=sphereSource(scene,'soft ground light',sunny);
-  const darker=sphereSource(scene,'woodland mottling',shadowy);
+  // Soft small grass blades instead of large shadow-colored flattened spheres.
+  // The previous 2–7 metre patches looked like dark holes on portrait phones.
+  const grass=sphereSource(scene,'tiny meadow grass source',
+    material(scene,'meadow green','#85a885',.10));
+  const branchSource=cylinderSource(scene,'background tree fork',
+    material(scene,'background bark','#715d4e',.06));
   const trunk=(x,z,s)=>{
-    instance(bark,'slender trunk',x,.65*s,z,.38*s,1.3*s,.39*s);
+    instance(bark,'woodland trunk',x,.77*s,z-.38*s,.33*s,1.55*s,.35*s);
+    const branch=instance(branchSource,'visible woodland branch',x+.39*s,1.27*s,
+      z-.26*s,.17*s,.94*s,.18*s);
+    branch.rotation.z=-.67;
     const leaf=choose(leaves);
-    instance(leaf,'rounded canopy',x,1.75*s,z,2.15*s,1.50*s,2.10*s);
-    instance(choose(leaves),'lighter canopy lobe',x+.52*s,1.60*s,z-.32*s,1.45*s,1.32*s,1.53*s);
+    instance(leaf,'woodland crown left',x-.61*s,2.06*s,z+.36*s,
+      1.45*s,1.23*s,1.43*s);
+    instance(choose(leaves),'woodland crown center',x+.11*s,2.31*s,z+.54*s,
+      1.51*s,1.24*s,1.42*s);
+    instance(choose(leaves),'woodland crown right',x+.87*s,2.06*s,z+.31*s,
+      1.36*s,1.13*s,1.32*s);
   };
-  // Gentle broad color variation rather than a rectangular road.
-  for(let i=0;i<90;i++){
-    const x=(rand()-.5)*143,z=(rand()-.5)*143;
-    const s=2.2+rand()*4.5;
-    instance(rand()<.62?dirt:darker,'subtle meadow color patch',x,-.107,z,s,.012,s*.83);
+  // Tiny scattered grass flecks create ground texture without giant dark discs.
+  for(let i=0;i<160;i++){
+    const x=(rand()-.5)*132,z=(rand()-.5)*132;
+    const scale=.24+rand()*.25;
+    instance(grass,'fine grass blade',x,.065,z,scale,.12,scale*.55);
   }
   // Natural outer forest: dense trees read as a boundary, not an artificial wall.
   for(let ring=0;ring<3;ring++){

@@ -9,57 +9,59 @@ import {ART_DIRECTION as V5} from '../tree-study/tree-model-v5.js';
 import {ART_DIRECTION as V6} from '../tree-study/tree-model-v6.js';
 import {ART_DIRECTION as V7} from '../tree-study/tree-model-v7.js';
 import {ART_DIRECTION as V8} from '../tree-study/tree-model-v8.js';
-
+import {ART_DIRECTION as V9} from '../tree-study/tree-model-v9.js';
 const source=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 
-test('8.0 is the default; studies 1–7 remain selectable',()=>{
- assert.equal(V8.name,'Willowglow — leaf layering and richer shading 8.0');
- for(const v of [V1,V2,V3,V4,V5,V6,V7])assert.ok(v.name.startsWith('Willowglow'));
- const main=source('../tree-study/main.js'),html=source('../tree-study/index.html');
- for(let i=1;i<=8;i++)assert.ok(main.includes('buildV'+i));
- assert.ok(main.includes("compareV7?buildV7:buildV8"));
- assert.ok(main.includes("compareV7?'v7':'v8'"));
- assert.ok(main.includes("tree-model-v8.js?v=18.0"));
- assert.ok(html.includes('id="passLabel">WILDPATH / PASS 18'));
- assert.ok(html.includes('id="silhouette"'));
- assert.ok(html.includes('main.js?v=18.0'));
- assert.ok(html.includes('style.css?v=18.0'));
- assert.ok(html.includes('tree=v7&amp;rev=18'));
+test('v9 is default with earlier eight versions still available',()=>{
+ assert.equal(V9.name,'Willowglow — sharper leaf cards and deeper occlusion 9.0');
+ assert.ok([V1,V2,V3,V4,V5,V6,V7,V8].every(x=>x.name.startsWith('Willowglow')));
+ const app=source('../tree-study/main.js'),html=source('../tree-study/index.html');
+ for(let i=1;i<=9;i++)assert.ok(app.includes('buildV'+i));
+ assert.ok(app.includes("compareV8?buildV8:buildV9"));
+ assert.ok(app.includes("compareV8?'v8':'v9'"));
+ assert.ok(app.includes("tree-model-v9.js?v=19.0"));
+ assert.ok(html.includes('PASS 19'));
+ assert.ok(html.includes('main.js?v=19.0'));
+ assert.ok(html.includes('style.css?v=19.0'));
+ assert.ok(html.includes('tree=v8&amp;rev=19'));
 });
 
-test('8.0 preserves the 7.0 artist-designed silhouette and creates three actual leaf layers',()=>{
- const model=source('../tree-study/tree-model-v8.js');
- const old=source('../tree-study/tree-model-v7.js');
- const counts=s=>[...s.matchAll(/leaves:(\d+),lean:/g)].map(x=>Number(x[1]));
- assert.deepEqual(counts(model),counts(old));
- assert.equal(counts(model).length,9);
- assert.equal(counts(model).reduce((a,b)=>a+b,0),2711);
- assert.ok(model.includes('dark inner foliage'));
- assert.ok(model.includes('rich middle foliage'));
- assert.ok(model.includes('lit exterior foliage'));
- assert.ok(model.includes('ratio:.24,radius:.58'));
- assert.ok(model.includes('ratio:.37,radius:.80'));
- assert.ok(model.includes('ratio:.78,radius:.96'));
- assert.ok(model.includes('B.VertexData.ComputeNormals'));
- assert.ok(model.includes('const innerMesh=finishBatch(batches[0],0)'));
- assert.ok(model.includes('const middleMesh=finishBatch(batches[1],1)'));
- assert.ok(model.includes('const outerMesh=finishBatch(batches[2],2)'));
- assert.ok(!model.includes('sculpted foliage pavilions'));
- assert.ok(!model.includes('B.MeshBuilder.CreateSphere'));
+test('v9 preserves all nine art-directed crown envelopes from 8.0',()=>{
+ const old=source('../tree-study/tree-model-v8.js');
+ const now=source('../tree-study/tree-model-v9.js');
+ const crown=s=>s.slice(s.indexOf('  const crowns = ['),s.indexOf('  // Four fine secondary branches'));
+ assert.equal(crown(old),crown(now));
+ const count=[...now.matchAll(/leaves:(\d+),lean:/g)].map(m=>Number(m[1]));
+ assert.equal(count.length,9);
+ assert.equal(count.reduce((a,b)=>a+b,0),2711);
+ assert.ok(!now.includes('B.MeshBuilder.CreateSphere'));
+ assert.ok(!now.includes('rosetteAxis'));
 });
 
-test('8.0 provides contrasting leaf shading pockets and a cleaner A51 review UI',()=>{
- const model=source('../tree-study/tree-model-v8.js');
- const main=source('../tree-study/main.js');
+test('v9 creates sharper curved leaf tips, layered overlap shade and mobile budget',()=>{
+ const now=source('../tree-study/tree-model-v9.js');
+ for(const needle of [
+ 'const taper=t<.36?', 'raised=spine.add(lift.scale(w*.22))',
+ 'const d2=dx*dx+dy*dy+dz*dz',
+ 'const occlusion=clamp(overlap*.55+underside',
+ 'pigment=mix(pigment,deep,occlusion)',
+ 'if(layer===2&&i%13===0)',
+ 'ratio:.28,radius:.59', 'ratio:.43,radius:.80', 'ratio:.70,radius:.96',
+ "9.0 / '+batch.name", 'B.VertexData.ComputeNormals'
+ ])assert.ok(now.includes(needle),needle);
+ const crowns=[...now.matchAll(/leaves:(\d+),lean:/g)].map(m=>Number(m[1]));
+ const estimate=crowns.reduce((s,n)=>s+Math.round(n*.28)+Math.round(n*.43)+Math.round(n*.70)+Math.ceil(Math.round(n*.70)/13),0);
+ assert.ok(estimate<4300,'Mobile leaf count exceeds safety target: '+estimate);
+});
+
+test('v9 stays accessible in compact mobile viewer and monochrome silhouette',()=>{
+ const app=source('../tree-study/main.js');
  const css=source('../tree-study/style.css');
- assert.ok(model.includes('const pocket=Math.max(0,Math.sin(az*2.7+ci*.94)'));
- assert.ok(model.includes('if(layer===2&&(i+ci*7)%11===0)'));
- assert.ok(model.includes('mat.twoSidedLighting=true'));
- assert.ok(main.includes("version==='v7'||version==='v8'"));
- assert.ok(main.includes("document.body.classList.toggle('tree-study-v8',version==='v8')"));
- assert.ok(main.includes("quickCompare.href=version==='v8'?'./?tree=v7&'+revision"));
+ assert.ok(app.includes("const hasSilhouette=version==='v7'||version==='v8'||version==='v9'"));
+ assert.ok(app.includes("document.body.classList.toggle('tree-study-v9',version==='v9')"));
+ assert.ok(app.includes("quickCompare.href=version==='v9'?'./?tree=v8&'+revision"));
+ assert.ok(app.includes('hero.root.getChildMeshes(false)'));
+ assert.ok(app.includes('softShades.forEach(shade=>shade.setEnabled(hasShadows))'));
+ assert.ok(css.includes('body.tree-study-v9 .quick-compare'));
  assert.ok(css.includes('body.tree-study-v8 .controls{'));
- assert.ok(css.includes('background:transparent;border:0;box-shadow:none'));
- assert.ok(main.includes('hero.root.getChildMeshes(false)'));
- assert.ok(main.includes('softShades.forEach(shade=>shade.setEnabled(hasShadows))'));
 });

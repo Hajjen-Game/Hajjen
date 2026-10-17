@@ -111,3 +111,7 @@ body.tree-study-v8 .scorecard .secondary{opacity:.65}
  body.tree-study-v8 .identity{max-width:min(245px,65vw)}
  body.tree-study-v8 .hint{left:12px;font-size:10px}
 }
+
+/* Tree Study 9.0: preserve compact controls and a clear mobile comparison. */
+body.tree-study-v9 .quick-compare{letter-spacing:.04px}
+@media(max-width:690px){body.tree-study-v9 .identity p{max-width:260px}}

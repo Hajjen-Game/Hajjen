@@ -1,28 +1,19 @@
-# Wildpath – Tree Study 8.0: Leaf Layering & Richer Shading (Pass 18)
+# Wildpath Tree Study 9.0 — Sharper Leaf Cards & Deeper Occlusion (Pass 19)
 
-**Live viewer:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=18
+Live preview: https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=19
 
-After the user reviewed Willowglow 7.0 as our first promising step toward the approved lush fantasy-tree target image, 8.0 focuses on finishing the *same silhouette*, rather than redefining it. The approved image is a quality target for clearly layered actual leaves, shadows and colors; 8.0 is still a prototype.
+Tree Study 8.0 was closer to the user's lush layered fantasy tree reference, but the canopy was still too cushion-like and evenly illuminated. 9.0 refines the *same approved nine-lobe silhouette* with distinct leaves and shadow.
 
-## What changed
-- Retains the **nine non-rendered artist-designed crowns**, bent trunk, six primary boughs, roots and camera arrangement from 7.0.
-- Uses **three separate actual leaf meshes**: dark recessed foliage at about 58% of envelope radius; richly green middle leaves at 80%; and exposed leaves near 96%. Foliage is still actual sculpted tapered 3D blade geometry with distinct raised midribs.
-- Uses painterly vertex colors for green-to-dark shade pockets, restrained warm highlights on upper/exposed leaves, scattered darker leaves at crown boundaries, and controlled leaf-tip curl. Less uniform mint, less fluffy tessellation.
-- Selected side lobes droop slightly, with more asymmetric edges **without changing the core silhouette**. One subtle secondary leaf every nine exposed samples fills visual gaps without creating the old rosette/fern artifacts.
-- Darker warmer bark, fewer blossom decorations (10), and a three-draw-call foliage solution designed to remain reasonable on older phones.
-- **Mobile review layout** has individual small buttons without the giant background bar. Default title displays **PASS 18**. Silhouette, warm/soft light, shadows, info and orbit camera are preserved.
-- All older tree-model files, including 7.0, are preserved. Neither the main Wildpath game nor paid/AI-generated assets are involved.
+## Design changes
+- Independent `tree-model-v9.js`, preserving v8 crown guide positions, six main branches and curved trunk.
+- More readable pointed lanceolate leaf geometry with curled blades and raised midribs, rather than smooth pillow tiles.
+- **Baked intersection occlusion** based on crown overlap; darker leaf undersides and recessed foliage. No real-time SSAO cost.
+- Saturated forest greens, warmer sun-exposed highlights, sparse edge leaves to break up the canopy boundary.
+- Richer bark pigment; calibrated soft broad canopy shadow on the ground.
+- Existing compact mobile buttons, light, shadows and silhouette review stay.
+- Prior versions are untouched. Compare v8 `?tree=v8&rev=19`, v7 `?tree=v7&rev=19`, or earlier v1–v6.
 
-## A/B links
-- 8.0: `?rev=18` (default)
-- 7.0: `?tree=v7&rev=18`
-- 4.0: `?tree=v4&rev=18`
-- Other versions 1–6 remain accessible by `?tree=vN&rev=18`
+## Technical approach / acceptance
+Procedural 3D leaves batched in three mesh layers, no asset purchase or external 3D models. Target Galaxy A51-class performance. Check leaf readability, inter-crown contrast, silhouette and FPS at close, side, 3/4 and overhead camera views. Static code checks do not substitute for actual mobile visual review.
 
-## Checks completed
-- Read/write GitHub access verified.
-- JS parsing and version/reference checks.
-- Standalone geometry smoke test: **nine crowns, 4,005 curved leaves and 80,100 foliage triangles**, every vertex finite, valid triangle indices. Three batches plus small flower geometry.
-- **Not yet verified**: the real Babylon rendering and FPS on the user's Samsung Galaxy A51, including scene publication/cache. Compare with 7.0 screenshots from side, overhead and an elevated game camera, with silhouette switch enabled and disabled.
-
-Accept 8.0 only after visually checking whether the leaves have clearer layers, believable dark recesses, and richer green color **without losing 7.0's successful rounded contour**.
+All files for this pass are published with one atomic Git commit to avoid overlapping Pages deployments.

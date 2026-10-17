@@ -1,5 +1,5 @@
 import {clamp,random} from './config.js';
-import {energyProgress} from './open-layout.js';
+import {energyProgress,openSpawnPoint} from './open-layout.js';
 export class OpenDirector {
   constructor(){this.reset();}
   reset(){
@@ -36,7 +36,7 @@ export class OpenDirector {
     const pack=this.stage<1?1:this.stage<3?2:
       this.stage<5?3:this.phase==='peak'?5:4;
     const size=Math.max(0,Math.min(pack,limit-count));
-    const anchor={x:game.x,z:game.z};
+    const anchor=openSpawnPoint(game);
     for(let i=0;i<size;i++){
       let type='mossling';
       const roll=Math.random();

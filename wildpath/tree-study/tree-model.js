@@ -139,7 +139,7 @@ export function buildHeroTree(B, scene, shadows) {
       leafCount++;
     }
   });
-  const leafMesh=new B.Mesh('1200+ genuine curved, tapered individual leaves',scene);
+  const leafMesh=new B.Mesh('distinct curved, tapered individual leaves',scene);
   const vd=new B.VertexData();vd.positions=positions;vd.indices=indices;vd.colors=colors;vd.uvs=uvs;
   vd.normals=[];B.VertexData.ComputeNormals(positions,indices,vd.normals);
   vd.applyToMesh(leafMesh);leafMesh.parent=treeRoot;
@@ -152,41 +152,42 @@ export function buildHeroTree(B, scene, shadows) {
   leavesMat.twoSidedLighting=true;
   leafMesh.material=leavesMat;shadows?.addShadowCaster(leafMesh);
 
-  // Sparse 3D primrose blossoms; each uses five sculpted petals and a center.
-  const petals = ART_DIRECTION.blossoms.map((c,i)=>{
-    const m=new B.StandardMaterial('primrose '+i,scene);
-    m.diffuseColor=C(c);m.specularColor=C('#2b181b');
-    m.backFaceCulling=false;return m;
-  });
-  const pollen=new B.StandardMaterial('warm glowing pollen',scene);
-  pollen.diffuseColor=C('#dfab69');pollen.emissiveColor=C('#3b2818');
-  const masters=petals.map((mat,i)=>{
-    const mesh=B.MeshBuilder.CreateSphere('petal master '+i,{diameter:1,segments:10},scene);
-    mesh.isVisible=false;mesh.parent=treeRoot;mesh.material=mat;return mesh;
-  });
-  const pollenPrototype=B.MeshBuilder.CreateSphere('pollen prototype',{diameter:.095,segments:8},scene);
-  pollenPrototype.isVisible=false;pollenPrototype.parent=treeRoot;pollenPrototype.material=pollen;
+  // Painted blossom geometry batched into ONE mesh, not hundreds of draw calls.
+  const flowerPositions=[],flowerIndices=[],flowerColors=[];
+  const cream=ART_DIRECTION.blossoms.map(C),gold=C('#e6bd79');
   let blossomCount=0;
+  function flowerVertex(p,c){
+    flowerPositions.push(p.x,p.y,p.z);
+    flowerColors.push(c.r,c.g,c.b,1);
+  }
   for(let i=0;i<55;i++){
-    // Blushing accent focused on one sunlit branch, not an all-over pink cloud.
     const g=crowns[i%5===0?3:i%3===0?4:11];
     const az=rand()*Math.PI*2,r=.55+rand()*.68;
-    const center=V(g.x+Math.cos(az)*g.rx*r,g.y+(rand()-.5)*g.ry*1.6,g.z+Math.sin(az)*g.rz*r);
-    const stem=V((rand()-.5)*.8,.5,(rand()-.5)*.8).normalize();
-    const petalMaster=masters[Math.floor(rand()*masters.length)];
-    const dot=pollenPrototype.createInstance('golden heart '+i);
-    dot.position=center;dot.parent=treeRoot;dot.isVisible=true;
+    const p=V(g.x+Math.cos(az)*g.rx*r,g.y+(rand()-.5)*g.ry*1.6,g.z+Math.sin(az)*g.rz*r);
+    const flowerTint=pick(cream);
     for(let a=0;a<5;a++){
-      const theta=a*2*Math.PI/5,off=V(Math.cos(theta),.05+rand()*.15,Math.sin(theta));
-      const p=petalMaster.createInstance('five petal sculpted blossom '+i+' / '+a);
-      p.position=center.add(off.scale(.105));
-      p.scaling=V(.115,.045,.080);
-      p.rotation=V((rand()-.5)*.55,theta,(rand()-.5)*.3);
-      p.parent=treeRoot;p.isVisible=true;
+      const t=a*Math.PI*2/5,dx=Math.sin(t),dz=Math.cos(t);
+      const side=V(dz,0,-dx),out=V(dx,.15,dz);
+      const start=flowerPositions.length/3;
+      flowerVertex(p, B.Color3.Lerp(flowerTint,gold,.1));
+      flowerVertex(p.add(out.scale(.12)).add(side.scale(.052)),flowerTint);
+      flowerVertex(p.add(out.scale(.19)).add(V(0,.04,0)),B.Color3.Lerp(flowerTint,C('#fff4d6'),.17));
+      flowerVertex(p.add(out.scale(.12)).subtract(side.scale(.052)),flowerTint);
+      flowerIndices.push(start,start+1,start+2,start,start+2,start+3);
     }
+    // Tiny raised pollen point: center of each five-petal flower.
+    const start=flowerPositions.length/3;
+    flowerVertex(p.add(V(-.035,.035,-.025)),gold);
+    flowerVertex(p.add(V(.035,.035,-.025)),gold);
+    flowerVertex(p.add(V(0,.075,.02)),gold);
+    flowerIndices.push(start,start+1,start+2);
     blossomCount++;
   }
-  // Keep the invisible source meshes alive: Babylon.js instances share their geometry.
-
+  const flowerMesh=new B.Mesh('batched sculpted coral blossom geometry',scene);
+  const floralData=new B.VertexData();
+  floralData.positions=flowerPositions;floralData.indices=flowerIndices;floralData.colors=flowerColors;
+  floralData.normals=[];B.VertexData.ComputeNormals(flowerPositions,flowerIndices,floralData.normals);
+  floralData.applyToMesh(flowerMesh);flowerMesh.useVertexColors=true;flowerMesh.hasVertexAlpha=false;
+  flowerMesh.material=leavesMat;flowerMesh.parent=treeRoot;
   return {root:treeRoot,stats:{leaves:leafCount,blossoms:blossomCount,branches:crowns.length,source:'Custom geometry, no external model'}};
 }

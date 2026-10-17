@@ -15,6 +15,7 @@ import {OpenDirector} from './director-open.js?v=2.0.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.2.0';
 import {NatureGrowth} from './nature-growth.js?v=2.2.1';
+import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
 
@@ -274,10 +275,17 @@ function currentTarget(range=game.spec.range+.5){
   game.target=chooseAutoTarget(game.enemies,game,range,game.target);
   return game.target;
 }
-function spawnEnemy(type){
+function spawnEnemy(type,opts={}){
   const stats=ENEMIES[type];
   let x,z;
-  if(OPEN_WORLD)({x,z}=openSpawnPoint(game));
+  if(OPEN_WORLD){
+    if(opts.packAnchor){
+      const angle=((opts.packIndex||0)/Math.max(1,opts.packSize||1))*Math.PI*2+game.time*.25;
+      const gap=opts.packIndex===0?0:random(.55,1.55);
+      ({x,z}=freeStep(opts.packAnchor.x,opts.packAnchor.z,
+        Math.cos(angle)*gap,Math.sin(angle)*gap,WILD_RADIUS-1));
+    }else({x,z}=openSpawnPoint(game));
+  }
   else{
     z=game.z+random(5,9);x=game.x+random(-5.5,5.5);
     if(Math.random()<.2){z=game.z-random(4,6);x=game.x+random(-4,4);}
@@ -431,13 +439,16 @@ function hurtEnemy(e,base,options={}){
   }
   if(e.hp<=0){
     e.alive=false;scoreKill(e);
-    if(OPEN_WORLD&&game.upgrades.has('cascade')&&!options.fromCascade){
-      spellStage('Crystal Cascade','burst',{x:e.x,z:e.z,y:1.18},1.1);
+    const chain=cascadePower(game.upgrades,OPEN_WORLD);
+    const depth=options.cascadeDepth||0;
+    if(chain&&depth<chain.maxDepth){
+      spellStage('Crystal Cascade','burst',{x:e.x,z:e.z,y:1.18},1.25);
       let hits=0;
       for(const other of game.enemies){
-        if(other!==e&&other.alive&&Math.hypot(other.x-e.x,other.z-e.z)<3.6){
-          hurtEnemy(other,17,{fxSpell:'Crystal Cascade',fromCascade:true});
-          if(++hits===4)break;
+        if(other!==e&&other.alive&&Math.hypot(other.x-e.x,other.z-e.z)<chain.radius){
+          hurtEnemy(other,chain.damage,{fxSpell:'Crystal Cascade',
+            cascadeDepth:depth+1,fromCascade:true});
+          if(++hits===chain.targets)break;
         }
       }
     }
@@ -466,15 +477,22 @@ function projectile(target,damage,color='#99dce6',hostile=false){
   game.projectiles.push({mesh,x,z,y:1.5,damage,target:destination,hostile,life:3.8,speed:hostile?9:17,trail:0});
 }
 function icePool(x,z){
-  const big=game.upgrades.has('snowfield');
-  const radius=big?4.6:3.2;
+  const power=casterPool(game.upgrades,OPEN_WORLD),{radius}=power;
   const pool=visibleGroundPool(scene,'#7ec7e4',radius);
   const mesh=pool.floor,border=pool.edge;
   if(pixi.ready){mesh.isVisible=false;border.isVisible=false;}
   mesh.position.set(x,.21,z);
   border.position.set(x,.25,z);
   ringBurst(x,z,'#d4fbff',1.8);
-  game.areas.push({x,z,radius,life:big?7.5:5.5,tick:0,damage:big?11:6,slow:2.5,mesh,border});
+  game.areas.push({x,z,radius,life:power.life,tick:OPEN_WORLD?power.tick:0,
+    tickRate:power.tick,damage:power.damage,slow:power.slow,mesh,border});
+  if(OPEN_WORLD&&power.entryDamage){
+    spellStage('Winter Pool','burst',{x,z,y:.5},
+      game.upgrades.has('hailstorm')?2.15:1.6);
+    for(const e of game.enemies)
+      if(e.alive&&Math.hypot(e.x-x,e.z-z)<radius)
+        hurtEnemy(e,power.entryDamage,{slow:power.slow,fxSpell:'Winter Pool'});
+  }
 }
 function cast(slot){
   if(game.state!=='play'||game.cooldowns[slot]>0)return;
@@ -497,14 +515,24 @@ function cast(slot){
       spellStage('Winter Pool','sound',target,1,'impact');
     }
     if(slot===1){
-      const big=game.upgrades.has('bloom');
-      // Grounded crystal blast: short seed pulse and sharp radial burst, no beam.
+      const power=casterBloom(game.upgrades,OPEN_WORLD);
+      const cx=target.x,cz=target.z;
       spellStage('Crystal Bloom','core',target,1.1);
-      spellStage('Crystal Bloom','burst',target,big?1.65:1.25);
-      shardBurst(target.x,target.z,'#bbaffb',big?3.55:2.7);
-      for(const e of game.enemies)if(e.alive&&distance(e,target)<(big?4.6:3.4))
-        hurtEnemy(e,big?38:29,{slow:1.2,fxSpell:'Crystal Bloom'});
-      spellStage('Crystal Bloom','aftermath',target,big?1.15:.88);
+      spellStage('Crystal Bloom','burst',target,power.intensity);
+      shardBurst(cx,cz,'#bbaffb',power.radius*.65);
+      for(const e of game.enemies)
+        if(e.alive&&Math.hypot(e.x-cx,e.z-cz)<power.radius)
+          hurtEnemy(e,power.damage,{slow:1.5,fxSpell:'Crystal Bloom'});
+      if(power.splinters)for(let i=0;i<power.splinters;i++){
+        const a=i*Math.PI*2/power.splinters+game.time*.17;
+        const px=cx+Math.cos(a)*power.radius*.64;
+        const pz=cz+Math.sin(a)*power.radius*.64;
+        spellStage('Crystal Bloom','burst',{x:px,z:pz,y:1},.75);
+        for(const e of game.enemies)
+          if(e.alive&&Math.hypot(e.x-px,e.z-pz)<power.splinterRadius)
+            hurtEnemy(e,power.splinterDamage,{fxSpell:'Crystal Bloom'});
+      }
+      spellStage('Crystal Bloom','aftermath',target,power.intensity);
       spellStage('Crystal Bloom','sound',target,1,'impact');
     }
     if(slot===2){

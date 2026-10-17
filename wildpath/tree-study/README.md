@@ -1,27 +1,25 @@
-# Wildpath — Tree Study 4.0 (Pass 14)
+# Wildpath – Tree Study 5.0 (Pass 15)
 
-Preview: https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
+**Preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
 
-## User-approved art direction
+Tree Study 5.0 continues the user-approved hand-crafted fantasy tree goal: separately readable, rounded leaf bouquets made entirely from actual overlapping leaves, with deep inner green and bright warm leaf tips. This remains a free **isolated art test**. No production Wildpath combat, terrain or progression files are changed.
 
-The approved reference shows a handcrafted fantasy tree, with about 7–10 rounded leaf bouquets. Each bouquet is lush with abundant **individual overlapping 3D leaves**, distinctly dark core shadows and bright green sunlit tips. It does not resemble a stack of green pancake meshes (3.0) or a thin open cloud of stray leaves (2.0). The last image shared in the Wildpath conversation is a visual reference, not an imported 3D model.
+## Differences from 4.0
+- Reduce the visual merger of ten foliage clouds to **nine named, staggered bouquets** with subtle visible breaks between them. Six curved primary limbs/trunk are kept from the successful Tree Study 2.0 foundation.
+- Separate every bouquet into genuinely shaded inner leaf fans and lighter exterior fans. Two batched leaf meshes keep draw calls low while creating more readable layered depth. No 3.0 solid green canopy shells and no imported meshes.
+- Distribute patches consistently using the golden angle rather than randomly oriented sprays. Leaf tips point in coherent directions within each patch.
+- Maintain almost exactly 4.0's leaf budget (~2.8k leaves), avoiding the "just add leaves" problem.
+- Preserve clean broad neutral translucent canopy shadow and contact shade. **Turning shadows off now also disables the shadow overlays**.
+- Mobile-first **focus view** hides the large information card by default. The Info button restores it; a small floating 4.0 comparison link stays visible.
 
-### Implementation
+## Comparison
+- **5.0 default** – `/wildpath/tree-study/`
+- **4.0** – `/wildpath/tree-study/?tree=v4`
+- **3.0** – `/wildpath/tree-study/?tree=v3`
+- **2.0** – `/wildpath/tree-study/?tree=v2`
+- **1.0** – `/wildpath/tree-study/?tree=v1`
 
-- Rebuilt starting from the **2.0** model (curved bark, natural roots, six main branches); 2.0 and 3.0 source files remain unchanged.
-- New `tree-model-v4.js` draws **10 asymmetrical leaf bouquets**. Bouquets comprise **191 radial sprays** of actual bent, midrib-lifted leaf geometry with layered darker inner and brighter outer pigments.
-- Each spray is a separate hand-distributed arrangement around 3D branching directions, not a solid underlying sphere, mesh shell, or billboard; 280 extra outer-fringe leaves break up hard edges.
-- The prototype produces about 2,800 curved leaves as one batched vertex-colored canopy mesh to control browser draw calls. Geometry density is deliberate but **mobile FPS must be confirmed**.
-- Retains real trunk/branch shadows; uses soft neutral-tinted alpha-shadow beneath the canopy instead of sharp per-leaf ground artifacts.
-- No external AI-generated assets, Meshy/Tripo dependencies, paid resources or other production-game changes.
+## Acceptance criteria
+Judge primarily from *side*, *front* and *elevated Wildpath camera* on Android. Each bouquet should retain its visual identity rather than merge into a generic spiky cloud; dark gaps should create depth without making foliage muddy. Inspect leaf-patch direction and compare FPS against 4.0. Code and static verification do **not** prove aesthetic parity with the approved reference. User screenshots remain the acceptance gate.
 
-### A/B review
-
-- Default `/wildpath/tree-study/`: 4.0
-- `?tree=v2`: 2.0 (comparison)
-- `?tree=v3`: 3.0 (comparison)
-- `?tree=v1`: 1.0 (historic)
-
-### Acceptance criteria
-
-Compare the detailed leaf clumps from the side and elevated Wildpath camera. A pass requires substantially better handmade foliage than 2.0 and 3.0; a visual target of the final user-approved concept; no visible sphere/flat-blob artifacts; and playable Android frame rate. Code checks are not substitutes for live mobile screenshot feedback.
+No paywalled assets, third-party 3D generation plugins or original game changes.

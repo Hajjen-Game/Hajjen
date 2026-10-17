@@ -35,22 +35,22 @@ function tree(out,variant,big,seed){
   // trunk (positive Z), leaving the fork and lower trunk visible in front.
   const h=big?1.90:1.63;
   const bend=Math.sin(seed)*.22;
-  out.push(part('bark',0,h*.28,-.58,.33,h*.63,.31,0,bend*.24));
-  out.push(part('bark',bend*.18,h*.69,-.42,.27,h*.52,.25,-.12,-bend*.30));
-  for(const [x,z,tilt] of [[-.88,-.13,.81],[.85,.09,-.79],[.08,.67,-.24]]){
-    // Branches shifted toward the camera so the forks remain visible.
-    out.push(part('branch',x*.49+bend*.1,h*.88,z*.42-.36,
-      .18,1.17,.17,-z*.50,tilt));
+  out.push(part('bark',0,h*.29,-.32,.33,h*.64,.31,0,bend*.22));
+  out.push(part('bark',bend*.18,h*.73,-.23,.27,h*.54,.25,-.10,-bend*.25));
+  for(const [x,z,tilt] of [[-.60,-.02,.53],[.62,.12,-.53],[.07,.42,-.12]]){
+    // Short, sloping Y-forks join the underside of the nearby crown.
+    out.push(part('branch',x*.49+bend*.1,h*.99,z*.42-.07,
+      .16,1.08,.17,-z*.30,tilt));
   }
   const wide=variant==='wide',tall=variant==='tall',grove=variant==='grove';
   const grand=variant==='grand';
   const clusters=grand?10:grove?9:wide?9:8;
-  const baseY=h+(tall?1.21:.88);
+  const baseY=h+(tall?1.04:.70);
   const spread=wide?1.48:tall?.89:grand?1.18:1.05;
   for(let i=0;i<clusters;i++){
     const a=2*Math.PI*i/clusters+seed*.16;
     const r=(i%3===0?.30:i%3===1?.76:1.04)*spread;
-    const x=Math.cos(a)*r,z=.94+Math.sin(a)*r*.76;
+    const x=Math.cos(a)*r,z=.53+Math.sin(a)*r*.76;
     const lift=(i%3)*.23+(tall?i*.13:0);
     const s=(big?.95:.79)*(grand?1.10:1);
     out.push(part(i%3===0?'accent':i%2===0?'light':'leaf',
@@ -59,7 +59,7 @@ function tree(out,variant,big,seed){
     if(i%3===0){
       // Small ovoid leaf tips break up the balloon silhouette.
       out.push(part('blade',x*1.34,baseY+lift-.11,
-        .94+(z-.94)*1.30,.27,.18,.46,0,a));
+        .53+(z-.53)*1.30,.27,.18,.46,0,a));
     }
   }
   // Floral caps break up the canopy surface without creating huge balls.
@@ -68,7 +68,7 @@ function tree(out,variant,big,seed){
     const a=i*2.399963+seed*.1;
     const r=.39+(i%3)*.29;
     const x=Math.cos(a)*r*(wide?1.25:1);
-    const z=.92+Math.sin(a)*r*.67;
+    const z=.54+Math.sin(a)*r*.67;
     out.push(part(i%3===0?'accent':'petal',x,
       baseY+.50+(i%3)*.16,z,
       big?.31:.23,.17,big?.29:.20));

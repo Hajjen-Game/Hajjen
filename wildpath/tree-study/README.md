@@ -1,32 +1,28 @@
-# Wildpath — Tree Study 7.0: Silhouette First (Pass 17)
+# Wildpath – Tree Study 8.0: Leaf Layering & Richer Shading (Pass 18)
 
-**Live preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=17
+**Live viewer:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=18
 
-This is a standalone art benchmark. **No gameplay files are changed.** The user's approved artistic reference remains the target: an organic fantasy tree with richly overlapping individual leaves arranged in recognizable rounded crowns, not spiky ferns, uniform flowers, or flat solid blobs.
+After the user reviewed Willowglow 7.0 as our first promising step toward the approved lush fantasy-tree target image, 8.0 focuses on finishing the *same silhouette*, rather than redefining it. The approved image is a quality target for clearly layered actual leaves, shadows and colors; 8.0 is still a prototype.
 
-## Why 7.0
-User's Tree Study 6.0 mobile images exposed fern-like, spiky peripheral shapes, despite the improvement in leaf direction. The geometry was dictating the silhouette instead of the other way around.
+## What changed
+- Retains the **nine non-rendered artist-designed crowns**, bent trunk, six primary boughs, roots and camera arrangement from 7.0.
+- Uses **three separate actual leaf meshes**: dark recessed foliage at about 58% of envelope radius; richly green middle leaves at 80%; and exposed leaves near 96%. Foliage is still actual sculpted tapered 3D blade geometry with distinct raised midribs.
+- Uses painterly vertex colors for green-to-dark shade pockets, restrained warm highlights on upper/exposed leaves, scattered darker leaves at crown boundaries, and controlled leaf-tip curl. Less uniform mint, less fluffy tessellation.
+- Selected side lobes droop slightly, with more asymmetric edges **without changing the core silhouette**. One subtle secondary leaf every nine exposed samples fills visual gaps without creating the old rosette/fern artifacts.
+- Darker warmer bark, fewer blossom decorations (10), and a three-draw-call foliage solution designed to remain reasonable on older phones.
+- **Mobile review layout** has individual small buttons without the giant background bar. Default title displays **PASS 18**. Silhouette, warm/soft light, shadows, info and orbit camera are preserved.
+- All older tree-model files, including 7.0, are preserved. Neither the main Wildpath game nor paid/AI-generated assets are involved.
 
-## Changes
-- Start from the successful **Tree Study 4.0 curved trunk / six main branches**, retaining bark and roots.
-- Define **nine intentional, rounded overlapping crown envelopes**. These are non-rendered guides, **not** visible spheres or green filler masses.
-- Distribute curved vertex-shaded 3D leaves across both shallow inner and outer envelope layers, with controlled downward/tangential growth and softened edge outlines.
-- Darker internal forest greens, warm exposed tops and some non-radial secondary leaves for occlusion.
-- New **Silhuett** toggle applies a neutral monochrome material to the actual 3D tree meshes. The camera remains interactive to evaluate silhouette from overhead, side and oblique angles.
-- Focused mobile viewer preserved. Dynamic Pass/Title identity is populated from the active renderer version, and all version imports / stylesheet references have version query suffixes.
-- Add `rev=17` to comparison/navigation links and recommended entry URL to avoid revisiting old cached HTML that previously showed PASS 15 over a 6.0 scene.
+## A/B links
+- 8.0: `?rev=18` (default)
+- 7.0: `?tree=v7&rev=18`
+- 4.0: `?tree=v4&rev=18`
+- Other versions 1–6 remain accessible by `?tree=vN&rev=18`
 
-## Versions
-- v7: `?rev=17` (default)
-- v4: `?tree=v4&rev=17`
-- v5: `?tree=v5&rev=17`
-- v6: `?tree=v6&rev=17`
-- v1–3 still selectable.
+## Checks completed
+- Read/write GitHub access verified.
+- JS parsing and version/reference checks.
+- Standalone geometry smoke test: **nine crowns, 4,005 curved leaves and 80,100 foliage triangles**, every vertex finite, valid triangle indices. Three batches plus small flower geometry.
+- **Not yet verified**: the real Babylon rendering and FPS on the user's Samsung Galaxy A51, including scene publication/cache. Compare with 7.0 screenshots from side, overhead and an elevated game camera, with silhouette switch enabled and disabled.
 
-## Mobile acceptance
-1. Tap **Silhuett**: does the crown read as naturally rounded, with 8–9 graceful contour lobes rather than spikes?
-2. Toggle **Visa färger** and compare density, color and leaves, especially from the side and overhead.
-3. Rotate to multiple angles. Check FPS on the Android device, since static tests cannot prove rendering performance.
-4. If silhouette fails, adjust envelopes and leaf growth, not the sheer number of leaf polygons.
-
-No paid tools, imported models or third-party 3D services.
+Accept 8.0 only after visually checking whether the leaves have clearer layers, believable dark recesses, and richer green color **without losing 7.0's successful rounded contour**.

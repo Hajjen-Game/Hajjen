@@ -1,28 +1,32 @@
-# Wildpath — Tree Study 6.0 (Pass 16)
+# Wildpath — Tree Study 7.0: Silhouette First (Pass 17)
 
-**Preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/
+**Live preview:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=17
 
-## Why a new approach
-After reviewing 5.0 on a Galaxy A51, the art direction was not yet at the approved reference. The main problems were radial "flower rosettes", repeated identical foliage, pale minty color and too many separated canopy chunks. This pass **does not simply add more leaves** and does not use the earlier 3.0 smooth canopy blobs.
+This is a standalone art benchmark. **No gameplay files are changed.** The user's approved artistic reference remains the target: an organic fantasy tree with richly overlapping individual leaves arranged in recognizable rounded crowns, not spiky ferns, uniform flowers, or flat solid blobs.
 
-## What was implemented
-- Model `tree-model-v6.js` derives from 5.0; 5.0 and earlier versions are preserved.
-- **Nine asymmetric, interlocking crowns**, each with individually designed spread, vertical hang, and sweeping direction.
-- **Leaves attach along the lengths of bending twig-like growth axes in alternating, unequal pairs**, rather than a radial 360° center. Pendant leaves droop softly at branch tips.
-- Distinct shaded forest-green leaves on the interior and richer olive/sunlit greens on exposed layers, assembled into two vertex-colored meshes for efficient rendering.
-- Fewer (14) blossom motifs so leaf form remains the focus. Original curved trunk, six primary branches, textured bark and roots retained.
-- Real-time trunk/branch shadows and a soft neutral canopy/contact shadow; shadows toggle also disables the soft overlay.
-- Mobile review remains distraction-free with optional info card, orbiting camera and warm/soft lighting controls.
+## Why 7.0
+User's Tree Study 6.0 mobile images exposed fern-like, spiky peripheral shapes, despite the improvement in leaf direction. The geometry was dictating the silhouette instead of the other way around.
 
-## A/B comparisons
-- New 6.0: `/wildpath/tree-study/`
-- 5.0: `/wildpath/tree-study/?tree=v5`
-- 4.0: `/wildpath/tree-study/?tree=v4`
-- 3.0: `/wildpath/tree-study/?tree=v3`
-- 2.0: `/wildpath/tree-study/?tree=v2`
-- 1.0: `/wildpath/tree-study/?tree=v1`
+## Changes
+- Start from the successful **Tree Study 4.0 curved trunk / six main branches**, retaining bark and roots.
+- Define **nine intentional, rounded overlapping crown envelopes**. These are non-rendered guides, **not** visible spheres or green filler masses.
+- Distribute curved vertex-shaded 3D leaves across both shallow inner and outer envelope layers, with controlled downward/tangential growth and softened edge outlines.
+- Darker internal forest greens, warm exposed tops and some non-radial secondary leaves for occlusion.
+- New **Silhuett** toggle applies a neutral monochrome material to the actual 3D tree meshes. The camera remains interactive to evaluate silhouette from overhead, side and oblique angles.
+- Focused mobile viewer preserved. Dynamic Pass/Title identity is populated from the active renderer version, and all version imports / stylesheet references have version query suffixes.
+- Add `rev=17` to comparison/navigation links and recommended entry URL to avoid revisiting old cached HTML that previously showed PASS 15 over a 6.0 scene.
 
-## Acceptance criteria
-Review on Android from Wildpath camera, straight-on side and overhead: reduced star/rosette appearance, visibly varied foliage silhouette, organic drooping and no flat plastic blobs. Monitor real FPS, compare with 5.0 and determine whether the user-approved reference now feels closer.
+## Versions
+- v7: `?rev=17` (default)
+- v4: `?tree=v4&rev=17`
+- v5: `?tree=v5&rev=17`
+- v6: `?tree=v6&rev=17`
+- v1–3 still selectable.
 
-**Limitations:** Static code validation alone does not prove visual improvement or mobile FPS; do not claim this level is reached without screenshots/user evaluation. No production Wildpath files modified and no paid assets used.
+## Mobile acceptance
+1. Tap **Silhuett**: does the crown read as naturally rounded, with 8–9 graceful contour lobes rather than spikes?
+2. Toggle **Visa färger** and compare density, color and leaves, especially from the side and overhead.
+3. Rotate to multiple angles. Check FPS on the Android device, since static tests cannot prove rendering performance.
+4. If silhouette fails, adjust envelopes and leaf growth, not the sheer number of leaf polygons.
+
+No paid tools, imported models or third-party 3D services.

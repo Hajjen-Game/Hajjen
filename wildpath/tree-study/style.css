@@ -39,3 +39,8 @@ button:focus-visible,.back:focus-visible{outline:3px solid #d3a36c;outline-offse
 .compare:hover{color:#1d453b;border-color:#1d453b}
 .compare:focus-visible{outline:3px solid #d3a36c;outline-offset:3px}
 @media(max-width:690px){.compare{font-size:11px;margin-top:8px}}
+
+.version-links{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.version-links .compare.minor{font-size:11px;opacity:.73}
+.version-links [hidden]{display:none!important}
+@media(max-width:690px){.version-links{gap:9px}.version-links .compare.minor{font-size:10px}}

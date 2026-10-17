@@ -619,7 +619,7 @@ function basicAttack(){
     spellStage('Glint Dart','charge',game,.75);
     spellStage('Glint Dart','core',game,.8);
     spellStage('Glint Dart','sound',game,1,'launch');
-    const count=game.upgrades.has('triple')?3:game.upgrades.has('double')?2:1;
+    const count=casterVolley(game.upgrades,OPEN_WORLD);
     const volley=chooseVolleyTargets(game.enemies,game,game.spec.range,count,target);
     for(let i=0;i<volley.length;i++){
       const shotTarget=volley[i];
@@ -629,7 +629,7 @@ function basicAttack(){
       if(pixi.ready){shot.isVisible=false;
         for(const child of shot.getChildMeshes())child.isVisible=false;}
       game.projectiles.push({mesh:shot,x:game.x+offset,y:1.5,z:game.z,target:shotTarget,life:3.6,speed:17,
-        damage:game.spec.baseDamage*(game.upgrades.has('triple')?1.14:1),
+        damage:casterGlintDamage(game.upgrades,game.spec.baseDamage,OPEN_WORLD),
         hostile:false,trail:0,spell:'Glint Dart',fxSeed:game.frame*17+i*31});
     }
   }else{
@@ -703,7 +703,7 @@ function updatePlayer(dt){
   }else game.selectionRing.isVisible=false;
   game.attackClock-=dt;
   if(game.attackClock<=0){
-    basicAttack();game.attackClock=game.spec.attackSpeed*(game.upgrades.has('tempo')?.75:1);
+    basicAttack();game.attackClock=game.spec.attackSpeed*(game.upgrades.has('tempo')?(OPEN_WORLD?.59:.75):1);
   }
   for(let i=0;i<3;i++){
     const previous=game.cooldowns[i];
@@ -781,6 +781,22 @@ function updateProjectiles(dt){
         const spell=p.spell||'Glint Dart';
         spellStage(spell,'burst',p.target,.80);
         hurtEnemy(p.target,p.damage,{fxSpell:spell});
+        if(OPEN_WORLD&&spell==='Glint Dart'){
+          const splash=glintSplash(game.upgrades,OPEN_WORLD);
+          if(splash){
+            // Every upgraded projectile can damage a small group on impact.
+            const x=p.target.x,z=p.target.z;
+            spellStage('Glint Splash','burst',{x,z,y:1.3},
+              game.upgrades.has('glintstorm')?1.55:1);
+            let hits=0;
+            for(const other of game.enemies){
+              if(other!==p.target&&other.alive&&Math.hypot(other.x-x,other.z-z)<splash.radius){
+                hurtEnemy(other,splash.damage,{fxSpell:'Glint Dart'});
+                if(++hits>=splash.targets)break;
+              }
+            }
+          }
+        }
         spellStage(spell,'aftermath',p.target,.64);
         spellStage(spell,'sound',p.target,1,'impact');
       }
@@ -817,7 +833,7 @@ function updateEffects(dt){
   for(let i=game.areas.length-1;i>=0;i--){
     const a=game.areas[i];a.life-=dt;a.tick-=dt;
     if(a.tick<=0){
-      a.tick=.65;
+      a.tick=a.tickRate??.65;
       for(const e of game.enemies)if(e.alive&&distance(e,a)<a.radius)
         hurtEnemy(e,a.damage,{slow:a.slow,fxSpell:'Winter Pool'});
     }
@@ -836,6 +852,8 @@ function updateEffects(dt){
 }
 function pickBoosts(){
   const pool=BOOSTS.filter(b=>b.classes.includes(game.classId)&&!game.upgrades.has(b.id)&&(!b.onlyOpen||OPEN_WORLD));
+  if(OPEN_WORLD&&game.classId==='caster')
+    return choosePowerBoosts(pool,game.upgrades,director.stage);
   const picks=[];
   while(picks.length<3&&pool.length){
     const i=Math.floor(Math.random()*pool.length);
@@ -853,6 +871,7 @@ function completeStage(){
   const wrap=$('boostOptions');wrap.innerHTML='';
   for(const item of pickBoosts()){
     const btn=document.createElement('button');btn.className='boost-card';
+    if(OPEN_WORLD&&item.category==='damage')btn.classList.add('boost-offensive');
     const icon=document.createElement('span');icon.className='boost-icon';icon.textContent=item.icon;
     const title=document.createElement('strong');title.textContent=item.name;
     const desc=document.createElement('span');desc.textContent=item.desc;

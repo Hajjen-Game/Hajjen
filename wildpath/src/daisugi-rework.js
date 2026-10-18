@@ -64,11 +64,8 @@ export function chooseDaisugiBoosts(upgrades,stage,rng=Math.random){
     const index=Math.floor(rng()*regular.length);
     result.push(regular.splice(Math.min(index,regular.length-1),1)[0]);
   }
-  // If universal upgrades run out, use other core evolutions as new options.
-  for(const core of DAISUGI_CORE_BOOSTS){
-    if(result.length>=3)break;
-    if(!upgrades.has(core.id)&&!result.some(x=>x.id===core.id))result.push(core);
-  }
+  // An attack core is a real identity choice, not an accidental replacement.
+  // Never suggest an incompatible second core after the player chose one.
   return result;
 }
 export function daisugiVolleyCount(upgrades){

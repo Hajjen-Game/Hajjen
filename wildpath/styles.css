@@ -505,3 +505,29 @@ body:not(.wildpath-open) .classic-link{display:none}
 .wildpath-open .float-damage.energy{
   color:#ffca51;text-shadow:0 2px 3px #332c22,0 0 7px #f7b93762;
 }
+
+
+/* DAISUGI REWORK 1.0 — read-only automatic abilities, original arena/HUD intact.
+   This ONLY applies to the opt-in ?daisugi=1 mode. */
+body.daisugi-rework #bottomHud .ability.special{
+  pointer-events:none;cursor:default;opacity:1;
+  border-color:#35aeb2a8;
+  background:linear-gradient(155deg,#165863f5,#0b3a53f5);
+  box-shadow:inset 0 1px 0 #50d9cc62,0 3px 0 #092d43;
+}
+body.daisugi-rework #bottomHud .ability.special:disabled{opacity:1}
+body.daisugi-rework #bottomHud .ability.special .ability-key{
+  font-size:10px;font-weight:900;color:#a6f7c3;letter-spacing:.3px;
+}
+body.daisugi-rework #bottomHud .ability.special .ability-icon{
+  color:#36e6e1;text-shadow:0 0 5px #24dfc467;
+}
+body.daisugi-rework #bottomHud .ability.special .cooldown{
+  font-size:14px;background:#072b3ba3;
+}
+body.daisugi-rework #bottomHud .ability.special.is-ready{
+  border-color:#3bdfbb;
+  box-shadow:inset 0 1px 0 #6cead363,0 3px 0 #092d43,
+    0 0 6px #0ccfaa4c;
+}
+body.daisugi-rework .menu-panel .key-help{color:#8bf2c3}

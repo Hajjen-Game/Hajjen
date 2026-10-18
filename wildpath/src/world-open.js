@@ -4,10 +4,10 @@ const B=window.BABYLON;
 function rng(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);}
 function material(scene,name,color,emit=.08){
   const m=new B.StandardMaterial(name,scene),c=B.Color3.FromHexString(color);
-  m.diffuseColor=c;m.ambientColor=c.scale(.31);m.emissiveColor=c.scale(emit);
+  m.diffuseColor=c;m.ambientColor=c.scale(.25);m.emissiveColor=c.scale(emit*.58);
   // Saturated painterly base, with a restrained glossy highlight on lit tops.
-  m.specularColor=new B.Color3(.15,.19,.16);
-  m.specularPower=48;
+  m.specularColor=new B.Color3(.085,.105,.09);
+  m.specularPower=64;
   return m;
 }
 function sphereSource(scene,name,material){
@@ -24,7 +24,7 @@ function instance(source,name,x,y,z,sx,sy,sz){
 }
 export function createOpenWorld(scene){
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
-  const turf=material(scene,'enchanted deep moss','#ffffff',.10);
+  const turf=material(scene,'enchanted deep moss','#ffffff',.015);
   // Keep the FLOOR matte: glossy highlights belong to characters and foliage,
   // not to puddle-like specular patches on the removed wet terrain.
   turf.specularColor=new B.Color3(.025,.038,.032);
@@ -35,9 +35,9 @@ export function createOpenWorld(scene){
   ground.material=turf;ground.isPickable=false;ground.position.y=-.12;
   const positions=ground.getVerticesData(B.VertexBuffer.PositionKind);
   if(positions){
-    const colors=[],sun=B.Color3.FromHexString('#66a77a'),
-      meadow=B.Color3.FromHexString('#59936e'),
-      perimeter=B.Color3.FromHexString('#346b58');
+    const colors=[],sun=B.Color3.FromHexString('#44966c'),
+      meadow=B.Color3.FromHexString('#388460'),
+      perimeter=B.Color3.FromHexString('#245949');
     for(let i=0;i<positions.length;i+=3){
       const x=positions[i],z=positions[i+2];
       const r=Math.min(1,Math.hypot(x,z)/(WILD_RADIUS+22));
@@ -57,8 +57,8 @@ export function createOpenWorld(scene){
   const stones=['#829b96','#98b2ad','#6b8e91'].map((c,i)=>
     sphereSource(scene,'rock source '+i,material(scene,'moss stone '+i,c,.06)));
   const flower=['#ff8fc2','#ae89f2','#ffd76c','#7ce7c6'].map((c,i)=>
-    sphereSource(scene,'flower source '+i,material(scene,'flower color '+i,c,.23)));
-  const glow=sphereSource(scene,'magic firefly source',material(scene,'firefly tint','#b4ffef',.86));
+    sphereSource(scene,'flower source '+i,material(scene,'flower color '+i,c,.12)));
+  const glow=sphereSource(scene,'magic firefly source',material(scene,'firefly tint','#4de6ba',.40));
   // The previous shaded, flattened spheres rendered as giant dark blotches on
   // phones. Unlit and nearly transparent layers add gentle turf variation.
   // Soft small grass blades instead of large shadow-colored flattened spheres.

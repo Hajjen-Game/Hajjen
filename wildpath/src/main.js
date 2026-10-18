@@ -27,7 +27,12 @@ const OPEN_WORLD=params.get('world')!=='classic';
 // The working 2.x arena, camera, speed, AI and nature stay unchanged.
 // Daisugi Rework is an isolated experimental spell mode, not the 3.0 port.
 const DAISUGI_MODE=OPEN_WORLD&&params.get('daisugi')==='1';
-const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
+// Daisugi camera experiment 1.2: larger actors and closer combat framing.
+// ORIGINAL world/camera and movement constants remain untouched.
+const DAISUGI_CAMERA_WORLD_WIDTH=24.5;
+const CAMERA_WORLD_WIDTH=OPEN_WORLD
+  ?(DAISUGI_MODE?DAISUGI_CAMERA_WORLD_WIDTH:WILD_CAMERA_WIDTH)
+  :33.2;
 
 const B = window.BABYLON;
 const $ = id => document.getElementById(id);

@@ -22,7 +22,9 @@ function instance(source,name,x,y,z,sx,sy,sz){
   const m=source.createInstance(name);m.position.set(x,y,z);
   m.scaling.set(sx,sy,sz);m.isPickable=false;return m;
 }
-export function createOpenWorld(scene){
+export function createOpenWorld(scene,{staticVegetation=true}={}){
+  // Daisugi trial: render only Nature Rebirth plants created during combat.
+  // The original background scenery remains unchanged unless explicitly opted out.
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
   const turf=material(scene,'enchanted deep moss','#ffffff',.015);
   // Keep the FLOOR matte: glossy highlights belong to characters and foliage,
@@ -81,13 +83,13 @@ export function createOpenWorld(scene){
       1.36*s,1.13*s,1.32*s);
   };
   // Tiny scattered grass flecks create ground texture without giant dark discs.
-  for(let i=0;i<160;i++){
+  if(staticVegetation)for(let i=0;i<160;i++){
     const x=(rand()-.5)*132,z=(rand()-.5)*132;
     const scale=.24+rand()*.25;
     instance(grass,'fine grass blade',x,.065,z,scale,.12,scale*.55);
   }
   // Natural outer forest: dense trees read as a boundary, not an artificial wall.
-  for(let ring=0;ring<3;ring++){
+  if(staticVegetation)for(let ring=0;ring<3;ring++){
     const radius=WILD_RADIUS+5+ring*5.5;
     const count=ring===0?48:ring===1?55:63;
     for(let i=0;i<count;i++){
@@ -98,7 +100,7 @@ export function createOpenWorld(scene){
   }
   // A recognizable starting glade framed by trees. Open gaps in between keep
   // free movement readable; no continuous wall or forced route.
-  for(let i=0;i<15;i++){
+  if(staticVegetation)for(let i=0;i<15;i++){
     const angle=(i+.28+(rand()-.5)*.37)*Math.PI*2/15;
     const radius=17+rand()*5.7;
     trunk(Math.cos(angle)*radius,Math.sin(angle)*radius,.64+rand()*.22);
@@ -109,12 +111,16 @@ export function createOpenWorld(scene){
     const x=Math.cos(a)*r,z=Math.sin(a)*r;
     if(Math.hypot(x,z)<11)continue;
     const roll=rand();
-    if(roll<.18 && r>24)trunk(x,z,.59+rand()*.21);
-    else if(roll<.68)instance(choose(shrubs),'soft fern cluster',x,.17,z,.42+rand()*.44,.24+rand()*.17,.39+rand()*.36);
-    else instance(choose(stones),'rounded stone',x,.22,z,.40+rand()*.54,.30+rand()*.24,.35+rand()*.4);
+    if(roll<.18 && r>24){
+      if(staticVegetation)trunk(x,z,.59+rand()*.21);
+    }else if(roll<.68){
+      if(staticVegetation)instance(choose(shrubs),'soft fern cluster',
+        x,.17,z,.42+rand()*.44,.24+rand()*.17,.39+rand()*.36);
+    }else instance(choose(stones),'rounded stone',x,.22,z,
+      .40+rand()*.54,.30+rand()*.24,.35+rand()*.4);
   }
   // Small soft-colored flowers and occasional magical motes.
-  for(let i=0;i<195;i++){
+  if(staticVegetation)for(let i=0;i<195;i++){
     const a=rand()*Math.PI*2,r=Math.sqrt(rand())*(WILD_RADIUS+8);
     const x=Math.cos(a)*r,z=Math.sin(a)*r;
     const p=choose(flower);
@@ -131,5 +137,5 @@ export function createOpenWorld(scene){
     const gem=B.MeshBuilder.CreateSphere('enchanted forest gem',{diameter:.65,segments:10},scene);
     gem.position.set(x,.80,z);gem.material=shrineGlow;gem.isPickable=false;
   }
-  return {ground,kind:'open',radius:WILD_RADIUS};
+  return {ground,kind:'open',radius:WILD_RADIUS,staticVegetation};
 }

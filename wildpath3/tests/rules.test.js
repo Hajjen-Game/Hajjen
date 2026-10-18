@@ -28,7 +28,7 @@ test('finite waves end in a guardian and every enemy has a valid definition',()=
     for(let i=0;i<WAVE_BUDGETS[wave];i++)
       assert.ok(ENEMY_TYPES[waveEnemyType(wave,i)]);
   }
-  assert.equal(Math.hypot(...Object.values(spawnAtAngle(1))),ARENA_RADIUS-1.8);
+  assert.ok(Math.abs(Math.hypot(...Object.values(spawnAtAngle(1)))-(ARENA_RADIUS-1.8))<1e-9);
 });
 test('power-up catalog has unique ids and meaningful choices',()=>{
   assert.equal(new Set(BOOSTS.map(b=>b.id)).size,BOOSTS.length);

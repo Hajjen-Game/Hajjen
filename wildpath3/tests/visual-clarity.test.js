@@ -31,6 +31,8 @@ test('growing plants and combined fusion groves are readable in portrait',()=>{
   assert.ok(mobile.includes('permanent garden fusion halo'));
   assert.ok(mobile.includes("super.rebuildFusionDecor(region)"));
   assert.ok(mobile.includes('this.satelliteCount++'));
+  assert.ok(mobile.includes('region.ground.position.y=-.062'));
+  assert.ok(mobile.includes('entry.shadow.position.y=-.066'));
 });
 test('old Wildpath 2.x remains a dependency rather than modified code',()=>{
   const adapter=read('../src/mobile-nature.js');

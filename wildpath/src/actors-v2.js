@@ -4,7 +4,10 @@ const B=window.BABYLON;
 const v=(x,y,z)=>new B.Vector3(x,y,z);
 function colorMat(scene,name,color,glow=.08,alpha=1){
   const m=new B.StandardMaterial(name,scene),c=B.Color3.FromHexString(color);
-  m.diffuseColor=c;m.ambientColor=c.scale(.35);m.specularColor=new B.Color3(.11,.13,.14);
+  // Glossy candy-shell highlight, with no expensive per-actor postprocess.
+  m.diffuseColor=c;m.ambientColor=c.scale(.27);
+  m.specularColor=new B.Color3(.55,.64,.60);
+  m.specularPower=74;
   m.emissiveColor=c.scale(glow);m.alpha=alpha;
   if(alpha<1)m.backFaceCulling=false;
   return m;
@@ -16,16 +19,16 @@ function capsule(scene,name,height,radius){
 export function createActor(scene,type,enemy=false){
   const caster=!enemy&&type==='caster',melee=!enemy&&type==='melee';
   const palette=enemy?({
-    mossling:['#7da875','#a0d18c','#355b48'],
-    bramble:['#aa8577','#c6a195','#654c4d'],
-    ember:['#e69c77','#ffd097','#aa5946'],
-    guardian:['#8d85ae','#b5a4d9','#504e6e']
-  }[type]||['#82aa90','#b5d7a7','#52695a']):caster?
-    ['#75d0dd','#b4f4fa','#297e94']:['#e7a15d','#ffe1a2','#80543e'];
+    mossling:['#70c65a','#c3f47d','#386b38'],
+    bramble:['#e28772','#ffbb98','#934d55'],
+    ember:['#ff9450','#ffe088','#b9473b'],
+    guardian:['#a17adf','#d7b5ff','#62488b']
+  }[type]||['#77cd8f','#d3f6a2','#486d53']):caster?
+    ['#19c9e5','#d8ffff','#056c91']:['#f6a457','#ffe5a0','#82533f'];
   const root=new B.TransformNode('hero capsule root',scene),members=[],mats=[];
   function material(n,h,g=.1,a=1){const m=colorMat(scene,n,h,g,a);mats.push(m);return m;}
-  const bodyMat=material(type+' satin capsule',palette[0],.17);
-  const faceMat=material(type+' bright front',palette[1],.15);
+  const bodyMat=material(type+' satin capsule',palette[0],caster?.27:.16);
+  const faceMat=material(type+' bright front',palette[1],caster?.32:.21);
   const trimMat=material(type+' details',palette[2],.10);
   const shadowMat=material('soft contact shadow','#263d36',.04,.42);
   const metalMat=material('rounded steel sword','#d3e9e1',.38);
@@ -44,6 +47,15 @@ export function createActor(scene,type,enemy=false){
   const patch=B.MeshBuilder.CreateSphere('front-tint',{diameter:1,segments:14},scene);
   add(patch,'front facing color patch',0,1.38,rad-.06,faceMat);
   patch.scaling=v(.41,.57,.115);
+  // One restrained hero-only pearl highlight visible to the high top-down
+  // camera; enemies stay on the old mesh budget.
+  if(!enemy){
+    const glint=B.MeshBuilder.CreateSphere('hero polished crown highlight',
+      {diameter:1,segments:10},scene);
+    add(glint,'hero top pearl glint',-.15,h+.13,.11,
+      material('hero pearl sheen',caster?'#ebffff':'#fff1c9',.35));
+    glint.scaling=v(.21,.07,.16);glint.isPickable=false;
+  }
   for(const sign of [-1,1]){
     const eye=B.MeshBuilder.CreateSphere('small eye',{diameter:1,segments:10},scene);
     add(eye,'small direction eye',sign*.19,1.67,rad+.035,eyeMat);
@@ -60,7 +72,7 @@ export function createActor(scene,type,enemy=false){
   }
   if(caster){
     const focus=B.MeshBuilder.CreateSphere('floating spell focus',{diameter:.34,segments:14},scene);
-    focus.parent=rightArm;focus.position=v(.07,-.17,.42);focus.material=material('caster focus','#d3ffff',1);
+    focus.parent=rightArm;focus.position=v(.07,-.17,.42);focus.material=material('caster focus','#dfffff',1.20);
     members.push(focus);
   }
   if(melee){

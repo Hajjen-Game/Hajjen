@@ -22,7 +22,7 @@ test('five subtly different green shades form hexagons without drawn outlines',(
   assert.equal(mesh.indices.length,mesh.count*54);
   for(const t of mesh.colors)assert.ok(t>=0&&t<=1);
   const source=read('../src/hex-grass.js');
-  assert.ok(source.includes('const edge=blend(base,tinted,.18)'));
+  assert.ok(source.includes('const edge=blend(base,tinted,.62)'));
   assert.ok(!source.includes('CreateLines('));
   assert.ok(!source.includes('ShaderMaterial'));
   assert.ok(!source.includes('DynamicTexture'));
@@ -54,7 +54,10 @@ test('Babylon adapter makes one noncolliding field; original ground remains inta
       applyToMesh(mesh){mesh.data={positions:this.positions,
         indices:this.indices,normals:this.normals,colors:this.colors}}
     }
-    globalThis.window={BABYLON:{Mesh:MockMesh,VertexData}};
+    class Color3{constructor(r,g,b){this.r=r;this.g=g;this.b=b}}
+    class StandardMaterial{constructor(name){this.name=name}}
+    globalThis.window={BABYLON:{Mesh:MockMesh,VertexData,
+      Color3,StandardMaterial}};
     const ground={position:{y:-.12},material:{name:'original matte'},
       isVisible:true};
     const mesh=createHexGrass({},ground,{
@@ -62,7 +65,10 @@ test('Babylon adapter makes one noncolliding field; original ground remains inta
     });
     assert.equal(meshCount,1);
     assert.equal(mesh.position.y,ground.position.y);
-    assert.equal(mesh.material,ground.material);
+    assert.notEqual(mesh.material,ground.material);
+    assert.equal(mesh.material.disableLighting,true);
+    assert.equal(mesh.material.backFaceCulling,false);
+    assert.equal(mesh.material.specularColor.r,0);
     assert.equal(mesh.isPickable,false);
     assert.equal(mesh.useVertexColors,true);
     assert.equal(ground.isVisible,false);
@@ -84,4 +90,14 @@ test('Daisugi-only flag supports hex=0 comparison and preserves the original gam
   assert.equal(WILD_CAMERA_WIDTH,29.5);
   assert.equal(CLASS_DATA.caster.speed,5.25);
   assert.ok(main.includes('const DAISUGI_CAMERA_WORLD_WIDTH=24.5'));
+});
+
+test('five mobile-readable greens have enough contrast even without scene lighting',()=>{
+  assert.ok(HEX_GRASS_SHADES[0].g<-.10);
+  assert.ok(HEX_GRASS_SHADES[4].g>.10);
+  const spread=HEX_GRASS_SHADES[4].g-HEX_GRASS_SHADES[0].g;
+  assert.ok(spread>.22,'hex cell palette needs visible shade separation');
+  const materialSource=read('../src/hex-grass.js');
+  assert.ok(materialSource.includes('material.disableLighting=true'));
+  assert.ok(materialSource.includes('material.backFaceCulling=false'));
 });

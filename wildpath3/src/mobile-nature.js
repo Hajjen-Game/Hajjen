@@ -8,6 +8,12 @@ export class MobileNatureGrowth extends NatureGrowth{
     super(scene,callbacks);
     this.satelliteCount=0;
   }
+  attachShadow(entry){
+    super.attachShadow(entry);
+    // The 3.0 arena floor is at y=-.085; inherited 2.x shadow at
+    // -.110 rendered BELOW the ground and therefore vanished entirely.
+    if(entry.shadow)entry.shadow.position.y=-.066;
+  }
   siteFor(x,z,hero,tier,ignoreId=null){
     return mobilePlantSite(x,z,hero,tier,this.order,ignoreId);
   }
@@ -35,6 +41,9 @@ export class MobileNatureGrowth extends NatureGrowth{
   }
   createFusionVisual(region){
     super.createFusionVisual(region);
+    // The legacy 2.x fused-earth patch at y=-.105 was hidden BELOW
+    // the new meadow surface. Lift it slightly to avoid z-fighting.
+    region.ground.position.y=-.062;
     // A colored ring communicates that a group has become a permanent
     // fusion; absorbed flowers are not simply erased from the world.
     const B=window.BABYLON;

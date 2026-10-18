@@ -6,6 +6,8 @@ import {ARENA_RADIUS,ENEMY_TYPES,WAVE_BUDGETS,BOOSTS,clamp,moveInsideArena,
 import {createArcadeArena,candyMaterial} from './arena.js';
 import {createCharacter,setCharacterPose} from './actors.js';
 import {createMovementControls} from './controls.js';
+import {WaterVFX} from './vfx.js?v=3.0.1';
+import {createScoreLedger,awardScore,currentCombo,formatScore} from './score.js?v=3.0.1';
 import {makeNatureLedger,recordNatureKill} from '../../wildpath/src/nature-rebirth.js';
 import {NatureGrowth} from '../../wildpath/src/nature-growth.js';
 const B=window.BABYLON;
@@ -23,6 +25,9 @@ export class Wildpath3Game {
     this.arena=createArcadeArena(this.scene);
     this.arena.resize(this.engine);
     this.controls=createMovementControls();
+    this.vfx=new WaterVFX(this.canvas,this.scene,this.engine);
+    void this.vfx.init();
+    this.score=createScoreLedger();
     this.projectileMaterial=candyMaterial(this.scene,'turquoise auto bolt','#1bd5ed',
       {shine:.32,emission:.18});
     this.pulseMaterial=candyMaterial(this.scene,'strong cyan water pulse','#19d2b5',
@@ -30,8 +35,17 @@ export class Wildpath3Game {
     this.pickupMaterial=candyMaterial(this.scene,'golden magic seed','#ffc044',
       {shine:.27,emission:.10});
     this.nature=new NatureGrowth(this.scene,{
-      onBloom:()=>this.events.blooms++,
-      onFusion:()=>{this.events.fusionNotices++;this.toast('✿ NATURE FUSION!');}
+      onBloom:(event,upgraded)=>{
+        this.events.blooms++;
+        this.award(event.tier,event.x,event.z);
+        this.vfx.emit('Tidal Bloom','burst',event.x,event.z,.66);
+      },
+      onFusion:event=>{
+        this.events.fusionNotices++;
+        this.award(event.kind,event.x,event.z);
+        this.vfx.emit('Tidal Bloom','burst',event.x,event.z,1.25);
+        this.toast('✿ '+event.kind.toUpperCase()+' FUSION!');
+      }
     });
     this.state='menu';
     this.hero=null;
@@ -46,6 +60,7 @@ export class Wildpath3Game {
       then=now;
       if(this.state==='playing')this.update(dt);
       this.scene.render();
+      this.vfx.update(dt,this.projectiles,this.state==='playing');
     });
     window.addEventListener('resize',()=>{
       this.engine.resize();this.arena.resize(this.engine);
@@ -68,6 +83,32 @@ export class Wildpath3Game {
     }
     document.body.dataset.mode=this.state;
   }
+  award(kind,x,z){
+    if(!this.score)return;
+    const gained=awardScore(this.score,kind,this.time);
+    if(Number.isFinite(x)&&Number.isFinite(z))this.scorePopup(gained.points,x,z,kind);
+    this.hudTimer=-.01;
+    return gained;
+  }
+  scorePopup(amount,x,z,kind){
+    const stage=$('floaters'),camera=this.scene.activeCamera;
+    const viewport=camera.viewport.toGlobal(this.engine.getRenderWidth(),this.engine.getRenderHeight());
+    const p=B.Vector3.Project(V(x,2.25,z),B.Matrix.Identity(),
+      this.scene.getTransformMatrix(),viewport);
+    if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.z<0||p.z>1)return;
+    const rect=this.canvas.getBoundingClientRect();
+    const pointX=rect.left+p.x*rect.width/this.engine.getRenderWidth();
+    const pointY=rect.top+p.y*rect.height/this.engine.getRenderHeight();
+    if(pointX<-20||pointX>window.innerWidth+20||pointY<70||pointY>window.innerHeight-100)return;
+    const div=document.createElement('div');
+    div.className='scoreFloat '+(kind==='seed'?'pickupScore':
+      ['flower','bush','tree','blossom','meadow','thicket','grove','enchanted'].includes(kind)?'natureScore':'combatScore');
+    div.style.left=pointX+'px';div.style.top=pointY+'px';
+    div.textContent='+'+formatScore(amount);
+    stage.appendChild(div);
+    div.addEventListener('animationend',()=>div.remove(),{once:true});
+    while(stage.childElementCount>28)stage.firstElementChild?.remove();
+  }
   toast(message){
     const t=$('toast');t.textContent=message;t.classList.add('visible');
     this.toastTimer=2.3;
@@ -77,6 +118,7 @@ export class Wildpath3Game {
     this.state='playing';
     this.wave=0;this.waveSpawned=0;this.waveDelay=.55;this.clearClock=0;
     this.time=0;this.kills=0;this.damageTaken=0;this.seedCount=0;
+    this.score=createScoreLedger();this.vfx.clear();$('floaters').replaceChildren();
     this.cooldown=.40;this.pulseCd=5.2;this.guardCd=9;
     this.damage=23;this.speed=6.9;this.attackDelay=.57;this.range=8.8;
     this.pulseRadius=3.05;this.maxHp=115;this.hp=115;
@@ -95,7 +137,7 @@ export class Wildpath3Game {
     for(const p of this.pickups)p.mesh.dispose();
     for(const f of this.fx){f.mesh.dispose();f.material.dispose();}
     this.enemies=[];this.projectiles=[];this.pickups=[];this.fx=[];
-    this.nature.clear();
+    this.nature.clear();this.vfx.clear();$('floaters').replaceChildren();
     this.hero=null;
   }
   returnToMenu(){
@@ -132,9 +174,11 @@ export class Wildpath3Game {
     mesh.position.set(from.x,1.22,from.z);
     mesh.material=this.projectileMaterial;mesh.isPickable=false;
     this.projectiles.push({mesh,x:from.x,z:from.z,target,age:0,damage:this.damage});
+    this.vfx.emit('Water Dart','charge',from.x,from.z,.85);
   }
   pulse(){
     this.makeRipple(this.hero.x,this.hero.z,this.pulseRadius,'pulse');
+    this.vfx.emit('Tidal Bloom','burst',this.hero.x,this.hero.z,1.22);
     let hits=0;
     for(const e of [...this.enemies]){
       if(!e.alive||Math.hypot(e.x-this.hero.x,e.z-this.hero.z)>this.pulseRadius)continue;
@@ -163,6 +207,7 @@ export class Wildpath3Game {
     enemy.alive=false;
     this.kills++;
     const {x,z}=enemy;
+    this.award(enemy.type,x,z);
     this.makeRipple(x,z,1.0,'kill');
     const event=recordNatureKill(this.ledger,{x,z,type:enemy.type,time:this.time});
     if(event)this.nature.apply(event,this.hero);
@@ -219,6 +264,7 @@ export class Wildpath3Game {
       if(d<.65+p.target.radius){
         this.damageEnemy(p.target,p.damage);
         this.makeRipple(p.x,p.z,.72);
+        this.vfx.emit('Water Dart','burst',p.x,p.z,.98);
         p.mesh.dispose();this.projectiles.splice(i,1);continue;
       }
       const step=Math.min(d,18*dt);
@@ -235,6 +281,7 @@ export class Wildpath3Game {
       if(d<1.15){
         p.mesh.dispose();this.pickups.splice(i,1);
         this.seedCount++;this.hp=Math.min(this.maxHp,this.hp+1.5);
+        this.award('seed',p.x,p.z);
       }else if(d<3.7){
         const f=Math.min(1,dt*(d<2?5:2.3));
         p.x+=(this.hero.x-p.x)*f;p.z+=(this.hero.z-p.z)*f;
@@ -266,6 +313,7 @@ export class Wildpath3Game {
     // Allow the final kill's natural blooms to mature before choosing a boost.
     this.clearClock+=dt;
     if(this.clearClock<3.0)return;
+    this.award('wave',this.hero.x,this.hero.z);
     if(this.wave===WAVE_BUDGETS.length-1)this.end(true);
     else this.openBoosts();
   }
@@ -310,6 +358,9 @@ export class Wildpath3Game {
     $('finishSubtitle').textContent=won
       ?'Your entire round’s nature will form one unique Daisugi tree in the next development pass.'
       :'Try new movement routes to create stronger fusion chains.';
+    $('resultScore').textContent=formatScore(this.score.total);
+    $('resultCombo').textContent='BEST COMBO '+this.score.bestCombo+' · NATURE POINTS '+
+      formatScore(this.score.breakdown.nature);
     $('finishStats').replaceChildren();
     const cells=[
       ['ENEMIES',String(this.kills)],
@@ -339,6 +390,9 @@ export class Wildpath3Game {
     $('bloomText').textContent=this.events.blooms+' BLOOMS';
     $('fusionText').textContent=snap.regions+' FUSIONS';
     $('seedText').textContent=this.seedCount;
+    $('scoreText').textContent=formatScore(this.score.total);
+    const combo=currentCombo(this.score,this.time);
+    $('comboText').textContent=combo>1?'COMBO '+combo:'AUTO BATTLE';
     $('enemyText').textContent=count+' ENEMIES';
   }
   update(dt){

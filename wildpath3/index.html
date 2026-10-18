@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#103e51">
   <meta name="description" content="Wildpath 3.0: mobile-first colorful arcade battles grow your Daisugi legacy.">
-  <title>Wildpath 3.0 · Mobile Arena Prototype</title>
-  <link rel="stylesheet" href="./styles.css?v=3.0.0-pass1">
+  <title>Wildpath 3.0 · Visual Restoration 1.1</title>
+  <link rel="stylesheet" href="./styles.css?v=3.0.1-visual-restoration">
 </head>
 <body data-mode="menu">
   <canvas id="game" aria-label="Wildpath 3D mobile battle arena" tabindex="0"></canvas>
+  <div id="floaters" aria-hidden="true"></div>
   <div class="gameHud" aria-label="Battle information">
     <header class="topHud">
       <div class="headInfo">
@@ -20,6 +21,9 @@
       </div>
       <div class="battleInfo">
         <button id="pauseButton" class="pauseBtn" aria-label="Pause the game">Ⅱ</button>
+        <div class="scoreCaption">SCORE</div>
+        <div id="scoreText">0</div>
+        <div id="comboText">AUTO BATTLE</div>
         <div class="time" id="timeText">0:00</div>
         <div class="enemyCounter" id="enemyText">0 ENEMIES</div>
       </div>
@@ -41,7 +45,7 @@
       <div class="kicker">A NEW TREE-BUILDING ADVENTURE</div>
       <div class="logo">WILD<span>PATH</span></div>
       <div class="tagline">Battle. Grow. Combine.</div>
-      <div class="prototype">3.0 · FIRST PLAYABLE · MOBILE-FIRST</div>
+      <div class="prototype">3.0 · VISUAL RESTORATION 1.1 · MOBILE-FIRST</div>
       <div class="featureRow"><span>🌱 Nature Rebirth</span><span>✦ Auto Spells</span></div>
       <p>Fight through three compact waves. Your kills grow flowers and trees; nearby plants merge into new nature.</p>
       <button id="beginButton" class="primaryBtn">PLAY LEVEL 1 <b>➜</b></button>
@@ -73,6 +77,9 @@
       <div class="kicker">WILD GROWTH · LEVEL 1</div>
       <h1 id="finishTitle">LEVEL CLEAR!</h1>
       <p id="finishSubtitle">Your future Daisugi tree starts here.</p>
+      <div class="scoreResultLabel">TOTAL SCORE</div>
+      <div id="resultScore">0</div>
+      <div id="resultCombo">BEST COMBO 0</div>
       <div id="finishStats" class="statGrid"></div>
       <div class="comingNext">NEXT: DEEPER FUSION CHAINS + UNIQUE FINAL TREE</div>
       <button id="againButton" class="primaryBtn">PLAY AGAIN ➜</button>
@@ -84,6 +91,6 @@
       <p>Check your connection and reload the page to load Babylon.js.</p></div>
   </section>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/main.js?v=3.0.0-pass1"></script>
+  <script type="module" src="./src/main.js?v=3.0.1-visual-restoration"></script>
 </body>
 </html>

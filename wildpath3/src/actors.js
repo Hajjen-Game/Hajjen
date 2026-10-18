@@ -58,7 +58,8 @@ export function createCharacter(scene,type='hero'){
     tessellation:32},scene);
   contact.rotation.x=Math.PI/2;contact.position.y=.088;contact.parent=root;
   contact.material=mat(scene,'ground shade','#1b5f58',.01);contact.isPickable=false;
-  contact.scaling.z=.58;
+  contact.material.alpha=.23;contact.material.disableLighting=true;
+  contact.scaling.y=.58;
   return {root,torso,baseY:0,dispose(){root.dispose(false,false);}};
 }
 export function setCharacterPose(actor,x,z,t,velocity=0){

@@ -3,7 +3,7 @@
 import { STAGE_GATES } from './config.js?v=0.6.0';
 import { BOARD_START, BOARD_END, BOARD_HALF_WIDTH, ROAD_HALF_WIDTH, WAYPOINTS,
   pathX, isOnRoad, rectsForRoad } from './layout-v5.js?v=0.6.0';
-export { createActor } from './actors-v2.js?v=3.0.0';
+export { createActor } from './actors-v2.js?v=3.1.0';
 export { ring, disc, lightOrb } from './world.js';
 export { pathX, isOnRoad } from './layout-v5.js?v=0.6.0';
 

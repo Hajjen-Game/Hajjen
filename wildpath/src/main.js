@@ -15,12 +15,9 @@ import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=2.6.1';
-import {LivingWater} from './living-water.js?v=2.7.3';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
-import {isWillowglowPreviewRequested,mountWillowglowPreview,WILLOWGLOW_SIZES} from './willowglow-preview.js?v=2.0.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
-const WILLOWGLOW_PREVIEW=isWillowglowPreviewRequested(location.search,OPEN_WORLD);
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
 
 const B = window.BABYLON;
@@ -66,54 +63,6 @@ function resizeCamera(){
 }
 resizeCamera();
 const world=OPEN_WORLD?createOpenWorld(scene):createWorld(scene);
-// Opt-in production-fit art comparison. Does not change normal forest.
-const treeStyleFromUrl=new URLSearchParams(location.search).get('tree')==='original'?'original':'lowpoly';
-const willowglow=WILLOWGLOW_PREVIEW
-  ?mountWillowglowPreview(B,scene,{initialStyle:treeStyleFromUrl}):null;
-$('willowglowPreviewNote').hidden=!WILLOWGLOW_PREVIEW;
-const treeReadabilityPanel=$('treeReadabilityPanel');
-treeReadabilityPanel.hidden=!WILLOWGLOW_PREVIEW;
-function refreshWillowglowControls(){
-  if(!willowglow)return;
-  for(const [attr,current] of [
-    ['data-tree-size',willowglow.size],['data-tree-style',willowglow.style],
-    ['data-tree-palette',willowglow.palette]
-  ]){
-    for(const button of treeReadabilityPanel.querySelectorAll('['+attr+']')){
-      const selected=button.getAttribute(attr)===current;
-      button.classList.toggle('selected',selected);
-      button.setAttribute('aria-pressed',String(selected));
-    }
-  }
-  $('treeReadabilityPalettes').hidden=willowglow.style!=='lowpoly';
-  $('treeReadabilityScale').textContent=
-    (willowglow.style==='lowpoly'?'Low-poly · '+willowglow.palette:'Original 11.0')
-    +' · '+willowglow.size+' · '+(WILLOWGLOW_SIZES[willowglow.size]/.66).toFixed(1)+'×';
-}
-function chooseWillowglowSize(size){
-  if(!willowglow?.setSize(size))return false;
-  refreshWillowglowControls();return true;
-}
-function chooseWillowglowStyle(style){
-  if(!willowglow?.setStyle(style))return false;
-  refreshWillowglowControls();return true;
-}
-function chooseWillowglowPalette(palette){
-  if(!willowglow?.setPalette(palette))return false;
-  refreshWillowglowControls();return true;
-}
-if(willowglow){
-  treeReadabilityPanel.querySelectorAll('[data-tree-size]').forEach(button=>{
-    button.addEventListener('click',()=>chooseWillowglowSize(button.dataset.treeSize));
-  });
-  treeReadabilityPanel.querySelectorAll('[data-tree-style]').forEach(button=>{
-    button.addEventListener('click',()=>chooseWillowglowStyle(button.dataset.treeStyle));
-  });
-  treeReadabilityPanel.querySelectorAll('[data-tree-palette]').forEach(button=>{
-    button.addEventListener('click',()=>chooseWillowglowPalette(button.dataset.treePalette));
-  });
-  refreshWillowglowControls();
-}
 const director=OPEN_WORLD?new OpenDirector():new Director();
 if(OPEN_WORLD){
   scene.clearColor=B.Color4.FromHexString('#253c33ff');
@@ -146,11 +95,6 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
     grove:'🌳 GROVE',enchanted:'✧ MAGIC GROVE'};
   floatingText({x:event.x,y:2.15,z:event.z},labels[event.kind],'nature');
 }}):null;
-const water=OPEN_WORLD?new LivingWater(scene,{onPond:e=>{
-  pixi.stage('Living Pond','burst',{x:e.x,z:e.z,y:.20,color:0x9beee5},
-    e.rare?1.5:1.05);
-  floatingText({x:e.x,z:e.z,y:2.0},e.rare?'✧ LILY POND':'≈ POND','nature');
-}}):null;
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
   if(stage==='sound'){spellFX.sound(name,cue);return;}
@@ -163,8 +107,7 @@ const game={
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
   texts:[],pickups:[],energy:0,lastPickupSound:-10,surgeCelebrated:false,target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
   combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
-  cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false,
-  waterSurfaces:[]
+  cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
 // Read-only instrumentation for manual QA and browser smoke tests (?debug=1).
 if(new URLSearchParams(location.search).has('debug')){
@@ -175,10 +118,7 @@ if(new URLSearchParams(location.search).has('debug')){
       enemies:game.enemies.filter(e=>e.alive).length,pickups:game.pickups.length,
       score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z,
       pixiReady:pixi.ready,pixiFailed:pixi.failed,
-      nature:nature?.snapshot()??null,water:water?.snapshot()??null,
-      willowglow:willowglow?{version:willowglow.version,position:willowglow.position,
-        scale:willowglow.scale,size:willowglow.size,style:willowglow.style,palette:willowglow.palette,
-        meshes:willowglow.meshes,leaves:willowglow.stats.leaves,triangles:willowglow.stats.triangles}:null
+      nature:nature?.snapshot()??null,water:null,willowglow:null
     }),
     // Debug-only illustration/test: ten local simulated kills create one tree.
     // No score, combat, health, loot or permanent progression is changed.
@@ -238,17 +178,6 @@ if(new URLSearchParams(location.search).has('debug')){
       updateHud();
       return nature.snapshot();
     },
-    // Dedicated display-only scene for judging pond color and lily-pad scale.
-    previewWaterGarden:()=>{
-      if(!water)return null;
-      const at=game.time;
-      water.cast('tide',game.x+4,game.z+6,4.5,at);
-      for(let i=0;i<6;i++)water.kill(game.x+4.1,game.z+6.2,at+i*.035);
-      water.cast('rain',game.x-6,game.z+9,3.7,at);
-      water.update(.9,at+.9);game.waterSurfaces=water.surfaces();
-      updateHud();
-      return water.snapshot();
-    },
     // Debug-only integration check: upgraded Crystal Bloom against 10 real
     // enemies. This is not available in the ordinary game URL.
     testPowerBurst:()=>{
@@ -264,7 +193,7 @@ if(new URLSearchParams(location.search).has('debug')){
       const before=game.kills;
       game.cooldowns[1]=0;cast(1);
       return {kills:game.kills-before,plants:nature.snapshot(),
-        water:water.snapshot(),remaining:game.enemies.filter(x=>x.alive).length};
+        water:null,remaining:game.enemies.filter(x=>x.alive).length};
     },
     restart:()=>{
       startGame();
@@ -371,8 +300,7 @@ function clearGame(){
   for(const p of game.pickups)releaseMesh(p.mesh);
   spellFX.clear();pixi.clear();
   nature?.clear();natureLedger=makeNatureLedger();
-  water?.clear();game.waterSurfaces=[];
-  releaseMesh(game.selectionRing);
+    releaseMesh(game.selectionRing);
   releaseMesh(game.heroRing);
   game.enemies=[];game.projectiles=[];game.effects=[];game.areas=[];game.texts=[];game.pickups=[];game.energy=0;game.lastPickupSound=-10;game.surgeCelebrated=false;
   game.selectionRing=null;game.heroRing=null;
@@ -483,7 +411,6 @@ function scoreKill(enemy){
       x:enemy.x,z:enemy.z,type:enemy.type,time:game.time
     });
     nature?.apply(event,game);
-    water?.kill(enemy.x,enemy.z,game.time);
   }
   game.combo=game.comboLife>0?game.combo+1:1;
   game.comboLife=5.5;
@@ -645,7 +572,6 @@ function icePool(x,z){
   ringBurst(x,z,'#d4fbff',1.8);
   game.areas.push({x,z,radius,life:power.life,tick:OPEN_WORLD?power.tick:0,
     tickRate:power.tick,damage:power.damage,slow:power.slow,mesh,border,water:OPEN_WORLD});
-  if(OPEN_WORLD)water?.cast('rain',x,z,Math.min(5.8,radius*.81),game.time);
   if(OPEN_WORLD&&power.entryDamage){
     spellStage('Winter Pool','burst',{x,z,y:.5},
       game.upgrades.has('hailstorm')?2.15:1.6);
@@ -677,8 +603,6 @@ function cast(slot){
     if(slot===1){
       const power=casterBloom(game.upgrades,OPEN_WORLD);
       const cx=target.x,cz=target.z;
-      if(OPEN_WORLD)water?.cast('tide',cx,cz,
-        Math.min(5.0,power.radius*.67),game.time);
       spellStage('Crystal Bloom','core',target,1.1);
       spellStage('Crystal Bloom','burst',target,power.intensity);
       shardBurst(cx,cz,'#bbaffb',power.radius*.65);
@@ -1088,8 +1012,6 @@ function updateHud(){
     const growth=nature?.snapshot();
     if(growth)label('natureBadge','✿ '+growth.planted+' BLOOMS · '+growth.regions+
       ' GROVES · '+growth.tiers.blossom+' RARE');
-    const ponds=water?.snapshot();
-    if(ponds)label('waterBadge','≈ '+ponds.ponds+' PONDS · '+ponds.temporary+' WET');
   }
   label('directorLabel',director.stateLabel);
   label('healthText',Math.ceil(game.hp)+' / '+game.maxHp+(game.shield>0?' · Shield '+Math.round(game.shield):''));
@@ -1126,8 +1048,6 @@ function update(dt){
   updateProjectiles(dt);
   updateGlints(dt);
   nature?.update(dt,game);
-  water?.update(dt,game.time);
-  if(water)game.waterSurfaces=water.surfaces();
   updateEffects(dt);
   spellFX.tick(dt);
   updateJuice(dt);

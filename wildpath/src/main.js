@@ -632,7 +632,11 @@ function hurtEnemy(e,base,options={}){
     e.knockX+=dx/dist*options.push;e.knockZ+=dz/dist*options.push;
   }
   if(e.hp<=0){
-    e.alive=false;scoreKill(e);
+    e.alive=false;
+    // Let the final water impact visibly shove the capsule before it
+    // disappears. The enemy is already dead for targeting/score/spawns.
+    if(DAISUGI_MODE)e.deathClock=.16;
+    scoreKill(e);
     const chain=cascadePower(game.upgrades,OPEN_WORLD);
     const depth=options.cascadeDepth||0;
     if(chain&&depth<chain.maxDepth){
@@ -1021,7 +1025,19 @@ function updatePlayer(dt){
 }
 function updateEnemies(dt){
   for(const e of game.enemies){
-    if(!e.alive)continue;
+    if(!e.alive){
+      if(DAISUGI_MODE&&(e.deathClock||0)>0){
+        e.deathClock=Math.max(0,e.deathClock-dt);
+        const moved=freeStep(e.x,e.z,e.knockX*3*dt,e.knockZ*3*dt,
+          WILD_RADIUS+.5);
+        e.x=moved.x;e.z=moved.z;
+        e.knockX*=Math.exp(-7*dt);e.knockZ*=Math.exp(-7*dt);
+        e.hitTilt=(e.hitTilt||0)*Math.exp(-8.5*dt);
+        e.actor.root.position.set(e.x,(e.recoil||0)*.40,e.z);
+        e.actor.root.rotation.z=e.hitTilt;
+      }
+      continue;
+    }
     e.attackClock-=dt;e.slow=Math.max(0,e.slow-dt);e.flash=Math.max(0,e.flash-dt);e.recoil=Math.max(0,(e.recoil||0)-dt*2.4);
     const dx=game.x-e.x,dz=game.z-e.z,d=Math.max(.01,Math.hypot(dx,dz));
     let mx=0,mz=0;
@@ -1058,7 +1074,10 @@ function updateEnemies(dt){
     }
   }
   for(let i=game.enemies.length-1;i>=0;i--){
-    if(!game.enemies[i].alive){game.enemies[i].actor.dispose();game.enemies.splice(i,1);}
+    if(!game.enemies[i].alive&&
+        (!DAISUGI_MODE||!(game.enemies[i].deathClock>0))){
+      game.enemies[i].actor.dispose();game.enemies.splice(i,1);
+    }
   }
 }
 function updateProjectiles(dt){

@@ -1,59 +1,102 @@
-// Wildpath / Daisugi Hex Grass 1.2 — robust, baked into proven original floor.
-// NO replacement mesh and NO hidden ground. This is only a color sampler:
-// Babylon's original CreateGround and original material remain on screen.
+// Wildpath / Daisugi Hex Grass 1.3 — crisp hexagons on the ORIGINAL floor.
+// Draw a small, one-time color atlas on a canvas and apply to the established
+// Babylon StandardMaterial. Never hide, replace or raise the actual ground.
+// If texture generation fails: leave the original green grass untouched.
 const SQRT3=Math.sqrt(3);
 export const HEX_GRASS_SIZE=3.2;
-export const HEX_GRASS_SUBDIVISIONS=160;
-// Five grounded, clearly different green pigments. Natural, no black outlines.
-// Exact base colour still comes from the original woodland radial gradient.
-export const HEX_GRASS_COLORS=Object.freeze([
-  '#317e5d', // deep fern
-  '#408e61', // moss
-  '#4f9f61', // clover
-  '#60af6c', // fresh green
-  '#74bd75'  // sunlit grass
+export const HEX_GRASS_TEXTURE_SIZE=2048;
+// Moderately contrasting transparent-ish pigment TINTS. These are multiplied
+// by the original woodland vertex colors, keeping its radial green gradient.
+export const HEX_GRASS_TINTS=Object.freeze([
+  '#91c797', // dark moss
+  '#b0d79e', // clover green
+  '#c9eaae', // warm meadow
+  '#e0f3c8', // soft lime
+  '#f4ffe0'  // pale sunlit green
 ]);
-const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
-const rgb=h=>({r:parseInt(h.slice(1,3),16)/255,
-  g:parseInt(h.slice(3,5),16)/255,
-  b:parseInt(h.slice(5,7),16)/255});
-const PIGMENTS=HEX_GRASS_COLORS.map(rgb);
 function shadeId(q,r){
   let n=(Math.imul(q,374761393)+Math.imul(r,668265263)+0x9e3779b9)|0;
   n=Math.imul(n^(n>>>13),1274126177);
-  return ((n^(n>>>16))>>>0)%PIGMENTS.length;
+  return ((n^(n>>>16))>>>0)%HEX_GRASS_TINTS.length;
 }
-// Pointy-top hex axial coordinates. Cube-rounding gives a unique tile.
-// Its sample always spans the existing 180 x 180 m floor: no extra mesh.
-export function hexGrassCell(x,z,side=HEX_GRASS_SIZE){
-  const q0=(SQRT3*x/3-z/3)/side,r0=(2*z/3)/side;
-  const a=q0,b=-q0-r0,c=r0;
-  let q=Math.round(a),y=Math.round(b),r=Math.round(c);
-  const da=Math.abs(q-a),db=Math.abs(y-b),dc=Math.abs(r-c);
-  if(da>db&&da>dc)q=-y-r;
-  else if(db>dc)y=-q-r;
-  else r=-q-y;
-  return {q,r,shade:shadeId(q,r),
-    x:SQRT3*side*(q+r/2),z:1.5*side*r};
-}
-export function sampleHexGrass(x,z,base,side=HEX_GRASS_SIZE){
-  const cell=hexGrassCell(x,z,side);
-  const dx=x-cell.x,dz=z-cell.z;
-  // Distance inside the six edges. Blend toward underlying meadow only
-  // at boundaries; full coloured hex bodies stay readable on a phone.
-  let nearest=Infinity;
+export function hexVertices(cx,cy,radius){
+  const result=[];
   for(let i=0;i<6;i++){
-    const a=i*Math.PI/3;
-    nearest=Math.min(nearest,SQRT3*side/2-
-      (dx*Math.cos(a)+dz*Math.sin(a)));
+    const a=Math.PI/6+i*Math.PI/3;
+    result.push({x:cx+Math.cos(a)*radius,y:cy+Math.sin(a)*radius});
   }
-  const smooth=clamp(nearest/.76);
-  const fade=smooth*smooth*(3-2*smooth);
-  const strength=.25+.72*fade;
-  const tint=PIGMENTS[cell.shade];
-  return {
-    r:clamp(base.r+(tint.r-base.r)*strength),
-    g:clamp(base.g+(tint.g-base.g)*strength),
-    b:clamp(base.b+(tint.b-base.b)*strength)
-  };
+  return result;
+}
+export function hexTileLayout(floorWidth,side=HEX_GRASS_SIZE){
+  if(!(floorWidth>0&&side>0))throw new RangeError('Positive floor width and hex size required');
+  const half=floorWidth/2,dx=SQRT3*side,dz=1.5*side,tiles=[];
+  const rowLimit=Math.ceil((half+side)/dz);
+  for(let r=-rowLimit;r<=rowLimit;r++){
+    const z=dz*r;
+    const start=Math.floor((-half-side*2)/dx-r/2);
+    const end=Math.ceil((half+side*2)/dx-r/2);
+    for(let q=start;q<=end;q++){
+      const x=dx*(q+r/2);
+      if(Math.abs(x)>half+side||Math.abs(z)>half+side)continue;
+      tiles.push({q,r,x,z,shade:shadeId(q,r)});
+    }
+  }
+  return tiles;
+}
+// This is intentionally plain Canvas 2D. It avoids glsl custom shaders,
+// z-fighting, extra 3D meshes and interpolation-induced green blobs.
+export function paintHexGrass(ctx,{textureSize=HEX_GRASS_TEXTURE_SIZE,
+  floorWidth,side=HEX_GRASS_SIZE}){
+  if(!ctx||!(textureSize>0))throw new TypeError('Canvas context required');
+  const scale=textureSize/floorWidth,half=floorWidth/2;
+  ctx.fillStyle='#e3f2d8';
+  ctx.fillRect(0,0,textureSize,textureSize);
+  const cells=hexTileLayout(floorWidth,side);
+  for(const tile of cells){
+    const x=(tile.x+half)*scale,y=(tile.z+half)*scale;
+    const vertices=hexVertices(x,y,side*scale);
+    const shade=HEX_GRASS_TINTS[tile.shade];
+    ctx.beginPath();
+    ctx.moveTo(vertices[0].x,vertices[0].y);
+    for(let k=1;k<6;k++)ctx.lineTo(vertices[k].x,vertices[k].y);
+    ctx.closePath();
+    ctx.fillStyle=shade;
+    ctx.fill();
+    // Seal subpixel joins using the same shade — no visible dark outlines.
+    ctx.strokeStyle=shade;
+    ctx.lineWidth=1.1;
+    ctx.stroke();
+  }
+  return {cells:cells.length,shades:HEX_GRASS_TINTS.length,
+    textureSize,side,scale};
+}
+// Call AFTER the original ground was constructed/material assigned.
+// Never mutate ground mesh geometry or visibility, and fall back safely.
+export function applyHexGrassToGround(scene,ground,{floorWidth}){
+  const B=window.BABYLON;
+  if(!B.DynamicTexture) return {applied:false,reason:'texture-unsupported'};
+  const material=ground?.material;
+  if(!material)return {applied:false,reason:'material-missing'};
+  const previous=material.diffuseTexture??null;
+  let atlas=null;
+  try{
+    atlas=new B.DynamicTexture('wildpath daisugi hex grass atlas',
+      {width:HEX_GRASS_TEXTURE_SIZE,height:HEX_GRASS_TEXTURE_SIZE},
+      scene,false,B.Texture?.BILINEAR_SAMPLINGMODE);
+    const ctx=atlas.getContext();
+    const report=paintHexGrass(ctx,{floorWidth});
+    atlas.hasAlpha=false;
+    atlas.update(false);
+    if(typeof atlas.isReady==='function'&&!atlas.isReady())
+      throw new Error('Hex atlas was not ready');
+    material.diffuseTexture=atlas;
+    // Retain all existing material lighting and original vertex colors.
+    // UV sampling modifies only the surface pigment, never the world.
+    return {applied:true,...report};
+  }catch(error){
+    material.diffuseTexture=previous;
+    try{atlas?.dispose()}catch{}
+    console.warn('Hex Grass texture fallback to original meadow:',error);
+    return {applied:false,reason:'atlas-failed'};
+  }
 }

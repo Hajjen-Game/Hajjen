@@ -339,6 +339,7 @@ export class WildpathPixiCombat {
     this.canvas=canvas;this.scene=scene;this.engine=engine;
     this.app=null;this.graphics=null;this.view=null;
     this.ready=false;this.failed=false;this.effects=[];this.sequence=0;
+    this.waterLinks=[];this.waterWaves=[];
     this.width=0;this.height=0;this.alive=true;this.time=0;
     this.slashMode='asset'; // default: Cethiel CC0. Previous Pixi available for A/B.
     this.enableSlashFrames=true;
@@ -470,6 +471,71 @@ export class WildpathPixiCombat {
     const pair=projectedPair((a,b,c)=>this.project(a,b,c),x,z);
     return pair?clamp(pair.pixelsPerWorld,4.8,22):12;
   }
+  waterLink(from,to,type='chain'){
+    if(!from||!to||this.waterLinks.length>=26)return;
+    this.waterLinks.push({x1:from.x,z1:from.z,x2:to.x,z2:to.z,
+      type,age:0,life:type==='chain'?.29:.22});
+  }
+  waterWave(x,z,angle,length,width){
+    if(this.waterWaves.length>=5)this.waterWaves.shift();
+    this.waterWaves.push({x,z,angle,length,width,age:0,life:.42});
+  }
+  drawDaisugiWater(g,dt,playing){
+    if(!playing)return;
+    for(let i=this.waterLinks.length-1;i>=0;i--){
+      const link=this.waterLinks[i];link.age+=dt;
+      if(link.age>=link.life){this.waterLinks.splice(i,1);continue;}
+      const a=1-link.age/link.life;
+      const start=this.project(link.x1,1.2,link.z1),
+        end=this.project(link.x2,1.2,link.z2);
+      if(!start||!end)continue;
+      const nx=-(end.y-start.y),ny=end.x-start.x;
+      const dist=Math.max(1,Math.hypot(nx,ny));
+      const displacement=link.type==='chain'?9:5;
+      const points=[start];
+      for(let j=1;j<=4;j++){
+        const t=j/5;
+        const wobble=Math.sin(j*5.3+link.age*35)*displacement*a;
+        points.push({x:start.x+(end.x-start.x)*t+nx/dist*wobble,
+          y:start.y+(end.y-start.y)*t+ny/dist*wobble});
+      }
+      points.push(end);
+      for(let j=1;j<points.length;j++){
+        g.moveTo(points[j-1].x,points[j-1].y)
+          .lineTo(points[j].x,points[j].y)
+          .stroke({color:0x0ebbd9,width:5*a+1.2,alpha:a*.62,cap:'round'});
+        g.moveTo(points[j-1].x,points[j-1].y)
+          .lineTo(points[j].x,points[j].y)
+          .stroke({color:0xb6f8e9,width:1.5*a+.7,alpha:a*.91,cap:'round'});
+      }
+      g.circle(end.x,end.y,2.5+3*a).fill({color:0x4eeccf,alpha:a*.8});
+    }
+    for(let i=this.waterWaves.length-1;i>=0;i--){
+      const wave=this.waterWaves[i];wave.age+=dt;
+      if(wave.age>=wave.life){this.waterWaves.splice(i,1);continue;}
+      const t=wave.age/wave.life,a=1-t;
+      const forward=1.1+wave.length*t;
+      const length=wave.width*(.5+.5*t);
+      const cs=Math.cos(wave.angle),sn=Math.sin(wave.angle);
+      let prev=null;
+      for(let j=0;j<=14;j++){
+        const along=(j/14*2-1),bend=1-.20*along*along;
+        const depth=forward*bend;
+        const px=wave.x+cs*depth-sn*length*along;
+        const pz=wave.z+sn*depth+cs*length*along;
+        const p=this.project(px,.45+.14*Math.sin(j*1.7+t*12),pz);
+        if(p&&prev){
+          g.moveTo(prev.x,prev.y).lineTo(p.x,p.y)
+            .stroke({color:0x19b8dc,width:10*a+3,alpha:a*.55,cap:'round'});
+          g.moveTo(prev.x,prev.y).lineTo(p.x,p.y)
+            .stroke({color:0xa6f9e8,width:3*a+1,alpha:a*.92,cap:'round'});
+        }
+        if(p&&j%3===0)
+          g.circle(p.x,p.y,2+3*a).fill({color:0xdcfff1,alpha:a*.78});
+        prev=p;
+      }
+    }
+  }
   stage(name,stage,point,intensity=1){
     if(!this.ready||stage==='sound'||stage==='trail')return;
     if(stage==='burst'&&(name==='Steel Arc'||name==='Wide Arc')&&
@@ -483,6 +549,7 @@ export class WildpathPixiCombat {
   }
   clear(){
     this.effects.length=0;
+    this.waterLinks.length=0;this.waterWaves.length=0;
     this.clearSlashes();
     this.graphics?.clear();
     if(this.ready)this.app.render();
@@ -523,6 +590,7 @@ export class WildpathPixiCombat {
       const p=this.at(e.x,e.z,e.y);if(!p)continue;
       spellEvent(g,e,p,this.scaleAt(e.x,e.z));
     }
+    this.drawDaisugiWater(g,dt,game?.state==='play');
     this.updateSlashes(dt,game);
     this.app.render();
   }

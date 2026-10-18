@@ -2,8 +2,8 @@
 // Babylon renders the arena/actors. NatureGrowth is reused without changing
 // Wildpath 2.x; combat/waves/controls belong solely to Wildpath 3.0.
 import {ARENA_RADIUS,ENEMY_TYPES,WAVE_BUDGETS,BOOSTS,clamp,moveInsideArena,
-  selectAutoTarget,spawnAtAngle,waveEnemyType} from './rules.js?v=3.0.1';
-import {createArcadeArena,candyMaterial} from './arena.js?v=3.0.1';
+  selectAutoTarget,spawnAtAngle,waveEnemyType} from './rules.js?v=3.0.2';
+import {createArcadeArena,candyMaterial} from './arena.js?v=3.0.2';
 import {createCharacter,setCharacterPose} from './actors.js?v=3.0.1';
 import {createMovementControls} from './controls.js?v=3.0.1';
 import {WaterVFX} from './vfx.js?v=3.0.1';

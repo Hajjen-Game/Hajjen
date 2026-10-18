@@ -145,7 +145,8 @@ export class Wildpath3Game {
   makeRipple(x,z,radius,kind='hit'){
     const mesh=B.MeshBuilder.CreateTorus('clean colored spell ring',
       {diameter:2,thickness:kind==='pulse'?.11:.075,tessellation:32},this.scene);
-    mesh.rotation.x=Math.PI/2;mesh.position.set(x,.22,z);
+    // Babylon torus lies in the XZ plane by default, parallel to the floor.
+    mesh.position.set(x,.22,z);
     const color=kind==='pulse'?'#32e6c4':kind==='kill'?'#ffd05f':'#49dded';
     const material=candyMaterial(this.scene,'impact '+kind,color,{
       emission:.10,shine:.12});

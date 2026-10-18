@@ -49,3 +49,22 @@ Corrected **only** the Daisugi hex renderer:
 **Flat grass comparison:** https://hajjen-game.github.io/Hajjen/wildpath/?daisugi=1&hex=0&rev=hex-visible-1-1
 
 JavaScript checks and 10 test cases passed; actual Android rendering still requires the next visual screenshot.
+
+## Hex Grass 1.2 — black-floor recovery (2026-10-18)
+
+A subsequent Android screenshot showed **pitch black terrain** with HUD, enemies and nature still rendered. This proved that the 1.1 replacement-mesh approach was not robust on the user's device. Merely brightening its material or turning off backface culling did not solve it.
+
+**Architectural fix in GitHub:**
+
+- Stop creating a replacement `B.Mesh`, stop hiding the old ground, and remove all special material / lighting overrides.
+- Keep `world-open.js`'s original `CreateGround('continuous woodland floor')`, its original matte StandardMaterial, scene lighting, radial green gradient and existing world dimensions.
+- In Daisugi Hex mode only, increase the original ground subdivisions **20 → 160** and color the existing vertices by pointy-top axial hex coordinates via `sampleHexGrass`.
+- Five recognizably different green base pigments and smoothly blended hex cell edges; hex side length **3.2 world units**, deliberately visible at the unchanged 24.5-unit Daisugi zoom.
+- Original mode and the `?daisugi=1&hex=0` fallback retain the exact same original 20-subdivision floor. Old Nature Rebirth and Fusion and all rules are untouched.
+- New real-world-code regression uses mocked Babylon to construct both worlds and demands a **visible original ground** in every mode.
+
+**Live:** https://hajjen-game.github.io/Hajjen/wildpath/?daisugi=1&rev=hex-ground-1-2
+
+**Fallback:** https://hajjen-game.github.io/Hajjen/wildpath/?daisugi=1&hex=0&rev=hex-ground-1-2
+
+Static and simulated functional checks passed; actual Android WebGL rendering requires user confirmation. 

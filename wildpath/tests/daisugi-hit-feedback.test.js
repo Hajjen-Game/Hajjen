@@ -23,6 +23,12 @@ test('water hit pushes victim directly BACK from player with recoil',()=>{
   assert.ok(Math.abs(vx*4-vz*3)<1e-8);
   assert.ok(vx>0&&vz>0);
   assert.ok(sideSource.hitTilt<0);
+  const staleSideways=enemy(0,4);
+  staleSideways.knockX=1.9;
+  applyDaisugiHitPush(staleSideways,{x:8,z:4},hero,1.53);
+  assert.ok(Math.abs(staleSideways.knockX)<1e-8,
+    'old lateral velocity must be discarded');
+  assert.ok(staleSideways.knockZ>1.5);
 });
 test('many chain/splash hits cannot produce runaway knockback',()=>{
   const e=enemy();

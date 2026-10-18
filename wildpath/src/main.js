@@ -10,7 +10,7 @@ import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from '
 import { createSpellAnimator } from './spell-animation.js?v=0.9.3';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
 import { WildpathPixiCombat } from './pixi-combat.js?v=3.2.0';
-import {createOpenWorld} from './world-open.js?v=3.5.0';
+import {createOpenWorld} from './world-open.js?v=3.6.0';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
@@ -94,9 +94,7 @@ resizeCamera();
 // Only authored background scenery is hidden. The original terrain and
 // runtime Nature Rebirth/Fusion instances remain exactly as before.
 const world=OPEN_WORLD?createOpenWorld(scene,{
-  staticVegetation:!DAISUGI_MODE,
-  // A/B switch: ?daisugi=1&hex=0 restores flat grass for comparison.
-  hexGrass:DAISUGI_MODE&&params.get('hex')!=='0'
+  staticVegetation:!DAISUGI_MODE
 }):createWorld(scene);
 const director=OPEN_WORLD?new OpenDirector():new Director();
 if(OPEN_WORLD){

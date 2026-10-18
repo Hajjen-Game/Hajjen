@@ -10,7 +10,7 @@ const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 test('only Daisugi hides static vegetation, not the original world or Nature Rebirth',()=>{
   const main=read('../src/main.js'),world=read('../src/world-open.js');
   assert.match(main,/createOpenWorld\(scene,\{\s*staticVegetation:!DAISUGI_MODE/);
-  assert.match(world,/createOpenWorld\(scene,\{staticVegetation=true\}/);
+  assert.match(world,/createOpenWorld\\(scene,\\{staticVegetation=true,hexGrass=false\\}/);
   for(const snippet of [
     "if(staticVegetation)for(let i=0;i<160;i++)",
     "if(staticVegetation)for(let ring=0;ring<3;ring++)",

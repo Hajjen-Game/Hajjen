@@ -308,97 +308,10 @@ body:not(.wildpath-open) .classic-link{display:none}
 /* Nature Forms & Depth: wood and foliage live in Babylon, no HUD overlay changes. */
 .wildpath-open .nature-badge{letter-spacing:.25px}
 
-/* Living Water: compact secondary readout without enlarging the combat HUD. */
-.wildpath-open .water-badge{padding:1px 2px 0;color:#a9f2ed;
-  font-size:9px;font-weight:800;letter-spacing:.28px;text-shadow:0 0 7px #4aaab385}
-@media(max-width:380px){.wildpath-open .water-badge{font-size:8px}}
 
 /* Pass 9.1: avoid goal text covering the growing nature+water HUD. */
 @media(max-width:700px){
   .wildpath-open #goal{top:209px;max-width:90vw}
-  .wildpath-open .water-badge{font-size:8px;letter-spacing:.12px;white-space:nowrap}
   .wildpath-open .nature-badge{line-height:1.35}
 }
 @media(max-width:380px){.wildpath-open #goal{top:215px}}
-
-/* Tree Readability 1.0: preview-only scale comparator for touch screens. */
-.tree-readability-panel[hidden]{display:none!important}
-.tree-readability-panel{
-  position:absolute;z-index:12;right:10px;top:47%;
-  width:105px;padding:9px 8px 8px;border-radius:17px;
-  border:1px solid #a9d8b98c;background:#173c32dd;
-  box-shadow:0 7px 20px #10271c75;
-  color:#eaf4d5;text-align:center;pointer-events:auto;
-}
-.tree-readability-title{display:block;font-size:9px;font-weight:900;line-height:1.3;letter-spacing:.5px}
-.tree-readability-buttons{display:flex;justify-content:center;gap:3px;margin-top:7px}
-.tree-readability-buttons button{
-  flex:1;min-width:0;min-height:34px;border:1px solid #b5ddbe77;
-  border-radius:9px;background:#305e49;color:#eaffdf;
-  font-size:15px;font-weight:900;touch-action:manipulation;
-}
-.tree-readability-buttons button.selected,
-.tree-readability-buttons button[aria-pressed="true"]{
-  background:#c8edab;color:#1e4c38;border-color:#f4ffd5;
-  box-shadow:0 0 10px #a4e5a450;
-}
-.tree-readability-note{display:block;font-size:9px;color:#dcebc5;
-  line-height:1.25;margin-top:7px}
-@media(max-width:390px){
-  .tree-readability-panel{right:7px;width:94px;padding:7px 6px}
-  .tree-readability-title{font-size:8px}
-  .tree-readability-buttons button{min-height:32px}
-}
-
-
-/* Willowglow Low-Poly Color Study 1.0: compact, touch-friendly art A/B. */
-.tree-readability-panel{
-  top:43%;right:10px;width:160px;padding:10px 9px;
-  background:#173d32e8;border:1px solid #b7d9c29c;
-}
-.tree-readability-title{font-size:10px}
-.tree-readability-subtitle{
-  display:block;margin-top:9px;font-size:9px;font-weight:900;
-  letter-spacing:.5px;color:#d9ebcc;text-transform:uppercase
-}
-.tree-style-buttons{
-  display:grid;grid-template-columns:1.5fr 1fr;gap:5px;margin-top:8px
-}
-.tree-style-buttons button{
-  min-height:32px;border-radius:9px;border:1px solid #9cccb18b;
-  background:#305e49;color:#eaffdf;font-size:10px;font-weight:900;
-  touch-action:manipulation
-}
-.tree-style-buttons button.selected,.tree-style-buttons button[aria-pressed="true"]{
-  background:#d4edbc;color:#1b4939;border-color:#f1ffd8
-}
-.tree-palette-choices[hidden]{display:none!important}
-.tree-palette-grid{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:4px;margin-top:6px
-}
-.tree-palette-grid button{
-  height:28px;min-width:0;padding:0;border:2px solid #bad9b378;
-  border-radius:8px;color:#25463c;font-size:15px;font-weight:900;
-  background:#b7cda9;touch-action:manipulation
-}
-.tree-palette-grid button[data-tree-palette="mixed"]{
-  font-size:10px;color:#294b3c;
-  background:linear-gradient(125deg,#9ec4a0 0 28%,#9bd9d3 28% 53%,#efa575 53% 77%,#eaa6c2 77%)
-}
-.tree-palette-grid button[data-tree-palette="mint"]{background:#bce0bd}
-.tree-palette-grid button[data-tree-palette="aqua"]{background:#9bd9d3}
-.tree-palette-grid button[data-tree-palette="amber"]{background:#efa575}
-.tree-palette-grid button[data-tree-palette="rose"]{background:#eaa6c2}
-.tree-palette-grid button[data-tree-palette="lilac"]{background:#b6a0df}
-.tree-palette-grid button[data-tree-palette="cream"]{background:#eed9a6}
-.tree-palette-grid button.selected,.tree-palette-grid button[aria-pressed="true"]{
-  border-color:#f8ffe5;box-shadow:0 0 0 2px #a0e6b6,0 0 9px #e5ffc790
-}
-.tree-readability-note{margin-top:9px;font-size:10px}
-@media(max-width:390px){
-  .tree-readability-panel{width:142px;right:6px;padding:7px}
-  .tree-readability-title{font-size:9px}
-  .tree-style-buttons button{min-height:30px}
-  .tree-palette-grid button{height:27px}
-}

@@ -9,7 +9,7 @@ import {createMovementControls} from './controls.js?v=3.0.1';
 import {WaterVFX} from './vfx.js?v=3.0.1';
 import {createScoreLedger,awardScore,currentCombo,formatScore} from './score.js?v=3.0.1';
 import {makeNatureLedger,recordNatureKill} from '../../wildpath/src/nature-rebirth.js';
-import {NatureGrowth} from '../../wildpath/src/nature-growth.js';
+import {MobileNatureGrowth} from './mobile-nature.js?v=3.0.2';
 const B=window.BABYLON;
 const $=id=>document.getElementById(id);
 const V=(x,y,z)=>new B.Vector3(x,y,z);
@@ -37,7 +37,7 @@ export class Wildpath3Game {
       {shine:.13,emission:.10});
     this.pickupMaterial=candyMaterial(this.scene,'golden magic seed','#ffc044',
       {shine:.27,emission:.10});
-    this.nature=new NatureGrowth(this.scene,{
+    this.nature=new MobileNatureGrowth(this.scene,{
       onBloom:(event,upgraded)=>{
         this.events.blooms++;
         this.award(event.tier,event.x,event.z);
@@ -122,9 +122,12 @@ export class Wildpath3Game {
     this.wave=0;this.waveSpawned=0;this.waveDelay=.55;this.clearClock=0;
     this.time=0;this.kills=0;this.damageTaken=0;this.seedCount=0;
     this.score=createScoreLedger();this.vfx.clear();$('floaters').replaceChildren();
-    this.cooldown=.40;this.pulseCd=5.2;this.guardCd=9;
-    this.damage=23;this.speed=6.9;this.attackDelay=.57;this.range=8.8;
-    this.pulseRadius=3.05;this.maxHp=115;this.hp=115;
+    this.cooldown=.40;this.pulseCd=3.5;this.guardCd=9;
+    this.damage=25;this.speed=6.9;this.attackDelay=.57;this.range=9.8;
+    this.splashRadius=1.65;this.splashPower=.47;
+    this.pulseRadius=4.5;this.pulseDamage=34;this.pulseDelay=4.15;
+    this.doublePulse=false;this.cascade=false;
+    this.maxHp=115;this.hp=115;
     this.hero={x:0,z:0,alive:true};
     this.hero.actor=createCharacter(this.scene,'hero');
     this.ledger=makeNatureLedger();
@@ -179,13 +182,35 @@ export class Wildpath3Game {
     this.projectiles.push({mesh,x:from.x,z:from.z,target,age:0,damage:this.damage});
     this.vfx.emit('Water Dart','charge',from.x,from.z,.85);
   }
+  splashAt(x,z,radius,damage,except=null,source='splash'){
+    let hits=0;
+    for(const enemy of [...this.enemies]){
+      if(!enemy.alive||enemy===except)continue;
+      if(Math.hypot(enemy.x-x,enemy.z-z)>radius+enemy.radius*.35)continue;
+      this.damageEnemy(enemy,damage,source);
+      hits++;
+    }
+    if(hits>0){
+      this.makeRipple(x,z,radius,'pulse');
+      this.vfx.emit('Tidal Bloom','burst',x,z,
+        Math.min(1.55,.75+hits*.09));
+    }
+    return hits;
+  }
   pulse(){
     this.makeRipple(this.hero.x,this.hero.z,this.pulseRadius,'pulse');
-    this.vfx.emit('Tidal Bloom','burst',this.hero.x,this.hero.z,1.22);
+    this.vfx.emit('Tidal Bloom','burst',this.hero.x,this.hero.z,1.38);
     let hits=0;
-    for(const e of [...this.enemies]){
-      if(!e.alive||Math.hypot(e.x-this.hero.x,e.z-this.hero.z)>this.pulseRadius)continue;
-      this.damageEnemy(e,19);hits++;
+    // The entire ring damages close enemy groups, not only the auto-target.
+    for(const enemy of [...this.enemies]){
+      if(!enemy.alive||Math.hypot(enemy.x-this.hero.x,
+        enemy.z-this.hero.z)>this.pulseRadius+enemy.radius*.2)continue;
+      this.damageEnemy(enemy,this.pulseDamage,'pulse');
+      hits++;
+    }
+    if(this.doublePulse){
+      this.splashAt(this.hero.x,this.hero.z,this.pulseRadius*.89,
+        this.pulseDamage*.63,null,'pulse');
     }
     if(hits>0)this.toast('✦ TIDAL PULSE · '+hits+' HIT');
   }
@@ -200,7 +225,7 @@ export class Wildpath3Game {
     material.alpha=.95;mesh.material=material;
     this.fx.push({mesh,material,age:0,life:kind==='pulse'?.48:.33,radius});
   }
-  damageEnemy(enemy,amount){
+  damageEnemy(enemy,amount,source='direct'){
     if(!enemy.alive)return;
     enemy.hp-=amount;
     if(enemy.hp>0){
@@ -212,6 +237,8 @@ export class Wildpath3Game {
     const {x,z}=enemy;
     this.award(enemy.type,x,z);
     this.makeRipple(x,z,1.0,'kill');
+    if(this.cascade&&source!=='cascade')
+      this.splashAt(x,z,2.35,this.damage*.65,enemy,'cascade');
     const event=recordNatureKill(this.ledger,{x,z,type:enemy.type,time:this.time});
     if(event)this.nature.apply(event,this.hero);
     if(Math.random()<.78){
@@ -265,7 +292,12 @@ export class Wildpath3Game {
       if(!p.target.alive||p.age>1.6){p.mesh.dispose();this.projectiles.splice(i,1);continue;}
       const dx=p.target.x-p.x,dz=p.target.z-p.z,d=Math.hypot(dx,dz);
       if(d<.65+p.target.radius){
-        this.damageEnemy(p.target,p.damage);
+        const primary=p.target;
+        this.damageEnemy(primary,p.damage);
+        // Every automatic dart now has genuine nearby splash damage,
+        // so player positioning creates tight Nature Rebirth clusters.
+        this.splashAt(p.x,p.z,this.splashRadius,
+          p.damage*this.splashPower,primary);
         this.makeRipple(p.x,p.z,.72);
         this.vfx.emit('Water Dart','burst',p.x,p.z,.98);
         p.mesh.dispose();this.projectiles.splice(i,1);continue;
@@ -343,9 +375,18 @@ export class Wildpath3Game {
     if(this.state!=='boost')return;
     if(id==='tempo')this.attackDelay*=.75;
     if(id==='damage')this.damage*=1.3;
-    if(id==='splash')this.pulseRadius*=1.35;
-    if(id==='range')this.range*=1.25;
+    if(id==='splash'){
+      this.pulseRadius*=1.45;
+      this.pulseDamage*=1.30;
+      this.pulseDelay*=.87;
+    }
+    if(id==='range'){this.range*=1.25;this.splashRadius*=1.2;}
     if(id==='stride')this.speed*=1.18;
+    if(id==='torrent'){this.splashRadius*=1.75;this.splashPower*=1.55;}
+    if(id==='deluge'){
+      this.doublePulse=true;this.pulseDelay*=.75;this.pulseRadius*=1.18;
+    }
+    if(id==='cascade')this.cascade=true;
     if(id==='mend'){this.maxHp+=20;this.hp=Math.min(this.maxHp,this.hp+55);}
     this.wave++;
     this.waveSpawned=0;this.waveDelay=.68;this.clearClock=0;
@@ -421,9 +462,9 @@ export class Wildpath3Game {
     }
     if(this.pulseCd<=0){
       if(this.enemies.some(e=>e.alive&&
-        Math.hypot(e.x-this.hero.x,e.z-this.hero.z)<this.pulseRadius+1)){
-        this.pulse();this.pulseCd=5.5;
-      }else this.pulseCd=.40; // Save the automatic AoE for a meaningful moment.
+        Math.hypot(e.x-this.hero.x,e.z-this.hero.z)<this.pulseRadius+.3)){
+        this.pulse();this.pulseCd=this.pulseDelay;
+      }else this.pulseCd=.25; // Hold the pulse until enemies are near.
     }
     if(this.guardCd<=0){
       if(this.hp<this.maxHp*.76){

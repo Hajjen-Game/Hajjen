@@ -88,14 +88,10 @@ try{
         'Grand Bloom must kill a full pack through real combat');
       assert.ok(burst?.plants?.tiers.blossom>=1,
         'Ten rapid real kills must create a blossom tree');
-      assert.ok(burst?.water?.ponds>=1,
-        'A real upgraded Tidal Bloom must grow a permanent lily pond');
+      assert.equal(burst?.water,null,'Tidal Bloom damage must not create environmental ponds');
       console.log('PASS POWER BLOOM PACK',JSON.stringify(burst));
       await new Promise(r=>setTimeout(r,1100));
       await page.screenshot({path:'/tmp/wildpath/power-bloom-pack.png'});
-      const pondText=await page.$eval('#waterBadge',el=>el.textContent);
-      assert.match(pondText,/[1-8] PONDS/,'The pond counter must respond to AoE kills');
-      await page.screenshot({path:'/tmp/wildpath/living-water-pond.png'});
       const gallery=await page.evaluate(()=>window.__wildpathDebug.previewNatureGallery());
       const colors=gallery?.palettes||{};
       assert.ok(Object.values(colors).filter(n=>n>0).length>=6,
@@ -134,76 +130,32 @@ try{
       assert.equal(restarted.upgrades,0,'New rounds reset plant evolution');
       assert.equal(restarted.regions,0,'New rounds clear combined groves');
       assert.equal(restarted.fusedPlants,0,'New rounds clear fusion counters');
-      const clearedPonds=await page.evaluate(()=>window.__wildpathDebug.read().water);
-      assert.equal(clearedPonds.ponds,0,'New rounds must remove old water');
-      const waterGarden=await page.evaluate(()=>window.__wildpathDebug.previewWaterGarden());
-      assert.equal(waterGarden.ponds,1,'Preview must grow one permanent lily pond');
-      assert.equal(waterGarden.rarePonds,1,'Six nearby kills create an ornate lily pond');
-      assert.equal(waterGarden.temporary,1,'Rainfall creates a distinct temporary pool');
-      await new Promise(r=>setTimeout(r,700));
-      await page.screenshot({path:'/tmp/wildpath/living-water-gallery.png'});
-      console.log('PASS LIVING WATER GALLERY',JSON.stringify(waterGarden));
+      assert.equal((await page.evaluate(()=>window.__wildpathDebug.read())).water,null,
+        'No water ledger or pond meshes remain after a restart');
+      assert.equal(await page.$('#waterBadge'),null,'Pond HUD counter removed');
     }else{
       assert.equal(after.mode,'classic');
       assert.ok(after.enemies>0,'Original road director still produces enemies');
     }
     console.log('PASS',mode,JSON.stringify(after));
   }
-  // Real playable game review: LOW-POLY and preserved V11 at same location.
-  await page.goto('http://127.0.0.1:8000/wildpath/?willowglow=1&debug=1',
+  // Legacy preview URL must no longer enable Willowglow or pond visuals.
+  await page.goto('http://127.0.0.1:8000/wildpath/?willowglow=1&tree=original&debug=1',
     {waitUntil:'domcontentloaded',timeout:40000});
-  await page.waitForFunction(()=>window.__wildpathDebug?.read?.()?.willowglow,{timeout:45000});
-  const willowglow=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-  assert.equal(willowglow.version,'low-poly-1.0');
-  assert.equal(willowglow.style,'lowpoly');
-  assert.equal(willowglow.palette,'mixed');
-  assert.equal(willowglow.meshes,2,'One faceted bark batch and one colored canopy batch');
-  assert.ok(willowglow.leaves>=150&&willowglow.leaves<250,'Low-poly clumps, not thousands of leaves');
-  assert.ok(willowglow.triangles>1000&&willowglow.triangles<10000);
-  assert.equal(willowglow.scale,1.32);
-  assert.equal(willowglow.size,'M');
-  assert.equal(await page.$eval('#willowglowPreviewNote',el=>el.hidden),false);
+  await page.waitForFunction(()=>window.__wildpathDebug?.read,{timeout:45000});
+  const retired=await page.evaluate(()=>window.__wildpathDebug.read());
+  assert.equal(retired.mode,'open');
+  assert.equal(retired.willowglow,null);
+  assert.equal(retired.water,null);
+  assert.equal(await page.$('#treeReadabilityPanel'),null);
+  assert.equal(await page.$('#willowglowPreviewNote'),null);
+  assert.equal(await page.$('#waterBadge'),null);
   await page.click('#playButton');
   await page.waitForFunction(()=>window.__wildpathDebug.read().state==='play',{timeout:15000});
-  await new Promise(r=>setTimeout(r,1000));
-  for(const [size,scale] of [['S',1.056],['M',1.32],['L',1.584]]){
-    await page.click('[data-tree-size="'+size+'"]');
-    const selected=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-    assert.equal(selected.size,size);assert.equal(selected.scale,scale);
-    assert.equal(selected.meshes,2,'Size switching must reuse both low-poly batches');
-    assert.equal(await page.$eval('[data-tree-size="'+size+'"]',el=>el.getAttribute('aria-pressed')),'true');
-    await page.screenshot({path:'/tmp/wildpath/willowglow-readability-'+size.toLowerCase()+'.png'});
-  }
-  await page.click('[data-tree-size="M"]');
-  for(const palette of ['mint','aqua','amber','rose','lilac','cream','mixed']){
-    await page.click('[data-tree-palette="'+palette+'"]');
-    const selected=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-    assert.equal(selected.palette,palette);
-    assert.equal(selected.style,'lowpoly');
-    assert.equal(selected.meshes,2,'Palette switch leaves only one tree, two mesh batches');
-    assert.equal(selected.leaves,willowglow.leaves,'Palette may not grow extra leaves');
-    assert.equal(await page.$eval('[data-tree-palette="'+palette+'"]',el=>el.getAttribute('aria-pressed')),'true');
-    if(['rose','aqua','amber','mixed'].includes(palette))
-      await page.screenshot({path:'/tmp/wildpath/willowglow-lowpoly-'+palette+'.png'});
-  }
-  // Genuine original model must remain available for visual A/B, not replaced.
-  await page.click('[data-tree-style="original"]');
-  const original=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-  assert.equal(original.style,'original');
-  assert.equal(original.version,'11.0');
-  assert.ok(original.meshes>=10);
-  assert.ok(original.leaves>3000);
-  assert.equal(original.size,'M');
-  assert.equal(await page.$eval('#treeReadabilityPalettes',el=>el.hidden),true);
-  await page.screenshot({path:'/tmp/wildpath/willowglow-original-ab.png'});
-  await page.click('[data-tree-style="lowpoly"]');
-  const returned=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-  assert.equal(returned.style,'lowpoly');assert.equal(returned.palette,'mixed');
-  assert.equal(returned.meshes,2);
-  assert.equal(await page.$eval('#treeReadabilityPalettes',el=>el.hidden),false);
-  await page.screenshot({path:'/tmp/wildpath/willowglow-game-preview.png'});
-  assert.equal((await page.evaluate(()=>window.__wildpathDebug.read())).mode,'open');
-  console.log('PASS WILLOWGLOW LOW-POLY PALETTE + V11 A/B',JSON.stringify({original,returned}));
+  await new Promise(r=>setTimeout(r,700));
+  assert.equal((await page.evaluate(()=>window.__wildpathDebug.read())).water,null);
+  await page.screenshot({path:'/tmp/wildpath/clean-world-no-ponds.png'});
+  console.log('PASS CLEAN WORLD: old preview URL ignored, no Willowglow or decorative ponds');
 
   assert.deepEqual(errors.filter(e=>e.startsWith('PAGE ')),[],'No JavaScript runtime exceptions');
   console.log('Browser resource reports:',errors);

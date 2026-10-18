@@ -3,13 +3,13 @@
 // Wildpath 2.x; combat/waves/controls belong solely to Wildpath 3.0.
 import {ARENA_RADIUS,ENEMY_TYPES,WAVE_BUDGETS,BOOSTS,clamp,moveInsideArena,
   selectAutoTarget,spawnAtAngle,waveEnemyType} from './rules.js?v=3.0.2';
-import {createArcadeArena,candyMaterial} from './arena.js?v=3.0.2';
+import {createArcadeArena,candyMaterial} from './arena.js?v=3.0.3';
 import {createCharacter,setCharacterPose} from './actors.js?v=3.0.1';
 import {createMovementControls} from './controls.js?v=3.0.1';
 import {WaterVFX} from './vfx.js?v=3.0.1';
 import {createScoreLedger,awardScore,currentCombo,formatScore} from './score.js?v=3.0.1';
 import {makeNatureLedger,recordNatureKill} from '../../wildpath/src/nature-rebirth.js';
-import {MobileNatureGrowth} from './mobile-nature.js?v=3.0.2';
+import {MobileNatureGrowth} from './mobile-nature.js?v=3.0.3';
 const B=window.BABYLON;
 const $=id=>document.getElementById(id);
 const V=(x,y,z)=>new B.Vector3(x,y,z);

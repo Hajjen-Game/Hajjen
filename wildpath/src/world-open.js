@@ -5,7 +5,10 @@ function rng(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4
 function material(scene,name,color,emit=.08){
   const m=new B.StandardMaterial(name,scene),c=B.Color3.FromHexString(color);
   m.diffuseColor=c;m.ambientColor=c.scale(.31);m.emissiveColor=c.scale(emit);
-  m.specularColor=new B.Color3(.015,.02,.018);return m;
+  // Saturated painterly base, with a restrained glossy highlight on lit tops.
+  m.specularColor=new B.Color3(.15,.19,.16);
+  m.specularPower=48;
+  return m;
 }
 function sphereSource(scene,name,material){
   const mesh=B.MeshBuilder.CreateSphere(name,{diameter:1,segments:10},scene);
@@ -21,28 +24,46 @@ function instance(source,name,x,y,z,sx,sy,sz){
 }
 export function createOpenWorld(scene){
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
-  const turf=material(scene,'enchanted deep moss','#516e5c',.11);
+  const turf=material(scene,'enchanted deep moss','#ffffff',.10);
+  // Single vertex-painted ground: green center, deeper teal perimeter, gentle
+  // tonal modulation. No translucent discs, puddles, textures or extra draw calls.
   const ground=B.MeshBuilder.CreateGround('continuous woodland floor',
-    {width:WILD_FLOOR_RADIUS*2,height:WILD_FLOOR_RADIUS*2,subdivisions:1},scene);
+    {width:WILD_FLOOR_RADIUS*2,height:WILD_FLOOR_RADIUS*2,subdivisions:20},scene);
   ground.material=turf;ground.isPickable=false;ground.position.y=-.12;
-  const leaves=['#527f60','#69916e','#7b9c79','#416f5f','#88a481','#608775'].map((c,i)=>
-    sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.14)));
-  const bark=cylinderSource(scene,'tree bark source',material(scene,'warm forest wood','#6c5b4f'));
-  const shrubs=['#6e927c','#789985','#658573'].map((c,i)=>
+  const positions=ground.getVerticesData(B.VertexBuffer.PositionKind);
+  if(positions){
+    const colors=[],sun=B.Color3.FromHexString('#66a77a'),
+      meadow=B.Color3.FromHexString('#59936e'),
+      perimeter=B.Color3.FromHexString('#346b58');
+    for(let i=0;i<positions.length;i+=3){
+      const x=positions[i],z=positions[i+2];
+      const r=Math.min(1,Math.hypot(x,z)/(WILD_RADIUS+22));
+      const variation=.08*Math.sin(x*.105+z*.071)*Math.cos(z*.115-x*.044);
+      const center=B.Color3.Lerp(sun,meadow,Math.min(1,Math.max(0,r*.86+variation)));
+      const c=B.Color3.Lerp(center,perimeter,Math.pow(r,1.55)*.74);
+      colors.push(c.r,c.g,c.b,1);
+    }
+    ground.setVerticesData(B.VertexBuffer.ColorKind,colors);
+    ground.useVertexColors=true;
+  }
+  const leaves=['#279e70','#6fc953','#a4d96b','#268e75','#e0c96a','#4cba9b'].map((c,i)=>
+    sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.13)));
+  const bark=cylinderSource(scene,'tree bark source',material(scene,'warm forest wood','#85583c'));
+  const shrubs=['#3ead7b','#87cf76','#39a58d'].map((c,i)=>
     sphereSource(scene,'fern source '+i,material(scene,'fern shade '+i,c,.1)));
-  const stones=['#7a8681','#778c90','#6c7d80'].map((c,i)=>
+  const stones=['#829b96','#98b2ad','#6b8e91'].map((c,i)=>
     sphereSource(scene,'rock source '+i,material(scene,'moss stone '+i,c,.06)));
-  const flower=['#f6bcb9','#c4b6de','#e8cf9c','#b5d7c9'].map((c,i)=>
+  const flower=['#ff8fc2','#ae89f2','#ffd76c','#7ce7c6'].map((c,i)=>
     sphereSource(scene,'flower source '+i,material(scene,'flower color '+i,c,.23)));
-  const glow=sphereSource(scene,'magic firefly source',material(scene,'firefly tint','#a5e5da',.9));
+  const glow=sphereSource(scene,'magic firefly source',material(scene,'firefly tint','#b4ffef',.86));
   // The previous shaded, flattened spheres rendered as giant dark blotches on
   // phones. Unlit and nearly transparent layers add gentle turf variation.
   // Soft small grass blades instead of large shadow-colored flattened spheres.
   // The previous 2–7 metre patches looked like dark holes on portrait phones.
   const grass=sphereSource(scene,'tiny meadow grass source',
-    material(scene,'meadow green','#85a885',.10));
+    material(scene,'meadow green','#80bc79',.10));
   const branchSource=cylinderSource(scene,'background tree fork',
-    material(scene,'background bark','#715d4e',.06));
+    material(scene,'background bark','#926448',.08));
   const trunk=(x,z,s)=>{
     instance(bark,'woodland trunk',x,.77*s,z-.38*s,.33*s,1.55*s,.35*s);
     const branch=instance(branchSource,'visible woodland branch',x+.39*s,1.27*s,
@@ -98,8 +119,8 @@ export function createOpenWorld(scene){
     if(i%6===0)instance(glow,'quiet woodland light',x,.35+rand()*1.25,z,.08,.10,.08);
   }
   // Three recognizable destinations without forcing the player onto a path.
-  const shrineMaterial=material(scene,'ancient glade stone','#84978e',.17);
-  const shrineGlow=material(scene,'shrine turquoise glow','#75dac5',.58);
+  const shrineMaterial=material(scene,'ancient glade stone','#829fa1',.18);
+  const shrineGlow=material(scene,'shrine turquoise glow','#4bedcf',.66);
   for(const [x,z] of [[-27,16],[25,23],[-3,-31]]){
     const base=B.MeshBuilder.CreateCylinder('ancient hollow marker',
       {height:.26,diameter:2.1,tessellation:12},scene);

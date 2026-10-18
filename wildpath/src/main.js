@@ -16,7 +16,8 @@ import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,en
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=3.1.0';
 import {daisugiTextPlan,daisugiDamageLabel} from './daisugi-combat-text.js?v=1.0.0';
-import {applyDaisugiHitPush} from './daisugi-hit-feedback.js?v=1.0.0';
+import {applyDaisugiHitPush} from './daisugi-hit-feedback.js?v=1.1.0';
+import {daisugiFirePose} from './daisugi-fire-motion.js?v=1.0.0';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 import {DAISUGI_BOOSTS,daisugiCoreMode,chooseDaisugiBoosts,daisugiVolleyCount,
@@ -146,7 +147,7 @@ const game={
   state:'start',classId:'caster',spec:CLASS_DATA.caster,x:0,z:2,hp:100,maxHp:100,
   shield:0,time:0,actor:null,enemies:[],projectiles:[],effects:[],areas:[],
   texts:[],pickups:[],energy:0,lastPickupSound:-10,surgeCelebrated:false,target:null,selectionRing:null,heroRing:null,upgrades:new Set(),score:0,kills:0,crits:0,
-  combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,
+  combo:0,comboLife:0,recentHit:0,invulnerable:0,attackClock:0,fireAge:.30,
   cooldowns:[0,0,0],displayedScore:0,shake:0,toastClock:0,frame:0,gateQueued:false,recordAnnounced:false
 };
 // Read-only instrumentation for manual QA and browser smoke tests (?debug=1).
@@ -358,7 +359,8 @@ function startGame(){
   game.spec=DAISUGI_MODE?{...CLASS_DATA.caster,
     cooldowns:[6.3,5.1,10.7]}:CLASS_DATA[game.classId];
   game.x=OPEN_WORLD?0:pathX(2);game.z=OPEN_WORLD?0:2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
-  game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;game.displayedScore=0;game.shake=0;
+  game.time=0;game.attackClock=.25;game.fireAge=.30;
+  game.cooldowns=[0,0,0];game.score=0;game.displayedScore=0;game.shake=0;
   game.autoSpellGap=DAISUGI_MODE?.82:0;
   game.waveClears=0;
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
@@ -368,6 +370,8 @@ function startGame(){
   game.actor=createActor(scene,game.classId);
   game.actor.root.scaling.setAll(1.48);
   game.actor.root.position.set(game.x,0,game.z);
+  // Use the actor's real neutral scale (capsule/sphere fallback both work).
+  if(DAISUGI_MODE)game.fireBaseScaleY=game.actor.body.scaling.y;
   game.selectionRing=ring(scene,'target focus','#f4afa2',1.03,.075);
   game.selectionRing.isVisible=false;
   game.heroRing=vfxRing(scene,game.classId==='caster'?'#9af4f5':'#f3d2a1',.87,.13);
@@ -896,7 +900,7 @@ function daisugiBasicAttack(target){
 function basicAttack(){
   const target=currentTarget();
   if(!target||distance(game,target)>game.spec.range)return;
-  if(DAISUGI_MODE){daisugiBasicAttack(target);return;}
+  if(DAISUGI_MODE){daisugiBasicAttack(target);return true;}
   game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
   if(game.classId==='caster'){
     spellStage('Glint Dart','charge',game,.75);
@@ -989,9 +993,23 @@ function updatePlayer(dt){
   }else game.selectionRing.isVisible=false;
   game.attackClock-=dt;
   if(game.attackClock<=0){
-    basicAttack();game.attackClock=DAISUGI_MODE?
+    const fired=basicAttack();
+    if(DAISUGI_MODE&&fired)game.fireAge=0;
+    game.attackClock=DAISUGI_MODE?
       daisugiAttackInterval(game.spec.attackSpeed,game.upgrades):
       game.spec.attackSpeed*(game.upgrades.has('tempo')?(OPEN_WORLD?.59:.75):1);
+  }
+  if(DAISUGI_MODE){
+    // Animation overlays the ORIGINAL movement pose and automatic cadence.
+    // Anticipate the upcoming shot, push forward at fire, then settle.
+    game.fireAge=Math.min(.30,game.fireAge+dt);
+    const inRange=!!target&&distance(game,target)<=game.spec.range;
+    const pose=daisugiFirePose(game.attackClock,game.fireAge,inRange);
+    game.actor.root.rotation.x=pose.pitch;
+    game.actor.root.position.y+=pose.lift;
+    game.actor.leftArm.rotation.x+=pose.arm;
+    game.actor.rightArm.rotation.x+=pose.arm;
+    game.actor.body.scaling.y=game.fireBaseScaleY*(1-pose.squash);
   }
   for(let i=0;i<3;i++){
     const previous=game.cooldowns[i];
@@ -1034,7 +1052,9 @@ function updateEnemies(dt){
         e.knockX*=Math.exp(-7*dt);e.knockZ*=Math.exp(-7*dt);
         e.hitTilt=(e.hitTilt||0)*Math.exp(-8.5*dt);
         e.actor.root.position.set(e.x,(e.recoil||0)*.40,e.z);
-        e.actor.root.rotation.z=e.hitTilt;
+        // Tip backward while dying — not sideways.
+        e.actor.root.rotation.x=e.hitTilt;
+        e.actor.root.rotation.z=0;
       }
       continue;
     }
@@ -1059,7 +1079,10 @@ function updateEnemies(dt){
     if(DAISUGI_MODE)e.hitTilt=(e.hitTilt||0)*Math.exp(-8.5*dt);
     e.actor.root.position.set(e.x,Math.sin(game.time*4+e.bob)*.05+e.recoil*.55,e.z);
     e.actor.root.rotation.y=Math.atan2(dx,dz);
-    if(DAISUGI_MODE)e.actor.root.rotation.z=e.hitTilt||0;
+    if(DAISUGI_MODE){
+      e.actor.root.rotation.x=e.hitTilt||0;
+      e.actor.root.rotation.z=0;
+    }
     e.actor.rightArm.rotation.x=Math.sin(game.time*5+e.bob)*.22;
     e.actor.body.scaling.x=DAISUGI_MODE?1+e.recoil*.28:e.flash>0?1.12:1;
     e.actor.body.scaling.y=1-e.recoil*.25;

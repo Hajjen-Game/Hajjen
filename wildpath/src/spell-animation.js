@@ -151,8 +151,59 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
     if(muted||!context||context.state!=='running')return;
     const now=context.currentTime;
     const soundKey=cue+':'+name;
-    if(now-(lastSoundByCue.get(soundKey)??-100)<(cue==='launch'?.07:.09))return;
+    const natural=name==='Nature Fusion'||name==='Nature Bloom';
+    const signature=name==='Water Chain'||name==='Water Ricochet'||
+      name==='Water Wave'||name==='Daisugi Upgrade';
+    const minimum=natural?name==='Nature Fusion'?.65:.23:
+      signature?name==='Water Chain'?.12:.20:cue==='launch'?.095:.12;
+    if(now-(lastSoundByCue.get(soundKey)??-100)<minimum)return;
     lastSoundByCue.set(soundKey,now);
+    // Short, layered WebAudio signatures — no MP3 requests or sound assets.
+    // Mobile browsers unlock the AudioContext on the play-button gesture.
+    function note(freq,t,duration,volume,type='sine',destination='lowpass'){
+      const osc=context.createOscillator(),gain=context.createGain(),
+        filter=context.createBiquadFilter();
+      osc.type=type;osc.frequency.setValueAtTime(Math.max(60,freq),t);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(60,freq*.70),t+duration);
+      filter.type=destination;filter.frequency.setValueAtTime(3500,t);
+      gain.gain.setValueAtTime(.0001,t);
+      gain.gain.exponentialRampToValueAtTime(volume,t+.012);
+      gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+      osc.connect(filter);filter.connect(gain);gain.connect(context.destination);
+      osc.start(t);osc.stop(t+duration+.02);
+      osc.onended=()=>{osc.disconnect();filter.disconnect();gain.disconnect();};
+    }
+    try{
+      if(name==='Nature Fusion'){
+        const rare=cue==='enchanted'||cue==='grove';
+        note(rare?530:390,now,.23,.032,'sine');
+        note(rare?740:560,now+.09,.28,.038,'triangle');
+        note(rare?1050:780,now+.19,.38,.030,'sine');
+        return;
+      }
+      if(name==='Nature Bloom'){
+        note(cue==='blossom'?790:cue==='tree'?620:490,now,.18,.018,'sine');
+        note(cue==='blossom'?1170:890,now+.08,.20,.014,'triangle');
+        return;
+      }
+      if(name==='Water Chain'){
+        note(770,now,.105,.034,'sawtooth');
+        note(1120,now+.035,.09,.022,'sine');return;
+      }
+      if(name==='Water Ricochet'){
+        note(390,now,.14,.033,'sine');
+        note(730,now+.065,.14,.023,'triangle');return;
+      }
+      if(name==='Water Wave'){
+        note(185,now,.34,.055,'triangle');
+        note(425,now+.06,.25,.025,'sine');return;
+      }
+      if(name==='Daisugi Upgrade'){
+        note(460,now,.19,.043,'triangle');
+        note(680,now+.11,.20,.039,'sine');
+        note(930,now+.22,.27,.025,'sine');return;
+      }
+    }catch{/* Audio must never interrupt combat or fusion */}
     // Make the second layer distinguishable even for instant-hit abilities.
     const t=now+(cue==='impact'?.075:0);
     const p=pickSpell(name),cold=p.kind==='ice'||p.kind==='frost'||p.kind==='crystal';

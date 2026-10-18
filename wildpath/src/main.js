@@ -929,7 +929,7 @@ function updateProjectiles(dt){
       else{
         const spell=p.spell||'Glint Dart';
         spellStage(spell,'burst',p.target,.80);
-        hurtEnemy(p.target,p.damage,{fxSpell:spell});
+        hurtEnemy(p.target,p.damage,{fxSpell:spell,slow:DAISUGI_MODE?1.7:0});
         if(OPEN_WORLD&&spell==='Glint Dart'){
           const splash=DAISUGI_MODE?daisugiSplash(game.upgrades):
             glintSplash(game.upgrades,OPEN_WORLD);

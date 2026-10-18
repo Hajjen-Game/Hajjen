@@ -1,6 +1,6 @@
 // Alternative world for Wildpath 2.0; the legacy road world is retained.
 import {WILD_RADIUS,WILD_FLOOR_RADIUS} from './open-layout.js';
-import {HEX_GRASS_SUBDIVISIONS,sampleHexGrass} from './hex-grass.js?v=1.2.1';
+import {applyHexGrassToGround} from './hex-grass.js?v=1.3.0';
 const B=window.BABYLON;
 function rng(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);}
 function material(scene,name,color,emit=.08){
@@ -31,14 +31,10 @@ export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})
   // Keep the FLOOR matte: glossy highlights belong to characters and foliage,
   // not to puddle-like specular patches on the removed wet terrain.
   turf.specularColor=new B.Color3(.025,.038,.032);
-  // Single vertex-painted ground: green center, deeper teal perimeter, gentle
-  // tonal modulation. No translucent discs, puddles, textures or extra draw calls.
-  // In Daisugi we only increase the EXISTING floor's vertex density,
-  // allowing the standard, already-working Babylon grass material to
-  // display visible multi-green hexagons. No overlay and no missing floor.
+  // Always retain the original green woodland floor, material and mesh.
+  // The hex trial only adds a painted texture after this reliable base.
   const ground=B.MeshBuilder.CreateGround('continuous woodland floor',
-    {width:WILD_FLOOR_RADIUS*2,height:WILD_FLOOR_RADIUS*2,
-      subdivisions:hexGrass?HEX_GRASS_SUBDIVISIONS:20},scene);
+    {width:WILD_FLOOR_RADIUS*2,height:WILD_FLOOR_RADIUS*2,subdivisions:20},scene);
   ground.material=turf;ground.isPickable=false;ground.position.y=-.12;
   const positions=ground.getVerticesData(B.VertexBuffer.PositionKind);
   if(positions){
@@ -51,15 +47,16 @@ export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})
       const variation=.08*Math.sin(x*.105+z*.071)*Math.cos(z*.115-x*.044);
       const center=B.Color3.Lerp(sun,meadow,Math.min(1,Math.max(0,r*.86+variation)));
       const c=B.Color3.Lerp(center,perimeter,Math.pow(r,1.55)*.74);
-      const tile=hexGrass?sampleHexGrass(x,z,c):c;
-      colors.push(tile.r,tile.g,tile.b,1);
+      colors.push(c.r,c.g,c.b,1);
     }
     ground.setVerticesData(B.VertexBuffer.ColorKind,colors);
     ground.useVertexColors=true;
   }
-  // Retain original ground and material in ALL modes. Earlier 1.0/1.1
-  // versions hid the original ground behind a replacement mesh, yielding
-  // a pure black level on actual Android. This cannot do that.
+  // Canvas 2D gives crisp hexagon boundaries rather than interpolated color
+  // blotches. This can fail safely: the original floor remains fully visible.
+  const hexResult=hexGrass?applyHexGrassToGround(scene,ground,{
+    floorWidth:WILD_FLOOR_RADIUS*2
+  }):null;
   const leaves=['#279e70','#6fc953','#a4d96b','#268e75','#e0c96a','#4cba9b'].map((c,i)=>
     sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.13)));
   const bark=cylinderSource(scene,'tree bark source',material(scene,'warm forest wood','#85583c'));
@@ -146,5 +143,6 @@ export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})
     const gem=B.MeshBuilder.CreateSphere('enchanted forest gem',{diameter:.65,segments:10},scene);
     gem.position.set(x,.80,z);gem.material=shrineGlow;gem.isPickable=false;
   }
-  return {ground,kind:'open',radius:WILD_RADIUS,staticVegetation,hexGrass};
+  return {ground,kind:'open',radius:WILD_RADIUS,staticVegetation,
+    hexGrass,hexApplied:hexResult?.applied??false};
 }

@@ -20,7 +20,7 @@ test('Daisugi preserves original map, camera, movement and original game entry',
   assert.ok(main.includes("const dz=OPEN_WORLD?z*game.spec.speed*dt:"));
   assert.ok(main.includes("game.spec=DAISUGI_MODE?{...CLASS_DATA.caster,"));
   assert.ok(main.includes("if(!DAISUGI_MODE)cast(Number(btn.dataset.slot))"));
-  assert.ok(read('../index.html').includes('main.js?v=2.9.1-daisugi-evolution'));
+  assert.ok(read('../index.html').includes('main.js?v=2.9.2-daisugi-camera-dialog'));
 });
 
 test('no spell buttons: original route remains unaffected',()=>{
@@ -129,4 +129,27 @@ test('functional Pixi water-link and wave visuals and distinct fusion sounds',()
   for(const signature of ['Water Chain','Water Ricochet','Water Wave',
     'Daisugi Upgrade','Nature Fusion','Nature Bloom'])
     assert.ok(sound.includes("name==='"+signature+"'"),signature);
+});
+
+test('Daisugi zooms only its camera while leaving the original world and walk pace intact',()=>{
+  const main=read('../src/main.js');
+  const layout=read('../src/open-layout.js');
+  assert.ok(main.includes('const DAISUGI_CAMERA_WORLD_WIDTH=24.5;'));
+  assert.ok(main.includes('?(DAISUGI_MODE?DAISUGI_CAMERA_WORLD_WIDTH:WILD_CAMERA_WIDTH)'));
+  assert.ok(layout.includes('WILD_CAMERA_WIDTH=29.5'));
+  assert.ok(layout.includes('WILD_RADIUS=43'));
+  assert.equal(CLASS_DATA.caster.speed,5.25);
+  assert.ok(main.includes("const dz=OPEN_WORLD?z*game.spec.speed*dt:"));
+});
+test('Daisugi boost and result panels stay readable instead of white on white',()=>{
+  const css=read('../styles.css'),html=read('../index.html');
+  assert.ok(css.includes('/* DAISUGI 1.2 • camera and dark dialog'));
+  for(const id of ['boostScreen','resultScreen']){
+    assert.ok(css.includes('.wildpath-open.daisugi-rework #'+id+' .dialog'));
+  }
+  assert.ok(css.includes('background:linear-gradient(155deg,#206772f7'));
+  assert.ok(css.includes('#boostScreen .boost-card strong{color:#fff2ad}'));
+  assert.ok(css.includes('#resultScreen #resultScore'));
+  assert.ok(html.includes('styles.css?v=2.9.2-daisugi-camera-dialog'));
+  assert.ok(html.includes('main.js?v=2.9.2-daisugi-camera-dialog'));
 });

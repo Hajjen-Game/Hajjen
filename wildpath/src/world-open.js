@@ -1,6 +1,5 @@
 // Alternative world for Wildpath 2.0; the legacy road world is retained.
 import {WILD_RADIUS,WILD_FLOOR_RADIUS} from './open-layout.js';
-import {applyHexGrassToGround} from './hex-grass.js?v=1.3.1';
 const B=window.BABYLON;
 function rng(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);}
 function material(scene,name,color,emit=.08){
@@ -23,7 +22,7 @@ function instance(source,name,x,y,z,sx,sy,sz){
   const m=source.createInstance(name);m.position.set(x,y,z);
   m.scaling.set(sx,sy,sz);m.isPickable=false;return m;
 }
-export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={}){
+export function createOpenWorld(scene,{staticVegetation=true}={}){
   // Daisugi trial: render only Nature Rebirth plants created during combat.
   // The original background scenery remains unchanged unless explicitly opted out.
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
@@ -31,8 +30,7 @@ export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})
   // Keep the FLOOR matte: glossy highlights belong to characters and foliage,
   // not to puddle-like specular patches on the removed wet terrain.
   turf.specularColor=new B.Color3(.025,.038,.032);
-  // Always retain the original green woodland floor, material and mesh.
-  // The hex trial only adds a painted texture after this reliable base.
+  // The original softly shaded green woodland floor. No hexagon textures.
   const ground=B.MeshBuilder.CreateGround('continuous woodland floor',
     {width:WILD_FLOOR_RADIUS*2,height:WILD_FLOOR_RADIUS*2,subdivisions:20},scene);
   ground.material=turf;ground.isPickable=false;ground.position.y=-.12;
@@ -52,11 +50,6 @@ export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})
     ground.setVerticesData(B.VertexBuffer.ColorKind,colors);
     ground.useVertexColors=true;
   }
-  // Canvas 2D gives crisp hexagon boundaries rather than interpolated color
-  // blotches. This can fail safely: the original floor remains fully visible.
-  const hexResult=hexGrass?applyHexGrassToGround(scene,ground,{
-    floorWidth:WILD_FLOOR_RADIUS*2
-  }):null;
   const leaves=['#279e70','#6fc953','#a4d96b','#268e75','#e0c96a','#4cba9b'].map((c,i)=>
     sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.13)));
   const bark=cylinderSource(scene,'tree bark source',material(scene,'warm forest wood','#85583c'));
@@ -143,6 +136,5 @@ export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})
     const gem=B.MeshBuilder.CreateSphere('enchanted forest gem',{diameter:.65,segments:10},scene);
     gem.position.set(x,.80,z);gem.material=shrineGlow;gem.isPickable=false;
   }
-  return {ground,kind:'open',radius:WILD_RADIUS,staticVegetation,
-    hexGrass,hexApplied:hexResult?.applied??false};
+  return {ground,kind:'open',radius:WILD_RADIUS,staticVegetation};
 }

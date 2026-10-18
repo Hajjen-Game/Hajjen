@@ -1,15 +1,15 @@
-// Wildpath / Daisugi Hex Grass 1.0
+// Wildpath / Daisugi Hex Grass 1.1 — visibility and contrast correction.
 // One static, vertex-painted mesh of broad hexagons, with soft tonal edges.
 // No textures, outlines, shaders, extra draw calls per tile or game collisions.
 // Geometry creation is independent of Babylon, for reliable regression tests.
 const SQRT3=Math.sqrt(3);
 export const HEX_GRASS_SIZE=2.05;
 export const HEX_GRASS_SHADES=Object.freeze([
-  Object.freeze({r:-.034,g:-.046,b:-.025}),
-  Object.freeze({r:-.012,g:-.011,b:.008}),
-  Object.freeze({r:.012,g:.012,b:-.006}),
-  Object.freeze({r:.028,g:.040,b:.012}),
-  Object.freeze({r:-.024,g:.022,b:.018})
+  Object.freeze({r:-.105,g:-.128,b:-.088}), // forest green
+  Object.freeze({r:-.052,g:-.061,b:-.035}), // deep leaf
+  Object.freeze({r:.012,g:.010,b:.008}),    // baseline meadow
+  Object.freeze({r:.069,g:.069,b:.033}),    // lime meadow
+  Object.freeze({r:.132,g:.119,b:.064})     // bright fresh grass
 ]);
 const clamp=(v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 const blend=(a,b,t)=>({
@@ -56,7 +56,10 @@ export function buildHexGrassGeometry({floorWidth,playRadius,side=HEX_GRASS_SIZE
       const shade=shadeId(q,r),d=HEX_GRASS_SHADES[shade];
       const base=baseMeadow(x,z,playRadius);
       const tinted={r:base.r+d.r,g:base.g+d.g,b:base.b+d.b};
-      const edge=blend(base,tinted,.18); // no strong outlines
+      // Most of the cell keeps its own shade; the final 15% is
+      // feathered towards the shared meadow color. 1.0 used .18 and
+      // washed out nearly every hex on the actual phone screenshot.
+      const edge=blend(base,tinted,.62);
       const center=vertex(x,z,tinted),inner=[],outer=[];
       for(let i=0;i<6;i++){
         const a=angle+i*Math.PI/3,cx=Math.cos(a),cz=Math.sin(a);
@@ -89,7 +92,18 @@ export function createHexGrass(scene,ground,{floorWidth,playRadius}){
   // This replaces only the *visual floor*. The underlying Babylon ground
   // and existing movement/collisions remain unchanged and are not disposed.
   mesh.position.y=ground.position.y;
-  mesh.material=ground.material;
+  // Dedicated matte, UNLIT material: shared scene lighting was heavily
+  // darkening vertex-colored grass on Android. Render palette faithfully.
+  const material=new B.StandardMaterial('daisugi hex grass clear green',scene);
+  material.diffuseColor=new B.Color3(1,1,1);
+  material.ambientColor=new B.Color3(0,0,0);
+  material.emissiveColor=new B.Color3(0,0,0);
+  material.specularColor=new B.Color3(0,0,0);
+  material.disableLighting=true;
+  // Robust against driver/winding differences. This field replaces the
+  // old floor, so backface culling must never leave an empty dark void.
+  material.backFaceCulling=false;
+  mesh.material=material;
   mesh.useVertexColors=true;
   mesh.isPickable=false;
   ground.isVisible=false;

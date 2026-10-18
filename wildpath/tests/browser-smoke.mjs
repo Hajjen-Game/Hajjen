@@ -149,38 +149,61 @@ try{
     }
     console.log('PASS',mode,JSON.stringify(after));
   }
-  // Inspect the REAL playable open world with the authored Willowglow tree.
+  // Real playable game review: LOW-POLY and preserved V11 at same location.
   await page.goto('http://127.0.0.1:8000/wildpath/?willowglow=1&debug=1',
     {waitUntil:'domcontentloaded',timeout:40000});
   await page.waitForFunction(()=>window.__wildpathDebug?.read?.()?.willowglow,{timeout:45000});
   const willowglow=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-  assert.equal(willowglow.version,'11.0');
-  assert.ok(willowglow.meshes>=10,'Real 3D tree meshes expected, not placeholder blobs');
-  assert.ok(willowglow.leaves>3000);
+  assert.equal(willowglow.version,'low-poly-1.0');
+  assert.equal(willowglow.style,'lowpoly');
+  assert.equal(willowglow.palette,'mixed');
+  assert.equal(willowglow.meshes,2,'One faceted bark batch and one colored canopy batch');
+  assert.ok(willowglow.leaves>=150&&willowglow.leaves<250,'Low-poly clumps, not thousands of leaves');
+  assert.ok(willowglow.triangles>1000&&willowglow.triangles<10000);
   assert.equal(willowglow.scale,1.32);
   assert.equal(willowglow.size,'M');
   assert.equal(await page.$eval('#willowglowPreviewNote',el=>el.hidden),false);
   await page.click('#playButton');
   await page.waitForFunction(()=>window.__wildpathDebug.read().state==='play',{timeout:15000});
-  await new Promise(r=>setTimeout(r,1200));
-  // Actual touch-capable comparison without cloning canopy meshes or reloads.
-  const sizes=[['S',1.056],['M',1.32],['L',1.584]];
-  for(const [size,scale] of sizes){
+  await new Promise(r=>setTimeout(r,1000));
+  for(const [size,scale] of [['S',1.056],['M',1.32],['L',1.584]]){
     await page.click('[data-tree-size="'+size+'"]');
     const selected=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
-    assert.equal(selected.size,size);
-    assert.equal(selected.scale,scale);
-    assert.equal(selected.meshes,willowglow.meshes,'Size switch must not create copies');
+    assert.equal(selected.size,size);assert.equal(selected.scale,scale);
+    assert.equal(selected.meshes,2,'Size switching must reuse both low-poly batches');
     assert.equal(await page.$eval('[data-tree-size="'+size+'"]',el=>el.getAttribute('aria-pressed')),'true');
     await page.screenshot({path:'/tmp/wildpath/willowglow-readability-'+size.toLowerCase()+'.png'});
-    console.log('PASS TREE READABILITY SIZE',size,JSON.stringify(selected));
   }
   await page.click('[data-tree-size="M"]');
+  for(const palette of ['mint','aqua','amber','rose','lilac','cream','mixed']){
+    await page.click('[data-tree-palette="'+palette+'"]');
+    const selected=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
+    assert.equal(selected.palette,palette);
+    assert.equal(selected.style,'lowpoly');
+    assert.equal(selected.meshes,2,'Palette switch leaves only one tree, two mesh batches');
+    assert.equal(selected.leaves,willowglow.leaves,'Palette may not grow extra leaves');
+    assert.equal(await page.$eval('[data-tree-palette="'+palette+'"]',el=>el.getAttribute('aria-pressed')),'true');
+    if(['rose','aqua','amber','mixed'].includes(palette))
+      await page.screenshot({path:'/tmp/wildpath/willowglow-lowpoly-'+palette+'.png'});
+  }
+  // Genuine original model must remain available for visual A/B, not replaced.
+  await page.click('[data-tree-style="original"]');
+  const original=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
+  assert.equal(original.style,'original');
+  assert.equal(original.version,'11.0');
+  assert.ok(original.meshes>=10);
+  assert.ok(original.leaves>3000);
+  assert.equal(original.size,'M');
+  assert.equal(await page.$eval('#treeReadabilityPalettes',el=>el.hidden),true);
+  await page.screenshot({path:'/tmp/wildpath/willowglow-original-ab.png'});
+  await page.click('[data-tree-style="lowpoly"]');
+  const returned=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
+  assert.equal(returned.style,'lowpoly');assert.equal(returned.palette,'mixed');
+  assert.equal(returned.meshes,2);
+  assert.equal(await page.$eval('#treeReadabilityPalettes',el=>el.hidden),false);
   await page.screenshot({path:'/tmp/wildpath/willowglow-game-preview.png'});
-  const live=await page.evaluate(()=>window.__wildpathDebug.read());
-  assert.ok(live.willowglow?.meshes>=10,'Tree remains in the world while playing');
-  assert.equal(live.mode,'open');
-  console.log('PASS WILLOWGLOW IN-GAME PREVIEW',JSON.stringify(live.willowglow));
+  assert.equal((await page.evaluate(()=>window.__wildpathDebug.read())).mode,'open');
+  console.log('PASS WILLOWGLOW LOW-POLY PALETTE + V11 A/B',JSON.stringify({original,returned}));
 
   assert.deepEqual(errors.filter(e=>e.startsWith('PAGE ')),[],'No JavaScript runtime exceptions');
   console.log('Browser resource reports:',errors);

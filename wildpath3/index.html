@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#103e51">
+  <meta name="description" content="Wildpath 3.0: mobile-first colorful arcade battles grow your Daisugi legacy.">
+  <title>Wildpath 3.0 · Mobile Arena Prototype</title>
+  <link rel="stylesheet" href="./styles.css?v=3.0.0-pass1">
+</head>
+<body data-mode="menu">
+  <canvas id="game" aria-label="Wildpath 3D mobile battle arena" tabindex="0"></canvas>
+  <div class="gameHud" aria-label="Battle information">
+    <header class="topHud">
+      <div class="headInfo">
+        <div class="eyebrow">✦ WILDPATH · LEVEL 1</div>
+        <div class="wave" id="waveText">WAVE 1 / 3</div>
+        <div class="healthCaption"><span>♥ HEALTH</span><strong id="hpLabel">115 / 115</strong></div>
+        <div class="hpTrack"><div id="hpBar"></div></div>
+      </div>
+      <div class="battleInfo">
+        <button id="pauseButton" class="pauseBtn" aria-label="Pause the game">Ⅱ</button>
+        <div class="time" id="timeText">0:00</div>
+        <div class="enemyCounter" id="enemyText">0 ENEMIES</div>
+      </div>
+    </header>
+    <div class="natureHud"><span id="killText">0 KOs</span><span id="bloomText">0 BLOOMS</span>
+      <span id="fusionText">0 FUSIONS</span><span class="seedItem">✦ <b id="seedText">0</b></span>
+    </div>
+    <div class="bottomHint"><span>✦ WATER DART</span><span>◉ TIDAL PULSE</span><span>♥ AUTO RENEWAL</span></div>
+    <div id="joystick" aria-label="Move your hero in any direction">
+      <div class="joystickDots"></div>
+      <div id="joystickThumb"></div>
+    </div>
+    <div class="moveTip">MOVE</div>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <section id="intro" class="screen">
+    <div class="panel introPanel">
+      <div class="kicker">A NEW TREE-BUILDING ADVENTURE</div>
+      <div class="logo">WILD<span>PATH</span></div>
+      <div class="tagline">Battle. Grow. Combine.</div>
+      <div class="prototype">3.0 · FIRST PLAYABLE · MOBILE-FIRST</div>
+      <div class="featureRow"><span>🌱 Nature Rebirth</span><span>✦ Auto Spells</span></div>
+      <p>Fight through three compact waves. Your kills grow flowers and trees; nearby plants merge into new nature.</p>
+      <button id="beginButton" class="primaryBtn">PLAY LEVEL 1 <b>➜</b></button>
+      <div class="instruction">ONE THUMB TO MOVE · ALL SPELLS ARE AUTOMATIC<br>WASD / ARROWS ALSO WORK ON DESKTOP</div>
+      <p class="nextPass">Coming next: skill-based nature chains, The Great Fusion and your personal Daisugi tree.</p>
+      <a href="../wildpath/" class="oldVersion">Try the original Wildpath 2.x ↗</a>
+    </div>
+  </section>
+
+  <section id="boostModal" class="screen" hidden>
+    <div class="panel choicePanel">
+      <div class="kicker" id="boostTitle">WAVE COMPLETE</div>
+      <h1>CHOOSE A BOOST</h1>
+      <p id="boostSubtitle">Upgrade your automatic spells.</p>
+      <div id="boostChoices" class="boostChoices"></div>
+      <div class="instruction">ONE BOOST · NEXT WAVE BEGINS AUTOMATICALLY</div>
+    </div>
+  </section>
+  <section id="pauseModal" class="screen" hidden>
+    <div class="panel smallPanel">
+      <div class="kicker">WILDPATH 3.0</div><h1>PAUSED</h1>
+      <p>Your arena is waiting.</p>
+      <button id="resumeButton" class="primaryBtn">RESUME ➜</button>
+      <button id="quitButton" class="secondaryBtn">EXIT TO MENU</button>
+    </div>
+  </section>
+  <section id="finishModal" class="screen" hidden>
+    <div class="panel resultPanel">
+      <div class="kicker">WILD GROWTH · LEVEL 1</div>
+      <h1 id="finishTitle">LEVEL CLEAR!</h1>
+      <p id="finishSubtitle">Your future Daisugi tree starts here.</p>
+      <div id="finishStats" class="statGrid"></div>
+      <div class="comingNext">NEXT: DEEPER FUSION CHAINS + UNIQUE FINAL TREE</div>
+      <button id="againButton" class="primaryBtn">PLAY AGAIN ➜</button>
+      <button id="resultMenuButton" class="secondaryBtn">BACK TO MENU</button>
+    </div>
+  </section>
+  <section id="loadError" class="screen" hidden>
+    <div class="panel smallPanel"><h1>3D ENGINE UNAVAILABLE</h1>
+      <p>Check your connection and reload the page to load Babylon.js.</p></div>
+  </section>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script type="module" src="./src/main.js?v=3.0.0-pass1"></script>
+</body>
+</html>

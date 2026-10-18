@@ -611,3 +611,47 @@ body.daisugi-rework #goal{max-width:76vw;text-align:center;white-space:normal;
     overflow-y:auto;
   }
 }
+
+/* DAISUGI CLEAN FIELD 1.3 — restrained damage readout for mobile AoE.
+   Old Wildpath combat text is deliberately unchanged outside the test mode. */
+body.daisugi-rework #scoreBursts{display:none!important}
+body.daisugi-rework .float-damage{
+  line-height:1.12;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.08px;
+  text-shadow:0 1px 3px #103b40,0 0 3px #12313f;
+  animation:daisugiTextIn .22s ease-out both;
+}
+body.daisugi-rework .float-damage.normal{
+  color:#effff2;font-size:14px;
+}
+body.daisugi-rework .float-damage.crit,
+body.daisugi-rework.wildpath-open .float-damage.crit{
+  color:#ffe28c;font-size:18px;
+  text-shadow:0 2px 2px #67462b,0 0 5px #ffd45d76;
+}
+body.daisugi-rework .float-damage.energy,
+body.daisugi-rework.wildpath-open .float-damage.energy{
+  color:#ffe0a5;font-size:13px;letter-spacing:.1px;
+  text-shadow:0 2px 2px #415445;
+}
+body.daisugi-rework .float-damage.nature,
+body.daisugi-rework.wildpath-open .float-damage.nature{
+  color:#c9f7af;font-size:15px;
+  text-shadow:0 1px 4px #214c37;
+}
+body.daisugi-rework .float-damage.hurt{
+  font-size:20px;color:#ffa8a3;
+}
+body.daisugi-rework .float-damage.block,
+body.daisugi-rework .float-damage.heal{
+  font-size:17px;color:#b9f4d4;
+}
+@keyframes daisugiTextIn{
+  from{transform:translate(-50%,-50%) scale(.7)}
+  to{transform:translate(-50%,-50%) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  body.daisugi-rework .float-damage{animation:none}
+}

@@ -538,3 +538,76 @@ body.daisugi-rework #bottomHud .ability,
 body.daisugi-rework #bottomHud .ability.special{display:none!important}
 body.daisugi-rework #goal{max-width:76vw;text-align:center;white-space:normal;
   line-height:1.25}
+
+
+/* DAISUGI 1.2 • camera and dark dialog
+   Restore the dark arcade presentation for boosts/results ONLY.
+   .wildpath-open .dialog was painted almost-white in Pass A, unintentionally
+   overriding the normal dark modal colors on the newer Daisugi game. */
+.wildpath-open.daisugi-rework #boostScreen .dialog,
+.wildpath-open.daisugi-rework #resultScreen .dialog{
+  color:#eefbf3;
+  background:linear-gradient(155deg,#206772f7 0%,#123e54f9 52%,#102b44fc 100%);
+  border:2px solid #4bc9b6;
+  box-shadow:inset 0 2px 0 #8be6d040,inset 0 -7px 15px #09263a66,
+    0 10px 0 #082a42,0 24px 52px #071f338f;
+}
+.wildpath-open.daisugi-rework #boostScreen .dialog .overline,
+.wildpath-open.daisugi-rework #resultScreen .dialog .overline{
+  color:#87e3be;
+  text-shadow:0 1px 1px #092b3d;
+}
+.wildpath-open.daisugi-rework #boostScreen .dialog h2,
+.wildpath-open.daisugi-rework #resultScreen .dialog h2{
+  color:#fff0b4;
+  text-shadow:0 3px 0 #153d4e;
+}
+.wildpath-open.daisugi-rework #boostScreen .dialog p,
+.wildpath-open.daisugi-rework #resultScreen .dialog p{
+  color:#cce7e1;
+  text-shadow:none;
+}
+.wildpath-open.daisugi-rework #boostScreen .boost-card{
+  background:linear-gradient(155deg,#1e776f,#124e60 66%,#0e344e);
+  border:2px solid #51c7b8;
+  color:#fff8dc;
+  box-shadow:inset 0 1px 0 #a3edd54a,0 4px 0 #0a3449,
+    0 8px 15px #072c4169;
+}
+.wildpath-open.daisugi-rework #boostScreen .boost-card:hover,
+.wildpath-open.daisugi-rework #boostScreen .boost-card:focus-visible{
+  border-color:#f5d773;
+  background:linear-gradient(155deg,#288d79,#165d6c 66%,#114156);
+}
+.wildpath-open.daisugi-rework #boostScreen .boost-card strong{color:#fff2ad}
+.wildpath-open.daisugi-rework #boostScreen .boost-card .boost-icon{
+  color:#8bebdb;
+  text-shadow:0 0 7px #5be8d867;
+}
+.wildpath-open.daisugi-rework #boostScreen .boost-card span:last-child{
+  color:#daf0e8;
+}
+.wildpath-open.daisugi-rework #resultScreen #resultScore{
+  color:#ffd36a;
+  text-shadow:0 3px 0 #845532,0 0 12px #ffba3760;
+}
+.wildpath-open.daisugi-rework #resultScreen #resultStats{
+  color:#c0e9d4;
+}
+.wildpath-open.daisugi-rework #resultScreen .primary{
+  background:linear-gradient(180deg,#ffe378,#ffad3c);
+  color:#633c24;
+  text-shadow:0 1px #ffe9b5;
+  box-shadow:0 5px 0 #ae652e,0 9px 18px #0a2b4166;
+}
+.wildpath-open.daisugi-rework #resultScreen .subtle-button{
+  color:#b8efe2;
+}
+@media(max-width:650px){
+  .wildpath-open.daisugi-rework #boostScreen .dialog,
+  .wildpath-open.daisugi-rework #resultScreen .dialog{
+    padding:24px 18px;
+    max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow-y:auto;
+  }
+}

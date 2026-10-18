@@ -5,7 +5,7 @@ import {WILD_RADIUS} from './open-layout.js';
 import {planNatureFusions,fusionRadius,FUSION_MAX_REGIONS,regionSummary} from './nature-fusion.js?v=2.6.1';
 import {makePlantForm,describePlantForm} from './nature-forms.js?v=2.5.2';
 import {NATURE_PALETTES,NATURE_PALETTE_IDS,chooseNatureLook,natureVisibility}
-  from './nature-variety.js';
+  from './nature-variety.js?v=3.0.0';
 const B=window.BABYLON;
 function material(scene,id,hex){
   const m=new B.StandardMaterial('rebirth '+id,scene);

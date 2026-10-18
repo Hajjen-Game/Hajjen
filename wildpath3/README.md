@@ -69,3 +69,25 @@ User device feedback on the first prototype identified three priorities: 2.x act
 **Score details:** kills 100/160/140/550 by enemy type with combo multiplier, gold seeds 25, plant generation/evolution 15/90/300/850, fusion by category 220/390/720/1400, wave clear 450. Tuning values are provisional.
 
 **Pending:** verify rendering and performance on actual Android devices; advanced multi-stage fusion quality, final Daisugi tree generator, mutations and hub are not part of this pass. Legacy Wildpath `/wildpath/` unchanged.
+
+## Pass 1.2 — Garden, Growth & AoE (2026-10-18)
+
+This is a **code change to the live game**, not a generated-image pass. It addresses user feedback after 1.1 that tree/flower creation seemed to degrade or disappear, fusions lost their impact, AoE boosts did not perform, stray planks were visible, and the arena needed stronger framing and more room.
+
+- **Playable combat radius 17.5** (previously 13), with a still-close **18.5-unit** portrait camera (previously 16.5). Arena enlargement changes movement and spawns together.
+- **Original test-plank props removed.** Outer boundary now uses a deliberately joined segmented fence with anchored posts, a broken stone edging, garden tree clusters, and edge-side stepping stones. Center remains open to combat and to growth.
+- **MobileNatureGrowth** adapter subclasses the unchanged 2.x NatureGrowth renderer, using mobile-sized distances to keep sites close to each kill and within the 3.x arena. The old 2.x placement rule incorrectly used a 43-unit world and could shift tree generation 6–7 world units from the player.
+- Extra kills in Nature Rebirth combos now produce satellite seedlings using stable unique IDs, while the central ancestral cluster still advances via its original tiers (flower → bush → tree → blossom). Fusion consumes these seedlings normally, making spatial grouping/fusion more frequent. Old 2.x code remains unchanged.
+- **Larger and more visible fusion centerpieces**: meadow/thicket/grove/enchanted regions form a cohesive raised centerpiece over the inherited mixed-petal patch, rather than only a flat flower decal.
+- **Automatic AoE is real combat:** Water Dart splash damages secondary enemies; Tidal Pulse damage/radius increased; `Wild Splash` also improves AoE damage, radius and cadence; `Wild Torrent`, `Deluge` and `Cascade Bloom` provide significant additional area coverage.
+- HUD, score, original capsule actors, Pixi water signatures, mobile joystick and finite wave loop retained.
+- `tests/mobile-garden.test.js` adds regression checks for camera/arena size, garden boundary, planted seedling ancestry and AoE upgrade wiring.
+
+This is an iterative mobile-friendly approximation of the agreed color-rich fantasy/Japanese garden direction, **not** an attempt to generate or match a full synthetic concept image pixel for pixel. Future iteration may refine 3D props/textures after direct device tests. Advanced 1–5-star tree evaluation, The Great Fusion and Daisugi hub are still future passes.
+
+### Additional smoke checks
+
+- Finish a run and see a higher count of visible flowers and fusion regions; absorbed small plants should become a prominent fusion centerpiece.
+- Walk toward the edge; the arena is larger, the stones fence/forest visually indicate bounds, and there are no loose wooden bars in the middle.
+- Let Water Dart fire into tight enemy groups; nearby enemies should take splash damage.
+- Pick `Wild Splash`, `Wild Torrent` or `Deluge` at intermissions; attack coverage should change noticeably.

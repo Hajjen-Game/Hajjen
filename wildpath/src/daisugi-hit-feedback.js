@@ -17,11 +17,11 @@ export function applyDaisugiHitPush(enemy,source,player,strength=1.45){
   const nx=dx/len,nz=dz/len;
   // Keep the previously approved impact strength and impulse cap.
   const power=Math.max(.35,Math.min(2.05,Number(strength)||1.45));
-  let vx=(enemy.knockX||0)+nx*power,
-      vz=(enemy.knockZ||0)+nz*power;
-  const magnitude=Math.hypot(vx,vz);
-  if(magnitude>2.65){vx=vx/magnitude*2.65;vz=vz/magnitude*2.65;}
-  enemy.knockX=vx;enemy.knockZ=vz;
+  // Only retain momentum in the NEW backward direction. Otherwise a
+  // previous sideways hit can continue dragging the capsule sideways.
+  const priorAway=Math.max(0,(enemy.knockX||0)*nx+(enemy.knockZ||0)*nz);
+  const impulse=Math.min(2.65,priorAway+power);
+  enemy.knockX=nx*impulse;enemy.knockZ=nz*impulse;
   enemy.recoil=Math.max(enemy.recoil||0,Math.min(.50,power*.25));
   // The enemy is facing the player (+local Z), so lean in its BACKWARD
   // direction via the local X axis rather than tilting off to the side.

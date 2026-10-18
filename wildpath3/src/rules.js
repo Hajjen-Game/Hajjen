@@ -1,8 +1,8 @@
 // Wildpath 3.0 / Pass 1: pure mobile-first combat and arena rules.
 // Keep tuning independent of meshes, controls, rendering and DOM.
-export const ARENA_RADIUS=13;
+export const ARENA_RADIUS=17.5;
 export const PLAYER_RADIUS=.60;
-export const CAMERA_WIDTH=16.5;
+export const CAMERA_WIDTH=18.5;
 export const WAVE_BUDGETS=Object.freeze([11,15,19]);
 export const ENEMY_TYPES=Object.freeze({
   mossling:Object.freeze({hp:39,speed:2.35,damage:8,radius:.58,score:100,color:'#7bdb3f'}),
@@ -13,9 +13,12 @@ export const ENEMY_TYPES=Object.freeze({
 export const BOOSTS=Object.freeze([
   Object.freeze({id:'tempo',icon:'⚡',name:'Quick Current',description:'Auto attacks 25% faster.'}),
   Object.freeze({id:'damage',icon:'✦',name:'Brighter Bolts',description:'Auto attacks deal 30% more damage.'}),
-  Object.freeze({id:'splash',icon:'❋',name:'Wild Splash',description:'Tidal pulse grows 35% wider.'}),
-  Object.freeze({id:'range',icon:'◉',name:'Far Sight',description:'Auto-target range grows by 25%.'}),
+  Object.freeze({id:'splash',icon:'❋',name:'Wild Splash',description:'Tidal Pulse grows 45% wider and hits much harder.'}),
+  Object.freeze({id:'range',icon:'◉',name:'Far Sight',description:'Auto-target range grows by 25% and dart splashes spread.'}),
   Object.freeze({id:'stride',icon:'➜',name:'Swift Roots',description:'Move 18% faster.'}),
+  Object.freeze({id:'torrent',icon:'◉',name:'Wild Torrent',description:'Darts splash over a much wider area on impact.'}),
+  Object.freeze({id:'deluge',icon:'✺',name:'Deluge',description:'Tidal Pulse strikes twice with shorter cooldown.'}),
+  Object.freeze({id:'cascade',icon:'✷',name:'Cascade Bloom',description:'Defeating enemies sends a splash into nearby foes.'}),
   Object.freeze({id:'mend',icon:'♥',name:'Spring Heart',description:'Restore 35 HP and gain 20 max HP.'})
 ]);
 export const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));

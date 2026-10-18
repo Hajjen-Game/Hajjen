@@ -315,3 +315,114 @@ body:not(.wildpath-open) .classic-link{display:none}
   .wildpath-open .nature-badge{line-height:1.35}
 }
 @media(max-width:380px){.wildpath-open #goal{top:215px}}
+
+
+/* Wildpath Color & Material Overhaul 1.0
+   Richer, glossier gameplay surfaces without reflowing portrait HUD. */
+.wildpath-open .hud-left,
+.wildpath-open .hud-score{
+  background:linear-gradient(155deg,#28645beF 0%,#184b48f3 38%,#123a3ceb 100%);
+  border:1px solid #9cefe0a8;
+  box-shadow:inset 0 1px 0 #ffffff3a,inset 0 -3px 14px #0a2f3380,
+    0 5px 0 #133c387a,0 11px 25px #062d2d50;
+  color:#f1fff1;
+}
+.wildpath-open .hud-left::before,
+.wildpath-open .hud-score::before{
+  content:"";position:absolute;inset:1px 8px auto;height:38%;
+  border-radius:15px 15px 65% 65%;
+  background:linear-gradient(180deg,#dbfff325,transparent);
+  pointer-events:none;
+}
+.wildpath-open .hud-left{position:relative;overflow:hidden}
+.wildpath-open .hud-label{color:#b1f9df;text-shadow:0 1px 2px #093b3a}
+.wildpath-open .stats-small{color:#d5e9d4}
+.wildpath-open .health-track{
+  border:1px solid #b5edb277;background:#173e3f;
+  box-shadow:inset 0 2px 5px #082b35bd,0 1px 0 #ffffff20;
+}
+.wildpath-open #healthFill{
+  background:linear-gradient(180deg,#e0ff99 0%,#b9f16b 46%,#60c994 100%);
+  box-shadow:0 0 13px #b6f87a94,inset 0 2px 1px #ffffff7a;
+}
+.wildpath-open #scoreText{
+  color:#ffe59b;
+  text-shadow:0 2px 0 #715137,0 0 13px #ffdc769c;
+  letter-spacing:.25px;
+}
+.wildpath-open .energy-panel{
+  background:linear-gradient(147deg,#286e67f5 0%,#17635feb 38%,#0d414ceb 100%);
+  border:1px solid #a2fdf2ce;
+  box-shadow:inset 0 2px 0 #d8fff441,inset 0 -8px 18px #063a4280,
+    0 4px 12px #052d3260,0 0 12px #72f7e036;
+}
+.wildpath-open .energy-track{
+  border-color:#93fce2b0;
+  background:#093c45;
+  box-shadow:inset 0 2px 4px #041f2bbf,0 1px 0 #e4fff333;
+}
+.wildpath-open #energyFill{
+  background:linear-gradient(180deg,#d7ffff 0%,#65fadd 38%,#14c5d4 100%);
+  box-shadow:0 0 15px #51f9f4b5,inset 0 2px 0 #ffffff9c;
+}
+.wildpath-open .energy-top{color:#ebfff6;text-shadow:0 0 9px #6fffe785}
+.wildpath-open .nature-badge{color:#f0ffb3;text-shadow:0 0 7px #c4ff8e7a}
+.wildpath-open #goal{
+  color:#f6ffdb;
+  background:linear-gradient(165deg,#348a70ef,#155e5df5 55%,#124647f5);
+  border:1px solid #c8ffe3a6;
+  box-shadow:inset 0 1px 0 #ffffff45,0 4px 0 #0d4b4880,
+    0 7px 17px #0b363c65;
+  text-shadow:0 1px 2px #154e4c;
+}
+.wildpath-open #bottomHud .ability.special{
+  border:1px solid #9ee7dabb;
+  background:linear-gradient(155deg,#377c72,#155458 65%,#0b3b48);
+  box-shadow:inset 0 2px 0 #dbfff344,inset 0 -8px 16px #082d4773,
+    0 4px 0 #0b3c49,0 9px 19px #0b2d386c;
+  color:#f0fff0;
+}
+.wildpath-open #bottomHud .ability.special.is-ready{
+  border-color:#b8fff1;
+  background:linear-gradient(157deg,#418b78,#1d6d69 46%,#10505a 100%);
+  box-shadow:inset 0 2px 0 #edfff67a,inset 0 -9px 18px #0a445b71,
+    0 4px 0 #0e4955,0 0 15px #55f2d477;
+}
+.wildpath-open #bottomHud .ability.special.is-cooling{
+  border-color:#4f7a79;
+  background:linear-gradient(162deg,#335758,#173d47);
+  box-shadow:inset 0 2px 6px #08293585,0 3px 0 #122d36;
+  color:#b0c9c5;
+}
+.wildpath-open #bottomHud .ability.special .ability-icon{
+  color:#e4fffa;text-shadow:0 0 7px #78f9f6,0 0 13px #43e5e2;
+}
+.wildpath-open #bottomHud .ability.special.is-cooling .ability-icon{
+  color:#7a9697;filter:brightness(.82);text-shadow:none;
+}
+.wildpath-open #bottomHud .ability.special .cooldown{
+  background:linear-gradient(to top,#082833eb var(--remaining,0%),
+    #163745b5 var(--remaining,0%));
+  color:#fff8d6;text-shadow:0 2px 3px #001b27,0 0 9px #a7d8d6;
+}
+.wildpath-open #pauseButton,
+.wildpath-open #soundButton{
+  color:#e8fff1;
+  border:1px solid #94dcca99;
+  background:linear-gradient(155deg,#397e71,#154b53);
+  box-shadow:inset 0 2px 0 #e0fff53b,0 3px 0 #0c3941,
+    0 6px 12px #0c3a4269;
+}
+.wildpath-open .menu-panel,
+.wildpath-open .dialog{
+  background:linear-gradient(155deg,#f8fff0f5,#dcefe0f5);
+  border:1px solid #ffffff;
+  box-shadow:inset 0 2px 0 #ffffffc2,0 18px 54px #173e4252;
+}
+.wildpath-open .float-damage.energy{
+  color:#ffeaa6;text-shadow:0 2px 3px #365454,0 0 13px #ffd56cb0;
+}
+@media(prefers-reduced-motion:reduce){
+  .wildpath-open .energy-track,
+  .wildpath-open #bottomHud .ability.special{transition:none}
+}

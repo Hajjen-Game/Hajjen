@@ -31,7 +31,7 @@ test('mobile HUD exposes scores, nature feedback and end-of-round total',()=>{
   for(const id of ['scoreText','comboText','bestText','resultScore','resultBest','resultCombo','floaters'])
     assert.ok(html.includes('id="'+id+'"'),id);
   assert.ok(css.includes('@keyframes wildpathScoreRise'));
-  assert.ok(html.includes('3.0.2-garden-fusion'));
+  assert.ok(html.includes('3.0.3-visual-clarity'));
   const game=read('../src/game.js');
   for(const category of ['enemy.type','seed','event.tier','event.kind','wave'])
     assert.ok(game.includes(category),category);

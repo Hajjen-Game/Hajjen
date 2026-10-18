@@ -1,103 +1,68 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {HEX_GRASS_SHADES,HEX_GRASS_SIZE,buildHexGrassGeometry,
-  createHexGrass} from '../src/hex-grass.js';
+import {HEX_GRASS_COLORS,HEX_GRASS_SIZE,HEX_GRASS_SUBDIVISIONS,
+  hexGrassCell,sampleHexGrass} from '../src/hex-grass.js';
 import {WILD_RADIUS,WILD_FLOOR_RADIUS,WILD_CAMERA_WIDTH}
   from '../src/open-layout.js';
 import {CLASS_DATA} from '../src/config.js';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 
-test('five subtly different green shades form hexagons without drawn outlines',()=>{
-  assert.equal(HEX_GRASS_SHADES.length,5);
-  assert.ok(HEX_GRASS_SIZE>=1.8&&HEX_GRASS_SIZE<=2.5);
-  const mesh=buildHexGrassGeometry({
-    floorWidth:WILD_FLOOR_RADIUS*2,playRadius:WILD_RADIUS
-  });
-  assert.equal(mesh.shadeCounts.length,5);
-  assert.equal(mesh.shadeCounts.reduce((a,b)=>a+b,0),mesh.count);
-  assert.ok(mesh.shadeCounts.every(v=>v>400));
-  assert.equal(mesh.positions.length,mesh.count*13*3);
-  assert.equal(mesh.colors.length,mesh.count*13*4);
-  assert.equal(mesh.indices.length,mesh.count*54);
-  for(const t of mesh.colors)assert.ok(t>=0&&t<=1);
-  const source=read('../src/hex-grass.js');
-  assert.ok(source.includes('const edge=blend(base,tinted,.62)'));
-  assert.ok(!source.includes('CreateLines('));
-  assert.ok(!source.includes('ShaderMaterial'));
-  assert.ok(!source.includes('DynamicTexture'));
+test('five meaningful green shades and large visible hex fields',()=>{
+  assert.equal(HEX_GRASS_COLORS.length,5);
+  assert.equal(new Set(HEX_GRASS_COLORS).size,5);
+  assert.ok(HEX_GRASS_SIZE>=2.8&&HEX_GRASS_SIZE<=4.0);
+  assert.ok(HEX_GRASS_SUBDIVISIONS>=140&&HEX_GRASS_SUBDIVISIONS<=190);
+  const green=HEX_GRASS_COLORS.map(c=>parseInt(c.slice(3,5),16));
+  assert.ok(Math.max(...green)-Math.min(...green)>=55);
 });
-test('hex triangles face upwards and remain one light mobile-sized mesh',()=>{
-  const m=buildHexGrassGeometry({
-    floorWidth:WILD_FLOOR_RADIUS*2,playRadius:WILD_RADIUS
-  });
-  assert.ok(m.count>2500&&m.count<4000);
-  assert.ok(m.positions.length/3<50000);
-  assert.ok(m.indices.length/3<60000);
-  assert.ok(m.indices.every(i=>i>=0&&i<m.positions.length/3));
-  for(let i=0;i<m.indices.length;i+=3){
-    const a=m.indices[i]*3,b=m.indices[i+1]*3,c=m.indices[i+2]*3,p=m.positions;
-    const dx1=p[b]-p[a],dz1=p[b+2]-p[a+2],
-      dx2=p[c]-p[a],dz2=p[c+2]-p[a+2];
-    const normalY=dz1*dx2-dx1*dz2;
-    assert.ok(normalY>0,'hex face must be visible from above');
+test('axial rounding produces stable neighboring hex cells',()=>{
+  for(let q=-6;q<=6;q++)for(let r=-6;r<=6;r++){
+    const x=Math.sqrt(3)*HEX_GRASS_SIZE*(q+r/2),z=1.5*HEX_GRASS_SIZE*r;
+    const cell=hexGrassCell(x,z);
+    assert.equal(cell.q,q);
+    assert.equal(cell.r,r);
+    assert.ok(cell.shade>=0&&cell.shade<HEX_GRASS_COLORS.length);
   }
 });
-test('Babylon adapter makes one noncolliding field; original ground remains intact',()=>{
-  const original=globalThis.window;
-  try{
-    let meshCount=0;
-    class MockMesh{
-      constructor(name){this.name=name;meshCount++;this.position={y:0}}
-    }
-    class VertexData{
-      applyToMesh(mesh){mesh.data={positions:this.positions,
-        indices:this.indices,normals:this.normals,colors:this.colors}}
-    }
-    class Color3{constructor(r,g,b){this.r=r;this.g=g;this.b=b}}
-    class StandardMaterial{constructor(name){this.name=name}}
-    globalThis.window={BABYLON:{Mesh:MockMesh,VertexData,
-      Color3,StandardMaterial}};
-    const ground={position:{y:-.12},material:{name:'original matte'},
-      isVisible:true};
-    const mesh=createHexGrass({},ground,{
-      floorWidth:WILD_FLOOR_RADIUS*2,playRadius:WILD_RADIUS
-    });
-    assert.equal(meshCount,1);
-    assert.equal(mesh.position.y,ground.position.y);
-    assert.notEqual(mesh.material,ground.material);
-    assert.equal(mesh.material.disableLighting,true);
-    assert.equal(mesh.material.backFaceCulling,false);
-    assert.equal(mesh.material.specularColor.r,0);
-    assert.equal(mesh.isPickable,false);
-    assert.equal(mesh.useVertexColors,true);
-    assert.equal(ground.isVisible,false);
-    assert.ok(mesh.data.positions.length>50000);
-  }finally{
-    if(original===undefined)delete globalThis.window;
-    else globalThis.window=original;
+test('hex interiors have distinct greens and boundaries smoothly return to meadow',()=>{
+  const base={r:.27,g:.56,b:.41};
+  const shades=new Map();
+  for(let q=-9;q<=9;q++)for(let r=-9;r<=9;r++){
+    const x=Math.sqrt(3)*HEX_GRASS_SIZE*(q+r/2),z=1.5*HEX_GRASS_SIZE*r;
+    const cell=hexGrassCell(x,z);
+    if(!shades.has(cell.shade))shades.set(cell.shade,sampleHexGrass(x,z,base));
+  }
+  assert.equal(shades.size,5);
+  const values=[...shades.values()].map(c=>c.g);
+  assert.ok(Math.max(...values)-Math.min(...values)>.17);
+  const center=sampleHexGrass(0,0,base);
+  const closeToEdge=sampleHexGrass(HEX_GRASS_SIZE*Math.sqrt(3)/2-.07,0,base);
+  assert.ok(Math.abs(closeToEdge.g-base.g)<Math.abs(center.g-base.g)+.001);
+  for(const c of shades.values()){
+    for(const v of Object.values(c))assert.ok(v>=0&&v<=1);
   }
 });
-test('Daisugi-only flag supports hex=0 comparison and preserves the original game',()=>{
+test('critical regression: original ground is NEVER hidden or replaced',()=>{
+  const world=read('../src/world-open.js');
+  assert.ok(world.includes('subdivisions:hexGrass?HEX_GRASS_SUBDIVISIONS:20'));
+  assert.ok(world.includes('const tile=hexGrass?sampleHexGrass(x,z,c):c;'));
+  assert.ok(world.includes('return {ground,kind:'));
+  assert.ok(!world.includes('ground.isVisible=false'));
+  assert.ok(!world.includes('createHexGrass('));
+  assert.ok(!world.includes('tiledGround'));
+  assert.ok(!read('../src/hex-grass.js').includes('new B.Mesh('));
+  assert.ok(!read('../src/hex-grass.js').includes('disableLighting'));
+});
+test('legacy defaults and Daisugi-only feature flag preserve player movement',()=>{
   const main=read('../src/main.js'),world=read('../src/world-open.js');
   assert.ok(main.includes("staticVegetation:!DAISUGI_MODE"));
   assert.ok(main.includes("hexGrass:DAISUGI_MODE&&params.get('hex')!=='0'"));
   assert.ok(world.includes('createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={})'));
-  assert.ok(world.includes('const tiledGround=hexGrass?createHexGrass(scene,ground,'));
-  assert.ok(world.includes('ground:tiledGround||ground'));
   assert.equal(WILD_RADIUS,43);
   assert.equal(WILD_FLOOR_RADIUS,90);
   assert.equal(WILD_CAMERA_WIDTH,29.5);
   assert.equal(CLASS_DATA.caster.speed,5.25);
   assert.ok(main.includes('const DAISUGI_CAMERA_WORLD_WIDTH=24.5'));
-});
-
-test('five mobile-readable greens have enough contrast even without scene lighting',()=>{
-  assert.ok(HEX_GRASS_SHADES[0].g<-.10);
-  assert.ok(HEX_GRASS_SHADES[4].g>.10);
-  const spread=HEX_GRASS_SHADES[4].g-HEX_GRASS_SHADES[0].g;
-  assert.ok(spread>.22,'hex cell palette needs visible shade separation');
-  const materialSource=read('../src/hex-grass.js');
-  assert.ok(materialSource.includes('material.disableLighting=true'));
-  assert.ok(materialSource.includes('material.backFaceCulling=false'));
+  assert.ok(main.includes("const dz=OPEN_WORLD?z*game.spec.speed*dt:"));
 });

@@ -1,12 +1,12 @@
 // Wildpath Pass 6: deterministic, reusable visual variety for Nature Rebirth.
 // This module intentionally has no Babylon or DOM dependency.
 export const NATURE_PALETTES=Object.freeze({
-  rose:Object.freeze({leaf:'#7b9c78',light:'#9fb68b',petal:'#eaa6c2',accent:'#f9d0df',glow:'#fff0e8',fx:0xeaa6c2}),
-  lilac:Object.freeze({leaf:'#788e87',light:'#9ea7a2',petal:'#b6a0df',accent:'#d7c9f5',glow:'#f0e6ff',fx:0xb6a0df}),
-  amber:Object.freeze({leaf:'#89986c',light:'#bdad79',petal:'#efa575',accent:'#ffd19c',glow:'#fff1ce',fx:0xf1ad75}),
-  mint:Object.freeze({leaf:'#64a18b',light:'#9ec4a0',petal:'#bce0bd',accent:'#def4c8',glow:'#f0ffdf',fx:0xb2e2be}),
-  aqua:Object.freeze({leaf:'#629c97',light:'#92bcb0',petal:'#9bd9d3',accent:'#caf1e7',glow:'#eafff7',fx:0x9bd9d3}),
-  cream:Object.freeze({leaf:'#829d7a',light:'#a7b88b',petal:'#eed9a6',accent:'#fff2c7',glow:'#ffffe9',fx:0xf3dfa8})
+  rose:Object.freeze({leaf:'#3ca97a',light:'#96d56e',petal:'#f875b7',accent:'#ffd0e8',glow:'#fff7e8',fx:0xf875b7}),
+  lilac:Object.freeze({leaf:'#3e9f92',light:'#8dc3a0',petal:'#a17af2',accent:'#dfb8ff',glow:'#f5eeff',fx:0xa17af2}),
+  amber:Object.freeze({leaf:'#80ae46',light:'#cad65d',petal:'#ffac48',accent:'#ffe18a',glow:'#fff5cc',fx:0xffac48}),
+  mint:Object.freeze({leaf:'#19ac7b',light:'#7ce59a',petal:'#a0f0a5',accent:'#e1ffb6',glow:'#f7ffdf',fx:0x7ce59a}),
+  aqua:Object.freeze({leaf:'#1b9e9d',light:'#5fd4be',petal:'#5de0ec',accent:'#b5faff',glow:'#ecfffc',fx:0x5de0ec}),
+  cream:Object.freeze({leaf:'#79ad61',light:'#b6d16d',petal:'#ffe196',accent:'#fff2c8',glow:'#ffffe9',fx:0xffd77a}),
 });
 export const NATURE_PALETTE_IDS=Object.freeze(Object.keys(NATURE_PALETTES));
 export const NATURE_VARIANTS=Object.freeze({

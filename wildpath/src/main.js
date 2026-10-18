@@ -16,6 +16,7 @@ import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,en
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=3.1.0';
 import {daisugiTextPlan,daisugiDamageLabel} from './daisugi-combat-text.js?v=1.0.0';
+import {applyDaisugiHitPush} from './daisugi-hit-feedback.js?v=1.0.0';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 import {DAISUGI_BOOSTS,daisugiCoreMode,chooseDaisugiBoosts,daisugiVolleyCount,
@@ -133,6 +134,10 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
   if(stage==='sound'){spellFX.sound(name,cue);return;}
+  // No large white crystal impact for the Daisugi's Water Dart; the
+  // projectile and all chain/wave area signatures remain visible.
+  if(DAISUGI_MODE&&name==='Glint Dart'&&
+      ['burst','reaction','damage','aftermath'].includes(stage))return;
   if(pixi.ready)pixi.stage(visibleWaterSpell(name,OPEN_WORLD),stage,point,intensity);
   else spellFX.emit(name,stage,{x:point.x,z:point.z,y:point.y??1.32,intensity,
     directionX:point.dirX||0,directionZ:point.dirZ||0});
@@ -413,7 +418,8 @@ function spawnEnemy(type,opts={}){
   const enemy={
     id,type,x,z,actor,alive:true,hp:stats.hp*(1+director.stage*.09),
     maxHp:stats.hp*(1+director.stage*.09),speed:stats.speed,recoil:0,
-    attackClock:random(.4,1.3),slow:0,knockX:0,knockZ:0,flash:0,bob:Math.random()*6.28
+    attackClock:random(.4,1.3),slow:0,knockX:0,knockZ:0,
+    hitTilt:0,flash:0,bob:Math.random()*6.28
   };
   actor.root.position.set(x,0,z);
   enemy.normalEmissive=actor.body.material.emissiveColor.clone();
@@ -603,16 +609,22 @@ function hurtEnemy(e,base,options={}){
   const crit=Math.random()<(boosted?(OPEN_WORLD?.33:.24):.115);
   const amount=base*(crit?(OPEN_WORLD&&boosted?2.25:1.85):1);
   if(crit)game.crits++;
-  e.hp-=amount;e.flash=crit?.26:.17;
-  e.recoil=Math.max(e.recoil||0,crit?.28:.16);
-  if(options.fxSpell){
+  e.hp-=amount;
+  // Physical impact rather than an opaque white flash in Daisugi mode.
+  e.flash=DAISUGI_MODE?0:crit?.26:.17;
+  e.recoil=Math.max(e.recoil||0,crit?.30:.16);
+  if(DAISUGI_MODE&&options.hitFrom)
+    applyDaisugiHitPush(e,options.hitFrom,game,options.hitStrength);
+  // Per-hit pips also stacked into white explosions on large AoE groups.
+  if(options.fxSpell&&!DAISUGI_MODE){
     spellStage(options.fxSpell,'reaction',e,crit?1.25:.85);
     spellStage(options.fxSpell,'damage',{x:e.x,z:e.z,y:2.4},crit?1.45:.75);
   }
   floatingText({x:e.x,y:2.55,z:e.z},(crit?'CRIT! ':'')+Math.round(amount),crit?'crit':'normal');
   if(crit){
     game.shake=Math.max(game.shake,shakeStrength('crit',reducedMotion));
-    if(game.effects.length<110)ringBurst(e.x,e.z,'#ffdf88',.64);
+    if(!DAISUGI_MODE&&game.effects.length<110)
+      ringBurst(e.x,e.z,'#ffdf88',.64);
   }
   if(options.slow)e.slow=Math.max(e.slow,options.slow);
   if(options.push){
@@ -634,7 +646,8 @@ function hurtEnemy(e,base,options={}){
         }
       }
     }
-    ringBurst(e.x,e.z,e.type==='ember'?'#ffb49b':'#f8e7ab',1.15);
+    if(!DAISUGI_MODE)
+      ringBurst(e.x,e.z,e.type==='ember'?'#ffb49b':'#f8e7ab',1.15);
     game.shake=Math.max(game.shake,shakeStrength('kill',reducedMotion));
     if(game.target===e)game.target=null;
   }
@@ -830,7 +843,8 @@ function daisugiFireWave(target){
     enhanced?1.7:1.15);
   spellStage('Water Wave','sound',game,1,'launch');
   for(const e of hits)hurtEnemy(e,power,{
-    slow:enhanced?3.0:1.1,fxSpell:'Crystal Bloom'});
+    slow:enhanced?3.0:1.1,fxSpell:'Crystal Bloom',
+    hitFrom:game,hitStrength:enhanced?1.45:1.18});
 }
 function daisugiChainFrom(primary,damage){
   const opts=daisugiChainPlan(game.upgrades),visited=new Set([primary]);
@@ -843,7 +857,9 @@ function daisugiChainFrom(primary,damage){
     spellStage('Glint Splash','burst',next,.62);
     spellStage('Water Chain','sound',next,1,'jump');
     const scale=Math.pow(opts.damageFactor,hop+1);
-    hurtEnemy(next,damage*scale,{slow:opts.slow,fxSpell:'Glint Dart'});
+    hurtEnemy(next,damage*scale,{
+      slow:opts.slow,fxSpell:'Glint Dart',
+      hitFrom:from,hitStrength:1.04});
     from=next;
   }
 }
@@ -1024,10 +1040,12 @@ function updateEnemies(dt){
       e.x=moved.x;e.z=moved.z;
     }else{e.x+=stepX;e.z+=stepZ;}
     e.knockX*=Math.exp(-7*dt);e.knockZ*=Math.exp(-7*dt);
+    if(DAISUGI_MODE)e.hitTilt=(e.hitTilt||0)*Math.exp(-8.5*dt);
     e.actor.root.position.set(e.x,Math.sin(game.time*4+e.bob)*.05+e.recoil*.55,e.z);
     e.actor.root.rotation.y=Math.atan2(dx,dz);
+    if(DAISUGI_MODE)e.actor.root.rotation.z=e.hitTilt||0;
     e.actor.rightArm.rotation.x=Math.sin(game.time*5+e.bob)*.22;
-    e.actor.body.scaling.x=e.flash>0?1.12:1;
+    e.actor.body.scaling.x=DAISUGI_MODE?1+e.recoil*.28:e.flash>0?1.12:1;
     e.actor.body.scaling.y=1-e.recoil*.25;
     e.actor.body.material.emissiveColor.copyFrom(e.flash>0?hitFlashColor:e.normalEmissive);
     if(d<ENEMIES[e.type].range&&e.attackClock<=0){
@@ -1065,8 +1083,10 @@ function updateProjectiles(dt){
         const struck=p.target;
         const from={x:p.x,z:p.z};
         hurtEnemy(struck,p.damage,{
-          fxSpell:spell,slow:DAISUGI_MODE&&
-            game.upgrades.has('frostsplash')?1.6:0});
+          fxSpell:spell,
+          hitFrom:DAISUGI_MODE?from:null,
+          hitStrength:p.daisugiMode==='bounce'?1.70:1.53,
+          slow:DAISUGI_MODE&&game.upgrades.has('frostsplash')?1.6:0});
         if(DAISUGI_MODE&&p.daisugiMode==='chain')
           daisugiChainFrom(struck,p.damage);
         if(OPEN_WORLD&&spell==='Glint Dart'){
@@ -1081,7 +1101,8 @@ function updateProjectiles(dt){
             for(const other of game.enemies){
               if(other!==p.target&&other.alive&&Math.hypot(other.x-x,other.z-z)<splash.radius){
                 hurtEnemy(other,splash.damage,{
-                  slow:DAISUGI_MODE?splash.slow:0,fxSpell:'Glint Dart'});
+                  slow:DAISUGI_MODE?splash.slow:0,fxSpell:'Glint Dart',
+                  hitFrom:DAISUGI_MODE?{x,z}:null,hitStrength:.59});
                 if(++hits>=splash.targets)break;
               }
             }

@@ -750,9 +750,68 @@ function cast(slot){
     }
   }
 }
+// Daisugi attack shapes are entirely automatic and always emerge from
+// player-chosen Power Surge cards. World, movement, and nature are reused.
+function daisugiFireWave(target){
+  const hits=daisugiWaveTargets(game.enemies,game,target,game.upgrades);
+  const enhanced=game.upgrades.has('widewave');
+  const power=daisugiAttackDamage(game.spec.baseDamage,game.upgrades)*
+    (enhanced?2.15:1.8);
+  const direction=Math.atan2(target.z-game.z,target.x-game.x);
+  if(pixi.ready)pixi.waterWave?.(game.x,game.z,direction,enhanced?10.5:8.2,
+    enhanced?4.9:3.25);
+  spellStage('Tidal Bloom','burst',
+    {x:game.x+Math.cos(direction)*3.1,z:game.z+Math.sin(direction)*3.1,y:1.1},
+    enhanced?1.7:1.15);
+  spellStage('Water Wave','sound',game,1,'launch');
+  for(const e of hits)hurtEnemy(e,power,{
+    slow:enhanced?3.0:1.1,fxSpell:'Crystal Bloom'});
+}
+function daisugiChainFrom(primary,damage){
+  const opts=daisugiChainPlan(game.upgrades),visited=new Set([primary]);
+  let from=primary;
+  for(let hop=0;hop<opts.hops;hop++){
+    const next=nextDaisugiHop(game.enemies,from,visited,opts.radius);
+    if(!next)break;
+    visited.add(next);
+    pixi.waterLink?.(from,next,'chain');
+    spellStage('Glint Splash','burst',next,.62);
+    spellStage('Water Chain','sound',next,1,'jump');
+    const scale=Math.pow(opts.damageFactor,hop+1);
+    hurtEnemy(next,damage*scale,{slow:opts.slow,fxSpell:'Glint Dart'});
+    from=next;
+  }
+}
+function daisugiBasicAttack(target){
+  const mode=daisugiCoreMode(game.upgrades);
+  game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
+  if(mode==='wave'){daisugiFireWave(target);return;}
+  const count=daisugiVolleyCount(game.upgrades);
+  const volley=daisugiVolleyTargets(game.enemies,game,game.spec.range,count,target);
+  spellStage('Glint Dart','charge',game,.65);
+  spellStage('Glint Dart','sound',game,1,'launch');
+  for(let i=0;i<volley.length;i++){
+    const target=volley[i];
+    const offset=(i-(volley.length-1)/2)*.40;
+    const shot=magicProjectile(scene,i%2?'#80edec':'#2bc9ef',.54);
+    shot.position.set(game.x+offset,1.5,game.z);
+    if(pixi.ready){shot.isVisible=false;
+      for(const child of shot.getChildMeshes())child.isVisible=false;}
+    game.projectiles.push({
+      mesh:shot,x:game.x+offset,y:1.5,z:game.z,
+      target,life:3.8,speed:mode==='bounce'?19:17.5,
+      damage:daisugiAttackDamage(game.spec.baseDamage,game.upgrades),
+      hostile:false,trail:0,spell:'Glint Dart',water:true,
+      daisugiMode:mode,bouncesRemaining:mode==='bounce'?
+        daisugiBounceCount(game.upgrades):0,visited:new Set(),
+      fxSeed:game.frame*17+i*31
+    });
+  }
+}
 function basicAttack(){
   const target=currentTarget();
   if(!target||distance(game,target)>game.spec.range)return;
+  if(DAISUGI_MODE){daisugiBasicAttack(target);return;}
   game.actor.root.rotation.y=Math.atan2(target.x-game.x,target.z-game.z);
   if(game.classId==='caster'){
     spellStage('Glint Dart','charge',game,.75);
@@ -923,6 +982,11 @@ function updateProjectiles(dt){
   for(let i=game.projectiles.length-1;i>=0;i--){
     const p=game.projectiles[i];
     p.life-=dt;
+    if(p.daisugiMode==='bounce'&&!p.target?.alive&&
+       p.bouncesRemaining>0){
+      const replacement=nextDaisugiHop(game.enemies,p,p.visited,5.4);
+      if(replacement){p.target=replacement;p.bouncesRemaining--;}
+    }
     if(p.life<=0||(!p.hostile&&!p.target.alive)){
       releaseMesh(p.mesh);game.projectiles.splice(i,1);continue;
     }
@@ -933,7 +997,13 @@ function updateProjectiles(dt){
       else{
         const spell=p.spell||'Glint Dart';
         spellStage(spell,'burst',p.target,.80);
-        hurtEnemy(p.target,p.damage,{fxSpell:spell,slow:DAISUGI_MODE?1.7:0});
+        const struck=p.target;
+        const from={x:p.x,z:p.z};
+        hurtEnemy(struck,p.damage,{
+          fxSpell:spell,slow:DAISUGI_MODE&&
+            game.upgrades.has('frostsplash')?1.6:0});
+        if(DAISUGI_MODE&&p.daisugiMode==='chain')
+          daisugiChainFrom(struck,p.damage);
         if(OPEN_WORLD&&spell==='Glint Dart'){
           const splash=DAISUGI_MODE?daisugiSplash(game.upgrades):
             glintSplash(game.upgrades,OPEN_WORLD);
@@ -954,6 +1024,21 @@ function updateProjectiles(dt){
         }
         spellStage(spell,'aftermath',p.target,.64);
         spellStage(spell,'sound',p.target,1,'impact');
+        if(DAISUGI_MODE&&p.daisugiMode==='bounce'&&p.bouncesRemaining>0){
+          p.visited.add(struck);
+          const next=nextDaisugiHop(game.enemies,struck,p.visited,
+            game.upgrades.has('skippingstorm')?6.3:5.0);
+          if(next){
+            p.target=next;
+            p.x=struck.x;p.z=struck.z;p.y=1.5;
+            p.mesh.position.set(p.x,p.y,p.z);
+            p.life=2.4;p.bouncesRemaining--;
+            p.damage*=.83;
+            pixi.waterLink?.(struck,next,'bounce');
+            spellStage('Water Ricochet','sound',struck,1,'bounce');
+            continue;
+          }
+        }
       }
       if(p.hostile)ringBurst(p.target.x,p.target.z,'#efb99e',.7);
       releaseMesh(p.mesh);game.projectiles.splice(i,1);

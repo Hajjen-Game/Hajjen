@@ -65,9 +65,11 @@ export function buildHexGrassGeometry({floorWidth,playRadius,side=HEX_GRASS_SIZE
       }
       for(let i=0;i<6;i++){
         const j=(i+1)%6;
-        indices.push(center,inner[i],inner[j]);
-        indices.push(inner[i],outer[i],outer[j]);
-        indices.push(inner[i],outer[j],inner[j]);
+        // Winding is counterclockwise when viewed from +Y in Babylon.
+        // The original X/Z ring order otherwise faces DOWN and gets culled.
+        indices.push(center,inner[j],inner[i]);
+        indices.push(inner[i],outer[j],outer[i]);
+        indices.push(inner[i],inner[j],outer[j]);
       }
       shades[shade]++;count++;
     }

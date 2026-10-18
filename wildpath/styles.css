@@ -349,3 +349,56 @@ body:not(.wildpath-open) .classic-link{display:none}
   .tree-readability-title{font-size:8px}
   .tree-readability-buttons button{min-height:32px}
 }
+
+
+/* Willowglow Low-Poly Color Study 1.0: compact, touch-friendly art A/B. */
+.tree-readability-panel{
+  top:43%;right:10px;width:160px;padding:10px 9px;
+  background:#173d32e8;border:1px solid #b7d9c29c;
+}
+.tree-readability-title{font-size:10px}
+.tree-readability-subtitle{
+  display:block;margin-top:9px;font-size:9px;font-weight:900;
+  letter-spacing:.5px;color:#d9ebcc;text-transform:uppercase
+}
+.tree-style-buttons{
+  display:grid;grid-template-columns:1.5fr 1fr;gap:5px;margin-top:8px
+}
+.tree-style-buttons button{
+  min-height:32px;border-radius:9px;border:1px solid #9cccb18b;
+  background:#305e49;color:#eaffdf;font-size:10px;font-weight:900;
+  touch-action:manipulation
+}
+.tree-style-buttons button.selected,.tree-style-buttons button[aria-pressed="true"]{
+  background:#d4edbc;color:#1b4939;border-color:#f1ffd8
+}
+.tree-palette-choices[hidden]{display:none!important}
+.tree-palette-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:4px;margin-top:6px
+}
+.tree-palette-grid button{
+  height:28px;min-width:0;padding:0;border:2px solid #bad9b378;
+  border-radius:8px;color:#25463c;font-size:15px;font-weight:900;
+  background:#b7cda9;touch-action:manipulation
+}
+.tree-palette-grid button[data-tree-palette="mixed"]{
+  font-size:10px;color:#294b3c;
+  background:linear-gradient(125deg,#9ec4a0 0 28%,#9bd9d3 28% 53%,#efa575 53% 77%,#eaa6c2 77%)
+}
+.tree-palette-grid button[data-tree-palette="mint"]{background:#bce0bd}
+.tree-palette-grid button[data-tree-palette="aqua"]{background:#9bd9d3}
+.tree-palette-grid button[data-tree-palette="amber"]{background:#efa575}
+.tree-palette-grid button[data-tree-palette="rose"]{background:#eaa6c2}
+.tree-palette-grid button[data-tree-palette="lilac"]{background:#b6a0df}
+.tree-palette-grid button[data-tree-palette="cream"]{background:#eed9a6}
+.tree-palette-grid button.selected,.tree-palette-grid button[aria-pressed="true"]{
+  border-color:#f8ffe5;box-shadow:0 0 0 2px #a0e6b6,0 0 9px #e5ffc790
+}
+.tree-readability-note{margin-top:9px;font-size:10px}
+@media(max-width:390px){
+  .tree-readability-panel{width:142px;right:6px;padding:7px}
+  .tree-readability-title{font-size:9px}
+  .tree-style-buttons button{min-height:30px}
+  .tree-palette-grid button{height:27px}
+}

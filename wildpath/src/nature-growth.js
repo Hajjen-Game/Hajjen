@@ -5,16 +5,16 @@ import {WILD_RADIUS} from './open-layout.js';
 import {planNatureFusions,fusionRadius,FUSION_MAX_REGIONS,regionSummary} from './nature-fusion.js?v=2.6.1';
 import {makePlantForm,describePlantForm} from './nature-forms.js?v=2.5.2';
 import {NATURE_PALETTES,NATURE_PALETTE_IDS,chooseNatureLook,natureVisibility}
-  from './nature-variety.js?v=3.0.0';
+  from './nature-variety.js?v=3.1.0';
 const B=window.BABYLON;
 function material(scene,id,hex){
   const m=new B.StandardMaterial('rebirth '+id,scene);
   const c=B.Color3.FromHexString(hex);
   // Painterly material: brighter top reflections without metallic shine.
-  m.diffuseColor=c;m.ambientColor=c.scale(.24);
-  m.emissiveColor=c.scale(.12);
-  m.specularColor=new B.Color3(.24,.26,.20);
-  m.specularPower=50;
+  m.diffuseColor=c;m.ambientColor=c.scale(.19);
+  m.emissiveColor=c.scale(.055);
+  m.specularColor=new B.Color3(.12,.14,.10);
+  m.specularPower=67;
   return m;
 }
 function template(scene,kind,name,mat){
@@ -63,11 +63,11 @@ export class NatureGrowth {
     // Shared pastel radial ground materials: no dark solid circles or z-fighting.
     this.meadowMaterials={};
     for(const [kind,color] of Object.entries({
-      meadow:'#91b58a',thicket:'#83ab83',grove:'#98b78b',enchanted:'#a4bda8'
+      meadow:'#4e9565',thicket:'#438760',grove:'#68a269',enchanted:'#648f7c'
     })){
       const mat=material(scene,'living earth '+kind,color);
       mat.opacityTexture=this.shadowTexture;
-      mat.disableLighting=true;mat.alpha=.60;mat.backFaceCulling=false;
+      mat.disableLighting=true;mat.alpha=.42;mat.backFaceCulling=false;
       this.materials.push(mat);this.meadowMaterials[kind]=mat;
     }
     this.paletteMeshes={};

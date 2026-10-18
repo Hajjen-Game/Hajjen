@@ -426,3 +426,82 @@ body:not(.wildpath-open) .classic-link{display:none}
   .wildpath-open .energy-track,
   .wildpath-open #bottomHud .ability.special{transition:none}
 }
+
+
+/* Exposure & Saturation Correction 1.1 — saturated arcade color, not pale glass.
+   Material-only overrides; no HUD repositioning or new translucent screen layer. */
+.wildpath-open .hud-left,
+.wildpath-open .hud-score{
+  background:linear-gradient(155deg,#174c49f4,#102f3af8 65%,#0b2838f5);
+  border-color:#318b82c9;
+  box-shadow:inset 0 1px 0 #73c2b835,inset 0 -5px 13px #081e31a6,
+    0 4px 0 #082e3b,0 10px 20px #08223275;
+}
+.wildpath-open .hud-left::before,
+.wildpath-open .hud-score::before{
+  height:21%;
+  background:linear-gradient(180deg,#48cbbd18,transparent);
+}
+.wildpath-open .health-track{border-color:#459e85b5;background:#0b333a}
+.wildpath-open #healthFill{
+  background:linear-gradient(180deg,#b6ed53 0%,#75d83e 55%,#26a86f 100%);
+  box-shadow:inset 0 1px 0 #ddff9970;
+}
+.wildpath-open #scoreText{
+  color:#ffca53;
+  text-shadow:0 2px 0 #68412c,0 0 7px #da9b284c;
+}
+.wildpath-open .energy-panel{
+  background:linear-gradient(150deg,#126463,#0a424f 70%,#092e45);
+  border-color:#25acaaae;
+  box-shadow:inset 0 1px 0 #70e5c74a,inset 0 -7px 13px #07233780,
+    0 3px 10px #06263269;
+}
+.wildpath-open .energy-track{
+  border-color:#35b7a4ac;
+  background:#052b40;
+}
+.wildpath-open #energyFill{
+  background:linear-gradient(180deg,#65e6c6,#10bfbe 55%,#1383b7);
+  box-shadow:inset 0 1px 0 #9cf9dc5e;
+}
+.wildpath-open .energy-top{color:#8ceecf;text-shadow:none}
+.wildpath-open .nature-badge{color:#afe578;text-shadow:0 1px 2px #082c32}
+.wildpath-open #goal{
+  color:#fff1ac;
+  background:linear-gradient(155deg,#126f68,#0e4259);
+  border-color:#2bafa4b8;
+  box-shadow:inset 0 1px 0 #89e8c044,0 3px 0 #082e42,
+    0 6px 13px #0a2d3a66;
+}
+.wildpath-open #bottomHud .ability.special,
+.wildpath-open #bottomHud .ability.special.is-ready{
+  border-color:#34b5aebd;
+  background:linear-gradient(155deg,#176e72,#0b4c64 68%,#092e50);
+  box-shadow:inset 0 1px 0 #6ad6d356,inset 0 -7px 13px #09274699,
+    0 4px 0 #092b42,0 8px 15px #08293d87;
+}
+.wildpath-open #bottomHud .ability.special.is-ready{
+  border-color:#42e1bc;
+  box-shadow:inset 0 1px 0 #81f0cf6b,inset 0 -6px 12px #072c48a6,
+    0 4px 0 #082b43,0 0 9px #15c9ba5c;
+}
+.wildpath-open #bottomHud .ability.special .ability-icon{
+  color:#48e6df;text-shadow:0 0 5px #07afc9a6;
+}
+.wildpath-open #bottomHud .ability.special.is-cooling{
+  border-color:#35596a;background:linear-gradient(155deg,#244c55,#112e42);
+  color:#a8c4cb;box-shadow:inset 0 2px 7px #061e328c,0 3px 0 #092033;
+}
+.wildpath-open #bottomHud .ability.special.is-cooling .ability-icon{
+  color:#648d99;text-shadow:none
+}
+.wildpath-open #pauseButton,
+.wildpath-open #soundButton{
+  border-color:#258e98;
+  background:linear-gradient(155deg,#176b70,#0d354c);
+  box-shadow:inset 0 1px 0 #5fd6c752,0 3px 0 #082639;
+}
+.wildpath-open .float-damage.energy{
+  color:#ffca51;text-shadow:0 2px 3px #332c22,0 0 7px #f7b93762;
+}

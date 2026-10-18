@@ -472,7 +472,7 @@ function floatingText(pos,value,kind='normal'){
       life,total:life,damageGroup:damage,
       damageTotal:damage?plan.points:0,critCount:damage&&plan.crit?1:0,
       energyTotal:energy?Math.max(1,
-        Number(String(value).match(/\\d+/)?.[0]||1)):0});
+        Number(String(value).match(/\d+/)?.[0]||1)):0});
     return;
   }
   if(OPEN_WORLD){

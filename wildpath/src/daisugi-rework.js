@@ -1,68 +1,139 @@
-// Daisugi Rework 1.0: opt-in automatic magic on the *original* Wildpath 2.x.
-// Pure combat rules: no world geometry, movement values, camera or DOM changes.
-// This module is deliberately inactive unless ?daisugi=1 is in the URL.
-export const DAISUGI_BOOSTS=Object.freeze([
-  {id:'crosscurrent',classes:['caster'],onlyOpen:true,category:'damage',icon:'❋',
-    name:'Crosscurrent',desc:'Fire two additional homing Water Darts in every automatic volley.'},
-  {id:'frostwave',classes:['caster'],onlyOpen:true,category:'damage',icon:'❄',
-    name:'Frostwave',desc:'Every Water Dart splashes farther and slows up to seven nearby enemies.'},
-  {id:'downpour',classes:['caster'],onlyOpen:true,category:'damage',icon:'☂',
-    name:'Deep Downpour',desc:'Automatic Rainfall covers a wider area, slows longer and ticks harder.'},
-  {id:'tidalecho',classes:['caster'],onlyOpen:true,category:'damage',icon:'✿',
-    name:'Tidal Echo',desc:'Tidal Bloom spreads farther and releases two secondary splash bursts.'},
-  {id:'flowstate',classes:['caster'],onlyOpen:true,category:'damage',icon:'〰',
-    name:'Flow State',desc:'Water Darts fire 25% faster. Movement speed remains unchanged.'},
-  {id:'guardianpulse',classes:['caster'],onlyOpen:true,category:'defense',icon:'❖',
-    name:'Living Ward',desc:'Automatic Tide Guard slows surrounding enemies and grants extra shielding.'}
+// Daisugi Rework 1.1 — attack evolution on the ORIGINAL Wildpath 2.x.
+// This file contains pure rules only. No arena, camera, speed or nature changes.
+// Feature gated by ?daisugi=1; default Wildpath 2.x remains unchanged.
+const upgrade=(id,name,icon,desc,requires=[])=>Object.freeze({
+  id,classes:['caster'],onlyOpen:true,category:'damage',name,icon,desc,requires
+});
+export const DAISUGI_CORE_BOOSTS=Object.freeze([
+  upgrade('aquavolley','Triple Current','✧',
+    'Your single Water Dart becomes a fan of THREE homing water shots.'),
+  upgrade('aquachain','Chain Current','ϟ',
+    'Water hits leap like chain lightning through up to THREE nearby enemies.'),
+  upgrade('aquabounce','Skipping Current','◎',
+    'Water Dart ricochets between enemies, hitting up to THREE targets per shot.'),
+  upgrade('aquawave','Tidal Wave','≈',
+    'Replace Water Dart with a broad automatic forward wave that hits groups.')
 ]);
+export const DAISUGI_CORE_IDS=Object.freeze(DAISUGI_CORE_BOOSTS.map(x=>x.id));
+export const DAISUGI_BOOSTS=Object.freeze([
+  ...DAISUGI_CORE_BOOSTS,
+  upgrade('greatercurrent','Five Streams','✦',
+    'Fire FIVE homing water shots in each volley.',['aquavolley']),
+  upgrade('chainstorm','Storm Conductor','⚡',
+    'Chain Current jumps to up to SIX foes with extended reach.',['aquachain']),
+  upgrade('skippingstorm','Rapid Ricochet','↗',
+    'Water projectiles can bounce through up to FIVE enemies.',['aquabounce']),
+  upgrade('widewave','Cresting Wave','❋',
+    'Your wave grows wider and reaches farther, slowing everything it hits.',['aquawave']),
+  upgrade('frostsplash','Frost Splash','❄',
+    'Impacts splash and slow additional foes, helping create nature combos.'),
+  upgrade('flowstate','Rapid Current','»',
+    'Automatic attacks fire 25% faster. Movement speed is unchanged.'),
+  upgrade('deepcurrent','Deep Water','◈',
+    'All automatic attacks deal more damage and hit with clearer impact.'),
+  upgrade('watergarden','Rain Garden','☂',
+    'A Rainfall burst automatically waters crowded enemies periodically.'),
+  upgrade('tideguard','Living Ward','♡',
+    'An automatic shield protects you when injured or surrounded.'),
+  upgrade('tidalflower','Tidal Bloom','✿',
+    'Every few seconds an automatic Tidal Bloom bursts through enemy groups.')
+]);
+export const hasDaisugiCore=upgrades=>DAISUGI_CORE_IDS.some(id=>upgrades.has(id));
+export function daisugiCoreMode(upgrades){
+  if(upgrades.has('aquawave'))return 'wave';
+  if(upgrades.has('aquabounce'))return 'bounce';
+  if(upgrades.has('aquachain'))return 'chain';
+  if(upgrades.has('aquavolley'))return 'volley';
+  return 'dart';
+}
+export function chooseDaisugiBoosts(upgrades,stage,rng=Math.random){
+  const available=DAISUGI_BOOSTS.filter(b=>!upgrades.has(b.id)&&
+    b.requires.every(id=>upgrades.has(id))&&
+    (hasDaisugiCore(upgrades)||DAISUGI_CORE_IDS.includes(b.id)));
+  if(stage===0&&!hasDaisugiCore(upgrades)){
+    // Wave one's reward is ALWAYS attack-transforming, never bland +damage.
+    const rotation=Math.min(3,Math.floor(Math.max(0,rng())*4));
+    return [0,1,2].map(i=>DAISUGI_CORE_BOOSTS[(i+rotation)%4]);
+  }
+  const preferred=available.filter(b=>b.requires.length>0),regular=
+    available.filter(b=>b.requires.length===0&&
+      !DAISUGI_CORE_IDS.includes(b.id));
+  const result=[];
+  if(preferred.length)result.push(preferred[Math.floor(rng()*preferred.length)]);
+  while(result.length<3&&regular.length){
+    const index=Math.floor(rng()*regular.length);
+    result.push(regular.splice(Math.min(index,regular.length-1),1)[0]);
+  }
+  // If universal upgrades run out, use other core evolutions as new options.
+  for(const core of DAISUGI_CORE_BOOSTS){
+    if(result.length>=3)break;
+    if(!upgrades.has(core.id)&&!result.some(x=>x.id===core.id))result.push(core);
+  }
+  return result;
+}
 export function daisugiVolleyCount(upgrades){
-  const base=upgrades.has('glintstorm')?7:
-    upgrades.has('triple')?5:upgrades.has('double')?4:3;
-  return Math.min(9,base+(upgrades.has('crosscurrent')?2:0));
+  return daisugiCoreMode(upgrades)==='volley'?
+    upgrades.has('greatercurrent')?5:3:1;
 }
 export function daisugiVolleyTargets(enemies,player,range,count,primary){
   if(!primary?.alive)return [];
-  const living=enemies.filter(e=>e.alive &&
+  const living=enemies.filter(e=>e.alive&&
     Math.hypot(e.x-player.x,e.z-player.z)<=range);
   if(!living.length)return [];
-  living.sort((a,b)=>{
-    const da=Math.hypot(a.x-primary.x,a.z-primary.z);
-    const db=Math.hypot(b.x-primary.x,b.z-primary.z);
-    return da-db || Math.hypot(a.x-player.x,a.z-player.z)-
-      Math.hypot(b.x-player.x,b.z-player.z);
-  });
-  return Array.from({length:Math.min(9,Math.max(1,count))},(_,i)=>living[i%living.length]);
+  living.sort((a,b)=>Math.hypot(a.x-primary.x,a.z-primary.z)-
+    Math.hypot(b.x-primary.x,b.z-primary.z));
+  return Array.from({length:Math.max(1,Math.min(5,count))},
+    (_,i)=>living[i%living.length]);
 }
 export function daisugiSplash(upgrades){
-  const heavy=upgrades.has('glintstorm');
-  const chained=upgrades.has('chain');
-  const frozen=upgrades.has('frostwave');
-  return {
-    radius:frozen?3.9:heavy?3.35:chained?3.0:2.45,
-    damage:frozen?heavy?29:21:heavy?26:chained?19:10,
-    slow:frozen?3.1:heavy?2.1:1.4,
-    targets:frozen?7:heavy?6:chained?5:4
-  };
+  if(!upgrades.has('frostsplash'))return null;
+  return {radius:3.0,damage:9,slow:2.5,targets:5};
 }
 export function daisugiAttackInterval(base,upgrades){
-  return base*.70*(upgrades.has('tempo')?.68:1)*
-    (upgrades.has('flowstate')?.75:1);
+  const wave=daisugiCoreMode(upgrades)==='wave';
+  return base*(wave?1.45:1)*(upgrades.has('flowstate')?.75:1);
 }
-export function daisugiPool(power,upgrades){
-  if(!upgrades.has('downpour'))return power;
-  return {...power,radius:power.radius+1.35,damage:power.damage+8,
-    entryDamage:power.entryDamage+18,tick:Math.max(.27,power.tick*.78),
-    slow:power.slow+1.15};
+export function daisugiAttackDamage(base,upgrades){
+  return base*(upgrades.has('deepcurrent')?1.55:1);
 }
-export function daisugiBloom(power,upgrades){
-  if(!upgrades.has('tidalecho'))return power;
-  return {...power,radius:power.radius+1.25,damage:power.damage+10,
-    echoBursts:2,echoDamage:Math.round(power.damage*.43),
-    echoRadius:2.6};
+export function daisugiChainPlan(upgrades){
+  return {hops:upgrades.has('chainstorm')?6:3,
+    radius:upgrades.has('chainstorm')?5.8:4.4,
+    damageFactor:upgrades.has('chainstorm')?.77:.67,
+    slow:upgrades.has('chainstorm')?2.5:1.7};
 }
-export function daisugiGuardHp(upgrades){
-  return upgrades.has('guardianpulse')?90:
-    upgrades.has('shield')?70:49;
+export function daisugiBounceCount(upgrades){
+  return upgrades.has('skippingstorm')?4:2; // extra contacts AFTER primary
+}
+export function nextDaisugiHop(enemies,from,visited,radius){
+  const inRange=enemies.filter(e=>e.alive&&!visited.has(e)&&
+    Math.hypot(e.x-from.x,e.z-from.z)<=radius);
+  inRange.sort((a,b)=>Math.hypot(a.x-from.x,a.z-from.z)-
+    Math.hypot(b.x-from.x,b.z-from.z));
+  return inRange[0]||null;
+}
+export function daisugiWaveTargets(enemies,player,target,upgrades){
+  const dx=target.x-player.x,dz=target.z-player.z;
+  const mag=Math.max(.0001,Math.hypot(dx,dz)),nx=dx/mag,nz=dz/mag;
+  const far=upgrades.has('widewave')?10.5:8.2;
+  const width=upgrades.has('widewave')?4.9:3.25;
+  return enemies.filter(e=>{
+    if(!e.alive)return false;
+    const px=e.x-player.x,pz=e.z-player.z;
+    const forward=px*nx+pz*nz,lateral=Math.abs(px*nz-pz*nx);
+    return forward>=0&&forward<=far&&
+      lateral<=width*(.50+.50*forward/far)+.35;
+  });
+}
+// Optional bonus waves come only from explicit later boosts.
+export function autoSpellChoice({enemies,player,upgrades,cooldowns,shield=0,hp=100,maxHp=100}){
+  const nearby=r=>enemies.filter(e=>e.alive&&
+    Math.hypot(e.x-player.x,e.z-player.z)<r);
+  if(upgrades.has('tideguard')&&cooldowns[2]<=0&&
+    (hp<maxHp*.6||(nearby(5.4).length>=3&&shield<18)))return 2;
+  if(upgrades.has('watergarden')&&cooldowns[0]<=0&&nearby(15).length>=2)return 0;
+  if(upgrades.has('tidalflower')&&cooldowns[1]<=0&&nearby(16).length>=2)return 1;
+  return -1;
 }
 export function clusteredTarget(enemies,player,range,radius=4.6){
   const available=enemies.filter(e=>e.alive&&
@@ -77,14 +148,7 @@ export function clusteredTarget(enemies,player,range,radius=4.6){
   }
   return best;
 }
-export function autoSpellChoice({enemies,player,upgrades,cooldowns,shield=0,hp=100,maxHp=100}){
-  const nearby=(distance)=>enemies.filter(e=>e.alive&&
-    Math.hypot(e.x-player.x,e.z-player.z)<distance);
-  const close=nearby(6.3);
-  if(cooldowns[2]<=0 && (hp<maxHp*.70 ||
-      (close.length>=3&&shield<16)))return 2;
-  if(cooldowns[0]<=0&&nearby(17).length>=2)return 0;
-  if(cooldowns[1]<=0&&nearby(16).length>0)return 1;
-  if(cooldowns[0]<=0&&nearby(14).length>0)return 0;
-  return -1;
-}
+// Compatibility utilities for optional unlocked legacy spells.
+export function daisugiPool(power,upgrades){return power;}
+export function daisugiBloom(power,upgrades){return power;}
+export function daisugiGuardHp(upgrades){return upgrades.has('tideguard')?57:42;}

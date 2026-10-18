@@ -28,12 +28,13 @@ test('old water effects restored optionally, never control gameplay',()=>{
 });
 test('mobile HUD exposes scores, nature feedback and end-of-round total',()=>{
   const html=read('../index.html'),css=read('../styles.css');
-  for(const id of ['scoreText','comboText','resultScore','resultCombo','floaters'])
+  for(const id of ['scoreText','comboText','bestText','resultScore','resultBest','resultCombo','floaters'])
     assert.ok(html.includes('id="'+id+'"'),id);
   assert.ok(css.includes('@keyframes wildpathScoreRise'));
   assert.ok(html.includes('3.0.1-visual-restoration'));
   const game=read('../src/game.js');
   for(const category of ['enemy.type','seed','event.tier','event.kind','wave'])
     assert.ok(game.includes(category),category);
+  assert.ok(game.includes("localStorage.setItem('wildpath3.best.score'"));
   assert.ok(!html.includes('data-slot='));
 });

@@ -66,3 +66,58 @@ test('legacy defaults and Daisugi-only feature flag preserve player movement',()
   assert.ok(main.includes('const DAISUGI_CAMERA_WORLD_WIDTH=24.5'));
   assert.ok(main.includes("const dz=OPEN_WORLD?z*game.spec.speed*dt:"));
 });
+
+test('actual open-world floor stays visible in original, flat and hex Daisugi',async()=>{
+  const previous=globalThis.window;
+  class Color3{
+    constructor(r,g,b){this.r=r;this.g=g;this.b=b}
+    scale(n){return new Color3(this.r*n,this.g*n,this.b*n)}
+    static FromHexString(s){return new Color3(
+      parseInt(s.slice(1,3),16)/255,
+      parseInt(s.slice(3,5),16)/255,
+      parseInt(s.slice(5,7),16)/255)}
+    static Lerp(a,b,t){return new Color3(
+      a.r+(b.r-a.r)*t,a.g+(b.g-a.g)*t,a.b+(b.b-a.b)*t)}
+  }
+  const make=(name)=>({
+    name,position:{y:0,set(){}},scaling:{set(){}},rotation:{z:0},
+    isVisible:true,createInstance(name){return make(name)},
+    getVerticesData(){return this.positions},
+    setVerticesData(kind,values){this.colors=values}
+  });
+  const B={
+    Color3,StandardMaterial:class{constructor(name){this.name=name}},
+    VertexBuffer:{PositionKind:1,ColorKind:2},
+    MeshBuilder:{
+      CreateGround(name,{width,height,subdivisions:n}){
+        const mesh=make(name),p=[];
+        for(let z=0;z<=n;z++)for(let x=0;x<=n;x++)
+          p.push((x/n-.5)*width,0,(z/n-.5)*height);
+        mesh.positions=p;return mesh;
+      },
+      CreateSphere:make,CreateCylinder:make
+    }
+  };
+  try{
+    globalThis.window={BABYLON:B};
+    // Deliberately import the REAL world module after setting its Babylon mock.
+    // This guards against returning a hidden mesh, not just against bad text.
+    const {createOpenWorld}=await import('../src/world-open.js?hex-ground-smoke=1');
+    const flat=createOpenWorld({},{staticVegetation:false,hexGrass:false});
+    const hex=createOpenWorld({},{staticVegetation:false,hexGrass:true});
+    assert.equal(flat.ground.isVisible,true);
+    assert.equal(hex.ground.isVisible,true);
+    assert.equal(flat.ground.name,'continuous woodland floor');
+    assert.equal(hex.ground.name,'continuous woodland floor');
+    assert.equal(flat.ground.positions.length/3,21*21);
+    assert.equal(hex.ground.positions.length/3,161*161);
+    assert.equal(hex.ground.material.name,flat.ground.material.name);
+    const greens=[];
+    for(let i=1;i<hex.ground.colors.length;i+=4)greens.push(hex.ground.colors[i]);
+    assert.ok(Math.min(...greens)>.15);
+    assert.ok(Math.max(...greens)-Math.min(...greens)>.20);
+  }finally{
+    if(previous===undefined)delete globalThis.window;
+    else globalThis.window=previous;
+  }
+});

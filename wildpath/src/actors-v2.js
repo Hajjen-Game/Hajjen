@@ -5,10 +5,10 @@ const v=(x,y,z)=>new B.Vector3(x,y,z);
 function colorMat(scene,name,color,glow=.08,alpha=1){
   const m=new B.StandardMaterial(name,scene),c=B.Color3.FromHexString(color);
   // Glossy candy-shell highlight, with no expensive per-actor postprocess.
-  m.diffuseColor=c;m.ambientColor=c.scale(.27);
-  m.specularColor=new B.Color3(.55,.64,.60);
-  m.specularPower=74;
-  m.emissiveColor=c.scale(glow);m.alpha=alpha;
+  m.diffuseColor=c;m.ambientColor=c.scale(.23);
+  m.specularColor=new B.Color3(.24,.28,.29);
+  m.specularPower=85;
+  m.emissiveColor=c.scale(glow*.58);m.alpha=alpha;
   if(alpha<1)m.backFaceCulling=false;
   return m;
 }
@@ -24,11 +24,11 @@ export function createActor(scene,type,enemy=false){
     ember:['#ff9450','#ffe088','#b9473b'],
     guardian:['#a17adf','#d7b5ff','#62488b']
   }[type]||['#77cd8f','#d3f6a2','#486d53']):caster?
-    ['#19c9e5','#d8ffff','#056c91']:['#f6a457','#ffe5a0','#82533f'];
+    ['#00bddf','#61daef','#056c91']:['#ed9141','#ffd079','#82533f'];
   const root=new B.TransformNode('hero capsule root',scene),members=[],mats=[];
   function material(n,h,g=.1,a=1){const m=colorMat(scene,n,h,g,a);mats.push(m);return m;}
-  const bodyMat=material(type+' satin capsule',palette[0],caster?.27:.16);
-  const faceMat=material(type+' bright front',palette[1],caster?.32:.21);
+  const bodyMat=material(type+' satin capsule',palette[0],caster?.16:.11);
+  const faceMat=material(type+' bright front',palette[1],caster?.15:.12);
   const trimMat=material(type+' details',palette[2],.10);
   const shadowMat=material('soft contact shadow','#263d36',.04,.42);
   const metalMat=material('rounded steel sword','#d3e9e1',.38);
@@ -53,8 +53,8 @@ export function createActor(scene,type,enemy=false){
     const glint=B.MeshBuilder.CreateSphere('hero polished crown highlight',
       {diameter:1,segments:10},scene);
     add(glint,'hero top pearl glint',-.15,h+.13,.11,
-      material('hero pearl sheen',caster?'#ebffff':'#fff1c9',.35));
-    glint.scaling=v(.21,.07,.16);glint.isPickable=false;
+      material('hero pearl sheen',caster?'#84e9ef':'#f7ce75',.12));
+    glint.scaling=v(.17,.05,.13);glint.isPickable=false;
   }
   for(const sign of [-1,1]){
     const eye=B.MeshBuilder.CreateSphere('small eye',{diameter:1,segments:10},scene);

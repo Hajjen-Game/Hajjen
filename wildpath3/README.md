@@ -91,3 +91,17 @@ This is an iterative mobile-friendly approximation of the agreed color-rich fant
 - Walk toward the edge; the arena is larger, the stones fence/forest visually indicate bounds, and there are no loose wooden bars in the middle.
 - Let Water Dart fire into tight enemy groups; nearby enemies should take splash damage.
 - Pick `Wild Splash`, `Wild Torrent` or `Deluge` at intermissions; attack coverage should change noticeably.
+
+## Pass 1.3 — Garden Clarity (2026-10-18)
+
+User screenshot after 1.2 showed disconnected timber pieces, green terrain without readable detail, and very few visible plants despite 29 bloom events and 2 fusions.
+
+**Concrete causes found and fixed in 3.0 only:**
+
+- **Circular fence tangent math incorrect.** The long axis of Babylon fence boxes was rotated by `angle+PI/2` rather than `-angle-PI/2`. All 16 rail segments now align with the adjacent post chord; every fence piece belongs at a garden perimeter instead of looking like an abandoned plank.
+- **Legacy fusion decals / contact shadows were below new ground.** 2.x positions `y=-.105/- .110` are underneath the 3.0 floor at `y=-.085`. The adapter raises fusion ground to `-.062` and plant shadows to `-.066`, avoiding them disappearing into the terrain.
+- **Nature visually too small for portrait gameplay.** 3.0 mobile adapter enlarges flower/bush/tree/blossom presentation, retains minimum leaf visibility and gives fused regions a persistent identifiable ground halo. The underlying 2.x nature anatomy and fusion ancestry are unchanged.
+- **Ground was visually flat.** Introduced broad vertex-color grass/sand patches, purposeful edge flowerbeds and less intensely gold rock colors, while keeping the center clear of collider props.
+- Added `tests/visual-clarity.test.js` that guards fence alignment, growth/fusion visibility and original renderer reuse.
+
+This pass improves the actual mobile game visuals; it does not claim to achieve full reference-image art quality. Polished materials, scene textures and more authored level composition remain future iterations.

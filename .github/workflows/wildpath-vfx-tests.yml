@@ -43,15 +43,5 @@ jobs:
             /tmp/wildpath/power-bloom-pack.png
             /tmp/wildpath/nature-variety-gallery.png
             /tmp/wildpath/nature-fusion-garden.png
-            /tmp/wildpath/living-water-pond.png
-            /tmp/wildpath/living-water-gallery.png
-            /tmp/wildpath/willowglow-game-preview.png
-            /tmp/wildpath/willowglow-readability-s.png
-            /tmp/wildpath/willowglow-readability-m.png
-            /tmp/wildpath/willowglow-readability-l.png
-            /tmp/wildpath/willowglow-lowpoly-mixed.png
-            /tmp/wildpath/willowglow-lowpoly-aqua.png
-            /tmp/wildpath/willowglow-lowpoly-amber.png
-            /tmp/wildpath/willowglow-lowpoly-rose.png
-            /tmp/wildpath/willowglow-original-ab.png
+            /tmp/wildpath/clean-world-no-ponds.png
           if-no-files-found: ignore

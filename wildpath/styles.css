@@ -531,3 +531,10 @@ body.daisugi-rework #bottomHud .ability.special.is-ready{
     0 0 6px #0ccfaa4c;
 }
 body.daisugi-rework .menu-panel .key-help{color:#8bf2c3}
+
+/* DAISUGI 1.1 no attack buttons — joystick and score HUD are untouched. */
+body.daisugi-rework #bottomHud{display:none!important}
+body.daisugi-rework #bottomHud .ability,
+body.daisugi-rework #bottomHud .ability.special{display:none!important}
+body.daisugi-rework #goal{max-width:76vw;text-align:center;white-space:normal;
+  line-height:1.25}

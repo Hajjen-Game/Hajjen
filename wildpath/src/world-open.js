@@ -25,6 +25,9 @@ function instance(source,name,x,y,z,sx,sy,sz){
 export function createOpenWorld(scene){
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
   const turf=material(scene,'enchanted deep moss','#ffffff',.10);
+  // Keep the FLOOR matte: glossy highlights belong to characters and foliage,
+  // not to puddle-like specular patches on the removed wet terrain.
+  turf.specularColor=new B.Color3(.025,.038,.032);
   // Single vertex-painted ground: green center, deeper teal perimeter, gentle
   // tonal modulation. No translucent discs, puddles, textures or extra draw calls.
   const ground=B.MeshBuilder.CreateGround('continuous woodland floor',

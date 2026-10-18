@@ -28,6 +28,9 @@ export class Wildpath3Game {
     this.vfx=new WaterVFX(this.canvas,this.scene,this.engine);
     void this.vfx.init();
     this.score=createScoreLedger();
+    try{
+      this.bestScore=Math.max(0,Number(localStorage.getItem('wildpath3.best.score')||0))||0;
+    }catch{this.bestScore=0;}
     this.projectileMaterial=candyMaterial(this.scene,'turquoise auto bolt','#1bd5ed',
       {shine:.32,emission:.18});
     this.pulseMaterial=candyMaterial(this.scene,'strong cyan water pulse','#19d2b5',
@@ -358,7 +361,12 @@ export class Wildpath3Game {
     $('finishSubtitle').textContent=won
       ?'Your entire round’s nature will form one unique Daisugi tree in the next development pass.'
       :'Try new movement routes to create stronger fusion chains.';
+    if(this.score.total>this.bestScore){
+      this.bestScore=this.score.total;
+      try{localStorage.setItem('wildpath3.best.score',String(this.bestScore));}catch{}
+    }
     $('resultScore').textContent=formatScore(this.score.total);
+    $('resultBest').textContent='PERSONAL BEST '+formatScore(this.bestScore);
     $('resultCombo').textContent='BEST COMBO '+this.score.bestCombo+' · NATURE POINTS '+
       formatScore(this.score.breakdown.nature);
     $('finishStats').replaceChildren();
@@ -391,6 +399,7 @@ export class Wildpath3Game {
     $('fusionText').textContent=snap.regions+' FUSIONS';
     $('seedText').textContent=this.seedCount;
     $('scoreText').textContent=formatScore(this.score.total);
+    $('bestText').textContent='BEST '+formatScore(this.bestScore);
     const combo=currentCombo(this.score,this.time);
     $('comboText').textContent=combo>1?'COMBO '+combo:'AUTO BATTLE';
     $('enemyText').textContent=count+' ENEMIES';

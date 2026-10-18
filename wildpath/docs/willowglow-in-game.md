@@ -1,11 +1,19 @@
-# Willowglow 11.0 — Preview inside playable Wildpath
+# Wildpath — Tree Readability 1.0
 
-**Test link:** https://hajjen-game.github.io/Hajjen/wildpath/?willowglow=1&rev=tree-preview1
+**Live test:** https://hajjen-game.github.io/Hajjen/wildpath/?willowglow=1&rev=tree-readability1
 
-Tap **BEGIN JOURNEY**. A single Willowglow is positioned just ahead and to the right of the hero at world x=5.25/z=5.8 (scale 0.66). View it while walking and fighting with the **real unchanged orthographic Wildpath camera**, HUD and other forest scenery.
+Tap **BEGIN JOURNEY** and compare S, M, L using the floating tree-size controls. One Willowglow 11.0 stands right of the starting player in the real playable open world (x=5.25, z=5.8). No change to camera, combat or the normal production scenery.
 
-The regular `/wildpath/` is unaffected: Willowglow is strictly opt-in through `?willowglow=1`, and does not activate in the classic road mode. No permanent nature-fusion/growth modification or camera switch. Only one static tree is added, with three materials/leaf batches and a cheap painted ground contact shadow; no extra real-time ShadowGenerator or collisions. The model is directly imported from the existing Tree Study 11.0 file rather than copied. No paid assets.
+## Sizes, relative to the previous in-game preview
+- **S:** 1.056 world scale, 1.6× the old tree (.66)
+- **M:** 1.320 world scale, 2.0× old (default)
+- **L:** 1.584 world scale, 2.4× old
 
-**Comparison:** https://hajjen-game.github.io/Hajjen/wildpath/tree-study/?rev=21
+Only **one** 3D mesh hierarchy (3,973 leaves) is constructed and rendered; pressing S/M/L rescales its root and the painted contact shadow. It does not build three expensive trees on older Samsung Galaxy A51 hardware. A few UI buttons show the active choice and its relative size even without debug mode.
 
-Unit tests verify opt-in, scale/placement, disabled collisions and unchanged camera; browser smoke verifies the 3D tree loads in a real mobile portrait session, starts gameplay, and saves an in-game screenshot artifact. Real mobile performance should be reviewed before converting hundreds of production trees.
+**Readability:** In-game-only color/material contrast between V11's existing three foliage layers: darker forest interior, richer middle tier and lighter exposed leaves; no change to any original V11 geometry or Tree Study files.
+
+The regular Wildpath URL is unchanged. `?world=classic` ignores preview. The tree stays decorative and non-collidable. Main camera remains orthographic top-down. No change to damage, enemies, abilities, nature fusion or other gameplay systems.
+
+## QA
+Node unit tests check exact S/M/L dimensions, opt-in flag and no production camera changes. GitHub Actions smoke starts a real portrait Chromium game session and clicks all three size buttons, verifies that the mesh count does not increase, checks the current size and creates three screenshot artifacts. Test game performance on the user's actual phone before replacing the rest of the foliage.

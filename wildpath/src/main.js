@@ -18,7 +18,7 @@ import {NatureGrowth} from './nature-growth.js?v=2.6.1';
 import {LivingWater} from './living-water.js?v=2.7.3';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
-import {isWillowglowPreviewRequested,mountWillowglowPreview} from './willowglow-preview.js?v=1.0.0';
+import {isWillowglowPreviewRequested,mountWillowglowPreview,WILLOWGLOW_SIZES} from './willowglow-preview.js?v=1.1.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const WILLOWGLOW_PREVIEW=isWillowglowPreviewRequested(location.search,OPEN_WORLD);
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
@@ -70,6 +70,25 @@ const world=OPEN_WORLD?createOpenWorld(scene):createWorld(scene);
 // The production camera, movement and existing nature placements do not change.
 const willowglow= WILLOWGLOW_PREVIEW ? mountWillowglowPreview(B,scene) : null;
 $('willowglowPreviewNote').hidden=!WILLOWGLOW_PREVIEW;
+const treeReadabilityPanel=$('treeReadabilityPanel');
+treeReadabilityPanel.hidden=!WILLOWGLOW_PREVIEW;
+function chooseWillowglowSize(size){
+  if(!willowglow?.setSize(size))return false;
+  for(const button of treeReadabilityPanel.querySelectorAll('[data-tree-size]')){
+    const selected=button.dataset.treeSize===size;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  }
+  $('treeReadabilityScale').textContent=
+    'Willowglow '+size+' · '+(WILLOWGLOW_SIZES[size]/.66).toFixed(1)+'× tidigare storlek';
+  return true;
+}
+if(willowglow){
+  treeReadabilityPanel.querySelectorAll('[data-tree-size]').forEach(button=>{
+    button.addEventListener('click',()=>chooseWillowglowSize(button.dataset.treeSize));
+  });
+  chooseWillowglowSize('M');
+}
 const director=OPEN_WORLD?new OpenDirector():new Director();
 if(OPEN_WORLD){
   scene.clearColor=B.Color4.FromHexString('#253c33ff');
@@ -133,7 +152,7 @@ if(new URLSearchParams(location.search).has('debug')){
       pixiReady:pixi.ready,pixiFailed:pixi.failed,
       nature:nature?.snapshot()??null,water:water?.snapshot()??null,
       willowglow:willowglow?{version:willowglow.version,position:willowglow.position,
-        scale:willowglow.scale,meshes:willowglow.meshes,leaves:willowglow.stats.leaves}:null
+        scale:willowglow.scale,size:willowglow.size,meshes:willowglow.meshes,leaves:willowglow.stats.leaves}:null
     }),
     // Debug-only illustration/test: ten local simulated kills create one tree.
     // No score, combat, health, loot or permanent progression is changed.

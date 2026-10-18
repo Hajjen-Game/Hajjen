@@ -157,11 +157,25 @@ try{
   assert.equal(willowglow.version,'11.0');
   assert.ok(willowglow.meshes>=10,'Real 3D tree meshes expected, not placeholder blobs');
   assert.ok(willowglow.leaves>3000);
-  assert.ok(willowglow.scale>=.5&&willowglow.scale<.8);
+  assert.equal(willowglow.scale,1.32);
+  assert.equal(willowglow.size,'M');
   assert.equal(await page.$eval('#willowglowPreviewNote',el=>el.hidden),false);
   await page.click('#playButton');
   await page.waitForFunction(()=>window.__wildpathDebug.read().state==='play',{timeout:15000});
   await new Promise(r=>setTimeout(r,1200));
+  // Actual touch-capable comparison without cloning canopy meshes or reloads.
+  const sizes=[['S',1.056],['M',1.32],['L',1.584]];
+  for(const [size,scale] of sizes){
+    await page.click('[data-tree-size="'+size+'"]');
+    const selected=await page.evaluate(()=>window.__wildpathDebug.read().willowglow);
+    assert.equal(selected.size,size);
+    assert.equal(selected.scale,scale);
+    assert.equal(selected.meshes,willowglow.meshes,'Size switch must not create copies');
+    assert.equal(await page.$eval('[data-tree-size="'+size+'"]',el=>el.getAttribute('aria-pressed')),'true');
+    await page.screenshot({path:'/tmp/wildpath/willowglow-readability-'+size.toLowerCase()+'.png'});
+    console.log('PASS TREE READABILITY SIZE',size,JSON.stringify(selected));
+  }
+  await page.click('[data-tree-size="M"]');
   await page.screenshot({path:'/tmp/wildpath/willowglow-game-preview.png'});
   const live=await page.evaluate(()=>window.__wildpathDebug.read());
   assert.ok(live.willowglow?.meshes>=10,'Tree remains in the world while playing');

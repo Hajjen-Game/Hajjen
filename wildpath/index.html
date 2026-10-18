@@ -6,12 +6,21 @@
   <meta name="theme-color" content="#d3e9c4" />
   <meta name="description" content="Wildpath — a cozy-looking, fast-paced fantasy survival adventure." />
   <title>Wildpath 2.7.3 · Water Magic & Living Water</title>
-  <link rel="stylesheet" href="./styles.css?v=2.7.1" />
+  <link rel="stylesheet" href="./styles.css?v=2.7.1-tree-readability1" />
 </head>
 <body>
   <main id="app">
     <canvas id="game" tabindex="0" aria-label="Wildpath 3D game"></canvas>
     <div id="vignette"></div>
+    <aside id="treeReadabilityPanel" class="tree-readability-panel" aria-label="Willowglow Tree Readability 1.0" hidden>
+      <span class="tree-readability-title">🌳 TREE SIZE TEST</span>
+      <div class="tree-readability-buttons" role="group" aria-label="Välj trädstorlek">
+        <button type="button" data-tree-size="S" aria-pressed="false">S</button>
+        <button type="button" data-tree-size="M" aria-pressed="true">M</button>
+        <button type="button" data-tree-size="L" aria-pressed="false">L</button>
+      </div>
+      <span id="treeReadabilityScale" class="tree-readability-note" aria-live="polite">Willowglow M</span>
+    </aside>
     <div id="damageTint" aria-hidden="true"></div>
     <div id="floaters" aria-hidden="true"></div>
     <div id="hud" hidden>
@@ -53,7 +62,7 @@
           <button class="class-card" data-class="melee"><div class="class-symbol steel">⚔</div><strong>Stoneblade</strong><small>Melee · Steel & shockwaves</small><span>Get close, carve through the crowd.</span></button>
         </div>
         <button id="playButton" class="primary">BEGIN JOURNEY <span>➜</span></button>
-        <p id="willowglowPreviewNote" class="key-help" hidden>🌳 WILLOWGLOW 11.0 · LIVE TREE PREVIEW · Testa trädet till höger om startplatsen.</p>
+        <p id="willowglowPreviewNote" class="key-help" hidden>🌳 TREE READABILITY 1.0 · Jämför S / M / L direkt i spelet. Trädet står till höger om startplatsen.</p>
         <p class="key-help">WASD / Joystick · Auto targeting · 1 / 2 / 3 abilities · Move while casting</p>
         <a class="classic-link" href="?world=classic">Compare with the original trail version ↗</a>
       </section>
@@ -69,6 +78,6 @@
     <div id="loadError" class="screen" hidden><section class="dialog"><h2>Couldn't load the 3D engine.</h2><p>Wildpath needs an internet connection the first time it loads Babylon.js. Reload when online.</p></section></div>
   </main>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script type="module" src="./src/main.js?v=2.7.3-willowglow-preview1"></script>
+  <script type="module" src="./src/main.js?v=2.7.3-tree-readability1"></script>
 </body>
 </html>

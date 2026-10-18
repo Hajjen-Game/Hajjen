@@ -46,4 +46,7 @@ jobs:
             /tmp/wildpath/living-water-pond.png
             /tmp/wildpath/living-water-gallery.png
             /tmp/wildpath/willowglow-game-preview.png
+            /tmp/wildpath/willowglow-readability-s.png
+            /tmp/wildpath/willowglow-readability-m.png
+            /tmp/wildpath/willowglow-readability-l.png
           if-no-files-found: ignore

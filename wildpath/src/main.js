@@ -17,9 +17,11 @@ import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=3.1.0';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
-import {DAISUGI_BOOSTS,daisugiVolleyCount,daisugiVolleyTargets,daisugiSplash,
-  daisugiAttackInterval,daisugiPool,daisugiBloom,daisugiGuardHp,
-  clusteredTarget,autoSpellChoice} from './daisugi-rework.js?v=1.0.0';
+import {DAISUGI_BOOSTS,daisugiCoreMode,chooseDaisugiBoosts,daisugiVolleyCount,
+  daisugiVolleyTargets,daisugiSplash,daisugiAttackInterval,daisugiAttackDamage,
+  daisugiChainPlan,daisugiBounceCount,nextDaisugiHop,daisugiWaveTargets,
+  daisugiPool,daisugiBloom,daisugiGuardHp,clusteredTarget,autoSpellChoice}
+  from './daisugi-rework.js?v=1.1.0';
 const params=new URLSearchParams(location.search);
 const OPEN_WORLD=params.get('world')!=='classic';
 // The working 2.x arena, camera, speed, AI and nature stay unchanged.
@@ -43,11 +45,10 @@ if(DAISUGI_MODE){
   document.querySelector('.title-wrap p').textContent=
     'One-thumb movement. Automatic water magic. Grow powerful nature.';
   document.querySelector('.menu-panel .key-help').textContent=
-    'WASD / Joystick · Automatic Water Dart, Rainfall, Tidal Bloom & Tide Guard';
-  document.querySelectorAll('#bottomHud .ability.special .ability-key')
-    .forEach(key=>{key.textContent='AUTO';});
-  document.querySelectorAll('#bottomHud .ability.special')
-    .forEach(button=>{button.disabled=true;button.setAttribute('aria-disabled','true');});
+    'Joystick / WASD only · First wave: one Water Dart · Evolve after every surge';
+  // No attack buttons, passive buttons or empty placeholders in Daisugi mode.
+  // Special spells only unlock as later upgrades, never from the start.
+  document.querySelector('#bottomHud').hidden=true;
 }
 $('energyPanel').hidden=!OPEN_WORLD;
 const canvas = $('game');
@@ -106,6 +107,7 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
   if(upgraded){
     const names={bush:'✿ BUSH',tree:'🌳 TREE',blossom:'🌸 BLOOM!'};
     floatingText({x:event.x,y:2.8,z:event.z},names[event.tier]||'✿ BLOOM','nature');
+    if(DAISUGI_MODE)spellFX.sound('Nature Bloom',event.tier);
   }
 },onFusion:event=>{
   pixi.stage('Nature Fusion','burst',{x:event.x,z:event.z,y:.22,
@@ -114,6 +116,7 @@ const nature=OPEN_WORLD?new NatureGrowth(scene,{onBloom:(event,upgraded)=>{
   const labels={meadow:'✿ MEADOW',thicket:'❀ FLOWERS',
     grove:'🌳 GROVE',enchanted:'✧ MAGIC GROVE'};
   floatingText({x:event.x,y:2.15,z:event.z},labels[event.kind],'nature');
+  if(DAISUGI_MODE)spellFX.sound('Nature Fusion',event.kind);
 }}):null;
 function spellStage(name,stage,point,intensity=1,cue='launch'){
   if(!point)return;
@@ -338,6 +341,7 @@ function startGame(){
   game.x=OPEN_WORLD?0:pathX(2);game.z=OPEN_WORLD?0:2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
   game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;game.displayedScore=0;game.shake=0;
   game.autoSpellGap=DAISUGI_MODE?.82:0;
+  game.waveClears=0;
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
@@ -362,7 +366,7 @@ function startGame(){
   // The hero starts on camera; no off-screen travel is ever required.
   camera.position.set(OPEN_WORLD?game.x:0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
   camera.setTarget(V(OPEN_WORLD?game.x:0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
-  toast(DAISUGI_MODE?'Automatic magic awakened · position enemies to grow your Daisugi!':
+  toast(DAISUGI_MODE?'WAVE 1 · Water Dart only. The first surge transforms your attack!':
     OPEN_WORLD?'Collect the glints of magic to awaken your powers!':
     'Wild creatures approach! Your basic attack fires automatically.');
   canvas.focus();
@@ -856,7 +860,7 @@ function updatePlayer(dt){
       const slot=autoSpellChoice({enemies:game.enemies,player:game,
         upgrades:game.upgrades,cooldowns:game.cooldowns,
         shield:game.shield,hp:game.hp,maxHp:game.maxHp});
-      if(slot>=0){cast(slot);game.autoSpellGap=.30;}
+      if(slot>=0){cast(slot);game.autoSpellGap=.40;}
     }
   }
   game.recentHit=Math.max(0,game.recentHit-dt);
@@ -1004,8 +1008,7 @@ function updateEffects(dt){
 function pickBoosts(){
   const pool=BOOSTS.filter(b=>b.classes.includes(game.classId)&&!game.upgrades.has(b.id)&&(!b.onlyOpen||OPEN_WORLD));
   if(DAISUGI_MODE&&game.classId==='caster')
-    return choosePowerBoosts([...pool,...DAISUGI_BOOSTS],
-      game.upgrades,director.stage);
+    return chooseDaisugiBoosts(game.upgrades,director.stage);
   if(OPEN_WORLD&&game.classId==='caster')
     return choosePowerBoosts(pool,game.upgrades,director.stage);
   const picks=[];
@@ -1028,12 +1031,18 @@ function completeStage(){
     if(OPEN_WORLD&&item.category==='damage')btn.classList.add('boost-offensive');
     const icon=document.createElement('span');icon.className='boost-icon';icon.textContent=item.icon;
     const title=document.createElement('strong');title.textContent=
+      DAISUGI_MODE?item.name:
       OPEN_WORLD?waterBoostName(item.id,item.name):item.name;
     const desc=document.createElement('span');desc.textContent=
+      DAISUGI_MODE?item.desc:
       OPEN_WORLD?waterBoostDescription(item.id,item.desc):item.desc;
     btn.append(icon,title,desc);
     btn.addEventListener('click',()=>{
       game.upgrades.add(item.id);
+      if(DAISUGI_MODE){
+        game.waveClears++;
+        spellFX.sound('Daisugi Upgrade','select');
+      }
       if(OPEN_WORLD){
         game.energy=0;game.surgeCelebrated=false;
         $('energyPanel').classList.remove('energy-ready','energy-gained');
@@ -1048,15 +1057,19 @@ function completeStage(){
       game.x=settled.x;game.z=settled.z;game.advanceClock=0;
       game.target=null;
       game.gateQueued=false;game.state='play';
-      hideScreens();toast((OPEN_WORLD?waterBoostName(item.id,item.name):item.name)+' · New blessing!');
+      hideScreens();toast((DAISUGI_MODE?item.name:
+        OPEN_WORLD?waterBoostName(item.id,item.name):item.name)+' · Attack evolved!');
       canvas.focus();
     });
     wrap.append(btn);
   }
   $('surgeBanner').classList.remove('shown');
   if(OPEN_WORLD){
-    label('boostHeading','POWER SURGE!');
-    label('boostSubtitle','Your magic has awakened. Choose how it evolves.');
+    label('boostHeading',DAISUGI_MODE?'EVOLVE YOUR WATER ATTACK!':'POWER SURGE!');
+    label('boostSubtitle',DAISUGI_MODE?
+      (director.stage===0?'Choose your FIRST transformation — your single shot becomes something new.':
+        'Choose a stronger attack pattern, water effect or defensive upgrade.'):
+      'Your magic has awakened. Choose how it evolves.');
   }
   showScreen('boostScreen');
 }
@@ -1086,9 +1099,15 @@ function updateHud(){
   $('healthFill').style.width=(game.hp/game.maxHp*100)+'%';
   label('comboText',game.combo>1?'COMBO '+game.combo:'x1.0');
   label('bestText','BEST '+fmt(getBest()));
-  label('goal',OPEN_WORLD?
+  label('goal',DAISUGI_MODE?
+    (director.ready?'EVOLVE YOUR ATTACK · CHOOSE A WATER BOOST':
+     (game.upgrades.size?'WATER MAGIC · '+daisugiCoreMode(game.upgrades).toUpperCase():
+       'WAVE 1 · SINGLE WATER DART')):
+    OPEN_WORLD?
     (director.ready?'MAGIC AWAKENED · Choose a blessing':'COLLECT MAGIC · GROW STRONGER'):
     (director.ready?'GLADE CLEAR · Choose a blessing':'SURVIVE THE WILDS · '+STAGE_NAMES[director.stage]));
+  // In Daisugi mode there are NO spell buttons or cooldown tiles.
+  if(DAISUGI_MODE)return;
   // No target card is needed: the closest threat is chosen automatically.
   for(let i=0;i<3;i++){
     const cd=$('cooldown'+i),time=game.cooldowns[i],button=abilityButtons[i];

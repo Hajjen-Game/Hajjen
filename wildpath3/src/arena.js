@@ -1,7 +1,7 @@
 // Wildpath 3.0 / Visual Restoration 1.1: full-bleed hand-painted arena.
 // No raised green circle, glowing ring or empty navy void. The compact combat
 // radius remains authoritative in rules.js; scenery is decoration only.
-import {ARENA_RADIUS,CAMERA_WIDTH} from './rules.js';
+import {ARENA_RADIUS,CAMERA_WIDTH} from './rules.js?v=3.0.2';
 const B=window.BABYLON;
 const V=(x,y,z)=>new B.Vector3(x,y,z);
 const rng=seed=>()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);

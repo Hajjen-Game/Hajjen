@@ -17,7 +17,14 @@ import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=3.1.0';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
-const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
+import {DAISUGI_BOOSTS,daisugiVolleyCount,daisugiVolleyTargets,daisugiSplash,
+  daisugiAttackInterval,daisugiPool,daisugiBloom,daisugiGuardHp,
+  clusteredTarget,autoSpellChoice} from './daisugi-rework.js?v=1.0.0';
+const params=new URLSearchParams(location.search);
+const OPEN_WORLD=params.get('world')!=='classic';
+// The working 2.x arena, camera, speed, AI and nature stay unchanged.
+// Daisugi Rework is an isolated experimental spell mode, not the 3.0 port.
+const DAISUGI_MODE=OPEN_WORLD&&params.get('daisugi')==='1';
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
 
 const B = window.BABYLON;
@@ -29,6 +36,19 @@ if (!B) {
 }
 const V = (x,y,z) => new B.Vector3(x,y,z);
 document.body.classList.toggle('wildpath-open',OPEN_WORLD);
+document.body.classList.toggle('daisugi-rework',DAISUGI_MODE);
+if(DAISUGI_MODE){
+  document.querySelector('.title-wrap .overline').textContent=
+    'DAISUGI REWORK · ORIGINAL WILDPATH WORLD';
+  document.querySelector('.title-wrap p').textContent=
+    'One-thumb movement. Automatic water magic. Grow powerful nature.';
+  document.querySelector('.menu-panel .key-help').textContent=
+    'WASD / Joystick · Automatic Water Dart, Rainfall, Tidal Bloom & Tide Guard';
+  document.querySelectorAll('#bottomHud .ability.special .ability-key')
+    .forEach(key=>{key.textContent='AUTO';});
+  document.querySelectorAll('#bottomHud .ability.special')
+    .forEach(button=>{button.disabled=true;button.setAttribute('aria-disabled','true');});
+}
 $('energyPanel').hidden=!OPEN_WORLD;
 const canvas = $('game');
 const engine = new B.Engine(canvas,true,{stencil:false,preserveDrawingBuffer:false},true);
@@ -113,7 +133,8 @@ const game={
 if(new URLSearchParams(location.search).has('debug')){
   window.__wildpathDebug=Object.freeze({
     read:()=>({
-      mode:OPEN_WORLD?'open':'classic',state:game.state,x:game.x,z:game.z,
+      mode:DAISUGI_MODE?'daisugi-auto':OPEN_WORLD?'open':'classic',
+      autoSpells:DAISUGI_MODE,state:game.state,x:game.x,z:game.z,
       health:game.hp,energy:game.energy,stage:director.stage,
       enemies:game.enemies.filter(e=>e.alive).length,pickups:game.pickups.length,
       score:game.score,cameraX:camera.position.x,cameraZ:camera.position.z,
@@ -310,9 +331,13 @@ function clearGame(){
 }
 function startGame(){
   clearGame();director.reset();
-  game.state='play';game.classId=ui.selectedClass;game.spec=CLASS_DATA[game.classId];
+  game.state='play';game.classId=DAISUGI_MODE?'caster':ui.selectedClass;
+  // Keep the EXACT 2.x movement speed; only special spell cooldowns differ.
+  game.spec=DAISUGI_MODE?{...CLASS_DATA.caster,
+    cooldowns:[6.3,5.1,10.7]}:CLASS_DATA[game.classId];
   game.x=OPEN_WORLD?0:pathX(2);game.z=OPEN_WORLD?0:2;game.hp=game.spec.hp;game.maxHp=game.hp;game.shield=0;
   game.time=0;game.attackClock=.25;game.cooldowns=[0,0,0];game.score=0;game.displayedScore=0;game.shake=0;
+  game.autoSpellGap=DAISUGI_MODE?.82:0;
   game.kills=0;game.crits=0;game.combo=0;game.comboLife=0;game.recentHit=0;
   game.invulnerable=0;game.frame=0;game.gateQueued=false;game.recordAnnounced=false;game.advanceClock=0;
   game.target=null;game.upgrades=new Set();game.toastClock=0;
@@ -337,7 +362,9 @@ function startGame(){
   // The hero starts on camera; no off-screen travel is ever required.
   camera.position.set(OPEN_WORLD?game.x:0,CAMERA_HEIGHT,cameraAnchorZ(game.z,CAMERA_BEHIND));
   camera.setTarget(V(OPEN_WORLD?game.x:0,0,camera.position.z+CAMERA_LOOK_DISTANCE));
-  toast(OPEN_WORLD?'Collect the glints of magic to awaken your powers!':'Wild creatures approach! Your basic attack fires automatically.');
+  toast(DAISUGI_MODE?'Automatic magic awakened · position enemies to grow your Daisugi!':
+    OPEN_WORLD?'Collect the glints of magic to awaken your powers!':
+    'Wild creatures approach! Your basic attack fires automatically.');
   canvas.focus();
 }
 // Automatic targeting is recalculated from nearby threats on every attack.
@@ -563,7 +590,9 @@ function projectile(target,damage,color='#99dce6',hostile=false){
   game.projectiles.push({mesh,x,z,y:1.5,damage,target:destination,hostile,life:3.8,speed:hostile?9:17,trail:0});
 }
 function icePool(x,z){
-  const power=casterPool(game.upgrades,OPEN_WORLD),{radius}=power;
+  const original=casterPool(game.upgrades,OPEN_WORLD);
+  const power=DAISUGI_MODE?daisugiPool(original,game.upgrades):original;
+  const {radius}=power;
   const pool=visibleGroundPool(scene,'#7ec7e4',radius);
   const mesh=pool.floor,border=pool.edge;
   if(pixi.ready){mesh.isVisible=false;border.isVisible=false;}
@@ -584,7 +613,9 @@ function cast(slot){
   if(game.state!=='play'||game.cooldowns[slot]>0)return;
   const caster=game.classId==='caster';
   const targeted=(caster&&slot!==2)||(!caster&&slot===1);
-  const target=currentTarget(targeted?17:game.spec.range+.5);
+  const group=DAISUGI_MODE&&caster&&targeted?
+    clusteredTarget(game.enemies,game,17,slot===0?4.3:5.0):null;
+  const target=group||currentTarget(targeted?17:game.spec.range+.5);
   if(targeted&&!target)return;
   game.cooldowns[slot]=game.spec.cooldowns[slot];
   activeSpellFeedback(slot);
@@ -601,7 +632,8 @@ function cast(slot){
       spellStage('Winter Pool','sound',target,1,'impact');
     }
     if(slot===1){
-      const power=casterBloom(game.upgrades,OPEN_WORLD);
+      const original=casterBloom(game.upgrades,OPEN_WORLD);
+      const power=DAISUGI_MODE?daisugiBloom(original,game.upgrades):original;
       const cx=target.x,cz=target.z;
       spellStage('Crystal Bloom','core',target,1.1);
       spellStage('Crystal Bloom','burst',target,power.intensity);
@@ -618,12 +650,24 @@ function cast(slot){
           if(e.alive&&Math.hypot(e.x-px,e.z-pz)<power.splinterRadius)
             hurtEnemy(e,power.splinterDamage,{fxSpell:'Crystal Bloom'});
       }
+      if(DAISUGI_MODE&&power.echoBursts){
+        for(let i=0;i<power.echoBursts;i++){
+          const angle=game.time*1.3+i*Math.PI;
+          const ex=cx+Math.cos(angle)*power.radius*.53;
+          const ez=cz+Math.sin(angle)*power.radius*.53;
+          spellStage('Crystal Bloom','burst',{x:ex,z:ez,y:1.0},1.1);
+          for(const enemy of game.enemies)
+            if(enemy.alive&&Math.hypot(enemy.x-ex,enemy.z-ez)<power.echoRadius)
+              hurtEnemy(enemy,power.echoDamage,{slow:2.4,fxSpell:'Crystal Bloom'});
+        }
+      }
       spellStage('Crystal Bloom','aftermath',target,power.intensity);
       spellStage('Crystal Bloom','sound',target,1,'impact');
     }
     if(slot===2){
       const strong=game.upgrades.has('shield');
-      game.shield=Math.max(game.shield,strong?65:42);
+      game.shield=Math.max(game.shield,DAISUGI_MODE?
+        daisugiGuardHp(game.upgrades):strong?65:42);
       game.invulnerable=.42;
       spellStage('Pale Guard','core',game,1);
       spellStage('Pale Guard','trail',game,1.1);
@@ -633,7 +677,12 @@ function cast(slot){
         dome.position.set(game.x,1.46,game.z);
         game.effects.push({mesh:dome,life:.85,total:.85,scale:1.0,particle:false});
       }
-      if(strong)for(const e of game.enemies)if(e.alive&&distance(e,game)<4.5)e.slow=Math.max(e.slow,2.7);
+      if(DAISUGI_MODE){
+        for(const enemy of game.enemies)
+          if(enemy.alive&&distance(enemy,game)<6.2)
+            enemy.slow=Math.max(enemy.slow,game.upgrades.has('guardianpulse')?5:3.4);
+      }else if(strong)for(const e of game.enemies)
+        if(e.alive&&distance(e,game)<4.5)e.slow=Math.max(e.slow,2.7);
       spellStage('Pale Guard','aftermath',game,1.2);
       spellStage('Pale Guard','damage',game,.85); // Defence feedback, no damage dealt.
       floatingText({x:game.x,y:2.8,z:game.z},'GUARD','heal');
@@ -705,8 +754,11 @@ function basicAttack(){
     spellStage('Glint Dart','charge',game,.75);
     spellStage('Glint Dart','core',game,.8);
     spellStage('Glint Dart','sound',game,1,'launch');
-    const count=casterVolley(game.upgrades,OPEN_WORLD);
-    const volley=chooseVolleyTargets(game.enemies,game,game.spec.range,count,target);
+    const count=DAISUGI_MODE?daisugiVolleyCount(game.upgrades):
+      casterVolley(game.upgrades,OPEN_WORLD);
+    const volley=DAISUGI_MODE?
+      daisugiVolleyTargets(game.enemies,game,game.spec.range,count,target):
+      chooseVolleyTargets(game.enemies,game,game.spec.range,count,target);
     for(let i=0;i<volley.length;i++){
       const shotTarget=volley[i];
       const shot=magicProjectile(scene,i%2?'#c2f4f0':'#99dce6',.54);
@@ -789,12 +841,23 @@ function updatePlayer(dt){
   }else game.selectionRing.isVisible=false;
   game.attackClock-=dt;
   if(game.attackClock<=0){
-    basicAttack();game.attackClock=game.spec.attackSpeed*(game.upgrades.has('tempo')?(OPEN_WORLD?.59:.75):1);
+    basicAttack();game.attackClock=DAISUGI_MODE?
+      daisugiAttackInterval(game.spec.attackSpeed,game.upgrades):
+      game.spec.attackSpeed*(game.upgrades.has('tempo')?(OPEN_WORLD?.59:.75):1);
   }
   for(let i=0;i<3;i++){
     const previous=game.cooldowns[i];
     game.cooldowns[i]=Math.max(0,previous-dt);
     if(justRecharged(previous,game.cooldowns[i]))spellReadyFeedback(i);
+  }
+  if(DAISUGI_MODE&&!director.ready){
+    game.autoSpellGap=Math.max(0,game.autoSpellGap-dt);
+    if(game.autoSpellGap===0){
+      const slot=autoSpellChoice({enemies:game.enemies,player:game,
+        upgrades:game.upgrades,cooldowns:game.cooldowns,
+        shield:game.shield,hp:game.hp,maxHp:game.maxHp});
+      if(slot>=0){cast(slot);game.autoSpellGap=.30;}
+    }
   }
   game.recentHit=Math.max(0,game.recentHit-dt);
   game.invulnerable=Math.max(0,game.invulnerable-dt);
@@ -868,7 +931,8 @@ function updateProjectiles(dt){
         spellStage(spell,'burst',p.target,.80);
         hurtEnemy(p.target,p.damage,{fxSpell:spell});
         if(OPEN_WORLD&&spell==='Glint Dart'){
-          const splash=glintSplash(game.upgrades,OPEN_WORLD);
+          const splash=DAISUGI_MODE?daisugiSplash(game.upgrades):
+            glintSplash(game.upgrades,OPEN_WORLD);
           if(splash){
             // Every upgraded projectile can damage a small group on impact.
             const x=p.target.x,z=p.target.z;
@@ -877,7 +941,8 @@ function updateProjectiles(dt){
             let hits=0;
             for(const other of game.enemies){
               if(other!==p.target&&other.alive&&Math.hypot(other.x-x,other.z-z)<splash.radius){
-                hurtEnemy(other,splash.damage,{fxSpell:'Glint Dart'});
+                hurtEnemy(other,splash.damage,{
+                  slow:DAISUGI_MODE?splash.slow:0,fxSpell:'Glint Dart'});
                 if(++hits>=splash.targets)break;
               }
             }
@@ -938,6 +1003,9 @@ function updateEffects(dt){
 }
 function pickBoosts(){
   const pool=BOOSTS.filter(b=>b.classes.includes(game.classId)&&!game.upgrades.has(b.id)&&(!b.onlyOpen||OPEN_WORLD));
+  if(DAISUGI_MODE&&game.classId==='caster')
+    return choosePowerBoosts([...pool,...DAISUGI_BOOSTS],
+      game.upgrades,director.stage);
   if(OPEN_WORLD&&game.classId==='caster')
     return choosePowerBoosts(pool,game.upgrades,director.stage);
   const picks=[];
@@ -1066,7 +1134,9 @@ window.addEventListener('resize',()=>{engine.resize();resizeCamera();pixi.resize
 window.addEventListener('blur',()=>keys.clear());
 window.addEventListener('keydown',e=>{
   if(['Tab','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
-  if(game.state==='play'&&['Digit1','Digit2','Digit3'].includes(e.code))cast(Number(e.code.slice(-1))-1);
+  if(!DAISUGI_MODE&&game.state==='play'&&
+      ['Digit1','Digit2','Digit3'].includes(e.code))
+    cast(Number(e.code.slice(-1))-1);
   if(e.code==='Escape'){
     if(game.state==='play'){game.state='pause';showScreen('pauseScreen');}
     else if(game.state==='pause'){game.state='play';hideScreens();}
@@ -1085,7 +1155,9 @@ document.querySelectorAll('[data-class]').forEach(btn=>{
     document.querySelectorAll('[data-class]').forEach(el=>el.classList.toggle('selected',el===btn));
   });
 });
-document.querySelectorAll('[data-slot]').forEach(btn=>btn.addEventListener('click',()=>cast(Number(btn.dataset.slot))));
+document.querySelectorAll('[data-slot]').forEach(btn=>btn.addEventListener('click',()=>{
+  if(!DAISUGI_MODE)cast(Number(btn.dataset.slot));
+}));
 $('playButton').addEventListener('click',startGame);
 $('retryButton').addEventListener('click',startGame);
 $('menuButton').addEventListener('click',()=>{clearGame();game.state='start';showScreen('startScreen');$('hud').hidden=true;});

@@ -18,7 +18,7 @@ import {NatureGrowth} from './nature-growth.js?v=2.6.1';
 import {LivingWater} from './living-water.js?v=2.7.3';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
-import {isWillowglowPreviewRequested,mountWillowglowPreview,WILLOWGLOW_SIZES} from './willowglow-preview.js?v=1.1.0';
+import {isWillowglowPreviewRequested,mountWillowglowPreview,WILLOWGLOW_SIZES} from './willowglow-preview.js?v=2.0.0';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
 const WILLOWGLOW_PREVIEW=isWillowglowPreviewRequested(location.search,OPEN_WORLD);
 const CAMERA_WORLD_WIDTH=OPEN_WORLD?WILD_CAMERA_WIDTH:33.2;
@@ -66,28 +66,53 @@ function resizeCamera(){
 }
 resizeCamera();
 const world=OPEN_WORLD?createOpenWorld(scene):createWorld(scene);
-// Opt-in real-world art review: one Willowglow near the playable start.
-// The production camera, movement and existing nature placements do not change.
-const willowglow= WILLOWGLOW_PREVIEW ? mountWillowglowPreview(B,scene) : null;
+// Opt-in production-fit art comparison. Does not change normal forest.
+const treeStyleFromUrl=new URLSearchParams(location.search).get('tree')==='original'?'original':'lowpoly';
+const willowglow=WILLOWGLOW_PREVIEW
+  ?mountWillowglowPreview(B,scene,{initialStyle:treeStyleFromUrl}):null;
 $('willowglowPreviewNote').hidden=!WILLOWGLOW_PREVIEW;
 const treeReadabilityPanel=$('treeReadabilityPanel');
 treeReadabilityPanel.hidden=!WILLOWGLOW_PREVIEW;
+function refreshWillowglowControls(){
+  if(!willowglow)return;
+  for(const [attr,current] of [
+    ['data-tree-size',willowglow.size],['data-tree-style',willowglow.style],
+    ['data-tree-palette',willowglow.palette]
+  ]){
+    for(const button of treeReadabilityPanel.querySelectorAll('['+attr+']')){
+      const selected=button.getAttribute(attr)===current;
+      button.classList.toggle('selected',selected);
+      button.setAttribute('aria-pressed',String(selected));
+    }
+  }
+  $('treeReadabilityPalettes').hidden=willowglow.style!=='lowpoly';
+  $('treeReadabilityScale').textContent=
+    (willowglow.style==='lowpoly'?'Low-poly · '+willowglow.palette:'Original 11.0')
+    +' · '+willowglow.size+' · '+(WILLOWGLOW_SIZES[willowglow.size]/.66).toFixed(1)+'×';
+}
 function chooseWillowglowSize(size){
   if(!willowglow?.setSize(size))return false;
-  for(const button of treeReadabilityPanel.querySelectorAll('[data-tree-size]')){
-    const selected=button.dataset.treeSize===size;
-    button.classList.toggle('selected',selected);
-    button.setAttribute('aria-pressed',String(selected));
-  }
-  $('treeReadabilityScale').textContent=
-    'Willowglow '+size+' · '+(WILLOWGLOW_SIZES[size]/.66).toFixed(1)+'× tidigare storlek';
-  return true;
+  refreshWillowglowControls();return true;
+}
+function chooseWillowglowStyle(style){
+  if(!willowglow?.setStyle(style))return false;
+  refreshWillowglowControls();return true;
+}
+function chooseWillowglowPalette(palette){
+  if(!willowglow?.setPalette(palette))return false;
+  refreshWillowglowControls();return true;
 }
 if(willowglow){
   treeReadabilityPanel.querySelectorAll('[data-tree-size]').forEach(button=>{
     button.addEventListener('click',()=>chooseWillowglowSize(button.dataset.treeSize));
   });
-  chooseWillowglowSize('M');
+  treeReadabilityPanel.querySelectorAll('[data-tree-style]').forEach(button=>{
+    button.addEventListener('click',()=>chooseWillowglowStyle(button.dataset.treeStyle));
+  });
+  treeReadabilityPanel.querySelectorAll('[data-tree-palette]').forEach(button=>{
+    button.addEventListener('click',()=>chooseWillowglowPalette(button.dataset.treePalette));
+  });
+  refreshWillowglowControls();
 }
 const director=OPEN_WORLD?new OpenDirector():new Director();
 if(OPEN_WORLD){
@@ -152,7 +177,8 @@ if(new URLSearchParams(location.search).has('debug')){
       pixiReady:pixi.ready,pixiFailed:pixi.failed,
       nature:nature?.snapshot()??null,water:water?.snapshot()??null,
       willowglow:willowglow?{version:willowglow.version,position:willowglow.position,
-        scale:willowglow.scale,size:willowglow.size,meshes:willowglow.meshes,leaves:willowglow.stats.leaves}:null
+        scale:willowglow.scale,size:willowglow.size,style:willowglow.style,palette:willowglow.palette,
+        meshes:willowglow.meshes,leaves:willowglow.stats.leaves,triangles:willowglow.stats.triangles}:null
     }),
     // Debug-only illustration/test: ten local simulated kills create one tree.
     // No score, combat, health, loot or permanent progression is changed.

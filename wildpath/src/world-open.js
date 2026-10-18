@@ -1,5 +1,6 @@
 // Alternative world for Wildpath 2.0; the legacy road world is retained.
 import {WILD_RADIUS,WILD_FLOOR_RADIUS} from './open-layout.js';
+import {createHexGrass} from './hex-grass.js?v=1.0.0';
 const B=window.BABYLON;
 function rng(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);}
 function material(scene,name,color,emit=.08){
@@ -22,7 +23,7 @@ function instance(source,name,x,y,z,sx,sy,sz){
   const m=source.createInstance(name);m.position.set(x,y,z);
   m.scaling.set(sx,sy,sz);m.isPickable=false;return m;
 }
-export function createOpenWorld(scene,{staticVegetation=true}={}){
+export function createOpenWorld(scene,{staticVegetation=true,hexGrass=false}={}){
   // Daisugi trial: render only Nature Rebirth plants created during combat.
   // The original background scenery remains unchanged unless explicitly opted out.
   const rand=rng(73018),choose=a=>a[Math.floor(rand()*a.length)];
@@ -51,6 +52,12 @@ export function createOpenWorld(scene,{staticVegetation=true}={}){
     ground.setVerticesData(B.VertexBuffer.ColorKind,colors);
     ground.useVertexColors=true;
   }
+  // The Daisugi trial keeps the original world bounds, terrain and movement
+  // but swaps the floor's visible surface for five-shade green hex grass.
+  // No procedural geometry runs in the default 2.x open world.
+  const tiledGround=hexGrass?createHexGrass(scene,ground,{
+    floorWidth:WILD_FLOOR_RADIUS*2,playRadius:WILD_RADIUS
+  }):null;
   const leaves=['#279e70','#6fc953','#a4d96b','#268e75','#e0c96a','#4cba9b'].map((c,i)=>
     sphereSource(scene,'canopy template '+i,material(scene,'canopy pigment '+i,c,.13)));
   const bark=cylinderSource(scene,'tree bark source',material(scene,'warm forest wood','#85583c'));
@@ -137,5 +144,5 @@ export function createOpenWorld(scene,{staticVegetation=true}={}){
     const gem=B.MeshBuilder.CreateSphere('enchanted forest gem',{diameter:.65,segments:10},scene);
     gem.position.set(x,.80,z);gem.material=shrineGlow;gem.isPickable=false;
   }
-  return {ground,kind:'open',radius:WILD_RADIUS,staticVegetation};
+  return {ground:tiledGround||ground,kind:'open',radius:WILD_RADIUS,staticVegetation,hexGrass};
 }

@@ -10,11 +10,12 @@ import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from '
 import { createSpellAnimator } from './spell-animation.js?v=0.9.3';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
 import { WildpathPixiCombat } from './pixi-combat.js?v=3.2.0';
-import {createOpenWorld} from './world-open.js?v=3.1.0';
+import {createOpenWorld} from './world-open.js?v=3.2.0';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
 import {NatureGrowth} from './nature-growth.js?v=3.1.0';
+import {daisugiTextPlan,daisugiDamageLabel} from './daisugi-combat-text.js?v=1.0.0';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 import {DAISUGI_BOOSTS,daisugiCoreMode,chooseDaisugiBoosts,daisugiVolleyCount,
@@ -90,7 +91,11 @@ function resizeCamera(){
   camera.orthoBottom=f.bottom;
 }
 resizeCamera();
-const world=OPEN_WORLD?createOpenWorld(scene):createWorld(scene);
+// Only authored background scenery is hidden. The original terrain and
+// runtime Nature Rebirth/Fusion instances remain exactly as before.
+const world=OPEN_WORLD?createOpenWorld(scene,{
+  staticVegetation:!DAISUGI_MODE
+}):createWorld(scene);
 const director=OPEN_WORLD?new OpenDirector():new Director();
 if(OPEN_WORLD){
   scene.clearColor=B.Color4.FromHexString('#21483dff');
@@ -284,7 +289,7 @@ function bumpScore(amount,source=null,reason='kill'){
     {transform:'scale(1)',color:'#f3e8bd'}
   ],320);
   const host=$('scoreBursts');
-  if(host){
+  if(host&&(!DAISUGI_MODE||reason==='stage')){
     while(host.children.length>5)host.firstElementChild.remove();
     const pop=document.createElement('span');
     pop.className='score-burst '+(reason==='stage'?'score-stage':'');
@@ -293,7 +298,9 @@ function bumpScore(amount,source=null,reason='kill'){
     else pop.addEventListener('animationend',()=>pop.remove(),{once:true});
     host.append(pop);
   }
-  if(source&&reason!=='stage'){
+  // Score and combo already update the HUD. Avoid a second gold number
+  // over every enemy death while splash/chain attacks land rapidly.
+  if(source&&reason!=='stage'&&!DAISUGI_MODE){
     floatingText({x:source.x,y:2.9,z:source.z},'+'+fmt(points),'score');
   }
   if(points>=1200)game.shake=Math.max(game.shake,shakeStrength('heavy',reducedMotion));
@@ -417,6 +424,57 @@ function spawnEnemy(type,opts={}){
 game.spawnEnemy=spawnEnemy;
 game.showToast=toast;
 function floatingText(pos,value,kind='normal'){
+  if(DAISUGI_MODE){
+    const plan=daisugiTextPlan(game.texts,pos,kind,value);
+    if(plan.action==='hide')return;
+    if(plan.action==='merge-damage'){
+      const t=plan.target;
+      t.damageTotal+=plan.points;t.critCount+=plan.crit?1:0;
+      t.el.textContent=daisugiDamageLabel(t.damageTotal,t.critCount);
+      t.kind=t.critCount?'crit':'normal';
+      t.el.className='float-damage '+t.kind;
+      t.life=Math.min(.9,Math.max(.55,t.life+.20));
+      t.total=.9;
+      // Keep the label near the group's centroid, not every hit's point.
+      t.pos.x=t.pos.x*.83+pos.x*.17;
+      t.pos.z=t.pos.z*.83+pos.z*.17;
+      return;
+    }
+    if(plan.action==='merge-energy'){
+      const t=plan.target;
+      t.energyTotal=(t.energyTotal||1)+plan.points;
+      t.el.textContent='✦ +'+t.energyTotal+' MAGIC';
+      t.life=Math.min(1,Math.max(.45,t.life+.20));
+      t.total=1;
+      t.pos.x=pos.x;t.pos.z=pos.z;
+      return;
+    }
+    if(plan.action==='merge-nature'||plan.action==='merge-status'){
+      const t=plan.target;
+      t.el.textContent=value;t.life=.9;t.total=.9;
+      t.pos.x=pos.x;t.pos.z=pos.z;
+      return;
+    }
+    const damage=plan.action==='new-damage';
+    const energy=plan.action==='new-energy';
+    const el=document.createElement('div');
+    const visibleKind=damage?(plan.crit?'crit':'normal'):kind;
+    el.className='float-damage '+visibleKind;
+    el.textContent=damage?daisugiDamageLabel(plan.points,plan.crit?1:0):value;
+    $('floaters').append(el);
+    // Readable text lanes: short life, discrete spatial offsets, no huge
+    // 'CRIT!' banner. Always keep incoming player damage legible.
+    const lane=damage?game.texts.filter(t=>t.damageGroup).length:0;
+    const dx=damage?(lane-1)*.73+random(-.26,.26):random(-.10,.10);
+    const life=plan.life||.73;
+    game.texts.push({el,kind:visibleKind,
+      pos:V(pos.x+dx,pos.y+ (damage?.15:kind==='nature'?.55:0),pos.z),
+      life,total:life,damageGroup:damage,
+      damageTotal:damage?plan.points:0,critCount:damage&&plan.crit?1:0,
+      energyTotal:energy?Math.max(1,
+        Number(String(value).match(/\\d+/)?.[0]||1)):0});
+    return;
+  }
   if(OPEN_WORLD){
     // Readability cap for simultaneous AoE damage numbers and score pops.
     if(['normal','crit','score'].includes(kind)){

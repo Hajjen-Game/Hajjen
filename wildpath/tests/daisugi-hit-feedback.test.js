@@ -61,3 +61,10 @@ test('wave, chain, primary projectiles and splash carry real hit origins',()=>{
   assert.ok(main.includes("pixi.waterLink?.(from,next,'chain')"));
   assert.ok(main.includes("pixi.waterLink?.(struck,next,'bounce')"));
 });
+test('defeated enemies finish a brief knockback before disappearing in Daisugi',()=>{
+  const main=read('../src/main.js');
+  assert.ok(main.includes("if(DAISUGI_MODE)e.deathClock=.16;"));
+  assert.ok(main.includes("if(DAISUGI_MODE&&(e.deathClock||0)>0)"));
+  assert.ok(main.includes("e.knockX*3*dt,e.knockZ*3*dt"));
+  assert.ok(main.includes("(!DAISUGI_MODE||!(game.enemies[i].deathClock>0))"));
+});

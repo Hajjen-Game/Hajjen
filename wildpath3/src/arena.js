@@ -42,16 +42,34 @@ export function createArcadeArena(scene){
   ground.material=meadow;ground.position.y=-.085;ground.isPickable=false;
   const positions=ground.getVerticesData(B.VertexBuffer.PositionKind),colors=[];
   if(positions){
-    const center=B.Color3.FromHexString('#4bad6c'),
-      light=B.Color3.FromHexString('#5abb6b'),
-      shade=B.Color3.FromHexString('#2f885f');
+    const center=B.Color3.FromHexString('#48a762'),
+      light=B.Color3.FromHexString('#75c260'),
+      shade=B.Color3.FromHexString('#2c7c59');
+    // A few broad hand-painted green and ochre meadows: intentional color
+    // shapes that break the flat surface without adding collidable clutter.
+    const pigments=[
+      {x:-11,z:3,sx:5.6,sz:9.6,hex:'#7ab65e',weight:.46},
+      {x:10,z:-8,sx:7.0,sz:8.1,hex:'#609b51',weight:.43},
+      {x:7,z:13,sx:7.0,sz:7.8,hex:'#b3a66c',weight:.29},
+      {x:-8,z:-14,sx:6.3,sz:6.7,hex:'#d1ae71',weight:.22},
+      {x:17,z:4,sx:5.4,sz:8.4,hex:'#338e5d',weight:.52},
+      {x:-17,z:-5,sx:7.1,sz:5.6,hex:'#307f58',weight:.49}
+    ].map(p=>({...p,color:B.Color3.FromHexString(p.hex)}));
     for(let i=0;i<positions.length;i+=3){
       const x=positions[i],z=positions[i+2];
       const radius=Math.hypot(x,z);
       const variation=.5+.5*Math.sin(x*.46+z*.22)*Math.cos(z*.58-x*.22);
       let color=B.Color3.Lerp(center,light,.12+variation*.32);
       color=B.Color3.Lerp(color,shade,
-        Math.min(.7,Math.max(0,(radius-8)/23)*.52));
+        Math.min(.7,Math.max(0,(radius-7)/17)*.48));
+      for(const patch of pigments){
+        const dx=(x-patch.x)/patch.sx,dz=(z-patch.z)/patch.sz;
+        const d=Math.hypot(dx,dz);
+        const edge=Math.max(0,1-d);
+        const irregular=.86+.14*Math.sin(x*.67+z*.29);
+        color=B.Color3.Lerp(color,patch.color,Math.min(.55,
+          edge*edge*(3-2*edge)*patch.weight*irregular*2.4));
+      }
       colors.push(color.r,color.g,color.b,1);
     }
     ground.setVerticesData(B.VertexBuffer.ColorKind,colors);
@@ -62,8 +80,8 @@ export function createArcadeArena(scene){
   const pigments={
     grass:candyMaterial(scene,'lime tall grass','#78cb4d',{shine:.05}),
     grassDark:candyMaterial(scene,'dark green meadow grass','#278c60',{shine:.04}),
-    stone:candyMaterial(scene,'warm worn stepping stones','#dab47d',{shine:.055}),
-    stoneLight:candyMaterial(scene,'stone bevel sunshine','#f1d19a',{shine:.06}),
+    stone:candyMaterial(scene,'rounded garden sandstone','#b5b8a5',{shine:.055}),
+    stoneLight:candyMaterial(scene,'sunlight garden sandstone','#d5d1b2',{shine:.06}),
     dirt:candyMaterial(scene,'warm flower soil','#b88c5e',{shine:.02}),
     wood:candyMaterial(scene,'curved warm wood','#925534',{shine:.09}),
     woodTop:candyMaterial(scene,'painted wooden edge','#cc8650',{shine:.10}),
@@ -114,6 +132,26 @@ export function createArcadeArena(scene){
     const stone=place(i%2?pebble:pebbleLight,
       'curated Japanese garden stepping stone',x,.035,z,s,.10,s*.68);
     stone.rotation.y=rand()*.4;
+  }
+
+  // Small colorful garden flower-beds appear around the fighting arena,
+  // leaving the middle open for projectile and enemy silhouettes.
+  for(let bed=0;bed<12;bed++){
+    const a=bed*2*Math.PI/12+.19,r=11.8+(bed%3)*1.4;
+    const cx=Math.cos(a)*r,cz=Math.sin(a)*r;
+    for(let i=0;i<5;i++){
+      const phi=i*2.399963+bed*.5,dist=.3+Math.sqrt(i+1)*.42;
+      const x=cx+Math.cos(phi)*dist,z=cz+Math.sin(phi)*dist;
+      place(grass[(i+bed)%2],'lush meadow patch',x,.105,z,
+        .46,.24,.38);
+      const src=petals[(bed+i)%petals.length];
+      place(src,'readable raised flower petals',x,.33,z,
+        .21,.20,.22);
+      if(i%2===0){
+        place(petals[(bed+i+1)%petals.length],
+          'twin garden blossoms',x+.20,.39,z-.14,.13,.15,.16);
+      }
+    }
   }
 
   // A loose glade perimeter. The bright old neon torus and raised test disc
@@ -177,7 +215,9 @@ export function createArcadeArena(scene){
           {width:chord,height:.16,depth:.16},scene);
         rail.position.set(Math.cos(angle)*railRadius,y,
           Math.sin(angle)*railRadius);
-        rail.rotation.y=angle+Math.PI/2;
+        // Box length lies on its local X axis. With Babylon's Y rotation,
+        // -angle-PI/2 aligns it tangent to the circular post arc.
+        rail.rotation.y=-angle-Math.PI/2;
         rail.material=railMat;rail.isPickable=false;
       }
     }

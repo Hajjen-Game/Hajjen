@@ -105,14 +105,14 @@ export function createArcadeArena(scene){
       x,.08,z,s,.14,s*.82);
   }
 
-  // A subtle broken ochre trail guides the eye across the field. No
-  // opaque circular stains or gameplay collisions.
-  for(let i=0;i<14;i++){
-    const z=-10+i*1.66,x=-6.5+Math.sin(z*.28)*1.22;
+  // Broken, deliberate stepping stones along one side: not loose planks
+  // floating through the middle of a combat and fusion playfield.
+  for(let i=0;i<17;i++){
+    const z=-14+i*1.75,x=-11.2+Math.sin(z*.28)*.8;
     if(i%4===1)continue;
-    const s=.50+rand()*.32;
+    const s=.54+rand()*.23;
     const stone=place(i%2?pebble:pebbleLight,
-      'warm trail stepping stone',x,.048,z,s,.11,s*.68);
+      'curated Japanese garden stepping stone',x,.035,z,s,.10,s*.68);
     stone.rotation.y=rand()*.4;
   }
 
@@ -144,16 +144,42 @@ export function createArcadeArena(scene){
         x+.94,.09,z-.32,.59,.30,.50);
   }
 
-  // Low wooden fences define only short sections of the combat area's edge.
-  // Open gaps keep the arena from looking like a perfect green circle.
-  for(const [start,count] of [[.39,3],[2.12,3],[3.95,3],[5.62,3]]){
+  // The arena is physically readable through a broken sandstone perimeter.
+  // All the stones and connected fence pieces are OUTSIDE playable combat bounds.
+  // No isolated wooden planks anywhere in the middle of the grass.
+  for(let i=0;i<65;i++){
+    const a=i*2*Math.PI/65,r=ARENA_RADIUS+.70+(i%5)*.08;
+    const x=Math.cos(a)*r,z=Math.sin(a)*r;
+    const s=.65+(i%4)*.11;
+    const stone=place(i%4===0?pebbleLight:pebble,
+      'intentional rounded arena stone edging',x,.12,z,s,.30,s*.71);
+    stone.rotation.y=-a;
+  }
+  const postMat=pigments.wood,railMat=pigments.woodTop;
+  const railRadius=ARENA_RADIUS+1.35;
+  const fenceArcs=[[.22,.77],[1.88,.72],[3.75,.79],[5.35,.73]];
+  for(const [begin,span] of fenceArcs){
+    const count=4,angleStep=span/count;
+    for(let i=0;i<=count;i++){
+      const a=begin+i*angleStep;
+      const x=Math.cos(a)*railRadius,z=Math.sin(a)*railRadius;
+      const post=B.MeshBuilder.CreateCylinder('anchored garden fence post',
+        {height:1.06,diameterTop:.39,diameterBottom:.47,tessellation:8},scene);
+      post.position.set(x,.52,z);post.material=postMat;post.isPickable=false;
+      place(pebbleLight,'stone foundation under fence post',
+        x,.15,z,.45,.25,.43);
+    }
     for(let i=0;i<count;i++){
-      const a=start+i*.17,r=ARENA_RADIUS+.85;
-      const x=Math.cos(a)*r,z=Math.sin(a)*r;
-      const wood=B.MeshBuilder.CreateBox('short wooden border plank',
-        {width:1.85,height:.39,depth:.19},scene);
-      wood.position.set(x,.30,z);wood.rotation.y=-a;
-      wood.material=pigments.woodTop;wood.isPickable=false;
+      const angle=begin+(i+.5)*angleStep;
+      const chord=2*railRadius*Math.sin(angleStep/2)*.95;
+      for(const y of [.40,.73]){
+        const rail=B.MeshBuilder.CreateBox('connected garden fence rail',
+          {width:chord,height:.16,depth:.16},scene);
+        rail.position.set(Math.cos(angle)*railRadius,y,
+          Math.sin(angle)*railRadius);
+        rail.rotation.y=angle+Math.PI/2;
+        rail.material=railMat;rail.isPickable=false;
+      }
     }
   }
 

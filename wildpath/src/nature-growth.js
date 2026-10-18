@@ -10,8 +10,11 @@ const B=window.BABYLON;
 function material(scene,id,hex){
   const m=new B.StandardMaterial('rebirth '+id,scene);
   const c=B.Color3.FromHexString(hex);
-  m.diffuseColor=c;m.emissiveColor=c.scale(.22);
-  m.specularColor=new B.Color3(.023,.026,.020);
+  // Painterly material: brighter top reflections without metallic shine.
+  m.diffuseColor=c;m.ambientColor=c.scale(.24);
+  m.emissiveColor=c.scale(.12);
+  m.specularColor=new B.Color3(.24,.26,.20);
+  m.specularPower=50;
   return m;
 }
 function template(scene,kind,name,mat){
@@ -32,8 +35,8 @@ export class NatureGrowth {
       const mesh=template(scene,type,id,m);this.templates.push(mesh);
       return mesh;
     };
-    this.twig=source('twig','cylinder','#588768');
-    this.bark=source('bark','cylinder','#826852');
+    this.twig=source('twig','cylinder','#418b66');
+    this.bark=source('bark','cylinder','#916548');
     // Single shared low-resolution radial opacity texture for soft, subtle
     // ground contacts. Unlike the old dark solid circles, the edge fades out.
     this.shadowTexture=new B.DynamicTexture('rebirth contact gradient',

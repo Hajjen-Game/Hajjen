@@ -66,7 +66,7 @@ test('knockback remains approved strength but direction always follows player-to
   assert.ok(enemy.hitTilt<0);
   const src=read('../src/daisugi-hit-feedback.js');
   assert.ok(src.includes('let dx=enemy.x-player.x,dz=enemy.z-player.z'));
-  assert.ok(src.includes('if(magnitude>2.65)'));
+  assert.ok(src.includes('const impulse=Math.min(2.65,priorAway+power)'));
 });
 test('normal Wildpath, map, camera and speed are not reworked',()=>{
   const m=read('../src/main.js');

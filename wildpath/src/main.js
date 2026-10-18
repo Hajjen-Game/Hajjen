@@ -1,20 +1,20 @@
 import { CLASS_DATA, BOOSTS, ENEMIES, STAGE_NAMES, STAGE_GATES, clamp, random } from './config.js?v=2.3.0';
-import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=0.7.0';
+import { createWorld, createActor, pathX, lightOrb, ring, disc } from './world-v5.js?v=3.0.0';
 import { BOARD_START, BOARD_END, moveOnRoad, projectToRoad } from './layout-v5.js?v=0.6.0';
 import { chooseAutoTarget } from './targeting.js?v=0.6.0';
 import { nextTravelZ, positionAfterBlessing, cameraAnchorZ } from './flow.js?v=0.6.0';
 import { Director } from './director.js?v=0.6.0';
 import { widthLockedFrustum, CAMERA_HEIGHT, CAMERA_BEHIND, CAMERA_LOOK_DISTANCE } from './framing.js?v=0.6.0';
-import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=0.7.0';
+import { magicProjectile, vfxRing, crystal, visibleGroundPool, shieldDome, meleeSlash } from './vfx-v2.js?v=3.0.0';
 import { displayedScoreStep, cooldownFill, justRecharged, shakeStrength } from './juice.js?v=0.8.0';
 import { createSpellAnimator } from './spell-animation.js?v=0.9.2';
 import { chooseVolleyTargets } from './volley-targets.js?v=1.0.0';
-import { WildpathPixiCombat } from './pixi-combat.js?v=2.6.0';
-import {createOpenWorld} from './world-open.js?v=2.5.0';
+import { WildpathPixiCombat } from './pixi-combat.js?v=3.0.0';
+import {createOpenWorld} from './world-open.js?v=3.0.0';
 import {OpenDirector} from './director-open.js?v=2.3.0';
 import {WILD_RADIUS,WILD_CAMERA_WIDTH,freeStep,openSpawnPoint,energyThreshold,energyProgress} from './open-layout.js?v=2.0.0';
 import {makeNatureLedger,recordNatureKill} from './nature-rebirth.js?v=2.3.0';
-import {NatureGrowth} from './nature-growth.js?v=2.6.1';
+import {NatureGrowth} from './nature-growth.js?v=3.0.0';
 import {visibleWaterSpell,waterBoostName,waterBoostDescription} from './water-life.js?v=2.7.0';
 import {casterVolley,casterGlintDamage,casterBloom,casterPool,glintSplash,cascadePower,choosePowerBoosts} from './power-growth.js?v=2.3.1';
 const OPEN_WORLD=new URLSearchParams(location.search).get('world')!=='classic';
@@ -35,18 +35,18 @@ const engine = new B.Engine(canvas,true,{stencil:false,preserveDrawingBuffer:fal
 engine.setHardwareScalingLevel(Math.max(1, Math.min(1.5,devicePixelRatio>2?1.35:1)));
 const scene = new B.Scene(engine);
 scene.clearColor = B.Color4.FromHexString('#26322eff');
-scene.ambientColor = new B.Color3(.37,.45,.41);
+scene.ambientColor = new B.Color3(.43,.49,.46);
 scene.fogMode = B.Scene.FOGMODE_LINEAR;
 scene.fogColor = B.Color3.FromHexString('#26322e');
 scene.fogStart = 135;
 scene.fogEnd = 300;
 const ambient = new B.HemisphericLight('soft sky',V(0,1,0),scene);
-ambient.intensity = .68;
-ambient.diffuse = new B.Color3(.82,.9,.86);
-ambient.groundColor = new B.Color3(.25,.4,.35);
+ambient.intensity = .78;
+ambient.diffuse = new B.Color3(.90,.99,.93);
+ambient.groundColor = new B.Color3(.30,.45,.39);
 const sunshine = new B.DirectionalLight('sunshine',V(-.5,-1,.6),scene);
-sunshine.intensity = .62;
-sunshine.diffuse = new B.Color3(.97,.88,.77);
+sunshine.intensity = .79;
+sunshine.diffuse = new B.Color3(1,.94,.82);
 const camera = new B.FreeCamera('portrait diorama camera',V(0,CAMERA_HEIGHT,-CAMERA_BEHIND),scene);
 camera.mode = B.Camera.ORTHOGRAPHIC_CAMERA;
 camera.minZ = .05;
@@ -65,8 +65,8 @@ resizeCamera();
 const world=OPEN_WORLD?createOpenWorld(scene):createWorld(scene);
 const director=OPEN_WORLD?new OpenDirector():new Director();
 if(OPEN_WORLD){
-  scene.clearColor=B.Color4.FromHexString('#253c33ff');
-  scene.fogColor=B.Color3.FromHexString('#253c33');
+  scene.clearColor=B.Color4.FromHexString('#2b5548ff');
+  scene.fogColor=B.Color3.FromHexString('#2b5548');
   scene.fogStart=83;scene.fogEnd=165;
 }
 const keys=new Set();
@@ -455,7 +455,7 @@ function dropGlint(enemy){
     absorbMagic(oldest.value);
     releaseMesh(oldest.mesh);
   }
-  const mesh=lightOrb(scene,'#8cffe2',.81);
+  const mesh=lightOrb(scene,'#ffd77d',.81);
   mesh.position.set(enemy.x,.90,enemy.z);
   game.pickups.push({x:enemy.x,z:enemy.z,value:enemy.type==='guardian'?3:1,
     mesh,age:0,magnet:false,seed:Math.random()*6.28});

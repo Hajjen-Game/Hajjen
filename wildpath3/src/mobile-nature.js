@@ -33,6 +33,51 @@ export class MobileNatureGrowth extends NatureGrowth{
     }
     super.apply(event,hero);
   }
+  createFusionVisual(region){
+    super.createFusionVisual(region);
+    // A colored ring communicates that a group has become a permanent
+    // fusion; absorbed flowers are not simply erased from the world.
+    const B=window.BABYLON;
+    const ring=B.MeshBuilder.CreateTorus('permanent garden fusion halo',
+      {diameter:2,thickness:.09,tessellation:40},this.scene);
+    ring.parent=region.root;
+    ring.position.set(0,.095,0);
+    ring.scaling.set(region.radius*.62,1,region.radius*.62);
+    ring.isPickable=false;
+    const mat=new B.StandardMaterial('fusion halo '+region.id,this.scene);
+    const base=B.Color3.FromHexString('#77dd92');
+    mat.diffuseColor=base;mat.emissiveColor=base.scale(.22);
+    mat.specularColor=new B.Color3(.08,.12,.09);
+    mat.alpha=.73;
+    ring.material=mat;
+    this.materials.push(mat);
+    region.ring=ring;
+  }
+  update(dt,hero){
+    super.update(dt,hero);
+    // The 2.x anatomy is scaled for a wider 3D world. On a portrait
+    // phone flowers looked like colored dots even after 29 bloom events.
+    // Multiply after base update (which resets easing scale each frame).
+    for(const plant of this.order){
+      const k=plant.tier==='flower'?1.62:
+        plant.tier==='bush'?1.52:plant.tier==='tree'?1.26:1.19;
+      plant.root.scaling.scaleInPlace(k);
+      if(plant.tier==='tree'||plant.tier==='blossom'){
+        // Keep the tree readable even when close to the hero; its trunk
+        // can be seen through the gently translucent upper leaves.
+        for(const part of plant.meshes)
+          part.visibility=Math.max(.67,part.visibility);
+      }
+    }
+    for(const region of this.regions){
+      const k=Math.min(1.50,1.20+region.count*.035);
+      region.root.scaling.scaleInPlace(k);
+      if(region.ring){
+        const size=region.radius*.62;
+        region.ring.scaling.set(size,1,size);
+      }
+    }
+  }
   rebuildFusionDecor(region){
     super.rebuildFusionDecor(region);
     // When little seedlings merge they should visibly become something

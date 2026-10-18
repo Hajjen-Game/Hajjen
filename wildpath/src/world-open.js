@@ -1,6 +1,6 @@
 // Alternative world for Wildpath 2.0; the legacy road world is retained.
 import {WILD_RADIUS,WILD_FLOOR_RADIUS} from './open-layout.js';
-import {applyHexGrassToGround} from './hex-grass.js?v=1.3.0';
+import {applyHexGrassToGround} from './hex-grass.js?v=1.3.1';
 const B=window.BABYLON;
 function rng(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);}
 function material(scene,name,color,emit=.08){

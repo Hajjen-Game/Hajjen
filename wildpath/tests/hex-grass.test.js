@@ -130,3 +130,63 @@ test('original world keeps the same geometry, nature and movement in all modes',
   assert.equal(CLASS_DATA.caster.speed,5.25);
   assert.ok(main.includes('const DAISUGI_CAMERA_WORLD_WIDTH=24.5'));
 });
+
+test('actual open world constructor keeps green ground in default, hex and fallback modes',async()=>{
+  const prev=globalThis.window,groundMeshes=[];
+  class Color3{
+    constructor(r,g,b){this.r=r;this.g=g;this.b=b}
+    scale(t){return new Color3(this.r*t,this.g*t,this.b*t)}
+    static FromHexString(s){return new Color3(parseInt(s.slice(1,3),16)/255,
+      parseInt(s.slice(3,5),16)/255,parseInt(s.slice(5,7),16)/255)}
+    static Lerp(a,b,t){return new Color3(a.r+(b.r-a.r)*t,
+      a.g+(b.g-a.g)*t,a.b+(b.b-a.b)*t)}
+  }
+  const mesh=(name)=>({
+    name,position:{y:0,set(){}},scaling:{set(){}},rotation:{z:0},
+    isVisible:true,isPickable:false,createInstance(n){return mesh(n)},
+    getVerticesData(){return this.positions},
+    setVerticesData(kind,values){this.colors=values}
+  });
+  class DynamicTexture{
+    constructor(){this.ctx=fakeCanvas().ctx}
+    getContext(){return this.ctx}
+    update(){}
+    isReady(){return true}
+  }
+  const B={
+    Color3,StandardMaterial:class{constructor(name){this.name=name}},
+    DynamicTexture,Texture:{BILINEAR_SAMPLINGMODE:2},
+    VertexBuffer:{PositionKind:1,ColorKind:2},
+    MeshBuilder:{
+      CreateGround(name,{width,height,subdivisions:n}){
+        const ground=mesh(name),positions=[];
+        for(let j=0;j<=n;j++)for(let i=0;i<=n;i++)
+          positions.push((i/n-.5)*width,0,(j/n-.5)*height);
+        ground.positions=positions;groundMeshes.push(ground);
+        return ground;
+      },CreateSphere:mesh,CreateCylinder:mesh
+    }
+  };
+  try{
+    globalThis.window={BABYLON:B};
+    const {createOpenWorld}=await import('../src/world-open.js?hex-1-3-world-smoke=1');
+    const plain=createOpenWorld({},{staticVegetation:false,hexGrass:false});
+    const hex=createOpenWorld({},{staticVegetation:false,hexGrass:true});
+    assert.equal(groundMeshes.length,2);
+    assert.equal(plain.ground.name,'continuous woodland floor');
+    assert.equal(hex.ground.name,'continuous woodland floor');
+    assert.equal(plain.ground.isVisible,true);
+    assert.equal(hex.ground.isVisible,true);
+    assert.equal(plain.ground.positions.length/3,441);
+    assert.equal(hex.ground.positions.length/3,441);
+    assert.ok(plain.ground.colors.every(Number.isFinite));
+    assert.ok(hex.ground.colors.every(Number.isFinite));
+    assert.equal(plain.hexApplied,false);
+    assert.equal(hex.hexApplied,true);
+    assert.equal(plain.ground.material.diffuseTexture,undefined);
+    assert.ok(hex.ground.material.diffuseTexture instanceof DynamicTexture);
+  }finally{
+    if(prev===undefined)delete globalThis.window;
+    else globalThis.window=prev;
+  }
+});

@@ -1,5 +1,5 @@
 // Wildpath 3.0 first playable. No side effects in Wildpath 2.x.
-import {Wildpath3Game} from './game.js?v=3.0.2-garden-fusion';
+import {Wildpath3Game} from './game.js?v=3.0.3-visual-clarity';
 const $=id=>document.getElementById(id);
 if(!window.BABYLON){
   $('intro').hidden=true;

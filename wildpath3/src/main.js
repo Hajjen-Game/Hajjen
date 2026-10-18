@@ -1,5 +1,5 @@
 // Wildpath 3.0 first playable. No side effects in Wildpath 2.x.
-import {Wildpath3Game} from './game.js?v=3.0.0-pass1';
+import {Wildpath3Game} from './game.js?v=3.0.1-visual-restoration';
 const $=id=>document.getElementById(id);
 if(!window.BABYLON){
   $('intro').hidden=true;
@@ -11,7 +11,8 @@ if(!window.BABYLON){
       window.__wildpath3=Object.freeze({
         read:()=>({
           state:game.state,wave:game.wave??0,kills:game.kills??0,
-          hp:game.hp??0,arenaRadius:13,cameraWidth:16.5,
+          hp:game.hp??0,score:game.score?.total??0,
+          combo:game.score?.combo??0,arenaRadius:13,cameraWidth:16.5,
           autoSpells:['Water Dart','Tidal Pulse','Auto Renewal'],
           enemyCount:game.enemies.filter(e=>e.alive).length,
           nature:game.nature.snapshot(),seeds:game.seedCount??0

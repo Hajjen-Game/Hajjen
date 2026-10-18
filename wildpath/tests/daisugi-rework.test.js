@@ -20,7 +20,7 @@ test('Daisugi preserves original map, camera, movement and original game entry',
   assert.ok(main.includes("const dz=OPEN_WORLD?z*game.spec.speed*dt:"));
   assert.ok(main.includes("game.spec=DAISUGI_MODE?{...CLASS_DATA.caster,"));
   assert.ok(main.includes("if(!DAISUGI_MODE)cast(Number(btn.dataset.slot))"));
-  assert.ok(read('../index.html').includes('main.js?v=2.9.9-daisugi-hit-recoil'));
+  assert.ok(read('../index.html').includes('main.js?v=2.9.10-daisugi-fire-motion'));
 });
 
 test('no spell buttons: original route remains unaffected',()=>{
@@ -151,5 +151,5 @@ test('Daisugi boost and result panels stay readable instead of white on white',(
   assert.ok(css.includes('#boostScreen .boost-card strong{color:#fff2ad}'));
   assert.ok(css.includes('#resultScreen #resultScore'));
   assert.ok(html.includes('styles.css?v=2.9.8-no-hex'));
-  assert.ok(html.includes('main.js?v=2.9.9-daisugi-hit-recoil'));
+  assert.ok(html.includes('main.js?v=2.9.10-daisugi-fire-motion'));
 });

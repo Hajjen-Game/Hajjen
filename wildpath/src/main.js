@@ -40,6 +40,8 @@ const V = (x,y,z) => new B.Vector3(x,y,z);
 document.body.classList.toggle('wildpath-open',OPEN_WORLD);
 document.body.classList.toggle('daisugi-rework',DAISUGI_MODE);
 if(DAISUGI_MODE){
+  document.title='Wildpath · Daisugi Attack Evolution 1.1';
+  document.querySelector('#startScreen .version').textContent='DAISUGI · v1.1 · ORIGINAL WILDPATH';
   document.querySelector('.title-wrap .overline').textContent=
     'DAISUGI REWORK · ORIGINAL WILDPATH WORLD';
   document.querySelector('.title-wrap p').textContent=

@@ -25,15 +25,15 @@ export function drawWaterProjectile(g,from,head,scale,time,seed=0){
   line(g,tail.x+nx*wobble,tail.y+ny*wobble,
     head.x,head.y,0x148ed0,3.1*s,.60);
   line(g,tail.x+nx*wobble*.6,tail.y+ny*wobble*.6,
-    head.x,head.y,0xf0ffff,1.5*s,.93);
+    head.x,head.y,0x70e3f2,1.35*s,.83);
   for(let i=0;i<3;i++){
     const d=6+i*5,off=Math.sin(time*19+i*2.6+seed)*3.1;
     dot(g,head.x-dx/dist*d+nx*off,
       head.y-dy/dist*d+ny*off,(1.65-i*.23)*s,
-      i%2?0x2de5ed:0xe2fffc,.80-i*.1);
+      i%2?0x2de5ed:0x79dfeb,.80-i*.1);
   }
   dot(g,head.x,head.y,3.25*s,0x24e2f9,.8);
-  dot(g,head.x-.55,head.y-.6,1.65*s,0xf5ffff,1);
+  dot(g,head.x-.55,head.y-.6,1.65*s,0x9fe9f2,1);
 }
 export function drawWaterSpell(g,e,p,worldScale){
   if(!p)return false;
@@ -47,24 +47,24 @@ export function drawWaterSpell(g,e,p,worldScale){
     for(let i=0;i<7;i++){
       const ang=i*TAU/7+e.seed*.08;
       dot(g,p.x+Math.cos(ang)*r*.85,p.y+Math.sin(ang)*r*.64,
-        1.9,i%3?0xb6fcdd:0xffffff,a*.75);
+        1.9,i%3?0xb6fcdd:0xb1e7ed,a*.75);
     }
     return true;
   }
   if(e.name==='Water Dart'){
     if(e.stage==='charge'||e.stage==='core'){
-      stroke(g,p,5+u*10,.75,0xd7ffff,1.9,a*.9);
+      stroke(g,p,5+u*10,.75,0x40cde5,1.9,a*.9);
       for(let i=0;i<3;i++){
         const t=i*TAU/3+u*4;
-        dot(g,p.x+Math.cos(t)*7,p.y+Math.sin(t)*4.6,2,0xc8fffa,a);
+        dot(g,p.x+Math.cos(t)*7,p.y+Math.sin(t)*4.6,2,0x79e4ec,a);
       }
     }else if(e.stage==='burst'||e.stage==='reaction'){
       const r=5+u*18*k;
       stroke(g,p,r,.77,0x68e7ea,2.5,a*.85);
-      stroke(g,p,r*.73,.76,0xd6ffff,1.1,a);
+      stroke(g,p,r*.73,.76,0x70d5ee,1.1,a);
       for(let i=0;i<5;i++){
         const t=i*TAU/5+e.seed*.1;
-        dot(g,p.x+Math.cos(t)*r,p.y+Math.sin(t)*r*.77,1.8,0xe8ffff,a);
+        dot(g,p.x+Math.cos(t)*r,p.y+Math.sin(t)*r*.77,1.8,0x77e1ed,a);
       }
     }
     return true;
@@ -75,17 +75,17 @@ export function drawWaterSpell(g,e,p,worldScale){
       for(let i=0;i<7;i++){
         const x=p.x+Math.sin(i*1.7+e.seed)*base*.85;
         const y=p.y-10-(i%3)*5+u*16;
-        line(g,x,y,x-1.8,y+5,0xd8ffff,1.4,a*.72);
+        line(g,x,y,x-1.8,y+5,0x79d7f0,1.4,a*.72);
       }
     }else if(e.stage==='burst'){
       const r=(14+u*55)*k;
-      stroke(g,p,r,.70,0xa5fff1,2.9,a*.91);
+      stroke(g,p,r,.70,0x26c9db,2.9,a*.91);
       stroke(g,p,r*.65,.7,0x159ed2,1.4,a*.77);
       for(let i=0;i<14;i++){
         const ang=i*2.4+e.seed*.06;
         const dr=.2+(i%4)*.23;
         const x=p.x+Math.cos(ang)*r*dr,y=p.y+Math.sin(ang)*r*dr*.68;
-        line(g,x,y-9,x-2,y+5,0xc8ffff,1.45,a*.83);
+        line(g,x,y-9,x-2,y+5,0x89e1f0,1.45,a*.83);
       }
     }else if(e.stage==='reaction'||e.stage==='aftermath'){
       stroke(g,p,9+u*15,.72,0x6eeeff,1.5,a*.65);
@@ -96,11 +96,11 @@ export function drawWaterSpell(g,e,p,worldScale){
      e.name==='Water Splash'){
     if(e.stage==='charge'||e.stage==='core'){
       stroke(g,p,10+u*base*k,.7,0x16dced,3,a*.76);
-      stroke(g,p,6+u*base*.66,.72,0xf0ffff,1.6,a*.86);
+      stroke(g,p,6+u*base*.66,.72,0x70e3f2,1.6,a*.86);
     }else if(e.stage==='burst'||e.stage==='reaction'){
       const r=clamp((15+u*60)*k,6,155);
       stroke(g,p,r,.76,0x08c7ea,3.8,a*.93);
-      stroke(g,p,r*.82,.76,0xc2ffff,2.1,a*.96);
+      stroke(g,p,r*.82,.76,0x68dfe9,2.1,a*.96);
       stroke(g,p,r*.55,.76,0x128fc6,1.55,a*.60);
       const count=e.name==='Tidal Bloom'?13:7;
       for(let i=0;i<count;i++){
@@ -109,8 +109,8 @@ export function drawWaterSpell(g,e,p,worldScale){
         const y=p.y+Math.sin(theta)*r*.74;
         const dx=Math.cos(theta),dy=Math.sin(theta);
         line(g,x-dx*8,y-dy*5,x+dx*7,y+dy*5,
-          i%3?0x4feeff:0xffffff,2.4,a*.88);
-        dot(g,x+dx*9,y+dy*8,2.2,0xeaffff,a*.8);
+          i%3?0x4feeff:0xb1e7ed,2.4,a*.88);
+        dot(g,x+dx*9,y+dy*8,2.2,0x74deef,a*.8);
       }
     }else if(e.stage==='aftermath'){
       stroke(g,p,14+u*52*k,.78,0x49e5ef,1.5,a*.65);
@@ -124,7 +124,7 @@ export function drawWaterSpell(g,e,p,worldScale){
     for(let i=0;i<5;i++){
       const ang=i*TAU/5+u*2;
       dot(g,p.x+Math.cos(ang)*r*.85,p.y+Math.sin(ang)*r*.7,
-        2.0,0xefffff,a*.85);
+        2.0,0x92e7d0,a*.85);
     }
     return true;
   }

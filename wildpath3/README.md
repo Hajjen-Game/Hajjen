@@ -52,3 +52,20 @@ Serve the repository at its root through a static web server. Open `/wildpath3/`
 4. Defeat foes in groups: flowers/bushes/trees grow and smaller settled plants fuse.
 5. Collect gold seeds, choose one upgrade after wave 1 and wave 2, clear guardian wave 3.
 6. Retry, pause/resume, rotate the phone, and compare rendering/performance.
+
+## Pass 1.1 — Visual Restoration + Score Return (2026-10-18)
+
+User device feedback on the first prototype identified three priorities: 2.x actor forms were more readable, the raised neon circle looked like a test scene, and visible score was missing.
+
+**Implemented in the isolated 3.0 build:**
+
+1. **Actual original 2.x capsule silhouettes** imported from `wildpath/src/actors-v2.js` through a thin adapter in `wildpath3/src/actors.js`, preserving actor body, face, arms, enemy silhouettes and mobile-friendly geometry.
+2. **A full-bleed painted woodland** with warm stepping stones, flower details, branching woodland and partial wooden borders. `wildpath3/src/arena.js` replaces the bright raised round test platform and navy emptiness. Same 13-unit playable radius and close mobile camera.
+3. **Water spell restoration**: original `wildpath/src/water-pixi.js` projectile tail and impact drawing via `wildpath3/src/vfx.js`; optional Pixi layer adds VFX on capable devices, preserving Babylon mesh fallback when unavailable.
+4. **Visible arcade score**: top-right live gold score, time-limited kill combo, saved best, score popups and end-screen score; `wildpath3/src/score.js` separates scoring from the battle engine.
+5. **Rewards**: enemy type, seeds, blooms/upgrades, fusion quality and wave clearing. Grove/enchanted fusion rewards exceed simple flower spamming. This is an arcade score and **not** the future 1–5 star tree-quality formula.
+6. New score and visual regression tests.
+
+**Score details:** kills 100/160/140/550 by enemy type with combo multiplier, gold seeds 25, plant generation/evolution 15/90/300/850, fusion by category 220/390/720/1400, wave clear 450. Tuning values are provisional.
+
+**Pending:** verify rendering and performance on actual Android devices; advanced multi-stage fusion quality, final Daisugi tree generator, mutations and hub are not part of this pass. Legacy Wildpath `/wildpath/` unchanged.

@@ -2,7 +2,7 @@
 // Reuses the original Energy Arena Crystal Bolt and impact renderers unchanged.
 // Babylon remains authoritative for the game, targeting, movement and camera.
 import { drawSlimGlint } from './slim-projectile.js?v=1.0.3';
-import {drawWaterProjectile,drawWaterSpell,drawRainfallField,drawWaterSurfaces} from './water-pixi.js?v=2.7.0';
+import {drawWaterProjectile,drawWaterSpell,drawRainfallField} from './water-pixi.js?v=2.7.0';
 import { slashFramePaths,slashFrameIndex,slashScreenAngle,slashVisualSize } from './weapon-slash.js?v=1.1.0';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
 import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
@@ -491,8 +491,6 @@ export class WildpathPixiCombat {
     const g=this.graphics;g.clear();
     if(game?.state==='play'){
       drawMagicPickups(g,game.pickups??[],(x,y,z)=>this.project(x,y,z),this.time);
-      drawWaterSurfaces(g,game.waterSurfaces??[],
-        (x,y,z)=>this.project(x,y,z),this.time);
       for(const area of game.areas){
         if(area.water)drawRainfallField(g,area,
           (x,y,z)=>this.project(x,y,z),this.time);

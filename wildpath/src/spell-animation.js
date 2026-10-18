@@ -155,7 +155,7 @@ export function createSpellAnimator(scene,{maxEffects=155,reducedMotion=false}={
     const signature=name==='Water Chain'||name==='Water Ricochet'||
       name==='Water Wave'||name==='Daisugi Upgrade';
     const minimum=natural?name==='Nature Fusion'?.65:.23:
-      signature?name==='Water Chain'?.12:.20:cue==='launch'?.095:.12;
+      signature?name==='Water Chain'?.12:.20:cue==='launch'?.07:.09;
     if(now-(lastSoundByCue.get(soundKey)??-100)<minimum)return;
     lastSoundByCue.set(soundKey,now);
     // Short, layered WebAudio signatures — no MP3 requests or sound assets.

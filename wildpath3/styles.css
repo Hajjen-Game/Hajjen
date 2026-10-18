@@ -136,3 +136,55 @@ body:not([data-mode="playing"]) #toast{display:none}
   #joystick{opacity:.7}
   .panel{max-width:450px}
 }
+
+/* Visual Restoration 1.1 / restored score, clean combat readability. */
+#game{z-index:0}
+.water-vfx-overlay{z-index:2}
+.gameHud{z-index:10}
+#toast{z-index:12}
+.screen{z-index:20}
+#floaters{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:9}
+.scoreFloat{
+  position:absolute;display:block;transform:translate(-50%,-50%);
+  font-size:clamp(17px,4.7vw,24px);font-weight:900;
+  color:#ffe676;white-space:nowrap;
+  text-shadow:0 2px 0 #724b31,1px 1px 0 #24384b,
+    -1px -1px 0 #24384b,0 0 7px #f0a73567;
+  animation:wildpathScoreRise .72s ease-out forwards;
+  will-change:transform,opacity
+}
+.scoreFloat.natureScore{color:#bafb80;text-shadow:0 2px 0 #235e4e,
+  1px 1px 0 #204b4a,-1px -1px 0 #204b4a}
+.scoreFloat.pickupScore{color:#ffce56}
+@keyframes wildpathScoreRise{
+  0%{opacity:.95;transform:translate(-50%,0) scale(.85)}
+  20%{opacity:1;transform:translate(-50%,-9px) scale(1.12)}
+  100%{opacity:0;transform:translate(-50%,-43px) scale(.98)}
+}
+.battleInfo{min-width:112px;padding:7px 8px 9px}
+.pauseBtn{margin:0 auto 4px;width:34px;height:30px}
+.scoreCaption,.scoreResultLabel{
+  color:#b2eed6;font-size:9px;letter-spacing:1.6px;font-weight:900;
+}
+#scoreText{font-size:clamp(21px,5.5vw,30px);font-weight:900;
+  color:#ffd264;line-height:1.04;
+  text-shadow:0 2px 0 #87543b,0 0 6px #ffaa3269;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+#comboText{font-size:9px;font-weight:900;color:#d1faae;
+  min-height:12px;white-space:nowrap;letter-spacing:.2px}
+.battleInfo .time{font-size:15px;line-height:1.2;color:#e5f8ec}
+.battleInfo .enemyCounter{font-size:9px}
+.natureHud{top:calc(147px + env(safe-area-inset-top))}
+#resultScore{font-size:clamp(44px,12vw,58px);font-weight:900;
+  line-height:1.2;color:#ffd363;letter-spacing:-1.5px;
+  text-shadow:0 3px 0 #805038,0 6px 0 #113d56;margin:3px auto 4px;
+  font-variant-numeric:tabular-nums}
+#resultCombo{font-size:11px;color:#bef7c9;font-weight:900;
+  letter-spacing:.6px;margin-bottom:13px}
+.resultPanel .statGrid{margin:13px 0 18px}
+@media(max-height:720px){
+  .natureHud{top:calc(142px + env(safe-area-inset-top))}
+  .battleInfo{padding:5px 6px}
+  .resultPanel .statGrid{margin:10px 0}
+  #resultScore{font-size:41px}
+}

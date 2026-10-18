@@ -68,3 +68,20 @@ A subsequent Android screenshot showed **pitch black terrain** with HUD, enemies
 **Fallback:** https://hajjen-game.github.io/Hajjen/wildpath/?daisugi=1&hex=0&rev=hex-ground-1-2
 
 Static and simulated functional checks passed; actual Android WebGL rendering requires user confirmation. 
+
+## Hex Grass 1.3 — crisp texture correction after Android visual test
+
+Mobile test after Hex Grass 1.2 returned a visible green floor but irregular, blurry neon blotches rather than recognizable hexagons. Root cause: the five cell colors were calculated only at vertices of the standard Babylon ground and linearly blended **between** vertices. Increasing subdivision count alone produced obvious smears and high vertex counts rather than distinct tiles.
+
+**New approach** (Daisugi only):
+- Preserve the **exact original 20-subdivision mesh**, base vertex colors, material, floor height and position.
+- Draw actual pointy-top, six-sided hex polygons using native Canvas 2D on a single 2048×2048 `BABYLON.DynamicTexture`.
+- Apply that generated diffuse texture **to the existing original ground material**; the existing green gradient and lighting still work underneath. No replacement floor mesh, no hidden surface, no added colliders.
+- Five soft green-tinted pigments, side length 3.2 world units; anti-aliased and closed joins with same-color strokes, **no black outlines**.
+- If DynamicTexture initialization or upload fails, catch the exception, restore the previous diffuseTexture (or no texture) and leave the **original green floor fully visible**. No changes to game logic, movement speed, camera, scoring, NatureGrowth or fusion.
+
+**Live:** https://hajjen-game.github.io/Hajjen/wildpath/?daisugi=1&rev=hex-crisp-1-3
+
+**Plain grass fallback:** https://hajjen-game.github.io/Hajjen/wildpath/?daisugi=1&hex=0&rev=hex-crisp-1-3
+
+`tests/hex-grass.test.js` validates exact polygon geometry, five shades, canvas output, texture application, failed texture fallback, original mesh preservation and Daisugi-only mode. Note that a real-device screenshot is still needed to confirm WebGL texture appearance and mobile performance.

@@ -2,7 +2,7 @@
 // Reuse the proven renderer/fusion engine without changing Wildpath 2.x.
 // Compact mobile placement, explicit combo seedlings and persistent ancestry.
 import {NatureGrowth} from '../../wildpath/src/nature-growth.js?v=3.1.0';
-import {ARENA_RADIUS} from './rules.js';
+import {ARENA_RADIUS} from './rules.js?v=3.0.2';
 const TAU=Math.PI*2;
 
 export function natureSpawnRadius(tier){

@@ -2,7 +2,7 @@
 // Reuses the original Energy Arena Crystal Bolt and impact renderers unchanged.
 // Babylon remains authoritative for the game, targeting, movement and camera.
 import { drawSlimGlint } from './slim-projectile.js?v=1.0.3';
-import {drawWaterProjectile,drawWaterSpell,drawRainfallField} from './water-pixi.js?v=3.0.0';
+import {drawWaterProjectile,drawWaterSpell,drawRainfallField} from './water-pixi.js?v=3.1.0';
 import { slashFramePaths,slashFrameIndex,slashScreenAngle,slashVisualSize } from './weapon-slash.js?v=1.1.0';
 import { drawProjectileImpact } from '../../pvp-25d/src/energy/arena/EnergyPixiImpacts.js';
 import { drawEclipsePixi } from '../../pvp-25d/src/energy/arena/EnergyEclipsePixiAccents.js';
@@ -15,17 +15,17 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const smooth=n=>{n=clamp(n,0,1);return n*n*(3-2*n)};
 const S={
   'Glint Dart':{c:0x65cfff,core:0xf3ffff,dim:0x258cbf},
-  'Water Dart':{c:0x2ad9f3,core:0xf5ffff,dim:0x087fbd},
-  'Rainfall':{c:0x43ddff,core:0xeaffff,dim:0x1d86c7},
-  'Tidal Bloom':{c:0x16d5ed,core:0xffffff,dim:0x1789c6},
-  'Tide Guard':{c:0x38f2c0,core:0xf2fff4,dim:0x159982},
+  'Water Dart':{c:0x02bfe6,core:0x7beaf2,dim:0x087fbd},
+  'Rainfall':{c:0x13c6e7,core:0x81e5f6,dim:0x1d86c7},
+  'Tidal Bloom':{c:0x0ac2df,core:0x8be8ea,dim:0x1789c6},
+  'Tide Guard':{c:0x1bdbaa,core:0x8cebc7,dim:0x159982},
   'Tidal Cascade':{c:0x6dcdea,core:0xe5fffb,dim:0x3b92b3},
   'Water Splash':{c:0x79dbe6,core:0xf7fffb,dim:0x4aa0b2},
   'Winter Pool':{c:0x81cefb,core:0xebffff,dim:0x3f8ab3},
   'Crystal Bloom':{c:0xb5a1ff,core:0xffffff,dim:0x5262a5},
   'Pale Guard':{c:0x7df4c4,core:0xebfff6,dim:0x3c9b8b},
-  'Magic Pickup':{c:0xffdc78,core:0xffffff,dim:0x26af9f},
-  'Magic Surge':{c:0xffdd75,core:0xffffff,dim:0x23d4a8},
+  'Magic Pickup':{c:0xffba3c,core:0xffdc78,dim:0x26af9f},
+  'Magic Surge':{c:0xffc94e,core:0xffe78f,dim:0x23d4a8},
   'Guard Block':{c:0x8dfbd9,core:0xffffff,dim:0x47b6a4},
   'Crystal Cascade':{c:0xb4a3ff,core:0xffffff,dim:0x585fc1},
   'Glint Splash':{c:0x86efff,core:0xf2ffff,dim:0x369fb2},
@@ -308,13 +308,13 @@ function drawMagicPickups(g,pickups,project,time){
     const pulse=1+Math.sin(time*7+e.seed)*.12,magnet=e.magnet;
     const r=(magnet?9.5:8)*pulse;
     // Warm collectible core contrasted with a cool mint rim and crisp gleam.
-    dot(g,p,r*1.55,0x24edc7,.12);
-    dot(g,p,r,0xffca62,.32);
-    ellipse(g,p,r*.88,r*.76,0x83ffe5,1.8,.94);
-    dot(g,p,r*.65,0xffd775,.86);
-    dot(g,p,r*.34,0xfffce2,1);
+    dot(g,p,r*1.43,0x15c7aa,.08);
+    dot(g,p,r,0xffac24,.27);
+    ellipse(g,p,r*.88,r*.76,0x24d6b7,1.7,.82);
+    dot(g,p,r*.65,0xffb52f,.91);
+    dot(g,p,r*.31,0xffd368,.98);
     const twinkle={x:p.x-r*.31,y:p.y-r*.44};
-    dot(g,twinkle,1.85,0xffffff,1);
+    dot(g,twinkle,1.2,0xfff1a0,.85);
     if(magnet&&time>0){
       const drift={x:p.x-5-Math.sin(time*9+e.seed)*5,
         y:p.y+7+Math.cos(time*6+e.seed)*3};

@@ -5,7 +5,7 @@ Status: Första implementation för användartest; **balans och grafik ej slutli
 
 ## Implementerat
 
-- Separat statisk webbsida på \`/daisugi-bloom/\` med Babylon.js 3D-spelbräde.
+- Separat statisk webbsida på `/daisugi-bloom/` med Babylon.js 3D-spelbräde.
 - Match-3 på 7×7, familj matchas oberoende av stadium. Fusion prioriterar högsta stadium.
 - Grodd/blomma/buske som procedurala mjuka 3D-miniatyrer, färdigt träd som övergående animation.
 - Bloom Pulse når fyra ortogonala grannar; varje växt max en pulstillväxt per sammanhängande kedja; varje nytt träd kan i sin tur pulsa.
@@ -49,7 +49,7 @@ Status: Första implementation för användartest; **balans och grafik ej slutli
 6. Kontrollera att två träd i samma våg animeras tillsammans och att inga diagonala växter utvecklas.
 7. Kontrollera att permanent livskraft inte dubblas vid omspelning av samma nivå med samma resultat.
 8. Prova att byta utseende i trädvyn utan att tillväxten försvinner.
-9. Prova på verklig mobilbredd och med \`Visa växtstadier\` på/av samt \`Minska animationer\`.
+9. Prova på verklig mobilbredd och med `Visa växtstadier` på/av samt `Minska animationer`.
 
 ## Föreslaget nästa utvecklingspass efter feedback
 
@@ -61,4 +61,4 @@ Status: Första implementation för användartest; **balans och grafik ej slutli
 
 ## Omfattning
 
-Kod är begränsad till \`daisugi-bloom/\`. Ingen ändring av \`wildpath/\`, \`arena3v3/\`, \`pvp-25d/\`, \`v4-b/\` eller rootens navigering. Designbeslut i \`DAISUGI_BLOOM_GDD_1_0.md\` är fortsatt referens; alla nya värden ovan är testbara arbetsantaganden.
+Kod är begränsad till `daisugi-bloom/`. Ingen ändring av `wildpath/`, `arena3v3/`, `pvp-25d/`, `v4-b/` eller rootens navigering. Designbeslut i `DAISUGI_BLOOM_GDD_1_0.md` är fortsatt referens; alla nya värden ovan är testbara arbetsantaganden.

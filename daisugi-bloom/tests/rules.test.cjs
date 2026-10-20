@@ -61,4 +61,35 @@ check("Snapshot persists grown plants and move count",()=>{
  const g=new R.Game(0),reloaded=new R.Game(0,g.save());
  assert.equal(JSON.stringify(g.board),JSON.stringify(reloaded.board));assert.equal(g.moves,reloaded.moves);
 });
-console.log("Daisugi Bloom 1.1 rule tests passed.");
+
+check("Score awards are positive, include pulse and harvest, and reconcile with final total",()=>{
+ const g=fixture(),events=g.swap(18,25).events;
+ const sums=events.reduce((total,e)=>total+(e.scoreDelta||0),0);
+ assert(g.score>1000,"A three-tree chain should feel substantial");
+ assert.equal(sums,g.score);
+ assert(events.some(e=>e.type==="fusion"&&e.scoreDelta>=100));
+ assert(events.some(e=>e.type==="pulse"&&e.scoreDelta>0));
+ assert(events.some(e=>e.type==="harvest"&&e.scoreDelta>=1500));
+ assert(events.some(e=>e.type==="hero"&&e.positions.length),"Tree should be celebrated before harvest");
+ const firstHero=events.findIndex(e=>e.type==="hero"),firstHarvest=events.findIndex(e=>e.type==="harvest");
+ assert(firstHero>=0&&firstHarvest>firstHero);
+});
+check("Tree hero frames retain visible stage-five models until harvest",()=>{
+ const events=fixture().swap(18,25).events;
+ for(const e of events.filter(e=>e.type==="hero")){
+  e.positions.forEach(i=>assert.equal(e.board[i].stage,5));
+ }
+});
+check("A saved run preserves score and peak combo",()=>{
+ const g=fixture();g.swap(18,25);
+ const next=new R.Game(0,g.save());
+ assert.equal(next.score,g.score);assert.equal(next.peakCombo,g.peakCombo);
+});
+check("Power Move scores while staying free",()=>{
+ const g=fixture(),before=g.moves;
+ g.powers=1;g.board[23].family="verdant";g.board[24].family="verdant";g.board[25].family="mistbloom";
+ const result=g.power(25,"verdant");assert(result.ok);
+ assert(g.score>0);assert.equal(g.moves,before);
+});
+
+console.log("Daisugi Bloom 1.2 rule tests passed.");

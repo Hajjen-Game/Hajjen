@@ -17,3 +17,15 @@ main{flex:1}.eyebrow{font-weight:800;letter-spacing:.16em;color:#78977b;font-siz
 @media(min-width:720px){.game-view{padding-top:20px}.topbar{padding-top:20px}.menu-view{padding-top:33px}}
 @media(max-width:390px){.topbar{padding:11px 14px 5px}.game-view{padding:5px 9px 26px}.board-frame{border-width:5px;border-radius:17px}.goal-bar{padding:10px 12px}.energy-section{padding:10px 12px}.family-choice{font-size:9px}.modal-card{padding:20px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* 1.1 · Garden material pass: earth instead of bright Excel cells. */
+.board-frame{
+ background:linear-gradient(145deg,#b3b69b,#b5a990);
+ border:5px solid #b4baa0;
+ border-radius:23px;
+ box-shadow:0 11px 29px #52664a21,inset 0 2px 0 #dce2c9;
+}
+.board-decoration{display:none}
+.goal-bar{border-color:#dadfcd;background:#fbfbf4}
+.game-view{color:#344736}
+@media(max-width:390px){.board-frame{border-width:4px}}

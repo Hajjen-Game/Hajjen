@@ -75,7 +75,7 @@
     this.rolls=0;
   }
   Game.prototype.fresh=function(){var v=this.random();this.rolls++;return v;};
-  Game.prototype.frame=function(type,extra){return Object.assign({type:type,board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,goal:this.progress()},extra||{});};
+  Game.prototype.frame=function(type,extra){return Object.assign({type:type,board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,fusions:this.fusions,maxStage:this.maxStage,goal:this.progress()},extra||{});};
   Game.prototype.progress=function(){var g=this.config.goal;if(g.type==="fusion")return Math.min(this.fusions,g.count);if(g.type==="stage")return g.count?Math.min(this.fusions,g.count):Math.min(this.maxStage,g.stage);if(g.type==="trees")return this.trees;if(g.type==="chain")return this.bestChain;if(g.type==="powerTrees")return this.powerUsed?this.trees:0;return 0;};
   Game.prototype.goalText=function(){var g=this.config.goal;if(g.type==="fusion")return "Skapa "+g.count+" fusioner";if(g.type==="stage")return g.count?"Skapa "+g.count+" fusioner och odla en buske":"Utveckla till "+(["","frö","grodd","blomma","buske","träd"][g.stage]);if(g.type==="trees")return "Skapa "+g.count+" träd";if(g.type==="chain")return "Gör en pulskedja på "+g.count+" träd och skörda "+g.trees+" totalt";return "Använd Power Move och skapa "+g.count+" träd";};
   Game.prototype.target=function(){return this.config.goal.count||this.config.goal.stage;};

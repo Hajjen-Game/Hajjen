@@ -7,7 +7,7 @@ Ett **fristående, mobilfokuserat 7×7 match-3-spel** med levande 3D-växter, Na
 - **GitHub Pages (förväntad adress när Pages-publiceringen är aktiv):** https://hajjen-game.github.io/Hajjen/daisugi-bloom/
 - **Repo:** https://github.com/Hajjen-Game/Hajjen/tree/main/daisugi-bloom
 - **Lokal körning:** starta en statisk HTTP-server i repots rot, exempelvis:
-  \`python3 -m http.server 8000\`
+  `python3 -m http.server 8000`
   Öppna sedan http://localhost:8000/daisugi-bloom/
 
 Babylon.js hämtas från CDN vid start, vilket kräver internetanslutning. Ingen paketering eller byggprocess krävs.
@@ -32,20 +32,20 @@ Babylon.js hämtas från CDN vid start, vilket kräver internetanslutning. Ingen
 
 | Fil | Ansvar |
 |---|---|
-| \`index.html\` | HUD, nivåmeny, trädvy, inställningar och resultatrutor |
-| \`styles.css\` | Responsiv mobilpresentation |
-| \`src/rules.js\` | Ren spelmekanik: generation, matcher, fusion, pulser, tyngdkraft, poäng och fem nivåer |
-| \`src/visuals.js\` | Babylon 3D-växter, ljus, spelplan, animationer och permanent träd |
-| \`src/app.js\` | Kontroller, ljud, UI, sparning och nivåflöde |
-| \`tests/rules.test.cjs\` | Logiska regressionskontroller utan externa beroenden |
-| \`docs/DAISUGI_BLOOM_GDD_1_0.md\` | Överenskommen speldesign och uppdelning mellan låst/öppet |
-| \`docs/FIRST_PLAYABLE_1_0.md\` | Prototypens antaganden, testplan och återstående arbete |
+| `index.html` | HUD, nivåmeny, trädvy, inställningar och resultatrutor |
+| `styles.css` | Responsiv mobilpresentation |
+| `src/rules.js` | Ren spelmekanik: generation, matcher, fusion, pulser, tyngdkraft, poäng och fem nivåer |
+| `src/visuals.js` | Babylon 3D-växter, ljus, spelplan, animationer och permanent träd |
+| `src/app.js` | Kontroller, ljud, UI, sparning och nivåflöde |
+| `tests/rules.test.cjs` | Logiska regressionskontroller utan externa beroenden |
+| `docs/DAISUGI_BLOOM_GDD_1_0.md` | Överenskommen speldesign och uppdelning mellan låst/öppet |
+| `docs/FIRST_PLAYABLE_1_0.md` | Prototypens antaganden, testplan och återstående arbete |
 
 Kör regeltesterna från reporoten:
 
-\`\`\`bash
+```bash
 node daisugi-bloom/tests/rules.test.cjs
-\`\`\`
+```
 
 ## Viktig avgränsning
 
@@ -53,8 +53,8 @@ Det här är **First Playable**, inte ett slutpolerat spel. Fem nivåer, 3D-väx
 
 ## Fortsättning i en ny chatt
 
-1. Läs \`docs/DAISUGI_BLOOM_GDD_1_0.md\` och \`docs/FIRST_PLAYABLE_1_0.md\`.
+1. Läs `docs/DAISUGI_BLOOM_GDD_1_0.md` och `docs/FIRST_PLAYABLE_1_0.md`.
 2. Jämför senaste testfeedback med **LÅST** och **ARBETSREGLER**.
 3. Kontrollera den spelbara prototypen och kör tester innan justeringar.
-4. Håll allt under \`daisugi-bloom/\` för att inte påverka andra spel.
+4. Håll allt under `daisugi-bloom/` för att inte påverka andra spel.
 5. Uppdatera design- och implementationslogg efter varje nytt pass.

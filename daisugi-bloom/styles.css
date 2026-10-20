@@ -29,3 +29,147 @@ main{flex:1}.eyebrow{font-weight:800;letter-spacing:.16em;color:#78977b;font-siz
 .goal-bar{border-color:#dadfcd;background:#fbfbf4}
 .game-view{color:#344736}
 @media(max-width:390px){.board-frame{border-width:4px}}
+
+
+/* -------------------------------------------------------------------------
+ DAISUGI BLOOM 1.2 · Modern Japanese garden / midnight indigo × jade × sakura
+ Whole-app visual language. Cream is an accent, not the default page colour.
+ ------------------------------------------------------------------------- */
+:root{
+ color-scheme:dark;
+ --text:#fff3df;
+ --muted:#b5c5bd;
+ --green:#52c5a3;
+ --deep:#17545a;
+ --cream:#f7e8c9;
+ --bg:#122b37;
+ --line:#52746d;
+ --radius:20px;
+ --ink:#102b36;
+ --jade:#4bc5a0;
+ --gold:#f6c769;
+ --sakura:#f29ab8;
+ --vermillion:#f18069;
+ --indigo:#223951;
+}
+html{background:#102a37}
+body{color:var(--text);background:
+ radial-gradient(ellipse at 92% 0%,#3c5b6d 0,transparent 38%),
+ radial-gradient(ellipse at -10% 70%,#4b3e5f 0,transparent 44%),
+ linear-gradient(155deg,#102a37 3%,#193d43 52%,#182d43 100%);
+}
+body:before{content:"";position:fixed;pointer-events:none;z-index:-1;inset:0;
+ background:repeating-linear-gradient(150deg,transparent 0 56px,#a4d9c107 57px 59px,transparent 60px 116px);
+}
+.ambient{opacity:.24;filter:blur(75px)}.ambient-left{background:#7c345d}.ambient-right{background:#1ea58f}
+.topbar{max-width:940px;padding-top:17px;padding-bottom:10px}
+.brand{color:#fceacf}.brand-icon{color:#f49abb;text-shadow:0 0 15px #e975a899;font-size:38px}
+.brand strong{color:#fff0d7}.brand small{color:#f5bd8f}
+.top-action,.icon-button{background:linear-gradient(155deg,#355866,#203d4b);color:#f9eacf;border:1px solid #6a8a85;
+ box-shadow:inset 0 1px #b1d8c52e,0 5px 14px #081f2940}
+.top-action span:first-child{color:var(--sakura)}
+.hero-copy{padding-top:36px}
+.eyebrow{color:#f1c87a}
+.hero-copy h1{color:#fff0d7;text-shadow:0 4px 24px #060f1640}
+.hero-copy h1 em{color:#f2a0be}
+.hero-copy p,.panel-title-row p,.menu-footer p{color:#c2d2c7}
+.menu-panel{background:linear-gradient(163deg,#2c5155,#213a50);border:1px solid #628d7e;
+ box-shadow:0 20px 45px #071d2938,inset 0 1px #efffd62e}
+.panel-title-row h2,.modal-heading h2{color:#fff0dc}
+.pill{background:#4b6865;color:#f5da99;border:1px solid #889b76}
+.level-tile{background:linear-gradient(112deg,#34555b,#2a4554);border:1px solid #668a80;color:#fff2db;
+ box-shadow:0 3px 12px #0b22352c}
+.level-number{color:#15363c;background:linear-gradient(145deg,#f7d490,#eaa5aa);box-shadow:inset 0 1px #fff4dc}
+.level-tile strong{color:#fff0d7}.level-tile small{color:#b8cabb}
+.level-tile:not(:disabled):hover{border-color:#e9c183}
+.level-tile.locked{opacity:.60;filter:grayscale(.40)}
+.level-scores{color:#f6c669;text-shadow:0 0 8px #ffbe6333}
+.primary-button{background:linear-gradient(110deg,#df6579,#ea9568 65%,#ecbd6b);
+ color:#1a3038;box-shadow:0 7px 22px #ad4f5c3c,inset 0 1px #fff5da8a;
+ border:1px solid #e8ac87}
+.primary-button:hover:not(:disabled){filter:brightness(1.1)}
+.secondary-button{background:#375765;color:#f6ebd1;border:1px solid #648580}
+.game-topline h1{color:#fff0d6}
+.moves-badge{background:linear-gradient(145deg,#ea8d79,#c35e79);border:1px solid #f4b98e;
+ box-shadow:inset 0 1px #ffe3c285,0 5px 18px #0d1d273d;color:#fff4e0}
+.moves-badge small{color:#fff0cf}.moves-badge strong{color:#fffef2;text-shadow:0 2px 6px #733a4833}
+.goal-bar{background:linear-gradient(110deg,#284a55,#2a5960);border:1px solid #69a48a;
+ box-shadow:inset 0 1px #d8f2da25;color:#fff4de}
+.goal-symbol{color:#f4a9bd}.goal-bar strong{color:#fbd478}
+.game-view{color:#fff2de}
+.board-frame{background:linear-gradient(145deg,#355c63,#2b4a52);border:5px solid #4e8280;
+ border-radius:23px;box-shadow:0 12px 34px #051b2b7a,inset 0 2px #b3e1c169}
+.selection-line{color:#d6ded0}
+.selection-line button{color:#f2cb8f}
+.energy-section{background:linear-gradient(132deg,#2d4b5d,#263c57);border:1px solid #698a8b;
+ box-shadow:inset 0 1px #bde1c33d,0 10px 25px #0419254f}
+.energy-label{color:#ffda90}.energy-track{background:#152f42;height:15px;border:1px solid #5d7b6b}
+.energy-track>div{background:linear-gradient(90deg,#2ac6ac,#55d6a0,#f1cb6e);box-shadow:0 0 14px #45d49d75}
+.power-button{color:#c7ddcf}
+.power-button:not(:disabled){background:linear-gradient(110deg,#ef9b73,#f3ca7e);
+ color:#23454c;border:1px solid #ffd8ad;box-shadow:0 5px 15px #ef9e735c;
+ animation:power-pulse-12 2.3s ease-in-out infinite}
+.power-button span:first-child{color:#864b61}
+.family-picker{border-top-color:#5c7d81}.picker-heading{color:#ffe6bd}.picker-heading button{color:#f3c8bd}
+.family-choice{color:#1d3941;box-shadow:inset 0 1px #fff8e9c4}.family-choice.active{border-color:#f4c567;box-shadow:0 0 0 2px #e6af73a6}
+.family-picker p{color:#bbcdc5}.quiet-button{color:#d6c8aa}.quiet-button:hover{color:#ffc78b}
+.game-tip{color:#c4d4c6}
+.modal-backdrop{background:#07151bbd;backdrop-filter:blur(5px)}
+.modal-card{background:linear-gradient(148deg,#2b4d5b,#1e3447);border:1px solid #71978b;color:#fff4df;
+ box-shadow:0 25px 80px #03151ada,inset 0 1px #dfecdf38}
+.result-card h2,.confirm-card h2{color:#ffe8c4}
+.result-glyph{color:#f1ba6f;text-shadow:0 0 18px #eeaa7f}
+.result-card>p,.tree-explain,.help-card p,.confirm-card p{color:#cbd5c5}
+.stars{color:#ffcf75;text-shadow:0 0 10px #edac6c7d}
+.result-stats{background:#243e4f;border:1px solid #638382}.result-stats strong{color:#f9d186}.result-stats small{color:#c1d1c5}
+.tree-canvas-shell{background:linear-gradient(#385d60,#263e53);border:1px solid #729285}
+.tree-progress-row{color:#dce5d5}.tree-progress-row strong{color:#f4c476}
+.style-button{background:#34545c;color:#ecc8ab;border-color:#527576}.style-button span{color:#fff0d8}
+.style-button small{color:#bdd0be}.style-button.active{background:#476663;border-color:#f3cc7e;box-shadow:0 0 0 1px #f3cc7e70}
+.setting-row{border-top-color:#53747b}.setting-row small{color:#c4d0c4}.setting-row input{accent-color:#e3a771}
+.toast{background:#eeb876;color:#243642;border:1px solid #fff0cb;box-shadow:0 10px 25px #080e195c}
+.stage-number{color:#274351}
+.stage-number span{background:#faebcde0}
+.fatal-error{background:#682f42;color:#fff0d8;border-color:#f19d8d}
+
+/* Prominent score feedback without sacrificing the 7x7 board size. */
+.score-ribbon{position:relative;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;margin:0 1px 10px;padding:8px 14px;min-height:62px;border-radius:17px;
+ background:linear-gradient(110deg,#4d3657,#33485f 72%,#305a5a);
+ border:1px solid #bc8e8f;box-shadow:inset 0 1px #ffffff26,0 6px 19px #061d2b4a}
+.score-current{display:flex;align-items:center;gap:10px;min-width:0}
+.score-current .score-glyph{font-size:31px;color:#f5c66f;text-shadow:0 0 12px #fac87799}
+.score-current small,.score-record small,.score-result small{display:block;font-size:10px;font-weight:900;letter-spacing:.12em;color:#f7c7a3}
+.score-current strong{display:block;color:#ffdf94;font:900 clamp(20px,5.2vw,29px)/1.1 Nunito,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.score-record{text-align:right;color:#e8dab7}.score-record strong{display:block;color:#f9e6c4;font-weight:800;font-variant-numeric:tabular-nums}
+.score-combo{position:absolute;top:-13px;right:18px;background:#f4bb66;color:#2c3b44;
+ font-size:11px;font-weight:900;letter-spacing:.05em;padding:4px 11px;border-radius:20px;border:1px solid #fff1c9;
+ box-shadow:0 3px 12px #f0b66c71;animation:chip-pop .4s both}
+.score-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.score-pop{position:absolute;transform:translate(-50%,-50%);color:#ffdf7c;
+ font:900 clamp(15px,3.9vw,23px) Nunito,system-ui,sans-serif;text-shadow:0 2px 2px #432f4d,0 0 10px #6e3d55,0 0 13px #ffe199;
+ white-space:nowrap;animation:score-rise 1.12s cubic-bezier(.18,.64,.35,1) both}
+.score-pop.pulse{color:#9bf8bf}.score-pop.harvest{color:#ffd08d;font-size:25px}
+.tree-celebration{position:absolute;z-index:6;top:8%;left:50%;width:max-content;max-width:93%;
+ transform:translateX(-50%);background:linear-gradient(100deg,#192b3ce8,#346160ee);
+ border:2px solid #ffd291;border-radius:16px;padding:7px 18px 8px;text-align:center;
+ box-shadow:0 0 25px #f5c87180,0 6px 20px #0e2f3180;pointer-events:none;
+ animation:celebration-enter .35s cubic-bezier(.2,1.6,.45,1) both}
+.tree-celebration .tree-glyph{color:#f5c778;font-size:25px;margin-right:8px}
+.tree-celebration strong{color:#fff4d2;font:900 clamp(15px,4vw,22px) Nunito,sans-serif;letter-spacing:.05em}
+.tree-celebration small{display:block;color:#a5f3b8;font-size:9px;font-weight:900;letter-spacing:.22em}
+.score-result{padding:14px;border-radius:16px;margin:15px 0 5px;background:linear-gradient(125deg,#583950,#314d5b);
+ border:1px solid #d1a078;display:flex;flex-direction:column;gap:2px;align-items:center}
+.score-result strong{font:900 36px/1.1 Nunito,sans-serif;color:#ffe09a}
+.score-result span{font-size:12px;color:#e9c8ae}
+@keyframes score-rise{
+ 0%{opacity:0;transform:translate(-50%,-10%) scale(.65)}
+ 22%{opacity:1;transform:translate(-50%,-55%) scale(1.18)}
+ 75%{opacity:1}
+ 100%{opacity:0;transform:translate(-50%,-170%) scale(.95)}
+}
+@keyframes chip-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes celebration-enter{from{opacity:0;transform:translate(-50%,-18px) scale(.72)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes power-pulse-12{0%,100%{box-shadow:0 4px 15px #f0a67370}50%{box-shadow:0 4px 23px #ffca88cf}}
+@media(max-width:390px){.score-ribbon{padding:7px 11px;margin-bottom:8px;min-height:56px}.score-current .score-glyph{font-size:25px}}
+@media(prefers-reduced-motion:reduce){.score-pop,.tree-celebration,.score-combo{animation-duration:.01ms!important}}

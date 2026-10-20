@@ -6,6 +6,10 @@ function fixture(){
  const g=new R.Game(0);
  // Fully controlled mature arrangement for testing resolution only,
  // not for players to receive as an introductory level.
+ for(let i=0;i<49;i++){
+  g.board[i].family=R.families[(Math.floor(i/7)+(i%7)*2)%4];
+  g.board[i].stage=1;
+ }
  g.board[23].family="sakura";g.board[23].stage=1;
  g.board[24].family="sakura";g.board[24].stage=4;
  g.board[25].family="verdant";g.board[25].stage=1;

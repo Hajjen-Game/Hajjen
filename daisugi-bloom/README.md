@@ -1,4 +1,10 @@
-# Daisugi Bloom — First Playable 1.0
+# Daisugi Bloom — Visual & Gameplay Overhaul 1.1
+
+## Senaste utvecklingspass
+
+**Visual & Gameplay Overhaul 1.1** – större, tydligare procedurala 3D-växter; varm jord istället för vita Excel-rutor; mer livfulla växtfusioner, gröna Bloom Pulse-vågor och en bättre daisugi-silhuett. De fem introduktionsnivåerna är nu riktiga flerdragsutmaningar snarare än färdiga endragsdemos.
+
+[Ändringslogg och testplan för Overhaul 1.1](docs/OVERHAUL_1_1.md)
 
 Ett **fristående, mobilfokuserat 7×7 match-3-spel** med levande 3D-växter, Nature Cascades, Bloom Pulse och ett permanent Daisugi-träd. Spelet är en separat prototyp och ändrar inte Wildpath eller de andra spelen.
 

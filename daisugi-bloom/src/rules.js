@@ -35,7 +35,7 @@
     patch(3,4,level===4?"mistbloom":"verdant",1);patch(2,4,"sakura",1);
     if(level===2){patch(2,3,"verdant",4);}
     if(level===3){patch(2,3,"verdant",4);patch(4,3,"sunleaf",4);}
-    if(level===4){patch(3,2,"verdant",1);patch(3,3,"verdant",4);patch(3,4,"mistbloom",1);patch(2,4,"sunleaf",1);patch(2,3,"sakura",4);patch(4,3,"sunleaf",4);}
+    if(level===4){patch(3,2,"verdant",1);patch(3,3,"verdant",4);patch(3,4,"mistbloom",1);patch(2,4,"verdant",1);patch(2,3,"sakura",4);patch(4,3,"sunleaf",4);}
     var protectedCells=new Set(level===4?[23,24,25,17,18,31]:[23,24,25,17].concat(level>=2?[18]:[]).concat(level>=3?[31]:[]));
     for(var loops=0;loops<70&&scan(board).length;loops++){var bad=scan(board).flat().filter(function(i){return !protectedCells.has(i);});if(!bad.length)break;var t=bad[Math.floor(random()*bad.length)];board[t].family=families[Math.floor(random()*4)];}
     if(!hasMove(board)){patch(3,2,"sakura",1);patch(3,3,"sakura",level===0?1:4);patch(2,4,"sakura",1);patch(3,4,"verdant",1);}

@@ -2,8 +2,8 @@
   "use strict";
   var N=7, families=["sakura","verdant","mistbloom","sunleaf"];
   var levels=[
-    {name:"First Petals",subtitle:"Få trädgården att vakna",moves:14,goal:{type:"fusion",count:9},par:8,intro:"Skapa nio fusioner. Varje matchning utvecklar en växt; försök att få en blomma på köpet."},
-    {name:"Growing Together",subtitle:"Odla din första buske",moves:20,goal:{type:"stage",stage:4,count:11},par:12,intro:"Bygg upp en blomma och utveckla den vidare till buske. Växter i samma familj kan matchas oavsett stadium."},
+    {name:"First Petals",subtitle:"Få trädgården att vakna",moves:14,goal:{type:"fusion",count:14},par:8,intro:"Skapa fjorton fusioner. Varje matchning utvecklar en växt; försök att få en blomma på köpet."},
+    {name:"Growing Together",subtitle:"Odla din första buske",moves:20,goal:{type:"stage",stage:4,count:15},par:12,intro:"Bygg upp en blomma och utveckla den vidare till buske. Växter i samma familj kan matchas oavsett stadium."},
     {name:"The First Bloom",subtitle:"Ditt första riktiga träd",moves:25,goal:{type:"trees",count:3},par:16,intro:"Nu börjar du med frön och några groddar. Odla själv fram en buske till ett träd och se den första pulsen."},
     {name:"Ripple Grove",subtitle:"Bygg din egen kedjereaktion",moves:35,goal:{type:"chain",count:2,trees:4},par:23,intro:"Placera och utveckla buskar nära varandra. Skapa sedan två träd i en sammanhängande Bloom Pulse-kedja."},
     {name:"Nature's Gift",subtitle:"Strategi med Power Move",moves:31,goal:{type:"powerTrees",count:5},par:20,intro:"Du börjar med en gratis Power Move, men behöver bygga upp dina träd. Använd fröplaceringen när den gör verklig nytta."}

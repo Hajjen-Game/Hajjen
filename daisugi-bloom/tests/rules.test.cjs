@@ -17,7 +17,7 @@ check("Power Move starts a free match and grants life force, not energy",()=>{
  assert(r.ok&&g.complete&&g.bestChain>=3);assert.equal(g.moves,moves);assert.equal(g.energy,0);
 });
 check("Refill only produces stage-one seeds",()=>{
- const g=new R.Game(3);for(const e of g.swap(18,25).events)if(e.type==="fall")e.board.forEach(p=>{if(p&&p.id>=50)assert.equal(p.stage,1);});
+ const g=new R.Game(3),known=new Set(g.board.map(p=>p&&p.id));for(const e of g.swap(18,25).events){if(e.type==="fall")e.board.forEach(p=>{if(p&&!known.has(p.id))assert.equal(p.stage,1);});e.board.forEach(p=>{if(p)known.add(p.id);});}
 });
 check("Save/restore retains plants and moves",()=>{
  const g=new R.Game(0),reloaded=new R.Game(0,g.save());

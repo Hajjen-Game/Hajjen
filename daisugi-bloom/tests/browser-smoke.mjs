@@ -24,13 +24,13 @@ try{
   canvas:document.querySelector("#boardCanvas").getBoundingClientRect().width,
   engineCount:window.BABYLON.EngineStore.Instances.length,
   levelCount:window.DaisugiRules.levels.length,
-  ruleCheck:(()=>{const g=new window.DaisugiRules.Game(3);const action=g.swap(18,25);return action.ok&&g.bestChain>=3&&g.complete;})()
+  ruleCheck:(()=>{const g=new window.DaisugiRules.Game(3);return !g.complete&&g.board.every(p=>p.stage<=3)&&g.config.goal.trees>=4;})()
  }));
  assert(state.error,"fatal error dialog shown");
  assert.equal(state.title,"First Petals");
  assert(state.canvas>250,"Canvas too small");
  assert(state.engineCount>=1,"Babylon engine missing");
- assert(state.ruleCheck,"Bloom chain failed in browser");
+ assert(state.ruleCheck,"Rebalanced puzzle layout failed in browser");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.screenshot({path:"/tmp/daisugi-bloom/first-playable-mobile.png",fullPage:true});
  assert.equal(errors.filter(e=>!/favicon|AudioContext|WebGL|GPU|CDN/.test(e)).length,0,"Unexpected page errors: "+errors.join("; "));

@@ -5,7 +5,7 @@
  var names={sakura:"Sakura",verdant:"Verdant",mistbloom:"Mistbloom",sunleaf:"Sunleaf"};
  var stages=["","Frö","Grodd","Blomma","Buske","Träd"];
  var KEY="daisugi-bloom-first-playable-v1";
- var defaults={unlocked:0,bestStars:{},bestEssence:{},totalEssence:0,style:"upright",showStages:false,sound:true,reduceMotion:false,run:null};
+ var defaults={unlocked:0,bestStars:{},bestEssence:{},totalEssence:0,style:"upright",bestScore:{},showStages:false,sound:true,reduceMotion:false,run:null};
  function readSave(){try{var raw=JSON.parse(localStorage.getItem(KEY));return Object.assign({},defaults,raw||{});}catch(e){return Object.assign({},defaults);}}
  var save=readSave(),game=null,level=0,garden=null,tree=null,selected=-1,powerFamily=null,busy=false,skip=false,fromResult=false,pendingPower=-1,audio=null,toastTimer=0;
  function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){/* storage may be disabled */}}
@@ -26,6 +26,48 @@
    gain.gain.exponentialRampToValueAtTime(.0001,t+.18);
    oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(t);oscillator.stop(t+.19);
   }catch(e){}
+ }
+ function pretty(value){return Math.max(0,Math.round(Number(value)||0)).toLocaleString("sv-SE");}
+ function floatScore(amount,index,kind){
+  if(!amount)return;
+  var layer=$("scoreFx"),el=document.createElement("span");
+  el.className="score-pop "+(kind||"");el.textContent="+"+pretty(amount);
+  var anchor=Number.isInteger(index)?index:24;
+  el.style.left=((anchor%7+.5)*100/7)+"%";
+  el.style.top=((Math.floor(anchor/7)+.5)*100/7)+"%";
+  layer.appendChild(el);
+  setTimeout(function(){el.remove();},save.reduceMotion?170:1220);
+ }
+ function displayPoints(evt){
+  if(!evt||!(evt.scoreDelta>0))return;
+  if(evt.type==="fusion"&&evt.groups&&evt.groups.length){
+   evt.groups.forEach(function(group){floatScore(group.points,group.at,"fusion");});
+  }else if(evt.type==="pulse"&&evt.targets&&evt.targets.length){
+   var each=Math.round(evt.scoreDelta/evt.targets.length);
+   evt.targets.forEach(function(target){floatScore(each,target.to,"pulse");});
+  }else if(evt.type==="harvest"){
+   var anchors=evt.positions||[];
+   var per=anchors.length?Math.round(evt.scoreDelta/anchors.length):evt.scoreDelta;
+   anchors.forEach(function(index){floatScore(per,index,"harvest");});
+  }
+ }
+ function setCombo(evt){
+  var chip=$("comboChip");
+  if(evt.type==="fusion"&&evt.combo>=2){
+   chip.textContent="NATURE CASCADE ×"+(evt.multiplier||evt.combo).toLocaleString("sv-SE",{maximumFractionDigits:1});
+   chip.hidden=false;
+  }else if(evt.type==="harvest"&&evt.chain>=2){
+   chip.textContent=evt.chain>=4?"WILD BLOOM · "+evt.chain+" TRÄD":"BLOOM CHAIN · "+evt.chain+" TRÄD";
+   chip.hidden=false;
+  }else if(evt.type==="swap"||evt.type==="power"){chip.hidden=true;}
+ }
+ async function celebrateTree(evt){
+  var panel=$("treeCelebration");
+  panel.querySelector("strong").textContent=(evt.positions||[]).length>1?"TRÄDEN BLOMSTRAR!":"TRÄD SKAPAT!";
+  panel.querySelector("small").textContent=(evt.positions||[]).length+" TRÄD · BLOOM PULSE";
+  panel.hidden=false;
+  try{await garden.play(evt,save.reduceMotion||skip);}
+  finally{panel.hidden=true;}
  }
  function renderMenu(){
   var list=$("levelList");list.replaceChildren();
@@ -56,6 +98,7 @@
   $("gameTip").textContent=game.config.intro;
   $("selectedInfo").textContent="Välj en växt och byt plats med en granne";
   hide("clearSelection");
+  $("scoreFx").replaceChildren();hide("treeCelebration");hide("comboChip");
   renderHUD();
   saveRun();
   if(i===4&&!resume)toast("Power Move redo! Välj familj under spelplanen.");
@@ -69,6 +112,8 @@
   if(!game)return;
   var state=evt||game;
   $("movesCount").textContent=state.moves;
+  $("scoreCount").textContent=pretty(state.score);
+  $("scoreBest").textContent=pretty(Math.max(save.bestScore[level]||0,state.score||0));
   var goal=game.config.goal,progress=Math.min(game.target(),evt?evt.goal:game.progress());
   var line=progress+" / "+game.target();
   if(goal.type==="stage"&&goal.count)line+=" · "+((evt?evt.maxStage:game.maxStage)>=goal.stage?"🌿✓":"🌿");
@@ -113,8 +158,10 @@
    for(var i=0;i<events.length;i++){
     var e=events[i];
     if(e.type==="win"||e.type==="lose"){finished=e;continue;}
-    await garden.play(e,save.reduceMotion||skip);
+    if(e.type==="hero")await celebrateTree(e);
+    else await garden.play(e,save.reduceMotion||skip);
     renderHUD(e);
+    displayPoints(e);setCombo(e);
     if(["fusion","pulse","harvest","power"].indexOf(e.type)>=0)sound(e.type);
     if(e.type==="harvest"&&e.chain>=2)toast(e.chain>=4?"✧ WILD BLOOM! · "+e.chain+" träd":"✦ BLOOM CHAIN · "+e.chain+" träd");
    }
@@ -129,18 +176,21 @@
    var previous=save.bestEssence[level]||0;gained=Math.max(0,game.essence-previous);
    save.bestEssence[level]=Math.max(previous,game.essence);
    save.bestStars[level]=Math.max(save.bestStars[level]||0,game.stars());
+   save.bestScore[level]=Math.max(save.bestScore[level]||0,game.score);
    save.totalEssence+=gained;save.unlocked=Math.max(save.unlocked,Math.min(R.levels.length-1,level+1));
    sound("win");
   }else sound("lose");
   persist();
   $("resultEyebrow").textContent=won?"NIVÅ AVKLARAD":"FÖRSÖK IGEN";
+  $("resultScore").textContent=pretty(game.score);
+  $("resultBestScore").textContent="Bästa poäng: "+pretty(Math.max(save.bestScore[level]||0,game.score));
   $("resultTitle").textContent=won?(game.bestChain>=3?"En fantastisk blomning!":"Din trädgård växer!"):"Inte riktigt ännu";
   $("resultGlyph").textContent=won?"✺":"❧";
   $("resultStars").textContent=won?"★".repeat(game.stars())+"☆".repeat(3-game.stars()):"☆ ☆ ☆";
   $("resultSummary").textContent=won?"Nivåmålet är klart! Skördade träd stärker din enda permanenta Daisugi.":"Dina drag tog slut. Försök planera nästa tillväxtkedja lite tidigare.";
   var stats=$("resultStats");stats.replaceChildren();
   var entries=[["🌳 "+game.trees,"Träd skapade"],["✧ "+game.essence,"Livskraft denna runda"]];
-  if(won){entries=[["★ "+game.stars()+" / 3","Effektivitetsbetyg"],["+"+gained,"Ny permanent livskraft"]];}
+  if(won){entries=[["★ "+game.stars()+" / 3","Effektivitetsbetyg"],["✦ "+game.bestChain,"Bästa trädkedja"],["+"+gained,"Ny permanent livskraft"],["✧ "+game.essence,"Livskraft denna omgång"]];}
   entries.forEach(function(x){var b=document.createElement("div"),s=document.createElement("strong"),t=document.createElement("small");s.textContent=x[0];t.textContent=x[1];b.append(s,t);stats.append(b);});
   $("resultNext").hidden=!won;
   $("resultNext").textContent=level<R.levels.length-1?"Nästa nivå →":"Till nivåvalet →";

@@ -44,7 +44,7 @@
  }
  function menu(){if(busy){skip=true;return;}saveRun();renderMenu();hide("gameView");hide("resultModal");show("menuView");powerFamily=null;hide("familyPicker");selected=-1;garden.setSelected(-1);}
  function saveRun(){if(game&&!game.complete&&!game.failed){save.run={level:level,data:game.save()};persist();}}
- function resetRender(){garden.nodes.forEach(function(v){v.node.dispose(false,true);});garden.nodes.clear();garden.setSelected(-1);}
+ function resetRender(){garden.nodes.forEach(function(v){v.node.dispose(false,false);});garden.nodes.clear();garden.setSelected(-1);}
  function startLevel(i,resume){
   if(busy)return;
   level=i;selected=-1;powerFamily=null;skip=false;hide("resultModal");hide("menuView");hide("familyPicker");hide("treeModal");show("gameView");

@@ -11,7 +11,7 @@
  };
  function mat(scene,name,color,emissive,alpha){
   var m=new B.StandardMaterial(name,scene);m.diffuseColor=rgb(color);
-  m.specularColor=new B.Color3(.15,.17,.15);m.specularPower=25;
+  m.specularColor=new B.Color3(.065,.07,.055);m.specularPower=12;
   m.emissiveColor=rgb(color).scale(emissive||.035);
   if(alpha!==undefined)m.alpha=alpha;
   return m;
@@ -22,67 +22,108 @@
   mesh.isPickable=false;return mesh;
  }
  function sphere(scene,parent,name,material,x,y,z,sx,sy,sz){
-  return put(B.MeshBuilder.CreateSphere(name,{diameter:1,segments:8},scene),parent,x,y,z,sx,sy,sz,material);
+  return put(B.MeshBuilder.CreateSphere(name,{diameter:1,segments:12},scene),parent,x,y,z,sx,sy,sz,material);
  }
  function trunk(scene,parent,material,x,y,z,h,bottom,top){
   return put(B.MeshBuilder.CreateCylinder("stem",{height:h,diameterBottom:bottom,diameterTop:top,tessellation:9},scene),parent,x,y,z,1,1,1,material);
  }
  function createMats(scene){
-  var m={soil:mat(scene,"soil","#F4EDDF"),soil2:mat(scene,"soil2","#F0E7D7"),border:mat(scene,"moss","#A2B894"),shadow:mat(scene,"shadow","#5B7963",0,.16),trunk:mat(scene,"trunk","#936C4A"),root:mat(scene,"stem","#789267"),pulse:mat(scene,"pulse","#9EEDAB",.82,.78),spark:mat(scene,"spark","#EDFFCC",.95)};
+  var m={soil:mat(scene,"soil","#CEBEA5"),soil2:mat(scene,"soil2","#D3C4AC"),border:mat(scene,"earthEdge","#9DAD8A"),shadow:mat(scene,"shadow","#455C42",0,.25),trunk:mat(scene,"trunk","#896C4B"),root:mat(scene,"stem","#789267"),pulse:mat(scene,"pulse","#91F4B1",.90,.88),spark:mat(scene,"spark","#F5FFD2",.98),pulseHalo:mat(scene,"pulseHalo","#83DDA4",.85,.23),moss:mat(scene,"softMoss","#869E74")};
   Object.keys(palette).forEach(function(f){var p=palette[f];m[f]={main:mat(scene,f+"-main",p.main),light:mat(scene,f+"-light",p.light),dark:mat(scene,f+"-dark",p.dark),bud:mat(scene,f+"-bud",p.bud),stem:mat(scene,f+"-stem",p.stem)};});
   return m;
  }
- function petals(scene,root,f,materials,x,y,z,size){
-  var count=f==="sunleaf"?7:f==="mistbloom"?4:f==="verdant"?5:5;
-  for(var k=0;k<count;k++){
-   var a=k*Math.PI*2/count,dist=size*.36;
-   var pp=sphere(scene,root,"petal",k%2===0?materials.light:materials.main,x+Math.cos(a)*dist,y,z+Math.sin(a)*dist,size*.60,size*.16,size*.42);
-   pp.rotation.y=-a;
-  }
-  sphere(scene,root,"flowerheart",materials.bud,x,y+.045,z,size*.35,size*.17,size*.35);
+ function leaf(scene,root,material,x,y,z,length,width,rot,tilt) {
+   var piece=sphere(scene,root,"soft-leaf",material,x,y,z,length,.115,width);
+   piece.rotation.y=rot||0;piece.rotation.z=tilt||0;return piece;
  }
- function makePlant(scene,mats,plant,index){
-  var loc={x:index%7-3,z:Math.floor(index/7)-3};
-  var parent=new B.TransformNode("plant-"+plant.id,scene);parent.position.set(loc.x,.09,loc.z);
-  var f=plant.family,stage=plant.stage,m=mats[f];
-  sphere(scene,parent,"contact",mats.shadow,0,-.005,0,.56,.012,.47);
-  if(stage===1){
-   sphere(scene,parent,"seed",m.main,0,.13,0,.28,.20,.25);
-   sphere(scene,parent,"seed-gloss",m.light,-.045,.21,-.02,.09,.043,.10);
-   if(f==="sunleaf")sphere(scene,parent,"seed-tip",m.dark,.10,.13,0,.11,.10,.12);
-  }
-  if(stage>=2){
-   trunk(scene,parent,m.stem,0,.22,0,stage===2?.33:.48,.07,.045);
-   sphere(scene,parent,"leaf-left",m.dark,-.15,.24,-.03,.31,.13,.17).rotation.z=-.35;
-   sphere(scene,parent,"leaf-right",m.light,.15,.28,.04,.29,.12,.17).rotation.z=.28;
+ function petalBloom(scene,root,f,m,x,y,z,scale) {
+   var count=f==="sunleaf"?8:f==="mistbloom"?4:f==="verdant"?5:6;
+   for(var i=0;i<count;i++){
+     var a=i*Math.PI*2/count,dist=scale*(f==="mistbloom"?.28:.32);
+     var p=sphere(scene,root,f==="verdant"?"leaf-petal":"curved-petal",i%3===0?m.light:m.main,
+       x+Math.cos(a)*dist,y+.025,z+Math.sin(a)*dist,
+       f==="sunleaf"?.37*scale:.43*scale,.14*scale,
+       f==="mistbloom"?.49*scale:.36*scale);
+     p.rotation.y=-a+(f==="mistbloom"?.6:0);
+     p.rotation.x=f==="mistbloom"?.40:.13;
+   }
+   sphere(scene,root,"flower-centre",f==="sunleaf"?m.dark:m.bud,x,y+.08,z,.30*scale,.19*scale,.30*scale);
+   sphere(scene,root,"flower-highlight",m.light,x-.085*scale,y+.19*scale,z-.09*scale,.11*scale,.045*scale,.11*scale);
+ }
+ function makePlant(scene,mats,plant,index) {
+   var parent=new B.TransformNode("gardenPlant-"+plant.id,scene);
+   parent.position.set(index%7-3,.085,Math.floor(index/7)-3);
+   var f=plant.family,stage=plant.stage,m=mats[f];
+   sphere(scene,parent,"contact-shadow",mats.shadow,0,.004,0,.76,.019,.65);
+   if(stage===1){
+     // Large enough to recognize family on a mobile screen: colored seed
+     // with an individual silhouette, never a tiny coloured dot.
+     var seed=sphere(scene,parent,"living-seed",m.main,0,.205,0,
+       f==="mistbloom"?.48:.50,f==="verdant"?.29:.37,f==="sunleaf"?.51:.46);
+     seed.rotation.z=f==="mistbloom"?.20:f==="sakura"?-.12:0;
+     sphere(scene,parent,"seed-sheen",m.light,-.11,.35,-.13,.18,.082,.16);
+     if(f==="verdant"){
+       leaf(scene,parent,m.dark,.19,.22,0,.23,.18,.55,-.35);
+       leaf(scene,parent,m.light,-.20,.22,0,.22,.15,-.6,.35);
+     }else if(f==="sakura"){
+       sphere(scene,parent,"petal-notch",m.bud,.25,.20,0,.13,.12,.15);
+     }else if(f==="sunleaf"){
+       for(var k=0;k<5;k++){
+         var a=k*Math.PI*2/5;
+         sphere(scene,parent,"sunseed-ray",m.light,Math.cos(a)*.26,.20,Math.sin(a)*.27,.15,.10,.17);
+       }
+     }else{
+       sphere(scene,parent,"dewdrop",m.bud,.12,.37,.07,.13,.16,.13);
+     }
+   }
    if(stage===2){
-    sphere(scene,parent,"bud",m.main,0,.43,0,.21,.19,.19);
-    sphere(scene,parent,"bud-light",m.light,-.035,.49,-.03,.075,.058,.07);
+     trunk(scene,parent,m.stem,0,.28,0,.42,.105,.065);
+     leaf(scene,parent,m.dark,-.21,.38,-.04,.43,.23,.40,-.34);
+     leaf(scene,parent,m.light,.23,.40,.06,.45,.23,-.35,.31);
+     sphere(scene,parent,"new-growth",m.main,0,.56,0,.24,.24,.21);
+     sphere(scene,parent,"bud-tip",m.bud,-.05,.70,-.055,.14,.12,.13);
    }
-  }
-  if(stage===3)petals(scene,parent,f,m,0,.53,0,.45);
-  if(stage===4){
-   sphere(scene,parent,"bush-body",m.dark,0,.43,0,.72,.45,.65);
-   sphere(scene,parent,"bush-left",m.main,-.24,.47,-.03,.48,.43,.45);
-   sphere(scene,parent,"bush-right",m.light,.24,.47,.07,.45,.42,.45);
-   sphere(scene,parent,"bush-top",m.main,0,.64,-.05,.49,.35,.48);
-   var ornaments=f==="verdant"?3:5;
-   for(var t=0;t<ornaments;t++){
-    var a=t*Math.PI*2/ornaments;
-    sphere(scene,parent,"bush-bloom",t%2?m.bud:m.light,Math.sin(a)*.29,.66+Math.cos(a)*.075,Math.cos(a)*.22,.13,.12,.13);
+   if(stage===3){
+     trunk(scene,parent,m.stem,0,.38,0,.61,.095,.062);
+     leaf(scene,parent,m.dark,-.25,.32,.06,.36,.19,.52,-.24);
+     leaf(scene,parent,m.light,.26,.42,-.05,.34,.18,-.45,.22);
+     petalBloom(scene,parent,f,m,0,.69,0,.88);
+     if(f==="verdant")leaf(scene,parent,m.light,.02,.75,-.17,.34,.18,.5,.06);
    }
-  }
-  if(stage===5){
-   trunk(scene,parent,mats.trunk,0,.51,0,.99,.21,.10);
-   sphere(scene,parent,"canopy-one",m.dark,-.27,1.01,.02,.65,.63,.66);
-   sphere(scene,parent,"canopy-two",m.main,.24,1.06,.10,.67,.63,.65);
-   sphere(scene,parent,"canopy-top",m.light,.02,1.28,-.10,.78,.70,.72);
-   for(var z=0;z<7;z++){
-    var a=z*2.39996;
-    sphere(scene,parent,"tree-flower",z%2?m.light:m.bud,Math.cos(a)*.34,1.28+Math.sin(a)*.17,Math.sin(a)*.32,.13,.12,.13);
+   if(stage===4){
+     trunk(scene,parent,m.stem,0,.37,0,.59,.16,.09);
+     // Asymmetric rounded miniature shrub, overlapping foliage clumps.
+     var lumps=[
+       [-.29,.53,-.17,.52,.40,.46,m.dark],
+       [.28,.52,.12,.51,.37,.43,m.main],
+       [-.08,.72,.16,.56,.41,.48,m.light],
+       [.13,.68,-.26,.44,.34,.41,m.main],
+       [0,.51,.02,.62,.41,.56,m.dark]
+     ];
+     lumps.forEach(function(a){sphere(scene,parent,"foliage",a[6],a[0],a[1],a[2],a[3],a[4],a[5]);});
+     for(var j=0;j<6;j++){
+       var angle=j*2.399,px=Math.cos(angle)*.34,pz=Math.sin(angle)*.31;
+       if(f==="verdant"){
+         leaf(scene,parent,j%2?m.light:m.main,px,.81,pz,.34,.18,angle,.10);
+       }else{
+         petalBloom(scene,parent,f,m,px,.84-(j%2)*.09,pz,.35);
+       }
+     }
    }
-  }
-  return {node:parent,stage:stage,family:plant.family,index:index,id:plant.id};
+   if(stage===5){
+     trunk(scene,parent,mats.trunk,0,.65,0,1.20,.24,.125);
+     for(var t=0;t<6;t++){
+       var a=t*Math.PI*2/6;
+       sphere(scene,parent,"tree-canopy",t%2?m.light:m.main,Math.cos(a)*.40,1.18+((t%2)*.12),Math.sin(a)*.36,.66,.53,.60);
+     }
+     sphere(scene,parent,"crown-centre",m.dark,0,1.38,0,.82,.60,.70);
+     for(var w=0;w<5;w++){
+       var b=w*2.399;
+       if(f==="verdant")leaf(scene,parent,m.light,Math.cos(b)*.36,1.57,Math.sin(b)*.33,.34,.20,b,.1);
+       else petalBloom(scene,parent,f,m,Math.cos(b)*.36,1.55,Math.sin(b)*.32,.39);
+     }
+   }
+   return {node:parent,stage:stage,family:plant.family,index:index,id:plant.id};
  }
  function tween(ms,update){
   return new Promise(function(resolve){
@@ -90,25 +131,32 @@
   });
  }
  function createScene(engine,canvas){
-  var s=new B.Scene(engine);s.clearColor=new B.Color4(.94,.95,.89,1);
+  var s=new B.Scene(engine);s.clearColor=new B.Color4(.86,.89,.78,1);
   var camera=new B.FreeCamera("gardenCamera",new B.Vector3(0,13,3.0),s);
   camera.setTarget(new B.Vector3(0,.15,0));camera.mode=B.Camera.ORTHOGRAPHIC_CAMERA;
   camera.orthoLeft=-3.95;camera.orthoRight=3.95;camera.orthoTop=3.95;camera.orthoBottom=-3.95;
-  var hemi=new B.HemisphericLight("softSky",new B.Vector3(0,1,.4),s);hemi.intensity=.91;hemi.diffuse=new B.Color3(.94,.97,.91);
-  var sun=new B.DirectionalLight("warmSun",new B.Vector3(-.7,-1,-.4),s);sun.intensity=.55;
+  var hemi=new B.HemisphericLight("softSky",new B.Vector3(0,1,.4),s);hemi.intensity=.72;hemi.diffuse=new B.Color3(.94,.97,.91);
+  var sun=new B.DirectionalLight("warmSun",new B.Vector3(-.7,-1,-.4),s);sun.intensity=.48;
   return s;
  }
  function Garden(canvas){
   this.canvas=canvas;this.engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:false,antialias:true},true);
   this.engine.setHardwareScalingLevel(Math.max(1,Math.min(1.6,window.devicePixelRatio||1)));
   this.scene=createScene(this.engine,canvas);this.mats=createMats(this.scene);
-  this.nodes=new Map();this.tiles=[];this.selected=-1;this.onTile=null;this.pointerStart=null;this.skip=false;
+  this.nodes=new Map();this.tiles=[];this.softMoss=[];this.selected=-1;this.onTile=null;this.pointerStart=null;this.skip=false;
   var self=this;
   for(var i=0;i<49;i++){
    var r=Math.floor(i/7),c=i%7,x=c-3,z=r-3;
-   var border=put(B.MeshBuilder.CreateBox("edge"+i,{width:.975,depth:.975,height:.12},this.scene),null,x,.015,z,1,1,1,this.mats.border);border.isPickable=false;
-   var tile=put(B.MeshBuilder.CreateBox("tile"+i,{width:.91,depth:.91,height:.13},this.scene),null,x,.083,z,1,1,1,(r+c)%2?this.mats.soil:this.mats.soil2);
+   var border=put(B.MeshBuilder.CreateBox("edge"+i,{width:.995,depth:.995,height:.08},this.scene),null,x,.018,z,1,1,1,this.mats.border);border.isPickable=false;
+   var tile=put(B.MeshBuilder.CreateBox("tile"+i,{width:.976,depth:.976,height:.10},this.scene),null,x,.066,z,1,1,1,(r+c)%2?this.mats.soil:this.mats.soil2);
    tile.metadata={tileIndex:i};tile.isPickable=true;this.tiles.push(tile);
+   // Irregular, extremely low moss trims break the spreadsheet grid while
+   // preserving the 7x7 touch targets and predictable swap geometry.
+   if((i*11)%5===0){
+     var mx=x+((i%3)-1)*.26,mz=z+(((i*3)%5)-2)*.10;
+     var moss=sphere(this.scene,null,"edge-moss",this.mats.moss,mx,.12,mz,.20,.045,.13);
+     moss.isPickable=false;this.softMoss.push(moss);
+   }
   }
   this.selectedMat=mat(this.scene,"chosen","#F6E6BC");this.powerMat=mat(this.scene,"powerSelect","#E4F0C8");
   this.engine.runRenderLoop(function(){self.scene.render();});
@@ -146,8 +194,8 @@
    if(old&&old.stage===p.stage&&old.family===p.family){old.index=i;arr.push({obj:old,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:false});return;}
    if(old){old.node.dispose(false,false);self.nodes.delete(p.id);}
    var made=makePlant(self.scene,self.mats,p,i);self.nodes.set(p.id,made);
-   if(mode==="fall")made.node.position.z=-4.5-((i%7)*.1);
-   if(mode==="fusion"||mode==="pulse")made.node.scaling.setAll(.55);
+   if(mode==="fall")made.node.position.y=1.8+((i%7)*.09);
+   if(mode==="fusion"||mode==="pulse")made.node.scaling.setAll(.18);
    arr.push({obj:made,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:true});
   });
   this.nodes.forEach(function(obj,id){if(!next.has(id)){obj.node.dispose(false,false);self.nodes.delete(id);}});

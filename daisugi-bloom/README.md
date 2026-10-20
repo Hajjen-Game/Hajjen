@@ -1,6 +1,12 @@
-# Daisugi Bloom — Visual & Gameplay Overhaul 1.1
+# Daisugi Bloom — UI, Score & Tree Celebration 1.2
 
 ## Senaste utvecklingspass
+
+**UI, Score & Tree Celebration 1.2** – nytt färgstarkt japanskt inspirerat gränssnitt, live-poäng och nivårekord, flytande kombopoäng samt ett tydligt firande innan trädets Bloom Pulse och skörd. Fyra mer särskiljbara grundfragment.
+
+[Beslut, arbetsbalans och testplan för 1.2](docs/UI_SCORE_TREE_1_2.md)
+
+## Tidigare utvecklingspass
 
 **Visual & Gameplay Overhaul 1.1** – större, tydligare procedurala 3D-växter; varm jord istället för vita Excel-rutor; mer livfulla växtfusioner, gröna Bloom Pulse-vågor och en bättre daisugi-silhuett. De fem introduktionsnivåerna är nu riktiga flerdragsutmaningar snarare än färdiga endragsdemos.
 

@@ -82,7 +82,7 @@
     sphere(scene,parent,"tree-flower",z%2?m.light:m.bud,Math.cos(a)*.34,1.28+Math.sin(a)*.17,Math.sin(a)*.32,.13,.12,.13);
    }
   }
-  return {node:parent,stage:stage,index:index,id:plant.id};
+  return {node:parent,stage:stage,family:plant.family,index:index,id:plant.id};
  }
  function tween(ms,update){
   return new Promise(function(resolve){
@@ -143,7 +143,7 @@
    if(!p)return;
    next.add(p.id);
    var old=self.nodes.get(p.id);
-   if(old&&old.stage===p.stage){old.index=i;arr.push({obj:old,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:false});return;}
+   if(old&&old.stage===p.stage&&old.family===p.family){old.index=i;arr.push({obj:old,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:false});return;}
    if(old){old.node.dispose(false,true);self.nodes.delete(p.id);}
    var made=makePlant(self.scene,self.mats,p,i);self.nodes.set(p.id,made);
    if(mode==="fall")made.node.position.z=-4.5-((i%7)*.1);

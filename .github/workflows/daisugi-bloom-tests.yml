@@ -1,0 +1,39 @@
+name: Daisugi Bloom 1.0 checks
+on:
+  push:
+    paths:
+      - daisugi-bloom/**
+      - .github/workflows/daisugi-bloom-tests.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate fusion, pulse and progression
+        run: node daisugi-bloom/tests/rules.test.cjs
+      - name: Syntax-check all browser scripts
+        run: |
+          node --check daisugi-bloom/src/rules.js
+          node --check daisugi-bloom/src/visuals.js
+          node --check daisugi-bloom/src/app.js
+  mobile-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser driver
+        run: npm install --no-save puppeteer-core@24.11.0
+      - name: Start local static server
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
+          echo $! > /tmp/daisugi-bloom-server.pid
+      - name: Run mobile 3D smoke
+        run: node daisugi-bloom/tests/browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daisugi-bloom-first-playable-mobile
+          path: /tmp/daisugi-bloom/first-playable-mobile.png
+          if-no-files-found: ignore

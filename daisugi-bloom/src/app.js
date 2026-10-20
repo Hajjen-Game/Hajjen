@@ -69,7 +69,11 @@
   if(!game)return;
   var state=evt||game;
   $("movesCount").textContent=state.moves;
-  $("goalProgress").textContent=Math.min(game.target(),evt?evt.goal:game.progress())+" / "+game.target();
+  var goal=game.config.goal,progress=Math.min(game.target(),evt?evt.goal:game.progress());
+  var line=progress+" / "+game.target();
+  if(goal.type==="stage"&&goal.count)line+=" · "+((evt?evt.maxStage:game.maxStage)>=goal.stage?"🌿✓":"🌿");
+  if(goal.type==="chain"&&goal.trees)line+=" · 🌳"+(evt?evt.trees:game.trees)+"/"+goal.trees;
+  $("goalProgress").textContent=line;
   $("energyFill").style.width=Math.min(100,state.energy)+"%";
   $("energyLabel").textContent=state.powers?"KLAR!":state.energy+" / 100";
   $("powerButton").disabled=state.powers<1||busy;

@@ -70,24 +70,28 @@
     this.seed=(Date.now()+this.level*43321)>>>0;this.random=rng(this.seed);
     this.nextId=50;this.board=startBoard(this.level,this.random);
     this.moves=this.config.moves;this.energy=0;this.powers=this.level===4?1:0;
-    this.trees=0;this.essence=0;this.fusions=0;this.powerUsed=false;this.maxStage=Math.max.apply(null,this.board.map(function(p){return p.stage;}));this.bestChain=0;this.familyTrees={};this.complete=false;this.failed=false;
+    this.trees=0;this.essence=0;this.fusions=0;this.score=0;this.peakCombo=1;this.powerUsed=false;this.maxStage=Math.max.apply(null,this.board.map(function(p){return p.stage;}));this.bestChain=0;this.familyTrees={};this.complete=false;this.failed=false;
     if(data){Object.keys(data).forEach(function(k){if(k!=="random"&&k!=="config"&&k!=="level")this[k]=data[k];},this);this.config=levels[this.level];this.random=rng(this.seed+(data.rolls||0));}
-    this.rolls=0;
+    this.rolls=data&&Number.isFinite(data.rolls)?data.rolls:0;
+    this.score=Number.isFinite(this.score)?this.score:0;this.peakCombo=Number.isFinite(this.peakCombo)?this.peakCombo:1;
   }
   Game.prototype.fresh=function(){var v=this.random();this.rolls++;return v;};
-  Game.prototype.frame=function(type,extra){return Object.assign({type:type,board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,fusions:this.fusions,maxStage:this.maxStage,goal:this.progress()},extra||{});};
+  Game.prototype.frame=function(type,extra){return Object.assign({type:type,board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,fusions:this.fusions,score:this.score,peakCombo:this.peakCombo,maxStage:this.maxStage,goal:this.progress()},extra||{});};
   Game.prototype.progress=function(){var g=this.config.goal;if(g.type==="fusion")return Math.min(this.fusions,g.count);if(g.type==="stage")return g.count?Math.min(this.fusions,g.count):Math.min(this.maxStage,g.stage);if(g.type==="trees")return this.trees;if(g.type==="chain")return this.bestChain;if(g.type==="powerTrees")return this.powerUsed?this.trees:0;return 0;};
   Game.prototype.goalText=function(){var g=this.config.goal;if(g.type==="fusion")return "Skapa "+g.count+" fusioner";if(g.type==="stage")return g.count?"Skapa "+g.count+" fusioner och odla en buske":"Utveckla till "+(["","frö","grodd","blomma","buske","träd"][g.stage]);if(g.type==="trees")return "Skapa "+g.count+" träd";if(g.type==="chain")return "Gör en pulskedja på "+g.count+" träd och skörda "+g.trees+" totalt";return "Använd Power Move och skapa "+g.count+" träd";};
   Game.prototype.target=function(){return this.config.goal.count||this.config.goal.stage;};
   Game.prototype.fulfilled=function(){var g=this.config.goal;return this.progress()>=this.target() && (g.type!=="stage"||this.maxStage>=g.stage) && (g.type!=="chain"||this.trees>=g.trees);};
   Game.prototype.stars=function(){if(!this.complete)return 0;var used=this.config.moves-this.moves,par=this.config.par||this.config.moves*.6;return used<=par?3:used<=par+4?2:1;};
-  Game.prototype.save=function(){return {board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,fusions:this.fusions,powerUsed:this.powerUsed,maxStage:this.maxStage,bestChain:this.bestChain,familyTrees:this.familyTrees,complete:this.complete,failed:this.failed,seed:this.seed,nextId:this.nextId,rolls:this.rolls};};
+  Game.prototype.save=function(){return {board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,fusions:this.fusions,score:this.score,peakCombo:this.peakCombo,powerUsed:this.powerUsed,maxStage:this.maxStage,bestChain:this.bestChain,familyTrees:this.familyTrees,complete:this.complete,failed:this.failed,seed:this.seed,nextId:this.nextId,rolls:this.rolls};};
+  Game.prototype.addScore=function(amount){var points=Math.max(0,Math.round(amount));this.score+=points;return points;};
   Game.prototype.charge=function(amount){if(this.powers>=1){this.energy=Math.min(99,this.energy+amount);return;}this.energy+=amount;if(this.energy>=100){this.energy=0;this.powers=1;}};
   Game.prototype.resolve=function(noEnergy,preferred) {
     var events=[],turns=0,self=this;
     while(turns++<45){
       var groups=scan(this.board);if(!groups.length)break;
-      var allTree=[],fusionRecords=[],totalCharge=0;
+      var allTree=[],fusionRecords=[],totalCharge=0,matchPoints=0;
+      var comboMultiplier=Math.min(4,1+(turns-1)*.5);
+      this.peakCombo=Math.max(this.peakCombo,turns);
       groups.forEach(function(indices){
         var ranked=indices.slice().sort(function(a,b){var d=self.board[b].stage-self.board[a].stage;if(d)return d;if(preferred===a)return -1;if(preferred===b)return 1;var center=indices.reduce(function(acc,i){return acc+i;},0)/indices.length;return Math.abs(a-center)-Math.abs(b-center)||a-b;});
         var survivor=ranked[0],plant=self.board[survivor],before=plant.stage,removed=indices.filter(function(i){return i!==survivor;});
@@ -95,24 +99,35 @@
         plant.stage=Math.min(5,plant.stage+1);
         self.maxStage=Math.max(self.maxStage,plant.stage);
         if(plant.stage===5)allTree.push(survivor);
-        fusionRecords.push({at:survivor,from:before,to:plant.stage,removed:removed,number:indices.length,family:plant.family});
+        var base=indices.length===3?100:indices.length===4?180:300;
+        var growth={2:30,3:60,4:120,5:350}[plant.stage]||0;
+        var earned=Math.round((base+growth)*comboMultiplier);
+        matchPoints+=earned;
+        fusionRecords.push({at:survivor,from:before,to:plant.stage,removed:removed,number:indices.length,family:plant.family,points:earned});
         self.fusions++;
         totalCharge+=indices.length===3?22:indices.length===4?38:52;
       });
       if(!noEnergy)this.charge(totalCharge+(turns-1)*8);
-      events.push(this.frame("fusion",{groups:fusionRecords,combo:turns,charge:noEnergy?0:totalCharge}));
+      this.addScore(matchPoints);
+      events.push(this.frame("fusion",{groups:fusionRecords,combo:turns,charge:noEnergy?0:totalCharge,scoreDelta:matchPoints,multiplier:comboMultiplier}));
+      if(allTree.length)events.push(this.frame("hero",{positions:allTree.slice(),first:turns===1,scoreDelta:0}));
       if(allTree.length){
         var pulseHit=new Set(),pulsed=new Set(),wave=allTree.slice(),allMade=new Set(allTree),waveNumber=0;
         while(wave.length&&waveNumber++<49){
           var targets=[],born=[],sources=wave.slice();
           wave.forEach(function(i){if(pulsed.has(i))return;pulsed.add(i);neighbors(i).forEach(function(j){if(pulseHit.has(j)||!self.board[j]||self.board[j].stage>=5)return;pulseHit.add(j);self.board[j].stage+=1;self.maxStage=Math.max(self.maxStage,self.board[j].stage);targets.push({from:i,to:j,stage:self.board[j].stage});if(self.board[j].stage===5){born.push(j);allMade.add(j);}});});
-          if(targets.length)events.push(this.frame("pulse",{sources:sources,targets:targets,wave:waveNumber}));
+          if(targets.length){
+            var pulsePoints=self.addScore(targets.length*40);
+            events.push(this.frame("pulse",{sources:sources,targets:targets,wave:waveNumber,scoreDelta:pulsePoints}));
+          }
+          if(born.length)events.push(this.frame("hero",{positions:Array.from(new Set(born)),first:false,scoreDelta:0}));
           wave=Array.from(new Set(born));
         }
         var harvested=Array.from(allMade);
         harvested.forEach(function(i){var p=self.board[i];if(!p||p.stage!==5)return;self.familyTrees[p.family]=(self.familyTrees[p.family]||0)+1;self.board[i]=null;self.trees++;self.essence+=30;});
-        self.bestChain=Math.max(self.bestChain,harvested.length);
-        events.push(this.frame("harvest",{positions:harvested,chain:harvested.length}));
+         self.bestChain=Math.max(self.bestChain,harvested.length);
+        var harvestPoints=this.addScore(harvested.length*500+Math.max(0,harvested.length-1)*250);
+        events.push(this.frame("harvest",{positions:harvested,chain:harvested.length,scoreDelta:harvestPoints}));
       }
       // Gravity preserves the evolved plants. New seeds are selected with
       // a soft cascade governor: occasional natural matches still happen,
@@ -145,7 +160,7 @@
       }
       events.push(this.frame("shuffle"));
     }
-    if(this.fulfilled()){this.complete=true;events.push(this.frame("win",{stars:this.stars()}));}
+    if(this.fulfilled()){this.complete=true;var completionPoints=this.addScore(500+this.moves*50);events.push(this.frame("win",{stars:this.stars(),scoreDelta:completionPoints,completionBonus:completionPoints}));}
     else if(this.moves<=0){this.failed=true;events.push(this.frame("lose"));}
     return events;
   };

@@ -24,7 +24,7 @@ check("Five 7x7 start boards, no ready-made matches or bushes",()=>{
 });
 check("Tutorial objectives now require more than one trivial growth step",()=>{
  const g=new R.Game(0);assert(g.target()>=8);
- for(let i=2;i<=4;i++)assert(R.levels[i].goal.count>=3);
+ assert(R.levels[2].goal.count>=3);assert(R.levels[3].goal.count>=2&&R.levels[3].goal.trees>=4);assert(R.levels[4].goal.count>=5);
 });
 check("Invalid move costs no turn",()=>{const g=new R.Game(0),m=g.moves;assert(!g.swap(0,48).ok);assert.equal(g.moves,m);});
 check("Three-tree Bloom Pulse still functions in real rules",()=>{

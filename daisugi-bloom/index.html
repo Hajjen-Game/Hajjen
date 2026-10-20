@@ -3,15 +3,15 @@
 <head>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
- <meta name="theme-color" content="#e9eee1">
+ <meta name="theme-color" content="#172D32">
  <meta name="description" content="Daisugi Bloom – odla magiska naturkedjor i ett mysigt match-3-pussel.">
  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
- <title>Daisugi Bloom · Visual & Gameplay 1.1</title>
- <link rel="stylesheet" href="./styles.css?v=1.1.0">
+ <title>Daisugi Bloom · UI, Score & Tree Celebration 1.2</title>
+ <link rel="stylesheet" href="./styles.css?v=1.2.0">
  <script defer src="https://cdn.babylonjs.com/babylon.js"></script>
- <script defer src="./src/rules.js?v=1.1.0"></script>
- <script defer src="./src/visuals.js?v=1.1.0"></script>
- <script defer src="./src/app.js?v=1.1.0"></script>
+ <script defer src="./src/rules.js?v=1.2.0"></script>
+ <script defer src="./src/visuals.js?v=1.2.0"></script>
+ <script defer src="./src/app.js?v=1.2.0"></script>
 </head>
 <body>
  <div class="ambient ambient-left" aria-hidden="true"></div>
@@ -26,7 +26,7 @@
   </header>
   <main>
    <section id="menuView" class="menu-view">
-    <div class="hero-copy"><span class="eyebrow">VISUAL & GAMEPLAY · 1.1</span><h1>En liten trädgård.<br><em>Oändliga möjligheter.</em></h1><p>Matcha levande växter, odla fram magiska träd och låt din egen Daisugi växa efter varje nivå.</p></div>
+    <div class="hero-copy"><span class="eyebrow">UI · SCORE · BLOOM 1.2</span><h1>En liten trädgård.<br><em>Oändliga möjligheter.</em></h1><p>Matcha levande växter, odla fram magiska träd och låt din egen Daisugi växa efter varje nivå.</p></div>
     <section class="menu-panel">
      <div class="panel-title-row"><div><h2>Din resa</h2><p>Fem handformade introduktionsnivåer</p></div><span class="pill" id="menuEssence">✧ 0 livskraft</span></div>
      <div class="level-list" id="levelList"></div>
@@ -36,9 +36,16 @@
    <section id="gameView" class="game-view" hidden>
     <div class="game-topline"><div><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 5</span><h1 id="levelTitle">First Petals</h1></div><div class="moves-badge"><small>DRAG KVAR</small><strong id="movesCount">18</strong></div></div>
     <div class="goal-bar"><div><span class="goal-symbol">✿</span><span id="goalLabel">Utveckla en blomma</span></div><strong id="goalProgress">0 / 3</strong></div>
+    <div class="score-ribbon" aria-label="Poäng och bästa resultat">
+      <div class="score-current"><span class="score-glyph">✦</span><div><small>POÄNG</small><strong id="scoreCount" aria-live="polite">0</strong></div></div>
+      <div class="score-record"><small>REKORD</small><strong id="scoreBest">0</strong></div>
+      <div class="score-combo" id="comboChip" hidden>KOMBO ×2</div>
+    </div>
     <div class="board-frame" id="boardFrame">
      <canvas id="boardCanvas" tabindex="0" aria-label="Interaktiv 3D-spelplan med 7 gånger 7 växter"></canvas>
      <div id="stageOverlay" class="stage-overlay" hidden aria-hidden="true"></div>
+     <div id="scoreFx" class="score-fx" aria-hidden="true"></div>
+     <div id="treeCelebration" class="tree-celebration" hidden aria-hidden="true"><span class="tree-glyph">✺</span><strong>TRÄD SKAPAT!</strong><small>BLOOM PULSE</small></div>
      <div class="board-decoration" aria-hidden="true">❋</div>
     </div>
     <div class="selection-line"><span id="selectedInfo">Välj en växt och byt plats med en granne</span><button id="clearSelection" aria-label="Ta bort markering" hidden>×</button></div>
@@ -69,6 +76,7 @@
     <h2 id="resultTitle">En vacker blomning!</h2>
     <div id="resultStars" class="stars">★ ★ ★</div>
     <p id="resultSummary"></p>
+    <div class="score-result"><small>DIN POÄNG</small><strong id="resultScore">0</strong><span id="resultBestScore">Bästa: 0</span></div>
     <div id="resultStats" class="result-stats"></div>
     <div class="modal-buttons"><button id="resultNext" class="primary-button">Nästa nivå →</button><button id="resultRetry" class="secondary-button">Spela igen</button><button id="resultTree" class="secondary-button">Se mitt träd ♧</button></div>
    </section>

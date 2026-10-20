@@ -24,13 +24,23 @@ try{
   canvas:document.querySelector("#boardCanvas").getBoundingClientRect().width,
   engineCount:window.BABYLON.EngineStore.Instances.length,
   levelCount:window.DaisugiRules.levels.length,
-  ruleCheck:(()=>{const g=new window.DaisugiRules.Game(3);return !g.complete&&g.board.every(p=>p.stage<=3)&&g.config.goal.trees>=4;})()
+  ruleCheck:(()=>{const g=new window.DaisugiRules.Game(3);return !g.complete&&g.board.every(p=>p.stage<=3)&&g.config.goal.trees>=4;})(),
+  scoreHud:document.querySelector("#scoreCount").textContent.trim()==="0",
+  scoreBoard:document.querySelector(".score-ribbon").getBoundingClientRect().height>40,
+  celebration:!!document.querySelector("#treeCelebration"),
+  version:document.querySelector(".hero-copy .eyebrow").textContent,
+  bodyStyle:getComputedStyle(document.body).backgroundImage,
+  resultScore:!!document.querySelector("#resultScore"),
+  engineRules:(()=>{const g=new window.DaisugiRules.Game(0);return g.score===0&&g.save().score===0;})()
  }));
  assert(state.error,"fatal error dialog shown");
  assert.equal(state.title,"First Petals");
  assert(state.canvas>250,"Canvas too small");
  assert(state.engineCount>=1,"Babylon engine missing");
  assert(state.ruleCheck,"Rebalanced puzzle layout failed in browser");
+ assert(state.scoreHud&&state.scoreBoard&&state.celebration&&state.resultScore&&state.engineRules,"Score/celebration HUD failed");
+ assert(state.version.includes("1.2"),"Old version label still visible");
+ assert(state.bodyStyle.includes("gradient"),"Japanese visual theme not applied");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.screenshot({path:"/tmp/daisugi-bloom/first-playable-mobile.png",fullPage:true});
  assert.equal(errors.filter(e=>!/favicon|AudioContext|WebGL|GPU|CDN/.test(e)).length,0,"Unexpected page errors: "+errors.join("; "));

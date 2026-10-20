@@ -300,6 +300,34 @@
        .then(function(){sparks.forEach(function(p){p.mesh.dispose();});});
      });
    }
+   if(evt.type==="hero"){
+     // Tree Celebration: the completed tree is allowed to stand tall before
+     // its pulse/harvest. Multiple trees born in one wave celebrate together.
+     var indices=evt.positions||[],models=[];
+     indices.forEach(function(index){
+       self.nodes.forEach(function(item){if(item.index===index&&item.stage===5)models.push(item);});
+     });
+     var sparks=briefSparks(self,indices,"tree"),halos=[];
+     indices.forEach(function(index){
+       var x=index%7-3,z=Math.floor(index/7)-3;
+       var ring=put(B.MeshBuilder.CreateTorus("tree-celebration-halo",{diameter:1.04,thickness:.055,tessellation:32},self.scene),
+         null,x,.21,z,1,1,1,self.mats.spark);
+       ring.rotation.x=Math.PI/2;ring.isPickable=false;halos.push(ring);
+     });
+     var hold=evt.first?990:680;
+     return tween(hold,function(t){
+       models.forEach(function(item){
+         var breath=1+.14*Math.sin(t*Math.PI);
+         item.node.scaling.set(breath,1+.19*Math.sin(t*Math.PI),breath);
+         item.node.position.y=.085+.08*Math.sin(t*Math.PI);
+       });
+       halos.forEach(function(r){r.scaling.setAll(.75+t*.65);});
+       fadeSparks(sparks,Math.min(1,t*.88));
+     }).then(function(){
+       halos.forEach(function(r){r.dispose();});sparks.forEach(function(p){p.mesh.dispose();});
+       models.forEach(function(item){item.node.scaling.setAll(1);item.node.position.y=.085;});
+     });
+   }
    if(evt.type==="harvest"){
      var trees=(evt.positions||[]).map(function(i){var obj=null;self.nodes.forEach(function(p){if(p.index===i)obj=p;});return obj;}).filter(Boolean);
      var particles=briefSparks(self,evt.positions||[],"tree");

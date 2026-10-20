@@ -56,24 +56,37 @@
    var f=plant.family,stage=plant.stage,m=mats[f];
    sphere(scene,parent,"contact-shadow",mats.shadow,0,.004,0,.76,.019,.65);
    if(stage===1){
-     // Large enough to recognize family on a mobile screen: colored seed
-     // with an individual silhouette, never a tiny coloured dot.
-     var seed=sphere(scene,parent,"living-seed",m.main,0,.205,0,
-       f==="mistbloom"?.48:.50,f==="verdant"?.29:.37,f==="sunleaf"?.51:.46);
-     seed.rotation.z=f==="mistbloom"?.20:f==="sakura"?-.12:0;
-     sphere(scene,parent,"seed-sheen",m.light,-.11,.35,-.13,.18,.082,.16);
-     if(f==="verdant"){
-       leaf(scene,parent,m.dark,.19,.22,0,.23,.18,.55,-.35);
-       leaf(scene,parent,m.light,-.20,.22,0,.22,.15,-.6,.35);
-     }else if(f==="sakura"){
-       sphere(scene,parent,"petal-notch",m.bud,.25,.20,0,.13,.12,.15);
-     }else if(f==="sunleaf"){
+     // Four recognisable living seed silhouettes: sakura petals, verdant
+     // leaves, mistbloom teardrop and sunleaf rays, not plain coloured balls.
+     if(f==="sakura"){
+       sphere(scene,parent,"sakura-seed-heart",m.dark,0,.17,0,.31,.25,.29);
        for(var k=0;k<5;k++){
-         var a=k*Math.PI*2/5;
-         sphere(scene,parent,"sunseed-ray",m.light,Math.cos(a)*.26,.20,Math.sin(a)*.27,.15,.10,.17);
+         var a=k*2*Math.PI/5;
+         var petal=sphere(scene,parent,"sakura-petal",k%2?m.main:m.light,
+           Math.cos(a)*.205,.25,Math.sin(a)*.205,.30,.18,.27);
+         petal.rotation.y=-a;
        }
+       sphere(scene,parent,"sakura-center",m.bud,-.03,.34,0,.13,.095,.13);
+     }else if(f==="verdant"){
+       sphere(scene,parent,"verdant-kernel",m.dark,0,.17,0,.33,.24,.31);
+       leaf(scene,parent,m.light,-.20,.28,-.07,.54,.26,-.35,-.30);
+       leaf(scene,parent,m.main,.20,.28,.07,.54,.26,.35,.30);
+       sphere(scene,parent,"verdant-center",m.bud,0,.33,0,.16,.11,.15);
+     }else if(f==="mistbloom"){
+       var dew=sphere(scene,parent,"mist-dew",m.main,0,.23,0,.42,.49,.40);
+       sphere(scene,parent,"mist-lower-drop",m.dark,0,.13,.13,.34,.19,.29);
+       sphere(scene,parent,"mist-light",m.bud,-.09,.37,-.10,.17,.13,.12);
+       sphere(scene,parent,"mist-tip",m.light,0,.49,0,.15,.20,.15);
+       leaf(scene,parent,m.stem,.17,.13,.04,.24,.12,.6,.10);
      }else{
-       sphere(scene,parent,"dewdrop",m.bud,.12,.37,.07,.13,.16,.13);
+       sphere(scene,parent,"sun-core",m.dark,0,.20,0,.34,.25,.35);
+       for(var ray=0;ray<8;ray++){
+         var angle=ray*Math.PI/4;
+         var petal=sphere(scene,parent,"sunleaf-petal",ray%2?m.main:m.light,
+           Math.cos(angle)*.29,.25,Math.sin(angle)*.29,.29,.14,.25);
+         petal.rotation.y=angle;
+       }
+       sphere(scene,parent,"sun-heart",m.bud,0,.34,0,.18,.095,.18);
      }
    }
    if(stage===2){

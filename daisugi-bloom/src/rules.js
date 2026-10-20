@@ -23,6 +23,13 @@
     var changed=true;while(changed){changed=false;outer:for(var a=0;a<groups.length;a++)for(var b=a+1;b<groups.length;b++)if(groups[a].some(function(i){return groups[b].indexOf(i)!==-1;})){groups[b].forEach(function(i){if(groups[a].indexOf(i)===-1)groups[a].push(i);});groups.splice(b,1);changed=true;break outer;}}
     return groups;
   }
+  function wouldMatchAt(board,index,family){
+    var row=Math.floor(index/N),col=index%N,patterns=[[0,-1],[0,1],[0,-2],[0,2],[-1,0],[1,0],[-2,0],[2,0]];
+    function same(r,c){return r>=0&&r<N&&c>=0&&c<N&&board[r*N+c]&&board[r*N+c].family===family;}
+    return (same(row,col-1)&&same(row,col-2))||(same(row,col+1)&&same(row,col+2))||
+      (same(row,col-1)&&same(row,col+1))||(same(row-1,col)&&same(row-2,col))||
+      (same(row+1,col)&&same(row+2,col))||(same(row-1,col)&&same(row+1,col));
+  }
   function hasMove(board){
     for(var i=0;i<49;i++)for(var k=0;k<2;k++){var j=k===0?i+1:i+N;if(k===0&&i%N===N-1||j>=49||!board[i]||!board[j])continue;var a=board[i],b=board[j];if(a.family===b.family)continue;board[i]=b;board[j]=a;var good=scan(board).some(function(gr){return gr.indexOf(i)>=0||gr.indexOf(j)>=0;});board[i]=a;board[j]=b;if(good)return true;}
     return false;
@@ -107,9 +114,24 @@
         self.bestChain=Math.max(self.bestChain,harvested.length);
         events.push(this.frame("harvest",{positions:harvested,chain:harvested.length}));
       }
+      // Gravity preserves the evolved plants. New seeds are selected with
+      // a soft cascade governor: occasional natural matches still happen,
+      // but a single swap should not routinely solve half a level via luck.
       for(var c=0;c<N;c++){
-        var existing=[];for(var row=N-1;row>=0;row--)if(this.board[row*N+c])existing.push(this.board[row*N+c]);
-        for(var rr=N-1;rr>=0;rr--){this.board[rr*N+c]=existing[N-1-rr]||cell(families[Math.floor(this.fresh()*4)],1,this.nextId++);}
+        var existing=[];
+        for(var row=N-1;row>=0;row--)if(this.board[row*N+c])existing.push(this.board[row*N+c]);
+        for(var rr=N-1;rr>=0;rr--)this.board[rr*N+c]=existing[N-1-rr]||null;
+      }
+      for(var row2=0;row2<N;row2++)for(var col2=0;col2<N;col2++){
+        var at=row2*N+col2;
+        if(this.board[at])continue;
+        var randomFamily=families[Math.floor(this.fresh()*4)];
+        var chosen=randomFamily;
+        if(wouldMatchAt(this.board,at,chosen)&&this.fresh()<.77){
+          var safe=families.filter(function(f){return !wouldMatchAt(this.board,at,f);},this);
+          if(safe.length)chosen=safe[Math.floor(this.fresh()*safe.length)];
+        }
+        this.board[at]=cell(chosen,1,this.nextId++);
       }
       events.push(this.frame("fall",{round:turns}));
       preferred=-1;

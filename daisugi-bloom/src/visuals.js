@@ -114,7 +114,7 @@
   this.engine.runRenderLoop(function(){self.scene.render();});
   this.onResize=function(){self.engine.resize();};window.addEventListener("resize",this.onResize);
   if(window.ResizeObserver){this.observer=new ResizeObserver(this.onResize);this.observer.observe(canvas);}
-  canvas.addEventListener("pointerdown",function(e){self.pointerStart={index:self.pick(e),x:e.clientX,y:e.clientY};});
+  canvas.addEventListener("pointerdown",function(e){if(canvas.setPointerCapture)try{canvas.setPointerCapture(e.pointerId);}catch(err){}self.pointerStart={index:self.pick(e),x:e.clientX,y:e.clientY};});
   canvas.addEventListener("pointerup",function(e){
    if(!self.onTile||!self.pointerStart)return;
    var start=self.pointerStart,end=self.pick(e),dx=e.clientX-start.x,dy=e.clientY-start.y;
@@ -144,13 +144,13 @@
    next.add(p.id);
    var old=self.nodes.get(p.id);
    if(old&&old.stage===p.stage&&old.family===p.family){old.index=i;arr.push({obj:old,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:false});return;}
-   if(old){old.node.dispose(false,true);self.nodes.delete(p.id);}
+   if(old){old.node.dispose(false,false);self.nodes.delete(p.id);}
    var made=makePlant(self.scene,self.mats,p,i);self.nodes.set(p.id,made);
    if(mode==="fall")made.node.position.z=-4.5-((i%7)*.1);
    if(mode==="fusion"||mode==="pulse")made.node.scaling.setAll(.55);
    arr.push({obj:made,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:true});
   });
-  this.nodes.forEach(function(obj,id){if(!next.has(id)){obj.node.dispose(false,true);self.nodes.delete(id);}});
+  this.nodes.forEach(function(obj,id){if(!next.has(id)){obj.node.dispose(false,false);self.nodes.delete(id);}});
   return arr;
  };
  Garden.prototype.refresh=function(board){this.draw(board,"immediate");};
@@ -217,7 +217,7 @@
  }
  TreeDisplay.prototype.show=function(essence,style){
   var scene=this.scene,m=this.mats;
-  this.parts.forEach(function(p){p.dispose(false,true);});this.parts=[];
+  this.parts.forEach(function(p){p.dispose(false,false);});this.parts=[];
   var root=new B.TransformNode("treeRoot",scene);this.parts.push(root);
   sphere(scene,root,"grass-shadow",m.shadow,0,-.015,0,2.7,.035,2.0);
   var baseHeight=1.22+Math.min(1.0,Math.sqrt(Math.max(0,essence)/420)*.4),stems=Math.min(6,1+Math.floor(Math.sqrt(essence/95)));

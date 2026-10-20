@@ -2,11 +2,11 @@
   "use strict";
   var N=7, families=["sakura","verdant","mistbloom","sunleaf"];
   var levels=[
-    {name:"First Petals",subtitle:"Få trädgården att vakna",moves:14,goal:{type:"fusion",count:4},intro:"Skapa fyra fusioner. Varje matchning utvecklar en växt; försök att få en blomma på köpet."},
-    {name:"Growing Together",subtitle:"Odla din första buske",moves:20,goal:{type:"stage",stage:4},intro:"Bygg upp en blomma och utveckla den vidare till buske. Växter i samma familj kan matchas oavsett stadium."},
-    {name:"The First Bloom",subtitle:"Ditt första riktiga träd",moves:25,goal:{type:"trees",count:1},intro:"Nu börjar du med frön och några groddar. Odla själv fram en buske till ett träd och se den första pulsen."},
-    {name:"Ripple Grove",subtitle:"Bygg din egen kedjereaktion",moves:33,goal:{type:"chain",count:2},intro:"Placera och utveckla buskar nära varandra. Skapa sedan två träd i en sammanhängande Bloom Pulse-kedja."},
-    {name:"Nature's Gift",subtitle:"Strategi med Power Move",moves:31,goal:{type:"powerTrees",count:2},intro:"Du börjar med en gratis Power Move, men behöver bygga upp dina träd. Använd fröplaceringen när den gör verklig nytta."}
+    {name:"First Petals",subtitle:"Få trädgården att vakna",moves:14,goal:{type:"fusion",count:9},par:8,intro:"Skapa nio fusioner. Varje matchning utvecklar en växt; försök att få en blomma på köpet."},
+    {name:"Growing Together",subtitle:"Odla din första buske",moves:20,goal:{type:"stage",stage:4,count:11},par:12,intro:"Bygg upp en blomma och utveckla den vidare till buske. Växter i samma familj kan matchas oavsett stadium."},
+    {name:"The First Bloom",subtitle:"Ditt första riktiga träd",moves:25,goal:{type:"trees",count:3},par:16,intro:"Nu börjar du med frön och några groddar. Odla själv fram en buske till ett träd och se den första pulsen."},
+    {name:"Ripple Grove",subtitle:"Bygg din egen kedjereaktion",moves:33,goal:{type:"chain",count:3,trees:4},par:23,intro:"Placera och utveckla buskar nära varandra. Skapa sedan två träd i en sammanhängande Bloom Pulse-kedja."},
+    {name:"Nature's Gift",subtitle:"Strategi med Power Move",moves:31,goal:{type:"powerTrees",count:5},par:20,intro:"Du börjar med en gratis Power Move, men behöver bygga upp dina träd. Använd fröplaceringen när den gör verklig nytta."}
   ];
   function rng(seed) {return function(){seed|=0;seed=(seed+0x6D2B79F5)|0;var t=Math.imul(seed^(seed>>>15),1|seed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
   function cell(family,stage,id) {return {family:family,stage:stage||1,id:id};}
@@ -63,17 +63,17 @@
     this.seed=(Date.now()+this.level*43321)>>>0;this.random=rng(this.seed);
     this.nextId=50;this.board=startBoard(this.level,this.random);
     this.moves=this.config.moves;this.energy=0;this.powers=this.level===4?1:0;
-    this.trees=0;this.essence=0;this.fusions=0;this.powerUsed=false;this.maxStage=1;this.bestChain=0;this.familyTrees={};this.complete=false;this.failed=false;
+    this.trees=0;this.essence=0;this.fusions=0;this.powerUsed=false;this.maxStage=Math.max.apply(null,this.board.map(function(p){return p.stage;}));this.bestChain=0;this.familyTrees={};this.complete=false;this.failed=false;
     if(data){Object.keys(data).forEach(function(k){if(k!=="random"&&k!=="config"&&k!=="level")this[k]=data[k];},this);this.config=levels[this.level];this.random=rng(this.seed+(data.rolls||0));}
     this.rolls=0;
   }
   Game.prototype.fresh=function(){var v=this.random();this.rolls++;return v;};
   Game.prototype.frame=function(type,extra){return Object.assign({type:type,board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,goal:this.progress()},extra||{});};
-  Game.prototype.progress=function(){var g=this.config.goal;if(g.type==="fusion")return Math.min(this.fusions,g.count);if(g.type==="stage")return Math.min(this.maxStage,g.stage);if(g.type==="trees")return this.trees;if(g.type==="chain")return this.bestChain;if(g.type==="powerTrees")return this.powerUsed?this.trees:0;return 0;};
-  Game.prototype.goalText=function(){var g=this.config.goal;if(g.type==="fusion")return "Skapa "+g.count+" fusioner";if(g.type==="stage")return "Utveckla till "+(["","frö","grodd","blomma","buske","träd"][g.stage]);if(g.type==="trees")return "Skapa "+g.count+" träd";if(g.type==="chain")return "Skapa "+g.count+" träd i en pulskedja";return "Använd Power Move och skapa "+g.count+" träd";};
-  Game.prototype.target=function(){return this.config.goal.stage||this.config.goal.count;};
-  Game.prototype.fulfilled=function(){return this.progress()>=this.target();};
-  Game.prototype.stars=function(){if(!this.complete)return 0;var portion=this.moves/this.config.moves;return 1+(portion>=.22?1:0)+(portion>=.44?1:0);};
+  Game.prototype.progress=function(){var g=this.config.goal;if(g.type==="fusion")return Math.min(this.fusions,g.count);if(g.type==="stage")return g.count?Math.min(this.fusions,g.count):Math.min(this.maxStage,g.stage);if(g.type==="trees")return this.trees;if(g.type==="chain")return this.bestChain;if(g.type==="powerTrees")return this.powerUsed?this.trees:0;return 0;};
+  Game.prototype.goalText=function(){var g=this.config.goal;if(g.type==="fusion")return "Skapa "+g.count+" fusioner";if(g.type==="stage")return g.count?"Skapa "+g.count+" fusioner och odla en buske":"Utveckla till "+(["","frö","grodd","blomma","buske","träd"][g.stage]);if(g.type==="trees")return "Skapa "+g.count+" träd";if(g.type==="chain")return "Gör en pulskedja på "+g.count+" träd och skörda "+g.trees+" totalt";return "Använd Power Move och skapa "+g.count+" träd";};
+  Game.prototype.target=function(){return this.config.goal.count||this.config.goal.stage;};
+  Game.prototype.fulfilled=function(){var g=this.config.goal;return this.progress()>=this.target() && (g.type!=="stage"||this.maxStage>=g.stage) && (g.type!=="chain"||this.trees>=g.trees);};
+  Game.prototype.stars=function(){if(!this.complete)return 0;var used=this.config.moves-this.moves,par=this.config.par||this.config.moves*.6;return used<=par?3:used<=par+4?2:1;};
   Game.prototype.save=function(){return {board:clone(this.board),moves:this.moves,energy:this.energy,powers:this.powers,trees:this.trees,essence:this.essence,fusions:this.fusions,powerUsed:this.powerUsed,maxStage:this.maxStage,bestChain:this.bestChain,familyTrees:this.familyTrees,complete:this.complete,failed:this.failed,seed:this.seed,nextId:this.nextId,rolls:this.rolls};};
   Game.prototype.charge=function(amount){if(this.powers>=1){this.energy=Math.min(99,this.energy+amount);return;}this.energy+=amount;if(this.energy>=100){this.energy=0;this.powers=1;}};
   Game.prototype.resolve=function(noEnergy,preferred) {

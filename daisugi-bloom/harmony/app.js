@@ -285,6 +285,60 @@ function fxAt(className,x,y,text){
  scoreFxLayer().appendChild(span);
  return span;
 }
+// Family-specific evolution overlays: one small recycled-style visual cue
+// per survivor, no canvas, huge particle cloud or modification to game logic.
+const EVOLUTION_FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai"]);
+function evolveFamilyFx(groups){
+ if(FAST()||!Element.prototype.animate)return;
+ for(const g of groups.slice(0,MOBILE_LITE?2:3)){
+  if(!EVOLUTION_FAMILIES.has(g.family)||!boardTiles[g.at])continue;
+  const r=indexRect(g.at),size=Math.min(r.width,r.height);
+  const node=fxAt("evo-family evo-"+g.family,r.left+r.width/2,r.top+r.height/2);
+  node.style.setProperty("--evo-size",Math.round(size*.95)+"px");
+  const paths={
+   sakura:[{transform:"translate3d(0,6px,0) rotate(-22deg) scale(.5)",opacity:0},
+    {transform:"translate3d(0,-3px,0) rotate(10deg) scale(1.12)",opacity:.95,offset:.46},
+    {transform:"translate3d(9px,-11px,0) rotate(32deg) scale(1.24)",opacity:0}],
+   lantern:[{transform:"scale(.42)",opacity:0},
+    {transform:"scale(1.14)",opacity:.87,offset:.45},{transform:"scale(1.5)",opacity:0}],
+   koi:[{transform:"scale(.45) rotate(-12deg)",opacity:0},
+    {transform:"scale(.97) rotate(10deg)",opacity:.96,offset:.38},
+    {transform:"scale(1.42) rotate(26deg)",opacity:0}],
+   fan:[{transform:"rotate(-32deg) scale(.45)",opacity:0},
+    {transform:"rotate(11deg) scale(1.1)",opacity:.90,offset:.44},
+    {transform:"rotate(34deg) scale(1.35)",opacity:0}],
+   bonsai:[{transform:"translate3d(0,9px,0) scale(.56)",opacity:0},
+    {transform:"translate3d(0,-2px,0) scale(1.08)",opacity:.9,offset:.45},
+    {transform:"translate3d(0,-12px,0) scale(1.1)",opacity:0}]
+  };
+  animateNode(node,paths[g.family],345).finally(()=>node.remove());
+ }
+}
+let rewardTier=0;
+function announceReward(tier,label,duration=700){
+ if(tier<=rewardTier)return;
+ rewardTier=tier;
+ const chip=$("combo");
+ clearTimeout(comboTimer);
+ chip.textContent="✦ "+label;
+ chip.dataset.tier=String(tier);
+ chip.hidden=false;
+ comboTimer=setTimeout(()=>{chip.hidden=true;},FAST()?300:duration);
+}
+function masterpieceMoment(positions){
+ if(FAST()||!Element.prototype.animate)return;
+ for(const at of [...new Set(positions)].slice(0,MOBILE_LITE?2:3)){
+  if(!boardTiles[at])continue;
+  const r=indexRect(at),size=Math.min(r.width,r.height);
+  const halo=fxAt("masterpiece-halo",r.left+r.width/2,r.top+r.height/2);
+  halo.style.width=Math.round(size*.95)+"px";halo.style.height=Math.round(size*.95)+"px";
+  animateNode(halo,[
+   {transform:"scale(.42)",opacity:0,offset:0},
+   {transform:"scale(1.05)",opacity:.95,offset:.38},
+   {transform:"scale(1.37)",opacity:0,offset:1}
+  ],385).finally(()=>halo.remove());
+ }
+}
 // A clearly readable but compact reward, scaled to match size.
 // Ring and stars are painted in a single ephemeral fixed overlay, not in the board.
 function fusionBurst(positions,groups=[],kind="fusion"){
@@ -320,13 +374,7 @@ function fusionBurst(positions,groups=[],kind="fusion"){
     {transform:"translate3d("+(Math.cos(theta)*d)+"px,"+(Math.sin(theta)*d)+"px,0) scale(.18)",opacity:0,offset:1}
    ],big?375:315).finally(()=>spark.remove());
   }
-  // Give exceptional matches a tiny reward word, but never cover the entire board.
-  if(big&&kind!=="hero"){
-   const tag=fxAt("fusion-milestone",x,y-radius*.8,"✦ SUPER!");
-   animateNode(tag,[{transform:"translate3d(0,5px,0) scale(.8)",opacity:0,offset:0},
-    {transform:"translate3d(0,-7px,0) scale(1)",opacity:1,offset:.3},
-    {transform:"translate3d(0,-22px,0) scale(.9)",opacity:0,offset:1}],460).finally(()=>tag.remove());
-  }
+  // Significant matches use a single quiet reward chip above the board.
  }
 }
 function scoreArrival(points){
@@ -526,6 +574,7 @@ async function playFusion(evt){
  }
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
  fusionBurst(groups.map(g=>g.at),groups);
+ evolveFamilyFx(groups);
  // The evolved art blooms only after the gathering, rather than simply
  // popping to a new sprite under an unrelated effect.
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[

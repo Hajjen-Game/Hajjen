@@ -207,7 +207,7 @@ try{
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  // Count animation must finish with the earned amount, not stick on an
  // intermediate number or drift while multiple rewards are arriving.
- await page.waitForTimeout(600);
+ await new Promise(resolve=>setTimeout(resolve,600));
  const scoreAfterTween=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\D/g,""));
  assert(scoreAfterTween>beforePoints,"Score must visibly count upward after the flying token arrives");
  const fx=await page.evaluate(()=>window.__scoreFxSeen);

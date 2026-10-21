@@ -15,8 +15,8 @@ try{
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  await page.click("#continueButton");await page.waitForSelector(".tile");
- assert.equal(await page.$eval(".tile",els=>els.length),49);
- assert.equal(await page.$eval(".tile .stage",els=>els.length),0,"Stage fraction labels should never obscure tiles");
+ assert.equal(await page.$$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Stage fraction labels should never obscure tiles");
  await page.click(".tile");
  assert((await page.$eval("#selectedInfo",e=>e.textContent)).includes("stadium"),"Selecting a tile should provide stage information in the status line");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-atlas"),{timeout:10000});

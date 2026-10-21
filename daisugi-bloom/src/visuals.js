@@ -63,7 +63,7 @@
      var material=new B.StandardMaterial("plant-art-"+family,scene);
      material.diffuseTexture=texture;
      material.diffuseColor=B.Color3.White();
-     material.emissiveColor=new B.Color3(.72,.72,.72);
+     material.emissiveColor=B.Color3.Black();
      material.specularColor=B.Color3.Black();
      material.useAlphaFromDiffuseTexture=true;
      material.transparencyMode=B.Material.MATERIAL_ALPHABLEND;

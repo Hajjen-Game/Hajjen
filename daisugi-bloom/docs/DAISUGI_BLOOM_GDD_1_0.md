@@ -1,5 +1,9 @@
 # Daisugi Bloom — Game Design Document 1.0
 
+> **NYARE DESIGNINRIKTNING (2026-10-21):** Användaren har valt ett separat, japanskinspirerat pusselspel med japanska objekt, Harmony Pulse, inga hinder och ingen Power Move. **Den aktuella speldesignen dokumenteras i [Japanese Harmony Puzzle GDD 2.0](JAPANESE_HARMONY_PUZZLE_GDD_2_0.md) och dess bindande [Color & Art Bible 1.0](JAPANESE_HARMONY_COLOR_BIBLE_1_0.md).** Denna äldre GDD 1.0 är historik för den befintliga Daisugi Bloom-prototypen, inte instruktion att bygga nya grafikassets efter gamla växt- och Power Move-regler.
+
+
+
 **Datum:** 20 oktober 2026  
 **Status:** Designunderlag inför första spelbara prototypen. Dokumentationen ger inte i sig godkännande att börja programmera.  
 **Syfte:** Permanent, lätt att återläsa beslutslogg. Denna fil skiljer bindande spelarbeslut från arbetsförslag och öppna frågor.

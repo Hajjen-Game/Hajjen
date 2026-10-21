@@ -493,3 +493,106 @@ body.festival-fallback .festival-backdrop{display:none}
  .game-view .tile .piece{transition:none}
  .evolution-glint{display:none}
 }
+
+/* Evolution & Harmony Pulse 4.1
+   Five tiny family-specific signatures, one ephemeral element per upgraded
+   survivor (max two on phones). All artwork remains the original sprite. */
+.evo-family{
+ position:absolute;
+ display:block;
+ width:var(--evo-size,44px);
+ height:var(--evo-size,44px);
+ border-radius:50%;
+ translate:-50% -50%;
+ pointer-events:none;
+ will-change:transform,opacity;
+}
+.evo-family::before,.evo-family::after{
+ content:"";
+ position:absolute;
+ pointer-events:none;
+ display:block;
+}
+/* Sakura: two drifting blossom silhouettes instead of a generic gold burst. */
+.evo-sakura::before{
+ content:"✿";top:-15%;left:-8%;
+ color:#f8a4c7;font-size:26px;line-height:1;
+ text-shadow:0 1px 1px #a95579;
+}
+.evo-sakura::after{
+ content:"✿";right:-5%;bottom:-9%;
+ color:#ffd0de;font-size:18px;line-height:1;
+ text-shadow:0 1px 1px #b76085;
+}
+/* Lantern: warm amber bloom expands with a slender gold halo. */
+.evo-lantern{
+ background:radial-gradient(circle,#ffefb59c 0%,#fbc56c71 30%,transparent 72%);
+ border:1px solid #ffdfa9a8;
+}
+.evo-lantern::before{
+ inset:15%;border:2px solid #ffde98b8;border-radius:50%;
+}
+.evo-lantern::after{
+ top:2%;left:48%;height:96%;width:2px;
+ background:linear-gradient(transparent,#ffedb9d9,transparent);
+}
+/* Koi: two concentric blue water rings around the actual fish illustration. */
+.evo-koi::before{
+ inset:-7%;border:2px solid #9be8efcc;border-radius:50%;
+ box-shadow:inset 0 0 0 1px #5a9cba79;
+}
+.evo-koi::after{
+ inset:10%;border:2px solid #f0ffffca;border-radius:50%;
+}
+/* Fan: two arcs cut across the tile like a controlled breeze. */
+.evo-fan::before{
+ inset:7% -9% 16% -9%;
+ border-top:3px solid #c2ecf2df;border-radius:50%;
+ transform:rotate(-24deg);
+}
+.evo-fan::after{
+ inset:27% -16% -4% -16%;
+ border-top:2px solid #77b8ccdf;border-radius:50%;
+ transform:rotate(24deg);
+}
+/* Bonsai: rising mint leaf sparks, no screen-covering forest burst. */
+.evo-bonsai::before{
+ content:"✦";left:13%;bottom:6%;font-size:21px;line-height:1;color:#b9eea2;
+ text-shadow:0 1px #417d4c;
+}
+.evo-bonsai::after{
+ content:"✦";right:6%;top:1%;font-size:16px;line-height:1;color:#83d9a4;
+ text-shadow:0 1px #417d4c;
+}
+/* Only stage-five items generate a warm consecrating ring. */
+.masterpiece-halo{
+ display:block;position:absolute;translate:-50% -50%;
+ pointer-events:none;border-radius:50%;
+ border:2px solid #ffe7a5d9;
+ background:radial-gradient(circle,#f5d98a4d,transparent 70%);
+ box-shadow:inset 0 0 0 2px #f1c86940;
+ will-change:transform,opacity;
+}
+/* A restrained mint source ring makes each directed Harmony wave legible. */
+.pulse-source-halo{
+ display:block;position:absolute;translate:-50% -50%;
+ pointer-events:none;border-radius:50%;
+ border:2px solid #b5f2cbde;
+ background:radial-gradient(circle,#87d7b143,transparent 72%);
+ will-change:transform,opacity;
+}
+.fusion-fx-layer .pulse-dot{
+ background:radial-gradient(circle at 35% 30%,#fff8d7 0%,#9be6c3 40%,#5bad96 74%);
+ box-shadow:0 0 5px #8ed7b56e;
+}
+/* Progressive small HUD chips – only significant events get words. */
+.game-view .combo[data-tier="1"]{border-color:#f2cb83;color:#f8d797}
+.game-view .combo[data-tier="2"]{border-color:#a2e2c2;color:#c8f6db}
+.game-view .combo[data-tier="3"]{border-color:#ffe19a;color:#ffedbb}
+.game-view .combo[data-tier="4"]{
+ border-color:#f6d68e;color:#fff0bd;
+ background:#244b46e8;
+}
+@media(prefers-reduced-motion:reduce){
+ .evo-family,.masterpiece-halo,.pulse-source-halo{display:none}
+}

@@ -163,7 +163,7 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,pulseSource:0,masterpiece:0,maxTokenWidth:0};
+   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
@@ -173,7 +173,15 @@ try{
        if(node.classList.contains("fusion-ring"))window.__scoreFxSeen.ring++;
        if(node.classList.contains("score-impact-ring"))window.__scoreFxSeen.impact++;
        if(node.classList.contains("fusion-milestone"))window.__scoreFxSeen.milestone++;
-        if(node.classList.contains("evo-family"))window.__scoreFxSeen.family++;
+        if(node.classList.contains("evo-family")){
+         window.__scoreFxSeen.family++;
+         const tileWidth=document.querySelector(".tile")?.getBoundingClientRect().width||1;
+         window.__scoreFxSeen.maxFamilyToTileRatio=Math.max(window.__scoreFxSeen.maxFamilyToTileRatio,
+          node.getBoundingClientRect().width/tileWidth);
+       }
+       if(node.classList.contains("evolution-stage-label"))window.__scoreFxSeen.stage++;
+       if(node.classList.contains("pulse-trace"))window.__scoreFxSeen.pulseTrace++;
+       if(node.classList.contains("pulse-target-hit"))window.__scoreFxSeen.pulseLanding++;
         if(node.classList.contains("pulse-source-halo"))window.__scoreFxSeen.pulseSource++;
         if(node.classList.contains("masterpiece-halo"))window.__scoreFxSeen.masterpiece++;
        if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.maxTokenWidth=Math.max(window.__scoreFxSeen.maxTokenWidth,node.getBoundingClientRect().width);
@@ -197,7 +205,9 @@ try{
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
- assert(fx.family>=1,"A successful fusion must show its original-family evolution signature: "+JSON.stringify(fx));
+ assert(fx.family>=1,"Every successful fusion must show its family identity: "+JSON.stringify(fx));
+ assert(fx.stage>=1,"Even a basic 3-match must display its upgraded stage clearly: "+JSON.stringify(fx));
+ assert(fx.maxFamilyToTileRatio>=1.25,"Family effect must be visibly larger than its tile on mobile: "+JSON.stringify(fx));
  assert(fx.score>=1&&fx.trail>=3,"Expected a flying point label with a trailing stream: "+JSON.stringify(fx));
  assert(fx.ring>=1,"The fusion must produce a readable expanding ring: "+JSON.stringify(fx));
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));

@@ -324,3 +324,18 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Tester:** `tests/harmony-browser-smoke.mjs` verifierar att verklig mobilfusion får en familjesignatur, och `tests/harmony-vfx.test.cjs` verifierar samtliga fem familjer, mobilbudget, mästerverksring, reward-prioritet och att Pulse träffar innan rutor ritas om. GitHub Actions kör båda via `.github/workflows/daisugi-bloom-tests.yml`.
 
 **Kod:** `harmony/app.js`, `harmony/mobile-game.css`, `index.html` (4.1.0), tester och arbetsflöde. **Nästa planerade pass 4.2 är ljud/poäng-belöningspolish och ligger utanför 4.1.** Visuell kvalitetsbedömning, prestanda och haptisk feedback måste fortfarande göras i verklig Android-browser.
+
+
+## Visual Readability 4.1.1 — korrigering efter mobilfeedback (2026-10-21)
+
+**Rapporterat problem:** Det gick knappt att se någon skillnad efter 4.1. Kodgranskningen visade att familjeeffekterna var högst ungefär en brickas storlek (95 %), varade bara 345 ms och startade samtidigt som den nya stage-spriten fortfarande skalades fram. Harmony Pulse syntes som små 135 ms-punkter; vanliga trematchningar visade inget tydligt stadiumvärde.
+
+**Ändringar:**
+- Familjeeffekten börjar **efter** den nya illustrationens 245 ms-förädling, inte mitt under den. Storlek ökas till 145 % av brickans sida; varaktighet till 590 ms, med tydligt färgkodade konturer/halor och två familjespecifika detaljelement. Max två samtidiga familjeeffekter per fusion på mobil.
+- Varje vanlig godkänd fusion får en liten förankrad etikett `✦ STADIUM N` som rör sig uppåt i 650 ms. Högst två etiketter per event på mobil, ingen stor mittbaner för trematchning.
+- Mästerverksringen förstoras till 162 % av brickan och varar 680 ms. Signalen är lokal – ingen skärmskakning, vit explosion eller helskärmsdimning.
+- Harmony Pulse visar upp till fem synliga energilinjer och fem ljuskärnor på mobil som färdas i 230 ms, två källhalor och högst tre lokala träffringar. Samtliga regelstyrda mål förädlas fortfarande oavsett visuella gränser; brädet uppdateras **efter** energins resa.
+- Prestanda: lätta, kortlivade DOM-element i en befintlig overlay. Endast transform/opacity animeras; inga fler långlivade lager eller uppskalade bakgrundstexturer. Reducerad rörelse fortsätter fungera.
+- 4.1.1 skiljer sig avsiktligt tydligt från 4.1 redan vid vanliga 3-matchningar.
+
+**Tester:** `harmony-vfx.test.cjs` kräver effektvaraktighet, fem familjer, stadiumindikator, begränsade Pulse-linjer/träffar och korrekt sekvens; browser smoke kräver på en 390px mobil att en normal fusion skapar familjesignatur och stadiumetikett samt att familjeeffekten är minst 1.25 gånger brickans bredd. CSS/JS versionssträng 4.1.1. Faktiskt utseende och FPS verifieras genom användartest på en riktig Android-telefon.

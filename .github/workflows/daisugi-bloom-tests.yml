@@ -20,6 +20,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-vfx.test.cjs
       - name: Verify Harmony 4.2 audio and reward limits
         run: node daisugi-bloom/tests/harmony-audio.test.cjs
+      - name: Verify Harmony 4.2 score animation and reset contracts
+        run: node daisugi-bloom/tests/harmony-reward.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js

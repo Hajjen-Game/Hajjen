@@ -78,12 +78,12 @@ try{
      hasEmissiveTexture:!!m.emissiveTexture,
      emissiveWhite:m.emissiveColor.r>.95&&m.emissiveColor.g>.95&&m.emissiveColor.b>.95,
      imageUpright:m.diffuseTexture._invertY===true,
-     sampling:m.diffuseTexture.samplingMode,
+     bilinear:m.diffuseTexture.samplingMode===window.BABYLON.Texture.BILINEAR_SAMPLINGMODE,
      noMipmaps:m.diffuseTexture._noMipmap,
      alpha:m.useAlphaFromDiffuseTexture
    }));
  });
- assert(matState.length===4&&matState.every(m=>m.hasEmissiveTexture&&m.emissiveWhite&&m.alpha&&m.imageUpright&&m.noMipmaps&&m.sampling===window.BABYLON.Texture.BILINEAR_SAMPLINGMODE),
+ assert(matState.length===4&&matState.every(m=>m.hasEmissiveTexture&&m.emissiveWhite&&m.alpha&&m.imageUpright&&m.noMipmaps&&m.bilinear),
    "Plant sprites must use their actual colour as an unlit emissive texture: "+JSON.stringify(matState));
  const boardPng=await (await page.$("#boardCanvas")).screenshot({type:"png"});
  const boardPixels=await page.evaluate(async base64=>{

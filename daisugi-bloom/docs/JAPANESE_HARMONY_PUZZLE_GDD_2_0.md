@@ -298,3 +298,29 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 - **QA:** browser smoke testar ogiltigt angränsande byte som visuell återstuds med oförändrad poäng, oförändrat dragantal, exakt samma 49 celler och samma familjer/stadier. Befintliga funktionstester för swap, fusion, Score Stream och mobilnavigering finns kvar.
 
 **Uttryckligt utanför pass 4.0:** familjespecifika VFX, omarbetat Harmony Pulse och ett nytt ljudlandskap. Dessa ligger i kommande 4.1–4.2. Slutlig estetisk nivå samt faktisk Android-prestanda verifieras i telefon.
+
+
+## Evolution & Harmony Pulse 4.1 — familjeidentitet och kedjefeedback (2026-10-21)
+
+**Designmål:** Utgå från den fysiska Core Motion 4.0, men ge varje nytt föremålsstadium igenkännbara visuella signaturer och göra orsak/verkan vid mästerverk och Harmony Pulse lätt att följa. **Ingen ändring av Harmony Rules eller sparformat.**
+
+**Fem familjeeffekter (endast kosmetik):**
+- **Sakura:** två lätta rosa blommarkörer som vrider sig uppåt, utan partikelsvärm.
+- **Lykta:** varm bärnstensfärgad ljushalo som expanderar snabbt.
+- **Koi:** två små blåvita koncentriska vattenringar.
+- **Solfjäder:** två svepande, böjda vindspår.
+- **Bonsai:** två mjukt stigande gröna glimtar.
+
+En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade objekt har lagts på brädet. Den spelar parallellt med den befintliga skalningstransitionen och den generiska glimt som infördes i 4.0 tas bort, så att animationerna inte staplas i onödan. Familjesignaturen skapas av högst **två** element per fusionsevent på mobil (**tre** på större skärmar), vardera med två CSS-pseudoelement. Varje effekt rensas automatiskt efter cirka 345 ms. Samtliga använder den befintliga pekgenomsläppliga score-FX-overlayern.
+
+**Mästerverk:** Vid skapande av stadium 5 visas en enda varm, gyllene ring kring objektet (högst två på mobil), istället för ännu en allmän fusionsburst. Det befintliga grafiska stadiet, inte overlayeffekten, förblir huvudfokus. Ringen avlägsnas efter 385 ms.
+
+**Harmony Pulse – tydlig orsak/verkan:** När eventet `pulse` inleds får tidigare bricktillstånd ligga kvar synligt. Små mintfärgade energipunkter färdas från `target.from` till `target.to` under 135 ms. Först **därefter** uppdateras hela logiska tillståndet, med 116 ms landningsrespons för högst ett antal valda visuella mål. Alla game-state-förändringar används fortfarande i sin helhet, oavsett hur många strålar som ritas. Mobilbudgeten är fem synliga strålar och två source-ringar per Pulse-event; större skärmar kan visa upp till nio strålar och fyra ringar. Undviker tidigare extra `fusionBurst` på varje Pulse-våg.
+
+**Belöningshierarki:** Smal och icke blockerande chip ovanför spelplanen. Fyra objekt → `VACKERT!`; större matchningar, former eller automatiska kedjevågor → `HARMONI!`; nytt mästerverk → `MÄSTERVERK!`; två eller fler mästerverk i samma Harmony-kedja → `PERFEKT HARMONI · xN`. Endast en chip visas åt gången och en svagare belöning får inte ersätta en starkare inom samma drag. Vanliga trematchningar får inte stora ord över brickorna.
+
+**Zen- och prestandaskydd:** Inga stora skärmskakningar, inga vita fullskärmsexplosioner, ingen shader-/Canvas-effekt eller nya familjegrafikfiler. `Minska animationer`/systeminställningen reducerad rörelse hoppar över de nya visuella effekterna. Endast temporära `transform`/ `opacity`-animationer; de 49 permanenta rutorna ändras inte.
+
+**Tester:** `tests/harmony-browser-smoke.mjs` verifierar att verklig mobilfusion får en familjesignatur, och `tests/harmony-vfx.test.cjs` verifierar samtliga fem familjer, mobilbudget, mästerverksring, reward-prioritet och att Pulse träffar innan rutor ritas om. GitHub Actions kör båda via `.github/workflows/daisugi-bloom-tests.yml`.
+
+**Kod:** `harmony/app.js`, `harmony/mobile-game.css`, `index.html` (4.1.0), tester och arbetsflöde. **Nästa planerade pass 4.2 är ljud/poäng-belöningspolish och ligger utanför 4.1.** Visuell kvalitetsbedömning, prestanda och haptisk feedback måste fortfarande göras i verklig Android-browser.

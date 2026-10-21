@@ -170,3 +170,22 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 **Färger definierade och dokumenterade, men användaren har inte ännu utvärderat färgerna i genererad grafik.** Använd alltid `JH-COLOR-1.0` tills användaren ber om en uttrycklig revision.
 
 **Nästa steg när användaren ger klartecken:** generera visuella tillgångar utifrån Color Bible, helst 1) provobjekt från olika familjer som stilankare, 2) 7×7-spelplansram med äkta transparent alfa, 3) UI-förslag. Kontrollera alla 49 rutor och konsekvent palett innan någon bild integreras i spelkoden. Inga grafiska filer eller spelkod ska skapas utan uttrycklig begäran.
+
+
+## Implementation status — Japanese Harmony First Playable 2.0 (2026-10-21)
+
+**This section supersedes earlier 'no programming' status notes in this document.** At the user's explicit request, the old landing page was replaced with the new Japanese Harmony first playable.
+
+**Implemented in GitHub:**
+- `daisugi-bloom/index.html` serves Japanese Harmony and loads `harmony/rules.js`, `harmony/app.js`, `harmony/styles.css`.
+- New DOM/mobile 7×7 board and Midnight Garden UI tokens.
+- Four starting families (Sakura, Lykta, Koi, Solfjäder), five stage model, mixed-stage matching, strongest-piece survivor, T/L overlap groups, 4/5 bonus growth, direct and bonus-triggered Harmony Pulse, no refill until pulses complete, stage-one refill, free deadlock shuffle, controlled balanced bag, and separate save slots.
+- Ten first-chapter levels (design draft move budgets), stars frozen when goal first achieved, play remaining moves for score, new board variant on retry, no power ups or permanent Daisugi tree.
+- `tests/harmony.test.cjs` and `tests/harmony-browser-smoke.mjs` cover logic and mobile view; workflow switched to new smoke while retaining old standalone legacy rule tests.
+
+**Explicitly pending / not to claim complete:**
+- The newly approved 25 high-resolution graphical assets are **not yet uploaded to the GitHub repository**. The app is wired to `daisugi-bloom/assets/harmony-atlas.webp`; until that binary asset is installed, a deliberately visible temporary family-symbol fallback appears. The four stages? No: **five** per family are expected in the atlas, arranged five columns (stages 1–5) and five rows (Sakura, Lykta, Koi, Solfjäder, Bonsai), one transparent tile each.
+- Art must be integrated from the user's approved originals while preserving family-specific color rules and all five clearly distinct stages. Never silently substitute old Daisugi foliage atlases. The fifth approved lantern original must be checked against the available image set instead of duplicated without user awareness.
+- Actual 7×7 start boards, star thresholds, bag variation and level 8/9 goal achievability still need human playtesting and/or more advanced simulation. Green automated tests are not a guarantee of final balance.
+- UI animation polish and full image atlas are not final; this is **first playable / test build**, not a visually complete release.
+

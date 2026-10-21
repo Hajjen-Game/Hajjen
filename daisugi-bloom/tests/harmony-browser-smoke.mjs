@@ -105,6 +105,44 @@ try{
  // Previous assertion selected tile 0. Clear that selection before the swap test.
  await page.click(".tile:nth-child(1)");
  const stableTile=await page.$(".tile");
+ // Invalid adjacent swaps are visual-only. They rebound without consuming
+ // moves, changing the grid, or leaving the board permanently busy.
+ const invalid=await page.evaluate(()=>{
+  const families={Sakura:"sakura",Lykta:"lantern",Koi:"koi",Solfjäder:"fan",Bonsai:"bonsai"};
+  const board=[...document.querySelectorAll(".tile")].map((el,i)=>({
+   family:families[el.getAttribute("aria-label").split(",")[0]],stage:1,id:i+1
+  }));
+  for(let a=0;a<49;a++)for(const b of HarmonyRules.neighbors(a)){
+   const trial=board.map(p=>({...p}));
+   [trial[a],trial[b]]=[trial[b],trial[a]];
+   if(!HarmonyRules.scan(trial).some(g=>g.includes(a)||g.includes(b)))return [a,b];
+  }
+  return null;
+ });
+ assert(invalid,"A generated board should contain an invalid adjacent swap");
+ await page.evaluate(()=>{
+  window.__invalidMotion=[];
+  const animate=Element.prototype.animate;
+  Element.prototype.animate=function(frames,options){
+   if(this.matches(".piece"))window.__invalidMotion.push(frames);
+   return animate.call(this,frames,options);
+  };
+ });
+ const invalidMoves=await page.$eval("#movesCount",el=>el.textContent);
+ const invalidScore=await page.$eval("#scoreCount",el=>el.textContent);
+ const invalidBoard=await page.$eval(".tile",els=>els.map(e=>e.getAttribute("aria-label")).join("|"));
+ await page.click(".tile:nth-child("+(invalid[0]+1)+")");
+ await page.click(".tile:nth-child("+(invalid[1]+1)+")");
+ await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:5000});
+ const bounced=await page.evaluate(()=>window.__invalidMotion.some(frames=>
+  frames.length>=4&&frames.some(k=>typeof k.transform==="string"&&/translate3d\\([^,]*[1-9]/.test(k.transform))));
+ assert(bounced,"Invalid swap must animate a physical forward-and-back rebound");
+ assert.equal(await page.$eval("#movesCount",el=>el.textContent),invalidMoves);
+ assert.equal(await page.$eval("#scoreCount",el=>el.textContent),invalidScore);
+ assert.equal(await page.$eval(".tile",els=>els.map(e=>e.getAttribute("aria-label")).join("|")),invalidBoard);
+ assert.equal(await page.$eval(".tile",els=>els.length),49);
+ // The rejected target remains selected; clear it before the valid swap.
+ await page.click(".tile:nth-child("+(invalid[1]+1)+")");
  const swap=await page.evaluate(()=>{
   const fromName={Sakura:"sakura",Lykta:"lantern",Koi:"koi",Solfjäder:"fan",Bonsai:"bonsai"};
   const cells=Array.from(document.querySelectorAll(".tile")).map((el,i)=>{
@@ -150,6 +188,7 @@ try{
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:7000});
  const kineticCount=await page.evaluate(()=>window.__kineticAnimationCount||0);
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
+ assert(await page.evaluate(()=>!!window.__invalidMotion.length),"Rebound keyframes should have been recorded");
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));

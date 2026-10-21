@@ -10,7 +10,16 @@ function fixture(){
 check("10 first-chapter levels and five family identities",()=>{
  assert.equal(R.levels.length,10);
  assert.deepEqual(R.families,["sakura","lantern","koi","fan","bonsai"]);
- for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage>=1&&p.stage<=4));assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);}
+ for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage===1),"Every new level must begin with only stage-one objects");assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);}
+});
+check("new controlled starts and retries always contain ONLY stage-one objects",()=>{
+ for(let i=0;i<10;i++)for(let attempt=0;attempt<16;attempt++){
+  const game=new R.Game(i);
+  assert.equal(game.board.length,49);
+  assert(game.board.every(p=>p&&p.stage===1),"Level "+(i+1)+", retry "+attempt+" contained developed pieces");
+  assert(!R.scan(game.board).length,"Free pre-matched board");
+  assert(R.validSwaps(game.board).length>=3,"Start must offer strategic valid swaps");
+ }
 });
 check("T and L overlap with shared intersection counts as a single five-piece group",()=>{
  const b=blank();for(const i of [9,10,11,17,24])b[i].family="sakura";

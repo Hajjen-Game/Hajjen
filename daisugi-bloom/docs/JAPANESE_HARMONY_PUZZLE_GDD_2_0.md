@@ -203,3 +203,13 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 - **Harmony Chain-status** är ett smalt kortlivat statuschip som döljer sig automatiskt, inte en stor banner över mittfältet.
 - **Spelregler, målbilder, sparade framsteg och familjeordning är oförändrade.**
 - Mobil- och regeltester verifierar körning inklusive en verklig matchning och att den första rutans DOM-nod behålls. Användarens verkliga telefonupplevelse ska utvärderas i fortsatt speltest.
+
+## Kinetic Fusion 2.1 — bindande rättelser (2026-10-21)
+
+**Användarbeslut: NYTT BRÄDE = ENDAST STADIUM 1.** Varje föremål på samtliga 49 rutor ska börja på stadium **1** när en ny nivå eller en omstart genereras. Tidigare handplacerade stadium 2–4 var ett fel och är borttagna från generatorn. Kontrollerad nivåvariation får ske genom **familjernas fördelning och placering**, aldrig genom gratis förädlade föremål. Ett aktivt sparat spel som fortsätts ska däremot naturligtvis behålla redan intjänad förädling.
+
+**Rörelse och respons:** Efter användarfeedback om otillräcklig fusion jämfördes gamla Daisugi Bloom 3D-baserade `Garden.play` och Wildpaths spatiala fusion. Japanese Harmony 2.1 visar nu faktiskt **rörliga föremål**: byte glider mellan rutorna, förbrukade matchföremål rör sig mot överlevaren, överlevaren växer kort, Harmony Pulse får rörlig energi mellan ortogonala grannar och gravitetsnedfall animeras med bevarade pjäsidentiteter. Web Animations API kör grafikförflyttning via browserns compositor; 49 rutknappar återanvänds och objektskiften uppdaterar endast berörda bilder. Ingen konstgjord lång väntetid läggs mellan varje snapshot. Minska animationer stöds fortfarande.
+
+**Balanskonsekvens:** Första tio nivåernas tidigare angivna dragbudgetar och handritade startpussel som förutsatte stadium 2–4 är **preliminära och behöver omvärderas** efter detta nya stadium-1-krav. Ändra inte tillbaka startobjektens stadium för att göra nivåerna lättare. Justera i stället antal drag, mål eller familjeplacering efter speltester.
+
+**Kvalitetskrav:** Automatisk startbrädeskontroll över samtliga nivåer och upprepade omstarter (49× stadium 1, inga färdiga matcher, minst tre möjliga drag), samt verkligt mobiltest av en fusionsrörelse. Godkända tester garanterar inte perfekt upplevd flyt på den användarens mobil; återtest med längre Harmony-kedjor behövs.

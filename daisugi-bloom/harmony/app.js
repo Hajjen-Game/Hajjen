@@ -20,7 +20,7 @@ function sound(type){
   const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   if(!soundContext)soundContext=new Audio();
   if(soundContext.state==="suspended")soundContext.resume();
-  const notes={swap:370,fusion:510,bonus:620,pulse:710,harvest:860,goal:930};
+  const notes={swap:370,fusion:510,bonus:620,pulse:710,harvest:860,goal:930,score:1050};
   if(!notes[type])return;
   const o=soundContext.createOscillator(),g=soundContext.createGain(),now=soundContext.currentTime;
   o.type=type==="harvest"?"triangle":"sine";o.frequency.setValueAtTime(notes[type],now);
@@ -168,21 +168,80 @@ function fxAt(className,x,y,text){
  scoreFxLayer().appendChild(span);
  return span;
 }
-function fusionBurst(positions){
+// A clearly readable but compact reward, scaled to match size.
+// Ring and stars are painted in a single ephemeral fixed overlay, not in the board.
+function fusionBurst(positions,groups=[],kind="fusion"){
  if(FAST()||!Element.prototype.animate)return;
  for(const at of [...new Set(positions)].slice(0,3)){
+  if(!boardTiles[at])continue;
   const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
-  // Five small warm-gold/mint glints, not an opaque explosion over the icon.
-  for(let i=0;i<5;i++){
-   const theta=(i/5)*Math.PI*2-.42,rad=14+(i%2)*8;
-   const spark=fxAt("fusion-spark"+(i%2?" mint":""),x,y);
+  const group=groups.find(g=>g.at===at);
+  const big=kind==="hero"||(group?.number>=5),strong=big||(group?.number===4);
+  const radius=Math.min(rect.width,rect.height)*(big?.49:.42);
+  const tone=kind==="hero"?" mint":(big?" gold":"");
+  const ring=fxAt("fusion-ring"+tone,x,y);
+  ring.style.width=(radius*2)+"px";ring.style.height=(radius*2)+"px";
+  animateNode(ring,[
+   {transform:"scale(.25)",opacity:0,offset:0},
+   {transform:"scale(.85)",opacity:.95,offset:.38},
+   {transform:"scale(1.48)",opacity:0,offset:1}
+  ],big?420:340).finally(()=>ring.remove());
+  // Two light echoes establish the fusion origin without white explosions.
+  const core=fxAt("fusion-core"+(kind==="hero"?" mint":""),x,y);
+  animateNode(core,[
+   {transform:"scale(.18)",opacity:0,offset:0},
+   {transform:"scale(1)",opacity:.68,offset:.34},
+   {transform:"scale(1.35)",opacity:0,offset:1}
+  ],big?340:265).finally(()=>core.remove());
+  const count=strong?8:6,drift=radius*(strong?.92:.76);
+  for(let i=0;i<count;i++){
+   const theta=(i/count)*Math.PI*2-.2,d=drift*(.85+(i%3)*.15);
+   const spark=fxAt("fusion-spark"+(i%3===0?" mint":""),x,y);
    animateNode(spark,[
-    {transform:"translate3d(0,0,0) scale(.35)",opacity:0},
-    {transform:"translate3d("+(Math.cos(theta)*rad*.45)+"px,"+(Math.sin(theta)*rad*.45)+"px,0) scale(1)",opacity:.9,offset:.34},
-    {transform:"translate3d("+(Math.cos(theta)*rad)+"px,"+(Math.sin(theta)*rad)+"px,0) scale(.22)",opacity:0}
-   ],245).finally(()=>spark.remove());
+    {transform:"translate3d(0,0,0) scale(.5)",opacity:0,offset:0},
+    {transform:"translate3d("+(Math.cos(theta)*d*.34)+"px,"+(Math.sin(theta)*d*.34)+"px,0) scale(1.35)",opacity:1,offset:.37},
+    {transform:"translate3d("+(Math.cos(theta)*d)+"px,"+(Math.sin(theta)*d)+"px,0) scale(.18)",opacity:0,offset:1}
+   ],big?375:315).finally(()=>spark.remove());
+  }
+  // Give exceptional matches a tiny reward word, but never cover the entire board.
+  if(big&&kind!=="hero"){
+   const tag=fxAt("fusion-milestone",x,y-radius*.8,"✦ SUPER!");
+   animateNode(tag,[{transform:"translate3d(0,5px,0) scale(.8)",opacity:0,offset:0},
+    {transform:"translate3d(0,-7px,0) scale(1)",opacity:1,offset:.3},
+    {transform:"translate3d(0,-22px,0) scale(.9)",opacity:0,offset:1}],460).finally(()=>tag.remove());
   }
  }
+}
+function scoreArrival(points){
+ const counter=$("scoreCount");
+ if(!counter||!counter.isConnected)return;
+ const panel=$("scorePanel"),r=counter.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+ // A restrained but unmistakable impact at the destination. Restart safely
+ // when another combo arrives immediately afterwards.
+ if(!FAST()&&Element.prototype.animate){
+  if(panel)animateNode(panel,[
+   {transform:"scale(1)",filter:"brightness(1)",offset:0},
+   {transform:"scale(1.035)",filter:"brightness(1.28)",offset:.45},
+   {transform:"scale(1)",filter:"brightness(1)",offset:1}
+  ],365);
+  animateNode(counter,[
+   {transform:"scale(1)",color:"#F2C66E",offset:0},
+   {transform:"scale(1.30)",color:"#FFF2DC",offset:.38},
+   {transform:"scale(1.07)",color:"#FFE6A0",offset:.70},
+   {transform:"scale(1)",color:"#F2C66E",offset:1}
+  ],430);
+  const ring=fxAt("score-impact-ring",x,y);
+  animateNode(ring,[
+   {transform:"scale(.45)",opacity:.95,offset:0},
+   {transform:"scale(1.45)",opacity:.58,offset:.48},
+   {transform:"scale(2.0)",opacity:0,offset:1}
+  ],360).finally(()=>ring.remove());
+ }else{
+  // Still acknowledge rewards for people who requested reduced motion.
+  counter.classList.add("score-accessible-flash");
+  setTimeout(()=>counter.classList.remove("score-accessible-flash"),260);
+ }
+ if(points>=500)sound("score");
 }
 function pointSources(evt){
  const amount=Math.round(evt.scoreDelta||0);
@@ -205,31 +264,39 @@ function pointSources(evt){
 function flyPoints(evt){
  for(const item of pointSources(evt)){
   const points=item.points;
+  // The actual game score is authoritative; these are only reward visuals.
   if(FAST()||!Element.prototype.animate||scoreFlights>=5){
-   scoreShown+=points;renderScoreOnly();continue;
+   scoreShown+=points;renderScoreOnly();scoreArrival(points);continue;
   }
-  const id=scoreSession,from=indexRect(item.at);
-  const dest=$("scoreCount").getBoundingClientRect();
-  const x=from.left+from.width/2,y=from.top+from.height/2;
+  const id=scoreSession,from=indexRect(item.at),dest=$("scoreCount").getBoundingClientRect();
+  const x=from.left+from.width*.5,y=from.top+from.height*.45;
   const dx=dest.left+dest.width*.5-x,dy=dest.top+dest.height*.5-y;
-  scoreFlights++;
+  const bend=dx>=0?Math.min(-18,-Math.abs(dx)*.12):Math.max(18,Math.abs(dx)*.12);
+  const n=scoreFlights++;
+  // Arc above the board: legible +amount with a thick dark ink pill and gold rim.
+  const keyframes=[
+   {transform:"translate3d(0,6px,0) scale(.75)",opacity:0,offset:0},
+   {transform:"translate3d(0,-8px,0) scale(1.12)",opacity:1,offset:.16},
+   {transform:"translate3d("+(dx*.32+bend)+"px,"+(dy*.32-28)+"px,0) scale(1.06)",opacity:1,offset:.43},
+   {transform:"translate3d("+(dx*.70+bend*.5)+"px,"+(dy*.70-23)+"px,0) scale(.94)",opacity:1,offset:.77},
+   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.48)",opacity:.96,offset:.96},
+   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.2)",opacity:0,offset:1}
+  ];
+  const duration=610;
   const label=fxAt("score-flight-token",x,y,"+"+prettify(points));
-  const flight=animateNode(label,[
-   {transform:"translate3d(0,0,0) scale(.78)",opacity:.12,offset:0},
-   {transform:"translate3d("+(dx*.18-12)+"px,"+(dy*.24-22)+"px,0) scale(1.04)",opacity:1,offset:.26},
-   {transform:"translate3d("+(dx*.74+7)+"px,"+(dy*.73-14)+"px,0) scale(.84)",opacity:.95,offset:.75},
-   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.28)",opacity:0,offset:1}
-  ],455,{easing:"cubic-bezier(.18,.62,.36,1)"});
-  // Trailing beads travel along the same path without extra game-state updates.
-  for(let k=0;k<3;k++){
-   const bead=fxAt("score-trail-dot",x,y);
-   const stagger=40+k*34;
+  label.dataset.points=String(points);
+  const flight=animateNode(label,keyframes,duration,{easing:"linear"});
+  // A visible stream of small gold sparks follows the exact same curved arc.
+  const trails=Math.max(4,Math.min(6,6-n));
+  for(let k=0;k<trails;k++){
+   const bead=fxAt("score-trail-dot"+(k%2===0?" bright":""),x,y);
+   const stagger=55+k*40;
    animateNode(bead,[
-    {transform:"translate3d(0,0,0) scale(.52)",opacity:0,offset:0},
-    {transform:"translate3d("+(dx*.22-12)+"px,"+(dy*.30-22)+"px,0) scale(.95)",opacity:.9,offset:.32},
-    {transform:"translate3d("+(dx*.76+7)+"px,"+(dy*.76-14)+"px,0) scale(.65)",opacity:.7,offset:.78},
-    {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.15)",opacity:0,offset:1}
-   ],430,{delay:stagger}).finally(()=>bead.remove());
+    {transform:"translate3d(0,0,0) scale(.3)",opacity:0,offset:0},
+    {transform:"translate3d("+(dx*.2+bend*.7)+"px,"+(dy*.2-18)+"px,0) scale(1)",opacity:1,offset:.32},
+    {transform:"translate3d("+(dx*.67+bend*.5)+"px,"+(dy*.67-22)+"px,0) scale(.8)",opacity:.95,offset:.77},
+    {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.18)",opacity:0,offset:1}
+   ],duration-45,{delay:stagger,easing:"linear"}).finally(()=>bead.remove());
   }
   flight.finally(()=>{
    label.remove();
@@ -237,13 +304,10 @@ function flyPoints(evt){
    scoreFlights=Math.max(0,scoreFlights-1);
    scoreShown+=points;
    renderScoreOnly();
-   animateNode($("scoreCount"),[
-    {transform:"scale(1)"},{transform:"scale(1.13)",offset:.48},{transform:"scale(1)"}
-   ],155);
+   scoreArrival(points);
   });
  }
 }
-
 function animateTilePiece(index,piece,frames,duration,options){
  const cell=boardTiles[index];
  // During movement, allow the artwork to cross neighbouring grid cells.
@@ -309,7 +373,7 @@ async function playFusion(evt){
   finally{for(const {original} of ghosts)original.style.visibility="";layer.node.remove();}
  }
  renderBoard(evt.board,(evt.groups||[]).map(g=>g.at),"swapped");
- fusionBurst((evt.groups||[]).map(g=>g.at));
+ fusionBurst((evt.groups||[]).map(g=>g.at),evt.groups||[]);
  await Promise.all((evt.groups||[]).map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
   {transform:"scale(.80)"},{transform:"scale(1.15)",offset:.55},{transform:"scale(1)"}
  ],125)));
@@ -347,12 +411,13 @@ async function animateEvent(evt){
    const grow=targets.map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
      {transform:"scale(.75)"},{transform:"scale(1.15)",offset:.6},{transform:"scale(1)"}
    ],145));
-   if(evt.type==="pulse")grow.push(pulseBeams(evt));
+   if(evt.type==="pulse"){grow.push(pulseBeams(evt));fusionBurst([...new Set(targets.map(t=>t.to))].slice(0,2),[],"hero");}
    await Promise.all(grow);
    break;
   }
   case "hero":
    renderBoard(evt.board,evt.positions||[],"harvested");
+   fusionBurst(evt.positions||[],[],"hero");
    await Promise.all((evt.positions||[]).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
      {transform:"scale(.83)"},{transform:"scale(1.20)",offset:.55},{transform:"scale(1)"}
    ],155)));

@@ -41,7 +41,7 @@ assert.equal(trace.slice(beforeStages).filter(x=>x[1]==="evolution-stage-label")
 assert(trace.some(x=>x[0]==="anim"&&x[2]===590),"Family effects must remain visible for roughly 0.6 seconds");
 assert(trace.some(x=>x[0]==="anim"&&x[2]===650),"Stage labels must stay readable for roughly 0.65 seconds");
 evolveFamilyFx(Array.from({length:18},(_,i)=>({family:"koi",at:i})));
-assert.equal(trace.filter(x=>x[0]==="fx").length,7,"Mobile family cue budget = 2");
+assert.equal(trace.filter(x=>x[0]==="fx"&&x[1].startsWith("evo-family")).length,7,"Mobile family cue budget = 2");
 masterpieceMoment([0,1,2,3,4,5]);
 assert.equal(trace.filter(x=>x[1]==="masterpiece-halo").length,2,"Mobile masterpiece halo budget = 2");
 announceReward(1,"VACKERT!");

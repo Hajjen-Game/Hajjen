@@ -1,4 +1,4 @@
-name: Daisugi Bloom checks
+name: Japanese Harmony & legacy checks
 on:
   push:
     paths:
@@ -12,13 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate fusion, pulse and progression
+      - name: Validate legacy Daisugi rules
         run: node daisugi-bloom/tests/rules.test.cjs
+      - name: Validate Japanese Harmony puzzle rules
+        run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js
           node --check daisugi-bloom/src/visuals.js
           node --check daisugi-bloom/src/app.js
+          node --check daisugi-bloom/harmony/rules.js
+          node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
     steps:
@@ -29,8 +33,8 @@ jobs:
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
           echo $! > /tmp/daisugi-bloom-server.pid
-      - name: Run mobile 3D smoke
-        run: node daisugi-bloom/tests/browser-smoke.mjs
+      - name: Run Japanese Harmony mobile smoke
+        run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -126,7 +126,7 @@ try{
  assert(fx.ring>=1,"The fusion must produce a readable expanding ring: "+JSON.stringify(fx));
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
  assert(fx.maxTokenWidth>=35,"Points must have a legible sized label: "+JSON.stringify(fx));
- assert.equal(await page.$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
+ assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
  assert.equal(await page.evaluate(()=>document.body.dataset.festival),festivalAtStart,"Backdrop must not change during a turn");
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
 

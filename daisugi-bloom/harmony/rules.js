@@ -48,23 +48,19 @@ function fillBoard(families,rand){
  return board;
 }
 function startBoard(level,random,families){
- const setups=[
-  [],[{i:16,s:2},{i:31,s:2}],[{i:24,s:2},{i:38,s:2}],
-  [{i:24,s:3},{i:10,s:2}],[{i:24,s:4},{i:17,s:3},{i:31,s:3}],
-  [{i:17,s:3,f:"lantern"},{i:31,s:3,f:"lantern"},{i:24,s:2}],
-  [{i:17,s:3},{i:31,s:2}],[{i:17,s:2},{i:24,s:3}],
-  [{i:24,s:4,f:"lantern"},{i:25,s:3,f:"koi"},{i:10,s:2}],
-  [{i:16,s:4},{i:25,s:3},{i:31,s:4}]
- ];
- for(let tries=0;tries<400;tries++){
-  let board=fillBoard(families,random);
-  for(const p of setups[level]||[]) {board[p.i].stage=p.s;if(p.f)board[p.i].family=p.f;}
-  if(!scan(board).length&&validSwaps(board).length>=3)return board;
+ // NEW BOARD CONTRACT: all 49 items start at stage ONE, on EVERY level and retry.
+ // Difficulty comes from family placement and objectives, never pre-evolved pieces.
+ // Keep fair variants: no free match and at least three legal first swaps.
+ for(let tries=0;tries<650;tries++){
+  const board=fillBoard(families,random);
+  if(validSwaps(board).length>=3)return board;
  }
- // Fallback: preserve a legal, playable, nonmatched board even with an unfortunate seed.
- let b=fillBoard(families,random);
- if(!validSwaps(b).length){b[23].family="sakura";b[24].family="koi";b[25].family="sakura";b[17].family="sakura";}
- return b;
+ // Deterministic fallback: keep trying stage-one layouts instead of inserting
+ // higher-stage "helping" pieces or permitting a locked starting position.
+ while(true){
+  const board=fillBoard(families,random);
+  if(validSwaps(board).length>=3)return board;
+ }
 }
 function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Math.random()*0xffffffff))>>>0;}
 class Game{

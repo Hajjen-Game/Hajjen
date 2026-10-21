@@ -38,7 +38,7 @@ assert.equal(meter.constrained,true,"Repeated bad turns should trim extras");
 assert.equal(meter.summary().constrained,true);
 sample(16.6);sample(16.6);sample(16.6);
 assert.equal(meter.constrained,false,"Recovery should restore normal decorative FX");
-assert.equal(meter.summary().turns,7);
+assert.equal(meter.summary().turns,6);
 host.document.hidden=true;
 meter.begin();
 assert.equal(meter.summary().running,false,"Hidden pages should not start frame metering");

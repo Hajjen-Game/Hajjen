@@ -4,7 +4,7 @@
 **Identitetsnamn:** **Japanese Harmony — Midnight Garden**  
 **Datum:** 2026-10-21  
 **Omfattning:** Det nya japanskinspirerade 7×7 match-/fusionsspelet, som för närvarande utvecklas ur Daisugi Bloom-idén. Spelets slutliga namn är ännu inte bestämt.  
-**Status:** **Obligatorisk art-direction-standard för all kommande grafik.** Färgerna är ett konkret designförslag som assistenten tagit fram på användarens begäran; de är inte individuellt godkända av användaren ännu och kan justeras när de första bilderna utvärderas. Ändra inte paletten tyst mellan genereringar.
+**Status:** **Obligatorisk art-direction-standard för all kommande grafik.** Uppdaterad 2026-10-21 med uttryckligen godkänd regel om **gemensam renderingskvalitet men självständig familjeidentitet**. Palettens familjeankare är fortsatt bindande tills användaren godkänner en versionsändring. Ändra inte paletten tyst mellan genereringar.
 
 ## 1. Visuell identitet
 
@@ -59,9 +59,27 @@ Rutor ska ha låg detaljkontrast och aldrig konkurrera med objekten. Grönt i mo
 
 Färgankaret gäller hela familjen genom fem stadier. Materialnyanser, kontrasterande högdagrar och små gula/krämvita detaljer är tillåtna, men familjer får **inte** byta huvudkulör mellan bilder eller generationer. Mer avancerade stadier blir detaljrikare och mer förfinade, inte slumpmässigt mer neonfärgade. På varje 7×7-ruta: tydlig familj + tydligt stadium även utan att läsa färgen.
 
+## 2.4 NYTT LÅST SPELARBESLUT — gemensam grafikstil, självständig familjeidentitet (2026-10-21)
+
+**Regel: FAMILJERNAS FORM, FÄRG OCH DEKOR FÅR ALDRIG KOPIERAS FRÅN VARANDRA.**
+
+- **Det som återanvänds från de godkända lyktbilderna är ENDAST renderingskvaliteten:** polerad tredimensionell illustration, tydlig materialstruktur, fin ljussättning, behagliga mjuka skuggor, skarpa former, detaljer och konsekvent assetkvalitet. **Lyktorna är kvalitetsreferens, inte motiv- eller färgmall.**
+- **Varje familj måste behålla sin egen dominerande färg, egen silhuett, egen typiska materialkänsla och egen motiverade dekoration.** Sekundära färger från den globala identiteten får finnas, men aldrig ta över eller göra andra objekt lika lyktorna.
+- **Överför ALDRIG lyktspecifika visuella attribut** som röd/korall huvudkulör, upphängda lykttossar, festivallyktornas lock/kropp, röda snoddar eller lyktornas guldornament till koi, solfjäder, sakura eller bonsai bara för att de ska se lika påkostade ut.
+- **Solfjäder:** dominerande havsblått/indigo `#699DBD` och djupare blå toner, elfenbensvita paneler, naturliga trä-/bamburibbor, japanska blå våg- eller diskreta landskapsmotiv; begränsat guld på stadium 4–5. **Inga kopierade lykttossar, ingen dominerande röd/korall, inget likadant sakurablommotiv på samtliga fem stadier.** Tydlig formförändring: **1 hopfälld, 2 halvöppen, 3 helt öppen och målad, 4 ceremoniell med fina detaljer, 5 legendarisk bred/distinkt silhuett och diskret magiskt ljus**.
+- **Koi:** dominerande varm amber/orange `#E8A354`, vit/elfenben, naturliga koi-varianter med begränsade mörka fläckar; **fem tydligt olika kroppsstorlekar/poser**, mönster och fenutveckling. Senare stadier får större fenor och starkare uttryck; ytterligare fiskar kan förekomma i en högre utvecklingsbild om deras konturer är läsbara även i liten mobilruta. Inte fem nästan identiska fiskar i exakt samma riktning.
+- **Sakura:** dominerande rosa `#EE91AF`, riktiga naturformer, grenar/stam i varmt trä, grönt som sekundär bladfärg. Tydlig morfologisk progression knopp → kvist → kluster → buske → träd. **Inga lånade lyktdekorationer eller artificiella hängande tofsar**.
+- **Bonsai:** dominerande jade-/salviagrönt `#75B68A`, naturligt trä, diskret japansk keramik; progression från frö och planta till formad äldre bonsai med distinkt kraftigare stam. Ingen rödlyktsfärg eller lånade lyktornament.
+- **Lykta:** **fem genererade lyktstadier är godkänd stilreferens och ska lämnas orörda** under detta omtag; de övriga fyra familjerna görs om oberoende.
+- **FEM SEPARATA BILDER** per familj (stadium 1–5), inte en sammanslagen panoramabild, collage eller presentation med etiketter. **En bild = en fristående spelpjäs**, isolerad med riktig transparent alfakanal, centrerad, utan UI, bakgrund eller text.
+- Varje stadium ska ha en **tydlig förändring i form, vinkel, öppning, silhuett eller antal naturliga beståndsdelar**, inte bara mer guld, fler blommor eller större glöd. Föremålen ska vara distinkta i en 7×7-mobilruta. Gemensam ljusmodell och detaljkvalitet ska vara konsekvent trots deras självständiga identiteter.
+- **Kvalitetskontroll före leverans:** kontrollera separat att fem unika filer finns, att familjens ankare dominerar, att ingen lånad familjedekor förekommer, att stadieutvecklingen är tydlig, samt att filerna har verklig alfakanal.
+
+**Orsak till regeln:** En tidigare fanomgång kopierade lyktornas rött/guld och tofsar och tidigare koistadier blev för lika varandra. Detta var ett avsteg från paletten som inte får upprepas.
+
 ## 3. Lås för framtida generering av grafik
 
-**Obligatoriskt i varje framtida bildgenereringsuppdrag:**
+**Obligatoriskt i varje framtida bildgenereringsuppdrag:** Följ även det låsta familjeseparationskravet i §2.4.
 
 1. Läs `JH-COLOR-1.0` och bifoga relevanta HEX-koder som bindande palett.
 2. Behåll **gemensam bildstil**: japanskinspirerat illustrerat spelmaterial, mjuka men skarpa former, taktila material, mjuka skuggor; inte fotorealistiskt eller blockigt low-poly.

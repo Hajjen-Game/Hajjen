@@ -18,12 +18,15 @@ jobs:
         run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Verify Japanese Harmony 4.1 visual-feedback contracts
         run: node daisugi-bloom/tests/harmony-vfx.test.cjs
+      - name: Verify Harmony 4.2 audio and reward limits
+        run: node daisugi-bloom/tests/harmony-audio.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js
           node --check daisugi-bloom/src/visuals.js
           node --check daisugi-bloom/src/app.js
           node --check daisugi-bloom/harmony/rules.js
+          node --check daisugi-bloom/harmony/audio.js
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest

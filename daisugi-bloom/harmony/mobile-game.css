@@ -384,3 +384,49 @@ body.harmony-playing #app{padding-bottom:max(12px,env(safe-area-inset-bottom))}
   background:linear-gradient(110deg,rgba(35,82,65,.94),rgba(33,96,75,.9));
   box-shadow:0 0 14px #7fc8a23b,inset 0 1px #fff5d535;
 }
+
+/* Mobile Polish & Performance 3.2 — only HUD + objective + game board.
+   Keep stage details available to screen readers and in the pause menu. */
+.sr-only{
+  position:absolute!important;width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+}
+body.harmony-playing{overscroll-behavior-y:contain}
+body.harmony-playing .game-view .board-shell{
+  margin-top:clamp(24px,4.6dvh,48px);
+  /* The 3.1 decorative frame had expensive stacked full-frame radial gradients. */
+  background:
+    radial-gradient(ellipse at 50% 0%,#f9e7c5 0%,#efdab3 40%,transparent 72%),
+    repeating-radial-gradient(ellipse at 50% 105%,transparent 0 12px,#a78a6047 13px 14px,transparent 15px 22px),
+    #dec297;
+  box-shadow:inset 0 0 0 3px #d8ad72,inset 0 0 0 6px #72472b,
+             0 5px 0 #573820,0 11px 18px #08161d9c;
+}
+body.harmony-playing .game-view .board-shell::before{
+  filter:none;
+  background:
+    radial-gradient(ellipse 10% 12% at 4% 8%,#64822e 0%,#87974a 46%,transparent 75%),
+    radial-gradient(ellipse 14% 14% at 94% 91%,#668533 0%,#8d9c4c 42%,transparent 77%);
+}
+body.harmony-playing .game-view .board-shell::after{
+  background:
+    radial-gradient(ellipse 5% 4% at 8% 93%,#969991 0%,#565d53 65%,transparent 75%),
+    radial-gradient(ellipse 5% 5% at 93% 8%,#aeaea3 0%,#5c6258 62%,transparent 75%);
+}
+body.harmony-playing .game-view .tile{
+  box-shadow:inset 0 0 0 1px #826d5744;
+}
+body.harmony-playing .game-view .tile:not(.selected){
+  transition:background-color .08s linear;
+}
+@media(hover:none){
+  body.harmony-playing .game-view .tile:hover:not(.selected){background:inherit}
+}
+/* Once the chosen panel is cropped to a small, cached image, avoid rasterizing
+   the whole six-panel atlas as a 2500px-wide compositing surface. */
+.has-festival-crop body::before{
+  background-image:var(--festival-scene-url);
+  background-size:cover;
+  background-position:center;
+}

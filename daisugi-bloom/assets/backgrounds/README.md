@@ -54,3 +54,11 @@ Spelaren rapporterade suddig bakgrund efter UI 3.1. Den komprimerade atlasens va
 **Byte av motiv:** Fortfarande slumpmässigt utan direkt upprepning vid ny nivå eller omstart, och en fortsatt session behåller samma bakgrund om dess ID hör till den nya trebaspoolen.
 
 **QA:** Mobilsmoketestet kontrollerar dimensioner, HD-resursens direkta användning och att byte vid omstart sker. Varken full enhetsprestanda eller subjektivt bildresultat kan garanteras utan telefonstest.
+
+## Festival Night HD Fix 3.3.1 — säkert bildlager
+
+Den första 3.3-versionen kunde visa helt mörkblå bakgrund trots att AVIF-resurserna hade lagts in. Bildvisningen var kopplad till en relativ CSS-`url()` via en variabel, vilket kan ge fel resursadress relativt stylesheet.
+
+**Åtgärd:** Ett fast `<img id="festivalBackdrop">` ligger nu bakom HUD och brädet. JavaScript använder `new URL(path, document.baseURI)` och sätter bildens absoluta `src` först när den laddats. `object-fit:cover` ger skarp fyllning utan canvas eller omräkning. Om HD-bilden inte kan läsas visas den tidigare sexbildsatlasen som reserv i stället för en tom blå yta. Cacheversionen är 3.3.1.
+
+**Regressionstest:** Inspektera inte enbart CSS-filnamnet: mobiltestet kräver att DOM-bilden har `naturalWidth > 0`, faktiskt är synlig, fyller viewporten och att bildfel aktiverar reservmotivet. Verklig mobilbedömning återstår.

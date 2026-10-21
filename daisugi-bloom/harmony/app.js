@@ -607,6 +607,9 @@ async function playFusion(evt){
 }
 // Energy travels out from the masterpiece BEFORE affected items transform.
 // Capped number of visible energy paths; never cap logical target updates.
+// Pulse Readability 4.1.1 – a visible travelling energy line and core.
+// Animate real from/to coordinates, cap decorative FX, update all logical
+// targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
  if(FAST()||!evt.targets?.length)return Promise.resolve();
  const targets=evt.targets.slice(0,MOBILE_LITE?5:9);
@@ -614,26 +617,50 @@ function pulseBeams(evt){
  const sources=[...new Set(targets.map(t=>t.from))];
  for(const from of sources.slice(0,MOBILE_LITE?2:4)){
   const r=indexRect(from),halo=fxAt("pulse-source-halo",r.left+r.width/2,r.top+r.height/2);
-  halo.style.width=Math.round(r.width*.7)+"px";halo.style.height=Math.round(r.height*.7)+"px";
+  halo.style.width=Math.round(r.width*1.1)+"px";halo.style.height=Math.round(r.height*1.1)+"px";
   animateNode(halo,[
-   {transform:"scale(.35)",opacity:0},
-   {transform:"scale(1)",opacity:.9,offset:.35},
-   {transform:"scale(1.5)",opacity:0}
-  ],235).finally(()=>halo.remove());
+   {transform:"scale(.3)",opacity:0,offset:0},
+   {transform:"scale(1)",opacity:1,offset:.33},
+   {transform:"scale(1.42)",opacity:0,offset:1}
+  ],425).finally(()=>halo.remove());
  }
  for(const target of targets){
   const a=indexRect(target.from),b=indexRect(target.to);
+  const dx=b.left-a.left,dy=b.top-a.top;
+  const sx=a.left-layer.rect.left+a.width*.5,sy=a.top-layer.rect.top+a.height*.5;
+  const angle=Math.atan2(dy,dx),dist=Math.hypot(dx,dy);
+  const trace=document.createElement("span");trace.className="pulse-trace";
+  trace.style.left=sx+"px";trace.style.top=sy+"px";trace.style.width=dist+"px";
+  layer.node.appendChild(trace);
+  tasks.push(animateNode(trace,[
+   {transform:"rotate("+angle+"rad) scaleX(0)",opacity:0,offset:0},
+   {transform:"rotate("+angle+"rad) scaleX(.48)",opacity:1,offset:.48},
+   {transform:"rotate("+angle+"rad) scaleX(1)",opacity:.18,offset:1}
+  ],230,{easing:"cubic-bezier(.2,.4,.5,1)"}));
   const dot=document.createElement("span");dot.className="pulse-dot";
-  dot.style.left=(a.left-layer.rect.left+a.width*.5-6)+"px";
-  dot.style.top=(a.top-layer.rect.top+a.height*.5-6)+"px";
+  dot.style.left=(sx-6)+"px";dot.style.top=(sy-6)+"px";
   layer.node.appendChild(dot);
   tasks.push(animateNode(dot,[
-   {transform:"translate3d(0,0,0) scale(.45)",opacity:0,offset:0},
-   {transform:"translate3d("+((b.left-a.left)*.43)+"px,"+((b.top-a.top)*.43)+"px,0) scale(1.08)",opacity:1,offset:.49},
-   {transform:"translate3d("+(b.left-a.left)+"px,"+(b.top-a.top)+"px,0) scale(.7)",opacity:.12,offset:1}
-  ],135,{easing:"cubic-bezier(.35,.3,.65,1)"}));
+   {transform:"translate3d(0,0,0) scale(.4)",opacity:.18,offset:0},
+   {transform:"translate3d("+(dx*.5)+"px,"+(dy*.5)+"px,0) scale(1.45)",opacity:1,offset:.5},
+   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.65)",opacity:0,offset:1}
+  ],230,{easing:"cubic-bezier(.28,.5,.54,1)"}));
  }
  return Promise.all(tasks).finally(()=>layer.node.remove());
+}
+function pulseLandingCues(targets){
+ if(FAST()||!Element.prototype.animate)return;
+ const positions=[...new Set((targets||[]).map(t=>t.to))].slice(0,MOBILE_LITE?3:5);
+ for(const at of positions){
+  if(!boardTiles[at])continue;
+  const r=indexRect(at),node=fxAt("pulse-target-hit",r.left+r.width/2,r.top+r.height/2);
+  node.style.width=Math.round(r.width*1.1)+"px";node.style.height=Math.round(r.height*1.1)+"px";
+  animateNode(node,[
+   {transform:"scale(.38)",opacity:0,offset:0},
+   {transform:"scale(1.02)",opacity:1,offset:.30},
+   {transform:"scale(1.45)",opacity:0,offset:1}
+  ],350).finally(()=>node.remove());
+ }
 }
 async function animateEvent(evt){
  const previous=presentedBoard;
@@ -657,9 +684,10 @@ async function animateEvent(evt){
    const targets=evt.targets||[];
    await pulseBeams(evt);
    renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
+   pulseLandingCues(targets);
    await Promise.all(targets.slice(0,MOBILE_LITE?5:9).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
-    {transform:"scale(.84)",offset:0},{transform:"scale(1.16)",offset:.55},{transform:"scale(1)",offset:1}
-   ],116)));
+    {transform:"scale(.78)",offset:0},{transform:"scale(1.19)",offset:.5},{transform:"scale(1)",offset:1}
+   ],150)));
    break;
   }
   case "hero":

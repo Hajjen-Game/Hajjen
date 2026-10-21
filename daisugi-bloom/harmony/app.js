@@ -11,6 +11,10 @@ const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,soun
 let save,game=null,level=0,selected=-1,busy=false,timer=0,comboTimer=0,pointer=null,suppressClickUntil=0;
 let scoreShown=0,scoreDisplayed=0,scoreRaf=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
 let lastGoalProgress=-1,lastScoreImpact=0;
+const perf=window.HarmonyPerf?.create();
+let rectCache=null,boardLayerRect=null;
+const LITE_FX=()=>MOBILE_LITE&&!!perf?.constrained;
+const fxCount=()=>scoreOverlay?.childElementCount||0;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
@@ -256,9 +260,17 @@ const MOBILE_LITE=!!(window.matchMedia&&window.matchMedia("(max-width: 650px) an
 function animateNode(node,keyframes,ms,options={}){
  if(!node||!node.animate||FAST()||ms<=0)return Promise.resolve();
  const motion=node.animate(keyframes,{duration:ms,easing:"cubic-bezier(.2,.7,.2,1)",fill:"both",...options});
+ perf?.animated();
  return motion.finished.catch(()=>{}).then(()=>motion.cancel());
 }
-function indexRect(index){return boardTiles[index].getBoundingClientRect();}
+// A stable board does not move mid-turn. Cache viewport geometry per turn.
+function indexRect(index){
+ if(rectCache){
+  if(!rectCache[index])rectCache[index]=boardTiles[index].getBoundingClientRect();
+  return rectCache[index];
+ }
+ return boardTiles[index].getBoundingClientRect();
+}
 // Reversible invalid swap: genuine movement to ~75% of the adjacent cell
 // followed by a gentle spring back. No fake board mutation or score change.
 async function invalidSwapBounce(a,b){
@@ -310,6 +322,7 @@ function fxAt(className,x,y,text){
  span.className=className;span.style.left=x+"px";span.style.top=y+"px";
  if(text!==undefined)span.textContent=text;
  scoreFxLayer().appendChild(span);
+ perf?.fx(fxCount());
  return span;
 }
 // Family-specific evolution overlays: one small recycled-style visual cue
@@ -541,7 +554,8 @@ function animateTilePiece(index,piece,frames,duration,options){
 
 function makeFxLayer(){
  const board=$("board"),parent=board.parentElement;
- const b=board.getBoundingClientRect(),p=parent.getBoundingClientRect();
+ const b=board.getBoundingClientRect(),p=boardLayerRect||parent.getBoundingClientRect();
+ if(rectCache&&!boardLayerRect)boardLayerRect=p;
  const layer=document.createElement("div");layer.className="fusion-fx-layer";
  layer.style.left=(b.left-p.left)+"px";layer.style.top=(b.top-p.top)+"px";
  layer.style.width=b.width+"px";layer.style.height=b.height+"px";
@@ -755,6 +769,8 @@ async function animateEvent(evt){
 }
 async function playEvents(events){
  busy=true;$("board").setAttribute("aria-busy","true");
+ rectCache=new Array(49);boardLayerRect=null;
+ perf?.begin();
  rewardTier=0;
  let finished=false,goalReached=false;
  try{
@@ -777,6 +793,8 @@ async function playEvents(events){
   console.error("Harmony animation interrupted",error);
   renderBoard(game.board);
  }finally{
+  rectCache=null;boardLayerRect=null;
+  perf?.stop();
   busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();
  }
  if(goalReached)unlockGoal();

@@ -61,6 +61,19 @@ try{
      return realAnimate.apply(this,args);
    };
  });
+ await page.evaluate(()=>{
+   window.__scoreFxSeen={score:0,trail:0,burst:0};
+   window.__scoreFxWatcher=new MutationObserver(records=>{
+     for(const rec of records)for(const node of rec.addedNodes){
+       if(node.nodeType!==1||!node.classList)continue;
+       if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.score++;
+       if(node.classList.contains("score-trail-dot"))window.__scoreFxSeen.trail++;
+       if(node.classList.contains("fusion-spark"))window.__scoreFxSeen.burst++;
+     }
+   });
+   window.__scoreFxWatcher.observe(document.body,{childList:true,subtree:true});
+ });
+ const beforePoints=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\\D/g,""));
  const beforeMoves=Number(await page.$eval("#movesCount",e=>e.textContent));
  await page.click(".tile:nth-child("+(swap[0]+1)+")");
  await page.click(".tile:nth-child("+(swap[1]+1)+")");
@@ -72,6 +85,13 @@ try{
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:7000});
  const kineticCount=await page.evaluate(()=>window.__kineticAnimationCount||0);
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
+ await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\\D/g,""))>previous,{timeout:5000},beforePoints);
+ const fx=await page.evaluate(()=>window.__scoreFxSeen);
+ assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
+ assert(fx.score>=1&&fx.trail>=3,"Expected a flying point label with a trailing stream: "+JSON.stringify(fx));
+ assert.equal(await page.$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
+ await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
+
 
  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));

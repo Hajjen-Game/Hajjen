@@ -16,6 +16,8 @@ jobs:
         run: node daisugi-bloom/tests/rules.test.cjs
       - name: Validate Japanese Harmony puzzle rules
         run: node daisugi-bloom/tests/harmony.test.cjs
+      - name: Verify Japanese Harmony 4.1 visual-feedback contracts
+        run: node daisugi-bloom/tests/harmony-vfx.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js

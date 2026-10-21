@@ -76,7 +76,7 @@ function sound(type){
 function showMenu(){
  if(busy)return;
  clearScoreFx();
- saveRun();$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
  const list=$("levelList");list.replaceChildren();let earned=0;
@@ -96,7 +96,7 @@ function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:gam
 function startLevel(i,resume=false){
  if(busy)return;
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
- game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;$("modal").hidden=true;
+ game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
  $("gameTip").textContent=game.config.intro;$("goalLabel").textContent=game.goalText();
  clearTimeout(comboTimer);$("combo").hidden=true;
@@ -161,14 +161,14 @@ function choose(i){
  if(busy||!game||game.moves<=0)return;
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
- $("selectedInfo").textContent=selected<0?"Välj två angränsande föremål eller svep.":names[game.board[i].family]+" · stadium "+game.board[i].stage+" av 5 · välj en granne";
+ $("selectedInfo").textContent=selected<0?"Välj två grannar eller svep.":names[game.board[i].family]+" · stadium "+game.board[i].stage+" av 5 · välj en granne";
  renderBoard(game.board);
 }
 function trySwap(a,b){
  if(busy||!game)return;
  const result=game.swap(a,b);
  if(!result.ok){toast(result.reason);selected=b;renderBoard(game.board);return;}
- selected=-1;$("selectedInfo").textContent="Välj två angränsande föremål eller svep.";
+ selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
  playEvents(result.events);
 }
 function highlightIndices(evt){
@@ -546,8 +546,25 @@ function modalInfo(title,html){
  $("modalContent").innerHTML=html;const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Tillbaka till spelet","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
 }
+// This is a turn-based puzzle; the menu overlay blocks touches while open.
+function openGameMenu(){
+ if(!game||$("gameView").hidden)return;
+ $("modalEyebrow").textContent="JAPANESE HARMONY";
+ $("modalTitle").textContent="Spelmeny";
+ const content=$("modalContent");content.replaceChildren();
+ const desc=document.createElement("p");
+ desc.textContent="Nivå "+(level+1)+" · "+game.config.name+" · "+game.moves+" drag kvar";
+ content.append(desc);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Fortsätt spela","primary",()=>{$("modal").hidden=true;});
+ modalButton(actions,"Så spelar du","secondary",()=>{$("helpButton").click();});
+ modalButton(actions,"Inställningar","secondary",()=>{$("settingsButton").click();});
+ modalButton(actions,"Till nivåval","secondary",()=>{if(!busy)showMenu();});
+ $("modal").hidden=false;
+}
 function bind(){
  $("homeButton").addEventListener("click",showMenu);
+ $("pauseButton").addEventListener("click",openGameMenu);
  $("menuButton").addEventListener("click",showMenu);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(Math.min(R.levels.length-1,save.unlocked));});
  $("retryButton").addEventListener("click",()=>{if(busy)return;startLevel(level);});

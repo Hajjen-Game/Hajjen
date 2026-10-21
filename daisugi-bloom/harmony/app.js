@@ -8,7 +8,7 @@ const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
-let save,game=null,level=0,selected=-1,busy=false,timer=0,soundContext=null,pointer=null,suppressClickUntil=0;
+let save,game=null,level=0,selected=-1,busy=false,timer=0,comboTimer=0,soundContext=null,pointer=null,suppressClickUntil=0;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
@@ -52,7 +52,7 @@ function startLevel(i,resume=false){
  game=new R.Game(i,data);selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
  $("gameTip").textContent=game.config.intro;$("goalLabel").textContent=game.goalText();
- $("combo").hidden=true;
+ clearTimeout(comboTimer);$("combo").hidden=true;
  renderBoard(game.board);renderHUD();saveRun();
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
@@ -136,8 +136,8 @@ async function playEvents(events){
   renderBoard(evt.board,marks.indices,marks.effect);
   renderHUD(evt);
   if(["fusion","bonus","pulse","harvest","goal"].includes(evt.type))sound(evt.type);
-  if(evt.type==="harvest"&&evt.chain>=2){$("combo").textContent="✦ HARMONY CHAIN · "+evt.chain+" MÄSTERVERK";$("combo").hidden=false;}
-  else if(evt.type==="swap")$("combo").hidden=true;
+  if(evt.type==="harvest"&&evt.chain>=2){$("combo").textContent="✦ HARMONY CHAIN · "+evt.chain+" MÄSTERVERK";$("combo").hidden=false;clearTimeout(comboTimer);comboTimer=setTimeout(()=>$("combo").hidden=true,save.reduceMotion?450:950);}
+  else if(evt.type==="swap"){clearTimeout(comboTimer);$("combo").hidden=true;}
   if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
   if(evt.type==="end"||evt.type==="lose")finished=true;
   const d=save.reduceMotion?0:({swap:55,fusion:115,bonus:80,hero:85,pulse:105,harvest:135,fall:75,shuffle:100,goal:60})[evt.type]||0;

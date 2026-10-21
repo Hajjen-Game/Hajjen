@@ -122,10 +122,11 @@
  }
  function Garden(canvas){
   this.canvas=canvas;this.engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:false,antialias:true},true);
-  // Target sharp native mobile rendering without scaling 3x/4x unnecessarily:
-  // 2.5 physical pixels per CSS pixel at most, vs the previous ~1.9.
-  var dpr=window.devicePixelRatio||1;
-  this.engine.setHardwareScalingLevel(Math.max(1,dpr/2.5));
+  // Babylon hardwareScalingLevel is the inverse of resolution density.
+  // 0.5 draws 2 physical pixels per CSS pixel. The previous min=1
+  // inadvertently threw away mobile high-DPI rendering entirely.
+  var dpr=Math.max(1,window.devicePixelRatio||1);
+  this.engine.setHardwareScalingLevel(1/Math.min(dpr,2.5));
   this.scene=createScene(this.engine,canvas);this.mats=createMats(this.scene);this.artMaterials=createArtMaterials(this.scene);
   this.nodes=new Map();this.tiles=[];this.softMoss=[];this.selected=-1;this.onTile=null;this.pointerStart=null;this.skip=false;
   var self=this;

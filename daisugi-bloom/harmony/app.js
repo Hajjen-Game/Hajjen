@@ -130,7 +130,7 @@ function highlightIndices(evt){
 }
 const nap=ms=>new Promise(res=>setTimeout(res,ms));
 async function playEvents(events){
- busy=true;$("endButton").hidden=true;let finished=false,goalReached=false;
+ busy=true;$("board").setAttribute("aria-busy","true");$("endButton").hidden=true;let finished=false,goalReached=false;
  for(const evt of events){
   const marks=highlightIndices(evt);
   renderBoard(evt.board,marks.indices,marks.effect);
@@ -143,7 +143,7 @@ async function playEvents(events){
   const d=save.reduceMotion?0:({swap:55,fusion:115,bonus:80,hero:85,pulse:105,harvest:135,fall:75,shuffle:100,goal:60})[evt.type]||0;
   if(d)await nap(d);
  }
- busy=false;renderBoard(game.board);renderHUD();saveRun();
+ busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();
  if(goalReached)unlockGoal();
  if(finished)showResult();
 }

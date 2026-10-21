@@ -236,3 +236,17 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 - **Test:** Mobiltest observerar *faktisk* renderad fusionsring, betydande storlek på poängvärde, poängström och poängfältsring. Automatisk framgång är inte samma sak som slutlig estetisk godkännande; telefonstest krävs för finjustering.
 
 **Kodversion:** `daisugi-bloom/harmony/app.js`, `harmony/styles.css`, `daisugi-bloom/index.html` – v2.3.0.
+
+## UI Art Lift 3.0 — Premium Festival Night med Zen-kontroll (2026-10-21)
+
+**Godkänt designbeslut:** Alla sex japanskt inspirerade natt-/festival-/zenmotiv ska kunna ingå som bakgrunder. Varje ny nivå eller omstart väljer ett motiv slumpmässigt och använder **samma motiv under hela nivån**. Ett återupptaget spel behåller sin tidigare bakgrund. Samma motiv ska inte väljas två gånger i rad.
+
+**Grafisk leverans:** Sex ursprungliga kompositioner från de två godkända tredelade bakgrundsarken lagras i en optimerad AVIF-atlas: `daisugi-bloom/assets/backgrounds/festival-night-six.avif` (~40 KB, 6 paneler × 320×640). För detaljer, panelordning och kontrastkrav, se [Bakgrunds-README](../assets/backgrounds/README.md).
+
+**UI-system:** Premium Festival Night innebär midnattsblå/teal, varma gulddetaljer, harmonisk japansk nattkänsla och **mörka, halvtransparenta paneler** ovanpå bakgrunden. Zen-kontroll innebär ren informationshierarki, försiktiga highlights, färre onödiga effekter och bevarad läsbarhet trots varierande scen. Global lågkostnads-overlay med mörka gradients ovanpå varje bild garanterar tillräcklig bakgrundsdämpning, medan enskilda viktiga paneler har egna mörka halvtäckande gradients.
+
+**Brädet:** 7×7, identisk storlek och oförändrade föremålsbilder. Markens två sandstenstoner är något mörkare, och ramen har djupare valnöts-/bronston och diskret gyllene ljuskant. Uppdateringen får inte färgjustera själva sakura-, lykta-, koi-, solfjäder- och bonsai-ikonerna. Alla 49 rutors fusion/prestanda förblir fristående från bakgrundsskiktet.
+
+**Prestanda och fallback:** Endast en AVIF-atlas laddas och återanvänds för alla sex motiv; byte av bakgrund kräver bara uppdatering av CSS-position/viewport-utsnitt, aldrig att 6 stora foton laddas separat eller att tung blur läggs på spelrutorna. Om AVIF inte stöds eller en tillgång saknas faller vyn tillbaka till en Midnattsblå gradient utan påverkan på spelet. Browser-smoke ska täcka sex unika motiv, stabil scen över drag, rotation vid omstart, bevarad stage-1-start och intakt 7×7-mekanik.
+
+**Kvalitetssäkring:** De sex motiven bedöms lämpliga med denna dämpnings-/panelmodell, men användaren avgör i verkligt mobiltest om ett visst motiv bör exkluderas. Låt inte enstaka bakgrund tvinga bort önskad kontrast eller effektflyt.

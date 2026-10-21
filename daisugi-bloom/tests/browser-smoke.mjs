@@ -18,7 +18,7 @@ try{
 
  await page.click("#openPlantLab");
  await page.waitForFunction(()=>!document.querySelector("#plantLabModal").hidden,{timeout:10000});
- assert.equal(await page.$eval(".plant-cell",xs=>xs.length),20,"Plant Art Lab should have exactly twenty artworks");
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".plant-cell").length),20,"Plant Art Lab should have exactly twenty artworks");
  const artwork=await page.evaluate(()=>({
    imagePaths:new Set(Array.from(document.querySelectorAll(".plant-cell")).map(x=>x.style.backgroundImage)).size,
    stages:window.DaisugiPlantArt.families.map(f=>window.DaisugiPlantArt.entry(f,5)?.u1),

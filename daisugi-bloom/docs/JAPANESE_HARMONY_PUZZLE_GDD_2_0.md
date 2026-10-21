@@ -213,3 +213,11 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 **Balanskonsekvens:** Första tio nivåernas tidigare angivna dragbudgetar och handritade startpussel som förutsatte stadium 2–4 är **preliminära och behöver omvärderas** efter detta nya stadium-1-krav. Ändra inte tillbaka startobjektens stadium för att göra nivåerna lättare. Justera i stället antal drag, mål eller familjeplacering efter speltester.
 
 **Kvalitetskrav:** Automatisk startbrädeskontroll över samtliga nivåer och upprepade omstarter (49× stadium 1, inga färdiga matcher, minst tre möjliga drag), samt verkligt mobiltest av en fusionsrörelse. Godkända tester garanterar inte perfekt upplevd flyt på den användarens mobil; återtest med längre Harmony-kedjor behövs.
+
+## Fusion Spark & Score Stream 2.2 — Feedback-effekter (2026-10-21)
+
+**Godkänd designriktning från användaren:** När föremål fusioneras behövs diskreta, snabba ljus- och partikelanimationer runt överlevaren. När en händelse ger poäng ska ett synligt **+poängvärde skjutas från den relevanta spelrutan till poängboxen**, följt av en kort ström små ljuspunkter. Vid ankomsten uppdateras poängräknaren och får en liten visuell respons. Inga permanenta sifferetiketter ska finnas på rutorna.
+
+**Implementation:** `daisugi-bloom/harmony/app.js` och `harmony/styles.css`. Alla effekter är separata, tillfälliga och pointer-fria DOM-lager med CSS transform/opacity-animation via Web Animations; de får aldrig stoppa efterföljande matcher. Matchgrupper använder sin egen survivorsruta som ursprung. Bonus/puls/skörd hämtar ursprung från relevanta rutor. För samtidiga eller mycket stora kaskader begränsas antalet parallella visuella poängströmmar, medan poängberäkningen alltid är exakt. Ljuseffekterna följer Midnight Garden-standardens `#F2C66E` (Harmony Gold) och `#78D1B0` (Harmony Mint), inte en täckande vit explosion.
+
+**Tillgänglighet och stabilitet:** Reducerad rörelse visar poängen direkt utan flyganimation. Grafiklagret återanvänds, städas bort vid nivåbyte och ignorerar gamla animationers sena ankomst. Korrekt slutpoäng kommer alltid från regelmotorn även om en poänganimation avbryts. Mobil regressionstest kontrollerar att små glimtningar, poängströmmar och faktisk poängankomst fungerar, samt att inga 1/5-etiketter kommer tillbaka.

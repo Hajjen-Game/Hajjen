@@ -97,7 +97,7 @@ function toast(text){const t=$("toast");t.textContent=text;t.hidden=false;clearT
 // Event-specific sound design lives in harmony/audio.js. The engine unlocks
 // only after user interaction, respects preferences and limits polyphony.
 function sound(type,detail){
- if(!save.sound)return;
+ if(!save.sound||document.hidden)return;
  window.HarmonyAudio?.play(type,detail||{});
 }
 function showMenu(){
@@ -258,7 +258,7 @@ function highlightIndices(evt){
 const FAST=()=>save.reduceMotion||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 const MOBILE_LITE=!!(window.matchMedia&&window.matchMedia("(max-width: 650px) and (pointer: coarse)").matches);
 function animateNode(node,keyframes,ms,options={}){
- if(!node||!node.animate||FAST()||ms<=0)return Promise.resolve();
+ if(!node||!node.animate||FAST()||document.hidden||ms<=0)return Promise.resolve();
  const motion=node.animate(keyframes,{duration:ms,easing:"cubic-bezier(.2,.7,.2,1)",fill:"both",...options});
  perf?.animated();
  return motion.finished.catch(()=>{}).then(()=>motion.cancel());
@@ -313,7 +313,12 @@ function scoreFxLayer(){
 function clearScoreFx(){
  scoreSession++;
  scoreFlights=0;
- if(scoreOverlay)scoreOverlay.replaceChildren();
+ if(scoreOverlay){
+  // An element removed during a score flight can still own an active WAAPI
+  // animation. Cancel its compositor work before dropping the layer.
+  for(const animation of scoreOverlay.getAnimations?.({subtree:true})||[])animation.cancel();
+  scoreOverlay.replaceChildren();
+ }
  if(scoreRaf){cancelAnimationFrame(scoreRaf);scoreRaf=0;}
  scoreDisplayed=scoreShown;
 }

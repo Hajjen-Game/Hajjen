@@ -215,11 +215,89 @@
   if(fromResult){show("resultModal");fromResult=false;}
  }
  function openSettings(){$("showStages").checked=save.showStages;$("soundEnabled").checked=save.sound;$("reduceMotion").checked=save.reduceMotion;show("settingsModal");}
+ var artLabFamily=0,artLabStage=1,artLabTimers=[],artLabBuilt=false;
+ function artFamily(){return window.DaisugiPlantArt.families[artLabFamily];}
+ function setLabPreview(family,stage){
+   var idx=window.DaisugiPlantArt.families.indexOf(family);
+   if(idx<0)return;
+   artLabFamily=idx;artLabStage=stage;
+   var preview=$("plantLabPreview");
+   preview.style.backgroundImage='url("'+window.DaisugiPlantArt.atlas[family]+'")';
+   preview.style.backgroundPosition=((stage-1)*25)+"% center";
+   $("labSelectedTitle").textContent=names[family];
+   $("labStageTitle").textContent=stages[stage]+" · "+stage+"/5";
+   preview.classList.remove("blooming");
+   void preview.offsetWidth; // restart growth animation
+   preview.classList.add("blooming");
+   document.querySelectorAll(".plant-cell").forEach(function(cell){
+     cell.classList.toggle("selected",cell.dataset.family===family&&Number(cell.dataset.stage)===stage);
+   });
+ }
+ function stopLabPlayback(){
+   artLabTimers.forEach(clearTimeout);artLabTimers=[];
+   $("labPlay").disabled=false;
+ }
+ function makePlantLab(){
+   if(artLabBuilt)return;
+   artLabBuilt=true;
+   var grid=$("plantLabGrid"),manifest=window.DaisugiPlantArt;
+   manifest.families.forEach(function(family){
+     var row=document.createElement("div");row.className="plant-family-row";
+     var heading=document.createElement("div");heading.className="plant-family-name";
+     var swatch=document.createElement("span");swatch.className="plant-family-swatch";
+     swatch.style.backgroundColor={sakura:"#EFA2BD",verdant:"#88C579",mistbloom:"#82D8E5",sunleaf:"#F4C66E"}[family];
+     heading.append(swatch,document.createTextNode(names[family]));
+     var cells=document.createElement("div");cells.className="plant-family-cells";
+     for(var stage=1;stage<=5;stage++){
+       (function(stageNumber){
+         var button=document.createElement("button");button.type="button";
+         button.className="plant-cell";button.dataset.family=family;button.dataset.stage=stageNumber;
+         button.setAttribute("aria-label",names[family]+" – "+stages[stageNumber]);
+         button.style.backgroundImage='url("'+manifest.atlas[family]+'")';
+         button.style.backgroundSize="500% 100%";
+         button.style.backgroundPosition=((stageNumber-1)*25)+"% center";
+         button.addEventListener("click",function(){stopLabPlayback();setLabPreview(family,stageNumber);});
+         cells.appendChild(button);
+       })(stage);
+     }
+     row.append(heading,cells);grid.appendChild(row);
+   });
+ }
+ function openPlantLab(){
+   if(!window.DaisugiPlantArt)return;
+   makePlantLab();stopLabPlayback();setLabPreview(artFamily(),artLabStage);
+   show("plantLabModal");$("closePlantLab").focus();
+ }
+ function closePlantLab(){
+   stopLabPlayback();hide("plantLabModal");
+   if(window.location.search.indexOf("lab=plants")!==-1){
+     try{history.replaceState(null,"",window.location.pathname+window.location.hash);}catch(err){}
+   }
+ }
+ function playLabEvolution(){
+   stopLabPlayback();
+   var family=artFamily();$("labPlay").disabled=true;
+   setLabPreview(family,1);
+   for(var stage=2;stage<=5;stage++){
+     (function(nextStage){
+       artLabTimers.push(setTimeout(function(){
+         if($("plantLabModal").hidden)return;
+         setLabPreview(family,nextStage);
+         if(nextStage===5)$("labPlay").disabled=false;
+       },(nextStage-1)*(save.reduceMotion?140:620)));
+     })(stage);
+   }
+ }
  function bind(){
   garden.onTile=onTile;
   $("homeButton").addEventListener("click",menu);
   $("treeButton").addEventListener("click",openTree);
   $("settingsButton").addEventListener("click",openSettings);
+  $("openPlantLab").addEventListener("click",openPlantLab);
+  $("closePlantLab").addEventListener("click",closePlantLab);
+  $("labPlay").addEventListener("click",playLabEvolution);
+  $("labPrevFamily").addEventListener("click",function(){stopLabPlayback();artLabFamily=(artLabFamily+3)%4;setLabPreview(artFamily(),1);});
+  $("labNextFamily").addEventListener("click",function(){stopLabPlayback();artLabFamily=(artLabFamily+1)%4;setLabPreview(artFamily(),1);});
   $("closeSettings").addEventListener("click",function(){hide("settingsModal");});
   $("showStages").addEventListener("change",function(e){save.showStages=e.target.checked;persist();if(game)renderStages(game.board);});
   $("soundEnabled").addEventListener("change",function(e){save.sound=e.target.checked;persist();});
@@ -253,7 +331,7 @@
   $("instructionsButton").addEventListener("click",function(){show("helpModal");});
   $("closeHelp").addEventListener("click",function(){hide("helpModal");});
   $("closeHelpBottom").addEventListener("click",function(){hide("helpModal");});
-  document.querySelectorAll(".modal-backdrop").forEach(function(modal){modal.addEventListener("click",function(e){if(e.target!==modal)return;if(modal.id==="treeModal")closeTree();else if(modal.id!=="resultModal"&&modal.id!=="confirmModal")hide(modal.id);});});
+  document.querySelectorAll(".modal-backdrop").forEach(function(modal){modal.addEventListener("click",function(e){if(e.target!==modal)return;if(modal.id==="treeModal")closeTree();else if(modal.id==="plantLabModal")closePlantLab();else if(modal.id!=="resultModal"&&modal.id!=="confirmModal")hide(modal.id);});});
   $("boardCanvas").addEventListener("keydown",function(e){
    if(!game||busy||game.complete||game.failed)return;
    var k=e.key;if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," ","Escape"].indexOf(k)<0)return;e.preventDefault();
@@ -266,7 +344,7 @@
  }
  function main(){
   if(!R||!V||!window.BABYLON){show("loadError");return;}
-  try{garden=new V.Garden($("boardCanvas"));bind();renderMenu();}catch(e){console.error(e);$("loadError").textContent="Kunde inte starta Daisugi Bloom: "+e.message;show("loadError");}
+  try{garden=new V.Garden($("boardCanvas"));bind();renderMenu();if(new URLSearchParams(window.location.search).get("lab")==="plants")openPlantLab();}catch(e){console.error(e);$("loadError").textContent="Kunde inte starta Daisugi Bloom: "+e.message;show("loadError");}
  }
  main();
 })();

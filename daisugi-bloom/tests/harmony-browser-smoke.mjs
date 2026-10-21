@@ -39,7 +39,7 @@ try{
  assert.equal(background.h,640);
  assert.equal(background.distinct,6,"All six festival scenes should have distinct artwork");
  assert(Number(background.id)>=1&&Number(background.id)<=6,"A valid scene must be selected");
- assert(background.art.includes("festival-night-six.avif"),"Night scene must render behind the UI");
+ assert(background.art.includes("festival-night-six.avif")||background.art.includes("blob:"),"A festival scene must render behind the UI");
  assert(background.overlay.includes("gradient"),"Readability scrim must be enabled");
  assert(background.glass.includes("gradient"),"The translucent goal card must render");
  const festivalAtStart=background.id;
@@ -65,22 +65,30 @@ try{
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
+ await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-crop"),{timeout:15000});
+ const cropped=await page.evaluate(()=>getComputedStyle(document.body,"::before").backgroundImage);
+ assert(cropped.includes("blob:"),"Only the selected backdrop should be composited, not the six-panel wide atlas");
  await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
  const layout=await page.evaluate(()=>{
   const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width}};
   return {header:getComputedStyle(document.querySelector(".topbar")).display,
    moves:rect(".moves"),score:rect("#scorePanel"),board:rect(".board-shell"),
-   dock:rect(".game-dock"),viewport:window.innerHeight,bodyWidth:document.body.scrollWidth};
+   viewport:window.innerHeight,bodyWidth:document.body.scrollWidth};
  });
  assert.equal(layout.header,"none","Playing must not show the web-style header");
  assert(layout.moves.bottom<layout.board.top&&layout.score.bottom<layout.board.top,"Gameplay plaques should float above the board");
  assert(layout.board.width>layout.score.width*1.7,"Board must visually dominate the mobile HUD");
  assert(layout.board.bottom<layout.viewport,"Board should fit on the initial phone screen");
- assert(layout.dock.top>=layout.board.bottom,"Actions should live below the board");
+ assert.equal(await page.$(".game-dock"),null,"No level/restart dock belongs below the board");
+ assert.equal(await page.$("#gameTip"),null,"Gameplay must not show instructional text beneath the board");
+ assert.equal(await page.$("#endButton"),null,"End-level action belongs in the pause menu only");
+ assert(layout.board.top-layout.moves.bottom>55,"Board should sit below HUD with breathing room");
  assert(layout.bodyWidth<=390,"Gameplay must not scroll horizontally");
  await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
- await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(2)").click());
+ assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Börja om nivån"));
+ assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Till nivåval"));
+ await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(3)").click());
  assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
  // Regression: a real mobile fusion must reuse the same 49 tile DOM nodes.
@@ -145,7 +153,8 @@ try{
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
 
 
- await page.click("#retryButton");
+ await page.click("#pauseButton");
+ await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(2)").click());
  const festivalAfterRestart=await page.evaluate(()=>document.body.dataset.festival);
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);

@@ -134,8 +134,10 @@ try{
  await page.click(".tile:nth-child("+(invalid[0]+1)+")");
  await page.click(".tile:nth-child("+(invalid[1]+1)+")");
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:5000});
- const bounced=await page.evaluate(()=>window.__invalidMotion.some(frames=>
-  frames.length>=4&&frames.some(k=>typeof k.transform==="string"&&/translate3d\\([^,]*[1-9]/.test(k.transform))));
+ const bounced=await page.evaluate(()=>window.__invalidMotion.filter(frames=>
+  frames.length>=4&&frames.some(k=>typeof k.transform==="string" &&
+   k.transform.includes("translate3d(")&&
+   !k.transform.includes("translate3d(0,0,0)"))).length>=2);
  assert(bounced,"Invalid swap must animate a physical forward-and-back rebound");
  assert.equal(await page.$eval("#movesCount",el=>el.textContent),invalidMoves);
  assert.equal(await page.$eval("#scoreCount",el=>el.textContent),invalidScore);

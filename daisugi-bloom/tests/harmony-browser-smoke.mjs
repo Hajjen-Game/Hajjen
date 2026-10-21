@@ -38,7 +38,26 @@ try{
  await page.click("#helpButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
  assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
- await page.evaluate(()=>{const b=document.querySelector("#board");b.dispatchEvent(new Event("board-test-start"));});
+ // Regression: a real mobile fusion must reuse the same 49 tile DOM nodes.
+ // Recreating those nodes for every event previously caused expensive mobile jank.
+ const stableTile=await page.$(".tile");
+ const swap=await page.evaluate(()=>{
+  const fromName={Sakura:"sakura",Lykta:"lantern",Koi:"koi",Solfjäder:"fan",Bonsai:"bonsai"};
+  const cells=Array.from(document.querySelectorAll(".tile")).map((el,i)=>{
+   const family=fromName[el.getAttribute("aria-label").split(",")[0]];
+   return {family,stage:1,id:i+1};
+  });
+  return HarmonyRules.validSwaps(cells)[0];
+ });
+ assert(swap&&swap.length===2,"At least one playable swap must be visible");
+ const beforeMoves=Number(await page.$eval("#movesCount",e=>e.textContent));
+ await page.locator(".tile").nth(swap[0]).click();
+ await page.locator(".tile").nth(swap[1]).click();
+ await page.waitForFunction(moves=>Number(document.querySelector("#movesCount").textContent)===moves-1,{timeout:7000},beforeMoves);
+ assert(await page.evaluate(tile=>tile===document.querySelector(".tile"),stableTile),
+  "Tile DOM was replaced during fusion; expected a stable mobile render surface");
+ assert.equal(await page.$eval(".tile",els=>els.length),49);
+ 
  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);

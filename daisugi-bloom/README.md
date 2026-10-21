@@ -1,5 +1,9 @@
 # Daisugi Bloom — Plant Readability Fix 1.3.2
 
+> **Ny design under framtagning (ingen ny spelkod):** [Japanese Harmony Puzzle GDD 2.0](docs/JAPANESE_HARMONY_PUZZLE_GDD_2_0.md) — japanska objekt, Harmony Pulse och rekordbaserade pusselnivåer. **Obligatorisk färgidentitet för framtida grafik:** [Japanese Harmony — Midnight Garden / Color & Art Bible 1.0](docs/JAPANESE_HARMONY_COLOR_BIBLE_1_0.md). Befintliga Daisugi Bloom 1.3.2 nedan är fortfarande den äldre, spelbara prototypen.
+
+
+
 ## Senaste utvecklingspass
 
 **Plant Readability Fix 1.3.2** – rättvända växtbilder, skarpare texturfiltrering, verklig hög-DPI-rendering på mobilen och en större spelplan med mindre marginaler. Alla spelregler, bildfamiljer och permanent träd är oförändrade.

@@ -369,3 +369,18 @@ body.harmony-playing #app{padding-bottom:max(12px,env(safe-area-inset-bottom))}
 @media(prefers-reduced-motion:reduce){
   .game-view .pause-button{transition:none}
 }
+
+/* Win actions occupy their own row instead of squeezing the board controls. */
+.game-view #endButton:not([hidden]){
+  display:block;
+  width:100%;
+  margin-top:10px;
+  border-radius:13px;
+  min-height:44px;
+  font-size:13px;
+}
+.game-view .goal.goal-complete{
+  border-color:#f8d68e;
+  background:linear-gradient(110deg,rgba(35,82,65,.94),rgba(33,96,75,.9));
+  box-shadow:0 0 14px #7fc8a23b,inset 0 1px #fff5d535;
+}

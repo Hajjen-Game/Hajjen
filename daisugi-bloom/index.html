@@ -5,11 +5,11 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Mobile Game UI 3.1</title>
- <link rel="stylesheet" href="./harmony/styles.css?v=3.1.0">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=3.1.0">
- <script defer src="./harmony/rules.js?v=3.1.0"></script>
- <script defer src="./harmony/app.js?v=3.1.0"></script>
+ <title>Japanese Harmony · Mobile Polish & Performance 3.2</title>
+ <link rel="stylesheet" href="./harmony/styles.css?v=3.2.0">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=3.2.0">
+ <script defer src="./harmony/rules.js?v=3.2.0"></script>
+ <script defer src="./harmony/app.js?v=3.2.0"></script>
 </head>
 <body>
  <div id="app">
@@ -47,14 +47,7 @@
      <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
      <div id="combo" class="combo" hidden>✦ HARMONY CHAIN</div>
     </div>
-    <div class="game-dock">
-     <button id="menuButton" class="dock-button" aria-label="Till nivåval">‹<span>Nivåer</span></button>
-     <div class="selected-line"><span id="selectedInfo" aria-live="polite">Välj två grannar eller svep.</span></div>
-     <button id="retryButton" class="dock-button" aria-label="Börja om nivån">↻<span>Omstart</span></button>
-    </div>
-    <div id="goalBanner" class="goal-banner" hidden>✦ MÅLET KLART! Fortsätt spela för rekordet.</div>
-    <button id="endButton" class="primary" hidden>Avsluta med resultat →</button>
-    <p id="gameTip" class="game-tip"></p>
+    <p id="selectedInfo" class="sr-only" role="status" aria-live="polite">Välj två grannar eller svep.</p>
    </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

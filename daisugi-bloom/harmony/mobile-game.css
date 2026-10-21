@@ -424,13 +424,7 @@ body.harmony-playing .game-view .tile:not(.selected){
   body.harmony-playing .game-view .tile:hover:not(.selected){background:#e6d4b9}
   body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){background:#dfc9aa}
 }
-/* Each high-resolution festival scene is a separate precompressed AVIF.
-   Render it natively without canvas conversion or six-scene atlas scaling. */
-.has-festival-hd body::before{
-  background-image:var(--festival-scene-url);
-  background-size:cover;
-  background-position:center;
-}
+/* The HD backdrop is now a real img rather than a pseudo-element. */
 
 /* Festival Night 3.3.1: use a real fixed image element.
    The previous relative CSS variable URL could resolve against harmony/ instead

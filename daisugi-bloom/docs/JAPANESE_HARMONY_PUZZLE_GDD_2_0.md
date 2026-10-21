@@ -221,3 +221,18 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 **Implementation:** `daisugi-bloom/harmony/app.js` och `harmony/styles.css`. Alla effekter är separata, tillfälliga och pointer-fria DOM-lager med CSS transform/opacity-animation via Web Animations; de får aldrig stoppa efterföljande matcher. Matchgrupper använder sin egen survivorsruta som ursprung. Bonus/puls/skörd hämtar ursprung från relevanta rutor. För samtidiga eller mycket stora kaskader begränsas antalet parallella visuella poängströmmar, medan poängberäkningen alltid är exakt. Ljuseffekterna följer Midnight Garden-standardens `#F2C66E` (Harmony Gold) och `#78D1B0` (Harmony Mint), inte en täckande vit explosion.
 
 **Tillgänglighet och stabilitet:** Reducerad rörelse visar poängen direkt utan flyganimation. Grafiklagret återanvänds, städas bort vid nivåbyte och ignorerar gamla animationers sena ankomst. Korrekt slutpoäng kommer alltid från regelmotorn även om en poänganimation avbryts. Mobil regressionstest kontrollerar att små glimtningar, poängströmmar och faktisk poängankomst fungerar, samt att inga 1/5-etiketter kommer tillbaka.
+
+## Reward Feedback 2.3 — Förstärkt men respektfull spelrespons (2026-10-21)
+
+**Användarfeedback:** Förra 2.2-passet syntes knappt; poängflygningen och poängboxens respons var otillräckliga. Spelaren ska tydligt förstå *vilken ruta som fusionerats*, *vad fusionen gav*, *var poängen går* och *när poängen faktiskt har lagts till*. Upplevelsen ska vara belönande utan att dölja 7×7-brädet eller kännas laggig.
+
+**Låsta grafiska principer:** Standardfamiljernas färger och illustrationer ändras inte; effekter följer Harmony Gold `#F2C66E`, Harmony Mint `#78D1B0` och Midnight Ink `#102A37`.
+
+- **Fusion:** Expanderande gyllene ring med kortvarig ljusglöd, tydliga men få partiklar som rör sig ut från överlevarens ruta. En match 4 syns starkare, 5+ får en extra kort 'SUPER!'-markering utan att skymma mitten av brädet.
+- **Harmony:** En extra mintfärgad ring/glöd vid nybildat mästerverk samt kort respons där Harmony Pulse utvecklar grannar.
+- **Poängresa:** Varje relevant poänghändelse börjar i sin belönande ruta som en högkontrast `+poäng`-etikett. Den rör sig längs en böjd bana med en kort följande svans av varma ljuspunkter till **poängräknaren**, inte bara till en godtycklig del av skärmen.
+- **Ankomst:** Först vid visuell ankomst adderas det visade poängvärdet. Då växer och glöder poängräknaren kort och en guldring expanderar runt den. Flera poängströmmar kan överlappa utan att ändra den riktiga regelmotorpoängen.
+- **Responsiv prestanda:** Transient `position:fixed`-overlay, inga 49 permanenta partikelnoder eller tunga white-flash-effekter. `transform` + `opacity` används för rörelse; inga `await` på score-flykt får stoppa spelmekanik eller nästa drag. Högst fem samtidiga synliga poängresor; överflödsvärden visas korrekt direkt med ankomstpuls. Grafik rensas vid nivåbyte. `Minska animationer` och operativsystemets reducerad-rörelse-val respekteras.
+- **Test:** Mobiltest observerar *faktisk* renderad fusionsring, betydande storlek på poängvärde, poängström och poängfältsring. Automatisk framgång är inte samma sak som slutlig estetisk godkännande; telefonstest krävs för finjustering.
+
+**Kodversion:** `daisugi-bloom/harmony/app.js`, `harmony/styles.css`, `daisugi-bloom/index.html` – v2.3.0.

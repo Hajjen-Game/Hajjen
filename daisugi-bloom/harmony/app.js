@@ -138,6 +138,17 @@ function animateNode(node,keyframes,ms,options={}){
  return motion.finished.catch(()=>{}).then(()=>motion.cancel());
 }
 function indexRect(index){return boardTiles[index].getBoundingClientRect();}
+function animateTilePiece(index,piece,frames,duration,options){
+ const cell=boardTiles[index];
+ // During movement, allow the artwork to cross neighbouring grid cells.
+ // Restore the original clipping immediately after the animation.
+ cell.style.overflow="visible";
+ cell.style.zIndex="3";
+ return animateNode(piece,frames,duration,options).finally(()=>{
+  cell.style.overflow="";cell.style.zIndex="";
+ });
+}
+
 function makeFxLayer(){
  const board=$("board"),parent=board.parentElement;
  const b=board.getBoundingClientRect(),p=parent.getBoundingClientRect();
@@ -160,10 +171,10 @@ function flipMove(previous,next,type){
   if(before!==undefined){
    const a=indexRect(before),b=indexRect(i);
    const dx=a.left-b.left,dy=a.top-b.top;
-   tasks.push(animateNode(piece,[{transform:"translate3d("+dx+"px,"+dy+"px,0)"},{transform:"translate3d(0,0,0)"}],type==="swap"?145:210));
+   tasks.push(animateTilePiece(i,piece,[{transform:"translate3d("+dx+"px,"+dy+"px,0)"},{transform:"translate3d(0,0,0)"}],type==="swap"?145:210));
   }else if(type==="fall"){
    const row=Math.floor(i/7);
-   tasks.push(animateNode(piece,[{transform:"translate3d(0,"+(-(row+2)*size)+"px,0) scale(.91)",opacity:.45},{transform:"translate3d(0,0,0) scale(1)",opacity:1}],210+Math.min(70,(i%7)*9),{easing:"cubic-bezier(.16,.78,.3,1)"}));
+   tasks.push(animateTilePiece(i,piece,[{transform:"translate3d(0,"+(-(row+2)*size)+"px,0) scale(.91)",opacity:.45},{transform:"translate3d(0,0,0) scale(1)",opacity:1}],210+Math.min(70,(i%7)*9),{easing:"cubic-bezier(.16,.78,.3,1)"}));
   }
  });
  return Promise.all(tasks);

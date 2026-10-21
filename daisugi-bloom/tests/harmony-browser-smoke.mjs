@@ -15,6 +15,35 @@ try{
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  await page.click("#continueButton");await page.waitForSelector(".tile");
+ await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-art"),{timeout:10000});
+ const background=await page.evaluate(async()=>{
+  const img=new Image();img.src="./assets/backgrounds/festival-night-six.avif";await img.decode();
+  const canvas=document.createElement("canvas");canvas.width=48;canvas.height=8;
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  const signatures=[];
+  for(let i=0;i<6;i++){
+   ctx.clearRect(0,0,48,8);
+   ctx.drawImage(img,i*320,215,320,80,0,0,48,8);
+   const px=ctx.getImageData(0,0,48,8).data;
+   let a=0,b=0;
+   for(let j=0;j<px.length;j+=4){a+=px[j]*7+px[j+1]*11+px[j+2]*13;b+=px[j+1]+px[j+2];}
+   signatures.push(a+"-"+b);
+  }
+  return {id:document.body.dataset.festival,art:getComputedStyle(document.body,"::before").backgroundImage,
+    overlay:getComputedStyle(document.body,"::after").backgroundImage,
+    w:img.naturalWidth,h:img.naturalHeight,distinct:new Set(signatures).size,
+    tile:getComputedStyle(document.querySelector(".tile")).backgroundColor,
+    glass:getComputedStyle(document.querySelector(".goal")).backgroundImage};
+ });
+ assert.equal(background.w,1920,"Six-panel atlas should use 320 px per background");
+ assert.equal(background.h,640);
+ assert.equal(background.distinct,6,"All six festival scenes should have distinct artwork");
+ assert(Number(background.id)>=1&&Number(background.id)<=6,"A valid scene must be selected");
+ assert(background.art.includes("festival-night-six.avif"),"Night scene must render behind the UI");
+ assert(background.overlay.includes("gradient"),"Readability scrim must be enabled");
+ assert(background.glass.includes("gradient"),"The translucent goal card must render");
+ const festivalAtStart=background.id;
+
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
  assert.equal(await page.$$eval(".tile",els=>els.filter(el=>el.getAttribute("aria-label")?.includes("stadium 1,")).length),49,"All newly generated mobile tiles must start at stage one");
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Stage fraction labels should never obscure tiles");
@@ -97,11 +126,16 @@ try{
  assert(fx.ring>=1,"The fusion must produce a readable expanding ring: "+JSON.stringify(fx));
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
  assert(fx.maxTokenWidth>=35,"Points must have a legible sized label: "+JSON.stringify(fx));
- assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
+ assert.equal(await page.$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
+ assert.equal(await page.evaluate(()=>document.body.dataset.festival),festivalAtStart,"Backdrop must not change during a turn");
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
 
 
- await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
+ await page.click("#retryButton");
+ const festivalAfterRestart=await page.evaluate(()=>document.body.dataset.festival);
+ assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
+ assert.equal(await page.$eval(".tile",els=>els.length),49);
+  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

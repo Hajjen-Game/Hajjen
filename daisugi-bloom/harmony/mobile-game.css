@@ -596,3 +596,109 @@ body.festival-fallback .festival-backdrop{display:none}
 @media(prefers-reduced-motion:reduce){
  .evo-family,.masterpiece-halo,.pulse-source-halo{display:none}
 }
+
+/* 4.1.1 VFX VISIBILITY – these cues are deliberately readable on a 390px phone.
+   4.1 shapes were 0.95 of a tile, 345ms and began before evolution had landed.
+   The new ~1.45 tile cues live ~590ms, AFTER the newly evolved sprite appears.
+   All are transient compositor-animated layers; no board-wide GPU filters. */
+.evo-family{
+ background:radial-gradient(circle,#fff0d646 0%,#f9d88f32 39%,transparent 77%);
+ border:2px solid #f4d59ccf;
+ box-shadow:0 0 9px #efce8d66;
+}
+.evo-sakura{
+ border-color:#f6a6c7e8;
+ background:radial-gradient(circle,#ffc0db9c 0%,#ff9dc13f 45%,transparent 78%);
+ box-shadow:0 0 11px #ff9bc48c;
+}
+.evo-sakura::before{font-size:32px;left:0;top:-12%}
+.evo-sakura::after{font-size:27px;right:-2%;bottom:-8%}
+.evo-lantern{
+ border:3px solid #ffe2a8;
+ background:radial-gradient(circle,#fffbcccb,#ffd0799c 30%,#f7943838 62%,transparent 80%);
+ box-shadow:0 0 13px #f7b44c9c;
+}
+.evo-lantern::before{border:3px solid #fff3bf;inset:13%}
+.evo-koi{
+ border:3px solid #b9f9f6;
+ background:radial-gradient(circle,#befeff89 0%,#75d5e54d 46%,transparent 76%);
+ box-shadow:0 0 10px #75d5e58a;
+}
+.evo-koi::before{border-width:3px}
+.evo-koi::after{border-width:3px}
+.evo-fan{
+ border:2px solid #b2e1ff;
+ background:radial-gradient(ellipse,#d5faff61,transparent 72%);
+ box-shadow:0 0 9px #98d4ed9a;
+}
+.evo-fan::before{border-top-width:4px}
+.evo-fan::after{border-top-width:3px}
+.evo-bonsai{
+ border:2px solid #c0f3a2;
+ background:radial-gradient(circle,#b7ed859b 0%,#88d88a62 40%,transparent 75%);
+ box-shadow:0 0 12px #8ad47e95;
+}
+.evo-bonsai::before{font-size:26px}
+.evo-bonsai::after{font-size:23px}
+.evolution-stage-label{
+ position:absolute;
+ display:block;
+ translate:-50% -50%;
+ width:max-content;
+ max-width:104px;
+ z-index:1;
+ padding:4px 7px;
+ border:1px solid #f6d59e;
+ border-radius:8px;
+ background:#234a43f0;
+ color:#fff2c6;
+ font-size:11px;
+ line-height:1.1;
+ font-weight:900;
+ letter-spacing:.04em;
+ text-shadow:0 1px #3b3020;
+ pointer-events:none;
+ will-change:transform,opacity;
+}
+.masterpiece-halo{
+ border:3px solid #ffdf90;
+ background:radial-gradient(circle,#fff1b988 0%,#ffd76b87 36%,#f3a94e29 65%,transparent 82%);
+ box-shadow:0 0 14px #ffd2829c,inset 0 0 0 2px #fff5d79c;
+}
+.masterpiece-halo::before,.masterpiece-halo::after{
+ content:"";position:absolute;inset:12%;
+ border:2px solid #fff0b9e6;border-radius:50%;
+ pointer-events:none;
+}
+.masterpiece-halo::after{inset:31%;border-width:1px}
+.pulse-source-halo{
+ border:3px solid #adf9ca;
+ background:radial-gradient(circle,#a3ffd48c,transparent 73%);
+ box-shadow:0 0 8px #78dba78a;
+}
+.fusion-fx-layer .pulse-dot{
+ background:radial-gradient(circle at 40% 30%,#fffce7 0%,#c7ffe3 28%,#71d9b1 72%);
+ box-shadow:0 0 8px #91f4c3c2;
+}
+.pulse-trace{
+ position:absolute;
+ height:5px;
+ border-radius:6px;
+ transform-origin:left center;
+ pointer-events:none;
+ background:linear-gradient(90deg,#83eab0a8,#c2ffdc,#fff0ac);
+ box-shadow:0 0 6px #85e0b19c;
+ will-change:transform,opacity;
+}
+.pulse-target-hit{
+ position:absolute;display:block;translate:-50% -50%;
+ border:2px solid #b3f6d3;
+ border-radius:50%;
+ background:radial-gradient(circle,#a7f6c27a,transparent 76%);
+ box-shadow:0 0 7px #76d4a98a;
+ pointer-events:none;
+ will-change:transform,opacity;
+}
+@media(prefers-reduced-motion:reduce){
+ .evolution-stage-label,.pulse-trace,.pulse-target-hit{display:none}
+}

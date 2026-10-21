@@ -61,6 +61,54 @@ try{
  assert(state.scoreHud&&state.scoreBoard&&state.celebration&&state.resultScore&&state.engineRules,"Score/celebration HUD failed");
  assert(state.version.includes("1.3"),"Old version label still visible");
  assert(state.bodyStyle.includes("gradient"),"Japanese visual theme not applied");
+
+ // Regression: Plant Art Lab is regular CSS and can look perfect while the
+ // Babylon board renders every plant as a black silhouette. Verify visible
+ // pixel colours on the actual WebGL board, not only loaded texture flags.
+ const matState=await page.evaluate(()=>{
+   const scene=window.BABYLON.EngineStore.Instances[0].scenes[0];
+   return scene.materials.filter(m=>m.name.startsWith("plant-art-")).map(m=>({
+     family:m.name,
+     hasEmissiveTexture:!!m.emissiveTexture,
+     emissiveWhite:m.emissiveColor.r>.95&&m.emissiveColor.g>.95&&m.emissiveColor.b>.95,
+     alpha:m.useAlphaFromDiffuseTexture
+   }));
+ });
+ assert(matState.length===4&&matState.every(m=>m.hasEmissiveTexture&&m.emissiveWhite&&m.alpha),
+   "Plant sprites must use their actual colour as an unlit emissive texture: "+JSON.stringify(matState));
+ const boardPng=await (await page.$("#boardCanvas")).screenshot({type:"png"});
+ const boardPixels=await page.evaluate(async base64=>{
+   const img=new Image();
+   img.src="data:image/png;base64,"+base64;
+   await img.decode();
+   const c=document.createElement("canvas");
+   c.width=img.width;c.height=img.height;
+   const ctx=c.getContext("2d",{willReadFrequently:true});
+   ctx.drawImage(img,0,0);
+   const data=ctx.getImageData(0,0,c.width,c.height).data;
+   let black=0,total=0,notSoil=0;
+   // The 7x7 board occupies 7 / 7.9 of the orthographic scene.
+   for(let row=0;row<7;row++)for(let col=0;col<7;col++){
+     const cx=Math.floor(c.width*(.45+col+.5)/7.9);
+     const cy=Math.floor(c.height*(.45+row+.5)/7.9);
+     const radius=Math.max(2,Math.round(Math.min(c.width,c.height)/7.9*.26));
+     for(let y=Math.max(0,cy-radius);y<Math.min(c.height,cy+radius);y+=2)
+       for(let x=Math.max(0,cx-radius);x<Math.min(c.width,cx+radius);x+=2){
+         const idx=(y*c.width+x)*4;
+         const r=data[idx],g=data[idx+1],b=data[idx+2];
+         if(r<48&&g<48&&b<48)black++;
+         if(Math.abs(r-207)>32||Math.abs(g-190)>32||Math.abs(b-165)>32)notSoil++;
+         total++;
+       }
+   }
+   return {blackRatio:black/total,colouredRatio:notSoil/total,width:c.width,height:c.height};
+ },boardPng.toString("base64"));
+ console.log("Rendered plant colour check",boardPixels);
+ assert(boardPixels.blackRatio<.04,
+   "Black silhouettes detected on Babylon board: "+JSON.stringify(boardPixels));
+ assert(boardPixels.colouredRatio>.08,
+   "Plant assets look blank on Babylon board: "+JSON.stringify(boardPixels));
+
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.screenshot({path:"/tmp/daisugi-bloom/first-playable-mobile.png",fullPage:true});
  assert.equal(errors.filter(e=>!/favicon|AudioContext|WebGL|GPU|CDN/.test(e)).length,0,"Unexpected page errors: "+errors.join("; "));

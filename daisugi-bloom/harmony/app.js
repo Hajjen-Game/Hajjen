@@ -98,7 +98,7 @@ function startLevel(i,resume=false){
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
- $("gameTip").textContent=game.config.intro;$("goalLabel").textContent=game.goalText();
+ $("goalLabel").textContent=game.goalText();
  clearTimeout(comboTimer);$("combo").hidden=true;
  renderBoard(game.board);renderHUD();saveRun();
 }
@@ -152,22 +152,20 @@ function renderHUD(state){
  const earnedStars=game.stars();
  $("statusStars").textContent="★".repeat(earnedStars)+"☆".repeat(3-earnedStars);
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
- $("goalBanner").hidden=!game.complete;
- $("endButton").hidden=!game.complete||busy;
 }
 function renderScoreOnly(){
  $("scoreCount").textContent=prettify(scoreShown);
  $("scoreBest").textContent=prettify(Math.max(scoreShown,save.bestScores[level]||0));
 }
 function choose(i){
- if(busy||!game||game.moves<=0)return;
+ if(busy||!game||game.moves<=0||!$("modal").hidden)return;
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
  $("selectedInfo").textContent=selected<0?"Välj två grannar eller svep.":names[game.board[i].family]+" · stadium "+game.board[i].stage+" av 5 · välj en granne";
  renderBoard(game.board);
 }
 function trySwap(a,b){
- if(busy||!game)return;
+ if(busy||!game||!$("modal").hidden)return;
  const result=game.swap(a,b);
  if(!result.ok){toast(result.reason);selected=b;renderBoard(game.board);return;}
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
@@ -184,6 +182,7 @@ function highlightIndices(evt){
 // Fusions move for real rather than swapping artwork separated by arbitrary timers.
 // This uses the compositor's Web Animations to minimize main-thread mobile jank.
 const FAST=()=>save.reduceMotion||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+const MOBILE_LITE=!!(window.matchMedia&&window.matchMedia("(max-width: 650px) and (pointer: coarse)").matches);
 function animateNode(node,keyframes,ms,options={}){
  if(!node||!node.animate||FAST()||ms<=0)return Promise.resolve();
  const motion=node.animate(keyframes,{duration:ms,easing:"cubic-bezier(.2,.7,.2,1)",fill:"both",...options});
@@ -219,7 +218,7 @@ function fxAt(className,x,y,text){
 // Ring and stars are painted in a single ephemeral fixed overlay, not in the board.
 function fusionBurst(positions,groups=[],kind="fusion"){
  if(FAST()||!Element.prototype.animate)return;
- for(const at of [...new Set(positions)].slice(0,3)){
+ for(const at of [...new Set(positions)].slice(0,MOBILE_LITE?2:3)){
   if(!boardTiles[at])continue;
   const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
   const group=groups.find(g=>g.at===at);
@@ -240,7 +239,7 @@ function fusionBurst(positions,groups=[],kind="fusion"){
    {transform:"scale(1)",opacity:.68,offset:.34},
    {transform:"scale(1.35)",opacity:0,offset:1}
   ],big?340:265).finally(()=>core.remove());
-  const count=strong?8:6,drift=radius*(strong?.92:.76);
+  const count=MOBILE_LITE?(strong?5:4):(strong?8:6),drift=radius*(strong?.92:.76);
   for(let i=0;i<count;i++){
    const theta=(i/count)*Math.PI*2-.2,d=drift*(.85+(i%3)*.15);
    const spark=fxAt("fusion-spark"+(i%3===0?" mint":""),x,y);
@@ -267,9 +266,9 @@ function scoreArrival(points){
  // when another combo arrives immediately afterwards.
  if(!FAST()&&Element.prototype.animate){
   if(panel)animateNode(panel,[
-   {transform:"scale(1)",filter:"brightness(1)",offset:0},
-   {transform:"scale(1.035)",filter:"brightness(1.28)",offset:.45},
-   {transform:"scale(1)",filter:"brightness(1)",offset:1}
+   {transform:"scale(1)",offset:0},
+   {transform:"scale(1.035)",offset:.45},
+   {transform:"scale(1)",offset:1}
   ],365);
   animateNode(counter,[
    {transform:"scale(1)",color:"#F2C66E",offset:0},
@@ -295,7 +294,7 @@ function pointSources(evt){
  if(amount<=0)return [];
  if(evt.type==="fusion"&&evt.groups?.length){
   const groups=evt.groups.filter(g=>g.at>=0);
-  const limited=groups.slice(0,3);
+  const limited=groups.slice(0,MOBILE_LITE?2:3);
   if(!limited.length)return [{at:24,points:amount}];
   const result=limited.map(g=>({at:g.at,points:Math.max(0,Math.round(g.points||0))}));
   const rest=amount-result.reduce((sum,p)=>sum+p.points,0);
@@ -312,7 +311,7 @@ function flyPoints(evt){
  for(const item of pointSources(evt)){
   const points=item.points;
   // The actual game score is authoritative; these are only reward visuals.
-  if(FAST()||!Element.prototype.animate||scoreFlights>=5){
+  if(FAST()||!Element.prototype.animate||scoreFlights>=(MOBILE_LITE?2:5)){
    scoreShown+=points;renderScoreOnly();scoreArrival(points);continue;
   }
   const id=scoreSession,from=indexRect(item.at),dest=$("scoreCount").getBoundingClientRect();
@@ -334,7 +333,7 @@ function flyPoints(evt){
   label.dataset.points=String(points);
   const flight=animateNode(label,keyframes,duration,{easing:"linear"});
   // A visible stream of small gold sparks follows the exact same curved arc.
-  const trails=Math.max(4,Math.min(6,6-n));
+  const trails=MOBILE_LITE?3:Math.max(4,Math.min(6,6-n));
   for(let k=0;k<trails;k++){
    const bead=fxAt("score-trail-dot"+(k%2===0?" bright":""),x,y);
    const stagger=55+k*40;
@@ -455,7 +454,7 @@ async function animateEvent(evt){
   case "pulse":{
    const targets=evt.targets||[];
    renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
-   const grow=targets.map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
+   const grow=targets.slice(0,MOBILE_LITE?4:targets.length).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
      {transform:"scale(.75)"},{transform:"scale(1.15)",offset:.6},{transform:"scale(1)"}
    ],145));
    if(evt.type==="pulse"){grow.push(pulseBeams(evt));fusionBurst([...new Set(targets.map(t=>t.to))].slice(0,2),[],"hero");}
@@ -484,7 +483,7 @@ async function animateEvent(evt){
  }
 }
 async function playEvents(events){
- busy=true;$("board").setAttribute("aria-busy","true");$("endButton").hidden=true;
+ busy=true;$("board").setAttribute("aria-busy","true");
  let finished=false,goalReached=false;
  try{
   for(const evt of events){
@@ -550,7 +549,7 @@ function modalInfo(title,html){
 }
 // This is a turn-based puzzle; the menu overlay blocks touches while open.
 function openGameMenu(){
- if(!game||$("gameView").hidden)return;
+ if(!game||$("gameView").hidden||busy)return;
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Spelmeny";
  const content=$("modalContent");content.replaceChildren();
@@ -559,6 +558,8 @@ function openGameMenu(){
  content.append(desc);
  const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Fortsätt spela","primary",()=>{$("modal").hidden=true;});
+ if(game.complete)modalButton(actions,"Avsluta med resultat","secondary",()=>{if(busy)return;game.finish();showResult();});
+ modalButton(actions,"Börja om nivån","secondary",()=>{if(!busy)startLevel(level);});
  modalButton(actions,"Så spelar du","secondary",()=>{$("helpButton").click();});
  modalButton(actions,"Inställningar","secondary",()=>{$("settingsButton").click();});
  modalButton(actions,"Till nivåval","secondary",()=>{if(!busy)showMenu();});
@@ -567,19 +568,17 @@ function openGameMenu(){
 function bind(){
  $("homeButton").addEventListener("click",showMenu);
  $("pauseButton").addEventListener("click",openGameMenu);
- $("menuButton").addEventListener("click",showMenu);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(Math.min(R.levels.length-1,save.unlocked));});
- $("retryButton").addEventListener("click",()=>{if(busy)return;startLevel(level);});
- $("endButton").addEventListener("click",()=>{if(busy||!game||!game.complete)return;game.finish();showResult();});
  $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Nivåmål:</strong> När målet uppnås sparas dina stjärnor. Du får spela återstående drag för att slå ditt rekord. Inga Power Moves eller hinder.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;persist();});
   $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;persist();});
  });
- $("board").addEventListener("pointerdown",e=>{const tile=e.target.closest(".tile");if(tile)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
+ $("board").addEventListener("pointerdown",e=>{const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
  $("board").addEventListener("pointerup",e=>{
   if(!pointer)return;const start=pointer;pointer=null;
+  if(!$("modal").hidden)return;
   const dx=e.clientX-start.x,dy=e.clientY-start.y;
   if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;
   suppressClickUntil=performance.now()+450;

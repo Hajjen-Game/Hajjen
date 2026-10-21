@@ -13,6 +13,51 @@ let scoreShown=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
+
+// Festival Night / Zen Control: six approved vertical motifs in one AVIF atlas.
+// Atlas is 1920x640 with six 320x640 panels side-by-side.
+// No per-frame effects or heavy blur: only resize and level transitions update it.
+const FESTIVAL_COUNT=6, FESTIVAL_CELL_W=320, FESTIVAL_CELL_H=640;
+let currentBackground=-1,backgroundResizeFrame=0;
+function layoutFestivalBackground(){
+ if(currentBackground<0)return;
+ const w=window.innerWidth||390,h=window.innerHeight||844;
+ const scale=Math.max(w/FESTIVAL_CELL_W,h/FESTIVAL_CELL_H);
+ const panelW=FESTIVAL_CELL_W*scale,panelH=FESTIVAL_CELL_H*scale;
+ const x=(w-panelW)/2-currentBackground*panelW;
+ const y=(h-panelH)/2;
+ const root=document.documentElement.style;
+ root.setProperty("--festival-atlas-width",Math.round(FESTIVAL_COUNT*panelW)+"px");
+ root.setProperty("--festival-atlas-height",Math.round(panelH)+"px");
+ root.setProperty("--festival-bg-x",Math.round(x)+"px");
+ root.setProperty("--festival-bg-y",Math.round(y)+"px");
+}
+function chooseFestivalBackground(remembered){
+ let next=Number.isInteger(remembered)&&remembered>=0&&remembered<FESTIVAL_COUNT?remembered:-1;
+ if(next<0){
+  const prev=Number.isInteger(save.lastBackground)?save.lastBackground:-1;
+  // Uniform random choice without immediate repeats after the first one.
+  next=prev>=0&&prev<FESTIVAL_COUNT?(prev+1+Math.floor(Math.random()*(FESTIVAL_COUNT-1)))%FESTIVAL_COUNT:Math.floor(Math.random()*FESTIVAL_COUNT);
+ }
+ currentBackground=next;save.lastBackground=next;
+ document.body.dataset.festival=String(next+1);
+ layoutFestivalBackground();persist();
+}
+function initFestivalBackground(){
+ const img=new Image();
+ img.onload=()=>document.documentElement.classList.add("has-festival-art");
+ img.onerror=()=>document.documentElement.classList.remove("has-festival-art");
+ img.src="./assets/backgrounds/festival-night-six.avif";
+ const resumed=save.run&&Number.isInteger(save.run.backgroundId)?save.run.backgroundId:null;
+ chooseFestivalBackground(resumed??save.lastBackground??null);
+ window.addEventListener("resize",()=>{
+  if(backgroundResizeFrame)return;
+  backgroundResizeFrame=requestAnimationFrame(()=>{
+   backgroundResizeFrame=0;layoutFestivalBackground();
+  });
+ },{passive:true});
+}
+
 function toast(text){const t=$("toast");t.textContent=text;t.hidden=false;clearTimeout(timer);timer=setTimeout(()=>t.hidden=true,2400);}
 function sound(type){
  if(!save.sound)return;
@@ -47,11 +92,11 @@ function renderMenu(){
  const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
  $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(Math.min(R.levels.length-1,save.unlocked)+1)+" →";
 }
-function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save()};persist();}}
+function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
- game=new R.Game(i,data);scoreShown=game.score;clearScoreFx();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;$("modal").hidden=true;
+ game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
  $("gameTip").textContent=game.config.intro;$("goalLabel").textContent=game.goalText();
  clearTimeout(comboTimer);$("combo").hidden=true;
@@ -531,5 +576,5 @@ function checkAtlas(){
  img.onerror=()=>{document.documentElement.classList.remove("has-atlas");console.warn("Japanese Harmony art atlas not installed: using temporary family symbols.");};
  img.src="./assets/harmony-atlas.webp";
 }
-bind();checkAtlas();renderMenu();
+bind();checkAtlas();initFestivalBackground();renderMenu();
 })();

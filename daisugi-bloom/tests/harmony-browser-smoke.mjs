@@ -222,6 +222,16 @@ try{
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
  assert.equal(await page.evaluate(()=>document.body.dataset.festival),festivalAtStart,"Backdrop must not change during a turn");
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
+ assert(await page.evaluate(()=>!!window.HarmonyPerf&&typeof window.HarmonyPerf.create==="function"),
+  "Mobile 4.3 frame profiler should load before gameplay");
+ await page.click("#pauseButton");
+ await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Prestanda").click());
+ assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Prestanda");
+ const report=await page.$eval("#modalContent",e=>e.textContent);
+ assert(report.includes("Mätta drag")&&report.includes("95:e percentilen")&&report.includes("Startade animationer"),
+  "Performance report should expose turn metrics, not fake benchmark values");
+ assert(report.includes("Inga data skickas"),"Diagnostics must be local-only");
+ await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
 
 
  await page.click("#pauseButton");

@@ -15,7 +15,8 @@ try{
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  await page.click("#continueButton");await page.waitForSelector(".tile");
- assert.equal(await page.$$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$eval(".tile",els=>els.filter(el=>el.getAttribute("aria-label")?.includes("stadium 1,")).length),49,"All newly generated mobile tiles must start at stage one");
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Stage fraction labels should never obscure tiles");
  await page.click(".tile");
  assert((await page.$eval("#selectedInfo",e=>e.textContent)).includes("stadium"),"Selecting a tile should provide stage information in the status line");
@@ -52,6 +53,14 @@ try{
   return HarmonyRules.validSwaps(cells)[0];
  });
  assert(swap&&swap.length===2,"At least one playable swap must be visible");
+ await page.evaluate(()=>{
+   window.__kineticAnimationCount=0;
+   const realAnimate=Element.prototype.animate;
+   Element.prototype.animate=function(...args){
+     if(this.matches(".piece, .fusion-ghost, .pulse-dot"))window.__kineticAnimationCount++;
+     return realAnimate.apply(this,args);
+   };
+ });
  const beforeMoves=Number(await page.$eval("#movesCount",e=>e.textContent));
  await page.click(".tile:nth-child("+(swap[0]+1)+")");
  await page.click(".tile:nth-child("+(swap[1]+1)+")");
@@ -61,6 +70,9 @@ try{
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
  
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:7000});
+ const kineticCount=await page.evaluate(()=>window.__kineticAnimationCount||0);
+ assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
+
  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);

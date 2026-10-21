@@ -147,6 +147,20 @@ Mästerverksvarianter får introduceras längre fram som visuella temavarianter,
 6. Harmony Pulse använder mjuk mint `#78D1B0`, små guldaccenter `#F2C66E`, aldrig stor vit smäll som skymmer objekten.
 7. Ingen bildgenerering eller kodning sker automatiskt när detta dokument uppdateras. Användaren beställer sådana pass separat.
 
+### Godkänd art-direction-korrigering 2026-10-21 (LÅST)
+
+**Gemensam grafikstil ≠ gemensam färg eller dekor.** Lyktornas bilder är godkända som **renderingskvalitetsreferens** (ljussättning, skärpa, material, 3D-djup, detaljkvalitet), men **deras röda palett, lyktornas tofsar och guldornament får inte kopieras** till andra familjer. Varje objekt har en **självständig familjepalett, egen silhuett, eget naturligt material och egen utvecklingskedja**. Detaljrikedom får öka mellan stadier, men **form, hållning/öppningsgrad eller morfologi måste också förändras tydligt**.
+
+- **Lykta:** fem tidigare bilder godkända; **ska inte regenereras i nästa bildpass**.
+- **Koi:** fem nya separata bilder, **orange/amber `#E8A354` dominerar**, naturlig vit/elfenben och individuella kroppsposer; utveckling från liten fisk till legendarisk koi (eventuellt flera fiskar i högre stadium om tydligt läsbart).
+- **Solfjäder:** fem nya separata bilder med **blått/indigo `#699DBD` som tydlig huvudkulör**, stegvis hopfälld → halvöppen → öppen → ceremoniell → mästerverk; **inga lånade lykttossar eller dominerande rött**.
+- **Sakura:** fem nya separata bilder, **sakura-rosa `#EE91AF` dominerar**; tydligt knopp → kvist → kluster → buske → blommande träd, utan lyktspecifika ornament.
+- **Bonsai:** fem nya separata bilder, **jadegrön `#75B68A` dominerar**; frö → planta → ung bonsai → formad bonsai → mästerbonsai; naturligt trä och diskret keramik.
+- **Assetformat:** 1 stadium = 1 fullstor, fristående PNG med **riktig transparent alfakanal**, inte collage/översiktsark eller färdig presentationsbild. Endast ett motiverat motiv per fil. Kontrollera även att storleken fungerar i en mobilruta.
+- **Ingen annan spelkod eller de godkända lyktbilderna ändras** förrän användaren uttryckligen begär sådan integrering.
+
+**Fullständig bindande specifikation:** [Color & Art Bible, §2.4](JAPANESE_HARMONY_COLOR_BIBLE_1_0.md).
+
 ### Förhållande till äldre prototyp
 
 Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pulse, permanent Daisugi-träd, livskraft, naturenergimätare och Power Move. Dessa hör till föregående spelprototyp och **ska inte importeras** till det nya japanska objektpusselspelet som beslutade mekaniker.

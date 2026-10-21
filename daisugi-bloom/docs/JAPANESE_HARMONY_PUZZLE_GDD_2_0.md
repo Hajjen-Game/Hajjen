@@ -250,3 +250,18 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 **Prestanda och fallback:** Endast en AVIF-atlas laddas och återanvänds för alla sex motiv; byte av bakgrund kräver bara uppdatering av CSS-position/viewport-utsnitt, aldrig att 6 stora foton laddas separat eller att tung blur läggs på spelrutorna. Om AVIF inte stöds eller en tillgång saknas faller vyn tillbaka till en Midnattsblå gradient utan påverkan på spelet. Browser-smoke ska täcka sex unika motiv, stabil scen över drag, rotation vid omstart, bevarad stage-1-start och intakt 7×7-mekanik.
 
 **Kvalitetssäkring:** De sex motiven bedöms lämpliga med denna dämpnings-/panelmodell, men användaren avgör i verkligt mobiltest om ett visst motiv bör exkluderas. Låt inte enstaka bakgrund tvinga bort önskad kontrast eller effektflyt.
+
+
+## Mobile Game UI Reframe 3.1 — Spelplanen först (2026-10-21)
+
+**Ny godkänd designriktning:** Mobilvyn ska upplevas som ett premium *puzzle-mobilspel*, inte som en responsiv webbdashboard. Referensen visar ett japanskt naturmotiv med en stor, skulpterad zen-trädgårdsram, kompakta pappers-/träplaketter för drag/poäng och en rund spelmenyknapp.
+
+- **Spel-HUD:** Två taktila plaketter längst upp: återstående drag och poäng. Intjänade stjärnor och personligt rekord visas direkt under poängen. Rund spelmeny till höger.
+- **Nivå och mål:** Kompakt nivåetikett och en tunn uppdragsrad. Ingen hög kortstapel ovanför brädet.
+- **Spelplan:** 7×7-brädet har huvudrollen och omges av en varm sand-/träinramning med krattade zenmönster, mossaccenter och stenar. Föremålens sprite-atlas, deras skuggor, spelregler och interaktioner ändras inte.
+- **Under brädet:** Diskreta nivå-/omstartsknappar och kort vald-ruta-information. Vid uppnått mål visas avslutsknappen i egen rad.
+- **Immersivt läge:** Webbheadern visas i nivåvalet men döljs under en pågående nivå. Den lilla spelmenyn ger tillgång till hjälp, inställningar och nivåval; modalöverlägget blockerar inkommande spelinput.
+- **Art-riktning:** Behåll de sex godkända Festival Night-motiven, men låt dem synas tydligare omkring brädet. Strukturen hämtar inspiration från mobilreferensen utan att kopiera dess föremål eller lägga till nya familjer/spelregler.
+- **Kvalitet & test:** Ingen ändring i Harmony Rules, sparfiler, fusioner, poängresor eller scenrotation. Browser smoke validerar mobil-HUD-ordning, att brädet får större visuell yta, att brädet ryms i första mobilvyn och att spelmenyns hjälp nås. Visuell mobilbedömning behövs fortfarande.
+
+**Implementation:** `daisugi-bloom/index.html`, `harmony/mobile-game.css`, `harmony/app.js`, `tests/harmony-browser-smoke.mjs`. Versionsnummer 3.1.0.

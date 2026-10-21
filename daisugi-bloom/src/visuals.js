@@ -50,93 +50,52 @@
    sphere(scene,root,"flower-centre",f==="sunleaf"?m.dark:m.bud,x,y+.08,z,.30*scale,.19*scale,.30*scale);
    sphere(scene,root,"flower-highlight",m.light,x-.085*scale,y+.19*scale,z-.09*scale,.11*scale,.045*scale,.11*scale);
  }
- function makePlant(scene,mats,plant,index) {
+ function createArtMaterials(scene){
+   var manifest=window.DaisugiPlantArt;
+   if(!manifest)throw new Error("Plant Art 1.3 manifest not loaded");
+   var materials={};
+   manifest.families.forEach(function(family){
+     var url=manifest.atlas[family];
+     var texture=new B.Texture(url,scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE);
+     texture.hasAlpha=true;
+     texture.wrapU=B.Texture.CLAMP_ADDRESSMODE;
+     texture.wrapV=B.Texture.CLAMP_ADDRESSMODE;
+     var material=new B.StandardMaterial("plant-art-"+family,scene);
+     material.diffuseTexture=texture;
+     material.diffuseColor=B.Color3.White();
+     material.emissiveColor=new B.Color3(.72,.72,.72);
+     material.specularColor=B.Color3.Black();
+     material.useAlphaFromDiffuseTexture=true;
+     material.transparencyMode=B.Material.MATERIAL_ALPHABLEND;
+     material.backFaceCulling=false;
+     material.disableLighting=true; // pre-rendered Japanese garden shading
+     materials[family]=material;
+   });
+   return materials;
+ }
+ var artSizes=[0,.77,.84,.94,1.03,1.19];
+ function makePlant(scene,mats,plant,index,artMaterials){
+   // One billboard plane per tile, with shared atlas material (only four textures).
+   // Keep actual Babylon positions so the existing physical swap/pulse/harvest
+   // effects, selected-target handling and hit-detection remain unchanged.
    var parent=new B.TransformNode("gardenPlant-"+plant.id,scene);
    parent.position.set(index%7-3,.085,Math.floor(index/7)-3);
-   var f=plant.family,stage=plant.stage,m=mats[f];
-   sphere(scene,parent,"contact-shadow",mats.shadow,0,.004,0,.76,.019,.65);
-   if(stage===1){
-     // Four recognisable living seed silhouettes: sakura petals, verdant
-     // leaves, mistbloom teardrop and sunleaf rays, not plain coloured balls.
-     if(f==="sakura"){
-       sphere(scene,parent,"sakura-seed-heart",m.dark,0,.17,0,.31,.25,.29);
-       for(var k=0;k<5;k++){
-         var a=k*2*Math.PI/5;
-         var petal=sphere(scene,parent,"sakura-petal",k%2?m.main:m.light,
-           Math.cos(a)*.205,.25,Math.sin(a)*.205,.30,.18,.27);
-         petal.rotation.y=-a;
-       }
-       sphere(scene,parent,"sakura-center",m.bud,-.03,.34,0,.13,.095,.13);
-     }else if(f==="verdant"){
-       sphere(scene,parent,"verdant-kernel",m.dark,0,.17,0,.33,.24,.31);
-       leaf(scene,parent,m.light,-.20,.28,-.07,.54,.26,-.35,-.30);
-       leaf(scene,parent,m.main,.20,.28,.07,.54,.26,.35,.30);
-       sphere(scene,parent,"verdant-center",m.bud,0,.33,0,.16,.11,.15);
-     }else if(f==="mistbloom"){
-       var dew=sphere(scene,parent,"mist-dew",m.main,0,.23,0,.42,.49,.40);
-       sphere(scene,parent,"mist-lower-drop",m.dark,0,.13,.13,.34,.19,.29);
-       sphere(scene,parent,"mist-light",m.bud,-.09,.37,-.10,.17,.13,.12);
-       sphere(scene,parent,"mist-tip",m.light,0,.49,0,.15,.20,.15);
-       leaf(scene,parent,m.stem,.17,.13,.04,.24,.12,.6,.10);
-     }else{
-       sphere(scene,parent,"sun-core",m.dark,0,.20,0,.34,.25,.35);
-       for(var ray=0;ray<8;ray++){
-         var angle=ray*Math.PI/4;
-         var petal=sphere(scene,parent,"sunleaf-petal",ray%2?m.main:m.light,
-           Math.cos(angle)*.29,.25,Math.sin(angle)*.29,.29,.14,.25);
-         petal.rotation.y=angle;
-       }
-       sphere(scene,parent,"sun-heart",m.bud,0,.34,0,.18,.095,.18);
-     }
-   }
-   if(stage===2){
-     trunk(scene,parent,m.stem,0,.28,0,.42,.105,.065);
-     leaf(scene,parent,m.dark,-.21,.38,-.04,.43,.23,.40,-.34);
-     leaf(scene,parent,m.light,.23,.40,.06,.45,.23,-.35,.31);
-     sphere(scene,parent,"new-growth",m.main,0,.56,0,.24,.24,.21);
-     sphere(scene,parent,"bud-tip",m.bud,-.05,.70,-.055,.14,.12,.13);
-   }
-   if(stage===3){
-     trunk(scene,parent,m.stem,0,.38,0,.61,.095,.062);
-     leaf(scene,parent,m.dark,-.25,.32,.06,.36,.19,.52,-.24);
-     leaf(scene,parent,m.light,.26,.42,-.05,.34,.18,-.45,.22);
-     petalBloom(scene,parent,f,m,0,.69,0,.88);
-     if(f==="verdant")leaf(scene,parent,m.light,.02,.75,-.17,.34,.18,.5,.06);
-   }
-   if(stage===4){
-     trunk(scene,parent,m.stem,0,.37,0,.59,.16,.09);
-     // Asymmetric rounded miniature shrub, overlapping foliage clumps.
-     var lumps=[
-       [-.29,.53,-.17,.52,.40,.46,m.dark],
-       [.28,.52,.12,.51,.37,.43,m.main],
-       [-.08,.72,.16,.56,.41,.48,m.light],
-       [.13,.68,-.26,.44,.34,.41,m.main],
-       [0,.51,.02,.62,.41,.56,m.dark]
-     ];
-     lumps.forEach(function(a){sphere(scene,parent,"foliage",a[6],a[0],a[1],a[2],a[3],a[4],a[5]);});
-     for(var j=0;j<6;j++){
-       var angle=j*2.399,px=Math.cos(angle)*.34,pz=Math.sin(angle)*.31;
-       if(f==="verdant"){
-         leaf(scene,parent,j%2?m.light:m.main,px,.81,pz,.34,.18,angle,.10);
-       }else{
-         petalBloom(scene,parent,f,m,px,.84-(j%2)*.09,pz,.35);
-       }
-     }
-   }
-   if(stage===5){
-     trunk(scene,parent,mats.trunk,0,.65,0,1.20,.24,.125);
-     for(var t=0;t<6;t++){
-       var a=t*Math.PI*2/6;
-       sphere(scene,parent,"tree-canopy",t%2?m.light:m.main,Math.cos(a)*.40,1.18+((t%2)*.12),Math.sin(a)*.36,.66,.53,.60);
-     }
-     sphere(scene,parent,"crown-centre",m.dark,0,1.38,0,.82,.60,.70);
-     for(var w=0;w<5;w++){
-       var b=w*2.399;
-       if(f==="verdant")leaf(scene,parent,m.light,Math.cos(b)*.36,1.57,Math.sin(b)*.33,.34,.20,b,.1);
-       else petalBloom(scene,parent,f,m,Math.cos(b)*.36,1.55,Math.sin(b)*.32,.39);
-     }
-   }
-   return {node:parent,stage:stage,family:plant.family,index:index,id:plant.id};
+   sphere(scene,parent,"contact-shadow",mats.shadow,0,.004,0,.65,.015,.53);
+   var art=window.DaisugiPlantArt.entry(plant.family,plant.stage);
+   if(!art||!artMaterials[plant.family])throw new Error("Unknown botanical atlas "+plant.family+" "+plant.stage);
+   var part=B.MeshBuilder.CreatePlane("plant-art-"+plant.family+"-"+plant.stage,{size:1,sideOrientation:B.Mesh.DOUBLESIDE},scene);
+   part.parent=parent;
+   part.isPickable=false;
+   part.material=artMaterials[plant.family];
+   part.billboardMode=B.Mesh.BILLBOARDMODE_ALL;
+   var uv=part.getVerticesData(B.VertexBuffer.UVKind);
+   var uStart=art.u0+.5/(5*window.DaisugiPlantArt.tileSize),uEnd=art.u1-.5/(5*window.DaisugiPlantArt.tileSize);
+   for(var n=0;n<uv.length;n+=2){uv[n]=uStart+uv[n]*(uEnd-uStart);}
+   part.setVerticesData(B.VertexBuffer.UVKind,uv,true);
+   var sz=artSizes[plant.stage];
+   part.scaling.set(sz,sz,1);
+   part.position.y=sz*.49+.055;
+   return {node:parent,stage:plant.stage,family:plant.family,index:index,id:plant.id};
  }
  function tween(ms,update){
   return new Promise(function(resolve){
@@ -155,7 +114,7 @@
  function Garden(canvas){
   this.canvas=canvas;this.engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:false,antialias:true},true);
   this.engine.setHardwareScalingLevel(Math.max(1,Math.min(1.6,window.devicePixelRatio||1)));
-  this.scene=createScene(this.engine,canvas);this.mats=createMats(this.scene);
+  this.scene=createScene(this.engine,canvas);this.mats=createMats(this.scene);this.artMaterials=createArtMaterials(this.scene);
   this.nodes=new Map();this.tiles=[];this.softMoss=[];this.selected=-1;this.onTile=null;this.pointerStart=null;this.skip=false;
   var self=this;
   for(var i=0;i<49;i++){
@@ -206,7 +165,7 @@
    var old=self.nodes.get(p.id);
    if(old&&old.stage===p.stage&&old.family===p.family){old.index=i;arr.push({obj:old,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:false});return;}
    if(old){old.node.dispose(false,false);self.nodes.delete(p.id);}
-   var made=makePlant(self.scene,self.mats,p,i);self.nodes.set(p.id,made);
+   var made=makePlant(self.scene,self.mats,p,i,self.artMaterials);self.nodes.set(p.id,made);
    if(mode==="fall")made.node.position.y=1.8+((i%7)*.09);
    if(mode==="fusion"||mode==="pulse")made.node.scaling.setAll(.18);
    arr.push({obj:made,to:new B.Vector3(i%7-3,.09,Math.floor(i/7)-3),isNew:true});

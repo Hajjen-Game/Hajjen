@@ -58,7 +58,7 @@ try{
  await page.waitForFunction(moves=>Number(document.querySelector("#movesCount").textContent)===moves-1,{timeout:7000},beforeMoves);
  assert(await page.evaluate(tile=>tile===document.querySelector(".tile"),stableTile),
   "Tile DOM was replaced during fusion; expected a stable mobile render surface");
- assert.equal(await page.$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$$eval(".tile",els=>els.length),49);
  
  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));

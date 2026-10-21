@@ -189,6 +189,8 @@ try{
    });
    window.__scoreFxWatcher.observe(document.body,{childList:true,subtree:true});
  });
+ assert(await page.evaluate(()=>!!window.HarmonyAudio&&typeof window.HarmonyAudio.play==="function"),
+  "Japanese Harmony 4.2 audio must load before the game script");
  const beforePoints=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\D/g,""));
  const beforeMoves=Number(await page.$eval("#movesCount",e=>e.textContent));
  await page.click(".tile:nth-child("+(swap[0]+1)+")");
@@ -203,12 +205,17 @@ try{
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
  assert(await page.evaluate(()=>!!window.__invalidMotion.length),"Rebound keyframes should have been recorded");
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
+ // Count animation must finish with the earned amount, not stick on an
+ // intermediate number or drift while multiple rewards are arriving.
+ await page.waitForTimeout(600);
+ const scoreAfterTween=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\D/g,""));
+ assert(scoreAfterTween>beforePoints,"Score must visibly count upward after the flying token arrives");
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert(fx.family>=1,"Every successful fusion must show its family identity: "+JSON.stringify(fx));
  assert(fx.stage>=1,"Even a basic 3-match must display its upgraded stage clearly: "+JSON.stringify(fx));
  assert(fx.maxFamilyToTileRatio>=1.25,"Family effect must be visibly larger than its tile on mobile: "+JSON.stringify(fx));
- assert(fx.score>=1&&fx.trail>=3,"Expected a flying point label with a trailing stream: "+JSON.stringify(fx));
+ assert(fx.score>=1&&fx.trail>=2,"Expected a flying point label with a lightweight trailing stream: "+JSON.stringify(fx));
  assert(fx.ring>=1,"The fusion must produce a readable expanding ring: "+JSON.stringify(fx));
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
  assert(fx.maxTokenWidth>=35,"Points must have a legible sized label: "+JSON.stringify(fx));

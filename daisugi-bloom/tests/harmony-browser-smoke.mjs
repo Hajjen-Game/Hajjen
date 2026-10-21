@@ -60,6 +60,7 @@ try{
   "Tile DOM was replaced during fusion; expected a stable mobile render surface");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
  
+ await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:7000});
  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);

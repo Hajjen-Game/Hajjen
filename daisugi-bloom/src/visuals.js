@@ -61,14 +61,19 @@
      texture.wrapU=B.Texture.CLAMP_ADDRESSMODE;
      texture.wrapV=B.Texture.CLAMP_ADDRESSMODE;
      var material=new B.StandardMaterial("plant-art-"+family,scene);
-     material.diffuseTexture=texture;
-     material.diffuseColor=B.Color3.White();
-     material.emissiveColor=B.Color3.Black();
+     // StandardMaterial with disableLighting=true must still contribute
+     // actual image RGB. A black emissiveColor was making all billboard
+     // pixels render as black silhouettes on mobile WebGL.
+     // Use the authored illustration as an unlit emissive colour source.
+     material.diffuseTexture=texture; // retain original per-pixel alpha
+     material.diffuseColor=B.Color3.Black();
+     material.emissiveTexture=texture;
+     material.emissiveColor=B.Color3.White();
      material.specularColor=B.Color3.Black();
      material.useAlphaFromDiffuseTexture=true;
      material.transparencyMode=B.Material.MATERIAL_ALPHABLEND;
      material.backFaceCulling=false;
-     material.disableLighting=true; // pre-rendered Japanese garden shading
+     material.disableLighting=true; // preserve the illustration's baked shading
      materials[family]=material;
    });
    return materials;

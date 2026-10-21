@@ -431,3 +431,33 @@ body.harmony-playing .game-view .tile:not(.selected){
   background-size:cover;
   background-position:center;
 }
+
+/* Festival Night 3.3.1: use a real fixed image element.
+   The previous relative CSS variable URL could resolve against harmony/ instead
+   of daisugi-bloom/, resulting in a blank midnight-blue backdrop on phones. */
+.festival-backdrop{
+ position:fixed;
+ inset:0;
+ display:block;
+ width:100%;
+ height:100%;
+ height:100dvh;
+ object-fit:cover;
+ object-position:center center;
+ z-index:0;
+ pointer-events:none;
+ user-select:none;
+ opacity:1;
+}
+body::before{display:none!important}
+/* A confirmed fallback is always better than an empty background if an HD
+   asset fails or an older cached deployment is missing the new files. */
+body.festival-fallback::before{
+ display:block!important;
+ opacity:1!important;
+ background-image:url("../assets/backgrounds/festival-night-six.avif")!important;
+ background-size:var(--festival-atlas-width,1920px) var(--festival-atlas-height,640px)!important;
+ background-position:var(--festival-bg-x,0px) var(--festival-bg-y,0px)!important;
+ background-repeat:no-repeat!important;
+}
+body.festival-fallback .festival-backdrop{display:none}

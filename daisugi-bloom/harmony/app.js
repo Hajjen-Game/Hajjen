@@ -423,6 +423,8 @@ function fusionBurst(positions,groups=[],kind="fusion"){
   ],big?340:265).finally(()=>core.remove());
   const count=MOBILE_LITE?(strong?5:4):(strong?8:6),drift=radius*(strong?.92:.76);
   for(let i=0;i<count;i++){
+   // Keep the tactile fusion ring; skip only excess decorative sparks.
+   if((LITE_FX()&&i>=2)||(MOBILE_LITE&&fxCount()>=32))break;
    const theta=(i/count)*Math.PI*2-.2,d=drift*(.85+(i%3)*.15);
    const spark=fxAt("fusion-spark"+(i%3===0?" mint":""),x,y);
    animateNode(spark,[
@@ -522,6 +524,7 @@ function flyPoints(evt){
   // A visible stream of small gold sparks follows the exact same curved arc.
   const trails=MOBILE_LITE?2:Math.max(3,Math.min(5,5-n));
   for(let k=0;k<trails;k++){
+   if((LITE_FX()&&k>=1)||(MOBILE_LITE&&fxCount()>=32))break;
    const bead=fxAt("score-trail-dot"+(k%2===0?" bright":""),x,y);
    const stagger=55+k*40;
    animateNode(bead,[
@@ -666,7 +669,7 @@ async function playFusion(evt){
 function pulseBeams(evt){
  if(evt.targets?.length)sound("pulse",{wave:evt.wave||0});
  if(FAST()||!evt.targets?.length)return Promise.resolve();
- const targets=evt.targets.slice(0,MOBILE_LITE?5:9);
+ const targets=evt.targets.slice(0,MOBILE_LITE?(LITE_FX()?3:5):9);
  const layer=makeFxLayer(),tasks=[];
  const sources=[...new Set(targets.map(t=>t.from))];
  for(const from of sources.slice(0,MOBILE_LITE?2:4)){
@@ -841,6 +844,37 @@ function modalInfo(title,html){
  modalButton(actions,"Tillbaka till spelet","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
 }
 // This is a turn-based puzzle; the menu overlay blocks touches while open.
+// Local report only: no analytics, disk write or network transfer.
+function showPerformanceReport(){
+ const stats=perf?.summary(),item=stats?.latest;
+ const node=document.createElement("div");
+ node.className="performance-report";
+ const rows=[
+  ["Mätta drag",String(stats?.turns||0)],
+  ["Effekter",stats?.constrained?"Reducerade extra partiklar":"Normala"],
+  ["Senaste mätning",item?item.frames+" bildrutor":"Spela ett drag för att mäta"],
+  ["Genomsnittlig bildrutetid",item?item.averageMs+" ms":"—"],
+  ["95:e percentilen",item?item.p95Ms+" ms":"—"],
+  ["Uppskattad bildfrekvens",item?.approxFps?item.approxFps+" FPS":"—"],
+  ["Långsamma bildrutor",item?item.slowPct+" %":"—"],
+  ["Max tillfälliga effekter",item?String(item.peakFx):"—"],
+  ["Startade animationer",item?String(item.animations):"—"]
+ ];
+ for(const [label,value] of rows){
+  const p=document.createElement("p"),bold=document.createElement("strong");
+  bold.textContent=label+": ";
+  p.append(bold,document.createTextNode(value));node.append(p);
+ }
+ const note=document.createElement("p");
+ note.textContent="Mätningen gäller det senaste dragets animationer, inte hela telefonen. Inga data skickas iväg.";
+ node.append(note);
+ $("modalEyebrow").textContent="MOBILDIAGNOSTIK";
+ $("modalTitle").textContent="Prestanda";
+ $("modalContent").replaceChildren(node);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Tillbaka till spelet","primary",()=>{$("modal").hidden=true;});
+ $("modal").hidden=false;
+}
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
  $("modalEyebrow").textContent="JAPANESE HARMONY";
@@ -855,6 +889,7 @@ function openGameMenu(){
  modalButton(actions,"Börja om nivån","secondary",()=>{if(!busy)startLevel(level);});
  modalButton(actions,"Så spelar du","secondary",()=>{$("helpButton").click();});
  modalButton(actions,"Inställningar","secondary",()=>{$("settingsButton").click();});
+ modalButton(actions,"Prestanda","secondary",showPerformanceReport);
  modalButton(actions,"Till nivåval","secondary",()=>{if(!busy)showMenu();});
  $("modal").hidden=false;
 }

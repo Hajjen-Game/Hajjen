@@ -57,7 +57,7 @@ function startLevel(i,resume=false){
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
-let boardTiles=[],boardKeys=[];
+let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
 function renderBoard(board,highlight,effect){
  const grid=$("board");
  if(boardTiles.length!==49||grid.children.length!==49){
@@ -94,6 +94,7 @@ function renderBoard(board,highlight,effect){
   const cls="tile"+(selected===i?" selected":"")+(highlighted&&highlighted.has(i)?" "+flash:"");
   if(btn.className!==cls)btn.className=cls;
  }
+ presentedBoard=board.map(p=>p?{id:p.id,family:p.family,stage:p.stage}:null);
 }
 function renderHUD(state){
  if(!game)return;
@@ -128,22 +129,152 @@ function highlightIndices(evt){
  if(evt.type==="shuffle")return {indices:Array.from({length:49},(_,i)=>i),effect:"shuffling"};
  return {indices:[],effect:""};
 }
-const nap=ms=>new Promise(res=>setTimeout(res,ms));
-async function playEvents(events){
- busy=true;$("board").setAttribute("aria-busy","true");$("endButton").hidden=true;let finished=false,goalReached=false;
- for(const evt of events){
-  const marks=highlightIndices(evt);
-  renderBoard(evt.board,marks.indices,marks.effect);
-  renderHUD(evt);
-  if(["fusion","bonus","pulse","harvest","goal"].includes(evt.type))sound(evt.type);
-  if(evt.type==="harvest"&&evt.chain>=2){$("combo").textContent="✦ HARMONY CHAIN · "+evt.chain+" MÄSTERVERK";$("combo").hidden=false;clearTimeout(comboTimer);comboTimer=setTimeout(()=>$("combo").hidden=true,save.reduceMotion?450:950);}
-  else if(evt.type==="swap"){clearTimeout(comboTimer);$("combo").hidden=true;}
-  if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
-  if(evt.type==="end"||evt.type==="lose")finished=true;
-  const d=save.reduceMotion?0:({swap:55,fusion:115,bonus:80,hero:85,pulse:105,harvest:135,fall:75,shuffle:100,goal:60})[evt.type]||0;
-  if(d)await nap(d);
+// Fusions move for real rather than swapping artwork separated by arbitrary timers.
+// This uses the compositor's Web Animations to minimize main-thread mobile jank.
+const FAST=()=>save.reduceMotion||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function animateNode(node,keyframes,ms,options={}){
+ if(!node||!node.animate||FAST()||ms<=0)return Promise.resolve();
+ const motion=node.animate(keyframes,{duration:ms,easing:"cubic-bezier(.2,.7,.2,1)",fill:"both",...options});
+ return motion.finished.catch(()=>{}).then(()=>motion.cancel());
+}
+function indexRect(index){return boardTiles[index].getBoundingClientRect();}
+function makeFxLayer(){
+ const board=$("board"),parent=board.parentElement;
+ const b=board.getBoundingClientRect(),p=parent.getBoundingClientRect();
+ const layer=document.createElement("div");layer.className="fusion-fx-layer";
+ layer.style.left=(b.left-p.left)+"px";layer.style.top=(b.top-p.top)+"px";
+ layer.style.width=b.width+"px";layer.style.height=b.height+"px";
+ parent.appendChild(layer);
+ return {node:layer,rect:b};
+}
+function flipMove(previous,next,type){
+ if(FAST())return Promise.resolve();
+ const origin=new Map();
+ previous.forEach((p,i)=>{if(p)origin.set(p.id,i);});
+ const tasks=[],size=indexRect(0).height;
+ next.forEach((p,i)=>{
+  if(!p)return;
+  const before=origin.get(p.id);
+  if(before===i)return;
+  const piece=boardTiles[i].querySelector(".piece");if(!piece)return;
+  if(before!==undefined){
+   const a=indexRect(before),b=indexRect(i);
+   const dx=a.left-b.left,dy=a.top-b.top;
+   tasks.push(animateNode(piece,[{transform:"translate3d("+dx+"px,"+dy+"px,0)"},{transform:"translate3d(0,0,0)"}],type==="swap"?145:210));
+  }else if(type==="fall"){
+   const row=Math.floor(i/7);
+   tasks.push(animateNode(piece,[{transform:"translate3d(0,"+(-(row+2)*size)+"px,0) scale(.91)",opacity:.45},{transform:"translate3d(0,0,0) scale(1)",opacity:1}],210+Math.min(70,(i%7)*9),{easing:"cubic-bezier(.16,.78,.3,1)"}));
+  }
+ });
+ return Promise.all(tasks);
+}
+async function playFusion(evt){
+ if(!FAST()){
+  const layer=makeFxLayer(),ghosts=[],tasks=[];
+  for(const group of evt.groups||[]){
+   for(const i of group.removed){
+    const original=boardTiles[i].querySelector(".piece");
+    if(!original)continue;
+    const tile=indexRect(i),dest=indexRect(group.at),ghost=original.cloneNode(true);
+    ghost.classList.add("fusion-ghost");
+    ghost.style.left=(tile.left-layer.rect.left)+"px";
+    ghost.style.top=(tile.top-layer.rect.top)+"px";
+    ghost.style.width=tile.width+"px";ghost.style.height=tile.height+"px";
+    layer.node.appendChild(ghost);ghosts.push({original,ghost});
+    original.style.visibility="hidden";
+    tasks.push(animateNode(ghost,[
+      {transform:"translate3d(0,0,0) scale(1)",opacity:1},
+      {transform:"translate3d("+(dest.left-tile.left)+"px,"+(dest.top-tile.top)+"px,0) scale(.18)",opacity:.22}
+    ],165));
+   }
+  }
+  try{await Promise.all(tasks);}
+  finally{for(const {original} of ghosts)original.style.visibility="";layer.node.remove();}
  }
- busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();
+ renderBoard(evt.board,(evt.groups||[]).map(g=>g.at),"swapped");
+ await Promise.all((evt.groups||[]).map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
+  {transform:"scale(.80)"},{transform:"scale(1.15)",offset:.55},{transform:"scale(1)"}
+ ],125)));
+}
+function pulseBeams(evt){
+ if(FAST()||!evt.targets?.length)return Promise.resolve();
+ const layer=makeFxLayer(),tasks=[];
+ for(const target of evt.targets){
+  const a=indexRect(target.from),b=indexRect(target.to);
+  const dot=document.createElement("span");dot.className="pulse-dot";
+  dot.style.left=(a.left-layer.rect.left+a.width*.5-6)+"px";
+  dot.style.top=(a.top-layer.rect.top+a.height*.5-6)+"px";
+  layer.node.appendChild(dot);
+  tasks.push(animateNode(dot,[
+   {transform:"translate3d(0,0,0) scale(.5)",opacity:.95},
+   {transform:"translate3d("+(b.left-a.left)+"px,"+(b.top-a.top)+"px,0) scale(1.25)",opacity:.15}
+  ],155));
+ }
+ return Promise.all(tasks).finally(()=>layer.node.remove());
+}
+async function animateEvent(evt){
+ const previous=presentedBoard;
+ switch(evt.type){
+  case "swap":
+   renderBoard(evt.board,[evt.from,evt.to],"swapped");
+   await flipMove(previous,evt.board,"swap");
+   break;
+  case "fusion":
+   await playFusion(evt);
+   break;
+  case "bonus":
+  case "pulse":{
+   const targets=evt.targets||[];
+   renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
+   const grow=targets.map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
+     {transform:"scale(.75)"},{transform:"scale(1.15)",offset:.6},{transform:"scale(1)"}
+   ],145));
+   if(evt.type==="pulse")grow.push(pulseBeams(evt));
+   await Promise.all(grow);
+   break;
+  }
+  case "hero":
+   renderBoard(evt.board,evt.positions||[],"harvested");
+   await Promise.all((evt.positions||[]).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
+     {transform:"scale(.83)"},{transform:"scale(1.20)",offset:.55},{transform:"scale(1)"}
+   ],155)));
+   break;
+  case "harvest":
+   if(!FAST())await Promise.all((evt.positions||[]).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
+     {transform:"scale(1)",opacity:1},{transform:"translate3d(0,-12px,0) scale(.15)",opacity:0}
+   ],150)));
+   renderBoard(evt.board);
+   break;
+  case "fall":
+   renderBoard(evt.board);
+   await flipMove(previous,evt.board,"fall");
+   break;
+  default:
+   renderBoard(evt.board,evt.type==="shuffle"?Array.from({length:49},(_,i)=>i):[],"shuffling");
+ }
+}
+async function playEvents(events){
+ busy=true;$("board").setAttribute("aria-busy","true");$("endButton").hidden=true;
+ let finished=false,goalReached=false;
+ try{
+  for(const evt of events){
+   await animateEvent(evt);
+   if(["fusion","bonus","pulse","harvest","goal"].includes(evt.type))sound(evt.type);
+   if(evt.type==="harvest"&&evt.chain>=2){
+    $("combo").textContent="✦ HARMONY CHAIN · "+evt.chain+" MÄSTERVERK";
+    $("combo").hidden=false;clearTimeout(comboTimer);
+    comboTimer=setTimeout(()=>$("combo").hidden=true,save.reduceMotion?300:850);
+   }else if(evt.type==="swap"){clearTimeout(comboTimer);$("combo").hidden=true;}
+   if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
+   if(evt.type==="end"||evt.type==="lose")finished=true;
+   renderHUD(evt);
+  }
+ }catch(error){
+  console.error("Harmony animation interrupted",error);
+  renderBoard(game.board);
+ }finally{
+  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();
+ }
  if(goalReached)unlockGoal();
  if(finished)showResult();
 }

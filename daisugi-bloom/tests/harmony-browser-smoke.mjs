@@ -1,0 +1,34 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+import puppeteer from "puppeteer-core";
+const browserPaths=["/usr/bin/google-chrome","/usr/bin/google-chrome-stable","/usr/bin/chromium"];
+const exe=browserPaths.find(p=>fs.existsSync(p));
+if(!exe)throw new Error("Chrome/Chromium missing");
+const browser=await puppeteer.launch({executablePath:exe,headless:true,args:["--no-sandbox","--disable-setuid-sandbox"]});
+const page=await browser.newPage();const errors=[];
+page.on("pageerror",e=>errors.push(e.message));
+page.on("console",m=>{if(m.type()==="error"&&!/harmony-atlas|404/.test(m.text()))errors.push(m.text());});
+try{
+ await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+ await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+ await page.waitForFunction(()=>!!window.HarmonyRules);
+ assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
+ assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
+ await page.click("#continueButton");await page.waitForSelector(".tile");
+ assert.equal(await page.$$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
+ assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
+ const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,shape:HarmonyRules.levels[7].goal.type};});
+ assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.shape,"shape");
+ const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
+ assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
+ fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
+ await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
+ await page.click("#helpButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
+ assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
+ await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
+ await page.evaluate(()=>{const b=document.querySelector("#board");b.dispatchEvent(new Event("board-test-start"));});
+ await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
+ assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
+ console.log("PASS Japanese Harmony mobile first playable",box);
+}finally{await browser.close();}

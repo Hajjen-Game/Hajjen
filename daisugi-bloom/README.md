@@ -1,4 +1,14 @@
-# Daisugi Bloom — Plant Art Integration 1.3
+# Daisugi Bloom — Plant Readability Fix 1.3.2
+
+## Senaste utvecklingspass
+
+**Plant Readability Fix 1.3.2** – rättvända växtbilder, skarpare texturfiltrering, verklig hög-DPI-rendering på mobilen och en större spelplan med mindre marginaler. Alla spelregler, bildfamiljer och permanent träd är oförändrade.
+
+[Utvecklingslogg och testplan för 1.3.2](docs/PLANT_READABILITY_FIX_1_3_2.md)
+
+## Tidigare utvecklingspass
+
+# Plant Art Integration 1.3
 
 ## Senaste utvecklingspass
 

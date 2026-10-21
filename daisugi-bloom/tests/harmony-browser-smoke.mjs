@@ -15,7 +15,15 @@ try{
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  await page.click("#continueButton");await page.waitForSelector(".tile");
- assert.equal(await page.$$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$eval(".tile",els=>els.length),49);
+ await page.waitForFunction(()=>document.documentElement.classList.contains("has-atlas"),{timeout:10000});
+ const atlasState=await page.evaluate(()=>({
+   images:document.querySelectorAll(".tile .sprite").length,
+   style:getComputedStyle(document.querySelector(".tile .sprite")).backgroundImage,
+   loaded:document.documentElement.classList.contains("has-atlas")
+ }));
+ assert.equal(atlasState.images,49,"All 49 cells must have art sprites");
+ assert(atlasState.loaded&&atlasState.style.includes("harmony-atlas.webp"),"Approved Japanese art atlas missing from live board");
  assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,shape:HarmonyRules.levels[7].goal.type};});

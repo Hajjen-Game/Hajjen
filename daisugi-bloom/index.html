@@ -6,12 +6,13 @@
  <meta name="theme-color" content="#172D32">
  <meta name="description" content="Daisugi Bloom – odla magiska naturkedjor i ett mysigt match-3-pussel.">
  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
- <title>Daisugi Bloom · UI, Score & Tree Celebration 1.2</title>
- <link rel="stylesheet" href="./styles.css?v=1.2.0">
+ <title>Daisugi Bloom · Plant Art Integration 1.3</title>
+ <link rel="stylesheet" href="./styles.css?v=1.3.0">
  <script defer src="https://cdn.babylonjs.com/babylon.js"></script>
- <script defer src="./src/rules.js?v=1.2.0"></script>
- <script defer src="./src/visuals.js?v=1.2.0"></script>
- <script defer src="./src/app.js?v=1.2.0"></script>
+ <script defer src="./src/rules.js?v=1.3.0"></script>
+ <script defer src="./src/plant-art.js?v=1.3.0"></script>
+ <script defer src="./src/visuals.js?v=1.3.0"></script>
+ <script defer src="./src/app.js?v=1.3.0"></script>
 </head>
 <body>
  <div class="ambient ambient-left" aria-hidden="true"></div>
@@ -26,11 +27,11 @@
   </header>
   <main>
    <section id="menuView" class="menu-view">
-    <div class="hero-copy"><span class="eyebrow">UI · SCORE · BLOOM 1.2</span><h1>En liten trädgård.<br><em>Oändliga möjligheter.</em></h1><p>Matcha levande växter, odla fram magiska träd och låt din egen Daisugi växa efter varje nivå.</p></div>
+    <div class="hero-copy"><span class="eyebrow">PLANT ART · 1.3</span><h1>En liten trädgård.<br><em>Oändliga möjligheter.</em></h1><p>Matcha levande växter, odla fram magiska träd och låt din egen Daisugi växa efter varje nivå.</p></div>
     <section class="menu-panel">
      <div class="panel-title-row"><div><h2>Din resa</h2><p>Fem handformade introduktionsnivåer</p></div><span class="pill" id="menuEssence">✧ 0 livskraft</span></div>
      <div class="level-list" id="levelList"></div>
-     <div class="menu-footer"><button class="primary-button" id="continueButton">Spela nästa nivå <span>→</span></button><p>Tryck på en upplåst nivå för att spela om och förbättra ditt resultat.</p></div>
+     <div class="menu-footer"><button class="primary-button" id="continueButton">Spela nästa nivå <span>→</span></button><button class="art-lab-button" id="openPlantLab"><span aria-hidden="true">✿</span> Plant Art Lab <span aria-hidden="true">↗</span></button><p>Tryck på en upplåst nivå för att spela om och förbättra ditt resultat.</p></div>
     </section>
    </section>
    <section id="gameView" class="game-view" hidden>
@@ -94,6 +95,27 @@
      <button class="style-button" data-style="bloom">✿ <span>Blommande</span><small>180 livskraft</small></button>
     </div>
     <button class="primary-button full" id="closeTreeContinue">Fortsätt spela →</button>
+   </section>
+  </div>
+  <div id="plantLabModal" class="modal-backdrop" hidden>
+   <section class="modal-card plant-lab-card" role="dialog" aria-modal="true" aria-labelledby="plantLabTitle">
+    <div class="modal-heading">
+      <div><span class="eyebrow">DAISUGI BLOOM · ART LAB 1.3</span><h2 id="plantLabTitle">Växtbibliotek</h2></div>
+      <button id="closePlantLab" class="icon-button" aria-label="Stäng växtbibliotek">×</button>
+    </div>
+    <p class="plant-lab-description">20 japanskt inspirerade växter – fyra naturfamiljer och fem utvecklingsstadier. Samma bilder används på spelplanen.</p>
+    <div class="plant-lab-stages"><span>FRÖ</span><span>GRODD</span><span>BLOMMA</span><span>BUSKE</span><span>TRÄD</span></div>
+    <div id="plantLabGrid" class="plant-lab-grid"></div>
+    <div class="plant-lab-playback">
+      <div class="plant-preview-title"><strong id="labSelectedTitle">Sakura</strong><small id="labStageTitle">Frö → Träd</small></div>
+      <div id="plantLabPreview" class="plant-preview-art" aria-label="Förhandsvisning av växtutveckling"></div>
+      <div class="plant-lab-controls">
+        <button class="secondary-button" id="labPrevFamily">← Familj</button>
+        <button class="primary-button" id="labPlay">Visa utveckling ✦</button>
+        <button class="secondary-button" id="labNextFamily">Familj →</button>
+      </div>
+    </div>
+    <p class="plant-lab-footnote">Plant Art Lab ändrar inga spelregler eller sparade nivåresultat. Det permanenta Daisugi-trädet förblir en separat 3D-modell.</p>
    </section>
   </div>
   <div id="settingsModal" class="modal-backdrop" hidden>

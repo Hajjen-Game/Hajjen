@@ -33,3 +33,39 @@
 @media(prefers-reduced-motion:reduce){
  .score-flight-token,.fusion-spark,.score-trail-dot{display:none}
 }
+
+/* Reward Feedback 2.3 — visible but controlled art-first fusion feedback.
+   All elements are ephemeral, pointer-free and compositor animated. */
+.score-panel{position:relative;border-radius:11px;transform-origin:center}
+.score-panel strong{display:inline-block;transform-origin:center;will-change:transform}
+.fusion-ring,.fusion-core,.fusion-milestone,.score-impact-ring{
+ position:absolute;display:block;pointer-events:none;translate:-50% -50%;
+ will-change:transform,opacity
+}
+.fusion-ring{box-sizing:border-box;border:3px solid #F2C66E;
+ border-radius:50%;box-shadow:0 0 8px 1px #F2C66E88,inset 0 0 6px #FFF2DC77;
+ background:transparent}
+.fusion-ring.gold{border-color:#F4C05F;box-shadow:0 0 10px 2px #F2C66Eaa}
+.fusion-ring.mint{border-color:#78D1B0;box-shadow:0 0 10px 2px #78D1B099}
+.fusion-core{width:46px;height:46px;border-radius:50%;
+ background:radial-gradient(circle,#F2C66E75 0%,#F2C66E40 25%,#F2C66E00 70%)}
+.fusion-core.mint{background:radial-gradient(circle,#78D1B08e 0%,#78D1B02d 38%,transparent 72%)}
+.fusion-spark{width:8px;height:8px;box-shadow:0 0 7px 2px #F2C66Ecc}
+.fusion-spark.mint{box-shadow:0 0 7px 2px #78D1B0cc}
+.fusion-milestone{padding:3px 8px;border-radius:999px;white-space:nowrap;
+ color:#102A37;background:linear-gradient(115deg,#F2C66E,#FFF2DC);
+ border:1px solid #F7D99D;font-weight:950;font-size:11px;
+ letter-spacing:.07em;box-shadow:0 2px 8px #102A3770}
+.score-flight-token{z-index:2;font-size:clamp(17px,4.8vw,22px);
+ font-variant-numeric:tabular-nums;font-weight:950;letter-spacing:.02em;
+ color:#FFF2DC;background:#102A37e8;border:2px solid #F2C66E;
+ border-radius:999px;padding:5px 10px;line-height:1;
+ box-shadow:0 2px 12px #102A3780,0 0 9px #F2C66E99;
+ text-shadow:0 1px 2px #102A37}
+.score-trail-dot{width:7px;height:7px;box-shadow:0 0 5px 1px #F2C66Eaa}
+.score-trail-dot.bright{width:9px;height:9px;background:#FFF2DC;
+ box-shadow:0 0 7px 2px #F2C66Ebb}
+.score-impact-ring{width:62px;height:62px;box-sizing:border-box;
+ border:3px solid #F2C66E;border-radius:50%;
+ box-shadow:0 0 9px #F2C66E88}
+.score-accessible-flash{color:#FFF2DC!important;text-shadow:0 0 5px #F2C66E}

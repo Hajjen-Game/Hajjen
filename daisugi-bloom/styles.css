@@ -173,3 +173,41 @@ body:before{content:"";position:fixed;pointer-events:none;z-index:-1;inset:0;
 @keyframes power-pulse-12{0%,100%{box-shadow:0 4px 15px #f0a67370}50%{box-shadow:0 4px 23px #ffca88cf}}
 @media(max-width:390px){.score-ribbon{padding:7px 11px;margin-bottom:8px;min-height:56px}.score-current .score-glyph{font-size:25px}}
 @media(prefers-reduced-motion:reduce){.score-pop,.tree-celebration,.score-combo{animation-duration:.01ms!important}}
+
+
+/* Daisugi Bloom 1.3 · atlas-based Plant Art Lab */
+.art-lab-button{display:flex;align-items:center;justify-content:center;gap:12px;
+ width:100%;margin-top:12px;padding:13px 15px;border-radius:15px;
+ border:1px solid #b18ca7;color:#f9d5e3;
+ background:linear-gradient(115deg,#573f60,#32535c);font-weight:800;font-size:13px;
+ box-shadow:inset 0 1px #ffffff32}
+.art-lab-button span:first-child{color:#f39ebb;font-size:21px}
+.art-lab-button:hover{filter:brightness(1.12)}
+.plant-lab-card{width:min(100%,720px);max-height:calc(100dvh - 30px);padding:20px 18px}
+.plant-lab-description{margin:10px 0 15px;font-size:12px;color:#cbd9d2;line-height:1.6}
+.plant-lab-stages{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:0 0 12px;
+ text-align:center;font-size:9px;font-weight:900;color:#f4c98b;letter-spacing:.025em}
+.plant-lab-grid{display:grid;gap:11px}
+.plant-family-row{display:grid;gap:5px}
+.plant-family-name{font-size:13px;font-weight:800;color:#ffe3bd;display:flex;gap:8px;align-items:center}
+.plant-family-swatch{display:inline-block;width:9px;height:9px;border-radius:50%}
+.plant-family-cells{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.plant-cell{aspect-ratio:1;min-width:0;border:1px solid #667b6b;
+ border-radius:9px;background-color:#d4c3a7;background-repeat:no-repeat;
+ padding:0;cursor:pointer;transition:transform .13s,border-color .13s,box-shadow .13s}
+.plant-cell:hover,.plant-cell:focus-visible{transform:translateY(-2px);border-color:#ffe09c;box-shadow:0 0 0 2px #eebf7e60}
+.plant-cell.selected{border:2px solid #ffca87;box-shadow:0 0 0 2px #f5d0886b}
+.plant-lab-playback{margin-top:20px;border-radius:17px;border:1px solid #6b8c87;background:#172f41;padding:14px}
+.plant-preview-title{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#ffe6c3}
+.plant-preview-title small{color:#a9d8c6;font-size:11px}
+.plant-preview-art{width:150px;height:150px;margin:6px auto 13px;
+ background-repeat:no-repeat;background-color:#d4c3a7;background-size:500% 100%;
+ border:1px solid #857b75;border-radius:17px}
+.plant-preview-art.blooming{animation:plant-art-grow .65s cubic-bezier(.25,1.4,.5,1) both}
+.plant-lab-controls{display:flex;align-items:center;gap:7px;justify-content:center}
+.plant-lab-controls button{min-height:38px;padding:10px;font-size:11px}
+.plant-lab-footnote{margin:12px 2px 2px;font-size:11px;color:#b5c9bc;line-height:1.5}
+@keyframes plant-art-grow{from{opacity:.35;transform:scale(.75)}70%{opacity:1;transform:scale(1.13)}to{opacity:1;transform:scale(1)}}
+@media(min-width:640px){.plant-lab-card{padding:25px 27px}.plant-lab-grid{gap:18px}.plant-family-cells{gap:9px}}
+@media(max-width:360px){.plant-lab-card{padding:16px 11px}.plant-lab-stages{font-size:8px}.plant-family-cells{gap:3px}.plant-lab-controls button{padding:8px 6px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.plant-cell,.plant-preview-art{transition:none!important;animation:none!important}}

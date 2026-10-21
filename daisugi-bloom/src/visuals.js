@@ -56,7 +56,11 @@
    var materials={};
    manifest.families.forEach(function(family){
      var url=manifest.atlas[family];
-     var texture=new B.Texture(url,scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE);
+     // The atlas is authored in top-left image coordinates (as seen in Art Lab).
+     // Babylon planes must invert their image Y axis to display the correct
+     // upright orientation. Avoid distant mip levels blurring 176px tiles.
+     var texture=new B.Texture(url,scene,true,true,B.Texture.BILINEAR_SAMPLINGMODE);
+     texture.anisotropicFilteringLevel=1;
      texture.hasAlpha=true;
      texture.wrapU=B.Texture.CLAMP_ADDRESSMODE;
      texture.wrapV=B.Texture.CLAMP_ADDRESSMODE;
@@ -78,7 +82,7 @@
    });
    return materials;
  }
- var artSizes=[0,.77,.84,.94,1.03,1.19];
+ var artSizes=[0,.84,.91,1.01,1.08,1.23];
  function makePlant(scene,mats,plant,index,artMaterials){
    // One billboard plane per tile, with shared atlas material (only four textures).
    // Keep actual Babylon positions so the existing physical swap/pulse/harvest
@@ -111,14 +115,17 @@
   var s=new B.Scene(engine);s.clearColor=new B.Color4(.86,.89,.78,1);
   var camera=new B.FreeCamera("gardenCamera",new B.Vector3(0,13,3.0),s);
   camera.setTarget(new B.Vector3(0,.15,0));camera.mode=B.Camera.ORTHOGRAPHIC_CAMERA;
-  camera.orthoLeft=-3.95;camera.orthoRight=3.95;camera.orthoTop=3.95;camera.orthoBottom=-3.95;
+  camera.orthoLeft=-3.64;camera.orthoRight=3.64;camera.orthoTop=3.64;camera.orthoBottom=-3.64;
   var hemi=new B.HemisphericLight("softSky",new B.Vector3(0,1,.4),s);hemi.intensity=.72;hemi.diffuse=new B.Color3(.94,.97,.91);
   var sun=new B.DirectionalLight("warmSun",new B.Vector3(-.7,-1,-.4),s);sun.intensity=.48;
   return s;
  }
  function Garden(canvas){
   this.canvas=canvas;this.engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:false,antialias:true},true);
-  this.engine.setHardwareScalingLevel(Math.max(1,Math.min(1.6,window.devicePixelRatio||1)));
+  // Target sharp native mobile rendering without scaling 3x/4x unnecessarily:
+  // 2.5 physical pixels per CSS pixel at most, vs the previous ~1.9.
+  var dpr=window.devicePixelRatio||1;
+  this.engine.setHardwareScalingLevel(Math.max(1,dpr/2.5));
   this.scene=createScene(this.engine,canvas);this.mats=createMats(this.scene);this.artMaterials=createArtMaterials(this.scene);
   this.nodes=new Map();this.tiles=[];this.softMoss=[];this.selected=-1;this.onTile=null;this.pointerStart=null;this.skip=false;
   var self=this;

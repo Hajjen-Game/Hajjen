@@ -15,8 +15,8 @@ try{
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  await page.click("#continueButton");await page.waitForSelector(".tile");
- assert.equal(await page.$eval(".tile",els=>els.length),49);
- assert.equal(await page.$eval(".tile",els=>els.filter(el=>el.getAttribute("aria-label")?.includes("stadium 1,")).length),49,"All newly generated mobile tiles must start at stage one");
+ assert.equal(await page.$$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$$eval(".tile",els=>els.filter(el=>el.getAttribute("aria-label")?.includes("stadium 1,")).length),49,"All newly generated mobile tiles must start at stage one");
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Stage fraction labels should never obscure tiles");
  await page.click(".tile");
  assert((await page.$eval("#selectedInfo",e=>e.textContent)).includes("stadium"),"Selecting a tile should provide stage information in the status line");

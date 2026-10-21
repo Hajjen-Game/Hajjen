@@ -69,3 +69,203 @@
  border:3px solid #F2C66E;border-radius:50%;
  box-shadow:0 0 9px #F2C66E88}
 .score-accessible-flash{color:#FFF2DC!important;text-shadow:0 0 5px #F2C66E}
+
+
+/* ────────────────────────────────────────────────────────────────
+   Premium Festival Night × Zen Control — UI Art Lift 3.0
+   User-approved imagery, a subdued artwork backdrop, no tile blur.
+   Reuses existing colors from JAPANESE_HARMONY_COLOR_BIBLE_1_0.
+   ──────────────────────────────────────────────────────────────── */
+body{
+ --sand:#D6C7AE;
+ --stone:#C9B99E;
+ position:relative;
+ isolation:isolate;
+ background:#102A37;
+}
+body::before,body::after{
+ content:"";
+ position:fixed;
+ inset:0;
+ pointer-events:none;
+}
+body::before{
+ z-index:0;
+ opacity:0;
+ background-image:url("../assets/backgrounds/festival-night-six.avif");
+ background-repeat:no-repeat;
+ background-size:var(--festival-atlas-width,1920px) var(--festival-atlas-height,640px);
+ background-position:var(--festival-bg-x,0px) var(--festival-bg-y,0px);
+ transition:opacity .26s ease;
+}
+.has-festival-art body::before{opacity:1}
+body::after{
+ z-index:1;
+ background:
+  linear-gradient(180deg,rgba(8,22,32,.74) 0%,rgba(11,28,39,.42) 24%,rgba(10,25,37,.32) 56%,rgba(9,22,31,.70) 100%),
+  linear-gradient(90deg,rgba(8,21,30,.25),rgba(8,21,30,.04) 45%,rgba(8,21,30,.24));
+}
+#app{position:relative;z-index:2}
+.topbar{
+ margin:11px 0 0;
+ padding:11px 16px;
+ min-height:74px;
+ border:1px solid rgba(242,198,110,.35);
+ border-radius:20px;
+ background:linear-gradient(135deg,rgba(17,40,53,.92),rgba(22,53,63,.78));
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.12),0 11px 30px rgba(5,15,24,.28);
+}
+.brand-flower{
+ background:linear-gradient(145deg,#EDAAC7,#F2C66E);
+ box-shadow:0 2px 12px rgba(242,198,110,.20);
+}
+.top-actions .secondary,.icon-button{
+ background:rgba(38,72,82,.85);
+ border:1px solid rgba(255,242,220,.30);
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.10);
+}
+.game-view{margin-top:18px}
+.game-heading{
+ align-items:center;
+ padding:12px 14px;
+ border:1px solid rgba(242,198,110,.33);
+ border-radius:19px;
+ background:linear-gradient(130deg,rgba(15,36,50,.90),rgba(31,67,74,.80));
+ box-shadow:0 9px 22px rgba(4,15,24,.25),inset 0 1px 0 rgba(255,242,220,.11);
+}
+.game-heading h1{color:#FFF2DC;text-shadow:0 2px 8px rgba(5,16,24,.24)}
+.moves{
+ min-width:91px;
+ padding:8px 12px;
+ border:1px solid rgba(242,198,110,.52);
+ background:linear-gradient(145deg,rgba(52,91,97,.88),rgba(22,54,65,.95));
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.14),0 4px 9px rgba(9,21,31,.22);
+}
+.moves strong{color:#F2C66E}
+.goal{
+ margin-bottom:9px;
+ min-height:58px;
+ border-color:rgba(242,198,110,.4);
+ background:linear-gradient(116deg,rgba(20,45,57,.89),rgba(31,72,79,.77));
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.11),0 8px 18px rgba(7,17,27,.22);
+}
+.goal-glyph{color:#EE91AF;text-shadow:0 0 8px rgba(238,145,175,.3)}
+.goal strong{
+ padding:5px 10px;
+ border-radius:10px;
+ background:rgba(242,198,110,.12);
+ border:1px solid rgba(242,198,110,.22);
+ font-size:15px;
+}
+.scores{gap:9px;padding:0;margin:0 0 12px;align-items:stretch}
+.scores>div{
+ flex:1 1 0;
+ min-width:0;
+ min-height:73px;
+ padding:12px 14px;
+ border:1px solid rgba(194,210,192,.34);
+ border-radius:15px;
+ background:linear-gradient(135deg,rgba(18,43,57,.92),rgba(31,68,74,.81));
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.12),0 7px 18px rgba(5,15,25,.24);
+}
+.scores>div:first-child{border-color:rgba(242,198,110,.52);background:linear-gradient(145deg,rgba(30,57,62,.94),rgba(42,67,66,.85))}
+.scores small{color:#D0DED5;font-size:10px;letter-spacing:.12em}
+.scores strong{color:#F2C66E;font-size:clamp(23px,6vw,32px);line-height:1.15}
+.scores>div:last-child strong{font-size:clamp(18px,4vw,24px);color:#F0E2C9}
+.board-shell{
+ padding:8px;
+ border:2px solid rgba(212,177,116,.86);
+ border-radius:21px;
+ background:linear-gradient(145deg,#7B6348,#AD946D 33%,#604F40 100%);
+ box-shadow:
+  0 18px 35px rgba(2,12,22,.60),
+  0 0 0 4px rgba(12,34,42,.68),
+  inset 0 2px 2px rgba(255,239,201,.3);
+}
+.board{background:#8F8068;border-radius:12px;gap:2px;box-shadow:inset 0 0 0 1px rgba(55,43,29,.35)}
+.tile{
+ background:var(--sand);
+ border-radius:3px;
+ box-shadow:inset 0 0 0 1px rgba(73,57,38,.055);
+}
+.tile:nth-child(even){background:var(--stone)}
+.tile:hover{background:#E0CEAF}
+.tile.selected{background:#F1DDAA;box-shadow:inset 0 0 0 3px #F2C66E}
+.selected-line{
+ margin-top:10px;
+ padding:5px 9px;
+ border-radius:11px;
+ color:#E0E7DF;
+ background:rgba(14,37,48,.69);
+ font-weight:500;
+}
+.goal-banner{
+ background:linear-gradient(120deg,rgba(36,91,81,.92),rgba(45,84,75,.82));
+ border:1px solid rgba(242,198,110,.72);
+ color:#FFF2DC;
+ box-shadow:0 6px 18px rgba(5,20,24,.3);
+}
+.game-actions{gap:10px;margin-top:14px}
+.game-actions button{
+ min-height:46px;
+ background:linear-gradient(145deg,rgba(30,65,76,.92),rgba(23,47,59,.95));
+ border:1px solid rgba(232,215,181,.44);
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.12),0 6px 15px rgba(6,18,28,.24);
+}
+.game-actions .primary,.primary{
+ background:linear-gradient(135deg,#F6D596,#F0B879);
+ border:1px solid #F2C66E;
+ color:#102A37;
+ box-shadow:inset 0 1px 0 rgba(255,252,219,.65),0 7px 20px rgba(8,20,27,.35);
+}
+.secondary:active,.primary:active,.icon-button:active{transform:translateY(1px)}
+.game-tip{color:#DDE3D9;text-shadow:0 2px 7px rgba(5,15,24,.7)}
+.hero{
+ background:linear-gradient(180deg,rgba(15,41,51,.62),rgba(15,41,51,.23));
+ border-radius:22px;
+ margin:18px 0;
+}
+.hero h1{text-shadow:0 2px 15px rgba(4,16,27,.45)}
+.hero p{color:#EDF0E6;text-shadow:0 1px 9px rgba(3,11,20,.8)}
+.hero-pills span{background:rgba(23,56,66,.88);border-color:rgba(242,198,110,.24)}
+.level-panel{
+ background:linear-gradient(145deg,rgba(22,50,61,.94),rgba(13,35,50,.89));
+ border-color:rgba(242,198,110,.39);
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.13),0 17px 40px rgba(3,12,22,.48);
+}
+.level-tile{
+ background:linear-gradient(110deg,rgba(48,90,97,.8),rgba(25,58,70,.84));
+ border-color:rgba(190,216,197,.36);
+ box-shadow:inset 0 1px 0 rgba(255,242,220,.07);
+}
+.level-tile:not(.locked):hover{background:rgba(68,109,111,.9);border-color:#F2C66E}
+.level-tile .level-number{box-shadow:0 2px 8px rgba(3,17,24,.24)}
+.modal{
+ background:rgba(3,13,22,.78);
+}
+.modal-inner{
+ background:linear-gradient(150deg,rgba(34,72,80,.98),rgba(17,38,53,.99));
+ border-color:rgba(242,198,110,.68);
+ box-shadow:0 20px 60px rgba(3,13,24,.75),inset 0 1px 0 rgba(255,242,220,.12);
+}
+.modal-inner .summary{background:rgba(12,34,48,.75);border:1px solid rgba(242,198,110,.19)}
+.result-stats div{background:rgba(19,48,59,.8);border-color:rgba(230,205,154,.31)}
+@media(max-width:500px){
+ #app{padding:0 10px 22px}
+ .topbar{margin-top:7px;padding:8px 10px;min-height:65px;border-radius:15px}
+ .game-view{margin-top:13px}
+ .game-heading{padding:10px 11px}
+ .game-heading h1{font-size:clamp(21px,5.5vw,29px)}
+ .moves{padding:7px 10px;min-width:79px}
+ .goal{padding:10px 11px;min-height:54px}
+ .scores{gap:7px;margin-bottom:11px}
+ .scores>div{padding:10px 11px;min-height:65px;border-radius:12px}
+ .scores small{font-size:9px}
+ .board-shell{padding:6px;border-radius:14px}
+ .board{gap:1px}
+ .game-actions button{font-size:12px;padding:10px}
+ .selected-line{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ body::before{transition:none}
+}

@@ -729,3 +729,26 @@ body.festival-fallback .festival-backdrop{display:none}
 @media(prefers-reduced-motion:reduce){
  .score-arrival-glint{display:none}
 }
+
+/* Mobile Performance 4.3 – read-only per-turn diagnostic in pause menu.
+   No fixed debug HUD during play: the board remains the primary focus. */
+.performance-report{display:grid;gap:3px}
+.performance-report p{
+ display:flex;
+ flex-wrap:wrap;
+ justify-content:space-between;
+ gap:6px 12px;
+ margin:0;
+ padding:7px 0;
+ border-bottom:1px solid #afc9b02b;
+ font-size:12px;
+ line-height:1.4;
+}
+.performance-report p strong{color:#ffe0a6;font-weight:850}
+.performance-report p:last-child{
+ display:block;
+ border:0;
+ margin-top:5px;
+ font-size:11px;
+ color:#d3e0d3;
+}

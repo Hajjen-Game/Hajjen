@@ -40,6 +40,8 @@ try{
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
  // Regression: a real mobile fusion must reuse the same 49 tile DOM nodes.
  // Recreating those nodes for every event previously caused expensive mobile jank.
+ // Previous assertion selected tile 0. Clear that selection before the swap test.
+ await page.click(".tile:nth-child(1)");
  const stableTile=await page.$(".tile");
  const swap=await page.evaluate(()=>{
   const fromName={Sakura:"sakura",Lykta:"lantern",Koi:"koi",Solfjäder:"fan",Bonsai:"bonsai"};

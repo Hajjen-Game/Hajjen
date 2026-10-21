@@ -158,7 +158,11 @@ try{
  const festivalAfterRestart=await page.evaluate(()=>document.body.dataset.festival);
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
-  await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
+  await page.click("#pauseButton");
+ await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Till nivåval").click());
+ assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
+ assert.equal(await page.$eval("#gameView",x=>x.hidden),true);
+ assert.notEqual(await page.$eval(".topbar",e=>getComputedStyle(e).display),"none","Level select must restore main header");
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

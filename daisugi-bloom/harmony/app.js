@@ -7,7 +7,7 @@ const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳"}
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
-const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,showStages:true,sound:true,reduceMotion:false};
+const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,soundContext=null,pointer=null,suppressClickUntil=0;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -68,7 +68,6 @@ function renderBoard(board,highlight){
    const emoji=document.createElement("span");emoji.className="fallback";emoji.textContent=symbols[piece.family];
    const img=document.createElement("span");img.className="sprite";img.style.setProperty("--sx",((piece.stage-1)*25)+"%");img.style.setProperty("--sy",familyRows[piece.family]*25+"%");
    holder.append(emoji,img);btn.append(holder);
-   if(save.showStages){const stage=document.createElement("span");stage.className="stage";stage.textContent=piece.stage+"/5";btn.append(stage);}
   }
   btn.addEventListener("click",()=>{if(performance.now()<suppressClickUntil)return;choose(i);});
   frag.append(btn);
@@ -90,7 +89,7 @@ function choose(i){
  if(busy||!game||game.moves<=0)return;
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
- $("selectedInfo").textContent=selected<0?"Välj två angränsande föremål eller svep.":names[game.board[i].family]+" · stadium "+game.board[i].stage+"/5 · välj en granne";
+ $("selectedInfo").textContent=selected<0?"Välj två angränsande föremål eller svep.":names[game.board[i].family]+" · stadium "+game.board[i].stage+" av 5 · välj en granne";
  renderBoard(game.board);
 }
 function trySwap(a,b){
@@ -173,9 +172,8 @@ function bind(){
  $("endButton").addEventListener("click",()=>{if(busy||!game||!game.complete)return;game.finish();showResult();});
  $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Nivåmål:</strong> När målet uppnås sparas dina stjärnor. Du får spela återstående drag för att slå ditt rekord. Inga Power Moves eller hinder.</p>'));
  $("settingsButton").addEventListener("click",()=>{
-  modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsStages" '+(save.showStages?"checked":"")+'> Visa stadium på pjäserna</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
+  modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;persist();});
-  $("settingsStages").addEventListener("change",e=>{save.showStages=e.target.checked;persist();if(game)renderBoard(game.board);});
   $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;persist();});
  });
  $("board").addEventListener("pointerdown",e=>{const tile=e.target.closest(".tile");if(tile)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});

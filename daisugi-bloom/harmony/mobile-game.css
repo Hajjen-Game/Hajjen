@@ -424,9 +424,9 @@ body.harmony-playing .game-view .tile:not(.selected){
   body.harmony-playing .game-view .tile:hover:not(.selected){background:#e6d4b9}
   body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){background:#dfc9aa}
 }
-/* Once the chosen panel is cropped to a small, cached image, avoid rasterizing
-   the whole six-panel atlas as a 2500px-wide compositing surface. */
-.has-festival-crop body::before{
+/* Each high-resolution festival scene is a separate precompressed AVIF.
+   Render it natively without canvas conversion or six-scene atlas scaling. */
+.has-festival-hd body::before{
   background-image:var(--festival-scene-url);
   background-size:cover;
   background-position:center;

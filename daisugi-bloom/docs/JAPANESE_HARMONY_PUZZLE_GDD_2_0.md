@@ -282,3 +282,19 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 **Regression:** Browser smoke testar att nederdelen saknas, menyn innehåller alla nödvändiga funktioner, att en liten scen istället för en gigantisk atlas blir aktiv, och att 49 brickor, poäng och fusioner fungerar som tidigare.
 
 **Verifieringsbegränsning:** Syntax- och DOM-referenskontroll är gjord i anslutningen. Faktisk uppmätt mobil-FPS och fullständig körning av Chrome/CI är ännu inte verifierad och ska bedömas vid telefonstest.
+
+
+## Core Motion & Match Feel 4.0 — spelkänsla före mer VFX (2026-10-21)
+
+**Mål:** Visuellt och taktilt premium-pussel, inspirerat av timing och tydlig feedback i casual-matchspel men med vår egen varma Zen-identitet. Passet ändrar **endast presentationslagret**, inte 7×7-regler, avkastning, drag, progression, sparformat eller bakgrunder.
+
+- **Markering:** vald bricka lyfts subtilt med ~2 px och skala ~1.055 samt en 115 ms liten beröringsreaktion; denna effekt ligger enbart på `.piece`, inte på brädet.
+- **Giltigt byte:** 166 ms positionskorrigering med liten accelerations-/inbromsningsprofil i stället för rak glidning. ID-spårning mellan eventens före/efter-bräden bevaras.
+- **Ogiltigt byte:** flyttar båda berörda föremålen visuellt mot varandra och fjädrar tillbaka under ~215 ms; spelreglerna ger ingen poäng- eller dragförändring. Ingen falsk omordning i DOM eller regelmotor. Board-input blockeras under den korta återstudsen.
+- **Fusion/förädling:** kvarvarande föremål komprimeras före sammanfogning, de andra föremålen rör sig mot överlevaren på ~162 ms och det nya stadiets originalillustration framträder sedan med en mjuk 205 ms skala-/landningskurva. En tillfällig liten ljusglimt per uppgraderad survivor (högst två på mobil) förstärker förändringen. De befintliga fusionsringarna och Score Stream behålls.
+- **Fall:** både redan existerande brickor och nyskapade får en ytterst liten landing-squash/settle. 195–270 ms respektive 205–270 ms, där animationerna följer föremålets verkliga ID och start-/slutposition.
+- **Prestanda:** använder samma stabila 49 DOM-rutor, inga nya globala grafiklager, inga tunga per-ruta-filter, animationerna körs via `Element.animate` för transform/opacity. Fusionsglimt är en tillfällig DOM-nod per relevant survivor, på samma lätta befintliga score-FX-lager.
+- **Tillgänglighet:** `Minska animationer` eller `prefers-reduced-motion` hoppar över de nya WAAPI-rörelserna. Spelreglerna och funktionalitet fungerar även utan Web Animations API.
+- **QA:** browser smoke testar ogiltigt angränsande byte som visuell återstuds med oförändrad poäng, oförändrat dragantal, exakt samma 49 celler och samma familjer/stadier. Befintliga funktionstester för swap, fusion, Score Stream och mobilnavigering finns kvar.
+
+**Uttryckligt utanför pass 4.0:** familjespecifika VFX, omarbetat Harmony Pulse och ett nytt ljudlandskap. Dessa ligger i kommande 4.1–4.2. Slutlig estetisk nivå samt faktisk Android-prestanda verifieras i telefon.

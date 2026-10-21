@@ -1,6 +1,14 @@
-# Daisugi Bloom — UI, Score & Tree Celebration 1.2
+# Daisugi Bloom — Plant Art Integration 1.3
 
 ## Senaste utvecklingspass
+
+**Plant Art Integration 1.3** – alla 20 japanskt inspirerade växtbilder från Sakura, Verdant, Mistbloom och Sunleaf används nu i den spelbara 7×7-vyn. Bildparen optimerades till fyra transparenta WebP-atlaser. Babylon hanterar fortsatt rörelse, fusioner, Bloom Pulse och Tree Celebration. Daisugi-trädet mellan nivåerna är fortfarande riktig 3D.
+
+**Plant Art Lab:** från startsidan eller [direkt via ?lab=plants](https://hajjen-game.github.io/Hajjen/daisugi-bloom/?lab=plants) kan alla 20 stadier jämföras och utvecklingen spelas upp.
+
+[Fullständig integrationslogg och källbildsmappning](docs/PLANT_ART_INTEGRATION_1_3.md)
+
+## Tidigare utvecklingspass
 
 **UI, Score & Tree Celebration 1.2** – nytt färgstarkt japanskt inspirerat gränssnitt, live-poäng och nivårekord, flytande kombopoäng samt ett tydligt firande innan trädets Bloom Pulse och skörd. Fyra mer särskiljbara grundfragment.
 

@@ -55,24 +55,45 @@ function startLevel(i,resume=false){
  $("combo").hidden=true;
  renderBoard(game.board);renderHUD();saveRun();
 }
-function renderBoard(board,highlight){
- const grid=$("board");grid.replaceChildren();
- const frag=document.createDocumentFragment();
- board.forEach((piece,i)=>{
-  const btn=document.createElement("button");
-  btn.type="button";btn.className="tile"+(selected===i?" selected":"")+(highlight&&highlight.includes(i)?" "+(highlight.effect||"pulsed"):"");
-  btn.setAttribute("role","gridcell");btn.dataset.index=i;
-  btn.setAttribute("aria-label",piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
-  if(piece){
-   const holder=document.createElement("span");holder.className="piece";
-   const emoji=document.createElement("span");emoji.className="fallback";emoji.textContent=symbols[piece.family];
-   const img=document.createElement("span");img.className="sprite";img.style.setProperty("--sx",((piece.stage-1)*25)+"%");img.style.setProperty("--sy",familyRows[piece.family]*25+"%");
-   holder.append(emoji,img);btn.append(holder);
+// Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
+// The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
+let boardTiles=[],boardKeys=[];
+function renderBoard(board,highlight,effect){
+ const grid=$("board");
+ if(boardTiles.length!==49||grid.children.length!==49){
+  const frag=document.createDocumentFragment();
+  boardTiles=[];boardKeys=Array(49).fill(null);
+  for(let i=0;i<49;i++){
+   const btn=document.createElement("button");
+   btn.type="button";btn.className="tile";btn.setAttribute("role","gridcell");
+   btn.dataset.index=i;
+   btn.addEventListener("click",()=>{if(performance.now()<suppressClickUntil)return;choose(i);});
+   boardTiles.push(btn);frag.append(btn);
   }
-  btn.addEventListener("click",()=>{if(performance.now()<suppressClickUntil)return;choose(i);});
-  frag.append(btn);
- });
- grid.append(frag);
+  grid.replaceChildren(frag);
+ }
+ const highlighted=highlight&&highlight.length?new Set(highlight):null;
+ const flash=effect||(highlight&&highlight.effect)||"pulsed";
+ for(let i=0;i<49;i++){
+  const piece=board[i],btn=boardTiles[i],key=piece?piece.id+"|"+piece.family+"|"+piece.stage:"empty";
+  // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
+  // event listeners and their DOM nodes for a smoother mobile experience.
+  if(boardKeys[i]!==key){
+   boardKeys[i]=key;
+   btn.replaceChildren();
+   btn.setAttribute("aria-label",piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
+   if(piece){
+    const holder=document.createElement("span");holder.className="piece";
+    const emoji=document.createElement("span");emoji.className="fallback";emoji.textContent=symbols[piece.family];
+    const img=document.createElement("span");img.className="sprite";
+    img.style.setProperty("--sx",((piece.stage-1)*25)+"%");
+    img.style.setProperty("--sy",familyRows[piece.family]*25+"%");
+    holder.append(emoji,img);btn.append(holder);
+   }
+  }
+  const cls="tile"+(selected===i?" selected":"")+(highlighted&&highlighted.has(i)?" "+flash:"");
+  if(btn.className!==cls)btn.className=cls;
+ }
 }
 function renderHUD(state){
  if(!game)return;
@@ -112,15 +133,15 @@ async function playEvents(events){
  busy=true;$("endButton").hidden=true;let finished=false,goalReached=false;
  for(const evt of events){
   const marks=highlightIndices(evt);
-  renderBoard(evt.board,Object.assign(marks.indices,{effect:marks.effect}));
+  renderBoard(evt.board,marks.indices,marks.effect);
   renderHUD(evt);
   if(["fusion","bonus","pulse","harvest","goal"].includes(evt.type))sound(evt.type);
   if(evt.type==="harvest"&&evt.chain>=2){$("combo").textContent="✦ HARMONY CHAIN · "+evt.chain+" MÄSTERVERK";$("combo").hidden=false;}
   else if(evt.type==="swap")$("combo").hidden=true;
   if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
   if(evt.type==="end"||evt.type==="lose")finished=true;
-  const d=save.reduceMotion?15:({swap:135,fusion:270,bonus:225,hero:200,pulse:240,harvest:320,fall:165,shuffle:260,goal:220})[evt.type]||35;
-  await nap(d);
+  const d=save.reduceMotion?0:({swap:55,fusion:115,bonus:80,hero:85,pulse:105,harvest:135,fall:75,shuffle:100,goal:60})[evt.type]||0;
+  if(d)await nap(d);
  }
  busy=false;renderBoard(game.board);renderHUD();saveRun();
  if(goalReached)unlockGoal();

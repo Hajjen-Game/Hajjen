@@ -583,15 +583,7 @@ async function playFusion(evt){
   {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
   {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
  ],205,{easing:"cubic-bezier(.2,.67,.26,1)"})));
- // One light-catching glint per important survivor; non-blocking, max 2 on mobile.
- if(!FAST())for(const g of groups.slice(0,MOBILE_LITE?2:3)){
-  const r=indexRect(g.at),glint=fxAt("evolution-glint",r.left+r.width*.73,r.top+r.height*.25,"✦");
-  animateNode(glint,[
-   {transform:"translate3d(0,5px,0) scale(.5)",opacity:0,offset:0},
-   {transform:"translate3d(0,-1px,0) scale(1.15)",opacity:1,offset:.42},
-   {transform:"translate3d(7px,-8px,0) scale(.55)",opacity:0,offset:1}
-  ],235).finally(()=>glint.remove());
- }
+ // Family-specific signature replaces the old generic glint. No extra VFX.
 }
 // Energy travels out from the masterpiece BEFORE affected items transform.
 // Capped number of visible energy paths; never cap logical target updates.

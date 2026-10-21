@@ -421,7 +421,8 @@ body.harmony-playing .game-view .tile:not(.selected){
   transition:background-color .08s linear;
 }
 @media(hover:none){
-  body.harmony-playing .game-view .tile:hover:not(.selected){background:inherit}
+  body.harmony-playing .game-view .tile:hover:not(.selected){background:#e6d4b9}
+  body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){background:#dfc9aa}
 }
 /* Once the chosen panel is cropped to a small, cached image, avoid rasterizing
    the whole six-panel atlas as a 2500px-wide compositing surface. */

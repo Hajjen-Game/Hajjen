@@ -677,7 +677,7 @@ async function playEvents(events){
     if(groups.some(g=>g.shape||g.number>=5)||evt.round>=2)announceReward(2,"HARMONI!",710);
     else if(groups.some(g=>g.number>=4))announceReward(1,"VACKERT!",610);
    }else if(evt.type==="hero")announceReward(3,"MÄSTERVERK!",925);
-   else if(evt.type==="harvest"&&evt.chain>=2)announceReward(4,"PERFEKT HARMONI · "+evt.chain+" MÄSTERVERK",1080);
+   else if(evt.type==="harvest"&&evt.chain>=2)announceReward(4,"PERFEKT HARMONI · x"+evt.chain,1080);
    else if(evt.type==="swap"){clearTimeout(comboTimer);$("combo").hidden=true;}
    if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
    if(evt.type==="end"||evt.type==="lose")finished=true;

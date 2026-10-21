@@ -369,3 +369,24 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Verifiering:** `harmony-audio.test.cjs` testar ljudinitiering, separata tonkaraktärer, av/på, begränsat antal röster, cooldown och städning. `harmony-reward.test.cjs` testar rullande scoretotaler, samtidiga ankomster, reducerad rörelse och återställning. Existerande VFX-test använder en ljudstub för att kontrollera Pulse-ordningen utan faktisk AudioContext. Browser smoke validerar att ljudmotorn laddas före appen och att poängräknaren ökar vid ankomst. GitHub Actions kör testerna med gamla Harmony Rules-regressioner.
 
 **Scope:** Ingen ändring av brickbilder, Harmony Rules, nivåer, sparfilformat, fusionens logik eller Festival Night-bakgrunder. Verklig upplevelse på Android, ljudbalans vid hög volym och mätt FPS kräver enhetstest efter release 4.2.0.
+
+
+## Mobile Performance & Polish 4.3 — kontinuerlig respons utan plotter (2026-10-21)
+
+**Syfte:** Behåll premiumkänslan, familjeeffekterna från 4.1.1 och poäng-/ljudresponsen från 4.2, men reducera onödiga layoutmätningar, samtidiga extraspår och resurser som blir kvar efter ett avbrutet spel.
+
+**Per-turn mätning (lokalt, utan telemetri):** Ny `harmony/performance.js` samplar `requestAnimationFrame` under en pågående spelanimation, inte när spelaren bara tittar på brädet. Senaste dragets genomsnittliga bildrutetid, p95, ungefärlig FPS, andel bildrutor över 34 ms, största antal tillfälliga FX-noder och antal startade animationer sammanställs. Tidigare drag räknas endast inom aktuell session. Ingenting skickas till en server eller lagras i `localStorage`.
+
+**Visning:** Pausmenyn → **Prestanda** visar rapporten utan någon permanent FPS-mätare på spelplanen. Uppgifterna bygger endast på de bildrutor som samplats under dragets animation; de är inte ett fullständigt GPU-benchmark, och den faktiska användarupplevelsen måste fortfarande kontrolleras på telefonen.
+
+**Adaptiv extragrafik:** Två tydligt långsamma drag med minst 12 uppmätta bildrutor vardera (p95 över 42 ms eller fler än 27 % bildrutor över 34 ms) sänker tillfälligt enbart detaljnivån för extra fusionsgnistor, poängsvansprickar och antalet samtidigt synliga Harmony Pulse-spår. Tre stabila drag (p95 under 25 ms och under 9 % långsamma bildrutor) återställer dem. Spelet tar **inte bort** själva bytet, animationen för det nya stadiet, familjesignaturen, mästerverksringen, HUD-poäng eller regelstyrda Pulse-uppgraderingar. Inga spelregler eller belöningssiffror förändras.
+
+**Layoutkostnad:** `indexRect()` läser samma brickas `getBoundingClientRect()` högst en gång per drag med en tillfällig 49-plats-cache. Den föräldraruta som används för fusionslager återanvänds inom draget. Cachen släpps i `finally` oavsett om animationen lyckas. Inga koordinater sparas mellan drag eller efter en förändring av skärmlayout.
+
+**Animation cleanup:** Vid ny nivå/nivåval avbryts pågående Web Animations på överblivna score-FX-noder innan nodlagret töms. Spel i bakgrundsflik startar inte nya visuella animationer eller ljud. Mätningen är aktiv endast under spelanimation och avregistrerar sin enda rAF vid avslut.
+
+**VFX-budget:** I normal mobilprofil visas samma huvudanimationer som 4.2, inklusive tydligt stadiumtext och ljusram. Extra fusionsgnistor och poängsvansprickar begränsas om mer än 32 tillfälliga score-/FX-noder redan finns. Den adaptiva profilen kan minska extra gnistor och antalet visuella energispår ytterligare. Scoresystemet och alla logiska Harmony Pulse-mål berörs inte.
+
+**Regression & QA:** `tests/harmony-performance.test.cjs` testar samplingens avslut, jankbedömning, adaptiv ned-/uppgradering, icke-sampling i dold flik och frånvaro av läckande animationframes. Befintliga rules-, audio-, reward- och VFX-tester kvarstår. Browser smoke kontrollerar att prestandamenyn öppnas efter ett drag och att resultatet innehåller lokala mätfält. GitHub Actions inkluderar även syntaxkontroll av prestandamodulen.
+
+**Utvärdering:** Enhetsprestanda/FPS kan inte bekräftas av källkodstester. Ta skärmbild på Prestanda-menyn efter ett vanligt drag och gärna efter en stor Harmony Pulse-kedja; jämför mätvärden och hur själva spelet känns. Om lagg kvarstår är nästa åtgärd riktad profilering på den aktuella Android-enheten, inte en automatisk försämring av spelets grafik.

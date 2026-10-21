@@ -28,6 +28,7 @@ try{
  }));
  assert.equal(atlasState.images,49,"All 49 cells must have art sprites");
  assert(atlasState.loaded&&atlasState.style.includes("harmony-atlas.webp"),"Approved Japanese art atlas missing from live board");
+ assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");
  assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,shape:HarmonyRules.levels[7].goal.type};});
@@ -62,13 +63,17 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0};
+   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,maxTokenWidth:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
        if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.score++;
        if(node.classList.contains("score-trail-dot"))window.__scoreFxSeen.trail++;
        if(node.classList.contains("fusion-spark"))window.__scoreFxSeen.burst++;
+       if(node.classList.contains("fusion-ring"))window.__scoreFxSeen.ring++;
+       if(node.classList.contains("score-impact-ring"))window.__scoreFxSeen.impact++;
+       if(node.classList.contains("fusion-milestone"))window.__scoreFxSeen.milestone++;
+       if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.maxTokenWidth=Math.max(window.__scoreFxSeen.maxTokenWidth,node.getBoundingClientRect().width);
      }
    });
    window.__scoreFxWatcher.observe(document.body,{childList:true,subtree:true});
@@ -89,6 +94,9 @@ try{
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert(fx.score>=1&&fx.trail>=3,"Expected a flying point label with a trailing stream: "+JSON.stringify(fx));
+ assert(fx.ring>=1,"The fusion must produce a readable expanding ring: "+JSON.stringify(fx));
+ assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
+ assert(fx.maxTokenWidth>=35,"Points must have a legible sized label: "+JSON.stringify(fx));
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
 

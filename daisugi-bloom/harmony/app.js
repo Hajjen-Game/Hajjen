@@ -18,7 +18,58 @@ function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
 // Atlas is 1920x640 with six 320x640 panels side-by-side.
 // No per-frame effects or heavy blur: only resize and level transitions update it.
 const FESTIVAL_COUNT=6, FESTIVAL_CELL_W=320, FESTIVAL_CELL_H=640;
-let currentBackground=-1,backgroundResizeFrame=0;
+let currentBackground=-1,backgroundResizeFrame=0,festivalSource=null,festivalCropJob=0;
+const festivalSceneCache=new Map();
+
+// Decode the small six-panel atlas only once, then render a SINGLE scenic panel.
+// The previous CSS enlarged all six panels into one enormous offscreen layer on
+// each phone. Cropping removes that GPU burden. A one-time gentle edge pass
+// improves perceived clarity, but cannot restore detail lost in the originals.
+function showCachedFestivalScene(scene){
+ const url=festivalSceneCache.get(scene);
+ if(!url)return false;
+ document.documentElement.style.setProperty("--festival-scene-url",'url("'+url+'")');
+ document.documentElement.classList.add("has-festival-crop");
+ return true;
+}
+function queueFestivalScene(){
+ if(currentBackground<0||!festivalSource)return;
+ const scene=currentBackground,job=++festivalCropJob;
+ if(showCachedFestivalScene(scene))return;
+ document.documentElement.classList.remove("has-festival-crop");
+ const render=()=>{
+  if(job!==festivalCropJob)return;
+  try{
+   const w=640,h=1280,canvas=document.createElement("canvas");
+   canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext("2d",{willReadFrequently:true});
+   if(!ctx)return;
+   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+   ctx.drawImage(festivalSource,scene*FESTIVAL_CELL_W,0,FESTIVAL_CELL_W,FESTIVAL_CELL_H,0,0,w,h);
+   // Small, bounded sharpening (one pass on level load, never during a move).
+   const image=ctx.getImageData(0,0,w,h),dst=image.data,src=new Uint8ClampedArray(dst);
+   for(let y=1;y<h-1;y++){
+    for(let x=1;x<w-1;x++){
+     const p=(y*w+x)*4;
+     for(let c=0;c<3;c++){
+      const i=p+c;
+      dst[i]=src[i]*1.24-(src[i-4]+src[i+4]+src[i-w*4]+src[i+w*4])*.06;
+     }
+    }
+   }
+   ctx.putImageData(image,0,0);
+   canvas.toBlob(blob=>{
+    canvas.width=0;canvas.height=0;
+    if(!blob)return;
+    const url=URL.createObjectURL(blob);
+    festivalSceneCache.set(scene,url);
+    if(scene===currentBackground)showCachedFestivalScene(scene);
+   },"image/webp",.88);
+  }catch(err){console.warn("Festival scene crop unavailable; using original atlas",err);}
+ };
+ if("requestIdleCallback" in window)window.requestIdleCallback(render,{timeout:1250});
+ else setTimeout(render,120);
+}
 function layoutFestivalBackground(){
  if(currentBackground<0)return;
  const w=window.innerWidth||390,h=window.innerHeight||844;
@@ -41,12 +92,12 @@ function chooseFestivalBackground(remembered){
  }
  currentBackground=next;save.lastBackground=next;
  document.body.dataset.festival=String(next+1);
- layoutFestivalBackground();persist();
+ layoutFestivalBackground();queueFestivalScene();persist();
 }
 function initFestivalBackground(){
  const img=new Image();
- img.onload=()=>document.documentElement.classList.add("has-festival-art");
- img.onerror=()=>document.documentElement.classList.remove("has-festival-art");
+ img.onload=()=>{festivalSource=img;document.documentElement.classList.add("has-festival-art");queueFestivalScene();};
+ img.onerror=()=>{festivalSource=null;document.documentElement.classList.remove("has-festival-art","has-festival-crop");};
  img.src="./assets/backgrounds/festival-night-six.avif";
  const resumed=save.run&&Number.isInteger(save.run.backgroundId)?save.run.backgroundId:null;
  chooseFestivalBackground(resumed??save.lastBackground??null);

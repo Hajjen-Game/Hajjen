@@ -702,3 +702,30 @@ body.festival-fallback .festival-backdrop{display:none}
 @media(prefers-reduced-motion:reduce){
  .evolution-stage-label,.pulse-trace,.pulse-target-hit{display:none}
 }
+
+/* Audio & Reward 4.2 — polished HUD arrival, not another full-board VFX pass.
+   Everything is a short-lived layer reusing the existing FX overlay. */
+.score-arrival-glint{
+ position:absolute;
+ display:block;
+ translate:-50% -50%;
+ color:#ffe3a2;
+ font-size:22px;
+ line-height:1;
+ font-weight:900;
+ text-shadow:0 1px #8d5b33,0 0 7px #eeb75c;
+ pointer-events:none;
+ will-change:transform,opacity;
+}
+.game-view #scoreCount{
+ font-variant-numeric:tabular-nums;
+ transform-origin:center;
+}
+.game-view #goalProgress{
+ display:inline-block;
+ transform-origin:center;
+ font-variant-numeric:tabular-nums;
+}
+@media(prefers-reduced-motion:reduce){
+ .score-arrival-glint{display:none}
+}

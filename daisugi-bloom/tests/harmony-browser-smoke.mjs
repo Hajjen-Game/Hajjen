@@ -89,7 +89,7 @@ try{
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert(fx.score>=1&&fx.trail>=3,"Expected a flying point label with a trailing stream: "+JSON.stringify(fx));
- assert.equal(await page.$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
+ assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
 
 

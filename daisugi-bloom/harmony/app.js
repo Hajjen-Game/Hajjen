@@ -14,99 +14,57 @@ try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
 
-// Festival Night / Zen Control: six approved vertical motifs in one AVIF atlas.
-// Atlas is 1920x640 with six 320x640 panels side-by-side.
-// No per-frame effects or heavy blur: only resize and level transitions update it.
-const FESTIVAL_COUNT=6, FESTIVAL_CELL_W=320, FESTIVAL_CELL_H=640;
-let currentBackground=-1,backgroundResizeFrame=0,festivalSource=null,festivalCropJob=0;
-const festivalSceneCache=new Map();
+// Festival Night HD · Mobile 3.3
+// Three user-supplied 768x1536 scenes, stored as individual AVIF files.
+// Use the browser's native image decoder and a single fixed CSS backdrop.
+// No canvas readback, sharpening, image cloning or huge atlas composite.
+const FESTIVAL_SCENES=[
+ "./assets/backgrounds/festival-hd-1.avif", // moonlit lake and pagoda
+ "./assets/backgrounds/festival-hd-2.avif", // lantern-lit bamboo stream
+ "./assets/backgrounds/festival-hd-3.avif"  // lantern gate and stone pathway
+];
+const FESTIVAL_COUNT=FESTIVAL_SCENES.length;
+let currentBackground=-1;
+const loadedFestivalScenes=new Set();
 
-// Decode the small six-panel atlas only once, then render a SINGLE scenic panel.
-// The previous CSS enlarged all six panels into one enormous offscreen layer on
-// each phone. Cropping removes that GPU burden. A one-time gentle edge pass
-// improves perceived clarity, but cannot restore detail lost in the originals.
-function showCachedFestivalScene(scene){
- const url=festivalSceneCache.get(scene);
- if(!url)return false;
- document.documentElement.style.setProperty("--festival-scene-url",'url("'+url+'")');
- document.documentElement.classList.add("has-festival-crop");
- return true;
-}
-function queueFestivalScene(){
- if(currentBackground<0||!festivalSource)return;
- const scene=currentBackground,job=++festivalCropJob;
- if(showCachedFestivalScene(scene))return;
- document.documentElement.classList.remove("has-festival-crop");
- const render=()=>{
-  if(job!==festivalCropJob)return;
-  try{
-   const w=640,h=1280,canvas=document.createElement("canvas");
-   canvas.width=w;canvas.height=h;
-   const ctx=canvas.getContext("2d",{willReadFrequently:true});
-   if(!ctx)return;
-   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
-   ctx.drawImage(festivalSource,scene*FESTIVAL_CELL_W,0,FESTIVAL_CELL_W,FESTIVAL_CELL_H,0,0,w,h);
-   // Small, bounded sharpening (one pass on level load, never during a move).
-   const image=ctx.getImageData(0,0,w,h),dst=image.data,src=new Uint8ClampedArray(dst);
-   for(let y=1;y<h-1;y++){
-    for(let x=1;x<w-1;x++){
-     const p=(y*w+x)*4;
-     for(let c=0;c<3;c++){
-      const i=p+c;
-      dst[i]=src[i]*1.24-(src[i-4]+src[i+4]+src[i-w*4]+src[i+w*4])*.06;
-     }
-    }
-   }
-   ctx.putImageData(image,0,0);
-   canvas.toBlob(blob=>{
-    canvas.width=0;canvas.height=0;
-    if(!blob)return;
-    const url=URL.createObjectURL(blob);
-    festivalSceneCache.set(scene,url);
-    if(scene===currentBackground)showCachedFestivalScene(scene);
-   },"image/webp",.88);
-  }catch(err){console.warn("Festival scene crop unavailable; using original atlas",err);}
+function showFestivalBackground(scene){
+ const root=document.documentElement;
+ const url=FESTIVAL_SCENES[scene];
+ if(!url)return;
+ // Keep the existing backdrop until the new one is ready, avoiding a flash.
+ const apply=()=>{
+  if(scene!==currentBackground)return;
+  root.style.setProperty("--festival-scene-url",'url("'+url+'")');
+  root.classList.add("has-festival-art","has-festival-crop");
  };
- if("requestIdleCallback" in window)window.requestIdleCallback(render,{timeout:1250});
- else setTimeout(render,120);
-}
-function layoutFestivalBackground(){
- if(currentBackground<0)return;
- const w=window.innerWidth||390,h=window.innerHeight||844;
- const scale=Math.max(w/FESTIVAL_CELL_W,h/FESTIVAL_CELL_H);
- const panelW=FESTIVAL_CELL_W*scale,panelH=FESTIVAL_CELL_H*scale;
- const x=(w-panelW)/2-currentBackground*panelW;
- const y=(h-panelH)/2;
- const root=document.documentElement.style;
- root.setProperty("--festival-atlas-width",Math.round(FESTIVAL_COUNT*panelW)+"px");
- root.setProperty("--festival-atlas-height",Math.round(panelH)+"px");
- root.setProperty("--festival-bg-x",Math.round(x)+"px");
- root.setProperty("--festival-bg-y",Math.round(y)+"px");
+ if(loadedFestivalScenes.has(scene)){apply();return;}
+ const image=new Image();
+ image.decoding="async";
+ image.onload=()=>{loadedFestivalScenes.add(scene);apply();};
+ image.onerror=()=>{
+  if(scene!==currentBackground)return;
+  console.warn("Festival HD background could not be loaded:",url);
+  root.classList.remove("has-festival-art","has-festival-crop");
+ };
+ image.src=url;
 }
 function chooseFestivalBackground(remembered){
  let next=Number.isInteger(remembered)&&remembered>=0&&remembered<FESTIVAL_COUNT?remembered:-1;
  if(next<0){
-  const prev=Number.isInteger(save.lastBackground)?save.lastBackground:-1;
-  // Uniform random choice without immediate repeats after the first one.
-  next=prev>=0&&prev<FESTIVAL_COUNT?(prev+1+Math.floor(Math.random()*(FESTIVAL_COUNT-1)))%FESTIVAL_COUNT:Math.floor(Math.random()*FESTIVAL_COUNT);
+  const prev=Number.isInteger(save.lastBackground)&&save.lastBackground>=0&&save.lastBackground<FESTIVAL_COUNT?save.lastBackground:-1;
+  // Randomize only among the supplied high-resolution scenes without repeats.
+  next=prev<0?Math.floor(Math.random()*FESTIVAL_COUNT):
+       (prev+1+Math.floor(Math.random()*(FESTIVAL_COUNT-1)))%FESTIVAL_COUNT;
  }
- currentBackground=next;save.lastBackground=next;
+ currentBackground=next;
+ save.lastBackground=next;
  document.body.dataset.festival=String(next+1);
- layoutFestivalBackground();queueFestivalScene();persist();
+ showFestivalBackground(next);
+ persist();
 }
 function initFestivalBackground(){
- const img=new Image();
- img.onload=()=>{festivalSource=img;document.documentElement.classList.add("has-festival-art");queueFestivalScene();};
- img.onerror=()=>{festivalSource=null;document.documentElement.classList.remove("has-festival-art","has-festival-crop");};
- img.src="./assets/backgrounds/festival-night-six.avif";
  const resumed=save.run&&Number.isInteger(save.run.backgroundId)?save.run.backgroundId:null;
  chooseFestivalBackground(resumed??save.lastBackground??null);
- window.addEventListener("resize",()=>{
-  if(backgroundResizeFrame)return;
-  backgroundResizeFrame=requestAnimationFrame(()=>{
-   backgroundResizeFrame=0;layoutFestivalBackground();
-  });
- },{passive:true});
 }
 
 function toast(text){const t=$("toast");t.textContent=text;t.hidden=false;clearTimeout(timer);timer=setTimeout(()=>t.hidden=true,2400);}

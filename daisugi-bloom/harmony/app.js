@@ -193,13 +193,28 @@ function choose(i){
  selected=selected===i?-1:i;
  $("selectedInfo").textContent=selected<0?"Välj två grannar eller svep.":names[game.board[i].family]+" · stadium "+game.board[i].stage+" av 5 · välj en granne";
  renderBoard(game.board);
+ if(selected===i&&!FAST()){
+  const piece=boardTiles[i]?.querySelector(".piece");
+  // This settles into the selected CSS pose, rather than popping back at the end.
+  animateNode(piece,[
+   {transform:"translate3d(0,0,0) scale(.96)"},
+   {transform:"translate3d(0,-3px,0) scale(1.085)",offset:.65},
+   {transform:"translate3d(0,-2px,0) scale(1.055)"}
+  ],115,{easing:"cubic-bezier(.19,.8,.25,1)"});
+ }
 }
 function trySwap(a,b){
  if(busy||!game||!$("modal").hidden)return;
  const result=game.swap(a,b);
- if(!result.ok){toast(result.reason);selected=b;renderBoard(game.board);return;}
+ if(!result.ok){
+  selected=b;renderBoard(game.board);
+  $("selectedInfo").textContent="Ingen matchning – prova ett annat byte.";
+  // The rules did not consume a move. The animation is feedback only.
+  void invalidSwapBounce(a,b);
+  return;
+ }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
- playEvents(result.events);
+ void playEvents(result.events);
 }
 function highlightIndices(evt){
  if(evt.type==="swap")return {indices:[evt.from,evt.to],effect:"swapped"};
@@ -219,6 +234,32 @@ function animateNode(node,keyframes,ms,options={}){
  return motion.finished.catch(()=>{}).then(()=>motion.cancel());
 }
 function indexRect(index){return boardTiles[index].getBoundingClientRect();}
+// Reversible invalid swap: genuine movement to ~75% of the adjacent cell
+// followed by a gentle spring back. No fake board mutation or score change.
+async function invalidSwapBounce(a,b){
+ if(busy||FAST())return;
+ const pieceA=boardTiles[a]?.querySelector(".piece");
+ const pieceB=boardTiles[b]?.querySelector(".piece");
+ if(!pieceA||!pieceB)return;
+ const rectA=indexRect(a),rectB=indexRect(b);
+ const dx=rectB.left-rectA.left,dy=rectB.top-rectA.top;
+ const frames=(sign)=>[
+  {transform:"translate3d(0,0,0) scale(1)",offset:0},
+  {transform:"translate3d("+(dx*sign*.74)+"px,"+(dy*sign*.74)+"px,0) scale(.95)",offset:.44},
+  {transform:"translate3d("+(dx*sign*.88)+"px,"+(dy*sign*.88)+"px,0) scale(.96)",offset:.55},
+  {transform:"translate3d("+(-dx*sign*.055)+"px,"+(-dy*sign*.055)+"px,0) scale(1.04)",offset:.87},
+  {transform:"translate3d(0,0,0) scale(1)",offset:1}
+ ];
+ busy=true;$("board").setAttribute("aria-busy","true");
+ try{
+  await Promise.all([
+   animateTilePiece(a,pieceA,frames(1),215,{easing:"ease-in-out"}),
+   animateTilePiece(b,pieceB,frames(-1),215,{easing:"ease-in-out"})
+  ]);
+ }finally{
+  busy=false;$("board").setAttribute("aria-busy","false");
+ }
+}
 
 // Fusion sparkle + a small stream of earned points to the score box.
 // FX live in one pointer-free fixed overlay, never inside the 7x7 tiles.
@@ -404,6 +445,8 @@ function makeFxLayer(){
  parent.appendChild(layer);
  return {node:layer,rect:b};
 }
+// Identical 49 stable tiles; only actual moving pieces get animations.
+// The last 20% is a short landing cushion, not a whole-board shake.
 function flipMove(previous,next,type){
  if(FAST())return Promise.resolve();
  const origin=new Map();
@@ -413,24 +456,56 @@ function flipMove(previous,next,type){
   if(!p)return;
   const before=origin.get(p.id);
   if(before===i)return;
-  const piece=boardTiles[i].querySelector(".piece");if(!piece)return;
+  const piece=boardTiles[i].querySelector(".piece");
+  if(!piece)return;
   if(before!==undefined){
    const a=indexRect(before),b=indexRect(i);
    const dx=a.left-b.left,dy=a.top-b.top;
-   tasks.push(animateTilePiece(i,piece,[{transform:"translate3d("+dx+"px,"+dy+"px,0)"},{transform:"translate3d(0,0,0)"}],type==="swap"?145:210));
+   if(type==="swap"){
+    tasks.push(animateTilePiece(i,piece,[
+     {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.98)",offset:0},
+     {transform:"translate3d("+(dx*.25)+"px,"+(dy*.25)+"px,0) scale(1.025)",offset:.72},
+     {transform:"translate3d(0,0,0) scale(1)",offset:1}
+    ],166,{easing:"cubic-bezier(.22,.72,.28,1)"}));
+   }else{
+    const distance=Math.abs(dy)/Math.max(1,size);
+    tasks.push(animateTilePiece(i,piece,[
+     {transform:"translate3d("+dx+"px,"+dy+"px,0)",offset:0},
+     {transform:"translate3d(0,2.2px,0) scale(1.015,.955)",offset:.86},
+     {transform:"translate3d(0,-1.2px,0) scale(.995,1.01)",offset:.95},
+     {transform:"translate3d(0,0,0) scale(1)",offset:1}
+    ],195+Math.min(65,distance*14),{easing:"cubic-bezier(.25,.65,.24,1)"}));
+   }
   }else if(type==="fall"){
-   const row=Math.floor(i/7);
-   tasks.push(animateTilePiece(i,piece,[{transform:"translate3d(0,"+(-(row+2)*size)+"px,0) scale(.91)",opacity:.45},{transform:"translate3d(0,0,0) scale(1)",opacity:1}],210+Math.min(70,(i%7)*9),{easing:"cubic-bezier(.16,.78,.3,1)"}));
+   // Newly spawned objects drop along their column, then settle with a very
+   // small squash / release; cap duration for large mobile cascades.
+   const row=Math.floor(i/7),entry=(row+2)*size;
+   tasks.push(animateTilePiece(i,piece,[
+    {transform:"translate3d(0,"+(-entry)+"px,0) scale(.95)",opacity:.52,offset:0},
+    {transform:"translate3d(0,2.4px,0) scale(1.025,.95)",opacity:1,offset:.84},
+    {transform:"translate3d(0,-1.4px,0) scale(.99,1.02)",opacity:1,offset:.94},
+    {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
+   ],205+Math.min(65,row*8),{easing:"cubic-bezier(.26,.64,.24,1)",delay:Math.min(22,(i%7)*4)}));
   }
  });
  return Promise.all(tasks);
 }
+// Fusion has three readable beats: converge -> transform -> settle.
+// The new-stage illustration appears only after the removed objects reach it.
 async function playFusion(evt){
+ const groups=evt.groups||[];
  if(!FAST()){
   const layer=makeFxLayer(),ghosts=[],tasks=[];
-  for(const group of evt.groups||[]){
+  for(const group of groups){
+   // One small survivor anticipation per group.
+   const survivor=boardTiles[group.at]?.querySelector(".piece");
+   if(survivor)tasks.push(animateNode(survivor,[
+    {transform:"scale(1)",offset:0},
+    {transform:"scale(.90)",offset:.55},
+    {transform:"scale(1)",offset:1}
+   ],162));
    for(const i of group.removed){
-    const original=boardTiles[i].querySelector(".piece");
+    const original=boardTiles[i]?.querySelector(".piece");
     if(!original)continue;
     const tile=indexRect(i),dest=indexRect(group.at),ghost=original.cloneNode(true);
     ghost.classList.add("fusion-ghost");
@@ -440,19 +515,34 @@ async function playFusion(evt){
     layer.node.appendChild(ghost);ghosts.push({original,ghost});
     original.style.visibility="hidden";
     tasks.push(animateNode(ghost,[
-      {transform:"translate3d(0,0,0) scale(1)",opacity:1},
-      {transform:"translate3d("+(dest.left-tile.left)+"px,"+(dest.top-tile.top)+"px,0) scale(.18)",opacity:.22}
-    ],165));
+     {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:0},
+     {transform:"translate3d("+((dest.left-tile.left)*.62)+"px,"+((dest.top-tile.top)*.62)+"px,0) scale(.74)",opacity:1,offset:.65},
+     {transform:"translate3d("+(dest.left-tile.left)+"px,"+(dest.top-tile.top)+"px,0) scale(.20)",opacity:.12,offset:1}
+    ],162,{easing:"cubic-bezier(.4,.1,.7,1)"}));
    }
   }
   try{await Promise.all(tasks);}
   finally{for(const {original} of ghosts)original.style.visibility="";layer.node.remove();}
  }
- renderBoard(evt.board,(evt.groups||[]).map(g=>g.at),"swapped");
- fusionBurst((evt.groups||[]).map(g=>g.at),evt.groups||[]);
- await Promise.all((evt.groups||[]).map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
-  {transform:"scale(.80)"},{transform:"scale(1.15)",offset:.55},{transform:"scale(1)"}
- ],125)));
+ renderBoard(evt.board,groups.map(g=>g.at),"swapped");
+ fusionBurst(groups.map(g=>g.at),groups);
+ // The evolved art blooms only after the gathering, rather than simply
+ // popping to a new sprite under an unrelated effect.
+ await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
+  {transform:"translate3d(0,1px,0) scale(.74)",opacity:.72,offset:0},
+  {transform:"translate3d(0,-2px,0) scale(1.125)",opacity:1,offset:.60},
+  {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
+  {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
+ ],205,{easing:"cubic-bezier(.2,.67,.26,1)"})));
+ // One light-catching glint per important survivor; non-blocking, max 2 on mobile.
+ if(!FAST())for(const g of groups.slice(0,MOBILE_LITE?2:3)){
+  const r=indexRect(g.at),glint=fxAt("evolution-glint",r.left+r.width*.73,r.top+r.height*.25,"✦");
+  animateNode(glint,[
+   {transform:"translate3d(0,5px,0) scale(.5)",opacity:0,offset:0},
+   {transform:"translate3d(0,-1px,0) scale(1.15)",opacity:1,offset:.42},
+   {transform:"translate3d(7px,-8px,0) scale(.55)",opacity:0,offset:1}
+  ],235).finally(()=>glint.remove());
+ }
 }
 function pulseBeams(evt){
  if(FAST()||!evt.targets?.length)return Promise.resolve();

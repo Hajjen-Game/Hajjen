@@ -1,150 +1,60 @@
 <!doctype html>
 <html lang="sv">
 <head>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
- <meta name="theme-color" content="#172D32">
- <meta name="description" content="Daisugi Bloom – odla magiska naturkedjor i ett mysigt match-3-pussel.">
- <link rel="icon" type="image/svg+xml" href="./favicon.svg">
- <title>Daisugi Bloom · Plant Art Readability Fix 1.3.2</title>
- <link rel="stylesheet" href="./styles.css?v=1.3.2">
- <script defer src="https://cdn.babylonjs.com/babylon.js"></script>
- <script defer src="./src/rules.js?v=1.3.2"></script>
- <script defer src="./src/plant-art.js?v=1.3.2"></script>
- <script defer src="./src/visuals.js?v=1.3.2"></script>
- <script defer src="./src/app.js?v=1.3.2"></script>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+ <meta name="theme-color" content="#102A37">
+ <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
+ <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+ <title>Japanese Harmony · First Playable 2.0</title>
+ <link rel="stylesheet" href="./harmony/styles.css?v=2.0.0">
+ <script defer src="./harmony/rules.js?v=2.0.0"></script>
+ <script defer src="./harmony/app.js?v=2.0.0"></script>
 </head>
 <body>
- <div class="ambient ambient-left" aria-hidden="true"></div>
- <div class="ambient ambient-right" aria-hidden="true"></div>
  <div id="app">
   <header class="topbar">
-   <button class="brand" id="homeButton" aria-label="Tillbaka till nivåvalet"><span class="brand-icon">❀</span><span><strong>DAISUGI</strong><small>BLOOM</small></span></button>
-   <div class="top-actions">
-    <button id="treeButton" class="top-action" title="Ditt Daisugi-träd"><span>♧</span><span>Mitt träd</span></button>
-    <button id="settingsButton" class="icon-button" aria-label="Inställningar" title="Inställningar">⚙</button>
-   </div>
+   <button id="homeButton" class="brand" aria-label="Till nivåval"><span class="brand-flower">✿</span><span>JAPANESE <strong>HARMONY</strong></span></button>
+   <div class="top-actions"><button id="helpButton" class="secondary small">Så spelar du</button><button id="settingsButton" class="icon-button" aria-label="Inställningar">⚙</button></div>
   </header>
   <main>
    <section id="menuView" class="menu-view">
-    <div class="hero-copy"><span class="eyebrow">PLANT ART · 1.3.2</span><h1>En liten trädgård.<br><em>Oändliga möjligheter.</em></h1><p>Matcha levande växter, odla fram magiska träd och låt din egen Daisugi växa efter varje nivå.</p></div>
-    <section class="menu-panel">
-     <div class="panel-title-row"><div><h2>Din resa</h2><p>Fem handformade introduktionsnivåer</p></div><span class="pill" id="menuEssence">✧ 0 livskraft</span></div>
-     <div class="level-list" id="levelList"></div>
-     <div class="menu-footer"><button class="primary-button" id="continueButton">Spela nästa nivå <span>→</span></button><button class="art-lab-button" id="openPlantLab"><span aria-hidden="true">✿</span> Plant Art Lab <span aria-hidden="true">↗</span></button><p>Tryck på en upplåst nivå för att spela om och förbättra ditt resultat.</p></div>
-    </section>
+    <div class="hero">
+      <div class="eyebrow">MIDNIGHT GARDEN · JAPANSKT MATCH-PUSSEL</div>
+      <h1>Skapa något <em>extraordinärt.</em></h1>
+      <p>Matcha sakura, lyktor, koi och solfjädrar. Förädla fem stadier och låt mästerverken väcka Harmony Pulse.</p>
+      <div class="hero-pills"><span>✦ Inga power-ups</span><span>✦ Strategiska kedjor</span><span>✦ Personliga rekord</span></div>
+    </div>
+    <div class="level-panel">
+      <div class="panel-heading"><div><div class="eyebrow">KAPITEL 1</div><h2>First Harmony</h2><p>Tio nivåer · en ny resa</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
+      <div id="levelList" class="level-list"></div>
+      <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Spela om tidigare nivåer och förbättra dina poängrekord och stjärnor.</p></div>
+    </div>
    </section>
    <section id="gameView" class="game-view" hidden>
-    <div class="game-topline"><div><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 5</span><h1 id="levelTitle">First Petals</h1></div><div class="moves-badge"><small>DRAG KVAR</small><strong id="movesCount">18</strong></div></div>
-    <div class="goal-bar"><div><span class="goal-symbol">✿</span><span id="goalLabel">Utveckla en blomma</span></div><strong id="goalProgress">0 / 3</strong></div>
-    <div class="score-ribbon" aria-label="Poäng och bästa resultat">
-      <div class="score-current"><span class="score-glyph">✦</span><div><small>POÄNG</small><strong id="scoreCount" aria-live="polite">0</strong></div></div>
-      <div class="score-record"><small>REKORD</small><strong id="scoreBest">0</strong></div>
-      <div class="score-combo" id="comboChip" hidden>KOMBO ×2</div>
+    <div class="game-heading">
+      <div><div class="eyebrow" id="levelNumber">NIVÅ 1 / 10</div><h1 id="levelTitle">First Match</h1></div>
+      <div class="moves"><span>DRAG KVAR</span><strong id="movesCount">12</strong></div>
     </div>
-    <div class="board-frame" id="boardFrame">
-     <canvas id="boardCanvas" tabindex="0" aria-label="Interaktiv 3D-spelplan med 7 gånger 7 växter"></canvas>
-     <div id="stageOverlay" class="stage-overlay" hidden aria-hidden="true"></div>
-     <div id="scoreFx" class="score-fx" aria-hidden="true"></div>
-     <div id="treeCelebration" class="tree-celebration" hidden aria-hidden="true"><span class="tree-glyph">✺</span><strong>TRÄD SKAPAT!</strong><small>BLOOM PULSE</small></div>
-     <div class="board-decoration" aria-hidden="true">❋</div>
+    <div class="goal"><span class="goal-glyph">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
+    <div class="scores"><div><small>POÄNG</small><strong id="scoreCount">0</strong></div><div><small>PERSONLIGT REKORD</small><strong id="scoreBest">0</strong></div></div>
+    <div class="board-shell">
+      <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
+      <div id="combo" class="combo" hidden>✦ HARMONY CHAIN</div>
     </div>
-    <div class="selection-line"><span id="selectedInfo">Välj en växt och byt plats med en granne</span><button id="clearSelection" aria-label="Ta bort markering" hidden>×</button></div>
-    <div class="energy-section">
-     <div class="energy-label"><span>✧ NATURKRAFT</span><span id="energyLabel">0 / 100</span></div>
-     <div class="energy-track"><div id="energyFill"></div></div>
-     <button id="powerButton" class="power-button" disabled><span>✦</span><span id="powerLabel">Power Move laddas…</span></button>
-     <div id="familyPicker" class="family-picker" hidden>
-      <div class="picker-heading"><span>Välj fröets naturfamilj</span><button id="cancelPower" aria-label="Avbryt Power Move">×</button></div>
-      <div class="family-buttons">
-       <button class="family-choice sakura" data-family="sakura"><span>✿</span>Sakura</button>
-       <button class="family-choice verdant" data-family="verdant"><span>❧</span>Verdant</button>
-       <button class="family-choice mistbloom" data-family="mistbloom"><span>♧</span>Mistbloom</button>
-       <button class="family-choice sunleaf" data-family="sunleaf"><span>✺</span>Sunleaf</button>
-      </div>
-      <p id="powerHint">Välj familj och tryck på en ruta för att ersätta den gratis.</p>
-     </div>
-    </div>
-    <div class="play-actions"><button id="instructionsButton" class="quiet-button">Så spelar du</button><button id="restartButton" class="quiet-button">Börja om nivån ↺</button></div>
-    <p class="game-tip" id="gameTip" aria-live="polite"></p>
+    <div class="selected-line"><span id="selectedInfo">Välj två angränsande föremål eller svep.</span><span id="statusStars" class="star-mini"></span></div>
+    <div id="goalBanner" class="goal-banner" hidden>✦ MÅLET KLART! Fortsätt spela för rekordet.</div>
+    <div class="game-actions"><button id="menuButton" class="secondary">← Nivåval</button><button id="retryButton" class="secondary">Börja om ↺</button><button id="endButton" class="primary" hidden>Avsluta med resultat →</button></div>
+    <p id="gameTip" class="game-tip"></p>
    </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-  <div id="resultModal" class="modal-backdrop" hidden>
-   <section class="modal-card result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
-    <div class="result-glyph" id="resultGlyph">✺</div>
-    <span class="eyebrow" id="resultEyebrow">NIVÅ AVKLARAD</span>
-    <h2 id="resultTitle">En vacker blomning!</h2>
-    <div id="resultStars" class="stars">★ ★ ★</div>
-    <p id="resultSummary"></p>
-    <div class="score-result"><small>DIN POÄNG</small><strong id="resultScore">0</strong><span id="resultBestScore">Bästa: 0</span></div>
-    <div id="resultStats" class="result-stats"></div>
-    <div class="modal-buttons"><button id="resultNext" class="primary-button">Nästa nivå →</button><button id="resultRetry" class="secondary-button">Spela igen</button><button id="resultTree" class="secondary-button">Se mitt träd ♧</button></div>
+  <div id="modal" class="modal" hidden>
+   <section class="modal-inner" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+     <div class="eyebrow" id="modalEyebrow">HARMONY</div><h2 id="modalTitle"></h2>
+     <div id="modalContent"></div>
+     <div id="modalActions" class="modal-actions"></div>
    </section>
   </div>
-  <div id="treeModal" class="modal-backdrop" hidden>
-   <section class="modal-card tree-card" role="dialog" aria-modal="true" aria-labelledby="treeTitle">
-    <div class="modal-heading"><div><span class="eyebrow">DIN PERMANENTA TRÄDGÅRD</span><h2 id="treeTitle">Mitt Daisugi-träd</h2></div><button class="icon-button" id="closeTree" aria-label="Stäng trädvyn">×</button></div>
-    <div class="tree-canvas-shell"><canvas id="treeCanvas" aria-label="Ditt växande Daisugi-träd i 3D"></canvas></div>
-    <div class="tree-progress-row"><div><strong id="treeEssence">0</strong><span> livskraft insamlad</span></div><span id="treeMilestone">Ett frö till något stort</span></div>
-    <p class="tree-explain">Ett enda träd följer hela din resa. Livskraften behålls även när du ändrar dess utseende.</p>
-    <h3>Trädets utseende</h3>
-    <div class="style-options">
-     <button class="style-button" data-style="upright">♧ <span>Daisugi</span><small>Från start</small></button>
-     <button class="style-button" data-style="canopy">❧ <span>Frodig krona</span><small>90 livskraft</small></button>
-     <button class="style-button" data-style="bloom">✿ <span>Blommande</span><small>180 livskraft</small></button>
-    </div>
-    <button class="primary-button full" id="closeTreeContinue">Fortsätt spela →</button>
-   </section>
-  </div>
-  <div id="plantLabModal" class="modal-backdrop" hidden>
-   <section class="modal-card plant-lab-card" role="dialog" aria-modal="true" aria-labelledby="plantLabTitle">
-    <div class="modal-heading">
-      <div><span class="eyebrow">DAISUGI BLOOM · ART LAB 1.3</span><h2 id="plantLabTitle">Växtbibliotek</h2></div>
-      <button id="closePlantLab" class="icon-button" aria-label="Stäng växtbibliotek">×</button>
-    </div>
-    <p class="plant-lab-description">20 japanskt inspirerade växter – fyra naturfamiljer och fem utvecklingsstadier. Samma bilder används på spelplanen.</p>
-    <div class="plant-lab-stages"><span>FRÖ</span><span>GRODD</span><span>BLOMMA</span><span>BUSKE</span><span>TRÄD</span></div>
-    <div id="plantLabGrid" class="plant-lab-grid"></div>
-    <div class="plant-lab-playback">
-      <div class="plant-preview-title"><strong id="labSelectedTitle">Sakura</strong><small id="labStageTitle">Frö → Träd</small></div>
-      <div id="plantLabPreview" class="plant-preview-art" aria-label="Förhandsvisning av växtutveckling"></div>
-      <div class="plant-lab-controls">
-        <button class="secondary-button" id="labPrevFamily">← Familj</button>
-        <button class="primary-button" id="labPlay">Visa utveckling ✦</button>
-        <button class="secondary-button" id="labNextFamily">Familj →</button>
-      </div>
-    </div>
-    <p class="plant-lab-footnote">Plant Art Lab ändrar inga spelregler eller sparade nivåresultat. Det permanenta Daisugi-trädet förblir en separat 3D-modell.</p>
-   </section>
-  </div>
-  <div id="settingsModal" class="modal-backdrop" hidden>
-   <section class="modal-card settings-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-    <div class="modal-heading"><h2 id="settingsTitle">Inställningar</h2><button id="closeSettings" class="icon-button" aria-label="Stäng inställningar">×</button></div>
-    <label class="setting-row"><span><strong>Visa växtstadier</strong><small>Visar 1–4 på varje ruta även utan markering.</small></span><input type="checkbox" id="showStages"></label>
-    <label class="setting-row"><span><strong>Ljud</strong><small>Mjuka toner för fusioner och tillväxt.</small></span><input type="checkbox" id="soundEnabled" checked></label>
-    <label class="setting-row"><span><strong>Minska animationer</strong><small>Kortare tillväxtvågor och snabbare speltempo.</small></span><input type="checkbox" id="reduceMotion"></label>
-   </section>
-  </div>
-  <div id="confirmModal" class="modal-backdrop" hidden>
-   <section class="modal-card confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-    <h2 id="confirmTitle">Ersätta den här växten?</h2>
-    <p id="confirmMessage">Du ersätter en utvecklad växt med ett nytt frö. Detta går inte att ångra.</p>
-    <div class="modal-buttons"><button class="primary-button" id="confirmPower">Ja, plantera fröet</button><button class="secondary-button" id="rejectPower">Avbryt</button></div>
-   </section>
-  </div>
-  <div id="helpModal" class="modal-backdrop" hidden>
-   <section class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-    <div class="modal-heading"><h2 id="helpTitle">Så spelar du</h2><button id="closeHelp" class="icon-button" aria-label="Stäng hjälp">×</button></div>
-    <p><strong>Byt plats:</strong> Svep en växt till en granne, eller välj två grannar. Minst tre från samma familj måste hamna i rad.</p>
-    <p><strong>Odla:</strong> Frö → grodd → blomma → buske → träd. Olika stadier från samma familj får matchas; den största växten överlever och växer ett steg.</p>
-    <p><strong>Bloom Pulse:</strong> Färdiga träd utvecklar de fyra närliggande växterna. Varje växt får högst ett steg från samma sammanhängande pulskedja.</p>
-    <p><strong>Power Move:</strong> Fyll naturkraft genom matcher. Välj då familj och ersätt valfri ruta med ett frö gratis. Matchningar startar direkt.</p>
-    <p><strong>Belöningar:</strong> Stjärnor belönar drag kvar. Färdiga träd ger livskraft till ditt permanenta Daisugi-träd.</p>
-    <button id="closeHelpBottom" class="primary-button full">Jag förstår!</button>
-   </section>
-  </div>
-  <div id="loadError" class="fatal-error" hidden role="alert">3D-motorn kunde inte laddas. Kontrollera internetanslutningen och uppdatera sidan.</div>
  </div>
 </body>
 </html>

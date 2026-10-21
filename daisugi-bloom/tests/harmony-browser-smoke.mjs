@@ -17,31 +17,23 @@ try{
  await page.click("#continueButton");await page.waitForSelector(".tile");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-art"),{timeout:10000});
  const background=await page.evaluate(async()=>{
-  const img=new Image();img.src="./assets/backgrounds/festival-night-six.avif";await img.decode();
-  const canvas=document.createElement("canvas");canvas.width=48;canvas.height=8;
-  const ctx=canvas.getContext("2d",{willReadFrequently:true});
-  const signatures=[];
-  for(let i=0;i<6;i++){
-   ctx.clearRect(0,0,48,8);
-   ctx.drawImage(img,i*320,215,320,80,0,0,48,8);
-   const px=ctx.getImageData(0,0,48,8).data;
-   let a=0,b=0;
-   for(let j=0;j<px.length;j+=4){a+=px[j]*7+px[j+1]*11+px[j+2]*13;b+=px[j+1]+px[j+2];}
-   signatures.push(a+"-"+b);
-  }
-  return {id:document.body.dataset.festival,art:getComputedStyle(document.body,"::before").backgroundImage,
-    overlay:getComputedStyle(document.body,"::after").backgroundImage,
-    w:img.naturalWidth,h:img.naturalHeight,distinct:new Set(signatures).size,
-    tile:getComputedStyle(document.querySelector(".tile")).backgroundColor,
-    glass:getComputedStyle(document.querySelector(".goal")).backgroundImage};
+   const scenes=[1,2,3].map(n=>"./assets/backgrounds/festival-hd-"+n+".avif");
+   const dims=[];
+   for(const src of scenes){
+     const img=new Image();img.src=src;await img.decode();
+     dims.push([img.naturalWidth,img.naturalHeight]);
+   }
+   return {id:document.body.dataset.festival,
+     art:getComputedStyle(document.body,"::before").backgroundImage,
+     overlay:getComputedStyle(document.body,"::after").backgroundImage,
+     dims,glass:getComputedStyle(document.querySelector(".goal")).backgroundImage};
  });
- assert.equal(background.w,1920,"Six-panel atlas should use 320 px per background");
- assert.equal(background.h,640);
- assert.equal(background.distinct,6,"All six festival scenes should have distinct artwork");
- assert(Number(background.id)>=1&&Number(background.id)<=6,"A valid scene must be selected");
- assert(background.art.includes("festival-night-six.avif")||background.art.includes("blob:"),"A festival scene must render behind the UI");
+ assert.deepEqual(background.dims,[[768,1536],[768,1536],[768,1536]],
+  "The three supplied Festival Night images must remain at original sharp resolution");
+ assert(Number(background.id)>=1&&Number(background.id)<=3,"Only approved HD backgrounds should rotate");
+ assert(background.art.includes("festival-hd-"),"The selected HD backdrop must render directly");
  assert(background.overlay.includes("gradient"),"Readability scrim must be enabled");
- assert(background.glass.includes("gradient"),"The translucent goal card must render");
+ assert(background.glass.includes("gradient"),"The translucent goal strip must render");
  const festivalAtStart=background.id;
 
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
@@ -65,9 +57,9 @@ try{
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
- await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-crop"),{timeout:15000});
+ await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-hd"),{timeout:15000});
  const cropped=await page.evaluate(()=>getComputedStyle(document.body,"::before").backgroundImage);
- assert(cropped.includes("blob:"),"Only the selected backdrop should be composited, not the six-panel wide atlas");
+ assert(cropped.includes("festival-hd-")&&!cropped.includes("blob:"),"Backdrop must use the HD asset directly, with no canvas output");
  await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
  const layout=await page.evaluate(()=>{
   const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width}};

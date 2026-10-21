@@ -73,7 +73,7 @@ try{
    });
    window.__scoreFxWatcher.observe(document.body,{childList:true,subtree:true});
  });
- const beforePoints=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\\D/g,""));
+ const beforePoints=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\D/g,""));
  const beforeMoves=Number(await page.$eval("#movesCount",e=>e.textContent));
  await page.click(".tile:nth-child("+(swap[0]+1)+")");
  await page.click(".tile:nth-child("+(swap[1]+1)+")");
@@ -85,7 +85,7 @@ try{
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:7000});
  const kineticCount=await page.evaluate(()=>window.__kineticAnimationCount||0);
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
- await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\\D/g,""))>previous,{timeout:5000},beforePoints);
+ await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert(fx.score>=1&&fx.trail>=3,"Expected a flying point label with a trailing stream: "+JSON.stringify(fx));

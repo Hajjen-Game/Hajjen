@@ -17,3 +17,19 @@
 .fusion-fx-layer .fusion-ghost{position:absolute!important;inset:auto!important;pointer-events:none;will-change:transform,opacity}
 .pulse-dot{position:absolute;display:block;width:12px;height:12px;border-radius:50%;
  background:#78D1B0;box-shadow:0 0 8px 3px #78D1B088;pointer-events:none;will-change:transform,opacity}
+
+/* Score Stream 2.2 — subtle compositor-only accents. The board's sprite art
+   stays visible, no expensive full-board particle canvas or white explosions. */
+.score-fx-overlay{position:fixed;inset:0;z-index:30;pointer-events:none;overflow:visible}
+.score-flight-token,.fusion-spark,.score-trail-dot{position:absolute;display:block;
+ pointer-events:none;translate:-50% -50%;will-change:transform,opacity}
+.score-flight-token{white-space:nowrap;color:#F2C66E;font-weight:900;
+ font-size:clamp(12px,3.6vw,17px);line-height:1;padding:2px 5px;
+ text-shadow:0 1px 3px #102A37,0 0 5px #9162259c}
+.fusion-spark{width:6px;height:6px;border-radius:50%;
+ background:#F2C66E;box-shadow:0 0 5px #E8A354b3}
+.fusion-spark.mint{background:#78D1B0;box-shadow:0 0 5px #78D1B098}
+.score-trail-dot{width:4px;height:4px;border-radius:50%;background:#F2C66E}
+@media(prefers-reduced-motion:reduce){
+ .score-flight-token,.fusion-spark,.score-trail-dot{display:none}
+}

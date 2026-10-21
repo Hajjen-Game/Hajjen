@@ -339,3 +339,33 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 - 4.1.1 skiljer sig avsiktligt tydligt från 4.1 redan vid vanliga 3-matchningar.
 
 **Tester:** `harmony-vfx.test.cjs` kräver effektvaraktighet, fem familjer, stadiumindikator, begränsade Pulse-linjer/träffar och korrekt sekvens; browser smoke kräver på en 390px mobil att en normal fusion skapar familjesignatur och stadiumetikett samt att familjeeffekten är minst 1.25 gånger brickans bredd. CSS/JS versionssträng 4.1.1. Faktiskt utseende och FPS verifieras genom användartest på en riktig Android-telefon.
+
+
+## Audio & Reward 4.2 — musikalisk feedback och poängankomst (2026-10-21)
+
+**Syfte:** Bygg vidare på Motion 4.0 och Evolution/Pulse 4.1.1 så att en vanlig matchning är tillfredsställande och större prestationer känns tydligt rikare utan att spelet låter stressande eller orsakar nya prestandaproblem.
+
+**Ny ljudmotor:** `harmony/audio.js` laddas före `app.js`, utan externa ljudfiler. En mjuk syntetiserad klangprofil med träliknande triangeltoner, glasliknande sine-toner och harmoniska toner från en pentatonisk skala. Spelas via Web Audio API endast när ett användarinitierat spel-/menyval har låst upp AudioContext. Inga webbförfrågningar eller tunga ljuddekoders.
+
+- Brickval: kort träklick.
+- Giltigt byte: ett kort dubbelklick som följer rörelsen.
+- Ogiltigt byte: låg, dämpad dubbelknackning i takt med återstudsen.
+- Fusion: klang vars tonhöjd påverkas av familj och förädlingsstadium; fyra eller fler matchade får extra överton. Utlöses i `playFusion` när föremålen möts och den nya illustrationen visas.
+- Bonus: ljus liten dubbelklang.
+- Harmony Pulse: en ny stigande pentatonisk ton per logisk våg, synkroniserad med att energin lämnar mästerverket, inte efter det att målbrickorna redan reagerat.
+- Mästerverk: tre samklingande harmoniska toner.
+- Harvest: mjuk upplösning i en stigande tretonsklang.
+- Poängankomst: diskret kort glasklang, med rikare överton för belöningar på 500 poäng eller mer.
+- Nivåmål: fyrtoners musikalisk upplösning; avklarat slutresultat ytterligare en varm tretonsföljd.
+
+**Respekt för inställningar:** Den befintliga `Ljud`-inställningen växlar omedelbart motorns `enabled`-läge. Avstängning stoppar pågående oscillatorer; avstängt ljud skapar inga nya oscillatorer. `Minska animationer` fungerar oförändrat och påverkar inte val av ljud.
+
+**Ljudprestanda:** Högst åtta samtidiga oscillatorer; korta attack/decay-kuvert och separata event-cooldowns (t.ex. 115 ms för Pulse, 170 ms för poängankomst). Ingen audio-loop, stor ljudbuffer eller bakgrundsmusik i detta pass.
+
+**Poängsystem och HUD:** Score Stream flyger något snabbare till poängrutan (500 ms på mobil, 555 ms på större skärm). Mobilströmmar har två partiklar i svansen i stället för tre. Poängrutan reagerar vid ankomst med en kort skalning och en liten tillfällig glimt vid minst 250 poäng. Upprepade stora pulser från två nästan samtidiga belöningar throttlas. Poängsiffran räknar mjukt upp under ca 260 ms när en poängresan anländer och kan avbrytas/restartas av nästa ankomst utan tappade poäng. `scoreShown` är fortsatt faktiskt anlända poäng; `scoreDisplayed` är en ren presentationssiffra, medan `game.score` alltid är auktoritativt för regler och sparning. Vid omstart/resultat/reducerad rörelse görs en omedelbar synkronisering till rätt totalsumma.
+
+**Uppdragsrespons:** När det faktiska målvärdet ökar förstoras `goalProgress` kort; ingen ny stor HUD-box.
+
+**Verifiering:** `harmony-audio.test.cjs` testar ljudinitiering, separata tonkaraktärer, av/på, begränsat antal röster, cooldown och städning. `harmony-reward.test.cjs` testar rullande scoretotaler, samtidiga ankomster, reducerad rörelse och återställning. Existerande VFX-test använder en ljudstub för att kontrollera Pulse-ordningen utan faktisk AudioContext. Browser smoke validerar att ljudmotorn laddas före appen och att poängräknaren ökar vid ankomst. GitHub Actions kör testerna med gamla Harmony Rules-regressioner.
+
+**Scope:** Ingen ändring av brickbilder, Harmony Rules, nivåer, sparfilformat, fusionens logik eller Festival Night-bakgrunder. Verklig upplevelse på Android, ljudbalans vid hög volym och mätt FPS kräver enhetstest efter release 4.2.0.

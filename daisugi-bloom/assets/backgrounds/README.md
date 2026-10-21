@@ -30,3 +30,10 @@ I JavaScript: `daisugi-bloom/harmony/app.js` → `chooseFestivalBackground` och 
 I CSS: `daisugi-bloom/harmony/styles.css` → `Premium Festival Night × Zen Control — UI Art Lift 3.0`.
 
 **Framåtblick:** Om användaren vill höja bakgrundsskärpan ytterligare kan atlasen vid behov bytas mot sex separat exporterade original i större upplösning, utan att förändra det nuvarande nivåvalet, de godkända familjefärgerna eller layouten.
+
+
+## Mobil rendering 3.2 — begränsad skärpeförbättring
+
+Spelaren rapporterade suddig bakgrund efter UI 3.1. Den komprimerade atlasens varje motiv är bara **320×640**, vilket är otillräckligt för verkligt skarp rendering på högupplösta telefoner. Appen laddar fortfarande en enda AVIF-atlas, men beskär endast den valda panelen vid vila, resamplar till 640×1280 med en mycket mild kantförstärkning och cachar resultatet som en lokal WebP-blob. En enda panel kan därmed visas med `background-size:cover` utan att webbläsaren rasteriserar hela sexpanels-atlasen som en jättelik, bred bakgrund. AVIF-atlasen används automatiskt som fallback.
+
+**Begränsning:** Resampling återställer inte detaljer från tidigare original. Ersätt eventuellt med sex separata, äkta högupplösta original (helst minst 1080×1920) efter att originalbilderna är tillgängliga; behåll fortfarande exakt samma sex godkända motiv.

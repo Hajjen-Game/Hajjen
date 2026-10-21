@@ -265,3 +265,20 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 - **Kvalitet & test:** Ingen ändring i Harmony Rules, sparfiler, fusioner, poängresor eller scenrotation. Browser smoke validerar mobil-HUD-ordning, att brädet får större visuell yta, att brädet ryms i första mobilvyn och att spelmenyns hjälp nås. Visuell mobilbedömning behövs fortfarande.
 
 **Implementation:** `daisugi-bloom/index.html`, `harmony/mobile-game.css`, `harmony/app.js`, `tests/harmony-browser-smoke.mjs`. Versionsnummer 3.1.0.
+
+
+## Mobile Polish & Performance 3.2 — ren spelyta och lättare rendering (2026-10-21)
+
+**Feedback från mobiltest:** UI 3.1 blev tydligt bättre, men spelet upplevdes som laggigt; under spelplanen fanns överflödiga knappar och två hjälprader. Festival-bakgrunderna upplevdes oskarpa.
+
+**Beslut och implementation:**
+- Under en nivå syns bara HUD (drag, poäng, stjärnor, rekord, menyknapp), nivånamn, mål och spelplan. Den synliga dockan och hjälpraderna under brädet är borttagna. För skärmläsare ligger rutinformation kvar i en diskret `role=status`.
+- Spelplanen har fått ytterligare vertikalt andrum under uppdraget (`clamp(24px,4.6dvh,48px)`). Själva 7×7-spelbrädet förblir så stort som telefonbredden tillåter.
+- Pausmenyn är samlingsplats för fortsätt, börja om, hjälp, inställningar, nivåval och — om nivån redan är klar — avslut med resultat. Därmed förloras inga spelhandlingar när nederdelen rensas.
+- Rendering: förenklat trä-/sand-/mossmönster och färre inre skuggor per ruta; mobiltelefoner begränsar samtidiga poängresor (max 2 i stället för 5) och småpartiklar, men behåller viktiga fusionsringar och synligt poängankomstslag. Poängvärden och spellogik påverkas inte.
+- Bakgrund: atlasen är fortfarande originalet med 6 × 320×640. Vald scen beskärs en gång per använd scen, uppskalad med högkvalitetsinterpolering och lätt kantförstärkning till en cachad, fristående WebP-blob som visas som EN scen i CSS. Detta minskar den mycket breda atlasens GPU-rasteryta. Originalatlasen är fallback. **Detta skapar inte ny bilddetalj.** För verkligt högupplöst, skarpt konstverk krävs sex nya exportfiler från högupplösta original.
+- Bakgrunderna väljs fortfarande slumpmässigt utan direkt upprepning, sparfilen behåller vald scen, CSS/JS använder versionssträngen 3.2.0.
+
+**Regression:** Browser smoke testar att nederdelen saknas, menyn innehåller alla nödvändiga funktioner, att en liten scen istället för en gigantisk atlas blir aktiv, och att 49 brickor, poäng och fusioner fungerar som tidigare.
+
+**Verifieringsbegränsning:** Syntax- och DOM-referenskontroll är gjord i anslutningen. Faktisk uppmätt mobil-FPS och fullständig körning av Chrome/CI är ännu inte verifierad och ska bedömas vid telefonstest.

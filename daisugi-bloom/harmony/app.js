@@ -593,19 +593,33 @@ async function playFusion(evt){
   ],235).finally(()=>glint.remove());
  }
 }
+// Energy travels out from the masterpiece BEFORE affected items transform.
+// Capped number of visible energy paths; never cap logical target updates.
 function pulseBeams(evt){
  if(FAST()||!evt.targets?.length)return Promise.resolve();
+ const targets=evt.targets.slice(0,MOBILE_LITE?5:9);
  const layer=makeFxLayer(),tasks=[];
- for(const target of evt.targets){
+ const sources=[...new Set(targets.map(t=>t.from))];
+ for(const from of sources.slice(0,MOBILE_LITE?2:4)){
+  const r=indexRect(from),halo=fxAt("pulse-source-halo",r.left+r.width/2,r.top+r.height/2);
+  halo.style.width=Math.round(r.width*.7)+"px";halo.style.height=Math.round(r.height*.7)+"px";
+  animateNode(halo,[
+   {transform:"scale(.35)",opacity:0},
+   {transform:"scale(1)",opacity:.9,offset:.35},
+   {transform:"scale(1.5)",opacity:0}
+  ],235).finally(()=>halo.remove());
+ }
+ for(const target of targets){
   const a=indexRect(target.from),b=indexRect(target.to);
   const dot=document.createElement("span");dot.className="pulse-dot";
   dot.style.left=(a.left-layer.rect.left+a.width*.5-6)+"px";
   dot.style.top=(a.top-layer.rect.top+a.height*.5-6)+"px";
   layer.node.appendChild(dot);
   tasks.push(animateNode(dot,[
-   {transform:"translate3d(0,0,0) scale(.5)",opacity:.95},
-   {transform:"translate3d("+(b.left-a.left)+"px,"+(b.top-a.top)+"px,0) scale(1.25)",opacity:.15}
-  ],155));
+   {transform:"translate3d(0,0,0) scale(.45)",opacity:0,offset:0},
+   {transform:"translate3d("+((b.left-a.left)*.43)+"px,"+((b.top-a.top)*.43)+"px,0) scale(1.08)",opacity:1,offset:.49},
+   {transform:"translate3d("+(b.left-a.left)+"px,"+(b.top-a.top)+"px,0) scale(.7)",opacity:.12,offset:1}
+  ],135,{easing:"cubic-bezier(.35,.3,.65,1)"}));
  }
  return Promise.all(tasks).finally(()=>layer.node.remove());
 }
@@ -619,23 +633,29 @@ async function animateEvent(evt){
   case "fusion":
    await playFusion(evt);
    break;
-  case "bonus":
-  case "pulse":{
+  case "bonus":{
    const targets=evt.targets||[];
    renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
-   const grow=targets.slice(0,MOBILE_LITE?4:targets.length).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
-     {transform:"scale(.75)"},{transform:"scale(1.15)",offset:.6},{transform:"scale(1)"}
-   ],145));
-   if(evt.type==="pulse"){grow.push(pulseBeams(evt));fusionBurst([...new Set(targets.map(t=>t.to))].slice(0,2),[],"hero");}
-   await Promise.all(grow);
+   await Promise.all(targets.slice(0,MOBILE_LITE?4:7).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
+    {transform:"scale(.83)",offset:0},{transform:"scale(1.13)",offset:.58},{transform:"scale(1)",offset:1}
+   ],133)));
+   break;
+  }
+  case "pulse":{
+   const targets=evt.targets||[];
+   await pulseBeams(evt);
+   renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
+   await Promise.all(targets.slice(0,MOBILE_LITE?5:9).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
+    {transform:"scale(.84)",offset:0},{transform:"scale(1.16)",offset:.55},{transform:"scale(1)",offset:1}
+   ],116)));
    break;
   }
   case "hero":
    renderBoard(evt.board,evt.positions||[],"harvested");
-   fusionBurst(evt.positions||[],[],"hero");
-   await Promise.all((evt.positions||[]).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
-     {transform:"scale(.83)"},{transform:"scale(1.20)",offset:.55},{transform:"scale(1)"}
-   ],155)));
+   masterpieceMoment(evt.positions||[]);
+   await Promise.all((evt.positions||[]).slice(0,MOBILE_LITE?3:7).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
+    {transform:"scale(.88)",offset:0},{transform:"scale(1.19)",offset:.56},{transform:"scale(1)",offset:1}
+   ],180)));
    break;
   case "harvest":
    if(!FAST())await Promise.all((evt.positions||[]).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[

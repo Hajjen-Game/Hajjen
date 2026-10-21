@@ -51,8 +51,8 @@ try{
  });
  assert(swap&&swap.length===2,"At least one playable swap must be visible");
  const beforeMoves=Number(await page.$eval("#movesCount",e=>e.textContent));
- await page.locator(".tile").nth(swap[0]).click();
- await page.locator(".tile").nth(swap[1]).click();
+ await page.click(".tile:nth-child("+(swap[0]+1)+")");
+ await page.click(".tile:nth-child("+(swap[1]+1)+")");
  await page.waitForFunction(moves=>Number(document.querySelector("#movesCount").textContent)===moves-1,{timeout:7000},beforeMoves);
  assert(await page.evaluate(tile=>tile===document.querySelector(".tile"),stableTile),
   "Tile DOM was replaced during fusion; expected a stable mobile render surface");

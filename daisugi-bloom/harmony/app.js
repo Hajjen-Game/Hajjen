@@ -9,6 +9,7 @@ const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk",
 const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,comboTimer=0,soundContext=null,pointer=null,suppressClickUntil=0;
+let scoreShown=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
@@ -29,6 +30,7 @@ function sound(type){
 }
 function showMenu(){
  if(busy)return;
+ clearScoreFx();
  saveRun();$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
@@ -49,7 +51,7 @@ function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:gam
 function startLevel(i,resume=false){
  if(busy)return;
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
- game=new R.Game(i,data);selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;$("modal").hidden=true;
+ game=new R.Game(i,data);scoreShown=game.score;clearScoreFx();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
  $("gameTip").textContent=game.config.intro;$("goalLabel").textContent=game.goalText();
  clearTimeout(comboTimer);$("combo").hidden=true;
@@ -100,12 +102,15 @@ function renderHUD(state){
  if(!game)return;
  let current=state||game,progress=state?state.goal:game.progress();
  $("movesCount").textContent=current.moves;
- $("scoreCount").textContent=prettify(current.score);
- $("scoreBest").textContent=prettify(Math.max(current.score||0,save.bestScores[level]||0));
+ renderScoreOnly();
  $("goalProgress").textContent=Math.min(game.target(),progress)+" / "+game.target();
  $("statusStars").textContent=game.stars()?"★".repeat(game.stars())+"☆".repeat(3-game.stars()):"";
  $("goalBanner").hidden=!game.complete;
  $("endButton").hidden=!game.complete||busy;
+}
+function renderScoreOnly(){
+ $("scoreCount").textContent=prettify(scoreShown);
+ $("scoreBest").textContent=prettify(Math.max(scoreShown,save.bestScores[level]||0));
 }
 function choose(i){
  if(busy||!game||game.moves<=0)return;
@@ -296,6 +301,7 @@ function unlockGoal(){
 }
 function showResult(){
  if(!game)return;
+ clearScoreFx();scoreShown=game.score;
  const won=game.complete;
  if(won){
   unlockGoal();

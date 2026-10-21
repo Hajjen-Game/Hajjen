@@ -149,7 +149,9 @@ function renderHUD(state){
  $("movesCount").textContent=current.moves;
  renderScoreOnly();
  $("goalProgress").textContent=Math.min(game.target(),progress)+" / "+game.target();
- $("statusStars").textContent=game.stars()?"★".repeat(game.stars())+"☆".repeat(3-game.stars()):"";
+ const earnedStars=game.stars();
+ $("statusStars").textContent="★".repeat(earnedStars)+"☆".repeat(3-earnedStars);
+ document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
  $("goalBanner").hidden=!game.complete;
  $("endButton").hidden=!game.complete||busy;
 }

@@ -294,7 +294,7 @@ function evolveFamilyFx(groups){
   if(!EVOLUTION_FAMILIES.has(g.family)||!boardTiles[g.at])continue;
   const r=indexRect(g.at),size=Math.min(r.width,r.height);
   const node=fxAt("evo-family evo-"+g.family,r.left+r.width/2,r.top+r.height/2);
-  node.style.setProperty("--evo-size",Math.round(size*.95)+"px");
+  node.style.setProperty("--evo-size",Math.round(size*1.45)+"px");
   const paths={
    sakura:[{transform:"translate3d(0,6px,0) rotate(-22deg) scale(.5)",opacity:0},
     {transform:"translate3d(0,-3px,0) rotate(10deg) scale(1.12)",opacity:.95,offset:.46},
@@ -311,7 +311,23 @@ function evolveFamilyFx(groups){
     {transform:"translate3d(0,-2px,0) scale(1.08)",opacity:.9,offset:.45},
     {transform:"translate3d(0,-12px,0) scale(1.1)",opacity:0}]
   };
-  animateNode(node,paths[g.family],345).finally(()=>node.remove());
+  animateNode(node,paths[g.family],590,{easing:"cubic-bezier(.14,.65,.27,1)"}).finally(()=>node.remove());
+ }
+}
+// A clear, local confirmation that a normal 3-match advanced a stage.
+// The small marker fades upward while the original sprite remains readable.
+function evolutionStageLabels(groups){
+ if(FAST()||!Element.prototype.animate)return;
+ for(const g of groups.slice(0,MOBILE_LITE?2:3)){
+  if(!boardTiles[g.at]||!Number.isFinite(g.to))continue;
+  const r=indexRect(g.at),x=r.left+r.width/2,y=r.top+r.height*.15;
+  const node=fxAt("evolution-stage-label",x,y,"✦ STADIUM "+g.to);
+  animateNode(node,[
+   {transform:"translate3d(0,8px,0) scale(.82)",opacity:0,offset:0},
+   {transform:"translate3d(0,-8px,0) scale(1.02)",opacity:1,offset:.28},
+   {transform:"translate3d(0,-16px,0) scale(1)",opacity:1,offset:.69},
+   {transform:"translate3d(0,-24px,0) scale(.88)",opacity:0,offset:1}
+  ],650).finally(()=>node.remove());
  }
 }
 let rewardTier=0;
@@ -331,12 +347,13 @@ function masterpieceMoment(positions){
   if(!boardTiles[at])continue;
   const r=indexRect(at),size=Math.min(r.width,r.height);
   const halo=fxAt("masterpiece-halo",r.left+r.width/2,r.top+r.height/2);
-  halo.style.width=Math.round(size*.95)+"px";halo.style.height=Math.round(size*.95)+"px";
+  halo.style.width=Math.round(size*1.62)+"px";halo.style.height=Math.round(size*1.62)+"px";
   animateNode(halo,[
-   {transform:"scale(.42)",opacity:0,offset:0},
-   {transform:"scale(1.05)",opacity:.95,offset:.38},
-   {transform:"scale(1.37)",opacity:0,offset:1}
-  ],385).finally(()=>halo.remove());
+   {transform:"scale(.36)",opacity:0,offset:0},
+   {transform:"scale(.92)",opacity:1,offset:.31},
+   {transform:"scale(1.18)",opacity:.9,offset:.59},
+   {transform:"scale(1.45)",opacity:0,offset:1}
+  ],680).finally(()=>halo.remove());
  }
 }
 // A clearly readable but compact reward, scaled to match size.
@@ -574,7 +591,6 @@ async function playFusion(evt){
  }
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
  fusionBurst(groups.map(g=>g.at),groups);
- evolveFamilyFx(groups);
  // The evolved art blooms only after the gathering, rather than simply
  // popping to a new sprite under an unrelated effect.
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
@@ -582,7 +598,11 @@ async function playFusion(evt){
   {transform:"translate3d(0,-2px,0) scale(1.125)",opacity:1,offset:.60},
   {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
   {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
- ],205,{easing:"cubic-bezier(.2,.67,.26,1)"})));
+ ],245,{easing:"cubic-bezier(.2,.67,.26,1)"})));
+ // Show the family's full-sized transformation AFTER the evolved sprite settles,
+ // so it cannot disappear during the gather/swap animation.
+ evolveFamilyFx(groups);
+ evolutionStageLabels(groups);
  // Family-specific signature replaces the old generic glint. No extra VFX.
 }
 // Energy travels out from the masterpiece BEFORE affected items transform.

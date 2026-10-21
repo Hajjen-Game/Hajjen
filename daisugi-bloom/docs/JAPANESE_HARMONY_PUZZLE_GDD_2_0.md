@@ -184,7 +184,7 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 - `tests/harmony.test.cjs` and `tests/harmony-browser-smoke.mjs` cover logic and mobile view; workflow switched to new smoke while retaining old standalone legacy rule tests.
 
 **Explicitly pending / not to claim complete:**
-- The newly approved 25 high-resolution graphical assets are **not yet uploaded to the GitHub repository**. The app is wired to `daisugi-bloom/assets/harmony-atlas.webp`; until that binary asset is installed, a deliberately visible temporary family-symbol fallback appears. The four stages? No: **five** per family are expected in the atlas, arranged five columns (stages 1–5) and five rows (Sakura, Lykta, Koi, Solfjäder, Bonsai), one transparent tile each.
+- **Uppdatering 2026-10-21:** Spelatlasen `daisugi-bloom/assets/harmony-atlas.webp` finns i GitHub och innehåller samtliga fem rader med fem utvecklingsstadier: Sakura, Lykta, Koi, Solfjäder och Bonsai. De första fyra familjerna används i kapitel 1. **Bonsai är inte saknad grafik** utan inväntar nivåprogression med fem aktiva familjer (ursprungligen planerad kring nivå 21).
 - Art must be integrated from the user's approved originals while preserving family-specific color rules and all five clearly distinct stages. Never silently substitute old Daisugi foliage atlases. The fifth approved lantern original must be checked against the available image set instead of duplicated without user awareness.
 - Actual 7×7 start boards, star thresholds, bag variation and level 8/9 goal achievability still need human playtesting and/or more advanced simulation. Green automated tests are not a guarantee of final balance.
 - UI animation polish and full image atlas are not final; this is **first playable / test build**, not a visually complete release.
@@ -193,3 +193,13 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 ## UI-regel beslutad 2026-10-21: rena föremålsikoner utan siffror
 
 **Låst användarbeslut:** Rutorna på 7×7-brädet får **inte** innehålla synliga etiketter som `1/5`, `2/5`, `3/5`, `4/5` eller `5/5`. Ikonerna och deras tydliga visuella förädlingssteg ska bära informationen utan textetiketter som täcker illustrationerna. Utvecklingsstadium kan visas i en separat informationsrad **när spelaren markerar en ruta**, samt för skärmläsare, men aldrig som standardoverlay på alla brickor. Inställningsvalet för sifferöverlägg har tagits bort, inklusive för sparade spel med tidigare `showStages`-värde.
+
+## Fusion Fluidity 2.0.2 — mobil prestanda (2026-10-21)
+
+Åtgärdat direkt i spelet efter testfeedback om trög fusion/animation:
+- **Stabil 7×7 DOM**: rutornas 49 knappnoder och lyssnare skapas en gång, därefter behålls de genom byten, fusioner, pulser, skördar och nedfall. Endast rutor vars `id/family/stage` ändrats får ny bildnod; markeringar uppdateras utan ny DOM.
+- **Kortare animeringspauser:** tidigare sekventiella väntetider på 135–320 ms per delhändelse är sänkta till ungefär 55–135 ms; reducerad rörelse tar bort väntetid helt.
+- **Lättare mobilrendering**: ingen dyr CSS-`drop-shadow` på samtliga 49 sprites; befintliga skuggor i bilderna bevaras; rutorna får begränsad paint/layout.
+- **Harmony Chain-status** är ett smalt kortlivat statuschip som döljer sig automatiskt, inte en stor banner över mittfältet.
+- **Spelregler, målbilder, sparade framsteg och familjeordning är oförändrade.**
+- Mobil- och regeltester verifierar körning inklusive en verklig matchning och att den första rutans DOM-nod behålls. Användarens verkliga telefonupplevelse ska utvärderas i fortsatt speltest.

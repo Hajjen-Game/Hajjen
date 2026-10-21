@@ -102,7 +102,7 @@ try{
        }
    }
    return {blackRatio:black/total,colouredRatio:notSoil/total,width:c.width,height:c.height};
- },boardPng.toString("base64"));
+ },Buffer.from(boardPng).toString("base64"));
  console.log("Rendered plant colour check",boardPixels);
  assert(boardPixels.blackRatio<.04,
    "Black silhouettes detected on Babylon board: "+JSON.stringify(boardPixels));

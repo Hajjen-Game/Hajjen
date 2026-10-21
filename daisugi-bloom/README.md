@@ -1,3 +1,23 @@
+# Japanese Harmony — First Playable 2.0
+
+> **AKTIV SPELPROTOTYP från 2026-10-21.** Den japanska match-/fusionsspeldesignen har nu ersatt den gamla Daisugi Bloom-startsidan i `daisugi-bloom/index.html`. Den äldre 1.x-versionen ligger kvar som historisk kod i `src/` men laddas inte i det nya spelet. GDD och färgstandarden är styrande.
+
+**Spela (GitHub Pages):** https://hajjen-game.github.io/Hajjen/daisugi-bloom/  
+**Aktuell motor:** `harmony/rules.js`; **UI:** `harmony/app.js` + `harmony/styles.css`. Ingen extern Babylon-CDN behövs för detta 2D-matchpussel.
+
+**Implementerat:** 7×7, Sakura/Lykta/Koi/Solfjäder, 5 stadier, 3–5+ matchningar inklusive T/L, högsta stadium överlever på sin plats, +1/+2 grannbonus vid 4/5-matchning, Harmony Pulse-kedjor från stadium 5, först efter pulser nedfall av stadium-1-föremål, inga Power Moves eller hinder, kontrollerade startbräden, 10 första nivåerna, stjärnor/poäng/rekord, fri omstart och vidare spel efter mål. Ny sparfil med separat nyckel, inga gamla Daisugi-framsteg importeras.
+
+**Faktiska bildassets är nu integrerade** via `assets/harmony-atlas.webp`: en transparent 5×5-atlas med 176×176 px per stadieruta. Rader: Sakura, Lykta, Koi, Solfjäder, Bonsai. Kolumner: stadier 1–5. Spriteatlasen är byggd från godkända separata illustrationer och används på de 49 spelrutorna. **Känd återstående bildfråga:** Av det tillgängliga godkända lyktsourcematerialet hittades endast fyra unika bilder; lyktstadium 5 använder tills vidare samma källa som stadium 4. Detta är en synlig tillfällig lösning och måste ersättas när originalstadium 5 identifierats. Atlasen får inte misstas för de fullstora originalen.
+
+**Teststatus:** GitHub Actions `Japanese Harmony & legacy checks` kontrollerar spelregler, regressioner och mobilvy; gröna kontroller bekräftar teknisk bas men inte färdig svårighetsbalans. Speltest av dragbudgetar och kapitelmål återstår.
+
+- [GDD 2.0](docs/JAPANESE_HARMONY_PUZZLE_GDD_2_0.md)
+- [Color & Art Bible 1.0](docs/JAPANESE_HARMONY_COLOR_BIBLE_1_0.md)
+
+---
+
+## Historisk dokumentation — Daisugi Bloom 1.x
+
 # Daisugi Bloom — Plant Readability Fix 1.3.2
 
 > **Ny design under framtagning (ingen ny spelkod):** [Japanese Harmony Puzzle GDD 2.0](docs/JAPANESE_HARMONY_PUZZLE_GDD_2_0.md) — japanska objekt, Harmony Pulse och rekordbaserade pusselnivåer. **Obligatorisk färgidentitet för framtida grafik:** [Japanese Harmony — Midnight Garden / Color & Art Bible 1.0](docs/JAPANESE_HARMONY_COLOR_BIBLE_1_0.md). Befintliga Daisugi Bloom 1.3.2 nedan är fortfarande den äldre, spelbara prototypen.

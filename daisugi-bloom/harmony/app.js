@@ -425,14 +425,16 @@ function scoreArrival(points){
  const counter=$("scoreCount");
  if(!counter||!counter.isConnected)return;
  const panel=$("scorePanel"),r=counter.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
- // A restrained but unmistakable impact at the destination. Restart safely
- // when another combo arrives immediately afterwards.
- if(!FAST()&&Element.prototype.animate){
+ // Arrival is one brief weighted tap at the destination. Cap the repeated
+ // decorative pulse when two score streams finish almost simultaneously.
+ const now=performance.now(),mayPulse=(now-lastScoreImpact>=120);
+ if(mayPulse)lastScoreImpact=now;
+ if(mayPulse&&!FAST()&&Element.prototype.animate){
   if(panel)animateNode(panel,[
    {transform:"scale(1)",offset:0},
-   {transform:"scale(1.035)",offset:.45},
+   {transform:"scale("+(points>=500?"1.07":"1.045")+")",offset:.43},
    {transform:"scale(1)",offset:1}
-  ],365);
+  ],315);
   animateNode(counter,[
    {transform:"scale(1)",color:"#F2C66E",offset:0},
    {transform:"scale(1.30)",color:"#FFF2DC",offset:.38},
@@ -441,14 +443,23 @@ function scoreArrival(points){
   ],430);
   const ring=fxAt("score-impact-ring",x,y);
   animateNode(ring,[
-   {transform:"scale(.45)",opacity:.95,offset:0},
-   {transform:"scale(1.45)",opacity:.58,offset:.48},
-   {transform:"scale(2.0)",opacity:0,offset:1}
-  ],360).finally(()=>ring.remove());
- }else{
-  // Still acknowledge rewards for people who requested reduced motion.
+   {transform:"scale(.48)",opacity:.95,offset:0},
+   {transform:"scale(1.38)",opacity:.60,offset:.47},
+   {transform:"scale(1.9)",opacity:0,offset:1}
+  ],345).finally(()=>ring.remove());
+  if(points>=250){
+   const glint=fxAt("score-arrival-glint",r.right-10,r.top+8,"✦");
+   animateNode(glint,[
+    {transform:"translate3d(0,8px,0) scale(.5)",opacity:0,offset:0},
+    {transform:"translate3d(1px,-6px,0) scale(1.16)",opacity:1,offset:.42},
+    {transform:"translate3d(8px,-22px,0) scale(.67)",opacity:0,offset:1}
+   ],365).finally(()=>glint.remove());
+  }
+ }else if(FAST()){
+  // Accessible feedback remains instant; no recurring heavy glow on fast
+  // chained arrivals when the normal motion setting is enabled.
   counter.classList.add("score-accessible-flash");
-  setTimeout(()=>counter.classList.remove("score-accessible-flash"),260);
+  setTimeout(()=>counter.classList.remove("score-accessible-flash"),240);
  }
  sound("arrival",{points});
 }
@@ -491,12 +502,12 @@ function flyPoints(evt){
    {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.48)",opacity:.96,offset:.96},
    {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.2)",opacity:0,offset:1}
   ];
-  const duration=610;
+  const duration=MOBILE_LITE?500:555;
   const label=fxAt("score-flight-token",x,y,"+"+prettify(points));
   label.dataset.points=String(points);
   const flight=animateNode(label,keyframes,duration,{easing:"linear"});
   // A visible stream of small gold sparks follows the exact same curved arc.
-  const trails=MOBILE_LITE?3:Math.max(4,Math.min(6,6-n));
+  const trails=MOBILE_LITE?2:Math.max(3,Math.min(5,5-n));
   for(let k=0;k<trails;k++){
    const bead=fxAt("score-trail-dot"+(k%2===0?" bright":""),x,y);
    const stagger=55+k*40;

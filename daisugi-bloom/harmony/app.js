@@ -35,7 +35,7 @@ function showFestivalBackground(scene){
  const apply=()=>{
   if(scene!==currentBackground)return;
   root.style.setProperty("--festival-scene-url",'url("'+url+'")');
-  root.classList.add("has-festival-art","has-festival-crop");
+  root.classList.add("has-festival-art","has-festival-hd");
  };
  if(loadedFestivalScenes.has(scene)){apply();return;}
  const image=new Image();
@@ -44,7 +44,7 @@ function showFestivalBackground(scene){
  image.onerror=()=>{
   if(scene!==currentBackground)return;
   console.warn("Festival HD background could not be loaded:",url);
-  root.classList.remove("has-festival-art","has-festival-crop");
+  root.classList.remove("has-festival-art","has-festival-hd");
  };
  image.src=url;
 }

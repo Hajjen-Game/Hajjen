@@ -52,13 +52,13 @@ assert.equal(chip.textContent,"✦ MÄSTERVERK!","Lower-tier feedback cannot ove
 const directed=part("function pulseBeams(evt){","async function animateEvent(evt){");
 const travel=[];
 let cleaned=false;
-const makeBeams=new Function("FAST","MOBILE_LITE","indexRect","fxAt","makeFxLayer","document","animateNode","boardTiles","Element","sound",
+const makeBeams=new Function("FAST","MOBILE_LITE","indexRect","fxAt","makeFxLayer","document","animateNode","boardTiles","Element","sound","LITE_FX",
  directed+"return {pulseBeams,pulseLandingCues};");
 const {pulseBeams,pulseLandingCues}=makeBeams(()=>false,true,indexRect,
  name=>{travel.push(name);return {style:{},remove(){}};},
  ()=>({rect:{left:0,top:0},node:{appendChild(node){travel.push(node.className)},remove(){cleaned=true}}}),
  {createElement:()=>({style:{},className:""})},
- ()=>Promise.resolve(),boardTiles,{prototype:{animate(){}}},()=>{});
+ ()=>Promise.resolve(),boardTiles,{prototype:{animate(){}}},()=>{},()=>false);
 const targets=Array.from({length:40},(_,i)=>({from:i%3,to:(i*2+5)%49}));
 async function run(){
  await pulseBeams({targets});

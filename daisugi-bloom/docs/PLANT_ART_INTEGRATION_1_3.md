@@ -50,3 +50,10 @@ Tillgängligt med knappen **Plant Art Lab** på startsidan eller via `?lab=plant
 ## Avgränsning
 
 Det permanenta Daisugi-trädets 3D-modell, poängsystemet, naturenergin och de fem nivåernas balans påverkas inte. Detta är en ren grafikintegration.
+
+
+## Hotfix 1.3.1 — Svarta växtsilhuetter på spelplanen
+
+Användarens mobilskärmbilder visade att de 20 växtbilderna var korrekta i Plant Art Lab men blev svarta på Babylon-spelplanen. Rotorsaken var 3D-materialets inställning: med avstängd ljussättning och svart emissiveColor saknades färgbidrag från atlasbilden. `src/visuals.js` använder nu varje atlas som både diffuseTexture (alfakanal) och emissiveTexture (bildens färg) med vit emissiveColor. Versionsparametern är höjd till `1.3.1` för att kringgå webbläsarcache.
+
+Automatiskt mobiltest kontrollerar nu **faktiska renderade skärmbildspixlar** och inte enbart att atlastexturerna laddas. Svarta silhuetter ger fel i testet, och rättningen verifierades med svart pixelandel 0 i den testade ytan. Grundläggande spelregler, nivåer och det permanenta Daisugi-trädet har inte ändrats.

@@ -5,10 +5,11 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Festival Night UI 3.0</title>
- <link rel="stylesheet" href="./harmony/styles.css?v=3.0.0">
- <script defer src="./harmony/rules.js?v=3.0.0"></script>
- <script defer src="./harmony/app.js?v=3.0.0"></script>
+ <title>Japanese Harmony · Mobile Game UI 3.1</title>
+ <link rel="stylesheet" href="./harmony/styles.css?v=3.1.0">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=3.1.0">
+ <script defer src="./harmony/rules.js?v=3.1.0"></script>
+ <script defer src="./harmony/app.js?v=3.1.0"></script>
 </head>
 <body>
  <div id="app">
@@ -31,19 +32,28 @@
     </div>
    </section>
    <section id="gameView" class="game-view" hidden>
-    <div class="game-heading">
-      <div><div class="eyebrow" id="levelNumber">NIVÅ 1 / 10</div><h1 id="levelTitle">First Match</h1></div>
-      <div class="moves"><span>DRAG KVAR</span><strong id="movesCount">12</strong></div>
+    <div class="game-heading" aria-label="Spelstatus">
+     <div class="moves"><span>DRAG KVAR</span><strong id="movesCount">12</strong></div>
+     <div id="scorePanel" class="hud-score score-panel">
+      <span class="hud-label">POÄNG</span>
+      <strong id="scoreCount">0</strong>
+      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Intjänade stjärnor"></span><span class="hud-record">REKORD <strong id="scoreBest">0</strong></span></div>
+     </div>
+     <button id="pauseButton" class="pause-button" aria-label="Öppna spelmenyn" title="Spelmeny">Ⅱ</button>
     </div>
-    <div class="goal"><span class="goal-glyph">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
-    <div class="scores"><div id="scorePanel" class="score-panel"><small>POÄNG</small><strong id="scoreCount">0</strong></div><div><small>PERSONLIGT REKORD</small><strong id="scoreBest">0</strong></div></div>
+    <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
+    <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
     <div class="board-shell">
-      <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
-      <div id="combo" class="combo" hidden>✦ HARMONY CHAIN</div>
+     <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
+     <div id="combo" class="combo" hidden>✦ HARMONY CHAIN</div>
     </div>
-    <div class="selected-line"><span id="selectedInfo">Välj två angränsande föremål eller svep.</span><span id="statusStars" class="star-mini"></span></div>
+    <div class="game-dock">
+     <button id="menuButton" class="dock-button" aria-label="Till nivåval">‹<span>Nivåer</span></button>
+     <div class="selected-line"><span id="selectedInfo" aria-live="polite">Välj två grannar eller svep.</span></div>
+     <button id="retryButton" class="dock-button" aria-label="Börja om nivån">↻<span>Omstart</span></button>
+    </div>
     <div id="goalBanner" class="goal-banner" hidden>✦ MÅLET KLART! Fortsätt spela för rekordet.</div>
-    <div class="game-actions"><button id="menuButton" class="secondary">← Nivåval</button><button id="retryButton" class="secondary">Börja om ↺</button><button id="endButton" class="primary" hidden>Avsluta med resultat →</button></div>
+    <button id="endButton" class="primary" hidden>Avsluta med resultat →</button>
     <p id="gameTip" class="game-tip"></p>
    </section>
   </main>

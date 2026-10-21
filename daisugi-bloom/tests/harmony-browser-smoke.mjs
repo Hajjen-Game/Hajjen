@@ -66,7 +66,21 @@ try{
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
- await page.click("#helpButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
+ const layout=await page.evaluate(()=>{
+  const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width}};
+  return {header:getComputedStyle(document.querySelector(".topbar")).display,
+   moves:rect(".moves"),score:rect("#scorePanel"),board:rect(".board-shell"),
+   dock:rect(".game-dock"),viewport:window.innerHeight,bodyWidth:document.body.scrollWidth};
+ });
+ assert.equal(layout.header,"none","Playing must not show the web-style header");
+ assert(layout.moves.bottom<layout.board.top&&layout.score.bottom<layout.board.top,"Gameplay plaques should float above the board");
+ assert(layout.board.width>layout.score.width*1.7,"Board must visually dominate the mobile HUD");
+ assert(layout.board.bottom<layout.viewport,"Board should fit on the initial phone screen");
+ assert(layout.dock.top>=layout.board.bottom,"Actions should live below the board");
+ assert(layout.bodyWidth<=390,"Gameplay must not scroll horizontally");
+ await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
+ assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
+ await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(2)").click());
  assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
  // Regression: a real mobile fusion must reuse the same 49 tile DOM nodes.

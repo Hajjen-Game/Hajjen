@@ -134,7 +134,7 @@ try{
  await page.click("#retryButton");
  const festivalAfterRestart=await page.evaluate(()=>document.body.dataset.festival);
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
- assert.equal(await page.$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$$eval(".tile",els=>els.length),49);
   await page.click("#menuButton");assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);

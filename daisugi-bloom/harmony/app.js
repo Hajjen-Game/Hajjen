@@ -27,14 +27,30 @@ const FESTIVAL_COUNT=FESTIVAL_SCENES.length;
 let currentBackground=-1;
 const loadedFestivalScenes=new Set();
 
+// If the new HD files are temporarily unavailable (for example while GitHub
+// Pages is deploying), show one of the known-good legacy atlas scenes.
+function useFestivalFallback(scene){
+ if(scene!==currentBackground)return;
+ const w=window.innerWidth||390,h=window.innerHeight||844;
+ const scale=Math.max(w/320,h/640),sceneW=320*scale,sceneH=640*scale;
+ const root=document.documentElement.style;
+ root.setProperty("--festival-atlas-width",Math.round(6*sceneW)+"px");
+ root.setProperty("--festival-atlas-height",Math.round(sceneH)+"px");
+ root.setProperty("--festival-bg-x",Math.round((w-sceneW)/2-scene*sceneW)+"px");
+ root.setProperty("--festival-bg-y",Math.round((h-sceneH)/2)+"px");
+ document.body.classList.add("festival-fallback");
+ document.documentElement.classList.remove("has-festival-art","has-festival-hd");
+}
 function showFestivalBackground(scene){
  const root=document.documentElement;
- const url=FESTIVAL_SCENES[scene];
- if(!url)return;
- // Keep the existing backdrop until the new one is ready, avoiding a flash.
+ const relative=FESTIVAL_SCENES[scene];
+ if(!relative)return;
+ const absolute=new URL(relative,document.baseURI).href;
  const apply=()=>{
   if(scene!==currentBackground)return;
-  root.style.setProperty("--festival-scene-url",'url("'+url+'")');
+  const backdrop=$("festivalBackdrop");
+  backdrop.src=absolute; // Real image DOM element, not a CSS url() string.
+  document.body.classList.remove("festival-fallback");
   root.classList.add("has-festival-art","has-festival-hd");
  };
  if(loadedFestivalScenes.has(scene)){apply();return;}
@@ -43,10 +59,10 @@ function showFestivalBackground(scene){
  image.onload=()=>{loadedFestivalScenes.add(scene);apply();};
  image.onerror=()=>{
   if(scene!==currentBackground)return;
-  console.warn("Festival HD background could not be loaded:",url);
-  root.classList.remove("has-festival-art","has-festival-hd");
+  console.warn("Festival HD not ready; showing fallback background:",absolute);
+  useFestivalFallback(scene);
  };
- image.src=url;
+ image.src=absolute;
 }
 function chooseFestivalBackground(remembered){
  let next=Number.isInteger(remembered)&&remembered>=0&&remembered<FESTIVAL_COUNT?remembered:-1;
@@ -63,8 +79,13 @@ function chooseFestivalBackground(remembered){
  persist();
 }
 function initFestivalBackground(){
+ const backdrop=$("festivalBackdrop");
+ backdrop.addEventListener("error",()=>useFestivalFallback(currentBackground));
  const resumed=save.run&&Number.isInteger(save.run.backgroundId)?save.run.backgroundId:null;
  chooseFestivalBackground(resumed??save.lastBackground??null);
+ window.addEventListener("resize",()=>{
+  if(document.body.classList.contains("festival-fallback"))useFestivalFallback(currentBackground);
+ },{passive:true});
 }
 
 function toast(text){const t=$("toast");t.textContent=text;t.hidden=false;clearTimeout(timer);timer=setTimeout(()=>t.hidden=true,2400);}

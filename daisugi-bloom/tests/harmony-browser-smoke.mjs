@@ -23,15 +23,25 @@ try{
      const img=new Image();img.src=src;await img.decode();
      dims.push([img.naturalWidth,img.naturalHeight]);
    }
+   const backdrop=document.querySelector("#festivalBackdrop");
+   const backdropStyle=getComputedStyle(backdrop),backdropRect=backdrop.getBoundingClientRect();
    return {id:document.body.dataset.festival,
-     art:getComputedStyle(document.body,"::before").backgroundImage,
+     imageSrc:backdrop.currentSrc||backdrop.src,
+     imageReady:backdrop.complete&&backdrop.naturalWidth>0,
+     imageNaturalWidth:backdrop.naturalWidth,
+     imageVisible:backdropStyle.display!=="none"&&Number(backdropStyle.opacity)>.95,
+     imageFit:backdropStyle.objectFit,
+     backdropWidth:backdropRect.width,backdropHeight:backdropRect.height,
      overlay:getComputedStyle(document.body,"::after").backgroundImage,
      dims,glass:getComputedStyle(document.querySelector(".goal")).backgroundImage};
  });
  assert.deepEqual(background.dims,[[768,1536],[768,1536],[768,1536]],
   "The three supplied Festival Night images must remain at original sharp resolution");
  assert(Number(background.id)>=1&&Number(background.id)<=3,"Only approved HD backgrounds should rotate");
- assert(background.art.includes("festival-hd-"),"The selected HD backdrop must render directly");
+ assert(background.imageReady&&background.imageNaturalWidth===768,"Native HD image must be decoded in the real backdrop element");
+ assert(background.imageVisible&&background.imageFit==="cover","The backdrop must actually be visible and cover the screen");
+ assert(background.backdropWidth>=390&&background.backdropHeight>=844,"Backdrop layer must cover the phone viewport");
+ assert(background.imageSrc.includes("festival-hd-"),"Native image source must reference a genuine HD file");
  assert(background.overlay.includes("gradient"),"Readability scrim must be enabled");
  assert(background.glass.includes("gradient"),"The translucent goal strip must render");
  const festivalAtStart=background.id;
@@ -58,8 +68,15 @@ try{
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-hd"),{timeout:15000});
- const cropped=await page.evaluate(()=>getComputedStyle(document.body,"::before").backgroundImage);
- assert(cropped.includes("festival-hd-")&&!cropped.includes("blob:"),"Backdrop must use the HD asset directly, with no canvas output");
+ const loadedBackground=await page.evaluate(()=>{
+   const img=document.querySelector("#festivalBackdrop");
+   return {url:img.currentSrc||img.src,ready:img.complete&&img.naturalWidth>0,
+     display:getComputedStyle(img).display,
+     pseudo:getComputedStyle(document.body,"::before").display};
+ });
+ assert(loadedBackground.ready&&loadedBackground.url.includes("festival-hd-"),"HD image must be rendered by an actual loaded DOM image");
+ assert.equal(loadedBackground.display,"block","Background element must be visible");
+ assert.equal(loadedBackground.pseudo,"none","Old atlas should not be composited when HD is loaded");
  await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
  const layout=await page.evaluate(()=>{
   const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width}};
@@ -155,6 +172,13 @@ try{
  assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert.equal(await page.$eval("#gameView",x=>x.hidden),true);
  assert.notEqual(await page.$eval(".topbar",e=>getComputedStyle(e).display),"none","Level select must restore main header");
+ // Regression: if an HD URL fails after deployment, a known-good image must
+ // replace it, not leave a plain dark background.
+ await page.evaluate(()=>{document.querySelector("#festivalBackdrop").src="./assets/backgrounds/missing-hd-regression.avif";});
+ await page.waitForFunction(()=>document.body.classList.contains("festival-fallback"),{timeout:5000});
+ const fallback=await page.evaluate(()=>({image:getComputedStyle(document.body,"::before").backgroundImage,
+   visible:getComputedStyle(document.body,"::before").display}));
+ assert(fallback.image.includes("festival-night-six.avif")&&fallback.visible!=="none","Broken HD URL must trigger the legacy scenic fallback");
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

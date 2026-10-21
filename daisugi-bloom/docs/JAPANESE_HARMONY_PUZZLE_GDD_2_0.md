@@ -189,3 +189,7 @@ Tidigare **Daisugi Bloom 1.x** använde bl.a. fyra rena växtfamiljer, Bloom Pul
 - Actual 7×7 start boards, star thresholds, bag variation and level 8/9 goal achievability still need human playtesting and/or more advanced simulation. Green automated tests are not a guarantee of final balance.
 - UI animation polish and full image atlas are not final; this is **first playable / test build**, not a visually complete release.
 
+
+## UI-regel beslutad 2026-10-21: rena föremålsikoner utan siffror
+
+**Låst användarbeslut:** Rutorna på 7×7-brädet får **inte** innehålla synliga etiketter som `1/5`, `2/5`, `3/5`, `4/5` eller `5/5`. Ikonerna och deras tydliga visuella förädlingssteg ska bära informationen utan textetiketter som täcker illustrationerna. Utvecklingsstadium kan visas i en separat informationsrad **när spelaren markerar en ruta**, samt för skärmläsare, men aldrig som standardoverlay på alla brickor. Inställningsvalet för sifferöverlägg har tagits bort, inklusive för sparade spel med tidigare `showStages`-värde.

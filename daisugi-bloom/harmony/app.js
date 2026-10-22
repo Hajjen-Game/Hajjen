@@ -962,6 +962,123 @@ function showPerformanceReport(){
  modalButton(actions,"Tillbaka till spelet","primary",()=>{$("modal").hidden=true;});
  $("modal").hidden=false;
 }
+// Game Dev / Engine Lab 1.0: all experiments run on disposable rule-engine
+// instances, never on the player's live Game, localStorage or save data.
+let engineLabRun=null;
+function engineLabText(element,value){element.textContent=String(value);}
+function openEngineLab(){
+ if(engineLabRun)engineLabRun.cancelled=true;
+ const api=window.HarmonyDiagnostics?.create(R);
+ $("modalEyebrow").textContent="GAME DEV · ENGINE LAB";
+ $("modalTitle").textContent="Harmony Intelligence";
+ const content=$("modalContent");content.replaceChildren();
+ const hint=document.createElement("p");
+ hint.textContent="Reproducerbara simuleringar mot spelets riktiga regler. Fyra strategier jämför samma startbräden. Resultaten skickas ingenstans och ändrar inte din sparfil.";
+ content.append(hint);
+ if(!api){
+  const missing=document.createElement("p");missing.textContent="Diagnostikmodulen kunde inte laddas. Öppna sidan på nytt.";
+  content.append(missing);
+  const actions=$("modalActions");actions.replaceChildren();
+  modalButton(actions,"Tillbaka","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
+  return;
+ }
+ const controls=document.createElement("div");controls.className="engine-controls";
+ const field=(name,node)=>{
+  const label=document.createElement("label");label.textContent=name;label.append(node);controls.append(label);
+ };
+ const levels=document.createElement("select");
+ const allOption=document.createElement("option");allOption.value="all";allOption.textContent="Alla tio nivåerna";levels.append(allOption);
+ R.levels.forEach((cfg,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=(i+1)+". "+cfg.name;levels.append(option);});
+ levels.value=game?String(level):"all";field("Nivåer",levels);
+ const samples=document.createElement("select");
+ for(const n of [2,5,10,25]){const option=document.createElement("option");option.value=String(n);option.textContent=n+" seeds per strategi och nivå";samples.append(option);}
+ samples.value="5";field("Testomgångar",samples);
+ const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Grundseed (reproducerbar)",seedInput);
+ const scopeNote=document.createElement("p");
+ scopeNote.className="engine-lab-note";
+ scopeNote.textContent="Slump, poäng, mål och tvådragsplanering. De tre planeringsbotarna kan simulera framtida påfyllning, så deras resultat är jämförelsetal – inte mänskliga vinstchanser.";
+ content.append(controls,scopeNote);
+ const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
+ status.textContent="Redo att mäta spelmotorn.";content.append(status);
+ const output=document.createElement("div");output.className="engine-lab-output";content.append(output);
+ const actions=$("modalActions");actions.replaceChildren();
+ const runButton=modalButton(actions,"Kör analys","primary",()=>{});
+ const cancelButton=modalButton(actions,"Avbryt","secondary",()=>{if(engineLabRun)engineLabRun.cancelled=true;});
+ cancelButton.disabled=true;
+ const exportButton=modalButton(actions,"Exportera JSON","secondary",()=>{});
+ exportButton.disabled=true;
+ modalButton(actions,"Tillbaka","secondary",()=>{if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;});
+ let latest=null;
+ exportButton.addEventListener("click",()=>{
+  if(!latest)return;
+  const data=new Blob([JSON.stringify(latest,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(data);
+  const a=document.createElement("a");a.href=url;a.download="japanese-harmony-engine-lab-"+latest.options.seed+".json";
+  document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+ });
+ function pct(value){return Math.round(value*100)+" %";}
+ function display(result){
+  output.replaceChildren();
+  const summary=document.createElement("p");
+  summary.textContent=result.runs.length+" fullständiga omgångar · "+new Set(result.results.map(r=>r.level)).size+" nivåer · 4 spelstilar.";
+  output.append(summary);
+  const wrap=document.createElement("div");wrap.className="engine-table-scroll";
+  const table=document.createElement("table");table.className="engine-table";
+  const head=document.createElement("thead"),header=document.createElement("tr");
+  for(const label of ["Nivå","AI","Vinst","Mål","Drag","Val","Kedjor","Torka"]){
+   const cell=document.createElement("th");cell.textContent=label;header.append(cell);
+  }
+  head.append(header);table.append(head);
+  const body=document.createElement("tbody");
+  for(const row of result.results){
+   const tr=document.createElement("tr");
+   const cols=[String(row.level+1),api.LABELS[row.strategy],pct(row.winRate),pct(row.avgGoalRatio),
+    row.avgMoves.toFixed(1),row.avgLegalMoves.toFixed(1),row.avgCascades.toFixed(1),row.avgGoalDrought.toFixed(1)];
+   cols.forEach((v,i)=>{
+    const cell=document.createElement("td");cell.textContent=v;
+    if(i===2&&row.winRate<.25)cell.className="engine-low";
+    tr.append(cell);
+   });
+   body.append(tr);
+  }
+  table.append(body);wrap.append(table);output.append(wrap);
+  const explain=document.createElement("p");explain.className="engine-lab-note";
+  explain.textContent="Val = snitt möjliga byten per drag; Kedjor = antal drag med minst två fusionsvågor; Torka = längsta följd drag utan framsteg mot nivåmålet. Samma seeds används för alla strategier.";
+  output.append(explain);
+ }
+ runButton.addEventListener("click",async()=>{
+  if(engineLabRun&&!engineLabRun.cancelled)return;
+  const requestedSeed=Number(seedInput.value);
+  if(!Number.isInteger(requestedSeed)||requestedSeed<0||requestedSeed>0xffffffff){
+   engineLabText(status,"Ange ett heltal mellan 0 och 4294967295.");return;
+  }
+  const job={cancelled:false};engineLabRun=job;latest=null;
+  runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
+  levels.disabled=true;samples.disabled=true;seedInput.disabled=true;
+  const opts={levels:levels.value==="all"?R.levels.map((_,i)=>i):[Number(levels.value)],
+   trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,
+   yieldEvery:1,cancel:()=>job.cancelled};
+  const total=opts.levels.length*opts.trials*opts.strategies.length;
+  engineLabText(status,"Analyserar 0 / "+total+" testomgångar …");
+  try{
+   const result=await api.runAsync(opts,({completed,total})=>{
+    if(engineLabRun===job)engineLabText(status,"Analyserar "+completed+" / "+total+" testomgångar …");
+   });
+   if(engineLabRun!==job)return;
+   if(result.cancelled)engineLabText(status,"Avbrutet efter "+result.completed+" testomgångar.");
+   else{latest=result;display(result);engineLabText(status,"Analysen klar. Du kan exportera resultatet med seeds och alla omgångar.");exportButton.disabled=false;}
+  }catch(error){
+   if(engineLabRun===job){engineLabText(status,"Analysen kunde inte slutföras: "+error.message);console.error("Harmony Engine Lab",error);}
+  }finally{
+   if(engineLabRun===job){
+    engineLabRun=null;runButton.disabled=false;cancelButton.disabled=true;
+    levels.disabled=false;samples.disabled=false;seedInput.disabled=false;
+   }
+  }
+ });
+ $("modal").hidden=false;
+}
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
  $("modalEyebrow").textContent="JAPANESE HARMONY";
@@ -977,12 +1094,14 @@ function openGameMenu(){
  modalButton(actions,"Så spelar du","secondary",()=>{$("helpButton").click();});
  modalButton(actions,"Inställningar","secondary",()=>{$("settingsButton").click();});
  modalButton(actions,"Prestanda","secondary",showPerformanceReport);
+ modalButton(actions,"Game Dev · Motorlab","secondary",openEngineLab);
  modalButton(actions,"Till nivåval","secondary",()=>{if(!busy)showMenu();});
  $("modal").hidden=false;
 }
 function bind(){
  $("homeButton").addEventListener("click",showMenu);
  $("pauseButton").addEventListener("click",openGameMenu);
+ $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(Math.min(R.levels.length-1,save.unlocked));});
  $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Nivåmål:</strong> När målet uppnås sparas dina stjärnor. Du får spela återstående drag för att slå ditt rekord. Inga Power Moves eller hinder.</p>'));
  $("settingsButton").addEventListener("click",()=>{
@@ -1001,7 +1120,7 @@ function bind(){
   const destination=Math.abs(dx)>Math.abs(dy)?r*7+c+(dx>0?1:-1):(r+(dy>0?1:-1))*7+c;
   if(R.neighbors(start.i).includes(destination)){selected=-1;trySwap(start.i,destination);}
  });
- window.addEventListener("keydown",e=>{if(e.key==="Escape"&&!busy&&!$("modal").hidden){$("modal").hidden=true;}});
+ window.addEventListener("keydown",e=>{if(e.key==="Escape"&&!busy&&!$("modal").hidden){if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;}});
 }
 function checkAtlas(){
  const img=new Image();

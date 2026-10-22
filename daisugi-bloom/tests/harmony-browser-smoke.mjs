@@ -130,7 +130,7 @@ try{
   assert.equal(migrated.record,1600,"Original high score must not be overwritten");
   assert.equal(migrated.stars,1,"Old overly generous 3 stars should be adjusted to 1");
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
-  assert(migrated.shown.includes("1 600")&&migrated.second.includes("18 000"),
+  assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
   assert(migrated.target>=6000);
   await legacy.click(".level-tile:nth-child(11)");
@@ -140,7 +140,7 @@ try{
   }));
   assert(!milestones.hidden);
   assert.equal(milestones.text.length,3);
-  assert(milestones.text[0].includes("6 500"));
+  assert(milestones.text[0].replace(/\s/g," ").includes("6 500"));
  }finally{await legacyContext.close();}
  // Board Praise 1.0: a real seeded swap triggers all three approved words.
  const praiseContext=await browser.createBrowserContext();

@@ -103,7 +103,7 @@ function sound(type,detail){
 }
 function showMenu(){
  if(busy)return;
- clearScoreFx();
+ resetResonanceVisuals();clearScoreFx();
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
@@ -123,6 +123,7 @@ function renderMenu(){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
+ resetResonanceVisuals();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
@@ -133,39 +134,69 @@ function startLevel(i,resume=false){
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
 let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
-function refreshResonance(board,highlight){
+// Keep the same line nodes between renders, so their slow CSS energy streams
+// do not restart on every tile selection. A new link pulses exactly once
+// when first observed on a settled board (never on intermediate animation).
+const resonanceNodes=new Map();
+let resonanceLastKeys=new Set();
+const echoLinkSnapshot=new Map();
+function resonanceKey(link){
+ return [link.anchorId,link.partnerId].sort((a,b)=>a-b).join(":");
+}
+function resetResonanceVisuals(){
+ const layer=$("resonanceLinks");
+ if(layer)layer.replaceChildren();
+ resonanceNodes.clear();resonanceLastKeys.clear();echoLinkSnapshot.clear();
+}
+function refreshResonance(board){
  const overlay=$("resonanceLinks");
- if(!overlay)return {anchors:new Set(),partners:new Set()};
- const anchors=new Set(),partners=new Set();
- overlay.replaceChildren();
- // The links belong only to the settled playable board, not intermediate
- // snapshots while fusions, falling pieces or shuffles are animating.
- if(busy||!game||board!==game.board||game.moves<=0||game.failed)return {anchors,partners};
- const links=R.resonanceLinks(board).sort((a,b)=>b.stage-a.stage||a.anchor-b.anchor).slice(0,6);
- const boardRect=$("board").getBoundingClientRect();
- const parent=overlay.parentElement;
- const shellRect=parent.getBoundingClientRect();
+ const anchors=new Set(),partners=new Set(),awakened=new Set();
+ if(!overlay)return {anchors,partners,awakened};
+ // Hide threads during the turn, but remember which IDs were linked before
+ // it. Recreating the SAME link after an animation must not fire a new pulse.
+ if(busy||!game||board!==game.board||game.moves<=0||game.failed){
+  overlay.replaceChildren();resonanceNodes.clear();
+  return {anchors,partners,awakened};
+ }
+ const links=R.resonanceLinks(board)
+  .sort((a,b)=>b.stage-a.stage||a.anchor-b.anchor).slice(0,6);
+ const current=new Set();
+ const shellRect=overlay.getBoundingClientRect();
  for(const link of links){
+  const key=resonanceKey(link);
+  current.add(key);
   anchors.add(link.anchor);partners.add(link.partner);
   const from=boardTiles[link.anchor]?.getBoundingClientRect();
   const to=boardTiles[link.partner]?.getBoundingClientRect();
-  if(!from||!to)continue;
+  if(!from||!to||!from.width||!to.width)continue;
   const dx=to.left+to.width*.5-from.left-from.width*.5;
   const dy=to.top+to.height*.5-from.top-from.height*.5;
   const length=Math.hypot(dx,dy);
   if(length<=0)continue;
   const vx=dx/length,vy=dy/length;
-  // Draw a SHORT connector between the silhouettes, not across the sprites.
-  const inset=Math.min(from.width,to.width)*.30;
-  const line=document.createElement("span");
-  line.className="resonance-link"+(link.stage===4?" mature":"");
-  line.style.left=(from.left+from.width*.5+vx*inset-shellRect.left-parent.clientLeft)+"px";
-  line.style.top=(from.top+from.height*.5+vy*inset-shellRect.top-parent.clientTop)+"px";
+  const inset=Math.min(from.width,to.width)*.32;
+  let line=resonanceNodes.get(key);
+  const isNew=!resonanceLastKeys.has(key);
+  if(!line){
+   line=document.createElement("span");
+   line.dataset.pair=key;
+   line.setAttribute("aria-hidden","true");
+   resonanceNodes.set(key,line);
+   overlay.append(line);
+  }
+  line.className="resonance-link"+(link.stage===4?" mature":"")+
+   (isNew?" resonance-new":"");
+  line.style.left=(from.left+from.width*.5+vx*inset-shellRect.left)+"px";
+  line.style.top=(from.top+from.height*.5+vy*inset-shellRect.top)+"px";
   line.style.width=Math.max(2,length-inset*2)+"px";
   line.style.transform="rotate("+Math.atan2(dy,dx)+"rad)";
-  overlay.append(line);
+  if(isNew){awakened.add(link.anchor);awakened.add(link.partner);}
  }
- return {anchors,partners};
+ for(const [key,line] of resonanceNodes){
+  if(!current.has(key)){line.remove();resonanceNodes.delete(key);}
+ }
+ resonanceLastKeys=current;
+ return {anchors,partners,awakened};
 }
 function renderBoard(board,highlight,effect){
  const grid=$("board");
@@ -183,7 +214,7 @@ function renderBoard(board,highlight,effect){
  }
  const highlighted=highlight&&highlight.length?new Set(highlight):null;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
- const resonance=refreshResonance(board,highlight);
+ const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
   const piece=board[i],btn=boardTiles[i],key=piece?piece.id+"|"+piece.family+"|"+piece.stage:"empty";
   // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
@@ -207,11 +238,15 @@ function renderBoard(board,highlight,effect){
   const cls="tile"+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
-   (resonance.partners.has(i)?" resonance-partner":"");
+   (resonance.partners.has(i)?" resonance-partner":"")+
+   (resonance.awakened.has(i)?" resonance-awakening":"");
   if(btn.className!==cls)btn.className=cls;
  }
  presentedBoard=board.map(p=>p?{id:p.id,family:p.family,stage:p.stage}:null);
 }
+window.addEventListener("resize",()=>{
+ if(game&&!busy&&!$("gameView").hidden)renderBoard(game.board);
+},{passive:true});
 function renderHUD(state){
  if(!game)return;
  let current=state||game,progress=state?state.goal:game.progress();
@@ -274,8 +309,23 @@ function choose(i){
 }
 function trySwap(a,b){
  if(busy||!game||!$("modal").hidden)return;
+ // Remember the real screen geometry of linked source objects BEFORE swapping
+ // so an earned Echo can visibly pull that thread into the fusion landing.
+ echoLinkSnapshot.clear();
+ if(!FAST()){
+  for(const link of R.resonanceLinks(game.board)){
+   const first=boardTiles[link.anchor]?.getBoundingClientRect();
+   const second=boardTiles[link.partner]?.getBoundingClientRect();
+   if(!first||!second)continue;
+   echoLinkSnapshot.set(resonanceKey(link),[
+    {x:first.left+first.width/2,y:first.top+first.height/2},
+    {x:second.left+second.width/2,y:second.top+second.height/2}
+   ]);
+  }
+ }
  const result=game.swap(a,b);
  if(!result.ok){
+  echoLinkSnapshot.clear();
   selected=b;renderBoard(game.board);
   $("selectedInfo").textContent="Ingen matchning – prova ett annat byte.";
   // The rules did not consume a move. The animation is feedback only.
@@ -828,21 +878,41 @@ async function animateEcho(evt){
  sound("echo",{family:evt.family,stage:evt.stage});
  if(FAST()||!Element.prototype.animate||!boardTiles[evt.at])return;
  const rect=indexRect(evt.at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ const sources=echoLinkSnapshot.get(resonanceKey(evt))||[];
+ // Two miniature mint-gold beams converge from the PRE-SWAP link endpoints.
+ // They reuse the global pointer-free FX layer; no persistent sprite/particle
+ // systems and no rule-engine changes.
+ if(sources.length){
+  const beams=sources.map(source=>{
+   const dx=source.x-x,dy=source.y-y,length=Math.hypot(dx,dy);
+   if(length<3)return null;
+   const arm=fxAt("resonance-collapse-arm",x,y);
+   arm.style.transform="rotate("+Math.atan2(-dy,-dx)+"rad)";
+   const beam=document.createElement("span");beam.className="resonance-collapse-beam";
+   beam.style.width=Math.min(length,Math.max(rect.width*1.6,22))+"px";
+   arm.append(beam);
+   return {arm,beam};
+  }).filter(Boolean);
+  await Promise.all(beams.map(({beam})=>animateNode(beam,[
+   {transform:"scaleX(1)",opacity:.95},
+   {transform:"scaleX(.08)",opacity:0}
+  ],170,{easing:"ease-in"}))).finally(()=>beams.forEach(({arm})=>arm.remove()));
+ }
  const ring=fxAt("resonance-echo-ring",x,y);
- ring.style.width=Math.round(rect.width*1.25)+"px";
- ring.style.height=Math.round(rect.height*1.25)+"px";
- const label=fxAt("resonance-echo-label",x,y-Math.min(22,rect.height*.45),"✦ HARMONY ECHO");
+ ring.style.width=Math.round(rect.width*1.34)+"px";
+ ring.style.height=Math.round(rect.height*1.34)+"px";
+ const label=fxAt("resonance-echo-label",x,y-Math.min(24,rect.height*.48),"✦ HARMONY ECHO");
  await Promise.all([
   animateNode(ring,[
-   {transform:"scale(.45)",opacity:0,offset:0},
-   {transform:"scale(1)",opacity:1,offset:.33},
-   {transform:"scale(1.5)",opacity:0,offset:1}
-  ],430),
+   {transform:"scale(.40)",opacity:0,offset:0},
+   {transform:"scale(1)",opacity:1,offset:.32},
+   {transform:"scale(1.6)",opacity:0,offset:1}
+  ],450),
   animateNode(label,[
    {transform:"translate3d(0,7px,0) scale(.85)",opacity:0,offset:0},
-   {transform:"translate3d(0,-8px,0) scale(1)",opacity:1,offset:.32},
-   {transform:"translate3d(0,-25px,0) scale(.94)",opacity:0,offset:1}
-  ],520)
+   {transform:"translate3d(0,-8px,0) scale(1.04)",opacity:1,offset:.32},
+   {transform:"translate3d(0,-26px,0) scale(.96)",opacity:0,offset:1}
+  ],540)
  ]).finally(()=>{ring.remove();label.remove();});
 }
 async function animateEvent(evt){
@@ -954,6 +1024,7 @@ async function playEvents(events){
   console.error("Harmony animation interrupted",error);
   renderBoard(game.board);
  }finally{
+  echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();
   busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();

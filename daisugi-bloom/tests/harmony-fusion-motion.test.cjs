@@ -1,5 +1,5 @@
 "use strict";
-// Fusion Motion 4.3.1: verify full-opacity source travel, survivor reveal
+// Fusion Readability 4.3.2: verify slow 3/4/5 travel and survivor reveal
 // AFTER all sources arrive, cleanup, and legible masterpiece harvesting.
 const fs=require("node:fs");
 const path=require("node:path");
@@ -30,21 +30,39 @@ const animateNode=(node,frames,duration)=>{
  events.push(["animate",duration]);
  return Promise.resolve();
 };
-const fusion=new Function("FAST","MOBILE_LITE","Element","boardTiles","indexRect","fxAt","makeFxLayer","animateNode","sound","renderBoard","fusionBurst","evolveFamilyFx","evolutionStageLabels",gather+"return {fusionGatherFrames,playFusion};")(
+const fusion=new Function("FAST","MOBILE_LITE","Element","boardTiles","indexRect","fxAt","makeFxLayer","animateNode","sound","renderBoard","fusionBurst","evolveFamilyFx","evolutionStageLabels",gather+"return {fusionGatherTiming,fusionGatherFrames,playFusion};")(
  ()=>false,true,{prototype:{animate(){}}},boardTiles,indexRect,fxAt,makeFxLayer,animateNode,
  ()=>events.push(["sound"]),()=>events.push(["render"]),
  ()=>events.push(["burst"]),()=>events.push(["evolution"]),()=>events.push(["stageLabels"])
 );
+// Travel is deliberately distinct from anticipation/contact. A 5-match
+// receives a longer pull than a 3-match without adding any extra FX nodes.
+for(const [matched,travel,total] of [[3,380,510],[4,430,560],[5,480,610]]){
+ const timing=fusion.fusionGatherTiming(matched);
+ assert.equal(timing.windup,75);
+ assert.equal(timing.travel,travel);
+ assert.equal(timing.contact,55);
+ assert.equal(timing.total,total);
+ const frames=fusion.fusionGatherFrames(100,65,timing);
+ assert.equal(frames.length,7);
+ assert(frames.every(step=>step.opacity===1),"All pieces must remain fully visible during travel");
+ assert(frames.at(-2).transform.includes("100px,65px"),"Source must reach the survivor before hold");
+ assert.equal(frames.at(-2).offset,(timing.windup+timing.travel)/timing.total);
+ assert.equal(frames.at(-1).offset,1);
+ assert.equal(frames.at(-1).transform,frames.at(-2).transform,"Contact must be held before reveal");
+ assert(frames[3].transform.includes("50px,32.5px"),"The sprite must physically travel through the center");
+ assert(frames[1].offset>=.12,"Anticipation must remain perceptible");
+}
 const k=fusion.fusionGatherFrames(100,65);
-assert.equal(k.length,6);
-assert(k.slice(0,5).every(step=>step.opacity===1),"Moving pieces must remain entirely visible");
-assert(k[5].opacity>=.85&&k[5].transform.includes("100px,65px"),"Source must arrive intact at exact destination");
+assert(k.every(step=>step.opacity===1));
 assert.equal(k[0].offset,0);
-assert.equal(k[k.length-1].offset,1);
+assert.equal(k.at(-1).offset,1);
 async function main(){
  await fusion.playFusion({board:[],groups:[{at:17,removed:[15,16],family:"koi",to:3,number:3}]});
- const travel=samples.filter(x=>x.duration===280);
- assert.equal(travel.length,3,"Two source ghosts plus one survivor anticipation");
+ const travel=samples.filter(x=>x.duration===510);
+ assert.equal(travel.length,3,"3-match: two source ghosts plus survivor must share 510ms clock");
+ assert(travel.every(x=>x.frames.at(-1).offset===1&&x.frames.at(-1).opacity===undefined||x.frames.at(-1).opacity===1),
+  "Gather must persist until the common end time");
  assert.equal(events.filter(x=>x[0]==="ghost").length,2);
  const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
  const render=events.findIndex(e=>e[0]==="render");
@@ -68,6 +86,6 @@ async function main(){
  assert(piecesLeaving.every(x=>x.frames.some(k=>k.offset===.71&&k.opacity===1)),
   "Harvested masterpieces must remain visible until near the end");
  assert.equal(order.at(-1),"render","Objects should leave the logical grid only after release");
- console.log("PASS Harmony 4.3.1 – visible gather, delayed fusion, cleanup and slower harvest");
+ console.log("PASS Harmony 4.3.2 – 3/4/5 timing, opaque gathering, held contact and slower harvest");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

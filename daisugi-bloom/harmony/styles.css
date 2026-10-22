@@ -278,3 +278,19 @@ body::after{
 @media(prefers-reduced-motion:reduce){
  body::before{transition:none}
 }
+
+/* Nine-family object expansion 5.0.
+   Original five still use the original atlas; four additional families share
+   a 5-column × 4-row 192px RGBA AVIF atlas (transparent background).
+   Render only the atlas actually available, otherwise leave emoji fallback.
+   The existing .has-atlas rules are restricted here to classic families. */
+.piece .sprite.sprite-new{
+ background-image:url("../assets/harmony-new-families.avif?v=5.0");
+ background-size:500% 400%;
+ background-position:var(--sx) var(--sy);
+ image-rendering:auto;
+}
+.has-atlas .piece.new-family .sprite{display:none}
+.has-atlas .piece.new-family .fallback{display:block}
+.has-new-atlas .piece.new-family .sprite.sprite-new{display:block}
+.has-new-atlas .piece.new-family .fallback{display:none}

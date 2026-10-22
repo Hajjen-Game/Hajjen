@@ -32,6 +32,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-refill-shuffle.test.cjs
       - name: Verify opt-in Opportunity Director and paired A/B diagnostics
         run: node daisugi-bloom/tests/harmony-opportunity-director.test.cjs
+      - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
+        run: node daisugi-bloom/tests/harmony-resonance.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js

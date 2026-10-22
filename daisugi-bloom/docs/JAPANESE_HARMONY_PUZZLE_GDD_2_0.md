@@ -422,3 +422,14 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Tillgänglighet/prestanda:** `Minska animationer` förblir omedelbar; prestandamätaren från 4.3 lämnas orörd. Allt sker via existerande `transform`-animationer på visuella kloner och den gamla kontakt-/förädlingssekvensen återanvänds. Ingen ändring av Harmony Rules.
 
 **Tester:** `harmony-fusion-motion.test.cjs` kontrollerar tiderna för grupper med 3/4/5 föremål, obruten full opacitet, verklig färd ända till rätt målruta, 55 ms slutkontakt, samtidig 3+5-match med gemensam klocka, cleanup och harvest. Browser smoke kräver nu minst 510 ms samt hållna slut-keyframes för en verklig spelmatchning. Slutlig användarbedömning på Android avgör om timing/kurva behöver finjusteras.
+
+
+## Fusion Position Fix 4.3.3 — korrekt spelruteplacering (2026-10-22)
+
+**Fel efter Pass 5:** De rörliga objekten vid sammanslagningar renderades uppe i vänstra hörnet i stället för på de berörda rutorna. **Rotorsak:** `.fusion-fx-layer .fusion-ghost { inset: auto !important; }` i `harmony/styles.css` vann över JavaScripts dynamiskt satta `left`/`top` och nollställde källrutans position. Detta var ett CSS-koordinatfel, inte ett animations- eller regelproblem.
+
+**Åtgärd:** Ta bort den överstyrande `inset`-deklarationen; sätt endast `right:auto` och `bottom:auto`, så att klonens inline `left`/`top` används. Anpassa dessutom `makeFxLayer` till det faktiska positionsursprunget på insidan av spelramens kant med `parent.clientLeft/clientTop`. Då är klonens position och förflyttning i samma koordinatsystem som dess start- och målrutor, även på mobil.
+
+**Regression:** `harmony-browser-smoke.mjs` skapar riktiga kloner på rutor 0, 19 och 48 och jämför uppmätt startposition med respektive ruta. Avvikelsen måste vara under två pixlar, och föremål längst ned till höger ska ligga långt från övre vänstra hörnet. Testet skulle ha slagit fel med den gamla `!important`-regeln. Fem isolerade testgrupper för rörelse, VFX, ljud, poäng och prestanda passerar fortfarande. Tidskurvan 380/430/480 ms från 4.3.2 är oförändrad.
+
+**Release:** 4.3.3, cache-bust för JavaScript och båda CSS-filerna. Bekräftelse i spelarens Android-webbläsare återstår.

@@ -625,28 +625,21 @@ function flipMove(previous,next,type){
 // Pass 5 / 4.3.2: let the player follow every source object into the
 // surviving tile. Times below refer to visible travel only: the anticipation
 // and brief contact hold are separate beats, before the new sprite appears.
-function fusionGatherTiming(number){
- const matched=Number.isFinite(number)?Math.max(3,Math.floor(number)):3;
- const windup=75,contact=55;
- const travel=matched>=5?480:matched===4?430:380;
- return {windup,travel,contact,total:windup+travel+contact};
-}
-function fusionGatherFrames(dx,dy,timing=fusionGatherTiming(3)){
- const arrival=(timing.windup+timing.travel)/timing.total;
- const start=timing.windup/timing.total;
- const during=fraction=>start+(arrival-start)*fraction;
- const frame=(fraction,scale,offset)=>({
-  transform:"translate3d("+(dx*fraction)+"px,"+(dy*fraction)+"px,0) scale("+scale+")",
-  opacity:1,offset
+// Fusion 4.3.4 — A/B timing correction after fixing actual tile positioning.
+// Restore the original 4.3.1 280ms travel, not the slower 4.3.2 timing.
+// Keep the 4.3.3 CSS/board coordinate fix unchanged.
+function fusionGatherFrames(dx,dy){
+ const at=(t,scale,opacity=1,offset)=>({
+  transform:"translate3d("+(dx*t)+"px,"+(dy*t)+"px,0) scale("+scale+")",
+  opacity,offset
  });
  return [
-  frame(0,1,0),
-  frame(0,1.065,start),          // 75ms: clearly announce which pieces move
-  frame(.15,1.035,during(.28)),   // visible acceleration out of source slot
-  frame(.50,1,during(.61)),       // objects stay full-sized for most of the trip
-  frame(.86,.90,during(.89)),     // begin absorbing only at the destination
-  frame(1,.78,arrival),          // complete travel, still fully visible
-  frame(1,.78,1)                 // hold ~55ms at contact, THEN reveal survivor
+  at(0,1,1,0),
+  at(0,1.075,1,.13),         // small anticipation: player sees who will move
+  at(.35,1.0,1,.47),          // travel at full visibility
+  at(.80,.86,1,.79),         // begins to converge near survivor
+  at(.98,.66,1,.94),         // remains clearly recognizable almost at contact
+  at(1,.49,.92,1)            // final absorbed at the exact target location
  ];
 }
 function fusionIntake(groups){
@@ -669,22 +662,17 @@ function fusionIntake(groups){
 async function playFusion(evt){
  const groups=evt.groups||[];
  if(!FAST()&&groups.length){
-  // Use one shared clock for all groups in a simultaneous fusion wave.
-  // A shorter group must not snap back while a larger group is travelling.
-  const largest=Math.max(3,...groups.map(g=>g.number||3));
-  const timing=fusionGatherTiming(largest);
   const layer=makeFxLayer(),hidden=[],tasks=[];
   try{
    for(const group of groups){
     const survivor=boardTiles[group.at]?.querySelector(".piece");
     if(survivor)tasks.push(animateNode(survivor,[
      {transform:"scale(1)",offset:0},
-     {transform:"scale(1.035)",offset:timing.windup/timing.total},
-     {transform:"scale(.96)",offset:(timing.windup+timing.travel*.58)/timing.total},
-     {transform:"scale(.87)",offset:(timing.windup+timing.travel)/timing.total},
-     {transform:"scale(.87)",offset:1}
-    ],timing.total,{easing:"cubic-bezier(.28,.17,.70,.93)"}));
-    for(const i of group.removed||[]){
+     {transform:"scale(.91)",offset:.24},
+     {transform:"scale(1.10)",offset:.85},
+     {transform:"scale(.96)",offset:1}
+    ],280,{easing:"cubic-bezier(.26,.3,.65,1)"}));
+    for(const i of group.removed){
      const original=boardTiles[i]?.querySelector(".piece");
      if(!original)continue;
      const from=indexRect(i),to=indexRect(group.at);
@@ -694,19 +682,17 @@ async function playFusion(evt){
      ghost.style.top=(from.top-layer.rect.top)+"px";
      ghost.style.width=from.width+"px";
      ghost.style.height=from.height+"px";
-     // Keep the source completely recognizable until it physically reaches
-     // its destination; the board cell underneath is merely hidden.
+     // Ghost is safely above the board and carries the unchanged sprite.
      layer.node.appendChild(ghost);
      hidden.push(original);
      original.style.visibility="hidden";
      tasks.push(animateNode(ghost,
-      fusionGatherFrames(to.left-from.left,to.top-from.top,timing),
-      timing.total,{easing:"cubic-bezier(.30,.13,.68,.95)"}));
+      fusionGatherFrames(to.left-from.left,to.top-from.top),
+      280,{easing:"cubic-bezier(.34,.16,.72,1)"}));
     }
    }
    await Promise.all(tasks);
   }finally{
-   // Always restore input accessibility even if an animation was interrupted.
    for(const original of hidden)original.style.visibility="";
    layer.node.remove();
   }

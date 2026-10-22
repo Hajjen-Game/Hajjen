@@ -241,7 +241,7 @@ class Game{
    for(const candidate of candidates.slice(1)){
     if(candidate.autoMatches!==0)continue;
     const value=opportunityMetrics(candidate.board,this.config.goal).score;
-    if(value>best+1.8){best=value;selected=candidate;}
+    if(value>best+.8){best=value;selected=candidate;}
    }
   }
   this.board=selected.board;

@@ -14,17 +14,28 @@ try{
  await page.waitForFunction(()=>!!window.HarmonyRules);
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
- // Engine Lab 1.0 must run on the real phone-sized menu and return to gameplay,
+ // Engine Lab 2.0 compares paired Standard/Director simulations on the real phone-sized menu,
  // with a computed report that is exportable and no player-save changes.
  const beforeLab=await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2"));
  await page.click("#devButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Harmony Intelligence");
  await page.select(".engine-controls select","0");
  await page.select(".engine-controls label:nth-child(2) select","2");
+ await page.select("#engineMode","compare");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
- assert.equal(await page.$eval(".engine-table tbody tr",rows=>rows.length),4,
-  "Developer lab must report all four seeded bot profiles");
+ assert.equal(await page.$eval(".engine-table tbody tr",rows=>rows.length),8,
+  "Developer lab must show 4 bots × 2 paired engine modes");
+ const comparisonUI=await page.evaluate(()=>({
+  versions:[...document.querySelectorAll(".engine-table tbody tr")]
+   .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
+  summaries:document.querySelectorAll(".engine-comparison p").length,
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.4.0")
+ }));
+ assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
+ assert.equal(comparisonUI.versions.filter(x=>x==="Director").length,4);
+ assert.equal(comparisonUI.summaries,4);
+ assert(comparisonUI.versionShown,"The report must expose the game engine version");
  assert.equal(await page.$eval("#modalActions button:nth-child(3)",b=>b.disabled),false,
   "A finished report must be exportable as JSON");
  assert.equal(await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2")),beforeLab,

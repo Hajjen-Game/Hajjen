@@ -565,7 +565,11 @@ function makeFxLayer(){
  const b=board.getBoundingClientRect(),p=boardLayerRect||parent.getBoundingClientRect();
  if(rectCache&&!boardLayerRect)boardLayerRect=p;
  const layer=document.createElement("div");layer.className="fusion-fx-layer";
- layer.style.left=(b.left-p.left)+"px";layer.style.top=(b.top-p.top)+"px";
+ // Absolute children are positioned from the shell's PADDING edge, not
+ // getBoundingClientRect()'s outside border edge. Account for shell borders,
+ // then all ghost/tile coordinates share exactly the same origin.
+ layer.style.left=(b.left-p.left-parent.clientLeft)+"px";
+ layer.style.top=(b.top-p.top-parent.clientTop)+"px";
  layer.style.width=b.width+"px";layer.style.height=b.height+"px";
  parent.appendChild(layer);
  return {node:layer,rect:b};

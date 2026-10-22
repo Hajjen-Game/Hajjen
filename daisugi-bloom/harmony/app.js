@@ -924,7 +924,7 @@ function showResult(){
  modalButton(actions,"Nivåval","secondary",showMenu);
  $("modal").hidden=false;
 }
-function modalButton(parent,label,cls,fn){let b=document.createElement("button");b.className=cls;b.textContent=label;b.addEventListener("click",fn);parent.append(b);}
+function modalButton(parent,label,cls,fn){let b=document.createElement("button");b.className=cls;b.textContent=label;b.addEventListener("click",fn);parent.append(b);return b;}
 function modalInfo(title,html){
  $("modalEyebrow").textContent="JAPANESE HARMONY";$("modalTitle").textContent=title;
  $("modalContent").innerHTML=html;const actions=$("modalActions");actions.replaceChildren();
@@ -1048,7 +1048,7 @@ function openEngineLab(){
   output.append(explain);
  }
  runButton.addEventListener("click",async()=>{
-  if(engineLabRun&&!engineLabRun.cancelled)return;
+  if(engineLabRun)return;
   const requestedSeed=Number(seedInput.value);
   if(!Number.isInteger(requestedSeed)||requestedSeed<0||requestedSeed>0xffffffff){
    engineLabText(status,"Ange ett heltal mellan 0 och 4294967295.");return;

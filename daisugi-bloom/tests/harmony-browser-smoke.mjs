@@ -220,6 +220,8 @@ try{
   const board=document.querySelector(".game-view .board");
   const tile=document.querySelector(".game-view .tile:nth-child(3)");
   const even=document.querySelector(".game-view .tile:nth-child(2)");
+  // Measure the final CSS states, not the first frame of the 80ms tint transition.
+  tile.style.setProperty("transition","none","important");
   const view=e=>({color:getComputedStyle(e).backgroundColor,image:getComputedStyle(e).backgroundImage});
   const base=view(tile),alternate=view(even);
   const states={};

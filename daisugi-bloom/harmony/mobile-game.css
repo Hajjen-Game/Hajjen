@@ -794,3 +794,21 @@ body.festival-fallback .festival-backdrop{display:none}
 @media(prefers-reduced-motion:reduce){
  .fusion-intake,.harvest-release{display:none}
 }
+
+/* Four new family's signature evolution gestures and contact rings. */
+.evo-sushi{border-color:#fa9f83e0;background:radial-gradient(circle,#ffd6ad81,transparent 76%);box-shadow:0 0 11px #ffa88985}
+.evo-sushi::before{content:"✦";color:#fff0d6;left:10%;top:-5%;font-size:28px;text-shadow:0 0 4px #f28b59}
+.evo-sushi::after{content:"✦";color:#ffae82;right:5%;bottom:2%;font-size:19px}
+.evo-maneki{border-color:#f2c56de5;background:radial-gradient(circle,#ffe8a783,transparent 76%);box-shadow:0 0 11px #edc06591}
+.evo-maneki::before{content:"✿";color:#ffe2b0;left:2%;top:-6%;font-size:29px;text-shadow:0 0 4px #edbd72}
+.evo-maneki::after{content:"✿";color:#f2a4b3;right:2%;bottom:-6%;font-size:22px}
+.evo-origami{border-color:#c9c4f4dc;background:radial-gradient(circle,#e6d4fd83,transparent 76%);box-shadow:0 0 11px #bfa6ed8a}
+.evo-origami::before{content:"✧";color:#fde3ed;left:8%;top:-8%;font-size:32px}
+.evo-origami::after{content:"✧";color:#bbf1db;right:5%;bottom:-9%;font-size:25px}
+.evo-ryu{border-color:#85e7cced;background:radial-gradient(circle,#8ee2c69a,transparent 76%);box-shadow:0 0 13px #67d4b59e}
+.evo-ryu::before{content:"✦";color:#e5ffe9;left:-2%;top:-4%;font-size:32px;text-shadow:0 0 4px #46b88f}
+.evo-ryu::after{content:"✦";color:#c6f9ed;right:2%;bottom:-8%;font-size:25px}
+.intake-sushi{border-color:#f8b18c;background:radial-gradient(circle,#fdd4ad87,transparent 75%)}
+.intake-maneki{border-color:#f6d58e;background:radial-gradient(circle,#ffe1a780,transparent 75%)}
+.intake-origami{border-color:#c5b5e8;background:radial-gradient(circle,#d7c7f380,transparent 75%)}
+.intake-ryu{border-color:#83e1ce;background:radial-gradient(circle,#8cdeca86,transparent 75%)}

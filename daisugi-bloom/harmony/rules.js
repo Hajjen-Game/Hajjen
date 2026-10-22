@@ -223,16 +223,20 @@ class Game{
  refillOpportunity(){
   const vacancies=this.board.filter(p=>!p).length;
   if(!vacancies)return;
-  // One fork seed per complete refill. Candidate replay does not interfere
-  // with the live turn's RNG or with a player's stored bag conservation.
-  const fork=Math.floor(this.fresh()*4294967296)>>>0;
-  const candidates=[];
-  for(let c=0;c<4;c++){
-   const seed=(fork^(Math.imul(c+1,0x9e3779b1)))>>>0;
+  // Candidate zero is EXACTLY the 5.3 standard refill, consuming the
+  // ordinary RNG stream. Alternative candidate RNGs fork independently from
+  // this turn's existing seed/roll counter, without advancing that stream.
+  // As long as Director chooses candidate zero, both engines remain identical.
+  const baseline=draftRefill(this.board,this.bag,this.families,
+   this.nextId,()=>this.fresh());
+  const candidates=[baseline];
+  const fork=(this.seed^Math.imul(this.rolls+1,0x85ebca6b)^
+   Math.imul(this.nextId+1,0x9e3779b1))>>>0;
+  for(let c=1;c<4;c++){
+   const seed=(fork^Math.imul(c,0x9e3779b1))>>>0;
    candidates.push(draftRefill(this.board,this.bag,this.families,
     this.nextId,prng(seed)));
   }
-  const baseline=candidates[0];
   let selected=baseline;
   // Preserve the existence of automatic chain reactions in baseline random
   // outcome. Only compare alternative boards when baseline has NO free match.

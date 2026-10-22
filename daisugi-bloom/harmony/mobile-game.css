@@ -1152,3 +1152,21 @@ body.harmony-playing .game-view .tile.resonance-anchor::after{
  body.harmony-playing .game-view .tile.resonance-awakening::before{display:none;animation:none}
  .resonance-collapse-arm,.resonance-collapse-beam{display:none!important}
 }
+
+/* Also follow Japanese Harmony's own "Minska animationer" toggle,
+   regardless of the operating-system accessibility preference. */
+body.harmony-reduced-motion.harmony-playing .game-view .resonance-link,
+body.harmony-reduced-motion.harmony-playing .game-view .resonance-link.resonance-new{
+ animation:none!important;filter:none;opacity:.9;
+}
+body.harmony-reduced-motion.harmony-playing .game-view .resonance-link::after{
+ animation:none!important;display:none;
+}
+body.harmony-reduced-motion.harmony-playing .game-view .tile.resonance-awakening::before{
+ display:none;animation:none!important;
+}
+body.harmony-reduced-motion.harmony-playing .game-view .tile.resonance-anchor::after{
+ animation:none!important;opacity:.8;
+}
+body.harmony-reduced-motion .resonance-collapse-arm,
+body.harmony-reduced-motion .resonance-collapse-beam{display:none!important}

@@ -12,6 +12,73 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
+ // Board Praise 1.0: a real seeded swap triggers all three approved words.
+ const praiseContext=await browser.createBrowserContext();
+ try{
+  const praisePage=await praiseContext.newPage();
+  await praisePage.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await praisePage.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  const fixture=await praisePage.evaluate(()=>{
+   const R=window.HarmonyRules;
+   const game=new R.Game(0,null,{seed:113});
+   const families=R.activeFamilies(0);
+   for(let i=0;i<49;i++)game.board[i]={
+    id:i+1,stage:1,family:families[(Math.floor(i/7)*2+i%7)%families.length]
+   };
+   game.board[15].family=families[0];game.board[15].stage=4;
+   game.board[16].family=families[0];game.board[24].family=families[0];
+   game.board[17].family=families[1];
+   if(R.scan(game.board).length)throw new Error("Praise fixture starts with illegal match");
+   const snap=game.save();
+   const result=new R.Game(0,snap,{fastRestore:true}).swap(17,24);
+   const types=result.events.map(e=>e.type);
+   if(!result.ok||!["echo","hero","pulse"].every(t=>types.includes(t))){
+    throw new Error("Fixture missing Echo / Masterpiece / Pulse: "+JSON.stringify(types));
+   }
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:0,bestStars:{},bestScores:{},bestChain:{},sound:false,reduceMotion:false,
+    run:{level:0,data:snap}
+   }));
+   return types;
+  });
+  await praisePage.reload({waitUntil:"networkidle2"});
+  await praisePage.click("#continueButton");
+  await praisePage.evaluate(()=>{
+   const root=document.querySelector("#boardPraise");
+   window.__praiseWordsSeen=[];
+   window.__praiseMaxOverlap=0;
+   const observe=()=>{
+    const words=root.querySelectorAll(".board-praise-word");
+    window.__praiseMaxOverlap=Math.max(window.__praiseMaxOverlap,words.length);
+    const word=words[0];
+    if(word && window.__praiseWordsSeen.at(-1)!==word.textContent)
+     window.__praiseWordsSeen.push(word.textContent);
+   };
+   window.__praiseObserver=new MutationObserver(observe);
+   window.__praiseObserver.observe(root,{childList:true,subtree:true});
+  });
+  await praisePage.click('.tile[data-index="17"]');
+  await praisePage.click('.tile[data-index="24"]');
+  await praisePage.waitForFunction(()=>window.__praiseWordsSeen?.length===3,{timeout:20000});
+  const praise=await praisePage.evaluate(()=>{
+   window.__praiseObserver.disconnect();
+   const root=document.querySelector("#boardPraise");
+   const word=root.querySelector(".board-praise-word");
+   return {seen:window.__praiseWordsSeen,maxOverlap:window.__praiseMaxOverlap,
+    hitTest:getComputedStyle(root).pointerEvents,
+    ariaHidden:root.getAttribute("aria-hidden"),
+    animation:word?getComputedStyle(word).animationName:"",
+    oldChip:!!document.querySelector("#combo")};
+  });
+  assert.deepEqual(praise.seen,["HARMONY ECHO!","MASTERPIECE!","HARMONY PULSE!"],
+   "Only approved center-board words should appear in real event order: "+JSON.stringify(praise));
+  assert.equal(praise.hitTest,"none");
+  assert.equal(praise.ariaHidden,"true");
+  assert.equal(praise.maxOverlap,1,"Praise words must never overlap");
+  assert(praise.animation.includes("harmony-praise-pop"),"Words require a real pop animation");
+  assert(!praise.oldChip,"The old small reward chip must not remain");
+  assert(fixture.includes("echo")&&fixture.includes("hero")&&fixture.includes("pulse"));
+ }finally{await praiseContext.close();}
  // Confirm a REAL resumed board with an eligible stage-3 neighbour pair creates
  // a visible, animated thread. Previous CSS-only tests missed this integration.
  const isolated=await browser.createBrowserContext();

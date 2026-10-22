@@ -92,6 +92,43 @@ try{
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,shape:HarmonyRules.levels[7].goal.type};});
  assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.shape,"shape");
+ // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
+ // successful manual fusion from an already-linked stage-three object.
+ const resonanceVisual=await page.evaluate(()=>{
+  const layer=document.querySelector("#resonanceLinks");
+  const style=getComputedStyle(layer);
+  const anchor=document.querySelector(".tile");
+  return {layerExists:!!layer,pointerEvents:style.pointerEvents,zIndex:style.zIndex,
+   boardChildren:document.querySelectorAll(".board .tile").length,
+   overlaySibling:layer.previousElementSibling?.id==="board"};
+ });
+ assert(resonanceVisual.layerExists&&resonanceVisual.overlaySibling);
+ assert.equal(resonanceVisual.pointerEvents,"none","Resonance overlay must never swallow tap gestures");
+ assert.equal(resonanceVisual.boardChildren,49);
+ const resonanceLogic=await page.evaluate(()=>{
+  const R=window.HarmonyRules,families=R.activeFamilies(0);
+  const b=Array.from({length:49},(_,i)=>({
+   id:i+1,stage:1,family:families[(Math.floor(i/7)+i%7)%5]
+  }));
+  b[22]={id:23,stage:3,family:"lantern"};
+  b[23]={id:24,stage:1,family:"lantern"};
+  b[24]={id:25,stage:1,family:"koi"};
+  b[25]={id:26,stage:1,family:"lantern"};
+  const links=R.resonanceLinks(b);
+  const game=new R.Game(0,null,{seed:141});
+  game.board=b;
+  const before=game.moves;
+  const result=game.swap(24,25);
+  const echoes=result.events.filter(e=>e.type==="echo");
+  return {link:links.some(l=>l.anchor===22&&l.partner===23),
+   valid:result.ok,echoCount:echoes.length,bonus:echoes[0]?.scoreDelta,
+   spent:before-game.moves,echoesSaved:game.save().echoes};
+ });
+ assert(resonanceLogic.link&&resonanceLogic.valid);
+ assert.equal(resonanceLogic.echoCount,1);
+ assert.equal(resonanceLogic.bonus,125);
+ assert.equal(resonanceLogic.spent,1);
+ assert.equal(resonanceLogic.echoesSaved,1);
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
 

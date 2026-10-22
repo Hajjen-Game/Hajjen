@@ -156,9 +156,14 @@ try{
  assert(swap&&swap.length===2,"At least one playable swap must be visible");
  await page.evaluate(()=>{
    window.__kineticAnimationCount=0;
+   window.__gatherMotion=[];
    const realAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){
      if(this.matches(".piece, .fusion-ghost, .pulse-dot"))window.__kineticAnimationCount++;
+     if(this.matches(".fusion-ghost")){
+      const frames=args[0]||[],options=args[1]||{};
+      window.__gatherMotion.push({frames,duration:options.duration});
+     }
      return realAnimate.apply(this,args);
    };
  });
@@ -203,6 +208,11 @@ try{
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:7000});
  const kineticCount=await page.evaluate(()=>window.__kineticAnimationCount||0);
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
+ const gather=await page.evaluate(()=>window.__gatherMotion);
+ assert(gather.length>=2,"A normal fusion must physically carry two source pieces into the survivor");
+ assert(gather.every(g=>g.duration>=260&&g.frames.length>=5&&
+  g.frames.slice(0,-1).every(k=>k.opacity===1)&&g.frames.at(-1).opacity>=.85),
+  "Gather pieces must remain intact, visible and readable right up to contact");
  assert(await page.evaluate(()=>!!window.__invalidMotion.length),"Rebound keyframes should have been recorded");
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  // Count animation must finish with the earned amount, not stick on an

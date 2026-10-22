@@ -384,7 +384,7 @@ try{
          window.__scoreFxSeen.family++;
          const tileWidth=document.querySelector(".tile")?.getBoundingClientRect().width||1;
          window.__scoreFxSeen.maxFamilyToTileRatio=Math.max(window.__scoreFxSeen.maxFamilyToTileRatio,
-          node.getBoundingClientRect().width/tileWidth);
+          parseFloat(getComputedStyle(node).width)/tileWidth);
        }
        if(node.classList.contains("evolution-stage-label"))window.__scoreFxSeen.stage++;
        if(node.classList.contains("pulse-trace"))window.__scoreFxSeen.pulseTrace++;

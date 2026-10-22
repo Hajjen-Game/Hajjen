@@ -444,3 +444,38 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Viktigt:** Behåll korrigerade koordinater från 4.3.3 (`left/top` inte åsidosatta av CSS `inset:auto!important`, samt spelramens `clientLeft/clientTop` i `makeFxLayer`). Detta är ett renodlat timing-A/B-test, inte en rollback av grafik eller position.
 
 **QA:** Samtliga fem isolerade testgrupper för fusion, prestanda, ljud, poäng och VFX passerar. Fusionskontraktet validerar 280 ms även för 4-/5-matchningar och samtidiga gruppfusioner. Browser-smoke kontrollerar startpositionerna på verkliga rutor i övre, mellersta och nedre delen av spelplanen samt 280 ms-animationerna. Slutgiltig mobilupplevelse utvärderas på telefonen.
+
+
+## Object Expansion 5.0 — nio familjer, fem per nivå (2026-10-22)
+
+**Beslut:** De fyra godkända nya objektfamiljerna **Sushi**, **Maneki-neko**, **Origami** och **Ryu Dragon** är tillagda till de befintliga fem (Sakura, Lykta, Koi, Solfjäder, Bonsai). Samtliga har exakt fem stadium, där stadium 5 är Masterpiece och triggar samma Harmony Pulse/Harvest som förr. **Inga spelsystem för progression eller matchning har ändrats.**
+
+**Bildmaterial:** Samtliga 20 nya individuellt godkända källbilder (fem per familj) sammansatta till en **960 × 768 transparent AVIF-atlas** på `daisugi-bloom/assets/harmony-new-families.avif`, fyra rader × fem kolumner. Varje transparent bild upptar en 192 × 192-cell för native CSS-sprites. Den befintliga femfamiljsatlasen lämnas oförändrad. Den nya atlasen är ca 86 kB (384/4? ingen data skickas till analyssystem). På webben visas rätt sprite med kolumn `(stage-1)*25 %` och rad `row*100/3 %`; native fallbacks visas endast om en atlas inte kan laddas.
+
+| Rad i nya atlasen | Stadium 1 | Stadium 2 | Stadium 3 | Stadium 4 | Stadium 5 – Masterpiece |
+| --- | --- | --- | --- | --- | --- |
+| Sushi | Laxnigiri | Maki | Sushi-set på lackbricka | Dekorerad festivalbricka | Praktfull sushibåt |
+| Maneki-neko | Lucky Charm Bell | Little Lucky Cat | Maneki-neko med guldmynt | Ornate Fortune Cat | Imperial Maneki-neko Shrine |
+| Origami | Mönstrat vikpapper | Origamitrana | Decorative Origami Bloom | Ornate Origami Ensemble | Celestial Origami Display |
+| Ryu Dragon | Dragon Pearl | Little Ryu Totem | Coiled Ryu Dragon | Ornate Celestial Ryu | Imperial Ryu Guardian |
+
+**Färgidentitet:** Sushi korall/orange + nori + varm guld/sakura. Maneki-neko elfenbensvit, vermilionröd, borstat guld, jadegrön och sakurarosa. Origami rispapperselfenben `#F6F0E2`, indigoblå `#3A4F8F`, sakurarosa `#E6A3BE`, soft teal `#6FAFA8`, folie-guld `#D8B55B`, plommonlila `#6C4A7E`. Ryu jade `#2D8B6E`, crimson `#B93A3A`, antikguld `#C9A24F`, molnelfenben `#F2E7D6`, charcoal `#2B2623`, ljus teal `#56B7B0`. Samma rundade, glossy, illustrativa premiumkänsla som befintliga objekt.
+
+**Nivårotation:** Varje nivå har **fem olika aktiva familjer**. Startbrädet garanteras innehålla minst ett föremål av **var och en av dessa fem**, utan gratismatch och med minst tre möjliga drag. Familjerna väljs deterministiskt utifrån nivånummer; spelplanen och dropplaceringarna förblir slumpmässiga. Alla **nio** har garanterat dykt upp redan vid nivå 3 och får flera återbesök före nivå 10.
+
+| Nivå | Aktiva familjer |
+| --- | --- |
+| 1 | Sakura, Lykta, Koi, Solfjäder, Bonsai |
+| 2 | Sakura, Koi, Solfjäder, Sushi, Maneki-neko |
+| 3 | Lykta, Koi, Bonsai, Origami, Ryu |
+| 4 | Sakura, Solfjäder, Sushi, Origami, Maneki-neko |
+| 5 | Lykta, Bonsai, Sushi, Ryu, Maneki-neko |
+| 6 | Lykta, Koi, Bonsai, Origami, Ryu |
+| 7 | Sakura, Solfjäder, Sushi, Origami, Ryu |
+| 8 | Koi, Solfjäder, Bonsai, Maneki-neko, Origami |
+| 9 | Sakura, Lykta, Sushi, Maneki-neko, Ryu |
+| 10 | Koi, Bonsai, Sushi, Origami, Ryu |
+
+**Specifika garantier:** Lykta finns med på nivå 6 med målet Lantern Festival; inga nivåer använder alla nio samtidigt. Ett pågående äldre sparat spel migrerar eventuella inaktiva identiteter till familjer i nivåns nya uppsättning utan att nollställa stadium, drag, poäng eller RNG-räknare. VFX-signatur och ljudklang utökas för nya familjer. Inga ändringar av regellogiken för 3/4/5-matchning, Masterpiece eller Harmony Pulse.
+
+**QA:** Ren regeltestning verifierar alla nio familjer, exakt fem per nivå, faktisk förekomst på startbrädet för alla tio nivåer och återföring av äldre sparfiler. Browser-smoke kontrollerar kodens nivåtäckning samt att en riktig Android-layout avkodar 960 × 768-AVIF och visar Origami-/Ryu-sprites i nivå 3. Slutlig upplevelse/test av nivåbalans och ljus-/färgskillnaderna görs på telefonen.

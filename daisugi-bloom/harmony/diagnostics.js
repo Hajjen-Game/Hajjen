@@ -123,7 +123,7 @@ function create(R){
   return {level,seed:seed>>>0,strategy,mode,goalType:g.config.goal.type,won:g.complete,
    movesUsed:turns,movesBudget:g.config.moves,progress:g.progress(),target:g.target(),
    goalRatio:Math.min(1,g.progress()/g.target()),score:g.score,stars:g.stars(),
-   masterpieces:g.masterpieces,fusions:g.fusions,stage3:g.stage3,stage4:g.stage4,
+   masterpieces:g.masterpieces,fusions:g.fusions,echoes:g.echoes||0,stage3:g.stage3,stage4:g.stage4,
    initialLegalMoves,avgLegalMoves:turns?legalTotal/turns:initialLegalMoves,
    minLegalMoves:minLegal===Infinity?initialLegalMoves:minLegal,zeroLegalTurns,
    cascadeTurns,highestCascade,extraWaves,shuffles,pulses,bonuses,
@@ -142,7 +142,7 @@ function create(R){
    avgScore:avg("score"),avgStars:avg("stars"),avgLegalMoves:avg("avgLegalMoves"),
    avgInitialMoves:avg("initialLegalMoves"),avgMinLegalMoves:avg("minLegalMoves"),
    avgCascades:avg("cascadeTurns"),avgExtraWaves:avg("extraWaves"),
-   avgMasterpieces:avg("masterpieces"),avgShuffles:avg("shuffles"),
+   avgMasterpieces:avg("masterpieces"),avgEchoes:avg("echoes"),avgShuffles:avg("shuffles"),
    avgGoalDrought:avg("maxGoalDrought"),avgNoGoalTurns:avg("noGoalTurns"),
    avgMeaningful:avg("avgMeaningful"),avgNearMasterpiece:avg("avgNearMasterpiece"),
    avgGoalReady:avg("avgGoalReady"),
@@ -178,7 +178,7 @@ function create(R){
  }
  function run(options={}){
   const all=jobs(options),runs=all.map(j=>play(j.level,j.seed,j.strategy,j.mode));
-  return {version:"engine-lab-2",gameVersion:"5.4.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-2",gameVersion:"5.5.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }

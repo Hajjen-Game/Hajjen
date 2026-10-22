@@ -1,8 +1,10 @@
-# Japanese Harmony — Puzzle 2.0.2 (från Daisugi Bloom)
+# Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
 **Spela:** https://hajjen-game.github.io/Hajjen/daisugi-bloom/
 
-Den **aktiva spelversionen** är Japanese Harmony 2.0.2, med japanska objekt, 7×7 matchningar, större 4/5/T/L-fusioner, Harmony Pulse, nivåmål och rekord. De fyra aktiva familjerna är Sakura, Lykta, Koi och Solfjäder. **Bonsai finns med fem bilder i spelatlasens femte rad**, men är ännu inte aktiv i kapitel 1 med tio nivåer. Planerad introduktion: nivå 21 i en senare nivåutbyggnad.
+**Nuvarande spel:** Tio nivåer, fem aktiva objektfamiljer per nivå (roteras mellan de nio familjerna Sakura, Lykta, Koi, Solfjäder, Bonsai, Sushi, Maneki-neko, Origami och Ryu). Samtliga nio har fem utvecklingsstadier. Gemensamma regler för 3/4/5/T/L-fusioner, Harmony Resonance/Echo, Harmony Pulse och mästerverk. Nivå 8 har målet **Garden in Bloom: fem föremål till stadium 3**. Historiska texter längre ned dokumenterar äldre Daisugi-versioner och ska inte läsas som aktuell status.
+
+**Senaste spelrevisionen och identifierade kontrollpunkter:** [Japanese Harmony — Full Game Audit (2026-10-22)](docs/JAPANESE_HARMONY_GAME_AUDIT_20261022.md). Denna rapport skiljer bekräftad funktion från kvarstående balans-/designproblem. Inga nya nivåer bör införas innan nivå 6 och 9 har granskats spelmässigt.
 
 **Prestandapass 2.0.2 (2026-10-21):** Alla 49 spelrutor återanvänds nu i DOM i stället för att skapas om vid varje animation; endast förändrade bildpositioner uppdateras. Matchnings-/puls-/nedfallspauserna är kortare, live-`drop-shadow` på samtliga ikoner har tagits bort och Harmony Chain-meddelandet är mindre och försvinner automatiskt. Inställningen för sifferetiketter på alla bilder är borttagen; stadium kan läsas när man markerar ett föremål. CI testar en riktig mobilmatchning och att DOM-rutorna behålls.
 

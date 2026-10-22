@@ -1,5 +1,11 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Opportunity Director 2.0 — 2026-10-22
+
+Det nya opt-in-läget **Director 2.0** finns i Game Dev → Motorlabbet och kan jämföras med **Standard** och **Director 1.0** på exakt samma startfrön. Målet är att skapa meningsfulla utvecklingsmöjligheter runt redan investerade stadium 3–4-objekt, utan att ge spelaren gratismatchningar eller manipulera befintliga objekt. Efter flera drag utan betydelsefull utveckling prioriterar 2.0 försiktigt nya möjligheter. Den använder samma objektpåse, fyra möjliga påfyllningar och separata förgrenade RNG-strömmar. **Vanliga spelet kör fortfarande Standard** tills tester och spelkänsla motiverar något annat.
+
+[Utvecklingsspecifikation och testplan](docs/JAPANESE_HARMONY_OPPORTUNITY_DIRECTOR_2_0.md). Ett reproducerbart test över 480 spel med Standard/Director 1.0/Director 2.0 körs via GitHub Actions och lämnar en fullständig JSON-rapport.
+
 ## Smart Directed Move Hint 1.2 — 2026-10-22
 
 När spelaren inte interagerat med spelplanen på **60 sekunder** räknar `HarmonyRules.bestHint(game)` fram det mest belönande draget bland samtliga tillåtna byten. Motorn förhandsberäknar poäng, måluppfyllelse, utveckling till högre stadier, Masterpieces, Harmony Echo och Harmony Pulse på **separata kopior av spelet** och ändrar aldrig den riktiga spelplanen. Brickan som ska flyttas lyser starkt guld, medan destinationen pulserar mjukare mintvitt. Lika bra alternativ prioriterar en lägre utvecklad bricka som källa. Ledtråden är gratis, förbrukar inga drag och försvinner vid nästa interaktion. Den pausas under animationer, menyer och inaktiv flik. **Minska animationer** visar ett statiskt sken.

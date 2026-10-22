@@ -222,6 +222,60 @@ function opportunityMetrics(board,goal){
   Math.min(goalReady,9)*4.4;
  return {legal,meaningful,nearMasterpiece,goalReady,score};
 }
+// Director 2.0 measures opportunities AROUND existing investment, not just
+// the raw number of three-matches. No previews are applied to the real board.
+function opportunityMetricsV2(board,goal,drought=0){
+ const basic=opportunityMetrics(board,goal);
+ const actions=validSwaps(board);
+ const developed=new Set(),nearReady=new Set(),goalPieces=new Set();
+ let goodMoves=0,strongMoves=0;
+ for(const [a,b] of actions){
+  [board[a],board[b]]=[board[b],board[a]];
+  const groups=scan(board).filter(group=>group.includes(a)||group.includes(b));
+  let moveGood=false,moveStrong=false;
+  for(const group of groups){
+   const survivor=group.reduce((i,j)=>board[i].stage>=board[j].stage?i:j);
+   const stage=board[survivor].stage;
+   if(stage>=2)moveGood=true;
+   if(stage>=3)moveStrong=true;
+   if(stage>=3)developed.add(board[survivor].id);
+   if(stage>=4)nearReady.add(board[survivor].id);
+   if(goal?.type==="familyMasterpiece"&&board[survivor].family===goal.family&&stage>=2)
+    goalPieces.add(board[survivor].id);
+  }
+  [board[a],board[b]]=[board[b],board[a]];
+  if(moveGood)goodMoves++;
+  if(moveStrong)strongMoves++;
+ }
+ // Preserve previously evolved pieces and their neighbourhood prospects,
+ // without inserting any special family or modifying existing stages.
+ let investments=0,prospects=0;
+ for(let i=0;i<board.length;i++){
+  const p=board[i];
+  if(!p||p.stage<3||p.stage>=5)continue;
+  investments++;
+  // Only orthogonal one- and two-step neighbours; not a promise of a match.
+  const r=Math.floor(i/N),c=i%N;
+  const nearby=[[r-1,c],[r+1,c],[r,c-1],[r,c+1],[r-2,c],[r+2,c],[r,c-2],[r,c+2]];
+  if(nearby.some(([rr,cc])=>rr>=0&&rr<N&&cc>=0&&cc<N&&
+   board[rr*N+cc]?.family===p.family))prospects++;
+ }
+ const pressure=Math.min(1,Math.max(0,drought-1)/3);
+ // Stronger intervention only when the player hasn't reached higher stages
+ // for multiple moves. Cap near-Masterpiece options to avoid gifting wins.
+ const score=
+  Math.min(basic.legal,14)*.22+
+  Math.min(goodMoves,9)*(1.5+pressure*.9)+
+  Math.min(strongMoves,6)*(1.9+pressure*1.4)+
+  Math.min(developed.size,5)*(3+pressure*2.3)+
+  Math.min(nearReady.size,3)*(4.2+pressure*2.2)+
+  Math.min(goalPieces.size,4)*5.4+
+  Math.min(prospects,5)*(1.1+pressure*1.4)-
+  Math.max(0,3-basic.legal)*5-
+  Math.max(0,basic.legal-17)*.5;
+ return {...basic,goodMoves,strongMoves,developed:developed.size,
+  nearReady:nearReady.size,investments,prospects,drought,score};
+}
 function draftRefill(board,bag,families,nextId,rand){
  const candidate=clone(board),remaining=bag.slice();
  let serial=nextId,placed=0;
@@ -241,8 +295,9 @@ class Game{
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
-  this.opportunity=options?.opportunity===true; // Opt-in only; default game unchanged.
-  this.directorRefills=0;this.directorSelections=0;
+  this.directorMode=options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
+  this.opportunity=this.directorMode!=="standard"; // Both Directors are opt-in.
+  this.directorRefills=0;this.directorSelections=0;this.directorDrought=0;
   this.rolls=0;this.random=prng(this.seed);
   this.bag=[];
   // Diagnostics-only fast restore avoids creating an unused random start
@@ -255,6 +310,9 @@ class Game{
   this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;
   if(previous){
    Object.assign(this,previous);this.config=levelConfig(this.level);this.families=activeFamilies(this.level);
+   this.directorMode=previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
+   this.opportunity=this.directorMode!=="standard";
+   this.directorDrought=Number.isInteger(previous.directorDrought)?Math.max(0,previous.directorDrought):0;
    this.collectionBonusTotal=this.collectionBonusTotal||0;
    this.familyMasterpieces=this.familyMasterpieces||{};
    this.random=prng(this.seed);for(let i=0;i<this.rolls;i++)this.random();this.board=clone(previous.board);
@@ -306,11 +364,17 @@ class Game{
   // Preserve the existence of automatic chain reactions in baseline random
   // outcome. Only compare alternative boards when baseline has NO free match.
   if(baseline.autoMatches===0){
-   let best=opportunityMetrics(baseline.board,this.config.goal).score;
+   const isV2=this.directorMode==="v2";
+   const metric=board=>isV2?opportunityMetricsV2(board,this.config.goal,this.directorDrought):
+    opportunityMetrics(board,this.config.goal);
+   let best=metric(baseline.board).score;
+   // 2.0 intervenes conservatively (>=1.5 score advantage); it can increase
+   // pressure after several turns without evolved-stage progress.
+   const threshold=isV2?(this.directorDrought>=3?1.1:1.5):.8;
    for(const candidate of candidates.slice(1)){
     if(candidate.autoMatches!==0)continue;
-    const value=opportunityMetrics(candidate.board,this.config.goal).score;
-    if(value>best+.8){best=value;selected=candidate;}
+    const value=metric(candidate.board).score;
+    if(value>best+threshold){best=value;selected=candidate;}
    }
   }
   this.board=selected.board;
@@ -473,10 +537,21 @@ class Game{
   // Arm only resonances that existed BEFORE this player's legal move.
   // Fresh matches, free gravity cascades and Harmony Pulse cannot farm Echo.
   // Pairs are located by persistent object IDs, not original slot indices.
-  this.moves--;return {ok:true,events:[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed)]};
+  const beforeStage3=this.stage3,beforeStage4=this.stage4,beforeMasterpiece=this.masterpieces;
+  const beforeEcho=this.echoes,beforePulse=this.pulseHits;
+  this.moves--;
+  const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed)];
+  // Update drought ONCE per player move, not per cascade wave; never use score
+  // progress because score-based levels gain points on virtually every turn.
+  if(this.directorMode==="v2"){
+   const advanced=this.stage3>beforeStage3||this.stage4>beforeStage4||
+    this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
+   this.directorDrought=advanced?0:Math.min(12,this.directorDrought+1);
+  }
+  return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
+ save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -525,6 +600,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

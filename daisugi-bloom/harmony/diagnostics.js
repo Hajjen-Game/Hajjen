@@ -7,8 +7,8 @@
 function create(R){
  if(!R||!R.Game||!R.validSwaps)throw new Error("HarmonyRules is required");
  const STRATEGIES=["random","score","goal","lookahead"];
- const MODES=["standard","director"];
- const MODE_LABELS={standard:"Standard",director:"Director"};
+ const MODES=["standard","director","director2"];
+ const MODE_LABELS={standard:"Standard",director:"Director 1.0",director2:"Director 2.0"};
  const LABELS={random:"Slumpmässig",score:"Poängjägare",goal:"Målfokuserad",lookahead:"Framåtblickande"};
  function assertInt(value,min,max,name){
   if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(name+" must be an integer from "+min+" to "+max);
@@ -85,12 +85,12 @@ function create(R){
   assertInt(level,0,999999,"level");
   if(!STRATEGIES.includes(strategy))throw new RangeError("Unknown strategy: "+strategy);
   if(!MODES.includes(mode))throw new RangeError("Unknown mode: "+mode);
-  const g=new R.Game(level,null,{seed:seed>>>0,opportunity:mode==="director"});
+  const g=new R.Game(level,null,{seed:seed>>>0,opportunity:mode==="director",directorMode:mode==="director2"?"v2":undefined});
   const rng=botRandom(seed);
   let turns=0,legalTotal=0,minLegal=Infinity,drought=0,maxDrought=0,noGoalTurns=0;
   let cascadeTurns=0,highestCascade=0,extraWaves=0,shuffles=0,pulses=0, bonuses=0;
   let zeroLegalTurns=0;
-  let meaningfulTotal=0,nearMasterpieceTotal=0,goalReadyTotal=0;
+  let meaningfulTotal=0,nearMasterpieceTotal=0,goalReadyTotal=0,developedTotal=0,nearReadyTotal=0,prospectsTotal=0;
   const initialLegalMoves=R.validSwaps(g.board).length;
   while(g.moves>0&&!g.complete){
    const options=R.validSwaps(g.board),legal=options.length;
@@ -100,6 +100,11 @@ function create(R){
     meaningfulTotal+=opportunities.meaningful;
     nearMasterpieceTotal+=opportunities.nearMasterpiece;
     goalReadyTotal+=opportunities.goalReady;
+    if(R.opportunityMetricsV2){
+     const investment=R.opportunityMetricsV2(g.board,g.config.goal,g.directorDrought||0);
+     developedTotal+=investment.developed;nearReadyTotal+=investment.nearReady;
+     prospectsTotal+=investment.prospects;
+    }
    }
    if(legal===0){zeroLegalTurns++;break;}
    const choice=choose(g,strategy,rng);
@@ -131,6 +136,9 @@ function create(R){
    avgMeaningful:turns?meaningfulTotal/turns:0,
    avgNearMasterpiece:turns?nearMasterpieceTotal/turns:0,
    avgGoalReady:turns?goalReadyTotal/turns:0,
+   avgDeveloped:turns?developedTotal/turns:0,
+   avgNearReady:turns?nearReadyTotal/turns:0,
+   avgProspects:turns?prospectsTotal/turns:0,
    directorRefills:g.directorRefills||0,directorSelections:g.directorSelections||0};
  }
  function aggregate(runs){
@@ -147,6 +155,7 @@ function create(R){
    avgMeaningful:avg("avgMeaningful"),avgNearMasterpiece:avg("avgNearMasterpiece"),
    avgGoalReady:avg("avgGoalReady"),
    avgDirectorRefills:avg("directorRefills"),avgDirectorSelections:avg("directorSelections"),
+   avgDeveloped:avg("avgDeveloped"),avgNearReady:avg("avgNearReady"),avgProspects:avg("avgProspects"),
    lockedRuns:runs.filter(x=>x.zeroLegalTurns>0).length};
  }
  function jobs(options={}){
@@ -178,7 +187,7 @@ function create(R){
  }
  function run(options={}){
   const all=jobs(options),runs=all.map(j=>play(j.level,j.seed,j.strategy,j.mode));
-  return {version:"engine-lab-2",gameVersion:"5.6.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-3",gameVersion:"6.1.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }
@@ -193,7 +202,7 @@ function create(R){
     await new Promise(resolve=>setTimeout(resolve,0));
    }
   }
-  return {version:"engine-lab-2",gameVersion:"5.6.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-3",gameVersion:"6.1.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }

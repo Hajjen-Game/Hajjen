@@ -32,8 +32,10 @@ jobs:
         run: node daisugi-bloom/tests/harmony-engine-lab.test.cjs
       - name: Verify Balanced Refill and Fair Shuffle 2.0
         run: node daisugi-bloom/tests/harmony-refill-shuffle.test.cjs
-      - name: Verify opt-in Opportunity Director and paired A/B diagnostics
+      - name: Verify Opportunity Director 1.0 and paired A/B diagnostics
         run: node daisugi-bloom/tests/harmony-opportunity-director.test.cjs
+      - name: Verify opt-in Director 2.0 conservation, drought and paired A/B/C
+        run: node daisugi-bloom/tests/harmony-opportunity-director-v2.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
         run: node daisugi-bloom/tests/harmony-resonance.test.cjs
       - name: Syntax-check all browser scripts
@@ -46,6 +48,7 @@ jobs:
           node --check daisugi-bloom/harmony/audio.js
           node --check daisugi-bloom/harmony/diagnostics.js
           node --check daisugi-bloom/tools/harmony-engine-benchmark.cjs
+          node --check daisugi-bloom/tools/opportunity-director-v2-benchmark.cjs
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -65,3 +68,19 @@ jobs:
           name: daisugi-bloom-mobile-preview
           path: /tmp/daisugi-bloom/*.png
           if-no-files-found: ignore
+
+  director2-benchmark:
+    name: Director 2.0 · 480 seeded gameplay comparisons
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce 480 real Standard / Director 1.0 / Director 2.0 games
+        run: node daisugi-bloom/tools/opportunity-director-v2-benchmark.cjs
+      - name: Preserve full report and per-game seeds
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-director2-benchmark
+          path: daisugi-bloom/reports/opportunity-director-2-benchmark.json
+          if-no-files-found: warn

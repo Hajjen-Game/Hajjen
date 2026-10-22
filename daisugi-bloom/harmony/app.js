@@ -1301,16 +1301,17 @@ function openEngineLab(){
  const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Grundseed (reproducerbar)",seedInput);
  const engineMode=document.createElement("select");engineMode.id="engineMode";
  for(const [value,label] of [
-  ["compare","Jämför Standard + Director (A/B)"],
-  ["standard","Endast Standard (5.3)"],
-  ["director","Endast Director (experiment)"]
+  ["compare","Jämför Standard + Director 1.0 + 2.0 (A/B/C)"],
+  ["standard","Endast Standard"],
+  ["director","Endast Director 1.0"],
+  ["director2","Endast Director 2.0 (experiment)"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
  engineMode.value="compare";field("Spelmotor",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="Director väljer bland fyra rättvisa påfyllningar och prioriterar spelbara möjligheter. Vanliga spelet använder fortfarande Standard. Planeringsbotarna ser simulerad framtid; resultat är inte mänskliga vinstchanser.";
+ scopeNote.textContent="Director 1.0 och 2.0 jämför fyra rättvisa påfyllningar. 2.0 väger utvecklade föremål, framtida möjligheter och flera drag utan utveckling. Vanliga spelet använder fortfarande Standard. Botresultaten är inte mänskliga vinstchanser.";
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
  status.textContent="Redo att mäta spelmotorn.";content.append(status);
@@ -1365,19 +1366,21 @@ function openEngineLab(){
   table.append(body);wrap.append(table);output.append(wrap);
   const explain=document.createElement("p");explain.className="engine-lab-note";
   explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Echo = aktiverade resonansbelöningar per spel. Utveckl. = möjliga matcher som involverar stadium 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. nivå 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
-  if(result.options.modes.length===2){
+  if(result.options.modes.length>=2){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
-   const title=document.createElement("strong");title.textContent="A/B · vinst per nivå och spelstrategi";
+   const title=document.createElement("strong");title.textContent="A/B/C · vinst, utveckling och framtida möjligheter";
    comparison.append(title);
    for(const classic of result.results.filter(x=>x.mode==="standard")){
-    const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode==="director");
+    for(const mode of result.options.modes.filter(m=>m!=="standard")){
+    const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode===mode);
     if(!newer)continue;
     const line=document.createElement("p");
-    line.textContent="Nivå "+(classic.level+1)+" · "+api.LABELS[classic.strategy]+": "+
+    line.textContent="Nivå "+(classic.level+1)+" · "+api.LABELS[classic.strategy]+" · "+api.MODE_LABELS[mode]+": "+
      classic.wins+"/"+classic.samples+" → "+newer.wins+"/"+newer.samples+
      " · Utveckl. "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1)+
-     " · Målfam. "+classic.avgGoalReady.toFixed(1)+" → "+newer.avgGoalReady.toFixed(1);
+     " · Möjligheter kring stadium 4 "+classic.avgNearReady.toFixed(1)+" → "+newer.avgNearReady.toFixed(1);
     comparison.append(line);
+   }
    }
    output.append(comparison);
   }
@@ -1392,7 +1395,7 @@ function openEngineLab(){
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
-  const modes=engineMode.value==="compare"?["standard","director"]:[engineMode.value];
+  const modes=engineMode.value==="compare"?["standard","director","director2"]:[engineMode.value];
   const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};

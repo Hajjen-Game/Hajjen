@@ -9,7 +9,7 @@ const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
-let save,game=null,level=0,selected=-1,busy=false,timer=0,comboTimer=0,pointer=null,suppressClickUntil=0;
+let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 let scoreShown=0,scoreDisplayed=0,scoreRaf=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
 let lastGoalProgress=-1,lastScoreImpact=0;
 const perf=window.HarmonyPerf?.create();
@@ -105,7 +105,7 @@ function sound(type,detail){
 }
 function showMenu(){
  if(busy)return;
- resetResonanceVisuals();clearScoreFx();
+ resetResonanceVisuals();clearScoreFx();clearPraise();
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
@@ -125,12 +125,11 @@ function renderMenu(){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
- resetResonanceVisuals();
+ resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
  $("goalLabel").textContent=game.goalText();
- clearTimeout(comboTimer);$("combo").hidden=true;
  renderBoard(game.board);renderHUD();saveRun();
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
@@ -484,16 +483,37 @@ function evolutionStageLabels(groups){
   ],650).finally(()=>node.remove());
  }
 }
-let rewardTier=0;
-function announceReward(tier,label,duration=700){
- if(tier<=rewardTier)return;
- rewardTier=tier;
- const chip=$("combo");
- clearTimeout(comboTimer);
- chip.textContent="✦ "+label;
- chip.dataset.tier=String(tier);
- chip.hidden=false;
- comboTimer=setTimeout(()=>{chip.hidden=true;},FAST()?300:duration);
+// Board Praise 1.0: exactly three rare, event-driven rewards.
+const PRAISE_WORDS=Object.freeze({
+ echo:"HARMONY ECHO!",
+ masterpiece:"MASTERPIECE!",
+ pulse:"HARMONY PULSE!"
+});
+let praiseQueue=[],praiseSeen=new Set(),praiseTimer=0,praiseActive=false,praiseSession=0;
+function clearPraise(){
+ praiseSession++;clearTimeout(praiseTimer);praiseTimer=0;
+ praiseQueue=[];praiseSeen.clear();praiseActive=false;
+ $("boardPraise")?.replaceChildren();
+}
+function showNextPraise(){
+ if(praiseActive||!praiseQueue.length)return;
+ const layer=$("boardPraise");if(!layer)return;
+ const kind=praiseQueue.shift();
+ const word=document.createElement("span");
+ word.className="board-praise-word praise-"+kind;
+ word.textContent=PRAISE_WORDS[kind];
+ layer.replaceChildren(word);
+ praiseActive=true;
+ const session=praiseSession;
+ praiseTimer=setTimeout(()=>{
+  if(session!==praiseSession)return;
+  layer.replaceChildren();praiseActive=false;praiseTimer=0;
+  showNextPraise();
+ },FAST()?520:1160);
+}
+function praise(kind){
+ if(!Object.hasOwn(PRAISE_WORDS,kind)||praiseSeen.has(kind))return;
+ praiseSeen.add(kind);praiseQueue.push(kind);showNextPraise();
 }
 function masterpieceMoment(positions){
  if(FAST()||!Element.prototype.animate)return;
@@ -1011,21 +1031,16 @@ async function playEvents(events){
  $("resonanceLinks")?.classList.add("resonance-paused");
  rectCache=new Array(49);boardLayerRect=null;
  perf?.begin();
- rewardTier=0;
+ clearPraise();
  let finished=false,goalReached=false;
  try{
   for(const evt of events){
    await animateEvent(evt);
    if(evt.scoreDelta>0)flyPoints(evt);
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
-   if(evt.type==="echo")announceReward(2,"HARMONY ECHO!",840);
-   if(evt.type==="fusion"){
-    const groups=evt.groups||[];
-    if(groups.some(g=>g.shape||g.number>=5)||evt.round>=2)announceReward(2,"HARMONI!",710);
-    else if(groups.some(g=>g.number>=4))announceReward(1,"VACKERT!",610);
-   }else if(evt.type==="hero")announceReward(3,"MÄSTERVERK!",925);
-   else if(evt.type==="harvest"&&evt.chain>=2)announceReward(4,"PERFEKT HARMONI · x"+evt.chain,1080);
-   else if(evt.type==="swap"){clearTimeout(comboTimer);$("combo").hidden=true;}
+   if(evt.type==="echo")praise("echo");
+   else if(evt.type==="hero")praise("masterpiece");
+   else if(evt.type==="pulse"&&(evt.targets?.length||0)>0)praise("pulse");
    if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
    if(evt.type==="end"||evt.type==="lose")finished=true;
    renderHUD(evt);
@@ -1049,7 +1064,7 @@ function unlockGoal(){
 }
 function showResult(){
  if(!game)return;
- clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
+ clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(won)sound("result");
  if(won){

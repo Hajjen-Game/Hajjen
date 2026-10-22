@@ -74,6 +74,22 @@ function validSwaps(board){
  }
  return all;
 }
+// Distinguish the piece to MOVE from the space WHERE it belongs.
+// A legal exchange can be performed in either direction, but a useful hint
+// highlights the piece whose arrival completes a three-or-more match.
+// This only reads a swapped copy: no board mutations or score changes.
+function directedHint(board,pair){
+ if(!Array.isArray(pair)||pair.length!==2)return null;
+ const [a,b]=pair;
+ if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=N*N||b>=N*N||!board[a]||!board[b]||!neighbors(a).includes(b))return null;
+ const next=board.slice();[next[a],next[b]]=[next[b],next[a]];
+ const groups=scan(next);
+ const score=i=>groups.reduce((sum,g)=>sum+(g.includes(i)?g.length:0),0);
+ const sa=score(a),sb=score(b);
+ if(!sa&&!sb)return null;
+ const to=sa>sb?a:sb>sa?b:b;
+ return {from:to===a?b:a,to};
+}
 // Harmony Resonance 1.0: a developed piece (stage 3–4) resonates with
 // an orthogonally adjacent piece of the SAME family. This is a pure board
 // query and never changes the tile, family, stage or refill distribution.
@@ -463,6 +479,6 @@ class Game{
  save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

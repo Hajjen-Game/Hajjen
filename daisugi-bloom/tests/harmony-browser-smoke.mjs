@@ -12,51 +12,62 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
- // Idle Move Hint 1.0: fast-forward ONLY the 60s timer in an isolated tab.
- // Production keeps the full minute; test the real DOM, legal-swap API and pause.
+ // Directed idle hint 1.1: only one REAL swap, shown as bright SOURCE and soft TARGET.
+ // Shorten only the one-minute timer inside the isolated mobile test context.
  const hintContext=await browser.createBrowserContext();
  try{
   const hintPage=await hintContext.newPage();
   await hintPage.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await hintPage.evaluateOnNewDocument(()=>{
    const realSetTimeout=window.setTimeout.bind(window);
-   window.setTimeout=(callback,ms,...args)=>realSetTimeout(callback,ms===60000?300:ms,...args);
+   window.setTimeout=(fn,ms,...args)=>realSetTimeout(fn,ms===60000?300:ms,...args);
   });
   await hintPage.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
   await hintPage.waitForFunction(()=>!!window.HarmonyRules);
   await hintPage.click(".level-tile:first-child");
-  assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-move-hint").length),0,
-   "The move hint must not display immediately at level start");
-  await hintPage.waitForFunction(()=>document.querySelectorAll(".tile.idle-move-hint").length===1,{timeout:7000});
+  assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0);
+  await hintPage.waitForFunction(()=>
+   document.querySelectorAll(".tile.idle-hint-source").length===1&&
+   document.querySelectorAll(".tile.idle-hint-target").length===1,{timeout:7000});
   const hint=await hintPage.evaluate(()=>{
-   const hinted=document.querySelector(".tile.idle-move-hint"),index=Number(hinted?.dataset.index);
-   const save=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
-   const valid=window.HarmonyRules.validSwaps(save.run.data.board);
-   return {count:document.querySelectorAll(".tile.idle-move-hint").length,
-    legal:valid.some(pair=>pair.includes(index)),
-    animation:getComputedStyle(hinted).animationName,
-    noMoveUsed:save.run.data.moves===window.HarmonyRules.levels[0].moves,
-    canTap:getComputedStyle(hinted).pointerEvents!=="none"};
+   const source=document.querySelector(".tile.idle-hint-source");
+   const target=document.querySelector(".tile.idle-hint-target");
+   const from=Number(source?.dataset.index),to=Number(target?.dataset.index);
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   const R=window.HarmonyRules,options=R.validSwaps(saved.run.data.board);
+   return {
+    from,to,legal:options.some(pair=>pair.includes(from)&&pair.includes(to)),
+    directed:JSON.stringify(R.directedHint(saved.run.data.board,[from,to]))===JSON.stringify({from,to}),
+    moveUsed:saved.run.data.moves!==R.levels[0].moves,
+    sourceColor:getComputedStyle(source).outlineColor,
+    sourceAnimation:getComputedStyle(source).animationName,
+    targetAnimation:getComputedStyle(target).animationName,
+    sourceGlow:getComputedStyle(source).boxShadow,
+    targetGlow:getComputedStyle(target).boxShadow,
+    tappable:getComputedStyle(source).pointerEvents!=="none"&&getComputedStyle(target).pointerEvents!=="none"
+   };
   });
-  assert(hint.legal&&hint.noMoveUsed&&hint.canTap,
-   "Hint must designate one actual legal tile without changing score or moves");
-  assert(hint.animation.includes("jh-idle-hint-glow"),"Hint must visibly pulse");
-  await hintPage.click(".tile.idle-move-hint");
-  assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-move-hint").length),0,
-   "Any board interaction should immediately cancel the hint");
+  assert(hint.legal&&hint.directed&&!hint.moveUsed&&hint.tappable,
+   "The direction and both cells must correspond to a real, free move");
+  assert.equal(hint.sourceAnimation,"none","Source is the steady stronger gold highlight");
+  assert(hint.targetAnimation.includes("jh-idle-target-pulse"),"Destination must pulse softly");
+  assert(hint.sourceGlow!==hint.targetGlow,"The two tile hints must be visually differentiated");
+  await hintPage.click(".tile.idle-hint-source");
+  assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0,
+   "Any board interaction clears both highlighted tiles immediately");
   await hintPage.click("#pauseButton");
   await new Promise(resolve=>setTimeout(resolve,420));
-  assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-move-hint").length),0,
-   "Hints may not appear underneath the pause dialog");
+  assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0,
+   "Hints must never display behind the pause menu");
   await hintPage.click("#modalActions button:first-child");
-  await hintPage.waitForFunction(()=>document.querySelectorAll(".tile.idle-move-hint").length===1,{timeout:7000});
+  await hintPage.waitForFunction(()=>!!document.querySelector(".tile.idle-hint-target"),{timeout:7000});
   await hintPage.evaluate(()=>document.body.classList.add("harmony-reduced-motion"));
-  const reduced=await hintPage.$eval(".tile.idle-move-hint",node=>({
-   animation:getComputedStyle(node).animationName,
-   glow:getComputedStyle(node).boxShadow
+  const reduced=await hintPage.$eval(".tile.idle-hint-target",tile=>({
+   animation:getComputedStyle(tile).animationName,
+   glow:getComputedStyle(tile).boxShadow
   }));
-  assert.equal(reduced.animation,"none","Reduced-motion setting should stop hint animation");
-  assert(reduced.glow!=="none","Reduced-motion hint must remain visible as a static glow");
+  assert.equal(reduced.animation,"none","Reduced motion disables the target pulse");
+  assert(reduced.glow!=="none","Reduced motion keeps a static highlight");
  }finally{await hintContext.close();}
  // Regression: old 10-level saves capped unlocked at index 9 despite level-10 completion.
  const legacyContext=await browser.createBrowserContext();

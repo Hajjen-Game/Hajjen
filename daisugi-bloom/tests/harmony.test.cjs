@@ -193,4 +193,33 @@ check("Level 10 screenshot has exactly one legal move with Koi at row 5 column 4
   "The move must visibly fuse Ryu, not only consume a turn");
  assert(R.validSwaps(game.board).length>0||game.moves===0,"Next board must not be stuck");
 });
+check("Directed hint identifies the Sushi piece and the Ryu target from level 13 screenshot",()=>{
+ const rows=[
+  ["lantern","sushi","sushi","lantern","sakura","lantern","sushi"],
+  ["ryu","sushi","ryu","koi","lantern","sushi","sakura"],
+  ["ryu","koi","sakura","sakura","koi","lantern","lantern"],
+  ["sakura","koi","sakura","lantern","sushi","ryu","sushi"],
+  ["lantern","sakura","ryu","sushi","sakura","sushi","lantern"],
+  ["sushi","koi","ryu","lantern","ryu","ryu","koi"],
+  ["sakura","sakura","sushi","ryu","ryu","sushi","ryu"]
+ ];
+ const board=rows.flat().map((family,id)=>({id:id+1,family,stage:1}));
+ const snapshot=JSON.stringify(board);
+ assert(R.validSwaps(board).some(([a,b])=>a===26&&b===33));
+ assert.deepEqual(R.directedHint(board,[26,33]),{from:33,to:26},
+  "Strong glow on row 5 col 6 Sushi; weak pulse on row 4 col 6 Ryu");
+ assert.equal(JSON.stringify(board),snapshot,"Hint must not mutate the board");
+});
+check("Directed hints always identify both ends of a real swap",()=>{
+ for(let level=0;level<10;level++){
+  const game=new R.Game(level,null,{seed:900+level});
+  for(const pair of R.validSwaps(game.board)){
+   const hint=R.directedHint(game.board,pair);
+   assert(hint&&pair.includes(hint.from)&&pair.includes(hint.to)&&hint.from!==hint.to);
+   const swapped=game.board.slice();[swapped[hint.from],swapped[hint.to]]=[swapped[hint.to],swapped[hint.from]];
+   assert(R.scan(swapped).some(g=>g.includes(hint.to)),
+    "The target square should be where the moved piece makes a match");
+  }
+ }
+});
 console.log("Japanese Harmony rule tests passed");

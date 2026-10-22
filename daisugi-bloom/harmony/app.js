@@ -14,13 +14,13 @@ const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 // Subtle accessibility-safe hint: after one minute without interaction,
 // softly highlight ONE piece belonging to a genuinely legal swap.
 const IDLE_HINT_DELAY_MS=60000;
-let idleHintTimer=0,idleHintIndex=-1;
+let idleHintTimer=0,idleHintFrom=-1,idleHintTo=-1;
 function clearIdleHint(){
  if(idleHintTimer){clearTimeout(idleHintTimer);idleHintTimer=0;}
- if(idleHintIndex>=0){
-  document.querySelector('.tile[data-index="'+idleHintIndex+'"]')?.classList.remove("idle-move-hint");
-  idleHintIndex=-1;
+ for(const index of [idleHintFrom,idleHintTo]){
+  if(index>=0)document.querySelector('.tile[data-index="'+index+'"]')?.classList.remove("idle-hint-source","idle-hint-target");
  }
+ idleHintFrom=-1;idleHintTo=-1;
 }
 function hintEligible(){
  return !!game&&game.moves>0&&!game.failed&&!busy&&
@@ -33,12 +33,13 @@ function restartIdleHint(){
   idleHintTimer=0;
   if(!hintEligible())return;
   const legal=R.validSwaps(game.board);
-  if(!legal.length)return; // Never suggest an illegal move.
+  if(!legal.length)return;
   const pair=legal[Math.floor(Math.random()*legal.length)];
-  // If a tile is already selected, prefer its legal neighbour when possible.
-  const hint=pair.includes(selected)?pair.find(i=>i!==selected):pair[0];
-  idleHintIndex=hint;
-  document.querySelector('.tile[data-index="'+hint+'"]')?.classList.add("idle-move-hint");
+  const hint=R.directedHint(game.board,pair);
+  if(!hint)return;
+  idleHintFrom=hint.from;idleHintTo=hint.to;
+  document.querySelector('.tile[data-index="'+hint.from+'"]')?.classList.add("idle-hint-source");
+  document.querySelector('.tile[data-index="'+hint.to+'"]')?.classList.add("idle-hint-target");
  },IDLE_HINT_DELAY_MS);
 }
 let scoreShown=0,scoreDisplayed=0,scoreRaf=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
@@ -369,7 +370,7 @@ function renderBoard(board,highlight,effect){
     holder.append(emoji,img);btn.append(holder);
    }
   }
-  const cls="tile"+(idleHintIndex===i?" idle-move-hint":"")+(selected===i?" selected":"")+
+  const cls="tile"+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
    (resonance.partners.has(i)?" resonance-partner":"")+

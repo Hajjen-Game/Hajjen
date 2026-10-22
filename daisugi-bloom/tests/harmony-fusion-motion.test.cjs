@@ -61,7 +61,8 @@ async function main(){
  await fusion.playFusion({board:[],groups:[{at:17,removed:[15,16],family:"koi",to:3,number:3}]});
  const travel=samples.filter(x=>x.duration===510);
  assert.equal(travel.length,3,"3-match: two source ghosts plus survivor must share 510ms clock");
- assert(travel.every(x=>x.frames.at(-1).offset===1&&x.frames.at(-1).opacity===undefined||x.frames.at(-1).opacity===1),
+ assert(travel.every(x=>x.frames.at(-1).offset===1&&
+  (x.frames.at(-1).opacity===undefined||x.frames.at(-1).opacity===1)),
   "Gather must persist until the common end time");
  assert.equal(events.filter(x=>x[0]==="ghost").length,2);
  const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
@@ -71,6 +72,25 @@ async function main(){
  assert.equal(pieces[16].style.visibility,"","Source visibility must be restored");
  assert(events.some(e=>e[0]==="fx"&&e[1]==="fusion-intake intake-koi"),
   "Fusion collision should produce a family-colored contact cue");
+
+ for(const [matched,indices,expected] of [
+  [4,[3,4,5],560],
+  [5,[29,30,31,32],610]
+ ]){
+  const before=samples.length;
+  await fusion.playFusion({board:[],groups:[{at:matched===4?6:33,removed:indices,family:"fan",to:4,number:matched}]});
+  const movements=samples.slice(before).filter(x=>x.duration===expected);
+  assert.equal(movements.length,matched,"Match "+matched+" must have a full-length gather for every source");
+  assert(movements.every(x=>x.frames.at(-1).offset===1),"No source may finish early");
+ }
+ // Simultaneous 3+5 matches must share the *longest* gather clock.
+ const parallelBefore=samples.length;
+ await fusion.playFusion({board:[],groups:[
+  {at:10,removed:[9,11],family:"sakura",to:2,number:3},
+  {at:24,removed:[22,23,25,26],family:"lantern",to:3,number:5}
+ ]});
+ assert.equal(samples.slice(parallelBefore).filter(x=>x.duration===610).length,8,
+  "Simultaneous 3+5 fusion waves must not reset shorter ghosts before the longer pull ends");
 
  // Harvest previously shrank objects to 15% over 150ms: almost invisible.
  const harvest=between("async function animateEvent(evt){","async function playEvents(events){");

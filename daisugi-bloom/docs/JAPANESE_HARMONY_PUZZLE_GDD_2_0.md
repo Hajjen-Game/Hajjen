@@ -554,3 +554,16 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Seedade tester:** Tre nivåer, åtta startseeds, två AI-strategier, två motorer = 96 matcher. Målfokuserad AI vann nivå 6: 4/8 Standard → 8/8 Director, nivå 9: 5/8 → 7/8, nivå 10: 8/8 → 8/8. På nivå 6 ökade genomsnittliga målfamiljsmöjligheter från 0,63 till 1,18 per drag. Det är riktade laboratoriefynd, **inte människors vinstchanser**. Director stannar som experiment tills större tester och spelarupplevelse stödjer utrullning.
 
 **Kvalitetssäkring:** Detaljerade deterministiska kontroller av RNG-paritet, balans i påsen, bevarad objektidentitet och att gratis-kedjor inte kan skapas av Director när de saknas i Standard-kandidaten. CI-svit uppdaterad och en mobil A/B-regression tillagd. Full teknisk dokumentation och A/B-filer: `docs/HARMONY_OPPORTUNITY_DIRECTOR_1_0.md`.
+
+
+## Harmony Resonance 1.0 – Japanese Harmony 5.5.0
+
+**Nytt spelbart system:** Stadium 3–4-föremål som står direkt intill en annan pjäs av samma familj bildar en diskret guld-/mintfärgad resonanskoppling. Den synliga kopplingen hjälper spelaren planera en framtida fusion. För att utlösa **Harmony Echo** måste båda föremålen ha varit sammankopplade *innan spelarens manuella drag* och sedan ingå i samma direkta matchning. Kopplingar som uppstår under bytet, automatiska följdfusioner och Harmony Pulse ger aldrig egna Echo-belöningar.
+
+**Echo-belöning:** +125 poäng för stadium 3-ankare, +200 för stadium 4-ankare, högst en Echo per spelardrag. En separat kort klang, mjuk ring och text samt bonuspoäng som flyger till HUD. Ingen extra move, gratis-uppgradering, ny familj, ny resurs eller förändrad slump. Högst sex länkar ritas samtidigt för att hålla spelplanen vacker och lättläst; alla giltiga länkar finns dock kvar i regelmotorn.
+
+**Teknik:** `R.resonanceLinks(board)` är en ren positionsfråga. Echo fungerar med objekt-ID:n genom bytet så att både stage och identitet respekteras. Sparfiler kan nu innehålla `echoes` och fungerar fortfarande med äldre format; resultatvyn visar antalet. Engine Lab-exporten är märkt `gameVersion: 5.5.0` och mäter antalet Echo per AI-test (`avgEchoes`).
+
+**Kontroller:** 120 automatiska matcher över tio nivåer gav 74 Echo-aktiveringar, max en per spelardrag. Resonance-specifika tester verifierar bonuspoäng, sparning, ogiltiga byten och frånvaro av bonuseffekter från passiva kedjereaktioner. Browser smoke kontrollerar att länk-lagret inte blockerar beröring.
+
+**Oförändrat:** Board Glass 1.1, grafisk stil och objektatlas, nivåmål, svårighetsbegränsningar, Director i endast Game Dev, poängflyg, Harmony Pulse, befintlig balans för slump och fusion. Full beskrivning: `docs/HARMONY_RESONANCE_1_0.md`.

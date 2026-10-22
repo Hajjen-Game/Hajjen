@@ -82,7 +82,7 @@ function create(R){
   return [best.a,best.b];
  }
  function play(level,seed,strategy,mode="standard"){
-  assertInt(level,0,R.levels.length-1,"level");
+  assertInt(level,0,999999,"level");
   if(!STRATEGIES.includes(strategy))throw new RangeError("Unknown strategy: "+strategy);
   if(!MODES.includes(mode))throw new RangeError("Unknown mode: "+mode);
   const g=new R.Game(level,null,{seed:seed>>>0,opportunity:mode==="director"});
@@ -160,7 +160,7 @@ function create(R){
   if(!Array.isArray(strategies)||!strategies.length)throw new TypeError("No strategies selected");
   if(!Array.isArray(modes)||!modes.length)throw new TypeError("No modes selected");
   for(const mode of modes)if(!MODES.includes(mode))throw new RangeError("Unknown mode "+mode);
-  for(const level of levels)assertInt(level,0,R.levels.length-1,"level");
+  for(const level of levels)assertInt(level,0,999999,"level");
   for(const strategy of strategies)if(!STRATEGIES.includes(strategy))throw new RangeError("Unknown strategy "+strategy);
   const result=[];
   for(const level of levels)for(const strategy of strategies)for(const mode of modes)for(let trial=0;trial<trials;trial++)

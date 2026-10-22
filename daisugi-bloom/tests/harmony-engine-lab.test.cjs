@@ -80,7 +80,10 @@ async function main(){
   assert.equal(stopped.completed,0);
  });
  check("Invalid diagnostics inputs are rejected instead of silently biasing data",()=>{
-  assert.throws(()=>Lab.run({levels:[20]}),RangeError);
+  assert.throws(()=>Lab.run({levels:[-1]}),RangeError);
+   assert.throws(()=>Lab.run({levels:[1000000]}),RangeError);
+   const late=Lab.run({levels:[50],strategies:["random"],trials:1,seed:88});
+   assert.equal(late.results[0].level,50);
   assert.throws(()=>Lab.run({trials:0}),RangeError);
   assert.throws(()=>Lab.run({strategies:["magic"]}),RangeError);
  });

@@ -615,56 +615,95 @@ function flipMove(previous,next,type){
  });
  return Promise.all(tasks);
 }
-// Fusion has three readable beats: converge -> transform -> settle.
-// The new-stage illustration appears only after the removed objects reach it.
+// Fusion 4.3.1 — physical absorption instead of fading away in transit.
+// The sprite remains fully opaque until it reaches the survivor; the
+// upgraded art is revealed only AFTER every source has visibly arrived.
+function fusionGatherFrames(dx,dy){
+ const at=(t,scale,opacity=1,offset)=>({
+  transform:"translate3d("+(dx*t)+"px,"+(dy*t)+"px,0) scale("+scale+")",
+  opacity,offset
+ });
+ return [
+  at(0,1,1,0),
+  at(0,1.075,1,.13),         // small anticipation: player sees who will move
+  at(.35,1.0,1,.47),          // travel at full visibility
+  at(.80,.86,1,.79),         // begins to converge near survivor
+  at(.98,.66,1,.94),         // remains clearly recognizable almost at contact
+  at(1,.49,.92,1)            // final absorbed at the exact target location
+ ];
+}
+function fusionIntake(groups){
+ if(FAST()||!Element.prototype.animate)return;
+ // One compact amber / family-tinted contact ring per important survivor.
+ for(const g of groups.slice(0,MOBILE_LITE?2:3)){
+  if(!boardTiles[g.at])continue;
+  const r=indexRect(g.at),size=Math.min(r.width,r.height);
+  const cue=fxAt("fusion-intake intake-"+g.family,r.left+r.width*.5,r.top+r.height*.5);
+  cue.style.width=Math.round(size*.84)+"px";
+  cue.style.height=Math.round(size*.84)+"px";
+  animateNode(cue,[
+   {transform:"scale(.55)",opacity:0,offset:0},
+   {transform:"scale(.92)",opacity:.95,offset:.30},
+   {transform:"scale(1.33)",opacity:.58,offset:.62},
+   {transform:"scale(1.6)",opacity:0,offset:1}
+  ],260).finally(()=>cue.remove());
+ }
+}
 async function playFusion(evt){
  const groups=evt.groups||[];
- if(!FAST()){
-  const layer=makeFxLayer(),ghosts=[],tasks=[];
-  for(const group of groups){
-   // One small survivor anticipation per group.
-   const survivor=boardTiles[group.at]?.querySelector(".piece");
-   if(survivor)tasks.push(animateNode(survivor,[
-    {transform:"scale(1)",offset:0},
-    {transform:"scale(.90)",offset:.55},
-    {transform:"scale(1)",offset:1}
-   ],162));
-   for(const i of group.removed){
-    const original=boardTiles[i]?.querySelector(".piece");
-    if(!original)continue;
-    const tile=indexRect(i),dest=indexRect(group.at),ghost=original.cloneNode(true);
-    ghost.classList.add("fusion-ghost");
-    ghost.style.left=(tile.left-layer.rect.left)+"px";
-    ghost.style.top=(tile.top-layer.rect.top)+"px";
-    ghost.style.width=tile.width+"px";ghost.style.height=tile.height+"px";
-    layer.node.appendChild(ghost);ghosts.push({original,ghost});
-    original.style.visibility="hidden";
-    tasks.push(animateNode(ghost,[
-     {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:0},
-     {transform:"translate3d("+((dest.left-tile.left)*.62)+"px,"+((dest.top-tile.top)*.62)+"px,0) scale(.74)",opacity:1,offset:.65},
-     {transform:"translate3d("+(dest.left-tile.left)+"px,"+(dest.top-tile.top)+"px,0) scale(.20)",opacity:.12,offset:1}
-    ],162,{easing:"cubic-bezier(.4,.1,.7,1)"}));
+ if(!FAST()&&groups.length){
+  const layer=makeFxLayer(),hidden=[],tasks=[];
+  try{
+   for(const group of groups){
+    const survivor=boardTiles[group.at]?.querySelector(".piece");
+    if(survivor)tasks.push(animateNode(survivor,[
+     {transform:"scale(1)",offset:0},
+     {transform:"scale(.91)",offset:.24},
+     {transform:"scale(1.10)",offset:.85},
+     {transform:"scale(.96)",offset:1}
+    ],280,{easing:"cubic-bezier(.26,.3,.65,1)"}));
+    for(const i of group.removed){
+     const original=boardTiles[i]?.querySelector(".piece");
+     if(!original)continue;
+     const from=indexRect(i),to=indexRect(group.at);
+     const ghost=original.cloneNode(true);
+     ghost.classList.add("fusion-ghost");
+     ghost.style.left=(from.left-layer.rect.left)+"px";
+     ghost.style.top=(from.top-layer.rect.top)+"px";
+     ghost.style.width=from.width+"px";
+     ghost.style.height=from.height+"px";
+     // Ghost is safely above the board and carries the unchanged sprite.
+     layer.node.appendChild(ghost);
+     hidden.push(original);
+     original.style.visibility="hidden";
+     tasks.push(animateNode(ghost,
+      fusionGatherFrames(to.left-from.left,to.top-from.top),
+      280,{easing:"cubic-bezier(.34,.16,.72,1)"}));
+    }
    }
+   await Promise.all(tasks);
+  }finally{
+   for(const original of hidden)original.style.visibility="";
+   layer.node.remove();
   }
-  try{await Promise.all(tasks);}
-  finally{for(const {original} of ghosts)original.style.visibility="";layer.node.remove();}
  }
- if(groups.length)sound("fusion",{family:groups[0].family,stage:groups[0].to,combo:Math.max(...groups.map(g=>g.number))});
+ if(groups.length)sound("fusion",{
+  family:groups[0].family,stage:groups[0].to,
+  combo:Math.max(...groups.map(g=>g.number))
+ });
+ // Contact is the boundary between moving sources and new survivor stage.
+ // The existing fusion effects are kept deliberately subtle.
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
+ fusionIntake(groups);
  fusionBurst(groups.map(g=>g.at),groups);
- // The evolved art blooms only after the gathering, rather than simply
- // popping to a new sprite under an unrelated effect.
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
-  {transform:"translate3d(0,1px,0) scale(.74)",opacity:.72,offset:0},
-  {transform:"translate3d(0,-2px,0) scale(1.125)",opacity:1,offset:.60},
+  {transform:"translate3d(0,1px,0) scale(.80)",opacity:.9,offset:0},
+  {transform:"translate3d(0,-2px,0) scale(1.13)",opacity:1,offset:.58},
   {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
   {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
- ],245,{easing:"cubic-bezier(.2,.67,.26,1)"})));
- // Show the family's full-sized transformation AFTER the evolved sprite settles,
- // so it cannot disappear during the gather/swap animation.
+ ],215,{easing:"cubic-bezier(.2,.67,.26,1)"})));
  evolveFamilyFx(groups);
  evolutionStageLabels(groups);
- // Family-specific signature replaces the old generic glint. No extra VFX.
 }
 // Energy travels out from the masterpiece BEFORE affected items transform.
 // Capped number of visible energy paths; never cap logical target updates.
@@ -760,13 +799,34 @@ async function animateEvent(evt){
     {transform:"scale(.88)",offset:0},{transform:"scale(1.19)",offset:.56},{transform:"scale(1)",offset:1}
    ],180)));
    break;
-  case "harvest":
+  case "harvest":{
    sound("harvest",{chain:evt.chain});
-   if(!FAST())await Promise.all((evt.positions||[]).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
-     {transform:"scale(1)",opacity:1},{transform:"translate3d(0,-12px,0) scale(.15)",opacity:0}
-   ],150)));
+   const positions=evt.positions||[];
+   if(!FAST()){
+    // Masterpieces remain intact while rising. Only the final quarter
+    // of the motion dissolves, with a small warm "released energy" ring.
+    const tasks=positions.map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
+     {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:0},
+     {transform:"translate3d(0,-3px,0) scale(1.10)",opacity:1,offset:.26},
+     {transform:"translate3d(0,-10px,0) scale(.94)",opacity:1,offset:.71},
+     {transform:"translate3d(0,-18px,0) scale(.58)",opacity:0,offset:1}
+    ],295,{easing:"cubic-bezier(.25,.4,.46,1)"}));
+    for(const at of positions.slice(0,MOBILE_LITE?2:3)){
+     if(!boardTiles[at])continue;
+     const r=indexRect(at),cue=fxAt("harvest-release",r.left+r.width*.5,r.top+r.height*.5);
+     cue.style.width=Math.round(r.width)+"px";
+     cue.style.height=Math.round(r.height)+"px";
+     animateNode(cue,[
+      {transform:"scale(.46)",opacity:0,offset:0},
+      {transform:"scale(1)",opacity:.85,offset:.35},
+      {transform:"scale(1.52)",opacity:0,offset:1}
+     ],330).finally(()=>cue.remove());
+    }
+    await Promise.all(tasks);
+   }
    renderBoard(evt.board);
    break;
+  }
   case "fall":
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");

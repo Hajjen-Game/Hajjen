@@ -478,7 +478,53 @@ class Game{
  finish(){if(!this.complete)return false;this.moves=0;return true;}
  save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
 }
+// Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
+// each legal move in a cloned, non-destructive Game instance. Reward immediate
+// points, progress toward the objective, higher evolution, Masterpieces, Echo,
+// and Pulse; never choose randomly just because a move is technically legal.
+//
+// Hints must not consume moves, random rolls, saved state, or award score.
+// Deliberately a one-move assessment: does not play the level for the user.
+function bestHint(game){
+ if(!game||!game.board||game.board.length!==N*N||game.moves<=0||game.failed)return null;
+ const legal=validSwaps(game.board);
+ if(!legal.length)return null;
+ let best=null;
+ const previousProgress=game.progress();
+ for(const pair of legal){
+  const hint=directedHint(game.board,pair);
+  if(!hint)continue;
+  // New snapshot for EACH trial: the preview's bag and RNG must be isolated
+  // from the real game and other candidate previews.
+  const trial=new Game(game.level,game.save(),{fastRestore:true});
+  // Use the SAME direction presented by the hint: preferred destination
+  // can change the fusion survivor, bonus placement, cascades and points.
+  const result=trial.swap(hint.from,hint.to);
+  if(!result.ok)continue;
+  const points=trial.score-game.score;
+  const made=trial.masterpieces-game.masterpieces;
+  const stage4=trial.stage4-game.stage4;
+  const stage3=trial.stage3-game.stage3;
+  const echo=trial.echoes-game.echoes;
+  const pulse=trial.pulseHits-game.pulseHits;
+  const goalProgress=Math.max(0,trial.progress()-previousProgress);
+  // For score levels, points ARE the objective; never double-count them.
+  const goalWeight=game.config.goal.type==="score"?0:450;
+  const value=points+made*1100+stage4*350+stage3*150+
+   echo*200+pulse*55+goalProgress*goalWeight;
+  const sourceStage=game.board[hint.from]?.stage||0;
+  // Stable tie-break favors moving the LESS evolved object; it leaves a
+  // mature piece in position when equivalent swaps give the same outcome.
+  const candidate={...hint,pair:pair.slice(),value,expectedPoints:points,
+   goalProgress,made,stage4,stage3,echo,pulse,sourceStage};
+  if(!best||candidate.value>best.value||
+   (candidate.value===best.value&&candidate.sourceStage<best.sourceStage)||
+   (candidate.value===best.value&&candidate.sourceStage===best.sourceStage&&
+    (candidate.from<best.from||(candidate.from===best.from&&candidate.to<best.to))))best=candidate;
+ }
+ return best;
+}
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

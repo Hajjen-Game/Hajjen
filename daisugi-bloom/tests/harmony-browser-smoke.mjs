@@ -44,11 +44,16 @@ try{
     targetAnimation:getComputedStyle(target).animationName,
     sourceGlow:getComputedStyle(source).boxShadow,
     targetGlow:getComputedStyle(target).boxShadow,
+    bestIsShown:(()=>{
+     const live=new R.Game(0,saved.run.data,{fastRestore:true});
+     const chosen=R.bestHint(live);
+     return !!chosen&&chosen.from===from&&chosen.to===to;
+    })(),
     tappable:getComputedStyle(source).pointerEvents!=="none"&&getComputedStyle(target).pointerEvents!=="none"
    };
   });
-  assert(hint.legal&&hint.directed&&!hint.moveUsed&&hint.tappable,
-   "The direction and both cells must correspond to a real, free move");
+  assert(hint.legal&&hint.directed&&hint.bestIsShown&&!hint.moveUsed&&hint.tappable,
+   "The hint must show the best evaluated legal move, without consuming score or moves");
   assert.equal(hint.sourceAnimation,"none","Source is the steady stronger gold highlight");
   assert(hint.targetAnimation.includes("jh-idle-target-pulse"),"Destination must pulse softly");
   assert(hint.sourceGlow!==hint.targetGlow,"The two tile hints must be visually differentiated");

@@ -222,4 +222,51 @@ check("Directed hints always identify both ends of a real swap",()=>{
   }
  }
 });
+check("Smart idle hint prefers the useful Sakura fusion and Harmony Echo",()=>{
+ // Reconstructed family layout from the mobile screenshot, with the
+ // observed mature Sakura in row 5 col 3 and younger Sakura above/below.
+ const rows=[
+  ["lantern","koi","ryu","sushi","lantern","ryu","koi"],
+  ["lantern","sakura","sakura","lantern","koi","sakura","ryu"],
+  ["koi","koi","sakura","lantern","ryu","lantern","sushi"],
+  ["sakura","koi","ryu","sushi","koi","sushi","koi"],
+  ["koi","sushi","sakura","sushi","lantern","sakura","sushi"],
+  ["sushi","koi","sakura","ryu","lantern","sakura","sushi"],
+  ["lantern","ryu","koi","lantern","koi","lantern","lantern"]
+ ];
+ const g=new R.Game(12,null,{seed:27189});
+ g.board=rows.flat().map((family,id)=>({
+  family,id:id+1,stage:id===30?3:id===23?2:id===18?2:1
+ }));
+ g.nextId=50;g.moves=17;g.score=800;
+ const before=JSON.stringify(g.save()),options=R.validSwaps(g.board);
+ assert(options.some(pair=>pair[0]===16&&pair[1]===23));
+ assert(options.some(pair=>pair[0]===23&&pair[1]===30));
+ const down=new R.Game(12,g.save(),{fastRestore:true});
+ const up=new R.Game(12,g.save(),{fastRestore:true});
+ down.swap(16,23);up.swap(23,30);
+ assert(down.score-g.score>up.score-g.score,
+  "Keeping the developed Sakura in place can activate Echo and yield more points");
+ assert(down.echoes>g.echoes,"The downwards move should activate an existing Harmony Echo");
+ const hint=R.bestHint(g);
+ assert.deepEqual({from:hint.from,to:hint.to},{from:16,to:23},
+  "Prefer row 3 col 3 DOWN into row 4 col 3, not the bigger Sakura from below");
+ assert.equal(JSON.stringify(g.save()),before,"Evaluating previews must never mutate the real board, RNG, moves or score");
+ assert(options.some(pair=>pair.includes(hint.from)&&pair.includes(hint.to)));
+});
+check("Smart hint consistently proposes valid swaps and keeps all saves unchanged",()=>{
+ for(const level of [0,2,3,5,7,8,9,10,12,29,49]){
+  const g=new R.Game(level,null,{seed:19278+level});
+  const before=JSON.stringify(g.save());
+  const hint=R.bestHint(g);
+  assert(hint&&Number.isFinite(hint.value)&&hint.value>=0);
+  const legal=R.validSwaps(g.board);
+  assert(legal.some(pair=>pair.includes(hint.from)&&pair.includes(hint.to)));
+  assert.equal(JSON.stringify(g.save()),before,"Preview must not affect score, bag, rolls, or any save field");
+  const cloned=new R.Game(level,g.save(),{fastRestore:true});
+  const result=cloned.swap(hint.from,hint.to);
+  assert(result.ok);
+  assert.equal(cloned.score-g.score,hint.expectedPoints);
+ }
+});
 console.log("Japanese Harmony rule tests passed");

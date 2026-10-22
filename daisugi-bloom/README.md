@@ -1,8 +1,8 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
-## Idle Move Hint 1.0 — 2026-10-22
+## Smart Directed Move Hint 1.2 — 2026-10-22
 
-När spelaren inte interagerat med spelplanen på **60 sekunder** markeras exakt en ruta som ingår i ett tillåtet byte med en diskret guldglöd och puls. Den väljs direkt från `HarmonyRules.validSwaps(game.board)`; ingen slumpmässig/omöjlig matchning föreslås. Ledtråden är gratis, flyttar inget, ger inga poäng och förbrukar inga drag. Den försvinner vid nästa interaktion och återkommer tidigast en ny minut senare. Ledtrådar pausas under animationer, menyer, inaktiv webbläsarflik och nivåresultat. Inställningen **Minska animationer** ger en statisk glöd.
+När spelaren inte interagerat med spelplanen på **60 sekunder** räknar `HarmonyRules.bestHint(game)` fram det mest belönande draget bland samtliga tillåtna byten. Motorn förhandsberäknar poäng, måluppfyllelse, utveckling till högre stadier, Masterpieces, Harmony Echo och Harmony Pulse på **separata kopior av spelet** och ändrar aldrig den riktiga spelplanen. Brickan som ska flyttas lyser starkt guld, medan destinationen pulserar mjukare mintvitt. Lika bra alternativ prioriterar en lägre utvecklad bricka som källa. Ledtråden är gratis, förbrukar inga drag och försvinner vid nästa interaktion. Den pausas under animationer, menyer och inaktiv flik. **Minska animationer** visar ett statiskt sken.
 
 ## Endless Journey & Masterpiece Collection 1.0 — 2026-10-22
 

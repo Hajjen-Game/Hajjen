@@ -32,10 +32,7 @@ function restartIdleHint(){
  idleHintTimer=setTimeout(()=>{
   idleHintTimer=0;
   if(!hintEligible())return;
-  const legal=R.validSwaps(game.board);
-  if(!legal.length)return;
-  const pair=legal[Math.floor(Math.random()*legal.length)];
-  const hint=R.directedHint(game.board,pair);
+  const hint=R.bestHint(game);
   if(!hint)return;
   idleHintFrom=hint.from;idleHintTo=hint.to;
   document.querySelector('.tile[data-index="'+hint.from+'"]')?.classList.add("idle-hint-source");

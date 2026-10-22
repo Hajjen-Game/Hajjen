@@ -381,6 +381,34 @@ try{
  const fallback=await page.evaluate(()=>({image:getComputedStyle(document.body,"::before").backgroundImage,
    visible:getComputedStyle(document.body,"::before").display}));
  assert(fallback.image.includes("festival-night-six.avif")&&fallback.visible!=="none","Broken HD URL must trigger the legacy scenic fallback");
+ // Fair Refill & Shuffle 2.0: execute a real identity-safe reshuffle
+ // in the mobile browser, including developed objects and the no-free-match
+ // contract. The historical shuffle changed family labels in place.
+ const shuffleContract=await page.evaluate(()=>{
+  const R=window.HarmonyRules;
+  const families=R.activeFamilies(0);
+  const input=Array.from({length:49},(_,i)=>({
+   id:i+1,stage:i%4+1,
+   family:families[(Math.floor(i/7)+i%7)%5]
+  }));
+  let x=20261022;
+  const rand=()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};
+  const shuffled=R.fairShuffle(input,rand);
+  const sorted=board=>board.slice().sort((a,b)=>a.id-b.id);
+  return {
+   oldMoves:R.validSwaps(input).length,
+   legal:R.validSwaps(shuffled).length,
+   freebies:R.scan(shuffled).length,
+   identical:JSON.stringify(sorted(input))===JSON.stringify(sorted(shuffled)),
+   moved:shuffled.filter((p,i)=>p.id!==input[i].id).length
+  };
+ });
+ assert.equal(shuffleContract.oldMoves,0,"Shuffling requires a genuinely locked board");
+ assert.equal(shuffleContract.freebies,0,"Fair shuffle must never give a free fusion");
+ assert(shuffleContract.legal>=3,"Fair shuffle must create playable moves");
+ assert(shuffleContract.identical&&shuffleContract.moved>0,
+  "Fair shuffle must move physical object identities, including all evolved stages");
+
  // Expansion 5.0 regression: all nine identities appear in the first
  // three levels; exactly five, with every selected family represented.
  const expansion=await page.evaluate(()=>{

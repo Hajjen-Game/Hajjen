@@ -492,3 +492,20 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Prestanda:** Inga nya DOM-lager, bilder, partiklar eller `backdrop-filter` på mobilen. Detta är endast statiska CSS-färger och bakgrundsgradienter, och påverkar inte funktionerna från 4.x och 5.0. Samma spelplan fungerar oavsett vilken Festival Night-bakgrund som visas.
 
 **Test:** `harmony-browser-smoke.mjs` har en computed-style-regression som kontrollerar att både udda och jämna brickor faktiskt är blå/teal och delvis transparenta när mobilens alla CSS-overrides har applicerats, samt att den gyllene ramens inset-shadow finns kvar. Visuell bedömning på användarens Android-enhet återstår.
+
+
+## Board Glass 1.1 Polish – mjukare rutor och objektseparation (2026-10-22)
+
+**Utgångspunkt:** Mobilfoto av Board Glass 1.0 visar att mörkblå genomskinlighet och den gyllene ramen fungerar bra. Nästa kvalitetssteg ska vara subtilt; inget omtag på grafisk stil eller objektbilder.
+
+**Förändringar i Japanese Harmony 5.1.1:**
+- **Rutnätslinjer:** Brädets mellanrum reducerat från 2 px till 1,6 px och kantlinjens färg/styrka sänkt. Tile-outline och inre högdager sänkta till omkring 8,5 % respektive 5 % opacitet.
+- **Mild glasyta:** Varje ruta får ett radialgradient-lager med mycket svag central ljuspunkt. Udda och jämna rutor har något olika intensitet. Själva RGBA-bakgrundsfärgerna från Board Glass 1.0 förblir oförändrade, vilket är viktigt för färgerna vid swap, Pulse, harvest och shuffle.
+- **Transparent objektseparation:** En enda liten `drop-shadow(0 2px 2px rgba(4,18,29,.23))` på frilagda sprites och deras tillfälliga fusionskopior. Ursprungliga fem familjers bilder och de 20 nya godkända bilderna ändras inte. All skuggning sker med CSS.
+- **Selected state:** Den gyllene 2 px-markeringen består, kompletterad med en ytterst tunn ljusare kant. Den aktiva rutan har en mycket svag varmgul ljusning.
+
+**Oförändrat:** Den mörkblå basfärgen från 5.1.0, guld-/beigeram, samtliga tre Festival Night-bakgrunder, nio familjer och fem stadier, score/HUD, spelregler, sammanslagningstiming, alla ljud och Harmony Pulse.
+
+**Prestanda:** Inga nya DOM-noder, filter över hela spelplanen, `backdrop-filter`, bilder eller animerade ljuseffekter. En diskret skugga per enskilt spriteskikt tillkommer; användarens Android-test avgör eventuellt behov av ytterligare kostnadsminskning.
+
+**Regression:** Browser-smoke kontrollerar beräknad grid-gap (1,4–1,9 px), diskret radialsken i både udda och jämna rutor, korrekt drop-shadow på objekt, att selected state fortfarande har guldmarkeringen, och att samtliga fyra effektlägen bibehåller sina färger. Existerande testsvit för matchning, femstadier, nio familjer, VFX, ljud, poäng och performance kvarstår.

@@ -124,6 +124,58 @@ function fairShuffle(board,rand){
  // Fail clearly, rather than secretly destroying invested stage-4 objects.
  throw new Error("No playable identity-preserving shuffle exists for this board");
 }
+// Harmony Opportunity Director 1.0 — developer-only experimental refill.
+// Candidate pools use the SAME 4-of-each-family bag and the SAME 78%
+// anti-free-match roll as standard 5.3. All candidate worlds are in-memory,
+// deterministic forks from one parent RNG draw, never hand-authored rewards.
+function drawBagFamily(bag,families,board,index,rand){
+ if(!bag.length)for(const family of families)for(let n=0;n<4;n++)bag.push(family);
+ const original=Math.floor(rand()*bag.length);
+ let chosen=original;
+ if(board&&index>=0&&rand()<.78&&wouldMatchAt(board,index,bag[original])){
+  const safe=[];
+  for(let n=0;n<bag.length;n++)if(!wouldMatchAt(board,index,bag[n]))safe.push(n);
+  if(safe.length)chosen=safe[Math.floor(rand()*safe.length)];
+ }
+ return bag.splice(chosen,1)[0];
+}
+// Count playable matches that develop invested stages and/or the objective
+// family. Never look into future RNG here: this examines CURRENT legal swaps.
+function opportunityMetrics(board,goal){
+ const swaps=validSwaps(board);
+ let meaningful=0,goalReady=0,nearMasterpiece=0;
+ for(const [a,b] of swaps){
+  [board[a],board[b]]=[board[b],board[a]];
+  const groups=scan(board).filter(g=>g.includes(a)||g.includes(b));
+  for(const group of groups){
+   const maxStage=Math.max(...group.map(i=>board[i].stage));
+   if(maxStage>=3)meaningful++;
+   if(maxStage>=4)nearMasterpiece++;
+   if(goal?.type==="familyMasterpiece"&&board[group[0]].family===goal.family){
+    if(maxStage>=2)goalReady+=maxStage>=4?3:maxStage===3?2:1;
+   }
+  }
+  [board[a],board[b]]=[board[b],board[a]];
+ }
+ const legal=swaps.length;
+ // Reward choices but do not simply optimize for 30+ low-value moves.
+ const score=Math.min(legal,16)*.28+
+  Math.min(meaningful,8)*2.7+
+  Math.min(nearMasterpiece,4)*4.2+
+  Math.min(goalReady,9)*4.4;
+ return {legal,meaningful,nearMasterpiece,goalReady,score};
+}
+function draftRefill(board,bag,families,nextId,rand){
+ const candidate=clone(board),remaining=bag.slice();
+ let serial=nextId,placed=0;
+ for(let i=0;i<N*N;i++){
+  if(candidate[i])continue;
+  const family=drawBagFamily(remaining,families,candidate,i,rand);
+  candidate[i]={family,stage:1,id:serial++};placed++;
+ }
+ return {board:candidate,bag:remaining,nextId:serial,placed,
+  autoMatches:scan(candidate).length};
+}
 function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Math.random()*0xffffffff))>>>0;}
 class Game{
  constructor(index=0,previous=null,options=null){
@@ -132,6 +184,7 @@ class Game{
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
+  this.opportunity=options?.opportunity===true; // Opt-in only; default game unchanged.
   this.rolls=0;this.random=prng(this.seed);
   this.bag=[];
   // Diagnostics-only fast restore avoids creating an unused random start
@@ -165,20 +218,37 @@ class Game{
  }
  fresh(){this.rolls++;return this.random();}
  nextFamily(board=null,index=-1){
-  if(!this.bag.length)this.bag=this.families.flatMap(f=>Array.from({length:4},()=>f));
-  // Draw a tentative real entry from the 4-per-family bag. When the 78%
-  // cascade dampener applies, redirect only to ANOTHER ENTRY IN THAT BAG.
-  // The rejected family remains available; exactly one placed object is
-  // consumed. This avoids silently exhausting an unplaced objective family.
-  const proposed=Math.floor(this.fresh()*this.bag.length);
-  let chosen=proposed;
-  if(board&&index>=0&&this.fresh()<.78&&wouldMatchAt(board,index,this.bag[proposed])){
-   const safe=[];
-   for(let k=0;k<this.bag.length;k++)
-    if(!wouldMatchAt(board,index,this.bag[k]))safe.push(k);
-   if(safe.length)chosen=safe[Math.floor(this.fresh()*safe.length)];
+  return drawBagFamily(this.bag,this.families,board,index,()=>this.fresh());
+ }
+ refillOpportunity(){
+  const vacancies=this.board.filter(p=>!p).length;
+  if(!vacancies)return;
+  // One fork seed per complete refill. Candidate replay does not interfere
+  // with the live turn's RNG or with a player's stored bag conservation.
+  const fork=Math.floor(this.fresh()*4294967296)>>>0;
+  const candidates=[];
+  for(let c=0;c<4;c++){
+   const seed=(fork^(Math.imul(c+1,0x9e3779b1)))>>>0;
+   candidates.push(draftRefill(this.board,this.bag,this.families,
+    this.nextId,prng(seed)));
   }
-  return this.bag.splice(chosen,1)[0];
+  const baseline=candidates[0];
+  let selected=baseline;
+  // Preserve the existence of automatic chain reactions in baseline random
+  // outcome. Only compare alternative boards when baseline has NO free match.
+  if(baseline.autoMatches===0){
+   let best=opportunityMetrics(baseline.board,this.config.goal).score;
+   for(const candidate of candidates.slice(1)){
+    if(candidate.autoMatches!==0)continue;
+    const value=opportunityMetrics(candidate.board,this.config.goal).score;
+    if(value>best+1.8){best=value;selected=candidate;}
+   }
+  }
+  this.board=selected.board;
+  this.bag=selected.bag;
+  this.nextId=selected.nextId;
+  this.directorRefills=(this.directorRefills||0)+1;
+  if(selected!==baseline)this.directorSelections=(this.directorSelections||0)+1;
  }
  target(){return this.config.goal.count;}
  progress(){
@@ -256,7 +326,8 @@ class Game{
     let keep=[];for(let r=N-1;r>=0;r--)if(this.board[r*N+c])keep.push(this.board[r*N+c]);
     for(let r=N-1;r>=0;r--)this.board[r*N+c]=keep[N-1-r]||null;
    }
-   for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+   if(this.opportunity)this.refillOpportunity();
+   else for(let r=0;r<N;r++)for(let c=0;c<N;c++){
     let i=r*N+c;if(this.board[i])continue;
     const family=this.nextFamily(this.board,i);
     this.board[i]={family,stage:1,id:this.nextId++};
@@ -286,9 +357,9 @@ class Game{
   this.moves--;return {ok:true,events:[this.frame("swap",{from:a,to:b}),...this.resolve(b)]};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
+ save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle};
+const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

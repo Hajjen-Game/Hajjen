@@ -241,10 +241,10 @@ try{
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
  const gather=await page.evaluate(()=>window.__gatherMotion);
  assert(gather.length>=2,"A normal fusion must physically carry two source pieces into the survivor");
- assert(gather.every(g=>g.duration>=510&&g.frames.length===7&&
-  g.frames.every(k=>k.opacity===1)&&g.frames.at(-1).offset===1&&
-  g.frames.at(-1).transform===g.frames.at(-2).transform),
-  "A 3–5 match must use slow, fully visible absorption plus a distinct contact hold");
+ assert(gather.every(g=>g.duration===280&&g.frames.length===6&&
+  g.frames.slice(0,-1).every(k=>k.opacity===1)&&g.frames.at(-1).opacity>=.9&&
+  g.frames.at(-1).offset===1),
+  "A 3–5 match must use the restored 280ms gathering animation on its real board coordinates");
  assert(await page.evaluate(()=>!!window.__invalidMotion.length),"Rebound keyframes should have been recorded");
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  // Count animation must finish with the earned amount, not stick on an

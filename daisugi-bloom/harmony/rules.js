@@ -78,6 +78,52 @@ function startBoard(level,random,families){
   if(families.every(f=>board.some(p=>p.family===f))&&validSwaps(board).length>=3)return board;
  }
 }
+// Fair Shuffle 2.0 — physical object relocation, never identity mutation.
+// Rebuild a valid arrangement of the exact same pieces (id, family, stage).
+// No free matches, at least three legal swaps where attainable. No boosters,
+// pieces, extra moves or artificial stage upgrades are introduced.
+function fairShuffle(board,rand){
+ if(board.length!==N*N||board.some(p=>!p))throw new Error("Fair shuffle needs a full 7x7 board");
+ const originals=board.slice();
+ const byFamily=new Map();
+ for(const piece of originals){
+  if(!byFamily.has(piece.family))byFamily.set(piece.family,[]);
+  byFamily.get(piece.family).push(piece);
+ }
+ // A weighted bag retains exact object counts. Each source object is moved,
+ // never duplicated or converted to a different family or stage.
+ for(let attempt=0;attempt<240;attempt++){
+  const pools=new Map([...byFamily].map(([f,items])=>[f,items.slice()]));
+  const candidate=[];
+  let deadEnd=false;
+  for(let i=0;i<N*N;i++){
+   const banned=new Set(),c=i%N,r=Math.floor(i/N);
+   if(c>=2&&candidate[i-1].family===candidate[i-2].family)banned.add(candidate[i-1].family);
+   if(r>=2&&candidate[i-N].family===candidate[i-2*N].family)banned.add(candidate[i-N].family);
+   let total=0,options=[];
+   for(const [family,items] of pools){
+    if(items.length&&!banned.has(family)){options.push([family,items]);total+=items.length;}
+   }
+   if(!total){deadEnd=true;break;}
+   let pick=Math.floor(rand()*total),chosen=options[0];
+   for(const option of options){if(pick<option[1].length){chosen=option;break;}pick-=option[1].length;}
+   const items=chosen[1],at=Math.floor(rand()*items.length);
+   candidate.push(items.splice(at,1)[0]);
+  }
+  if(!deadEnd&&validSwaps(candidate).length>=3)return candidate;
+ }
+ // Fallback for particularly uneven piece distributions: pairwise repair of
+ // the existing, match-free board, again moving whole object identities.
+ for(let i=0;i<N*N;i++)for(let j=i+1;j<N*N;j++){
+  if(originals[i].family===originals[j].family)continue;
+  const candidate=originals.slice();
+  [candidate[i],candidate[j]]=[candidate[j],candidate[i]];
+  if(scan(candidate).length===0&&validSwaps(candidate).length>=1)return candidate;
+ }
+ // A malformed all-one-family board cannot be resolved by permutation alone.
+ // Fail clearly, rather than secretly destroying invested stage-4 objects.
+ throw new Error("No playable identity-preserving shuffle exists for this board");
+}
 function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Math.random()*0xffffffff))>>>0;}
 class Game{
  constructor(index=0,previous=null,options=null){
@@ -118,9 +164,21 @@ class Game{
   }
  }
  fresh(){this.rolls++;return this.random();}
- nextFamily(){
-  if(!this.bag.length){this.bag=this.families.flatMap(f=>Array.from({length:4},()=>f));}
-  let at=Math.floor(this.fresh()*this.bag.length);return this.bag.splice(at,1)[0];
+ nextFamily(board=null,index=-1){
+  if(!this.bag.length)this.bag=this.families.flatMap(f=>Array.from({length:4},()=>f));
+  // Draw a tentative real entry from the 4-per-family bag. When the 78%
+  // cascade dampener applies, redirect only to ANOTHER ENTRY IN THAT BAG.
+  // The rejected family remains available; exactly one placed object is
+  // consumed. This avoids silently exhausting an unplaced objective family.
+  const proposed=Math.floor(this.fresh()*this.bag.length);
+  let chosen=proposed;
+  if(board&&index>=0&&this.fresh()<.78&&wouldMatchAt(board,index,this.bag[proposed])){
+   const safe=[];
+   for(let k=0;k<this.bag.length;k++)
+    if(!wouldMatchAt(board,index,this.bag[k]))safe.push(k);
+   if(safe.length)chosen=safe[Math.floor(this.fresh()*safe.length)];
+  }
+  return this.bag.splice(chosen,1)[0];
  }
  target(){return this.config.goal.count;}
  progress(){
@@ -200,26 +258,13 @@ class Game{
    }
    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
     let i=r*N+c;if(this.board[i])continue;
-    let family=this.nextFamily();
-    if(this.fresh()<.78){
-     const alternatives=this.families.filter(f=>!wouldMatchAt(this.board,i,f));
-     if(wouldMatchAt(this.board,i,family)&&alternatives.length)family=randItem(alternatives,()=>this.fresh());
-    }
+    const family=this.nextFamily(this.board,i);
     this.board[i]={family,stage:1,id:this.nextId++};
    }
    events.push(this.frame("fall",{round:waveRound}));preferred=-1;
   }
   if(!validSwaps(this.board).length){
-   const movable=this.board.map((p,i)=>p&&p.stage===1?i:-1).filter(i=>i>=0);
-   for(let k=0;k<120&&!validSwaps(this.board).length;k++){
-    let i=randItem(movable,()=>this.fresh()),j=randItem(movable,()=>this.fresh());
-    if(i!==undefined&&j!==undefined){let f=this.board[i].family;this.board[i].family=this.board[j].family;this.board[j].family=f;}
-   }
-   // If a stage-one-only shuffle still cannot recover the board, swap any non-hero tiles.
-   if(!validSwaps(this.board).length)for(let k=0;k<100&&!validSwaps(this.board).length;k++){
-    let a=Math.floor(this.fresh()*49),b=Math.floor(this.fresh()*49);
-    let f=this.board[a].family;this.board[a].family=this.board[b].family;this.board[b].family=f;
-   }
+   this.board=fairShuffle(this.board,()=>this.fresh());
    events.push(this.frame("shuffle"));
   }
   if(!this.complete&&this.fulfilled()){
@@ -244,6 +289,6 @@ class Game{
  save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard};
+const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

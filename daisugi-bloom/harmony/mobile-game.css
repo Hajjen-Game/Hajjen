@@ -992,3 +992,54 @@ body.harmony-playing .fusion-fx-layer .fusion-ghost .sprite{
  font-size:11px!important;color:#dce9df!important
 }
 .engine-comparison p:last-child{border-bottom:0}
+
+/* Harmony Resonance 1.0 · restrained adjacency accents, no extra art assets.
+   Links live in the board-shell's local coordinate space, never intercept taps. */
+body.harmony-playing .game-view .resonance-links{
+ position:absolute;inset:0;z-index:4;pointer-events:none;
+ border-radius:inherit;overflow:hidden;
+}
+body.harmony-playing .game-view .resonance-link{
+ position:absolute;display:block;height:2px;
+ transform-origin:left center;
+ background:linear-gradient(90deg,rgba(210,223,197,.08),rgba(234,213,150,.70),rgba(167,230,211,.15));
+ box-shadow:0 0 5px 1px rgba(174,225,198,.20),0 0 2px rgba(239,215,150,.18);
+ border-radius:99px;opacity:.82;
+}
+body.harmony-playing .game-view .resonance-link.mature{
+ height:2.5px;box-shadow:0 0 7px rgba(255,220,141,.31);
+}
+body.harmony-playing .game-view .tile.resonance-anchor:not(.selected){
+ box-shadow:inset 0 0 0 1px rgba(220,208,147,.48),inset 0 0 12px rgba(179,219,177,.08);
+}
+body.harmony-playing .game-view .tile.resonance-partner:not(.selected):not(.resonance-anchor){
+ box-shadow:inset 0 0 0 1px rgba(171,212,200,.25);
+}
+body.harmony-playing .game-view .tile.resonance-anchor::after{
+ content:"";position:absolute;bottom:5px;right:5px;z-index:3;
+ width:5px;height:5px;border-radius:50%;pointer-events:none;
+ background:#f2dc9a;box-shadow:0 0 5px 1px rgba(240,204,130,.55);
+ animation:resonance-glisten 3.6s ease-in-out infinite alternate;
+}
+@keyframes resonance-glisten{from{opacity:.40}to{opacity:.88}}
+.resonance-echo-ring,.resonance-echo-label{
+ position:absolute;display:block;pointer-events:none;
+ translate:-50% -50%;will-change:transform,opacity;
+}
+.resonance-echo-ring{
+ border:2px solid rgba(246,212,148,.93);border-radius:50%;
+ box-shadow:0 0 0 2px rgba(139,211,193,.18),
+  0 0 14px 4px rgba(214,193,126,.30),
+  inset 0 0 11px rgba(135,227,210,.23);
+}
+.resonance-echo-label{
+ white-space:nowrap;font-size:clamp(9px,2.45vw,12px);font-weight:900;
+ letter-spacing:.065em;color:#f5e2ad;
+ padding:3px 7px;border-radius:12px;
+ background:rgba(12,37,47,.87);border:1px solid rgba(240,213,150,.55);
+ text-shadow:0 0 8px rgba(248,216,153,.35);
+}
+@media(prefers-reduced-motion:reduce){
+ body.harmony-playing .game-view .tile.resonance-anchor::after{animation:none;opacity:.8}
+ .resonance-echo-ring,.resonance-echo-label{display:none}
+}

@@ -943,3 +943,37 @@ body.harmony-playing .game-view .piece .sprite,
 body.harmony-playing .fusion-fx-layer .fusion-ghost .sprite{
  filter:drop-shadow(0 2px 2px rgba(4,18,29,.23));
 }
+
+/* Engine Intelligence & Diagnostics 1.0: developer-only, on-demand lab UI.
+   No persistent overlays or animation layers during ordinary puzzle play. */
+.engine-controls{display:grid;gap:10px;margin:13px 0;}
+.engine-controls label{display:grid;gap:5px;color:#f5dca7;font-size:12px;font-weight:750;}
+.engine-controls select,.engine-controls input{
+ min-width:0;max-width:100%;width:100%;
+ font:inherit;font-size:14px;color:#f7ebd8;
+ background:#163945;border:1px solid #84ada273;
+ border-radius:10px;padding:10px 9px;
+}
+.engine-lab-note{font-size:11px!important;line-height:1.45!important;color:#c7dcd6!important;}
+.engine-lab-status{
+ padding:10px 12px;border:1px solid #cfb48066;border-radius:11px;
+ color:#ffe5b3!important;background:#153b47bd;
+ font-weight:700;letter-spacing:.01em;
+}
+.engine-table-scroll{overflow-x:auto;max-width:100%;border-radius:12px;border:1px solid #84aba069;}
+.engine-table{border-collapse:collapse;width:100%;min-width:480px;font-size:11px;}
+.engine-table th,.engine-table td{
+ text-align:right;white-space:nowrap;padding:9px 7px;
+ border-bottom:1px solid #91ada634;color:#e9f0e6;
+}
+.engine-table td:nth-child(2),.engine-table th:nth-child(2){text-align:left;}
+.engine-table th{color:#f4d597;font-weight:900;background:#1a424db8;position:sticky;top:0;}
+.engine-table tr:nth-child(even){background:#7ab5b112;}
+.engine-table td.engine-low{color:#ffbda6;font-weight:800;}
+@media(max-width:540px){
+ .engine-controls{grid-template-columns:1fr}
+ .engine-table th,.engine-table td{padding:7px 6px;font-size:10px}
+ .top-actions{gap:5px}
+ .top-actions .small{padding:7px 7px;font-size:10px;min-height:36px}
+ .top-actions .icon-button{min-width:36px;padding:7px}
+}

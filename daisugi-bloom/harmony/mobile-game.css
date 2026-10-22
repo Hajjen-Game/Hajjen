@@ -1043,3 +1043,112 @@ body.harmony-playing .game-view .tile.resonance-anchor::after{
  body.harmony-playing .game-view .tile.resonance-anchor::after{animation:none;opacity:.8}
  .resonance-echo-ring,.resonance-echo-label{display:none}
 }
+
+/* Harmony Resonance Visual Polish 1.1 — persistent, slow flowing energy.
+   All motion stays on at most SIX tiny GPU-composited thread segments.
+   No canvas, no frame loop, and never intercept touch events. */
+body.harmony-playing .game-view .resonance-links{
+ pointer-events:none!important;isolation:isolate;
+}
+body.harmony-playing .game-view .resonance-link{
+ height:2.6px;
+ opacity:.94;
+ background:linear-gradient(90deg,
+  rgba(127,226,194,.18) 0%,rgba(168,231,208,.77) 28%,
+  rgba(242,219,155,.95) 62%,rgba(155,235,208,.28) 100%);
+ box-shadow:0 0 6px 1px rgba(164,231,204,.28),
+  0 0 11px rgba(241,207,140,.21);
+ contain:paint;
+}
+body.harmony-playing .game-view .resonance-link::before{
+ content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(90deg,transparent,rgba(255,236,184,.36),transparent);
+}
+body.harmony-playing .game-view .resonance-link::after{
+ content:"";pointer-events:none;position:absolute;
+ left:0;top:-.85px;height:4.3px;width:35%;border-radius:99px;
+ background:linear-gradient(90deg,rgba(171,255,220,0),rgba(255,249,204,.96),
+  rgba(155,255,222,.83),rgba(160,239,216,0));
+ box-shadow:0 0 7px 2px rgba(183,241,200,.49),0 0 10px rgba(248,216,143,.3);
+ animation:resonance-current 4.7s ease-in-out infinite;
+}
+body.harmony-playing .game-view .resonance-link.mature{
+ height:2.8px;box-shadow:0 0 8px 1px rgba(252,218,156,.35),
+  0 0 13px rgba(164,236,205,.27);
+}
+body.harmony-playing .game-view .resonance-link.resonance-new{
+ animation:resonance-appear .64s cubic-bezier(.18,.76,.3,1) both;
+}
+@keyframes resonance-current{
+ 0%,5%{transform:translate3d(-115%,0,0);opacity:0}
+ 18%{opacity:.85}
+ 73%{opacity:1}
+ 93%,100%{transform:translate3d(290%,0,0);opacity:0}
+}
+@keyframes resonance-appear{
+ 0%{opacity:0;filter:brightness(1.8)}
+ 35%{opacity:1;filter:brightness(1.45)}
+ 100%{opacity:.94;filter:brightness(1)}
+}
+/* Two small, one-shot blooms announce a newly formed opportunity; regular
+   tile rendering will never replay them for an unchanged pair of IDs. */
+body.harmony-playing .game-view .tile.resonance-awakening::before{
+ content:"";position:absolute;inset:7%;z-index:2;
+ border:1.5px solid rgba(227,218,151,.60);border-radius:11px;
+ pointer-events:none;
+ background:radial-gradient(ellipse at center,rgba(236,224,160,.28),
+  rgba(126,227,198,.13) 55%,transparent 76%);
+ box-shadow:inset 0 0 10px rgba(227,228,173,.24),
+  0 0 10px rgba(150,227,194,.24);
+ animation:resonance-discovery .80s cubic-bezier(.15,.61,.26,1) both;
+}
+@keyframes resonance-discovery{
+ 0%{opacity:0;transform:scale(.78)}
+ 33%{opacity:.76;transform:scale(.96)}
+ 100%{opacity:0;transform:scale(1.13)}
+}
+body.harmony-playing .game-view .tile.resonance-anchor:not(.selected){
+ box-shadow:inset 0 0 0 1.2px rgba(247,217,153,.65),
+  inset 0 0 15px rgba(160,226,198,.16),
+  0 0 6px rgba(233,207,142,.12);
+}
+body.harmony-playing .game-view .tile.resonance-anchor::after{
+ width:6px;height:6px;
+ background:radial-gradient(circle,#fff4c3 0%,#eed18b 75%,#bfa570 100%);
+ box-shadow:0 0 6px 1px rgba(244,214,150,.72),
+  0 0 11px rgba(137,225,193,.33);
+}
+.resonance-collapse-arm{
+ position:absolute;width:0;height:0;pointer-events:none;
+ transform-origin:center center;
+}
+.resonance-collapse-beam{
+ position:absolute;right:0;top:-1.6px;height:3.2px;border-radius:90px;
+ transform-origin:right center;pointer-events:none;
+ background:linear-gradient(90deg,rgba(117,238,200,0),
+  rgba(148,242,212,.86),rgba(254,230,157,.96));
+ box-shadow:0 0 7px rgba(146,247,215,.68),0 0 10px rgba(250,213,151,.29);
+}
+.resonance-echo-ring{
+ border-color:rgba(251,229,168,.98);
+ box-shadow:0 0 0 2px rgba(144,233,204,.24),
+  0 0 17px 5px rgba(233,205,144,.36),
+  inset 0 0 13px rgba(134,240,208,.30);
+}
+@media (max-width:650px){
+ body.harmony-playing .game-view .resonance-link::after{
+  animation-duration:5.5s;
+ }
+ body.harmony-playing .game-view .tile.resonance-awakening::before{
+  animation-duration:.68s;
+ }
+}
+@media (prefers-reduced-motion:reduce){
+ body.harmony-playing .game-view .resonance-link,
+ body.harmony-playing .game-view .resonance-link.resonance-new{
+  animation:none;filter:none;opacity:.9;
+ }
+ body.harmony-playing .game-view .resonance-link::after{animation:none;display:none}
+ body.harmony-playing .game-view .tile.resonance-awakening::before{display:none;animation:none}
+ .resonance-collapse-arm,.resonance-collapse-beam{display:none!important}
+}

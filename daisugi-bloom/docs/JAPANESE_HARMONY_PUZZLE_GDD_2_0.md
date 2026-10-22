@@ -390,3 +390,20 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Regression & QA:** `tests/harmony-performance.test.cjs` testar samplingens avslut, jankbedömning, adaptiv ned-/uppgradering, icke-sampling i dold flik och frånvaro av läckande animationframes. Befintliga rules-, audio-, reward- och VFX-tester kvarstår. Browser smoke kontrollerar att prestandamenyn öppnas efter ett drag och att resultatet innehåller lokala mätfält. GitHub Actions inkluderar även syntaxkontroll av prestandamodulen.
 
 **Utvärdering:** Enhetsprestanda/FPS kan inte bekräftas av källkodstester. Ta skärmbild på Prestanda-menyn efter ett vanligt drag och gärna efter en stor Harmony Pulse-kedja; jämför mätvärden och hur själva spelet känns. Om lagg kvarstår är nästa åtgärd riktad profilering på den aktuella Android-enheten, inte en automatisk försämring av spelets grafik.
+
+
+## Fusion Motion & Harvest Readability 4.3.1 — synlig sammanslagning (2026-10-22)
+
+**Mobilfeedback:** Efter 4.3 rapporterades att spelet inte längre laggar, men att föremål verkar försvinna snarare än faktiskt dras samman. Det tidigare fusionsspöket blev 20 % stort och 12 % synligt inom bara 162 ms, medan färdiga mästerverk tonades bort på 150 ms. Resultatet var en rörelse som var svår att uppfatta.
+
+**Ny fusionssekvens:**
+1. Föremålen som ska konsumeras behåller sin ursprungliga sprite i en temporär, ovanpåliggande 7×7-fusionsyta. Källbrickorna döljs enbart medan deras visuella kopior färdas.
+2. Kort laddningsmoment (0–13 % av animationen) följt av förflyttning ända fram till överlevaren. Vid 94 % är föremålet fortfarande helt synligt och 66 % stort; vid kontakt har det 92 % opacitet och 49 % skala. Total synlig förflyttning 280 ms, utan förtida fadeout.
+3. Först efter att alla källobjekt nått överlevaren ersätts dess originalillustration av den nya förädlingen. En familjefärgad, liten kontaktcirkel förstärker det exakta sammanfogningsögonblicket.
+4. Det nya objektet blommar fram över 215 ms; därefter visas familjesignaturen och `STADIUM N` enligt tidigare design. Kompositören använder huvudsakligen `transform`/`opacity`, inga pixelfilter, skärmskakningar eller stora vita explosioner.
+
+**Mästerverk som lämnar spelplanen:** Vid Harvest svävar det färdiga föremålet först uppåt utan att förlora opacitet. Först under sista delen av 295 ms-animationen tonar det bort; en begränsad liten guldring visar frigjord energi. Spelets egentliga `harvest`-händelse och poängfördelning är oförändrade.
+
+**Prestandaskydd:** Använder befintliga transient `fusion-fx-layer` och `score-fx-overlay`. Högst två kontakt-/harvestringar på mobil samtidigt per event. Reducerad rörelse hoppar över effekterna och går direkt till korrekt board-state. Varken 7×7-spelregler, levels, räknare, ljud, bakgrund eller sparformat ändras.
+
+**Regression:** `tests/harmony-fusion-motion.test.cjs` testar opaque travel, korrekt destination, ordning före render, synlighetsåterställning, kontaktmarkering och långsammare Harvest. Browser smoke testar rörelsen på riktiga 7×7-rutor genom att kontrollera `fusion-ghost` keyframes. Kopplat till GitHub Actions. Ljud/VFX/performance-kontrakten från 4.1–4.3 körs fortsatt. Slutlig visuell utvärdering och FPS på Android behöver göras av spelaren.

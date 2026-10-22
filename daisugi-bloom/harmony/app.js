@@ -853,8 +853,15 @@ async function animateEvent(evt){
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");
    break;
+  case "shuffle":
+   // A fair shuffle relocates complete piece identities; use the existing
+   // ID-based FLIP animation so developed objects visibly move to new slots
+   // instead of appearing to change family/stage in place.
+   renderBoard(evt.board,Array.from({length:49},(_,i)=>i),"shuffling");
+   await flipMove(previous,evt.board,"shuffle");
+   break;
   default:
-   renderBoard(evt.board,evt.type==="shuffle"?Array.from({length:49},(_,i)=>i):[],"shuffling");
+   renderBoard(evt.board);
  }
 }
 async function playEvents(events){

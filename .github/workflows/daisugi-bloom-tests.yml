@@ -28,6 +28,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-fusion-motion.test.cjs
       - name: Verify seeded Engine Lab bots, metrics and no save mutation
         run: node daisugi-bloom/tests/harmony-engine-lab.test.cjs
+      - name: Verify Balanced Refill and Fair Shuffle 2.0
+        run: node daisugi-bloom/tests/harmony-refill-shuffle.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js

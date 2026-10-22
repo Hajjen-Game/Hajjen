@@ -1110,7 +1110,7 @@ function openEngineLab(){
   const wrap=document.createElement("div");wrap.className="engine-table-scroll";
   const table=document.createElement("table");table.className="engine-table";
   const head=document.createElement("thead"),header=document.createElement("tr");
-  for(const label of ["Nivå","Motor","AI","Vinst","Mål","Drag","Val","Kedjor","Utveckl.","Målfam.","Torka"]){
+  for(const label of ["Nivå","Motor","AI","Vinst","Mål","Drag","Val","Kedjor","Echo","Utveckl.","Målfam.","Torka"]){
    const cell=document.createElement("th");cell.textContent=label;header.append(cell);
   }
   head.append(header);table.append(head);
@@ -1119,7 +1119,7 @@ function openEngineLab(){
    const tr=document.createElement("tr");
    const cols=[String(row.level+1),api.MODE_LABELS[row.mode],api.LABELS[row.strategy],
     pct(row.winRate),pct(row.avgGoalRatio),row.avgMoves.toFixed(1),
-    row.avgLegalMoves.toFixed(1),row.avgCascades.toFixed(1),
+    row.avgLegalMoves.toFixed(1),row.avgCascades.toFixed(1),row.avgEchoes.toFixed(1),
     row.avgMeaningful.toFixed(1),row.avgGoalReady.toFixed(1),row.avgGoalDrought.toFixed(1)];
    cols.forEach((v,i)=>{
     const cell=document.createElement("td");cell.textContent=v;
@@ -1130,7 +1130,7 @@ function openEngineLab(){
   }
   table.append(body);wrap.append(table);output.append(wrap);
   const explain=document.createElement("p");explain.className="engine-lab-note";
-  explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Utveckl. = möjliga matcher som involverar stadium 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. nivå 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
+  explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Echo = aktiverade resonansbelöningar per spel. Utveckl. = möjliga matcher som involverar stadium 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. nivå 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
   if(result.options.modes.length===2){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
    const title=document.createElement("strong");title.textContent="A/B · vinst per nivå och spelstrategi";

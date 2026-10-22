@@ -526,3 +526,16 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **QA:** `tests/harmony-engine-lab.test.cjs` täcker determinism, jämförbar seed, korrekt fastRestore kontra normal resume, giltiga metrikvärden, alla 4 AI-profiler, progress/cancel samt oförändrad spelarsparfil. `harmony-browser-smoke.mjs` utökad med ett faktiskt Game Dev-anrop i mobilvyn. GitHub Actions kör kontraktstesterna. Detaljerade instruktioner finns i `docs/HARMONY_ENGINE_LAB_1_0.md`.
 
 **Nästa pass (inte implementerat):** Balanced Refill & Fair Shuffle 2.0, inklusive riktiga A/B-jämförelser med bibehållna seeds. Alla ändringar i påfyllning och shuffle måste bevisa att de gynnar rättvisa utan att göra nivåerna triviala.
+
+
+## Pass 2 – Balanced Refill & Fair Shuffle 2.0 (2026-10-22)
+
+**Japanese Harmony 5.3.0:** Spelmotorn förbrukar nu bara den faktiskt placerade familjen ur en 20-objekts påfyllningspåse. Ett bortvalt förslag som annars skulle skapa en automatisk match återgår alltså automatiskt till den kvarvarande påsen. Alla fem aktiva familjer förekommer exakt fyra gånger per fullständig påscykel. Den tidigare ungefärliga 78 %-dämpningen av automatiska kaskader finns kvar; tvingade naturliga kedjor är fortfarande tillåtna när ingen annan familj finns kvar i påsen.
+
+**Fair Shuffle:** Om inga lagliga drag finns flyttas faktiska objekt mellan rutorna, inklusive sina ursprungliga `id`, `family` och `stage`. Inget objekt förlorar identitet eller utveckling. Den nya spelplanen testas så att inga gratismatchningar finns och minst tre möjliga drag finns i normalfallet (minst ett i begränsad reservväg). ID-baserad FLIP gör det möjligt att följa föremålen visuellt vid omblandning. Inga drag/poäng påverkas av själva räddningsomblandningen.
+
+**Tester:** Nya `harmony-refill-shuffle.test.cjs` och mobil regression. 450 seedade speltester på tio nivåer gav 6 räddningsomblandningar, utan krasch eller olösta låsningar. A/B mot 5.2.0 lagrat i två jämförelsefiler med totalt 90 matcher och en separat fokuserad körning med 24 seeds var på nivå 6 och 9. Resultat från målfokuserad AI minskade på båda nivåerna i det fokuserade urvalet (nivå 6: 19/24 → 17/24; nivå 9: 22/24 → 19/24). Detta är inte mänskliga vinstchanser och balansen ska **inte** anses bevisat förbättrad. Rättvisan avseende påskonservation och objektintegritet är däremot uttryckligen verifierad.
+
+**Oförändrat:** Alla objektfamiljer och nivåurval, tio mål, fem stadier, ljud, grafisk stil, Game Dev-labb och schema för befintliga sparfiler. Den nya slumpordningen påverkar kommande påfyllningar och kan ändra senare kedjeförlopp efter en gammal sparfil.
+
+**Full rapport:** `docs/HARMONY_FAIR_REFILL_SHUFFLE_2_0.md`.

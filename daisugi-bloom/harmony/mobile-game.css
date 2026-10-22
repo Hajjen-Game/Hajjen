@@ -977,3 +977,18 @@ body.harmony-playing .fusion-fx-layer .fusion-ghost .sprite{
  .top-actions .small{padding:7px 7px;font-size:10px;min-height:36px}
  .top-actions .icon-button{min-width:36px;padding:7px}
 }
+
+/* Harmony Opportunity Director 1.0 / Engine Lab A/B (experimental, menu only). */
+.engine-table td:nth-child(3),.engine-table th:nth-child(3){text-align:left}
+.engine-comparison{
+ display:grid;gap:7px;margin-top:13px;padding:12px;
+ border:1px solid #abbd9f6d;border-radius:13px;
+ background:linear-gradient(155deg,#183d4bca,#0b2f42a6);
+}
+.engine-comparison strong{color:#f2d49b;font-size:12px}
+.engine-comparison p{
+ margin:0!important;padding:5px 0!important;
+ border-bottom:1px solid #afc8ad23;line-height:1.45!important;
+ font-size:11px!important;color:#dce9df!important
+}
+.engine-comparison p:last-child{border-bottom:0}

@@ -2,9 +2,10 @@
 (function(){
 "use strict";
 const R=window.HarmonyRules,$=id=>document.getElementById(id);
-const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai"};
-const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳"};
+const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
+const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
+const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
@@ -158,10 +159,13 @@ function renderBoard(board,highlight,effect){
    btn.setAttribute("aria-label",piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
    if(piece){
     const holder=document.createElement("span");holder.className="piece";
+    const isNew=Object.hasOwn(newFamilyRows,piece.family);
+    if(isNew)holder.classList.add("new-family");
     const emoji=document.createElement("span");emoji.className="fallback";emoji.textContent=symbols[piece.family];
     const img=document.createElement("span");img.className="sprite";
     img.style.setProperty("--sx",((piece.stage-1)*25)+"%");
-    img.style.setProperty("--sy",familyRows[piece.family]*25+"%");
+    img.style.setProperty("--sy",(isNew?(newFamilyRows[piece.family]*100/3):familyRows[piece.family]*25)+"%");
+    if(isNew)img.classList.add("sprite-new");
     holder.append(emoji,img);btn.append(holder);
    }
   }
@@ -332,7 +336,7 @@ function fxAt(className,x,y,text){
 }
 // Family-specific evolution overlays: one small recycled-style visual cue
 // per survivor, no canvas, huge particle cloud or modification to game logic.
-const EVOLUTION_FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai"]);
+const EVOLUTION_FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
 function evolveFamilyFx(groups){
  if(FAST()||!Element.prototype.animate)return;
  for(const g of groups.slice(0,MOBILE_LITE?2:3)){
@@ -354,7 +358,15 @@ function evolveFamilyFx(groups){
     {transform:"rotate(34deg) scale(1.35)",opacity:0}],
    bonsai:[{transform:"translate3d(0,9px,0) scale(.56)",opacity:0},
     {transform:"translate3d(0,-2px,0) scale(1.08)",opacity:.9,offset:.45},
-    {transform:"translate3d(0,-12px,0) scale(1.1)",opacity:0}]
+    {transform:"translate3d(0,-12px,0) scale(1.1)",opacity:0}],
+   sushi:[{transform:"scale(.5) rotate(-10deg)",opacity:0},
+    {transform:"scale(1.05) rotate(8deg)",opacity:.95,offset:.45},{transform:"scale(1.4) rotate(20deg)",opacity:0}],
+   maneki:[{transform:"translate3d(0,5px,0) scale(.5)",opacity:0},
+    {transform:"translate3d(0,-2px,0) scale(1.08)",opacity:.94,offset:.47},{transform:"translate3d(0,-12px,0) scale(1.26)",opacity:0}],
+   origami:[{transform:"rotate(-32deg) scale(.5)",opacity:0},
+    {transform:"rotate(10deg) scale(1.1)",opacity:.95,offset:.44},{transform:"rotate(34deg) scale(1.34)",opacity:0}],
+   ryu:[{transform:"rotate(-24deg) scale(.5)",opacity:0},
+    {transform:"rotate(8deg) scale(1.08)",opacity:.98,offset:.45},{transform:"rotate(28deg) scale(1.45)",opacity:0}]
   };
   animateNode(node,paths[g.family],590,{easing:"cubic-bezier(.14,.65,.27,1)"}).finally(()=>node.remove());
  }
@@ -994,8 +1006,14 @@ function bind(){
 function checkAtlas(){
  const img=new Image();
  img.onload=()=>document.documentElement.classList.add("has-atlas");
- img.onerror=()=>{document.documentElement.classList.remove("has-atlas");console.warn("Japanese Harmony art atlas not installed: using temporary family symbols.");};
+ img.onerror=()=>{document.documentElement.classList.remove("has-atlas");console.warn("Japanese Harmony classic atlas unavailable; using fallback symbols.");};
  img.src="./assets/harmony-atlas.webp";
+ // Twenty new, transparent stage images packed into a single mobile-friendly
+ // AVIF. Each 192px cell maps to a distinct object, including its masterpiece.
+ const extra=new Image();
+ extra.onload=()=>document.documentElement.classList.add("has-new-atlas");
+ extra.onerror=()=>{document.documentElement.classList.remove("has-new-atlas");console.warn("New harmony sprites unavailable; using fallback symbols.");};
+ extra.src="./assets/harmony-new-families.avif?v=5.0";
 }
 window.HarmonyAudio?.setEnabled(save.sound);
 bind();checkAtlas();initFestivalBackground();renderMenu();

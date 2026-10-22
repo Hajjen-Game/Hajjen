@@ -567,3 +567,18 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Kontroller:** 120 automatiska matcher över tio nivåer gav 74 Echo-aktiveringar, max en per spelardrag. Resonance-specifika tester verifierar bonuspoäng, sparning, ogiltiga byten och frånvaro av bonuseffekter från passiva kedjereaktioner. Browser smoke kontrollerar att länk-lagret inte blockerar beröring.
 
 **Oförändrat:** Board Glass 1.1, grafisk stil och objektatlas, nivåmål, svårighetsbegränsningar, Director i endast Game Dev, poängflyg, Harmony Pulse, befintlig balans för slump och fusion. Full beskrivning: `docs/HARMONY_RESONANCE_1_0.md`.
+
+
+## Harmony Resonance Visual Polish 1.1 — Japanese Harmony 5.5.1
+
+**Avgränsning:** Ren visuell förbättring av redan implementerad Harmony Resonance, utan att ändra regler, poäng, nivåmål, familjepåse, Director, Pulse, sparfiler eller själva brädets utseende.
+
+- En tunn, varm mint-/guldtråd får ett mjukt energiflöde mellan resonanta föremål (cirka 4,7 sekunder per cykel och något långsammare på mobil).
+- En ny Resonance-möjlighet ger en engångspuls på **båda** föremålen, utan att pulsen återkommer varje gång en ruta markeras.
+- Ankaret (stadium 3/4) får mer läsbar glow och en tydligare varm ljuspunkt. Högst sex kopplingar visas fortfarande samtidigt.
+- Vid Harmony Echo dras två korta ljusstråk in mot fusionen innan den befintliga gyllene Echo-ringen och klangen spelas. Bonusen är fortfarande +125/+200 och maximalt en Echo per drag.
+- Tillgänglighet: både telefonens `prefers-reduced-motion` och spelets egna **Minska animationer** stoppar de kontinuerliga CSS-animationerna.
+- Inga nya arbetsytor, knappar, SVG-filer eller canvas-lager behövs. UI-kopplingarna ligger i ett icke-klickbart overlay och trådarnas DOM-noder återanvänds.
+- Dokumentation och mobila CSS-testspecifikationer: `docs/HARMONY_RESONANCE_VISUAL_POLISH_1_1.md`.
+
+**Board Praise Callouts 1.0** är ett separat planerat pass och är inte byggt i denna version.

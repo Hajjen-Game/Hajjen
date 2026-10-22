@@ -66,6 +66,35 @@ try{
  assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.shape,"shape");
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
+
+ // Board Glass 1.0: the playable 7x7 surface and ordinary cell backgrounds
+ // must actually be translucent midnight blue after ALL mobile CSS overrides.
+ // This is a computed-style check, not just a brittle source-string assertion.
+ const glass=await page.evaluate(()=>{
+  const bg=selector=>{
+   const style=getComputedStyle(document.querySelector(selector));
+   return {background:style.backgroundColor,image:style.backgroundImage,
+    border:style.borderColor,shadow:style.boxShadow};
+  };
+  return {shell:bg(".game-view .board-shell"),board:bg(".game-view .board"),
+   goal:bg(".game-view .goal"),odd:bg(".game-view .tile:nth-child(3)"),
+   even:bg(".game-view .tile:nth-child(2)")};
+ });
+ const channels=color=>{
+  const match=color.match(/^rgba?\\(([^)]+)\\)$/);
+  assert(match,"Expected CSS color, received "+color);
+  return match[1].split(",").map(Number);
+ };
+ for(const [name,item] of [["odd",glass.odd],["even",glass.even]]){
+  const [r,g,b,a]=channels(item.background);
+  assert(b>r&&g>r,"Regular "+name+" tile must be blue/teal rather than beige: "+item.background);
+  assert(a<1&&a>.55,"Regular "+name+" tile must be partly transparent, not solid: "+item.background);
+ }
+ assert(glass.shell.image.includes("linear-gradient")&&glass.board.image.includes("linear-gradient"),
+  "Shell and board must share dark blue translucent glass gradients");
+ assert(glass.shell.shadow.includes("216, 173, 114")||glass.shell.shadow.includes("216,173,114"),
+  "Existing gold inset frame should remain around the glass playfield");
+
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-hd"),{timeout:15000});
  const loadedBackground=await page.evaluate(()=>{

@@ -10,7 +10,7 @@
 let enabled=true,context=null,master=null;
 const voices=new Set(),lastPlayed=new Map();
 const MAX_VOICES=8;
-const FAMILY_PITCH={sakura:523.25,lantern:587.33,koi:659.25,fan:698.46,bonsai:783.99};
+const FAMILY_PITCH={sakura:523.25,lantern:587.33,koi:659.25,fan:698.46,bonsai:783.99,sushi:739.99,maneki:880,origami:987.77,ryu:659.25};
 const PENTATONIC=[587.33,659.25,783.99,880,987.77,1174.66,1318.51];
 const LIMITS={tap:65,swap:85,invalid:190,fusion:125,bonus:115,pulse:115,hero:240,harvest:285,goal:700,arrival:170,progress:150,result:900};
 function unlock(){

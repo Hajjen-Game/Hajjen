@@ -20,7 +20,7 @@ try{
  await page.click("#devButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Harmony Intelligence");
  await page.select(".engine-controls select","0");
- await page.select(".engine-controls select:nth-of-type(2)","2");
+ await page.select(".engine-controls label:nth-child(2) select","2");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
  assert.equal(await page.$eval(".engine-table tbody tr",rows=>rows.length),4,

@@ -227,8 +227,8 @@ try{
  assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");
  assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
- const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,shape:HarmonyRules.levels[7].goal.type};});
- assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.shape,"shape");
+ const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,level8Goal:HarmonyRules.levels[7].goal.type,level8Count:HarmonyRules.levels[7].goal.count,level8Moves:HarmonyRules.levels[7].moves};});
+ assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"stage3");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,20);
  // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
  // successful manual fusion from an already-linked stage-three object.
  const resonanceVisual=await page.evaluate(()=>{

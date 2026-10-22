@@ -23,6 +23,35 @@ check("10 first-chapter levels and nine available family identities",()=>{
  assert(R.activeFamilies(5).includes("lantern"),"Lantern Festival needs lanterns");
  for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage===1),"Every new level must begin with only stage-one objects");assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);assert.deepEqual(new Set(g.board.map(p=>p.family)),new Set(R.activeFamilies(i)));}
 });
+check("level 8 is achievable through five stage-three evolutions, not a rare T/L formation",()=>{
+ const cfg=R.levels[7];
+ assert.equal(cfg.name,"Garden in Bloom");
+ assert.deepEqual(cfg.goal,{type:"stage3",count:5});
+ assert.equal(cfg.moves,20);
+ assert.equal(cfg.par,12);
+ const g=new R.Game(7);
+ assert.equal(g.moves,20);
+ assert.equal(g.goalText(),"Föremål till stadium 3");
+ assert.equal(g.target(),5);
+ g.stage3=4;assert.equal(g.progress(),4);assert.equal(g.fulfilled(),false);
+ g.stage3=5;assert.equal(g.progress(),5);assert.equal(g.fulfilled(),true);
+});
+check("unfinished old level 8 saves get four extra turns only once",()=>{
+ const g=new R.Game(7);
+ const old=g.save();
+ delete old.level8Revision;
+ old.moves=6;old.stage3=2;old.shapes=0;
+ const migrated=new R.Game(7,old);
+ assert.equal(migrated.moves,10);
+ assert.equal(migrated.stage3,2);
+ assert.equal(migrated.level8Revision,1);
+ assert.deepEqual(migrated.board,g.board);
+ const resumed=new R.Game(7,migrated.save());
+ assert.equal(resumed.moves,10,"Cannot grant the extra turns twice");
+ assert.equal(resumed.stage3,2);
+ const finished={...old,complete:true};
+ assert.equal(new R.Game(7,finished).moves,6,"Completed saves cannot gain turns");
+});
 check("new controlled starts and retries always contain ONLY stage-one objects",()=>{
  for(let i=0;i<10;i++)for(let attempt=0;attempt<16;attempt++){
   const game=new R.Game(i);

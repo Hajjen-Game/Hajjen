@@ -26,7 +26,7 @@ const levels=[
  {name:"Harmony Awakens",subtitle:"Låt utvecklingen sprida sig",moves:18,par:11,goal:{type:"pulseHits",count:3},intro:"Harmony Pulse utvecklar upptagna rutor ovanför, nedanför och vid sidan av mästerverket."},
  {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:22,par:15,goal:{type:"familyMasterpiece",family:"lantern",count:2},intro:"Skapa två mästerverk från lykta-familjen."},
  {name:"Four of a Kind",subtitle:"Den fjärde gör skillnad",moves:18,par:11,goal:{type:"four",count:1},intro:"Matcha minst fyra i en fusion. En granne förädlas som bonus."},
- {name:"Beautiful Shapes",subtitle:"T och L är också matcher",moves:16,par:10,goal:{type:"shape",count:1},intro:"Skapa en T- eller L-matchning. Fem unika föremål ger två grannuppgraderingar."},
+ {name:"Garden in Bloom",subtitle:"Fem utvecklade föremål",moves:20,par:12,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3 med vanliga fusioner. T- och L-former är bonusar, inte ett krav."},
  {name:"Double Harmony",subtitle:"Förbered kedjan",moves:20,par:12,goal:{type:"chain",count:2},intro:"Skapa två mästerverk i samma Harmony Pulse-kedja."},
  {name:"Master of Harmony",subtitle:"Första kapitlets final",moves:24,par:15,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk på en och samma nivå."}
 ];
@@ -234,7 +234,12 @@ class Game{
       remapped[mapping.get(family)||family]=(remapped[mapping.get(family)||family]||0)+count;
     this.familyMasterpieces=remapped;
    }
+   // Level 8 used to require a rare T/L match. Grant the four added turns
+   // once when continuing a pre-change level 8 save; preserve board and progress.
+   if(this.level===7&&!previous.level8Revision&&!this.complete&&!this.failed)
+    this.moves=Math.min(this.config.moves,Math.max(0,this.moves)+4);
   }
+  this.level8Revision=this.level===7?1:0;
  }
  fresh(){this.rolls++;return this.random();}
  nextFamily(board=null,index=-1){
@@ -412,7 +417,7 @@ class Game{
   this.moves--;return {ok:true,events:[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed)]};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
+ save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
 const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};

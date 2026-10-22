@@ -185,6 +185,7 @@ class Game{
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
   this.opportunity=options?.opportunity===true; // Opt-in only; default game unchanged.
+  this.directorRefills=0;this.directorSelections=0;
   this.rolls=0;this.random=prng(this.seed);
   this.bag=[];
   // Diagnostics-only fast restore avoids creating an unused random start

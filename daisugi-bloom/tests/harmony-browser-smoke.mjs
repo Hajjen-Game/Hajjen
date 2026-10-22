@@ -105,6 +105,37 @@ try{
  assert(resonanceVisual.layerExists&&resonanceVisual.overlaySibling);
  assert.equal(resonanceVisual.pointerEvents,"none","Resonance overlay must never swallow tap gestures");
  assert.equal(resonanceVisual.boardChildren,49);
+ // Visual Polish 1.1: the glow must FLOW (not remain a static gradient),
+ // a new link must have a one-shot discovery pulse, and both surfaces must
+ // stay non-interactive. These are measured in the rendered mobile CSS.
+ const resonancePolish=await page.evaluate(()=>{
+  const layer=document.querySelector("#resonanceLinks");
+  const line=document.createElement("span");
+  line.className="resonance-link resonance-new mature";
+  line.style.width="22px";layer.append(line);
+  const styles=getComputedStyle(line);
+  const stream=getComputedStyle(line,"::after");
+  const tile=document.querySelector(".tile");
+  tile.classList.add("resonance-awakening");
+  const discovery=getComputedStyle(tile,"::before");
+  const data={
+   linkPointer:styles.pointerEvents,
+   streamName:stream.animationName,
+   streamDuration:parseFloat(stream.animationDuration),
+   pulseName:discovery.animationName,
+   pulseDuration:parseFloat(discovery.animationDuration),
+   pseudoPointer:discovery.pointerEvents
+  };
+  tile.classList.remove("resonance-awakening");
+  line.remove();
+  return data;
+ });
+ assert.equal(resonancePolish.linkPointer,"none","Animated thread must not block touches");
+ assert(resonancePolish.streamName.includes("resonance-current"),"The filament must visibly flow");
+ assert(resonancePolish.streamDuration>=4,"The filament must flow slowly");
+ assert(resonancePolish.pulseName.includes("resonance-discovery"),"New opportunities need a one-shot pulse");
+ assert(resonancePolish.pulseDuration>0&&resonancePolish.pulseDuration<=1.1);
+ assert.equal(resonancePolish.pseudoPointer,"none");
  const resonanceLogic=await page.evaluate(()=>{
   const R=window.HarmonyRules,families=R.activeFamilies(0);
   const b=Array.from({length:49},(_,i)=>({

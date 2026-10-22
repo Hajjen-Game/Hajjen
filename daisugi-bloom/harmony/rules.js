@@ -69,13 +69,13 @@ function startBoard(level,random,families){
  // Keep fair variants: no free match and at least three legal first swaps.
  for(let tries=0;tries<650;tries++){
   const board=fillBoard(families,random);
-  if(validSwaps(board).length>=3)return board;
+  if(families.every(f=>board.some(p=>p.family===f))&&validSwaps(board).length>=3)return board;
  }
  // Deterministic fallback: keep trying stage-one layouts instead of inserting
  // higher-stage "helping" pieces or permitting a locked starting position.
  while(true){
   const board=fillBoard(families,random);
-  if(validSwaps(board).length>=3)return board;
+  if(families.every(f=>board.some(p=>p.family===f))&&validSwaps(board).length>=3)return board;
  }
 }
 function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Math.random()*0xffffffff))>>>0;}

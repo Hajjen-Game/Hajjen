@@ -200,7 +200,7 @@ try{
    even:bg(".game-view .tile:nth-child(2)")};
  });
  const channels=color=>{
-  const match=color.match(/^rgba?\\(([^)]+)\\)$/);
+  const match=color.match(/^rgba?\(([^)]+)\)$/);
   assert(match,"Expected CSS color, received "+color);
   return match[1].split(",").map(Number);
  };

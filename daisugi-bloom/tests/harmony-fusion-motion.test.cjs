@@ -10,7 +10,7 @@ function between(start,end){
  assert(a>=0&&b>a,"Cannot isolate "+start);
  return app.slice(a,b);
 }
-const gather=between("function fusionGatherFrames(","// Energy travels out from the masterpiece");
+const gather=between("function fusionGatherTiming(","// Energy travels out from the masterpiece");
 const samples=[],events=[];
 const pieces=Array.from({length:49},()=>({
  style:{visibility:""},classList:{add(){}},

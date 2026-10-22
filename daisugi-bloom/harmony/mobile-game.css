@@ -752,3 +752,45 @@ body.festival-fallback .festival-backdrop{display:none}
  font-size:11px;
  color:#d3e0d3;
 }
+
+/* Fusion & Harvest Readability 4.3.1
+   The whole original piece travels, readable until it contacts its target.
+   Do not blur, desaturate or dissolve the moving sprite. */
+.fusion-fx-layer .fusion-ghost{
+ z-index:4;
+ opacity:1;
+ transform-origin:center;
+ isolation:isolate;
+}
+.fusion-fx-layer .fusion-ghost::before{
+ content:"";
+ position:absolute;
+ inset:9%;
+ z-index:-1;
+ border-radius:50%;
+ background:radial-gradient(circle,#fbe9ba67,transparent 70%);
+ pointer-events:none;
+}
+.fusion-intake,.harvest-release{
+ position:absolute;
+ display:block;
+ translate:-50% -50%;
+ pointer-events:none;
+ border-radius:50%;
+ border:2px solid #f4d8a0;
+ background:radial-gradient(circle,#f9eab870,transparent 75%);
+ box-shadow:0 0 7px #ecc68173;
+ will-change:transform,opacity;
+}
+.intake-sakura{border-color:#f0a6c6;background:radial-gradient(circle,#ffc2d480,transparent 75%)}
+.intake-lantern{border-color:#ffe49c;background:radial-gradient(circle,#ffc87889,transparent 75%)}
+.intake-koi{border-color:#a6e9ed;background:radial-gradient(circle,#a1e9f092,transparent 75%)}
+.intake-fan{border-color:#bbdff5;background:radial-gradient(circle,#badff28a,transparent 75%)}
+.intake-bonsai{border-color:#b4dda0;background:radial-gradient(circle,#b5e4aa87,transparent 75%)}
+.harvest-release{
+ border-color:#f6dd9a;
+ background:radial-gradient(circle,#fff0b15c,transparent 74%);
+}
+@media(prefers-reduced-motion:reduce){
+ .fusion-intake,.harvest-release{display:none}
+}

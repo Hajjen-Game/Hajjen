@@ -135,7 +135,26 @@ try{
  assert(resonancePolish.streamDuration>=4,"The filament must flow slowly");
  assert(resonancePolish.pulseName.includes("resonance-discovery"),"New opportunities need a one-shot pulse");
  assert(resonancePolish.pulseDuration>0&&resonancePolish.pulseDuration<=1.1);
- assert.equal(resonancePolish.pseudoPointer,"none");
+ assert.equal(resonancePolish.pseudoPointer,"none"); 
+ const resonanceReduced=await page.evaluate(()=>{
+  document.body.classList.add("harmony-reduced-motion");
+  const layer=document.querySelector("#resonanceLinks");
+  const line=document.createElement("span");line.className="resonance-link mature";
+  layer.append(line);
+  const tile=document.querySelector(".tile");tile.classList.add("resonance-awakening");
+  const data={
+   streamDisplay:getComputedStyle(line,"::after").display,
+   streamAnimation:getComputedStyle(line,"::after").animationName,
+   bloomDisplay:getComputedStyle(tile,"::before").display
+  };
+  line.remove();tile.classList.remove("resonance-awakening");
+  document.body.classList.remove("harmony-reduced-motion");
+  return data;
+ });
+ assert.equal(resonanceReduced.streamDisplay,"none");
+ assert.equal(resonanceReduced.bloomDisplay,"none");
+ assert.equal(resonanceReduced.streamAnimation,"none");
+
  const resonanceLogic=await page.evaluate(()=>{
   const R=window.HarmonyRules,families=R.activeFamilies(0);
   const b=Array.from({length:49},(_,i)=>({

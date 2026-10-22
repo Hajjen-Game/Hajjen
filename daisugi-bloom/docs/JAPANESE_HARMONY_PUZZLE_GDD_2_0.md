@@ -509,3 +509,20 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Prestanda:** Inga nya DOM-noder, filter över hela spelplanen, `backdrop-filter`, bilder eller animerade ljuseffekter. En diskret skugga per enskilt spriteskikt tillkommer; användarens Android-test avgör eventuellt behov av ytterligare kostnadsminskning.
 
 **Regression:** Browser-smoke kontrollerar beräknad grid-gap (1,4–1,9 px), diskret radialsken i både udda och jämna rutor, korrekt drop-shadow på objekt, att selected state fortfarande har guldmarkeringen, och att samtliga fyra effektlägen bibehåller sina färger. Existerande testsvit för matchning, femstadier, nio familjer, VFX, ljud, poäng och performance kvarstår.
+
+
+## Pass 1 – Harmony Engine Intelligence & Diagnostics 1.0 (2026-10-22)
+
+**Syfte:** Undersöka den befintliga spelmotorns svårighetsgrad, refill-rättvisa, kedjor och tillgängliga byten innan nästa pass förändrar slumplogiken. Ingen automatisk assistans, director-styrd påfyllning eller ändrad balans har aktiverats i vanliga spelet.
+
+**Game Dev · Motorlab:** Finns både i huvudmenyn (Game Dev) och i pausmenyn. Separata, reproducerbara `HarmonyRules.Game`-simuleringar kör 4 spelstrategier: slumpmässiga lagliga byten, poängoptimering, målfokusering och en begränsad tvådragsplanering. Alla använder **samma startseed** för varje nivå och testomgång. Browserklienten väljer enskild eller alla tio nivåer, 2/5/10/25 seeds per strategi och ett explicit grundseed. Körningen visar löpande progress, kan avbrytas och resultatet kan exporteras till JSON. Resultatet lagras inte i spelets sparfil och skickas inte till externa tjänster.
+
+**Mätvärden:** vinstfrekvens (AI-specifik), medelpoäng, måluppfyllelse, genomsnittlig/minsta mängd tillåtna byten, kaskadomgångar, extra fusion-vågor, Harmony Pulse, mastery/masterpieces, påtvingade omblandningar, drag utan konkret målförbättring och längsta sådan period. Det är viktigt att exempelvis en nivå med mål ”två lyktmästerverk” kan ha många meningsfulla förberedelsedrag som inte omedelbart flyttar progress-räknaren.
+
+**Viktig tolkning:** Planeringsbotar simulerar till viss del framtida, ännu dolda påfyllningar. Deras resultat är **övre jämförelsevärden för motorstudier**, inte människors förväntade vinstfrekvens. Jämför strategier, seeds och motorversioner innan svårighetsgraden ändras; kombinera med verkliga spelartester.
+
+**Teknik och prestanda:** `harmony/diagnostics.js` kör helt i minnet utan DOM-/sparspelsberoende och har både synkront Node-API och asynkront browser-API. Diagnostik får använda `new Game(level,null,{seed})` och `new Game(level,snapshot,{fastRestore:true})`; normala `new Game(level, previous)` behåller exakt tidigare slump- och sparbeteende. `tools/harmony-engine-benchmark.cjs` kan köra stora batcher, t.ex. 25 trials × 4 bots × 10 nivåer = 1 000 fulla matcher, och skriva JSON till valfri lokal fil.
+
+**QA:** `tests/harmony-engine-lab.test.cjs` täcker determinism, jämförbar seed, korrekt fastRestore kontra normal resume, giltiga metrikvärden, alla 4 AI-profiler, progress/cancel samt oförändrad spelarsparfil. `harmony-browser-smoke.mjs` utökad med ett faktiskt Game Dev-anrop i mobilvyn. GitHub Actions kör kontraktstesterna. Detaljerade instruktioner finns i `docs/HARMONY_ENGINE_LAB_1_0.md`.
+
+**Nästa pass (inte implementerat):** Balanced Refill & Fair Shuffle 2.0, inklusive riktiga A/B-jämförelser med bibehållna seeds. Alla ändringar i påfyllning och shuffle måste bevisa att de gynnar rättvisa utan att göra nivåerna triviala.

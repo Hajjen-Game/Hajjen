@@ -539,3 +539,18 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Oförändrat:** Alla objektfamiljer och nivåurval, tio mål, fem stadier, ljud, grafisk stil, Game Dev-labb och schema för befintliga sparfiler. Den nya slumpordningen påverkar kommande påfyllningar och kan ändra senare kedjeförlopp efter en gammal sparfil.
 
 **Full rapport:** `docs/HARMONY_FAIR_REFILL_SHUFFLE_2_0.md`.
+
+
+## Pass 3 – Harmony Opportunity Director 1.0 (2026-10-22)
+
+**Version:** Japanese Harmony 5.4.0, Game Dev-experiment. Den normala spelmotorn förblir **Standard från Pass 2** tills vidare; Director är **inte** påslagen i vanliga spel eller befintliga sparfiler.
+
+**Mekaniken:** Vid påfyllning kan Director pröva högst fyra fullständiga kandidater ur samma balanserade familjepåse och med samma dämpningsregel mot automatiska gratismatchningar. Första kandidaten är exakt Standard och använder samma RNG-sekvens. Ytterligare tre kandidater använder deterministiska separata RNG-grenar. Motorn får bara välja en annan om Standard inte ger någon automatisk matchning, alternativet också är matchfritt och en begränsad opportunitetspoäng förbättras minst 0,8.
+
+**Opportunitetspoängen** mäter antal tillåtna byten, matcher som utvecklar stadium 3/4 och – när nivåmålet kräver en viss familj – matchningar som faktiskt utvecklar den familjen. Inga extra föremål, specialkrafter, belöningsdrag eller direkta uppgraderingar skapas. Efter påfyllning måste spelaren fortfarande välja ett riktigt byte och lösa nivån.
+
+**Game Dev-funktion:** Harmony Intelligence har nu motorvalen **Standard**, **Director** och **A/B-jämförelse**. Rapporten innehåller utvecklingsmöjligheter (stadium 3+), möjligheter att utveckla nivåns målfamilj, lagliga drag och kedjor. Exporten innehåller `gameVersion=5.4.0` och `engine-lab-2`, så senare analyser inte blandas med gamla versioner.
+
+**Seedade tester:** Tre nivåer, åtta startseeds, två AI-strategier, två motorer = 96 matcher. Målfokuserad AI vann nivå 6: 4/8 Standard → 8/8 Director, nivå 9: 5/8 → 7/8, nivå 10: 8/8 → 8/8. På nivå 6 ökade genomsnittliga målfamiljsmöjligheter från 0,63 till 1,18 per drag. Det är riktade laboratoriefynd, **inte människors vinstchanser**. Director stannar som experiment tills större tester och spelarupplevelse stödjer utrullning.
+
+**Kvalitetssäkring:** Detaljerade deterministiska kontroller av RNG-paritet, balans i påsen, bevarad objektidentitet och att gratis-kedjor inte kan skapas av Director när de saknas i Standard-kandidaten. CI-svit uppdaterad och en mobil A/B-regression tillagd. Full teknisk dokumentation och A/B-filer: `docs/HARMONY_OPPORTUNITY_DIRECTOR_1_0.md`.

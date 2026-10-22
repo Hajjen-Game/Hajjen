@@ -12,6 +12,52 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
+ // Confirm a REAL resumed board with an eligible stage-3 neighbour pair creates
+ // a visible, animated thread. Previous CSS-only tests missed this integration.
+ const isolated=await browser.createBrowserContext();
+ try{
+  const proof=await isolated.newPage();
+  await proof.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await proof.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  const pair=await proof.evaluate(()=>{
+   const R=window.HarmonyRules,g=new R.Game(0,null,{seed:173});
+   let selected=null;
+   for(let i=0;i<49&&!selected;i++)for(const j of R.neighbors(i)){
+    if(g.board[i].family===g.board[j].family){selected=[i,j];break;}
+   }
+   if(!selected)throw new Error("No adjacent same-family objects on fixture board");
+   g.board[selected[0]].stage=3;
+   if(!R.resonanceLinks(g.board).length)throw new Error("Resonance rules rejected known pair");
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:0,bestStars:{},bestScores:{},bestChain:{},
+    run:{level:0,data:g.save()},sound:false,reduceMotion:false
+   }));
+   return selected;
+  });
+  await proof.reload({waitUntil:"networkidle2"});
+  await proof.click("#continueButton");
+  await proof.waitForFunction(()=>document.querySelectorAll("#resonanceLinks .resonance-link").length>0,{timeout:6000});
+  const actual=await proof.evaluate(pair=>{
+   const line=document.querySelector("#resonanceLinks .resonance-link");
+   const anchor=document.querySelectorAll(".tile")[pair[0]];
+   const linked=document.querySelectorAll(".tile")[pair[1]];
+   const css=getComputedStyle(line),stream=getComputedStyle(line,"::after");
+   return {width:parseFloat(line.style.width),left:parseFloat(line.style.left),
+    anim:stream.animationName,duration:parseFloat(stream.animationDuration),
+    pointer:css.pointerEvents,anchor:anchor.classList.contains("resonance-anchor")||
+      anchor.classList.contains("resonance-partner"),
+    partner:linked.classList.contains("resonance-partner")||
+      linked.classList.contains("resonance-anchor")};
+  },pair);
+  assert(actual.width>5&&Number.isFinite(actual.left),
+   "Real Resonance filament needs nonzero board coordinates: "+JSON.stringify(actual));
+  assert(actual.anim.includes("resonance-current")&&actual.duration>=4,
+   "Real Resonance pair must use the flowing energy animation");
+  assert.equal(actual.pointer,"none");
+  assert(actual.anchor&&actual.partner,"Actual linked tiles must receive Resonance CSS classes");
+  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
+  await proof.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-resonance-live.png"});
+ }finally{await isolated.close();}
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  // Engine Lab 2.0 compares paired Standard/Director simulations on the real phone-sized menu,

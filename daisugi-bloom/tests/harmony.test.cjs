@@ -7,8 +7,8 @@ function fixture(){
  const g=new R.Game(0);
  g.board=blank();return g;
 }
-check("10 first-chapter levels and nine available family identities",()=>{
- assert.equal(R.levels.length,10);
+check("Ten tutorial levels and 40 generated Journey previews",()=>{
+ assert.equal(R.levels.length,50);
  assert.deepEqual(R.families,["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
  assert.equal(R.levelFamilies.length,10);
  const seen=new Set();
@@ -128,5 +128,48 @@ check("legacy saved levels migrate retired families without deleting progression
 check("save and resume preserve board, score, randomness position and stage milestones",()=>{
  const g=new R.Game(3),snap=g.save(),newGame=new R.Game(3,snap);
  assert.deepEqual(newGame.board,g.board);assert.deepEqual(newGame.bag,g.bag);assert.equal(newGame.moves,g.moves);assert.equal(newGame.rolls,g.rolls);
+});
+check("Endless Journey levels use repeatable score goals, families and meaningful star thresholds",()=>{
+ for(const level of [10,19,29,49,50,100,1000,23000]){
+  const cfg=R.levelConfig(level),again=R.levelConfig(level);
+  assert.deepEqual(cfg,again);
+  assert.equal(cfg.goal.type,"score");
+  assert(cfg.moves>=17&&cfg.moves<=22);
+  assert(cfg.stars[0]===cfg.goal.count&&cfg.stars[1]>cfg.stars[0]&&cfg.stars[2]>cfg.stars[1]);
+  const families=R.activeFamilies(level);
+  assert.equal(families.length,5);assert.equal(new Set(families).size,5);
+  const a=new R.Game(level,null,{seed:1001}),b=new R.Game(level,null,{seed:1001});
+  assert.deepEqual(a.board,b.board);
+  assert.equal(a.level,level);
+  a.score=cfg.stars[1];
+  assert.equal(a.progress(),cfg.stars[1]);assert.equal(a.stars(),2);
+  a.score=cfg.stars[2];
+  assert.equal(a.stars(),3);
+ }
+ assert(R.levelConfig(23000).goal.count<10000,"Late-stage goals must not grow impossibly without bounds");
+});
+check("Collection bonuses accumulate indefinitely and persist when resuming",()=>{
+ const g=fixture();
+ g.families=R.activeFamilies(0);
+ // Controlled source: stage 4 to stage 5. No manufactured extra points.
+ for(const i of [8,9,10])g.board[i].family="sakura";
+ g.board[9].stage=4;
+ const events=g.resolve(-1);
+ const rewards=events.filter(e=>e.type==="collection");
+ assert(rewards.length>=1);
+ assert(rewards.some(e=>e.awards.some(a=>a.family==="sakura"&&a.count===1&&a.points===100)));
+ assert.equal(g.familyMasterpieces.sakura>=1,true);
+ assert(g.collectionBonusTotal>=100);
+ const snap=g.save(),resumed=new R.Game(0,snap,{fastRestore:true});
+ assert.deepEqual(resumed.familyMasterpieces,g.familyMasterpieces);
+ assert.equal(resumed.collectionBonusTotal,g.collectionBonusTotal);
+ // The reward schedule remains cumulative, NOT a 0/5 win condition.
+ assert.equal(g.config.goal.type,"fusion");
+ g.familyMasterpieces.sakura=12;
+ assert.equal(new R.Game(0,g.save(),{fastRestore:true}).familyMasterpieces.sakura,12);
+});
+check("Levels 6 and 9 use approachable cumulative masterpiece objectives",()=>{
+ assert.deepEqual(R.levels[5].goal,{type:"familyMasterpiece",family:"lantern",count:1});
+ assert.deepEqual(R.levels[8].goal,{type:"masterpiece",count:2});
 });
 console.log("Japanese Harmony rule tests passed");

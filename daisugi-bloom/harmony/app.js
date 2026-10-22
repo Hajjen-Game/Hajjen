@@ -10,6 +10,7 @@ const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk",
 const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
+const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let scoreShown=0,scoreDisplayed=0,scoreRaf=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
 let lastGoalProgress=-1,lastScoreImpact=0;
 const perf=window.HarmonyPerf?.create();
@@ -109,18 +110,92 @@ function showMenu(){
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
- const list=$("levelList");list.replaceChildren();let earned=0;
- R.levels.forEach((cfg,i)=>{
-  let allowed=i<=save.unlocked,stars=save.bestStars[i]||0;earned+=stars;
+ const list=$("levelList");list.replaceChildren();
+ const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
+ for(let i=first;i<last;i++){
+  const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=save.bestStars[i]||0;
   const b=document.createElement("button");b.className="level-tile"+(allowed?"":" locked");b.disabled=!allowed;
   const n=document.createElement("span");n.className="level-number";n.textContent=allowed?String(i+1):"♧";
-  const d=document.createElement("span");const title=document.createElement("strong");title.textContent=cfg.name;const sub=document.createElement("small");sub.textContent=cfg.subtitle;d.append(title,sub);
-  const s=document.createElement("span");s.className="level-stars";s.textContent=allowed?(stars?"★".repeat(stars)+"☆".repeat(3-stars):"○ ○ ○"):"🔒";
-  b.append(n,d,s);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
- });
- $("chapterStars").textContent="★ "+earned+" / "+(R.levels.length*3);
+  const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
+  title.textContent=i<10?cfg.name:"Harmony Journey · "+(i+1);
+  sub.textContent=i<10?cfg.subtitle:cfg.moves+" drag · "+prettify(cfg.goal.count)+" poäng";
+  d.append(title,sub);
+  const starsNode=document.createElement("span");starsNode.className="level-stars";
+  starsNode.textContent=allowed?(stars?"★".repeat(stars)+"☆".repeat(3-stars):"○ ○ ○"):"🔒";
+  b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
+ }
+ const intro=menuPage===0;
+ $("chapterEyebrow").textContent=intro?"INTRODUKTION + JOURNEY":"ENDLESS JOURNEY";
+ $("chapterTitle").textContent=intro?"First Harmony":"Harmony Journey";
+ $("chapterSubtitle").textContent=intro?"Nivå 1–10 lär dig spelet. Därefter är det poängjakt.":"Nya nivåer skapas automatiskt · spela för högre poäng";
+ const stars=Object.values(save.bestStars).reduce((total,n)=>total+(Number(n)||0),0);
+ $("chapterStars").textContent="★ "+stars+" totalt";
+ const pager=$("levelPager");pager.replaceChildren();
+ const prev=document.createElement("button");prev.className="secondary small";prev.textContent="← Föregående";prev.disabled=menuPage===0;
+ prev.addEventListener("click",()=>{menuPage--;renderMenu();});
+ const range=document.createElement("span");range.textContent="Nivå "+(first+1)+"–"+last;
+ const next=document.createElement("button");next.className="secondary small";next.textContent="Nästa →";
+ // Show the next chapter only when the player has progressed to it.
+ next.disabled=save.unlocked<last;
+ next.addEventListener("click",()=>{menuPage++;renderMenu();});
+ pager.append(prev,range,next);
  const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
- $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(Math.min(R.levels.length-1,save.unlocked)+1)+" →";
+ $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(save.unlocked+1)+" →";
+}
+function collectionSprite(family){
+ const isNew=Object.hasOwn(newFamilyRows,family);
+ const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"");
+ art.style.setProperty("--collection-y",(isNew?newFamilyRows[family]*100/3:familyRows[family]*25)+"%");
+ const fallback=document.createElement("span");fallback.className="collection-fallback";fallback.textContent=symbols[family];
+ return [art,fallback];
+}
+function prepareCollection(){
+ const container=$("masterpieceCollection");container.replaceChildren();collectionCards.clear();
+ for(const family of game.families){
+  const cell=document.createElement("div");cell.className="collection-card";cell.dataset.family=family;
+  cell.setAttribute("aria-label",names[family]+" mästerverk 0");
+  const circle=document.createElement("div");circle.className="collection-medallion";
+  circle.append(...collectionSprite(family));
+  const count=document.createElement("strong");count.className="collection-count";count.textContent="0";
+  const label=document.createElement("span");label.className="collection-label";label.textContent=names[family];
+  cell.append(circle,count,label);container.append(cell);collectionCards.set(family,cell);
+ }
+ renderCollection(game.familyMasterpieces);
+}
+function renderCollection(counts,awards=[]){
+ if(!counts)return;
+ for(const [family,card] of collectionCards){
+  const count=Math.max(0,Number(counts[family])||0);
+  const previous=Number(card.dataset.count)||0;
+  card.dataset.count=String(count);
+  card.querySelector(".collection-count").textContent=String(count);
+  // Decorative ring saturates, but the displayed collection NUMBER never resets or caps.
+  const step=Math.min(count,5);
+  card.style.setProperty("--collection-fill",(step*20)+"%");
+  card.classList.toggle("collected",count>0);
+  card.setAttribute("aria-label",names[family]+": "+count+" mästerverk under nivån");
+  if(count>previous&&awards.some(a=>a.family===family)&&!save.reduceMotion){
+   card.classList.remove("collection-awarded");void card.offsetWidth;
+   card.classList.add("collection-awarded");
+  }
+ }
+}
+async function celebrateCollection(evt){
+ renderCollection(evt.familyMasterpieces,evt.awards||[]);
+ const tasks=[];
+ for(const award of evt.awards||[]){
+  const card=collectionCards.get(award.family);if(!card)continue;
+  if(!FAST()&&award.points){
+   const popup=document.createElement("span");popup.className="collection-bonus";
+   popup.textContent="+"+prettify(award.points);card.append(popup);
+   tasks.push(animateNode(popup,[
+    {transform:"translateY(9px) scale(.85)",opacity:0},
+    {transform:"translateY(-2px) scale(1.04)",opacity:1,offset:.35},
+    {transform:"translateY(-22px) scale(.97)",opacity:0}
+   ],530).finally(()=>popup.remove()));
+  }
+ }
+ await Promise.all(tasks);
 }
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
@@ -128,9 +203,9 @@ function startLevel(i,resume=false){
  resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
- $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1)+" AV "+R.levels.length;
+ $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
- renderBoard(game.board);renderHUD();saveRun();
+ prepareCollection();renderBoard(game.board);renderHUD();saveRun();
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -260,7 +335,7 @@ function renderHUD(state){
  let current=state||game,progress=state?state.goal:game.progress();
  $("movesCount").textContent=current.moves;
  renderScoreOnly();
- $("goalProgress").textContent=Math.min(game.target(),progress)+" / "+game.target();
+ $("goalProgress").textContent=prettify(Math.min(game.target(),progress))+" / "+prettify(game.target());
  if(progress>lastGoalProgress&&lastGoalProgress>=0){
   const node=$("goalProgress");
   if(!save.reduceMotion)animateNode(node,[
@@ -983,6 +1058,9 @@ async function animateEvent(evt){
     {transform:"scale(.88)",offset:0},{transform:"scale(1.19)",offset:.56},{transform:"scale(1)",offset:1}
    ],180)));
    break;
+  case "collection":
+   await celebrateCollection(evt);
+   break;
   case "harvest":{
    sound("harvest",{chain:evt.chain});
    const positions=evt.positions||[];
@@ -1036,7 +1114,11 @@ async function playEvents(events){
  try{
   for(const evt of events){
    await animateEvent(evt);
-   if(evt.scoreDelta>0)flyPoints(evt);
+   if(evt.scoreDelta>0){
+    if(evt.type==="collection"){
+     scoreShown+=evt.scoreDelta;animateScoreCount();scoreArrival(evt.scoreDelta);
+    }else flyPoints(evt);
+   }
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
    if(evt.type==="echo")praise("echo");
    else if(evt.type==="hero")praise("masterpiece");
@@ -1058,7 +1140,8 @@ async function playEvents(events){
  if(finished)showResult();
 }
 function unlockGoal(){
- save.unlocked=Math.max(save.unlocked,Math.min(R.levels.length-1,level+1));
+ save.unlocked=Math.max(save.unlocked,level+1);
+ if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  save.bestStars[level]=Math.max(save.bestStars[level]||0,game.stars());
  persist();
 }
@@ -1086,7 +1169,7 @@ function showResult(){
  });panel.append(stats);
  const extra=document.createElement("p");extra.textContent=won?"Du har klarat nivån. Förbättra gärna rekordet genom att spela igen.":"Nytt försök ger en ny kontrollerad startvariant. Inga liv, väntetider eller Power Moves.";panel.append(extra);
  const actions=$("modalActions");actions.replaceChildren();
- if(won){modalButton(actions,level<R.levels.length-1?"Nästa nivå →":"Till nivåval →","primary",()=>{if(level<R.levels.length-1)startLevel(level+1);else showMenu();});}
+ if(won){modalButton(actions,"Nästa nivå →","primary",()=>startLevel(level+1));}
  modalButton(actions,won?"Spela igen":"Försök igen med nytt bräde","secondary",()=>startLevel(level));
  modalButton(actions,"Nivåval","secondary",showMenu);
  $("modal").hidden=false;
@@ -1154,8 +1237,9 @@ function openEngineLab(){
   const label=document.createElement("label");label.textContent=name;label.append(node);controls.append(label);
  };
  const levels=document.createElement("select");
- const allOption=document.createElement("option");allOption.value="all";allOption.textContent="Alla tio nivåerna";levels.append(allOption);
+ const allOption=document.createElement("option");allOption.value="all";allOption.textContent="Introduktion nivå 1–10";levels.append(allOption);
  R.levels.forEach((cfg,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=(i+1)+". "+cfg.name;levels.append(option);});
+ if(level>=R.levels.length){const option=document.createElement("option");option.value=String(level);option.textContent=(level+1)+". "+R.levelConfig(level).name;levels.append(option);}
  levels.value=game?String(level):"all";field("Nivåer",levels);
  const samples=document.createElement("select");
  for(const n of [2,5,10,25]){const option=document.createElement("option");option.value=String(n);option.textContent=n+" seeds per strategi och nivå";samples.append(option);}
@@ -1255,7 +1339,7 @@ function openEngineLab(){
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
   const modes=engineMode.value==="compare"?["standard","director"]:[engineMode.value];
-  const opts={levels:levels.value==="all"?R.levels.map((_,i)=>i):[Number(levels.value)],
+  const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
   const total=opts.levels.length*opts.trials*opts.strategies.length*opts.modes.length;
@@ -1301,8 +1385,8 @@ function bind(){
  $("homeButton").addEventListener("click",showMenu);
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
- $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(Math.min(R.levels.length-1,save.unlocked));});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Nivåmål:</strong> När målet uppnås sparas dina stjärnor. Du får spela återstående drag för att slå ditt rekord. Inga Power Moves eller hinder.</p>'));
+ $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Nivåer:</strong> Nivå 1–10 introducerar reglerna. Från nivå 11 är målet att samla poäng, och högre poäng ger fler stjärnor. Inga Power Moves eller hinder.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});
@@ -1334,5 +1418,6 @@ function checkAtlas(){
  extra.src="./assets/harmony-new-families.avif?v=5.0";
 }
 window.HarmonyAudio?.setEnabled(save.sound);
+menuPage=Math.floor(Math.max(0,save.unlocked)/MENU_PAGE_SIZE);
 bind();checkAtlas();initFestivalBackground();renderMenu();
 })();

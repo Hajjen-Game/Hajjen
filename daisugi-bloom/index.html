@@ -5,14 +5,14 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Board Praise 5.6.0</title>
+ <title>Japanese Harmony · Endless Journey 6.0.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=5.6.0-icons-20261022">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=5.6.0">
- <script defer src="./harmony/rules.js?v=5.6.1-level8"></script>
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.0.0">
+ <script defer src="./harmony/rules.js?v=6.0.0"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
  <script defer src="./harmony/diagnostics.js?v=5.6.0"></script>
- <script defer src="./harmony/app.js?v=5.6.0-icons-20261022"></script>
+ <script defer src="./harmony/app.js?v=6.0.0"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -32,8 +32,8 @@
       <div class="hero-pills"><span>✦ Inga power-ups</span><span>✦ Strategiska kedjor</span><span>✦ Personliga rekord</span></div>
     </div>
     <div class="level-panel">
-      <div class="panel-heading"><div><div class="eyebrow">KAPITEL 1</div><h2>First Harmony</h2><p>Tio nivåer · en ny resa</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
-      <div id="levelList" class="level-list"></div>
+      <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">First Harmony</h2><p id="chapterSubtitle">Nivå 1–10 lär dig spelet. Därefter är det poängjakt.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
+      <div id="levelList" class="level-list"></div><nav id="levelPager" class="level-pager" aria-label="Bläddra mellan nivåer"></nav>
       <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Spela om tidigare nivåer och förbättra dina poängrekord och stjärnor.</p></div>
     </div>
    </section>
@@ -54,6 +54,10 @@
      <div id="resonanceLinks" class="resonance-links" aria-hidden="true"></div>
      <div id="boardPraise" class="board-praise" aria-hidden="true"></div>
     </div>
+    <section class="masterpiece-collection" aria-label="Mästerverk samlade under denna nivå">
+     <div class="collection-heading"><strong>✦ MASTERPIECE COLLECTION</strong><span>Bonus för varje mästerverk</span></div>
+     <div id="masterpieceCollection" class="collection-items" aria-live="off"></div>
+    </section>
     <p id="selectedInfo" class="sr-only" role="status" aria-live="polite">Välj två grannar eller svep.</p>
    </section>
   </main>

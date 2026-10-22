@@ -226,9 +226,24 @@ try{
  assert(atlasState.loaded&&atlasState.style.includes("harmony-atlas.webp"),"Approved Japanese art atlas missing from live board");
  assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");
  assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
+ const collection=await page.evaluate(()=>({
+  icons:document.querySelectorAll("#masterpieceCollection .collection-card").length,
+  labels:[...document.querySelectorAll("#masterpieceCollection .collection-count")].map(e=>e.textContent),
+  noFractions:!document.querySelector("#masterpieceCollection").textContent.includes("/5"),
+  visible:!!document.querySelector(".masterpiece-collection")
+ }));
+ assert.equal(collection.icons,5,"Five active families must appear under the board");
+ assert.deepEqual(collection.labels,["0","0","0","0","0"],"All five counters begin at zero, never 0/5");
+ assert(collection.noFractions&&collection.visible);
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,level8Goal:HarmonyRules.levels[7].goal.type,level8Count:HarmonyRules.levels[7].goal.count,level8Moves:HarmonyRules.levels[7].moves};});
  assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"stage3");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,20);
+ const endless=await page.evaluate(()=>{
+  const R=window.HarmonyRules;
+  return [10,49,100].map(i=>({number:i+1,type:R.levelConfig(i).goal.type,
+   families:R.activeFamilies(i).length,moves:R.levelConfig(i).moves}));
+ });
+ assert(endless.every(x=>x.type==="score"&&x.families===5&&x.moves>=17));
  // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
  // successful manual fusion from an already-linked stage-three object.
  const resonanceVisual=await page.evaluate(()=>{

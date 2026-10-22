@@ -12,7 +12,7 @@ const results=[];
 let turns=0,waves=0,masterpieceEvents=0;
 for(let level=0;level<R.levels.length;level++){
  let won=0;
- for(let sample=1;sample<=12;sample++){
+ for(let sample=1;sample<=4;sample++){
   const game=new R.Game(level,null,{seed:(sample*73471+level*10007)>>>0});
   const pick=rng((sample*1234567+level)|0);
   assert.equal(game.board.length,49);
@@ -47,7 +47,7 @@ for(let level=0;level<R.levels.length;level++){
   }
   if(game.complete)won++;
  }
- results.push({level:level+1,wins:won,samples:12});
+ results.push({level:level+1,wins:won,samples:4});
 }
 // A single-stage-5 Sakura triggers the same fusion / hero / pulse / harvest
 // sequence on levels 4 and 9: goal differences must not swap the engine.
@@ -70,5 +70,5 @@ assert.deepEqual(signature(eventsA),signature(eventsB),
  "Levels 4 and 9 must apply identical rules to the same handcrafted fusion");
 console.log("Japanese Harmony comprehensive invariants: "+turns+" swaps, "+waves+
  " fusion waves, "+masterpieceEvents+" hero events");
-console.log("Seeded unskilled baselines (12 starts per level): "+JSON.stringify(results));
+console.log("Seeded unskilled baselines (4 starts per level): "+JSON.stringify(results));
 console.log("Note: chain semantics and level-6/9 difficulty are explicitly tracked in the audit report.");

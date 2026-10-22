@@ -17,19 +17,41 @@ const LEVEL_FAMILIES=[
  ["sakura","lantern","sushi","maneki","ryu"],
  ["koi","bonsai","sushi","origami","ryu"]
 ];
-function activeFamilies(index){return (LEVEL_FAMILIES[index]||LEVEL_FAMILIES.at(-1)).slice();}
+// Stable family mix for arbitrarily many numbered levels. No per-level quests.
+function endlessFamilies(index){
+ const chosen=ALL.slice(),random=prng((Math.imul(index+1,0x9e3779b1)^0x68bc21eb)>>>0);
+ for(let i=chosen.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[chosen[i],chosen[j]]=[chosen[j],chosen[i]];}
+ return chosen.slice(0,5);
+}
+function activeFamilies(index){return index<LEVEL_FAMILIES.length?LEVEL_FAMILIES[index].slice():endlessFamilies(index);}
 const levels=[
  {name:"First Match",subtitle:"Början på resan",moves:12,par:7,goal:{type:"fusion",count:5},intro:"Byt två grannar och matcha tre föremål av samma familj."},
  {name:"Growing Beauty",subtitle:"Fem steg till ett mästerverk",moves:18,par:10,goal:{type:"stage3",count:3},intro:"Samma familj kan matchas oavsett utvecklingsstadium. Få tre föremål till stadium 3."},
  {name:"The Survivor",subtitle:"Välj den rätta vägen",moves:16,par:9,goal:{type:"stage4",count:1},intro:"Föremålet med högst stadium överlever på sin plats. Odla fram stadium 4."},
  {name:"First Masterpiece",subtitle:"Skapa något extraordinärt",moves:18,par:10,goal:{type:"masterpiece",count:1},intro:"Förädla ett föremål till stadium 5 för att skapa ditt första mästerverk."},
  {name:"Harmony Awakens",subtitle:"Låt utvecklingen sprida sig",moves:18,par:11,goal:{type:"pulseHits",count:3},intro:"Harmony Pulse utvecklar upptagna rutor ovanför, nedanför och vid sidan av mästerverket."},
- {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:22,par:15,goal:{type:"familyMasterpiece",family:"lantern",count:2},intro:"Skapa två mästerverk från lykta-familjen."},
+ {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:20,par:12,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Skapa ett mästerverk från lykta-familjen. Övriga mästerverk ger fortfarande poäng."},
  {name:"Four of a Kind",subtitle:"Den fjärde gör skillnad",moves:18,par:11,goal:{type:"four",count:1},intro:"Matcha minst fyra i en fusion. En granne förädlas som bonus."},
  {name:"Garden in Bloom",subtitle:"Fem utvecklade föremål",moves:20,par:12,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3 med vanliga fusioner. T- och L-former är bonusar, inte ett krav."},
- {name:"Double Harmony",subtitle:"Förbered kedjan",moves:20,par:12,goal:{type:"chain",count:2},intro:"Skapa två mästerverk i samma Harmony Pulse-kedja."},
+ {name:"Double Harmony",subtitle:"Varje mästerverk räknas",moves:20,par:12,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk under nivån. Harmony Pulse-kedjor ger fortfarande extra poäng."},
  {name:"Master of Harmony",subtitle:"Första kapitlets final",moves:24,par:15,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk på en och samma nivå."}
 ];
+// A level number is enough to recreate its configuration. This is the one
+// reusable level recipe for all stages after the 10-level tutorial.
+function endlessConfig(index){
+ const number=index+1,tier=Math.floor((index-10)/10);
+ const moves=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
+ // First 50 steadily teach score play; beyond that, logarithmic growth avoids
+ // making very high stage numbers mathematically unwinnable.
+ const distance=Math.max(0,index-49);
+ const target=Math.round((1600+Math.min(39,index-10)*83+
+  Math.floor(Math.min(39,index-10)/20)*140+Math.log2(1+distance/8)*175)/50)*50;
+ return {name:"Harmony Journey",subtitle:"Poängjakt · bana "+number,moves,par:0,
+  goal:{type:"score",count:target},stars:[target,Math.round(target*1.4/50)*50,Math.round(target*1.85/50)*50],
+  intro:"Samla poäng genom fusioner, mästerverk och Harmony Pulse. Högre poäng ger fler stjärnor."};
+}
+function levelConfig(index){return levels[index]||endlessConfig(index);}
+for(let i=10;i<50;i++)levels.push(endlessConfig(i));
 function prng(seed){return function(){seed|=0;seed=(seed+0x6d2b79f5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 function clone(b){return b.map(p=>p?{family:p.family,stage:p.stage,id:p.id}:null);}
 function neighbors(i){let row=Math.floor(i/N),col=i%N,a=[];if(row>0)a.push(i-N);if(col<N-1)a.push(i+1);if(row<N-1)a.push(i+N);if(col>0)a.push(i-1);return a;}
@@ -198,8 +220,8 @@ function draftRefill(board,bag,families,nextId,rand){
 function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Math.random()*0xffffffff))>>>0;}
 class Game{
  constructor(index=0,previous=null,options=null){
-  this.level=Math.max(0,Math.min(levels.length-1,index));
-  this.config=levels[this.level];this.families=activeFamilies(this.level);
+  this.level=Number.isInteger(index)&&index>=0?index:0;
+  this.config=levelConfig(this.level);this.families=activeFamilies(this.level);
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
@@ -212,11 +234,13 @@ class Game{
   this.board=options?.fastRestore&&previous?clone(previous.board):
    startBoard(this.level,()=>this.fresh(),this.families);
   this.nextId=50;
-  this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};
+  this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;
   if(previous){
-   Object.assign(this,previous);this.config=levels[this.level];this.families=activeFamilies(this.level);
+   Object.assign(this,previous);this.config=levelConfig(this.level);this.families=activeFamilies(this.level);
+   this.collectionBonusTotal=this.collectionBonusTotal||0;
+   this.familyMasterpieces=this.familyMasterpieces||{};
    this.random=prng(this.seed);for(let i=0;i<this.rolls;i++)this.random();this.board=clone(previous.board);
    // Upgrade an unfinished pre-expansion saved run without discarding the
    // player's moves, stages, score or RNG position. Each obsolete identity is
@@ -282,15 +306,21 @@ class Game{
  target(){return this.config.goal.count;}
  progress(){
   let g=this.config.goal;
-  switch(g.type){case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+  switch(g.type){case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
  }
  goalText(){
   let g=this.config.goal;
-  return ({fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
+  return ({score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
  }
  fulfilled(){return this.progress()>=this.target();}
- stars(){return this.starsAtGoal||0;}
- frame(type,extra={}){return {type,board:clone(this.board),moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
+ stars(){
+  if(this.config.goal.type==="score"){
+   const thresholds=this.config.stars;
+   return this.score>=thresholds[2]?3:this.score>=thresholds[1]?2:this.score>=thresholds[0]?1:0;
+  }
+  return this.starsAtGoal||0;
+ }
+ frame(type,extra={}){return {type,board:clone(this.board),moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
   const p=this.board[i];if(!p||p.stage>=5)return false;
@@ -372,10 +402,23 @@ class Game{
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];
     }
-    for(const i of all){let p=this.board[i];if(!p||p.stage!==5)continue;this.familyMasterpieces[p.family]=(this.familyMasterpieces[p.family]||0)+1;this.board[i]=null;this.masterpieces++;}
+    const newCounts=[];
+    for(const i of all){
+     const p=this.board[i];if(!p||p.stage!==5)continue;
+     const count=(this.familyMasterpieces[p.family]||0)+1;
+     this.familyMasterpieces[p.family]=count;this.board[i]=null;this.masterpieces++;
+     newCounts.push({family:p.family,count,at:i,points:Math.min(1200,
+      [0,100,200,350,550,800][count]??800+Math.min(400,(count-5)*80))});
+    }
     this.bestChain=Math.max(this.bestChain,all.size);
     const points=all.size*500+Math.max(0,all.size-1)*250;this.score+=points;
     events.push(this.frame("harvest",{positions:[...all],chain:all.size,pulseHits:chainHits,scoreDelta:points}));
+    if(newCounts.length){
+     const collectedPoints=newCounts.reduce((total,entry)=>total+entry.points,0);
+     this.collectionBonusTotal+=collectedPoints;
+     this.score+=collectedPoints;
+     events.push(this.frame("collection",{awards:newCounts,scoreDelta:collectedPoints}));
+    }
    }
    // Gravity and controlled stage-one refills only after all Harmony waves have finished.
    for(let c=0;c<N;c++){
@@ -396,7 +439,7 @@ class Game{
   }
   if(!this.complete&&this.fulfilled()){
    this.complete=true;this.goalMove=this.config.moves-this.moves;
-   this.starsAtGoal=this.goalMove<=this.config.par?3:this.goalMove<=this.config.par+4?2:1;
+   this.starsAtGoal=this.config.goal.type==="score"?this.stars():this.goalMove<=this.config.par?3:this.goalMove<=this.config.par+4?2:1;
    events.push(this.frame("goal",{stars:this.starsAtGoal}));
   }
   if(this.moves<=0){this.failed=!this.complete;events.push(this.frame(this.complete?"end":"lose",{stars:this.stars()}));}
@@ -417,9 +460,9 @@ class Game{
   this.moves--;return {ok:true,events:[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed)]};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
+ save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

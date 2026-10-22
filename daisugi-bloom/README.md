@@ -1,5 +1,15 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Endless Journey & Masterpiece Collection 1.0 — 2026-10-22
+
+**Nivå 1–10** introducerar fusioner och Harmony Pulse. Från **nivå 11** räcker ett tydligt poängmål inom draggränsen; stjärnorna baseras på poäng. Nivå 11–50 är genererade som första balanserbara svårighetskurva. Samma generator stöder även alla högre nivånummer utan att skapa separata quest-definitioner. Nivåväljaren visar 20 åt gången.
+
+**Masterpiece Collection:** Spelplanens fem aktuella familjer visas under brädet med sina faktiska stadium 5-bilder. Varje mästerverk ökar den egna familjens **obegränsade heltalsräknare** (0, 1, 2 …), aldrig 0/5. Ringen runt ikonen fylls dekorativt och pulserar vid nya mästerverk. Varje mästerverk ger en egen växande, men begränsad, bonus utöver Harmony-poäng. Räkning, bonusar och poäng bevaras i sparfilen under omgången och återställs vid en ny nivå.
+
+**Introduktionsbalans:** Nivå 6 kräver ett lyktmästerverk; nivå 9 två mästerverk totalt (inte längre ett specifikt slumpkänsligt simultant kedjemönster). Kärnfusionsreglerna och befintliga bilder är oförändrade. Båda tidigare felen dokumenterades i [spelgranskningen](docs/JAPANESE_HARMONY_GAME_AUDIT_20261022.md).
+
+[Detaljer, kontroller och testplan](docs/JAPANESE_HARMONY_ENDLESS_JOURNEY_1_0.md).
+
 **Spela:** https://hajjen-game.github.io/Hajjen/daisugi-bloom/
 
 **Nuvarande spel:** Tio nivåer, fem aktiva objektfamiljer per nivå (roteras mellan de nio familjerna Sakura, Lykta, Koi, Solfjäder, Bonsai, Sushi, Maneki-neko, Origami och Ryu). Samtliga nio har fem utvecklingsstadier. Gemensamma regler för 3/4/5/T/L-fusioner, Harmony Resonance/Echo, Harmony Pulse och mästerverk. Nivå 8 har målet **Garden in Bloom: fem föremål till stadium 3**. Historiska texter längre ned dokumenterar äldre Daisugi-versioner och ska inte läsas som aktuell status.

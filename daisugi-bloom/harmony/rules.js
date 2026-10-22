@@ -80,10 +80,13 @@ function startBoard(level,random,families){
 }
 function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Math.random()*0xffffffff))>>>0;}
 class Game{
- constructor(index=0,previous=null){
+ constructor(index=0,previous=null,options=null){
   this.level=Math.max(0,Math.min(levels.length-1,index));
   this.config=levels[this.level];this.families=activeFamilies(this.level);
-  this.seed=seedFor(this.level);this.rolls=0;this.random=prng(this.seed);
+  // The optional deterministic seed is exclusively used by the diagnostics
+  // harness. Normal gameplay still uses the original random seedFor(level).
+  this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
+  this.rolls=0;this.random=prng(this.seed);
   this.bag=[];this.board=startBoard(this.level,()=>this.fresh(),this.families);this.nextId=50;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};
   this.stage3=0;this.stage4=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;

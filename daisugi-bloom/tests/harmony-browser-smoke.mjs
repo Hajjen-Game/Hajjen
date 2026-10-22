@@ -293,6 +293,53 @@ try{
  const fallback=await page.evaluate(()=>({image:getComputedStyle(document.body,"::before").backgroundImage,
    visible:getComputedStyle(document.body,"::before").display}));
  assert(fallback.image.includes("festival-night-six.avif")&&fallback.visible!=="none","Broken HD URL must trigger the legacy scenic fallback");
+ // Expansion 5.0 regression: all nine identities appear in the first
+ // three levels; exactly five, with every selected family represented.
+ const expansion=await page.evaluate(()=>{
+  const rows=[0,1,2,3,4,5,6,7,8,9].map(index=>{
+   const g=new HarmonyRules.Game(index);
+   return {index,active:g.families,actual:[...new Set(g.board.map(p=>p.family))],
+    freeMatches:HarmonyRules.scan(g.board).length,valid:HarmonyRules.validSwaps(g.board).length};
+  });
+  return {all:HarmonyRules.families,rows};
+ });
+ assert.equal(expansion.all.length,9);
+ const appeared=new Set();
+ for(const row of expansion.rows){
+  assert.equal(row.active.length,5);
+  assert.deepEqual(row.actual.slice().sort(),row.active.slice().sort(),
+   "All five chosen families must actually be on board for level "+(row.index+1));
+  assert.equal(row.freeMatches,0);
+  assert(row.valid>=3);
+  row.active.forEach(f=>appeared.add(f));
+  if(row.index===2)assert.equal(appeared.size,9,"All nine families must have appeared by level 3");
+ }
+ // Level 3 deliberately contains both Origami and Ryu. Confirm their
+ // transparent image atlas has decoded and the sprites render visibly.
+ await page.evaluate(()=>{
+  const key="japanese-harmony-puzzle-v2",save=JSON.parse(localStorage.getItem(key)||"{}");
+  save.unlocked=2;save.run=null;localStorage.setItem(key,JSON.stringify(save));
+ });
+ await page.reload({waitUntil:"networkidle2"});
+ await page.waitForFunction(()=>document.documentElement.classList.contains("has-new-atlas"),{timeout:15000});
+ const atlas=await page.evaluate(async()=>{
+  const src="./assets/harmony-new-families.avif?v=5.0";
+  const image=new Image();image.src=src;await image.decode();
+  return {width:image.naturalWidth,height:image.naturalHeight};
+ });
+ assert.deepEqual(atlas,{width:960,height:768},"Twenty 192px transparent sprites must decode as 5 × 4 atlas");
+ await page.click("#levelList .level-tile:nth-child(3)");
+ const renderedNew=await page.evaluate(()=>{
+  const items=[...document.querySelectorAll(".piece.new-family")];
+  const present=new Set([...document.querySelectorAll(".tile")].map(x=>x.getAttribute("aria-label")?.split(",")[0]));
+  return {count:items.length,present:[...present],visible:items.every(x=>{
+   const sprite=x.querySelector(".sprite-new"),style=getComputedStyle(sprite);
+   return style.display==="block"&&style.backgroundImage.includes("harmony-new-families.avif");
+  })};
+ });
+ assert(renderedNew.count>0&&renderedNew.visible,
+  "Level 3 needs visible Origami and Ryu sprites from the new transparent atlas");
+ assert(renderedNew.present.includes("Origami")&&renderedNew.present.includes("Ryu-drake"));
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

@@ -7,7 +7,7 @@
 const fs=require("node:fs"),path=require("node:path");
 const R=require("../harmony/rules.js");
 const Engine=require("../harmony/diagnostics.js").create(R);
-const opts={trials:10,seed:20261022,levels:R.levels.map((_,i)=>i),strategies:Engine.STRATEGIES};
+const opts={trials:10,seed:20261022,levels:R.levels.map((_,i)=>i),strategies:Engine.STRATEGIES,modes:["standard"]};
 let output=null;
 const args=process.argv.slice(2);
 for(let i=0;i<args.length;i++){
@@ -21,6 +21,7 @@ for(let i=0;i<args.length;i++){
    opts.levels=value==="all"?R.levels.map((_,i)=>i):[Number(value)-1];
    break;
   case "--out":output=value;break;
+  case "--mode":opts.modes=value==="compare"?["standard","director"]:[value];break;
   default:throw Error("Unknown option "+flag);
  }
 }
@@ -28,12 +29,13 @@ const started=Date.now();
 const report=Engine.run(opts);
 const elapsedMs=Date.now()-started;
 console.log("Japanese Harmony · Engine Lab 1.0 · "+report.runs.length+" seeded games · "+elapsedMs+" ms");
-console.log("Level | Bot | Wins | Goal reached | Avg choices | Cascades | No-progress turns");
+console.log("Level | Engine | Bot | Wins | Goal reached | Avg choices | Goal-ready | Cascades | No-progress turns");
 for(const row of report.results){
  const pct=x=>Math.round(x*100)+"%";
- console.log([String(row.level+1).padStart(5),row.strategy.padEnd(9),
+ console.log([String(row.level+1).padStart(5),row.mode.padEnd(8),row.strategy.padEnd(9),
   (row.wins+"/"+row.samples).padStart(5),pct(row.avgGoalRatio).padStart(12),
   row.avgLegalMoves.toFixed(1).padStart(11),
+  row.avgGoalReady.toFixed(2).padStart(10),
   row.avgCascades.toFixed(2).padStart(8),
   row.avgNoGoalTurns.toFixed(1).padStart(8)].join(" | "));
 }

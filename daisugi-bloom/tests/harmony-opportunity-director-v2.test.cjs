@@ -15,7 +15,7 @@ check("2.0 remains opt-in, with identical seeded starting boards",()=>{
   assert.equal(standard.opportunity,false);
   assert.equal(v1.directorMode,"v1");
   assert.equal(v2.opportunity,true);assert.equal(v2.directorMode,"v2");
- });
+ }
 });
 check("2.0 opportunity evaluation is pure and understands higher stages",()=>{
  const g=new R.Game(12,null,{seed:401});

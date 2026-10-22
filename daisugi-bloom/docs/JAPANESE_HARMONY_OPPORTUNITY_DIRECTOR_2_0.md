@@ -40,3 +40,19 @@ The benchmark script `daisugi-bloom/tools/opportunity-director-v2-benchmark.cjs`
 **Interpretation:** Bot success is not a proxy for human enjoyment. Higher average score and a few extra opportunities do not justify a change if the Director reduces meaningful decisions or makes fusion outcomes feel handed to the player.
 
 **Ship decision:** Director 2.0 remains experimental by default. Promote to live gameplay only after broad seeded comparisons, regression checks and mobile playtesting.
+
+## Confirmed initial benchmark (480 seeded games)
+
+The dedicated GitHub Actions benchmark completed successfully using ten level indices, two bot styles, three modes and eight identical seeds per combination (480 games). The first raw benchmark is attached to workflow run `39841068030` as `japanese-harmony-director2-benchmark`.
+
+| Metric | Standard | Director 1.0 | Director 2.0 |
+|---|---:|---:|---:|
+| Random-bot wins / 80 | 44 | 51 | **53** |
+| Random-bot mean score | 2,860 | 2,969 | **3,078** |
+| Random-bot stage-4-ready opportunities per observed turn | 0.08 | 0.12 | **0.13** |
+| Random-bot longest no-goal-progress streak | 5.45 | 5.14 | **5.03** |
+| Goal-bot wins / 80 | 80 | 80 | 80 |
+| Goal-bot mean score | 3,993 | 3,895 | **3,995** |
+
+These results are promising but modest, particularly for the less strategic bot, and cannot establish user-perceived enjoyment. Crucially, **they do not justify automatically switching production play to Director 2.0**. Full regression tests and human playtesting remain the promotion gate.
+

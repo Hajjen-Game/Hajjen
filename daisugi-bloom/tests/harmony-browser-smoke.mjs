@@ -257,17 +257,18 @@ try{
  await page.select("#engineMode","compare");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
- assert.equal(await page.$$eval(".engine-table tbody tr",rows=>rows.length),8,
-  "Developer lab must show 4 bots × 2 paired engine modes");
+ assert.equal(await page.$eval(".engine-table tbody tr",rows=>rows.length),12,
+  "Developer lab must show 4 bots × 3 paired engine modes");
  const comparisonUI=await page.evaluate(()=>({
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.6.0")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.1.0")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
- assert.equal(comparisonUI.versions.filter(x=>x==="Director").length,4);
- assert.equal(comparisonUI.summaries,4);
+ assert.equal(comparisonUI.versions.filter(x=>x==="Director 1.0").length,4);
+ assert.equal(comparisonUI.versions.filter(x=>x==="Director 2.0").length,4);
+ assert.equal(comparisonUI.summaries,8);
  assert(comparisonUI.versionShown,"The report must expose the game engine version");
  assert.equal(await page.$eval("#modalActions button:nth-child(3)",b=>b.disabled),false,
   "A finished report must be exportable as JSON");

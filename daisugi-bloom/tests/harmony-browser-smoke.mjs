@@ -24,7 +24,7 @@ try{
  await page.select("#engineMode","compare");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
- assert.equal(await page.$eval(".engine-table tbody tr",rows=>rows.length),8,
+ assert.equal(await page.$$eval(".engine-table tbody tr",rows=>rows.length),8,
   "Developer lab must show 4 bots × 2 paired engine modes");
  const comparisonUI=await page.evaluate(()=>({
   versions:[...document.querySelectorAll(".engine-table tbody tr")]

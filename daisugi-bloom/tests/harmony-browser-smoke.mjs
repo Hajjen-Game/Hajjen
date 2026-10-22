@@ -167,7 +167,7 @@ try{
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.5.2")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.6.0")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director").length,4);

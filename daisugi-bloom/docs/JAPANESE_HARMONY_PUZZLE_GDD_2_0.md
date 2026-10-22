@@ -407,3 +407,18 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Prestandaskydd:** Använder befintliga transient `fusion-fx-layer` och `score-fx-overlay`. Högst två kontakt-/harvestringar på mobil samtidigt per event. Reducerad rörelse hoppar över effekterna och går direkt till korrekt board-state. Varken 7×7-spelregler, levels, räknare, ljud, bakgrund eller sparformat ändras.
 
 **Regression:** `tests/harmony-fusion-motion.test.cjs` testar opaque travel, korrekt destination, ordning före render, synlighetsåterställning, kontaktmarkering och långsammare Harvest. Browser smoke testar rörelsen på riktiga 7×7-rutor genom att kontrollera `fusion-ghost` keyframes. Kopplat till GitHub Actions. Ljud/VFX/performance-kontrakten från 4.1–4.3 körs fortsatt. Slutlig visuell utvärdering och FPS på Android behöver göras av spelaren.
+
+
+## Pass 5 – Fusion Readability 4.3.2 (2026-10-22)
+
+**Bakgrund:** Spelartest av 4.3.1 visade att normal matchning av 3–5 föremål fortfarande såg ut som att föremålen försvann. Endast själva fusionsrörelsen skulle ändras; spelregler, poäng, kameravy, bakgrund och tidigare VFX behålls.
+
+**Ny timing för vanlig sammandragning:** Varje fusion börjar med **75 ms anticipation**, följs av en fullt synlig rörelse mot det regelvalda överlevande föremålet på **380 ms (3-match)**, **430 ms (4-match)** eller **480 ms (5+ match)**, och avslutas med **55 ms kontaktfas** där ursprungsbilderna ligger kvar på rätt plats innan de ersätts med det nya stadiet. Den totala fusionsinsamlingen tar alltså 510/560/610 ms före en 215 ms förädlingsbloom.
+
+**Visuell kurva:** Föremålen är kvar vid startplatsen under anticipation. De behåller 100 % opacitet och nära full storlek under större delen av färden (15 % av sträckan, sedan 50 % och 86 %), krymper först nära målet och når sitt mål på 78 % skala utan fadeout. Sista positionen hålls under 55 ms; därefter byts board-snapshot och överlevarens nya stadium växer fram. Källrutornas `visibility` återställs i `finally` även om animationen avbryts. Inga extra partikelsystem eller nya långlivade DOM-element introduceras.
+
+**Samtidiga fusioner:** Om två grupper fusioneras samtidigt används en gemensam fusionsklocka som baseras på den största gruppen. Det förhindrar att en mindre grupp slutar animera och kort hoppar tillbaka medan en större grupp ännu rör sig.
+
+**Tillgänglighet/prestanda:** `Minska animationer` förblir omedelbar; prestandamätaren från 4.3 lämnas orörd. Allt sker via existerande `transform`-animationer på visuella kloner och den gamla kontakt-/förädlingssekvensen återanvänds. Ingen ändring av Harmony Rules.
+
+**Tester:** `harmony-fusion-motion.test.cjs` kontrollerar tiderna för grupper med 3/4/5 föremål, obruten full opacitet, verklig färd ända till rätt målruta, 55 ms slutkontakt, samtidig 3+5-match med gemensam klocka, cleanup och harvest. Browser smoke kräver nu minst 510 ms samt hållna slut-keyframes för en verklig spelmatchning. Slutlig användarbedömning på Android avgör om timing/kurva behöver finjusteras.

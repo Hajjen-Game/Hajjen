@@ -1,7 +1,23 @@
 /* Japanese Harmony puzzle rules 2.0 — pure match logic, no rendering dependencies. */
 (function(root){
 "use strict";
-const N=7, ALL=["sakura","lantern","koi","fan","bonsai"];
+const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
+// Five active families per level, never all nine at once. The complete
+// collection has appeared by level 3, and continues rotating through level 10.
+// This is a fixed per-level identity so retry and save/resume are predictable.
+const LEVEL_FAMILIES=[
+ ["sakura","lantern","koi","fan","bonsai"],
+ ["sakura","koi","fan","sushi","maneki"],
+ ["lantern","koi","bonsai","origami","ryu"],
+ ["sakura","fan","sushi","origami","maneki"],
+ ["lantern","bonsai","sushi","ryu","maneki"],
+ ["lantern","koi","bonsai","origami","ryu"],
+ ["sakura","fan","sushi","origami","ryu"],
+ ["koi","fan","bonsai","maneki","origami"],
+ ["sakura","lantern","sushi","maneki","ryu"],
+ ["koi","bonsai","sushi","origami","ryu"]
+];
+function activeFamilies(index){return (LEVEL_FAMILIES[index]||LEVEL_FAMILIES.at(-1)).slice();}
 const levels=[
  {name:"First Match",subtitle:"Början på resan",moves:12,par:7,goal:{type:"fusion",count:5},intro:"Byt två grannar och matcha tre föremål av samma familj."},
  {name:"Growing Beauty",subtitle:"Fem steg till ett mästerverk",moves:18,par:10,goal:{type:"stage3",count:3},intro:"Samma familj kan matchas oavsett utvecklingsstadium. Få tre föremål till stadium 3."},
@@ -66,15 +82,31 @@ function seedFor(level){return (Date.now()^((level+1)*2654435761)^Math.floor(Mat
 class Game{
  constructor(index=0,previous=null){
   this.level=Math.max(0,Math.min(levels.length-1,index));
-  this.config=levels[this.level];this.families=ALL.slice(0,this.level>=20?5:4);
+  this.config=levels[this.level];this.families=activeFamilies(this.level);
   this.seed=seedFor(this.level);this.rolls=0;this.random=prng(this.seed);
   this.bag=[];this.board=startBoard(this.level,()=>this.fresh(),this.families);this.nextId=50;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};
   this.stage3=0;this.stage4=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;
   if(previous){
-   Object.assign(this,previous);this.config=levels[this.level];this.families=ALL.slice(0,this.level>=20?5:4);
+   Object.assign(this,previous);this.config=levels[this.level];this.families=activeFamilies(this.level);
    this.random=prng(this.seed);for(let i=0;i<this.rolls;i++)this.random();this.board=clone(previous.board);
+   // Upgrade an unfinished pre-expansion saved run without discarding the
+   // player's moves, stages, score or RNG position. Each obsolete identity is
+   // mapped to a family missing from the new level pool, one-to-one, which
+   // avoids creating an instant match by merging two old identities.
+   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)))];
+   if(obsolete.length){
+    const present=new Set(this.board.filter(Boolean).map(p=>p.family));
+    const missing=this.families.filter(f=>!present.has(f));
+    const mapping=new Map(obsolete.map((f,i)=>[f,missing[i]||this.families[i%this.families.length]]));
+    for(const p of this.board)if(p&&mapping.has(p.family))p.family=mapping.get(p.family);
+    this.bag=(this.bag||[]).map(f=>mapping.get(f)||f).filter(f=>this.families.includes(f));
+    const remapped={};
+    for(const [family,count] of Object.entries(this.familyMasterpieces||{}))
+      remapped[mapping.get(family)||family]=(remapped[mapping.get(family)||family]||0)+count;
+    this.familyMasterpieces=remapped;
+   }
   }
  }
  fresh(){this.rolls++;return this.random();}
@@ -204,6 +236,6 @@ class Game{
  save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,families:ALL,scan,neighbors,validSwaps,startBoard};
+const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

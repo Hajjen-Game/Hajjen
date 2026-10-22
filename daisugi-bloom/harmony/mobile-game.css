@@ -812,3 +812,81 @@ body.festival-fallback .festival-backdrop{display:none}
 .intake-maneki{border-color:#f6d58e;background:radial-gradient(circle,#ffe1a780,transparent 75%)}
 .intake-origami{border-color:#c5b5e8;background:radial-gradient(circle,#d7c7f380,transparent 75%)}
 .intake-ryu{border-color:#83e1ce;background:radial-gradient(circle,#8cdeca86,transparent 75%)}
+
+
+/* Board Glass 1.0 · October 2026
+   The goal strip and the 7x7 playfield now share a restrained translucent
+   midnight-blue glass palette. Keep the established lacquer/gold frame,
+   corner ornaments and all 49 fully readable transparent game sprites.
+   No backdrop-filter on mobile: static colors, no new DOM or animation work. */
+body.harmony-playing .game-view{
+ --board-glass-outer:rgba(21,49,63,.87);
+ --board-glass-inner:rgba(13,38,57,.88);
+ --board-tile-a:rgba(27,66,81,.80);
+ --board-tile-b:rgba(37,78,88,.76);
+}
+body.harmony-playing .game-view .board-shell{
+ background:
+  linear-gradient(143deg,rgba(34,68,78,.86) 0%,var(--board-glass-outer) 47%,var(--board-glass-inner) 100%);
+ /* Keep the existing warm lacquer edge, dimensions and gilded inset. */
+ box-shadow:
+  inset 0 0 0 3px #d8ad72,
+  inset 0 0 0 6px #6c482c,
+  inset 0 1px 11px rgba(143,191,186,.10),
+  0 5px 0 #573820,
+  0 11px 18px rgba(8,22,29,.62);
+}
+body.harmony-playing .game-view .board-shell::before,
+body.harmony-playing .game-view .board-shell::after{
+ opacity:.20; /* original decorative moss/stones become subtle corner details */
+}
+body.harmony-playing .game-view .board{
+ background:linear-gradient(158deg,rgba(12,46,65,.88),rgba(8,31,50,.90));
+ border-color:rgba(207,172,119,.60);
+ box-shadow:
+  0 3px 0 rgba(66,48,38,.73),
+  0 7px 13px rgba(3,16,27,.35),
+  inset 0 0 0 1px rgba(190,218,217,.13);
+}
+body.harmony-playing .game-view .tile,
+body.harmony-playing .game-view .tile:not(.selected){
+ background:var(--board-tile-a);
+ box-shadow:
+  inset 0 0 0 1px rgba(180,223,222,.12),
+  inset 0 1px 0 rgba(235,246,239,.075);
+}
+body.harmony-playing .game-view .tile:nth-child(even),
+body.harmony-playing .game-view .tile:nth-child(even):not(.selected){
+ background:var(--board-tile-b);
+}
+body.harmony-playing .game-view .tile.swapped:not(.selected){
+ background:rgba(69,104,113,.86);
+}
+body.harmony-playing .game-view .tile.pulsed:not(.selected){
+ background:rgba(48,119,105,.83);
+}
+body.harmony-playing .game-view .tile.harvested:not(.selected){
+ background:rgba(104,100,68,.84);
+}
+body.harmony-playing .game-view .tile.shuffling:not(.selected){
+ background:rgba(57,93,106,.85);
+}
+body.harmony-playing .game-view .tile.selected{
+ background:rgba(90,101,93,.91);
+ box-shadow:
+  inset 0 0 0 2px #f2c66e,
+  inset 0 0 12px rgba(251,215,151,.24);
+}
+@media(hover:hover){
+ body.harmony-playing .game-view .tile:hover:not(.selected){
+  background:rgba(64,106,116,.87);
+ }
+}
+@media(hover:none){
+ body.harmony-playing .game-view .tile:hover:not(.selected){
+  background:var(--board-tile-a);
+ }
+ body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){
+  background:var(--board-tile-b);
+ }
+}

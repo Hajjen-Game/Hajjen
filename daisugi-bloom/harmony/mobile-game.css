@@ -860,16 +860,16 @@ body.harmony-playing .game-view .tile:nth-child(even):not(.selected){
  background:var(--board-tile-b);
 }
 body.harmony-playing .game-view .tile.swapped:not(.selected){
- background:rgba(69,104,113,.86);
+ background-color:rgba(69,104,113,.86);
 }
 body.harmony-playing .game-view .tile.pulsed:not(.selected){
- background:rgba(48,119,105,.83);
+ background-color:rgba(48,119,105,.83);
 }
 body.harmony-playing .game-view .tile.harvested:not(.selected){
- background:rgba(104,100,68,.84);
+ background-color:rgba(104,100,68,.84);
 }
 body.harmony-playing .game-view .tile.shuffling:not(.selected){
- background:rgba(57,93,106,.85);
+ background-color:rgba(57,93,106,.85);
 }
 body.harmony-playing .game-view .tile.selected{
  background:rgba(90,101,93,.91);

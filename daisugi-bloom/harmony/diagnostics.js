@@ -193,7 +193,7 @@ function create(R){
     await new Promise(resolve=>setTimeout(resolve,0));
    }
   }
-  return {version:"engine-lab-2",gameVersion:"5.4.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-2",gameVersion:"5.5.1",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }

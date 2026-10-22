@@ -55,6 +55,30 @@ try{
    "Real Resonance pair must use the flowing energy animation");
   assert.equal(actual.pointer,"none");
   assert(actual.anchor&&actual.partner,"Actual linked tiles must receive Resonance CSS classes");
+  const visual=await proof.evaluate(pair=>{
+   const line=document.querySelector("#resonanceLinks .resonance-link");
+   const root=document.querySelector("#resonanceLinks");
+   const tiles=document.querySelectorAll(".tile");
+   window.__resonanceProofBeam=line;
+   return {contain:getComputedStyle(line).contain,overflow:getComputedStyle(line).overflow,
+    paused:root.classList.contains("resonance-paused"),
+    pulse:tiles[pair[0]].classList.contains("resonance-awakening")&&
+      tiles[pair[1]].classList.contains("resonance-awakening"),
+    pulseAnimation:getComputedStyle(tiles[pair[0]],"::before").animationName};
+  },pair);
+  assert(!visual.contain.includes("paint")&&visual.overflow==="visible",
+   "The flowing energy must not be clipped to the beam's 3px box");
+  assert(!visual.paused&&visual.pulse&&visual.pulseAnimation.includes("resonance-discovery"),
+   "Both real tiles must get a one-off discovery pulse");
+  await proof.click(".tile:nth-child(49)");
+  const stable=await proof.evaluate(()=>{
+   const beam=document.querySelector("#resonanceLinks .resonance-link");
+   return {same:beam===window.__resonanceProofBeam,
+    pulseCount:document.querySelectorAll(".tile.resonance-awakening").length,
+    stillFlowing:getComputedStyle(beam,"::after").animationName.includes("resonance-current")};
+  });
+  assert(stable.same&&stable.pulseCount===0&&stable.stillFlowing,
+   "Selecting an unrelated tile must preserve the running beam without replaying its pulse");
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await proof.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-resonance-live.png"});
  }finally{await isolated.close();}
@@ -76,7 +100,7 @@ try{
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.5.1")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.5.2")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director").length,4);

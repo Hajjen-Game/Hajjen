@@ -147,7 +147,7 @@ function resonanceKey(link){
 }
 function resetResonanceVisuals(){
  const layer=$("resonanceLinks");
- if(layer)layer.replaceChildren();
+ if(layer){layer.replaceChildren();layer.classList.remove("resonance-paused");}
  resonanceNodes.clear();resonanceLastKeys.clear();echoLinkSnapshot.clear();
 }
 function refreshResonance(board){
@@ -156,10 +156,17 @@ function refreshResonance(board){
  if(!overlay)return {anchors,partners,awakened};
  // Hide threads during the turn, but remember which IDs were linked before
  // it. Recreating the SAME link after an animation must not fire a new pulse.
- if(busy||!game||board!==game.board||game.moves<=0||game.failed){
-  overlay.replaceChildren();resonanceNodes.clear();
+ if(!game||game.moves<=0||game.failed){
+  overlay.replaceChildren();overlay.classList.remove("resonance-paused");
+  resonanceNodes.clear();resonanceLastKeys.clear();
   return {anchors,partners,awakened};
  }
+ if(busy||board!==game.board){
+  // Preserve the real beam nodes and running filament animations across turns.
+  overlay.classList.add("resonance-paused");
+  return {anchors,partners,awakened};
+ }
+ overlay.classList.remove("resonance-paused");
  const links=R.resonanceLinks(board)
   .sort((a,b)=>b.stage-a.stage||a.anchor-b.anchor).slice(0,6);
  const current=new Set();
@@ -176,7 +183,7 @@ function refreshResonance(board){
   const length=Math.hypot(dx,dy);
   if(length<=0)continue;
   const vx=dx/length,vy=dy/length;
-  const inset=Math.min(from.width,to.width)*.32;
+  const inset=Math.min(from.width,to.width)*.22;
   let line=resonanceNodes.get(key);
   const isNew=!resonanceLastKeys.has(key);
   if(!line){
@@ -1001,6 +1008,7 @@ async function animateEvent(evt){
 }
 async function playEvents(events){
  busy=true;$("board").setAttribute("aria-busy","true");
+ $("resonanceLinks")?.classList.add("resonance-paused");
  rectCache=new Array(49);boardLayerRect=null;
  perf?.begin();
  rewardTier=0;

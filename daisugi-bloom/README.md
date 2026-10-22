@@ -1,5 +1,9 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Idle Move Hint 1.0 — 2026-10-22
+
+När spelaren inte interagerat med spelplanen på **60 sekunder** markeras exakt en ruta som ingår i ett tillåtet byte med en diskret guldglöd och puls. Den väljs direkt från `HarmonyRules.validSwaps(game.board)`; ingen slumpmässig/omöjlig matchning föreslås. Ledtråden är gratis, flyttar inget, ger inga poäng och förbrukar inga drag. Den försvinner vid nästa interaktion och återkommer tidigast en ny minut senare. Ledtrådar pausas under animationer, menyer, inaktiv webbläsarflik och nivåresultat. Inställningen **Minska animationer** ger en statisk glöd.
+
 ## Endless Journey & Masterpiece Collection 1.0 — 2026-10-22
 
 **Nivå 1–10** introducerar fusioner och Harmony Pulse. Från **nivå 11** räcker ett tydligt poängmål inom draggränsen; stjärnorna baseras på poäng. Nivå 11–50 är genererade som första balanserbara svårighetskurva. Samma generator stöder även alla högre nivånummer utan att skapa separata quest-definitioner. Nivåväljaren visar 20 åt gången.

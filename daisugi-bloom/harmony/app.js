@@ -11,6 +11,36 @@ const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
+// Subtle accessibility-safe hint: after one minute without interaction,
+// softly highlight ONE piece belonging to a genuinely legal swap.
+const IDLE_HINT_DELAY_MS=60000;
+let idleHintTimer=0,idleHintIndex=-1;
+function clearIdleHint(){
+ if(idleHintTimer){clearTimeout(idleHintTimer);idleHintTimer=0;}
+ if(idleHintIndex>=0){
+  document.querySelector('.tile[data-index="'+idleHintIndex+'"]')?.classList.remove("idle-move-hint");
+  idleHintIndex=-1;
+ }
+}
+function hintEligible(){
+ return !!game&&game.moves>0&&!game.failed&&!busy&&
+  !$("gameView").hidden&&$("modal").hidden&&!document.hidden;
+}
+function restartIdleHint(){
+ clearIdleHint();
+ if(!hintEligible())return;
+ idleHintTimer=setTimeout(()=>{
+  idleHintTimer=0;
+  if(!hintEligible())return;
+  const legal=R.validSwaps(game.board);
+  if(!legal.length)return; // Never suggest an illegal move.
+  const pair=legal[Math.floor(Math.random()*legal.length)];
+  // If a tile is already selected, prefer its legal neighbour when possible.
+  const hint=pair.includes(selected)?pair.find(i=>i!==selected):pair[0];
+  idleHintIndex=hint;
+  document.querySelector('.tile[data-index="'+hint+'"]')?.classList.add("idle-move-hint");
+ },IDLE_HINT_DELAY_MS);
+}
 let scoreShown=0,scoreDisplayed=0,scoreRaf=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
 let lastGoalProgress=-1,lastScoreImpact=0;
 const perf=window.HarmonyPerf?.create();
@@ -126,6 +156,7 @@ function sound(type,detail){
 }
 function showMenu(){
  if(busy)return;
+ clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
@@ -219,12 +250,13 @@ async function celebrateCollection(evt){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
+ clearIdleHint();
  resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
- prepareCollection();renderBoard(game.board);renderHUD();saveRun();
+ prepareCollection();renderBoard(game.board);renderHUD();saveRun();restartIdleHint();
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -337,7 +369,7 @@ function renderBoard(board,highlight,effect){
     holder.append(emoji,img);btn.append(holder);
    }
   }
-  const cls="tile"+(selected===i?" selected":"")+
+  const cls="tile"+(idleHintIndex===i?" idle-move-hint":"")+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
    (resonance.partners.has(i)?" resonance-partner":"")+
@@ -394,6 +426,7 @@ function animateScoreCount(){
 }
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
+ restartIdleHint();
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
  if(selected===i)sound("tap");
@@ -411,6 +444,7 @@ function choose(i){
 }
 function trySwap(a,b){
  if(busy||!game||!$("modal").hidden)return;
+ clearIdleHint();
  // Remember the real screen geometry of linked source objects BEFORE swapping
  // so an earned Echo can visibly pull that thread into the fusion landing.
  echoLinkSnapshot.clear();
@@ -433,6 +467,7 @@ function trySwap(a,b){
   // The rules did not consume a move. The animation is feedback only.
   sound("invalid");
   void invalidSwapBounce(a,b);
+  restartIdleHint();
   return;
  }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
@@ -1124,6 +1159,7 @@ async function animateEvent(evt){
  }
 }
 async function playEvents(events){
+ clearIdleHint();
  busy=true;$("board").setAttribute("aria-busy","true");
  $("resonanceLinks")?.classList.add("resonance-paused");
  rectCache=new Array(49);boardLayerRect=null;
@@ -1154,6 +1190,7 @@ async function playEvents(events){
   rectCache=null;boardLayerRect=null;
   perf?.stop();
   busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();
+  if(!finished)restartIdleHint();
  }
  if(goalReached)unlockGoal();
  if(finished)showResult();
@@ -1166,7 +1203,7 @@ function unlockGoal(){
 }
 function showResult(){
  if(!game)return;
- clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
+ clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(won)sound("result");
  if(won){
@@ -1383,6 +1420,7 @@ function openEngineLab(){
 }
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
+ clearIdleHint();
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Spelmeny";
  const content=$("modalContent");content.replaceChildren();
@@ -1411,7 +1449,7 @@ function bind(){
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});
   $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);persist();});
  });
- $("board").addEventListener("pointerdown",e=>{const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
+ $("board").addEventListener("pointerdown",e=>{if(!$("gameView").hidden)restartIdleHint();const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
  $("board").addEventListener("pointerup",e=>{
   if(!pointer)return;const start=pointer;pointer=null;
   if(!$("modal").hidden)return;
@@ -1422,7 +1460,18 @@ function bind(){
   const destination=Math.abs(dx)>Math.abs(dy)?r*7+c+(dx>0?1:-1):(r+(dy>0?1:-1))*7+c;
   if(R.neighbors(start.i).includes(destination)){selected=-1;trySwap(start.i,destination);}
  });
- window.addEventListener("keydown",e=>{if(e.key==="Escape"&&!busy&&!$("modal").hidden){if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;}});
+ // A click may open OR close a dialog: the final bubbling phase sees the
+ // actual state, so resuming always starts a new full one-minute interval.
+ document.addEventListener("click",()=>restartIdleHint());
+ document.addEventListener("visibilitychange",()=>{
+  if(document.hidden)clearIdleHint();else restartIdleHint();
+ });
+ window.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!busy&&!$("modal").hidden){
+   if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;
+  }
+  restartIdleHint();
+ });
 }
 function checkAtlas(){
  const img=new Image();

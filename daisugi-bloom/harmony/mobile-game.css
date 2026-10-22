@@ -1174,3 +1174,80 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.resonance-anchor::a
 }
 body.harmony-reduced-motion .resonance-collapse-arm,
 body.harmony-reduced-motion .resonance-collapse-beam{display:none!important}
+
+
+/* Board Praise Callouts 1.0 — exactly three rare, centered words.
+   Lightweight, pointer-free layer: no canvas and no additional particles. */
+body.harmony-playing .game-view .board-praise{
+ position:absolute;
+ inset:0;
+ z-index:11;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ overflow:hidden;
+ border-radius:inherit;
+ isolation:isolate;
+ pointer-events:none;
+}
+body.harmony-playing .game-view .board-praise-word{
+ --praise-face:#ffe5a2;
+ --praise-glow:rgba(255,210,126,.80);
+ --praise-wash:rgba(249,185,85,.42);
+ position:relative;
+ display:block;
+ max-width:calc(100% - 20px);
+ padding:9px 10px;
+ white-space:nowrap;
+ line-height:1.05;
+ font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+ font-size:clamp(18px,5.65vw,43px);
+ font-weight:1000;
+ letter-spacing:.035em;
+ text-align:center;
+ color:var(--praise-face);
+ -webkit-text-stroke:.4px rgba(255,252,235,.58);
+ text-shadow:0 3px 2px rgba(9,27,34,.92),
+  0 0 8px var(--praise-glow),0 0 19px var(--praise-glow);
+ animation:harmony-praise-pop 1120ms cubic-bezier(.19,.78,.32,1) both;
+ pointer-events:none;
+}
+body.harmony-playing .game-view .board-praise-word::before{
+ content:"";
+ position:absolute;
+ z-index:-1;
+ inset:-9px -8px;
+ border-radius:50%;
+ background:radial-gradient(ellipse,var(--praise-wash),transparent 73%);
+ filter:blur(8px);
+ pointer-events:none;
+}
+body.harmony-playing .game-view .board-praise-word.praise-echo{
+ --praise-face:#c1ffe9;
+ --praise-glow:rgba(102,244,210,.83);
+ --praise-wash:rgba(60,218,177,.40);
+}
+body.harmony-playing .game-view .board-praise-word.praise-pulse{
+ --praise-face:#d5edff;
+ --praise-glow:rgba(110,204,255,.86);
+ --praise-wash:rgba(74,176,248,.37);
+}
+@keyframes harmony-praise-pop{
+ 0%{opacity:0;transform:translateY(10px) scale(.72)}
+ 24%{opacity:1;transform:translateY(0) scale(1.10)}
+ 38%{opacity:1;transform:translateY(0) scale(.985)}
+ 50%,73%{opacity:1;transform:translateY(0) scale(1)}
+ 100%{opacity:0;transform:translateY(-11px) scale(1.045)}
+}
+@media(prefers-reduced-motion:reduce){
+ body.harmony-playing .game-view .board-praise-word{
+  animation:none;opacity:1;transform:none;
+ }
+ body.harmony-playing .game-view .board-praise-word::before{filter:none}
+}
+body.harmony-reduced-motion.harmony-playing .game-view .board-praise-word{
+ animation:none!important;opacity:1;transform:none;
+}
+body.harmony-reduced-motion.harmony-playing .game-view .board-praise-word::before{
+ filter:none;
+}

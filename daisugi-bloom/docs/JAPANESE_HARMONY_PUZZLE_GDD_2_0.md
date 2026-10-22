@@ -433,3 +433,14 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Regression:** `harmony-browser-smoke.mjs` skapar riktiga kloner på rutor 0, 19 och 48 och jämför uppmätt startposition med respektive ruta. Avvikelsen måste vara under två pixlar, och föremål längst ned till höger ska ligga långt från övre vänstra hörnet. Testet skulle ha slagit fel med den gamla `!important`-regeln. Fem isolerade testgrupper för rörelse, VFX, ljud, poäng och prestanda passerar fortfarande. Tidskurvan 380/430/480 ms från 4.3.2 är oförändrad.
 
 **Release:** 4.3.3, cache-bust för JavaScript och båda CSS-filerna. Bekräftelse i spelarens Android-webbläsare återstår.
+
+
+## Fusion Timing A/B 4.3.4 — snabbare med korrekt placering (2026-10-22)
+
+**Spelarfeedback:** Efter att 4.3.3 rättat positionsfelet blev sammanslagningen tydlig, men för långsam. Den tidigare hastigheten från 4.3.1 hade inte kunnat utvärderas rättvist eftersom animationskopiorna felaktigt hamnade i övre vänstra hörnet.
+
+**Ändring:** Återställ exakt fusionsindragning från 4.3.1: 280 ms för 3-, 4- och 5-matchning, med samma korta anticipation inuti animationen och sammanslagningens slutliga kontakt. Ta bort det extra 75 ms startstoppet och 55 ms slutstoppet från 4.3.2. Ljud, uppgraderad objektanimation och övriga effekter kvarstår.
+
+**Viktigt:** Behåll korrigerade koordinater från 4.3.3 (`left/top` inte åsidosatta av CSS `inset:auto!important`, samt spelramens `clientLeft/clientTop` i `makeFxLayer`). Detta är ett renodlat timing-A/B-test, inte en rollback av grafik eller position.
+
+**QA:** Samtliga fem isolerade testgrupper för fusion, prestanda, ljud, poäng och VFX passerar. Fusionskontraktet validerar 280 ms även för 4-/5-matchningar och samtidiga gruppfusioner. Browser-smoke kontrollerar startpositionerna på verkliga rutor i övre, mellersta och nedre delen av spelplanen samt 280 ms-animationerna. Slutgiltig mobilupplevelse utvärderas på telefonen.

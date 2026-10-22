@@ -980,7 +980,7 @@ function openEngineLab(){
  $("modalTitle").textContent="Harmony Intelligence";
  const content=$("modalContent");content.replaceChildren();
  const hint=document.createElement("p");
- hint.textContent="Reproducerbara simuleringar mot spelets riktiga regler. Fyra strategier jämför samma startbräden. Resultaten skickas ingenstans och ändrar inte din sparfil.";
+ hint.textContent="Jämför Standard mot experimentella Harmony Opportunity Director på samma startbräden. Fyra spelstrategier, ingen inverkan på sparfil eller vanliga spelomgångar.";
  content.append(hint);
  if(!api){
   const missing=document.createElement("p");missing.textContent="Diagnostikmodulen kunde inte laddas. Öppna sidan på nytt.";
@@ -1001,9 +1001,18 @@ function openEngineLab(){
  for(const n of [2,5,10,25]){const option=document.createElement("option");option.value=String(n);option.textContent=n+" seeds per strategi och nivå";samples.append(option);}
  samples.value="5";field("Testomgångar",samples);
  const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Grundseed (reproducerbar)",seedInput);
+ const engineMode=document.createElement("select");engineMode.id="engineMode";
+ for(const [value,label] of [
+  ["compare","Jämför Standard + Director (A/B)"],
+  ["standard","Endast Standard (5.3)"],
+  ["director","Endast Director (experiment)"]
+ ]){
+  const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
+ }
+ engineMode.value="compare";field("Spelmotor",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="Slump, poäng, mål och tvådragsplanering. De tre planeringsbotarna kan simulera framtida påfyllning, så deras resultat är jämförelsetal – inte mänskliga vinstchanser.";
+ scopeNote.textContent="Director väljer bland fyra rättvisa påfyllningar och prioriterar spelbara möjligheter. Vanliga spelet använder fortfarande Standard. Planeringsbotarna ser simulerad framtid; resultat är inte mänskliga vinstchanser.";
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
  status.textContent="Redo att mäta spelmotorn.";content.append(status);
@@ -1028,30 +1037,51 @@ function openEngineLab(){
  function display(result){
   output.replaceChildren();
   const summary=document.createElement("p");
-  summary.textContent=result.runs.length+" fullständiga omgångar · "+new Set(result.results.map(r=>r.level)).size+" nivåer · 4 spelstilar.";
+  summary.textContent=result.runs.length+" omgångar · "+
+   new Set(result.results.map(r=>r.level)).size+" nivåer · "+
+   result.options.modes.map(x=>api.MODE_LABELS[x]).join(" + ")+
+   " · version "+result.gameVersion+".";
+
   output.append(summary);
   const wrap=document.createElement("div");wrap.className="engine-table-scroll";
   const table=document.createElement("table");table.className="engine-table";
   const head=document.createElement("thead"),header=document.createElement("tr");
-  for(const label of ["Nivå","AI","Vinst","Mål","Drag","Val","Kedjor","Torka"]){
+  for(const label of ["Nivå","Motor","AI","Vinst","Mål","Drag","Val","Kedjor","Målnära","Torka"]){
    const cell=document.createElement("th");cell.textContent=label;header.append(cell);
   }
   head.append(header);table.append(head);
   const body=document.createElement("tbody");
   for(const row of result.results){
    const tr=document.createElement("tr");
-   const cols=[String(row.level+1),api.LABELS[row.strategy],pct(row.winRate),pct(row.avgGoalRatio),
-    row.avgMoves.toFixed(1),row.avgLegalMoves.toFixed(1),row.avgCascades.toFixed(1),row.avgGoalDrought.toFixed(1)];
+   const cols=[String(row.level+1),api.MODE_LABELS[row.mode],api.LABELS[row.strategy],
+    pct(row.winRate),pct(row.avgGoalRatio),row.avgMoves.toFixed(1),
+    row.avgLegalMoves.toFixed(1),row.avgCascades.toFixed(1),
+    row.avgMeaningful.toFixed(1),row.avgGoalDrought.toFixed(1)];
    cols.forEach((v,i)=>{
     const cell=document.createElement("td");cell.textContent=v;
-    if(i===2&&row.winRate<.25)cell.className="engine-low";
+    if(i===3&&row.winRate<.25)cell.className="engine-low";
     tr.append(cell);
    });
    body.append(tr);
   }
   table.append(body);wrap.append(table);output.append(wrap);
   const explain=document.createElement("p");explain.className="engine-lab-note";
-  explain.textContent="Val = snitt möjliga byten per drag; Kedjor = antal drag med minst två fusionsvågor; Torka = längsta följd drag utan framsteg mot nivåmålet. Samma seeds används för alla strategier.";
+  explain.textContent="Val = lagliga byten per drag. Kedjor = drag med två eller fler fusioner. Målnära = användbara drag med utvecklade föremål. Torka = längsta period utan registrerade målpoäng. Båda motorerna får samma startseeds, men framtida påfyllningar skiljer sig.";
+  if(result.options.modes.length===2){
+   const comparison=document.createElement("div");comparison.className="engine-comparison";
+   const title=document.createElement("strong");title.textContent="A/B · vinst per nivå och spelstrategi";
+   comparison.append(title);
+   for(const classic of result.results.filter(x=>x.mode==="standard")){
+    const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode==="director");
+    if(!newer)continue;
+    const line=document.createElement("p");
+    line.textContent="Nivå "+(classic.level+1)+" · "+api.LABELS[classic.strategy]+": "+
+     classic.wins+"/"+classic.samples+" → "+newer.wins+"/"+newer.samples+
+     " · Målnära "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1);
+    comparison.append(line);
+   }
+   output.append(comparison);
+  }
   output.append(explain);
  }
  runButton.addEventListener("click",async()=>{
@@ -1062,11 +1092,12 @@ function openEngineLab(){
   }
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
-  levels.disabled=true;samples.disabled=true;seedInput.disabled=true;
+  levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
+  const modes=engineMode.value==="compare"?["standard","director"]:[engineMode.value];
   const opts={levels:levels.value==="all"?R.levels.map((_,i)=>i):[Number(levels.value)],
-   trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,
+   trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
-  const total=opts.levels.length*opts.trials*opts.strategies.length;
+  const total=opts.levels.length*opts.trials*opts.strategies.length*opts.modes.length;
   engineLabText(status,"Analyserar 0 / "+total+" testomgångar …");
   try{
    const result=await api.runAsync(opts,({completed,total})=>{
@@ -1080,7 +1111,7 @@ function openEngineLab(){
   }finally{
    if(engineLabRun===job){
     engineLabRun=null;runButton.disabled=false;cancelButton.disabled=true;
-    levels.disabled=false;samples.disabled=false;seedInput.disabled=false;
+    levels.disabled=false;samples.disabled=false;seedInput.disabled=false;engineMode.disabled=false;
    }
   }
  });

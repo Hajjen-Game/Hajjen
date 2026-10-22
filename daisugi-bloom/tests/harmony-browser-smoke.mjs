@@ -149,7 +149,7 @@ try{
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await proof.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-resonance-live.png"});
  }finally{await isolated.close();}
- assert.equal(await page.$eval(".level-tile",els=>els.length),20,"Paged level menu shows 20 at a time");
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".level-tile").length),20,"Paged level menu shows 20 at a time");
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  // Engine Lab 2.0 compares paired Standard/Director simulations on the real phone-sized menu,
  // with a computed report that is exportable and no player-save changes.

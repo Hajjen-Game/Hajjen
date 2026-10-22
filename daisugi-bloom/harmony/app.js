@@ -133,6 +133,40 @@ function startLevel(i,resume=false){
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
 let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
+function refreshResonance(board,highlight){
+ const overlay=$("resonanceLinks");
+ if(!overlay)return {anchors:new Set(),partners:new Set()};
+ const anchors=new Set(),partners=new Set();
+ overlay.replaceChildren();
+ // The links belong only to the settled playable board, not intermediate
+ // snapshots while fusions, falling pieces or shuffles are animating.
+ if(busy||!game||board!==game.board||game.moves<=0||game.failed)return {anchors,partners};
+ const links=R.resonanceLinks(board).sort((a,b)=>b.stage-a.stage||a.anchor-b.anchor).slice(0,6);
+ const boardRect=$("board").getBoundingClientRect();
+ const parent=overlay.parentElement;
+ const shellRect=parent.getBoundingClientRect();
+ for(const link of links){
+  anchors.add(link.anchor);partners.add(link.partner);
+  const from=boardTiles[link.anchor]?.getBoundingClientRect();
+  const to=boardTiles[link.partner]?.getBoundingClientRect();
+  if(!from||!to)continue;
+  const dx=to.left+to.width*.5-from.left-from.width*.5;
+  const dy=to.top+to.height*.5-from.top-from.height*.5;
+  const length=Math.hypot(dx,dy);
+  if(length<=0)continue;
+  const vx=dx/length,vy=dy/length;
+  // Draw a SHORT connector between the silhouettes, not across the sprites.
+  const inset=Math.min(from.width,to.width)*.30;
+  const line=document.createElement("span");
+  line.className="resonance-link"+(link.stage===4?" mature":"");
+  line.style.left=(from.left+from.width*.5+vx*inset-shellRect.left-parent.clientLeft)+"px";
+  line.style.top=(from.top+from.height*.5+vy*inset-shellRect.top-parent.clientTop)+"px";
+  line.style.width=Math.max(2,length-inset*2)+"px";
+  line.style.transform="rotate("+Math.atan2(dy,dx)+"rad)";
+  overlay.append(line);
+ }
+ return {anchors,partners};
+}
 function renderBoard(board,highlight,effect){
  const grid=$("board");
  if(boardTiles.length!==49||grid.children.length!==49){
@@ -149,6 +183,7 @@ function renderBoard(board,highlight,effect){
  }
  const highlighted=highlight&&highlight.length?new Set(highlight):null;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
+ const resonance=refreshResonance(board,highlight);
  for(let i=0;i<49;i++){
   const piece=board[i],btn=boardTiles[i],key=piece?piece.id+"|"+piece.family+"|"+piece.stage:"empty";
   // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
@@ -169,7 +204,10 @@ function renderBoard(board,highlight,effect){
     holder.append(emoji,img);btn.append(holder);
    }
   }
-  const cls="tile"+(selected===i?" selected":"")+(highlighted&&highlighted.has(i)?" "+flash:"");
+  const cls="tile"+(selected===i?" selected":"")+
+   (highlighted&&highlighted.has(i)?" "+flash:"")+
+   (resonance.anchors.has(i)?" resonance-anchor":"")+
+   (resonance.partners.has(i)?" resonance-partner":"");
   if(btn.className!==cls)btn.className=cls;
  }
  presentedBoard=board.map(p=>p?{id:p.id,family:p.family,stage:p.stage}:null);
@@ -508,6 +546,7 @@ function pointSources(evt){
   return result.filter(p=>p.points>0);
  }
  let at=24;
+ if(evt.type==="echo")at=evt.at??24;
  if(evt.type==="bonus")at=evt.targets?.[0]?.to??24;
  if(evt.type==="pulse")at=evt.targets?.[0]?.to??24;
  if(evt.type==="harvest")at=evt.positions?.[0]??24;
@@ -785,6 +824,27 @@ function pulseLandingCues(targets){
   ],350).finally(()=>node.remove());
  }
 }
+async function animateEcho(evt){
+ sound("echo",{family:evt.family,stage:evt.stage});
+ if(FAST()||!Element.prototype.animate||!boardTiles[evt.at])return;
+ const rect=indexRect(evt.at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ const ring=fxAt("resonance-echo-ring",x,y);
+ ring.style.width=Math.round(rect.width*1.25)+"px";
+ ring.style.height=Math.round(rect.height*1.25)+"px";
+ const label=fxAt("resonance-echo-label",x,y-Math.min(22,rect.height*.45),"✦ HARMONY ECHO");
+ await Promise.all([
+  animateNode(ring,[
+   {transform:"scale(.45)",opacity:0,offset:0},
+   {transform:"scale(1)",opacity:1,offset:.33},
+   {transform:"scale(1.5)",opacity:0,offset:1}
+  ],430),
+  animateNode(label,[
+   {transform:"translate3d(0,7px,0) scale(.85)",opacity:0,offset:0},
+   {transform:"translate3d(0,-8px,0) scale(1)",opacity:1,offset:.32},
+   {transform:"translate3d(0,-25px,0) scale(.94)",opacity:0,offset:1}
+  ],520)
+ ]).finally(()=>{ring.remove();label.remove();});
+}
 async function animateEvent(evt){
  const previous=presentedBoard;
  switch(evt.type){
@@ -794,6 +854,9 @@ async function animateEvent(evt){
    break;
   case "fusion":
    await playFusion(evt);
+   break;
+  case "echo":
+   await animateEcho(evt);
    break;
   case "bonus":{
    const targets=evt.targets||[];
@@ -875,6 +938,7 @@ async function playEvents(events){
    await animateEvent(evt);
    if(evt.scoreDelta>0)flyPoints(evt);
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
+   if(evt.type==="echo")announceReward(2,"HARMONY ECHO!",840);
    if(evt.type==="fusion"){
     const groups=evt.groups||[];
     if(groups.some(g=>g.shape||g.number>=5)||evt.round>=2)announceReward(2,"HARMONI!",710);
@@ -921,7 +985,7 @@ function showResult(){
  }
  const sum=document.createElement("div");sum.className="summary";const line=document.createElement("div");line.textContent="SLUTPOÄNG";const strong=document.createElement("strong");strong.textContent=prettify(game.score);sum.append(line,strong);panel.append(sum);
  const stats=document.createElement("div");stats.className="result-stats";
- [[game.masterpieces,"Mästerverk"],[game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],[prettify(save.bestScores[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
+ [[game.masterpieces,"Mästerverk"],[game.echoes||0,"Harmony Echo"],[game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],[prettify(save.bestScores[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
   const v=document.createElement("div");const a=document.createElement("strong"),b=document.createElement("small");a.textContent=value;b.textContent=label;v.append(a,b);stats.append(v);
  });panel.append(stats);
  const extra=document.createElement("p");extra.textContent=won?"Du har klarat nivån. Förbättra gärna rekordet genom att spela igen.":"Nytt försök ger en ny kontrollerad startvariant. Inga liv, väntetider eller Power Moves.";panel.append(extra);
@@ -1142,7 +1206,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(Math.min(R.levels.length-1,save.unlocked));});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Nivåmål:</strong> När målet uppnås sparas dina stjärnor. Du får spela återstående drag för att slå ditt rekord. Inga Power Moves eller hinder.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> Föremålet med högst stadium överlever på sin plats och får +1. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Nivåmål:</strong> När målet uppnås sparas dina stjärnor. Du får spela återstående drag för att slå ditt rekord. Inga Power Moves eller hinder.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

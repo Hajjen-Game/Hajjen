@@ -41,16 +41,32 @@ const levels=[
 function endlessConfig(index){
  const number=index+1,tier=Math.floor((index-10)/10);
  const moves=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
- // First 50 steadily teach score play; beyond that, logarithmic growth avoids
- // making very high stage numbers mathematically unwinnable.
+ // Calibrated from 330 COMPLETE seeded score runs (not the short Engine Lab
+ // runs that stop as soon as a goal is reached). A normal level-11 player can
+ // score thousands of points in 22 moves, so 1,600 was not a real challenge.
+ // The minimum now starts at 6,500, rises gently across levels 11-50 and
+ // remains bounded on very high levels. Deliberately no dynamic difficulty
+ // manipulation based on the individual player's performance.
  const distance=Math.max(0,index-49);
- const target=Math.round((1600+Math.min(39,index-10)*83+
-  Math.floor(Math.min(39,index-10)/20)*140+Math.log2(1+distance/8)*175)/50)*50;
+ const target=Math.round((6500+Math.min(39,index-10)*35+
+  Math.min(1500,Math.log2(1+distance/8)*180))/50)*50;
+ // King-style score milestones, tuned for the actual Harmony scoring model:
+ // 1 star = pass, 2 = strong play, 3 = exceptional run.
+ const stars=[target,Math.ceil(target*1.75/50)*50,Math.ceil(target*2.6/50)*50];
  return {name:"Harmony Journey",subtitle:"Poängjakt · bana "+number,moves,par:0,
-  goal:{type:"score",count:target},stars:[target,Math.round(target*1.4/50)*50,Math.round(target*1.85/50)*50],
-  intro:"Samla poäng genom fusioner, mästerverk och Harmony Pulse. Högre poäng ger fler stjärnor."};
+  goal:{type:"score",count:target},stars,
+  intro:"Nå poängmålet för en stjärna. Fortsätt samla poäng för två eller tre stjärnor."};
 }
 function levelConfig(index){return levels[index]||endlessConfig(index);}
+function scoreStars(index,score,previouslyWon=false){
+ const config=levelConfig(index);
+ if(config.goal.type!=="score")return 0;
+ const [one,two,three]=config.stars;
+ const earned=score>=three?3:score>=two?2:score>=one?1:0;
+ // Preserve previously completed levels from before the calibration. The old
+ // high score may be below the new 1-star requirement; do not revoke a win.
+ return Math.max(earned,previouslyWon?1:0);
+}
 for(let i=10;i<50;i++)levels.push(endlessConfig(i));
 function prng(seed){return function(){seed|=0;seed=(seed+0x6d2b79f5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 function clone(b){return b.map(p=>p?{family:p.family,stage:p.stage,id:p.id}:null);}
@@ -307,9 +323,11 @@ class Game{
   this.nextId=50;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
-  this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;
+  this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   if(previous){
    Object.assign(this,previous);this.config=levelConfig(this.level);this.families=activeFamilies(this.level);
+   if(this.config.goal.type==="score"&&previous.complete&&previous.score<this.config.goal.count)
+    this.legacyScoreCompletion=true;
    this.directorMode=previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
    this.opportunity=this.directorMode!=="standard";
    this.directorDrought=Number.isInteger(previous.directorDrought)?Math.max(0,previous.directorDrought):0;
@@ -395,8 +413,7 @@ class Game{
  fulfilled(){return this.progress()>=this.target();}
  stars(){
   if(this.config.goal.type==="score"){
-   const thresholds=this.config.stars;
-   return this.score>=thresholds[2]?3:this.score>=thresholds[1]?2:this.score>=thresholds[0]?1:0;
+   return scoreStars(this.level,this.score,this.complete&&this.legacyScoreCompletion);
   }
   return this.starsAtGoal||0;
  }
@@ -551,7 +568,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,level8Revision:this.level8Revision};}
+ save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -600,6 +617,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,scoreStars,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

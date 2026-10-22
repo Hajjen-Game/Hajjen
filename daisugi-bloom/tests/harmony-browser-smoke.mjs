@@ -107,6 +107,40 @@ try{
   }));
   assert.equal(incomplete.unlocked,9,"An unfinished level 10 must not unlock level 11");
   assert(incomplete.locked);
+  // Legacy 3 stars were earned against obsolete 1,600-point target.
+  // Keep wins and record values, but recalibrate star ratings to the actual scores.
+  await legacy.evaluate(()=>{
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:12,bestStars:{"10":3,"11":2},
+    bestScores:{"10":1600,"11":18000},bestChain:{},run:null,
+    sound:false,reduceMotion:false
+   }));
+  });
+  await legacy.reload({waitUntil:"networkidle2"});
+  const migrated=await legacy.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   const nodes=document.querySelectorAll(".level-tile");
+   const R=window.HarmonyRules;
+   return {unlocked:saved.unlocked,record:saved.bestScores["10"],
+    stars:saved.bestStars["10"],nextStars:saved.bestStars["11"],
+    shown:nodes[10].textContent,second:nodes[11].textContent,
+    target:R.levelConfig(10).goal.count};
+  });
+  assert.equal(migrated.unlocked,12,"Already unlocked future levels must stay unlocked");
+  assert.equal(migrated.record,1600,"Original high score must not be overwritten");
+  assert.equal(migrated.stars,1,"Old overly generous 3 stars should be adjusted to 1");
+  assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
+  assert(migrated.shown.includes("1 600")&&migrated.second.includes("18 000"),
+   "The level list must display personal best scores for completed stages");
+  assert(migrated.target>=6000);
+  await legacy.click(".level-tile:nth-child(11)");
+  const milestones=await legacy.evaluate(()=>({
+   hidden:document.querySelector("#starTargets").hidden,
+   text:[...document.querySelector("#starTargets").children].map(x=>x.textContent)
+  }));
+  assert(!milestones.hidden);
+  assert.equal(milestones.text.length,3);
+  assert(milestones.text[0].includes("6 500"));
  }finally{await legacyContext.close();}
  // Board Praise 1.0: a real seeded swap triggers all three approved words.
  const praiseContext=await browser.createBrowserContext();

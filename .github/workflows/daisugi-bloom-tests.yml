@@ -49,6 +49,7 @@ jobs:
           node --check daisugi-bloom/harmony/diagnostics.js
           node --check daisugi-bloom/tools/harmony-engine-benchmark.cjs
           node --check daisugi-bloom/tools/opportunity-director-v2-benchmark.cjs
+          node --check daisugi-bloom/tools/harmony-score-calibration.cjs
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -83,4 +84,20 @@ jobs:
         with:
           name: japanese-harmony-director2-benchmark
           path: daisugi-bloom/reports/opportunity-director-2-benchmark.json
+          if-no-files-found: warn
+
+  score-calibration:
+    name: Score & Stars 6.2 · 330 complete-length games
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare one / two / three star thresholds on 330 full-score games
+        run: node daisugi-bloom/tools/harmony-score-calibration.cjs
+      - name: Retain score calibration results with exact seeds
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-score-stars-6-2
+          path: daisugi-bloom/reports/score-stars-6.2-benchmark.json
           if-no-files-found: warn

@@ -65,7 +65,17 @@ function reconcileCompletedLevels(state){
  return unlocked;
 }
 const recoveredUnlock=reconcileCompletedLevels(save);
-if(recoveredUnlock>save.unlocked){save.unlocked=recoveredUnlock;persist();}
+let migratedScores=false;
+if(recoveredUnlock>save.unlocked){save.unlocked=recoveredUnlock;migratedScores=true;}
+// Score-goal star thresholds were much too low before 6.2. Re-evaluate
+// completed high scores without deleting level clears or personal records.
+for(const [key,score] of Object.entries(save.bestScores||{})){
+ const i=Number(key),value=Number(score);
+ if(!Number.isInteger(i)||i<10||!Number.isFinite(value)||value<=0)continue;
+ const earned=R.scoreStars(i,value,true);
+ if(save.bestStars[i]!==earned){save.bestStars[i]=earned;migratedScores=true;}
+}
+if(migratedScores)persist();
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -162,13 +172,18 @@ function renderMenu(){
  const list=$("levelList");list.replaceChildren();
  const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
  for(let i=first;i<last;i++){
-  const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=save.bestStars[i]||0;
+  const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=save.bestStars[i]||0,record=Number(save.bestScores[i])||0;
   const b=document.createElement("button");b.className="level-tile"+(allowed?"":" locked");b.disabled=!allowed;
   const n=document.createElement("span");n.className="level-number";n.textContent=allowed?String(i+1):"♧";
   const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
   title.textContent=i<10?cfg.name:"Harmony Journey · "+(i+1);
   sub.textContent=i<10?cfg.subtitle:cfg.moves+" drag · "+prettify(cfg.goal.count)+" poäng";
   d.append(title,sub);
+  if(allowed&&record>0){
+   const best=document.createElement("span");best.className="level-best";
+   best.textContent="REKORD  "+prettify(record)+" poäng";
+   d.append(best);
+  }
   const starsNode=document.createElement("span");starsNode.className="level-stars";
   starsNode.textContent=allowed?(stars?"★".repeat(stars)+"☆".repeat(3-stars):"○ ○ ○"):"🔒";
   b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
@@ -254,6 +269,13 @@ function startLevel(i,resume=false){
  game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
+ const milestones=$("starTargets");
+ milestones.hidden=game.config.goal.type!=="score";
+ if(!milestones.hidden){
+  [...milestones.children].forEach((node,j)=>{
+   node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
+  });
+ }
  prepareCollection();renderBoard(game.board);renderHUD();saveRun();restartIdleHint();
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
@@ -396,6 +418,14 @@ function renderHUD(state){
  lastGoalProgress=progress;
  const earnedStars=game.stars();
  $("statusStars").textContent="★".repeat(earnedStars)+"☆".repeat(3-earnedStars);
+ if(game.config.goal.type==="score"){
+  const milestones=$("starTargets");
+  [...milestones.children].forEach((node,j)=>{
+   node.classList.toggle("reached",current.score>=game.config.stars[j]);
+  });
+  $("statusStars").setAttribute("aria-label",
+   earnedStars+" av 3 stjärnor. Krav: "+game.config.stars.map(prettify).join(", "));
+ }
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
 }
 function renderScoreOnly(){

@@ -5,14 +5,14 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Endless Journey 6.0.0</title>
+ <title>Japanese Harmony · Score & Stars 6.2.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=5.6.0-icons-20261022">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.0.3-directed-hint">
- <script defer src="./harmony/rules.js?v=6.1.0-director2"></script>
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.2.0-score-stars">
+ <script defer src="./harmony/rules.js?v=6.2.0-score-stars"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
  <script defer src="./harmony/diagnostics.js?v=6.1.0-director2"></script>
- <script defer src="./harmony/app.js?v=6.1.0-director2"></script>
+ <script defer src="./harmony/app.js?v=6.2.0-score-stars"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -49,6 +49,9 @@
     </div>
     <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
     <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
+    <div id="starTargets" class="star-targets" aria-label="Poängkrav för en, två och tre stjärnor" hidden>
+     <span></span><span></span><span></span>
+    </div>
     <div class="board-shell">
      <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
      <div id="resonanceLinks" class="resonance-links" aria-hidden="true"></div>

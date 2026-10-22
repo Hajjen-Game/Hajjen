@@ -1,5 +1,13 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Score & Stars 6.2 — 2026-10-22
+
+**Ny poängbalans från nivå 11:** Nivå 11 börjar på **6 500 poäng** i stället för 1 600. Kraven växer långsamt till cirka 7 850 vid nivå 50 och ökar därefter mycket försiktigt med ett övre tak för extremt höga nivånummer. Varje nivå har tre separata poänggränser: **1★ = minimimålet, 2★ = cirka 175 % och 3★ = cirka 260 % av minimimålet**. Stjärnornas exakta nivåkrav syns direkt ovanför spelplanen.
+
+**Nivålistan** visar nu spelarens rekordpoäng under namnet på varje avklarad nivå, bredvid dess nya 1–3 stjärnor. Äldre rekord behålls exakt. Gamla score-nivåers stjärnor räknas om utifrån poängen, men en tidigare vunnen nivå behåller minst en stjärna och förblir upplåst. Inga vanliga spelfusioner, Masterpiece-bonusar eller Director-regler har förändrats.
+
+Balansen baseras på fulla poängomgångar snarare än Engine Labbets förkortade tester. Ett reproducerbart CI-benchmark kör **330 hela omgångar med alla drag** i 11 nivåer och tre AI-strategier. Se [Score & Stars 6.2](docs/JAPANESE_HARMONY_SCORE_STARS_6_2.md).
+
 ## Opportunity Director 2.0 — 2026-10-22
 
 Det nya opt-in-läget **Director 2.0** finns i Game Dev → Motorlabbet och kan jämföras med **Standard** och **Director 1.0** på exakt samma startfrön. Målet är att skapa meningsfulla utvecklingsmöjligheter runt redan investerade stadium 3–4-objekt, utan att ge spelaren gratismatchningar eller manipulera befintliga objekt. Efter flera drag utan betydelsefull utveckling prioriterar 2.0 försiktigt nya möjligheter. Den använder samma objektpåse, fyra möjliga påfyllningar och separata förgrenade RNG-strömmar. **Vanliga spelet kör fortfarande Standard** tills tester och spelkänsla motiverar något annat.

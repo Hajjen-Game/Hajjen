@@ -269,4 +269,37 @@ check("Smart hint consistently proposes valid swaps and keeps all saves unchange
   assert.equal(cloned.score-g.score,hint.expectedPoints);
  }
 });
+check("Score 6.2 requires a meaningful minimum and harder two- and three-star milestones",()=>{
+ const first=R.levelConfig(10),middle=R.levelConfig(29),later=R.levelConfig(49);
+ assert.equal(first.goal.count,6500);
+ assert(middle.goal.count>first.goal.count&&later.goal.count>middle.goal.count);
+ assert(first.stars[1]>=first.stars[0]*1.7);
+ assert(first.stars[2]>=first.stars[0]*2.55);
+ for(const level of [10,11,14,19,29,39,49,100,23000]){
+  const cfg=R.levelConfig(level),[a,b,c]=cfg.stars;
+  assert(a===cfg.goal.count&&a<b&&b<c);
+  assert.equal(R.scoreStars(level,a-1),0);
+  assert.equal(R.scoreStars(level,a),1);
+  assert.equal(R.scoreStars(level,b-1),1);
+  assert.equal(R.scoreStars(level,b),2);
+  assert.equal(R.scoreStars(level,c-1),2);
+  assert.equal(R.scoreStars(level,c),3);
+  assert.equal(R.scoreStars(level,100,true),1);
+  assert.equal(R.scoreStars(level,c,true),3);
+ }
+});
+check("Legacy completed score levels keep their completion and an honest one-star score",()=>{
+ const g=new R.Game(10,null,{seed:7894});
+ const old=g.save();old.score=1600;old.complete=true;old.moves=4;
+ const restored=new R.Game(10,old,{fastRestore:true});
+ assert.equal(restored.complete,true,"Old level 11 win may not be revoked");
+ assert.equal(restored.stars(),1,"Old 3-star rating is recalibrated to a grandfathered 1 star");
+ assert.equal(restored.score,1600);
+ assert.equal(restored.legacyScoreCompletion,true);
+ assert.deepEqual(new R.Game(10,restored.save(),{fastRestore:true}).save(),restored.save());
+ const fresh=new R.Game(10,null,{seed:7894});
+ fresh.score=1600;
+ assert.equal(fresh.complete,false);
+ assert.equal(fresh.stars(),0,"New attempts cannot clear the level at the old target");
+});
 console.log("Japanese Harmony rule tests passed");

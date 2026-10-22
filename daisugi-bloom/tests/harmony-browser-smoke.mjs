@@ -14,6 +14,23 @@ try{
  await page.waitForFunction(()=>!!window.HarmonyRules);
  assert.equal(await page.$$eval(".level-tile",els=>els.length),10);
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
+ // Engine Lab 1.0 must run on the real phone-sized menu and return to gameplay,
+ // with a computed report that is exportable and no player-save changes.
+ const beforeLab=await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2"));
+ await page.click("#devButton");
+ assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Harmony Intelligence");
+ await page.select(".engine-controls select","0");
+ await page.select(".engine-controls select:nth-of-type(2)","2");
+ await page.click("#modalActions button:first-child");
+ await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
+ assert.equal(await page.$eval(".engine-table tbody tr",rows=>rows.length),4,
+  "Developer lab must report all four seeded bot profiles");
+ assert.equal(await page.$eval("#modalActions button:nth-child(3)",b=>b.disabled),false,
+  "A finished report must be exportable as JSON");
+ assert.equal(await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2")),beforeLab,
+  "Running diagnostics must not overwrite a real player's saved game");
+ await page.click("#modalActions button:last-child");
+ assert.equal(await page.$eval("#modal",el=>el.hidden),true);
  await page.click("#continueButton");await page.waitForSelector(".tile");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-art"),{timeout:10000});
  const background=await page.evaluate(async()=>{

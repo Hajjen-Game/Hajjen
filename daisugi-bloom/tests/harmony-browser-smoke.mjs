@@ -95,6 +95,48 @@ try{
  assert(glass.shell.shadow.includes("216, 173, 114")||glass.shell.shadow.includes("216,173,114"),
   "Existing gold inset frame should remain around the glass playfield");
 
+ // Board Glass 1.1: tile center light is an image layer, not an opaque
+ // replacement that would erase the existing selected/swap/pulse tints.
+ const polish=await page.evaluate(()=>{
+  const board=document.querySelector(".game-view .board");
+  const tile=document.querySelector(".game-view .tile:nth-child(3)");
+  const even=document.querySelector(".game-view .tile:nth-child(2)");
+  const view=e=>({color:getComputedStyle(e).backgroundColor,image:getComputedStyle(e).backgroundImage});
+  const base=view(tile),alternate=view(even);
+  const states={};
+  for(const state of ["swapped","pulsed","harvested","shuffling"]){
+   tile.classList.add(state);
+   states[state]=view(tile);
+   tile.classList.remove(state);
+  }
+  return {gap:getComputedStyle(board).gap,base,alternate,states,
+   spriteFilter:getComputedStyle(tile.querySelector(".piece .sprite")).filter,
+   selectedBorder:(()=>{
+    tile.classList.add("selected");
+    const shadow=getComputedStyle(tile).boxShadow;
+    tile.classList.remove("selected");
+    return shadow;
+   })()};
+ });
+ const gridGap=parseFloat(polish.gap);
+ assert(gridGap>=1.4&&gridGap<=1.9,
+  "Polished grid should be subtly thinner than the former 2px: "+polish.gap);
+ assert(polish.base.image.includes("radial-gradient")&&polish.alternate.image.includes("radial-gradient"),
+  "All glass tiles require a subtle central highlight, not a flat fill");
+ assert.notEqual(polish.base.image,polish.alternate.image,
+  "Alternating glass rows should have slightly different depth");
+ assert(polish.spriteFilter.includes("drop-shadow"),
+  "Transparent item art must have a subtle silhouette shadow");
+ for(const [name,state] of Object.entries(polish.states)){
+  assert.notEqual(state.color,polish.base.color,
+   "Glass depth must preserve "+name+" event tint rather than overwrite it");
+  assert(state.image.includes("radial-gradient"),
+   "Glass depth should persist throughout "+name+" state");
+ }
+ assert(polish.selectedBorder.includes("242, 198, 110"),
+  "Gold selected-state marker must remain visible after polish");
+
+
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-hd"),{timeout:15000});
  const loadedBackground=await page.evaluate(()=>{

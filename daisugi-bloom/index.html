@@ -7,12 +7,12 @@
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
  <title>Japanese Harmony · Score & Stars 6.2.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=5.6.0-icons-20261022">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.2.0-score-stars">
- <script defer src="./harmony/rules.js?v=6.2.0-score-stars"></script>
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.3.0-pacing">
+ <script defer src="./harmony/rules.js?v=6.3.0-pacing"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
- <script defer src="./harmony/diagnostics.js?v=6.1.0-director2"></script>
- <script defer src="./harmony/app.js?v=6.2.0-score-stars"></script>
+ <script defer src="./harmony/diagnostics.js?v=6.3.0-pacing"></script>
+ <script defer src="./harmony/app.js?v=6.3.0-pacing"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -33,6 +33,15 @@
     </div>
     <div class="level-panel">
       <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">First Harmony</h2><p id="chapterSubtitle">Nivå 1–10 lär dig spelet. Därefter är det poängjakt.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
+      <div class="director-picker">
+       <label for="gameDirectorMode">SPELMOTOR</label>
+       <select id="gameDirectorMode" aria-label="Välj Director-läge för nya spel">
+        <option value="v3" selected>Harmony Pacing Director 3.0</option>
+        <option value="v2">Opportunity Director 2.0</option>
+        <option value="standard">Standard – klassisk påfyllning</option>
+       </select>
+       <p id="directorModeDescription">Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.</p>
+      </div>
       <div id="levelList" class="level-list"></div><nav id="levelPager" class="level-pager" aria-label="Bläddra mellan nivåer"></nav>
       <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Spela om tidigare nivåer och förbättra dina poängrekord och stjärnor.</p></div>
     </div>
@@ -47,6 +56,7 @@
      </div>
      <button id="pauseButton" class="pause-button" aria-label="Öppna spelmenyn" title="Spelmeny">Ⅱ</button>
     </div>
+    <div id="paceStatus" class="pace-status" aria-live="off">PACING 3.0 · BYGGER</div>
     <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
     <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
     <div id="starTargets" class="star-targets" aria-label="Poängkrav för en, två och tre stjärnor" hidden>

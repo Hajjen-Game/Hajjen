@@ -1,5 +1,13 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Harmony Pacing Director 3.0 — 2026-10-22
+
+**Aktivt i spelet för nya omgångar.** Välj i nivåmenyn mellan **Harmony Pacing 3.0**, **Opportunity 2.0** och **Standard**. 3.0 **innehåller hela Opportunity 2.0** och varierar endast bedömningen av fyra normala påfyllningar utifrån de senaste dragens rytm och utveckling. På spelplanen finns en lågmäld fasetikett: BYGGER, FLOW, ANDRUM eller NYA MÖJLIGHETER.
+
+Tiden mäts mellan **giltiga spelardrag efter animationsslut**, inte medan animationerna pågår. Paus, dold webbläsarflik och tidsintervall över 90 sekunder räknas inte som spelarsvårighet. Att tänka långsamt är inte ett misslyckande. Pacing-data är lokal, sparas som ett begränsat fönster av de åtta senaste dragen och återställs när en ny nivå startar. Director kan aldrig ändra existerande brickor, ge gratis fusioner, höja stadier, byta gravitationsriktning, ta extra drag eller garantera vinst.
+
+[Designbeslut och testresultat](docs/JAPANESE_HARMONY_PACING_DIRECTOR_3_0.md). Motorlabbet har fyra motorlägen med syntetiskt dragtempo för reproducerbar jämförelse; det verkliga spelet använder uppmätt tid. GitHub Actions kör dessutom 480 simuleringar för A/B/C/D-jämförelsen.
+
 ## Score & Stars 6.2 — 2026-10-22
 
 **Ny poängbalans från nivå 11:** Nivå 11 börjar på **6 500 poäng** i stället för 1 600. Kraven växer långsamt till cirka 7 850 vid nivå 50 och ökar därefter mycket försiktigt med ett övre tak för extremt höga nivånummer. Varje nivå har tre separata poänggränser: **1★ = minimimålet, 2★ = cirka 175 % och 3★ = cirka 260 % av minimimålet**. Stjärnornas exakta nivåkrav syns direkt ovanför spelplanen.

@@ -36,6 +36,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-opportunity-director.test.cjs
       - name: Verify opt-in Director 2.0 conservation, drought and paired A/B/C
         run: node daisugi-bloom/tests/harmony-opportunity-director-v2.test.cjs
+      - name: Verify Pacing Director 3.0 move timing, conservation, save/load and paired A/B/C/D
+        run: node daisugi-bloom/tests/harmony-pacing-director-v3.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
         run: node daisugi-bloom/tests/harmony-resonance.test.cjs
       - name: Syntax-check all browser scripts
@@ -50,6 +52,7 @@ jobs:
           node --check daisugi-bloom/tools/harmony-engine-benchmark.cjs
           node --check daisugi-bloom/tools/opportunity-director-v2-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-score-calibration.cjs
+          node --check daisugi-bloom/tools/harmony-pacing-3-benchmark.cjs
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -100,4 +103,20 @@ jobs:
         with:
           name: japanese-harmony-score-stars-6-2
           path: daisugi-bloom/reports/score-stars-6.2-benchmark.json
+          if-no-files-found: warn
+
+  pacing3-benchmark:
+    name: Pacing Director 3.0 · 480 paired game simulations
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare 480 Standard / Director 1.0 / 2.0 / 3.0 games
+        run: node daisugi-bloom/tools/harmony-pacing-3-benchmark.cjs
+      - name: Save scored rounds and seeded synthetic timing patterns
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-pacing-3-benchmark
+          path: daisugi-bloom/reports/harmony-pacing-director-3-benchmark.json
           if-no-files-found: warn

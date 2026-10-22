@@ -8,9 +8,21 @@ const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
-const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false};
+const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3"};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
+const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0"};
+const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
+let decisionReadyAt=0;
+function armDecisionClock(){decisionReadyAt=performance.now();}
+function disarmDecisionClock(){decisionReadyAt=0;}
+function updatePaceLabel(){
+ const node=$("paceStatus");if(!node||!game)return;
+ node.textContent=game.directorMode==="v3"?
+  "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):
+  game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD";
+ node.title=game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
+}
 // Subtle accessibility-safe hint: after one minute without interaction,
 // softly highlight ONE piece belonging to a genuinely legal swap.
 const IDLE_HINT_DELAY_MS=60000;
@@ -75,6 +87,7 @@ for(const [key,score] of Object.entries(save.bestScores||{})){
  const earned=R.scoreStars(i,value,true);
  if(save.bestStars[i]!==earned){save.bestStars[i]=earned;migratedScores=true;}
 }
+if(!Object.hasOwn(PLAY_MODES,save.playMode))save.playMode="v3";
 if(migratedScores)persist();
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
@@ -164,11 +177,13 @@ function sound(type,detail){
 }
 function showMenu(){
  if(busy)return;
- clearIdleHint();
+ disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
+ const selected=$("gameDirectorMode");
+ if(selected)selected.value=save.playMode;
  const list=$("levelList");list.replaceChildren();
  const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
  for(let i=first;i<last;i++){
@@ -263,10 +278,10 @@ async function celebrateCollection(evt){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
- clearIdleHint();
+ disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
- game=new R.Game(i,data);chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
+ game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
  const milestones=$("starTargets");
@@ -276,7 +291,7 @@ function startLevel(i,resume=false){
    node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
   });
  }
- prepareCollection();renderBoard(game.board);renderHUD();saveRun();restartIdleHint();
+ prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();armDecisionClock();restartIdleHint();
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -487,7 +502,9 @@ function trySwap(a,b){
    ]);
   }
  }
- const result=game.swap(a,b);
+ const decisionMs=decisionReadyAt&&!document.hidden?performance.now()-decisionReadyAt:null;
+ const result=game.swap(a,b,{decisionMs});
+ if(result.ok)disarmDecisionClock();
  if(!result.ok){
   echoLinkSnapshot.clear();
   selected=b;renderBoard(game.board);
@@ -1217,7 +1234,8 @@ async function playEvents(events){
   echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();
-  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();saveRun();
+  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();
+  if(!finished)armDecisionClock();
   if(!finished)restartIdleHint();
  }
  if(goalReached)unlockGoal();
@@ -1231,7 +1249,7 @@ function unlockGoal(){
 }
 function showResult(){
  if(!game)return;
- clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
+ disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(won)sound("result");
  if(won){
@@ -1331,17 +1349,18 @@ function openEngineLab(){
  const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Grundseed (reproducerbar)",seedInput);
  const engineMode=document.createElement("select");engineMode.id="engineMode";
  for(const [value,label] of [
-  ["compare","Jämför Standard + Director 1.0 + 2.0 (A/B/C)"],
+  ["compare","Jämför Standard + Director 1.0 + 2.0 + 3.0"],
   ["standard","Endast Standard"],
   ["director","Endast Director 1.0"],
-  ["director2","Endast Director 2.0 (experiment)"]
+  ["director2","Endast Director 2.0"],
+  ["director3","Endast Pacing Director 3.0"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
  engineMode.value="compare";field("Spelmotor",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="Director 1.0 och 2.0 jämför fyra rättvisa påfyllningar. 2.0 väger utvecklade föremål, framtida möjligheter och flera drag utan utveckling. Vanliga spelet använder fortfarande Standard. Botresultaten är inte mänskliga vinstchanser.";
+ scopeNote.textContent="3.0 innehåller 2.0 och anpassar milda påfyllningsprioriteringar efter dragtempo och utveckling. Botarnas dragtempo är syntetiskt – riktiga spel använder din faktiska tid. Välj spelmotor i nivåmenyn. Inga garanterade vinster.";
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
  status.textContent="Redo att mäta spelmotorn.";content.append(status);
@@ -1398,7 +1417,7 @@ function openEngineLab(){
   explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Echo = aktiverade resonansbelöningar per spel. Utveckl. = möjliga matcher som involverar stadium 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. nivå 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
   if(result.options.modes.length>=2){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
-   const title=document.createElement("strong");title.textContent="A/B/C · vinst, utveckling och framtida möjligheter";
+   const title=document.createElement("strong");title.textContent="A/B/C/D · vinst, utveckling och framtida möjligheter";
    comparison.append(title);
    for(const classic of result.results.filter(x=>x.mode==="standard")){
     for(const mode of result.options.modes.filter(m=>m!=="standard")){
@@ -1425,7 +1444,7 @@ function openEngineLab(){
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
-  const modes=engineMode.value==="compare"?["standard","director","director2"]:[engineMode.value];
+  const modes=engineMode.value==="compare"?["standard","director","director2","director3"]:[engineMode.value];
   const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
@@ -1451,7 +1470,7 @@ function openEngineLab(){
 }
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
- clearIdleHint();
+ disarmDecisionClock();clearIdleHint();
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Spelmeny";
  const content=$("modalContent");content.replaceChildren();
@@ -1459,7 +1478,7 @@ function openGameMenu(){
  desc.textContent="Nivå "+(level+1)+" · "+game.config.name+" · "+game.moves+" drag kvar";
  content.append(desc);
  const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Fortsätt spela","primary",()=>{$("modal").hidden=true;});
+ modalButton(actions,"Fortsätt spela","primary",()=>{$("modal").hidden=true;armDecisionClock();});
  if(game.complete)modalButton(actions,"Avsluta med resultat","secondary",()=>{if(busy)return;game.finish();showResult();});
  modalButton(actions,"Börja om nivån","secondary",()=>{if(!busy)startLevel(level);});
  modalButton(actions,"Så spelar du","secondary",()=>{$("helpButton").click();});
@@ -1470,6 +1489,15 @@ function openGameMenu(){
  $("modal").hidden=false;
 }
 function bind(){
+ $("gameDirectorMode").addEventListener("change",event=>{
+  save.playMode=event.target.value in PLAY_MODES?event.target.value:"v3";
+  persist();
+  $("directorModeDescription").textContent=save.playMode==="v3"?
+   "Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.":
+   save.playMode==="v2"?"Director 2.0 skapar bättre utvecklingsmöjligheter med vanliga påfyllningar.":
+   "Originalsystemets slumpmässiga påfyllning. Jämför med de smartare lägena.";
+ });
+ $("gameDirectorMode").dispatchEvent(new Event("change"));
  $("homeButton").addEventListener("click",showMenu);
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
@@ -1495,11 +1523,12 @@ function bind(){
  // actual state, so resuming always starts a new full one-minute interval.
  document.addEventListener("click",()=>restartIdleHint());
  document.addEventListener("visibilitychange",()=>{
-  if(document.hidden)clearIdleHint();else restartIdleHint();
+  if(document.hidden){disarmDecisionClock();clearIdleHint();}else{if(game&&!busy&&!$("gameView").hidden&&$("modal").hidden)armDecisionClock();restartIdleHint();}
  });
  window.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&!busy&&!$("modal").hidden){
    if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;
+   if(game&&!$("gameView").hidden)armDecisionClock();
   }
   restartIdleHint();
  });

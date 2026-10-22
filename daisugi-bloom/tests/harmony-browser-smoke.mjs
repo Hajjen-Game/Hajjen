@@ -12,6 +12,54 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
+ // Live player-mode picker: new sessions default to Pacing 3.0 (including
+ // Opportunity 2.0), while 2.0 and Standard are explicitly selectable.
+ const directorContext=await browser.createBrowserContext();
+ try{
+  const demo=await directorContext.newPage();
+  await demo.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await demo.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  assert.equal(await demo.$eval("#gameDirectorMode",n=>n.value),"v3");
+  await demo.click(".level-tile:first-child");
+  const fresh=await demo.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {mode:saved.run?.data?.directorMode,status:document.querySelector("#paceStatus")?.textContent};
+  });
+  assert.equal(fresh.mode,"v3","New live levels must ACTUALLY use Pacing 3.0");
+  assert(fresh.status.includes("PACING 3.0"));
+  const pair=await demo.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return window.HarmonyRules.validSwaps(data.board)[0];
+  });
+  await demo.evaluate(([a,b])=>{
+   const first=document.querySelector('.tile[data-index="'+a+'"]');
+   const second=document.querySelector('.tile[data-index="'+b+'"]');
+   first.click();second.click();
+  },pair);
+  await demo.waitForFunction(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"))?.run?.data;
+   return run&&run.paceTimes.length>0&&run.moves<12;
+  },{timeout:18000});
+  const persisted=await demo.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return {mode:data.directorMode,samples:data.paceTimes.length,phase:data.pacePhase};
+  });
+  assert.equal(persisted.mode,"v3");
+  assert.equal(persisted.samples,1,"A completed user move should persist its real decision interval");
+  assert(["build","flow","recovery","relax"].includes(persisted.phase));
+  await demo.click("#pauseButton");
+  await demo.click("#modalActions button:last-child");
+  await demo.select("#gameDirectorMode","v2");
+  await demo.click(".level-tile:first-child");
+  const v2=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
+  assert.equal(v2,"v2","Director 2.0 must remain available in live gameplay");
+  await demo.click("#pauseButton");
+  await demo.click("#modalActions button:last-child");
+  await demo.select("#gameDirectorMode","standard");
+  await demo.click(".level-tile:first-child");
+  const standard=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
+  assert.equal(standard,"standard","Standard remains selectable");
+ }finally{await directorContext.close();}
  // Directed idle hint 1.1: only one REAL swap, shown as bright SOURCE and soft TARGET.
  // Shorten only the one-minute timer inside the isolated mobile test context.
  const hintContext=await browser.createBrowserContext();
@@ -291,18 +339,19 @@ try{
  await page.select("#engineMode","compare");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
- assert.equal(await page.evaluate(()=>document.querySelectorAll(".engine-table tbody tr").length),12,
-  "Developer lab must show 4 bots × 3 paired engine modes");
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".engine-table tbody tr").length),16,
+  "Developer lab must show 4 bots × 4 paired engine modes");
  const comparisonUI=await page.evaluate(()=>({
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.1.0")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.3.0")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director 1.0").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director 2.0").length,4);
- assert.equal(comparisonUI.summaries,8);
+ assert.equal(comparisonUI.versions.filter(x=>x==="Pacing 3.0").length,4);
+ assert.equal(comparisonUI.summaries,12);
  assert(comparisonUI.versionShown,"The report must expose the game engine version");
  assert.equal(await page.$eval("#modalActions button:nth-child(3)",b=>b.disabled),false,
   "A finished report must be exportable as JSON");

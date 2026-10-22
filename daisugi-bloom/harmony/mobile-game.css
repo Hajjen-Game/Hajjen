@@ -1383,3 +1383,26 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
  .level-tile .level-best{font-size:10px}
  .game-view .star-targets{font-size:9px;gap:3px}
 }
+
+/* Harmony Pacing 3.0: mode selector lives in the level menu.
+   In-game phase is informative, not a countdown or a pressure device. */
+.director-picker{
+ display:grid;gap:6px;margin-top:15px;padding:12px 13px;
+ border:1px solid rgba(230,202,139,.4);border-radius:13px;
+ background:linear-gradient(140deg,rgba(20,58,68,.85),rgba(34,61,63,.7));
+}
+.director-picker label{
+ font-size:10px;font-weight:850;letter-spacing:.16em;color:#f0d39d;
+}
+.director-picker select{
+ width:100%;min-height:42px;padding:8px 32px 8px 11px;
+ border-radius:9px;border:1px solid #78908c;
+ color:#fff0d0;background:#254b56;font-weight:750;font-size:13px;
+}
+.director-picker p{margin:0;font-size:11px;line-height:1.45;color:#d5ded1}
+.game-view .pace-status{
+ width:max-content;max-width:100%;margin:0 auto 7px;
+ padding:3px 12px;font-size:10px;letter-spacing:.11em;
+ font-weight:800;color:#d7e3ca;border-radius:999px;
+ background:rgba(16,48,55,.82);border:1px solid rgba(209,225,186,.35);
+}

@@ -30,7 +30,7 @@ try{
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.4.0")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("5.5.0")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director").length,4);
@@ -129,6 +129,10 @@ try{
  assert.equal(resonanceLogic.bonus,125);
  assert.equal(resonanceLogic.spent,1);
  assert.equal(resonanceLogic.echoesSaved,1);
+ // Engine Lab 2.0 must expose Echo metrics for longitudinal tuning.
+ assert(await page.evaluate(()=>!!window.HarmonyDiagnostics?.create(window.HarmonyRules).run({
+  levels:[0],strategies:["random"],modes:["standard"],trials:1,seed:19
+ }).results[0].hasOwnProperty("avgEchoes")));
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
 

@@ -7,10 +7,21 @@ function fixture(){
  const g=new R.Game(0);
  g.board=blank();return g;
 }
-check("10 first-chapter levels and five family identities",()=>{
+check("10 first-chapter levels and nine available family identities",()=>{
  assert.equal(R.levels.length,10);
- assert.deepEqual(R.families,["sakura","lantern","koi","fan","bonsai"]);
- for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage===1),"Every new level must begin with only stage-one objects");assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);}
+ assert.deepEqual(R.families,["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
+ assert.equal(R.levelFamilies.length,10);
+ const seen=new Set();
+ for(let i=0;i<10;i++){
+  const selection=R.activeFamilies(i);
+  assert.equal(selection.length,5,"Five families, never nine, on level "+(i+1));
+  assert.equal(new Set(selection).size,5);
+  for(const family of selection)seen.add(family);
+  if(i===2)assert.equal(seen.size,9,"Every family must be introduced by level 3");
+ }
+ assert.deepEqual([...seen].sort(),R.families.slice().sort());
+ assert(R.activeFamilies(5).includes("lantern"),"Lantern Festival needs lanterns");
+ for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage===1),"Every new level must begin with only stage-one objects");assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);assert.deepEqual(new Set(g.board.map(p=>p.family)),new Set(R.activeFamilies(i)));}
 });
 check("new controlled starts and retries always contain ONLY stage-one objects",()=>{
  for(let i=0;i<10;i++)for(let attempt=0;attempt<16;attempt++){
@@ -67,6 +78,23 @@ check("once goal completes, remaining moves can be played without changing first
  const result=g.resolve(-1);
  assert(result.some(e=>e.type==="goal"));assert(g.complete);assert(g.moves>0);const s=g.stars();
  g.fusions+=3;assert.equal(g.stars(),s);assert(g.finish());assert.equal(g.moves,0);
+});
+check("legacy saved levels migrate retired families without deleting progression",()=>{
+ const old=new R.Game(1);
+ const snapshot=old.save();
+ const oldBoard=["sakura","lantern","koi","fan"];
+ snapshot.board.forEach((p,i)=>{p.family=oldBoard[i%4];p.stage=i%5+1;});
+ snapshot.bag=["lantern","koi","sakura","fan"];
+ snapshot.score=3200;snapshot.moves=7;
+ const loaded=new R.Game(1,snapshot);
+ assert.equal(loaded.score,3200);
+ assert.equal(loaded.moves,7);
+ assert(loaded.board.every(p=>R.activeFamilies(1).includes(p.family)));
+ assert(loaded.board.some(p=>p.family==="sushi"||p.family==="maneki"));
+ assert(loaded.board.every((p,i)=>p.stage===snapshot.board[i].stage));
+ assert(loaded.bag.every(f=>R.activeFamilies(1).includes(f)));
+ const roundtrip=new R.Game(1,loaded.save());
+ assert.deepEqual(roundtrip.board,loaded.board);
 });
 check("save and resume preserve board, score, randomness position and stage milestones",()=>{
  const g=new R.Game(3),snap=g.save(),newGame=new R.Game(3,snap);

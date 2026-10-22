@@ -479,3 +479,16 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 **Specifika garantier:** Lykta finns med på nivå 6 med målet Lantern Festival; inga nivåer använder alla nio samtidigt. Ett pågående äldre sparat spel migrerar eventuella inaktiva identiteter till familjer i nivåns nya uppsättning utan att nollställa stadium, drag, poäng eller RNG-räknare. VFX-signatur och ljudklang utökas för nya familjer. Inga ändringar av regellogiken för 3/4/5-matchning, Masterpiece eller Harmony Pulse.
 
 **QA:** Ren regeltestning verifierar alla nio familjer, exakt fem per nivå, faktisk förekomst på startbrädet för alla tio nivåer och återföring av äldre sparfiler. Browser-smoke kontrollerar kodens nivåtäckning samt att en riktig Android-layout avkodar 960 × 768-AVIF och visar Origami-/Ryu-sprites i nivå 3. Slutlig upplevelse/test av nivåbalans och ljus-/färgskillnaderna görs på telefonen.
+
+
+## Board Glass 1.0 — mörkblå transparent spelplan (2026-10-22)
+
+**Spelarfeedback:** Efter familjeexpansionen i 5.0 önskas samma transparenta mörkblå ton som målrutan över brädet. De tidigare opaka beigerutorna drog fokus från transparenta objektbilder och dämpade fusionernas ljuseffekter.
+
+**Implementering (Japanese Harmony 5.1.0):** Spelplanens inre ytor använder nu samma mörkblå/teal-färgskala som målremsans mörka glas: `board-shell` och `board` får diskreta genomskinliga gradienter, medan vanliga celler alternerar mellan `rgba(27,66,81,.80)` och `rgba(37,78,88,.76)`. Den etablerade guldfärgade/beige ramen behåller form, mått och inläggningar; tidigare starka moss-/stenornament tonas ner till 20 % styrka så att grafiken får bättre separation.
+
+**Interaktion:** Vald ruta är fortfarande tydligt avgränsad i varmt guld. Swap-, Pulse-, Harvest- och Shuffle-markeringar använder mjukt tonade blågröna respektive gyllene nyanser som är läsliga mot den nya underliggande spelplanen. Pekskärmens hover-tillstånd får rätt cellfärg i stället för att tillfälligt återgå till beige. Alla nio objektfamiljer och 45 stadium visas med oförändrade transparenta sprites.
+
+**Prestanda:** Inga nya DOM-lager, bilder, partiklar eller `backdrop-filter` på mobilen. Detta är endast statiska CSS-färger och bakgrundsgradienter, och påverkar inte funktionerna från 4.x och 5.0. Samma spelplan fungerar oavsett vilken Festival Night-bakgrund som visas.
+
+**Test:** `harmony-browser-smoke.mjs` har en computed-style-regression som kontrollerar att både udda och jämna brickor faktiskt är blå/teal och delvis transparenta när mobilens alla CSS-overrides har applicerats, samt att den gyllene ramens inset-shadow finns kvar. Visuell bedömning på användarens Android-enhet återstår.

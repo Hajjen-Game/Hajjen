@@ -967,7 +967,7 @@ function showPerformanceReport(){
 let engineLabRun=null;
 function engineLabText(element,value){element.textContent=String(value);}
 function openEngineLab(){
- if(engineLabRun)engineLabRun.cancelled=true;
+ if(engineLabRun){engineLabRun.cancelled=true;engineLabRun=null;}
  const api=window.HarmonyDiagnostics?.create(R);
  $("modalEyebrow").textContent="GAME DEV · ENGINE LAB";
  $("modalTitle").textContent="Harmony Intelligence";

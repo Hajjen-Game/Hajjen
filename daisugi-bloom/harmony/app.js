@@ -17,6 +17,8 @@ let rectCache=null,boardLayerRect=null;
 const LITE_FX=()=>MOBILE_LITE&&!!perf?.constrained;
 const fxCount=()=>scoreOverlay?.childElementCount||0;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
+// Match CSS-only ambient effects to the in-game accessibility preference.
+document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
 
@@ -1281,7 +1283,7 @@ function bind(){
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});
-  $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;persist();});
+  $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);persist();});
  });
  $("board").addEventListener("pointerdown",e=>{const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
  $("board").addEventListener("pointerup",e=>{

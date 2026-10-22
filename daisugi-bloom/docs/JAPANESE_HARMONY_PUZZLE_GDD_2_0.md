@@ -450,7 +450,7 @@ En familjesignatur utlöses i `playFusion` när det nya stadiets illustrerade ob
 
 **Beslut:** De fyra godkända nya objektfamiljerna **Sushi**, **Maneki-neko**, **Origami** och **Ryu Dragon** är tillagda till de befintliga fem (Sakura, Lykta, Koi, Solfjäder, Bonsai). Samtliga har exakt fem stadium, där stadium 5 är Masterpiece och triggar samma Harmony Pulse/Harvest som förr. **Inga spelsystem för progression eller matchning har ändrats.**
 
-**Bildmaterial:** Samtliga 20 nya individuellt godkända källbilder (fem per familj) sammansatta till en **960 × 768 transparent AVIF-atlas** på `daisugi-bloom/assets/harmony-new-families.avif`, fyra rader × fem kolumner. Varje transparent bild upptar en 192 × 192-cell för native CSS-sprites. Den befintliga femfamiljsatlasen lämnas oförändrad. Den nya atlasen är ca 86 kB (384/4? ingen data skickas till analyssystem). På webben visas rätt sprite med kolumn `(stage-1)*25 %` och rad `row*100/3 %`; native fallbacks visas endast om en atlas inte kan laddas.
+**Bildmaterial:** Samtliga 20 nya individuellt godkända källbilder (fem per familj) sammansatta till en **960 × 768 transparent AVIF-atlas** på `daisugi-bloom/assets/harmony-new-families.avif`, fyra rader × fem kolumner. Varje transparent bild upptar en 192 × 192-cell för native CSS-sprites. Den befintliga femfamiljsatlasen lämnas oförändrad. Den nya atlasen är cirka 86 kB och behöver bara laddas en gång per spelsession. På webben visas rätt sprite med kolumn `(stage-1)*25 %` och rad `row*100/3 %`; native fallbacks visas endast om en atlas inte kan laddas.
 
 | Rad i nya atlasen | Stadium 1 | Stadium 2 | Stadium 3 | Stadium 4 | Stadium 5 – Masterpiece |
 | --- | --- | --- | --- | --- | --- |

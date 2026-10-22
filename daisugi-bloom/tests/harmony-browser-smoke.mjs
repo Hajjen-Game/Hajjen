@@ -296,33 +296,7 @@ try{
  // lower-row tile, not at the fusion layer's top-left. The previous
  // "inset:auto!important" declaration overrode JS inline left/top and failed
  // exactly this check on mobile.
- const fusionPositions=await page.evaluate(()=>{
-  const layer=makeFxLayer();
-  const samples=[];
-  try{
-   for(const index of [0,19,48]){
-    const tile=document.querySelectorAll(".tile")[index];
-    const sprite=tile.querySelector(".piece"),from=tile.getBoundingClientRect();
-    const ghost=sprite.cloneNode(true);
-    ghost.classList.add("fusion-ghost");
-    ghost.style.left=(from.left-layer.rect.left)+"px";
-    ghost.style.top=(from.top-layer.rect.top)+"px";
-    ghost.style.width=from.width+"px";
-    ghost.style.height=from.height+"px";
-    layer.node.appendChild(ghost);
-    const pos=ghost.getBoundingClientRect();
-    const css=getComputedStyle(ghost);
-    samples.push({index,dx:Math.abs(from.left-pos.left),dy:Math.abs(from.top-pos.top),
-     left:css.left,top:css.top,x:pos.left,y:pos.top});
-   }
-  }finally{layer.node.remove();}
-  return samples;
- });
- assert(fusionPositions.every(p=>p.dx<2&&p.dy<2),
-  "Fusion sprites must start at their own actual board cells (not upper-left): "+JSON.stringify(fusionPositions));
- assert(fusionPositions[2].x>fusionPositions[0].x+100&&
-        fusionPositions[2].y>fusionPositions[0].y+100,
-  "A lower-right source sprite must not render on top of the top-left source");
+ // The real fusion animation below verifies ghost positions inside the actual game's FX layer.
  // Regression: a real mobile fusion must reuse the same 49 tile DOM nodes.
  // Recreating those nodes for every event previously caused expensive mobile jank.
  // Previous assertion selected tile 0. Clear that selection before the swap test.
@@ -353,7 +327,7 @@ try{
  });
  const invalidMoves=await page.$eval("#movesCount",el=>el.textContent);
  const invalidScore=await page.$eval("#scoreCount",el=>el.textContent);
- const invalidBoard=await page.$eval(".tile",els=>els.map(e=>e.getAttribute("aria-label")).join("|"));
+ const invalidBoard=await page.$$eval(".tile",els=>els.map(e=>e.getAttribute("aria-label")).join("|"));
  await page.click(".tile:nth-child("+(invalid[0]+1)+")");
  await page.click(".tile:nth-child("+(invalid[1]+1)+")");
  await page.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:5000});
@@ -364,8 +338,8 @@ try{
  assert(bounced,"Invalid swap must animate a physical forward-and-back rebound");
  assert.equal(await page.$eval("#movesCount",el=>el.textContent),invalidMoves);
  assert.equal(await page.$eval("#scoreCount",el=>el.textContent),invalidScore);
- assert.equal(await page.$eval(".tile",els=>els.map(e=>e.getAttribute("aria-label")).join("|")),invalidBoard);
- assert.equal(await page.$eval(".tile",els=>els.length),49);
+ assert.equal(await page.$$eval(".tile",els=>els.map(e=>e.getAttribute("aria-label")).join("|")),invalidBoard);
+ assert.equal(await page.$$eval(".tile",els=>els.length),49);
  // The rejected target remains selected; clear it before the valid swap.
  await page.click(".tile:nth-child("+(invalid[1]+1)+")");
  const swap=await page.evaluate(()=>{
@@ -385,7 +359,12 @@ try{
      if(this.matches(".piece, .fusion-ghost, .pulse-dot"))window.__kineticAnimationCount++;
      if(this.matches(".fusion-ghost")){
       const frames=args[0]||[],options=args[1]||{};
-      window.__gatherMotion.push({frames,duration:options.duration});
+      const ghostRect=this.getBoundingClientRect();
+      const sourceIndex=[...document.querySelectorAll(".tile")].findIndex(tile=>{
+       const tileRect=tile.getBoundingClientRect();
+       return Math.abs(ghostRect.left-tileRect.left)<2&&Math.abs(ghostRect.top-tileRect.top)<2;
+      });
+      window.__gatherMotion.push({frames,duration:options.duration,sourceIndex});
      }
      return realAnimate.apply(this,args);
    };
@@ -433,6 +412,8 @@ try{
  assert(kineticCount>=3,"Swap and fusion should animate actual moving objects, not just pause and redraw: "+kineticCount);
  const gather=await page.evaluate(()=>window.__gatherMotion);
  assert(gather.length>=2,"A normal fusion must physically carry two source pieces into the survivor");
+ assert(gather.every(g=>g.sourceIndex>=0),"Every real fusion ghost must start at a board cell, not the FX layer origin: "+JSON.stringify(gather.map(g=>g.sourceIndex)));
+ assert(new Set(gather.map(g=>g.sourceIndex)).size>=2,"Fusion sources must originate from different board cells");
  assert(gather.every(g=>g.duration===280&&g.frames.length===6&&
   g.frames.slice(0,-1).every(k=>k.opacity===1)&&g.frames.at(-1).opacity>=.9&&
   g.frames.at(-1).offset===1),

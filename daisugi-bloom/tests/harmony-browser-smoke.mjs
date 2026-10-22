@@ -100,6 +100,37 @@ try{
  await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(3)").click());
  assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
+ // Coordinate regression: position real sprite clones at a far-right and
+ // lower-row tile, not at the fusion layer's top-left. The previous
+ // "inset:auto!important" declaration overrode JS inline left/top and failed
+ // exactly this check on mobile.
+ const fusionPositions=await page.evaluate(()=>{
+  const layer=makeFxLayer();
+  const samples=[];
+  try{
+   for(const index of [0,19,48]){
+    const tile=document.querySelectorAll(".tile")[index];
+    const sprite=tile.querySelector(".piece"),from=tile.getBoundingClientRect();
+    const ghost=sprite.cloneNode(true);
+    ghost.classList.add("fusion-ghost");
+    ghost.style.left=(from.left-layer.rect.left)+"px";
+    ghost.style.top=(from.top-layer.rect.top)+"px";
+    ghost.style.width=from.width+"px";
+    ghost.style.height=from.height+"px";
+    layer.node.appendChild(ghost);
+    const pos=ghost.getBoundingClientRect();
+    const css=getComputedStyle(ghost);
+    samples.push({index,dx:Math.abs(from.left-pos.left),dy:Math.abs(from.top-pos.top),
+     left:css.left,top:css.top,x:pos.left,y:pos.top});
+   }
+  }finally{layer.node.remove();}
+  return samples;
+ });
+ assert(fusionPositions.every(p=>p.dx<2&&p.dy<2),
+  "Fusion sprites must start at their own actual board cells (not upper-left): "+JSON.stringify(fusionPositions));
+ assert(fusionPositions[2].x>fusionPositions[0].x+100&&
+        fusionPositions[2].y>fusionPositions[0].y+100,
+  "A lower-right source sprite must not render on top of the top-left source");
  // Regression: a real mobile fusion must reuse the same 49 tile DOM nodes.
  // Recreating those nodes for every event previously caused expensive mobile jank.
  // Previous assertion selected tile 0. Clear that selection before the swap test.

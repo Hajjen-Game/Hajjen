@@ -12,7 +12,7 @@ const voices=new Set(),lastPlayed=new Map();
 const MAX_VOICES=8;
 const FAMILY_PITCH={sakura:523.25,lantern:587.33,koi:659.25,fan:698.46,bonsai:783.99,sushi:739.99,maneki:880,origami:987.77,ryu:659.25};
 const PENTATONIC=[587.33,659.25,783.99,880,987.77,1174.66,1318.51];
-const LIMITS={tap:65,swap:85,invalid:190,fusion:125,bonus:115,pulse:115,hero:240,harvest:285,goal:700,arrival:170,progress:150,result:900};
+const LIMITS={tap:65,swap:85,invalid:190,fusion:125,echo:340,bonus:115,pulse:115,hero:240,harvest:285,goal:700,arrival:170,progress:150,result:900};
 function unlock(){
  if(!enabled)return false;
  const Audio=root.AudioContext||root.webkitAudioContext;
@@ -90,6 +90,14 @@ function play(type,detail={}){
    note(pitch,0,.19,.066,"triangle");
    note(pitch*1.5,.078,.29,.049,"sine");
    if(combo>=4)note(pitch*2,.14,.20,.030,"sine");
+   break;
+  }
+  case "echo":{
+   // A restrained, distinct two-tone "answer" to the fusion chime.
+   const pitch=stage>=4?880:783.99;
+   note(pitch,0,.22,.050,"triangle");
+   note(pitch*1.25,.09,.29,.045,"sine");
+   note(pitch*1.5,.17,.30,.030,"sine");
    break;
   }
   case "bonus":

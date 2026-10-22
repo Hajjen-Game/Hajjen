@@ -4,7 +4,7 @@
 
 **Nivå 1–10** introducerar fusioner och Harmony Pulse. Från **nivå 11** räcker ett tydligt poängmål inom draggränsen; stjärnorna baseras på poäng. Nivå 11–50 är genererade som första balanserbara svårighetskurva. Samma generator stöder även alla högre nivånummer utan att skapa separata quest-definitioner. Nivåväljaren visar 20 åt gången.
 
-**Masterpiece Collection:** Spelplanens fem aktuella familjer visas under brädet med sina faktiska stadium 5-bilder. Varje mästerverk ökar den egna familjens **obegränsade heltalsräknare** (0, 1, 2 …), aldrig 0/5. Ringen runt ikonen fylls dekorativt och pulserar vid nya mästerverk. Varje mästerverk ger en egen växande, men begränsad, bonus utöver Harmony-poäng. Räkning, bonusar och poäng bevaras i sparfilen under omgången och återställs vid en ny nivå.
+**Masterpiece Collection:** Spelplanens fem aktuella familjer visas under brädet med sina faktiska stadium 5-bilder. Varje mästerverk ökar den egna familjens **obegränsade heltalsräknare** (0, 1, 2 …), aldrig 0/5. Ikonen visas fritt utan ring eller bakgrundsplatta. En liten rund heltalsräknare ligger ovanpå ikonens nedre vänstra hörn och pulserar när ett nytt mästerverk samlas. Varje mästerverk ger en egen växande, men begränsad, bonus utöver Harmony-poäng. Räkning, bonusar och poäng bevaras i sparfilen under omgången och återställs vid en ny nivå.
 
 **Introduktionsbalans:** Nivå 6 kräver ett lyktmästerverk; nivå 9 två mästerverk totalt (inte längre ett specifikt slumpkänsligt simultant kedjemönster). Kärnfusionsreglerna och befintliga bilder är oförändrade. Båda tidigare felen dokumenterades i [spelgranskningen](docs/JAPANESE_HARMONY_GAME_AUDIT_20261022.md).
 

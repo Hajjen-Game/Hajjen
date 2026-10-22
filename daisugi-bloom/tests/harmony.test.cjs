@@ -172,4 +172,27 @@ check("Levels 6 and 9 use approachable cumulative masterpiece objectives",()=>{
  assert.deepEqual(R.levels[5].goal,{type:"familyMasterpiece",family:"lantern",count:1});
  assert.deepEqual(R.levels[8].goal,{type:"masterpiece",count:2});
 });
+check("Level 10 screenshot has real legal swaps and the highlighted Ryu match is valid",()=>{
+ const rows=[
+  ["sushi","bonsai","koi","sushi","bonsai","origami","ryu"],
+  ["koi","bonsai","bonsai","sushi","origami","koi","bonsai"],
+  ["origami","sushi","ryu","koi","bonsai","ryu","origami"],
+  ["sushi","ryu","bonsai","origami","ryu","sushi","koi"],
+  ["bonsai","koi","ryu","ryu","origami","bonsai","bonsai"],
+  ["ryu","origami","sushi","bonsai","sushi","ryu","ryu"],
+  ["ryu","bonsai","koi","origami","sushi","koi","origami"]
+ ];
+ const game=new R.Game(9,null,{seed:31415});
+ game.board=rows.flat().map((family,index)=>({family,id:index+1,stage:1}));
+ assert.equal(R.scan(game.board).length,0,"Reconstructed screenshot must not start with an automatic match");
+ const options=R.validSwaps(game.board);
+ assert(options.length>=1,"The photographed board must have a legal move");
+ assert(options.some(([a,b])=>a===25&&b===32),
+  "Swap row 4 col 5 down with row 5 col 5 to create three Ryu");
+ const result=game.swap(25,32);
+ assert.equal(result.ok,true);
+ assert(result.events.some(e=>e.type==="fusion"&&e.groups.some(g=>g.family==="ryu")),
+  "The move must visibly fuse Ryu, not only consume a turn");
+ assert(R.validSwaps(game.board).length>0||game.moves===0,"Next board must not be stuck");
+});
 console.log("Japanese Harmony rule tests passed");

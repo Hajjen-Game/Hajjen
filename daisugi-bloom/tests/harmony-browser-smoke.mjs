@@ -12,6 +12,40 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
+ // Regression: old 10-level saves capped unlocked at index 9 despite level-10 completion.
+ const legacyContext=await browser.createBrowserContext();
+ try{
+  const legacy=await legacyContext.newPage();
+  await legacy.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await legacy.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  await legacy.evaluate(()=>{
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:9,bestStars:{"9":3},bestScores:{"9":24436},
+    bestChain:{"9":4},run:null,sound:false,reduceMotion:false
+   }));
+  });
+  await legacy.reload({waitUntil:"networkidle2"});
+  const recovered=await legacy.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   const tile=document.querySelectorAll(".level-tile")[10];
+   return {unlocked:saved.unlocked,playable:!!tile&&!tile.disabled};
+  });
+  assert.equal(recovered.unlocked,10,"Old win of level 10 should unlock level 11 automatically");
+  assert(recovered.playable,"Level 11 should be clickable after legacy migration");
+  await legacy.evaluate(()=>{
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:9,bestStars:{},bestScores:{},bestChain:{},
+    run:{level:9,data:{complete:false}},sound:false,reduceMotion:false
+   }));
+  });
+  await legacy.reload({waitUntil:"networkidle2"});
+  const incomplete=await legacy.evaluate(()=>({
+   unlocked:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).unlocked,
+   locked:document.querySelectorAll(".level-tile")[10].disabled
+  }));
+  assert.equal(incomplete.unlocked,9,"An unfinished level 10 must not unlock level 11");
+  assert(incomplete.locked);
+ }finally{await legacyContext.close();}
  // Board Praise 1.0: a real seeded swap triggers all three approved words.
  const praiseContext=await browser.createBrowserContext();
  try{
@@ -235,6 +269,20 @@ try{
  assert.equal(collection.icons,5,"Five active families must appear under the board");
  assert.deepEqual(collection.labels,["0","0","0","0","0"],"All five counters begin at zero, never 0/5");
  assert(collection.noFractions&&collection.visible);
+ const collectionLayout=await page.evaluate(()=>{
+  const icon=document.querySelector(".collection-icon");
+  const badge=icon.querySelector(".collection-count");
+  const main=icon.getBoundingClientRect(),counter=badge.getBoundingClientRect();
+  const css=getComputedStyle(icon);
+  return {noRing:css.backgroundImage==="none"&&css.borderTopWidth==="0px",
+   noFrame:getComputedStyle(icon,"::before").content==="none",
+   overlaid:badge.parentElement===icon&&getComputedStyle(badge).position==="absolute",
+   lowerLeft:counter.left<main.left+main.width*.5&&counter.top>=main.top+main.height*.4};
+ });
+ assert(collectionLayout.noRing&&collectionLayout.noFrame,
+  "Stage-five art must float freely with no large ring, frame or background");
+ assert(collectionLayout.overlaid&&collectionLayout.lowerLeft,
+  "One circular integer badge must sit over the icon's lower-left corner");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,level8Goal:HarmonyRules.levels[7].goal.type,level8Count:HarmonyRules.levels[7].goal.count,level8Moves:HarmonyRules.levels[7].moves};});
  assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"stage3");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,20);

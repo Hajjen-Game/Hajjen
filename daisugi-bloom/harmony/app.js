@@ -18,6 +18,26 @@ let rectCache=null,boardLayerRect=null;
 const LITE_FX=()=>MOBILE_LITE&&!!perf?.constrained;
 const fxCount=()=>scoreOverlay?.childElementCount||0;
 try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
+// Legacy ten-level saves capped the last unlock at level 10 (zero-based 9).
+// Recover the next playable level using evidence of completed runs only;
+// neither an unfinished run nor a lost run may unlock an extra level.
+function reconcileCompletedLevels(state){
+ let unlocked=Number.isInteger(state.unlocked)&&state.unlocked>=0?state.unlocked:0;
+ for(const records of [state.bestStars,state.bestScores]){
+  if(!records||typeof records!=="object")continue;
+  for(const [key,value] of Object.entries(records)){
+   const n=Number(key);
+   if(Number.isInteger(n)&&n>=0&&n<1000000&&Number(value)>0)
+    unlocked=Math.max(unlocked,n+1);
+  }
+ }
+ const run=state.run;
+ if(run?.data?.complete&&Number.isInteger(run.level)&&run.level>=0)
+  unlocked=Math.max(unlocked,run.level+1);
+ return unlocked;
+}
+const recoveredUnlock=reconcileCompletedLevels(save);
+if(recoveredUnlock>save.unlocked){save.unlocked=recoveredUnlock;persist();}
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -154,11 +174,13 @@ function prepareCollection(){
  for(const family of game.families){
   const cell=document.createElement("div");cell.className="collection-card";cell.dataset.family=family;
   cell.setAttribute("aria-label",names[family]+" mästerverk 0");
-  const circle=document.createElement("div");circle.className="collection-medallion";
-  circle.append(...collectionSprite(family));
+  const icon=document.createElement("div");icon.className="collection-icon";
+  icon.append(...collectionSprite(family));
   const count=document.createElement("strong");count.className="collection-count";count.textContent="0";
+  count.setAttribute("aria-hidden","true");
+  icon.append(count); // Small badge over the bottom-left of the free-standing art.
   const label=document.createElement("span");label.className="collection-label";label.textContent=names[family];
-  cell.append(circle,count,label);container.append(cell);collectionCards.set(family,cell);
+  cell.append(icon,label);container.append(cell);collectionCards.set(family,cell);
  }
  renderCollection(game.familyMasterpieces);
 }
@@ -169,9 +191,6 @@ function renderCollection(counts,awards=[]){
   const previous=Number(card.dataset.count)||0;
   card.dataset.count=String(count);
   card.querySelector(".collection-count").textContent=String(count);
-  // Decorative ring saturates, but the displayed collection NUMBER never resets or caps.
-  const step=Math.min(count,5);
-  card.style.setProperty("--collection-fill",(step*20)+"%");
   card.classList.toggle("collected",count>0);
   card.setAttribute("aria-label",names[family]+": "+count+" mästerverk under nivån");
   if(count>previous&&awards.some(a=>a.family===family)&&!save.reduceMotion){

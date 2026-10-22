@@ -13,8 +13,8 @@
 
 - New responsive row below the actual 7×7 board, showing exactly five current families with their real **stage 5** sprite from the corresponding transparent atlas.
 - **Counter is an integer only** (0, 1, 2, 3, 4, 5, 6, …); never a fraction, threshold or cap. It resets on starting a new level and persists through Save/Resume within the same level.
-- A gold ring gradually fills over the first five collected, and remains filled after five. Subsequent collection events still pulse visually and raise the visible counter. There is no forced “collect five to win” rule.
-- The standard three centered praise words remain *Masterpiece*, *Harmony Echo*, *Harmony Pulse*. Collection increments use compact ring/counter animation plus their own bonus points, no additional center-board word.
+- The stage-five artwork stands freely without a large ring, frame or disc. A small gold-trimmed circular integer counter overlays the icon’s bottom-left edge. The counter increases indefinitely and gives a compact pulse on each new masterpiece; there is no “collect five to win” rule.
+- The standard three centered praise words remain *Masterpiece*, *Harmony Echo*, *Harmony Pulse*. Collection increments use compact badge animation plus their own bonus points, no additional center-board word.
 - Counters already exist in the rules engine (`familyMasterpieces`); the newly added `collectionBonusTotal` is saved for diagnostics. Event frames carry a snapshot of counts so the visual display updates at the correct stage of the animation.
 
 ## Scoring
@@ -52,3 +52,4 @@ These are additional to base fusion, echo, pulse and harvest points. They are **
 - `harmony-browser-smoke.mjs` inspects five collection counters (integers, not fractions), basic art rendering, and score-mode generation.
 - The existing GitHub Actions workflow exercises all tests on push; both rules and mobile-browser tests must succeed.
 - Recommended next human check: verify that the collection strip is readable and not crowding the bottom of the game board on Android, test levels 9–12 and 30–50 for difficulty, and compare the feeling of bonuses with score flight timing.
+\n## Follow-up fixes 1.0.1 (2026-10-22)\n\n- Migrates saved completion records from the original ten-level cap. A verified level-10 win in `bestStars[9]`, `bestScores[9]` or a completed saved run unlocks level 11 on next load. Unfinished level 10 remains locked. Records and unlocked progress are retained.\n- Removed the large circular backdrop/ring from each collection icon. Each stage-five cutout now floats freely, with its small circular number badge overlapping the bottom-left. Counter remains uncapped.\n- Recreated the reported level-10 mobile screenshot as a 7×7 regression test: 3 valid swaps, including row 4 col 5 down with row 5 col 5 to create a horizontal three-Ryu match. Existing fair-shuffle behavior covers truly deadlocked boards.\n

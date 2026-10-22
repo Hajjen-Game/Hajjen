@@ -14,7 +14,16 @@
 /* Physical motion: shadows remain baked into the artist's atlas; these tiny layers
    are transient and cannot intercept taps. */
 .fusion-fx-layer{position:absolute;z-index:8;pointer-events:none;overflow:visible}
-.fusion-fx-layer .fusion-ghost{position:absolute!important;inset:auto!important;pointer-events:none;will-change:transform,opacity}
+/* Fusion ghosts are placed with JS-calculated board-local left/top.
+   Never reset those inline coordinates with an !important inset shorthand:
+   that placed every moving piece at the layer's upper-left corner. */
+.fusion-fx-layer .fusion-ghost{
+ position:absolute;
+ right:auto;
+ bottom:auto;
+ pointer-events:none;
+ will-change:transform,opacity;
+}
 .pulse-dot{position:absolute;display:block;width:12px;height:12px;border-radius:50%;
  background:#78D1B0;box-shadow:0 0 8px 3px #78D1B088;pointer-events:none;will-change:transform,opacity}
 

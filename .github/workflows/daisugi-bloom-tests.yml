@@ -24,6 +24,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-reward.test.cjs
       - name: Verify 4.3 mobile frame meter and adaptive decorative FX
         run: node daisugi-bloom/tests/harmony-performance.test.cjs
+      - name: Verify visible fusion gathering and masterpiece release
+        run: node daisugi-bloom/tests/harmony-fusion-motion.test.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js

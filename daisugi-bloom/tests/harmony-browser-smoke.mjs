@@ -50,6 +50,9 @@ try{
   await demo.click("#pauseButton");
   await demo.click("#modalActions button:last-child");
   await demo.select("#gameDirectorMode","v2");
+  await demo.reload({waitUntil:"networkidle2"});
+  assert.equal(await demo.$eval("#gameDirectorMode",el=>el.value),"v2",
+   "A selected engine mode must persist across reload");
   await demo.click(".level-tile:first-child");
   const v2=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
   assert.equal(v2,"v2","Director 2.0 must remain available in live gameplay");

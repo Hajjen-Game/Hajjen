@@ -1489,6 +1489,7 @@ function openGameMenu(){
  $("modal").hidden=false;
 }
 function bind(){
+ $("gameDirectorMode").value=save.playMode;
  $("gameDirectorMode").addEventListener("change",event=>{
   save.playMode=event.target.value in PLAY_MODES?event.target.value:"v3";
   persist();

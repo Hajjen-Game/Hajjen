@@ -11,7 +11,7 @@ function part(a,b){
  assert(from>=0&&to>from,"Missing code contract: "+a);
  return script.slice(from,to);
 }
-const family=part("const EVOLUTION_FAMILIES","// A clearly readable but compact reward");
+const family=part("const EVOLUTION_FAMILIES","// Board Praise 1.0");
 const trace=[];
 const boardTiles=Array.from({length:49},()=>({querySelector:()=>({})}));
 const indexRect=i=>({left:(i%7)*48,top:Math.floor(i/7)*48,width:47,height:47});
@@ -23,12 +23,14 @@ function animateNode(node,frames,ms){
  trace.push(["anim",frames.length,ms]);
  return Promise.resolve();
 }
-const chip={textContent:"",dataset:{},hidden:true};
-const makeFamily=new Function("FAST","MOBILE_LITE","Element","indexRect","fxAt","animateNode","boardTiles","$","clearTimeout","setTimeout",
- "let comboTimer=0;\n"+family+"return {evolveFamilyFx,evolutionStageLabels,announceReward,masterpieceMoment};");
-const {evolveFamilyFx,evolutionStageLabels,announceReward,masterpieceMoment}=makeFamily(
- ()=>false,true,{prototype:{animate(){}}},indexRect,fxAt,animateNode,boardTiles,
- ()=>chip,()=>{},()=>1);
+const makeFamily=new Function("FAST","MOBILE_LITE","Element","indexRect","fxAt","animateNode","boardTiles",
+ family+"return {evolveFamilyFx,evolutionStageLabels};");
+const {evolveFamilyFx,evolutionStageLabels}=makeFamily(
+ ()=>false,true,{prototype:{animate(){}}},indexRect,fxAt,animateNode,boardTiles);
+const masterpiecePart=part("function masterpieceMoment(positions){","// A clearly readable but compact reward");
+const masterpieceMoment=new Function("FAST","MOBILE_LITE","Element","indexRect","fxAt","animateNode","boardTiles",
+ masterpiecePart+"return masterpieceMoment;")(
+ ()=>false,true,{prototype:{animate(){}}},indexRect,fxAt,animateNode,boardTiles);
 const names=["sakura","lantern","koi","fan","bonsai"];
 for(const familyName of names)evolveFamilyFx([{family:familyName,at:14}]);
 assert.deepEqual(trace.filter(x=>x[0]==="fx").map(x=>x[1]),names.map(n=>"evo-family evo-"+n),
@@ -44,10 +46,46 @@ evolveFamilyFx(Array.from({length:18},(_,i)=>({family:"koi",at:i})));
 assert.equal(trace.filter(x=>x[0]==="fx"&&x[1].startsWith("evo-family")).length,7,"Mobile family cue budget = 2");
 masterpieceMoment([0,1,2,3,4,5]);
 assert.equal(trace.filter(x=>x[1]==="masterpiece-halo").length,2,"Mobile masterpiece halo budget = 2");
-announceReward(1,"VACKERT!");
-announceReward(3,"MÄSTERVERK!");
-announceReward(2,"HARMONI!");
-assert.equal(chip.textContent,"✦ MÄSTERVERK!","Lower-tier feedback cannot overwrite a better reward");
+// Board Praise replaces all ordinary tier chips with three rare, queued words.
+const praiseCode=part("// Board Praise 1.0","function masterpieceMoment(positions){");
+let visible=[];
+const praiseRoot={replaceChildren(...nodes){visible=nodes;}};
+const scheduled=new Map();let timerId=0;
+const fakeTimers={
+ set(fn,ms){scheduled.set(++timerId,{fn,ms});return timerId;},
+ clear(id){scheduled.delete(id);},
+ tick(){
+  const next=scheduled.entries().next().value;
+  assert(next,"Expected one queued praise timer");
+  scheduled.delete(next[0]);next[1].fn();
+ }
+};
+const makePraise=new Function("document","FAST","$","setTimeout","clearTimeout",
+ praiseCode+"return {praise,clearPraise};");
+const {praise,clearPraise}=makePraise(
+ {createElement:()=>({className:"",textContent:""})},
+ ()=>false,()=>praiseRoot,
+ fakeTimers.set.bind(fakeTimers),fakeTimers.clear.bind(fakeTimers)
+);
+praise("echo");praise("echo");praise("masterpiece");praise("pulse");
+assert.equal(visible.length,1,"Only one centered word is allowed at once");
+assert.equal(visible[0].textContent,"HARMONY ECHO!");
+assert.equal(scheduled.size,1,"One timer must drive the active word");
+fakeTimers.tick();
+assert.equal(visible[0].textContent,"MASTERPIECE!");
+fakeTimers.tick();
+assert.equal(visible[0].textContent,"HARMONY PULSE!");
+fakeTimers.tick();
+assert.equal(visible.length,0,"Callout must clean up after its short display");
+assert.equal(scheduled.size,0);
+praise("pulse");assert.equal(visible.length,0,"Do not replay a word during one turn");
+clearPraise();
+praise("masterpiece");
+assert.equal(visible[0].textContent,"MASTERPIECE!","A new turn may show a reward again");
+clearPraise();
+assert.equal(visible.length,0,"Leaving the board must remove any active word");
+assert(!praiseCode.includes("VACKERT!")&&!praiseCode.includes("HARMONI!"),
+ "Ordinary fusion labels must no longer appear in the praise system");
 
 const directed=part("function pulseBeams(evt){","async function animateEvent(evt){");
 const travel=[];

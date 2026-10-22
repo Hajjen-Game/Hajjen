@@ -35,7 +35,7 @@ function create(R){
   return sum;
  }
  function snapshotClone(g,snapshot){
-  return new R.Game(g.level,snapshot);
+  return new R.Game(g.level,snapshot,{fastRestore:true});
  }
  function evaluate(g,a,b,profile){
   const beforeProgress=g.progress(),beforeScore=g.score;

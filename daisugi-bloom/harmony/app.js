@@ -1046,7 +1046,7 @@ function openEngineLab(){
   const wrap=document.createElement("div");wrap.className="engine-table-scroll";
   const table=document.createElement("table");table.className="engine-table";
   const head=document.createElement("thead"),header=document.createElement("tr");
-  for(const label of ["Nivå","Motor","AI","Vinst","Mål","Drag","Val","Kedjor","Målnära","Torka"]){
+  for(const label of ["Nivå","Motor","AI","Vinst","Mål","Drag","Val","Kedjor","Utveckl.","Målfam.","Torka"]){
    const cell=document.createElement("th");cell.textContent=label;header.append(cell);
   }
   head.append(header);table.append(head);
@@ -1056,7 +1056,7 @@ function openEngineLab(){
    const cols=[String(row.level+1),api.MODE_LABELS[row.mode],api.LABELS[row.strategy],
     pct(row.winRate),pct(row.avgGoalRatio),row.avgMoves.toFixed(1),
     row.avgLegalMoves.toFixed(1),row.avgCascades.toFixed(1),
-    row.avgMeaningful.toFixed(1),row.avgGoalDrought.toFixed(1)];
+    row.avgMeaningful.toFixed(1),row.avgGoalReady.toFixed(1),row.avgGoalDrought.toFixed(1)];
    cols.forEach((v,i)=>{
     const cell=document.createElement("td");cell.textContent=v;
     if(i===3&&row.winRate<.25)cell.className="engine-low";
@@ -1066,7 +1066,7 @@ function openEngineLab(){
   }
   table.append(body);wrap.append(table);output.append(wrap);
   const explain=document.createElement("p");explain.className="engine-lab-note";
-  explain.textContent="Val = lagliga byten per drag. Kedjor = drag med två eller fler fusioner. Målnära = användbara drag med utvecklade föremål. Torka = längsta period utan registrerade målpoäng. Båda motorerna får samma startseeds, men framtida påfyllningar skiljer sig.";
+  explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Utveckl. = möjliga matcher som involverar stadium 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. nivå 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
   if(result.options.modes.length===2){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
    const title=document.createElement("strong");title.textContent="A/B · vinst per nivå och spelstrategi";
@@ -1077,7 +1077,8 @@ function openEngineLab(){
     const line=document.createElement("p");
     line.textContent="Nivå "+(classic.level+1)+" · "+api.LABELS[classic.strategy]+": "+
      classic.wins+"/"+classic.samples+" → "+newer.wins+"/"+newer.samples+
-     " · Målnära "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1);
+     " · Utveckl. "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1)+
+     " · Målfam. "+classic.avgGoalReady.toFixed(1)+" → "+newer.avgGoalReady.toFixed(1);
     comparison.append(line);
    }
    output.append(comparison);

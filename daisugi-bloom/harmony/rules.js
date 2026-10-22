@@ -52,6 +52,25 @@ function validSwaps(board){
  }
  return all;
 }
+// Harmony Resonance 1.0: a developed piece (stage 3–4) resonates with
+// an orthogonally adjacent piece of the SAME family. This is a pure board
+// query and never changes the tile, family, stage or refill distribution.
+function resonanceLinks(board){
+ const links=[];
+ for(let a=0;a<N*N;a++){
+  const x=board[a];
+  if(!x||x.stage>=5)continue;
+  for(const b of [a+1,a+N]){
+   if(b>=N*N||(b===a+1&&a%N===N-1))continue;
+   const y=board[b];
+   if(!y||y.stage>=5||x.family!==y.family||Math.max(x.stage,y.stage)<3)continue;
+   const anchor=(x.stage>=y.stage?a:b),partner=anchor===a?b:a;
+   links.push({anchor,partner,anchorId:board[anchor].id,partnerId:board[partner].id,
+    family:x.family,stage:board[anchor].stage});
+  }
+ }
+ return links;
+}
 function randItem(a,rand){return a[Math.floor(rand()*a.length)];}
 function fillBoard(families,rand){
  let board=[];
@@ -194,7 +213,7 @@ class Game{
    startBoard(this.level,()=>this.fresh(),this.families);
   this.nextId=50;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};
-  this.stage3=0;this.stage4=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
+  this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;
   if(previous){
    Object.assign(this,previous);this.config=levels[this.level];this.families=activeFamilies(this.level);
@@ -266,7 +285,7 @@ class Game{
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){return this.starsAtGoal||0;}
- frame(type,extra={}){return {type,board:clone(this.board),moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
+ frame(type,extra={}){return {type,board:clone(this.board),moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
   const p=this.board[i];if(!p||p.stage>=5)return false;
@@ -274,11 +293,26 @@ class Game{
   if(p.stage===5)created.add(i);
   return true;
  }
- resolve(preferred){
-  let events=[],waveRound=0;
+ resolve(preferred,armedLinks=[]){
+  let events=[],waveRound=0,echoAwarded=false;
   while(waveRound++<35){
    let groups=scan(this.board);if(!groups.length)break;
    let created=new Set(),indirect=new Set(),records=[],shapeCount=0,earned=0;
+   // Only the first player-triggered wave may consume a pre-existing link.
+   // Resolve against immutable IDs before any matched piece is removed.
+   let echoCandidate=null;
+   if(waveRound===1&&armedLinks.length){
+    for(const indices of groups){
+     const ids=new Set(indices.map(i=>this.board[i]?.id));
+     const matched=armedLinks.filter(link=>ids.has(link.anchorId)&&ids.has(link.partnerId));
+     if(matched.length){
+      const strongest=matched.sort((a,b)=>b.stage-a.stage||a.anchor-b.anchor)[0];
+      if(!echoCandidate||strongest.stage>echoCandidate.link.stage){
+       echoCandidate={link:strongest,indices:indices.slice()};
+      }
+     }
+    }
+   }
    for(const indices of groups){
     let survivor=indices.slice().sort((a,b)=>this.board[b].stage-this.board[a].stage||(a===preferred?-1:b===preferred?1:a-b))[0];
     let p=this.board[survivor],before=p.stage;
@@ -294,6 +328,18 @@ class Game{
     records.push({at:survivor,from:before,to:p.stage,family:p.family,removed:indices.filter(i=>i!==survivor),number,shape,points:pts});
    }
    this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,scoreDelta:earned}));
+   if(!echoAwarded&&echoCandidate){
+    const record=records.find(record=>echoCandidate.indices.includes(record.at));
+    if(record){
+     const points=echoCandidate.link.stage===4?200:125;
+     this.score+=points;this.echoes++;echoAwarded=true;
+     events.push(this.frame("echo",{
+      at:record.at,family:record.family,stage:echoCandidate.link.stage,
+      anchorId:echoCandidate.link.anchorId,partnerId:echoCandidate.link.partnerId,
+      scoreDelta:points
+     }));
+    }
+   }
    // Bonus follows all direct fusions, never the cells that have just been removed.
    let bonuses=[],unused=0;
    for(const record of records){
@@ -354,17 +400,21 @@ class Game{
  swap(a,b){
   if(this.moves<=0||this.failed)return {ok:false,reason:"Nivån är avslutad"};
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b))return {ok:false,reason:"Välj två intilliggande föremål"};
+  const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
   if(!scan(this.board).some(g=>g.includes(a)||g.includes(b))){
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
    return {ok:false,reason:"Bytet behöver skapa minst tre i samma familj"};
   }
-  this.moves--;return {ok:true,events:[this.frame("swap",{from:a,to:b}),...this.resolve(b)]};
+  // Arm only resonances that existed BEFORE this player's legal move.
+  // Fresh matches, free gravity cascades and Harmony Pulse cannot farm Echo.
+  // Pairs are located by persistent object IDs, not original slot indices.
+  this.moves--;return {ok:true,events:[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed)]};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
+ save(){return {board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove};}
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics};
+const api={Game,levels,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,startBoard,fairShuffle,opportunityMetrics,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

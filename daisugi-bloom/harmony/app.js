@@ -1325,7 +1325,7 @@ function checkAtlas(){
  const img=new Image();
  img.onload=()=>document.documentElement.classList.add("has-atlas");
  img.onerror=()=>{document.documentElement.classList.remove("has-atlas");console.warn("Japanese Harmony classic atlas unavailable; using fallback symbols.");};
- img.src="./assets/harmony-atlas.webp";
+ img.src="./assets/harmony-atlas.webp?v=icons-20261022";
  // Twenty new, transparent stage images packed into a single mobile-friendly
  // AVIF. Each 192px cell maps to a distinct object, including its masterpiece.
  const extra=new Image();

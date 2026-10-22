@@ -87,7 +87,12 @@ class Game{
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
   this.rolls=0;this.random=prng(this.seed);
-  this.bag=[];this.board=startBoard(this.level,()=>this.fresh(),this.families);this.nextId=50;
+  this.bag=[];
+  // Diagnostics-only fast restore avoids creating an unused random start
+  // board for each simulated candidate. Normal start/resume is unchanged.
+  this.board=options?.fastRestore&&previous?clone(previous.board):
+   startBoard(this.level,()=>this.fresh(),this.families);
+  this.nextId=50;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};
   this.stage3=0;this.stage4=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;

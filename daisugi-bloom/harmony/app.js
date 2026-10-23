@@ -1074,28 +1074,47 @@ function fusionFlowBeads(group,from,to,layer,remainingBudget){
  }
  return tasks;
 }
-// Barely visible afterglow on a few truly vacated positions. Finishes inside
-// the existing 215ms survivor impact before gravity or refills can begin.
-function fusionAfterglow(groups,board){
- if(FAST()||document.hidden||!Element.prototype.animate)return;
- let remaining=LITE_FX()?1:MOBILE_LITE?3:5;
- for(const group of groups){
-  for(const at of group.removed){
-   if(remaining<=0)return;
-   if(board[at]||!boardTiles[at])continue;
-   remaining--;
-   const spark=document.createElement("span");
-   spark.className="fusion-afterglow-spark";
-   spark.setAttribute("aria-hidden","true");
-   boardTiles[at].append(spark);
-   const drift=(remaining%2===0?1:-1)*4;
-   animateNode(spark,[
-    {transform:"translate3d(-50%,-50%,0) scale(.65)",opacity:0,offset:0},
-    {transform:"translate3d(-50%,-50%,0) scale(1.05)",opacity:.72,offset:.32},
-    {transform:"translate3d(calc(-50% + "+drift+"px),calc(-50% - 5px),0) scale(.35)",opacity:0,offset:1}
-   ],155,{easing:"ease-out"}).finally(()=>spark.remove());
+// Sparkle on EVERY real disappearance, including masters harvested after
+// Harmony Pulse chains. Distributed pearly/gold/pink starlets, not a single
+// point in the centre. One finite burst per event, never a running emitter.
+// Keep all layout/rules intact and spend less FX budget on weaker devices.
+function sparkleVacatedCells(positions,board){
+ if(FAST()||document.hidden||!Element.prototype.animate)return [];
+ const cells=[...new Set(positions)].filter(i=>
+  Number.isInteger(i)&&i>=0&&i<49&&!board[i]&&boardTiles[i]);
+ if(!cells.length)return [];
+ const budget=LITE_FX()?20:MOBILE_LITE?42:84;
+ const perCell=Math.max(1,Math.min(6,Math.floor(budget/cells.length)));
+ const pattern=[[19,23],[77,28],[37,70],[75,77],[29,49],[55,17]];
+ const tasks=[];
+ for(const at of cells){
+  const tile=boardTiles[at];
+  for(let n=0;n<perCell;n++){
+   const phase=(n+at)%pattern.length,[x,y]=pattern[phase];
+   const variant=(n+at)%3;
+   const star=document.createElement("span");
+   star.className="fusion-afterglow-spark sparkle-"+
+    (variant===0?"pearl":variant===1?"gold":"sakura")+
+    ((n%2===0)?" sparkle-star":" sparkle-dot");
+   star.dataset.at=String(at);
+   star.setAttribute("aria-hidden","true");
+   star.style.left=x+"%";star.style.top=y+"%";
+   tile.append(star);
+   // Deterministic scatter, subtle local drift, staggered 2-beat shimmer.
+   const dx=(phase%3-1)*(3+n*.7),dy=-3.5-(phase%2)*2.5;
+   const drift="translate3d(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px),0)";
+   const duration=195+(phase%3)*12,delay=(n%3)*16;
+   tasks.push(animateNode(star,[
+    {transform:"translate3d(-50%,-50%,0) scale(.18)",opacity:0,offset:0},
+    {transform:"translate3d(-50%,-50%,0) scale(1.10)",opacity:1,offset:.20},
+    {transform:"translate3d(-50%,-50%,0) scale(.68)",opacity:.34,offset:.38},
+    {transform:"translate3d(-50%,-50%,0) scale(1.18)",opacity:.98,offset:.59},
+    {transform:drift+" scale(.72)",opacity:.58,offset:.80},
+    {transform:drift+" scale(.13)",opacity:0,offset:1}
+   ],duration,{delay,easing:"linear"}).finally(()=>star.remove()));
   }
  }
+ return tasks;
 }
 function fusionIntake(groups){
  if(FAST()||!Element.prototype.animate)return;
@@ -1165,7 +1184,7 @@ async function playFusion(evt){
  // Contact is the boundary between moving sources and new survivor stage.
  // The existing fusion effects are kept deliberately subtle.
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
- fusionAfterglow(groups,evt.board);
+ sparkleVacatedCells(groups.flatMap(g=>g.removed),evt.board);
  fusionIntake(groups);
  fusionBurst(groups.map(g=>g.at),groups);
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
@@ -1401,6 +1420,10 @@ async function animateEvent(evt){
     await Promise.all(tasks);
    }
    renderBoard(evt.board);
+   // Pulse-upgraded masterpieces disappear at harvest, not during Pulse.
+   // Briefly reveal the glitter on ALL vacated masterpiece cells before fall.
+   const glitters=sparkleVacatedCells(positions,evt.board);
+   if(glitters.length)await Promise.all(glitters);
    break;
   }
   case "fall":

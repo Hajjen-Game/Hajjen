@@ -2410,52 +2410,62 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile .pulse-anticipation
   animation:none!important;
 }
 
-/* SPARKLING VACATED CELLS 1.1
-   Each removed object leaves several small twinkles in separate positions.
-   Pearly gold / warm Sakura pinpoints briefly brighten twice. Zero wide glow
-   plate: the tile stays dark and readable while new objects arrive.
-   No continuous particle emitters, filters or expensive layout animations. */
-body.harmony-playing .game-view .tile .fusion-afterglow-spark{
-  position:absolute;
-  z-index:4;
-  display:block;
-  width:7px;
-  height:7px;
-  padding:0;
-  border:0;
-  border-radius:50%;
-  background:radial-gradient(circle,#fffefa 0 20%,#ffebbe 39%,rgba(255,197,106,.38) 65%,transparent 80%);
-  box-shadow:0 0 5px rgba(255,224,166,.70);
-  pointer-events:none;
-  opacity:0;
-  transform-origin:center;
-  will-change:transform,opacity;
+/* FLOATING MAGIC DUST 1.0 — pearly motes drifting above fresh refills.
+   The whole FX layer stays separate from tile DOM, so transient particles
+   are not removed when falling pieces repopulate their original cells. */
+body.harmony-playing .game-view .fusion-fx-layer.magic-dust-layer{
+ pointer-events:none;
+ overflow:visible;
+ contain:style;
 }
-body.harmony-playing .game-view .tile .fusion-afterglow-spark.sparkle-star::after{
-  content:"";
-  position:absolute;
-  inset:-3px;
-  pointer-events:none;
-  background:
-   linear-gradient(90deg,transparent 42%,rgba(255,255,244,.92) 49% 51%,transparent 58%),
-   linear-gradient(0deg,transparent 42%,rgba(255,255,239,.90) 49% 51%,transparent 58%);
+body.harmony-playing .game-view .magic-dust-layer .magic-dust{
+ position:absolute;
+ display:block;
+ width:5px;
+ height:5px;
+ padding:0;
+ margin:0;
+ border:0;
+ border-radius:50%;
+ pointer-events:none;
+ transform-origin:center;
+ opacity:0;
+ background:radial-gradient(circle,#fffdf6 0%,#ffe9c0 40%,rgba(240,182,100,.19) 75%,transparent 100%);
+ box-shadow:0 0 3px rgba(255,222,165,.38);
+ will-change:transform,opacity;
 }
-body.harmony-playing .game-view .tile .fusion-afterglow-spark.sparkle-dot{
-  width:4px;height:4px;
-  box-shadow:0 0 4px rgba(255,237,182,.6);
+body.harmony-playing .game-view .magic-dust-layer .magic-dust.dust-mote{
+ width:4px;
+ height:4px;
 }
-body.harmony-playing .game-view .tile .fusion-afterglow-spark.sparkle-pearl{
-  background:radial-gradient(circle,#ffffff 0 24%,#fff6e5 48%,rgba(255,244,215,.20) 70%,transparent 82%);
+body.harmony-playing .game-view .magic-dust-layer .magic-dust.dust-star{
+ width:5.5px;
+ height:5.5px;
 }
-body.harmony-playing .game-view .tile .fusion-afterglow-spark.sparkle-sakura{
-  background:radial-gradient(circle,#fff7fa 0 21%,#f6b6cc 47%,rgba(236,148,176,.28) 72%,transparent 84%);
-  box-shadow:0 0 5px rgba(250,171,201,.55);
+body.harmony-playing .game-view .magic-dust-layer .magic-dust.dust-star::after{
+ content:"";
+ position:absolute;
+ inset:-1px;
+ pointer-events:none;
+ background:
+  linear-gradient(90deg,transparent 44%,rgba(255,253,237,.50) 49% 51%,transparent 56%),
+  linear-gradient(0deg,transparent 44%,rgba(255,253,237,.48) 49% 51%,transparent 56%);
+}
+body.harmony-playing .game-view .magic-dust-layer .magic-dust.dust-pearl{
+ background:radial-gradient(circle,#fffefa 0%,#fff3dd 46%,rgba(255,245,221,.12) 77%,transparent 100%);
+ box-shadow:0 0 3px rgba(255,249,227,.40);
+}
+body.harmony-playing .game-view .magic-dust-layer .magic-dust.dust-gold{
+ background:radial-gradient(circle,#fff7df 0%,#f8dca2 43%,rgba(236,188,103,.15) 77%,transparent 100%);
+}
+body.harmony-playing .game-view .magic-dust-layer .magic-dust.dust-sakura{
+ background:radial-gradient(circle,#fff9fc 0%,#f4bed4 43%,rgba(244,163,197,.15) 77%,transparent 100%);
+ box-shadow:0 0 3px rgba(243,173,198,.28);
 }
 @media(prefers-reduced-motion:reduce){
-  body.harmony-playing .game-view .fusion-flow-bead,
-  body.harmony-playing .game-view .fusion-afterglow-spark{display:none!important}
+ body.harmony-playing .game-view .magic-dust-layer .magic-dust{display:none!important}
 }
-body.harmony-reduced-motion.harmony-playing .game-view .fusion-flow-bead,
-body.harmony-reduced-motion.harmony-playing .game-view .fusion-afterglow-spark{
-  display:none!important;
+body.harmony-reduced-motion.harmony-playing .game-view .magic-dust-layer .magic-dust{
+ display:none!important;
 }
+

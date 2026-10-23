@@ -1118,6 +1118,49 @@ async function playFusion(evt){
  evolveFamilyFx(groups);
  evolutionStageLabels(groups);
 }
+// Harmony Pulse Anticipation 1.0 — target glow BEFORE the real Pulse arrives.
+// Keep existing art visible and shorten preparation for successive chain waves.
+// The engine's score, stages and affected positions are never modified.
+const PULSE_CHARGE_TIMINGS=Object.freeze([
+ {delay:85,ramp:265}, // First wave: deliberate visual anticipation.
+ {delay:45,ramp:185}, // Second: faster, maintaining chain momentum.
+ {delay:20,ramp:135}  // Third and later: snappy but still readable.
+]);
+async function pulseAnticipation(evt){
+ const affected=[...new Set((evt.targets||[]).map(t=>t.to))];
+ if(!affected.length||FAST()||document.hidden||!Element.prototype.animate)return ()=>{};
+ const wave=Math.max(1,Number(evt.wave)||1);
+ const timing=PULSE_CHARGE_TIMINGS[Math.min(wave-1,2)];
+ const overlays=[],tasks=[];
+ try{
+  for(const to of affected){
+   const tile=boardTiles[to];
+   if(!tile)continue;
+   const target=evt.targets.find(t=>t.to===to);
+   const glow=document.createElement("span");
+   glow.className="pulse-anticipation-glow"+
+    (target?.stage===5?" pulse-anticipation-masterpiece":"");
+   glow.dataset.to=String(to);
+   glow.dataset.wave=String(wave);
+   glow.setAttribute("aria-hidden","true");
+   tile.append(glow);
+   overlays.push(glow);
+   tasks.push(animateNode(glow,[
+    {opacity:0,transform:"scale(.84)",offset:0},
+    {opacity:.19,transform:"scale(.90)",offset:.26},
+    {opacity:.64,transform:"scale(.98)",offset:.68},
+    {opacity:1,transform:"scale(1.035)",offset:1}
+   ],timing.ramp,{delay:timing.delay,easing:"cubic-bezier(.22,.32,.25,1)"}));
+  }
+  // animateNode cancels its finished animation. With default CSS opacity=1
+  // the fully charged glow stays visible until the incoming beam lands.
+  await Promise.all(tasks);
+ }catch(error){
+  overlays.forEach(node=>node.remove());
+  throw error;
+ }
+ return ()=>overlays.forEach(node=>node.remove());
+}
 // Energy travels out from the masterpiece BEFORE affected items transform.
 // Capped number of visible energy paths; never cap logical target updates.
 // Pulse Readability 4.1.1 – a visible travelling energy line and core.
@@ -1127,6 +1170,7 @@ function pulseBeams(evt){
  if(evt.targets?.length)sound("pulse",{wave:evt.wave||0});
  if(FAST()||!evt.targets?.length)return Promise.resolve();
  const targets=evt.targets.slice(0,MOBILE_LITE?(LITE_FX()?3:5):9);
+ const travelMs=(evt.wave||1)>=3?170:(evt.wave||1)===2?195:230;
  const layer=makeFxLayer(),tasks=[];
  const sources=[...new Set(targets.map(t=>t.from))];
  for(const from of sources.slice(0,MOBILE_LITE?2:4)){
@@ -1150,7 +1194,7 @@ function pulseBeams(evt){
    {transform:"rotate("+angle+"rad) scaleX(0)",opacity:0,offset:0},
    {transform:"rotate("+angle+"rad) scaleX(.48)",opacity:1,offset:.48},
    {transform:"rotate("+angle+"rad) scaleX(1)",opacity:.18,offset:1}
-  ],230,{easing:"cubic-bezier(.2,.4,.5,1)"}));
+  ],travelMs,{easing:"cubic-bezier(.2,.4,.5,1)"}));
   const dot=document.createElement("span");dot.className="pulse-dot";
   dot.style.left=(sx-6)+"px";dot.style.top=(sy-6)+"px";
   layer.node.appendChild(dot);
@@ -1158,7 +1202,7 @@ function pulseBeams(evt){
    {transform:"translate3d(0,0,0) scale(.4)",opacity:.18,offset:0},
    {transform:"translate3d("+(dx*.5)+"px,"+(dy*.5)+"px,0) scale(1.45)",opacity:1,offset:.5},
    {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.65)",opacity:0,offset:1}
-  ],230,{easing:"cubic-bezier(.28,.5,.54,1)"}));
+  ],travelMs,{easing:"cubic-bezier(.28,.5,.54,1)"}));
  }
  return Promise.all(tasks).finally(()=>layer.node.remove());
 }
@@ -1246,12 +1290,18 @@ async function animateEvent(evt){
   }
   case "pulse":{
    const targets=evt.targets||[];
-   await pulseBeams(evt);
+   // The old stage and art remain visible while all actual targets glow.
+   const releaseCharge=await pulseAnticipation(evt);
+   try{
+    await pulseBeams(evt); // The outgoing energy catches up to the glow.
+   }finally{
+    releaseCharge(); // Remove overlays just before the upgraded art appears.
+   }
    renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
    pulseLandingCues(targets);
    await Promise.all(targets.slice(0,MOBILE_LITE?5:9).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
-    {transform:"scale(.78)",offset:0},{transform:"scale(1.19)",offset:.5},{transform:"scale(1)",offset:1}
-   ],150)));
+    {transform:"scale(.76)",offset:0},{transform:"scale(1.22)",offset:.49},{transform:"scale(1)",offset:1}
+   ],(evt.wave||1)>=2?135:165)));
    break;
   }
   case "hero":

@@ -12,6 +12,63 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
+ // Stage-1 art: both actual uploaded PNGs were converted to alpha AVIF.
+ // Check transparent corners and the exact live-rendered sprite overrides.
+ const iconContext=await browser.createBrowserContext();
+ try{
+  const art=await iconContext.newPage();
+  await art.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await art.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  const imageChecks=await art.evaluate(async()=>{
+   const check=async filename=>{
+    const image=new Image();
+    image.src="./assets/"+filename;
+    await image.decode();
+    const canvas=document.createElement("canvas");
+    canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+    const c=canvas.getContext("2d",{willReadFrequently:true});c.drawImage(image,0,0);
+    return {w:image.naturalWidth,h:image.naturalHeight,
+     corners:[[0,0],[image.naturalWidth-1,0],[0,image.naturalHeight-1],
+      [image.naturalWidth-1,image.naturalHeight-1]].map(([x,y])=>
+       c.getImageData(x,y,1,1).data[3]),
+     center:c.getImageData(image.naturalWidth>>1,image.naturalHeight>>1,1,1).data[3]};
+   };
+   return {koi:await check("koi-stage1.avif"),maneki:await check("maneki-stage1.avif")};
+  });
+  for(const [name,item] of Object.entries(imageChecks)){
+   assert(item.w>=100&&item.h>=100);
+   assert(item.corners.every(v=>v===0),"Stage-1 "+name+" must have real alpha: "+JSON.stringify(item));
+   assert(item.center>170,"Stage-1 "+name+" artwork should be visible");
+  }
+  await art.click(".level-tile:first-child");
+  const koiTile=await art.evaluate(()=>{
+   const el=document.querySelector(".piece .sprite.sprite-stage1-koi");
+   const bg=el&&getComputedStyle(el);
+   return {exists:!!el,background:bg?.backgroundImage,size:bg?.backgroundSize,position:bg?.backgroundPosition};
+  });
+  assert(koiTile.exists&&koiTile.background.includes("koi-stage1.avif"),"Live Koi stage 1 must show new transparent sprite");
+  assert.equal(koiTile.size,"100% 100%");
+  await art.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const old=JSON.parse(localStorage.getItem(key));
+   old.unlocked=7;old.run=null;
+   localStorage.setItem(key,JSON.stringify(old));
+  });
+  await art.reload({waitUntil:"networkidle2"});
+  await art.click(".level-tile:nth-child(8)");
+  const manekiTile=await art.evaluate(()=>{
+   const el=document.querySelector(".piece.new-family .sprite.sprite-stage1-maneki");
+   const bg=el&&getComputedStyle(el);
+   return {exists:!!el,background:bg?.backgroundImage,size:bg?.backgroundSize,
+    atlasProtected:[...document.querySelectorAll(".sprite")].every(s=>
+     s.classList.contains("sprite-stage1-koi")||s.classList.contains("sprite-stage1-maneki")||
+     !getComputedStyle(s).backgroundImage.includes("stage1.avif"))};
+  });
+  assert(manekiTile.exists&&manekiTile.background.includes("maneki-stage1.avif"),
+   "Live Maneki-neko stage 1 must show the new centered paw");
+  assert.equal(manekiTile.size,"100% 100%");
+  assert(manekiTile.atlasProtected,"Other stages and object families must retain their atlas sprites");
+ }finally{await iconContext.close();}
  // Live player-mode picker: new sessions default to Pacing 3.0 (including
  // Opportunity 2.0), while 2.0 and Standard are explicitly selectable.
  const directorContext=await browser.createBrowserContext();

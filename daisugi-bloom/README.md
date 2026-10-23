@@ -1,5 +1,15 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Stage 1 Art Refresh — Koi & Maneki-neko (2026-10-23)
+
+Två nya transparenta spelarvalda ikoner ligger i `assets/koi-stage1.avif` och `assets/maneki-stage1.avif`.
+
+- **Koi, stadium 1:** liten röd-vit fisk i glansigt turkost vatten, inte längre en rund plakett
+- **Maneki-neko, stadium 1:** centrerad pärlvit katt-tass med rosa trampdynor, sakuradetaljer och guldkanter, utan tofs eller snöre
+- Båda använder **riktig alfatransparens** (inte svart bakgrund), kontrollerad med avkodade kantpixlar i mobiltestet
+- Bildfilerna har anpassats till 144×144 AVIF och visas med egna `sprite-stage1-` klasser. Alla andra föremål och stadium 2–5 behåller tidigare bildatlaser
+- Spelets regler, Director, sparningar och poängsystem är helt oförändrade
+
 ## Visual Harmony VFX 2.0 — 2026-10-23
 
 **Samlat visuellt poleringspass för alla återstående belöningsanimationer**, med Harmony Firework 1.1:s godkända guld/pearl/rosa Sakura-palett som gemensam referens. Alla spelmekaniker och befintliga familjeikoner är oförändrade.

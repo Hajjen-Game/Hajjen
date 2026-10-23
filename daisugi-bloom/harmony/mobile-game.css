@@ -1702,3 +1702,20 @@ body.harmony-playing .game-view .board-praise-word{
 }
 @media(prefers-reduced-motion:reduce){.harmony-reward-accent{display:none!important}}
 body.harmony-reduced-motion .harmony-reward-accent{display:none!important}
+
+/* Japanese Harmony · Stage 1 art refresh, 2026-10-23
+   Separate premultiplied-alpha AVIF sprites replace only Koi (classic atlas)
+   and Maneki-neko (new family atlas) stage 1. Stage 2–5 are untouched.
+   Each sprite fills its normal tile without a medallion/frame or black matte. */
+.piece .sprite.sprite-stage1-koi{
+ background-image:url("../assets/koi-stage1.avif?v=20261023")!important;
+ background-size:100% 100%!important;
+ background-position:center center!important;
+ background-repeat:no-repeat!important;
+}
+.piece.new-family .sprite.sprite-new.sprite-stage1-maneki{
+ background-image:url("../assets/maneki-stage1.avif?v=20261023")!important;
+ background-size:100% 100%!important;
+ background-position:center center!important;
+ background-repeat:no-repeat!important;
+}

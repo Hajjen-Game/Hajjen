@@ -459,6 +459,10 @@ function renderBoard(board,highlight,effect){
     img.style.setProperty("--sx",((piece.stage-1)*25)+"%");
     img.style.setProperty("--sy",(isNew?(newFamilyRows[piece.family]*100/3):familyRows[piece.family]*25)+"%");
     if(isNew)img.classList.add("sprite-new");
+    // Stage 1 refresh: independent transparent art only for the paw and koi.
+    // Stage 2–5 keep their original atlas cells and all existing stage rules.
+    if(piece.stage===1&&(piece.family==="koi"||piece.family==="maneki"))
+     img.classList.add("sprite-stage1-"+piece.family);
     holder.append(emoji,img);btn.append(holder);
    }
   }

@@ -27,7 +27,8 @@ const fxAt=className=>{
 };
 const makeFxLayer=()=>({rect:{left:0,top:0},node:{
  appendChild(){events.push(["ghost"])},
- append(){events.push(["flowAdded"])},
+ append(){events.push(["dustAdded"])},
+ classList:{add(name){events.push(["layerClass",name])}},
  remove(){events.push(["layerRemoved"])}
 }});
 const animateNode=(node,frames,duration,options={})=>{
@@ -65,18 +66,24 @@ async function main(){
   "Original fusion motion must not include any travelling Flow Polish beads");
  assert.equal(k[1].transform,"translate3d(0px,0px,0) scale(1.075)",
   "Fusion motion must match the pre-Flow Polish pickup keyframe");
- assert.equal(events.filter(x=>x[0]==="afterglowAdded").length,12,
-  "Both vacated cells should each receive SIX scattered sparkles");
- assert(events.filter(x=>x[0]==="sparkRemoved").length>=12,
-  "Independent sparkle particles must always clean up");
+ assert.equal(events.filter(x=>x[0]==="dustAdded").length,10,
+  "Both vacated cells should receive five drifting dust motes apiece");
+ assert(events.some(x=>x[0]==="layerClass"&&x[1]==="magic-dust-layer"),
+  "Dust must live in its own FX layer, not in tile DOM");
+ assert(events.filter(x=>x[0]==="sparkRemoved").length>=10,
+  "Independent dust particles must always clean up");
  const twinkles=samples.filter(x=>x.kind.includes("fusion-afterglow-spark"));
- assert.equal(twinkles.length,12);
+ assert.equal(twinkles.length,10);
  assert(new Set(twinkles.map(x=>x.options.delay)).size>=4,
-  "Glitter must start at several distinct moments instead of flashing at once");
- assert(twinkles.every(x=>x.frames.length===5&&x.options.easing==="ease-in-out"&&
-  x.frames.at(-1).opacity===0&&x.duration+x.options.delay<=240&&
-  Math.max(...x.frames.map(frame=>frame.opacity))<=.88),
-  "Sparkles must gently brighten and fade once, finishing within the fusion impact");
+  "Floating dust must start at different times");
+ assert(twinkles.every(x=>{
+  const first=x.frames[0],last=x.frames.at(-1);
+  return x.frames.length===5&&x.options.easing==="linear"&&
+   first.opacity===0&&last.opacity===0&&
+   x.duration>=290&&x.duration<=380&&x.duration+x.options.delay<=505&&
+   x.frames[2].opacity>=.70&&
+   x.frames[2].transform!==first.transform&&last.transform!==first.transform;
+ }),"Dust motes should drift up gently over ~300-380ms rather than flashing in place");
 
  const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
  const render=events.findIndex(e=>e[0]==="render");

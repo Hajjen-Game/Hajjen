@@ -671,13 +671,23 @@ try{
  await page.click(".tile");
  assert((await page.$eval("#selectedInfo",e=>e.textContent)).includes("stadium"),"Selecting a tile should provide stage information in the status line");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-atlas"),{timeout:10000});
- const atlasState=await page.evaluate(()=>({
+ const atlasState=await page.evaluate(()=>{
+  const old=document.querySelector(".tile .piece:not(.new-family) .sprite:not(.sprite-stage1-koi)");
+  const style=old?getComputedStyle(old):null;
+  const fallback=old?getComputedStyle(old.parentElement.querySelector(".fallback")):null;
+  return {
    images:document.querySelectorAll(".tile .sprite").length,
-   style:getComputedStyle(document.querySelector(".tile .sprite")).backgroundImage,
+   style:style?.backgroundImage,
+   visible:style?.display,
+   fallback:fallback?.display,
    loaded:document.documentElement.classList.contains("has-atlas")
- }));
+  };
+ });
  assert.equal(atlasState.images,49,"All 49 cells must have art sprites");
- assert(atlasState.loaded&&atlasState.style.includes("harmony-atlas.webp"),"Approved Japanese art atlas missing from live board");
+ assert(atlasState.loaded&&atlasState.style?.includes("harmony-atlas.webp"),
+  "Approved Japanese art atlas must render on a CLASSIC sprite, not a custom Koi sprite");
+ assert.equal(atlasState.visible,"block","Classic sprites must actually be visible");
+ assert.equal(atlasState.fallback,"none","Classic atlas must hide emoji fallback");
  assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");
  assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
  const collection=await page.evaluate(()=>({

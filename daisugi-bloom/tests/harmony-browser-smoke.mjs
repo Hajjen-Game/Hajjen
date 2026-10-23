@@ -773,7 +773,7 @@ try{
   "One circular integer badge must sit over the icon's lower-left corner");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,level8Goal:HarmonyRules.levels[7].goal.type,level8Count:HarmonyRules.levels[7].goal.count,level8Moves:HarmonyRules.levels[7].moves};});
- assert.equal(start.moves,12);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"stage3");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,20);
+ assert.equal(start.moves,24);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"stage3");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,40);
  const endless=await page.evaluate(()=>{
   const R=window.HarmonyRules;
   return [10,49,100].map(i=>({number:i+1,type:R.levelConfig(i).goal.type,

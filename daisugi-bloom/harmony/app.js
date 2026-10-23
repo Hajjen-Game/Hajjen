@@ -1049,49 +1049,59 @@ function fusionGatherFrames(dx,dy){
   at(1,.49,.92,1)            // final absorbed at the exact target location
  ];
 }
-// Sparkle on EVERY real disappearance, including masters harvested after
-// Harmony Pulse chains. Distributed pearly/gold/pink starlets, not a single
-// point in the centre. One finite burst per event, never a running emitter.
-// Keep all layout/rules intact and spend less FX budget on weaker devices.
+// FLOATING MAGIC DUST 1.0 — gentle magic released by every real empty cell.
+// Dust is placed in a separate transient board overlay. Unlike tile children
+// it survives renderBoard replacing cells, so gravity can begin underneath.
+// The legacy 280ms fusion movement, Pulse targeting and scoring are untouched.
 function sparkleVacatedCells(positions,board){
  if(FAST()||document.hidden||!Element.prototype.animate)return [];
  const cells=[...new Set(positions)].filter(i=>
   Number.isInteger(i)&&i>=0&&i<49&&!board[i]&&boardTiles[i]);
  if(!cells.length)return [];
- const budget=LITE_FX()?20:MOBILE_LITE?42:84;
- const perCell=Math.max(1,Math.min(6,Math.floor(budget/cells.length)));
- const pattern=[[19,23],[77,28],[37,70],[75,77],[29,49],[55,17]];
+ const budget=LITE_FX()?16:MOBILE_LITE?30:60;
+ // Every empty cell is represented, even on very large Pulse harvests.
+ const perCell=Math.min(5,Math.max(1,Math.floor(budget/cells.length)));
+ const anchors=[[22,72],[58,65],[76,44],[37,51],[52,32],[29,35],[69,73]];
+ const layer=makeFxLayer();
+ layer.node.classList.add("magic-dust-layer");
  const tasks=[];
  for(const at of cells){
-  const tile=boardTiles[at];
+  const rect=indexRect(at);
   for(let n=0;n<perCell;n++){
-   const phase=(n+at)%pattern.length,[x,y]=pattern[phase];
-   const variant=(n+at)%3;
-   const star=document.createElement("span");
-   star.className="fusion-afterglow-spark sparkle-"+
-    (variant===0?"pearl":variant===1?"gold":"sakura")+
-    ((n%2===0)?" sparkle-star":" sparkle-dot");
-   star.dataset.at=String(at);
-   star.setAttribute("aria-hidden","true");
-   star.style.left=x+"%";star.style.top=y+"%";
-   tile.append(star);
-   // Independent, offset glimmers rather than six simultaneous pulses.
-   // Every cell gets its own deterministic phase, and every particle has
-   // a different start/duration. No flashing white tile or repeated strobe.
-   const dx=(phase%3-1)*(3+n*.45),dy=-2.8-(phase%2)*2.2;
-   const drift="translate3d(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px),0)";
-   const delay=(n*23+(at%5)*13)%105;
-   const duration=92+((n*7+at)%4)*14;
-   star.dataset.delay=String(delay);
-   tasks.push(animateNode(star,[
-    {transform:"translate3d(-50%,-50%,0) scale(.34)",opacity:0,offset:0},
-    {transform:"translate3d(-50%,-50%,0) scale(.73)",opacity:.46,offset:.24},
-    {transform:"translate3d(-50%,-50%,0) scale(1.03)",opacity:.88,offset:.52},
-    {transform:drift+" scale(.89)",opacity:.62,offset:.76},
-    {transform:drift+" scale(.49)",opacity:0,offset:1}
-   ],duration,{delay,easing:"ease-in-out"}).finally(()=>star.remove()));
+   const idx=(at+n*3)%anchors.length,[px,py]=anchors[idx];
+   const x=rect.left-layer.rect.left+rect.width*px/100;
+   const y=rect.top-layer.rect.top+rect.height*py/100;
+   const particle=document.createElement("span");
+   const tone=(n+at)%3;
+   particle.className="fusion-afterglow-spark magic-dust "+
+    (tone===0?"dust-pearl":tone===1?"dust-gold":"dust-sakura")+
+    (n===0&&perCell>=4?" dust-star":" dust-mote");
+   particle.dataset.at=String(at);
+   particle.setAttribute("aria-hidden","true");
+   particle.style.left=x+"px";
+   particle.style.top=y+"px";
+   layer.node.append(particle);
+   // Different per-particle delay, curved ascent and sideways drift.
+   // A single soft opacity peak, never a double flash or scale-pop.
+   const delay=(n*37+(at%5)*19)%122;
+   const duration=290+((n+at)%4)*30;
+   const dx=((idx%2===0)?-1:1)*(2.5+(n%3)*1.3);
+   const dy=-(9+(idx%4)*2.5);
+   const move=(x,y,scale)=>
+    "translate3d(calc(-50% + "+x+"px),calc(-50% + "+y+"px),0) scale("+scale+")";
+   particle.dataset.delay=String(delay);
+   tasks.push(animateNode(particle,[
+    {transform:move(0,0,.5),opacity:0,offset:0},
+    {transform:move(dx*.14,dy*.12,.78),opacity:.39,offset:.21},
+    {transform:move(dx*.5,dy*.47,1),opacity:.72,offset:.49},
+    {transform:move(dx*.83,dy*.78,.85),opacity:.40,offset:.77},
+    {transform:move(dx,dy,.53),opacity:0,offset:1}
+   ],duration,{delay,easing:"linear"}).finally(()=>particle.remove()));
   }
  }
+ // This cleanup runs independently of the next board event. Callers may let
+ // gravity/refill start now; lingering motes are not attached to tile nodes.
+ void Promise.all(tasks).finally(()=>layer.node.remove());
  return tasks;
 }
 async function playFusion(evt){
@@ -1375,9 +1385,8 @@ async function animateEvent(evt){
    }
    renderBoard(evt.board);
    // Pulse-upgraded masterpieces disappear at harvest, not during Pulse.
-   // Briefly reveal the glitter on ALL vacated masterpiece cells before fall.
-   const glitters=sparkleVacatedCells(positions,evt.board);
-   if(glitters.length)await Promise.all(glitters);
+   // Let their dust drift into the falling refill, with no added turn delay.
+   sparkleVacatedCells(positions,evt.board);
    break;
   }
   case "fall":

@@ -2384,8 +2384,8 @@ body.harmony-playing .game-view .tile .pulse-anticipation-masterpiece{
   body.harmony-playing .game-view .tile .pulse-anticipation-glow[data-wave="2"]::after{
     animation-duration:.76s;
   }
-  body.harmony-playing .game-view .tile .pulse-anticipation-glow:is([data-wave="3"],[data-wave="4"],[data-wave="5"],[data-wave="6"])::before,
-  body.harmony-playing .game-view .tile .pulse-anticipation-glow:is([data-wave="3"],[data-wave="4"],[data-wave="5"],[data-wave="6"])::after{
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow:not([data-wave="1"]):not([data-wave="2"])::before,
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow:not([data-wave="1"]):not([data-wave="2"])::after{
     animation-duration:.58s;
   }
 }

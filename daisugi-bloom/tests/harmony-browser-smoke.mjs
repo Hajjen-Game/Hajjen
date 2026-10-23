@@ -568,12 +568,53 @@ try{
     unlocked:0,bestStars:{},bestScores:{},bestChain:{},sound:false,reduceMotion:false,
     run:{level:0,data:snap}
    }));
-   return types;
+   return {types,pulseEvents:result.events.filter(evt=>evt.type==="pulse").map(evt=>({
+    wave:evt.wave,targets:evt.targets.map(t=>({to:t.to,stage:t.stage}))
+   }))};
   });
   await praisePage.reload({waitUntil:"networkidle2"});
   await praisePage.click("#continueButton");
   await praisePage.evaluate(()=>{
    window.__masterpieceFireworks={big:0,flowers:0,diamonds:0,stars:0};
+
+   // Observe REAL Wave events: affected cells must charge before travelling
+   // beams, while their prior stage remains visible, with no extra targets.
+   window.__pulseProbe={charge:[],chargeAnimations:[],timeline:[],impacts:0};
+   const realAnimate=Element.prototype.animate;
+   Element.prototype.animate=function(frames,options){
+    if(this.classList?.contains("pulse-anticipation-glow")){
+     window.__pulseProbe.chargeAnimations.push({
+      wave:Number(this.dataset.wave),to:Number(this.dataset.to),
+      delay:options.delay,duration:options.duration,
+      startOpacity:frames[0]?.opacity,endOpacity:frames.at(-1)?.opacity,
+      endScale:frames.at(-1)?.transform
+     });
+    }
+    return realAnimate.call(this,frames,options);
+   };
+   const pulseObserver=new MutationObserver(records=>{
+    for(const rec of records)for(const node of rec.addedNodes){
+     if(node.nodeType!==1||!node.classList)continue;
+     if(node.classList.contains("pulse-anticipation-glow")){
+      const tile=node.closest(".tile");
+      const style=getComputedStyle(node);
+      window.__pulseProbe.timeline.push("charge");
+      window.__pulseProbe.charge.push({
+       to:Number(node.dataset.to),wave:Number(node.dataset.wave),
+       oldStage:Number(tile?.getAttribute("aria-label")?.match(/stadium (\\d+)/)?.[1]),
+       isMasterpiece:node.classList.contains("pulse-anticipation-masterpiece"),
+       pointer:style.pointerEvents,bg:style.backgroundImage,shadow:style.boxShadow
+      });
+     }else if(node.classList.contains("pulse-trace")){
+      window.__pulseProbe.timeline.push("beam");
+     }else if(node.classList.contains("pulse-target-hit")){
+      window.__pulseProbe.timeline.push("impact");
+      window.__pulseProbe.impacts++;
+     }
+    }
+   });
+   pulseObserver.observe(document.body,{childList:true,subtree:true});
+   window.__pulseProbe.disconnect=()=>pulseObserver.disconnect();
    window.__rewardAccents={echo:0,pulse:0,collection:0,shapes:[]};
    window.__masterpieceObserver=new MutationObserver(records=>{
     for(const rec of records)for(const node of rec.addedNodes){
@@ -630,7 +671,7 @@ try{
   assert.equal(praise.maxOverlap,1,"Praise words must never overlap");
   assert(praise.animation.includes("harmony-praise-pop"),"Words require a real pop animation");
   assert(!praise.oldChip,"The old small reward chip must not remain");
-  assert(fixture.includes("echo")&&fixture.includes("hero")&&fixture.includes("pulse"));
+  assert(fixture.types.includes("echo")&&fixture.types.includes("hero")&&fixture.types.includes("pulse"));
   assert(praise.accents.echo>=1&&praise.accents.pulse>=1,
    "Real Echo and Pulse need small matching celebration accents: "+JSON.stringify(praise.accents));
   assert(praise.accents.shapes.includes("diamond")&&praise.accents.shapes.includes("flower"),
@@ -638,6 +679,37 @@ try{
   assert(praise.fireworks.big>=5&&praise.fireworks.flowers>=1&&
    praise.fireworks.diamonds>=1&&praise.fireworks.stars>=1,
    "A real Masterpiece must launch the stronger tri-color mini-firework: "+JSON.stringify(praise.fireworks));
+
+  await praisePage.waitForFunction(()=>
+   document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:12000});
+  const pulse=await praisePage.evaluate(()=>{
+   window.__pulseProbe.disconnect();
+   return {...window.__pulseProbe,
+    remaining:document.querySelectorAll(".pulse-anticipation-glow").length};
+  });
+  const expected=fixture.pulseEvents.flatMap(evt=>
+   evt.targets.map(t=>({wave:evt.wave,to:t.to,stage:t.stage})));
+  const sortPosition=(a,b)=>a.wave-b.wave||a.to-b.to;
+  assert.deepEqual(pulse.charge.map(({wave,to})=>({wave,to})).sort(sortPosition),
+   expected.map(({wave,to})=>({wave,to})).sort(sortPosition),
+   "Anticipation must glow on EVERY and ONLY target of the actual Pulse events");
+  assert(pulse.charge.every(c=>c.pointer==="none"&&c.bg!=="none"&&c.shadow!=="none"),
+   "Target glow must be visible, warm and pointer-free");
+  assert(pulse.charge.every(c=>{
+   const target=expected.find(t=>t.wave===c.wave&&t.to===c.to);
+   return target&&c.oldStage===target.stage-1&&c.isMasterpiece===(target.stage===5);
+  }),"Anticipation must precede each target's stage change, accenting future masterpieces");
+  assert(pulse.chargeAnimations.length===pulse.charge.length);
+  assert(pulse.chargeAnimations.every(a=>
+   a.startOpacity===0&&a.endOpacity===1&&a.delay>=20&&a.duration>=135&&
+   a.endScale.includes("1.035")),
+   "Glows must charge gradually from zero to full strength with wave-scaled timing");
+  assert(pulse.timeline.includes("beam")&&pulse.timeline.includes("impact")&&
+   pulse.timeline.indexOf("charge")<pulse.timeline.indexOf("beam")&&
+   pulse.timeline.indexOf("beam")<pulse.timeline.indexOf("impact"),
+   "Target charging must appear before travelling beams and the final impact");
+  assert(pulse.impacts>0&&pulse.remaining===0,
+   "Every Pulse must land with a flash and clean up its temporary glow layers");
  }finally{await praiseContext.close();}
  // Confirm a REAL resumed board with an eligible stage-3 neighbour pair creates
  // a visible, animated thread. Previous CSS-only tests missed this integration.

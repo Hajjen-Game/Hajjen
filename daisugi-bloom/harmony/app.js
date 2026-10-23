@@ -1075,18 +1075,21 @@ function sparkleVacatedCells(positions,board){
    star.setAttribute("aria-hidden","true");
    star.style.left=x+"%";star.style.top=y+"%";
    tile.append(star);
-   // Deterministic scatter, subtle local drift, staggered 2-beat shimmer.
-   const dx=(phase%3-1)*(3+n*.7),dy=-3.5-(phase%2)*2.5;
+   // Independent, offset glimmers rather than six simultaneous pulses.
+   // Every cell gets its own deterministic phase, and every particle has
+   // a different start/duration. No flashing white tile or repeated strobe.
+   const dx=(phase%3-1)*(3+n*.45),dy=-2.8-(phase%2)*2.2;
    const drift="translate3d(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px),0)";
-   const duration=195+(phase%3)*12,delay=(n%3)*16;
+   const delay=(n*23+(at%5)*13)%105;
+   const duration=92+((n*7+at)%4)*14;
+   star.dataset.delay=String(delay);
    tasks.push(animateNode(star,[
-    {transform:"translate3d(-50%,-50%,0) scale(.18)",opacity:0,offset:0},
-    {transform:"translate3d(-50%,-50%,0) scale(1.10)",opacity:1,offset:.20},
-    {transform:"translate3d(-50%,-50%,0) scale(.68)",opacity:.34,offset:.38},
-    {transform:"translate3d(-50%,-50%,0) scale(1.18)",opacity:.98,offset:.59},
-    {transform:drift+" scale(.72)",opacity:.58,offset:.80},
-    {transform:drift+" scale(.13)",opacity:0,offset:1}
-   ],duration,{delay,easing:"linear"}).finally(()=>star.remove()));
+    {transform:"translate3d(-50%,-50%,0) scale(.34)",opacity:0,offset:0},
+    {transform:"translate3d(-50%,-50%,0) scale(.73)",opacity:.46,offset:.24},
+    {transform:"translate3d(-50%,-50%,0) scale(1.03)",opacity:.88,offset:.52},
+    {transform:drift+" scale(.89)",opacity:.62,offset:.76},
+    {transform:drift+" scale(.49)",opacity:0,offset:1}
+   ],duration,{delay,easing:"ease-in-out"}).finally(()=>star.remove()));
   }
  }
  return tasks;

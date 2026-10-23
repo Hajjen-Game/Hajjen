@@ -2262,67 +2262,150 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target{
     0 0 11px 3px rgba(156,245,218,.5);
 }
 
-/* HARMONY PULSE ANTICIPATION 1.0 · 2026-10-23
-   A temporary, pointer-free overlay on each truly affected tile. Gold builds
-   from transparent to a charged aura before energy arrives, then the normal
-   evolution/impact reveals the new sprite. Never draw over unrelated tiles.
-   Animate only transform + opacity; no full-board filters or permanent layers. */
+/* HARMONY PULSE TARGET RING 1.1 · 2026-10-23
+   A fully transparent tile centre: only four separated, warm segments travel
+   around the perimeter as the existing 1.0 charge ramps from 0 → 100%.
+   The parent is the ONLY overlay per real Pulse target. Rotating conic layers
+   are clipped to a fixed 3px rim: transform/opacity rather than per-frame
+   background-position, animated blur, or another full-tile glow.
+   Keep a transparent dashed rim on older browsers without composite masks. */
 body.harmony-playing .game-view .tile .pulse-anticipation-glow{
   position:absolute;
   z-index:8;
   inset:1px;
   display:block;
-  border-radius:clamp(7px,1.7vw,13px);
-  border:2px solid rgba(255,235,174,.98);
-  background:radial-gradient(ellipse at 50% 52%,
-    rgba(255,250,219,.43) 0%,
-    rgba(255,221,153,.24) 42%,
-    rgba(239,181,102,.10) 72%,
-    transparent 100%);
-  box-shadow:
-    inset 0 0 0 2px rgba(255,241,208,.40),
-    inset 0 0 15px 3px rgba(255,221,149,.49),
-    0 0 10px 2px rgba(255,211,132,.68),
-    0 0 19px 3px rgba(255,186,106,.26);
+  box-sizing:border-box;
+  border:2px dashed rgba(255,228,155,.96);
+  border-radius:clamp(7px,1.7vw,12px);
+  background:none;
+  box-shadow:none;
   opacity:1;
+  overflow:hidden;
   pointer-events:none;
   transform-origin:center;
   will-change:opacity,transform;
 }
-body.harmony-playing .game-view .tile .pulse-anticipation-glow::before{
-  content:"";
-  position:absolute;
-  inset:5px;
-  border-radius:inherit;
-  border:1px solid rgba(255,250,223,.58);
-  box-shadow:inset 0 0 9px rgba(255,241,192,.46);
-  pointer-events:none;
-}
-body.harmony-playing .game-view .tile .pulse-anticipation-glow::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-  background:radial-gradient(circle at 50% 50%,
-    rgba(255,251,225,.40) 0%,
-    rgba(255,231,176,.16) 40%,
-    transparent 76%);
-  pointer-events:none;
-}
-/* A target about to become a new masterpiece glows warmer/brighter. */
 body.harmony-playing .game-view .tile .pulse-anticipation-masterpiece{
-  border-color:rgba(255,245,196,1);
-  box-shadow:
-    inset 0 0 0 2px rgba(255,252,220,.56),
-    inset 0 0 17px 4px rgba(255,226,151,.69),
-    0 0 14px 3px rgba(255,218,121,.87),
-    0 0 22px 5px rgba(255,178,98,.36);
+  border-color:rgba(255,244,198,.98);
 }
-/* Reduced-motion mode bypasses the charge in JavaScript and gets an instant
-   stage update; never leave a static bright plate over an unrelated tile. */
+/* The mask belongs to the stationary parent, not the rotating square.
+   Therefore light travels around a fixed, square outline instead of the
+   frame itself tumbling over the objects. */
+@supports ((-webkit-mask-composite:xor) or (mask-composite:exclude)){
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow{
+    padding:3px;
+    border:0;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite:exclude;
+  }
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow::before,
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow::after{
+    content:"";
+    position:absolute;
+    inset:-45%;
+    pointer-events:none;
+    transform-origin:center;
+    will-change:transform;
+    animation:jh-pulse-target-orbit 1.04s linear infinite;
+  }
+  /* Four light segments with wide spaces between them. Only the moving
+     paint changes position; the centre stays fully cut out by the rim mask. */
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow::before{
+    background:conic-gradient(
+      from 0deg,
+      transparent 0deg 11deg,
+      rgba(255,210,122,.63) 19deg,
+      #fff1c8 34deg,
+      rgba(255,229,158,.84) 55deg,
+      transparent 66deg 90deg,
+      transparent 90deg 101deg,
+      rgba(250,206,132,.64) 109deg,
+      #ffe9b0 124deg,
+      rgba(255,230,169,.83) 145deg,
+      transparent 156deg 180deg,
+      transparent 180deg 191deg,
+      rgba(255,217,137,.65) 199deg,
+      #fff9dd 214deg,
+      rgba(255,225,157,.81) 235deg,
+      transparent 246deg 270deg,
+      transparent 270deg 281deg,
+      rgba(255,209,121,.63) 289deg,
+      #ffdfa0 304deg,
+      rgba(255,236,178,.84) 325deg,
+      transparent 336deg 360deg
+    );
+  }
+  /* Two pearl-coloured highlights moving with the main segments to give
+     depth without particle emitters or expensive animated shadows. */
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow::after{
+    background:conic-gradient(
+      from 0deg,
+      transparent 0deg 26deg,
+      rgba(255,255,236,.94) 32deg,
+      transparent 43deg 207deg,
+      rgba(255,252,224,.83) 213deg,
+      transparent 226deg 360deg
+    );
+    animation-duration:1.04s;
+  }
+  body.harmony-playing .game-view .tile .pulse-anticipation-masterpiece::before{
+    filter:none;
+    background:conic-gradient(
+      from 0deg,
+      transparent 0deg 11deg,
+      #ffdc97 19deg,
+      #fff9e0 34deg,
+      #ffe2a0 55deg,
+      transparent 66deg 90deg,
+      transparent 90deg 101deg,
+      #ffdc97 109deg,
+      #fff2c7 124deg,
+      #ffe2a0 145deg,
+      transparent 156deg 180deg,
+      transparent 180deg 191deg,
+      #ffdc97 199deg,
+      #fffcec 214deg,
+      #ffe2a0 235deg,
+      transparent 246deg 270deg,
+      transparent 270deg 281deg,
+      #ffdc97 289deg,
+      #fff6d2 304deg,
+      #ffe2a0 325deg,
+      transparent 336deg 360deg
+    );
+  }
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow[data-wave="2"]::before,
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow[data-wave="2"]::after{
+    animation-duration:.76s;
+  }
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow:is([data-wave="3"],[data-wave="4"],[data-wave="5"],[data-wave="6"])::before,
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow:is([data-wave="3"],[data-wave="4"],[data-wave="5"],[data-wave="6"])::after{
+    animation-duration:.58s;
+  }
+}
+@keyframes jh-pulse-target-orbit{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+/* Keep the approved reduce-motion behaviour: JavaScript skips charging
+   entirely and reveals the stage change immediately. */
 @media(prefers-reduced-motion:reduce){
   body.harmony-playing .game-view .tile .pulse-anticipation-glow{display:none}
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow::before,
+  body.harmony-playing .game-view .tile .pulse-anticipation-glow::after{
+    animation:none!important;
+  }
 }
 body.harmony-reduced-motion.harmony-playing .game-view .tile .pulse-anticipation-glow{
   display:none;
+}
+body.harmony-reduced-motion.harmony-playing .game-view .tile .pulse-anticipation-glow::before,
+body.harmony-reduced-motion.harmony-playing .game-view .tile .pulse-anticipation-glow::after{
+  animation:none!important;
 }

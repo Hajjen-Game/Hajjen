@@ -1735,3 +1735,364 @@ body.harmony-reduced-motion .harmony-reward-accent{display:none!important}
 .has-maneki-stage1 .piece.new-family:has(.sprite-stage1-maneki) .fallback{
  display:none!important;
 }
+
+/* ================================================================
+  UI CLEANUP & PREMIUM POLISH 1.0 · 2026-10-23
+  One restrained visual language: translucent deep teal, warm ivory,
+  champagne gold and subtle Sakura accents. Intentionally DOES NOT
+  resize the board grid, tiles, sprite atlas cells or player artwork.
+  ================================================================ */
+:root{
+ --jh-ui-panel:rgba(17,47,54,.87);
+ --jh-ui-edge:rgba(234,202,148,.27);
+ --jh-ui-ink:#fff2dd;
+ --jh-ui-muted:#c5d4cd;
+ --jh-ui-focus:#f3d195;
+}
+/* Menu: game discovery first, technical explanation only when requested */
+body:not(.harmony-playing) #app{max-width:1150px}
+body:not(.harmony-playing) .topbar{
+ min-height:70px;
+ padding:7px 3px;
+ border-bottom:1px solid rgba(236,209,163,.17);
+}
+body:not(.harmony-playing) .brand-flower{
+ width:43px;height:43px;border-radius:12px;
+ box-shadow:0 2px 10px rgba(15,25,29,.22);
+}
+body:not(.harmony-playing) .top-actions{gap:6px}
+body:not(.harmony-playing) .top-actions .secondary{
+ border-color:rgba(225,218,188,.25);background:rgba(28,68,75,.72);
+}
+body:not(.harmony-playing) .top-actions .dev-shortcut{
+ color:#d6ddd5;border-color:rgba(225,218,188,.16);background:rgba(24,57,63,.59);
+ font-size:11px;
+}
+.menu-view{margin:8px auto 0}
+.menu-view .hero{
+ padding:17px 8px 16px;
+ text-align:center;
+}
+.menu-view .hero .eyebrow{
+ margin-bottom:7px;
+ font-size:9px;
+ letter-spacing:.14em;
+ opacity:.82;
+}
+.menu-view .hero h1{
+ font-size:clamp(26px,5.3vw,39px);
+ letter-spacing:-.035em;
+ line-height:1.14;
+ margin:0 0 8px;
+ text-wrap:balance;
+}
+.menu-view .hero h1 em{color:#f6b9ca}
+.menu-view .hero p{
+ max-width:450px;
+ font-size:12px;
+ line-height:1.5;
+ color:#dfdfd0;
+}
+.menu-view .hero-pills{
+ gap:6px;
+ margin-top:11px;
+}
+.menu-view .hero-pills span{
+ padding:4px 9px;
+ font-size:10px;
+ border-radius:99px;
+ border-color:rgba(228,208,170,.17);
+ color:#e8dfc9;
+ background:rgba(25,61,69,.54);
+}
+/* Level cards: preserve all records and stars, reduce ornament overhead */
+.menu-view .level-panel{
+ padding:clamp(12px,3vw,19px);
+ border:1px solid var(--jh-ui-edge);
+ border-radius:20px;
+ background:linear-gradient(155deg,rgba(23,59,68,.91),rgba(14,44,56,.92));
+ box-shadow:0 12px 33px rgba(6,17,24,.33),inset 0 1px rgba(255,242,210,.09);
+}
+.menu-view .panel-heading{
+ gap:8px;
+ align-items:center;
+}
+.menu-view .panel-heading .eyebrow{font-size:9px;letter-spacing:.13em;margin-bottom:3px}
+.menu-view .panel-heading h2{font-size:21px;margin:0 0 3px}
+.menu-view .panel-heading p{font-size:11px;line-height:1.45}
+.menu-view .chapter-stat{font-size:12px;color:#f8d596}
+.menu-view .family-progression-note{
+ display:flex;
+ justify-content:flex-start;
+ align-items:center;
+ gap:7px 12px;
+ padding:8px 2px 8px;
+ margin:7px 0 0;
+ background:none;
+ border:0;
+ border-bottom:1px solid rgba(247,212,148,.18);
+ border-radius:0;
+}
+.menu-view .family-progression-note strong{
+ font-size:11px;
+ font-weight:800;
+ color:#f0d9ab;
+}
+.menu-view .family-progression-note span{
+ color:#bdcfc9;
+ font-size:10px;
+}
+.menu-view .menu-advanced{
+ margin:2px 0 0;
+ border-bottom:1px solid rgba(246,216,173,.13);
+}
+.menu-view .menu-advanced summary{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ padding:10px 2px;
+ cursor:pointer;
+ font-size:11px;
+ font-weight:800;
+ color:#dcd7c7;
+ list-style:none;
+}
+.menu-view .menu-advanced summary::-webkit-details-marker{display:none}
+.menu-view .menu-advanced summary::after{
+ content:"⌄";margin-left:auto;color:#f0d39d;
+ font-size:18px;line-height:1;transition:transform .18s;
+}
+.menu-view .menu-advanced[open] summary::after{transform:rotate(180deg)}
+.menu-view .menu-advanced summary span{
+ font-size:10px;color:#b9c8c4;font-weight:450;
+}
+.menu-view .menu-advanced .director-picker{
+ display:grid;
+ gap:6px;
+ padding:8px 9px 11px;
+ margin:0 0 9px;
+ border:1px solid rgba(220,202,162,.19);
+ background:rgba(19,47,53,.71);
+ box-shadow:none;
+ border-radius:10px;
+}
+.menu-view .menu-advanced .director-picker select{
+ min-height:39px;
+ border-color:rgba(208,203,181,.40);
+}
+.menu-view .level-list{gap:6px;margin-top:12px}
+.menu-view .level-tile{
+ grid-template-columns:41px minmax(0,1fr) auto;
+ gap:10px;
+ padding:8px 10px;
+ border-radius:12px;
+ border:1px solid rgba(166,194,178,.29);
+ background:linear-gradient(145deg,rgba(48,89,97,.78),rgba(28,70,80,.79));
+ box-shadow:inset 0 1px rgba(234,245,224,.065);
+ min-height:67px;
+}
+.menu-view .level-tile:not(.locked):active{transform:scale(.995)}
+.menu-view .level-number{
+ width:41px;height:41px;border-radius:11px;
+ background:linear-gradient(145deg,#f6d59e,#eeafac);
+ font-size:16px;
+}
+.menu-view .level-tile strong{font-size:13px;line-height:1.3}
+.menu-view .level-tile small{font-size:10px;margin-top:2px;color:#cbd6cc}
+.menu-view .level-tile .level-best{
+ margin-top:3px;
+ color:#dccca7;
+ font-size:10px;
+ font-weight:700;
+ letter-spacing:0;
+}
+.menu-view .level-tile .level-stars{
+ font-size:17px;
+ letter-spacing:.035em;
+ color:#ebcd89;
+}
+.menu-view .panel-footer{margin-top:15px;gap:8px}
+.menu-view .panel-footer p{font-size:10px;max-width:460px;line-height:1.4}
+/* HUD: score/moves are the focus; hide technical director phase visually.
+   It remains in the DOM with its exact content for screen readers and QA. */
+.game-view .pace-status{
+ position:absolute!important;
+ width:1px!important;height:1px!important;
+ padding:0!important;margin:-1px!important;
+ overflow:hidden!important;
+ clip:rect(0,0,0,0)!important;
+ clip-path:inset(50%)!important;
+ white-space:nowrap!important;border:0!important;
+}
+.game-view .game-heading{margin-bottom:9px}
+.game-view .moves,.game-view .hud-score{
+ height:clamp(78px,21vw,95px);
+ padding:6px 8px;
+ border-width:2px;
+ border-radius:16px 16px 19px 19px;
+ box-shadow:inset 0 0 0 2px #fff0d1,
+  inset 0 0 0 3px #b38c61,0 3px 0 #743d2e,
+  0 6px 13px rgba(6,18,26,.39);
+}
+.game-view .moves::after{
+ top:-7px;left:-4px;font-size:18px;
+ opacity:.85;
+}
+.game-view .moves strong{
+ font-size:clamp(33px,9.1vw,46px);
+}
+.game-view .hud-score #scoreCount{
+ font-size:clamp(27px,7.2vw,39px);
+}
+.game-view .hud-score .hud-label{font-size:9px}
+.game-view .hud-score .hud-score-footer{
+ min-height:15px;
+ padding-top:2px;
+ border-top-color:rgba(140,105,70,.25);
+}
+.game-view .pause-button{
+ border-width:3px;
+ box-shadow:inset 0 0 0 1px #6a3427,0 4px 12px rgba(4,14,20,.35);
+}
+.game-view .game-meta{
+ margin:0 1px 5px;
+ padding:0 2px;
+}
+.game-view .game-meta .eyebrow{font-size:9px;letter-spacing:.09em}
+.game-view .game-meta #levelTitle{font-size:clamp(12px,3.2vw,16px)}
+.game-view .goal{
+ min-height:35px;
+ margin-bottom:7px;
+ padding:5px 10px;
+ border:1px solid rgba(222,193,139,.45);
+ border-radius:10px;
+ background:linear-gradient(115deg,rgba(22,56,57,.88),rgba(26,65,63,.77));
+ box-shadow:inset 0 1px rgba(255,246,216,.095);
+}
+.game-view .goal strong{
+ background:rgba(252,215,156,.09);
+ border-color:rgba(243,213,167,.26);
+ border-radius:7px;
+}
+.game-view .star-targets{
+ margin:1px 0 5px;
+ gap:4px;
+ color:#e5d7bc;
+}
+.game-view .star-targets span{
+ background:none;
+ border:0;
+ border-right:1px solid rgba(242,221,174,.22);
+ border-radius:0;
+ padding:3px 1px;
+}
+.game-view .star-targets span:last-child{border-right:0}
+.game-view .star-targets span.reached{
+ color:#ffe1a0;
+ background:none;
+ border-color:rgba(248,216,149,.29);
+ text-shadow:0 0 5px rgba(250,216,154,.28);
+}
+/* Make the container quieter without touching the approved icon sizes. */
+.game-view .masterpiece-collection{
+ margin:10px 0 3px;
+ padding:8px 8px 7px;
+ border:1px solid rgba(236,205,146,.26);
+ border-radius:15px;
+ background:linear-gradient(145deg,rgba(13,43,51,.83),rgba(20,56,57,.80));
+ box-shadow:inset 0 1px rgba(255,233,178,.08),0 4px 11px rgba(4,18,22,.22);
+}
+.game-view .collection-heading{margin:0 2px 5px}
+.game-view .collection-heading strong{color:#efd8a2;font-size:10px;letter-spacing:.055em}
+.game-view .collection-heading span{color:#bdcfc4;font-size:9px}
+/* Pause: one main action, one clear level exit, small paired utilities.
+   Direct button order is unchanged for keyboard, automation and game logic. */
+.modal:has(.pause-menu-actions) .modal-inner{
+ width:min(100%,450px);
+ padding:clamp(18px,4vw,25px);
+ border:1px solid rgba(236,208,164,.40);
+ border-radius:21px;
+ background:linear-gradient(160deg,rgba(30,67,75,.97),rgba(17,43,55,.98));
+ box-shadow:0 24px 60px rgba(0,10,18,.62);
+}
+.modal:has(.pause-menu-actions) .modal-inner h2{
+ font-size:clamp(26px,6vw,31px);
+ margin:5px 0 8px;
+}
+.modal .pause-summary{
+ margin:0;
+ color:#d3dbd1;
+ font-size:12px;
+ line-height:1.4;
+}
+.modal-actions.pause-menu-actions{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ margin-top:16px;
+}
+.modal-actions.pause-menu-actions .pause-action{
+ width:100%;
+ min-height:44px;
+ padding:10px 7px;
+ font-size:12px;
+ font-weight:750;
+ border-radius:11px;
+ border-color:rgba(208,220,205,.29);
+ background:linear-gradient(155deg,rgba(56,97,103,.78),rgba(34,74,85,.78));
+ box-shadow:none;
+}
+.modal-actions.pause-menu-actions .pause-resume{
+ grid-column:1/-1;
+ min-height:53px;
+ font-size:17px;
+ border-color:#f1ca88;
+ color:#233c40;
+ background:linear-gradient(125deg,#f6d89e,#efb97c);
+ box-shadow:0 3px 9px rgba(7,19,24,.16);
+}
+.modal-actions.pause-menu-actions .pause-finish{
+ grid-column:1/-1;
+ order:1;
+}
+.modal-actions.pause-menu-actions .pause-restart{
+ grid-column:1/-1;
+ order:2;
+ border-color:rgba(236,199,142,.31);
+ color:#ffeacf;
+}
+.modal-actions.pause-menu-actions .pause-levels{
+ grid-column:1/-1;
+ order:3;
+ color:#f3e4ce;
+}
+.modal-actions.pause-menu-actions .pause-help{order:4}
+.modal-actions.pause-menu-actions .pause-settings{order:5}
+.modal-actions.pause-menu-actions .pause-performance{
+ order:6;
+ background:rgba(28,65,74,.51);
+ color:#ccd5d1;
+ font-size:11px;
+}
+.modal-actions.pause-menu-actions .pause-dev{
+ order:7;
+ background:rgba(28,65,74,.51);
+ color:#c8d4d1;
+ font-size:11px;
+}
+@media(max-width:390px){
+ .menu-view .hero{padding:13px 4px 13px}
+ .menu-view .hero h1{font-size:28px}
+ .menu-view .hero-pills{gap:4px;margin-top:9px}
+ .menu-view .hero-pills span{font-size:9px;padding:4px 7px}
+ .menu-view .family-progression-note{gap:3px 8px}
+ .menu-view .family-progression-note strong,.menu-view .family-progression-note span{font-size:10px}
+ .menu-view .menu-advanced summary span{font-size:9px}
+ .menu-view .level-tile{min-height:64px;gap:7px;padding:7px 8px}
+ .game-view .moves,.game-view .hud-score{height:78px}
+ .game-view .moves strong{font-size:34px}
+ .game-view .hud-score #scoreCount{font-size:29px}
+ .game-view .goal{margin-bottom:5px}
+ .game-view .star-targets{font-size:9px}
+ .modal-actions.pause-menu-actions .pause-action{padding:9px 5px}
+}

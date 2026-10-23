@@ -12,6 +12,28 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
+ // UI Cleanup & Premium Polish 1.0: level list is the primary action,
+ // the Director is hidden behind an accessible disclosure until requested.
+ const uiMenu=await page.evaluate(()=>{
+  const a=document.querySelector(".hero").getBoundingClientRect();
+  const b=document.querySelector(".level-tile").getBoundingClientRect();
+  const advanced=document.querySelector("#menuAdvanced");
+  return {heroHeight:a.height,levelTop:b.top,advancedOpen:advanced.open,
+   directorHidden:getComputedStyle(document.querySelector("#gameDirectorMode")).display,
+   introduction:document.querySelector(".hero p").textContent,
+   familyCopy:document.querySelector(".family-progression-note").textContent,
+   bodyWidth:document.body.scrollWidth};
+ });
+ assert(uiMenu.heroHeight<210,"Shorter hero should no longer bury level selection");
+ assert(uiMenu.levelTop<780,"Level selection should appear on the initial phone view");
+ assert.equal(uiMenu.advancedOpen,false,"Director controls should start folded");
+ assert(!uiMenu.introduction.includes("fem per nivå"),"Intro must not claim five families on every level");
+ assert(uiMenu.familyCopy.includes("4 familjer")&&uiMenu.familyCopy.includes("5 familjer"));
+ assert(uiMenu.bodyWidth<=390,"Premium menu must have no horizontal overflow");
+ await page.$eval("#menuAdvanced",e=>e.open=true);
+ const advancedVisible=await page.$eval("#gameDirectorMode",e=>getComputedStyle(e).display);
+ assert.notEqual(advancedVisible,"none","Advanced Director choice remains available");
+ await page.$eval("#menuAdvanced",e=>e.open=false);
  // Stage-1 art: both actual uploaded PNGs were converted to alpha AVIF.
  // Check transparent corners and the exact live-rendered sprite overrides.
  const iconContext=await browser.createBrowserContext();
@@ -191,6 +213,7 @@ try{
   assert(["build","flow","recovery","relax"].includes(persisted.phase));
   await demo.click("#pauseButton");
   await demo.click("#modalActions button:last-child");
+  await demo.$eval("#menuAdvanced",e=>e.open=true);
   await demo.select("#gameDirectorMode","v2");
   await demo.reload({waitUntil:"networkidle2"});
   assert.equal(await demo.$eval("#gameDirectorMode",el=>el.value),"v2",
@@ -200,6 +223,7 @@ try{
   assert.equal(v2,"v2","Director 2.0 must remain available in live gameplay");
   await demo.click("#pauseButton");
   await demo.click("#modalActions button:last-child");
+  await demo.$eval("#menuAdvanced",e=>e.open=true);
   await demo.select("#gameDirectorMode","standard");
   await demo.click(".level-tile:first-child");
   const standard=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
@@ -919,6 +943,22 @@ try{
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Börja om nivån"));
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Till nivåval"));
+ const pauseLayout=await page.evaluate(()=>{
+  const actions=document.querySelector("#modalActions");
+  const buttons=[...actions.querySelectorAll("button")];
+  return {columns:getComputedStyle(actions).gridTemplateColumns.split(" ").length,
+   compact:actions.classList.contains("pause-menu-actions"),
+   primary:buttons[0].textContent,buttonCount:buttons.length,
+   resumeHeight:buttons[0].getBoundingClientRect().height,
+   utilityWidths:[buttons[3],buttons[4]].map(b=>b?.getBoundingClientRect().width||0),
+   modalHeight:document.querySelector(".modal-inner").getBoundingClientRect().height,
+   screenHeight:window.innerHeight};
+ });
+ assert(pauseLayout.compact&&pauseLayout.columns===2,"Pause menu should group secondary actions in two columns");
+ assert.equal(pauseLayout.primary,"Fortsätt spela");
+ assert(pauseLayout.resumeHeight>=44,"Resume remains the prominent tap target");
+ assert(pauseLayout.utilityWidths.every(w=>w>70),"Help and settings must remain tappable");
+ assert(pauseLayout.modalHeight<=pauseLayout.screenHeight,"Pause modal should fit the phone view");
  await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(3)").click());
  assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);

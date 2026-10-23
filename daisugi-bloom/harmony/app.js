@@ -23,6 +23,9 @@ function updatePaceLabel(){
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
  node.title=game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
+ // Preserve diagnostics for accessibility / game testing but remove the
+ // technical status strip from the visual game hierarchy.
+ $("gameView")?.setAttribute("data-family-count",String(game.familyCount));
 }
 // Subtle accessibility-safe hint: after one minute without interaction,
 // softly highlight ONE piece belonging to a genuinely legal swap.
@@ -224,6 +227,7 @@ function renderMenu(){
   }
   const starsNode=document.createElement("span");starsNode.className="level-stars";
   starsNode.textContent=allowed?(stars?"★".repeat(stars)+"☆".repeat(3-stars):"○ ○ ○"):"🔒";
+  b.dataset.familyCount=String(R.levelFamilyCount(i));
   b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
  }
  const intro=menuPage===0;
@@ -1334,6 +1338,7 @@ function unlockGoal(){
  persist();
 }
 function showResult(){
+ $("modalActions").classList.remove("pause-menu-actions");
  if(!game)return;
  disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
@@ -1370,6 +1375,7 @@ function showResult(){
 }
 function modalButton(parent,label,cls,fn){let b=document.createElement("button");b.className=cls;b.textContent=label;b.addEventListener("click",fn);parent.append(b);return b;}
 function modalInfo(title,html){
+ $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="JAPANESE HARMONY";$("modalTitle").textContent=title;
  $("modalContent").innerHTML=html;const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Tillbaka till spelet","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
@@ -1377,6 +1383,7 @@ function modalInfo(title,html){
 // This is a turn-based puzzle; the menu overlay blocks touches while open.
 // Local report only: no analytics, disk write or network transfer.
 function showPerformanceReport(){
+ $("modalActions").classList.remove("pause-menu-actions");
  const stats=perf?.summary(),item=stats?.latest;
  const node=document.createElement("div");
  node.className="performance-report";
@@ -1411,6 +1418,7 @@ function showPerformanceReport(){
 let engineLabRun=null;
 function engineLabText(element,value){element.textContent=String(value);}
 function openEngineLab(){
+ $("modalActions").classList.remove("pause-menu-actions");
  if(engineLabRun){engineLabRun.cancelled=true;engineLabRun=null;}
  const api=window.HarmonyDiagnostics?.create(R);
  $("modalEyebrow").textContent="GAME DEV · ENGINE LAB";
@@ -1566,18 +1574,26 @@ function openGameMenu(){
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Spelmeny";
  const content=$("modalContent");content.replaceChildren();
- const desc=document.createElement("p");
- desc.textContent="Nivå "+(level+1)+" · "+game.config.name+" · "+game.moves+" drag kvar";
+ const desc=document.createElement("p");desc.className="pause-summary";
+ desc.textContent="Nivå "+(level+1)+" · "+game.familyCount+" familjer · "+game.moves+" drag kvar";
  content.append(desc);
  const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Fortsätt spela","primary",()=>{$("modal").hidden=true;armDecisionClock();});
- if(game.complete)modalButton(actions,"Avsluta med resultat","secondary",()=>{if(busy)return;game.finish();showResult();});
- modalButton(actions,"Börja om nivån","secondary",()=>{if(!busy)startLevel(level);});
- modalButton(actions,"Så spelar du","secondary",()=>{$("helpButton").click();});
- modalButton(actions,"Inställningar","secondary",()=>{$("settingsButton").click();});
- modalButton(actions,"Prestanda","secondary",showPerformanceReport);
- modalButton(actions,"Game Dev · Motorlab","secondary",openEngineLab);
- modalButton(actions,"Till nivåval","secondary",()=>{if(!busy)showMenu();});
+ actions.classList.add("pause-menu-actions");
+ const add=(label,style,group,callback)=>{
+  const b=modalButton(actions,label,style,callback);
+  b.classList.add("pause-action","pause-"+group);
+  return b;
+ };
+ add("Fortsätt spela","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
+ if(game.complete)add("Avsluta med resultat","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
+ add("Börja om nivån","secondary","restart",()=>{if(!busy)startLevel(level);});
+ // Keep these DOM positions intact: the existing game and smoke tests rely
+ // on direct button access and keyboard tab order, even with the new layout.
+ add("Så spelar du","secondary","help",()=>{$("helpButton").click();});
+ add("Inställningar","secondary","settings",()=>{$("settingsButton").click();});
+ add("Prestanda","secondary","performance",showPerformanceReport);
+ add("Game Dev · Motorlab","secondary","dev",openEngineLab);
+ add("Till nivåval","secondary","levels",()=>{if(!busy)showMenu();});
  $("modal").hidden=false;
 }
 function bind(){

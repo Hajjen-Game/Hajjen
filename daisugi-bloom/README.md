@@ -1,5 +1,19 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## UI Cleanup & Premium Polish 1.0 — 2026-10-23
+
+**Byggt i spelet:** UI:t är lugnare, kortare och mer konsekvent utan nya spelregler eller färre funktioner. `index.html` och `harmony/mobile-game.css` är omarbetade, med en liten pausmenyuppdatering i `harmony/app.js`.
+
+- **Startsida:** kortare välkomsttext, diskretare chips och avsevärt mindre avstånd ned till nivålistan. Det tidigare felaktiga påståendet om fem familjer per nivå är borttaget.
+- **Nivåval:** lättare nivåkort, fortsatt synliga stjärnor och poängrekord; 4 familjer under nivå 1–10 och 5 från nivå 11 visas i en kompakt informationsrad.
+- **Spelmotor:** Director-valet ligger under det inbyggt tangentbordstillgängliga `Avancerat`-reglaget (`details/summary`), stängt från början. Valt läge sparas precis som tidigare.
+- **Spel-HUD:** drag och poäng har enklare men fortfarande japansk/premium inramning. Director-fasens tekniska text är visuellt dold men finns kvar för tillgänglighet/diagnostik. Mål och stjärntrösklar är nedtonade och kompaktare.
+- **Masterpiece Collection:** mindre konkurrerande panelram, bättre typografisk hierarki och oförändrade originalbilder/ikondimensioner.
+- **Pausmeny:** Fortsätt spela står ut, omstart och nivåval är egna tydliga rader; hjälpen/inställningar och prestations-/utvecklarverktyg är två diskreta par. Samma knappar, ordning i DOM och klickbeteenden som tidigare.
+- **Ingen ombalansering eller ny board-layout:** 7×7-board, sprite- och ikonstorlekar, matchregler, spelmotor, sparningar, poäng och animationssystem lämnas orörda. Board & Icon Readability 1.0 är ett separat kommande pass.
+
+Mobiltestet kontrollerar nu att nivåvalet syns tidigare på 390px, att den avancerade motorn går att öppna, att pausknapparna fungerar på skärmen och att spelplanens prioritet samt mobilens fulla bredd bevaras.
+
 ## Art Recovery 6.8.2 — 2026-10-23
 
 Åtgärdar ett verkligt rapporterat fel där hela spelplanen visade **emoji-fallbacks** (blå fisk, enkel lykta, blomma och solfjäder) i stället för de godkända detaljrika illustrationerna.

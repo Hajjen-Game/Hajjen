@@ -622,7 +622,7 @@ try{
       const tile=node.closest(".tile");
       window.__pulseProbe.sparkles.push({
        at:Number(node.dataset.at),isEmpty:tile?.getAttribute("aria-label")==="Tom ruta",
-       left:node.style.left,top:node.style.top,
+       left:node.style.left,top:node.style.top,delay:Number(node.dataset.delay),
        isStar:node.classList.contains("sparkle-star"),shade:node.className
       });
       window.__pulseProbe.timeline.push("sparkle");
@@ -755,6 +755,8 @@ try{
   assert(pulse.sparkles.some(p=>p.isStar)&&
    new Set(pulse.sparkles.map(p=>p.shade.match(/sparkle-(gold|pearl|sakura)/)?.[1])).size>=3,
    "Glitter needs actual star-shaped flashes and pearl/gold/Sakura variations");
+  assert(new Set(pulse.sparkles.map(p=>p.delay)).size>=4,
+   "Pulse harvest glitter must also start at several different moments");
   assert.equal(await praisePage.evaluate(()=>document.querySelectorAll(".fusion-afterglow-spark").length),0,
    "All sparkle fragments should be removed after the chain finishes");
  }finally{await praiseContext.close();}
@@ -1274,11 +1276,11 @@ try{
  await page.evaluate(()=>{
    window.__kineticAnimationCount=0;
    window.__gatherMotion=[];
-   window.__fusionBeadMotion=[];
+   window.__sparkleMotions=[];
    const realAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){
-     if(this.matches(".piece, .fusion-ghost, .pulse-dot, .fusion-flow-bead"))window.__kineticAnimationCount++;
-     if(this.matches(".fusion-flow-bead"))window.__fusionBeadMotion.push({
+     if(this.matches(".piece, .fusion-ghost, .pulse-dot"))window.__kineticAnimationCount++;
+     if(this.matches(".fusion-afterglow-spark"))window.__sparkleMotions.push({
       frames:args[0],duration:args[1]?.duration,delay:args[1]?.delay,easing:args[1]?.easing
      });
      if(this.matches(".fusion-ghost")){
@@ -1363,13 +1365,15 @@ try{
   g.frames.at(-1).offset===1),
   "A 3–5 match must use the restored 280ms gathering animation on its real board coordinates");
 
- const beads=await page.evaluate(()=>window.__fusionBeadMotion);
- assert(beads.length>=2&&beads.length<=8,
-  "Mobile fusion should transfer only a few tiny beads: "+beads.length);
- assert(beads.every(b=>b.easing==="linear"&&b.duration+b.delay<=280&&
-  b.frames[0].opacity===0&&b.frames.at(-1).opacity===0&&
-  b.frames.some(f=>f.opacity>=.8)),
-  "Particles must follow the existing 280ms fusion without adding delays");
+ const sparkleMotions=await page.evaluate(()=>window.__sparkleMotions);
+ assert(sparkleMotions.length>=10,
+  "Vacated squares need several independently timed glitter fragments");
+ assert(new Set(sparkleMotions.map(m=>m.delay)).size>=4,
+  "Glitter must not all blink at the same instant");
+ assert(sparkleMotions.every(m=>m.frames.length===5&&m.easing==="ease-in-out"&&
+  m.frames[0].opacity===0&&m.frames.at(-1).opacity===0&&
+  Math.max(...m.frames.map(f=>f.opacity))<=.88&&m.duration+m.delay<=240),
+  "Glitter must softly brighten once and fade without strobing or delaying the move");
  assert(gather.every(g=>{
   const xs=g.frames.map(k=>Number(/translate3d\(([-\d.]+)px,/.exec(k.transform)?.[1]));
   const ys=g.frames.map(k=>Number(/,([-\d.]+)px,0\)/.exec(k.transform)?.[1]));
@@ -1389,8 +1393,7 @@ try{
  assert(scoreAfterTween>beforePoints,"Score must visibly count upward after the flying token arrives");
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
- assert(fx.fusionFlow>=2&&fx.fusionFlow<=8,
-  "Tiny glow transfer beads must follow consumed sprites with a mobile budget: "+JSON.stringify(fx));
+ assert.equal(fx.fusionFlow,0,"Fusion Flow travelling beads must be removed when restoring original movement");
  assert(fx.fusionAfterglow>=10&&fx.afterglowOnEmpty,
   "Every emptied fusion cell needs several twinkling points rather than one dot: "+JSON.stringify(fx));
  assert(new Set(fx.afterglowPositions).size>=4&&
@@ -1412,7 +1415,7 @@ try{
  assert(fx.stage>=1,"Even a basic 3-match must display its upgraded stage clearly: "+JSON.stringify(fx));
  assert(fx.maxFamilyToTileRatio>=1.25,"Family effect must be visibly larger than its tile on mobile: "+JSON.stringify(fx));
  assert(fx.score>=1&&fx.trail>=2,"Expected a flying point label with a lightweight trailing stream: "+JSON.stringify(fx));
- assert(fx.ring>=1,"The fusion must produce a readable expanding ring: "+JSON.stringify(fx));
+ assert.equal(fx.ring,0,"The disliked circular ring must not appear on ordinary fusions");
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
  assert(fx.maxTokenWidth>=35,"Points must have a legible sized label: "+JSON.stringify(fx));
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");

@@ -2096,3 +2096,59 @@ body:not(.harmony-playing) .top-actions .dev-shortcut{
  .game-view .star-targets{font-size:9px}
  .modal-actions.pause-menu-actions .pause-action{padding:9px 5px}
 }
+
+/* BOARD & ICON READABILITY 1.0 · 2026-10-23
+   More space for the 7x7 playfield and the existing 45 illustrated stages.
+   Layout-only changes: no atlas remapping, animation, hit-testing or game rules.
+   A small static sprite overscan makes existing art more legible while keeping
+   it inside each tile's overflow clip. */
+body.harmony-playing .game-view{
+  width:min(100%,760px);
+  max-width:760px;
+}
+body.harmony-playing .game-view .board-shell{
+  margin-top:clamp(14px,2.2dvh,22px);
+  padding:clamp(7px,1.4vw,12px);
+  border-width:4px;
+  border-radius:clamp(16px,3vw,25px);
+}
+body.harmony-playing .game-view .board{
+  padding:1px;
+  border-width:1px;
+  gap:1.4px;
+  border-radius:9px;
+}
+body.harmony-playing .game-view .tile{
+  padding:0;
+}
+body.harmony-playing .game-view .tile .piece{
+  inset:0;
+}
+body.harmony-playing .game-view .tile .piece .sprite{
+  inset:-2.5%;
+}
+body.harmony-playing .game-view .tile .piece .fallback{
+  font-size:clamp(26px,6.8vw,57px);
+}
+/* On desktop, grow beyond the former 610px ceiling when vertical room allows. */
+@media(min-width:700px){
+  body.harmony-playing .game-view{
+    width:min(100%,760px,max(610px,calc(100dvh - 240px)));
+  }
+}
+/* On phones, use the side gutters for playable cells, not decorative frame. */
+@media(max-width:540px){
+  body.harmony-playing #app{padding-left:5px;padding-right:5px}
+  body.harmony-playing .game-view{margin-top:8px}
+  body.harmony-playing .game-view .board-shell{
+    padding:clamp(5px,1.4vw,8px);
+    border-width:3px;
+    border-radius:16px;
+  }
+  body.harmony-playing .game-view .board{padding:0}
+}
+@media(max-width:360px){
+  body.harmony-playing #app{padding-left:4px;padding-right:4px}
+  body.harmony-playing .game-view .board-shell{padding:5px}
+  body.harmony-playing .game-view .board{gap:1px}
+}

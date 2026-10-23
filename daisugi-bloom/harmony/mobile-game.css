@@ -2210,3 +2210,54 @@ body.harmony-playing .game-view .collection-label{
   body.harmony-playing .game-view .collection-items{gap:3px}
   body.harmony-playing .game-view .collection-items.four-families{gap:5px}
 }
+
+/* Directed Idle Hint Reliability 1.2 · 30-second guidance.
+   The old :not(.selected) selectors hid the cue whenever the player had
+   left the suggested tile selected. Keep both glows above selection and
+   resonance without touching art atlases, controls, or tile coordinates. */
+body.harmony-playing .game-view .tile.idle-hint-source{
+  position:relative;
+  z-index:7;
+  outline:3px solid #ffdf7a;
+  outline-offset:-3px;
+  box-shadow:inset 0 0 0 3px rgba(255,221,126,.97),
+    inset 0 0 20px rgba(255,210,100,.47),
+    0 0 13px 3px rgba(255,209,91,.7);
+  animation:jh-idle-source-glow 1.9s ease-in-out infinite;
+}
+body.harmony-playing .game-view .tile.idle-hint-target{
+  position:relative;
+  z-index:6;
+  outline:3px solid #bcfff0;
+  outline-offset:-3px;
+  animation:jh-idle-target-pulse 1.8s ease-in-out infinite;
+}
+@keyframes jh-idle-source-glow{
+  0%,100%{
+    outline-color:rgba(255,224,137,.91);
+    box-shadow:inset 0 0 0 3px rgba(255,222,140,.95),
+      inset 0 0 13px rgba(255,210,102,.32),
+      0 0 9px 2px rgba(255,212,115,.58);
+  }
+  50%{
+    outline-color:#fff6c5;
+    box-shadow:inset 0 0 0 3px #ffe2a0,
+      inset 0 0 21px rgba(255,218,125,.56),
+      0 0 16px 4px rgba(255,217,112,.84);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.harmony-playing .game-view .tile.idle-hint-source,
+  body.harmony-playing .game-view .tile.idle-hint-target{
+    animation:none!important;
+  }
+}
+body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-source,
+body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target{
+  animation:none!important;
+}
+body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target{
+  outline-color:#c2fff0;
+  box-shadow:inset 0 0 0 3px rgba(197,255,232,.82),
+    0 0 11px 3px rgba(156,245,218,.5);
+}

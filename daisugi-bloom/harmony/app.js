@@ -27,9 +27,9 @@ function updatePaceLabel(){
  // technical status strip from the visual game hierarchy.
  $("gameView")?.setAttribute("data-family-count",String(game.familyCount));
 }
-// Subtle accessibility-safe hint: after one minute without interaction,
-// softly highlight ONE piece belonging to a genuinely legal swap.
-const IDLE_HINT_DELAY_MS=60000;
+// Directed hint after 30 seconds of real play inactivity: show the SOURCE
+// and TARGET of an evaluated, genuinely legal move, without spending turns.
+const IDLE_HINT_DELAY_MS=30000;
 let idleHintTimer=0,idleHintFrom=-1,idleHintTo=-1;
 function clearIdleHint(){
  if(idleHintTimer){clearTimeout(idleHintTimer);idleHintTimer=0;}
@@ -577,8 +577,9 @@ function trySwap(a,b){
   $("selectedInfo").textContent="Ingen matchning – prova ett annat byte.";
   // The rules did not consume a move. The animation is feedback only.
   sound("invalid");
-  void invalidSwapBounce(a,b);
-  restartIdleHint();
+  // Bounce holds busy=true until it settles. A timer restart during that
+  // interval was rejected by hintEligible(), leaving the hint disabled.
+  void invalidSwapBounce(a,b).finally(()=>restartIdleHint());
   return;
  }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
@@ -1629,7 +1630,7 @@ function bind(){
   if(R.neighbors(start.i).includes(destination)){selected=-1;trySwap(start.i,destination);}
  });
  // A click may open OR close a dialog: the final bubbling phase sees the
- // actual state, so resuming always starts a new full one-minute interval.
+ // actual state, so resuming always starts a new 30-second interval.
  document.addEventListener("click",()=>restartIdleHint());
  document.addEventListener("visibilitychange",()=>{
   if(document.hidden){disarmDecisionClock();clearIdleHint();}else{if(game&&!busy&&!$("gameView").hidden&&$("modal").hidden)armDecisionClock();restartIdleHint();}

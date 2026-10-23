@@ -1246,9 +1246,13 @@ try{
  await page.evaluate(()=>{
    window.__kineticAnimationCount=0;
    window.__gatherMotion=[];
+   window.__fusionBeadMotion=[];
    const realAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){
-     if(this.matches(".piece, .fusion-ghost, .pulse-dot"))window.__kineticAnimationCount++;
+     if(this.matches(".piece, .fusion-ghost, .pulse-dot, .fusion-flow-bead"))window.__kineticAnimationCount++;
+     if(this.matches(".fusion-flow-bead"))window.__fusionBeadMotion.push({
+      frames:args[0],duration:args[1]?.duration,delay:args[1]?.delay,easing:args[1]?.easing
+     });
      if(this.matches(".fusion-ghost")){
       const frames=args[0]||[],options=args[1]||{};
       const ghostRect=this.getBoundingClientRect();
@@ -1262,13 +1266,18 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
+   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
        if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.score++;
        if(node.classList.contains("score-trail-dot"))window.__scoreFxSeen.trail++;
        if(node.classList.contains("fusion-spark"))window.__scoreFxSeen.burst++;
+       if(node.classList.contains("fusion-flow-bead"))window.__scoreFxSeen.fusionFlow++;
+       if(node.classList.contains("fusion-afterglow-spark")){
+        window.__scoreFxSeen.fusionAfterglow++;
+        if(node.closest(".tile")?.getAttribute("aria-label")!=="Tom ruta")window.__scoreFxSeen.afterglowOnEmpty=false;
+       }
        if(node.classList.contains("harmony-firework-particle")){
         const shape=node.dataset.fireworkShape;
         if(shape==="flower")window.__scoreFxSeen.flowers++;
@@ -1323,6 +1332,24 @@ try{
   g.frames.slice(0,-1).every(k=>k.opacity===1)&&g.frames.at(-1).opacity>=.9&&
   g.frames.at(-1).offset===1),
   "A 3–5 match must use the restored 280ms gathering animation on its real board coordinates");
+
+ const beads=await page.evaluate(()=>window.__fusionBeadMotion);
+ assert(beads.length>=2&&beads.length<=8,
+  "Mobile fusion should transfer only a few tiny beads: "+beads.length);
+ assert(beads.every(b=>b.easing==="linear"&&b.duration+b.delay<=280&&
+  b.frames[0].opacity===0&&b.frames.at(-1).opacity===0&&
+  b.frames.some(f=>f.opacity>=.8)),
+  "Particles must follow the existing 280ms fusion without adding delays");
+ assert(gather.every(g=>{
+  const xs=g.frames.map(k=>Number(/translate3d\(([-\d.]+)px,/.exec(k.transform)?.[1]));
+  const ys=g.frames.map(k=>Number(/,([-\d.]+)px,0\)/.exec(k.transform)?.[1]));
+  if(xs.some(x=>!Number.isFinite(x))||ys.some(y=>!Number.isFinite(y)))return false;
+  const x0=xs[0],y0=ys[0],dist=Math.hypot(xs.at(-1)-x0,ys.at(-1)-y0);
+  return Math.abs(xs.at(-1)-x0)+Math.abs(ys.at(-1)-y0)>0&&
+   g.frames.every((k,i)=>i===0||k.offset>g.frames[i-1].offset)&&
+   xs.every((x,i)=>i===0||Math.hypot(x-x0,ys[i]-y0)>=
+    Math.hypot(xs[i-1]-x0,ys[i-1]-y0)-.5);
+ }),"Consumed sprites must smoothly converge without jumping backwards");
  assert(await page.evaluate(()=>!!window.__invalidMotion.length),"Rebound keyframes should have been recorded");
  await page.waitForFunction(previous=>Number((document.querySelector("#scoreCount")?.textContent||"").replace(/\D/g,""))>previous,{timeout:5000},beforePoints);
  // Count animation must finish with the earned amount, not stick on an
@@ -1332,6 +1359,12 @@ try{
  assert(scoreAfterTween>beforePoints,"Score must visibly count upward after the flying token arrives");
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
+ assert(fx.fusionFlow>=2&&fx.fusionFlow<=8,
+  "Tiny glow transfer beads must follow consumed sprites with a mobile budget: "+JSON.stringify(fx));
+ assert(fx.fusionAfterglow>=1&&fx.fusionAfterglow<=3&&fx.afterglowOnEmpty,
+  "Only a few actual empty cells should keep a short afterglow: "+JSON.stringify(fx));
+ assert.equal(await page.$eval(".fusion-flow-bead, .fusion-afterglow-spark",els=>els.length),0,
+  "All short-lived fusion particles should be removed by the end of the move");
  assert(fx.flowers>=1&&fx.diamonds>=1&&fx.stars>=1,
   "Every fusion needs glowing pink flowers, pearl-white crystals and golden stars: "+JSON.stringify(fx));
  assert.equal(fx.diamondColor,"rgb(255, 249, 238)",

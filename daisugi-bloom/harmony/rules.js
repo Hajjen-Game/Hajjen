@@ -31,22 +31,22 @@ function activeFamilies(index,count=5){
  return picked.slice(0,count===4?4:5);
 }
 const levels=[
- {name:"First Match",subtitle:"Början på resan",moves:12,par:7,goal:{type:"fusion",count:5},intro:"Byt två grannar och matcha tre föremål av samma familj."},
- {name:"Growing Beauty",subtitle:"Fem steg till ett mästerverk",moves:18,par:10,goal:{type:"stage3",count:3},intro:"Samma familj kan matchas oavsett utvecklingsstadium. Få tre föremål till stadium 3."},
- {name:"The Survivor",subtitle:"Välj den rätta vägen",moves:16,par:9,goal:{type:"stage4",count:1},intro:"Föremålet med högst stadium överlever på sin plats. Odla fram stadium 4."},
- {name:"First Masterpiece",subtitle:"Skapa något extraordinärt",moves:18,par:10,goal:{type:"masterpiece",count:1},intro:"Förädla ett föremål till stadium 5 för att skapa ditt första mästerverk."},
- {name:"Harmony Awakens",subtitle:"Låt utvecklingen sprida sig",moves:18,par:11,goal:{type:"pulseHits",count:3},intro:"Harmony Pulse utvecklar upptagna rutor ovanför, nedanför och vid sidan av mästerverket."},
- {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:20,par:12,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Skapa ett mästerverk från lykta-familjen. Övriga mästerverk ger fortfarande poäng."},
- {name:"Four of a Kind",subtitle:"Den fjärde gör skillnad",moves:18,par:11,goal:{type:"four",count:1},intro:"Matcha minst fyra i en fusion. En granne förädlas som bonus."},
- {name:"Garden in Bloom",subtitle:"Fem utvecklade föremål",moves:20,par:12,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3 med vanliga fusioner. T- och L-former är bonusar, inte ett krav."},
- {name:"Double Harmony",subtitle:"Varje mästerverk räknas",moves:20,par:12,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk under nivån. Harmony Pulse-kedjor ger fortfarande extra poäng."},
- {name:"Master of Harmony",subtitle:"Första kapitlets final",moves:24,par:15,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk på en och samma nivå."}
+ {name:"First Match",subtitle:"Början på resan",moves:24,par:7,goal:{type:"fusion",count:5},intro:"Byt två grannar och matcha tre föremål av samma familj."},
+ {name:"Growing Beauty",subtitle:"Fem steg till ett mästerverk",moves:36,par:10,goal:{type:"stage3",count:3},intro:"Samma familj kan matchas oavsett utvecklingsstadium. Få tre föremål till stadium 3."},
+ {name:"The Survivor",subtitle:"Välj den rätta vägen",moves:32,par:9,goal:{type:"stage4",count:1},intro:"Föremålet med högst stadium överlever på sin plats. Odla fram stadium 4."},
+ {name:"First Masterpiece",subtitle:"Skapa något extraordinärt",moves:36,par:10,goal:{type:"masterpiece",count:1},intro:"Förädla ett föremål till stadium 5 för att skapa ditt första mästerverk."},
+ {name:"Harmony Awakens",subtitle:"Låt utvecklingen sprida sig",moves:36,par:11,goal:{type:"pulseHits",count:3},intro:"Harmony Pulse utvecklar upptagna rutor ovanför, nedanför och vid sidan av mästerverket."},
+ {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:40,par:12,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Skapa ett mästerverk från lykta-familjen. Övriga mästerverk ger fortfarande poäng."},
+ {name:"Four of a Kind",subtitle:"Den fjärde gör skillnad",moves:36,par:11,goal:{type:"four",count:1},intro:"Matcha minst fyra i en fusion. En granne förädlas som bonus."},
+ {name:"Garden in Bloom",subtitle:"Fem utvecklade föremål",moves:40,par:12,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3 med vanliga fusioner. T- och L-former är bonusar, inte ett krav."},
+ {name:"Double Harmony",subtitle:"Varje mästerverk räknas",moves:40,par:12,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk under nivån. Harmony Pulse-kedjor ger fortfarande extra poäng."},
+ {name:"Master of Harmony",subtitle:"Första kapitlets final",moves:48,par:15,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk på en och samma nivå."}
 ];
 // A level number is enough to recreate its configuration. This is the one
 // reusable level recipe for all stages after the 10-level tutorial.
 function endlessConfig(index){
  const number=index+1,tier=Math.floor((index-10)/10);
- const moves=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
+ const moves=2*Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
  // Journey 6.6: actual mobile player records showed a sharp difficulty cliff
  // when the introductory 4-family board becomes 5 families on level 11.
  // Separate passing from star excellence. The first 5–10 Journey levels are
@@ -407,8 +407,13 @@ class Game{
    // once when continuing a pre-change level 8 save; preserve board and progress.
    if(this.level===7&&!previous.level8Revision&&!this.complete&&!this.failed)
     this.moves=Math.min(this.config.moves,Math.max(0,this.moves)+4);
+   // Moves Expansion 1.0: continuing older sessions receive their original
+   // turn budget once. Preserve existing board, progress and RNG state.
+   if(!previous.movesExpansionVersion&&this.moves>0&&!this.failed)
+    this.moves=Math.min(this.config.moves,this.moves+this.config.moves/2);
   }
   this.level8Revision=this.level===7?1:0;
+  this.movesExpansionVersion=1;
  }
  fresh(){this.rolls++;return this.random();}
  nextFamily(board=null,index=-1){
@@ -642,7 +647,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision};}
+ save(){return {familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

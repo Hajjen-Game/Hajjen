@@ -285,11 +285,42 @@ function renderCollection(counts,awards=[]){
   }
  }
 }
+// Visual Harmony VFX 2.0: small shared celebration accents for rewards which
+// do not already use the full fusionFirework (Echo, Pulse and Collection).
+// Same pink/pearl/champagne/gold alphabet. Two or three short-lived glyphs;
+// no duplicate firework, game RNG, state mutation or permanent particle system.
+const REWARD_ACCENT_SHAPES=Object.freeze([
+ ["star","✦"],["diamond","◆"],["flower","✿"]
+]);
+function rewardAccentAt(x,y,kind){
+ if(FAST()||document.hidden||!Element.prototype.animate||fxCount()>=(MOBILE_LITE?32:66))return;
+ const count=LITE_FX()?2:3;
+ const radius=kind==="collection"?21:kind==="pulse"?20:26;
+ for(let i=0;i<count;i++){
+  if(fxCount()>=(MOBILE_LITE?36:72))break;
+  const [shape,glyph]=REWARD_ACCENT_SHAPES[i];
+  const node=fxAt("harmony-reward-accent harmony-"+shape+" harmony-accent-"+kind,x,y,glyph);
+  node.setAttribute("aria-hidden","true");
+  const a=(i/count)*Math.PI*2-.8;
+  const dx=Math.cos(a)*radius,dy=Math.sin(a)*radius;
+  animateNode(node,[
+   {transform:"translate3d(0,2px,0) scale(.35)",opacity:0,offset:0},
+   {transform:"translate3d("+(dx*.28)+"px,"+(dy*.28)+"px,0) scale(1.17)",opacity:.97,offset:.27},
+   {transform:"translate3d("+(dx*.72)+"px,"+(dy*.72-2)+"px,0) scale(.93)",opacity:.89,offset:.57},
+   {transform:"translate3d("+dx+"px,"+(dy-5)+"px,0) scale(.30)",opacity:0,offset:1}
+  ],kind==="echo"?560:kind==="collection"?485:450,
+  {easing:"cubic-bezier(.18,.6,.3,1)"}).finally(()=>node.remove());
+ }
+}
 async function celebrateCollection(evt){
  renderCollection(evt.familyMasterpieces,evt.awards||[]);
  const tasks=[];
  for(const award of evt.awards||[]){
   const card=collectionCards.get(award.family);if(!card)continue;
+  if(award===evt.awards[0]&&!FAST()){
+   const r=card.querySelector(".collection-icon")?.getBoundingClientRect();
+   if(r&&r.width)rewardAccentAt(r.left+r.width*.5,r.top+r.height*.52,"collection");
+  }
   if(!FAST()&&award.points){
    const popup=document.createElement("span");popup.className="collection-bonus";
    popup.textContent="+"+prettify(award.points);card.append(popup);
@@ -1115,6 +1146,11 @@ function pulseLandingCues(targets){
    {transform:"scale(1.45)",opacity:0,offset:1}
   ],350).finally(()=>node.remove());
  }
+ // One restrained celebratory accent for the entire wave; NOT every tile.
+ if(positions.length){
+  const r=indexRect(positions[0]);
+  rewardAccentAt(r.left+r.width/2,r.top+r.height/2,"pulse");
+ }
 }
 async function animateEcho(evt){
  sound("echo",{family:evt.family,stage:evt.stage});
@@ -1144,6 +1180,7 @@ async function animateEcho(evt){
  ring.style.width=Math.round(rect.width*1.34)+"px";
  ring.style.height=Math.round(rect.height*1.34)+"px";
  const label=fxAt("resonance-echo-label",x,y-Math.min(24,rect.height*.48),"✦ HARMONY ECHO");
+ rewardAccentAt(x,y,"echo");
  await Promise.all([
   animateNode(ring,[
    {transform:"scale(.40)",opacity:0,offset:0},

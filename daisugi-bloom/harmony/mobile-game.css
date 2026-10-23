@@ -1523,3 +1523,182 @@ body.harmony-reduced-motion .fusion-spark.harmony-firework-particle,
 body.harmony-reduced-motion .evo-family.harmony-evolution,
 body.harmony-reduced-motion .fusion-ring.harmony-firework-ring,
 body.harmony-reduced-motion .fusion-core.harmony-firework-core{display:none!important}
+
+/* =====================================================================
+   VISUAL HARMONY VFX 2.0 — common reward art direction
+   Champagne-gold energy + pearl-white glints + restrained Sakura pink.
+   Shared across score, stages, Masterpieces, Echo, Pulse, Resonance, hints,
+   collection and selection. Movement grammar remains EVENT-SPECIFIC.
+   The existing Firework VFX 1.1 stays the primary fusion celebration.
+   ===================================================================== */
+body.harmony-playing{
+ --jh-vfx-gold:#f8d48d;
+ --jh-vfx-champagne:#ffe3ac;
+ --jh-vfx-pearl:#fff9ee;
+ --jh-vfx-sakura:#ffafd2;
+ --jh-vfx-shadow:rgba(229,167,75,.48);
+}
+/* Echo = focused warm contact, Pulse = traveling pale-gold energy, Masterpiece
+   = full golden coronation. Avoid the older saturated blue/mint color split. */
+body.harmony-playing .game-view .resonance-link{
+ background:linear-gradient(90deg,rgba(235,208,151,.20) 0%,rgba(255,239,200,.87) 40%,rgba(246,196,113,.92) 75%,rgba(241,203,146,.27) 100%);
+ box-shadow:0 0 6px 1px rgba(252,222,159,.34),0 0 13px rgba(242,188,99,.16);
+}
+body.harmony-playing .game-view .resonance-link::after{
+ background:linear-gradient(90deg,transparent,rgba(255,247,226,.98),rgba(255,212,148,.92),transparent);
+ box-shadow:0 0 8px 1px rgba(255,234,186,.69),0 0 13px rgba(247,181,111,.28);
+}
+body.harmony-playing .game-view .resonance-link.mature{
+ box-shadow:0 0 8px 1px rgba(255,226,161,.44),0 0 15px rgba(246,202,135,.24);
+}
+body.harmony-playing .game-view .tile.resonance-awakening::before{
+ border-color:rgba(255,233,182,.88);
+ background:radial-gradient(ellipse at center,rgba(255,238,190,.43),rgba(255,197,163,.11) 53%,transparent 77%);
+ box-shadow:inset 0 0 11px rgba(255,236,194,.37),0 0 12px rgba(247,206,133,.35);
+}
+body.harmony-playing .game-view .tile.resonance-anchor:not(.selected){
+ box-shadow:inset 0 0 0 1.2px rgba(251,221,165,.67),
+ inset 0 0 14px rgba(248,214,154,.13),0 0 6px rgba(246,205,142,.11);
+}
+body.harmony-playing .game-view .tile.resonance-anchor::after{
+ background:radial-gradient(circle,#fff9e8,#f6cb82 70%,#d5a76b);
+ box-shadow:0 0 7px 1px rgba(255,222,160,.74),0 0 12px rgba(249,183,129,.22);
+}
+.resonance-collapse-beam{
+ background:linear-gradient(90deg,rgba(255,241,204,0),rgba(255,236,189,.91),rgba(255,251,233,.97));
+ box-shadow:0 0 7px rgba(255,231,171,.65),0 0 11px rgba(246,197,121,.25);
+}
+.resonance-echo-ring{
+ border:2px solid rgba(255,232,171,.95);
+ background:radial-gradient(circle,rgba(255,236,174,.15),transparent 72%);
+ box-shadow:0 0 0 2px rgba(255,236,188,.15),0 0 15px 4px rgba(253,214,138,.30),inset 0 0 11px rgba(255,248,221,.21);
+}
+.resonance-echo-label{
+ color:var(--jh-vfx-pearl,#fff9ee);
+ border-color:rgba(255,224,164,.73);
+ text-shadow:0 0 7px rgba(255,216,149,.49);
+ box-shadow:0 0 9px rgba(251,203,129,.18);
+}
+/* Directed Pulse keeps its readable source→target distinction, but the
+   light no longer turns mint-green in the middle of the same reward chain. */
+.pulse-source-halo{
+ border:2.5px solid rgba(255,236,188,.96);
+ background:radial-gradient(circle,rgba(255,249,221,.52),rgba(250,208,127,.19) 46%,transparent 76%);
+ box-shadow:0 0 11px rgba(253,212,142,.56);
+}
+.fusion-fx-layer .pulse-dot{
+ background:radial-gradient(circle at 35% 30%,#fffdf4 0%,#ffe9b7 36%,#efbd78 75%);
+ box-shadow:0 0 9px rgba(255,226,167,.72);
+}
+.pulse-trace{
+ height:4px;
+ background:linear-gradient(90deg,rgba(249,202,141,.65),#fff7dd 48%,#ffd68e);
+ box-shadow:0 0 7px rgba(255,228,169,.68);
+}
+.pulse-target-hit{
+ border:2px solid rgba(255,233,181,.91);
+ background:radial-gradient(circle,rgba(255,250,225,.47),rgba(255,222,168,.16) 51%,transparent 75%);
+ box-shadow:0 0 10px rgba(253,212,149,.54);
+}
+/* Both the existing Sakura-inspired fusion and the ordinary family's intake
+   use the same golden foundation, irrespective of tile art. */
+.fusion-intake[class*="intake-"],.harvest-release{
+ border:2px solid rgba(255,229,164,.91);
+ background:radial-gradient(circle,rgba(255,246,215,.43),rgba(255,210,141,.20) 42%,transparent 75%);
+ box-shadow:0 0 9px rgba(251,202,120,.48),inset 0 0 7px rgba(255,243,207,.25);
+}
+.evolution-stage-label{
+ color:#fff8e6;
+ border-color:rgba(248,218,161,.88);
+ background:linear-gradient(140deg,rgba(23,55,60,.95),rgba(53,61,51,.93));
+ box-shadow:0 0 9px rgba(244,193,102,.20);
+ text-shadow:0 0 6px rgba(244,197,121,.32),0 1px 1px #27353a;
+}
+/* Score sparks are a trail of small pearl points embedded in warm gold.
+   Leave the arc and score interpolation unchanged; they communicate value. */
+.score-flight-token{
+ border-color:rgba(252,213,145,.95);
+ color:#fff9ed;
+ box-shadow:0 2px 12px rgba(14,34,42,.49),0 0 11px rgba(244,200,120,.46);
+ text-shadow:0 0 6px rgba(255,231,185,.28),0 1px 3px #102a37;
+}
+.score-trail-dot{
+ background:#f9d68c;
+ box-shadow:0 0 7px 1px rgba(250,205,122,.81);
+}
+.score-trail-dot.bright{
+ background:#fffaf0;
+ box-shadow:0 0 8px 2px rgba(255,225,165,.89);
+}
+.score-impact-ring{
+ border-color:rgba(255,222,161,.94);
+ background:radial-gradient(circle,rgba(255,237,195,.15),transparent 72%);
+ box-shadow:0 0 11px rgba(247,202,121,.62);
+}
+.score-arrival-glint{
+ color:#fff9ed;
+ text-shadow:0 0 4px #fffdf4,0 0 8px #f9cc85,0 0 15px rgba(232,164,79,.72);
+}
+/* Celebrations retain distinct words and three separate premium intensities,
+   but use a consistent typographic face, champagne rim and rose accents. */
+body.harmony-playing .game-view .board-praise-word.praise-echo{
+ --praise-face:#fff7e6;
+ --praise-glow:rgba(248,211,150,.76);
+ --praise-wash:rgba(255,185,194,.29);
+}
+body.harmony-playing .game-view .board-praise-word.praise-pulse{
+ --praise-face:#ffead0;
+ --praise-glow:rgba(247,208,147,.76);
+ --praise-wash:rgba(243,195,132,.33);
+}
+body.harmony-playing .game-view .board-praise-word.praise-masterpiece{
+ --praise-face:#ffe5a3;
+ --praise-glow:rgba(253,214,136,.88);
+ --praise-wash:rgba(243,169,76,.42);
+}
+body.harmony-playing .game-view .board-praise-word{
+ -webkit-text-stroke:.45px rgba(255,252,237,.68);
+ text-shadow:0 3px 2px rgba(9,27,34,.92),0 0 9px var(--praise-glow),0 0 20px var(--praise-glow);
+}
+/* Collection counts and earned bonuses celebrate in the same gold as score
+   arrival; the artwork itself never blurs or pulses continuously. */
+.collection-card.collected .collection-count,
+.collection-awarded .collection-count{
+ border-color:#f9df9f;
+ color:#fff7e6;
+ box-shadow:0 0 10px rgba(246,193,100,.52),inset 0 1px rgba(255,251,229,.24);
+}
+.collection-bonus{
+ color:#fff8df;
+ border-color:rgba(247,215,153,.91);
+ background:rgba(24,53,56,.96);
+ box-shadow:0 0 11px rgba(250,197,106,.38);
+ text-shadow:0 0 5px rgba(251,211,143,.33);
+}
+.game-view .combo[data-tier="2"]{border-color:#e7c68d;color:#fff1d1}
+.game-view .combo[data-tier="4"]{background:rgba(55,61,55,.91);border-color:#ffe1a4}
+/* Only an Echo/Pulse/Collection celebration receives these very small accents.
+   A fusion already owns a full Firework 1.1 and gets no duplicate sparkles. */
+.harmony-reward-accent{
+ position:absolute;display:block;translate:-50% -50%;
+ pointer-events:none;user-select:none;
+ font-family:system-ui,"Segoe UI Symbol",sans-serif;
+ font-size:17px;line-height:17px;font-weight:900;text-align:center;
+ width:17px;height:17px;
+ background:transparent;
+ will-change:transform,opacity;
+}
+.harmony-reward-accent.harmony-star{
+ color:#ffe0a2;
+ text-shadow:0 0 3px #fff8db,0 0 9px #fbd187,0 0 15px rgba(238,169,69,.78);
+}
+.harmony-reward-accent.harmony-diamond{
+ color:#fff9ee;
+ text-shadow:0 0 4px #fff,0 0 9px #ffeed0,0 0 14px rgba(220,179,109,.80);
+}
+.harmony-reward-accent.harmony-flower{
+ color:#ffafd2;
+ text-shadow:0 0 4px #fff3f9,0 0 8px #ffa1c4,0 0 14px rgba(232,104,149,.78);
+}
+@media(prefers-reduced-motion:reduce){.harmony-reward-accent{display:none!important}}
+body.harmony-reduced-motion .harmony-reward-accent{display:none!important}

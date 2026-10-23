@@ -1,5 +1,21 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Visual Harmony VFX 2.0 — 2026-10-23
+
+**Samlat visuellt poleringspass för alla återstående belöningsanimationer**, med Harmony Firework 1.1:s godkända guld/pearl/rosa Sakura-palett som gemensam referens. Alla spelmekaniker och befintliga familjeikoner är oförändrade.
+
+- **Harmony Resonance:** De långsamma energitrådarna är nu pärlvita och champagneguld i stället för mintgröna, med subtil glittrande topp. Nya Echo-möjligheter får en varm ljuspuls utan extra otydligt blått.
+- **Harmony Echo:** Kort kollapsande varm energitråd, tydligare guldig ring, pärlvit text och tre små matchande glints (rosa blomma, pärlvit diamant, guldstjärna).
+- **Harmony Pulse:** Källringar, riktade energistrålar och träffarna använder varm guld/pearl. En enda begränsad trio glints för hela vågen, inte en explosion på varje mål.
+- **Poäng/utveckling:** Flygande poängpiller, svanspartiklar, poängräknarens träffring och stadium-markeringen har samma gyllene sken, medan själva poängräkningen och banrörelsen är oförändrade.
+- **Masterpiece/Collection:** Befintlig stora guldexplosion används oförändrad; collection-utmärkelsen och dess poängbonus får samma guldrim och tre diskreta glints.
+- **Poppande text:** Endast de redan godkända händelserna Echo, Pulse och Masterpiece använder poppande ord. Blå/mintgröna textglöd har ersatts med eleganta varma variationer. Ingen extra vanlig matchtext har lagts till.
+- **Kollision/inkomst:** Tillfälliga kontaktcirklar under alla objekt har en gyllene gemensam bas; objekten och deras animationer förblir identifierbara.
+
+Nya accent-glints använder samma tre symboler som Firework 1.1, har egna längd-/partikelbegränsningar, skapas bara vid sällsynta händelser och tas bort automatiskt efter under en sekund. *Minska animationer* och OS-reducerad rörelse respekteras. Tester kontrollerar både den gemensamma CSS-paletten och Echo/Pulse i riktiga mobilomgångar.
+
+Se [Visual Harmony VFX 2.0 – detaljer och QA](docs/JAPANESE_HARMONY_VISUAL_HARMONY_VFX_2_0.md).
+
 ## Harmony Firework VFX 1.1 — 2026-10-23
 
 Efter speltest har den **ljusblå diamanten ersatts av pärlvitt med varm champagne-guldglöd**. Mini-fyrverkeriet behåller en rosa blomma och en tydligt guldig stjärna. Symbolerna är något större och den gyllene ringen, ljuspulsen och pop-rörelsen något tydligare, utan fler partiklar eller längre tunga animationer. Samma tillgänglighets- och mobilbegränsningar gäller.

@@ -324,9 +324,16 @@ try{
   await praisePage.click("#continueButton");
   await praisePage.evaluate(()=>{
    window.__masterpieceFireworks={big:0,flowers:0,diamonds:0,stars:0};
+   window.__rewardAccents={echo:0,pulse:0,collection:0,shapes:[]};
    window.__masterpieceObserver=new MutationObserver(records=>{
     for(const rec of records)for(const node of rec.addedNodes){
      if(node.nodeType!==1||!node.classList)continue;
+     if(node.classList.contains("harmony-reward-accent")){
+      for(const kind of ["echo","pulse","collection"])
+       if(node.classList.contains("harmony-accent-"+kind))window.__rewardAccents[kind]++;
+      for(const shape of ["star","diamond","flower"])
+       if(node.classList.contains("harmony-"+shape))window.__rewardAccents.shapes.push(shape);
+     }
      if(node.classList.contains("harmony-firework-particle")&&node.classList.contains("harmony-masterpiece")){
       window.__masterpieceFireworks.big++;
       const shape=node.dataset.fireworkShape;
@@ -360,7 +367,7 @@ try{
    window.__masterpieceObserver.disconnect();
    const root=document.querySelector("#boardPraise");
    const word=root.querySelector(".board-praise-word");
-   return {seen:window.__praiseWordsSeen,maxOverlap:window.__praiseMaxOverlap,fireworks:window.__masterpieceFireworks,
+   return {seen:window.__praiseWordsSeen,maxOverlap:window.__praiseMaxOverlap,fireworks:window.__masterpieceFireworks,accents:window.__rewardAccents,
     hitTest:getComputedStyle(root).pointerEvents,
     ariaHidden:root.getAttribute("aria-hidden"),
     animation:word?getComputedStyle(word).animationName:"",
@@ -374,6 +381,10 @@ try{
   assert(praise.animation.includes("harmony-praise-pop"),"Words require a real pop animation");
   assert(!praise.oldChip,"The old small reward chip must not remain");
   assert(fixture.includes("echo")&&fixture.includes("hero")&&fixture.includes("pulse"));
+  assert(praise.accents.echo>=1&&praise.accents.pulse>=1,
+   "Real Echo and Pulse need small matching celebration accents: "+JSON.stringify(praise.accents));
+  assert(praise.accents.shapes.includes("diamond")&&praise.accents.shapes.includes("flower"),
+   "Echo/Pulse accents must share the pearl, Sakura and gold language");
   assert(praise.fireworks.big>=5&&praise.fireworks.flowers>=1&&
    praise.fireworks.diamonds>=1&&praise.fireworks.stars>=1,
    "A real Masterpiece must launch the stronger tri-color mini-firework: "+JSON.stringify(praise.fireworks));

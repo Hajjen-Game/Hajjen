@@ -106,16 +106,41 @@ assert.equal(visible.length,0,"Leaving the board must remove any active word");
 assert(!praiseCode.includes("VACKERT!")&&!praiseCode.includes("HARMONI!"),
  "Ordinary fusion labels must no longer appear in the praise system");
 
+// Visual Harmony 2.0: a common art direction without collapsing the
+// different event semantics into one giant spark explosion.
+const polish=css.slice(css.indexOf("VISUAL HARMONY VFX 2.0"));
+assert(polish.includes("--jh-vfx-pearl:#fff9ee")&&
+ polish.includes("--jh-vfx-sakura:#ffafd2")&&
+ polish.includes("--jh-vfx-champagne:#ffe3ac"),
+ "Reward colors must share the warm Firework VFX identity");
+for(const selector of [".resonance-link::after",".pulse-trace",
+ ".pulse-target-hit",".score-flight-token",".collection-bonus",
+ ".board-praise-word.praise-echo",".board-praise-word.praise-pulse",
+ ".board-praise-word.praise-masterpiece",".fusion-intake[class*="]){
+ assert(polish.includes(selector),"Unpolished visual subsystem: "+selector);
+}
+for(const shape of ["star","diamond","flower"]){
+ assert(polish.includes(".harmony-reward-accent.harmony-"+shape),
+  "Echo/Pulse/Collection shared symbols missing: "+shape);
+}
+assert(script.includes('rewardAccentAt(x,y,"echo")'),
+ "Harmony Echo needs one restrained shared accent");
+assert(script.includes('rewardAccentAt(r.left+r.width/2,r.top+r.height/2,"pulse")'),
+ "Harmony Pulse needs one restrained shared accent");
+assert(script.includes('rewardAccentAt(r.left+r.width*.5,r.top+r.height*.52,"collection")'),
+ "Masterpiece collection needs shared reward accents");
+
 const directed=part("function pulseBeams(evt){","async function animateEvent(evt){");
 const travel=[];
 let cleaned=false;
-const makeBeams=new Function("FAST","MOBILE_LITE","indexRect","fxAt","makeFxLayer","document","animateNode","boardTiles","Element","sound","LITE_FX",
+const makeBeams=new Function("FAST","MOBILE_LITE","indexRect","fxAt","makeFxLayer","document","animateNode","boardTiles","Element","sound","LITE_FX","rewardAccentAt",
  directed+"return {pulseBeams,pulseLandingCues};");
 const {pulseBeams,pulseLandingCues}=makeBeams(()=>false,true,indexRect,
  name=>{travel.push(name);return {style:{},remove(){}};},
  ()=>({rect:{left:0,top:0},node:{appendChild(node){travel.push(node.className)},remove(){cleaned=true}}}),
  {createElement:()=>({style:{},className:""})},
- ()=>Promise.resolve(),boardTiles,{prototype:{animate(){}}},()=>{},()=>false);
+ ()=>Promise.resolve(),boardTiles,{prototype:{animate(){}}},()=>{},()=>false,
+ (...args)=>travel.push("reward-accent:"+args.at(-1)));
 const targets=Array.from({length:40},(_,i)=>({from:i%3,to:(i*2+5)%49}));
 async function run(){
  await pulseBeams({targets});
@@ -125,6 +150,8 @@ async function run(){
  assert(cleaned,"Pulse temporary layer must always be released");
  pulseLandingCues(targets);
  assert.equal(travel.filter(x=>x==="pulse-target-hit").length,3,"Three clear target impacts on mobile");
+ assert.equal(travel.filter(x=>x==="reward-accent:pulse").length,1,
+  "One subtle pearl/rose/gold accent per Pulse wave, not per target");
 
  const eventCode=part("async function animateEvent(evt){","async function playEvents(events){");
  const order=[];

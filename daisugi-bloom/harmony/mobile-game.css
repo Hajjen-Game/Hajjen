@@ -2410,30 +2410,6 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile .pulse-anticipation
   animation:none!important;
 }
 
-/* FUSION FLOW & GLOW PARTICLES 1.0 · 2026-10-23
-   Travelling points share the existing fusion FX layer and 280ms movement.
-   Their small fixed paint and compositor-only transforms keep mobile load
-   bounded. Nothing is rendered as a full-board layer or looping emitter. */
-body.harmony-playing .game-view .fusion-fx-layer .fusion-flow-bead{
-  position:absolute;
-  display:block;
-  width:5px;
-  height:5px;
-  margin:-2.5px 0 0 -2.5px;
-  border-radius:50%;
-  background:radial-gradient(circle at 38% 35%,#fffdf1 0%,#ffe4af 43%,#edbc78 74%,transparent 100%);
-  box-shadow:0 0 4px 1px rgba(255,216,147,.55);
-  pointer-events:none;
-  opacity:0;
-  will-change:transform,opacity;
-}
-body.harmony-playing .game-view .fusion-fx-layer .fusion-flow-bead.fusion-flow-strong{
-  width:6px;
-  height:6px;
-  margin:-3px 0 0 -3px;
-  background:radial-gradient(circle at 40% 36%,#fffefa 0%,#ffe6b2 40%,#edae6a 74%,transparent 100%);
-  box-shadow:0 0 5px 1px rgba(255,214,133,.65);
-}
 /* SPARKLING VACATED CELLS 1.1
    Each removed object leaves several small twinkles in separate positions.
    Pearly gold / warm Sakura pinpoints briefly brighten twice. Zero wide glow

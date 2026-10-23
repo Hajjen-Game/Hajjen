@@ -61,28 +61,30 @@ async function main(){
  const travel=samples.filter(x=>x.duration===280);
  assert.equal(travel.length,3,"Two source ghosts plus one survivor anticipation");
  assert.equal(events.filter(x=>x[0]==="ghost").length,2);
- const flow=samples.filter(x=>x.kind.includes("fusion-flow-bead"));
- assert.equal(flow.length,2,"A 3-match should emit one lightweight energy bead per consumed source");
- assert(flow.every(x=>x.options.easing==="linear"&&x.duration+x.options.delay<=280),
-  "Glow transfer must fit inside the unchanged 280ms fusion");
+ assert.equal(samples.filter(x=>x.kind.includes("fusion-flow-bead")).length,0,
+  "Original fusion motion must not include any travelling Flow Polish beads");
+ assert.equal(k[1].transform,"translate3d(0px,0px,0) scale(1.075)",
+  "Fusion motion must match the pre-Flow Polish pickup keyframe");
  assert.equal(events.filter(x=>x[0]==="afterglowAdded").length,12,
   "Both vacated cells should each receive SIX scattered sparkles");
- assert(events.filter(x=>x[0]==="sparkRemoved").length>=14,
-  "Travelling and sparkle particles must clean up");
+ assert(events.filter(x=>x[0]==="sparkRemoved").length>=12,
+  "Independent sparkle particles must always clean up");
  const twinkles=samples.filter(x=>x.kind.includes("fusion-afterglow-spark"));
  assert.equal(twinkles.length,12);
- assert(twinkles.every(x=>x.frames.length===6&&
-  x.frames.filter(frame=>frame.opacity>=.95).length>=2&&
-  x.frames.at(-1).opacity===0&&x.duration+x.options.delay<=260),
-  "Vacated cells must twinkle in two distinct flashes within the existing sequence");
+ assert(new Set(twinkles.map(x=>x.options.delay)).size>=4,
+  "Glitter must start at several distinct moments instead of flashing at once");
+ assert(twinkles.every(x=>x.frames.length===5&&x.options.easing==="ease-in-out"&&
+  x.frames.at(-1).opacity===0&&x.duration+x.options.delay<=240&&
+  Math.max(...x.frames.map(frame=>frame.opacity))<=.88),
+  "Sparkles must gently brighten and fade once, finishing within the fusion impact");
 
  const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
  const render=events.findIndex(e=>e[0]==="render");
  assert(lastGather>=0&&render>lastGather,"Survivor stage must update only after visible gathering");
  assert.equal(pieces[15].style.visibility,"","Source visibility must be restored");
  assert.equal(pieces[16].style.visibility,"","Source visibility must be restored");
- assert(events.some(e=>e[0]==="fx"&&e[1]==="fusion-intake intake-koi"),
-  "Fusion collision should produce a family-colored contact cue");
+ assert(!events.some(e=>e[0]==="fx"&&e[1].startsWith("fusion-intake")),
+  "Ordinary fusions must NOT add the unwanted expanding contact circle");
 
  // 4.3.4 retains the exact 280ms tempo for every 3–5-piece fusion, and
  // multiple groups resolve together. Positioning is verified separately by
@@ -97,10 +99,8 @@ async function main(){
   const motion=samples.slice(initial).filter(x=>x.duration===280);
   assert.equal(motion.length,n,"All "+n+" matched pieces must share the fast 280ms clock");
   assert(motion.every(x=>x.frames.at(-1).offset===1));
-  const additions=samples.slice(initial).filter(x=>x.kind.includes("fusion-flow-bead"));
-  assert(additions.length>=n-1&&additions.length<=8,
-   "A "+n+"-piece fusion must use a capped number of energy beads");
-  assert(additions.every(x=>x.duration+x.options.delay<=280));
+  assert(samples.slice(initial).every(x=>!x.kind.includes("fusion-flow-bead")),
+   "All 3/4/5-object fusions must keep their original motion and no travelling beads");
 
  }
  const initial=samples.length;
@@ -110,8 +110,8 @@ async function main(){
  ]});
  assert.equal(samples.slice(initial).filter(x=>x.duration===280).length,8,
   "Parallel 3+5 groups must complete together at the restored 280ms speed");
- assert(samples.slice(initial).filter(x=>x.kind.includes("fusion-flow-bead")).length<=8,
-  "Parallel fusion groups share one strict 8-particle mobile budget");
+ assert.equal(samples.slice(initial).filter(x=>x.kind.includes("fusion-flow-bead")).length,0,
+  "Parallel groups must also use only the original fusion movement");
 
 
  // Harvest previously shrank objects to 15% over 150ms: almost invisible.

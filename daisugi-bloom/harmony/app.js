@@ -1022,6 +1022,7 @@ function flipMove(previous,next,type){
  });
  return Promise.all(tasks);
 }
+// Fusion Flow Polish 1.0: smooth 280ms absorption + lightweight travel sparks.
 // Fusion 4.3.1 — physical absorption instead of fading away in transit.
 // The sprite remains fully opaque until it reaches the survivor; the
 // upgraded art is revealed only AFTER every source has visibly arrived.
@@ -1038,12 +1039,63 @@ function fusionGatherFrames(dx,dy){
  });
  return [
   at(0,1,1,0),
-  at(0,1.075,1,.13),         // small anticipation: player sees who will move
-  at(.35,1.0,1,.47),          // travel at full visibility
-  at(.80,.86,1,.79),         // begins to converge near survivor
-  at(.98,.66,1,.94),         // remains clearly recognizable almost at contact
-  at(1,.49,.92,1)            // final absorbed at the exact target location
+  at(.028,1.04,1,.12),       // gentle pickup
+  at(.30,1.01,1,.36),        // smooth acceleration
+  at(.735,.88,1,.67),        // uninterrupted travel
+  at(.96,.65,1,.91),         // decelerate near contact
+  at(1,.52,.94,1)           // final absorption at survivor
  ];
+}
+// Small glowing beads run beside the actual consumed sprites. Mobile budget
+// is global per fusion event; they reuse the moving ghost layer and finish
+// within the existing 280ms. No canvas, CSS blur animation, or extra delays.
+function fusionFlowBeads(group,from,to,layer,remainingBudget){
+ if(FAST()||document.hidden||!Element.prototype.animate||remainingBudget<=0)return [];
+ const count=Math.min(group.number>=5?3:group.number===4?2:1,remainingBudget);
+ const tasks=[],dx=to.left-from.left,dy=to.top-from.top;
+ const distance=Math.max(1,Math.hypot(dx,dy));
+ const x=from.left-layer.rect.left+from.width*.5;
+ const y=from.top-layer.rect.top+from.height*.5;
+ for(let i=0;i<count;i++){
+  const bead=document.createElement("span");
+  bead.className="fusion-flow-bead"+(group.number>=5?" fusion-flow-strong":"");
+  bead.setAttribute("aria-hidden","true");
+  bead.style.left=x+"px";bead.style.top=y+"px";
+  layer.node.append(bead);
+  const sway=(i%2===0?1:-1)*(3.5+i*.85);
+  const bx=dy/distance*sway,by=-dx/distance*sway;
+  const delay=9+i*21,duration=265-delay;
+  tasks.push(animateNode(bead,[
+   {transform:"translate3d(0,0,0) scale(.4)",opacity:0,offset:0},
+   {transform:"translate3d("+(dx*.20+bx)+"px,"+(dy*.20+by)+"px,0) scale(.95)",opacity:.85,offset:.29},
+   {transform:"translate3d("+(dx*.69+bx*.7)+"px,"+(dy*.69+by*.7)+"px,0) scale(.8)",opacity:.92,offset:.73},
+   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.25)",opacity:0,offset:1}
+  ],duration,{delay,easing:"linear"}).finally(()=>bead.remove()));
+ }
+ return tasks;
+}
+// Barely visible afterglow on a few truly vacated positions. Finishes inside
+// the existing 215ms survivor impact before gravity or refills can begin.
+function fusionAfterglow(groups,board){
+ if(FAST()||document.hidden||!Element.prototype.animate)return;
+ let remaining=LITE_FX()?1:MOBILE_LITE?3:5;
+ for(const group of groups){
+  for(const at of group.removed){
+   if(remaining<=0)return;
+   if(board[at]||!boardTiles[at])continue;
+   remaining--;
+   const spark=document.createElement("span");
+   spark.className="fusion-afterglow-spark";
+   spark.setAttribute("aria-hidden","true");
+   boardTiles[at].append(spark);
+   const drift=(remaining%2===0?1:-1)*4;
+   animateNode(spark,[
+    {transform:"translate3d(-50%,-50%,0) scale(.65)",opacity:0,offset:0},
+    {transform:"translate3d(-50%,-50%,0) scale(1.05)",opacity:.72,offset:.32},
+    {transform:"translate3d(calc(-50% + "+drift+"px),calc(-50% - 5px),0) scale(.35)",opacity:0,offset:1}
+   ],155,{easing:"ease-out"}).finally(()=>spark.remove());
+  }
+ }
 }
 function fusionIntake(groups){
  if(FAST()||!Element.prototype.animate)return;
@@ -1066,15 +1118,16 @@ async function playFusion(evt){
  const groups=evt.groups||[];
  if(!FAST()&&groups.length){
   const layer=makeFxLayer(),hidden=[],tasks=[];
+  let beadBudget=LITE_FX()?4:MOBILE_LITE?8:16;
   try{
    for(const group of groups){
     const survivor=boardTiles[group.at]?.querySelector(".piece");
     if(survivor)tasks.push(animateNode(survivor,[
      {transform:"scale(1)",offset:0},
-     {transform:"scale(.91)",offset:.24},
-     {transform:"scale(1.10)",offset:.85},
-     {transform:"scale(.96)",offset:1}
-    ],280,{easing:"cubic-bezier(.26,.3,.65,1)"}));
+     {transform:"scale(.97)",offset:.25},
+     {transform:"scale(1.055)",offset:.79},
+     {transform:"scale(1)",offset:1}
+    ],280,{easing:"ease-in-out"}));
     for(const i of group.removed){
      const original=boardTiles[i]?.querySelector(".piece");
      if(!original)continue;
@@ -1091,7 +1144,12 @@ async function playFusion(evt){
      original.style.visibility="hidden";
      tasks.push(animateNode(ghost,
       fusionGatherFrames(to.left-from.left,to.top-from.top),
-      280,{easing:"cubic-bezier(.34,.16,.72,1)"}));
+      280,{easing:"linear"}));
+     if(beadBudget>0){
+      const beads=fusionFlowBeads(group,from,to,layer,beadBudget);
+      beadBudget-=beads.length;
+      tasks.push(...beads);
+     }
     }
    }
    await Promise.all(tasks);
@@ -1107,12 +1165,13 @@ async function playFusion(evt){
  // Contact is the boundary between moving sources and new survivor stage.
  // The existing fusion effects are kept deliberately subtle.
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
+ fusionAfterglow(groups,evt.board);
  fusionIntake(groups);
  fusionBurst(groups.map(g=>g.at),groups);
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
-  {transform:"translate3d(0,1px,0) scale(.80)",opacity:.9,offset:0},
-  {transform:"translate3d(0,-2px,0) scale(1.13)",opacity:1,offset:.58},
-  {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
+  {transform:"translate3d(0,1px,0) scale(.87)",opacity:.95,offset:0},
+  {transform:"translate3d(0,-2px,0) scale(1.09)",opacity:1,offset:.58},
+  {transform:"translate3d(0,1px,0) scale(.985)",opacity:1,offset:.85},
   {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
  ],215,{easing:"cubic-bezier(.2,.67,.26,1)"})));
  evolveFamilyFx(groups);

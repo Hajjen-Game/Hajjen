@@ -336,15 +336,18 @@ try{
   assert.equal(older.count,5);
   assert.equal(older.unique,5,"Legacy level-one run must resume with its original five families");
  }finally{await progressionContext.close();}
- // Directed idle hint 1.1: only one REAL swap, shown as bright SOURCE and soft TARGET.
- // Shorten only the one-minute timer inside the isolated mobile test context.
+ // Directed idle hint 1.2: a real legal swap is shown after 30 seconds.
+ // Shorten only this 30-second hint timer inside the isolated browser.
  const hintContext=await browser.createBrowserContext();
  try{
   const hintPage=await hintContext.newPage();
   await hintPage.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await hintPage.evaluateOnNewDocument(()=>{
    const realSetTimeout=window.setTimeout.bind(window);
-   window.setTimeout=(fn,ms,...args)=>realSetTimeout(fn,ms===60000?300:ms,...args);
+   window.setTimeout=(fn,ms,...args)=>{
+    if(ms===30000){window.__idleHintScheduledDelay=ms;return realSetTimeout(fn,300,...args);}
+    return realSetTimeout(fn,ms,...args);
+   };
   });
   await hintPage.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
   await hintPage.waitForFunction(()=>!!window.HarmonyRules);
@@ -378,12 +381,21 @@ try{
   });
   assert(hint.legal&&hint.directed&&hint.bestIsShown&&!hint.moveUsed&&hint.tappable,
    "The hint must show the best evaluated legal move, without consuming score or moves");
-  assert.equal(hint.sourceAnimation,"none","Source is the steady stronger gold highlight");
+  assert.equal(await hintPage.evaluate(()=>window.__idleHintScheduledDelay),30000,"Hint must schedule a 30-second interval");
+  assert(hint.sourceAnimation.includes("jh-idle-source-glow"),"Source should glow visibly in gold");
   assert(hint.targetAnimation.includes("jh-idle-target-pulse"),"Destination must pulse softly");
   assert(hint.sourceGlow!==hint.targetGlow,"The two tile hints must be visually differentiated");
   await hintPage.click(".tile.idle-hint-source");
   assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0,
    "Any board interaction clears both highlighted tiles immediately");
+
+  // Previously a selected tile was barred from the hint CSS selectors.
+  await hintPage.waitForFunction(()=>!!document.querySelector(".tile.idle-hint-source.selected"),{timeout:7000});
+  const selectedHint=await hintPage.$eval(".tile.idle-hint-source.selected",tile=>({
+   animation:getComputedStyle(tile).animationName,outline:getComputedStyle(tile).outlineWidth
+  }));
+  assert(selectedHint.animation.includes("jh-idle-source-glow")&&parseFloat(selectedHint.outline)>=3,
+   "Recommended source must glow even when it is already selected");
   await hintPage.click("#pauseButton");
   await new Promise(resolve=>setTimeout(resolve,420));
   assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0,
@@ -397,6 +409,34 @@ try{
   }));
   assert.equal(reduced.animation,"none","Reduced motion disables the target pulse");
   assert(reduced.glow!=="none","Reduced motion keeps a static highlight");
+
+  // Invalid swap triggers an async busy bounce. It must not leave the
+  // timer permanently disabled once the animation settles.
+  await hintPage.evaluate(()=>{
+   document.body.classList.remove("harmony-reduced-motion");
+   document.querySelector(".tile.selected")?.click();
+  });
+  const invalid=await hintPage.evaluate(()=>{
+   const board=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.board;
+   const R=window.HarmonyRules;
+   for(let i=0;i<board.length;i++)for(const j of R.neighbors(i)){
+    if(j<=i)continue;
+    const copy=board.map(p=>({...p}));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+    if(!R.scan(copy).some(g=>g.includes(i)||g.includes(j)))return [i,j];
+   }
+   return null;
+  });
+  assert(invalid,"Generated board must have an invalid adjacent swap");
+  const beforeInvalid=await hintPage.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.moves);
+  await hintPage.click('.tile[data-index="'+invalid[0]+'"]');
+  await hintPage.click('.tile[data-index="'+invalid[1]+'"]');
+  await hintPage.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",{timeout:5000});
+  await hintPage.waitForFunction(()=>
+   document.querySelectorAll(".tile.idle-hint-source").length===1&&
+   document.querySelectorAll(".tile.idle-hint-target").length===1,{timeout:7000});
+  const afterInvalid=await hintPage.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.moves);
+  assert.equal(afterInvalid,beforeInvalid,"Invalid swap must not consume a move");
  }finally{await hintContext.close();}
  // Regression: old 10-level saves capped unlocked at index 9 despite level-10 completion.
  const legacyContext=await browser.createBrowserContext();

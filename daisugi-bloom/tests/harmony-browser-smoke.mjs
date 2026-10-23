@@ -610,6 +610,7 @@ try{
        ringAnimation:ring.animationName,ringDuration:parseFloat(ring.animationDuration),
        ringBackground:ring.backgroundImage,
        shimmerAnimation:shimmer.animationName,shimmerBackground:shimmer.backgroundImage,
+       rimWidth:parseFloat(style.paddingTop),
        centreTransparent:style.backgroundColor==="rgba(0, 0, 0, 0)"
       });
      }else if(node.classList.contains("pulse-trace")){
@@ -701,7 +702,7 @@ try{
    expected.map(({wave,to})=>({wave,to})).sort(sortPosition),
    "Anticipation must glow on EVERY and ONLY target of the actual Pulse events");
   assert(pulse.charge.every(c=>c.pointer==="none"&&c.bg==="none"&&
-   c.shadow==="none"&&c.centreTransparent),
+   c.shadow==="none"&&c.centreTransparent&&c.rimWidth===2),
    "Pulse target rings must have a transparent centre, with NO old tile-filling glow");
   assert(pulse.charge.every(c=>
     c.mask!=="none"&&c.ringAnimation.includes("jh-pulse-target-orbit")&&

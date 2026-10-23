@@ -2152,3 +2152,61 @@ body.harmony-playing .game-view .tile .piece .fallback{
   body.harmony-playing .game-view .board-shell{padding:5px}
   body.harmony-playing .game-view .board{gap:1px}
 }
+
+/* MASTERPIECE SIZE & COLLECTION READABILITY 1.0 · 2026-10-23
+   The previous <=390px rule limited five-family artwork to ~45px, despite
+   the available grid columns being ~70px. Let the actual atlas artwork fill
+   its column without using CSS transforms or changing sprite coordinates.
+   Four-family levels get a wider image per slot; badges stay legible. */
+body.harmony-playing .game-view .masterpiece-collection{
+  margin:9px 0 3px;
+  padding:8px 6px 7px;
+}
+body.harmony-playing .game-view .collection-heading{
+  margin:0 2px 4px;
+}
+body.harmony-playing .game-view .collection-items{
+  gap:4px;
+  align-items:start;
+}
+body.harmony-playing .game-view .collection-items.four-families{
+  gap:6px;
+}
+body.harmony-playing .game-view .collection-card{
+  gap:1px;
+}
+/* Artwork is now limited by the grid column, not the old phone pixel cap.
+   A square art viewport retains the original 5x5 / 5x4 atlas mapping. */
+body.harmony-playing .game-view .collection-icon{
+  width:min(100%,112px);
+  height:auto;
+  aspect-ratio:1/1;
+}
+body.harmony-playing .game-view .collection-items.four-families .collection-icon{
+  width:min(100%,140px);
+  height:auto;
+}
+body.harmony-playing .game-view .collection-fallback{
+  font-size:clamp(30px,8vw,50px);
+}
+body.harmony-playing .game-view .collection-items.four-families .collection-fallback{
+  font-size:clamp(37px,10vw,58px);
+}
+body.harmony-playing .game-view .collection-count{
+  left:0;
+  bottom:2px;
+  min-width:clamp(24px,6.3vw,29px);
+  height:clamp(24px,6.3vw,29px);
+  font-size:clamp(12px,2.8vw,14px);
+}
+body.harmony-playing .game-view .collection-label{
+  font-size:clamp(9px,1.85vw,11px);
+  line-height:1.2;
+}
+@media(max-width:390px){
+  body.harmony-playing .game-view .masterpiece-collection{
+    padding:7px 5px 6px;
+  }
+  body.harmony-playing .game-view .collection-items{gap:3px}
+  body.harmony-playing .game-view .collection-items.four-families{gap:5px}
+}

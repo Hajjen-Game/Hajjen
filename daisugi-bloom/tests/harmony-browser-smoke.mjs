@@ -95,7 +95,8 @@ try{
   assert.equal(records.preservedOld,9000);
   assert.equal(records.journeyRecord,7200);
   assert.equal(records.migration,1);
-  assert(records.visibleIntro.includes("9 000")&&records.visibleJourney.includes("7 200"));
+  assert(records.visibleIntro.replace(/\s/g," ").includes("9 000"),"Migrated intro record should show 9 000");
+  assert(records.visibleJourney.replace(/\s/g," ").includes("7 200"),"Stage 11 should show original Journey record 7 200");
   await preview.click(".level-tile:first-child");
   const four=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;

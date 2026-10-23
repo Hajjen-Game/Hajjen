@@ -9,8 +9,8 @@ function seeded(seed){
  return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
 }
 function check(title,fn){fn();console.log("PASS "+title);}
-check("20-entry refill bag places exactly four of each of five families",()=>{
- const g=new R.Game(0,null,{seed:1234});
+check("Explicit five-family refill bag places exactly four of each five identities",()=>{
+ const g=new R.Game(0,null,{seed:1234,familyCount:5});
  const rounds=[];
  for(let cycle=0;cycle<3;cycle++){
   const out=[];
@@ -85,7 +85,7 @@ check("Fair shuffle remains safe across staged boards from all ten families pool
  }
 });
 check("Forced shuffle in live engine preserves every developed piece and score",()=>{
- const g=new R.Game(0,null,{seed:20261022});
+ const g=new R.Game(0,null,{seed:20261022,familyCount:5});
  g.board=Array.from({length:49},(_,i)=>({id:i+1,stage:i%4+1,family:F[(Math.floor(i/7)+(i%7))%5]}));
  assert.equal(R.validSwaps(g.board).length,0);
  const original=copy(g.board),score=g.score,remaining=g.moves;

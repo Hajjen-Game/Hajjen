@@ -16,22 +16,37 @@ const pieces=Array.from({length:49},()=>({
  style:{visibility:""},classList:{add(){}},
  cloneNode(){return {style:{},classList:{add(){}},remove(){}}}
 }));
-const boardTiles=pieces.map(p=>({querySelector:()=>p}));
+const boardTiles=pieces.map(p=>({
+ querySelector:()=>p,
+ append(){events.push(["afterglowAdded"])}
+}));
 const indexRect=i=>({left:(i%7)*50,top:Math.floor(i/7)*50,width:48,height:48});
 const fxAt=className=>{
  events.push(["fx",className]);
  return {style:{},remove(){events.push(["remove",className])}};
 };
 const makeFxLayer=()=>({rect:{left:0,top:0},node:{
- appendChild(){events.push(["ghost"])},remove(){events.push(["layerRemoved"])}
+ appendChild(){events.push(["ghost"])},
+ append(){events.push(["flowAdded"])},
+ remove(){events.push(["layerRemoved"])}
 }});
-const animateNode=(node,frames,duration)=>{
- samples.push({frames,duration});
+const animateNode=(node,frames,duration,options={})=>{
+ samples.push({frames,duration,options,kind:node.className||""});
  events.push(["animate",duration]);
  return Promise.resolve();
 };
-const fusion=new Function("FAST","MOBILE_LITE","Element","boardTiles","indexRect","fxAt","makeFxLayer","animateNode","sound","renderBoard","fusionBurst","evolveFamilyFx","evolutionStageLabels",gather+"return {fusionGatherFrames,playFusion};")(
- ()=>false,true,{prototype:{animate(){}}},boardTiles,indexRect,fxAt,makeFxLayer,animateNode,
+const fakeDocument={
+ hidden:false,
+ createElement:()=>({
+  style:{},className:"",setAttribute(){},remove(){events.push(["sparkRemoved"])}
+ })
+};
+const fusion=new Function("FAST","MOBILE_LITE","LITE_FX","document","Element",
+ "boardTiles","indexRect","fxAt","makeFxLayer","animateNode","sound","renderBoard",
+ "fusionBurst","evolveFamilyFx","evolutionStageLabels",gather+
+ "return {fusionGatherFrames,playFusion};")(
+ ()=>false,true,()=>false,fakeDocument,{prototype:{animate(){}}},
+ boardTiles,indexRect,fxAt,makeFxLayer,animateNode,
  ()=>events.push(["sound"]),()=>events.push(["render"]),
  ()=>events.push(["burst"]),()=>events.push(["evolution"]),()=>events.push(["stageLabels"])
 );
@@ -46,6 +61,15 @@ async function main(){
  const travel=samples.filter(x=>x.duration===280);
  assert.equal(travel.length,3,"Two source ghosts plus one survivor anticipation");
  assert.equal(events.filter(x=>x[0]==="ghost").length,2);
+ const flow=samples.filter(x=>x.kind.includes("fusion-flow-bead"));
+ assert.equal(flow.length,2,"A 3-match should emit one lightweight energy bead per consumed source");
+ assert(flow.every(x=>x.options.easing==="linear"&&x.duration+x.options.delay<=280),
+  "Glow transfer must fit inside the unchanged 280ms fusion");
+ assert.equal(events.filter(x=>x[0]==="afterglowAdded").length,2,
+  "Only two vacated cells should get an afterglow on a three-match");
+ assert(events.filter(x=>x[0]==="sparkRemoved").length>=4,
+  "Travelling and afterglow particles must clean up");
+
  const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
  const render=events.findIndex(e=>e[0]==="render");
  assert(lastGather>=0&&render>lastGather,"Survivor stage must update only after visible gathering");
@@ -67,6 +91,11 @@ async function main(){
   const motion=samples.slice(initial).filter(x=>x.duration===280);
   assert.equal(motion.length,n,"All "+n+" matched pieces must share the fast 280ms clock");
   assert(motion.every(x=>x.frames.at(-1).offset===1));
+  const additions=samples.slice(initial).filter(x=>x.kind.includes("fusion-flow-bead"));
+  assert(additions.length>=n-1&&additions.length<=8,
+   "A "+n+"-piece fusion must use a capped number of energy beads");
+  assert(additions.every(x=>x.duration+x.options.delay<=280));
+
  }
  const initial=samples.length;
  await fusion.playFusion({board:[],groups:[
@@ -75,6 +104,9 @@ async function main(){
  ]});
  assert.equal(samples.slice(initial).filter(x=>x.duration===280).length,8,
   "Parallel 3+5 groups must complete together at the restored 280ms speed");
+ assert(samples.slice(initial).filter(x=>x.kind.includes("fusion-flow-bead")).length<=8,
+  "Parallel fusion groups share one strict 8-particle mobile budget");
+
 
  // Harvest previously shrank objects to 15% over 150ms: almost invisible.
  const harvest=between("async function animateEvent(evt){","async function playEvents(events){");

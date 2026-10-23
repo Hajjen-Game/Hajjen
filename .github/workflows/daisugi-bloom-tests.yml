@@ -93,7 +93,7 @@ jobs:
           if-no-files-found: warn
 
   score-calibration:
-    name: Score & Stars 6.2 · 330 complete-length games
+    name: Journey Stars 6.6 · 330 complete-length games
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -104,8 +104,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: japanese-harmony-score-stars-6-2
-          path: daisugi-bloom/reports/score-stars-6.2-benchmark.json
+          name: japanese-harmony-journey-stars-6-6
+          path: daisugi-bloom/reports/score-stars-6.6-benchmark.json
           if-no-files-found: warn
 
   pacing3-benchmark:

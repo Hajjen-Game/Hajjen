@@ -289,12 +289,30 @@ check("Smart hint consistently proposes valid swaps and keeps all saves unchange
   assert.equal(cloned.score-g.score,hint.expectedPoints);
  }
 });
-check("Score 6.2 requires a meaningful minimum and harder two- and three-star milestones",()=>{
+check("Journey 6.6 softens the five-family transition and ramps up over time",()=>{
  const first=R.levelConfig(10),middle=R.levelConfig(29),later=R.levelConfig(49);
- assert.equal(first.goal.count,6500);
+ assert.equal(first.goal.count,5000);
+ assert.deepEqual(first.stars,[5000,7500,11250]);
+ assert.deepEqual(R.levelConfig(11).stars,[5050,7600,11400]);
+ assert.deepEqual(R.levelConfig(12).stars,[5100,7700,11550]);
+ assert.deepEqual(R.levelConfig(13).stars,[5150,7800,11700]);
  assert(middle.goal.count>first.goal.count&&later.goal.count>middle.goal.count);
- assert(first.stars[1]>=first.stars[0]*1.7);
- assert(first.stars[2]>=first.stars[0]*2.55);
+ assert(first.stars[1]>=first.stars[0]*1.5);
+ assert(first.stars[2]>=first.stars[0]*2.25);
+ assert(later.stars[1]/later.stars[0]>first.stars[1]/first.stars[0]);
+ assert(later.stars[2]/later.stars[0]>first.stars[2]/first.stars[0]);
+ assert.equal(R.scoreStars(11,7900,true),2);
+ assert.equal(R.scoreStars(12,9125,true),2);
+ assert.equal(R.scoreStars(13,9388,true),2);
+ assert.equal(R.scoreStars(10,4710,true),1);
+ assert.equal(R.scoreStars(10,4710),0);
+ assert.equal(R.pacingProposalCount(10,0,"v3"),5);
+ assert.equal(R.pacingProposalCount(10,3,"v3"),6);
+ assert.equal(R.pacingProposalCount(15,0,"v3"),4);
+ assert.equal(R.pacingProposalCount(15,3,"v3"),5);
+ assert.equal(R.pacingProposalCount(20,8,"v3"),4);
+ assert.equal(R.pacingProposalCount(10,8,"v2"),4);
+ assert.equal(R.pacingProposalCount(10,8,"standard"),4);
  for(const level of [10,11,14,19,29,39,49,100,23000]){
   const cfg=R.levelConfig(level),[a,b,c]=cfg.stars;
   assert(a===cfg.goal.count&&a<b&&b<c);

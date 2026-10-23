@@ -256,7 +256,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert(migrated.target>=6000);
+  assert.equal(migrated.target,5000);
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({
    hidden:document.querySelector("#starTargets").hidden,
@@ -264,7 +264,32 @@ try{
   }));
   assert(!milestones.hidden);
   assert.equal(milestones.text.length,3);
-  assert(milestones.text[0].replace(/\s/g," ").includes("6 500"));
+  assert(milestones.text[0].replace(/\s/g," ").includes("5 000"));
+  assert(milestones.text[1].replace(/\s/g," ").includes("7 500"));
+  assert(milestones.text[2].replace(/\s/g," ").includes("11 250"));
+  // The user's actual 11–14 history should automatically earn the revised
+  // stars, without deleting records or revoking old level completions.
+  await legacy.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const old=JSON.parse(localStorage.getItem(key));
+   old.unlocked=14;
+   Object.assign(old.bestScores,{"10":4710,"11":7900,"12":9125,"13":9388});
+   Object.assign(old.bestStars,{"10":1,"11":1,"12":1,"13":1});
+   old.run=null;
+   localStorage.setItem(key,JSON.stringify(old));
+  });
+  await legacy.reload({waitUntil:"networkidle2"});
+  const rebalanced=await legacy.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {scores:[10,11,12,13].map(i=>data.bestScores[i]),
+    stars:[10,11,12,13].map(i=>data.bestStars[i]),
+    shown:[10,11,12,13].map(i=>document.querySelectorAll(".level-tile")[i].textContent)};
+  });
+  assert.deepEqual(rebalanced.scores,[4710,7900,9125,9388]);
+  assert.deepEqual(rebalanced.stars,[1,2,2,2],
+   "Revised Journey rewards must recognize existing performance automatically");
+  assert(rebalanced.shown[1].includes("★★")&&!rebalanced.shown[1].includes("★★★"));
+
  }finally{await legacyContext.close();}
  // Board Praise 1.0: a real seeded swap triggers all three approved words.
  const praiseContext=await browser.createBrowserContext();

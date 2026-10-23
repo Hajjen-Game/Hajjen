@@ -42,12 +42,12 @@ for(const level of levels)for(const strategy of strategies){
   stars3:group.filter(x=>x.stars>=3).length});
 }
 assert.equal(runs.length,330);
-assert.equal(R.levelConfig(10).goal.count,6500);
+assert.equal(R.levelConfig(10).goal.count,5000);
 assert(results.every(x=>x.stars3<=x.stars2plus&&x.stars2plus<=x.stars1plus));
-console.log("Japanese Harmony · Score & Stars 6.2 · "+runs.length+" complete-move games");
+console.log("Japanese Harmony · Journey Stars 6.6 · "+runs.length+" complete-move games");
 console.log("Level | Bot | 1 star | 2 stars | 3 stars | Mean score | Wins");
 for(const row of results)console.log([row.level,row.strategy,row.thresholds.join("/"),row.stars2plus+"/"+row.games,row.stars3+"/"+row.games,row.meanScore,row.won+"/"+row.games].join(" | "));
-const out=path.resolve("daisugi-bloom/reports/score-stars-6.2-benchmark.json");
+const out=path.resolve("daisugi-bloom/reports/score-stars-6.6-benchmark.json");
 fs.mkdirSync(path.dirname(out),{recursive:true});
-fs.writeFileSync(out,JSON.stringify({version:"score-stars-6.2",trials,seed,description:"Full-length games; not human success probabilities",levels,strategies,results,runs},null,2)+"\n");
+fs.writeFileSync(out,JSON.stringify({version:"score-stars-6.6",trials,seed,description:"Full-length games; not human success probabilities",levels,strategies,results,runs},null,2)+"\n");
 console.log("Exported "+out);

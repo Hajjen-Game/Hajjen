@@ -52,6 +52,23 @@ check("Valid moves record real intervals, invalid moves never create timing pres
  if(g.moves>0&&next)g.swap(...next,{decisionMs:120000});
  assert.deepEqual(g.paceTimes,[4400]);
 });
+check("Early Journey 3.0 tries up to six fair refills without changing the bag",()=>{
+ for(const level of [10,12,14,15,19,20]){
+  const draft=new R.Game(level,null,{seed:20261023,directorMode:"v3"});
+  draft.directorDrought=4;draft.pacePhase="recovery";
+  for(let i=0;i<9;i++)draft.board[i]=null;
+  const snapshot=draft.save();
+  const a=new R.Game(level,snapshot,{fastRestore:true});
+  const b=new R.Game(level,snapshot,{fastRestore:true});
+  const before=a.board.filter(Boolean).map(x=>({id:x.id,family:x.family,stage:x.stage}));
+  a.refillOpportunity();b.refillOpportunity();
+  assert.deepEqual(a.save(),b.save(),"Director must be fully seeded and reproducible");
+  assert.deepEqual(a.board.filter(p=>p.id<50),before);
+  assert.equal(a.board.filter(p=>p.id>=50).length,9);
+  assert(a.board.every(p=>p.stage>=1));
+  assert.equal(R.pacingProposalCount(level,4,"v3"),level<15?6:level<20?5:4);
+ }
+});
 check("Pacing 3.0 never creates stage boosts or changes the available bag",()=>{
  for(const level of [0,8,12,29])for(let trial=0;trial<8;trial++){
   const seed=1337+level*41+trial;

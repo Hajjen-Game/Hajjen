@@ -47,18 +47,19 @@ const levels=[
 function endlessConfig(index){
  const number=index+1,tier=Math.floor((index-10)/10);
  const moves=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
- // Calibrated from 330 COMPLETE seeded score runs (not the short Engine Lab
- // runs that stop as soon as a goal is reached). A normal level-11 player can
- // score thousands of points in 22 moves, so 1,600 was not a real challenge.
- // The minimum now starts at 6,500, rises gently across levels 11-50 and
- // remains bounded on very high levels. Deliberately no dynamic difficulty
- // manipulation based on the individual player's performance.
+ // Journey 6.6: actual mobile player records showed a sharp difficulty cliff
+ // when the introductory 4-family board becomes 5 families on level 11.
+ // Separate passing from star excellence. The first 5–10 Journey levels are
+ // attainable for a deliberate human player; mastery scales gradually later.
+ // No level adapts its score target based on the individual player's history.
+ const advancement=Math.max(0,index-10),early=Math.min(39,advancement);
  const distance=Math.max(0,index-49);
- const target=Math.round((6500+Math.min(39,index-10)*35+
-  Math.min(1500,Math.log2(1+distance/8)*180))/50)*50;
- // King-style score milestones, tuned for the actual Harmony scoring model:
- // 1 star = pass, 2 = strong play, 3 = exceptional run.
- const stars=[target,Math.ceil(target*1.75/50)*50,Math.ceil(target*2.6/50)*50];
+ const target=Math.round((5000+52*early+35*Math.floor(early/5)+
+  Math.min(1100,Math.log2(1+distance/12)*180))/50)*50;
+ const mastery=Math.min(1,advancement/39);
+ const stars=[target,
+  Math.ceil(target*(1.5+.15*mastery)/50)*50,
+  Math.ceil(target*(2.25+.2*mastery)/50)*50];
  return {name:"Harmony Journey",subtitle:"Poängjakt · bana "+number,moves,par:0,
   goal:{type:"score",count:target},stars,
   intro:"Nå poängmålet för en stjärna. Fortsätt samla poäng för två eller tre stjärnor."};
@@ -325,6 +326,15 @@ function pacingOpportunityScore(metrics,phase){
   default:return base;
  }
 }
+// The first Journey levels are a 4→5-family transition. Let Pacing 3.0
+// compare at most two extra *ordinary* bag refills so it can gently prefer
+// useful follow-on decisions. There is no new object type, free fusion,
+// hidden score bonus, altered goal, or guaranteed winning board.
+function pacingProposalCount(level,drought,mode){
+ if(mode!=="v3"||level<10||level>=20)return 4;
+ if(level<15)return drought>=3?6:5;
+ return drought>=3?5:4;
+}
 function draftRefill(board,bag,families,nextId,rand){
  const candidate=clone(board),remaining=bag.slice();
  let serial=nextId,placed=0;
@@ -416,7 +426,7 @@ class Game{
   const candidates=[baseline];
   const fork=(this.seed^Math.imul(this.rolls+1,0x85ebca6b)^
    Math.imul(this.nextId+1,0x9e3779b1))>>>0;
-  for(let c=1;c<4;c++){
+  for(let c=1;c<pacingProposalCount(this.level,this.directorDrought,this.directorMode);c++){
    const seed=(fork^Math.imul(c,0x9e3779b1))>>>0;
    candidates.push(draftRefill(this.board,this.bag,this.families,
     this.nextId,prng(seed)));
@@ -681,6 +691,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,scoreStars,levelFamilyCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

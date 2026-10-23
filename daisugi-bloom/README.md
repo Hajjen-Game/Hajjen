@@ -1,5 +1,17 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Journey Balance 6.6 — 2026-10-23
+
+**Mjukare övergång vid nivå 11:** Fyra familjer under de tio introduktionsnivåerna är betydligt mer belönande än fem. Spelarens verkliga rekord på nivå 11–14 (4 710 / 7 900 / 9 125 / 9 388 poäng) visade att 6.2:s stjärngränser (6 500 / 11 400 / 16 900 på nivå 11) var för höga när fem familjer introducerades.
+
+Nivå 11 kräver nu **5 000 poäng för en stjärna**, **7 500 för två**, **11 250 för tre**. Nivå 12: 5 050 / 7 600 / 11 400. Kraven stiger gradvis till nivå 50 (7 250 / 12 000 / 17 800), och ännu högre nivåer har ett tak för att undvika omöjliga mål.
+
+**Dina resultat räknas om automatiskt, utan att rekord eller upplåsta nivåer raderas.** Den observerade historiken motsvarar nu 1/2/2/2 stjärnor på nivå 11–14. Gamla vinster under det nya minimimålet behåller minst en stjärna.
+
+**Director 3.0 mjukt förstärkt på nivå 11–20:** På nivå 11–15 jämför den fem vanliga påfyllningsförslag, eller sex efter minst tre drag utan utveckling. Nivå 16–20 får ett femte förslag endast efter tre stagnerade drag. Efter nivå 20 används åter fyra. Alla förslag hämtas ur den verkliga objektpåsen, ändrar inga redan existerande objekt och får inte lägga in gratis matchningar där basförslaget saknar sådana. Standard och Director 2.0 påverkas inte.
+
+[Balansbeslut, exakt kurva och tester](docs/JAPANESE_HARMONY_JOURNEY_BALANCE_6_6.md).
+
 ## Family Progression 1.0 — 2026-10-23
 
 **Fast nivåstruktur:** Nivå **1–10 använder fyra objektfamiljer** på den vanliga 7×7-spelplanen, med fyra större mästerverksikoner. **Från nivå 11 använder alla nya spel fem familjer**, där det blir mer att planera inför poängjakten. Alla nio föremålstyper fortsätter att rotera mellan nivåerna. Det manuella experimentvalet i nivåmenyn har ersatts med en tydlig informationsrad. Pacing Director 3.0 (inklusive 2.0) fungerar i båda delarna.

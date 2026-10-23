@@ -166,7 +166,7 @@ try{
    "The first atlas fetch should really have failed in this recovery test");
   await recover.click(".level-tile:first-child");
   const recovered=await recover.evaluate(()=>{
-   const el=document.querySelector(".piece .sprite:not(.sprite-new)");
+   const el=document.querySelector(".piece .sprite:not(.sprite-new):not(.sprite-stage1-koi)");
    const style=el&&getComputedStyle(el);
    return {visible:style?.display,background:style?.backgroundImage,
     fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display};

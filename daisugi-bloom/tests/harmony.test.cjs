@@ -47,10 +47,10 @@ check("level 8 is achievable through five stage-three evolutions, not a rare T/L
  const cfg=R.levels[7];
  assert.equal(cfg.name,"Garden in Bloom");
  assert.deepEqual(cfg.goal,{type:"stage3",count:5});
- assert.equal(cfg.moves,20);
+ assert.equal(cfg.moves,40);
  assert.equal(cfg.par,12);
  const g=new R.Game(7);
- assert.equal(g.moves,20);
+ assert.equal(g.moves,40);
  assert.equal(g.goalText(),"Föremål till stadium 3");
  assert.equal(g.target(),5);
  g.stage3=4;assert.equal(g.progress(),4);assert.equal(g.fulfilled(),false);
@@ -71,6 +71,46 @@ check("unfinished old level 8 saves get four extra turns only once",()=>{
  assert.equal(resumed.stage3,2);
  const finished={...old,complete:true};
  assert.equal(new R.Game(7,finished).moves,6,"Completed saves cannot gain turns");
+});
+check("Moves Expansion 1.0 doubles all 10 introductions and the entire Journey",()=>{
+ const original=[12,18,16,18,18,20,18,20,20,24];
+ for(let index=0;index<original.length;index++){
+  assert.equal(R.levelConfig(index).moves,original[index]*2,"Level "+(index+1));
+  assert.equal(new R.Game(index).moves,original[index]*2);
+ }
+ for(const index of [10,11,15,29,49,50,150,23000]){
+  const tier=Math.floor((index-10)/10);
+  const before=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
+  assert.equal(R.levelConfig(index).moves,2*before,"Journey level "+(index+1));
+  assert.equal(new R.Game(index).moves,2*before);
+ }
+});
+check("older saved rounds get precisely one additional full move budget",()=>{
+ for(const index of [0,7,10,49,50,100]){
+  const initial=new R.Game(index,null,{seed:20261023});
+  const old=initial.save();delete old.movesExpansionVersion;
+  // Snapshot from before the expansion, with several already-played moves.
+  const oldBudget=initial.config.moves/2;
+  old.moves=Math.max(1,oldBudget-5);
+  old.score=1200;old.stage3=2;
+  const upgraded=new R.Game(index,old,{fastRestore:true});
+  const expected=Math.min(initial.config.moves,
+   old.moves+oldBudget+((index===7&&!old.level8Revision)?4:0));
+  assert.equal(upgraded.moves,expected,"Saved level "+(index+1));
+  assert.equal(upgraded.movesExpansionVersion,1);
+  assert.equal(upgraded.score,old.score);
+  assert.equal(upgraded.stage3,old.stage3);
+  assert.deepEqual(upgraded.board,old.board);
+  assert.equal(upgraded.rolls,old.rolls);
+  const resumed=new R.Game(index,upgraded.save(),{fastRestore:true});
+  assert.equal(resumed.moves,upgraded.moves,"Must never grant the budget twice");
+  assert.deepEqual(resumed.board,upgraded.board);
+ }
+ const finished=new R.Game(10,null,{seed:119});
+ const oldFinished=finished.save();delete oldFinished.movesExpansionVersion;
+ oldFinished.moves=0;oldFinished.complete=true;
+ assert.equal(new R.Game(10,oldFinished,{fastRestore:true}).moves,0,
+  "Already ended runs cannot restart for free");
 });
 check("new controlled starts and retries always contain ONLY stage-one objects",()=>{
  for(let i=0;i<10;i++)for(let attempt=0;attempt<16;attempt++){
@@ -154,7 +194,7 @@ check("Endless Journey levels use repeatable score goals, families and meaningfu
   const cfg=R.levelConfig(level),again=R.levelConfig(level);
   assert.deepEqual(cfg,again);
   assert.equal(cfg.goal.type,"score");
-  assert(cfg.moves>=17&&cfg.moves<=22);
+  assert(cfg.moves>=34&&cfg.moves<=44);
   assert(cfg.stars[0]===cfg.goal.count&&cfg.stars[1]>cfg.stars[0]&&cfg.stars[2]>cfg.stars[1]);
   const families=R.activeFamilies(level);
   assert.equal(families.length,5);assert.equal(new Set(families).size,5);

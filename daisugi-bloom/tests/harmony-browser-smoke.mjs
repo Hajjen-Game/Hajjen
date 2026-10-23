@@ -570,7 +570,12 @@ try{
    }));
    return {types,pulseEvents:result.events.filter(evt=>evt.type==="pulse").map(evt=>({
     wave:evt.wave,targets:evt.targets.map(t=>({to:t.to,stage:t.stage}))
-   }))};
+   })),harvestCells:result.events.filter(evt=>evt.type==="harvest").flatMap(evt=>
+    evt.positions.filter(at=>!evt.board[at])),
+    vacatedCells:result.events.flatMap(evt=>
+     evt.type==="fusion"?evt.groups.flatMap(g=>g.removed.filter(at=>!evt.board[at])):
+     evt.type==="harvest"?evt.positions.filter(at=>!evt.board[at]):[])
+   };
   });
   await praisePage.reload({waitUntil:"networkidle2"});
   await praisePage.click("#continueButton");
@@ -579,7 +584,7 @@ try{
 
    // Observe REAL Wave events: affected cells must charge before travelling
    // beams, while their prior stage remains visible, with no extra targets.
-   window.__pulseProbe={charge:[],chargeAnimations:[],timeline:[],impacts:0};
+   window.__pulseProbe={charge:[],chargeAnimations:[],timeline:[],impacts:0,sparkles:[]};
    const realAnimate=Element.prototype.animate;
    Element.prototype.animate=function(frames,options){
     if(this.classList?.contains("pulse-anticipation-glow")){
@@ -613,6 +618,14 @@ try{
        rimWidth:parseFloat(style.paddingTop),
        centreTransparent:style.backgroundColor==="rgba(0, 0, 0, 0)"
       });
+     }else if(node.classList.contains("fusion-afterglow-spark")){
+      const tile=node.closest(".tile");
+      window.__pulseProbe.sparkles.push({
+       at:Number(node.dataset.at),isEmpty:tile?.getAttribute("aria-label")==="Tom ruta",
+       left:node.style.left,top:node.style.top,
+       isStar:node.classList.contains("sparkle-star"),shade:node.className
+      });
+      window.__pulseProbe.timeline.push("sparkle");
      }else if(node.classList.contains("pulse-trace")){
       window.__pulseProbe.timeline.push("beam");
      }else if(node.classList.contains("pulse-target-hit")){
@@ -729,6 +742,21 @@ try{
    "Target charging must appear before travelling beams and the final impact");
   assert(pulse.impacts>0&&pulse.remaining===0,
    "Every Pulse must land with a flash and clean up its temporary glow layers");
+  const sparkleCells=new Set(pulse.sparkles.map(p=>p.at));
+  assert(fixture.harvestCells.length>=1,
+   "The seeded Harmony Pulse fixture must create a harvested masterpiece");
+  assert(fixture.vacatedCells.every(at=>sparkleCells.has(at)),
+   "Every emptied cell in a real fusion or Harmony Pulse harvest must glitter");
+  assert(pulse.sparkles.every(p=>p.isEmpty&&
+   /%$/.test(p.left)&&/%$/.test(p.top)),
+   "Glitters should be spatially scattered on genuinely empty cells");
+  assert(fixture.harvestCells.every(at=>pulse.sparkles.filter(p=>p.at===at).length>=3),
+   "Pulse-harvest empty cells need a visible cluster of sparkle particles");
+  assert(pulse.sparkles.some(p=>p.isStar)&&
+   new Set(pulse.sparkles.map(p=>p.shade.match(/sparkle-(gold|pearl|sakura)/)?.[1])).size>=3,
+   "Glitter needs actual star-shaped flashes and pearl/gold/Sakura variations");
+  assert.equal(await praisePage.evaluate(()=>document.querySelectorAll(".fusion-afterglow-spark").length),0,
+   "All sparkle fragments should be removed after the chain finishes");
  }finally{await praiseContext.close();}
  // Confirm a REAL resumed board with an eligible stage-3 neighbour pair creates
  // a visible, animated thread. Previous CSS-only tests missed this integration.
@@ -1266,7 +1294,7 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
+   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowPositions:[],afterglowColors:[],afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
@@ -1276,6 +1304,8 @@ try{
        if(node.classList.contains("fusion-flow-bead"))window.__scoreFxSeen.fusionFlow++;
        if(node.classList.contains("fusion-afterglow-spark")){
         window.__scoreFxSeen.fusionAfterglow++;
+        window.__scoreFxSeen.afterglowPositions.push(node.style.left+"|"+node.style.top);
+        window.__scoreFxSeen.afterglowColors.push(node.className);
         if(node.closest(".tile")?.getAttribute("aria-label")!=="Tom ruta")window.__scoreFxSeen.afterglowOnEmpty=false;
        }
        if(node.classList.contains("harmony-firework-particle")){
@@ -1361,8 +1391,12 @@ try{
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert(fx.fusionFlow>=2&&fx.fusionFlow<=8,
   "Tiny glow transfer beads must follow consumed sprites with a mobile budget: "+JSON.stringify(fx));
- assert(fx.fusionAfterglow>=1&&fx.fusionAfterglow<=3&&fx.afterglowOnEmpty,
-  "Only a few actual empty cells should keep a short afterglow: "+JSON.stringify(fx));
+ assert(fx.fusionAfterglow>=10&&fx.afterglowOnEmpty,
+  "Every emptied fusion cell needs several twinkling points rather than one dot: "+JSON.stringify(fx));
+ assert(new Set(fx.afterglowPositions).size>=4&&
+  fx.afterglowColors.some(cls=>cls.includes("sparkle-star"))&&
+  fx.afterglowColors.some(cls=>cls.includes("sparkle-dot")),
+  "Glitter must scatter around each tile using different star and dot sizes");
  assert.equal(await page.evaluate(()=>document.querySelectorAll(".fusion-flow-bead, .fusion-afterglow-spark").length),0,
   "All short-lived fusion particles should be removed by the end of the move");
  assert(fx.flowers>=1&&fx.diamonds>=1&&fx.stars>=1,

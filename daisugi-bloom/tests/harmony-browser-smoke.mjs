@@ -202,7 +202,7 @@ try{
   },pair);
   await demo.waitForFunction(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"))?.run?.data;
-   return run&&run.paceTimes.length>0&&run.moves<12;
+   return run&&run.paceTimes.length>0&&run.moves<24;
   },{timeout:18000});
   const persisted=await demo.evaluate(()=>{
    const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
@@ -779,7 +779,7 @@ try{
   return [10,49,100].map(i=>({number:i+1,type:R.levelConfig(i).goal.type,
    families:R.activeFamilies(i).length,moves:R.levelConfig(i).moves}));
  });
- assert(endless.every(x=>x.type==="score"&&x.families===5&&x.moves>=17));
+ assert(endless.every(x=>x.type==="score"&&x.families===5&&x.moves>=34));
  // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
  // successful manual fusion from an already-linked stage-three object.
  const resonanceVisual=await page.evaluate(()=>{

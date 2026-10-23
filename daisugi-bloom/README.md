@@ -1,5 +1,13 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Japanese Harmony — Four Families Experiment 1.0 (2026-10-23)
+
+**Nu spelbart:** I nivåmenyn finns ett val mellan **5 familjer – original** och **4 familjer – experiment 1.0**. Båda använder samma valda Director (Pacing 3.0 är standard). En fyrfamiljsnivå visar bara fyra Masterpiece-kort, med större ikoner. Alla nio familjer fortsätter att rotera mellan nivåerna.
+
+**Inga gamla framsteg förloras.** Påbörjade spel återupptas med exakt det familjeantal de startade med. Gamla spel från före experimentet använder fortfarande fem. Fyrfamiljsrekord och stjärnor sparas separat så att testresultat inte ersätter tidigare femfamiljsrekord. Upplåsta nivåer är gemensamma, så progressionen behöver inte göras om.
+
+**Rättvist test:** Poäng, nivåmål, gravitation, Harmony Resonance, Echo, Pulse och Director 3.0 ändras inte. Ett separat GitHub Actions-test simulerar 480 hela omgångar (fyra nivåer × tre botstrategier × 20 parade startfrön × två familjeantal) och mäter poäng, tillgängliga drag, Masterpieces, Echo, Director-ingrepp och stjärnor. Se [Four Families Experiment 1.0](docs/JAPANESE_HARMONY_FOUR_FAMILIES_EXPERIMENT_1_0.md).
+
 ## Harmony Pacing Director 3.0 — 2026-10-22
 
 **Aktivt i spelet för nya omgångar.** Välj i nivåmenyn mellan **Harmony Pacing 3.0**, **Opportunity 2.0** och **Standard**. 3.0 **innehåller hela Opportunity 2.0** och varierar endast bedömningen av fyra normala påfyllningar utifrån de senaste dragens rytm och utveckling. På spelplanen finns en lågmäld fasetikett: BYGGER, FLOW, ANDRUM eller NYA MÖJLIGHETER.

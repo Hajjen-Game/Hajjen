@@ -1406,3 +1406,33 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
  font-weight:800;color:#d7e3ca;border-radius:999px;
  background:rgba(16,48,55,.82);border:1px solid rgba(209,225,186,.35);
 }
+
+/* Four Families Experiment 1.0 — larger Masterpiece icons, no asset scaling
+   beyond their transparent atlas cells. Original 5-family presentation stays. */
+.game-view .collection-items.four-families{
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:8px;
+}
+.game-view .collection-items.four-families .collection-icon{
+ width:clamp(58px,17.2vw,87px);
+ height:clamp(58px,17.2vw,87px);
+}
+.game-view .collection-items.four-families .collection-fallback{
+ font-size:40px;
+}
+.family-experiment-picker{
+ display:grid;gap:6px;margin-top:11px;padding:11px 13px;
+ border:1px solid rgba(203,227,211,.32);border-radius:13px;
+ background:rgba(14,45,50,.74);
+}
+.family-experiment-picker label{
+ font-size:10px;font-weight:850;letter-spacing:.15em;color:#c4e6d7;
+}
+.family-experiment-picker select{
+ width:100%;min-height:42px;padding:8px 32px 8px 11px;
+ border-radius:9px;border:1px solid #78908c;
+ color:#fff0d0;background:#254b56;font-weight:750;font-size:13px;
+}
+.family-experiment-picker p{
+ margin:0;font-size:11px;line-height:1.45;color:#d5ded1;
+}

@@ -38,6 +38,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-opportunity-director-v2.test.cjs
       - name: Verify Pacing Director 3.0 move timing, conservation, save/load and paired A/B/C/D
         run: node daisugi-bloom/tests/harmony-pacing-director-v3.test.cjs
+      - name: Verify Four Families Experiment 1.0 board, save compatibility and Director 3.0
+        run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
         run: node daisugi-bloom/tests/harmony-resonance.test.cjs
       - name: Syntax-check all browser scripts
@@ -53,6 +55,7 @@ jobs:
           node --check daisugi-bloom/tools/opportunity-director-v2-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-score-calibration.cjs
           node --check daisugi-bloom/tools/harmony-pacing-3-benchmark.cjs
+          node --check daisugi-bloom/tools/harmony-four-families-benchmark.cjs
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -119,4 +122,20 @@ jobs:
         with:
           name: japanese-harmony-pacing-3-benchmark
           path: daisugi-bloom/reports/harmony-pacing-director-3-benchmark.json
+          if-no-files-found: warn
+
+  four-families-benchmark:
+    name: Four Families Experiment 1.0 · 480 full game comparisons
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare 480 seeded full-length games with 4 vs 5 families
+        run: node daisugi-bloom/tools/harmony-four-families-benchmark.cjs
+      - name: Save per-game Masterpieces, Harmony Echo and scores
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-four-families-benchmark
+          path: daisugi-bloom/reports/four-families-1-0-benchmark.json
           if-no-files-found: warn

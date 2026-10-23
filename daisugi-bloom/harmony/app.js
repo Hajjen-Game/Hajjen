@@ -8,7 +8,7 @@ const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
-const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3"};
+const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3",familyCount:5,fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0"};
@@ -18,9 +18,10 @@ function armDecisionClock(){decisionReadyAt=performance.now();}
 function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
- node.textContent=game.directorMode==="v3"?
+ node.textContent=(game.familyCount===4?"4 FAMILJER · ":"5 FAMILJER · ")+
+  (game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):
-  game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD";
+  game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
  node.title=game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
 }
 // Subtle accessibility-safe hint: after one minute without interaction,
@@ -88,6 +89,13 @@ for(const [key,score] of Object.entries(save.bestScores||{})){
  if(save.bestStars[i]!==earned){save.bestStars[i]=earned;migratedScores=true;}
 }
 if(!Object.hasOwn(PLAY_MODES,save.playMode))save.playMode="v3";
+if(save.familyCount!==4)save.familyCount=5;
+for(const key of ["fourFamilyScores","fourFamilyStars","fourFamilyChain"]){
+ if(!save[key]||typeof save[key]!=="object")save[key]={};
+}
+function activeRecords(){return game?.familyCount===4?save.fourFamilyScores:save.bestScores;}
+function currentBestScores(){return save.familyCount===4?save.fourFamilyScores:save.bestScores;}
+function currentBestStars(){return save.familyCount===4?save.fourFamilyStars:save.bestStars;}
 if(migratedScores)persist();
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
@@ -184,10 +192,11 @@ function showMenu(){
 function renderMenu(){
  const selected=$("gameDirectorMode");
  if(selected)selected.value=save.playMode;
+ $("gameFamilyCount").value=String(save.familyCount);
  const list=$("levelList");list.replaceChildren();
  const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
  for(let i=first;i<last;i++){
-  const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=save.bestStars[i]||0,record=Number(save.bestScores[i])||0;
+  const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=currentBestStars()[i]||0,record=Number(currentBestScores()[i])||0;
   const b=document.createElement("button");b.className="level-tile"+(allowed?"":" locked");b.disabled=!allowed;
   const n=document.createElement("span");n.className="level-number";n.textContent=allowed?String(i+1):"♧";
   const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
@@ -207,7 +216,7 @@ function renderMenu(){
  $("chapterEyebrow").textContent=intro?"INTRODUKTION + JOURNEY":"ENDLESS JOURNEY";
  $("chapterTitle").textContent=intro?"First Harmony":"Harmony Journey";
  $("chapterSubtitle").textContent=intro?"Nivå 1–10 lär dig spelet. Därefter är det poängjakt.":"Nya nivåer skapas automatiskt · spela för högre poäng";
- const stars=Object.values(save.bestStars).reduce((total,n)=>total+(Number(n)||0),0);
+ const stars=Object.values(currentBestStars()).reduce((total,n)=>total+(Number(n)||0),0);
  $("chapterStars").textContent="★ "+stars+" totalt";
  const pager=$("levelPager");pager.replaceChildren();
  const prev=document.createElement("button");prev.className="secondary small";prev.textContent="← Föregående";prev.disabled=menuPage===0;
@@ -230,6 +239,7 @@ function collectionSprite(family){
 }
 function prepareCollection(){
  const container=$("masterpieceCollection");container.replaceChildren();collectionCards.clear();
+ container.classList.toggle("four-families",game.familyCount===4);
  for(const family of game.families){
   const cell=document.createElement("div");cell.className="collection-card";cell.dataset.family=family;
   cell.setAttribute("aria-label",names[family]+" mästerverk 0");
@@ -281,7 +291,7 @@ function startLevel(i,resume=false){
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
- game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
+ game=new R.Game(i,data,data?null:{directorMode:save.playMode,familyCount:save.familyCount});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
  const milestones=$("starTargets");
@@ -445,7 +455,7 @@ function renderHUD(state){
 }
 function renderScoreOnly(){
  $("scoreCount").textContent=prettify(scoreDisplayed);
- $("scoreBest").textContent=prettify(Math.max(scoreShown,save.bestScores[level]||0));
+ $("scoreBest").textContent=prettify(Math.max(scoreShown,activeRecords()[level]||0));
 }
 // Count actual earned points only on arrival, then visibly roll the displayed
 // number forward. No gameplay scores are changed; 260ms maximum tween.
@@ -1244,7 +1254,8 @@ async function playEvents(events){
 function unlockGoal(){
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
- save.bestStars[level]=Math.max(save.bestStars[level]||0,game.stars());
+ const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
+ archive[level]=Math.max(archive[level]||0,game.stars());
  persist();
 }
 function showResult(){
@@ -1254,8 +1265,10 @@ function showResult(){
  if(won)sound("result");
  if(won){
   unlockGoal();
-  save.bestScores[level]=Math.max(save.bestScores[level]||0,game.score);
-  save.bestChain[level]=Math.max(save.bestChain[level]||0,game.bestChain);
+  const scores=game.familyCount===4?save.fourFamilyScores:save.bestScores;
+  const chains=game.familyCount===4?save.fourFamilyChain:save.bestChain;
+  scores[level]=Math.max(scores[level]||0,game.score);
+  chains[level]=Math.max(chains[level]||0,game.bestChain);
  }
  save.run=null;persist();
  $("modalEyebrow").textContent=won?"LEVEL COMPLETE":"FÖRSÖK IGEN";
@@ -1266,7 +1279,7 @@ function showResult(){
  }
  const sum=document.createElement("div");sum.className="summary";const line=document.createElement("div");line.textContent="SLUTPOÄNG";const strong=document.createElement("strong");strong.textContent=prettify(game.score);sum.append(line,strong);panel.append(sum);
  const stats=document.createElement("div");stats.className="result-stats";
- [[game.masterpieces,"Mästerverk"],[game.echoes||0,"Harmony Echo"],[game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],[prettify(save.bestScores[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
+ [[game.masterpieces,"Mästerverk"],[game.echoes||0,"Harmony Echo"],[game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],[prettify(activeRecords()[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
   const v=document.createElement("div");const a=document.createElement("strong"),b=document.createElement("small");a.textContent=value;b.textContent=label;v.append(a,b);stats.append(v);
  });panel.append(stats);
  const extra=document.createElement("p");extra.textContent=won?"Du har klarat nivån. Förbättra gärna rekordet genom att spela igen.":"Nytt försök ger en ny kontrollerad startvariant. Inga liv, väntetider eller Power Moves.";panel.append(extra);
@@ -1489,6 +1502,16 @@ function openGameMenu(){
  $("modal").hidden=false;
 }
 function bind(){
+ $("gameFamilyCount").value=String(save.familyCount);
+ $("gameFamilyCount").addEventListener("change",event=>{
+  save.familyCount=event.target.value==="4"?4:5;
+  persist();
+  $("familyCountDescription").textContent=save.familyCount===4?
+   "Experiment: fyra familjer på 7×7, större mästerverksikoner och egna rekord.":
+   "Original: fem familjer på 7×7. Dina tidigare rekord och stjärnor är kvar.";
+  renderMenu();
+ });
+ $("gameFamilyCount").dispatchEvent(new Event("change"));
  $("gameDirectorMode").value=save.playMode;
  $("gameDirectorMode").addEventListener("change",event=>{
   save.playMode=event.target.value in PLAY_MODES?event.target.value:"v3";

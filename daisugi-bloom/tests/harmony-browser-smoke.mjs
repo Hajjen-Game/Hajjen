@@ -63,6 +63,48 @@ try{
   const standard=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
   assert.equal(standard,"standard","Standard remains selectable");
  }finally{await directorContext.close();}
+ // Four Families Experiment 1.0 — user-selectable 4/5 game, larger
+ // masterpiece icons, separate PB/stars, and save-compatible original mode.
+ const fourContext=await browser.createBrowserContext();
+ try{
+  const preview=await fourContext.newPage();
+  await preview.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await preview.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  assert.equal(await preview.$eval("#gameFamilyCount",n=>n.value),"5");
+  await preview.select("#gameFamilyCount","4");
+  await preview.click(".level-tile:first-child");
+  const four=await preview.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   const icons=[...document.querySelectorAll("#masterpieceCollection .collection-card")];
+   return {families:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size,
+    cardCount:icons.length,mode:run.directorMode,
+    width:icons[0]?.querySelector(".collection-icon").getBoundingClientRect().width,
+    classified:document.querySelector("#masterpieceCollection").classList.contains("four-families")};
+  });
+  assert.equal(four.families,4);
+  assert.equal(four.unique,4);assert.equal(four.cardCount,4);
+  assert.equal(four.mode,"v3","Four families must retain Pacing Director 3.0");
+  assert(four.classified&&four.width>58,"Four larger Masterpiece icons must be visible on mobile");
+  await preview.click("#pauseButton");
+  await preview.click("#modalActions button:last-child");
+  await preview.select("#gameFamilyCount","5");
+  await preview.click(".level-tile:first-child");
+  const five=await preview.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return {count:run.familyCount,cards:document.querySelectorAll("#masterpieceCollection .collection-card").length,
+    width:document.querySelector("#masterpieceCollection .collection-icon").getBoundingClientRect().width,
+    own:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).fourFamilyScores};
+  });
+  assert.equal(five.count,5);assert.equal(five.cards,5);
+  assert(four.width>five.width,"Four-family collection art must be larger");
+  assert.deepEqual(five.own,{},"Four-family PBs should be independent of old mode");
+  await preview.click("#pauseButton");
+  await preview.click("#modalActions button:last-child");
+  await preview.select("#gameFamilyCount","4");
+  await preview.reload({waitUntil:"networkidle2"});
+  assert.equal(await preview.$eval("#gameFamilyCount",e=>e.value),"4",
+   "Selected experiment family count must survive a reload");
+ }finally{await fourContext.close();}
  // Directed idle hint 1.1: only one REAL swap, shown as bright SOURCE and soft TARGET.
  // Shorten only the one-minute timer inside the isolated mobile test context.
  const hintContext=await browser.createBrowserContext();

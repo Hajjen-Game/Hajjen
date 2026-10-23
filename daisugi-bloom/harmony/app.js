@@ -631,41 +631,28 @@ function fxAt(className,x,y,text){
  perf?.fx(fxCount());
  return span;
 }
-// Family-specific evolution overlays: one small recycled-style visual cue
-// per survivor, no canvas, huge particle cloud or modification to game logic.
+// Harmony Firework 1.0: a single Sakura-inspired, gold-forward evolution
+// cue shared by ALL nine families. The flower is the pink accent; diamonds
+// and stars are carried by the matching fusionBurst mini-firework below.
+// Keep the familiar .evo-family and .evo-FAMILY classes for test coverage,
+// but never render nine unrelated effects on the same style of fusion.
 const EVOLUTION_FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
 function evolveFamilyFx(groups){
  if(FAST()||!Element.prototype.animate)return;
  for(const g of groups.slice(0,MOBILE_LITE?2:3)){
   if(!EVOLUTION_FAMILIES.has(g.family)||!boardTiles[g.at])continue;
   const r=indexRect(g.at),size=Math.min(r.width,r.height);
-  const node=fxAt("evo-family evo-"+g.family,r.left+r.width/2,r.top+r.height/2);
+  const x=r.left+r.width/2,y=r.top+r.height/2;
+  const tier=g.to>=4?"medium":"small";
+  const node=fxAt("evo-family evo-"+g.family+" harmony-evolution harmony-"+tier,x,y);
   node.style.setProperty("--evo-size",Math.round(size*1.45)+"px");
-  const paths={
-   sakura:[{transform:"translate3d(0,6px,0) rotate(-22deg) scale(.5)",opacity:0},
-    {transform:"translate3d(0,-3px,0) rotate(10deg) scale(1.12)",opacity:.95,offset:.46},
-    {transform:"translate3d(9px,-11px,0) rotate(32deg) scale(1.24)",opacity:0}],
-   lantern:[{transform:"scale(.42)",opacity:0},
-    {transform:"scale(1.14)",opacity:.87,offset:.45},{transform:"scale(1.5)",opacity:0}],
-   koi:[{transform:"scale(.45) rotate(-12deg)",opacity:0},
-    {transform:"scale(.97) rotate(10deg)",opacity:.96,offset:.38},
-    {transform:"scale(1.42) rotate(26deg)",opacity:0}],
-   fan:[{transform:"rotate(-32deg) scale(.45)",opacity:0},
-    {transform:"rotate(11deg) scale(1.1)",opacity:.90,offset:.44},
-    {transform:"rotate(34deg) scale(1.35)",opacity:0}],
-   bonsai:[{transform:"translate3d(0,9px,0) scale(.56)",opacity:0},
-    {transform:"translate3d(0,-2px,0) scale(1.08)",opacity:.9,offset:.45},
-    {transform:"translate3d(0,-12px,0) scale(1.1)",opacity:0}],
-   sushi:[{transform:"scale(.5) rotate(-10deg)",opacity:0},
-    {transform:"scale(1.05) rotate(8deg)",opacity:.95,offset:.45},{transform:"scale(1.4) rotate(20deg)",opacity:0}],
-   maneki:[{transform:"translate3d(0,5px,0) scale(.5)",opacity:0},
-    {transform:"translate3d(0,-2px,0) scale(1.08)",opacity:.94,offset:.47},{transform:"translate3d(0,-12px,0) scale(1.26)",opacity:0}],
-   origami:[{transform:"rotate(-32deg) scale(.5)",opacity:0},
-    {transform:"rotate(10deg) scale(1.1)",opacity:.95,offset:.44},{transform:"rotate(34deg) scale(1.34)",opacity:0}],
-   ryu:[{transform:"rotate(-24deg) scale(.5)",opacity:0},
-    {transform:"rotate(8deg) scale(1.08)",opacity:.98,offset:.45},{transform:"rotate(28deg) scale(1.45)",opacity:0}]
-  };
-  animateNode(node,paths[g.family],590,{easing:"cubic-bezier(.14,.65,.27,1)"}).finally(()=>node.remove());
+  animateNode(node,[
+   {transform:"translate3d(0,4px,0) rotate(-10deg) scale(.34)",opacity:0,offset:0},
+   {transform:"translate3d(0,0,0) rotate(5deg) scale(.94)",opacity:.93,offset:.28},
+   {transform:"translate3d(0,-5px,0) rotate(13deg) scale(1.18)",opacity:.88,offset:.58},
+   {transform:"translate3d(0,-10px,0) rotate(23deg) scale(1.34)",opacity:0,offset:1}
+  ],tier==="medium"?690:540,{easing:"cubic-bezier(.16,.7,.25,1)"})
+   .finally(()=>node.remove());
  }
 }
 // A clear, local confirmation that a normal 3-match advanced a stage.
@@ -731,44 +718,69 @@ function masterpieceMoment(positions){
   ],680).finally(()=>halo.remove());
  }
 }
-// A clearly readable but compact reward, scaled to match size.
-// Ring and stars are painted in a single ephemeral fixed overlay, not in the board.
+// Harmony Firework 1.0 — gold-forward Sakura celebration for EVERY family.
+// Shapes: pink ✿ blossom, ice-blue ◆ crystal, gold ✦ star. All three have
+// distinct glow and an outward pop/fade motion. No canvas, no board mutation.
+// Size tiers are a normal stage 2–3 fusion, a strong stage 4+ fusion, and a
+// Masterpiece. Existing family-neutral ring and core establish visual origin.
+function fireworkTier(group,kind){
+ return kind==="hero"?"masterpiece":group?.to>=4||group?.number>=4?"medium":"small";
+}
+const FIREWORK_SHAPES=Object.freeze([
+ {type:"star",glyph:"✦"},
+ {type:"flower",glyph:"✿"},
+ {type:"diamond",glyph:"◆"}
+]);
 function fusionBurst(positions,groups=[],kind="fusion"){
- if(FAST()||!Element.prototype.animate)return;
- for(const at of [...new Set(positions)].slice(0,MOBILE_LITE?2:3)){
+ if(FAST()||!Element.prototype.animate||document.hidden)return;
+ const maxPositions=MOBILE_LITE?2:3;
+ for(const at of [...new Set(positions)].slice(0,maxPositions)){
   if(!boardTiles[at])continue;
   const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
-  const group=groups.find(g=>g.at===at);
-  const big=kind==="hero"||(group?.number>=5),strong=big||(group?.number===4);
-  const radius=Math.min(rect.width,rect.height)*(big?.49:.42);
-  const tone=kind==="hero"?" mint":(big?" gold":"");
-  const ring=fxAt("fusion-ring"+tone,x,y);
-  ring.style.width=(radius*2)+"px";ring.style.height=(radius*2)+"px";
+  const group=groups.find(g=>g.at===at),tier=fireworkTier(group,kind);
+  const tile=Math.min(rect.width,rect.height);
+  const radius=tile*(tier==="masterpiece"?.77:tier==="medium"?.59:.47);
+  const duration=tier==="masterpiece"?850:tier==="medium"?670:510;
+  const count=LITE_FX()?4:MOBILE_LITE?
+   (tier==="masterpiece"?9:tier==="medium"?7:5):
+   (tier==="masterpiece"?12:tier==="medium"?9:6);
+  // Preserve the tactile ring, now a restrained, warm golden ripple.
+  const ring=fxAt("fusion-ring harmony-firework-ring harmony-"+tier,x,y);
+  ring.style.width=(tile*(tier==="masterpiece"?1.22:.94))+"px";
+  ring.style.height=ring.style.width;
   animateNode(ring,[
-   {transform:"scale(.25)",opacity:0,offset:0},
-   {transform:"scale(.85)",opacity:.95,offset:.38},
-   {transform:"scale(1.48)",opacity:0,offset:1}
-  ],big?420:340).finally(()=>ring.remove());
-  // Two light echoes establish the fusion origin without white explosions.
-  const core=fxAt("fusion-core"+(kind==="hero"?" mint":""),x,y);
+   {transform:"scale(.28)",opacity:0,offset:0},
+   {transform:"scale(.90)",opacity:.88,offset:.25},
+   {transform:"scale(1.50)",opacity:0,offset:1}
+  ],duration*.79).finally(()=>ring.remove());
+  const core=fxAt("fusion-core harmony-firework-core harmony-"+tier,x,y);
   animateNode(core,[
-   {transform:"scale(.18)",opacity:0,offset:0},
-   {transform:"scale(1)",opacity:.68,offset:.34},
-   {transform:"scale(1.35)",opacity:0,offset:1}
-  ],big?340:265).finally(()=>core.remove());
-  const count=MOBILE_LITE?(strong?5:4):(strong?8:6),drift=radius*(strong?.92:.76);
+   {transform:"scale(.22)",opacity:0,offset:0},
+   {transform:"scale(.94)",opacity:.82,offset:.26},
+   {transform:"scale(1.40)",opacity:0,offset:1}
+  ],duration*.76).finally(()=>core.remove());
   for(let i=0;i<count;i++){
-   // Keep the tactile fusion ring; skip only excess decorative sparks.
-   if((LITE_FX()&&i>=2)||(MOBILE_LITE&&fxCount()>=32))break;
-   const theta=(i/count)*Math.PI*2-.2,d=drift*(.85+(i%3)*.15);
-   const spark=fxAt("fusion-spark"+(i%3===0?" mint":""),x,y);
-   animateNode(spark,[
-    {transform:"translate3d(0,0,0) scale(.5)",opacity:0,offset:0},
-    {transform:"translate3d("+(Math.cos(theta)*d*.34)+"px,"+(Math.sin(theta)*d*.34)+"px,0) scale(1.35)",opacity:1,offset:.37},
-    {transform:"translate3d("+(Math.cos(theta)*d)+"px,"+(Math.sin(theta)*d)+"px,0) scale(.18)",opacity:0,offset:1}
-   ],big?375:315).finally(()=>spark.remove());
+   // Repeat a balanced, recognizable triad — always pink, blue and gold.
+   // Stagger and asymmetric travel avoid a mechanical wheel/spinner.
+   if(fxCount()>=(MOBILE_LITE?44:84))break;
+   const shape=FIREWORK_SHAPES[i%FIREWORK_SHAPES.length];
+   const angle=(i/count)*Math.PI*2-.37+((i%3)-1)*.085;
+   const distance=radius*(.77+(i%4)*.095);
+   const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance;
+   const symbol=fxAt("fusion-spark harmony-firework-particle harmony-"+shape.type+
+    " harmony-"+tier,x,y,shape.glyph);
+   symbol.setAttribute("aria-hidden","true");
+   symbol.dataset.fireworkShape=shape.type;
+   const twist=(i%2===0?1:-1)*(tier==="masterpiece"?38:26);
+   const pop=1.15+(i%3)*.12;
+   animateNode(symbol,[
+    {transform:"translate3d(0,0,0) rotate(0deg) scale(.22)",opacity:0,offset:0},
+    {transform:"translate3d("+(dx*.23)+"px,"+(dy*.23)+"px,0) rotate("+(twist*.30)+"deg) scale("+pop+")",opacity:1,offset:.28},
+    {transform:"translate3d("+(dx*.68)+"px,"+(dy*.68-2)+"px,0) rotate("+(twist*.70)+"deg) scale(.94)",opacity:.89,offset:.55},
+    {transform:"translate3d("+dx+"px,"+(dy-5)+"px,0) rotate("+twist+"deg) scale(.26)",opacity:0,offset:1}
+   ],duration+(i%3)*24,{easing:"cubic-bezier(.15,.6,.3,1)"})
+    .finally(()=>symbol.remove());
   }
-  // Significant matches use a single quiet reward chip above the board.
  }
 }
 function scoreArrival(points){
@@ -1180,6 +1192,7 @@ async function animateEvent(evt){
    sound("hero");
    renderBoard(evt.board,evt.positions||[],"harvested");
    masterpieceMoment(evt.positions||[]);
+   fusionBurst(evt.positions||[],[],"hero");
    await Promise.all((evt.positions||[]).slice(0,MOBILE_LITE?3:7).map(i=>animateNode(boardTiles[i]?.querySelector(".piece"),[
     {transform:"scale(.88)",offset:0},{transform:"scale(1.19)",offset:.56},{transform:"scale(1)",offset:1}
    ],180)));

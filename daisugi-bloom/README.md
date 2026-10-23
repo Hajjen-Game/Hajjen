@@ -1,5 +1,13 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Harmony Firework VFX 1.0 — 2026-10-23
+
+**Alla nio objektfamiljer delar nu samma premium-animation**, byggd på Sakuras tidigare rosa blomanimation men med varm guldglöd som huvudfärg. Varje vanlig fusion får en kort, liten gyllene ring, mjuk kärna och ett mini-fyrverkeri med **rosa blomma (✿), ljusblå diamant (◆) och guldstjärna (✦)**. Symbolerna får egen glow, poppar utåt, svävar och tonar bort.
+
+Effekten har tre kontrollerade storlekar: **small** vid vanliga fusioner, **medium** vid större utveckling (stadium 4+ eller fyra-/femmatch), **masterpiece** vid faktisk Masterpiece-händelse. Kraftigare effekter varar något längre men täcker inte spelplanen. Samma Sakura-inspirerade evolution-glöd ersätter tidigare familjespecifika visuella overlays. Gamla fusion-intake-animationer, riktiga objektförflyttningar, poängflygning, Harmony Pulse/Echo, spelregler, sparningar och Director lämnas orörda.
+
+På mobil och belastade enheter begränsas partiklarna; **Minska animationer** och OS-inställningen *reduced motion* stänger av nya animationerna helt. Regressionstester kontrollerar färgade symboler i riktiga fusioner och Masterpiece-händelser. Mer information: [Harmony Firework VFX 1.0](docs/JAPANESE_HARMONY_FIREWORK_VFX_1_0.md).
+
 ## Journey Balance 6.6 — 2026-10-23
 
 **Mjukare övergång vid nivå 11:** Fyra familjer under de tio introduktionsnivåerna är betydligt mer belönande än fem. Spelarens verkliga rekord på nivå 11–14 (4 710 / 7 900 / 9 125 / 9 388 poäng) visade att 6.2:s stjärngränser (6 500 / 11 400 / 16 900 på nivå 11) var för höga när fem familjer introducerades.

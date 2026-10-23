@@ -323,6 +323,22 @@ try{
   await praisePage.reload({waitUntil:"networkidle2"});
   await praisePage.click("#continueButton");
   await praisePage.evaluate(()=>{
+   window.__masterpieceFireworks={big:0,flowers:0,diamonds:0,stars:0};
+   window.__masterpieceObserver=new MutationObserver(records=>{
+    for(const rec of records)for(const node of rec.addedNodes){
+     if(node.nodeType!==1||!node.classList)continue;
+     if(node.classList.contains("harmony-firework-particle")&&node.classList.contains("harmony-masterpiece")){
+      window.__masterpieceFireworks.big++;
+      const shape=node.dataset.fireworkShape;
+      if(shape==="flower")window.__masterpieceFireworks.flowers++;
+      if(shape==="diamond")window.__masterpieceFireworks.diamonds++;
+      if(shape==="star")window.__masterpieceFireworks.stars++;
+     }
+    }
+   });
+   window.__masterpieceObserver.observe(document.body,{childList:true,subtree:true});
+  });
+  await praisePage.evaluate(()=>{
    const root=document.querySelector("#boardPraise");
    window.__praiseWordsSeen=[];
    window.__praiseMaxOverlap=0;
@@ -341,9 +357,10 @@ try{
   await praisePage.waitForFunction(()=>window.__praiseWordsSeen?.length===3,{timeout:20000});
   const praise=await praisePage.evaluate(()=>{
    window.__praiseObserver.disconnect();
+   window.__masterpieceObserver.disconnect();
    const root=document.querySelector("#boardPraise");
    const word=root.querySelector(".board-praise-word");
-   return {seen:window.__praiseWordsSeen,maxOverlap:window.__praiseMaxOverlap,
+   return {seen:window.__praiseWordsSeen,maxOverlap:window.__praiseMaxOverlap,fireworks:window.__masterpieceFireworks,
     hitTest:getComputedStyle(root).pointerEvents,
     ariaHidden:root.getAttribute("aria-hidden"),
     animation:word?getComputedStyle(word).animationName:"",
@@ -357,6 +374,9 @@ try{
   assert(praise.animation.includes("harmony-praise-pop"),"Words require a real pop animation");
   assert(!praise.oldChip,"The old small reward chip must not remain");
   assert(fixture.includes("echo")&&fixture.includes("hero")&&fixture.includes("pulse"));
+  assert(praise.fireworks.big>=5&&praise.fireworks.flowers>=1&&
+   praise.fireworks.diamonds>=1&&praise.fireworks.stars>=1,
+   "A real Masterpiece must launch the stronger tri-color mini-firework: "+JSON.stringify(praise.fireworks));
  }finally{await praiseContext.close();}
  // Confirm a REAL resumed board with an eligible stage-3 neighbour pair creates
  // a visible, animated thread. Previous CSS-only tests missed this integration.
@@ -817,13 +837,20 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
+   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
        if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.score++;
        if(node.classList.contains("score-trail-dot"))window.__scoreFxSeen.trail++;
        if(node.classList.contains("fusion-spark"))window.__scoreFxSeen.burst++;
+       if(node.classList.contains("harmony-firework-particle")){
+        const shape=node.dataset.fireworkShape;
+        if(shape==="flower")window.__scoreFxSeen.flowers++;
+        if(shape==="diamond")window.__scoreFxSeen.diamonds++;
+        if(shape==="star")window.__scoreFxSeen.stars++;
+       }
+       if(node.classList.contains("harmony-evolution"))window.__scoreFxSeen.unified++;
        if(node.classList.contains("fusion-ring"))window.__scoreFxSeen.ring++;
        if(node.classList.contains("score-impact-ring"))window.__scoreFxSeen.impact++;
        if(node.classList.contains("fusion-milestone"))window.__scoreFxSeen.milestone++;
@@ -874,6 +901,9 @@ try{
  assert(scoreAfterTween>beforePoints,"Score must visibly count upward after the flying token arrives");
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
+ assert(fx.flowers>=1&&fx.diamonds>=1&&fx.stars>=1,
+  "Every fusion needs glowing pink flowers, blue crystals and golden stars: "+JSON.stringify(fx));
+ assert(fx.unified>=1,"All families must use the shared Sakura-inspired evolution glow");
  assert(fx.family>=1,"Every successful fusion must show its family identity: "+JSON.stringify(fx));
  assert(fx.stage>=1,"Even a basic 3-match must display its upgraded stage clearly: "+JSON.stringify(fx));
  assert(fx.maxFamilyToTileRatio>=1.25,"Family effect must be visibly larger than its tile on mobile: "+JSON.stringify(fx));

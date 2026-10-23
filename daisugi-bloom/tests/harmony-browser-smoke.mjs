@@ -1363,7 +1363,7 @@ try{
   "Tiny glow transfer beads must follow consumed sprites with a mobile budget: "+JSON.stringify(fx));
  assert(fx.fusionAfterglow>=1&&fx.fusionAfterglow<=3&&fx.afterglowOnEmpty,
   "Only a few actual empty cells should keep a short afterglow: "+JSON.stringify(fx));
- assert.equal(await page.$eval(".fusion-flow-bead, .fusion-afterglow-spark",els=>els.length),0,
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".fusion-flow-bead, .fusion-afterglow-spark").length),0,
   "All short-lived fusion particles should be removed by the end of the move");
  assert(fx.flowers>=1&&fx.diamonds>=1&&fx.stars>=1,
   "Every fusion needs glowing pink flowers, pearl-white crystals and golden stars: "+JSON.stringify(fx));

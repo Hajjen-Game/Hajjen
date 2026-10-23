@@ -1049,16 +1049,19 @@ function fusionGatherFrames(dx,dy){
   at(1,.49,.92,1)            // final absorbed at the exact target location
  ];
 }
-// FLOATING MAGIC DUST 1.0 — gentle magic released by every real empty cell.
+// FLOATING MAGIC DUST 1.1 — early energy release during fusion travel.
+// Seamless fusions overlap original object motion and drifting motes; ordinary
+// harvests retain their 1.0 timing. No score, board, or match-rule changes.
 // Dust is placed in a separate transient board overlay. Unlike tile children
 // it survives renderBoard replacing cells, so gravity can begin underneath.
 // The legacy 280ms fusion movement, Pulse targeting and scoring are untouched.
-function sparkleVacatedCells(positions,board){
+function sparkleVacatedCells(positions,board,timing="after"){
  if(FAST()||document.hidden||!Element.prototype.animate)return [];
  const cells=[...new Set(positions)].filter(i=>
   Number.isInteger(i)&&i>=0&&i<49&&!board[i]&&boardTiles[i]);
  if(!cells.length)return [];
  const budget=LITE_FX()?16:MOBILE_LITE?30:60;
+ const seamless=timing==="fusion";
  // Every empty cell is represented, even on very large Pulse harvests.
  const perCell=Math.min(5,Math.max(1,Math.floor(budget/cells.length)));
  const anchors=[[22,72],[58,65],[76,44],[37,51],[52,32],[29,35],[69,73]];
@@ -1077,14 +1080,17 @@ function sparkleVacatedCells(positions,board){
     (tone===0?"dust-pearl":tone===1?"dust-gold":"dust-sakura")+
     (n===0&&perCell>=4?" dust-star":" dust-mote");
    particle.dataset.at=String(at);
+   particle.dataset.phase=seamless?"fusion":"after";
    particle.setAttribute("aria-hidden","true");
    particle.style.left=x+"px";
    particle.style.top=y+"px";
    layer.node.append(particle);
    // Different per-particle delay, curved ascent and sideways drift.
    // A single soft opacity peak, never a double flash or scale-pop.
-   const delay=(n*37+(at%5)*19)%122;
-   const duration=290+((n+at)%4)*30;
+   // Spawn ~75ms into the original 280ms gather, then keep drifting into
+   // the 215ms survivor contact and the following gravity/refill.
+   const delay=(seamless?75:0)+(n*37+(at%5)*19)%122;
+   const duration=(seamless?395:290)+((n+at)%4)*(seamless?25:30);
    const dx=((idx%2===0)?-1:1)*(2.5+(n%3)*1.3);
    const dy=-(9+(idx%4)*2.5);
    const move=(x,y,scale)=>
@@ -1136,6 +1142,9 @@ async function playFusion(evt){
       280,{easing:"cubic-bezier(.34,.16,.72,1)"}));
     }
    }
+   // Start the dust while sources are still moving. Its own FX layer
+   // survives the coming renderBoard() call and is NEVER awaited here.
+   sparkleVacatedCells(groups.flatMap(g=>g.removed),evt.board,"fusion");
    await Promise.all(tasks);
   }finally{
    for(const original of hidden)original.style.visibility="";
@@ -1149,7 +1158,6 @@ async function playFusion(evt){
  // Contact is the boundary between moving sources and new survivor stage.
  // The existing fusion effects are kept deliberately subtle.
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
- sparkleVacatedCells(groups.flatMap(g=>g.removed),evt.board);
  fusionBurst(groups.map(g=>g.at),groups);
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
   {transform:"translate3d(0,1px,0) scale(.80)",opacity:.9,offset:0},

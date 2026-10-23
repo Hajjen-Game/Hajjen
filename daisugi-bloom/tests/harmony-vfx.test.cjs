@@ -27,20 +27,29 @@ const makeFamily=new Function("FAST","MOBILE_LITE","Element","indexRect","fxAt",
  family+"return {evolveFamilyFx,evolutionStageLabels};");
 const {evolveFamilyFx,evolutionStageLabels}=makeFamily(
  ()=>false,true,{prototype:{animate(){}}},indexRect,fxAt,animateNode,boardTiles);
-const masterpiecePart=part("function masterpieceMoment(positions){","// A clearly readable but compact reward");
+const masterpiecePart=part("function masterpieceMoment(positions){","// Harmony Firework 1.0 —");
 const masterpieceMoment=new Function("FAST","MOBILE_LITE","Element","indexRect","fxAt","animateNode","boardTiles",
  masterpiecePart+"return masterpieceMoment;")(
  ()=>false,true,{prototype:{animate(){}}},indexRect,fxAt,animateNode,boardTiles);
 const names=["sakura","lantern","koi","fan","bonsai"];
 for(const familyName of names)evolveFamilyFx([{family:familyName,at:14}]);
-assert.deepEqual(trace.filter(x=>x[0]==="fx").map(x=>x[1]),names.map(n=>"evo-family evo-"+n),
- "Every family should create a distinct evolution signature");
-for(const familyName of names)assert(css.includes(".evo-"+familyName+"::"),"Missing CSS for "+familyName);
+assert.deepEqual(trace.filter(x=>x[0]==="fx").map(x=>x[1]),
+ names.map(n=>"evo-family evo-"+n+" harmony-evolution harmony-small"),
+ "Every family must share the new Sakura-inspired gold-glow evolution, keeping family hooks");
+assert(css.includes(".evo-family.harmony-evolution::before")&&
+ css.includes(".evo-family.harmony-evolution::after"),
+ "The shared Sakura glow should include a pink flower and gold glint");
+for(const shape of ["flower","diamond","star"])
+ assert(css.includes(".fusion-spark.harmony-"+shape),"Missing colored "+shape+" glow");
+assert(script.includes('glyph:"✿"')&&script.includes('glyph:"◆"')&&script.includes('glyph:"✦"'),
+ "Three recognizable mini-firework shapes are required");
+assert(script.includes('fusionBurst(evt.positions||[],[],"hero")'),
+ "Real Masterpieces must trigger the large tier");
 const beforeStages=trace.length;
 evolutionStageLabels([{at:14,to:2},{at:15,to:3},{at:16,to:4}]);
 assert.equal(trace.slice(beforeStages).filter(x=>x[1]==="evolution-stage-label").length,2,
  "Every ordinary fusion must have visible but capped stage-up labels");
-assert(trace.some(x=>x[0]==="anim"&&x[2]===590),"Family effects must remain visible for roughly 0.6 seconds");
+assert(trace.some(x=>x[0]==="anim"&&x[2]===540),"Shared gold Sakura evolution should remain visible for roughly half a second");
 assert(trace.some(x=>x[0]==="anim"&&x[2]===650),"Stage labels must stay readable for roughly 0.65 seconds");
 evolveFamilyFx(Array.from({length:18},(_,i)=>({family:"koi",at:i})));
 assert.equal(trace.filter(x=>x[0]==="fx"&&x[1].startsWith("evo-family")).length,7,"Mobile family cue budget = 2");

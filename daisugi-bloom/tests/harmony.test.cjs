@@ -206,7 +206,7 @@ check("Endless Journey levels use repeatable score goals, families and meaningfu
   a.score=cfg.stars[2];
   assert.equal(a.stars(),3);
  }
- assert(R.levelConfig(23000).goal.count<10000,"Late-stage goals must not grow impossibly without bounds");
+ assert(R.levelConfig(23000).goal.count<15000,"Late-stage goals must remain bounded after the 50% increase");
 });
 check("Collection bonuses accumulate indefinitely and persist when resuming",()=>{
  const g=fixture();
@@ -329,21 +329,40 @@ check("Smart hint consistently proposes valid swaps and keeps all saves unchange
   assert.equal(cloned.score-g.score,hint.expectedPoints);
  }
 });
-check("Journey 6.6 softens the five-family transition and ramps up over time",()=>{
+check("Journey 6.15 increases all score-based star thresholds by 50%, keeping the 6.6 ramp",()=>{
  const first=R.levelConfig(10),middle=R.levelConfig(29),later=R.levelConfig(49);
- assert.equal(first.goal.count,5000);
- assert.deepEqual(first.stars,[5000,7500,11250]);
- assert.deepEqual(R.levelConfig(11).stars,[5050,7600,11400]);
- assert.deepEqual(R.levelConfig(12).stars,[5100,7700,11550]);
- assert.deepEqual(R.levelConfig(13).stars,[5150,7800,11700]);
+ assert.equal(first.goal.count,7500);
+ assert.deepEqual(first.stars,[7500,11250,16875]);
+ assert.deepEqual(R.levelConfig(11).stars,[7575,11400,17100]);
+ assert.deepEqual(R.levelConfig(12).stars,[7650,11550,17325]);
+ assert.deepEqual(R.levelConfig(13).stars,[7725,11700,17550]);
+
+ // Exact +50% vs the previous 6.6 formula, for early and arbitrarily late
+ // Journey stages. Rounding is exact because old milestones were multiples of 50.
+ for(const index of [10,11,12,13,15,19,29,39,49,50,100,1000,23000]){
+  const cfg=R.levelConfig(index),adv=Math.max(0,index-10);
+  const early=Math.min(39,adv),distance=Math.max(0,index-49);
+  const base=Math.round((5000+52*early+35*Math.floor(early/5)+
+   Math.min(1100,Math.log2(1+distance/12)*180))/50)*50;
+  const mastery=Math.min(1,adv/39);
+  const oldStars=[base,
+   Math.ceil(base*(1.5+.15*mastery)/50)*50,
+   Math.ceil(base*(2.25+.2*mastery)/50)*50];
+  assert.deepEqual(cfg.stars,oldStars.map(x=>x*1.5),
+   "Exactly 50% higher points on Journey "+(index+1));
+  assert.equal(cfg.goal.count,cfg.stars[0],"The first star must still be the level goal");
+ }
+ assert.equal(R.levelConfig(0).moves,24,"Intro move budget stays doubled");
+ assert.equal(R.levelConfig(0).par,7,"Intro stars still use goal timing, not score");
+
  assert(middle.goal.count>first.goal.count&&later.goal.count>middle.goal.count);
  assert(first.stars[1]>=first.stars[0]*1.5);
  assert(first.stars[2]>=first.stars[0]*2.25);
  assert(later.stars[1]/later.stars[0]>first.stars[1]/first.stars[0]);
  assert(later.stars[2]/later.stars[0]>first.stars[2]/first.stars[0]);
- assert.equal(R.scoreStars(11,7900,true),2);
- assert.equal(R.scoreStars(12,9125,true),2);
- assert.equal(R.scoreStars(13,9388,true),2);
+ assert.equal(R.scoreStars(11,7900,true),1);
+ assert.equal(R.scoreStars(12,9125,true),1);
+ assert.equal(R.scoreStars(13,9388,true),1);
  assert.equal(R.scoreStars(10,4710,true),1);
  assert.equal(R.scoreStars(10,4710),0);
  assert.equal(R.pacingProposalCount(10,0,"v3"),5);

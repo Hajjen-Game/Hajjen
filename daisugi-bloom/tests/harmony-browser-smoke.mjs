@@ -939,6 +939,23 @@ try{
  assert.equal(await page.$("#endButton"),null,"End-level action belongs in the pause menu only");
  assert(layout.board.top-layout.moves.bottom>55,"Board should sit below HUD with breathing room");
  assert(layout.bodyWidth<=390,"Gameplay must not scroll horizontally");
+
+ // Board & Icon Readability 1.0: genuine cell and art dimensions on 390px mobile.
+ const boardReadability=await page.evaluate(()=>{
+  const board=document.querySelector("#board").getBoundingClientRect();
+  const tile=document.querySelector(".tile").getBoundingClientRect();
+  const piece=document.querySelector(".tile .piece").getBoundingClientRect();
+  const sprite=document.querySelector(".tile .piece .sprite").getBoundingClientRect();
+  return {width:board.width,height:board.height,cell:tile.width,
+   artRatio:piece.width/tile.width,spriteRatio:sprite.width/tile.width,
+   count:document.querySelectorAll("#board > .tile").length};
+ });
+ assert(boardReadability.width>=355,"Phone playfield must reclaim frame space: "+JSON.stringify(boardReadability));
+ assert(Math.abs(boardReadability.width-boardReadability.height)<2,"Expanded 7x7 board must remain square");
+ assert(boardReadability.cell>=48,"Phone tile interaction area must grow alongside board");
+ assert(boardReadability.artRatio>=.99&&boardReadability.spriteRatio>=1.03,
+  "Illustrated objects should fill more of their own tile, without remapping atlases");
+ assert.equal(boardReadability.count,49,"Larger board must retain exactly 49 playable cells");
  await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Börja om nivån"));

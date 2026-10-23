@@ -624,7 +624,7 @@ try{
       window.__pulseProbe.sparkles.push({
        at:Number(node.dataset.at),isEmpty:tile?.getAttribute("aria-label")==="Tom ruta",
        left:node.style.left,top:node.style.top,delay:Number(node.dataset.delay),
-       isStar:node.classList.contains("dust-star"),shade:node.className,
+       isStar:node.classList.contains("dust-star"),shade:node.className,phase:node.dataset.phase,
        layer:!!node.closest(".magic-dust-layer"),duration:parseFloat(node.getAnimations()[0]?.effect?.getTiming()?.duration||0),
        bg:style.backgroundImage
       });
@@ -752,9 +752,10 @@ try{
    "The seeded Harmony Pulse fixture must create a harvested masterpiece");
   assert(fixture.vacatedCells.every(at=>sparkleCells.has(at)),
    "Every emptied cell in a real fusion or Harmony Pulse harvest must glitter");
-  assert(pulse.sparkles.every(p=>p.isEmpty&&p.layer&&
+  assert(pulse.sparkles.every(p=>p.layer&&
+   (p.phase==="fusion"||p.isEmpty)&&
    /px$/.test(p.left)&&/px$/.test(p.top)&&p.bg.includes("gradient")),
-   "Floating dust must originate from genuinely empty cells in a separate overlay");
+   "Fusion dust may start while original pieces are visible; harvest dust begins on empty cells");
   assert(fixture.harvestCells.every(at=>pulse.sparkles.filter(p=>p.at===at).length>=3),
    "Pulse-harvest empty cells need a visible cluster of sparkle particles");
   assert(pulse.sparkles.some(p=>p.isStar)&&
@@ -1284,12 +1285,19 @@ try{
    window.__kineticAnimationCount=0;
    window.__gatherMotion=[];
    window.__sparkleMotions=[];
+   window.__dustOverlappedGather=false;
    const realAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){
      if(this.matches(".piece, .fusion-ghost, .pulse-dot"))window.__kineticAnimationCount++;
-     if(this.matches(".fusion-afterglow-spark"))window.__sparkleMotions.push({
-      frames:args[0],duration:args[1]?.duration,delay:args[1]?.delay,easing:args[1]?.easing
-     });
+     if(this.matches(".fusion-afterglow-spark")){
+      const moving=[...document.querySelectorAll(".fusion-ghost")].some(g=>
+       g.getAnimations().some(a=>a.playState==="running"));
+      if(moving)window.__dustOverlappedGather=true;
+      window.__sparkleMotions.push({
+       frames:args[0],duration:args[1]?.duration,delay:args[1]?.delay,
+       phase:this.dataset.phase,easing:args[1]?.easing
+      });
+     }
      if(this.matches(".fusion-ghost")){
       const frames=args[0]||[],options=args[1]||{};
       const ghostRect=this.getBoundingClientRect();
@@ -1315,7 +1323,9 @@ try{
         window.__scoreFxSeen.fusionAfterglow++;
         window.__scoreFxSeen.afterglowPositions.push(node.style.left+"|"+node.style.top);
         window.__scoreFxSeen.afterglowColors.push(node.className);
-        if(document.querySelector('.tile[data-index="'+node.dataset.at+'"]')?.getAttribute("aria-label")!=="Tom ruta")window.__scoreFxSeen.afterglowOnEmpty=false;
+        if(node.dataset.phase!=="fusion"&&
+         document.querySelector('.tile[data-index="'+node.dataset.at+'"]')?.getAttribute("aria-label")!=="Tom ruta")
+          window.__scoreFxSeen.afterglowOnEmpty=false;
        }
        if(node.classList.contains("harmony-firework-particle")){
         const shape=node.dataset.fireworkShape;
@@ -1377,11 +1387,14 @@ try{
   "Vacated squares need several drifting motes, not static centre dots");
  assert(new Set(sparkleMotions.map(m=>m.delay)).size>=4,
   "Dust should appear at different moments");
+ assert(await page.evaluate(()=>window.__dustOverlappedGather),
+  "Seamless fusion dust must start while the original moving ghosts are still animating");
  assert(sparkleMotions.every(m=>m.frames.length===5&&m.easing==="linear"&&
-  m.frames[0].opacity===0&&m.frames.at(-1).opacity===0&&
-  m.frames[2].opacity>=.70&&m.duration>=290&&m.duration<=380&&
-  m.duration+m.delay<=505&&m.frames[2].transform!==m.frames[0].transform),
-  "Floating dust must drift for 300–380ms and fade with a single soft peak");
+  m.phase==="fusion"&&m.frames[0].opacity===0&&m.frames.at(-1).opacity===0&&
+  m.frames[2].opacity>=.70&&m.duration>=395&&m.duration<=470&&
+  m.delay>=75&&m.duration+m.delay<=670&&
+  m.frames[2].transform!==m.frames[0].transform),
+  "Fusion dust must begin during the original gathering and gently linger into refill");
  assert(gather.every(g=>{
   const xs=g.frames.map(k=>Number(/translate3d\(([-\d.]+)px,/.exec(k.transform)?.[1]));
   const ys=g.frames.map(k=>Number(/,([-\d.]+)px,0\)/.exec(k.transform)?.[1]));

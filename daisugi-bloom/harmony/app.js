@@ -364,6 +364,9 @@ let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
 const resonanceNodes=new Map();
 let resonanceLastKeys=new Set();
 const echoLinkSnapshot=new Map();
+// Reuse settled filament geometry until a piece/stage actually changes.
+// This avoids repeated layout reads and style writes on simple tile selection.
+let settledResonanceCache=null;
 function resonanceKey(link){
  return [link.anchorId,link.partnerId].sort((a,b)=>a-b).join(":");
 }
@@ -371,6 +374,7 @@ function resetResonanceVisuals(){
  const layer=$("resonanceLinks");
  if(layer){layer.replaceChildren();layer.classList.remove("resonance-paused");}
  resonanceNodes.clear();resonanceLastKeys.clear();echoLinkSnapshot.clear();
+ settledResonanceCache=null;
 }
 function refreshResonance(board){
  const overlay=$("resonanceLinks");
@@ -380,7 +384,7 @@ function refreshResonance(board){
  // it. Recreating the SAME link after an animation must not fire a new pulse.
  if(!game||game.moves<=0||game.failed){
   overlay.replaceChildren();overlay.classList.remove("resonance-paused");
-  resonanceNodes.clear();resonanceLastKeys.clear();
+  resonanceNodes.clear();resonanceLastKeys.clear();settledResonanceCache=null;
   return {anchors,partners,awakened};
  }
  if(busy||board!==game.board){
@@ -389,6 +393,14 @@ function refreshResonance(board){
   return {anchors,partners,awakened};
  }
  overlay.classList.remove("resonance-paused");
+ // A click or an unrelated HUD repaint must not remeasure all six beams.
+ // Include position, identity, family and stage (not just board reference):
+ // the real game mutates its 49-piece array in place between turns.
+ const signature=board.map(p=>p?p.id+":"+p.family+":"+p.stage:"-").join("|");
+ if(settledResonanceCache?.game===game&&settledResonanceCache.signature===signature){
+  return {anchors:settledResonanceCache.anchors,
+   partners:settledResonanceCache.partners,awakened};
+ }
  const links=R.resonanceLinks(board)
   .sort((a,b)=>b.stage-a.stage||a.anchor-b.anchor).slice(0,6);
  const current=new Set();
@@ -427,6 +439,7 @@ function refreshResonance(board){
   if(!current.has(key)){line.remove();resonanceNodes.delete(key);}
  }
  resonanceLastKeys=current;
+ settledResonanceCache={game,signature,anchors,partners};
  return {anchors,partners,awakened};
 }
 function renderBoard(board,highlight,effect){
@@ -480,6 +493,7 @@ function renderBoard(board,highlight,effect){
  presentedBoard=board.map(p=>p?{id:p.id,family:p.family,stage:p.stage}:null);
 }
 window.addEventListener("resize",()=>{
+ settledResonanceCache=null; // Width/position may change with the viewport.
  if(game&&!busy&&!$("gameView").hidden)renderBoard(game.board);
 },{passive:true});
 function renderHUD(state){

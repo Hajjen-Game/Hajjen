@@ -941,7 +941,7 @@ try{
  // introduction. Both should use the approved transparent atlas.
  await page.evaluate(()=>{
   const key="japanese-harmony-puzzle-v2",save=JSON.parse(localStorage.getItem(key)||"{}");
-  save.unlocked=2;save.run=null;localStorage.setItem(key,JSON.stringify(save));
+  save.unlocked=4;save.run=null;localStorage.setItem(key,JSON.stringify(save));
  });
  await page.reload({waitUntil:"networkidle2"});
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-new-atlas"),{timeout:15000});

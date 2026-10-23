@@ -31,6 +31,20 @@ function updatePaceLabel(){
 // and TARGET of an evaluated, genuinely legal move, without spending turns.
 const IDLE_HINT_DELAY_MS=30000;
 let idleHintTimer=0,idleHintFrom=-1,idleHintTo=-1;
+// Compute the expensive best-move simulation only once per unchanged board.
+// Harmless taps and invalid swaps can restart the idle timer without redoing it.
+let cachedIdleHint=null;
+function bestIdleHint(){
+ const signature=game.board.map(p=>p?p.id+":"+p.stage+":"+p.family:"-").join("|");
+ if(cachedIdleHint&&cachedIdleHint.game===game&&
+  cachedIdleHint.signature===signature&&cachedIdleHint.moves===game.moves&&
+  cachedIdleHint.score===game.score&&cachedIdleHint.rolls===game.rolls)
+  return cachedIdleHint.value;
+ const value=R.bestHint(game);
+ cachedIdleHint={game,signature,moves:game.moves,score:game.score,
+  rolls:game.rolls,value};
+ return value;
+}
 function clearIdleHint(){
  if(idleHintTimer){clearTimeout(idleHintTimer);idleHintTimer=0;}
  for(const index of [idleHintFrom,idleHintTo]){
@@ -48,7 +62,7 @@ function restartIdleHint(){
  idleHintTimer=setTimeout(()=>{
   idleHintTimer=0;
   if(!hintEligible())return;
-  const hint=R.bestHint(game);
+  const hint=bestIdleHint();
   if(!hint)return;
   idleHintFrom=hint.from;idleHintTo=hint.to;
   document.querySelector('.tile[data-index="'+hint.from+'"]')?.classList.add("idle-hint-source");
@@ -340,7 +354,7 @@ async function celebrateCollection(evt){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
- disarmDecisionClock();clearIdleHint();
+ disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
@@ -599,14 +613,6 @@ function trySwap(a,b){
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
  sound("swap");
  void playEvents(result.events);
-}
-function highlightIndices(evt){
- if(evt.type==="swap")return {indices:[evt.from,evt.to],effect:"swapped"};
- if(evt.type==="fusion")return {indices:evt.groups.flatMap(g=>[g.at,...g.removed]),effect:"swapped"};
- if(evt.type==="bonus"||evt.type==="pulse")return {indices:evt.targets.map(t=>t.to),effect:"pulsed"};
- if(evt.type==="hero"||evt.type==="harvest")return {indices:evt.positions,effect:"harvested"};
- if(evt.type==="shuffle")return {indices:Array.from({length:49},(_,i)=>i),effect:"shuffling"};
- return {indices:[],effect:""};
 }
 // Fusions move for real rather than swapping artwork separated by arbitrary timers.
 // This uses the compositor's Web Animations to minimize main-thread mobile jank.

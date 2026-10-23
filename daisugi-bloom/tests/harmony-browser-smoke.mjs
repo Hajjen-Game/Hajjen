@@ -702,7 +702,7 @@ try{
    expected.map(({wave,to})=>({wave,to})).sort(sortPosition),
    "Anticipation must glow on EVERY and ONLY target of the actual Pulse events");
   assert(pulse.charge.every(c=>c.pointer==="none"&&c.bg==="none"&&
-   c.shadow==="none"&&c.centreTransparent&&c.rimWidth===2),
+   c.shadow==="none"&&c.centreTransparent&&c.rimWidth===1),
    "Pulse target rings must have a transparent centre, with NO old tile-filling glow");
   assert(pulse.charge.every(c=>
     c.mask!=="none"&&c.ringAnimation.includes("jh-pulse-target-orbit")&&

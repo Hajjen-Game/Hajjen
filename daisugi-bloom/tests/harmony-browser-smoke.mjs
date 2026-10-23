@@ -40,14 +40,20 @@ try{
    assert(item.corners.every(v=>v===0),"Stage-1 "+name+" must have real alpha: "+JSON.stringify(item));
    assert(item.center>170,"Stage-1 "+name+" artwork should be visible");
   }
+  await art.waitForFunction(()=>["has-atlas","has-new-atlas","has-koi-stage1","has-maneki-stage1"]
+   .every(cls=>document.documentElement.classList.contains(cls)),{timeout:18000});
   await art.click(".level-tile:first-child");
   const koiTile=await art.evaluate(()=>{
    const el=document.querySelector(".piece .sprite.sprite-stage1-koi");
    const bg=el&&getComputedStyle(el);
-   return {exists:!!el,background:bg?.backgroundImage,size:bg?.backgroundSize,position:bg?.backgroundPosition};
+   return {exists:!!el,display:bg?.display,
+    fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display,
+    background:bg?.backgroundImage,size:bg?.backgroundSize,position:bg?.backgroundPosition};
   });
   assert(koiTile.exists&&koiTile.background.includes("koi-stage1.avif"),"Live Koi stage 1 must show new transparent sprite");
   assert.equal(koiTile.size,"100% 100%");
+  assert.equal(koiTile.display,"block","Koi must be VISIBLE, not merely have a URL in CSS");
+  assert.equal(koiTile.fallback,"none","The blue fallback emoji must be hidden");
   await art.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const old=JSON.parse(localStorage.getItem(key));
@@ -59,7 +65,9 @@ try{
   const manekiTile=await art.evaluate(()=>{
    const el=document.querySelector(".piece.new-family .sprite.sprite-stage1-maneki");
    const bg=el&&getComputedStyle(el);
-   return {exists:!!el,background:bg?.backgroundImage,size:bg?.backgroundSize,
+   return {exists:!!el,display:bg?.display,
+    fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display,
+    background:bg?.backgroundImage,size:bg?.backgroundSize,
     atlasProtected:[...document.querySelectorAll(".sprite")].every(s=>
      s.classList.contains("sprite-stage1-koi")||s.classList.contains("sprite-stage1-maneki")||
      !getComputedStyle(s).backgroundImage.includes("stage1.avif"))};
@@ -67,8 +75,85 @@ try{
   assert(manekiTile.exists&&manekiTile.background.includes("maneki-stage1.avif"),
    "Live Maneki-neko stage 1 must show the new centered paw");
   assert.equal(manekiTile.size,"100% 100%");
+  assert.equal(manekiTile.display,"block","Paw must be VISIBLE");
+  assert.equal(manekiTile.fallback,"none","The cat fallback emoji must be hidden");
   assert(manekiTile.atlasProtected,"Other stages and object families must retain their atlas sprites");
  }finally{await iconContext.close();}
+ // Art Recovery 1.1: simulate the screenshot's broken-atlas scenario.
+ // The individual two stage-1 assets must STILL render, with no emojis.
+ const offlineContext=await browser.createBrowserContext();
+ try{
+  const offline=await offlineContext.newPage();
+  await offline.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await offline.setRequestInterception(true);
+  offline.on("request",request=>{
+   if(/\/assets\/(harmony-atlas\.webp|harmony-new-families\.avif)/.test(request.url()))
+    request.abort("failed");
+   else request.continue();
+  });
+  await offline.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"domcontentloaded",timeout:40000});
+  await offline.waitForFunction(()=>document.documentElement.classList.contains("has-koi-stage1")&&
+   document.documentElement.classList.contains("has-maneki-stage1"),{timeout:18000});
+  await offline.click(".level-tile:first-child");
+  const koiOffline=await offline.evaluate(()=>{
+   const el=document.querySelector(".sprite-stage1-koi");
+   return {sprite:el?getComputedStyle(el).display:null,
+    fallback:el?getComputedStyle(el.parentElement.querySelector(".fallback")).display:null,
+    atlas:document.documentElement.classList.contains("has-atlas")};
+  });
+  assert.equal(koiOffline.sprite,"block","Koi art must not depend on the full atlas");
+  assert.equal(koiOffline.fallback,"none");
+  assert.equal(koiOffline.atlas,false);
+  await offline.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2",save=JSON.parse(localStorage.getItem(key));
+   save.unlocked=7;save.run=null;localStorage.setItem(key,JSON.stringify(save));
+  });
+  await offline.reload({waitUntil:"domcontentloaded"});
+  await offline.waitForFunction(()=>document.documentElement.classList.contains("has-maneki-stage1"),{timeout:18000});
+  await offline.click(".level-tile:nth-child(8)");
+  const pawOffline=await offline.evaluate(()=>{
+   const el=document.querySelector(".sprite-stage1-maneki");
+   return {sprite:el?getComputedStyle(el).display:null,
+    fallback:el?getComputedStyle(el.parentElement.querySelector(".fallback")).display:null,
+    atlas:document.documentElement.classList.contains("has-new-atlas")};
+  });
+  assert.equal(pawOffline.sprite,"block","Maneki paw art must not depend on the new-family atlas");
+  assert.equal(pawOffline.fallback,"none");
+  assert.equal(pawOffline.atlas,false);
+ }finally{await offlineContext.close();}
+
+ // Reproduce a temporary 4G failure: first request fails, recovered URL
+ // succeeds; BOTH regular atlases need visible sprite + hidden emoji.
+ const recoverContext=await browser.createBrowserContext();
+ try{
+  const recover=await recoverContext.newPage();
+  await recover.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  const failed=new Set();
+  await recover.setRequestInterception(true);
+  recover.on("request",request=>{
+   const name=["harmony-atlas.webp","harmony-new-families.avif"]
+    .find(name=>request.url().includes("/assets/"+name));
+   if(name&&!failed.has(name)){
+    failed.add(name);request.abort("failed");
+   }else request.continue();
+  });
+  await recover.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"domcontentloaded",timeout:40000});
+  await recover.waitForFunction(()=>["has-atlas","has-new-atlas"]
+    .every(cls=>document.documentElement.classList.contains(cls)),{timeout:22000});
+  assert.deepEqual([...failed].sort(),["harmony-atlas.webp","harmony-new-families.avif"],
+   "The first atlas fetch should really have failed in this recovery test");
+  await recover.click(".level-tile:first-child");
+  const recovered=await recover.evaluate(()=>{
+   const el=document.querySelector(".piece .sprite:not(.sprite-new)");
+   const style=el&&getComputedStyle(el);
+   return {visible:style?.display,background:style?.backgroundImage,
+    fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display};
+  });
+  assert.equal(recovered.visible,"block");
+  assert.equal(recovered.fallback,"none");
+  assert(recovered.background.includes("recovery=1"),
+   "Atlas CSS must use the recovered URL rather than a failed cached URL");
+ }finally{await recoverContext.close();}
  // Live player-mode picker: new sessions default to Pacing 3.0 (including
  // Opportunity 2.0), while 2.0 and Standard are explicitly selectable.
  const directorContext=await browser.createBrowserContext();

@@ -1,5 +1,15 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Art Recovery 6.8.2 — 2026-10-23
+
+Åtgärdar ett verkligt rapporterat fel där hela spelplanen visade **emoji-fallbacks** (blå fisk, enkel lykta, blomma och solfjäder) i stället för de godkända detaljrika illustrationerna.
+
+**Orsak:** Förra implementationen gjorde de nya Koi/Maneki-neko-bilderna beroende av lyckad laddning av äldre atlaser. Den hade heller ingen återhämtning om en atlas begärdes när mobilen hade tillfälligt dåligt nät. Bildtestet kontrollerade bakgrundsadress men inte att den färdiga illustrationen faktiskt syntes.
+
+**Fix:** Fyra oberoende resurser (originalatlas, extraatlas, Koi stadium 1 och Maneki-neko stadium 1) laddas nu separat, med högst tre automatiska återförsök efter nätfel och särskild återhämtning när nätanslutningen kommer tillbaka. Vid återhämtning används exakt den framgångsrikt laddade adressen som CSS-bild, för att kringgå felaktigt cachade svar. De två nya stadium 1-bilderna visas när deras egna resurser laddats – **även om ingen av atlaserna är tillgänglig**. Annars behålls föregående atlasbild eller emoji som tillfällig fallback; ingen tom bricka.
+
+Mobiltestet kontrollerar nu `display:block`, att emojin är dold och att båda atlaserna kan återhämta sig efter simulerade 4G-fel. Testet simulerar även att båda atlaserna är permanent otillgängliga för att verifiera att Koi och Maneki-neko ändå visas rätt.
+
 ## Stage 1 Art Refresh — Koi & Maneki-neko (2026-10-23)
 
 Två nya transparenta spelarvalda ikoner ligger i `assets/koi-stage1.avif` och `assets/maneki-stage1.avif`.

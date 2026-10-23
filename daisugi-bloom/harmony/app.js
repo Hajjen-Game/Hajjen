@@ -1626,18 +1626,65 @@ function bind(){
   restartIdleHint();
  });
 }
+// Art Recovery 1.1: never gate the user-approved standalone stage-1 images
+// behind either atlas. All loads are checked for true decode, and transient
+// network/cache failures retry with a different URL. CSS points to the exact
+// successful URL (including cache-buster), not the stale failed request.
+const ART_RESOURCES=[
+ {file:"harmony-atlas.webp",query:"v=icons-20261022",ready:"has-atlas",css:"--harmony-classic-art"},
+ {file:"harmony-new-families.avif",query:"v=5.0",ready:"has-new-atlas",css:"--harmony-new-art"},
+ {file:"koi-stage1.avif",query:"v=20261023",ready:"has-koi-stage1",css:"--harmony-koi-stage1-art"},
+ {file:"maneki-stage1.avif",query:"v=20261023",ready:"has-maneki-stage1",css:"--harmony-maneki-stage1-art"}
+];
+const artworkLoaders=[];
 function checkAtlas(){
- const img=new Image();
- img.onload=()=>document.documentElement.classList.add("has-atlas");
- img.onerror=()=>{document.documentElement.classList.remove("has-atlas");console.warn("Japanese Harmony classic atlas unavailable; using fallback symbols.");};
- img.src="./assets/harmony-atlas.webp?v=icons-20261022";
- // Twenty new, transparent stage images packed into a single mobile-friendly
- // AVIF. Each 192px cell maps to a distinct object, including its masterpiece.
- const extra=new Image();
- extra.onload=()=>document.documentElement.classList.add("has-new-atlas");
- extra.onerror=()=>{document.documentElement.classList.remove("has-new-atlas");console.warn("New harmony sprites unavailable; using fallback symbols.");};
- extra.src="./assets/harmony-new-families.avif?v=5.0";
+ const root=document.documentElement;
+ for(const item of ART_RESOURCES){
+  let tries=0,finished=false;
+  const load=()=>{
+   if(finished)return;
+   const src="./assets/"+item.file+"?"+item.query+(tries?"&recovery="+tries:"");
+   const img=new Image();
+   artworkLoaders.push(img); // hold references during slow mobile downloads
+   const recover=()=>{
+    if(finished)return;
+    if(++tries<=3){
+     setTimeout(load,tries===1?650:tries===2?1300:2400);
+    }else{
+     console.warn("Japanese Harmony artwork unavailable after recovery:",item.file);
+    }
+   };
+   img.onload=()=>{
+    if(!img.naturalWidth||!img.naturalHeight){recover();return;}
+    finished=true;
+    // Resolved URL from Image.src is absolute, so CSS variables work both
+    // when declared on <html> and inside /harmony/*.css stylesheets.
+    root.style.setProperty(item.css,'url("'+img.src+'")');
+    root.classList.add(item.ready);
+    if(game&&!$("gameView").hidden)renderBoard(game.board);
+   };
+   img.onerror=recover;
+   img.src=src;
+  };
+  load();
+ }
 }
+// Returning online also helps recover from images that exhausted their first
+// short batch of retries while the player was temporarily disconnected.
+window.addEventListener("online",()=>{
+ for(const item of ART_RESOURCES){
+  if(!document.documentElement.classList.contains(item.ready)){
+   const img=new Image();
+   img.onload=()=>{
+    if(!img.naturalWidth)return;
+    document.documentElement.style.setProperty(item.css,'url("'+img.src+'")');
+    document.documentElement.classList.add(item.ready);
+    if(game&&!$("gameView").hidden)renderBoard(game.board);
+   };
+   img.src="./assets/"+item.file+"?"+item.query+"&online="+Date.now();
+  }
+ }
+});
 window.HarmonyAudio?.setEnabled(save.sound);
 menuPage=Math.floor(Math.max(0,save.unlocked)/MENU_PAGE_SIZE);
 bind();checkAtlas();initFestivalBackground();renderMenu();

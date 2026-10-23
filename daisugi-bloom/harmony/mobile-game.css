@@ -1275,10 +1275,10 @@ body.harmony-reduced-motion.harmony-playing .game-view .board-praise-word::befor
  border:0;border-radius:0;background:none;box-shadow:none;
 }
 .collection-art,.collection-fallback{z-index:1;position:absolute;inset:0;pointer-events:none}
-.collection-art{background-image:url("../assets/harmony-atlas.webp?v=icons-20261022");
+.collection-art{background-image:var(--harmony-classic-art,url("../assets/harmony-atlas.webp?v=icons-20261022"));
  background-size:500% 500%;background-position:100% var(--collection-y);
  background-repeat:no-repeat;display:none}
-.collection-art.collection-new{background-image:url("../assets/harmony-new-families.avif?v=5.0");background-size:500% 400%}
+.collection-art.collection-new{background-image:var(--harmony-new-art,url("../assets/harmony-new-families.avif?v=5.0"));background-size:500% 400%}
 .collection-fallback{display:grid;place-items:center;font-size:33px}
 .has-atlas .collection-art:not(.collection-new){display:block}
 .has-atlas .collection-card:has(.collection-art:not(.collection-new)) .collection-fallback{display:none}
@@ -1707,15 +1707,31 @@ body.harmony-reduced-motion .harmony-reward-accent{display:none!important}
    Separate premultiplied-alpha AVIF sprites replace only Koi (classic atlas)
    and Maneki-neko (new family atlas) stage 1. Stage 2–5 are untouched.
    Each sprite fills its normal tile without a medallion/frame or black matte. */
-.piece .sprite.sprite-stage1-koi{
- background-image:url("../assets/koi-stage1.avif?v=20261023")!important;
+.has-koi-stage1 .piece .sprite.sprite-stage1-koi{
+ background-image:var(--harmony-koi-stage1-art,url("../assets/koi-stage1.avif?v=20261023"))!important;
  background-size:100% 100%!important;
  background-position:center center!important;
  background-repeat:no-repeat!important;
 }
-.piece.new-family .sprite.sprite-new.sprite-stage1-maneki{
- background-image:url("../assets/maneki-stage1.avif?v=20261023")!important;
+.has-maneki-stage1 .piece.new-family .sprite.sprite-new.sprite-stage1-maneki{
+ background-image:var(--harmony-maneki-stage1-art,url("../assets/maneki-stage1.avif?v=20261023"))!important;
  background-size:100% 100%!important;
  background-position:center center!important;
  background-repeat:no-repeat!important;
+}
+
+/* Art Recovery 1.1: the two approved stage-1 icons must NEVER turn into
+   fallback emoji just because a different image atlas is offline/slow.
+   Their own independently verified image loads control visibility. */
+.has-koi-stage1 .piece .sprite.sprite-stage1-koi{
+ display:block!important;
+}
+.has-koi-stage1 .piece:has(.sprite-stage1-koi) .fallback{
+ display:none!important;
+}
+.has-maneki-stage1 .piece.new-family .sprite.sprite-stage1-maneki{
+ display:block!important;
+}
+.has-maneki-stage1 .piece.new-family:has(.sprite-stage1-maneki) .fallback{
+ display:none!important;
 }

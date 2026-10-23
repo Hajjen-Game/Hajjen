@@ -63,15 +63,39 @@ try{
   const standard=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
   assert.equal(standard,"standard","Standard remains selectable");
  }finally{await directorContext.close();}
- // Four Families Experiment 1.0 — user-selectable 4/5 game, larger
- // masterpiece icons, separate PB/stars, and save-compatible original mode.
- const fourContext=await browser.createBrowserContext();
+ // Fixed family progression: 4 in stages 1–10 and 5 from stage 11.
+ // Old five-family saved runs and BOTH historical score archives survive.
+ const progressionContext=await browser.createBrowserContext();
  try{
-  const preview=await fourContext.newPage();
+  const preview=await progressionContext.newPage();
   await preview.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await preview.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
-  assert.equal(await preview.$eval("#gameFamilyCount",n=>n.value),"5");
-  await preview.select("#gameFamilyCount","4");
+  assert.equal(await preview.$("#gameFamilyCount"),null,"The experiment selector is no longer needed");
+  assert((await preview.$eval(".family-progression-note",e=>e.textContent)).includes("4 familjer"));
+  // Migrate an earlier five-family intro record and preserve the better
+  // experimental four-family record. This migration is idempotent.
+  await preview.evaluate(()=>{
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:10,bestStars:{"0":3,"10":1},bestScores:{"0":9000,"10":7200},
+    bestChain:{"0":4},fourFamilyStars:{"0":2},fourFamilyScores:{"0":4000},
+    fourFamilyChain:{"0":2},playMode:"v3",run:null,sound:false
+   }));
+  });
+  await preview.reload({waitUntil:"networkidle2"});
+  const records=await preview.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {introRecord:saved.fourFamilyScores["0"],introStars:saved.fourFamilyStars["0"],
+    preservedOld:saved.bestScores["0"],journeyRecord:saved.bestScores["10"],
+    visibleIntro:document.querySelector(".level-tile:first-child")?.textContent,
+    visibleJourney:document.querySelector(".level-tile:nth-child(11)")?.textContent,
+    migration:saved.familyProgressionVersion};
+  });
+  assert.equal(records.introRecord,9000);
+  assert.equal(records.introStars,3);
+  assert.equal(records.preservedOld,9000);
+  assert.equal(records.journeyRecord,7200);
+  assert.equal(records.migration,1);
+  assert(records.visibleIntro.includes("9 000")&&records.visibleJourney.includes("7 200"));
   await preview.click(".level-tile:first-child");
   const four=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
@@ -81,30 +105,36 @@ try{
     width:icons[0]?.querySelector(".collection-icon").getBoundingClientRect().width,
     classified:document.querySelector("#masterpieceCollection").classList.contains("four-families")};
   });
-  assert.equal(four.families,4);
-  assert.equal(four.unique,4);assert.equal(four.cardCount,4);
-  assert.equal(four.mode,"v3","Four families must retain Pacing Director 3.0");
-  assert(four.classified&&four.width>58,"Four larger Masterpiece icons must be visible on mobile");
+  assert.equal(four.families,4);assert.equal(four.unique,4);assert.equal(four.cardCount,4);
+  assert.equal(four.mode,"v3");assert(four.classified&&four.width>58);
   await preview.click("#pauseButton");
   await preview.click("#modalActions button:last-child");
-  await preview.select("#gameFamilyCount","5");
-  await preview.click(".level-tile:first-child");
+  await preview.click(".level-tile:nth-child(11)");
   const five=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
-   return {count:run.familyCount,cards:document.querySelectorAll("#masterpieceCollection .collection-card").length,
-    width:document.querySelector("#masterpieceCollection .collection-icon").getBoundingClientRect().width,
-    own:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).fourFamilyScores};
+   return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size,
+    cards:document.querySelectorAll("#masterpieceCollection .collection-card").length,
+    width:document.querySelector("#masterpieceCollection .collection-icon").getBoundingClientRect().width};
   });
-  assert.equal(five.count,5);assert.equal(five.cards,5);
-  assert(four.width>five.width,"Four-family collection art must be larger");
-  assert.deepEqual(five.own,{},"Four-family PBs should be independent of old mode");
-  await preview.click("#pauseButton");
-  await preview.click("#modalActions button:last-child");
-  await preview.select("#gameFamilyCount","4");
+  assert.equal(five.count,5);assert.equal(five.unique,5);assert.equal(five.cards,5);
+  assert(four.width>five.width,"Four-family intro icons should be bigger than five-family Journey icons");
+  // A pre-upgrade stage-1 run without familyCount must keep its fifth family.
+  await preview.evaluate(()=>{
+   const old=new window.HarmonyRules.Game(0,null,{seed:991,familyCount:5,directorMode:"v3"});
+   const save=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   const snapshot=old.save();delete snapshot.familyCount;
+   save.run={level:0,data:snapshot};
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify(save));
+  });
   await preview.reload({waitUntil:"networkidle2"});
-  assert.equal(await preview.$eval("#gameFamilyCount",e=>e.value),"4",
-   "Selected experiment family count must survive a reload");
- }finally{await fourContext.close();}
+  await preview.click("#continueButton");
+  const older=await preview.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size};
+  });
+  assert.equal(older.count,5);
+  assert.equal(older.unique,5,"Legacy level-one run must resume with its original five families");
+ }finally{await progressionContext.close();}
  // Directed idle hint 1.1: only one REAL swap, shown as bright SOURCE and soft TARGET.
  // Shorten only the one-minute timer inside the isolated mobile test context.
  const hintContext=await browser.createBrowserContext();
@@ -457,8 +487,8 @@ try{
   noFractions:!document.querySelector("#masterpieceCollection").textContent.includes("/5"),
   visible:!!document.querySelector(".masterpiece-collection")
  }));
- assert.equal(collection.icons,5,"Five active families must appear under the board");
- assert.deepEqual(collection.labels,["0","0","0","0","0"],"All five counters begin at zero, never 0/5");
+ assert.equal(collection.icons,4,"Four active families must appear in the tutorial");
+ assert.deepEqual(collection.labels,["0","0","0","0"],"All four counters begin at zero");
  assert(collection.noFractions&&collection.visible);
  const collectionLayout=await page.evaluate(()=>{
   const icon=document.querySelector(".collection-icon");

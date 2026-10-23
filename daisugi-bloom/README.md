@@ -1,12 +1,12 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
-## Japanese Harmony — Four Families Experiment 1.0 (2026-10-23)
+## Family Progression 1.0 — 2026-10-23
 
-**Nu spelbart:** I nivåmenyn finns ett val mellan **5 familjer – original** och **4 familjer – experiment 1.0**. Båda använder samma valda Director (Pacing 3.0 är standard). En fyrfamiljsnivå visar bara fyra Masterpiece-kort, med större ikoner. Alla nio familjer fortsätter att rotera mellan nivåerna.
+**Fast nivåstruktur:** Nivå **1–10 använder fyra objektfamiljer** på den vanliga 7×7-spelplanen, med fyra större mästerverksikoner. **Från nivå 11 använder alla nya spel fem familjer**, där det blir mer att planera inför poängjakten. Alla nio föremålstyper fortsätter att rotera mellan nivåerna. Det manuella experimentvalet i nivåmenyn har ersatts med en tydlig informationsrad. Pacing Director 3.0 (inklusive 2.0) fungerar i båda delarna.
 
-**Inga gamla framsteg förloras.** Påbörjade spel återupptas med exakt det familjeantal de startade med. Gamla spel från före experimentet använder fortfarande fem. Fyrfamiljsrekord och stjärnor sparas separat så att testresultat inte ersätter tidigare femfamiljsrekord. Upplåsta nivåer är gemensamma, så progressionen behöver inte göras om.
+**Befintliga rekord och sparningar behålls.** Om du redan testat 4-familjsläget på nivå 1–10 behålls dina stjärnor och poäng. Tidigare 5-familjsresultat på introduktionsnivåerna förs in i den gemensamma visningen *om de är högre*, utan att originalhistoriken raderas. Från nivå 11 visas den ursprungliga femfamiljshistoriken. En påbörjad nivå med fem familjer fortsätter med exakt fem vid återupptagning, även om den är en introduktionsnivå.
 
-**Rättvist test:** Poäng, nivåmål, gravitation, Harmony Resonance, Echo, Pulse och Director 3.0 ändras inte. Ett separat GitHub Actions-test simulerar 480 hela omgångar (fyra nivåer × tre botstrategier × 20 parade startfrön × två familjeantal) och mäter poäng, tillgängliga drag, Masterpieces, Echo, Director-ingrepp och stjärnor. Se [Four Families Experiment 1.0](docs/JAPANESE_HARMONY_FOUR_FAMILIES_EXPERIMENT_1_0.md).
+Bakgrund: [Four Families Experiment 1.0](docs/JAPANESE_HARMONY_FOUR_FAMILIES_EXPERIMENT_1_0.md) jämförde 480 spelomgångar med 4 respektive 5 familjer. Fyrfamiljsversionen var mer belönande men gav mycket högre poäng och betydligt fler mästerverk. Därför använder vi fyra för introduktion och fem i Journey. Se [beslut och migrering](docs/JAPANESE_HARMONY_FAMILY_PROGRESSION_1_0.md).
 
 ## Harmony Pacing Director 3.0 — 2026-10-22
 

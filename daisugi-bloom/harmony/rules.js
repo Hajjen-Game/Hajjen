@@ -2,9 +2,9 @@
 (function(root){
 "use strict";
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
-// Five active families per level, never all nine at once. The complete
-// collection has appeared by level 3, and continues rotating through level 10.
-// This is a fixed per-level identity so retry and save/resume are predictable.
+// Fixed progression: four active families on levels 1–10, five from level
+// 11 onward. All nine families rotate across the introduction. The original
+// five-family recipes are retained for saves from before the progression.
 const LEVEL_FAMILIES=[
  ["sakura","lantern","koi","fan","bonsai"],
  ["sakura","koi","fan","sushi","maneki"],
@@ -23,8 +23,10 @@ function endlessFamilies(index){
  for(let i=chosen.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[chosen[i],chosen[j]]=[chosen[j],chosen[i]];}
  return chosen.slice(0,5);
 }
+function levelFamilyCount(index){return index<10?4:5;}
 function activeFamilies(index,count=5){
- // Keep the original 5-family rotation intact for older saves; 4 is opt-in.
+ // Five remains the explicit original recipe; the live intro uses four.
+ // Existing old snapshots retain their original five-family board on resume.
  const picked=index<LEVEL_FAMILIES.length?LEVEL_FAMILIES[index].slice():endlessFamilies(index);
  return picked.slice(0,count===4?4:5);
 }
@@ -339,7 +341,7 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
-  this.familyCount=options?.familyCount===4?4:5;
+  this.familyCount=options?.familyCount===4?4:options?.familyCount===5?5:levelFamilyCount(this.level);
   this.families=activeFamilies(this.level,this.familyCount);
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
@@ -679,6 +681,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,scoreStars,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,scoreStars,levelFamilyCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

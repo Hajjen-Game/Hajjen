@@ -13,15 +13,35 @@ check("Ten tutorial levels and 40 generated Journey previews",()=>{
  assert.equal(R.levelFamilies.length,10);
  const seen=new Set();
  for(let i=0;i<10;i++){
-  const selection=R.activeFamilies(i);
-  assert.equal(selection.length,5,"Five families, never nine, on level "+(i+1));
-  assert.equal(new Set(selection).size,5);
+  const selection=R.activeFamilies(i,R.levelFamilyCount(i));
+  assert.equal(selection.length,4,"Four families on tutorial level "+(i+1));
+  assert.equal(new Set(selection).size,4);
   for(const family of selection)seen.add(family);
-  if(i===2)assert.equal(seen.size,9,"Every family must be introduced by level 3");
+  if(i===7)assert.equal(seen.size,9,"All nine identities should be introduced by level 8");
  }
  assert.deepEqual([...seen].sort(),R.families.slice().sort());
- assert(R.activeFamilies(5).includes("lantern"),"Lantern Festival needs lanterns");
- for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage===1),"Every new level must begin with only stage-one objects");assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);assert.deepEqual(new Set(g.board.map(p=>p.family)),new Set(R.activeFamilies(i)));}
+ assert(R.activeFamilies(5,4).includes("lantern"),"Lantern Festival needs lanterns");
+ for(let i=0;i<10;i++){let g=new R.Game(i);assert.equal(g.board.length,49);assert(g.board.every(p=>p&&p.stage===1),"Every new level must begin with only stage-one objects");assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);assert.equal(g.moves,R.levels[i].moves);assert.equal(g.familyCount,4);assert.deepEqual(new Set(g.board.map(p=>p.family)),new Set(R.activeFamilies(i,4)));}
+});
+check("Intro 1–10 use four, level 11+ use five; seeded games keep the selected recipe",()=>{
+ assert.equal(R.levelFamilyCount(0),4);
+ assert.equal(R.levelFamilyCount(9),4);
+ for(const level of [10,11,49,100])assert.equal(R.levelFamilyCount(level),5);
+ for(const level of [0,5,9,10,11,49]){
+  const g=new R.Game(level,null,{seed:20261023,directorMode:"v3"});
+  const count=level<10?4:5;
+  assert.equal(g.familyCount,count);
+  assert.equal(g.families.length,count);
+  assert.equal(new Set(g.board.map(p=>p.family)).size,count);
+  assert.equal(R.scan(g.board).length,0);
+  assert(R.validSwaps(g.board).length>=3);
+ }
+ const old=new R.Game(9,null,{seed:20261023,familyCount:5});
+ const snapshot=old.save();delete snapshot.familyCount;
+ const loaded=new R.Game(9,snapshot,{fastRestore:true});
+ assert.equal(loaded.familyCount,5,"A legacy intro session must keep its fifth family");
+ assert.deepEqual(loaded.board,old.board);
+ assert.deepEqual(loaded.bag,old.bag);
 });
 check("level 8 is achievable through five stage-three evolutions, not a rare T/L formation",()=>{
  const cfg=R.levels[7];

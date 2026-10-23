@@ -5,14 +5,14 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Score & Stars 6.2.0</title>
+ <title>Japanese Harmony · Family Progression 6.5.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=5.6.0-icons-20261022">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.4.0-four-families">
- <script defer src="./harmony/rules.js?v=6.4.0-four-families"></script>
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.5.0-family-progression">
+ <script defer src="./harmony/rules.js?v=6.5.0-family-progression"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
  <script defer src="./harmony/diagnostics.js?v=6.3.0-pacing"></script>
- <script defer src="./harmony/app.js?v=6.4.0-four-families"></script>
+ <script defer src="./harmony/app.js?v=6.5.0-family-progression"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -42,13 +42,9 @@
        </select>
        <p id="directorModeDescription">Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.</p>
       </div>
-      <div class="family-experiment-picker">
-       <label for="gameFamilyCount">OBJEKTFAMILJER · JÄMFÖRELSE</label>
-       <select id="gameFamilyCount" aria-label="Välj fyra eller fem objektfamiljer för nya nivåer">
-        <option value="5" selected>5 familjer – original</option>
-        <option value="4">4 familjer – experiment 1.0</option>
-       </select>
-       <p id="familyCountDescription">Original: fem familjer på 7×7. Dina tidigare rekord och stjärnor är kvar.</p>
+      <div class="family-progression-note" aria-label="Objektfamiljer per nivå">
+       <strong>✿ Nivå 1–10: 4 familjer</strong>
+       <span>Från nivå 11: 5 familjer · fler strategiska möjligheter</span>
       </div>
       <div id="levelList" class="level-list"></div><nav id="levelPager" class="level-pager" aria-label="Bläddra mellan nivåer"></nav>
       <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Spela om tidigare nivåer och förbättra dina poängrekord och stjärnor.</p></div>

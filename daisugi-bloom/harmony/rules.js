@@ -44,6 +44,9 @@ const levels=[
 ];
 // A level number is enough to recreate its configuration. This is the one
 // reusable level recipe for all stages after the 10-level tutorial.
+// After doubling moves, rebalance all score-based Journey star requirements
+// by +50%. Introduction levels 1–10 instead rate stars by goal timing.
+const JOURNEY_STAR_SCORE_MULTIPLIER=1.5;
 function endlessConfig(index){
  const number=index+1,tier=Math.floor((index-10)/10);
  const moves=2*Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
@@ -54,14 +57,15 @@ function endlessConfig(index){
  // No level adapts its score target based on the individual player's history.
  const advancement=Math.max(0,index-10),early=Math.min(39,advancement);
  const distance=Math.max(0,index-49);
- const target=Math.round((5000+52*early+35*Math.floor(early/5)+
+ const originalTarget=Math.round((5000+52*early+35*Math.floor(early/5)+
   Math.min(1100,Math.log2(1+distance/12)*180))/50)*50;
  const mastery=Math.min(1,advancement/39);
- const stars=[target,
-  Math.ceil(target*(1.5+.15*mastery)/50)*50,
-  Math.ceil(target*(2.25+.2*mastery)/50)*50];
+ const originalStars=[originalTarget,
+  Math.ceil(originalTarget*(1.5+.15*mastery)/50)*50,
+  Math.ceil(originalTarget*(2.25+.2*mastery)/50)*50];
+ const stars=originalStars.map(points=>Math.round(points*JOURNEY_STAR_SCORE_MULTIPLIER));
  return {name:"Harmony Journey",subtitle:"Poängjakt · bana "+number,moves,par:0,
-  goal:{type:"score",count:target},stars,
+  goal:{type:"score",count:stars[0]},stars,
   intro:"Nå poängmålet för en stjärna. Fortsätt samla poäng för två eller tre stjärnor."};
 }
 function levelConfig(index){return levels[index]||endlessConfig(index);}

@@ -1436,15 +1436,15 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
  color:#d5ded1;font-size:11px;line-height:1.4;
 }
 
-/* Harmony Firework VFX 1.0 — one gold-forward Sakura-inspired identity across
+/* Harmony Firework VFX 1.1 — pearl-white gems + clearer gold Sakura celebration across
    all nine piece families. Tiny, warm celebration, never a screen explosion.
    Class hooks remain compatible with the existing mobile FX/perf checks. */
 .evo-family.harmony-evolution{
  box-sizing:border-box;
- border:1.5px solid rgba(255,219,137,.88);
+ border:2px solid rgba(255,227,160,.93);
  border-radius:50%;
- background:radial-gradient(circle,rgba(255,239,184,.30) 0%,rgba(242,188,86,.25) 35%,transparent 73%);
- box-shadow:0 0 7px rgba(252,208,112,.72),inset 0 0 9px rgba(255,228,148,.35);
+ background:radial-gradient(circle,rgba(255,243,200,.38) 0%,rgba(246,198,94,.29) 38%,transparent 73%);
+ box-shadow:0 0 10px rgba(255,210,122,.82),inset 0 0 10px rgba(255,234,177,.42);
 }
 .evo-family.harmony-evolution::before,
 .evo-family.harmony-evolution::after{
@@ -1461,7 +1461,7 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
 }
 .evo-family.harmony-evolution::before{
  content:"✿";left:0;top:-13%;
- font-size:clamp(18px,5vw,27px);
+ font-size:clamp(19px,5.2vw,28px);
  color:#ffa9cb;
  text-shadow:0 0 4px #ffecf3,0 0 8px #ff79b9,0 0 14px #fb4c9b;
  transform:rotate(-17deg);
@@ -1474,9 +1474,9 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
  transform:rotate(16deg);
 }
 .fusion-ring.harmony-firework-ring{
- border:2px solid rgba(255,219,141,.86);
+ border:2.5px solid rgba(255,225,158,.95);
  background:transparent;
- box-shadow:0 0 8px rgba(249,194,83,.58),inset 0 0 8px rgba(255,232,175,.38);
+ box-shadow:0 0 10px rgba(255,204,110,.72),inset 0 0 10px rgba(255,242,195,.46);
 }
 .fusion-ring.harmony-firework-ring.harmony-masterpiece{
  border-width:3px;
@@ -1484,7 +1484,7 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
 }
 .fusion-core.harmony-firework-core{
  width:48px;height:48px;border:0;border-radius:50%;
- background:radial-gradient(circle,rgba(255,241,197,.58) 0%,rgba(253,207,121,.30) 27%,rgba(246,184,73,.08) 51%,transparent 73%);
+ background:radial-gradient(circle,rgba(255,250,223,.67) 0%,rgba(255,220,146,.38) 28%,rgba(246,184,73,.11) 53%,transparent 73%);
  box-shadow:none;
 }
 .fusion-core.harmony-firework-core.harmony-masterpiece{width:62px;height:62px}
@@ -1493,28 +1493,28 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target:no
 .fusion-spark.harmony-firework-particle{
  position:absolute;display:block;
  translate:-50% -50%;
- width:16px;height:16px;
+ width:18px;height:18px;
  border:0;border-radius:0;
  background:none!important;box-shadow:none!important;
  font-family:system-ui,"Segoe UI Symbol",sans-serif;
- font-weight:900;font-size:16px;line-height:16px;text-align:center;
+ font-weight:900;font-size:18px;line-height:18px;text-align:center;
  user-select:none;pointer-events:none;
  will-change:transform,opacity;
 }
 .fusion-spark.harmony-flower{
  color:#ffafd2;
- text-shadow:0 0 3px #fff3fa,0 0 7px #ff8cbe,0 0 13px #f05a9d;
+ text-shadow:0 0 4px #fff3fa,0 0 9px #ff8cbe,0 0 16px #f05a9d;
 }
 .fusion-spark.harmony-diamond{
- color:#a9ebff;
- text-shadow:0 0 3px #f4fdff,0 0 7px #71d7ff,0 0 13px #58b8f9;
+ color:#fff9ee;
+ text-shadow:0 0 4px #ffffff,0 0 9px #ffecd1,0 0 16px #dcb36d;
 }
 .fusion-spark.harmony-star{
  color:#ffe0a2;
- text-shadow:0 0 3px #fff6d6,0 0 8px #ffd06f,0 0 14px #eda43b;
+ text-shadow:0 0 4px #fff7d9,0 0 10px #ffd06f,0 0 17px #eda43b;
 }
-.fusion-spark.harmony-medium{font-size:18px;width:18px;height:18px;line-height:18px}
-.fusion-spark.harmony-masterpiece{font-size:20px;width:20px;height:20px;line-height:20px}
+.fusion-spark.harmony-medium{font-size:20px;width:20px;height:20px;line-height:20px}
+.fusion-spark.harmony-masterpiece{font-size:22px;width:22px;height:22px;line-height:22px}
 @media(prefers-reduced-motion:reduce){
  .fusion-spark.harmony-firework-particle,.evo-family.harmony-evolution,
  .fusion-ring.harmony-firework-ring,.fusion-core.harmony-firework-core{display:none!important}

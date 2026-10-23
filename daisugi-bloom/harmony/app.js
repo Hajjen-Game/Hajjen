@@ -719,7 +719,7 @@ function masterpieceMoment(positions){
  }
 }
 // Harmony Firework 1.0 — gold-forward Sakura celebration for EVERY family.
-// Shapes: pink ✿ blossom, ice-blue ◆ crystal, gold ✦ star. All three have
+// Shapes: pink ✿ blossom, pearl-white ◆ crystal, gold ✦ star. All three have
 // distinct glow and an outward pop/fade motion. No canvas, no board mutation.
 // Size tiers are a normal stage 2–3 fusion, a strong stage 4+ fusion, and a
 // Masterpiece. Existing family-neutral ring and core establish visual origin.
@@ -739,28 +739,28 @@ function fusionBurst(positions,groups=[],kind="fusion"){
   const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
   const group=groups.find(g=>g.at===at),tier=fireworkTier(group,kind);
   const tile=Math.min(rect.width,rect.height);
-  const radius=tile*(tier==="masterpiece"?.77:tier==="medium"?.59:.47);
-  const duration=tier==="masterpiece"?850:tier==="medium"?670:510;
+  const radius=tile*(tier==="masterpiece"?.81:tier==="medium"?.63:.51);
+  const duration=tier==="masterpiece"?880:tier==="medium"?720:570;
   const count=LITE_FX()?4:MOBILE_LITE?
    (tier==="masterpiece"?9:tier==="medium"?7:5):
    (tier==="masterpiece"?12:tier==="medium"?9:6);
   // Preserve the tactile ring, now a restrained, warm golden ripple.
   const ring=fxAt("fusion-ring harmony-firework-ring harmony-"+tier,x,y);
-  ring.style.width=(tile*(tier==="masterpiece"?1.22:.94))+"px";
+  ring.style.width=(tile*(tier==="masterpiece"?1.24:1.02))+"px";
   ring.style.height=ring.style.width;
   animateNode(ring,[
    {transform:"scale(.28)",opacity:0,offset:0},
-   {transform:"scale(.90)",opacity:.88,offset:.25},
+   {transform:"scale(.98)",opacity:.98,offset:.25},
    {transform:"scale(1.50)",opacity:0,offset:1}
   ],duration*.79).finally(()=>ring.remove());
   const core=fxAt("fusion-core harmony-firework-core harmony-"+tier,x,y);
   animateNode(core,[
    {transform:"scale(.22)",opacity:0,offset:0},
-   {transform:"scale(.94)",opacity:.82,offset:.26},
+   {transform:"scale(1.02)",opacity:.90,offset:.26},
    {transform:"scale(1.40)",opacity:0,offset:1}
   ],duration*.76).finally(()=>core.remove());
   for(let i=0;i<count;i++){
-   // Repeat a balanced, recognizable triad — always pink, blue and gold.
+   // Repeat a balanced triad — pink petals, pearl-white gems, gold stars.
    // Stagger and asymmetric travel avoid a mechanical wheel/spinner.
    if(fxCount()>=(MOBILE_LITE?44:84))break;
    const shape=FIREWORK_SHAPES[i%FIREWORK_SHAPES.length];
@@ -772,11 +772,11 @@ function fusionBurst(positions,groups=[],kind="fusion"){
    symbol.setAttribute("aria-hidden","true");
    symbol.dataset.fireworkShape=shape.type;
    const twist=(i%2===0?1:-1)*(tier==="masterpiece"?38:26);
-   const pop=1.15+(i%3)*.12;
+   const pop=1.30+(i%3)*.12;
    animateNode(symbol,[
     {transform:"translate3d(0,0,0) rotate(0deg) scale(.22)",opacity:0,offset:0},
     {transform:"translate3d("+(dx*.23)+"px,"+(dy*.23)+"px,0) rotate("+(twist*.30)+"deg) scale("+pop+")",opacity:1,offset:.28},
-    {transform:"translate3d("+(dx*.68)+"px,"+(dy*.68-2)+"px,0) rotate("+(twist*.70)+"deg) scale(.94)",opacity:.89,offset:.55},
+    {transform:"translate3d("+(dx*.68)+"px,"+(dy*.68-2)+"px,0) rotate("+(twist*.70)+"deg) scale(1.02)",opacity:.95,offset:.58},
     {transform:"translate3d("+dx+"px,"+(dy-5)+"px,0) rotate("+twist+"deg) scale(.26)",opacity:0,offset:1}
    ],duration+(i%3)*24,{easing:"cubic-bezier(.15,.6,.3,1)"})
     .finally(()=>symbol.remove());

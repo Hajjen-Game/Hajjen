@@ -5,12 +5,22 @@
 
 Unify the previous separate family-specific evolution effects into one coherent, gold-forward Sakura-inspired celebration: a tiny Japanese festival firework rather than a large explosion. Common for all nine families.
 
+## Follow-up polish: Firework VFX 1.1 (2026-10-23)
+
+Player feedback: the ice-blue color clashed with the warmer Japanese festival palette, and the burst could be a little clearer.
+
+- The ◆ is now **pearl-white** (CSS #fff9ee), with white inner glint, warm ivory and champagne-gold outer glow (#dcb36d), no cyan
+- All symbols enlarge from 16px to 18px on standard fusion, with medium 20px and Masterpiece 22px
+- The first outward pop grows from 1.15 to 1.30 base scale; the middle pose stays a touch brighter
+- The golden contact ring and central pulse are slightly more defined; spread and fade increase modestly
+- **Particle count stays exactly the same** to preserve mobile performance, object visibility, animation safeguards and gameplay
+
 ## Visual grammar
 
 | Symbol | Shape | Color | Feeling |
 |---|---|---|---|
 | Blossom | ✿ | Pink | Sakura / soft elegance |
-| Crystal | ◆ | Ice blue | Contrast / clarity |
+| Crystal | ◆ | Pearl-white / champagne gold | Warm contrast / clarity |
 | Star | ✦ | Gold | Premium / highlight |
 
 All symbols have a distinct text-shadow glow with pale core and colored outer bloom. The background pulse, expanding ring and visual anchor are always soft gold. Motion is a quick scale-up and small outward radial drift (with subtle rotation), then a float and transparency fade to zero.

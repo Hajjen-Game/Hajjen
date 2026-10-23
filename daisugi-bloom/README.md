@@ -1,5 +1,9 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
 
+## Harmony Firework VFX 1.1 — 2026-10-23
+
+Efter speltest har den **ljusblå diamanten ersatts av pärlvitt med varm champagne-guldglöd**. Mini-fyrverkeriet behåller en rosa blomma och en tydligt guldig stjärna. Symbolerna är något större och den gyllene ringen, ljuspulsen och pop-rörelsen något tydligare, utan fler partiklar eller längre tunga animationer. Samma tillgänglighets- och mobilbegränsningar gäller.
+
 ## Harmony Firework VFX 1.0 — 2026-10-23
 
 **Alla nio objektfamiljer delar nu samma premium-animation**, byggd på Sakuras tidigare rosa blomanimation men med varm guldglöd som huvudfärg. Varje vanlig fusion får en kort, liten gyllene ring, mjuk kärna och ett mini-fyrverkeri med **rosa blomma (✿), ljusblå diamant (◆) och guldstjärna (✦)**. Symbolerna får egen glow, poppar utåt, svävar och tonar bort.

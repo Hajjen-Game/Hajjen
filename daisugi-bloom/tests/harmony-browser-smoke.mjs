@@ -837,7 +837,7 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
+   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
@@ -847,7 +847,13 @@ try{
        if(node.classList.contains("harmony-firework-particle")){
         const shape=node.dataset.fireworkShape;
         if(shape==="flower")window.__scoreFxSeen.flowers++;
-        if(shape==="diamond")window.__scoreFxSeen.diamonds++;
+        if(shape==="diamond"){
+         window.__scoreFxSeen.diamonds++;
+         const style=getComputedStyle(node);
+         window.__scoreFxSeen.diamondColor=style.color;
+         window.__scoreFxSeen.diamondGlow=style.textShadow;
+         window.__scoreFxSeen.diamondFontSize=parseFloat(style.fontSize);
+        }
         if(shape==="star")window.__scoreFxSeen.stars++;
        }
        if(node.classList.contains("harmony-evolution"))window.__scoreFxSeen.unified++;
@@ -902,7 +908,13 @@ try{
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert(fx.flowers>=1&&fx.diamonds>=1&&fx.stars>=1,
-  "Every fusion needs glowing pink flowers, blue crystals and golden stars: "+JSON.stringify(fx));
+  "Every fusion needs glowing pink flowers, pearl-white crystals and golden stars: "+JSON.stringify(fx));
+ assert.equal(fx.diamondColor,"rgb(255, 249, 238)",
+  "The diamond should be pearl-white rather than the former ice blue: "+JSON.stringify(fx));
+ assert(fx.diamondGlow.includes("rgb(")&&fx.diamondGlow!=="none",
+  "The pearl-white diamond needs champagne-gold glow");
+ assert(fx.diamondFontSize>=18,
+  "The mini-firework symbols should read more clearly on a phone");
  assert(fx.unified>=1,"All families must use the shared Sakura-inspired evolution glow");
  assert(fx.family>=1,"Every successful fusion must show its family identity: "+JSON.stringify(fx));
  assert(fx.stage>=1,"Even a basic 3-match must display its upgraded stage clearly: "+JSON.stringify(fx));

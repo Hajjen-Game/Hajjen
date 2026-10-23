@@ -41,6 +41,16 @@ assert(css.includes(".evo-family.harmony-evolution::before")&&
  "The shared Sakura glow should include a pink flower and gold glint");
 for(const shape of ["flower","diamond","star"])
  assert(css.includes(".fusion-spark.harmony-"+shape),"Missing colored "+shape+" glow");
+const gemCss=css.slice(css.indexOf(".fusion-spark.harmony-diamond{"),
+ css.indexOf(".fusion-spark.harmony-star{"));
+assert(gemCss.includes("color:#fff9ee")&&gemCss.includes("#dcb36d"),
+ "Diamond should use pearl-white and champagne gold, not blue");
+assert(!/#(?:a9ebff|71d7ff|58b8f9)/i.test(gemCss),
+ "Previous ice-blue accent should be entirely absent");
+assert(css.includes("font-weight:900;font-size:18px;line-height:18px"),
+ "Phone symbols should be more prominent than VFX 1.0");
+assert(script.includes("const pop=1.30+"),
+ "Pop animation should be clearer without adding particle density");
 assert(script.includes('glyph:"✿"')&&script.includes('glyph:"◆"')&&script.includes('glyph:"✦"'),
  "Three recognizable mini-firework shapes are required");
 assert(script.includes('fusionBurst(evt.positions||[],[],"hero")'),

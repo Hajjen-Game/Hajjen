@@ -584,7 +584,7 @@ try{
 
    // Observe REAL Wave events: affected cells must charge before travelling
    // beams, while their prior stage remains visible, with no extra targets.
-   window.__pulseProbe={charge:[],chargeAnimations:[],timeline:[],impacts:0,sparkles:[]};
+   window.__pulseProbe={charge:[],chargeAnimations:[],timeline:[],impacts:0,sparkles:[],dustWhileRefill:false};
    const realAnimate=Element.prototype.animate;
    Element.prototype.animate=function(frames,options){
     if(this.classList?.contains("pulse-anticipation-glow")){
@@ -619,13 +619,18 @@ try{
        centreTransparent:style.backgroundColor==="rgba(0, 0, 0, 0)"
       });
      }else if(node.classList.contains("fusion-afterglow-spark")){
-      const tile=node.closest(".tile");
+      const tile=document.querySelector('.tile[data-index="'+node.dataset.at+'"]');
+      const style=getComputedStyle(node);
       window.__pulseProbe.sparkles.push({
        at:Number(node.dataset.at),isEmpty:tile?.getAttribute("aria-label")==="Tom ruta",
        left:node.style.left,top:node.style.top,delay:Number(node.dataset.delay),
-       isStar:node.classList.contains("sparkle-star"),shade:node.className
+       isStar:node.classList.contains("dust-star"),shade:node.className,
+       layer:!!node.closest(".magic-dust-layer"),duration:parseFloat(node.getAnimations()[0]?.effect?.getTiming()?.duration||0),
+       bg:style.backgroundImage
       });
-      window.__pulseProbe.timeline.push("sparkle");
+      window.__pulseProbe.timeline.push("dust");
+     }else if(node.classList.contains("piece")&&document.querySelector(".magic-dust")){
+      window.__pulseProbe.dustWhileRefill=true;
      }else if(node.classList.contains("pulse-trace")){
       window.__pulseProbe.timeline.push("beam");
      }else if(node.classList.contains("pulse-target-hit")){
@@ -747,18 +752,20 @@ try{
    "The seeded Harmony Pulse fixture must create a harvested masterpiece");
   assert(fixture.vacatedCells.every(at=>sparkleCells.has(at)),
    "Every emptied cell in a real fusion or Harmony Pulse harvest must glitter");
-  assert(pulse.sparkles.every(p=>p.isEmpty&&
-   /%$/.test(p.left)&&/%$/.test(p.top)),
-   "Glitters should be spatially scattered on genuinely empty cells");
+  assert(pulse.sparkles.every(p=>p.isEmpty&&p.layer&&
+   /px$/.test(p.left)&&/px$/.test(p.top)&&p.bg.includes("gradient")),
+   "Floating dust must originate from genuinely empty cells in a separate overlay");
   assert(fixture.harvestCells.every(at=>pulse.sparkles.filter(p=>p.at===at).length>=3),
    "Pulse-harvest empty cells need a visible cluster of sparkle particles");
   assert(pulse.sparkles.some(p=>p.isStar)&&
-   new Set(pulse.sparkles.map(p=>p.shade.match(/sparkle-(gold|pearl|sakura)/)?.[1])).size>=3,
-   "Glitter needs actual star-shaped flashes and pearl/gold/Sakura variations");
+   new Set(pulse.sparkles.map(p=>p.shade.match(/dust-(gold|pearl|sakura)/)?.[1])).size>=3,
+   "Floating magic dust needs occasional tiny stars and pearl/gold/Sakura variation");
+  assert(pulse.dustWhileRefill,
+   "Floating dust should keep drifting while new board pieces refill the grid");
   assert(new Set(pulse.sparkles.map(p=>p.delay)).size>=4,
-   "Pulse harvest glitter must also start at several different moments");
+   "Pulse-harvest dust should appear at independently staggered times");
   assert.equal(await praisePage.evaluate(()=>document.querySelectorAll(".fusion-afterglow-spark").length),0,
-   "All sparkle fragments should be removed after the chain finishes");
+   "Floating motes should be cleaned up after the chain finishes");
  }finally{await praiseContext.close();}
  // Confirm a REAL resumed board with an eligible stage-3 neighbour pair creates
  // a visible, animated thread. Previous CSS-only tests missed this integration.
@@ -1308,7 +1315,7 @@ try{
         window.__scoreFxSeen.fusionAfterglow++;
         window.__scoreFxSeen.afterglowPositions.push(node.style.left+"|"+node.style.top);
         window.__scoreFxSeen.afterglowColors.push(node.className);
-        if(node.closest(".tile")?.getAttribute("aria-label")!=="Tom ruta")window.__scoreFxSeen.afterglowOnEmpty=false;
+        if(document.querySelector('.tile[data-index="'+node.dataset.at+'"]')?.getAttribute("aria-label")!=="Tom ruta")window.__scoreFxSeen.afterglowOnEmpty=false;
        }
        if(node.classList.contains("harmony-firework-particle")){
         const shape=node.dataset.fireworkShape;
@@ -1366,14 +1373,15 @@ try{
   "A 3–5 match must use the restored 280ms gathering animation on its real board coordinates");
 
  const sparkleMotions=await page.evaluate(()=>window.__sparkleMotions);
- assert(sparkleMotions.length>=10,
-  "Vacated squares need several independently timed glitter fragments");
+ assert(sparkleMotions.length>=8,
+  "Vacated squares need several drifting motes, not static centre dots");
  assert(new Set(sparkleMotions.map(m=>m.delay)).size>=4,
-  "Glitter must not all blink at the same instant");
- assert(sparkleMotions.every(m=>m.frames.length===5&&m.easing==="ease-in-out"&&
+  "Dust should appear at different moments");
+ assert(sparkleMotions.every(m=>m.frames.length===5&&m.easing==="linear"&&
   m.frames[0].opacity===0&&m.frames.at(-1).opacity===0&&
-  Math.max(...m.frames.map(f=>f.opacity))<=.88&&m.duration+m.delay<=240),
-  "Glitter must softly brighten once and fade without strobing or delaying the move");
+  m.frames[2].opacity>=.70&&m.duration>=290&&m.duration<=380&&
+  m.duration+m.delay<=505&&m.frames[2].transform!==m.frames[0].transform),
+  "Floating dust must drift for 300–380ms and fade with a single soft peak");
  assert(gather.every(g=>{
   const xs=g.frames.map(k=>Number(/translate3d\(([-\d.]+)px,/.exec(k.transform)?.[1]));
   const ys=g.frames.map(k=>Number(/,([-\d.]+)px,0\)/.exec(k.transform)?.[1]));
@@ -1397,9 +1405,9 @@ try{
  assert(fx.fusionAfterglow>=10&&fx.afterglowOnEmpty,
   "Every emptied fusion cell needs several twinkling points rather than one dot: "+JSON.stringify(fx));
  assert(new Set(fx.afterglowPositions).size>=4&&
-  fx.afterglowColors.some(cls=>cls.includes("sparkle-star"))&&
-  fx.afterglowColors.some(cls=>cls.includes("sparkle-dot")),
-  "Glitter must scatter around each tile using different star and dot sizes");
+  fx.afterglowColors.some(cls=>cls.includes("dust-star"))&&
+  fx.afterglowColors.some(cls=>cls.includes("dust-mote")),
+  "Magic dust should vary in position and size with occasional tiny stars");
  assert.equal(await page.evaluate(()=>document.querySelectorAll(".fusion-flow-bead, .fusion-afterglow-spark").length),0,
   "All short-lived fusion particles should be removed by the end of the move");
  assert(fx.flowers>=1&&fx.diamonds>=1&&fx.stars>=1,

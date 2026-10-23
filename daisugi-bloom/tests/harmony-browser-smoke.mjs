@@ -601,7 +601,7 @@ try{
       window.__pulseProbe.timeline.push("charge");
       window.__pulseProbe.charge.push({
        to:Number(node.dataset.to),wave:Number(node.dataset.wave),
-       oldStage:Number(tile?.getAttribute("aria-label")?.match(/stadium (\\d+)/)?.[1]),
+       oldStage:Number(tile?.getAttribute("aria-label")?.match(/stadium (\d+)/)?.[1]),
        isMasterpiece:node.classList.contains("pulse-anticipation-masterpiece"),
        pointer:style.pointerEvents,bg:style.backgroundImage,shadow:style.boxShadow
       });

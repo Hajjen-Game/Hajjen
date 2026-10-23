@@ -687,7 +687,37 @@ try{
    "The flowing energy must not be clipped to the beam's 3px box");
   assert(!visual.paused&&visual.pulse&&visual.pulseAnimation.includes("resonance-discovery"),
    "Both real tiles must get a one-off discovery pulse");
-  await proof.click(".tile:nth-child(49)");
+
+  // Performance audit: selecting a tile should reuse settled Resonance
+  // geometry rather than reread up to 13 layout rectangles on every tap.
+  const layoutReads=await proof.evaluate(()=>{
+   const original=Element.prototype.getBoundingClientRect;
+   let reads=0;
+   try{
+    Element.prototype.getBoundingClientRect=function(...args){
+     if(this.id==="resonanceLinks"||this.classList?.contains("tile"))reads++;
+     return original.apply(this,args);
+    };
+    document.querySelector(".tile:nth-child(49)").click();
+   }finally{Element.prototype.getBoundingClientRect=original;}
+   return reads;
+  });
+  assert.equal(layoutReads,0,
+   "Plain tile selection must reuse settled Resonance geometry");
+  // The viewport resize still needs a new measurement and alignment.
+  const resizedReads=await proof.evaluate(()=>{
+   const original=Element.prototype.getBoundingClientRect;
+   let reads=0;
+   try{
+    Element.prototype.getBoundingClientRect=function(...args){
+     if(this.id==="resonanceLinks"||this.classList?.contains("tile"))reads++;
+     return original.apply(this,args);
+    };
+    window.dispatchEvent(new Event("resize"));
+   }finally{Element.prototype.getBoundingClientRect=original;}
+   return reads;
+  });
+  assert(resizedReads>0,"Resonance must recompute filament geometry after a resize");
   const stable=await proof.evaluate(()=>{
    const beam=document.querySelector("#resonanceLinks .resonance-link");
    return {same:beam===window.__resonanceProofBeam,

@@ -80,14 +80,20 @@ async function main(){
   const first=x.frames[0],last=x.frames.at(-1);
   return x.frames.length===5&&x.options.easing==="linear"&&
    first.opacity===0&&last.opacity===0&&
-   x.duration>=290&&x.duration<=380&&x.duration+x.options.delay<=505&&
+   x.duration>=395&&x.duration<=470&&x.options.delay>=75&&
+   x.duration+x.options.delay<=670&&
    x.frames[2].opacity>=.70&&
    x.frames[2].transform!==first.transform&&last.transform!==first.transform;
- }),"Dust motes should drift up gently over ~300-380ms rather than flashing in place");
+ }),"Seamless Fusion dust should start after the objects begin moving and linger 395–470ms");
 
- const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
+ const firstDust=events.findIndex(e=>e[0]==="dustAdded");
+ const firstGatherEnded=events.findIndex(e=>e[0]==="layerRemoved");
  const render=events.findIndex(e=>e[0]==="render");
- assert(lastGather>=0&&render>lastGather,"Survivor stage must update only after visible gathering");
+ assert(firstDust>=0&&firstDust<firstGatherEnded&&firstGatherEnded<render,
+  "Dust should start WHILE the original gather is still running, ahead of survivor reveal");
+ assert(events.some(e=>e[0]==="animate"&&e[1]===280)&&
+  events.some(e=>e[0]==="animate"&&e[1]>=395),
+  "Original 280ms gathering and longer dust should overlap without changing the gather");
  assert.equal(pieces[15].style.visibility,"","Source visibility must be restored");
  assert.equal(pieces[16].style.visibility,"","Source visibility must be restored");
  assert(!events.some(e=>e[0]==="fx"&&e[1].startsWith("fusion-intake")),

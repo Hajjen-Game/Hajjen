@@ -505,7 +505,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert.equal(migrated.target,5000);
+  assert.equal(migrated.target,7500);
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({
    hidden:document.querySelector("#starTargets").hidden,
@@ -513,9 +513,9 @@ try{
   }));
   assert(!milestones.hidden);
   assert.equal(milestones.text.length,3);
-  assert(milestones.text[0].replace(/\s/g," ").includes("5 000"));
-  assert(milestones.text[1].replace(/\s/g," ").includes("7 500"));
-  assert(milestones.text[2].replace(/\s/g," ").includes("11 250"));
+  assert(milestones.text[0].replace(/\s/g," ").includes("7 500"));
+  assert(milestones.text[1].replace(/\s/g," ").includes("11 250"));
+  assert(milestones.text[2].replace(/\s/g," ").includes("16 875"));
   // The user's actual 11–14 history should automatically earn the revised
   // stars, without deleting records or revoking old level completions.
   await legacy.evaluate(()=>{
@@ -535,9 +535,10 @@ try{
     shown:[10,11,12,13].map(i=>document.querySelectorAll(".level-tile")[i].textContent)};
   });
   assert.deepEqual(rebalanced.scores,[4710,7900,9125,9388]);
-  assert.deepEqual(rebalanced.stars,[1,2,2,2],
+  assert.deepEqual(rebalanced.stars,[1,1,1,1],
    "Revised Journey rewards must recognize existing performance automatically");
-  assert(rebalanced.shown[1].includes("★★")&&!rebalanced.shown[1].includes("★★★"));
+  assert(rebalanced.shown[1].includes("★")&&!rebalanced.shown[1].includes("★★"),
+   "Old achievements keep a completion star but the 50% higher 2-star milestone applies");
 
  }finally{await legacyContext.close();}
  // Board Praise 1.0: a real seeded swap triggers all three approved words.

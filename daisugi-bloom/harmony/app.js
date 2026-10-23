@@ -804,21 +804,25 @@ function fusionBurst(positions,groups=[],kind="fusion"){
   const count=LITE_FX()?4:MOBILE_LITE?
    (tier==="masterpiece"?9:tier==="medium"?7:5):
    (tier==="masterpiece"?12:tier==="medium"?9:6);
-  // Preserve the tactile ring, now a restrained, warm golden ripple.
-  const ring=fxAt("fusion-ring harmony-firework-ring harmony-"+tier,x,y);
-  ring.style.width=(tile*(tier==="masterpiece"?1.24:1.02))+"px";
-  ring.style.height=ring.style.width;
-  animateNode(ring,[
-   {transform:"scale(.28)",opacity:0,offset:0},
-   {transform:"scale(.98)",opacity:.98,offset:.25},
-   {transform:"scale(1.50)",opacity:0,offset:1}
-  ],duration*.79).finally(()=>ring.remove());
-  const core=fxAt("fusion-core harmony-firework-core harmony-"+tier,x,y);
-  animateNode(core,[
-   {transform:"scale(.22)",opacity:0,offset:0},
-   {transform:"scale(1.02)",opacity:.90,offset:.26},
-   {transform:"scale(1.40)",opacity:0,offset:1}
-  ],duration*.76).finally(()=>core.remove());
+  // Ordinary fusion should be a clean merger, without expanding circles.
+  // Keep stronger Masterpiece celebrations when kind === "hero".
+  if(kind==="hero"){
+   // Preserve the tactile ring, now a restrained, warm golden ripple.
+   const ring=fxAt("fusion-ring harmony-firework-ring harmony-"+tier,x,y);
+   ring.style.width=(tile*(tier==="masterpiece"?1.24:1.02))+"px";
+   ring.style.height=ring.style.width;
+   animateNode(ring,[
+    {transform:"scale(.28)",opacity:0,offset:0},
+    {transform:"scale(.98)",opacity:.98,offset:.25},
+    {transform:"scale(1.50)",opacity:0,offset:1}
+   ],duration*.79).finally(()=>ring.remove());
+   const core=fxAt("fusion-core harmony-firework-core harmony-"+tier,x,y);
+   animateNode(core,[
+    {transform:"scale(.22)",opacity:0,offset:0},
+    {transform:"scale(1.02)",opacity:.90,offset:.26},
+    {transform:"scale(1.40)",opacity:0,offset:1}
+   ],duration*.76).finally(()=>core.remove());
+  }
   for(let i=0;i<count;i++){
    // Repeat a balanced triad — pink petals, pearl-white gems, gold stars.
    // Stagger and asymmetric travel avoid a mechanical wheel/spinner.
@@ -1022,7 +1026,6 @@ function flipMove(previous,next,type){
  });
  return Promise.all(tasks);
 }
-// Fusion Flow Polish 1.0: smooth 280ms absorption + lightweight travel sparks.
 // Fusion 4.3.1 — physical absorption instead of fading away in transit.
 // The sprite remains fully opaque until it reaches the survivor; the
 // upgraded art is revealed only AFTER every source has visibly arrived.
@@ -1039,40 +1042,12 @@ function fusionGatherFrames(dx,dy){
  });
  return [
   at(0,1,1,0),
-  at(.028,1.04,1,.12),       // gentle pickup
-  at(.30,1.01,1,.36),        // smooth acceleration
-  at(.735,.88,1,.67),        // uninterrupted travel
-  at(.96,.65,1,.91),         // decelerate near contact
-  at(1,.52,.94,1)           // final absorption at survivor
+  at(0,1.075,1,.13),         // small anticipation: player sees who will move
+  at(.35,1.0,1,.47),          // travel at full visibility
+  at(.80,.86,1,.79),         // begins to converge near survivor
+  at(.98,.66,1,.94),         // remains clearly recognizable almost at contact
+  at(1,.49,.92,1)            // final absorbed at the exact target location
  ];
-}
-// Small glowing beads run beside the actual consumed sprites. Mobile budget
-// is global per fusion event; they reuse the moving ghost layer and finish
-// within the existing 280ms. No canvas, CSS blur animation, or extra delays.
-function fusionFlowBeads(group,from,to,layer,remainingBudget){
- if(FAST()||document.hidden||!Element.prototype.animate||remainingBudget<=0)return [];
- const count=Math.min(group.number>=5?3:group.number===4?2:1,remainingBudget);
- const tasks=[],dx=to.left-from.left,dy=to.top-from.top;
- const distance=Math.max(1,Math.hypot(dx,dy));
- const x=from.left-layer.rect.left+from.width*.5;
- const y=from.top-layer.rect.top+from.height*.5;
- for(let i=0;i<count;i++){
-  const bead=document.createElement("span");
-  bead.className="fusion-flow-bead"+(group.number>=5?" fusion-flow-strong":"");
-  bead.setAttribute("aria-hidden","true");
-  bead.style.left=x+"px";bead.style.top=y+"px";
-  layer.node.append(bead);
-  const sway=(i%2===0?1:-1)*(3.5+i*.85);
-  const bx=dy/distance*sway,by=-dx/distance*sway;
-  const delay=9+i*21,duration=265-delay;
-  tasks.push(animateNode(bead,[
-   {transform:"translate3d(0,0,0) scale(.4)",opacity:0,offset:0},
-   {transform:"translate3d("+(dx*.20+bx)+"px,"+(dy*.20+by)+"px,0) scale(.95)",opacity:.85,offset:.29},
-   {transform:"translate3d("+(dx*.69+bx*.7)+"px,"+(dy*.69+by*.7)+"px,0) scale(.8)",opacity:.92,offset:.73},
-   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.25)",opacity:0,offset:1}
-  ],duration,{delay,easing:"linear"}).finally(()=>bead.remove()));
- }
- return tasks;
 }
 // Sparkle on EVERY real disappearance, including masters harvested after
 // Harmony Pulse chains. Distributed pearly/gold/pink starlets, not a single
@@ -1116,37 +1091,19 @@ function sparkleVacatedCells(positions,board){
  }
  return tasks;
 }
-function fusionIntake(groups){
- if(FAST()||!Element.prototype.animate)return;
- // One compact amber / family-tinted contact ring per important survivor.
- for(const g of groups.slice(0,MOBILE_LITE?2:3)){
-  if(!boardTiles[g.at])continue;
-  const r=indexRect(g.at),size=Math.min(r.width,r.height);
-  const cue=fxAt("fusion-intake intake-"+g.family,r.left+r.width*.5,r.top+r.height*.5);
-  cue.style.width=Math.round(size*.84)+"px";
-  cue.style.height=Math.round(size*.84)+"px";
-  animateNode(cue,[
-   {transform:"scale(.55)",opacity:0,offset:0},
-   {transform:"scale(.92)",opacity:.95,offset:.30},
-   {transform:"scale(1.33)",opacity:.58,offset:.62},
-   {transform:"scale(1.6)",opacity:0,offset:1}
-  ],260).finally(()=>cue.remove());
- }
-}
 async function playFusion(evt){
  const groups=evt.groups||[];
  if(!FAST()&&groups.length){
   const layer=makeFxLayer(),hidden=[],tasks=[];
-  let beadBudget=LITE_FX()?4:MOBILE_LITE?8:16;
   try{
    for(const group of groups){
     const survivor=boardTiles[group.at]?.querySelector(".piece");
     if(survivor)tasks.push(animateNode(survivor,[
      {transform:"scale(1)",offset:0},
-     {transform:"scale(.97)",offset:.25},
-     {transform:"scale(1.055)",offset:.79},
-     {transform:"scale(1)",offset:1}
-    ],280,{easing:"ease-in-out"}));
+     {transform:"scale(.91)",offset:.24},
+     {transform:"scale(1.10)",offset:.85},
+     {transform:"scale(.96)",offset:1}
+    ],280,{easing:"cubic-bezier(.26,.3,.65,1)"}));
     for(const i of group.removed){
      const original=boardTiles[i]?.querySelector(".piece");
      if(!original)continue;
@@ -1163,12 +1120,7 @@ async function playFusion(evt){
      original.style.visibility="hidden";
      tasks.push(animateNode(ghost,
       fusionGatherFrames(to.left-from.left,to.top-from.top),
-      280,{easing:"linear"}));
-     if(beadBudget>0){
-      const beads=fusionFlowBeads(group,from,to,layer,beadBudget);
-      beadBudget-=beads.length;
-      tasks.push(...beads);
-     }
+      280,{easing:"cubic-bezier(.34,.16,.72,1)"}));
     }
    }
    await Promise.all(tasks);
@@ -1185,12 +1137,11 @@ async function playFusion(evt){
  // The existing fusion effects are kept deliberately subtle.
  renderBoard(evt.board,groups.map(g=>g.at),"swapped");
  sparkleVacatedCells(groups.flatMap(g=>g.removed),evt.board);
- fusionIntake(groups);
  fusionBurst(groups.map(g=>g.at),groups);
  await Promise.all(groups.map(g=>animateNode(boardTiles[g.at]?.querySelector(".piece"),[
-  {transform:"translate3d(0,1px,0) scale(.87)",opacity:.95,offset:0},
-  {transform:"translate3d(0,-2px,0) scale(1.09)",opacity:1,offset:.58},
-  {transform:"translate3d(0,1px,0) scale(.985)",opacity:1,offset:.85},
+  {transform:"translate3d(0,1px,0) scale(.80)",opacity:.9,offset:0},
+  {transform:"translate3d(0,-2px,0) scale(1.13)",opacity:1,offset:.58},
+  {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
   {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
  ],215,{easing:"cubic-bezier(.2,.67,.26,1)"})));
  evolveFamilyFx(groups);

@@ -929,16 +929,16 @@ try{
  assert.equal(expansion.all.length,9);
  const appeared=new Set();
  for(const row of expansion.rows){
-  assert.equal(row.active.length,5);
+  assert.equal(row.active.length,4);
   assert.deepEqual(row.actual.slice().sort(),row.active.slice().sort(),
-   "All five chosen families must actually be on board for level "+(row.index+1));
+   "All four chosen families must actually be on board for level "+(row.index+1));
   assert.equal(row.freeMatches,0);
   assert(row.valid>=3);
   row.active.forEach(f=>appeared.add(f));
-  if(row.index===2)assert.equal(appeared.size,9,"All nine families must have appeared by level 3");
+  if(row.index===7)assert.equal(appeared.size,9,"All nine families must have appeared by level 8");
  }
- // Level 3 deliberately contains both Origami and Ryu. Confirm their
- // transparent image atlas has decoded and the sprites render visibly.
+ // Level 3 features Origami and level 5 features Ryu in the four-family
+ // introduction. Both should use the approved transparent atlas.
  await page.evaluate(()=>{
   const key="japanese-harmony-puzzle-v2",save=JSON.parse(localStorage.getItem(key)||"{}");
   save.unlocked=2;save.run=null;localStorage.setItem(key,JSON.stringify(save));
@@ -961,8 +961,20 @@ try{
   })};
  });
  assert(renderedNew.count>0&&renderedNew.visible,
-  "Level 3 needs visible Origami and Ryu sprites from the new transparent atlas");
- assert(renderedNew.present.includes("Origami")&&renderedNew.present.includes("Ryu-drake"));
+  "Level 3 needs visible Origami sprites from the new transparent atlas");
+ assert(renderedNew.present.includes("Origami"));
+  await page.click("#pauseButton");
+  await page.click("#modalActions button:last-child");
+  await page.click("#levelList .level-tile:nth-child(5)");
+  const ryu=await page.evaluate(()=>({
+   families:[...new Set([...document.querySelectorAll(".tile")].map(e=>e.getAttribute("aria-label")?.split(",")[0]))],
+   visible:[...document.querySelectorAll(".piece.new-family")].every(e=>{
+    const sprite=e.querySelector(".sprite-new");
+    return getComputedStyle(sprite).display==="block";
+   })
+  }));
+  assert(ryu.families.includes("Ryu-drake")&&ryu.visible,
+   "Level 5 should display Ryu's atlas sprite in the four-family game");
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

@@ -9,7 +9,7 @@ function board(){
  }));
 }
 function setup(stage=3,createdOnly=false){
- const g=new R.Game(0,null,{seed:141});
+ const g=new R.Game(0,null,{seed:141,familyCount:5});
  g.board=board();
  g.board[22]={id:23,stage,family:"lantern"};
  g.board[23]={id:24,stage:1,family:createdOnly?"koi":"lantern"};

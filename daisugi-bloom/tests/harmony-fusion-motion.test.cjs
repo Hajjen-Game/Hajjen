@@ -38,7 +38,7 @@ const animateNode=(node,frames,duration,options={})=>{
 const fakeDocument={
  hidden:false,
  createElement:()=>({
-  style:{},className:"",setAttribute(){},remove(){events.push(["sparkRemoved"])}
+  style:{},dataset:{},className:"",setAttribute(){},remove(){events.push(["sparkRemoved"])}
  })
 };
 const fusion=new Function("FAST","MOBILE_LITE","LITE_FX","document","Element",
@@ -65,10 +65,16 @@ async function main(){
  assert.equal(flow.length,2,"A 3-match should emit one lightweight energy bead per consumed source");
  assert(flow.every(x=>x.options.easing==="linear"&&x.duration+x.options.delay<=280),
   "Glow transfer must fit inside the unchanged 280ms fusion");
- assert.equal(events.filter(x=>x[0]==="afterglowAdded").length,2,
-  "Only two vacated cells should get an afterglow on a three-match");
- assert(events.filter(x=>x[0]==="sparkRemoved").length>=4,
-  "Travelling and afterglow particles must clean up");
+ assert.equal(events.filter(x=>x[0]==="afterglowAdded").length,12,
+  "Both vacated cells should each receive SIX scattered sparkles");
+ assert(events.filter(x=>x[0]==="sparkRemoved").length>=14,
+  "Travelling and sparkle particles must clean up");
+ const twinkles=samples.filter(x=>x.kind.includes("fusion-afterglow-spark"));
+ assert.equal(twinkles.length,12);
+ assert(twinkles.every(x=>x.frames.length===6&&
+  x.frames.filter(frame=>frame.opacity>=.95).length>=2&&
+  x.frames.at(-1).opacity===0&&x.duration+x.options.delay<=260),
+  "Vacated cells must twinkle in two distinct flashes within the existing sequence");
 
  const lastGather=events.findIndex(e=>e[0]==="layerRemoved");
  const render=events.findIndex(e=>e[0]==="render");
@@ -111,17 +117,19 @@ async function main(){
  // Harvest previously shrank objects to 15% over 150ms: almost invisible.
  const harvest=between("async function animateEvent(evt){","async function playEvents(events){");
  const motions=[],order=[];
- const harvestEvent=new Function("presentedBoard","FAST","MOBILE_LITE","Element","boardTiles","indexRect","fxAt","animateNode","sound","renderBoard",harvest+"return animateEvent;")(
+ const harvestEvent=new Function("presentedBoard","FAST","MOBILE_LITE","Element","boardTiles","indexRect","fxAt","animateNode","sound","renderBoard","sparkleVacatedCells",harvest+"return animateEvent;")(
   [],()=>false,true,{prototype:{animate(){}}},boardTiles,indexRect,fxAt,
   (n,frames,ms)=>{motions.push({frames,ms});order.push("movement");return Promise.resolve()},
-  ()=>order.push("sound"),()=>order.push("render")
+  ()=>order.push("sound"),()=>order.push("render"),
+  (positions,board)=>{order.push("harvest-sparkle");return positions.filter(i=>!board[i]).map(()=>Promise.resolve());}
  );
  await harvestEvent({type:"harvest",board:[],positions:[3,4],chain:2});
  const piecesLeaving=motions.filter(x=>x.ms===295);
  assert.equal(piecesLeaving.length,2);
  assert(piecesLeaving.every(x=>x.frames.some(k=>k.offset===.71&&k.opacity===1)),
   "Harvested masterpieces must remain visible until near the end");
- assert.equal(order.at(-1),"render","Objects should leave the logical grid only after release");
+ assert.deepEqual(order.slice(-2),["render","harvest-sparkle"],
+  "Harvested Pulse masterpieces must sparkle when cells become empty, before gravity");
  console.log("PASS Harmony 4.3.4 – visible gather, delayed fusion, cleanup and slower harvest");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

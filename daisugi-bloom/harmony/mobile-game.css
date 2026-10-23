@@ -2262,11 +2262,11 @@ body.harmony-reduced-motion.harmony-playing .game-view .tile.idle-hint-target{
     0 0 11px 3px rgba(156,245,218,.5);
 }
 
-/* HARMONY PULSE TARGET RING 1.1 · 2026-10-23
+/* HARMONY PULSE TARGET RING 1.2 · THINNER SEGMENTS · 2026-10-23
    A fully transparent tile centre: only four separated, warm segments travel
    around the perimeter as the existing 1.0 charge ramps from 0 → 100%.
    The parent is the ONLY overlay per real Pulse target. Rotating conic layers
-   are clipped to a fixed 3px rim: transform/opacity rather than per-frame
+   are clipped to a slimmer 2px rim: transform/opacity rather than per-frame
    background-position, animated blur, or another full-tile glow.
    Keep a transparent dashed rim on older browsers without composite masks. */
 body.harmony-playing .game-view .tile .pulse-anticipation-glow{
@@ -2275,7 +2275,7 @@ body.harmony-playing .game-view .tile .pulse-anticipation-glow{
   inset:1px;
   display:block;
   box-sizing:border-box;
-  border:2px dashed rgba(255,228,155,.96);
+  border:1.5px dashed rgba(255,228,155,.96);
   border-radius:clamp(7px,1.7vw,12px);
   background:none;
   box-shadow:none;
@@ -2293,7 +2293,7 @@ body.harmony-playing .game-view .tile .pulse-anticipation-masterpiece{
    frame itself tumbling over the objects. */
 @supports ((-webkit-mask-composite:xor) or (mask-composite:exclude)){
   body.harmony-playing .game-view .tile .pulse-anticipation-glow{
-    padding:3px;
+    padding:2px;
     border:0;
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,

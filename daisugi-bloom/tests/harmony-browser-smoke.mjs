@@ -599,11 +599,18 @@ try{
       const tile=node.closest(".tile");
       const style=getComputedStyle(node);
       window.__pulseProbe.timeline.push("charge");
+      const ring=getComputedStyle(node,"::before");
+      const shimmer=getComputedStyle(node,"::after");
       window.__pulseProbe.charge.push({
        to:Number(node.dataset.to),wave:Number(node.dataset.wave),
        oldStage:Number(tile?.getAttribute("aria-label")?.match(/stadium (\d+)/)?.[1]),
        isMasterpiece:node.classList.contains("pulse-anticipation-masterpiece"),
-       pointer:style.pointerEvents,bg:style.backgroundImage,shadow:style.boxShadow
+       pointer:style.pointerEvents,bg:style.backgroundImage,shadow:style.boxShadow,
+       mask:style.maskImage,webkitMask:style.webkitMaskImage,
+       ringAnimation:ring.animationName,ringDuration:parseFloat(ring.animationDuration),
+       ringBackground:ring.backgroundImage,
+       shimmerAnimation:shimmer.animationName,shimmerBackground:shimmer.backgroundImage,
+       centreTransparent:style.backgroundColor==="rgba(0, 0, 0, 0)"
       });
      }else if(node.classList.contains("pulse-trace")){
       window.__pulseProbe.timeline.push("beam");
@@ -693,8 +700,19 @@ try{
   assert.deepEqual(pulse.charge.map(({wave,to})=>({wave,to})).sort(sortPosition),
    expected.map(({wave,to})=>({wave,to})).sort(sortPosition),
    "Anticipation must glow on EVERY and ONLY target of the actual Pulse events");
-  assert(pulse.charge.every(c=>c.pointer==="none"&&c.bg!=="none"&&c.shadow!=="none"),
-   "Target glow must be visible, warm and pointer-free");
+  assert(pulse.charge.every(c=>c.pointer==="none"&&c.bg==="none"&&
+   c.shadow==="none"&&c.centreTransparent),
+   "Pulse target rings must have a transparent centre, with NO old tile-filling glow");
+  assert(pulse.charge.every(c=>
+    c.mask!=="none"&&c.ringAnimation.includes("jh-pulse-target-orbit")&&
+    c.shimmerAnimation.includes("jh-pulse-target-orbit")&&
+    c.ringBackground.includes("conic-gradient")&&
+    c.shimmerBackground.includes("conic-gradient")),
+   "Bright separated segments must orbit a stationary masked rim");
+  assert(pulse.charge.every(c=>{
+   const expectedDuration=c.wave===1?1.04:c.wave===2?.76:.58;
+   return Math.abs(c.ringDuration-expectedDuration)<.025;
+  }),"Pulse chain waves must rotate faster without changing their charge timing");
   assert(pulse.charge.every(c=>{
    const target=expected.find(t=>t.wave===c.wave&&t.to===c.to);
    return target&&c.oldStage===target.stage-1&&c.isMasterpiece===(target.stage===5);

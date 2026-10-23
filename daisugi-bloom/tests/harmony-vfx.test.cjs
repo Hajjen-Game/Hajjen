@@ -155,13 +155,15 @@ async function run(){
 
  const eventCode=part("async function animateEvent(evt){","async function playEvents(events){");
  const order=[];
- const createEvent=new Function("presentedBoard","MOBILE_LITE","pulseBeams","renderBoard","animateNode",
+ const createEvent=new Function("presentedBoard","MOBILE_LITE","pulseAnticipation","pulseBeams","renderBoard","animateNode",
   "boardTiles","flipMove","playFusion","masterpieceMoment","pulseLandingCues",eventCode+"return animateEvent;");
  const animateEvent=createEvent([],true,
+  async()=>{order.push("charge");return ()=>order.push("release");},
   async()=>order.push("travel"),()=>order.push("render"),()=>{order.push("land");return Promise.resolve()},
   boardTiles,async()=>{},async()=>{},()=>order.push("masterpiece"),()=>order.push("impact"));
- await animateEvent({type:"pulse",board:[],targets:[{from:0,to:1},{from:0,to:7}]});
- assert.deepEqual(order,["travel","render","impact","land","land"],"Energy must travel before upgrading and triggering impacts");
+ await animateEvent({type:"pulse",wave:1,board:[],targets:[{from:0,to:1},{from:0,to:7}]});
+ assert.deepEqual(order,["charge","travel","release","render","impact","land","land"],
+  "Pulse must charge targets, travel, release glow and only then reveal the upgraded art/impacts");
  console.log("PASS Harmony 4.1.1 – clearly visible family FX, stage-up labels, energy trails and impacts");
 }
 run().catch(e=>{console.error(e);process.exitCode=1;});

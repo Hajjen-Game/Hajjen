@@ -351,6 +351,12 @@ try{
   });
   await hintPage.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
   await hintPage.waitForFunction(()=>!!window.HarmonyRules);
+  await hintPage.evaluate(()=>{
+   const original=window.HarmonyRules.bestHint;
+   window.__originalBestHint=original;
+   window.__bestHintCalls=0;
+   window.HarmonyRules.bestHint=(...args)=>{window.__bestHintCalls++;return original(...args);};
+  });
   await hintPage.click(".level-tile:first-child");
   assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0);
   await hintPage.waitForFunction(()=>
@@ -373,7 +379,7 @@ try{
     targetGlow:getComputedStyle(target).boxShadow,
     bestIsShown:(()=>{
      const live=new R.Game(0,saved.run.data,{fastRestore:true});
-     const chosen=R.bestHint(live);
+     const chosen=window.__originalBestHint(live);
      return !!chosen&&chosen.from===from&&chosen.to===to;
     })(),
     tappable:getComputedStyle(source).pointerEvents!=="none"&&getComputedStyle(target).pointerEvents!=="none"
@@ -384,6 +390,7 @@ try{
   assert.equal(await hintPage.evaluate(()=>window.__idleHintScheduledDelay),30000,"Hint must schedule a 30-second interval");
   assert(hint.sourceAnimation.includes("jh-idle-source-glow"),"Source should glow visibly in gold");
   assert(hint.targetAnimation.includes("jh-idle-target-pulse"),"Destination must pulse softly");
+  assert.equal(await hintPage.evaluate(()=>window.__bestHintCalls),1,"First idle period evaluates the legal moves once");
   assert(hint.sourceGlow!==hint.targetGlow,"The two tile hints must be visually differentiated");
   await hintPage.click(".tile.idle-hint-source");
   assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0,
@@ -396,6 +403,7 @@ try{
   }));
   assert(selectedHint.animation.includes("jh-idle-source-glow")&&parseFloat(selectedHint.outline)>=3,
    "Recommended source must glow even when it is already selected");
+  assert.equal(await hintPage.evaluate(()=>window.__bestHintCalls),1,"Harmless tap must reuse the cached move suggestion");
   await hintPage.click("#pauseButton");
   await new Promise(resolve=>setTimeout(resolve,420));
   assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0,
@@ -409,6 +417,7 @@ try{
   }));
   assert.equal(reduced.animation,"none","Reduced motion disables the target pulse");
   assert(reduced.glow!=="none","Reduced motion keeps a static highlight");
+  assert.equal(await hintPage.evaluate(()=>window.__bestHintCalls),1,"Opening the pause menu must not recompute an unchanged board");
 
   // Invalid swap triggers an async busy bounce. It must not leave the
   // timer permanently disabled once the animation settles.

@@ -97,13 +97,17 @@ function reconcileCompletedLevels(state){
 const recoveredUnlock=reconcileCompletedLevels(save);
 let migratedScores=false;
 if(recoveredUnlock>save.unlocked){save.unlocked=recoveredUnlock;migratedScores=true;}
-// Score-goal star thresholds were much too low before 6.2. Re-evaluate
-// completed high scores without deleting level clears or personal records.
-for(const [key,score] of Object.entries(save.bestScores||{})){
- const i=Number(key),value=Number(score);
- if(!Number.isInteger(i)||i<10||!Number.isFinite(value)||value<=0)continue;
- const earned=R.scoreStars(i,value,true);
- if(save.bestStars[i]!==earned){save.bestStars[i]=earned;migratedScores=true;}
+// Historical score-star recalibration is a ONE-TIME migration. After
+// Objectives 2.0, newly earned move-efficiency stars must NEVER be
+// overwritten with a score-based rating the next time the app opens.
+if(save.objectiveArchiveVersion!==2){
+ for(const [key,score] of Object.entries(save.bestScores||{})){
+  const i=Number(key),value=Number(score);
+  if(!Number.isInteger(i)||i<10||!Number.isFinite(value)||value<=0)continue;
+  const earned=R.scoreStars(i,value,true);
+  if(save.bestStars[i]!==earned){save.bestStars[i]=earned;migratedScores=true;}
+ }
+ save.objectiveArchiveVersion=2;migratedScores=true;
 }
 if(!Object.hasOwn(PLAY_MODES,save.playMode))save.playMode="v3";
 for(const key of ["fourFamilyScores","fourFamilyStars","fourFamilyChain"]){

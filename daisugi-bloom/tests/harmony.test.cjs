@@ -255,6 +255,7 @@ check("Rebalance 1.0 converts unfinished Mist saves once without making the leve
 });
 check("Harmony Mist clears cell positions through matching and Harmony Pulse, once each",()=>{
  const g=new R.Game(10,null,{seed:451,directorMode:"v3"});
+ g.config={...g.config,goal:{type:"mist",count:6}};
  g.board=blank();
  for(const i of [23,24,25])g.board[i].family="sakura";
  g.board[24].stage=4;

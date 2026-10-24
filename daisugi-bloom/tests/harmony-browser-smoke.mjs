@@ -1057,7 +1057,7 @@ try{
  assert.equal(atlasState.visible,"block","Classic sprites must actually be visible");
  assert.equal(atlasState.fallback,"none","Classic atlas must hide emoji fallback");
  assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");
- assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Match");
+ assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Harmony");
  const collection=await page.evaluate(()=>({
   icons:document.querySelectorAll("#masterpieceCollection .collection-card").length,
   labels:[...document.querySelectorAll("#masterpieceCollection .collection-count")].map(e=>e.textContent),

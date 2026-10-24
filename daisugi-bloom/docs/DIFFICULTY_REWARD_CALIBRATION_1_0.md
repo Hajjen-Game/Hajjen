@@ -16,7 +16,7 @@ The previous Journey Objectives benchmark (10 levels × 8 seeds × 2 strategies)
 - Levels 1–5, 8–10 and 21+ keep their prior goals and move budgets. All 49 opening tiles still begin at stage 1; four families on levels 1–10 and five from level 11. There are no generated free boosts.
 
 ## Reward contract 3
-A completed objective earns at least one star. Goal attainment on or before a level's `par` wins three stars. Attainment at or before `ceil((par + moves)/2)` wins two. Later wins get one. Rating locks exactly when the objective is first achieved, so voluntary use of remaining moves can only improve personal *score* records, not stars. All scores remain optional and never determine win or stars.
+A completed objective earns at least one star. Goal attainment on or before a level's curated `starPar` expert target wins three stars. Attainment at or before `ceil((starPar + moves)/2)` wins two. These first-20 expert values are [4,5,9,9,10,5,8,12,9,12,10,12,17,6,15,13,18,16,18,15] moves, chosen conservatively from reproducible bot efficiency diagnostics; they are provisional until human mobile replays. Historical `par` stays intact for legacy saved ratings. Later wins get one. Rating locks exactly when the objective is first achieved, so voluntary use of remaining moves can only improve personal *score* records, not stars. All scores remain optional and never determine win or stars.
 
 Old runs retain their original rewardVersion=1 or =2 contract. Save archives retain the maximum recorded stars; the already-applied first-20 data reset is not repeated.
 

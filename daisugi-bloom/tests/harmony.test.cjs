@@ -264,6 +264,19 @@ check("Calibration 1.0 ratings are independent of optional points and fixed at f
  g.score+=50000;g.fusions+=20;g.finish();
  assert.equal(g.stars(),1,"Extra play cannot increase the earned rating");
 });
+check("Curated 3-star move targets reward strategy, not merely clearing easy missions",()=>{
+ const expert=[4,5,9,9,10,5,8,12,9,12,10,12,17,6,15,13,18,16,18,15];
+ assert.deepEqual(Array.from({length:20},(_,i)=>R.levelConfig(i).starPar),expert);
+ for(let i=0;i<20;i++){
+  const config=R.levelConfig(i),targets=R.moveStarTargets(config);
+  assert.equal(targets.three,expert[i]);
+  assert(targets.three<targets.two&&targets.two<config.moves);
+  assert.equal(R.missionStars(config,targets.three),3);
+  assert.equal(R.missionStars(config,targets.three+1),2);
+  assert.equal(R.missionStars(config,targets.two+1),1);
+ }
+ for(const later of [20,29,50])assert.equal(R.levelConfig(later).starPar,undefined);
+});
 check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family mix",()=>{
  const goals=[
   ["fusion",3],["stage3",1],["masterpiece",1],["mist",3],["mist",4],

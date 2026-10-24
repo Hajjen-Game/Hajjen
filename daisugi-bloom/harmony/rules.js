@@ -179,12 +179,21 @@ function mistLayout(index,count,version=2){
  };
  return pattern.slice(0,count).map(transform);
 }
-function levelConfig(index){return levels[index]||endlessConfig(index);}
+// Reward calibration is separate from level success. These expert move
+// targets use reproducible bot diagnostics as a starting point, and need
+// subsequent human playtest validation. Historical "par" is left unchanged
+// so archived rewardVersion=1 sessions keep their old rating criteria.
+const FIRST20_STAR_PAR=[4,5,9,9,10,5,8,12,9,12,10,12,17,6,15,13,18,16,18,15];
+function levelConfig(index){
+ const base=levels[index]||endlessConfig(index);
+ return index>=0&&index<FIRST20_STAR_PAR.length?
+  {...base,starPar:FIRST20_STAR_PAR[index]}:base;
+}
 // New missions: pass always awards ★; ★★/★★★ recognize efficient
 // goal completion, never score. Extra post-win moves cannot change rating.
 function moveStarTargets(config){
  const total=Math.max(3,Math.floor(config.moves)||3);
- const three=Math.max(1,Math.min(total-2,Math.floor(config.par||total*.55)));
+ const three=Math.max(1,Math.min(total-2,Math.floor(config.starPar||config.par||total*.55)));
  const two=Math.max(three+1,Math.min(total-1,Math.ceil((three+total)/2)));
  return {two,three};
 }

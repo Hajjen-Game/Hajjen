@@ -20,6 +20,7 @@ for(const level of levels)for(const strategy of strategies)for(let trial=0;trial
  // Explicit old-style save keeps old score objective and its star thresholds.
  const initial=new R.Game(level,null,{seed:trialSeed});
  const old=initial.save();delete old.objectiveVersion;delete old.mist;delete old.mistCleared;
+ old.moves=R.legacyScoreConfig(level).moves;
  const g=new R.Game(level,old,{fastRestore:true});
  const rand=botRandom(trialSeed);
  let turns=0;

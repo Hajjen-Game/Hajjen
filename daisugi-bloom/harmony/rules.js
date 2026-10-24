@@ -118,7 +118,10 @@ function mistLayout(index,count){
 }
 function levelConfig(index){return levels[index]||endlessConfig(index);}
 function scoreStars(index,score,previouslyWon=false){
- const config=levelConfig(index);
+ // Historical score-only Journey runs and score archives retain their
+ // original star thresholds even though new plays use objective goals.
+ const live=levelConfig(index);
+ const config=live.goal.type==="score"?live:index>=10?endlessScoreConfig(index):live;
  if(config.goal.type!=="score")return 0;
  const [one,two,three]=config.stars;
  const earned=score>=three?3:score>=two?2:score>=one?1:0;
@@ -435,7 +438,9 @@ class Game{
    this.objectiveVersion=isLegacyJourney?1:2;
    this.mist=this.objectiveVersion===2&&this.config.goal.type==="mist"&&
     Array.isArray(previous.mist)&&previous.mist.length===49?
-    previous.mist.map(v=>v?1:0):Array(49).fill(0);
+    previous.mist.map(v=>v?1:0):
+    this.objectiveVersion===2&&this.config.goal.type==="mist"?
+    Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count).includes(i))):Array(49).fill(0);
    this.mistCleared=this.objectiveVersion===2&&this.config.goal.type==="mist"?
     Math.max(0,Math.min(this.config.goal.count,Number(previous.mistCleared)||0)):0;
    // Existing snapshots without a family count are ALWAYS five-family runs.

@@ -56,28 +56,26 @@ function create(R){
    goalDelta*850+potentialDelta*15+newHeroes*140+scoreDelta*.10+Math.min(legalMoves,16)*4;
   return {a,b,simulated,score,scoreDelta,goalDelta,chain};
  }
- // Under Fusion Destination Control, swap(a,b) and swap(b,a) can
- // land on different cells. Both are real, legal tactical decisions.
- function directedChoices(pairs){return pairs.flatMap(([a,b])=>[[a,b],[b,a]]);}
+ // Direction contract checked by real-rules regression tests:
+ // validSwaps only pairs different families. A merged same-family group
+ // therefore cannot include both swapped endpoints. When only a single
+ // endpoint forms a group, Fusion Destination Control falls back to that
+ // endpoint regardless of call orientation. No goal/score/board difference
+ // exists between swap(a,b) and swap(b,a); only the animation source changes.
+ // Simulate ONE direction per pair, not two duplicate expensive full turns.
  function choose(g,strategy,rng){
   const moves=R.validSwaps(g.board);
   if(!moves.length)return null;
-  if(strategy==="random"){
-   const [a,b]=moves[Math.floor(rng()*moves.length)];
-   return rng()<.5?[a,b]:[b,a];
-  }
-  const profile=strategy==="score"?"score":"goal";
-  const evaluations=directedChoices(moves).map(([a,b])=>evaluate(g,a,b,profile));
+  if(strategy==="random")return moves[Math.floor(rng()*moves.length)];
+  const evaluations=moves.map(([a,b])=>evaluate(g,a,b,strategy==="score"?"score":"goal"));
   evaluations.sort((a,b)=>b.score-a.score||a.a-b.a||a.b-b.b);
   if(strategy!=="lookahead")return [evaluations[0].a,evaluations[0].b];
-  // Bound the second ply: four best oriented first moves, and eight legal
-  // pairs per follow-on position, testing BOTH directions of each pair.
   const firstChoices=evaluations.slice(0,Math.min(4,evaluations.length));
   let best=firstChoices[0],bestValue=-Infinity;
   for(const item of firstChoices){
    const after=item.simulated;
    const next=after.moves>0&&!after.complete&&!after.failed?
-    directedChoices(R.validSwaps(after.board).slice(0,8)):[];
+    R.validSwaps(after.board).slice(0,8):[];
    let follow=0;
    for(const [a,b] of next){
     const x=evaluate(after,a,b,"goal");

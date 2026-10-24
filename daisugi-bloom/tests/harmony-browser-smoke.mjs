@@ -997,8 +997,8 @@ try{
  assert.deepEqual(missionMix,["mist","mist","masterpiece","mist","fusion",
   "mist","stage3","mist","pulseHits","mist"],
   "Objectives 2.0 must vary concrete mission types from Level 11 onwards");
- // Real 390px phone: the fog visibly drifts; only the FUSION OUTPUT CELL
- // clears when covered. Touching/moving through fog alone never cleanses.
+ // Real 390px phone: faster fog drifts; fusion clears only its output
+ // cell, while Harmony Pulse clears cells it actually hits.
  const mistContext=await browser.createBrowserContext();
  try{
   const mistPage=await mistContext.newPage();
@@ -1030,6 +1030,8 @@ try{
   await mistPage.reload({waitUntil:"networkidle2"});
   await mistPage.click("#continueButton");
   assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Rena dimman");
+  assert((await mistPage.$eval("#goalLabel",x=>x.title)).includes("Harmony Pulse"),
+   "Mist instructions must explain that Harmony Pulse also clears fog");
   assert.equal(await mistPage.evaluate(()=>document.querySelectorAll(".tile.misted").length),fixture.mist);
   const mistLook=await mistPage.evaluate(()=>{
    const tile=document.querySelector(".tile.misted"),overlay=tile?.querySelector(".harmony-mist");
@@ -1054,6 +1056,9 @@ try{
   assert(mistLook.farWispAnimation.includes("harmony-mist-drift-far")&&
    mistLook.wispDuration!==mistLook.farWispDuration,
    "Motion 1.0 must drift cloud banks independently in opposite directions");
+  assert(parseFloat(mistLook.wispDuration)<=3.6&&
+   parseFloat(mistLook.farWispDuration)<=4.6,
+   "Motion 1.1 must run noticeably faster on a mobile viewport");
   assert(mistLook.opacity>=.8&&mistLook.wispBack.includes("gradient")&&
    mistLook.farWispBack.includes("gradient"),
    "Mist 2.1 must render both visible cloud banks on mobile");

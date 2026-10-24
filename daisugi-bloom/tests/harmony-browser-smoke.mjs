@@ -1056,9 +1056,9 @@ try{
   assert(mistLook.farWispAnimation.includes("harmony-mist-drift-far")&&
    mistLook.wispDuration!==mistLook.farWispDuration,
    "Motion 1.0 must drift cloud banks independently in opposite directions");
-  assert(parseFloat(mistLook.wispDuration)<=3.6&&
-   parseFloat(mistLook.farWispDuration)<=4.6,
-   "Motion 1.1 must run noticeably faster on a mobile viewport");
+  assert(parseFloat(mistLook.wispDuration)<=2.1&&
+   parseFloat(mistLook.farWispDuration)<=2.7,
+   "Motion 1.2 must show appreciable flowing cloud movement in the first second");
   assert(mistLook.opacity>=.8&&mistLook.wispBack.includes("gradient")&&
    mistLook.farWispBack.includes("gradient"),
    "Mist 2.1 must render both visible cloud banks on mobile");

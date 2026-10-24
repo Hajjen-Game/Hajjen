@@ -7,8 +7,8 @@
 function create(R){
  if(!R||!R.Game||!R.validSwaps)throw new Error("HarmonyRules is required");
  const STRATEGIES=["random","score","goal","lookahead"];
- const MODES=["standard","director","director2","director3"];
- const MODE_LABELS={standard:"Standard",director:"Director 1.0",director2:"Director 2.0",director3:"Pacing 3.0"};
+ const MODES=["standard","director","director2","director3","director31"];
+ const MODE_LABELS={standard:"Standard",director:"Director 1.0",director2:"Director 2.0",director3:"Pacing 3.0",director31:"Objective 3.1"};
  const LABELS={random:"Slumpmässig",score:"Poängjägare",goal:"Målfokuserad",lookahead:"Framåtblickande"};
  function assertInt(value,min,max,name){
   if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(name+" must be an integer from "+min+" to "+max);
@@ -88,7 +88,7 @@ function create(R){
   assertInt(level,0,999999,"level");
   if(!STRATEGIES.includes(strategy))throw new RangeError("Unknown strategy: "+strategy);
   if(!MODES.includes(mode))throw new RangeError("Unknown mode: "+mode);
-  const g=new R.Game(level,null,{seed:seed>>>0,opportunity:mode==="director",directorMode:mode==="director3"?"v3":mode==="director2"?"v2":undefined});
+  const g=new R.Game(level,null,{seed:seed>>>0,opportunity:mode==="director",directorMode:mode==="director31"?"v31":mode==="director3"?"v3":mode==="director2"?"v2":undefined});
   const rng=botRandom(seed);
   let turns=0,legalTotal=0,minLegal=Infinity,drought=0,maxDrought=0,noGoalTurns=0;
   let cascadeTurns=0,highestCascade=0,extraWaves=0,shuffles=0,pulses=0, bonuses=0;
@@ -114,7 +114,7 @@ function create(R){
    const previousGoal=g.progress();
    // Synthetic pause profile in tests: timing is explicit, deterministic and
    // independent of the bot's random decisions. Browser gameplay uses real time.
-   const decisionMs=mode==="director3"?
+   const decisionMs=(mode==="director3"||mode==="director31")?
     (strategy==="random"?4000:strategy==="goal"?10500:strategy==="score"?7000:24000)+
     (turns%4)*2200:null;
    const result=g.swap(...choice,{decisionMs});
@@ -142,7 +142,7 @@ function create(R){
    initialLegalMoves,avgLegalMoves:turns?legalTotal/turns:initialLegalMoves,
    minLegalMoves:minLegal===Infinity?initialLegalMoves:minLegal,zeroLegalTurns,
    cascadeTurns,highestCascade,extraWaves,shuffles,pulses,bonuses,
-   maxGoalDrought:maxDrought,noGoalTurns,
+   maxGoalDrought:maxDrought,noGoalTurns,objectiveDrought:g.objectiveDrought||0,
    avgMeaningful:turns?meaningfulTotal/turns:0,
    avgNearMasterpiece:turns?nearMasterpieceTotal/turns:0,
    avgGoalReady:turns?goalReadyTotal/turns:0,
@@ -162,6 +162,7 @@ function create(R){
    avgCascades:avg("cascadeTurns"),avgExtraWaves:avg("extraWaves"),
    avgMasterpieces:avg("masterpieces"),avgEchoes:avg("echoes"),avgShuffles:avg("shuffles"),
    avgGoalDrought:avg("maxGoalDrought"),avgNoGoalTurns:avg("noGoalTurns"),
+   avgObjectiveDrought:avg("objectiveDrought"),
    avgMeaningful:avg("avgMeaningful"),avgNearMasterpiece:avg("avgNearMasterpiece"),
    avgGoalReady:avg("avgGoalReady"),
    avgDirectorRefills:avg("directorRefills"),avgDirectorSelections:avg("directorSelections"),

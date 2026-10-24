@@ -1,4 +1,10 @@
-# Japanese Harmony — aktivt 7×7-fusionspussel (5.6.x)
+# Japanese Harmony — aktivt 7×7-fusionspussel
+
+## Difficulty & Reward Calibration 1.0 — 2026-10-24
+
+Nivå 1–5 förblir en introduktion. Några för lätta mål på nivå 6, 7 och 11–20 har höjts, medan dimnivåerna 13, 15, 17 och 19 får två extra drag var. Nya omgångar ger 1–3 stjärnor efter hur snabbt nivåmålet nås; poäng är fortfarande frivilliga rekord. Tidigare sparade betyg påverkas inte.
+
+[Balansbeslut och testplan](docs/DIFFICULTY_REWARD_CALIBRATION_1_0.md)
 
 ## UI Cleanup & Premium Polish 1.0 — 2026-10-23
 

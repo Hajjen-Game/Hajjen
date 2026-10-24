@@ -42,6 +42,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
         run: node daisugi-bloom/tests/harmony-resonance.test.cjs
+      - name: Syntax-check calibration benchmark
+        run: node --check daisugi-bloom/tools/harmony-difficulty-reward-benchmark.cjs
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/src/rules.js
@@ -155,4 +157,20 @@ jobs:
         with:
           name: japanese-harmony-four-families-benchmark
           path: daisugi-bloom/reports/four-families-1-0-benchmark.json
+          if-no-files-found: warn
+
+  difficulty-reward-benchmark:
+    name: Difficulty & Reward 1.0 · first 20 level simulations
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sample 400 full objective-based games and star ratings
+        run: node daisugi-bloom/tools/harmony-difficulty-reward-benchmark.cjs
+      - name: Preserve per-game seeds and calibration outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-difficulty-reward-1-0
+          path: daisugi-bloom/reports/difficulty-reward-1.0-benchmark.json
           if-no-files-found: warn

@@ -39,23 +39,23 @@ const levels=[
  {name:"First Masterpiece",subtitle:"Ditt första mästerverk",moves:34,par:20,goal:{type:"masterpiece",count:1},intro:"Fusionera ett utvecklat föremål vidare till stadium 5. Då skapas ett mästerverk och Harmony Pulse."},
  {name:"First Mist",subtitle:"Lär dig rena dimma",moves:30,par:15,goal:{type:"mist",count:3},intro:"Rena tre dimrutor. Fusionen rensar sin slutruta och Harmony Pulse kan nå grannrutor. Brickorna går att flytta fritt."},
  {name:"Harmony Garden",subtitle:"Din första riktiga dimutmaning",moves:32,par:17,goal:{type:"mist",count:4},intro:"Rena fyra dimrutor i en liten grupp. Välj var fusionen landar och sikta på Harmony Pulse."},
- {name:"Four of a Kind",subtitle:"En längre matchning",moves:28,par:13,goal:{type:"four",count:1},intro:"Matcha minst fyra i rad för en bonusuppgradering. Detta är en vanlig nivå, inte en handledning."},
- {name:"Growing Harmony",subtitle:"Vårda tre utvecklingar",moves:30,par:18,goal:{type:"stage3",count:3},intro:"Utveckla tre föremål till stadium 3. Samma familj matchar i olika stadier."},
+ {name:"Four of a Kind",subtitle:"En längre matchning",moves:28,par:13,goal:{type:"four",count:2},intro:"Matcha minst fyra i rad för en bonusuppgradering. Detta är en vanlig nivå, inte en handledning."},
+ {name:"Growing Harmony",subtitle:"Vårda fem utvecklingar",moves:30,par:18,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3. Samma familj matchar i olika stadier."},
  {name:"Misty Path",subtitle:"Två små dimfält",moves:33,par:20,goal:{type:"mist",count:5},intro:"Rena två separata dimgrupper. Placera fusioner där de gör nytta."},
  {name:"Masterpiece Garden",subtitle:"Skapa ett nytt mästerverk",moves:35,par:23,goal:{type:"masterpiece",count:1},intro:"Skapa ett mästerverk och använd dess Harmony Pulse strategiskt."},
  {name:"Garden of Harmony",subtitle:"Första kapitlets final",moves:36,par:23,goal:{type:"mist",count:6},intro:"Rena två dimfält. Mästerverk och smarta fusionspositioner hjälper dig."}
 ];
 const EARLY_JOURNEY=[
- {name:"New Friends",subtitle:"Fem familjer på spelplanen",moves:26,par:15,goal:{type:"fusion",count:7},intro:"En ny familj har tillkommit. Alla regler är desamma – gör sju fusioner."},
- {name:"Steady Growth",subtitle:"Odla med fler familjer",moves:31,par:20,goal:{type:"stage3",count:3},intro:"Utveckla tre föremål till stadium 3. Bygg vidare på dina starkaste föremål."},
- {name:"Mist Garden",subtitle:"Två avgränsade dimfält",moves:34,par:22,goal:{type:"mist",count:6},intro:"Rena sex dimrutor i två små grupper med fusioner eller Harmony Pulse."},
- {name:"Fourfold Festival",subtitle:"Låt fyra mötas",moves:30,par:18,goal:{type:"four",count:1},intro:"Skapa en fyrmatchning för att få en extra uppgradering."},
- {name:"Moonlit Mist",subtitle:"Tre olika vägar",moves:35,par:23,goal:{type:"mist",count:7},intro:"Rena sju dimrutor som ligger i separata, strategiska grupper."},
- {name:"Harmony Awakening",subtitle:"Skapa en Pulse-kedja",moves:38,par:26,goal:{type:"pulseHits",count:3},intro:"Skapa ett mästerverk. Harmony Pulse måste träffa tre upptagna grannrutor."},
- {name:"Lantern Mist",subtitle:"Små fält, fler möjligheter",moves:38,par:25,goal:{type:"mist",count:8},intro:"Rena åtta dimrutor i flera små fält."},
- {name:"Fusion Festival",subtitle:"Bygg upp takten",moves:33,par:21,goal:{type:"fusion",count:12},intro:"Gör tolv fusioner. Mästerverk, Echo och andra kedjor ger bonuspoäng."},
- {name:"Quiet Mist",subtitle:"Precision och Pulse",moves:39,par:27,goal:{type:"mist",count:9},intro:"Rena nio dimrutor utan att slösa dina välutvecklade föremål."},
- {name:"Masterpiece Celebration",subtitle:"Två mästerverk",moves:43,par:32,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk. Du har fler drag än i de tidigare kapitlen."}
+ {name:"New Friends",subtitle:"Fem familjer på spelplanen",moves:26,par:15,goal:{type:"fusion",count:15},intro:"En ny familj har tillkommit. Alla regler är desamma – gör femton fusioner."},
+ {name:"Steady Growth",subtitle:"Odla med fler familjer",moves:31,par:20,goal:{type:"stage3",count:6},intro:"Utveckla sex föremål till stadium 3. Bygg vidare på dina starkaste föremål."},
+ {name:"Mist Garden",subtitle:"Två avgränsade dimfält",moves:36,par:22,goal:{type:"mist",count:6},intro:"Rena sex dimrutor i två små grupper med fusioner eller Harmony Pulse."},
+ {name:"Fourfold Festival",subtitle:"Låt fyra mötas",moves:30,par:18,goal:{type:"four",count:2},intro:"Skapa två fyrmatchningar för extra uppgraderingar."},
+ {name:"Moonlit Mist",subtitle:"Tre olika vägar",moves:37,par:23,goal:{type:"mist",count:7},intro:"Rena sju dimrutor som ligger i separata, strategiska grupper."},
+ {name:"Harmony Awakening",subtitle:"Skapa en Pulse-kedja",moves:38,par:26,goal:{type:"pulseHits",count:6},intro:"Skapa ett mästerverk. Harmony Pulse måste träffa sex upptagna grannrutor."},
+ {name:"Lantern Mist",subtitle:"Små fält, fler möjligheter",moves:40,par:25,goal:{type:"mist",count:8},intro:"Rena åtta dimrutor i flera små fält."},
+ {name:"Fusion Festival",subtitle:"Bygg upp takten",moves:33,par:21,goal:{type:"fusion",count:23},intro:"Gör tjugotre fusioner. Mästerverk, Echo och andra kedjor ger bonuspoäng."},
+ {name:"Quiet Mist",subtitle:"Precision och Pulse",moves:41,par:27,goal:{type:"mist",count:9},intro:"Rena nio dimrutor utan att slösa dina välutvecklade föremål."},
+ {name:"Masterpiece Celebration",subtitle:"Tre mästerverk",moves:43,par:32,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk. Du har fler drag än i de tidigare kapitlen."}
 ];
 // A level number is enough to recreate its configuration. This is the one
 // reusable level recipe for all stages after the 10-level tutorial.
@@ -180,6 +180,18 @@ function mistLayout(index,count,version=2){
  return pattern.slice(0,count).map(transform);
 }
 function levelConfig(index){return levels[index]||endlessConfig(index);}
+// New missions: pass always awards ★; ★★/★★★ recognize efficient
+// goal completion, never score. Extra post-win moves cannot change rating.
+function moveStarTargets(config){
+ const total=Math.max(3,Math.floor(config.moves)||3);
+ const three=Math.max(1,Math.min(total-2,Math.floor(config.par||total*.55)));
+ const two=Math.max(three+1,Math.min(total-1,Math.ceil((three+total)/2)));
+ return {two,three};
+}
+function missionStars(config,used){
+ const {two,three}=moveStarTargets(config);
+ return used<=three?3:used<=two?2:1;
+}
 function scoreStars(index,score,previouslyWon=false){
  // Historical score-only Journey runs and score archives retain their
  // original star thresholds even though new plays use objective goals.
@@ -643,12 +655,12 @@ class Game{
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
-  this.complete=false;this.failed=false;this.rewardVersion=2;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
+  this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   if(previous){
    Object.assign(this,previous);
    // Existing runs retain their historical rating contract. New plays
    // award one completion star; previous two-/three-star records are never revoked.
-   this.rewardVersion=previous.rewardVersion===2?2:1;
+   this.rewardVersion=previous.rewardVersion===3?3:previous.rewardVersion===2?2:1;
    // Continue older score-only Journey saves under their ORIGINAL goal.
    // Freshly started levels receive Objectives 2.0; no existing run is
    // silently converted or has its star/completion requirements changed.
@@ -820,6 +832,7 @@ class Game{
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
+  if(this.rewardVersion===3)return this.complete?this.starsAtGoal||1:0;
   if(this.rewardVersion===2)return this.complete?1:0;
   if(this.config.goal.type==="score"){
    return scoreStars(this.level,this.score,this.complete&&this.legacyScoreCompletion);
@@ -967,7 +980,8 @@ class Game{
   }
   if(!this.complete&&this.fulfilled()){
    this.complete=true;this.goalMove=this.config.moves-this.moves;
-   this.starsAtGoal=this.rewardVersion===2?1:
+   this.starsAtGoal=this.rewardVersion===3?missionStars(this.config,this.goalMove):
+     this.rewardVersion===2?1:
      this.config.goal.type==="score"?this.stars():this.goalMove<=this.config.par?3:this.goalMove<=this.config.par+4?2:1;
    events.push(this.frame("goal",{stars:this.starsAtGoal}));
   }
@@ -1068,6 +1082,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,mistLayout,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

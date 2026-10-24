@@ -269,14 +269,14 @@ function renderMenu(){
    d.append(best);
   }
   const starsNode=document.createElement("span");starsNode.className="level-stars";
-  starsNode.textContent=allowed?(stars?"★".repeat(stars)+(stars>1?" · äldre betyg":""):"☆"):"🔒";
+  starsNode.textContent=allowed?(stars?"★".repeat(stars)+"☆".repeat(3-stars):"☆☆☆"):"🔒";
   b.dataset.familyCount=String(R.levelFamilyCount(i));
   b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
  }
  const intro=menuPage===0;
  $("chapterEyebrow").textContent=intro?"INTRODUKTION + JOURNEY":"ENDLESS JOURNEY";
  $("chapterTitle").textContent=intro?"First Harmony":"Harmony Journey";
- $("chapterSubtitle").textContent=intro?"Fem korta introduktionsnivåer. Från nivå 6 börjar resan på riktigt.":"Nya nivåmål med dimma, mästerverk och Harmony Pulse · en stjärna per klarad nivå";
+ $("chapterSubtitle").textContent=intro?"Fem korta introduktionsnivåer. Från nivå 6 börjar resan på riktigt.":"Nya nivåmål med dimma, mästerverk och Harmony Pulse · 1–3 stjärnor efter antal drag";
  const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
   n+(Number(i)<10?Number(v)||0:0),0)+
   Object.entries(save.bestStars).reduce((n,[i,v])=>
@@ -392,7 +392,7 @@ function startLevel(i,resume=false){
  $("goalLabel").title=game.config.intro||"";
  document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":"✿";
  const milestones=$("starTargets");
- milestones.hidden=game.rewardVersion===2||game.config.goal.type!=="score";
+ milestones.hidden=game.rewardVersion>=2||game.config.goal.type!=="score";
  if(!milestones.hidden){
   [...milestones.children].forEach((node,j)=>{
    node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
@@ -611,7 +611,12 @@ function renderHUD(state){
  lastGoalProgress=progress;
  const earnedStars=game.stars();
  $("statusStars").textContent=game.rewardVersion===2?(earnedStars?"★":"☆"):"★".repeat(earnedStars)+"☆".repeat(3-earnedStars);
- if(game.rewardVersion===2){
+ if(game.rewardVersion===3){
+  const thresholds=R.moveStarTargets(game.config);
+  $("statusStars").setAttribute("aria-label",game.complete?
+   earnedStars+" av 3 stjärnor. Målet klarades på "+game.goalMove+" drag.":
+   "Klara målet för en stjärna, på högst "+thresholds.two+" drag för två eller "+thresholds.three+" för tre.");
+ }else if(game.rewardVersion===2){
   $("statusStars").setAttribute("aria-label",earnedStars?"Nivå klarad · 1 stjärna":"Klara nivåmålet för 1 stjärna");
  }else if(game.config.goal.type==="score"){
   const milestones=$("starTargets");
@@ -1590,6 +1595,11 @@ function showResult(){
   const achievement=document.createElement("p");achievement.className="result-objective";
   achievement.textContent=game.goalText()+" · "+prettify(game.target())+" / "+prettify(game.target());
   panel.append(achievement);
+  if(game.rewardVersion===3){
+   const firstWin=document.createElement("p");firstWin.className="result-objective";
+   firstWin.textContent="Målet klarat på "+game.goalMove+" av "+game.config.moves+" drag · "+game.stars()+" av 3 stjärnor. Betyget låses vid målet.";
+   panel.append(firstWin);
+  }
  }
  if(game.config.goal.type==="mist"){
   const msg=document.createElement("p");msg.className="mist-result";
@@ -1869,7 +1879,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse rensar också dimma på rutorna den faktiskt träffar. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Belöning:</strong> Nystartade nivåer ger en stjärna när du klarar målet. Äldre uppnådda två- och trestjärniga betyg bevaras. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse rensar också dimma på rutorna den faktiskt träffar. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

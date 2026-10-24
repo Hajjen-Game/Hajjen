@@ -76,7 +76,7 @@ check("unfinished old level 8 saves get four extra turns only once",()=>{
  assert.equal(new R.Game(7,finished).moves,6,"Completed saves cannot gain turns");
 });
 check("First twenty levels have curated move budgets and later Journey keeps its original scaling",()=>{
- const early=[18,24,34,30,32,28,30,33,35,36,26,31,34,30,35,38,38,33,39,43];
+ const early=[18,24,34,30,32,28,30,33,35,36,26,31,36,30,37,38,40,33,41,43];
  for(let index=0;index<20;index++){
   assert.equal(R.levelConfig(index).moves,early[index],"Curated level "+(index+1));
   assert.equal(new R.Game(index).moves,early[index]);
@@ -226,24 +226,60 @@ check("once goal completes, remaining moves can be played without changing first
  assert(result.some(e=>e.type==="goal"));assert(g.complete);assert(g.moves>0);const s=g.stars();
  g.fusions+=3;assert.equal(g.stars(),s);assert(g.finish());assert.equal(g.moves,0);
 });
-check("Core Clarity 1.0 awards one completion star while preserving archived legacy three-star saves",()=>{
+check("Calibration 1.0 awards speed-based stars and preserves historic reward versions",()=>{
  const g=fixture();g.config={...g.config,moves:6,par:3,goal:{type:"fusion",count:1}};g.moves=6;
- assert.equal(g.rewardVersion,2);
+ assert.equal(g.rewardVersion,3);
  assert.equal(g.stars(),0);
  for(const i of [23,24,25])g.board[i].family="sakura";
  const events=g.resolve(-1);
  assert(events.some(e=>e.type==="goal"));
- assert.equal(g.stars(),1,"One completion star, regardless of bonus points or speed");
- assert.equal(g.starsAtGoal,1);
+ assert.equal(g.stars(),3,"Beating the per-level par earns three stars");
+ assert.equal(g.starsAtGoal,3);
  assert.equal(g.moves,6,"Reaching the goal doesn't consume leftover optional turns");
  const completed=new R.Game(g.level,g.save(),{fastRestore:true});
- assert.equal(completed.rewardVersion,2);
- assert.equal(completed.stars(),1);
+ assert.equal(completed.rewardVersion,3);
+ assert.equal(completed.stars(),3);
  assert.deepEqual(completed.save(),g.save());
+ const previous=g.save();previous.rewardVersion=2;previous.starsAtGoal=1;
+ const oldReward=new R.Game(g.level,previous,{fastRestore:true});
+ assert.equal(oldReward.rewardVersion,2);
+ assert.equal(oldReward.stars(),1,"Old V2 saves keep the original one-star contract");
  const old=g.save();delete old.rewardVersion;old.starsAtGoal=3;
  const legacy=new R.Game(g.level,old,{fastRestore:true});
  assert.equal(legacy.rewardVersion,1);
  assert.equal(legacy.stars(),3,"Never discard previously earned legacy three-star ratings");
+});
+
+check("Calibration 1.0 ratings are independent of optional points and fixed at first win",()=>{
+ const cfg={moves:30,par:12,goal:{type:"fusion",count:1}};
+ assert.deepEqual(R.moveStarTargets(cfg),{two:21,three:12});
+ for(const [used,wanted] of [[0,3],[12,3],[13,2],[21,2],[22,1],[30,1]])
+  assert.equal(R.missionStars(cfg,used),wanted,"used "+used);
+ const g=fixture();g.config={...g.config,...cfg};g.moves=7;
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.resolve(-1);
+ assert(g.complete);assert.equal(g.goalMove,23);assert.equal(g.stars(),1);
+ const restored=new R.Game(g.level,g.save(),{fastRestore:true});
+ assert.equal(restored.stars(),1);assert.equal(restored.goalMove,23);
+ g.score+=50000;g.fusions+=20;g.finish();
+ assert.equal(g.stars(),1,"Extra play cannot increase the earned rating");
+});
+check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family mix",()=>{
+ const goals=[
+  ["fusion",3],["stage3",1],["masterpiece",1],["mist",3],["mist",4],
+  ["four",2],["stage3",5],["mist",5],["masterpiece",1],["mist",6],
+  ["fusion",15],["stage3",6],["mist",6],["four",2],["mist",7],
+  ["pulseHits",6],["mist",8],["fusion",23],["mist",9],["masterpiece",3]
+ ];
+ goals.forEach(([type,count],i)=>{
+  const cfg=R.levelConfig(i);
+  assert.deepEqual(cfg.goal,{type,count},"Level "+(i+1));
+  assert(cfg.par<cfg.moves);
+  const t=R.moveStarTargets(cfg);
+  assert(t.three<t.two&&t.two<cfg.moves);
+ });
+ assert.equal(R.levelFamilyCount(9),4);
+ assert.equal(R.levelFamilyCount(10),5);
 });
 check("Directed swap contract: both orientations preserve identical outcomes for legal two-family swaps",()=>{
  for(const level of [0,10,11])for(const seed of [111,222]){

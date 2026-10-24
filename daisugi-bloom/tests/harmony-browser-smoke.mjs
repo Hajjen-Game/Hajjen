@@ -956,7 +956,7 @@ try{
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.25.0")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.26.0")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director 1.0").length,4);
@@ -1829,10 +1829,10 @@ try{
     scoreLabel:document.querySelector(".hud-score .hud-label")?.textContent,
     progress:document.querySelector("#goalProgress")?.textContent};
   });
-  assert.equal(reached.version,2);
-  assert.equal(reached.star,1);
+  assert.equal(reached.version,3);
+  assert.equal(reached.star,3);
   assert(reached.completed&&reached.remaining>0,"Completion must retain optional turns");
-  assert.equal(reached.starText,"★ NIVÅ KLAR");
+  assert.equal(reached.starText,"★★★");
   assert(reached.buttons.includes("Nästa nivå →")&&reached.buttons.includes("Fortsätt för poängrekord"));
   assert.equal(reached.scoreLabel,"BONUSPOÄNG");
   await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Fortsätt för poängrekord")).click());
@@ -1845,7 +1845,7 @@ try{
    const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {record:data.fourFamilyStars["0"],unlocked:data.unlocked,run:data.run};
   });
-  assert.equal(archived.record,1,"New wins archive a single star");
+  assert.equal(archived.record,3,"New wins archive the earned efficiency rating");
   assert(archived.unlocked>=1,"Completion must unlock the next stage");
   assert.equal(archived.run,null,"Finishing should close the saved run");
  }finally{await clarityContext.close();}

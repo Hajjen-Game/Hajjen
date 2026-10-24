@@ -289,7 +289,7 @@ check("First twenty have stable hand-authored objectives, fewer repeated Mist le
   assert.deepEqual(cfg,again,"Config deterministic");
   assert(cfg.goal.type!=="score");
   assert(cfg.par>0&&cfg.par<cfg.moves);
-  assert.equal(R.activeFamilies(level).length,level<10?4:5);
+  assert.equal(R.activeFamilies(level,R.levelFamilyCount(level)).length,level<10?4:5);
   const a=new R.Game(level,null,{seed:1001}),b=new R.Game(level,null,{seed:1001});
   assert.deepEqual(a.board,b.board);
   assert.deepEqual(a.mist,b.mist);

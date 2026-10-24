@@ -111,6 +111,6 @@ check("Standard mode results are identical in single-mode and paired-mode runs",
 });
 check("Developer-facing mode selection validates unknown values",()=>{
  assert.throws(()=>Lab.run({levels:[5],modes:["magic"]}),RangeError);
- assert.deepEqual(Lab.MODES,["standard","director","director2","director3","director31"]);
+ assert.deepEqual(Lab.MODES,["standard","director","director2","director3","director31","director311"]);
 });
 console.log("PASS Harmony Opportunity Director 1.0 contracts");

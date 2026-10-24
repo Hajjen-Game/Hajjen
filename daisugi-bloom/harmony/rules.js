@@ -30,17 +30,32 @@ function activeFamilies(index,count=5){
  const picked=index<LEVEL_FAMILIES.length?LEVEL_FAMILIES[index].slice():endlessFamilies(index);
  return picked.slice(0,count===4?4:5);
 }
+// First 20 Levels Redesign 1.0. Only the first FIVE stages teach core
+// rules. Stages 6–10 are real early puzzles; the fifth family appears
+// on level 11, on a forgiving fusion mission rather than alongside hard Mist.
 const levels=[
- {name:"First Match",subtitle:"Början på resan",moves:24,par:7,goal:{type:"fusion",count:5},intro:"Byt två grannar och matcha tre föremål av samma familj."},
- {name:"Growing Beauty",subtitle:"Fem steg till ett mästerverk",moves:36,par:10,goal:{type:"stage3",count:3},intro:"Samma familj kan matchas oavsett utvecklingsstadium. Få tre föremål till stadium 3."},
- {name:"The Survivor",subtitle:"Välj den rätta vägen",moves:32,par:9,goal:{type:"stage4",count:1},intro:"Högsta matchade stadium bestämmer resultatet. Du bestämmer fusionsrutan med ditt drag. Odla fram stadium 4."},
- {name:"First Masterpiece",subtitle:"Skapa något extraordinärt",moves:36,par:10,goal:{type:"masterpiece",count:1},intro:"Förädla ett föremål till stadium 5 för att skapa ditt första mästerverk."},
- {name:"Harmony Awakens",subtitle:"Låt utvecklingen sprida sig",moves:36,par:11,goal:{type:"pulseHits",count:3},intro:"Harmony Pulse utvecklar upptagna rutor ovanför, nedanför och vid sidan av mästerverket."},
- {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:40,par:12,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Skapa ett mästerverk från lykta-familjen. Övriga mästerverk ger fortfarande poäng."},
- {name:"Four of a Kind",subtitle:"Den fjärde gör skillnad",moves:36,par:11,goal:{type:"four",count:1},intro:"Matcha minst fyra i en fusion. En granne förädlas som bonus."},
- {name:"Garden in Bloom",subtitle:"Fem utvecklade föremål",moves:40,par:12,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3 med vanliga fusioner. T- och L-former är bonusar, inte ett krav."},
- {name:"Double Harmony",subtitle:"Varje mästerverk räknas",moves:40,par:12,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk under nivån. Harmony Pulse-kedjor ger fortfarande extra poäng."},
- {name:"Master of Harmony",subtitle:"Första kapitlets final",moves:48,par:15,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk på en och samma nivå."}
+ {name:"First Harmony",subtitle:"Lär dig en fusion",moves:18,par:6,goal:{type:"fusion",count:3},intro:"Flytta en bricka till en granne och matcha tre av samma familj."},
+ {name:"Growing Beauty",subtitle:"Föremål växer i fem stadier",moves:24,par:11,goal:{type:"stage3",count:1},intro:"Matcha samma familj, även om stadierna skiljer sig. Få ett föremål till stadium 3."},
+ {name:"First Masterpiece",subtitle:"Ditt första mästerverk",moves:34,par:20,goal:{type:"masterpiece",count:1},intro:"Fusionera ett utvecklat föremål vidare till stadium 5. Då skapas ett mästerverk och Harmony Pulse."},
+ {name:"First Mist",subtitle:"Lär dig rena dimma",moves:30,par:15,goal:{type:"mist",count:3},intro:"Rena tre dimrutor. Fusionen rensar sin slutruta och Harmony Pulse kan nå grannrutor. Brickorna går att flytta fritt."},
+ {name:"Harmony Garden",subtitle:"Din första riktiga dimutmaning",moves:32,par:17,goal:{type:"mist",count:4},intro:"Rena fyra dimrutor i en liten grupp. Välj var fusionen landar och sikta på Harmony Pulse."},
+ {name:"Four of a Kind",subtitle:"En längre matchning",moves:28,par:13,goal:{type:"four",count:1},intro:"Matcha minst fyra i rad för en bonusuppgradering. Detta är en vanlig nivå, inte en handledning."},
+ {name:"Growing Harmony",subtitle:"Vårda tre utvecklingar",moves:30,par:18,goal:{type:"stage3",count:3},intro:"Utveckla tre föremål till stadium 3. Samma familj matchar i olika stadier."},
+ {name:"Misty Path",subtitle:"Två små dimfält",moves:33,par:20,goal:{type:"mist",count:5},intro:"Rena två separata dimgrupper. Placera fusioner där de gör nytta."},
+ {name:"Masterpiece Garden",subtitle:"Skapa ett nytt mästerverk",moves:35,par:23,goal:{type:"masterpiece",count:1},intro:"Skapa ett mästerverk och använd dess Harmony Pulse strategiskt."},
+ {name:"Garden of Harmony",subtitle:"Första kapitlets final",moves:36,par:23,goal:{type:"mist",count:6},intro:"Rena två dimfält. Mästerverk och smarta fusionspositioner hjälper dig."}
+];
+const EARLY_JOURNEY=[
+ {name:"New Friends",subtitle:"Fem familjer på spelplanen",moves:26,par:15,goal:{type:"fusion",count:7},intro:"En ny familj har tillkommit. Alla regler är desamma – gör sju fusioner."},
+ {name:"Steady Growth",subtitle:"Odla med fler familjer",moves:31,par:20,goal:{type:"stage3",count:3},intro:"Utveckla tre föremål till stadium 3. Bygg vidare på dina starkaste föremål."},
+ {name:"Mist Garden",subtitle:"Två avgränsade dimfält",moves:34,par:22,goal:{type:"mist",count:6},intro:"Rena sex dimrutor i två små grupper med fusioner eller Harmony Pulse."},
+ {name:"Fourfold Festival",subtitle:"Låt fyra mötas",moves:30,par:18,goal:{type:"four",count:1},intro:"Skapa en fyrmatchning för att få en extra uppgradering."},
+ {name:"Moonlit Mist",subtitle:"Tre olika vägar",moves:35,par:23,goal:{type:"mist",count:7},intro:"Rena sju dimrutor som ligger i separata, strategiska grupper."},
+ {name:"Harmony Awakening",subtitle:"Skapa en Pulse-kedja",moves:38,par:26,goal:{type:"pulseHits",count:3},intro:"Skapa ett mästerverk. Harmony Pulse måste träffa tre upptagna grannrutor."},
+ {name:"Lantern Mist",subtitle:"Små fält, fler möjligheter",moves:38,par:25,goal:{type:"mist",count:8},intro:"Rena åtta dimrutor i flera små fält."},
+ {name:"Fusion Festival",subtitle:"Bygg upp takten",moves:33,par:21,goal:{type:"fusion",count:12},intro:"Gör tolv fusioner. Mästerverk, Echo och andra kedjor ger bonuspoäng."},
+ {name:"Quiet Mist",subtitle:"Precision och Pulse",moves:39,par:27,goal:{type:"mist",count:9},intro:"Rena nio dimrutor utan att slösa dina välutvecklade föremål."},
+ {name:"Masterpiece Celebration",subtitle:"Två mästerverk",moves:43,par:32,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk. Du har fler drag än i de tidigare kapitlen."}
 ];
 // A level number is enough to recreate its configuration. This is the one
 // reusable level recipe for all stages after the 10-level tutorial.
@@ -72,6 +87,10 @@ function endlessScoreConfig(index){
 // a tangible objective. Score remains a side challenge / personal record.
 // Objectives are fixed by level index, never adjusted by Director or player.
 function endlessConfig(index){
+ if(index>=10&&index<20){
+  const design=EARLY_JOURNEY[index-10];
+  return {...design,objectiveVersion:2,balanceVersion:2,chapter:index+1};
+ }
  const base=endlessScoreConfig(index),number=index+1;
  const stage=(index-10)%10;
  const chapter=Math.floor((index-10)/10);
@@ -135,8 +154,22 @@ const MIST_LAYOUT_V2=[
 // Version 1 is kept only for reproducible before/after Engine Lab runs
 // and historical comparisons. New gameplay always starts on version 2.
 const MIST_LAYOUT_V1=[8,12,16,24,30,36,40,20,28,9,32,38,14,34,46,42,6,26];
+// Hand-designed and independent of RNG: deliberately small connected
+// mist pockets with no isolated corners and no accidental 4+ megaclusters.
+const EARLY_MIST_LAYOUTS={
+ 3:[16,17,24],                    // level 4: first L
+ 4:[9,10,16,17],                // level 5: compact 2x2
+ 7:[9,16,17,30,37],             // level 8: L + pair
+ 9:[9,16,17,31,32,39],          // level 10: two Ls
+ 12:[8,9,15,33,34,40],          // level 13: two Ls
+ 14:[8,9,15,32,33,40,24],      // level 15: two Ls + precision
+ 16:[8,9,15,26,33,34,39,40],   // level 17: connected pockets
+ 18:[8,9,15,12,19,20,29,36,37] // level 19: three Ls
+};
 function mistLayout(index,count,version=2){
  if(!count)return [];
+ const bespoke=version!==1?EARLY_MIST_LAYOUTS[index]:null;
+ if(bespoke&&count===bespoke.length)return bespoke.slice();
  const pattern=version===1?MIST_LAYOUT_V1:MIST_LAYOUT_V2;
  const rotation=((Math.floor((index-10)/3)%4)+4)%4;
  const transform=i=>{
@@ -604,7 +637,7 @@ class Game{
    startBoard(this.level,()=>this.fresh(),this.families);
   this.nextId=50;
   this.objectiveVersion=2;
-  this.objectiveBalanceVersion=1;
+  this.objectiveBalanceVersion=this.level<20?2:1;
   this.mistLayoutVersion=options?.mistLayoutVersion===1?1:2;
   this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count,this.mistLayoutVersion).includes(i))):Array(49).fill(0);
   this.mistCleared=0;

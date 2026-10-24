@@ -33,7 +33,7 @@ function activeFamilies(index,count=5){
 const levels=[
  {name:"First Match",subtitle:"Början på resan",moves:24,par:7,goal:{type:"fusion",count:5},intro:"Byt två grannar och matcha tre föremål av samma familj."},
  {name:"Growing Beauty",subtitle:"Fem steg till ett mästerverk",moves:36,par:10,goal:{type:"stage3",count:3},intro:"Samma familj kan matchas oavsett utvecklingsstadium. Få tre föremål till stadium 3."},
- {name:"The Survivor",subtitle:"Välj den rätta vägen",moves:32,par:9,goal:{type:"stage4",count:1},intro:"Föremålet med högst stadium överlever på sin plats. Odla fram stadium 4."},
+ {name:"The Survivor",subtitle:"Välj den rätta vägen",moves:32,par:9,goal:{type:"stage4",count:1},intro:"Högsta matchade stadium bestämmer resultatet. Du bestämmer fusionsrutan med ditt drag. Odla fram stadium 4."},
  {name:"First Masterpiece",subtitle:"Skapa något extraordinärt",moves:36,par:10,goal:{type:"masterpiece",count:1},intro:"Förädla ett föremål till stadium 5 för att skapa ditt första mästerverk."},
  {name:"Harmony Awakens",subtitle:"Låt utvecklingen sprida sig",moves:36,par:11,goal:{type:"pulseHits",count:3},intro:"Harmony Pulse utvecklar upptagna rutor ovanför, nedanför och vid sidan av mästerverket."},
  {name:"Lantern Festival",subtitle:"Varmt ljus i natten",moves:40,par:12,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Skapa ett mästerverk från lykta-familjen. Övriga mästerverk ger fortfarande poäng."},

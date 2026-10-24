@@ -252,7 +252,7 @@ function renderMenu(){
    d.append(best);
   }
   const starsNode=document.createElement("span");starsNode.className="level-stars";
-  starsNode.textContent=allowed?(stars?"★".repeat(stars)+"☆".repeat(3-stars):"○ ○ ○"):"🔒";
+  starsNode.textContent=allowed?(stars?"★".repeat(stars)+(stars>1?" · äldre betyg":""):"☆"):"🔒";
   b.dataset.familyCount=String(R.levelFamilyCount(i));
   b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
  }
@@ -375,7 +375,7 @@ function startLevel(i,resume=false){
  $("goalLabel").title=game.config.intro||"";
  document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":"✿";
  const milestones=$("starTargets");
- milestones.hidden=game.config.goal.type!=="score";
+ milestones.hidden=game.rewardVersion===2||game.config.goal.type!=="score";
  if(!milestones.hidden){
   [...milestones.children].forEach((node,j)=>{
    node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
@@ -593,8 +593,10 @@ function renderHUD(state){
  }
  lastGoalProgress=progress;
  const earnedStars=game.stars();
- $("statusStars").textContent="★".repeat(earnedStars)+"☆".repeat(3-earnedStars);
- if(game.config.goal.type==="score"){
+ $("statusStars").textContent=game.rewardVersion===2?(earnedStars?"★":"☆"):"★".repeat(earnedStars)+"☆".repeat(3-earnedStars);
+ if(game.rewardVersion===2){
+  $("statusStars").setAttribute("aria-label",earnedStars?"Nivå klarad · 1 stjärna":"Klara nivåmålet för 1 stjärna");
+ }else if(game.config.goal.type==="score"){
   const milestones=$("starTargets");
   [...milestones.children].forEach((node,j)=>{
    node.classList.toggle("reached",current.score>=game.config.stars[j]);
@@ -1513,7 +1515,7 @@ async function playEvents(events){
    if(evt.type==="echo")praise("echo");
    else if(evt.type==="hero")praise("masterpiece");
    else if(evt.type==="pulse"&&(evt.targets?.length||0)>0)praise("pulse");
-   if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart! Spela vidare för rekord.");}
+   if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart!");}
    if(evt.type==="end"||evt.type==="lose")finished=true;
    renderHUD(evt);
   }
@@ -1530,7 +1532,7 @@ async function playEvents(events){
   if(!finished)restartIdleHint();
  }
  if(goalReached)unlockGoal();
- if(finished)showResult();
+ if(finished||goalReached)showResult();
 }
 function unlockGoal(){
  save.unlocked=Math.max(save.unlocked,level+1);
@@ -1560,12 +1562,17 @@ function showResult(){
    save.fourFamilyChain[level]=Math.max(save.fourFamilyChain[level]||0,game.bestChain);
   }
  }
- save.run=null;persist();
+ const canContinue=won&&game.moves>0;
+ if(!canContinue)save.run=null;
+ persist();
  $("modalEyebrow").textContent=won?"LEVEL COMPLETE":"FÖRSÖK IGEN";
  $("modalTitle").textContent=won?"Vilken harmoni!":"Inga drag kvar";
  const panel=$("modalContent");panel.replaceChildren();
  if(won){
-  const stars=document.createElement("div");stars.className="big-stars";stars.textContent="★".repeat(game.stars())+"☆".repeat(3-game.stars());panel.append(stars);
+  const stars=document.createElement("div");stars.className="big-stars";stars.textContent=game.rewardVersion===2?"★ NIVÅ KLAR":"★".repeat(game.stars())+"☆".repeat(3-game.stars());panel.append(stars);
+  const achievement=document.createElement("p");achievement.className="result-objective";
+  achievement.textContent=game.goalText()+" · "+prettify(game.target())+" / "+prettify(game.target());
+  panel.append(achievement);
  }
  if(game.config.goal.type==="mist"){
   const msg=document.createElement("p");msg.className="mist-result";
@@ -1573,16 +1580,24 @@ function showResult(){
    " av "+game.target()+" dimrutor. Försök nå resten.";
   panel.append(msg);
  }
- const sum=document.createElement("div");sum.className="summary";const line=document.createElement("div");line.textContent="SLUTPOÄNG";const strong=document.createElement("strong");strong.textContent=prettify(game.score);sum.append(line,strong);panel.append(sum);
+ const sum=document.createElement("div");sum.className="summary";const line=document.createElement("div");line.textContent="BONUSPOÄNG";const strong=document.createElement("strong");strong.textContent=prettify(game.score);sum.append(line,strong);panel.append(sum);
  const stats=document.createElement("div");stats.className="result-stats";
  [[game.masterpieces,"Mästerverk"],[game.echoes||0,"Harmony Echo"],[game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],[prettify(activeRecords()[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
   const v=document.createElement("div");const a=document.createElement("strong"),b=document.createElement("small");a.textContent=value;b.textContent=label;v.append(a,b);stats.append(v);
  });panel.append(stats);
- const extra=document.createElement("p");extra.textContent=won?"Du har klarat nivån. Förbättra gärna rekordet genom att spela igen.":"Nytt försök ger en ny kontrollerad startvariant. Inga liv, väntetider eller Power Moves.";panel.append(extra);
+ const extra=document.createElement("p");extra.textContent=won?
+  (canContinue?"Nivån är klar! Du kan gå vidare direkt eller frivilligt spela dina återstående "+game.moves+" drag för poängrekord.":"Nivån är klar. Spela gärna igen för ett nytt rekord."):
+  "Nytt försök ger en ny kontrollerad startvariant. Inga liv eller väntetider.";panel.append(extra);
  const actions=$("modalActions");actions.replaceChildren();
- if(won){modalButton(actions,"Nästa nivå →","primary",()=>startLevel(level+1));}
+ if(won)modalButton(actions,"Nästa nivå →","primary",()=>startLevel(level+1));
+ if(canContinue)modalButton(actions,"Fortsätt för poängrekord","secondary",()=>{
+  $("modal").hidden=true;armDecisionClock();restartIdleHint();
+ });
  modalButton(actions,won?"Spela igen":"Försök igen med nytt bräde","secondary",()=>startLevel(level));
- modalButton(actions,"Nivåval","secondary",showMenu);
+ modalButton(actions,"Nivåval","secondary",()=>{
+  if(won){game.finish();save.run=null;persist();}
+  showMenu();
+ });
  $("modal").hidden=false;
 }
 function modalButton(parent,label,cls,fn){let b=document.createElement("button");b.className=cls;b.textContent=label;b.addEventListener("click",fn);parent.append(b);return b;}

@@ -783,6 +783,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

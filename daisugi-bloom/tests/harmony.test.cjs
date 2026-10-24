@@ -495,7 +495,7 @@ check("Pulse can cleanse mist when the fusion survivor itself is not misted",()=
  assert.equal(g.mistCleared,3);
  const restored=new R.Game(12,g.save(),{fastRestore:true});
  assert.deepEqual(restored.mist,g.mist);
- assert.equal(restored.mistCleared,2);
+ assert.equal(restored.mistCleared,3);
 });
 check("An entirely empty Pulse neighbourhood still clears fog without invented upgrades or points",()=>{
  const g=new R.Game(12,null,{seed:455,directorMode:"standard"});

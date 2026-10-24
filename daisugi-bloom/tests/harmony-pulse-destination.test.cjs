@@ -119,6 +119,10 @@ test("Distant simultaneous masterpieces do not produce impossible cross-board Pu
  const g=fixture();
  for(const i of [8,9,10])g.board[i].family="sakura";
  for(const i of [36,37,38])g.board[i].family="lantern";
+ // The default patterned board already has lanterns at 35 and 39.
+ // Change them so this is truly an isolated three-match, not a five-match
+ // whose pre-Pulse bonus has already upgraded both of 37's neighbours.
+ g.board[35].family="koi";g.board[39].family="sakura";
  g.board[9].stage=4;g.board[37].stage=4;
  const events=g.resolve(-1),hero=events.find(e=>e.type==="hero");
  const first=events.find(e=>e.type==="pulse");
@@ -127,6 +131,24 @@ test("Distant simultaneous masterpieces do not produce impossible cross-board Pu
  assert.deepEqual(sorted(first.sources),[9,37]);
  assert(first.targets.every(t=>R.neighbors(t.from).includes(t.to)));
  assert(first.targets.some(t=>t.from===9)&&first.targets.some(t=>t.from===37));
+});
+test("Five-match bonus takes priority: a neighbour never upgrades twice in the same chain",()=>{
+ const g=fixture();
+ for(const i of [8,9,10])g.board[i].family="sakura";
+ for(const i of [36,37,38])g.board[i].family="lantern";
+ // This makes a five-long lantern group (35 through 39).
+ g.board[9].stage=4;g.board[37].stage=4;
+ const events=g.resolve(-1);
+ const bonus=events.find(e=>e.type==="bonus");
+ const hero=events.find(e=>e.type==="hero");
+ const pulse=events.find(e=>e.type==="pulse");
+ assert(bonus&&hero&&pulse);
+ assert.deepEqual(sorted(hero.positions),[9,37]);
+ assert.deepEqual(sorted(bonus.targets.filter(t=>t.from===37).map(t=>t.to)),[30,44]);
+ assert.deepEqual(sorted(pulse.sources),[9,37]);
+ assert.equal(pulse.targets.some(t=>t.from===37),false,
+  "Both remaining neighbours of the second masterpiece were upgraded by bonus");
+ assert.equal(pulse.targets.some(t=>t.from===9),true);
 });
 test("Seeded full games keep pulses orthogonal, source-grounded, and fog clearance exact",()=>{
  let pulses=0,swaps=0;

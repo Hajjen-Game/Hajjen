@@ -95,7 +95,7 @@ check("Four-way lab compares shared seeds and explicit synthetic tempos",()=>{
  const report=D.run({levels:[12],strategies:["random","goal"],trials:3,seed:4545,
   modes:["standard","director","director2","director3"]});
  assert.equal(report.version,"engine-lab-4");
- assert.equal(report.gameVersion,"6.22.1");
+ assert.equal(report.gameVersion,"6.23.0");
  assert.equal(report.runs.length,24);
  for(const bot of ["random","goal"]){
   const first=report.runs.filter(r=>r.strategy===bot&&r.mode==="standard").map(r=>r.seed);
@@ -160,7 +160,7 @@ check("Director 3.1 and 3.0 share seeds in the separate Engine Lab A/B",()=>{
   modes:["director3","director31"]});
  assert.equal(report.runs.length,16);
  assert.deepEqual(report.options.modes,["director3","director31"]);
- assert.equal(report.gameVersion,"6.22.1");
+ assert.equal(report.gameVersion,"6.23.0");
  for(const strategy of ["random","goal"])for(const level of [10,12]){
   const select=mode=>report.runs.filter(x=>x.mode===mode&&x.level===level&&x.strategy===strategy);
   assert.deepEqual(select("director3").map(x=>x.seed),select("director31").map(x=>x.seed));
@@ -246,7 +246,7 @@ check("Engine Lab pairs 3.1 and 3.1.1 using identical seeds",()=>{
  const report=D.run({levels:[10,11],strategies:["score","goal"],trials:2,
   seed:20261024,modes:["director31","director311"]});
  assert.equal(report.runs.length,16);
- assert.equal(report.gameVersion,"6.22.1");
+ assert.equal(report.gameVersion,"6.23.0");
  assert.deepEqual(report.options.modes,["director31","director311"]);
  for(const strategy of ["score","goal"])for(const level of [10,11]){
   const forMode=mode=>report.runs.filter(x=>x.mode===mode&&x.level===level&&x.strategy===strategy);

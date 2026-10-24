@@ -1732,13 +1732,15 @@ function openEngineLab(){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
    const title=document.createElement("strong");title.textContent="Direkt jämförelse · målframsteg, vinst och utveckling";
    comparison.append(title);
-   for(const classic of result.results.filter(x=>x.mode==="standard")){
-    for(const mode of result.options.modes.filter(m=>m!=="standard")){
+   const baselineMode=result.options.modes.includes("standard")?"standard":"director3";
+   for(const classic of result.results.filter(x=>x.mode===baselineMode)){
+    for(const mode of result.options.modes.filter(m=>m!==baselineMode)){
     const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode===mode);
     if(!newer)continue;
     const line=document.createElement("p");
     line.textContent="Nivå "+(classic.level+1)+" · "+api.LABELS[classic.strategy]+" · "+api.MODE_LABELS[mode]+": "+
      classic.wins+"/"+classic.samples+" → "+newer.wins+"/"+newer.samples+
+     " · Måluppfyllelse "+pct(classic.avgGoalRatio)+" → "+pct(newer.avgGoalRatio)+
      " · Utveckl. "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1)+
      " · Möjligheter kring stadium 4 "+classic.avgNearReady.toFixed(1)+" → "+newer.avgNearReady.toFixed(1);
     comparison.append(line);

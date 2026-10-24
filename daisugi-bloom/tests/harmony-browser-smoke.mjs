@@ -497,7 +497,7 @@ try{
    return {unlocked:saved.unlocked,record:saved.bestScores["10"],
     stars:saved.bestStars["10"],nextStars:saved.bestStars["11"],
     shown:nodes[10].textContent,second:nodes[11].textContent,
-    target:R.levelConfig(10).goal.count};
+    target:R.levelConfig(10).goal.count,oldTarget:R.legacyScoreConfig(10).goal.count};
   });
   assert.equal(migrated.unlocked,12,"Already unlocked future levels must stay unlocked");
   assert.equal(migrated.record,1600,"Original high score must not be overwritten");
@@ -505,17 +505,17 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert.equal(migrated.target,7500);
+  assert.equal(migrated.target,6,"Fresh level 11 introduces six Harmony Mist cells");
+  assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({
    hidden:document.querySelector("#starTargets").hidden,
-   text:[...document.querySelector("#starTargets").children].map(x=>x.textContent)
+   goal:document.querySelector("#goalLabel").textContent,
+   mist:document.querySelectorAll(".tile.misted").length
   }));
-  assert(!milestones.hidden);
-  assert.equal(milestones.text.length,3);
-  assert(milestones.text[0].replace(/\s/g," ").includes("7 500"));
-  assert(milestones.text[1].replace(/\s/g," ").includes("11 250"));
-  assert(milestones.text[2].replace(/\s/g," ").includes("16 875"));
+  assert(milestones.hidden,"New mission levels use moves-based stars, not score milestones");
+  assert.equal(milestones.goal,"Rena dimman");
+  assert.equal(milestones.mist,6);
   // The user's actual 11–14 history should automatically earn the revised
   // stars, without deleting records or revoking old level completions.
   await legacy.evaluate(()=>{

@@ -132,9 +132,12 @@ const MIST_LAYOUT_V2=[
 // Only for later 16-fog chapters: one separate upper-edge tile
  3
 ];
-function mistLayout(index,count){
+// Version 1 is kept only for reproducible before/after Engine Lab runs
+// and historical comparisons. New gameplay always starts on version 2.
+const MIST_LAYOUT_V1=[8,12,16,24,30,36,40,20,28,9,32,38,14,34,46,42,6,26];
+function mistLayout(index,count,version=2){
  if(!count)return [];
- const pattern=MIST_LAYOUT_V2;
+ const pattern=version===1?MIST_LAYOUT_V1:MIST_LAYOUT_V2;
  const rotation=((Math.floor((index-10)/3)%4)+4)%4;
  const transform=i=>{
   let r=Math.floor(i/7),c=i%7;
@@ -602,8 +605,8 @@ class Game{
   this.nextId=50;
   this.objectiveVersion=2;
   this.objectiveBalanceVersion=1;
-  this.mistLayoutVersion=2;
-  this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count).includes(i))):Array(49).fill(0);
+  this.mistLayoutVersion=options?.mistLayoutVersion===1?1:2;
+  this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count,this.mistLayoutVersion).includes(i))):Array(49).fill(0);
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;

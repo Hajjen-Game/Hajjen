@@ -470,12 +470,84 @@ function objectiveAwarenessMetrics(board,goal,mist=Array(N*N).fill(0)){
  return {goalType:kind,legal:choices.length,bestImmediate,directChoices,
   nearChoices,score};
 }
+// Harmony Director 3.1.1 – Endgame Objective Awareness.
+// The final 1–3 fog tiles are treated as distinct reachability problems,
+// rather than averaging opportunities over the whole board. This is a PURE,
+// one-turn estimate: direct fusion/Pulse reaches are exact for the first
+// resolution wave; staged routes are possibilities, never guaranteed wins.
+// Only candidate ordinary bag refills are compared; the board is restored.
+function endgameMistMetrics(board,mist){
+ const targets=[];
+ for(let i=0;i<N*N;i++)if(mist[i])targets.push(i);
+ if(!targets.length||targets.length>3)
+  return {remaining:targets.length,direct:0,staged:0,isolated:0,weakest:0,score:0};
+ const direct=new Set(),planned=new Set(),potential=new Map(targets.map(i=>[i,0]));
+ const choices=validSwaps(board);
+ for(const [a,b] of choices){
+  [board[a],board[b]]=[board[b],board[a]];
+  try{
+   const groups=scan(board).filter(g=>g.includes(a)||g.includes(b));
+   const consumed=new Set(groups.flat());
+   for(const [from,to] of [[a,b],[b,a]])for(const group of groups){
+    const strongest=Math.max(...group.map(i=>board[i].stage));
+    const at=group.includes(to)?to:group.includes(from)?from:
+     group.reduce((i,j)=>board[i].stage>=board[j].stage?i:j);
+    const newStage=Math.min(5,strongest+1);
+    if(mist[at])direct.add(at);
+    if(newStage===5)for(const n of neighbors(at))
+     if(mist[n]&&!consumed.has(n)&&board[n]&&board[n].stage<5)direct.add(n);
+    for(const t of targets){
+     if(direct.has(t))continue;
+     const distance=Math.abs(Math.floor(at/N)-Math.floor(t/N))+
+      Math.abs(at%N-t%N);
+     if(distance===1&&newStage===4){
+      planned.add(t);potential.set(t,Math.max(potential.get(t),2.4));
+     }else if(distance===1&&newStage===3)
+      potential.set(t,Math.max(potential.get(t),1.35));
+     else if(distance===2&&newStage>=4)
+      potential.set(t,Math.max(potential.get(t),.7));
+    }
+   }
+  }finally{[board[a],board[b]]=[board[b],board[a]];}
+ }
+ // If no current swap reaches a tile, inspect only nearby family links and
+ // developed-stage pieces for a longer-term, *uncertain* assembly path.
+ // A lone mature piece with no matching partner is not called reachable.
+ for(const t of targets){
+  if(direct.has(t))continue;
+  const adjacent=neighbors(t);
+  const nearSameFamily=adjacent.filter(i=>board[i]?.family===board[t]?.family);
+  const sameFurther=adjacent.some(i=>neighbors(i).some(j=>
+   j!==t&&board[j]?.family===board[t]?.family));
+  if(nearSameFamily.length>=2)
+   potential.set(t,Math.max(potential.get(t),1.1));
+  else if(nearSameFamily.length>=1&&sameFurther)
+   potential.set(t,Math.max(potential.get(t),.72));
+  for(const i of adjacent){
+   const piece=board[i];
+   if(!piece||piece.stage<3||piece.stage>=5)continue;
+   const support=neighbors(i).some(j=>j!==t&&board[j]?.family===piece.family);
+   if(support)potential.set(t,Math.max(potential.get(t),piece.stage===4?1.9:1.1));
+  }
+ }
+ const strengths=targets.map(t=>direct.has(t)?3:potential.get(t));
+ const weakest=Math.min(...strengths);
+ const staged=strengths.filter(v=>v>0&&v<3).length;
+ const isolated=strengths.filter(v=>v===0).length;
+ // Reward the least-reachable fog tile first; never trade away three useful
+ // options elsewhere for an artificial guaranteed solution. Strict cap.
+ const score=Math.min(5.2,
+  weakest*1.05+direct.size*.40+staged*.23-isolated*.28+
+  (targets.length===1&&weakest>0?.65:0));
+ return {remaining:targets.length,direct:direct.size,staged,isolated,
+  weakest,score:Math.max(0,score)};
+}
 // The first Journey levels are a 4→5-family transition. Let Pacing 3.0
 // compare at most two extra *ordinary* bag refills so it can gently prefer
 // useful follow-on decisions. There is no new object type, free fusion,
 // hidden score bonus, altered goal, or guaranteed winning board.
 function pacingProposalCount(level,drought,mode){
- if(!["v3","v31"].includes(mode)||level<10||level>=20)return 4;
+ if(!["v3","v31","v311"].includes(mode)||level<10||level>=20)return 4;
  if(level<15)return drought>=3?6:5;
  return drought>=3?5:4;
 }
@@ -500,7 +572,7 @@ class Game{
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
-  this.directorMode=options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
+  this.directorMode=options?.directorMode==="v311"?"v311":options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
   this.opportunity=this.directorMode!=="standard"; // Both Directors are opt-in.
   this.directorRefills=0;this.directorSelections=0;this.directorDrought=0;this.objectiveDrought=0;
   this.paceTimes=[];this.paceOutcomes=[];this.pacePhase="build";this.paceLastMajor=false;
@@ -565,7 +637,7 @@ class Game{
    this.families=activeFamilies(this.level,this.familyCount);
    if(this.config.goal.type==="score"&&previous.complete&&previous.score<this.config.goal.count)
     this.legacyScoreCompletion=true;
-   this.directorMode=previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
+   this.directorMode=previous.directorMode==="v311"?"v311":previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
    this.opportunity=this.directorMode!=="standard";
    this.directorDrought=Number.isInteger(previous.directorDrought)?Math.max(0,previous.directorDrought):0;
    this.objectiveDrought=Number.isInteger(previous.objectiveDrought)?Math.max(0,Math.min(12,previous.objectiveDrought)):0;
@@ -629,23 +701,32 @@ class Game{
   // Preserve the existence of automatic chain reactions in baseline random
   // outcome. Only compare alternative boards when baseline has NO free match.
   if(baseline.autoMatches===0){
-   const isV2=["v2","v3","v31"].includes(this.directorMode);
-   const isV3=this.directorMode==="v3"||this.directorMode==="v31";
+   const isV2=["v2","v3","v31","v311"].includes(this.directorMode);
+   const isV3=["v3","v31","v311"].includes(this.directorMode);
    const metric=board=>{
     if(!isV2)return opportunityMetrics(board,this.config.goal);
     const m=opportunityMetricsV2(board,this.config.goal,this.directorDrought);
     if(!isV3)return m;
     const base=pacingOpportunityScore(m,this.pacePhase);
-    if(this.directorMode!=="v31")return {...m,score:base};
+    if(this.directorMode!=="v31"&&this.directorMode!=="v311")return {...m,score:base};
     const aware=objectiveAwarenessMetrics(board,this.config.goal,this.mist);
     // Bounded bonus, no guaranteed win and no excessive recovery cheating.
     const pressure=Math.min(1,this.objectiveDrought/5);
-    return {...m,objective:aware,score:base+aware.score*(.72+pressure*.18)};
+    const endgame=this.directorMode==="v311"&&this.config.goal.type==="mist"?
+     endgameMistMetrics(board,this.mist):null;
+    // Endgame only affects the final 1–3 fog tiles; normal 3.1 is
+    // byte-for-byte identical everywhere else. No candidate may give an
+    // extra move, cleanse mist, or manufacture a match.
+    const urgency=endgame?.remaining<=3&&endgame?.remaining>0?
+     .80+Math.min(1,this.objectiveDrought/6)*.20:0;
+    return {...m,objective:aware,endgame,
+     score:base+aware.score*(.72+pressure*.18)+
+      (endgame?endgame.score*urgency:0)};
    };
    let best=metric(baseline.board).score;
    // 2.0 intervenes conservatively (>=1.5 score advantage); it can increase
    // pressure after several turns without evolved-stage progress.
-   const threshold=this.directorMode==="v31"?(this.pacePhase==="relax"?3.0:2.2):
+   const threshold=["v31","v311"].includes(this.directorMode)?(this.pacePhase==="relax"?3.0:2.2):
     isV3&&this.pacePhase==="relax"?2.8:
     isV2?(this.directorDrought>=3?1.1:1.5):.8;
    for(const candidate of candidates.slice(1)){
@@ -840,7 +921,7 @@ class Game{
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
    return {ok:false,reason:"Bytet behöver skapa minst tre i samma familj"};
   }
-  if(this.directorMode==="v3"||this.directorMode==="v31"){
+  if(["v3","v31","v311"].includes(this.directorMode)){
    const ms=options?.decisionMs;
    // Ignore interruptions, background sleep and idle gaps beyond 90s.
    if(Number.isFinite(ms)&&ms>=0&&ms<=90000){
@@ -858,15 +939,15 @@ class Game{
   const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed,a)];
   // Update drought ONCE per player move, not per cascade wave; never use score
   // progress because score-based levels gain points on virtually every turn.
-  if(["v2","v3","v31"].includes(this.directorMode)){
+  if(["v2","v3","v31","v311"].includes(this.directorMode)){
    const advanced=this.stage3>beforeStage3||this.stage4>beforeStage4||
     this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
    this.directorDrought=advanced?0:Math.min(12,this.directorDrought+1);
-   if(this.directorMode==="v3"||this.directorMode==="v31"){
+   if(["v3","v31","v311"].includes(this.directorMode)){
     const objectiveAdvanced=this.progress()>beforeObjective;
-    if(this.directorMode==="v31")this.objectiveDrought=objectiveAdvanced?0:
+    if(["v31","v311"].includes(this.directorMode))this.objectiveDrought=objectiveAdvanced?0:
      Math.min(12,this.objectiveDrought+1);
-    this.paceOutcomes.push(advanced||(this.directorMode==="v31"&&objectiveAdvanced));
+    this.paceOutcomes.push(advanced||(["v31","v311"].includes(this.directorMode)&&objectiveAdvanced));
     this.paceOutcomes=this.paceOutcomes.slice(-8);
     const major=this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
     this.paceLastMajor=major;
@@ -925,6 +1006,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

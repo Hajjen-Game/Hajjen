@@ -505,7 +505,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert.equal(migrated.target,6,"Fresh level 11 introduces six Harmony Mist cells");
+  assert.equal(migrated.target,9,"Rebalanced level 11 introduces nine widely spaced Harmony Mist cells");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({

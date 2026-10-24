@@ -18,6 +18,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Audit all ten Harmony levels with seeded invariants
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
+      - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
+        run: node daisugi-bloom/tests/harmony-pulse-destination.test.cjs
       - name: Verify Japanese Harmony 4.1 visual-feedback contracts
         run: node daisugi-bloom/tests/harmony-vfx.test.cjs
       - name: Verify Harmony 4.2 audio and reward limits

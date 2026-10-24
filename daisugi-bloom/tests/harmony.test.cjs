@@ -72,17 +72,21 @@ check("unfinished old level 8 saves get four extra turns only once",()=>{
  const finished={...old,complete:true};
  assert.equal(new R.Game(7,finished).moves,6,"Completed saves cannot gain turns");
 });
-check("Moves Expansion 1.0 doubles all 10 introductions and the entire Journey",()=>{
+check("Intro stays doubled; Journey 11–20 has smaller balanced budgets, later Journey unchanged",()=>{
  const original=[12,18,16,18,18,20,18,20,20,24];
  for(let index=0;index<original.length;index++){
   assert.equal(R.levelConfig(index).moves,original[index]*2,"Level "+(index+1));
   assert.equal(new R.Game(index).moves,original[index]*2);
  }
- for(const index of [10,11,15,29,49,50,150,23000]){
+ const early=[28,28,27,27,26,28,27,28,27,29];
+ for(let index=10;index<20;index++){
+  assert.equal(R.levelConfig(index).moves,early[index-10],"Balanced Journey level "+(index+1));
+  assert.equal(new R.Game(index).moves,early[index-10]);
+ }
+ for(const index of [20,29,49,50,150,23000]){
   const tier=Math.floor((index-10)/10);
   const before=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
-  assert.equal(R.levelConfig(index).moves,2*before,"Journey level "+(index+1));
-  assert.equal(new R.Game(index).moves,2*before);
+  assert.equal(R.levelConfig(index).moves,2*before,"Later Journey unchanged "+(index+1));
  }
 });
 check("older saved rounds get precisely one additional full move budget",()=>{
@@ -196,7 +200,8 @@ check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",(
   const cfg=R.levelConfig(level),again=R.levelConfig(level);
   assert.deepEqual(cfg,again,"Same level must have the same objective");
   assert.notEqual(cfg.goal.type,"score","Journey level "+level+" must not be just score chase");
-  assert(cfg.moves>=34&&cfg.moves<=44,"Move budgets must be unchanged");
+  assert(level<20?(cfg.moves>=26&&cfg.moves<=29):(cfg.moves>=34&&cfg.moves<=44),
+   "First ten Journey objectives should have reduced moves, later Journey unchanged");
   assert(cfg.par>0&&cfg.par<cfg.moves);
   const families=R.activeFamilies(level);
   assert.equal(families.length,5);
@@ -212,9 +217,41 @@ check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",(
    assert.equal(a.progress(),0);
   }else assert.equal(a.mist.filter(Boolean).length,0);
  }
+ assert.deepEqual([10,11,13,15,17,19].map(i=>R.levelConfig(i).goal.count),
+  [9,11,12,13,14,15],"Balanced Mist counts should increase through Chapter II");
+ const g=new R.Game(10,null,{seed:1001});
+ const positions=g.mist.flatMap((v,i)=>v?[i]:[]);
+ assert.equal(positions.length,9);
+ // Original 6-cell central blob caused multiple fog patches to be swept by
+ // each match. The new pattern occupies several distant quadrants.
+ assert(positions.some(i=>i<14)&&positions.some(i=>i>=35));
+ assert.equal(new Set(positions.map(i=>Math.floor(i/7))).size>=5,true);
  const legacy=R.legacyScoreConfig(10);
  assert.deepEqual(legacy.goal,{type:"score",count:7500});
  assert.deepEqual(legacy.stars,[7500,11250,16875]);
+});
+check("Rebalance 1.0 converts unfinished Mist saves once without making the level impossible",()=>{
+ const prior=new R.Game(10,null,{seed:2201,directorMode:"v3"});
+ const snapshot=prior.save();
+ snapshot.objectiveBalanceVersion=undefined;
+ snapshot.moves=39; // Five of the previous 44 turns were used
+ snapshot.mist=Array(49).fill(0);
+ for(const i of [16,17,23,24])snapshot.mist[i]=1;
+ snapshot.mistCleared=2;
+ const restored=new R.Game(10,snapshot,{fastRestore:true});
+ assert.equal(restored.moves,23,"Preserve five already-used moves from the new 28");
+ assert.equal(restored.mistCleared,2,"Do not lose two previously cleaned patches");
+ assert.equal(restored.mist.filter(Boolean).length,7,"Remaining fog must equal revised target minus progress");
+ assert.equal(restored.mist[16],1,"Uncleansed original cells must persist");
+ const roundtrip=new R.Game(10,restored.save(),{fastRestore:true});
+ assert.equal(roundtrip.moves,23,"Never shrink moves a second time");
+ assert.deepEqual(roundtrip.mist,restored.mist);
+ assert.equal(roundtrip.mistCleared,2);
+ const legacy=prior.save();delete legacy.objectiveVersion;delete legacy.objectiveBalanceVersion;
+ legacy.moves=38;
+ const scoreMode=new R.Game(10,legacy,{fastRestore:true});
+ assert.equal(scoreMode.config.goal.type,"score");
+ assert.equal(scoreMode.moves,38,"Old score-only saves must not receive new balance");
 });
 check("Harmony Mist clears cell positions through matching and Harmony Pulse, once each",()=>{
  const g=new R.Game(10,null,{seed:451,directorMode:"v3"});

@@ -659,12 +659,12 @@ class Game{
    // preserving actual moves already spent rather than resetting the run.
    // Legacy score-only sessions keep every original move.
    if(!isLegacyJourney&&this.level>=10&&this.level<20&&
-      previous.objectiveBalanceVersion!==1&&!previous.complete&&!previous.failed){
+      (previous.objectiveBalanceVersion===undefined||previous.objectiveBalanceVersion<1)&&!previous.complete&&!previous.failed){
     const oldBudget=endlessScoreConfig(this.level).moves;
     const spent=Math.max(0,oldBudget-(Number(previous.moves)||0));
     this.moves=Math.max(1,this.config.moves-spent);
    }
-   this.objectiveBalanceVersion=isLegacyJourney?0:1;
+   this.objectiveBalanceVersion=isLegacyJourney?0:this.level<20?2:1;
    // Preserving an in-progress mask is intentional: old layouts are not
    // silently moved under an active player, even when nearly complete.
    this.mistLayoutVersion=Number.isInteger(previous.mistLayoutVersion)?previous.mistLayoutVersion:1;
@@ -676,7 +676,7 @@ class Game{
    this.mistCleared=this.objectiveVersion===2&&this.config.goal.type==="mist"?
     Math.max(0,Math.min(this.config.goal.count,Number(previous.mistCleared)||0)):0;
    if(!isLegacyJourney&&this.level>=10&&this.level<20&&
-      this.config.goal.type==="mist"&&previous.objectiveBalanceVersion!==1){
+      this.config.goal.type==="mist"&&(previous.objectiveBalanceVersion===undefined||previous.objectiveBalanceVersion<1)){
     // Old Mist saves contain only 6–12 fog patches but the new win target
     // can be 9–15. Keep already cleared cells cleared and add just enough
     // NEW patches to make the new objective mathematically achievable.

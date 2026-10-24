@@ -30,6 +30,63 @@ try{
  assert(!uiMenu.introduction.includes("fem per nivå"),"Intro must not claim five families on every level");
  assert(uiMenu.familyCopy.includes("4 familjer")&&uiMenu.familyCopy.includes("5 familjer"));
  assert(uiMenu.bodyWidth<=390,"Premium menu must have no horizontal overflow");
+ // Daruma Awakening 1.0: the approved 3-state transparent WebP is shipped
+ // and its actual state is rendered as a fixed tile on a narrow mobile board.
+ const darumaArt=await page.evaluate(async()=>{
+  const image=new Image();image.src="./assets/daruma-states.webp?v=7.0";
+  await image.decode();
+  const canvas=document.createElement("canvas");canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+  const c=canvas.getContext("2d",{willReadFrequently:true});c.drawImage(image,0,0);
+  return {width:image.naturalWidth,height:image.naturalHeight,
+   transparent:c.getImageData(0,0,1,1).data[3]===0,
+   centers:[0,1,2].map(i=>c.getImageData(i*56+28,28,1,1).data[3])};
+ });
+ assert.equal(darumaArt.width,168);assert.equal(darumaArt.height,56);
+ assert(darumaArt.transparent&&darumaArt.centers.every(v=>v>100),
+  "All three approved Daruma images must have transparent backing");
+ const darumaContext=await browser.createBrowserContext();
+ try{
+  const dp=await darumaContext.newPage();
+  await dp.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await dp.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await dp.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const store=JSON.parse(localStorage.getItem(key));
+   store.unlocked=20;
+   const g=new window.HarmonyRules.Game(20,null,{seed:20261024,directorMode:"v3"});
+   store.run={level:20,data:g.save(),backgroundId:0};
+   localStorage.setItem(key,JSON.stringify(store));
+  });
+  await dp.reload({waitUntil:"networkidle2"});
+  await dp.click("#continueButton");
+  const visual=await dp.evaluate(()=>{
+   const tile=document.querySelector('.tile[data-index="24"]');
+   const img=tile.querySelector(".daruma-art");
+   return {title:document.querySelector("#levelTitle")?.textContent,
+    goal:document.querySelector("#goalLabel")?.textContent,
+    locked:tile.classList.contains("daruma-tile"),
+    state:img?.className,background:img&&getComputedStyle(img).backgroundImage,
+    aria:tile.getAttribute("aria-label"),
+    count:document.querySelectorAll(".tile.daruma-tile").length};
+  });
+  assert(visual.title.includes("Daruma")&&visual.goal.includes("Daruma"));
+  assert(visual.locked&&visual.count===1&&visual.state.includes("state-0"));
+  assert(visual.background.includes("daruma-states.webp"));
+  assert(visual.aria.includes("två ögon kvar"));
+  await dp.screenshot({path:"/tmp/daisugi-bloom/daruma-l21.png"});
+  await dp.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const store=JSON.parse(localStorage.getItem(key));
+   store.run.data.daruma[24]=1;
+   localStorage.setItem(key,JSON.stringify(store));
+  });
+  await dp.reload({waitUntil:"networkidle2"});
+  await dp.click("#continueButton");
+  const half=await dp.$eval('.tile[data-index="24"]',tile=>({
+   state:tile.querySelector(".daruma-art")?.className,aria:tile.getAttribute("aria-label")}));
+  assert(half.state.includes("state-1")&&half.aria.includes("ett öga kvar"),
+   "A half-painted Daruma must resume with the right second sprite");
+ }finally{await darumaContext.close();}
  await page.$eval("#menuAdvanced",e=>e.open=true);
  const advancedVisible=await page.$eval("#gameDirectorMode",e=>getComputedStyle(e).display);
  assert.notEqual(advancedVisible,"none","Advanced Director choice remains available");

@@ -1,5 +1,12 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Daruma Awakening 1.0 — 2026-10-24
+
+Nivå 21 introducerar Daruma med två ögon och en fast position. Fusioner intill eller Harmony Pulse ger en träff, dock högst ett öga per spelardrag. Efter andra träffen visas en fullbordad Daruma som sedan försvinner, och rutan fylls med vanliga brickor. Fler Daruma introduceras på nivå 23 och 26. Gamla påbörjade nivåer, stjärnor och rekord bevaras. Kompakt genomskinligt spriteatlas med tre versioner från våra skapade Daruma-bilder.
+
+[Fullständig design och teknisk QA](docs/DARUMA_AWAKENING_1_0.md)
+
+
 ## Difficulty Floor 1.0 — 2026-10-24
 
 Nivå 14 kunde tidigare klaras på två drag trots att nivå 13 var utmanande. Fyrmatchningsnivåerna 6 och 14 kräver nu fyrmatchningar under **fyra olika drag**, så en lyckosam kedja aldrig räknas som flera separata beslut. Även de alltför korta nivåerna 7 och 9 samt några andra icke-dim-mål har höjts försiktigt. Dimbanelayout och dragbudget är orörda. Redan påbörjade rundor behåller sina ursprungliga mål utan datarensning.

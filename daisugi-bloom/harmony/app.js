@@ -265,6 +265,7 @@ function renderMenu(){
   sub.textContent=i<10?cfg.subtitle:
    cfg.moves+" drag · "+(cfg.goal.type==="mist"?cfg.goal.count+" dimrutor":
     cfg.goal.type==="masterpiece"?cfg.goal.count+" mästerverk":
+    cfg.goal.type==="daruma"?cfg.goal.count+" Daruma":
     cfg.goal.type==="fusion"?cfg.goal.count+" fusioner":
     cfg.goal.type==="stage3"?cfg.goal.count+" utvecklingar":
     cfg.goal.type==="pulseHits"?cfg.goal.count+" Harmony Pulse-träffar":
@@ -399,7 +400,8 @@ function startLevel(i,resume=false){
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
  $("goalLabel").title=game.config.intro||"";
- document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":"✿";
+ document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":
+  game.config.goal.type==="daruma"?"◉":"✿";
  const milestones=$("starTargets");
  milestones.hidden=game.rewardVersion>=2||game.config.goal.type!=="score";
  if(!milestones.hidden){
@@ -408,6 +410,8 @@ function startLevel(i,resume=false){
   });
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();armDecisionClock();restartIdleHint();
+ if(i===20&&!resume&&game.config.goal.type==="daruma")
+  toast("Daruma står stilla. Fusionera bredvid den eller träffa med Harmony Pulse. Varje öga kräver ett eget drag.");
  if(i===3&&!resume&&game.config.goal.type==="mist"&&!save.mistPulseIntroShown){
   toast("Rena dimman med en fusion på rutan eller Harmony Pulse från en grannruta. Pulsen renar även tomma dimrutor.");
   save.mistPulseIntroShown=true;persist();
@@ -418,7 +422,7 @@ function startLevel(i,resume=false){
 let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
 // Game is already at the end of the turn when playback begins. Event-specific
 // mist snapshots prevent revealing cleansed cells before the relevant effect.
-let activeMistFrame=null;
+let activeMistFrame=null,activeDarumaFrame=null;
 // Cleansed fog gets a short floating dissolve in a separate overlay. It does
 // not touch piece movement, game rules, or the turn's animation schedule.
 function releaseMist(positions){
@@ -547,17 +551,24 @@ function renderBoard(board,highlight,effect){
  const highlighted=highlight&&highlight.length?new Set(highlight):null;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
  const mist=activeMistFrame||game?.mist||[];
+ const daruma=activeDarumaFrame||game?.daruma||[];
  const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
-  const piece=board[i],btn=boardTiles[i],key=piece?piece.id+"|"+piece.family+"|"+piece.stage:"empty";
+  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma";
+  const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
+  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState:"empty";
   // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
   // event listeners and their DOM nodes for a smoother mobile experience.
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
-   if(piece){
+   btn.setAttribute("aria-label",doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad"):
+    piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
+   if(doll){
+    const art=document.createElement("span");art.className="daruma-art state-"+dState;
+    art.setAttribute("aria-hidden","true");btn.append(art);
+   }else if(piece){
     const holder=document.createElement("span");holder.className="piece";
     const isNew=Object.hasOwn(newFamilyRows,piece.family);
     if(isNew)holder.classList.add("new-family");
@@ -582,14 +593,16 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=piece?names[piece.family]+", stadium "+piece.stage+", ruta "+
+  const label=doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad")+", ruta "+
+   (Math.floor(i/7)+1)+"-"+(i%7+1):
+   piece?names[piece.family]+", stadium "+piece.stage+", ruta "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
   const accessible=label+(misted?", magisk dimma":"");
   if(btn.dataset.mist!==(misted?"1":"0")||btn.getAttribute("aria-label")!==accessible){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
-  const cls="tile"+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
+  const cls="tile"+(doll?" daruma-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
    (resonance.partners.has(i)?" resonance-partner":"")+
@@ -667,6 +680,9 @@ function animateScoreCount(){
 }
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
+ if(game.board[i]?.family==="daruma"){
+  selected=-1;toast("Daruma flyttas inte. Matcha bredvid för att fylla dess ögon.");return;
+ }
  restartIdleHint();
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
@@ -1290,7 +1306,7 @@ const PULSE_CHARGE_TIMINGS=Object.freeze([
  {delay:20,ramp:135}  // Third and later: snappy but still readable.
 ]);
 async function pulseAnticipation(evt){
- const visualTargets=[...(evt.mistTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
  const affected=[...new Set(visualTargets.map(t=>t.to))];
  if(!affected.length||FAST()||document.hidden||!Element.prototype.animate)return ()=>{};
  const wave=Math.max(1,Number(evt.wave)||1);
@@ -1331,7 +1347,7 @@ async function pulseAnticipation(evt){
 // Animate real from/to coordinates, cap decorative FX, update all logical
 // targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
- const visualTargets=[...(evt.mistTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
  if(visualTargets.length)sound("pulse",{wave:evt.wave||0});
  if(FAST()||!visualTargets.length)return Promise.resolve();
  // Prioritize mist-clearing beams when decorative paths are capped on mobile.
@@ -1437,6 +1453,7 @@ async function animateEcho(evt){
 async function animateEvent(evt){
  const previous=presentedBoard;
  activeMistFrame=Array.isArray(evt.mist)?evt.mist:null;
+ activeDarumaFrame=Array.isArray(evt.daruma)?evt.daruma:null;
  switch(evt.type){
   case "swap":
    renderBoard(evt.board,[evt.from,evt.to],"swapped");
@@ -1458,7 +1475,7 @@ async function animateEvent(evt){
   }
   case "pulse":{
    const targets=evt.targets||[];
-   const visualTargets=[...(evt.mistTargets||[]),...targets];
+   const visualTargets=[...(evt.darumaTargets||[]),...(evt.mistTargets||[]),...targets];
    // Empty mist-covered cells glow as well; their sprites stay empty.
    const releaseCharge=await pulseAnticipation(evt);
    try{
@@ -1471,6 +1488,26 @@ async function animateEvent(evt){
    await Promise.all(targets.slice(0,MOBILE_LITE?5:9).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
     {transform:"scale(.76)",offset:0},{transform:"scale(1.22)",offset:.49},{transform:"scale(1)",offset:1}
    ],(evt.wave||1)>=2?135:165)));
+   break;
+  }
+  case "daruma":{
+   renderBoard(evt.board,(evt.hits||[]).map(h=>h.at),"daruma-hit");
+   if(!FAST())await Promise.all((evt.hits||[]).map(h=>
+    animateNode(boardTiles[h.at]?.querySelector(".daruma-art"),[
+     {transform:"scale(.87)",filter:"brightness(1)",offset:0},
+     {transform:"scale(1.13)",filter:"brightness(1.3)",offset:.55},
+     {transform:"scale(1)",filter:"brightness(1)",offset:1}
+    ],220)));
+   break;
+  }
+  case "daruma-release":{
+   if(!FAST())for(const at of evt.positions||[]){
+    const r=indexRect(at),fx=fxAt("harvest-release",r.left+r.width*.5,r.top+r.height*.5);
+    fx.style.width=r.width+"px";fx.style.height=r.height+"px";
+    animateNode(fx,[{opacity:.8,transform:"scale(.4)"},{opacity:.75,transform:"scale(1.1)",offset:.42},
+     {opacity:0,transform:"scale(1.5)"}],360).finally(()=>fx.remove());
+   }
+   renderBoard(evt.board,(evt.positions||[]),"pulsed");
    break;
   }
   case "hero":
@@ -1548,9 +1585,10 @@ async function playEvents(events){
     }else flyPoints(evt);
    }
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
+   if(evt.type==="daruma"&&(evt.hits||[]).some(h=>h.filled===2))toast("✦ Daruma fullbordad!");
    if(evt.type==="echo")praise("echo");
    else if(evt.type==="hero")praise("masterpiece");
-   else if(evt.type==="pulse"&&((evt.targets?.length||0)+(evt.mistTargets?.length||0)>0))praise("pulse");
+   else if(evt.type==="pulse"&&((evt.targets?.length||0)+(evt.mistTargets?.length||0)+(evt.darumaTargets?.length||0)>0))praise("pulse");
    if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart!");}
    if(evt.type==="end"||evt.type==="lose")finished=true;
    renderHUD(evt);
@@ -1559,7 +1597,7 @@ async function playEvents(events){
   console.error("Harmony animation interrupted",error);
   renderBoard(game.board);
  }finally{
-  activeMistFrame=null;
+  activeMistFrame=null;activeDarumaFrame=null;
   echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();

@@ -95,7 +95,20 @@ function endlessScoreConfig(index){
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.
 // Objectives are fixed by level index, never adjusted by Director or player.
-function endlessConfig(index){
+function endlessConfig(index,withDaruma=true){
+ // The first Daruma is introduced at Level 21, AFTER the first twenty.
+ // Carefully placed, fixed dolls have two hits (different player moves).
+ // Earlier saves from these levels keep their original pre-Daruma goal.
+ if(withDaruma&&[20,22,25].includes(index)){
+  const old=endlessConfig(index,false);
+  const count=index===20?1:2;
+  return {...old,name:index===20?"Daruma Awakening":index===22?"Daruma Wishes":"Daruma Garden",
+   subtitle:index===20?"Fullborda din första Daruma":"Fullborda "+count+" Daruma",
+   moves:index===20?36:index===22?40:42,par:index===20?22:28,
+   goal:{type:"daruma",count},darumaVersion:1,
+   intro:"Daruma står stilla. Fusioner på en grannruta eller Harmony Pulse ger ett öga. Två träffar på olika drag fullbordar varje Daruma."};
+ }
+
  if(index>=10&&index<20){
   const design=EARLY_JOURNEY[index-10];
   return {...design,objectiveVersion:2,balanceVersion:2,chapter:index+1};
@@ -228,16 +241,23 @@ function clone(b){return b.map(p=>p?{family:p.family,stage:p.stage,id:p.id}:null
 function neighbors(i){let row=Math.floor(i/N),col=i%N,a=[];if(row>0)a.push(i-N);if(col<N-1)a.push(i+1);if(row<N-1)a.push(i+N);if(col>0)a.push(i-1);return a;}
 function scan(board){
  const lines=[];
- for(let r=0;r<N;r++)for(let c=0;c<N;){let i=r*N+c,f=board[i]&&board[i].family,e=c+1;while(f&&e<N&&board[r*N+e]&&board[r*N+e].family===f)e++;if(f&&e-c>=3)lines.push(Array.from({length:e-c},(_,k)=>r*N+c+k));c=e;}
- for(let c=0;c<N;c++)for(let r=0;r<N;){let i=r*N+c,f=board[i]&&board[i].family,e=r+1;while(f&&e<N&&board[e*N+c]&&board[e*N+c].family===f)e++;if(f&&e-r>=3)lines.push(Array.from({length:e-r},(_,k)=>(r+k)*N+c));r=e;}
+ for(let r=0;r<N;r++)for(let c=0;c<N;){let i=r*N+c,f=board[i]&&!isDaruma(board[i])&&board[i].family,e=c+1;while(f&&e<N&&board[r*N+e]&&board[r*N+e].family===f)e++;if(f&&e-c>=3)lines.push(Array.from({length:e-c},(_,k)=>r*N+c+k));c=e;}
+ for(let c=0;c<N;c++)for(let r=0;r<N;){let i=r*N+c,f=board[i]&&!isDaruma(board[i])&&board[i].family,e=r+1;while(f&&e<N&&board[e*N+c]&&board[e*N+c].family===f)e++;if(f&&e-r>=3)lines.push(Array.from({length:e-r},(_,k)=>(r+k)*N+c));r=e;}
  const groups=[];
  for(const line of lines){let group=new Set(line),found=true;while(found){found=false;for(let j=groups.length-1;j>=0;j--)if(groups[j].some(v=>group.has(v))){for(const v of groups[j])group.add(v);groups.splice(j,1);found=true;}}groups.push([...group].sort((a,b)=>a-b));}
  return groups.sort((a,b)=>a[0]-b[0]);
 }
+function isDaruma(p){return !!p&&p.family==="daruma";}
+function darumaPositions(level){
+ if(level===20)return [24]; // center, surrounded by four routes
+ if(level===22)return [17,31]; // separate rows and columns
+ if(level===25)return [16,32];
+ return [];
+}
 function validSwaps(board){
  const all=[];
  for(let a=0;a<49;a++)for(const b of [a+1,a+N]){
-  if(b>=49 || (b===a+1&&a%7===6)||!board[a]||!board[b]||board[a].family===board[b].family)continue;
+  if(b>=49 || (b===a+1&&a%7===6)||!board[a]||!board[b]||isDaruma(board[a])||isDaruma(board[b])||board[a].family===board[b].family)continue;
   [board[a],board[b]]=[board[b],board[a]];
   let yes=scan(board).some(g=>g.includes(a)||g.includes(b));
   [board[a],board[b]]=[board[b],board[a]];
@@ -252,7 +272,7 @@ function validSwaps(board){
 function directedHint(board,pair){
  if(!Array.isArray(pair)||pair.length!==2)return null;
  const [a,b]=pair;
- if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=N*N||b>=N*N||!board[a]||!board[b]||!neighbors(a).includes(b))return null;
+ if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=N*N||b>=N*N||!board[a]||!board[b]||isDaruma(board[a])||isDaruma(board[b])||!neighbors(a).includes(b))return null;
  const next=board.slice();[next[a],next[b]]=[next[b],next[a]];
  const groups=scan(next);
  const score=i=>groups.reduce((sum,g)=>sum+(g.includes(i)?g.length:0),0);
@@ -311,6 +331,23 @@ function startBoard(level,random,families){
 // No free matches, at least three legal swaps where attainable. No boosters,
 // pieces, extra moves or artificial stage upgrades are introduced.
 function fairShuffle(board,rand){
+ // Identity-preserving recovery with a fixed Daruma: never move the blocker.
+ // Randomly permute the same playable pieces until there is no free match
+ // and at least one legal move. All IDs/stages and Daruma cells are retained.
+ if(board.some(isDaruma)){
+  const spots=board.map((p,i)=>isDaruma(p)?-1:i).filter(i=>i>=0);
+  const pieces=spots.map(i=>board[i]);
+  for(let tries=0;tries<1600;tries++){
+   const shuffled=pieces.slice();
+   for(let k=shuffled.length-1;k>0;k--){
+    const n=Math.floor(rand()*(k+1));[shuffled[k],shuffled[n]]=[shuffled[n],shuffled[k]];
+   }
+   const candidate=board.slice();
+   spots.forEach((at,j)=>{candidate[at]=shuffled[j];});
+   if(!scan(candidate).length&&validSwaps(candidate).length)return candidate;
+  }
+  throw new Error("No playable shuffle with fixed Daruma cells");
+ }
  if(board.length!==N*N||board.some(p=>!p))throw new Error("Fair shuffle needs a full 7x7 board");
  const originals=board.slice();
  const byFamily=new Map();
@@ -667,6 +704,20 @@ class Game{
   // board for each simulated candidate. Normal start/resume is unchanged.
   this.board=options?.fastRestore&&previous?clone(previous.board):
    startBoard(this.level,()=>this.fresh(),this.families);
+  this.daruma=Array(49).fill(0);this.darumaCleared=0;
+  this.darumaVersion=this.config.goal.type==="daruma"?1:0;
+  if(!previous&&this.darumaVersion){
+   for(const at of darumaPositions(this.level)){
+    this.board[at]={family:"daruma",stage:0,id:-(at+1)};
+    this.daruma[at]=2;
+   }
+   // Keep the minimum 3-move fairness contract on the initial board.
+   for(let retry=0;validSwaps(this.board).length<3&&retry<80;retry++){
+    this.board=startBoard(this.level,()=>this.fresh(),this.families);
+    for(const at of darumaPositions(this.level))
+     this.board[at]={family:"daruma",stage:0,id:-(at+1)};
+   }
+  }
   this.nextId=50;
   this.objectiveVersion=2;
   this.objectiveBalanceVersion=this.level<20?3:1;
@@ -685,7 +736,14 @@ class Game{
    // Freshly started levels receive Objectives 2.0; no existing run is
    // silently converted or has its star/completion requirements changed.
    const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
-   this.config=isLegacyJourney?endlessScoreConfig(this.level):levelConfig(this.level);
+   this.config=isLegacyJourney?endlessScoreConfig(this.level):
+    (this.level>=20&&this.level<50&&previous.darumaVersion!==1&&
+     darumaPositions(this.level).length?endlessConfig(this.level,false):levelConfig(this.level));
+   this.darumaVersion=previous.darumaVersion===1?1:0;
+   this.daruma=Array.isArray(previous.daruma)&&previous.daruma.length===49?
+    previous.daruma.map(v=>[0,1,2,3].includes(v)?v:0):Array(49).fill(0);
+   this.darumaCleared=Number.isInteger(previous.darumaCleared)?
+    Math.max(0,previous.darumaCleared):0;
    // A saved round that started before Difficulty Floor retains its old
    // target, even when a player resumes after a deployment.
    const oldFloorGoal=!isLegacyJourney&&this.level<20&&
@@ -751,7 +809,7 @@ class Game{
    // player's moves, stages, score or RNG position. Each obsolete identity is
    // mapped to a family missing from the new level pool, one-to-one, which
    // avoids creating an instant match by merging two old identities.
-   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)))];
+   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"))];
    if(obsolete.length){
     const present=new Set(this.board.filter(Boolean).map(p=>p.family));
     const missing=this.families.filter(f=>!present.has(f));
@@ -851,11 +909,11 @@ class Game{
  }
  progress(){
   let g=this.config.goal;
-  switch(g.type){case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+  switch(g.type){case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"daruma":return this.darumaCleared;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
  }
  goalText(){
   let g=this.config.goal;
-  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",fourTurns:"Drag med fyrmatchning",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
+  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",fourTurns:"Drag med fyrmatchning",daruma:"Fullbordade Daruma",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -866,10 +924,10 @@ class Game{
   }
   return this.starsAtGoal||0;
  }
- frame(type,extra={}){return {type,board:clone(this.board),mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
+ frame(type,extra={}){return {type,board:clone(this.board),daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
-  const p=this.board[i];if(!p||p.stage>=5)return false;
+  const p=this.board[i];if(!p||isDaruma(p)||p.stage>=5)return false;
   p.stage++;this.markStage(p);
   if(p.stage===5)created.add(i);
   return true;
@@ -879,6 +937,24 @@ class Game{
  // at the swapped source lands there. Cascades keep the strongest-stage rule.
  resolve(preferred,armedLinks=[],alternate=-1){
   const foursBefore=this.fours;
+  const darumaHitThisMove=new Set();
+  const hitDaruma=(positions,via)=>{
+   const hits=[];
+   const candidates=new Set(positions.flatMap(at=>neighbors(at)));
+   for(const at of candidates){
+    if(!this.daruma[at]||darumaHitThisMove.has(at)||!isDaruma(this.board[at]))continue;
+    darumaHitThisMove.add(at);
+    this.daruma[at]=this.daruma[at]===2?1:3;
+    hits.push({at,via,filled:this.daruma[at]===1?1:2});
+   }
+   if(!hits.length)return;
+   events.push(this.frame("daruma",{hits}));
+   const done=hits.filter(h=>h.filled===2);
+   if(done.length){
+    for(const {at} of done){this.daruma[at]=0;this.board[at]=null;this.darumaCleared++;}
+    events.push(this.frame("daruma-release",{positions:done.map(h=>h.at)}));
+   }
+  };
   let events=[],waveRound=0,echoAwarded=false;
   while(waveRound++<35){
    let groups=scan(this.board);if(!groups.length)break;
@@ -926,6 +1002,7 @@ class Game{
    // alone do not clear mist. Every cascade fusion uses the same rule.
    const clearedMist=this.clearMist(records.map(record=>record.at));
    this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,clearedMist,scoreDelta:earned}));
+   if(this.darumaVersion)hitDaruma(records.map(r=>r.at),"fusion");
    if(!echoAwarded&&echoCandidate){
     const record=records.find(record=>echoCandidate.indices.includes(record.at));
     if(record){
@@ -952,7 +1029,7 @@ class Game{
     let all=new Set(created),active=[...created],pulsed=new Set(),wave=0,chainHits=0;
     events.push(this.frame("hero",{positions:active}));
     while(active.length&&wave++<49){
-     let targets=[],mistTargets=[],next=[],visited=new Set();
+     let targets=[],mistTargets=[],darumaTargets=[],next=[],visited=new Set();
      for(const source of active){
       if(pulsed.has(source))continue;pulsed.add(source);
       // The Pulse is spatial: it reaches all four neighbouring CELLS.
@@ -962,6 +1039,11 @@ class Game{
        if(visited.has(to))continue;
        visited.add(to);
        const p=this.board[to];
+       if(isDaruma(p)){
+        if(!darumaHitThisMove.has(to))
+         darumaTargets.push({from:source,to});
+        continue;
+       }
        if(indirect.has(to)||!p||p.stage===5){
         // Bonus-upgraded or already-mature neighbours must not receive a
         // second evolution. They can still be cleansed of fixed-cell mist.
@@ -973,13 +1055,14 @@ class Game{
        if(this.board[to].stage===5)next.push(to);
       }
      }
-     if(targets.length||mistTargets.length){
+     if(targets.length||mistTargets.length||darumaTargets.length){
       // Visual mist-only targets retain the Pulse path even on empty tiles,
       // but never grant Pulse hits, points or additional chain evolution.
       const clearedMist=this.clearMist([...targets.map(t=>t.to),...mistTargets.map(t=>t.to)]);
       chainHits+=targets.length;this.pulseHits+=targets.length;
       let points=targets.length*75;this.score+=points;
-      events.push(this.frame("pulse",{sources:active,targets,mistTargets,wave,clearedMist,scoreDelta:points}));
+      events.push(this.frame("pulse",{sources:active,targets,mistTargets,darumaTargets,wave,clearedMist,scoreDelta:points}));
+      if(darumaTargets.length)hitDaruma(darumaTargets.map(t=>t.from),"pulse");
      }
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];
@@ -1004,8 +1087,18 @@ class Game{
    }
    // Gravity and controlled stage-one refills only after all Harmony waves have finished.
    for(let c=0;c<N;c++){
-    let keep=[];for(let r=N-1;r>=0;r--)if(this.board[r*N+c])keep.push(this.board[r*N+c]);
-    for(let r=N-1;r>=0;r--)this.board[r*N+c]=keep[N-1-r]||null;
+    // Each Daruma splits the column until its second hit. Pieces never fall
+    // through a stationary blocker. Once removed, the segment rejoins.
+    let bottom=N-1;
+    while(bottom>=0){
+     if(isDaruma(this.board[bottom*N+c])){bottom--;continue;}
+     let top=bottom;
+     while(top>=0&&!isDaruma(this.board[top*N+c]))top--;
+     const keep=[];
+     for(let r=bottom;r>top;r--)if(this.board[r*N+c])keep.push(this.board[r*N+c]);
+     for(let r=bottom;r>top;r--)this.board[r*N+c]=keep[bottom-r]||null;
+     bottom=top-1;
+    }
    }
    if(this.opportunity)this.refillOpportunity();
    else for(let r=0;r<N;r++)for(let c=0;c<N;c++){
@@ -1034,7 +1127,9 @@ class Game{
  }
  swap(a,b,options=null){
   if(this.moves<=0||this.failed)return {ok:false,reason:"Nivån är avslutad"};
-  if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b))return {ok:false,reason:"Välj två intilliggande föremål"};
+  if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
+   isDaruma(this.board[a])||isDaruma(this.board[b]))
+   return {ok:false,reason:"Daruma står stilla – skapa fusioner bredvid den"};
   const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
   if(!scan(this.board).some(g=>g.includes(a)||g.includes(b))){
@@ -1077,7 +1172,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

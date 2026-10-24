@@ -3770,3 +3770,36 @@ body:not(.harmony-playing) .brand:focus-visible{
 body.harmony-reduced-motion .menu-view .level-tile{
  transition:none!important;
 }
+
+
+/* DARUMA AWAKENING 1.0 — fixed shrine doll with three transparent eye states.
+   One compact atlas (three 64px cells) stays crisp at 7x7 mobile scale. */
+.game-view .tile.daruma-tile{
+ background:radial-gradient(ellipse at 50% 38%,rgba(250,177,142,.26),rgba(71,44,46,.35) 83%),
+ linear-gradient(145deg,#31494e,#223b49);
+ box-shadow:inset 0 0 0 1px rgba(252,190,162,.57),
+ inset 0 0 12px rgba(240,140,130,.23);
+ cursor:default;
+}
+.game-view .tile.daruma-tile .daruma-art{
+ position:absolute;
+ z-index:2;
+ inset:4%;
+ display:block;
+ background-image:url("../assets/daruma-states.webp?v=7.0");
+ background-size:300% 100%;
+ background-repeat:no-repeat;
+ background-position:0 50%;
+ pointer-events:none;
+ filter:drop-shadow(0 1px 3px rgba(27,10,17,.35));
+}
+.game-view .tile.daruma-tile .daruma-art.state-1{background-position:50% 50%}
+.game-view .tile.daruma-tile .daruma-art.state-2{background-position:100% 50%}
+.game-view .tile.daruma-tile.daruma-hit{
+ background:radial-gradient(ellipse,rgba(250,189,147,.34),rgba(81,44,62,.38));
+ box-shadow:inset 0 0 0 2px rgba(255,208,152,.83),0 0 8px rgba(241,161,150,.42);
+}
+.game-view .tile.daruma-tile.selected{background:#27434b}
+@media(prefers-reduced-motion:reduce){
+ .game-view .tile.daruma-tile .daruma-art{transition:none!important}
+}

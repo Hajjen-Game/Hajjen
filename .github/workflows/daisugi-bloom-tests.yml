@@ -18,6 +18,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Audit all ten Harmony levels with seeded invariants
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
+      - name: Daruma Awakening fixed-blocker, eye states and saved levels
+        run: node daisugi-bloom/tests/harmony-daruma.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
         run: node daisugi-bloom/tests/harmony-pulse-destination.test.cjs
       - name: Verify Japanese Harmony 4.1 visual-feedback contracts

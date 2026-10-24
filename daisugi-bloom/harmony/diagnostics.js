@@ -84,11 +84,11 @@ function create(R){
   }
   return [best.a,best.b];
  }
- function play(level,seed,strategy,mode="standard"){
+ function play(level,seed,strategy,mode="standard",mistLayoutVersion=2){
   assertInt(level,0,999999,"level");
   if(!STRATEGIES.includes(strategy))throw new RangeError("Unknown strategy: "+strategy);
   if(!MODES.includes(mode))throw new RangeError("Unknown mode: "+mode);
-  const g=new R.Game(level,null,{seed:seed>>>0,opportunity:mode==="director",directorMode:mode==="director311"?"v311":mode==="director31"?"v31":mode==="director3"?"v3":mode==="director2"?"v2":undefined});
+  const g=new R.Game(level,null,{seed:seed>>>0,mistLayoutVersion,opportunity:mode==="director",directorMode:mode==="director311"?"v311":mode==="director31"?"v31":mode==="director3"?"v3":mode==="director2"?"v2":undefined});
   const rng=botRandom(seed);
   let turns=0,legalTotal=0,minLegal=Infinity,drought=0,maxDrought=0,noGoalTurns=0;
   let cascadeTurns=0,highestCascade=0,extraWaves=0,shuffles=0,pulses=0, bonuses=0;
@@ -135,7 +135,7 @@ function create(R){
    }else drought=0;
    if(turns>g.config.moves)throw new Error("A move was counted twice");
   }
-  return {level,seed:seed>>>0,strategy,mode,goalType:g.config.goal.type,won:g.complete,
+  return {level,seed:seed>>>0,strategy,mode,mistLayoutVersion:g.mistLayoutVersion,goalType:g.config.goal.type,won:g.complete,
    movesUsed:turns,movesBudget:g.config.moves,progress:g.progress(),target:g.target(),
    goalRatio:Math.min(1,g.progress()/g.target()),score:g.score,stars:g.stars(),
    masterpieces:g.masterpieces,fusions:g.fusions,echoes:g.echoes||0,stage3:g.stage3,stage4:g.stage4,
@@ -198,8 +198,8 @@ function create(R){
   return [...map.values()].map(aggregate).sort((a,b)=>a.level-b.level||STRATEGIES.indexOf(a.strategy)-STRATEGIES.indexOf(b.strategy)||MODES.indexOf(a.mode)-MODES.indexOf(b.mode));
  }
  function run(options={}){
-  const all=jobs(options),runs=all.map(j=>play(j.level,j.seed,j.strategy,j.mode));
-  return {version:"engine-lab-4",gameVersion:"6.22.1",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  const all=jobs(options),runs=all.map(j=>play(j.level,j.seed,j.strategy,j.mode,options.mistLayoutVersion??2));
+  return {version:"engine-lab-4",gameVersion:"6.23.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }
@@ -207,14 +207,14 @@ function create(R){
   const all=jobs(options),runs=[];
   for(let i=0;i<all.length;i++){
    if(options.cancel?.())return {cancelled:true,completed:i,total:all.length};
-   const j=all[i];runs.push(play(j.level,j.seed,j.strategy,j.mode));
+   const j=all[i];runs.push(play(j.level,j.seed,j.strategy,j.mode,options.mistLayoutVersion??2));
    if((i+1)%Math.max(1,options.yieldEvery??1)===0||i===all.length-1){
     if(progress)progress({completed:i+1,total:all.length,last:runs[runs.length-1]});
     // Yield to the event loop so users can cancel or scroll the report.
     await new Promise(resolve=>setTimeout(resolve,0));
    }
   }
-  return {version:"engine-lab-4",gameVersion:"6.22.1",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-4",gameVersion:"6.23.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }

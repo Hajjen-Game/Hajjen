@@ -359,30 +359,21 @@ check("Level 11 clustered mist can be cleansed by ONE real non-fog fusion Pulse"
  assert(g.mist[9]===0&&g.mist[15]===0);
  assert(g.mist.filter(Boolean).length<=before-2);
 });
-check("Mist Layout 2.0 preserves in-progress historical masks, turns and partial clears",()=>{
- const first=new R.Game(11,null,{seed:9911,directorMode:"v311"});
+check("The new level 13 preserves all Mist and moves when resuming a saved run",()=>{
+ const first=new R.Game(12,null,{seed:9911,directorMode:"v311"});
  const old=first.save();
- delete old.mistLayoutVersion; // Pre-2.0 save, without a layout version.
- const priorMask=[8,12,16,24,30,36,40,20,28,9,32];
  old.mist=Array(49).fill(0);
- for(const i of priorMask.slice(0,6))old.mist[i]=1;
- old.mistCleared=5;old.moves=9;old.score=3540;
- const restored=new R.Game(11,old,{fastRestore:true});
- assert.equal(restored.mistLayoutVersion,1);
- assert.deepEqual(restored.mist,old.mist,"Old fog positions must not jump");
- assert.equal(restored.mistCleared,5);
+ for(const i of [8,9,15,33,34])old.mist[i]=1;
+ old.mistCleared=1;old.moves=9;old.score=3540;
+ const restored=new R.Game(12,old,{fastRestore:true});
+ assert.equal(restored.mistLayoutVersion,2);
+ assert.equal(restored.objectiveBalanceVersion,2);
+ assert.deepEqual(restored.mist,old.mist,"Fog positions cannot jump after resume");
+ assert.equal(restored.mistCleared,1);
  assert.equal(restored.moves,9);assert.equal(restored.score,3540);
- assert.equal(restored.target(),11);
- const again=new R.Game(11,restored.save(),{fastRestore:true});
- assert.equal(again.mistLayoutVersion,1);
- assert.deepEqual(again.mist,old.mist);
- assert.equal(again.mistCleared,5);
- assert.equal(again.moves,9);
- const fresh=new R.Game(11,null,{seed:9911,directorMode:"v311"});
- assert.equal(fresh.mistLayoutVersion,2);
- assert.notDeepEqual(fresh.mist,old.mist);
- assert.deepEqual(fresh.board,first.board,"Fog positions must not change the initial board RNG");
- assert.equal(fresh.moves,first.moves,"Move budget unchanged");
+ assert.equal(restored.target(),6);
+ const again=new R.Game(12,restored.save(),{fastRestore:true});
+ assert.deepEqual(again.save(),restored.save());
 });
 check("Legacy and redesigned Mist layout simulations keep identical initial boards",()=>{
  const level=12,seed=4242;
@@ -393,28 +384,17 @@ check("Legacy and redesigned Mist layout simulations keep identical initial boar
  assert.equal(old.config.goal.count,modern.config.goal.count);
  assert.notDeepEqual(old.mist,modern.mist);
 });
-check("Rebalance 1.0 converts unfinished Mist saves once without making the level impossible",()=>{
- const prior=new R.Game(10,null,{seed:2201,directorMode:"v3"});
- const snapshot=prior.save();
- snapshot.objectiveBalanceVersion=undefined;
- snapshot.moves=39; // Five of the previous 44 turns were used
- snapshot.mist=Array(49).fill(0);
- for(const i of [16,17,23,24])snapshot.mist[i]=1;
- snapshot.mistCleared=2;
- const restored=new R.Game(10,snapshot,{fastRestore:true});
- assert.equal(restored.moves,23,"Preserve five already-used moves from the new 28");
- assert.equal(restored.mistCleared,2,"Do not lose two previously cleaned patches");
- assert.equal(restored.mist.filter(Boolean).length,7,"Remaining fog must equal revised target minus progress");
- assert.equal(restored.mist[16],1,"Uncleansed original cells must persist");
- const roundtrip=new R.Game(10,restored.save(),{fastRestore:true});
- assert.equal(roundtrip.moves,23,"Never shrink moves a second time");
- assert.deepEqual(roundtrip.mist,restored.mist);
- assert.equal(roundtrip.mistCleared,2);
- const legacy=prior.save();delete legacy.objectiveVersion;delete legacy.objectiveBalanceVersion;
- legacy.moves=38;
- const scoreMode=new R.Game(10,legacy,{fastRestore:true});
- assert.equal(scoreMode.config.goal.type,"score");
- assert.equal(scoreMode.moves,38,"Old score-only saves must not receive new balance");
+check("Redesign 1.0 never applies historical move expansion to current level 13 saves",()=>{
+ const current=new R.Game(12,null,{seed:2201,directorMode:"v3"});
+ current.moves=6;current.mistCleared=2;current.score=1100;
+ const snap=current.save();
+ const restored=new R.Game(12,snap,{fastRestore:true});
+ assert.equal(restored.objectiveBalanceVersion,2);
+ assert.equal(restored.moves,6);
+ assert.equal(restored.mistCleared,2);
+ assert.equal(restored.score,1100);
+ assert.deepEqual(restored.mist,current.mist);
+ assert.deepEqual(restored.save(),snap);
 });
 check("Mist fusion survivor and Harmony Pulse hits both cleanse fog, not consumed tiles",()=>{
  const g=new R.Game(10,null,{seed:451,directorMode:"v3"});
@@ -517,9 +497,12 @@ check("Collection bonuses accumulate indefinitely and persist when resuming",()=
  g.familyMasterpieces.sakura=12;
  assert.equal(new R.Game(0,g.save(),{fastRestore:true}).familyMasterpieces.sakura,12);
 });
-check("Levels 6 and 9 use approachable cumulative masterpiece objectives",()=>{
- assert.deepEqual(R.levels[5].goal,{type:"familyMasterpiece",family:"lantern",count:1});
- assert.deepEqual(R.levels[8].goal,{type:"masterpiece",count:2});
+check("Levels 6–10 are standalone early challenges, not five more tutorials",()=>{
+ const types=["four","stage3","mist","masterpiece","mist"];
+ assert.deepEqual(Array.from({length:5},(_,j)=>R.levelConfig(j+5).goal.type),types);
+ assert.equal(R.levelConfig(5).goal.count,1);
+ assert.equal(R.levelConfig(8).goal.count,1);
+ assert.equal(R.levelConfig(9).goal.count,6);
 });
 check("Level 10 screenshot has exactly one legal move with Koi at row 5 column 4",()=>{
  const rows=[
@@ -641,8 +624,8 @@ check("Historical score-mode thresholds stay intact for saved Journey runs and r
    "Exactly 50% higher points on Journey "+(index+1));
   assert.equal(cfg.goal.count,cfg.stars[0],"The first star must still be the level goal");
  }
- assert.equal(R.levelConfig(0).moves,24,"Intro move budget stays doubled");
- assert.equal(R.levelConfig(0).par,7,"Intro stars still use goal timing, not score");
+ assert.equal(R.levelConfig(0).moves,18,"Short tutorial should have a compact first mission");
+ assert.equal(R.levelConfig(0).par,6,"First mission has a generous learning par");
 
  assert(middle.goal.count>first.goal.count&&later.goal.count>middle.goal.count);
  assert(first.stars[1]>=first.stars[0]*1.5);

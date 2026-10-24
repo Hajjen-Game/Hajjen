@@ -391,6 +391,33 @@ let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
 // Game is already at the end of the turn when playback begins. Event-specific
 // mist snapshots prevent revealing cleansed cells before the relevant effect.
 let activeMistFrame=null;
+// Cleansed fog gets a short floating dissolve in a separate overlay. It does
+// not touch piece movement, game rules, or the turn's animation schedule.
+function releaseMist(positions){
+ if(FAST()||document.hidden||!Element.prototype.animate||!positions.length)return;
+ const layer=makeFxLayer();
+ layer.node.classList.add("mist-release-layer");
+ const tasks=[];
+ for(const at of positions.slice(0,MOBILE_LITE?16:24)){
+  const rect=indexRect(at);
+  const fog=document.createElement("span");
+  fog.className="mist-release";
+  fog.dataset.at=String(at);
+  fog.setAttribute("aria-hidden","true");
+  fog.style.left=(rect.left-layer.rect.left+rect.width*.5)+"px";
+  fog.style.top=(rect.top-layer.rect.top+rect.height*.5)+"px";
+  fog.style.width=rect.width+"px";
+  fog.style.height=rect.height+"px";
+  layer.node.append(fog);
+  const dx=((at%3)-1)*7;
+  tasks.push(animateNode(fog,[
+   {transform:"translate3d(-50%,-50%,0) scale(.88)",opacity:.55,offset:0},
+   {transform:"translate3d(calc(-50% + "+dx*.35+"px),calc(-50% - 4px),0) scale(1.06)",opacity:.43,offset:.32},
+   {transform:"translate3d(calc(-50% + "+dx+"px),calc(-50% - 16px),0) scale(1.24)",opacity:0,offset:1}
+  ],440,{easing:"ease-out"}).finally(()=>fog.remove()));
+ }
+ void Promise.all(tasks).finally(()=>layer.node.remove());
+}
 // Keep the same line nodes between renders, so their slow CSS energy streams
 // do not restart on every tile selection. A new link pulses exactly once
 // when first observed on a settled board (never on intermediate animation).
@@ -492,6 +519,7 @@ function renderBoard(board,highlight,effect){
  const highlighted=highlight&&highlight.length?new Set(highlight):null;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
  const mist=activeMistFrame||game?.mist||[];
+ const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
   const piece=board[i],btn=boardTiles[i],key=piece?piece.id+"|"+piece.family+"|"+piece.stage:"empty";
@@ -520,6 +548,7 @@ function renderBoard(board,highlight,effect){
   // Mist belongs to fixed cells. Its overlay is managed independently from
   // the atlas sprite to avoid repainting/replacing pieces on clearance.
   const misted=!!mist[i];
+  if(!misted&&btn.dataset.mist==="1"&&activeMistFrame)removedMist.push(i);
   let veil=btn.querySelector(":scope > .harmony-mist");
   if(misted&&!veil){
    veil=document.createElement("span");veil.className="harmony-mist";
@@ -540,6 +569,7 @@ function renderBoard(board,highlight,effect){
   if(btn.className!==cls)btn.className=cls;
  }
  presentedBoard=board.map(p=>p?{id:p.id,family:p.family,stage:p.stage}:null);
+ if(removedMist.length)releaseMist(removedMist);
 }
 window.addEventListener("resize",()=>{
  settledResonanceCache=null; // Width/position may change with the viewport.

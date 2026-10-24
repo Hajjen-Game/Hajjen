@@ -988,8 +988,9 @@ try{
   return [10,49,100].map(i=>({number:i+1,type:R.levelConfig(i).goal.type,
    families:R.activeFamilies(i).length,moves:R.levelConfig(i).moves}));
  });
- assert(endless.every(x=>x.type!=="score"&&x.families===5&&x.moves>=34),
-  "Journey levels must use tangible objectives while retaining current move budgets");
+ assert(endless.every(x=>x.type!=="score"&&x.families===5&&
+  (x.number<=20?(x.moves>=26&&x.moves<=29):(x.moves>=34))),
+  "Journey 11–20 must have reduced moves while the later Journey stays unchanged");
  assert(endless[0].type==="mist"&&endless[1].type==="mist");
  const missionMix=await page.evaluate(()=>
   [10,11,12,13,14,15,16,17,18,19].map(i=>HarmonyRules.levelConfig(i).goal.type));
@@ -1030,13 +1031,34 @@ try{
   assert.equal(await mistPage.evaluate(()=>document.querySelectorAll(".tile.misted").length),fixture.mist);
   const mistLook=await mistPage.evaluate(()=>{
    const tile=document.querySelector(".tile.misted"),overlay=tile?.querySelector(".harmony-mist");
-   return {overlay:!!overlay,back:getComputedStyle(overlay).backgroundImage,
-    pointer:getComputedStyle(overlay).pointerEvents,aria:tile?.getAttribute("aria-label"),
+   const computed=getComputedStyle(overlay),wisp=getComputedStyle(overlay,"::before");
+   return {overlay:!!overlay,back:computed.backgroundImage,
+    mask:computed.maskImage||computed.webkitMaskImage,
+    animation:computed.animationName,wispAnimation:wisp.animationName,
+    pointer:computed.pointerEvents,aria:tile?.getAttribute("aria-label"),
     sprite:!!tile?.querySelector(".piece .sprite")};
   });
   assert(mistLook.overlay&&mistLook.back.includes("gradient")&&
    mistLook.pointer==="none"&&mistLook.aria.includes("magisk dimma")&&mistLook.sprite,
-   "Harmony Mist must be visible, translucent, accessible and keep the actual Japanese sprite");
+   "Harmony Mist must stay translucent, accessible and preserve the original sprite");
+  assert(mistLook.mask.includes("radial-gradient")&&
+   mistLook.animation.includes("harmony-mist-breathe")&&
+   mistLook.wispAnimation.includes("harmony-mist-drift"),
+   "Mist 2.0 must leave a transparent centre and animate soft wisps at the edges");
+  await mistPage.evaluate(()=>{
+   window.__mistReleaseSeen=[];
+   const observer=new MutationObserver(records=>{
+    for(const rec of records)for(const node of rec.addedNodes){
+     if(node.nodeType!==1||!node.classList?.contains("mist-release"))continue;
+     window.__mistReleaseSeen.push({
+      at:Number(node.dataset.at),
+      separate:!!node.closest(".mist-release-layer"),
+      duration:node.getAnimations()[0]?.effect?.getTiming()?.duration||0
+     });
+    }
+   });
+   observer.observe(document.querySelector(".board-shell"),{childList:true,subtree:true});
+  });
   const [a,b]=fixture.pair;
   await mistPage.click(".tile:nth-child("+(a+1)+")");
   await mistPage.click(".tile:nth-child("+(b+1)+")");
@@ -1057,6 +1079,10 @@ try{
   assert(Array.isArray(result.storedMist)&&result.storedMist.filter(Boolean).length===result.mistCells&&
    result.storedCleared>=1,
    "Fog state must persist in the regular save without moving to falling pieces");
+  const releases=await mistPage.evaluate(()=>window.__mistReleaseSeen);
+  assert(releases.length>=1&&releases.every(item=>item.separate&&item.duration===440),
+   "Every newly-cleared mist patch must float away in its own short FX layer");
+  await mistPage.waitForFunction(()=>!document.querySelector(".mist-release"),{timeout:3500});
   // New skill-based stars must survive a restart even with a modest score.
   // The legacy score recalibration is only for archives predating Objectives.
   await mistPage.evaluate(()=>{

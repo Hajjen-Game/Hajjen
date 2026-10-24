@@ -997,8 +997,8 @@ try{
  assert.deepEqual(missionMix,["mist","mist","masterpiece","mist","fusion",
   "mist","stage3","mist","pulseHits","mist"],
   "Objectives 2.0 must vary concrete mission types from Level 11 onwards");
- // Real 390px phone: cells stay readable under light fog; a valid
- // matched swap removes mask from the touched CELLS, not falling objects.
+ // Real 390px phone: the fog visibly drifts; only the FUSION OUTPUT CELL
+ // clears when covered. Touching/moving through fog alone never cleanses.
  const mistContext=await browser.createBrowserContext();
  try{
   const mistPage=await mistContext.newPage();
@@ -1007,23 +1007,25 @@ try{
   const fixture=await mistPage.evaluate(()=>{
    const R=window.HarmonyRules;
    let chosen=null;
-   for(let seed=102;seed<180&&!chosen;seed++){
+   for(let seed=102;seed<400&&!chosen;seed++){
     const g=new R.Game(10,null,{seed,directorMode:"v3"});
     for(const [a,b] of R.validSwaps(g.board)){
      const board=g.board.map(p=>({...p}));
      [board[a],board[b]]=[board[b],board[a]];
-     const groups=R.scan(board);
-     const touched=groups.flat().filter(i=>g.mist[i]);
-     if(touched.length>=1){chosen={g,pair:[a,b]};break;}
+     const survivors=R.scan(board).map(indices=>
+      indices.slice().sort((i,j)=>board[j].stage-board[i].stage||
+       (i===b?-1:j===b?1:i-j))[0]);
+     if(survivors.some(i=>g.mist[i])){chosen={g,pair:[a,b],survivors};break;}
     }
    }
-   if(!chosen)throw Error("No seeded valid match affecting Harmony Mist");
-   const {g,pair}=chosen;
+   if(!chosen)throw Error("No seeded valid fusion SURVIVOR on a mist cell");
+   const {g,pair,survivors}=chosen;
    localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
     unlocked:10,bestStars:{},bestScores:{},bestChain:{},sound:false,reduceMotion:false,
     playMode:"v3",run:{level:10,data:g.save()}
    }));
-   return {pair,mist:g.mist.filter(Boolean).length,moves:g.moves};
+   return {pair,mist:g.mist.filter(Boolean).length,moves:g.moves,
+    expectedFirstClear:survivors.filter(i=>g.mist[i])};
   });
   await mistPage.reload({waitUntil:"networkidle2"});
   await mistPage.click("#continueButton");
@@ -1036,6 +1038,8 @@ try{
    return {overlay:!!overlay,back:computed.backgroundImage,
     mask:computed.maskImage||computed.webkitMaskImage,
     animation:computed.animationName,wispAnimation:wisp.animationName,
+    farWispAnimation:farWisp.animationName,
+    wispDuration:wisp.animationDuration,farWispDuration:farWisp.animationDuration,
     opacity:parseFloat(computed.opacity),wispBack:wisp.backgroundImage,
     farWispBack:farWisp.backgroundImage,pointer:computed.pointerEvents,aria:tile?.getAttribute("aria-label"),
     sprite:!!tile?.querySelector(".piece .sprite")};
@@ -1047,6 +1051,9 @@ try{
    mistLook.animation.includes("harmony-mist-breathe")&&
    mistLook.wispAnimation.includes("harmony-mist-drift"),
    "Mist must retain a softened centre and animate cloud wisps");
+  assert(mistLook.farWispAnimation.includes("harmony-mist-drift-far")&&
+   mistLook.wispDuration!==mistLook.farWispDuration,
+   "Motion 1.0 must drift cloud banks independently in opposite directions");
   assert(mistLook.opacity>=.8&&mistLook.wispBack.includes("gradient")&&
    mistLook.farWispBack.includes("gradient"),
    "Mist 2.1 must render both visible cloud banks on mobile");
@@ -1078,9 +1085,9 @@ try{
     storedMist:save.run?.data?.mist,storedCleared:save.run?.data?.mistCleared,
     stars:save.run?.data?.starsAtGoal,active:document.querySelectorAll(".harmony-mist").length};
   });
-  assert(result.mistCells<fixture.mist&&result.active===result.mistCells&&
-   Number(result.progress.split("/")[0])>=1,
-   "Legal match must cleanse fixed fog cells and update goal counter");
+  assert(result.mistCells<=fixture.mist-fixture.expectedFirstClear.length&&
+   result.active===result.mistCells&&Number(result.progress.split("/")[0])>=fixture.expectedFirstClear.length,
+   "Fusion on a mist-covered output cell must cleanse fog and update goal");
   assert(Array.isArray(result.storedMist)&&result.storedMist.filter(Boolean).length===result.mistCells&&
    result.storedCleared>=1,
    "Fog state must persist in the regular save without moving to falling pieces");

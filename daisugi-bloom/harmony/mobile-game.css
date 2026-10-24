@@ -2469,3 +2469,40 @@ body.harmony-reduced-motion.harmony-playing .game-view .magic-dust-layer .magic-
  display:none!important;
 }
 
+/* HARMONY MIST 1.0 — anchored to CELLS, never to falling pieces.
+   Restrained teal/lavender fog keeps Japanese icons readable. One lightweight
+   overlay per misted tile and zero full-board filters or looping animations. */
+body.harmony-playing .game-view .tile.misted .harmony-mist{
+ position:absolute;
+ inset:2px;
+ z-index:3;
+ border-radius:5px;
+ pointer-events:none;
+ background:
+  radial-gradient(ellipse 65% 48% at 28% 37%,rgba(207,236,237,.39),transparent 85%),
+  radial-gradient(ellipse 64% 63% at 79% 79%,rgba(156,178,227,.29),transparent 88%),
+  linear-gradient(128deg,rgba(112,173,190,.19),rgba(94,126,183,.14));
+ box-shadow:inset 0 0 0 1.5px rgba(176,228,226,.53),
+  inset 0 0 13px rgba(180,224,241,.17);
+ opacity:.93;
+}
+body.harmony-playing .game-view .tile.misted .harmony-mist::after{
+ content:"✧";
+ position:absolute;
+ top:1px;
+ right:5px;
+ color:rgba(241,255,255,.84);
+ font-size:clamp(9px,2.2vw,13px);
+ line-height:1;
+ text-shadow:0 0 4px rgba(203,245,249,.65);
+}
+/* No grey-out or hidden sprites: the mist is translucent over original art.
+   Selection and idle hints remain interactive and above the board. */
+body.harmony-playing .game-view .tile.misted .piece{
+ filter:none;
+}
+body.harmony-playing .game-view .mist-result{
+ margin:4px 0 10px;
+ color:#d8f3eb;
+ font-weight:700;
+}

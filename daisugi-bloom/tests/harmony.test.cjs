@@ -372,6 +372,25 @@ check("Mist Layout 2.0 preserves in-progress historical masks, turns and partial
  assert.deepEqual(fresh.board,first.board,"Fog positions must not change the initial board RNG");
  assert.equal(fresh.moves,first.moves,"Move budget unchanged");
 });
+check("Mist Layout 2.0 enables paired-seed objective comparisons against old placement",()=>{
+ const D=require("../harmony/diagnostics.js").create(R);
+ const opts={levels:[10,11],strategies:["goal","score"],modes:["director311"],
+  trials:4,seed:20261022};
+ const old=D.run({...opts,mistLayoutVersion:1});
+ const modern=D.run({...opts,mistLayoutVersion:2});
+ assert.equal(old.runs.length,16);assert.equal(modern.runs.length,16);
+ assert(old.runs.every(r=>r.mistLayoutVersion===1));
+ assert(modern.runs.every(r=>r.mistLayoutVersion===2));
+ const keys=r=>r.runs.map(x=>[x.level,x.seed,x.strategy,x.mode,x.movesBudget,x.target]);
+ assert.deepEqual(keys(old),keys(modern),
+  "Only fog placement differs; seeds, AI, level goals and moves are paired");
+ assert(old.runs.every(x=>x.zeroLegalTurns===0));
+ assert(modern.runs.every(x=>x.zeroLegalTurns===0));
+ const summary=r=>r.results.map(x=>({level:x.level+1,
+  strategy:x.strategy,wins:x.wins,progress:Number(x.avgGoalRatio.toFixed(3))}));
+ console.log("MIST LAYOUT A/B paired-seed baseline "+JSON.stringify(summary(old)));
+ console.log("MIST LAYOUT A/B paired-seed revised  "+JSON.stringify(summary(modern)));
+});
 check("Rebalance 1.0 converts unfinished Mist saves once without making the level impossible",()=>{
  const prior=new R.Game(10,null,{seed:2201,directorMode:"v3"});
  const snapshot=prior.save();

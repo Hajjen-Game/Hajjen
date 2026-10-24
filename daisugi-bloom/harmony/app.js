@@ -251,7 +251,14 @@ function renderMenu(){
  const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
  for(let i=first;i<last;i++){
   const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=starsForLevel(i)[i]||0,record=Number(recordsForLevel(i)[i])||0;
-  const b=document.createElement("button");b.className="level-tile"+(allowed?"":" locked");b.disabled=!allowed;
+  const b=document.createElement("button");
+  // Visual distinctions only: previously earned stars and current unlocked
+  // level are already authoritative in the same save. Never alter access.
+  const current=allowed&&i===save.unlocked;
+  b.className="level-tile"+(allowed?"":" locked")+
+   (stars>0?" is-completed":"")+(current?" is-current":"");
+  b.disabled=!allowed;
+  if(current)b.setAttribute("aria-current","step");
   const n=document.createElement("span");n.className="level-number";n.textContent=allowed?String(i+1):"♧";
   const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
   title.textContent=i<10?cfg.name:cfg.name+" · "+(i+1);

@@ -85,7 +85,7 @@ const reports=Lab.run({levels:[5,9],trials:2,seed:20261022,
  strategies:["random","goal"],modes:["standard","director"]});
 check("Paired A/B uses identical seeded opening boards and has versioned JSON metadata",()=>{
  assert.equal(reports.version,"engine-lab-4");
- assert.equal(reports.gameVersion,"6.27.0");
+ assert.equal(reports.gameVersion,"6.28.0");
  assert.deepEqual(reports.options.modes,["standard","director"]);
  assert.equal(reports.results.length,8);
  assert.equal(reports.runs.length,16);

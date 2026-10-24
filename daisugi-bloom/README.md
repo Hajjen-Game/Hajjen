@@ -1,5 +1,12 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Main Menu Premium Lift 1.0 — 2026-10-24
+
+Huvudmenyn har fått en lugnare Midnight Garden-premiumkänsla med sakura-rosa, persiko-orange och guld. Toppfält, hero, kapitelruta, framstegsindikator och nivåkort har tydligare hierarki och bättre djup. Nästa upplåsta nivå har en subtil varm markering; redan klarade nivåer och låsta nivåer skiljs visuellt. Spelplan, regler, poäng, stjärnor och sparad progression är oförändrade.
+
+[Design och verifiering](docs/MAIN_MENU_PREMIUM_LIFT_1_0.md)
+
+
 ## Victory Screen Accent Polish 1.1 — 2026-10-24
 
 Resultatskärmen har fått Japanese Harmonys rosa/orange signaturpalett, med sakura-glöd bakom rubrik och stjärnor, persikofärgat ljus i bonuspoängkortet, varmare rekordbadge och varierande nyanser i statistikikonerna. Den mörka tealbasen och layouten från Victory Screen Polish 1.0 består. Ändringen påverkar **bara vinstskärmen**, inte poäng, stjärnor, sparningar, spelplan eller huvudsida.

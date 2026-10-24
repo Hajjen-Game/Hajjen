@@ -886,7 +886,7 @@ try{
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.3.0")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.22.0")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director 1.0").length,4);

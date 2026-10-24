@@ -138,6 +138,62 @@ check("mixed stages match, the strongest survivor stays on its own tile",()=>{
  assert(fusion);const record=fusion.groups.find(g=>g.at===24);
  assert(record&&record.to===5);assert(events.some(e=>e.type==="hero"&&e.positions.includes(24)));
 });
+check("Fusion Destination Control 1.0 places high-stage output at player's matching destination",()=>{
+ const g=new R.Game(10,null,{seed:1645,directorMode:"standard"});
+ g.config={...g.config,goal:{type:"mist",count:3}};
+ g.board=blank();
+ for(const i of [17,23,25])g.board[i].family="sakura";
+ g.board[23].stage=4; // Strongest does NOT occupy the selected destination.
+ const strongestId=g.board[23].id;
+ const destinationId=g.board[17].id;
+ g.mist=Array(49).fill(0);
+ for(const i of [17,23,24])g.mist[i]=1;
+ assert.equal(R.scan(g.board).length,0,"Fixture starts without accidental matches");
+ const result=g.swap(17,24);
+ assert(result.ok,"The swap must be legal");
+ const first=result.events.find(e=>e.type==="fusion");
+ assert(first,"A fusion event must be emitted");
+ const match=first.groups.find(group=>group.at===24);
+ assert(match,"The destination cell 24 must receive the fusion");
+ assert.equal(match.origin,23,"Stage 4 must be consumed from cell 23");
+ assert.equal(match.from,4);assert.equal(match.to,5);
+ assert(match.removed.includes(23),"The strongest source must visibly fly into the destination");
+ assert.equal(first.board[24].id,strongestId,"Highest-stage identity moves to the target");
+ assert.equal(first.board[24].stage,5,"The result is max stage plus one");
+ assert.notEqual(first.board[24].id,destinationId,"Stage 1 resident was consumed");
+ assert.equal(first.board[23],null);
+ assert.deepEqual(first.clearedMist,[24],"Only fusion landing cell is cleansed");
+ assert.equal(first.mist[23],1,"Mist under consumed high-stage source stays");
+ assert.equal(first.mist[17],1,"Mist at original swap source stays");
+ assert(result.events.some(e=>e.type==="pulse"&&e.sources.includes(24)),
+  "Stage 5 launches Pulse from the selected destination");
+});
+check("Fusion destination falls back to the OTHER swapped cell when only it matches",()=>{
+ const g=new R.Game(10,null,{seed:1646,directorMode:"standard"});
+ g.config={...g.config,goal:{type:"mist",count:1}};
+ g.board=blank();
+ for(const i of [17,23,25])g.board[i].family="sakura";
+ g.board[23].stage=3;
+ const strongestId=g.board[23].id;
+ g.mist=Array(49).fill(0);g.mist[24]=1;
+ const result=g.swap(24,17); // destination 17, but the match is at 24.
+ assert(result.ok);
+ const fusion=result.events.find(e=>e.type==="fusion");
+ assert(fusion.groups.some(group=>group.at===24&&group.origin===23),
+  "Fusion must land at the source where the match was actually formed");
+ assert.deepEqual(fusion.clearedMist,[24]);
+ assert.equal(fusion.board[24].id,strongestId);
+ assert.equal(fusion.board[24].stage,4);
+});
+check("Automatic fusion chains continue to use the highest-stage cell",()=>{
+ const g=fixture();
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.board[23].stage=3;g.board[24].stage=1;g.board[25].stage=2;
+ const fusion=g.resolve(-1).find(e=>e.type==="fusion");
+ assert.equal(fusion.groups[0].at,23);
+ assert.equal(fusion.groups[0].origin,23);
+ assert.equal(fusion.board[23].stage,4);
+});
 check("four-match awards one adjacent evolution, bonus can create a masterpiece",()=>{
  const g=fixture();
  // Row four; strongest at the far right, bonus reaches a stage-four fish directly above it.

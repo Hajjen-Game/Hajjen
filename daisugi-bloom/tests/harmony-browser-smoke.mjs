@@ -564,6 +564,53 @@ try{
    "Old achievements keep a completion star but the 50% higher 2-star milestone applies");
 
  }finally{await legacyContext.close();}
+ // New public release: every existing browser must wipe archived scores,
+ // stars, unlocked progression and active runs exactly once on first launch.
+ const freshStartContext=await browser.createBrowserContext();
+ try{
+  const freshStart=await freshStartContext.newPage();
+  await freshStart.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await freshStart.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  await freshStart.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   localStorage.setItem(key,JSON.stringify({
+    unlocked:19,bestScores:{"0":4444,"11":22222},bestStars:{"0":3,"11":2},
+    bestChain:{"0":8},fourFamilyScores:{"0":1234},
+    fourFamilyStars:{"0":3},fourFamilyChain:{"0":4},
+    run:{level:19,data:{moves:3}},sound:false,reduceMotion:true,playMode:"v31"
+   }));
+   localStorage.removeItem("japanese-harmony-first20-reset-20261024-v1");
+  });
+  await freshStart.reload({waitUntil:"networkidle2"});
+  const reset=await freshStart.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {
+    unlocked:data.unlocked,run:data.run,sound:data.sound,motion:data.reduceMotion,
+    playMode:data.playMode,marker:localStorage.getItem("japanese-harmony-first20-reset-20261024-v1"),
+    archives:["bestScores","bestStars","bestChain","fourFamilyScores",
+      "fourFamilyStars","fourFamilyChain"].map(k=>Object.keys(data[k]||{}).length),
+    firstOpen:document.querySelectorAll(".level-tile")[0]?.disabled,
+    secondLocked:document.querySelectorAll(".level-tile")[1]?.disabled,
+    level1:window.HarmonyRules.levelConfig(0).goal,
+    introMist:window.HarmonyRules.levelConfig(3).goal.type
+   };
+  });
+  assert.equal(reset.marker,"done");
+  assert.equal(reset.unlocked,0);
+  assert.equal(reset.run,null);
+  assert.deepEqual(reset.archives,[0,0,0,0,0,0],
+   "All six score, star and combo archives are wiped on every profile's first updated visit");
+  assert.equal(reset.firstOpen,false);
+  assert.equal(reset.secondLocked,true);
+  assert.deepEqual(reset.level1,{type:"fusion",count:3});
+  assert.equal(reset.introMist,"mist");
+  assert.equal(reset.sound,false);assert.equal(reset.motion,true);
+  assert.equal(reset.playMode,"v31","User settings survive, not progress");
+  await freshStart.reload({waitUntil:"networkidle2"});
+  assert.equal(await freshStart.evaluate(()=>
+    JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).unlocked),0,
+   "Reset never reintroduces stale achievements on repeated loads");
+ }finally{await freshStartContext.close();}
  // Board Praise 1.0: a real seeded swap triggers all three approved words.
  const praiseContext=await browser.createBrowserContext();
  try{

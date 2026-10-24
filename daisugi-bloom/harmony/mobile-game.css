@@ -3803,3 +3803,280 @@ body.harmony-reduced-motion .menu-view .level-tile{
 @media(prefers-reduced-motion:reduce){
  .game-view .tile.daruma-tile .daruma-art{transition:none!important}
 }
+
+
+/* Goshuincho Collection 1.0 · minimal functional album, ready for PNG/WebP.
+   Stamp content, chapter motif and star grade are each distinct art slots.
+   Future artwork is enabled via goshuincho.js ART map; no CSS redesign needed. */
+.menu-view .goshuin-entry{
+ display:flex;
+ align-items:center;
+ gap:9px;
+ width:100%;
+ min-height:54px;
+ margin:10px 0 5px;
+ padding:8px 10px;
+ border:1px solid rgba(239,185,151,.39);
+ border-radius:12px;
+ background:linear-gradient(110deg,rgba(51,82,85,.8),rgba(44,65,73,.8));
+ box-shadow:inset 0 1px rgba(255,242,212,.12);
+ color:#ffecdc;
+ text-align:left;
+ cursor:pointer;
+}
+.menu-view .goshuin-entry:focus-visible{
+ outline:2px solid #ffd4ad;
+ outline-offset:3px;
+}
+.menu-view .goshuin-entry-icon{
+ display:grid;
+ place-items:center;
+ flex:0 0 37px;
+ height:37px;
+ border:1px solid rgba(255,228,188,.58);
+ border-radius:9px;
+ background:linear-gradient(140deg,#f3b8b3,#e8c995);
+ color:#624550;
+ font-size:26px;
+ line-height:1;
+}
+.menu-view .goshuin-entry-copy{
+ display:grid;
+ flex:1;
+ min-width:0;
+ gap:2px;
+}
+.menu-view .goshuin-entry-copy strong{font-size:12px;color:#fff0da;line-height:1.25}
+.menu-view .goshuin-entry-copy small{font-size:10px;color:#cbd5c9;line-height:1.25}
+.menu-view .goshuin-entry-progress{
+ flex:none;
+ font-size:10px;
+ font-weight:800;
+ color:#f6d3ac;
+ white-space:nowrap;
+}
+.menu-view .goshuin-entry-arrow{font-size:23px;color:#f6c6ac;line-height:1}
+.modal:has(.goshuincho-book) .modal-inner{
+ width:min(calc(100vw - 16px),620px);
+ max-height:min(92dvh,900px);
+ overflow-y:auto;
+ overflow-x:hidden;
+ padding:clamp(12px,3vw,22px);
+ border-radius:19px;
+ background:linear-gradient(150deg,#234753,#152e40);
+}
+.modal:has(.goshuincho-book) #modalTitle{
+ margin:0 0 9px;
+ font-family:Georgia,"Times New Roman",serif;
+ font-size:clamp(26px,6vw,34px);
+ color:#ffe5c6;
+}
+.modal:has(.goshuincho-book) #modalEyebrow{color:#f2bdad}
+.goshuincho-book{display:grid;gap:9px;width:100%;min-width:0}
+.goshuin-intro{margin:0;font-size:11px;line-height:1.5;color:#dfdfd4}
+.goshuin-totals{
+ display:flex;
+ flex-wrap:wrap;
+ justify-content:space-between;
+ align-items:center;
+ gap:6px 10px;
+ padding:8px 11px;
+ background:rgba(239,198,150,.095);
+ border:1px solid rgba(243,188,146,.29);
+ border-radius:10px;
+ font-size:11px;
+ color:#dfd9ce;
+}
+.goshuin-totals strong{color:#f9d5a5;font-size:13px}
+.goshuin-page{
+ display:grid;
+ gap:10px;
+ padding:clamp(10px,2.7vw,17px);
+ border-radius:12px;
+ border:1px solid #e3caa4;
+ background:linear-gradient(135deg,#faefd9,#f2dfbc);
+ box-shadow:inset 0 1px rgba(255,255,255,.75);
+ color:#493e37;
+}
+.goshuin-page-heading{display:flex;gap:11px;align-items:center;min-width:0}
+.goshuin-cover-slot{
+ position:relative;
+ display:grid;
+ place-items:center;
+ width:68px;
+ height:76px;
+ flex:none;
+ overflow:hidden;
+ border:1px solid rgba(168,96,78,.4);
+ border-radius:8px;
+ background:#f0cfb7;
+ color:#9f5059;
+ font-size:42px;
+ box-shadow:inset 0 0 0 4px rgba(255,238,219,.42);
+}
+.goshuin-cover-slot .goshuin-slot-fallback{line-height:1}
+.goshuin-chapter-copy{min-width:0;display:grid;gap:4px}
+.goshuin-eyebrow{font-size:9px;letter-spacing:.07em;color:#a66c58;font-weight:800}
+.goshuin-chapter-copy h3{font-size:clamp(18px,5vw,24px);font-family:Georgia,"Times New Roman",serif;line-height:1.14;margin:0;color:#543f3b}
+.goshuin-chapter-copy p{font-size:11px;line-height:1.35;margin:0;color:#716257}
+.goshuin-pager{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:8px;
+ font-size:10px;
+ color:#766157;
+}
+.goshuin-nav-button{
+ min-height:34px;
+ padding:5px 8px;
+ border-radius:8px;
+ border:1px solid rgba(134,91,73,.28);
+ background:rgba(255,250,238,.67);
+ color:#644a40;
+ font-size:11px;
+ cursor:pointer;
+}
+.goshuin-nav-button:disabled{opacity:.4;cursor:default}
+.goshuin-nav-button:focus-visible,.goshuin-stamp:focus-visible{
+ outline:2px solid #ab5964;
+ outline-offset:2px;
+}
+.goshuin-page-count{white-space:nowrap;font-weight:700}
+.goshuin-chapter-status{
+ display:flex;
+ justify-content:space-between;
+ flex-wrap:wrap;
+ gap:3px 8px;
+ padding:7px 0;
+ border-top:1px solid rgba(139,92,74,.25);
+ border-bottom:1px solid rgba(139,92,74,.25);
+ font-size:10px;
+ color:#7e6255;
+}
+.goshuin-chapter-status strong{font-size:11px;color:#79564e}
+.goshuin-stamp-grid{
+ display:grid;
+ grid-template-columns:repeat(5,minmax(0,1fr));
+ gap:7px;
+}
+.goshuin-stamp{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ gap:3px;
+ min-width:0;
+ min-height:103px;
+ border:1px solid rgba(143,100,79,.24);
+ background:rgba(255,252,240,.52);
+ border-radius:8px;
+ padding:6px 2px;
+ color:#665046;
+ cursor:pointer;
+}
+.goshuin-stamp.is-earned{background:rgba(255,249,227,.85);border-color:rgba(158,78,76,.36)}
+.goshuin-stamp-slot{
+ position:relative;
+ display:grid;
+ place-items:center;
+ width:54px;
+ height:54px;
+ max-width:95%;
+ border-radius:50%;
+ border:2px solid rgba(161,79,88,.67);
+ color:#a65a67;
+ background:rgba(239,187,181,.09);
+ font-size:33px;
+ line-height:1;
+ overflow:hidden;
+}
+.goshuin-stamp.is-empty .goshuin-stamp-slot{
+ border-style:dashed;
+ border-color:rgba(153,137,119,.47);
+ background:rgba(151,134,109,.08);
+ color:rgba(144,115,97,.55);
+}
+.goshuin-level-label{
+ font-size:10px;
+ line-height:1.2;
+ font-weight:750;
+ white-space:nowrap;
+}
+.goshuin-grade{
+ position:relative;
+ display:grid;
+ place-items:center;
+ height:19px;
+ min-width:37px;
+ border-radius:11px;
+ padding:1px 3px;
+ background:#b36568;
+ color:#ffebc0;
+ line-height:1;
+ font-size:11px;
+ font-weight:800;
+ letter-spacing:-.03em;
+}
+.goshuin-grade.grade-2{background:#a46a56}
+.goshuin-grade.grade-3{background:#a97835;color:#fff5ca}
+.goshuin-locked{font-size:9px;color:#9a8577;line-height:19px}
+.goshuin-detail{margin:0;font-size:10px;text-align:center;line-height:1.3;color:#746153}
+.goshuin-chapter-sigil{
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ gap:8px;
+ min-height:35px;
+ margin-top:2px;
+ border:1px dashed rgba(143,112,92,.55);
+ border-radius:9px;
+ color:#937b6e;
+ font-size:11px;
+}
+.goshuin-chapter-sigil.is-earned{
+ position:relative;
+ border:1px solid #b07b6b;
+ color:#81454e;
+ background:rgba(222,157,137,.13);
+ font-weight:800;
+}
+.goshuin-sigil-mark{font-size:20px;line-height:1}
+.goshuin-art{
+ position:absolute;
+ inset:0;
+ display:block;
+ width:100%;
+ height:100%;
+ object-fit:contain;
+ pointer-events:none;
+}
+.has-art>.goshuin-slot-fallback{visibility:hidden}
+.goshuin-chapter-sigil .goshuin-art{object-fit:contain}
+.modal:has(.goshuincho-book) .modal-actions{
+ margin-top:9px;
+ padding-top:10px;
+ border-top:1px solid rgba(244,199,169,.22);
+}
+.modal:has(.goshuincho-book) .goshuin-close{min-height:42px}
+@media(max-width:390px){
+ .menu-view .goshuin-entry{gap:7px;padding:7px 8px}
+ .menu-view .goshuin-entry-icon{flex-basis:34px;height:34px;font-size:24px}
+ .menu-view .goshuin-entry-copy strong{font-size:11px}
+ .menu-view .goshuin-entry-copy small{font-size:9px}
+ .menu-view .goshuin-entry-progress{font-size:9px}
+ .goshuin-cover-slot{width:55px;height:65px;font-size:36px}
+ .goshuin-stamp-grid{gap:5px}
+ .goshuin-stamp{min-height:95px}
+ .goshuin-stamp-slot{width:45px;height:45px;font-size:28px}
+ .goshuin-level-label{font-size:9px}
+ .goshuin-grade{font-size:10px}
+}
+@media(max-width:345px){
+ .goshuin-stamp-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .goshuin-stamp-slot{width:48px;height:48px}
+ .goshuin-entry-copy small{display:none}
+ .goshuin-entry-progress{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .goshuin-art,.goshuin-stamp{transition:none!important}
+}

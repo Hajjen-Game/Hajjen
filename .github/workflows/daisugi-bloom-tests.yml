@@ -18,6 +18,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Audit all ten Harmony levels with seeded invariants
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
+      - name: Goshuincho Collection 1.0 · archived stamps and chapters
+        run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
         run: node daisugi-bloom/tests/harmony-daruma.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves

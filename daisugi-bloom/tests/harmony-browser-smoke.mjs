@@ -88,6 +88,93 @@ try{
   assert(half.state.includes("state-1")&&half.aria.includes("ett öga kvar"),
    "A half-painted Daruma must resume with the right second sprite");
  }finally{await darumaContext.close();}
+ // Goshuincho Collection 1.0 — independent profile, no archive writes.
+ const journalContext=await browser.createBrowserContext();
+ try{
+  const journal=await journalContext.newPage();
+  await journal.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await journal.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  assert.equal(await journal.$eval("#goshuinProgress",x=>x.textContent),"0 / 10 stämplar");
+  await journal.click("#goshuinButton");
+  const empty=await journal.evaluate(()=>({
+   title:document.querySelector("#modalTitle")?.textContent,
+   tiles:document.querySelectorAll(".goshuin-stamp").length,
+   earned:document.querySelectorAll(".goshuin-stamp.is-earned").length,
+   text:document.querySelector(".goshuin-chapter-status")?.textContent,
+   page:document.querySelector(".goshuin-page-count")?.textContent,
+   nextDisabled:document.querySelectorAll(".goshuin-nav-button")[1]?.disabled,
+   scroll:document.documentElement.scrollWidth
+  }));
+  assert.equal(empty.title,"Goshuincho");
+  assert.equal(empty.tiles,10);
+  assert.equal(empty.earned,0);
+  assert(empty.text.includes("0 av 10"));
+  assert.equal(empty.page,"Sida 1 / 2");
+  assert.equal(empty.nextDisabled,false,"Next chapter can be previewed");
+  assert(empty.scroll<=390,"The album must not overflow the phone viewport");
+  await journal.click(".goshuin-nav-button:last-child");
+  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
+  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"11");
+  await journal.click(".goshuin-close");
+  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
+  const seeded=await journal.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2",data=JSON.parse(localStorage.getItem(key));
+   data.unlocked=21;data.run=null;
+   data.fourFamilyStars=Object.fromEntries(Array.from({length:10},(_,i)=>[i,i===2?3:1]));
+   data.bestStars={10:2,12:3,20:1};
+   data.bestScores={10:1250,12:5000,20:250};
+   localStorage.setItem(key,JSON.stringify(data));
+   return {fourFamilyStars:data.fourFamilyStars,bestStars:data.bestStars};
+  });
+  await journal.reload({waitUntil:"networkidle2"});
+  assert.equal(await journal.$eval("#goshuinProgress",x=>x.textContent),"13 / 30 stämplar");
+  await journal.click("#goshuinButton");
+  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Darumas önskan");
+  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.level),"21");
+  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.stars),"1");
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
+  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",xs=>xs.length),2);
+  assert.equal(await journal.$eval('.goshuin-stamp[data-level="13"]',x=>x.dataset.stars),"3");
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Första harmonin");
+  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",xs=>xs.length),10);
+  assert.equal(await journal.$eval(".goshuin-chapter-sigil",x=>x.classList.contains("is-earned")),true);
+  const layout=await journal.evaluate(()=>({
+   width:innerWidth,doc:document.documentElement.scrollWidth,
+   modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
+   grid:document.querySelector(".goshuin-stamp-grid").getBoundingClientRect().width,
+   artSlots:document.querySelectorAll(".goshuin-stamp-slot[data-art-key]").length,
+   grades:document.querySelectorAll(".goshuin-grade[data-art-key]").length,
+   imgs:document.querySelectorAll(".goshuin-art").length,
+   className:document.querySelector(".goshuin-stamp.is-earned").className
+  }));
+  assert(layout.doc<=layout.width&&layout.modal<=layout.width&&layout.grid<=layout.modal);
+  assert.equal(layout.artSlots,10);
+  assert.equal(layout.grades,10);
+  assert.equal(layout.imgs,0,"No placeholder should request unshipped image URLs");
+  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
+  await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-390.png"});
+  await journal.click('.goshuin-stamp[data-level="3"]');
+  assert((await journal.$eval(".goshuin-detail",el=>el.textContent)).includes("3 av 3 stjärnor"));
+  const preserved=await journal.evaluate(()=>{
+   const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {fourFamilyStars:s.fourFamilyStars,bestStars:s.bestStars};
+  });
+  assert.deepEqual(preserved,seeded,"Browsing the book must never mutate saved star archives");
+  await journal.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-320.png"});
+  const small=await journal.evaluate(()=>({
+   doc:document.documentElement.scrollWidth,width:innerWidth,
+   modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
+   cols:getComputedStyle(document.querySelector(".goshuin-stamp-grid")).gridTemplateColumns.split(" ").length
+  }));
+  assert(small.doc<=small.width&&small.modal<=small.width,"320px book must have no horizontal overflow");
+  assert.equal(small.cols,4,"320px album uses readable 4-column stamps");
+  await journal.click(".goshuin-close");
+  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
+  assert.equal(await journal.$eval(".level-tile.is-current",x=>x.getAttribute("aria-current")),"step");
+ }finally{await journalContext.close();}
  await page.$eval("#menuAdvanced",e=>e.open=true);
  const advancedVisible=await page.$eval("#gameDirectorMode",e=>getComputedStyle(e).display);
  assert.notEqual(advancedVisible,"none","Advanced Director choice remains available");

@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -11,6 +11,7 @@ const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
+let goshuinChapter=0;
 const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
@@ -245,6 +246,12 @@ function showMenu(){
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 function renderMenu(){
+ const journal=G.summary(save);
+ const journalButton=$("goshuinButton");
+ if(journalButton){
+  $("goshuinProgress").textContent=journal.earned+" / "+(journal.visibleChapters*G.CHAPTER_SIZE)+" stämplar";
+  journalButton.setAttribute("aria-label","Öppna Goshuincho samlarbok, "+journal.earned+" stämplar");
+ }
  const selected=$("gameDirectorMode");
  if(selected)selected.value=save.playMode;
  const list=$("levelList");list.replaceChildren();
@@ -303,6 +310,125 @@ function renderMenu(){
  pager.append(prev,range,next);
  const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
  $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(save.unlocked+1)+" →";
+}
+// Goshuincho Collection 1.0 — read-only presentation of the EXISTING
+// level and star archive. A separate artwork manifest permits future PNG/WebP
+// replacements without touching the level logic or HTML templates.
+function goshuinArtwork(slot,kind,key){
+ const url=G.artUrl(kind,key);
+ if(!url)return;
+ const img=new Image();
+ img.className="goshuin-art";
+ img.alt="";img.decoding="async";
+ img.onload=()=>{slot.append(img);slot.classList.add("has-art");};
+ img.onerror=()=>{}; // keep the accessible, legible placeholder
+ img.src=url;
+}
+function goshuinNode(tag,cls,text){
+ const node=document.createElement(tag);
+ if(cls)node.className=cls;
+ if(text!==undefined)node.textContent=text;
+ return node;
+}
+function showGoshuincho(chapterIndex=null){
+ if(busy||!$("gameView").hidden)return;
+ const available=G.summary(save).currentChapter+1;
+ goshuinChapter=Math.min(available,Math.max(0,
+  Number.isInteger(chapterIndex)?chapterIndex:Math.floor(save.unlocked/G.CHAPTER_SIZE)));
+ $("modalActions").classList.remove("pause-menu-actions","victory-actions");
+ $("modalEyebrow").textContent="JAPANESE HARMONY · DIN RESA";
+ $("modalTitle").textContent="Goshuincho";
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Stäng boken","primary goshuin-close",()=>{$("modal").hidden=true;$("goshuinButton").focus();});
+ $("modal").hidden=false;
+ renderGoshuincho();
+}
+function renderGoshuincho(){
+ const area=$("modalContent");area.replaceChildren();
+ const summary=G.summary(save),maxChapter=summary.currentChapter+1;
+ goshuinChapter=Math.min(maxChapter,Math.max(0,goshuinChapter));
+ const info=G.chapterSnapshot(save,goshuinChapter);
+ const album=goshuinNode("div","goshuincho-book");
+ album.setAttribute("aria-label","Goshuincho, kapitel "+info.number);
+ const intro=goshuinNode("p","goshuin-intro",
+  "Din samling av fiktiva resestämplar. Varje klarad nivå får ett avtryck och fler stjärnor förädlar sigillet.");
+ album.append(intro);
+ const totals=goshuinNode("div","goshuin-totals");
+ totals.append(goshuinNode("strong","",summary.earned+" stämplar"),
+  goshuinNode("span","",summary.stars+" stjärnor · "+summary.completedChapters+" färdiga kapitel"));
+ album.append(totals);
+ const page=goshuinNode("section","goshuin-page");
+ page.dataset.chapter=String(info.index+1);
+ const cap=goshuinNode("div","goshuin-page-heading");
+ const crest=goshuinNode("div","goshuin-cover-slot");
+ crest.dataset.artKey=info.artKey;
+ crest.append(goshuinNode("span","goshuin-slot-fallback",info.symbol));
+ goshuinArtwork(crest,"chapters",info.index);
+ const copy=goshuinNode("div","goshuin-chapter-copy");
+ copy.append(goshuinNode("span","goshuin-eyebrow",
+  "KAPITEL "+info.number+" · NIVÅ "+(info.first+1)+"–"+(info.last+1)),
+  goshuinNode("h3","",info.title),
+  goshuinNode("p","",info.subtitle));
+ cap.append(crest,copy);
+ page.append(cap);
+ const nav=goshuinNode("nav","goshuin-pager");
+ nav.setAttribute("aria-label","Bläddra i samlarboken");
+ const previous=goshuinNode("button","goshuin-nav-button","← Föregående");
+ previous.type="button";previous.disabled=goshuinChapter===0;
+ previous.addEventListener("click",()=>{goshuinChapter--;renderGoshuincho();});
+ const current=goshuinNode("span","goshuin-page-count","Sida "+(goshuinChapter+1)+" / "+(maxChapter+1));
+ const next=goshuinNode("button","goshuin-nav-button","Nästa →");
+ next.type="button";next.disabled=goshuinChapter>=maxChapter;
+ next.addEventListener("click",()=>{goshuinChapter++;renderGoshuincho();});
+ nav.append(previous,current,next);page.append(nav);
+ const chapterStatus=goshuinNode("div","goshuin-chapter-status");
+ chapterStatus.append(
+  goshuinNode("strong","",info.earned+" av 10 nivåstämplar"),
+  goshuinNode("span","",info.completed?"✦ Kapitlet fullbordat":"Samla alla tio för kapitelsigillet")
+ );
+ page.append(chapterStatus);
+ const stamps=goshuinNode("div","goshuin-stamp-grid");
+ stamps.setAttribute("aria-label","Nivåstämplar för kapitel "+info.number);
+ const note=goshuinNode("p","goshuin-detail",
+  "Välj en stämpel för att se dess framsteg.");
+ for(const stamp of info.stamps){
+  const tile=goshuinNode("button","goshuin-stamp"+(stamp.earned?" is-earned":" is-empty"));
+  tile.type="button";
+  tile.dataset.level=String(stamp.number);
+  tile.dataset.artKey=stamp.artKey;
+  tile.dataset.stars=String(stamp.stars);
+  tile.setAttribute("aria-label","Nivå "+stamp.number+": "+
+   (stamp.earned?stamp.stars+" av 3 stjärnor":"ingen stämpel ännu"));
+  const slot=goshuinNode("span","goshuin-stamp-slot");
+  slot.dataset.artKey=stamp.artKey;
+  slot.append(goshuinNode("span","goshuin-slot-fallback",stamp.earned?info.symbol:"·"));
+  if(stamp.earned)goshuinArtwork(slot,"stamps",stamp.level);
+  const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
+  tile.append(slot,levelLabel);
+  if(stamp.earned){
+   const grade=goshuinNode("span","goshuin-grade grade-"+stamp.stars);
+   grade.dataset.grade=String(stamp.stars);
+   grade.dataset.artKey=stamp.gradeKey;
+   grade.append(goshuinNode("span","goshuin-slot-fallback","★".repeat(stamp.stars)));
+   goshuinArtwork(grade,"grades",stamp.stars);
+   tile.append(grade);
+  }else tile.append(goshuinNode("span","goshuin-locked","Ej samlad"));
+  tile.addEventListener("click",()=>{
+   note.textContent=stamp.earned?"Nivå "+stamp.number+" · "+stamp.stars+
+    " av 3 stjärnor. Spela om nivån för att förbättra avtrycket.":
+    "Nivå "+stamp.number+" väntar på att bli klarad.";
+  });
+  stamps.append(tile);
+ }
+ page.append(stamps,note);
+ const sigil=goshuinNode("div","goshuin-chapter-sigil"+(info.completed?" is-earned":""));
+ sigil.dataset.artKey=info.artKey+"-complete";
+ sigil.append(goshuinNode("span","goshuin-sigil-mark",info.completed?"✦":"○"),
+  goshuinNode("span","",info.completed?"Kapitelsigill intjänat":"Kapitelsigill · 10 av 10 stämplar"));
+ if(info.completed)goshuinArtwork(sigil,"covers",info.index);
+ page.append(sigil);
+ album.append(page);
+ area.append(album);
 }
 function collectionSprite(family){
  const isNew=Object.hasOwn(newFamilyRows,family);
@@ -2007,6 +2133,7 @@ function bind(){
  });
  $("gameDirectorMode").dispatchEvent(new Event("change"));
  $("homeButton").addEventListener("click",showMenu);
+ $("goshuinButton").addEventListener("click",()=>showGoshuincho());
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});

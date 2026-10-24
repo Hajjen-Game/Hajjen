@@ -1,5 +1,10 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Goshuincho Collection 1.0 — 2026-10-24
+
+Ny mobilanpassad samlarbok i huvudmenyn: en fiktiv, goshuincho-inspirerad resebok med kapitel om tio nivåer, en samlingsstämpel per klarad nivå, separata 1–3-stjärnorssigill och ett kapitelsigill när alla tio nivåerna är fullbordade. Stjärnor och stämplar räknas från befintliga sparade resultat. Ingen ny sparfil, valuta, mikrotransaktion eller nollställning. Grafikplatser för kapitel, nivåstämplar och stjärnornas sigill är separat ersättningsbara genom `harmony/goshuincho.js`. Funktion och mobil-QA finns i [dokumentationen](docs/GOSHUINCHO_COLLECTION_1_0.md).
+
+
 ## Daruma Awakening 1.0 — 2026-10-24
 
 Nivå 21 introducerar Daruma med två ögon och en fast position. Fusioner intill eller Harmony Pulse ger en träff, dock högst ett öga per spelardrag. Efter andra träffen visas en fullbordad Daruma som sedan försvinner, och rutan fylls med vanliga brickor. Fler Daruma introduceras på nivå 23 och 26. Gamla påbörjade nivåer, stjärnor och rekord bevaras. Kompakt genomskinligt spriteatlas med tre versioner från våra skapade Daruma-bilder.

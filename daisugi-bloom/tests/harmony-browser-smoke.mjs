@@ -528,7 +528,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert.equal(migrated.target,9,"Rebalanced level 11 introduces nine widely spaced Harmony Mist cells");
+  assert.equal(migrated.target,7,"Level 11 begins with a forgiving fusion mission instead of Mist");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({
@@ -537,8 +537,8 @@ try{
    mist:document.querySelectorAll(".tile.misted").length
   }));
   assert(milestones.hidden,"New mission levels use moves-based stars, not score milestones");
-  assert.equal(milestones.goal,"Rena dimman");
-  assert.equal(milestones.mist,9,"New Journey start shows all nine rebalanced Mist cells");
+  assert.equal(milestones.goal,"Fusioner");
+  assert.equal(milestones.mist,0,"Fifth family should begin without an additional Mist challenge");
   // The user's actual 11–14 history should automatically earn the revised
   // stars, without deleting records or revoking old level completions.
   await legacy.evaluate(()=>{
@@ -1036,20 +1036,20 @@ try{
   "One circular integer badge must sit over the icon's lower-left corner");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,level8Goal:HarmonyRules.levels[7].goal.type,level8Count:HarmonyRules.levels[7].goal.count,level8Moves:HarmonyRules.levels[7].moves};});
- assert.equal(start.moves,24);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"stage3");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,40);
+ assert.equal(start.moves,18);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"mist");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,33);
  const endless=await page.evaluate(()=>{
   const R=window.HarmonyRules;
   return [10,49,100].map(i=>({number:i+1,type:R.levelConfig(i).goal.type,
    families:R.activeFamilies(i).length,moves:R.levelConfig(i).moves}));
  });
  assert(endless.every(x=>x.type!=="score"&&x.families===5&&
-  (x.number<=20?(x.moves>=26&&x.moves<=29):(x.moves>=34))),
+  (x.number<=20?(x.moves>=26&&x.moves<=43):(x.moves>=34))),
   "Journey 11–20 must have reduced moves while the later Journey stays unchanged");
- assert(endless[0].type==="mist"&&endless[1].type==="mist");
+ assert(endless[0].type==="fusion"&&endless[1].type==="mist");
  const missionMix=await page.evaluate(()=>
   [10,11,12,13,14,15,16,17,18,19].map(i=>HarmonyRules.levelConfig(i).goal.type));
- assert.deepEqual(missionMix,["mist","mist","masterpiece","mist","fusion",
-  "mist","stage3","mist","pulseHits","mist"],
+ assert.deepEqual(missionMix,["fusion","stage3","mist","four","mist",
+  "pulseHits","mist","fusion","mist","masterpiece"],
   "Objectives 2.0 must vary concrete mission types from Level 11 onwards");
  // Real 390px phone: faster fog drifts; fusion clears only its output
  // cell, while Harmony Pulse clears cells it actually hits.
@@ -1062,7 +1062,7 @@ try{
    const R=window.HarmonyRules;
    let chosen=null;
    for(let seed=102;seed<400&&!chosen;seed++){
-    const g=new R.Game(10,null,{seed,directorMode:"v3"});
+    const g=new R.Game(12,null,{seed,directorMode:"v3"});
     for(const [a,b] of R.validSwaps(g.board)){
      const board=g.board.map(p=>({...p}));
      [board[a],board[b]]=[board[b],board[a]];
@@ -1075,8 +1075,8 @@ try{
    if(!chosen)throw Error("No seeded valid fusion SURVIVOR on a mist cell");
    const {g,pair,survivors}=chosen;
    localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
-    unlocked:10,bestStars:{},bestScores:{},bestChain:{},sound:false,reduceMotion:false,
-    playMode:"v3",run:{level:10,data:g.save()}
+    unlocked:12,bestStars:{},bestScores:{},bestChain:{},sound:false,reduceMotion:false,
+    playMode:"v3",run:{level:12,data:g.save()}
    }));
    return {pair,mist:g.mist.filter(Boolean).length,moves:g.moves,
     expectedFirstClear:survivors.filter(i=>g.mist[i])};

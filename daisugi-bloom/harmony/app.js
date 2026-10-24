@@ -11,7 +11,7 @@ const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
-const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1"};
+const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
 function armDecisionClock(){decisionReadyAt=performance.now();}
@@ -19,10 +19,11 @@ function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
  node.textContent=(game.familyCount===4?"4 FAMILJER · ":"5 FAMILJER · ")+
-  (game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v3"?
+  (game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
- node.title=game.directorMode==="v31"?"Objective Awareness värderar befintliga mål, fusionsposition och Pulse, men använder bara rättvisa påfyllningar.":
+ node.title=game.directorMode==="v311"?"Endgame 3.1.1 värderar nåbarheten för de sista 1–3 dimrutorna med samma vanliga påfyllningar som 3.1.":
+  game.directorMode==="v31"?"Objective Awareness värderar befintliga mål, fusionsposition och Pulse, men använder bara rättvisa påfyllningar.":
   game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
  // Preserve diagnostics for accessibility / game testing but remove the
  // technical status strip from the visual game hierarchy.
@@ -1662,18 +1663,21 @@ function openEngineLab(){
  for(const [value,label] of [
   ["compare","Jämför Standard + Director 1.0 + 2.0 + 3.0"],
   ["compare31","Jämför Director 3.0 mot Objective 3.1"],
+  ["compare311","Jämför Objective 3.1 mot Endgame 3.1.1"],
   ["standard","Endast Standard"],
   ["director","Endast Director 1.0"],
   ["director2","Endast Director 2.0"],
   ["director3","Endast Pacing Director 3.0"],
-  ["director31","Endast Objective Awareness 3.1"]
+  ["director31","Endast Objective Awareness 3.1"],
+  ["director311","Endast Endgame Objective Awareness 3.1.1"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
- engineMode.value="compare31";field("Spelmotor",engineMode);
+ engineMode.value="compare311";field("Spelmotor",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="3.1 är ett separat testläge ovanpå 3.0. Det värderar riktiga mål, fusionens slutruta, Mist och Pulse – utan gratisdrag eller förändrad slump-pool. Jämför 3.0 och 3.1 med samma seeds. Botarnas dragtempo är syntetiskt, inte mänskligt beteende.";
+ scopeNote.textContent="Endgame 3.1.1 är ett separat testläge ovanpå 3.1. Det värderar hur de sista 1–3 dimrutorna kan nås med direkta fusioner, Pulse och framtida utveckling, utan garanterade lösningar. Jämför 3.1 mot 3.1.1 med identiska seeds. 3.0 och 3.1 finns kvar. Botarnas tempo är syntetiskt.";
+
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
  status.textContent="Redo att mäta spelmotorn.";content.append(status);
@@ -1732,7 +1736,8 @@ function openEngineLab(){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
    const title=document.createElement("strong");title.textContent="Direkt jämförelse · målframsteg, vinst och utveckling";
    comparison.append(title);
-   const baselineMode=result.options.modes.includes("standard")?"standard":"director3";
+   const baselineMode=result.options.modes.includes("standard")?"standard":
+   result.options.modes.includes("director3")?"director3":"director31";
    for(const classic of result.results.filter(x=>x.mode===baselineMode)){
     for(const mode of result.options.modes.filter(m=>m!==baselineMode)){
     const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode===mode);
@@ -1760,7 +1765,8 @@ function openEngineLab(){
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
   const modes=engineMode.value==="compare"?["standard","director","director2","director3"]:
-   engineMode.value==="compare31"?["director3","director31"]:[engineMode.value];
+   engineMode.value==="compare31"?["director3","director31"]:
+   engineMode.value==="compare311"?["director31","director311"]:[engineMode.value];
   const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
@@ -1817,7 +1823,9 @@ function bind(){
  $("gameDirectorMode").addEventListener("change",event=>{
   save.playMode=event.target.value in PLAY_MODES?event.target.value:"v3";
   persist();
-  $("directorModeDescription").textContent=save.playMode==="v31"?
+  $("directorModeDescription").textContent=save.playMode==="v311"?
+   "Experimentell Endgame 3.1.1 värderar hur de sista dimrutorna kan nås. Den ger inte extra drag eller gratisrensningar; jämför mot 3.1 i Game Dev.":
+   save.playMode==="v31"?
    "Experimentell Director 3.1 analyserar målet, fusionens slutruta, Harmony Mist och Pulse, men väljer bara mellan vanliga påfyllningar. Testa mot 3.0 i Game Dev.":
    save.playMode==="v3"?
    "Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.":

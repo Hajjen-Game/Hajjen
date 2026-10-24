@@ -901,10 +901,10 @@ class Game{
     records.push({at:destination,origin:strongest,from:before,to:p.stage,family:p.family,
      removed:indices.filter(i=>i!==destination),number,shape,points:pts});
    }
-   // Mist belongs to fixed CELLS: only the actual fusion survivor/output
-   // position can cleanse it. Consumed pieces and crossed tiles do not count.
-   // Every cascade fusion uses the same rule. Harmony Pulse also clears
-   // cells it actually hits; bonus upgrades do not clear mist.
+   // Mist belongs to fixed CELLS: fusion cleanses only its survivor/output
+   // position. Consumed source cells stay covered until a spatial Harmony
+   // Pulse reaches them, whether they are empty or occupied. Bonus upgrades
+   // alone do not clear mist. Every cascade fusion uses the same rule.
    const clearedMist=this.clearMist(records.map(record=>record.at));
    this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,clearedMist,scoreDelta:earned}));
    if(!echoAwarded&&echoCandidate){
@@ -933,21 +933,34 @@ class Game{
     let all=new Set(created),active=[...created],pulsed=new Set(),wave=0,chainHits=0;
     events.push(this.frame("hero",{positions:active}));
     while(active.length&&wave++<49){
-     let targets=[],next=[];
+     let targets=[],mistTargets=[],next=[],visited=new Set();
      for(const source of active){
       if(pulsed.has(source))continue;pulsed.add(source);
+      // The Pulse is spatial: it reaches all four neighbouring CELLS.
+      // An empty cell (including one vacated by Fusion Destination Control)
+      // cannot be upgraded, but mist on it must still be cleansed.
       for(const to of neighbors(source)){
-       if(indirect.has(to)||!this.board[to]||this.board[to].stage===5)continue;
+       if(visited.has(to))continue;
+       visited.add(to);
+       const p=this.board[to];
+       if(indirect.has(to)||!p||p.stage===5){
+        // Bonus-upgraded or already-mature neighbours must not receive a
+        // second evolution. They can still be cleansed of fixed-cell mist.
+        if(this.config.goal.type==="mist"&&this.mist[to])
+         mistTargets.push({from:source,to,empty:!p});
+        continue;
+       }
        indirect.add(to);this.grow(to,all,true);targets.push({from:source,to,stage:this.board[to].stage});
        if(this.board[to].stage===5)next.push(to);
       }
      }
-     if(targets.length){
-      // Pulse cleanses fog on the occupied neighbour tiles it actually hits.
-      const clearedMist=this.clearMist(targets.map(target=>target.to));
+     if(targets.length||mistTargets.length){
+      // Visual mist-only targets retain the Pulse path even on empty tiles,
+      // but never grant Pulse hits, points or additional chain evolution.
+      const clearedMist=this.clearMist([...targets.map(t=>t.to),...mistTargets.map(t=>t.to)]);
       chainHits+=targets.length;this.pulseHits+=targets.length;
       let points=targets.length*75;this.score+=points;
-      events.push(this.frame("pulse",{sources:active,targets,wave,clearedMist,scoreDelta:points}));
+      events.push(this.frame("pulse",{sources:active,targets,mistTargets,wave,clearedMist,scoreDelta:points}));
      }
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];

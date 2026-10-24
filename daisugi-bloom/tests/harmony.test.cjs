@@ -445,7 +445,7 @@ check("Redesign 1.0 never applies historical move expansion to current level 13 
  assert.deepEqual(restored.mist,current.mist);
  assert.deepEqual(restored.save(),snap);
 });
-check("Mist fusion survivor and Harmony Pulse hits both cleanse fog, not consumed tiles",()=>{
+check("Harmony Pulse cleanses mist on neighbouring empty fusion source cells",()=>{
  const g=new R.Game(12,null,{seed:451,directorMode:"v3"});
  g.config={...g.config,goal:{type:"mist",count:6}};
  g.board=blank();
@@ -459,14 +459,16 @@ check("Mist fusion survivor and Harmony Pulse hits both cleanse fog, not consume
  assert(fusion&&pulse,"The survivor must become a masterpiece and emit Pulse");
  assert.equal(fusion.groups[0].at,24,"The strongest stage-4 piece must retain its cell");
  assert.deepEqual(fusion.clearedMist,[24],"Only the upgraded survivor cell clears");
- assert.deepEqual(pulse.clearedMist,[17,31],"Harmony Pulse must clear every misted neighbour it actually hits");
+ assert.deepEqual(pulse.clearedMist,[17,31,25,23],"Pulse must also cleanse empty source cells");
  assert.equal(fusion.mist[23],1,"Consumed mist-covered source must remain covered");
  assert.equal(fusion.mist[25],1,"Other consumed source must remain covered");
+ assert.equal(pulse.mist[23],0,"Empty source must be cleansed");
+ assert.equal(pulse.mist[25],0,"Other empty source must be cleansed");
  assert.equal(pulse.mist[17],0,"Pulse target must be cleansed");
  assert.equal(pulse.mist[31],0,"Other Pulse target must also be cleansed");
  assert.equal(fusion.goal,1,"The fusion counter increases at the survivor only");
- assert.equal(pulse.goal,3,"Pulse raises progress by exactly its two newly cleansed cells");
- assert.equal(g.mist.filter(Boolean).length,3,"Consumed and untouched fog must persist");
+ assert.equal(pulse.goal,5,"Pulse raises progress for all four neighbouring fog cells");
+ assert.equal(g.mist.filter(Boolean).length,1,"Only untouched fog must persist");
  assert.equal(g.mist[38],1,"Unhit fog remains fixed in its cell");
  assert.equal(g.mist[24],0,"Survivor's fixed cell is now clear");
  const snap=g.save(),resumed=new R.Game(12,snap,{fastRestore:true});
@@ -485,15 +487,36 @@ check("Pulse can cleanse mist when the fusion survivor itself is not misted",()=
  const fusion=events.find(e=>e.type==="fusion"),pulse=events.find(e=>e.type==="pulse");
  assert.equal(fusion.groups[0].at,24);
  assert.deepEqual(fusion.clearedMist,[],"Fusion not on fog cannot clear it");
- assert.deepEqual(pulse.clearedMist,[17,31],"Pulse hits neighbouring mist cells");
+ assert.deepEqual(pulse.clearedMist,[17,31,23],"Pulse also reaches emptied neighbouring fog");
  assert.equal(fusion.goal,0);
- assert.equal(pulse.goal,2);
- assert.equal(g.mist[23],1,"Consumed matched source cannot clear on its own");
+ assert.equal(pulse.goal,3);
+ assert.equal(g.mist[23],0,"Consumed source is now cleansed by the neighbouring Pulse");
  assert.equal(g.mist[38],1,"Unhit mist remains");
- assert.equal(g.mistCleared,2);
+ assert.equal(g.mistCleared,3);
  const restored=new R.Game(12,g.save(),{fastRestore:true});
  assert.deepEqual(restored.mist,g.mist);
  assert.equal(restored.mistCleared,2);
+});
+check("An entirely empty Pulse neighbourhood still clears fog without invented upgrades or points",()=>{
+ const g=new R.Game(12,null,{seed:455,directorMode:"standard"});
+ g.config={...g.config,goal:{type:"mist",count:2}};
+ g.board=blank();
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.board[24].stage=4;
+ g.board[17]=null;g.board[31]=null;
+ g.mist=Array(49).fill(0);g.mist[23]=1;g.mist[25]=1;
+ const events=g.resolve(-1),pulse=events.find(e=>e.type==="pulse");
+ assert(pulse,"Empty fog cells must still receive a Pulse event");
+ assert.deepEqual(pulse.targets,[],"No non-existent object is upgraded");
+ assert.deepEqual(pulse.mistTargets.map(t=>t.to),[25,23]);
+ assert(pulse.mistTargets.every(t=>t.empty));
+ assert.deepEqual(pulse.clearedMist,[25,23]);
+ assert.equal(pulse.scoreDelta,0);
+ assert.equal(g.pulseHits,0,"Fog-only hits must never count as object Pulse hits");
+ assert.equal(g.mistCleared,2);assert(g.complete);
+ const restored=new R.Game(12,g.save(),{fastRestore:true});
+ assert.equal(restored.mistCleared,2);
+ assert(restored.mist.every(v=>v===0));
 });
 check("Mist remains on matched source cells when fusion output is elsewhere",()=>{
  const g=new R.Game(12,null,{seed:452,directorMode:"standard"});

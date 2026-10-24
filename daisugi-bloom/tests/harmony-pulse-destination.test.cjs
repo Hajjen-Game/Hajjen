@@ -42,8 +42,10 @@ test("Moved stage-four identity becomes stage five ONLY on the selected destinat
  assert.deepEqual(targetCells(pulse),[17,31],"Only occupied orthogonal neighbours of destination are hit");
  assert.equal(pulse.targets.some(t=>t.from===23),false,"Old position never emits Pulse");
  assert.deepEqual(fusion.clearedMist,[24]);
- assert.deepEqual(sorted(pulse.clearedMist),[17,31]);
- assert.equal(pulse.mist[23],1,"Consumed former source remains mist-covered");
+ assert.deepEqual(sorted(pulse.clearedMist),[17,23,31]);
+ assert.equal(pulse.mist[23],0,"Consumed neighbouring source must be cleansed even when empty");
+ assert(pulse.mistTargets.some(t=>t.from===24&&t.to===23&&t.empty),
+  "The now-empty source needs a distinct fog-only Pulse beam");
  assert.equal(pulse.mist[16],1,"Fog adjacent to the OLD position does not clear");
  assert.equal(harvest.positions.includes(24),true);
  assert.equal(result.events.findIndex(e=>e.type==="harvest")<result.events.findIndex(e=>e.type==="fall"),true);
@@ -150,6 +152,24 @@ test("Five-match bonus takes priority: a neighbour never upgrades twice in the s
   "Both remaining neighbours of the second masterpiece were upgraded by bonus");
  assert.equal(pulse.targets.some(t=>t.from===9),true);
 });
+test("Fog-only Pulse hits count as mist clearance but never as object upgrades",()=>{
+ const g=fixture(12);
+ g.config={...g.config,goal:{type:"mist",count:2}};
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.board[24].stage=4;
+ g.board[17]=null;g.board[31]=null;
+ g.mist[23]=1;g.mist[25]=1;
+ const events=g.resolve(-1);
+ const pulse=events.find(e=>e.type==="pulse");
+ assert(pulse,"Pulse must exist even without any eligible neighbours");
+ assert.deepEqual(pulse.targets,[]);
+ assert.deepEqual(sorted(pulse.mistTargets.map(t=>t.to)),[23,25]);
+ assert.deepEqual(sorted(pulse.clearedMist),[23,25]);
+ assert.equal(pulse.scoreDelta,0);
+ assert.equal(g.pulseHits,0);
+ assert.equal(g.progress(),2);
+ assert(g.complete);
+});
 test("Seeded full games keep pulses orthogonal, source-grounded, and fog clearance exact",()=>{
  let pulses=0,swaps=0;
  for(const level of [2,3,8,12,15,16,18,19,20,23]){
@@ -166,7 +186,7 @@ test("Seeded full games keep pulses orthogonal, source-grounded, and fog clearan
     for(const evt of events.events){
      if(evt.type==="pulse"){
       pulses++;
-      assert(evt.sources.length>0&&evt.targets.length>0);
+      assert(evt.sources.length>0&&(evt.targets.length>0||evt.mistTargets?.length>0));
       const unique=new Set();
       for(const hit of evt.targets){
        assert(evt.sources.includes(hit.from));
@@ -176,7 +196,14 @@ test("Seeded full games keep pulses orthogonal, source-grounded, and fog clearan
        assert(!unique.has(hit.to),"Double indirect upgrade within wave");
        unique.add(hit.to);
       }
-      assert(evt.clearedMist.every(at=>unique.has(at)),"Mist cleared outside actual Pulse targets");
+      const allAffected=new Set([...unique,...(evt.mistTargets||[]).map(t=>t.to)]);
+      for(const mist of evt.mistTargets||[]){
+       assert(evt.sources.includes(mist.from));
+       assert(R.neighbors(mist.from).includes(mist.to));
+       assert(mist.empty===true||mist.empty===false);
+       assert(!unique.has(mist.to),"Fog-only target must not duplicate an actual upgraded target");
+      }
+      assert(evt.clearedMist.every(at=>allAffected.has(at)),"Mist cleared outside actual Pulse radius");
      }
      if(previousMist&&evt.clearedMist){
       for(const at of evt.clearedMist)assert(previousMist[at]===1&&evt.mist[at]===0);

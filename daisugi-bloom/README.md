@@ -1,5 +1,11 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Harmony Pulse Mist Reach 1.0 — 2026-10-24
+
+Harmony Pulse renar nu dimma på de fyra angränsande rutorna även när en ruta är tom efter fusion. Tomma rutor får aldrig en konstgjord uppgradering, bonuspoäng eller Pulse-träffräkning; det är bara dimman som tas bort. En ny visuell energistråle och mist-release-effekt visar vad som händer på tomma rutor. Sparade poäng, stjärnor och spelomgångar nollställs inte.
+
+[Regler och regressionstester](docs/HARMONY_PULSE_MIST_REACH_1_0.md)
+
 ## Difficulty & Reward Calibration 1.0 — 2026-10-24
 
 Nivå 1–5 förblir en introduktion. Några för lätta mål på nivå 6, 7 och 11–20 har höjts, medan dimnivåerna 13, 15, 17 och 19 får två extra drag var. Nya omgångar ger 1–3 stjärnor efter hur snabbt nivåmålet nås; poäng är fortfarande frivilliga rekord. Tidigare sparade betyg påverkas inte.

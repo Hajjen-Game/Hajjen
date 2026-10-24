@@ -400,7 +400,7 @@ function startLevel(i,resume=false){
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();armDecisionClock();restartIdleHint();
  if(i===3&&!resume&&game.config.goal.type==="mist"&&!save.mistPulseIntroShown){
-  toast("Rena dimman med fusion på rutan eller Harmony Pulse som träffar den. Föremål går att flytta som vanligt.");
+  toast("Rena dimman med en fusion på rutan eller Harmony Pulse från en grannruta. Pulsen renar även tomma dimrutor.");
   save.mistPulseIntroShown=true;persist();
  }
 }
@@ -1281,7 +1281,8 @@ const PULSE_CHARGE_TIMINGS=Object.freeze([
  {delay:20,ramp:135}  // Third and later: snappy but still readable.
 ]);
 async function pulseAnticipation(evt){
- const affected=[...new Set((evt.targets||[]).map(t=>t.to))];
+ const visualTargets=[...(evt.mistTargets||[]),...(evt.targets||[])];
+ const affected=[...new Set(visualTargets.map(t=>t.to))];
  if(!affected.length||FAST()||document.hidden||!Element.prototype.animate)return ()=>{};
  const wave=Math.max(1,Number(evt.wave)||1);
  const timing=PULSE_CHARGE_TIMINGS[Math.min(wave-1,2)];
@@ -1290,7 +1291,7 @@ async function pulseAnticipation(evt){
   for(const to of affected){
    const tile=boardTiles[to];
    if(!tile)continue;
-   const target=evt.targets.find(t=>t.to===to);
+   const target=visualTargets.find(t=>t.to===to);
    const glow=document.createElement("span");
    glow.className="pulse-anticipation-glow"+
     (target?.stage===5?" pulse-anticipation-masterpiece":"");
@@ -1321,9 +1322,12 @@ async function pulseAnticipation(evt){
 // Animate real from/to coordinates, cap decorative FX, update all logical
 // targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
- if(evt.targets?.length)sound("pulse",{wave:evt.wave||0});
- if(FAST()||!evt.targets?.length)return Promise.resolve();
- const targets=evt.targets.slice(0,MOBILE_LITE?(LITE_FX()?3:5):9);
+ const visualTargets=[...(evt.mistTargets||[]),...(evt.targets||[])];
+ if(visualTargets.length)sound("pulse",{wave:evt.wave||0});
+ if(FAST()||!visualTargets.length)return Promise.resolve();
+ // Prioritize mist-clearing beams when decorative paths are capped on mobile.
+ // Logical target updates are NEVER capped.
+ const targets=visualTargets.slice(0,MOBILE_LITE?(LITE_FX()?3:5):9);
  const travelMs=(evt.wave||1)>=3?170:(evt.wave||1)===2?195:230;
  const layer=makeFxLayer(),tasks=[];
  const sources=[...new Set(targets.map(t=>t.from))];
@@ -1445,15 +1449,16 @@ async function animateEvent(evt){
   }
   case "pulse":{
    const targets=evt.targets||[];
-   // The old stage and art remain visible while all actual targets glow.
+   const visualTargets=[...(evt.mistTargets||[]),...targets];
+   // Empty mist-covered cells glow as well; their sprites stay empty.
    const releaseCharge=await pulseAnticipation(evt);
    try{
     await pulseBeams(evt); // The outgoing energy catches up to the glow.
    }finally{
     releaseCharge(); // Remove overlays just before the upgraded art appears.
    }
-   renderBoard(evt.board,targets.map(t=>t.to),"pulsed");
-   pulseLandingCues(targets);
+   renderBoard(evt.board,visualTargets.map(t=>t.to),"pulsed");
+   pulseLandingCues(visualTargets);
    await Promise.all(targets.slice(0,MOBILE_LITE?5:9).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
     {transform:"scale(.76)",offset:0},{transform:"scale(1.22)",offset:.49},{transform:"scale(1)",offset:1}
    ],(evt.wave||1)>=2?135:165)));
@@ -1536,7 +1541,7 @@ async function playEvents(events){
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
    if(evt.type==="echo")praise("echo");
    else if(evt.type==="hero")praise("masterpiece");
-   else if(evt.type==="pulse"&&(evt.targets?.length||0)>0)praise("pulse");
+   else if(evt.type==="pulse"&&((evt.targets?.length||0)+(evt.mistTargets?.length||0)>0))praise("pulse");
    if(evt.type==="goal"){goalReached=true;unlockGoal();toast("✦ Nivåmålet klart!");}
    if(evt.type==="end"||evt.type==="lose")finished=true;
    renderHUD(evt);
@@ -1879,7 +1884,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse rensar också dimma på rutorna den faktiskt träffar. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

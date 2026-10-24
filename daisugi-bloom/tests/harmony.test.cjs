@@ -255,7 +255,7 @@ check("Rebalance 1.0 converts unfinished Mist saves once without making the leve
  assert.equal(scoreMode.config.goal.type,"score");
  assert.equal(scoreMode.moves,38,"Old score-only saves must not receive new balance");
 });
-check("Mist Rule Tightening 1.0 cleanses only the actual fusion survivor, not consumed tiles or Pulse",()=>{
+check("Mist fusion survivor and Harmony Pulse hits both cleanse fog, not consumed tiles",()=>{
  const g=new R.Game(10,null,{seed:451,directorMode:"v3"});
  g.config={...g.config,goal:{type:"mist",count:6}};
  g.board=blank();
@@ -269,17 +269,41 @@ check("Mist Rule Tightening 1.0 cleanses only the actual fusion survivor, not co
  assert(fusion&&pulse,"The survivor must become a masterpiece and emit Pulse");
  assert.equal(fusion.groups[0].at,24,"The strongest stage-4 piece must retain its cell");
  assert.deepEqual(fusion.clearedMist,[24],"Only the upgraded survivor cell clears");
- assert.deepEqual(pulse.clearedMist,[],"Pulse upgrades must never clear Mist");
+ assert.deepEqual(pulse.clearedMist,[17,31],"Harmony Pulse must clear every misted neighbour it actually hits");
  assert.equal(fusion.mist[23],1,"Consumed mist-covered source must remain covered");
  assert.equal(fusion.mist[25],1,"Other consumed source must remain covered");
- assert.equal(pulse.mist[17],1,"Pulse target must remain covered");
- assert.equal(pulse.mist[31],1,"Other Pulse target must remain covered");
- assert.equal(fusion.goal,1,"The counter increments only for the survivor");
+ assert.equal(pulse.mist[17],0,"Pulse target must be cleansed");
+ assert.equal(pulse.mist[31],0,"Other Pulse target must also be cleansed");
+ assert.equal(fusion.goal,1,"The fusion counter increases at the survivor only");
+ assert.equal(pulse.goal,3,"Pulse raises progress by exactly its two newly cleansed cells");
+ assert.equal(g.mist.filter(Boolean).length,3,"Consumed and untouched fog must persist");
+ assert.equal(g.mist[38],1,"Unhit fog remains fixed in its cell");
  assert.equal(g.mist[24],0,"Survivor's fixed cell is now clear");
  const snap=g.save(),resumed=new R.Game(10,snap,{fastRestore:true});
  assert.deepEqual(resumed.mist,g.mist,"Cleared/foggy fixed cells persist after reload");
  assert.equal(resumed.progress(),g.progress());
  assert.equal(g.clearMist([24,24]).length,0,"A cleared cell cannot count twice");
+});
+check("Pulse can cleanse mist when the fusion survivor itself is not misted",()=>{
+ const g=new R.Game(10,null,{seed:453,directorMode:"standard"});
+ g.config={...g.config,goal:{type:"mist",count:4}};
+ g.board=blank();
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.board[24].stage=4;
+ g.mist=Array(49).fill(0);for(const i of [23,17,31,38])g.mist[i]=1;
+ const events=g.resolve(-1);
+ const fusion=events.find(e=>e.type==="fusion"),pulse=events.find(e=>e.type==="pulse");
+ assert.equal(fusion.groups[0].at,24);
+ assert.deepEqual(fusion.clearedMist,[],"Fusion not on fog cannot clear it");
+ assert.deepEqual(pulse.clearedMist,[17,31],"Pulse hits neighbouring mist cells");
+ assert.equal(fusion.goal,0);
+ assert.equal(pulse.goal,2);
+ assert.equal(g.mist[23],1,"Consumed matched source cannot clear on its own");
+ assert.equal(g.mist[38],1,"Unhit mist remains");
+ assert.equal(g.mistCleared,2);
+ const restored=new R.Game(10,g.save(),{fastRestore:true});
+ assert.deepEqual(restored.mist,g.mist);
+ assert.equal(restored.mistCleared,2);
 });
 check("Mist remains on matched source cells when fusion output is elsewhere",()=>{
  const g=new R.Game(10,null,{seed:452,directorMode:"standard"});
@@ -307,8 +331,10 @@ check("Misted objects can still move in both directions and survive reload",()=>
  assert(result.events.some(e=>e.type==="fusion"),"Legal swap resolves");
  const everyCleared=result.events.flatMap(e=>e.clearedMist||[]);
  const everySurvivor=result.events.filter(e=>e.type==="fusion").flatMap(e=>e.groups.map(group=>group.at));
- assert(everyCleared.every(index=>everySurvivor.includes(index)),
-  "Every cleared mist position must be a fusion output, including cascades");
+ const everyPulseTarget=result.events.filter(e=>e.type==="pulse").flatMap(e=>e.targets.map(hit=>hit.to));
+ assert(everyCleared.every(index=>everySurvivor.includes(index)||everyPulseTarget.includes(index)),
+  "Every cleared position must be a fusion output OR an actual Pulse target");
+ assert.equal(new Set(everyCleared).size,everyCleared.length,"A patch only clears once across all waves");
 });
 check("Collection bonuses accumulate indefinitely and persist when resuming",()=>{
  const g=fixture();

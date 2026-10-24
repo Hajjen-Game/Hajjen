@@ -865,7 +865,7 @@ class Game{
     const objectiveAdvanced=this.progress()>beforeObjective;
     if(this.directorMode==="v31")this.objectiveDrought=objectiveAdvanced?0:
      Math.min(12,this.objectiveDrought+1);
-    this.paceOutcomes.push(advanced||objectiveAdvanced);
+    this.paceOutcomes.push(advanced||(this.directorMode==="v31"&&objectiveAdvanced));
     this.paceOutcomes=this.paceOutcomes.slice(-8);
     const major=this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
     this.paceLastMajor=major;

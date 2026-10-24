@@ -77,7 +77,24 @@ const perf=window.HarmonyPerf?.create();
 let rectCache=null,boardLayerRect=null;
 const LITE_FX=()=>MOBILE_LITE&&!!perf?.constrained;
 const fxCount=()=>scoreOverlay?.childElementCount||0;
-try{save={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){save={...defaults};}
+// First 20 Levels Redesign 1.0: one-time RESET FOR EVERY BROWSER PROFILE.
+// Scores, stars, old runs and unlocks belong to this browser's localStorage;
+// the repository has no remotely deletable player account database.
+// This marker is separate from the save so even historic save-migrations
+// cannot repopulate archived scores or stars after the reset. Preferences
+// are carried over, but every player restarts independently at level 1.
+const RESET_MARKER="japanese-harmony-first20-reset-20261024-v1";
+try{
+ const stored=JSON.parse(localStorage.getItem(KEY)||"{}");
+ if(localStorage.getItem(RESET_MARKER)!=="done"){
+  save={...defaults,
+   sound:typeof stored.sound==="boolean"?stored.sound:defaults.sound,
+   reduceMotion:!!stored.reduceMotion,
+   playMode:Object.hasOwn(PLAY_MODES,stored.playMode)?stored.playMode:defaults.playMode};
+  localStorage.setItem(KEY,JSON.stringify(save));
+  localStorage.setItem(RESET_MARKER,"done");
+ }else save={...defaults,...stored};
+}catch(e){save={...defaults};}
 // Legacy ten-level saves capped the last unlock at level 10 (zero-based 9).
 // Recover the next playable level using evidence of completed runs only;
 // neither an unfinished run nor a lost run may unlock an extra level.
@@ -259,7 +276,7 @@ function renderMenu(){
  const intro=menuPage===0;
  $("chapterEyebrow").textContent=intro?"INTRODUKTION + JOURNEY":"ENDLESS JOURNEY";
  $("chapterTitle").textContent=intro?"First Harmony":"Harmony Journey";
- $("chapterSubtitle").textContent=intro?"Lär dig spelets grunder och utveckla mästerverk. Därefter väntar fler nivåmål.":"Nya utmaningar med dimma, mästerverk och Harmony Pulse · en stjärna per klarad nivå";
+ $("chapterSubtitle").textContent=intro?"Fem korta introduktionsnivåer. Från nivå 6 börjar resan på riktigt.":"Nya nivåmål med dimma, mästerverk och Harmony Pulse · en stjärna per klarad nivå";
  const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
   n+(Number(i)<10?Number(v)||0:0),0)+
   Object.entries(save.bestStars).reduce((n,[i,v])=>
@@ -382,7 +399,7 @@ function startLevel(i,resume=false){
   });
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();armDecisionClock();restartIdleHint();
- if(i===10&&!resume&&game.config.goal.type==="mist"&&!save.mistPulseIntroShown){
+ if(i===3&&!resume&&game.config.goal.type==="mist"&&!save.mistPulseIntroShown){
   toast("Rena dimman med fusion på rutan eller Harmony Pulse som träffar den. Föremål går att flytta som vanligt.");
   save.mistPulseIntroShown=true;persist();
  }
@@ -1852,7 +1869,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Uppdrag från nivå 11:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse rensar också dimma på rutorna den faktiskt träffar. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Belöning:</strong> Nystartade nivåer ger en stjärna när du klarar målet. Äldre uppnådda två- och trestjärniga betyg bevaras. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft till upptagna rutor ovanför, nedanför, höger och vänster. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse rensar också dimma på rutorna den faktiskt träffar. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Belöning:</strong> Nystartade nivåer ger en stjärna när du klarar målet. Äldre uppnådda två- och trestjärniga betyg bevaras. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

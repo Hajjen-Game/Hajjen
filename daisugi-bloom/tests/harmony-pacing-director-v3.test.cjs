@@ -95,7 +95,7 @@ check("Four-way lab compares shared seeds and explicit synthetic tempos",()=>{
  const report=D.run({levels:[12],strategies:["random","goal"],trials:3,seed:4545,
   modes:["standard","director","director2","director3"]});
  assert.equal(report.version,"engine-lab-4");
- assert.equal(report.gameVersion,"6.22.0");
+ assert.equal(report.gameVersion,"6.22.1");
  assert.equal(report.runs.length,24);
  for(const bot of ["random","goal"]){
   const first=report.runs.filter(r=>r.strategy===bot&&r.mode==="standard").map(r=>r.seed);
@@ -160,12 +160,99 @@ check("Director 3.1 and 3.0 share seeds in the separate Engine Lab A/B",()=>{
   modes:["director3","director31"]});
  assert.equal(report.runs.length,16);
  assert.deepEqual(report.options.modes,["director3","director31"]);
- assert.equal(report.gameVersion,"6.22.0");
+ assert.equal(report.gameVersion,"6.22.1");
  for(const strategy of ["random","goal"])for(const level of [10,12]){
   const select=mode=>report.runs.filter(x=>x.mode===mode&&x.level===level&&x.strategy===strategy);
   assert.deepEqual(select("director3").map(x=>x.seed),select("director31").map(x=>x.seed));
   assert(select("director31").every(x=>x.directorSelections<=x.directorRefills));
  }
  assert(report.results.some(x=>x.mode==="director31"&&x.samples===2));
+});
+check("Endgame 3.1.1 remains dormant until 1–3 Mist tiles remain",()=>{
+ const g=new R.Game(11,null,{seed:1434,directorMode:"v311"});
+ assert.equal(R.endgameMistMetrics(g.board,Array(49).fill(0)).score,0);
+ assert.equal(R.endgameMistMetrics(g.board,g.mist).score,0);
+ const fog=Array(49).fill(0);for(const i of [1,2,3,4])fog[i]=1;
+ assert.equal(R.endgameMistMetrics(g.board,fog).score,0);
+ assert.equal(g.directorMode,"v311");
+});
+check("Endgame 3.1.1 detects a directed fusion and Pulse reaching final fog",()=>{
+ const families=R.activeFamilies(11);
+ const board=Array.from({length:49},(_,i)=>({
+  id:i+1,stage:1,family:families[(Math.floor(i/7)+i%7)%families.length]
+ }));
+ for(const i of [17,23,25])board[i].family="sakura";
+ board[23].stage=4;board[24].family="origami";
+ const fog=Array(49).fill(0);fog[24]=1;fog[31]=1;
+ const unchanged=JSON.stringify(board);
+ const seen=R.endgameMistMetrics(board,fog);
+ assert.equal(JSON.stringify(board),unchanged,"Analysis must never alter the board");
+ assert.equal(seen.remaining,2);
+ assert.equal(seen.direct,2,"Fusion destination plus first Pulse neighbour can clear both");
+ assert.equal(seen.isolated,0);
+ assert(seen.weakest>=3);
+ assert(seen.score>0&&seen.score<=5.2);
+ const lone=Array(49).fill(0);lone[24]=1;
+ const last=R.endgameMistMetrics(board,lone);
+ assert.equal(last.direct,1);
+ assert(last.score>seen.score-1,"A reachable last fog tile remains a valuable goal");
+});
+check("Endgame 3.1.1 distinguishes supported development routes from isolated fog",()=>{
+ const families=R.activeFamilies(11);
+ const board=Array.from({length:49},(_,i)=>({
+  id:i+1,stage:1,family:families[(Math.floor(i/7)+i%7)%families.length]
+ }));
+ const fog=Array(49).fill(0);fog[24]=1;
+ // No immediate match is invented: an adjacent stage-4 piece only becomes
+ // promising when another family-identical neighbour supports its evolution.
+ board[23].stage=4;board[23].family="sakura";
+ board[22].family="origami";
+ const unsupported=R.endgameMistMetrics(board,fog);
+ board[22].family="sakura";
+ const supported=R.endgameMistMetrics(board,fog);
+ assert(supported.score>=unsupported.score);
+ assert.equal(R.endgameMistMetrics(board,Array(49).fill(0)).remaining,0);
+ for(const scenario of [unsupported,supported]){
+  assert(scenario.score>=0&&scenario.score<=5.2);
+  assert(scenario.direct<=scenario.remaining);
+ }
+});
+check("Endgame 3.1.1 preserves stages, normal bag, seeded saves and legacy 3.1",()=>{
+ for(const level of [0,10,11,12])for(const seed of [1006,1007]){
+  const modern=new R.Game(level,null,{seed,directorMode:"v311"});
+  const old=new R.Game(level,null,{seed,directorMode:"v31"});
+  assert.deepEqual(modern.board,old.board);
+  modern.objectiveDrought=8;
+  const restored=new R.Game(level,modern.save(),{fastRestore:true});
+  assert.equal(restored.directorMode,"v311");
+  assert.equal(restored.objectiveDrought,8);
+  // Explicitly exercise final-fog refills for levels with Mist objectives.
+  if(modern.config.goal.type==="mist"){
+   modern.mist=Array(49).fill(0);modern.mist[24]=1;
+   restored.mist=modern.mist.slice();
+   modern.mistCleared=modern.target()-1;
+   restored.mistCleared=modern.mistCleared;
+  }
+  for(let i=0;i<5;i++){modern.board[i]=null;restored.board[i]=null;}
+  const preserved=modern.board.filter(Boolean).map(p=>[p.id,p.family,p.stage]);
+  modern.refillOpportunity();restored.refillOpportunity();
+  assert.deepEqual(modern.save(),restored.save(),"Refill must be seeded and save-safe");
+  assert.deepEqual(modern.board.filter(p=>p.id<50).map(p=>[p.id,p.family,p.stage]),preserved);
+  assert(modern.board.filter(p=>p.id>=50).every(p=>p.stage===1));
+  assert(modern.directorSelections<=modern.directorRefills);
+ }
+});
+check("Engine Lab pairs 3.1 and 3.1.1 using identical seeds",()=>{
+ const report=D.run({levels:[10,11],strategies:["score","goal"],trials:2,
+  seed:20261024,modes:["director31","director311"]});
+ assert.equal(report.runs.length,16);
+ assert.equal(report.gameVersion,"6.22.1");
+ assert.deepEqual(report.options.modes,["director31","director311"]);
+ for(const strategy of ["score","goal"])for(const level of [10,11]){
+  const forMode=mode=>report.runs.filter(x=>x.mode===mode&&x.level===level&&x.strategy===strategy);
+  assert.deepEqual(forMode("director31").map(x=>x.seed),
+   forMode("director311").map(x=>x.seed));
+  assert(forMode("director311").every(x=>x.directorSelections<=x.directorRefills));
+ }
 });
 console.log("PASS Harmony Pacing Director 3.0");

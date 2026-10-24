@@ -38,7 +38,8 @@ check("Pre-existing stage-3 resonance awards exactly one +125 Echo on real playe
  assert.equal(echoes.length,1);
  assert.equal(echoes[0].scoreDelta,125);
  assert.equal(echoes[0].stage,3);
- assert.equal(echoes[0].at,22);
+ assert.equal(echoes[0].at,24,
+  "Echo follows the player's new fusion destination, not the original stage-3 anchor");
  assert.equal(echoes[0].anchorId,23);
  assert.equal(echoes[0].partnerId,24);
  assert.equal(g.echoes,1);

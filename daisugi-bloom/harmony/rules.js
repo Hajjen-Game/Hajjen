@@ -610,9 +610,12 @@ class Game{
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
-  this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
+  this.complete=false;this.failed=false;this.rewardVersion=2;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   if(previous){
    Object.assign(this,previous);
+   // Existing runs retain their historical rating contract. New plays
+   // award one completion star; previous two-/three-star records are never revoked.
+   this.rewardVersion=previous.rewardVersion===2?2:1;
    // Continue older score-only Journey saves under their ORIGINAL goal.
    // Freshly started levels receive Objectives 2.0; no existing run is
    // silently converted or has its star/completion requirements changed.
@@ -784,6 +787,7 @@ class Game{
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
+  if(this.rewardVersion===2)return this.complete?1:0;
   if(this.config.goal.type==="score"){
    return scoreStars(this.level,this.score,this.complete&&this.legacyScoreCompletion);
   }
@@ -930,7 +934,8 @@ class Game{
   }
   if(!this.complete&&this.fulfilled()){
    this.complete=true;this.goalMove=this.config.moves-this.moves;
-   this.starsAtGoal=this.config.goal.type==="score"?this.stars():this.goalMove<=this.config.par?3:this.goalMove<=this.config.par+4?2:1;
+   this.starsAtGoal=this.rewardVersion===2?1:
+     this.config.goal.type==="score"?this.stars():this.goalMove<=this.config.par?3:this.goalMove<=this.config.par+4?2:1;
    events.push(this.frame("goal",{stars:this.starsAtGoal}));
   }
   if(this.moves<=0){this.failed=!this.complete;events.push(this.frame(this.complete?"end":"lose",{stars:this.stars()}));}
@@ -981,7 +986,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

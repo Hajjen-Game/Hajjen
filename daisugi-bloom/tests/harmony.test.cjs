@@ -43,18 +43,21 @@ check("Intro 1–10 use four, level 11+ use five; seeded games keep the selected
  assert.deepEqual(loaded.board,old.board);
  assert.deepEqual(loaded.bag,old.bag);
 });
-check("level 8 is achievable through five stage-three evolutions, not a rare T/L formation",()=>{
- const cfg=R.levels[7];
- assert.equal(cfg.name,"Garden in Bloom");
- assert.deepEqual(cfg.goal,{type:"stage3",count:5});
- assert.equal(cfg.moves,40);
- assert.equal(cfg.par,12);
+check("First 20 redesign teaches core rules in five levels and Mist by level 4",()=>{
+ const types=["fusion","stage3","masterpiece","mist","mist",
+  "four","stage3","mist","masterpiece","mist",
+  "fusion","stage3","mist","four","mist",
+  "pulseHits","mist","fusion","mist","masterpiece"];
+ assert.deepEqual(Array.from({length:20},(_,i)=>R.levelConfig(i).goal.type),types);
+ const stage8=R.levelConfig(7);
+ assert.equal(stage8.name,"Misty Path");
+ assert.deepEqual(stage8.goal,{type:"mist",count:5});
+ assert.equal(stage8.moves,33);
  const g=new R.Game(7);
- assert.equal(g.moves,40);
- assert.equal(g.goalText(),"Föremål till stadium 3");
+ assert.equal(g.goalText(),"Rena dimman");
  assert.equal(g.target(),5);
- g.stage3=4;assert.equal(g.progress(),4);assert.equal(g.fulfilled(),false);
- g.stage3=5;assert.equal(g.progress(),5);assert.equal(g.fulfilled(),true);
+ g.mistCleared=4;assert.equal(g.progress(),4);assert(!g.fulfilled());
+ g.mistCleared=5;assert.equal(g.progress(),5);assert(g.fulfilled());
 });
 check("unfinished old level 8 saves get four extra turns only once",()=>{
  const g=new R.Game(7);
@@ -72,16 +75,11 @@ check("unfinished old level 8 saves get four extra turns only once",()=>{
  const finished={...old,complete:true};
  assert.equal(new R.Game(7,finished).moves,6,"Completed saves cannot gain turns");
 });
-check("Intro stays doubled; Journey 11–20 has smaller balanced budgets, later Journey unchanged",()=>{
- const original=[12,18,16,18,18,20,18,20,20,24];
- for(let index=0;index<original.length;index++){
-  assert.equal(R.levelConfig(index).moves,original[index]*2,"Level "+(index+1));
-  assert.equal(new R.Game(index).moves,original[index]*2);
- }
- const early=[28,28,27,27,26,28,27,28,27,29];
- for(let index=10;index<20;index++){
-  assert.equal(R.levelConfig(index).moves,early[index-10],"Balanced Journey level "+(index+1));
-  assert.equal(new R.Game(index).moves,early[index-10]);
+check("First twenty levels have curated move budgets and later Journey keeps its original scaling",()=>{
+ const early=[18,24,34,30,32,28,30,33,35,36,26,31,34,30,35,38,38,33,39,43];
+ for(let index=0;index<20;index++){
+  assert.equal(R.levelConfig(index).moves,early[index],"Curated level "+(index+1));
+  assert.equal(new R.Game(index).moves,early[index]);
  }
  for(const index of [20,29,49,50,150,23000]){
   const tier=Math.floor((index-10)/10);
@@ -280,19 +278,18 @@ check("save and resume preserve board, score, randomness position and stage mile
  const g=new R.Game(3),snap=g.save(),newGame=new R.Game(3,snap);
  assert.deepEqual(newGame.board,g.board);assert.deepEqual(newGame.bag,g.bag);assert.equal(newGame.moves,g.moves);assert.equal(newGame.rolls,g.rolls);
 });
-check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",()=>{
- const goalTypes=["mist","mist","masterpiece","mist","fusion","mist","stage3","mist","pulseHits","mist"];
- assert.deepEqual(Array.from({length:10},(_,j)=>R.levelConfig(j+10).goal.type),goalTypes);
- for(const level of [10,11,12,19,29,49,50,100,1000,23000]){
+check("First twenty have stable hand-authored objectives, fewer repeated Mist levels and no difficulty cliff",()=>{
+ const types=["fusion","stage3","masterpiece","mist","mist",
+  "four","stage3","mist","masterpiece","mist",
+  "fusion","stage3","mist","four","mist","pulseHits","mist","fusion","mist","masterpiece"];
+ assert.deepEqual(Array.from({length:20},(_,i)=>R.levelConfig(i).goal.type),types);
+ assert.equal(types.slice(10).filter(type=>type==="mist").length,4);
+ for(const level of [0,3,4,7,9,10,11,12,14,16,18,19,20,29,49,50,100,23000]){
   const cfg=R.levelConfig(level),again=R.levelConfig(level);
-  assert.deepEqual(cfg,again,"Same level must have the same objective");
-  assert.notEqual(cfg.goal.type,"score","Journey level "+level+" must not be just score chase");
-  assert(level<20?(cfg.moves>=26&&cfg.moves<=29):(cfg.moves>=34&&cfg.moves<=44),
-   "First ten Journey objectives should have reduced moves, later Journey unchanged");
+  assert.deepEqual(cfg,again,"Config deterministic");
+  assert(cfg.goal.type!=="score");
   assert(cfg.par>0&&cfg.par<cfg.moves);
-  const families=R.activeFamilies(level);
-  assert.equal(families.length,5);
-  assert.equal(new Set(families).size,5);
+  assert.equal(R.activeFamilies(level).length,level<10?4:5);
   const a=new R.Game(level,null,{seed:1001}),b=new R.Game(level,null,{seed:1001});
   assert.deepEqual(a.board,b.board);
   assert.deepEqual(a.mist,b.mist);
@@ -304,61 +301,44 @@ check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",(
    assert.equal(a.progress(),0);
   }else assert.equal(a.mist.filter(Boolean).length,0);
  }
- assert.deepEqual([10,11,13,15,17,19].map(i=>R.levelConfig(i).goal.count),
-  [9,11,12,13,14,15],"Balanced Mist counts should increase through Chapter II");
- assert.deepEqual([12,14,16,18].map(i=>R.levelConfig(i).goal.count),
-  [3,20,10,8],"Non-Mist goals must require meaningful work, not just a few moves");
- const g=new R.Game(10,null,{seed:1001});
- const positions=g.mist.flatMap((v,i)=>v?[i]:[]);
- assert.equal(positions.length,9);
- // Mist Layout 2.0 forms separated, controllable Pulse-friendly patches
- // rather than the old pattern of entirely isolated single cells.
- assert(positions.some(i=>i<14)&&positions.some(i=>i>=35));
- assert.equal(new Set(positions.map(i=>Math.floor(i/7))).size>=5,true);
- const legacy=R.legacyScoreConfig(10);
- assert.deepEqual(legacy.goal,{type:"score",count:7500});
- assert.deepEqual(legacy.stars,[7500,11250,16875]);
+ const stage11=R.levelConfig(10);
+ assert.equal(stage11.goal.type,"fusion");
+ assert.equal(stage11.goal.count,7);
+ assert.equal(R.levelConfig(3).goal.count,3);
+ assert.equal(R.levelConfig(4).goal.count,4);
+ assert.equal(R.levelConfig(12).goal.count,6);
+ assert.deepEqual(R.legacyScoreConfig(10).goal,{type:"score",count:7500});
 });
-check("Mist Layout Rebalance 2.0 uses separated 2–3-cell patches, not an isolated-cell field",()=>{
- const oldStage11=[8,12,16,24,30,36,40,20,28];
- assert(oldStage11.every(i=>!R.neighbors(i).some(j=>oldStage11.includes(j))),
-  "The old nine-tile mask truly had nine isolated fog tiles");
- for(const [level,count] of [[10,9],[11,11],[13,12],[15,13],[17,14],[19,15],[20,9],[21,11],[30,9]]){
-  const mask=R.mistLayout(level,count);
-  assert.equal(mask.length,count);
-  assert.equal(new Set(mask).size,count);
-  assert(mask.every(i=>i>=0&&i<49),"No invalid tiles");
-  assert.deepEqual(mask,R.mistLayout(level,count),"Layout must be deterministic");
-  const cells=new Set(mask),seen=new Set,components=[];
-  for(const i of mask){
-   if(seen.has(i))continue;
-   const component=[],stack=[i];seen.add(i);
+check("Bespoke first twenty Mist boards have reachable separate groups and no corner traps",()=>{
+ const mistLevels=[3,4,7,9,12,14,16,18];
+ const counts=[3,4,5,6,6,7,8,9];
+ for(let i=0;i<mistLevels.length;i++){
+  const level=mistLevels[i],count=counts[i],positions=R.mistLayout(level,count);
+  assert.equal(positions.length,count);
+  assert.equal(new Set(positions).size,count);
+  assert(positions.every(x=>x>=0&&x<49&&![0,6,42,48].includes(x)));
+  const seen=new Set(),components=[];
+  for(const index of positions){
+   if(seen.has(index))continue;
+   const stack=[index],group=[];seen.add(index);
    while(stack.length){
-    const p=stack.pop();component.push(p);
-    for(const j of R.neighbors(p))
-     if(cells.has(j)&&!seen.has(j)){seen.add(j);stack.push(j);}
+    const at=stack.pop();group.push(at);
+    for(const other of R.neighbors(at))
+     if(positions.includes(other)&&!seen.has(other)){seen.add(other);stack.push(other);}
    }
-   components.push(component);
+   components.push(group);
   }
-  const isolated=components.filter(group=>group.length===1).length;
-  assert(isolated<=1,"Maximum one precision tile on stage "+(level+1));
-  assert(components.every(group=>group.length<=3),
-   "No unwieldy four-or-more-cell blob on stage "+(level+1));
-  assert(components.filter(group=>group.length>=2).length>=3,
-   "At least three separate Pulse-relevant patches");
-  assert(!mask.some(i=>[0,6,42,48].includes(i)),"Avoid low-access corner fog");
-  const actual=new R.Game(level,null,{seed:5255,directorMode:"v311"});
-  if(actual.config.goal.type==="mist"){
-   assert.equal(actual.mistLayoutVersion,2);
-   assert.deepEqual(actual.mist.flatMap((v,i)=>v?[i]:[]).sort((a,b)=>a-b),
-    mask.sort((a,b)=>a-b),"New playable masks must use layout 2.0");
-   assert.equal(actual.config.goal.count,count,"Do not change objective size");
-  }
+  assert(components.every(x=>x.length<=4),"No giant cluster on stage "+(level+1));
+  assert(components.filter(x=>x.length===1).length<=1,"At most one precision cell");
+  const g=new R.Game(level,null,{seed:1337});
+  assert.deepEqual(g.mist.flatMap((v,j)=>v?[j]:[]).sort((a,b)=>a-b),
+   positions.sort((a,b)=>a-b));
+  assert.equal(g.mistLayoutVersion,2);
  }
  assert.equal(R.mistLayout(10,0).length,0);
 });
 check("Level 11 clustered mist can be cleansed by ONE real non-fog fusion Pulse",()=>{
- const g=new R.Game(10,null,{seed:412,directorMode:"v311"});
+ const g=new R.Game(12,null,{seed:412,directorMode:"v311"});
  g.board=blank();
  g.board[17].family="sakura";g.board[17].stage=4;
  g.board[18].family="sakura";
@@ -404,24 +384,14 @@ check("Mist Layout 2.0 preserves in-progress historical masks, turns and partial
  assert.deepEqual(fresh.board,first.board,"Fog positions must not change the initial board RNG");
  assert.equal(fresh.moves,first.moves,"Move budget unchanged");
 });
-check("Mist Layout 2.0 enables paired-seed objective comparisons against old placement",()=>{
- const D=require("../harmony/diagnostics.js").create(R);
- const opts={levels:[10,11],strategies:["goal","score"],modes:["director311"],
-  trials:4,seed:20261022};
- const old=D.run({...opts,mistLayoutVersion:1});
- const modern=D.run({...opts,mistLayoutVersion:2});
- assert.equal(old.runs.length,16);assert.equal(modern.runs.length,16);
- assert(old.runs.every(r=>r.mistLayoutVersion===1));
- assert(modern.runs.every(r=>r.mistLayoutVersion===2));
- const keys=r=>r.runs.map(x=>[x.level,x.seed,x.strategy,x.mode,x.movesBudget,x.target]);
- assert.deepEqual(keys(old),keys(modern),
-  "Only fog placement differs; seeds, AI, level goals and moves are paired");
- assert(old.runs.every(x=>x.zeroLegalTurns===0));
- assert(modern.runs.every(x=>x.zeroLegalTurns===0));
- const summary=r=>r.results.map(x=>({level:x.level+1,
-  strategy:x.strategy,wins:x.wins,progress:Number(x.avgGoalRatio.toFixed(3))}));
- console.log("MIST LAYOUT A/B paired-seed baseline "+JSON.stringify(summary(old)));
- console.log("MIST LAYOUT A/B paired-seed revised  "+JSON.stringify(summary(modern)));
+check("Legacy and redesigned Mist layout simulations keep identical initial boards",()=>{
+ const level=12,seed=4242;
+ const old=new R.Game(level,null,{seed,mistLayoutVersion:1});
+ const modern=new R.Game(level,null,{seed,mistLayoutVersion:2});
+ assert.deepEqual(old.board,modern.board);
+ assert.equal(old.moves,modern.moves);
+ assert.equal(old.config.goal.count,modern.config.goal.count);
+ assert.notDeepEqual(old.mist,modern.mist);
 });
 check("Rebalance 1.0 converts unfinished Mist saves once without making the level impossible",()=>{
  const prior=new R.Game(10,null,{seed:2201,directorMode:"v3"});

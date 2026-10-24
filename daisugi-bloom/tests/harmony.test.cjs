@@ -228,6 +228,37 @@ check("once goal completes, remaining moves can be played without changing first
  assert(result.some(e=>e.type==="goal"));assert(g.complete);assert(g.moves>0);const s=g.stars();
  g.fusions+=3;assert.equal(g.stars(),s);assert(g.finish());assert.equal(g.moves,0);
 });
+check("Core Clarity 1.0 awards one completion star while preserving archived legacy three-star saves",()=>{
+ const g=fixture();g.config={...g.config,moves:6,par:3,goal:{type:"fusion",count:1}};g.moves=6;
+ assert.equal(g.rewardVersion,2);
+ assert.equal(g.stars(),0);
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ const events=g.resolve(-1);
+ assert(events.some(e=>e.type==="goal"));
+ assert.equal(g.stars(),1,"One completion star, regardless of bonus points or speed");
+ assert.equal(g.starsAtGoal,1);
+ assert.equal(g.moves,6,"Reaching the goal doesn't consume leftover optional turns");
+ const completed=new R.Game(g.level,g.save(),{fastRestore:true});
+ assert.equal(completed.rewardVersion,2);
+ assert.equal(completed.stars(),1);
+ assert.deepEqual(completed.save(),g.save());
+ const old=g.save();delete old.rewardVersion;old.starsAtGoal=3;
+ const legacy=new R.Game(g.level,old,{fastRestore:true});
+ assert.equal(legacy.rewardVersion,1);
+ assert.equal(legacy.stars(),3,"Never discard previously earned legacy three-star ratings");
+});
+check("Directed swap contract: both orientations preserve identical outcomes for legal two-family swaps",()=>{
+ for(const level of [0,10,11])for(const seed of [111,222]){
+  const g=new R.Game(level,null,{seed,directorMode:"v311"});
+  for(const [a,b] of R.validSwaps(g.board).slice(0,8)){
+   const left=new R.Game(level,g.save(),{fastRestore:true});
+   const right=new R.Game(level,g.save(),{fastRestore:true});
+   assert(left.swap(a,b).ok&&right.swap(b,a).ok);
+   assert.deepEqual(left.save(),right.save(),
+    "Swap direction changes the animation but not the fusion outcome when only a/b can be match anchors");
+  }
+ }
+});
 check("legacy saved levels migrate retired families without deleting progression",()=>{
  const old=new R.Game(1);
  const snapshot=old.save();

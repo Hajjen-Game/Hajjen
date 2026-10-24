@@ -339,7 +339,7 @@ check("First twenty have stable hand-authored objectives, fewer repeated Mist le
  }
  const stage11=R.levelConfig(10);
  assert.equal(stage11.goal.type,"fusion");
- assert.equal(stage11.goal.count,7);
+ assert.equal(stage11.goal.count,15);
  assert.equal(R.levelConfig(3).goal.count,3);
  assert.equal(R.levelConfig(4).goal.count,4);
  assert.equal(R.levelConfig(12).goal.count,6);
@@ -536,7 +536,7 @@ check("Collection bonuses accumulate indefinitely and persist when resuming",()=
 check("Levels 6–10 are standalone early challenges, not five more tutorials",()=>{
  const types=["four","stage3","mist","masterpiece","mist"];
  assert.deepEqual(Array.from({length:5},(_,j)=>R.levelConfig(j+5).goal.type),types);
- assert.equal(R.levelConfig(5).goal.count,1);
+ assert.equal(R.levelConfig(5).goal.count,2);
  assert.equal(R.levelConfig(8).goal.count,1);
  assert.equal(R.levelConfig(9).goal.count,6);
 });

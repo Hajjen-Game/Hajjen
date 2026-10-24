@@ -528,7 +528,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert.equal(migrated.target,7,"Level 11 begins with a forgiving fusion mission instead of Mist");
+  assert.equal(migrated.target,15,"Level 11 begins with a longer fusion mission instead of Mist");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({

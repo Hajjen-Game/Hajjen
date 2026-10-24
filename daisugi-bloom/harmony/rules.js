@@ -112,13 +112,30 @@ function endlessConfig(index){
    goal.type==="stage3"?(earlyJourney?17:15+chapter):(earlyJourney?17:18+chapter),
   intro:description,objectiveVersion:2,balanceVersion:1,chapter:number};
 }
-// Mist stays attached to CELLS, not objects. Objectives Rebalance 1.0 uses
-// deliberately distributed patches: no initial 3-in-a-row mist cluster.
-// Different regions reward deliberate fusion placement and Harmony Pulse chains.
+// Mist Layout Rebalance 2.0: current Fusion Destination Control cleanses
+// only the fusion LANDING cell, and Harmony Pulse cleanses only occupied
+// neighbouring tiles it actually hits. The former scattered layout required
+// too many independent precise fusions (9 of 9 fog cells isolated on Stage 11).
+// New runs use four/five separate 2–3-cell patches, plus at most one deliberate
+// precision cell. Clusters can be reached by strategic Pulse placement; no
+// initial rows/columns of 3 mist cells, giant blobs or unreachable corners.
+// The prefix order is hand-designed for 9–16 targets; deterministic 90-degree
+// rotations vary the landscape across Journey levels. Mist remains fixed to
+// board CELLS, never to pieces; existing saved masks are kept unchanged.
+const MIST_LAYOUT_V2=[
+// Patch A (L, 3)                  Patch B (L, 3)
+ 8,9,15,                           12,19,20,
+// Patch C (pair), one precision tile, Patch D (pair)
+ 29,36,                             24,39,40,
+// Extend C (3), D (3), form E (pair, then L)
+ 37,46,                             17,25,
+// Only for later 16-fog chapters: one separate upper-edge tile
+ 3
+];
 function mistLayout(index,count){
  if(!count)return [];
- const pattern=[8,12,16,24,30,36,40,20,28,9,32,38,14,34,46,42,6,26];
- const rotation=Math.floor((index-10)/3)%4;
+ const pattern=MIST_LAYOUT_V2;
+ const rotation=((Math.floor((index-10)/3)%4)+4)%4;
  const transform=i=>{
   let r=Math.floor(i/7),c=i%7;
   for(let k=0;k<rotation;k++)[r,c]=[c,6-r];
@@ -585,6 +602,7 @@ class Game{
   this.nextId=50;
   this.objectiveVersion=2;
   this.objectiveBalanceVersion=1;
+  this.mistLayoutVersion=2;
   this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count).includes(i))):Array(49).fill(0);
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
@@ -608,6 +626,9 @@ class Game{
     this.moves=Math.max(1,this.config.moves-spent);
    }
    this.objectiveBalanceVersion=isLegacyJourney?0:1;
+   // Preserving an in-progress mask is intentional: old layouts are not
+   // silently moved under an active player, even when nearly complete.
+   this.mistLayoutVersion=Number.isInteger(previous.mistLayoutVersion)?previous.mistLayoutVersion:1;
    this.mist=this.objectiveVersion===2&&this.config.goal.type==="mist"&&
     Array.isArray(previous.mist)&&previous.mist.length===49?
     previous.mist.map(v=>v?1:0):
@@ -957,7 +978,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -1006,6 +1027,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

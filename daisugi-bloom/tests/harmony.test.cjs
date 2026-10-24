@@ -255,34 +255,60 @@ check("Rebalance 1.0 converts unfinished Mist saves once without making the leve
  assert.equal(scoreMode.config.goal.type,"score");
  assert.equal(scoreMode.moves,38,"Old score-only saves must not receive new balance");
 });
-check("Harmony Mist clears cell positions through matching and Harmony Pulse, once each",()=>{
+check("Mist Rule Tightening 1.0 cleanses only the actual fusion survivor, not consumed tiles or Pulse",()=>{
  const g=new R.Game(10,null,{seed:451,directorMode:"v3"});
  g.config={...g.config,goal:{type:"mist",count:6}};
  g.board=blank();
  for(const i of [23,24,25])g.board[i].family="sakura";
- g.board[24].stage=4;
+ g.board[24].stage=4; // The fusion output is at 24; stage 5 emits Harmony Pulse.
  const cells=[23,24,25,17,31,38];
  g.mist=Array(49).fill(0);for(const i of cells)g.mist[i]=1;
  const events=g.resolve(-1);
  const fusion=events.find(e=>e.type==="fusion");
  const pulse=events.find(e=>e.type==="pulse");
- assert(fusion&&pulse,"Stage-five fusion must create a real Pulse");
- assert.deepEqual(new Set(fusion.clearedMist),new Set([23,24,25]));
- assert.deepEqual(new Set(pulse.clearedMist),new Set([17,31]));
- assert.equal(g.progress(),5);
- assert.equal(g.mist[38],1,"Unhit mist must remain on its cell");
- assert.equal(g.mist.filter(Boolean).length,1);
- assert.equal(g.clearMist([23,23,24]).length,0,"Already cleansed cells cannot score again");
- const saved=g.save(),restored=new R.Game(10,saved,{fastRestore:true});
- assert.deepEqual(restored.mist,g.mist);
- assert.equal(restored.mistCleared,5);
- assert.equal(restored.progress(),5);
- const oldBefore=JSON.stringify(g.save());
- assert.equal(g.clearMist([38,38]).length,1);
- assert(g.fulfilled());
- assert.equal(g.mistCleared,6);
- assert.equal(g.mist.filter(Boolean).length,0);
- assert.notEqual(JSON.stringify(g.save()),oldBefore);
+ assert(fusion&&pulse,"The survivor must become a masterpiece and emit Pulse");
+ assert.equal(fusion.groups[0].at,24,"The strongest stage-4 piece must retain its cell");
+ assert.deepEqual(fusion.clearedMist,[24],"Only the upgraded survivor cell clears");
+ assert.deepEqual(pulse.clearedMist,[],"Pulse upgrades must never clear Mist");
+ assert.equal(fusion.mist[23],1,"Consumed mist-covered source must remain covered");
+ assert.equal(fusion.mist[25],1,"Other consumed source must remain covered");
+ assert.equal(pulse.mist[17],1,"Pulse target must remain covered");
+ assert.equal(pulse.mist[31],1,"Other Pulse target must remain covered");
+ assert.equal(fusion.goal,1,"The counter increments only for the survivor");
+ assert.equal(g.mist[24],0,"Survivor's fixed cell is now clear");
+ const snap=g.save(),resumed=new R.Game(10,snap,{fastRestore:true});
+ assert.deepEqual(resumed.mist,g.mist,"Cleared/foggy fixed cells persist after reload");
+ assert.equal(resumed.progress(),g.progress());
+ assert.equal(g.clearMist([24,24]).length,0,"A cleared cell cannot count twice");
+});
+check("Mist remains on matched source cells when fusion output is elsewhere",()=>{
+ const g=new R.Game(10,null,{seed:452,directorMode:"standard"});
+ g.config={...g.config,goal:{type:"mist",count:2}};
+ g.board=blank();
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.board[24].stage=3;
+ g.mist=Array(49).fill(0);g.mist[23]=1;g.mist[25]=1;
+ const fusion=g.resolve(-1).find(e=>e.type==="fusion");
+ assert.equal(fusion.groups[0].at,24);
+ assert.deepEqual(fusion.clearedMist,[],"Match across two mist cells is not sufficient");
+ assert.equal(fusion.mist[23],1);
+ assert.equal(fusion.mist[25],1);
+ assert.equal(fusion.goal,0);
+});
+check("Misted objects can still move in both directions and survive reload",()=>{
+ const g=new R.Game(10,null,{seed:141,directorMode:"v3"});
+ const pair=R.validSwaps(g.board)[0];
+ assert(pair,"A legal swap must exist");
+ const [a,b]=pair;
+ g.mist=Array(49).fill(0);g.mist[a]=1;g.mist[b]=1;
+ g.config={...g.config,goal:{type:"mist",count:2}};
+ const result=g.swap(a,b);
+ assert.equal(result.ok,true,"Fog is not a movement blocker");
+ assert(result.events.some(e=>e.type==="fusion"),"Legal swap resolves");
+ const everyCleared=result.events.flatMap(e=>e.clearedMist||[]);
+ const everySurvivor=result.events.filter(e=>e.type==="fusion").flatMap(e=>e.groups.map(group=>group.at));
+ assert(everyCleared.every(index=>everySurvivor.includes(index)),
+  "Every cleared mist position must be a fusion output, including cascades");
 });
 check("Collection bonuses accumulate indefinitely and persist when resuming",()=>{
  const g=fixture();

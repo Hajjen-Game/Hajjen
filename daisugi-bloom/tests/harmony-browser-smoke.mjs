@@ -138,7 +138,7 @@ try{
   assert.equal(await journal.$eval('.goshuin-stamp[data-level="13"]',x=>x.dataset.stars),"3");
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Första harmonin");
-  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",xs=>xs.length),10);
+  assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),10);
   assert.equal(await journal.$eval(".goshuin-chapter-sigil",x=>x.classList.contains("is-earned")),true);
   const layout=await journal.evaluate(()=>({
    width:innerWidth,doc:document.documentElement.scrollWidth,

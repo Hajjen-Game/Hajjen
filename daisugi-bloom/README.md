@@ -2,7 +2,7 @@
 
 ## Difficulty Floor 1.0 — 2026-10-24
 
-Nivå 14 kunde tidigare klaras på två drag trots att nivå 13 var utmanande. Fyrmatchningsnivåerna 6 och 14 kräver nu fyrmatchningar under **fyra olika drag**, så en lyckosam kedja aldrig räknas som flera separata beslut. Några korta icke-dim-mål efter nivå 5 har höjts försiktigt, medan dimbanornas placeringar och dragbudgetar är orörda. Redan påbörjade rundor behåller sina ursprungliga mål utan datarensning.
+Nivå 14 kunde tidigare klaras på två drag trots att nivå 13 var utmanande. Fyrmatchningsnivåerna 6 och 14 kräver nu fyrmatchningar under **fyra olika drag**, så en lyckosam kedja aldrig räknas som flera separata beslut. Även de alltför korta nivåerna 7 och 9 samt några andra icke-dim-mål har höjts försiktigt. Dimbanelayout och dragbudget är orörda. Redan påbörjade rundor behåller sina ursprungliga mål utan datarensning.
 
 [Designbeslut och tester](docs/DIFFICULTY_FLOOR_1_0.md)
 

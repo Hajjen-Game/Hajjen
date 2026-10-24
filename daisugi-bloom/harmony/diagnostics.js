@@ -201,7 +201,7 @@ function create(R){
  }
  function run(options={}){
   const all=jobs(options),runs=all.map(j=>play(j.level,j.seed,j.strategy,j.mode,options.mistLayoutVersion??2));
-  return {version:"engine-lab-4",gameVersion:"6.29.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-4",gameVersion:"6.29.1",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }
@@ -216,7 +216,7 @@ function create(R){
     await new Promise(resolve=>setTimeout(resolve,0));
    }
   }
-  return {version:"engine-lab-4",gameVersion:"6.29.0",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
+  return {version:"engine-lab-4",gameVersion:"6.29.1",options:{trials:options.trials??5,seed:options.seed??0x21a10bee,
    levels:options.levels??R.levels.map((_,i)=>i),strategies:options.strategies??STRATEGIES,modes:options.modes??["standard"]},
    results:summarize(runs),runs};
  }

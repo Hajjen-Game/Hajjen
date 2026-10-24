@@ -280,7 +280,7 @@ check("Curated 3-star move targets reward strategy, not merely clearing easy mis
 check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family mix",()=>{
  const goals=[
   ["fusion",3],["stage3",1],["masterpiece",1],["mist",3],["mist",4],
-  ["fourTurns",4],["stage3",5],["mist",5],["masterpiece",2],["mist",6],
+  ["fourTurns",4],["stage3",8],["mist",5],["masterpiece",3],["mist",6],
   ["fusion",20],["stage3",8],["mist",6],["fourTurns",4],["mist",7],
   ["pulseHits",9],["mist",8],["fusion",26],["mist",9],["masterpiece",4]
  ];
@@ -317,7 +317,7 @@ check("Difficulty Floor 1.0 requires distinct four-match turns, not cascade coun
 });
 check("Difficulty Floor 1.0 never changes a saved older objective or earned rating",()=>{
  const oldCases=[
-  [5,"four",2],[8,"masterpiece",1],[10,"fusion",15],
+  [5,"four",2],[6,"stage3",5],[8,"masterpiece",1],[10,"fusion",15],
   [11,"stage3",6],[13,"four",2],[15,"pulseHits",6],
   [17,"fusion",23],[19,"masterpiece",3]
  ];

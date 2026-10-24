@@ -1,5 +1,5 @@
 # Difficulty Floor 1.0 — Japanese Harmony
-Release 6.29.0 · 2026-10-24
+Release 6.29.1 · 2026-10-24
 
 ## Why
 A player reported Level 13 as challenging and Level 14 completed in two turns. The previous goal was simply two 4+ matches. Cascades can produce multiple 4+ groups in a single decision, making the level end almost immediately.
@@ -20,9 +20,10 @@ Baseline 10-seed goal-bot diagnostics (Director 3.0; NOT human completion probab
 ## Player-facing rules
 A new goal type `fourTurns` counts **individual player moves** that result in at least one 4+ match. Multiple 4+ groups and cascades caused by a single move count only once. Unlike arbitrary minimum-turn gates, the objective still requires a real skill action each time. Older `four` objectives are retained for existing saved runs.
 
-Changed levels:
+Changed levels (including follow-up smoothing for 7 and 9):
 - Level 6: fourTurns 4 (instead of 2 four-matches)
-- Level 9: two Masterpieces (was one)
+- Level 7: 8 stage-3 developments (was 5)
+- Level 9: 3 Masterpieces (was 1)
 - Level 11: 20 fusions (was 15)
 - Level 12: 8 developments to stage 3 (was 6)
 - Level 14: fourTurns 4 (instead of 2 four-matches)

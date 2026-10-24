@@ -40,9 +40,9 @@ const levels=[
  {name:"First Mist",subtitle:"Lär dig rena dimma",moves:30,par:15,goal:{type:"mist",count:3},intro:"Rena tre dimrutor. Fusionen rensar sin slutruta och Harmony Pulse kan nå grannrutor. Brickorna går att flytta fritt."},
  {name:"Harmony Garden",subtitle:"Din första riktiga dimutmaning",moves:32,par:17,goal:{type:"mist",count:4},intro:"Rena fyra dimrutor i en liten grupp. Välj var fusionen landar och sikta på Harmony Pulse."},
  {name:"Four of a Kind",subtitle:"Fyrmatchningar över flera drag",moves:28,par:13,goal:{type:"fourTurns",count:4},intro:"Skapa minst en fyrmatchning under fyra olika drag. Flera fyrmatchningar i samma kedja räknas som ett drag."},
- {name:"Growing Harmony",subtitle:"Vårda fem utvecklingar",moves:30,par:18,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3. Samma familj matchar i olika stadier."},
+ {name:"Growing Harmony",subtitle:"Vårda åtta utvecklingar",moves:30,par:18,goal:{type:"stage3",count:8},intro:"Utveckla åtta föremål till stadium 3. Samma familj matchar i olika stadier."},
  {name:"Misty Path",subtitle:"Två små dimfält",moves:33,par:20,goal:{type:"mist",count:5},intro:"Rena två separata dimgrupper. Placera fusioner där de gör nytta."},
- {name:"Masterpiece Garden",subtitle:"Två mästerverk i trädgården",moves:35,par:23,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk. Använd Harmony Pulse för att bygga vidare mot nästa."},
+ {name:"Masterpiece Garden",subtitle:"Tre mästerverk i trädgården",moves:35,par:23,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk. Använd Harmony Pulse för att bygga vidare mot nästa."},
  {name:"Garden of Harmony",subtitle:"Första kapitlets final",moves:36,par:23,goal:{type:"mist",count:6},intro:"Rena två dimfält. Mästerverk och smarta fusionspositioner hjälper dig."}
 ];
 const EARLY_JOURNEY=[
@@ -61,7 +61,7 @@ const EARLY_JOURNEY=[
 // resume an existing run; only fresh games use the stronger objective.
 // No reset or alteration of previously earned stars/records.
 const PRE_FLOOR_GOALS={
- 5:{type:"four",count:2},8:{type:"masterpiece",count:1},
+ 5:{type:"four",count:2},6:{type:"stage3",count:5},8:{type:"masterpiece",count:1},
  10:{type:"fusion",count:15},11:{type:"stage3",count:6},
  13:{type:"four",count:2},15:{type:"pulseHits",count:6},
  17:{type:"fusion",count:23},19:{type:"masterpiece",count:3}

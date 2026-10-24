@@ -1,5 +1,12 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Difficulty Floor 1.0 — 2026-10-24
+
+Nivå 14 kunde tidigare klaras på två drag trots att nivå 13 var utmanande. Fyrmatchningsnivåerna 6 och 14 kräver nu fyrmatchningar under **fyra olika drag**, så en lyckosam kedja aldrig räknas som flera separata beslut. Några korta icke-dim-mål efter nivå 5 har höjts försiktigt, medan dimbanornas placeringar och dragbudgetar är orörda. Redan påbörjade rundor behåller sina ursprungliga mål utan datarensning.
+
+[Designbeslut och tester](docs/DIFFICULTY_FLOOR_1_0.md)
+
+
 ## Main Menu Premium Lift 1.0 — 2026-10-24
 
 Huvudmenyn har fått en lugnare Midnight Garden-premiumkänsla med sakura-rosa, persiko-orange och guld. Toppfält, hero, kapitelruta, framstegsindikator och nivåkort har tydligare hierarki och bättre djup. Nästa upplåsta nivå har en subtil varm markering; redan klarade nivåer och låsta nivåer skiljs visuellt. Spelplan, regler, poäng, stjärnor och sparad progression är oförändrade.

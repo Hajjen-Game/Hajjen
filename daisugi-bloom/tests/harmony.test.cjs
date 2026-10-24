@@ -45,8 +45,8 @@ check("Intro 1–10 use four, level 11+ use five; seeded games keep the selected
 });
 check("First 20 redesign teaches core rules in five levels and Mist by level 4",()=>{
  const types=["fusion","stage3","masterpiece","mist","mist",
-  "four","stage3","mist","masterpiece","mist",
-  "fusion","stage3","mist","four","mist",
+  "fourTurns","stage3","mist","masterpiece","mist",
+  "fusion","stage3","mist","fourTurns","mist",
   "pulseHits","mist","fusion","mist","masterpiece"];
  assert.deepEqual(Array.from({length:20},(_,i)=>R.levelConfig(i).goal.type),types);
  const stage8=R.levelConfig(7);
@@ -280,9 +280,9 @@ check("Curated 3-star move targets reward strategy, not merely clearing easy mis
 check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family mix",()=>{
  const goals=[
   ["fusion",3],["stage3",1],["masterpiece",1],["mist",3],["mist",4],
-  ["four",2],["stage3",5],["mist",5],["masterpiece",1],["mist",6],
-  ["fusion",15],["stage3",6],["mist",6],["four",2],["mist",7],
-  ["pulseHits",6],["mist",8],["fusion",23],["mist",9],["masterpiece",3]
+  ["fourTurns",4],["stage3",5],["mist",5],["masterpiece",2],["mist",6],
+  ["fusion",20],["stage3",8],["mist",6],["fourTurns",4],["mist",7],
+  ["pulseHits",9],["mist",8],["fusion",26],["mist",9],["masterpiece",4]
  ];
  goals.forEach(([type,count],i)=>{
   const cfg=R.levelConfig(i);
@@ -293,6 +293,63 @@ check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family m
  });
  assert.equal(R.levelFamilyCount(9),4);
  assert.equal(R.levelFamilyCount(10),5);
+});
+check("Difficulty Floor 1.0 requires distinct four-match turns, not cascade count",()=>{
+ const g=new R.Game(13,null,{seed:101,directorMode:"standard"});
+ assert.deepEqual(g.config.goal,{type:"fourTurns",count:4});
+ assert.equal(g.goalText(),"Drag med fyrmatchning");
+ assert.equal(g.fourTurns,0);
+ // Two distant four-matches in the SAME resolve() simulate a player's
+ // cascade or simultaneous groups. Only one decision is counted.
+ g.board=blank();
+ for(const at of [8,9,10,11])g.board[at].family="sakura";
+ for(const at of [35,36,37,38])g.board[at].family="lantern";
+ const events=g.resolve(-1);
+ assert(events.filter(e=>e.type==="fusion").length>=1);
+ assert(g.fours>=2,"At least two four-matches actually happened");
+ assert.equal(g.fourTurns,1,"Two cascade matches cannot complete multiple required turns");
+ assert.equal(g.progress(),1);
+ assert(!g.complete);
+ const loaded=new R.Game(13,g.save(),{fastRestore:true});
+ assert.equal(loaded.fourTurns,1,"Distinct-turn progress survives save and resume");
+ assert.deepEqual(loaded.config.goal,{type:"fourTurns",count:4});
+ assert.equal(loaded.objectiveBalanceVersion,3);
+});
+check("Difficulty Floor 1.0 never changes a saved older objective or earned rating",()=>{
+ const oldCases=[
+  [5,"four",2],[8,"masterpiece",1],[10,"fusion",15],
+  [11,"stage3",6],[13,"four",2],[15,"pulseHits",6],
+  [17,"fusion",23],[19,"masterpiece",3]
+ ];
+ for(const [level,type,count] of oldCases){
+  const game=new R.Game(level,null,{seed:12345});
+  const saved=game.save();
+  saved.objectiveBalanceVersion=2;
+  saved.score=8765;
+  saved.starsAtGoal=2;saved.complete=true;
+  const restored=new R.Game(level,saved,{fastRestore:true});
+  assert.deepEqual(restored.config.goal,{type,count},"Legacy level "+(level+1));
+  assert.equal(restored.objectiveBalanceVersion,2);
+  assert.equal(restored.stars(),2);
+  assert.equal(restored.score,8765);
+  assert.equal(restored.moves,saved.moves);
+  assert.deepEqual(restored.board,saved.board);
+  assert.equal(new R.Game(level,restored.save(),{fastRestore:true}).target(),count);
+  const fresh=new R.Game(level,null,{seed:12345});
+  assert.equal(fresh.objectiveBalanceVersion,3);
+  assert.notDeepEqual(fresh.config.goal,restored.config.goal);
+ }
+});
+check("Difficulty Floor 1.0 prevents sub-four-turn Fourfold Festival completions",()=>{
+ const g=new R.Game(13,null,{seed:20261024,directorMode:"v3"});
+ for(let move=0;move<3;move++){
+  g.fours+=4;
+  g.fourTurns++;
+  assert(!g.fulfilled(),"Cannot finish the festival in "+(move+1)+" decisions");
+ }
+ assert(g.fulfilled()===false);
+ g.fourTurns++;assert(g.fulfilled());
+ assert.equal(g.target(),4);
 });
 check("Directed swap contract: both orientations preserve identical outcomes for legal two-family swaps",()=>{
  for(const level of [0,10,11])for(const seed of [111,222]){
@@ -329,8 +386,8 @@ check("save and resume preserve board, score, randomness position and stage mile
 });
 check("First twenty have stable hand-authored objectives, fewer repeated Mist levels and no difficulty cliff",()=>{
  const types=["fusion","stage3","masterpiece","mist","mist",
-  "four","stage3","mist","masterpiece","mist",
-  "fusion","stage3","mist","four","mist","pulseHits","mist","fusion","mist","masterpiece"];
+  "fourTurns","stage3","mist","masterpiece","mist",
+  "fusion","stage3","mist","fourTurns","mist","pulseHits","mist","fusion","mist","masterpiece"];
  assert.deepEqual(Array.from({length:20},(_,i)=>R.levelConfig(i).goal.type),types);
  assert.equal(types.slice(10).filter(type=>type==="mist").length,4);
  for(const level of [0,3,4,7,9,10,11,12,14,16,18,19,20,29,49,50,100,23000]){
@@ -416,7 +473,7 @@ check("The new level 13 preserves all Mist and moves when resuming a saved run",
  old.mistCleared=1;old.moves=9;old.score=3540;
  const restored=new R.Game(12,old,{fastRestore:true});
  assert.equal(restored.mistLayoutVersion,2);
- assert.equal(restored.objectiveBalanceVersion,2);
+ assert.equal(restored.objectiveBalanceVersion,3);
  assert.deepEqual(restored.mist,old.mist,"Fog positions cannot jump after resume");
  assert.equal(restored.mistCleared,1);
  assert.equal(restored.moves,9);assert.equal(restored.score,3540);
@@ -438,7 +495,7 @@ check("Redesign 1.0 never applies historical move expansion to current level 13 
  current.moves=6;current.mistCleared=2;current.score=1100;
  const snap=current.save();
  const restored=new R.Game(12,snap,{fastRestore:true});
- assert.equal(restored.objectiveBalanceVersion,2);
+ assert.equal(restored.objectiveBalanceVersion,3);
  assert.equal(restored.moves,6);
  assert.equal(restored.mistCleared,2);
  assert.equal(restored.score,1100);

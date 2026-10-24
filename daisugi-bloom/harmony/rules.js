@@ -39,24 +39,33 @@ const levels=[
  {name:"First Masterpiece",subtitle:"Ditt första mästerverk",moves:34,par:20,goal:{type:"masterpiece",count:1},intro:"Fusionera ett utvecklat föremål vidare till stadium 5. Då skapas ett mästerverk och Harmony Pulse."},
  {name:"First Mist",subtitle:"Lär dig rena dimma",moves:30,par:15,goal:{type:"mist",count:3},intro:"Rena tre dimrutor. Fusionen rensar sin slutruta och Harmony Pulse kan nå grannrutor. Brickorna går att flytta fritt."},
  {name:"Harmony Garden",subtitle:"Din första riktiga dimutmaning",moves:32,par:17,goal:{type:"mist",count:4},intro:"Rena fyra dimrutor i en liten grupp. Välj var fusionen landar och sikta på Harmony Pulse."},
- {name:"Four of a Kind",subtitle:"En längre matchning",moves:28,par:13,goal:{type:"four",count:2},intro:"Matcha minst fyra i rad för en bonusuppgradering. Detta är en vanlig nivå, inte en handledning."},
+ {name:"Four of a Kind",subtitle:"Fyrmatchningar över flera drag",moves:28,par:13,goal:{type:"fourTurns",count:4},intro:"Skapa minst en fyrmatchning under fyra olika drag. Flera fyrmatchningar i samma kedja räknas som ett drag."},
  {name:"Growing Harmony",subtitle:"Vårda fem utvecklingar",moves:30,par:18,goal:{type:"stage3",count:5},intro:"Utveckla fem föremål till stadium 3. Samma familj matchar i olika stadier."},
  {name:"Misty Path",subtitle:"Två små dimfält",moves:33,par:20,goal:{type:"mist",count:5},intro:"Rena två separata dimgrupper. Placera fusioner där de gör nytta."},
- {name:"Masterpiece Garden",subtitle:"Skapa ett nytt mästerverk",moves:35,par:23,goal:{type:"masterpiece",count:1},intro:"Skapa ett mästerverk och använd dess Harmony Pulse strategiskt."},
+ {name:"Masterpiece Garden",subtitle:"Två mästerverk i trädgården",moves:35,par:23,goal:{type:"masterpiece",count:2},intro:"Skapa två mästerverk. Använd Harmony Pulse för att bygga vidare mot nästa."},
  {name:"Garden of Harmony",subtitle:"Första kapitlets final",moves:36,par:23,goal:{type:"mist",count:6},intro:"Rena två dimfält. Mästerverk och smarta fusionspositioner hjälper dig."}
 ];
 const EARLY_JOURNEY=[
- {name:"New Friends",subtitle:"Fem familjer på spelplanen",moves:26,par:15,goal:{type:"fusion",count:15},intro:"En ny familj har tillkommit. Alla regler är desamma – gör femton fusioner."},
- {name:"Steady Growth",subtitle:"Odla med fler familjer",moves:31,par:20,goal:{type:"stage3",count:6},intro:"Utveckla sex föremål till stadium 3. Bygg vidare på dina starkaste föremål."},
+ {name:"New Friends",subtitle:"Fem familjer på spelplanen",moves:26,par:15,goal:{type:"fusion",count:20},intro:"En ny familj har tillkommit. Bygg tjugo fusioner för att lära känna den nya rytmen."},
+ {name:"Steady Growth",subtitle:"Odla med fler familjer",moves:31,par:20,goal:{type:"stage3",count:8},intro:"Utveckla åtta föremål till stadium 3. Bygg vidare på dina starkaste föremål."},
  {name:"Mist Garden",subtitle:"Två avgränsade dimfält",moves:36,par:22,goal:{type:"mist",count:6},intro:"Rena sex dimrutor i två små grupper med fusioner eller Harmony Pulse."},
- {name:"Fourfold Festival",subtitle:"Låt fyra mötas",moves:30,par:18,goal:{type:"four",count:2},intro:"Skapa två fyrmatchningar för extra uppgraderingar."},
+ {name:"Fourfold Festival",subtitle:"Fyrmatchningar med eftertanke",moves:30,par:18,goal:{type:"fourTurns",count:4},intro:"Skapa minst en fyrmatchning under fyra olika drag. Flera i samma kedja räknas bara som ett."},
  {name:"Moonlit Mist",subtitle:"Tre olika vägar",moves:37,par:23,goal:{type:"mist",count:7},intro:"Rena sju dimrutor som ligger i separata, strategiska grupper."},
- {name:"Harmony Awakening",subtitle:"Skapa en Pulse-kedja",moves:38,par:26,goal:{type:"pulseHits",count:6},intro:"Skapa ett mästerverk. Harmony Pulse måste träffa sex upptagna grannrutor."},
+ {name:"Harmony Awakening",subtitle:"Skapa en Pulse-kedja",moves:38,par:26,goal:{type:"pulseHits",count:9},intro:"Skapa mästerverk och låt Harmony Pulse förädla minst nio upptagna grannrutor."},
  {name:"Lantern Mist",subtitle:"Små fält, fler möjligheter",moves:40,par:25,goal:{type:"mist",count:8},intro:"Rena åtta dimrutor i flera små fält."},
- {name:"Fusion Festival",subtitle:"Bygg upp takten",moves:33,par:21,goal:{type:"fusion",count:23},intro:"Gör tjugotre fusioner. Mästerverk, Echo och andra kedjor ger bonuspoäng."},
+ {name:"Fusion Festival",subtitle:"Bygg upp takten",moves:33,par:21,goal:{type:"fusion",count:26},intro:"Gör tjugosex fusioner. Mästerverk, Echo och andra kedjor ger bonuspoäng."},
  {name:"Quiet Mist",subtitle:"Precision och Pulse",moves:41,par:27,goal:{type:"mist",count:9},intro:"Rena nio dimrutor utan att slösa dina välutvecklade föremål."},
- {name:"Masterpiece Celebration",subtitle:"Tre mästerverk",moves:43,par:32,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk. Du har fler drag än i de tidigare kapitlen."}
+ {name:"Masterpiece Celebration",subtitle:"Fyra mästerverk",moves:43,par:32,goal:{type:"masterpiece",count:4},intro:"Skapa fyra mästerverk. Du har fler drag än i de tidigare kapitlen."}
 ];
+// Difficulty Floor 1.0: preserve the previous mission contract when players
+// resume an existing run; only fresh games use the stronger objective.
+// No reset or alteration of previously earned stars/records.
+const PRE_FLOOR_GOALS={
+ 5:{type:"four",count:2},8:{type:"masterpiece",count:1},
+ 10:{type:"fusion",count:15},11:{type:"stage3",count:6},
+ 13:{type:"four",count:2},15:{type:"pulseHits",count:6},
+ 17:{type:"fusion",count:23},19:{type:"masterpiece",count:3}
+};
 // A level number is enough to recreate its configuration. This is the one
 // reusable level recipe for all stages after the 10-level tutorial.
 // After doubling moves, rebalance all score-based Journey star requirements
@@ -519,7 +528,9 @@ function objectiveAwarenessMetrics(board,goal,mist=Array(N*N).fill(0)){
       case "stage3":if(maxStage===2)immediate++;else if(maxStage===1)potential++;break;
       case "stage4":if(maxStage===3)immediate++;else if(maxStage===2)potential++;break;
       case "fusion":immediate++;break;
-      case "four":if(group.length>=4)immediate++;else if(group.length===3)potential++;break;
+      case "four":case "fourTurns":
+       if(group.length>=4)immediate=kind==="fourTurns"?1:immediate+1;
+       else if(group.length===3)potential++;break;
       case "shape":
        if(group.length>=5&&new Set(group.map(i=>Math.floor(i/N))).size>1&&
         new Set(group.map(i=>i%N)).size>1)immediate++;
@@ -658,12 +669,12 @@ class Game{
    startBoard(this.level,()=>this.fresh(),this.families);
   this.nextId=50;
   this.objectiveVersion=2;
-  this.objectiveBalanceVersion=this.level<20?2:1;
+  this.objectiveBalanceVersion=this.level<20?3:1;
   this.mistLayoutVersion=options?.mistLayoutVersion===1?1:2;
   this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count,this.mistLayoutVersion).includes(i))):Array(49).fill(0);
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
-  this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
+  this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   if(previous){
    Object.assign(this,previous);
@@ -675,6 +686,12 @@ class Game{
    // silently converted or has its star/completion requirements changed.
    const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
    this.config=isLegacyJourney?endlessScoreConfig(this.level):levelConfig(this.level);
+   // A saved round that started before Difficulty Floor retains its old
+   // target, even when a player resumes after a deployment.
+   const oldFloorGoal=!isLegacyJourney&&this.level<20&&
+    (previous.objectiveBalanceVersion??2)<3?PRE_FLOOR_GOALS[this.level]:null;
+   if(oldFloorGoal)this.config={...this.config,goal:{...oldFloorGoal}};
+   this.fourTurns=Number.isInteger(previous.fourTurns)?Math.max(0,previous.fourTurns):0;
    this.objectiveVersion=isLegacyJourney?1:2;
    // Old Objective 2.0 saves get the new move budget exactly once,
    // preserving actual moves already spent rather than resetting the run.
@@ -685,7 +702,8 @@ class Game{
     const spent=Math.max(0,oldBudget-(Number(previous.moves)||0));
     this.moves=Math.max(1,this.config.moves-spent);
    }
-   this.objectiveBalanceVersion=isLegacyJourney?0:this.level<20?2:1;
+   this.objectiveBalanceVersion=isLegacyJourney?0:this.level<20?
+    ((previous.objectiveBalanceVersion??2)<3?2:3):1;
    // Preserving an in-progress mask is intentional: old layouts are not
    // silently moved under an active player, even when nearly complete.
    this.mistLayoutVersion=Number.isInteger(previous.mistLayoutVersion)?previous.mistLayoutVersion:1;
@@ -833,11 +851,11 @@ class Game{
  }
  progress(){
   let g=this.config.goal;
-  switch(g.type){case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+  switch(g.type){case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
  }
  goalText(){
   let g=this.config.goal;
-  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
+  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",fourTurns:"Drag med fyrmatchning",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -860,6 +878,7 @@ class Game{
  // the swapped destination when it belongs to a match. A match formed only
  // at the swapped source lands there. Cascades keep the strongest-stage rule.
  resolve(preferred,armedLinks=[],alternate=-1){
+  const foursBefore=this.fours;
   let events=[],waveRound=0,echoAwarded=false;
   while(waveRound++<35){
    let groups=scan(this.board);if(!groups.length)break;
@@ -1000,6 +1019,9 @@ class Game{
    this.board=fairShuffle(this.board,()=>this.fresh());
    events.push(this.frame("shuffle"));
   }
+  // Cascades may contain several four-matches, but all are the result
+  // of ONE move. Count that move only once for fourTurns objectives.
+  if(this.fours>foursBefore)this.fourTurns++;
   if(!this.complete&&this.fulfilled()){
    this.complete=true;this.goalMove=this.config.moves-this.moves;
    this.starsAtGoal=this.rewardVersion===3?missionStars(this.config,this.goalMove):
@@ -1055,7 +1077,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

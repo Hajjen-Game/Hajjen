@@ -268,6 +268,8 @@ function renderMenu(){
     cfg.goal.type==="fusion"?cfg.goal.count+" fusioner":
     cfg.goal.type==="stage3"?cfg.goal.count+" utvecklingar":
     cfg.goal.type==="pulseHits"?cfg.goal.count+" Harmony Pulse-träffar":
+    cfg.goal.type==="fourTurns"?cfg.goal.count+" drag med fyrmatchning":
+    cfg.goal.type==="four"?cfg.goal.count+" fyrmatchningar":
     prettify(cfg.goal.count)+" poäng");
   d.append(title,sub);
   if(allowed&&record>0){

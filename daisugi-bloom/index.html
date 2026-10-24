@@ -5,14 +5,14 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Core Gameplay &amp; Clarity 1.0 · 6.24.0</title>
+ <title>Japanese Harmony · First 20 Levels Redesign 1.0 · 6.25.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.24.0-goal-first">
- <script defer src="./harmony/rules.js?v=6.24.0-completion-star"></script>
+ <script defer src="./harmony/rules.js?v=6.25.0-first20"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
- <script defer src="./harmony/diagnostics.js?v=6.24.0-directed-swaps"></script>
- <script defer src="./harmony/app.js?v=6.24.0-goal-results"></script>
+ <script defer src="./harmony/diagnostics.js?v=6.25.0-first20"></script>
+ <script defer src="./harmony/app.js?v=6.25.0-reset-and-levels"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -32,10 +32,10 @@
       <div class="hero-pills" aria-label="Spelprinciper"><span>Inga power-ups</span><span>Strategiska kedjor</span><span>Personliga rekord</span></div>
     </div>
     <div class="level-panel">
-      <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">First Harmony</h2><p id="chapterSubtitle">Nivå 1–10 lär dig spelet. Från nivå 11 väntar nya uppdrag och Harmony Mist.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
+      <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">First Harmony</h2><p id="chapterSubtitle">Fem korta introduktionsnivåer. Harmony Mist från nivå 4.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
       <div class="family-progression-note" aria-label="Objektfamiljer per nivå">
        <strong>✿ 4 familjer · nivå 1–10</strong>
-       <span>5 familjer från nivå 11</span>
+       <span>5 familjer från nivå 11 · mjuk övergång</span>
       </div>
       <details class="menu-advanced" id="menuAdvanced">
        <summary>Avancerat <span>Spelmotor och utvecklarinformation</span></summary>
@@ -52,7 +52,7 @@
        </div>
       </details>
       <div id="levelList" class="level-list"></div><nav id="levelPager" class="level-pager" aria-label="Bläddra mellan nivåer"></nav>
-      <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Spela om tidigare nivåer och förbättra dina poängrekord och stjärnor.</p></div>
+      <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Ny resa från nivå 1 – samma utmaning för alla. En stjärna per klarad nivå.</p></div>
     </div>
    </section>
    <section id="gameView" class="game-view" hidden>

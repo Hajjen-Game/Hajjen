@@ -47,7 +47,7 @@ const levels=[
 // After doubling moves, rebalance all score-based Journey star requirements
 // by +50%. Introduction levels 1–10 instead rate stars by goal timing.
 const JOURNEY_STAR_SCORE_MULTIPLIER=1.5;
-function endlessConfig(index){
+function endlessScoreConfig(index){
  const number=index+1,tier=Math.floor((index-10)/10);
  const moves=2*Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
  // Journey 6.6: actual mobile player records showed a sharp difficulty cliff
@@ -67,6 +67,54 @@ function endlessConfig(index){
  return {name:"Harmony Journey",subtitle:"Poängjakt · bana "+number,moves,par:0,
   goal:{type:"score",count:stars[0]},stars,
   intro:"Nå poängmålet för en stjärna. Fortsätt samla poäng för två eller tre stjärnor."};
+}
+// HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
+// a tangible objective. Score remains a side challenge / personal record.
+// Objectives are fixed by level index, never adjusted by Director or player.
+function endlessConfig(index){
+ const base=endlessScoreConfig(index),number=index+1;
+ const stage=(index-10)%10;
+ const chapter=Math.floor((index-10)/10);
+ const mistCount=Math.min(12,[6,8,0,9,0,10,0,11,0,12][stage]+Math.min(2,Math.floor(chapter/3)));
+ const quests=[
+  {type:"mist",count:mistCount},
+  {type:"mist",count:mistCount},
+  {type:"masterpiece",count:2+Math.min(1,Math.floor(chapter/2))},
+  {type:"mist",count:mistCount},
+  {type:"fusion",count:10+Math.min(5,chapter)},
+  {type:"mist",count:mistCount},
+  {type:"stage3",count:6+Math.min(4,chapter)},
+  {type:"mist",count:mistCount},
+  {type:"pulseHits",count:5+Math.min(4,chapter)},
+  {type:"mist",count:mistCount}
+ ];
+ const goal=quests[stage];
+ const mist=goal.type==="mist";
+ const label=mist?"Harmony Mist":goal.type==="masterpiece"?"Masterpiece Garden":
+  goal.type==="fusion"?"Harmony Fusion":goal.type==="stage3"?"Growing Harmony":"Harmony Pulse";
+ const description=mist?"Rena "+goal.count+" dimtäckta rutor. Matchningar och Harmony Pulse renar dimman.":
+  goal.type==="masterpiece"?"Skapa "+goal.count+" mästerverk för att återställa harmonin.":
+  goal.type==="fusion"?"Gör "+goal.count+" lyckade fusioner.":
+  goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
+  "Träffa "+goal.count+" föremål med Harmony Pulse.";
+ return {...base,name:label,subtitle:mist?"Rena trädgårdens magiska dimma":"Ett nytt harmonimål",
+  goal,par:mist?12+Math.min(5,chapter):goal.type==="masterpiece"?16+chapter:
+   goal.type==="fusion"?13+chapter:goal.type==="stage3"?15+chapter:18+chapter,
+  intro:description,objectiveVersion:2,chapter:number};
+}
+// Mist belongs to fixed BOARD CELLS (not falling objects). The patterns make
+// the first objectives legible, with small neighbouring clusters to reward
+// positional Pulse play; layouts are reproducible and use no gameplay RNG.
+function mistLayout(index,count){
+ if(!count)return [];
+ const pattern=[16,17,23,24,30,31,18,25,32,10,38,39,22,29];
+ const rotation=Math.floor((index-10)/3)%4;
+ const transform=i=>{
+  let r=Math.floor(i/7),c=i%7;
+  for(let k=0;k<rotation;k++)[r,c]=[c,6-r];
+  return r*7+c;
+ };
+ return pattern.slice(0,count).map(transform);
 }
 function levelConfig(index){return levels[index]||endlessConfig(index);}
 function scoreStars(index,score,previouslyWon=false){
@@ -371,11 +419,25 @@ class Game{
   this.board=options?.fastRestore&&previous?clone(previous.board):
    startBoard(this.level,()=>this.fresh(),this.families);
   this.nextId=50;
+  this.objectiveVersion=2;
+  this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count).includes(i))):Array(49).fill(0);
+  this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   if(previous){
-   Object.assign(this,previous);this.config=levelConfig(this.level);
+   Object.assign(this,previous);
+   // Continue older score-only Journey saves under their ORIGINAL goal.
+   // Freshly started levels receive Objectives 2.0; no existing run is
+   // silently converted or has its star/completion requirements changed.
+   const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
+   this.config=isLegacyJourney?endlessScoreConfig(this.level):levelConfig(this.level);
+   this.objectiveVersion=isLegacyJourney?1:2;
+   this.mist=this.objectiveVersion===2&&this.config.goal.type==="mist"&&
+    Array.isArray(previous.mist)&&previous.mist.length===49?
+    previous.mist.map(v=>v?1:0):Array(49).fill(0);
+   this.mistCleared=this.objectiveVersion===2&&this.config.goal.type==="mist"?
+    Math.max(0,Math.min(this.config.goal.count,Number(previous.mistCleared)||0)):0;
    // Existing snapshots without a family count are ALWAYS five-family runs.
    this.familyCount=previous.familyCount===4?4:5;
    this.families=activeFamilies(this.level,this.familyCount);
@@ -469,13 +531,21 @@ class Game{
   if(selected!==baseline)this.directorSelections=(this.directorSelections||0)+1;
  }
  target(){return this.config.goal.count;}
+ clearMist(positions){
+  if(this.config.goal.type!=="mist")return [];
+  const cleared=[];
+  for(const i of new Set(positions))if(Number.isInteger(i)&&i>=0&&i<49&&this.mist[i]){
+   this.mist[i]=0;this.mistCleared++;cleared.push(i);
+  }
+  return cleared;
+ }
  progress(){
   let g=this.config.goal;
-  switch(g.type){case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+  switch(g.type){case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
  }
  goalText(){
   let g=this.config.goal;
-  return ({score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
+  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -484,7 +554,7 @@ class Game{
   }
   return this.starsAtGoal||0;
  }
- frame(type,extra={}){return {type,board:clone(this.board),moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
+ frame(type,extra={}){return {type,board:clone(this.board),mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
   const p=this.board[i];if(!p||p.stage>=5)return false;
@@ -526,7 +596,10 @@ class Game{
     pts=Math.round(pts*(1+Math.min(3,waveRound-1)*.25));earned+=pts;
     records.push({at:survivor,from:before,to:p.stage,family:p.family,removed:indices.filter(i=>i!==survivor),number,shape,points:pts});
    }
-   this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,scoreDelta:earned}));
+   // Both the surviving object and every consumed source count as a match
+   // touching that CELL. Cascades count, but no cell can be cleared twice.
+   const clearedMist=this.clearMist(groups.flat());
+   this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,clearedMist,scoreDelta:earned}));
    if(!echoAwarded&&echoCandidate){
     const record=records.find(record=>echoCandidate.indices.includes(record.at));
     if(record){
@@ -562,7 +635,12 @@ class Game{
        if(this.board[to].stage===5)next.push(to);
       }
      }
-     if(targets.length){chainHits+=targets.length;this.pulseHits+=targets.length;let points=targets.length*75;this.score+=points;events.push(this.frame("pulse",{sources:active,targets,wave,scoreDelta:points}));}
+     if(targets.length){
+      const clearedMist=this.clearMist(targets.map(t=>t.to));
+      chainHits+=targets.length;this.pulseHits+=targets.length;
+      let points=targets.length*75;this.score+=points;
+      events.push(this.frame("pulse",{sources:active,targets,wave,clearedMist,scoreDelta:points}));
+     }
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];
     }
@@ -651,7 +729,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {objectiveVersion:this.objectiveVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

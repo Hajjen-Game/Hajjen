@@ -1741,6 +1741,67 @@ try{
   }));
   assert(ryu.families.includes("Ryu-drake")&&ryu.visible,
    "Level 5 should display Ryu's atlas sprite in the four-family game");
+ // Core Gameplay & Clarity 1.0: real mobile completion should show the
+ // result immediately without consuming the player's remaining moves.
+ const clarityContext=await browser.createBrowserContext();
+ try{
+  const clarity=await clarityContext.newPage();
+  await clarity.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await clarity.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  await clarity.evaluate(()=>{
+   const R=window.HarmonyRules;
+   const g=new R.Game(0,null,{seed:20261024,directorMode:"v311"});
+   g.fusions=g.target()-1;
+   g.moves=15;
+   const key="japanese-harmony-puzzle-v2";
+   const store=JSON.parse(localStorage.getItem(key));
+   store.unlocked=0;store.run={level:0,data:g.save()};
+   store.sound=false;store.reduceMotion=true;
+   localStorage.setItem(key,JSON.stringify(store));
+  });
+  await clarity.reload({waitUntil:"networkidle2"});
+  await clarity.click("#continueButton");
+  const finishingPair=await clarity.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return window.HarmonyRules.validSwaps(saved.board)[0];
+  });
+  await clarity.evaluate(([a,b])=>{
+   document.querySelector('.tile[data-index="'+a+'"]').click();
+   document.querySelector('.tile[data-index="'+b+'"]').click();
+  },finishingPair);
+  await clarity.waitForFunction(()=>{
+   const dialog=document.querySelector("#modal");
+   return !dialog.hidden&&dialog.querySelector("#modalTitle")?.textContent==="Vilken harmoni!";
+  },{timeout:35000});
+  const reached=await clarity.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {star:data.run?.data?.starsAtGoal,version:data.run?.data?.rewardVersion,
+    remaining:data.run?.data?.moves,completed:data.run?.data?.complete,
+    starText:document.querySelector(".big-stars")?.textContent,
+    buttons:[...document.querySelectorAll("#modalActions button")].map(x=>x.textContent),
+    scoreLabel:document.querySelector(".hud-score .hud-label")?.textContent,
+    progress:document.querySelector("#goalProgress")?.textContent};
+  });
+  assert.equal(reached.version,2);
+  assert.equal(reached.star,1);
+  assert(reached.completed&&reached.remaining>0,"Completion must retain optional turns");
+  assert.equal(reached.starText,"★ NIVÅ KLAR");
+  assert(reached.buttons.includes("Nästa nivå →")&&reached.buttons.includes("Fortsätt för poängrekord"));
+  assert.equal(reached.scoreLabel,"BONUSPOÄNG");
+  await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Fortsätt för poängrekord")).click());
+  assert.equal(await clarity.$eval("#modal",x=>x.hidden),true,
+   "Voluntary record play must resume immediately");
+  assert.equal(await clarity.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.complete),true);
+  await clarity.click("#pauseButton");
+  await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent==="Avsluta med resultat").click());
+  const archived=await clarity.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {record:data.fourFamilyStars["0"],unlocked:data.unlocked,run:data.run};
+  });
+  assert.equal(archived.record,1,"New wins archive a single star");
+  assert(archived.unlocked>=1,"Completion must unlock the next stage");
+  assert.equal(archived.run,null,"Finishing should close the saved run");
+ }finally{await clarityContext.close();}
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

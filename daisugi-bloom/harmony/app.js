@@ -516,10 +516,12 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  if(btn.dataset.mist!==(misted?"1":"0")){
+  const label=piece?names[piece.family]+", stadium "+piece.stage+", ruta "+
+   (Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
+  const accessible=label+(misted?", magisk dimma":"");
+  if(btn.dataset.mist!==(misted?"1":"0")||btn.getAttribute("aria-label")!==accessible){
    btn.dataset.mist=misted?"1":"0";
-   const label=piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
-   btn.setAttribute("aria-label",label+(misted?", magisk dimma":""));
+   btn.setAttribute("aria-label",accessible);
   }
   const cls="tile"+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+

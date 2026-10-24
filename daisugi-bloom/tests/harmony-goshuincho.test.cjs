@@ -76,4 +76,32 @@ check("Invalid archive star values are safely clamped",()=>{
  assert.equal(G.archivedStars(state,2),2);
  assert.equal(G.archivedStars(state,3),0);
 });
-console.log("Goshuincho Collection 1.0 tests passed.");
+check("Level Select 2.0 distinguishes current, past, locked and no-star playable cells",()=>{
+ const state={unlocked:24,bestStars:{20:2,22:3},fourFamilyStars:{0:1},
+  bestScores:{20:6000},fourFamilyScores:{}};
+ const old=G.levelStatus(state,20);
+ assert.deepEqual(old,{playable:true,earned:true,stars:2,isCurrent:false,resumable:false,locked:false});
+ const current=G.levelStatus(state,24);
+ assert.equal(current.playable,true);assert.equal(current.isCurrent,true);
+ assert.equal(current.earned,false);assert.equal(current.resumable,false);
+ const locked=G.levelStatus(state,25);
+ assert.equal(locked.playable,false);assert.equal(locked.locked,true);
+ assert.equal(locked.earned,false);
+ const page=G.chapterSnapshot(state,2);
+ assert.equal(page.stamps.find(x=>x.level===24).isCurrent,true);
+ assert.equal(page.stamps.find(x=>x.level===25).locked,true);
+ assert.equal(page.stamps.find(x=>x.level===20).earned,true);
+});
+check("An in-progress run enables resume only for its own available level",()=>{
+ const state={unlocked:24,bestStars:{},fourFamilyStars:{},
+  run:{level:24,data:{moves:11,failed:false,score:4000}}};
+ assert.equal(G.levelStatus(state,24).resumable,true);
+ assert.equal(G.levelStatus(state,23).resumable,false);
+ state.run.data.failed=true;
+ assert.equal(G.levelStatus(state,24).resumable,false);
+ state.run.data.failed=false;state.run.data.moves=0;
+ assert.equal(G.levelStatus(state,24).resumable,false);
+ state.run.level=30;state.run.data.moves=10;
+ assert.equal(G.levelStatus(state,30).resumable,false,"Locked future cannot resume");
+});
+console.log("Goshuincho Collection 2.0 tests passed.");

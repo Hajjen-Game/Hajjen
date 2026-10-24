@@ -4080,3 +4080,152 @@ body.harmony-reduced-motion .menu-view .level-tile{
 @media(prefers-reduced-motion:reduce){
  .goshuin-art,.goshuin-stamp{transition:none!important}
 }
+
+
+/* Goshuincho Level Select 2.0 — functional states and a deliberate
+   preview-then-play action. The original level list is retained unchanged. */
+.goshuin-stamp{
+ transition:border-color .13s,background .13s,box-shadow .13s;
+ -webkit-tap-highlight-color:transparent;
+}
+.goshuin-stamp.is-locked{
+ cursor:help;
+ opacity:.61;
+ filter:saturate(.62);
+ background:rgba(156,140,119,.16);
+ border-style:dashed;
+}
+.goshuin-stamp.is-locked .goshuin-stamp-slot{
+ border-color:rgba(129,117,107,.45);
+ background:rgba(172,158,140,.12);
+}
+.goshuin-stamp.is-current,
+.goshuin-stamp.is-in-progress{
+ opacity:1;
+ border:2px solid #aa6761;
+ background:linear-gradient(155deg,#fff0db,#f8d9b7);
+ box-shadow:0 0 0 2px rgba(177,98,92,.12),inset 0 1px rgba(255,255,255,.86);
+}
+.goshuin-stamp.is-current .goshuin-stamp-slot,
+.goshuin-stamp.is-in-progress .goshuin-stamp-slot{
+ border-style:solid;
+ border-color:#bc7271;
+ background:rgba(244,179,154,.20);
+}
+.goshuin-stamp.is-available{
+ background:rgba(253,242,226,.72);
+ border-color:rgba(168,101,93,.45);
+}
+.goshuin-stamp.is-available .goshuin-stamp-slot{
+ border-style:solid;
+ border-color:#bf9b80;
+}
+.goshuin-stamp.is-selected{
+ outline:2px solid #a35160;
+ outline-offset:1px;
+ box-shadow:0 0 0 3px rgba(247,214,183,.7);
+}
+.goshuin-stamp.is-locked.is-selected{
+ opacity:.88;
+ outline-color:#857166;
+}
+.goshuin-stamp .goshuin-locked{
+ color:#865651;
+ font-weight:800;
+ white-space:nowrap;
+}
+.goshuin-stamp.is-locked .goshuin-locked{color:#86766c}
+.goshuin-level-detail{
+ display:grid;
+ gap:6px;
+ margin-top:2px;
+ padding:10px;
+ border:1px solid rgba(154,97,79,.37);
+ border-radius:11px;
+ background:rgba(255,249,233,.74);
+ color:#5e4941;
+ scroll-margin:14px;
+}
+.goshuin-level-heading{
+ display:flex;
+ align-items:start;
+ justify-content:space-between;
+ gap:8px;
+}
+.goshuin-level-heading-text{
+ display:grid;
+ gap:3px;
+ min-width:0;
+ flex:1;
+}
+.goshuin-level-status{
+ color:#ad6266;
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:.09em;
+ line-height:1.2;
+}
+.goshuin-level-title{
+ color:#543d38;
+ font-family:Georgia,"Times New Roman",serif;
+ font-size:clamp(14px,3.5vw,19px);
+ line-height:1.2;
+}
+.goshuin-level-rating{
+ color:#b1793a;
+ font-size:16px;
+ white-space:nowrap;
+ letter-spacing:-.04em;
+}
+.goshuin-level-detail .goshuin-detail{
+ margin:0;
+ text-align:left;
+ color:#72594e;
+ line-height:1.4;
+ font-size:11px;
+}
+.goshuin-level-objective{
+ margin:0;
+ color:#754f46;
+ font-size:11px;
+ font-weight:800;
+ line-height:1.45;
+}
+.goshuin-level-record{
+ margin:0;
+ font-size:10px;
+ color:#8e6c54;
+ line-height:1.3;
+}
+.goshuin-level-detail .goshuin-play{
+ display:block;
+ width:100%;
+ min-height:43px;
+ margin-top:3px;
+ padding:8px 11px;
+ border:1px solid #be8e63;
+ border-radius:9px;
+ background:linear-gradient(130deg,#f6d29a,#efac91);
+ color:#342f2c;
+ font-size:13px;
+ font-weight:850;
+ cursor:pointer;
+}
+.goshuin-level-detail .goshuin-play:focus-visible{
+ outline:2px solid #aa5c68;
+ outline-offset:2px;
+}
+.goshuin-level-detail .goshuin-play:disabled{
+ opacity:.55;
+ cursor:not-allowed;
+ filter:grayscale(.30);
+}
+.goshuin-stamp.is-current .goshuin-locked,
+.goshuin-stamp.is-in-progress .goshuin-locked{color:#a8515c}
+@media(max-width:390px){
+ .goshuin-level-detail{padding:8px;gap:5px}
+ .goshuin-level-detail .goshuin-play{min-height:42px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .goshuin-stamp{transition:none!important}
+}

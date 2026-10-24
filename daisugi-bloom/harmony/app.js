@@ -311,9 +311,9 @@ function renderMenu(){
  const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
  $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(save.unlocked+1)+" →";
 }
-// Goshuincho Collection 1.0 — read-only presentation of the EXISTING
-// level and star archive. A separate artwork manifest permits future PNG/WebP
-// replacements without touching the level logic or HTML templates.
+// Goshuincho Level Select 2.0 — the book reuses the EXISTING progression,
+// launch/resume behaviour, and save archives. The old level list stays live.
+// Individual stamp, grade and chapter art slots remain independently swappable.
 function goshuinArtwork(slot,kind,key){
  const url=G.artUrl(kind,key);
  if(!url)return;
@@ -351,7 +351,7 @@ function renderGoshuincho(){
  const album=goshuinNode("div","goshuincho-book");
  album.setAttribute("aria-label","Goshuincho, kapitel "+info.number);
  const intro=goshuinNode("p","goshuin-intro",
-  "Din samling av fiktiva resestämplar. Varje klarad nivå får ett avtryck och fler stjärnor förädlar sigillet.");
+  "Din nivåresa i en samlarbok. Välj en stämpel för att se nivåmålet och spela. Dina stjärnor förädlar avtrycken.");
  album.append(intro);
  const totals=goshuinNode("div","goshuin-totals");
  totals.append(goshuinNode("strong","",summary.earned+" stämplar"),
@@ -389,19 +389,88 @@ function renderGoshuincho(){
  page.append(chapterStatus);
  const stamps=goshuinNode("div","goshuin-stamp-grid");
  stamps.setAttribute("aria-label","Nivåstämplar för kapitel "+info.number);
- const note=goshuinNode("p","goshuin-detail",
-  "Välj en stämpel för att se dess framsteg.");
+ const detail=goshuinNode("section","goshuin-level-detail");
+ detail.setAttribute("aria-label","Vald nivå");
+ const note=goshuinNode("p","goshuin-detail","Välj en stämpel för att läsa om nivån.");
+ detail.append(note);
+ const describeGoal=cfg=>{
+  const goal=cfg.goal||{},count=goal.count;
+  return goal.type==="mist"?count+" dimrutor":
+   goal.type==="daruma"?count+" Daruma":
+   goal.type==="masterpiece"?count+" mästerverk":
+   goal.type==="fusion"?count+" fusioner":
+   goal.type==="stage3"?count+" utvecklingar till stadium 3":
+   goal.type==="stage4"?count+" utvecklingar till stadium 4":
+   goal.type==="pulseHits"?count+" Harmony Pulse-träffar":
+   goal.type==="fourTurns"?count+" olika drag med fyrmatchning":
+   goal.type==="four"?count+" fyrmatchningar":
+   goal.type==="shape"?count+" T-/L-matchningar":
+   goal.type==="score"?prettify(count)+" poäng":
+   cfg.subtitle||"Slutför nivåmålet";
+ };
+ const chooseStamp=(stamp,tile)=>{
+  // A stamp selects its stage; an explicit button STARTS the stage.
+  // Browsing and tapping locked stamps never changes the game/save.
+  for(const other of stamps.children){
+   other.classList.toggle("is-selected",other===tile);
+   other.setAttribute("aria-pressed",other===tile?"true":"false");
+  }
+  const cfg=R.levelConfig(stamp.level);
+  const status=stamp.locked?"LÅST":
+   stamp.resumable?"PÅBÖRJAD":
+   stamp.isCurrent?"NÄSTA NIVÅ":
+   stamp.earned?"KLARAD":"UPPLÅST";
+  const record=Number(recordsForLevel(stamp.level)[stamp.level])||0;
+  detail.replaceChildren();
+  const header=goshuinNode("div","goshuin-level-heading");
+  const heading=goshuinNode("div","goshuin-level-heading-text");
+  heading.append(goshuinNode("span","goshuin-level-status",status),
+   goshuinNode("strong","goshuin-level-title","Nivå "+stamp.number+" · "+cfg.name));
+  header.append(heading);
+  if(stamp.earned)header.append(goshuinNode("span","goshuin-level-rating",
+   "★".repeat(stamp.stars)+"☆".repeat(3-stamp.stars)));
+  detail.append(header);
+  note.textContent=stamp.locked?"Nivå "+stamp.number+" är låst. Klara föregående nivå för att låsa upp den.":
+   stamp.earned?"Nivå "+stamp.number+" · "+stamp.stars+" av 3 stjärnor. Du kan spela om nivån för ett bättre betyg.":
+   stamp.resumable?"Nivå "+stamp.number+" är påbörjad. Fortsätt där du slutade.":
+   "Nivå "+stamp.number+" är redo att spelas.";
+  detail.append(note);
+  const objective=goshuinNode("p","goshuin-level-objective",
+   cfg.moves+" drag · Mål: "+describeGoal(cfg));
+  detail.append(objective);
+  if(record>0)detail.append(goshuinNode("p","goshuin-level-record",
+   "Rekord: "+prettify(record)+" poäng"));
+  const play=goshuinNode("button","goshuin-play primary",
+   stamp.resumable?"Fortsätt nivå "+stamp.number+" →":
+   stamp.earned?"Spela nivå "+stamp.number+" igen →":"Spela nivå "+stamp.number+" →");
+  play.type="button";play.disabled=stamp.locked;
+  play.setAttribute("aria-label",stamp.locked?"Nivå "+stamp.number+" är låst":play.textContent);
+  play.addEventListener("click",()=>{
+   // Guard again at activation time, using the exact same unlock boundary
+   // as the original list. Never allow preview/future chapters to be started.
+   const latest=G.levelStatus(save,stamp.level);
+   if(!latest.playable)return;
+   startLevel(stamp.level,latest.resumable);
+  });
+  detail.append(play);
+ };
  for(const stamp of info.stamps){
-  const tile=goshuinNode("button","goshuin-stamp"+(stamp.earned?" is-earned":" is-empty"));
+  const state=stamp.locked?"is-locked":stamp.resumable?"is-in-progress":
+   stamp.isCurrent?"is-current":stamp.earned?"is-earned":"is-available";
+  const tile=goshuinNode("button","goshuin-stamp "+state+(stamp.earned?" is-earned":" is-empty"));
   tile.type="button";
   tile.dataset.level=String(stamp.number);
   tile.dataset.artKey=stamp.artKey;
   tile.dataset.stars=String(stamp.stars);
+  tile.dataset.state=state;
+  tile.setAttribute("aria-pressed","false");
+  if(stamp.isCurrent)tile.setAttribute("aria-current","step");
   tile.setAttribute("aria-label","Nivå "+stamp.number+": "+
-   (stamp.earned?stamp.stars+" av 3 stjärnor":"ingen stämpel ännu"));
+   (stamp.locked?"låst":stamp.resumable?"påbörjad":stamp.isCurrent?"nästa nivå":
+    stamp.earned?"klarad, "+stamp.stars+" av 3 stjärnor":"upplåst"));
   const slot=goshuinNode("span","goshuin-stamp-slot");
   slot.dataset.artKey=stamp.artKey;
-  slot.append(goshuinNode("span","goshuin-slot-fallback",stamp.earned?info.symbol:"·"));
+  slot.append(goshuinNode("span","goshuin-slot-fallback",stamp.earned?info.symbol:stamp.locked?"·":"✿"));
   if(stamp.earned)goshuinArtwork(slot,"stamps",stamp.level);
   const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
   tile.append(slot,levelLabel);
@@ -412,15 +481,20 @@ function renderGoshuincho(){
    grade.append(goshuinNode("span","goshuin-slot-fallback","★".repeat(stamp.stars)));
    goshuinArtwork(grade,"grades",stamp.stars);
    tile.append(grade);
-  }else tile.append(goshuinNode("span","goshuin-locked","Ej samlad"));
-  tile.addEventListener("click",()=>{
-   note.textContent=stamp.earned?"Nivå "+stamp.number+" · "+stamp.stars+
-    " av 3 stjärnor. Spela om nivån för att förbättra avtrycket.":
-    "Nivå "+stamp.number+" väntar på att bli klarad.";
-  });
+  }else tile.append(goshuinNode("span","goshuin-locked",
+   stamp.locked?"🔒 Låst":stamp.resumable?"Pågår":stamp.isCurrent?"Nästa":"Spelbar"));
+  tile.addEventListener("click",()=>chooseStamp(stamp,tile));
   stamps.append(tile);
  }
- page.append(stamps,note);
+ page.append(stamps,detail);
+ // Opening the active chapter provides a one-tap continuation action,
+ // while earlier and future preview chapters require deliberate selection.
+ const recommended=info.stamps.find(stamp=>stamp.resumable)||
+  info.stamps.find(stamp=>stamp.isCurrent);
+ if(recommended){
+  const button=stamps.querySelector('[data-level="'+recommended.number+'"]');
+  if(button)chooseStamp(recommended,button);
+ }
  const sigil=goshuinNode("div","goshuin-chapter-sigil"+(info.completed?" is-earned":""));
  sigil.dataset.artKey=info.artKey+"-complete";
  sigil.append(goshuinNode("span","goshuin-sigil-mark",info.completed?"✦":"○"),

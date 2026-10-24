@@ -1,4 +1,4 @@
-/* Japanese Harmony · Goshuincho Collection 1.0
+/* Japanese Harmony · Goshuincho Level Select 2.0
  * Fictional travel-stamp album inspired by Japan's goshuincho tradition.
  * Pure read-only projections of the existing star archive: no new currency,
  * save migration, unlocks, gameplay mutations, or real shrine stamps.
@@ -44,14 +44,23 @@ function chapter(index){
  return {index:n,first:n*CHAPTER_SIZE,last:n*CHAPTER_SIZE+CHAPTER_SIZE-1,
   number:n+1,artKey:"chapter-"+String(n+1).padStart(2,"0"),...idea};
 }
+function levelStatus(state,index){
+ const current=Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
+ const playable=Number.isInteger(index)&&index>=0&&index<=current;
+ const stars=archivedStars(state,index);
+ const run=state?.run;
+ const resumable=playable&&run?.level===index&&run?.data&&
+  Number(run.data.moves)>0&&!run.data.failed;
+ return {playable,earned:stars>0,stars,isCurrent:playable&&index===current,
+  resumable:!!resumable,locked:!playable};
+}
 function chapterSnapshot(state,index){
  const meta=chapter(index);
  const stamps=Array.from({length:CHAPTER_SIZE},(_,offset)=>{
-  const level=meta.first+offset,stars=archivedStars(state,level);
-  const current=Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
-  return {level,number:level+1,stars,earned:stars>0,
-   playable:level<=current,artKey:"level-"+String(level+1).padStart(3,"0"),
-   gradeKey:"stars-"+stars};
+  const level=meta.first+offset,status=levelStatus(state,level);
+  return {level,number:level+1,...status,
+   artKey:"level-"+String(level+1).padStart(3,"0"),
+   gradeKey:"stars-"+status.stars};
  });
  const earned=stamps.filter(s=>s.earned).length;
  return {...meta,stamps,earned,stars:stamps.reduce((a,s)=>a+s.stars,0),
@@ -75,7 +84,7 @@ function artUrl(type,key){
  return dictionary&&Object.prototype.hasOwnProperty.call(dictionary,key)?
   dictionary[key]:null;
 }
-const api={CHAPTER_SIZE,ART,archivedStars,chapter,chapterSnapshot,summary,artUrl};
+const api={CHAPTER_SIZE,ART,archivedStars,levelStatus,chapter,chapterSnapshot,summary,artUrl};
 root.HarmonyGoshuincho=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

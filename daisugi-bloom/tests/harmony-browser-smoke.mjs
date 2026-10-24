@@ -132,6 +132,22 @@ try{
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Darumas önskan");
   assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.level),"21");
   assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.stars),"1");
+  // Level Select 2.0: same book serves as a level browser without mutating
+  // progress or bypassing existing stage unlocks.
+  assert.equal(await journal.$eval('.goshuin-stamp[data-level="22"]',
+   x=>x.classList.contains("is-current")),true);
+  assert.equal(await journal.$eval(".goshuin-play",x=>x.textContent),"Spela nivå 22 →");
+  assert.equal(await journal.$eval(".goshuin-play",x=>x.disabled),false);
+  await journal.click('.goshuin-stamp[data-level="23"]');
+  assert.equal(await journal.$eval('.goshuin-stamp[data-level="23"]',
+   x=>x.dataset.state),"is-locked");
+  assert.equal(await journal.$eval(".goshuin-play",x=>x.disabled),true,
+   "Locked stages must never launch from the book");
+  assert((await journal.$eval(".goshuin-detail",x=>x.textContent)).includes("låst"));
+  assert.equal(await journal.$eval("#gameView",x=>x.hidden),true);
+  await journal.click('.goshuin-stamp[data-level="21"]');
+  assert.equal(await journal.$eval(".goshuin-play",x=>x.textContent),"Spela nivå 21 igen →");
+  assert((await journal.$eval(".goshuin-level-objective",x=>x.textContent)).includes("Daruma"));
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
   assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),2);
@@ -174,7 +190,47 @@ try{
   await journal.click(".goshuin-close");
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
   assert.equal(await journal.$eval(".level-tile.is-current",x=>x.getAttribute("aria-current")),"step");
+  assert.equal(await journal.$$eval(".level-tile",els=>els.length),20,
+   "The original twenty-row level list stays available during migration");
+  // Replaying a completed stage via the BOOK routes to the existing startLevel.
+  await journal.click("#goshuinButton");
+  await journal.click('.goshuin-stamp[data-level="21"]');
+  assert.equal(await journal.$eval(".goshuin-play",x=>x.disabled),false);
+  await journal.click(".goshuin-play");
+  assert.equal(await journal.$eval("#gameView",x=>x.hidden),false);
+  assert.equal(await journal.$eval("#levelNumber",x=>x.textContent),"NIVÅ 21");
+  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
  }finally{await journalContext.close();}
+ // Resume is a separate launch path and must reuse the exact saved board,
+ // moves and score. Opening/inspecting the book itself is read-only.
+ const resumeJournalContext=await browser.createBrowserContext();
+ try{
+  const rp=await resumeJournalContext.newPage();
+  await rp.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await rp.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await rp.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const data=JSON.parse(localStorage.getItem(key));
+   data.unlocked=24;
+   const g=new window.HarmonyRules.Game(24,null,{seed:54321,directorMode:"v3"});
+   const saved=g.save();
+   saved.moves=11;saved.score=4102;
+   data.run={level:24,data:saved,backgroundId:0};
+   localStorage.setItem(key,JSON.stringify(data));
+  });
+  await rp.reload({waitUntil:"networkidle2"});
+  await rp.click("#goshuinButton");
+  assert.equal(await rp.$eval(".goshuin-stamp.is-in-progress",x=>x.dataset.level),"25");
+  assert.equal(await rp.$eval(".goshuin-play",x=>x.textContent),"Fortsätt nivå 25 →");
+  assert.equal(await rp.$eval(".goshuin-level-status",x=>x.textContent),"PÅBÖRJAD");
+  assert.equal(await rp.$eval(".goshuin-play",x=>x.disabled),false);
+  await rp.click(".goshuin-play");
+  assert.equal(await rp.$eval("#gameView",x=>x.hidden),false);
+  assert.equal(await rp.$eval("#levelNumber",x=>x.textContent),"NIVÅ 25");
+  assert.equal(await rp.$eval("#movesCount",x=>Number(x.textContent)),11);
+  assert.equal(await rp.$eval("#scoreCount",x=>Number(x.textContent.replaceAll(" ","").replaceAll("\u00a0",""))),4102);
+  assert.equal(await rp.$eval("#modal",x=>x.hidden),true);
+ }finally{await resumeJournalContext.close();}
  await page.$eval("#menuAdvanced",e=>e.open=true);
  const advancedVisible=await page.$eval("#gameDirectorMode",e=>getComputedStyle(e).display);
  assert.notEqual(advancedVisible,"none","Advanced Director choice remains available");

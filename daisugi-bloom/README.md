@@ -1,5 +1,11 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Goshuincho Level Select 2.0 — 2026-10-24
+
+Väg B: **den vanliga nivålistan finns kvar** medan Goshuincho utvecklas till den framtida primära nivåkartan. Tryck på en stämpel i boken för att se nivånamn, mål, dragbudget, rekord och stjärnor, och starta sedan via en tydlig Spela-knapp. Påbörjade rundor visar Fortsätt och använder samma sparfil som huvudmenyn. Nästa nivå markeras; låsta nivåer är synliga men går inte att starta. Kapitelbläddring och befintliga tre separata bildplatser behålls. Ingen datarensning och ingen ekonomifunktion. Läs [Goshuincho Level Select 2.0](docs/GOSHUINCHO_LEVEL_SELECT_2_0.md).
+
+
+
 ## Goshuincho Collection 1.0 — 2026-10-24
 
 Ny mobilanpassad samlarbok i huvudmenyn: en fiktiv, goshuincho-inspirerad resebok med kapitel om tio nivåer, en samlingsstämpel per klarad nivå, separata 1–3-stjärnorssigill och ett kapitelsigill när alla tio nivåerna är fullbordade. Stjärnor och stämplar räknas från befintliga sparade resultat. Ingen ny sparfil, valuta, mikrotransaktion eller nollställning. Grafikplatser för kapitel, nivåstämplar och stjärnornas sigill är separat ersättningsbara genom `harmony/goshuincho.js`. Funktion och mobil-QA finns i [dokumentationen](docs/GOSHUINCHO_COLLECTION_1_0.md).

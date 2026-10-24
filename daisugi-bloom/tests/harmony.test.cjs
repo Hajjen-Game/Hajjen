@@ -84,7 +84,7 @@ check("First twenty levels have curated move budgets and later Journey keeps its
  for(const index of [20,29,49,50,150,23000]){
   const tier=Math.floor((index-10)/10);
   const before=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
-  assert.equal(R.levelConfig(index).moves,2*before,"Later Journey unchanged "+(index+1));
+  assert.equal(R.levelConfig(index).moves,index===20?36:2*before,"Later Journey unchanged except the new Level 21 Daruma intro "+(index+1));
  }
 });
 check("older saved rounds get precisely one additional full move budget",()=>{

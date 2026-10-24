@@ -73,6 +73,7 @@ try{
   assert(visual.locked&&visual.count===1&&visual.state.includes("state-0"));
   assert(visual.background.includes("daruma-states.webp"));
   assert(visual.aria.includes("två ögon kvar"));
+  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await dp.screenshot({path:"/tmp/daisugi-bloom/daruma-l21.png"});
   await dp.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";

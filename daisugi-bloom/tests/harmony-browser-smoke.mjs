@@ -515,7 +515,7 @@ try{
   }));
   assert(milestones.hidden,"New mission levels use moves-based stars, not score milestones");
   assert.equal(milestones.goal,"Rena dimman");
-  assert.equal(milestones.mist,6);
+  assert.equal(milestones.mist,9,"New Journey start shows all nine rebalanced Mist cells");
   // The user's actual 11–14 history should automatically earn the revised
   // stars, without deleting records or revoking old level completions.
   await legacy.evaluate(()=>{

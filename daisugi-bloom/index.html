@@ -5,14 +5,14 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Mist Layout Rebalance 2.0 · 6.23.0</title>
- <link rel="stylesheet" href="./harmony/styles.css?v=6.9.0-ui-cleanup">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.20.2-flowing-mist">
- <script defer src="./harmony/rules.js?v=6.23.0-mist-layout-v2"></script>
+ <title>Japanese Harmony · Core Gameplay &amp; Clarity 1.0 · 6.24.0</title>
+ <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.24.0-goal-first">
+ <script defer src="./harmony/rules.js?v=6.24.0-completion-star"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
- <script defer src="./harmony/diagnostics.js?v=6.23.0-mist-comparison"></script>
- <script defer src="./harmony/app.js?v=6.23.0-endgame-director-lab"></script>
+ <script defer src="./harmony/diagnostics.js?v=6.24.0-directed-swaps"></script>
+ <script defer src="./harmony/app.js?v=6.24.0-goal-results"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -59,16 +59,16 @@
     <div class="game-heading" aria-label="Spelstatus">
      <div class="moves"><span>DRAG KVAR</span><strong id="movesCount">24</strong></div>
      <div id="scorePanel" class="hud-score score-panel">
-      <span class="hud-label">POÄNG</span>
+      <span class="hud-label">BONUSPOÄNG</span>
       <strong id="scoreCount">0</strong>
-      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Intjänade stjärnor"></span><span class="hud-record">REKORD <strong id="scoreBest">0</strong></span></div>
+      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Nivån klarad"></span><span class="hud-record">REKORD <strong id="scoreBest">0</strong></span></div>
      </div>
      <button id="pauseButton" class="pause-button" aria-label="Öppna spelmenyn" title="Spelmeny">Ⅱ</button>
     </div>
     <div id="paceStatus" class="pace-status" aria-live="off">PACING 3.0 · BYGGER</div>
     <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
     <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
-    <div id="starTargets" class="star-targets" aria-label="Poängkrav för en, två och tre stjärnor" hidden>
+    <div id="starTargets" class="star-targets" aria-label="Historiska poängkrav för sparade äldre nivåer" hidden>
      <span></span><span></span><span></span>
     </div>
     <div class="board-shell">

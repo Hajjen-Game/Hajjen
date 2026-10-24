@@ -82,13 +82,26 @@ expect("Fusion plus Pulse during a single move never fills both eyes",()=>{
  g.board[17].stage=4;
  const events=g.resolve(-1);
  assert(events.some(e=>e.type==="hero"));
- assert(events.some(e=>e.type==="pulse"));
  assert.equal(events.filter(e=>e.type==="daruma").length,1);
  assert.equal(g.daruma[24],1,"Cannot complete from one player decision");
  assert.equal(g.darumaCleared,0);
- const pulse=events.find(e=>e.type==="pulse");
- assert(pulse.darumaTargets?.some(t=>t.to===24));
- assert(pulse.targets.every(t=>t.to!==24),"A fixed Daruma cannot evolve as a normal piece");
+ for(const pulse of events.filter(e=>e.type==="pulse"))
+  assert(pulse.targets.every(t=>t.to!==24),"A fixed Daruma cannot evolve as a normal piece");
+});
+expect("A chaining Harmony Pulse can paint a Daruma without adjacent direct fusion",()=>{
+ const g=new R.Game(20,null,{seed:222});
+ g.board=blank();g.daruma=Array(49).fill(0);g.daruma[24]=2;
+ g.board[24]=cell("daruma",0,-25);
+ for(const at of [14,15,16])g.board[at].family="sakura";
+ g.board[16].stage=4;g.board[17].family="koi";g.board[17].stage=4;
+ const events=g.resolve(-1);
+ const pulseHits=events.filter(e=>e.type==="pulse");
+ assert(pulseHits.length>0,"An actual Pulse should be emitted");
+ assert(pulseHits.some(e=>e.darumaTargets?.some(t=>t.to===24)),
+  "Pulse from newly evolved stage-five neighbour must reach Daruma");
+ assert.equal(g.daruma[24],1);
+ assert.equal(g.darumaCleared,0);
+ assert(events.some(e=>e.type==="daruma"&&e.hits[0]?.via==="pulse"));
 });
 expect("Daruma columns do not collapse through intact blockers",()=>{
  const g=new R.Game(20,null,{seed:99,directorMode:"v3"});

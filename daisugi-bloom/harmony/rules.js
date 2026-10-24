@@ -99,7 +99,7 @@ function endlessConfig(index){
  const mist=goal.type==="mist";
  const label=mist?"Harmony Mist":goal.type==="masterpiece"?"Masterpiece Garden":
   goal.type==="fusion"?"Harmony Fusion":goal.type==="stage3"?"Growing Harmony":"Harmony Pulse";
- const description=mist?"Rena "+goal.count+" dimtäckta rutor. Fusionera direkt på dimrutor för att rena dem. Föremål i dimman kan fortfarande flyttas.":
+ const description=mist?"Rena "+goal.count+" dimtäckta rutor. Fusionera på en dimruta eller träffa den med Harmony Pulse. Föremål i dimman kan fortfarande flyttas.":
   goal.type==="masterpiece"?"Skapa "+goal.count+" mästerverk för att återställa harmonin.":
   goal.type==="fusion"?"Gör "+goal.count+" lyckade fusioner.":
   goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
@@ -114,7 +114,7 @@ function endlessConfig(index){
 }
 // Mist stays attached to CELLS, not objects. Objectives Rebalance 1.0 uses
 // deliberately distributed patches: no initial 3-in-a-row mist cluster.
-// Different regions require deliberate positioning of the fusion survivor.
+// Different regions reward deliberate fusion placement and Harmony Pulse chains.
 function mistLayout(index,count){
  if(!count)return [];
  const pattern=[8,12,16,24,30,36,40,20,28,9,32,38,14,34,46,42,6,26];
@@ -641,7 +641,8 @@ class Game{
    }
    // Mist belongs to fixed CELLS: only the actual fusion survivor/output
    // position can cleanse it. Consumed pieces and crossed tiles do not count.
-   // Every cascade fusion uses the same rule; neither Pulse nor bonus does.
+   // Every cascade fusion uses the same rule. Harmony Pulse also clears
+   // cells it actually hits; bonus upgrades do not clear mist.
    const clearedMist=this.clearMist(records.map(record=>record.at));
    this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,clearedMist,scoreDelta:earned}));
    if(!echoAwarded&&echoCandidate){
@@ -680,10 +681,11 @@ class Game{
       }
      }
      if(targets.length){
-      // Harmony Pulse still upgrades neighbours, but cannot cleanse fog.
+      // Pulse cleanses fog on the occupied neighbour tiles it actually hits.
+      const clearedMist=this.clearMist(targets.map(target=>target.to));
       chainHits+=targets.length;this.pulseHits+=targets.length;
       let points=targets.length*75;this.score+=points;
-      events.push(this.frame("pulse",{sources:active,targets,wave,clearedMist:[],scoreDelta:points}));
+      events.push(this.frame("pulse",{sources:active,targets,wave,clearedMist,scoreDelta:points}));
      }
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];

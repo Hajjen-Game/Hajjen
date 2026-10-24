@@ -95,7 +95,7 @@ check("Four-way lab compares shared seeds and explicit synthetic tempos",()=>{
  const report=D.run({levels:[12],strategies:["random","goal"],trials:3,seed:4545,
   modes:["standard","director","director2","director3"]});
  assert.equal(report.version,"engine-lab-4");
- assert.equal(report.gameVersion,"6.3.0");
+ assert.equal(report.gameVersion,"6.22.0");
  assert.equal(report.runs.length,24);
  for(const bot of ["random","goal"]){
   const first=report.runs.filter(r=>r.strategy===bot&&r.mode==="standard").map(r=>r.seed);

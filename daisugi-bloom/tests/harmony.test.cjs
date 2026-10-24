@@ -331,6 +331,7 @@ check("Level 11 clustered mist can be cleansed by ONE real non-fog fusion Pulse"
  g.board=blank();
  g.board[17].family="sakura";g.board[17].stage=4;
  g.board[18].family="sakura";
+ g.board[15].family="lantern"; // Keep mist neighbour occupied but OUTSIDE the match.
  g.board[19].family="lantern"; // No premade match before moving.
  g.board[23].family="sakura";
  assert.equal(R.scan(g.board).length,0);

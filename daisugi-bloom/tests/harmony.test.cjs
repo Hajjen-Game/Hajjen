@@ -189,24 +189,60 @@ check("save and resume preserve board, score, randomness position and stage mile
  const g=new R.Game(3),snap=g.save(),newGame=new R.Game(3,snap);
  assert.deepEqual(newGame.board,g.board);assert.deepEqual(newGame.bag,g.bag);assert.equal(newGame.moves,g.moves);assert.equal(newGame.rolls,g.rolls);
 });
-check("Endless Journey levels use repeatable score goals, families and meaningful star thresholds",()=>{
- for(const level of [10,19,29,49,50,100,1000,23000]){
+check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",()=>{
+ const goalTypes=["mist","mist","masterpiece","mist","fusion","mist","stage3","mist","pulseHits","mist"];
+ assert.deepEqual(Array.from({length:10},(_,j)=>R.levelConfig(j+10).goal.type),goalTypes);
+ for(const level of [10,11,12,19,29,49,50,100,1000,23000]){
   const cfg=R.levelConfig(level),again=R.levelConfig(level);
-  assert.deepEqual(cfg,again);
-  assert.equal(cfg.goal.type,"score");
-  assert(cfg.moves>=34&&cfg.moves<=44);
-  assert(cfg.stars[0]===cfg.goal.count&&cfg.stars[1]>cfg.stars[0]&&cfg.stars[2]>cfg.stars[1]);
+  assert.deepEqual(cfg,again,"Same level must have the same objective");
+  assert.notEqual(cfg.goal.type,"score","Journey level "+level+" must not be just score chase");
+  assert(cfg.moves>=34&&cfg.moves<=44,"Move budgets must be unchanged");
+  assert(cfg.par>0&&cfg.par<cfg.moves);
   const families=R.activeFamilies(level);
-  assert.equal(families.length,5);assert.equal(new Set(families).size,5);
+  assert.equal(families.length,5);
+  assert.equal(new Set(families).size,5);
   const a=new R.Game(level,null,{seed:1001}),b=new R.Game(level,null,{seed:1001});
   assert.deepEqual(a.board,b.board);
+  assert.deepEqual(a.mist,b.mist);
   assert.equal(a.level,level);
-  a.score=cfg.stars[1];
-  assert.equal(a.progress(),cfg.stars[1]);assert.equal(a.stars(),2);
-  a.score=cfg.stars[2];
-  assert.equal(a.stars(),3);
+  assert.equal(a.objectiveVersion,2);
+  if(cfg.goal.type==="mist"){
+   assert.equal(a.mist.filter(Boolean).length,cfg.goal.count);
+   assert.equal(a.goalText(),"Rena dimman");
+   assert.equal(a.progress(),0);
+  }else assert.equal(a.mist.filter(Boolean).length,0);
  }
- assert(R.levelConfig(23000).goal.count<15000,"Late-stage goals must remain bounded after the 50% increase");
+ const legacy=R.legacyScoreConfig(10);
+ assert.deepEqual(legacy.goal,{type:"score",count:7500});
+ assert.deepEqual(legacy.stars,[7500,11250,16875]);
+});
+check("Harmony Mist clears cell positions through matching and Harmony Pulse, once each",()=>{
+ const g=new R.Game(10,null,{seed:451,directorMode:"v3"});
+ g.board=blank();
+ for(const i of [23,24,25])g.board[i].family="sakura";
+ g.board[24].stage=4;
+ const cells=[23,24,25,17,31,38];
+ g.mist=Array(49).fill(0);for(const i of cells)g.mist[i]=1;
+ const events=g.resolve(-1);
+ const fusion=events.find(e=>e.type==="fusion");
+ const pulse=events.find(e=>e.type==="pulse");
+ assert(fusion&&pulse,"Stage-five fusion must create a real Pulse");
+ assert.deepEqual(new Set(fusion.clearedMist),new Set([23,24,25]));
+ assert.deepEqual(new Set(pulse.clearedMist),new Set([17,31]));
+ assert.equal(g.progress(),5);
+ assert.equal(g.mist[38],1,"Unhit mist must remain on its cell");
+ assert.equal(g.mist.filter(Boolean).length,1);
+ assert.equal(g.clearMist([23,23,24]).length,0,"Already cleansed cells cannot score again");
+ const saved=g.save(),restored=new R.Game(10,saved,{fastRestore:true});
+ assert.deepEqual(restored.mist,g.mist);
+ assert.equal(restored.mistCleared,5);
+ assert.equal(restored.progress(),5);
+ const oldBefore=JSON.stringify(g.save());
+ assert.equal(g.clearMist([38,38]).length,1);
+ assert(g.fulfilled());
+ assert.equal(g.mistCleared,6);
+ assert.equal(g.mist.filter(Boolean).length,0);
+ assert.notEqual(JSON.stringify(g.save()),oldBefore);
 });
 check("Collection bonuses accumulate indefinitely and persist when resuming",()=>{
  const g=fixture();
@@ -329,18 +365,18 @@ check("Smart hint consistently proposes valid swaps and keeps all saves unchange
   assert.equal(cloned.score-g.score,hint.expectedPoints);
  }
 });
-check("Journey 6.15 increases all score-based star thresholds by 50%, keeping the 6.6 ramp",()=>{
- const first=R.levelConfig(10),middle=R.levelConfig(29),later=R.levelConfig(49);
+check("Historical score-mode thresholds stay intact for saved Journey runs and records",()=>{
+ const first=R.legacyScoreConfig(10),middle=R.legacyScoreConfig(29),later=R.legacyScoreConfig(49);
  assert.equal(first.goal.count,7500);
  assert.deepEqual(first.stars,[7500,11250,16875]);
- assert.deepEqual(R.levelConfig(11).stars,[7575,11400,17100]);
- assert.deepEqual(R.levelConfig(12).stars,[7650,11550,17325]);
- assert.deepEqual(R.levelConfig(13).stars,[7725,11700,17550]);
+ assert.deepEqual(R.legacyScoreConfig(11).stars,[7575,11400,17100]);
+ assert.deepEqual(R.legacyScoreConfig(12).stars,[7650,11550,17325]);
+ assert.deepEqual(R.legacyScoreConfig(13).stars,[7725,11700,17550]);
 
  // Exact +50% vs the previous 6.6 formula, for early and arbitrarily late
  // Journey stages. Rounding is exact because old milestones were multiples of 50.
  for(const index of [10,11,12,13,15,19,29,39,49,50,100,1000,23000]){
-  const cfg=R.levelConfig(index),adv=Math.max(0,index-10);
+  const cfg=R.legacyScoreConfig(index),adv=Math.max(0,index-10);
   const early=Math.min(39,adv),distance=Math.max(0,index-49);
   const base=Math.round((5000+52*early+35*Math.floor(early/5)+
    Math.min(1100,Math.log2(1+distance/12)*180))/50)*50;
@@ -373,7 +409,7 @@ check("Journey 6.15 increases all score-based star thresholds by 50%, keeping th
  assert.equal(R.pacingProposalCount(10,8,"v2"),4);
  assert.equal(R.pacingProposalCount(10,8,"standard"),4);
  for(const level of [10,11,14,19,29,39,49,100,23000]){
-  const cfg=R.levelConfig(level),[a,b,c]=cfg.stars;
+  const cfg=R.legacyScoreConfig(level),[a,b,c]=cfg.stars;
   assert(a===cfg.goal.count&&a<b&&b<c);
   assert.equal(R.scoreStars(level,a-1),0);
   assert.equal(R.scoreStars(level,a),1);
@@ -387,7 +423,8 @@ check("Journey 6.15 increases all score-based star thresholds by 50%, keeping th
 });
 check("Legacy completed score levels keep their completion and an honest one-star score",()=>{
  const g=new R.Game(10,null,{seed:7894});
- const old=g.save();old.score=1600;old.complete=true;old.moves=4;
+ const old=g.save();delete old.objectiveVersion;delete old.mist;delete old.mistCleared;
+ old.score=1600;old.complete=true;old.moves=4;
  const restored=new R.Game(10,old,{fastRestore:true});
  assert.equal(restored.complete,true,"Old level 11 win may not be revoked");
  assert.equal(restored.stars(),1,"Old 3-star rating is recalibrated to a grandfathered 1 star");

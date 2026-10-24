@@ -70,7 +70,10 @@ function create(R){
   let best=firstChoices[0],bestValue=-Infinity;
   for(const item of firstChoices){
    const after=item.simulated;
-   const next=R.validSwaps(after.board).slice(0,8);
+   // New fusion-only Mist missions can legitimately use the last move without
+   // clearing the goal. Never simulate a second turn after the game has ended.
+   const next=after.moves>0&&!after.complete&&!after.failed?
+    R.validSwaps(after.board).slice(0,8):[];
    let follow=0;
    for(const [a,b] of next){
     const x=evaluate(after,a,b,"goal");

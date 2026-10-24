@@ -88,7 +88,7 @@ check("3-way lab comparison shares seeds and exposes investment metrics",()=>{
  const report=Lab.run({levels:[3,12],trials:2,seed:20261022,
   strategies:["random","goal"],modes:["standard","director","director2"]});
  assert.equal(report.version,"engine-lab-4");
- assert.equal(report.gameVersion,"6.26.1");
+ assert.equal(report.gameVersion,"6.27.0");
  assert.equal(report.runs.length,24);assert.equal(report.results.length,12);
  for(const level of [3,12])for(const strategy of ["random","goal"]){
   const runs=report.runs.filter(x=>x.level===level&&x.strategy===strategy);

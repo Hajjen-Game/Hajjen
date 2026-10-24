@@ -1,5 +1,11 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Victory Screen Polish 1.0 — 2026-10-24
+Resultatrutan har fått större trestjärnig vinstsektion, ett samlat mål-/dragkort, en djupare bonuspoängpanel med rekordmarkering, fyra kompakta statistikfält och en alltid synlig "Nästa nivå"-knapp på mobil. Frivilliga bonusdrag, poäng, nivåframsteg och befintliga sparningar fungerar oförändrat.
+
+[Design och QA](docs/VICTORY_SCREEN_POLISH_1_0.md)
+
+
 ## Harmony Pulse Mist Reach 1.0 — 2026-10-24
 
 Harmony Pulse renar nu dimma på de fyra angränsande rutorna även när en ruta är tom efter fusion. Tomma rutor får aldrig en konstgjord uppgradering, bonuspoäng eller Pulse-träffräkning; det är bara dimman som tas bort. En ny visuell energistråle och mist-release-effekt visar vad som händer på tomma rutor. Sparade poäng, stjärnor och spelomgångar nollställs inte.

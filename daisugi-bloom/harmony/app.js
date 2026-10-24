@@ -1595,38 +1595,117 @@ function showResult(){
  $("modalEyebrow").textContent=won?"LEVEL COMPLETE":"FÖRSÖK IGEN";
  $("modalTitle").textContent=won?"Vilken harmoni!":"Inga drag kvar";
  const panel=$("modalContent");panel.replaceChildren();
+ const make=(tag,cls,text)=>{
+  const node=document.createElement(tag);
+  if(cls)node.className=cls;
+  if(text!=null)node.textContent=text;
+  return node;
+ };
  if(won){
-  const stars=document.createElement("div");stars.className="big-stars";stars.textContent=game.rewardVersion===2?"★ NIVÅ KLAR":"★".repeat(game.stars())+"☆".repeat(3-game.stars());panel.append(stars);
-  const achievement=document.createElement("p");achievement.className="result-objective";
-  achievement.textContent=game.goalText()+" · "+prettify(game.target())+" / "+prettify(game.target());
-  panel.append(achievement);
-  if(game.rewardVersion===3){
-   const firstWin=document.createElement("p");firstWin.className="result-objective";
-   firstWin.textContent="Målet klarat på "+game.goalMove+" av "+game.config.moves+" drag · "+game.stars()+" av 3 stjärnor. Betyget låses vid målet.";
-   panel.append(firstWin);
+  const result=make("div","victory-result");
+  panel.append(result);
+  // Stars are the emotional headline, but never the whole reward contract:
+  // retain the three-star accessible text and the legacy v2 completion label.
+  const stars=make("div","big-stars");
+  if(game.rewardVersion===2){
+   stars.classList.add("legacy-stars");
+   stars.textContent="★ NIVÅ KLAR";
+  }else{
+   stars.setAttribute("role","img");
+   stars.setAttribute("aria-label",game.stars()+" av 3 stjärnor");
+   for(let i=0;i<3;i++){
+    const filled=i<game.stars();
+    const star=make("span","victory-star"+(filled?" is-earned":" is-empty"),filled?"★":"☆");
+    star.setAttribute("aria-hidden","true");
+    star.style.setProperty("--star-index",i);
+    stars.append(star);
+   }
   }
+  const starWrap=make("div","victory-stars");
+  starWrap.append(stars);
+  result.append(starWrap);
+  const goal=make("section","victory-goal");
+  goal.setAttribute("aria-label","Avklarat nivåmål");
+  const goalCopy=make("div","victory-goal-copy");
+  goalCopy.append(make("span","victory-kicker","NIVÅMÅL UPPNÅTT"),
+   make("strong","victory-goal-title",game.goalText()));
+  const goalProgress=make("span","victory-goal-count",
+   prettify(game.target())+" / "+prettify(game.target()));
+  goal.append(goalCopy,goalProgress);
+  result.append(goal);
+  if(game.rewardVersion===3){
+   const timing=make("div","victory-timing");
+   const moves=make("div","victory-timing-stat");
+   moves.append(make("strong","",String(game.goalMove)),
+    make("span","","av "+game.config.moves+" drag"));
+   const rating=make("div","victory-timing-stat");
+   rating.append(make("strong","",game.stars()+" / 3"),
+    make("span","","stjärnor"));
+   timing.append(moves,rating);
+   const note=make("p","victory-star-note","Betyget låses när du når målet.");
+   result.append(timing,note);
+  }
+  if(game.config.goal.type==="mist"){
+   result.append(make("p","victory-mist-note","✦ Trädgårdens dimma är renad"));
+  }
+  const sum=make("section","summary victory-score");
+  const scoreHeader=make("div","victory-score-head");
+  scoreHeader.append(make("div","victory-kicker","BONUSPOÄNG"));
+  const record=make("span","victory-record");
+  record.append(make("span","victory-record-mark","✦"),
+   make("span","","REKORD "+prettify(activeRecords()[level]||game.score)));
+  scoreHeader.append(record);
+  const strong=make("strong","victory-score-number",prettify(game.score));
+  sum.append(scoreHeader,strong);
+  result.append(sum);
+  const stats=make("div","result-stats victory-stats");
+  const entries=[
+   [game.masterpieces,"Mästerverk","✿"],
+   [game.echoes||0,"Harmony Echo","≋"],
+   [game.bestChain,"Bästa Harmony-kedja","∞"],
+   [game.fusions,"Fusioner","✧"]
+  ];
+  entries.forEach(([value,label,symbol])=>{
+   const card=make("div","victory-stat");
+   card.append(make("span","victory-stat-icon",symbol));
+   const copy=make("span","victory-stat-copy");
+   copy.append(make("strong","",String(value)),make("small","",label));
+   card.append(copy);stats.append(card);
+  });
+  result.append(stats);
+  const note=make("p","victory-next-note",canContinue?
+   "✦ "+game.moves+" drag kvar · spela vidare för poängrekord eller gå till nästa nivå.":
+   "✦ Nivån är klar · spela igen för ett nytt rekord eller gå vidare.");
+  result.append(note);
+ }else{
+  if(game.config.goal.type==="mist"){
+   const msg=make("p","mist-result",
+    "Du renade "+game.mistCleared+" av "+game.target()+" dimrutor. Försök nå resten.");
+   panel.append(msg);
+  }
+  const sum=make("div","summary"),label=make("div","","BONUSPOÄNG"),
+   number=make("strong","",prettify(game.score));
+  sum.append(label,number);panel.append(sum);
+  // This pass only redesigns wins; preserve the existing failed-run stats.
+  const stats=make("div","result-stats");
+  [[game.masterpieces,"Mästerverk"],[game.echoes||0,"Harmony Echo"],
+   [game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],
+   [prettify(activeRecords()[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
+    const entry=make("div");
+    entry.append(make("strong","",String(value)),make("small","",label));
+    stats.append(entry);
+   });
+  panel.append(stats);
+  panel.append(make("p","","Nytt försök ger en ny kontrollerad startvariant. Inga liv eller väntetider."));
  }
- if(game.config.goal.type==="mist"){
-  const msg=document.createElement("p");msg.className="mist-result";
-  msg.textContent=won?"Trädgårdens dimma är renad!":"Du renade "+game.mistCleared+
-   " av "+game.target()+" dimrutor. Försök nå resten.";
-  panel.append(msg);
- }
- const sum=document.createElement("div");sum.className="summary";const line=document.createElement("div");line.textContent="BONUSPOÄNG";const strong=document.createElement("strong");strong.textContent=prettify(game.score);sum.append(line,strong);panel.append(sum);
- const stats=document.createElement("div");stats.className="result-stats";
- [[game.masterpieces,"Mästerverk"],[game.echoes||0,"Harmony Echo"],[game.bestChain,"Bästa Harmony-kedja"],[game.fusions,"Fusioner"],[prettify(activeRecords()[level]||game.score),"Personligt rekord"]].forEach(([value,label])=>{
-  const v=document.createElement("div");const a=document.createElement("strong"),b=document.createElement("small");a.textContent=value;b.textContent=label;v.append(a,b);stats.append(v);
- });panel.append(stats);
- const extra=document.createElement("p");extra.textContent=won?
-  (canContinue?"Nivån är klar! Du kan gå vidare direkt eller frivilligt spela dina återstående "+game.moves+" drag för poängrekord.":"Nivån är klar. Spela gärna igen för ett nytt rekord."):
-  "Nytt försök ger en ny kontrollerad startvariant. Inga liv eller väntetider.";panel.append(extra);
  const actions=$("modalActions");actions.replaceChildren();
- if(won)modalButton(actions,"Nästa nivå →","primary",()=>startLevel(level+1));
- if(canContinue)modalButton(actions,"Fortsätt för poängrekord","secondary",()=>{
+ actions.classList.toggle("victory-actions",won);
+ if(won)modalButton(actions,"Nästa nivå →","primary victory-next",()=>startLevel(level+1));
+ if(canContinue)modalButton(actions,"Fortsätt för poängrekord","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
- modalButton(actions,won?"Spela igen":"Försök igen med nytt bräde","secondary",()=>startLevel(level));
- modalButton(actions,"Nivåval","secondary",()=>{
+ modalButton(actions,won?"Spela igen":"Försök igen med nytt bräde",won?"secondary victory-tertiary":"secondary",()=>startLevel(level));
+ modalButton(actions,"Nivåval",won?"secondary victory-tertiary":"secondary",()=>{
   if(won){game.finish();save.run=null;persist();}
   showMenu();
  });

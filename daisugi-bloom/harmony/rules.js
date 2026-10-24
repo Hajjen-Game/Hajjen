@@ -99,7 +99,7 @@ function endlessConfig(index){
  const mist=goal.type==="mist";
  const label=mist?"Harmony Mist":goal.type==="masterpiece"?"Masterpiece Garden":
   goal.type==="fusion"?"Harmony Fusion":goal.type==="stage3"?"Growing Harmony":"Harmony Pulse";
- const description=mist?"Rena "+goal.count+" dimtäckta rutor. Matchningar och Harmony Pulse renar dimman.":
+ const description=mist?"Rena "+goal.count+" dimtäckta rutor. Fusionera direkt på dimrutor för att rena dem. Föremål i dimman kan fortfarande flyttas.":
   goal.type==="masterpiece"?"Skapa "+goal.count+" mästerverk för att återställa harmonin.":
   goal.type==="fusion"?"Gör "+goal.count+" lyckade fusioner.":
   goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
@@ -114,7 +114,7 @@ function endlessConfig(index){
 }
 // Mist stays attached to CELLS, not objects. Objectives Rebalance 1.0 uses
 // deliberately distributed patches: no initial 3-in-a-row mist cluster.
-// Different regions create competing objectives and opportunities for Pulse.
+// Different regions require deliberate positioning of the fusion survivor.
 function mistLayout(index,count){
  if(!count)return [];
  const pattern=[8,12,16,24,30,36,40,20,28,9,32,38,14,34,46,42,6,26];
@@ -639,9 +639,10 @@ class Game{
     pts=Math.round(pts*(1+Math.min(3,waveRound-1)*.25));earned+=pts;
     records.push({at:survivor,from:before,to:p.stage,family:p.family,removed:indices.filter(i=>i!==survivor),number,shape,points:pts});
    }
-   // Both the surviving object and every consumed source count as a match
-   // touching that CELL. Cascades count, but no cell can be cleared twice.
-   const clearedMist=this.clearMist(groups.flat());
+   // Mist belongs to fixed CELLS: only the actual fusion survivor/output
+   // position can cleanse it. Consumed pieces and crossed tiles do not count.
+   // Every cascade fusion uses the same rule; neither Pulse nor bonus does.
+   const clearedMist=this.clearMist(records.map(record=>record.at));
    this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,clearedMist,scoreDelta:earned}));
    if(!echoAwarded&&echoCandidate){
     const record=records.find(record=>echoCandidate.indices.includes(record.at));
@@ -679,10 +680,10 @@ class Game{
       }
      }
      if(targets.length){
-      const clearedMist=this.clearMist(targets.map(t=>t.to));
+      // Harmony Pulse still upgrades neighbours, but cannot cleanse fog.
       chainHits+=targets.length;this.pulseHits+=targets.length;
       let points=targets.length*75;this.score+=points;
-      events.push(this.frame("pulse",{sources:active,targets,wave,clearedMist,scoreDelta:points}));
+      events.push(this.frame("pulse",{sources:active,targets,wave,clearedMist:[],scoreDelta:points}));
      }
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];

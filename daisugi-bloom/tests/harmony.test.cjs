@@ -627,10 +627,11 @@ check("Collection bonuses accumulate indefinitely and persist when resuming",()=
  assert.equal(new R.Game(0,g.save(),{fastRestore:true}).familyMasterpieces.sakura,12);
 });
 check("Levels 6–10 are standalone early challenges, not five more tutorials",()=>{
- const types=["four","stage3","mist","masterpiece","mist"];
+ const types=["fourTurns","stage3","mist","masterpiece","mist"];
  assert.deepEqual(Array.from({length:5},(_,j)=>R.levelConfig(j+5).goal.type),types);
- assert.equal(R.levelConfig(5).goal.count,2);
- assert.equal(R.levelConfig(8).goal.count,1);
+ assert.equal(R.levelConfig(5).goal.count,4);
+ assert.equal(R.levelConfig(6).goal.count,8);
+ assert.equal(R.levelConfig(8).goal.count,3);
  assert.equal(R.levelConfig(9).goal.count,6);
 });
 check("Level 10 screenshot has exactly one legal move with Koi at row 5 column 4",()=>{

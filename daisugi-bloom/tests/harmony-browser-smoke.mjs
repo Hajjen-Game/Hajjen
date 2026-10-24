@@ -1031,11 +1031,13 @@ try{
   assert.equal(await mistPage.evaluate(()=>document.querySelectorAll(".tile.misted").length),fixture.mist);
   const mistLook=await mistPage.evaluate(()=>{
    const tile=document.querySelector(".tile.misted"),overlay=tile?.querySelector(".harmony-mist");
-   const computed=getComputedStyle(overlay),wisp=getComputedStyle(overlay,"::before");
+   const computed=getComputedStyle(overlay);
+   const wisp=getComputedStyle(overlay,"::before"),farWisp=getComputedStyle(overlay,"::after");
    return {overlay:!!overlay,back:computed.backgroundImage,
     mask:computed.maskImage||computed.webkitMaskImage,
     animation:computed.animationName,wispAnimation:wisp.animationName,
-    pointer:computed.pointerEvents,aria:tile?.getAttribute("aria-label"),
+    opacity:parseFloat(computed.opacity),wispBack:wisp.backgroundImage,
+    farWispBack:farWisp.backgroundImage,pointer:computed.pointerEvents,aria:tile?.getAttribute("aria-label"),
     sprite:!!tile?.querySelector(".piece .sprite")};
   });
   assert(mistLook.overlay&&mistLook.back.includes("gradient")&&
@@ -1044,7 +1046,10 @@ try{
   assert(mistLook.mask.includes("radial-gradient")&&
    mistLook.animation.includes("harmony-mist-breathe")&&
    mistLook.wispAnimation.includes("harmony-mist-drift"),
-   "Mist 2.0 must leave a transparent centre and animate soft wisps at the edges");
+   "Mist must retain a softened centre and animate cloud wisps");
+  assert(mistLook.opacity>=.8&&mistLook.wispBack.includes("gradient")&&
+   mistLook.farWispBack.includes("gradient"),
+   "Mist 2.1 must render both visible cloud banks on mobile");
   await mistPage.evaluate(()=>{
    window.__mistReleaseSeen=[];
    const observer=new MutationObserver(records=>{

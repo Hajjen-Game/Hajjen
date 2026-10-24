@@ -1027,7 +1027,7 @@ try{
   await mistPage.reload({waitUntil:"networkidle2"});
   await mistPage.click("#continueButton");
   assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Rena dimman");
-  assert.equal(await mistPage.$eval(".tile.misted",els=>els.length),fixture.mist);
+  assert.equal(await mistPage.evaluate(()=>document.querySelectorAll(".tile.misted").length),fixture.mist);
   const mistLook=await mistPage.evaluate(()=>{
    const tile=document.querySelector(".tile.misted"),overlay=tile?.querySelector(".harmony-mist");
    return {overlay:!!overlay,back:getComputedStyle(overlay).backgroundImage,

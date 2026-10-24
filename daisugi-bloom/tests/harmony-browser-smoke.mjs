@@ -1057,6 +1057,23 @@ try{
   assert(Array.isArray(result.storedMist)&&result.storedMist.filter(Boolean).length===result.mistCells&&
    result.storedCleared>=1,
    "Fog state must persist in the regular save without moving to falling pieces");
+  // New skill-based stars must survive a restart even with a modest score.
+  // The legacy score recalibration is only for archives predating Objectives.
+  await mistPage.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const save=JSON.parse(localStorage.getItem(key));
+   save.run=null;save.objectiveArchiveVersion=2;save.unlocked=11;
+   save.bestScores={...save.bestScores,"10":2400};
+   save.bestStars={...save.bestStars,"10":3};
+   localStorage.setItem(key,JSON.stringify(save));
+  });
+  await mistPage.reload({waitUntil:"networkidle2"});
+  const skillStars=await mistPage.evaluate(()=>({
+   saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).bestStars["10"],
+   label:document.querySelectorAll(".level-tile")[10]?.textContent||""
+  }));
+  assert.equal(skillStars.saved,3,"New mission stars must not be downgraded by historical score recalibration");
+  assert(skillStars.label.includes("★★★"),"The level list must retain three earned mission stars");
  }finally{await mistContext.close();}
  // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
  // successful manual fusion from an already-linked stage-three object.

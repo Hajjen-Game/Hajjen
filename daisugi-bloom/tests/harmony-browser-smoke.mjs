@@ -988,7 +988,76 @@ try{
   return [10,49,100].map(i=>({number:i+1,type:R.levelConfig(i).goal.type,
    families:R.activeFamilies(i).length,moves:R.levelConfig(i).moves}));
  });
- assert(endless.every(x=>x.type==="score"&&x.families===5&&x.moves>=34));
+ assert(endless.every(x=>x.type!=="score"&&x.families===5&&x.moves>=34),
+  "Journey levels must use tangible objectives while retaining current move budgets");
+ assert(endless[0].type==="mist"&&endless[1].type==="mist");
+ const missionMix=await page.evaluate(()=>
+  [10,11,12,13,14,15,16,17,18,19].map(i=>HarmonyRules.levelConfig(i).goal.type));
+ assert.deepEqual(missionMix,["mist","mist","masterpiece","mist","fusion",
+  "mist","stage3","mist","pulseHits","mist"],
+  "Objectives 2.0 must vary concrete mission types from Level 11 onwards");
+ // Real 390px phone: cells stay readable under light fog; a valid
+ // matched swap removes mask from the touched CELLS, not falling objects.
+ const mistContext=await browser.createBrowserContext();
+ try{
+  const mistPage=await mistContext.newPage();
+  await mistPage.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await mistPage.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  const fixture=await mistPage.evaluate(()=>{
+   const R=window.HarmonyRules;
+   let chosen=null;
+   for(let seed=102;seed<180&&!chosen;seed++){
+    const g=new R.Game(10,null,{seed,directorMode:"v3"});
+    for(const [a,b] of R.validSwaps(g.board)){
+     const board=g.board.map(p=>({...p}));
+     [board[a],board[b]]=[board[b],board[a]];
+     const groups=R.scan(board);
+     const touched=groups.flat().filter(i=>g.mist[i]);
+     if(touched.length>=1){chosen={g,pair:[a,b]};break;}
+    }
+   }
+   if(!chosen)throw Error("No seeded valid match affecting Harmony Mist");
+   const {g,pair}=chosen;
+   localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify({
+    unlocked:10,bestStars:{},bestScores:{},bestChain:{},sound:false,reduceMotion:false,
+    playMode:"v3",run:{level:10,data:g.save()}
+   }));
+   return {pair,mist:g.mist.filter(Boolean).length,moves:g.moves};
+  });
+  await mistPage.reload({waitUntil:"networkidle2"});
+  await mistPage.click("#continueButton");
+  assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Rena dimman");
+  assert.equal(await mistPage.$eval(".tile.misted",els=>els.length),fixture.mist);
+  const mistLook=await mistPage.evaluate(()=>{
+   const tile=document.querySelector(".tile.misted"),overlay=tile?.querySelector(".harmony-mist");
+   return {overlay:!!overlay,back:getComputedStyle(overlay).backgroundImage,
+    pointer:getComputedStyle(overlay).pointerEvents,aria:tile?.getAttribute("aria-label"),
+    sprite:!!tile?.querySelector(".piece .sprite")};
+  });
+  assert(mistLook.overlay&&mistLook.back.includes("gradient")&&
+   mistLook.pointer==="none"&&mistLook.aria.includes("magisk dimma")&&mistLook.sprite,
+   "Harmony Mist must be visible, translucent, accessible and keep the actual Japanese sprite");
+  const [a,b]=fixture.pair;
+  await mistPage.click(".tile:nth-child("+(a+1)+")");
+  await mistPage.click(".tile:nth-child("+(b+1)+")");
+  await mistPage.waitForFunction(old=>Number(document.querySelector("#movesCount").textContent)<old,
+   {timeout:7000},fixture.moves);
+  await mistPage.waitForFunction(()=>document.querySelector("#board").getAttribute("aria-busy")==="false",
+   {timeout:12000});
+  const result=await mistPage.evaluate(()=>{
+   const save=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")||"{}");
+   return {mistCells:document.querySelectorAll(".tile.misted").length,
+    progress:document.querySelector("#goalProgress")?.textContent,
+    storedMist:save.run?.data?.mist,storedCleared:save.run?.data?.mistCleared,
+    stars:save.run?.data?.starsAtGoal,active:document.querySelectorAll(".harmony-mist").length};
+  });
+  assert(result.mistCells<fixture.mist&&result.active===result.mistCells&&
+   Number(result.progress.split("/")[0])>=1,
+   "Legal match must cleanse fixed fog cells and update goal counter");
+  assert(Array.isArray(result.storedMist)&&result.storedMist.filter(Boolean).length===result.mistCells&&
+   result.storedCleared>=1,
+   "Fog state must persist in the regular save without moving to falling pieces");
+ }finally{await mistContext.close();}
  // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
  // successful manual fusion from an already-linked stage-three object.
  const resonanceVisual=await page.evaluate(()=>{

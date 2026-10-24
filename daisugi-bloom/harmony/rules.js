@@ -605,7 +605,10 @@ class Game{
   if(p.stage===5)created.add(i);
   return true;
  }
- resolve(preferred,armedLinks=[]){
+ // Fusion Destination Control 1.0: player-driven first-wave matches land on
+ // the swapped destination when it belongs to a match. A match formed only
+ // at the swapped source lands there. Cascades keep the strongest-stage rule.
+ resolve(preferred,armedLinks=[],alternate=-1){
   let events=[],waveRound=0,echoAwarded=false;
   while(waveRound++<35){
    let groups=scan(this.board);if(!groups.length)break;
@@ -626,18 +629,26 @@ class Game{
     }
    }
    for(const indices of groups){
-    let survivor=indices.slice().sort((a,b)=>this.board[b].stage-this.board[a].stage||(a===preferred?-1:b===preferred?1:a-b))[0];
-    let p=this.board[survivor],before=p.stage;
-    let rows=new Set(indices.map(i=>Math.floor(i/N))),cols=new Set(indices.map(i=>i%N));
-    let shape=indices.length>=5&&rows.size>1&&cols.size>1;
+    // The maximum stage determines the result, not the fusion destination.
+    // Preserve that piece's identity through the merge (and through save/FX).
+    const strongest=indices.slice().sort((a,b)=>
+     this.board[b].stage-this.board[a].stage||a-b)[0];
+    const playerDestination=waveRound===1?
+     (indices.includes(preferred)?preferred:indices.includes(alternate)?alternate:-1):-1;
+    const destination=playerDestination>=0?playerDestination:strongest;
+    const p=this.board[strongest],before=p.stage;
+    const rows=new Set(indices.map(i=>Math.floor(i/N))),cols=new Set(indices.map(i=>i%N));
+    const shape=indices.length>=5&&rows.size>1&&cols.size>1;
     if(shape){this.shapes++;shapeCount++;}
-    let number=indices.length;
+    const number=indices.length;
     if(number>=4)this.fours++;
-    for(const i of indices)if(i!==survivor)this.board[i]=null;
-    this.grow(survivor,created,false);this.fusions++;
+    for(const i of indices)if(i!==destination)this.board[i]=null;
+    this.board[destination]=p; // A stronger piece can travel to the selected cell.
+    this.grow(destination,created,false);this.fusions++;
     let pts=(number===3?100:number===4?175:300+(number-5)*60)+(p.stage>=4?100:0);
     pts=Math.round(pts*(1+Math.min(3,waveRound-1)*.25));earned+=pts;
-    records.push({at:survivor,from:before,to:p.stage,family:p.family,removed:indices.filter(i=>i!==survivor),number,shape,points:pts});
+    records.push({at:destination,origin:strongest,from:before,to:p.stage,family:p.family,
+     removed:indices.filter(i=>i!==destination),number,shape,points:pts});
    }
    // Mist belongs to fixed CELLS: only the actual fusion survivor/output
    // position can cleanse it. Consumed pieces and crossed tiles do not count.
@@ -757,7 +768,7 @@ class Game{
   const beforeStage3=this.stage3,beforeStage4=this.stage4,beforeMasterpiece=this.masterpieces;
   const beforeEcho=this.echoes,beforePulse=this.pulseHits;
   this.moves--;
-  const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed)];
+  const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed,a)];
   // Update drought ONCE per player move, not per cascade wave; never use score
   // progress because score-based levels gain points on virtually every turn.
   if(this.directorMode==="v2"||this.directorMode==="v3"){
@@ -796,8 +807,8 @@ function bestHint(game){
   // New snapshot for EACH trial: the preview's bag and RNG must be isolated
   // from the real game and other candidate previews.
   const trial=new Game(game.level,game.save(),{fastRestore:true});
-  // Use the SAME direction presented by the hint: preferred destination
-  // can change the fusion survivor, bonus placement, cascades and points.
+  // Use the SAME direction presented by the hint: destination controls
+  // first-wave placement, bonuses, Pulse origin and fog-clearing progress.
   const result=trial.swap(hint.from,hint.to);
   if(!result.ok)continue;
   const points=trial.score-game.score;

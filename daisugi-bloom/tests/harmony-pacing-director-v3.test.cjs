@@ -65,7 +65,7 @@ check("Early Journey 3.0 tries up to six fair refills without changing the bag",
   assert.deepEqual(a.save(),b.save(),"Director must be fully seeded and reproducible");
   assert.deepEqual(a.board.filter(p=>p.id<50),before);
   assert.equal(a.board.filter(p=>p.id>=50).length,9);
-  assert(a.board.every(p=>p.stage>=1));
+  assert(a.board.every(p=>p.family==="daruma"?p.stage===0:p.stage>=1));
   assert.equal(R.pacingProposalCount(level,4,"v3"),level<15?6:level<20?5:4);
  }
 });

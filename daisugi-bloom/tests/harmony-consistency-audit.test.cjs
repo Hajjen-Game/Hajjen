@@ -18,7 +18,7 @@ for(let level=0;level<R.levels.length;level++){
   assert.equal(game.board.length,49);
   assert.equal(R.scan(game.board).length,0);
   assert(R.validSwaps(game.board).length>=3);
-  assert(game.board.every(p=>p.stage===1&&R.activeFamilies(level).includes(p.family)));
+  assert(game.board.every((p,i)=>p.family==="daruma"?p.stage===0&&game.daruma[i]===2:p.stage===1&&R.activeFamilies(level).includes(p.family)));
   const initial=game.save(),illegal=game.swap(0,48);
   assert.equal(illegal.ok,false);
   assert.deepEqual(game.save(),initial,"An invalid non-neighbour swap must be free");
@@ -34,7 +34,7 @@ for(let level=0;level<R.levels.length;level++){
     "Displayed award events must account for the full score change");
    const ids=new Set(game.board.map(p=>p.id));
    assert.equal(ids.size,49,"Board must have 49 unique object identities");
-   assert(game.board.every(p=>p&&p.stage>=1&&p.stage<=4&&R.activeFamilies(level).includes(p.family)));
+   assert(game.board.every((p,i)=>p&&(p.family==="daruma"?p.stage===0&&game.daruma[i]>0:p.stage>=1&&p.stage<=4&&R.activeFamilies(level).includes(p.family))));
    assert.equal(R.scan(game.board).length,0,"All cascades must resolve before returning control");
    assert.equal(game.complete,game.fulfilled(),"Completion must agree with current level goal");
    waves+=outcome.events.filter(e=>e.type==="fusion").length;

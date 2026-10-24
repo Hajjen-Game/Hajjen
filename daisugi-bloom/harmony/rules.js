@@ -1019,7 +1019,7 @@ class Game{
    let bonuses=[],unused=0;
    for(const record of records){
     let count=record.number===4?1:record.number>=5?2:0;
-    let eligible=neighbors(record.at).filter(i=>this.board[i]&&this.board[i].stage<5&&!indirect.has(i));
+    let eligible=neighbors(record.at).filter(i=>this.board[i]&&!isDaruma(this.board[i])&&this.board[i].stage<5&&!indirect.has(i));
     eligible.sort((a,b)=>this.board[b].stage-this.board[a].stage||neighbors(record.at).indexOf(a)-neighbors(record.at).indexOf(b));
     for(const i of eligible.slice(0,count))if(this.grow(i,created,true)){indirect.add(i);bonuses.push({from:record.at,to:i,stage:this.board[i].stage});}
     unused+=Math.max(0,count-Math.min(count,eligible.length));

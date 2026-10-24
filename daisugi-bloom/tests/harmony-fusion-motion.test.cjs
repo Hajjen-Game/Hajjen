@@ -99,6 +99,22 @@ async function main(){
  assert(!events.some(e=>e[0]==="fx"&&e[1].startsWith("fusion-intake")),
   "Ordinary fusions must NOT add the unwanted expanding contact circle");
 
+ // Fusion Destination Control 1.0: the highest stage can travel from
+ // its former cell into a weaker destination piece. The original resident
+ // must visibly absorb while the stronger source ghost converges on it.
+ const movedStart=samples.length;
+ await fusion.playFusion({board:[],groups:[{
+  at:24,origin:23,removed:[23,25],family:"sakura",from:4,to:5,number:3
+ }]});
+ const moved=samples.slice(movedStart).filter(x=>x.duration===280);
+ assert.equal(moved.length,3,"Destination plus both incoming objects animate together");
+ assert.equal(moved[0].frames.at(-1).opacity,.15,
+  "The weaker destination piece must be visibly absorbed, not fake being the survivor");
+ assert(moved[1].frames.at(-1).transform.includes("50px,0px"),
+  "Strongest source at 23 must physically travel to new output cell 24");
+ assert(moved[2].frames.at(-1).transform.includes("-50px,0px"),
+  "The third source must gather into the same output cell");
+
  // 4.3.4 retains the exact 280ms tempo for every 3–5-piece fusion, and
  // multiple groups resolve together. Positioning is verified separately by
  // the browser regression test, which targets real tile coordinates.

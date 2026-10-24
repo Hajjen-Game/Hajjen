@@ -11,7 +11,7 @@ const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
-const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0"};
+const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
 function armDecisionClock(){decisionReadyAt=performance.now();}
@@ -19,10 +19,11 @@ function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
  node.textContent=(game.familyCount===4?"4 FAMILJER · ":"5 FAMILJER · ")+
-  (game.directorMode==="v3"?
+  (game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
- node.title=game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
+ node.title=game.directorMode==="v31"?"Objective Awareness värderar befintliga mål, fusionsposition och Pulse, men använder bara rättvisa påfyllningar.":
+  game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
  // Preserve diagnostics for accessibility / game testing but remove the
  // technical status strip from the visual game hierarchy.
  $("gameView")?.setAttribute("data-family-count",String(game.familyCount));
@@ -1660,17 +1661,19 @@ function openEngineLab(){
  const engineMode=document.createElement("select");engineMode.id="engineMode";
  for(const [value,label] of [
   ["compare","Jämför Standard + Director 1.0 + 2.0 + 3.0"],
+  ["compare31","Jämför Director 3.0 mot Objective 3.1"],
   ["standard","Endast Standard"],
   ["director","Endast Director 1.0"],
   ["director2","Endast Director 2.0"],
-  ["director3","Endast Pacing Director 3.0"]
+  ["director3","Endast Pacing Director 3.0"],
+  ["director31","Endast Objective Awareness 3.1"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
- engineMode.value="compare";field("Spelmotor",engineMode);
+ engineMode.value="compare31";field("Spelmotor",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="3.0 innehåller 2.0 och anpassar milda påfyllningsprioriteringar efter dragtempo och utveckling. Botarnas dragtempo är syntetiskt – riktiga spel använder din faktiska tid. Välj spelmotor i nivåmenyn. Inga garanterade vinster.";
+ scopeNote.textContent="3.1 är ett separat testläge ovanpå 3.0. Det värderar riktiga mål, fusionens slutruta, Mist och Pulse – utan gratisdrag eller förändrad slump-pool. Jämför 3.0 och 3.1 med samma seeds. Botarnas dragtempo är syntetiskt, inte mänskligt beteende.";
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
  status.textContent="Redo att mäta spelmotorn.";content.append(status);
@@ -1727,7 +1730,7 @@ function openEngineLab(){
   explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Echo = aktiverade resonansbelöningar per spel. Utveckl. = möjliga matcher som involverar stadium 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. nivå 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
   if(result.options.modes.length>=2){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
-   const title=document.createElement("strong");title.textContent="A/B/C/D · vinst, utveckling och framtida möjligheter";
+   const title=document.createElement("strong");title.textContent="Direkt jämförelse · målframsteg, vinst och utveckling";
    comparison.append(title);
    for(const classic of result.results.filter(x=>x.mode==="standard")){
     for(const mode of result.options.modes.filter(m=>m!=="standard")){
@@ -1754,7 +1757,8 @@ function openEngineLab(){
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
-  const modes=engineMode.value==="compare"?["standard","director","director2","director3"]:[engineMode.value];
+  const modes=engineMode.value==="compare"?["standard","director","director2","director3"]:
+   engineMode.value==="compare31"?["director3","director31"]:[engineMode.value];
   const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
@@ -1811,7 +1815,9 @@ function bind(){
  $("gameDirectorMode").addEventListener("change",event=>{
   save.playMode=event.target.value in PLAY_MODES?event.target.value:"v3";
   persist();
-  $("directorModeDescription").textContent=save.playMode==="v3"?
+  $("directorModeDescription").textContent=save.playMode==="v31"?
+   "Experimentell Director 3.1 analyserar målet, fusionens slutruta, Harmony Mist och Pulse, men väljer bara mellan vanliga påfyllningar. Testa mot 3.0 i Game Dev.":
+   save.playMode==="v3"?
    "Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.":
    save.playMode==="v2"?"Director 2.0 skapar bättre utvecklingsmöjligheter med vanliga påfyllningar.":
    "Originalsystemets slumpmässiga påfyllning. Jämför med de smartare lägena.";

@@ -1,5 +1,12 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Victory Screen Accent Polish 1.1 — 2026-10-24
+
+Resultatskärmen har fått Japanese Harmonys rosa/orange signaturpalett, med sakura-glöd bakom rubrik och stjärnor, persikofärgat ljus i bonuspoängkortet, varmare rekordbadge och varierande nyanser i statistikikonerna. Den mörka tealbasen och layouten från Victory Screen Polish 1.0 består. Ändringen påverkar **bara vinstskärmen**, inte poäng, stjärnor, sparningar, spelplan eller huvudsida.
+
+[Design- och testbeslut](docs/VICTORY_SCREEN_ACCENT_POLISH_1_1.md)
+
+
 ## Victory Screen Polish 1.0 — 2026-10-24
 Resultatrutan har fått större trestjärnig vinstsektion, ett samlat mål-/dragkort, en djupare bonuspoängpanel med rekordmarkering, fyra kompakta statistikfält och en alltid synlig "Nästa nivå"-knapp på mobil. Frivilliga bonusdrag, poäng, nivåframsteg och befintliga sparningar fungerar oförändrat.
 

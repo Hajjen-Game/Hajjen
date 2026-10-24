@@ -1834,6 +1834,52 @@ try{
   assert(reached.completed&&reached.remaining>0,"Completion must retain optional turns");
   assert.equal(reached.starText,"★★★");
   assert(reached.buttons.includes("Nästa nivå →")&&reached.buttons.includes("Fortsätt för poängrekord"));
+  // Victory Accent 1.1: ensure the Sakura/peach hues are actually rendered,
+  // limited to the victory dialog and do not displace actions on small phones.
+  for(const width of [390,320]){
+   await clarity.setViewport({width,height:width===320?640:844,
+    deviceScaleFactor:2,isMobile:true,hasTouch:true});
+   const colors=await clarity.evaluate(()=>{
+    const root=document.querySelector(".modal");
+    const computed=e=>getComputedStyle(document.querySelector(e));
+    const frame=document.querySelector(".modal-inner").getBoundingClientRect();
+    const next=document.querySelector(".victory-actions .victory-next").getBoundingClientRect();
+    return {
+     sakura:computed(".modal").getPropertyValue("--victory-sakura").trim(),
+     peach:computed(".modal").getPropertyValue("--victory-peach").trim(),
+     header:computed(".modal-inner").backgroundImage,
+     score:computed(".victory-score").backgroundImage,
+     star:computed(".victory-star.is-earned").backgroundImage,
+     record:computed(".victory-record").backgroundImage,
+     firstIcon:computed(".victory-stat:first-child .victory-stat-icon").backgroundImage,
+     secondIcon:computed(".victory-stat:nth-child(2) .victory-stat-icon").backgroundImage,
+     action:computed(".victory-next").backgroundImage,
+     stars:document.querySelector(".big-stars").textContent,
+     stats:document.querySelectorAll(".victory-stat").length,
+     contentScroll:getComputedStyle(document.querySelector("#modalContent")).overflowY,
+     innerHeight:frame.height,viewHeight:innerHeight,
+     nextTop:next.top,nextBottom:next.bottom,
+     docWidth:document.documentElement.scrollWidth,viewWidth:innerWidth,
+     isOpen:!root.hidden
+    };
+   });
+   assert(colors.isOpen&&colors.sakura==="#F2A9BF"&&colors.peach==="#F7B489",
+    "Victory must apply the Sakura and peach design tokens");
+   assert(colors.header.includes("rgba(230, 124, 160")&&
+    colors.score.includes("rgba(255, 151, 107")&&
+    colors.record.includes("rgba(233, 127, 149")&&
+    colors.firstIcon.includes("rgba(245, 143, 179")&&
+    colors.secondIcon.includes("rgba(253, 160, 109")&&
+    colors.action.includes("linear-gradient")&&colors.star.includes("linear-gradient"),
+    "Victory rose, orange and gold gradients must render on mobile");
+   assert(colors.stars==="★★★"&&colors.stats===4&&colors.contentScroll==="auto",
+    "Accent pass cannot change the reward content or scroll behaviour");
+   assert(colors.docWidth<=colors.viewWidth&&colors.innerHeight<=colors.viewHeight&&
+    colors.nextTop>=0&&colors.nextBottom<=colors.viewHeight,
+    "Both mobile sizes must keep the primary Next Level button in view");
+  }
+  await clarity.setViewport({width:390,height:844,deviceScaleFactor:2,
+   isMobile:true,hasTouch:true});
   assert.equal(reached.scoreLabel,"BONUSPOÄNG");
   await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Fortsätt för poängrekord")).click());
   assert.equal(await clarity.$eval("#modal",x=>x.hidden),true,

@@ -3117,3 +3117,174 @@ body.harmony-playing .game-view .mist-result{
   transition:none!important;
  }
 }
+
+
+/* Victory Screen Accent Polish 1.1 — Sakura Glow × Amber Festival.
+   Retain the calm midnight-teal foundation. Color is concentrated around the
+   celebration, records and four small stat icons. Scoped to victory ONLY.
+   No tile, pause, menu, scoring or result-value modifications. */
+.modal:has(.victory-result){
+ --victory-sakura:#F2A9BF;
+ --victory-blossom:#F0B4C5;
+ --victory-peach:#F7B489;
+ --victory-amber:#FFD18A;
+ --victory-rose-dark:#C56E80;
+}
+.modal:has(.victory-result) .modal-inner{
+ border-color:rgba(246,183,157,.78);
+ background:
+  radial-gradient(ellipse 90% 30% at 10% 3%,rgba(230,124,160,.19),transparent 76%),
+  radial-gradient(ellipse 82% 23% at 95% 16%,rgba(247,151,95,.16),transparent 75%),
+  radial-gradient(ellipse 70% 30% at 65% 75%,rgba(242,155,124,.065),transparent 82%),
+  linear-gradient(169deg,#264d55 0%,#1a3a46 47%,#102a36 100%);
+ box-shadow:
+  inset 0 1px rgba(255,229,205,.22),
+  0 22px 72px rgba(0,9,17,.74),
+  0 0 0 5px rgba(52,25,39,.18);
+}
+.modal:has(.victory-result) .modal-inner::before{
+ height:230px;
+ background:
+  radial-gradient(ellipse 67% 53% at 49% 58%,rgba(244,171,142,.17),transparent 73%),
+  radial-gradient(ellipse 36% 45% at 14% 23%,rgba(244,142,183,.22),transparent 85%),
+  radial-gradient(ellipse 40% 52% at 86% 4%,rgba(255,169,106,.18),transparent 82%);
+}
+.modal:has(.victory-result) .modal-inner>.eyebrow{
+ color:var(--victory-blossom);
+ text-shadow:0 0 15px rgba(245,151,176,.23);
+}
+.modal:has(.victory-result) .modal-inner>h2{
+ color:#ffefdf;
+ text-shadow:0 2px 13px rgba(11,19,28,.4),0 0 19px rgba(244,164,179,.19);
+}
+.modal:has(.victory-result) .victory-stars::before{
+ width:245px;
+ height:90px;
+ background:
+  radial-gradient(ellipse at 32% 55%,rgba(255,151,185,.30),transparent 62%),
+  radial-gradient(ellipse at 69% 49%,rgba(255,178,112,.29),transparent 65%);
+}
+.modal:has(.victory-result) .victory-stars::after{
+ color:#f5bdad;
+ opacity:.85;
+}
+.modal:has(.victory-result) .victory-star.is-earned{
+ background:linear-gradient(147deg,#fff0c7 4%,#ffdaa0 38%,#f0a274 80%,#d17970 100%);
+ -webkit-background-clip:text;
+ background-clip:text;
+ -webkit-text-fill-color:transparent;
+ filter:drop-shadow(0 2px 0 rgba(82,46,39,.62))
+        drop-shadow(0 0 9px rgba(240,160,130,.32));
+}
+.modal:has(.victory-result) .victory-star.is-empty{
+ color:#efb0ac;
+}
+.modal:has(.victory-result) .victory-goal{
+ border-color:rgba(242,176,149,.46);
+ background:
+  radial-gradient(ellipse at 3% 0%,rgba(250,171,168,.16),transparent 65%),
+  linear-gradient(109deg,rgba(47,93,84,.81),rgba(27,74,73,.63));
+ box-shadow:inset 0 1px rgba(255,234,213,.2),inset 3px 0 rgba(243,158,176,.42);
+}
+.modal:has(.victory-result) .victory-goal .victory-kicker{
+ color:#f3c1b3;
+}
+.modal:has(.victory-result) .victory-goal-count{
+ border-color:rgba(249,192,141,.40);
+ background:rgba(249,183,125,.15);
+ color:#ffe1ab;
+}
+.modal:has(.victory-result) .victory-timing-stat:first-child strong{
+ color:#ffd09d;
+}
+.modal:has(.victory-result) .victory-timing-stat:last-child strong{
+ color:#f2b4ba;
+}
+.modal:has(.victory-result) .victory-timing-stat+.victory-timing-stat{
+ border-left-color:rgba(250,171,153,.25);
+}
+.modal:has(.victory-result) .summary.victory-score{
+ border-color:rgba(250,171,125,.66);
+ background:
+  radial-gradient(ellipse at 100% 5%,rgba(255,151,107,.24),transparent 65%),
+  radial-gradient(ellipse at 0% 100%,rgba(241,143,168,.12),transparent 67%),
+  linear-gradient(116deg,rgba(18,45,57,.99),rgba(35,65,67,.96));
+ box-shadow:inset 0 1px rgba(255,226,201,.20),0 6px 20px rgba(12,20,28,.27);
+}
+.modal:has(.victory-result) .summary.victory-score .victory-kicker{
+ color:#f7c3a8;
+}
+.modal:has(.victory-result) .summary.victory-score .victory-score-number{
+ color:#ffce90;
+ text-shadow:0 2px 13px rgba(242,131,87,.28);
+}
+.modal:has(.victory-result) .victory-score::after{
+ background:linear-gradient(90deg,transparent,rgba(253,185,169,.15),transparent);
+}
+.modal:has(.victory-result) .victory-record{
+ border-color:rgba(246,164,139,.58);
+ background:linear-gradient(115deg,rgba(233,127,149,.23),rgba(251,177,109,.14));
+ color:#ffe0c7;
+}
+.modal:has(.victory-result) .victory-record-mark{
+ color:#ffb0ae;
+}
+.modal:has(.victory-result) .victory-stats .victory-stat{
+ border-color:rgba(243,197,166,.24);
+ background:
+  linear-gradient(140deg,rgba(57,81,79,.65),rgba(20,54,65,.74));
+}
+/* Small, deliberately varied accents echo Sakura, festival lanterns,
+   golden chains and peach-toned fusion effects. The numeric copy stays warm
+   ivory so stats remain calm and easy to compare. */
+.modal:has(.victory-result) .victory-stat:nth-child(1) .victory-stat-icon{
+ border-color:rgba(250,170,192,.43);
+ background:linear-gradient(135deg,rgba(245,143,179,.29),rgba(239,160,192,.12));
+ color:#ffc0d0;
+}
+.modal:has(.victory-result) .victory-stat:nth-child(2) .victory-stat-icon{
+ border-color:rgba(255,184,130,.43);
+ background:linear-gradient(135deg,rgba(253,160,109,.26),rgba(249,182,125,.11));
+ color:#ffcf9c;
+}
+.modal:has(.victory-result) .victory-stat:nth-child(3) .victory-stat-icon{
+ border-color:rgba(249,208,139,.39);
+ background:linear-gradient(135deg,rgba(245,195,116,.21),rgba(238,168,120,.10));
+ color:#ffe1a6;
+}
+.modal:has(.victory-result) .victory-stat:nth-child(4) .victory-stat-icon{
+ border-color:rgba(251,174,157,.42);
+ background:linear-gradient(135deg,rgba(242,156,137,.28),rgba(237,128,171,.10));
+ color:#ffbcb0;
+}
+.modal:has(.victory-result) .victory-stats .victory-stat:nth-child(even) strong{
+ color:#ffd5a6;
+}
+.modal:has(.victory-result) .victory-stats .victory-stat:nth-child(odd) strong{
+ color:#f6d0b8;
+}
+.modal:has(.victory-result) .victory-next-note{
+ color:#e6d6ce;
+}
+.modal:has(.victory-result) .modal-actions.victory-actions{
+ border-top-color:rgba(244,165,151,.31);
+ background:linear-gradient(180deg,rgba(25,46,55,.98),rgba(13,34,45,.99));
+}
+.modal:has(.victory-result) .victory-actions .victory-next{
+ border-color:#ffd0ab;
+ background:linear-gradient(112deg,#ffe0ad 0%,#fbc39d 51%,#f5b5a6 100%);
+ box-shadow:inset 0 1px rgba(255,251,238,.7),0 5px 16px rgba(14,22,27,.34);
+ color:#31393a;
+}
+.modal:has(.victory-result) .victory-actions .victory-continue{
+ border-color:rgba(243,172,159,.48);
+ background:linear-gradient(110deg,rgba(70,73,78,.69),rgba(70,62,76,.56));
+ color:#ffe0d1;
+}
+.modal:has(.victory-result) .victory-actions .victory-tertiary{
+ border-color:rgba(229,186,178,.22);
+ color:#d9c9c6;
+}
+@media(prefers-reduced-motion:reduce){
+ .modal:has(.victory-result) .victory-score::after{animation:none!important}
+}

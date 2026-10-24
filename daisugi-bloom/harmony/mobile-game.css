@@ -2469,32 +2469,28 @@ body.harmony-reduced-motion.harmony-playing .game-view .magic-dust-layer .magic-
  display:none!important;
 }
 
-/* HARMONY MIST MOTION 1.1 — quicker drifting soft fog, phone-first.
-   Three transform-only layers, staggered between cells, with no animation
-   on the piece itself. Respect reduced motion and do not block touches.
-   Based on the visible pearly fog from Visual Rework 2.1.
-   2.0 lost nearly all its contrast by masking the centre and putting faint
-   wisps outside the tile. Each affected cell now carries two visible soft
-   cloud banks AND a low-density translucent centre. The artwork remains
-   identifiable, with no hard frame, padlock look, pointer blocking or blur. */
+/* HARMONY MIST MOTION 1.2 — visibly flowing smoke on real phone tiles.
+   Previously the diffuse cloud banks moved only a small distance over 3.6–4.6s,
+   making the fog appear almost like a static white tint. This pass concentrates
+   the pearly wisps into asymmetric pockets and carries them fully across each
+   tile within ~2 seconds. A quiet backdrop preserves icon readability.
+   Only two pseudo-elements animate (GPU transforms/opacity); no canvas,
+   filters, layout animation, pointer captures, or extra DOM nodes. */
 body.harmony-playing .game-view .tile.misted .harmony-mist{
  position:absolute;
  inset:0;
  z-index:3;
+ overflow:hidden;
  border-radius:7px;
  pointer-events:none;
- opacity:.96;
+ opacity:.95;
  background:
-  radial-gradient(ellipse 79% 36% at 24% 9%,rgba(243,254,253,.75) 0%,rgba(201,242,250,.40) 43%,transparent 92%),
-  radial-gradient(ellipse 83% 39% at 81% 91%,rgba(223,230,255,.71) 0%,rgba(184,220,251,.40) 49%,transparent 94%),
-  radial-gradient(ellipse 45% 78% at 0% 54%,rgba(202,246,248,.55) 0%,transparent 91%),
-  radial-gradient(ellipse 47% 80% at 100% 41%,rgba(226,214,251,.53) 0%,transparent 89%),
-  radial-gradient(ellipse 76% 56% at 49% 55%,rgba(211,240,247,.30) 0%,transparent 84%);
- /* 2.0 used a fully transparent 36% centre, which hid most of the effect.
-    The gently thinned centre now stays readable yet perceptibly misted. */
- -webkit-mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,rgba(0,0,0,.70) 0%,rgba(0,0,0,.86) 42%,#000 83%);
- mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,rgba(0,0,0,.70) 0%,rgba(0,0,0,.86) 42%,#000 83%);
- animation:harmony-mist-breathe 5.4s ease-in-out infinite alternate;
+  radial-gradient(ellipse 79% 36% at 24% 9%,rgba(237,253,251,.36) 0%,rgba(201,242,250,.14) 43%,transparent 92%),
+  radial-gradient(ellipse 83% 39% at 81% 91%,rgba(223,230,255,.34) 0%,rgba(184,220,251,.13) 49%,transparent 94%),
+  radial-gradient(ellipse 80% 75% at 50% 50%,rgba(205,237,246,.14),transparent 90%);
+ -webkit-mask-image:radial-gradient(ellipse 98% 97% at 50% 50%,rgba(0,0,0,.80),#000 78%);
+ mask-image:radial-gradient(ellipse 98% 97% at 50% 50%,rgba(0,0,0,.80),#000 78%);
+ animation:harmony-mist-breathe 3.2s ease-in-out infinite alternate;
 }
 body.harmony-playing .game-view .tile.misted .harmony-mist::before,
 body.harmony-playing .game-view .tile.misted .harmony-mist::after{
@@ -2504,47 +2500,46 @@ body.harmony-playing .game-view .tile.misted .harmony-mist::after{
  border-radius:50%;
 }
 body.harmony-playing .game-view .tile.misted .harmony-mist::before{
- top:-13%;
- left:-21%;
- width:132%;
- height:77%;
+ top:0%;
+ left:-24%;
+ width:135%;
+ height:78%;
  background:
-  radial-gradient(ellipse 52% 39% at 30% 45%,rgba(244,255,252,.82),rgba(204,244,250,.51) 44%,transparent 85%),
-  radial-gradient(ellipse 46% 34% at 78% 67%,rgba(222,235,253,.55),transparent 83%);
- animation:harmony-mist-drift 3.6s cubic-bezier(.42,0,.58,1) infinite alternate;
+  radial-gradient(ellipse 41% 44% at 24% 47%,rgba(249,255,255,.91) 0%,rgba(218,249,253,.66) 38%,rgba(198,231,248,.24) 63%,transparent 85%),
+  radial-gradient(ellipse 25% 31% at 72% 57%,rgba(229,249,255,.49),transparent 84%);
+ animation:harmony-mist-drift 2.05s ease-in-out infinite alternate;
 }
 body.harmony-playing .game-view .tile.misted .harmony-mist::after{
- right:-22%;
- bottom:-17%;
- width:136%;
- height:77%;
+ right:-23%;
+ bottom:-5%;
+ width:134%;
+ height:80%;
  background:
-  radial-gradient(ellipse 52% 40% at 72% 53%,rgba(237,239,255,.78),rgba(207,224,253,.47) 45%,transparent 86%),
-  radial-gradient(ellipse 43% 33% at 21% 34%,rgba(210,250,244,.54),transparent 87%);
- animation:harmony-mist-drift-far 4.6s cubic-bezier(.42,0,.58,1) infinite alternate;
+  radial-gradient(ellipse 42% 44% at 76% 55%,rgba(245,243,255,.89),rgba(216,227,255,.62) 41%,rgba(191,220,248,.19) 65%,transparent 84%),
+  radial-gradient(ellipse 29% 31% at 25% 38%,rgba(222,251,246,.45),transparent 84%);
+ animation:harmony-mist-drift-far 2.65s ease-in-out infinite alternate;
 }
-/* Gentle but legible displacement: at phone tile size the clouds move
-   roughly 15–25px over a cycle, instead of the old almost static 5–8px. */
+/* Larger spatial displacement and asymmetric highlights ensure that motion
+   registers within the first second, not only after sustained observation. */
 @keyframes harmony-mist-breathe{
  0%{opacity:.88;transform:translate3d(-1px,1px,0)}
  100%{opacity:1;transform:translate3d(1px,-1px,0)}
 }
 @keyframes harmony-mist-drift{
- 0%{transform:translate3d(-11%,8%,0) scale(.96);opacity:.85}
- 100%{transform:translate3d(11%,-7%,0) scale(1.05);opacity:1}
+ 0%{transform:translate3d(-20%,12%,0) scale(.94);opacity:.74}
+ 100%{transform:translate3d(28%,-13%,0) scale(1.07);opacity:1}
 }
 @keyframes harmony-mist-drift-far{
- 0%{transform:translate3d(11%,-8%,0) scale(1.04);opacity:1}
- 100%{transform:translate3d(-10%,8%,0) scale(.95);opacity:.81}
+ 0%{transform:translate3d(24%,-13%,0) scale(1.05);opacity:1}
+ 100%{transform:translate3d(-25%,11%,0) scale(.94);opacity:.70}
 }
-/* Each tile begins at a different point in the cloud cycle so the board
-   feels like scattered natural fog, not nine identical synchronized sprites. */
-body.harmony-playing .game-view .tile.misted:nth-child(3n+1) .harmony-mist::before{animation-delay:-1.2s}
-body.harmony-playing .game-view .tile.misted:nth-child(3n+2) .harmony-mist::before{animation-delay:-2.7s}
-body.harmony-playing .game-view .tile.misted:nth-child(4n+1) .harmony-mist::after{animation-delay:-1.8s}
-body.harmony-playing .game-view .tile.misted:nth-child(4n+3) .harmony-mist::after{animation-delay:-3.4s}
-body.harmony-playing .game-view .tile.misted:nth-child(3n+2) .harmony-mist{animation-delay:-1.7s}
-body.harmony-playing .game-view .tile.misted:nth-child(3n+3) .harmony-mist{animation-delay:-3.4s}
+/* Offset the cycles so nine misted cells do not pulse in synchrony. */
+body.harmony-playing .game-view .tile.misted:nth-child(3n+1) .harmony-mist::before{animation-delay:-.56s}
+body.harmony-playing .game-view .tile.misted:nth-child(3n+2) .harmony-mist::before{animation-delay:-1.20s}
+body.harmony-playing .game-view .tile.misted:nth-child(4n+1) .harmony-mist::after{animation-delay:-.73s}
+body.harmony-playing .game-view .tile.misted:nth-child(4n+3) .harmony-mist::after{animation-delay:-1.65s}
+body.harmony-playing .game-view .tile.misted:nth-child(3n+2) .harmony-mist{animation-delay:-1.0s}
+body.harmony-playing .game-view .tile.misted:nth-child(3n+3) .harmony-mist{animation-delay:-2.2s}
 /* Fog reacts to the gesture like air, rather than behaving as a lock. */
 body.harmony-playing .game-view .tile.misted.selected .harmony-mist,
 body.harmony-playing .game-view .tile.misted:active .harmony-mist{

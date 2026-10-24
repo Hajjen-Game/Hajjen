@@ -464,6 +464,23 @@ class Game{
     Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count).includes(i))):Array(49).fill(0);
    this.mistCleared=this.objectiveVersion===2&&this.config.goal.type==="mist"?
     Math.max(0,Math.min(this.config.goal.count,Number(previous.mistCleared)||0)):0;
+   if(!isLegacyJourney&&this.level>=10&&this.level<20&&
+      this.config.goal.type==="mist"&&previous.objectiveBalanceVersion!==1){
+    // Old Mist saves contain only 6–12 fog patches but the new win target
+    // can be 9–15. Keep already cleared cells cleared and add just enough
+    // NEW patches to make the new objective mathematically achievable.
+    const remaining=Math.max(0,this.config.goal.count-this.mistCleared);
+    let count=this.mist.filter(Boolean).length;
+    if(count>remaining){
+     for(let i=48;i>=0&&count>remaining;i--)if(this.mist[i]){this.mist[i]=0;count--;}
+    }
+    for(const i of mistLayout(this.level,this.config.goal.count)){
+     if(count>=remaining)break;
+     if(!this.mist[i]){this.mist[i]=1;count++;}
+    }
+    // Pathological older saves with missing masks still stay winnable.
+    for(let i=0;i<49&&count<remaining;i++)if(!this.mist[i]){this.mist[i]=1;count++;}
+   }
    // Existing snapshots without a family count are ALWAYS five-family runs.
    this.familyCount=previous.familyCount===4?4:5;
    this.families=activeFamilies(this.level,this.familyCount);

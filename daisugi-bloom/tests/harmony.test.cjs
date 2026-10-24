@@ -397,7 +397,7 @@ check("Redesign 1.0 never applies historical move expansion to current level 13 
  assert.deepEqual(restored.save(),snap);
 });
 check("Mist fusion survivor and Harmony Pulse hits both cleanse fog, not consumed tiles",()=>{
- const g=new R.Game(10,null,{seed:451,directorMode:"v3"});
+ const g=new R.Game(12,null,{seed:451,directorMode:"v3"});
  g.config={...g.config,goal:{type:"mist",count:6}};
  g.board=blank();
  for(const i of [23,24,25])g.board[i].family="sakura";
@@ -420,13 +420,13 @@ check("Mist fusion survivor and Harmony Pulse hits both cleanse fog, not consume
  assert.equal(g.mist.filter(Boolean).length,3,"Consumed and untouched fog must persist");
  assert.equal(g.mist[38],1,"Unhit fog remains fixed in its cell");
  assert.equal(g.mist[24],0,"Survivor's fixed cell is now clear");
- const snap=g.save(),resumed=new R.Game(10,snap,{fastRestore:true});
+ const snap=g.save(),resumed=new R.Game(12,snap,{fastRestore:true});
  assert.deepEqual(resumed.mist,g.mist,"Cleared/foggy fixed cells persist after reload");
  assert.equal(resumed.progress(),g.progress());
  assert.equal(g.clearMist([24,24]).length,0,"A cleared cell cannot count twice");
 });
 check("Pulse can cleanse mist when the fusion survivor itself is not misted",()=>{
- const g=new R.Game(10,null,{seed:453,directorMode:"standard"});
+ const g=new R.Game(12,null,{seed:453,directorMode:"standard"});
  g.config={...g.config,goal:{type:"mist",count:4}};
  g.board=blank();
  for(const i of [23,24,25])g.board[i].family="sakura";
@@ -442,12 +442,12 @@ check("Pulse can cleanse mist when the fusion survivor itself is not misted",()=
  assert.equal(g.mist[23],1,"Consumed matched source cannot clear on its own");
  assert.equal(g.mist[38],1,"Unhit mist remains");
  assert.equal(g.mistCleared,2);
- const restored=new R.Game(10,g.save(),{fastRestore:true});
+ const restored=new R.Game(12,g.save(),{fastRestore:true});
  assert.deepEqual(restored.mist,g.mist);
  assert.equal(restored.mistCleared,2);
 });
 check("Mist remains on matched source cells when fusion output is elsewhere",()=>{
- const g=new R.Game(10,null,{seed:452,directorMode:"standard"});
+ const g=new R.Game(12,null,{seed:452,directorMode:"standard"});
  g.config={...g.config,goal:{type:"mist",count:2}};
  g.board=blank();
  for(const i of [23,24,25])g.board[i].family="sakura";
@@ -461,7 +461,7 @@ check("Mist remains on matched source cells when fusion output is elsewhere",()=
  assert.equal(fusion.goal,0);
 });
 check("Misted objects can still move in both directions and survive reload",()=>{
- const g=new R.Game(10,null,{seed:141,directorMode:"v3"});
+ const g=new R.Game(12,null,{seed:141,directorMode:"v3"});
  const pair=R.validSwaps(g.board)[0];
  assert(pair,"A legal swap must exist");
  const [a,b]=pair;

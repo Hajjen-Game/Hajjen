@@ -2469,24 +2469,29 @@ body.harmony-reduced-motion.harmony-playing .game-view .magic-dust-layer .magic-
  display:none!important;
 }
 
-/* HARMONY MIST VISUAL REWORK 2.0 — never depict a solid, locked tile.
-   Edge-wisps drift independently at ambient speed; the icon centre stays
-   clear and readable. Pointer events and gameplay remain unaffected. */
+/* HARMONY MIST VISUAL REWORK 2.1 — visible, living fog (phone-first).
+   2.0 lost nearly all its contrast by masking the centre and putting faint
+   wisps outside the tile. Each affected cell now carries two visible soft
+   cloud banks AND a low-density translucent centre. The artwork remains
+   identifiable, with no hard frame, padlock look, pointer blocking or blur. */
 body.harmony-playing .game-view .tile.misted .harmony-mist{
  position:absolute;
- inset:1px;
+ inset:0;
  z-index:3;
  border-radius:7px;
  pointer-events:none;
- opacity:.82;
+ opacity:.96;
  background:
-  radial-gradient(ellipse 65% 30% at 10% 4%,rgba(210,245,247,.35),transparent 90%),
-  radial-gradient(ellipse 65% 31% at 90% 96%,rgba(183,211,247,.29),transparent 90%),
-  radial-gradient(ellipse 36% 69% at 3% 50%,rgba(176,234,235,.23),transparent 98%),
-  radial-gradient(ellipse 36% 69% at 97% 48%,rgba(207,190,237,.20),transparent 98%);
- -webkit-mask-image:radial-gradient(ellipse 83% 87% at 50% 50%,transparent 36%,#000 88%);
- mask-image:radial-gradient(ellipse 83% 87% at 50% 50%,transparent 36%,#000 88%);
- animation:harmony-mist-breathe 8.8s ease-in-out infinite alternate;
+  radial-gradient(ellipse 79% 36% at 24% 9%,rgba(243,254,253,.75) 0%,rgba(201,242,250,.40) 43%,transparent 92%),
+  radial-gradient(ellipse 83% 39% at 81% 91%,rgba(223,230,255,.71) 0%,rgba(184,220,251,.40) 49%,transparent 94%),
+  radial-gradient(ellipse 45% 78% at 0% 54%,rgba(202,246,248,.55) 0%,transparent 91%),
+  radial-gradient(ellipse 47% 80% at 100% 41%,rgba(226,214,251,.53) 0%,transparent 89%),
+  radial-gradient(ellipse 76% 56% at 49% 55%,rgba(211,240,247,.30) 0%,transparent 84%);
+ /* 2.0 used a fully transparent 36% centre, which hid most of the effect.
+    The gently thinned centre now stays readable yet perceptibly misted. */
+ -webkit-mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,rgba(0,0,0,.70) 0%,rgba(0,0,0,.86) 42%,#000 83%);
+ mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,rgba(0,0,0,.70) 0%,rgba(0,0,0,.86) 42%,#000 83%);
+ animation:harmony-mist-breathe 7.2s ease-in-out infinite alternate;
 }
 body.harmony-playing .game-view .tile.misted .harmony-mist::before,
 body.harmony-playing .game-view .tile.misted .harmony-mist::after{
@@ -2496,34 +2501,38 @@ body.harmony-playing .game-view .tile.misted .harmony-mist::after{
  border-radius:50%;
 }
 body.harmony-playing .game-view .tile.misted .harmony-mist::before{
- top:-9%;
- left:-18%;
- width:92%;
- height:44%;
- background:radial-gradient(ellipse,rgba(197,242,245,.42),rgba(176,219,242,.12) 47%,transparent 77%);
- animation:harmony-mist-drift 10.4s ease-in-out infinite alternate;
+ top:-13%;
+ left:-21%;
+ width:132%;
+ height:77%;
+ background:
+  radial-gradient(ellipse 52% 39% at 30% 45%,rgba(244,255,252,.82),rgba(204,244,250,.51) 44%,transparent 85%),
+  radial-gradient(ellipse 46% 34% at 78% 67%,rgba(222,235,253,.55),transparent 83%);
+ animation:harmony-mist-drift 8.6s ease-in-out infinite alternate;
 }
 body.harmony-playing .game-view .tile.misted .harmony-mist::after{
- right:-16%;
- bottom:-12%;
- width:90%;
- height:43%;
- background:radial-gradient(ellipse,rgba(200,192,245,.32),rgba(189,225,244,.14) 48%,transparent 79%);
- animation:harmony-mist-drift 12.6s ease-in-out infinite alternate-reverse;
+ right:-22%;
+ bottom:-17%;
+ width:136%;
+ height:77%;
+ background:
+  radial-gradient(ellipse 52% 40% at 72% 53%,rgba(237,239,255,.78),rgba(207,224,253,.47) 45%,transparent 86%),
+  radial-gradient(ellipse 43% 33% at 21% 34%,rgba(210,250,244,.54),transparent 87%);
+ animation:harmony-mist-drift 10.2s ease-in-out infinite alternate-reverse;
 }
 @keyframes harmony-mist-breathe{
- 0%{opacity:.56;transform:translate3d(-1.5px,1px,0)}
- 100%{opacity:.91;transform:translate3d(1.5px,-1px,0)}
+ 0%{opacity:.86;transform:translate3d(-2px,1px,0)}
+ 100%{opacity:1;transform:translate3d(2px,-1px,0)}
 }
 @keyframes harmony-mist-drift{
- 0%{transform:translate3d(-5px,2px,0) scale(.94);opacity:.50}
- 100%{transform:translate3d(7px,-4px,0) scale(1.10);opacity:.90}
+ 0%{transform:translate3d(-5px,3px,0) scale(.93);opacity:.81}
+ 100%{transform:translate3d(8px,-5px,0) scale(1.08);opacity:1}
 }
-/* Respond like air to touch: never suggest a piece is pinned in place. */
+/* Fog reacts to the gesture like air, rather than behaving as a lock. */
 body.harmony-playing .game-view .tile.misted.selected .harmony-mist,
 body.harmony-playing .game-view .tile.misted:active .harmony-mist{
- opacity:.35;
- transform:translate3d(4px,-3px,0) scale(1.04);
+ opacity:.32;
+ transform:translate3d(5px,-4px,0) scale(1.04);
  animation-play-state:paused;
  transition:opacity 140ms ease-out,transform 140ms ease-out;
 }
@@ -2538,8 +2547,8 @@ body.harmony-playing .game-view .mist-release{
  border-radius:35%;
  opacity:0;
  background:
-  radial-gradient(ellipse 51% 24% at 22% 28%,rgba(206,242,244,.37),transparent 96%),
-  radial-gradient(ellipse 49% 27% at 72% 69%,rgba(199,198,239,.29),transparent 96%);
+  radial-gradient(ellipse 51% 24% at 22% 28%,rgba(220,251,250,.68),transparent 96%),
+  radial-gradient(ellipse 49% 27% at 72% 69%,rgba(211,212,252,.57),transparent 96%);
  filter:none;
 }
 body.harmony-playing .game-view .mist-release::before,
@@ -2548,11 +2557,11 @@ body.harmony-playing .game-view .mist-release::after{
  position:absolute;
  inset:10% 8%;
  border-radius:50%;
- background:radial-gradient(ellipse at 35% 40%,rgba(224,251,253,.28),transparent 75%);
+ background:radial-gradient(ellipse at 35% 40%,rgba(234,254,253,.53),transparent 75%);
 }
 body.harmony-playing .game-view .mist-release::after{
  inset:34% 5% 2% 24%;
- background:radial-gradient(ellipse,rgba(198,205,241,.24),transparent 78%);
+ background:radial-gradient(ellipse,rgba(211,220,255,.45),transparent 78%);
 }
 @media(prefers-reduced-motion:reduce){
  body.harmony-playing .game-view .tile.misted .harmony-mist,

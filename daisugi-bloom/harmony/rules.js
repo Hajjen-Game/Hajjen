@@ -86,13 +86,13 @@ function endlessConfig(index){
  const quests=[
   {type:"mist",count:mistCount},
   {type:"mist",count:mistCount},
-  {type:"masterpiece",count:2+Math.min(1,Math.floor(chapter/2))},
+  {type:"masterpiece",count:earlyJourney?3:2+Math.min(1,Math.floor(chapter/2))},
   {type:"mist",count:mistCount},
-  {type:"fusion",count:10+Math.min(5,chapter)},
+  {type:"fusion",count:earlyJourney?20:10+Math.min(5,chapter)},
   {type:"mist",count:mistCount},
-  {type:"stage3",count:6+Math.min(4,chapter)},
+  {type:"stage3",count:earlyJourney?10:6+Math.min(4,chapter)},
   {type:"mist",count:mistCount},
-  {type:"pulseHits",count:5+Math.min(4,chapter)},
+  {type:"pulseHits",count:earlyJourney?8:5+Math.min(4,chapter)},
   {type:"mist",count:mistCount}
  ];
  const goal=quests[stage];

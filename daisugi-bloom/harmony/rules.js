@@ -840,7 +840,8 @@ class Game{
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
    return {ok:false,reason:"Bytet behöver skapa minst tre i samma familj"};
   }
-  if(this.directorMode==="v3"||this.directorMode==="v31"){\n   const ms=options?.decisionMs;
+  if(this.directorMode==="v3"||this.directorMode==="v31"){
+   const ms=options?.decisionMs;
    // Ignore interruptions, background sleep and idle gaps beyond 90s.
    if(Number.isFinite(ms)&&ms>=0&&ms<=90000){
     this.paceTimes.push(Math.round(ms));this.paceTimes=this.paceTimes.slice(-8);

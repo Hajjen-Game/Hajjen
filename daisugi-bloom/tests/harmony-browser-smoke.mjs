@@ -240,6 +240,17 @@ try{
   assert.equal(objectiveMode.mode,"v31","Objective 3.1 must be playable without replacing 3.0");
   assert.equal(objectiveMode.drought,0);
   assert(objectiveMode.status.includes("OBJECTIVE 3.1"));
+  await demo.click("#pauseButton");
+  await demo.click("#modalActions button:last-child");
+  await demo.$eval("#menuAdvanced",e=>e.open=true);
+  await demo.select("#gameDirectorMode","v311");
+  await demo.click(".level-tile:first-child");
+  const endgameMode=await demo.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return {mode:run.directorMode,status:document.querySelector("#paceStatus")?.textContent};
+  });
+  assert.equal(endgameMode.mode,"v311","Endgame 3.1.1 must be separately playable");
+  assert(endgameMode.status.includes("ENDGAME 3.1.1"));
  }finally{await directorContext.close();}
  // Fixed family progression: 4 in stages 1–10 and 5 from stage 11.
  // Old five-family saved runs and BOTH historical score archives survive.
@@ -898,7 +909,7 @@ try{
   versions:[...document.querySelectorAll(".engine-table tbody tr")]
    .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.22.0")
+  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.22.1")
  }));
  assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
  assert.equal(comparisonUI.versions.filter(x=>x==="Director 1.0").length,4);
@@ -922,6 +933,21 @@ try{
  assert.equal(objectiveCompare.modes.filter(x=>x==="Pacing 3.0").length,4);
  assert.equal(objectiveCompare.modes.filter(x=>x==="Objective 3.1").length,4);
  assert.equal(objectiveCompare.summaries,4,"3.0-vs-3.1 comparison must include paired outcome rows");
+ await page.select("#engineMode","compare311");
+ await page.click("#modalActions button:first-child");
+ await page.waitForFunction(()=>{
+  const status=document.querySelector(".engine-lab-status")?.textContent;
+  return status?.includes("Analysen klar")&&
+   document.querySelectorAll(".engine-table tbody tr").length===8;
+ },{timeout:45000});
+ const endgameCompare=await page.evaluate(()=>({
+  modes:[...document.querySelectorAll(".engine-table tbody tr")]
+   .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
+  summaries:document.querySelectorAll(".engine-comparison p").length
+ }));
+ assert.equal(endgameCompare.modes.filter(x=>x==="Objective 3.1").length,4);
+ assert.equal(endgameCompare.modes.filter(x=>x==="Endgame 3.1.1").length,4);
+ assert.equal(endgameCompare.summaries,4,"3.1-vs-3.1.1 must have paired rows");
  assert.equal(await page.$eval("#modalActions button:nth-child(3)",b=>b.disabled),false,
   "A finished report must be exportable as JSON");
  assert.equal(await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2")),beforeLab,

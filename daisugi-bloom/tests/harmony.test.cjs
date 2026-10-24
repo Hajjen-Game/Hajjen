@@ -219,6 +219,8 @@ check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",(
  }
  assert.deepEqual([10,11,13,15,17,19].map(i=>R.levelConfig(i).goal.count),
   [9,11,12,13,14,15],"Balanced Mist counts should increase through Chapter II");
+ assert.deepEqual([12,14,16,18].map(i=>R.levelConfig(i).goal.count),
+  [3,20,10,8],"Non-Mist goals must require meaningful work, not just a few moves");
  const g=new R.Game(10,null,{seed:1001});
  const positions=g.mist.flatMap((v,i)=>v?[i]:[]);
  assert.equal(positions.length,9);

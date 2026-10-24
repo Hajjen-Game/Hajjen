@@ -163,7 +163,7 @@ const EARLY_MIST_LAYOUTS={
  9:[9,16,17,31,32,39],          // level 10: two Ls
  12:[8,9,15,33,34,40],          // level 13: two Ls
  14:[8,9,15,32,33,40,24],      // level 15: two Ls + precision
- 16:[8,9,15,26,33,34,39,40],   // level 17: connected pockets
+ 16:[8,9,15,18,19,26,36,37],   // level 17: connected pockets
  18:[8,9,15,12,19,20,29,36,37] // level 19: three Ls
 };
 function mistLayout(index,count,version=2){

@@ -231,8 +231,14 @@ function renderMenu(){
   const b=document.createElement("button");b.className="level-tile"+(allowed?"":" locked");b.disabled=!allowed;
   const n=document.createElement("span");n.className="level-number";n.textContent=allowed?String(i+1):"♧";
   const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
-  title.textContent=i<10?cfg.name:"Harmony Journey · "+(i+1);
-  sub.textContent=i<10?cfg.subtitle:cfg.moves+" drag · "+prettify(cfg.goal.count)+" poäng";
+  title.textContent=i<10?cfg.name:cfg.name+" · "+(i+1);
+  sub.textContent=i<10?cfg.subtitle:
+   cfg.moves+" drag · "+(cfg.goal.type==="mist"?cfg.goal.count+" dimrutor":
+    cfg.goal.type==="masterpiece"?cfg.goal.count+" mästerverk":
+    cfg.goal.type==="fusion"?cfg.goal.count+" fusioner":
+    cfg.goal.type==="stage3"?cfg.goal.count+" utvecklingar":
+    cfg.goal.type==="pulseHits"?cfg.goal.count+" Harmony Pulse-träffar":
+    prettify(cfg.goal.count)+" poäng");
   d.append(title,sub);
   if(allowed&&record>0){
    const best=document.createElement("span");best.className="level-best";
@@ -247,7 +253,7 @@ function renderMenu(){
  const intro=menuPage===0;
  $("chapterEyebrow").textContent=intro?"INTRODUKTION + JOURNEY":"ENDLESS JOURNEY";
  $("chapterTitle").textContent=intro?"First Harmony":"Harmony Journey";
- $("chapterSubtitle").textContent=intro?"Nivå 1–10 lär dig spelet. Därefter är det poängjakt.":"Nya nivåer skapas automatiskt · spela för högre poäng";
+ $("chapterSubtitle").textContent=intro?"Nivå 1–10 lär dig spelet. Från nivå 11 väntar nya uppdrag, bland annat Harmony Mist.":"Nya utmaningar med dimma, mästerverk och Harmony Pulse · stjärnor för skicklighet";
  const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
   n+(Number(i)<10?Number(v)||0:0),0)+
   Object.entries(save.bestStars).reduce((n,[i,v])=>
@@ -360,6 +366,7 @@ function startLevel(i,resume=false){
  game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
+ $("goalLabel").title=game.config.intro||"";
  const milestones=$("starTargets");
  milestones.hidden=game.config.goal.type!=="score";
  if(!milestones.hidden){
@@ -372,6 +379,9 @@ function startLevel(i,resume=false){
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
 let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
+// Game is already at the end of the turn when playback begins. Event-specific
+// mist snapshots prevent revealing cleansed cells before the relevant effect.
+let activeMistFrame=null;
 // Keep the same line nodes between renders, so their slow CSS energy streams
 // do not restart on every tile selection. A new link pulses exactly once
 // when first observed on a settled board (never on intermediate animation).
@@ -472,6 +482,7 @@ function renderBoard(board,highlight,effect){
  }
  const highlighted=highlight&&highlight.length?new Set(highlight):null;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
+ const mist=activeMistFrame||game?.mist||[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
   const piece=board[i],btn=boardTiles[i],key=piece?piece.id+"|"+piece.family+"|"+piece.stage:"empty";
@@ -497,7 +508,20 @@ function renderBoard(board,highlight,effect){
     holder.append(emoji,img);btn.append(holder);
    }
   }
-  const cls="tile"+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
+  // Mist belongs to fixed cells. Its overlay is managed independently from
+  // the atlas sprite to avoid repainting/replacing pieces on clearance.
+  const misted=!!mist[i];
+  let veil=btn.querySelector(":scope > .harmony-mist");
+  if(misted&&!veil){
+   veil=document.createElement("span");veil.className="harmony-mist";
+   veil.setAttribute("aria-hidden","true");btn.prepend(veil);
+  }else if(!misted&&veil){veil.remove();}
+  if(btn.dataset.mist!==(misted?"1":"0")){
+   btn.dataset.mist=misted?"1":"0";
+   const label=piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
+   btn.setAttribute("aria-label",label+(misted?", magisk dimma":""));
+  }
+  const cls="tile"+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
    (resonance.partners.has(i)?" resonance-partner":"")+
@@ -534,6 +558,10 @@ function renderHUD(state){
   });
   $("statusStars").setAttribute("aria-label",
    earnedStars+" av 3 stjärnor. Krav: "+game.config.stars.map(prettify).join(", "));
+ }else{
+  $("statusStars").setAttribute("aria-label",
+   earnedStars+" av 3 stjärnor. Klara målet på högst "+
+   game.config.par+" drag för 3 stjärnor eller "+(game.config.par+4)+" för 2.");
  }
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
 }
@@ -1319,6 +1347,7 @@ async function animateEcho(evt){
 }
 async function animateEvent(evt){
  const previous=presentedBoard;
+ activeMistFrame=Array.isArray(evt.mist)?evt.mist:null;
  switch(evt.type){
   case "swap":
    renderBoard(evt.board,[evt.from,evt.to],"swapped");
@@ -1440,6 +1469,7 @@ async function playEvents(events){
   console.error("Harmony animation interrupted",error);
   renderBoard(game.board);
  }finally{
+  activeMistFrame=null;
   echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();
@@ -1484,6 +1514,12 @@ function showResult(){
  const panel=$("modalContent");panel.replaceChildren();
  if(won){
   const stars=document.createElement("div");stars.className="big-stars";stars.textContent="★".repeat(game.stars())+"☆".repeat(3-game.stars());panel.append(stars);
+ }
+ if(game.config.goal.type==="mist"){
+  const msg=document.createElement("p");msg.className="mist-result";
+  msg.textContent=won?"Trädgårdens dimma är renad!":"Du renade "+game.mistCleared+
+   " av "+game.target()+" dimrutor. Försök nå resten.";
+  panel.append(msg);
  }
  const sum=document.createElement("div");sum.className="summary";const line=document.createElement("div");line.textContent="SLUTPOÄNG";const strong=document.createElement("strong");strong.textContent=prettify(game.score);sum.append(line,strong);panel.append(sum);
  const stats=document.createElement("div");stats.className="result-stats";

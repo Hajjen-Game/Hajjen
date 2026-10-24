@@ -75,7 +75,14 @@ function endlessConfig(index){
  const base=endlessScoreConfig(index),number=index+1;
  const stage=(index-10)%10;
  const chapter=Math.floor((index-10)/10);
- const mistCount=Math.min(12,[6,8,0,9,0,10,0,11,0,12][stage]+Math.min(2,Math.floor(chapter/3)));
+ // Rebalance 1.0: the first ten mission levels previously used the doubled
+ // 36–44-move score-game budget and a compact 6–12-cell mist cluster.
+ // Broaden the coverage so a single three-match rarely sweeps many targets,
+ // while keeping enough moves for real human experimentation.
+ const earlyJourney=index>=10&&index<20;
+ const mistCount=earlyJourney?[9,11,0,12,0,13,0,14,0,15][stage]:
+  Math.min(16,[9,11,0,12,0,13,0,14,0,15][stage]+Math.min(2,Math.floor(chapter/3)));
+ const earlyMoves=[28,28,27,27,26,28,27,28,27,29];
  const quests=[
   {type:"mist",count:mistCount},
   {type:"mist",count:mistCount},
@@ -98,16 +105,19 @@ function endlessConfig(index){
   goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
   "Träffa "+goal.count+" föremål med Harmony Pulse.";
  return {...base,name:label,subtitle:mist?"Rena trädgårdens magiska dimma":"Ett nytt harmonimål",
-  goal,par:mist?12+Math.min(5,chapter):goal.type==="masterpiece"?16+chapter:
-   goal.type==="fusion"?13+chapter:goal.type==="stage3"?15+chapter:18+chapter,
-  intro:description,objectiveVersion:2,chapter:number};
+  moves:earlyJourney?earlyMoves[stage]:base.moves,
+  goal,par:mist?(earlyJourney?17+Math.floor(stage/3):12+Math.min(5,chapter)):
+   goal.type==="masterpiece"?(earlyJourney?16:16+chapter):
+   goal.type==="fusion"?(earlyJourney?15:13+chapter):
+   goal.type==="stage3"?(earlyJourney?17:15+chapter):(earlyJourney?17:18+chapter),
+  intro:description,objectiveVersion:2,balanceVersion:1,chapter:number};
 }
-// Mist belongs to fixed BOARD CELLS (not falling objects). The patterns make
-// the first objectives legible, with small neighbouring clusters to reward
-// positional Pulse play; layouts are reproducible and use no gameplay RNG.
+// Mist stays attached to CELLS, not objects. Objectives Rebalance 1.0 uses
+// deliberately distributed patches: no initial 3-in-a-row mist cluster.
+// Different regions create competing objectives and opportunities for Pulse.
 function mistLayout(index,count){
  if(!count)return [];
- const pattern=[16,17,23,24,30,31,18,25,32,10,38,39,22,29];
+ const pattern=[8,12,16,24,30,36,40,20,28,9,32,38,14,34,46,42,6,26];
  const rotation=Math.floor((index-10)/3)%4;
  const transform=i=>{
   let r=Math.floor(i/7),c=i%7;
@@ -423,6 +433,7 @@ class Game{
    startBoard(this.level,()=>this.fresh(),this.families);
   this.nextId=50;
   this.objectiveVersion=2;
+  this.objectiveBalanceVersion=1;
   this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count).includes(i))):Array(49).fill(0);
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
@@ -436,6 +447,16 @@ class Game{
    const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
    this.config=isLegacyJourney?endlessScoreConfig(this.level):levelConfig(this.level);
    this.objectiveVersion=isLegacyJourney?1:2;
+   // Old Objective 2.0 saves get the new move budget exactly once,
+   // preserving actual moves already spent rather than resetting the run.
+   // Legacy score-only sessions keep every original move.
+   if(!isLegacyJourney&&this.level>=10&&this.level<20&&
+      previous.objectiveBalanceVersion!==1&&!previous.complete&&!previous.failed){
+    const oldBudget=endlessScoreConfig(this.level).moves;
+    const spent=Math.max(0,oldBudget-(Number(previous.moves)||0));
+    this.moves=Math.max(1,this.config.moves-spent);
+   }
+   this.objectiveBalanceVersion=isLegacyJourney?0:1;
    this.mist=this.objectiveVersion===2&&this.config.goal.type==="mist"&&
     Array.isArray(previous.mist)&&previous.mist.length===49?
     previous.mist.map(v=>v?1:0):

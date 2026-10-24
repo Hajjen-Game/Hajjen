@@ -528,7 +528,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
    "The level list must display personal best scores for completed stages");
-  assert.equal(migrated.target,15,"Level 11 begins with a longer fusion mission instead of Mist");
+  assert.equal(migrated.target,20,"Level 11 now requires twenty fusions rather than a brief cascade");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await legacy.click(".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({
@@ -1095,9 +1095,21 @@ try{
  assert(endless[0].type==="fusion"&&endless[1].type==="mist");
  const missionMix=await page.evaluate(()=>
   [10,11,12,13,14,15,16,17,18,19].map(i=>HarmonyRules.levelConfig(i).goal.type));
- assert.deepEqual(missionMix,["fusion","stage3","mist","four","mist",
+ assert.deepEqual(missionMix,["fusion","stage3","mist","fourTurns","mist",
   "pulseHits","mist","fusion","mist","masterpiece"],
   "Objectives 2.0 must vary concrete mission types from Level 11 onwards");
+ // Distinct-turn four-match level must preserve pre-update in-flight saves.
+ const floor=await page.evaluate(()=>{
+  const R=window.HarmonyRules,fresh=new R.Game(13,null,{seed:20261024});
+  const old=fresh.save();old.objectiveBalanceVersion=2;
+  const restored=new R.Game(13,old,{fastRestore:true});
+  return {fresh:fresh.config.goal,old:restored.config.goal,
+   label:fresh.goalText(),balance:fresh.objectiveBalanceVersion};
+ });
+ assert.deepEqual(floor.fresh,{type:"fourTurns",count:4});
+ assert.deepEqual(floor.old,{type:"four",count:2});
+ assert.equal(floor.label,"Drag med fyrmatchning");
+ assert.equal(floor.balance,3);
  // Real 390px phone: faster fog drifts; fusion clears only its output
  // cell, while Harmony Pulse clears cells it actually hits.
  const mistContext=await browser.createBrowserContext();

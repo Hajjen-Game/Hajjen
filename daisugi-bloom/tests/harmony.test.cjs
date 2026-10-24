@@ -280,13 +280,97 @@ check("Objectives 2.0 turns the Journey into repeatable, varied mission goals",(
  const g=new R.Game(10,null,{seed:1001});
  const positions=g.mist.flatMap((v,i)=>v?[i]:[]);
  assert.equal(positions.length,9);
- // Original 6-cell central blob caused multiple fog patches to be swept by
- // each match. The new pattern occupies several distant quadrants.
+ // Mist Layout 2.0 forms separated, controllable Pulse-friendly patches
+ // rather than the old pattern of entirely isolated single cells.
  assert(positions.some(i=>i<14)&&positions.some(i=>i>=35));
  assert.equal(new Set(positions.map(i=>Math.floor(i/7))).size>=5,true);
  const legacy=R.legacyScoreConfig(10);
  assert.deepEqual(legacy.goal,{type:"score",count:7500});
  assert.deepEqual(legacy.stars,[7500,11250,16875]);
+});
+check("Mist Layout Rebalance 2.0 uses separated 2–3-cell patches, not an isolated-cell field",()=>{
+ const oldStage11=[8,12,16,24,30,36,40,20,28];
+ assert(oldStage11.every(i=>!R.neighbors(i).some(j=>oldStage11.includes(j))),
+  "The old nine-tile mask truly had nine isolated fog tiles");
+ for(const [level,count] of [[10,9],[11,11],[13,12],[15,13],[17,14],[19,15],[20,9],[21,11],[30,9]]){
+  const mask=R.mistLayout(level,count);
+  assert.equal(mask.length,count);
+  assert.equal(new Set(mask).size,count);
+  assert(mask.every(i=>i>=0&&i<49),"No invalid tiles");
+  assert.deepEqual(mask,R.mistLayout(level,count),"Layout must be deterministic");
+  const cells=new Set(mask),seen=new Set,components=[];
+  for(const i of mask){
+   if(seen.has(i))continue;
+   const component=[],stack=[i];seen.add(i);
+   while(stack.length){
+    const p=stack.pop();component.push(p);
+    for(const j of R.neighbors(p))
+     if(cells.has(j)&&!seen.has(j)){seen.add(j);stack.push(j);}
+   }
+   components.push(component);
+  }
+  const isolated=components.filter(group=>group.length===1).length;
+  assert(isolated<=1,"Maximum one precision tile on stage "+(level+1));
+  assert(components.every(group=>group.length<=3),
+   "No unwieldy four-or-more-cell blob on stage "+(level+1));
+  assert(components.filter(group=>group.length>=2).length>=3,
+   "At least three separate Pulse-relevant patches");
+  assert(!mask.some(i=>[0,6,42,48].includes(i)),"Avoid low-access corner fog");
+  const actual=new R.Game(level,null,{seed:5255,directorMode:"v311"});
+  if(actual.config.goal.type==="mist"){
+   assert.equal(actual.mistLayoutVersion,2);
+   assert.deepEqual(actual.mist.flatMap((v,i)=>v?[i]:[]).sort((a,b)=>a-b),
+    mask.sort((a,b)=>a-b),"New playable masks must use layout 2.0");
+   assert.equal(actual.config.goal.count,count,"Do not change objective size");
+  }
+ }
+ assert.equal(R.mistLayout(10,0).length,0);
+});
+check("Level 11 clustered mist can be cleansed by ONE real non-fog fusion Pulse",()=>{
+ const g=new R.Game(10,null,{seed:412,directorMode:"v311"});
+ g.board=blank();
+ g.board[17].family="sakura";g.board[17].stage=4;
+ g.board[18].family="sakura";
+ g.board[19].family="lantern"; // No premade match before moving.
+ g.board[23].family="sakura";
+ assert.equal(R.scan(g.board).length,0);
+ assert.equal(g.mist[9],1);assert.equal(g.mist[15],1);
+ assert.equal(g.mist[16],0);
+ const before=g.mist.filter(Boolean).length;
+ const result=g.swap(23,16);
+ assert(result.ok);
+ const pulse=result.events.find(e=>e.type==="pulse");
+ assert(pulse,"The stage-4 fusion must trigger real Harmony Pulse");
+ assert(pulse.sources.includes(16));
+ assert(pulse.clearedMist.includes(9)&&pulse.clearedMist.includes(15),
+  "A non-fog landing can cleanse both neighbouring mist tiles in the same patch");
+ assert(g.mist[9]===0&&g.mist[15]===0);
+ assert(g.mist.filter(Boolean).length<=before-2);
+});
+check("Mist Layout 2.0 preserves in-progress historical masks, turns and partial clears",()=>{
+ const first=new R.Game(11,null,{seed:9911,directorMode:"v311"});
+ const old=first.save();
+ delete old.mistLayoutVersion; // Pre-2.0 save, without a layout version.
+ const priorMask=[8,12,16,24,30,36,40,20,28,9,32];
+ old.mist=Array(49).fill(0);
+ for(const i of priorMask.slice(0,6))old.mist[i]=1;
+ old.mistCleared=5;old.moves=9;old.score=3540;
+ const restored=new R.Game(11,old,{fastRestore:true});
+ assert.equal(restored.mistLayoutVersion,1);
+ assert.deepEqual(restored.mist,old.mist,"Old fog positions must not jump");
+ assert.equal(restored.mistCleared,5);
+ assert.equal(restored.moves,9);assert.equal(restored.score,3540);
+ assert.equal(restored.target(),11);
+ const again=new R.Game(11,restored.save(),{fastRestore:true});
+ assert.equal(again.mistLayoutVersion,1);
+ assert.deepEqual(again.mist,old.mist);
+ assert.equal(again.mistCleared,5);
+ assert.equal(again.moves,9);
+ const fresh=new R.Game(11,null,{seed:9911,directorMode:"v311"});
+ assert.equal(fresh.mistLayoutVersion,2);
+ assert.notDeepEqual(fresh.mist,old.mist);
+ assert.deepEqual(fresh.board,first.board,"Fog positions must not change the initial board RNG");
+ assert.equal(fresh.moves,first.moves,"Move budget unchanged");
 });
 check("Rebalance 1.0 converts unfinished Mist saves once without making the level impossible",()=>{
  const prior=new R.Game(10,null,{seed:2201,directorMode:"v3"});

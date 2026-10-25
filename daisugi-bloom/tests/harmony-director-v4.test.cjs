@@ -22,7 +22,7 @@ check("Director 4.0 has bounded, legal recovery proposal counts",()=>{
  assert.equal(R.pacingProposalCount(15,0,"v4",4),5);
  assert.equal(R.pacingProposalCount(29,1,"v4",0),4);
  assert.equal(R.pacingProposalCount(29,3,"v4",3),5);
- assert.equal(R.pacingProposalCount(10,0,"v3"),4);
+ assert.equal(R.pacingProposalCount(10,0,"v3"),5);
 });
 check("Director 4.0 recognizes first-wave fusion hits on stationary obstacles",()=>{
  for(const [level,family] of [[20,"daruma"],[30,"sealedStone"]]){

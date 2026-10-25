@@ -83,7 +83,7 @@ check("UI loads Omikuji module before app; rules and rewards are cosmetic-only",
  const app=fs.readFileSync(path.resolve(__dirname,"../harmony/app.js"),"utf8");
  const rules=fs.readFileSync(path.resolve(__dirname,"../harmony/rules.js"),"utf8");
  const fortunePosition=index.indexOf("harmony/fortune.js?v=6.38.0");
- const appPosition=index.indexOf("harmony/app.js?v=6.39.0-sealed-stone");
+ const appPosition=index.indexOf("harmony/app.js?v="); // assert relative loading order, not a stale version
  assert(fortunePosition>0&&appPosition>fortunePosition);
  assert(index.includes('id="omikujiButton"'));
  assert(index.includes('id="omikujiStatus"'));

@@ -5,16 +5,17 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Harmony Economy & Omamori 1.0 · 6.37.0</title>
+ <title>Japanese Harmony · Omikuji Fortune 1.0 · 6.38.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.37.0-economy">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.38.0-omikuji">
  <script defer src="./harmony/rules.js?v=6.30.0-daruma"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
  <script defer src="./harmony/diagnostics.js?v=6.26.1-pulse-mist"></script>
  <script defer src="./harmony/goshuincho.js?v=6.36.0-asset-fidelity"></script>
  <script defer src="./harmony/economy.js?v=6.37.0"></script>
- <script defer src="./harmony/app.js?v=6.37.0-economy"></script>
+ <script defer src="./harmony/fortune.js?v=6.38.0"></script>
+ <script defer src="./harmony/app.js?v=6.38.0-omikuji"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -50,6 +51,12 @@
        <span class="omamori-entry-label"><strong>Harmony Coins</strong><small>Samla och välj Omamori</small></span>
        <strong id="harmonyCoins" class="omamori-coin-count">0 mynt</strong>
        <span aria-hidden="true" class="omamori-entry-arrow">›</span>
+      </button>
+      <button type="button" id="omikujiButton" class="omikuji-entry" aria-label="Öppna Omikuji lyckolapp">
+       <span class="omikuji-entry-mark" aria-hidden="true">お</span>
+       <span class="omikuji-entry-label"><strong>Omikuji · Dagens lycka</strong><small>En liten lyckolapp med överraskning</small></span>
+       <span id="omikujiStatus" class="omikuji-entry-status">Gratis idag</span>
+       <span class="omikuji-entry-arrow" aria-hidden="true">›</span>
       </button>
       <details class="menu-advanced" id="menuAdvanced">
        <summary>Avancerat <span>Spelmotor och utvecklarinformation</span></summary>

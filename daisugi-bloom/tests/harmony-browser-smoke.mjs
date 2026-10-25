@@ -128,6 +128,18 @@ try{
    {number:"3",paper:true,eyebrow:"第三番 · NIVÅ 3",kanji:"三",title:"First Masterpiece",watercolor:false,grade:false},
    {number:"4",paper:true,eyebrow:"第四番 · NIVÅ 4",kanji:"四",title:"First Mist",watercolor:false,grade:false}
   ]);
+  // Aged Paper Polish 1.1: compare actual computed typography and sand
+  // gradient on a 390px handset (not just CSS string literals).
+  const aged390=await journal.$eval(".goshuin-stamp.is-omikuji-preview",tile=>({
+   paper:getComputedStyle(tile).backgroundImage,
+   header:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-eyebrow")).fontSize),
+   title:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-title")).fontSize)
+  }));
+  assert(aged390.paper.includes("249, 234, 202")&&aged390.paper.includes("235, 208, 165"),
+   "Aged parchment should have warm tan gradient stops");
+  assert(aged390.header>=12&&aged390.header>aged390.title,
+   "Level number now has the stronger visual hierarchy on 390px");
+  assert(aged390.title<15,"Level name should be less dominant than before");
   // Stamp Slot Polish 1.0: load the real nine-asset transparent atlas.
   await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
   const initialArt=await journal.evaluate(async()=>{
@@ -332,6 +344,12 @@ try{
   assert(small.doc<=small.width&&small.modal<=small.width,"320px book must have no horizontal overflow");
   assert.equal(small.cols,2,"320px album uses two large columns of stamps");
   assert(small.titleSealsDoNotOverlap,"Paper title and star stamp must not collide at 320px");
+  const aged320=await journal.$eval(".goshuin-stamp.is-omikuji-preview",tile=>({
+   header:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-eyebrow")).fontSize),
+   title:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-title")).fontSize)
+  }));
+  assert(aged320.header>=10&&aged320.title<=13,
+   "320px phones keep the level number legible and the title restrained");
   await journal.click(".goshuin-close");
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
   assert.equal(await journal.$eval(".level-tile.is-current",x=>x.getAttribute("aria-current")),"step");

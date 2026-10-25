@@ -256,7 +256,7 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.42.0-omikuji-cards"),
+ assert(html.includes("mobile-game.css?v=6.42.1-aged-paper"),
   "Paper-card CSS cache must be refreshed on phones");
  assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
   "Data mapping must stay untouched");
@@ -278,12 +278,22 @@ check("Paper Card Preview 1.0 is limited to four cards and uses real stage names
  assert(app.includes('goshuinArtwork(tile,"cards",info.index)'),"Page 2+ watercolor stays unchanged");
  for(const glyph of ["一","二","三","四","第一番","第二番","第三番","第四番"])
   assert(app.includes(glyph),"Japanese numeral missing: "+glyph);
- assert(css.includes("Goshuincho Omikuji Paper Preview 1.0"));
+ assert(css.includes("Goshuincho Aged Paper Polish 1.1"));
+ assert(css.includes("#f9eaca")&&css.includes("#f3dfbb")&&css.includes("#ebd0a5"),
+  "First four cards must have warm sand/aged-paper colors instead of pink");
+ const scoped=css.slice(css.indexOf("/* Goshuincho Aged Paper Polish 1.1"));
+ assert(!scoped.includes("rgba(240,174,151"),"Old pink tint removed");
+ assert(scoped.includes("font-size:clamp(11px,3.35vw,14px)"),
+  "Stage number/eyebrow must be larger");
+ assert(scoped.includes("font-size:clamp(12px,3.2vw,16px)"),
+  "Actual level title must be smaller");
+ assert(scoped.includes("@media(max-width:360px)"),
+  "Small phones retain legible paper typography");
  for(const className of ["goshuin-paper-title","goshuin-paper-kanji","goshuin-paper-eyebrow","goshuin-paper-sakura"])
   assert(css.includes("#modal .goshuin-stamp.is-omikuji-preview ."+className),
    "Style must be scoped to the four preview cards");
  assert(html.includes('app.js?v=6.42.0-omikuji-cards'));
- assert(html.includes('mobile-game.css?v=6.42.0-omikuji-cards'));
+ assert(html.includes('mobile-game.css?v=6.42.1-aged-paper'));
  const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
  assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
 });

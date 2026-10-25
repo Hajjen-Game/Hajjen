@@ -231,4 +231,40 @@ check("Asset Fidelity 2.0 has independent high-density images with no distortion
  assert(app.includes('goshuinArtwork(tile,"cards",info.index)'));
  assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'));
 });
-console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0 tests passed.");
+
+check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not card geometry",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
+ const f=css.slice(css.lastIndexOf("/* Goshuincho Optical Alignment 1.0"));
+ assert(f.length>1200,"Separate optical-only layer should be present");
+ assert(f.includes('#modal .goshuin-cover-slot[data-art-key="chapter-01"]'));
+ assert(f.includes('#modal .goshuin-cover-slot[data-art-key="chapter-02"]'));
+ assert(f.includes('#modal .goshuin-cover-slot[data-art-key="chapter-03"]'));
+ assert(f.includes('--goshuin-optical-x:-2%'));
+ assert(f.includes('--goshuin-optical-x:0%'));
+ assert(f.includes('--goshuin-optical-x:1.85%'));
+ assert(f.includes('translate(var(--goshuin-optical-x,0%),1.4%) scale(1)'),
+  "All three header images must remain exactly the same size");
+ for(let grade=1;grade<=3;grade++)
+  assert(f.includes('.goshuin-grade[data-grade="'+grade+'"]'));
+ assert(f.includes('--goshuin-seal-optical-scale:.970'));
+ assert(f.includes('--goshuin-seal-optical-scale:1.030'));
+ assert(f.includes('--goshuin-seal-optical-scale:.945'));
+ // Based on native PNG alpha bounding boxes measured at >=128; equalize the
+ // three apparent ink diameters rather than the already-equal 512px canvases.
+ const effective=[453*.970,425*1.030,465*.945];
+ assert(Math.max(...effective)-Math.min(...effective)<3,
+  "Ink footprint should be visually consistent to under 1% across ratings");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ assert(html.includes("mobile-game.css?v=6.36.1-optical-alignment"),
+  "Fresh CSS cache must be fetched by phones");
+ assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
+  "Data mapping must stay untouched");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ assert(app.includes('goshuinArtwork(tile,"cards",info.index)'),
+  "Portrait level cards must be unchanged");
+ assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'),
+  "Square chapter icons must remain independent from portraits");
+});
+
+console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0 and Optical Alignment 1.0 tests passed.");

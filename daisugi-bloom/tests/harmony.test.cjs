@@ -276,7 +276,8 @@ check("Curated 3-star move targets reward strategy, not merely clearing easy mis
   assert.equal(R.missionStars(config,targets.three+1),2);
   assert.equal(R.missionStars(config,targets.two+1),1);
  }
- for(const later of [20,29,50])assert.equal(R.levelConfig(later).starPar,undefined);
+ for(const later of [20,50])assert.equal(R.levelConfig(later).starPar,undefined);
+ assert.equal(R.levelConfig(29).starPar,23,"Level 30 has a dedicated fairness star deadline");
 });
 check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family mix",()=>{
  const goals=[

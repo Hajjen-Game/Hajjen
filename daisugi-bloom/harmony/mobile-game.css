@@ -5283,3 +5283,202 @@ body.harmony-reduced-motion .menu-view .level-tile{
  .menu-view .goshuin-entry-copy small{font-size:10px}
  .menu-view .goshuin-entry-progress{font-size:10px}
 }
+
+
+/* Menu Focus & Reward Hierarchy 1.0 · 6.45.0
+   Prioritise Goshuincho as the only prominent navigation. Quick-play is a
+   convenience, not a second competing primary path. Rewards are quieter,
+   while every existing action, save and unlock remains available. */
+.menu-view{max-width:700px;margin:8px auto 0}
+.menu-view .hero{
+ margin:13px 0 7px;
+ padding:0 5px;
+ border:0;
+ border-radius:0;
+ background:none;
+ box-shadow:none;
+ overflow:visible;
+ text-align:left;
+}
+.menu-view .hero::before,.menu-view .hero::after,
+.menu-view .hero h1,.menu-view .hero p,.menu-view .hero-pills{display:none}
+.menu-view .hero .eyebrow{
+ margin:0;
+ font-size:10px;
+ letter-spacing:.16em;
+ color:#f2ce9b;
+}
+.menu-view .level-panel{
+ padding:clamp(15px,3.5vw,23px);
+ border-color:rgba(244,202,156,.42);
+ background:linear-gradient(160deg,rgba(24,58,67,.96),rgba(16,43,53,.96));
+}
+.menu-view .panel-heading{align-items:center;gap:10px}
+.menu-view .panel-heading .eyebrow{
+ font-size:9px;
+ letter-spacing:.13em;
+ color:#e9bca5;
+}
+.menu-view .panel-heading h2{
+ margin:0 0 5px;
+ font-family:Georgia,"Times New Roman",serif;
+ font-size:clamp(26px,6vw,32px);
+ line-height:1.05;
+ color:#ffe4bf;
+}
+.menu-view .panel-heading p{max-width:370px;font-size:12px;line-height:1.42;color:#cbd9d4}
+.menu-view .chapter-stat{
+ flex:none;
+ font-size:11px;
+ font-weight:750;
+ padding:8px 10px;
+ border:1px solid rgba(236,201,151,.32);
+ border-radius:999px;
+ color:#f4d6a3;
+ background:rgba(22,48,54,.54);
+}
+.menu-view .family-progression-note{display:none}
+.menu-view .goshuin-entry{
+ min-height:91px;
+ margin:19px 0 0;
+ padding:13px 14px;
+ gap:13px;
+ border-radius:16px;
+ border-color:rgba(255,223,170,.85);
+ background:linear-gradient(125deg,#f9e2b5 0%,#f2c88e 57%,#eeb681 100%);
+ box-shadow:inset 0 1px rgba(255,251,229,.88),0 9px 21px rgba(9,24,29,.28);
+}
+.menu-view .goshuin-entry-icon{
+ flex-basis:47px;
+ height:47px;
+ border-radius:12px;
+ background:rgba(255,245,221,.62);
+ border-color:rgba(154,103,70,.32);
+ font-size:26px;
+}
+.menu-view .goshuin-entry-copy strong{
+ font-size:clamp(16px,4.2vw,20px);
+ line-height:1.24;
+ color:#44362d;
+}
+.menu-view .goshuin-entry-copy small{
+ font-size:11px;
+ line-height:1.35;
+ color:#675044;
+}
+.menu-view .goshuin-entry-progress{
+ font-size:10px;
+ font-weight:850;
+ color:#754e37;
+}
+.menu-view .panel-footer{
+ margin:8px 0 19px;
+ display:grid;
+ gap:0;
+ justify-items:stretch;
+}
+.menu-view .panel-footer #continueButton{
+ width:100%;
+ min-height:39px;
+ border:1px solid rgba(231,196,149,.23);
+ border-radius:11px;
+ background:rgba(29,65,70,.40);
+ color:#dfceba;
+ box-shadow:none;
+ font-size:12px;
+ font-weight:750;
+}
+.menu-view .panel-footer #continueButton:hover{border-color:rgba(241,210,168,.55);color:#fff0d4}
+.menu-view .panel-footer p{display:none}
+.menu-view .menu-rewards{
+ display:grid;
+ gap:7px;
+ padding-top:13px;
+ border-top:1px solid rgba(229,194,154,.23);
+}
+.menu-view .menu-rewards-heading{
+ display:flex;
+ align-items:baseline;
+ justify-content:space-between;
+ gap:8px;
+ margin:0 1px 4px;
+}
+.menu-view .menu-rewards-heading h3{
+ margin:0;
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:.10em;
+ text-transform:uppercase;
+ color:#e6d2b6;
+}
+.menu-view .menu-rewards-heading span{
+ font-size:10px;
+ color:#9db3b1;
+}
+.menu-view .menu-rewards .omamori-entry,
+.menu-view .menu-rewards .omikuji-entry{
+ min-height:51px;
+ margin:0;
+ padding:8px 12px;
+ border-radius:12px;
+ border:1px solid rgba(206,188,157,.28);
+ background:rgba(24,55,64,.72);
+ box-shadow:none;
+}
+.menu-view .menu-rewards .omamori-entry:hover,
+.menu-view .menu-rewards .omikuji-entry:hover{border-color:rgba(239,198,145,.55);background:rgba(32,67,74,.88)}
+.menu-view .menu-rewards .omamori-entry-mark,
+.menu-view .menu-rewards .omikuji-entry-mark{
+ flex-basis:31px;
+ width:31px;
+ height:31px;
+ font-size:20px;
+}
+.menu-view .menu-rewards .omamori-entry-label strong,
+.menu-view .menu-rewards .omikuji-entry-label strong{font-size:12px;color:#efe0ca}
+.menu-view .menu-rewards .omamori-entry-label small,
+.menu-view .menu-rewards .omikuji-entry-label small{font-size:10px;color:#b7c8c1}
+.menu-view .menu-rewards .omamori-coin-count,
+.menu-view .menu-rewards .omikuji-entry-status{
+ font-size:11px;
+ font-weight:800;
+ color:#e6c899;
+}
+.menu-view .menu-rewards .omamori-entry-arrow,
+.menu-view .menu-rewards .omikuji-entry-arrow{font-size:20px}
+.menu-view .menu-advanced{
+ margin-top:10px;
+ border-top:1px solid rgba(229,194,154,.18);
+}
+.menu-view .menu-advanced summary{
+ font-size:11px;
+ color:#bdc7c0;
+}
+body:not(.harmony-playing) .top-actions .dev-shortcut{
+ font-size:10px;
+ color:#cad6d0;
+ border-color:rgba(207,182,165,.18);
+ background:rgba(30,60,65,.38);
+}
+@media(max-width:390px){
+ .menu-view .hero{margin:10px 0 6px}
+ .menu-view .level-panel{padding:13px}
+ .menu-view .panel-heading{align-items:flex-start}
+ .menu-view .panel-heading h2{font-size:25px}
+ .menu-view .chapter-stat{font-size:10px;padding:7px 8px}
+ .menu-view .goshuin-entry{min-height:82px;padding:10px;gap:9px}
+ .menu-view .goshuin-entry-icon{flex-basis:40px;height:40px}
+ .menu-view .goshuin-entry-copy strong{font-size:15px}
+ .menu-view .goshuin-entry-copy small{font-size:10px}
+ .menu-view .goshuin-entry-progress{font-size:9px}
+ .menu-view .menu-rewards .omamori-coin-count,
+ .menu-view .menu-rewards .omikuji-entry-status{font-size:10px}
+ .menu-view .menu-rewards-heading span{font-size:9px}
+}
+@media(max-width:340px){
+ .menu-view .panel-heading{flex-wrap:wrap}
+ .menu-view .goshuin-entry{gap:7px}
+ .menu-view .goshuin-entry-progress{white-space:normal;text-align:right;max-width:65px}
+ .menu-view .menu-rewards .omamori-entry,
+ .menu-view .menu-rewards .omikuji-entry{gap:6px;padding:7px 8px}
+}

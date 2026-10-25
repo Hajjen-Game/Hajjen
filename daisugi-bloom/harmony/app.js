@@ -313,12 +313,12 @@ function renderMenu(){
  const intro=menuPage===0;
  $("chapterEyebrow").textContent="DIN NIVÅRESA";
  $("chapterTitle").textContent="Goshuincho";
- $("chapterSubtitle").textContent="Samla stämplar, välj kapitel och spela direkt från boken.";
+ $("chapterSubtitle").textContent="Samla stämplar och upptäck nästa kapitel.";
  const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
   n+(Number(i)<10?Number(v)||0:0),0)+
   Object.entries(save.bestStars).reduce((n,[i,v])=>
    n+(Number(i)>=10?Number(v)||0:0),0);
- $("chapterStars").textContent="★ "+stars+" totalt";
+ $("chapterStars").textContent="★ "+stars+" stjärnor";
  const pager=$("levelPager");pager.replaceChildren();
  const prev=document.createElement("button");prev.className="secondary small";prev.textContent="← Föregående";prev.disabled=menuPage===0;
  prev.addEventListener("click",()=>{menuPage--;renderMenu();});

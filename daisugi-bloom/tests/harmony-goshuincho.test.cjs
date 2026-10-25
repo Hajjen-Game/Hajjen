@@ -256,7 +256,7 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.44.0-goshuincho-primary"),
+ assert(html.includes("mobile-game.css?v=6.45.0-menu-focus"),
   "Paper-card CSS cache must be refreshed on phones");
  assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'),
   "Data mapping must stay untouched");
@@ -307,8 +307,8 @@ check("Warm Parchment 2.0 renders all chapter cards with real level names",()=>{
  assert(css.includes(".goshuin-paper-kanji.is-multi-kanji")&&css.includes(".goshuin-paper-title.is-long"),
   "Long Japanese numerals and titles must scale on small screens");
  assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'));
- assert(html.includes('app.js?v=6.44.0-goshuincho-primary'));
- assert(html.includes('mobile-game.css?v=6.44.0-goshuincho-primary'));
+ assert(html.includes('app.js?v=6.45.0-menu-focus'));
+ assert(html.includes('mobile-game.css?v=6.45.0-menu-focus'));
  const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
  assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
 });
@@ -330,4 +330,30 @@ check("Primary Goshuincho navigation hides the old level list without removing p
  assert(!html.includes('class="primary" id="continueButton"'),
   "Quick Continue should not outrank primary book level selection");
 });
-console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0 and Optical Alignment 1.0 tests passed.");
+
+check("Menu Focus & Reward Hierarchy 1.0 makes Goshuincho the primary menu action",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ assert(html.includes("Menu Focus & Reward Hierarchy 1.0"));
+ assert(html.indexOf('id="goshuinButton"')<html.indexOf('id="continueButton"'),
+  "The album is presented before its subordinate quick-play shortcut");
+ assert(html.indexOf('id="continueButton"')<html.indexOf('class="menu-rewards"'),
+  "Collection rewards must follow the two gameplay actions");
+ assert(html.includes('id="menuRewardsTitle"')&&html.includes("Samling &amp; belöningar"));
+ assert(html.includes('id="omamoriButton"')&&html.includes('id="omikujiButton"'),
+  "Coin shop and daily luck remain accessible");
+ assert(html.includes('id="devButton"')&&html.includes('id="menuAdvanced"'),
+  "Developer tools remain accessible");
+ assert(css.includes("/* Menu Focus & Reward Hierarchy 1.0"));
+ assert(css.includes(".menu-view .panel-footer #continueButton"));
+ assert(css.includes(".menu-view .hero h1,.menu-view .hero p,.menu-view .hero-pills{display:none}"));
+ assert(css.includes(".menu-view .family-progression-note{display:none}"));
+ assert(app.includes('showMenu();\n showGoshuincho();'),
+  "Leaving gameplay must still open Goshuincho");
+ assert(app.includes('canResume?"Fortsätt nivå "'),
+  "The quick-play action must retain saved run support");
+});
+
+console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0, Optical Alignment 1.0 and Menu Focus 1.0 tests passed.");

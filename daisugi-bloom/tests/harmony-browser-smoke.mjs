@@ -135,8 +135,8 @@ try{
    header:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-eyebrow")).fontSize),
    title:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-title")).fontSize)
   }));
-  assert(aged390.paper.includes("249, 234, 202")&&aged390.paper.includes("235, 208, 165"),
-   "Aged parchment should have warm tan gradient stops");
+  assert(aged390.paper.includes("251, 237, 208")&&aged390.paper.includes("239, 208, 154"),
+   "Warm parchment must have approved honey-cream-to-golden gradient stops");
   assert(aged390.header>=12&&aged390.header>aged390.title,
    "Level number now has the stronger visual hierarchy on 390px");
   assert(aged390.title<15,"Level name should be less dominant than before");

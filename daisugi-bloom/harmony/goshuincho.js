@@ -23,6 +23,12 @@ const THEMES=[
 const ATLAS="./assets/goshuincho/goshuincho-nine-atlas.avif?v=6.34.0";
 const tile=(column,row)=>({src:ATLAS,column,row});
 const ART={
+ // Three user-approved illustrated 4:5 cards. Keep number/rating as HTML layers.
+ cards:{
+  0:"./assets/goshuincho/level-card-sakura.webp?v=6.35.0",
+  1:"./assets/goshuincho/level-card-mist.webp?v=6.35.0",
+  2:"./assets/goshuincho/level-card-daruma.webp?v=6.35.0"
+ },
  covers:{}, // reserved for future hand-made chapter completion artwork
  chapters:{0:tile(0,0),1:tile(1,0),2:tile(2,0)},
  stamps:{0:tile(0,1),1:tile(1,1),2:tile(2,1)}, // reusable chapter motifs

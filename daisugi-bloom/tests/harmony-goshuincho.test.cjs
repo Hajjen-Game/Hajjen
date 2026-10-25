@@ -104,4 +104,53 @@ check("An in-progress run enables resume only for its own available level",()=>{
  state.run.level=30;state.run.data.moves=10;
  assert.equal(G.levelStatus(state,30).resumable,false,"Locked future cannot resume");
 });
-console.log("Goshuincho Collection 2.0 tests passed.");
+check("Pagination Rework 1.0 splits ten-stamp chapters into 4+4+2",()=>{
+ assert.equal(G.CHAPTER_SIZE,10,"Chapter progression never changes");
+ assert.equal(G.PAGE_SIZE,4);
+ assert.equal(G.PAGES_PER_CHAPTER,3);
+ const state={unlocked:26,bestStars:{20:1,21:2,22:3,24:1,27:2,29:3},
+  fourFamilyStars:{},bestScores:{},fourFamilyScores:{}};
+ const pages=[0,1,2].map(p=>G.pageSnapshot(state,2,p));
+ assert.deepEqual(pages.map(p=>p.visible.map(s=>s.number)),
+  [[21,22,23,24],[25,26,27,28],[29,30]]);
+ assert.deepEqual(pages.map(p=>p.visible.length),[4,4,2]);
+ assert.deepEqual(pages.map(p=>p.isFinalPage),[false,false,true]);
+ assert.deepEqual(pages.map(p=>p.earned),[6,6,6]);
+ assert.deepEqual(pages.map(p=>p.visibleEarned),[3,2,1]);
+ assert.deepEqual(pages.map(p=>p.pageFirst),[21,25,29]);
+ assert.deepEqual(pages.map(p=>p.pageLast),[24,28,30]);
+ assert.equal(pages[0].stamps.length,10,"All chapter medals stay in the archive");
+ assert.equal(G.summary(state).earned,6,"No stamps minted or lost by presentation");
+});
+check("Opening current chapter on correct 4-stamp page and navigating chapter boundaries",()=>{
+ assert.equal(G.pageForLevel(0),0);
+ assert.equal(G.pageForLevel(3),0);
+ assert.equal(G.pageForLevel(4),1);
+ assert.equal(G.pageForLevel(7),1);
+ assert.equal(G.pageForLevel(8),2);
+ assert.equal(G.pageForLevel(9),2);
+ assert.equal(G.pageForLevel(10),0);
+ assert.equal(G.pageForLevel(24),1);
+ assert.equal(G.pageForLevel(26),1);
+ assert.equal(G.pageForLevel(28),2);
+ assert.equal(G.pageForLevel(29),2);
+ assert.equal(G.pageForLevel(30),0);
+ const state={unlocked:25,bestStars:{},fourFamilyStars:{}};
+ assert(G.pageSnapshot(state,2,G.pageForLevel(state.unlocked)).visible.some(s=>s.isCurrent));
+});
+check("Chapter seal progress is counted on the full chapter only",()=>{
+ const s={unlocked:20,fourFamilyStars:Object.fromEntries(Array.from({length:9},(_,i)=>[i,1])),
+  bestStars:{},fourFamilyScores:{},bestScores:{}};
+ for(let p=0;p<3;p++){
+  const state=G.pageSnapshot(s,0,p);
+  assert.equal(state.earned,9);
+  assert.equal(state.completed,false);
+ }
+ s.fourFamilyStars[9]=2;
+ const end=G.pageSnapshot(s,0,2);
+ assert.equal(end.earned,10);
+ assert.equal(end.completed,true);
+ assert.equal(end.visible.length,2);
+ assert.equal(G.summary(s).completedChapters,1);
+});
+console.log("Goshuincho Collection Pagination Rework 1.0 tests passed.");

@@ -1,5 +1,11 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Goshuincho Pagination Rework 1.0 — 2026-10-25
+
+Boken visar nu **4 + 4 + 2 stämplar per kapitel**, i ett rymligt 2×2-rutnät med större motivplatser. Detaljpanelen visas först vid nivåval (eller på sidan där en påbörjad/aktuell nivå finns). Sista kapitelsidan visar två nivåer och en tydlig sektion för kapitelprogression och kapitelsigill. Kapitel innehåller fortfarande tio nivåer; stjärnor, sparfiler, låsta nivåer, fortsatt spel och den vanliga nivålistan är helt oförändrade. Ingen ny bild behövs för att testa layouten. Läs [pagination-design och QA](docs/GOSHUINCHO_PAGINATION_REWORK_1_0.md).
+
+
+
 ## Goshuincho Level Select 2.0 — 2026-10-24
 
 Väg B: **den vanliga nivålistan finns kvar** medan Goshuincho utvecklas till den framtida primära nivåkartan. Tryck på en stämpel i boken för att se nivånamn, mål, dragbudget, rekord och stjärnor, och starta sedan via en tydlig Spela-knapp. Påbörjade rundor visar Fortsätt och använder samma sparfil som huvudmenyn. Nästa nivå markeras; låsta nivåer är synliga men går inte att starta. Kapitelbläddring och befintliga tre separata bildplatser behålls. Ingen datarensning och ingen ekonomifunktion. Läs [Goshuincho Level Select 2.0](docs/GOSHUINCHO_LEVEL_SELECT_2_0.md).

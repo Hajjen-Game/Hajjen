@@ -11,7 +11,7 @@ const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
-let goshuinChapter=0;
+let goshuinChapter=0,goshuinPage=0;
 const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
@@ -335,6 +335,8 @@ function showGoshuincho(chapterIndex=null){
  const available=G.summary(save).currentChapter+1;
  goshuinChapter=Math.min(available,Math.max(0,
   Number.isInteger(chapterIndex)?chapterIndex:Math.floor(save.unlocked/G.CHAPTER_SIZE)));
+ goshuinPage=goshuinChapter===Math.floor(save.unlocked/G.CHAPTER_SIZE)?
+  G.pageForLevel(save.unlocked):0;
  $("modalActions").classList.remove("pause-menu-actions","victory-actions");
  $("modalEyebrow").textContent="JAPANESE HARMONY · DIN RESA";
  $("modalTitle").textContent="Goshuincho";
@@ -347,9 +349,10 @@ function renderGoshuincho(){
  const area=$("modalContent");area.replaceChildren();
  const summary=G.summary(save),maxChapter=summary.currentChapter+1;
  goshuinChapter=Math.min(maxChapter,Math.max(0,goshuinChapter));
- const info=G.chapterSnapshot(save,goshuinChapter);
+ goshuinPage=Math.max(0,Math.min(G.PAGES_PER_CHAPTER-1,goshuinPage));
+ const info=G.pageSnapshot(save,goshuinChapter,goshuinPage);
  const album=goshuinNode("div","goshuincho-book");
- album.setAttribute("aria-label","Goshuincho, kapitel "+info.number);
+ album.setAttribute("aria-label","Goshuincho, kapitel "+info.number+", sida "+info.pageNumber+" av "+info.pages);
  const intro=goshuinNode("p","goshuin-intro",
   "Din nivåresa i en samlarbok. Välj en stämpel för att se nivåmålet och spela. Dina stjärnor förädlar avtrycken.");
  album.append(intro);
@@ -359,6 +362,8 @@ function renderGoshuincho(){
  album.append(totals);
  const page=goshuinNode("section","goshuin-page");
  page.dataset.chapter=String(info.index+1);
+ page.dataset.page=String(info.pageNumber);
+ page.classList.toggle("is-last-page",info.isFinalPage);
  const cap=goshuinNode("div","goshuin-page-heading");
  const crest=goshuinNode("div","goshuin-cover-slot");
  crest.dataset.artKey=info.artKey;
@@ -374,23 +379,35 @@ function renderGoshuincho(){
  const nav=goshuinNode("nav","goshuin-pager");
  nav.setAttribute("aria-label","Bläddra i samlarboken");
  const previous=goshuinNode("button","goshuin-nav-button","← Föregående");
- previous.type="button";previous.disabled=goshuinChapter===0;
- previous.addEventListener("click",()=>{goshuinChapter--;renderGoshuincho();});
- const current=goshuinNode("span","goshuin-page-count","Sida "+(goshuinChapter+1)+" / "+(maxChapter+1));
+ previous.type="button";previous.disabled=goshuinChapter===0&&goshuinPage===0;
+ previous.addEventListener("click",()=>{
+  if(goshuinPage>0)goshuinPage--;
+  else if(goshuinChapter>0){goshuinChapter--;goshuinPage=G.PAGES_PER_CHAPTER-1;}
+  renderGoshuincho();
+ });
+ const current=goshuinNode("span","goshuin-page-count",
+  "Kapitel "+info.number+" · Sida "+info.pageNumber+" / "+info.pages);
+ current.setAttribute("aria-live","polite");
  const next=goshuinNode("button","goshuin-nav-button","Nästa →");
- next.type="button";next.disabled=goshuinChapter>=maxChapter;
- next.addEventListener("click",()=>{goshuinChapter++;renderGoshuincho();});
+ next.type="button";
+ next.disabled=goshuinChapter>=maxChapter&&goshuinPage===G.PAGES_PER_CHAPTER-1;
+ next.addEventListener("click",()=>{
+  if(goshuinPage<G.PAGES_PER_CHAPTER-1)goshuinPage++;
+  else if(goshuinChapter<maxChapter){goshuinChapter++;goshuinPage=0;}
+  renderGoshuincho();
+ });
  nav.append(previous,current,next);page.append(nav);
  const chapterStatus=goshuinNode("div","goshuin-chapter-status");
  chapterStatus.append(
-  goshuinNode("strong","",info.earned+" av 10 nivåstämplar"),
-  goshuinNode("span","",info.completed?"✦ Kapitlet fullbordat":"Samla alla tio för kapitelsigillet")
+  goshuinNode("strong","",info.earned+" av 10 stämplar"),
+  goshuinNode("span","",info.visibleEarned+" av "+info.visible.length+" på sidan · Nivå "+info.pageFirst+"–"+info.pageLast)
  );
  page.append(chapterStatus);
  const stamps=goshuinNode("div","goshuin-stamp-grid");
- stamps.setAttribute("aria-label","Nivåstämplar för kapitel "+info.number);
+ stamps.setAttribute("aria-label","Nivåstämplar för kapitel "+info.number+", sida "+info.pageNumber);
  const detail=goshuinNode("section","goshuin-level-detail");
  detail.setAttribute("aria-label","Vald nivå");
+ detail.hidden=true;
  const note=goshuinNode("p","goshuin-detail","Välj en stämpel för att läsa om nivån.");
  detail.append(note);
  const describeGoal=cfg=>{
@@ -421,6 +438,7 @@ function renderGoshuincho(){
    stamp.isCurrent?"NÄSTA NIVÅ":
    stamp.earned?"KLARAD":"UPPLÅST";
   const record=Number(recordsForLevel(stamp.level)[stamp.level])||0;
+  detail.hidden=false;
   detail.replaceChildren();
   const header=goshuinNode("div","goshuin-level-heading");
   const heading=goshuinNode("div","goshuin-level-heading-text");
@@ -454,7 +472,7 @@ function renderGoshuincho(){
   });
   detail.append(play);
  };
- for(const stamp of info.stamps){
+ for(const stamp of info.visible){
   const state=stamp.locked?"is-locked":stamp.resumable?"is-in-progress":
    stamp.isCurrent?"is-current":stamp.earned?"is-earned":"is-available";
   const tile=goshuinNode("button","goshuin-stamp "+state+(stamp.earned?" is-earned":" is-empty"));
@@ -489,18 +507,40 @@ function renderGoshuincho(){
  page.append(stamps,detail);
  // Opening the active chapter provides a one-tap continuation action,
  // while earlier and future preview chapters require deliberate selection.
- const recommended=info.stamps.find(stamp=>stamp.resumable)||
-  info.stamps.find(stamp=>stamp.isCurrent);
+ const recommended=info.visible.find(stamp=>stamp.resumable)||
+  info.visible.find(stamp=>stamp.isCurrent);
  if(recommended){
   const button=stamps.querySelector('[data-level="'+recommended.number+'"]');
   if(button)chooseStamp(recommended,button);
  }
- const sigil=goshuinNode("div","goshuin-chapter-sigil"+(info.completed?" is-earned":""));
- sigil.dataset.artKey=info.artKey+"-complete";
- sigil.append(goshuinNode("span","goshuin-sigil-mark",info.completed?"✦":"○"),
-  goshuinNode("span","",info.completed?"Kapitelsigill intjänat":"Kapitelsigill · 10 av 10 stämplar"));
- if(info.completed)goshuinArtwork(sigil,"covers",info.index);
- page.append(sigil);
+ if(info.isFinalPage){
+  // Final chapter page has only two stamps. Use the extra space for a clear
+  // sense of collection progress and for later generated completion artwork.
+  const finale=goshuinNode("div","goshuin-finale");
+  finale.append(goshuinNode("span","goshuin-finale-eyebrow","KAPITELAVSLUTNING"));
+  const finaleIntro=goshuinNode("p","goshuin-finale-description",
+   info.completed?"Alla tio stämplar är samlade. Kapitlets sigill är ditt.":
+   "De sista två nivåerna avslutar kapitlet. Samla alla tio stämplar för kapitelsigillet.");
+  finale.append(finaleIntro);
+  const progress=goshuinNode("div","goshuin-finale-progress");
+  progress.setAttribute("role","progressbar");
+  progress.setAttribute("aria-label","Stämplar insamlade i kapitel "+info.number);
+  progress.setAttribute("aria-valuemin","0");
+  progress.setAttribute("aria-valuemax",String(G.CHAPTER_SIZE));
+  progress.setAttribute("aria-valuenow",String(info.earned));
+  const fill=goshuinNode("span","goshuin-finale-progress-fill");
+  fill.style.width=(info.earned/G.CHAPTER_SIZE*100)+"%";
+  progress.append(fill);
+  finale.append(progress);
+  const sigil=goshuinNode("div","goshuin-chapter-sigil"+(info.completed?" is-earned":""));
+  sigil.dataset.artKey=info.artKey+"-complete";
+  sigil.append(goshuinNode("span","goshuin-sigil-mark",info.completed?"✦":"○"),
+   goshuinNode("span","",info.completed?"Kapitelsigill intjänat":
+    info.earned+" / "+G.CHAPTER_SIZE+" stämplar · Kapitelsigillet väntar"));
+  if(info.completed)goshuinArtwork(sigil,"covers",info.index);
+  finale.append(sigil);
+  page.append(finale);
+ }
  album.append(page);
  area.append(album);
 }

@@ -106,15 +106,29 @@ try{
    scroll:document.documentElement.scrollWidth
   }));
   assert.equal(empty.title,"Goshuincho");
-  assert.equal(empty.tiles,10);
+  assert.equal(empty.tiles,4);
   assert.equal(empty.earned,0);
   assert(empty.text.includes("0 av 10"));
-  assert.equal(empty.page,"Sida 1 / 2");
+  assert.equal(empty.page,"Kapitel 1 · Sida 1 / 3");
   assert.equal(empty.nextDisabled,false,"Next chapter can be previewed");
   assert(empty.scroll<=390,"The album must not overflow the phone viewport");
   await journal.click(".goshuin-nav-button:last-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
+  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"5");
+  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),4);
+  await journal.click(".goshuin-nav-button:last-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
+  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
+  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),2);
+  assert.equal(await journal.$eval(".goshuin-finale-progress",el=>el.getAttribute("aria-valuenow")),"0");
+  assert.equal(await journal.$eval(".goshuin-chapter-sigil",el=>el.classList.contains("is-earned")),false);
+  await journal.click(".goshuin-nav-button:last-child");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 1 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"11");
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
+  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
   await journal.click(".goshuin-close");
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
   const seeded=await journal.evaluate(()=>{
@@ -148,14 +162,30 @@ try{
   await journal.click('.goshuin-stamp[data-level="21"]');
   assert.equal(await journal.$eval(".goshuin-play",x=>x.textContent),"Spela nivå 21 igen →");
   assert((await journal.$eval(".goshuin-level-objective",x=>x.textContent)).includes("Daruma"));
+  // Back from chapter 3 / page 1 means chapter 2 / page 3 (not chapter 2 / page 1).
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 3 / 3");
+  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),2);
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 2 / 3");
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
   assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),2);
   assert.equal(await journal.$eval('.goshuin-stamp[data-level="13"]',x=>x.dataset.stars),"3");
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Första harmonin");
-  assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),10);
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
+  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),2);
   assert.equal(await journal.$eval(".goshuin-chapter-sigil",x=>x.classList.contains("is-earned")),true);
+  assert.equal(await journal.$eval(".goshuin-finale-progress",x=>x.getAttribute("aria-valuenow")),"10");
+  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
+  await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-finale-390.png"});
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
+  await journal.click(".goshuin-nav-button:first-child");
+  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 1 / 3");
+  assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),4);
+  assert.equal(await journal.$$eval(".goshuin-chapter-sigil",xs=>xs.length),0);
   const layout=await journal.evaluate(()=>({
    width:innerWidth,doc:document.documentElement.scrollWidth,
    modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
@@ -166,8 +196,8 @@ try{
    className:document.querySelector(".goshuin-stamp.is-earned").className
   }));
   assert(layout.doc<=layout.width&&layout.modal<=layout.width&&layout.grid<=layout.modal);
-  assert.equal(layout.artSlots,10);
-  assert.equal(layout.grades,10);
+  assert.equal(layout.artSlots,4);
+  assert.equal(layout.grades,4);
   assert.equal(layout.imgs,0,"No placeholder should request unshipped image URLs");
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-390.png"});
@@ -186,7 +216,7 @@ try{
    cols:getComputedStyle(document.querySelector(".goshuin-stamp-grid")).gridTemplateColumns.split(" ").length
   }));
   assert(small.doc<=small.width&&small.modal<=small.width,"320px book must have no horizontal overflow");
-  assert.equal(small.cols,4,"320px album uses readable 4-column stamps");
+  assert.equal(small.cols,2,"320px album uses two large columns of stamps");
   await journal.click(".goshuin-close");
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
   assert.equal(await journal.$eval(".level-tile.is-current",x=>x.getAttribute("aria-current")),"step");
@@ -220,6 +250,7 @@ try{
   });
   await rp.reload({waitUntil:"networkidle2"});
   await rp.click("#goshuinButton");
+  assert.equal(await rp.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 3 · Sida 2 / 3");
   assert.equal(await rp.$eval(".goshuin-stamp.is-in-progress",x=>x.dataset.level),"25");
   assert.equal(await rp.$eval(".goshuin-play",x=>x.textContent),"Fortsätt nivå 25 →");
   assert.equal(await rp.$eval(".goshuin-level-status",x=>x.textContent),"PÅBÖRJAD");

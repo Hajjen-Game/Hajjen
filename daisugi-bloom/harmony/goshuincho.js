@@ -7,6 +7,8 @@
 (function(root){
 "use strict";
 const CHAPTER_SIZE=10;
+const PAGE_SIZE=4;
+const PAGES_PER_CHAPTER=Math.ceil(CHAPTER_SIZE/PAGE_SIZE);
 const THEMES=[
  {title:"Första harmonin",subtitle:"Din resa tar sin början",motif:"sakura",symbol:"✿"},
  {title:"Dimträdgården",subtitle:"Genom dimma och mästerverk",motif:"mist",symbol:"☁"},
@@ -66,6 +68,20 @@ function chapterSnapshot(state,index){
  return {...meta,stamps,earned,stars:stamps.reduce((a,s)=>a+s.stars,0),
   completed:earned===CHAPTER_SIZE};
 }
+// A chapter is a TEN-level collectible; book pages are a separate 4+4+2
+// presentation only. Stamps, stars, completion and level IDs never change.
+function pageForLevel(level){
+ return Math.min(PAGES_PER_CHAPTER-1,Math.floor((Math.max(0,level)%CHAPTER_SIZE)/PAGE_SIZE));
+}
+function pageSnapshot(state,chapterIndex,pageIndex){
+ const all=chapterSnapshot(state,chapterIndex);
+ const page=Math.min(PAGES_PER_CHAPTER-1,Math.max(0,Math.floor(Number(pageIndex)||0)));
+ const from=page*PAGE_SIZE,visible=all.stamps.slice(from,from+PAGE_SIZE);
+ return {...all,page,pageNumber:page+1,pages:PAGES_PER_CHAPTER,
+  visible,visibleEarned:visible.filter(st=>st.earned).length,
+  pageFirst:visible[0]?.number||0,pageLast:visible.at(-1)?.number||0,
+  isFinalPage:page===PAGES_PER_CHAPTER-1};
+}
 function summary(state){
  const current=Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
  const lastCurrentChapter=Math.floor(current/CHAPTER_SIZE);
@@ -84,7 +100,7 @@ function artUrl(type,key){
  return dictionary&&Object.prototype.hasOwnProperty.call(dictionary,key)?
   dictionary[key]:null;
 }
-const api={CHAPTER_SIZE,ART,archivedStars,levelStatus,chapter,chapterSnapshot,summary,artUrl};
+const api={CHAPTER_SIZE,PAGE_SIZE,PAGES_PER_CHAPTER,ART,archivedStars,levelStatus,chapter,chapterSnapshot,pageForLevel,pageSnapshot,summary,artUrl};
 root.HarmonyGoshuincho=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

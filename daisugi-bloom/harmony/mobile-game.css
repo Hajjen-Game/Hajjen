@@ -4774,3 +4774,76 @@ body.harmony-reduced-motion .menu-view .level-tile{
 @media(prefers-reduced-motion:reduce){
  #modal .goshuin-stamp{transition:none}
 }
+
+
+/* Goshuincho Asset Fidelity 2.0 · 6.36.0
+   Restore original independent 724x724 square chapter icons, distinct from
+   the beautiful 4:5 cards. Draw the earned 512x512 original Japanese PNG seals
+   as <img> assets. No 96px atlas, distortion, sprite shifts or blurring. */
+#modal .goshuin-cover-slot,
+#modal .goshuin-cover-slot.has-art{
+ position:relative;
+ box-sizing:border-box;
+ flex:none;
+ display:grid;
+ place-items:center;
+ width:clamp(56px,16.8vw,72px);
+ height:clamp(56px,16.8vw,72px);
+ aspect-ratio:1 / 1;
+ padding:0;
+ margin:0;
+ overflow:hidden;
+ border:0;
+ border-radius:14px;
+ background:transparent;
+ box-shadow:none;
+}
+#modal .goshuin-cover-slot > img.goshuin-art{
+ position:absolute;
+ display:block;
+ inset:0;
+ width:100%;
+ height:100%;
+ padding:0;
+ margin:0;
+ object-fit:contain;
+ object-position:center;
+ border:0;
+ border-radius:0;
+ box-shadow:none;
+ transform:none;
+ filter:none;
+ image-rendering:auto;
+}
+/* Japanese seals are transparent images, not blurred atlas backgrounds.
+   Their size/position still follows Level Card Rework 1.0. */
+#modal .goshuin-stamp .goshuin-grade > img.goshuin-art{
+ position:absolute;
+ inset:0;
+ display:block;
+ width:100%;
+ height:100%;
+ max-width:none;
+ max-height:none;
+ object-fit:contain;
+ object-position:center;
+ padding:0;
+ margin:0;
+ background:transparent;
+ border:0;
+ box-shadow:none;
+ transform:none;
+ filter:none;
+ image-rendering:auto;
+}
+/* Remove old rectangular plaque appearance; original seal shape is its own
+   visual boundary. This keeps one- / two- / three-star kanji crisp. */
+#modal .goshuin-stamp .goshuin-grade,
+#modal .goshuin-stamp .goshuin-grade.grade-2,
+#modal .goshuin-stamp .goshuin-grade.grade-3{
+ padding:0;
+ border:0;
+ background:transparent!important;
+ border-radius:0;
+ box-shadow:none;
+}

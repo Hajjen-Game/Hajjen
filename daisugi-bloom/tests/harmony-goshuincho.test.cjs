@@ -187,7 +187,7 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.43\.0-parchment-all-levels/, "Latest Goshuincho paper CSS must refresh on mobile");
+ assert.match(html, /mobile-game\.css\?v=6\.44\.0-goshuincho-primary/, "Latest Goshuincho paper CSS must refresh on mobile");
 });
 
 
@@ -256,7 +256,7 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.43.0-parchment-all-levels"),
+ assert(html.includes("mobile-game.css?v=6.44.0-goshuincho-primary"),
   "Paper-card CSS cache must be refreshed on phones");
  assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'),
   "Data mapping must stay untouched");
@@ -307,9 +307,27 @@ check("Warm Parchment 2.0 renders all chapter cards with real level names",()=>{
  assert(css.includes(".goshuin-paper-kanji.is-multi-kanji")&&css.includes(".goshuin-paper-title.is-long"),
   "Long Japanese numerals and titles must scale on small screens");
  assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'));
- assert(html.includes('app.js?v=6.43.0-parchment-all-levels'));
- assert(html.includes('mobile-game.css?v=6.43.0-parchment-all-levels'));
+ assert(html.includes('app.js?v=6.44.0-goshuincho-primary'));
+ assert(html.includes('mobile-game.css?v=6.44.0-goshuincho-primary'));
  const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
  assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
+});
+check("Primary Goshuincho navigation hides the old level list without removing progression",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
+ assert.match(html, /id="levelList"[^>]*\bhidden\b[^>]*aria-hidden="true"/,
+  "The old list must not be visible or accessible");
+ assert.match(html, /id="levelPager"[^>]*\bhidden\b[^>]*aria-hidden="true"/);
+ assert(css.includes("#levelList[hidden],#levelPager[hidden]{display:none!important}"));
+ assert(html.includes('id="goshuinButton"')&&html.includes("Goshuincho · Välj nivå"));
+ assert(app.includes("function showLevelSelection()"));
+ assert(app.includes('showMenu();\n showGoshuincho();'),
+  "Leaving a run must open book on the player's current chapter");
+ assert(app.includes('modalButton(actions,"Goshuincho · Nivåval"'));
+ assert(app.includes('add("Till Goshuincho"'));
+ assert(!html.includes('class="primary" id="continueButton"'),
+  "Quick Continue should not outrank primary book level selection");
 });
 console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0 and Optical Alignment 1.0 tests passed.");

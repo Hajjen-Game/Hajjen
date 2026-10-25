@@ -52,6 +52,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-opportunity-director-v2.test.cjs
       - name: Verify Pacing Director 3.0 move timing, conservation, save/load and paired A/B/C/D
         run: node daisugi-bloom/tests/harmony-pacing-director-v3.test.cjs
+      - name: Verify Director 4.0 blocker reachability, recovery and reproducible fair refills
+        run: node daisugi-bloom/tests/harmony-director-v4.test.cjs
       - name: Verify Four Families Experiment 1.0 board, save compatibility and Director 3.0
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states

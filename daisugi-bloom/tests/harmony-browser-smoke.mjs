@@ -112,6 +112,22 @@ try{
   assert.equal(empty.page,"Kapitel 1 · Sida 1 / 3");
   assert.equal(empty.nextDisabled,false,"Next chapter can be previewed");
   assert(empty.scroll<=390,"The album must not overflow the phone viewport");
+  // Omikuji Paper Preview 1.0: ONLY levels 1–4 have the fresh paper card.
+  // The large dark heading must be the real title, not a repeated "Nivå X".
+  const freshPaper=await journal.$eval(".goshuin-stamp",tiles=>tiles.map(tile=>({
+   number:tile.dataset.level,paper:tile.classList.contains("is-omikuji-preview"),
+   eyebrow:tile.querySelector(".goshuin-paper-eyebrow")?.textContent,
+   kanji:tile.querySelector(".goshuin-paper-kanji")?.textContent,
+   title:tile.querySelector(".goshuin-paper-title")?.textContent,
+   watercolor:!!tile.querySelector(":scope > img.goshuin-art"),
+   grade:!!tile.querySelector(".goshuin-grade")
+  })));
+  assert.deepEqual(freshPaper,[
+   {number:"1",paper:true,eyebrow:"第一番 · NIVÅ 1",kanji:"一",title:"First Harmony",watercolor:false,grade:false},
+   {number:"2",paper:true,eyebrow:"第二番 · NIVÅ 2",kanji:"二",title:"Growing Beauty",watercolor:false,grade:false},
+   {number:"3",paper:true,eyebrow:"第三番 · NIVÅ 3",kanji:"三",title:"First Masterpiece",watercolor:false,grade:false},
+   {number:"4",paper:true,eyebrow:"第四番 · NIVÅ 4",kanji:"四",title:"First Mist",watercolor:false,grade:false}
+  ]);
   // Stamp Slot Polish 1.0: load the real nine-asset transparent atlas.
   await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
   const initialArt=await journal.evaluate(async()=>{
@@ -134,7 +150,10 @@ try{
   await journal.click(".goshuin-nav-button:last-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"5");
-  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),4);
+  assert.equal(await journal.$eval(".goshuin-stamp",xs=>xs.length),4);
+  assert.equal(await journal.$eval(".goshuin-stamp.is-omikuji-preview",xs=>xs.length),0,
+   "Level 5+ must keep the approved watercolor chapter cards");
+  await journal.waitForSelector(".goshuin-stamp > img.goshuin-art");
   await journal.click(".goshuin-nav-button:last-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
@@ -253,16 +272,26 @@ try{
    sampleGradeWidth:document.querySelector(".goshuin-grade").getBoundingClientRect().width,
    cardShape:document.querySelector(".goshuin-stamp").getBoundingClientRect().height/
       document.querySelector(".goshuin-stamp").getBoundingClientRect().width,
-   cardOffset:(()=>{const parent=document.querySelector(".goshuin-stamp").getBoundingClientRect(),
-    img=document.querySelector(".goshuin-stamp > img.goshuin-art").getBoundingClientRect();
-    return {dx:Math.abs(parent.left-img.left),dy:Math.abs(parent.top-img.top)};})(),
+   papers:document.querySelectorAll(".goshuin-stamp.is-omikuji-preview").length,
+   titles:[...document.querySelectorAll(".goshuin-paper-title")].map(e=>e.textContent),
+   cardsWithTextSeal:[...document.querySelectorAll(".goshuin-stamp")].every(tile=>{
+    const title=tile.querySelector(".goshuin-paper-title");
+    const seal=tile.querySelector(".goshuin-grade");
+    const kanji=tile.querySelector(".goshuin-paper-kanji");
+    return title&&seal&&kanji&&
+     title.getBoundingClientRect().bottom<=seal.getBoundingClientRect().top+2&&
+     kanji.getBoundingClientRect().bottom<=title.getBoundingClientRect().top+2;
+   }),
    className:document.querySelector(".goshuin-stamp.is-earned").className
   }));
   assert(layout.doc<=layout.width&&layout.modal<=layout.width&&layout.grid<=layout.modal);
   assert.equal(layout.artSlots,0,"No old circular artwork slot remains");
-  assert.equal(layout.cards,4,"All four levels use the chapter watercolor");
+  assert.equal(layout.papers,4,"Four clean Omikuji-style cards on the first page");
+  assert.deepEqual(layout.titles,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
+  assert.equal(layout.cards,0,"Test cards must not load the old watercolor illustration");
   assert.equal(layout.grades,4,"All earned grades keep their one Japanese seal");
-  assert.equal(layout.imgs,9,"One illustrated chapter cover and four large cards + four Japanese grades");
+  assert.equal(layout.imgs,5,"Chapter cover and four sharp original grade PNGs remain");
+  assert(layout.cardsWithTextSeal,"Kanji, stage names, and seals do not overlap");
   assert.equal(layout.atlas,0,"No atlas art is used for chapters or star grade");
   assert(layout.sampleGradeWidth>=38&&layout.sampleGradeWidth<=58,"The seal no longer needs a giant plaque");
   const imageQuality=await journal.evaluate(async()=>({
@@ -276,7 +305,7 @@ try{
   assert(Math.abs(imageQuality.cover.w-imageQuality.cover.h)<1,"Chapter header keeps a true square, not rectangular distortion");
   assert(Math.abs(imageQuality.grade.w-imageQuality.grade.h)<1,"The grade image keeps square proportions");
   assert(layout.cardShape>1.22&&layout.cardShape<1.28,"Cards preserve their portrait 4:5 proportion");
-  assert(layout.cardOffset.dx<1&&layout.cardOffset.dy<1,"Artwork stays anchored inside its level card");
+  assert(layout.className.includes("is-omikuji-preview"));
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-390.png"});
   await journal.click('.goshuin-stamp[data-level="3"]');
@@ -293,10 +322,16 @@ try{
   const small=await journal.evaluate(()=>({
    doc:document.documentElement.scrollWidth,width:innerWidth,
    modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
-   cols:getComputedStyle(document.querySelector(".goshuin-stamp-grid")).gridTemplateColumns.split(" ").length
+   cols:getComputedStyle(document.querySelector(".goshuin-stamp-grid")).gridTemplateColumns.split(" ").length,
+   titleSealsDoNotOverlap:[...document.querySelectorAll(".goshuin-stamp")].every(tile=>{
+    const title=tile.querySelector(".goshuin-paper-title").getBoundingClientRect();
+    const seal=tile.querySelector(".goshuin-grade").getBoundingClientRect();
+    return title.bottom<=seal.top+2&&title.width>40;
+   })
   }));
   assert(small.doc<=small.width&&small.modal<=small.width,"320px book must have no horizontal overflow");
   assert.equal(small.cols,2,"320px album uses two large columns of stamps");
+  assert(small.titleSealsDoNotOverlap,"Paper title and star stamp must not collide at 320px");
   await journal.click(".goshuin-close");
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
   assert.equal(await journal.$eval(".level-tile.is-current",x=>x.getAttribute("aria-current")),"step");

@@ -393,7 +393,7 @@ function renderGoshuincho(){
  const crest=goshuinNode("div","goshuin-cover-slot");
  crest.dataset.artKey=info.artKey;
  crest.append(goshuinNode("span","goshuin-slot-fallback",info.symbol));
- goshuinArtwork(crest,"cards",info.index);
+ goshuinArtwork(crest,"chapters",info.index);
  const copy=goshuinNode("div","goshuin-chapter-copy");
  copy.append(goshuinNode("span","goshuin-eyebrow",
   "KAPITEL "+info.number+" · NIVÅ "+(info.first+1)+"–"+(info.last+1)),

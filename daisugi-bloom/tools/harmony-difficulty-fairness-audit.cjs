@@ -15,7 +15,7 @@ const R = require("../harmony/rules.js");
 const Lab = require("../harmony/diagnostics.js").create(R);
 
 const VERSION = "difficulty-fairness-3.0";
-const GAME_VERSION = "6.40.0";
+const GAME_VERSION = "6.41.0";
 const STRATEGIES = ["random", "goal"];
 const parseLevels = value => {
   const match = /^(\d+)-(\d+)$/.exec(value);

@@ -187,7 +187,7 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.42\.1-aged-paper/, "Latest Goshuincho paper CSS must refresh on mobile");
+ assert.match(html, /mobile-game\.css\?v=6\.42\.2-warm-parchment/, "Latest Goshuincho paper CSS must refresh on mobile");
 });
 
 
@@ -256,7 +256,7 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.42.1-aged-paper"),
+ assert(html.includes("mobile-game.css?v=6.42.2-warm-parchment"),
   "Paper-card CSS cache must be refreshed on phones");
  assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
   "Data mapping must stay untouched");
@@ -278,11 +278,15 @@ check("Paper Card Preview 1.0 is limited to four cards and uses real stage names
  assert(app.includes('goshuinArtwork(tile,"cards",info.index)'),"Page 2+ watercolor stays unchanged");
  for(const glyph of ["一","二","三","四","第一番","第二番","第三番","第四番"])
   assert(app.includes(glyph),"Japanese numeral missing: "+glyph);
- assert(css.includes("Goshuincho Aged Paper Polish 1.1"));
- assert(css.includes("#f9eaca")&&css.includes("#f3dfbb")&&css.includes("#ebd0a5"),
-  "First four cards must have warm sand/aged-paper colors instead of pink");
- const scoped=css.slice(css.indexOf("/* Goshuincho Aged Paper Polish 1.1"));
+ assert(css.includes("Goshuincho Warm Parchment Polish 1.2"));
+ assert(css.includes("#fbedd0")&&css.includes("#f5dfb4")&&css.includes("#efd09a"),
+  "First four cards must use the approved warm golden parchment palette");
+ const scoped=css.slice(css.indexOf("/* Goshuincho Warm Parchment Polish 1.2"));
  assert(!scoped.includes("rgba(240,174,151"),"Old pink tint removed");
+ assert(scoped.includes("rgba(214,170,103,.16)")&&scoped.includes("rgba(255,239,204,.30)"),
+  "Additional honey-gold highlights must replace the flat gray-beige appearance");
+ assert(scoped.includes("rgba(184,129,67,.58)"),
+  "The inked card frame must be warm sepia");
  assert(scoped.includes("font-size:clamp(11px,3.35vw,14px)"),
   "Stage number/eyebrow must be larger");
  assert(scoped.includes("font-size:clamp(12px,3.2vw,16px)"),
@@ -293,7 +297,7 @@ check("Paper Card Preview 1.0 is limited to four cards and uses real stage names
   assert(css.includes("#modal .goshuin-stamp.is-omikuji-preview ."+className),
    "Style must be scoped to the four preview cards");
  assert(html.includes('app.js?v=6.42.0-omikuji-cards'));
- assert(html.includes('mobile-game.css?v=6.42.1-aged-paper'));
+ assert(html.includes('mobile-game.css?v=6.42.2-warm-parchment'));
  const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
  assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
 });

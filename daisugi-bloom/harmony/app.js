@@ -534,6 +534,8 @@ function renderGoshuincho(){
   heading.lang="ja";
   const numeral=goshuinNode("span","goshuin-paper-kanji",japanese);
   numeral.lang="ja";
+  if(japanese.length>=3)numeral.classList.add("is-multi-kanji");
+  if(japanese.length>=4)numeral.classList.add("is-long-kanji");
   const title=goshuinNode("strong","goshuin-paper-title",levelConfig.name);
   if(levelConfig.name.length>20)title.classList.add("is-long");
   const flourish=goshuinNode("span","goshuin-paper-sakura","✿");

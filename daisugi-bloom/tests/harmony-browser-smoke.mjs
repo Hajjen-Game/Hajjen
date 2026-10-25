@@ -128,6 +128,9 @@ try{
   assert.equal(initialArt.corner,0,"Approved artwork should have transparent surroundings");
   assert(initialArt.cells.every(a=>a>100),"All nine artwork cells must be nonempty");
   assert(initialArt.chapter?.includes("chapter-icon-sakura.png"),"Chapter 1 uses original square Sakura icon");
+  assert.equal(await journal.$eval(".goshuin-cover-slot",
+   e=>getComputedStyle(e).getPropertyValue("--goshuin-optical-x").trim()),"-2%",
+   "Sakura source silhouette shifts slightly left");
   await journal.click(".goshuin-nav-button:last-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"5");
@@ -144,6 +147,9 @@ try{
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"11");
   await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
   assert((await journal.$eval(".goshuin-cover-slot > img.goshuin-art",x=>x.getAttribute("src"))).includes("chapter-icon-mist.png"));
+  assert.equal(await journal.$eval(".goshuin-cover-slot",
+   e=>getComputedStyle(e).getPropertyValue("--goshuin-optical-x").trim()),"0%",
+   "Mist source silhouette stays horizontally centered");
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
@@ -172,9 +178,15 @@ try{
    grade:document.querySelector(".goshuin-stamp.is-earned .goshuin-grade > img.goshuin-art")?.getAttribute("src")
   }));
   assert(thirdChapter.chapter?.includes("chapter-icon-daruma.png"));
+  assert.equal(await journal.$eval(".goshuin-cover-slot",
+   e=>getComputedStyle(e).getPropertyValue("--goshuin-optical-x").trim()),"1.85%",
+   "Daruma source silhouette shifts right");
   assert(thirdChapter.card?.includes("level-card-daruma.webp"));
   assert.equal(thirdChapter.legacySlotCount,0,"Repeated round stamp is removed");
   assert(thirdChapter.grade?.includes("star-seal-1.png"),"One-star Japanese grade must be its original full-resolution PNG");
+  assert(Math.abs(await journal.$eval(".goshuin-grade.grade-1 > img.goshuin-art",
+   el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).a)-.97)<.002,
+   "One-star native PNG uses optical ink size, not canvas size");
   // Level Select 2.0: same book serves as a level browser without mutating
   // progress or bypassing existing stage unlocks.
   assert.equal(await journal.$eval('.goshuin-stamp[data-level="22"]',
@@ -204,6 +216,12 @@ try{
   await journal.waitForSelector('.goshuin-stamp[data-level="13"] .goshuin-grade.has-art');
   assert((await journal.$eval('.goshuin-stamp[data-level="13"] .goshuin-grade > img.goshuin-art',
    x=>x.getAttribute("src"))).includes("star-seal-3.png"),"Three-star Japanese seal uses original PNG");
+  const seal2and3=await journal.evaluate(()=>({
+   second:new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.goshuin-stamp[data-level="11"] .goshuin-grade > img.goshuin-art')).transform).a,
+   third:new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.goshuin-stamp[data-level="13"] .goshuin-grade > img.goshuin-art')).transform).a
+  }));
+  assert(Math.abs(seal2and3.second-1.03)<.002,"Two-star stamp has balanced visible ink size");
+  assert(Math.abs(seal2and3.third-.945)<.002,"Gold three-star stamp has balanced visible ink size");
   await journal.click('.goshuin-stamp[data-level="13"]');
   const recordColor=await journal.$eval(".goshuin-level-record",x=>getComputedStyle(x).color);
   assert.equal(recordColor,"rgb(92, 71, 62)","Recorded score must be readable on paper");

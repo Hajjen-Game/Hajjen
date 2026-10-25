@@ -187,7 +187,7 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.36\.1-optical-alignment/, "Cache must refresh optical alignment CSS");
+ assert.match(html, /mobile-game\.css\?v=6\.37\.0-economy/, "Cache must refresh optical alignment CSS");
 });
 
 

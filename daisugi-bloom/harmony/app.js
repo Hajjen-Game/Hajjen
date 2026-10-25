@@ -524,26 +524,21 @@ function renderGoshuincho(){
   tile.setAttribute("aria-label","Nivå "+stamp.number+" · "+levelConfig.name+": "+
    (stamp.locked?"låst":stamp.resumable?"påbörjad":stamp.isCurrent?"nästa nivå":
     stamp.earned?"klarad, "+stamp.stars+" av 3 stjärnor":"upplåst"));
-  // Omikuji Paper Card Preview 1.0: only the first four Goshuincho stamps.
-  // Real text + CSS paper, not an image, so the localized stage name is live.
-  // All later stages retain their approved watercolor chapter art.
-  const paperPreview=stamp.level>=0&&stamp.level<4;
-  if(paperPreview){
-   tile.classList.add("is-omikuji-preview");
-   const japanese=["一","二","三","四"][stamp.level];
-   const formal=["第一番","第二番","第三番","第四番"][stamp.level];
-   const heading=goshuinNode("span","goshuin-paper-eyebrow",formal+" · NIVÅ "+stamp.number);
-   heading.lang="ja";
-   const numeral=goshuinNode("span","goshuin-paper-kanji",japanese);
-   numeral.lang="ja";
-   const flourish=goshuinNode("span","goshuin-paper-sakura","✿");
-   flourish.setAttribute("aria-hidden","true");
-   tile.append(heading,numeral,goshuinNode("strong","goshuin-paper-title",levelConfig.name),flourish);
-  }else{
-   const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
-   tile.append(levelLabel);
-   goshuinArtwork(tile,"cards",info.index);
-  }
+  // Goshuincho Warm Parchment 2.0: every level in every chapter shares
+  // the approved Omikuji-style paper card. Keep live stage names and
+  // the original high-resolution rating seals, not baked-in illustrations.
+  // The chapter header remains its own separately illustrated section.
+  tile.classList.add("is-omikuji-preview");
+  const japanese=G.japaneseNumeral(stamp.number);
+  const heading=goshuinNode("span","goshuin-paper-eyebrow","第"+japanese+"番 · NIVÅ "+stamp.number);
+  heading.lang="ja";
+  const numeral=goshuinNode("span","goshuin-paper-kanji",japanese);
+  numeral.lang="ja";
+  const title=goshuinNode("strong","goshuin-paper-title",levelConfig.name);
+  if(levelConfig.name.length>20)title.classList.add("is-long");
+  const flourish=goshuinNode("span","goshuin-paper-sakura","✿");
+  flourish.setAttribute("aria-hidden","true");
+  tile.append(heading,numeral,title,flourish);
   if(stamp.earned){
    const grade=goshuinNode("span","goshuin-grade grade-"+stamp.stars);
    grade.dataset.grade=String(stamp.stars);

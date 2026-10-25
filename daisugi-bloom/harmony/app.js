@@ -283,6 +283,7 @@ function renderMenu(){
    cfg.moves+" drag · "+(cfg.goal.type==="mist"?cfg.goal.count+" dimrutor":
     cfg.goal.type==="masterpiece"?cfg.goal.count+" mästerverk":
     cfg.goal.type==="daruma"?cfg.goal.count+" Daruma":
+    cfg.goal.type==="sealedStone"?cfg.goal.count+" Sealed Stones":
     cfg.goal.type==="fusion"?cfg.goal.count+" fusioner":
     cfg.goal.type==="stage3"?cfg.goal.count+" utvecklingar":
     cfg.goal.type==="pulseHits"?cfg.goal.count+" Harmony Pulse-träffar":
@@ -449,6 +450,7 @@ function renderGoshuincho(){
   const goal=cfg.goal||{},count=goal.count;
   return goal.type==="mist"?count+" dimrutor":
    goal.type==="daruma"?count+" Daruma":
+   goal.type==="sealedStone"?count+" Sealed Stones":
    goal.type==="masterpiece"?count+" mästerverk":
    goal.type==="fusion"?count+" fusioner":
    goal.type==="stage3"?count+" utvecklingar till stadium 3":
@@ -806,7 +808,8 @@ function startLevel(i,resume=false){
  $("goalLabel").textContent=game.goalText();
  $("goalLabel").title=game.config.intro||"";
  document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":
-  game.config.goal.type==="daruma"?"◉":"✿";
+  game.config.goal.type==="daruma"?"◉":
+  game.config.goal.type==="sealedStone"?"✦":"✿";
  const milestones=$("starTargets");
  milestones.hidden=game.rewardVersion>=2||game.config.goal.type!=="score";
  if(!milestones.hidden){
@@ -815,6 +818,8 @@ function startLevel(i,resume=false){
   });
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();armDecisionClock();restartIdleHint();
+ if(i===30&&!resume&&game.config.goal.type==="sealedStone")
+  toast("Sealed Stones står stilla. Fyra träffar på olika drag bryter stenen och utlöser en Awakening Pulse till alla åtta grannar.");
  if(i===20&&!resume&&game.config.goal.type==="daruma")
   toast("Daruma står stilla. Fusionera bredvid den eller träffa med Harmony Pulse. Varje öga kräver ett eget drag.");
  if(i===3&&!resume&&game.config.goal.type==="mist"&&!save.mistPulseIntroShown){
@@ -827,7 +832,7 @@ function startLevel(i,resume=false){
 let boardTiles=[],boardKeys=[],presentedBoard=Array(49).fill(null);
 // Game is already at the end of the turn when playback begins. Event-specific
 // mist snapshots prevent revealing cleansed cells before the relevant effect.
-let activeMistFrame=null,activeDarumaFrame=null;
+let activeMistFrame=null,activeDarumaFrame=null,activeSealedFrame=null;
 // Cleansed fog gets a short floating dissolve in a separate overlay. It does
 // not touch piece movement, game rules, or the turn's animation schedule.
 function releaseMist(positions){
@@ -957,20 +962,26 @@ function renderBoard(board,highlight,effect){
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
  const mist=activeMistFrame||game?.mist||[];
  const daruma=activeDarumaFrame||game?.daruma||[];
+ const sealed=activeSealedFrame||game?.sealed||[];
  const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
-  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma";
+  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone";
   const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
-  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState:"empty";
+  const stoneLeft=stone?(sealed[i]??4):0,stoneStage=stone?Math.min(3,Math.max(0,4-stoneLeft)):-1;
+  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage:"empty";
   // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
   // event listeners and their DOM nodes for a smoother mobile experience.
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad"):
+   btn.setAttribute("aria-label",stone?"Sealed Stone, "+stoneLeft+" träffar kvar":
+    doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad"):
     piece?names[piece.family]+", stadium "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
-   if(doll){
+   if(stone){
+    const art=document.createElement("span");art.className="sealed-stone-art state-"+stoneStage;
+    art.setAttribute("aria-hidden","true");btn.append(art);
+   }else if(doll){
     const art=document.createElement("span");art.className="daruma-art state-"+dState;
     art.setAttribute("aria-hidden","true");btn.append(art);
    }else if(piece){
@@ -998,7 +1009,9 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad")+", ruta "+
+  const label=stone?"Sealed Stone, "+stoneLeft+" träffar kvar, ruta "+
+   (Math.floor(i/7)+1)+"-"+(i%7+1):
+   doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad")+", ruta "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
    piece?names[piece.family]+", stadium "+piece.stage+", ruta "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
@@ -1007,7 +1020,7 @@ function renderBoard(board,highlight,effect){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
-  const cls="tile"+(doll?" daruma-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
+  const cls="tile"+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
    (resonance.partners.has(i)?" resonance-partner":"")+
@@ -1087,6 +1100,9 @@ function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
  if(game.board[i]?.family==="daruma"){
   selected=-1;toast("Daruma flyttas inte. Matcha bredvid för att fylla dess ögon.");return;
+ }
+ if(game.board[i]?.family==="sealedStone"){
+  selected=-1;toast("Sealed Stone flyttas inte. Matcha bredvid stenen eller träffa med Harmony Pulse (max en träff per drag).");return;
  }
  restartIdleHint();
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
@@ -1260,7 +1276,8 @@ function evolutionStageLabels(groups){
 const PRAISE_WORDS=Object.freeze({
  echo:"HARMONY ECHO!",
  masterpiece:"MASTERPIECE!",
- pulse:"HARMONY PULSE!"
+ pulse:"HARMONY PULSE!",
+ awakening:"AWAKENING PULSE!"
 });
 let praiseQueue=[],praiseSeen=new Set(),praiseTimer=0,praiseActive=false,praiseSession=0;
 function clearPraise(){
@@ -1711,7 +1728,7 @@ const PULSE_CHARGE_TIMINGS=Object.freeze([
  {delay:20,ramp:135}  // Third and later: snappy but still readable.
 ]);
 async function pulseAnticipation(evt){
- const visualTargets=[...(evt.darumaTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
  const affected=[...new Set(visualTargets.map(t=>t.to))];
  if(!affected.length||FAST()||document.hidden||!Element.prototype.animate)return ()=>{};
  const wave=Math.max(1,Number(evt.wave)||1);
@@ -1752,7 +1769,7 @@ async function pulseAnticipation(evt){
 // Animate real from/to coordinates, cap decorative FX, update all logical
 // targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
- const visualTargets=[...(evt.darumaTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
  if(visualTargets.length)sound("pulse",{wave:evt.wave||0});
  if(FAST()||!visualTargets.length)return Promise.resolve();
  // Prioritize mist-clearing beams when decorative paths are capped on mobile.
@@ -1859,6 +1876,7 @@ async function animateEvent(evt){
  const previous=presentedBoard;
  activeMistFrame=Array.isArray(evt.mist)?evt.mist:null;
  activeDarumaFrame=Array.isArray(evt.daruma)?evt.daruma:null;
+ activeSealedFrame=Array.isArray(evt.sealed)?evt.sealed:null;
  switch(evt.type){
   case "swap":
    renderBoard(evt.board,[evt.from,evt.to],"swapped");
@@ -1878,9 +1896,12 @@ async function animateEvent(evt){
    ],133)));
    break;
   }
+  case "awakening":
+  praise("awakening");
+  // Use the existing travelling pulse VFX for all eight destinations.
   case "pulse":{
    const targets=evt.targets||[];
-   const visualTargets=[...(evt.darumaTargets||[]),...(evt.mistTargets||[]),...targets];
+   const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...targets];
    // Empty mist-covered cells glow as well; their sprites stay empty.
    const releaseCharge=await pulseAnticipation(evt);
    try{
@@ -1893,6 +1914,16 @@ async function animateEvent(evt){
    await Promise.all(targets.slice(0,MOBILE_LITE?5:9).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
     {transform:"scale(.76)",offset:0},{transform:"scale(1.22)",offset:.49},{transform:"scale(1)",offset:1}
    ],(evt.wave||1)>=2?135:165)));
+   break;
+  }
+  case "sealed-hit":{
+   renderBoard(evt.board,(evt.hits||[]).map(h=>h.at),"sealed-hit");
+   if(!FAST())await Promise.all((evt.hits||[]).map(h=>
+    animateNode(boardTiles[h.at]?.querySelector(".sealed-stone-art"),[
+     {transform:"scale(.89)",filter:"brightness(1)",offset:0},
+     {transform:"scale(1.09)",filter:"brightness(1.4)",offset:.55},
+     {transform:"scale(1)",filter:"brightness(1)",offset:1}
+    ],240)));
    break;
   }
   case "daruma":{

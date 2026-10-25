@@ -83,11 +83,18 @@ check("Pre-chapter-identity Daruma saves keep their original non-Daruma goals",(
   save.board=originals;
   delete save.daruma;delete save.darumaVersion;delete save.darumaCleared;
   save.moves=7;save.score=1234;
+  if(goal==="mist"){
+   save.mist=Array(49).fill(0);
+   for(const pos of R.mistLayout(level,12,2))save.mist[pos]=1;
+   save.mistCleared=0;
+  }
   const restored=new R.Game(level,save,{fastRestore:true});
   assert.equal(restored.config.goal.type,goal,"Historical goal on "+(level+1));
   assert.equal(restored.darumaVersion,0);
   assert.equal(restored.moves,7);
   assert.equal(restored.score,1234);
+  if(goal==="mist")assert.equal(restored.mist.filter(Boolean).length,12,
+   "An older Mist save must remain mathematically completable");
   assert.deepEqual(restored.board,originals);
   assert.equal(restored.board.some(p=>p.family==="daruma"),false);
   assert.deepEqual(new R.Game(level,restored.save(),{fastRestore:true}).save(),restored.save());
@@ -129,6 +136,41 @@ check("New and existing blockers stay fixed, cannot be swapped, and carry throug
   }
   const snap=g.save(),restored=new R.Game(level,snap,{fastRestore:true});
   assert.deepEqual(restored.save(),snap);
+ }
+});
+check("Idle hint prefers actual eye and stone damage instead of unrelated scoring",()=>{
+ for(const level of [20,30]){
+  const g=make(level),at=24;
+  const families=["sakura","lantern","koi","fan","bonsai"];
+  g.board=Array.from({length:49},(_,i)=>({family:families[
+   (Math.floor(i/7)+2*(i%7))%5],stage:1,id:i+1}));
+  if(level===20){
+   g.board[at]={family:"daruma",stage:0,id:-25};
+   g.daruma=Array(49).fill(0);g.daruma[at]=2;
+  }else{
+   g.board[at]={family:"sealedStone",stage:0,id:-124};
+   g.sealed=Array(49).fill(0);g.sealed[at]=4;
+  }
+  // One real swap can complete a fusion at cell 17, adjacent to blocker 24.
+  g.board[16].family="sakura";g.board[17].family="lantern";
+  g.board[18].family="sakura";g.board[19].family="sakura";
+  assert.equal(R.scan(g.board).length,0);
+  assert(R.validSwaps(g.board).some(pair=>pair.includes(16)&&pair.includes(17)));
+  const before=g.save(),hint=R.bestHint(g);
+  assert(hint&&hint.blockerHits>=1,"Hints must value real progress on "+(level+1));
+  assert.deepEqual(g.save(),before,"Hint previews must not modify game state");
+  const trial=new R.Game(level,g.save(),{fastRestore:true});
+  assert(trial.swap(hint.from,hint.to).ok);
+  const damage=level===20?g.daruma[at]-trial.daruma[at]:g.sealed[at]-trial.sealed[at];
+  assert(damage>0&&hint.blockerHits>=damage);
+ }
+});
+check("Blocked swap feedback identifies Stone and Daruma independently",()=>{
+ for(const level of [20,30]){
+  const g=make(level),at=24;
+  const result=g.swap(at,R.neighbors(at)[0]);
+  assert.equal(result.ok,false);
+  assert(result.reason.includes(level===20?"Daruma":"Sealed Stone"));
  }
 });
 console.log("Chapter Gameplay Identity 1.0 contracts passed.");

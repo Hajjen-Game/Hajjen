@@ -743,11 +743,69 @@ function endgameMistMetrics(board,mist){
  return {remaining:targets.length,direct:direct.size,staged,isolated,
   weakest,score:Math.max(0,score)};
 }
+// Harmony Director 4.0 – pure, bounded analysis of reachable fixed blockers.
+// Only existing legal player fusions can hit Daruma / Sealed Stones;
+// nearby investments are counted as possibilities, never guaranteed hits.
+function blockerObjectiveMetrics(board,goal,blockers){
+ const family=goal?.type==="daruma"?"daruma":goal?.type==="sealedStone"?"sealedStone":null;
+ if(!family)return {remaining:0,direct:0,directChoices:0,isolated:0,score:0};
+ const targets=[];
+ for(let i=0;i<N*N;i++)if(blockers?.[i]>0&&board[i]?.family===family)targets.push(i);
+ if(!targets.length)return {remaining:0,direct:0,directChoices:0,isolated:0,score:0};
+ const direct=new Set(),routes=new Set(),choices=validSwaps(board);
+ let directChoices=0,bestHits=0;
+ for(const [a,b] of choices){
+  [board[a],board[b]]=[board[b],board[a]];
+  try{
+   const groups=scan(board).filter(g=>g.includes(a)||g.includes(b));
+   const hits=new Set();
+   for(const group of groups){
+    const strongest=group.reduce((i,j)=>board[i].stage>=board[j].stage?i:j);
+    const landing=group.includes(b)?b:group.includes(a)?a:strongest;
+    const evolved=Math.min(5,board[strongest].stage+1);
+    for(const t of targets){
+     const distance=Math.abs(Math.floor(landing/N)-Math.floor(t/N))+
+      Math.abs(landing%N-t%N);
+     if(distance===1)hits.add(t); // Direct fusion touches this blocker.
+     else if(distance===2&&evolved>=4)routes.add(t); // Future potential.
+    }
+   }
+   for(const t of hits)direct.add(t);
+   if(hits.size)directChoices++;
+   bestHits=Math.max(bestHits,hits.size);
+  }finally{[board[a],board[b]]=[board[b],board[a]];}
+ }
+ let supported=0,isolated=0;
+ for(const t of targets){
+  if(direct.has(t)||routes.has(t)){supported++;continue;}
+  let linked=false;
+  for(let i=0;i<N*N&&!linked;i++){
+   const p=board[i];if(!p||isFixed(p)||p.stage<3||p.stage>=5)continue;
+   const distance=Math.abs(Math.floor(i/N)-Math.floor(t/N))+
+    Math.abs(i%N-t%N);
+   if(distance<=2&&neighbors(i).some(j=>board[j]?.family===p.family&&!isFixed(board[j])))
+    linked=true;
+  }
+  if(linked)supported++;else isolated++;
+ }
+ const remaining=targets.length,weakest=isolated?0:direct.size===remaining?3:1;
+ const score=Math.max(0,Math.min(7.2,
+  Math.min(bestHits,3)*1.75+Math.min(direct.size,3)*.85+
+  Math.min(directChoices,4)*.30+Math.min(supported-direct.size,3)*.45-
+  Math.min(isolated,3)*.45+(remaining<=2&&weakest>=1?.55:0)));
+ return {remaining,direct:direct.size,directChoices,bestHits,supported,isolated,weakest,score};
+}
 // The first Journey levels are a 4→5-family transition. Let Pacing 3.0
 // compare at most two extra *ordinary* bag refills so it can gently prefer
 // useful follow-on decisions. There is no new object type, free fusion,
 // hidden score bonus, altered goal, or guaranteed winning board.
-function pacingProposalCount(level,drought,mode){
+function pacingProposalCount(level,drought,mode,objectiveDrought=0){
+ if(mode==="v4"){
+  if(level<9)return 4;
+  if(level<15)return drought>=3||objectiveDrought>=3?6:5;
+  if(level<20)return drought>=3||objectiveDrought>=3?5:4;
+  return drought>=3&&objectiveDrought>=3?5:4;
+ }
  if(!["v3","v31","v311"].includes(mode)||level<10||level>=20)return 4;
  if(level<15)return drought>=3?6:5;
  return drought>=3?5:4;
@@ -773,7 +831,7 @@ class Game{
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
-  this.directorMode=options?.directorMode==="v311"?"v311":options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
+  this.directorMode=options?.directorMode==="v4"?"v4":options?.directorMode==="v311"?"v311":options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
   this.opportunity=this.directorMode!=="standard"; // Both Directors are opt-in.
   this.directorRefills=0;this.directorSelections=0;this.directorDrought=0;this.objectiveDrought=0;
   this.paceTimes=[];this.paceOutcomes=[];this.pacePhase="build";this.paceLastMajor=false;
@@ -907,7 +965,7 @@ class Game{
    this.families=activeFamilies(this.level,this.familyCount);
    if(this.config.goal.type==="score"&&previous.complete&&previous.score<this.config.goal.count)
     this.legacyScoreCompletion=true;
-   this.directorMode=previous.directorMode==="v311"?"v311":previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
+   this.directorMode=previous.directorMode==="v4"?"v4":previous.directorMode==="v311"?"v311":previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
    this.opportunity=this.directorMode!=="standard";
    this.directorDrought=Number.isInteger(previous.directorDrought)?Math.max(0,previous.directorDrought):0;
    this.objectiveDrought=Number.isInteger(previous.objectiveDrought)?Math.max(0,Math.min(12,previous.objectiveDrought)):0;
@@ -962,7 +1020,7 @@ class Game{
   const candidates=[baseline];
   const fork=(this.seed^Math.imul(this.rolls+1,0x85ebca6b)^
    Math.imul(this.nextId+1,0x9e3779b1))>>>0;
-  for(let c=1;c<pacingProposalCount(this.level,this.directorDrought,this.directorMode);c++){
+  for(let c=1;c<pacingProposalCount(this.level,this.directorDrought,this.directorMode,this.objectiveDrought);c++){
    const seed=(fork^Math.imul(c,0x9e3779b1))>>>0;
    candidates.push(draftRefill(this.board,this.bag,this.families,
     this.nextId,prng(seed)));
@@ -971,32 +1029,38 @@ class Game{
   // Preserve the existence of automatic chain reactions in baseline random
   // outcome. Only compare alternative boards when baseline has NO free match.
   if(baseline.autoMatches===0){
-   const isV2=["v2","v3","v31","v311"].includes(this.directorMode);
-   const isV3=["v3","v31","v311"].includes(this.directorMode);
+   const isV2=["v2","v3","v31","v311","v4"].includes(this.directorMode);
+   const isV3=["v3","v31","v311","v4"].includes(this.directorMode);
    const metric=board=>{
     if(!isV2)return opportunityMetrics(board,this.config.goal);
     const m=opportunityMetricsV2(board,this.config.goal,this.directorDrought);
     if(!isV3)return m;
     const base=pacingOpportunityScore(m,this.pacePhase);
-    if(this.directorMode!=="v31"&&this.directorMode!=="v311")return {...m,score:base};
+    if(!["v31","v311","v4"].includes(this.directorMode))return {...m,score:base};
     const aware=objectiveAwarenessMetrics(board,this.config.goal,this.mist);
     // Bounded bonus, no guaranteed win and no excessive recovery cheating.
     const pressure=Math.min(1,this.objectiveDrought/5);
-    const endgame=this.directorMode==="v311"&&this.config.goal.type==="mist"?
+    const endgame=["v311","v4"].includes(this.directorMode)&&this.config.goal.type==="mist"?
      endgameMistMetrics(board,this.mist):null;
     // Endgame only affects the final 1–3 fog tiles; normal 3.1 is
     // byte-for-byte identical everywhere else. No candidate may give an
     // extra move, cleanse mist, or manufacture a match.
     const urgency=endgame?.remaining<=3&&endgame?.remaining>0?
      .80+Math.min(1,this.objectiveDrought/6)*.20:0;
-    return {...m,objective:aware,endgame,
-     score:base+aware.score*(.72+pressure*.18)+
-      (endgame?endgame.score*urgency:0)};
+    const blocker=this.directorMode==="v4"?
+     blockerObjectiveMetrics(board,this.config.goal,
+      this.config.goal.type==="daruma"?this.daruma:this.sealed):null;
+    return {...m,objective:aware,endgame,blocker,
+     score:base+aware.score*(.72+pressure*(this.directorMode==="v4"?.28:.18))+
+      (endgame?endgame.score*urgency:0)+
+      (blocker?blocker.score*(.72+pressure*.28):0)};
    };
    let best=metric(baseline.board).score;
    // 2.0 intervenes conservatively (>=1.5 score advantage); it can increase
    // pressure after several turns without evolved-stage progress.
-   const threshold=["v31","v311"].includes(this.directorMode)?(this.pacePhase==="relax"?3.0:2.2):
+   const threshold=this.directorMode==="v4"?
+    (this.pacePhase==="relax"?3.2:this.objectiveDrought>=3?1.75:2.35):
+    ["v31","v311"].includes(this.directorMode)?(this.pacePhase==="relax"?3.0:2.2):
     isV3&&this.pacePhase==="relax"?2.8:
     isV2?(this.directorDrought>=3?1.1:1.5):.8;
    for(const candidate of candidates.slice(1)){
@@ -1310,7 +1374,7 @@ class Game{
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
    return {ok:false,reason:"Bytet behöver skapa minst tre i samma familj"};
   }
-  if(["v3","v31","v311"].includes(this.directorMode)){
+  if(["v3","v31","v311","v4"].includes(this.directorMode)){
    const ms=options?.decisionMs;
    // Ignore interruptions, background sleep and idle gaps beyond 90s.
    if(Number.isFinite(ms)&&ms>=0&&ms<=90000){
@@ -1324,19 +1388,27 @@ class Game{
   // Pairs are located by persistent object IDs, not original slot indices.
   const beforeStage3=this.stage3,beforeStage4=this.stage4,beforeMasterpiece=this.masterpieces;
   const beforeEcho=this.echoes,beforePulse=this.pulseHits,beforeObjective=this.progress();
+   // Partial obstacle hits are goal progress before its final destruction.
+   const beforeBlockerHealth=this.config.goal.type==="daruma"?
+    this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
+    this.sealed.reduce((n,x)=>n+x,0):0;
   this.moves--;
   const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed,a)];
   // Update drought ONCE per player move, not per cascade wave; never use score
   // progress because score-based levels gain points on virtually every turn.
-  if(["v2","v3","v31","v311"].includes(this.directorMode)){
+  if(["v2","v3","v31","v311","v4"].includes(this.directorMode)){
    const advanced=this.stage3>beforeStage3||this.stage4>beforeStage4||
     this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
    this.directorDrought=advanced?0:Math.min(12,this.directorDrought+1);
-   if(["v3","v31","v311"].includes(this.directorMode)){
-    const objectiveAdvanced=this.progress()>beforeObjective;
-    if(["v31","v311"].includes(this.directorMode))this.objectiveDrought=objectiveAdvanced?0:
+   if(["v3","v31","v311","v4"].includes(this.directorMode)){
+    const blockerHealth=this.config.goal.type==="daruma"?
+      this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
+      this.sealed.reduce((n,x)=>n+x,0):beforeBlockerHealth;
+    const objectiveAdvanced=this.progress()>beforeObjective||
+     (this.directorMode==="v4"&&blockerHealth<beforeBlockerHealth);
+    if(["v31","v311","v4"].includes(this.directorMode))this.objectiveDrought=objectiveAdvanced?0:
      Math.min(12,this.objectiveDrought+1);
-    this.paceOutcomes.push(advanced||(["v31","v311"].includes(this.directorMode)&&objectiveAdvanced));
+    this.paceOutcomes.push(advanced||(["v31","v311","v4"].includes(this.directorMode)&&objectiveAdvanced));
     this.paceOutcomes=this.paceOutcomes.slice(-8);
     const major=this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
     this.paceLastMajor=major;
@@ -1406,6 +1478,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,mistLayout,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

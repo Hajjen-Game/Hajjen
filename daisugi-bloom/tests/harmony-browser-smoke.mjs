@@ -44,6 +44,34 @@ try{
  assert(!uiMenu.introduction.includes("fem per nivå"),"Intro must not claim five families on every level");
  assert(uiMenu.familyCopy.includes("4 familjer")&&uiMenu.familyCopy.includes("5 familjer"));
  assert(uiMenu.bodyWidth<=390,"Premium menu must have no horizontal overflow");
+ // Goshuincho Primary Navigation 1.0: game -> book -> saved level ->
+ // Home -> book -> menu; no old level-list interaction in this flow.
+ const bookNavContext=await browser.createBrowserContext();
+ try{
+  const nav=await bookNavContext.newPage();
+  await nav.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await nav.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await nav.click("#continueButton");
+  assert.equal(await nav.$eval("#gameView",el=>el.hidden),false);
+  await nav.click("#pauseButton");
+  await nav.click(".pause-levels");
+  assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho");
+  assert.equal(await nav.$eval("#gameView",el=>el.hidden),true);
+  assert.equal(await nav.$eval("#menuView",el=>el.hidden),false);
+  assert.equal(await nav.$eval(".goshuin-page-count",el=>el.textContent),"Kapitel 1 · Sida 1 / 3");
+  assert.equal(await nav.$eval(".goshuin-play",el=>el.textContent),"Fortsätt nivå 1 →");
+  await nav.click(".goshuin-play");
+  assert.equal(await nav.$eval("#gameView",el=>el.hidden),false);
+  assert.equal(await nav.$eval("#modal",el=>el.hidden),true);
+  await nav.click("#homeButton");
+  assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho");
+  await nav.click(".goshuin-close");
+  assert.equal(await nav.$eval("#modal",el=>el.hidden),true);
+  assert.equal(await nav.$eval("#menuView",el=>el.hidden),false);
+  assert.equal(await nav.$eval("#levelList",el=>getComputedStyle(el).display),"none");
+  assert.equal(await nav.$eval("#levelPager",el=>getComputedStyle(el).display),"none");
+  assert.equal(await nav.$eval("#goshuinButton",el=>el.textContent.includes("Välj nivå")),true);
+ }finally{await bookNavContext.close();}
  // Daruma Awakening 1.0: the approved 3-state transparent WebP is shipped
  // and its actual state is rendered as a fixed tile on a narrow mobile board.
  const darumaArt=await page.evaluate(async()=>{

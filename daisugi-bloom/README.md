@@ -1,5 +1,12 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Harmony Director 4.0 — Objective Intelligence & Adaptive Recovery (2026-10-25)
+
+**Aktiverad automatiskt från nivå 10 och uppåt.** Nivå 1–9 använder fortsatt Pacing Director 3.0 och tidigare påbörjade spel behåller sin motor. Nya Director 4.0 analyserar riktiga träffmöjligheter på Daruma och Sealed Stones, känner igen delträffar som framsteg och föredrar försiktigt bättre lagliga brickpåfyllningar efter flera drag utan målframsteg. Inga extra drag, gratis träffar eller manipulerade poäng/stjärnor. Game Dev → Motorlab kan jämföra 3.1.1 och 4.0 med samma seed.
+
+[Specifikation, gränser och regressionstester](docs/HARMONY_DIRECTOR_4_0.md).
+
+
 ## Goshuincho Level Card Rework 1.0 — 2026-10-25
 
 Tre godkända kapitelbrickor (Sakura, Dimma och den mindre Daruma) finns nu som högupplösta separata WebP-bilder i GitHub (6.35.0). De ersätter de gamla runda, upprepade nivåmotiven. Varje nivå visar sin kapitelkonst med dynamiskt nivånummer och bara vid klarad nivå den befintliga japanska stjärnstämpeln. Ingen bild får tänjas ut eller hamna utanför kortet. Även kapitelminiatyren hämtar nu rätt bild. Sidindelningen 4+4+2, stjärnarkiv och speldata är oförändrade. Se [design och verifiering](docs/GOSHUINCHO_LEVEL_CARD_REWORK_1_0.md).

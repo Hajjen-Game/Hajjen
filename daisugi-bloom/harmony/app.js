@@ -536,7 +536,9 @@ function renderGoshuincho(){
    heading.lang="ja";
    const numeral=goshuinNode("span","goshuin-paper-kanji",japanese);
    numeral.lang="ja";
-   tile.append(heading,numeral,goshuinNode("strong","goshuin-paper-title",levelConfig.name));
+   const flourish=goshuinNode("span","goshuin-paper-sakura","✿");
+   flourish.setAttribute("aria-hidden","true");
+   tile.append(heading,numeral,goshuinNode("strong","goshuin-paper-title",levelConfig.name),flourish);
   }else{
    const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
    tile.append(levelLabel);

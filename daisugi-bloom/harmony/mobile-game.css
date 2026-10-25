@@ -4847,3 +4847,49 @@ body.harmony-reduced-motion .menu-view .level-tile{
  border-radius:0;
  box-shadow:none;
 }
+
+
+/* Goshuincho Optical Alignment 1.0 · 6.36.1
+   Alpha silhouette at >=128/255 confirms all source files retain their native
+   724px / 512px resolution. The visible shapes are offset inside transparent
+   source padding (NOT different CSS box sizes). Correct visually on the img,
+   leaving the square header and the 4:5 portrait level cards untouched.
+   Icons' measured center x: Sakura +14.5px, Mist +0.5px, Daruma -13.5px;
+   all icon silhouettes sit roughly 10px above the source's geometric center.
+   Percent translates scale with the square image across mobile breakpoints. */
+#modal .goshuin-cover-slot > img.goshuin-art{
+ transform-origin:center center;
+ transform:translate(var(--goshuin-optical-x,0%),1.4%) scale(1);
+}
+#modal .goshuin-cover-slot[data-art-key="chapter-01"]{
+ --goshuin-optical-x:-2%;
+}
+#modal .goshuin-cover-slot[data-art-key="chapter-02"]{
+ --goshuin-optical-x:0%;
+}
+#modal .goshuin-cover-slot[data-art-key="chapter-03"]{
+ --goshuin-optical-x:1.85%;
+}
+/* The star stamps also have identical image dimensions but different actual
+   ink widths: 453, 425 and 465 pixels. Balance visible impressions without
+   modifying or rasterizing any original PNG. Deliberately transform ONLY the
+   child <img>; the stamped area retains its prior position below "Nivå X". */
+#modal .goshuin-stamp .goshuin-grade > img.goshuin-art{
+ transform-origin:center center;
+ transform:translate(var(--goshuin-seal-optical-x,0%),var(--goshuin-seal-optical-y,0%)) scale(var(--goshuin-seal-optical-scale,1));
+}
+#modal .goshuin-stamp .goshuin-grade[data-grade="1"]{
+ --goshuin-seal-optical-x:1.45%;
+ --goshuin-seal-optical-y:.2%;
+ --goshuin-seal-optical-scale:.970;
+}
+#modal .goshuin-stamp .goshuin-grade[data-grade="2"]{
+ --goshuin-seal-optical-x:.3%;
+ --goshuin-seal-optical-y:.5%;
+ --goshuin-seal-optical-scale:1.030;
+}
+#modal .goshuin-stamp .goshuin-grade[data-grade="3"]{
+ --goshuin-seal-optical-x:.4%;
+ --goshuin-seal-optical-y:0%;
+ --goshuin-seal-optical-scale:.945;
+}

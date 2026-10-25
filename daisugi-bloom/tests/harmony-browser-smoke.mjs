@@ -114,7 +114,7 @@ try{
   assert(empty.scroll<=390,"The album must not overflow the phone viewport");
   // Omikuji Paper Preview 1.0: ONLY levels 1–4 have the fresh paper card.
   // The large dark heading must be the real title, not a repeated "Nivå X".
-  const freshPaper=await journal.$eval(".goshuin-stamp",tiles=>tiles.map(tile=>({
+  const freshPaper=await journal.evaluate(()=>Array.from(document.querySelectorAll(".goshuin-stamp")).map(tile=>({
    number:tile.dataset.level,paper:tile.classList.contains("is-omikuji-preview"),
    eyebrow:tile.querySelector(".goshuin-paper-eyebrow")?.textContent,
    kanji:tile.querySelector(".goshuin-paper-kanji")?.textContent,

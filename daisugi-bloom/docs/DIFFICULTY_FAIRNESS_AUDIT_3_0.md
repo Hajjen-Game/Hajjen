@@ -7,11 +7,11 @@ Earlier tests checked that boards remain playable (legal swaps, valid score acco
 
 ## What ships
 - `tools/harmony-difficulty-fairness-audit.cjs`: executes deterministic, paired seeded full games against the actual `HarmonyRules.Game` implementation using the live **Pacing Director 3.0** by default.
-- Every selected level gets the same start seed for the **random** baseline and an established **one-turn-preview goal** bot, which has exact engine knowledge. This is explicitly *not* a human performance estimate.
+- Every selected level gets the same start seed for the **random** baseline and an established **one-turn-preview goal** bot, which has exact engine knowledge. For the 13 Daruma/Sealed Stone stages, the same seed also runs a new **obstacle-aware specialist** bot that values individual damaged layers/eyes. None of these strategies is a human performance estimate.
 - Per-level and per-run records: configured goal and target, move budget, four/five families, 2★/3★ goal-completion move thresholds, won attempts, median winning moves, earned stars among wins, remaining moves on win, progress fraction on losses, near misses, longest objective stagnation, legal swaps and fixed obstacle positions.
 - Three outputs: machine-readable JSON with **every game and seed**, compact CSV for spreadsheets, and a Markdown level-by-level assessment with screening flags. Generated into `daisugi-bloom/reports/` (not copied into game files).
 - `tests/harmony-difficulty-fairness-audit.test.cjs` checks deterministic paired seeds, output formats, blocked levels and a read-only guarantee. The ordinary CI rules job runs that test.
-- A separate GitHub Actions job runs **40 × 8 × 2 = 640 games**, with files downloadable in its run's `japanese-harmony-difficulty-fairness-3-0` artifact. Existing CI and deployment remain in place.
+- A separate GitHub Actions job runs **40 × 8 × 2 + 13 × 8 = 744 games**, with files downloadable in its run's `japanese-harmony-difficulty-fairness-3-0` artifact. Existing CI and deployment remain in place.
 
 ## Interpreting diagnostic flags (not automatic balancing)
 | Code | Audit-only trigger | Interpretation |
@@ -19,12 +19,14 @@ Earlier tests checked that boards remain playable (legal swaps, valid score acco
 | LOW_GOAL_BOT_COMPLETION | Goal bot wins ≤25% | Inspect goal attainability and positioning, particularly obstacles |
 | VERY_EARLY_COMPLETION | Goal bot wins ≥75% with median ≤3 moves | Goal may be trivial or solved by easy cascades |
 | NO_3STAR_GOAL_BOT_WINS | ≥50% goal-bot wins, none 3★ | Check efficiency reward threshold against player runs |
-| LONG_GOAL_STAGNATION | Mean longest zero-objective streak ≥min(12, 38% of budget) | Player may feel stuck despite legal swaps |
+| LONG_GOAL_STAGNATION | On regular goals: mean longest zero-objective streak ≥min(12, 38% of budget) | Player may feel stuck despite legal swaps |
+| LOW_OBSTACLE_SPECIALIST_COMPLETION | On obstacle levels: specialist wins ≤25% | Inspect the challenge even when partial damage is valued |
+| LONG_PARTIAL_DAMAGE_STAGNATION | On obstacle levels: mean longest streak without any damage ≥min(10, 32% of budget) | No stone crack / Daruma eye progress for long stretches |
 | LARGE_RANDOM_VS_GOAL_GAP | Random bot wins 0 but goal bot wins at least once | Planning matters; check whether information is readable |
 | DARUMA_CHAPTER_FALLBACK_GOAL | Chapter 3 stage is not actually a Daruma challenge | Inconsistent chapter theme |
 | STONE_POSITION_REPEATED | Early chapter 4 uses center stone on repeat | Review meaningful positioning variety |
 
-**Critical interpretation caveat:** the original generic goal bot primarily rewards *completed* mission counters, not intermediate Daruma eyes or Sealed Stone cracks. It may be especially weak at four-hit obstacles. Low obstacle completion is a **test-design investigation trigger** until obstacle-aware play and real human attempts corroborate it. No threshold above proves a human level unfair. Bot trials may be too few to infer probability precisely, and the bot previews future results it could not know in actual play.
+**Critical interpretation caveat:** the original generic goal bot primarily rewards *completed* mission counters, not intermediate Daruma eyes or Sealed Stone cracks. This audit therefore runs the separate obstacle-aware specialist that specifically favors progress on every hit. Even this stronger bot is greedy, sees exact previews, and is **not** a human skill model. Low completion remains an investigation trigger until actual player attempts corroborate it. No threshold above proves a human level unfair. Bot trials may be too few to infer probability precisely, and the bot previews future results it could not know in actual play.
 
 ## Static inspection findings from v6.39.0
 - Stages **1–5** form the guided introduction; stage **11** expands from four to five active families.

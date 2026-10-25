@@ -393,7 +393,7 @@ function renderGoshuincho(){
  const crest=goshuinNode("div","goshuin-cover-slot");
  crest.dataset.artKey=info.artKey;
  crest.append(goshuinNode("span","goshuin-slot-fallback",info.symbol));
- goshuinArtwork(crest,"chapters",info.index);
+ goshuinArtwork(crest,"cards",info.index);
  const copy=goshuinNode("div","goshuin-chapter-copy");
  copy.append(goshuinNode("span","goshuin-eyebrow",
   "KAPITEL "+info.number+" · NIVÅ "+(info.first+1)+"–"+(info.last+1)),
@@ -511,12 +511,11 @@ function renderGoshuincho(){
   tile.setAttribute("aria-label","Nivå "+stamp.number+": "+
    (stamp.locked?"låst":stamp.resumable?"påbörjad":stamp.isCurrent?"nästa nivå":
     stamp.earned?"klarad, "+stamp.stars+" av 3 stjärnor":"upplåst"));
-  const slot=goshuinNode("span","goshuin-stamp-slot");
-  slot.dataset.artKey=stamp.artKey;
-  slot.append(goshuinNode("span","goshuin-slot-fallback",stamp.earned?info.symbol:stamp.locked?"·":"✿"));
-  if(stamp.earned)goshuinArtwork(slot,"stamps",stamp.level);
+  // The chapter watercolor is the card, not an off-center circle layered on top.
+  // The level number and earned grade are real, sharp DOM overlays.
   const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
-  tile.append(slot,levelLabel);
+  tile.append(levelLabel);
+  goshuinArtwork(tile,"cards",info.index);
   if(stamp.earned){
    const grade=goshuinNode("span","goshuin-grade grade-"+stamp.stars);
    grade.dataset.grade=String(stamp.stars);
@@ -524,8 +523,7 @@ function renderGoshuincho(){
    grade.append(goshuinNode("span","goshuin-slot-fallback","★".repeat(stamp.stars)));
    goshuinArtwork(grade,"grades",stamp.stars);
    tile.append(grade);
-  }else tile.append(goshuinNode("span","goshuin-locked",
-   stamp.locked?"🔒 Låst":stamp.resumable?"Pågår":stamp.isCurrent?"Nästa":"Spelbar"));
+  } // Locked/current status uses the card border + accessible aria label, no extra printed text.
   tile.addEventListener("click",()=>chooseStamp(stamp,tile));
   stamps.append(tile);
  }

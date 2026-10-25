@@ -803,6 +803,7 @@ function startLevel(i,resume=false){
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
  level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
+ activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();

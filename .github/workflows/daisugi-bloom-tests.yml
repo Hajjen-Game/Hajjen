@@ -26,6 +26,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-fortune.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
         run: node daisugi-bloom/tests/harmony-daruma.test.cjs
+      - name: Sealed Stone Chapter 4 · four-hit, eight-direction and saved-state QA
+        run: node daisugi-bloom/tests/harmony-sealed-stone.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
         run: node daisugi-bloom/tests/harmony-pulse-destination.test.cjs
       - name: Verify Japanese Harmony 4.1 visual-feedback contracts

@@ -81,6 +81,8 @@ jobs:
           echo $! > /tmp/daisugi-bloom-server.pid
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
+      - name: Run Harmony Economy and Omamori mobile smoke
+        run: node daisugi-bloom/tests/harmony-economy-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

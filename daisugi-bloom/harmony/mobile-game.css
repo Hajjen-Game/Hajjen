@@ -5128,3 +5128,89 @@ body.harmony-reduced-motion .menu-view .level-tile{
 @media(prefers-reduced-motion:reduce){
  .game-view .tile.sealed-stone-tile .sealed-stone-art{transition:none!important}
 }
+
+
+/* Goshuincho Omikuji Paper Preview 1.0 · v6.42.0
+   Scope deliberately limited to the first FOUR stamps. Reuses the live
+   Japanese star-seal PNGs and stage names, rather than baking text in art.
+   Large kanji and warm cream paper echo the approved Fortune slip. */
+#modal .goshuin-stamp.is-omikuji-preview,
+#modal .goshuin-stamp.is-omikuji-preview.is-earned,
+#modal .goshuin-stamp.is-omikuji-preview.is-available,
+#modal .goshuin-stamp.is-omikuji-preview.is-current,
+#modal .goshuin-stamp.is-omikuji-preview.is-in-progress{
+ background:
+  radial-gradient(ellipse at 14% 20%,rgba(240,174,151,.17),transparent 43%),
+  radial-gradient(ellipse at 83% 85%,rgba(230,193,142,.15),transparent 47%),
+  linear-gradient(145deg,#fff6e7,#f8e9d3);
+ border:1px solid rgba(188,143,117,.58);
+ box-shadow:0 4px 12px rgba(85,54,42,.12),inset 0 0 0 4px rgba(255,246,231,.68);
+ color:#633f3a;
+}
+#modal .goshuin-stamp.is-omikuji-preview::before{
+ content:"";
+ inset:0;
+ z-index:0;
+ background:radial-gradient(circle at 23% 18%,rgba(246,195,166,.10),transparent 33%);
+}
+#modal .goshuin-stamp.is-omikuji-preview::after{
+ inset:7px;
+ border:1px solid rgba(174,95,85,.41);
+ border-radius:clamp(8px,2.5vw,13px);
+}
+#modal .goshuin-stamp.is-omikuji-preview.is-current::after,
+#modal .goshuin-stamp.is-omikuji-preview.is-in-progress::after,
+#modal .goshuin-stamp.is-omikuji-preview.is-selected::after{
+ border-color:rgba(156,78,83,.78);
+}
+#modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-eyebrow{
+ position:absolute;z-index:3;top:10%;left:5%;right:5%;
+ color:#a75d5b;text-align:center;
+ font-family:Georgia,"Noto Serif JP","Yu Mincho",serif;
+ font-size:clamp(8px,2.4vw,11px);
+ font-weight:750;letter-spacing:.055em;line-height:1.15;
+ white-space:nowrap;
+}
+#modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-kanji{
+ position:absolute;z-index:3;top:22%;height:31%;left:5%;right:5%;
+ display:flex;align-items:center;justify-content:center;
+ font-family:"Noto Serif JP","Noto Serif CJK JP","Yu Mincho","Hiragino Mincho ProN",serif;
+ font-size:clamp(37px,12.5vw,65px);
+ font-weight:650;line-height:1;
+ color:#ad4b50;
+}
+#modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-title{
+ position:absolute;z-index:3;top:53%;height:17%;left:7%;right:7%;
+ display:flex;align-items:center;justify-content:center;
+ font-family:Georgia,"Times New Roman",serif;
+ font-size:clamp(13px,4.1vw,22px);
+ font-weight:750;line-height:1.13;
+ letter-spacing:-.025em;
+ text-align:center;text-wrap:balance;overflow-wrap:normal;
+ color:#603e3a;
+}
+#modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-sakura{
+ position:absolute;z-index:2;right:7%;bottom:6%;
+ font-size:clamp(17px,5.2vw,25px);line-height:1;
+ color:rgba(175,91,99,.25);pointer-events:none;
+}
+#modal .goshuin-stamp.is-omikuji-preview .goshuin-grade{
+ z-index:4;
+ left:50%;bottom:3%;
+ width:clamp(39px,12vw,56px);
+ height:clamp(39px,12vw,56px);
+}
+/* On narrow screens the title is always legible on at most two lines.
+   Keep the original seal below the text; never shrink source PNG pixels. */
+@media(max-width:360px){
+ #modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-eyebrow{
+  font-size:clamp(7.5px,2.25vw,9px);letter-spacing:.015em;
+ }
+ #modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-title{
+  font-size:clamp(12px,3.85vw,15px);line-height:1.12;
+ }
+ #modal .goshuin-stamp.is-omikuji-preview .goshuin-grade{
+  width:clamp(36px,11.2vw,43px);
+  height:clamp(36px,11.2vw,43px);
+ }
+}

@@ -207,7 +207,7 @@ check("Level Card Rework 1.0: three user-approved full-resolution artworks mappe
  }
  assert.equal(G.artUrl("cards",3),null,"Unillustrated chapters must use their paper fallback");
  const app=fs.readFileSync(path.resolve(__dirname,"../harmony/app.js"),"utf8");
- assert(app.includes('goshuinArtwork(tile,"cards",info.index)'));
+ assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'));
  assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'));
  assert(!app.includes('goshuinNode("span","goshuin-stamp-slot")'),
   "Old circle slots may not render off-center again");
@@ -228,7 +228,7 @@ check("Asset Fidelity 2.0 has independent high-density images with no distortion
  assert(fidelity.includes(".goshuin-cover-slot > img.goshuin-art"));
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'));
- assert(app.includes('goshuinArtwork(tile,"cards",info.index)'));
+ assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'));
  assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'));
 });
 
@@ -256,32 +256,40 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.42.2-warm-parchment"),
+ assert(html.includes("mobile-game.css?v=6.43.0-parchment-all-levels"),
   "Paper-card CSS cache must be refreshed on phones");
- assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
+ assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'),
   "Data mapping must stay untouched");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- assert(app.includes('goshuinArtwork(tile,"cards",info.index)'),
-  "Portrait level cards must be unchanged");
+ assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'),
+  "All level cards use dynamic parchment instead of per-chapter picture overlays");
  assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'),
   "Square chapter icons must remain independent from portraits");
 });
 
-check("Paper Card Preview 1.0 is limited to four cards and uses real stage names",()=>{
+check("Warm Parchment 2.0 renders all chapter cards with real level names",()=>{
  const fs=require("node:fs"),path=require("node:path");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(app.includes("stamp.level>=0&&stamp.level<4"),"Only first four levels are redesigned");
+ assert(app.includes('G.japaneseNumeral(stamp.number)'),"All chapter levels use the dynamic Japanese numbering");
+ assert(!app.includes('stamp.level>=0&&stamp.level<4'),"No first-page-only gate remains");
+ assert(app.includes('tile.classList.add("is-omikuji-preview")'),"Every stamp has parchment styling");
  assert(app.includes('goshuinNode("strong","goshuin-paper-title",levelConfig.name)'));
  assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'),"Original star seals survive");
- assert(app.includes('goshuinArtwork(tile,"cards",info.index)'),"Page 2+ watercolor stays unchanged");
- for(const glyph of ["一","二","三","四","第一番","第二番","第三番","第四番"])
-  assert(app.includes(glyph),"Japanese numeral missing: "+glyph);
- assert(css.includes("Goshuincho Warm Parchment Polish 1.2"));
+ assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'),"No watercolor level tiles remain");
+ assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'),"Keep approved chapter header pictures");
+ const cases=[[1,"一"],[4,"四"],[9,"九"],[10,"十"],[11,"十一"],[20,"二十"],
+  [23,"二十三"],[32,"三十二"],[40,"四十"],[49,"四十九"],
+  [99,"九十九"],[100,"百"],[101,"百一"],[110,"百十"],[123,"百二十三"],
+  [1000,"千"],[10000,"一万"],[12345,"一万二千三百四十五"]];
+ for(const [level,expected] of cases)assert.equal(G.japaneseNumeral(level),expected);
+ assert.equal(G.japaneseNumeral(0),"0");
+ assert.equal(G.japaneseNumeral(1.3),"1.3");
+ assert(css.includes("Goshuincho Warm Parchment 2.0"));
  assert(css.includes("#fbedd0")&&css.includes("#f5dfb4")&&css.includes("#efd09a"),
-  "First four cards must use the approved warm golden parchment palette");
- const scoped=css.slice(css.indexOf("/* Goshuincho Warm Parchment Polish 1.2"));
+  "Every card must use the approved warm golden parchment palette");
+ const scoped=css.slice(css.indexOf("/* Goshuincho Warm Parchment 2.0"));
  assert(!scoped.includes("rgba(240,174,151"),"Old pink tint removed");
  assert(scoped.includes("rgba(214,170,103,.16)")&&scoped.includes("rgba(255,239,204,.30)"),
   "Additional honey-gold highlights must replace the flat gray-beige appearance");
@@ -295,9 +303,12 @@ check("Paper Card Preview 1.0 is limited to four cards and uses real stage names
   "Small phones retain legible paper typography");
  for(const className of ["goshuin-paper-title","goshuin-paper-kanji","goshuin-paper-eyebrow","goshuin-paper-sakura"])
   assert(css.includes("#modal .goshuin-stamp.is-omikuji-preview ."+className),
-   "Style must be scoped to the four preview cards");
- assert(html.includes('app.js?v=6.42.0-omikuji-cards'));
- assert(html.includes('mobile-game.css?v=6.42.2-warm-parchment'));
+   "Paper typography applies to all Goshuincho level cards");
+ assert(css.includes(".goshuin-paper-kanji.is-multi-kanji")&&css.includes(".goshuin-paper-title.is-long"),
+  "Long Japanese numerals and titles must scale on small screens");
+ assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'));
+ assert(html.includes('app.js?v=6.43.0-parchment-all-levels'));
+ assert(html.includes('mobile-game.css?v=6.43.0-parchment-all-levels'));
  const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
  assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
 });

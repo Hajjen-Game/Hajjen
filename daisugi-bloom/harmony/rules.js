@@ -95,7 +95,19 @@ function endlessScoreConfig(index){
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.
 // Objectives are fixed by level index, never adjusted by Director or player.
-function endlessConfig(index,withDaruma=true){
+function endlessConfig(index,withDaruma=true,withSealed=true){
+ // Chapter 4: four independent hits per stone; the final hit
+ // frees eight-way Awakening Pulse. Older in-progress runs opt out.
+ if(withSealed&&index>=30&&index<40){
+  const old=endlessConfig(index,false,false);
+  const count=sealedPositions(index).length;
+  const moves=[36,36,38,40,38,42,42,44,46,48][index-30];
+  return {...old,name:index===30?"First Sealed Stone":index===39?"Awakening Garden":"Sealed Stone · "+(index+1),
+   subtitle:index===30?"Frigör den första stenen":"Bryt "+count+" förseglingar",
+   goal:{type:"sealedStone",count},sealedStoneVersion:1,moves,par:Math.max(20,moves-12),
+   intro:"Varje Sealed Stone kräver fyra separata drag. Fusioner intill stenen och Harmony Pulse skadar förseglingen. När stenen brister träffar Awakening Pulse alla åtta omkringliggande rutor, även diagonalerna."};
+ }
+
  // The first Daruma is introduced at Level 21, AFTER the first twenty.
  // Carefully placed, fixed dolls have two hits (different player moves).
  // Earlier saves from these levels keep their original pre-Daruma goal.
@@ -241,13 +253,31 @@ function clone(b){return b.map(p=>p?{family:p.family,stage:p.stage,id:p.id}:null
 function neighbors(i){let row=Math.floor(i/N),col=i%N,a=[];if(row>0)a.push(i-N);if(col<N-1)a.push(i+1);if(row<N-1)a.push(i+N);if(col>0)a.push(i-1);return a;}
 function scan(board){
  const lines=[];
- for(let r=0;r<N;r++)for(let c=0;c<N;){let i=r*N+c,f=board[i]&&!isDaruma(board[i])&&board[i].family,e=c+1;while(f&&e<N&&board[r*N+e]&&board[r*N+e].family===f)e++;if(f&&e-c>=3)lines.push(Array.from({length:e-c},(_,k)=>r*N+c+k));c=e;}
- for(let c=0;c<N;c++)for(let r=0;r<N;){let i=r*N+c,f=board[i]&&!isDaruma(board[i])&&board[i].family,e=r+1;while(f&&e<N&&board[e*N+c]&&board[e*N+c].family===f)e++;if(f&&e-r>=3)lines.push(Array.from({length:e-r},(_,k)=>(r+k)*N+c));r=e;}
+ for(let r=0;r<N;r++)for(let c=0;c<N;){let i=r*N+c,f=board[i]&&!isFixed(board[i])&&board[i].family,e=c+1;while(f&&e<N&&board[r*N+e]&&board[r*N+e].family===f)e++;if(f&&e-c>=3)lines.push(Array.from({length:e-c},(_,k)=>r*N+c+k));c=e;}
+ for(let c=0;c<N;c++)for(let r=0;r<N;){let i=r*N+c,f=board[i]&&!isFixed(board[i])&&board[i].family,e=r+1;while(f&&e<N&&board[e*N+c]&&board[e*N+c].family===f)e++;if(f&&e-r>=3)lines.push(Array.from({length:e-r},(_,k)=>(r+k)*N+c));r=e;}
  const groups=[];
  for(const line of lines){let group=new Set(line),found=true;while(found){found=false;for(let j=groups.length-1;j>=0;j--)if(groups[j].some(v=>group.has(v))){for(const v of groups[j])group.add(v);groups.splice(j,1);found=true;}}groups.push([...group].sort((a,b)=>a-b));}
  return groups.sort((a,b)=>a[0]-b[0]);
 }
 function isDaruma(p){return !!p&&p.family==="daruma";}
+function isSealed(p){return !!p&&p.family==="sealedStone";}
+function isFixed(p){return isDaruma(p)||isSealed(p);}
+function neighbors8(i){
+ const r=Math.floor(i/N),c=i%N,out=[];
+ for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+  if(!dr&&!dc)continue;
+  const row=r+dr,col=c+dc;
+  if(row>=0&&row<N&&col>=0&&col<N)out.push(row*N+col);
+ }
+ return out;
+}
+function sealedPositions(level){
+ return ({
+  30:[24],31:[24],32:[24],33:[17,31],34:[24],
+  35:[17,31],36:[16,32],37:[17,31],
+  38:[10,24,38],39:[16,24,32]
+ })[level]?.slice()||[];
+}
 function darumaPositions(level){
  if(level===20)return [24]; // center, surrounded by four routes
  if(level===22)return [17,31]; // separate rows and columns
@@ -257,7 +287,7 @@ function darumaPositions(level){
 function validSwaps(board){
  const all=[];
  for(let a=0;a<49;a++)for(const b of [a+1,a+N]){
-  if(b>=49 || (b===a+1&&a%7===6)||!board[a]||!board[b]||isDaruma(board[a])||isDaruma(board[b])||board[a].family===board[b].family)continue;
+  if(b>=49 || (b===a+1&&a%7===6)||!board[a]||!board[b]||isFixed(board[a])||isFixed(board[b])||board[a].family===board[b].family)continue;
   [board[a],board[b]]=[board[b],board[a]];
   let yes=scan(board).some(g=>g.includes(a)||g.includes(b));
   [board[a],board[b]]=[board[b],board[a]];
@@ -272,7 +302,7 @@ function validSwaps(board){
 function directedHint(board,pair){
  if(!Array.isArray(pair)||pair.length!==2)return null;
  const [a,b]=pair;
- if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=N*N||b>=N*N||!board[a]||!board[b]||isDaruma(board[a])||isDaruma(board[b])||!neighbors(a).includes(b))return null;
+ if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=N*N||b>=N*N||!board[a]||!board[b]||isFixed(board[a])||isFixed(board[b])||!neighbors(a).includes(b))return null;
  const next=board.slice();[next[a],next[b]]=[next[b],next[a]];
  const groups=scan(next);
  const score=i=>groups.reduce((sum,g)=>sum+(g.includes(i)?g.length:0),0);
@@ -334,8 +364,8 @@ function fairShuffle(board,rand){
  // Identity-preserving recovery with a fixed Daruma: never move the blocker.
  // Randomly permute the same playable pieces until there is no free match
  // and at least one legal move. All IDs/stages and Daruma cells are retained.
- if(board.some(isDaruma)){
-  const spots=board.map((p,i)=>isDaruma(p)?-1:i).filter(i=>i>=0);
+ if(board.some(isFixed)){
+  const spots=board.map((p,i)=>isFixed(p)?-1:i).filter(i=>i>=0);
   const pieces=spots.map(i=>board[i]);
   for(let tries=0;tries<1600;tries++){
    const shuffled=pieces.slice();
@@ -346,7 +376,7 @@ function fairShuffle(board,rand){
    spots.forEach((at,j)=>{candidate[at]=shuffled[j];});
    if(!scan(candidate).length&&validSwaps(candidate).length)return candidate;
   }
-  throw new Error("No playable shuffle with fixed Daruma cells");
+  throw new Error("No playable shuffle with fixed blocker cells");
  }
  if(board.length!==N*N||board.some(p=>!p))throw new Error("Fair shuffle needs a full 7x7 board");
  const originals=board.slice();
@@ -927,7 +957,7 @@ class Game{
  frame(type,extra={}){return {type,board:clone(this.board),daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
-  const p=this.board[i];if(!p||isDaruma(p)||p.stage>=5)return false;
+  const p=this.board[i];if(!p||isFixed(p)||p.stage>=5)return false;
   p.stage++;this.markStage(p);
   if(p.stage===5)created.add(i);
   return true;
@@ -1019,7 +1049,7 @@ class Game{
    let bonuses=[],unused=0;
    for(const record of records){
     let count=record.number===4?1:record.number>=5?2:0;
-    let eligible=neighbors(record.at).filter(i=>this.board[i]&&!isDaruma(this.board[i])&&this.board[i].stage<5&&!indirect.has(i));
+    let eligible=neighbors(record.at).filter(i=>this.board[i]&&!isFixed(this.board[i])&&this.board[i].stage<5&&!indirect.has(i));
     eligible.sort((a,b)=>this.board[b].stage-this.board[a].stage||neighbors(record.at).indexOf(a)-neighbors(record.at).indexOf(b));
     for(const i of eligible.slice(0,count))if(this.grow(i,created,true)){indirect.add(i);bonuses.push({from:record.at,to:i,stage:this.board[i].stage});}
     unused+=Math.max(0,count-Math.min(count,eligible.length));
@@ -1091,9 +1121,9 @@ class Game{
     // through a stationary blocker. Once removed, the segment rejoins.
     let bottom=N-1;
     while(bottom>=0){
-     if(isDaruma(this.board[bottom*N+c])){bottom--;continue;}
+     if(isFixed(this.board[bottom*N+c])){bottom--;continue;}
      let top=bottom;
-     while(top>=0&&!isDaruma(this.board[top*N+c]))top--;
+     while(top>=0&&!isFixed(this.board[top*N+c]))top--;
      const keep=[];
      for(let r=bottom;r>top;r--)if(this.board[r*N+c])keep.push(this.board[r*N+c]);
      for(let r=bottom;r>top;r--)this.board[r*N+c]=keep[bottom-r]||null;
@@ -1128,7 +1158,7 @@ class Game{
  swap(a,b,options=null){
   if(this.moves<=0||this.failed)return {ok:false,reason:"Nivån är avslutad"};
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
-   isDaruma(this.board[a])||isDaruma(this.board[b]))
+   isFixed(this.board[a])||isFixed(this.board[b]))
    return {ok:false,reason:"Daruma står stilla – skapa fusioner bredvid den"};
   const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];

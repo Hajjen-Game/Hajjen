@@ -1890,7 +1890,7 @@ try{
  await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Börja om nivån"));
- assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Till nivåval"));
+ assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Till Goshuincho"));
  const pauseLayout=await page.evaluate(()=>{
   const actions=document.querySelector("#modalActions");
   const buttons=[...actions.querySelectorAll("button")];

@@ -201,6 +201,9 @@ try{
   await journal.waitForSelector('.goshuin-stamp[data-level="13"] .goshuin-grade.has-art');
   assert.equal(await journal.$eval('.goshuin-stamp[data-level="13"] .goshuin-grade .goshuin-atlas-art',
    x=>x.style.backgroundPosition),"100% 100%","Three stars uses one gold 三星 seal");
+  await journal.click('.goshuin-stamp[data-level="13"]');
+  const recordColor=await journal.$eval(".goshuin-level-record",x=>getComputedStyle(x).color);
+  assert.equal(recordColor,"rgb(92, 71, 62)","Recorded score must be readable on paper");
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Första harmonin");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
@@ -238,12 +241,8 @@ try{
   await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-390.png"});
   await journal.click('.goshuin-stamp[data-level="3"]');
   assert((await journal.$eval(".goshuin-detail",el=>el.textContent)).includes("3 av 3 stjärnor"));
-  const colors=await journal.evaluate(()=>({
-   objective:getComputedStyle(document.querySelector(".goshuin-level-objective")).color,
-   record:getComputedStyle(document.querySelector(".goshuin-level-record")).color
-  }));
-  assert.equal(colors.objective,"rgb(92, 71, 62)");
-  assert.equal(colors.record,"rgb(92, 71, 62)");
+  const objectiveColor=await journal.$eval(".goshuin-level-objective",x=>getComputedStyle(x).color);
+  assert.equal(objectiveColor,"rgb(92, 71, 62)");
   const preserved=await journal.evaluate(()=>{
    const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {fourFamilyStars:s.fourFamilyStars,bestStars:s.bestStars};

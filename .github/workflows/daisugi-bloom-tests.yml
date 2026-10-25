@@ -90,6 +90,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
       - name: Run Omikuji Fortune daily-draw mobile smoke
         run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
+      - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
+        run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

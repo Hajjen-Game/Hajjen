@@ -1,5 +1,10 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Goshuincho Artwork Fidelity 1.0 — 2026-10-25
+
+En korrigering i v6.34.1 hindrar fyrkantiga kapitel- och stjärnbilder från att tänjas ut i rektangulära hållare. Separata högupplösta illustrationer stöds redan, men de nio original-PNG:erna kunde inte exporteras från projektets bildbibliotek till GitHub i detta pass. Den tidigare 96px-AVIF-atlasen används därför fortfarande; faktisk pixelupplösning behöver uppgraderas innan bildskärpan är fullt återställd. Se [fidelity-status och överlämning](docs/GOSHUINCHO_ARTWORK_FIDELITY_1_0.md).
+
+
 ## Goshuincho Stamp Slot Polish 1.0 — 2026-10-25
 
 Bokens första tre kapitel använder nu godkända illustrerade Sakura-/Dimma-/Daruma-bilder, och klarade nivåers bildrutor får kapitelbundna runda stämplar. De bruna stjärnpillren har ersatts av en mjukt avrundad plakett med **ett enda** japanskt sigill: 一星, 二星 eller 三星. Ett optimerat transparent 3×3-AVIF-ark (8,5 kB) innehåller de nio befintliga godkända illustrationerna. Nivå-/kapitelbilder och betyg går fortfarande att byta individuellt i `harmony/goshuincho.js`. Kapitelsigillet har en förberedd illustrerad hållare; ingen ny belöningsbild är påhittad. Textkontrast och markering av vald nivå förbättrad. Befintliga nivåer, låsningar, poäng, stjärnor och sparfiler är oförändrade. Läs [design och bildkarta](docs/GOSHUINCHO_STAMP_SLOT_POLISH_1_0.md).

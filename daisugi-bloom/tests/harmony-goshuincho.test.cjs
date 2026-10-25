@@ -256,8 +256,8 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.39.0-sealed-stone"),
-  "Fresh CSS cache must be fetched by phones");
+ assert(html.includes("mobile-game.css?v=6.42.0-omikuji-cards"),
+  "Paper-card CSS cache must be refreshed on phones");
  assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
   "Data mapping must stay untouched");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
@@ -267,4 +267,24 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
   "Square chapter icons must remain independent from portraits");
 });
 
+check("Paper Card Preview 1.0 is limited to four cards and uses real stage names",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ assert(app.includes("stamp.level>=0&&stamp.level<4"),"Only first four levels are redesigned");
+ assert(app.includes('goshuinNode("strong","goshuin-paper-title",levelConfig.name)'));
+ assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'),"Original star seals survive");
+ assert(app.includes('goshuinArtwork(tile,"cards",info.index)'),"Page 2+ watercolor stays unchanged");
+ for(const glyph of ["一","二","三","四","第一番","第二番","第三番","第四番"])
+  assert(app.includes(glyph),"Japanese numeral missing: "+glyph);
+ assert(css.includes("Goshuincho Omikuji Paper Preview 1.0"));
+ for(const className of ["goshuin-paper-title","goshuin-paper-kanji","goshuin-paper-eyebrow","goshuin-paper-sakura"])
+  assert(css.includes("#modal .goshuin-stamp.is-omikuji-preview ."+className),
+   "Style must be scoped to the four preview cards");
+ assert(html.includes('app.js?v=6.42.0-omikuji-cards'));
+ assert(html.includes('mobile-game.css?v=6.42.0-omikuji-cards'));
+ const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
+ assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
+});
 console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0 and Optical Alignment 1.0 tests passed.");

@@ -16,10 +16,10 @@ const THEMES=[
  {title:"Månljusets väg",subtitle:"Nya steg i natten",motif:"moon",symbol:"☾"},
  {title:"Lyktornas stig",subtitle:"Ett varmt sken framåt",motif:"lantern",symbol:"✦"}
 ];
-// Stamp Slot Polish 1.0: the nine approved transparent illustrations live in
-// one tiny optimized 3x3 AVIF sprite sheet. Rows: chapter art, level stamps,
-// grade seals. Columns: Sakura/Mist/Daruma or 1/2/3 stars.
-// Every slot is independently replaceable by a PNG/WebP/AVIF string later.
+// Asset Fidelity 2.0: the six APPROVED independent high-resolution PNGs
+// supply chapter headings and 1/2/3-star seals. Keep the old atlas only as
+// legacy fallback for future per-level stamp overrides, never as the visible
+// chapter or rating asset. Standalone 4:5 cards are in ART.cards.
 const ATLAS="./assets/goshuincho/goshuincho-nine-atlas.avif?v=6.34.0";
 const tile=(column,row)=>({src:ATLAS,column,row});
 const ART={
@@ -30,10 +30,18 @@ const ART={
   2:"./assets/goshuincho/level-card-daruma.webp?v=6.35.0"
  },
  covers:{}, // reserved for future hand-made chapter completion artwork
- chapters:{0:tile(0,0),1:tile(1,0),2:tile(2,0)},
- stamps:{0:tile(0,1),1:tile(1,1),2:tile(2,1)}, // reusable chapter motifs
+ chapters:{
+  0:"./assets/goshuincho/chapter-icon-sakura.png?v=6.36.0",
+  1:"./assets/goshuincho/chapter-icon-mist.png?v=6.36.0",
+  2:"./assets/goshuincho/chapter-icon-daruma.png?v=6.36.0"
+ },
+ stamps:{0:tile(0,1),1:tile(1,1),2:tile(2,1)}, // legacy optional standalone level-stamp override; not used by current cards
  levelStamps:{}, // optional per-level override, keyed by zero-based stage
- grades:{1:tile(0,2),2:tile(1,2),3:tile(2,2)}
+ grades:{
+  1:"./assets/goshuincho/star-seal-1.png?v=6.36.0",
+  2:"./assets/goshuincho/star-seal-2.png?v=6.36.0",
+  3:"./assets/goshuincho/star-seal-3.png?v=6.36.0"
+ }
 };
 const clampStars=value=>{
  const v=Number(value);

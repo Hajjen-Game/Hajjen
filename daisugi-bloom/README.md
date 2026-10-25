@@ -1,5 +1,10 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Goshuincho Level Card Rework 1.0 — 2026-10-25
+
+Tre godkända kapitelbrickor (Sakura, Dimma och den mindre Daruma) finns nu som högupplösta separata WebP-bilder i GitHub (6.35.0). De ersätter de gamla runda, upprepade nivåmotiven. Varje nivå visar sin kapitelkonst med dynamiskt nivånummer och bara vid klarad nivå den befintliga japanska stjärnstämpeln. Ingen bild får tänjas ut eller hamna utanför kortet. Även kapitelminiatyren hämtar nu rätt bild. Sidindelningen 4+4+2, stjärnarkiv och speldata är oförändrade. Se [design och verifiering](docs/GOSHUINCHO_LEVEL_CARD_REWORK_1_0.md).
+
+
 ## Goshuincho Artwork Fidelity 1.0 — 2026-10-25
 
 En korrigering i v6.34.1 hindrar fyrkantiga kapitel- och stjärnbilder från att tänjas ut i rektangulära hållare. Separata högupplösta illustrationer stöds redan, men de nio original-PNG:erna kunde inte exporteras från projektets bildbibliotek till GitHub i detta pass. Den tidigare 96px-AVIF-atlasen används därför fortfarande; faktisk pixelupplösning behöver uppgraderas innan bildskärpan är fullt återställd. Se [fidelity-status och överlämning](docs/GOSHUINCHO_ARTWORK_FIDELITY_1_0.md).

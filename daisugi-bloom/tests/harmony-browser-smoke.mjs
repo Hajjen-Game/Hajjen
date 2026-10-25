@@ -63,11 +63,18 @@ try{
   await nav.click(".goshuin-play");
   assert.equal(await nav.$eval("#gameView",el=>el.hidden),false);
   assert.equal(await nav.$eval("#modal",el=>el.hidden),true);
-  await nav.click("#homeButton");
+  // During gameplay the global header is intentionally hidden, so use
+  // the actual in-game pause action before checking the menu's Home button.
+  await nav.click("#pauseButton");
+  await nav.click(".pause-levels");
   assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho");
   await nav.click(".goshuin-close");
   assert.equal(await nav.$eval("#modal",el=>el.hidden),true);
   assert.equal(await nav.$eval("#menuView",el=>el.hidden),false);
+  await nav.click("#homeButton");
+  assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho",
+   "The visible Home action must also open the primary level book");
+  await nav.click(".goshuin-close");
   assert.equal(await nav.$eval("#levelList",el=>getComputedStyle(el).display),"none");
   assert.equal(await nav.$eval("#levelPager",el=>getComputedStyle(el).display),"none");
   assert.equal(await nav.$eval("#goshuinButton",el=>el.textContent.includes("Välj nivå")),true);

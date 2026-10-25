@@ -5,9 +5,9 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Goshuincho Warm Parchment 2.0 · 6.43.0</title>
+ <title>Japanese Harmony · Goshuincho Primary Navigation 1.0 · 6.44.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.43.0-parchment-all-levels">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.44.0-goshuincho-primary">
  <script defer src="./harmony/rules.js?v=6.41.0-chapter-identity"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
@@ -15,7 +15,7 @@
  <script defer src="./harmony/goshuincho.js?v=6.43.0-japanese-numerals"></script>
  <script defer src="./harmony/economy.js?v=6.37.0"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.43.0-parchment-all-levels"></script>
+ <script defer src="./harmony/app.js?v=6.44.0-goshuincho-primary"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -23,7 +23,7 @@
       alt="" aria-hidden="true" decoding="async" fetchpriority="high">
  <div id="app">
   <header class="topbar">
-   <button id="homeButton" class="brand" aria-label="Till nivåval"><span class="brand-flower">✿</span><span>JAPANESE <strong>HARMONY</strong></span></button>
+   <button id="homeButton" class="brand" aria-label="Öppna Goshuincho nivåval"><span class="brand-flower">✿</span><span>JAPANESE <strong>HARMONY</strong></span></button>
    <div class="top-actions"><button id="helpButton" class="secondary small">Så spelar du</button><button id="devButton" class="secondary small dev-shortcut" aria-label="Game Dev Motorlab">Game Dev</button><button id="settingsButton" class="icon-button" aria-label="Inställningar">⚙</button></div>
   </header>
   <main>
@@ -35,14 +35,14 @@
       <div class="hero-pills" aria-label="Spelprinciper"><span>Inga power-ups</span><span>Strategiska kedjor</span><span>Personliga rekord</span></div>
     </div>
     <div class="level-panel">
-      <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">First Harmony</h2><p id="chapterSubtitle">Fem korta introduktionsnivåer. Harmony Mist från nivå 4.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
+      <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">Goshuincho</h2><p id="chapterSubtitle">Fem korta introduktionsnivåer. Harmony Mist från nivå 4.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
       <div class="family-progression-note" aria-label="Objektfamiljer per nivå">
        <strong>✿ 4 familjer · nivå 1–10</strong>
        <span>5 familjer från nivå 11 · mjuk övergång</span>
       </div>
       <button type="button" id="goshuinButton" class="goshuin-entry">
        <span class="goshuin-entry-icon" aria-hidden="true">▤</span>
-       <span class="goshuin-entry-copy"><strong>Goshuincho · Min samlarbok</strong><small>Samla stämplar och välj nivå direkt i boken</small></span>
+       <span class="goshuin-entry-copy"><strong>Goshuincho · Välj nivå</strong><small>Öppna samlarboken, välj kapitel och spela</small></span>
        <span class="goshuin-entry-progress" id="goshuinProgress">0 / 10 stämplar</span>
        <span class="goshuin-entry-arrow" aria-hidden="true">›</span>
       </button>
@@ -72,8 +72,10 @@
         <p id="directorModeDescription">Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.</p>
        </div>
       </details>
-      <div id="levelList" class="level-list"></div><nav id="levelPager" class="level-pager" aria-label="Bläddra mellan nivåer"></nav>
-      <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Klara nivåmålet för en stjärna. Färre drag ger upp till tre.</p></div>
+      <!-- Legacy level-list DOM is kept hidden temporarily for compatibility
+           with historical diagnostic checks. Players use Goshuincho instead. -->
+      <div id="levelList" class="level-list" hidden aria-hidden="true" inert></div><nav id="levelPager" class="level-pager" hidden aria-hidden="true" inert></nav>
+      <div class="panel-footer"><button class="primary" id="continueButton">Spela nästa nivå →</button><p>Välj nivå i Goshuincho. Klara målet för en stjärna, färre drag ger upp till tre.</p></div>
     </div>
    </section>
    <section id="gameView" class="game-view" hidden>

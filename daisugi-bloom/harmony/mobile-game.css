@@ -4520,3 +4520,54 @@ body.harmony-reduced-motion .menu-view .level-tile{
  #modal .goshuin-stamp .goshuin-grade{width:62px;height:54px}
  #modal .goshuin-cover-slot{width:53px;height:60px}
 }
+
+
+/* Goshuincho Artwork Fidelity 1.0 · 6.34.1
+   IMPORTANT: the approved nine-image fallback atlas has *square* 96px cells.
+   Stretching a background-size:300% sprite over the previous rectangular
+   chapter/grade boxes warped faces, petals and kanji. Always render each
+   atlas cell in a geometrically square viewport. Independent hi-res PNG/WebP
+   assets continue to use <img> + object-fit:contain without cropping.
+   This is a geometry fix, not a claim that lost atlas detail is recovered. */
+#modal .goshuin-atlas-art{
+  inset:auto;
+  display:block;
+  aspect-ratio:1 / 1;
+  background-repeat:no-repeat;
+  background-origin:padding-box;
+  image-rendering:auto;
+  filter:none;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
+  pointer-events:none;
+}
+#modal .goshuin-cover-slot .goshuin-atlas-art,
+#modal .goshuin-stamp-slot .goshuin-atlas-art{
+  width:100%;
+  height:auto;
+  max-width:100%;
+  max-height:100%;
+}
+/* Grade plaques are wider than tall: size the artwork by their *height*.
+   The previous width:calc(100% - 10px) stretched a 96x96 cell horizontally. */
+#modal .goshuin-stamp .goshuin-grade .goshuin-atlas-art{
+  inset:auto;
+  height:calc(100% - 10px);
+  width:auto;
+  max-width:calc(100% - 10px);
+  aspect-ratio:1 / 1;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
+}
+/* Future independently supplied hi-res originals retain their aspect ratio,
+   even in rectangular cover/grade slots. No CSS blur or forced stretching. */
+#modal .goshuin-cover-slot img.goshuin-art,
+#modal .goshuin-stamp-slot img.goshuin-art,
+#modal .goshuin-grade img.goshuin-art{
+  object-fit:contain;
+  object-position:center;
+  image-rendering:auto;
+  filter:none;
+}

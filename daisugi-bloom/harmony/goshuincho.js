@@ -13,7 +13,7 @@ const THEMES=[
  {title:"Första harmonin",subtitle:"Din resa tar sin början",motif:"sakura",symbol:"✿"},
  {title:"Dimträdgården",subtitle:"Genom dimma och mästerverk",motif:"mist",symbol:"☁"},
  {title:"Darumas önskan",subtitle:"Två ögon, ett löfte",motif:"daruma",symbol:"◉"},
- {title:"Månljusets väg",subtitle:"Nya steg i natten",motif:"moon",symbol:"☾"},
+ {title:"Förseglingarnas väg",subtitle:"Fyra sprickor, åtta riktningar",motif:"sealed-stone",symbol:"✦"},
  {title:"Lyktornas stig",subtitle:"Ett varmt sken framåt",motif:"lantern",symbol:"✦"}
 ];
 // Asset Fidelity 2.0: the six APPROVED independent high-resolution PNGs

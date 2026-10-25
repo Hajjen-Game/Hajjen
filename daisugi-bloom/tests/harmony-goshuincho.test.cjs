@@ -164,4 +164,19 @@ check("Chapter seal progress is counted on the full chapter only",()=>{
  assert.equal(end.visible.length,2);
  assert.equal(G.summary(s).completedChapters,1);
 });
-console.log("Goshuincho Collection Pagination Rework 1.0 tests passed.");
+
+check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques",()=>{
+ const fs=require("node:fs");
+ const path=require("node:path");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
+ const section=css.slice(css.lastIndexOf("/* Goshuincho Artwork Fidelity 1.0"));
+ assert(section.length>500,"A dedicated fidelity override must exist");
+ assert.match(section, /aspect-ratio:1\s*\/\s*1/, "Atlas cells must stay square");
+ assert.match(section, /goshuin-grade \.goshuin-atlas-art/, "Non-square rating plaque needs its own square artwork");
+ assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
+ assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ assert.match(html, /mobile-game\.css\?v=6\.34\.1-artwork-fidelity/, "Cache must refresh fidelity CSS");
+});
+
+console.log("Goshuincho Collection Pagination Rework 1.0 + Artwork Fidelity 1.0 tests passed.");

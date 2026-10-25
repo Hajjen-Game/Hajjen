@@ -22,6 +22,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Harmony Economy & Omamori 1.0 · deterministic payouts and collection
         run: node daisugi-bloom/tests/harmony-economy.test.cjs
+      - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
+        run: node daisugi-bloom/tests/harmony-fortune.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
         run: node daisugi-bloom/tests/harmony-daruma.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
@@ -68,6 +70,7 @@ jobs:
           node --check daisugi-bloom/tools/harmony-four-families-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-objective-balance.cjs
           node --check daisugi-bloom/harmony/economy.js
+          node --check daisugi-bloom/harmony/fortune.js
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -83,6 +86,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Run Harmony Economy and Omamori mobile smoke
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
+      - name: Run Omikuji Fortune daily-draw mobile smoke
+        run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

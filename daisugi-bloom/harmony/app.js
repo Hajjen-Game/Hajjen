@@ -314,15 +314,40 @@ function renderMenu(){
 // Goshuincho Level Select 2.0 — the book reuses the EXISTING progression,
 // launch/resume behaviour, and save archives. The old level list stays live.
 // Individual stamp, grade and chapter art slots remain independently swappable.
+const goshuinArtCache=new Map();
+function goshuinArtReady(src){
+ if(!goshuinArtCache.has(src)){
+  goshuinArtCache.set(src,new Promise(resolve=>{
+   const probe=new Image();
+   probe.onload=()=>resolve(true);
+   probe.onerror=()=>resolve(false);
+   probe.src=src;
+  }));
+ }
+ return goshuinArtCache.get(src);
+}
 function goshuinArtwork(slot,kind,key){
- const url=G.artUrl(kind,key);
- if(!url)return;
- const img=new Image();
- img.className="goshuin-art";
- img.alt="";img.decoding="async";
- img.onload=()=>{slot.append(img);slot.classList.add("has-art");};
- img.onerror=()=>{}; // keep the accessible, legible placeholder
- img.src=url;
+ const asset=G.artUrl(kind,key);
+ if(!asset)return;
+ const source=typeof asset==="string"?asset:asset.src;
+ if(!source)return;
+ const artwork=typeof asset==="string"?document.createElement("img"):document.createElement("span");
+ artwork.className="goshuin-art"+(typeof asset==="string"?"":" goshuin-atlas-art");
+ if(typeof asset==="string"){
+  artwork.alt="";
+  artwork.decoding="async";
+  artwork.src=source;
+ }else{
+  const col=Math.max(0,Math.min(2,Number(asset.column)||0));
+  const row=Math.max(0,Math.min(2,Number(asset.row)||0));
+  artwork.style.backgroundImage='url("'+source+'")';
+  artwork.style.backgroundSize="300% 300%";
+  artwork.style.backgroundPosition=(col*50)+"% "+(row*50)+"%";
+ }
+ goshuinArtReady(source).then(ok=>{
+  if(!ok||!slot.isConnected)return; // preserve fallback when art is missing
+  slot.append(artwork);slot.classList.add("has-art");
+ });
 }
 function goshuinNode(tag,cls,text){
  const node=document.createElement(tag);
@@ -534,10 +559,13 @@ function renderGoshuincho(){
   finale.append(progress);
   const sigil=goshuinNode("div","goshuin-chapter-sigil"+(info.completed?" is-earned":""));
   sigil.dataset.artKey=info.artKey+"-complete";
-  sigil.append(goshuinNode("span","goshuin-sigil-mark",info.completed?"✦":"○"),
-   goshuinNode("span","",info.completed?"Kapitelsigill intjänat":
+  const sealSlot=goshuinNode("span","goshuin-chapter-seal-slot");
+  sealSlot.dataset.artKey=info.artKey+"-complete";
+  sealSlot.append(goshuinNode("span","goshuin-slot-fallback",info.completed?"✦":"○"));
+  if(info.completed)goshuinArtwork(sealSlot,"covers",info.index);
+  sigil.append(sealSlot,goshuinNode("span","goshuin-chapter-seal-label",
+   info.completed?"Kapitelsigill intjänat":
     info.earned+" / "+G.CHAPTER_SIZE+" stämplar · Kapitelsigillet väntar"));
-  if(info.completed)goshuinArtwork(sigil,"covers",info.index);
   finale.append(sigil);
   page.append(finale);
  }

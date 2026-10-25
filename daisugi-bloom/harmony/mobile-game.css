@@ -4361,3 +4361,162 @@ body.harmony-reduced-motion .menu-view .level-tile{
  .goshuin-page-count{font-size:9px}
  .goshuin-nav-button{padding:5px 7px;font-size:10px}
 }
+
+
+/* Goshuincho Stamp Slot Polish 1.0 · 6.34.0
+   Approved chapter art, chapter-specific stamps and Japanese grade seals.
+   Chapter and stamp pictures own their artwork, UI owns the framing.
+   3x3 compressed sprite atlas can be replaced with per-slot PNG/WebP later. */
+#modal .goshuin-cover-slot{
+ width:70px;
+ height:76px;
+ border:1px solid rgba(147,94,80,.40);
+ border-radius:13px;
+ box-shadow:inset 0 1px rgba(255,252,240,.88),0 2px 5px rgba(88,60,45,.12);
+ background:#f7e4cc;
+ overflow:hidden;
+}
+#modal .goshuin-cover-slot.has-art{
+ box-shadow:0 1px 3px rgba(100,66,48,.12);
+ border-color:rgba(147,94,80,.17);
+ background:transparent;
+}
+#modal .goshuin-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+#modal .goshuin-atlas-art{background-repeat:no-repeat}
+#modal .goshuin-cover-slot .goshuin-art{inset:0}
+#modal .goshuin-stamp{
+ background:linear-gradient(155deg,#fff8e8,#f9edda);
+ border-color:rgba(162,115,89,.32);
+ box-shadow:0 3px 9px rgba(109,75,58,.08),inset 0 1px rgba(255,255,255,.8);
+ gap:7px;
+ padding:11px 7px;
+}
+#modal .goshuin-stamp-slot{
+ width:clamp(76px,22vw,102px);
+ height:clamp(76px,22vw,102px);
+ border-color:rgba(178,114,113,.45);
+}
+#modal .goshuin-stamp-slot.has-art{
+ border:0;
+ border-radius:0;
+ background:none;
+ overflow:visible;
+}
+#modal .goshuin-stamp-slot.has-art .goshuin-art{inset:0}
+#modal .goshuin-stamp.is-empty .goshuin-stamp-slot:not(.has-art){
+ border-style:dashed;
+ border-color:rgba(163,132,106,.48);
+ background:rgba(151,134,109,.07);
+}
+#modal .goshuin-stamp.is-selected{
+ outline:2px solid rgba(152,81,95,.80);
+ outline-offset:1px;
+ box-shadow:0 0 0 3px rgba(253,223,197,.73),inset 0 0 0 1px rgba(176,101,106,.30);
+}
+#modal .goshuin-stamp.is-current,#modal .goshuin-stamp.is-in-progress{
+ background:linear-gradient(160deg,#fff6e3,#f5dfca);
+ border-color:#ab7775;
+}
+#modal .goshuin-stamp .goshuin-level-label{font-size:12px;color:#674c40}
+#modal .goshuin-stamp .goshuin-grade{
+ position:relative;
+ display:grid;
+ place-items:center;
+ width:72px;
+ min-width:0;
+ height:62px;
+ margin:0;
+ padding:4px;
+ border:1px solid rgba(149,106,81,.35);
+ border-radius:13px;
+ background:linear-gradient(148deg,#fff8e9,#ead3b6);
+ box-shadow:0 2px 4px rgba(99,66,44,.12),inset 0 1px rgba(255,255,255,.92);
+ color:#a05b61;
+ font-size:14px;
+ letter-spacing:0;
+}
+#modal .goshuin-stamp .goshuin-grade.grade-2{
+ background:linear-gradient(145deg,#fff5e7,#efd4b8);
+}
+#modal .goshuin-stamp .goshuin-grade.grade-3{
+ border-color:#c39a57;
+ background:linear-gradient(145deg,#fff6d8,#f4ddb1);
+ color:#9b672c;
+}
+#modal .goshuin-stamp .goshuin-grade .goshuin-art{inset:5px;width:calc(100% - 10px);height:calc(100% - 10px)}
+#modal .goshuin-stamp .goshuin-grade .goshuin-slot-fallback{font-size:15px;color:#98685c}
+#modal .goshuin-level-detail{
+ border-color:rgba(141,97,79,.42);
+ background:#fdf1dc;
+}
+#modal .goshuin-level-detail .goshuin-detail,
+#modal .goshuin-level-detail .goshuin-level-objective,
+#modal .goshuin-level-detail .goshuin-level-record,
+#modal .goshuin-finale .goshuin-finale-description{
+ color:#5c473e!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+#modal .goshuin-level-detail .goshuin-level-objective{font-size:12px;font-weight:750}
+#modal .goshuin-level-detail .goshuin-level-record{font-size:11px}
+#modal .goshuin-finale{
+ background:linear-gradient(145deg,#fff4dd,#eed7b6);
+ border-color:rgba(152,99,80,.35);
+}
+#modal .goshuin-chapter-sigil{
+ position:relative;
+ display:flex;
+ gap:11px;
+ justify-content:center;
+ align-items:center;
+ padding:10px 13px;
+ min-height:76px;
+ background:linear-gradient(135deg,#fff4df,#eacfb4);
+ border:1px solid rgba(158,113,94,.53);
+ border-radius:13px;
+ color:#784a4b;
+ box-shadow:inset 0 1px rgba(255,253,246,.8);
+}
+#modal .goshuin-chapter-sigil.is-earned{
+ background:linear-gradient(140deg,#f8dec5,#efd0b6);
+ border-color:rgba(162,103,98,.76);
+}
+#modal .goshuin-chapter-seal-slot{
+ display:grid;
+ place-items:center;
+ position:relative;
+ flex:none;
+ width:60px;
+ height:60px;
+ border:2px solid rgba(167,112,101,.56);
+ border-radius:12px;
+ background:rgba(255,248,230,.67);
+ color:#9f5d64;
+ font-size:30px;
+ overflow:hidden;
+}
+#modal .goshuin-chapter-sigil:not(.is-earned) .goshuin-chapter-seal-slot{
+ opacity:.55;
+ filter:grayscale(.5);
+}
+#modal .goshuin-chapter-seal-label{
+ flex:1;
+ min-width:0;
+ text-align:left;
+ font-size:12px;
+ line-height:1.3;
+ font-weight:800;
+ color:#714e4c;
+}
+@media(max-width:390px){
+ #modal .goshuin-cover-slot{width:59px;height:66px}
+ #modal .goshuin-stamp-slot{width:clamp(70px,23vw,88px);height:clamp(70px,23vw,88px)}
+ #modal .goshuin-stamp{padding:8px 5px;gap:5px}
+ #modal .goshuin-stamp .goshuin-grade{width:66px;height:57px}
+ #modal .goshuin-chapter-seal-slot{width:54px;height:54px}
+}
+@media(max-width:345px){
+ #modal .goshuin-stamp-slot{width:67px;height:67px}
+ #modal .goshuin-stamp .goshuin-grade{width:62px;height:54px}
+ #modal .goshuin-cover-slot{width:53px;height:60px}
+}

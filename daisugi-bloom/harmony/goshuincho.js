@@ -16,12 +16,19 @@ const THEMES=[
  {title:"Månljusets väg",subtitle:"Nya steg i natten",motif:"moon",symbol:"☾"},
  {title:"Lyktornas stig",subtitle:"Ett varmt sken framåt",motif:"lantern",symbol:"✦"}
 ];
-// Everything rendered with CSS/text until image assets are explicitly added.
-// Examples: chapters:{2:"./assets/goshuincho/chapter-daruma.webp"},
-// stamps:{20:"./assets/goshuincho/level-21.webp"},
-// grades:{3:"./assets/goshuincho/three-star-seal.webp"}.
-// Each image is layered on its own replaceable slot, not baked into UI text.
-const ART={covers:{},chapters:{},stamps:{},grades:{}};
+// Stamp Slot Polish 1.0: the nine approved transparent illustrations live in
+// one tiny optimized 3x3 AVIF sprite sheet. Rows: chapter art, level stamps,
+// grade seals. Columns: Sakura/Mist/Daruma or 1/2/3 stars.
+// Every slot is independently replaceable by a PNG/WebP/AVIF string later.
+const ATLAS="./assets/goshuincho/goshuincho-nine-atlas.avif?v=6.34.0";
+const tile=(column,row)=>({src:ATLAS,column,row});
+const ART={
+ covers:{}, // reserved for future hand-made chapter completion artwork
+ chapters:{0:tile(0,0),1:tile(1,0),2:tile(2,0)},
+ stamps:{0:tile(0,1),1:tile(1,1),2:tile(2,1)}, // reusable chapter motifs
+ levelStamps:{}, // optional per-level override, keyed by zero-based stage
+ grades:{1:tile(0,2),2:tile(1,2),3:tile(2,2)}
+};
 const clampStars=value=>{
  const v=Number(value);
  return Number.isFinite(v)?Math.max(0,Math.min(3,Math.trunc(v))):0;
@@ -96,9 +103,13 @@ function summary(state){
   currentChapter:lastCurrentChapter};
 }
 function artUrl(type,key){
- const dictionary=ART[type];
- return dictionary&&Object.prototype.hasOwnProperty.call(dictionary,key)?
-  dictionary[key]:null;
+ // A chapter-stamp may be reused by ten levels until unique illustrations
+ // are approved, but each level can later override its own artwork.
+ if(type==="stamps"){
+  const own=ART.levelStamps?.[key];
+  return own||ART.stamps?.[Math.floor(Number(key)/CHAPTER_SIZE)]||null;
+ }
+ return ART[type]?.[key]||null;
 }
 const api={CHAPTER_SIZE,PAGE_SIZE,PAGES_PER_CHAPTER,ART,archivedStars,levelStatus,chapter,chapterSnapshot,pageForLevel,pageSnapshot,summary,artUrl};
 root.HarmonyGoshuincho=api;

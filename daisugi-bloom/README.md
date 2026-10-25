@@ -1,5 +1,10 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+## Goshuincho Stamp Slot Polish 1.0 — 2026-10-25
+
+Bokens första tre kapitel använder nu godkända illustrerade Sakura-/Dimma-/Daruma-bilder, och klarade nivåers bildrutor får kapitelbundna runda stämplar. De bruna stjärnpillren har ersatts av en mjukt avrundad plakett med **ett enda** japanskt sigill: 一星, 二星 eller 三星. Ett optimerat transparent 3×3-AVIF-ark (8,5 kB) innehåller de nio befintliga godkända illustrationerna. Nivå-/kapitelbilder och betyg går fortfarande att byta individuellt i `harmony/goshuincho.js`. Kapitelsigillet har en förberedd illustrerad hållare; ingen ny belöningsbild är påhittad. Textkontrast och markering av vald nivå förbättrad. Befintliga nivåer, låsningar, poäng, stjärnor och sparfiler är oförändrade. Läs [design och bildkarta](docs/GOSHUINCHO_STAMP_SLOT_POLISH_1_0.md).
+
+
 ## Goshuincho Pagination Rework 1.0 — 2026-10-25
 
 Boken visar nu **4 + 4 + 2 stämplar per kapitel**, i ett rymligt 2×2-rutnät med större motivplatser. Detaljpanelen visas först vid nivåval (eller på sidan där en påbörjad/aktuell nivå finns). Sista kapitelsidan visar två nivåer och en tydlig sektion för kapitelprogression och kapitelsigill. Kapitel innehåller fortfarande tio nivåer; stjärnor, sparfiler, låsta nivåer, fortsatt spel och den vanliga nivålistan är helt oförändrade. Ingen ny bild behövs för att testa layouten. Läs [pagination-design och QA](docs/GOSHUINCHO_PAGINATION_REWORK_1_0.md).

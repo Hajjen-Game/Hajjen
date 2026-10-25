@@ -50,13 +50,24 @@ check("Chapter sigil only appears after all ten achievements, stars can improve"
  assert.equal(G.chapterSnapshot(s,0).stars,12);
  assert.equal(G.chapterSnapshot(s,0).earned,10);
 });
-check("Collectible art URLs are optional external mappings, not baked art or broken requests",()=>{
- assert.equal(G.artUrl("chapters",0),null);
- assert.equal(G.artUrl("stamps",10),null);
- assert.equal(G.artUrl("grades",3),null);
+check("Stamp Slot Polish: nine approved artworks mapped to chapter, stamp and grade slots",()=>{
+ const a=G.artUrl("chapters",0),b=G.artUrl("chapters",1),c=G.artUrl("chapters",2);
+ assert([a,b,c].every(v=>v.src.includes("goshuincho-nine-atlas.avif")));
+ assert.deepEqual([a.column,b.column,c.column],[0,1,2]);
+ assert.deepEqual([a.row,b.row,c.row],[0,0,0]);
+ assert.deepEqual([G.artUrl("stamps",0).row,G.artUrl("stamps",10).row,G.artUrl("stamps",20).row],[1,1,1]);
+ assert.deepEqual([G.artUrl("stamps",9).column,G.artUrl("stamps",19).column,G.artUrl("stamps",29).column],[0,1,2]);
+ assert.deepEqual([1,2,3].map(i=>G.artUrl("grades",i).column),[0,1,2]);
+ assert([1,2,3].every(i=>G.artUrl("grades",i).row===2));
+ assert.equal(G.artUrl("stamps",30),null,"Unillustrated chapters keep placeholder");
+ assert.equal(G.artUrl("covers",0),null,"Chapter completion seal is a reserved slot, not invented art");
+ G.ART.levelStamps[12]="./assets/goshuincho/level-13.webp";
+ assert.equal(G.artUrl("stamps",12),"./assets/goshuincho/level-13.webp","Unique level art can replace shared motif");
+ delete G.ART.levelStamps[12];
  G.ART.grades[3]="./assets/goshuincho/three-star-seal.webp";
  assert.equal(G.artUrl("grades",3),"./assets/goshuincho/three-star-seal.webp");
- delete G.ART.grades[3];
+ G.ART.grades[3]=c&&{...G.ART.chapters[2],row:2};
+ assert.equal(G.artUrl("grades",3).row,2);
 });
 check("The entire collection is pure/read-only and scales beyond the first 50 stages",()=>{
  const state={unlocked:213,bestStars:{10:1,19:2,200:3},fourFamilyStars:{1:3},bestScores:{},fourFamilyScores:{}};

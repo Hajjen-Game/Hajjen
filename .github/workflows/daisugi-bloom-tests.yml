@@ -200,7 +200,7 @@ jobs:
           if-no-files-found: warn
 
   difficulty-fairness-audit:
-    name: Difficulty & Fairness 3.0 · 40 levels / 640 seeded games
+    name: Difficulty & Fairness 3.0 · 40 levels / 744 seeded games
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

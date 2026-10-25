@@ -15,7 +15,7 @@ const R = require("../harmony/rules.js");
 const Lab = require("../harmony/diagnostics.js").create(R);
 
 const VERSION = "difficulty-fairness-3.0";
-const GAME_VERSION = "6.39.0";
+const GAME_VERSION = "6.40.0";
 const STRATEGIES = ["random", "goal"];
 const parseLevels = value => {
   const match = /^(\d+)-(\d+)$/.exec(value);
@@ -234,7 +234,7 @@ function makeCsv(report) {
 function makeMarkdown(report) {
   const o=report.options,n=o.trials;
   const lines=[
-    "# Difficulty & Fairness Audit 3.0 – Japanese Harmony 6.39.0",
+    "# Difficulty & Fairness Audit 3.0 – Japanese Harmony "+GAME_VERSION+"",
     "",
     "**Reproducible diagnostic report. Not a human-playtest result, not an estimate of player win rates.**",
     "",

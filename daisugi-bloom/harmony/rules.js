@@ -1376,15 +1376,26 @@ function bestHint(game){
   const echo=trial.echoes-game.echoes;
   const pulse=trial.pulseHits-game.pulseHits;
   const goalProgress=Math.max(0,trial.progress()-previousProgress);
+  // Chapter Identity 1.0: an individual painted Daruma eye or stone crack
+  // is genuine objective progress even BEFORE the whole obstacle is cleared.
+  // Otherwise the idle hint may recommend unrelated high-score fusions.
+  // Hit credit is based on actual trial result, not an invented special move.
+  const objective=game.config.goal.type;
+  const hitBefore=objective==="daruma"?game.daruma:
+   objective==="sealedStone"?game.sealed:null;
+  const hitAfter=objective==="daruma"?trial.daruma:
+   objective==="sealedStone"?trial.sealed:null;
+  const blockerHits=hitBefore?hitBefore.reduce((total,hp,i)=>
+   total+Math.max(0,hp-(hitAfter[i]||0)),0):0;
   // For score levels, points ARE the objective; never double-count them.
-  const goalWeight=game.config.goal.type==="score"?0:450;
+  const goalWeight=objective==="score"?0:450;
   const value=points+made*1100+stage4*350+stage3*150+
-   echo*200+pulse*55+goalProgress*goalWeight;
+   echo*200+pulse*55+goalProgress*goalWeight+blockerHits*1800;
   const sourceStage=game.board[hint.from]?.stage||0;
   // Stable tie-break favors moving the LESS evolved object; it leaves a
   // mature piece in position when equivalent swaps give the same outcome.
   const candidate={...hint,pair:pair.slice(),value,expectedPoints:points,
-   goalProgress,made,stage4,stage3,echo,pulse,sourceStage};
+   goalProgress,blockerHits,made,stage4,stage3,echo,pulse,sourceStage};
   if(!best||candidate.value>best.value||
    (candidate.value===best.value&&candidate.sourceStage<best.sourceStage)||
    (candidate.value===best.value&&candidate.sourceStage===best.sourceStage&&

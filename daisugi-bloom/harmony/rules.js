@@ -92,6 +92,52 @@ function endlessScoreConfig(index){
   goal:{type:"score",count:stars[0]},stars,
   intro:"Nå poängmålet för en stjärna. Fortsätt samla poäng för två eller tre stjärnor."};
 }
+// Chapter Gameplay Identity 1.0 – authored challenges, not procedural copies.
+// Every route uses the EXISTING Daruma/Sealed Stone mechanics (2 / 4 moves
+// per blocker) and an explicit, recognizable layout. Indices are zero-based.
+// Level 28/30 Mist goals and their freshly calibrated stars stay untouched.
+const CHAPTER_DARUMA_DESIGNS={
+ 20:{name:"Daruma Awakening",subtitle:"Första önskningen",positions:[24],
+     moves:36,par:22,focus:"Två träffar från fusioner eller Harmony Pulse fullbordar din första Daruma."},
+ 22:{name:"Twin Wishes",subtitle:"Två önskningar, två riktningar",positions:[17,31],
+     moves:40,par:28,focus:"Välj mellan två åtskilda Daruma. Varje docka behöver två olika drag."},
+ 23:{name:"Faraway Wishes",subtitle:"Två avlägsna Daruma",positions:[9,39],
+     moves:42,par:28,focus:"Två Daruma ligger långt från varandra. Planera vägen till båda."},
+ 25:{name:"Diagonal Wishes",subtitle:"Fusioner över diagonalen",positions:[16,32],
+     moves:42,par:28,focus:"Fullborda båda Daruma. En vanlig Harmony Pulse går i fyra riktningar, inte diagonalt."},
+ 26:{name:"Temple Gate",subtitle:"Två Daruma runt mitten",positions:[23,25],
+     moves:42,par:28,focus:"Sikta på fusioner nära mittgången för att nå båda Daruma."},
+ 28:{name:"Three Wishes",subtitle:"Kapitlets Daruma-final",positions:[10,24,38],
+     moves:46,par:34,focus:"Tre Daruma väntar i olika delar av planen. Varje öga kräver ett separat drag."}
+};
+const CHAPTER_RELIEF_DESIGNS={
+ 21:{name:"Moonlit Mist",subtitle:"En väg mellan önskningar",focus:"Rena dimman för att öppna trädgården mellan två Daruma-utmaningar."},
+ 24:{name:"Festival of Fusion",subtitle:"Vila genom fusion",focus:"Gör elva fusioner och bygg vidare på de starkaste föremålen."},
+ 27:{name:"The Hidden Path",subtitle:"Dimma mellan Daruma",focus:"Rena fjorton dimrutor. Placera fusioner där dimman faktiskt ligger."},
+ 29:{name:"Final Blessing",subtitle:"Rena femton dimrutor",focus:"Sista steget i Daruma-kapitlet: rena trädgården med precision och Harmony Pulse."}
+};
+const CHAPTER_STONE_DESIGNS=[
+ {name:"First Sealed Stone",subtitle:"Lär dig bryta förseglingen",positions:[24],
+  focus:"Fyra separata träffar bryter den första stenen. När den brister frigörs Awakening Pulse i åtta riktningar."},
+ {name:"Northern Seal",subtitle:"Stenen ovanför mitten",positions:[17],
+  focus:"En försegling högre upp på spelplanen. Bygg fusioner på dess grannrutor."},
+ {name:"Southern Seal",subtitle:"Stenen nedanför mitten",positions:[31],
+  focus:"Nu ligger stenen längre ned. Håll utrymmet runt den öppet."},
+ {name:"Twin Seals",subtitle:"Två skilda förseglingar",positions:[17,31],
+  focus:"Bryt två stenar. Fördela träffarna mellan olika områden."},
+ {name:"Hidden Seal",subtitle:"En sten på en ny väg",positions:[16],
+  focus:"En försegling åt sidan kräver en annan fusionsposition än mittstenen."},
+ {name:"Distant Seals",subtitle:"Förseglingar i motsatta hörn",positions:[9,39],
+  focus:"Två stenar ligger långt ifrån varandra. Skapa möjligheter på båda sidor."},
+ {name:"Diagonal Seals",subtitle:"Två diagonalrutter",positions:[16,32],
+  focus:"Välj vilken av två diagonalt förskjutna stenar du arbetar mot."},
+ {name:"Awakening Link",subtitle:"Närliggande stenar",positions:[23,24],
+  focus:"Två förseglingar sitter intill varandra. En Awakening Pulse kan hjälpa till att spräcka den andra."},
+ {name:"Three Seals",subtitle:"Tre separata mål",positions:[10,24,38],
+  focus:"Tre stenar delar spelplanen. Planera träffarna och frigör utrymmet."},
+ {name:"Awakening Garden",subtitle:"Kapitlets sista kedja",positions:[16,24,32],
+  focus:"Tre förseglingar står diagonalt nära varandra. Utnyttja Awakening Pulse för att bygga en kedja."}
+];
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.
 // Objectives are fixed by level index, never adjusted by Director or player.
@@ -100,25 +146,24 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
  // frees eight-way Awakening Pulse. Older in-progress runs opt out.
  if(withSealed&&index>=30&&index<40){
   const old=endlessConfig(index,false,false);
-  const count=sealedPositions(index).length;
+  const chapter=CHAPTER_STONE_DESIGNS[index-30];
+  const count=chapter.positions.length;
   const moves=[36,36,38,40,38,42,42,44,46,48][index-30];
-  return {...old,name:index===30?"First Sealed Stone":index===39?"Awakening Garden":"Sealed Stone · "+(index+1),
-   subtitle:index===30?"Frigör den första stenen":"Bryt "+count+" förseglingar",
+  return {...old,name:chapter.name,subtitle:chapter.subtitle,
    goal:{type:"sealedStone",count},sealedStoneVersion:1,moves,par:Math.max(20,moves-12),
-   intro:"Varje Sealed Stone kräver fyra separata drag. Fusioner intill stenen och Harmony Pulse skadar förseglingen. När stenen brister träffar Awakening Pulse alla åtta omkringliggande rutor, även diagonalerna."};
+   intro:chapter.focus+" Varje Sealed Stone kräver fyra träffar på olika drag; den sista frigör Awakening Pulse i åtta riktningar."};
  }
 
  // The first Daruma is introduced at Level 21, AFTER the first twenty.
  // Carefully placed, fixed dolls have two hits (different player moves).
  // Earlier saves from these levels keep their original pre-Daruma goal.
- if(withDaruma&&[20,22,25].includes(index)){
+ if(withDaruma&&Object.prototype.hasOwnProperty.call(CHAPTER_DARUMA_DESIGNS,index)){
   const old=endlessConfig(index,false);
-  const count=index===20?1:2;
-  return {...old,name:index===20?"Daruma Awakening":index===22?"Daruma Wishes":"Daruma Garden",
-   subtitle:index===20?"Fullborda din första Daruma":"Fullborda "+count+" Daruma",
-   moves:index===20?36:index===22?40:42,par:index===20?22:28,
+  const design=CHAPTER_DARUMA_DESIGNS[index],count=design.positions.length;
+  return {...old,name:design.name,subtitle:design.subtitle,
+   moves:design.moves,par:design.par,
    goal:{type:"daruma",count},darumaVersion:1,
-   intro:"Daruma står stilla. Fusioner på en grannruta eller Harmony Pulse ger ett öga. Två träffar på olika drag fullbordar varje Daruma."};
+   intro:design.focus+" Daruma kan inte flyttas. Fusioner på grannrutor eller Harmony Pulse fyller ett öga per drag."};
  }
 
  if(index>=10&&index<20){
@@ -157,7 +202,9 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   goal.type==="fusion"?"Gör "+goal.count+" lyckade fusioner.":
   goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
   "Träffa "+goal.count+" föremål med Harmony Pulse.";
- return {...base,name:label,subtitle:mist?"Rena trädgårdens magiska dimma":"Ett nytt harmonimål",
+ const rest=index>=20&&index<30?CHAPTER_RELIEF_DESIGNS[index]:null;
+ return {...base,name:rest?.name||label,
+  subtitle:rest?.subtitle||(mist?"Rena trädgårdens magiska dimma":"Ett nytt harmonimål"),
   // Fairness Rebalance 1.0: the chapter-three finale was running out of
   // moves in otherwise promising games. Four more turns on NEW runs only.
   moves:index===29?40:earlyJourney?earlyMoves[stage]:base.moves,
@@ -165,7 +212,7 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
    goal.type==="masterpiece"?(earlyJourney?16:16+chapter):
    goal.type==="fusion"?(earlyJourney?15:13+chapter):
    goal.type==="stage3"?(earlyJourney?17:15+chapter):(earlyJourney?17:18+chapter),
-  intro:description,objectiveVersion:2,balanceVersion:1,chapter:number};
+  intro:rest?.focus||description,objectiveVersion:2,balanceVersion:1,chapter:number};
 }
 // Mist Layout Rebalance 2.0: current Fusion Destination Control cleanses
 // only the fusion LANDING cell, and Harmony Pulse cleanses only occupied
@@ -281,17 +328,10 @@ function neighbors8(i){
  return out;
 }
 function sealedPositions(level){
- return ({
-  30:[24],31:[24],32:[24],33:[17,31],34:[24],
-  35:[17,31],36:[16,32],37:[17,31],
-  38:[10,24,38],39:[16,24,32]
- })[level]?.slice()||[];
+ return CHAPTER_STONE_DESIGNS[level-30]?.positions.slice()||[];
 }
 function darumaPositions(level){
- if(level===20)return [24]; // center, surrounded by four routes
- if(level===22)return [17,31]; // separate rows and columns
- if(level===25)return [16,32];
- return [];
+ return CHAPTER_DARUMA_DESIGNS[level]?.positions.slice()||[];
 }
 function validSwaps(board){
  const all=[];

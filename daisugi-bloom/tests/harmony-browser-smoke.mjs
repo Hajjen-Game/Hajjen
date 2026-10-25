@@ -2191,9 +2191,11 @@ try{
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
   await page.click("#pauseButton");
- await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Till nivåval").click());
+ await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Till Goshuincho").click());
  assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert.equal(await page.$eval("#gameView",x=>x.hidden),true);
+ assert.equal(await page.$eval("#modalTitle",x=>x.textContent),"Goshuincho",
+  "Returning from the pause menu must open the primary level book");
  assert.notEqual(await page.$eval(".topbar",e=>getComputedStyle(e).display),"none","Level select must restore main header");
  // Regression: if an HD URL fails after deployment, a known-good image must
  // replace it, not leave a plain dark background.

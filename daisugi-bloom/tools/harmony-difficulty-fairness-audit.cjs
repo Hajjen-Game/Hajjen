@@ -50,6 +50,68 @@ const median = a => {
   return s[Math.floor(s.length/2)];
 };
 const mean = (a,field) => round(a.reduce((sum,x)=>sum+x[field],0)/a.length);
+// Additional obstacle-aware BOT. Unlike the generic goal bot, it values EACH
+// cracked Sealed Stone layer / painted Daruma eye, not only the final clear.
+// This is a stronger diagnostic counterfactual, NOT a human skill model.
+function obstacleUnits(g,positions,type) {
+  return positions.reduce((total,at) => total+
+    (type==="sealedStone"?4-(g.sealed[at]||0):2-Math.min(2,g.daruma[at]||0)),0);
+}
+function specialistPlay(level,seed,mode) {
+  const map={director3:"v3",director31:"v31",director311:"v311",director2:"v2",director:"v1",standard:"standard"};
+  const g=new R.Game(level,null,{seed,directorMode:map[mode]||"v3"});
+  const type=g.config.goal.type;
+  assert(["daruma","sealedStone"].includes(type));
+  const positions=g.board.flatMap((p,i)=>p&&p.family===type?[i]:[]);
+  const totalUnits=positions.length*(type==="daruma"?2:4);
+  const firstLegal=R.validSwaps(g.board).length;
+  let moves=0,drought=0,maxGoalDrought=0,noGoalTurns=0;
+  let damageDrought=0,maxDamageDrought=0,damageTurns=0,zeroLegalTurns=0;
+  while(g.moves>0&&!g.complete) {
+    const options=R.validSwaps(g.board);
+    if(!options.length){zeroLegalTurns++;break;}
+    const snapshot=g.save(),priorUnits=obstacleUnits(g,positions,type);
+    const priorGoal=g.progress(),priorScore=g.score;
+    const decisionMs=10500+(moves%4)*2200;
+    let best=null;
+    for(const [a,b] of options) {
+      const trial=new R.Game(level,snapshot,{fastRestore:true});
+      const result=trial.swap(a,b,{decisionMs});
+      assert(result.ok);
+      const deltaUnits=obstacleUnits(trial,positions,type)-priorUnits;
+      const goalDelta=trial.progress()-priorGoal;
+      const scoreDelta=trial.score-priorScore;
+      let future=0;
+      // Small tie-breaker: invest in developed ordinary pieces next to
+      // fixed obstacles, without fabricating a guaranteed next turn.
+      for(const pos of positions)if(trial.board[pos]?.family===type){
+        for(const near of R.neighbors(pos)) {
+          const p=trial.board[near];
+          if(p&&p.stage>=3)future+=p.stage===4?40:15;
+        }
+      }
+      const value=deltaUnits*6500+goalDelta*2000+
+        scoreDelta*.05+future+Math.min(12,R.validSwaps(trial.board).length)*2;
+      if(!best||value>best.value)best={a,b,value};
+    }
+    const outcome=g.swap(best.a,best.b,{decisionMs});
+    assert(outcome.ok);
+    moves++;
+    const newUnits=obstacleUnits(g,positions,type);
+    if(newUnits>priorUnits){damageTurns++;damageDrought=0;}else{
+      damageDrought++;maxDamageDrought=Math.max(maxDamageDrought,damageDrought);
+    }
+    if(g.progress()>priorGoal)drought=0;
+    else{drought++;noGoalTurns++;maxGoalDrought=Math.max(maxGoalDrought,drought);}
+  }
+  return {level,seed:seed>>>0,strategy:"obstacle-specialist",mode,goalType:type,won:g.complete,
+    movesUsed:moves,movesBudget:g.config.moves,progress:g.progress(),target:g.target(),
+    goalRatio:Math.min(1,g.progress()/g.target()),score:g.score,stars:g.stars(),
+    initialLegalMoves:firstLegal,zeroLegalTurns,maxGoalDrought,noGoalTurns,
+    damageTurns,damageUnits:obstacleUnits(g,positions,type),
+    totalDamageUnits:totalUnits,maxDamageDrought};
+}
+
 function summarizeRuns(sampled) {
   const won=sampled.filter(r=>r.won);
   return {
@@ -76,7 +138,11 @@ function flags(row,trials) {
     result.push("VERY_EARLY_COMPLETION");
   if (goal.wins>=Math.ceil(trials*.5)&&goal.stars.three===0)
     result.push("NO_3STAR_GOAL_BOT_WINS");
-  if (goal.avgLongestProgressDrought>=Math.min(12,row.moves*.38))
+  if (row.specialistBot) {
+    if (row.specialistBot.wins<=Math.floor(trials/4)) result.push("LOW_OBSTACLE_SPECIALIST_COMPLETION");
+    if (row.specialistBot.avgLongestDamageDrought>=Math.min(10,row.moves*.32))
+      result.push("LONG_PARTIAL_DAMAGE_STAGNATION");
+  } else if (goal.avgLongestProgressDrought>=Math.min(12,row.moves*.38))
     result.push("LONG_GOAL_STAGNATION");
   if (random.wins===0&&goal.wins>0) result.push("LARGE_RANDOM_VS_GOAL_GAP");
   // Coverage concerns are design facts, separate from simulation heuristics.
@@ -105,6 +171,15 @@ function analyze(opts) {
       if (cfg.goal.type==="sealedStone") assert(run.progress<=cfg.goal.count);
       all.push({...run,trial});
     }
+    if (["daruma","sealedStone"].includes(R.levelConfig(level).goal.type)) {
+      const run=specialistPlay(level,seed,opts.mode);
+      assert.equal(run.seed,seed);
+      assert.equal(run.zeroLegalTurns,0);
+      assert(run.initialLegalMoves>=3);
+      assert(run.movesUsed>=1&&run.movesUsed<=run.movesBudget);
+      assert.equal(run.won,run.stars>0);
+      all.push({...run,trial});
+    }
   }
   const summary=opts.levels.map(level=>{
     const cfg=R.levelConfig(level),subset=all.filter(r=>r.level===level);
@@ -118,12 +193,21 @@ function analyze(opts) {
       randomBot:summarizeRuns(subset.filter(r=>r.strategy==="random")),
       goalBot:summarizeRuns(subset.filter(r=>r.strategy==="goal"))
     };
+    const specialistRuns=subset.filter(r=>r.strategy==="obstacle-specialist");
+    if(specialistRuns.length){
+      row.specialistBot={...summarizeRuns(specialistRuns),
+        avgDamageTurns:mean(specialistRuns,"damageTurns"),
+        avgDamageUnits:mean(specialistRuns,"damageUnits"),
+        avgLongestDamageDrought:mean(specialistRuns,"maxDamageDrought"),
+        maxPossibleDamageUnits:specialistRuns[0].totalDamageUnits};
+    }
     row.flags=flags(row,opts.trials);
     return row;
   });
-  assert.equal(all.length,opts.levels.length*opts.trials*STRATEGIES.length);
+  const obstacles=opts.levels.filter(i=>["daruma","sealedStone"].includes(R.levelConfig(i).goal.type)).length;
+  assert.equal(all.length,(opts.levels.length*STRATEGIES.length+obstacles)*opts.trials);
   return {version:VERSION,gameVersion:GAME_VERSION,
-    methodology:"Actual HarmonyRules.Game; paired seeded runs, random and 1-turn-preview goal bot; NO human difficulty or completion inference.",
+    methodology:"Actual HarmonyRules.Game; paired seeded random and goal preview bots, plus an obstacle damage-aware preview bot for Daruma and Sealed Stone goals. NO human win-rate inference.",
     options:{levels:opts.levels.map(i=>i+1),trials:opts.trials,seed:opts.seed,mode:opts.mode,strategies:STRATEGIES},
     summary,allRuns:all};
 }
@@ -134,13 +218,15 @@ const csvValue = v => {
 function makeCsv(report) {
   const columns=["level","chapter","goal","target","budget","threeStarByMove","twoStarByMove","randomWins","goalWins",
     "goalMedianWinMoves","goalThreeStars","goalTwoStars","goalOneStar","goalAvgProgress","goalAvgMaxDrought",
-    "goalNearMissFailures","randomAvgProgress","darumaCells","stoneCells","flags"];
+    "goalNearMissFailures","randomAvgProgress","specialistWins","specialistMedianMoves","specialistThreeStars","specialistAvgDamageTurns","specialistAvgLongestDamageDrought","darumaCells","stoneCells","flags"];
   const lines=[columns.join(",")];
   for(const x of report.summary) {
     const g=x.goalBot,r=x.randomBot;
     lines.push([x.level,x.chapter,x.objective,x.target,x.moves,x.starThresholds.three,x.starThresholds.two,
       r.wins,g.wins,g.medianWinningMoves,g.stars.three,g.stars.two,g.stars.one,
       g.avgGoalRatio,g.avgLongestProgressDrought,g.nearMissFailures,r.avgGoalRatio,
+      x.specialistBot?.wins??null,x.specialistBot?.medianWinningMoves??null,x.specialistBot?.stars.three??null,
+      x.specialistBot?.avgDamageTurns??null,x.specialistBot?.avgLongestDamageDrought??null,
       x.darumaPositions.join("|"),x.stonePositions.join("|"),x.flags.join("|")].map(csvValue).join(","));
   }
   return lines.join("\n")+"\n";
@@ -158,6 +244,7 @@ function makeMarkdown(report) {
     "## How to interpret",
     "",
     "The goal bot simulates legal next moves with full deterministic board knowledge; it is NOT a human beginner.",
+    "Obstacle specialist separately values each damaged stone layer / Daruma eye and cannot predict human choices.",
     "Random-bot wins are a control only, not a target player success rate. A winning-move median includes wins only.",
     "3-star thresholds are the first player-move count earning 3 stars; 2-star thresholds show the last eligible move.",
     "Flags indicate topics needing design inspection or human replays, not proven balance defects.",
@@ -174,13 +261,22 @@ function makeMarkdown(report) {
       " | "+(g.medianWinningMoves===null?"—":g.medianWinningMoves)+" | "+
       g.stars.three+"/"+g.stars.two+"/"+g.stars.one+" | "+(x.flags.join(", ")||"—")+" |");
   }
+  lines.push("","## Obstacle damage-aware bot (additional paired baseline)","",
+    "| Level | Goal | Specialist wins | Specialist median moves | Specialist 3★ | Mean turns with damage | Longest damage drought (mean) |",
+    "|---:|---|---:|---:|---:|---:|---:|");
+  for(const x of report.summary)if(x.specialistBot){
+    const b=x.specialistBot;
+    lines.push("| "+x.level+" | "+x.objective+" ×"+x.target+" | "+b.wins+"/"+n+" | "+
+      (b.medianWinningMoves??"—")+" | "+b.stars.three+" | "+b.avgDamageTurns+" | "+
+      b.avgLongestDamageDrought+" |");
+  }
   lines.push("","## Screening flags","");
   const flagged=report.summary.filter(x=>x.flags.length);
   if(!flagged.length)lines.push("No flags under current diagnostic thresholds. This does not prove balance.");
   for(const x of flagged)lines.push("- Nivå "+x.level+": "+x.flags.join(", "));
   lines.push("","## Next step: human playtesting","",
     "On each flagged level, record player experience, start seed (if available), valid attempts, win/loss,",
-    "turns when the objective advanced, stars, and whether an opportunity was understandable.",
+    "turns when the objective or individual obstacle advanced, stars, and whether an opportunity was understandable.",
     "Test the specific goal, not just whether the board had valid swaps.",
     "Do not change move budgets or star thresholds based on eight diagnostic bots alone.","");
   return lines.join("\n");
@@ -194,12 +290,13 @@ function main(argv) {
   fs.writeFileSync(root+".csv",makeCsv(report));
   fs.writeFileSync(root+".md",makeMarkdown(report));
   console.log("Japanese Harmony "+GAME_VERSION+" · Difficulty & Fairness Audit 3.0 · "+report.allRuns.length+" seeded games");
-  console.log("Level | Goal | Budget | 3star/2star | Random wins | Goal wins | Goal median moves | 3/2/1 star goal | Flags");
+  console.log("Level | Goal | Budget | 3star/2star | Random wins | Goal wins | Specialist wins | Goal median moves | 3/2/1 star goal | Flags");
   for(const x of report.summary) {
     const g=x.goalBot;
     console.log([x.level,x.objective+" "+x.target,x.moves,
       x.starThresholds.three+"/"+x.starThresholds.two,
-      x.randomBot.wins+"/"+opts.trials,g.wins+"/"+opts.trials,g.medianWinningMoves??"—",
+      x.randomBot.wins+"/"+opts.trials,g.wins+"/"+opts.trials,
+      x.specialistBot?x.specialistBot.wins+"/"+opts.trials:"—",g.medianWinningMoves??"—",
       g.stars.three+"/"+g.stars.two+"/"+g.stars.one,x.flags.join(",")||"—"].join(" | "));
   }
   console.log("Audit flags: "+report.summary.filter(x=>x.flags.length).length+"/"+report.summary.length+" levels.");

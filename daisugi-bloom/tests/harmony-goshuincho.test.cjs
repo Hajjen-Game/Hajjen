@@ -187,7 +187,7 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.37\.0-economy/, "Cache must refresh optical alignment CSS");
+ assert.match(html, /mobile-game\.css\?v=6\.38\.0-omikuji/, "Cache must refresh optical alignment CSS");
 });
 
 
@@ -256,7 +256,7 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.37.0-economy"),
+ assert(html.includes("mobile-game.css?v=6.38.0-omikuji"),
   "Fresh CSS cache must be fetched by phones");
  assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
   "Data mapping must stay untouched");

@@ -1104,6 +1104,7 @@ class Game{
    const clearedMist=this.clearMist(records.map(record=>record.at));
    this.score+=earned;events.push(this.frame("fusion",{groups:records,round:waveRound,clearedMist,scoreDelta:earned}));
    if(this.darumaVersion)hitDaruma(records.map(r=>r.at),"fusion");
+   if(this.sealedStoneVersion)hitStone(records.map(r=>r.at),"fusion");
    if(!echoAwarded&&echoCandidate){
     const record=records.find(record=>echoCandidate.indices.includes(record.at));
     if(record){
@@ -1126,11 +1127,12 @@ class Game{
     unused+=Math.max(0,count-Math.min(count,eligible.length));
    }
    if(bonuses.length||unused){let pts=bonuses.length*75+unused*35;this.score+=pts;events.push(this.frame("bonus",{targets:bonuses,unused,scoreDelta:pts}));}
+   if(pendingAwakenings.length)emitAwakenings(indirect,created);
    if(created.size){
     let all=new Set(created),active=[...created],pulsed=new Set(),wave=0,chainHits=0;
     events.push(this.frame("hero",{positions:active}));
     while(active.length&&wave++<49){
-     let targets=[],mistTargets=[],darumaTargets=[],next=[],visited=new Set();
+     let targets=[],mistTargets=[],darumaTargets=[],stoneTargets=[],next=[],visited=new Set();
      for(const source of active){
       if(pulsed.has(source))continue;pulsed.add(source);
       // The Pulse is spatial: it reaches all four neighbouring CELLS.
@@ -1145,6 +1147,10 @@ class Game{
          darumaTargets.push({from:source,to});
         continue;
        }
+       if(isSealed(p)){
+        if(!stoneHitThisMove.has(to))stoneTargets.push({from:source,to});
+        continue;
+       }
        if(indirect.has(to)||!p||p.stage===5){
         // Bonus-upgraded or already-mature neighbours must not receive a
         // second evolution. They can still be cleansed of fixed-cell mist.
@@ -1156,14 +1162,17 @@ class Game{
        if(this.board[to].stage===5)next.push(to);
       }
      }
-     if(targets.length||mistTargets.length||darumaTargets.length){
+     if(targets.length||mistTargets.length||darumaTargets.length||stoneTargets.length){
       // Visual mist-only targets retain the Pulse path even on empty tiles,
       // but never grant Pulse hits, points or additional chain evolution.
       const clearedMist=this.clearMist([...targets.map(t=>t.to),...mistTargets.map(t=>t.to)]);
       chainHits+=targets.length;this.pulseHits+=targets.length;
       let points=targets.length*75;this.score+=points;
-      events.push(this.frame("pulse",{sources:active,targets,mistTargets,darumaTargets,wave,clearedMist,scoreDelta:points}));
+      events.push(this.frame("pulse",{sources:active,targets,mistTargets,darumaTargets,stoneTargets,wave,clearedMist,scoreDelta:points}));
       if(darumaTargets.length)hitDaruma(darumaTargets.map(t=>t.from),"pulse");
+      if(stoneTargets.length)hitStone(stoneTargets.map(t=>t.from),"pulse");
+      if(pendingAwakenings.length)
+       for(const at of emitAwakenings(indirect,all))if(!next.includes(at))next.push(at);
      }
      if(next.length)events.push(this.frame("hero",{positions:next}));
      active=[...new Set(next)];

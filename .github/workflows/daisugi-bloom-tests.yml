@@ -54,6 +54,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
         run: node daisugi-bloom/tests/harmony-resonance.test.cjs
+      - name: Verify Level 28/30 Fairness Rebalance 1.0 and saved-state contracts
+        run: node daisugi-bloom/tests/harmony-fairness-rebalance.test.cjs
       - name: Protect Difficulty & Fairness Audit 3.0 diagnostic contracts
         run: |
           node --check daisugi-bloom/tools/harmony-difficulty-fairness-audit.cjs
